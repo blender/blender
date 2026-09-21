@@ -5552,6 +5552,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_set_stroke_type);
   WM_operatortype_append(GREASE_PENCIL_OT_join_fills);
   WM_operatortype_append(GREASE_PENCIL_OT_separate_fills);
+  WM_operatortype_append(GREASE_PENCIL_OT_stroke_carver);
 }
 
 /* -------------------------------------------------------------------- */

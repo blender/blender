@@ -217,19 +217,20 @@ class NodeTreeEvaluator {
   const Schedule &schedule();
 
  private:
+  /* Constructs and returns a node operation that represents the given node. */
+  NodeOperation *create_node_operation(const bNode &node);
+
   /* Compile the given node into a node operation, map each input to the result of the output
    * linked to it, add the newly created operation to the operations stream, and evaluate the
    * operation. */
   void evaluate_node(const bNode &node);
 
-  /* Constructs and returns a node operation that represents to the given node. */
-  NodeOperation *create_node_operation(const bNode &node);
+  /* Map the input of the given operation with the identifier of the given input to the value of
+   * the given unlinked input. */
+  void map_unlinked_input(const bNodeSocket &input, Operation *operation);
 
   /* Map each input of the node operation to the result of the output linked to it. Unlinked inputs
-   * are mapped to the result of a newly created Input Single Value Operation, which is added to
-   * the operations stream and evaluated. Since this method might add operations to the operations
-   * stream, the actual node operation should only be added to the stream once this method is
-   * called. */
+   * are internally handled through map_unlinked_input. */
   void map_node_operation_inputs_to_their_results(const bNode &node, NodeOperation *operation);
 
   /* Create one of the concrete subclasses of the PixelOperation based on the context and currently
@@ -244,14 +245,6 @@ class NodeTreeEvaluator {
   /* Map each input of the pixel operation to the result of the output linked to it. This might
    * also correct the reference counts of the results, see the implementation for more details. */
   void map_pixel_operation_inputs_to_their_results(PixelOperation *operation);
-
-  /* Add an association between the given node and the given node operation that the node was
-   * compiled into in the node_operations_ map. */
-  void map_node_to_node_operation(const bNode &node, NodeOperation *operation);
-
-  /* Add an association between the given node and the give pixel operation that the node was
-   * compiled into in the pixel_operations_ map. */
-  void map_node_to_pixel_operation(const bNode &node, PixelOperation *operation);
 
   /* Add the given node to the compile unit. And if the domain of the compile unit is not yet
    * determined or was determined to be an identity domain, update it to the computed domain for

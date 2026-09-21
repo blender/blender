@@ -105,19 +105,19 @@ static void edgering_select(RingSelOpData *lcd)
   if (!lcd->extend) {
     for (Base *base : lcd->bases) {
       Object *ob_iter = base->object;
-      BMEditMesh *em = BKE_editmesh_from_object(ob_iter);
-      EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+      BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob_iter);
+      EDBM_flag_disable_all(bm, BM_ELEM_SELECT);
       DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
       WM_main_add_notifier(NC_GEOM | ND_SELECT, ob_iter->data);
     }
   }
 
-  BMEditMesh *em = lcd->em;
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(lcd->ob);
   BMEdge *eed_start = lcd->eed;
   BMWalker walker;
   BMEdge *eed;
   BMW_init(&walker,
-           em->bm,
+           bm,
            BMW_EDGERING,
            BMW_MASK_NOP,
            BMW_MASK_NOP,
@@ -129,7 +129,7 @@ static void edgering_select(RingSelOpData *lcd)
   for (eed = static_cast<BMEdge *>(BMW_begin(&walker, eed_start)); eed;
        eed = static_cast<BMEdge *>(BMW_step(&walker)))
   {
-    BM_edge_select_set(em->bm, eed, true);
+    BM_edge_select_set(bm, eed, true);
   }
   BMW_end(&walker);
 }
@@ -141,14 +141,13 @@ static void ringsel_find_edge(RingSelOpData *lcd, const int previewlines)
     if (gcache->is_init == false) {
       Scene *scene_eval = DEG_get_evaluated(lcd->vc.depsgraph, lcd->vc.scene);
       Object *ob_eval = DEG_get_evaluated(lcd->vc.depsgraph, lcd->ob);
-      BMEditMesh *em = BKE_editmesh_from_object(lcd->ob);
       gcache->vert_positions = BKE_editmesh_vert_coords_when_deformed(
-          lcd->vc.depsgraph, em, scene_eval, ob_eval, gcache->allocated_vert_positions);
+          lcd->vc.depsgraph, scene_eval, ob_eval, gcache->allocated_vert_positions);
       gcache->is_init = true;
     }
-
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(lcd->ob);
     EDBM_preselect_edgering_update_from_edge(
-        lcd->presel_edgering, lcd->em->bm, lcd->eed, previewlines, gcache->vert_positions);
+        lcd->presel_edgering, bm, lcd->eed, previewlines, gcache->vert_positions);
   }
   else {
     EDBM_preselect_edgering_clear(lcd->presel_edgering);
@@ -169,6 +168,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 
   if (lcd->eed) {
     BMEditMesh *em = lcd->em;
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(lcd->ob);
     BMVert *v_eed_orig[2] = {lcd->eed->v1, lcd->eed->v2};
 
     edgering_select(lcd);
@@ -185,7 +185,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
       /* Enable grid-fill, so that intersecting loop-cut works as one would expect.
        * Note though that it will break edge-slide in this specific case.
        * See #31939. */
-      BM_mesh_esubdivide(em->bm,
+      BM_mesh_esubdivide(bm,
                          BM_ELEM_SELECT,
                          smoothness,
                          smooth_falloff,
@@ -210,10 +210,10 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 
       if (is_single) {
         /* de-select endpoints */
-        BM_vert_select_set(em->bm, v_eed_orig[0], false);
-        BM_vert_select_set(em->bm, v_eed_orig[1], false);
+        BM_vert_select_set(bm, v_eed_orig[0], false);
+        BM_vert_select_set(bm, v_eed_orig[1], false);
 
-        EDBM_selectmode_flush_ex(lcd->em, SCE_SELECT_VERTEX);
+        EDBM_selectmode_flush_ex(bm, SCE_SELECT_VERTEX);
       }
       /* We can't slide multiple edges in vertex select mode, force edge select mode. Do this for
        * all meshes in multi-object editmode so their selectmode is in sync for following
@@ -228,7 +228,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
       }
       else {
         /* else flush explicitly */
-        EDBM_selectmode_flush(lcd->em);
+        EDBM_selectmode_flush(bm, em->selectmode);
       }
     }
     else {
@@ -237,19 +237,19 @@ static void ringsel_finish(bContext *C, wmOperator *op)
       /* sets as active, useful for other tools */
       if (em->selectmode & SCE_SELECT_VERTEX) {
         /* low priority TODO: get vertex close to mouse. */
-        BM_select_history_store(em->bm, lcd->eed->v1);
+        BM_select_history_store(bm, lcd->eed->v1);
       }
       if (em->selectmode & SCE_SELECT_EDGE) {
-        BM_select_history_store(em->bm, lcd->eed);
+        BM_select_history_store(bm, lcd->eed);
       }
 
-      EDBM_selectmode_flush(lcd->em);
+      EDBM_selectmode_flush(bm, em->selectmode);
 
       DEG_id_tag_update(lcd->ob->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, lcd->ob->data);
     }
 
-    EDBM_uvselect_clear(em);
+    EDBM_uvselect_clear(bm);
   }
 }
 
@@ -414,8 +414,8 @@ static wmOperatorStatus loopcut_init(bContext *C, wmOperator *op, const wmEvent 
     }
     else {
       Object *ob_iter = bases[exec_data.base_index]->object;
-      BMEditMesh *em = BKE_editmesh_from_object(ob_iter);
-      if (exec_data.e_index >= em->bm->totedge) {
+      BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob_iter);
+      if (exec_data.e_index >= bm->totedge) {
         ok = false;
       }
     }
@@ -445,9 +445,11 @@ static wmOperatorStatus loopcut_init(bContext *C, wmOperator *op, const wmEvent 
     Object *ob_iter = lcd->bases[exec_data.base_index]->object;
     ED_view3d_viewcontext_init_object(&lcd->vc, ob_iter);
 
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob_iter);
+
     BMEdge *e;
-    BM_mesh_elem_table_ensure(lcd->vc.em->bm, BM_EDGE);
-    e = BM_edge_at_index(lcd->vc.em->bm, exec_data.e_index);
+    BM_mesh_elem_table_ensure(bm, BM_EDGE);
+    e = BM_edge_at_index(bm, exec_data.e_index);
     loopcut_update_edge(lcd, exec_data.base_index, e, 0);
   }
 
@@ -533,7 +535,8 @@ static wmOperatorStatus loopcut_finish(RingSelOpData *lcd, bContext *C, wmOperat
 
   if (lcd->eed) {
     /* set for redo */
-    BM_mesh_elem_index_ensure(lcd->em->bm, BM_EDGE);
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(lcd->ob);
+    BM_mesh_elem_index_ensure(bm, BM_EDGE);
     RNA_int_set(op->ptr, "object_index", lcd->base_index);
     RNA_int_set(op->ptr, "edge_index", BM_elem_index_get(lcd->eed));
 

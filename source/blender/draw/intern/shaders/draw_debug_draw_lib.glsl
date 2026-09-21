@@ -196,8 +196,7 @@ void drw_debug_sphere(float3 p, float radius)
  */
 void drw_debug_matrix(float4x4 mat, uint lifetime)
 {
-  float4 p[4] = float4_array(
-      float4(0, 0, 0, 1), float4(1, 0, 0, 1), float4(0, 1, 0, 1), float4(0, 0, 1, 1));
+  float4 p[4] = {float4(0, 0, 0, 1), float4(1, 0, 0, 1), float4(0, 1, 0, 1), float4(0, 0, 1, 1)};
   for (int i = 0; i < 4; i++) {
     p[i] = mat * p[i];
     p[i].xyz /= p[i].w;
@@ -216,14 +215,14 @@ void drw_debug_matrix(float4x4 mat)
  */
 void drw_debug_matrix_as_bbox(float4x4 mat, float4 v_color, uint lifetime)
 {
-  float4 p[8] = float4_array(float4(-1, -1, -1, 1),
-                             float4(1, -1, -1, 1),
-                             float4(1, 1, -1, 1),
-                             float4(-1, 1, -1, 1),
-                             float4(-1, -1, 1, 1),
-                             float4(1, -1, 1, 1),
-                             float4(1, 1, 1, 1),
-                             float4(-1, 1, 1, 1));
+  float4 p[8] = {float4(-1, -1, -1, 1),
+                 float4(1, -1, -1, 1),
+                 float4(1, 1, -1, 1),
+                 float4(-1, 1, -1, 1),
+                 float4(-1, -1, 1, 1),
+                 float4(1, -1, 1, 1),
+                 float4(1, 1, 1, 1),
+                 float4(-1, 1, 1, 1)};
   for (int i = 0; i < 8; i++) {
     p[i] = mat * p[i];
     p[i].xyz /= p[i].w;

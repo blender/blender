@@ -99,7 +99,9 @@ void IMB_free_float_pixels(ImBuf *ibuf)
   if (ibuf == nullptr) {
     return;
   }
-  ibuf->float_buffer = {};
+  /* Keep the colorspace, it's used when new pixels are assigned. */
+  ibuf->float_buffer.data = nullptr;
+  ibuf->float_buffer.sharing_info.reset();
 }
 
 void IMB_free_byte_pixels(ImBuf *ibuf)
@@ -107,7 +109,9 @@ void IMB_free_byte_pixels(ImBuf *ibuf)
   if (ibuf == nullptr) {
     return;
   }
-  ibuf->byte_buffer = {};
+  /* Keep the colorspace, it's used when new pixels are assigned. */
+  ibuf->byte_buffer.data = nullptr;
+  ibuf->byte_buffer.sharing_info.reset();
 }
 
 void IMB_free_all_data(ImBuf *ibuf)
@@ -178,9 +182,7 @@ bool IMB_alloc_float_pixels(ImBuf *ibuf, const uint channels, bool initialize_pi
     return false;
   }
 
-  if (ibuf->float_data()) {
-    IMB_free_float_pixels(ibuf);
-  }
+  IMB_free_float_pixels(ibuf);
 
   if (!imb_alloc_buffer(
           ibuf->float_buffer, ibuf->x, ibuf->y, channels, sizeof(float), initialize_pixels))
@@ -201,7 +203,7 @@ bool IMB_alloc_byte_pixels(ImBuf *ibuf, bool initialize_pixels)
     return false;
   }
 
-  ibuf->byte_buffer = {};
+  IMB_free_byte_pixels(ibuf);
 
   if (!imb_alloc_buffer(
           ibuf->byte_buffer, ibuf->x, ibuf->y, 4, sizeof(uint8_t), initialize_pixels))
@@ -214,7 +216,7 @@ bool IMB_alloc_byte_pixels(ImBuf *ibuf, bool initialize_pixels)
 
 void ImBuf::assign_byte_data(uint8_t *data)
 {
-  this->byte_buffer = {};
+  IMB_free_byte_pixels(this);
   if (data) {
     this->byte_buffer.data = data;
     this->byte_buffer.sharing_info = ImplicitSharingPtr<>(
@@ -224,7 +226,7 @@ void ImBuf::assign_byte_data(uint8_t *data)
 
 void ImBuf::assign_float_data(float *data)
 {
-  this->float_buffer = {};
+  IMB_free_float_pixels(this);
   if (data) {
     this->float_buffer.data = data;
     this->float_buffer.sharing_info = ImplicitSharingPtr<>(
@@ -276,9 +278,7 @@ void IMB_ensure_host_buffer(ImBuf *ibuf)
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
   float *output_buffer = static_cast<float *>(
       GPU_texture_read(ibuf->gpu.texture, GPU_DATA_FLOAT, 0));
-  const ColorSpace *float_colorspace = ibuf->float_buffer.colorspace;
   ibuf->assign_float_data(output_buffer);
-  ibuf->float_buffer.colorspace = float_colorspace;
 
   if (need_secondary_context) {
     IMB_deactivate_gpu_context();

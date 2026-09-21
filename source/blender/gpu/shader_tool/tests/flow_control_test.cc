@@ -718,7 +718,9 @@ void f(Res res)
 }
 )";
     string expect = R"(
+
 #define E int
+#line 3
 static constexpr int E_ENUM  = 1;
 #define access_Res_i() i
 

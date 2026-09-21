@@ -668,7 +668,7 @@ using namespace blender::gpu::shader;
 #define GPU_SHADER_INTERFACE_END() ;
 #define GPU_SHADER_CREATE_END() ;
 
-/* WORKAROUND(fclem): Undef constants defined by system headers to fix warnings.
+/* WORKAROUND(@fclem): Undefine constants defined by system headers to fix warnings.
  * This is caused by the macros copy system made for compatibility of the Create info system before
  * BSL 5.3. Can be phased out after BSL 5.3 is default everywhere. */
 #undef M_PI

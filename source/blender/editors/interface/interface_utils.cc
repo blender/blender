@@ -794,7 +794,7 @@ std::optional<std::string> button_online_manual_id(const Button *but)
 
 std::optional<std::string> button_online_manual_id_from_active(const bContext *C)
 {
-  if (Button *but = context_active_but_get(C)) {
+  if (Button *but = context_active_but_get_respect_popup(C)) {
     return button_online_manual_id(but);
   }
   return std::nullopt;

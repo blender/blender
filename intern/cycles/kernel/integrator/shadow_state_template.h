@@ -41,8 +41,14 @@ KERNEL_STRUCT_MEMBER(shadow_path,
                      unshadowed_throughput,
                      KERNEL_FEATURE_AO_ADDITIVE)
 /* Ratio of throughput to distinguish diffuse / glossy / transmission render passes. */
-KERNEL_STRUCT_MEMBER(shadow_path, PackedSpectrum, pass_diffuse_weight, KERNEL_FEATURE_LIGHT_PASSES)
-KERNEL_STRUCT_MEMBER(shadow_path, PackedSpectrum, pass_glossy_weight, KERNEL_FEATURE_LIGHT_PASSES)
+KERNEL_STRUCT_MEMBER(shadow_path,
+                     SpectrumCompressedOnGPU,
+                     pass_diffuse_weight,
+                     KERNEL_FEATURE_LIGHT_PASSES)
+KERNEL_STRUCT_MEMBER(shadow_path,
+                     SpectrumCompressedOnGPU,
+                     pass_glossy_weight,
+                     KERNEL_FEATURE_LIGHT_PASSES)
 /* Packed number of intersections found by ray-tracing, and on GPU also the resume hit index
  * and skip_volume flag for cache miss handling.
  * Note that this is the total number of intersections for the shadow ray.
@@ -52,7 +58,10 @@ KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, packed_num_hits, KERNEL_FEATURE_PATH
 /* Light group. */
 KERNEL_STRUCT_MEMBER(shadow_path, uint8_t, lightgroup, KERNEL_FEATURE_PATH_TRACING)
 /* Path guiding. */
-KERNEL_STRUCT_MEMBER(shadow_path, PackedSpectrum, unlit_throughput, KERNEL_FEATURE_PATH_GUIDING)
+KERNEL_STRUCT_MEMBER(shadow_path,
+                     SpectrumCompressedOnGPU,
+                     unlit_throughput,
+                     KERNEL_FEATURE_PATH_GUIDING)
 #if defined(__PATH_GUIDING__)
 KERNEL_STRUCT_MEMBER(shadow_path,
                      openpgl::cpp::PathSegment *,
@@ -80,11 +89,11 @@ KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, packed_float3, P, KERNEL_FEATURE_PATH_TR
 KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, packed_float3, D, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, float, tmin, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, float, tmax, KERNEL_FEATURE_PATH_TRACING)
-KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, float, time, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, float, dP, KERNEL_FEATURE_PATH_TRACING)
-KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, float, dD, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, int, self_light_object, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, int, self_light_prim, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, FloatCompressedOnGPU, time, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, FloatCompressedOnGPU, dD, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_END(shadow_ray)
 
 /*********************** Shadow Intersection result **************************/

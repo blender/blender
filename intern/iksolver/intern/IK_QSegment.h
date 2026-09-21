@@ -156,7 +156,7 @@ class IK_QSegment {
   virtual void UpdateAngleApply() = 0;
 
   // set joint limits
-  virtual void SetLimit(int /*axis*/, double /*lmin*/, double /*lmmax*/) {}
+  virtual void SetLimit(int /*axis*/, double /*lmin*/, double /*lmax*/) {}
 
   // set joint weights (per axis)
   virtual void SetWeight(int /*axis*/, double /*weight*/) {}

@@ -19,6 +19,8 @@ set(INC_SYS
 set(SRC
   intern/grease_pencil_add.cc
   intern/grease_pencil_bake_animation.cc
+  intern/grease_pencil_boolean.cc
+  intern/grease_pencil_carver.cc
   intern/grease_pencil_edit.cc
   intern/grease_pencil_frames.cc
   intern/grease_pencil_geom.cc
@@ -40,6 +42,8 @@ set(SRC
   intern/grease_pencil_utils.cc
   intern/grease_pencil_vertex_paint.cc
   intern/grease_pencil_weight_paint.cc
+
+  intern/grease_pencil_segments_intern.hh
 )
 
 set(LIB
@@ -67,6 +71,7 @@ if(WITH_GTESTS)
   set(TEST_SRC
     tests/grease_pencil_merge_test.cc
     tests/grease_pencil_trim_test.cc
+    tests/grease_pencil_boolean_test.cc
   )
   set(TEST_INC
   )

@@ -2233,7 +2233,7 @@ static bool do_lasso_select_timeline(bContext *C,
                                      ARegion *region,
                                      const eSelectOp sel_op)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
 
   bool changed = false;
@@ -2260,7 +2260,7 @@ static bool do_lasso_select_preview(bContext *C,
                                     const Span<int2> mcoords,
                                     const eSelectOp sel_op)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   const ARegion *region = CTX_wm_region(C);
 
   bool changed = false;
@@ -2292,7 +2292,7 @@ static bool do_lasso_select_preview(bContext *C,
 
 static wmOperatorStatus vse_lasso_select_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   ARegion *region = CTX_wm_region(C);
   Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
   Editing *ed = seq::editing_get(scene);
@@ -2371,7 +2371,7 @@ static void seq_circle_select_strip_from_preview(bContext *C,
                                                  const float2 mval,
                                                  const eSelectOp mode)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
   ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
   ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
@@ -2424,7 +2424,7 @@ static wmOperatorStatus vse_circle_select_exec(bContext *C, wmOperator *op)
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
 
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   View2D *v2d = ui::view2d_fromcontext(C);
   Editing *ed = seq::editing_get(scene);
   ARegion *region = CTX_wm_region(C);

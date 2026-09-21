@@ -11,7 +11,6 @@
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_library.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_types.hh"
@@ -96,7 +95,7 @@ static wmOperatorStatus paintmode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_brushes_ensure(bmain, &ts->gp_vertexpaint->paint);
 
     /* Ensure Palette by default. */
-    BKE_gpencil_palette_ensure(bmain, CTX_data_scene(C));
+    BKE_grease_pencil_palette_ensure(bmain, CTX_data_scene(C));
 
     Paint *paint = &ts->gp_paint->paint;
     Brush *brush = BKE_paint_brush(paint);
@@ -401,7 +400,7 @@ static wmOperatorStatus vertexmode_toggle_exec(bContext *C, wmOperator *op)
     ED_paint_cursor_start(vertex_paint, grease_pencil_poll_vertex_cursor);
 
     /* Ensure Palette by default. */
-    BKE_gpencil_palette_ensure(bmain, scene);
+    BKE_grease_pencil_palette_ensure(bmain, scene);
 
     ed::greasepencil::ensure_selection_domain(ts, ob);
   }

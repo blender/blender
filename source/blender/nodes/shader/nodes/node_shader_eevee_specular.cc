@@ -56,12 +56,12 @@ static int node_shader_gpu_eevee_specular(GPUMaterial *mat,
 {
   /* Normals */
   if (!in[5].link) {
-    GPU_link(mat, "world_normals_get", &in[5].link);
+    GPU_link(mat, "world_normals_get", GPU_shading_data(), &in[5].link);
   }
 
   /* Coat Normals */
   if (!in[8].link) {
-    GPU_link(mat, "world_normals_get", &in[8].link);
+    GPU_link(mat, "world_normals_get", GPU_shading_data(), &in[8].link);
   }
 
   bool use_transparency = in[4].socket_not_zero();
@@ -82,7 +82,14 @@ static int node_shader_gpu_eevee_specular(GPUMaterial *mat,
   GPU_material_flag_set(mat, flag);
 
   float use_coat_f = use_coat ? 1.0f : 0.0f;
-  return GPU_stack_link(mat, node, "node_eevee_specular", in, out, GPU_constant(&use_coat_f));
+  return GPU_stack_link(mat,
+                        node,
+                        "node_eevee_specular",
+                        in,
+                        out,
+                        GPU_constant(&use_coat_f),
+                        GPU_kernel_globals(),
+                        GPU_shading_data());
 }
 
 }  // namespace nodes::node_shader_eevee_specular_cc

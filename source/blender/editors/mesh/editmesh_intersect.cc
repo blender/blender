@@ -20,6 +20,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_bvh.hh"
 #include "BKE_layer.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_report.hh"
 
 #include "RNA_access.hh"
@@ -87,23 +88,25 @@ static int bm_face_isect_pair_swap(BMFace *f, void * /*user_data*/)
 /**
  * Use for intersect and boolean.
  */
-static void edbm_intersect_select(BMEditMesh *em, Mesh *mesh, bool do_select)
+static void edbm_intersect_select(Mesh *mesh, bool do_select)
 {
+  BMEditMesh *em = mesh->runtime->edit_mesh.get();
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
   if (do_select) {
-    BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+    BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 
-    if (em->bm->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
+    if (bm->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
       BMIter iter;
       BMEdge *e;
 
-      BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+      BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
         if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-          BM_edge_select_set(em->bm, e, true);
+          BM_edge_select_set(bm, e, true);
         }
       }
 
-      EDBM_selectmode_flush(em);
-      EDBM_uvselect_clear(em);
+      EDBM_selectmode_flush(bm, em->selectmode);
+      EDBM_uvselect_clear(bm);
     }
   }
 
@@ -191,25 +194,18 @@ static wmOperatorStatus edbm_intersect_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
-
-    if (em->bm->totfacesel == 0) {
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    if (bm->totfacesel == 0) {
       continue;
     }
 
     if (exact) {
       int nshapes = use_self ? 1 : 2;
-      has_isect = BM_mesh_boolean_knife(em->bm,
-                                        em->looptris,
-                                        test_fn,
-                                        nullptr,
-                                        nshapes,
-                                        use_self,
-                                        use_separate_all,
-                                        false,
-                                        true);
+      has_isect = BM_mesh_boolean_knife(
+          bm, em->looptris, test_fn, nullptr, nshapes, use_self, use_separate_all, false, true);
     }
     else {
-      has_isect = BM_mesh_intersect(em->bm,
+      has_isect = BM_mesh_intersect(bm,
                                     em->looptris,
                                     test_fn,
                                     nullptr,
@@ -226,10 +222,10 @@ static wmOperatorStatus edbm_intersect_exec(bContext *C, wmOperator *op)
     if (use_separate_cut) {
       /* detach selected/un-selected faces */
       BM_mesh_separate_faces(
-          em->bm, BM_elem_cb_check_hflag_enabled_simple(const BMFace *, BM_ELEM_SELECT));
+          bm, BM_elem_cb_check_hflag_enabled_simple(const BMFace *, BM_ELEM_SELECT));
     }
 
-    edbm_intersect_select(em, id_cast<Mesh *>(obedit->data), has_isect);
+    edbm_intersect_select(id_cast<Mesh *>(obedit->data), has_isect);
 
     if (!has_isect) {
       isect_len++;
@@ -365,17 +361,17 @@ static wmOperatorStatus edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
-
-    if (em->bm->totfacesel == 0) {
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    if (bm->totfacesel == 0) {
       continue;
     }
 
     if (use_exact) {
       has_isect = BM_mesh_boolean(
-          em->bm, em->looptris, test_fn, nullptr, 2, use_self, true, false, boolean_operation);
+          bm, em->looptris, test_fn, nullptr, 2, use_self, true, false, boolean_operation);
     }
     else {
-      has_isect = BM_mesh_intersect(em->bm,
+      has_isect = BM_mesh_intersect(bm,
                                     em->looptris,
                                     test_fn,
                                     nullptr,
@@ -389,7 +385,7 @@ static wmOperatorStatus edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
                                     eps);
     }
 
-    edbm_intersect_select(em, id_cast<Mesh *>(obedit->data), has_isect);
+    edbm_intersect_select(id_cast<Mesh *>(obedit->data), has_isect);
 
     if (!has_isect) {
       isect_len++;
@@ -811,8 +807,7 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
       *bmain, scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = em->bm;
-
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
     if ((bm->totedgesel == 0) || (bm->totfacesel == 0)) {
       continue;
     }

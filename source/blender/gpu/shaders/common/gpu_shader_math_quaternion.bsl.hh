@@ -14,6 +14,11 @@ struct Quaternion {
     return {1, 0, 0, 0};
   }
 
+  static Quaternion from_float4(float4 v)
+  {
+    return Quaternion{.x = v.x, .y = v.y, .z = v.z, .w = v.w};
+  }
+
   float4 as_float4() const
   {
     return float4(this->x, this->y, this->z, this->w);
@@ -45,6 +50,25 @@ float3 transform_point_by_quaternion(Quaternion q, float3 v)
   const Quaternion result = math_quaternion_multiply(math_quaternion_multiply(q, v_quat),
                                                      quaternion_conjugate(q));
   return float3(result.y, result.z, result.w);
+}
+
+float3x3 quaternion_to_float3x3(Quaternion q)
+{
+  float3x3 result;
+
+  result[0][0] = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
+  result[0][1] = 2.0f * (q.x * q.y + q.w * q.z);
+  result[0][2] = 2.0f * (q.x * q.z - q.w * q.y);
+
+  result[1][0] = 2.0f * (q.x * q.y - q.w * q.z);
+  result[1][1] = 1.0f - 2.0f * (q.x * q.x + q.z * q.z);
+  result[1][2] = 2.0f * (q.y * q.z + q.w * q.x);
+
+  result[2][0] = 2.0f * (q.x * q.z + q.w * q.y);
+  result[2][1] = 2.0f * (q.y * q.z - q.w * q.x);
+  result[2][2] = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
+
+  return result;
 }
 
 /** \} */

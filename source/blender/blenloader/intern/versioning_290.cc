@@ -30,7 +30,7 @@
 #include "DNA_fluid_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_gpencil_modifier_types.h"
+#include "DNA_grease_pencil_modifier_types.h"
 #include "DNA_light_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -51,6 +51,7 @@
 
 #undef DNA_GENFILE_VERSIONING_MACROS
 
+#include "BKE_annotations.h"
 #include "BKE_armature.hh"
 #include "BKE_collection.hh"
 #include "BKE_colortools.hh"
@@ -58,7 +59,6 @@
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
 #include "BKE_fcurve.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
@@ -581,7 +581,7 @@ void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
         for (bGPDlayer &gpl : gpd->layers) {
           bGPDframe *gpf = gpl.frames.first();
           if (gpf && gpf->framenum > scene->r.sfra) {
-            bGPDframe *gpf_dup = BKE_gpencil_frame_duplicate(gpf, true);
+            bGPDframe *gpf_dup = BKE_annotations_frame_duplicate(gpf, true);
             gpf_dup->framenum = scene->r.sfra;
             BLI_addhead(&gpl.frames, gpf_dup);
           }

@@ -563,6 +563,13 @@ TEST(math_matrix, MatrixTransform)
   result = transform_direction(m3, p);
   EXPECT_V3_NEAR(result, expect, 1e-5);
 
+  expect = {-3, 2, 1};
+  result = transform_direction_transposed(m3, p);
+  EXPECT_V3_NEAR(result, expect, 1e-5);
+
+  result = transform_direction_transposed(m4, p);
+  EXPECT_V3_NEAR(result, expect, 1e-5);
+
   expect = {-0.333333, -0.666666, -1.14814};
   result = project_point(pers4, p);
   EXPECT_V3_NEAR(result, expect, 1e-5);

@@ -87,7 +87,7 @@ void cull_main([[resource_table]] Cull &srt,
           return;
         }
       }
-      ATTR_FALLTHROUGH;
+      [[fallthrough]];
     }
     case LIGHT_RECT:
     case LIGHT_ELLIPSE:
@@ -431,7 +431,7 @@ void tile_main([[resource_table]] const draw::View &views,
           break;
         }
         /* Fall-through to the hemispheric case. */
-        ATTR_FALLTHROUGH;
+        [[fallthrough]];
       }
       case LIGHT_RECT:
       case LIGHT_ELLIPSE: {
@@ -506,7 +506,7 @@ struct WithCullCtx {
 
   void eval_local([[resource_table]] LightRenderData & /*lrd*/, uint l_idx, LightData light)
   {
-    LightVector lv = light_vector_get(light, false, P);
+    LightVector lv = LightVector::get(light, false, P);
     if (light_attenuation_surface(light, false, lv) > LIGHT_ATTENUATION_THRESHOLD) {
       light_bits |= 1u << l_idx;
     }

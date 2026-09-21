@@ -71,7 +71,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
   }
 
   if (!in[0].link) {
-    GPU_link(mat, "node_tex_coord_position", &in[0].link);
+    GPU_link(mat, "node_tex_coord_position", GPU_shading_data(), &in[0].link);
     node_shader_gpu_bump_tex_coord(mat, node, &in[0].link);
   }
 
@@ -114,7 +114,13 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
   }
 
   /* Sample texture with correct interpolation. */
-  GPU_link(mat, gpu_fn, in[0].link, GPU_image(mat, ima, iuser, sampler), &out[0].link, &outalpha);
+  GPU_link(mat,
+           gpu_fn,
+           in[0].link,
+           GPU_image(mat, ima, iuser, sampler),
+           GPU_kernel_globals(),
+           &out[0].link,
+           &outalpha);
 
   if (out[0].hasoutput && out[0].link && ima) {
     if (ELEM(ima->alpha_mode, IMA_ALPHA_IGNORE, IMA_ALPHA_CHANNEL_PACKED) ||

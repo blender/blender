@@ -149,6 +149,9 @@ bool emit_volume_object(PopulateContext &ctx, const Object *object, EmittedObjec
                                  nullptr;
   const EmittedMaterial *mat_entry = ctx.get_or_create_material(material);
   const pxr::SdfPath material_path = mat_entry ? mat_entry->path : pxr::SdfPath();
+  if (material) {
+    emitted.materials.append_non_duplicates(material);
+  }
 
   const pxr::GfMatrix4d transform = geometry_xform *
                                     gf_matrix_from_transform(object->object_to_world().ptr());

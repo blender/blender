@@ -278,7 +278,7 @@ Panel *panel_add_instanced(const bContext *C,
 
   Panel *new_panel = panel_add_instanced(panels, panel_type, custom_data);
 
-  /* Do this after #panel_add_instatnced so all sub-panels are added. */
+  /* Do this after #panel_add_instanced so all sub-panels are added. */
   panel_set_expansion_from_list_data(C, new_panel);
 
   return new_panel;

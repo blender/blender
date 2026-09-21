@@ -18,9 +18,9 @@
 #include "BKE_curves.hh"
 #include "BKE_deform.hh"
 #include "BKE_fcurve.hh"
-#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_legacy_convert.hh"
+#include "BKE_grease_pencil_modifiers.h"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_remap.hh"
@@ -52,7 +52,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_gpencil_modifier_types.h"
+#include "DNA_grease_pencil_modifier_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -2882,7 +2882,7 @@ static void legacy_object_modifiers(ConversionData &conversion_data, Object &obj
         break;
     }
 
-    BKE_gpencil_modifier_free_ex(gpd_md, 0);
+    BKE_grease_pencil_modifier_free_ex(gpd_md, 0);
   }
 }
 

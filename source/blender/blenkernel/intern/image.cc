@@ -28,6 +28,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.hh"
+#include "BLI_set.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 
@@ -414,7 +415,11 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
   writer->write_struct(ima->stereo3d_format);
 
-  writer->write_struct_list(&ima->tiles);
+  writer->write_struct_list(&ima->tiles, [&](BlendStructWriter<ImageTile> &struct_writer) {
+    if (!is_undo) {
+      struct_writer.shallow_data.runtime = {};
+    }
+  });
 
   ima->packedfile = nullptr;
 
@@ -468,15 +473,17 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   ima->runtime = MEM_new<bke::ImageRuntime>(__func__);
 }
 
-static void image_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
+static void image_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 {
   Image *ima = reinterpret_cast<Image *>(id);
 
-  BKE_image_populate_cache_from_autosave(ima);
-  BLI_assert_msg(!(ima->flag & IMA_AUTOSAVE_TEMPPACK),
-                 "An image should never be marked as temporary packed after loading");
-  BLI_assert_msg(BLI_listbase_count(&ima->autosave_packedfiles) == 0,
-                 "An image should never have autosave data after loading");
+  if (!BLO_read_lib_is_undo(reader)) {
+    BKE_image_populate_cache_from_autosave(ima);
+    BLI_assert_msg(!(ima->flag & IMA_AUTOSAVE_TEMPPACK),
+                   "An image should never be marked as temporary packed after loading");
+    BLI_assert_msg(BLI_listbase_count(&ima->autosave_packedfiles) == 0,
+                   "An image should never have autosave data after loading");
+  }
 
   /* Images have some kind of 'main' cache, when null we should also clear all others. */
   /* Needs to be done *after* cache pointers are restored (call to
@@ -527,7 +534,8 @@ static ImBuf *image_acquire_ibuf(Image *ima,
                                  ImageUser *iuser,
                                  void **r_lock,
                                  const bool ensure_host_buffer,
-                                 bool *r_load_failed = nullptr);
+                                 bool *r_load_failed = nullptr,
+                                 const bool cached_only = false);
 static void image_update_views_format(Image *ima, ImageUser *iuser);
 static void image_add_view(Image *ima, const char *viewname, const char *filepath);
 
@@ -691,6 +699,23 @@ void BKE_image_free_buffers(Image *ima)
   BKE_image_free_buffers_ex(ima, false);
 }
 
+/* Gather image buffers used by a multilayer image. */
+static Set<const ImBuf *> image_multilayer_ibufs(const Image &ima)
+{
+  Set<const ImBuf *> buffers;
+  if (ima.type != IMA_TYPE_MULTILAYER || ima.rr == nullptr) {
+    return buffers;
+  }
+  for (const RenderLayer &rl : ima.rr->layers) {
+    for (const RenderPass &rpass : rl.passes) {
+      if (rpass.ibuf) {
+        buffers.add(rpass.ibuf);
+      }
+    }
+  }
+  return buffers;
+}
+
 void BKE_image_free_old_buffers(Main *bmain)
 {
   static int64_t lasttime = 0;
@@ -720,6 +745,8 @@ void BKE_image_free_old_buffers(Main *bmain)
     {
       std::scoped_lock lock(ima.runtime->cache_mutex);
 
+      const Set<const ImBuf *> multilayer_ibufs = image_multilayer_ibufs(ima);
+
       /* Gather entries to remove. */
       Vector<ImageCacheKey> to_remove;
       ImBufCacheIter *iter = IMB_cacheIter_new(ima.runtime->cache);
@@ -728,9 +755,11 @@ void BKE_image_free_old_buffers(Main *bmain)
         if (ibuf != nullptr) {
           /* GPU buffers: free when past timeout and image buffer is not used elsewhere. */
           bool freed_gpu = false;
+          /* Multilayer images have another reference we need to account for. */
+          const int owner_refs = multilayer_ibufs.contains(ibuf) ? 1 : 0;
           if (ctime - ibuf->gpu.lastused > U.textimeout) {
             if ((ibuf->gpu.texture || ibuf->gpu.flag & IMB_GPU_LOAD_FAILED) &&
-                ibuf->refcounter == 0)
+                ibuf->refcounter == owner_refs)
             {
               IMB_free_gpu_textures(ibuf);
               freed_gpu = true;
@@ -756,6 +785,12 @@ void BKE_image_free_old_buffers(Main *bmain)
       /* Remove entries. */
       for (const ImageCacheKey &key : to_remove) {
         imagecache_remove(&ima, key);
+      }
+
+      /* Also free multilayer render result when all buffers are unused. */
+      if (!any_buffer_left && !multilayer_ibufs.is_empty()) {
+        RE_FreeRenderResult(ima.rr);
+        ima.rr = nullptr;
       }
     }
 
@@ -1180,7 +1215,7 @@ Image *BKE_image_load_in_lib(Main *bmain,
 
   image_abs_path(bmain, owner_lib, filepath, filepath_abs);
 
-  /* Does it exist on the filesystem? */
+  /* Does it exist on the file-system? */
   if (check_open) {
     file = BLI_open(filepath_abs, O_BINARY | O_RDONLY, 0);
     if (file == -1) {
@@ -4841,7 +4876,8 @@ static ImBuf *image_acquire_ibuf(Image *ima,
                                  ImageUser *iuser,
                                  void **r_lock,
                                  const bool ensure_host_buffer,
-                                 bool *r_load_failed)
+                                 bool *r_load_failed,
+                                 const bool cached_only)
 {
   ImBuf *ibuf = nullptr;
   int entry = 0, index = 0;
@@ -4864,6 +4900,11 @@ static ImBuf *image_acquire_ibuf(Image *ima,
     if (r_load_failed) {
       *r_load_failed = true;
     }
+    return nullptr;
+  }
+
+  if (ibuf == nullptr && cached_only) {
+    /* Don't load from file. */
     return nullptr;
   }
 
@@ -4986,14 +5027,15 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
 
 /* Identical to BKE_image_acquire_ibuf but passing false to the ensure_host_buffer argument for the
  * image_acquire_ibuf function. */
-ImBuf *BKE_image_acquire_ibuf_gpu(Image *ima, ImageUser *iuser, void **r_lock, bool *r_load_failed)
+ImBuf *BKE_image_acquire_ibuf_gpu(
+    Image *ima, ImageUser *iuser, void **r_lock, bool *r_load_failed, const bool cached_only)
 {
   if (ima == nullptr) {
     return nullptr;
   }
 
   std::scoped_lock lock(ima->runtime->cache_mutex);
-  return image_acquire_ibuf(ima, iuser, r_lock, false, r_load_failed);
+  return image_acquire_ibuf(ima, iuser, r_lock, false, r_load_failed, cached_only);
 }
 
 static int get_multilayer_view_index(const Image &image,

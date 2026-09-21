@@ -376,7 +376,9 @@ bool PaintStroke::update(bContext *C,
   else {
     /* curve strokes do their own rake calculation */
     if (brush.stroke_method != BRUSH_STROKE_CURVE) {
-      if (!paint_calculate_rake_rotation(*paint, brush, mouse_init, mode, true, !rake_started_)) {
+      if (!BKE_paint_calculate_rake_rotation(
+              *paint, brush, mouse_init, mode, true, !rake_started_))
+      {
         /* Not enough motion to define an angle. */
         if (!rake_started_) {
           is_dry_run = true;
@@ -1335,7 +1337,7 @@ bool PaintStroke::curve_end(bContext *C, wmOperator *op)
     for (int j = 0; j < PAINT_CURVE_NUM_SEGMENTS; j++) {
       if (do_rake) {
         const float rotation = atan2f(tangents[2 * j + 1], tangents[2 * j]) + float(0.5f * M_PI);
-        paint_update_brush_rake_rotation(*paint, br, rotation);
+        BKE_paint_update_brush_rake_rotation(*paint, br, rotation);
       }
 
       if (!stroke_started_) {
@@ -1576,7 +1578,7 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
       {
         copy_v2_v2(paint_runtime.last_rake, this->last_mouse_position);
       }
-      paint_calculate_rake_rotation(*paint, *br, mouse, mode, true, true);
+      BKE_paint_calculate_rake_rotation(*paint, *br, mouse, mode, true, true);
     }
   }
   else if (first_modal ||

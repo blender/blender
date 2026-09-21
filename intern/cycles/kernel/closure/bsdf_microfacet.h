@@ -135,7 +135,7 @@ struct Coat {
 /* -------------------------------------------------------------------- */
 /** \name GGX LUT Index Mapping Functions
  *
- * This section contains functions to map from GGX alphas, IOR, and mu to the indicies of
+ * This section contains functions to map from GGX alphas, IOR, and mu to the indices of
  * 2D and 3D LUTs (e.g., for multi-scatter GGX energy compensation or scattering albedos).
  * \{ */
 

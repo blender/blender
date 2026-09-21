@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <string>
 
 #include "MEM_guardedalloc.h"
 
@@ -21,6 +22,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_appdir.hh"
+#include "BKE_blender_project.hh"
 #include "BKE_context.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
@@ -196,6 +198,28 @@ static bool file_browse_operator_relative_paths_supported(wmOperator *op)
   return true;
 }
 
+static void file_browse_apply_path_templates(const Main *bmain,
+                                             PropertyRNA *prop,
+                                             std::string &path)
+{
+  if (!(RNA_property_flag(prop) & PROP_PATH_SUPPORTS_TEMPLATES)) {
+    return;
+  }
+
+  /* Store paths in project settings relative to the project root. */
+  if (RNA_property_path_template_type(prop) == PROP_VARIABLES_PROJECT) {
+    const bool path_is_template = false;
+    path = BKE_blender_project_read_callback(bmain, [&](const bke::BlenderProject *project) {
+      return project ? BKE_blender_project_path_make_relative(path, path_is_template, *project) :
+                       BKE_path_template_escape(path);
+    });
+    return;
+  }
+
+  /* Escape the path's curly braces. */
+  path = BKE_path_template_escape(path);
+}
+
 static wmOperatorStatus file_browse_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -247,9 +271,13 @@ static wmOperatorStatus file_browse_exec(bContext *C, wmOperator *op)
     }
   }
 
-  RNA_property_string_set(&fbo->ptr, fbo->prop, path);
-  RNA_property_update(C, &fbo->ptr, fbo->prop);
+  std::string path_str = path;
   MEM_delete(path);
+
+  file_browse_apply_path_templates(bmain, fbo->prop, path_str);
+
+  RNA_property_string_set(&fbo->ptr, fbo->prop, path_str.c_str());
+  RNA_property_update(C, &fbo->ptr, fbo->prop);
 
   if (fbo->is_undo) {
     const char *undostr = RNA_property_identifier(fbo->prop);

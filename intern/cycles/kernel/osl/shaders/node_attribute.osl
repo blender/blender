@@ -8,6 +8,8 @@
 shader node_attribute(string bump_offset = "center",
                       float bump_filter_width = BUMP_FILTER_WIDTH,
                       string name = "",
+                      color Missing = 0.0,
+                      float MissingAlpha = 1.0,
                       output point Vector = point(0.0, 0.0, 0.0),
                       output color Color = 0.0,
                       output float Fac = 0.0,
@@ -15,10 +17,16 @@ shader node_attribute(string bump_offset = "center",
 {
   float data[4] = {0.0, 0.0, 0.0, 0.0};
   int success = getattribute(name, data);
-  if (!success && (name == "geom:generated")) {
-    /* No generated attribute, fall back to object coordinates. */
-    Color = transform("object", P);
-    data[3] = 1.0;
+  if (!success) {
+    if (name == "geom:generated") {
+      /* No generated attribute, fall back to object coordinates. */
+      Color = transform("object", P);
+      data[3] = 1.0;
+    }
+    else {
+      Color = Missing;
+      data[3] = MissingAlpha;
+    }
   }
   else {
     Color = color(data[0], data[1], data[2]);

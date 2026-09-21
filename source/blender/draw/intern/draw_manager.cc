@@ -20,6 +20,7 @@
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
+#include "draw_common.hh"
 #include "draw_context_private.hh"
 #include "draw_debug.hh"
 #include "draw_defines.hh"

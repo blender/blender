@@ -29,8 +29,10 @@ namespace draw {
 class Manager;
 struct CurvesModule;
 struct PointCloudModule;
+struct GSplatModule;
 struct VolumeModule;
 class ObjectRef;
+class View;
 }  // namespace draw
 
 /* draw_curves.cc */
@@ -48,6 +50,16 @@ void DRW_curves_update(draw::Manager &manager);
 /* If drw_data is nullptr, DST global is accessed to get it. */
 void DRW_pointcloud_init(DRWData *drw_data = nullptr);
 void DRW_pointcloud_module_free(draw::PointCloudModule *module);
+
+/* draw_gsplat.cc  */
+
+void DRW_gsplat_init(DRWData *drw_data = nullptr);
+void DRW_gsplat_begin_sync();
+void DRW_gsplat_module_free(draw::GSplatModule *module);
+void DRW_gsplat_ensure_ellipses(draw::Manager &manager, draw::View &view);
+void DRW_gsplat_ensure_radiance(draw::Manager &manager, draw::View &view);
+void DRW_gsplat_ensure_ellipses_radiance(draw::Manager &manager, draw::View &view);
+bool pointcloud_is_gsplat(Object *ob);
 
 /* draw_volume.cc */
 

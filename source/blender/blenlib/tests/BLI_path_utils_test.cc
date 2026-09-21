@@ -1600,6 +1600,26 @@ TEST(path_utils, RelPath_SimpleSubdir)
   PATH_REL(ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar", "//bar/blender.blend");
 }
 
+TEST(path_utils, RelPath_SameDir)
+{
+  PATH_REL(ABS_PREFIX "/foo/bar", ABS_PREFIX "/foo/bar/", "//");
+  PATH_REL(ABS_PREFIX "/foo/bar/", ABS_PREFIX "/foo/bar/", "//");
+}
+
+TEST(path_utils, RelPath_ParentDir)
+{
+  /* Only entire directory names match, not any prefix. */
+  PATH_REL(ABS_PREFIX "/foo/baz/blender.blend", ABS_PREFIX "/foo/bar/", "//../baz/blender.blend");
+  PATH_REL(
+      ABS_PREFIX "/foo/barz/blender.blend", ABS_PREFIX "/foo/bar/", "//../barz/blender.blend");
+}
+
+TEST(path_utils, RelPath_NoCommonRoot)
+{
+  /* Relative paths are left unchanged, there is no common root to be relative to. */
+  PATH_REL("blender.blend", ABS_PREFIX "/foo/bar/", "blender.blend");
+}
+
 TEST(path_utils, RelPath_BufferOverflowRoot)
 {
   char abs_path_in[FILE_MAX];
@@ -1702,6 +1722,10 @@ TEST(path_utils, PathIsAbsFromCwd)
 TEST(path_utils, Contains)
 {
   EXPECT_TRUE(BLI_path_contains("/some/path", "/some/path")) << "A path contains itself";
+  EXPECT_TRUE(BLI_path_contains("/some/path/", "/some/path"))
+      << "A trailing slash on the container makes no difference";
+  EXPECT_TRUE(BLI_path_contains("/some/path", "/some/path/"))
+      << "A trailing slash on the containee makes no difference";
   EXPECT_TRUE(BLI_path_contains("/some/path", "/some/path/inside"))
       << "A path contains its subdirectory";
   EXPECT_TRUE(BLI_path_contains("/some/path", "/some/path/../path/inside"))
@@ -1719,6 +1743,7 @@ TEST(path_utils, Contains)
       << "Just sharing a suffix is not enough, path semantics should be followed";
   EXPECT_FALSE(BLI_path_contains("/some/path", "./contents"))
       << "Relative paths are not supported";
+  EXPECT_FALSE(BLI_path_contains("", "/some/path")) << "Empty container path contains nothing";
 }
 
 #ifdef WIN32
@@ -1726,8 +1751,98 @@ TEST(path_utils, Contains_Windows_case_insensitive)
 {
   EXPECT_TRUE(BLI_path_contains("C:\\some\\path", "c:\\SOME\\path\\inside"))
       << "On Windows path comparison should ignore case";
+  EXPECT_TRUE(BLI_path_contains("\\\\Server\\Share", "\\\\server/SHARE\\inside"))
+      << "On Windows UNC server and share should ignore case and slash direction";
+  EXPECT_TRUE(BLI_path_contains("\\\\server\\share", "\\\\server\\share"))
+      << "A UNC share contains itself";
+  EXPECT_FALSE(BLI_path_contains("\\\\server\\share", "\\\\server\\other\\inside"))
+      << "Different UNC shares";
+  EXPECT_FALSE(BLI_path_relative_to("\\\\server", "\\\\server\\share\\", true, nullptr, 0))
+      << "A UNC server is not a parent of its shares";
 }
 #endif /* WIN32 */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_relative_to
+ * \{ */
+
+TEST(path_utils, RelativeTo)
+{
+  char relative[FILE_MAX];
+
+  EXPECT_TRUE(BLI_path_relative_to("/some/path", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "") << "Path is relative to itself";
+
+  EXPECT_TRUE(
+      BLI_path_relative_to("/some/path", "/some/path/", false, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "") << "Trailing slash makes no difference";
+
+  EXPECT_TRUE(
+      BLI_path_relative_to("/some/path/inside", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "inside");
+
+  EXPECT_TRUE(
+      BLI_path_relative_to("/some/path/in/side", "/some/path/", false, relative, sizeof(relative)))
+      << "Trailing slash on base makes no difference";
+  EXPECT_STREQ(relative, "in" SEP_STR "side");
+
+  EXPECT_TRUE(BLI_path_relative_to(
+      "/some/path/../path/inside", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "inside") << "Relative path is normalized";
+
+  STRNCPY(relative, "uninitialized");
+  EXPECT_FALSE(
+      BLI_path_relative_to("/some/path_library", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "");
+
+  STRNCPY(relative, "uninitialized");
+  EXPECT_FALSE(
+      BLI_path_relative_to("/some/outside", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "");
+
+  EXPECT_FALSE(BLI_path_relative_to("//inside", "/some/path", true, relative, sizeof(relative)))
+      << "Blend file relative paths are not supported";
+
+#ifdef WIN32
+  /* Case insensitive on Windows only. */
+  EXPECT_TRUE(BLI_path_relative_to(
+      "c:\\SOME\\path\\InSide", "C:\\some\\path", false, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "InSide") << "Case insensitive on Windows";
+
+  EXPECT_FALSE(BLI_path_relative_to(
+      "D:\\some\\path\\inside", "C:\\some\\path", true, relative, sizeof(relative)))
+      << "Another drive has no common root";
+#endif
+}
+
+TEST(path_utils, RelativeTo_walk_up)
+{
+  char relative[FILE_MAX];
+
+  EXPECT_TRUE(
+      BLI_path_relative_to("/some/path/inside", "/some/path", true, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "inside");
+
+  EXPECT_TRUE(BLI_path_relative_to("/some/path", "/some/path", true, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "") << "Equal paths";
+
+  EXPECT_TRUE(
+      BLI_path_relative_to("/some/outside", "/some/path", true, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, ".." SEP_STR "outside");
+
+  EXPECT_TRUE(
+      BLI_path_relative_to("/some/path_library", "/some/path", true, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, ".." SEP_STR "path_library") << "Sibling path";
+
+  EXPECT_TRUE(BLI_path_relative_to("/a/b/c/d", "/a/x/y", true, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, ".." SEP_STR ".." SEP_STR "b" SEP_STR "c" SEP_STR "d");
+
+  EXPECT_TRUE(
+      BLI_path_relative_to("/some", "/some/path/inside", true, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, ".." SEP_STR ".." SEP_STR) << "Parent of the base directory";
+}
 
 /** \} */
 

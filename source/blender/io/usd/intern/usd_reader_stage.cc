@@ -12,6 +12,7 @@
 #include "usd_reader_material.hh"
 #include "usd_reader_mesh.hh"
 #include "usd_reader_nurbs.hh"
+#include "usd_reader_particlefield.hh"
 #include "usd_reader_pointinstancer.hh"
 #include "usd_reader_points.hh"
 #include "usd_reader_prim.hh"
@@ -270,6 +271,9 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
   if (params_.import_volumes && prim.IsA<pxr::UsdVolVolume>()) {
     return new USDVolumeReader(prim, params_, settings_);
   }
+  if (prim.IsA<pxr::UsdVolParticleField3DGaussianSplat>()) {
+    return new USDParticleFieldReader(prim, params_, settings_);
+  }
   if (params_.import_skeletons && prim.IsA<pxr::UsdSkelSkeleton>()) {
     return new USDSkeletonReader(prim, params_, settings_);
   }
@@ -312,6 +316,9 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim)
   }
   if (prim.IsA<pxr::UsdVolVolume>()) {
     return new USDVolumeReader(prim, params_, settings_);
+  }
+  if (prim.IsA<pxr::UsdVolParticleField3DGaussianSplat>()) {
+    return new USDParticleFieldReader(prim, params_, settings_);
   }
   if (prim.IsA<pxr::UsdSkelSkeleton>()) {
     return new USDSkeletonReader(prim, params_, settings_);

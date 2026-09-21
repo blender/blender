@@ -39,6 +39,7 @@ class Wireframe : Overlay {
     PassMain::Sub *mesh_all_edges_ps_ = nullptr;
     PassMain::Sub *points_ps_ = nullptr;
     PassMain::Sub *pointcloud_ps_ = nullptr;
+    PassMain::Sub *gsplat_ps_ = nullptr;
   } colored, non_colored;
 
   /* Copy of the depth buffer to be able to read it during wireframe rendering. */
@@ -106,6 +107,7 @@ class Wireframe : Overlay {
         ps.points_ps_ = shader_pass(sh.wireframe_points.get(), "Points", use_color, 1.0f);
         ps.pointcloud_ps_ = shader_pass(
             sh.wireframe_points_with_radius.get(), "PtCloud", use_color, 1.0f);
+        ps.gsplat_ps_ = shader_pass(sh.wireframe_gsplat.get(), "GSplat", use_color, 1.0f);
         ps.curves_ps_ = shader_pass(sh.wireframe_curve.get(), "Curve", use_color, 1.0f);
       };
 
@@ -214,9 +216,18 @@ class Wireframe : Overlay {
       }
       case OB_POINTCLOUD: {
         if (show_surface_wire) {
-          gpu::Batch *geom = DRW_pointcloud_batch_cache_get_dots(ob_ref.object);
-          coloring.pointcloud_ps_->draw(
-              geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
+          ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
+          gpu::Batch *geom_pointcloud = DRW_pointcloud_batch_cache_get_dots(ob_ref.object);
+          gpu::Batch *geom_gsplat = DRW_gsplat_batch_cache_get_dots(ob_ref.object);
+          if (geom_pointcloud) {
+            coloring.pointcloud_ps_->draw(
+                geom_pointcloud, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
+          }
+          if (geom_gsplat) {
+            draw::gsplat_sub_pass_setup(*coloring.gsplat_ps_, ob_ref, res_handle, nullptr);
+            coloring.gsplat_ps_->draw(
+                geom_gsplat, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
+          }
         }
         break;
       }

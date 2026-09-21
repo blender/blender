@@ -11,6 +11,7 @@ from bpy.types import (
 class SCENE_MT_add_compositor_effect(Menu):
     bl_label = "Add Scene Effect"
     bl_options = {'SEARCH_ON_KEY_PRESS'}
+    bl_description = "Add a compositor effect to the active scene"
 
     def draw(self, context):
         layout = self.layout

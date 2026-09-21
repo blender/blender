@@ -264,6 +264,7 @@ Material *BKE_material_default_holdout();
 Material *BKE_material_default_surface();
 Material *BKE_material_default_volume();
 Material *BKE_material_default_gpencil();
+Material *BKE_material_default_gsplat();
 
 void BKE_material_defaults_free_gpu();
 

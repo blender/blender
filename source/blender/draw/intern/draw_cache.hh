@@ -21,6 +21,7 @@ class Texture;
 class Batch;
 class BottomLevelAS;
 class VertBuf;
+class UniformBuf;
 }  // namespace gpu
 struct ModifierData;
 struct Object;
@@ -109,6 +110,10 @@ gpu::Batch *DRW_cache_lattice_vert_overlay_get(Object *ob);
 /* Point Cloud */
 
 gpu::Batch *DRW_cache_pointcloud_vert_overlay_get(Object *ob);
+
+/* GSplats */
+
+gpu::Batch *DRW_cache_gsplat_vert_overlay_get(Object *ob);
 
 /* Particles */
 

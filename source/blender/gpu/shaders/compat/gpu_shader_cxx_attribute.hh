@@ -144,6 +144,8 @@
  * IMPORTANT: Will discard any iteration above N.
  */
 #  define unroll_n(N) likely
+/* Force a function to be inlined during BSL compilation. */
+#  define force_inline maybe_unused
 #else
 /* This path checks for unused variables. Disable warning about unknown attributes. */
 #  if defined(__GNUC__) || defined(__clang__)

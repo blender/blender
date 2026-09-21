@@ -46,6 +46,7 @@ class BVHEmbree : public BVH {
   void add_instance(Object *ob, const int i);
   void add_curves(const Object *ob, const Hair *hair, const int i);
   void add_points(const Object *ob, const PointCloud *pointcloud, const int i);
+  void add_gsplats(const Object *ob, const PointCloud *pointcloud, const int i);
   void add_triangles(const Object *ob, const Mesh *mesh, const int i);
 
  private:

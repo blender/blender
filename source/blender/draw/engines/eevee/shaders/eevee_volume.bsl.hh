@@ -158,7 +158,7 @@ struct LightEvalCtx {
       return float3(0);
     }
 
-    LightVector lv = light_shape_vector_get(light, is_directional, P);
+    LightVector lv = LightVector::get_shape_closest(light, is_directional, P);
 
     float attenuation = light_attenuation_volume(light, is_directional, lv);
     if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
@@ -179,8 +179,10 @@ struct LightEvalCtx {
 
     float3 Li = volume_light(light, is_directional, lv) * visibility;
 
-    if (light.tilemap_index != LIGHT_NO_SHADOW) {
-      Li *= volume_shadow(uni, views.get(0), light, is_directional, P, lv, srt.extinction_tx);
+    if (srt.use_volume_light) [[static_branch]] {
+      if (light.tilemap_index != LIGHT_NO_SHADOW) {
+        Li *= volume_shadow(uni, views.get(0), light, is_directional, P, lv, srt.extinction_tx);
+      }
     }
 
     return Li;

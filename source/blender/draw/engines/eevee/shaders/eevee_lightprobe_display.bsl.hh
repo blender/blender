@@ -132,13 +132,13 @@ void vert_main([[resource_table]] const Resources &srt,
 {
   /* Constant array moved inside function scope.
    * Minimizes local register allocation in MSL. */
-  constexpr float2 pos[6] = float2_array(float2(-1.0f, -1.0f),
-                                         float2(1.0f, -1.0f),
-                                         float2(-1.0f, 1.0f),
+  constexpr float2 pos[6] = {float2(-1.0f, -1.0f),
+                             float2(1.0f, -1.0f),
+                             float2(-1.0f, 1.0f),
 
-                                         float2(1.0f, -1.0f),
-                                         float2(1.0f, 1.0f),
-                                         float2(-1.0f, 1.0f));
+                             float2(1.0f, -1.0f),
+                             float2(1.0f, 1.0f),
+                             float2(-1.0f, 1.0f)};
 
   v_out.lP = pos[vert_id % 6];
   int cell_index = vert_id / 6;
@@ -235,13 +235,13 @@ void vert_main([[resource_table]] const Resources &srt,
 {
   /* Constant array moved inside function scope.
    * Minimizes local register allocation in MSL. */
-  constexpr float2 pos[6] = float2_array(float2(-1.0f, -1.0f),
-                                         float2(1.0f, -1.0f),
-                                         float2(-1.0f, 1.0f),
+  constexpr float2 pos[6] = {float2(-1.0f, -1.0f),
+                             float2(1.0f, -1.0f),
+                             float2(-1.0f, 1.0f),
 
-                                         float2(1.0f, -1.0f),
-                                         float2(1.0f, 1.0f),
-                                         float2(-1.0f, 1.0f));
+                             float2(1.0f, -1.0f),
+                             float2(1.0f, 1.0f),
+                             float2(-1.0f, 1.0f)};
 
   v_out.lP = pos[vert_id % 6];
   int display_index = vert_id / 6;

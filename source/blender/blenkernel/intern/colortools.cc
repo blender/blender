@@ -1507,7 +1507,23 @@ int BKE_curvemapping_num_channels(const CurveMapping *cumap)
 
 void BKE_curvemapping_blend_write(BlendWriter *writer, const CurveMapping *cumap)
 {
-  writer->write_struct(cumap);
+  writer->write_struct(cumap, [writer](BlendStructWriter<CurveMapping> &struct_writer) {
+    CurveMapping &shallow_cumap = struct_writer.shallow_data;
+    if (!writer->is_undo()) {
+      shallow_cumap.changed_timestamp = 0;
+    }
+    for (const int i : IndexRange(CM_TOT)) {
+      shallow_cumap.cm[i].range = 0;
+      shallow_cumap.cm[i].mintable = 0;
+      shallow_cumap.cm[i].maxtable = 0;
+      zero_v2(shallow_cumap.cm[i].ext_in);
+      zero_v2(shallow_cumap.cm[i].ext_out);
+      shallow_cumap.cm[i].table = nullptr;
+      shallow_cumap.cm[i].premultable = nullptr;
+      zero_v2(shallow_cumap.cm[i].premul_ext_in);
+      zero_v2(shallow_cumap.cm[i].premul_ext_out);
+    }
+  });
   BKE_curvemapping_curves_blend_write(writer, cumap);
 }
 

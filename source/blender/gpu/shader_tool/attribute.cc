@@ -18,7 +18,7 @@ using namespace shader::parser;
 using namespace shader::parser::ast;
 using namespace metadata;
 
-void SourceProcessor::lower_maybe_unused(Parser &parser)
+void SourceProcessor::lower_noop_attributes(Parser &parser)
 {
   parser().foreach_token(SquareOpen, [&](Token par_open) {
     if (par_open.next() != '[') {
@@ -26,7 +26,7 @@ void SourceProcessor::lower_maybe_unused(Parser &parser)
     }
     Scope attributes = par_open.next().scope();
     attributes.foreach_attribute([&](Token attr, Scope) {
-      if (attr.str() == "maybe_unused") {
+      if (attr.str() == "maybe_unused" || attr.str() == "fallthrough") {
         if (attr.next() == ',') {
           parser.erase(attr, attr.next());
         }

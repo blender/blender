@@ -160,7 +160,7 @@ bConstraint *constraint_active_get(Object *ob)
 /** \name Add Constraint Utilities
  * \{ */
 
-/* helper function for add_constriant - sets the last target for the active constraint */
+/* helper function for add_constraint - sets the last target for the active constraint */
 static void set_constraint_nth_target(bConstraint *con,
                                       Object *target,
                                       const char subtarget[],

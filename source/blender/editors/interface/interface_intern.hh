@@ -1087,6 +1087,8 @@ struct PopupBlockHandle {
   wmOperator *popup_op = nullptr;
   ScrArea *ctx_area = nullptr;
   ARegion *ctx_region = nullptr;
+  /** The popup region this popup was opened from (if any). */
+  ARegion *ctx_region_popup = nullptr;
 
   /* return values */
   int menuretval = 0;

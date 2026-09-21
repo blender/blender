@@ -12,10 +12,10 @@
 #include "draw_intersect_lib.glsl"
 #include "eevee_lightprobe_sphere.bsl.hh"
 #include "eevee_lightprobe_volume.bsl.hh"
-#include "eevee_spherical_harmonics.bsl.hh"
 #include "eevee_surfel_list.bsl.hh"
 #include "gpu_shader_math_base.bsl.hh"
 #include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_math_spherical_harmonics.bsl.hh"
 
 namespace eevee::lightprobe::volume {
 

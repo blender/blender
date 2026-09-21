@@ -32,6 +32,8 @@ shader node_environment_texture(
     int use_mapping = 0,
     matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
     vector Vector = P,
+    color Missing = 0.0,
+    float MissingAlpha = 1.0,
     string filename = "",
     string projection = "equirectangular",
     string interpolation = "linear",
@@ -55,8 +57,19 @@ shader node_environment_texture(
     p = environment_texture_direction_to_mirrorball(p);
 
   /* todo: use environment for better texture filtering of equirectangular */
-  Color = (color)texture(
-      filename, p[0], p[1], "wrap", "periodic", "interp", interpolation, "alpha", Alpha);
+  Color = (color)texture(filename,
+                         p[0],
+                         p[1],
+                         "wrap",
+                         "periodic",
+                         "interp",
+                         interpolation,
+                         "alpha",
+                         Alpha,
+                         "missingcolor",
+                         Missing,
+                         "missingalpha",
+                         MissingAlpha);
 
   if (ignore_alpha) {
     Alpha = 1.0;

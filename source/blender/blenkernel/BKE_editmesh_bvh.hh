@@ -23,10 +23,8 @@ struct BVHTree;
 
 typedef bool (*BMBVHTree_FaceFilter)(struct BMFace *f, void *userdata);
 
-BMBVHTree *BKE_bmbvh_new_from_editmesh(struct BMEditMesh *em,
-                                       int flag,
-                                       const float3 *cos_cage,
-                                       bool cos_cage_free);
+BMBVHTree *BKE_bmbvh_new_from_editmesh(
+    struct BMEditMesh *em, struct BMesh *bm, int flag, const float3 *cos_cage, bool cos_cage_free);
 BMBVHTree *BKE_bmbvh_new_ex(struct BMesh *bm,
                             Span<std::array<BMLoop *, 3>> looptris,
                             int flag,

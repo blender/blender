@@ -261,6 +261,10 @@ struct MeshRuntime {
   SharedCache<Array<int>> vert_to_corner_map_cache;
   /** Cache of face indices for each face corner. */
   SharedCache<Array<int>> corner_to_face_map_cache;
+  /** Cache of offsets for the edge to corner map. */
+  SharedCache<Array<int>> edge_to_corner_offset_cache;
+  /** Cache of indices for the edge to corner map. */
+  SharedCache<Array<int>> edge_to_corner_map_cache;
   /** Cache of data about edges not used by faces. See #Mesh::loose_edges(). */
   SharedCache<LooseGeomCache> loose_edges_cache;
   /** Cache of data about vertices not used by edges. See #Mesh::loose_verts(). */

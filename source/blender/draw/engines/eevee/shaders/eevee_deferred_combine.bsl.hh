@@ -32,31 +32,16 @@ struct Combine {
   [[specialization_constant(true)]] bool use_split_radiance;
 
   /* Inputs. */
-  [[sampler(2)]] usampler2D direct_radiance_1_tx;
-  [[sampler(4)]] usampler2D direct_radiance_2_tx;
-  [[sampler(5)]] usampler2D direct_radiance_3_tx;
-  [[sampler(6)]] sampler2D indirect_radiance_1_tx;
-  [[sampler(7)]] sampler2D indirect_radiance_2_tx;
-  [[sampler(8)]] sampler2D indirect_radiance_3_tx;
+  [[sampler(2)]] usampler2DArray direct_radiance_txs;
+  [[sampler(4)]] sampler2D indirect_radiance_1_tx;
+  [[sampler(5)]] sampler2D indirect_radiance_2_tx;
+  [[sampler(6)]] sampler2D indirect_radiance_3_tx;
 
   [[image(5, read_write, SFLOAT_16_16_16_16)]] image2D radiance_feedback_img;
 
   float3 load_radiance_direct(int2 texel, uchar i) const
   {
-    uint data = 0u;
-    switch (i) {
-      case 0:
-        data = texelFetch(direct_radiance_1_tx, texel, 0).r;
-        break;
-      case 1:
-        data = texelFetch(direct_radiance_2_tx, texel, 0).r;
-        break;
-      case 2:
-        data = texelFetch(direct_radiance_3_tx, texel, 0).r;
-        break;
-      default:
-        break;
-    }
+    uint data = texelFetch(direct_radiance_txs, int3(texel, i), 0).r;
     return rgb9e5_decode(data);
   }
 

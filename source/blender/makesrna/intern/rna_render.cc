@@ -1037,6 +1037,14 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_ui_text(prop, "Use Stereo Viewport", "Support rendering stereo 3D viewport");
 
+  prop = RNA_def_property(srna, "bl_write_viewport_depth", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "type->flag", RE_WRITE_VIEWPORT_DEPTH);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(prop,
+                           "Write Viewport Depth",
+                           "The render engine writes depth to the viewport framebuffer "
+                           "which should be used as is instead of doing an internal depth pass");
+
   prop = RNA_def_property(srna, "bl_use_materialx", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "type->flag", RE_USE_MATERIALX);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);

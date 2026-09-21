@@ -1375,13 +1375,18 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   /* If this is a UDIM texture, this will store the
    * UDIM tile indices. */
   Vector<int> udim_tiles;
+  bool check_open = true;
 
   if (is_udim_path(file_path)) {
     udim_tiles = get_udim_tiles(file_path);
+    /* We can skip the additional check for file existance if we've successfully found tiles. */
+    if (!udim_tiles.is_empty()) {
+      check_open = false;
+    }
   }
 
   const char *im_file = file_path.c_str();
-  Image *image = BKE_image_load_exists(&bmain_, im_file);
+  Image *image = BKE_image_load_exists(&bmain_, im_file, check_open);
   if (!image) {
     CLOG_WARN(&LOG, "Couldn't open image file '%s' for Texture Image node", im_file);
     return;

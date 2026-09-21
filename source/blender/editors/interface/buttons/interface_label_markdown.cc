@@ -1183,7 +1183,7 @@ class MarkdownLayouter {
 
       /* Number of bytes that should be drawn in the current line. */
       int64_t draw_bytes = last_fit_char_i;
-      /* Number of bytes that should be skipped (this skips e.g. whitespace at the line end).*/
+      /* Number of bytes that should be skipped (this skips e.g. white-space at the line end).*/
       int64_t drop_bytes = last_fit_char_i;
       const bool wrap_to_next_line = last_fit_char_i < text.size();
 
@@ -1205,7 +1205,7 @@ class MarkdownLayouter {
           continue;
         }
         else if (last_fit_char_i == 0) {
-          /* Nothing fits on an empty line; advance one character to avoid an infinit loop. */
+          /* Nothing fits on an empty line; advance one character to avoid an infinite loop. */
           draw_bytes = BLI_str_utf8_size_safe(text.data());
           drop_bytes = draw_bytes;
           needed_width = BLF_width(fontid, text.data(), draw_bytes);

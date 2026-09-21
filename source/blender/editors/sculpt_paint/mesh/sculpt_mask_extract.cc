@@ -108,8 +108,6 @@ static wmOperatorStatus geometry_extract_apply(bContext *C,
   mesh_to_bm_params.calc_vert_normal = true;
   BM_mesh_bm_from_me(bm, new_mesh, &mesh_to_bm_params);
 
-  BMEditMesh *em = BKE_editmesh_create(bm);
-
   /* Generate the tags for deleting geometry in the extracted object. */
   tag_fn(bm, params);
 
@@ -128,7 +126,7 @@ static wmOperatorStatus geometry_extract_apply(bContext *C,
     BM_ITER_MESH (ed, &iter, bm, BM_EDGES_OF_MESH) {
       BM_elem_flag_set(ed, BM_ELEM_TAG, BM_edge_is_boundary(ed));
     }
-    EDBM_extrude_edges_indiv(em, op, BM_ELEM_TAG, false);
+    EDBM_extrude_edges_indiv(bm, op, BM_ELEM_TAG, false);
 
     for (int repeat = 0; repeat < params->num_smooth_iterations; repeat++) {
       BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
@@ -136,7 +134,7 @@ static wmOperatorStatus geometry_extract_apply(bContext *C,
         BM_elem_flag_set(v, BM_ELEM_TAG, !BM_vert_is_boundary(v));
       }
       for (int i = 0; i < 3; i++) {
-        if (!EDBM_smooth_vert(em, op)) {
+        if (!EDBM_smooth_vert(bm, op)) {
           continue;
         }
       }
@@ -146,7 +144,7 @@ static wmOperatorStatus geometry_extract_apply(bContext *C,
         BM_elem_flag_set(v, BM_ELEM_TAG, BM_vert_is_boundary(v));
       }
       for (int i = 0; i < 1; i++) {
-        if (!EDBM_smooth_vert(em, op)) {
+        if (!EDBM_smooth_vert(bm, op)) {
           continue;
         }
       }
@@ -167,8 +165,7 @@ static wmOperatorStatus geometry_extract_apply(bContext *C,
   /* Remove the mask from the new object so it can be sculpted directly after extracting. */
   new_mesh->attributes_for_write().remove(".sculpt_mask");
 
-  BKE_editmesh_free_data(em);
-  MEM_delete(em);
+  BM_mesh_free(bm);
 
   if (new_mesh->verts_num == 0) {
     BKE_id_free(bmain, new_mesh);

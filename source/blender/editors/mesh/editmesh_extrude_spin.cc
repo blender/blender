@@ -63,12 +63,11 @@ static wmOperatorStatus edbm_spin_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = em->bm;
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
     BMOperator spinop;
 
     /* Keep the values in world-space since we're passing the `obmat`. */
-    if (!EDBM_op_init(em,
+    if (!EDBM_op_init(bm,
                       &spinop,
                       op,
                       "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f space=%m4 "
@@ -88,11 +87,11 @@ static wmOperatorStatus edbm_spin_exec(bContext *C, wmOperator *op)
     }
     BMO_op_exec(bm, &spinop);
     if (use_auto_merge == false) {
-      EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+      EDBM_flag_disable_all(bm, BM_ELEM_SELECT);
       BMO_slot_buffer_hflag_enable(
           bm, spinop.slots_out, "geom_last.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
     }
-    if (!EDBM_op_finish(em, &spinop, op, true)) {
+    if (!EDBM_op_finish(bm, &spinop, op, true)) {
       continue;
     }
 

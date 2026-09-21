@@ -104,7 +104,7 @@ class AtomicHashSet {
         equalityChecker_(equalityChecker),
         cells_(capacity_)
   {
-    /* Get next power of two. Could be done more effiently with builtin_clz, but this is not
+    /* Get next power of two. Could be done more efficiently with builtin_clz, but this is not
      * performance-critical. */
     kAnchorMask_ = 1;
     while (kAnchorMask_ < capacity_) {

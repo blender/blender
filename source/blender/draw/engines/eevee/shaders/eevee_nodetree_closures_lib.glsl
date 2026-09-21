@@ -10,26 +10,6 @@
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_vector_reduce.bsl.hh"
 
-packed_float3 g_emission;
-packed_float3 g_transmittance;
-float g_holdout;
-
-packed_float3 g_volume_scattering;
-float g_volume_anisotropy;
-packed_float3 g_volume_absorption;
-
-/* For Light Accumulation. */
-#if (defined(GPU_FRAGMENT_SHADER) && defined(SRT_CONSTANT_use_lighting_nodes)) || \
-    defined(GLSL_CPP_STUBS)
-packed_float3 g_diffuse_light;
-packed_float3 g_diffuse_color;
-packed_float3 g_glossy_light;
-packed_float3 g_glossy_color;
-packed_float3 g_transmission_light;
-packed_float3 g_transmission_color;
-int g_light_accumulation_count;
-#endif
-
 /* The Closure type is never used. Use float as dummy type. */
 #define Closure float
 #define CLOSURE_DEFAULT 0.0f
@@ -87,36 +67,6 @@ template<typename T> struct Reservoir {
 
 template struct Reservoir<ClosureUndetermined>;
 
-/* Sampled closure parameters. */
-Reservoir<ClosureUndetermined> g_closure_bins[CLOSURE_BIN_COUNT];
-
-Reservoir<ClosureUndetermined> g_closure_get(uchar i)
-{
-  switch (i) {
-    case 0:
-      return g_closure_bins[0];
-#if CLOSURE_BIN_COUNT > 1
-    case 1:
-      return g_closure_bins[1];
-#endif
-#if CLOSURE_BIN_COUNT > 2
-    case 2:
-      return g_closure_bins[2];
-#endif
-  }
-  /* Unreachable. */
-  assert(false);
-  return g_closure_bins[0];
-}
-
-ClosureUndetermined g_closure_get_resolved(uchar i, float additional_weight)
-{
-  Reservoir<ClosureUndetermined> r = g_closure_get(i);
-  ClosureUndetermined cl = r.data;
-  cl.color *= r.get_final_weight() * additional_weight;
-  return cl;
-}
-
 ClosureType closure_type_get(ClosureDiffuse /*cl*/)
 {
   return CLOSURE_BSDF_DIFFUSE_ID;
@@ -153,40 +103,4 @@ ClosureType closure_type_get(ClosureThinRefraction /*cl*/)
 void closure_select(Reservoir<ClosureUndetermined> &reservoir, ClosureUndetermined candidate)
 {
   reservoir.add(candidate, candidate.weight());
-}
-
-void closure_weights_reset(float closure_rand)
-{
-  g_closure_bins[0].reset(closure_rand);
-#if CLOSURE_BIN_COUNT > 1
-  g_closure_bins[1].reset(closure_rand);
-#endif
-#if CLOSURE_BIN_COUNT > 2
-  g_closure_bins[2].reset(closure_rand);
-#endif
-
-  g_volume_scattering = float3(0.0f);
-  g_volume_anisotropy = 0.0f;
-  g_volume_absorption = float3(0.0f);
-
-  g_emission = float3(0.0f);
-  g_transmittance = float3(0.0f);
-  g_volume_scattering = float3(0.0f);
-  g_volume_absorption = float3(0.0f);
-  g_holdout = 0.0f;
-
-#if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
-  /* clang-format off */ /* Multi-line macros would break line count. */
-  [[resource_table]] const eevee::PipelineConstants &pipe = resource_table_get(eevee::PipelineConstants);
-  /* clang-format on */
-  if (pipe.use_lighting_nodes) [[static_branch]] {
-    g_diffuse_light = float3(0.0f);
-    g_diffuse_color = float3(0.0f);
-    g_glossy_light = float3(0.0f);
-    g_glossy_color = float3(0.0f);
-    g_transmission_light = float3(0.0f);
-    g_transmission_color = float3(0.0f);
-    g_light_accumulation_count = 0;
-  }
-#endif
 }

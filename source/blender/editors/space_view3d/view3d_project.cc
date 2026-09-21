@@ -110,7 +110,7 @@ static eV3DProjStatus ed_view3d_project__internal(const ARegion *region,
 
   if (flag & V3D_PROJ_TEST_CLIP_BB) {
     const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
-    if (rv3d->rflag & RV3D_CLIPPING) {
+    if ((rv3d->rflag & RV3D_CLIPPING) && (rv3d->clipbb != nullptr)) {
       if (ED_view3d_clipping_test(rv3d, co, is_local)) {
         return V3D_PROJ_RET_CLIP_BB;
       }
@@ -358,7 +358,7 @@ static void view3d_win_to_ray_segment(const Depsgraph *depsgraph,
 
 bool ED_view3d_clip_segment(const RegionView3D *rv3d, float ray_start[3], float ray_end[3])
 {
-  if ((rv3d->rflag & RV3D_CLIPPING) &&
+  if ((rv3d->rflag & RV3D_CLIPPING) && (rv3d->clipbb != nullptr) &&
       (clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6, ray_start, ray_end) == false))
   {
     return false;

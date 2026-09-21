@@ -232,6 +232,7 @@ int bar()
 }
 )";
     string expect = R"(
+
 #define E char
 #line 2
 static constexpr char E_A = 0;

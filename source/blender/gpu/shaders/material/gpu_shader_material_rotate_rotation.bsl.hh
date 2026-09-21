@@ -10,13 +10,15 @@
 [[node]]
 void rotate_rotation_global(float4 rotation, float4 rotate_by, float4 &result)
 {
-  result = math_quaternion_multiply(Quaternion{UNPACK4(rotate_by)}, Quaternion{UNPACK4(rotation)})
+  result = math_quaternion_multiply(Quaternion::from_float4(rotate_by),
+                                    Quaternion::from_float4(rotation))
                .as_float4();
 }
 
 [[node]]
 void rotate_rotation_local(float4 rotation, float4 rotate_by, float4 &result)
 {
-  result = math_quaternion_multiply(Quaternion{UNPACK4(rotation)}, Quaternion{UNPACK4(rotate_by)})
+  result = math_quaternion_multiply(Quaternion::from_float4(rotation),
+                                    Quaternion::from_float4(rotate_by))
                .as_float4();
 }

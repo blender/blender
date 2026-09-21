@@ -57,9 +57,9 @@ Result<SymbolFunction *> SymbolScope::lookup_function(const SymbolTable &table,
     /* Try to resolve type constructors (only for builtins for now). */
     if (auto [cls, err_cls] = lookup_class(table, id); !cls->is_error && cls && cls->is_builtin())
     {
-      return {root_scope()->lookup_function(cls->identifier), {}};
+      return {table.root->lookup_function(cls->identifier), {}};
     }
-    return {func, err ? err : AstNodeException{id, Diag::UnknownFunction}};
+    return {func, err ? err : AstNodeException{id, Diag::UnknownFunction, string(id.str())}};
   }
 
   if (func->template_data) {
@@ -400,18 +400,26 @@ bool SymbolScope::function_emplace(SymbolFunction *fn, bool builtin)
 {
   bool result = false;
   if (auto it = functions.emplace(fn); !it.second) {
-    /* If function already exists, insert overload in the linked list. */
-    it.first->add_overload(fn);
-    if (!builtin) {
-      /* Add suffix to the function identifier to reduce chance of hitting an overload at runtime.
-       * This way, the dead code eliminator can discard more functions.
-       * This suffix needs to be the same whatever the file include order is, as it can differ from
-       * shader to shader. We use the line index for that. It is short enough to not clutter the
-       * resulting source file. */
-      /* TODO(fclem): This is left out for compatibility with previous BSL versions. */
-      // fn->identifier += to_string(fn->loc.tok.line_number());
+    /* If the function is a builtin and the new overload by not a builtin, we have to discard
+     * all builtin overloads of this function. This is to emulate the GLSL and MSL overload
+     * behavior. */
+    if (it.first->is_builtin && !builtin) {
+      functions.erase(functions.find(fn->identifier));
+      functions.emplace(fn);
     }
-    result = true;
+    else {
+      it.first->add_overload(fn);
+      if (!builtin) {
+        /* Add suffix to the function identifier to reduce chance of hitting an overload at
+         * runtime. This way, the dead code eliminator can discard more functions. This suffix
+         * needs to be the same whatever the file include order is, as it can differ from shader to
+         * shader. We use the line index for that. It is short enough to not clutter the resulting
+         * source file. */
+        /* TODO(fclem): This is left out for compatibility with previous BSL versions. */
+        // fn->identifier += to_string(fn->loc.tok.line_number());
+      }
+      result = true;
+    }
   }
   /* Builtins functions aren't parsed and don't need access to the scope.
    * Avoid bloating global namespace. */

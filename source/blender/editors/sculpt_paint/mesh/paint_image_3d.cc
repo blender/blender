@@ -239,15 +239,15 @@ BLI_INLINE float4 paint_blend_pixel(const float4 &brush_color,
                                     const float factor,
                                     const float4 color)
 {
-  float4 result;
-  blend_color_mix_float(result, color, brush_color * factor);
-  result *= brush_alpha;
+  const float4 paint_color = brush_color * (factor * brush_alpha);
+  /* Many blend modes don't write alpha to the result, so copy it. */
+  float4 result = color;
   /* TODO: try making IMB_blend_color_float inline instead. */
   if (is_mix) {
-    blend_color_mix_float(result, color, result);
+    blend_color_mix_float(result, color, paint_color);
   }
   else {
-    IMB_blend_color_float(result, color, result, blend_mode);
+    IMB_blend_color_float(result, color, paint_color, blend_mode);
   }
   return result;
 }
@@ -697,7 +697,7 @@ static void do_paint_pixels(const Paint &paint,
                                  span.x + span.size - 1,
                                  span.y);
         const int2 start(span.x, span.y);
-        const int2 end = start + int2(span.size + 1, 0);
+        const int2 end = start + int2(span.size, 1);
         dirty_bounds = bounds::merge(dirty_bounds, Bounds<int2>(start, end));
       }
     }
@@ -737,16 +737,20 @@ static void fix_non_manifold_seam_bleeding(bke::pbvh::Tree &pbvh,
       continue;
     }
     const MutableSpan<uint32_t> undo_tile_pushed = image_data.undo_tile_pushed.lookup(tile_number);
+    const MutableSpan<uint8_t> seam_tile_modified = image_data.seam_tile_modified.lookup(
+        tile_number);
 
     bke::pbvh::pixels::copy_pixels(
         pbvh,
         image_data.image_buffers,
         tile_number,
-        image_data.seam_tile_modified.lookup(tile_number),
+        seam_tile_modified,
         [&](const int x_start, const int x_end, const int y) {
           push_undo_tiles(
               image_data, tile_number, *image_buffer, undo_tile_pushed, x_start, x_end, y);
         });
+
+    seam_tile_modified.fill(0);
   }
 }
 
@@ -778,10 +782,6 @@ void do_3d_image_paint_brush(const Depsgraph &depsgraph,
 
   node_mask.foreach_index(
       [&](const int i) { fetch_image_buffers(image_data, nodes[i], pixel_nodes[i]); });
-
-  for (Array<uint8_t> &modified : image_data.seam_tile_modified.values()) {
-    modified.as_mutable_span().fill(0);
-  }
 
   const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
 

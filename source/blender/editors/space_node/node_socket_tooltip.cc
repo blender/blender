@@ -459,10 +459,22 @@ class SocketTooltipBuilder {
            socket_.runtime->declaration->default_input_type == type;
   }
 
+  void build_tooltip_value_float2(const float2 &value)
+  {
+    const std::string value_str = fmt::format("{} {}", value.x, value.y);
+    this->build_tooltip_value_and_type_oneline(value_str, TIP_("2D Float Vector"));
+  }
+
   void build_tooltip_value_float3(const float3 &value)
   {
     const std::string value_str = fmt::format("{} {} {}", value.x, value.y, value.z);
     this->build_tooltip_value_and_type_oneline(value_str, TIP_("3D Float Vector"));
+  }
+
+  void build_tooltip_value_float4(const float4 &value)
+  {
+    const std::string value_str = fmt::format("{} {} {} {}", value.x, value.y, value.z, value.w);
+    this->build_tooltip_value_and_type_oneline(value_str, TIP_("4D Float Vector"));
   }
 
   void build_tooltip_value_color(const ColorGeometry4f &value)
@@ -570,8 +582,16 @@ class SocketTooltipBuilder {
       this->build_tooltip_value_float(*static_cast<float *>(socket_value));
       return;
     }
+    if (socket_base_cpp_type.is<float2>()) {
+      this->build_tooltip_value_float2(*static_cast<float2 *>(socket_value));
+      return;
+    }
     if (socket_base_cpp_type.is<float3>()) {
       this->build_tooltip_value_float3(*static_cast<float3 *>(socket_value));
+      return;
+    }
+    if (socket_base_cpp_type.is<float4>()) {
+      this->build_tooltip_value_float4(*static_cast<float4 *>(socket_value));
       return;
     }
     if (socket_base_cpp_type.is<ColorGeometry4f>()) {
@@ -610,8 +630,14 @@ class SocketTooltipBuilder {
     if (base_type.is<float>()) {
       return TIP_("Float Field");
     }
+    if (base_type.is<float2>()) {
+      return TIP_("2D Float Vector Field");
+    }
     if (base_type.is<float3>()) {
       return TIP_("3D Float Vector Field");
+    }
+    if (base_type.is<float4>()) {
+      return TIP_("4D Float Vector Field");
     }
     if (base_type.is<bool>()) {
       return TIP_("Boolean Field");
@@ -631,13 +657,11 @@ class SocketTooltipBuilder {
     if (base_type.is<nodes::MenuValue>()) {
       return TIP_("Menu Field");
     }
-    BLI_assert_unreachable();
     return TIP_("Field");
   }
 
   void build_tooltip_value_field_log(const eval_log::FieldInfoLog &value_log)
   {
-    const CPPType &socket_base_cpp_type = *socket_.typeinfo->base_cpp_type;
     const Span<std::string> input_tooltips = value_log.input_tooltips;
 
     if (input_tooltips.is_empty()) {
@@ -654,7 +678,7 @@ class SocketTooltipBuilder {
     }
 
     this->add_space();
-    std::string type_str = this->get_field_type_name(socket_base_cpp_type);
+    std::string type_str = this->get_field_type_name(value_log.type);
     this->add_text_field_mono(fmt::format("{}: {}", TIP_("Type"), type_str));
   }
 

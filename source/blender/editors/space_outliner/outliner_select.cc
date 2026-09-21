@@ -10,7 +10,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_gpencil_modifier_types.h"
+#include "DNA_grease_pencil_modifier_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -20,12 +20,12 @@
 #include "BLI_listbase.hh"
 #include "BLI_utildefines.hh"
 
+#include "BKE_annotations.h"
 #include "BKE_armature.hh"
 #include "BKE_collection.hh"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -493,7 +493,7 @@ static void tree_element_gplayer_activate(bContext *C, TreeElement *te, TreeStor
   /* We can only have a single "active" layer at a time
    * and there must always be an active layer... */
   if (gpl) {
-    BKE_gpencil_layer_active_set(gpd, gpl);
+    BKE_annotations_layer_active_set(gpd, gpl);
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
   }

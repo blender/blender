@@ -23,13 +23,13 @@
 #  include "BLI_string_utf8.hh"
 
 #  include "BKE_action.hh"
+#  include "BKE_annotations.h"
 #  include "BKE_armature.hh"
 #  include "BKE_brush.hh"
 #  include "BKE_camera.h"
 #  include "BKE_collection.hh"
 #  include "BKE_curve.hh"
 #  include "BKE_curves.h"
-#  include "BKE_gpencil_legacy.h"
 #  include "BKE_grease_pencil.hh"
 #  include "BKE_idtype.hh"
 #  include "BKE_image.hh"
@@ -807,7 +807,7 @@ static bGPdata *rna_Main_annotations_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  bGPdata *gpd = BKE_gpencil_data_addnew(bmain, safe_name);
+  bGPdata *gpd = BKE_annotations_data_addnew(bmain, safe_name);
   id_us_min(&gpd->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);

@@ -234,8 +234,8 @@ bool attribute_set_poll(bContext &C, const ID &object_data)
 
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
-      BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm, *name);
+    if (const BMesh *bm = BKE_editmesh_bmesh_get(mesh)) {
+      BMDataLayerLookup attr = BM_data_layer_lookup(*bm, *name);
       if (ELEM(attr.type,
                bke::AttrType::String,
                bke::AttrType::Float4x4,
@@ -379,9 +379,8 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
 
   if (owner.type() == AttributeOwnerType::Mesh) {
     Mesh &mesh = *id_cast<Mesh *>(id);
-    if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
-      CustomDataLayer *layer = BKE_attribute_new(
-          mesh, *em->bm, name, cd_type, domain, op->reports);
+    if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(&mesh)) {
+      CustomDataLayer *layer = BKE_attribute_new(mesh, *bm, name, cd_type, domain, op->reports);
       if (layer == nullptr) {
         return OPERATOR_CANCELLED;
       }
@@ -550,8 +549,8 @@ static wmOperatorStatus geometry_color_attribute_add_exec(bContext *C, wmOperato
 
   if (owner.type() == AttributeOwnerType::Mesh) {
     Mesh *mesh = owner.get_mesh();
-    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-      CustomDataLayer *layer = BKE_attribute_new(*mesh, *em->bm, name, type, domain, op->reports);
+    if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+      CustomDataLayer *layer = BKE_attribute_new(*mesh, *bm, name, type, domain, op->reports);
       if (layer == nullptr) {
         return OPERATOR_CANCELLED;
       }
@@ -825,8 +824,8 @@ static wmOperatorStatus geometry_color_attribute_set_render_exec(bContext *C, wm
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
   Mesh *mesh = id_cast<Mesh *>(id);
-  if (mesh->runtime->edit_mesh) {
-    const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm, name);
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, name);
     if (!attr) {
       return OPERATOR_CANCELLED;
     }

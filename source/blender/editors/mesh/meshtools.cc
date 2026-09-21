@@ -221,33 +221,33 @@ static MirrTopoStore_t mesh_topo_store = {nullptr, -1, -1, false};
 BLI_INLINE void mesh_mirror_topo_table_get_meshes(Object *ob,
                                                   Mesh *mesh_eval,
                                                   Mesh **r_mesh_mirror,
-                                                  BMEditMesh **r_em_mirror)
+                                                  BMesh **r_bm_mirror)
 {
   Mesh *mesh_mirror = nullptr;
-  BMEditMesh *em_mirror = nullptr;
+  BMesh *bm_mirror = nullptr;
 
   Mesh *mesh = id_cast<Mesh *>(ob->data);
   if (mesh_eval != nullptr) {
     mesh_mirror = mesh_eval;
   }
-  else if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    em_mirror = em;
+  else if (mesh->runtime->edit_mesh) {
+    bm_mirror = BKE_editmesh_bmesh_get_for_write(ob);
   }
   else {
     mesh_mirror = mesh;
   }
 
   *r_mesh_mirror = mesh_mirror;
-  *r_em_mirror = em_mirror;
+  *r_bm_mirror = bm_mirror;
 }
 
 void ED_mesh_mirror_topo_table_begin(Object *ob, Mesh *mesh_eval)
 {
   Mesh *mesh_mirror;
-  BMEditMesh *em_mirror;
-  mesh_mirror_topo_table_get_meshes(ob, mesh_eval, &mesh_mirror, &em_mirror);
+  BMesh *bm_mirror;
+  mesh_mirror_topo_table_get_meshes(ob, mesh_eval, &mesh_mirror, &bm_mirror);
 
-  ED_mesh_mirrtopo_init(em_mirror, mesh_mirror, &mesh_topo_store, false);
+  ED_mesh_mirrtopo_init(bm_mirror, mesh_mirror, &mesh_topo_store, false);
 }
 
 void ED_mesh_mirror_topo_table_end(Object * /*ob*/)
@@ -260,10 +260,10 @@ void ED_mesh_mirror_topo_table_end(Object * /*ob*/)
 static bool ed_mesh_mirror_topo_table_update(Object *ob, Mesh *mesh_eval)
 {
   Mesh *mesh_mirror;
-  BMEditMesh *em_mirror;
-  mesh_mirror_topo_table_get_meshes(ob, mesh_eval, &mesh_mirror, &em_mirror);
+  BMesh *bm_mirror;
+  mesh_mirror_topo_table_get_meshes(ob, mesh_eval, &mesh_mirror, &bm_mirror);
 
-  if (ED_mesh_mirrtopo_recalc_check(em_mirror, mesh_mirror, &mesh_topo_store)) {
+  if (ED_mesh_mirrtopo_recalc_check(bm_mirror, mesh_mirror, &mesh_topo_store)) {
     ED_mesh_mirror_topo_table_begin(ob, mesh_eval);
   }
   return true;
@@ -282,7 +282,7 @@ static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *mesh_eval, int index
   vec[1] = positions[index][1];
   vec[2] = positions[index][2];
 
-  return ED_mesh_mirror_spatial_table_lookup(ob, nullptr, mesh_eval, vec);
+  return ED_mesh_mirror_spatial_table_lookup(ob, mesh_eval, vec);
 }
 
 static int mesh_get_x_mirror_vert_topo(Object *ob, Mesh *mesh, int index)
@@ -302,7 +302,7 @@ int mesh_get_x_mirror_vert(Object *ob, Mesh *mesh_eval, int index, const bool us
   return mesh_get_x_mirror_vert_spatial(ob, mesh_eval, index);
 }
 
-static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, const float co[3])
+static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMesh *bm, const float co[3])
 {
   float vec[3];
   int i;
@@ -316,14 +316,14 @@ static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, c
   vec[1] = co[1];
   vec[2] = co[2];
 
-  i = ED_mesh_mirror_spatial_table_lookup(ob, em, nullptr, vec);
+  i = ED_mesh_mirror_spatial_table_lookup(ob, nullptr, vec);
   if (i != -1) {
-    return BM_vert_at_index(em->bm, i);
+    return BM_vert_at_index(bm, i);
   }
   return nullptr;
 }
 
-static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, BMEditMesh *em, BMVert *eve, int index)
+static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, BMesh *bm, BMVert *eve, int index)
 {
   intptr_t poinval;
   if (!ed_mesh_mirror_topo_table_update(ob, nullptr)) {
@@ -335,14 +335,14 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, BMEditMesh *em, BMVe
     BMVert *v;
 
     index = 0;
-    BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
       if (v == eve) {
         break;
       }
       index++;
     }
 
-    if (index == em->bm->totvert) {
+    if (index == bm->totvert) {
       return nullptr;
     }
   }
@@ -356,12 +356,12 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, BMEditMesh *em, BMVe
 }
 
 BMVert *editbmesh_get_x_mirror_vert(
-    Object *ob, BMEditMesh *em, BMVert *eve, const float co[3], int index, const bool use_topology)
+    Object *ob, BMesh *bm, BMVert *eve, const float co[3], int index, const bool use_topology)
 {
   if (use_topology) {
-    return editbmesh_get_x_mirror_vert_topo(ob, em, eve, index);
+    return editbmesh_get_x_mirror_vert_topo(ob, bm, eve, index);
   }
-  return editbmesh_get_x_mirror_vert_spatial(ob, em, co);
+  return editbmesh_get_x_mirror_vert_spatial(ob, bm, co);
 }
 
 int ED_mesh_mirror_get_vert(Object *ob, int index)
@@ -370,10 +370,10 @@ int ED_mesh_mirror_get_vert(Object *ob, int index)
   bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
   int index_mirr;
 
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob)) {
     BMVert *eve, *eve_mirr;
-    eve = BM_vert_at_index(em->bm, index);
-    eve_mirr = editbmesh_get_x_mirror_vert(ob, em, eve, eve->co, index, use_topology);
+    eve = BM_vert_at_index(bm, index);
+    eve_mirr = editbmesh_get_x_mirror_vert(ob, bm, eve, eve->co, index, use_topology);
     index_mirr = eve_mirr ? BM_elem_index_get(eve_mirr) : -1;
   }
   else {
@@ -386,7 +386,7 @@ int ED_mesh_mirror_get_vert(Object *ob, int index)
 #if 0
 
 static float *editmesh_get_mirror_uv(
-    BMEditMesh *em, int axis, float *uv, float *mirrCent, float *face_cent)
+    BMesh *bm, int axis, float *uv, float *mirrCent, float *face_cent)
 {
   float vec[2];
   float cent_vec[2];
@@ -417,7 +417,7 @@ static float *editmesh_get_mirror_uv(
     BMIter iter;
     BMFace *efa;
 
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       BM_face_uv_calc_center_median(efa, cd_loop_uv_offset, cent);
 
       if ((fabsf(cent[0] - cent_vec[0]) < 0.001f) && (fabsf(cent[1] - cent_vec[1]) < 0.001f)) {
@@ -493,15 +493,13 @@ static bool mirror_facecmp(const void *a, const void *b)
                               static_cast<MFace *>(const_cast<void *>(b))) == -1);
 }
 
-int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
+int *mesh_get_x_mirror_faces(Object *ob, Mesh *mesh_eval)
 {
   Mesh *mesh = id_cast<Mesh *>(ob->data);
   MFace mirrormf;
   const MFace *mf, *hashmf;
   GHash *fhash;
   int *mirrorverts, *mirrorfaces;
-
-  BLI_assert(em == nullptr); /* Does not work otherwise, currently... */
 
   const bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
   const int totvert = mesh_eval ? mesh_eval->verts_num : mesh->verts_num;
@@ -516,7 +514,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
   const MFace *mface = static_cast<const MFace *>(
       CustomData_get_layer(&(mesh_eval ? mesh_eval : mesh)->fdata_legacy, CD_MFACE));
 
-  ED_mesh_mirror_spatial_table_begin(ob, em, mesh_eval);
+  ED_mesh_mirror_spatial_table_begin(ob, mesh_eval);
 
   for (const int i : vert_positions.index_range()) {
     mirrorverts[i] = mesh_get_x_mirror_vert(ob, mesh_eval, i, use_topology);
@@ -849,7 +847,7 @@ MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
   if (ob->mode & OB_MODE_EDIT && ob->type == OB_MESH) {
     Mesh *mesh = id_cast<Mesh *>(ob->data);
     if (!mesh->vertex_group_names.is_empty()) {
-      BMesh *bm = mesh->runtime->edit_mesh->bm;
+      BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
       const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
 
       if (cd_dvert_offset != -1) {
@@ -910,8 +908,7 @@ void EDBM_mesh_stats_multi(const Span<Object *> objects, int totelem[3], int tot
   }
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = em->bm;
+    const BMesh *bm = BKE_editmesh_bmesh_get(obedit);
     if (totelem) {
       totelem[0] += bm->totvert;
       totelem[1] += bm->totedge;
@@ -929,8 +926,7 @@ void EDBM_mesh_elem_index_ensure_multi(const Span<Object *> objects, const char 
 {
   int elem_offset[4] = {0, 0, 0, 0};
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = em->bm;
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
     BM_mesh_elem_index_ensure_ex(bm, htype, elem_offset);
   }
 }

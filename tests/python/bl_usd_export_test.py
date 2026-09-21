@@ -5,11 +5,10 @@
 import math
 import os
 import pathlib
-import pprint
 import sys
 import tempfile
 import unittest
-from pxr import Gf, Sdf, Usd, UsdGeom, UsdLux, UsdMtlx, UsdShade, UsdSkel, UsdUI, UsdUtils, UsdVol
+from pxr import Gf, Sdf, Usd, UsdGeom, UsdLux, UsdMtlx, UsdShade, UsdSkel, UsdUI, UsdUtils, UsdVol, UsdValidation
 
 import bpy
 
@@ -53,33 +52,24 @@ class AbstractUSDTest(unittest.TestCase):
         self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
         # Validate resulting file
-        checker = UsdUtils.ComplianceChecker(
-            arkit=False,
-            skipARKitRootLayerCheck=False,
-            rootPackageOnly=False,
-            skipVariants=False,
-            verbose=False,
-        )
-        checker.CheckCompliance(export_path)
 
-        failed_checks = {}
+        # Any validators to exclude. E.g. "usdUtilsValidators:MissingReferenceValidator"
+        to_skip = []
 
-        # The ComplianceChecker does not know how to resolve <UDIM> tags, so
-        # it will flag "textures/test_grid_<UDIM>.png" as a missing reference.
-        # That reference is in fact OK, so we skip the rule for this test.
-        to_skip = ("MissingReferenceChecker",)
-        for rule in checker._rules:
-            name = rule.__class__.__name__
-            if name in to_skip:
-                continue
+        validation_reg = UsdValidation.ValidationRegistry()
+        metadata = [m for m in validation_reg.GetAllValidatorMetadata() if m.name not in to_skip]
+        metadata = sorted(metadata, key=lambda m: m.name)
 
-            issues = rule.GetFailedChecks() + rule.GetWarnings() + rule.GetErrors()
-            if not issues:
-                continue
+        stage = Usd.Stage.Open(export_path)
 
-            failed_checks[name] = issues
+        validation_ctx = UsdValidation.ValidationContext(metadata=metadata)
+        failures = validation_ctx.Validate(stage)
+        failure_msgs = []
+        for failure in failures:
+            failure_msgs.append(f"{failure.GetIdentifier()} : {failure.GetMessage()}")
 
-        self.assertFalse(failed_checks, pprint.pformat(failed_checks))
+        stage = None
+        self.assertEqual(len(failure_msgs), 0, failure_msgs)
 
 
 class USDExportTest(AbstractUSDTest):

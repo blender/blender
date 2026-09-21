@@ -11,7 +11,7 @@
 #include "BLO_read_write.hh"
 
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_modifier_types.h"
+#include "DNA_grease_pencil_modifier_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_lineart_types.h"
 #include "DNA_scene_types.h"

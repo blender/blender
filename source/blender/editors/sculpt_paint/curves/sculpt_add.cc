@@ -6,8 +6,9 @@
 
 #include "sculpt_intern.hh"
 
+#include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
@@ -57,18 +58,13 @@ using bke::CurvesGeometry;
 class AddOperation : public CurvesSculptStrokeOperation {
  private:
   /** Used when some data should be interpolated from existing curves. */
-  KDTree<float3> *curve_roots_kdtree_ = nullptr;
+  std::unique_ptr<KDTreeNew<float3>> curve_roots_kdtree_;
+  /** Root positions #curve_roots_kdtree_ references, which must outlive it. */
+  Array<float3> curve_root_positions_;
 
   friend struct AddOperationExecutor;
 
  public:
-  ~AddOperation() override
-  {
-    if (curve_roots_kdtree_ != nullptr) {
-      kdtree_free<float3>(curve_roots_kdtree_);
-    }
-  }
-
   void on_stroke_extended(const PaintStroke &stroke,
                           const StrokeExtension &stroke_extension) override;
 };
@@ -225,7 +221,7 @@ struct AddOperationExecutor {
         add_inputs.interpolate_resolution)
     {
       this->ensure_curve_roots_kdtree();
-      add_inputs.old_roots_kdtree = self_->curve_roots_kdtree_;
+      add_inputs.old_roots_kdtree = self_->curve_roots_kdtree_.get();
     }
 
     const geometry::AddCurvesOnMeshOutputs add_outputs = geometry::add_curves_on_mesh(
@@ -483,13 +479,14 @@ struct AddOperationExecutor {
   void ensure_curve_roots_kdtree()
   {
     if (self_->curve_roots_kdtree_ == nullptr) {
-      self_->curve_roots_kdtree_ = kdtree_new<float3>(curves_orig_->curves_num());
       const Span<int> offsets = curves_orig_->offsets();
       const Span<float3> positions = curves_orig_->positions();
-      for (const int curve_i : curves_orig_->curves_range()) {
-        kdtree_insert<float3>(self_->curve_roots_kdtree_, curve_i, positions[offsets[curve_i]]);
-      }
-      kdtree_balance<float3>(self_->curve_roots_kdtree_);
+      self_->curve_root_positions_.reinitialize(curves_orig_->curves_num());
+      array_utils::gather(positions,
+                          offsets.take_front(curves_orig_->curves_num()),
+                          self_->curve_root_positions_.as_mutable_span());
+      self_->curve_roots_kdtree_ = std::make_unique<KDTreeNew<float3>>(
+          self_->curve_root_positions_.as_span());
     }
   }
 };

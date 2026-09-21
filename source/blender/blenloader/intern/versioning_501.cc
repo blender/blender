@@ -582,8 +582,11 @@ static void free_compositor_forward_compatibility_storage(bNode &node)
 
 static void convert_brush_flags_to_type(Brush &brush)
 {
-  if (brush.flag & BRUSH_UNUSED_1) {
-    brush.flag &= ~BRUSH_UNUSED_1;
+  /* BRUSH_AIRBRUSH was replaced with BRUSH_UNUSED_1 in 29c9353429f4b60c6e4ad234a4d6392a1f513079
+   * and subsequently re-used for BRUSH_HARDNESS_PRESSURE in 5.3 subversion 22. */
+  constexpr eBrushFlags BRUSH_AIRBRUSH = eBrushFlags(1 << 0);
+  if (brush.flag & BRUSH_AIRBRUSH) {
+    brush.flag &= ~BRUSH_AIRBRUSH;
     brush.stroke_method = BRUSH_STROKE_AIRBRUSH;
   }
   else if (brush.flag & BRUSH_UNUSED_2) {

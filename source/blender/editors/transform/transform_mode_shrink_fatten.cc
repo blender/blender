@@ -50,7 +50,6 @@ enum eShrinkFattenMode {
 struct ShrinkFattenCustomData {
   const wmKeyMapItem *kmi;
   eShrinkFattenMode mode;
-  wmOperator *op;
   bool use_alt_press_to_disable;
 };
 
@@ -155,32 +154,28 @@ static void applyShrinkFatten(TransInfo *t)
 
 static void shrink_fatten_status(TransInfo *t)
 {
+  if (t->keymap == nullptr) {
+    return;
+  }
+  const wmKeyMap &keymap = *t->keymap;
+
   ShrinkFattenCustomData *custom_data = static_cast<ShrinkFattenCustomData *>(t->custom.mode.data);
-  if (custom_data->op) {
-    WorkspaceStatus status(t->context);
+  WorkspaceStatus status(t->context);
 
-    status.opmodal(IFACE_("Confirm"), custom_data->op->type, TFM_MODAL_CONFIRM);
-    status.opmodal(IFACE_("Cancel"), custom_data->op->type, TFM_MODAL_CANCEL);
-    status.opmodal(
-        IFACE_("Snap"), custom_data->op->type, TFM_MODAL_SNAP_TOGGLE, t->modifiers & MOD_SNAP);
-    status.opmodal(IFACE_("Snap Invert"),
-                   custom_data->op->type,
-                   TFM_MODAL_SNAP_INV_ON,
-                   t->modifiers & MOD_SNAP_INVERT);
-    status.opmodal(IFACE_("Precision"),
-                   custom_data->op->type,
-                   TFM_MODAL_PRECISION,
-                   t->modifiers & MOD_PRECISION);
-    status.opmodal(IFACE_("Even Thickness"),
-                   custom_data->op->type,
-                   TFM_MODAL_RESIZE,
-                   custom_data->mode == EVEN_THICKNESS_ON);
-    status.item(IFACE_("Even Thickness Invert"), ICON_EVENT_ALT);
+  status.modal_keymap(IFACE_("Confirm"), keymap, TFM_MODAL_CONFIRM);
+  status.modal_keymap(IFACE_("Cancel"), keymap, TFM_MODAL_CANCEL);
+  status.modal_keymap(IFACE_("Snap"), keymap, TFM_MODAL_SNAP_TOGGLE, t->modifiers & MOD_SNAP);
+  status.modal_keymap(
+      IFACE_("Snap Invert"), keymap, TFM_MODAL_SNAP_INV_ON, t->modifiers & MOD_SNAP_INVERT);
+  status.modal_keymap(
+      IFACE_("Precision"), keymap, TFM_MODAL_PRECISION, t->modifiers & MOD_PRECISION);
+  status.modal_keymap(
+      IFACE_("Even Thickness"), keymap, TFM_MODAL_RESIZE, custom_data->mode == EVEN_THICKNESS_ON);
+  status.item(IFACE_("Even Thickness Invert"), ICON_EVENT_ALT);
 
-    if (t->proptext[0]) {
-      status.opmodal({}, custom_data->op->type, TFM_MODAL_PROPSIZE_UP);
-      status.opmodal(IFACE_("Proportional Size"), custom_data->op->type, TFM_MODAL_PROPSIZE_DOWN);
-    }
+  if (t->proptext[0]) {
+    status.modal_keymap({}, keymap, TFM_MODAL_PROPSIZE_UP);
+    status.modal_keymap(IFACE_("Proportional Size"), keymap, TFM_MODAL_PROPSIZE_DOWN);
   }
 }
 
@@ -222,7 +217,6 @@ static void initShrinkFatten(TransInfo *t, wmOperator *op)
   }
 
   if (op) {
-    custom_data->op = op;
     if (PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_even_offset")) {
       if (RNA_property_is_set(op->ptr, prop) && RNA_property_boolean_get(op->ptr, prop)) {
         /* TODO: Check if the Alt button is already pressed. */

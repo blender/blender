@@ -164,8 +164,8 @@ static void mesh_cd_calc_active_mask_uv_layer(const Object &object,
 
 static bool attribute_exists(const Mesh &mesh, const StringRef name)
 {
-  if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
-    return bool(BM_data_layer_lookup(*em->bm, name));
+  if (const BMesh *bm = BKE_editmesh_bmesh_get(&mesh)) {
+    return bool(BM_data_layer_lookup(*bm, name));
   }
   return mesh.attributes().contains(name);
 };
@@ -174,8 +174,8 @@ static std::optional<bke::AttributeMetaData> lookup_meta_data(const Mesh &mesh,
                                                               const StringRef name)
 {
   if (mesh.runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
-    if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
-      if (const BMDataLayerLookup attr = BM_data_layer_lookup(*em->bm, name)) {
+    if (const BMesh *bm = BKE_editmesh_bmesh_get(&mesh)) {
+      if (const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, name)) {
         return bke::AttributeMetaData{attr.domain, attr.type};
       }
       return std::nullopt;

@@ -10,6 +10,8 @@
 
 #include "BKE_report.hh"
 
+#include "DNA_node_types.h"
+
 #include "NOD_warning.hh"
 
 #include "RNA_access.hh"
@@ -67,6 +69,23 @@ StringRefNull node_warning_type_name(const NodeWarningType type)
       rna_enum_node_warning_type_items, int(type), BLT_I18NCONTEXT_DEFAULT, &name);
   BLI_assert(name);
   return name;
+}
+
+bool warning_is_propagated(const NodeWarningPropagation propagation,
+                           const NodeWarningType warning_type)
+{
+  switch (propagation) {
+    case NODE_WARNING_PROPAGATION_ALL:
+      return true;
+    case NODE_WARNING_PROPAGATION_NONE:
+      return false;
+    case NODE_WARNING_PROPAGATION_ONLY_ERRORS:
+      return warning_type == NodeWarningType::Error;
+    case NODE_WARNING_PROPAGATION_ONLY_ERRORS_AND_WARNINGS:
+      return ELEM(warning_type, NodeWarningType::Error, NodeWarningType::Warning);
+  }
+  BLI_assert_unreachable();
+  return true;
 }
 
 }  // namespace blender::nodes

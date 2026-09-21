@@ -941,7 +941,7 @@ static void writestruct_at_address_nr(WriteData *wd,
     if (has_custom_fn) {
       for (const int i : IndexRange(nr)) {
         const int offset = i * struct_info.size_in_bytes;
-        BlendStructWriter struct_writer(
+        BlendStructWriterVoid struct_writer(
             *wd,
             struct_nr,
             {static_cast<char *>(POINTER_OFFSET(buffer, offset)), struct_info.size_in_bytes});
@@ -983,20 +983,7 @@ static void writestruct_at_address_nr(WriteData *wd,
   mywrite(wd, data_to_write, size_t(bh.len));
 }
 
-void BlendStructWriter::runtime_ptr(const int64_t offset)
-{
-#ifndef NDEBUG
-  const dna::pointers::StructInfo &struct_info =
-      wd_->stable_address_ids.sdna_pointers->get_for_struct(struct_nr_);
-  BLI_assert(struct_info.has_pointer_at_offset(offset));
-#else
-  UNUSED_VARS_NDEBUG(struct_nr_);
-#endif
-
-  data_.slice(offset, sizeof(void *)).fill(0);
-}
-
-void BlendStructWriter::generated_ptr(const int64_t offset)
+void BlendStructWriterVoid::generated_ptr(const int64_t offset)
 {
   if (!wd_->use_memfile) {
     /* When writing to file, all pointers are remapped to stable pointers. */
@@ -1658,33 +1645,10 @@ BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, const bool is_undo, const bool is
     return;
   }
 
-  /* Regular 'full' ID writing, copy everything, then clear some runtime data irrelevant in the
-   * blendfile. */
+  /* Common ID-header runtime fields are cleared when the ID is written via
+   * #BlendWriter::write_id_struct. The shallow copy here is still necessary because some functions
+   * like #mesh_blend_write still override the data. */
   memcpy(temp_id, &id, id_type->struct_size);
-
-  /* Clear runtime data to reduce false detection of changed data in undo/redo context. */
-  if (is_undo) {
-    temp_id->tag &= ID_TAG_KEEP_ON_UNDO;
-  }
-  else {
-    temp_id->tag = 0;
-  }
-  temp_id->us = 0;
-  temp_id->icon_id = 0;
-  temp_id->runtime = nullptr;
-  /* Those listbase data change every time we add/remove an ID, and also often when
-   * renaming one (due to re-sorting). This avoids generating a lot of false 'is changed'
-   * detections between undo steps. */
-  temp_id->prev = nullptr;
-  temp_id->next = nullptr;
-  /* Those runtime pointers should never be set during writing stage, but just in case clear
-   * them too. */
-  temp_id->orig_id = nullptr;
-  temp_id->newid = nullptr;
-  /* Even though in theory we could be able to preserve this python instance across undo even
-   * when we need to re-read the ID into its original address, this is currently cleared in
-   * #direct_link_id_common in `readfile.cc` anyway. */
-  temp_id->py_instance = nullptr;
 }
 
 BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, BlendWriter *writer)

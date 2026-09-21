@@ -570,6 +570,11 @@ enum PropertyPathTemplateType {
    *
    * \see BKE_add_template_variables_for_render_path() */
   PROP_VARIABLES_RENDER_OUTPUT,
+
+  /* Supports only project variables, for project settings.
+   *
+   * \see BKE_add_template_variables_for_project() */
+  PROP_VARIABLES_PROJECT,
 };
 
 /**

@@ -337,11 +337,6 @@ class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
     @classmethod
     def poll(cls, context):
         mode = cls.get_brush_mode(context)
-        if mode == 'SCULPT_GREASE_PENCIL':
-            settings = cls.paint_settings_from_active_tool(context)
-            tool = settings.brush.gpencil_sculpt_brush_type
-            return tool in {'SMOOTH', 'RANDOMIZE'}
-
         return mode is not None and mode != 'SCULPT_CURVES'
 
     def draw(self, context):
@@ -1556,6 +1551,45 @@ def tool_use_brush(context):
     return True
 
 
+class GreasePencilSculptPanel:
+    bl_context = ".grease_pencil_sculpt"
+    bl_category = "Tool"
+
+
+class VIEW3D_PT_tools_grease_pencil_sculpt_select(View3DPanel, Panel, GreasePencilSculptPanel, BrushSelectPanel):
+    bl_label = "Brush Asset"
+
+
+class VIEW3D_PT_tools_grease_pencil_sculpt_settings(Panel, View3DPanel, GreasePencilSculptPanel):
+    bl_label = "Brush Settings"
+
+    def draw(self, context):
+        if self.is_popover:
+            return
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        tool_settings = context.scene.tool_settings
+        settings = tool_settings.gpencil_sculpt_paint
+        brush = settings.brush
+
+        # Grease Pencil
+        from bl_ui.properties_paint_common import (
+            brush_basic_grease_pencil_sculpt_settings,
+        )
+        brush_basic_grease_pencil_sculpt_settings(layout, context, brush)
+
+        tool = settings.brush.gpencil_sculpt_brush_type
+        if tool in {'SMOOTH', 'RANDOMIZE'}:
+            col = layout.column(heading="Affect", align=True)
+            col.prop(brush.gpencil_settings, "use_edit_position", text="Position")
+            col.prop(brush.gpencil_settings, "use_edit_strength", text="Strength", text_ctxt=i18n_contexts.id_gpencil)
+            col.prop(brush.gpencil_settings, "use_edit_thickness", text="Thickness")
+            col.prop(brush.gpencil_settings, "use_edit_uv", text="UV")
+
+
 class VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover(GreasePencilSculptAdvancedPanel, View3DPanel, Panel):
     bl_context = ".grease_pencil_sculpt"
     bl_label = "Brush"
@@ -1572,6 +1606,19 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover(GreasePencilSculptAdvan
 
         tool = brush.gpencil_sculpt_brush_type
         return tool in {'SMOOTH', 'RANDOMIZE'}
+
+
+class VIEW3D_PT_tools_grease_pencil_brush_sculpt_falloff(GreasePencilBrushFalloff, Panel, View3DPaintPanel):
+    bl_context = ".grease_pencil_sculpt"
+    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_sculpt_settings"
+    bl_label = "Falloff"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        tool_settings = context.tool_settings
+        settings = tool_settings.gpencil_sculpt_paint
+        return (settings and settings.brush and settings.brush.curve_distance_falloff)
 
 
 # Grease Pencil weight painting tools
@@ -1769,7 +1816,7 @@ class VIEW3D_PT_tools_grease_pencil_paint_appearance(GreasePencilDisplayPanel, P
 
 class VIEW3D_PT_tools_grease_pencil_sculpt_appearance(GreasePencilDisplayPanel, Panel, View3DPanel):
     bl_context = ".grease_pencil_sculpt"
-    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_v3_brush_settings"
+    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_sculpt_settings"
     bl_label = "Cursor"
     bl_category = "Tool"
 
@@ -2427,14 +2474,24 @@ classes = (
     VIEW3D_PT_tools_particlemode_options_display,
 
     VIEW3D_PT_gpencil_brush_presets,
+    VIEW3D_PT_tools_grease_pencil_sculpt_select,
+    VIEW3D_PT_tools_grease_pencil_sculpt_settings,
     VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover,
+    VIEW3D_PT_tools_grease_pencil_brush_sculpt_falloff,
+    VIEW3D_PT_tools_grease_pencil_sculpt_appearance,
+
     VIEW3D_PT_tools_grease_pencil_weight_paint_select,
     VIEW3D_PT_tools_grease_pencil_weight_paint_settings,
     VIEW3D_PT_tools_grease_pencil_weight_options,
+    VIEW3D_PT_tools_grease_pencil_brush_weight_falloff,
     VIEW3D_PT_tools_grease_pencil_weight_appearance,
+
     VIEW3D_PT_tools_grease_pencil_vertex_paint_select,
     VIEW3D_PT_tools_grease_pencil_vertex_paint_settings,
     VIEW3D_PT_tools_grease_pencil_vertex_appearance,
+    VIEW3D_PT_tools_grease_pencil_brush_vertex_color,
+    VIEW3D_PT_tools_grease_pencil_brush_vertex_palette,
+    VIEW3D_PT_tools_grease_pencil_brush_vertex_falloff,
 
     VIEW3D_PT_tools_grease_pencil_v3_brush_select,
     VIEW3D_PT_tools_grease_pencil_v3_brush_settings,
@@ -2448,12 +2505,6 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_v3_brush_mix_palette,
     VIEW3D_PT_tools_grease_pencil_v3_brush_gap_closure,
     VIEW3D_PT_tools_grease_pencil_paint_appearance,
-    VIEW3D_PT_tools_grease_pencil_sculpt_appearance,
-
-    VIEW3D_PT_tools_grease_pencil_brush_weight_falloff,
-    VIEW3D_PT_tools_grease_pencil_brush_vertex_color,
-    VIEW3D_PT_tools_grease_pencil_brush_vertex_palette,
-    VIEW3D_PT_tools_grease_pencil_brush_vertex_falloff,
 )
 
 if __name__ == "__main__":  # only for live edit.

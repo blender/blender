@@ -287,6 +287,12 @@ template<typename T, int Size> [[nodiscard]] inline VecBase<T, Size> exp(const V
   BLI_UNROLL_MATH_VEC_OP_VEC(math::exp, x);
 }
 
+/* Per-element natural logarithm. */
+template<typename T, int Size> [[nodiscard]] inline VecBase<T, Size> log(const VecBase<T, Size> &x)
+{
+  BLI_UNROLL_MATH_VEC_OP_VEC(math::log, x);
+}
+
 /**
  * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
  * In other words, it is equivalent to `divide_ceil(a, b) * b`.

@@ -523,9 +523,13 @@ static bUserAssetLibrary *rna_BlenderProject_asset_library_new(const bContext *C
       }
     }
 
+    const bool path_is_template = true;
+    const std::string directory_str = BKE_blender_project_path_make_relative(
+        directory ? directory : "", path_is_template, *project);
+
     new_library = ED_userpref_asset_library_new(C,
                                                 name ? name : "",
-                                                directory ? directory : "",
+                                                directory_str.c_str(),
                                                 bUserAssetLibraryAddType::Local,
                                                 true,
                                                 uuid,
@@ -756,17 +760,6 @@ static void rna_def_ProjectVariables(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
 
-static void rna_def_project_asset_library(BlenderRNA *brna)
-{
-  StructRNA *srna;
-
-  srna = RNA_def_struct(brna, "ProjectAssetLibrary", "UserAssetLibrary");
-  RNA_def_struct_sdna(srna, "bUserAssetLibrary");
-  RNA_def_struct_ui_text(srna,
-                         "Project Asset Library",
-                         "Settings to define a reusable library for Asset Browsers to use");
-}
-
 static void rna_def_project_asset_library_collection(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
@@ -817,6 +810,7 @@ static void rna_def_blender_project(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_BlenderProject_update");
 
   prop = RNA_def_property(srna, "root_path", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_string_maxlength(prop, FILE_MAX);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_string_funcs(
       prop, "rna_BlenderProject_root_path_get", "rna_BlenderProject_root_path_length", nullptr);
@@ -859,7 +853,6 @@ static void rna_def_blender_project(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Project Asset Libraries", "");
 
   rna_def_project_asset_library_collection(brna, prop);
-  rna_def_project_asset_library(brna);
 
   prop = RNA_def_property(srna, "active_asset_library", PROP_INT, PROP_NONE);
   RNA_def_property_int_funcs(prop,

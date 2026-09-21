@@ -48,9 +48,9 @@
 
 #define dof_max_slight_focus_radius DOF_MAX_SLIGHT_FOCUS_RADIUS
 
-const uint2 quad_offsets_u[4] = uint2_array(uint2(0, 1), uint2(1, 1), uint2(1, 0), uint2(0, 0));
-const float2 quad_offsets[4] = float2_array(
-    float2(-0.5f, 0.5f), float2(0.5f, 0.5f), float2(0.5f, -0.5f), float2(-0.5f, -0.5f));
+const uint2 quad_offsets_u[4] = {uint2(0, 1), uint2(1, 1), uint2(1, 0), uint2(0, 0)};
+const float2 quad_offsets[4] = {
+    float2(-0.5f, 0.5f), float2(0.5f, 0.5f), float2(0.5f, -0.5f), float2(-0.5f, -0.5f)};
 
 /** \} */
 

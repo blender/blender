@@ -692,7 +692,7 @@ struct bConstraint {
   char name[/*MAX_NAME*/ 64] = "";
 
   /** Amount of influence exerted by constraint (0.0-1.0). */
-  float enforce = 0;
+  float enforce = 1.0f;
   /** Point along `subtarget` bone where the actual target is. 0=head (default for all), 1=tail. */
   float headtail = 0;
 
@@ -859,7 +859,7 @@ struct bLocateLikeConstraint {
 /* Copy Scale Constraint */
 struct bSizeLikeConstraint {
   struct Object *tar = nullptr;
-  eCopyScale_Flags flag = {};
+  eCopyScale_Flags flag = SIZELIKE_MULTIPLY;
   float power = 0;
   char subtarget[/*MAX_NAME*/ 64] = "";
 };
@@ -1070,7 +1070,7 @@ struct bPivotConstraint {
    * This option provides easier one-stop setups for foot-rolls.
    */
   /** Rotation axes to consider for this. */
-  ePivotConstraint_Axis rotAxis = PIVOTCON_AXIS_NONE;
+  ePivotConstraint_Axis rotAxis = PIVOTCON_AXIS_X_NEG;
 
   /* General flags */
   ePivotConstraint_Flag flag = {};

@@ -56,16 +56,16 @@ static int uvedit_center(Scene *scene, const Span<Object *> objects, float cente
   zero_v2(center);
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
-    BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
+    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
       if (!uvedit_face_visible_test(scene, f)) {
         continue;
       }
 
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-        if (uvedit_uv_select_test(scene, em->bm, l, offsets)) {
+        if (uvedit_uv_select_test(scene, bm, l, offsets)) {
           luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
           add_v2_v2(center, luv);
           tot++;
@@ -90,17 +90,16 @@ static void uvedit_translate(Scene *scene, const Span<Object *> objects, const f
   float *luv;
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
-    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
-
-    BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
+    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
       if (!uvedit_face_visible_test(scene, f)) {
         continue;
       }
 
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-        if (uvedit_uv_select_test(scene, em->bm, l, offsets)) {
+        if (uvedit_uv_select_test(scene, bm, l, offsets)) {
           luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
           add_v2_v2(luv, delta);
         }

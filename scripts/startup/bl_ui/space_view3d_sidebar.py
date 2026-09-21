@@ -13,8 +13,20 @@ class GlobalTransformPanelMixin:
     bl_category = "Animation"
 
 
+class VIEW3D_PT_copy_world_space_animation(GlobalTransformPanelMixin, Panel):
+    bl_label = "World Space Animation"
+
+    def draw(self, context: Context) -> None:
+        layout = self.layout
+
+        layout.operator("anim.world_space_copy", icon='COPYDOWN', text="Copy Playback Range").range_mode = 'PLAYBACK'
+        row = layout.row(align=True)
+        row.operator("anim.world_space_paste", icon='PASTEDOWN', text="Paste")
+        row.operator("anim.world_space_paste", icon='PASTEDOWN', text="At Playhead").offset = 'START'
+
+
 class VIEW3D_PT_copy_global_transform(GlobalTransformPanelMixin, Panel):
-    bl_label = "Global Transform"
+    bl_label = "World Space Transform"
 
     def draw(self, context: Context) -> None:
         layout = self.layout
@@ -173,6 +185,7 @@ class VIEW3D_PT_copy_global_transform_relative(GlobalTransformPanelMixin, Panel)
 
 
 classes = (
+    VIEW3D_PT_copy_world_space_animation,
     VIEW3D_PT_copy_global_transform,
     VIEW3D_PT_copy_global_transform_mirror,
     VIEW3D_PT_copy_global_transform_relative,

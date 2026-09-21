@@ -99,7 +99,7 @@ Quaternion normalized_to_quat_fast(float3x3 mat)
 Quaternion normalized_to_quat_with_checks(float3x3 mat)
 {
   float det = determinant(mat);
-  if (!isfinite(det)) {
+  if (isinf(det) && isnan(det)) {
     return Quaternion::identity();
   }
   if (det < 0.0f) {
@@ -112,17 +112,17 @@ void normalized_to_eul2(float3x3 mat, EulerXYZ &eul1, EulerXYZ &eul2)
 {
   float cy = hypot(mat[0][0], mat[0][1]);
   if (cy > 16.0f * FLT_EPSILON) {
-    eul1.x = atan2(mat[1][2], mat[2][2]);
-    eul1.y = atan2(-mat[0][2], cy);
-    eul1.z = atan2(mat[0][1], mat[0][0]);
+    eul1.x = atan(mat[1][2], mat[2][2]);
+    eul1.y = atan(-mat[0][2], cy);
+    eul1.z = atan(mat[0][1], mat[0][0]);
 
-    eul2.x = atan2(-mat[1][2], -mat[2][2]);
-    eul2.y = atan2(-mat[0][2], -cy);
-    eul2.z = atan2(-mat[0][1], -mat[0][0]);
+    eul2.x = atan(-mat[1][2], -mat[2][2]);
+    eul2.y = atan(-mat[0][2], -cy);
+    eul2.z = atan(-mat[0][1], -mat[0][0]);
   }
   else {
-    eul1.x = atan2(-mat[2][1], mat[1][1]);
-    eul1.y = atan2(-mat[0][2], cy);
+    eul1.x = atan(-mat[2][1], mat[1][1]);
+    eul1.y = atan(-mat[0][2], cy);
     eul1.z = 0.0f;
 
     eul2 = eul1;

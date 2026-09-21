@@ -28,7 +28,7 @@ static int gpu_shader_rgb(GPUMaterial *mat,
                           GPUNodeStack *out)
 {
   GPU_material_flag_set(mat, GPU_MATFLAG_HOLDOUT);
-  return GPU_stack_link(mat, node, "node_holdout", in, out);
+  return GPU_stack_link(mat, node, "node_holdout", in, out, GPU_shading_data());
 }
 
 }  // namespace nodes::node_shader_holdout_cc

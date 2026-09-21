@@ -318,8 +318,8 @@ void SnapData::register_result(SnapObjectContext *sctx,
 
   /* Global space. */
   sctx->ret.loc = math::transform_point(obmat, sctx->ret.loc);
-  const float3x3 normal_transform = math::transpose(math::invert(float3x3(obmat)));
-  sctx->ret.no = math::normalize(math::transform_direction(normal_transform, sctx->ret.no));
+  sctx->ret.no = math::normalize(
+      math::transform_direction_transposed(math::invert(float3x3(obmat)), sctx->ret.no));
 
 #ifndef NDEBUG
   /* Make sure this is only called once. */
@@ -342,8 +342,8 @@ void SnapData::register_result_raycast(SnapObjectContext *sctx,
   const float depth_max = is_in_front ? sctx->ret.ray_depth_max_in_front : sctx->ret.ray_depth_max;
   if (hit->dist <= depth_max) {
     float3 co = math::transform_point(obmat, float3(hit->co));
-    const float3x3 normal_transform = math::transpose(math::invert(float3x3(obmat)));
-    float3 no = math::normalize(math::transform_direction(normal_transform, float3(hit->no)));
+    float3 no = math::normalize(
+        math::transform_direction_transposed(math::invert(float3x3(obmat)), float3(hit->no)));
 
     sctx->ret.loc = co;
     sctx->ret.no = no;
@@ -1193,7 +1193,7 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
                         sctx->runtime.clip_planes[0],
                         sctx->runtime.clip_planes[1]);
 
-    if (rv3d->rflag & RV3D_CLIPPING) {
+    if ((rv3d->rflag & RV3D_CLIPPING) && (rv3d->clipbb != nullptr)) {
       sctx->runtime.clip_planes.extend_unchecked(reinterpret_cast<const float4 *>(rv3d->clip), 4);
     }
 
@@ -1415,7 +1415,7 @@ eSnapMode snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                     sctx->runtime.ray_start,
                                     ray_end);
 
-    if (rv3d->rflag & RV3D_CLIPPING) {
+    if ((rv3d->rflag & RV3D_CLIPPING) && (rv3d->clipbb != nullptr)) {
       if (clip_segment_v3_plane_n(
               sctx->runtime.ray_start, ray_end, rv3d->clip, 6, sctx->runtime.ray_start, ray_end))
       {
@@ -1631,7 +1631,7 @@ bool object_project_all_view3d_ex(SnapObjectContext *sctx,
     return false;
   }
 
-  if ((rv3d->rflag & RV3D_CLIPPING) &&
+  if (((rv3d->rflag & RV3D_CLIPPING) != 0) && (rv3d->clipbb != nullptr) &&
       clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6, ray_start, ray_end))
   {
     float ray_depth_max = math::dot(ray_end - ray_start, ray_normal);

@@ -43,12 +43,17 @@ static bool cache_scene_linear_interop_id_done = false;
 static const char *cache_scene_linear_interop_id = "";
 static const char *cache_scene_linear_srgb_interop_id = "";
 
+/* Config the caches were built for, holding a reference so a new config can't
+ * reuse its address. */
+static OCIO::ConstConfigRcPtr cache_config;
+
 static void check_invalidate_caches()
 {
   static thread_mutex cache_scene_linear_mutex;
   static string cache_scene_linear_name;
 
-  /* Invalidate cached processors and colorspace, in case Blender changed it.
+  /* Invalidate cached processors and colorspace, in case Blender changed the
+   * scene linear space or switched to another config.
    * Note this should not happen during rendering, all render should be stopped
    * before it is changed. */
   const thread_scoped_lock cache_scene_linear_lock(cache_scene_linear_mutex);
@@ -62,7 +67,10 @@ static void check_invalidate_caches()
   }
 
   const OCIO::ConstColorSpaceRcPtr scene_linear_colorspace = config->getColorSpace("scene_linear");
-  if (scene_linear_colorspace && cache_scene_linear_name != scene_linear_colorspace->getName()) {
+  if (scene_linear_colorspace &&
+      (cache_config != config || cache_scene_linear_name != scene_linear_colorspace->getName()))
+  {
+    cache_config = config;
     cache_scene_linear_name = scene_linear_colorspace->getName();
     {
       const thread_scoped_lock cache_processors_lock(cache_processors_mutex);
@@ -679,6 +687,7 @@ void ColorSpaceManager::free_memory()
 #ifdef WITH_OCIO
   map_free_memory(cached_colorspaces);
   map_free_memory(cache_processors);
+  cache_config.reset();
 #endif
 }
 

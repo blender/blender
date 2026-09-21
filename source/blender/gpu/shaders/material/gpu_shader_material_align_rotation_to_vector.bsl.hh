@@ -43,7 +43,7 @@ void align_rotation_to_vector_auto_pivot(float4 rotation_in,
     return;
   }
 
-  const Quaternion quat_in = Quaternion{UNPACK4(rotation_in)};
+  const Quaternion quat_in = Quaternion::from_float4(rotation_in);
   const float3 old_axis = transform_point_by_quaternion(quat_in, local_main_axis);
   const float3 new_axis = normalize(input_vector);
 
@@ -85,7 +85,7 @@ void align_rotation_to_vector_fixed_pivot(float4 rotation_in,
     return;
   }
 
-  const Quaternion quat_in = Quaternion{UNPACK4(rotation_in)};
+  const Quaternion quat_in = Quaternion::from_float4(rotation_in);
   const float3 old_axis = transform_point_by_quaternion(quat_in, local_main_axis);
   const float3 pivot_axis = transform_point_by_quaternion(quat_in, local_pivot_axis);
 

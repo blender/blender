@@ -7,6 +7,7 @@
 #include "kernel/globals.h"
 #include "kernel/types.h"
 
+#include "kernel/geom/gsplat.h"
 #include "kernel/geom/motion_point.h"
 #include "kernel/geom/object.h"
 
@@ -16,6 +17,7 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __POINTCLOUD__
 
+template<bool use_backface_culling = true>
 ccl_device_forceinline bool point_intersect_test(const float4 point,
                                                  const float3 ray_P,
                                                  const float3 ray_D,
@@ -41,26 +43,25 @@ ccl_device_forceinline bool point_intersect_test(const float4 point,
   const float t_front = projC0 - td;
   const bool valid_front = (ray_tmin <= t_front) & (t_front <= ray_tmax);
 
-  /* Always back-face culling for now. */
-#  if 0
-  const float t_back = projC0 + td;
-  const bool valid_back = (ray_tmin <= t_back) & (t_back <= ray_tmax);
+  if constexpr (use_backface_culling == false) {
+    const float t_back = projC0 + td;
+    const bool valid_back = (ray_tmin <= t_back) & (t_back <= ray_tmax);
 
-  /* check if there is a first hit */
-  const bool valid_first = valid_front | valid_back;
-  if (!valid_first) {
-    return false;
+    /* check if there is a first hit */
+    const bool valid_first = valid_front | valid_back;
+    if (!valid_first) {
+      return false;
+    }
+
+    *t = (valid_front) ? t_front : t_back;
+    return true;
   }
 
-  *t = (valid_front) ? t_front : t_back;
-  return true;
-#  else
   if (!valid_front) {
     return false;
   }
   *t = t_front;
   return true;
-#  endif
 }
 
 ccl_device_forceinline bool point_intersect(KernelGlobals kg,
@@ -115,7 +116,20 @@ ccl_device_inline void point_shader_setup(KernelGlobals kg,
   }
 
   /* Normal */
-  sd->Ng = normalize(sd->P - center);
+#  if defined(__GSPLATS__)
+  if (isect->type & PRIMITIVE_POINT)
+#  endif
+  {
+    sd->Ng = normalize(sd->P - center);
+  }
+#  if defined(__GSPLATS__)
+  else {
+    sd->Ng = gsplat_normal(kg, sd->object, sd->prim, sd->time, sd->type);
+    kernel_assert((kernel_data_fetch(object_flag, sd->object) & SD_OBJECT_TRANSFORM_APPLIED) == 0);
+    object_normal_transform(kg, sd, &sd->Ng);
+  }
+#  endif
+
   sd->N = sd->Ng;
 
 #  ifdef __DPDU__

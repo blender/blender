@@ -24,10 +24,10 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_annotations.h"
 #include "BKE_camera.h"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_legacy.h"
 
 #include "WM_api.hh"
 
@@ -683,7 +683,7 @@ static void annotation_draw_data_layers(
     }
 
     /* get frame to draw */
-    bGPDframe *gpf = BKE_gpencil_layer_frame_get(&gpl, cfra, GP_GETFRAME_USE_PREV);
+    bGPDframe *gpf = BKE_annotations_layer_frame_get(&gpl, cfra, GP_GETFRAME_USE_PREV);
     if (gpf == nullptr) {
       continue;
     }

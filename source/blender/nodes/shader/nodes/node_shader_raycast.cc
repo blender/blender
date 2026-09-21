@@ -181,11 +181,11 @@ static int node_shader_gpu(GPUMaterial *mat,
   GPU_material_flag_set(mat, GPU_MATFLAG_RAYCAST);
 
   if (!in[0].link) {
-    GPU_link(mat, "world_position_get", &in[0].link);
+    GPU_link(mat, "world_position_get", GPU_shading_data(), &in[0].link);
   }
 
   if (!in[1].link) {
-    GPU_link(mat, "world_normals_get", &in[1].link);
+    GPU_link(mat, "world_normals_get", GPU_shading_data(), &in[1].link);
   }
 
   /* GPU raycast node does not support attribute sampling. Relink all attribute outputs to a zero
@@ -220,6 +220,8 @@ static int node_shader_gpu(GPUMaterial *mat,
                   GPU_node_get_input_link(*node, in, "Position"),
                   GPU_node_get_input_link(*node, in, "Direction"),
                   GPU_node_get_input_link(*node, in, "Length"),
+                  GPU_kernel_globals(),
+                  GPU_shading_data(),
                   &GPU_node_get_output(*node, out, "Is Hit").link,
                   &GPU_node_get_output(*node, out, "Self Hit").link,
                   &GPU_node_get_output(*node, out, "Hit Distance").link,

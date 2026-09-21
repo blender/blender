@@ -957,16 +957,18 @@ static void update_duplicate_custom_bone_shapes(bContext *C, EditBone *dup_bone,
   bPoseChannel *pchan;
   pchan = BKE_pose_channel_ensure(ob->pose, dup_bone->name);
 
+  /* Invert the X location */
+  pchan->custom_translation[0] *= -1;
+  /* Invert the Y rotation */
+  pchan->custom_rotation_euler[1] *= -1;
+  /* Invert the Z rotation */
+  pchan->custom_rotation_euler[2] *= -1;
+
+  bool needs_flip_scale = true;
+
   if (pchan->custom != nullptr) {
     Main *bmain = CTX_data_main(C);
     char name_flip[MAX_ID_NAME - 2];
-
-    /* Invert the X location */
-    pchan->custom_translation[0] *= -1;
-    /* Invert the Y rotation */
-    pchan->custom_rotation_euler[1] *= -1;
-    /* Invert the Z rotation */
-    pchan->custom_rotation_euler[2] *= -1;
 
     /* Skip the first two chars in the object name as those are used to store object type */
     BLI_string_flip_side_name(name_flip, pchan->custom->id.name + 2, false, sizeof(name_flip));
@@ -978,11 +980,13 @@ static void update_duplicate_custom_bone_shapes(bContext *C, EditBone *dup_bone,
     if (shape_ob != nullptr) {
       /* A flipped shape object exists, use it! */
       pchan->custom = shape_ob;
+      needs_flip_scale = false;
     }
-    else {
-      /* Flip shape */
-      pchan->custom_scale_xyz[0] *= -1;
-    }
+  }
+
+  /* Invert scale (if no flipped custom shape object is in play). */
+  if (needs_flip_scale) {
+    pchan->custom_scale_xyz[0] *= -1;
   }
 }
 

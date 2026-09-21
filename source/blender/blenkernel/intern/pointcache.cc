@@ -693,7 +693,8 @@ static int ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
     const int total_points = surface->data->total_points;
 
     /* cache type */
-    ptcache_file_write(pf, &surface->type, 1, sizeof(int));
+    const int surface_type = int(surface->type);
+    ptcache_file_write(pf, &surface_type, 1, sizeof(int));
 
     uint in_stride;
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
@@ -1933,12 +1934,17 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
   }
 
   if (!error && pf->flag & PTCACHE_TYPEFLAG_EXTRADATA) {
-    ePointCache_ExtraDataType extratype = ePointCache_ExtraDataType{};
+    uint extratype = 0;
 
     while (!error && ptcache_file_read(pf, &extratype, 1, sizeof(uint))) {
+      if (!ELEM(extratype, BPHYS_EXTRA_FLUID_SPRINGS, BPHYS_EXTRA_CLOTH_ACCELERATION)) {
+        error = 1;
+        break;
+      }
+
       PTCacheExtra *extra = MEM_new<PTCacheExtra>("Pointcache extradata");
 
-      extra->type = extratype;
+      extra->type = ePointCache_ExtraDataType(extratype);
 
       ptcache_file_read(pf, &extra->totdata, 1, sizeof(uint));
 
@@ -2020,7 +2026,8 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
         continue;
       }
 
-      ptcache_file_write(pf, &extra->type, 1, sizeof(uint));
+      const uint extratype = uint(extra->type);
+      ptcache_file_write(pf, &extratype, 1, sizeof(uint));
       ptcache_file_write(pf, &extra->totdata, 1, sizeof(uint));
 
       ptcache_file_compressed_write(

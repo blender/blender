@@ -1037,11 +1037,9 @@ static void action_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink
 
 static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
-  SpaceAction_Runtime *temp = saction->runtime;
-  saction->runtime = nullptr;
-  writer->write_struct_cast<SpaceAction>(sl);
-  saction->runtime = temp;
+  writer->write_struct_cast<SpaceAction>(sl, [](BlendStructWriter<SpaceAction> &struct_writer) {
+    struct_writer.shallow_data.runtime = {};
+  });
 }
 
 ed::animfilter::SAction_AnimationChannelState &SpaceAction_Runtime::channel_state_for_update(

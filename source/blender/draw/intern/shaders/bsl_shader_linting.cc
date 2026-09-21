@@ -8,7 +8,9 @@
  * Compile shader files as C++ inside one compilation unit to lint syntax and get IDE integration.
  */
 
-#include "draw_model.bsl.hh" /* IWYU pragma: export */
-#include "draw_view.bsl.hh"  /* IWYU pragma: export */
+#include "draw_gsplat.bsl.hh"     /* IWYU pragma: export */
+#include "draw_gsplat_lib.bsl.hh" /* IWYU pragma: export */
+#include "draw_model.bsl.hh"      /* IWYU pragma: export */
+#include "draw_view.bsl.hh"       /* IWYU pragma: export */
 
 void main() {}

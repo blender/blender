@@ -88,25 +88,29 @@ struct ThumbnailCache {
     int stream_index = 0; /* Stream index (only for multi-stream movies). */
     ImBuf *thumb = nullptr;
     int64_t used_at = 0;
+    /* The source has changed, but keep displaying this until a replacement is generated. */
+    bool stale = false;
   };
 
   struct SourceEntry {
     Vector<FrameEntry> frames;
     int64_t used_at = 0;
+    uint64_t generation = 0;
   };
-
   struct Request {
     explicit Request(const SourceKey &source_key,
                      int frame,
                      int stream,
                      StripType type,
                      int64_t logical_time,
+                     uint64_t source_generation,
                      float time_frame,
                      int ch)
         : source_key(source_key),
           frame_index(frame),
           stream_index(stream),
           strip_type(type),
+          source_generation(source_generation),
           requested_at(logical_time),
           timeline_frame(time_frame),
           channel(ch)
@@ -117,6 +121,7 @@ struct ThumbnailCache {
     int frame_index = 0;  /* Frame index (for movies) or image index (for image sequences). */
     int stream_index = 0; /* Stream index (only for multi-stream movies). */
     StripType strip_type = STRIP_TYPE_IMAGE;
+    uint64_t source_generation = 0;
 
     /* The following members are payload and do not contribute to uniqueness. */
     int64_t requested_at = 0;
@@ -128,25 +133,53 @@ struct ThumbnailCache {
 
     uint64_t hash() const
     {
-      return get_default_hash(source_key, frame_index, stream_index, strip_type);
+      return get_default_hash(
+          source_key, frame_index, stream_index, strip_type, source_generation);
     }
     friend bool operator==(const Request &a, const Request &b)
     {
       return a.frame_index == b.frame_index && a.stream_index == b.stream_index &&
-             a.strip_type == b.strip_type && a.source_key == b.source_key;
+             a.strip_type == b.strip_type && a.source_generation == b.source_generation &&
+             a.source_key == b.source_key;
     }
   };
 
   Map<SourceKey, SourceEntry> map_;
   Set<Request> requests_;
-  /* Local copies of IDs (e.g. movie clip, mask) used for thumbnails, keyed by session UID.
+  /* Local copies of IDs (e.g. movie clip, mask) used for thumbnails, keyed by source generation.
    * Copies are needed so that the thumbnail generation thread is safe with regards to ID
    * modifications or deletions that might happen on the main thread. */
-  Map<uint, ID *> id_copies_;
+  Map<uint64_t, ID *> id_copies_;
   /* Scene strip thumbnail requests. These need to be rendered on main thread (due to usage of main
    * GPU/DRW context), and are processed separately. */
   Set<Request> scene_requests_;
   int64_t logical_time_ = 0;
+  uint64_t next_generation_ = 1;
+
+  /** Mark an entry stale and discard queued work based on the previous source state. */
+  bool invalidate_entry(const SourceKey &key)
+  {
+    SourceEntry *entry = map_.lookup_ptr(key);
+    if (entry == nullptr) {
+      return false;
+    }
+
+    const uint64_t old_generation = entry->generation;
+    entry->generation = next_generation_++;
+    for (FrameEntry &thumb : entry->frames) {
+      thumb.stale = true;
+    }
+    requests_.remove_if([&](const Request &request) { return request.source_key == key; });
+    scene_requests_.remove_if([&](const Request &request) { return request.source_key == key; });
+
+    /* Drop an unclaimed ID snapshot: it has already been removed from this map and its
+     * result will be rejected by the generation check. */
+    ID *id_copy = id_copies_.pop_default(old_generation, nullptr);
+    if (id_copy != nullptr) {
+      BKE_id_free(nullptr, id_copy);
+    }
+    return true;
+  }
 
   ~ThumbnailCache()
   {
@@ -183,6 +216,24 @@ struct ThumbnailCache {
     return true;
   }
 };
+
+static void entry_add_or_replace_frame(ThumbnailCache::SourceEntry &entry,
+                                       int frame_index,
+                                       int stream_index,
+                                       ImBuf *thumb,
+                                       int64_t used_at)
+{
+  for (ThumbnailCache::FrameEntry &frame : entry.frames) {
+    if (frame.frame_index == frame_index && frame.stream_index == stream_index) {
+      IMB_freeImBuf(frame.thumb);
+      frame.thumb = thumb;
+      frame.used_at = math::max(frame.used_at, used_at);
+      frame.stale = false;
+      return;
+    }
+  }
+  entry.frames.append({frame_index, stream_index, thumb, used_at, false});
+}
 
 static ThumbnailCache *ensure_thumbnail_cache(Scene *scene)
 {
@@ -403,19 +454,18 @@ void ThumbGenerationJob::free_fn(void *customdata)
 static ID *get_id_copy(ThumbnailCache *cache,
                        const ThumbnailCache::Request &request,
                        ID *&cur_id_copy,
-                       uint &cur_id_uid)
+                       uint64_t &cur_source_generation)
 {
-  const uint uid = request.source_key.id_session_uid;
-  if (uid != cur_id_uid) {
+  if (request.source_generation != cur_source_generation) {
     if (cur_id_copy != nullptr) {
       BKE_id_free(nullptr, cur_id_copy);
       cur_id_copy = nullptr;
     }
     {
       std::scoped_lock lock(thumb_cache_mutex);
-      cur_id_copy = cache->id_copies_.pop_default(uid, nullptr);
+      cur_id_copy = cache->id_copies_.pop_default(request.source_generation, nullptr);
     }
-    cur_id_uid = uid;
+    cur_source_generation = request.source_generation;
   }
   return cur_id_copy;
 }
@@ -477,7 +527,7 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
        * popping it out of the cache's map, a concurrent cache clear/eviction can never free a copy
        * we are still rendering from. The copy is freed when switching sources or at loop end. */
       ID *cur_id_copy = nullptr;
-      uint cur_id_uid = 0;
+      uint64_t cur_source_generation = 0;
       for (const ThumbnailCache::Request &request : requests) {
         if (worker_status->stop) {
           break;
@@ -536,7 +586,7 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
         else if (request.strip_type == STRIP_TYPE_MOVIECLIP) {
           /* Load thumbnail for a movie clip. */
           MovieClip *clip = reinterpret_cast<MovieClip *>(
-              get_id_copy(job->cache_, request, cur_id_copy, cur_id_uid));
+              get_id_copy(job->cache_, request, cur_id_copy, cur_source_generation));
           if (clip != nullptr) {
             MovieClipUser clip_user = {};
             BKE_movieclip_user_set_frame(&clip_user, request.frame_index + clip->start_frame);
@@ -557,7 +607,7 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
         else if (request.strip_type == STRIP_TYPE_MASK) {
           /* Load thumbnail for a mask. */
           Mask *mask = reinterpret_cast<Mask *>(
-              get_id_copy(job->cache_, request, cur_id_copy, cur_id_uid));
+              get_id_copy(job->cache_, request, cur_id_copy, cur_source_generation));
           thumb = render_mask_thumb(mask, request.frame_index);
           if (thumb != nullptr) {
             seq_imbuf_assign_spaces(job->scene_, thumb);
@@ -573,10 +623,10 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
         {
           std::scoped_lock lock(thumb_cache_mutex);
           ThumbnailCache::SourceEntry *val = job->cache_->map_.lookup_ptr(request.source_key);
-          if (val != nullptr) {
+          if (val != nullptr && val->generation == request.source_generation) {
             val->used_at = math::max(val->used_at, request.requested_at);
-            val->frames.append(
-                {request.frame_index, request.stream_index, thumb, request.requested_at});
+            entry_add_or_replace_frame(
+                *val, request.frame_index, request.stream_index, thumb, request.requested_at);
           }
           else {
             IMB_freeImBuf(thumb);
@@ -630,6 +680,7 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
     /* Nothing in cache for this key yet. */
     ThumbnailCache::SourceEntry value;
     value.used_at = cur_time;
+    value.generation = cache.next_generation_++;
     cache.map_.add_new(key, value);
     val = cache.map_.lookup_ptr(key);
   }
@@ -652,20 +703,27 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
     }
   }
 
-  if (best_score > 0 && strip->type == STRIP_TYPE_SCENE) {
+  /*
+  Generates a new thumb if we can't find an exact match OR if we have one but its stale
+  */
+  const bool needs_new_thumb = (best_score > 0) ||
+                               (best_index >= 0 && val->frames[best_index].stale);
+  if (needs_new_thumb && strip->type == STRIP_TYPE_SCENE) {
     /* Add thumb generation request for a scene strip. */
     ThumbnailCache::Request request(key,
                                     frame_index,
                                     strip->streamindex,
                                     strip->type,
                                     cur_time,
+                                    val->generation,
                                     timeline_frame,
                                     strip->channel);
     request.scene_strip = strip;
     cache.scene_requests_.add(request);
   }
-  else if (best_score > 0) {
-    /* We do not have an exact frame match, add a thumb generation request. */
+  else if (needs_new_thumb) {
+    /* We do not have an exact frame match or we have a match that is stale, add a thumb generation
+     * request. */
 
     /* For ID-based sources, make a copy of the ID so that the worker thread can safely access it.
      * One copy per source is shared across all frame requests. Lifetime is handled in
@@ -678,7 +736,7 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
       source_id = &strip->mask->id;
     }
     if (source_id != nullptr) {
-      cache.id_copies_.lookup_or_add_cb(key.id_session_uid, [&]() {
+      cache.id_copies_.lookup_or_add_cb(val->generation, [&]() {
         return BKE_id_copy_ex(
             nullptr, source_id, nullptr, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
       });
@@ -689,6 +747,7 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
                                     strip->streamindex,
                                     strip->type,
                                     cur_time,
+                                    val->generation,
                                     timeline_frame,
                                     strip->channel);
     cache.requests_.add(request);
@@ -756,6 +815,7 @@ bool thumbnail_cache_update_scene_thumbs(const bContext *C, Scene *scene)
   const Strip *strip = nullptr;
   ThumbnailCache::SourceKey key;
   int frame_index = 0;
+  uint64_t source_generation = 0;
   bool more_pending = false;
   {
     std::scoped_lock lock(thumb_cache_mutex);
@@ -767,6 +827,7 @@ bool thumbnail_cache_update_scene_thumbs(const bContext *C, Scene *scene)
     strip = first_request->scene_strip;
     key = first_request->source_key;
     frame_index = first_request->frame_index;
+    source_generation = first_request->source_generation;
     cache->scene_requests_.remove(first_request);
     more_pending = !cache->scene_requests_.is_empty();
   }
@@ -793,13 +854,13 @@ bool thumbnail_cache_update_scene_thumbs(const bContext *C, Scene *scene)
       std::scoped_lock lock(thumb_cache_mutex);
       ThumbnailCache *cache = query_thumbnail_cache(scene);
       ThumbnailCache::SourceEntry *val = cache ? cache->map_.lookup_ptr(key) : nullptr;
-      if (val == nullptr) {
-        /* Cache entry vanished (e.g. cleared), drop the result. */
+      if (val == nullptr || val->generation != source_generation) {
+        /* Cache entry vanished or the source changed while rendering; drop the result. */
         IMB_freeImBuf(thumb);
       }
       else {
         val->used_at = math::max(val->used_at, cache->logical_time_);
-        val->frames.append({frame_index, 0, thumb, cache->logical_time_});
+        entry_add_or_replace_frame(*val, frame_index, 0, thumb, cache->logical_time_);
         rendered_thumb = true;
       }
     }
@@ -808,13 +869,16 @@ bool thumbnail_cache_update_scene_thumbs(const bContext *C, Scene *scene)
   return rendered_thumb || more_pending;
 }
 
+/* Instead of removing thumbnails when cache is invalidated we mark them as stale
+ * instead, so they keep being displayed until a newly generated thumbnail replaces
+ * them (see #161249). */
 void thumbnail_cache_invalidate_strip(Scene *scene, const Strip *strip)
 {
   if (!strip_can_have_thumbnail(scene, strip)) {
     return;
   }
 
-  bool removed = false;
+  bool invalidated = false;
   {
     std::scoped_lock lock(thumb_cache_mutex);
     ThumbnailCache *cache = query_thumbnail_cache(scene);
@@ -832,23 +896,23 @@ void thumbnail_cache_invalidate_strip(Scene *scene, const Strip *strip)
           for (int i = 0; i < paths_count; i++, elem++) {
             BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, elem->filename);
             BLI_path_abs(filepath, basepath);
-            removed |= cache->remove_entry(ThumbnailCache::SourceKey(filepath));
+            invalidated |= cache->invalidate_entry(ThumbnailCache::SourceKey(filepath));
           }
         }
       }
       else if (strip->type == STRIP_TYPE_MOVIECLIP && strip->clip) {
-        removed |= cache->remove_entry(ThumbnailCache::SourceKey(&strip->clip->id));
+        invalidated |= cache->invalidate_entry(ThumbnailCache::SourceKey(&strip->clip->id));
       }
       else if (strip->type == STRIP_TYPE_MASK && strip->mask) {
-        removed |= cache->remove_entry(ThumbnailCache::SourceKey(&strip->mask->id));
+        invalidated |= cache->invalidate_entry(ThumbnailCache::SourceKey(&strip->mask->id));
       }
       else if (strip->type == STRIP_TYPE_SCENE && strip->scene) {
-        removed |= cache->remove_entry(get_key_from_scene_strip(strip));
+        invalidated |= cache->invalidate_entry(get_key_from_scene_strip(strip));
       }
     }
   }
 
-  if (removed) {
+  if (invalidated) {
     WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, &scene->id);
   }
 }

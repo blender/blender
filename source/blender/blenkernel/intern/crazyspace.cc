@@ -104,11 +104,11 @@ Array<float3> BKE_crazyspace_get_mapped_editverts(Depsgraph *depsgraph, Object *
   }
 
   /* Now get the cage. */
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
   const Mesh *mesh_eval_cage = bke::editbmesh_get_eval_cage(
-      depsgraph, scene_eval, obedit_eval, em, &CD_MASK_BAREMESH);
+      depsgraph, scene_eval, obedit_eval, &CD_MASK_BAREMESH);
 
-  const int nverts = em->bm->totvert;
+  const BMesh *bm = BKE_editmesh_bmesh_get(obedit);
+  const int nverts = bm->totvert;
   Array<float3> vertexcos(nverts);
   bke::mesh_get_mapped_verts_coords(mesh_eval_cage, vertexcos);
 
@@ -120,7 +120,7 @@ Array<float3> BKE_crazyspace_get_mapped_editverts(Depsgraph *depsgraph, Object *
   return vertexcos;
 }
 
-void BKE_crazyspace_set_quats_editmesh(BMEditMesh *em,
+void BKE_crazyspace_set_quats_editmesh(BMesh *bm,
                                        const Span<float3> origcos,
                                        const Span<float3> mappedcos,
                                        float (*quats)[4],
@@ -133,14 +133,14 @@ void BKE_crazyspace_set_quats_editmesh(BMEditMesh *em,
 
   {
     BMVert *v;
-    BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, index) {
+    BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, index) {
       BM_elem_flag_disable(v, BM_ELEM_TAG);
       BM_elem_index_set(v, index); /* set_inline */
     }
-    em->bm->elem_index_dirty &= ~BM_VERT;
+    bm->elem_index_dirty &= ~BM_VERT;
   }
 
-  BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     BMLoop *l_iter, *l_first;
 
     l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -233,7 +233,8 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
   Mesh *me_input = id_cast<Mesh *>(ob->data);
   Mesh *mesh = nullptr;
   int i, modifiers_left_num = 0;
-  const int verts_num = em->bm->totvert;
+  const BMesh *bm = BKE_editmesh_bmesh_get(ob);
+  const int verts_num = bm->totvert;
   int cageIndex = BKE_modifiers_get_cage_index(scene, ob, nullptr, true);
   VirtualModifierData virtual_modifier_data;
   ModifierEvalContext mectx = {depsgraph, ob, ModifierApplyFlag(0)};

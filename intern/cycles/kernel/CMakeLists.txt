@@ -131,7 +131,10 @@ set(SRC_KERNEL_GEOM_HEADERS
   geom/curve.h
   geom/curve_intersect.h
   geom/geom_intersect.h
+  geom/gsplat.h
+  geom/gsplat_intersect.h
   geom/motion_curve.h
+  geom/motion_gsplat.h
   geom/motion_point.h
   geom/motion_triangle.h
   geom/motion_triangle_intersect.h
@@ -311,6 +314,7 @@ set(SRC_UTIL_HEADERS
   ../util/types_float3.h
   ../util/types_float4.h
   ../util/types_float8.h
+  ../util/types_gpu_compressed.h
   ../util/types_image.h
   ../util/types_int2.h
   ../util/types_int3.h

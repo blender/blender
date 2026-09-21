@@ -38,3 +38,5 @@
 #include "util/types_float3x3.h"  // IWYU pragma: export
 
 #include "util/types_spherical_harmonics.h"  // IWYU pragma: export
+
+#include "util/types_gpu_compressed.h"  // IWYU pragma: export

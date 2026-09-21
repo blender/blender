@@ -4,10 +4,6 @@ Copy Off-screen Rendering result back to RAM
 
 This will create a new image with the given name.
 If it already exists, it will override the existing one.
-
-Currently almost all of the execution time is spent in the last line.
-In the future this will hopefully be solved by implementing the Python buffer protocol
-for :class:`gpu.types.Buffer` and :class:`bpy.types.Image.pixels` (aka ``bpy_prop_array``).
 """
 import bpy
 import gpu
@@ -38,7 +34,7 @@ with offscreen.bind():
                 segments=20,
             )
 
-    buffer = fb.read_color(0, 0, WIDTH, HEIGHT, 4, 0, 'UBYTE')
+    buffer = fb.read_color(0, 0, WIDTH, HEIGHT, 4, 0, 'FLOAT')
 
 offscreen.free()
 
@@ -49,4 +45,4 @@ image = bpy.data.images[IMAGE_NAME]
 image.scale(WIDTH, HEIGHT)
 
 buffer.dimensions = WIDTH * HEIGHT * 4
-image.pixels = [v / 255 for v in buffer]
+image.pixels[:] = buffer

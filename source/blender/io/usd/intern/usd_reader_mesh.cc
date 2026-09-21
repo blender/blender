@@ -784,8 +784,8 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
       continue;
     }
 
-    /* We handle the non-standard primvar:velocity elsewhere. */
-    if (ELEM(name, "velocity")) {
+    /* We handle certain primvars elsewhere. */
+    if (ELEM(name, "velocity", "normals")) {
       continue;
     }
 

@@ -78,7 +78,7 @@ NODE_DEFINE(Object)
 
   SOCKET_NODE(geometry, "Geometry", Geometry::get_node_base_type());
   SOCKET_TRANSFORM(tfm, "Transform", transform_identity());
-  SOCKET_UINT(visibility, "Visibility", PATH_RAY_VISIBILITY_ALL);
+  SOCKET_UINT(visibility, "Visibility", PATH_RAY_VISIBILITY_OBJECT_ALL);
   SOCKET_COLOR(color, "Color", zero_float3());
   SOCKET_FLOAT(alpha, "Alpha", 0.0f);
   SOCKET_UINT(random_id, "Random ID", 0);
@@ -298,7 +298,7 @@ bool Object::is_traceable() const
 
 uint Object::visibility_for_tracing() const
 {
-  assert((visibility & ~uint(PATH_RAY_VISIBILITY_ALL)) == 0);
+  assert((visibility & ~uint(PATH_RAY_VISIBILITY_OBJECT_ALL)) == 0);
   return SHADOW_CATCHER_OBJECT_VISIBILITY(is_shadow_catcher, visibility);
 }
 
@@ -617,6 +617,17 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
     }
   }
   else if (geom->is_pointcloud()) {
+    const PointCloud *pointcloud = static_cast<PointCloud *>(geom);
+    if (pointcloud->primitive_type() & PRIMITIVE_GSPLAT) {
+      /* NOTE: scale, rotation, and radiance base attributes are required.
+       * The value here does not really matter as it'll be overwritten by a proper offset. Keep the
+       * initialization to allow catching logical errors with asserts. */
+      kobject.gsplat.scale_offset_and_flag = ATTR_STD_NOT_FOUND;
+      kobject.gsplat.rotation_offset_and_flag = ATTR_STD_NOT_FOUND;
+      kobject.gsplat.radiance_base_offset_and_flag = ATTR_STD_NOT_FOUND;
+
+      kobject.gsplat.radiance_spherical_harmonics_rest_offset = ATTR_STD_NOT_FOUND;
+    }
     const Attribute *attr_P = geom->attributes.find(ATTR_STD_POSITION);
     if (attr_P->has_motion()) {
       flag |= SD_OBJECT_HAS_VERTEX_MOTION;
@@ -1081,6 +1092,46 @@ void ObjectManager::device_update_flags(Device * /*unused*/,
   dscene->object_flag.clear_modified();
 }
 
+/* NOTE: Only use for attributes that are guaranteed to exist.
+ * Otherwise it is not possible to encode offset and motion flag. */
+static bool update_gsplat_std_point_attribute_offset_and_flag(const DeviceScene &dscene,
+                                                              const PointCloud &pointcloud,
+                                                              const size_t attr_map_offset,
+                                                              const AttributeStandard std,
+                                                              int &kobject_offset_and_flag)
+{
+  const Attribute *attribute = pointcloud.attributes.find(std);
+  const int offset =
+      find_attribute(dscene.attributes_map.data(), attr_map_offset, PRIMITIVE_GSPLAT, std).offset;
+
+  /* The function is only working correctly for attributes that are required.
+   * Also check that the most significant bit is not set, as it will be lost during encoding. */
+  assert(offset != ATTR_STD_NOT_FOUND);
+  assert((uint(offset) >> 31U) == 0);
+
+  const int offset_and_flag = (offset << 1) | (attribute ? attribute->has_motion() : 0);
+
+  if (kobject_offset_and_flag == offset_and_flag) {
+    return false;
+  }
+  kobject_offset_and_flag = offset_and_flag;
+  return true;
+}
+
+static bool update_gsplat_std_point_attribute_offset(const DeviceScene &dscene,
+                                                     const size_t attr_map_offset,
+                                                     const AttributeStandard std,
+                                                     int &kobject_offset)
+{
+  const int offset =
+      find_attribute(dscene.attributes_map.data(), attr_map_offset, PRIMITIVE_GSPLAT, std).offset;
+  if (kobject_offset == offset) {
+    return false;
+  }
+  kobject_offset = offset;
+  return true;
+}
+
 void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
                                                DeviceScene *dscene,
                                                Scene *scene)
@@ -1149,13 +1200,39 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
       assert(position_offset != ATTR_STD_NOT_FOUND || static_cast<Hair *>(geom)->num_keys() == 0);
     }
     else if (geom->is_pointcloud()) {
+      const PointCloud *pointcloud = static_cast<const PointCloud *>(geom);
       position_offset = find_attribute(dscene->attributes_map.data(),
                                        attr_map_offset,
                                        PRIMITIVE_POINT,
                                        ATTR_STD_POSITION)
                             .offset;
-      assert(position_offset != ATTR_STD_NOT_FOUND ||
-             static_cast<PointCloud *>(geom)->num_points() == 0);
+      assert(position_offset != ATTR_STD_NOT_FOUND || pointcloud->num_points() == 0);
+      if (pointcloud->primitive_type() & PRIMITIVE_GSPLAT) {
+        update |= update_gsplat_std_point_attribute_offset_and_flag(
+            *dscene,
+            *pointcloud,
+            attr_map_offset,
+            ATTR_STD_GSPLAT_RADIANCE_BASE,
+            kobject.gsplat.radiance_base_offset_and_flag);
+        update |= update_gsplat_std_point_attribute_offset_and_flag(
+            *dscene,
+            *pointcloud,
+            attr_map_offset,
+            ATTR_STD_GSPLAT_SCALE,
+            kobject.gsplat.scale_offset_and_flag);
+        update |= update_gsplat_std_point_attribute_offset_and_flag(
+            *dscene,
+            *pointcloud,
+            attr_map_offset,
+            ATTR_STD_GSPLAT_ROTATION,
+            kobject.gsplat.rotation_offset_and_flag);
+
+        update |= update_gsplat_std_point_attribute_offset(
+            *dscene,
+            attr_map_offset,
+            ATTR_STD_GSPLAT_RADIANCE_SPHERICAL_HARMONICS_REST,
+            kobject.gsplat.radiance_spherical_harmonics_rest_offset);
+      }
     }
     if (kobject.position_offset != position_offset) {
       kobject.position_offset = position_offset;
@@ -1233,6 +1310,13 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
        * represented by control points and radius alone. */
       float scale;
       apply = apply && transform_uniform_scale(object->tfm, scale);
+    }
+
+    /* Applying transform on Gaussian splats is not trivial as in general case it requires
+     * non-trivial math for rotating spherical harmonics. */
+    if (geom->is_pointcloud()) {
+      const PointCloud *pointcloud = static_cast<const PointCloud *>(geom);
+      apply = apply && ((pointcloud->primitive_type() & PRIMITIVE_GSPLAT) == 0);
     }
 
     if (apply) {

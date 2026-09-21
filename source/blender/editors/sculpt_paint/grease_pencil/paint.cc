@@ -361,6 +361,7 @@ struct PaintOperationExecutor {
 
     const bool on_back = (scene_->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) != 0;
     const bool hide_fill_while_drawing = (settings_->flag & GP_BRUSH_DISSABLE_LASSO) != 0;
+    const bool cyclic_stroke = (settings_->flag & GP_BRUSH_USE_CYCLIC_STROKE) != 0;
 
     self.screen_space_coords_orig_.append(start_coords);
     self.screen_space_curve_fitted_coords_.append(Vector<float2>({start_coords}));
@@ -405,7 +406,7 @@ struct PaintOperationExecutor {
         "material_index", bke::AttrDomain::Curve);
     bke::SpanAttributeWriter<bool> cyclic = attributes.convert_or_add_for_write_span<bool>(
         "cyclic", bke::AttrDomain::Curve);
-    cyclic.span[active_curve] = use_fill && !use_stroke;
+    cyclic.span[active_curve] = cyclic_stroke;
     materials.span[active_curve] = material_index;
     curve_attributes_to_skip.add_multiple({"material_index", "cyclic"});
     cyclic.finish();
@@ -473,16 +474,21 @@ struct PaintOperationExecutor {
       end_caps.finish();
     }
 
-    if (use_fill &&
-        (start_opacity < 1.0f || attributes.contains("fill_opacity") || hide_fill_while_drawing))
+    if (attributes.contains("fill_opacity") ||
+        (use_fill && (start_opacity < 1.0f || hide_fill_while_drawing)))
     {
       bke::SpanAttributeWriter<float> fill_opacities =
           attributes.convert_or_add_for_write_span<float>(
               "fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f));
-      /* Use 10% opacity when using the option to hide the fill while drawing
-       * (#GP_BRUSH_DISSABLE_LASSO). */
-      self.start_opacity_ = start_opacity;
-      fill_opacities.span[active_curve] = !hide_fill_while_drawing ? start_opacity : 0.1f;
+      if (use_fill) {
+        /* Use 10% opacity when using the option to hide the fill while drawing
+         * (#GP_BRUSH_DISSABLE_LASSO). */
+        self.start_opacity_ = start_opacity;
+        fill_opacities.span[active_curve] = !hide_fill_while_drawing ? start_opacity : 0.1f;
+      }
+      else {
+        fill_opacities.span[active_curve] = 1.0f;
+      }
       curve_attributes_to_skip.add("fill_opacity");
       fill_opacities.finish();
     }

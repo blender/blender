@@ -84,7 +84,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
-  /* over alloc */
+  /* Over allocate. */
   verts = MEM_new_array_uninitialized<BMVert *>((edges_num * 2), __func__);
 
   STACK_INIT(verts, (edges_num * 2));

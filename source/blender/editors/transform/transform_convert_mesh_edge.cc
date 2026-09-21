@@ -27,8 +27,7 @@ namespace blender::ed::transform {
 static void createTransEdge(bContext * /*C*/, TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-
-    BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
     TransData *td = nullptr;
     BMEdge *eed;
     BMIter iter;
@@ -38,7 +37,7 @@ static void createTransEdge(bContext * /*C*/, TransInfo *t)
     const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
     int cd_edge_float_offset;
 
-    BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+    BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
       if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
         if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
           countsel++;
@@ -68,24 +67,23 @@ static void createTransEdge(bContext * /*C*/, TransInfo *t)
 
     /* Create data we need. */
     if (t->mode == TFM_BWEIGHT) {
-      if (!CustomData_has_layer_named(&em->bm->edata, CD_PROP_FLOAT, "bevel_weight_edge")) {
-        BM_data_layer_add_named(em->bm, &em->bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+      if (!CustomData_has_layer_named(&bm->edata, CD_PROP_FLOAT, "bevel_weight_edge")) {
+        BM_data_layer_add_named(bm, &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
       }
       cd_edge_float_offset = CustomData_get_offset_named(
-          &em->bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+          &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
     }
     else { /* `if (t->mode == TFM_EDGE_CREASE) {`. */
       BLI_assert(t->mode == TFM_EDGE_CREASE);
-      if (!CustomData_has_layer_named(&em->bm->edata, CD_PROP_FLOAT, "crease_edge")) {
-        BM_data_layer_add_named(em->bm, &em->bm->edata, CD_PROP_FLOAT, "crease_edge");
+      if (!CustomData_has_layer_named(&bm->edata, CD_PROP_FLOAT, "crease_edge")) {
+        BM_data_layer_add_named(bm, &bm->edata, CD_PROP_FLOAT, "crease_edge");
       }
-      cd_edge_float_offset = CustomData_get_offset_named(
-          &em->bm->edata, CD_PROP_FLOAT, "crease_edge");
+      cd_edge_float_offset = CustomData_get_offset_named(&bm->edata, CD_PROP_FLOAT, "crease_edge");
     }
 
     BLI_assert(cd_edge_float_offset != -1);
 
-    BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+    BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
       if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) &&
           (BM_elem_flag_test(eed, BM_ELEM_SELECT) || is_prop_edit))
       {

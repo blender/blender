@@ -594,6 +594,7 @@ set(GLSL_SRC
   shaders/common/gpu_shader_math_rotation.bsl.hh
   shaders/common/gpu_shader_math_rotation_conversion.bsl.hh
   shaders/common/gpu_shader_math_safe.bsl.hh
+  shaders/common/gpu_shader_math_spherical_harmonics.bsl.hh
   shaders/common/gpu_shader_math_vector.bsl.hh
   shaders/common/gpu_shader_math_vector_compare.bsl.hh
   shaders/common/gpu_shader_math_vector_reduce.bsl.hh
@@ -639,7 +640,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_compare.bsl.hh
   shaders/material/gpu_shader_material_diffuse.bsl.hh
   shaders/material/gpu_shader_material_displacement.bsl.hh
-  shaders/material/gpu_shader_material_eevee_specular.glsl
+  shaders/material/gpu_shader_material_eevee_specular.bsl.hh
   shaders/material/gpu_shader_material_emission.bsl.hh
   shaders/material/gpu_shader_material_euler_to_rotation.bsl.hh
   shaders/material/gpu_shader_material_float_to_int.bsl.hh
@@ -650,7 +651,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_geometry.bsl.hh
   shaders/material/gpu_shader_material_get_vector_component.bsl.hh
   shaders/material/gpu_shader_material_glass.bsl.hh
-  shaders/material/gpu_shader_material_glossy.glsl
+  shaders/material/gpu_shader_material_glossy.bsl.hh
   shaders/material/gpu_shader_material_hair.bsl.hh
   shaders/material/gpu_shader_material_hair_info.bsl.hh
   shaders/material/gpu_shader_material_hash_value.bsl.hh

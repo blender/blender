@@ -1949,7 +1949,8 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 found_device = True
                 break
 
-        optix_minimum_driver_version = "575"
+        optix_minimum_driver_version = "580"
+        cuda_minimum_driver_version = "580"
         hip_minimum_adrenalin_driver_version = "24.9.1"
         hip_minimum_pro_driver_version = "24.Q4"
         hip_minimum_linux_driver_version = "24.30"
@@ -1964,6 +1965,8 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             if device_type == 'CUDA':
                 compute_capability = "5.0"
                 col.label(text=rpt_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
+                          icon='BLANK1', translate=False)
+                col.label(text=rpt_("and NVIDIA driver version %s or newer") % cuda_minimum_driver_version,
                           icon='BLANK1', translate=False)
             elif device_type == 'OPTIX':
                 compute_capability = "5.0"
@@ -2048,7 +2051,9 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 row.prop(device, "use", text=name, translate=False)
 
                 details = ""
-                if device.type == 'OPTIX':
+                if device.type == 'CUDA':
+                    details = rpt_("Requires NVIDIA driver version %s or newer") % cuda_minimum_driver_version
+                elif device.type == 'OPTIX':
                     details = rpt_("Requires NVIDIA driver version %s or newer") % optix_minimum_driver_version
                 elif device.type == 'HIP':
                     if sys.platform[:3] == "win":

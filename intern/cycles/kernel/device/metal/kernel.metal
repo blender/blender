@@ -203,7 +203,7 @@ inline Intersection get_intersection(constant KernelParamsMetal &launch_params_m
   }
 #  endif
 
-  if (isect.type & PRIMITIVE_POINT) {
+  if (isect.type & PRIMITIVE_ANY_POINT) {
     isect.u = 0.0f;
     isect.v = 0.0f;
   }
@@ -604,7 +604,7 @@ ccl_device_inline void metalrt_intersection_point_shadow_all(
   isect.t = ray_tmax;
 
   MetalKernelContext context(launch_params_metal);
-  if (context.point_intersect(
+  if (context.point_or_gsplat_intersect(
           nullptr, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type))
   {
     result.continue_search = metalrt_shadow_all_hit<METALRT_HIT_BOUNDING_BOX>(
@@ -650,7 +650,7 @@ __intersection__point(constant KernelParamsMetal &launch_params_metal [[buffer(1
 #    endif
 
   MetalKernelContext context(launch_params_metal);
-  if (context.point_intersect(
+  if (context.point_or_gsplat_intersect(
           nullptr, &isect, ray_origin, ray_direction, ray_tmin, isect.t, object, prim, time, type))
   {
     result = metalrt_visibility_test<BoundingBoxIntersectionResult, METALRT_HIT_BOUNDING_BOX>(
@@ -700,7 +700,7 @@ __intersection__point_shadow(constant KernelParamsMetal &launch_params_metal [[b
 #    endif
 
   MetalKernelContext context(launch_params_metal);
-  if (context.point_intersect(
+  if (context.point_or_gsplat_intersect(
           nullptr, &isect, ray_origin, ray_direction, ray_tmin, isect.t, object, prim, time, type))
   {
     result =

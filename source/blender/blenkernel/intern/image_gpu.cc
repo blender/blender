@@ -652,7 +652,7 @@ static ImageGPUTextures image_get_gpu_texture_single(Image *ima,
   void *lock = nullptr;
   bool cpu_load_failed = false;
   ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(
-      ima, iuser, use_viewers ? &lock : nullptr, &cpu_load_failed);
+      ima, iuser, use_viewers ? &lock : nullptr, &cpu_load_failed, try_only);
 
   bool gpu_load_failed = false;
   if (ibuf != nullptr && (!only_full_resolution || image_gpu_texture_fits_full_resolution(ibuf))) {

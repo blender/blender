@@ -243,7 +243,7 @@ void SourceProcessor::lower_template_dependent_names(Parser &parser)
 void SourceProcessor::lower_pre_template(Parser &parser)
 {
   /* Lower noop attributes after linting them. */
-  lower_maybe_unused(parser);
+  lower_noop_attributes(parser);
   /* Lint and remove C++ accessor templates before lowering template. */
   lower_srt_accessor_templates(parser);
   lower_union_accessor_templates(parser);

@@ -391,7 +391,7 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
           }
         }
       }
-      else if (pack.prim_type[prim] & PRIMITIVE_POINT) {
+      else if (pack.prim_type[prim] & PRIMITIVE_ANY_POINT) {
         /* Points. */
         const PointCloud *pointcloud = static_cast<const PointCloud *>(ob->get_geometry());
         const int prim_offset = (params.top_level) ? pointcloud->prim_offset : 0;
@@ -416,6 +416,8 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
         }
       }
       else {
+        assert(pack.prim_type[prim] & PRIMITIVE_TRIANGLE);
+
         /* Triangles. */
         const Mesh *mesh = static_cast<const Mesh *>(ob->get_geometry());
         const int prim_offset = (params.top_level) ? mesh->prim_offset : 0;

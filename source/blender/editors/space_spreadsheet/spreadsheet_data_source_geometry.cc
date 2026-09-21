@@ -416,7 +416,7 @@ static IndexMask calc_mesh_selection_mask_faces(const Mesh &mesh_eval,
 {
   const bke::AttributeAccessor attributes_eval = mesh_eval.attributes();
   const IndexRange range(attributes_eval.domain_size(bke::AttrDomain::Face));
-  BMesh *bm = mesh_orig.runtime->edit_mesh->bm;
+  BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(&mesh_orig));
 
   BM_mesh_elem_table_ensure(bm, BM_FACE);
   if (mesh_eval.faces_num == bm->totface) {
@@ -447,7 +447,7 @@ static IndexMask calc_mesh_selection_mask(const Mesh &mesh_eval,
 {
   const bke::AttributeAccessor attributes_eval = mesh_eval.attributes();
   const IndexRange range(attributes_eval.domain_size(domain));
-  BMesh *bm = mesh_orig.runtime->edit_mesh->bm;
+  BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(&mesh_orig));
 
   switch (domain) {
     case bke::AttrDomain::Point: {
@@ -1122,12 +1122,12 @@ bke::SocketValueVariant root_display_data_get(const SpaceSpreadsheet *sspreadshe
     if (object_orig->type == OB_MESH) {
       const Mesh *mesh = id_cast<const Mesh *>(object_orig->data);
       if (object_orig->mode == OB_MODE_EDIT) {
-        if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+        if (const BMesh *bm = BKE_editmesh_bmesh_get(mesh)) {
           Mesh *new_mesh = BKE_id_new_nomain<Mesh>(nullptr);
           /* This is a potentially heavy operation to do on every redraw. The best solution here
            * is to display the data directly from the bmesh without a conversion, which can be
            * implemented a bit later. */
-          BM_mesh_bm_to_me_for_eval(*em->bm, *new_mesh, nullptr);
+          BM_mesh_bm_to_me_for_eval(const_cast<BMesh &>(*bm), *new_mesh, nullptr);
           return bke::SocketValueVariant::from(bke::GeometrySet::from_mesh(new_mesh));
         }
       }

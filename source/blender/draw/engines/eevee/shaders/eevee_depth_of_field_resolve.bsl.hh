@@ -75,8 +75,7 @@ struct Resources {
   {
     /* Stabilize color by clamping with the stable half res neighborhood. */
     float3 neighbor_min, neighbor_max;
-    constexpr float2 corners[4] = float2_array(
-        float2(-1, -1), float2(1, -1), float2(-1, 1), float2(1, 1));
+    constexpr float2 corners[4] = {float2(-1, -1), float2(1, -1), float2(-1, 1), float2(1, 1)};
     for (int i = 0; i < 4; i++) {
       /**
        * Visit the 4 half-res texels around (and containing) the full-resolution texel.

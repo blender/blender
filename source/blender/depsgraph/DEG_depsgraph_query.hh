@@ -398,7 +398,12 @@ void DEG_iterator_ids_end(BLI_Iterator *iter);
 using DEGForeachIDCallback = FunctionRef<void(ID *id)>;
 using DEGForeachIDComponentCallback =
     FunctionRef<void(ID *id, eDepsObjectComponentType component)>;
-
+/**
+ * Callback function where the return value indicates if traversal should continue into dependents
+ * of the component. See DEG_foreach_dependent_component.
+ */
+using DEGForeachNamedIDComponentCallback =
+    FunctionRef<bool(ID *id, eDepsObjectComponentType component, StringRef component_name)>;
 /**
  * \note Modifies runtime flags in depsgraph nodes,
  * so can not be used in parallel. Keep an eye on that!
@@ -430,6 +435,21 @@ void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
                                         eDepsObjectComponentType source_component_type,
                                         int flags,
                                         DEGForeachIDComponentCallback callback);
+/**
+ * Iterate the dependency graph on a component level starting at a component of the given type and
+ * name in `start_id`.
+ *
+ * \param start_component_name can be empty. Not all components have a name. For bones this is the
+ * bone name.
+ *
+ * \note The callback determines if iteration should continue into dependent components. If true,
+ * continue iterating. False stops the code from going into that branch.
+ */
+void DEG_foreach_dependent_component(const Depsgraph *depsgraph,
+                                     const ID *start_id,
+                                     eDepsObjectComponentType start_component_type,
+                                     StringRef start_component_name,
+                                     DEGForeachNamedIDComponentCallback callback);
 
 void DEG_foreach_ID(const Depsgraph *depsgraph, DEGForeachIDCallback callback);
 

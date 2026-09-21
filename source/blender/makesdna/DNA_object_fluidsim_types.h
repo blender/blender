@@ -41,7 +41,7 @@ struct FluidVertexVelocity {
 struct FluidsimSettings {
   /** DEPRECATED. For fast RNA access. */
   struct FluidsimModifierData *fmd = nullptr;
-  /* threadcont the calculation is done with */
+  /* threadcount the calculation is done with */
   int threads = 0;
   char _pad1[4] = {};
   /* domain, fluid or obstacle */

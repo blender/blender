@@ -766,7 +766,7 @@ class RemoteAssetListingDownloader:
             return 0  # Deactivate the timer.
         except Exception:
             logger.exception(
-                "Unexpected error downloading remote asset library ilisting from %s to %s",
+                "Unexpected error downloading remote asset library listing from %s to %s",
                 self._locator.remote_url,
                 self._locator.local_path)
 

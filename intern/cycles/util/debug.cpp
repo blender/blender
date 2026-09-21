@@ -54,6 +54,10 @@ void DebugFlags::CUDA::reset()
   if (getenv("CYCLES_CUDA_ADAPTIVE_COMPILE") != nullptr) {
     adaptive_compile = true;
   }
+
+  if (const char *str = getenv("CYCLES_CUDA_LOCAL_ATOMIC_SORT")) {
+    use_local_atomic_sort = (atoi(str) != 0);
+  }
 }
 
 void DebugFlags::HIP::reset()

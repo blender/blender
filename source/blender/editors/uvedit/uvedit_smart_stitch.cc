@@ -147,8 +147,6 @@ struct StitchState {
   float aspect;
   /* object for editmesh */
   Object *obedit;
-  /* editmesh, cached for use in modal handler */
-  BMEditMesh *em;
 
   /* element map for getting info about uv connectivity */
   UvElementMap *element_map;
@@ -969,7 +967,7 @@ static void stitch_propagate_uv_final_position(const Scene *scene,
                                                StitchState *state,
                                                const bool final)
 {
-  BMesh *bm = state->em->bm;
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(state->obedit);
   StitchPreviewer *preview = state->stitch_preview;
 
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
@@ -988,7 +986,7 @@ static void stitch_propagate_uv_final_position(const Scene *scene,
       if (final) {
         copy_v2_v2(luv, final_position[index].uv);
 
-        uvedit_uv_select_enable(scene, state->em->bm, l);
+        uvedit_uv_select_enable(scene, bm, l);
       }
       else {
         int face_preview_pos =
@@ -1050,7 +1048,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
   StitchPreviewer *preview;
   IslandStitchData *island_stitch_data = nullptr;
   int previous_island = ssc->static_island;
-  BMesh *bm = state->em->bm;
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(state->obedit);
   BMFace *efa;
   BMIter iter;
   UVVertAverage *final_position = nullptr;
@@ -1940,22 +1938,21 @@ static StitchState *stitch_init(const Scene *scene,
   StitchState *state;
   ToolSettings *ts = scene->toolsettings;
 
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   state = MEM_new_zeroed<StitchState>("stitch state obj");
 
   /* initialize state */
   state->obedit = obedit;
-  state->em = em;
 
-  uvedit_select_prepare(scene, em->bm);
+  uvedit_select_prepare(scene, bm);
 
   /* Workaround for sync-select & face-select mode which implies all selected faces are detached,
    * for stitch this isn't useful behavior, see #86924. */
   const int selectmode_orig = scene->toolsettings->selectmode;
   scene->toolsettings->selectmode = SCE_SELECT_VERTEX;
-  state->element_map = BM_uv_element_map_create(state->em->bm, scene, false, true, true, true);
+  state->element_map = BM_uv_element_map_create(bm, scene, false, true, true, true);
   scene->toolsettings->selectmode = selectmode_orig;
 
   if (!state->element_map) {
@@ -1970,10 +1967,10 @@ static StitchState *stitch_init(const Scene *scene,
   if (ssc->only_selected_uvs) {
     state->orig_bounds = MEM_new<StitchStateOrigBounds>("stitch state orig bounds");
     state->orig_bounds->island_has_selected.resize(state->element_map->total_islands, false);
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        if (uvedit_uv_select_test(scene, em->bm, l, offsets) &&
-            uvedit_uv_select_test(scene, em->bm, l->next, offsets))
+        if (uvedit_uv_select_test(scene, bm, l, offsets) &&
+            uvedit_uv_select_test(scene, bm, l->next, offsets))
         {
           UvElement *element = BM_uv_element_get(state->element_map, l);
           if (element) {
@@ -2007,7 +2004,7 @@ static StitchState *stitch_init(const Scene *scene,
   /* Index for the UvElements. */
   int counter = -1;
   /* initialize the unique UVs and map */
-  for (int i = 0; i < em->bm->totvert; i++) {
+  for (int i = 0; i < bm->totvert; i++) {
     UvElement *element = state->element_map->vertex[i];
     for (; element; element = element->next) {
       if (element->separate) {
@@ -2022,7 +2019,7 @@ static StitchState *stitch_init(const Scene *scene,
   counter = 0;
   /* Now, on to generate our uv connectivity data */
   const bool face_selected = !(ts->uv_flag & UV_FLAG_SELECT_SYNC);
-  BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
       continue;
     }
@@ -2126,7 +2123,7 @@ static StitchState *stitch_init(const Scene *scene,
     int faceIndex, elementIndex;
     UvElement *element;
 
-    BM_mesh_elem_table_ensure(em->bm, BM_FACE);
+    BM_mesh_elem_table_ensure(bm, BM_FACE);
 
     int selected_count = to_select.size();
 
@@ -2137,7 +2134,7 @@ static StitchState *stitch_init(const Scene *scene,
       while (selected_count--) {
         faceIndex = to_select[selected_count].faceIndex;
         elementIndex = to_select[selected_count].elementIndex;
-        efa = BM_face_at_index(em->bm, faceIndex);
+        efa = BM_face_at_index(bm, faceIndex);
         element = BM_uv_element_get(
             state->element_map,
             static_cast<BMLoop *>(BM_iter_at_index(nullptr, BM_LOOPS_OF_FACE, efa, elementIndex)));
@@ -2153,7 +2150,7 @@ static StitchState *stitch_init(const Scene *scene,
         int uv1, uv2;
         faceIndex = to_select[selected_count].faceIndex;
         elementIndex = to_select[selected_count].elementIndex;
-        efa = BM_face_at_index(em->bm, faceIndex);
+        efa = BM_face_at_index(bm, faceIndex);
         element = BM_uv_element_get(
             state->element_map,
             static_cast<BMLoop *>(BM_iter_at_index(nullptr, BM_LOOPS_OF_FACE, efa, elementIndex)));
@@ -2190,9 +2187,9 @@ static StitchState *stitch_init(const Scene *scene,
       state->selection_stack = MEM_new_array_uninitialized<void *>(state->total_separate_uvs,
                                                                    "uv_stitch_selection_stack");
 
-      BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+      BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
         BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-          if (uvedit_uv_select_test(scene, em->bm, l, offsets)) {
+          if (uvedit_uv_select_test(scene, bm, l, offsets)) {
             UvElement *element = BM_uv_element_get(state->element_map, l);
             if (element) {
               stitch_select_uv(element, state, 1);
@@ -2205,7 +2202,7 @@ static StitchState *stitch_init(const Scene *scene,
       state->selection_stack = MEM_new_array_uninitialized<void *>(state->total_separate_edges,
                                                                    "uv_stitch_selection_stack");
 
-      BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+      BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
         if (!(ts->uv_flag & UV_FLAG_SELECT_SYNC) &&
             (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) || !BM_elem_flag_test(efa, BM_ELEM_SELECT)))
         {
@@ -2213,7 +2210,7 @@ static StitchState *stitch_init(const Scene *scene,
         }
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (uvedit_edge_select_test(scene, em->bm, l, offsets)) {
+          if (uvedit_edge_select_test(scene, bm, l, offsets)) {
             UvEdge *edge = uv_edge_get(l, state);
             if (edge) {
               stitch_select_edge(edge, state, true);
@@ -2232,7 +2229,7 @@ static StitchState *stitch_init(const Scene *scene,
     state->tris_per_island[i] = 0;
   }
 
-  BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     UvElement *element = BM_uv_element_get(state->element_map, BM_FACE_FIRST_LOOP(efa));
 
     if (element) {
@@ -2528,9 +2525,8 @@ static wmOperatorStatus stitch_invoke(bContext *C, wmOperator *op, const wmEvent
   for (uint ob_index = 0; ob_index < ssc->objects_len; ob_index++) {
     StitchState *state = ssc->states[ob_index];
     Object *obedit = state->obedit;
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-
-    if (synced_selection && (em->bm->totvertsel == 0)) {
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    if (synced_selection && (bm->totvertsel == 0)) {
       continue;
     }
 
@@ -2609,9 +2605,8 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
   for (uint ob_index = 0; ob_index < ssc->objects_len; ob_index++) {
     StitchState *state = ssc->states[ob_index];
     Object *obedit = state->obedit;
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-
-    if (synced_selection && (em->bm->totvertsel == 0)) {
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    if (synced_selection && (bm->totvertsel == 0)) {
       continue;
     }
 

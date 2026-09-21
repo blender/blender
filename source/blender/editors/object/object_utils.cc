@@ -65,10 +65,10 @@ bool calc_active_center_for_editmode(Object *obedit, const bool select_only, flo
 {
   switch (obedit->type) {
     case OB_MESH: {
-      BMEditMesh *em = BKE_editmesh_from_object(obedit);
+      BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
       BMEditSelection ese;
 
-      if (BM_select_history_active_get(em->bm, &ese)) {
+      if (BM_select_history_active_get(bm, &ese)) {
         BM_editselection_center(&ese, r_center);
         return true;
       }

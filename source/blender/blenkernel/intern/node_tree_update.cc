@@ -2224,7 +2224,7 @@ class NodeTreeMainUpdater {
       if (bNodeTreeInterfaceSocket *toggle_socket = panel->header_toggle_socket()) {
         if (!STREQ(panel->name_, toggle_socket->name_)) {
           MEM_SAFE_DELETE(toggle_socket->name_);
-          toggle_socket->name() = BLI_strdup_null(panel->name_);
+          toggle_socket->name_ = BLI_strdup_null(panel->name_);
           changed = true;
         }
       }

@@ -16,8 +16,10 @@
 #include "BKE_blender_project.hh"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
+#include "BKE_path_templates.hh"
 
 #include "BLI_function_ref.hh"
+#include "BLI_path_utils.hh"
 #include "BLI_string.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
@@ -426,6 +428,42 @@ void BKE_blender_project_clear()
 
     project = std::nullopt;
   });
+}
+
+std::string BKE_blender_project_path_make_relative(const StringRef path,
+                                                   const bool path_is_template,
+                                                   const bke::BlenderProject &project)
+{
+  const std::string path_str = path;
+  const std::string path_escaped = path_is_template ? path_str :
+                                                      BKE_path_template_escape(path_str);
+
+  /* If a path is blend file relative or not an absolute regular file path, keep it unchanged. */
+  if (BLI_path_is_rel(path_str.c_str()) || !BLI_path_is_abs_from_cwd(path_str.c_str())) {
+    return path_escaped;
+  }
+
+  /* Compare against the root in the same form as the path. */
+  const std::string root = path_is_template ? BKE_path_template_escape(project.get_root_path()) :
+                                              std::string(project.get_root_path());
+
+  const bool walk_up = false;
+  char path_relative[FILE_MAX];
+  if (!BLI_path_relative_to(
+          path_str.c_str(), root.c_str(), walk_up, path_relative, sizeof(path_relative)))
+  {
+    return path_escaped;
+  }
+  if (path_relative[0] == '\0') {
+    return "{project_root}";
+  }
+
+  /* Forward slashes for project configuration portability. */
+  BLI_path_slash_forward_from_native(path_relative);
+  const std::string path_relative_escaped = path_is_template ?
+                                                std::string(path_relative) :
+                                                BKE_path_template_escape(path_relative);
+  return "{project_root}/" + path_relative_escaped;
 }
 
 }  // namespace blender

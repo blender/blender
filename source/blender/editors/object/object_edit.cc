@@ -644,13 +644,10 @@ static bool editmode_load_free_ex(Main *bmain,
     if (mesh->runtime->edit_mesh == nullptr) {
       return false;
     }
-
-    if (mesh->runtime->edit_mesh->bm->totvert > MESH_MAX_VERTS) {
+    const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
+    if (bm->totvert > MESH_MAX_VERTS) {
       /* This used to be warned int the UI, we could warn again although it's quite rare. */
-      CLOG_WARN(&LOG,
-                "Too many vertices for mesh '%s' (%d)",
-                mesh->id.name + 2,
-                mesh->runtime->edit_mesh->bm->totvert);
+      CLOG_WARN(&LOG, "Too many vertices for mesh '%s' (%d)", mesh->id.name + 2, bm->totvert);
       return false;
     }
 
@@ -899,7 +896,7 @@ bool editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag)
 
     BMEditMesh *em = BKE_editmesh_from_object(ob);
     if (em) [[likely]] {
-      BKE_editmesh_looptris_and_normals_calc(em);
+      BKE_editmesh_looptris_and_normals_calc(em, BKE_editmesh_bmesh_get_for_write(ob));
     }
 
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_MESH, nullptr);

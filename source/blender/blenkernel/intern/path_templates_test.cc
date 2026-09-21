@@ -450,6 +450,16 @@ TEST_F(PathTemplatesTest, validate_and_apply_template)
   }
 }
 
+TEST_F(PathTemplatesTest, escape_template)
+{
+  EXPECT_EQ(BKE_path_template_escape(""), "");
+  EXPECT_EQ(BKE_path_template_escape("{"), "{{");
+  EXPECT_EQ(BKE_path_template_escape("}"), "}}");
+  EXPECT_EQ(BKE_path_template_escape("/studio/pröj/日本語.ocio"), "/studio/pröj/日本語.ocio");
+  EXPECT_EQ(BKE_path_template_escape("/studio/{pröj}/日本語.ocio"),
+            "/studio/{{pröj}}/日本語.ocio");
+}
+
 TEST_F(PathTemplatesTest, apply_template_alloc)
 {
   VariableMap variables;

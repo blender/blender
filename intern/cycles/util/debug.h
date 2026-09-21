@@ -57,6 +57,9 @@ class DebugFlags {
     /* Whether adaptive feature based runtime compile is enabled or not.
      * Requires the CUDA Toolkit and only works on Linux at the moment. */
     bool adaptive_compile = false;
+
+    /* Whether local atomic sorting is enabled or not. */
+    bool use_local_atomic_sort = true;
   };
 
   /* Descriptor of HIP feature-set to be used. */

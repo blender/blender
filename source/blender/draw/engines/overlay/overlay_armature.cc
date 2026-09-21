@@ -1817,9 +1817,9 @@ static void pchan_draw_ik_lines(const Armatures::DrawContext *ctx,
         /* Find the chain's root */
         while (parchan->parent) {
           segcount++;
-          /* FIXME: revise the breaking conditions */
-          if (segcount == data->chainlen || segcount > 255) {
-            break; /* 255 is weak */
+
+          if (segcount == data->chainlen) {
+            break;
           }
           parchan = parchan->parent;
         }

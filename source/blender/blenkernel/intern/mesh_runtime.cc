@@ -146,6 +146,20 @@ GroupedSpan<int> Mesh::vert_to_corner_map() const
   return {offsets, this->runtime->vert_to_corner_map_cache.data()};
 }
 
+GroupedSpan<int> Mesh::edge_to_corner_map() const
+{
+  this->runtime->edge_to_corner_offset_cache.ensure([&](Array<int> &r_data) {
+    r_data = Array<int>(this->edges_num + 1, 0);
+    offset_indices::build_reverse_offsets(this->corner_edges(), r_data);
+  });
+  const OffsetIndices<int> offsets(this->runtime->edge_to_corner_offset_cache.data());
+  this->runtime->edge_to_corner_map_cache.ensure([&](Array<int> &r_data) {
+    r_data.reinitialize(offsets.total_size());
+    offset_indices::reverse_indices_in_groups(this->corner_edges(), offsets, r_data);
+  });
+  return {offsets, this->runtime->edge_to_corner_map_cache.data()};
+}
+
 const IndexMask &Mesh::loose_verts() const
 {
   using namespace blender::bke;
@@ -310,6 +324,8 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->vert_to_face_map_cache.tag_dirty();
   mesh->runtime->vert_to_corner_map_cache.tag_dirty();
   mesh->runtime->corner_to_face_map_cache.tag_dirty();
+  mesh->runtime->edge_to_corner_offset_cache.tag_dirty();
+  mesh->runtime->edge_to_corner_map_cache.tag_dirty();
   mesh->runtime->vert_normals_cache.tag_dirty();
   mesh->runtime->vert_normals_true_cache.tag_dirty();
   mesh->runtime->face_normals_cache.tag_dirty();
@@ -338,6 +354,8 @@ void Mesh::tag_edges_split()
   this->runtime->vert_to_face_offset_cache.tag_dirty();
   this->runtime->vert_to_face_map_cache.tag_dirty();
   this->runtime->vert_to_corner_map_cache.tag_dirty();
+  this->runtime->edge_to_corner_offset_cache.tag_dirty();
+  this->runtime->edge_to_corner_map_cache.tag_dirty();
   if (this->runtime->loose_edges_cache.is_cached() &&
       !this->runtime->loose_edges_cache.data().mask.is_empty())
   {
@@ -380,6 +398,9 @@ void Mesh::tag_face_winding_changed()
   this->runtime->face_normals_true_cache.tag_dirty();
   this->runtime->corner_normals_cache.tag_dirty();
   this->runtime->vert_to_corner_map_cache.tag_dirty();
+  /* Reversing faces swaps edges stored for each of its corners, but the number of corners using
+   * each edge doesn't change, so only the indices are recalculated, not the offsets. */
+  this->runtime->edge_to_corner_map_cache.tag_dirty();
   this->runtime->shrinkwrap_boundary_cache.tag_dirty();
 }
 

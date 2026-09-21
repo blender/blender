@@ -37,6 +37,7 @@
 
 #include "draw_cache.hh"
 #include "draw_cache_impl.hh"
+#include "draw_common_c.hh"
 #include "draw_context_private.hh"
 
 /* -------------------------------------------------------------------- */
@@ -116,7 +117,8 @@ gpu::Batch *DRW_cache_object_face_wireframe_get(const Scene *scene, Object *ob)
     case OB_MESH:
       return DRW_cache_mesh_face_wireframe_get(ob);
     case OB_POINTCLOUD:
-      return DRW_pointcloud_batch_cache_get_dots(ob);
+      return pointcloud_is_gsplat(ob) ? DRW_gsplat_batch_cache_get_dots(ob) :
+                                        DRW_pointcloud_batch_cache_get_dots(ob);
     case OB_VOLUME:
       return DRW_cache_volume_face_wireframe_get(ob);
     case OB_GREASE_PENCIL:
@@ -405,9 +407,19 @@ gpu::Batch *DRW_cache_lattice_vert_overlay_get(Object *ob)
 gpu::Batch *DRW_cache_pointcloud_vert_overlay_get(Object *ob)
 {
   BLI_assert(ob->type == OB_POINTCLOUD);
+  return DRW_pointcloud_batch_cache_get_edit_dots(ob);
+}
 
-  PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
-  return DRW_pointcloud_batch_cache_get_edit_dots(&pointcloud);
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name GSplat
+ * \{ */
+
+gpu::Batch *DRW_cache_gsplat_vert_overlay_get(Object *ob)
+{
+  BLI_assert(ob->type == OB_POINTCLOUD);
+  return DRW_gsplat_batch_cache_get_edit_dots(ob);
 }
 
 /** \} */
@@ -492,6 +504,7 @@ void drw_batch_cache_validate(Object *ob)
       break;
     case OB_POINTCLOUD:
       DRW_pointcloud_batch_cache_validate(&DRW_object_get_data_for_drawing<PointCloud>(*ob));
+      DRW_gsplat_batch_cache_validate(&DRW_object_get_data_for_drawing<PointCloud>(*ob));
       break;
     case OB_VOLUME:
       DRW_volume_batch_cache_validate(&DRW_object_get_data_for_drawing<Volume>(*ob));
@@ -536,6 +549,7 @@ void drw_batch_cache_generate_requested(Object *ob, TaskGraph &task_graph)
       break;
     case OB_POINTCLOUD:
       DRW_pointcloud_batch_cache_create_requested(ob);
+      DRW_gsplat_batch_cache_create_requested(ob);
       break;
     /* TODO: all cases. */
     default:
@@ -599,6 +613,7 @@ void DRW_batch_cache_free_old(Object *ob, int ctime)
     case OB_POINTCLOUD:
       DRW_pointcloud_batch_cache_free_old(&DRW_object_get_data_for_drawing<PointCloud>(*ob),
                                           ctime);
+      DRW_gsplat_batch_cache_free_old(&DRW_object_get_data_for_drawing<PointCloud>(*ob), ctime);
       break;
     default:
       break;

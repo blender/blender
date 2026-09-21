@@ -738,8 +738,7 @@ static bool uv_rip_object(
 {
   const ToolSettings *ts = scene->toolsettings;
 
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  BMesh *bm = em->bm;
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
 
   if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
     uvedit_select_prepare_sync_select(scene, bm);
@@ -760,7 +759,7 @@ static bool uv_rip_object(
   bool changed = false;
 
   /* Store per-face visibility in #BM_ELEM_TAG; every loop below must check it first */
-  BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     BM_elem_flag_set(efa, BM_ELEM_TAG, uvedit_face_visible_test(scene, efa));
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
       ULData *ul = UL(l);
@@ -770,7 +769,7 @@ static bool uv_rip_object(
   bm->elem_index_dirty |= BM_LOOP;
 
   bool is_select_all_any = false;
-  BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
       bool is_all = true;
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
@@ -802,7 +801,7 @@ static bool uv_rip_object(
   }
 
   /* Remove #ULData.is_select_vert_single when connected to selected edges. */
-  BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (UL(l)->is_select_vert_single) {
@@ -819,7 +818,7 @@ static bool uv_rip_object(
    * We could also extract an edge loop from the boundary
    * however in practice it's not that useful, see #78751. */
   if (is_select_all_any) {
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       if (!BM_elem_flag_test(efa, BM_ELEM_TAG)) {
         continue;
       }
@@ -842,7 +841,7 @@ static bool uv_rip_object(
   bool vert_selected = false;
   bool edge_selected = false;
   /* Extract loop pairs or single loops. */
-  BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (UL(l)->is_select_edge) {

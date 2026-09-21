@@ -7,12 +7,16 @@
 #include "gpu_shader_material_interface.bsl.hh"
 
 [[node]]
-void node_bsdf_ray_portal(
-    float4 color, float3 /*position*/, float3 /*direction*/, float weight, Closure &result)
+void node_bsdf_ray_portal(float4 color,
+                          float3 /*position*/,
+                          float3 /*direction*/,
+                          float weight,
+                          ShadingData &sd,
+                          Closure &result)
 {
   ClosureTransparency transparency_data;
   transparency_data.transmittance = color.rgb * weight;
   transparency_data.holdout = 0.0f;
 
-  result = closure_eval(transparency_data);
+  result = closure_eval(sd, transparency_data);
 }

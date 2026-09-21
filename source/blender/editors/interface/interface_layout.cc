@@ -2834,38 +2834,11 @@ void Layout::textbox_with_state(PointerRNA *ptr,
 
   this->row(true).alignment_set(LayoutAlign::Expand);
 
-  const float line_height = fontstyle_height_max(UI_FSTYLE_WIDGET);
-
-  /** Ensure minimum value is set. */
-  textbox_state->visible_lines = std::max(textbox_state->visible_lines,
-                                          textbox_minimum_visible_lines);
-
   int w, h;
   item_rna_size(block->curlayout, "", ICON_NONE, ptr, prop, -1, false, false, &w, &h);
-  Button *but = uiDefButR_prop(
-      block,
-      ButtonType::TextBox,
-      RNA_property_ui_name(prop),
-      0,
-      0,
-      w,
-      std::max<int>(UI_UNIT_Y,
-                    std::round(line_height * textbox_state->visible_lines) +
-                        (textbox_vertical_padding() * 2.0f)),
-      ptr,
-      prop,
-      0,
-      0,
-      0,
-      std::nullopt);
-  ButtonTextBox *textbox = static_cast<ButtonTextBox *>(but);
-  textbox->state = textbox_state;
+  Button *but = uiDefButTextBoxR(block, ptr, propname, textbox_state, 0, 0, w);
   if (placeholder) {
     button_placeholder_set(but, *placeholder);
-  }
-
-  if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
-    button_flag_enable(but, BUT_TEXTEDIT_UPDATE);
   }
   block_layout_set_current(block, this);
 }

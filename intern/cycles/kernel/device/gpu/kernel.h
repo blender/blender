@@ -530,7 +530,6 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
                              const int kernel_index)
 #endif
 {
-#if defined(__KERNEL_LOCAL_ATOMIC_SORT__)
   ccl_global ushort *d_queued_kernel = (ccl_global ushort *)
                                            kernel_integrator_state.path.queued_kernel;
   ccl_global uint *d_shader_sort_key = (ccl_global uint *)
@@ -538,35 +537,20 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
   ccl_global int *key_offsets = (ccl_global int *)
                                     kernel_integrator_state.sort_partition_key_offsets;
 
-#  ifdef __KERNEL_METAL__
-  int max_shaders = context.launch_params_metal.data.max_shaders;
-#  endif
-
-#  ifdef __KERNEL_ONEAPI__
-  /* Metal backend doesn't have these particular ccl_gpu_* defines and current kernel code
-   * uses metal_*, we need the below to be compatible with these kernels. */
-  int max_shaders = ((ONEAPIKernelContext *)kg)->__data->max_shaders;
-  int metal_local_id = ccl_gpu_thread_idx_x;
-  int metal_local_size = ccl_gpu_block_dim_x;
-  int metal_grid_id = ccl_gpu_block_idx_x;
+#ifdef __KERNEL_ONEAPI__
   /* There is no difference here between different access decorations, as we are requesting
    * a raw pointer immediately, so the simplest decoration option is used (no decoration). */
   ccl_gpu_shared int *threadgroup_array =
       local_mem.get_multi_ptr<sycl::access::decorated::no>().get();
-#  endif
+#endif
 
   gpu_parallel_sort_bucket_pass(num_states,
                                 partition_size,
-                                max_shaders,
+                                kernel_data.max_shaders,
                                 kernel_index,
                                 d_queued_kernel,
                                 d_shader_sort_key,
-                                key_offsets,
-                                (ccl_gpu_shared int *)threadgroup_array,
-                                metal_local_id,
-                                metal_local_size,
-                                metal_grid_id);
-#endif
+                                key_offsets);
 }
 ccl_gpu_kernel_postfix
 
@@ -591,7 +575,6 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
 #endif
 
 {
-#if defined(__KERNEL_LOCAL_ATOMIC_SORT__)
   ccl_global ushort *d_queued_kernel = (ccl_global ushort *)
                                            kernel_integrator_state.path.queued_kernel;
   ccl_global uint *d_shader_sort_key = (ccl_global uint *)
@@ -599,37 +582,22 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
   ccl_global int *key_offsets = (ccl_global int *)
                                     kernel_integrator_state.sort_partition_key_offsets;
 
-#  ifdef __KERNEL_METAL__
-  int max_shaders = context.launch_params_metal.data.max_shaders;
-#  endif
-
-#  ifdef __KERNEL_ONEAPI__
-  /* Metal backend doesn't have these particular ccl_gpu_* defines and current kernel code
-   * uses metal_*, we need the below to be compatible with these kernels. */
-  int max_shaders = ((ONEAPIKernelContext *)kg)->__data->max_shaders;
-  int metal_local_id = ccl_gpu_thread_idx_x;
-  int metal_local_size = ccl_gpu_block_dim_x;
-  int metal_grid_id = ccl_gpu_block_idx_x;
+#ifdef __KERNEL_ONEAPI__
   /* There is no difference here between different access decorations, as we are requesting
    * a raw pointer immediately, so the simplest decoration option is used (no decoration). */
   ccl_gpu_shared int *threadgroup_array =
       local_mem.get_multi_ptr<sycl::access::decorated::no>().get();
-#  endif
+#endif
 
   gpu_parallel_sort_write_pass(num_states,
                                partition_size,
-                               max_shaders,
-                               kernel_index,
                                num_states_limit,
                                indices,
+                               kernel_data.max_shaders,
+                               kernel_index,
                                d_queued_kernel,
                                d_shader_sort_key,
-                               key_offsets,
-                               (ccl_gpu_shared int *)threadgroup_array,
-                               metal_local_id,
-                               metal_local_size,
-                               metal_grid_id);
-#endif
+                               key_offsets);
 }
 ccl_gpu_kernel_postfix
 

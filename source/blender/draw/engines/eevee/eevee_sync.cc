@@ -348,17 +348,20 @@ void SyncModule::sync_pointcloud(const ObjectRef &ob_ref)
   ObjectHandle ob_handle = sync_object(ob_ref, inst_.manager->unique_handle(ob_ref));
 
   bool has_motion = inst_.velocity.step_object_sync(ob_handle);
+  eMaterialGeometry mat_geom_type = to_pointcloud_material_geometry(ob_ref.object);
 
   Material material = inst_.materials.material_get(
-      ob_handle, has_motion, material_slot - 1, MAT_GEOM_POINTCLOUD);
+      ob_handle, has_motion, material_slot - 1, mat_geom_type);
 
   auto drawcall_add = [&](const MaterialPass &matpass, bool dual_sided = false) {
     if (matpass.sub_pass == nullptr) {
       return;
     }
+
     PassMain::Sub &object_pass = matpass.sub_pass->sub("Point Cloud Sub Pass");
     gpu::Batch *geometry = pointcloud_sub_pass_setup(
-        object_pass, ob_handle.object, matpass.gpumat);
+        object_pass, ob_ref, ob_handle.res_handle, matpass.gpumat);
+
     if (dual_sided) {
       /* WORKAROUND: Hack to generate backfaces. Should also be baked into the Index Buf too at
        * some point in the future. */

@@ -13,9 +13,11 @@ void node_ambient_occlusion(float4 color,
                             float3 normal,
                             const float inverted,
                             const float sample_count,
+                            [[resource_table]] const KernelGlobals &kg,
+                            const ShadingData &sd,
                             float4 &result_color,
                             float &result_ao)
 {
-  result_ao = ambient_occlusion_eval(safe_normalize(normal), dist, inverted, sample_count);
+  result_ao = ambient_occlusion_eval(kg, sd, safe_normalize(normal), dist, inverted, sample_count);
   result_color = result_ao * color;
 }

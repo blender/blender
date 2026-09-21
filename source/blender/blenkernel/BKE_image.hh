@@ -203,11 +203,14 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock);
  *
  * If #r_load_failed is provided, it is set to true when the image is known to have failed
  * loading when the #ImBuf is null, as opposed to not having been loaded yet.
+ *
+ * If #cached_only is true, image buffers are not loaded from files.
  */
 ImBuf *BKE_image_acquire_ibuf_gpu(Image *ima,
                                   ImageUser *iuser,
                                   void **r_lock,
-                                  bool *r_load_failed = nullptr);
+                                  bool *r_load_failed = nullptr,
+                                  bool cached_only = false);
 
 /**
  * Return image buffer for given image, user, pass, and view.

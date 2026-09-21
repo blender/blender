@@ -167,7 +167,7 @@ static struct GlobalColorPickingState {
 /** \name Initialization / De-initialization
  * \{ */
 
-static bool colormanage_role_color_space_name_get(ocio::Config &config,
+static bool colormanage_role_color_space_name_get(const ocio::Config &config,
                                                   char *colorspace_name,
                                                   const char *role,
                                                   const char *backup_role,
@@ -197,13 +197,13 @@ static bool colormanage_role_color_space_name_get(ocio::Config &config,
   return true;
 }
 
-static void colormanage_update_matrices()
+static void colormanage_update_matrices(const ocio::Config &config)
 {
   /* Load luminance coefficients. */
-  colorspace::luma_coefficients = g_config()->get_default_luma_coefs();
+  colorspace::luma_coefficients = config.get_default_luma_coefs();
 
   /* Load standard color spaces. */
-  colorspace::xyz_to_scene_linear = g_config()->get_xyz_to_scene_linear_matrix();
+  colorspace::xyz_to_scene_linear = config.get_xyz_to_scene_linear_matrix();
   colorspace::scene_linear_to_xyz = math::invert(colorspace::xyz_to_scene_linear);
 
   colorspace::scene_linear_to_rec709 = ocio::XYZ_TO_REC709 * colorspace::scene_linear_to_xyz;
@@ -222,54 +222,82 @@ static void colormanage_update_matrices()
       colorspace::scene_linear_to_rec709, float3x3::identity(), 0.0001f);
 }
 
-static bool colormanage_load_config(ocio::Config &config)
+/**
+ * Load roles, view names and matrices from the config into the global state.
+ * With #validate_only, only check the config is usable and leave global state untouched.
+ */
+static bool colormanage_load_config(const ocio::Config &config, const bool validate_only = false)
 {
   bool ok = true;
 
   /* get roles */
-  ok &= colormanage_role_color_space_name_get(config, global_role_data, OCIO_ROLE_DATA, nullptr);
+  char role_data[MAX_COLORSPACE_NAME];
+  char role_scene_linear[MAX_COLORSPACE_NAME];
+  char role_color_picking[MAX_COLORSPACE_NAME];
+  char role_texture_painting[MAX_COLORSPACE_NAME];
+  char role_default_sequencer[MAX_COLORSPACE_NAME];
+  char role_default_byte[MAX_COLORSPACE_NAME];
+  char role_default_float[MAX_COLORSPACE_NAME];
+  char role_aces_interchange[MAX_COLORSPACE_NAME];
+
+  ok &= colormanage_role_color_space_name_get(config, role_data, OCIO_ROLE_DATA, nullptr);
   ok &= colormanage_role_color_space_name_get(
-      config, global_role_scene_linear, OCIO_ROLE_SCENE_LINEAR, nullptr);
+      config, role_scene_linear, OCIO_ROLE_SCENE_LINEAR, nullptr);
   ok &= colormanage_role_color_space_name_get(
-      config, global_role_color_picking, OCIO_ROLE_COLOR_PICKING, nullptr);
+      config, role_color_picking, OCIO_ROLE_COLOR_PICKING, nullptr);
   ok &= colormanage_role_color_space_name_get(
-      config, global_role_texture_painting, OCIO_ROLE_TEXTURE_PAINT, nullptr);
+      config, role_texture_painting, OCIO_ROLE_TEXTURE_PAINT, nullptr);
   ok &= colormanage_role_color_space_name_get(
-      config, global_role_default_sequencer, OCIO_ROLE_DEFAULT_SEQUENCER, OCIO_ROLE_SCENE_LINEAR);
+      config, role_default_sequencer, OCIO_ROLE_DEFAULT_SEQUENCER, OCIO_ROLE_SCENE_LINEAR);
   ok &= colormanage_role_color_space_name_get(
-      config, global_role_default_byte, OCIO_ROLE_DEFAULT_BYTE, OCIO_ROLE_TEXTURE_PAINT);
+      config, role_default_byte, OCIO_ROLE_DEFAULT_BYTE, OCIO_ROLE_TEXTURE_PAINT);
   ok &= colormanage_role_color_space_name_get(
-      config, global_role_default_float, OCIO_ROLE_DEFAULT_FLOAT, OCIO_ROLE_SCENE_LINEAR);
+      config, role_default_float, OCIO_ROLE_DEFAULT_FLOAT, OCIO_ROLE_SCENE_LINEAR);
 
   colormanage_role_color_space_name_get(
-      config, global_role_aces_interchange, OCIO_ROLE_ACES_INTERCHANGE, nullptr, true);
+      config, role_aces_interchange, OCIO_ROLE_ACES_INTERCHANGE, nullptr, true);
 
-  if (g_config()->get_num_displays() == 0) {
+  if (config.get_num_displays() == 0) {
     CLOG_ERROR(&LOG, "Could not find any displays");
     ok = false;
   }
   /* NOTE: The look "None" is expected to be hard-coded to exist in the OpenColorIO integration. */
-  if (g_config()->get_num_looks() == 0) {
+  if (config.get_num_looks() == 0) {
     CLOG_ERROR(&LOG, "Could not find any looks");
     ok = false;
   }
 
-  for (const int display_index : IndexRange(g_config()->get_num_displays())) {
-    const ocio::Display *display = g_config()->get_display_by_index(display_index);
-    const int num_views = display->get_num_views();
-    if (num_views <= 0) {
+  for (const int display_index : IndexRange(config.get_num_displays())) {
+    const ocio::Display *display = config.get_display_by_index(display_index);
+    if (display->get_num_views() <= 0) {
       CLOG_ERROR(&LOG, "Could not find any views for display %s", display->name().c_str());
       ok = false;
       break;
     }
+  }
 
-    for (const int view_index : IndexRange(num_views)) {
+  if (validate_only) {
+    return ok;
+  }
+
+  STRNCPY(global_role_data, role_data);
+  STRNCPY(global_role_scene_linear, role_scene_linear);
+  STRNCPY(global_role_color_picking, role_color_picking);
+  STRNCPY(global_role_texture_painting, role_texture_painting);
+  STRNCPY(global_role_default_sequencer, role_default_sequencer);
+  STRNCPY(global_role_default_byte, role_default_byte);
+  STRNCPY(global_role_default_float, role_default_float);
+  STRNCPY(global_role_aces_interchange, role_aces_interchange);
+
+  for (const int display_index : IndexRange(config.get_num_displays())) {
+    const ocio::Display *display = config.get_display_by_index(display_index);
+    for (const int view_index : IndexRange(display->get_num_views())) {
       const ocio::View *view = display->get_view_by_index(view_index);
       g_all_view_names().add(view->name());
     }
   }
 
-  colormanage_update_matrices();
+  colormanage_update_matrices(config);
 
   /* Defaults that don't change with file working space. */
   STRNCPY(global_role_scene_linear_default, global_role_scene_linear);
@@ -282,6 +310,26 @@ static void colormanage_free_config()
 {
   g_config() = nullptr;
   g_all_view_names().clear();
+}
+
+static void colormanage_set_ocio_env(const char *filepath,
+                                     std::optional<std::string> &r_old_ocio_env)
+{
+  /* OpenColorIO has issues with "$" in paths, as it uses that for variable expansion
+   * and there appears to be no way to escape the symbol.
+   *
+   * Work around it by setting the environment variable, which may also be useful for
+   * plug-ins to inherit the Blender OCIO config. */
+  if (const char *ocio_env = BLI_getenv("OCIO")) {
+    r_old_ocio_env = ocio_env;
+  }
+
+  BLI_setenv("OCIO", filepath);
+}
+
+static void colormanage_restore_ocio_env(const std::optional<std::string> &old_ocio_env)
+{
+  BLI_setenv("OCIO", old_ocio_env.has_value() ? old_ocio_env->c_str() : nullptr);
 }
 
 void colormanagement_init()
@@ -320,16 +368,8 @@ void colormanagement_init()
       char configfile[FILE_MAX];
       BLI_path_join(configfile, sizeof(configfile), configdir->c_str(), BCM_CONFIG_FILE);
 
-      /* OpenColorIO has issues with "$" in paths, as it uses that for variable expansion
-       * and there appears to be no way to escape the symbol.
-       *
-       * Work around it by setting the environment variable, which may also be useful for
-       * plug-ins to inherit the Blender OCIO config. */
       std::optional<std::string> old_ocio_env;
-      if (ocio_env) {
-        old_ocio_env = ocio_env;
-      }
-      BLI_setenv("OCIO", configfile);
+      colormanage_set_ocio_env(configfile, old_ocio_env);
       g_config() = ocio::Config::create_from_environment();
 
       bool ok = false;
@@ -342,7 +382,7 @@ void colormanagement_init()
       }
 
       if (!ok) {
-        BLI_setenv("OCIO", old_ocio_env.has_value() ? old_ocio_env->c_str() : nullptr);
+        colormanage_restore_ocio_env(old_ocio_env);
       }
     }
   }
@@ -363,6 +403,39 @@ void colormanagement_exit()
   global_color_picking_state = GlobalColorPickingState();
 
   colormanage_free_config();
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Runtime configuration switching
+ * \{ */
+
+bool IMB_colormanagement_switch_config(const char *filepath)
+{
+  std::optional<std::string> old_ocio_env;
+  colormanage_set_ocio_env(filepath, old_ocio_env);
+
+  const auto validate = [](const ocio::Config &config) {
+    return colormanage_load_config(config, true);
+  };
+
+  /* Switch in place. */
+  if (!g_config()->switch_to_from_environment(validate)) {
+    CLOG_ERROR(&LOG, "Failed to load OpenColorIO config from '%s'", filepath);
+    colormanage_restore_ocio_env(old_ocio_env);
+    return false;
+  }
+
+  /* Reset cached state that depends on the configuration. */
+  global_color_picking_state = GlobalColorPickingState();
+  g_all_view_names().clear();
+
+  /* Load roles, matrices and view names from the new configuration. */
+  colormanage_load_config(*g_config());
+
+  CLOG_INFO_NOCHECK(&LOG, "Switched OpenColorIO config to '%s'", filepath);
+  return true;
 }
 
 /** \} */
@@ -2918,7 +2991,7 @@ bool IMB_colormanagement_working_space_set_from_name(const char *name)
 
   global_color_picking_state.cpu_processor_from.reset();
   global_color_picking_state.cpu_processor_to.reset();
-  colormanage_update_matrices();
+  colormanage_update_matrices(*g_config());
 
   return true;
 }

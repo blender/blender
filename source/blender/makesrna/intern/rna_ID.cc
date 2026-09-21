@@ -2757,7 +2757,7 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func,
                                   "Tag the ID to update its display data, "
-                                  "e.g. when calling :class:`bpy.types.Scene.update`");
+                                  "e.g. when calling :class:`bpy.types.ViewLayer.update`");
   RNA_def_enum_flag(func, "refresh", update_flag_items, 0, "", "Type of updates to perform");
 
   func = RNA_def_function(srna, "preview_ensure", "BKE_previewimg_id_ensure");

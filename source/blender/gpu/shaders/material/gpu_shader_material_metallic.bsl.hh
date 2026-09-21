@@ -38,6 +38,8 @@ void node_bsdf_metallic(float4 base_color,
                         float /*thin_film_ior*/,
                         const float do_multiscatter,
                         const float use_complex_ior,
+                        [[resource_table]] KernelGlobals &kg,
+                        ShadingData &sd,
                         Closure &result)
 {
   float3 F0 = base_color.rgb;
@@ -56,7 +58,7 @@ void node_bsdf_metallic(float4 base_color,
   /* anisotropy = saturate(anisotropy); */
 
   N = safe_normalize(N);
-  float3 V = coordinate_incoming(g_data.P);
+  float3 V = coordinate_impl(kg, sd, sd.P, sd.N).incoming;
   float NV = dot(N, V);
 
   ClosureReflection reflection_data;
@@ -64,8 +66,8 @@ void node_bsdf_metallic(float4 base_color,
   reflection_data.roughness = roughness;
 
   float3 metallic_brdf;
-  brdf_f82_tint_lut(F0, F82, NV, roughness, do_multiscatter != 0.0f, metallic_brdf);
+  brdf_f82_tint_lut(kg, F0, F82, NV, roughness, do_multiscatter != 0.0f, metallic_brdf);
   reflection_data.color = metallic_brdf * weight;
 
-  result = closure_eval(reflection_data);
+  result = closure_eval(sd, reflection_data);
 }

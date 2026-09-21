@@ -45,66 +45,120 @@ IMAGE_FN DataVec imageLoadFast(SamplerT texture, IntCoord coord)
 
 IMAGE_FN void imageStore(SamplerT texture, IntCoord coord, DataVec data)
 {
+/* Store functions are not allowed in vertex shader as the resources are declared read only.
+ * Keep the function declared to avoid compilation errors. But the functions become noop when used
+ * in vertex shader.
+ */
+#ifndef GPU_VERTEX_SHADER
   if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
     return;
   }
   texture.store(data, coord);
+#endif
 }
 
 IMAGE_FN
 void imageStoreFast(SamplerT texture, IntCoord coord, DataVec data)
 {
+/* Store functions are not allowed in vertex shader as the resources are declared read only.
+ * Keep the function declared to avoid compilation errors. But the functions become noop when used
+ * in vertex shader.
+ */
+#ifndef GPU_VERTEX_SHADER
   texture.store(data, coord);
+#endif
 }
 
 IMAGE_FN AtomicT imageAtomicMin(SamplerT texture, IntCoord coord, AtomicT data)
 {
+/* Store functions are not allowed in vertex shader as the resources are declared read only.
+ * Keep the function declared to avoid compilation errors. But the functions become noop when used
+ * in vertex shader.
+ */
+#ifndef GPU_VERTEX_SHADER
   if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
     return AtomicT(0);
   }
   return texture.atomic_min(coord, data);
+#endif
 }
 IMAGE_FN AtomicT imageAtomicMax(SamplerT texture, IntCoord coord, AtomicT data)
 {
+/* Store functions are not allowed in vertex shader as the resources are declared read only.
+ * Keep the function declared to avoid compilation errors. But the functions become noop when used
+ * in vertex shader.
+ */
+#ifndef GPU_VERTEX_SHADER
   if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
     return AtomicT(0);
   }
   return texture.atomic_max(coord, data);
+#endif
 }
 IMAGE_FN AtomicT imageAtomicAdd(SamplerT texture, IntCoord coord, AtomicT data)
 {
+/* Store functions are not allowed in vertex shader as the resources are declared read only.
+ * Keep the function declared to avoid compilation errors. But the functions become noop when used
+ * in vertex shader.
+ */
+#ifndef GPU_VERTEX_SHADER
   if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
     return AtomicT(0);
   }
   return texture.atomic_add(coord, data);
+#endif
 }
 IMAGE_FN AtomicT imageAtomicAnd(SamplerT texture, IntCoord coord, AtomicT data)
 {
+/* Store functions are not allowed in vertex shader as the resources are declared read only.
+ * Keep the function declared to avoid compilation errors. But the functions become noop when used
+ * in vertex shader.
+ */
+#ifndef GPU_VERTEX_SHADER
   if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
     return AtomicT(0);
   }
   return texture.atomic_and(coord, data);
+#endif
 }
 IMAGE_FN AtomicT imageAtomicOr(SamplerT texture, IntCoord coord, AtomicT data)
 {
+/* Store functions are not allowed in vertex shader as the resources are declared read only.
+ * Keep the function declared to avoid compilation errors. But the functions become noop when used
+ * in vertex shader.
+ */
+#ifndef GPU_VERTEX_SHADER
   if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
     return AtomicT(0);
   }
   return texture.atomic_or(coord, data);
+#endif
 }
 IMAGE_FN AtomicT imageAtomicXor(SamplerT texture, IntCoord coord, AtomicT data)
 {
+/* Store functions are not allowed in vertex shader as the resources are declared read only.
+ * Keep the function declared to avoid compilation errors. But the functions become noop when used
+ * in vertex shader.
+ */
+#ifndef GPU_VERTEX_SHADER
   if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
     return AtomicT(0);
   }
   return texture.atomic_xor(coord, data);
+#endif
 }
 IMAGE_FN AtomicT imageAtomicExchange(SamplerT texture, IntCoord coord, AtomicT data)
 {
+/* Store functions are not allowed in vertex shader as the resources are declared read only.
+ * Keep the function declared to avoid compilation errors. But the functions become noop when used
+ * in vertex shader.
+ */
+#ifndef GPU_VERTEX_SHADER
   if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
     return AtomicT(0);
   }
   return texture.atomic_exchange(coord, data);
+#endif
 }
 
 #undef IMAGE_FN

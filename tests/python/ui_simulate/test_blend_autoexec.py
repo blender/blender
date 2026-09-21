@@ -9,6 +9,8 @@ Covered test cases, with automatic script execution enabled & disabled:
   - "Dropping a blend-file" both trusted/untrusted cases.
   - "Open" (the file selector) both trusted/untrusted cases.
   - Enabling "Trusted Source" for an excluded path when dropping.
+  - Both of the above with the command line overriding the preference,
+    see the tests ending in ``_enable_autoexec`` & ``_disable_autoexec``.
 """
 
 import modules.ui_test_utils as ui
@@ -122,9 +124,12 @@ def _blend_file_open(e, filepath):
         yield getattr(e, action)()
 
 
-def _setup(dirpath_temp, *, use_autoexec):
+def _setup(dirpath_temp, *, use_autoexec, autoexec_override=None):
     """
     Save a blend-file in a trusted & an excluded directory of ``dirpath_temp``.
+
+    :arg autoexec_override: The value of "--enable-autoexec" or "--disable-autoexec"
+       Blender was started with, None when neither was passed.
     """
     import bpy
     import os
@@ -170,7 +175,11 @@ def _setup(dirpath_temp, *, use_autoexec):
     e = _events_after_load()
 
     t.assertEqual(bpy.data.filepath, "")
-    t.assertEqual(bpy.app.autoexec, use_autoexec, "Auto-execution follows the preference")
+    t.assertEqual(bpy.app.autoexec_override, autoexec_override)
+    if autoexec_override is None:
+        t.assertEqual(bpy.app.autoexec, use_autoexec, "Auto-execution follows the preference")
+    else:
+        t.assertEqual(bpy.app.autoexec, autoexec_override, "Auto-execution follows the command line")
 
     return e, t, filepaths
 
@@ -217,19 +226,19 @@ def _blend_file_drop(e, *, filepath):
     yield getattr(e, DROP_KEY_WORKAROUND.lower())()
 
 
-def _assert_blend_file_dropped(t, filepath, *, is_path_trusted, message=None):
+def _assert_blend_file_dropped(t, filepath, *, is_trusted, message=None):
     """
-    Check whether the path is excluded, an excluded path shows the option
-    disabled as "Trusted Source [Untrusted Path]".
+    Check the default for "Trusted Source" the popup was shown with.
 
     The popups own "Trusted Source" state isn't checked, it's stored on the
-    operator running the popup which isn't reachable from here.
+    operator running the popup which isn't reachable from here,
+    so check the value it's initialized from.
     Opening the file checks it, see ``_assert_blend_file_opened``.
     """
     import bpy
     t.assertEqual(
-        bpy.path.is_autoexec(filepath, canonicalize=True, strip_filename=True),
-        is_path_trusted, message)
+        bpy.path.is_autoexec(filepath, skip_overrides=False, canonicalize=True, strip_filename=True),
+        is_trusted, message)
 
 
 def _drop_ui_trusted_source_toggle(e):
@@ -248,10 +257,23 @@ def _drop_ui_open(e):
     yield e.o()
 
 
-def _blend_file_drop_test(filename, *, use_autoexec, is_trusted, message):
-    is_path_trusted = filename == BLEND_TRUSTED
+def _blend_file_drop_test(
+        filename, *,
+        use_autoexec,
+        autoexec_override=None,
+        toggle_trusted_source=False,
+        is_trusted,
+        message,
+):
+    """
+    Drop ``filename`` & open it from the popup, checking it opened with ``is_trusted``.
+
+    :arg toggle_trusted_source: Toggle "Trusted Source" before opening,
+       so the popup must default to the opposite of ``is_trusted``.
+    """
     with _temp_dir_context() as dirpath_temp:
-        e, t, filepaths = yield from _setup(dirpath_temp, use_autoexec=use_autoexec)
+        e, t, filepaths = yield from _setup(
+            dirpath_temp, use_autoexec=use_autoexec, autoexec_override=autoexec_override)
         filepath = filepaths[filename]
 
         yield from _blend_file_drop(e, filepath=filepath)
@@ -259,9 +281,12 @@ def _blend_file_drop_test(filename, *, use_autoexec, is_trusted, message):
         _assert_blend_file_dropped(
             t,
             filepath,
-            is_path_trusted=is_path_trusted,
+            is_trusted=is_trusted != toggle_trusted_source,
             message=message,
         )
+
+        if toggle_trusted_source:
+            yield from _drop_ui_trusted_source_toggle(e)
 
         yield from _drop_ui_open(e)
 
@@ -405,7 +430,7 @@ def pref_disabled_drop_blend_file_trusted_source():
         _assert_blend_file_dropped(
             t,
             filepath,
-            is_path_trusted=False,
+            is_trusted=False,
             message="An excluded path must not be trusted in the drop UI",
         )
 
@@ -418,4 +443,176 @@ def pref_disabled_drop_blend_file_trusted_source():
             BLEND_UNTRUSTED,
             is_trusted=True,
             message="Enabling \"Trusted Source\" from the drop UI must run scripts",
+        )
+
+
+# -----------------------------------------------------------------------------
+# Tests with `--enable-autoexec` Overriding the Preference
+#
+# Blender is started with the argument, see the CMake test definitions.
+
+
+def pref_disabled_drop_blend_file_enable_autoexec():
+    """
+    Drop a trusted file & open it from the popup with the preference disabled
+    but "--enable-autoexec" passed, its scripts must run.
+
+    Proves the command line overrides the preference in the drop UI.
+    """
+    yield from _blend_file_drop_test(
+        BLEND_TRUSTED,
+        use_autoexec=False,
+        autoexec_override=True,
+        is_trusted=True,
+        message="\"--enable-autoexec\" must override the preference in the drop UI",
+    )
+
+
+def pref_enabled_drop_blend_file_untrusted_enable_autoexec():
+    """
+    Drop an excluded path & open it from the popup with "--enable-autoexec" passed,
+    its scripts must run.
+
+    Proves the command line overrides the excluded paths in the drop UI.
+    """
+    yield from _blend_file_drop_test(
+        BLEND_UNTRUSTED,
+        use_autoexec=True,
+        autoexec_override=True,
+        is_trusted=True,
+        message="\"--enable-autoexec\" must override the excluded paths in the drop UI",
+    )
+
+
+def pref_disabled_drop_blend_file_trusted_source_enable_autoexec():
+    """
+    Drop a trusted file with "--enable-autoexec" passed & disable "Trusted Source"
+    before opening it, its scripts must not run.
+
+    Proves the command line only sets the default, the user may still opt-out.
+    """
+    yield from _blend_file_drop_test(
+        BLEND_TRUSTED,
+        use_autoexec=False,
+        autoexec_override=True,
+        toggle_trusted_source=True,
+        is_trusted=False,
+        message="Disabling \"Trusted Source\" from the drop UI must not run scripts, even with \"--enable-autoexec\"",
+    )
+
+
+def pref_disabled_open_file_selector_enable_autoexec():
+    """
+    Open a trusted file from the file selector with the preference disabled
+    but "--enable-autoexec" passed, its scripts must run.
+
+    Proves the command line overrides the preference in the file selector.
+    """
+    with _temp_dir_context() as dirpath_temp:
+        e, t, filepaths = yield from _setup(dirpath_temp, use_autoexec=False, autoexec_override=True)
+
+        yield from _blend_file_open(e, filepaths[BLEND_TRUSTED])
+
+        _assert_blend_file_opened(
+            t,
+            BLEND_TRUSTED,
+            is_trusted=True,
+            message="\"--enable-autoexec\" must override the preference in the file selector",
+        )
+
+
+def pref_enabled_open_file_selector_untrusted_enable_autoexec():
+    """
+    Open an excluded path from the file selector with "--enable-autoexec" passed,
+    its scripts must run.
+
+    Proves the command line overrides the excluded paths in the file selector.
+    """
+    with _temp_dir_context() as dirpath_temp:
+        e, t, filepaths = yield from _setup(dirpath_temp, use_autoexec=True, autoexec_override=True)
+
+        yield from _blend_file_open(e, filepaths[BLEND_UNTRUSTED])
+
+        _assert_blend_file_opened(
+            t,
+            BLEND_UNTRUSTED,
+            is_trusted=True,
+            message="\"--enable-autoexec\" must override the excluded paths in the file selector",
+        )
+
+
+# -----------------------------------------------------------------------------
+# Tests with `--disable-autoexec` Overriding the Preference
+#
+# Blender is started with the argument, see the CMake test definitions.
+
+
+def pref_enabled_drop_blend_file_disable_autoexec():
+    """
+    Drop a trusted file & open it from the popup with the preference enabled
+    but "--disable-autoexec" passed, its scripts must not run.
+
+    Proves the command line overrides the preference in the drop UI.
+    """
+    yield from _blend_file_drop_test(
+        BLEND_TRUSTED,
+        use_autoexec=True,
+        autoexec_override=False,
+        is_trusted=False,
+        message="\"--disable-autoexec\" must override the preference in the drop UI",
+    )
+
+
+def pref_enabled_drop_blend_file_trusted_source_disable_autoexec():
+    """
+    Drop a trusted file with "--disable-autoexec" passed & enable "Trusted Source"
+    before opening it, its scripts must run.
+
+    Proves the command line only sets the default, the user may still opt-in.
+    """
+    yield from _blend_file_drop_test(
+        BLEND_TRUSTED,
+        use_autoexec=True,
+        autoexec_override=False,
+        toggle_trusted_source=True,
+        is_trusted=True,
+        message="Enabling \"Trusted Source\" from the drop UI must run scripts, even with \"--disable-autoexec\"",
+    )
+
+
+def pref_enabled_drop_blend_file_untrusted_trusted_source_disable_autoexec():
+    """
+    Drop an excluded path with "--disable-autoexec" passed & enable "Trusted Source"
+    before opening it, its scripts must run.
+
+    Proves the excluded paths don't apply when the command line overrides the preference,
+    matching the file selector.
+    """
+    yield from _blend_file_drop_test(
+        BLEND_UNTRUSTED,
+        use_autoexec=True,
+        autoexec_override=False,
+        toggle_trusted_source=True,
+        is_trusted=True,
+        message="Enabling \"Trusted Source\" for an excluded path must run scripts with \"--disable-autoexec\"",
+    )
+
+
+def pref_enabled_open_file_selector_disable_autoexec():
+    """
+    Open a trusted file from the file selector with the preference enabled
+    but "--disable-autoexec" passed, its scripts must not run.
+
+    Proves the command line overrides the preference in the file selector.
+    """
+    with _temp_dir_context() as dirpath_temp:
+        e, t, filepaths = yield from _setup(dirpath_temp, use_autoexec=True, autoexec_override=False)
+
+        yield from _blend_file_open(e, filepaths[BLEND_TRUSTED])
+
+        _assert_blend_file_opened(
+            t,
+            BLEND_TRUSTED,
+            is_trusted=False,
+            message="\"--disable-autoexec\" must override the preference in the file selector",
         )

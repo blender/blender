@@ -491,6 +491,7 @@ class NODE_MT_layout_base(NodeMenu):
 
     def draw(self, _context):
         layout = self.layout
+        self.node_operator(layout, "NodeComment")
         self.node_operator(layout, "NodeFrame", search_weight=-1)
         self.node_operator(layout, "NodeReroute")
 

@@ -1583,8 +1583,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
         br.falloff_angle_legacy = DEG2RADF(80);
         /* These flags are used for new features. They are not related to `falloff_angle`. */
         br.flag &= ~(BRUSH_INVERT_TO_SCRAPE_FILL | BRUSH_ORIGINAL_PLANE |
-                     BRUSH_GRAB_ACTIVE_VERTEX | BRUSH_SCENE_SPACING |
-                     BRUSH_FRONTFACE_FALLOFF_DEPRECATED);
+                     BRUSH_GRAB_ACTIVE_VERTEX | BRUSH_SCENE_SPACING | BRUSH_UNUSED_7);
       }
 
       for (Scene &scene : bmain->scenes) {

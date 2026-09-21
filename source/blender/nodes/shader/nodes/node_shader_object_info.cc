@@ -33,7 +33,14 @@ static int node_shader_gpu_object_info(GPUMaterial *mat,
   Material *ma = GPU_material_get_material(mat);
   float index = ma ? ma->index : 0.0f;
   GPU_material_flag_set(mat, GPU_MATFLAG_OBJECT_INFO);
-  return GPU_stack_link(mat, node, "node_object_info", in, out, GPU_constant(&index));
+  return GPU_stack_link(mat,
+                        node,
+                        "node_object_info",
+                        in,
+                        out,
+                        GPU_constant(&index),
+                        GPU_kernel_globals(),
+                        GPU_shading_data());
 }
 
 NODE_SHADER_MATERIALX_BEGIN

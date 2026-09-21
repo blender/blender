@@ -2372,6 +2372,25 @@ class _defs_grease_pencil_paint:
             draw_settings=draw_settings,
         )
 
+    @ToolDef.from_fn
+    def carver():
+        def draw_settings(context, layout, _tool):
+            brush = context.tool_settings.gpencil_paint.brush
+            gp_settings = brush.gpencil_settings
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(gp_settings, "use_active_layer_only")
+            row.prop(gp_settings, "use_keep_caps_eraser")
+
+        return dict(
+            idname="builtin.carver",
+            label="Carver",
+            icon="ops.gpencil.carver",
+            cursor='KNIFE',
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
     @staticmethod
     def grease_pencil_primitive_toolbar(context, layout, _tool, props):
         paint = context.tool_settings.gpencil_paint
@@ -4192,6 +4211,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_grease_pencil_primitives,
             None,
             _defs_grease_pencil_paint.trim,
+            _defs_grease_pencil_paint.carver,
             None,
             _defs_grease_pencil_paint.eyedropper,
             None,

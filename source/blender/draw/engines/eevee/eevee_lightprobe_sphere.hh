@@ -176,6 +176,10 @@ class SphereProbeModule {
    * Ensure the cube-map target texture for rendering the probe is allocated.
    */
   void ensure_cubemap_render_target(int resolution);
+  /**
+   * Free the cube-map target texture once the capture that needed it is done.
+   */
+  void release_render_target();
 
   struct UpdateInfo {
     float3 probe_pos;

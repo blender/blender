@@ -369,6 +369,9 @@ void IMB_float_from_byte(ImBuf *ibuf)
     }
   }
 
+  /* Pixels get converted to scene linear, so clear colorspace. */
+  ibuf->float_buffer.colorspace = nullptr;
+
   rcti region_to_update;
   BLI_rcti_init(&region_to_update, 0, ibuf->x, 0, ibuf->y);
   IMB_float_from_byte_ex(ibuf, ibuf, &region_to_update);

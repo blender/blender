@@ -27,7 +27,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Consine of the angle subtended by the smallest enclosing sphere of the node bounding box. */
+/* Cosine of the angle subtended by the smallest enclosing sphere of the node bounding box. */
 ccl_device float light_tree_cos_bound_subtended_angle(const KernelBoundingBox bbox,
                                                       const float3 centroid,
                                                       const float3 P)

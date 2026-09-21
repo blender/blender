@@ -76,6 +76,7 @@
 #include "gpu_shader_material_fractal_voronoi.bsl.hh"          /* IWYU pragma: export */
 #include "gpu_shader_material_fresnel.bsl.hh"                  /* IWYU pragma: export */
 #include "gpu_shader_material_gamma.bsl.hh"                    /* IWYU pragma: export */
+#include "gpu_shader_material_geometry.bsl.hh"                 /* IWYU pragma: export */
 #include "gpu_shader_material_get_vector_component.bsl.hh"     /* IWYU pragma: export */
 #include "gpu_shader_material_glass.bsl.hh"                    /* IWYU pragma: export */
 #include "gpu_shader_material_hair.bsl.hh"                     /* IWYU pragma: export */

@@ -240,8 +240,10 @@ static void curve_deform_coords_impl(const Object *ob_curve,
     INIT_MINMAX(cd.dmin, cd.dmax);
   }
 
+  BMesh *bm = nullptr;
   if (em_target != nullptr) {
-    cd_dvert_offset = CustomData_get_offset(&em_target->bm->vdata, CD_MDEFORMVERT);
+    bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(ob_target));
+    cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
     if (cd_dvert_offset != -1) {
       use_dverts = true;
     }
@@ -273,7 +275,7 @@ static void curve_deform_coords_impl(const Object *ob_curve,
       if (em_target != nullptr) {
         BMIter iter;
         BMVert *v;
-        BM_ITER_MESH_INDEX (v, &iter, em_target->bm, BM_VERTS_OF_MESH, a) {
+        BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, a) {
           dvert = static_cast<const MDeformVert *>(BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset));
           DEFORM_OP(dvert);
         }
@@ -317,12 +319,12 @@ static void curve_deform_coords_impl(const Object *ob_curve,
       if (em_target != nullptr) {
         BMIter iter;
         BMVert *v;
-        BM_ITER_MESH_INDEX (v, &iter, em_target->bm, BM_VERTS_OF_MESH, a) {
+        BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, a) {
           dvert = static_cast<const MDeformVert *>(BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset));
           DEFORM_OP_MINMAX(dvert);
         }
 
-        BM_ITER_MESH_INDEX (v, &iter, em_target->bm, BM_VERTS_OF_MESH, a) {
+        BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, a) {
           dvert = static_cast<const MDeformVert *>(BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset));
           DEFORM_OP_CLAMPED(dvert);
         }

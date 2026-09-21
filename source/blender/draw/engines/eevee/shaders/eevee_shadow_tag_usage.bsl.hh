@@ -328,7 +328,6 @@ void tag_usage_surfel([[resource_table]] TagUsageSurfel &srt,
 [[compute, local_size(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)]]
 void tag_usage_volume([[resource_table]] UnifiedVolumeProperties &volume,
                       [[resource_table]] TagUsage &tag,
-                      [[resource_table]] SurfelCapture & /*capture*/,
                       [[resource_table]] const Uniform &uni,
                       [[resource_table]] const draw::View &views,
                       [[resource_table]] const Sampling &sampling,

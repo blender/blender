@@ -83,7 +83,7 @@ static int node_shader_gpu_bsdf_glass(GPUMaterial *mat,
                                       GPUNodeStack *out)
 {
   if (!in[5].link) {
-    GPU_link(mat, "world_normals_get", &in[5].link);
+    GPU_link(mat, "world_normals_get", GPU_shading_data(), &in[5].link);
   }
 
   GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY | GPU_MATFLAG_REFRACT);
@@ -95,7 +95,14 @@ static int node_shader_gpu_bsdf_glass(GPUMaterial *mat,
 
   float use_multi_scatter = (node->custom1 == SHD_GLOSSY_MULTI_GGX) ? 1.0f : 0.0f;
 
-  return GPU_stack_link(mat, node, "node_bsdf_glass", in, out, GPU_constant(&use_multi_scatter));
+  return GPU_stack_link(mat,
+                        node,
+                        "node_bsdf_glass",
+                        in,
+                        out,
+                        GPU_constant(&use_multi_scatter),
+                        GPU_kernel_globals(),
+                        GPU_shading_data());
 }
 
 NODE_SHADER_MATERIALX_BEGIN

@@ -472,6 +472,12 @@ bContext *WM_xr_session_context_ensure(wmXrData *xr, const wmWindowManager *wm)
   wmWindow *xr_win = wm_xr_session_root_window_or_fallback_get(wm, xr->runtime);
   CTX_wm_window_set(xr->runtime->b_context, xr_win);
 
+  /* `Main` may have been replaced while the session is running (global undo),
+   * in which case only the calling context is updated and this XR context is left dangling.
+   *
+   * This is the inverse of the main-context sync in #wm_event_handle_xrevent(). */
+  CTX_data_main_set(xr->runtime->b_context, G_MAIN);
+
   /* Unique offscreen XR area. */
   CTX_wm_area_set(xr->runtime->b_context, xr->runtime->offscreen_area);
 

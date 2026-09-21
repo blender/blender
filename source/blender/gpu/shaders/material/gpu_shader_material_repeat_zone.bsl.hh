@@ -19,8 +19,12 @@
  * Functions need parameters to be reflected, but we don't really rely on the reflection data.
  */
 [[node]]
-void REPEAT_BEGIN(int dummy) {};
+void REPEAT_BEGIN(int dummy)
+{
+}
 [[node]]
-void REPEAT_END(float dummy) {};
+void REPEAT_END(float dummy)
+{
+}
 
 #endif

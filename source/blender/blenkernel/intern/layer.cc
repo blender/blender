@@ -2476,7 +2476,9 @@ void BKE_layer_eval_view_layer_indexed(Depsgraph *depsgraph, Scene *scene, int v
 static void write_layer_collections(BlendWriter *writer, ListBaseT<LayerCollection> *lb)
 {
   for (LayerCollection &lc : *lb) {
-    writer->write_struct(&lc);
+    writer->write_struct(&lc, [](BlendStructWriter<LayerCollection> &struct_writer) {
+      struct_writer.shallow_data.runtime_flag = {};
+    });
 
     write_layer_collections(writer, &lc.layer_collections);
   }
@@ -2489,8 +2491,15 @@ void BKE_view_layer_blend_write(BlendWriter *writer,
   if (!BKE_view_layer_is_synced(*view_layer)) {
     BLI_assert(BKE_view_layer_is_synced(*view_layer));
   }
-  writer->write_struct(view_layer);
-  writer->write_struct_list(BKE_view_layer_object_bases_get(view_layer));
+  writer->write_struct(view_layer, [](BlendStructWriter<ViewLayer> &struct_writer) {
+    struct_writer.shallow_data.stats = nullptr;
+    struct_writer.shallow_data.runtime = nullptr;
+    struct_writer.shallow_data.flag &= ~VIEW_LAYER_OUT_OF_SYNC;
+  });
+  writer->write_struct_list(BKE_view_layer_object_bases_get(view_layer),
+                            [](BlendStructWriter<Base> &struct_writer) {
+                              struct_writer.shallow_data.base_orig = nullptr;
+                            });
 
   if (view_layer->id_properties) {
     IDP_BlendWrite(writer, view_layer->id_properties);

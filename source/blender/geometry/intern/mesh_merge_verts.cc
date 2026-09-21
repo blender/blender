@@ -14,7 +14,7 @@
 #include "BLI_array_utils.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_offset_indices.hh"
@@ -1752,17 +1752,9 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
                                                  const float merge_distance)
 {
   Array<int> vert_src_to_target(mesh.verts_num, OUT_OF_CONTEXT);
-
-  KDTree<float3> *tree = kdtree_new<float3>(selection.size());
-
-  const Span<float3> positions = mesh.vert_positions();
-  selection.foreach_index([&](const int64_t i) { kdtree_insert<float3>(tree, i, positions[i]); });
-
-  kdtree_balance<float3>(tree);
-  const int removed_verts_num = kdtree_calc_duplicates_fast<float3>(
-      tree, merge_distance, true, vert_src_to_target.data());
-  kdtree_free<float3>(tree);
-
+  KDTreeNew<float3> tree(mesh.vert_positions(), selection);
+  const int removed_verts_num = kdtree::calc_duplicates(
+      tree, merge_distance, selection, vert_src_to_target);
   if (removed_verts_num == 0) {
     return std::nullopt;
   }

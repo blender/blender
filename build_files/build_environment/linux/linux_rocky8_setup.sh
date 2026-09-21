@@ -69,7 +69,7 @@ PACKAGES_FOR_LIBS=(
     automake
     libtool
 
-    # Requried by flex
+    # Required by flex
     help2man
 
     # Required by: `external_libsndfile` configure scripts.

@@ -1642,9 +1642,13 @@ function(compile_sources_as_cpp
 
   if(WIN32)
     foreach(glsl_file ${sources})
+      get_filename_component(_glsl_file_dir "${glsl_file}" DIRECTORY)
+      get_filename_component(_glsl_file_name "${glsl_file}" NAME)
+      cmake_path(APPEND _glsl_file_dir "${library}_${_glsl_file_name}.cc" OUTPUT_VARIABLE _glsl_file_cc)
+
       cmake_path(SET _file_from NORMALIZE "${CMAKE_CURRENT_SOURCE_DIR}/${glsl_file}")
-      cmake_path(SET _file_to   NORMALIZE "${CMAKE_CURRENT_BINARY_DIR}/${glsl_file}.cc")
-      file(WRITE "${_file_to}" "#include \"${_file_from}\"\n")
+      cmake_path(SET _file_to   NORMALIZE "${CMAKE_CURRENT_BINARY_DIR}/${_glsl_file_cc}")
+      file(GENERATE OUTPUT "${_file_to}" CONTENT "#include \"${_file_from}\"\n")
       list(APPEND sources ${_file_to})
       # Mark the original file as header only, so no attempt will be made at compiling it
       # regardless of extention.

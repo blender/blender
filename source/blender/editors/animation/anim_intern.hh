@@ -108,18 +108,28 @@ void ANIM_OT_paste_driver_button(wmOperatorType *ot);
 
 /** \} */
 
+namespace ed::animrig {
+
 /* -------------------------------------------------------------------- */
 /** \name Pose Asset Operators
  * \{ */
-
-namespace ed::animrig {
 
 void POSELIB_OT_create_pose_asset(wmOperatorType *ot);
 void POSELIB_OT_asset_modify(wmOperatorType *ot);
 void POSELIB_OT_asset_delete(wmOperatorType *ot);
 void POSELIB_OT_screenshot_preview(wmOperatorType *ot);
-}  // namespace ed::animrig
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name World Space Copy Paste
+ * \{ */
+
+void ANIM_OT_world_space_copy(wmOperatorType *ot);
+void ANIM_OT_world_space_paste(wmOperatorType *ot);
+
+/** \} */
+
+}  // namespace ed::animrig
 
 }  // namespace blender

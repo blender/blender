@@ -9,14 +9,14 @@
 namespace workbench::color {
 
 struct Materials {
-  [[storage(WB_MATERIAL_SLOT, read)]] float4 (&materials_data)[];
+  [[storage(WB_MATERIAL_SLOT, read)]] const float4 (&materials_data)[];
 
   void material_data_get(int handle,
                          float3 vertex_color,
                          float3 &color,
                          float &alpha,
                          float &roughness,
-                         float &metallic)
+                         float &metallic) const
   {
     float4 data = materials_data[handle];
     color = (data.r == -1) ? vertex_color : data.rgb;

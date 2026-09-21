@@ -110,19 +110,30 @@ struct ProjectAssetLibraryListItem : public AssetLibraryListItemCommon {
   void on_activate(bContext &C) override
   {
     bke::BlenderProject *project = BKE_blender_project_get(CTX_data_main(&C));
+    if (!project) {
+      return;
+    }
     project->active_asset_library_index = index_in_list;
   }
   std::optional<bool> should_be_active() const override
   {
-    bke::BlenderProject *project = BKE_blender_project_get(G_MAIN);
+    const bke::BlenderProject *project = BKE_blender_project_get(G_MAIN);
+    if (!project) {
+      return std::nullopt;
+    }
     return project->active_asset_library_index == index_in_list;
   }
 };
 
 static void project_asset_panel_draw(const bContext *C, Panel *panel)
 {
+  const bke::BlenderProject *project = BKE_blender_project_get(CTX_data_main(C));
+  if (!project) {
+    /* The category is always shown, but there is nothing to edit without a project. */
+    return;
+  }
+
   Vector<AnyAssetLibraryDefinition> libraries = project_ui_asset_libraries();
-  bke::BlenderProject *project = BKE_blender_project_get(CTX_data_main(C));
   int active_asset_library = project->active_asset_library_index;
 
   ui::Layout &layout = *panel->layout;
@@ -170,7 +181,7 @@ void project_asset_panel_register(ARegionType &region_type)
   panel_type->space_type = SPACE_PROJECT;
   panel_type->region_type = RGN_TYPE_WINDOW;
   panel_type->draw = project_asset_panel_draw;
-  panel_type->order = 10; /* Make sure the category are put after the other base categoies. */
+  panel_type->order = 10; /* Make sure the category are put after the other base categories. */
   BLI_addtail(&region_type.paneltypes, panel_type);
 }
 

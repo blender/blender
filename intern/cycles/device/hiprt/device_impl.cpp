@@ -478,20 +478,12 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
   bvh->custom_primitive_bound.alloc(num_segments);
 
   int num_bounds = 0;
-  const packed_float3 *curve_keys = hair->get_position();
 
   for (uint j = 0; j < num_curves; j++) {
     const Hair::Curve curve = hair->get_curve(j);
     const float *curve_radius = hair->get_radius();
-    int first_key = curve.first_key;
     for (int k = 0; k < curve.num_keys - 1; k++) {
       if (!has_motion) {
-        float3 current_keys[4];
-        current_keys[0] = curve_keys[max(first_key + k - 1, first_key)];
-        current_keys[1] = curve_keys[first_key + k];
-        current_keys[2] = curve_keys[first_key + k + 1];
-        current_keys[3] = curve_keys[min(first_key + k + 2, first_key + curve.num_keys - 1)];
-
         BoundBox bounds = BoundBox::empty;
         curve.bounds_grow(k, hair->get_position(), curve_radius, bounds);
 

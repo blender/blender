@@ -72,14 +72,14 @@ static int gpu_shader_bump(GPUMaterial *mat,
   /* If there is no Height input, the node becomes a no-op. */
   if (!in[SOCK_HEIGHT_ID].link) {
     if (!in[SOCK_NORMAL_ID].link) {
-      return GPU_link(mat, "world_normals_get", &out[0].link);
+      return GPU_link(mat, "world_normals_get", GPU_shading_data(), &out[0].link);
     }
     /* Actually running the bump code would normalize, but Cycles handles it as total no-op. */
     return GPU_link(mat, "vector_copy", in[SOCK_NORMAL_ID].link, &out[0].link);
   }
 
   if (!in[SOCK_NORMAL_ID].link) {
-    GPU_link(mat, "world_normals_get", &in[SOCK_NORMAL_ID].link);
+    GPU_link(mat, "world_normals_get", GPU_shading_data(), &in[SOCK_NORMAL_ID].link);
   }
 
   const float filter_width = std::get<float>(in[SOCK_FILTER_WIDTH_ID].value);
@@ -98,7 +98,15 @@ static int gpu_shader_bump(GPUMaterial *mat,
 
   float invert = (node->custom1) ? -1.0 : 1.0;
 
-  return GPU_stack_link(mat, node, "node_bump", in, out, dheight, GPU_constant(&invert));
+  return GPU_stack_link(mat,
+                        node,
+                        "node_bump",
+                        in,
+                        out,
+                        dheight,
+                        GPU_constant(&invert),
+                        GPU_kernel_globals(),
+                        GPU_shading_data());
 }
 
 NODE_SHADER_MATERIALX_BEGIN

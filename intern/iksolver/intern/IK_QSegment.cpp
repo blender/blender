@@ -590,7 +590,7 @@ void IK_QSwingSegment::SetLimit(int axis, double lmin, double lmax)
   lmin = sin(lmin * 0.5);
   lmax = sin(lmax * 0.5);
 
-  // put center of ellispe in the middle between min and max
+  // put center of ellipse in the middle between min and max
   double offset = 0.5 * (lmin + lmax);
   // lmax = lmax - offset;
 

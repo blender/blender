@@ -248,6 +248,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   if (!BKE_editmesh_eval_orig_map_available(*mesh, BKE_object_get_pre_modified_mesh(ob))) {
     return;
   }
+  BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh));
   char numstr[32];             /* Stores the measurement display text here */
   const char *conv_float;      /* Use a float conversion matching the grid size */
   uchar4 col = {0, 0, 0, 255}; /* color of the text to draw */
@@ -306,10 +307,10 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     ui::theme::get_color_3ubv(TH_DRAWEXTRA_EDGELEN, col);
 
     if (use_coords) {
-      BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+      BM_mesh_elem_index_ensure(bm, BM_VERT);
     }
 
-    BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+    BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
       /* draw selected edges, or edges next to selected verts while dragging */
       if (BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
           (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
@@ -361,13 +362,13 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
 
     Span<float3> face_normals;
     if (use_coords) {
-      BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
+      BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
       /* TODO: This is not const correct for wrapper meshes, but it should be okay because
        * every evaluated object gets its own evaluated cage mesh (they are not shared). */
       face_normals = BKE_mesh_wrapper_face_normals(const_cast<Mesh *>(mesh));
     }
 
-    BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+    BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
       BMLoop *l_a, *l_b;
       if (BM_edge_loop_pair(eed, &l_a, &l_b)) {
         /* Draw selected edges, or edges next to selected verts while dragging. */
@@ -438,7 +439,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     /* Alternative to using `poly_to_tri_count(i, BM_elem_index_get(f->l_first))`
      * without having to add an extra loop. */
     int tri_index = 0;
-    BM_ITER_MESH_INDEX (f, &iter, em->bm, BM_FACES_OF_MESH, i) {
+    BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
       const int f_corner_tris_len = f->len - 2;
       if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
         int n = 0;
@@ -494,10 +495,10 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     ui::theme::get_color_3ubv(TH_DRAWEXTRA_FACEANG, col);
 
     if (use_coords) {
-      BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+      BM_mesh_elem_index_ensure(bm, BM_VERT);
     }
 
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       const bool is_face_sel = BM_elem_flag_test_bool(efa, BM_ELEM_SELECT);
 
       if (is_face_sel || do_moving) {
@@ -516,7 +517,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
             /* lazy init center calc */
             if (is_first) {
               if (use_coords) {
-                BM_face_calc_center_bounds_vcos(em->bm, efa, vmid, vert_positions);
+                BM_face_calc_center_bounds_vcos(bm, efa, vmid, vert_positions);
               }
               else {
                 BM_face_calc_center_bounds(efa, vmid);
@@ -569,9 +570,9 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
       BMVert *v;
 
       if (use_coords) {
-        BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+        BM_mesh_elem_index_ensure(bm, BM_VERT);
       }
-      BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+      BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
         if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
           const float3 co = math::transform_point(
               ob->object_to_world(), use_coords ? vert_positions[BM_elem_index_get(v)] : v->co);
@@ -588,7 +589,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
       const bool use_edge_tex_sep = (edge_tex_count == 2);
       const bool use_edge_tex_len = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN);
 
-      BM_ITER_MESH_INDEX (eed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
+      BM_ITER_MESH_INDEX (eed, &iter, bm, BM_EDGES_OF_MESH, i) {
         if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
           float3 v1, v2;
           float3 v1_clip, v2_clip;
@@ -627,15 +628,15 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
       BMFace *f;
 
       if (use_coords) {
-        BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+        BM_mesh_elem_index_ensure(bm, BM_VERT);
       }
 
-      BM_ITER_MESH_INDEX (f, &iter, em->bm, BM_FACES_OF_MESH, i) {
+      BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
         if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
           float3 co;
 
           if (use_coords) {
-            BM_face_calc_center_median_vcos(em->bm, f, co, vert_positions);
+            BM_face_calc_center_median_vcos(bm, f, co, vert_positions);
           }
           else {
             BM_face_calc_center_median(f, co);

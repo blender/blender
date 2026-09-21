@@ -168,7 +168,7 @@ static bool object_materials_supported_poll_ex(bContext *C, const Object *ob)
   }
 
   /* Material linked to object. */
-  if (ob->matbits && ob->actcol && ob->matbits[ob->actcol - 1]) {
+  if (ob->matbits && ob->actcol >= 1 && ob->actcol <= ob->totcol && ob->matbits[ob->actcol - 1]) {
     return true;
   }
 
@@ -322,7 +322,9 @@ static wmOperatorStatus material_slot_assign_exec(bContext *C, wmOperator * /*op
     if (ob->totcol == 0) {
       continue;
     }
-    if (obact && (mat_active == BKE_object_material_get(ob, obact->actcol))) {
+    if (obact && (obact->actcol >= 1 && obact->actcol <= ob->totcol) &&
+        (mat_active == BKE_object_material_get(ob, obact->actcol)))
+    {
       /* Avoid searching since there may be multiple slots with the same material.
        * For the active object or duplicates: match the material slot index first. */
       mat_nr_active = obact->actcol - 1;
@@ -344,12 +346,11 @@ static wmOperatorStatus material_slot_assign_exec(bContext *C, wmOperator * /*op
 
     bool changed = false;
     if (ob->type == OB_MESH) {
-      BMEditMesh *em = BKE_editmesh_from_object(ob);
       BMFace *efa;
       BMIter iter;
 
-      if (em) {
-        BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob)) {
+        BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
           if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
             changed = true;
             efa->mat_nr = mat_nr_active;
@@ -438,7 +439,8 @@ static wmOperatorStatus material_slot_de_select(bContext *C, bool select)
       BMEditMesh *em = BKE_editmesh_from_object(ob);
 
       if (em) {
-        changed = EDBM_deselect_by_material(em, mat_nr_active, select);
+        BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+        changed = EDBM_deselect_by_material(bm, mat_nr_active, select);
       }
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
@@ -630,6 +632,8 @@ static wmOperatorStatus material_slot_move_exec(bContext *C, wmOperator *op)
   if (!ob || ob->totcol < 2) {
     return OPERATOR_CANCELLED;
   }
+
+  BKE_object_material_active_index_sanitize(ob);
 
   /* up */
   if (dir == 1 && ob->actcol > 1) {

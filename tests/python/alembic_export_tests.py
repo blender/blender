@@ -87,6 +87,7 @@ class AbstractAlembicTest(AbstractBlenderRunnerTest):
         # Mapping from value type to callable that can convert a string to Python values.
         converters = {
             'bool_t': int,
+            'int8_t': int,
             'uint8_t': int,
             'int16_t': int,
             'int32_t': int,
@@ -618,6 +619,181 @@ class PointCloudExportTest(AbstractAlembicTest):
         self.assertEqual(abcprop['.pointIds'], [0])
         self.assertEqual(abcprop['.widths'], [0.2])
         self.assertEqual(abcprop['.velocities'], [[0, 0, -1]])
+
+
+class AttributesExportTest(AbstractAlembicTest):
+    """Test attributes export."""
+
+    @with_tempdir
+    def test_export_geometry_nodes_attributes_constant(self, tempdir: pathlib.Path):
+        """Test attributes which can be created with geomety nodes where values are constant"""
+
+        abc = tempdir / 'attributes-export-constant-test.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, vcolors=True, packuv=False)" % abc.as_posix()
+        )
+        self.run_blender('attributes-export-constant-test.blend', script)
+
+        attribute_types = [
+            'FLOAT',
+            'INT',
+            'FLOAT_VECTOR',
+            'BOOLEAN',
+            'FLOAT_COLOR',
+            'QUATERNION',
+            'FLOAT4X4',
+            'INT8',
+            'FLOAT2',
+            'BYTE_COLOR']
+
+        domains_pointcloud = ['POINT']
+        attribute_sizes_pointcloud = {
+            'POINT': 1,
+        }
+        self.do_check_attributes(abc, '/PointCloud/PointCloud/.geom/.arbGeomParams',
+                                 domains_pointcloud, attribute_sizes_pointcloud, attribute_types)
+
+        domains_mesh = ['POINT', 'FACE', 'CORNER']
+        attribute_sizes_mesh = {
+            'POINT': 1,
+            'FACE': 1,
+            'CORNER': 1,
+        }
+        self.do_check_attributes(
+            abc,
+            '/Plane/Plane/.geom/.arbGeomParams',
+            domains_mesh,
+            attribute_sizes_mesh,
+            attribute_types)
+
+        domains_curves = ['POINT', 'CURVE']
+        attribute_sizes_curves = {
+            'POINT': 1,
+            'CURVE': 1,
+        }
+        self.do_check_attributes(
+            abc,
+            '/Curves/Curves/.geom/.arbGeomParams',
+            domains_curves,
+            attribute_sizes_curves,
+            attribute_types)
+
+    @with_tempdir
+    def test_export_geometry_nodes_attributes_random(self, tempdir: pathlib.Path):
+        """Test attributes which can be created with geomety nodes where values are random"""
+
+        abc = tempdir / 'attributes-export-random-test.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, vcolors=True, packuv=False)" % abc.as_posix()
+        )
+        self.run_blender('attributes-export-random-test.blend', script)
+
+        attribute_types = [
+            'FLOAT',
+            'INT',
+            'FLOAT_VECTOR',
+            'BOOLEAN',
+            'FLOAT_COLOR',
+            'QUATERNION',
+            'FLOAT4X4',
+            'INT8',
+            'FLOAT2',
+            'BYTE_COLOR'
+        ]
+
+        domains_pointcloud = ['POINT']
+        attribute_sizes_pointcloud = {
+            'POINT': 2,
+        }
+        self.do_check_attributes(abc, '/PointCloud/PointCloud/.geom/.arbGeomParams',
+                                 domains_pointcloud, attribute_sizes_pointcloud, attribute_types)
+
+        domains_mesh = ['POINT', 'FACE', 'CORNER']
+        attribute_sizes_mesh = {
+            'POINT': 9,
+            'FACE': 4,
+            'CORNER': 16,
+        }
+        self.do_check_attributes(
+            abc,
+            '/Plane/Plane/.geom/.arbGeomParams',
+            domains_mesh,
+            attribute_sizes_mesh,
+            attribute_types)
+
+        domains_curves = ['POINT', 'CURVE']
+        attribute_sizes_curves = {
+            'POINT': 4,
+            'CURVE': 2,
+        }
+        self.do_check_attributes(
+            abc,
+            '/Curves/Curves/.geom/.arbGeomParams',
+            domains_curves,
+            attribute_sizes_curves,
+            attribute_types)
+
+    @with_tempdir
+    def test_export_extra_attributes(self, tempdir: pathlib.Path):
+        """Test attributes which cannot be created with geomety nodes, but can via the Python API"""
+
+        abc = tempdir / 'attributes-extra-export-test.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, vcolors=True, packuv=False)" % abc.as_posix()
+        )
+        self.run_blender('attributes-extra-export-test.blend', script)
+
+        attribute_types = ['INT16_2D', 'INT32_2D', 'STRING']
+
+        domains_mesh = ['POINT', 'FACE', 'CORNER']
+        attribute_sizes_mesh = {
+            'POINT': 4,
+            'FACE': 1,
+            'CORNER': 4,
+        }
+        self.do_check_attributes(
+            abc,
+            '/Plane/Plane/.geom/.arbGeomParams',
+            domains_mesh,
+            attribute_sizes_mesh,
+            attribute_types)
+
+    @with_tempdir
+    def test_export_attributes_conversions(self, tempdir: pathlib.Path):
+        """Test axis conversions for exported attributes"""
+
+        abc = tempdir / 'attributes-export-conversion-test.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, vcolors=True, packuv=False)" % abc.as_posix()
+        )
+        self.run_blender('attributes-export-conversion-test.blend', script)
+
+        abcprop = self.abcprop(abc, '/PointCloud/PointCloud/.geom/.arbGeomParams')
+
+        self.assertEqual(abcprop['ATTR_POINT_VECTOR'], [[1.0, 3.0, -2.0]])
+        self.assertEqual(abcprop['ATTR_POINT_QUATERNION'], [[0.5, -0.5, 0.5, -0.5]])
+        self.assertEqual(abcprop['ATTR_POINT_FLOAT4X4'], [[1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 2, 0, 4, 6, -5, 1]])
+
+    def do_check_attributes(self, abc, arb_geom_path, domains, attribute_sizes, types):
+        # Check that the attributes exist in the arbGeomParams, and that their sizes matche the expected domain size.
+
+        abcprop = self.abcprop(abc, arb_geom_path)
+
+        for domain in domains:
+            for type in types:
+                if domain == 'CORNER' and type == 'FLOAT2':
+                    # UVs on meshes are exported as CompoundProperty and already have their own tests so skip those
+                    continue
+
+                attr_name = "ATTR_" + domain + "_" + type
+
+                self.assertIn(attr_name, abcprop)
+                attribute = abcprop[attr_name]
+                self.assertEqual(len(attribute), attribute_sizes[domain])
 
 
 if __name__ == '__main__':

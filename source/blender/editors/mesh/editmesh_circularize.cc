@@ -64,9 +64,7 @@ static wmOperatorStatus edbm_circularize_exec(bContext *C, wmOperator *op)
   bool has_valid_selection = false;
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = em->bm;
-
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
     if (bm->totvertsel < 3) {
       continue;
     }
@@ -74,7 +72,7 @@ static wmOperatorStatus edbm_circularize_exec(bContext *C, wmOperator *op)
     bool mirror_axis[3];
     BKE_object_get_mirror_axes(obedit, mirror_axis);
 
-    if (!EDBM_op_callf(em,
+    if (!EDBM_op_callf(bm,
                        op,
                        "circularize geom=%hvef factor=%f flatten=%f regular=%b fit_method=%i "
                        "custom_radius=%f angle=%f lock_x=%b lock_y=%b lock_z=%b mirror_x=%b "

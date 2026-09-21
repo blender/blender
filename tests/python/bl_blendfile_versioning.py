@@ -89,6 +89,7 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
             # modeling/geometry_nodes/import/import_ply.blend
             # Error: on reload, 'read_ply_to_mesh: PLY Importer: icosphere: Invalid PLY header.'
             "import_ply.blend",
+            "import_ply_gsplat.blend",
 
             # modeling/geometry_nodes/import/import_stl.blend
             # Error: on reload,

@@ -164,6 +164,11 @@ bool GPU_hdr_support()
   return GCaps.hdr_viewport_support;
 }
 
+bool GPU_multi_viewport_support()
+{
+  return GCaps.multi_viewport_support;
+}
+
 bool GPU_stencil_export_support()
 {
   return GCaps.stencil_export_support;

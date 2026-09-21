@@ -436,23 +436,6 @@ const bke::GeometrySet *ViewerNodeLog::main_geometry() const
   return main_geometry_cache_ ? &*main_geometry_cache_ : nullptr;
 }
 
-static bool warning_is_propagated(const NodeWarningPropagation propagation,
-                                  const NodeWarningType warning_type)
-{
-  switch (propagation) {
-    case NODE_WARNING_PROPAGATION_ALL:
-      return true;
-    case NODE_WARNING_PROPAGATION_NONE:
-      return false;
-    case NODE_WARNING_PROPAGATION_ONLY_ERRORS:
-      return warning_type == NodeWarningType::Error;
-    case NODE_WARNING_PROPAGATION_ONLY_ERRORS_AND_WARNINGS:
-      return ELEM(warning_type, NodeWarningType::Error, NodeWarningType::Warning);
-  }
-  BLI_assert_unreachable();
-  return true;
-}
-
 void NodeTreeLog::ensure_node_warnings(const NodesModifierData &nmd)
 {
   if (reduced_node_warnings_) {

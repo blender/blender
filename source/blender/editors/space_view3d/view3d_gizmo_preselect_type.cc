@@ -221,7 +221,7 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
 
   if (best.ele) {
     gz_ele->base_index = best.base_index;
-    bm = BKE_editmesh_from_object(gz_ele->bases[gz_ele->base_index]->object)->bm;
+    bm = BKE_editmesh_bmesh_get_for_write(gz_ele->bases[gz_ele->base_index]->object);
     BM_mesh_elem_index_ensure(bm, best.ele->head.htype);
 
     if (best.ele->head.htype == BM_VERT) {
@@ -418,7 +418,7 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
   BMesh *bm = nullptr;
   if (best.eed) {
     gz_ring->base_index = best.base_index;
-    bm = BKE_editmesh_from_object(gz_ring->bases[gz_ring->base_index]->object)->bm;
+    bm = BKE_editmesh_bmesh_get_for_write(gz_ring->bases[gz_ring->base_index]->object);
     BM_mesh_elem_index_ensure(bm, BM_EDGE);
     gz_ring->edge_index = BM_elem_index_get(best.eed);
   }
@@ -435,12 +435,11 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
       Object *ob = gz_ring->bases[gz_ring->base_index]->object;
       Scene *scene_eval = DEG_get_evaluated(vc.depsgraph, vc.scene);
       Object *ob_eval = DEG_get_evaluated(vc.depsgraph, ob);
-      BMEditMesh *em = BKE_editmesh_from_object(ob);
       /* Re-allocate coords each update isn't ideal, however we can't be sure
        * the mesh hasn't been edited since last update. */
       Array<float3> storage;
       const Span<float3> vert_positions = BKE_editmesh_vert_coords_when_deformed(
-          vc.depsgraph, em, scene_eval, ob_eval, storage);
+          vc.depsgraph, scene_eval, ob_eval, storage);
       const int preview_cuts = loopcut_tool_preview_cuts_from_toolsettings(C);
       EDBM_preselect_edgering_update_from_edge(
           gz_ring->psel, bm, best.eed, preview_cuts, vert_positions);
@@ -554,8 +553,7 @@ void ED_view3d_gizmo_mesh_preselect_get_active(const bContext *C,
   *r_ele = nullptr;
 
   if (obedit) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = em->bm;
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
     PropertyRNA *prop;
 
     /* Ring select only defines edge, check properties exist first. */

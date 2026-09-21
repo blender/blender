@@ -301,7 +301,6 @@ components:
         "author": { type: string }
         "description": { type: string }
         "license": { type: string }
-        "webpage": { type: string }
         "copyright": { type: string }
         "properties": { $ref: "#/components/schemas/CustomPropertiesV1" }
 

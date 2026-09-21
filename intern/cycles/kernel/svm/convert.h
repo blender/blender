@@ -64,8 +64,10 @@ ccl_device_noinline void svm_node_convert(KernelGlobals kg,
       stack_store(stack, node.to_offset, Float3Type(make_float3(f, f, f)));
       break;
     }
-    default:
-      assert(false);
+    default: {
+      kernel_assert(false);
+      break;
+    }
   }
 }
 

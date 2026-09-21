@@ -67,7 +67,7 @@ TEST(TEST_CATEGORY_NAME, float_to_half)
   }
 }
 
-TEST(TEST_CATEGORY_NAME, float3_to_half3)
+TEST(TEST_CATEGORY_NAME, float3_to_packed_half3)
 {
   if (!validate_cpu_capabilities()) {
     GTEST_SKIP();
@@ -80,8 +80,8 @@ TEST(TEST_CATEGORY_NAME, float3_to_half3)
 
     const float3 in = make_float3(test_values[i0].f, test_values[i1].f, test_values[i2].f);
 
-    const half3 h = float3_to_half3(in);
-    const float3 out = half3_to_float3(h);
+    const packed_half3 h = float3_to_packed_half3(in);
+    const float3 out = packed_half3_to_float3(h);
 
     EXPECT_EQ(out.x, in.x);
     EXPECT_EQ(out.y, in.y);
@@ -174,7 +174,7 @@ TEST(TEST_CATEGORY_NAME, half_to_float_flush_to_zero)
   }
 }
 
-TEST(TEST_CATEGORY_NAME, fallback_float3_to_half3)
+TEST(TEST_CATEGORY_NAME, fallback_float3_to_packed_half3)
 {
   if (!validate_cpu_capabilities()) {
     GTEST_SKIP();
@@ -187,8 +187,8 @@ TEST(TEST_CATEGORY_NAME, fallback_float3_to_half3)
 
     const float3 in = make_float3(test_values[i0].f, test_values[i1].f, test_values[i2].f);
 
-    const half3 h = fallback_float3_to_half3(in);
-    const float3 out = fallback_half3_to_float3(h);
+    const packed_half3 h = fallback_float3_to_packed_half3(in);
+    const float3 out = fallback_packed_half3_to_float3(h);
 
     EXPECT_EQ(out.x, in.x);
     EXPECT_EQ(out.y, in.y);

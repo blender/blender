@@ -8,8 +8,13 @@
 #include "gpu_shader_math_vector_safe.bsl.hh"
 
 [[node]]
-void node_bsdf_toon(
-    float4 color, float /*size*/, float /*tsmooth*/, float3 N, float weight, Closure &result)
+void node_bsdf_toon(float4 color,
+                    float /*size*/,
+                    float /*tsmooth*/,
+                    float3 N,
+                    float weight,
+                    ShadingData &sd,
+                    Closure &result)
 {
   color = max(color, float4(0.0f));
   N = safe_normalize(N);
@@ -19,5 +24,5 @@ void node_bsdf_toon(
   diffuse_data.color = color.rgb * weight;
   diffuse_data.N = N;
 
-  result = closure_eval(diffuse_data);
+  result = closure_eval(sd, diffuse_data);
 }

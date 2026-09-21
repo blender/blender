@@ -203,7 +203,7 @@ struct VisibleLightIterator {
     if (is_directional()) {
       return false;
     }
-    LightVector lv = light_vector_get(light, false, P);
+    LightVector lv = LightVector::get(light, false, P);
     if (light_attenuation_surface(light, false, lv) < LIGHT_ATTENUATION_THRESHOLD) {
       return true;
     }

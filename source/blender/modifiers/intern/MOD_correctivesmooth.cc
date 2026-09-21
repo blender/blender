@@ -26,6 +26,7 @@
 
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_mesh_wrapper.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
@@ -628,7 +629,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       goto error;
     }
     else {
-      const int me_numVerts = (em) ? em->bm->totvert : (id_cast<Mesh *>(ob->data))->verts_num;
+      const int me_numVerts = BKE_mesh_wrapper_vert_len(mesh);
 
       if (me_numVerts != vertexCos.size()) {
         BKE_modifier_set_error(ob,
@@ -657,7 +658,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
     }
     else {
       if (em) {
-        rest_coords_alloc = BKE_editmesh_vert_coords_alloc_orco(em);
+        const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
+        rest_coords_alloc = BKE_editmesh_vert_coords_alloc_orco(bm);
         rest_coords = rest_coords_alloc;
       }
       else {
@@ -778,33 +780,35 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
-  CorrectiveSmoothModifierData csmd = *reinterpret_cast<const CorrectiveSmoothModifierData *>(md);
+  const CorrectiveSmoothModifierData *csmd =
+      reinterpret_cast<const CorrectiveSmoothModifierData *>(md);
   const bool is_undo = writer->is_undo();
-
-  if (ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo) {
+  const bool without_bind_data = ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo &&
+                                 (md->flag & eModifierFlag_OverrideLibrary_Local) == 0;
+  if (without_bind_data) {
+    /* Modifier coming from linked data cannot be bound from an override, so we can remove all
+     * binding data, can save a significant amount of memory. */
     BLI_assert(!ID_IS_LINKED(id_owner));
-    const bool is_local = (md->flag & eModifierFlag_OverrideLibrary_Local) != 0;
-    if (!is_local) {
-      /* Modifier coming from linked data cannot be bound from an override, so we can remove all
-       * binding data, can save a significant amount of memory. */
-      csmd.bind_coords_num = 0;
-      csmd.bind_coords = nullptr;
-      csmd.bind_coords_sharing_info = nullptr;
-    }
+    writer->write_struct(csmd, [](BlendStructWriter<CorrectiveSmoothModifierData> &struct_writer) {
+      struct_writer.shallow_data.bind_coords_num = 0;
+      struct_writer.shallow_data.bind_coords = nullptr;
+      struct_writer.shallow_data.bind_coords_sharing_info = nullptr;
+    });
+    return;
   }
 
-  if (csmd.bind_coords != nullptr) {
-    writer->write_shared(csmd.bind_coords,
-                         sizeof(float[3]) * csmd.bind_coords_num,
-                         csmd.bind_coords_sharing_info,
+  if (csmd->bind_coords != nullptr) {
+    writer->write_shared(csmd->bind_coords,
+                         sizeof(float[3]) * csmd->bind_coords_num,
+                         csmd->bind_coords_sharing_info,
                          [&]() {
                            writer->write_float3_array(
-                               csmd.bind_coords_num,
-                               reinterpret_cast<const float *>(csmd.bind_coords));
+                               csmd->bind_coords_num,
+                               reinterpret_cast<const float *>(csmd->bind_coords));
                          });
   }
 
-  writer->write_struct_at_address(md, &csmd);
+  writer->write_struct(csmd);
 }
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)

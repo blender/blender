@@ -2,9 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
-
-
 def write_armature(
         context,
         filepath,

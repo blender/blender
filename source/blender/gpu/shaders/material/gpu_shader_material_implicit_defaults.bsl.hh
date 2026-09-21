@@ -7,13 +7,13 @@
 #include "gpu_shader_material_interface.bsl.hh"
 
 [[node]]
-void world_normals_get(float3 &N)
+void world_normals_get(const ShadingData &sd, float3 &N)
 {
-  N = g_data.N;
+  N = sd.N;
 }
 
 [[node]]
-void world_position_get(float3 &P)
+void world_position_get(const ShadingData &sd, float3 &P)
 {
-  P = g_data.P;
+  P = sd.P;
 }

@@ -9,7 +9,7 @@
 [[node]]
 void rotation_to_axis_angle(float4 rotation, float3 &axis, float &angle)
 {
-  const AxisAngle aa = to_axis_angle(Quaternion{UNPACK4(rotation)});
+  const AxisAngle aa = to_axis_angle(Quaternion::from_float4(rotation));
   axis = aa.axis;
   angle = aa.angle;
 }

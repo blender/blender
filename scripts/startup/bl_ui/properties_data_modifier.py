@@ -69,6 +69,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 class OBJECT_MT_modifier_add(ModifierAddMenu, Menu):
     bl_label = "Add Modifier"
     bl_options = {'SEARCH_ON_KEY_PRESS'}
+    bl_description = "Add a procedural operation/effect to the active object"
 
     def draw(self, context):
         layout = self.layout

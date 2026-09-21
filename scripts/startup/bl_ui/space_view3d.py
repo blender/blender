@@ -3032,7 +3032,7 @@ class VIEW3D_MT_object_animation(Menu):
 
         layout.operator("nla.bake", text="Bake Action...")
         layout.operator("grease_pencil.bake_grease_pencil_animation", text="Bake Object Transform to Grease Pencil...")
-        layout.operator("anim.replace_action")
+        layout.operator("anim.replace_action", text="Replace Action...")
         layout.operator("anim.replace_action_new")
         layout.operator("anim.replace_action_duplicate")
 

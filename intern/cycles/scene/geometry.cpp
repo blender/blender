@@ -420,6 +420,13 @@ void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
 
       prim_offset_changed = (pointcloud->prim_offset != point_size);
 
+      /* Changing Render As on point cloud is likely to change its underlying BVH type (i.e. Render
+       * As Points uses hardware-accelerated point primitives, and Render As GSplats uses custom
+       * primitives). */
+      if (pointcloud->render_as_is_modified()) {
+        geom->need_update_rebuild = true;
+      }
+
       pointcloud->prim_offset = point_size;
       point_size += pointcloud->num_points();
     }
@@ -866,6 +873,11 @@ void GeometryManager::device_update(Device *device,
           if (mesh->has_true_displacement()) {
             true_displacement_used = true;
           }
+        }
+        else if (geom->is_pointcloud()) {
+          /* Precompute gsplat bounding sphere for faster access to its bounds. */
+          PointCloud *pointcloud = static_cast<PointCloud *>(geom);
+          pointcloud->update_gsplat_radii();
         }
       }
 

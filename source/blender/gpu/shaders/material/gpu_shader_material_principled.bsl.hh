@@ -9,16 +9,18 @@
 #include "gpu_shader_math_vector_safe.bsl.hh"
 #include "gpu_shader_utildefines.bsl.hh"
 
-float3 principled_eval_translucent(float3 weight,
-                                   [[maybe_unused]] const Specular specular,
-                                   [[maybe_unused]] const Transmission transmission,
-                                   [[maybe_unused]] const float3 N,
-                                   [[maybe_unused]] const float NV,
-                                   [[maybe_unused]] const bool thin_walled,
-                                   [[maybe_unused]] const bool multiggx,
-                                   [[maybe_unused]] ClosureReflection &reflection_data)
+float3 principled_eval_translucent([[resource_table]] KernelGlobals &kg,
+                                   ShadingData &sd,
+                                   float3 weight,
+                                   const Specular specular,
+                                   const Transmission transmission,
+                                   const float3 N,
+                                   const float NV,
+                                   const bool thin_walled,
+                                   const bool multiggx,
+                                   ClosureReflection &reflection_data)
 {
-#ifdef MAT_REFRACTION
+#if defined(MAT_REFRACTION) || defined(GLSL_CPP_STUBS)
   if (transmission.weight == 0.0f) {
     return weight;
   }
@@ -27,7 +29,7 @@ float3 principled_eval_translucent(float3 weight,
   const float3 F90 = float3(1.0f);
   const float3 tint = thin_walled ? float3(1.0f) : sqrt(transmission.tint);
   float3 R, T;
-  bsdf_lut(F0, F90, tint, NV, specular.roughness, specular.ior, multiggx, R, T);
+  bsdf_lut(kg, F0, F90, tint, NV, specular.roughness, specular.ior, multiggx, R, T);
 
   if (thin_walled) {
     /* Adjust transmission tint based on relative path length. */
@@ -40,13 +42,15 @@ float3 principled_eval_translucent(float3 weight,
   }
 
   weight = openpbr_eval_translucent(
-      weight, transmission.weight, R, T, N, specular, thin_walled, reflection_data);
+      sd, weight, transmission.weight, R, T, N, specular, thin_walled, reflection_data);
 #endif
 
   return weight;
 }
 
-float3 principled_eval_gloss(const float3 weight,
+float3 principled_eval_gloss([[resource_table]] const KernelGlobals &kg,
+                             ShadingData &sd,
+                             const float3 weight,
                              const Specular specular,
                              const float3 N,
                              const float NV,
@@ -58,12 +62,12 @@ float3 principled_eval_gloss(const float3 weight,
   const float3 F90 = float3(1.0f);
 
   float3 reflectance, unused;
-  bsdf_lut(F0, F90, float3(0.0f), NV, specular.roughness, ior, multiggx, reflectance, unused);
+  bsdf_lut(kg, F0, F90, float3(0.0f), NV, specular.roughness, ior, multiggx, reflectance, unused);
 
   reflection_data.N = N;
   reflection_data.roughness = specular.roughness;
   reflection_data.color += weight * reflectance;
-  closure_eval(reflection_data);
+  closure_eval(sd, reflection_data);
 
   /* Attenuate lower layers */
   return weight * max((1.0f - math_reduce_max(reflectance)), 0.0f);
@@ -106,6 +110,8 @@ void node_bsdf_principled(float4 base_color,
                           const float /*thin_film_ior*/,
                           const float do_multiscatter,
                           const float subsurface_random_walk_radius_scale,
+                          [[resource_table]] KernelGlobals &kg,
+                          ShadingData &sd,
                           Closure &result)
 {
   /* Match Cycles. */
@@ -141,7 +147,7 @@ void node_bsdf_principled(float4 base_color,
   Coat coat;
   coat.tint = max(coat_tint.rgb, float3(0.0f));
   coat.roughness = saturate(coat_roughness);
-  coat.N = normalize_fallback(CN, g_data.N);
+  coat.N = normalize_fallback(CN, sd.N);
   coat.ior = max(coat_ior, 1.0f);
   coat.weight = saturate(coat_weight);
 
@@ -151,8 +157,8 @@ void node_bsdf_principled(float4 base_color,
   fuzz.weight = max(sheen_weight, 0.0f);
 
   /* Geometry. */
-  N = normalize_fallback(N, g_data.N);
-  const float3 V = coordinate_incoming(g_data.P);
+  N = normalize_fallback(N, sd.N);
+  const float3 V = coordinate_impl(kg, sd, sd.P, sd.N).incoming;
   const float NV = dot(N, V);
   const bool multiggx = thin_wall || (do_multiscatter != 0.0f);
 
@@ -160,17 +166,17 @@ void node_bsdf_principled(float4 base_color,
   ClosureDiffuse diffuse_data;
   ClosureReflection reflection_data;
 
-  weight = openpbr_eval_transparency(weight, alpha);
-  weight = openpbr_eval_fuzz(weight, coat, fuzz, N, V, diffuse_data);
-  weight = openpbr_eval_coat(weight, coat, V);
-  weight = openpbr_eval_emission(weight, emission.rgb, emission_strength);
+  weight = openpbr_eval_transparency(sd, weight, alpha);
+  weight = openpbr_eval_fuzz(sd, weight, coat, fuzz, N, V, diffuse_data);
+  weight = openpbr_eval_coat(kg, sd, weight, coat, V);
+  weight = openpbr_eval_emission(sd, weight, emission.rgb, emission_strength);
   weight = openpbr_eval_metal(
-      weight, clamped_base_color, specular, metallic, NV, multiggx, reflection_data);
+      kg, weight, clamped_base_color, specular, metallic, NV, multiggx, reflection_data);
   weight = principled_eval_translucent(
-      weight, specular, transmission, N, NV, thin_wall, multiggx, reflection_data);
-  weight = principled_eval_gloss(weight, specular, N, NV, multiggx, reflection_data);
-  weight = openpbr_eval_subsurface(weight, subsurface, thin_wall, N, diffuse_data);
-  openpbr_eval_diffuse(weight, base_color.rgb, N, diffuse_data);
+      kg, sd, weight, specular, transmission, N, NV, thin_wall, multiggx, reflection_data);
+  weight = principled_eval_gloss(kg, sd, weight, specular, N, NV, multiggx, reflection_data);
+  weight = openpbr_eval_subsurface(sd, weight, subsurface, thin_wall, N, diffuse_data);
+  openpbr_eval_diffuse(sd, weight, base_color.rgb, N, diffuse_data);
 
   /* TODO(fclem): EEVEE implementation leaking. */
   result = CLOSURE_DEFAULT;

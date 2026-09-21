@@ -189,7 +189,7 @@ void IK_QJacobian::Restrict(VectorXd &d_theta, MatrixXd &nullspace)
 
 void IK_QJacobian::InvertSDLS()
 {
-  // Compute the dampeds least squeares pseudo inverse of J.
+  // Compute the damped least squares pseudo inverse of J.
   //
   // Since J is usually not invertible (most of the times it's not even
   // square), the pseudo inverse is used. This gives us a least squares
@@ -256,7 +256,7 @@ void IK_QJacobian::InvertSDLS()
       double v = m_svd_v(j, i);
       M += fabs(v) * m_norm[j];
 
-      // compute tmporary dTheta's
+      // compute temporary dTheta's
       m_d_theta_tmp[j] = v * alpha;
 
       // find largest absolute dTheta
@@ -323,7 +323,7 @@ void IK_QJacobian::InvertDLS()
   // erratic behavior.
 
   // We don't want to use the damped solution everywhere so we
-  // only increase lamda from zero as we approach a singularity.
+  // only increase lambda from zero as we approach a singularity.
 
   // find the smallest non-zero W value, anything below epsilon is
   // treated as zero

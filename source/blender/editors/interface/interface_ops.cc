@@ -290,7 +290,7 @@ static void UI_OT_copy_as_driver_button(wmOperatorType *ot)
 
 static bool copy_python_command_button_poll(bContext *C)
 {
-  Button *but = context_active_but_get(C);
+  Button *but = context_active_but_get_respect_popup(C);
 
   if (but && (but->optype != nullptr)) {
     return true;
@@ -301,7 +301,7 @@ static bool copy_python_command_button_poll(bContext *C)
 
 static wmOperatorStatus copy_python_command_button_exec(bContext *C, wmOperator * /*op*/)
 {
-  Button *but = context_active_but_get(C);
+  Button *but = context_active_but_get_respect_popup(C);
 
   if (but && (but->optype != nullptr)) {
     /* allocated when needed, the button owns it */
@@ -2644,7 +2644,8 @@ static AbstractView *get_view_focused(bContext *C)
     return nullptr;
   }
 
-  const ARegion *region = CTX_wm_region(C);
+  const ARegion *region_popup = CTX_wm_region_popup(C);
+  const ARegion *region = region_popup ? region_popup : CTX_wm_region(C);
   if (!region) {
     return nullptr;
   }

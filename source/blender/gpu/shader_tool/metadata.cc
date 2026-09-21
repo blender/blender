@@ -208,6 +208,62 @@ std::string VertexInputs::serialize() const
   return ss.str();
 }
 
+static std::string enum_to_string(metadata::Qualifier qualifier)
+{
+  switch (qualifier) {
+    case metadata::Qualifier::in:
+      return "in";
+    case metadata::Qualifier::out:
+      return "out";
+    case metadata::Qualifier::inout:
+      return "inout";
+  }
+  return "";
+}
+
+static std::string enum_to_string(metadata::Type type_enum)
+{
+  switch (type_enum) {
+    case metadata::Type::float1:
+      return "float1";
+    case metadata::Type::float2:
+      return "float2";
+    case metadata::Type::float3:
+      return "float3";
+    case metadata::Type::float4:
+      return "float4";
+    case metadata::Type::float3x3:
+      return "float3x3";
+    case metadata::Type::float4x4:
+      return "float4x4";
+    case metadata::Type::int1:
+      return "int1";
+    case metadata::Type::int2:
+      return "int2";
+    case metadata::Type::int3:
+      return "int3";
+    case metadata::Type::int4:
+      return "int4";
+    case metadata::Type::bool1:
+      return "bool1";
+    case metadata::Type::sampler1DArray:
+      return "sampler1DArray";
+    case metadata::Type::sampler2DArray:
+      return "sampler2DArray";
+    case metadata::Type::sampler2D:
+      return "sampler2D";
+    case metadata::Type::sampler3D:
+      return "sampler3D";
+    case metadata::Type::Closure:
+      return "Closure";
+    case metadata::Type::KernelGlobals:
+      return "KernelGlobals";
+    case metadata::Type::ShadingData:
+      return "ShadingData";
+  }
+  return "";
+}
+
 std::string Source::serialize(const std::string &function_name) const
 {
   std::stringstream ss;
@@ -220,8 +276,8 @@ std::string Source::serialize(const std::string &function_name) const
     for (auto arg : function.arguments) {
       ss << "      "
          << "metadata::ArgumentFormat{"
-         << "metadata::Qualifier(" << std::to_string(uint64_t(arg.qualifier)) << "LLU), "
-         << "metadata::Type(" << std::to_string(uint64_t(arg.type)) << "LLU)"
+         << "metadata::Qualifier::" << enum_to_string(arg.qualifier) << ", "
+         << "metadata::Type::" << enum_to_string(arg.type) << ""
          << "},\n";
     }
     ss << "    };\n";
@@ -255,6 +311,14 @@ std::string Source::serialize_infos() const
   for (auto dependency : create_infos_dependencies) {
     ss << "#include \"" << dependency << "\"\n";
   }
+
+  for (auto builtin : builtins) {
+    if (builtin == Builtin::runtime_generated) {
+      /* Do not serialize create infos for runtime generated files. */
+      return ss.str();
+    }
+  }
+
   ss << "\n";
   for (auto define : create_infos_defines) {
     ss << define;

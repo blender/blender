@@ -36,6 +36,7 @@ namespace draw {
 struct CurvesModule;
 struct VolumeModule;
 struct PointCloudModule;
+struct GSplatModule;
 struct DRW_MeshCDMask;
 class CurveRefinePass;
 class View;
@@ -58,6 +59,7 @@ struct DRWData {
   draw::CurvesModule *curves_module;
   draw::VolumeModule *volume_module;
   draw::PointCloudModule *pointcloud_module;
+  draw::GSplatModule *gsplat_module;
   /** Default view that feeds every engine. */
   draw::View *default_view;
 

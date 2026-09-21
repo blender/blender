@@ -46,7 +46,7 @@ class half {
 #endif
 
 #if !defined(__KERNEL_METAL__)
-struct half3 {
+struct packed_half3 {
   half x, y, z;
 };
 
@@ -54,6 +54,10 @@ struct half4 {
   half x, y, z, w;
 };
 #endif
+
+static_assert(sizeof(half) == 2);
+static_assert(sizeof(packed_half3) == 6);
+static_assert(sizeof(half4) == 8);
 
 #if !defined(__KERNEL_GPU__)
 /* Optimized fallback implementations with fast path for normal and denormal numbers, assuming
@@ -110,7 +114,7 @@ ccl_device_inline float4 fallback_half4_to_float4(const half4 h)
   return cast(f | s);
 }
 
-ccl_device_inline float3 fallback_half3_to_float3(const half3 h)
+ccl_device_inline float3 fallback_packed_half3_to_float3(const packed_half3 h)
 {
   return make_float3(fallback_half4_to_float4({h.x, h.y, h.z, 0}));
 }
@@ -184,7 +188,7 @@ ccl_device_inline half4 fallback_float4_to_half4(const float4 f)
       half(uint16_t(res.x)), half(uint16_t(res.y)), half(uint16_t(res.z)), half(uint16_t(res.w))};
 }
 
-ccl_device_inline half3 fallback_float3_to_half3(const float3 f)
+ccl_device_inline packed_half3 fallback_float3_to_packed_half3(const float3 f)
 {
   const half4 h = fallback_float4_to_half4(make_float4(f));
   return {h.x, h.y, h.z};
@@ -272,7 +276,7 @@ ccl_device_inline float4 half4_to_float4(const half4 h)
 #endif
 }
 
-ccl_device_inline half3 float3_to_half3(const float3 f)
+ccl_device_inline packed_half3 float3_to_packed_half3(const float3 f)
 {
 #if defined(__KERNEL_GPU__)
   return {float_to_half(f.x), float_to_half(f.y), float_to_half(f.z)};
@@ -291,7 +295,7 @@ ccl_device_inline half3 float3_to_half3(const float3 f)
 #endif
 }
 
-ccl_device_inline float3 half3_to_float3(const half3 h)
+ccl_device_inline float3 packed_half3_to_float3(const packed_half3 h)
 {
 #if defined(__KERNEL_GPU__)
   return make_float3(half_to_float(h.x), half_to_float(h.y), half_to_float(h.z));

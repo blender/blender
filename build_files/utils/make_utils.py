@@ -145,7 +145,7 @@ def git_remote_exist(git_command: str, remote_name: str) -> bool:
 
 
 def git_is_remote_repository(git_command: str, repo: str) -> bool:
-    """Returns true if the given repository is a valid/clonable git repo"""
+    """Returns true if the given repository is a valid/cloneable git repo"""
     exit_code = call((git_command, "ls-remote", repo, "HEAD"), exit_on_error=False, silent=True)
     return exit_code == 0
 

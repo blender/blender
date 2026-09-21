@@ -60,7 +60,7 @@ void main()
    * boundary condition, so we initialize all inputs by the boundary pixel. */
   int2 boundary_texel = is_causal ? int2(0, y) : int2(width - 1, y);
   float4 input_boundary = texture_load(input_tx, boundary_texel);
-  float4 inputs[FILTER_ORDER + 1] = float4_array(input_boundary, input_boundary, input_boundary);
+  float4 inputs[FILTER_ORDER + 1] = {input_boundary, input_boundary, input_boundary};
 
   /* Create an array that holds the last FILTER_ORDER outputs along with the current output. The
    * current output is at index 0 and the oldest output is at index FILTER_ORDER. We assume Neumann
@@ -68,8 +68,7 @@ void main()
    * boundary coefficient. See the VanVlietGaussianCoefficients class for more information on the
    * boundary handing. */
   float4 output_boundary = input_boundary * boundary_coefficient;
-  float4 outputs[FILTER_ORDER + 1] = float4_array(
-      output_boundary, output_boundary, output_boundary);
+  float4 outputs[FILTER_ORDER + 1] = {output_boundary, output_boundary, output_boundary};
 
   for (int x = 0; x < width; x++) {
     /* Run forward across rows for the causal filter and backward for the non causal filter. */

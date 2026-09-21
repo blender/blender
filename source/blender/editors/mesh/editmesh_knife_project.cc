@@ -131,15 +131,16 @@ static wmOperatorStatus knifeproject_exec(bContext *C, wmOperator *op)
   for (Object *obedit : objects) {
     ED_view3d_viewcontext_init_object(&vc, obedit);
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
 
     /* select only tagged faces */
-    BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+    BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 
-    EDBM_selectmode_disable(scene, em, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
+    EDBM_selectmode_disable(scene, em, bm, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
 
-    BM_mesh_elem_hflag_enable_test(em->bm, BM_FACE, BM_ELEM_SELECT, true, false, BM_ELEM_TAG);
+    BM_mesh_elem_hflag_enable_test(bm, BM_FACE, BM_ELEM_SELECT, true, false, BM_ELEM_TAG);
 
-    BM_mesh_select_mode_flush(em->bm);
+    BM_mesh_select_mode_flush(bm);
   }
 
   return OPERATOR_FINISHED;

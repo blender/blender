@@ -251,65 +251,18 @@ ClosureThinRefraction to_closure_thin_refraction(ClosureUndetermined cl)
   return closure;
 }
 
-struct GlobalData {
-  /** World position. */
-  packed_float3 P;
-  /** Surface Normal. Normalized, overridden by bump displacement. */
-  packed_float3 N;
-  /** Raw interpolated normal (non-normalized) data. */
-  packed_float3 Ni;
-  /** Geometric Normal. */
-  packed_float3 Ng;
-  /** Curve Tangent Space. */
-  packed_float3 curve_T, curve_B, curve_N;
-  /** Barycentric coordinates. */
-  packed_float2 barycentric_coords;
-  packed_float3 barycentric_dists;
-  /** Hair thickness in world space. */
-  float hair_diameter;
-  /** Index of the strand for per strand effects. */
-  int hair_strand_id;
-  /** Ray properties (approximation). */
-  float ray_depth;
-  float ray_length;
-  uchar ray_type;
-  /** Is hair. */
-  bool is_strand;
-};
-
-GlobalData g_data;
-
-#ifndef GPU_FRAGMENT_SHADER
-/* Stubs. */
-
-#  define dF_impl(a) (float3(0.0f))
-#  define dF_branch(a, b, c) (c = float2(0.0f))
-#  define dF_branch_incomplete(a, b, c) (c = float2(0.0f))
-
-#elif defined(GPU_FAST_DERIVATIVE) /* TODO(@fclem): User Option? */
-/* Fast derivatives */
-float3 dF_impl(float3 v)
-{
-  return float3(0.0f);
-}
-
-void dF_branch(float fn, float2 &result)
-{
-  /* NOTE: this function is currently unused, once it is used we need to check if
-   * `g_derivative_filter_width` needs to be applied. */
-  result.x = gpu_dfdx(fn) * derivative_scale_get();
-  result.y = gpu_dfdy(fn) * derivative_scale_get();
-}
-
-#else
-
 /* Offset of coordinates for evaluating bump node. Unit in pixel. */
 float g_derivative_filter_width = 0.0f;
 /* Precise derivatives */
 int g_derivative_flag = 0;
 
-float3 dF_impl(float3 v)
+float3 dF_impl([[maybe_unused]] float3 v)
 {
+#ifndef GPU_FRAGMENT_SHADER
+  return float3(0.0f);
+#elif defined(GPU_FAST_DERIVATIVE) /* TODO(@fclem): User Option? */
+  return float3(0.0f);
+#else
   if (g_derivative_flag > 0) {
     return gpu_dfdx(v) * g_derivative_filter_width;
   }
@@ -317,11 +270,37 @@ float3 dF_impl(float3 v)
     return gpu_dfdy(v) * g_derivative_filter_width;
   }
   return float3(0.0f);
+#endif
 }
 
+void dF_branch([[maybe_unused]] float fn, [[maybe_unused]] float filter_width, float2 &result)
+{
+#ifndef GPU_FRAGMENT_SHADER
+  result = float2(0.0f);
+#elif defined(GPU_FAST_DERIVATIVE) /* TODO(@fclem): User Option? */
+  result.x = gpu_dfdx(fn) * filter_width * derivative_scale_get(kg);
+  result.y = gpu_dfdy(fn) * filter_width * derivative_scale_get(kg);
+#else
+#endif
+}
+
+void dF_branch_incomplete([[maybe_unused]] float fn,
+                          [[maybe_unused]] float filter_width,
+                          float2 &result)
+{
+#ifndef GPU_FRAGMENT_SHADER
+  result = float2(0.0f);
+#elif defined(GPU_FAST_DERIVATIVE) /* TODO(@fclem): User Option? */
+  result.x = gpu_dfdx(fn) * filter_width * derivative_scale_get(kg);
+  result.y = gpu_dfdy(fn) * filter_width * derivative_scale_get(kg);
+  result += float2(fn);
+#endif
+}
+
+#if defined(GPU_FRAGMENT_SHADER) && !defined(GPU_FAST_DERIVATIVE)
 #  define dF_branch(fn, filter_width, result) \
     if (true) { \
-      g_derivative_filter_width = filter_width * derivative_scale_get(); \
+      g_derivative_filter_width = filter_width * derivative_scale_get(kg); \
       g_derivative_flag = 1; \
       result.x = (fn); \
       g_derivative_flag = -1; \
@@ -333,7 +312,7 @@ float3 dF_impl(float3 v)
 /* Used when the non-offset value is already computed elsewhere */
 #  define dF_branch_incomplete(fn, filter_width, result) \
     if (true) { \
-      g_derivative_filter_width = filter_width * derivative_scale_get(); \
+      g_derivative_filter_width = filter_width * derivative_scale_get(kg); \
       g_derivative_flag = 1; \
       result.x = (fn); \
       g_derivative_flag = -1; \

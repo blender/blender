@@ -76,6 +76,7 @@ OSL_DEVICE_STRING(u_geom_numpolyvertices, "geom:numpolyvertices", 38204355148998
 OSL_DEVICE_STRING(u_geom_polyvertices, "geom:polyvertices", 1345577201967881769ull)
 OSL_DEVICE_STRING(u_geom_trianglevertices, "geom:trianglevertices", 17839267571524187074ull)
 OSL_DEVICE_STRING(u_geom_undisplaced, "geom:undisplaced", 12431586303019276305ull)
+OSL_DEVICE_STRING(u_geom_radiance, "geom:radiance", 14074080478119832841ull)
 OSL_DEVICE_STRING(u_is_curve, "geom:is_curve", 129742495633653138ull)
 OSL_DEVICE_STRING(u_is_point, "geom:is_point", 2511357849436175953ull)
 OSL_DEVICE_STRING(u_is_smooth, "geom:is_smooth", 857544214094480123ull)

@@ -52,10 +52,23 @@ color image_texture_lookup(string filename,
                            int unassociate_alpha,
                            int is_float,
                            string interpolation,
-                           string extension)
+                           string extension,
+                           color Missing,
+                           float MissingAlpha)
 {
-  color rgb = (color)texture(
-      filename, u, v, "wrap", extension, "interp", interpolation, "alpha", Alpha);
+  color rgb = (color)texture(filename,
+                             u,
+                             v,
+                             "wrap",
+                             extension,
+                             "interp",
+                             interpolation,
+                             "alpha",
+                             Alpha,
+                             "missingcolor",
+                             Missing,
+                             "missingalpha",
+                             MissingAlpha);
 
   if (ignore_alpha) {
     Alpha = 1.0;
@@ -81,6 +94,8 @@ shader node_image_texture(int use_mapping = 0,
                           string projection = "flat",
                           string interpolation = "smartcubic",
                           string extension = "periodic",
+                          color Missing = 0.0,
+                          float MissingAlpha = 1.0,
                           float projection_blend = 0.0,
                           int compress_as_srgb = 0,
                           int ignore_alpha = 0,
@@ -104,7 +119,9 @@ shader node_image_texture(int use_mapping = 0,
                                  unassociate_alpha,
                                  is_float,
                                  interpolation,
-                                 extension);
+                                 extension,
+                                 Missing,
+                                 MissingAlpha);
   }
   else if (projection == "box") {
     /* object space normal */
@@ -184,7 +201,9 @@ shader node_image_texture(int use_mapping = 0,
                                                 unassociate_alpha,
                                                 is_float,
                                                 interpolation,
-                                                extension);
+                                                extension,
+                                                Missing,
+                                                MissingAlpha);
       Alpha += weight[0] * tmp_alpha;
     }
     if (weight[1] > 0.0) {
@@ -198,7 +217,9 @@ shader node_image_texture(int use_mapping = 0,
                                                 unassociate_alpha,
                                                 is_float,
                                                 interpolation,
-                                                extension);
+                                                extension,
+                                                Missing,
+                                                MissingAlpha);
       Alpha += weight[1] * tmp_alpha;
     }
     if (weight[2] > 0.0) {
@@ -212,7 +233,9 @@ shader node_image_texture(int use_mapping = 0,
                                                 unassociate_alpha,
                                                 is_float,
                                                 interpolation,
-                                                extension);
+                                                extension,
+                                                Missing,
+                                                MissingAlpha);
       Alpha += weight[2] * tmp_alpha;
     }
   }
@@ -227,7 +250,9 @@ shader node_image_texture(int use_mapping = 0,
                                  unassociate_alpha,
                                  is_float,
                                  interpolation,
-                                 extension);
+                                 extension,
+                                 Missing,
+                                 MissingAlpha);
   }
   else if (projection == "tube") {
     point projected = map_to_tube(texco_remap_square(p));
@@ -240,6 +265,8 @@ shader node_image_texture(int use_mapping = 0,
                                  unassociate_alpha,
                                  is_float,
                                  interpolation,
-                                 extension);
+                                 extension,
+                                 Missing,
+                                 MissingAlpha);
   }
 }

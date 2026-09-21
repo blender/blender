@@ -872,7 +872,7 @@ static bool texture_paint_object_poll(bContext *C)
   return false;
 }
 
-float3 seed_hsv_jitter()
+float3 BKE_paint_seed_hsv_jitter()
 {
   RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
   return float3{rng.get_float(), rng.get_float(), rng.get_float()};

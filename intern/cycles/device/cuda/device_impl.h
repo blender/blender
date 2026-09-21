@@ -29,9 +29,11 @@ class CUDADevice : public GPUDevice {
   CUcontext cuContext;
   CUmodule cuModule;
   int pitch_alignment;
+  int max_shared_mem_bytes = 0;
   int cuDevId;
   int cuDevArchitecture;
   bool first_error;
+  int scene_max_shaders_ = 0;
 
   CUDADeviceKernels kernels;
 

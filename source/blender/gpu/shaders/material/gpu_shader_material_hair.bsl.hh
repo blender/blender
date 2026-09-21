@@ -13,6 +13,7 @@ void node_bsdf_hair(float4 color,
                     float /*roughness_v*/,
                     float3 /*T*/,
                     float weight,
+                    ShadingData &sd,
                     Closure &result)
 {
   color = max(color, float4(0.0f));
@@ -29,9 +30,9 @@ void node_bsdf_hair(float4 color,
 #else
   ClosureDiffuse hair_data;
   hair_data.color = color.rgb * weight;
-  hair_data.N = g_data.N;
+  hair_data.N = sd.N;
 #endif
-  result = closure_eval(hair_data);
+  result = closure_eval(sd, hair_data);
 }
 
 [[node]]
@@ -53,6 +54,7 @@ void node_bsdf_hair_principled(float4 color,
                                float /*random_roughness*/,
                                float /*random*/,
                                float weight,
+                               ShadingData &sd,
                                Closure &result)
 {
   /* Placeholder closure.
@@ -63,11 +65,11 @@ void node_bsdf_hair_principled(float4 color,
   hair_data.color = color.rgb * weight;
   hair_data.offset = offset;
   hair_data.roughness = float2(0.0f);
-  hair_data.T = g_data.curve_B;
+  hair_data.T = sd.curve_B;
 #else
   ClosureDiffuse hair_data;
   hair_data.color = color.rgb * weight;
-  hair_data.N = g_data.N;
+  hair_data.N = sd.N;
 #endif
-  result = closure_eval(hair_data);
+  result = closure_eval(sd, hair_data);
 }

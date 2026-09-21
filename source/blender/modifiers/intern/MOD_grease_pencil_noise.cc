@@ -13,7 +13,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "DNA_gpencil_modifier_types.h"
+#include "DNA_grease_pencil_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 

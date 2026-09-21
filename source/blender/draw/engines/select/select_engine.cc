@@ -237,7 +237,6 @@ struct Instance : public DrawEngine {
   }
 
   ElemIndexRanges edit_mesh_sync(Object *ob,
-                                 BMEditMesh *em,
                                  ResourceHandleRange res_handle,
                                  short select_mode,
                                  bool draw_facedot,
@@ -245,14 +244,15 @@ struct Instance : public DrawEngine {
   {
     using namespace blender::draw;
     Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(&mesh);
 
     ElemIndexRanges ranges{};
     ranges.total = IndexRange::from_begin_size(initial_index, 0);
 
-    BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE | BM_FACE);
+    BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
 
     if (select_mode & SCE_SELECT_FACE) {
-      ranges.face = alloc_range(ranges.total, em->bm->totface);
+      ranges.face = alloc_range(ranges.total, bm->totface);
 
       gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(mesh);
       PassSimple::Sub *face_sub = select_face_flat;
@@ -277,7 +277,7 @@ struct Instance : public DrawEngine {
 
     /* Unlike faces, only draw edges if edge select mode. */
     if (select_mode & SCE_SELECT_EDGE) {
-      ranges.edge = alloc_range(ranges.total, em->bm->totedge);
+      ranges.edge = alloc_range(ranges.total, bm->totedge);
 
       gpu::Batch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(mesh);
       select_edge->push_constant("offset", int(ranges.edge.start()));
@@ -286,7 +286,7 @@ struct Instance : public DrawEngine {
 
     /* Unlike faces, only verts if vert select mode. */
     if (select_mode & SCE_SELECT_VERTEX) {
-      ranges.vert = alloc_range(ranges.total, em->bm->totvert);
+      ranges.vert = alloc_range(ranges.total, bm->totvert);
 
       gpu::Batch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(mesh);
       select_vert->push_constant("offset", int(ranges.vert.start()));
@@ -353,7 +353,7 @@ struct Instance : public DrawEngine {
 
         if (em) {
           bool draw_facedot = check_ob_drawface_dot(select_mode, v3d, eDrawType(ob->dt));
-          return edit_mesh_sync(ob, em, res_handle, select_mode, draw_facedot, index_start);
+          return edit_mesh_sync(ob, res_handle, select_mode, draw_facedot, index_start);
         }
         return mesh_sync(ob, res_handle, select_mode, index_start);
       }

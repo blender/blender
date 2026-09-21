@@ -26,6 +26,7 @@ set(SRC
   importer/ply_import.cc
   importer/ply_import_buffer.cc
   importer/ply_import_data.cc
+  importer/ply_import_gsplat.cc
   importer/ply_import_mesh.cc
   IO_ply.cc
 
@@ -39,6 +40,7 @@ set(SRC
   importer/ply_import.hh
   importer/ply_import_buffer.hh
   importer/ply_import_data.hh
+  importer/ply_import_gsplat.hh
   importer/ply_import_mesh.hh
   IO_ply.hh
 
@@ -64,6 +66,7 @@ blender_add_lib(bf_io_ply "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/io_ply_exporter_test.cc
+    tests/io_ply_import_gsplat_test.cc
     tests/io_ply_importer_test.cc
   )
   set(TEST_INC

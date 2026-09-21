@@ -1234,6 +1234,10 @@ void BKE_grease_pencil_material_remap(GreasePencil *grease_pencil, const uint *r
 void BKE_grease_pencil_material_index_remove(GreasePencil *grease_pencil, int index);
 bool BKE_grease_pencil_material_index_used(GreasePencil *grease_pencil, int index);
 
+void BKE_grease_pencil_brush_material_set(struct Brush *brush, struct Material *material);
+
+void BKE_grease_pencil_palette_ensure(Main *bmain, Scene *scene);
+
 bool BKE_grease_pencil_references_cyclic_check(const GreasePencil *id_reference,
                                                const GreasePencil *grease_pencil);
 
