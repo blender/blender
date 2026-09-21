@@ -51,6 +51,7 @@ using Alembic::AbcGeom::OInt32Property;
 using Alembic::AbcGeom::ON3fGeomParam;
 using Alembic::AbcGeom::OPolyMesh;
 using Alembic::AbcGeom::OPolyMeshSchema;
+using Alembic::AbcGeom::OStringProperty;
 using Alembic::AbcGeom::OSubD;
 using Alembic::AbcGeom::OSubDSchema;
 using Alembic::AbcGeom::OV2fGeomParam;
@@ -137,9 +138,22 @@ void ABCGenericMeshWriter::create_alembic_objects(const HierarchyContext *contex
     abc_poly_mesh_ = OPolyMesh(args_.abc_parent, args_.abc_name, timesample_index_);
     abc_poly_mesh_schema_ = abc_poly_mesh_.getSchema();
 
-    OCompoundProperty typeContainer = abc_poly_mesh_.getSchema().getUserProperties();
-    OBoolProperty type(typeContainer, "meshtype");
+    abc_custom_data_container_ = abc_poly_mesh_.getSchema().getUserProperties();
+    OBoolProperty type(abc_custom_data_container_, "meshtype");
     type.set(subsurf_modifier_ == nullptr);
+  }
+
+  if (context->object->data->id_type() == ID_ME) {
+    Mesh *mesh = id_cast<Mesh *>(context->object->data);
+    if (mesh->active_color_attribute && mesh->default_color_attribute) {
+      OStringProperty active_color_attribute(abc_custom_data_container_,
+                                             ABC_ACTIVE_COLOR_ATTRIBUTE_PROPNAME);
+      active_color_attribute.set(mesh->active_color_attribute);
+
+      OStringProperty default_color_attribute(abc_custom_data_container_,
+                                              ABC_DEFAULT_COLOR_ATTRIBUTE_PROPNAME);
+      default_color_attribute.set(mesh->default_color_attribute);
+    }
   }
 }
 
