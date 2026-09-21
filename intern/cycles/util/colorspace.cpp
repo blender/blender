@@ -732,18 +732,21 @@ static bool to_scene_linear_transform(OCIO::ConstConfigRcPtr &config,
 Transform ColorSpaceManager::get_xyz_to_rec709()
 {
   /* Default to ITU-BT.709 in case no appropriate transform found.
-   * Note XYZ here is defined as having a D65 white point. */
-  return make_transform(3.2404542f,
-                        -1.5371385f,
-                        -0.4985314f,
+   * Note XYZ here is defined as having a D65 white point.
+   *
+   * Dumped from OpenColorIO so it matches those transforms exactly, same as
+   * XYZ_TO_REC709 in Blender. */
+  return make_transform(3.2409699f,
+                        -1.5373832f,
+                        -0.4986108f,
                         0.0f,
-                        -0.9692660f,
-                        1.8760108f,
-                        0.0415560f,
+                        -0.9692436f,
+                        1.8759675f,
+                        0.0415551f,
                         0.0f,
-                        0.0556434f,
-                        -0.2040259f,
-                        1.0572252f,
+                        0.0556301f,
+                        -0.2039770f,
+                        1.0569715f,
                         0.0f);
 }
 

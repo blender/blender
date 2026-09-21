@@ -8,8 +8,9 @@
 
 namespace blender::ocio {
 
-/* Standard XYZ (D65) to linear Rec.709 transform. */
-/* Use four-digit constants instead of higher precisions to match sRGB and Rec.2020 standards.
+/* Standard XYZ (D65) to linear Rec.709 transform, dumped from OpenColorIO so it matches
+ * those transforms exactly. Use four-digit constants instead of higher precisions to
+ * match sRGB and Rec.2020 standards.
  * See PR #141027 for details. */
 static const float3x3 XYZ_TO_REC709{{3.2409699f, -0.9692436f, 0.0556301f},
                                     {-1.5373832f, 1.8759675f, -0.2039770f},
