@@ -1128,25 +1128,6 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
   return ss.str();
 }
 
-std::string VKShader::geometry_interface_declare(const shader::ShaderCreateInfo &info) const
-{
-  int max_verts = info.geometry_layout_.max_vertices;
-  int invocations = info.geometry_layout_.invocations;
-
-  std::stringstream ss;
-  /* Geometry Layout. */
-  ss << "layout(" << to_string(info.geometry_layout_.primitive_in);
-  if (invocations != -1) {
-    ss << ", invocations = " << invocations;
-  }
-  ss << ") in;\n";
-
-  ss << "layout(" << to_string(info.geometry_layout_.primitive_out)
-     << ", max_vertices = " << max_verts << ") out;\n";
-  ss << "\n";
-  return ss.str();
-}
-
 static StageInterfaceInfo *find_interface_by_name(
     const Span<ShaderCreateInfo::StageInterfaceInfoHandle> ifaces, const StringRefNull name)
 {
@@ -1167,6 +1148,25 @@ static void declare_emit_vertex(std::stringstream &ss)
 }
 
 std::string VKShader::geometry_layout_declare(const shader::ShaderCreateInfo &info) const
+{
+  int max_verts = info.geometry_layout_.max_vertices;
+  int invocations = info.geometry_layout_.invocations;
+
+  std::stringstream ss;
+  /* Geometry Layout. */
+  ss << "layout(" << to_string(info.geometry_layout_.primitive_in);
+  if (invocations != -1) {
+    ss << ", invocations = " << invocations;
+  }
+  ss << ") in;\n";
+
+  ss << "layout(" << to_string(info.geometry_layout_.primitive_out)
+     << ", max_vertices = " << max_verts << ") out;\n";
+  ss << "\n";
+  return ss.str();
+}
+
+std::string VKShader::geometry_interface_declare(const shader::ShaderCreateInfo &info) const
 {
   std::stringstream ss;
 
