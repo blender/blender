@@ -1439,6 +1439,44 @@ Collection *BKE_collection_parent_editable_find_recursive(const ViewLayer *view_
   return nullptr;
 }
 
+CollectionObject *BKE_collection_object_find_in(const Collection &collection, const Object &ob)
+{
+  collection_gobject_hash_ensure(const_cast<Collection *>(&collection));
+  return collection.runtime->gobject_hash->lookup_default(&ob, nullptr);
+}
+
+void BKE_collection_object_parented_sort_index_reset(Main &bmain, Object &ob)
+{
+  Collection *collection = nullptr;
+  while ((collection = BKE_collection_object_find(&bmain, nullptr, collection, &ob))) {
+    CollectionObject *cob = BKE_collection_object_find_in(*collection, ob);
+    if (cob != nullptr) {
+      cob->parented_sort_index = -1;
+    }
+  }
+}
+
+void BKE_collection_object_parent_clear_sort_index_reset(Main &bmain, Object &ob)
+{
+  Collection *collection = nullptr;
+  while ((collection = BKE_collection_object_find(&bmain, nullptr, collection, &ob))) {
+    CollectionObject *cob = BKE_collection_object_find_in(*collection, ob);
+    if (cob != nullptr) {
+      cob->parented_sort_index = -1;
+      if (ob.parent != nullptr) {
+        for (Object *parent_iter = ob.parent; parent_iter != nullptr;
+             parent_iter = parent_iter->parent)
+        {
+          if (BKE_collection_object_find_in(*collection, *parent_iter) != nullptr) {
+            cob->sort_index = -1;
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
 static bool collection_object_add(Main *bmain,
                                   Collection *collection,
                                   Object *ob,

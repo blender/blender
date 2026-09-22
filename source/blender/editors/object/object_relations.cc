@@ -263,6 +263,7 @@ static wmOperatorStatus vertex_parent_set_exec(bContext *C, wmOperator *op)
       else {
         BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
         ob->parent = BKE_view_layer_active_object_get(view_layer);
+        BKE_collection_object_parented_sort_index_reset(*bmain, *ob);
         if (par3 != INDEX_UNSET) {
           ob->partype = PARVERT3;
           ob->par1 = par1;
@@ -384,12 +385,15 @@ static void parent_clear_data(Object *ob)
   ob->parsubstr[0] = '\0';
 }
 
-void parent_clear(Object *ob, const int type)
+void parent_clear(Main *bmain, Object *ob, const int type)
 {
   if (ob->parent == nullptr) {
     return;
   }
   uint flags = ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION;
+  if (type != CLEAR_PARENT_INVERSE) {
+    BKE_collection_object_parent_clear_sort_index_reset(*bmain, *ob);
+  }
   switch (type) {
     case CLEAR_PARENT_ALL: {
       /* for deformers, remove corresponding modifiers to prevent
@@ -433,7 +437,7 @@ static wmOperatorStatus parent_clear_exec(bContext *C, wmOperator *op)
   const int type = RNA_enum_get(op->ptr, "type");
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-    parent_clear(ob, type);
+    parent_clear(bmain, ob, type);
   }
   CTX_DATA_END;
 
@@ -592,6 +596,7 @@ static bool parent_set_with_depsgraph(ReportList *reports,
   /* Set the parent (except for follow-path constraint option). */
   if (partype != PAR_PATH_CONST) {
     ob->parent = par;
+    BKE_collection_object_parented_sort_index_reset(*bmain, *ob);
     /* Always clear parentinv matrix for sake of consistency, see #41950. */
     unit_m4(ob->parentinv);
   }

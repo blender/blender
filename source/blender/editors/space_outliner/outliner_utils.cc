@@ -10,6 +10,7 @@
 #include <cstring>
 
 #include "BLI_listbase.hh"
+#include "BLI_string.hh"
 #include "BLI_utildefines.hh"
 
 #include "DNA_action_types.h"
@@ -36,6 +37,20 @@
 namespace blender {
 
 namespace ed::outliner {
+
+bool outliner_treesort_tiebreak(bool a_is_object,
+                                const char *a_name,
+                                bool b_is_object,
+                                const char *b_name)
+{
+  if (a_is_object != b_is_object) {
+    return !a_is_object;
+  }
+  if (!a_is_object) {
+    return false;
+  }
+  return BLI_strcasecmp_natural(a_name, b_name) < 0;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Tree View Context
