@@ -33,6 +33,7 @@
 
 namespace blender::bke::tests {
 
+namespace {
 class TestData {
  public:
   Main *bmain = nullptr;
@@ -125,6 +126,7 @@ class IDSubDataTestData : public WholeIDTestData {
     BKE_id_free(this->bmain, &this->material->id);
   }
 };
+}  // namespace
 
 /* -------------------------------------------------------------------- */
 /** \name Query Tests
