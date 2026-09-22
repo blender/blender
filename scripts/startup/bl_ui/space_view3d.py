@@ -6519,8 +6519,6 @@ class VIEW3D_PT_view3d_properties(Panel):
         sub.active = view.region_3d.view_perspective == 'CAMERA'
         sub.prop(view.overlay, "show_camera_passepartout", text="Passepartout")
 
-        layout.separator()
-
         col = layout.column(align=True)
         col.prop(view, "use_render_border")
         col.active = view.region_3d.view_perspective != 'CAMERA'
