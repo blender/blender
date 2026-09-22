@@ -3282,7 +3282,8 @@ bool IMB_colormanagement_working_space_set_from_name(const char *name)
 
 static bool imb_colormanagement_working_space_set_from_matrix(Main *bmain,
                                                               const char *name,
-                                                              const float3x3 &scene_linear_to_xyz)
+                                                              const float3x3 &scene_linear_to_xyz,
+                                                              const bool report_missing)
 {
   StringRefNull interop_id;
 
@@ -3331,7 +3332,7 @@ static bool imb_colormanagement_working_space_set_from_matrix(Main *bmain,
   STRNCPY(bmain->colorspace.scene_linear_name, global_role_scene_linear_default);
   bmain->colorspace.scene_linear_to_xyz = global_scene_linear_to_xyz_default;
 
-  if (bmain->filepath[0] != '\0') {
+  if (report_missing) {
     CLOG_ERROR(
         &LOG, "Unknown scene linear working space '%s'. Missing OpenColorIO configuration?", name);
     bmain->colorspace.is_missing_opencolorio_config = true;
@@ -3340,7 +3341,7 @@ static bool imb_colormanagement_working_space_set_from_matrix(Main *bmain,
   return IMB_colormanagement_working_space_set_from_name(global_role_scene_linear_default);
 }
 
-static void imb_colormanagement_working_space_set_from_file(Main *bmain)
+static void imb_colormanagement_working_space_set_from_file(Main *bmain, const bool report_missing)
 {
   /* For old files without info, assume current OpenColorIO config. */
   if (math::is_zero(bmain->colorspace.scene_linear_to_xyz)) {
@@ -3351,8 +3352,10 @@ static void imb_colormanagement_working_space_set_from_file(Main *bmain)
   }
 
   /* Change the working space to the one from the blend file. */
-  imb_colormanagement_working_space_set_from_matrix(
-      bmain, bmain->colorspace.scene_linear_name, bmain->colorspace.scene_linear_to_xyz);
+  imb_colormanagement_working_space_set_from_matrix(bmain,
+                                                    bmain->colorspace.scene_linear_name,
+                                                    bmain->colorspace.scene_linear_to_xyz,
+                                                    report_missing);
 }
 
 static float3 imb_working_space_convert(const float3x3 &m,
@@ -3597,7 +3600,15 @@ void IMB_colormanagement_file_read_post(Main *bmain,
     imb_colormanagement_working_space_init_startup(bmain);
   }
 
-  imb_colormanagement_working_space_set_from_file(bmain);
+  const bool report_missing = !is_startup;
+  imb_colormanagement_working_space_set_from_file(bmain, report_missing);
+
+  /* Inform user when project config failed to load. */
+  const Span<ColorManagedConfigPath> requested = g_config_requested();
+  if (!requested.is_empty() && requested.first() != g_config_active()) {
+    bmain->colorspace.is_failed_opencolorio_config = true;
+    bmain->colorspace.is_missing_opencolorio_config = true;
+  }
 
   /* Convert editable assets in the previous file, before they are moved to the new file. */
   if (have_editable_assets) {
@@ -3610,12 +3621,17 @@ void IMB_colormanagement_file_read_post(Main *bmain,
   }
 }
 
-void IMB_colormanagement_undo_read_post(Main *bmain)
+void IMB_colormanagement_undo_read_post(Main *bmain, const MainColorspace &old_colorspace)
 {
+  /* Preserve config warnings. */
+  bmain->colorspace.is_missing_opencolorio_config = old_colorspace.is_missing_opencolorio_config;
+  bmain->colorspace.is_failed_opencolorio_config = old_colorspace.is_failed_opencolorio_config;
+
   /* Undo leaves linked data unchanged, in the working space from before undo. */
   const float3x3 previous_scene_linear_to_xyz = colorspace::scene_linear_to_xyz;
 
-  imb_colormanagement_working_space_set_from_file(bmain);
+  const bool report_missing = bmain->filepath[0] != '\0';
+  imb_colormanagement_working_space_set_from_file(bmain, report_missing);
 
   IMB_colormanagement_working_space_convert(bmain,
                                             previous_scene_linear_to_xyz,

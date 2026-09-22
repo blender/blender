@@ -191,6 +191,12 @@ static bool rna_MainColorspace_is_missing_opencolorio_config_get(PointerRNA *ptr
   return colorspace->is_missing_opencolorio_config;
 }
 
+static bool rna_MainColorspace_is_failed_opencolorio_config_get(PointerRNA *ptr)
+{
+  MainColorspace *colorspace = ptr->data_as<MainColorspace>();
+  return colorspace->is_failed_opencolorio_config;
+}
+
 static PointerRNA rna_Main_blender_project_get(PointerRNA *ptr)
 {
   Main *bmain = reinterpret_cast<Main *>(ptr->data);
@@ -372,6 +378,13 @@ static void rna_def_main_colorspace(BlenderRNA *brna)
                            "Missing OpenColorIO Configuration",
                            "A color space, view or display was not found, which likely means the "
                            "OpenColorIO config used to create this blend file is missing");
+
+  prop = RNA_def_property(srna, "is_failed_opencolorio_config", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_MainColorspace_is_failed_opencolorio_config_get", nullptr);
+  RNA_def_property_ui_text(
+      prop, "Failed OpenColorIO Configuration", "The requested OpenColorIO config failed to load");
 
   prop = RNA_def_property(srna, "ocio_config_path", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_maxlength(prop, FILE_MAX);

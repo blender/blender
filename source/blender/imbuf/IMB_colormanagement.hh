@@ -30,6 +30,7 @@ struct EnumPropertyItem;
 struct ImBuf;
 struct ImageFormatData;
 struct Main;
+struct MainColorspace;
 struct bContext;
 
 namespace ocio {
@@ -102,8 +103,9 @@ void IMB_colormanagement_file_read_post(Main *bmain,
  * Set up color management after undo:
  * - Set the working space from the file
  * - Convert linked data (which undo left unchanged) to it.
+ * - Restore config warnings from #old_colorspace.
  */
-void IMB_colormanagement_undo_read_post(Main *bmain);
+void IMB_colormanagement_undo_read_post(Main *bmain, const MainColorspace &old_colorspace);
 
 void IMB_colormanagement_check_file_config(Main *bmain);
 

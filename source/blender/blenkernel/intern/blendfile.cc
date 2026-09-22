@@ -1158,6 +1158,9 @@ static void setup_app_data(bContext *C,
 
   BLI_assert(BKE_main_namemap_validate(*bfd->main));
 
+  /* For undo to preserve some runtime state. */
+  const MainColorspace old_colorspace = bmain->colorspace;
+
   /* This frees the `old_bmain`. */
   BKE_blender_globals_main_replace(bfd->main);
   bmain = G_MAIN;
@@ -1244,7 +1247,7 @@ static void setup_app_data(bContext *C,
    * we need to make sure we ensure scene has correct color management before
    * constructing dependency graph. */
   if (mode == LOAD_UNDO) {
-    IMB_colormanagement_undo_read_post(bmain);
+    IMB_colormanagement_undo_read_post(bmain, old_colorspace);
   }
   IMB_colormanagement_check_file_config(bmain);
 

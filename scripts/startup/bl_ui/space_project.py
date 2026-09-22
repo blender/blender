@@ -146,11 +146,18 @@ class PROJECT_PT_navigation_bar(Panel):
 # Main Area
 
 def _draw_ocio_config_path(layout, project):
-    config_source = bpy.data.colorspace.ocio_config_source
+    colorspace = bpy.data.colorspace
+    config_source = colorspace.ocio_config_source
     overridden = config_source in {'BLENDER_OCIO', 'OCIO'}
+
+    if colorspace.ocio_config_source == 'PROJECT':
+        needs_reload = colorspace.ocio_config_path != project.ocio_config_path
+    else:
+        needs_reload = not overridden and (project.ocio_config_path or colorspace.is_failed_opencolorio_config)
 
     col = layout.column()
     col.active = not overridden
+    col.alert = colorspace.is_failed_opencolorio_config
     col.prop(project, "ocio_config_path")
 
     if overridden:
@@ -160,12 +167,6 @@ def _draw_ocio_config_path(layout, project):
             text=f"Overridden by the {config_source} environment variable",
             icon='STATUS_INFO',
         )
-
-    colorspace = bpy.data.colorspace
-    if colorspace.ocio_config_source == 'PROJECT':
-        needs_reload = colorspace.ocio_config_path != project.ocio_config_path
-    else:
-        needs_reload = not overridden and bool(project.ocio_config_path)
 
     if needs_reload:
         row = layout.split(factor=0.4)
