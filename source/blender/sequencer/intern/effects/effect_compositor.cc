@@ -47,8 +47,8 @@ class CompositorEffectContext : public CompositorContext {
   ImBuf *output_;
   float factor_;
 
-  /* The hash of the compute context of the active viewer. */
-  const ComputeContextHash viewer_compute_context_hash_;
+  /* The hash of the compute context of the active viewer if one exists. */
+  const std::optional<ComputeContextHash> viewer_compute_context_hash_;
 
  public:
   CompositorEffectContext(compositor::StaticCacheManager &cache_manager,
@@ -70,7 +70,7 @@ class CompositorEffectContext : public CompositorContext {
   {
   }
 
-  const ComputeContextHash &get_viewer_compute_context_hash() const override
+  const std::optional<ComputeContextHash> &get_viewer_compute_context_hash() const override
   {
     return viewer_compute_context_hash_;
   }

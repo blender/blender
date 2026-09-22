@@ -47,8 +47,8 @@ class Context : public compositor::Context {
  private:
   const Main *main_;
   const Scene *scene_;
-  /* The hash of the active compute context. */
-  const ComputeContextHash active_compute_context_hash_;
+  /* The hash of the compute context of the active viewer if one exists. */
+  const std::optional<ComputeContextHash> active_compute_context_hash_;
 
  public:
   Context(compositor::StaticCacheManager &cache_manager, const Main *main, const Scene *scene)
@@ -84,7 +84,7 @@ class Context : public compositor::Context {
     return compositor::SideEffectOutputTypes::ViewerNode;
   }
 
-  const ComputeContextHash &get_viewer_compute_context_hash() const override
+  const std::optional<ComputeContextHash> &get_viewer_compute_context_hash() const override
   {
     return active_compute_context_hash_;
   }
@@ -341,7 +341,7 @@ class Context : public compositor::Context {
 
     /* If the no viewer output exist, write the output as a viewer. */
     compositor::Result &output_result = operation.get_result();
-    if (!operation.has_viewer_output()) {
+    if (!this->get_viewer_compute_context_hash().has_value()) {
       this->write_viewer(output_result);
     }
 

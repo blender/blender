@@ -83,8 +83,8 @@ class CompositorModifierContext : public CompositorContext {
   ImBuf *mask_buffer_ = nullptr;
   int timeline_frame_;
 
-  /* The hash of the compute context of the active viewer. */
-  const ComputeContextHash viewer_compute_context_hash_;
+  /* The hash of the compute context of the active viewer if one exists. */
+  const std::optional<ComputeContextHash> viewer_compute_context_hash_;
 
   bool owns_mask_ = false;
   PointerRNA properties_ptr_;
@@ -118,7 +118,7 @@ class CompositorModifierContext : public CompositorContext {
     }
   }
 
-  const ComputeContextHash &get_viewer_compute_context_hash() const override
+  const std::optional<ComputeContextHash> &get_viewer_compute_context_hash() const override
   {
     return viewer_compute_context_hash_;
   }

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include "BLI_compute_context.hh"
@@ -16,6 +17,8 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+
+#include "BKE_compute_context_cache_fwd.hh"
 
 namespace blender {
 
@@ -28,11 +31,16 @@ struct Main;
 struct ViewLayer;
 struct LibraryForeachIDData;
 struct ImBuf;
+struct bNode;
 struct bContext;
 struct SceneCompositorEffect;
 struct DepsNodeHandle;
 struct bNodeTree;
 struct PointerRNA;
+
+namespace bke {
+class bNodeTreeZone;
+}
 
 namespace bke::compositor {
 
@@ -201,12 +209,21 @@ void add_depsgraph_relations(Scene &scene,
  * Compute Contexts.
  */
 
-/* Computes the hash of the compute context of the active viewer. The active viewer is the viewer
- * in the context that the user last interacted with, see root_node_group.active_viewer_key for
- * more information. */
-ComputeContextHash compute_viewer_compute_context_hash(const Scene &scene);
-ComputeContextHash compute_viewer_compute_context_hash(const Scene &scene,
-                                                       const bNodeTree &root_node_group);
+/* Get the compute context of the zone that the given node lies inside given the compute context of
+ * the owner tree or zone. If the node does not lie inside a zone, the given compute context is
+ * simply returned. The compute context is assumed to be that of a viewer node, so compute contexts
+ * will be constructed using inspection index for repeat zone for instance. */
+const ComputeContext &get_zone_viewer_compute_context(
+    const bNode &node,
+    const bke::bNodeTreeZone *zone,
+    const ComputeContext &compute_context,
+    bke::ComputeContextCache &compute_context_cache);
+
+/* Computes the hash of the compute context of the active viewer node. If no active viewer node
+ * exists, a nullopt is returned. */
+std::optional<ComputeContextHash> compute_viewer_compute_context_hash(const Scene &scene);
+std::optional<ComputeContextHash> compute_viewer_compute_context_hash(
+    const Scene &scene, const bNodeTree &root_node_group);
 
 }  // namespace bke::compositor
 }  // namespace blender
