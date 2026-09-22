@@ -570,6 +570,7 @@ set(GLSL_SRC
   intern/shaders/draw_fxaa_lib.glsl
   intern/shaders/draw_curves_interpolation_comp.glsl
   intern/shaders/draw_curves_length_intercept_comp.glsl
+  intern/shaders/draw_curves.bsl.hh
   intern/shaders/draw_curves_lib.glsl
   intern/shaders/draw_curves_topology_comp.glsl
   intern/shaders/draw_shape_lib.glsl
@@ -580,11 +581,13 @@ set(GLSL_SRC
   intern/shaders/draw_gsplat.bsl.hh
   intern/shaders/draw_gsplat_lib.bsl.hh
   intern/shaders/draw_intersect_lib.glsl
+  intern/shaders/draw_intersect.bsl.hh
   intern/shaders/draw_math_geom_lib.glsl
   intern/shaders/draw_model_lib.glsl
   intern/shaders/draw_model.bsl.hh
   intern/shaders/draw_object_infos_lib.glsl
   intern/shaders/draw_pointcloud_lib.glsl
+  intern/shaders/draw_pointcloud.bsl.hh
   intern/shaders/draw_resource_finalize_comp.glsl
   intern/shaders/draw_view_clipping_lib.glsl
   intern/shaders/draw_view_finalize_comp.glsl
