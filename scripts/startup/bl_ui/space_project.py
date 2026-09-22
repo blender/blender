@@ -169,9 +169,14 @@ def _draw_ocio_config_path(layout, project):
         )
 
     if needs_reload:
-        row = layout.split(factor=0.4)
+        split = layout.split(factor=layout.property_split_factor)
+        split.label()
+        row = split.split()
         row.label()
-        row.label(text="Save and reload the blend file to apply", icon='STATUS_INFO')
+        if not bpy.data.is_dirty:
+            # Skip prompt on unmodified blend file
+            row.operator_context = 'EXEC_DEFAULT'
+        row.operator("wm.revert_mainfile", text="Reload to Apply Changes", icon='FILE_REFRESH')
 
 
 class PROJECT_PT_main(Panel, CenterAlignMixIn):
