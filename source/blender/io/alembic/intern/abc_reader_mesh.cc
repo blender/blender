@@ -913,20 +913,20 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
                                     r_err_str,
                                     m_is_reading_a_file_sequence);
 
-  if (new_mesh != existing_mesh) {
-    /* Here we assume that the number of materials doesn't change, i.e. that
-     * the material slots that were created when the object was loaded from
-     * Alembic are still valid now. */
-    size_t num_faces = new_mesh->faces_num;
-    if (num_faces > 0) {
-      std::map<std::string, int> mat_map;
-      bke::MutableAttributeAccessor attributes = new_mesh->attributes_for_write();
-      bke::SpanAttributeWriter<int> material_indices =
-          attributes.lookup_or_add_for_write_span<int>("material_index", bke::AttrDomain::Face);
-      assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
-      material_indices.finish();
-    }
+  /* Here we assume that the number of materials doesn't change, i.e. that
+   * the material slots that were created when the object was loaded from
+   * Alembic are still valid now. */
+  size_t num_faces = new_mesh->faces_num;
+  if (num_faces > 0) {
+    std::map<std::string, int> mat_map;
+    bke::MutableAttributeAccessor attributes = new_mesh->attributes_for_write();
+    bke::SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
+        "material_index", bke::AttrDomain::Face);
+    assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
+    material_indices.finish();
+  }
 
+  if (new_mesh != existing_mesh) {
     return new_mesh;
   }
 
