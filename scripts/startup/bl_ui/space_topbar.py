@@ -652,6 +652,7 @@ class TOPBAR_MT_edit(Menu):
 
 class TOPBAR_MT_project(Menu):
     bl_label = "Project"
+    bl_translation_context = i18n_contexts.editor_preferences
 
     def draw(self, _context):
         layout = self.layout
