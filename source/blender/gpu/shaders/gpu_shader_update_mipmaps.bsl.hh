@@ -65,9 +65,9 @@ float linearrgb_to_srgb(float c)
  * Dispatch with y, z = 1
  */
 #define LOCAL_SIZE_X 128
-#define TILE_SIZE MIPMAP_UPDATE_TILE_SIZE
-#define MAX_SHARED_SAMPLES (TILE_SIZE + TILE_SIZE + 1)
-#define INPUT_LEVEL 0
+static constexpr int TILE_SIZE = MIPMAP_UPDATE_TILE_SIZE;
+static constexpr int MAX_SHARED_SAMPLES = (TILE_SIZE + TILE_SIZE + 1);
+static constexpr int INPUT_LEVEL = 0;
 
 /** Shared storage that can store intermediate results using without encoding. */
 template<typename T> struct Shared {
@@ -178,7 +178,7 @@ struct Resources {
   [[image(0, read, format), condition(is_layered)]] image2DArray mip_array_in;
   [[image(1, write, format), condition(is_layered)]] image2DArray mip_array_out1;
   [[image(2, write, format), condition(is_layered)]] image2DArray mip_array_out2;
-  [[resource_table]] srt_t<SharedStorage> shared_storage;
+  [[resource_table]] SharedStorage shared_storage;
 
   /** Store sample result into an output mip image. */
   void store_sample(int2 dst_coord, int dst_level, InnerType color)
@@ -210,16 +210,14 @@ struct Resources {
 
   void store_shared_sample(int2 dst_coord, InnerType color)
   {
-    SharedStorage &storage = shared_storage;
-    storage.store_sample(dst_coord, color);
+    shared_storage.store_sample(dst_coord, color);
   }
 
   InnerType load_sample(int2 src_coord, bool load_from_shared)
   {
     InnerType color;
     if (load_from_shared) {
-      SharedStorage &storage = shared_storage;
-      color = storage.load_sample(src_coord);
+      color = shared_storage.load_sample(src_coord);
     }
     else {
       float4 loaded_color;
@@ -534,7 +532,7 @@ void update_mipmaps([[global_invocation_id]] const uint3 global_id,
                     [[local_invocation_id]] const uint3 local_index,
                     [[resource_table]] Resources<format, SharedStorage, InnerType> &srt)
 {
-  if (srt.num_levels == 1u) {
+  if (srt.num_levels == 1) {
     uint sample_index = global_id.x + uint(srt.group_offset) * uint(LOCAL_SIZE_X);
     int2 kernel_size = kernel_size_from_input_size(srt.level_size(INPUT_LEVEL));
     int2 dst_image_size = srt.level_size(INPUT_LEVEL + 1);
