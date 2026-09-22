@@ -732,6 +732,17 @@ template<> bool has_animations(Alembic::AbcGeom::IPolyMeshSchema &schema, Import
     return true;
   }
 
+  std::vector<std::string> face_set_names;
+  schema.getFaceSetNames(face_set_names);
+
+  for (const std::string &face_set_name : face_set_names) {
+    const IFaceSet face_set = schema.getFaceSet(face_set_name);
+    const IFaceSetSchema &face_set_schema = face_set.getSchema();
+    if (!face_set_schema.isConstant()) {
+      return true;
+    }
+  }
+
   IV2fGeomParam uvsParam = schema.getUVsParam();
   if (uvsParam.valid() && !uvsParam.isConstant()) {
     return true;

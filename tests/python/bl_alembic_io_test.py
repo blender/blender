@@ -849,6 +849,12 @@ class AlembicAnimatedMaterialsImportTests(AbstractAlembicTest):
         for material_name in material_names:
             self.assertIn(material_name, mesh.materials)
 
+        # Verify that we have a MeshSequenceCache modifier
+        self.assertEqual(len(ob.modifiers), 1)
+
+        modifier = ob.modifiers[0]
+        self.assertEqual(modifier.type, 'MESH_SEQUENCE_CACHE')
+
     def test_materials_static_mesh(self):
         self.do_import_test("animated-materials-static-mesh")
 
