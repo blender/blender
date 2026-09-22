@@ -556,12 +556,6 @@ static void print_interface(std::ostream &os,
                             const StageInterfaceInfo &iface,
                             const StringRefNull &suffix = "")
 {
-  /* TODO(@fclem): Move that to interface check. */
-  // if (iface.instance_name.is_empty()) {
-  //   BLI_assert_msg(0, "Interfaces require an instance name for geometry shader.");
-  //   std::cout << iface.name << ": Interfaces require an instance name for geometry shader.\n";
-  //   continue;
-  // }
   os << prefix << " " << iface.name << "{" << std::endl;
   for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
     os << "  " << to_string(inout.interp) << " " << to_string(inout.type) << " " << inout.name
@@ -919,16 +913,18 @@ std::string GLShader::geometry_interface_declare(const ShaderCreateInfo &info) c
 
   /* Interfaces. */
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
-    bool has_matching_output_iface = find_interface_by_name(info.geometry_out_interfaces_,
-                                                            iface->instance_name) != nullptr;
-    const char *suffix = (has_matching_output_iface) ? "_in[]" : "[]";
+    std::string suffix = "_in[]";
+    if (iface->instance_name.is_empty()) {
+      suffix = iface->name + suffix;
+    }
     print_interface(ss, "in", *iface, suffix);
   }
   ss << "\n";
   for (const StageInterfaceInfo *iface : info.geometry_out_interfaces_) {
-    bool has_matching_input_iface = find_interface_by_name(info.vertex_out_interfaces_,
-                                                           iface->instance_name) != nullptr;
-    const char *suffix = (has_matching_input_iface) ? "_out" : "";
+    std::string suffix = "_out";
+    if (iface->instance_name.is_empty()) {
+      suffix = iface->name + suffix;
+    }
     print_interface(ss, "out", *iface, suffix);
   }
   ss << "\n";
@@ -999,9 +995,15 @@ std::string GLShader::workaround_geometry_shader_source_create(
   }
   for (auto i : IndexRange(3)) {
     for (const StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
+      std::string instance_in = (iface->instance_name.is_empty() ? iface->name :
+                                                                   iface->instance_name) +
+                                "_in";
+      std::string instance_out = (iface->instance_name.is_empty() ? iface->name :
+                                                                    iface->instance_name) +
+                                 "_out";
       for (auto &inout : iface->inouts) {
-        ss << "  " << iface->instance_name << "_out." << inout.name;
-        ss << " = " << iface->instance_name << "_in[" << i << "]." << inout.name << ";\n";
+        ss << "  " << instance_out << "." << inout.name;
+        ss << " = " << instance_in << "[" << i << "]." << inout.name << ";\n";
       }
     }
     if (do_barycentric_workaround) {

@@ -433,11 +433,12 @@ inline int get_location_count(const Type &type)
 static void print_interface_as_attributes(std::ostream &os,
                                           const std::string &prefix,
                                           const StageInterfaceInfo &iface,
-                                          int &location)
+                                          int &location,
+                                          const StringRefNull &suffix)
 {
   for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
     os << "layout(location=" << location << ") " << prefix << " " << to_string(inout.interp) << " "
-       << to_string(inout.type) << " " << inout.name << ";\n";
+       << to_string(inout.type) << " " << inout.name << suffix << ";\n";
     location += get_location_count(inout.type);
   }
 }
@@ -471,7 +472,7 @@ static void print_interface(std::ostream &os,
                             const StringRefNull &suffix = "")
 {
   if (iface.instance_name.is_empty()) {
-    print_interface_as_attributes(os, prefix, iface, location);
+    print_interface_as_attributes(os, prefix, iface, location, suffix);
   }
   else {
     print_interface_as_struct(os, prefix, iface, location, suffix);
@@ -1261,9 +1262,22 @@ std::string VKShader::workaround_geometry_shader_source_create(
   ss << "{\n";
   for (int i : IndexRange(3)) {
     for (const StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
-      for (const StageInterfaceInfo::InOut &inout : iface->inouts) {
-        ss << "  " << iface->instance_name << "_out." << inout.name;
-        ss << " = " << iface->instance_name << "_in[" << i << "]." << inout.name << ";\n";
+      bool has_matching_output_iface = find_interface_by_name(
+                                           info_modified.geometry_out_interfaces_,
+                                           iface->instance_name) != nullptr;
+      const char *out_suffix = (has_matching_output_iface) ? "_out" : "";
+      const char *in_suffix = (has_matching_output_iface) ? "_in" : "";
+      if (iface->instance_name.is_empty()) {
+        for (const StageInterfaceInfo::InOut &inout : iface->inouts) {
+          ss << inout.name << out_suffix << " = " << inout.name << in_suffix << "[" << i << "];\n";
+        }
+      }
+      else {
+        for (const StageInterfaceInfo::InOut &inout : iface->inouts) {
+          ss << "  " << iface->instance_name << out_suffix << "." << inout.name;
+          ss << " = " << iface->instance_name << in_suffix << "[" << i << "]." << inout.name
+             << ";\n";
+        }
       }
     }
     if (do_barycentric_workaround) {
