@@ -1217,13 +1217,8 @@ float BKE_brush_sample_masktex(
 /** \name Unified Settings
  * \{ */
 
-bool BKE_brush_use_unified_size(const Paint *paint, const Brush *brush)
+bool BKE_brush_use_unified_size(const Paint * /*paint*/, const Brush *brush)
 {
-  /* For now, Grease Pencil Draw mode doesn't use the unified paint settings. */
-  if (paint->runtime->ob_mode == OB_MODE_PAINT_GREASE_PENCIL) {
-    return false;
-  }
-
   /* In the case of having no active brush (e.g. for non-brush tools), default to the scene level
    * settings */
   if (!brush) {
@@ -1233,13 +1228,8 @@ bool BKE_brush_use_unified_size(const Paint *paint, const Brush *brush)
   return brush->unified_paint_flags & BRUSH_USE_UNIFIED_PAINT_SIZE;
 }
 
-bool BKE_brush_use_unified_strength(const Paint *paint, const Brush *brush)
+bool BKE_brush_use_unified_strength(const Paint * /*paint*/, const Brush *brush)
 {
-  /* For now, Grease Pencil Draw mode doesn't use the unified paint settings. */
-  if (paint->runtime->ob_mode == OB_MODE_PAINT_GREASE_PENCIL) {
-    return false;
-  }
-
   /* In the case of having no active brush (e.g. for non-brush tools), default to the scene level
    * settings */
   if (!brush) {
@@ -1249,13 +1239,8 @@ bool BKE_brush_use_unified_strength(const Paint *paint, const Brush *brush)
   return brush->unified_paint_flags & BRUSH_USE_UNIFIED_PAINT_ALPHA;
 }
 
-bool BKE_brush_use_unified_color(const Paint *paint, const Brush *brush)
+bool BKE_brush_use_unified_color(const Paint * /*paint*/, const Brush *brush)
 {
-  /* For now, Grease Pencil Draw mode doesn't use the unified paint settings. */
-  if (paint->runtime->ob_mode == OB_MODE_PAINT_GREASE_PENCIL) {
-    return false;
-  }
-
   /* In the case of having no active brush (e.g. for non-brush tools), default to the scene level
    * settings */
   if (!brush) {

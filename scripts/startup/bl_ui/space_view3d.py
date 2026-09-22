@@ -706,7 +706,9 @@ class _draw_tool_settings_context_mode:
 
         if grease_pencil_tool == 'TINT':
             row.separator(factor=layout.property_split_factor)
-            row.prop_with_popover(brush, "color", text="", panel="TOPBAR_PT_grease_pencil_vertex_color")
+            ups = paint.unified_paint_settings
+            prop_owner = ups if brush.use_unified_color else brush
+            row.prop_with_popover(prop_owner, "color", text="", panel="TOPBAR_PT_grease_pencil_vertex_color")
 
         from bl_ui.properties_paint_common import (
             brush_basic_grease_pencil_paint_settings,
@@ -8697,28 +8699,55 @@ class VIEW3D_PT_greasepencil_draw_context_menu(Panel):
 
         layout.prop(gp_settings, "stroke_type", expand=True)
 
-        if brush.gpencil_brush_type not in {'ERASE', 'CUTTER', 'EYEDROPPER'} and is_vertex:
+        if brush.gpencil_brush_type not in {'ERASE', 'TRIM', 'CARVER', 'EYEDROPPER'} and is_vertex:
             split = layout.split(factor=0.1)
-            split.prop(brush, "color", text="")
-            split.template_color_picker(brush, "color", value_slider=True)
+            ups = settings.unified_paint_settings
+            prop_owner = ups if brush.use_unified_color else brush
+            split.prop(prop_owner, "color", text="")
+            split.template_color_picker(prop_owner, "color", value_slider=True)
 
-        if brush.gpencil_brush_type not in {'FILL', 'CUTTER', 'ERASE'}:
-            if brush.use_locked_size == 'VIEW':
+        if brush.gpencil_brush_type not in {'FILL', 'TRIM', 'CARVER', 'ERASE'}:
+            size = "size"
+            if brush.use_locked_size != 'VIEW':
+                size = "unprojected_size"
+
+            if UnifiedPaintPanel.paint_settings_from_active_tool(context) is None: 
                 row = layout.row(align=True)
                 row.prop(brush, "size", slider=True)
                 row.prop(brush, "use_pressure_size", text="", icon='STYLUS_PRESSURE')
             else:
-                row = layout.row(align=True)
-                row.prop(brush, "unprojected_size", text="Size", slider=True)
-                row.prop(brush, "use_pressure_size", text="", icon='STYLUS_PRESSURE')
+                UnifiedPaintPanel.prop_unified(
+                    layout,
+                    context,
+                    brush,
+                    size,
+                    unified_name="use_unified_size",
+                    pressure_name="use_pressure_size",
+                    text="Size",
+                    slider=True,
+                )
         if brush.gpencil_brush_type == 'ERASE':
-            row = layout.row(align=True)
-            row.prop(brush, "size", slider=True)
-            row.prop(brush, "use_pressure_size", text="", icon='STYLUS_PRESSURE')
-        if brush.gpencil_brush_type not in {'ERASE', 'FILL', 'CUTTER'}:
-            row = layout.row(align=True)
-            row.prop(brush, "strength", slider=True)
-            row.prop(brush, "use_pressure_strength", text="", icon='STYLUS_PRESSURE')
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "size",
+                unified_name="use_unified_size",
+                pressure_name="use_pressure_size",
+                text="Size",
+                slider=True,
+            )
+        if brush.gpencil_brush_type not in {'ERASE', 'FILL', 'TRIM', 'CARVER'} and UnifiedPaintPanel.paint_settings_from_active_tool(context) is not None:
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "strength",
+                unified_name="use_unified_strength",
+                pressure_name="use_pressure_strength",
+                text="",
+                slider=True,
+            )
 
         layer = context.object.data.layers.active
 
@@ -8800,17 +8829,29 @@ class VIEW3D_PT_greasepencil_vertex_paint_context_menu(Panel):
             col.prop(gp_settings, "vertex_mode", text="")
             col.separator()
 
-        row = col.row(align=True)
-        row.prop(settings.unified_paint_settings, "size", text="Radius")
-        row.prop(brush, "use_pressure_size", text="", icon='STYLUS_PRESSURE')
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "size",
+            unified_name="use_unified_size",
+            pressure_name="use_pressure_size",
+            text="Size",
+            slider=True,
+        )
 
         if brush.gpencil_vertex_brush_type in {'DRAW', 'BLUR', 'SMEAR'}:
             ups = settings.unified_paint_settings
             strength_owner = ups if brush.use_unified_strength else brush
-            row = layout.row(align=True)
-            row.prop(strength_owner, "strength", text="")
-            row.prop(brush, "use_pressure_strength", text="", icon='STYLUS_PRESSURE')
-            row.prop(brush, "use_unified_strength", text="", icon='BRUSHES_ALL')
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "strength",
+                unified_name="use_unified_strength",
+                pressure_name="use_pressure_strength",
+                slider=True,
+            )
 
         layer = context.object.data.layers.active
 
@@ -9128,24 +9169,20 @@ class TOPBAR_PT_grease_pencil_vertex_color(Panel):
             paint = context.scene.tool_settings.gpencil_paint
         elif ob.mode == 'VERTEX_GREASE_PENCIL':
             paint = context.scene.tool_settings.gpencil_vertex_paint
-        use_unified_paint = (ob.mode != 'PAINT_GREASE_PENCIL')
 
         ups = paint.unified_paint_settings
         brush = paint.brush
-        prop_owner = ups if use_unified_paint and brush.use_unified_color else brush
+        prop_owner = ups if brush.use_unified_color else brush
 
         col = layout.column()
         col.template_color_picker(prop_owner, "color", value_slider=True)
 
         sub_row = layout.row(align=True)
-        if use_unified_paint:
-            UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "color", text="")
-            UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "secondary_color", text="")
-        else:
-            sub_row.prop(brush, "color", text="")
-            sub_row.prop(brush, "secondary_color", text="")
+        UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "color", text="")
+        UnifiedPaintPanel.prop_unified_color(sub_row, context, brush, "secondary_color", text="")
 
         sub_row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="")
+        sub_row.prop(ups, "use_unified_color", text="", icon='BRUSHES_ALL')
 
         row = layout.row(align=True)
         row.template_ID(paint, "palette", new="palette.new")

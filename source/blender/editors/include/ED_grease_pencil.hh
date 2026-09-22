@@ -338,10 +338,12 @@ bool grease_pencil_vertex_painting_poll(bContext *C);
 bool check_brush_needs_new_material(Object *object, const Brush *brush);
 
 float opacity_from_input_sample(const float pressure,
+                                const Paint &paint,
                                 const Brush *brush,
                                 const BrushGpencilSettings *settings);
 float radius_from_input_sample(const RegionView3D *rv3d,
                                const ARegion *region,
+                               const Paint &paint,
                                const Brush *brush,
                                float pressure,
                                const float3 &location,
