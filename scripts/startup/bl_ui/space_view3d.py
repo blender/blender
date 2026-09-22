@@ -8711,7 +8711,7 @@ class VIEW3D_PT_greasepencil_draw_context_menu(Panel):
             if brush.use_locked_size != 'VIEW':
                 size = "unprojected_size"
 
-            if UnifiedPaintPanel.paint_settings_from_active_tool(context) is None: 
+            if UnifiedPaintPanel.paint_settings_from_active_tool(context) is None:
                 row = layout.row(align=True)
                 row.prop(brush, "size", slider=True)
                 row.prop(brush, "use_pressure_size", text="", icon='STYLUS_PRESSURE')
@@ -8737,7 +8737,11 @@ class VIEW3D_PT_greasepencil_draw_context_menu(Panel):
                 text="Size",
                 slider=True,
             )
-        if brush.gpencil_brush_type not in {'ERASE', 'FILL', 'TRIM', 'CARVER'} and UnifiedPaintPanel.paint_settings_from_active_tool(context) is not None:
+        if brush.gpencil_brush_type not in {
+            'ERASE',
+            'FILL',
+            'TRIM',
+                'CARVER'} and UnifiedPaintPanel.paint_settings_from_active_tool(context) is not None:
             UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
