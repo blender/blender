@@ -61,6 +61,24 @@ class TestBpyPath(unittest.TestCase):
         assert_equal_abspath("////a.png", "", "a.png")
         assert_equal_abspath("///", "", "")
 
+    def test_template_escape(self):
+        from bpy.path import template_escape
+
+        self.assertEqual(template_escape(''), '')
+        self.assertEqual(template_escape('/a/b.blend'), '/a/b.blend')
+        self.assertEqual(template_escape('/a/{b}/c'), '/a/{{b}}/c')
+        self.assertEqual(template_escape('{{}}'), '{{{{}}}}')
+        self.assertEqual(template_escape(path='{b}'), '{{b}}')
+
+        # Non UTF8 paths (as returned by `os.fsdecode`) must round-trip.
+        self.assertEqual(template_escape('/a/\udcff{b}'), '/a/\udcff{{b}}')
+
+        # Should work with both strings and bytes.
+        self.assertEqual(template_escape(b''), b'')
+        self.assertEqual(template_escape(b'/a/{b}/c'), b'/a/{{b}}/c')
+        self.assertEqual(template_escape(b'/a/\xff{b}'), b'/a/\xff{{b}}')
+        self.assertEqual(template_escape(b'/a/\xff/b'), b'/a/\xff/b')
+
     def test_is_autoexec(self):
         import bpy
         from bpy.path import is_autoexec

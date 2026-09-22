@@ -25,6 +25,7 @@ __all__ = (
     "reduce_dirs",
     "relpath",
     "resolve_ncase",
+    "template_escape",
 )
 
 import bpy as _bpy
@@ -35,6 +36,7 @@ from _bpy_path import (
     extensions_movie,
     extensions_image,
     is_autoexec,
+    template_escape,
 )
 
 
