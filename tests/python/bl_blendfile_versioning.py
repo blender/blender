@@ -157,6 +157,18 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, missing library"
             ),
+            # invalid_blendfiles/invalid_library_filepath_unterminated.blend
+            # Library filepath without null terminator.
+            "invalid_library_filepath_unterminated.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid library file path"
+            ),
+            # invalid_blendfiles/invalid_library_filepath_unterminated_listing.blend
+            # Library filepath overwriting the library flags, marking it as archive library.
+            "invalid_library_filepath_unterminated_listing.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid library file path"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_dirs)
