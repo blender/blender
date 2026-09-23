@@ -55,37 +55,20 @@ struct WeldEdge {
   int vert_b;
 };
 
-struct WeldCorner {
-  union {
-    int flag;
-    struct {
-      /* Indices relative to the source Mesh. */
-      int edge;
-      int vert;
-      int corner_src;
-      int corner_next;
-    };
-  };
-};
-
 struct WeldFace {
-  union {
-    int flag;
-    struct {
-      /* Indices relative to the source Mesh. */
-      int face_dst;
-      int face_src;
-      int corner_start;
-      int corner_end;
-
-      /* To find groups. */
-      int corner_ctx_start;
-      int corner_ctx_num;
+  /**
+   * #OUT_OF_CONTEXT if the face remains in the result, #ELEM_COLLAPSED if all of its corners
+   * collapse, or the index of the face it's a duplicate of.
+   */
+  int face_dst;
+  /* Indices in to the source Mesh. */
+  int face_src;
+  /** The first and last corner of the face, see #WeldMesh::corner_next. */
+  int corner_start;
+  int corner_end;
 #ifdef USE_WELD_DEBUG
-      int corners_num;
+  int corners_num;
 #endif
-    };
-  };
 };
 
 struct WeldMesh {
@@ -95,23 +78,24 @@ struct WeldMesh {
   /* Vertices that merge into another vertex, and the vertices they merge into. */
   Span<bool> vert_affected;
 
-  /* References all faces and corners that will be affected. */
-  Vector<WeldCorner> weld_corners;
+  /* References all faces that will be affected. */
   Vector<WeldFace> weld_faces;
   int new_faces_num;
 
-  /* From the actual index of the element in the mesh, it indicates what is the index of the Weld
-   * element above. */
-  Array<int> corner_to_weld_corner;
+  /**
+   * The next corner of each corner of affected faces, initially the next corner in the
+   * source face. Corners are collapsed by relinking the previous corner, and faces that
+   * contain the same vertex multiple times after merging are split into separate cycles.
+   * Uninitialized for faces that aren't affected by the merge.
+   */
+  Array<int> corner_next;
+
   Array<int> face_to_weld_face;
 
   int removed_verts_num;
   int removed_edges_num;
   int removed_corners_num;
   int removed_faces_num; /* Including the new faces. */
-
-  /* Number of corners of the largest affected face. */
-  int max_face_size;
 
 #ifdef USE_WELD_DEBUG
   Span<int> corner_verts;
@@ -120,41 +104,24 @@ struct WeldMesh {
 #endif
 };
 
-struct WeldCornerOfFaceIter {
-  int corner_iter;
-  int corner_end;
-
-  /* Weld group. */
-  int corner_ctx_start;
-  int corner_ctx_num;
-  int *group;
-
-  Span<WeldCorner> weld_corners;
-  Span<int> corner_verts;
-  Span<int> corner_edges;
-  Span<int> corner_to_weld_corner;
-
-  /* Return */
-  int group_size;
-  int vert;
-  int edge;
-};
+template<typename Fn>
+static void foreach_weld_face_corner(const WeldFace &weld_face,
+                                     const Span<int> corner_next,
+                                     const Fn &fn)
+{
+  BLI_assert(weld_face.face_dst == OUT_OF_CONTEXT);
+  int corner = weld_face.corner_start;
+  do {
+    fn(corner);
+    corner = corner_next[corner];
+  } while (corner != weld_face.corner_start);
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Debug Utils
  * \{ */
 
 #ifdef USE_WELD_DEBUG
-static bool weld_iter_corner_of_face_begin(WeldCornerOfFaceIter &iter,
-                                           const WeldFace &weld_face,
-                                           Span<WeldCorner> weld_corners,
-                                           const Span<int> corner_verts,
-                                           const Span<int> corner_edges,
-                                           Span<int> corner_to_weld_corner,
-                                           int *group_buffer);
-
-static bool weld_iter_corner_of_face_next(WeldCornerOfFaceIter &iter);
-
 static void weld_assert_removed_edges_num(Span<int> edge_src_to_target,
                                           const int expected_removed_num)
 {
@@ -167,129 +134,44 @@ static void weld_assert_removed_edges_num(Span<int> edge_src_to_target,
   BLI_assert(kills == expected_removed_num);
 }
 
-static void weld_assert_removed_faces_and_corners_num(WeldMesh *weld_mesh,
+static void weld_assert_removed_faces_and_corners_num(const WeldMesh &weld_mesh,
                                                       const int expected_removed_faces_num,
                                                       const int expected_removed_corners_num)
 {
-  const Span<int> corner_verts = weld_mesh->corner_verts;
-  const Span<int> corner_edges = weld_mesh->corner_edges;
-  const OffsetIndices<int> faces = weld_mesh->faces;
-
+  const OffsetIndices<int> faces = weld_mesh.faces;
   int removed_faces = 0;
-  int removed_corners = corner_verts.size();
+  int remaining_corners = 0;
   for (const int i : faces.index_range()) {
-    int face_ctx = weld_mesh->face_to_weld_face[i];
-    if (face_ctx != OUT_OF_CONTEXT) {
-      const WeldFace *weld_face = &weld_mesh->weld_faces[face_ctx];
-      WeldCornerOfFaceIter iter;
-      if (!weld_iter_corner_of_face_begin(iter,
-                                          *weld_face,
-                                          weld_mesh->weld_corners,
-                                          corner_verts,
-                                          corner_edges,
-                                          weld_mesh->corner_to_weld_corner,
-                                          nullptr))
-      {
-        removed_faces++;
-        continue;
-      }
-      else {
-        if (weld_face->face_dst != OUT_OF_CONTEXT) {
-          removed_faces++;
-          continue;
-        }
-        int remain = weld_face->corners_num;
-        int corner = weld_face->corner_start;
-        while (remain) {
-          int corner_next = corner + 1;
-          int corner_ctx = weld_mesh->corner_to_weld_corner[corner];
-          if (corner_ctx != OUT_OF_CONTEXT) {
-            const WeldCorner *weld_corner = &weld_mesh->weld_corners[corner_ctx];
-            if (weld_corner->flag != ELEM_COLLAPSED) {
-              removed_corners--;
-              remain--;
-            }
-          }
-          else {
-            removed_corners--;
-            remain--;
-          }
-          corner = corner_next;
-        }
-      }
-    }
-    else {
-      removed_corners -= faces[i].size();
+    if (weld_mesh.face_to_weld_face[i] == OUT_OF_CONTEXT) {
+      remaining_corners += faces[i].size();
     }
   }
-
-  for (const int i : weld_mesh->weld_faces.index_range().take_back(weld_mesh->new_faces_num)) {
-    const WeldFace &weld_face = weld_mesh->weld_faces[i];
+  for (const WeldFace &weld_face : weld_mesh.weld_faces) {
     if (weld_face.face_dst != OUT_OF_CONTEXT) {
       removed_faces++;
       continue;
     }
-    int remain = weld_face.corners_num;
-    int corner = weld_face.corner_start;
-    while (remain) {
-      int corner_next = corner + 1;
-      int corner_ctx = weld_mesh->corner_to_weld_corner[corner];
-      if (corner_ctx != OUT_OF_CONTEXT) {
-        const WeldCorner *weld_corner = &weld_mesh->weld_corners[corner_ctx];
-        if (weld_corner->flag != ELEM_COLLAPSED) {
-          removed_corners--;
-          remain--;
-        }
-      }
-      else {
-        removed_corners--;
-        remain--;
-      }
-      corner = corner_next;
-    }
+    foreach_weld_face_corner(
+        weld_face, weld_mesh.corner_next, [&](const int /*corner*/) { remaining_corners++; });
   }
-
   BLI_assert(removed_faces == expected_removed_faces_num);
-  BLI_assert(removed_corners == expected_removed_corners_num);
+  BLI_assert(weld_mesh.corner_verts.size() - remaining_corners == expected_removed_corners_num);
 }
 
-static void weld_assert_face_no_vert_repetition(const WeldFace *weld_face,
-                                                Span<WeldCorner> weld_corners,
-                                                const Span<int> corner_verts,
-                                                const Span<int> corner_edges,
-                                                Span<int> corner_to_weld_corner)
+static void weld_assert_face_no_vert_repetition(const WeldFace &weld_face,
+                                                const WeldMesh &weld_mesh)
 {
-  int i = 0;
-  if (weld_face->corners_num == 0) {
-    BLI_assert(weld_face->flag == ELEM_COLLAPSED);
+  if (weld_face.face_dst != OUT_OF_CONTEXT) {
     return;
   }
-
-  Array<int, 64> verts(weld_face->corners_num);
-  WeldCornerOfFaceIter iter;
-  if (!weld_iter_corner_of_face_begin(iter,
-                                      *weld_face,
-                                      weld_corners,
-                                      corner_verts,
-                                      corner_edges,
-                                      corner_to_weld_corner,
-                                      nullptr))
-  {
-    return;
-  }
-  else {
-    do {
-      verts[i++] = iter.vert;
-    } while (weld_iter_corner_of_face_next(iter));
-  }
-
-  BLI_assert(i == weld_face->corners_num);
-
-  for (i = 0; i < weld_face->corners_num; i++) {
-    int vert_a = verts[i];
-    for (int j = i + 1; j < weld_face->corners_num; j++) {
-      int vert_b = verts[j];
-      BLI_assert(vert_a != vert_b);
+  Vector<int> verts;
+  foreach_weld_face_corner(weld_face, weld_mesh.corner_next, [&](const int corner) {
+    verts.append(weld_mesh.vert_src_to_target[weld_mesh.corner_verts[corner]]);
+  });
+  BLI_assert(verts.size() == weld_face.corners_num);
+  for (const int i : verts.index_range()) {
+    for (const int j : verts.index_range().drop_front(i + 1)) {
+      BLI_assert(verts[i] != verts[j]);
     }
   }
 }
@@ -480,110 +362,19 @@ static void weld_edge_find_doubles(Span<WeldEdge> weld_edges,
 /** \name Poly and Loop API
  * \{ */
 
-static bool weld_iter_corner_of_face_next(WeldCornerOfFaceIter &iter)
-{
-  if (iter.corner_iter > iter.corner_end) {
-    return false;
-  }
-
-  Span<WeldCorner> weld_corners = iter.weld_corners;
-  Span<int> corner_to_weld_corner = iter.corner_to_weld_corner;
-  int corner = iter.corner_iter;
-  int corner_next = corner + 1;
-
-  int corner_ctx = corner_to_weld_corner[corner];
-  if (corner_ctx != OUT_OF_CONTEXT) {
-    const WeldCorner *weld_corner = &weld_corners[corner_ctx];
-#ifdef USE_WELD_DEBUG
-    BLI_assert(weld_corner->flag != ELEM_COLLAPSED);
-    BLI_assert(iter.vert != weld_corner->vert);
-#endif
-    iter.vert = weld_corner->vert;
-    iter.edge = weld_corner->edge;
-    if (weld_corner->corner_next > corner) {
-      /* Allow the loop to break. */
-      corner_next = weld_corner->corner_next;
-    }
-
-    if (iter.group) {
-      iter.group_size = 0;
-      int count = iter.corner_ctx_num;
-      for (weld_corner = &weld_corners[iter.corner_ctx_start]; count--; weld_corner++) {
-        if (weld_corner->vert == iter.vert) {
-          iter.group[iter.group_size++] = weld_corner->corner_src;
-        }
-      }
-    }
-  }
-  else {
-#ifdef USE_WELD_DEBUG
-    BLI_assert(iter.vert != iter.corner_verts[corner]);
-#endif
-    iter.vert = iter.corner_verts[corner];
-    iter.edge = iter.corner_edges[corner];
-    if (iter.group) {
-      iter.group[0] = corner;
-      iter.group_size = 1;
-    }
-  }
-
-  iter.corner_iter = corner_next;
-  return true;
-}
-
-static bool weld_iter_corner_of_face_begin(WeldCornerOfFaceIter &iter,
-                                           const WeldFace &weld_face,
-                                           Span<WeldCorner> weld_corners,
-                                           const Span<int> corner_verts,
-                                           const Span<int> corner_edges,
-                                           Span<int> corner_to_weld_corner,
-                                           int *group_buffer)
-{
-  if (weld_face.flag == ELEM_COLLAPSED) {
-    return false;
-  }
-
-  iter.corner_iter = weld_face.corner_start;
-  iter.corner_end = weld_face.corner_end;
-  iter.corner_ctx_start = weld_face.corner_ctx_start;
-  iter.corner_ctx_num = weld_face.corner_ctx_num;
-
-  iter.weld_corners = weld_corners;
-  iter.corner_verts = corner_verts;
-  iter.corner_edges = corner_edges;
-  iter.corner_to_weld_corner = corner_to_weld_corner;
-  iter.group = group_buffer;
-  iter.group_size = 0;
-
-#ifdef USE_WELD_DEBUG
-  iter.vert = OUT_OF_CONTEXT;
-#endif
-  return weld_iter_corner_of_face_next(iter);
-}
-
 /**
- * Build the context weld faces and weld corners.
+ * Build the context weld faces and the corner links for them.
  *
  * \return r_weld_mesh: Corner and face members will be allocated here.
  */
 static void weld_face_corner_ctx_alloc(const OffsetIndices<int> faces,
                                        const Span<int> corner_verts,
-                                       const Span<int> corner_edges,
                                        WeldMesh *r_weld_mesh)
 {
-  Span<int> vert_src_to_target = r_weld_mesh->vert_src_to_target;
   Span<bool> vert_affected = r_weld_mesh->vert_affected;
-  Span<int> edge_src_to_target = r_weld_mesh->edge_src_to_target;
 
-  /* Corner/Face Context. */
-  Array<int> corner_to_weld_corner(corner_verts.size());
+  Array<int> corner_next(corner_verts.size());
   Array<int> face_to_weld_face(faces.size());
-  int weld_corners_num = 0;
-  int weld_faces_num = 0;
-  int max_ctx_face_size = 4;
-
-  Vector<WeldCorner> weld_corners;
-  weld_corners.reserve(corner_verts.size());
 
   Vector<WeldFace> weld_faces;
   weld_faces.reserve(faces.size());
@@ -591,91 +382,56 @@ static void weld_face_corner_ctx_alloc(const OffsetIndices<int> faces,
   int maybe_new_faces_num = 0;
 
   for (const int i : faces.index_range()) {
-    const int corner_start = faces[i].start();
-    const int face_size = faces[i].size();
-    const int corner_end = corner_start + face_size - 1;
-    int vert_first = corner_verts[corner_start];
-    bool is_vert_first_ctx = vert_affected[vert_first];
-
-    int vert_next = vert_first;
-    bool is_vert_next_ctx = is_vert_first_ctx;
-
-    int prev_weld_corners_num = weld_corners_num;
-    for (const int corner_src : faces[i]) {
-      int vert = vert_next;
-      bool is_vert_ctx = is_vert_next_ctx;
-
-      int corner_next;
-      if (corner_src != corner_end) {
-        corner_next = corner_src + 1;
-        vert_next = corner_verts[corner_next];
-        is_vert_next_ctx = vert_affected[vert_next];
-      }
-      else {
-        corner_next = corner_start;
-        vert_next = vert_first;
-        is_vert_next_ctx = is_vert_first_ctx;
-      }
-
-      if (is_vert_ctx || is_vert_next_ctx) {
-        weld_corners.increase_size_by_unchecked(1);
-        WeldCorner &weld_corner = weld_corners.last();
-        weld_corner.vert = vert_src_to_target[vert];
-        weld_corner.edge = edge_src_to_target[corner_edges[corner_src]];
-        weld_corner.corner_src = corner_src;
-        weld_corner.corner_next = corner_next;
-
-        corner_to_weld_corner[corner_src] = weld_corners_num++;
-      }
-      else {
-        corner_to_weld_corner[corner_src] = OUT_OF_CONTEXT;
+    const IndexRange face = faces[i];
+    /* Corners are affected by the merge when their vertex or the next vertex merges. */
+    int corner_ctx_num = 0;
+    for (const int corner : face) {
+      const int corner_next = bke::mesh::face_corner_next(face, corner);
+      if (vert_affected[corner_verts[corner]] || vert_affected[corner_verts[corner_next]]) {
+        corner_ctx_num++;
       }
     }
+    if (corner_ctx_num == 0) {
+      face_to_weld_face[i] = OUT_OF_CONTEXT;
+      continue;
+    }
 
-    if (weld_corners_num != prev_weld_corners_num) {
-      int corner_ctx_num = weld_corners_num - prev_weld_corners_num;
-      weld_faces.increase_size_by_unchecked(1);
+    for (const int corner : face.drop_back(1)) {
+      corner_next[corner] = corner + 1;
+    }
+    corner_next[face.last()] = face.first();
 
-      WeldFace &weld_face = weld_faces.last();
-      weld_face.face_dst = OUT_OF_CONTEXT;
-      weld_face.face_src = i;
-      weld_face.corner_start = corner_start;
-      weld_face.corner_end = corner_end;
-
-      weld_face.corner_ctx_start = prev_weld_corners_num;
-      weld_face.corner_ctx_num = corner_ctx_num;
-
+    face_to_weld_face[i] = weld_faces.size();
+    weld_faces.append_as();
+    WeldFace &weld_face = weld_faces.last();
+    weld_face.face_dst = OUT_OF_CONTEXT;
+    weld_face.face_src = i;
+    weld_face.corner_start = face.first();
+    weld_face.corner_end = face.last();
 #ifdef USE_WELD_DEBUG
-      weld_face.corners_num = face_size;
+    weld_face.corners_num = face.size();
 #endif
 
-      face_to_weld_face[i] = weld_faces_num++;
-      if (face_size > 5 && corner_ctx_num > 1) {
-        /* We could be smarter here and actually count how many new faces will be created.
-         * But counting this can be inefficient as it depends on the number of non-consecutive
-         * self face merges. For now just estimate a maximum value. */
-        int max_new = std::min((face_size / 3), corner_ctx_num) - 1;
-        maybe_new_faces_num += max_new;
-        CLAMP_MIN(max_ctx_face_size, face_size);
-      }
-    }
-    else {
-      face_to_weld_face[i] = OUT_OF_CONTEXT;
+    const int face_size = face.size();
+    if (face_size > 5 && corner_ctx_num > 1) {
+      /* We could be smarter here and actually count how many new faces will be created.
+       * But counting this can be inefficient as it depends on the number of non-consecutive
+       * self face merges. For now just estimate a maximum value. */
+      int max_new = std::min((face_size / 3), corner_ctx_num) - 1;
+      maybe_new_faces_num += max_new;
     }
   }
 
   weld_faces.reserve(weld_faces.size() + maybe_new_faces_num);
 
-  r_weld_mesh->weld_corners = std::move(weld_corners);
   r_weld_mesh->weld_faces = std::move(weld_faces);
   r_weld_mesh->new_faces_num = 0;
-  r_weld_mesh->corner_to_weld_corner = std::move(corner_to_weld_corner);
+  r_weld_mesh->corner_next = std::move(corner_next);
   r_weld_mesh->face_to_weld_face = std::move(face_to_weld_face);
-  r_weld_mesh->max_face_size = max_ctx_face_size;
 }
 
 static void weld_face_split_recursive(int face_size,
-                                      Span<bool> vert_affected,
+                                      const Span<int> corner_verts,
                                       WeldFace *r_wp,
                                       WeldMesh *r_weld_mesh,
                                       int *r_removed_faces_num,
@@ -685,57 +441,33 @@ static void weld_face_split_recursive(int face_size,
     return;
   }
 
-  Span<int> corner_to_weld_corner = r_weld_mesh->corner_to_weld_corner;
-  MutableSpan<WeldCorner> weld_corners = r_weld_mesh->weld_corners;
+  const Span<int> vert_src_to_target = r_weld_mesh->vert_src_to_target;
+  const Span<bool> vert_affected = r_weld_mesh->vert_affected;
+  MutableSpan<int> corner_next = r_weld_mesh->corner_next;
 
   int removed_corners_num = 0;
 
   int corner_end = r_wp->corner_end;
-  int corner_ctx_a = corner_to_weld_corner[corner_end];
-  WeldCorner *weld_corner_a_prev = (corner_ctx_a != OUT_OF_CONTEXT) ? &weld_corners[corner_ctx_a] :
-                                                                      nullptr;
+  int corner_a_prev = corner_end;
   int corner_a = r_wp->corner_start;
   do {
-    int corner_ctx_a = corner_to_weld_corner[corner_a];
-    if (corner_ctx_a == OUT_OF_CONTEXT) {
-      corner_a++;
-      weld_corner_a_prev = nullptr;
-      continue;
-    }
-
-    WeldCorner *weld_corner_a = &weld_corners[corner_ctx_a];
-    BLI_assert(weld_corner_a->flag != ELEM_COLLAPSED);
-
-    int vert_a = weld_corner_a->vert;
+    const int vert_a = vert_src_to_target[corner_verts[corner_a]];
     if (!vert_affected[vert_a]) {
       /* Only test vertices that will be merged. */
-      corner_a = weld_corner_a->corner_next;
-      weld_corner_a_prev = weld_corner_a;
+      corner_a_prev = corner_a;
+      corner_a = corner_next[corner_a];
       continue;
     }
 
     int dist_a = 1;
     int lb_prev = corner_a;
-    WeldCorner *weld_corner_b_prev = weld_corner_a;
-    int corner_b = weld_corner_a->corner_next;
+    int corner_b = corner_next[corner_a];
     do {
-      int corner_ctx_b = corner_to_weld_corner[corner_b];
-      if (corner_ctx_b == OUT_OF_CONTEXT) {
-        dist_a++;
-        lb_prev = corner_b;
-        weld_corner_b_prev = nullptr;
-        corner_b++;
-        continue;
-      }
-
-      WeldCorner *weld_corner_b = &weld_corners[corner_ctx_b];
-      BLI_assert(weld_corner_b->flag != ELEM_COLLAPSED);
-      int vert_b = weld_corner_b->vert;
+      const int vert_b = vert_src_to_target[corner_verts[corner_b]];
       if (vert_a != vert_b) {
         dist_a++;
         lb_prev = corner_b;
-        weld_corner_b_prev = weld_corner_b;
-        corner_b = weld_corner_b->corner_next;
+        corner_b = corner_next[corner_b];
         continue;
       }
 
@@ -744,24 +476,12 @@ static void weld_face_split_recursive(int face_size,
       BLI_assert(dist_a != 0 && dist_b != 0);
       if (dist_a == 1 || dist_b == 1) {
         BLI_assert(dist_a != dist_b);
-        BLI_assert((weld_corner_a->flag == ELEM_COLLAPSED) ||
-                   (weld_corner_b->flag == ELEM_COLLAPSED));
       }
       else if (dist_a == 2 && dist_b == 2) {
-        /* All corners are "collapsed".
-         * They could be flagged, but just the face is enough.
-         *
-         * \code{.cc}
-         * WeldCorner *weld_corner_a_prev = &weld_corners[corner_ctx_a_prev];
-         * WeldCorner *weld_corner_b_prev = &weld_corners[corner_ctx_b_prev];
-         * weld_corner_a_prev->flag = ELEM_COLLAPSED;
-         * weld_corner_a->flag = ELEM_COLLAPSED;
-         * weld_corner_b_prev->flag = ELEM_COLLAPSED;
-         * weld_corner_b->flag = ELEM_COLLAPSED;
-         * \endcode */
+        /* All corners are "collapsed". */
         removed_corners_num += 4;
         dist_b = 0;
-        r_wp->flag = ELEM_COLLAPSED;
+        r_wp->face_dst = ELEM_COLLAPSED;
         *r_removed_faces_num += 1;
         *r_removed_corners_num += removed_corners_num;
         /* Since all the corners are collapsed, avoid iterating through them.
@@ -769,22 +489,16 @@ static void weld_face_split_recursive(int face_size,
         return;
       }
       else {
-        weld_corner_a_prev->corner_next = corner_b;
-        weld_corner_b_prev->corner_next = corner_a;
+        corner_next[corner_a_prev] = corner_b;
+        corner_next[lb_prev] = corner_a;
         if (r_wp->corner_start == corner_a) {
           r_wp->corner_start = corner_b;
         }
 
         if (dist_a == 2) {
-          BLI_assert(weld_corner_b_prev->flag != ELEM_COLLAPSED);
-          weld_corner_a->flag = ELEM_COLLAPSED;
-          weld_corner_b_prev->flag = ELEM_COLLAPSED;
           removed_corners_num += 2;
         }
         else if (dist_b == 2) {
-          BLI_assert(weld_corner_a_prev->flag != ELEM_COLLAPSED);
-          weld_corner_b->flag = ELEM_COLLAPSED;
-          weld_corner_a_prev->flag = ELEM_COLLAPSED;
           removed_corners_num += 2;
 
           r_wp->corner_start = corner_a;
@@ -802,14 +516,12 @@ static void weld_face_split_recursive(int face_size,
           new_test->face_src = r_wp->face_src;
           new_test->corner_start = corner_a;
           new_test->corner_end = lb_prev;
-          new_test->corner_ctx_start = r_wp->corner_ctx_start;
-          new_test->corner_ctx_num = r_wp->corner_ctx_num;
 
 #ifdef USE_WELD_DEBUG
           new_test->corners_num = dist_a;
 #endif
           weld_face_split_recursive(dist_a,
-                                    vert_affected,
+                                    corner_verts,
                                     new_test,
                                     r_weld_mesh,
                                     r_removed_faces_num,
@@ -817,60 +529,56 @@ static void weld_face_split_recursive(int face_size,
         }
 
         corner_a = corner_b;
-        weld_corner_a = weld_corner_b;
         face_size = dist_b;
 
         dist_a = 1;
       }
 
-      weld_corner_b_prev = weld_corner_b;
       lb_prev = corner_b;
-      corner_b = weld_corner_b->corner_next;
+      corner_b = corner_next[corner_b];
     } while (lb_prev != corner_end);
 
-    weld_corner_a_prev = weld_corner_a;
+    corner_a_prev = corner_a;
     if (corner_a == corner_end) {
       /* No need to start again. */
       break;
     }
-    corner_a = weld_corner_a->corner_next;
+    corner_a = corner_next[corner_a];
   } while (corner_a != corner_end);
 
   *r_removed_corners_num += removed_corners_num;
 #ifdef USE_WELD_DEBUG
   r_wp->corners_num = face_size;
-  weld_assert_face_no_vert_repetition(r_wp,
-                                      weld_corners,
-                                      r_weld_mesh->corner_verts,
-                                      r_weld_mesh->corner_edges,
-                                      r_weld_mesh->corner_to_weld_corner);
+  weld_assert_face_no_vert_repetition(*r_wp, *r_weld_mesh);
 #endif
 }
 
 /**
- * Build the context weld faces and weld corners.
+ * Remove the corners of collapsed edges from the weld faces, and split faces that contain the same
+ * vertex multiple times.
  *
  * \param remaining_edge_ctx_num: Context weld edges that won't be destroyed by merging.
- * \return r_weld_mesh: Loop and face members will be configured here.
+ * \return r_weld_mesh: Corner and face members will be configured here.
  */
-static void weld_face_corner_ctx_setup_collapsed_and_split(const int remaining_edge_ctx_num,
+static void weld_face_corner_ctx_setup_collapsed_and_split(const Span<int> corner_verts,
+                                                           const Span<int> corner_edges,
+                                                           const int remaining_edge_ctx_num,
                                                            WeldMesh *r_weld_mesh)
 {
   if (remaining_edge_ctx_num == 0) {
-    r_weld_mesh->removed_faces_num = r_weld_mesh->weld_faces.size();
-    r_weld_mesh->removed_corners_num = r_weld_mesh->weld_corners.size();
-
+    int removed_corners_num = 0;
     for (WeldFace &weld_face : r_weld_mesh->weld_faces) {
-      weld_face.flag = ELEM_COLLAPSED;
+      removed_corners_num += weld_face.corner_end - weld_face.corner_start + 1;
+      weld_face.face_dst = ELEM_COLLAPSED;
     }
-
+    r_weld_mesh->removed_faces_num = r_weld_mesh->weld_faces.size();
+    r_weld_mesh->removed_corners_num = removed_corners_num;
     return;
   }
 
   WeldFace *weld_faces = r_weld_mesh->weld_faces.data();
-  MutableSpan<WeldCorner> weld_corners = r_weld_mesh->weld_corners;
-  Span<int> corner_to_weld_corner = r_weld_mesh->corner_to_weld_corner;
-  Span<bool> vert_affected = r_weld_mesh->vert_affected;
+  const Span<int> edge_src_to_target = r_weld_mesh->edge_src_to_target;
+  MutableSpan<int> corner_next = r_weld_mesh->corner_next;
 
   int removed_faces_num = 0;
   int removed_corners_num = 0;
@@ -882,22 +590,13 @@ static void weld_face_corner_ctx_setup_collapsed_and_split(const int remaining_e
   for (const int i : weld_faces_src_range) {
     WeldFace &weld_face = weld_faces[i];
     int face_size = (weld_face.corner_end - weld_face.corner_start) + 1;
-    WeldCorner *weld_corner_prev = nullptr;
+    int corner_prev = -1;
     bool changed_corner_start = false;
     int corner = weld_face.corner_start;
     do {
-      int corner_ctx = corner_to_weld_corner[corner];
-      if (corner_ctx == OUT_OF_CONTEXT) {
-        weld_corner_prev = nullptr;
-        continue;
-      }
-
-      WeldCorner *weld_corner = &weld_corners[corner_ctx];
-      const int edge_target = weld_corner->edge;
-      if (edge_target == ELEM_COLLAPSED) {
-        weld_corner->flag = ELEM_COLLAPSED;
+      if (edge_src_to_target[corner_edges[corner]] == ELEM_COLLAPSED) {
         if (face_size == 3) {
-          weld_face.flag = ELEM_COLLAPSED;
+          weld_face.face_dst = ELEM_COLLAPSED;
           removed_faces_num++;
           removed_corners_num += 3;
           face_size = 0;
@@ -916,46 +615,23 @@ static void weld_face_corner_ctx_setup_collapsed_and_split(const int remaining_e
           weld_face.corner_start = corner;
           changed_corner_start = false;
         }
-        if (weld_corner_prev) {
-          weld_corner_prev->corner_next = corner;
+        if (corner_prev != -1) {
+          corner_next[corner_prev] = corner;
         }
-        weld_corner_prev = weld_corner;
-        BLI_assert(weld_corner->corner_next == corner + 1 || corner == weld_face.corner_end);
+        corner_prev = corner;
       }
     } while (corner++ != weld_face.corner_end);
 
     if (face_size) {
-      if (weld_corner_prev) {
-        weld_corner_prev->corner_next = weld_face.corner_start;
-        weld_face.corner_end = weld_corner_prev->corner_src;
-      }
+      corner_next[corner_prev] = weld_face.corner_start;
+      weld_face.corner_end = corner_prev;
 
 #ifdef USE_WELD_DEBUG
       weld_face.corners_num = face_size;
-
-      for (int corner_src : IndexRange(weld_face.corner_start, face_size)) {
-        int corner_ctx = corner_to_weld_corner[corner_src];
-        if (corner_ctx == OUT_OF_CONTEXT) {
-          continue;
-        }
-
-        WeldCorner *weld_corner = &weld_corners[corner_ctx];
-        if (weld_corner->flag == ELEM_COLLAPSED) {
-          continue;
-        }
-
-        corner_ctx = corner_to_weld_corner[weld_corner->corner_next];
-        if (corner_ctx == OUT_OF_CONTEXT) {
-          continue;
-        }
-
-        weld_corner = &weld_corners[corner_ctx];
-        BLI_assert(weld_corner->flag != ELEM_COLLAPSED);
-      }
 #endif
 
       weld_face_split_recursive(face_size,
-                                vert_affected,
+                                corner_verts,
                                 &weld_face,
                                 r_weld_mesh,
                                 &removed_faces_num,
@@ -968,7 +644,7 @@ static void weld_face_corner_ctx_setup_collapsed_and_split(const int remaining_e
 
 #ifdef USE_WELD_DEBUG
   weld_assert_removed_faces_and_corners_num(
-      r_weld_mesh, r_weld_mesh->removed_faces_num, r_weld_mesh->removed_corners_num);
+      *r_weld_mesh, r_weld_mesh->removed_faces_num, r_weld_mesh->removed_corners_num);
 #endif
 }
 
@@ -1141,8 +817,7 @@ static int face_find_doubles(const OffsetIndices<int> face_corner_offsets,
   return doubles_buffer_num - (r_doubles_offsets.size() - 1);
 }
 
-static void weld_face_find_doubles(const Span<int> corner_verts,
-                                   const Span<int> corner_edges,
+static void weld_face_find_doubles(const Span<int> corner_edges,
                                    const int src_edges_num,
                                    WeldMesh *r_weld_mesh)
 {
@@ -1151,37 +826,22 @@ static void weld_face_find_doubles(const Span<int> corner_verts,
   }
 
   WeldFace *weld_faces = r_weld_mesh->weld_faces.data();
-  MutableSpan<WeldCorner> weld_corners = r_weld_mesh->weld_corners;
-  Span<int> corner_to_weld_corner = r_weld_mesh->corner_to_weld_corner;
+  const Span<int> edge_src_to_target = r_weld_mesh->edge_src_to_target;
   int face_index = 0;
 
   const int face_size = r_weld_mesh->weld_faces.size();
   Array<int> face_offsets_(face_size + 1);
   Vector<int> new_corner_edges;
-  new_corner_edges.reserve(corner_verts.size() - r_weld_mesh->removed_corners_num);
+  new_corner_edges.reserve(corner_edges.size() - r_weld_mesh->removed_corners_num);
 
   for (const WeldFace &weld_face : r_weld_mesh->weld_faces) {
     face_offsets_[face_index++] = new_corner_edges.size();
-
-    WeldCornerOfFaceIter iter;
-    if (!weld_iter_corner_of_face_begin(iter,
-                                        weld_face,
-                                        weld_corners,
-                                        corner_verts,
-                                        corner_edges,
-                                        corner_to_weld_corner,
-                                        nullptr))
-    {
-      continue;
-    }
-
     if (weld_face.face_dst != OUT_OF_CONTEXT) {
       continue;
     }
-
-    do {
-      new_corner_edges.append(iter.edge);
-    } while (weld_iter_corner_of_face_next(iter));
+    foreach_weld_face_corner(weld_face, r_weld_mesh->corner_next, [&](const int corner) {
+      new_corner_edges.append(edge_src_to_target[corner_edges[corner]]);
+    });
   }
 
   face_offsets_[face_size] = new_corner_edges.size();
@@ -1215,7 +875,7 @@ static void weld_face_find_doubles(const Span<int> corner_verts,
 
 #ifdef USE_WELD_DEBUG
   weld_assert_removed_faces_and_corners_num(
-      r_weld_mesh, r_weld_mesh->removed_faces_num, r_weld_mesh->removed_corners_num);
+      *r_weld_mesh, r_weld_mesh->removed_faces_num, r_weld_mesh->removed_corners_num);
 #endif
 }
 
@@ -1269,12 +929,12 @@ static void weld_mesh_context_create(const Mesh &mesh,
   weld_assert_removed_edges_num(r_weld_mesh->edge_src_to_target, r_weld_mesh->removed_edges_num);
 #endif
 
-  weld_face_corner_ctx_alloc(faces, corner_verts, corner_edges, r_weld_mesh);
+  weld_face_corner_ctx_alloc(faces, corner_verts, r_weld_mesh);
 
-  weld_face_corner_ctx_setup_collapsed_and_split(weld_edges.size() - removed_double_edges_num,
-                                                 r_weld_mesh);
+  weld_face_corner_ctx_setup_collapsed_and_split(
+      corner_verts, corner_edges, weld_edges.size() - removed_double_edges_num, r_weld_mesh);
 
-  weld_face_find_doubles(corner_verts, corner_edges, edges.size(), r_weld_mesh);
+  weld_face_find_doubles(corner_edges, edges.size(), r_weld_mesh);
 }
 
 /** \} */
@@ -1580,13 +1240,36 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   corner_src_index_offset_data.reserve(result->corners_num + 1);
   corner_src_index_data.reserve(mesh.corners_num);
 
+  /* Add the remaining corners of a weld face, with the source corners that are merged into each of
+   * them: the corners of the source face that have the same vertex after merging. */
+  const auto add_weld_face_corners = [&](const WeldFace &weld_face, int &dst_corner) {
+    const IndexRange src_face = src_faces[weld_face.face_src];
+    foreach_weld_face_corner(weld_face, weld_mesh.corner_next, [&](const int corner) {
+      const int vert = vert_src_to_target[src_corner_verts[corner]];
+      corner_src_index_offset_data.append_unchecked(corner_src_index_data.size());
+      if (vert_affected[vert]) {
+        for (const int group_corner : src_face) {
+          if (vert_src_to_target[src_corner_verts[group_corner]] == vert) {
+            corner_src_index_data.append(group_corner);
+          }
+        }
+      }
+      else {
+        corner_src_index_data.append(corner);
+      }
+      dst_corner_verts[dst_corner] = vert_src_to_dst[vert];
+      dst_corner_edges[dst_corner] =
+          edge_src_to_dst[weld_mesh.edge_src_to_target[src_corner_edges[corner]]];
+      dst_corner++;
+    });
+  };
+
   int r_i = 0;
   int dst_corner = 0;
   Vector<bool> dst_face_unaffected;
   dst_face_unaffected.reserve(dst_faces_num);
   Vector<int> dst_to_src_faces;
   dst_to_src_faces.reserve(dst_faces_num);
-  Array<int, 64> group_buffer(weld_mesh.max_face_size);
   for (const int i : src_faces.index_range()) {
     const int corner_start = dst_corner;
     const int face_ctx = weld_mesh.face_to_weld_face[i];
@@ -1600,29 +1283,11 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     }
     else {
       const WeldFace &weld_face = weld_mesh.weld_faces[face_ctx];
-      WeldCornerOfFaceIter iter;
-      if (!weld_iter_corner_of_face_begin(iter,
-                                          weld_face,
-                                          weld_mesh.weld_corners,
-                                          src_corner_verts,
-                                          src_corner_edges,
-                                          weld_mesh.corner_to_weld_corner,
-                                          group_buffer.data()))
-      {
-        continue;
-      }
-
       if (weld_face.face_dst != OUT_OF_CONTEXT) {
         continue;
       }
       dst_face_unaffected.append_unchecked(false);
-      do {
-        corner_src_index_offset_data.append_unchecked(corner_src_index_data.size());
-        corner_src_index_data.extend(Span(group_buffer.data(), iter.group_size));
-        dst_corner_verts[dst_corner] = vert_src_to_dst[iter.vert];
-        dst_corner_edges[dst_corner] = edge_src_to_dst[iter.edge];
-        dst_corner++;
-      } while (weld_iter_corner_of_face_next(iter));
+      add_weld_face_corners(weld_face, dst_corner);
     }
 
     dst_to_src_faces.append_unchecked(i);
@@ -1634,31 +1299,11 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
    * NOTE: The number of "src" and "new" faces might not match `new_faces_num`. */
   for (const int i : weld_mesh.weld_faces.index_range().take_back(weld_mesh.new_faces_num)) {
     const WeldFace &weld_face = weld_mesh.weld_faces[i];
-    const int corner_start = dst_corner;
-    WeldCornerOfFaceIter iter;
-    if (!weld_iter_corner_of_face_begin(iter,
-                                        weld_face,
-                                        weld_mesh.weld_corners,
-                                        src_corner_verts,
-                                        src_corner_edges,
-                                        weld_mesh.corner_to_weld_corner,
-                                        group_buffer.data()))
-    {
-      continue;
-    }
-
     if (weld_face.face_dst != OUT_OF_CONTEXT) {
       continue;
     }
-    do {
-      corner_src_index_offset_data.append_unchecked(corner_src_index_data.size());
-      corner_src_index_data.extend(Span(group_buffer.data(), iter.group_size));
-      dst_corner_verts[dst_corner] = vert_src_to_dst[iter.vert];
-      dst_corner_edges[dst_corner] = edge_src_to_dst[iter.edge];
-      dst_corner++;
-    } while (weld_iter_corner_of_face_next(iter));
-
-    dst_face_offsets[r_i] = corner_start;
+    dst_face_offsets[r_i] = dst_corner;
+    add_weld_face_corners(weld_face, dst_corner);
     r_i++;
   }
 
