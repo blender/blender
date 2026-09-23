@@ -324,58 +324,76 @@ static void weld_face_corner_ctx_alloc(const OffsetIndices<int> faces,
                                        const Span<int> corner_verts,
                                        WeldMesh *r_weld_mesh)
 {
-  Span<bool> vert_affected = r_weld_mesh->vert_affected;
+  const Span<bool> vert_affected = r_weld_mesh->vert_affected;
+
+  IndexMaskMemory memory;
+  const IndexMask affected_faces = IndexMask::from_predicate(
+      faces.index_range(),
+      memory,
+      [&](const int face) {
+        return std::ranges::any_of(corner_verts.slice(faces[face]),
+                                   [&](const int vert) { return vert_affected[vert]; });
+      },
+      exec_mode::grain_size(1024));
+
+  /* Estimate the maximum number of new faces created by splitting faces that contain the same
+   * vertex multiple times after merging. We could be smarter here and actually count how many new
+   * faces will be created. But counting this can be inefficient as it depends on the number of
+   * non-consecutive self face merges. */
+  const int maybe_new_faces_num = threading::parallel_reduce(
+      affected_faces.index_range(),
+      1024,
+      0,
+      [&](const IndexRange range, int maybe_new_faces_num) {
+        affected_faces.slice(range).foreach_index([&](const int face_index) {
+          const IndexRange face = faces[face_index];
+          if (face.size() <= 5) {
+            return;
+          }
+          /* Corners are affected by the merge when their vertex or the next vertex merges. */
+          int corner_ctx_num = 0;
+          for (const int corner : face) {
+            const int corner_next = bke::mesh::face_corner_next(face, corner);
+            if (vert_affected[corner_verts[corner]] || vert_affected[corner_verts[corner_next]]) {
+              corner_ctx_num++;
+            }
+          }
+          if (corner_ctx_num > 1) {
+            maybe_new_faces_num += std::min(int(face.size() / 3), corner_ctx_num) - 1;
+          }
+        });
+        return maybe_new_faces_num;
+      },
+      std::plus<>());
 
   Array<int> corner_next(corner_verts.size());
   Array<int> face_to_weld_face(faces.size());
-
   Vector<WeldFace> weld_faces;
-  weld_faces.reserve(faces.size());
+  weld_faces.reserve(affected_faces.size() + maybe_new_faces_num);
+  weld_faces.resize(affected_faces.size());
 
-  int maybe_new_faces_num = 0;
+  affected_faces.foreach_index(
+      [&](const int face_index, const int weld_face_index) {
+        const IndexRange face = faces[face_index];
+        for (const int corner : face.drop_back(1)) {
+          corner_next[corner] = corner + 1;
+        }
+        corner_next[face.last()] = face.first();
 
-  for (const int i : faces.index_range()) {
-    const IndexRange face = faces[i];
-    /* Corners are affected by the merge when their vertex or the next vertex merges. */
-    int corner_ctx_num = 0;
-    for (const int corner : face) {
-      const int corner_next = bke::mesh::face_corner_next(face, corner);
-      if (vert_affected[corner_verts[corner]] || vert_affected[corner_verts[corner_next]]) {
-        corner_ctx_num++;
-      }
-    }
-    if (corner_ctx_num == 0) {
-      face_to_weld_face[i] = OUT_OF_CONTEXT;
-      continue;
-    }
-
-    for (const int corner : face.drop_back(1)) {
-      corner_next[corner] = corner + 1;
-    }
-    corner_next[face.last()] = face.first();
-
-    face_to_weld_face[i] = weld_faces.size();
-    weld_faces.append_as();
-    WeldFace &weld_face = weld_faces.last();
-    weld_face.face_dst = OUT_OF_CONTEXT;
-    weld_face.face_src = i;
-    weld_face.corner_start = face.first();
-    weld_face.corner_end = face.last();
+        WeldFace &weld_face = weld_faces[weld_face_index];
+        weld_face.face_dst = OUT_OF_CONTEXT;
+        weld_face.face_src = face_index;
+        weld_face.corner_start = face.first();
+        weld_face.corner_end = face.last();
 #ifdef USE_WELD_DEBUG
-    weld_face.corners_num = face.size();
+        weld_face.corners_num = face.size();
 #endif
-
-    const int face_size = face.size();
-    if (face_size > 5 && corner_ctx_num > 1) {
-      /* We could be smarter here and actually count how many new faces will be created.
-       * But counting this can be inefficient as it depends on the number of non-consecutive
-       * self face merges. For now just estimate a maximum value. */
-      int max_new = std::min((face_size / 3), corner_ctx_num) - 1;
-      maybe_new_faces_num += max_new;
-    }
-  }
-
-  weld_faces.reserve(weld_faces.size() + maybe_new_faces_num);
+        face_to_weld_face[face_index] = weld_face_index;
+      },
+      exec_mode::grain_size(1024));
+  index_mask::masked_fill(face_to_weld_face.as_mutable_span(),
+                          OUT_OF_CONTEXT,
+                          affected_faces.complement(faces.index_range(), memory));
 
   r_weld_mesh->weld_faces = std::move(weld_faces);
   r_weld_mesh->new_faces_num = 0;
