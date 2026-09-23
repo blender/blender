@@ -401,6 +401,12 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, invalid library file path"
             ),
+            # invalid_blendfiles/invalid_preview_rect_short.blend
+            # A preview pixel block smaller than the preview size.
+            "invalid_preview_rect_short.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, array size exceeds allocated size"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_open_link_dirs)
