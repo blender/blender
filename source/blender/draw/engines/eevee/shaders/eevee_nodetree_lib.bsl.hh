@@ -1204,9 +1204,6 @@ void node_light_evaluation_impl([[resource_table]] KernelGlobals &kg,
     ltc_data.Minv = ltc_data.Minv * transpose(T);
     factor = eevee::ltc::evaluate(util_tx.utility_tx, light, light_shape_vertices, lv, ltc_data);
 
-    const bool is_transmission = false; /* TODO: Expose? */
-    factor *= light_attenuation_facing(light, lv.L, lv.dist, normal, is_transmission);
-
     factor *= light.shape_power;
     /* Remove the base power (exposed in Light Info).
      * The goal is to get a somewhat normalized factor. */
