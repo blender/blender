@@ -18,6 +18,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_ordered_edge.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
@@ -47,13 +48,6 @@ namespace blender::geometry {
 #define ELEM_COLLAPSED int(-2)
 /* indicates whether an edge or vertex in groups_map will be merged. */
 #define ELEM_MERGED int(-2)
-
-struct WeldEdge {
-  /* Indices relative to the source Mesh. */
-  int edge_src;
-  int vert_a;
-  int vert_b;
-};
 
 struct WeldFace {
   /**
@@ -191,14 +185,17 @@ static void weld_assert_face_no_vert_repetition(const WeldFace &weld_face,
 static Array<bool> find_affected_verts(const Span<int> vert_src_to_target)
 {
   Array<bool> affected(vert_src_to_target.size(), false);
-  for (const int vert : vert_src_to_target.index_range()) {
-    const int vert_target = vert_src_to_target[vert];
-    if (vert_target != vert) {
-      BLI_assert(vert_src_to_target[vert_target] == vert_target);
-      affected[vert] = true;
-      affected[vert_target] = true;
+  threading::parallel_for(vert_src_to_target.index_range(), 4096, [&](const IndexRange range) {
+    for (const int vert : range) {
+      const int vert_target = vert_src_to_target[vert];
+      if (vert_target != vert) {
+        BLI_assert(vert_src_to_target[vert_target] == vert_target);
+        affected[vert] = true;
+        /* All threads will store the same "true" value. */
+        affected[vert_target] = true;
+      }
     }
-  }
+  });
   return affected;
 }
 
@@ -209,151 +206,107 @@ static Array<bool> find_affected_verts(const Span<int> vert_src_to_target)
  * \{ */
 
 /**
- * Build the context weld edges.
+ * Find edges that collapse because both of their vertices merge into the same vertex, and the
+ * other edges affected by the merge (the "weld edges").
  *
- * \return r_edge_src_to_target: First step to create map of indices pointing edges that will be
- * merged.
+ * \param r_edge_src_to_target: Filled with #ELEM_COLLAPSED for collapsed edges, and the edge index
+ * itself for all other edges.
+ * \return The weld edges.
  */
-static Vector<WeldEdge> weld_edges_build_and_find_collapsed(Span<int2> edges,
-                                                            Span<int> vert_src_to_target,
-                                                            Span<bool> vert_affected,
-                                                            MutableSpan<int> r_edge_src_to_target,
-                                                            int *r_collapsed_edges_num)
+static IndexMask find_collapsed_and_weld_edges(const Span<int2> edges,
+                                               const Span<int> vert_src_to_target,
+                                               const Span<bool> vert_affected,
+                                               IndexMaskMemory &memory,
+                                               MutableSpan<int> r_edge_src_to_target,
+                                               int *r_collapsed_edges_num)
 {
-  /* Edge Context. */
-  int collapsed_edges_num = 0;
+  const IndexMask affected_edges = IndexMask::from_predicate(
+      edges.index_range(),
+      memory,
+      [&](const int edge) {
+        return vert_affected[edges[edge][0]] || vert_affected[edges[edge][1]];
+      },
+      exec_mode::grain_size(4096));
+  const IndexMask weld_edges = IndexMask::from_predicate(
+      affected_edges,
+      memory,
+      [&](const int edge) {
+        return vert_src_to_target[edges[edge][0]] != vert_src_to_target[edges[edge][1]];
+      },
+      exec_mode::grain_size(4096));
+  const IndexMask collapsed_edges = IndexMask::from_difference(affected_edges, weld_edges, memory);
 
-  Vector<WeldEdge> weld_edges;
-  weld_edges.reserve(edges.size());
-
-  for (const int i : edges.index_range()) {
-    const int2 edge = edges[i];
-    if (!vert_affected[edge[0]] && !vert_affected[edge[1]]) {
-      r_edge_src_to_target[i] = i;
-      continue;
-    }
-
-    const int vert_a = vert_src_to_target[edge[0]];
-    const int vert_b = vert_src_to_target[edge[1]];
-
-    if (vert_a == vert_b) {
-      r_edge_src_to_target[i] = ELEM_COLLAPSED;
-      collapsed_edges_num++;
-    }
-    else {
-      weld_edges.append({i, vert_a, vert_b});
-      r_edge_src_to_target[i] = i;
-    }
-  }
-
-  *r_collapsed_edges_num = collapsed_edges_num;
+  array_utils::fill_index_range<int>(edges.index_range(), r_edge_src_to_target);
+  index_mask::masked_fill(r_edge_src_to_target, ELEM_COLLAPSED, collapsed_edges);
+  *r_collapsed_edges_num = collapsed_edges.size();
   return weld_edges;
 }
 
 /**
- * Fills `r_edge_src_to_target` indicating the duplicated edges.
+ * Find weld edges that connect the same two vertices after merging. The edge with the lowest index
+ * in each group of duplicates is kept, and the others are mapped to it in \a r_edge_src_to_target.
  *
- * \param weld_edges: Candidate edges for merging (edges that don't collapse and that have at least
- *                    one weld vertex).
- *
- * \param r_edge_src_to_target: Resulting map of indices pointing the source edges to each target.
- * \param r_removed_double_edges_num: Resulting number of duplicate edges to be destroyed.
+ * \return The number of duplicate edges.
  */
-static void weld_edge_find_doubles(Span<WeldEdge> weld_edges,
-                                   int src_verts_num,
-                                   MutableSpan<int> r_edge_src_to_target,
-                                   int *r_removed_double_edges_num)
+static int find_duplicate_edges(const Span<int2> edges,
+                                const Span<int> vert_src_to_target,
+                                const IndexMask &weld_edges,
+                                const int verts_num,
+                                MutableSpan<int> r_edge_src_to_target)
 {
-  /* Setup Edge Overlap. */
-  int removed_double_edges_num = 0;
-
   if (weld_edges.is_empty()) {
-    *r_removed_double_edges_num = removed_double_edges_num;
-    return;
+    return 0;
   }
 
-  /* Add +1 to allow calculation of the length of the last group. */
-  Array<int> vert_to_edges_offsets(src_verts_num + 1, 0);
+  Array<int> edge_indices(weld_edges.size());
+  Array<int> low_verts(weld_edges.size());
+  Array<int> high_verts(weld_edges.size());
+  weld_edges.foreach_index(
+      [&](const int edge, const int pos) {
+        const OrderedEdge verts(vert_src_to_target[edges[edge][0]],
+                                vert_src_to_target[edges[edge][1]]);
+        edge_indices[pos] = edge;
+        low_verts[pos] = verts.v_low;
+        high_verts[pos] = verts.v_high;
+      },
+      exec_mode::grain_size(4096));
 
-  for (const WeldEdge &weld_edge : weld_edges) {
-    BLI_assert(r_edge_src_to_target[weld_edge.edge_src] != ELEM_COLLAPSED);
-    BLI_assert(weld_edge.vert_a != weld_edge.vert_b);
-    vert_to_edges_offsets[weld_edge.vert_a]++;
-    vert_to_edges_offsets[weld_edge.vert_b]++;
-  }
+  /* Duplicate edges share their lower vertex, so only edges in the same group can be duplicates.
+   */
+  Array<int> offset_data;
+  Array<int> index_data;
+  const OffsetIndices edges_by_low_vert = offset_indices::build_groups_from_indices(
+                                              low_verts, verts_num, offset_data, index_data)
+                                              .offsets;
 
-  int links_num = 0;
-  for (const int i : IndexRange(src_verts_num)) {
-    links_num += vert_to_edges_offsets[i];
-    vert_to_edges_offsets[i] = links_num;
-  }
-  vert_to_edges_offsets.last() = links_num;
-
-  BLI_assert(links_num > 0);
-  Array<int> vert_to_edges_indices(links_num);
-
-  /* Use a reverse for loop to ensure that indexes are assigned in ascending order. */
-  for (int i = weld_edges.size(); i--;) {
-    const WeldEdge &weld_edge = weld_edges[i];
-    BLI_assert(r_edge_src_to_target[weld_edge.edge_src] != ELEM_COLLAPSED);
-    int vert_target_a = weld_edge.vert_a;
-    int vert_target_b = weld_edge.vert_b;
-
-    vert_to_edges_indices[--vert_to_edges_offsets[vert_target_a]] = i;
-    vert_to_edges_indices[--vert_to_edges_offsets[vert_target_b]] = i;
-  }
-
-  for (const int i : weld_edges.index_range()) {
-    const WeldEdge &weld_edge = weld_edges[i];
-    if (r_edge_src_to_target[weld_edge.edge_src] != weld_edge.edge_src) {
-      /* Already a duplicate. */
-      continue;
-    }
-
-    int vert_target_a = weld_edge.vert_a;
-    int vert_target_b = weld_edge.vert_b;
-
-    const int link_a = vert_to_edges_offsets[vert_target_a];
-    const int link_b = vert_to_edges_offsets[vert_target_b];
-
-    int edges_num_a = vert_to_edges_offsets[vert_target_a + 1] - link_a;
-    int edges_num_b = vert_to_edges_offsets[vert_target_b + 1] - link_b;
-
-    int edge_src = weld_edge.edge_src;
-    if (edges_num_a <= 1 || edges_num_b <= 1) {
-      /* No other edge can share both of this edge's vertices, so it survives on its own. */
-      continue;
-    }
-
-    int *edges_ctx_a = &vert_to_edges_indices[link_a];
-    int *edges_ctx_b = &vert_to_edges_indices[link_b];
-
-    for (; edges_num_a--; edges_ctx_a++) {
-      int edge_ctx_a = *edges_ctx_a;
-      if (edge_ctx_a == i) {
-        continue;
-      }
-      while (edges_num_b && *edges_ctx_b < edge_ctx_a) {
-        edges_ctx_b++;
-        edges_num_b--;
-      }
-      if (edges_num_b == 0) {
-        break;
-      }
-      int edge_ctx_b = *edges_ctx_b;
-      if (edge_ctx_a == edge_ctx_b) {
-        const WeldEdge &we_b = weld_edges[edge_ctx_b];
-        BLI_assert(ELEM(we_b.vert_a, vert_target_a, vert_target_b));
-        BLI_assert(ELEM(we_b.vert_b, vert_target_a, vert_target_b));
-        BLI_assert(we_b.edge_src != edge_src);
-        BLI_assert(r_edge_src_to_target[we_b.edge_src] == we_b.edge_src);
-        r_edge_src_to_target[we_b.edge_src] = edge_src;
-        removed_double_edges_num++;
-      }
-    }
-  }
-
-  *r_removed_double_edges_num = removed_double_edges_num;
+  return threading::parallel_reduce(
+      edges_by_low_vert.index_range(),
+      1024,
+      0,
+      [&](const IndexRange range, int duplicates_num) {
+        for (const int vert : range) {
+          MutableSpan<int> group = index_data.as_mutable_span().slice(edges_by_low_vert[vert]);
+          if (group.size() < 2) {
+            continue;
+          }
+          /* After sorting by the higher vertex, duplicates are next to each other, and the first
+           * of each group of duplicates has the lowest index. */
+          std::ranges::sort(group, [&](const int a, const int b) {
+            return std::pair(high_verts[a], a) < std::pair(high_verts[b], b);
+          });
+          int first = group[0];
+          for (const int weld_edge : group.drop_front(1)) {
+            if (high_verts[weld_edge] != high_verts[first]) {
+              first = weld_edge;
+              continue;
+            }
+            r_edge_src_to_target[edge_indices[weld_edge]] = edge_indices[first];
+            duplicates_num++;
+          }
+        }
+        return duplicates_num;
+      },
+      std::plus<>());
 }
 
 /** \} */
@@ -912,16 +865,16 @@ static void weld_mesh_context_create(const Mesh &mesh,
   r_weld_mesh->faces = faces;
 #endif
 
-  int collapsed_edges_num, removed_double_edges_num;
-  Vector<WeldEdge> weld_edges = weld_edges_build_and_find_collapsed(
-      edges,
-      vert_src_to_target,
-      vert_affected,
-      r_weld_mesh->edge_src_to_target,
-      &collapsed_edges_num);
-
-  weld_edge_find_doubles(
-      weld_edges, mesh.verts_num, r_weld_mesh->edge_src_to_target, &removed_double_edges_num);
+  IndexMaskMemory memory;
+  int collapsed_edges_num;
+  const IndexMask weld_edges = find_collapsed_and_weld_edges(edges,
+                                                             vert_src_to_target,
+                                                             vert_affected,
+                                                             memory,
+                                                             r_weld_mesh->edge_src_to_target,
+                                                             &collapsed_edges_num);
+  const int removed_double_edges_num = find_duplicate_edges(
+      edges, vert_src_to_target, weld_edges, mesh.verts_num, r_weld_mesh->edge_src_to_target);
 
   r_weld_mesh->removed_edges_num = collapsed_edges_num + removed_double_edges_num;
 
