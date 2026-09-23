@@ -205,8 +205,7 @@ static void library_blend_read_data(BlendDataReader *reader, ID *id)
 static void library_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 {
   Library *lib = reinterpret_cast<Library *>(id);
-  if (lib->flag & LIBRARY_FLAG_IS_ARCHIVE) {
-    BLI_assert(lib->archive_parent_library);
+  if ((lib->flag & LIBRARY_FLAG_IS_ARCHIVE) && lib->archive_parent_library) {
     lib->archive_parent_library->runtime->archived_libraries.append(lib);
   }
 }

@@ -2688,6 +2688,13 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
    * This code detects such issues, reports them, and fixes them as best as possible by
    * re-generating an empty real parent library. */
   if (lib->flag & LIBRARY_FLAG_IS_ARCHIVE) {
+    if (lib->archive_parent_library == nullptr) [[unlikely]] {
+      blo_readfile_invalidate(
+          fd, main, "Corrupt .blend file, archive library without parent library");
+      /* Continue processing to avoid invalid pointers in this datablock that
+       * would be read by later code. */
+    }
+
     Library *parent_lib = static_cast<Library *>(
         newlibadr(fd, &lib->id, false, lib->archive_parent_library));
 
@@ -4386,6 +4393,14 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
          * the one last added in #direct_link_library. */
         bmain_to_read_into = (*fd->bmain->split_mains)[fd->bmain->split_mains->size() - 1];
         placeholder_set_indirect_extern = true;
+
+        /* Corrupt file without library before the placeholder, which would otherwise be
+         * read as a local ID. */
+        if (bmain_to_read_into->curlib == nullptr) [[unlikely]] {
+          blo_readfile_invalidate(fd, bfd->main, "Corrupt .blend file, missing library");
+          bmain_to_read_into = nullptr;
+          bhead = blo_bhead_next(fd, bhead);
+        }
         break;
       case ID_LI:
         if ((fd->skip_flags & BLO_READ_SKIP_DATA) != 0) {
@@ -4778,7 +4793,8 @@ static Library *read_library_struct(FileData *fd, BHead *bheadlib)
     MEM_delete(id);
     fd->flags &= ~FD_FLAGS_FILE_OK;
     if (fd->bmain) {
-      blo_readfile_invalidate(fd, fd->bmain, "Corrupt .blend file, unexpected library block type");
+      blo_readfile_invalidate(
+          fd, fd->bmain, "Corrupt .blend file, unexpected non-library block type");
     }
     return nullptr;
   }
