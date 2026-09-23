@@ -151,3 +151,10 @@ Listing assets and reading the ID dereferenced the missing metadata (crash).
 A library filepath without null terminator until the block end, also overwriting the following
 members. Listing the file read past the end (buffer overflow). Opening it read link placeholders
 as full IDs, due to the library flag marking it as archive library (crash).
+
+`invalid_preview_rect_short.blend`
+----------------------------------
+
+An object preview's pixel block is truncated to 4 bytes.
+Loading the preview from the file browser read past the end (buffer overflow).
+Opening it leaked the rejected pixel block.

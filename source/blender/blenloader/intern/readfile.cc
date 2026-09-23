@@ -1565,6 +1565,15 @@ static void *newdataadr_no_us(FileData *fd, const void *adr)
   return oldnewmap_lookup_and_inc(fd->datamap, adr, false);
 }
 
+/**
+ * Only direct data-blocks. Returns the map entry without adding a user, so that a user can be
+ * added once the data is verified. Invalid data is then freed along with unused data.
+ */
+static NewAddress *newdataadr_entry(FileData *fd, const void *adr)
+{
+  return fd->datamap->map.lookup_ptr(adr);
+}
+
 void *blo_read_get_new_globaldata_address(FileData *fd, const void *adr)
 {
   return oldnewmap_lookup_and_inc(fd->globmap, adr, true);
@@ -5452,8 +5461,15 @@ void *BLO_read_struct_array_with_size(BlendDataReader *reader,
                                       const void *old_address,
                                       const size_t expected_size)
 {
-  void *new_address = newdataadr(reader->fd, old_address);
-  return blo_verify_data_address(reader->fd, new_address, old_address, expected_size);
+  NewAddress *entry = newdataadr_entry(reader->fd, old_address);
+  if (entry == nullptr) {
+    return nullptr;
+  }
+  void *new_address = blo_verify_data_address(reader->fd, entry->newp, old_address, expected_size);
+  if (new_address) {
+    entry->nr++;
+  }
+  return new_address;
 }
 
 void *BLO_read_struct_by_name_array(BlendDataReader *reader,
