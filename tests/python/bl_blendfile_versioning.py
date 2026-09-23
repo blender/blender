@@ -360,6 +360,24 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, invalid block count"
             ),
+            # invalid_blendfiles/invalid_glob_small.blend
+            # The global block has a struct type smaller than FileGlobal.
+            "invalid_glob_small.blend": (
+                (OSError, RuntimeError),
+                "is corrupt, unable to read"
+            ),
+            # invalid_blendfiles/invalid_id_struct_type.blend
+            # An ID block has a struct type smaller than its ID type.
+            "invalid_id_struct_type.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, block too small for its type"
+            ),
+            # invalid_blendfiles/invalid_library_id_type.blend
+            # A library block has the ID name of a larger type.
+            "invalid_library_id_type.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, block too small for its type"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_open_link_dirs)
