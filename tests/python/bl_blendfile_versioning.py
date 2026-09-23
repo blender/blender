@@ -145,6 +145,18 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, block too small for its type"
             ),
+            # invalid_blendfiles/invalid_library_missing.blend
+            # Link placeholders without a library block.
+            "invalid_library_missing.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, missing library"
+            ),
+            # invalid_blendfiles/invalid_library_as_text.blend
+            # Link placeholders after a library block renamed to a text.
+            "invalid_library_as_text.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, missing library"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_dirs)

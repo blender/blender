@@ -4010,6 +4010,14 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
            * to the file format definition. So we can use the entry at the
            * end of mainlist, added in direct_link_library. */
           Main *libmain = static_cast<Main *>(mainlist.last);
+
+          /* Corrupt file without library before the placeholder, which would otherwise be
+           * read as a local ID. */
+          if (libmain->curlib == nullptr) [[unlikely]] {
+            blo_readfile_invalidate(fd, bfd->main, "Corrupt .blend file, missing library");
+            bhead = blo_bhead_next(fd, bhead);
+            break;
+          }
           bhead = read_libblock(fd, libmain, bhead, 0, {}, true, nullptr);
         }
         break;
@@ -4359,7 +4367,7 @@ static Library *read_library_struct(FileData *fd, BHead *bheadlib)
     MEM_freeN(id);
     fd->flags &= ~FD_FLAGS_FILE_OK;
     if (Main *bmain = filedata_main(fd)) {
-      blo_readfile_invalidate(fd, bmain, "Corrupt .blend file, unexpected library block type");
+      blo_readfile_invalidate(fd, bmain, "Corrupt .blend file, unexpected non-library block type");
     }
     return nullptr;
   }
