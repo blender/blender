@@ -118,16 +118,19 @@ static int ptcache_extra_datasize[] = {
 };
 
 /* forward declarations */
-static int ptcache_file_compressed_read(PTCacheFile *pf,
-                                        uchar *result,
-                                        uint items_num,
-                                        uint item_size);
+static bool ptcache_file_compressed_read(PTCacheFile *pf,
+                                         uchar *result,
+                                         uint items_num,
+                                         uint item_size);
 static void ptcache_file_compressed_write(PTCacheFile *pf,
                                           const void *data,
-                                          uint items_num,
-                                          uint item_size);
-static int ptcache_file_write(PTCacheFile *pf, const void *data, uint items_num, uint item_size);
-static bool ptcache_file_read(PTCacheFile *pf, void *f, uint items_num, uint item_size);
+                                          size_t items_num,
+                                          size_t item_size);
+static bool ptcache_file_write(PTCacheFile *pf,
+                               const void *data,
+                               size_t items_num,
+                               size_t item_size);
+static bool ptcache_file_read(PTCacheFile *pf, void *f, size_t items_num, size_t item_size);
 
 /* Common functions */
 static int ptcache_basic_header_read(PTCacheFile *pf)
@@ -751,9 +754,11 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
       return 0;
     }
 
-    int ret = ptcache_file_compressed_read(
-        pf, static_cast<uchar *>(surface->data->type_data), surface->data->total_points, data_len);
-    if (ret) {
+    if (!ptcache_file_compressed_read(pf,
+                                      static_cast<uchar *>(surface->data->type_data),
+                                      surface->data->total_points,
+                                      data_len))
+    {
       CLOG_ERROR(&LOG, "Dynamic Paint: Unable to read the compressed cache data");
       return 0;
     }
@@ -1502,69 +1507,61 @@ static void ptcache_file_close(PTCacheFile *pf)
   }
 }
 
-static int ptcache_file_compressed_read(PTCacheFile *pf,
-                                        uchar *result,
-                                        uint items_num,
-                                        uint item_size)
+static bool ptcache_file_compressed_read(PTCacheFile *pf,
+                                         uchar *result,
+                                         uint items_num,
+                                         uint item_size)
 {
-  int r = 0;
-  size_t in_len;
+  const size_t out_len = items_num * item_size;
 
   uchar compressed_val = 0;
   ptcache_file_read(pf, &compressed_val, 1, sizeof(uchar));
   const PointCacheCompression compressed = PointCacheCompression(compressed_val);
-  if (compressed != PTCACHE_COMPRESS_NO) {
-    uint size;
-    ptcache_file_read(pf, &size, 1, sizeof(uint));
-    in_len = size_t(size);
-    if (in_len == 0) {
-      /* do nothing */
-    }
-    else {
-      uchar *in = MEM_new_array_zeroed<uchar>(in_len, "pointcache_compressed_buffer");
-      ptcache_file_read(pf, in, in_len, sizeof(uchar));
 
-      uchar *decomp_result = result;
-      if (compressed == PTCACHE_COMPRESS_ZSTD_FILTERED) {
-        decomp_result = MEM_new_array_uninitialized<uchar>(items_num * item_size,
-                                                           "pointcache_unfilter_buffer");
-      }
-      if (ELEM(compressed,
-               PTCACHE_COMPRESS_ZSTD_FILTERED,
-               PTCACHE_COMPRESS_ZSTD_FAST_DEPRECATED,
-               PTCACHE_COMPRESS_ZSTD_SLOW_DEPRECATED))
-      {
-        const size_t err = ZSTD_decompress(decomp_result, items_num * item_size, in, in_len);
-        r = ZSTD_isError(err);
-      }
-      else {
-        /* We are trying to read an unsupported compression format. */
-        r = 1;
-      }
-      MEM_delete(in);
-
-      /* Un-filter the decompressed data, if needed. */
-      if (compressed == PTCACHE_COMPRESS_ZSTD_FILTERED) {
-        unfilter_transpose_delta(decomp_result, result, items_num, item_size);
-        MEM_delete(decomp_result);
-      }
-    }
-  }
-  else {
-    ptcache_file_read(pf, result, items_num * item_size, sizeof(uchar));
+  if (compressed == PTCACHE_COMPRESS_NO) {
+    ptcache_file_read(pf, result, out_len, sizeof(uchar));
+    return true;
   }
 
-  return r;
+  if (!ELEM(compressed,
+            PTCACHE_COMPRESS_ZSTD_FILTERED,
+            PTCACHE_COMPRESS_ZSTD_FAST_DEPRECATED,
+            PTCACHE_COMPRESS_ZSTD_SLOW_DEPRECATED))
+  {
+    /* We are trying to read an unsupported compression format. */
+    return false;
+  }
+
+  uint in_len;
+  ptcache_file_read(pf, &in_len, 1, sizeof(uint));
+  if (in_len == 0) {
+    return true;
+  }
+  Array<uchar> in(in_len, 0);
+  ptcache_file_read(pf, in.data(), in_len, sizeof(uchar));
+
+  if (compressed != PTCACHE_COMPRESS_ZSTD_FILTERED) {
+    return !ZSTD_isError(ZSTD_decompress(result, out_len, in.data(), in_len));
+  }
+
+  /* Un-filter the decompressed data. */
+  uchar *decomp_result = MEM_new_array_uninitialized<uchar>(out_len, "pointcache_unfilter_buffer");
+  const bool decompressed = !ZSTD_isError(
+      ZSTD_decompress(decomp_result, out_len, in.data(), in_len));
+  unfilter_transpose_delta(decomp_result, result, items_num, item_size);
+  MEM_delete(decomp_result);
+
+  return decompressed;
 }
 
 static void ptcache_file_compressed_write(PTCacheFile *pf,
                                           const void *data,
-                                          uint items_num,
-                                          uint item_size)
+                                          size_t items_num,
+                                          size_t item_size)
 {
   /* Allocate space for compressed data. */
   const PointCacheCompression compression = PTCACHE_COMPRESS_ZSTD_FILTERED;
-  const uint data_size = items_num * item_size;
+  const size_t data_size = items_num * item_size;
   size_t out_len = ZSTD_compressBound(data_size);
   Array<uchar> out(out_len);
 
@@ -1586,26 +1583,16 @@ static void ptcache_file_compressed_write(PTCacheFile *pf,
   ptcache_file_write(pf, out.data(), out_len, sizeof(uchar));
 }
 
-static bool ptcache_file_read(PTCacheFile *pf, void *f, uint items_num, uint item_size)
+static bool ptcache_file_read(PTCacheFile *pf, void *f, size_t items_num, size_t item_size)
 {
   return (fread(f, item_size, items_num, pf->fp) == items_num);
 }
-static int ptcache_file_write(PTCacheFile *pf, const void *data, uint items_num, uint item_size)
+static bool ptcache_file_write(PTCacheFile *pf,
+                               const void *data,
+                               size_t items_num,
+                               size_t item_size)
 {
   return (fwrite(data, item_size, items_num, pf->fp) == items_num);
-}
-static bool ptcache_file_data_read(PTCacheFile *pf)
-{
-  int i;
-
-  for (i = 0; i < BPHYS_TOT_DATA; i++) {
-    if ((pf->data_types & (1 << i)) && !ptcache_file_read(pf, pf->cur[i], 1, ptcache_data_size[i]))
-    {
-      return false;
-    }
-  }
-
-  return true;
 }
 static int ptcache_file_header_begin_read(PTCacheFile *pf)
 {
@@ -1755,13 +1742,11 @@ int BKE_ptcache_mem_pointers_seek(int point_index, PTCacheMem *pm, void *cur[BPH
 }
 static void ptcache_data_alloc(PTCacheMem *pm)
 {
-  int data_types = pm->data_types;
-  int totpoint = pm->totpoint;
-  int i;
+  const uint data_types = pm->data_types;
 
-  for (i = 0; i < BPHYS_TOT_DATA; i++) {
+  for (int i = 0; i < BPHYS_TOT_DATA; i++) {
     if (data_types & (1 << i)) {
-      pm->data[i] = MEM_new_zeroed(totpoint * ptcache_data_size[i], "PTCache Data");
+      pm->data[i] = MEM_new_zeroed(pm->totpoint * ptcache_data_size[i], "PTCache Data");
     }
   }
 }
@@ -1773,17 +1758,6 @@ static void ptcache_data_free(PTCacheMem *pm)
   for (i = 0; i < BPHYS_TOT_DATA; i++) {
     if (data[i]) {
       MEM_delete_void(data[i]);
-    }
-  }
-}
-static void ptcache_data_copy(void *from[], void *to[])
-{
-  int i;
-  for (i = 0; i < BPHYS_TOT_DATA; i++) {
-    /* NOTE: Durian file `03.4b_comp` crashes if `to[i]` is not tested
-     * its null, not sure if this should be fixed elsewhere but for now its needed. */
-    if (from[i] && to[i]) {
-      memcpy(to[i], from[i], ptcache_data_size[i]);
     }
   }
 }
@@ -1882,6 +1856,24 @@ static void ptcache_find_frames_around(PTCacheID *pid, uint frame, int *r_fra1, 
   }
 }
 
+/* Read uncompressed point data, which is stored point by point. */
+static bool ptcache_file_points_read(PTCacheFile *pf, PTCacheMem *pm)
+{
+  void *cur[BPHYS_TOT_DATA];
+  BKE_ptcache_mem_pointers_init(pm, cur);
+
+  for (uint i = 0; i < pm->totpoint; i++) {
+    for (int j = 0; j < BPHYS_TOT_DATA; j++) {
+      if ((pm->data_types & (1 << j)) && !ptcache_file_read(pf, cur[j], 1, ptcache_data_size[j])) {
+        return false;
+      }
+    }
+    BKE_ptcache_mem_pointers_incr(cur);
+  }
+
+  return true;
+}
+
 static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 {
   PTCacheFile *pf = ptcache_file_open(pid, PTCACHE_FILE_READ, cfra);
@@ -1912,24 +1904,13 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
     if (pf->flag & PTCACHE_TYPEFLAG_COMPRESS) {
       for (i = 0; !error && i < BPHYS_TOT_DATA; i++) {
         if (pf->data_types & (1 << i)) {
-          error = ptcache_file_compressed_read(
+          error = !ptcache_file_compressed_read(
               pf, static_cast<uchar *>(pm->data[i]), pm->totpoint, ptcache_data_size[i]);
         }
       }
     }
     else {
-      void *cur[BPHYS_TOT_DATA];
-      BKE_ptcache_mem_pointers_init(pm, cur);
-      ptcache_file_pointers_init(pf);
-
-      for (i = 0; i < pm->totpoint; i++) {
-        if (!ptcache_file_data_read(pf)) {
-          error = 1;
-          break;
-        }
-        ptcache_data_copy(pf->cur, cur);
-        BKE_ptcache_mem_pointers_incr(cur);
-      }
+      error = !ptcache_file_points_read(pf, pm);
     }
   }
 
@@ -1952,10 +1933,10 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
                                    "Pointcache extradata->data");
 
       if (pf->flag & PTCACHE_TYPEFLAG_COMPRESS) {
-        error = ptcache_file_compressed_read(pf,
-                                             static_cast<uchar *>(extra->data),
-                                             extra->totdata,
-                                             ptcache_extra_datasize[extra->type]);
+        error = !ptcache_file_compressed_read(pf,
+                                              static_cast<uchar *>(extra->data),
+                                              extra->totdata,
+                                              ptcache_extra_datasize[extra->type]);
       }
       else {
         ptcache_file_read(pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type]);
