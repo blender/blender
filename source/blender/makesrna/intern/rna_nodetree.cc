@@ -649,6 +649,14 @@ static const EnumPropertyItem rna_enum_shader_attribute_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem rna_enum_shader_vect_transform_space_items[] = {
+    {SHD_VECT_TRANSFORM_SPACE_WORLD, "WORLD", 0, "World", ""},
+    {SHD_VECT_TRANSFORM_SPACE_OBJECT, "OBJECT", 0, "Object", ""},
+    {SHD_VECT_TRANSFORM_SPACE_CAMERA, "CAMERA", 0, "Camera", ""},
+    {SHD_VECT_TRANSFORM_SPACE_LIGHT, "LIGHT", 0, "Light", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifndef RNA_RUNTIME
 
 static const EnumPropertyItem prop_shader_output_target_items[] = {
@@ -4644,6 +4652,32 @@ static const EnumPropertyItem *rna_NodeShaderAttribute_type_itemf(bContext *C,
       });
 }
 
+static const EnumPropertyItem *rna_NodeShaderVectTransform_space_itemf(bContext *C,
+                                                                       PointerRNA * /*ptr*/,
+                                                                       PropertyRNA * /*prop*/,
+                                                                       bool *r_free)
+{
+  if (C == nullptr) {
+    return rna_enum_shader_vect_transform_space_items;
+  }
+
+  Scene *scene = CTX_data_scene(C);
+  SpaceNode *space_node = CTX_wm_space_node(C);
+
+  if (scene == nullptr || space_node == nullptr) {
+    return rna_enum_shader_vect_transform_space_items;
+  }
+
+  *r_free = true;
+
+  bool supports_light_transform = !STREQ(CTX_data_scene(C)->r.engine, RE_engine_id_CYCLES) &&
+                                  CTX_wm_space_node(C)->shaderfrom == SNODE_SHADER_OBJECT;
+  return itemf_function_check(
+      rna_enum_shader_vect_transform_space_items, [&](const EnumPropertyItem *item) {
+        return supports_light_transform || item->value != SHD_VECT_TRANSFORM_SPACE_LIGHT;
+      });
+}
+
 }  // namespace blender
 
 #else
@@ -6234,13 +6268,6 @@ static void def_sh_vect_transform(BlenderRNA * /*brna*/, StructRNA *srna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem prop_vect_space_items[] = {
-      {SHD_VECT_TRANSFORM_SPACE_WORLD, "WORLD", 0, "World", ""},
-      {SHD_VECT_TRANSFORM_SPACE_OBJECT, "OBJECT", 0, "Object", ""},
-      {SHD_VECT_TRANSFORM_SPACE_CAMERA, "CAMERA", 0, "Camera", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   PropertyRNA *prop;
 
   RNA_def_struct_sdna_from(srna, "NodeShaderVectTransform", "storage");
@@ -6252,12 +6279,14 @@ static void def_sh_vect_transform(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, 0, "rna_Node_update");
 
   prop = RNA_def_property(srna, "convert_from", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, prop_vect_space_items);
+  RNA_def_property_enum_items(prop, rna_enum_shader_vect_transform_space_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_NodeShaderVectTransform_space_itemf");
   RNA_def_property_ui_text(prop, "Convert From", "Space to convert from");
   RNA_def_property_update(prop, 0, "rna_Node_update");
 
   prop = RNA_def_property(srna, "convert_to", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, prop_vect_space_items);
+  RNA_def_property_enum_items(prop, rna_enum_shader_vect_transform_space_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_NodeShaderVectTransform_space_itemf");
   RNA_def_property_ui_text(prop, "Convert To", "Space to convert to");
   RNA_def_property_update(prop, 0, "rna_Node_update");
 }

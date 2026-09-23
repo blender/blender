@@ -18,6 +18,11 @@ namespace nodes::node_shader_vector_transform_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  const bNodeTree *ntree = b.tree_or_null();
+  const bool is_gpu_internal = ntree && (ntree->flag & NTREE_IS_GPU_SHADER_INTERNAL);
+
+  b.add_input<decl::Int>("LightIndex"_ustr).available(is_gpu_internal);
+
   b.add_input<decl::Vector>("Vector"_ustr)
       .default_value({0.5f, 0.5f, 0.5f})
       .min(-10000.0f)
@@ -49,87 +54,50 @@ static void node_shader_init_vect_transform(bNodeTree * /*ntree*/, bNode *node)
 
 static const char *get_gpufn_name_from_to(short from, short to, short vector_type)
 {
-  switch (from) {
-    case SHD_VECT_TRANSFORM_SPACE_OBJECT:
-      switch (to) {
-        case SHD_VECT_TRANSFORM_SPACE_OBJECT:
-          return nullptr;
-        case SHD_VECT_TRANSFORM_SPACE_WORLD:
-          switch (vector_type) {
-            case SHD_VECT_TRANSFORM_TYPE_NORMAL:
-              return "normal_transform_object_to_world";
-            case SHD_VECT_TRANSFORM_TYPE_VECTOR:
-              return "direction_transform_object_to_world";
-            case SHD_VECT_TRANSFORM_TYPE_POINT:
-              return "point_transform_object_to_world";
-          }
-          break;
-        case SHD_VECT_TRANSFORM_SPACE_CAMERA:
-          switch (vector_type) {
-            case SHD_VECT_TRANSFORM_TYPE_NORMAL:
-              return "normal_transform_object_to_view";
-            case SHD_VECT_TRANSFORM_TYPE_VECTOR:
-              return "direction_transform_object_to_view";
-            case SHD_VECT_TRANSFORM_TYPE_POINT:
-              return "point_transform_object_to_view";
-          }
-          break;
-      }
-      break;
-    case SHD_VECT_TRANSFORM_SPACE_WORLD:
-      switch (to) {
-        case SHD_VECT_TRANSFORM_SPACE_WORLD:
-          return nullptr;
-        case SHD_VECT_TRANSFORM_SPACE_CAMERA:
-          switch (vector_type) {
-            case SHD_VECT_TRANSFORM_TYPE_NORMAL:
-              return "normal_transform_world_to_view";
-            case SHD_VECT_TRANSFORM_TYPE_VECTOR:
-              return "direction_transform_world_to_view";
-            case SHD_VECT_TRANSFORM_TYPE_POINT:
-              return "point_transform_world_to_view";
-          }
-          break;
-        case SHD_VECT_TRANSFORM_SPACE_OBJECT:
-          switch (vector_type) {
-            case SHD_VECT_TRANSFORM_TYPE_NORMAL:
-              return "normal_transform_world_to_object";
-            case SHD_VECT_TRANSFORM_TYPE_VECTOR:
-              return "direction_transform_world_to_object";
-            case SHD_VECT_TRANSFORM_TYPE_POINT:
-              return "point_transform_world_to_object";
-          }
-          break;
-      }
-      break;
-    case SHD_VECT_TRANSFORM_SPACE_CAMERA:
-      switch (to) {
-        case SHD_VECT_TRANSFORM_SPACE_CAMERA:
-          return nullptr;
-        case SHD_VECT_TRANSFORM_SPACE_WORLD:
-          switch (vector_type) {
-            case SHD_VECT_TRANSFORM_TYPE_NORMAL:
-              return "normal_transform_view_to_world";
-            case SHD_VECT_TRANSFORM_TYPE_VECTOR:
-              return "direction_transform_view_to_world";
-            case SHD_VECT_TRANSFORM_TYPE_POINT:
-              return "point_transform_view_to_world";
-          }
-          break;
-        case SHD_VECT_TRANSFORM_SPACE_OBJECT:
-          switch (vector_type) {
-            case SHD_VECT_TRANSFORM_TYPE_NORMAL:
-              return "normal_transform_view_to_object";
-            case SHD_VECT_TRANSFORM_TYPE_VECTOR:
-              return "direction_transform_view_to_object";
-            case SHD_VECT_TRANSFORM_TYPE_POINT:
-              return "point_transform_view_to_object";
-          }
-          break;
-      }
-      break;
+  if (from == to) {
+    return nullptr;
   }
+
+#define SWITCH_VECTOR_TYPE(FROM, TO) \
+  switch (vector_type) { \
+    case SHD_VECT_TRANSFORM_TYPE_NORMAL: \
+      return "normal_transform_" FROM "_to_" TO; \
+    case SHD_VECT_TRANSFORM_TYPE_VECTOR: \
+      return "direction_transform_" FROM "_to_" TO; \
+    case SHD_VECT_TRANSFORM_TYPE_POINT: \
+      return "point_transform_" FROM "_to_" TO; \
+  } \
+  break;
+
+#define SWITCH_SPACE_TYPE(FROM) \
+  switch (to) { \
+    case SHD_VECT_TRANSFORM_SPACE_WORLD: \
+      SWITCH_VECTOR_TYPE(FROM, "world"); \
+    case SHD_VECT_TRANSFORM_SPACE_OBJECT: \
+      SWITCH_VECTOR_TYPE(FROM, "object"); \
+    case SHD_VECT_TRANSFORM_SPACE_CAMERA: \
+      SWITCH_VECTOR_TYPE(FROM, "camera"); \
+    case SHD_VECT_TRANSFORM_SPACE_LIGHT: \
+      SWITCH_VECTOR_TYPE(FROM, "light"); \
+  } \
+  break;
+
+  switch (from) {
+    case SHD_VECT_TRANSFORM_SPACE_WORLD:
+      SWITCH_SPACE_TYPE("world");
+    case SHD_VECT_TRANSFORM_SPACE_OBJECT:
+      SWITCH_SPACE_TYPE("object");
+    case SHD_VECT_TRANSFORM_SPACE_CAMERA:
+      SWITCH_SPACE_TYPE("camera");
+    case SHD_VECT_TRANSFORM_SPACE_LIGHT:
+      SWITCH_SPACE_TYPE("light");
+  }
+
+  BLI_assert_unreachable();
   return nullptr;
+
+#undef SWITCH_VECTOR_SPACE
+#undef SWITCH_VECTOR_TYPE
 }
 
 static int gpu_shader_vect_transform(GPUMaterial *mat,
@@ -142,11 +110,18 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
 
   NodeShaderVectTransform *nodeprop = static_cast<NodeShaderVectTransform *>(node->storage);
 
-  if (in[0].hasinput) {
-    inputlink = in[0].link;
+  const bool has_light_space = ELEM(
+      SHD_VECT_TRANSFORM_SPACE_LIGHT, nodeprop->convert_from, nodeprop->convert_to);
+  if (has_light_space) {
+    /* Error: The node is not linked to a light accumulation node. */
+    BLI_assert(in[0].link);
+  }
+
+  if (in[1].hasinput) {
+    inputlink = in[1].link;
   }
   else {
-    inputlink = GPU_uniform(in[0]);
+    inputlink = GPU_uniform(in[1]);
   }
 
   const char *func_name = get_gpufn_name_from_to(
@@ -161,7 +136,18 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
       GPU_link(mat, "invert_z", inputlink, &inputlink);
     }
 
-    GPU_link(mat, func_name, inputlink, GPU_kernel_globals(), GPU_shading_data(), &out[0].link);
+    if (has_light_space) {
+      GPU_link(mat,
+               func_name,
+               in[0].link,
+               inputlink,
+               GPU_kernel_globals(),
+               GPU_shading_data(),
+               &out[0].link);
+    }
+    else {
+      GPU_link(mat, func_name, inputlink, GPU_kernel_globals(), GPU_shading_data(), &out[0].link);
+    }
 
     if (nodeprop->convert_to == SHD_VECT_TRANSFORM_SPACE_CAMERA &&
         nodeprop->convert_from != SHD_VECT_TRANSFORM_SPACE_CAMERA)
@@ -198,7 +184,7 @@ NODE_SHADER_MATERIALX_BEGIN
       fromspace = "object";
       break;
     default:
-      /* NOTE: SHD_VECT_TRANSFORM_SPACE_CAMERA don't have an implementation in MaterialX. */
+      /* NOTE: SHD_VECT_TRANSFORM_SPACE_CAMERA/LIGHT don't have an implementation in MaterialX. */
       BLI_assert_unreachable();
       return vector;
   }
@@ -211,7 +197,7 @@ NODE_SHADER_MATERIALX_BEGIN
       tospace = "object";
       break;
     default:
-      /* NOTE: SHD_VECT_TRANSFORM_SPACE_CAMERA don't have an implementation in MaterialX. */
+      /* NOTE: SHD_VECT_TRANSFORM_SPACE_CAMERA/LIGHT don't have an implementation in MaterialX. */
       BLI_assert_unreachable();
       return vector;
   }
@@ -261,6 +247,7 @@ void register_node_type_sh_vect_transform()
   ntype.initfunc = file_ns::node_shader_init_vect_transform;
   bke::node_type_storage(
       ntype, "NodeShaderVectTransform", node_free_standard_storage, node_copy_standard_storage);
+  ntype.gather_link_search_ops = search_link_ops_for_shader_material_lighting_node;
   ntype.gpu_fn = file_ns::gpu_shader_vect_transform;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 

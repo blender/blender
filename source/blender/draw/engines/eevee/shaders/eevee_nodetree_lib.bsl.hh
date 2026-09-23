@@ -186,6 +186,13 @@ struct KernelGlobals {
     [[resource_table]] const draw::View &views = this->view;
     return views.get(view_id_get(sd));
   }
+
+  ObjectMatrices light_matrices_get(int light_index)
+  {
+    [[resource_table]] const draw::Model &models = this->model;
+    [[resource_table]] const eevee::LightRenderData &lrds = this->lrd;
+    return models.get(lrds.light_buf[light_index].resource_id);
+  }
 };
 
 void closure_weights_reset([[resource_table]] KernelGlobals &kg,

@@ -1558,6 +1558,13 @@ class NodeTreeMainUpdater {
           break;
         }
         ATTR_FALLTHROUGH;
+      case SH_NODE_VECT_TRANSFORM: {
+        NodeShaderVectTransform *nodeprop = static_cast<NodeShaderVectTransform *>(node.storage);
+        if (!ELEM(SHD_VECT_TRANSFORM_SPACE_LIGHT, nodeprop->convert_from, nodeprop->convert_to)) {
+          break;
+        }
+      }
+        ATTR_FALLTHROUGH;
       case SH_NODE_LIGHT_INFO:
       case SH_NODE_LIGHT_EVALUATION:
       case SH_NODE_SHADOW_RAYCAST:

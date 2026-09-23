@@ -501,6 +501,7 @@ enum eNodeVectorTransform_Space : short {
   SHD_VECT_TRANSFORM_SPACE_WORLD = 0,
   SHD_VECT_TRANSFORM_SPACE_OBJECT = 1,
   SHD_VECT_TRANSFORM_SPACE_CAMERA = 2,
+  SHD_VECT_TRANSFORM_SPACE_LIGHT = 3,
 };
 
 /** #NodeShaderAttribute.type */
