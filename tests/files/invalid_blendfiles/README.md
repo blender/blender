@@ -66,6 +66,44 @@ The failed read returned null and was dereferenced (crash).
 As above, on a window's `WorkSpaceInstanceHook` sub-block.
 The partially-read window was dereferenced while freeing the invalidated file (crash).
 
+Corrupt Point Caches
+====================
+
+Files named `invalid_pointcache_*.blend` with a point cache baked for frames 1 to 3 to the
+`blendcache_invalid_pointcache_*` directory. The frame 2 `.bphys` file is corrupt, and the
+file is saved at frame 2 so opening it reads the corrupt frame.
+
+`invalid_pointcache_totpoint_overflow.blend`
+--------------------------------------------
+
+A point count overflowing the data allocation size (buffer overflow).
+
+`invalid_pointcache_compressed_size_mismatch.blend`
+---------------------------------------------------
+
+Compressed data decompressing to fewer bytes than the point count requires (buffer overflow).
+
+`invalid_pointcache_compressed_*.blend`
+---------------------------------------
+
+Compressed data with an unknown compression type, a size larger than the file, or no size
+and data following the type (buffer overflow).
+
+`invalid_pointcache_cloth_extra_zero_totdata.blend`
+---------------------------------------------------
+
+Cloth acceleration extra data without items, read as a float3 (buffer overflow).
+
+`invalid_pointcache_extra_data_truncated.blend`
+-----------------------------------------------
+
+Extra data with more items than present in the file (buffer overflow).
+
+`invalid_pointcache_dynamicpaint_truncated.blend`
+-------------------------------------------------
+
+A dynamic paint cache without version and surface type after the header (buffer overflow).
+
 Corrupt File-Blocks
 ===================
 
