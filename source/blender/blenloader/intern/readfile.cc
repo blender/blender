@@ -1506,6 +1506,15 @@ static void *newdataadr_no_us(FileData *fd, const void *adr, int64_t *r_alloc_le
   return oldnewmap_lookup_and_inc(fd->datamap, adr, false, r_alloc_len);
 }
 
+/**
+ * Only direct data-blocks. Returns the map entry without adding a user, so that a user can be
+ * added once the data is verified. Invalid data is then freed along with unused data.
+ */
+static NewAddress *newdataadr_entry(FileData *fd, const void *adr)
+{
+  return fd->datamap->map.lookup_ptr(adr);
+}
+
 void *blo_read_get_new_globaldata_address(FileData *fd, const void *adr)
 {
   return oldnewmap_lookup_and_inc(fd->globmap, adr, true);
@@ -6342,9 +6351,16 @@ void *blo_read_struct_impl(BlendDataReader *reader,
                            const void *old_address,
                            const size_t expected_size)
 {
-  int64_t alloc_len = 0;
-  void *new_address = newdataadr(reader->fd, old_address, &alloc_len);
-  return blo_verify_data_address(reader->fd, new_address, old_address, alloc_len, expected_size);
+  NewAddress *entry = newdataadr_entry(reader->fd, old_address);
+  if (entry == nullptr) {
+    return nullptr;
+  }
+  void *new_address = blo_verify_data_address(
+      reader->fd, entry->newp, old_address, entry->alloc_len, expected_size);
+  if (new_address) {
+    entry->nr++;
+  }
+  return new_address;
 }
 
 void *blo_read_struct_no_us_impl(BlendDataReader *reader,
@@ -6406,14 +6422,13 @@ bool blo_read_array_impl(BlendDataReader *reader,
     return false;
   }
 
-  int64_t alloc_len = 0;
-  void *new_address = newdataadr(reader->fd, *ptr_p, &alloc_len);
-  if (new_address == nullptr) {
+  NewAddress *entry = newdataadr_entry(reader->fd, *ptr_p);
+  if (entry == nullptr) {
     *ptr_p = nullptr;
     return total_elems == 0;
   }
   if (elem_size > 0) {
-    const int64_t max_array_size = alloc_len / int64_t(elem_size);
+    const int64_t max_array_size = entry->alloc_len / int64_t(elem_size);
     if (total_elems > max_array_size) {
       blo_readfile_invalidate(
           reader->fd,
@@ -6424,7 +6439,8 @@ bool blo_read_array_impl(BlendDataReader *reader,
     }
   }
   BLI_assert((reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
-  *ptr_p = new_address;
+  entry->nr++;
+  *ptr_p = entry->newp;
   return true;
 }
 
@@ -6546,9 +6562,8 @@ bool blo_read_pointer_array_impl(BlendDataReader *reader, const int64_t array_si
     return false;
   }
 
-  int64_t alloc_len = 0;
-  void *orig_array = newdataadr(fd, *ptr_p, &alloc_len);
-  if (orig_array == nullptr) {
+  NewAddress *entry = newdataadr_entry(fd, *ptr_p);
+  if (entry == nullptr) {
     /* See comment in #blo_read_array_impl. */
     *ptr_p = nullptr;
     return array_size == 0;
@@ -6557,7 +6572,7 @@ bool blo_read_pointer_array_impl(BlendDataReader *reader, const int64_t array_si
   const int file_pointer_size = fd->filesdna->pointer_size;
   const int current_pointer_size = fd->memsdna->pointer_size;
 
-  const int64_t max_array_size = alloc_len / file_pointer_size;
+  const int64_t max_array_size = entry->alloc_len / file_pointer_size;
   if (array_size > max_array_size) {
     blo_readfile_invalidate(fd,
                             (*fd->bmain->split_mains)[fd->bmain->split_mains->size() - 1],
@@ -6566,6 +6581,8 @@ bool blo_read_pointer_array_impl(BlendDataReader *reader, const int64_t array_si
     return false;
   }
 
+  entry->nr++;
+  void *orig_array = entry->newp;
   void *final_array = nullptr;
 
   BLI_assert((reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
