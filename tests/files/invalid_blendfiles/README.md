@@ -144,3 +144,10 @@ The library block is renamed to a text, leaving link placeholders without librar
 
 An asset's `AssetMetaData` block has an unresolvable address.
 Listing assets and reading the ID dereferenced the missing metadata (crash).
+
+`invalid_library_filepath_unterminated_listing.blend`
+-----------------------------------------------------
+
+A library filepath without null terminator until the block end, also overwriting the following
+members. Listing the file read past the end (buffer overflow). Opening it read link placeholders
+as full IDs, due to the library flag marking it as archive library (crash).

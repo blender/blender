@@ -4481,6 +4481,14 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
           bmain_to_read_into = nullptr;
           bhead = blo_bhead_next(fd, bhead);
         }
+        /* Archive libraries contain packed IDs, never placeholders. The placeholder would
+         * otherwise be used as a full ID. */
+        else if (bmain_to_read_into->curlib->flag & LIBRARY_FLAG_IS_ARCHIVE) [[unlikely]] {
+          blo_readfile_invalidate(
+              fd, bfd->main, "Corrupt .blend file, link placeholder in archive library");
+          bmain_to_read_into = nullptr;
+          bhead = blo_bhead_next(fd, bhead);
+        }
         break;
       case ID_LI:
         if ((fd->skip_flags & BLO_READ_SKIP_DATA) != 0) {
@@ -5071,13 +5079,16 @@ static Main *blo_find_main_for_library_and_idname(FileData *fd,
                                               main_it->filepath;
 
     if (BLI_path_cmp(filepath_abs, libname) == 0) {
+      /* Due to how parent and archive libraries are created and written in the blend-file,
+       * the first library matching a given filepath should never be an archive one. Skip it
+       * anyway to handle corrupt files, placeholders in archive libraries are never read. */
+      if (main_it->curlib && (main_it->curlib->flag & LIBRARY_FLAG_IS_ARCHIVE)) {
+        continue;
+      }
       CLOG_DEBUG(&LOG,
                  "Found library '%s' for file path '%s'",
                  main_it->curlib ? main_it->curlib->id.name : "<None>",
                  lib_filepath);
-      /* Due to how parent and archive libraries are created and written in the blend-file,
-       * the first library matching a given filepath should never be an archive one. */
-      BLI_assert(!main_it->curlib || (main_it->curlib->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0);
       if (!is_packed_id) {
         return main_it;
       }
