@@ -1400,6 +1400,7 @@ static void copy_first_from_src(const Span<T> src,
 static void mix_attributes(const bke::AttributeAccessor src_attributes,
                            const GroupedSpan<int> dst_to_src,
                            const bke::AttrDomain domain,
+                           const bke::AttributeFilter &attribute_filter,
                            const Set<StringRef> &skip_names,
                            bke::MutableAttributeAccessor dst_attributes)
 {
@@ -1408,6 +1409,9 @@ static void mix_attributes(const bke::AttributeAccessor src_attributes,
       return;
     }
     if (skip_names.contains(iter.name)) {
+      return;
+    }
+    if (attribute_filter.allow_skip(iter.name)) {
       return;
     }
     if (iter.data_type == bke::AttrType::String) {
@@ -1457,7 +1461,8 @@ static Set<StringRef> get_vertex_group_names(const Mesh &mesh)
 static Mesh *create_merged_mesh(const Mesh &mesh,
                                 const Span<int> vert_src_to_target,
                                 const int removed_vertex_count,
-                                const bool do_mix_data)
+                                const bool do_mix_data,
+                                const bke::AttributeFilter &attribute_filter)
 {
   PRF_scope(ProfileCategory::Default);
 #ifdef USE_WELD_DEBUG_TIME
@@ -1511,6 +1516,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   mix_attributes(src_attributes,
                  vert_dst_to_src,
                  bke::AttrDomain::Point,
+                 attribute_filter,
                  get_vertex_group_names(mesh),
                  dst_attributes);
   mix_vertex_groups(mesh, vert_dst_to_src, *result);
@@ -1546,8 +1552,12 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
                                                                 edge_dst_to_src_offsets,
                                                                 edge_dst_to_src_indices);
 
-  mix_attributes(
-      src_attributes, edge_dst_to_src, bke::AttrDomain::Edge, {".edge_verts"}, dst_attributes);
+  mix_attributes(src_attributes,
+                 edge_dst_to_src,
+                 bke::AttrDomain::Edge,
+                 attribute_filter,
+                 {".edge_verts"},
+                 dst_attributes);
   if (CustomData_has_layer(&mesh.edge_data, CD_ORIGINDEX)) {
     const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.edge_data, CD_ORIGINDEX)),
                    mesh.edges_num);
@@ -1668,6 +1678,9 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     if (iter.domain != bke::AttrDomain::Face) {
       return;
     }
+    if (attribute_filter.allow_skip(iter.name)) {
+      return;
+    }
     const GVArray src_attr = *iter.get();
     const CommonVArrayInfo info = src_attr.common_info();
     if (info.type == CommonVArrayInfo::Type::Single) {
@@ -1713,6 +1726,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   mix_attributes(src_attributes,
                  dst_to_src_corners,
                  bke::AttrDomain::Corner,
+                 attribute_filter,
                  {".corner_vert", ".corner_edge"},
                  dst_attributes);
   if (const auto *src = static_cast<const float2 *>(
@@ -1749,7 +1763,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
 
 std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
                                                  const IndexMask &selection,
-                                                 const float merge_distance)
+                                                 const float merge_distance,
+                                                 const bke::AttributeFilter &attribute_filter)
 {
   Array<int> vert_src_to_target(mesh.verts_num, OUT_OF_CONTEXT);
   KDTreeNew<float3> tree(mesh.vert_positions(), selection);
@@ -1768,7 +1783,7 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
     }
   });
 
-  return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, true);
+  return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, true, attribute_filter);
 }
 
 struct WeldVertexCluster {
@@ -1776,10 +1791,12 @@ struct WeldVertexCluster {
   int merged_verts;
 };
 
-std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
-                                                       Span<bool> selection,
-                                                       const float merge_distance,
-                                                       const bool only_loose_edges)
+std::optional<Mesh *> mesh_merge_by_distance_connected(
+    const Mesh &mesh,
+    Span<bool> selection,
+    const float merge_distance,
+    const bool only_loose_edges,
+    const bke::AttributeFilter &attribute_filter)
 {
   const Span<float3> positions = mesh.vert_positions();
   const Span<int2> edges = mesh.edges();
@@ -1854,7 +1871,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
     vert_src_to_target[i] = vert;
   }
 
-  return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, true);
+  return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, true, attribute_filter);
 }
 
 Mesh *mesh_merge_verts(const Mesh &mesh,
@@ -1863,7 +1880,11 @@ Mesh *mesh_merge_verts(const Mesh &mesh,
                        const bool do_mix_data)
 {
   BLI_assert(vert_src_to_target.size() == mesh.verts_num);
-  return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, do_mix_data);
+  return create_merged_mesh(mesh,
+                            vert_src_to_target,
+                            removed_verts_num,
+                            do_mix_data,
+                            bke::AttributeFilter::default_filter());
 }
 
 /** \} */
@@ -1871,7 +1892,7 @@ Mesh *mesh_merge_verts(const Mesh &mesh,
 std::optional<Mesh *> mesh_merge_verts(const Mesh &mesh,
                                        const IndexMask &selection,
                                        const Span<int> merge_ids,
-                                       const bke::AttributeFilter & /*attribute_filter*/)
+                                       const bke::AttributeFilter &attribute_filter)
 {
   VectorSet<int> group_indices;
   selection.foreach_index_optimized<int>([&](const int i) { group_indices.add(merge_ids[i]); });
@@ -1897,7 +1918,7 @@ std::optional<Mesh *> mesh_merge_verts(const Mesh &mesh,
       },
       exec_mode::grain_size(8192));
 
-  return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, true);
+  return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, true, attribute_filter);
 }
 
 }  // namespace blender::geometry
