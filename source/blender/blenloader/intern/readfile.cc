@@ -187,6 +187,11 @@ static CLG_LogRef LOG_UNDO = {"blo.readfile.undo"};
 /* local prototypes */
 static void read_libraries(FileData *basefd, ListBase *mainlist);
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const int id_type_index);
+static void *read_struct_and_validate_size(FileData *fd,
+                                           BHead *bh,
+                                           const char *blockname,
+                                           const int id_type_index,
+                                           const int64_t min_size);
 static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name);
 
 struct BHeadN {
@@ -459,8 +464,8 @@ static void read_file_version(FileData *fd, Main *main)
 
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (bhead->code == BLO_CODE_GLOB) {
-      FileGlobal *fg = static_cast<FileGlobal *>(
-          read_struct(fd, bhead, "Data from Global block", INDEX_ID_NULL));
+      FileGlobal *fg = static_cast<FileGlobal *>(read_struct_and_validate_size(
+          fd, bhead, "Data from Global block", INDEX_ID_NULL, sizeof(FileGlobal)));
       if (fg) {
         if (main->versionfile != fd->fileversion) {
           /* `versionfile` remains unset when linking from a new library (`main` has then just be
@@ -1194,8 +1199,8 @@ static bool is_minversion_older_than_blender(FileData *fd, ReportList *reports)
       continue;
     }
 
-    FileGlobal *fg = static_cast<FileGlobal *>(
-        read_struct(fd, bhead, "Data from Global block", INDEX_ID_NULL));
+    FileGlobal *fg = static_cast<FileGlobal *>(read_struct_and_validate_size(
+        fd, bhead, "Data from Global block", INDEX_ID_NULL, sizeof(FileGlobal)));
     if (fg == nullptr) [[unlikely]] {
       BKE_reportf(reports, RPT_ERROR, "Blend file '%s' is corrupt, unable to read", fd->relabase);
       return true;
@@ -2027,11 +2032,48 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
   return temp;
 }
 
+/** Like #read_struct, but fails if allocation is smaller than `min_size`. */
+static void *read_struct_and_validate_size(FileData *fd,
+                                           BHead *bh,
+                                           const char *blockname,
+                                           const int id_type_index,
+                                           const int64_t min_size)
+{
+  void *data = read_struct(fd, bh, blockname, id_type_index);
+  if (data == nullptr || int64_t(MEM_allocN_len(data)) >= min_size) {
+    return data;
+  }
+
+  MEM_freeN(data);
+  fd->flags &= ~FD_FLAGS_FILE_OK;
+  if (Main *bmain = filedata_main(fd)) {
+    blo_readfile_invalidate(fd, bmain, "Corrupt .blend file, block too small for its type");
+  }
+  return nullptr;
+}
+
 static ID *read_id_struct(FileData *fd, BHead *bh, const char *blockname, const int id_type_index)
 {
   ID *id = static_cast<ID *>(read_struct(fd, bh, blockname, id_type_index));
   if (!id) {
     return id;
+  }
+
+  /* Verify the allocation size is large enough for the ID type. */
+  const int64_t alloc_len = int64_t(MEM_allocN_len(id));
+  int64_t min_size = sizeof(ID);
+  if (alloc_len >= min_size && bh->code != ID_LINK_PLACEHOLDER) {
+    if (const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(GS(id->name))) {
+      min_size = id_type->struct_size;
+    }
+  }
+  if (alloc_len < min_size) [[unlikely]] {
+    MEM_freeN(id);
+    fd->flags &= ~FD_FLAGS_FILE_OK;
+    if (Main *bmain = filedata_main(fd)) {
+      blo_readfile_invalidate(fd, bmain, "Corrupt .blend file, block too small for its type");
+    }
+    return nullptr;
   }
 
   /* Invalid ID name (probably from 'too long' ID name from a future Blender version).
@@ -2546,8 +2588,21 @@ static void lib_link_scenes_check_set(Main *bmain)
 /** \name Read ID: Library
  * \{ */
 
+static bool library_filepath_is_valid(const Library *lib)
+{
+  /* Corrupt file might not be null terminated. */
+  return std::memchr(lib->filepath, '\0', sizeof(lib->filepath)) != nullptr;
+}
+
 static void direct_link_library(FileData *fd, Library *lib, Main *main)
 {
+  if (!library_filepath_is_valid(lib)) [[unlikely]] {
+    blo_readfile_invalidate(fd, main, "Corrupt .blend file, invalid library file path");
+    lib->filepath[0] = '\0';
+    /* Continue processing to avoid invalid pointers in this datablock that
+     * would be read by later code. */
+  }
+
   /* Make sure we have full path in lib->runtime->filepath_abs */
   /* NOTE: Since existing libraries are searched by their absolute path, this has to be generated
    * before the lookup below. Otherwise, in case the stored absolute filepath is not 'correct' (may
@@ -3311,8 +3366,8 @@ BHead *blo_read_asset_data_block(FileData *fd, BHead *bhead, AssetMetaData **r_a
  */
 static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
-  FileGlobal *fg = static_cast<FileGlobal *>(
-      read_struct(fd, bhead, "Data from Global block", INDEX_ID_NULL));
+  FileGlobal *fg = static_cast<FileGlobal *>(read_struct_and_validate_size(
+      fd, bhead, "Data from Global block", INDEX_ID_NULL, sizeof(FileGlobal)));
 
   if (fg == nullptr) [[unlikely]] {
     blo_readfile_invalidate(fd, bfd->main, "Corrupt .blend file, missing global block");
@@ -3691,8 +3746,8 @@ static void direct_link_keymapitem(BlendDataReader *reader, wmKeyMapItem *kmi)
 static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
   UserDef *user;
-  bfd->user = user = static_cast<UserDef *>(
-      read_struct(fd, bhead, "Data for User Def", INDEX_ID_NULL));
+  bfd->user = user = static_cast<UserDef *>(read_struct_and_validate_size(
+      fd, bhead, "Data for User Def", INDEX_ID_NULL, sizeof(UserDef)));
 
   if (user == nullptr) [[unlikely]] {
     blo_readfile_invalidate(fd, bfd->main, "Corrupt .blend file, missing user-preferences block");
@@ -4297,6 +4352,31 @@ static BHead *find_previous_lib(FileData *fd, BHead *bhead)
   return bhead;
 }
 
+static Library *read_library_struct(FileData *fd, BHead *bheadlib)
+{
+  ID *id = read_id_struct(fd, bheadlib, "Data for Library ID type", INDEX_ID_NULL);
+  if (id && GS(id->name) != ID_LI) [[unlikely]] {
+    MEM_freeN(id);
+    fd->flags &= ~FD_FLAGS_FILE_OK;
+    if (Main *bmain = filedata_main(fd)) {
+      blo_readfile_invalidate(fd, bmain, "Corrupt .blend file, unexpected library block type");
+    }
+    return nullptr;
+  }
+
+  /* The file path must have a null terminated string. */
+  Library *lib = reinterpret_cast<Library *>(id);
+  if (lib && !library_filepath_is_valid(lib)) [[unlikely]] {
+    MEM_freeN(lib);
+    fd->flags &= ~FD_FLAGS_FILE_OK;
+    if (Main *bmain = filedata_main(fd)) {
+      blo_readfile_invalidate(fd, bmain, "Corrupt .blend file, invalid library file path");
+    }
+    return nullptr;
+  }
+  return lib;
+}
+
 static BHead *find_bhead(FileData *fd, void *old)
 {
 #if 0
@@ -4442,8 +4522,10 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       return;
     }
 
-    Library *lib = reinterpret_cast<Library *>(
-        read_id_struct(fd, bheadlib, "Data for Library ID type", INDEX_ID_NULL));
+    Library *lib = read_library_struct(fd, bheadlib);
+    if (lib == nullptr) {
+      return;
+    }
     Main *libmain = blo_find_main(fd, lib->filepath, fd->relabase);
 
     if (libmain->curlib == nullptr) {
