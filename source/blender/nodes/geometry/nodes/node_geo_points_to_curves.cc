@@ -74,14 +74,11 @@ static void find_points_by_group_index(const Span<int> indices_of_curves,
 
 static int identifiers_to_indices(MutableSpan<int> r_identifiers_to_indices)
 {
-  const VectorSet<int> deduplicated_groups(r_identifiers_to_indices);
-  threading::parallel_for(
-      r_identifiers_to_indices.index_range(), 2048, [&](const IndexRange range) {
-        for (int &value : r_identifiers_to_indices.slice(range)) {
-          value = deduplicated_groups.index_of(value);
-        }
-      });
-  return deduplicated_groups.size();
+  Array<int> indices(r_identifiers_to_indices.size());
+  const int groups_num = array_utils::group_ids_to_indices(
+      r_identifiers_to_indices, indices.index_range(), indices);
+  r_identifiers_to_indices.copy_from(indices);
+  return groups_num;
 }
 
 static Curves *curve_from_points(const AttributeAccessor attributes,

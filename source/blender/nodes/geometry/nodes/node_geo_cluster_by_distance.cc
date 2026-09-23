@@ -95,19 +95,13 @@ class ClusterByDistanceFieldInput final : public bke::GeometryFieldInput {
     const IndexMask mask_to_fallback = IndexMask::from_difference(mask, mask_to_cluster, memory);
     array_utils::fill_index_range<int>(mask_to_fallback, cluster_ids);
 
-    std::optional<VArraySpan<int>> group_id_span;
-    const auto group_indices = [&]() -> VectorSet<int> {
-      if (group_ids.is_single()) {
-        return {group_ids.get_internal_single()};
-      }
-      VectorSet<int> group_indices;
-      group_id_span.emplace(group_ids);
-      mask_to_cluster.foreach_index_optimized<int>(
-          [&](const int i) { group_indices.add((*group_id_span)[i]); });
-      return group_indices;
-    }();
-
-    const int groups_num = group_indices.size();
+    Array<int> point_groups;
+    int groups_num = 1;
+    if (!group_ids.is_single()) {
+      point_groups.reinitialize(mask_to_cluster.size());
+      groups_num = array_utils::group_ids_to_indices(
+          VArraySpan<int>(group_ids), mask_to_cluster, point_groups);
+    }
     if (groups_num == 1) {
       index_mask::masked_fill<int>(cluster_ids, NO_CLUSTER_VALUE, mask_to_cluster);
       const KDTreeNew<float3> tree(positions, mask_to_cluster);
@@ -117,14 +111,6 @@ class ClusterByDistanceFieldInput final : public bke::GeometryFieldInput {
       set_no_cluster_value(cluster_ids, mask_to_cluster);
       return VArray<int>::from_container(std::move(cluster_ids));
     }
-
-    const Vector<int> mask_indices = mask_to_cluster.to_indices<int>();
-    Array<int> point_groups(mask_indices.size());
-    threading::parallel_for(mask_indices.index_range(), 8192, [&](const IndexRange range) {
-      for (const int64_t pos : range) {
-        point_groups[pos] = group_indices.index_of((*group_id_span)[mask_indices[pos]]);
-      }
-    });
 
     Array<int> group_offset_data;
     Array<int> indices_by_group_data;

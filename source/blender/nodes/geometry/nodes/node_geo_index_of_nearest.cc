@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_kdtree_new.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_map.hh"
@@ -84,17 +85,15 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
     }
     const VArraySpan<int> group_ids_span(group_ids);
 
-    const VectorSet<int> group_indexing(group_ids_span);
-    const int groups_num = group_indexing.size();
+    Array<int> group_indices(domain_size);
+    const int groups_num = array_utils::group_ids_to_indices(
+        group_ids_span, IndexMask(domain_size), group_indices);
 
     IndexMaskMemory mask_memory;
     Array<IndexMask> all_indices_by_group_id(groups_num);
     Array<IndexMask> lookup_indices_by_group_id(groups_num);
 
-    const auto get_group_index = [&](const int i) {
-      const int group_id = group_ids_span[i];
-      return group_indexing.index_of(group_id);
-    };
+    const auto get_group_index = [&](const int i) { return group_indices[i]; };
 
     IndexMask::from_groups<int>(
         IndexMask(domain_size), mask_memory, get_group_index, all_indices_by_group_id);
@@ -109,7 +108,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
     }
 
     /* The grain size should be larger as each tree gets smaller. */
-    const int avg_tree_size = domain_size / group_indexing.size();
+    const int avg_tree_size = domain_size / groups_num;
     const int grain_size = std::max(8192 / avg_tree_size, 1);
     threading::parallel_for(IndexRange(groups_num), grain_size, [&](const IndexRange range) {
       AlignedBuffer<4096, 8> tree_buffer;

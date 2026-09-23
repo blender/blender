@@ -27,18 +27,8 @@ PointCloud *merge_points(const PointCloud &src_points,
                          const Span<int> merge_ids,
                          const bke::AttributeFilter &attribute_filter)
 {
-  VectorSet<int> group_indices;
-  selection.foreach_index_optimized<int32_t>(
-      [&](const int i) { group_indices.add(merge_ids[i]); });
-  const int groups_num = group_indices.size();
-
-  const Vector<int> selection_indices = selection.to_indices<int>();
-  Array<int> point_groups(selection_indices.size());
-  threading::parallel_for(selection_indices.index_range(), 8192, [&](const IndexRange range) {
-    for (const int64_t pos : range) {
-      point_groups[pos] = group_indices.index_of(merge_ids[selection_indices[pos]]);
-    }
-  });
+  Array<int> point_groups(selection.size());
+  const int groups_num = array_utils::group_ids_to_indices(merge_ids, selection, point_groups);
 
   Array<int> group_offset_data;
   Array<int> all_group_indices;

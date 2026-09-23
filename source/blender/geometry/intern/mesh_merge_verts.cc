@@ -1596,28 +1596,20 @@ std::optional<Mesh *> mesh_merge_verts(const Mesh &mesh,
                                        const Span<int> merge_ids,
                                        const bke::AttributeFilter &attribute_filter)
 {
-  VectorSet<int> group_indices;
-  selection.foreach_index_optimized<int>([&](const int i) { group_indices.add(merge_ids[i]); });
-  const int removed_verts_num = selection.size() - group_indices.size();
+  Array<int> group_indices(selection.size());
+  Vector<int> first_verts;
+  const int groups_num = array_utils::group_ids_to_indices(
+      merge_ids, selection, group_indices, &first_verts);
+  const int removed_verts_num = selection.size() - groups_num;
   if (removed_verts_num == 0) {
     return std::nullopt;
   }
 
-  Array<int> dst_vert_by_group(group_indices.size(), -1);
-  selection.foreach_index_optimized<int>([&](const int i) {
-    const int group_i = group_indices.index_of(merge_ids[i]);
-    if (dst_vert_by_group[group_i] == -1) {
-      dst_vert_by_group[group_i] = i;
-    }
-  });
-
+  /* Every vertex merges into the first vertex with the same ID. */
   Array<int> vert_src_to_target(mesh.verts_num);
   array_utils::fill_index_range(vert_src_to_target.as_mutable_span());
   selection.foreach_index_optimized<int>(
-      [&](const int i) {
-        const int group_i = group_indices.index_of(merge_ids[i]);
-        vert_src_to_target[i] = dst_vert_by_group[group_i];
-      },
+      [&](const int i, const int pos) { vert_src_to_target[i] = first_verts[group_indices[pos]]; },
       exec_mode::grain_size(8192));
 
   return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, true, attribute_filter);

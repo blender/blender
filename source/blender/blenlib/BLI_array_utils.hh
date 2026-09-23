@@ -357,6 +357,20 @@ void copy_group_to_group(OffsetIndices<int> src_offsets,
  */
 void count_indices(Span<int> indices, MutableSpan<int> counts);
 
+/**
+ * Find a compact index for every unique arbitrary ID, in the order that the IDs first appear.
+ *
+ * \param mask: The elements whose IDs are processed.
+ * \param r_group_indices: The group index of every element, for every index in the mask.
+ * \param r_first_indices: Optional. Filled with the first element with each ID, for every group,
+ * which can be useful to choose a representative element for each group.
+ * \return The number of groups.
+ */
+int group_ids_to_indices(Span<int> ids,
+                         const IndexMask &mask,
+                         MutableSpan<int> r_group_indices,
+                         Vector<int> *r_first_indices = nullptr);
+
 void invert_booleans(MutableSpan<bool> span);
 void invert_booleans(MutableSpan<bool> span, const IndexMask &mask);
 
