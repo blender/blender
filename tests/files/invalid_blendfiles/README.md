@@ -138,3 +138,9 @@ The library block is removed, leaving link placeholders without library (crash).
 -------------------------------
 
 The library block is renamed to a text, leaving link placeholders without library (crash).
+
+`invalid_asset_metadata_missing.blend`
+--------------------------------------
+
+An asset's `AssetMetaData` block has an unresolvable address.
+Listing assets and reading the ID dereferenced the missing metadata (crash).
