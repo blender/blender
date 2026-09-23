@@ -2377,8 +2377,8 @@ static void direct_link_id_common(BlendDataReader *reader,
 
   BKE_animdata_blend_read_data(reader, id);
 
+  BLO_read_struct(reader, AssetMetaData, &id->asset_data);
   if (id->asset_data) {
-    BLO_read_struct(reader, AssetMetaData, &id->asset_data);
     BKE_asset_metadata_read(reader, id->asset_data);
     /* Restore runtime asset type info. */
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
