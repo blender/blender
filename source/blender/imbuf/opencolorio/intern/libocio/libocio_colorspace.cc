@@ -114,6 +114,8 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
     is_primary_interop_id_ = false;
   }
 
+  initialize_alternate_interop_id();
+
   CLOG_TRACE(&LOG,
              "Add colorspace: %s (interop ID: %s)",
              name().c_str(),
@@ -123,6 +125,33 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
 bool LibOCIOColorSpace::is_primary_interop_id() const
 {
   return is_primary_interop_id_;
+}
+
+void LibOCIOColorSpace::initialize_alternate_interop_id()
+{
+  if (!is_primary_interop_id_) {
+    return;
+  }
+
+  const StringRef interop_id = interop_id_;
+  std::string other_interop_id;
+  if (interop_id.endswith("_scene")) {
+    other_interop_id = interop_id.drop_known_suffix("_scene") + "_display";
+  }
+  else if (interop_id.endswith("_display")) {
+    other_interop_id = interop_id.drop_known_suffix("_display") + "_scene";
+  }
+  else {
+    return;
+  }
+
+  const int num_aliases = ocio_color_space_->getNumAliases();
+  for (int i = 0; i < num_aliases; i++) {
+    if (ocio_color_space_->getAlias(i) == other_interop_id) {
+      alternate_interop_id_ = std::move(other_interop_id);
+      return;
+    }
+  }
 }
 
 std::string LibOCIOColorSpace::icc_profile_path() const

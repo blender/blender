@@ -753,14 +753,15 @@ static int rna_ColorManagedColorspaceSettings_interop_id_get(PointerRNA *ptr)
 {
   ColorManagedColorspaceSettings *colorspace = static_cast<ColorManagedColorspaceSettings *>(
       ptr->data);
-  return IMB_colormanagement_colorspace_get_interop_id_index(colorspace->name);
+  return IMB_colormanagement_colorspace_get_interop_id_index(colorspace->name,
+                                                             colorspace->interop_id);
 }
 
 static void rna_ColorManagedColorspaceSettings_interop_id_set(PointerRNA *ptr, int value)
 {
-  if (value != -1) {
-    rna_ColorManagedColorspaceSettings_colorspace_set(ptr, value);
-  }
+  ColorManagedColorspaceSettings *colorspace = static_cast<ColorManagedColorspaceSettings *>(
+      ptr->data);
+  IMB_colormanagement_colorspace_interop_id_set(colorspace->name, colorspace->interop_id, value);
 }
 
 static const EnumPropertyItem *rna_ColorManagedColorspaceSettings_interop_id_itemf(

@@ -131,7 +131,8 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
  */
 StringRefNull IMB_colormanagement_space_get_interop_id(const ColorSpace *colorspace);
 const ColorSpace *IMB_colormanagement_space_from_interop_id(StringRefNull interop_id);
-int IMB_colormanagement_colorspace_get_interop_id_index(const char *name);
+int IMB_colormanagement_colorspace_get_interop_id_index(const char *name, const char *interop_id);
+void IMB_colormanagement_colorspace_interop_id_set(char *name, char *interop_id, int index);
 
 BLI_INLINE void IMB_colormanagement_get_luminance_coefficients(float r_rgb[3]);
 

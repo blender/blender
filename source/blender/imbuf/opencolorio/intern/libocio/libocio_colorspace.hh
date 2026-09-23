@@ -25,6 +25,7 @@ class LibOCIOColorSpace : public ColorSpace {
   std::string family_;
   StringRefNull interop_id_;
   bool is_primary_interop_id_ = false;
+  std::string alternate_interop_id_;
 
   CPUProcessorCache to_scene_linear_cpu_processor_;
   CPUProcessorCache from_scene_linear_cpu_processor_;
@@ -33,6 +34,8 @@ class LibOCIOColorSpace : public ColorSpace {
    * Usually this is #ocio_config_, but can also be something else if the color space is not
    * part of a new config but still preserved. */
   OCIO_NAMESPACE::ConstConfigRcPtr scene_linear_config_;
+
+  void initialize_alternate_interop_id();
 
  public:
   LibOCIOColorSpace(int index,
@@ -59,6 +62,10 @@ class LibOCIOColorSpace : public ColorSpace {
     return interop_id_;
   }
   bool is_primary_interop_id() const override;
+  StringRefNull alternate_interop_id() const override
+  {
+    return alternate_interop_id_;
+  }
 
   std::string icc_profile_path() const override;
 

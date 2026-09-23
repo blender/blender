@@ -262,6 +262,9 @@ TEST_F(ColorManagementInteropIDTest, stored_color_spaces_resolve_by_interop_id)
   EXPECT_EQ(resolve("Raw", "data"), "Non-Color");
   EXPECT_STREQ(settings.interop_id, "data");
   EXPECT_EQ(resolve("Linear Rec.709 (sRGB)", "lin_rec709_scene"), "Linear Rec.709");
+  /* Alternate interop ID is preserved. */
+  EXPECT_EQ(resolve("sRGB - Texture", "srgb_rec709_scene"), "sRGB");
+  EXPECT_STREQ(settings.interop_id, "srgb_rec709_scene");
 
   /* Names set in the same config resolve to themselves. */
   for (const char *name : {"Filmic sRGB", "AgX Base sRGB", "sRGB", "Non-Color"}) {
@@ -272,19 +275,39 @@ TEST_F(ColorManagementInteropIDTest, stored_color_spaces_resolve_by_interop_id)
   }
 
   /* Interop ID index of named color spaces. */
-  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("Linear Rec.709"),
+  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("Linear Rec.709", ""),
             IMB_colormanagement_colorspace_get_named_index("Linear Rec.709"));
-  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("scene_linear"),
+  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("scene_linear", ""),
             IMB_colormanagement_colorspace_get_named_index("Linear Rec.709"));
-  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("Filmic sRGB"), -1);
-  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("Unknown"), -1);
-  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index(""), -1);
+  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("Filmic sRGB", ""), -1);
+  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("Unknown", ""), -1);
+  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("", ""), -1);
 
   /* Test the other way around. */
   ASSERT_TRUE(IMB_colormanagement_switch_config("ocio://default"));
   EXPECT_EQ(resolve("Linear Rec.2020", "lin_rec2020_scene"), "Linear Rec.2020");
   EXPECT_EQ(resolve("ACEScg", "lin_ap1_scene"), "ACEScg");
   EXPECT_EQ(resolve("Some ACEScct", "acescct_ap1"), "ACEScct");
+}
+
+TEST_F(ColorManagementConfigSwitchTest, alternate_interop_id)
+{
+  auto alternate = [](const char *name) -> std::string {
+    return IMB_colormanagement_space_get_named(name)->alternate_interop_id();
+  };
+
+  /* Scene or display variant that is an alias of the color space. */
+  EXPECT_EQ(alternate("sRGB"), "srgb_rec709_scene");
+  EXPECT_EQ(alternate("Linear Rec.709"), "lin_rec709_display");
+
+  /* No alias, or a separate color space. */
+  EXPECT_EQ(alternate("ACEScg"), "");
+  EXPECT_EQ(alternate("Rec.1886"), "");
+
+  /* Separate color spaces for scene and display. */
+  EXPECT_EQ(IMB_colormanagement_space_from_interop_id("g24_rec709_display")->name(), "Rec.1886");
+  EXPECT_EQ(IMB_colormanagement_space_from_interop_id("g24_rec709_scene")->name(),
+            "Gamma 2.4 Encoded Rec.709");
 }
 
 }  // namespace blender::imbuf::tests

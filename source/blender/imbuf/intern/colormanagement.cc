@@ -1440,13 +1440,32 @@ const ColorSpace *IMB_colormanagement_space_from_interop_id(StringRefNull intero
   return g_config()->get_color_space_by_interop_id(interop_id);
 }
 
-int IMB_colormanagement_colorspace_get_interop_id_index(const char *name)
+int IMB_colormanagement_colorspace_get_interop_id_index(const char *name, const char *interop_id)
 {
   const ColorSpace *colorspace = name[0] ? g_config()->get_color_space(name) : nullptr;
   if (!colorspace || !colorspace->is_primary_interop_id()) {
     return -1;
   }
+  if (interop_id[0] && colorspace->alternate_interop_id() == interop_id) {
+    return colorspace->index + g_config()->get_num_all_color_spaces();
+  }
   return colorspace->index;
+}
+
+void IMB_colormanagement_colorspace_interop_id_set(char *name, char *interop_id, const int index)
+{
+  const int offset = g_config()->get_num_all_color_spaces();
+  const bool is_alternate = index >= offset;
+  const ColorSpace *colorspace = g_config()->get_color_space_by_index(
+      is_alternate ? index - offset : index);
+  if (!colorspace) {
+    return;
+  }
+
+  IMB_colormanagement_colorspace_name_set(name, interop_id, colorspace->name().c_str());
+  if (is_alternate) {
+    BLI_strncpy(interop_id, colorspace->alternate_interop_id().c_str(), MAX_COLORSPACE_NAME);
+  }
 }
 
 float3x3 IMB_colormanagement_get_xyz_to_scene_linear()
@@ -3495,6 +3514,21 @@ void IMB_colormanagement_interop_id_items_add(EnumPropertyItem **items, int *tot
     item.value = colorspace->index;
     item.name = colorspace->interop_id().c_str();
     item.identifier = colorspace->interop_id().c_str();
+    item.icon = 0;
+    item.description = colorspace->name().c_str();
+    RNA_enum_item_add(items, totitem, &item);
+  }
+
+  /* Alternate interop IDs, for example srgb_rec709_scene for srgb_rec709_display. */
+  for (const ColorSpace *colorspace : colorspaces) {
+    if (colorspace->alternate_interop_id().is_empty()) {
+      continue;
+    }
+
+    EnumPropertyItem item;
+    item.value = colorspace->index + g_config()->get_num_all_color_spaces();
+    item.name = colorspace->alternate_interop_id().c_str();
+    item.identifier = colorspace->alternate_interop_id().c_str();
     item.icon = 0;
     item.description = colorspace->name().c_str();
     RNA_enum_item_add(items, totitem, &item);

@@ -4308,14 +4308,16 @@ static int rna_NodeConvertColorSpace_from_interop_id_get(PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
   NodeConvertColorSpace *node_storage = static_cast<NodeConvertColorSpace *>(node->storage);
-  return IMB_colormanagement_colorspace_get_interop_id_index(node_storage->from_color_space);
+  return IMB_colormanagement_colorspace_get_interop_id_index(node_storage->from_color_space,
+                                                             node_storage->from_interop_id);
 }
 
 static void rna_NodeConvertColorSpace_from_interop_id_set(PointerRNA *ptr, int value)
 {
-  if (value != -1) {
-    rna_NodeConvertColorSpace_from_color_space_set(ptr, value);
-  }
+  bNode *node = ptr->data_as<bNode>();
+  NodeConvertColorSpace *node_storage = static_cast<NodeConvertColorSpace *>(node->storage);
+  IMB_colormanagement_colorspace_interop_id_set(
+      node_storage->from_color_space, node_storage->from_interop_id, value);
 }
 
 static int rna_NodeConvertColorSpace_to_color_space_get(PointerRNA *ptr)
@@ -4341,14 +4343,16 @@ static int rna_NodeConvertColorSpace_to_interop_id_get(PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
   NodeConvertColorSpace *node_storage = static_cast<NodeConvertColorSpace *>(node->storage);
-  return IMB_colormanagement_colorspace_get_interop_id_index(node_storage->to_color_space);
+  return IMB_colormanagement_colorspace_get_interop_id_index(node_storage->to_color_space,
+                                                             node_storage->to_interop_id);
 }
 
 static void rna_NodeConvertColorSpace_to_interop_id_set(PointerRNA *ptr, int value)
 {
-  if (value != -1) {
-    rna_NodeConvertColorSpace_to_color_space_set(ptr, value);
-  }
+  bNode *node = ptr->data_as<bNode>();
+  NodeConvertColorSpace *node_storage = static_cast<NodeConvertColorSpace *>(node->storage);
+  IMB_colormanagement_colorspace_interop_id_set(
+      node_storage->to_color_space, node_storage->to_interop_id, value);
 }
 
 static void rna_reroute_node_socket_type_set(PointerRNA *ptr, const char *value)
