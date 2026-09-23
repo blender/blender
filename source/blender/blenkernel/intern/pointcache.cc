@@ -118,19 +118,22 @@ static int ptcache_extra_datasize[] = {
 };
 
 /* forward declarations */
-static bool ptcache_file_compressed_read(PTCacheFile *pf,
-                                         uchar *result,
-                                         uint items_num,
-                                         uint item_size);
-static void ptcache_file_compressed_write(PTCacheFile *pf,
-                                          const void *data,
-                                          size_t items_num,
-                                          size_t item_size);
-static bool ptcache_file_write(PTCacheFile *pf,
-                               const void *data,
-                               size_t items_num,
-                               size_t item_size);
-static bool ptcache_file_read(PTCacheFile *pf, void *f, size_t items_num, size_t item_size);
+[[nodiscard]] static bool ptcache_file_compressed_read(PTCacheFile *pf,
+                                                       uchar *result,
+                                                       size_t items_num,
+                                                       size_t item_size);
+[[nodiscard]] static bool ptcache_file_compressed_write(PTCacheFile *pf,
+                                                        const void *data,
+                                                        size_t items_num,
+                                                        size_t item_size);
+[[nodiscard]] static bool ptcache_file_write(PTCacheFile *pf,
+                                             const void *data,
+                                             size_t items_num,
+                                             size_t item_size);
+[[nodiscard]] static bool ptcache_file_read(PTCacheFile *pf,
+                                            void *f,
+                                            size_t items_num,
+                                            size_t item_size);
 
 /* Common functions */
 static int ptcache_basic_header_read(PTCacheFile *pf)
@@ -535,7 +538,19 @@ static void ptcache_particle_extra_read(void *psys_v, PTCacheMem *pm, float /*cf
         }
 
         psys->fluid_springs = MEM_dupalloc(static_cast<ParticleSpring *>(extra->data));
-        psys->tot_fluidsprings = psys->alloc_fluidsprings = extra->totdata;
+        psys->alloc_fluidsprings = extra->totdata;
+
+        /* Drop springs with invalid particle indices from corrupt files. */
+        const uint totpart = uint(std::max(psys->totpart, 0));
+        int springs_num = 0;
+        for (uint i = 0; i < extra->totdata; i++) {
+          const ParticleSpring &spring = psys->fluid_springs[i];
+          if (uint(spring.particle_index[0]) < totpart && uint(spring.particle_index[1]) < totpart)
+          {
+            psys->fluid_springs[springs_num++] = spring;
+          }
+        }
+        psys->tot_fluidsprings = springs_num;
         break;
       }
       case BPHYS_EXTRA_CLOTH_ACCELERATION:
@@ -639,6 +654,9 @@ static void ptcache_cloth_extra_read(void *cloth_v, PTCacheMem *pm, float /*cfra
   for (; extra; extra = extra->next) {
     switch (extra->type) {
       case BPHYS_EXTRA_CLOTH_ACCELERATION: {
+        if (extra->totdata < 1) {
+          break; /* Guard against corrupt file. */
+        }
         copy_v3_v3(cloth->average_acceleration, static_cast<const float *>(extra->data));
         break;
       }
@@ -688,16 +706,17 @@ static void ptcache_dynamicpaint_error(const ID * /*owner_id*/,
 static int ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
 {
   DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(dp_v);
+  bool ok = true;
 
   /* version header */
-  ptcache_file_write(pf, DPAINT_CACHE_VERSION, 1, sizeof(char[4]));
+  ok &= ptcache_file_write(pf, DPAINT_CACHE_VERSION, 1, sizeof(char[4]));
 
   if (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && surface->data) {
     const int total_points = surface->data->total_points;
 
     /* cache type */
     const int surface_type = int(surface->type);
-    ptcache_file_write(pf, &surface_type, 1, sizeof(int));
+    ok &= ptcache_file_write(pf, &surface_type, 1, sizeof(int));
 
     uint in_stride;
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
@@ -710,12 +729,12 @@ static int ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
       in_stride = sizeof(PaintWavePoint);
     }
     else {
-      return 0;
+      return false;
     }
 
-    ptcache_file_compressed_write(pf, surface->data->type_data, total_points, in_stride);
+    ok &= ptcache_file_compressed_write(pf, surface->data->type_data, total_points, in_stride);
   }
-  return 1;
+  return ok;
 }
 static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
 {
@@ -723,7 +742,9 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
   char version[4];
 
   /* version header */
-  ptcache_file_read(pf, version, 1, sizeof(char[4]));
+  if (!ptcache_file_read(pf, version, 1, sizeof(char[4]))) {
+    return 0;
+  }
   if (!STREQLEN(version, DPAINT_CACHE_VERSION, 4)) {
     CLOG_ERROR(&LOG, "Dynamic Paint: Invalid cache version: '%c%c%c%c'!", UNPACK4(version));
     return 0;
@@ -734,7 +755,9 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
     int surface_type;
 
     /* cache type */
-    ptcache_file_read(pf, &surface_type, 1, sizeof(int));
+    if (!ptcache_file_read(pf, &surface_type, 1, sizeof(int))) {
+      return 0;
+    }
 
     if (surface_type != surface->type) {
       return 0;
@@ -1515,18 +1538,19 @@ static void ptcache_file_close(PTCacheFile *pf)
 
 static bool ptcache_file_compressed_read(PTCacheFile *pf,
                                          uchar *result,
-                                         uint items_num,
-                                         uint item_size)
+                                         const size_t items_num,
+                                         const size_t item_size)
 {
   const size_t out_len = items_num * item_size;
 
   uchar compressed_val = 0;
-  ptcache_file_read(pf, &compressed_val, 1, sizeof(uchar));
+  if (!ptcache_file_read(pf, &compressed_val, 1, sizeof(uchar))) {
+    return false;
+  }
   const PointCacheCompression compressed = PointCacheCompression(compressed_val);
 
   if (compressed == PTCACHE_COMPRESS_NO) {
-    ptcache_file_read(pf, result, out_len, sizeof(uchar));
-    return true;
+    return ptcache_file_read(pf, result, out_len, sizeof(uchar));
   }
 
   if (!ELEM(compressed,
@@ -1539,31 +1563,45 @@ static bool ptcache_file_compressed_read(PTCacheFile *pf,
   }
 
   uint in_len;
-  ptcache_file_read(pf, &in_len, 1, sizeof(uint));
-  if (in_len == 0) {
-    return true;
+  if (!ptcache_file_read(pf, &in_len, 1, sizeof(uint))) {
+    return false;
   }
-  Array<uchar> in(in_len, 0);
-  ptcache_file_read(pf, in.data(), in_len, sizeof(uchar));
+  if (in_len == 0) {
+    return out_len == 0;
+  }
+  uchar *in = MEM_new_array_uninitialized<uchar>(in_len, "pointcache_compressed_buffer");
+  if (in == nullptr) {
+    return false;
+  }
+  if (!ptcache_file_read(pf, in, in_len, sizeof(uchar))) {
+    MEM_delete(in);
+    return false;
+  }
 
+  /* Require the decompressed size to match, so no part of the result is left unwritten. */
   if (compressed != PTCACHE_COMPRESS_ZSTD_FILTERED) {
-    return !ZSTD_isError(ZSTD_decompress(result, out_len, in.data(), in_len));
+    const bool decompressed = ZSTD_decompress(result, out_len, in, in_len) == out_len;
+    MEM_delete(in);
+    return decompressed;
   }
 
   /* Un-filter the decompressed data. */
   uchar *decomp_result = MEM_new_array_uninitialized<uchar>(out_len, "pointcache_unfilter_buffer");
-  const bool decompressed = !ZSTD_isError(
-      ZSTD_decompress(decomp_result, out_len, in.data(), in_len));
-  unfilter_transpose_delta(decomp_result, result, items_num, item_size);
-  MEM_delete(decomp_result);
+  const bool decompressed = decomp_result &&
+                            ZSTD_decompress(decomp_result, out_len, in, in_len) == out_len;
+  if (decompressed) {
+    unfilter_transpose_delta(decomp_result, result, items_num, item_size);
+  }
+  MEM_SAFE_DELETE(decomp_result);
+  MEM_delete(in);
 
   return decompressed;
 }
 
-static void ptcache_file_compressed_write(PTCacheFile *pf,
-                                          const void *data,
-                                          size_t items_num,
-                                          size_t item_size)
+[[nodiscard]] static bool ptcache_file_compressed_write(PTCacheFile *pf,
+                                                        const void *data,
+                                                        size_t items_num,
+                                                        size_t item_size)
 {
   /* Allocate space for compressed data. */
   const PointCacheCompression compression = PTCACHE_COMPRESS_ZSTD_FILTERED;
@@ -1582,11 +1620,13 @@ static void ptcache_file_compressed_write(PTCacheFile *pf,
   out_len = res;
 
   /* Write to file. */
+  bool ok = true;
   const uchar compression_val = compression;
-  ptcache_file_write(pf, &compression_val, 1, sizeof(uchar));
+  ok &= ptcache_file_write(pf, &compression_val, 1, sizeof(uchar));
   uint size = out_len;
-  ptcache_file_write(pf, &size, 1, sizeof(uint));
-  ptcache_file_write(pf, out.data(), out_len, sizeof(uchar));
+  ok &= ptcache_file_write(pf, &size, 1, sizeof(uint));
+  ok &= ptcache_file_write(pf, out.data(), out_len, sizeof(uchar));
+  return ok;
 }
 
 static bool ptcache_file_read(PTCacheFile *pf, void *f, size_t items_num, size_t item_size)
@@ -1746,15 +1786,23 @@ int BKE_ptcache_mem_pointers_seek(int point_index, PTCacheMem *pm, void *cur[BPH
 
   return 1;
 }
-static void ptcache_data_alloc(PTCacheMem *pm)
+static bool ptcache_data_alloc(PTCacheMem *pm, const bool zero_init)
 {
   const uint data_types = pm->data_types;
 
   for (int i = 0; i < BPHYS_TOT_DATA; i++) {
     if (data_types & (1 << i)) {
-      pm->data[i] = MEM_new_zeroed(pm->totpoint * ptcache_data_size[i], "PTCache Data");
+      pm->data[i] = zero_init ?
+                        MEM_new_array_zeroed(pm->totpoint, ptcache_data_size[i], "PTCache Data") :
+                        MEM_new_array_uninitialized(
+                            pm->totpoint, ptcache_data_size[i], "PTCache Data");
+      if (pm->data[i] == nullptr) {
+        return false;
+      }
     }
   }
+
+  return true;
 }
 static void ptcache_data_free(PTCacheMem *pm)
 {
@@ -1905,9 +1953,10 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
     pm->data_types = pf->data_types;
     pm->frame = pf->frame;
 
-    ptcache_data_alloc(pm);
-
-    if (pf->flag & PTCACHE_TYPEFLAG_COMPRESS) {
+    if (!ptcache_data_alloc(pm, false)) {
+      error = 1;
+    }
+    else if (pf->flag & PTCACHE_TYPEFLAG_COMPRESS) {
       for (i = 0; !error && i < BPHYS_TOT_DATA; i++) {
         if (pf->data_types & (1 << i)) {
           error = !ptcache_file_compressed_read(
@@ -1929,23 +1978,33 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
         break;
       }
 
+      const size_t item_size = ptcache_extra_datasize[extratype];
+
+      uint totdata;
+      /* Extra data is used with int counts, reject larger counts from corrupt files. */
+      if (!ptcache_file_read(pf, &totdata, 1, sizeof(uint)) || totdata > INT_MAX) {
+        error = 1;
+        break;
+      }
+
+      void *data = MEM_new_array_uninitialized(totdata, item_size, "Pointcache extradata->data");
+      if (data == nullptr) {
+        error = 1;
+        break;
+      }
+
       PTCacheExtra *extra = MEM_new<PTCacheExtra>("Pointcache extradata");
 
       extra->type = ePointCache_ExtraDataType(extratype);
-
-      ptcache_file_read(pf, &extra->totdata, 1, sizeof(uint));
-
-      extra->data = MEM_new_zeroed(extra->totdata * ptcache_extra_datasize[extra->type],
-                                   "Pointcache extradata->data");
+      extra->totdata = totdata;
+      extra->data = data;
 
       if (pf->flag & PTCACHE_TYPEFLAG_COMPRESS) {
-        error = !ptcache_file_compressed_read(pf,
-                                              static_cast<uchar *>(extra->data),
-                                              extra->totdata,
-                                              ptcache_extra_datasize[extra->type]);
+        error = !ptcache_file_compressed_read(
+            pf, static_cast<uchar *>(extra->data), extra->totdata, item_size);
       }
       else {
-        ptcache_file_read(pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type]);
+        error = !ptcache_file_read(pf, extra->data, extra->totdata, item_size);
       }
 
       BLI_addtail(&pm->extradata, extra);
@@ -1969,7 +2028,8 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 {
   PTCacheFile *pf = nullptr;
-  uint i, error = 0;
+  bool ok = true;
+  uint i;
 
   BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_FRAME, pm->frame);
 
@@ -1994,18 +2054,18 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
   pf->flag |= PTCACHE_TYPEFLAG_COMPRESS;
 
   if (!ptcache_file_header_begin_write(pf) || !pid->write_header(pf)) {
-    error = 1;
+    ok = false;
   }
 
-  if (!error) {
+  if (ok) {
     for (i = 0; i < BPHYS_TOT_DATA; i++) {
       if (pm->data[i]) {
-        ptcache_file_compressed_write(pf, pm->data[i], pm->totpoint, ptcache_data_size[i]);
+        ok &= ptcache_file_compressed_write(pf, pm->data[i], pm->totpoint, ptcache_data_size[i]);
       }
     }
   }
 
-  if (!error && pm->extradata.first) {
+  if (ok && pm->extradata.first) {
     PTCacheExtra *extra = static_cast<PTCacheExtra *>(pm->extradata.first);
 
     for (; extra; extra = extra->next) {
@@ -2014,21 +2074,21 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
       }
 
       const uint extratype = uint(extra->type);
-      ptcache_file_write(pf, &extratype, 1, sizeof(uint));
-      ptcache_file_write(pf, &extra->totdata, 1, sizeof(uint));
+      ok &= ptcache_file_write(pf, &extratype, 1, sizeof(uint));
+      ok &= ptcache_file_write(pf, &extra->totdata, 1, sizeof(uint));
 
-      ptcache_file_compressed_write(
+      ok &= ptcache_file_compressed_write(
           pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type]);
     }
   }
 
   ptcache_file_close(pf);
 
-  if (error && G.debug & G_DEBUG) {
-    printf("Error writing to disk cache\n");
+  if (!ok && G.debug & G_DEBUG) {
+    CLOG_ERROR(&LOG, "Error writing to disk cache");
   }
 
-  return error == 0;
+  return ok;
 }
 
 static int ptcache_read_stream(PTCacheID *pid, int cfra)
@@ -2339,7 +2399,11 @@ static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
   pm->totpoint = pid->totwrite(pid->calldata, cfra);
   pm->data_types = cfra ? pid->data_types : pid->info_types;
 
-  ptcache_data_alloc(pm);
+  if (!ptcache_data_alloc(pm, true)) {
+    ptcache_mem_clear(pm);
+    MEM_delete(pm);
+    return 1;
+  }
   void *cur[BPHYS_TOT_DATA];
   BKE_ptcache_mem_pointers_init(pm, cur);
 
