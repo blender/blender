@@ -64,10 +64,16 @@ Mesh *mesh_merge_verts(const Mesh &mesh,
                        int removed_verts_num,
                        bool do_mix_data);
 
-Mesh *mesh_merge_verts(const Mesh &mesh,
-                       const IndexMask &selection,
-                       Span<int> merge_ids,
-                       const bke::AttributeFilter &attribute_filter);
+/**
+ * Merge selected vertices that share the same ID. Each group of vertices merges into the vertex
+ * with the lowest index.
+ * \returns #std::nullopt if the mesh should not be changed (no vertices are merged), in order to
+ * avoid copying the input. Otherwise returns the new mesh with merged geometry.
+ */
+std::optional<Mesh *> mesh_merge_verts(const Mesh &mesh,
+                                       const IndexMask &selection,
+                                       Span<int> merge_ids,
+                                       const bke::AttributeFilter &attribute_filter);
 
 }  // namespace geometry
 }  // namespace blender

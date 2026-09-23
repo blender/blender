@@ -1868,13 +1868,17 @@ Mesh *mesh_merge_verts(const Mesh &mesh,
 
 /** \} */
 
-Mesh *mesh_merge_verts(const Mesh &mesh,
-                       const IndexMask &selection,
-                       const Span<int> merge_ids,
-                       const bke::AttributeFilter & /*attribute_filter*/)
+std::optional<Mesh *> mesh_merge_verts(const Mesh &mesh,
+                                       const IndexMask &selection,
+                                       const Span<int> merge_ids,
+                                       const bke::AttributeFilter & /*attribute_filter*/)
 {
   VectorSet<int> group_indices;
   selection.foreach_index_optimized<int>([&](const int i) { group_indices.add(merge_ids[i]); });
+  const int removed_verts_num = selection.size() - group_indices.size();
+  if (removed_verts_num == 0) {
+    return std::nullopt;
+  }
 
   Array<int> dst_vert_by_group(group_indices.size(), -1);
   selection.foreach_index_optimized<int>([&](const int i) {
@@ -1893,8 +1897,7 @@ Mesh *mesh_merge_verts(const Mesh &mesh,
       },
       exec_mode::grain_size(8192));
 
-  return create_merged_mesh(
-      mesh, vert_src_to_target, selection.size() - group_indices.size(), true);
+  return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, true);
 }
 
 }  // namespace blender::geometry
