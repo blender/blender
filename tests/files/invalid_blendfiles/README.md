@@ -108,3 +108,23 @@ An object block's data is truncated to `sizeof(ID)` (buffer overflow).
 ---------------------------------
 
 An object block has a zero struct count, with SDNA modified to require reconstruction (buffer overflow).
+
+`invalid_glob_small.blend`
+--------------------------
+
+The `GLOB` block's struct type is `ListBase`, smaller than `FileGlobal` (buffer overflow).
+
+`invalid_id_struct_type.blend`
+------------------------------
+
+An object block's struct type is `ID`, smaller than `Object` (buffer overflow).
+
+`invalid_library_id_type.blend`
+-------------------------------
+
+A library block is renamed to a scene, which is larger than `Library` (buffer overflow).
+
+`invalid_library_filepath_unterminated.blend`
+---------------------------------------------
+
+A library filepath without null terminator. Linking from the file read past the end (buffer overflow).
