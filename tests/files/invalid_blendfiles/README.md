@@ -128,3 +128,13 @@ A library block is renamed to a scene, which is larger than `Library` (buffer ov
 ---------------------------------------------
 
 A library filepath without null terminator. Linking from the file read past the end (buffer overflow).
+
+`invalid_library_missing.blend`
+-------------------------------
+
+The library block is removed, leaving link placeholders without library (crash).
+
+`invalid_library_as_text.blend`
+-------------------------------
+
+The library block is renamed to a text, leaving link placeholders without library (crash).
