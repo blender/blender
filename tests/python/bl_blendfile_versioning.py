@@ -53,6 +53,11 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             # tests/opengl/ram_glsl.blend
             # Error: Not freed memory blocks: 4, total unfreed memory 0.000427 MB
             "ram_glsl.blend",
+
+            # invalid_blendfiles/invalid_pointcache_totpoint_overflow.blend
+            # Allocates a lot of memory due to invalid file, causing test failures.
+            # on Windows ARM64 CI.
+            "invalid_pointcache_totpoint_overflow.blend",
         }
 
         # Directories to exclude relative to `./tests/files/`.
