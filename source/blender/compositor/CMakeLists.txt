@@ -42,6 +42,7 @@ set(SRC
   COM_pixel_operation.hh
   COM_realize_on_domain_operation.hh
   COM_render_context.hh
+  COM_repeat_zone_operation.hh
   COM_result.hh
   COM_scene_compositor_effects_operation.hh
   COM_scheduler.hh
@@ -52,6 +53,8 @@ set(SRC
   COM_static_cache_manager.hh
   COM_undefined_node_operation.hh
   COM_utilities.hh
+  COM_zone_operation.hh
+  COM_zone_tree_operation.hh
 
   intern/bundle_item.cc
   intern/context.cc
@@ -70,6 +73,7 @@ set(SRC
   intern/pixel_operation.cc
   intern/realize_on_domain_operation.cc
   intern/render_context.cc
+  intern/repeat_zone_operation.cc
   intern/result.cc
   intern/scene_compositor_effects_operation.cc
   intern/scheduler.cc
@@ -80,6 +84,8 @@ set(SRC
   intern/static_cache_manager.cc
   intern/undefined_node_operation.cc
   intern/utilities.cc
+  intern/zone_operation.cc
+  intern/zone_tree_operation.cc
 
   algorithms/intern/compute_preview.cc
   algorithms/intern/convolve.cc

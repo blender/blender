@@ -60,4 +60,10 @@ Schedule compute_schedule(const Context &context,
                           SocketResultFn socket_result_fn,
                           const bke::bNodeTreeZone *zone = nullptr);
 
+/* Computes how many times the given output is referenced in the given schedule, ignoring outgoing
+ * links to the given ignored nodes if not nullptr. */
+int compute_output_reference_count(const bNodeSocket &output,
+                                   const Schedule &schedule,
+                                   const VectorSet<const bNode *> *ignored_nodes = nullptr);
+
 }  // namespace blender::compositor

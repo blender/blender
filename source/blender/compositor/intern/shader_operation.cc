@@ -571,14 +571,12 @@ void ShaderOperation::populate_results_for_node(const bNode &node)
       continue;
     }
 
-    /* If any of the nodes linked to the output are not part of the shader operation but are part
-     * of the execution schedule, then an output result needs to be populated for it. */
-    const bool is_operation_output = is_output_linked_to_input_conditioned(
-        *output, [&](const bNodeSocket &input) {
-          return node_tree_evaluator_.schedule().nodes.contains(&input.owner_node()) &&
-                 !node_tree_evaluator_.schedule().unneeded_inputs.contains(&input) &&
-                 !node_tree_evaluator_.pixel_compile_unit().contains(&input.owner_node());
-        });
+    /* If the output is referenced by the schedule outside of the pixel compile unit, then an
+     * output result needs to be populated for it. */
+    const bool is_operation_output = compute_output_reference_count(
+                                         *output,
+                                         node_tree_evaluator_.schedule(),
+                                         &node_tree_evaluator_.pixel_compile_unit()) != 0;
 
     /* If the output is used as the node preview, then an output result needs to be populated for
      * it, and we additionally keep track of that output to later compute the previews from. */

@@ -42,10 +42,6 @@ ResultType get_node_interface_socket_result_type(const bNodeTreeInterfaceSocket 
 bool is_output_linked_to_input_conditioned(const bNodeSocket &output,
                                            FunctionRef<bool(const bNodeSocket &)> condition);
 
-/* Returns the number of inputs linked to the given output that satisfy the given condition. */
-int number_of_inputs_linked_to_output_conditioned(
-    const bNodeSocket &output, FunctionRef<bool(const bNodeSocket &)> condition);
-
 /* A node is a pixel node if it defines a method to get a pixel node operation. */
 bool is_pixel_node(const bNode &node);
 

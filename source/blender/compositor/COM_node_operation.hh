@@ -47,10 +47,8 @@ class NodeOperation : public Operation {
    * in the context's profile data. */
   void evaluate() override;
 
-  /* Compute and set the initial reference counts of all the results of the operation. The
-   * reference counts of the results are the number of operations that use those results, which is
-   * computed as the number of inputs whose node is part of the schedule and is linked to the
-   * output corresponding to each result. The node execution schedule is given as an input. */
+  /* Compute and set the initial reference counts of all the results of the operation. The node
+   * execution schedule is given as an input. */
   void compute_results_reference_counts(const Schedule &schedule);
 
   /* Setter and getter for compute_context_. */

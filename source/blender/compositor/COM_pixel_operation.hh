@@ -142,16 +142,8 @@ class PixelOperation : public Operation {
    * inputs_to_reference_counts_map_ member for more information. */
   int get_internal_input_reference_count(const StringRef &identifier);
 
-  /* Compute and set the initial reference counts of all the results of the operation. The
-   * reference counts of the results are the number of operations that use those results, which is
-   * computed as the number of inputs linked to the output corresponding to each of the results of
-   * the operation, but only the linked inputs whose node is part of the schedule but not part of
-   * the pixel operation, since inputs that are part of the pixel operations are internal links.
-   *
-   * Additionally, results that are used as node previews gets an extra reference count because
-   * they are referenced and released by the compute_preview method.
-   *
-   * The node execution schedule is given as an input. */
+  /* Compute and set the initial reference counts of all the results of the operation. The node
+   * execution schedule is given as an input. */
   void compute_results_reference_counts(const Schedule &schedule);
 };
 
