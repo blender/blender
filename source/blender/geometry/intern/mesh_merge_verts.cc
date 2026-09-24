@@ -60,9 +60,20 @@ struct WeldFace {
   /** The first and last corner of the face, see #WeldMesh::corner_next. */
   int corner_start;
   int corner_end;
-#ifdef USE_WELD_DEBUG
+  /** The number of remaining corners. */
   int corners_num;
-#endif
+};
+
+/** The number of faces and corners removed by merging. */
+struct RemovedFacesAndCorners {
+  int faces = 0;
+  int corners = 0;
+
+  friend RemovedFacesAndCorners operator+(const RemovedFacesAndCorners &a,
+                                          const RemovedFacesAndCorners &b)
+  {
+    return {a.faces + b.faces, a.corners + b.corners};
+  }
 };
 
 struct WeldMesh {
@@ -385,9 +396,7 @@ static void weld_face_corner_ctx_alloc(const OffsetIndices<int> faces,
         weld_face.face_src = face_index;
         weld_face.corner_start = face.first();
         weld_face.corner_end = face.last();
-#ifdef USE_WELD_DEBUG
         weld_face.corners_num = face.size();
-#endif
         face_to_weld_face[face_index] = weld_face_index;
       },
       exec_mode::grain_size(1024));
@@ -401,12 +410,12 @@ static void weld_face_corner_ctx_alloc(const OffsetIndices<int> faces,
   r_weld_mesh->face_to_weld_face = std::move(face_to_weld_face);
 }
 
+/** Split faces that contain the same vertex multiple times after merging into separate faces. */
 static void weld_face_split_recursive(int face_size,
                                       const Span<int> corner_verts,
                                       WeldFace *r_wp,
                                       WeldMesh *r_weld_mesh,
-                                      int *r_removed_faces_num,
-                                      int *r_removed_corners_num)
+                                      RemovedFacesAndCorners &r_removed)
 {
   if (face_size < 3) {
     return;
@@ -453,8 +462,8 @@ static void weld_face_split_recursive(int face_size,
         removed_corners_num += 4;
         dist_b = 0;
         r_wp->face_dst = ELEM_COLLAPSED;
-        *r_removed_faces_num += 1;
-        *r_removed_corners_num += removed_corners_num;
+        r_removed.faces += 1;
+        r_removed.corners += removed_corners_num;
         /* Since all the corners are collapsed, avoid iterating through them.
          * This may result in wrong removed_faces_num counts. */
         return;
@@ -487,16 +496,8 @@ static void weld_face_split_recursive(int face_size,
           new_test->face_src = r_wp->face_src;
           new_test->corner_start = corner_a;
           new_test->corner_end = lb_prev;
-
-#ifdef USE_WELD_DEBUG
           new_test->corners_num = dist_a;
-#endif
-          weld_face_split_recursive(dist_a,
-                                    corner_verts,
-                                    new_test,
-                                    r_weld_mesh,
-                                    r_removed_faces_num,
-                                    r_removed_corners_num);
+          weld_face_split_recursive(dist_a, corner_verts, new_test, r_weld_mesh, r_removed);
         }
 
         corner_a = corner_b;
@@ -517,19 +518,66 @@ static void weld_face_split_recursive(int face_size,
     corner_a = corner_next[corner_a];
   } while (corner_a != corner_end);
 
-  *r_removed_corners_num += removed_corners_num;
-#ifdef USE_WELD_DEBUG
+  r_removed.corners += removed_corners_num;
   r_wp->corners_num = face_size;
+#ifdef USE_WELD_DEBUG
   weld_assert_face_no_vert_repetition(*r_wp, *r_weld_mesh);
 #endif
 }
 
 /**
- * Remove the corners of collapsed edges from the weld faces, and split faces that contain the same
+ * Remove the corners of collapsed edges from a weld face by relinking the remaining corners.
+ * \return The number of remaining corners, or zero if the whole face collapses.
+ */
+static int collapse_weld_face(const Span<int> corner_edges,
+                              const Span<int> edge_src_to_target,
+                              WeldFace &weld_face,
+                              MutableSpan<int> corner_next,
+                              RemovedFacesAndCorners &r_removed)
+{
+  int face_size = (weld_face.corner_end - weld_face.corner_start) + 1;
+  int corner_prev = -1;
+  bool changed_corner_start = false;
+  int corner = weld_face.corner_start;
+  do {
+    if (edge_src_to_target[corner_edges[corner]] == ELEM_COLLAPSED) {
+      if (face_size == 3) {
+        weld_face.face_dst = ELEM_COLLAPSED;
+        r_removed.faces++;
+        r_removed.corners += 3;
+        return 0;
+      }
+
+      if (corner == weld_face.corner_start) {
+        changed_corner_start = true;
+      }
+
+      r_removed.corners++;
+      face_size--;
+    }
+    else {
+      if (changed_corner_start) {
+        weld_face.corner_start = corner;
+        changed_corner_start = false;
+      }
+      if (corner_prev != -1) {
+        corner_next[corner_prev] = corner;
+      }
+      corner_prev = corner;
+    }
+  } while (corner++ != weld_face.corner_end);
+
+  corner_next[corner_prev] = weld_face.corner_start;
+  weld_face.corner_end = corner_prev;
+  weld_face.corners_num = face_size;
+  return face_size;
+}
+
+/**
+ * Remove corners for collapsed edges from the weld faces, and split faces that contain the same
  * vertex multiple times.
  *
  * \param remaining_edge_ctx_num: Context weld edges that won't be destroyed by merging.
- * \return r_weld_mesh: Corner and face members will be configured here.
  */
 static void weld_face_corner_ctx_setup_collapsed_and_split(const Span<int> corner_verts,
                                                            const Span<int> corner_edges,
@@ -539,7 +587,7 @@ static void weld_face_corner_ctx_setup_collapsed_and_split(const Span<int> corne
   if (remaining_edge_ctx_num == 0) {
     int removed_corners_num = 0;
     for (WeldFace &weld_face : r_weld_mesh->weld_faces) {
-      removed_corners_num += weld_face.corner_end - weld_face.corner_start + 1;
+      removed_corners_num += weld_face.corners_num;
       weld_face.face_dst = ELEM_COLLAPSED;
     }
     r_weld_mesh->removed_faces_num = r_weld_mesh->weld_faces.size();
@@ -547,71 +595,44 @@ static void weld_face_corner_ctx_setup_collapsed_and_split(const Span<int> corne
     return;
   }
 
+  /* Splitting adds new faces at the end of the vector, which has enough space reserved already, so
+   * the existing faces aren't reallocated. Only the faces that already exist are visited here. */
   WeldFace *weld_faces = r_weld_mesh->weld_faces.data();
+  const IndexRange weld_faces_src_range = r_weld_mesh->weld_faces.index_range();
   const Span<int> edge_src_to_target = r_weld_mesh->edge_src_to_target;
   MutableSpan<int> corner_next = r_weld_mesh->corner_next;
 
-  int removed_faces_num = 0;
-  int removed_corners_num = 0;
+  /* Only faces with at least 6 corners can be split into two new faces with at least 3 corners.
+   * All other faces are processed in parallel. Faces that may be split are split afterwards on a
+   * single thread, so the new faces are added in a deterministic order. */
+  constexpr int min_split_face_size = 6;
+  RemovedFacesAndCorners removed = threading::parallel_reduce(
+      weld_faces_src_range,
+      1024,
+      RemovedFacesAndCorners(),
+      [&](const IndexRange range, RemovedFacesAndCorners removed) {
+        for (const int i : range) {
+          const int face_size = collapse_weld_face(
+              corner_edges, edge_src_to_target, weld_faces[i], corner_next, removed);
+          if (face_size > 0 && face_size < min_split_face_size) {
+            weld_face_split_recursive(
+                face_size, corner_verts, &weld_faces[i], r_weld_mesh, removed);
+          }
+        }
+        return removed;
+      },
+      std::plus<>());
 
-  /* Setup Face/Corner. */
-  /* `weld_faces.size()` may change while iterating, so make it clear that only the items that
-   * already exist are visited. */
-  IndexRange weld_faces_src_range = r_weld_mesh->weld_faces.index_range();
   for (const int i : weld_faces_src_range) {
     WeldFace &weld_face = weld_faces[i];
-    int face_size = (weld_face.corner_end - weld_face.corner_start) + 1;
-    int corner_prev = -1;
-    bool changed_corner_start = false;
-    int corner = weld_face.corner_start;
-    do {
-      if (edge_src_to_target[corner_edges[corner]] == ELEM_COLLAPSED) {
-        if (face_size == 3) {
-          weld_face.face_dst = ELEM_COLLAPSED;
-          removed_faces_num++;
-          removed_corners_num += 3;
-          face_size = 0;
-          break;
-        }
-
-        if (corner == weld_face.corner_start) {
-          changed_corner_start = true;
-        }
-
-        removed_corners_num++;
-        face_size--;
-      }
-      else {
-        if (changed_corner_start) {
-          weld_face.corner_start = corner;
-          changed_corner_start = false;
-        }
-        if (corner_prev != -1) {
-          corner_next[corner_prev] = corner;
-        }
-        corner_prev = corner;
-      }
-    } while (corner++ != weld_face.corner_end);
-
-    if (face_size) {
-      corner_next[corner_prev] = weld_face.corner_start;
-      weld_face.corner_end = corner_prev;
-
-#ifdef USE_WELD_DEBUG
-      weld_face.corners_num = face_size;
-#endif
-
-      weld_face_split_recursive(face_size,
-                                corner_verts,
-                                &weld_face,
-                                r_weld_mesh,
-                                &removed_faces_num,
-                                &removed_corners_num);
+    if (weld_face.face_dst == OUT_OF_CONTEXT && weld_face.corners_num >= min_split_face_size) {
+      weld_face_split_recursive(
+          weld_face.corners_num, corner_verts, &weld_face, r_weld_mesh, removed);
     }
   }
 
-  r_weld_mesh->removed_faces_num = removed_faces_num;
-  r_weld_mesh->removed_corners_num = removed_corners_num;
+  r_weld_mesh->removed_faces_num = removed.faces;
+  r_weld_mesh->removed_corners_num = removed.corners;
 
 #ifdef USE_WELD_DEBUG
   weld_assert_removed_faces_and_corners_num(
