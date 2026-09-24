@@ -16,10 +16,6 @@ class GHOST_IContext;
 
 namespace blender {
 
-namespace gpu {
-class Texture;
-}
-
 namespace bke {
 class BlenderProject;
 }
