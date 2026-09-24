@@ -76,7 +76,7 @@ static const char *get_gpufn_name_from_to(short from, short to, short vector_typ
     case SHD_VECT_TRANSFORM_SPACE_OBJECT: \
       SWITCH_VECTOR_TYPE(FROM, "object"); \
     case SHD_VECT_TRANSFORM_SPACE_CAMERA: \
-      SWITCH_VECTOR_TYPE(FROM, "camera"); \
+      SWITCH_VECTOR_TYPE(FROM, "view"); \
     case SHD_VECT_TRANSFORM_SPACE_LIGHT: \
       SWITCH_VECTOR_TYPE(FROM, "light"); \
   } \
@@ -88,7 +88,7 @@ static const char *get_gpufn_name_from_to(short from, short to, short vector_typ
     case SHD_VECT_TRANSFORM_SPACE_OBJECT:
       SWITCH_SPACE_TYPE("object");
     case SHD_VECT_TRANSFORM_SPACE_CAMERA:
-      SWITCH_SPACE_TYPE("camera");
+      SWITCH_SPACE_TYPE("view");
     case SHD_VECT_TRANSFORM_SPACE_LIGHT:
       SWITCH_SPACE_TYPE("light");
   }
