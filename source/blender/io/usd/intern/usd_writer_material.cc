@@ -1593,7 +1593,7 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
     return;
   }
 
-  /* Copy over the MateralXConfigAPI schema and associated attribute. */
+  /* Copy over the MaterialXConfigAPI schema and associated attribute. */
   pxr::UsdMtlxMaterialXConfigAPI temp_config_api{temp_material_prim};
   if (temp_config_api) {
     pxr::UsdMtlxMaterialXConfigAPI materialx_config_api = pxr::UsdMtlxMaterialXConfigAPI::Apply(

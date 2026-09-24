@@ -70,7 +70,7 @@ namespace io::alembic {
 
 static CLG_LogRef LOG = {"io.alembic"};
 
-/* NOTE: Alembic's face winding order is clockwise, to match with Renderman. */
+/* NOTE: Alembic's face winding order is clockwise, to match with RenderMan. */
 
 /* Some helpers for mesh generation */
 namespace utils {

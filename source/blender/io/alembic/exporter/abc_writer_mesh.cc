@@ -59,7 +59,7 @@ using Alembic::AbcGeom::UInt32ArraySample;
 
 namespace io::alembic {
 
-/* NOTE: Alembic's polygon winding order is clockwise, to match with Renderman. */
+/* NOTE: Alembic's polygon winding order is clockwise, to match with RenderMan. */
 
 static void get_topology(Mesh *mesh,
                          std::vector<int32_t> &face_verts,
@@ -567,7 +567,7 @@ void ABCGenericMeshWriter::get_geo_groups(Object *object,
   }
 }
 
-/* NOTE: Alembic's polygon winding order is clockwise, to match with Renderman. */
+/* NOTE: Alembic's polygon winding order is clockwise, to match with RenderMan. */
 
 static void get_topology(Mesh *mesh,
                          std::vector<int32_t> &face_verts,
