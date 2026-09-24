@@ -937,29 +937,6 @@ static void weld_mesh_context_create(const Mesh &mesh,
  * \{ */
 
 /**
- * Group the source elements by the element they merge into.
- *
- * \param src_to_target: For each element, the element it merges into. Elements that don't merge
- * into anything else point at themselves.
- * \param kept: The elements that survive as part of some group. Everything outside of this mask is
- * removed entirely rather than merged (collapsed edges).
- */
-static GroupedSpan<int> merge_groups_create(const Span<int> src_to_target,
-                                            const IndexMask &kept,
-                                            Array<int> &r_group_offsets,
-                                            Array<int> &r_group_indices)
-{
-  if (kept.size() == src_to_target.size()) {
-    return offset_indices::build_groups_from_indices(
-        src_to_target, src_to_target.size(), r_group_offsets, r_group_indices);
-  }
-  Array<int> kept_src_to_target(kept.size());
-  array_utils::gather(src_to_target, kept, kept_src_to_target.as_mutable_span());
-  return offset_indices::build_groups_from_indices(
-      kept_src_to_target, src_to_target.size(), r_group_offsets, r_group_indices, kept);
-}
-
-/**
  * The elements that are kept in the result. In other words, the merge targets and also the "out of
  * context" elements.
  */
@@ -969,43 +946,83 @@ static IndexMask merge_survivors(const Span<int> src_to_target, IndexMaskMemory 
       src_to_target.index_range(), memory, [&](const int i) { return src_to_target[i] == i; });
 }
 
+struct MergePropagationMap {
+  /** A source element for every result element, used to copy values. */
+  Array<int> dst_to_src;
+  /** Result elements created from more than one source element. */
+  IndexMask mixed;
+  /** The source elements for each element in #mixed, starting with the element in #dst_to_src. */
+  Array<int> mixed_offsets;
+  Array<int> mixed_indices;
+
+  GroupedSpan<int> mixed_groups() const
+  {
+    return {OffsetIndices<int>(mixed_offsets), mixed_indices};
+  }
+};
+
 /**
- * Build a map from each element in the result to the source elements it's created from.
- *
- * \param src_to_target: The target element each element merges into.
- * \param kept: The elements that aren't removed entirely (see #merge_groups_create).
+ * \param src_to_target: The target element each element merges into. Elements that are removed
+ * entirely (collapsed edges) have negative values.
  * \param survivors: The elements kept in the result (see #merge_survivors).
- * \param do_mix_data: Build maps for mixing attribute values from all of an elements source
- * elements. Otherwise just the value for the target element is used.
+ * \param do_mix_data: Build groups for mixing attribute values from all of an element's source
+ * elements. Otherwise just the value of the target element is used.
  */
-static GroupedSpan<int> merge_dst_to_src_map(const Span<int> src_to_target,
-                                             const IndexMask &kept,
-                                             const IndexMask &survivors,
-                                             const bool do_mix_data,
-                                             Array<int> &r_offsets,
-                                             Array<int> &r_indices)
+static MergePropagationMap merge_propagation_map(const Span<int> src_to_target,
+                                                 const IndexMask &survivors,
+                                                 const Span<int> src_to_dst,
+                                                 const bool do_mix_data,
+                                                 IndexMaskMemory &memory)
 {
   PRF_scope(ProfileCategory::Default);
+  MergePropagationMap map;
+  map.dst_to_src.reinitialize(survivors.size());
+  survivors.to_indices(map.dst_to_src.as_mutable_span());
   if (!do_mix_data) {
-    r_indices.reinitialize(survivors.size());
-    survivors.to_indices(r_indices.as_mutable_span());
-    r_offsets.reinitialize(survivors.size() + 1);
-    array_utils::fill_index_range(r_offsets.as_mutable_span());
-    return {OffsetIndices<int>(r_offsets), r_indices};
+    return map;
   }
 
-  Array<int> group_offsets_by_src;
-  merge_groups_create(src_to_target, kept, group_offsets_by_src, r_indices);
+  /* Elements that merge into another element. */
+  const IndexMask merged = IndexMask::from_predicate(
+      src_to_target.index_range(), memory, [&](const int i) {
+        return src_to_target[i] != i && src_to_target[i] >= 0;
+      });
+  if (merged.is_empty()) {
+    return map;
+  }
 
-  /* The groups are laid out in ascending order of the element they merge into, and elements that
-   * aren't kept have empty groups. So dropping the empty groups compresses the offsets into
-   * exactly the result order, and the group indices are already the result's source indices. */
-  r_offsets.reinitialize(survivors.size() + 1);
-  /* #gather_selected_offsets leaves the array untouched when there is nothing to gather. */
-  r_offsets.last() = 0;
-  offset_indices::gather_selected_offsets(
-      OffsetIndices<int>(group_offsets_by_src), survivors, r_offsets);
-  return {OffsetIndices<int>(r_offsets), r_indices};
+  /* Only the merged elements are grouped by their result element here, since grouping the
+   * targets as well is significantly slower than inserting them afterwards. */
+  Array<int> merged_dst(merged.size());
+  array_utils::gather(GSpan(src_to_dst), merged, GMutableSpan(merged_dst.as_mutable_span()));
+  Array<int> merged_offset_data;
+  Array<int> merged_index_data;
+  const GroupedSpan<int> merged_by_dst = offset_indices::build_groups_from_indices(
+      merged_dst, survivors.size(), merged_offset_data, merged_index_data, merged);
+
+  map.mixed = IndexMask::from_predicate(IndexRange(survivors.size()), memory, [&](const int dst) {
+    return !merged_by_dst[dst].is_empty();
+  });
+  map.mixed_offsets.reinitialize(map.mixed.size() + 1);
+  map.mixed.foreach_index_optimized<int>(
+      [&](const int dst, const int pos) {
+        /* The target is part of the group too. */
+        map.mixed_offsets[pos] = merged_by_dst[dst].size() + 1;
+      },
+      exec_mode::grain_size(4096));
+  const OffsetIndices mixed_offsets = offset_indices::accumulate_counts_to_offsets(
+      map.mixed_offsets);
+
+  /* Each group starts with the target, followed by the elements that merge into it. */
+  map.mixed_indices.reinitialize(mixed_offsets.total_size());
+  map.mixed.foreach_index(
+      [&](const int dst, const int pos) {
+        MutableSpan<int> group = map.mixed_indices.as_mutable_span().slice(mixed_offsets[pos]);
+        group.first() = map.dst_to_src[dst];
+        group.drop_front(1).copy_from(merged_by_dst[dst]);
+      },
+      exec_mode::grain_size(1024));
+  return map;
 }
 
 /**
@@ -1035,67 +1052,6 @@ static Array<int> merge_src_to_dst_map(const Span<int> src_to_target, const Inde
 /* -------------------------------------------------------------------- */
 /** \name Mesh Vertex Merging
  * \{ */
-
-template<typename T>
-static void copy_first_from_src(const Span<T> src,
-                                const GroupedSpan<int> dst_to_src,
-                                MutableSpan<T> dst)
-{
-  for (const int dst_index : dst.index_range()) {
-    const int src_index = dst_to_src[dst_index].first();
-    dst[dst_index] = src[src_index];
-  }
-}
-
-static void mix_attributes(const bke::AttributeAccessor src_attributes,
-                           const GroupedSpan<int> dst_to_src,
-                           const bke::AttrDomain domain,
-                           const bke::AttributeFilter &attribute_filter,
-                           const Set<StringRef> &skip_names,
-                           bke::MutableAttributeAccessor dst_attributes)
-{
-  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.domain != domain) {
-      return;
-    }
-    if (skip_names.contains(iter.name)) {
-      return;
-    }
-    if (attribute_filter.allow_skip(iter.name)) {
-      return;
-    }
-    if (iter.data_type == bke::AttrType::String) {
-      return;
-    }
-    const GVArray src_attr = *iter.get();
-    const CommonVArrayInfo info = src_attr.common_info();
-    if (info.type == CommonVArrayInfo::Type::Single) {
-      const bke::AttributeInitValue init(GPointer(src_attr.type(), info.data));
-      if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
-        return;
-      }
-    }
-    bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
-        iter.name, iter.domain, iter.data_type);
-    bke::attribute_math::mix_groups(GVArraySpan(src_attr), dst_to_src, dst_attr.span);
-    dst_attr.finish();
-  });
-}
-
-struct MergePropagationMap {
-  /** A source element for every result element. */
-  Array<int> dst_to_src;
-  /** Result elements created from more than one source element. */
-  IndexMask mixed;
-  /** The source elements for each element in #mixed. */
-  Array<int> mixed_offsets;
-  Array<int> mixed_indices;
-
-  GroupedSpan<int> mixed_groups() const
-  {
-    return {OffsetIndices<int>(mixed_offsets), mixed_indices};
-  }
-};
 
 /**
  * Copy attributes from a source element for every result element, and mix the values for
@@ -1142,20 +1098,22 @@ static void copy_and_mix_attributes(const bke::AttributeAccessor src_attributes,
   });
 }
 
-static void mix_vertex_groups(const Mesh &mesh_src,
-                              const GroupedSpan<int> dst_to_src,
-                              Mesh &mesh_dst)
+static void mix_vertex_groups(const Mesh &mesh_src, const MergePropagationMap &map, Mesh &mesh_dst)
 {
   const Span<MDeformVert> src_dverts = mesh_src.deform_verts();
   if (src_dverts.is_empty()) {
     return;
   }
   MutableSpan<MDeformVert> dst_dverts = mesh_dst.deform_verts_for_write();
-  threading::parallel_for(dst_to_src.index_range(), 256, [&](const IndexRange range) {
+  const GroupedSpan<int> mixed_groups = map.mixed_groups();
+  IndexMaskMemory memory;
+  const IndexMask copied = map.mixed.complement(dst_dverts.index_range(), memory);
+  bke::gather_deform_verts(src_dverts, map.dst_to_src, copied, dst_dverts);
+  threading::parallel_for(map.mixed.index_range(), 256, [&](const IndexRange range) {
     bke::MDeformWeightSet weights;
-    for (const int dst_vert : range) {
-      dst_dverts[dst_vert] = mix_deform_verts(src_dverts, dst_to_src[dst_vert], {}, weights);
-    }
+    map.mixed.slice(range).foreach_index([&](const int dst_vert, const int pos) {
+      dst_dverts[dst_vert] = mix_deform_verts(src_dverts, mixed_groups[range[pos]], {}, weights);
+    });
   });
 }
 
@@ -1214,74 +1172,53 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   BLI_assert(vert_survivors.size() == dst_verts_num);
 
   const Array<int> vert_src_to_dst = merge_src_to_dst_map(vert_src_to_target, vert_survivors);
+  const MergePropagationMap vert_map = merge_propagation_map(
+      vert_src_to_target, vert_survivors, vert_src_to_dst, do_mix_data, mask_memory);
 
-  Array<int> vert_dst_to_src_offsets;
-  Array<int> vert_dst_to_src_indices;
-  const GroupedSpan<int> vert_dst_to_src = merge_dst_to_src_map(vert_src_to_target,
-                                                                IndexMask(src_verts_num),
-                                                                vert_survivors,
-                                                                do_mix_data,
-                                                                vert_dst_to_src_offsets,
-                                                                vert_dst_to_src_indices);
-
-  mix_attributes(src_attributes,
-                 vert_dst_to_src,
-                 bke::AttrDomain::Point,
-                 attribute_filter,
-                 get_vertex_group_names(mesh),
-                 dst_attributes);
-  mix_vertex_groups(mesh, vert_dst_to_src, *result);
+  const Set<StringRef> vertex_group_names = get_vertex_group_names(mesh);
+  copy_and_mix_attributes(
+      src_attributes,
+      bke::AttrDomain::Point,
+      bke::attribute_filter_with_skip_ref(attribute_filter, vertex_group_names),
+      vert_map,
+      dst_attributes);
+  mix_vertex_groups(mesh, vert_map, *result);
   if (CustomData_has_layer(&mesh.vert_data, CD_ORIGINDEX)) {
     const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.vert_data, CD_ORIGINDEX)),
                    mesh.verts_num);
     MutableSpan dst(static_cast<int *>(CustomData_add_layer(
                         &result->vert_data, CD_ORIGINDEX, CD_CONSTRUCT, result->verts_num)),
                     result->verts_num);
-    copy_first_from_src(src, vert_dst_to_src, dst);
+    array_utils::gather(src, vert_map.dst_to_src.as_span(), dst);
   }
 
   /* Edges. */
-
-  /* Collapsed edges have no target, so they can't be part of any group. */
-  const IndexMask kept_edges = IndexMask::from_predicate(
-      IndexMask(src_edges_num), mask_memory, [&](const int edge) {
-        return weld_mesh.edge_src_to_target[edge] != ELEM_COLLAPSED;
-      });
 
   const IndexMask edge_survivors = merge_survivors(weld_mesh.edge_src_to_target, mask_memory);
   BLI_assert(edge_survivors.size() == dst_edges_num);
 
   const Array<int> edge_src_to_dst = merge_src_to_dst_map(weld_mesh.edge_src_to_target,
                                                           edge_survivors);
+  const MergePropagationMap edge_map = merge_propagation_map(
+      weld_mesh.edge_src_to_target, edge_survivors, edge_src_to_dst, do_mix_data, mask_memory);
 
-  Array<int> edge_dst_to_src_offsets;
-  Array<int> edge_dst_to_src_indices;
-  const GroupedSpan<int> edge_dst_to_src = merge_dst_to_src_map(weld_mesh.edge_src_to_target,
-                                                                kept_edges,
-                                                                edge_survivors,
-                                                                do_mix_data,
-                                                                edge_dst_to_src_offsets,
-                                                                edge_dst_to_src_indices);
-
-  mix_attributes(src_attributes,
-                 edge_dst_to_src,
-                 bke::AttrDomain::Edge,
-                 attribute_filter,
-                 {".edge_verts"},
-                 dst_attributes);
+  copy_and_mix_attributes(src_attributes,
+                          bke::AttrDomain::Edge,
+                          bke::attribute_filter_with_skip_ref(attribute_filter, {".edge_verts"}),
+                          edge_map,
+                          dst_attributes);
   if (CustomData_has_layer(&mesh.edge_data, CD_ORIGINDEX)) {
     const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.edge_data, CD_ORIGINDEX)),
                    mesh.edges_num);
     MutableSpan dst(static_cast<int *>(CustomData_add_layer(
                         &result->edge_data, CD_ORIGINDEX, CD_CONSTRUCT, result->edges_num)),
                     result->edges_num);
-    copy_first_from_src(src, edge_dst_to_src, dst);
+    array_utils::gather(src, edge_map.dst_to_src.as_span(), dst);
   }
 
   threading::parallel_for(dst_edges.index_range(), 2048, [&](const IndexRange range) {
     for (const int dst_edge_index : range) {
-      const int src_edge_index = edge_dst_to_src[dst_edge_index].first();
-      const int2 src_edge = src_edges[src_edge_index];
+      const int2 src_edge = src_edges[edge_map.dst_to_src[dst_edge_index]];
       dst_edges[dst_edge_index] = int2(vert_src_to_dst[src_edge[0]], vert_src_to_dst[src_edge[1]]);
     }
   });
