@@ -20,10 +20,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-static size_t estimate_single_state_size(const uint64_t kernel_features)
+static size_t estimate_single_state_size(const uint64_t kernel_features,
+                                         const int volume_stack_size)
 {
   size_t state_size = 0;
 
+#define KERNEL_STRUCT_VOLUME_STACK_SIZE (volume_stack_size)
 #define KERNEL_STRUCT_BEGIN(name) \
   for (int array_index = 0;; array_index++) {
 
@@ -58,17 +60,12 @@ static size_t estimate_single_state_size(const uint64_t kernel_features)
     break; \
   } \
   }
-/* TODO(sergey): Look into better estimation for fields which depend on scene features. Maybe
- * maximum state calculation should happen as `alloc_work_memory()`, so that we can react to an
- * updated scene state here.
- * For until then use common value. Currently this size is only used for logging, but is weak to
- * rely on this. */
-#define KERNEL_STRUCT_VOLUME_STACK_SIZE 4
 
 #include "kernel/integrator/state_template.h"
 
 #include "kernel/integrator/shadow_state_template.h"
 
+#undef KERNEL_STRUCT_VOLUME_STACK_SIZE
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_BEGIN_PACKED
 #undef KERNEL_STRUCT_MEMBER
@@ -76,7 +73,6 @@ static size_t estimate_single_state_size(const uint64_t kernel_features)
 #undef KERNEL_STRUCT_ARRAY_MEMBER
 #undef KERNEL_STRUCT_END
 #undef KERNEL_STRUCT_END_ARRAY
-#undef KERNEL_STRUCT_VOLUME_STACK_SIZE
 
   return state_size;
 }
@@ -140,7 +136,8 @@ void PathTraceWorkGPU::alloc_integrator_soa()
   /* Determine the number of path states. Deferring this for as long as possible allows the
    * back-end to make better decisions about memory availability. */
   if (max_num_paths_ == 0) {
-    const size_t single_state_size = estimate_single_state_size(kernel_features);
+    const size_t single_state_size = estimate_single_state_size(
+        kernel_features, integrator_state_soa_volume_stack_size_);
 
     max_num_paths_ = queue_->num_concurrent_states(single_state_size);
 
