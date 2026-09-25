@@ -75,11 +75,8 @@ struct VisibleLightIterator {
 
   uint light_set;
 
-  void next_local_word()
+  void next_local_word([[resource_table]] const eevee::LightRenderData &lrd)
   {
-    /* clang-format off */ /* Multi-line macros would break line count. */
-    [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
-    /* clang-format on */
     const auto &words = lrd.light_tile_buf;
 
     /* Same as divide by 32 but avoid integer division. */
@@ -103,11 +100,11 @@ struct VisibleLightIterator {
   }
 
  public:
-  void init(float2 pixel, float linear_view_z, uint receiver_light_set)
+  void init([[resource_table]] const eevee::LightRenderData &lrd,
+            float2 pixel,
+            float linear_view_z,
+            uint receiver_light_set)
   {
-    /* clang-format off */ /* Multi-line macros would break line count. */
-    [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
-    /* clang-format on */
     const LightCullingData &culling = lrd.light_cull_buf;
     const auto &zbins = lrd.light_zbin_buf;
 
@@ -134,11 +131,8 @@ struct VisibleLightIterator {
     phase = LIGHT_ITER_PHASE_INIT;
   }
 
-  bool next()
+  bool next([[resource_table]] const eevee::LightRenderData &lrd)
   {
-    /* clang-format off */ /* Multi-line macros would break line count. */
-    [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
-    /* clang-format on */
     const LightCullingData &culling = lrd.light_cull_buf;
 
     switch (phase) {
@@ -155,7 +149,7 @@ struct VisibleLightIterator {
         /* Same as divide by 32 but avoid integer division. */
         uint word_min = local_min_index >> 5u;
         local_word_idx = word_min;
-        next_local_word();
+        next_local_word(lrd);
       }
       case LIGHT_ITER_PHASE_LOCAL: {
         /* Same as divide by 32 but avoid integer division. */
@@ -168,7 +162,7 @@ struct VisibleLightIterator {
             return true;
           }
           local_word_idx++;
-          next_local_word();
+          next_local_word(lrd);
         }
         phase = LIGHT_ITER_PHASE_END;
       }
@@ -183,12 +177,8 @@ struct VisibleLightIterator {
     return phase == 1;
   }
 
-  bool should_skip(float3 P)
+  bool should_skip([[resource_table]] const eevee::LightRenderData &lrd, float3 P)
   {
-    /* clang-format off */ /* Multi-line macros would break line count. */
-    [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
-    /* clang-format on */
-
     LightData light = lrd.light_buf[index];
 
     if (!light_linking_affects_receiver(light.light_set_membership, light_set)) {

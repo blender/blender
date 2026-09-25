@@ -29,10 +29,10 @@ struct ShapeDisplayFragOut {
 float3 shape_display_light_position_get(const ViewMatrices view, LightData light, float2 quad_pos)
 {
   if (is_area_light(light.type)) {
-    return transform_point(light.object_to_world, float3(quad_pos * light.area().size, 0.0f));
+    return transform_point(light.object_to_world, float3(quad_pos * light.area.size, 0.0f));
   }
 
-  float radius = light.local().local.shape_radius;
+  float radius = light.local.local.shape_radius;
   float3 center = light.position();
   float3 view_right = view.viewinv[0].xyz;
   float3 view_up = view.viewinv[1].xyz;
@@ -135,8 +135,8 @@ void shape_display_frag([[resource_table]] const draw::View &views,
   float3 V = view.world_incident_vector(P);
 
   if (is_sun_light(light_type)) {
-    float3 sun_direction = light.sun().direction;
-    float sun_cos = cos_from_tan(light.sun().shape_radius);
+    float3 sun_direction = light.sun.direction;
+    float sun_cos = cos_from_tan(light.sun.shape_radius);
     if (dot(-V, sun_direction) < sun_cos) {
       gpu_discard_fragment();
       return;

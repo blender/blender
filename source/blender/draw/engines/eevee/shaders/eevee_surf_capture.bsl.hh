@@ -10,12 +10,8 @@
  */
 #pragma once
 
-#include "infos/eevee_geom_infos.hh"
-#include "infos/eevee_nodetree_infos.hh"
-
-#include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
 #include "eevee_lightprobe_shared.hh"
-#include "eevee_nodetree_frag_lib.glsl"
+#include "eevee_nodetree_frag_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 #include "gpu_shader_math_vector.bsl.hh"
 
@@ -31,8 +27,6 @@ float4 closure_to_rgba_capture([[resource_table]] KernelGlobals &kg,
 namespace eevee {
 
 struct SurfaceCapture {
-  [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
-
   [[storage(SURFEL_BUF_SLOT, write)]] Surfel (&surfel_buf)[];
   [[storage(CAPTURE_BUF_SLOT, read_write)]] CaptureInfoData &capture_info_buf;
 
@@ -41,16 +35,29 @@ struct SurfaceCapture {
 
 [[fragment]]
 void surf_capture([[resource_table]] KernelGlobals &kg,
+                  [[resource_table]] PipelineConstants &pipe,
                   [[resource_table]] SurfaceCapture &srt,
                   [[resource_table]] const Uniform &uni,
                   [[resource_table]] const draw::View &views,
                   [[resource_table]] const UtilityTexture & /*util_tx*/,
+                  [[in]] const VertOutCommon &interp,
+                  [[in]] [[condition(is_curves)]] const VertOutCurves &curves_interp,
+                  [[in]] [[condition(is_pointcloud)]] const VertOutPointcloud &ptcloud_interp,
                   [[frag_coord]] const float4 frag_co,
                   [[front_facing]] const bool front_face)
 {
   const ViewMatrices view = views.get(0);
 
-  ShadingData sd = init_globals(uni, view, front_face, frag_co);
+  ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+  if (pipe.is_mesh) [[static_branch]] {
+    init_globals_mesh(interp, sd);
+  }
+  else if (pipe.is_curves) [[static_branch]] {
+    init_globals_curves(interp, curves_interp, sd, view);
+  }
+  else if (pipe.is_pointcloud) [[static_branch]] {
+    init_globals_pointcloud(ptcloud_interp, sd);
+  }
 
   /* TODO(fclem): Remove random sampling for capture and accumulate color. */
   float closure_rand = 0.5f;

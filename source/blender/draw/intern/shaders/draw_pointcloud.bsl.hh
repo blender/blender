@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "draw_defines.hh"
 #include "draw_model.bsl.hh"
 #include "gpu_shader_math_constants.bsl.hh"
 #include "gpu_shader_math_matrix_conversion.bsl.hh"
@@ -87,7 +88,7 @@ struct PointCloud {
   }
 
   /* Return data about the pointcloud point. */
-  pointcloud::Point point_get(uint vert_id)
+  pointcloud::Point point_get(uint vert_id) const
   {
     pointcloud::Point pt;
     pt.point_id = point_id_get(vert_id);

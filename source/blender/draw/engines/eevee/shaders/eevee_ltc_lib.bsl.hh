@@ -375,7 +375,7 @@ float evaluate_disk(sampler2DArray util_tx, LightShape shape, LightVector lv, LT
 float evaluate(
     sampler2DArray util_tx, LightData light, LightShape shape, LightVector lv, LTCData ltc_data)
 {
-  if (is_sphere_light(light.type) && lv.dist < light.local().local.shape_radius) {
+  if (is_sphere_light(light.type) && lv.dist < light.local.local.shape_radius) {
     /* Inside the sphere light, integrate over the hemisphere. */
     return 1.0f;
   }

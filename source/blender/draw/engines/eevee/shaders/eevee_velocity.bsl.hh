@@ -183,9 +183,21 @@ struct CameraVelocity {
   }
 };
 
-struct GeometryVelocity {
-  [[legacy_info]] ShaderCreateInfo eevee_velocity_iface_info;
+/* -------------------------------------------------------------------- */
 
+/* Pass world space deltas to the fragment shader.
+ * This is to make sure that the resulting motion vectors are valid even with displacement.
+ * WARNING: The next value is invalid when rendering the viewport. */
+struct VertOutVelocity {
+  [[smooth]] float3 prev;
+  [[smooth]] float3 next;
+};
+
+/* Surface Velocity
+ *
+ * Combined with the depth pre-pass shader.
+ * Outputs the view motion vectors for animated objects. */
+struct GeometryVelocity {
   [[resource_table]] srt_t<CameraVelocity> camera;
 
   [[storage(VELOCITY_OBJ_PREV_BUF_SLOT, read)]] const float4x4 (&velocity_obj_prev_buf)[];

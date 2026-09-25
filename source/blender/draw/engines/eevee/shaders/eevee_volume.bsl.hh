@@ -26,7 +26,7 @@ float3 volume_light(LightData light, const bool is_directional, LightVector lv)
 {
   float power = 1.0f;
   if (!is_directional) {
-    float light_radius = light.local().local.shape_radius;
+    float light_radius = light.local.local.shape_radius;
     /**
      * Using "Point Light Attenuation Without Singularity" from Cem Yuksel
      * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
@@ -57,7 +57,7 @@ float3 volume_shadow([[resource_table]] const Uniform &uni,
                      LightVector lv,
                      sampler3D extinction_tx)
 {
-  if (uni.uniform_buf.volumes.shadow_steps == 0) {
+  if (uni.uniform_buf.volumes.shadow_steps == 0.0f) {
     return float3(1.0f);
   }
 

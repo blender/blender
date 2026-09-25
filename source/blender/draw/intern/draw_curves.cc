@@ -377,7 +377,7 @@ static bool set_attribute_type(const GPUMaterial *gpu_material,
   if (index == -1) {
     return false;
   }
-  curves_infos.is_point_attribute[index][0] = is_point_domain;
+  SET_FLAG_FROM_TEST(curves_infos.is_point_attribute, is_point_domain, 1 << index);
   return true;
 }
 
@@ -415,7 +415,7 @@ void curves_bind_resources_implementation(PassT &sub_ps,
     const int index = attribute_index_in_material(gpu_material, "", true, false);
     if (index != -1) {
       sub_ps.bind_texture("l", cache.curves_length_buf);
-      curves_infos.is_point_attribute[index][0] = false;
+      SET_FLAG_FROM_TEST(curves_infos.is_point_attribute, false, 1 << index);
     }
   }
   {
@@ -423,7 +423,7 @@ void curves_bind_resources_implementation(PassT &sub_ps,
     const int index = attribute_index_in_material(gpu_material, "", false, true);
     if (index != -1) {
       sub_ps.bind_texture("i", cache.evaluated_time_buf);
-      curves_infos.is_point_attribute[index][0] = true;
+      SET_FLAG_FROM_TEST(curves_infos.is_point_attribute, true, 1 << index);
     }
   }
 

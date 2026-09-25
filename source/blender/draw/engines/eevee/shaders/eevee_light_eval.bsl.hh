@@ -96,25 +96,18 @@ template<bool is_transmission> struct EvalCtx {
   uchar receiver_light_set;
   float terminator_normal_offset;
   float terminator_geometry_offset;
+  int ray_count;
+  int ray_step_count;
 
   void light_eval_single([[resource_table]] LightEvalData &srt,
                          LightData light,
                          const bool is_directional)
   {
     [[resource_table]] ShadowRenderData &srd = srt.shadow_data;
-    [[resource_table]] Uniform &uni = srd.uniforms;
 
     if (!light_linking_affects_receiver(light.light_set_membership, receiver_light_set)) {
       return;
     }
-
-#if defined(SPECIALIZED_SHADOW_PARAMS) || defined(SRT_CONSTANT_shadow_ray_count)
-    int ray_count = shadow_ray_count;
-    int ray_step_count = shadow_ray_step_count;
-#else
-    int ray_count = uni.uniform_buf.shadow.ray_count;
-    int ray_step_count = uni.uniform_buf.shadow.step_count;
-#endif
 
     LightVector lv = LightVector::get(light, is_directional, P);
 
@@ -152,7 +145,7 @@ template<bool is_transmission> struct EvalCtx {
     const auto &util_tx = util.utility_tx;
 
     for (uint i = 0u; i < 3; i++) [[unroll]] {
-      if (is_transmission) [[static_branch]] {
+      if constexpr (is_transmission) {
         if (srt.light_closure_eval_count_transmit > i) [[static_branch]] {
           eval_single_closure(util_tx, light, lv, shape, stack.cl[i], V, attenuation, shadow);
         }
@@ -196,6 +189,8 @@ EvalCtx<true> init_from_reflect_ctx(EvalCtx<false> ctx)
   ctx_tr.receiver_light_set = ctx.receiver_light_set;
   ctx_tr.terminator_normal_offset = ctx.terminator_normal_offset;
   ctx_tr.terminator_geometry_offset = ctx.terminator_geometry_offset;
+  ctx_tr.ray_count = ctx.ray_count;
+  ctx_tr.ray_step_count = ctx.ray_step_count;
   return ctx_tr;
 }
 

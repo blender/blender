@@ -187,7 +187,7 @@ void Light::shape_parameters_set(const blender::Light *la,
 
   /* Compute influence radius first. Can be amended by shape later. */
   if (is_local_light(this->type)) {
-    LightLocalData &l_local = this->local();
+    LightLocalData &l_local = this->local;
     const float max_power = reduce_max(BKE_light_color(*la)) *
                             fabsf(BKE_light_power(*la) / 100.0f);
     const float surface_max_power = max(max(la->diff_fac, la->spec_fac), la->transmission_fac) *
@@ -210,7 +210,7 @@ void Light::shape_parameters_set(const blender::Light *la,
                                 1.0f;
 
   if (is_sun_light(this->type)) {
-    LightSunData &l_sun = this->sun();
+    LightSunData &l_sun = this->sun;
     float sun_half_angle = min_ff(la->sun_angle, DEG2RADF(179.9f)) / 2.0f;
     /* Use non-clamped radius for soft shadows. Avoid having a minimum blur. */
     l_sun.shadow_angle = sun_half_angle * trace_scaling_fac;
@@ -224,7 +224,7 @@ void Light::shape_parameters_set(const blender::Light *la,
     l_sun.direction = z_axis;
   }
   else if (is_area_light(this->type)) {
-    LightAreaData &l_area = this->area();
+    LightAreaData &l_area = this->area;
     const bool is_irregular = ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE);
     l_area.size = float2(la->area_size, is_irregular ? la->area_sizey : la->area_size);
     /* Scale and clamp to minimum value before float imprecision artifacts appear. */
@@ -244,8 +244,8 @@ void Light::shape_parameters_set(const blender::Light *la,
     l_area.local.shape_radius = max(0.001f, length(l_area.size) / 2.0f);
   }
   else if (is_point_light(this->type)) {
-    LightSpotData &l_spot = this->spot();
-    LightLocalData &l_local = this->local();
+    LightSpotData &l_spot = this->spot;
+    LightLocalData &l_local = this->local;
     /* Spot size & blend */
     if (is_spot_light(this->type)) {
       const float spot_size = cosf(la->spotsize * 0.5f);
@@ -266,9 +266,8 @@ void Light::shape_parameters_set(const blender::Light *la,
     /* Use unclamped radius for soft shadows. Avoid having a minimum blur. */
     l_local.local.shadow_radius = max(0.0f, la->radius) * trace_scaling_fac;
     /* Clamp to a minimum to distinguish between point lights and area light shadow. */
-    l_local.local.shadow_radius = (la->radius > 0.0f) ?
-                                      max_ff(1e-8f, local().local.shadow_radius) :
-                                      0.0f;
+    l_local.local.shadow_radius = (la->radius > 0.0f) ? max_ff(1e-8f, local.local.shadow_radius) :
+                                                        0.0f;
     /* Set to default position. */
     l_local.local.shadow_position = float3(0.0f);
     l_local.local.shape_radius = la->radius;
@@ -286,7 +285,7 @@ float Light::shape_radiance_get()
     case LIGHT_RECT:
     case LIGHT_ELLIPSE: {
       /* Rectangle area. */
-      float area = this->area().size.x * this->area().size.y * 4.0f;
+      float area = this->area.size.x * this->area.size.y * 4.0f;
       /* Scale for the lower area of the ellipse compared to the surrounding rectangle. */
       if (this->type == LIGHT_ELLIPSE) {
         area *= M_PI / 4.0f;
@@ -299,13 +298,13 @@ float Light::shape_radiance_get()
     case LIGHT_SPOT_SPHERE:
     case LIGHT_SPOT_DISK: {
       /* Sphere area. */
-      float area = float(4.0f * M_PI) * square(this->local().local.shape_radius);
+      float area = float(4.0f * M_PI) * square(this->local.local.shape_radius);
       /* Convert radiant flux to radiance. */
       return 1.0f / (area * float(M_PI));
     }
     case LIGHT_SUN_ORTHO:
     case LIGHT_SUN: {
-      float inv_sin_sq = 1.0f + 1.0f / square(this->sun().shape_radius);
+      float inv_sin_sq = 1.0f + 1.0f / square(this->sun.shape_radius);
       /* Convert irradiance to radiance. */
       return float(M_1_PI) * inv_sin_sq;
     }
@@ -322,7 +321,7 @@ float Light::point_radiance_get()
     case LIGHT_ELLIPSE: {
       /* This corrects for area light most representative point trick.
        * The fit was found by reducing the average error compared to cycles. */
-      float area = this->area().size.x * this->area().size.y * 4.0f;
+      float area = this->area.size.x * this->area.size.y * 4.0f;
       float tmp = M_PI_2 / (M_PI_2 + sqrtf(area));
       /* Lerp between 1.0 and the limit (1 / pi). */
       float mrp_scaling = tmp + (1.0f - tmp) * M_1_PI;
@@ -348,7 +347,7 @@ float Light::point_radiance_get()
 void Light::debug_draw()
 {
   drw_debug_sphere(this->object_to_world.location(),
-                   this->local().local.influence_radius_max,
+                   this->local.local.influence_radius_max,
                    float4(0.8f, 0.3f, 0.0f, 1.0f));
 }
 

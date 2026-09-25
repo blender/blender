@@ -629,7 +629,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
   /* Note we have to manually unroll the loop because of lack of image array.
    * Using a macro isn't compatible with BSL processing. */
   {
-    constexpr uint lod = 1;
+    constexpr uint lod = 1u;
     if (all(equal(local_id.xy & ((1u << lod) - 1u), uint2(0)))) {
       uint stride = (1u << (lod - 1u));
       float3 normal_avg = (srt.neigbhor_data[local_id.y][local_id.x] +
@@ -643,7 +643,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
   }
   barrier();
   {
-    constexpr uint lod = 2;
+    constexpr uint lod = 2u;
     if (all(equal(local_id.xy & ((1u << lod) - 1u), uint2(0)))) {
       uint stride = (1u << (lod - 1u));
       float3 normal_avg = (srt.neigbhor_data[local_id.y][local_id.x] +
@@ -657,7 +657,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
   }
   barrier();
   {
-    constexpr uint lod = 3;
+    constexpr uint lod = 3u;
     if (all(equal(local_id.xy & ((1u << lod) - 1u), uint2(0)))) {
       uint stride = (1u << (lod - 1u));
       float3 normal_avg = (srt.neigbhor_data[local_id.y][local_id.x] +
@@ -686,7 +686,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
 
   /* Downsample mip0 to the 3 other mips. */
   {
-    constexpr uint lod = 1;
+    constexpr uint lod = 1u;
     if (all(equal(local_id.xy & ((1u << lod) - 1u), uint2(0)))) {
       uint stride = (1u << (lod - 1u));
       float3 radiance_avg = (srt.neigbhor_data[local_id.y][local_id.x] +
@@ -700,7 +700,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
   }
   barrier();
   {
-    constexpr uint lod = 2;
+    constexpr uint lod = 2u;
     if (all(equal(local_id.xy & ((1u << lod) - 1u), uint2(0)))) {
       uint stride = (1u << (lod - 1u));
       float3 radiance_avg = (srt.neigbhor_data[local_id.y][local_id.x] +
@@ -714,7 +714,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
   }
   barrier();
   {
-    constexpr uint lod = 3;
+    constexpr uint lod = 3u;
     if (all(equal(local_id.xy & ((1u << lod) - 1u), uint2(0)))) {
       uint stride = (1u << (lod - 1u));
       float3 radiance_avg = (srt.neigbhor_data[local_id.y][local_id.x] +
@@ -759,7 +759,7 @@ void scan([[work_group_id]] const uint3 group_id,
           [[resource_table]] SampleOutput &sh_out,
           [[resource_table]] Constants &constants)
 {
-  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(RAYTRACE_GROUP_SIZE);
   uint2 tile_coord = unpackUvec2x16(tiles.tiles_coord_buf[group_id.x]);
   int2 texel = int2(local_id.xy + tile_coord * tile_size);
 
@@ -832,7 +832,7 @@ void denoise([[work_group_id]] const uint3 group_id,
              [[resource_table]] const draw::View &views,
              [[resource_table]] Tiles &tiles)
 {
-  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(RAYTRACE_GROUP_SIZE);
   uint2 tile_coord = unpackUvec2x16(tiles.tiles_coord_buf[group_id.x]);
   int2 texel = int2(local_id.xy + tile_coord * tile_size);
 
@@ -903,7 +903,7 @@ void resolve([[work_group_id]] const uint3 group_id,
              [[resource_table]] const draw::View &views,
              [[resource_table]] const LightprobeRenderData &lightprobes)
 {
-  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(RAYTRACE_GROUP_SIZE);
   uint2 tile_coord = unpackUvec2x16(tiles.tiles_coord_buf[group_id.x]);
   int2 texel_fullres = int2(local_id.xy + tile_coord * tile_size);
 

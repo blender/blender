@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
 #include "eevee_pipeline.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_vector_reduce.bsl.hh"
@@ -13,15 +11,6 @@
 /* The Closure type is never used. Use float as dummy type. */
 #define Closure float
 #define CLOSURE_DEFAULT 0.0f
-
-#ifdef GLSL_CPP_STUBS
-#  define CLOSURE_BIN_COUNT 3
-#endif
-
-/* Maximum number of picked closure. */
-#ifndef CLOSURE_BIN_COUNT
-#  define CLOSURE_BIN_COUNT 1
-#endif
 
 template<typename T> struct Reservoir {
   T data;

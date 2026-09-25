@@ -110,13 +110,13 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
       cd_attr = GPU_attribute(mat, CD_AUTO_FROM_NAME, attr->name);
 
       if (STREQ(attr->name, "color")) {
-        GPU_link(mat, "node_attribute_color", cd_attr, &cd_attr);
+        GPU_link(mat, "node_attribute_color", GPU_kernel_globals(), cd_attr, &cd_attr);
       }
       else if (STREQ(attr->name, "temperature")) {
-        GPU_link(mat, "node_attribute_temperature", cd_attr, &cd_attr);
+        GPU_link(mat, "node_attribute_temperature", GPU_kernel_globals(), cd_attr, &cd_attr);
       }
       else if (STREQ(attr->name, "radiance")) {
-        GPU_link(mat, "node_attribute_radiance", cd_attr, &cd_attr);
+        GPU_link(mat, "node_attribute_radiance", GPU_kernel_globals(), cd_attr, &cd_attr);
       }
       break;
     }

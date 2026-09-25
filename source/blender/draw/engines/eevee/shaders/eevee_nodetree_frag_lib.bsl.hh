@@ -43,8 +43,4 @@ float nodetree_thickness([[resource_table]] KernelGlobals & /*kg*/, ShadingData 
   return 0.1f;
 }
 
-/* Replaced by define at runtime. */
-/* TODO(fclem): Find a way to pass material parameters inside the material UBO. */
-ThicknessMode thickness_mode = ThicknessMode::Slab;
-
 #endif

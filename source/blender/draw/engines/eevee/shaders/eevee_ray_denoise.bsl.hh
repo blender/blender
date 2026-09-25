@@ -148,7 +148,7 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
 
   const ViewMatrices view = views.get(0);
 
-  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(RAYTRACE_GROUP_SIZE);
   int2 texel_fullres = int2(local_id.xy + tile_coord * tile_size);
 
   /* Tracing resolution texel. */
@@ -570,7 +570,7 @@ void temporal_main([[resource_table]] DenoiseTemporal &srt,
 
   const ViewMatrices view = views.get(0);
 
-  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(RAYTRACE_GROUP_SIZE);
   int2 texel_fullres = int2(local_id.xy + tile_coord * tile_size);
   float2 uv = (float2(texel_fullres) + 0.5f) * uni.raytrace_buf.full_resolution_inv;
 
@@ -694,7 +694,7 @@ void bilateral_main([[resource_table]] DenoiseBilateral &srt,
 
   const ViewMatrices view = views.get(0);
 
-  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(RAYTRACE_GROUP_SIZE);
   int2 texel_fullres = int2(local_id.xy + tile_coord * tile_size);
   float2 center_uv = (float2(texel_fullres) + 0.5f) * uni.raytrace_buf.full_resolution_inv;
 

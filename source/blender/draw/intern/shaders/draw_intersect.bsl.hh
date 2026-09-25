@@ -13,8 +13,7 @@
  * Results are meant to be conservative.
  */
 
-#include "draw_view_infos.hh"
-
+#include "draw_shader_shared.hh"
 #include "draw_shape_lib.glsl"
 #include "gpu_shader_math_base.bsl.hh"
 #include "gpu_shader_math_safe.bsl.hh"

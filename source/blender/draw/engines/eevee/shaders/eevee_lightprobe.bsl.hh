@@ -26,7 +26,7 @@ struct LightprobeRenderData {
    */
   LightProbeSample load(float2 screen_texel, float3 P, float3 Ng, float3 V) const
   {
-    [[resource_table]] const Sampling samp = sampling;
+    [[resource_table]] const Sampling &samp = sampling;
     [[resource_table]] const LightprobeVolumeRenderData &lp_volumes = volumes;
     [[resource_table]] const LightprobeSphereRenderData &lp_spheres = spheres;
 

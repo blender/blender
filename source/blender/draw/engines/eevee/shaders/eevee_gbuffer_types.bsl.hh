@@ -52,12 +52,6 @@ namespace gbuffer {
 #  define GBUFFER_LAYER_MAX 3
 #endif
 
-/* TODO(fclem): This should save some compile time per material. */
-#define GBUFFER_HAS_REFLECTION
-#define GBUFFER_HAS_REFRACTION
-#define GBUFFER_HAS_SUBSURFACE
-#define GBUFFER_HAS_TRANSLUCENT
-
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  *
@@ -176,10 +170,10 @@ float3 normal_unpack(float2 N_packed)
 }
 
 /* Keep IOR 1.0 stable across 10-bit quantization. */
-#define closure_10bit_unit (1.0f / 1023.0f)
-#define ior_packed_lt_1_scale (511.0f * closure_10bit_unit)
-#define ior_packed_eq_1 (512.0f * closure_10bit_unit)
-#define ior_packed_gt_1_bias (510.0f * closure_10bit_unit)
+static constexpr float closure_10bit_unit = (1.0f / 1023.0f);
+static constexpr float ior_packed_lt_1_scale = (511.0f * closure_10bit_unit);
+static constexpr float ior_packed_eq_1 = (512.0f * closure_10bit_unit);
+static constexpr float ior_packed_gt_1_bias = (510.0f * closure_10bit_unit);
 
 float ior_pack(float ior)
 {
@@ -312,9 +306,9 @@ float3 geometry_normal_unpack(uint data, float3 N)
  * The header contains some common information and layout of the GBuffer content.
  */
 struct Header {
-#define GBUFFER_NORMAL_BITS_SHIFT 12u
-#define GBUFFER_GEOMETRIC_NORMAL_BITS_SHIFT 20u
-#define GBUFFER_HEADER_BITS_PER_BIN 4
+  static constexpr uint GBUFFER_NORMAL_BITS_SHIFT = 12u;
+  static constexpr uint GBUFFER_GEOMETRIC_NORMAL_BITS_SHIFT = 20u;
+  static constexpr int GBUFFER_HEADER_BITS_PER_BIN = 4;
 
  private:
   /**
@@ -410,7 +404,7 @@ struct Header {
   uint3 bin_types() const
   {
     /* NOTE: Need to be adjusted for different global GBUFFER_LAYER_MAX. */
-    constexpr uchar bits_per_bin = uchar(GBUFFER_HEADER_BITS_PER_BIN);
+    constexpr uint bits_per_bin = uint(GBUFFER_HEADER_BITS_PER_BIN);
     uint3 types = (uint3(this->header_) >> (uint3(0u, 1u, 2u) * bits_per_bin)) &
                   ((1u << bits_per_bin) - 1);
     return types;
@@ -418,7 +412,7 @@ struct Header {
 
   GBufferMode bin_type(uchar bin) const
   {
-    constexpr uchar bits_per_bin = uchar(GBUFFER_HEADER_BITS_PER_BIN);
+    constexpr uint bits_per_bin = uint(GBUFFER_HEADER_BITS_PER_BIN);
     return GBufferMode((this->header_ >> (bin * bits_per_bin)) & ((1u << bits_per_bin) - 1));
   }
 
@@ -481,9 +475,10 @@ struct Header {
   {
     /* NOTE: Need to be adjusted for different global GBUFFER_LAYER_MAX. */
     constexpr uint bits_per_layer = uint(GBUFFER_HEADER_BITS_PER_BIN);
-    constexpr uint header_mask = (GBUF_TRANSMISSION_BIT << (bits_per_layer * 0)) |
-                                 (GBUF_TRANSMISSION_BIT << (bits_per_layer * 1)) |
-                                 (GBUF_TRANSMISSION_BIT << (bits_per_layer * 2));
+    /* TODO(@fclem): Compiler should allow uchar to uint cast in constexpr. */
+    /*constexpr */ uint header_mask = (uint(GBUF_TRANSMISSION_BIT) << (bits_per_layer * 0)) |
+                                      (uint(GBUF_TRANSMISSION_BIT) << (bits_per_layer * 1)) |
+                                      (uint(GBUF_TRANSMISSION_BIT) << (bits_per_layer * 2));
     return (this->header_ & header_mask) != 0;
   }
 

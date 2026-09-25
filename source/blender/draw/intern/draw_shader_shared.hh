@@ -77,9 +77,13 @@ using namespace math;
 /** \name Views
  * \{ */
 
+/* NOTE: Legacy, should be removed after we port everything to BSL. */
+
+/** Global that needs to be set correctly in each shader stage. */
+static uint drw_view_id = 0;
+
 #if !defined(DRW_VIEW_LEN) && !defined(GLSL_CPP_STUBS)
 /* Single-view case (default). */
-#  define drw_view_id 0
 #  define DRW_VIEW_LEN 1
 #  define DRW_VIEW_SHIFT 0
 #  define DRW_VIEW_FROM_RESOURCE_ID
@@ -88,8 +92,6 @@ using namespace math;
 /* Multi-view case. */
 /** This should be already defined at shaderCreateInfo level. */
 // #  define DRW_VIEW_LEN 64
-/** Global that needs to be set correctly in each shader stage. */
-uint drw_view_id = 0;
 /**
  * In order to reduce the memory requirements, the view id is merged with resource id to avoid
  * doubling the memory required only for view indexing.
@@ -582,7 +584,7 @@ struct [[host_shared]] GSplatInfos {
 
 struct [[host_shared]] VolumeInfos {
   /** Object to grid-space. */
-  float4x4 grids_xform[DRW_GRID_PER_VOLUME_MAX];
+  float4x4 grids_xform[16 /*DRW_GRID_PER_VOLUME_MAX*/];
   /** \note float4 for alignment. Only float3 needed. */
   float4 color_mul;
   float density_scale;
@@ -592,20 +594,13 @@ struct [[host_shared]] VolumeInfos {
 };
 
 struct [[host_shared]] CurvesInfos {
-  /* TODO(fclem): Make it a single uint. */
-  /**
-   * Per attribute scope, follows loading order.
-   * \note uint as bool in GLSL is 4 bytes.
-   * \note GLSL pad arrays of scalar to 16 bytes (std140).
-   */
-  uint4 is_point_attribute[DRW_ATTRIBUTE_PER_CURVES_MAX];
-
+  /* Attribute domain. One bit per attribute. */
+  uint is_point_attribute;
   /* Number of vertex in a segment (including restart vertex for cylinder). */
   uint vertex_per_segment;
   /* Edge count for the visible half cylinder. Equal to face count + 1. */
   uint half_cylinder_face_count;
   uint _pad0;
-  uint _pad1;
 };
 
 #pragma pack(push, 4)

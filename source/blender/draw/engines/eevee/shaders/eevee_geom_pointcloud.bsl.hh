@@ -4,14 +4,11 @@
 
 #pragma once
 
-#include "infos/eevee_geom_infos.hh"
-#include "infos/eevee_nodetree_infos.hh"
-
 #include "draw_model.bsl.hh"
-#include "draw_pointcloud_lib.glsl"
+#include "draw_pointcloud.bsl.hh"
 #include "draw_view.bsl.hh"
-#include "eevee_attributes_pointcloud_lib.glsl"
-#include "eevee_nodetree_vert_lib.glsl"
+#include "eevee_attributes_pointcloud_lib.bsl.hh" /* IWYU pragma: export */
+#include "eevee_nodetree_vert_lib.bsl.hh"
 #include "eevee_pipeline.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_shared.hh" /* TODO(fclem): Remove. Needed because of fragment shader. */
@@ -21,12 +18,6 @@
 namespace eevee {
 
 struct GeomPointCloud {
-  [[legacy_info]] ShaderCreateInfo draw_pointcloud;
-
-  [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
-  /* WORKAROUND: Until we get condition support for interfaces. */
-  [[legacy_info]] ShaderCreateInfo eevee_geom_pointcloud_iface_info;
-
   [[push_constant]] bool ptcloud_backface;
 };
 
@@ -34,6 +25,7 @@ struct GeomPointCloud {
     [[resource_table]] KernelGlobals &kg,
     [[resource_table]] const PipelineConstants &pipe,
     [[resource_table]] const GeomPointCloud & /*srt*/,
+    [[resource_table]] const draw::PointCloud &ptcloud,
     [[resource_table]] const Uniform &uni,
     [[instance_index]] const int inst_index,
     [[resource_table]] const draw::View &views,
@@ -41,8 +33,14 @@ struct GeomPointCloud {
     [[resource_table]] const draw::Infos &infos,
     [[resource_table]] const draw::Resource &res_id,
     [[resource_table, condition(is_shadow_pipe)]] GeomShadow &shadow,
-    [[instance_id]] const int /*inst_id*/,     /* Used by model_lib. */
-    [[base_instance]] const int /*base_inst*/, /* Used by model_lib. */
+    [[resource_table, condition(use_clip_plane)]] const ClipPlane &clip_srt,
+    [[resource_table, condition(use_velocity)]] const GeometryVelocity &geo_vel,
+    [[out]] VertOutCommon &interp,
+    [[out]] VertOutPointcloud &pointcloud_interp,
+    [[out, condition(is_shadow_pipe)]] VertOutShadow &shadow_iface,
+    [[out, condition(is_shadow_pipe)]] VertOutShadowClipping &shadow_clip,
+    [[out, condition(use_clip_plane)]] VertOutClipPlane &clip_interp,
+    [[out, condition(use_velocity)]] VertOutVelocity &motion,
     [[vertex_id]] const int vert_id,
     [[position]] float4 &out_position,
     [[viewport_index, condition(is_shadow_pipe &&use_multi_viewport)]] int &out_viewport)
@@ -59,32 +57,23 @@ struct GeomPointCloud {
   const ObjectMatrices obj = models.get(resource_id);
   const ObjectInfos ob_infos = infos.get(resource_id);
 
-  auto &interp = interface_get(eevee_geom_iface_info, interp);
-  auto &pointcloud_interp = interface_get(eevee_geom_pointcloud_iface_info, pointcloud_interp);
-
-  /* clang-format off */ /* Multi-line macro breaks error line counting. */
-  auto &pointcloud_interp_flat = interface_get(eevee_geom_pointcloud_iface_info, pointcloud_interp_flat);
-  /* clang-format on */
-
   if (pipe.is_shadow_pipe) [[static_branch]] {
-    auto &shadow_iface = interface_get(eevee_shadow_iface_info, shadow_iface);
-
     shadow_iface.shadow_view_id = int(view_id);
     if (pipe.use_multi_viewport) [[static_branch]] {
       out_viewport = int(shadow.render_view_buf[view_id].viewport_index);
     }
   }
 
-  init_interface(id.raw_id);
+  init_interface(interp, id.raw_id);
 
   const eObjectInfoFlag ob_flag = ob_infos.flag;
 
-  const pointcloud::Point ls_pt = pointcloud::point_get(uint(vert_id));
-  const pointcloud::Point ws_pt = pointcloud::object_to_world(ls_pt, obj.model);
-  const pointcloud::ShapePoint pt = pointcloud::shape_point_get(
+  const draw::pointcloud::Point ls_pt = ptcloud.point_get(uint(vert_id));
+  const draw::pointcloud::Point ws_pt = draw::pointcloud::object_to_world(ls_pt, obj.model);
+  const draw::pointcloud::ShapePoint pt = draw::pointcloud::shape_point_get(
       ws_pt, view.world_incident_vector(ws_pt.P), view.up(), ob_flag);
 
-  pointcloud_interp_flat.id = ws_pt.point_id;
+  pointcloud_interp.id = ws_pt.point_id;
   pointcloud_interp.position = ws_pt.P;
   pointcloud_interp.radius = ws_pt.radius;
 
@@ -98,13 +87,9 @@ struct GeomPointCloud {
   }
 
   if (pipe.use_velocity) [[static_branch]] {
-    /* clang-format off */ /* Multi-line define messes up line index. */
-    [[resource_table]] const GeometryVelocity &geo_vel = resource_table_get(eevee::GeometryVelocity);
-    /* clang-format on */
-    auto &motion = interface_get(eevee_velocity_iface_info, motion);
     float3 lP = obj.point_world_to_object(pointcloud_interp.position);
     float3 prv, nxt;
-    geo_vel.local_position_deltas(lP, pointcloud_interp_flat.id, prv, nxt, resource_id);
+    geo_vel.local_position_deltas(lP, pointcloud_interp.id, prv, nxt, resource_id);
     /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
      * ignores motion from animated displacement. Supporting animated displacement motion vectors
      * would require evaluating the nodetree multiple time with different nodetree UBOs evaluated
@@ -116,22 +101,20 @@ struct GeomPointCloud {
   /* Compute Original Coordinate (ORCO). */
   float3 lP_orco = ls_pt.P * ob_infos.orco_mul + ob_infos.orco_add;
 
-  ShadingData sd = init_globals(uni, view, true, float4(0));
+  ShadingData sd = init_globals(uni, interp, view, true, float4(0));
+  init_globals_pointcloud(pointcloud_interp, sd);
+
   attrib_load(PointCloudPoint{ls_pt.P, ws_pt.point_id, lP_orco});
 
   interp.P += nodetree_displacement(kg, sd);
 
   if (pipe.use_clip_plane) [[static_branch]] {
-    auto &clip_interp = interface_get(eevee_clip_plane, clip_interp);
-    const auto &clip_plane = buffer_get(eevee_clip_plane, clip_plane);
-    clip_interp.clip_distance = dot(clip_plane.plane, float4(interp.P, 1.0f));
+    clip_interp.clip_distance = dot(clip_srt.clip_plane.plane, float4(interp.P, 1.0f));
   }
 
   float3 vs_P = view.point_world_to_view(interp.P);
 
   if (pipe.is_shadow_pipe) [[static_branch]] {
-    auto &shadow_clip = interface_get(eevee_shadow_iface_info, shadow_clip);
-
     float3 vs_P = view.point_world_to_view(interp.P);
     ShadowRenderView view = shadow.render_view_buf[view_id];
     shadow_clip.position = shadow_position_vector_get(vs_P, view);

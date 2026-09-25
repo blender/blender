@@ -391,7 +391,8 @@ SourceProcessor::Result SourceProcessor::convert(metadata::Source external_sourc
     case Language::CPP:
       /* Should become BSL, but until the new compiler is fully working, fallback
        * to the legacy path. */
-      return convert_bsl_legacy(external_sources_symbols);
+      return filename.starts_with("eevee_") ? convert_bsl() :
+                                              convert_bsl_legacy(external_sources_symbols);
     case Language::BSL:
       return convert_bsl(); /* WIP */
     case Language::BLENDER_GLSL:

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_curves_lib.glsl"
+#include "draw_curves.bsl.hh"
 #include "eevee_geom_types_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 
@@ -25,8 +25,7 @@ float3 attr_load_orco(CurvesPoint point, float4 /*orco*/, int /*index*/)
  * based on the attribute scope (point or spline). */
 int curves_attribute_element_id(CurvesPoint point, int index)
 {
-  const auto &curves_buf = buffer_get(draw_curves_infos, drw_curves);
-  if (curves_buf.is_point_attribute[index][0] != 0u) {
+  if (flag_test(point.is_point_attribute, 1u << index)) {
     return point.point_id;
   }
   return point.curve_id;

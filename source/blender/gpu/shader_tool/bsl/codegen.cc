@@ -1836,7 +1836,7 @@ struct CodegenContext : NodeErrorHandler {
         case ResourceType::BASE_INSTANCE:
         case ResourceType::NUM_WORK_GROUP:
         case ResourceType::INSTANCE_INDEX:
-        case ResourceType::FRAG_STENCIL_REF:
+        case ResourceType::STENCIL_REF:
           create_info_decl += "BUILTINS(BuiltinBits::" + to_str(attr.res_type) + ")\n";
           break;
         case ResourceType::FRAG_DEPTH:
@@ -1864,7 +1864,14 @@ struct CodegenContext : NodeErrorHandler {
         case ResourceType::OUT:
         case ResourceType::IN:
           if (var->type->srt_type == ResourceTableType::VERTEX_OUT) {
-            create_info_decl += "VERTEX_OUT(" + resolved_type + "_t)\n";
+            string res_condition_lambda = parse_condition(arg.attributes());
+            if (res_condition_lambda.empty()) {
+              create_info_decl += ".vertex_out(" + resolved_type + "_t)\n";
+            }
+            else {
+              create_info_decl += ".vertex_out(" + resolved_type + "_t" + res_condition_lambda +
+                                  ")\n";
+            }
           }
           else {
             create_info_decl += "ADDITIONAL_INFO(" + resolved_type + ")\n";
@@ -2342,7 +2349,11 @@ struct CodegenContext : NodeErrorHandler {
     }
 
     const bool par = match_if('(');
-    if (var->type->is_srt()) {
+
+    /* Lookup the type from the declaration as var might be ERROR_SYMBOL for forward declared
+     * functions (because of name mismatch). */
+    SymbolClass *type = scope.lookup_class(table, decl.type().identifier()).unwrap(this);
+    if (type->is_srt()) {
       /* WORKAROUND: Do not pass SRT by reference because it causes issue on metal when the caller
        * is just calling the constructor in place. */
       skip_if('&');

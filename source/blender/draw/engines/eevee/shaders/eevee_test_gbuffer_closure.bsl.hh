@@ -29,8 +29,9 @@ float3 quantize_flush_to_zero_10bit(float3 data)
 }
 
 [[compute, local_size(1)]]
-void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput & /*srt*/,
-                                     [[resource_table]] const gbuffer::PackParameters &param)
+void eevee_test_gbuffer_closure_main(
+    [[resource_table]] [[maybe_unused]] const ShaderTestOutput &srt,
+    [[resource_table]] const gbuffer::PackParameters &param)
 {
   float3 Ng = float3(1.0f, 0.0f, 0.0f);
   float3 N = Ng;
@@ -48,7 +49,7 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
     EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
-    EXPECT_EQ(header.closure_len(), 1);
+    EXPECT_EQ(header.closure_len(), uchar(1));
 
     ClosureUndetermined out_refraction;
     out_refraction.type = gbuffer::mode_to_closure_type(header.bin_type(0));
@@ -72,7 +73,7 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
 
     EXPECT_EQ(uint(data_out.used_layers), 0u);
     EXPECT_NEAR(float3(header.empty_bins()), float3(1, 0, 1), 0.5f);
-    EXPECT_EQ(header.closure_len(), 1);
+    EXPECT_EQ(header.closure_len(), uchar(1));
 
     ClosureUndetermined out_diffuse;
     out_diffuse.type = gbuffer::mode_to_closure_type(header.bin_type(1));
@@ -97,7 +98,7 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
     EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
-    EXPECT_EQ(header.closure_len(), 1);
+    EXPECT_EQ(header.closure_len(), uchar(1));
 
     ClosureUndetermined out_sss_burley;
     out_sss_burley.type = gbuffer::mode_to_closure_type(header.bin_type(0));
@@ -123,7 +124,7 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
     EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
-    EXPECT_EQ(header.closure_len(), 1);
+    EXPECT_EQ(header.closure_len(), uchar(1));
 
     ClosureUndetermined out_translucent;
     out_translucent.type = gbuffer::mode_to_closure_type(header.bin_type(0));
@@ -148,7 +149,7 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
 
     EXPECT_EQ(uint(data_out.used_layers), 0u);
     EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
-    EXPECT_EQ(header.closure_len(), 1);
+    EXPECT_EQ(header.closure_len(), uchar(1));
 
     ClosureUndetermined out_reflection;
     out_reflection.type = gbuffer::mode_to_closure_type(header.bin_type(0));
@@ -176,7 +177,7 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
     EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
-    EXPECT_EQ(header.closure_len(), 1);
+    EXPECT_EQ(header.closure_len(), uchar(1));
 
     ClosureUndetermined out_refraction;
     out_refraction.type = gbuffer::mode_to_closure_type(header.bin_type(0));
@@ -214,7 +215,7 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
     EXPECT_EQ(uint(data_out.used_layers),
               uint(ADDITIONAL_DATA | NORMAL_DATA_1 | CLOSURE_DATA_2 | CLOSURE_DATA_3));
     EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 0), 0.5f);
-    EXPECT_EQ(header.closure_len(), 2);
+    EXPECT_EQ(header.closure_len(), uchar(2));
 
     ClosureUndetermined out_cl0;
     out_cl0.type = gbuffer::mode_to_closure_type(header.bin_type(0));
@@ -259,7 +260,7 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA | NORMAL_DATA_1));
     EXPECT_NEAR(float3(header.empty_bins()), float3(0, 0, 1), 0.5f);
-    EXPECT_EQ(header.closure_len(), 2);
+    EXPECT_EQ(header.closure_len(), uchar(2));
 
     ClosureUndetermined out_refraction;
     out_refraction.type = gbuffer::mode_to_closure_type(header.bin_type(0));

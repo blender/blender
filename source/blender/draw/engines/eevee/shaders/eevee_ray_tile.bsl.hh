@@ -135,12 +135,12 @@ void tile_compact([[resource_table]] TileCompact &srt,
      *
      * Ref #124060.
      */
-#if defined(GPU_INTEL) && defined(OS_WIN)
-    atomicExchange(raytrace_tracing_dispatch_buf.num_groups_y, 1u);
-    atomicExchange(raytrace_denoise_dispatch_buf.num_groups_y, 1u);
+#if (defined(GPU_INTEL) && defined(OS_WIN)) || defined(GLSL_CPP_STUBS)
+    atomicExchange(srt.raytrace_tracing_dispatch_buf.num_groups_y, 1u);
+    atomicExchange(srt.raytrace_denoise_dispatch_buf.num_groups_y, 1u);
 
-    atomicExchange(raytrace_tracing_dispatch_buf.num_groups_z, 1u);
-    atomicExchange(raytrace_denoise_dispatch_buf.num_groups_z, 1u);
+    atomicExchange(srt.raytrace_tracing_dispatch_buf.num_groups_z, 1u);
+    atomicExchange(srt.raytrace_denoise_dispatch_buf.num_groups_z, 1u);
 #else
     srt.raytrace_tracing_dispatch_buf.num_groups_y = 1u;
     srt.raytrace_denoise_dispatch_buf.num_groups_y = 1u;

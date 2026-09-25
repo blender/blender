@@ -27,7 +27,7 @@ struct LightVector {
   static LightVector get(LightData light, const bool is_directional, float3 P)
   {
     if (is_directional) {
-      return LightVector{.L = light.sun().direction, .dist = 1.0f};
+      return LightVector{.L = light.sun.direction, .dist = 1.0f};
     }
     LightVector lv;
     lv.L = normalize_and_get_length(light.position() - P, lv.dist);
@@ -38,7 +38,7 @@ struct LightVector {
   static LightVector get_shape_closest(LightData light, const bool is_directional, float3 P)
   {
     if (!is_directional && is_area_light(light.type)) {
-      LightAreaData area = light.area();
+      LightAreaData area = light.area;
 
       float3 lP = transform_point_inversed(light.object_to_world, P);
       float2 ls_closest_point = lP.xy;
@@ -82,7 +82,7 @@ float light_influence_attenuation(float dist, float inv_sqr_influence)
 
 float light_spot_attenuation(LightData light, float3 L)
 {
-  LightSpotData spot = light.spot();
+  LightSpotData spot = light.spot;
   float3 lL = light_world_to_local_direction(light, L);
   float ellipse = inversesqrt(1.0f + length_squared(lL.xy * spot.spot_size_inv / lL.z));
   float spotmask = smoothstep(0.0f, 1.0f, ellipse * spot.spot_mul + spot.spot_bias);
@@ -106,12 +106,12 @@ float light_attenuation_common(LightData light, const bool is_directional, float
 float light_shape_radius(LightData light)
 {
   if (is_sun_light(light.type)) {
-    return light.sun().shape_radius;
+    return light.sun.shape_radius;
   }
   if (is_area_light(light.type)) {
-    return length(light.area().size);
+    return length(light.area.size);
   }
-  return light.local().local.shape_radius;
+  return light.local.local.shape_radius;
 }
 
 /**
@@ -137,7 +137,7 @@ float light_attenuation_surface(LightData light, const bool is_directional, Ligh
   float result = light_attenuation_common(light, is_directional, lv.L);
   if (!is_directional) {
     result *= light_influence_attenuation(lv.dist,
-                                          light.local().local.influence_radius_invsqr_surface);
+                                          light.local.local.influence_radius_invsqr_surface);
   }
   return result;
 }
@@ -147,7 +147,7 @@ float light_attenuation_volume(LightData light, const bool is_directional, Light
   float result = light_attenuation_common(light, is_directional, lv.L);
   if (!is_directional) {
     result *= light_influence_attenuation(lv.dist,
-                                          light.local().local.influence_radius_invsqr_volume);
+                                          light.local.local.influence_radius_invsqr_volume);
   }
   return result;
 }
@@ -164,7 +164,7 @@ float light_point_light(LightData light, const bool is_directional, LightVector 
    * http://www.cemyuksel.com/research/pointlightattenuation/
    */
   float d_sqr = square(lv.dist);
-  float r_sqr = square(light.local().local.shape_radius);
+  float r_sqr = square(light.local.local.shape_radius);
   /* Using reformulation that has better numerical precision. */
   float power = 2.0f / (d_sqr + r_sqr + lv.dist * sqrt(d_sqr + r_sqr));
 
@@ -209,7 +209,7 @@ struct LightShape {
     float3 Py = light.y_axis();
 
     if (light.type == LIGHT_RECT) {
-      LightAreaData area = light.area();
+      LightAreaData area = light.area;
 
       shape.v[0] = Px * area.size.x + Py * -area.size.y;
       shape.v[1] = Px * area.size.x + Py * area.size.y;
@@ -233,18 +233,18 @@ struct LightShape {
       float2 size;
       if (is_sphere_light(light.type)) {
         /* Spherical omni or spot light. */
-        size = float2(light_sphere_disk_radius(light.local().local.shape_radius, lv.dist));
+        size = float2(light_sphere_disk_radius(light.local.local.shape_radius, lv.dist));
       }
       else if (is_oriented_disk_light(light.type)) {
         /* View direction-aligned disk. */
-        size = float2(light.local().local.shape_radius);
+        size = float2(light.local.local.shape_radius);
       }
       else if (is_sun_light(light.type)) {
-        size = float2(light.sun().shape_radius);
+        size = float2(light.sun.shape_radius);
       }
       else {
         /* Area light. */
-        size = float2(light.area().size);
+        size = float2(light.area.size);
       }
 
       shape.v[0] = Px * -size.x + Py * -size.y;

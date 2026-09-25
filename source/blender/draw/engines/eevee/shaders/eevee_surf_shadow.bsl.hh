@@ -13,12 +13,9 @@
 
 #pragma once
 
-#include "infos/eevee_geom_infos.hh"
-#include "infos/eevee_nodetree_infos.hh"
-
 #include "draw_gsplat_lib.bsl.hh" /* IWYU pragma: export. For nodetree functions. */
 
-#include "eevee_nodetree_frag_lib.glsl"
+#include "eevee_nodetree_frag_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_shadow_shared.hh"
 #include "eevee_shadow_tilemap_lib.bsl.hh"
@@ -36,8 +33,6 @@ float4 closure_to_rgba_shadow([[resource_table]] KernelGlobals &kg,
 namespace eevee {
 
 struct SurfShadow {
-  [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
-
   [[storage(SHADOW_RENDER_MAP_BUF_SLOT,
             read)]] const uint (&render_map_buf)[SHADOW_RENDER_MAP_SIZE];
 
@@ -52,12 +47,15 @@ void surf_shadow([[resource_table]] KernelGlobals &kg,
                  [[resource_table]] const draw::View &views,
                  [[resource_table]] const Sampling &sampling,
                  [[resource_table]] const UtilityTexture & /*util_tx*/,
+                 [[in]] const VertOutCommon &interp,
+                 [[in]] const VertOutShadow &shadow_iface,
+                 [[in]] const VertOutShadowClipping &shadow_clip,
+                 [[in]] [[condition(is_curves)]] const VertOutCurves &curves_interp,
+                 [[in]] [[condition(is_pointcloud)]] const VertOutPointcloud &ptcloud_interp,
+                 [[in]] [[condition(is_gsplat)]] const VertOutGSplat &gsplat_interp,
                  [[front_facing]] const bool front_face,
                  [[frag_coord]] const float4 frag_co)
 {
-  auto &shadow_iface = interface_get(eevee_shadow_iface_info, shadow_iface);
-  auto &shadow_clip = interface_get(eevee_shadow_iface_info, shadow_clip);
-
   float linear_depth = length(shadow_clip.position);
 
   /* Clip to light shape. */
@@ -68,10 +66,23 @@ void surf_shadow([[resource_table]] KernelGlobals &kg,
 
   if (pipe.use_transparency) [[static_branch]] {
     const ViewMatrices view = views.get(shadow_iface.shadow_view_id);
-    ShadingData sd = init_globals(uni, view, front_face, frag_co);
+
+    ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+    if (pipe.is_mesh) [[static_branch]] {
+      init_globals_mesh(interp, sd);
+    }
+    else if (pipe.is_curves) [[static_branch]] {
+      init_globals_curves(interp, curves_interp, sd, view);
+    }
+    else if (pipe.is_pointcloud) [[static_branch]] {
+      init_globals_pointcloud(ptcloud_interp, sd);
+    }
 
     nodetree_surface(kg, sd, 0.0f);
-    sd.transmittance = gsplat_amend_transmittance(sd.transmittance);
+
+    if (pipe.is_gsplat) [[static_branch]] {
+      sd.transmittance = gsplat_amend_transmittance(gsplat_interp, sd.transmittance);
+    }
 
     float noise_offset = sampling.rng_1D_get(SAMPLING_TRANSPARENCY);
     float random_threshold = pcg4d(float4(sd.P, noise_offset)).x;
@@ -87,7 +98,7 @@ void surf_shadow([[resource_table]] KernelGlobals &kg,
 
   /* Using bitwise ops is way faster than integer ops. */
   constexpr int page_shift = SHADOW_PAGE_LOD;
-  constexpr int page_mask = ~(0xFFFFFFFF << SHADOW_PAGE_LOD);
+  constexpr int page_mask = int(~(0xFFFFFFFFu << SHADOW_PAGE_LOD));
 
   int2 tile_co = texel_co >> page_shift;
   int2 texel_page = texel_co & page_mask;

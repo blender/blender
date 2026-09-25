@@ -186,7 +186,8 @@ int main(int argc, char **argv)
     if (/* Add non-ported files here. */
         filename.ends_with("gpu_shader_material_radial_tiling.bsl.hh") ||
         filename.ends_with("gpu_shader_material_tex_voronoi.bsl.hh") ||
-        filename.find("gpu/shaders/") == std::string::npos)
+        (filename.find("gpu/shaders/") == std::string::npos &&
+         filename.find("eevee/shaders/") == std::string::npos))
     {
       language = Language::BLENDER_GLSL;
     }

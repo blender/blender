@@ -6,12 +6,6 @@
 
 #include "gpu_shader_compat.hh"
 
-/* WORKAROUND: Workaround include order hell. */
-#ifdef GLSL_CPP_STUBS
-#elif defined(GPU_SHADER)
-#  define static
-#endif
-
 struct IndexRange {
   int start_;
   int size_;

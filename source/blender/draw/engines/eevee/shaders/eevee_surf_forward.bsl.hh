@@ -9,13 +9,9 @@
  */
 #pragma once
 
-#include "infos/eevee_geom_infos.hh"
-#include "infos/eevee_nodetree_infos.hh"
-
-#include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
 #include "draw_view.bsl.hh"
 #include "eevee_forward_lib.bsl.hh"
-#include "eevee_nodetree_frag_lib.glsl"
+#include "eevee_nodetree_frag_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
@@ -30,8 +26,7 @@ float4 closure_to_rgba_forward([[resource_table]] KernelGlobals &kg,
     [[resource_table]] const draw::View &views = kg.view;
     [[resource_table]] const eevee::Sampling &sampling = kg.sampling;
     [[resource_table]] const UtilityTexture &util_tx = kg.util_tx;
-    auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
-    draw::ID id{interp_flat.resource_id_raw};
+    draw::ID id{sd.resource_id_raw};
     const uint resource_id = id.resource_id<1>();
 
     const float2 frag_co = sd.frag_co.xy;
@@ -45,34 +40,24 @@ float4 closure_to_rgba_forward([[resource_table]] KernelGlobals &kg,
     float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
     closure_weights_reset(kg, sd, closure_rand);
 
-#if defined(MAT_TRANSPARENT) && defined(MAT_SHADER_TO_RGBA)
-    { /* Limit resource guard to this scope. */
+    if (pipe.use_forward_lighting && pipe.use_transparency) [[static_branch]] {
       [[resource_table]] eevee::LightprobeRenderData &lightprobes = kg.lightprobes;
       [[resource_table]] eevee::LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
+      [[resource_table]] eevee::PreviousLayerHiZ &prev_hiz = kg.previous_layer_hiz;
+      [[resource_table]] eevee::PreviousLayerRadiance &prev_radiance = kg.previous_layer_radiance;
 
       float3 V = -views.get(0).world_incident_vector(sd.P);
       eevee::LightProbeSample samp = lightprobes.load(frag_co, sd.P, sd.N, V);
       float3 radiance_behind = lp_spheres.spherical_sample_normalized_with_parallax(
           samp, sd.P, V, 0.0);
 
-#  ifndef MAT_FIRST_LAYER
-      { /* Limit resource guard to this scope. */
-        /* Multi-line macro breaks error line counting. */
-        /* clang-format off */
-      [[resource_table]] const eevee::PreviousLayerHiZ &prev_hiz = resource_table_get(eevee::PreviousLayerHiZ);
-      [[resource_table]] const eevee::PreviousLayerRadiance &prev_radiance = resource_table_get(eevee::PreviousLayerRadiance);
-        /* clang-format on */
-
-        int2 texel = int2(frag_co);
-        if (texelFetchExtend(prev_hiz.hiz_prev_tx, texel, 0).x != 1.0f) {
-          radiance_behind = texelFetch(prev_radiance.previous_layer_radiance_tx, texel, 0).xyz;
-        }
+      int2 texel = int2(frag_co);
+      if (texelFetchExtend(prev_hiz.hiz_prev_tx, texel, 0).x != 1.0f) {
+        radiance_behind = texelFetch(prev_radiance.previous_layer_radiance_tx, texel, 0).xyz;
       }
-#  endif
 
       radiance += radiance_behind * saturate(transmittance);
     }
-#endif
 
     return float4(radiance, saturate(1.0f - average(transmittance)));
   }
@@ -82,16 +67,6 @@ float4 closure_to_rgba_forward([[resource_table]] KernelGlobals &kg,
 }
 
 namespace eevee {
-
-struct SurfaceForward {
-  [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
-
-  [[legacy_info]] ShaderCreateInfo draw_view_culling;
-
-  /* Optionally added depending on the material. */
-  // [[legacy_info]] ShaderCreateInfo eevee_hiz_prev_data;
-  // [[legacy_info]] ShaderCreateInfo eevee_previous_layer_radiance;
-};
 
 struct SurfaceForwardFragOut {
   /* Splitting RGB components into different target to overcome the lack of dual source blending
@@ -107,7 +82,6 @@ struct SurfaceForwardFragOut {
 [[fragment]] [[early_fragment_tests]]
 void surf_forward([[resource_table]] KernelGlobals &kg,
                   [[resource_table]] PipelineConstants &pipe,
-                  [[resource_table]] SurfaceForward & /*srt*/,
                   [[resource_table]] LightEvalIterator & /*lights*/,
                   [[resource_table]] LightprobeRenderData & /*lightprobes*/,
                   [[resource_table]] LightprobePlaneRenderData & /*lightprobe_planes*/,
@@ -118,26 +92,38 @@ void surf_forward([[resource_table]] KernelGlobals &kg,
                   [[resource_table]] const Uniform &uni,
                   [[resource_table]] const Sampling &sampling,
                   [[resource_table]] const UtilityTexture &util_tx,
+                  [[in]] const VertOutCommon &interp,
+                  [[in]] [[condition(is_curves)]] const VertOutCurves &curves_interp,
+                  [[in]] [[condition(is_pointcloud)]] const VertOutPointcloud &ptcloud_interp,
                   [[frag_coord]] const float4 frag_co,
                   [[out]] SurfaceForwardFragOut &frag_out,
                   [[front_facing]] const bool front_face)
 {
-  FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info);
+  [[resource_table]] const NodeTreeRes &nt = kg.nt;
 
-  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
-  draw::ID id{interp_flat.resource_id_raw};
+  draw::ID id{interp.resource_id_raw};
   const uint resource_id = id.resource_id<1>();
 
   const ViewMatrices view = views.get(0);
 
-  ShadingData sd = init_globals(uni, view, front_face, frag_co);
+  ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+  if (pipe.is_mesh) [[static_branch]] {
+    init_globals_mesh(interp, sd);
+  }
+  else if (pipe.is_curves) [[static_branch]] {
+    init_globals_curves(interp, curves_interp, sd, view);
+  }
+  else if (pipe.is_pointcloud) [[static_branch]] {
+    init_globals_pointcloud(ptcloud_interp, sd);
+  }
 
   float noise = util_tx.fetch(frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
 
   fragment_displacement(kg, sd);
 
-  sd.thickness = Thickness::from(nodetree_thickness(kg, sd), thickness_mode);
+  sd.thickness = Thickness::from(nodetree_thickness(kg, sd),
+                                 ThicknessMode(nt.node_tree.thickness_mode));
 
   nodetree_surface(kg, sd, closure_rand);
 

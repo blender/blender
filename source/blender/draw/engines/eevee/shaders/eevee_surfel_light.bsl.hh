@@ -17,13 +17,12 @@ namespace eevee::surfel {
 struct EvalLight {
   /* WORKAROUND: Disables culling in lighting evaluation function. */
   [[compilation_constant]] bool light_iter_force_no_culling;
-  /* WORKAROUND: Disables random jitter on shadow raytracing. */
-  [[compilation_constant]] bool shadow_no_random;
 };
 
 [[compute, local_size(SURFEL_GROUP_SIZE)]]
 void eval_light([[resource_table]] EvalLight & /*srt*/,
                 [[resource_table]] LightEvalIterator &lights,
+                [[resource_table]] const Uniform &uni,
                 [[resource_table]] const UtilityTexture &util_tx,
                 [[resource_table]] SurfelData &surfels,
                 [[global_invocation_id]] const uint3 global_id)
@@ -50,6 +49,8 @@ void eval_light([[resource_table]] EvalLight & /*srt*/,
   ctx.receiver_light_set = surfel.receiver_light_set;
   ctx.terminator_normal_offset = 0.0f;
   ctx.terminator_geometry_offset = 0.0f;
+  ctx.ray_count = uni.uniform_buf.shadow.ray_count;
+  ctx.ray_step_count = uni.uniform_buf.shadow.step_count;
 
   ClosureUndetermined cl_reflect;
   cl_reflect.N = surfel.normal;

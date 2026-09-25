@@ -12,9 +12,12 @@
 /* This file must replaced at runtime. The following content is only a possible implementation. */
 #pragma runtime_generated
 
+#include "eevee_thickness_lib.bsl.hh"
+#include "gpu_shader_compat.hh"
+
 struct [[host_shared]] NodeTree {
   float crypto_hash;
-  float _pad0;
+  bool32_t thickness_mode;
   float _pad1;
   float _pad2;
 };

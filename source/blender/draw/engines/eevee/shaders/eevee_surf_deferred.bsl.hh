@@ -10,14 +10,10 @@
  */
 #pragma once
 
-#include "infos/eevee_geom_infos.hh"
-#include "infos/eevee_nodetree_infos.hh"
-
-#include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
-#include "draw_view.bsl.hh"     /* IWYU pragma: export. For nodetree functions. */
+#include "draw_view.bsl.hh" /* IWYU pragma: export. For nodetree functions. */
 #include "eevee_cryptomatte.bsl.hh"
 #include "eevee_gbuffer_write.bsl.hh"
-#include "eevee_nodetree_frag_lib.glsl"
+#include "eevee_nodetree_frag_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"
@@ -46,9 +42,6 @@ float4 closure_to_rgba([[resource_table]] KernelGlobals &kg, ShadingData &sd, Cl
 namespace eevee {
 
 struct SurfaceDeferred {
-  [[legacy_info]] ShaderCreateInfo draw_view_culling;
-  [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
-
   /* Everything is stored inside a two layered target, one for each format. This is to fit the
    * limitation of the number of images we can bind on a single shader. */
   [[image(GBUF_CLOSURE_SLOT, write, UNORM_10_10_10_2)]] image2DArray gbuf_closure_img;
@@ -101,17 +94,30 @@ void surf_deferred([[resource_table]] KernelGlobals &kg,
                    [[resource_table]] const Uniform &uni,
                    [[resource_table]] const Sampling &sampling,
                    [[resource_table]] const UtilityTexture &util_tx,
+                   [[in]] const VertOutCommon &interp,
+                   [[in]] [[condition(is_curves)]] const VertOutCurves &curves_interp,
+                   [[in]] [[condition(is_pointcloud)]] const VertOutPointcloud &ptcloud_interp,
                    [[frag_coord]] const float4 frag_co,
                    [[out]] DeferredFragOut &frag_out,
                    [[front_facing]] const bool front_face)
 {
-  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
-  draw::ID id{interp_flat.resource_id_raw};
+  [[resource_table]] const NodeTreeRes &nt = kg.nt;
+
+  draw::ID id{interp.resource_id_raw};
   const uint resource_id = id.resource_id<1>();
 
   const ViewMatrices view = views.get(0);
 
-  ShadingData sd = init_globals(uni, view, front_face, frag_co);
+  ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+  if (pipe.is_mesh) [[static_branch]] {
+    init_globals_mesh(interp, sd);
+  }
+  else if (pipe.is_curves) [[static_branch]] {
+    init_globals_curves(interp, curves_interp, sd, view);
+  }
+  else if (pipe.is_pointcloud) [[static_branch]] {
+    init_globals_pointcloud(ptcloud_interp, sd);
+  }
 
   float noise = util_tx.fetch(frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
@@ -122,7 +128,8 @@ void surf_deferred([[resource_table]] KernelGlobals &kg,
 
   sd.holdout = saturate(sd.holdout);
 
-  Thickness thickness = Thickness::from(nodetree_thickness(kg, sd), thickness_mode);
+  Thickness thickness = Thickness::from(nodetree_thickness(kg, sd),
+                                        ThicknessMode(nt.node_tree.thickness_mode));
 
   /** Transparency weight is already applied through dithering, remove it from other closures. */
   float alpha = 1.0f - average(sd.transmittance);
@@ -149,12 +156,9 @@ void surf_deferred([[resource_table]] KernelGlobals &kg,
   /* ----- Render Passes output ----- */
 
   /* Some render pass can be written during the gbuffer pass. Light passes are written later. */
-  {
-    const auto &nt = buffer_get(eevee_nodetree, node_tree);
-    cryptomatte.store(out_texel, nt.crypto_hash, resource_id);
-    render_passes.store_color(
-        out_texel, uni.uniform_buf.render_pass.emission_id, float4(sd.emission, 1.0f));
-  }
+  cryptomatte.store(out_texel, nt.node_tree.crypto_hash, resource_id);
+  render_passes.store_color(
+      out_texel, uni.uniform_buf.render_pass.emission_id, float4(sd.emission, 1.0f));
 
   /* ----- GBuffer output ----- */
 
@@ -220,13 +224,12 @@ void surf_deferred([[resource_table]] KernelGlobals &kg,
     }
   }
 
-#if defined(GBUFFER_HAS_REFRACTION) || defined(GBUFFER_HAS_SUBSURFACE) || \
-    defined(GBUFFER_HAS_TRANSLUCENT)
-  if (flag_test(gbuf.used_layers, ADDITIONAL_DATA)) {
-    srt.write_normal_data(
-        out_texel, uni.pipeline_buf.gbuffer_additional_data_layer_id, gbuf.additional_info);
+  if (pipe.use_additional_data) [[static_branch]] {
+    if (flag_test(gbuf.used_layers, ADDITIONAL_DATA)) {
+      srt.write_normal_data(
+          out_texel, uni.pipeline_buf.gbuffer_additional_data_layer_id, gbuf.additional_info);
+    }
   }
-#endif
 
   if (flag_test(gbuf.used_layers, OBJECT_ID)) {
     srt.write_header_data(out_texel, 1, resource_id);

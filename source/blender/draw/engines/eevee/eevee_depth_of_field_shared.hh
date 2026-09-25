@@ -20,9 +20,9 @@ namespace blender::eevee {
 #endif
 
 /* 5% error threshold. */
-#define DOF_FAST_GATHER_COC_ERROR 0.05f
-#define DOF_GATHER_RING_COUNT 5
-#define DOF_DILATE_RING_COUNT 3
+static constexpr float DOF_FAST_GATHER_COC_ERROR = 0.05f;
+static constexpr int DOF_GATHER_RING_COUNT = 5;
+static constexpr int DOF_DILATE_RING_COUNT = 3;
 
 struct [[host_shared]] DepthOfFieldData {
   /** Size of the render targets for gather & scatter passes. */

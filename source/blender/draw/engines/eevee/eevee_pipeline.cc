@@ -856,7 +856,8 @@ void DeferredLayer::end_sync(bool is_first_pass,
 
     /* Add the stencil classification step at the end of the GBuffer pass. */
     {
-      gpu::Shader *sh = inst_.shaders.static_shader_get(DEFERRED_TILE_CLASSIFY);
+      gpu::Shader *sh = inst_.shaders.static_shader_get(
+          GPU_stencil_export_support() ? DEFERRED_TILE_CLASSIFY : DEFERRED_TILE_CLASSIFY_FALLBACK);
       PassMain::Sub &sub = gbuffer_ps_.sub("StencilClassify");
       sub.subpass_transition(GPU_ATTACHMENT_WRITE, /* Needed for depth test. */
                              {GPU_ATTACHMENT_IGNORE,

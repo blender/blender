@@ -157,6 +157,8 @@ void light_eval_frag([[resource_table]] LightEval &srt,
   ctx.receiver_light_set = 0;
   ctx.terminator_normal_offset = 0.0f;
   ctx.terminator_geometry_offset = 0.0f;
+  ctx.ray_count = srt.shadow_ray_count;
+  ctx.ray_step_count = srt.shadow_ray_step_count;
   if (gbuf.header.use_object_id()) {
     uint object_id = reader.read_object_id(texel);
     ObjectInfos object_infos = infos.get(object_id);
@@ -259,6 +261,7 @@ void sphere_eval_frag([[resource_table]] LightEvalIterator &lights,
                       [[resource_table]] const draw::Infos &infos,
                       [[resource_table]] const Sampling &sampling,
                       [[resource_table]] const LightprobeVolumeRenderData &lightprobes,
+                      [[resource_table]] const Uniform &uni,
                       [[resource_table]] const HiZ &hiz,
                       [[resource_table]] const UtilityTexture &util_tx,
                       [[resource_table]] const gbuffer::Reader &reader,
@@ -331,6 +334,8 @@ void sphere_eval_frag([[resource_table]] LightEvalIterator &lights,
   ctx.receiver_light_set = 0;
   ctx.terminator_normal_offset = 0.0f;
   ctx.terminator_geometry_offset = 0.0f;
+  ctx.ray_count = uni.uniform_buf.shadow.ray_count;
+  ctx.ray_step_count = uni.uniform_buf.shadow.step_count;
   if (gbuf.header.use_object_id()) {
     uint object_id = reader.read_object_id(texel);
     ObjectInfos object_infos = infos.get(object_id);
@@ -374,6 +379,7 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
                       [[resource_table]] const draw::View &views,
                       [[resource_table]] const draw::Infos &infos,
                       [[resource_table]] const LightprobeRenderData &lightprobes,
+                      [[resource_table]] const Uniform &uni,
                       [[resource_table]] const Sampling &sampling,
                       [[resource_table]] const HiZ &hiz,
                       [[resource_table]] const UtilityTexture &util_tx,
@@ -502,6 +508,8 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   ctx.receiver_light_set = 0;
   ctx.terminator_normal_offset = 0.0f;
   ctx.terminator_geometry_offset = 0.0f;
+  ctx.ray_count = uni.uniform_buf.shadow.ray_count;
+  ctx.ray_step_count = uni.uniform_buf.shadow.step_count;
   if (gbuf.header.use_object_id()) {
     uint object_id = reader.read_object_id(texel);
     ObjectInfos object_infos = infos.get(object_id);

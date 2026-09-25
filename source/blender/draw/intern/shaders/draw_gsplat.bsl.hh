@@ -252,7 +252,7 @@ template float3 eval_radiance<4>(Gaussian,
     [[resource_table]] const draw::Model &models,
     [[global_invocation_id]] const uint3 global_id)
 {
-  if (global_id.x >= srt.num_points) {
+  if (global_id.x >= uint(srt.num_points)) {
     return;
   }
 

@@ -199,7 +199,7 @@ struct Film {
   /* Same dither value for every pixel and every buffer, so render passes reconstruct correctly. */
   float quantization_dither()
   {
-    [[resource_table]] const Sampling &sampling = this->sampling_;
+    [[resource_table]] const Sampling &sampling = sampling_;
     return sampling.rng_1D_get(SAMPLING_FILM_U);
   }
 
@@ -209,7 +209,7 @@ struct Film {
 
   float3 panoramic_direction_get(int2 texel_film)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
 
     const CameraData cam = uni.uniform_buf.camera;
     const float2 film_uv = (float2(texel_film) + 0.5f) * uni.uniform_buf.film.extent_inv;
@@ -231,7 +231,7 @@ struct Film {
 
   float2 panoramic_render_uv_get(int2 texel_film, ePanoramicFace view_id)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
 
     const float3 camera_direction = panoramic_direction_get(texel_film);
     if (is_zero(camera_direction)) {
@@ -275,8 +275,8 @@ struct Film {
 
   ePanoramicFace panoramic_view_id_get()
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
-    [[resource_table]] const draw::View &views = this->views_;
+    [[resource_table]] const Uniform &uni = uniforms;
+    [[resource_table]] const draw::View &views = views_;
 
     const ViewMatrices view = views.get(0);
     const float4x4 face_mat = view.viewmat * uni.uniform_buf.camera.viewinv;
@@ -287,7 +287,7 @@ struct Film {
 
   FilmSample sample_get(int sample_n, int2 texel_film)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
 
     FilmSample film_sample = uni.uniform_buf.film.samples[sample_n];
 
@@ -322,7 +322,7 @@ struct Film {
 
   FilmSample sample_get(int sample_n, int2 texel_film, ePanoramicFace view_id)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
 
     if (is_panoramic(uni.uniform_buf.camera.type)) {
       return panoramic_sample_get(texel_film, view_id);
@@ -344,7 +344,7 @@ struct Film {
   /* Returns the combined weights of all samples affecting this film pixel. */
   float weight_accumulation(int2 texel_film)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
     /* TODO(fclem): Reference implementation, also needed for panoramic cameras. */
     if (scaling_factor > 1) {
       float weight = 0.0f;
@@ -374,8 +374,8 @@ struct Film {
 
   void sample_accum_mist(FilmSample samp, float &accum)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
-    [[resource_table]] const draw::View &views = this->views_;
+    [[resource_table]] const Uniform &uni = uniforms;
+    [[resource_table]] const draw::View &views = views_;
 
     if (uni.uniform_buf.film.mist_id == -1) {
       return;
@@ -395,7 +395,7 @@ struct Film {
 
   void sample_accum_combined(FilmSample samp, float4 &accum, float &weight_accum)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
     if (combined_id == -1) {
       return;
     }
@@ -441,8 +441,8 @@ struct Film {
       return;
     }
 
-    [[resource_table]] Cryptomatte &crypto = this->cryptomatte;
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] Cryptomatte &crypto = cryptomatte;
+    [[resource_table]] const Uniform &uni = uniforms;
 
     /* x = hash, y = accumulated weight. Only keep track of 4 highest weighted samples. */
     float2 crypto_samples[4] = {float2(0.0f), float2(0.0f), float2(0.0f), float2(0.0f)};
@@ -473,7 +473,7 @@ struct Film {
   /* Returns the distance used to store nearest interpolation data. */
   float distance_load(int2 texel)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
     /* Repeat texture coordinates as the weight can be optimized to a small portion of the film. */
     texel = texel % imageSize(in_weight_img).xy;
 
@@ -485,7 +485,7 @@ struct Film {
 
   float weight_load(int2 texel)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
     /* Repeat texture coordinates as the weight can be optimized to a small portion of the film. */
     texel = texel % imageSize(in_weight_img).xy;
 
@@ -497,8 +497,8 @@ struct Film {
 
   float4 display_color_load(int2 texel_film)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
-    [[resource_table]] Cryptomatte &crypto = this->cryptomatte;
+    [[resource_table]] const Uniform &uni = uniforms;
+    [[resource_table]] Cryptomatte &crypto = cryptomatte;
 
     if (display_id == -1) {
       return texelFetch(in_combined_tx, texel_film, 0);
@@ -535,7 +535,7 @@ struct Film {
    * do not keep displaying stale data. */
   void clear_history(int2 texel_film, float4 &out_color, float &out_depth)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
 
     imageStoreFast(out_weight_img, int3(texel_film, FILM_WEIGHT_LAYER_ACCUMULATION), float4(0.0f));
     imageStoreFast(out_weight_img, int3(texel_film, FILM_WEIGHT_LAYER_DISTANCE), float4(0.0f));
@@ -556,14 +556,14 @@ struct Film {
   /* Returns motion in pixel space to retrieve the pixel history. */
   float2 pixel_history_motion_vector(int2 texel_sample)
   {
-    [[resource_table]] const CameraVelocity &cam_vel = this->camera;
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const CameraVelocity &cam_vel = camera;
+    [[resource_table]] const Uniform &uni = uniforms;
 
     /**
      * Dilate velocity by using the nearest pixel in a cross pattern.
      * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
      */
-    constexpr int2 corners[4] = {int2(-2, -2), int2(2, -2), int2(-2, 2), int2(2, 2)};
+    const int2 corners[4] = {int2(-2, -2), int2(2, -2), int2(-2, 2), int2(2, 2)};
     float min_depth = reverse_z::read(texelFetch(depth_tx, texel_sample, 0).x);
     int2 nearest_texel = texel_sample;
     for (int i = 0; i < 4; i++) {
@@ -605,7 +605,7 @@ struct Film {
    * \a texel is sample position with subpixel accuracy. */
   float4 sample_catmull_rom(sampler2D color_tx, float2 input_texel)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
 
     float2 center_texel;
     float2 inter_texel = modf(input_texel, center_texel);
@@ -661,11 +661,11 @@ struct Film {
   void combined_neighbor_boundbox(int2 texel, float4 &min_c, float4 &max_c)
   {
     /* Plus (+) shape offsets. */
-    constexpr int2 plus_offsets[5] = {int2(0, 0), /* Center */
-                                      int2(-1, 0),
-                                      int2(0, -1),
-                                      int2(1, 0),
-                                      int2(0, 1)};
+    const int2 plus_offsets[5] = {int2(0, 0), /* Center */
+                                  int2(-1, 0),
+                                  int2(0, -1),
+                                  int2(1, 0),
+                                  int2(0, 1)};
 #if 0
     /**
      * Compute Variance of neighborhood as described in:
@@ -708,7 +708,7 @@ struct Film {
      * Round bbox shape by averaging 2 different min/max from 2 different neighborhood. */
     float4 min_c_3x3 = min_c;
     float4 max_c_3x3 = max_c;
-    constexpr int2 corners[4] = {int2(-1, -1), int2(1, -1), int2(-1, 1), int2(1, 1)};
+    const int2 corners[4] = {int2(-1, -1), int2(1, -1), int2(-1, 1), int2(1, 1)};
     for (int i = 0; i < 4; i++) {
       float4 color = texelfetch_as_YCoCg_opacity(combined_tx, texel + corners[i]);
       min_c_3x3 = min(min_c_3x3, color);
@@ -752,7 +752,7 @@ struct Film {
   float history_blend_factor(
       float velocity, float2 texel, float luma_min, float luma_max, float luma_history)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
     /* 5% of incoming color by default. */
     float blend = 0.05f;
     /* Blend less history if the pixel has substantial velocity. */
@@ -803,7 +803,7 @@ struct Film {
       return;
     }
 
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
 
     float4 color_src, color_dst;
     float weight_src, weight_dst;
@@ -979,8 +979,8 @@ struct Film {
 
   void store_depth(int2 texel_film, int2 texel_sample, float value, float &out_depth)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
-    [[resource_table]] const draw::View &views = this->views_;
+    [[resource_table]] const Uniform &uni = uniforms;
+    [[resource_table]] const draw::View &views = views_;
 
     if (uni.uniform_buf.film.depth_id == -1) {
       return;
@@ -1000,7 +1000,7 @@ struct Film {
 
   void store_denoising_depth(FilmSample dst, float value, float4 &display)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
 
     if (uni.uniform_buf.film.denoising_depth_id == -1) {
       return;
@@ -1033,7 +1033,7 @@ struct Film {
   /** NOTE: out_depth is scene linear depth from the camera origin. */
   void process_render_sample(int2 texel_film, float4 &out_color, float &out_depth)
   {
-    [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const Uniform &uni = uniforms;
     out_color = float4(0.0f);
     out_depth = 0.0f;
 
@@ -1102,7 +1102,7 @@ struct Film {
 
       /* Using film weight as distance to the pixel. So the check is inverted. */
       if (film_sample.weight > film_distance) {
-        [[resource_table]] const CameraVelocity &cam_vel = this->camera;
+        [[resource_table]] const CameraVelocity &cam_vel = camera;
 
         float depth = reverse_z::read(texelFetch(depth_tx, film_sample.texel, 0).x);
         float4 vector = cam_vel.resolve(views_, vector_tx, film_sample.texel, depth);
@@ -1266,7 +1266,7 @@ struct Film {
           }
           else {
             /* Average over view space z. */
-            [[resource_table]] const draw::View &views = this->views_;
+            [[resource_table]] const draw::View &views = views_;
             float2 uv = (float2(src.texel) + 0.5f) / float2(textureSize(depth_tx, 0).xy);
             depth = depth_convert_to_scene(views.get(0), depth, uv, use_panoramic);
           }
@@ -1335,7 +1335,7 @@ struct Film {
 
     if (flag_test(enabled_categories, PASS_CATEGORY_CRYPTOMATTE)) {
       if (uni.uniform_buf.film.cryptomatte_samples_len != 0) {
-        [[resource_table]] Cryptomatte &crypto = this->cryptomatte;
+        [[resource_table]] Cryptomatte &crypto = cryptomatte;
 
         /* Cryptomatte passes cannot be cleared by a weighted store like other passes. */
         if (!uni.uniform_buf.film.use_history || use_reprojection) {

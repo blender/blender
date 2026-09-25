@@ -8,33 +8,25 @@
 
 #pragma once
 
-#include "infos/eevee_geom_infos.hh"
-#include "infos/eevee_nodetree_infos.hh"
-
 #include "draw_model.bsl.hh"
 #include "draw_view.bsl.hh"
 #include "eevee_lightprobe_shared.hh" /* TODO(fclem): Remove. Needed because of fragment shader. */
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_shared.hh" /* TODO(fclem): Remove. Needed because of fragment shader. */
+#include "eevee_surf_common.bsl.hh"
 #include "eevee_uniform.bsl.hh"
 
 namespace eevee {
 
-struct GeomWorld {
-  [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
-};
-
-[[vertex]] [[clip_control]] void geom_world([[resource_table]] const GeomWorld & /*srt*/,
-                                            [[resource_table]] const Uniform & /*uni*/,
+[[vertex]] [[clip_control]] void geom_world([[resource_table]] const Uniform & /*uni*/,
                                             [[resource_table]] const draw::View &views,
                                             [[resource_table]] const draw::Model & /*models*/,
+                                            [[out]] VertOutCommon &interp,
                                             [[vertex_id]] const int vert_id,
                                             [[position]] float4 &out_position)
 {
-  auto &interp = interface_get(eevee_geom_iface_info, interp);
-  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
   /* (W)Intel drivers require all varying iface to be written to inside the Vertex shader. */
-  interp_flat.resource_id_raw = 0u;
+  interp.resource_id_raw = 0u;
 
   /* Full-screen triangle. */
   int v = vert_id % 3;

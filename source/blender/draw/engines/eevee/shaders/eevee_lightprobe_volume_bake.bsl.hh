@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "draw_intersect_lib.glsl"
+#include "draw_intersect.bsl.hh"
 #include "eevee_lightprobe_sphere.bsl.hh"
 #include "eevee_lightprobe_volume.bsl.hh"
 #include "eevee_surfel_list.bsl.hh"

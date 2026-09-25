@@ -12,13 +12,10 @@
 #pragma once
 
 #include "eevee_cryptomatte.bsl.hh"
-#include "infos/eevee_geom_infos.hh"
-#include "infos/eevee_nodetree_infos.hh"
 
-#include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
 #include "eevee_forward_lib.bsl.hh"
 #include "eevee_gbuffer_write.bsl.hh"
-#include "eevee_nodetree_frag_lib.glsl"
+#include "eevee_nodetree_frag_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 
@@ -31,8 +28,8 @@ float4 closure_to_rgba_hybrid([[resource_table]] KernelGlobals &kg,
     [[resource_table]] const draw::View &views = kg.view;
     [[resource_table]] const eevee::Sampling &sampling = kg.sampling;
     [[resource_table]] const UtilityTexture &util_tx = kg.util_tx;
-    auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
-    draw::ID id{interp_flat.resource_id_raw};
+
+    draw::ID id{sd.resource_id_raw};
     const uint resource_id = id.resource_id<1>();
     const float2 frag_co = sd.frag_co.xy;
 
@@ -45,50 +42,35 @@ float4 closure_to_rgba_hybrid([[resource_table]] KernelGlobals &kg,
     float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
     closure_weights_reset(kg, sd, closure_rand);
 
-#if defined(MAT_TRANSPARENT) && defined(MAT_SHADER_TO_RGBA)
-    { /* Limit resource guard to this scope. */
+    if (pipe.use_forward_lighting && pipe.use_transparency) [[static_branch]] {
       [[resource_table]] eevee::LightprobeRenderData &lightprobes = kg.lightprobes;
       [[resource_table]] eevee::LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
+      [[resource_table]] eevee::PreviousLayerHiZ &prev_hiz = kg.previous_layer_hiz;
+      [[resource_table]] eevee::PreviousLayerRadiance &prev_radiance = kg.previous_layer_radiance;
 
       float3 V = -views.get(0).world_incident_vector(sd.P);
       eevee::LightProbeSample samp = lightprobes.load(frag_co, sd.P, sd.N, V);
       float3 radiance_behind = lp_spheres.spherical_sample_normalized_with_parallax(
           samp, sd.P, V, 0.0);
 
-#  ifndef MAT_FIRST_LAYER
-      { /* Limit resource guard to this scope. */
-        /* clang-format off */
-      [[resource_table]] const eevee::PreviousLayerHiZ &prev_hiz = resource_table_get(eevee::PreviousLayerHiZ);
-      [[resource_table]] const eevee::PreviousLayerRadiance &prev_radiance = resource_table_get(eevee::PreviousLayerRadiance);
-        /* clang-format on */
-
-        int2 texel = int2(frag_co.xy);
-
-        if (texelFetchExtend(prev_hiz.hiz_prev_tx, texel, 0).x != 1.0f) {
-          radiance_behind = texelFetch(prev_radiance.previous_layer_radiance_tx, texel, 0).xyz;
-        }
+      int2 texel = int2(frag_co);
+      if (texelFetchExtend(prev_hiz.hiz_prev_tx, texel, 0).x != 1.0f) {
+        radiance_behind = texelFetch(prev_radiance.previous_layer_radiance_tx, texel, 0).xyz;
       }
-#  endif
 
       radiance += radiance_behind * saturate(transmittance);
     }
-#endif
 
     return float4(radiance, saturate(1.0f - average(transmittance)));
   }
-  else {
-    return float4(0);
-  }
+  return float4(0);
 }
 
 namespace eevee {
 
 struct SurfaceHybrid {
-  [[legacy_info]] ShaderCreateInfo draw_view_culling;
-  [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
-
-  /* Everything is stored inside a two layered target, one for each format. This is to fit the
-   * limitation of the number of images we can bind on a single shader. */
+  /* Everything is stored inside a two layered target, one for each format. This is to fit
+   * resource_table limitation of the number of images we can bind on a single shader. */
   [[image(GBUF_CLOSURE_SLOT, write, UNORM_10_10_10_2)]] image2DArray gbuf_closure_img;
   [[image(GBUF_NORMAL_SLOT, write, UNORM_16_16)]] image2DArray gbuf_normal_img;
   /* Storage for additional infos that are shared across closures. */
@@ -142,22 +124,36 @@ void surf_hybrid([[resource_table]] KernelGlobals &kg,
                  [[resource_table]] const Uniform &uni,
                  [[resource_table]] const Sampling &sampling,
                  [[resource_table]] const UtilityTexture &util_tx,
+                 [[in]] const VertOutCommon &interp,
+                 [[in]] [[condition(is_curves)]] const VertOutCurves &curves_interp,
+                 [[in]] [[condition(is_pointcloud)]] const VertOutPointcloud &ptcloud_interp,
                  [[frag_coord]] const float4 frag_co,
                  [[out]] HybridFragOut &frag_out,
                  [[front_facing]] const bool front_face)
 {
-  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
-  draw::ID id{interp_flat.resource_id_raw};
+  [[resource_table]] const NodeTreeRes &nt = kg.nt;
+
+  draw::ID id{interp.resource_id_raw};
   const uint resource_id = id.resource_id<1>();
 
   const ViewMatrices view = views.get(0);
 
-  ShadingData sd = init_globals(uni, view, front_face, frag_co);
+  ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+  if (pipe.is_mesh) [[static_branch]] {
+    init_globals_mesh(interp, sd);
+  }
+  else if (pipe.is_curves) [[static_branch]] {
+    init_globals_curves(interp, curves_interp, sd, view);
+  }
+  else if (pipe.is_pointcloud) [[static_branch]] {
+    init_globals_pointcloud(ptcloud_interp, sd);
+  }
 
   float noise = util_tx.fetch(frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
 
-  sd.thickness = Thickness::from(nodetree_thickness(kg, sd), thickness_mode);
+  sd.thickness = Thickness::from(nodetree_thickness(kg, sd),
+                                 ThicknessMode(nt.node_tree.thickness_mode));
 
   fragment_displacement(kg, sd);
 
@@ -191,12 +187,9 @@ void surf_hybrid([[resource_table]] KernelGlobals &kg,
   /* ----- Render Passes output ----- */
 
   /* Some render pass can be written during the gbuffer pass. Light passes are written later. */
-  {
-    const auto &nt = buffer_get(eevee_nodetree, node_tree);
-    cryptomatte.store(out_texel, nt.crypto_hash, resource_id);
-    render_passes.store_color(
-        out_texel, uni.uniform_buf.render_pass.emission_id, float4(sd.emission, 1.0f));
-  }
+  cryptomatte.store(out_texel, nt.node_tree.crypto_hash, resource_id);
+  render_passes.store_color(
+      out_texel, uni.uniform_buf.render_pass.emission_id, float4(sd.emission, 1.0f));
 
   if (pipe.use_lighting_nodes) [[static_branch]] {
     float light_sample_rcp = safe_rcp(float(sd.light_accum.light_accumulation_count));
@@ -320,13 +313,12 @@ void surf_hybrid([[resource_table]] KernelGlobals &kg,
     }
   }
 
-#if defined(GBUFFER_HAS_REFRACTION) || defined(GBUFFER_HAS_SUBSURFACE) || \
-    defined(GBUFFER_HAS_TRANSLUCENT)
-  if (flag_test(gbuf.used_layers, ADDITIONAL_DATA)) {
-    srt.write_normal_data(
-        out_texel, uni.pipeline_buf.gbuffer_additional_data_layer_id, gbuf.additional_info);
+  if (pipe.use_additional_data) [[static_branch]] {
+    if (flag_test(gbuf.used_layers, ADDITIONAL_DATA)) {
+      srt.write_normal_data(
+          out_texel, uni.pipeline_buf.gbuffer_additional_data_layer_id, gbuf.additional_info);
+    }
   }
-#endif
 
   if (flag_test(gbuf.used_layers, OBJECT_ID)) {
     srt.write_header_data(out_texel, 1, resource_id);

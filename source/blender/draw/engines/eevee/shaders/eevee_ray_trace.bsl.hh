@@ -52,7 +52,7 @@ void trace([[resource_table]] Resources &srt,
            [[work_group_id]] const uint3 group_id,
            [[local_invocation_id]] const uint3 local_id)
 {
-  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(RAYTRACE_GROUP_SIZE);
   uint2 tile_coord = unpackUvec2x16(srt.tiles_coord_buf[group_id.x]);
   int2 texel = int2(local_id.xy + tile_coord * tile_size);
 
@@ -232,7 +232,7 @@ void trace([[resource_table]] Resources &srt,
            [[work_group_id]] const uint3 group_id,
            [[local_invocation_id]] const uint3 local_id)
 {
-  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(RAYTRACE_GROUP_SIZE);
   uint2 tile_coord = unpackUvec2x16(srt.tiles_coord_buf[group_id.x]);
   int2 texel = int2(local_id.xy + tile_coord * tile_size);
 
@@ -363,7 +363,7 @@ void trace([[resource_table]] Resources &srt,
            [[work_group_id]] const uint3 group_id,
            [[local_invocation_id]] const uint3 local_id)
 {
-  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(RAYTRACE_GROUP_SIZE);
   uint2 tile_coord = unpackUvec2x16(srt.tiles_coord_buf[group_id.x]);
   int2 texel = int2(local_id.xy + tile_coord * tile_size);
 

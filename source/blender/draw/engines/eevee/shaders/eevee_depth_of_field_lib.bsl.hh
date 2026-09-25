@@ -189,7 +189,7 @@ struct CocTile {
 };
 
 /* WATCH: Might have to change depending on the texture format. */
-#define dof_tile_large_coc 1024.0f
+static constexpr float dof_tile_large_coc = 1024.0f;
 
 /* Init a CoC tile for reduction algorithms. */
 CocTile dof_coc_tile_init()
@@ -216,13 +216,6 @@ CocTile dof_coc_tile_unpack(float3 fg, float3 bg)
   return tile;
 }
 
-/* WORKAROUND(@fclem): GLSL compilers differs in what qualifiers are requires to pass images as
- * parameters. Workaround by using defines. */
-#define dof_coc_tile_load(tiles_fg_img_, tiles_bg_img_, texel_) \
-  dof_coc_tile_unpack( \
-      imageLoad(tiles_fg_img_, clamp(texel_, int2(0), imageSize(tiles_fg_img_) - 1)).xyz, \
-      imageLoad(tiles_bg_img_, clamp(texel_, int2(0), imageSize(tiles_bg_img_) - 1)).xyz)
-
 void dof_coc_tile_pack(CocTile tile, float3 &out_fg, float3 &out_bg)
 {
   out_fg.x = -tile.fg_min_coc;
@@ -233,14 +226,24 @@ void dof_coc_tile_pack(CocTile tile, float3 &out_fg, float3 &out_bg)
   out_bg.z = tile.bg_min_intersectable_coc;
 }
 
-#define dof_coc_tile_store(tiles_fg_img_, tiles_bg_img_, texel_out_, tile_data_) \
-  if (true) { \
-    float3 out_fg; \
-    float3 out_bg; \
-    dof_coc_tile_pack(tile_data_, out_fg, out_bg); \
-    imageStore(tiles_fg_img_, texel_out_, out_fg.xyzz); \
-    imageStore(tiles_bg_img_, texel_out_, out_bg.xyzz); \
-  }
+[[force_inline]] CocTile dof_coc_tile_load(image2D tiles_fg_img, image2D tiles_bg_img, int2 texel)
+{
+  return dof_coc_tile_unpack(
+      imageLoad(tiles_fg_img, clamp(texel, int2(0), imageSize(tiles_fg_img) - 1)).xyz,
+      imageLoad(tiles_bg_img, clamp(texel, int2(0), imageSize(tiles_bg_img) - 1)).xyz);
+}
+
+[[force_inline]] void dof_coc_tile_store(image2D tiles_fg_img,
+                                         image2D tiles_bg_img,
+                                         int2 texel_out,
+                                         CocTile tile_data)
+{
+  float3 out_fg;
+  float3 out_bg;
+  dof_coc_tile_pack(tile_data, out_fg, out_bg);
+  imageStore(tiles_fg_img, texel_out, out_fg.xyzz);
+  imageStore(tiles_bg_img, texel_out, out_bg.xyzz);
+}
 
 bool dof_do_fast_gather(float max_absolute_coc,
                         float min_absolute_coc,

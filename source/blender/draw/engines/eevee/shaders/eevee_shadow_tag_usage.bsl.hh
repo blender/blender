@@ -56,7 +56,7 @@ struct TagUsage {
 
     float3 lP = light_world_to_local_direction(light, P);
 
-    level = clamp(level, light.sun().clipmap_lod_min, light.sun().clipmap_lod_max);
+    level = clamp(level, light.sun.clipmap_lod_min, light.sun.clipmap_lod_max);
 
     ShadowCoordinates coord = shadow_directional_coordinates_at_level(light, lP, level);
     tag_usage_tile(light, coord.tilemap_tile, 0, coord.tilemap_index);
@@ -74,7 +74,7 @@ struct TagUsage {
 
     float3 lP = light_world_to_local_direction(light, P);
 
-    LightSunData sun = light.sun();
+    LightSunData sun = light.sun;
 
     if (radius == 0.0f) {
       int level = shadow_directional_level(light, lP - light.position());
@@ -119,13 +119,13 @@ struct TagUsage {
 
     float3 lP = light_world_to_local_point(light, P);
     float dist_to_light = max(length(lP) - radius, 1e-5f);
-    if (dist_to_light > light.local().local.influence_radius_max) {
+    if (dist_to_light > light.local.local.influence_radius_max) {
       return;
     }
     if (is_spot_light(light.type)) {
       /* Early out if out of cone. */
       float angle_tan = length(lP.xy / dist_to_light);
-      if (angle_tan > light.spot().spot_tan) {
+      if (angle_tan > light.spot.spot_tan) {
         return;
       }
     }
@@ -137,7 +137,7 @@ struct TagUsage {
     }
 
     /* Transform to shadow local space. */
-    lP -= light.local().local.shadow_position;
+    lP -= light.local.local.shadow_position;
 
     const ViewMatrices view = views.get(0);
 
@@ -148,7 +148,7 @@ struct TagUsage {
                                     uni.uniform_buf.shadow.film_pixel_radius);
     lod = clamp(lod + lod_bias, 0, SHADOW_TILEMAP_LOD);
 
-    if (radius == 0) {
+    if (radius == 0.0f) {
       int face_id = shadow_punctual_face_index_get(lP);
       lP = shadow_punctual_local_position_to_face_local(face_id, lP);
       ShadowCoordinates coord = shadow_punctual_coordinates(light, lP, face_id);

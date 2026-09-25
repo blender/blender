@@ -96,17 +96,6 @@ bool ShaderCreateInfo::is_vulkan_compatible() const
   return true;
 }
 
-std::string ShaderCreateInfo::buffer_typename(StringRefNull type_name, bool uniform_buffer) const
-{
-  if (flag_is_set(this->builtins_combined(), BuiltinBits::NO_BUFFER_TYPE_LINTING) ||
-      type_name.startswith("int") || type_name.startswith("uint") ||
-      type_name.startswith("float") || type_name.startswith("packed_"))
-  {
-    return type_name;
-  }
-  return type_name + "_host_shared_" + (uniform_buffer ? "uniform_" : "");
-}
-
 /** \} */
 
 ShaderCreateInfo::ShaderCreateInfo(const char *name) : name_(name)

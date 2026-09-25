@@ -6,7 +6,8 @@
 
 #include "gpu_shader_compat.hh"
 
-enum class ThicknessMode : bool { Slab = false, Sphere = true };
+/* Follow eMaterial_ThicknessMode. */
+enum class ThicknessMode : bool { Sphere = false, Slab = true };
 
 struct ThicknessIsect {
   /* Normal at the intersection point on the sphere. */
