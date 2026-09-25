@@ -725,11 +725,14 @@ const ComputeContext &get_zone_viewer_compute_context(
     const ComputeContext &compute_context,
     bke::ComputeContextCache &compute_context_cache)
 {
-  const bke::bNodeTreeZones &zones = *node.owner_tree().zones();
-  const bke::bNodeTreeZone *node_zone = zones.get_zone_by_node(node.identifier);
-  Vector<const bke::bNodeTreeZone *> zone_stack = zones.get_zones_to_enter(zone, node_zone);
-
   const ComputeContext *current_context = &compute_context;
+  const bke::bNodeTreeZones *zones = node.owner_tree().zones();
+  if (!zones) {
+    return *current_context;
+  }
+  const bke::bNodeTreeZone *node_zone = zones->get_zone_by_node(node.identifier);
+  Vector<const bke::bNodeTreeZone *> zone_stack = zones->get_zones_to_enter(zone, node_zone);
+
   for (const bke::bNodeTreeZone *current_zone : zone_stack) {
     const bNode &output_node = *current_zone->output_node();
     if (output_node.is_type("GeometryNodeRepeatOutput"_ustr)) {

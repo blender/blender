@@ -718,7 +718,8 @@ Schedule compute_schedule(const Context &context,
 
   /* Validate node group. */
   node_group.ensure_topology_cache();
-  if (node_group.has_available_link_cycle()) {
+  const bke::bNodeTreeZones *zones = schedule.node_group.zones();
+  if (node_group.has_available_link_cycle() || !zones) {
     return schedule;
   }
 
