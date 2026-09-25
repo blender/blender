@@ -776,7 +776,7 @@ static std::optional<ComputeContextHash> compute_viewer_compute_context_hash_rec
 
   /* Otherwise, we have to check node groups recursively. */
   for (const bNode *group_node : node_group.group_nodes()) {
-    if (!group_node->id || ID_MISSING(group_node->id)) {
+    if (group_node->is_muted() || !group_node->id || ID_MISSING(group_node->id)) {
       continue;
     }
 
@@ -810,6 +810,10 @@ std::optional<ComputeContextHash> compute_viewer_compute_context_hash(const Scen
       nullptr, scene.id);
   const SceneCompositorEffect *active_effect = get_active_effect(scene);
   if (!active_effect) {
+    return std::nullopt;
+  }
+
+  if (!is_effect_enabled(*active_effect, ExecutionMode::Preview)) {
     return std::nullopt;
   }
 
