@@ -48,7 +48,10 @@ static const char *name_from_type(ImageDataType type)
 
 /* Device Memory */
 
-device_memory::device_memory(Device *device, const char *name, MemoryType type)
+device_memory::device_memory(Device *device,
+                             const char *name,
+                             MemoryType type,
+                             const uint32_t flags)
     : data_type(device_type_traits<uchar>::data_type),
       data_elements(device_type_traits<uchar>::num_elements),
       data_size(0),
@@ -61,6 +64,7 @@ device_memory::device_memory(Device *device, const char *name, MemoryType type)
       host_pointer(nullptr),
       shared_pointer(nullptr),
       shared_counter(0),
+      flags(flags),
       name_(name),
       original_device_ptr(0),
       original_device_size(0),

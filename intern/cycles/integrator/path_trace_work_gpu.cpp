@@ -88,19 +88,28 @@ PathTraceWorkGPU::PathTraceWorkGPU(Device *device,
     : PathTraceWork(device, film, device_scene, cancel_requested_flag),
       queue_(device->gpu_queue_create()),
       integrator_state_soa_kernel_features_(0),
-      integrator_queue_counter_(device, "integrator_queue_counter", MEM_READ_WRITE),
-      integrator_shader_sort_counter_(device, "integrator_shader_sort_counter", MEM_READ_WRITE),
-      integrator_shader_raytrace_sort_counter_(
-          device, "integrator_shader_raytrace_sort_counter", MEM_READ_WRITE),
+      /* Use MEM_FLAG_NO_HOST_FALLBACK since having this on the GPU is more important
+       * than scene memory for performance. */
+      integrator_queue_counter_(
+          device, "integrator_queue_counter", MEM_READ_WRITE, MEM_FLAG_NO_HOST_FALLBACK),
+      integrator_shader_sort_counter_(
+          device, "integrator_shader_sort_counter", MEM_READ_WRITE, MEM_FLAG_NO_HOST_FALLBACK),
+      integrator_shader_raytrace_sort_counter_(device,
+                                               "integrator_shader_raytrace_sort_counter",
+                                               MEM_READ_WRITE,
+                                               MEM_FLAG_NO_HOST_FALLBACK),
       integrator_shader_sort_prefix_sum_(
-          device, "integrator_shader_sort_prefix_sum", MEM_READ_WRITE),
-      integrator_shader_sort_partition_key_offsets_(
-          device, "integrator_shader_sort_partition_key_offsets", MEM_READ_WRITE),
-      integrator_next_main_path_index_(device, "integrator_next_main_path_index", MEM_READ_WRITE),
+          device, "integrator_shader_sort_prefix_sum", MEM_READ_WRITE, MEM_FLAG_NO_HOST_FALLBACK),
+      integrator_shader_sort_partition_key_offsets_(device,
+                                                    "integrator_shader_sort_partition_key_offsets",
+                                                    MEM_READ_WRITE,
+                                                    MEM_FLAG_NO_HOST_FALLBACK),
+      integrator_next_main_path_index_(
+          device, "integrator_next_main_path_index", MEM_READ_WRITE, MEM_FLAG_NO_HOST_FALLBACK),
       integrator_next_shadow_path_index_(
-          device, "integrator_next_shadow_path_index", MEM_READ_WRITE),
-      queued_paths_(device, "queued_paths", MEM_READ_WRITE),
-      num_queued_paths_(device, "num_queued_paths", MEM_READ_WRITE),
+          device, "integrator_next_shadow_path_index", MEM_READ_WRITE, MEM_FLAG_NO_HOST_FALLBACK),
+      queued_paths_(device, "queued_paths", MEM_READ_WRITE, MEM_FLAG_NO_HOST_FALLBACK),
+      num_queued_paths_(device, "num_queued_paths", MEM_READ_WRITE, MEM_FLAG_NO_HOST_FALLBACK),
       work_tiles_(device, "work_tiles", MEM_READ_WRITE),
       display_rgba_half_(device, "display buffer half", MEM_READ_WRITE),
       max_num_paths_(0),

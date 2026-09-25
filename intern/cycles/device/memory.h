@@ -33,6 +33,13 @@ enum MemoryType {
   MEM_IMAGE_TEXTURE,
 };
 
+enum MemoryFlag {
+  /* Never map to host memory when the device runs out of memory, where using
+   * GPU memory is essential for performance. Scene data will then be moved to
+   * the host instead. */
+  MEM_FLAG_NO_HOST_FALLBACK = (1 << 0),
+};
+
 /* Supported Data Types */
 
 enum DataType {
@@ -269,6 +276,9 @@ class device_memory {
   int shared_counter;
   bool move_to_host = false;
 
+  /* MemoryFlag. */
+  uint32_t flags;
+
   virtual ~device_memory();
 
   void swap_device(Device *new_device, const size_t new_device_size, device_ptr new_device_ptr);
@@ -298,7 +308,7 @@ class device_memory {
   friend class OneapiDevice;
 
   /* Only create through subclasses. */
-  device_memory(Device *device, const char *name, MemoryType type);
+  device_memory(Device *device, const char *name, MemoryType type, uint32_t flags = 0);
 
   /* Host allocation on the device. All host_pointer memory should be
    * allocated with these functions, for devices that support using
@@ -393,8 +403,8 @@ template<typename T> class device_only_memory : public device_memory {
 
 template<typename T> class device_vector : public device_memory {
  public:
-  device_vector(Device *device, const char *name, MemoryType type)
-      : device_memory(device, name, type)
+  device_vector(Device *device, const char *name, MemoryType type, const uint32_t flags = 0)
+      : device_memory(device, name, type, flags)
   {
     data_type = device_type_traits<T>::data_type;
     data_elements = device_type_traits<T>::num_elements;
