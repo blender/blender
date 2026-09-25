@@ -36,7 +36,7 @@ struct TilemapAmend {
 struct AmendCtx {
   int2 tile_co;
 
-  void eval_directional([[resource_table]] TilemapAmend &srt, uint /*index*/, LightData light)
+  void eval_directional(TilemapAmend &srt, uint /*index*/, LightData light)
   {
     /* This only works on clip-maps. Cascade have already the same LOD for every tile-maps. */
     if (light.tilemap_index == LIGHT_NO_SHADOW || light.type != LIGHT_SUN) {
@@ -102,7 +102,7 @@ struct AmendCtx {
     }
   }
 
-  void eval_local([[resource_table]] TilemapAmend &srt, uint index, LightData light)
+  void eval_local(TilemapAmend &srt, uint index, LightData light)
   {
     if (light.tilemap_index == LIGHT_NO_SHADOW) {
       return;

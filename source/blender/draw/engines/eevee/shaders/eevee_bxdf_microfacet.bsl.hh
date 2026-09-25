@@ -412,7 +412,7 @@ Ray bxdf_ggx_ray_amend_transmission(ClosureUndetermined cl, float3 V, Ray ray, T
   return ray;
 }
 
-ClosureLight bxdf_ggx_light_reflection([[resource_table]] const UtilityTexture &util_tx,
+ClosureLight bxdf_ggx_light_reflection(const UtilityTexture &util_tx,
                                        ClosureReflection cl,
                                        float3 V)
 {
@@ -426,7 +426,7 @@ ClosureLight bxdf_ggx_light_reflection([[resource_table]] const UtilityTexture &
   return light;
 }
 
-ClosureLight bxdf_ggx_light_transmission([[resource_table]] const UtilityTexture &util_tx,
+ClosureLight bxdf_ggx_light_transmission(const UtilityTexture &util_tx,
                                          ClosureRefraction cl,
                                          float3 V,
                                          Thickness thickness)
@@ -456,8 +456,9 @@ ClosureLight bxdf_ggx_light_transmission([[resource_table]] const UtilityTexture
   return light;
 }
 
-ClosureLight bxdf_ggx_light_thin_glass_transmission(
-    [[resource_table]] const UtilityTexture &util_tx, ClosureThinRefraction cl, float3 V)
+ClosureLight bxdf_ggx_light_thin_glass_transmission(const UtilityTexture &util_tx,
+                                                    ClosureThinRefraction cl,
+                                                    float3 V)
 {
   float cos_theta = dot(cl.N, V);
 

@@ -478,13 +478,9 @@ struct NoCullCtx {
   float light_count;
   uint light_bits;
 
-  void eval_directional([[resource_table]] LightRenderData & /*lrd*/,
-                        uint /*l_idx*/,
-                        LightData /*light*/)
-  {
-  }
+  void eval_directional(LightRenderData & /*lrd*/, uint /*l_idx*/, LightData /*light*/) {}
 
-  void eval_local([[resource_table]] LightRenderData & /*lrd*/, uint l_idx, LightData /*light*/)
+  void eval_local(LightRenderData & /*lrd*/, uint l_idx, LightData /*light*/)
   {
     light_bits |= 1u << l_idx;
     light_count += 1.0f;
@@ -495,13 +491,9 @@ struct WithCullCtx {
   uint light_bits;
   float3 P;
 
-  void eval_directional([[resource_table]] LightRenderData & /*lrd*/,
-                        uint /*l_idx*/,
-                        LightData /*light*/)
-  {
-  }
+  void eval_directional(LightRenderData & /*lrd*/, uint /*l_idx*/, LightData /*light*/) {}
 
-  void eval_local([[resource_table]] LightRenderData & /*lrd*/, uint l_idx, LightData light)
+  void eval_local(LightRenderData & /*lrd*/, uint l_idx, LightData light)
   {
     LightVector lv = LightVector::get(light, false, P);
     if (light_attenuation_surface(light, false, lv) > LIGHT_ATTENUATION_THRESHOLD) {

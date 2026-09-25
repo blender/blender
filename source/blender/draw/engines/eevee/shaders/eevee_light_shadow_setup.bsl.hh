@@ -26,7 +26,7 @@ struct Resources {
   [[storage(2, read_write)]] ShadowTileMapData (&tilemaps_buf)[];
   [[storage(3, read_write)]] ShadowTileMapClip (&tilemaps_clip_buf)[];
 
-  [[resource_table]] srt_t<Uniform> uniforms;
+  [[resource_table]] Uniform uniforms;
 
   void orthographic_sync(int tilemap_id,
                          Transform object_to_world,
@@ -86,17 +86,15 @@ struct Resources {
 
   void cascade_sync(LightData &light)
   {
-    [[resource_table]] const Uniform &uni = uniforms;
-
     int level_min = light.sun.clipmap_lod_min;
     int level_max = light.sun.clipmap_lod_max;
     int level_range = level_max - level_min;
     int level_len = level_range + 1;
 
-    float3 ws_camera_position = uni.uniform_buf.camera.viewinv[3].xyz;
-    float3 ws_camera_forward = uni.uniform_buf.camera.viewinv[2].xyz;
-    float camera_clip_near = uni.uniform_buf.camera.clip_near;
-    float camera_clip_far = uni.uniform_buf.camera.clip_far;
+    float3 ws_camera_position = uniforms.uniform_buf.camera.viewinv[3].xyz;
+    float3 ws_camera_forward = uniforms.uniform_buf.camera.viewinv[2].xyz;
+    float camera_clip_near = uniforms.uniform_buf.camera.clip_near;
+    float camera_clip_far = uniforms.uniform_buf.camera.clip_far;
 
     /* All tile-maps use the first level size. */
     float level_size = shadow_directional_coverage_get(level_min);
@@ -151,9 +149,7 @@ struct Resources {
 
   void clipmap_sync(LightData &light)
   {
-    [[resource_table]] const Uniform &uni = uniforms;
-
-    float3 ws_camera_position = uni.uniform_buf.camera.viewinv[3].xyz;
+    float3 ws_camera_position = uniforms.uniform_buf.camera.viewinv[3].xyz;
     float3 ls_camera_position = transform_direction_transposed(light.object_to_world,
                                                                ws_camera_position);
 

@@ -20,9 +20,9 @@
 namespace eevee::shadow {
 
 struct ViewVisibility {
-  [[resource_table]] srt_t<draw::ViewCulling> view_culling;
+  [[resource_table]] draw::ViewCulling view_culling;
 
-  [[resource_table]] srt_t<draw::Infos> infos_;
+  [[resource_table]] draw::Infos infos;
 
   [[storage(0, read)]] const ObjectBounds (&bounds_buf)[];
   [[storage(1, read_write)]] uint (&visibility_buf)[];
@@ -32,7 +32,6 @@ struct ViewVisibility {
 
   bool shadow_linking_affects_caster(uint view_id, uint resource_id)
   {
-    [[resource_table]] draw::Infos &infos = infos_;
     ObjectInfos object_infos = infos.get(resource_id);
     return bitmask64_test(render_view_buf[view_id].shadow_set_membership,
                           blocker_shadow_set_get(object_infos));
@@ -48,12 +47,11 @@ struct ViewVisibility {
   /* Returns true if visibility needs to be disabled. */
   bool non_culling_tests(uint view_id, uint resource_id)
   {
-    [[resource_table]] draw::ViewCulling &culling = view_culling;
     if (shadow_linking_affects_caster(view_id, resource_id) == false) {
       /* Object doesn't cast shadow from this light. */
       return true;
     }
-    if (culling.get(view_id).bound_sphere.w == -1.0f) {
+    if (view_culling.get(view_id).bound_sphere.w == -1.0f) {
       /* View disabled. */
       return true;
     }
@@ -65,7 +63,7 @@ struct ViewVisibility {
 void comp_main([[resource_table]] ViewVisibility &srt,
                [[global_invocation_id]] const uint3 global_id)
 {
-  [[resource_table]] draw::ViewCulling &culling = srt.view_culling;
+  draw::ViewCulling &culling = srt.view_culling;
 
   if (int(global_id.x) >= srt.resource_len) {
     return;

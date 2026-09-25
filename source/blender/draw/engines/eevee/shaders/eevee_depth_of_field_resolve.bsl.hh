@@ -19,8 +19,8 @@
 namespace eevee::dof::resolve {
 
 struct Resources {
-  [[resource_table]] srt_t<Accumulator> accumulator;
-  [[resource_table]] srt_t<draw::View> views;
+  [[resource_table]] Accumulator accumulator;
+  [[resource_table]] draw::View views;
 
   [[specialization_constant(false)]] const bool do_debug_color;
 
@@ -43,8 +43,6 @@ struct Resources {
    */
   float slight_focus_coc_tile_get(float2 frag_coord, uint local_index)
   {
-    [[resource_table]] const Accumulator &accum = accumulator;
-
     float local_abs_max = 0.0f;
     /* Sample in a cross (X) pattern. This covers all pixels over the whole tile, as long as
      * dof_max_slight_focus_radius is less than the group size. */
@@ -52,8 +50,8 @@ struct Resources {
       float2 sample_uv = (frag_coord + quad_offsets[i] * 2.0f * dof_max_slight_focus_radius) /
                          float2(textureSize(color_tx, 0));
       float depth = reverse_z::read(textureLod(depth_tx, sample_uv, 0.0f).r);
-      float coc = dof_coc_from_depth(views, accum.dof_buf, sample_uv, depth);
-      coc = clamp(coc, -accum.dof_buf.coc_abs_max, accum.dof_buf.coc_abs_max);
+      float coc = dof_coc_from_depth(views, accumulator.dof_buf, sample_uv, depth);
+      coc = clamp(coc, -accumulator.dof_buf.coc_abs_max, accumulator.dof_buf.coc_abs_max);
       if (abs(coc) < dof_max_slight_focus_radius) {
         local_abs_max = max(local_abs_max, abs(coc));
       }

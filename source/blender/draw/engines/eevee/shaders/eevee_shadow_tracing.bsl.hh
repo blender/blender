@@ -118,7 +118,7 @@ void shadow_map_trace_hit_check(ShadowMapTracingState &state,
  * Most of the code is wrapped into functions to avoid to debug issues inside macro code.
  */
 template<typename ShadowRayType>
-bool shadow_map_trace([[resource_table]] ShadowRenderData &srd,
+bool shadow_map_trace(ShadowRenderData &srd,
                       ShadowRayType ray,
                       int sample_count,
                       float step_offset)
@@ -183,7 +183,7 @@ ShadowRayDirectional shadow_ray_generate_directional(
   return ray;
 }
 
-ShadowTracingSample shadow_map_trace_sample([[resource_table]] ShadowRenderData &srd,
+ShadowTracingSample shadow_map_trace_sample(ShadowRenderData &srd,
                                             ShadowMapTracingState state,
                                             ShadowRayDirectional &ray)
 {
@@ -294,7 +294,7 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
   return ray;
 }
 
-ShadowTracingSample shadow_map_trace_sample([[resource_table]] ShadowRenderData &srd,
+ShadowTracingSample shadow_map_trace_sample(ShadowRenderData &srd,
                                             ShadowMapTracingState state,
                                             ShadowRayPunctual &ray)
 {
@@ -356,8 +356,8 @@ float3 shadow_pcf_offset(float3 L, float3 Ng, float2 random)
  * This is a smooth (not discretized to the LOD transitions) conservative (always above actual
  * density) estimate value.
  */
-float shadow_texel_radius_at_position([[resource_table]] const Uniform &uni,
-                                      [[resource_table]] const draw::View &views,
+float shadow_texel_radius_at_position(const Uniform &uni,
+                                      const draw::View &views,
                                       LightData light,
                                       const bool is_directional,
                                       float3 P)
@@ -452,7 +452,7 @@ float shadow_terminator_offset(float3 N,
  * Evaluate shadowing by casting rays toward the light direction.
  * Returns light visibility.
  */
-float shadow_eval([[resource_table]] ShadowRenderData &srd,
+float shadow_eval(ShadowRenderData &srd,
                   LightData light,
                   const bool is_directional,
                   const bool is_transmission,
@@ -472,15 +472,10 @@ float shadow_eval([[resource_table]] ShadowRenderData &srd,
   float3 random_shadow_3d = float3(0.5f);
   float2 random_pcf_2d = float2(0.0f);
 
-  [[resource_table]] const Uniform &uni = srd.uniforms;
-  [[resource_table]] const draw::View &views = srd.views;
-
-  if (srd.shadow_random) [[static_branch]] {
-    [[resource_table]] const Sampling &sampling = srd.sampling;
-    [[resource_table]] const UtilityTexture &util_tx = srd.util_tx;
-    float3 blue_noise_3d = util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).rgb;
-    random_shadow_3d = fract(blue_noise_3d + sampling.rng_3D_get(SAMPLING_SHADOW_U));
-    random_pcf_2d = fract(blue_noise_3d.xy + sampling.rng_2D_get(SAMPLING_SHADOW_X));
+  if (srd.constants.shadow_random) [[static_branch]] {
+    float3 blue_noise_3d = srd.util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).rgb;
+    random_shadow_3d = fract(blue_noise_3d + srd.sampling.rng_3D_get(SAMPLING_SHADOW_U));
+    random_pcf_2d = fract(blue_noise_3d.xy + srd.sampling.rng_2D_get(SAMPLING_SHADOW_X));
   }
 
   float distance_to_shadow;
@@ -500,7 +495,8 @@ float shadow_eval([[resource_table]] ShadowRenderData &srd,
   float3 N_bias = (is_transmission && !is_facing_light) ? reflect(Ng, L) : Ng;
 
   /* Shadow map texel radius at the receiver position. */
-  float texel_radius = shadow_texel_radius_at_position(uni, views, light, is_directional, P);
+  float texel_radius = shadow_texel_radius_at_position(
+      srd.uniforms, srd.views, light, is_directional, P);
 
   if (is_transmission && !is_facing_light) {
     /* Ideally, we should bias using the chosen ray direction. In practice, this conflict with our

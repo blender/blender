@@ -175,7 +175,7 @@ SphericalHarmonicL1<float4> select_result<SphericalHarmonicL1<float4>>(
  * If `reversed` is set to true, the input normal must be negated.
  */
 template<typename ResultT>
-ResultT eval([[resource_table]] const Uniform &uni,
+ResultT eval(const Uniform &uni,
              const ViewMatrices view,
              ScreenThicknessParameters thickness_params,
              sampler2D hiz_tx,
@@ -444,9 +444,7 @@ struct SampleInput {
   [[sampler(9)]] const sampler2D fast_gi_radiance_3_tx;
   [[sampler(10)]] const sampler2D screen_normal_tx;
 
-  float3 sample_normal_get([[resource_table]] const draw::View &views,
-                           int2 texel,
-                           bool &is_processed) const
+  float3 sample_normal_get(const draw::View &views, int2 texel, bool &is_processed) const
   {
     float4 normal = texelFetch(screen_normal_tx, texel, 0);
     is_processed = (normal.w != 0.0f);
@@ -454,8 +452,8 @@ struct SampleInput {
   }
 
   /* Used for denoise. */
-  float sample_weight_get([[resource_table]] const Uniform &uni,
-                          [[resource_table]] const draw::View &views,
+  float sample_weight_get(const Uniform &uni,
+                          const draw::View &views,
                           sampler2D hiz_tx,
                           float3 center_N,
                           float3 center_P,
@@ -486,8 +484,8 @@ struct SampleInput {
   }
 
   /* Used for resolve. */
-  float sample_weight_get([[resource_table]] const Uniform &uni,
-                          [[resource_table]] const draw::View &views,
+  float sample_weight_get(const Uniform &uni,
+                          const draw::View &views,
                           float3 center_N,
                           float3 center_P,
                           int2 center_texel,

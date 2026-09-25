@@ -122,8 +122,8 @@ float bilateral_weight(float reference_coc, float sample_coc)
 }
 
 struct Resources {
-  [[resource_table]] srt_t<CameraVelocity> camera;
-  [[resource_table]] srt_t<draw::View> views;
+  [[resource_table]] CameraVelocity camera;
+  [[resource_table]] draw::View views;
 
   [[push_constant]] const bool u_use_history;
 
@@ -283,8 +283,6 @@ struct Resources {
   /* Returns motion in pixel space to retrieve the pixel history. */
   float2 pixel_history_motion_vector(int2 texel_sample, uint3 local_id) const
   {
-    [[resource_table]] const CameraVelocity &cam_vel = camera;
-
     /**
      * Dilate velocity by using the nearest pixel in a cross pattern.
      * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
@@ -302,7 +300,7 @@ struct Resources {
     /* Convert to full resolution buffer pixel. */
     int2 velocity_texel = (texel_sample + nearest_texel) * 2;
     velocity_texel = clamp(velocity_texel, int2(0), textureSize(velocity_tx, 0).xy - 1);
-    float4 vector = cam_vel.resolve(views, velocity_tx, velocity_texel, min_depth);
+    float4 vector = camera.resolve(views, velocity_tx, velocity_texel, min_depth);
     /* Transform to **half** pixel space. */
     return vector.xy * float2(textureSize(color_tx, 0));
   }

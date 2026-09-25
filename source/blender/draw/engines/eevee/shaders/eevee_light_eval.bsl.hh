@@ -38,12 +38,16 @@
 
 namespace eevee {
 
-struct LightEvalData {
-  [[resource_table]] srt_t<ShadowRenderData> shadow_data;
-  [[resource_table]] srt_t<UtilityTexture> utility_tx;
-
+struct LightEvalConstants {
   [[compilation_constant]] int light_closure_eval_count_reflect;
   [[compilation_constant]] int light_closure_eval_count_transmit;
+};
+
+struct LightEvalData {
+  [[resource_table]] LightEvalConstants constants;
+
+  [[resource_table]] ShadowRenderData shadow_data;
+  [[resource_table]] UtilityTexture utility_tx;
 };
 
 namespace light {
@@ -99,12 +103,8 @@ template<bool is_transmission> struct EvalCtx {
   int ray_count;
   int ray_step_count;
 
-  void light_eval_single([[resource_table]] LightEvalData &srt,
-                         LightData light,
-                         const bool is_directional)
+  void light_eval_single(LightEvalData &srt, LightData light, const bool is_directional)
   {
-    [[resource_table]] ShadowRenderData &srd = srt.shadow_data;
-
     if (!light_linking_affects_receiver(light.light_set_membership, receiver_light_set)) {
       return;
     }
@@ -122,7 +122,7 @@ template<bool is_transmission> struct EvalCtx {
 
     float shadow = 1.0f;
     if (light.tilemap_index != LIGHT_NO_SHADOW) {
-      shadow = shadow_eval(srd,
+      shadow = shadow_eval(srt.shadow_data,
                            light,
                            is_directional,
                            is_transmission,
@@ -141,29 +141,29 @@ template<bool is_transmission> struct EvalCtx {
 
     LightShape shape = LightShape::get(light, lv);
 
-    [[resource_table]] const UtilityTexture &util = srt.utility_tx;
+    const UtilityTexture &util = srt.utility_tx;
     const auto &util_tx = util.utility_tx;
 
     for (uint i = 0u; i < 3; i++) [[unroll]] {
       if constexpr (is_transmission) {
-        if (srt.light_closure_eval_count_transmit > i) [[static_branch]] {
+        if (srt.constants.light_closure_eval_count_transmit > i) [[static_branch]] {
           eval_single_closure(util_tx, light, lv, shape, stack.cl[i], V, attenuation, shadow);
         }
       }
       else {
-        if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
+        if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
           eval_single_closure(util_tx, light, lv, shape, stack.cl[i], V, attenuation, shadow);
         }
       }
     }
   }
 
-  void eval_directional([[resource_table]] LightEvalData &srt, uint /*l_idx*/, LightData light)
+  void eval_directional(LightEvalData &srt, uint /*l_idx*/, LightData light)
   {
     light_eval_single(srt, light, true);
   }
 
-  void eval_local([[resource_table]] LightEvalData &srt, uint /*l_idx*/, LightData light)
+  void eval_local(LightEvalData &srt, uint /*l_idx*/, LightData light)
   {
     light_eval_single(srt, light, false);
   }
@@ -197,22 +197,20 @@ EvalCtx<true> init_from_reflect_ctx(EvalCtx<false> ctx)
 }  // namespace light
 
 struct LightEvalIterator {
-  [[resource_table]] srt_t<LightEvalData> inner;
-  [[resource_table]] srt_t<LightRenderData> light_data;
+  [[resource_table]] LightEvalData inner;
+  [[resource_table]] LightRenderData light_data;
 
   void eval_reflection(light::EvalCtx<false> &ctx, float vPz)
   {
-    [[resource_table]] LightEvalData &srt = inner;
-    if (srt.light_closure_eval_count_reflect > 0) [[static_branch]] {
-      light::foreach_visible(light_data, ctx.texel, vPz, ctx, srt);
+    if (inner.constants.light_closure_eval_count_reflect > 0) [[static_branch]] {
+      light::foreach_visible(light_data, ctx.texel, vPz, ctx, inner);
     }
   }
 
   void eval_transmission(light::EvalCtx<true> &ctx, float vPz)
   {
-    [[resource_table]] LightEvalData &srt = inner;
-    if (srt.light_closure_eval_count_transmit > 0) [[static_branch]] {
-      light::foreach_visible(light_data, ctx.texel, vPz, ctx, srt);
+    if (inner.constants.light_closure_eval_count_transmit > 0) [[static_branch]] {
+      light::foreach_visible(light_data, ctx.texel, vPz, ctx, inner);
     }
   }
 };

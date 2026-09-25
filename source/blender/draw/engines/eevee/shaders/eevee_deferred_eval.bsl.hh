@@ -144,7 +144,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
   light::EvalCtx<false> ctx;
   /* Unroll light stack array assignments to avoid non-constant indexing. */
   for (uint i = 0u; i < 3; i++) [[unroll]] {
-    if (lrt.light_closure_eval_count_reflect > i) [[static_branch]] {
+    if (lrt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
       ctx.stack.cl[i] = closure_light_new(util_tx, gbuf.layer[i], V);
     }
   }
@@ -197,7 +197,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
     float3 radiance_shadowed = float3(0);
     float3 radiance_unshadowed = float3(0);
     for (uint i = 0u; i < 3; i++) [[unroll]] {
-      if (lrt.light_closure_eval_count_reflect > i) [[static_branch]] {
+      if (lrt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
         if (i < closure_count) {
           radiance_shadowed += ctx.stack.cl[i].light_shadowed;
           radiance_unshadowed += ctx.stack.cl[i].light_unshadowed;
@@ -218,7 +218,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
     uint3 bin_indices = gbuf.header.bin_index_per_layer();
 
     for (uint i = 0u; i < 3; i++) [[unroll]] {
-      if (lrt.light_closure_eval_count_reflect > i) [[static_branch]] {
+      if (lrt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
         if (i < closure_count) {
           float3 indirect_light = lightprobes.eval(samp, gbuf.layer[i], P, V, thickness);
           float3 direct_light = ctx.stack.cl[i].light_shadowed;
@@ -237,7 +237,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
     uint3 bin_indices = gbuf.header.bin_index_per_layer();
 
     for (uint i = 0u; i < 3; i++) [[unroll]] {
-      if (lrt.light_closure_eval_count_reflect > i) [[static_branch]] {
+      if (lrt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
         if (i < closure_count) {
           float3 direct_light = ctx.stack.cl[i].light_shadowed;
           srt.write_radiance_direct(bin_indices[i], texel, direct_light);
@@ -556,38 +556,38 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
 
 PipelineGraphic light_single(fullscreen_vert,
                              light_eval_frag,
-                             LightEvalData{
+                             LightEvalConstants{
                                  .light_closure_eval_count_reflect = 1,
                                  .light_closure_eval_count_transmit = 1,
                              },
-                             ShadowRenderData{
+                             ShadowRenderConstants{
                                  .shadow_random = true,
                              });
 PipelineGraphic light_double(fullscreen_vert,
                              light_eval_frag,
-                             LightEvalData{
+                             LightEvalConstants{
                                  .light_closure_eval_count_reflect = 2,
                                  .light_closure_eval_count_transmit = 1,
                              },
-                             ShadowRenderData{
+                             ShadowRenderConstants{
                                  .shadow_random = true,
                              });
 PipelineGraphic light_triple(fullscreen_vert,
                              light_eval_frag,
-                             LightEvalData{
+                             LightEvalConstants{
                                  .light_closure_eval_count_reflect = 3,
                                  .light_closure_eval_count_transmit = 1,
                              },
-                             ShadowRenderData{
+                             ShadowRenderConstants{
                                  .shadow_random = true,
                              });
 PipelineGraphic sphere_eval(fullscreen_vert,
                             sphere_eval_frag,
-                            LightEvalData{
+                            LightEvalConstants{
                                 .light_closure_eval_count_reflect = 1,
                                 .light_closure_eval_count_transmit = 1,
                             },
-                            ShadowRenderData{
+                            ShadowRenderConstants{
                                 .shadow_random = true,
                             });
 PipelineGraphic planar_eval(fullscreen_vert,
@@ -595,11 +595,11 @@ PipelineGraphic planar_eval(fullscreen_vert,
                             PlanarProbeEval{
                                 .legacy_sphere_probe_enable = true,
                             },
-                            LightEvalData{
+                            LightEvalConstants{
                                 .light_closure_eval_count_reflect = 2,
                                 .light_closure_eval_count_transmit = 2,
                             },
-                            ShadowRenderData{
+                            ShadowRenderConstants{
                                 .shadow_random = true,
                             });
 

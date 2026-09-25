@@ -147,10 +147,7 @@ struct CameraVelocity {
     return motion;
   }
 
-  float4 resolve([[resource_table]] const draw::View &views,
-                 float4 vector,
-                 float2 uv,
-                 float depth) const
+  float4 resolve(const draw::View &views, float4 vector, float2 uv, float depth) const
   {
     const ViewMatrices view = views.get(0);
     if (vector.x == VELOCITY_INVALID) {
@@ -172,10 +169,7 @@ struct CameraVelocity {
    * motion data for performance reasons.
    * Returns motion vector in render UV space.
    */
-  float4 resolve([[resource_table]] const draw::View &views,
-                 sampler2D vector_tx,
-                 int2 texel,
-                 float depth) const
+  float4 resolve(const draw::View &views, sampler2D vector_tx, int2 texel, float depth) const
   {
     float2 uv = (float2(texel) + 0.5f) / float2(textureSize(vector_tx, 0).xy);
     float4 vector = texelFetch(vector_tx, texel, 0);
@@ -198,7 +192,7 @@ struct VertOutVelocity {
  * Combined with the depth pre-pass shader.
  * Outputs the view motion vectors for animated objects. */
 struct GeometryVelocity {
-  [[resource_table]] srt_t<CameraVelocity> camera;
+  [[resource_table]] CameraVelocity camera;
 
   [[storage(VELOCITY_OBJ_PREV_BUF_SLOT, read)]] const float4x4 (&velocity_obj_prev_buf)[];
   [[storage(VELOCITY_OBJ_NEXT_BUF_SLOT, read)]] const float4x4 (&velocity_obj_next_buf)[];

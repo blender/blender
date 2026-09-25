@@ -66,7 +66,7 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
 
     light::EvalCtx<false> ctx;
     for (uint i = 0u; i < 3; i++) [[unroll]] {
-      if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
+      if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
         ClosureUndetermined cl = sd.closure_get(uchar(i)).data;
         ctx.stack.cl[i] = closure_light_new(kg.util_tx, cl, V);
       }
@@ -89,7 +89,7 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
 
     lights.eval_reflection(ctx, vPz);
 
-    if (srt.light_closure_eval_count_transmit > 0) [[static_branch]] {
+    if (srt.constants.light_closure_eval_count_transmit > 0) [[static_branch]] {
       ClosureUndetermined cl_transmit = sd.closure_get(0).data;
       if (closure_has_transmission(cl_transmit.type) ||
           cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID)
@@ -129,7 +129,7 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
     {
       /* Get average normal.  */
       for (uint i = 0u; i < 3; i++) [[unroll]] {
-        if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
+        if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
           ClosureUndetermined cl = sd.closure_get(uchar(i)).data;
           average_N += cl.N * cl.weight();
         }
@@ -167,7 +167,7 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
     float3 radiance_indirect = float3(0.0f);
 
     for (uint i = 0u; i < 3; i++) [[unroll]] {
-      if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
+      if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
         ClosureUndetermined cl = sd.closure_get_resolved(uchar(i), 1.0f);
         if (cl.weight() > CLOSURE_WEIGHT_CUTOFF) {
           float3 direct_light = ctx.stack.cl[i].light_shadowed;

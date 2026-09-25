@@ -37,9 +37,7 @@ int culling_z_to_zbin(float scale, float bias, float z)
 /* To be instantiated with a callback class that implement eval_directional and eval_local.
  * If ResourceT is not needed, just pass LightRenderData again. */
 template<typename CallbackT, typename ResourceT>
-void foreach([[resource_table]] const LightRenderData &srt,
-             CallbackT &cb,
-             [[resource_table]] ResourceT &res)
+void foreach(const LightRenderData &srt, CallbackT &cb, ResourceT &res)
 {
   const LightCullingData &culling = srt.light_cull_buf;
 
@@ -75,7 +73,7 @@ struct VisibleLightIterator {
 
   uint light_set;
 
-  void next_local_word([[resource_table]] const eevee::LightRenderData &lrd)
+  void next_local_word(const eevee::LightRenderData &lrd)
   {
     const auto &words = lrd.light_tile_buf;
 
@@ -100,7 +98,7 @@ struct VisibleLightIterator {
   }
 
  public:
-  void init([[resource_table]] const eevee::LightRenderData &lrd,
+  void init(const eevee::LightRenderData &lrd,
             float2 pixel,
             float linear_view_z,
             uint receiver_light_set)
@@ -131,7 +129,7 @@ struct VisibleLightIterator {
     phase = LIGHT_ITER_PHASE_INIT;
   }
 
-  bool next([[resource_table]] const eevee::LightRenderData &lrd)
+  bool next(const eevee::LightRenderData &lrd)
   {
     const LightCullingData &culling = lrd.light_cull_buf;
 
@@ -177,7 +175,7 @@ struct VisibleLightIterator {
     return phase == 1;
   }
 
-  bool should_skip([[resource_table]] const eevee::LightRenderData &lrd, float3 P)
+  bool should_skip(const eevee::LightRenderData &lrd, float3 P)
   {
     LightData light = lrd.light_buf[index];
 
@@ -204,11 +202,8 @@ struct VisibleLightIterator {
 /* To be instantiated with a callback class that implement eval_directional and eval_local.
  * If ResourceT is not needed, just pass LightRenderData again. */
 template<typename CallbackT, typename ResourceT>
-void foreach_visible([[resource_table]] const LightRenderData &srt,
-                     float2 pixel,
-                     float linear_view_z,
-                     CallbackT &cb,
-                     [[resource_table]] ResourceT &res)
+void foreach_visible(
+    const LightRenderData &srt, float2 pixel, float linear_view_z, CallbackT &cb, ResourceT &res)
 {
   const LightCullingData &culling = srt.light_cull_buf;
   const auto &zbins = srt.light_zbin_buf;

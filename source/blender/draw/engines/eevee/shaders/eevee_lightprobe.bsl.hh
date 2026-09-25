@@ -16,9 +16,9 @@
 namespace eevee {
 
 struct LightprobeRenderData {
-  [[resource_table]] srt_t<LightprobeSphereRenderData> spheres;
-  [[resource_table]] srt_t<LightprobeVolumeRenderData> volumes;
-  [[resource_table]] srt_t<Sampling> sampling;
+  [[resource_table]] LightprobeSphereRenderData spheres;
+  [[resource_table]] LightprobeVolumeRenderData volumes;
+  [[resource_table]] Sampling sampling;
 
   /**
    * Return cached light-probe data at P.
@@ -26,16 +26,12 @@ struct LightprobeRenderData {
    */
   LightProbeSample load(float2 screen_texel, float3 P, float3 Ng, float3 V) const
   {
-    [[resource_table]] const Sampling &samp = sampling;
-    [[resource_table]] const LightprobeVolumeRenderData &lp_volumes = volumes;
-    [[resource_table]] const LightprobeSphereRenderData &lp_spheres = spheres;
-
     float noise = interleaved_gradient_noise(screen_texel, 0.0f, 0.0f);
-    noise = fract(noise + samp.rng_1D_get(SAMPLING_LIGHTPROBE));
+    noise = fract(noise + sampling.rng_1D_get(SAMPLING_LIGHTPROBE));
 
     LightProbeSample result;
-    result.volume_irradiance = lp_volumes.sample_probe(samp, P, V, Ng);
-    result.spherical_id = lp_spheres.select_probe(P, noise);
+    result.volume_irradiance = volumes.sample_probe(sampling, P, V, Ng);
+    result.spherical_id = spheres.select_probe(P, noise);
     return result;
   }
 
@@ -44,17 +40,15 @@ struct LightprobeRenderData {
                         float3 L,
                         float perceptual_roughness) const
   {
-    [[resource_table]] const LightprobeSphereRenderData &lp_spheres = spheres;
-
     /* Avoid over-blurring diffuse. */
     perceptual_roughness = min(0.6f, perceptual_roughness);
     float lod = lightprobe::sphere::roughness_to_lod(perceptual_roughness);
-    float3 radiance_sh = lp_spheres.spherical_sample_normalized_with_parallax(samp, P, L, lod);
+    float3 radiance_sh = spheres.spherical_sample_normalized_with_parallax(samp, P, L, lod);
     return radiance_sh;
   }
 
   /* TODO: Port that inside a BSSDF file. */
-  float3 eval([[resource_table]] const UtilityTexture &util_tx,
+  float3 eval(const UtilityTexture &util_tx,
               LightProbeSample samp,
               ClosureSubsurface cl,
               float3 /*P*/,
@@ -70,14 +64,12 @@ struct LightprobeRenderData {
   float3 eval(
       LightProbeSample samp, ClosureUndetermined cl, float3 P, float3 V, Thickness thickness) const
   {
-    [[resource_table]] const LightprobeSphereRenderData &lp_spheres = spheres;
-
     LightProbeRay ray = bxdf_lightprobe_ray(cl, P, V, thickness);
 
     float lod = lightprobe::sphere::roughness_to_lod(ray.perceptual_roughness);
     float fac = lightprobe::sphere::roughness_to_mix_fac(ray.perceptual_roughness);
 
-    float3 radiance_cube = lp_spheres.spherical_sample_normalized_with_parallax(
+    float3 radiance_cube = spheres.spherical_sample_normalized_with_parallax(
         samp, P, ray.dominant_direction, lod);
     float3 radiance_sh = samp.volume_irradiance.evaluate_lambert(ray.dominant_direction).rgb;
     return mix(radiance_cube, radiance_sh, fac);

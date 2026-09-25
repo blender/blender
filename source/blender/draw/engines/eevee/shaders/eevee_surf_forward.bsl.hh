@@ -17,9 +17,7 @@
 #include "eevee_surf_common.bsl.hh"
 #include "eevee_volume_lib.bsl.hh"
 
-float4 closure_to_rgba_forward([[resource_table]] KernelGlobals &kg,
-                               ShadingData &sd,
-                               Closure /*cl_unused*/)
+float4 closure_to_rgba_forward(KernelGlobals &kg, ShadingData &sd, Closure /*cl_unused*/)
 {
   [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
   if (!pipe.is_occupancy_pipe) [[static_branch]] {
@@ -99,8 +97,6 @@ void surf_forward([[resource_table]] KernelGlobals &kg,
                   [[out]] SurfaceForwardFragOut &frag_out,
                   [[front_facing]] const bool front_face)
 {
-  [[resource_table]] const NodeTreeRes &nt = kg.nt;
-
   draw::ID id{interp.resource_id_raw};
   const uint resource_id = id.resource_id<1>();
 
@@ -123,7 +119,7 @@ void surf_forward([[resource_table]] KernelGlobals &kg,
   fragment_displacement(kg, sd);
 
   sd.thickness = Thickness::from(nodetree_thickness(kg, sd),
-                                 ThicknessMode(nt.node_tree.thickness_mode));
+                                 ThicknessMode(kg.nt.node_tree.thickness_mode));
 
   nodetree_surface(kg, sd, closure_rand);
 

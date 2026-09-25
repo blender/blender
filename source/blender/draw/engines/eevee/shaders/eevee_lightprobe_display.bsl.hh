@@ -220,7 +220,7 @@ struct FragOut {
 };
 
 struct Resources {
-  [[resource_table]] srt_t<LightprobeSphereRenderData> lightprobe_sphere;
+  [[resource_table]] LightprobeSphereRenderData lightprobe_sphere;
 
   [[storage(0, read)]] SphereProbeDisplayData (&display_data_buf)[];
 };

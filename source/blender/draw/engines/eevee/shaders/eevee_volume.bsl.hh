@@ -49,7 +49,7 @@ float3 volume_light(LightData light, const bool is_directional, LightVector lv)
 
 #define VOLUMETRIC_SHADOW_MAX_STEP 128.0f
 
-float3 volume_shadow([[resource_table]] const Uniform &uni,
+float3 volume_shadow(const Uniform &uni,
                      const ViewMatrices &view,
                      LightData /*ld*/,
                      const bool is_directional,
@@ -104,14 +104,18 @@ float3 volume_shadow([[resource_table]] const Uniform &uni,
   return shadow;
 }
 
-struct Scatter {
+struct ScatterConstants {
   [[compilation_constant]] const bool use_volume_light;
+};
 
-  [[resource_table]] srt_t<Uniform> uniforms;
-  [[resource_table]] srt_t<draw::View> views_;
-  [[resource_table]] srt_t<LightRenderData> light_data;
-  [[resource_table]] srt_t<ShadowRenderData> shadow_data;
-  [[resource_table]] srt_t<LightprobeVolumeRenderData> lightprobe_volume_data;
+struct Scatter {
+  [[resource_table]] ScatterConstants constants;
+
+  [[resource_table]] Uniform uniforms;
+  [[resource_table]] draw::View views_;
+  [[resource_table]] LightRenderData light_data;
+  [[resource_table]] ShadowRenderData shadow_data;
+  [[resource_table]] LightprobeVolumeRenderData lightprobe_volume_data;
 
   [[sampler(0)]] sampler3D scattering_history_tx;
   [[sampler(1)]] sampler3D extinction_history_tx;
@@ -121,13 +125,10 @@ struct Scatter {
   [[image(5, write, UFLOAT_11_11_10)]] image3D out_scattering_img;
   [[image(6, write, UFLOAT_11_11_10)]] image3D out_extinction_img;
 
-  float3 volume_lightprobe_eval([[resource_table]] const Sampling &sampling,
-                                float3 P,
-                                float3 V,
-                                float s_anisotropy)
+  float3 volume_lightprobe_eval(const Sampling &sampling, float3 P, float3 V, float s_anisotropy)
   {
-    [[resource_table]] const LightprobeVolumeRenderData &volume_data = lightprobe_volume_data;
-    [[resource_table]] const Uniform &uni = uniforms;
+    const LightprobeVolumeRenderData &volume_data = lightprobe_volume_data;
+    const Uniform &uni = uniforms;
 
     SphericalHarmonicL1<float4> phase_sh = volume_phase_function_as_sh_L1(V, s_anisotropy);
     SphericalHarmonicL1<float4> volume_radiance_sh = volume_data.sample_probe_no_bias(sampling, P);
@@ -145,13 +146,11 @@ struct LightEvalCtx {
   float3 V;
   float anisotropy;
 
-  float3 light_eval_single([[resource_table]] Scatter &srt,
-                           LightData light,
-                           const bool is_directional)
+  float3 light_eval_single(Scatter &srt, LightData light, const bool is_directional)
   {
-    [[resource_table]] ShadowRenderData &srd = srt.shadow_data;
-    [[resource_table]] const Uniform &uni = srt.uniforms;
-    [[resource_table]] const draw::View &views = srt.views_;
+    ShadowRenderData &srd = srt.shadow_data;
+    const Uniform &uni = srt.uniforms;
+    const draw::View &views = srt.views_;
 
     /* TODO(fclem): Own light list for volume without lights that have 0 volume influence. */
     if (eevee::light::power_get(light, LIGHT_VOLUME) == 0.0f) {
@@ -179,7 +178,7 @@ struct LightEvalCtx {
 
     float3 Li = volume_light(light, is_directional, lv) * visibility;
 
-    if (srt.use_volume_light) [[static_branch]] {
+    if (srt.constants.use_volume_light) [[static_branch]] {
       if (light.tilemap_index != LIGHT_NO_SHADOW) {
         Li *= volume_shadow(uni, views.get(0), light, is_directional, P, lv, srt.extinction_tx);
       }
@@ -188,12 +187,12 @@ struct LightEvalCtx {
     return Li;
   }
 
-  void eval_directional([[resource_table]] Scatter &srd, uint /*l_idx*/, LightData light)
+  void eval_directional(Scatter &srd, uint /*l_idx*/, LightData light)
   {
     radiance += light_eval_single(srd, light, true);
   }
 
-  void eval_local([[resource_table]] Scatter &srd, uint /*l_idx*/, LightData light)
+  void eval_local(Scatter &srd, uint /*l_idx*/, LightData light)
   {
     radiance += light_eval_single(srd, light, false);
   }
@@ -248,7 +247,7 @@ void scatter_main([[resource_table]] Scatter &srt,
 
   float3 direct_radiance = float3(0.0f);
 
-  if (srt.use_volume_light) [[static_branch]] {
+  if (srt.constants.use_volume_light) [[static_branch]] {
     if (reduce_max(s_scattering) > 0.0f) {
       volume::LightEvalCtx ctx = {
           .radiance = float3(0.0f),
@@ -437,8 +436,8 @@ void resolve_frag([[resource_table]] const Uniform &uni,
       int2(frag_co.xy), uni.uniform_buf.render_pass.volume_light_id, float4(vol.scattering, 1.0f));
 }
 
-PipelineCompute scatter(scatter_main, Scatter{.use_volume_light = false});
-PipelineCompute scatter_with_lights(scatter_main, Scatter{.use_volume_light = true});
+PipelineCompute scatter(scatter_main, ScatterConstants{.use_volume_light = false});
+PipelineCompute scatter_with_lights(scatter_main, ScatterConstants{.use_volume_light = true});
 PipelineCompute integration(integration_main);
 PipelineGraphic resolve(resolve_vert, resolve_frag);
 }  // namespace eevee::volume

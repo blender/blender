@@ -49,7 +49,7 @@ struct PackParameters {
 using ClosurePacking = gbuffer::ClosurePacking;
 using Header = gbuffer::Header;
 
-ClosurePacking pack_closure([[resource_table]] const PackParameters &srt, ClosureUndetermined cl)
+ClosurePacking pack_closure(const PackParameters &srt, ClosureUndetermined cl)
 {
   ClosurePacking cl_packed;
   cl_packed.mode = gbuffer::closure_type_to_mode(cl.type, gbuffer::color_is_grayscale(cl.color));
@@ -187,7 +187,7 @@ struct Packer {
   Header header;
 
   /* Swap closures to avoid gap in data. Closures are then in layer order. */
-  void closures_to_layer_order([[resource_table]] const PackParameters &srt)
+  void closures_to_layer_order(const PackParameters &srt)
   {
 #if 0 /* NOTE: 4 closures mode are not yet supported but might be in the future. */
     if (srt.gbuffer_layer_max > 3) [[static_branch]] {
@@ -228,7 +228,7 @@ struct Packer {
   }
 
   /* Needs to happen in layer order. */
-  void reuse_tangent_spaces([[resource_table]] const PackParameters &srt)
+  void reuse_tangent_spaces(const PackParameters &srt)
   {
     /* Assume that the header was cleared to 0 and all layers point to the 1st tangent (0 id). */
     /* Since this function runs in layer ordering (after compaction) each layer (if non-empty) can
@@ -275,7 +275,7 @@ struct Packer {
     return UsedLayerFlag(flag);
   }
 
-  Packed result_get([[resource_table]] const PackParameters &srt)
+  Packed result_get(const PackParameters &srt)
   {
     Packed data;
     /* Note: Normals are not interleaved or packed together.
@@ -352,7 +352,7 @@ struct InputClosures {
  * - thickness     : object thickness, packed in additional information if a closure needs it.
  * - use_object_id : if surface uses a dedicated object id layer. Should only be on if needed.
  */
-Packed pack([[resource_table]] const PackParameters &srt,
+Packed pack(const PackParameters &srt,
             InputClosures cl_data,
             float3 Ng,
             packed_float3 surface_N,

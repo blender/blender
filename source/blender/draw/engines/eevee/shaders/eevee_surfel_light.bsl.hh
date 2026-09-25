@@ -84,10 +84,10 @@ PipelineCompute eevee_surfel_light(eevee::surfel::eval_light,
                                    eevee::surfel::EvalLight{
                                        .light_iter_force_no_culling = true,
                                    },
-                                   eevee::ShadowRenderData{
+                                   eevee::ShadowRenderConstants{
                                        .shadow_random = false,
                                    },
-                                   eevee::LightEvalData{
+                                   eevee::LightEvalConstants{
                                        .light_closure_eval_count_reflect = 1,
                                        .light_closure_eval_count_transmit = 0,
                                    });

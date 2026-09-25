@@ -18,19 +18,16 @@
 #include "eevee_surf_common.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"
 
-float4 closure_to_rgba([[resource_table]] KernelGlobals &kg, ShadingData &sd, Closure /*cl*/)
+float4 closure_to_rgba(KernelGlobals &kg, ShadingData &sd, Closure /*cl*/)
 {
   float4 out_color;
   out_color.rgb = sd.emission;
   out_color.a = saturate(1.0f - average(sd.transmittance));
 
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (!pipe.is_occupancy_pipe) [[static_branch]] {
-    [[resource_table]] const eevee::Sampling &sampling = kg.sampling;
-    [[resource_table]] const UtilityTexture &util_tx = kg.util_tx;
+  if (!kg.pipe.is_occupancy_pipe) [[static_branch]] {
     /* Reset for the next closure tree. */
-    float noise = util_tx.fetch(sd.frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
-    float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
+    float noise = kg.util_tx.fetch(sd.frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
+    float closure_rand = fract(noise + kg.sampling.rng_1D_get(SAMPLING_CLOSURE));
     closure_weights_reset(kg, sd, closure_rand);
   }
   else {
@@ -101,8 +98,6 @@ void surf_deferred([[resource_table]] KernelGlobals &kg,
                    [[out]] DeferredFragOut &frag_out,
                    [[front_facing]] const bool front_face)
 {
-  [[resource_table]] const NodeTreeRes &nt = kg.nt;
-
   draw::ID id{interp.resource_id_raw};
   const uint resource_id = id.resource_id<1>();
 
@@ -129,7 +124,7 @@ void surf_deferred([[resource_table]] KernelGlobals &kg,
   sd.holdout = saturate(sd.holdout);
 
   Thickness thickness = Thickness::from(nodetree_thickness(kg, sd),
-                                        ThicknessMode(nt.node_tree.thickness_mode));
+                                        ThicknessMode(kg.nt.node_tree.thickness_mode));
 
   /** Transparency weight is already applied through dithering, remove it from other closures. */
   float alpha = 1.0f - average(sd.transmittance);
@@ -156,7 +151,7 @@ void surf_deferred([[resource_table]] KernelGlobals &kg,
   /* ----- Render Passes output ----- */
 
   /* Some render pass can be written during the gbuffer pass. Light passes are written later. */
-  cryptomatte.store(out_texel, nt.node_tree.crypto_hash, resource_id);
+  cryptomatte.store(out_texel, kg.nt.node_tree.crypto_hash, resource_id);
   render_passes.store_color(
       out_texel, uni.uniform_buf.render_pass.emission_id, float4(sd.emission, 1.0f));
 

@@ -19,43 +19,32 @@
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 
-float4 closure_to_rgba_hybrid([[resource_table]] KernelGlobals &kg,
-                              ShadingData &sd,
-                              Closure /*cl*/)
+float4 closure_to_rgba_hybrid(KernelGlobals &kg, ShadingData &sd, Closure /*cl*/)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (!pipe.is_occupancy_pipe) [[static_branch]] {
-    [[resource_table]] const draw::View &views = kg.view;
-    [[resource_table]] const eevee::Sampling &sampling = kg.sampling;
-    [[resource_table]] const UtilityTexture &util_tx = kg.util_tx;
-
+  if (!kg.pipe.is_occupancy_pipe) [[static_branch]] {
     draw::ID id{sd.resource_id_raw};
     const uint resource_id = id.resource_id<1>();
     const float2 frag_co = sd.frag_co.xy;
 
     float3 radiance, transmittance;
     eevee::forward_lighting_eval(
-        kg, sd, views.get(0), resource_id, sd.thickness, frag_co, radiance, transmittance);
+        kg, sd, kg.view.get(0), resource_id, sd.thickness, frag_co, radiance, transmittance);
 
     /* Reset for the next closure tree. */
-    float noise = util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).r;
-    float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
+    float noise = kg.util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).r;
+    float closure_rand = fract(noise + kg.sampling.rng_1D_get(SAMPLING_CLOSURE));
     closure_weights_reset(kg, sd, closure_rand);
 
-    if (pipe.use_forward_lighting && pipe.use_transparency) [[static_branch]] {
-      [[resource_table]] eevee::LightprobeRenderData &lightprobes = kg.lightprobes;
-      [[resource_table]] eevee::LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
-      [[resource_table]] eevee::PreviousLayerHiZ &prev_hiz = kg.previous_layer_hiz;
-      [[resource_table]] eevee::PreviousLayerRadiance &prev_radiance = kg.previous_layer_radiance;
-
-      float3 V = -views.get(0).world_incident_vector(sd.P);
-      eevee::LightProbeSample samp = lightprobes.load(frag_co, sd.P, sd.N, V);
-      float3 radiance_behind = lp_spheres.spherical_sample_normalized_with_parallax(
+    if (kg.pipe.use_forward_lighting && kg.pipe.use_transparency) [[static_branch]] {
+      float3 V = -kg.view.get(0).world_incident_vector(sd.P);
+      eevee::LightProbeSample samp = kg.lightprobes.load(frag_co, sd.P, sd.N, V);
+      float3 radiance_behind = kg.lightprobes.spheres.spherical_sample_normalized_with_parallax(
           samp, sd.P, V, 0.0);
 
       int2 texel = int2(frag_co);
-      if (texelFetchExtend(prev_hiz.hiz_prev_tx, texel, 0).x != 1.0f) {
-        radiance_behind = texelFetch(prev_radiance.previous_layer_radiance_tx, texel, 0).xyz;
+      if (texelFetchExtend(kg.previous_layer_hiz.hiz_prev_tx, texel, 0).x != 1.0f) {
+        radiance_behind =
+            texelFetch(kg.previous_layer_radiance.previous_layer_radiance_tx, texel, 0).xyz;
       }
 
       radiance += radiance_behind * saturate(transmittance);
@@ -131,8 +120,6 @@ void surf_hybrid([[resource_table]] KernelGlobals &kg,
                  [[out]] HybridFragOut &frag_out,
                  [[front_facing]] const bool front_face)
 {
-  [[resource_table]] const NodeTreeRes &nt = kg.nt;
-
   draw::ID id{interp.resource_id_raw};
   const uint resource_id = id.resource_id<1>();
 
@@ -153,7 +140,7 @@ void surf_hybrid([[resource_table]] KernelGlobals &kg,
   float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
 
   sd.thickness = Thickness::from(nodetree_thickness(kg, sd),
-                                 ThicknessMode(nt.node_tree.thickness_mode));
+                                 ThicknessMode(kg.nt.node_tree.thickness_mode));
 
   fragment_displacement(kg, sd);
 
@@ -187,7 +174,7 @@ void surf_hybrid([[resource_table]] KernelGlobals &kg,
   /* ----- Render Passes output ----- */
 
   /* Some render pass can be written during the gbuffer pass. Light passes are written later. */
-  cryptomatte.store(out_texel, nt.node_tree.crypto_hash, resource_id);
+  cryptomatte.store(out_texel, kg.nt.node_tree.crypto_hash, resource_id);
   render_passes.store_color(
       out_texel, uni.uniform_buf.render_pass.emission_id, float4(sd.emission, 1.0f));
 

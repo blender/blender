@@ -36,7 +36,7 @@ void tilemap_bounds_clear([[resource_table]] TilemapBoundsInit &srt,
 }
 
 struct TilemapBounds {
-  [[resource_table]] srt_t<LightRenderData> light_data;
+  [[resource_table]] LightRenderData light_data;
 
   [[storage(4, read)]] const uint (&casters_id_buf)[];
   [[storage(5, read_write)]] ShadowTileMapData (&tilemaps_buf)[];
@@ -56,10 +56,9 @@ struct TilemapBoundsCtx {
   bool is_valid;
   uint local_id;
 
-  void eval_directional([[resource_table]] TilemapBounds &srt, uint l_index, LightData /*light*/)
+  void eval_directional(TilemapBounds &srt, uint l_index, LightData /*light*/)
   {
-    [[resource_table]] LightRenderData &lrd = srt.light_data;
-    LightData light = lrd.light_buf[l_index];
+    LightData light = srt.light_data.light_buf[l_index];
 
     if (light.tilemap_index == LIGHT_NO_SHADOW) {
       return;
@@ -109,9 +108,7 @@ struct TilemapBoundsCtx {
      * thread 0. */
   }
 
-  void eval_local([[resource_table]] TilemapBounds & /*srt*/, uint /*index*/, LightData /*light*/)
-  {
-  }
+  void eval_local(TilemapBounds & /*srt*/, uint /*index*/, LightData /*light*/) {}
 };
 
 }  // namespace eevee::shadow

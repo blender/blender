@@ -13,17 +13,21 @@
 
 namespace eevee {
 
+struct ShadowRenderConstants {
+  [[compilation_constant]] bool shadow_random;
+};
+
 /* Any entry point function using this should also use `[[texture_atomic]]`. */
 struct ShadowRenderData {
+  [[resource_table]] ShadowRenderConstants constants;
+
   [[sampler(SHADOW_ATLAS_TEX_SLOT)]] usampler2DArrayAtomic shadow_atlas_tx;
   [[sampler(SHADOW_TILEMAPS_TEX_SLOT)]] usampler2D shadow_tilemaps_tx;
 
-  [[compilation_constant]] bool shadow_random;
-
-  [[resource_table]] srt_t<Uniform> uniforms;
-  [[resource_table]] srt_t<draw::View> views;
-  [[resource_table, condition(shadow_random)]] srt_t<Sampling> sampling;
-  [[resource_table, condition(shadow_random)]] srt_t<UtilityTexture> util_tx;
+  [[resource_table]] Uniform uniforms;
+  [[resource_table]] draw::View views;
+  [[resource_table, condition(shadow_random)]] Sampling sampling;
+  [[resource_table, condition(shadow_random)]] UtilityTexture util_tx;
 
   float read_depth(ShadowCoordinates coord) const
   {

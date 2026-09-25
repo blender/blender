@@ -90,7 +90,7 @@ struct LTCData {
   /**
    * Sample matrix data from the isotropic LTC LUT.
    */
-  static LTCData sample_ltc_lut([[resource_table]] const UtilityTexture &util_tx,
+  static LTCData sample_ltc_lut(const UtilityTexture &util_tx,
                                 float3 /* N */,
                                 float3 /* V */,
                                 float cos_theta,
@@ -138,7 +138,7 @@ struct LTCData {
    * Sample matrix data from the isotropic LTC LUT and store to ClosureLight packing.
    */
   static void pack_ltc_lut(ClosureLight &cl,
-                           [[resource_table]] const UtilityTexture &util_tx,
+                           const UtilityTexture &util_tx,
                            float3 N,
                            float3 V,
                            float cos_theta,

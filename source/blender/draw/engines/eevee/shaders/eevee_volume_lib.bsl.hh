@@ -32,9 +32,7 @@ float volume_froxel_jitter(int2 froxel, float offset)
 
 /* Volume froxel texture normalized linear Z to view space Z.
  * Not dependent on projection matrix (as long as drw_view_is_perspective is consistent). */
-float volume_z_to_view_z([[resource_table]] const eevee::Uniform &uni,
-                         const ViewMatrices view,
-                         float z)
+float volume_z_to_view_z(const eevee::Uniform &uni, const ViewMatrices view, float z)
 {
   float near = uni.uniform_buf.volumes.depth_near;
   float far = uni.uniform_buf.volumes.depth_far;
@@ -63,9 +61,7 @@ float view_z_to_volume_z(
     return (depth - near) / (far - near);
   }
 }
-float view_z_to_volume_z([[resource_table]] const eevee::Uniform &uni,
-                         const ViewMatrices view,
-                         float depth)
+float view_z_to_volume_z(const eevee::Uniform &uni, const ViewMatrices view, float depth)
 {
   return view_z_to_volume_z(view,
                             depth,
@@ -78,13 +74,13 @@ float view_z_to_volume_z([[resource_table]] const eevee::Uniform &uni,
  * away from screen center. Each panoramic face covers ~90 degrees FOV, wide enough for that error
  * to visibly thin the fog toward the face corners. Panoramic cameras slice by signed camera
  * distance instead (radial slices, equal thickness at any angle), shared by all 6 faces. */
-bool volume_uses_radial_depth([[resource_table]] const eevee::Uniform &uni)
+bool volume_uses_radial_depth(const eevee::Uniform &uni)
 {
   return is_panoramic(uni.uniform_buf.camera.type);
 }
 
 /* Reconstruct a view-space point at a known view-space Z. */
-float3 volume_screen_to_view([[resource_table]] const eevee::Uniform &uni,
+float3 volume_screen_to_view(const eevee::Uniform &uni,
                              const ViewMatrices view,
                              float2 screen_uv,
                              float view_z)
@@ -102,15 +98,13 @@ float3 volume_screen_to_view([[resource_table]] const eevee::Uniform &uni,
 }
 
 /* Return the signed depth that is used to address a volume Z slice. */
-float volume_view_depth_get([[resource_table]] const eevee::Uniform &uni, float3 vP)
+float volume_view_depth_get(const eevee::Uniform &uni, float3 vP)
 {
   return volume_uses_radial_depth(uni) ? -length(vP) : vP.z;
 }
 
 /* Jittered volume texture normalized coordinates to view space position. */
-float3 volume_jitter_to_view([[resource_table]] const eevee::Uniform &uni,
-                             const ViewMatrices view,
-                             float3 coord)
+float3 volume_jitter_to_view(const eevee::Uniform &uni, const ViewMatrices view, float3 coord)
 {
   /* Input coordinates are in jittered volume texture space. */
   float view_z = volume_z_to_view_z(uni, view, coord.z);
@@ -122,9 +116,7 @@ float3 volume_jitter_to_view([[resource_table]] const eevee::Uniform &uni,
 }
 
 /* View space position to jittered volume texture normalized coordinates. */
-float3 volume_view_to_jitter([[resource_table]] const eevee::Uniform &uni,
-                             const ViewMatrices view,
-                             float3 vP)
+float3 volume_view_to_jitter(const eevee::Uniform &uni, const ViewMatrices view, float3 vP)
 {
   /* Since we use an infinite projection matrix for rendering inside the jittered volumes,
    * we need to use a different matrix to reconstruct positions as the infinite matrix is not
@@ -139,9 +131,7 @@ float3 volume_view_to_jitter([[resource_table]] const eevee::Uniform &uni,
 
 /* Volume texture normalized coordinates (UVW) to render screen (UV).
  * Expect active view to be the main view. */
-float3 volume_resolve_to_screen([[resource_table]] const eevee::Uniform &uni,
-                                const ViewMatrices view,
-                                float3 coord)
+float3 volume_resolve_to_screen(const eevee::Uniform &uni, const ViewMatrices view, float3 coord)
 {
   if (volume_uses_radial_depth(uni)) {
     float3 vP = volume_jitter_to_view(uni, view, coord);
@@ -156,9 +146,7 @@ float3 volume_resolve_to_screen([[resource_table]] const eevee::Uniform &uni,
 }
 /* Render screen (UV) to volume texture normalized coordinates (UVW).
  * Expect active view to be the main view. */
-float3 volume_screen_to_resolve([[resource_table]] const eevee::Uniform &uni,
-                                const ViewMatrices view,
-                                float3 coord)
+float3 volume_screen_to_resolve(const eevee::Uniform &uni, const ViewMatrices view, float3 coord)
 {
   coord.xy *= uni.uniform_buf.volumes.coord_scale;
   float view_z = view.depth_screen_to_view(coord.z);
@@ -174,9 +162,7 @@ float3 volume_screen_to_resolve([[resource_table]] const eevee::Uniform &uni,
 
 /* Returns the uvw (normalized coordinate) of a froxel in the previous frame.
  * Returns float3(-1) if history is unavailable. */
-float3 volume_history_uvw_get([[resource_table]] const eevee::Uniform &uni,
-                              const ViewMatrices view,
-                              int3 froxel)
+float3 volume_history_uvw_get(const eevee::Uniform &uni, const ViewMatrices view, int3 froxel)
 {
   /* We can't re-project by a simple matrix multiplication. We first need to remap to the view Z,
    * then transform, then remap back to Volume range. */
@@ -257,23 +243,20 @@ struct VolumeResolveSample {
 };
 
 struct UnifiedVolumeData {
-  [[resource_table]] srt_t<eevee::Uniform> uniforms;
-  [[resource_table]] srt_t<draw::View> views_;
+  [[resource_table]] eevee::Uniform uniforms;
+  [[resource_table]] draw::View views;
 
   [[sampler(VOLUME_TRANSMITTANCE_TEX_SLOT)]] sampler3D volume_transmittance_tx;
   [[sampler(VOLUME_SCATTERING_TEX_SLOT)]] sampler3D volume_scattering_tx;
 
   VolumeResolveSample resolve(float3 ndc_P) const
   {
-    [[resource_table]] const eevee::Uniform &uni = uniforms;
-    [[resource_table]] const draw::View &views = views_;
-
-    float3 coord = volume_screen_to_resolve(uni, views.get(0), ndc_P);
+    float3 coord = volume_screen_to_resolve(uniforms, views.get(0), ndc_P);
 
     /* Volumes objects have the same aliasing problems has shadow maps.
      * To fix this we need a quantization bias (the size of a step in Z) and a slope bias
      * (multiplied by the size of a froxel in 2D). */
-    coord.z -= uni.uniform_buf.volumes.inv_tex_size.z;
+    coord.z -= uniforms.uniform_buf.volumes.inv_tex_size.z;
     /* TODO(fclem): Slope bias. */
 
     VolumeResolveSample volume;

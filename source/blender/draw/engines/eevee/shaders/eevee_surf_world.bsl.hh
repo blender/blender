@@ -17,7 +17,7 @@
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 
-float4 closure_to_rgba_world([[resource_table]] KernelGlobals &kg, ShadingData &sd, Closure /*cl*/)
+float4 closure_to_rgba_world(KernelGlobals &kg, ShadingData &sd, Closure /*cl*/)
 {
   float3 transmittance = sd.transmittance;
   closure_weights_reset(kg, sd, 0.0f);
@@ -75,17 +75,14 @@ void surf_world([[resource_table]] KernelGlobals &kg,
   }
 
   if (sd.ray_type == RAY_TYPE_CAMERA && srt.world_background_blur != 0.0f) {
-    [[resource_table]] const LightprobeVolumeRenderData &lp_volumes = lightprobes.volumes;
-    [[resource_table]] const LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
-
     float base_lod = lightprobe::sphere::roughness_to_lod(srt.world_background_blur);
     float lod = max(1.0f, base_lod);
     float mix_factor = min(1.0f, base_lod);
     SphereProbeUvArea world_atlas_coord = reinterpret_as_atlas_coord(srt.world_coord_packed);
-    float4 probe_color = lp_spheres.sample_probe(-sd.N, lod, world_atlas_coord);
+    float4 probe_color = lightprobes.spheres.sample_probe(-sd.N, lod, world_atlas_coord);
     frag_out.background.rgb = mix(frag_out.background.rgb, probe_color.rgb, mix_factor);
 
-    SphericalHarmonicL1<float4> volume_irradiance = lp_volumes.world();
+    SphericalHarmonicL1<float4> volume_irradiance = lightprobes.volumes.world();
     float3 radiance_sh = volume_irradiance.evaluate_lambert(-sd.N).rgb;
     float radiance_mix_factor = lightprobe::sphere::roughness_to_mix_fac(
         srt.world_background_blur);

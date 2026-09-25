@@ -36,7 +36,7 @@ struct SurfVolume {
   [[compilation_constant]] bool is_homogenous;
   [[compilation_constant]] bool is_world;
 
-  [[resource_table]] srt_t<draw::Volume> volume;
+  [[resource_table]] draw::Volume volume;
 
   [[image(VOLUME_OCCUPANCY_SLOT, read, UINT_32)]] uimage3DAtomic occupancy_img;
 
@@ -76,17 +76,15 @@ struct SurfVolume {
     imageStoreFast(out_phase_weight_img, froxel, phase.yyyy);
   }
 
-  VolumeProperties eval_froxel([[resource_table]] KernelGlobals &kg,
+  VolumeProperties eval_froxel(KernelGlobals &kg,
                                ShadingData sd,
-                               [[resource_table]] const Uniform &uni,
+                               const Uniform &uni,
                                const ViewMatrices view,
                                const ObjectMatrices obj,
                                const ObjectInfos ob_infos,
                                int3 froxel,
                                float jitter)
   {
-    [[resource_table]] draw::Volume &vol = volume;
-
     float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, 0.5f - jitter)) *
                  uni.uniform_buf.volumes.inv_tex_size;
 
@@ -105,16 +103,16 @@ struct SurfVolume {
     volume_pt.lP = lP;
     volume_pt.orco_default = lP_orco;
     for (int i = 0; i < 16 /* DRW_GRID_PER_VOLUME_MAX */; i++) [[unroll]] {
-      volume_pt.grid_co[i] = transform_point(vol.drw_volume.grids_xform[i], lP);
+      volume_pt.grid_co[i] = transform_point(volume.drw_volume.grids_xform[i], lP);
     }
 
     attrib_load(volume_pt);
 
     nodetree_volume(kg, sd);
 
-    sd.volume_scattering *= vol.drw_volume.density_scale;
-    sd.volume_absorption *= vol.drw_volume.density_scale;
-    sd.emission *= vol.drw_volume.density_scale;
+    sd.volume_scattering *= volume.drw_volume.density_scale;
+    sd.volume_absorption *= volume.drw_volume.density_scale;
+    sd.emission *= volume.drw_volume.density_scale;
 
     VolumeProperties prop;
     prop.scattering = sd.volume_scattering;

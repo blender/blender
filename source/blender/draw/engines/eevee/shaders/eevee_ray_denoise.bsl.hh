@@ -67,7 +67,7 @@ struct DenoiseSpatial {
 
   [[image(6, read, RAYTRACE_TILEMASK_FORMAT)]] uimage2DArray tile_mask_img;
 
-  [[resource_table]] srt_t<TileBuffer> tiles;
+  [[resource_table]] TileBuffer tiles;
 
   /* Tag pixel radiance as invalid. */
   void invalid_pixel_write(int2 texel)
@@ -409,7 +409,7 @@ struct DenoiseTemporal {
 
   [[image(6, read, RAYTRACE_TILEMASK_FORMAT)]] uimage2DArray tile_mask_img;
 
-  [[resource_table]] srt_t<TileBuffer> tiles;
+  [[resource_table]] TileBuffer tiles;
 
   LocalStatistics local_statistics_get(int2 texel, float3 center_radiance)
   {
@@ -669,7 +669,7 @@ struct DenoiseBilateral {
 
   [[specialization_constant(0)]] int closure_index;
 
-  [[resource_table]] srt_t<TileBuffer> tiles;
+  [[resource_table]] TileBuffer tiles;
 };
 
 /**

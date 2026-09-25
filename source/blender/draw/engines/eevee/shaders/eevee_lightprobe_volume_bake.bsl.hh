@@ -65,7 +65,7 @@ struct SceneBound {
 }
 
 struct VolumeOffset {
-  [[resource_table]] srt_t<SurfelData> surfels_data;
+  [[resource_table]] SurfelData surfels;
 
   [[storage(0, read)]] const int (&list_start_buf)[];
   [[storage(6, read)]] const SurfelListInfoData &list_info_buf;
@@ -75,8 +75,6 @@ struct VolumeOffset {
 
   int find_closest_surfel(int3 grid_coord, float3 P)
   {
-    [[resource_table]] SurfelData &surfels = surfels_data;
-
     int surfel_first = imageLoad(cluster_list_img, grid_coord).r;
     float search_radius_sqr = square(surfels.capture_info_buf.max_virtual_offset +
                                      surfels.capture_info_buf.min_distance_to_surface);
@@ -105,7 +103,6 @@ struct VolumeOffset {
 
   float front_facing_offset(float surfel_distance)
   {
-    [[resource_table]] SurfelData &surfels = surfels_data;
 
     if (abs(surfel_distance) > surfels.capture_info_buf.min_distance_to_surface) {
       return 0.0f;
@@ -118,7 +115,6 @@ struct VolumeOffset {
 
   float back_facing_offset(float surfel_distance)
   {
-    [[resource_table]] SurfelData &surfels = surfels_data;
 
     if (surfel_distance > surfels.capture_info_buf.max_virtual_offset) {
       return 0.0f;
@@ -131,7 +127,6 @@ struct VolumeOffset {
 
   float compute_offset_length(int3 grid_coord, float3 P, float3 offset_direction)
   {
-    [[resource_table]] SurfelData &surfels = surfels_data;
 
     int surfel_first = imageLoad(cluster_list_img, grid_coord).r;
     float search_radius = max(surfels.capture_info_buf.max_virtual_offset,
@@ -241,7 +236,7 @@ struct VolumeOffset {
 void volume_offset([[resource_table]] VolumeOffset &srt,
                    [[global_invocation_id]] const uint3 global_id)
 {
-  [[resource_table]] SurfelData &surfels = srt.surfels_data;
+  [[resource_table]] SurfelData &surfels = srt.surfels;
 
   int3 grid_coord = int3(global_id);
 
@@ -278,8 +273,8 @@ void volume_offset([[resource_table]] VolumeOffset &srt,
 }
 
 struct RayCapture {
-  [[resource_table]] srt_t<LightprobeSphereRenderData> lightprobe_sphere;
-  [[resource_table]] srt_t<SurfelData> surfels_data;
+  [[resource_table]] LightprobeSphereRenderData sphere_probes;
+  [[resource_table]] SurfelData surfels;
 
   [[storage(0, read)]] const int (&list_start_buf)[];
   [[storage(6, read)]] const SurfelListInfoData &list_info_buf;
@@ -297,8 +292,6 @@ struct RayCapture {
                           float visibility,
                           SphericalHarmonicL1<float4> &sh)
   {
-    [[resource_table]] SurfelData &surfels = surfels_data;
-
     float3 lL = transform_direction(
         surfels.capture_info_buf.irradiance_grid_world_to_local_rotation, L);
 
@@ -311,8 +304,6 @@ struct RayCapture {
 
   void irradiance_capture_surfel(Surfel surfel, float3 P, SphericalHarmonicL1<float4> &sh)
   {
-    [[resource_table]] SurfelData &surfels = surfels_data;
-
     float3 L = safe_normalize(surfel.position - P);
     bool facing = dot(-L, surfel.normal) > 0.0f;
     SurfelRadiance surfel_radiance_indirect = surfel.radiance_indirect[radiance_src];
@@ -346,15 +337,12 @@ struct RayCapture {
 
   void irradiance_capture_world(float3 L, SphericalHarmonicL1<float4> &sh)
   {
-    [[resource_table]] const LightprobeSphereRenderData &lp_sphere = lightprobe_sphere;
-    [[resource_table]] SurfelData &surfels = surfels_data;
-
     float3 radiance = float3(0.0f);
     float visibility = 0.0f;
 
     if (surfels.capture_info_buf.capture_world_direct) {
       SphereProbeUvArea atlas_coord = surfels.capture_info_buf.world_atlas_coord;
-      radiance = lp_sphere.sample_probe(L, 0.0f, atlas_coord).rgb;
+      radiance = sphere_probes.sample_probe(L, 0.0f, atlas_coord).rgb;
 
       /* Clamped brightness. */
       float luma = max(1e-8f, reduce_max(radiance));
@@ -383,7 +371,7 @@ void ray_capture([[resource_table]] RayCapture &srt,
                  [[resource_table]] const draw::View &views,
                  [[global_invocation_id]] const uint3 global_id)
 {
-  [[resource_table]] SurfelData &surfels = srt.surfels_data;
+  [[resource_table]] SurfelData &surfels = srt.surfels;
 
   int3 grid_coord = int3(global_id);
 
