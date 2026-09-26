@@ -1567,6 +1567,14 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
     cicp[3] = CICP_RANGE_FULL;
     return true;
   }
+  if (interop_id == "blender:g1961_rec709_display") {
+    /* Apple interpretation of Rec.709 TRC with Gamma 1.961. */
+    cicp[0] = CICP_PRI_REC709;
+    cicp[1] = CICP_TRC_BT709;
+    cicp[2] = (rgb_matrix) ? CICP_MATRIX_RGB : CICP_MATRIX_BT709;
+    cicp[3] = CICP_RANGE_FULL;
+    return true;
+  }
   if (ELEM(interop_id, "lin_rec709_display", "lin_rec709_scene")) {
     cicp[0] = CICP_PRI_REC709;
     cicp[1] = CICP_TRC_LINEAR;
