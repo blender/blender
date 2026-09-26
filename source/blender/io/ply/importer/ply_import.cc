@@ -200,8 +200,11 @@ static Mesh *read_ply_to_mesh(const PLYImportParams &import_params, const char *
     }
     if (!data->error.empty()) {
       CLOG_ERROR(&LOG, "PLY Importer: failed importing %s: %s", ob_name, data->error.c_str());
-      BKE_report(
-          import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
+      BKE_reportf(import_params.reports,
+                  RPT_ERROR,
+                  "PLY Importer: failed importing %s: %s",
+                  ob_name,
+                  data->error.c_str());
       return nullptr;
     }
     if (!data->warning.empty()) {
