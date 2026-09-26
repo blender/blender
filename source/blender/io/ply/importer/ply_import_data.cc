@@ -496,10 +496,23 @@ static const char *load_face_element(PlyReadBuffer &file,
         continue;
       }
 
+      /* Skip faces with fewer indices than their size, instead of using index 0. */
+      const int64_t face_start = data->face_vertices.size();
+      bool is_complete = true;
       for (int j = 0; j < count; j++) {
+        p = drop_whitespace(p, end);
+        if (p == end) {
+          is_complete = false;
+          break;
+        }
         int index;
         p = parse_int(p, end, 0, index);
         data->face_vertices.append(index);
+      }
+      if (!is_complete) {
+        CLOG_WARN(&LOG, "PLY Importer: ignoring face %i (missing vertex indices)", i);
+        data->face_vertices.resize(face_start);
+        continue;
       }
       data->face_sizes.append(count);
     }
@@ -590,11 +603,19 @@ static const char *load_tristrips_element(PlyReadBuffer &file,
       return "Invalid tristrips size";
     }
 
-    strip.resize(count);
     for (int j = 0; j < count; j++) {
+      p = drop_whitespace(p, end);
+      if (p == end) {
+        return "Could not read tristrips";
+      }
       int index;
-      p = parse_int(p, end, 0, index);
-      strip[j] = index;
+      const char *next = parse_int(p, end, 0, index);
+      if (next == p) {
+        /* Not a number, can't advance properly so stop. */
+        return "Could not read tristrips";
+      }
+      p = next;
+      strip.append(index);
     }
   }
   else {
