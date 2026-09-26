@@ -6985,6 +6985,11 @@ struct NewCornerInterpData {
 struct NewCornerInterpWeights {
   Array<int> src_faces;
   Array<int> offsets;
+  /**
+   * The source corner for every weight. It's theoretically unnecessary to store this but it
+   * allows using #mix_groups directly.
+   */
+  Array<int> src_corners;
   Array<float> weights;
 
   Span<float> weights_for(const int nc) const
@@ -7065,6 +7070,7 @@ static NewCornerInterpWeights compute_new_corner_interp_weights(const Extendable
 
   const OffsetIndices<int> corner_offsets = offset_indices::accumulate_counts_to_offsets(
       data.offsets);
+  data.src_corners = Array<int>(corner_offsets.total_size());
   data.weights = Array<float>(corner_offsets.total_size());
 
   /* Pass 2: compute weights directly into each corner's slice of the flattened array. */
@@ -7072,6 +7078,9 @@ static NewCornerInterpWeights compute_new_corner_interp_weights(const Extendable
     if (data.src_faces[nc] == -1) {
       continue;
     }
+    array_utils::fill_index_range<int>(
+        data.src_corners.as_mutable_span().slice(corner_offsets[nc]),
+        emesh.src_faces[data.src_faces[nc]].start());
     compute_face_interp_weights(emesh,
                                 data.src_faces[nc],
                                 co[nc],
@@ -7082,39 +7091,22 @@ static NewCornerInterpWeights compute_new_corner_interp_weights(const Extendable
 }
 
 static void interpolate_new_corner_attribute_from_faces(
-    const ExtendableMesh &emesh,
-    const NewCornerInterpWeights &interp_weights,
-    const GVArraySpan &src,
-    GMutableSpan dst)
+    const NewCornerInterpWeights &interp_weights, const GSpan src, GMutableSpan dst)
 {
-  const CPPType &type = src.type();
-  Vector<int64_t> corners_no_src;
-
-  bke::attribute_math::to_static_type(type, [&]<typename T>() {
-    const Span<T> src_values = src.typed<T>();
-    MutableSpan<T> dst_values = dst.typed<T>();
-    bke::attribute_math::DefaultMixer<T> mixer(dst_values);
-
-    for (const int nc : interp_weights.src_faces.index_range()) {
-      const int src_face = interp_weights.src_faces[nc];
-      if (src_face == -1) {
-        corners_no_src.append(nc);
-        continue;
-      }
-      const IndexRange face_corners = emesh.src_faces[src_face];
-      const Span<float> weights = interp_weights.weights_for(nc);
-      BLI_assert(weights.size() == face_corners.size());
-      for (const int i : face_corners.index_range()) {
-        mixer.mix_in(nc, src_values[face_corners[i]], weights[i]);
-      }
-    }
-
-    mixer.finalize();
-  });
+  bke::attribute_math::mix_groups(src,
+                                  OffsetIndices<int>(interp_weights.offsets),
+                                  interp_weights.src_corners,
+                                  interp_weights.weights.as_span(),
+                                  dst);
 
   IndexMaskMemory memory;
-  const IndexMask corners_no_src_mask = IndexMask::from_indices(corners_no_src.as_span(), memory);
-  type.fill_assign_indices(type.default_value(), dst.data(), corners_no_src_mask);
+  const IndexMask corners_no_src = IndexMask::from_predicate(
+      interp_weights.src_faces.index_range(),
+      memory,
+      [&](const int64_t corner) { return interp_weights.src_faces[corner] == -1; },
+      exec_mode::grain_size(4096));
+  const CPPType &type = src.type();
+  type.fill_assign_indices(type.default_value(), dst.data(), corners_no_src);
 }
 
 /**
@@ -7607,7 +7599,7 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
         bke::attribute_math::gather_group_to_group(
             src_faces, dst_faces, src_survive_faces, src_span, surv_values);
 
-        interpolate_new_corner_attribute_from_faces(emesh, interp_weights, src_span, new_values);
+        interpolate_new_corner_attribute_from_faces(interp_weights, src_span, new_values);
 
         break;
       }
