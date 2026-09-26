@@ -92,6 +92,8 @@ struct WeldMesh {
   /* Group of edges to be merged. */
   Array<int> edge_src_to_target;
   Span<int> vert_src_to_target;
+  /* Vertices that merge into another vertex, and the vertices they merge into. */
+  Span<bool> vert_affected;
 
   /* References all faces and corners that will be affected. */
   Vector<WeldCorner> weld_corners;
@@ -301,24 +303,21 @@ static void weld_assert_face_no_vert_repetition(const WeldFace *weld_face,
  * \{ */
 
 /**
- * The maps from source elements to their merge targets store the element each element merges into,
- * with un-merged elements pointing at themselves. This replaces those self-referencing
- * single-groups with the #OUT_OF_CONTEXT value so the topology collapsing code can skip work for
- * them more easily.
+ * Find the vertices affected by the merge: the vertices that merge into another vertex, and the
+ * vertices they merge into. The topology collapsing code can skip work for everything else.
  */
-static Array<int> vert_src_to_target_with_context(const Span<int> vert_src_to_target)
+static Array<bool> find_affected_verts(const Span<int> vert_src_to_target)
 {
-  Array<int> result(vert_src_to_target.size(), OUT_OF_CONTEXT);
+  Array<bool> affected(vert_src_to_target.size(), false);
   for (const int vert : vert_src_to_target.index_range()) {
     const int vert_target = vert_src_to_target[vert];
     if (vert_target != vert) {
       BLI_assert(vert_src_to_target[vert_target] == vert_target);
-      result[vert] = vert_target;
-      /* The target is affected by the merge too. */
-      result[vert_target] = vert_target;
+      affected[vert] = true;
+      affected[vert_target] = true;
     }
   }
-  return result;
+  return affected;
 }
 
 /** \} */
@@ -335,6 +334,7 @@ static Array<int> vert_src_to_target_with_context(const Span<int> vert_src_to_ta
  */
 static Vector<WeldEdge> weld_edges_build_and_find_collapsed(Span<int2> edges,
                                                             Span<int> vert_src_to_target,
+                                                            Span<bool> vert_affected,
                                                             MutableSpan<int> r_edge_src_to_target,
                                                             int *r_collapsed_edges_num)
 {
@@ -345,17 +345,14 @@ static Vector<WeldEdge> weld_edges_build_and_find_collapsed(Span<int2> edges,
   weld_edges.reserve(edges.size());
 
   for (const int i : edges.index_range()) {
-    int vert_1 = edges[i][0];
-    int vert_2 = edges[i][1];
-    int vert_target_1 = vert_src_to_target[vert_1];
-    int vert_target_2 = vert_src_to_target[vert_2];
-    if (vert_target_1 == OUT_OF_CONTEXT && vert_target_2 == OUT_OF_CONTEXT) {
+    const int2 edge = edges[i];
+    if (!vert_affected[edge[0]] && !vert_affected[edge[1]]) {
       r_edge_src_to_target[i] = i;
       continue;
     }
 
-    const int vert_a = (vert_target_1 == OUT_OF_CONTEXT) ? vert_1 : vert_target_1;
-    const int vert_b = (vert_target_2 == OUT_OF_CONTEXT) ? vert_2 : vert_target_2;
+    const int vert_a = vert_src_to_target[edge[0]];
+    const int vert_b = vert_src_to_target[edge[1]];
 
     if (vert_a == vert_b) {
       r_edge_src_to_target[i] = ELEM_COLLAPSED;
@@ -575,6 +572,7 @@ static void weld_face_corner_ctx_alloc(const OffsetIndices<int> faces,
                                        WeldMesh *r_weld_mesh)
 {
   Span<int> vert_src_to_target = r_weld_mesh->vert_src_to_target;
+  Span<bool> vert_affected = r_weld_mesh->vert_affected;
   Span<int> edge_src_to_target = r_weld_mesh->edge_src_to_target;
 
   /* Corner/Face Context. */
@@ -597,37 +595,32 @@ static void weld_face_corner_ctx_alloc(const OffsetIndices<int> faces,
     const int face_size = faces[i].size();
     const int corner_end = corner_start + face_size - 1;
     int vert_first = corner_verts[corner_start];
-    int vert_target_first = vert_src_to_target[vert_first];
-    bool is_vert_first_ctx = vert_target_first != OUT_OF_CONTEXT;
+    bool is_vert_first_ctx = vert_affected[vert_first];
 
     int vert_next = vert_first;
-    int vert_target_next = vert_target_first;
     bool is_vert_next_ctx = is_vert_first_ctx;
 
     int prev_weld_corners_num = weld_corners_num;
     for (const int corner_src : faces[i]) {
       int vert = vert_next;
-      int vert_target = vert_target_next;
       bool is_vert_ctx = is_vert_next_ctx;
 
       int corner_next;
       if (corner_src != corner_end) {
         corner_next = corner_src + 1;
         vert_next = corner_verts[corner_next];
-        vert_target_next = vert_src_to_target[vert_next];
-        is_vert_next_ctx = vert_target_next != OUT_OF_CONTEXT;
+        is_vert_next_ctx = vert_affected[vert_next];
       }
       else {
         corner_next = corner_start;
         vert_next = vert_first;
-        vert_target_next = vert_target_first;
         is_vert_next_ctx = is_vert_first_ctx;
       }
 
       if (is_vert_ctx || is_vert_next_ctx) {
         weld_corners.increase_size_by_unchecked(1);
         WeldCorner &weld_corner = weld_corners.last();
-        weld_corner.vert = is_vert_ctx ? vert_target : vert;
+        weld_corner.vert = vert_src_to_target[vert];
         weld_corner.edge = edge_src_to_target[corner_edges[corner_src]];
         weld_corner.corner_src = corner_src;
         weld_corner.corner_next = corner_next;
@@ -682,7 +675,7 @@ static void weld_face_corner_ctx_alloc(const OffsetIndices<int> faces,
 }
 
 static void weld_face_split_recursive(int face_size,
-                                      Span<int> vert_src_to_target,
+                                      Span<bool> vert_affected,
                                       WeldFace *r_wp,
                                       WeldMesh *r_weld_mesh,
                                       int *r_removed_faces_num,
@@ -714,7 +707,7 @@ static void weld_face_split_recursive(int face_size,
     BLI_assert(weld_corner_a->flag != ELEM_COLLAPSED);
 
     int vert_a = weld_corner_a->vert;
-    if (vert_src_to_target[vert_a] == OUT_OF_CONTEXT) {
+    if (!vert_affected[vert_a]) {
       /* Only test vertices that will be merged. */
       corner_a = weld_corner_a->corner_next;
       weld_corner_a_prev = weld_corner_a;
@@ -816,7 +809,7 @@ static void weld_face_split_recursive(int face_size,
           new_test->corners_num = dist_a;
 #endif
           weld_face_split_recursive(dist_a,
-                                    vert_src_to_target,
+                                    vert_affected,
                                     new_test,
                                     r_weld_mesh,
                                     r_removed_faces_num,
@@ -877,7 +870,7 @@ static void weld_face_corner_ctx_setup_collapsed_and_split(const int remaining_e
   WeldFace *weld_faces = r_weld_mesh->weld_faces.data();
   MutableSpan<WeldCorner> weld_corners = r_weld_mesh->weld_corners;
   Span<int> corner_to_weld_corner = r_weld_mesh->corner_to_weld_corner;
-  Span<int> vert_src_to_target = r_weld_mesh->vert_src_to_target;
+  Span<bool> vert_affected = r_weld_mesh->vert_affected;
 
   int removed_faces_num = 0;
   int removed_corners_num = 0;
@@ -962,7 +955,7 @@ static void weld_face_corner_ctx_setup_collapsed_and_split(const int remaining_e
 #endif
 
       weld_face_split_recursive(face_size,
-                                vert_src_to_target,
+                                vert_affected,
                                 &weld_face,
                                 r_weld_mesh,
                                 &removed_faces_num,
@@ -1233,11 +1226,11 @@ static void weld_face_find_doubles(const Span<int> corner_verts,
  * \{ */
 
 /**
- * \param vert_src_to_target: The vertex map result map, but with vertices that aren't involved in
- * the merge set to #OUT_OF_CONTEXT (see #vert_src_to_target_with_context).
+ * \param vert_affected: The vertices that are part of the merge (see #find_affected_verts).
  */
 static void weld_mesh_context_create(const Mesh &mesh,
                                      const Span<int> vert_src_to_target,
+                                     const Span<bool> vert_affected,
                                      const int removed_verts_num,
                                      WeldMesh *r_weld_mesh)
 {
@@ -1251,6 +1244,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
 
   r_weld_mesh->edge_src_to_target.reinitialize(edges.size());
   r_weld_mesh->vert_src_to_target = vert_src_to_target;
+  r_weld_mesh->vert_affected = vert_affected;
 
 #ifdef USE_WELD_DEBUG
   r_weld_mesh->corner_verts = corner_verts;
@@ -1260,7 +1254,11 @@ static void weld_mesh_context_create(const Mesh &mesh,
 
   int collapsed_edges_num, removed_double_edges_num;
   Vector<WeldEdge> weld_edges = weld_edges_build_and_find_collapsed(
-      edges, vert_src_to_target, r_weld_mesh->edge_src_to_target, &collapsed_edges_num);
+      edges,
+      vert_src_to_target,
+      vert_affected,
+      r_weld_mesh->edge_src_to_target,
+      &collapsed_edges_num);
 
   weld_edge_find_doubles(
       weld_edges, mesh.verts_num, r_weld_mesh->edge_src_to_target, &removed_double_edges_num);
@@ -1476,10 +1474,11 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   const int src_verts_num = mesh.verts_num;
   const int src_edges_num = mesh.edges_num;
 
-  const Array<int> vert_src_to_target_ctx = vert_src_to_target_with_context(vert_src_to_target);
+  const Array<bool> vert_affected = find_affected_verts(vert_src_to_target);
 
   WeldMesh weld_mesh;
-  weld_mesh_context_create(mesh, vert_src_to_target_ctx, removed_vertex_count, &weld_mesh);
+  weld_mesh_context_create(
+      mesh, vert_src_to_target, vert_affected, removed_vertex_count, &weld_mesh);
 
   const int dst_verts_num = src_verts_num - weld_mesh.removed_verts_num;
   const int dst_edges_num = src_edges_num - weld_mesh.removed_edges_num;
