@@ -10,7 +10,6 @@
  */
 #pragma once
 
-#include "draw_view.bsl.hh" /* IWYU pragma: export. For nodetree functions. */
 #include "eevee_cryptomatte.bsl.hh"
 #include "eevee_gbuffer_write.bsl.hh"
 #include "eevee_nodetree_frag_lib.bsl.hh"

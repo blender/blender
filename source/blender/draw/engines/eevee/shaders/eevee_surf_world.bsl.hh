@@ -14,7 +14,6 @@
 #include "eevee_lightprobe.bsl.hh"
 #include "eevee_nodetree_frag_lib.bsl.hh"
 #include "eevee_pipeline.bsl.hh"
-#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 
 float4 closure_to_rgba_world(KernelGlobals &kg, ShadingData &sd, Closure /*cl*/)

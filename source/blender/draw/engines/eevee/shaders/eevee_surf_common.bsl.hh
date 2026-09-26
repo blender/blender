@@ -5,12 +5,9 @@
 #pragma once
 
 #include "draw_gsplat_lib.bsl.hh"
-#include "eevee_lightprobe_shared.hh" /* IWYU pragma: export: Needed for resource declaration. */
 #include "eevee_nodetree_lib.bsl.hh"
-#include "eevee_sampling_shared.hh" /* IWYU pragma: export: Needed for resource declaration. */
 #include "eevee_shadow_shared.hh"
 #include "eevee_uniform.bsl.hh"
-#include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_base.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
 

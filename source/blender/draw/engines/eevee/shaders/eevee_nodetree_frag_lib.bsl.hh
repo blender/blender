@@ -7,7 +7,6 @@
 #pragma runtime_generated
 
 #include "eevee_geom_types_lib.bsl.hh"
-#include "eevee_light_data.bsl.hh"
 #include "eevee_nodetree_lib.bsl.hh"
 
 /* Loading of the attributes into GlobalData. */

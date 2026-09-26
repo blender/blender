@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include "eevee_camera_lib.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_hiz.bsl.hh"
 #include "eevee_light_eval.bsl.hh" /* IWYU pragma: export */

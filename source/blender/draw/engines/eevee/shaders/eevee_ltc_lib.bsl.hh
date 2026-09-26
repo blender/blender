@@ -17,9 +17,7 @@
 #include "eevee_ltc_lut_lib.bsl.hh"
 #include "gpu_shader_compat.hh"
 #include "gpu_shader_math_constants.bsl.hh"
-#include "gpu_shader_math_matrix_construct.bsl.hh"
 #include "gpu_shader_math_safe.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh" /* IWYU pragma: export. FLT_MAX */
 
 namespace eevee::ltc {
 

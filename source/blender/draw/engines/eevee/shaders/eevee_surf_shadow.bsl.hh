@@ -13,8 +13,6 @@
 
 #pragma once
 
-#include "draw_gsplat_lib.bsl.hh" /* IWYU pragma: export. For nodetree functions. */
-
 #include "eevee_nodetree_frag_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_shadow_shared.hh"

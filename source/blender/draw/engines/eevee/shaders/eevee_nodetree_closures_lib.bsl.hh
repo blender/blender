@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include "eevee_pipeline.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_vector_reduce.bsl.hh"
 
 /* The Closure type is never used. Use float as dummy type. */
 #define Closure float

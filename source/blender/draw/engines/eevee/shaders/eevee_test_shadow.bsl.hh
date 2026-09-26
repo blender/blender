@@ -8,7 +8,6 @@
 
 #include "gpu_shader_math_vector.bsl.hh"
 #include "gpu_shader_test_lib.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh" /* IWYU pragma: export FLT_MAX */
 
 void set_clipmap_data(LightData &light,
                       int clipmap_lod_min,
