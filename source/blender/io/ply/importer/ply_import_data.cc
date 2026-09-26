@@ -663,7 +663,10 @@ static const char *load_edge_element(PlyReadBuffer &file,
 
   data->edges.reserve(element.count);
 
-  Vector<float> value_vec(element.properties.size());
+  /* Double to represent all int and uint indices exactly, float has only 24 bits.
+   * TODO: Ideally should parse as int directly, but would need to account for
+   * other edge data that may be float. */
+  Vector<double> value_vec(element.properties.size());
   Vector<uint8_t> scratch;
   if (header.type != PlyFormatType::ASCII) {
     scratch.resize(element.stride);
