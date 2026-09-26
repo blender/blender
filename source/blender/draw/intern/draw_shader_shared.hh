@@ -80,7 +80,7 @@ using namespace math;
 /* NOTE: Legacy, should be removed after we port everything to BSL. */
 
 /** Global that needs to be set correctly in each shader stage. */
-static uint drw_view_id = 0;
+[[maybe_unused]] static uint drw_view_id = 0;
 
 #if !defined(DRW_VIEW_LEN) && !defined(GLSL_CPP_STUBS)
 /* Single-view case (default). */
