@@ -220,8 +220,11 @@ static std::unique_ptr<PlyData> read_ply_to_data(const PLYImportParams &import_p
     if (!data->error.empty()) {
       CLOG_ERROR(
           &LOG, "PLY Importer: failed importing %s: %s", ob_name.c_str(), data->error.c_str());
-      BKE_report(
-          import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
+      BKE_reportf(import_params.reports,
+                  RPT_ERROR,
+                  "PLY Importer: failed importing %s: %s",
+                  ob_name.c_str(),
+                  data->error.c_str());
       return nullptr;
     }
     if (!data->warning.empty()) {
