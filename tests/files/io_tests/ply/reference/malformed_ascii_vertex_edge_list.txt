@@ -1,0 +1,16 @@
+==== Meshes: 1
+- Mesh 'malformed_ascii_vertex_edge_list' vtx:3 face:0 loop:0 edge:2
+    - 0/1 1/2 
+  - attr 'bar' FLOAT POINT
+    - 5.000 6.000 7.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.000)
+    - (1.000, 1.000, 0.000)
+
+==== Objects: 1
+- Obj 'malformed_ascii_vertex_edge_list' MESH data:'malformed_ascii_vertex_edge_list'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

@@ -55,17 +55,6 @@ static const char *drop_plus(const char *p, const char *end)
   return p;
 }
 
-static const char *parse_float(const char *p, const char *end, float fallback, float &dst)
-{
-  p = drop_whitespace(p, end);
-  p = drop_plus(p, end);
-  fast_float::from_chars_result res = fast_float::from_chars(p, end, dst);
-  if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range)) {
-    dst = fallback;
-  }
-  return res.ptr;
-}
-
 static const char *parse_int(const char *p, const char *end, int fallback, int &dst)
 {
   p = drop_whitespace(p, end);
@@ -136,21 +125,42 @@ static int get_index(const PlyElement &element, StringRef property)
   return -1;
 }
 
-static const char *parse_row_ascii(PlyReadBuffer &file, Vector<float> &r_values)
+/* Parse float or double, with 0 as fallback for invalid values. */
+template<typename T> static const char *parse_ascii_value(const char *p, const char *end, T &dst)
+{
+  p = drop_plus(drop_whitespace(p, end), end);
+  const fast_float::from_chars_result res = fast_float::from_chars(p, end, dst);
+  if (res.ec != std::errc()) {
+    dst = T(0);
+  }
+  return res.ptr;
+}
+
+template<typename T>
+static const char *parse_row_ascii(PlyReadBuffer &file,
+                                   const PlyElement &element,
+                                   Vector<T> &r_values)
 {
   Span<char> line = file.read_line();
   if (line.is_empty()) {
     return "Could not read row of ASCII property";
   }
 
-  /* Parse whole line as floats. */
-  const char *p = line.data();
-  const char *end = p + line.size();
-  int value_idx = 0;
-  while (p < end && value_idx < r_values.size()) {
-    float val;
-    p = parse_float(p, end, 0.0f, val);
-    r_values[value_idx++] = val;
+  const char *p = line.begin();
+  const char *end = line.end();
+  for (const int64_t i : element.properties.index_range()) {
+    if (element.properties[i].count_type == PlyDataTypes::NONE) {
+      p = parse_ascii_value(p, end, r_values[i]);
+      continue;
+    }
+
+    /* Skip list values, which are not supported for vertices and edges. */
+    int count = 0;
+    p = parse_int(p, end, 0, count);
+    for (int j = 0; j < count && p < end; j++) {
+      p = drop_non_whitespace(drop_whitespace(p, end), end);
+    }
+    r_values[i] = T(0);
   }
   return nullptr;
 }
@@ -211,11 +221,12 @@ template<typename T> static T get_binary_value(PlyDataTypes type, const uint8_t 
   return val;
 }
 
+template<typename T>
 static const char *parse_row_binary(PlyReadBuffer &file,
                                     const PlyHeader &header,
                                     const PlyElement &element,
                                     Vector<uint8_t> &r_scratch,
-                                    Vector<float> &r_values)
+                                    Vector<T> &r_values)
 {
   if (element.stride == 0) {
     return "Vertex/Edge element contains list properties, this is not supported";
@@ -231,7 +242,7 @@ static const char *parse_row_binary(PlyReadBuffer &file,
     /* Little endian: just read/convert the values. */
     for (int i = 0, n = int(element.properties.size()); i != n; i++) {
       const PlyProperty &prop = element.properties[i];
-      float val = get_binary_value<float>(prop.type, ptr);
+      T val = get_binary_value<T>(prop.type, ptr);
       r_values[i] = val;
     }
   }
@@ -240,7 +251,7 @@ static const char *parse_row_binary(PlyReadBuffer &file,
     for (int i = 0, n = int(element.properties.size()); i != n; i++) {
       const PlyProperty &prop = element.properties[i];
       endian_switch(const_cast<uint8_t *>(ptr), data_type_size[prop.type]);
-      float val = get_binary_value<float>(prop.type, ptr);
+      T val = get_binary_value<T>(prop.type, ptr);
       r_values[i] = val;
     }
   }
@@ -279,7 +290,7 @@ static const char *load_vertex_element(PlyReadBuffer &file,
     const PlyProperty &prop = element.properties[prop_idx];
     bool is_standard = ELEM(
         prop.name, "x", "y", "z", "nx", "ny", "nz", "red", "green", "blue", "alpha", "s", "t");
-    if (is_standard) {
+    if (is_standard || prop.count_type != PlyDataTypes::NONE) {
       continue;
     }
     /* Skip names that are empty or reserved for internal attributes. */
@@ -325,7 +336,7 @@ static const char *load_vertex_element(PlyReadBuffer &file,
 
     const char *error = nullptr;
     if (header.type == PlyFormatType::ASCII) {
-      error = parse_row_ascii(file, value_vec);
+      error = parse_row_ascii(file, element, value_vec);
     }
     else {
       error = parse_row_binary(file, header, element, scratch, value_vec);
@@ -661,7 +672,7 @@ static const char *load_edge_element(PlyReadBuffer &file,
   for (int i = 0; i < element.count; i++) {
     const char *error = nullptr;
     if (header.type == PlyFormatType::ASCII) {
-      error = parse_row_ascii(file, value_vec);
+      error = parse_row_ascii(file, element, value_vec);
     }
     else {
       error = parse_row_binary(file, header, element, scratch, value_vec);
