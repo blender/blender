@@ -1365,8 +1365,7 @@ static Array<int> merge_src_to_dst_map(const Span<int> src_to_target, const Inde
 {
   PRF_scope(ProfileCategory::Default);
   Array<int> src_to_dst(src_to_target.size());
-  survivors.foreach_index_optimized<int>(
-      [&](const int src, const int dst) { src_to_dst[src] = dst; }, exec_mode::grain_size(4096));
+  index_mask::build_reverse_map<int>(survivors, src_to_dst);
 
   threading::parallel_for(src_to_target.index_range(), 4096, [&](const IndexRange range) {
     for (const int i : range) {
