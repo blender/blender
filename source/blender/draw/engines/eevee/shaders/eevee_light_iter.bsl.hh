@@ -137,6 +137,7 @@ struct VisibleLightIterator {
       case LIGHT_ITER_PHASE_INIT: {
         index = int(culling.local_lights_len) - 1;
         phase = LIGHT_ITER_PHASE_DIRECTIONAL;
+        [[fallthrough]];
       }
       case LIGHT_ITER_PHASE_DIRECTIONAL: {
         index++;
@@ -148,6 +149,7 @@ struct VisibleLightIterator {
         uint word_min = local_min_index >> 5u;
         local_word_idx = word_min;
         next_local_word(lrd);
+        [[fallthrough]];
       }
       case LIGHT_ITER_PHASE_LOCAL: {
         /* Same as divide by 32 but avoid integer division. */
@@ -163,11 +165,13 @@ struct VisibleLightIterator {
           next_local_word(lrd);
         }
         phase = LIGHT_ITER_PHASE_END;
+        [[fallthrough]];
       }
       case LIGHT_ITER_PHASE_END:
-      default:
         return false;
     }
+    assert(0);
+    return false;
   }
 
   bool is_directional()
