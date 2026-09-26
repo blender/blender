@@ -324,14 +324,15 @@ class IndexMask : private IndexMaskData {
                           Fn &&get_group_index,
                           MutableSpan<IndexMask> r_masks);
 
-  /** Creates an index mask for every unique group id. */
+  /**
+   * Creates an index mask for every unique group ID in the universe, in the order that the IDs
+   * first appear. The ID of each group is the ID of the first index in its mask.
+   */
   static Vector<IndexMask, 4> from_group_ids(const VArray<int> &group_ids,
-                                             LinearAllocator<> &memory,
-                                             VectorSet<int> &r_index_by_group_id);
+                                             LinearAllocator<> &memory);
   static Vector<IndexMask, 4> from_group_ids(const IndexMask &universe,
                                              const VArray<int> &group_ids,
-                                             LinearAllocator<> &memory,
-                                             VectorSet<int> &r_index_by_group_id);
+                                             LinearAllocator<> &memory);
 
   int64_t size() const;
   bool is_empty() const;
