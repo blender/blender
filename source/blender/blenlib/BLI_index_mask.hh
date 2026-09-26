@@ -23,7 +23,6 @@
 #include "BLI_task.hh"
 #include "BLI_unique_sorted_indices.hh"
 #include "BLI_vector.hh"
-#include "BLI_vector_set.hh"
 #include "BLI_virtual_array_fwd.hh"
 
 namespace blender {

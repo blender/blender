@@ -12,12 +12,14 @@
 #include "DNA_listBase.h"
 
 #include "BLI_index_mask.hh"
+#include "BLI_vector_set.hh"
 
 #include "ED_grease_pencil.hh"
 
 #include "UI_view2d.hh"
 
 #include "transform.hh"
+
 struct TransData;
 struct TransDataCurveHandleFlags;
 struct TransInfo;

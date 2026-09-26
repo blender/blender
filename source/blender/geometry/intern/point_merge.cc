@@ -10,6 +10,7 @@
 #include "BLI_kdtree_new.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
+#include "BLI_vector_set.hh"
 
 #include "DNA_pointcloud_types.h"
 

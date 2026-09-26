@@ -28,6 +28,7 @@
 
 #include "BLI_cache_mutex.hh"
 #include "BLI_implicit_sharing_ptr.hh"
+#include "BLI_vector_set.hh"
 
 #include "FN_multi_function.hh"
 

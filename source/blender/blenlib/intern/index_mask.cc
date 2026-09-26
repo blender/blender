@@ -26,6 +26,7 @@
 #include "BLI_sort.hh"
 #include "BLI_task.hh"
 #include "BLI_threads.hh"
+#include "BLI_vector_set.hh"
 #include "BLI_virtual_array.hh"
 
 #include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
