@@ -184,37 +184,48 @@ const char *read_header(PlyReadBuffer &file, PlyHeader &r_header)
 static std::unique_ptr<PlyData> read_ply_to_data(const PLYImportParams &import_params,
                                                  const StringRefNull ob_name)
 {
-  /* Parse header. */
-  PlyReadBuffer file(import_params.filepath, 64 * 1024);
+  try {
+    /* Parse header. */
+    PlyReadBuffer file(import_params.filepath, 64 * 1024);
 
-  PlyHeader header;
-  const char *err = read_header(file, header);
-  if (err != nullptr) {
-    CLOG_ERROR(&LOG, "PLY Importer: %s: %s", ob_name.c_str(), err);
-    BKE_reportf(import_params.reports, RPT_ERROR, "PLY Importer: %s: %s", ob_name.c_str(), err);
-    return nullptr;
-  }
+    PlyHeader header;
+    const char *err = read_header(file, header);
+    if (err != nullptr) {
+      CLOG_ERROR(&LOG, "PLY Importer: %s: %s", ob_name.c_str(), err);
+      BKE_reportf(import_params.reports, RPT_ERROR, "PLY Importer: %s: %s", ob_name.c_str(), err);
+      return nullptr;
+    }
 
-  /* Parse actual file data. */
-  std::unique_ptr<PlyData> data = import_ply_data(file, header);
-  if (data == nullptr) {
-    CLOG_ERROR(&LOG, "PLY Importer: failed importing %s, unknown error", ob_name.c_str());
-    BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
-    return nullptr;
-  }
-  if (!data->error.empty()) {
-    CLOG_ERROR(
-        &LOG, "PLY Importer: failed importing %s: %s", ob_name.c_str(), data->error.c_str());
-    BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
-    return nullptr;
-  }
-  if (data->vertices.is_empty()) {
-    CLOG_ERROR(&LOG, "PLY Importer: file %s contains no vertices", ob_name.c_str());
-    BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, no vertices");
-    return nullptr;
-  }
+    /* Parse actual file data. */
+    std::unique_ptr<PlyData> data = import_ply_data(file, header);
+    if (data == nullptr) {
+      CLOG_ERROR(&LOG, "PLY Importer: failed importing %s, unknown error", ob_name.c_str());
+      BKE_report(
+          import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
+      return nullptr;
+    }
+    if (!data->error.empty()) {
+      CLOG_ERROR(
+          &LOG, "PLY Importer: failed importing %s: %s", ob_name.c_str(), data->error.c_str());
+      BKE_report(
+          import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
+      return nullptr;
+    }
+    if (data->vertices.is_empty()) {
+      CLOG_ERROR(&LOG, "PLY Importer: file %s contains no vertices", ob_name.c_str());
+      BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, no vertices");
+      return nullptr;
+    }
 
-  return data;
+    return data;
+  }
+  catch (const std::exception &ex) {
+    /* Read buffer errors for malformed files, or allocation failure for huge counts. */
+    CLOG_ERROR(&LOG, "PLY Importer: %s: %s", ob_name.c_str(), ex.what());
+    BKE_reportf(
+        import_params.reports, RPT_ERROR, "PLY Importer: %s: %s", ob_name.c_str(), ex.what());
+    return nullptr;
+  }
 }
 
 static bool is_data_gaussian_splat(const PlyData &data)
