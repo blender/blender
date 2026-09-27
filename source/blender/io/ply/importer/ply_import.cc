@@ -134,6 +134,9 @@ const char *read_header(PlyReadBuffer &file, PlyHeader &r_header)
       else if (parse_keyword(line, "binary_little_endian")) {
         r_header.type = PlyFormatType::BINARY_LE;
       }
+      else {
+        return "Unknown format.";
+      }
     }
     else if (parse_keyword(line, "element")) {
       PlyElement element;
