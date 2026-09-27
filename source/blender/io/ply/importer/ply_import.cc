@@ -143,6 +143,9 @@ const char *read_header(PlyReadBuffer &file, PlyHeader &r_header)
       r_header.elements.append(element);
     }
     else if (parse_keyword(line, "property")) {
+      if (r_header.elements.is_empty()) {
+        return "Property without element.";
+      }
       PlyProperty property;
       skip_space(line);
       if (parse_keyword(line, "list")) {
