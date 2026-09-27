@@ -56,7 +56,7 @@ struct PlyElement {
 
 struct PlyHeader {
   Vector<PlyElement> elements;
-  PlyFormatType type;
+  PlyFormatType type = PlyFormatType::ASCII;
 };
 
 }  // namespace blender::io::ply
