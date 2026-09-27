@@ -532,6 +532,9 @@ static const char *load_tristrips_element(PlyReadBuffer &file,
     const char *end = p + line.size();
     int count = 0;
     p = parse_int(p, end, 0, count);
+    if (count < 0) {
+      return "Invalid tristrips size";
+    }
 
     strip.resize(count);
     for (int j = 0; j < count; j++) {
