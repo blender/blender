@@ -34,7 +34,10 @@ struct PlyData {
   Vector<uint32_t> face_vertices;
   Vector<uint32_t> face_sizes;
   Vector<float2> uv_coordinates;
+  /* Fatal error in import. */
   std::string error;
+  /* Geometry was imported, but some data could not be read. */
+  std::string warning;
 };
 
 enum PlyFormatType { ASCII, BINARY_LE, BINARY_BE };

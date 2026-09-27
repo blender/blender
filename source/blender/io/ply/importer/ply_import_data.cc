@@ -682,8 +682,9 @@ static const char *skip_element(PlyReadBuffer &file,
 {
   if (header.type == PlyFormatType::ASCII) {
     for (int i = 0; i < element.count; i++) {
-      Span<char> line = file.read_line();
-      (void)line;
+      if (file.read_line().is_empty()) {
+        return "Could not read element";
+      }
     }
   }
   else {
@@ -705,8 +706,35 @@ std::unique_ptr<PlyData> import_ply_data(PlyReadBuffer &file, PlyHeader &header)
 
   bool got_vertex = false, got_face = false, got_tristrips = false, got_edge = false;
   for (const PlyElement &element : header.elements) {
+    /* Binary rows can't be read with unknown property types, as their size is unknown. */
+    const bool has_unknown_type = header.type != PlyFormatType::ASCII &&
+                                  std::any_of(element.properties.begin(),
+                                              element.properties.end(),
+                                              [](const PlyProperty &prop) {
+                                                return prop.type == PlyDataTypes::NONE;
+                                              });
+    const bool is_known_element = ELEM(element.name, "vertex", "face", "tristrips", "edge");
+    if (has_unknown_type && is_known_element) {
+      data->error = "Unknown property type";
+      return data;
+    }
+
     const char *error = nullptr;
-    if (element.name == "vertex") {
+    if (!is_known_element) {
+      /* Elements that are skipped don't affect the geometry. When they can't be
+       * read, stop reading and keep the elements read so far. */
+      if (has_unknown_type) {
+        data->warning = "Unknown property type in element \"" + element.name +
+                        "\", skipping remaining elements";
+        break;
+      }
+      if (skip_element(file, header, element) != nullptr) {
+        data->warning = "Could not read element \"" + element.name +
+                        "\", skipping remaining elements";
+        break;
+      }
+    }
+    else if (element.name == "vertex") {
       if (got_vertex) {
         /* Vertex arrays are sized per element, so multiple vertex elements would mismatch. */
         data->error = "Multiple vertex elements are not supported";
@@ -726,9 +754,6 @@ std::unique_ptr<PlyData> import_ply_data(PlyReadBuffer &file, PlyHeader &header)
     else if (element.name == "edge") {
       error = load_edge_element(file, header, element, data.get());
       got_edge = true;
-    }
-    else {
-      error = skip_element(file, header, element);
     }
     if (error != nullptr) {
       data->error = error;

@@ -204,6 +204,14 @@ static Mesh *read_ply_to_mesh(const PLYImportParams &import_params, const char *
           import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
       return nullptr;
     }
+    if (!data->warning.empty()) {
+      CLOG_WARN(&LOG, "PLY Importer: %s: %s", ob_name, data->warning.c_str());
+      BKE_reportf(import_params.reports,
+                  RPT_WARNING,
+                  "PLY Importer: %s: %s",
+                  ob_name,
+                  data->warning.c_str());
+    }
     if (data->vertices.is_empty()) {
       CLOG_ERROR(&LOG, "PLY Importer: file %s contains no vertices", ob_name);
       BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, no vertices");
