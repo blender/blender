@@ -157,13 +157,21 @@ const char *read_header(PlyReadBuffer &file, PlyHeader &r_header)
         return "Property without element.";
       }
       PlyProperty property;
+      bool unknown_count_type = false;
       skip_space(line);
       if (parse_keyword(line, "list")) {
         skip_space(line);
         property.count_type = type_from_string(parse_word(line));
+        unknown_count_type = property.count_type == PlyDataTypes::NONE;
       }
       skip_space(line);
       property.type = type_from_string(parse_word(line));
+      if (unknown_count_type) {
+        /* Still a list, but of unknown type. So it can't be read from binary files,
+         * like other unknown types, while ASCII files don't need the type. */
+        property.count_type = PlyDataTypes::UINT;
+        property.type = PlyDataTypes::NONE;
+      }
       skip_space(line);
       word = parse_word(line);
       property.name = std::string(word.data(), word.size());
