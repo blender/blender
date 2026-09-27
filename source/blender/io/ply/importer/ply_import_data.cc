@@ -652,6 +652,11 @@ std::unique_ptr<PlyData> import_ply_data(PlyReadBuffer &file, PlyHeader &header)
   for (const PlyElement &element : header.elements) {
     const char *error = nullptr;
     if (element.name == "vertex") {
+      if (got_vertex) {
+        /* Vertex arrays are sized per element, so multiple vertex elements would mismatch. */
+        data->error = "Multiple vertex elements are not supported";
+        return data;
+      }
       error = load_vertex_element(file, header, element, data.get());
       got_vertex = true;
     }
