@@ -10,6 +10,9 @@
 #include "ply_data.hh"
 #include "ply_import_buffer.hh"
 
+#include "BKE_anonymous_attribute_id.hh"
+#include "BKE_attribute.hh"
+
 #include "BLI_endian_switch.hh"
 #include "BLI_string_ref.hh"
 
@@ -277,6 +280,12 @@ static const char *load_vertex_element(PlyReadBuffer &file,
     bool is_standard = ELEM(
         prop.name, "x", "y", "z", "nx", "ny", "nz", "red", "green", "blue", "alpha", "s", "t");
     if (is_standard) {
+      continue;
+    }
+    /* Skip names that are empty or reserved for internal attributes. */
+    if (prop.name.empty() || !bke::allow_procedural_attribute_access(prop.name) ||
+        bke::attribute_name_is_anonymous(prop.name))
+    {
       continue;
     }
 
