@@ -152,6 +152,18 @@ static const char *parse_row_ascii(PlyReadBuffer &file, Vector<float> &r_values)
   return nullptr;
 }
 
+/* Convert floating point to T. Values that don't fit an integer type or that are
+ * NaN become the maximum value, so they fail later count and index checks. */
+template<typename T, typename F> static T float_to_value(const F value)
+{
+  if constexpr (std::is_integral_v<T>) {
+    if (!(value >= F(std::numeric_limits<T>::min()) && value < F(std::numeric_limits<T>::max()))) {
+      return std::numeric_limits<T>::max();
+    }
+  }
+  return T(value);
+}
+
 template<typename T> static T get_binary_value(PlyDataTypes type, const uint8_t *&r_ptr)
 {
   T val = 0;
@@ -183,11 +195,11 @@ template<typename T> static T get_binary_value(PlyDataTypes type, const uint8_t 
       r_ptr += 4;
       break;
     case FLOAT:
-      val = *reinterpret_cast<float *>(const_cast<uint8_t *>(r_ptr));
+      val = float_to_value<T>(*reinterpret_cast<float *>(const_cast<uint8_t *>(r_ptr)));
       r_ptr += 4;
       break;
     case DOUBLE:
-      val = *reinterpret_cast<double *>(const_cast<uint8_t *>(r_ptr));
+      val = float_to_value<T>(*reinterpret_cast<double *>(const_cast<uint8_t *>(r_ptr)));
       r_ptr += 8;
       break;
     default:
@@ -648,8 +660,8 @@ static const char *load_edge_element(PlyReadBuffer &file,
     if (error != nullptr) {
       return error;
     }
-    int index1 = value_vec[prop_vertex1];
-    int index2 = value_vec[prop_vertex2];
+    const int index1 = float_to_value<int>(value_vec[prop_vertex1]);
+    const int index2 = float_to_value<int>(value_vec[prop_vertex2]);
     data->edges.append(std::make_pair(index1, index2));
   }
   return nullptr;
