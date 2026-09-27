@@ -6,6 +6,8 @@
  * \ingroup ply
  */
 
+#include <charconv>
+
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_library.hh"
@@ -132,7 +134,10 @@ const char *read_header(PlyReadBuffer &file, PlyHeader &r_header)
       element.name = std::string(word.data(), word.size());
       skip_space(line);
       word = parse_word(line);
-      element.count = std::stoi(std::string(word.data(), word.size()));
+      const std::from_chars_result res = std::from_chars(word.begin(), word.end(), element.count);
+      if (res.ec != std::errc() || res.ptr != word.end() || element.count < 0) {
+        return "Invalid element count.";
+      }
       r_header.elements.append(element);
     }
     else if (parse_keyword(line, "property")) {
