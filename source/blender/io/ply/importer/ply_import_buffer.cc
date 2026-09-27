@@ -75,8 +75,7 @@ bool PlyReadBuffer::read_bytes(void *dst, size_t size)
         return false;
       }
     }
-    int to_copy = int(size);
-    to_copy = std::min(to_copy, buf_used_);
+    const size_t to_copy = std::min(size, size_t(buf_used_));
     memcpy(dst, buffer_.data() + pos_, to_copy);
     pos_ += to_copy;
     dst = static_cast<char *>(dst) + to_copy;
