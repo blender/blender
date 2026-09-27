@@ -466,7 +466,7 @@ static const char *load_face_element(PlyReadBuffer &file,
         }
         else {
           p = parse_int(p, end, 0, count);
-          for (int k = 0; k < count; ++k) {
+          for (int k = 0; k < count && p < end; ++k) {
             p = drop_whitespace(p, end);
             p = drop_non_whitespace(p, end);
           }
