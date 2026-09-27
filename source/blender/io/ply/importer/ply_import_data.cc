@@ -717,7 +717,8 @@ static const char *skip_element(PlyReadBuffer &file,
 {
   if (header.type == PlyFormatType::ASCII) {
     for (int i = 0; i < element.count; i++) {
-      if (file.read_line().is_empty()) {
+      /* Empty lines are valid rows for elements without properties. */
+      if (!file.try_read_line()) {
         return "Could not read element";
       }
     }
