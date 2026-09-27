@@ -149,6 +149,23 @@ OffsetIndices<int> gather_selected_offsets(const OffsetIndices<int> src_offsets,
   return OffsetIndices<int>(dst_offsets);
 }
 
+OffsetIndices<int> gather_selected_offsets(const OffsetIndices<int> src_offsets,
+                                           const Span<int> selection,
+                                           const int start_offset,
+                                           MutableSpan<int> dst_offsets)
+{
+  if (selection.is_empty()) {
+    return {};
+  }
+  int offset = start_offset;
+  for (const int i : selection.index_range()) {
+    dst_offsets[i] = offset;
+    offset += src_offsets[selection[i]].size();
+  }
+  dst_offsets.last() = offset;
+  return OffsetIndices<int>(dst_offsets);
+}
+
 void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map)
 {
   threading::parallel_for(offsets.index_range(), 1024, [&](const IndexRange range) {

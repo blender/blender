@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
+#include "BLI_generic_array.hh"
 #include "BLI_listbase.hh"
 #include "BLI_task.hh"
 #include "BLI_vector_set.hh"
@@ -207,67 +208,58 @@ static std::optional<MutableSpan<int>> get_orig_index_layer(Mesh &mesh, const At
   return std::nullopt;
 }
 
-template<typename T>
-void copy_with_mixing(const Span<T> src,
-                      const GroupedSpan<int> src_groups,
-                      const IndexMask &selection,
-                      MutableSpan<T> dst)
+template<typename SelectionT>
+static GroupedSpan<int> gather_groups(const GroupedSpan<int> src_groups,
+                                      const SelectionT &selection,
+                                      Array<int> &r_offsets,
+                                      Array<int> &r_indices)
 {
-  if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
-    selection.foreach_segment(
-        [&](const IndexMaskSegment segment, const int64_t segment_pos) {
-          const IndexRange dst_range(segment_pos, segment.size());
-          bke::attribute_math::DefaultPropagationMixer<T> mixer{dst.slice(dst_range)};
-          for (const int i : segment.index_range()) {
-            for (const int src_i : src_groups[segment[i]]) {
-              mixer.mix_in(i, src[src_i]);
-            }
-          }
-          mixer.finalize();
-        },
-        exec_mode::grain_size(512));
+  r_offsets.reinitialize(selection.size() + 1);
+  const OffsetIndices<int> offsets = offset_indices::gather_selected_offsets(
+      src_groups.offsets, selection, r_offsets);
+  r_indices.reinitialize(offsets.total_size());
+  array_utils::gather_group_to_group(
+      src_groups.offsets, offsets, selection, src_groups.data, r_indices.as_mutable_span());
+  return {offsets, r_indices};
+}
+
+/** Required to maintain behavior from DefaultPropagationMixer. */
+static GPointer mixing_default_value(const CPPType &type)
+{
+  if (type.is<ColorGeometry4f>()) {
+    static const ColorGeometry4f color(0.0f, 0.0f, 0.0f, 1.0f);
+    return GPointer(type, &color);
   }
-}
-
-static void copy_with_mixing(const GSpan src,
-                             const GroupedSpan<int> src_groups,
-                             const IndexMask &selection,
-                             GMutableSpan dst)
-{
-  BLI_assert(selection.size() == dst.size());
-  bke::attribute_math::to_static_type(src.type(), [&]<typename T>() {
-    copy_with_mixing(src.typed<T>(), src_groups, selection, dst.typed<T>());
-  });
-}
-
-template<typename T>
-void copy_with_mixing(const Span<T> src,
-                      const GroupedSpan<int> src_groups,
-                      const Span<int> selection,
-                      MutableSpan<T> dst)
-{
-  if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
-    threading::parallel_for(dst.index_range(), 512, [&](const IndexRange range) {
-      bke::attribute_math::DefaultPropagationMixer<T> mixer{dst.slice(range)};
-      for (const int i : range.index_range()) {
-        const int group_i = selection[i];
-        for (const int i_src : src_groups[group_i]) {
-          mixer.mix_in(i, src[i_src]);
-        }
-      }
-      mixer.finalize();
-    });
+  if (type.is<ColorGeometry4b>()) {
+    static const ColorGeometry4b color(0, 0, 0, 255);
+    return GPointer(type, &color);
   }
+  if (type.is<float4x4>()) {
+    static const float4x4 matrix = float4x4::identity();
+    return GPointer(type, &matrix);
+  }
+  return GPointer(type, type.default_value());
 }
 
-static void copy_with_mixing(const GSpan src,
-                             const GroupedSpan<int> src_groups,
-                             const Span<int> selection,
-                             GMutableSpan dst)
+/** Mix the source values of each group. Groups without any source values get the default value. */
+static void mix_groups_or_default(const GSpan src,
+                                  const GroupedSpan<int> groups,
+                                  const GPointer default_value,
+                                  GMutableSpan dst)
 {
-  bke::attribute_math::to_static_type(src.type(), [&]<typename T>() {
-    copy_with_mixing(src.typed<T>(), src_groups, selection, dst.typed<T>());
-  });
+  bke::attribute_math::mix_groups(src, groups, dst);
+  IndexMaskMemory memory;
+  const IndexMask empty_groups = IndexMask::from_predicate(
+      groups.offsets.index_range(),
+      memory,
+      [&](const int64_t i) { return groups.offsets[i].is_empty(); },
+      exec_mode::grain_size(4096));
+  dst.type().fill_assign_indices(default_value.get(), dst.data(), empty_groups);
+}
+
+static void mix_groups_or_default(const GSpan src, const GroupedSpan<int> groups, GMutableSpan dst)
+{
+  mix_groups_or_default(src, groups, mixing_default_value(src.type()), dst);
 }
 
 using IDsByDomain = std::array<Vector<StringRef>, ATTR_DOMAIN_NUM>;
@@ -439,11 +431,16 @@ static void extrude_mesh_vertices(Mesh &mesh,
   gather_vert_attributes(mesh, names_by_domain[int(AttrDomain::Point)], selection, new_vert_range);
 
   /* New edge values are mixed from of all the edges connected to the source vertex. */
-  for (const StringRef name : names_by_domain[int(AttrDomain::Edge)]) {
-    GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
-    copy_with_mixing(
-        attribute.span, vert_to_edge_map, selection, attribute.span.slice(new_edge_range));
-    attribute.finish();
+  if (!names_by_domain[int(AttrDomain::Edge)].is_empty()) {
+    Array<int> new_edge_offsets;
+    Array<int> new_edge_indices;
+    const GroupedSpan<int> new_edge_groups = gather_groups(
+        vert_to_edge_map, selection, new_edge_offsets, new_edge_indices);
+    for (const StringRef name : names_by_domain[int(AttrDomain::Edge)]) {
+      GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
+      mix_groups_or_default(attribute.span, new_edge_groups, attribute.span.slice(new_edge_range));
+      attribute.finish();
+    }
   }
 
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
@@ -711,82 +708,93 @@ static void extrude_mesh_edges(Mesh &mesh,
       attributes, names_by_domain[int(AttrDomain::Edge)], edge_selection, duplicate_edge_range);
 
   /* Edges connected to original vertices mix values of selected connected edges. */
-  for (const StringRef name : names_by_domain[int(AttrDomain::Edge)]) {
-    GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
-    copy_with_mixing(attribute.span,
-                     vert_to_selected_edge_map,
-                     new_verts,
-                     attribute.span.slice(connect_edge_range));
-    attribute.finish();
+  if (!names_by_domain[int(AttrDomain::Edge)].is_empty()) {
+    Array<int> connect_edge_offsets;
+    Array<int> connect_edge_indices;
+    const GroupedSpan<int> connect_edge_groups = gather_groups(
+        vert_to_selected_edge_map, new_verts, connect_edge_offsets, connect_edge_indices);
+    for (const StringRef name : names_by_domain[int(AttrDomain::Edge)]) {
+      GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
+      mix_groups_or_default(
+          attribute.span, connect_edge_groups, attribute.span.slice(connect_edge_range));
+      attribute.finish();
+    }
   }
 
   /* Attribute values for new faces are a mix of values connected to its original edge. */
-  for (const StringRef name : names_by_domain[int(AttrDomain::Face)]) {
-    GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
-    copy_with_mixing(
-        attribute.span, edge_to_face_map, edge_selection, attribute.span.slice(new_face_range));
-    attribute.finish();
+  if (!names_by_domain[int(AttrDomain::Face)].is_empty()) {
+    Array<int> new_face_offsets;
+    Array<int> new_face_indices;
+    const GroupedSpan<int> new_face_groups = gather_groups(
+        edge_to_face_map, edge_selection, new_face_offsets, new_face_indices);
+    for (const StringRef name : names_by_domain[int(AttrDomain::Face)]) {
+      GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
+      mix_groups_or_default(attribute.span, new_face_groups, attribute.span.slice(new_face_range));
+      attribute.finish();
+    }
   }
 
   /* New corners get the average value of all adjacent corners on original faces connected
    * to the original edge of their face. */
-  for (const StringRef name : names_by_domain[int(AttrDomain::Corner)]) {
-    GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
-    bke::attribute_math::to_static_type(attribute.span.type(), [&]<typename T>() {
-      if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
-        MutableSpan<T> data = attribute.span.typed<T>();
-        MutableSpan<T> new_data = data.slice(new_loop_range);
-        edge_selection.foreach_index(
-            [&](const int64_t orig_edge_index, const int64_t i_edge_selection) {
-              const Span<int> connected_faces = edge_to_face_map[orig_edge_index];
-              if (connected_faces.is_empty()) {
-                /* If there are no connected faces, there is no corner data to interpolate. */
-                new_data.slice(4 * i_edge_selection, 4).fill(T());
-                return;
+  if (!names_by_domain[int(AttrDomain::Corner)].is_empty()) {
+    /* Both corners on each vertical edge of the side face get the same value, so there are only
+     * two values to mix for each extruded edge, one for each of its vertices. Each value mixes one
+     * corner from every connected face. */
+    Array<int> vert_group_offsets(edge_selection.size() * 2 + 1);
+    edge_selection.foreach_index(
+        [&](const int orig_edge_index, const int i_edge_selection) {
+          const int faces_num = edge_to_face_map[orig_edge_index].size();
+          vert_group_offsets[2 * i_edge_selection] = faces_num;
+          vert_group_offsets[2 * i_edge_selection + 1] = faces_num;
+        },
+        exec_mode::grain_size(4096));
+    const OffsetIndices<int> vert_groups = offset_indices::accumulate_counts_to_offsets(
+        vert_group_offsets);
+    Array<int> vert_group_corners(vert_groups.total_size());
+    /* The index of the mixed value used by every new corner. */
+    Array<int> new_corner_values(new_loop_range.size());
+    edge_selection.foreach_index(
+        [&](const int orig_edge_index, const int i_edge_selection) {
+          const int2 orig_edge = edges[orig_edge_index];
+          const int2 duplicate_edge = duplicate_edges[i_edge_selection];
+          const Span<int> connected_faces = edge_to_face_map[orig_edge_index];
+          const int group_1 = 2 * i_edge_selection;
+          const int group_2 = 2 * i_edge_selection + 1;
+          MutableSpan<int> corners_1 = vert_group_corners.as_mutable_span().slice(
+              vert_groups[group_1]);
+          MutableSpan<int> corners_2 = vert_group_corners.as_mutable_span().slice(
+              vert_groups[group_2]);
+          for (const int i_face : connected_faces.index_range()) {
+            for (const int corner : faces[connected_faces[i_face]]) {
+              if (corner_verts[corner] == orig_edge[0]) {
+                corners_1[i_face] = corner;
               }
-
-              /* Both corners on each vertical edge of the side face get the same value,
-               * so there are only two unique values to mix. */
-              Array<T> side_face_corner_data(2);
-              bke::attribute_math::DefaultPropagationMixer<T> mixer{side_face_corner_data};
-
-              const int new_vert_1 = duplicate_edges[i_edge_selection][0];
-              const int new_vert_2 = duplicate_edges[i_edge_selection][1];
-              const int orig_vert_1 = edges[orig_edge_index][0];
-              const int orig_vert_2 = edges[orig_edge_index][1];
-
-              /* Average the corner data from the corners that share a vertex from the
-               * faces that share an edge with the extruded edge. */
-              for (const int connected_face : connected_faces) {
-                for (const int i_loop : faces[connected_face]) {
-                  if (corner_verts[i_loop] == orig_vert_1) {
-                    mixer.mix_in(0, data[i_loop]);
-                  }
-                  if (corner_verts[i_loop] == orig_vert_2) {
-                    mixer.mix_in(1, data[i_loop]);
-                  }
-                }
+              else if (corner_verts[corner] == orig_edge[1]) {
+                corners_2[i_face] = corner;
               }
+            }
+          }
+          /* Instead of replicating the order in #fill_quad_consistent_direction here, it's
+           * simpler to match the corners based on the vertex indices. */
+          for (const int new_corner : IndexRange(4 * i_edge_selection, 4)) {
+            const int vert = new_corner_verts[new_corner];
+            new_corner_values[new_corner] = ELEM(vert, orig_edge[0], duplicate_edge[0]) ? group_1 :
+                                                                                          group_2;
+          }
+        },
+        exec_mode::grain_size(256));
 
-              mixer.finalize();
-
-              /* Instead of replicating the order in #fill_quad_consistent_direction here, it's
-               * simpler (though probably slower) to just match the corner data based on the
-               * vertex indices. */
-              for (const int i : IndexRange(4 * i_edge_selection, 4)) {
-                if (ELEM(new_corner_verts[i], new_vert_1, orig_vert_1)) {
-                  new_data[i] = side_face_corner_data.first();
-                }
-                else if (ELEM(new_corner_verts[i], new_vert_2, orig_vert_2)) {
-                  new_data[i] = side_face_corner_data.last();
-                }
-              }
-            },
-            exec_mode::grain_size(256));
-      }
-    });
-
-    attribute.finish();
+    const GroupedSpan<int> vert_group_corners_map(vert_groups, vert_group_corners);
+    for (const StringRef name : names_by_domain[int(AttrDomain::Corner)]) {
+      GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
+      GArray<> values(attribute.span.type(), vert_groups.size());
+      const CPPType &type = attribute.span.type();
+      mix_groups_or_default(
+          attribute.span, vert_group_corners_map, GPointer(type, type.default_value()), values);
+      bke::attribute_math::gather(
+          values.as_span(), new_corner_values, attribute.span.slice(new_loop_range));
+      attribute.finish();
+    }
   }
 
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
@@ -1099,6 +1107,13 @@ static void extrude_mesh_face_regions(Mesh &mesh,
     Array<int> vert_to_edge_indices;
     const GroupedSpan<int> vert_to_boundary_edge_map = build_vert_to_edge_map(
         edges, boundary_edge_mask, mesh.verts_num, vert_to_edge_offsets, vert_to_edge_indices);
+    Array<int> connect_edge_offsets;
+    Array<int> connect_edge_indices;
+    const GroupedSpan<int> connect_edge_groups = gather_groups(
+        vert_to_boundary_edge_map,
+        new_vert_indices.as_span().take_front(connect_edge_range.size()),
+        connect_edge_offsets,
+        connect_edge_indices);
 
     for (const StringRef name : names_by_domain[int(AttrDomain::Edge)]) {
       GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
@@ -1112,10 +1127,8 @@ static void extrude_mesh_face_regions(Mesh &mesh,
       bke::attribute_math::gather(attribute.span, new_inner_edge_indices, new_inner_data);
 
       /* Edges connected to original vertices mix values of selected connected edges. */
-      copy_with_mixing(attribute.span,
-                       vert_to_boundary_edge_map,
-                       new_vert_indices,
-                       attribute.span.slice(connect_edge_range));
+      mix_groups_or_default(
+          attribute.span, connect_edge_groups, attribute.span.slice(connect_edge_range));
       attribute.finish();
     }
   }
@@ -1380,26 +1393,14 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
         },
         exec_mode::grain_size(1024));
 
+    Array<int> neighbor_edge_offsets(connect_edge_range.size() + 1);
+    offset_indices::fill_constant_group_size(2, 0, neighbor_edge_offsets);
+    const GroupedSpan<int> neighbor_edge_groups(neighbor_edge_offsets.as_span(),
+                                                neighbor_edges.as_span().cast<int>());
     for (const StringRef name : names_by_domain[int(AttrDomain::Edge)]) {
       GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
-      bke::attribute_math::to_static_type(attribute.span.type(), [&]<typename T>() {
-        if constexpr (!std::is_same_v<T, std::string>) {
-          MutableSpan<T> data = attribute.span.typed<T>();
-          MutableSpan<T> dst = data.slice(connect_edge_range);
-          threading::parallel_for(dst.index_range(), 1024, [&](const IndexRange range) {
-            for (const int i : range) {
-              const int2 neighbors = neighbor_edges[i];
-              if constexpr (std::is_same_v<T, bool>) {
-                /* Propagate selections with "or" instead of "at least half". */
-                dst[i] = data[neighbors[0]] || data[neighbors[1]];
-              }
-              else {
-                dst[i] = bke::attribute_math::mix2(0.5f, data[neighbors[0]], data[neighbors[1]]);
-              }
-            }
-          });
-        }
-      });
+      bke::attribute_math::mix_groups(
+          attribute.span, neighbor_edge_groups, attribute.span.slice(connect_edge_range));
       attribute.finish();
     }
   }
