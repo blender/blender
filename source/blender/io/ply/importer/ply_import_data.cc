@@ -194,7 +194,7 @@ template<typename T> static T get_binary_value(PlyDataTypes type, const uint8_t 
       r_ptr += 4;
       break;
     case UINT:
-      val = *reinterpret_cast<int32_t *>(const_cast<uint8_t *>(r_ptr));
+      val = *reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(r_ptr));
       r_ptr += 4;
       break;
     case FLOAT:
