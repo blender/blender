@@ -23,6 +23,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_attribute_filters.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_mesh.hh"
@@ -1081,6 +1082,66 @@ static void mix_attributes(const bke::AttributeAccessor src_attributes,
   });
 }
 
+struct MergePropagationMap {
+  /** A source element for every result element. */
+  Array<int> dst_to_src;
+  /** Result elements created from more than one source element. */
+  IndexMask mixed;
+  /** The source elements for each element in #mixed. */
+  Array<int> mixed_offsets;
+  Array<int> mixed_indices;
+
+  GroupedSpan<int> mixed_groups() const
+  {
+    return {OffsetIndices<int>(mixed_offsets), mixed_indices};
+  }
+};
+
+/**
+ * Copy attributes from a source element for every result element, and mix the values for
+ * result elements created from multiple source elements. When nothing is mixed and the result
+ * domain is unchanged, attribute arrays are shared with the source.
+ */
+static void copy_and_mix_attributes(const bke::AttributeAccessor src_attributes,
+                                    const bke::AttrDomain domain,
+                                    const bke::AttributeFilter &attribute_filter,
+                                    const MergePropagationMap &map,
+                                    bke::MutableAttributeAccessor dst_attributes)
+{
+  if (map.mixed.is_empty()) {
+    bke::gather_attributes(
+        src_attributes, domain, domain, attribute_filter, map.dst_to_src, dst_attributes);
+    return;
+  }
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain != domain) {
+      return;
+    }
+    if (iter.data_type == bke::AttrType::String) {
+      return;
+    }
+    if (attribute_filter.allow_skip(iter.name)) {
+      return;
+    }
+    const GVArray src_attr = *iter.get();
+    const CommonVArrayInfo info = src_attr.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src_attr.type(), info.data));
+      if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
+        return;
+      }
+    }
+    const GVArraySpan src_span(src_attr);
+    bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
+        iter.name, iter.domain, iter.data_type);
+    bke::attribute_math::gather(src_span, map.dst_to_src.as_span(), dst_attr.span);
+    const GroupedSpan<int> mixed_groups = map.mixed_groups();
+    bke::attribute_math::mix_groups(
+        src_span, mixed_groups.offsets, mixed_groups.data, std::nullopt, map.mixed, dst_attr.span);
+    dst_attr.finish();
+  });
+}
+
 static void mix_vertex_groups(const Mesh &mesh_src,
                               const GroupedSpan<int> dst_to_src,
                               Mesh &mesh_dst)
@@ -1225,90 +1286,152 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     }
   });
 
-  /* Faces/Loops. */
-  Vector<int> corner_src_index_offset_data;
-  Vector<int> corner_src_index_data;
+  /* Faces and corners. */
 
-  corner_src_index_offset_data.reserve(result->corners_num + 1);
-  corner_src_index_data.reserve(mesh.corners_num);
+  const Span<WeldFace> weld_faces = weld_mesh.weld_faces;
+  const Span<int> corner_next = weld_mesh.corner_next;
 
-  /* Add the remaining corners of a weld face, with the source corners that are merged into each of
-   * them: the corners of the source face that have the same vertex after merging. */
-  const auto add_weld_face_corners = [&](const WeldFace &weld_face, int &dst_corner) {
-    const IndexRange src_face = src_faces[weld_face.face_src];
-    foreach_weld_face_corner(weld_face, weld_mesh.corner_next, [&](const int corner) {
-      const int vert = vert_src_to_target[src_corner_verts[corner]];
-      corner_src_index_offset_data.append_unchecked(corner_src_index_data.size());
-      if (vert_affected[vert]) {
+  /* The source faces that remain keep their order, followed by the new faces created by splitting
+   * source faces. */
+  const IndexMask kept_src_faces = IndexMask::from_predicate(
+      src_faces.index_range(),
+      mask_memory,
+      [&](const int face) {
+        const int face_ctx = weld_mesh.face_to_weld_face[face];
+        return face_ctx == OUT_OF_CONTEXT || weld_faces[face_ctx].face_dst == OUT_OF_CONTEXT;
+      },
+      exec_mode::grain_size(4096));
+  const IndexMask kept_new_faces = IndexMask::from_predicate(
+      weld_faces.index_range().take_back(weld_mesh.new_faces_num),
+      mask_memory,
+      [&](const int weld_face) { return weld_faces[weld_face].face_dst == OUT_OF_CONTEXT; },
+      exec_mode::grain_size(4096));
+  BLI_assert(kept_src_faces.size() + kept_new_faces.size() == dst_faces_num);
+  const IndexRange dst_new_faces(kept_src_faces.size(), kept_new_faces.size());
+
+  kept_src_faces.foreach_index(
+      [&](const int src_face, const int dst_face) {
+        const int face_ctx = weld_mesh.face_to_weld_face[src_face];
+        dst_face_offsets[dst_face] = face_ctx == OUT_OF_CONTEXT ? src_faces[src_face].size() :
+                                                                  weld_faces[face_ctx].corners_num;
+      },
+      exec_mode::grain_size(4096));
+  kept_new_faces.foreach_index(
+      [&](const int weld_face, const int pos) {
+        dst_face_offsets[dst_new_faces[pos]] = weld_faces[weld_face].corners_num;
+      },
+      exec_mode::grain_size(4096));
+  if (!dst_face_offsets.is_empty()) {
+    offset_indices::accumulate_counts_to_offsets(dst_face_offsets);
+  }
+  const OffsetIndices dst_faces = result->faces();
+  BLI_assert(dst_faces.total_size() == dst_corners_num);
+
+  /* The source corners merged into a result corner are the corners of the source face with the
+   * same vertex after merging. Only corners with affected vertices can have more than one. */
+  const auto foreach_corner_in_group =
+      [&](const IndexRange src_face, const int corner, const auto &fn) {
+        const int vert = vert_src_to_target[src_corner_verts[corner]];
+        if (!vert_affected[vert]) {
+          fn(corner);
+          return;
+        }
         for (const int group_corner : src_face) {
           if (vert_src_to_target[src_corner_verts[group_corner]] == vert) {
-            corner_src_index_data.append(group_corner);
+            fn(group_corner);
           }
         }
-      }
-      else {
-        corner_src_index_data.append(corner);
-      }
-      dst_corner_verts[dst_corner] = vert_src_to_dst[vert];
-      dst_corner_edges[dst_corner] =
-          edge_src_to_dst[weld_mesh.edge_src_to_target[src_corner_edges[corner]]];
-      dst_corner++;
-    });
-  };
+      };
 
-  int r_i = 0;
-  int dst_corner = 0;
-  Vector<bool> dst_face_unaffected;
-  dst_face_unaffected.reserve(dst_faces_num);
-  Vector<int> dst_to_src_faces;
-  dst_to_src_faces.reserve(dst_faces_num);
-  for (const int i : src_faces.index_range()) {
-    const int corner_start = dst_corner;
-    const int face_ctx = weld_mesh.face_to_weld_face[i];
-    if (face_ctx == OUT_OF_CONTEXT) {
-      for (const int corner_src : src_faces[i]) {
-        corner_src_index_offset_data.append_unchecked(corner_src_index_data.size());
-        corner_src_index_data.append(corner_src);
-        dst_corner++;
-      }
-      dst_face_unaffected.append_unchecked(true);
-    }
-    else {
-      const WeldFace &weld_face = weld_mesh.weld_faces[face_ctx];
+  /* Count the result corners of every weld face that are created from multiple source corners,
+   * and their source corners, so that only those need groups for mixing attribute values. */
+  Array<int> mixed_corner_offset_data(weld_faces.size() + 1, 0);
+  Array<int> mixed_source_offset_data(weld_faces.size() + 1, 0);
+  threading::parallel_for(weld_faces.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      const WeldFace &weld_face = weld_faces[i];
       if (weld_face.face_dst != OUT_OF_CONTEXT) {
         continue;
       }
-      dst_face_unaffected.append_unchecked(false);
-      add_weld_face_corners(weld_face, dst_corner);
+      const IndexRange src_face = src_faces[weld_face.face_src];
+      foreach_weld_face_corner(weld_face, corner_next, [&](const int corner) {
+        int group_size = 0;
+        foreach_corner_in_group(
+            src_face, corner, [&](const int /*group_corner*/) { group_size++; });
+        if (group_size > 1) {
+          mixed_corner_offset_data[i]++;
+          mixed_source_offset_data[i] += group_size;
+        }
+      });
     }
+  });
+  const OffsetIndices mixed_corners_by_weld_face = offset_indices::accumulate_counts_to_offsets(
+      mixed_corner_offset_data);
+  const OffsetIndices mixed_sources_by_weld_face = offset_indices::accumulate_counts_to_offsets(
+      mixed_source_offset_data);
 
-    dst_to_src_faces.append_unchecked(i);
-    dst_face_offsets[r_i] = corner_start;
-    r_i++;
-  }
+  MergePropagationMap corner_map;
+  corner_map.dst_to_src.reinitialize(dst_corners_num);
+  Array<int> mixed_dst_corners(mixed_corners_by_weld_face.total_size());
+  corner_map.mixed_offsets.reinitialize(mixed_corners_by_weld_face.total_size() + 1);
+  corner_map.mixed_indices.reinitialize(mixed_sources_by_weld_face.total_size());
+  corner_map.mixed_offsets.last() = corner_map.mixed_indices.size();
 
-  /* New Polygons.
-   * NOTE: The number of "src" and "new" faces might not match `new_faces_num`. */
-  for (const int i : weld_mesh.weld_faces.index_range().take_back(weld_mesh.new_faces_num)) {
-    const WeldFace &weld_face = weld_mesh.weld_faces[i];
-    if (weld_face.face_dst != OUT_OF_CONTEXT) {
-      continue;
-    }
-    dst_face_offsets[r_i] = dst_corner;
-    add_weld_face_corners(weld_face, dst_corner);
-    r_i++;
-  }
+  const auto fill_weld_face = [&](const int weld_face_index, const IndexRange dst_face) {
+    const WeldFace &weld_face = weld_faces[weld_face_index];
+    const IndexRange src_face = src_faces[weld_face.face_src];
+    int dst_corner = dst_face.start();
+    int mixed_corner = mixed_corners_by_weld_face[weld_face_index].start();
+    int mixed_source = mixed_sources_by_weld_face[weld_face_index].start();
+    foreach_weld_face_corner(weld_face, corner_next, [&](const int corner) {
+      const int vert = vert_src_to_target[src_corner_verts[corner]];
+      const int edge = weld_mesh.edge_src_to_target[src_corner_edges[corner]];
+      dst_corner_verts[dst_corner] = vert_src_to_dst[vert];
+      dst_corner_edges[dst_corner] = edge_src_to_dst[edge];
 
-  BLI_assert(int(r_i) == dst_faces_num);
-  BLI_assert(dst_corner == dst_corners_num);
+      int group_size = 0;
+      foreach_corner_in_group(src_face, corner, [&](const int group_corner) {
+        if (group_size++ == 0) {
+          corner_map.dst_to_src[dst_corner] = group_corner;
+        }
+      });
+      if (group_size > 1) {
+        mixed_dst_corners[mixed_corner] = dst_corner;
+        corner_map.mixed_offsets[mixed_corner] = mixed_source;
+        foreach_corner_in_group(src_face, corner, [&](const int group_corner) {
+          corner_map.mixed_indices[mixed_source++] = group_corner;
+        });
+        mixed_corner++;
+      }
+      dst_corner++;
+    });
+    BLI_assert(dst_corner == dst_face.one_after_last());
+  };
 
-  corner_src_index_offset_data.append_unchecked(corner_src_index_data.size());
+  kept_src_faces.foreach_index(
+      [&](const int src_face_index, const int dst_face_index) {
+        const IndexRange dst_face = dst_faces[dst_face_index];
+        const int face_ctx = weld_mesh.face_to_weld_face[src_face_index];
+        if (face_ctx != OUT_OF_CONTEXT) {
+          fill_weld_face(face_ctx, dst_face);
+          return;
+        }
+        const IndexRange src_face = src_faces[src_face_index];
+        for (const int i : src_face.index_range()) {
+          dst_corner_verts[dst_face[i]] = vert_src_to_dst[src_corner_verts[src_face[i]]];
+          dst_corner_edges[dst_face[i]] = edge_src_to_dst[src_corner_edges[src_face[i]]];
+          corner_map.dst_to_src[dst_face[i]] = src_face[i];
+        }
+      },
+      exec_mode::grain_size(512));
+  kept_new_faces.foreach_index(
+      [&](const int weld_face, const int pos) {
+        fill_weld_face(weld_face, dst_faces[dst_new_faces[pos]]);
+      },
+      exec_mode::grain_size(512));
+  corner_map.mixed = IndexMask::from_indices(mixed_dst_corners.as_span(), mask_memory);
 
-  const GroupedSpan<int> dst_to_src_corners(OffsetIndices<int>(corner_src_index_offset_data),
-                                            corner_src_index_data);
-
-  const OffsetIndices dst_faces = result->faces();
-
+  /* Face attributes. New faces get default values. */
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     if (iter.domain != bke::AttrDomain::Face) {
       return;
@@ -1316,20 +1439,29 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     if (attribute_filter.allow_skip(iter.name)) {
       return;
     }
-    const GVArray src_attr = *iter.get();
-    const CommonVArrayInfo info = src_attr.common_info();
+    const bke::GAttributeReader src_attr = iter.get();
+    const CommonVArrayInfo info = src_attr.varray.common_info();
     if (info.type == CommonVArrayInfo::Type::Single) {
-      const bke::AttributeInitValue init(GPointer(src_attr.type(), info.data));
+      const bke::AttributeInitValue init(GPointer(src_attr.varray.type(), info.data));
       if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
         return;
       }
     }
-    const CPPType &type = src_attr.type();
+    if (kept_src_faces.size() == src_faces.size() && dst_new_faces.is_empty() &&
+        src_attr.sharing_info && src_attr.varray.is_span())
+    {
+      const bke::AttributeInitShared init(src_attr.varray.get_internal_span().data(),
+                                          *src_attr.sharing_info);
+      if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
+        return;
+      }
+    }
+    const CPPType &type = src_attr.varray.type();
     bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, iter.domain, iter.data_type);
-    bke::attribute_math::gather(
-        src_attr, dst_to_src_faces, dst_attr.span.take_front(dst_to_src_faces.size()));
-    GMutableSpan default_data = dst_attr.span.drop_front(dst_to_src_faces.size());
+    array_utils::gather(
+        src_attr.varray, kept_src_faces, dst_attr.span.take_front(kept_src_faces.size()));
+    GMutableSpan default_data = dst_attr.span.slice(dst_new_faces);
     type.fill_assign_n(type.default_value(), default_data.data(), default_data.size());
     dst_attr.finish();
   });
@@ -1340,37 +1472,32 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     MutableSpan dst(static_cast<int *>(CustomData_add_layer(
                         &result->face_data, CD_ORIGINDEX, CD_CONSTRUCT, result->faces_num)),
                     result->faces_num);
-    bke::attribute_math::gather(src, dst_to_src_faces, dst.take_front(dst_to_src_faces.size()));
-    dst.drop_front(dst_to_src_faces.size()).fill(ORIGINDEX_NONE);
+    array_utils::gather(
+        GSpan(src), kept_src_faces, GMutableSpan(dst.take_front(kept_src_faces.size())));
+    dst.slice(dst_new_faces).fill(ORIGINDEX_NONE);
   }
 
-  IndexMaskMemory memory;
-  const IndexMask out_of_context_faces = IndexMask::from_bools(dst_face_unaffected, memory);
-
-  out_of_context_faces.foreach_index(
-      [&](const int dst_face_index) {
-        const IndexRange src_face = src_faces[dst_to_src_faces[dst_face_index]];
-        const IndexRange dst_face = dst_faces[dst_face_index];
-        for (const int i : src_face.index_range()) {
-          dst_corner_verts[dst_face[i]] = vert_src_to_dst[src_corner_verts[src_face[i]]];
-          dst_corner_edges[dst_face[i]] = edge_src_to_dst[src_corner_edges[src_face[i]]];
-        }
-      },
-      exec_mode::grain_size(1024));
-
-  mix_attributes(src_attributes,
-                 dst_to_src_corners,
-                 bke::AttrDomain::Corner,
-                 attribute_filter,
-                 {".corner_vert", ".corner_edge"},
-                 dst_attributes);
+  copy_and_mix_attributes(
+      src_attributes,
+      bke::AttrDomain::Corner,
+      bke::attribute_filter_with_skip_ref(attribute_filter, {".corner_vert", ".corner_edge"}),
+      corner_map,
+      dst_attributes);
   if (const auto *src = static_cast<const float2 *>(
           CustomData_get_layer(&mesh.corner_data, CD_ORIGSPACE_MLOOP)))
   {
     float2 *dst = static_cast<float2 *>(CustomData_add_layer(
         &result->corner_data, CD_ORIGSPACE_MLOOP, CD_CONSTRUCT, result->corners_num));
-    bke::attribute_math::mix_groups(
-        Span(src, mesh.corners_num), dst_to_src_corners, MutableSpan(dst, result->corners_num));
+    const Span src_span(src, mesh.corners_num);
+    const MutableSpan dst_span(dst, result->corners_num);
+    array_utils::gather(src_span, corner_map.dst_to_src.as_span(), dst_span);
+    const GroupedSpan<int> mixed_groups = corner_map.mixed_groups();
+    bke::attribute_math::mix_groups(GSpan(src_span),
+                                    mixed_groups.offsets,
+                                    mixed_groups.data,
+                                    std::nullopt,
+                                    corner_map.mixed,
+                                    GMutableSpan(dst_span));
   }
 
   for (const eCustomDataType type : {CD_MDISPS, CD_GRID_PAINT_MASK}) {
@@ -1379,9 +1506,12 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     }
     CustomData_add_layer(&result->corner_data, type, CD_CONSTRUCT, result->corners_num);
     for (const int dst_corner : IndexRange(result->corners_num)) {
-      const int src_corner = dst_to_src_corners[dst_corner].first();
-      CustomData_copy_layer_type_data(
-          &mesh.corner_data, &result->corner_data, type, src_corner, dst_corner, 1);
+      CustomData_copy_layer_type_data(&mesh.corner_data,
+                                      &result->corner_data,
+                                      type,
+                                      corner_map.dst_to_src[dst_corner],
+                                      dst_corner,
+                                      1);
     }
   }
 
