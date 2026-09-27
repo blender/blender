@@ -361,35 +361,48 @@ static const char *load_vertex_element(PlyReadBuffer &file,
   return nullptr;
 }
 
-static uint32_t read_list_count(PlyReadBuffer &file,
-                                const PlyProperty &prop,
-                                Vector<uint8_t> &scratch,
-                                bool big_endian)
+static bool read_list_count(PlyReadBuffer &file,
+                            const PlyProperty &prop,
+                            Vector<uint8_t> &scratch,
+                            bool big_endian,
+                            uint32_t &r_count)
 {
   scratch.resize(8);
-  file.read_bytes(scratch.data(), data_type_size[prop.count_type]);
+  if (!file.read_bytes(scratch.data(), data_type_size[prop.count_type])) {
+    return false;
+  }
   const uint8_t *ptr = scratch.data();
   if (big_endian) {
     endian_switch(const_cast<uint8_t *>(ptr), data_type_size[prop.count_type]);
   }
-  uint32_t count = get_binary_value<uint32_t>(prop.count_type, ptr);
-  return count;
+  r_count = get_binary_value<uint32_t>(prop.count_type, ptr);
+  return true;
 }
 
-static void skip_property(PlyReadBuffer &file,
+/* Read list values into scratch, returns false on unexpected end of file. */
+static bool read_list_values(PlyReadBuffer &file,
+                             const PlyProperty &prop,
+                             const uint32_t count,
+                             Vector<uint8_t> &scratch)
+{
+  scratch.resize(int64_t(count) * data_type_size[prop.type]);
+  return file.read_bytes(scratch.data(), scratch.size());
+}
+
+static bool skip_property(PlyReadBuffer &file,
                           const PlyProperty &prop,
                           Vector<uint8_t> &scratch,
                           bool big_endian)
 {
   if (prop.count_type == PlyDataTypes::NONE) {
     scratch.resize(8);
-    file.read_bytes(scratch.data(), data_type_size[prop.type]);
+    return file.read_bytes(scratch.data(), data_type_size[prop.type]);
   }
-  else {
-    uint32_t count = read_list_count(file, prop, scratch, big_endian);
-    scratch.resize(count * data_type_size[prop.type]);
-    file.read_bytes(scratch.data(), scratch.size());
+  uint32_t count;
+  if (!read_list_count(file, prop, scratch, big_endian, count)) {
+    return false;
   }
+  return read_list_values(file, prop, count, scratch);
 }
 
 static const char *load_face_element(PlyReadBuffer &file,
@@ -467,19 +480,25 @@ static const char *load_face_element(PlyReadBuffer &file,
 
       /* Skip any properties before vertex indices. */
       for (int j = 0; j < prop_index; j++) {
-        skip_property(
-            file, element.properties[j], scratch, header.type == PlyFormatType::BINARY_BE);
+        if (!skip_property(
+                file, element.properties[j], scratch, header.type == PlyFormatType::BINARY_BE))
+        {
+          return "Could not read face property";
+        }
       }
 
       /* Read vertex indices list. */
-      uint32_t count = read_list_count(
-          file, prop, scratch, header.type == PlyFormatType::BINARY_BE);
+      uint32_t count;
+      if (!read_list_count(file, prop, scratch, header.type == PlyFormatType::BINARY_BE, count)) {
+        return "Could not read face size";
+      }
       if (count < 1 || count > 255) {
         return "Invalid face size, must be between 1 and 255";
       }
 
-      scratch.resize(count * data_type_size[prop.type]);
-      file.read_bytes(scratch.data(), scratch.size());
+      if (!read_list_values(file, prop, count, scratch)) {
+        return "Could not read face vertex indices";
+      }
       /* Previous python based importer was accepting faces with fewer
        * than 3 vertices, and silently dropping them. */
       if (count < 3) {
@@ -499,8 +518,11 @@ static const char *load_face_element(PlyReadBuffer &file,
 
       /* Skip any properties after vertex indices. */
       for (int j = prop_index + 1; j < element.properties.size(); j++) {
-        skip_property(
-            file, element.properties[j], scratch, header.type == PlyFormatType::BINARY_BE);
+        if (!skip_property(
+                file, element.properties[j], scratch, header.type == PlyFormatType::BINARY_BE))
+        {
+          return "Could not read face property";
+        }
       }
     }
   }
@@ -548,11 +570,18 @@ static const char *load_tristrips_element(PlyReadBuffer &file,
 
     const uint8_t *ptr;
 
-    uint32_t count = read_list_count(file, prop, scratch, header.type == PlyFormatType::BINARY_BE);
+    uint32_t count;
+    if (!read_list_count(file, prop, scratch, header.type == PlyFormatType::BINARY_BE, count)) {
+      return "Could not read tristrips size";
+    }
+    if (count > INT_MAX) {
+      return "Invalid tristrips size";
+    }
+    if (!read_list_values(file, prop, count, scratch)) {
+      return "Could not read tristrips";
+    }
 
     strip.resize(count);
-    scratch.resize(count * data_type_size[prop.type]);
-    file.read_bytes(scratch.data(), scratch.size());
     ptr = scratch.data();
     if (header.type == PlyFormatType::BINARY_BE) {
       endian_switch_array(const_cast<uint8_t *>(ptr), data_type_size[prop.type], count);
@@ -640,7 +669,9 @@ static const char *skip_element(PlyReadBuffer &file,
     Vector<uint8_t> scratch(64);
     for (int i = 0; i < element.count; i++) {
       for (const PlyProperty &prop : element.properties) {
-        skip_property(file, prop, scratch, header.type == PlyFormatType::BINARY_BE);
+        if (!skip_property(file, prop, scratch, header.type == PlyFormatType::BINARY_BE)) {
+          return "Could not read element";
+        }
       }
     }
   }
