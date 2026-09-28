@@ -387,6 +387,7 @@ void LightModule::add_world_sun_light(const ObjectKey &key, bool use_diffuse, bo
 
   Light &light = light_map_.lookup_or_add_default(key);
   light.used = true;
+  light.resource_id = 0;
   light.sync(inst_.shadows, float4x4::identity(), visibility_flag, &la, nullptr, light_threshold_);
 
   sun_lights_len_ += 1;
