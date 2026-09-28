@@ -41,6 +41,14 @@ void vector_math_divide(
   outVector = safe_divide(a, b);
 }
 
+/* `a / a` folded to 1 (see #162948). */
+[[node]]
+void vector_math_divide_self(
+    float3 a, float3 /*b*/, float3 /*c*/, float /*scale*/, float3 &outVector, float & /*outValue*/)
+{
+  outVector = float3(notEqual(a, float3(0.0f)));
+}
+
 [[node]]
 void vector_math_cross(
     float3 a, float3 b, float3 /*c*/, float /*scale*/, float3 &outVector, float & /*outValue*/)
@@ -108,6 +116,14 @@ void vector_math_snap(
     float3 a, float3 b, float3 /*c*/, float /*scale*/, float3 &outVector, float & /*outValue*/)
 {
   outVector = floor(safe_divide(a, b)) * b;
+}
+
+/* `floor(a / a) * a` folded to `a` (see #162948). */
+[[node]]
+void vector_math_snap_self(
+    float3 a, float3 /*b*/, float3 /*c*/, float /*scale*/, float3 &outVector, float & /*outValue*/)
+{
+  outVector = a;
 }
 
 [[node]]
