@@ -1554,20 +1554,24 @@ class NodeTreeMainUpdater {
         }
         break;
       case SH_NODE_ATTRIBUTE:
-        if (static_cast<NodeShaderAttribute *>(node.storage)->type != SHD_ATTRIBUTE_LIGHT) {
-          break;
-        }
-        ATTR_FALLTHROUGH;
-      case SH_NODE_VECT_TRANSFORM: {
-        NodeShaderVectTransform *nodeprop = static_cast<NodeShaderVectTransform *>(node.storage);
-        if (!ELEM(SHD_VECT_TRANSFORM_SPACE_LIGHT, nodeprop->convert_from, nodeprop->convert_to)) {
-          break;
-        }
-      }
-        ATTR_FALLTHROUGH;
+      case SH_NODE_VECT_TRANSFORM:
       case SH_NODE_LIGHT_INFO:
       case SH_NODE_LIGHT_EVALUATION:
       case SH_NODE_SHADOW_RAYCAST:
+        /* Attribute and Vector Transform nodes are only lighting nodes in light mode. */
+        if (node.type_legacy == SH_NODE_ATTRIBUTE &&
+            static_cast<NodeShaderAttribute *>(node.storage)->type != SHD_ATTRIBUTE_LIGHT)
+        {
+          break;
+        }
+        if (node.type_legacy == SH_NODE_VECT_TRANSFORM) {
+          const NodeShaderVectTransform *nodeprop = static_cast<NodeShaderVectTransform *>(
+              node.storage);
+          if (!ELEM(SHD_VECT_TRANSFORM_SPACE_LIGHT, nodeprop->convert_from, nodeprop->convert_to))
+          {
+            break;
+          }
+        }
         if (bool(flags & ShaderNodeAncestorFlags::ShaderMaterialOutput)) {
           if (!bool(flags & ShaderNodeAncestorFlags::LightAccumulation)) {
             return TIP_(
