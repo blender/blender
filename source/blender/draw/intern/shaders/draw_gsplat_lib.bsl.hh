@@ -545,8 +545,7 @@ struct ShapeResource {
    */
   float3 get_radiance(uint gs_id) const
   {
-    uint2 data = floatBitsToUint(texelFetch(radiance_comp_tx, int(gs_id)).xy);
-    return float4(unpackHalf2x16(data.x), unpackHalf2x16(data.y)).rgb;
+    return texelFetch(radiance_comp_tx, int(gs_id)).rgb;
   }
 
   /**

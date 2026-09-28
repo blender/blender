@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "draw_gsplat_lib.bsl.hh"
 #include "draw_intersect.bsl.hh"
 #include "draw_model.bsl.hh"
 #include "draw_view.bsl.hh"
@@ -979,32 +980,6 @@ float4 attr_load_color_post(KernelGlobals &kg, float4 attr)
   }
   return attr;
 }
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name GSplat Attributes
- *
- * GSplats override the radiance attribute, unpacking packed data from a float2. Additionally,
- * it applies its own alpha transparency on top of existing transmittance.
- *
- * \{ */
-
-#if defined(MAT_GEOM_GSPLAT) && !defined(MAT_VOLUME)
-#  define GSPLAT_ATTRIBUTES_LOAD_POST
-#endif
-
-float4 attr_load_radiance_post(KernelGlobals & /*kg*/, float4 attr)
-{
-#ifdef GSPLAT_ATTRIBUTES_LOAD_POST
-  /* Radiance is packed as 2xfp16, unpack it from this representation. */
-  uint2 data = floatBitsToUint(attr.xy);
-  return float4(unpackHalf2x16(data.x), unpackHalf2x16(data.y));
-#endif
-  return attr;
-}
-
-#undef GSPLAT_ATTRIBUTES_LOAD_POST
 
 /** \} */
 

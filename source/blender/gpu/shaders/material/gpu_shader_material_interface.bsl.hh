@@ -329,10 +329,6 @@ float attr_load_temperature_post([[resource_table]] KernelGlobals & /*kg*/, floa
 {
   return attr;
 }
-float4 attr_load_radiance_post([[resource_table]] KernelGlobals & /*kg*/, float4 attr)
-{
-  return attr;
-}
 
 /* TODO remove attr as parameter. */
 float4 attr_load_uniform([[resource_table]] KernelGlobals & /*kg*/,

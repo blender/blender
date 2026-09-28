@@ -26,12 +26,6 @@ void node_attribute_temperature([[resource_table]] KernelGlobals &kg,
 }
 
 [[node]]
-void node_attribute_radiance([[resource_table]] KernelGlobals &kg, float4 attr, float4 &out_attr)
-{
-  out_attr = attr_load_radiance_post(kg, attr);
-}
-
-[[node]]
 void node_attribute_density(float4 attr, float &out_attr)
 {
   out_attr = attr.x;

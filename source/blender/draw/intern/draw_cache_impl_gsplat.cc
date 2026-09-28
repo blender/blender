@@ -344,7 +344,11 @@ void GSplatEvalCache::ensure_attribute(PointCloud &pointcloud, int attrib_i)
 void GSplatEvalCache::ensure_compute_buffers(PointCloud &pointcloud)
 {
   static const GPUVertFormat ellipse_format = gpu::GenericVertexFormat<uint2>::format();
-  static const GPUVertFormat radiance_format = gpu::GenericVertexFormat<float2>::format();
+  static const GPUVertFormat radiance_format = [&]() {
+    GPUVertFormat format{};
+    GPU_vertformat_attr_add(&format, "radiance_comp_tx", gpu::VertAttrType::SFLOAT_16_16_16_16);
+    return format;
+  }();
   static const GPUUsageType buffer_usage_flag = GPU_USAGE_STATIC | GPU_USAGE_DEVICE_ONLY |
                                                 GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
 
