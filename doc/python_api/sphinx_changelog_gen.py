@@ -25,7 +25,7 @@ blender --background --factory-startup --python doc/python_api/sphinx_changelog_
         changelog --filepath-out doc/python_api/rst/change_log.rst
 
 # Api comparison can also run without Blender,
-# will by default generate changeloig between the last two available versions listed in the index,
+# will by default generate changelog between the last two available versions listed in the index,
 # unless input files are provided explicitly:
 python doc/python_api/sphinx_changelog_gen.py -- \
         --indexpath="path/to/api/docs/api_dump_index.json" \
