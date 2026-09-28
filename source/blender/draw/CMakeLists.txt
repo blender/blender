@@ -554,7 +554,7 @@ set(GLSL_SRC
   intern/shaders/draw_curves_lib.glsl
   intern/shaders/draw_curves_topology_comp.glsl
   intern/shaders/draw_shape_lib.glsl
-  intern/shaders/draw_command_generate_comp.glsl
+  intern/shaders/draw_command_generate.bsl.hh
   intern/shaders/draw_debug_draw_display_frag.glsl
   intern/shaders/draw_debug_draw_display_vert.glsl
   intern/shaders/draw_grease_pencil_lib.glsl
@@ -575,7 +575,7 @@ set(GLSL_SRC
   intern/shaders/draw_view.bsl.hh
   intern/shaders/draw_view_reconstruction_lib.glsl
   intern/shaders/draw_viewlayer.bsl.hh
-  intern/shaders/draw_visibility_comp.glsl
+  intern/shaders/draw_visibility.bsl.hh
   intern/shaders/draw_volume.bsl.hh
 
   intern/draw_attribute_shader_shared.hh
