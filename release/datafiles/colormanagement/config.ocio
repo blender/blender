@@ -44,6 +44,10 @@ roles:
   # Non-color data
   data: Non-Color
 
+  # Interpretation of Rec.709 tagged video for input and output.
+  # Change to Rec.1886 to match the Color Interop Forum.
+  video_rec709: sRGB
+
   # For interop between configs, and to determine XYZ for rendering
   aces_interchange: ACES2065-1
   cie_xyz_d65_interchange: Linear CIE-XYZ D65

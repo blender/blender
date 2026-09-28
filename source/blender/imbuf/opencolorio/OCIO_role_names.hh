@@ -12,3 +12,4 @@
 #define OCIO_ROLE_DEFAULT_FLOAT "default_float"
 #define OCIO_ROLE_DEFAULT_SEQUENCER "default_sequencer"
 #define OCIO_ROLE_ACES_INTERCHANGE "aces_interchange"
+#define OCIO_ROLE_VIDEO_REC709 "video_rec709"

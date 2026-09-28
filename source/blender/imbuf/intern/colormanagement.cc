@@ -152,6 +152,7 @@ static char global_role_default_byte[MAX_COLORSPACE_NAME];
 static char global_role_default_float[MAX_COLORSPACE_NAME];
 static char global_role_default_sequencer[MAX_COLORSPACE_NAME];
 static char global_role_aces_interchange[MAX_COLORSPACE_NAME];
+static char global_role_video_rec709[MAX_COLORSPACE_NAME];
 
 /* Defaults from the config that never change with working space. */
 static char global_role_scene_linear_default[MAX_COLORSPACE_NAME];
@@ -285,6 +286,7 @@ static bool colormanage_load_config(const ocio::Config &config, const bool valid
   char role_default_byte[MAX_COLORSPACE_NAME];
   char role_default_float[MAX_COLORSPACE_NAME];
   char role_aces_interchange[MAX_COLORSPACE_NAME];
+  char role_video_rec709[MAX_COLORSPACE_NAME] = "";
 
   ok &= colormanage_role_color_space_name_get(config, role_data, OCIO_ROLE_DATA, nullptr);
   ok &= colormanage_role_color_space_name_get(
@@ -302,6 +304,15 @@ static bool colormanage_load_config(const ocio::Config &config, const bool valid
 
   colormanage_role_color_space_name_get(
       config, role_aces_interchange, OCIO_ROLE_ACES_INTERCHANGE, nullptr, true);
+
+  /* Default to sRGB, see #video_rec709_colorspace. */
+  const ColorSpace *video_rec709 = config.get_color_space(OCIO_ROLE_VIDEO_REC709);
+  if (video_rec709 == nullptr) {
+    video_rec709 = config.get_color_space_by_interop_id("srgb_rec709_display");
+  }
+  if (video_rec709) {
+    STRNCPY_UTF8(role_video_rec709, video_rec709->name().c_str());
+  }
 
   if (config.get_num_displays() == 0) {
     CLOG_ERROR(&LOG, "Could not find any displays");
@@ -336,6 +347,7 @@ static bool colormanage_load_config(const ocio::Config &config, const bool valid
   STRNCPY(global_role_default_byte, role_default_byte);
   STRNCPY(global_role_default_float, role_default_float);
   STRNCPY(global_role_aces_interchange, role_aces_interchange);
+  STRNCPY(global_role_video_rec709, role_video_rec709);
 
   for (const int display_index : IndexRange(config.get_num_displays())) {
     const ocio::Display *display = config.get_display_by_index(display_index);
@@ -1432,13 +1444,40 @@ static const int CICP_MATRIX_RGB = 0;
 static const int CICP_MATRIX_BT709 = 1;
 static const int CICP_MATRIX_REC2020_NCL = 9;
 /* Range */
+static const int CICP_RANGE_LIMITED = 0;
 static const int CICP_RANGE_FULL = 1;
 
+/* Color space for Rec.709 tagged video, from the video_rec709 role.
+ *
+ * The Color Interop Forum and broadcast standards like Rec.1886 consider this to be gamma
+ * 2.4, however many applications consider this to be sRGB, or gamma 1.961 on macOS. This
+ * includes video players, browsers, YouTube uploads, and screen recording software.
+ *
+ * So, Blender by default writes sRGB video as Rec.709, and also defaults to sRGB output.
+ * Keeping the input and output defaults matched means that only cutting the video will
+ * not change colors, even if they might be in another colorspace. */
+static const ColorSpace *video_rec709_colorspace()
+{
+  return (global_role_video_rec709[0]) ? g_config()->get_color_space(global_role_video_rec709) :
+                                         nullptr;
+}
+
 bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
-                                       const ColorManagedFileOutput /*output*/,
+                                       const ColorManagedFileOutput output,
                                        const bool rgb_matrix,
                                        int cicp[4])
 {
+  if (output == ColorManagedFileOutput::Video && colorspace == video_rec709_colorspace()) {
+    /* Ambiguous BT.709 TRC, see #video_rec709_colorspace for details.
+     * Also use limited range to match existing Blender behavior and avoid potential
+     * incompatibilities in some software. */
+    cicp[0] = CICP_PRI_REC709;
+    cicp[1] = CICP_TRC_BT709;
+    cicp[2] = (rgb_matrix) ? CICP_MATRIX_RGB : CICP_MATRIX_BT709;
+    cicp[3] = (rgb_matrix) ? CICP_RANGE_FULL : CICP_RANGE_LIMITED;
+    return true;
+  }
+
   const StringRefNull interop_id = colorspace->interop_id();
   if (interop_id.is_empty()) {
     return false;
@@ -1589,7 +1628,8 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
     interop_id = "blender:g24_rec2020_display";
   }
   else if (cicp[0] == CICP_PRI_REC709 && cicp[1] == CICP_TRC_BT709) {
-    interop_id = "g24_rec709_display";
+    /* Ambiguous BT.709 TRC, see #video_rec709_colorspace for details. */
+    return video_rec709_colorspace();
   }
   else if (cicp[0] == CICP_PRI_P3D65 && ELEM(cicp[1], CICP_TRC_SRGB, CICP_TRC_BT709)) {
     interop_id = "srgb_p3d65_display";
@@ -1610,10 +1650,7 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
     interop_id = "lin_ciexyzd65_scene";
   }
   else if (cicp[0] == CICP_PRI_UNSPECIFIED && cicp[1] == CICP_TRC_UNSPECIFIED) {
-    /* Previous Blender behaviour was to tag sRGB as Rec709 to help roundtripping
-     * and avoid color shifts between Blender and other players.
-     * We now try to explicitly tag unknown media as "unknown", but can read it back
-     * as sRGB which is the default behaviour of many players */
+    /* Read unspecified color spaces as sRGB. */
     interop_id = "srgb_rec709_display";
   }
 
