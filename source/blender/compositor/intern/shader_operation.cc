@@ -520,11 +520,12 @@ void ShaderOperation::declare_operation_input(const bNodeSocket &input_socket,
   std::string input_identifier = "input" + std::to_string(input_index);
 
   /* Declare the input descriptor for this input and prefer to declare its type to be the same as
-   * the type of the output socket because doing type conversion in the shader is much cheaper. An
+   * the type of the output because doing type conversion in the shader is much cheaper. An
    * exception is when the output is a single value only type, which is not supported on GPU, so we
    * assume the input type. */
   InputDescriptor input_descriptor = input_descriptor_from_input_socket(&input_socket);
-  const ResultType output_type = get_node_socket_result_type(&output_socket);
+  Result &result = node_tree_evaluator_.get_result_from_output_socket(output_socket);
+  const ResultType output_type = result.type();
   if (!Result::is_single_value_only_type(output_type)) {
     input_descriptor.type = output_type;
   }

@@ -414,10 +414,10 @@ mf::Variable *MultiFunctionProcedureOperation::get_multi_function_input_variable
   const std::string input_identifier = "input" + std::to_string(input_index);
 
   /* Declare the input descriptor for this input and prefer to declare its type to be the same as
-   * the type of the output socket because doing type conversion in the multi-function procedure is
+   * the type of the output because doing type conversion in the multi-function procedure is
    * cheaper. */
   InputDescriptor input_descriptor = input_descriptor_from_input_socket(&input_socket);
-  input_descriptor.type = get_node_socket_result_type(&output_socket);
+  input_descriptor.type = result.type();
   declare_input_descriptor(input_identifier, input_descriptor);
 
   mf::Variable &variable = procedure_builder_.add_input_parameter(
