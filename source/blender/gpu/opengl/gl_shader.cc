@@ -895,17 +895,6 @@ std::string GLShader::geometry_layout_declare(const ShaderCreateInfo &info) cons
   return ss.str();
 }
 
-static StageInterfaceInfo *find_interface_by_name(
-    const Span<ShaderCreateInfo::StageInterfaceInfoHandle> ifaces, const StringRefNull &name)
-{
-  for (auto [iface, cond] : ifaces) {
-    if (iface->instance_name == name) {
-      return iface;
-    }
-  }
-  return nullptr;
-}
-
 std::string GLShader::geometry_interface_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
