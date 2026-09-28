@@ -8,10 +8,7 @@
 
 #pragma once
 
-#include "draw_view_infos.hh"
-#include "gpu_index_load_infos.hh"
-
-#include "draw_intersect_lib.glsl"
+#include "draw_intersect.bsl.hh"
 #include "workbench_shader_shared.hh"
 
 namespace workbench::shadow::visibility {
@@ -19,8 +16,7 @@ namespace workbench::shadow::visibility {
 struct Resources {
   [[compilation_constant]] const bool dynamic_pass_selection;
 
-  [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo draw_view_culling;
+  [[resource_table]] draw::ViewCulling view_culling;
   [[storage(0, read)]] const ObjectBounds (&bounds_buf)[];
 
   [[push_constant]] const int resource_len;
@@ -57,7 +53,7 @@ struct Resources {
 
   bool intersects_near_plane(IsectBox box)
   {
-    float4 near_plane = drw_view_culling().frustum_planes.planes[4];
+    float4 near_plane = view_culling.get(0).frustum_planes.planes[4];
     bool on_positive_side = false;
     bool on_negative_side = false;
 

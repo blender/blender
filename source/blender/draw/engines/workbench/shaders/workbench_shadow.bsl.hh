@@ -19,13 +19,10 @@
 
 #pragma once
 
-#include "draw_view_infos.hh"
-#include "gpu_index_load_infos.hh"
-
-#include "draw_model_lib.glsl"
-#include "draw_view_lib.glsl"
+#include "draw_model.bsl.hh"
+#include "draw_view.bsl.hh"
 #include "gpu_shader_attribute_load_lib.glsl"
-#include "gpu_shader_index_load_lib.glsl"
+#include "gpu_shader_index_load.bsl.hh"
 #include "gpu_shader_utildefines.bsl.hh"
 #include "workbench_shader_shared.hh"
 
@@ -49,9 +46,10 @@ struct GeomOut {
 };
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo gpu_index_buffer_load;
-  [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo draw_modelmat;
+  [[resource_table]] IndexLoad index_load;
+
+  [[resource_table]] draw::View views;
+  [[resource_table]] draw::Model models;
 
   /* WORKAROUND: Needed to support OpenSubdiv vertex format. Should be removed. */
   [[push_constant]] const int2 gpu_attr_3;
@@ -64,20 +62,25 @@ struct Resources {
 
   VertIn input_assembly(uint in_vertex_id) const
   {
-    uint v_i = gpu_index_load(in_vertex_id);
+    uint v_i = index_load.load(in_vertex_id);
 
     VertIn vert_in;
-    vert_in.lP = gpu_attr_load_float3(this->pos, this->gpu_attr_3, v_i);
+    vert_in.lP = float3(pos[gpu_attr_load_index(v_i, gpu_attr_3) + 0],
+                        pos[gpu_attr_load_index(v_i, gpu_attr_3) + 1],
+                        pos[gpu_attr_load_index(v_i, gpu_attr_3) + 2]);
     return vert_in;
   }
 
-  VertOut vertex_main(VertIn vert_in) const
+  VertOut vertex_main(VertIn vert_in, uint resource_id) const
   {
     VertOut vert_out;
     vert_out.lP = vert_in.lP;
     float3 L = this->pass_data.light_direction_ws;
 
-    float3 ws_P = drw_point_object_to_world(vert_in.lP);
+    ObjectMatrices model = models.get(resource_id);
+    ViewMatrices view = views.get(0);
+
+    float3 ws_P = model.point_object_to_world(vert_in.lP);
     float extrude_distance = 1e5f;
     float L_FP = dot(L, this->pass_data.far_plane.xyz);
     if (L_FP > 0.0f) {
@@ -87,8 +90,9 @@ struct Resources {
       /* Ensure we don't overlap the far plane. */
       extrude_distance -= 1e-3f;
     }
-    vert_out.backPosition = drw_point_world_to_homogenous(ws_P + L * extrude_distance);
-    vert_out.frontPosition = drw_point_world_to_homogenous(drw_point_object_to_world(vert_in.lP));
+    vert_out.backPosition = view.point_world_to_homogenous(ws_P + L * extrude_distance);
+    vert_out.frontPosition = view.point_world_to_homogenous(
+        model.point_object_to_world(vert_in.lP));
     return vert_out;
   }
 };
@@ -176,11 +180,12 @@ struct GeometryShaderEmulator {
     emit_triangle_vert(2, out_vertex_id, geom_out);
   }
 
-  void geometry_main([[resource_table]] const Resources &srt,
+  void geometry_main(const Resources &srt,
                      VertOut geom_in[4],
                      uint out_vertex_id,
                      uint out_primitive_id,
-                     uint out_invocation_id)
+                     uint out_invocation_id,
+                     uint resource_id)
   {
     float3 v10 = geom_in[0].lP - geom_in[1].lP;
     float3 v12 = geom_in[2].lP - geom_in[1].lP;
@@ -189,7 +194,7 @@ struct GeometryShaderEmulator {
     float3 n1 = cross(v12, v10);
     float3 n2 = cross(v13, v12);
 
-#ifdef DEGENERATE_TRIS_WORKAROUND
+#if 0 /* DEGENERATE_TRIS_WORKAROUND */
     /* Check if area is null */
     float2 faces_area = float2(length_squared(n1), length_squared(n2));
     bool2 degen_faces = lessThan(abs(faces_area), float2(DEGENERATE_TRIS_AREA_THRESHOLD));
@@ -199,8 +204,9 @@ struct GeometryShaderEmulator {
       return;
     }
 #endif
+    ObjectMatrices model = srt.models.get(resource_id);
 
-    float3 ls_light_direction = drw_normal_world_to_object(
+    float3 ls_light_direction = model.normal_world_to_object(
         float3(srt.pass_data.light_direction_ws));
 
     float2 facing = float2(dot(n1, ls_light_direction), dot(n2, ls_light_direction));
@@ -210,7 +216,7 @@ struct GeometryShaderEmulator {
     /* WATCH: maybe unpredictable in some cases. */
     bool is_manifold = any(notEqual(geom_in[0].lP, geom_in[3].lP));
 
-#ifdef DEGENERATE_TRIS_WORKAROUND
+#if 0 /* DEGENERATE_TRIS_WORKAROUND */
     if (srt.double_manifold == false) [[static_branch]] {
       /* If the mesh is known to be manifold and we don't use double count,
        * only create an quad if the we encounter a facing geom. */
@@ -243,14 +249,17 @@ struct GeometryShaderEmulator {
   void geometry_main_caps([[resource_table]] const Resources &srt,
                           VertOut geom_in[3],
                           uint out_vertex_id,
-                          uint out_invocation_id)
+                          uint out_invocation_id,
+                          uint resource_id)
   {
     float3 v10 = geom_in[0].lP - geom_in[1].lP;
     float3 v12 = geom_in[2].lP - geom_in[1].lP;
 
     float3 Ng = cross(v12, v10);
 
-    float3 ls_light_direction = drw_normal_world_to_object(
+    ObjectMatrices model = srt.models.get(resource_id);
+
+    float3 ls_light_direction = model.normal_world_to_object(
         float3(srt.pass_data.light_direction_ws));
 
     float facing = dot(Ng, ls_light_direction);
@@ -275,7 +284,9 @@ struct GeometryShaderEmulator {
 
 [[vertex]]
 void vert_main([[resource_table]] const Resources &srt,
+               [[resource_table]] const draw::Resource &res,
                [[vertex_id]] const int vert_id,
+               [[instance_index]] const int inst_index,
                [[position]] float4 &out_position)
 {
   /* Line adjacency primitive. */
@@ -302,6 +313,8 @@ void vert_main([[resource_table]] const Resources &srt,
   uint out_invocation_id = (uint(vert_id) / output_vertex_count_per_invocation) %
                            output_invocation_count;
 
+  uint resource_id = res.get(inst_index).resource_id<1>();
+
   VertIn vert_in[input_primitive_vertex_count];
   vert_in[0] = srt.input_assembly(in_primitive_first_vertex + 0u);
   vert_in[1] = srt.input_assembly(in_primitive_first_vertex + 1u);
@@ -309,21 +322,23 @@ void vert_main([[resource_table]] const Resources &srt,
   vert_in[3] = srt.input_assembly(in_primitive_first_vertex + 3u);
 
   VertOut vert_out[input_primitive_vertex_count];
-  vert_out[0] = srt.vertex_main(vert_in[0]);
-  vert_out[1] = srt.vertex_main(vert_in[1]);
-  vert_out[2] = srt.vertex_main(vert_in[2]);
-  vert_out[3] = srt.vertex_main(vert_in[3]);
+  vert_out[0] = srt.vertex_main(vert_in[0], resource_id);
+  vert_out[1] = srt.vertex_main(vert_in[1], resource_id);
+  vert_out[2] = srt.vertex_main(vert_in[2], resource_id);
+  vert_out[3] = srt.vertex_main(vert_in[3], resource_id);
 
   GeometryShaderEmulator gs;
   /* Discard by default. */
   gs.out_pos = float4(NAN_FLT);
-  gs.geometry_main(srt, vert_out, out_vertex_id, out_primitive_id, out_invocation_id);
+  gs.geometry_main(srt, vert_out, out_vertex_id, out_primitive_id, out_invocation_id, resource_id);
   out_position = gs.out_pos;
 }
 
 [[vertex]]
 void vert_main_caps([[resource_table]] const Resources &srt,
+                    [[resource_table]] const draw::Resource &res,
                     [[vertex_id]] const int vert_id,
+                    [[instance_index]] const int inst_index,
                     [[position]] float4 &out_position)
 {
   /* Triangle list primitive. */
@@ -345,20 +360,22 @@ void vert_main_caps([[resource_table]] const Resources &srt,
   uint out_invocation_id = (uint(vert_id) / output_vertex_count_per_invocation) %
                            output_invocation_count;
 
+  uint resource_id = res.get(inst_index).resource_id<1>();
+
   VertIn vert_in[input_primitive_vertex_count];
   vert_in[0] = srt.input_assembly(in_primitive_first_vertex + 0u);
   vert_in[1] = srt.input_assembly(in_primitive_first_vertex + 1u);
   vert_in[2] = srt.input_assembly(in_primitive_first_vertex + 2u);
 
   VertOut vert_out[input_primitive_vertex_count];
-  vert_out[0] = srt.vertex_main(vert_in[0]);
-  vert_out[1] = srt.vertex_main(vert_in[1]);
-  vert_out[2] = srt.vertex_main(vert_in[2]);
+  vert_out[0] = srt.vertex_main(vert_in[0], resource_id);
+  vert_out[1] = srt.vertex_main(vert_in[1], resource_id);
+  vert_out[2] = srt.vertex_main(vert_in[2], resource_id);
 
   GeometryShaderEmulator gs;
   /* Discard by default. */
   gs.out_pos = float4(NAN_FLT);
-  gs.geometry_main_caps(srt, vert_out, out_vertex_id, out_invocation_id);
+  gs.geometry_main_caps(srt, vert_out, out_vertex_id, out_invocation_id, resource_id);
   out_position = gs.out_pos;
 }
 
