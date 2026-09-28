@@ -15,6 +15,9 @@
 
 #include "BLI_listbase.hh"
 
+#include "RNA_access.hh"
+#include "RNA_prototypes.hh"
+
 #include "BLT_translation.hh"
 
 #include "../outliner_intern.hh"
@@ -86,28 +89,29 @@ void TreeElementModifier::expand(SpaceOutliner & /*space_outliner*/) const
 {
   if (md_.type == MODIFIER_TYPE) {
     ModifierData *md = md_.md;
-    if (md->type == eModifierType_Lattice) {
-      add_linked_object((reinterpret_cast<LatticeModifierData *>(md))->object);
-    }
-    else if (md->type == eModifierType_Curve) {
-      add_linked_object((reinterpret_cast<CurveModifierData *>(md))->object);
-    }
-    else if (md->type == eModifierType_Armature) {
-      add_linked_object((reinterpret_cast<ArmatureModifierData *>(md))->object);
-    }
-    else if (md->type == eModifierType_Hook) {
-      add_linked_object((reinterpret_cast<HookModifierData *>(md))->object);
-    }
-    else if (md->type == eModifierType_Nodes) {
-      if (bNodeTree *node_group = (reinterpret_cast<NodesModifierData *>(md))->node_group) {
-        add_element<TreeElementLinkedNodeTree>({}, *reinterpret_cast<ID *>(node_group));
+    PointerRNA ptr_mod = RNA_pointer_create_discrete(&object_.id, RNA_Modifier, md);
+    PropertyRNA *iterprop = RNA_struct_iterator_property(ptr_mod.type);
+    RNA_PROP_BEGIN (&ptr_mod, itemptr, iterprop) {
+      PropertyRNA *prop = static_cast<PropertyRNA *>(itemptr.data);
+      if (RNA_property_type(prop) != PROP_POINTER) {
+        continue;
+      }
+      const PointerRNA idptr = RNA_property_pointer_get(&ptr_mod, prop);
+      if (!idptr.has_data()) {
+        continue;
+      }
+
+      if (RNA_struct_is_a(idptr.type, RNA_Object)) {
+        add_linked_object(idptr.data_as<Object>());
+      }
+      else if (RNA_struct_is_a(idptr.type, RNA_ParticleSystem)) {
+        add_element<TreeElementParticleSystem>({}, object_, *idptr.data_as<ParticleSystem>());
+      }
+      else if (RNA_struct_is_a(idptr.type, RNA_NodeTree)) {
+        add_element<TreeElementLinkedNodeTree>({}, *idptr.data_as<ID>());
       }
     }
-    else if (md->type == eModifierType_ParticleSystem) {
-      ParticleSystem *psys = (reinterpret_cast<ParticleSystemModifierData *>(md))->psys;
-
-      add_element<TreeElementParticleSystem>({}, object_, *psys);
-    }
+    RNA_PROP_END;
   }
   if (md_.type == GPENCIL_MODIFIER_TYPE) {
     GpencilModifierData *md = md_.gp_md;
