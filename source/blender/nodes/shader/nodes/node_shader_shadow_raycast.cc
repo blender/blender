@@ -34,6 +34,11 @@ static int node_shader_gpu_shadow_raycast(GPUMaterial *mat,
                                           GPUNodeStack *in,
                                           GPUNodeStack *out)
 {
+  if (!in[0].link) {
+    /* Error: not linked to a light accumulation node */
+    return false;
+  }
+
   if (!in[1].link) {
     GPU_link(mat, "world_position_get", GPU_shading_data(), &in[1].link);
   }
