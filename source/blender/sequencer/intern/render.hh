@@ -85,7 +85,8 @@ ImBuf *seq_render_mask(Depsgraph *depsgraph,
 /* Converts image to sequencer color space, if needed. */
 void ensure_ibuf_is_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_float);
 
-void seq_imbuf_assign_spaces(const Scene *scene, ImBuf *ibuf);
+/** Set sequencer colorspace on a newly allocated image buffer. */
+void seq_imbuf_assign_sequencer_space(const Scene *scene, ImBuf *ibuf);
 
 StripScreenQuad get_strip_screen_quad(const RenderData *context, const Strip *strip);
 
