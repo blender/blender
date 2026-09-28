@@ -1604,12 +1604,18 @@ class NodeTreeMainUpdater {
       fallback_zones = ntree.runtime->last_valid_zones.get();
     }
 
+    /* Clear the validity from the previous update first. The shader tagging below traverses the
+     * tree with an iterator that skips invalid links, so it would otherwise not see the links its
+     * own errors invalidated last time. */
+    for (bNodeLink &link : ntree.links) {
+      link.flag |= NODE_LINK_VALID;
+    }
+
     if (ntree.type == NTREE_SHADER) {
       this->shader_tree_tag_by_ancestor(ntree);
     }
 
     for (bNodeLink &link : ntree.links) {
-      link.flag |= NODE_LINK_VALID;
       if (!link.fromsock->is_available() || !link.tosock->is_available()) {
         link.flag &= ~NODE_LINK_VALID;
         continue;
