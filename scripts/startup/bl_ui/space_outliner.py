@@ -461,6 +461,11 @@ class OUTLINER_PT_filter(Panel):
 
             row = layout.row(align=True)
             row.prop(space, "show_mode_column", text="Show Mode Column")
+
+            if display_mode in {'VIEW_LAYER', 'SCENES'}:
+                row = layout.row(align=True)
+                row.prop(space, "show_users_column", text="Show Users Column")
+
             layout.separator()
 
         if display_mode == 'LIBRARY_OVERRIDES' and space.lib_override_view_mode == 'PROPERTIES' and bpy.data.libraries:

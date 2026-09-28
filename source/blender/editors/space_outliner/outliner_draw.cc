@@ -1235,6 +1235,12 @@ static void outliner_draw_restrictbuts(ui::Block *block,
   int restrict_column_offset = 0;
 
   /* This will determine the order of drawing from RIGHT to LEFT. */
+  if (ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES)) {
+    /* Users column is the rightmost in both View Layer and Scenes; reserve its slot. */
+    if (space_outliner->flag & SO_USERS_COLUMN) {
+      restrict_column_offset++;
+    }
+  }
   if (space_outliner->outlinevis == SO_VIEW_LAYER) {
     if (space_outliner->show_restrict_flags & SO_RESTRICT_INDIRECT_ONLY) {
       restrict_offsets.indirect_only = (++restrict_column_offset) * UI_UNIT_X + V2D_SCROLL_WIDTH;
@@ -1925,15 +1931,23 @@ static void outliner_draw_userbuts(ui::Block *block,
                                    const ARegion *region,
                                    const SpaceOutliner *space_outliner)
 {
+  const int xmax_offset = ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES) ?
+                              int(UI_UNIT_X + V2D_SCROLL_WIDTH) :
+                              int(OL_TOG_USER_BUTS_USERS);
+
   tree_iterator::all_open(*space_outliner, [&](const TreeElement *te) {
     if (!outliner_is_element_in_view(te, &region->v2d)) {
       return;
     }
 
     const TreeStoreElem *tselem = TREESTORE(te);
-    ID *id = tselem->id;
 
-    if (tselem->type != TSE_SOME_ID || id->tag & ID_TAG_EXTRAUSER) {
+    if (tselem->type != TSE_SOME_ID && tselem->type != TSE_LAYER_COLLECTION) {
+      return;
+    }
+
+    ID *id = tselem->id;
+    if (!id || id->tag & ID_TAG_EXTRAUSER) {
       return;
     }
 
@@ -1950,7 +1964,7 @@ static void outliner_draw_userbuts(ui::Block *block,
       bt = uiDefBut(block,
                     ui::ButtonType::But,
                     overlay,
-                    int(region->v2d.cur.xmax - OL_TOG_USER_BUTS_USERS),
+                    int(region->v2d.cur.xmax - xmax_offset),
                     te->ys,
                     UI_UNIT_X,
                     UI_UNIT_Y,
@@ -1981,7 +1995,7 @@ static void outliner_draw_userbuts(ui::Block *block,
                            ui::ButtonType::IconToggle,
                            ID_FLAG_FAKEUSER,
                            ICON_FAKE_USER_OFF,
-                           int(region->v2d.cur.xmax - OL_TOG_USER_BUTS_USERS),
+                           int(region->v2d.cur.xmax - xmax_offset),
                            te->ys,
                            UI_UNIT_X,
                            UI_UNIT_Y,
@@ -3950,6 +3964,13 @@ void draw_outliner(const bContext *C, bool do_rebuild)
                                space_outliner,
                                &space_outliner->runtime->tree,
                                props_active);
+
+    /* For View Layer and Scenes, draw the optional users column as the rightmost column. */
+    if (ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES) &&
+        (space_outliner->flag & SO_USERS_COLUMN))
+    {
+      outliner_draw_userbuts(block, region, space_outliner);
+    }
   }
 
   /* Draw mode icons */

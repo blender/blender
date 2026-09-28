@@ -4651,6 +4651,13 @@ static void rna_def_space_outliner(BlenderRNA *brna)
       prop, "Expand on Focus", "Uncollapse the active item when scrolling it into view");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
 
+  prop = RNA_def_property(srna, "show_users_column", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SO_USERS_COLUMN);
+  RNA_def_property_ui_text(prop,
+                           "Show Users Column",
+                           "Display a column showing the number of users for each data-block");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
   /* Granular restriction column option. */
   prop = RNA_def_property(srna, "show_restrict_column_enable", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "show_restrict_flags", SO_RESTRICT_ENABLE);

@@ -156,6 +156,7 @@ enum eSpaceOutliner_Flag : short {
   SO_MODE_COLUMN = (1 << 6),
   SO_SCROLL_TO_ACTIVE = (1 << 7),
   SO_EXPAND_ON_FOCUS = (1 << 8),
+  SO_USERS_COLUMN = (1 << 9),
 };
 ENUM_OPERATORS(eSpaceOutliner_Flag)
 
