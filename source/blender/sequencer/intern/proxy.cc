@@ -689,9 +689,6 @@ static void image_proxy_builder_process(ProxyBuildContext &context,
             IMB_freeImBuf(ib);
           }
         }
-        if (ibuf) {
-          seq_imbuf_assign_spaces(context.scene, ibuf);
-        }
       }
     }
     else {
