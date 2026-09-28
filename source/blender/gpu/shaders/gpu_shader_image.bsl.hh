@@ -226,8 +226,8 @@ struct FragOutStereo {
     gpu_discard_fragment();
   }
 
-  frag_out.color_overlay = texelFetch(srt.imageTexture, texel, 0);
-  frag_out.color_image = texelFetch(srt.overlayTexture, texel, 0);
+  frag_out.color_overlay = texelFetch(srt.overlayTexture, texel, 0);
+  frag_out.color_image = texelFetch(srt.imageTexture, texel, 0);
 }
 
 }  // namespace builtin::image
