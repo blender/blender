@@ -1219,7 +1219,7 @@ static VArray<float> interpolate_corners(const bke::CurvesGeometry &curves)
         }
         case CURVE_TYPE_NURBS:
         case CURVE_TYPE_CATMULL_ROM: {
-          /* NUBRS and Catmull-Rom are continuous and don't have corners. */
+          /* NURBS and Catmull-Rom are continuous and don't have corners. */
           break;
         }
       }
