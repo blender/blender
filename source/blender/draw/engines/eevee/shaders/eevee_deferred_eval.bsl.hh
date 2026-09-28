@@ -562,6 +562,7 @@ PipelineGraphic light_single(fullscreen_vert,
                              },
                              ShadowRenderConstants{
                                  .shadow_random = true,
+                                 .shadow_static_noise = false,
                              });
 PipelineGraphic light_double(fullscreen_vert,
                              light_eval_frag,
@@ -571,6 +572,7 @@ PipelineGraphic light_double(fullscreen_vert,
                              },
                              ShadowRenderConstants{
                                  .shadow_random = true,
+                                 .shadow_static_noise = false,
                              });
 PipelineGraphic light_triple(fullscreen_vert,
                              light_eval_frag,
@@ -580,6 +582,7 @@ PipelineGraphic light_triple(fullscreen_vert,
                              },
                              ShadowRenderConstants{
                                  .shadow_random = true,
+                                 .shadow_static_noise = false,
                              });
 PipelineGraphic sphere_eval(fullscreen_vert,
                             sphere_eval_frag,
@@ -589,6 +592,8 @@ PipelineGraphic sphere_eval(fullscreen_vert,
                             },
                             ShadowRenderConstants{
                                 .shadow_random = true,
+                                /* Use static noise pattern to avoid non-deterministic captures. */
+                                .shadow_static_noise = true,
                             });
 PipelineGraphic planar_eval(fullscreen_vert,
                             planar_eval_frag,
@@ -601,6 +606,7 @@ PipelineGraphic planar_eval(fullscreen_vert,
                             },
                             ShadowRenderConstants{
                                 .shadow_random = true,
+                                .shadow_static_noise = false,
                             });
 
 }  // namespace eevee::deferred

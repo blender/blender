@@ -473,9 +473,13 @@ float shadow_eval(ShadowRenderData &srd,
   float2 random_pcf_2d = float2(0.0f);
 
   if (srd.constants.shadow_random) [[static_branch]] {
-    float3 blue_noise_3d = srd.util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).rgb;
-    random_shadow_3d = fract(blue_noise_3d + srd.sampling.rng_3D_get(SAMPLING_SHADOW_U));
-    random_pcf_2d = fract(blue_noise_3d.xy + srd.sampling.rng_2D_get(SAMPLING_SHADOW_X));
+    random_shadow_3d = srd.util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).rgb;
+    random_pcf_2d = random_shadow_3d.xy;
+
+    if (!srd.constants.shadow_static_noise) [[static_branch]] {
+      random_shadow_3d = fract(random_shadow_3d + srd.sampling.rng_3D_get(SAMPLING_SHADOW_U));
+      random_pcf_2d = fract(random_pcf_2d + srd.sampling.rng_2D_get(SAMPLING_SHADOW_X));
+    }
   }
 
   float distance_to_shadow;

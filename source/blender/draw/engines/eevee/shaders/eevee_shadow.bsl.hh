@@ -15,6 +15,8 @@ namespace eevee {
 
 struct ShadowRenderConstants {
   [[compilation_constant]] bool shadow_random;
+  /* Use a fixed seed for the noise input. */
+  [[compilation_constant]] bool shadow_static_noise;
 };
 
 /* Any entry point function using this should also use `[[texture_atomic]]`. */
