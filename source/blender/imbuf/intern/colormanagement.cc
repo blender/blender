@@ -1268,20 +1268,12 @@ void IMB_colormanagement_assign_byte_colorspace(ImBuf *ibuf, const char *name)
 
 const char *IMB_colormanagement_get_float_colorspace(const ImBuf *ibuf)
 {
-  if (ibuf->float_buffer.colorspace) {
-    return ibuf->float_buffer.colorspace->name().c_str();
-  }
-
-  return IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
+  return ibuf->float_colorspace().name().c_str();
 }
 
 const char *IMB_colormanagement_get_byte_colorspace(const ImBuf *ibuf)
 {
-  if (ibuf->byte_buffer.colorspace) {
-    return ibuf->byte_buffer.colorspace->name().c_str();
-  }
-
-  return IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
+  return ibuf->byte_colorspace().name().c_str();
 }
 
 const char *IMB_colormanagement_space_from_filepath_rules(const char *filepath)
@@ -2658,13 +2650,9 @@ static ImBuf *imbuf_ensure_editable(ImBuf *ibuf, ImBuf *colormanaged_ibuf, bool 
 
 static const char *imbuf_colorspace_name(const ImBuf *ibuf, const bool prefer_byte_buffer)
 {
-  return (ibuf->float_data() && !(prefer_byte_buffer && ibuf->byte_data())) ?
-             /* From float buffer. */
-             (ibuf->float_buffer.colorspace) ? ibuf->float_buffer.colorspace->name().c_str() :
-                                               global_role_scene_linear :
-             /* From byte buffer. */
-             (ibuf->byte_buffer.colorspace) ? ibuf->byte_buffer.colorspace->name().c_str() :
-                                              global_role_default_byte;
+  const bool use_float = ibuf->float_data() && !(prefer_byte_buffer && ibuf->byte_data());
+  const ColorSpace &colorspace = use_float ? ibuf->float_colorspace() : ibuf->byte_colorspace();
+  return colorspace.name().c_str();
 }
 
 ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,

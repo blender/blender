@@ -283,6 +283,9 @@ struct ImBuf {
 
   [[nodiscard]] bool colorspace_is_data() const;
 
+  [[nodiscard]] const ColorSpace &byte_colorspace() const;
+  [[nodiscard]] const ColorSpace &float_colorspace() const;
+
   [[nodiscard]] bool can_contain_alpha() const
   {
     return color_mode == ImColorMode::RGBA || color_mode == ImColorMode::BW_A;

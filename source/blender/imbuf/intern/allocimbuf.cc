@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cstddef>
 
+#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_partial_update.hh"
@@ -92,6 +93,26 @@ float *ImBuf::float_data_for_write()
         implicit_sharing::info_for_mem_free(new_data));
   }
   return const_cast<float *>(this->float_buffer.data);
+}
+
+const ColorSpace &ImBuf::byte_colorspace() const
+{
+  if (this->byte_buffer.colorspace) {
+    return *this->byte_buffer.colorspace;
+  }
+
+  return *IMB_colormanagement_space_get_named(
+      IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE));
+}
+
+const ColorSpace &ImBuf::float_colorspace() const
+{
+  if (this->float_buffer.colorspace) {
+    return *this->float_buffer.colorspace;
+  }
+
+  return *IMB_colormanagement_space_get_named(
+      IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
 }
 
 void IMB_free_float_pixels(ImBuf *ibuf)
