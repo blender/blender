@@ -129,9 +129,5 @@ void wm_stereo3d_set_cancel(bContext *C, wmOperator *op);
  * Initialize operator properties.
  */
 void wm_open_init_load_ui(wmOperator *op, bool use_prefs);
-/**
- * Return true if the script auto-execution should be cleared based on #WM_file_autoexec_init.
- */
-bool wm_open_init_use_scripts(wmOperator *op, bool use_prefs) ATTR_WARN_UNUSED_RESULT;
 
 }  // namespace blender
