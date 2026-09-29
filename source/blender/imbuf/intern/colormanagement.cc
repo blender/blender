@@ -3639,10 +3639,15 @@ void IMB_colormanagement_file_read_post(Main *bmain,
   imb_colormanagement_working_space_set_from_file(bmain, report_missing);
 
   /* Inform user when project config failed to load. */
-  const Span<ColorManagedConfigPath> requested = g_config_requested();
-  if (!requested.is_empty() && requested.first() != g_config_active()) {
-    bmain->colorspace.is_failed_opencolorio_config = true;
-    bmain->colorspace.is_missing_opencolorio_config = true;
+  for (const ColorManagedConfigPath &candidate : g_config_requested()) {
+    if (candidate == g_config_active()) {
+      break;
+    }
+    if (candidate.source == ColorManagedConfigSource::Project) {
+      bmain->colorspace.is_failed_opencolorio_config = true;
+      bmain->colorspace.is_missing_opencolorio_config = true;
+      break;
+    }
   }
 
   /* Convert editable assets in the previous file, before they are moved to the new file. */
