@@ -12,6 +12,10 @@
 #  include "GPU_shader_shared_utils.hh"
 #endif
 
+#ifdef GPU_SHADER
+#  include "gpu_shader_compat.hh"
+#endif
+
 /* Copy of DNA enum in `DNA_curves_types.h`. */
 enum [[host_shared]] CurveType : uint32_t {
   CURVE_TYPE_CATMULL_ROM = 0u,
