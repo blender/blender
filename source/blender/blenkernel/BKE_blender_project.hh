@@ -167,6 +167,11 @@ class BlenderProject {
   bool is_dirty = true;
 
   /**
+   * Show the OpenColorIO config a path even when empty or a preset, runtime UI state only.
+   */
+  bool ocio_config_use_path = false;
+
+  /**
    * Set the project's name.
    *
    * Also marks the project as dirty.

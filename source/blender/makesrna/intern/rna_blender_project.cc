@@ -47,6 +47,42 @@ const EnumPropertyItem rna_enum_project_variable_string_subtype_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+enum class ProjectOCIOConfig {
+  Blender = 0,
+  ACES_2_0_Studio = 1,
+  ACES_1_3_Studio = 2,
+  Path = 3,
+};
+
+static const EnumPropertyItem rna_enum_project_ocio_config_items[] = {
+    {int(ProjectOCIOConfig::Blender),
+     "BLENDER",
+     0,
+     "Blender",
+     "The default Blender OpenColorIO configuration. Works with both ACES workflows "
+     "and Blender specific views and color spaces"},
+    {int(ProjectOCIOConfig::ACES_2_0_Studio),
+     "ACES_2_0_STUDIO",
+     0,
+     "ACES 2.0 Studio",
+     "Academy Color Encoding System 2.0, Studio Config v4.0.0. Less compatible with existing "
+     "assets and add-ons, but more consistent with other applications using the same "
+     "configuration"},
+    {int(ProjectOCIOConfig::ACES_1_3_Studio),
+     "ACES_1_3_STUDIO",
+     0,
+     "ACES 1.3 Studio",
+     "Academy Color Encoding System 1.3, Studio Config v2.2.0. Less compatible with existing "
+     "assets and add-ons, but more consistent with other applications using the same "
+     "configuration"},
+    {int(ProjectOCIOConfig::Path),
+     "PATH",
+     0,
+     "Path",
+     "OpenColorIO configuration from a file path or ocio:// URI"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 }  // namespace blender
 
 #ifdef RNA_RUNTIME
@@ -455,6 +491,67 @@ void rna_ProjectVariables_move(BlenderProject *project,
 
 /* --------------------------------------------------------- */
 
+/* Purely runtime presets and enum for easily setting common configs paths from the UI. */
+struct ProjectOCIOConfigPreset {
+  ProjectOCIOConfig value;
+  const char *uri;
+};
+
+static const ProjectOCIOConfigPreset project_ocio_config_presets[] = {
+    {ProjectOCIOConfig::ACES_1_3_Studio, "ocio://studio-config-v2.2.0_aces-v1.3_ocio-v2.4"},
+    {ProjectOCIOConfig::ACES_2_0_Studio, "ocio://studio-config-v4.0.0_aces-v2.0_ocio-v2.5"},
+};
+
+static int rna_BlenderProject_ocio_config_get(PointerRNA *ptr)
+{
+  ProjectOCIOConfig ocio_config = ProjectOCIOConfig::Path;
+  bke::with_blender_project_read_lock([&] {
+    const bke::BlenderProject *project = ptr->data_as<bke::BlenderProject>();
+    if (project->ocio_config_use_path) {
+      return;
+    }
+
+    /* Determine preset from the path. */
+    const StringRefNull path = project->get_ocio_config_path();
+    if (path.is_empty()) {
+      ocio_config = ProjectOCIOConfig::Blender;
+      return;
+    }
+    for (const auto &preset : project_ocio_config_presets) {
+      if (path == preset.uri) {
+        ocio_config = preset.value;
+        return;
+      }
+    }
+  });
+  return int(ocio_config);
+}
+
+static void rna_BlenderProject_ocio_config_set(PointerRNA *ptr, const int value)
+{
+  const ProjectOCIOConfig ocio_config = ProjectOCIOConfig(value);
+  bke::with_blender_project_write_lock([&] {
+    bke::BlenderProject *project = ptr->data_as<bke::BlenderProject>();
+
+    /* Keep the existing path for the user to edit, even if it matches a preset. */
+    project->ocio_config_use_path = ocio_config == ProjectOCIOConfig::Path;
+    if (ocio_config == ProjectOCIOConfig::Path) {
+      return;
+    }
+
+    StringRefNull path = "";
+    for (const auto &preset : project_ocio_config_presets) {
+      if (ocio_config == preset.value) {
+        path = preset.uri;
+        break;
+      }
+    }
+    if (project->get_ocio_config_path() != path) {
+      project->set_ocio_config_path(path);
+    }
+  });
+}
+
 static void rna_BlenderProject_ocio_config_path_get(PointerRNA *ptr, char *value)
 {
   bke::with_blender_project_read_lock([&] {
@@ -848,6 +945,14 @@ static void rna_def_blender_project(BlenderRNA *brna)
       prop, "rna_BlenderProject_root_path_get", "rna_BlenderProject_root_path_length", nullptr);
   RNA_def_property_ui_text(prop, "Root Folder", "The path to the root folder of the project");
 
+  prop = RNA_def_property(srna, "ocio_config", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_project_ocio_config_items);
+  RNA_def_property_enum_funcs(
+      prop, "rna_BlenderProject_ocio_config_get", "rna_BlenderProject_ocio_config_set", nullptr);
+  RNA_def_property_ui_text(
+      prop, "OpenColorIO Configuration", "OpenColorIO configuration to use for this project");
+  RNA_def_property_update(prop, 0, "rna_BlenderProject_ui_update");
+
   prop = RNA_def_property(srna, "ocio_config_path", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_maxlength(prop, FILE_MAX);
   RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_TEMPLATES);
@@ -859,10 +964,10 @@ static void rna_def_blender_project(BlenderRNA *brna)
   RNA_def_property_string_filepath_filter_func(prop, "rna_BlenderProject_ocio_config_path_filter");
   RNA_def_property_ui_text(
       prop,
-      "OpenColorIO Configuration",
-      "Path to the OpenColorIO configuration to use for this project, May be an absolute file "
+      "OpenColorIO Configuration Path",
+      "Path to the OpenColorIO configuration to use for this project. May be an absolute file "
       "path, project relative path with {project_root}, or an ocio:// built-in OpenColorIO "
-      "config. When empty, the default Blender configuration is used");
+      "config");
   RNA_def_property_update(prop, 0, "rna_BlenderProject_update");
 
   prop = RNA_def_property(srna, "active_variable_index", PROP_INT, PROP_NONE);
