@@ -90,10 +90,21 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
 
     Array<int> result;
 
+    /* With a full mask, we can run query's in the tree's internal index order, which can be much
+     * faster because neighboring indices will be spatially contiguous and therefore make better
+     * use of caches during traversal. Even with scattered writes from multiple threads, lookup
+     * cost dominates and this is a significant performance improvement. */
+    const bool query_all = mask.size() == domain_size;
+
     if (group_ids.is_single()) {
       result.reinitialize(mask.min_array_size());
       const KDTreeNew<float3> tree(positions);
-      find_neighbors(tree, positions, mask, result);
+      if (query_all) {
+        find_neighbors(tree, positions, tree.tree_indices(), result);
+      }
+      else {
+        find_neighbors(tree, positions, mask, result);
+      }
       return VArray<int>::from_container(std::move(result));
     }
     const VArraySpan<int> group_ids_span(group_ids);
@@ -108,10 +119,10 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
         group_indices, groups_num, tree_offset_data, tree_index_data);
 
     /* When only some elements are looked up, they are grouped separately. */
-    GroupedSpan<int> lookup_indices_by_group = tree_indices_by_group;
+    GroupedSpan<int> lookup_indices_by_group;
     Array<int> lookup_offset_data;
     Array<int> lookup_index_data;
-    if (mask.size() == domain_size) {
+    if (query_all) {
       result.reinitialize(domain_size);
     }
     else {
@@ -131,7 +142,10 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
         LinearAllocator<> tree_memory;
         tree_memory.provide_buffer(tree_buffer);
         const KDTreeNew<float3> tree(positions, tree_indices_by_group[group_index], tree_memory);
-        find_neighbors(tree, positions, lookup_indices_by_group[group_index], result);
+        find_neighbors(tree,
+                       positions,
+                       query_all ? tree.tree_indices() : lookup_indices_by_group[group_index],
+                       result);
       }
     });
 
