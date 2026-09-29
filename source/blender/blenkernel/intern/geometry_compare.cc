@@ -17,7 +17,6 @@
 
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
@@ -151,50 +150,12 @@ class IndexMapping {
 };
 
 /**
- * Sort the indices using the values. For vectors of floats, the sorting happens based on the given
- * component.
+ * Sort the indices using the values.
  */
-template<typename T>
-static void sort_indices(MutableSpan<int> indices, const Span<T> values, const int component_i)
+template<typename T> static void sort_indices(MutableSpan<int> indices, const Span<T> values)
 {
-  /* We need to have an appropriate comparison function, depending on the type. */
-  std::stable_sort(indices.begin(), indices.end(), [&](int i1, int i2) {
-    const T value1 = values[i1];
-    const T value2 = values[i2];
-    if constexpr (is_same_any_v<T, int, float, bool, int8_t, OrderedEdge>) {
-      /* These types are already comparable. */
-      return value1 < value2;
-    }
-    if constexpr (is_same_any_v<T, float2, float3, ColorGeometry4f>) {
-      return value1[component_i] < value2[component_i];
-    }
-    if constexpr (std::is_same_v<T, math::Quaternion>) {
-      const float4 value1_quat = float4(value1);
-      const float4 value2_quat = float4(value2);
-      return value1_quat[component_i] < value2_quat[component_i];
-    }
-    if constexpr (std::is_same_v<T, float4x4>) {
-      return value1.base_ptr()[component_i] < value2.base_ptr()[component_i];
-    }
-    if constexpr (std::is_same_v<T, int2>) {
-      for (int i = 0; i < 2; i++) {
-        if (value1[i] != value2[i]) {
-          return value1[i] < value2[i];
-        }
-      }
-      return false;
-    }
-    if constexpr (std::is_same_v<T, ColorGeometry4b>) {
-      for (int i = 0; i < 4; i++) {
-        if (value1[i] != value2[i]) {
-          return value1[i] < value2[i];
-        }
-      }
-      return false;
-    }
-
-    BLI_assert_unreachable();
-    return false;
+  std::stable_sort(indices.begin(), indices.end(), [&](const int i1, const int i2) {
+    return values[i1] < values[i2];
   });
 }
 
@@ -217,8 +178,7 @@ static void sort_per_set_based_on_attributes(const Span<int> set_sizes,
                                              MutableSpan<int> sorted_to_domain1,
                                              MutableSpan<int> sorted_to_domain2,
                                              const Span<T> values1,
-                                             const Span<T> values2,
-                                             const int component_i)
+                                             const Span<T> values2)
 {
   int i = 0;
   while (i < set_sizes.size()) {
@@ -229,8 +189,8 @@ static void sort_per_set_based_on_attributes(const Span<int> set_sizes,
       continue;
     }
 
-    sort_indices(sorted_to_domain1.slice(IndexRange(i, set_size)), values1, component_i);
-    sort_indices(sorted_to_domain2.slice(IndexRange(i, set_size)), values2, component_i);
+    sort_indices(sorted_to_domain1.slice(IndexRange(i, set_size)), values1);
+    sort_indices(sorted_to_domain2.slice(IndexRange(i, set_size)), values2);
     i += set_size;
   }
 }
@@ -267,64 +227,18 @@ static void sort_per_set_with_id_maps(const Span<int> set_sizes,
 }
 
 /**
- * Checks if the two values are different. For float types, the equality is checked based on a
+ * Checks if the two values are different. For floats, the equality is checked based on a
  * threshold.
  */
 template<typename T>
-static bool values_different(const T value1,
-                             const T value2,
-                             const float threshold,
-                             const int component_i)
+static bool values_different(const T value1, const T value2, const float threshold)
 {
-  if constexpr (is_same_any_v<T, int, short2, int2, bool, int8_t, OrderedEdge, ColorGeometry4b>) {
-    /* These types already have a good implementation. */
-    return value1 != value2;
-  }
-  /* The other types are based on floats. */
   if constexpr (std::is_same_v<T, float>) {
     return compare_threshold_relative(value1, value2, threshold);
   }
-
-  /* GCC 14.x and newer trigger an array-bounds warning unless `component_i` is in range. */
-#if (defined(__GNUC__) && (__GNUC__ >= 14) && !defined(__clang__))
-#  define ASSERT_AND_ASSUME(expr) \
-    BLI_assert(expr); \
-    [[assume(expr)]];
-#else
-#  define ASSERT_AND_ASSUME(expr) BLI_assert(expr);
-#endif
-
-  if constexpr (is_same_any_v<T, float2>) {
-    ASSERT_AND_ASSUME(component_i >= 0 && component_i < 2);
-    return compare_threshold_relative(value1[component_i], value2[component_i], threshold);
+  else {
+    return value1 != value2;
   }
-  if constexpr (is_same_any_v<T, float3>) {
-    ASSERT_AND_ASSUME(component_i >= 0 && component_i < 3);
-    return compare_threshold_relative(value1[component_i], value2[component_i], threshold);
-  }
-  if constexpr (is_same_any_v<T, float4>) {
-    ASSERT_AND_ASSUME(component_i >= 0 && component_i < 4);
-    return compare_threshold_relative(value1[component_i], value2[component_i], threshold);
-  }
-  if constexpr (is_same_any_v<T, ColorGeometry4f>) {
-    ASSERT_AND_ASSUME(component_i >= 0 && component_i < 4);
-    return compare_threshold_relative(value1[component_i], value2[component_i], threshold);
-  }
-  if constexpr (std::is_same_v<T, math::Quaternion>) {
-    ASSERT_AND_ASSUME(component_i >= 0 && component_i < 4);
-    const float4 value1_f = float4(value1);
-    const float4 value2_f = float4(value2);
-    return compare_threshold_relative(value1_f[component_i], value2_f[component_i], threshold);
-  }
-  if constexpr (std::is_same_v<T, float4x4>) {
-    ASSERT_AND_ASSUME(component_i >= 0 && component_i < 16);
-    return compare_threshold_relative(
-        value1.base_ptr()[component_i], value2.base_ptr()[component_i], threshold);
-  }
-
-#undef ASSERT_AND_ASSUME
-
-  BLI_assert_unreachable();
 }
 
 /**
@@ -339,8 +253,7 @@ static bool update_set_ids(StringRef name,
                            const Span<T> values2,
                            const Span<int> sorted_to_values1,
                            const Span<int> sorted_to_values2,
-                           const float threshold,
-                           const int component_i)
+                           const float threshold)
 {
   /* Due to the way the sorting works, there could be a slightly bigger difference. */
   const float value_threshold = 5 * threshold;
@@ -352,15 +265,15 @@ static bool update_set_ids(StringRef name,
   for (const int i : values1.index_range()) {
     const T value1 = values1[sorted_to_values1[i]];
     const T value2 = values2[sorted_to_values2[i]];
-    if (values_different(value1, value2, value_threshold, component_i)) {
+    if (values_different(value1, value2, value_threshold)) {
       /* They should be the same after sorting. */
       std::cout << "Attribute different: " << name << "\n";
       std::cout << "  1: " << value1 << "\n";
       std::cout << "  2: " << value2 << "\n";
       return false;
     }
-    if ((values_different(previous, value1, value_threshold, component_i) &&
-         values_different(previous, value2, value_threshold, component_i)) ||
+    if ((values_different(previous, value1, value_threshold) &&
+         values_different(previous, value2, value_threshold)) ||
         set_ids[i] == i)
     {
       /* Different value, or this was already a different set. */
@@ -459,15 +372,13 @@ static bool sort_edges(const Span<int2> edges1,
                                    edges.from_sorted1,
                                    edges.from_sorted2,
                                    ordered_edges1.as_span(),
-                                   ordered_edges2.as_span(),
-                                   0);
+                                   ordered_edges2.as_span());
   const bool edges_match = update_set_ids("ORDERED_EDGES",
                                           edges.set_ids,
                                           ordered_edges1.as_span(),
                                           ordered_edges2.as_span(),
                                           edges.from_sorted1,
                                           edges.from_sorted2,
-                                          0,
                                           0);
   if (!edges_match) {
     return false;
@@ -544,15 +455,13 @@ static bool sort_faces_based_on_corners(const IndexMapping &corners,
                                    faces.from_sorted1,
                                    faces.from_sorted2,
                                    smallest_corner_ids1.as_span(),
-                                   smallest_corner_ids2.as_span(),
-                                   0);
+                                   smallest_corner_ids2.as_span());
   const bool faces_line_up = update_set_ids("CORNER_IDS",
                                             faces.set_ids,
                                             smallest_corner_ids1.as_span(),
                                             smallest_corner_ids2.as_span(),
                                             faces.from_sorted1,
                                             faces.from_sorted2,
-                                            0,
                                             0);
   if (!faces_line_up) {
     return false;
@@ -624,6 +533,124 @@ static std::optional<GeoMismatch> verify_attributes_compatible(
 }
 
 /**
+ * Attribute values are compared one scalar component at a time, which avoids generating code for
+ * every attribute type. Float components are compared with a threshold, all other components are
+ * compared exactly as integers.
+ */
+struct AttributeComponents {
+  bool is_float;
+  int num;
+};
+
+static std::optional<AttributeComponents> get_attribute_components(const AttrType type)
+{
+  switch (type) {
+    case AttrType::Bool:
+    case AttrType::Int8:
+    case AttrType::Int32:
+      return AttributeComponents{false, 1};
+    case AttrType::Int16_2D:
+    case AttrType::Int32_2D:
+      return AttributeComponents{false, 2};
+    case AttrType::ColorByte:
+      return AttributeComponents{false, 4};
+    case AttrType::Float:
+      return AttributeComponents{true, 1};
+    case AttrType::Float2:
+      return AttributeComponents{true, 2};
+    case AttrType::Float3:
+      return AttributeComponents{true, 3};
+    case AttrType::Float4:
+    case AttrType::ColorFloat:
+    case AttrType::Quaternion:
+      return AttributeComponents{true, 4};
+    case AttrType::Float4x4:
+      return AttributeComponents{true, 16};
+    case AttrType::String:
+      return std::nullopt;
+  }
+  BLI_assert_unreachable();
+  return std::nullopt;
+}
+
+template<typename T, typename ComponentT>
+static void gather_component(const GSpan values,
+                             const int components_num,
+                             const int component,
+                             MutableSpan<ComponentT> dst)
+{
+  const T *data = static_cast<const T *>(values.data());
+  for (const int i : dst.index_range()) {
+    dst[i] = ComponentT(data[i * components_num + component]);
+  }
+}
+
+/** Call the function with the scalar type of an integer attribute type's components. */
+template<typename Fn> static void to_static_int_component_type(const AttrType type, Fn &&fn)
+{
+  switch (type) {
+    case AttrType::Bool:
+      fn.template operator()<bool>();
+      break;
+    case AttrType::Int8:
+      fn.template operator()<int8_t>();
+      break;
+    case AttrType::Int16_2D:
+      fn.template operator()<int16_t>();
+      break;
+    case AttrType::Int32:
+    case AttrType::Int32_2D:
+      fn.template operator()<int>();
+      break;
+    case AttrType::ColorByte:
+      fn.template operator()<uint8_t>();
+      break;
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
+template<typename T>
+static bool sort_using_values(const StringRef name,
+                              const Span<T> values1,
+                              const Span<T> values2,
+                              const float threshold,
+                              IndexMapping &maps)
+{
+  sort_per_set_based_on_attributes(
+      maps.set_sizes, maps.from_sorted1, maps.from_sorted2, values1, values2);
+  if (!update_set_ids(
+          name, maps.set_ids, values1, values2, maps.from_sorted1, maps.from_sorted2, threshold))
+  {
+    return false;
+  }
+  update_set_sizes(maps.set_ids, maps.set_sizes);
+  return true;
+}
+
+static GeoMismatch attribute_mismatch_for_domain(const AttrDomain domain)
+{
+  switch (domain) {
+    case AttrDomain::Point:
+      return GeoMismatch::PointAttributes;
+    case AttrDomain::Edge:
+      return GeoMismatch::EdgeAttributes;
+    case AttrDomain::Corner:
+      return GeoMismatch::CornerAttributes;
+    case AttrDomain::Face:
+      return GeoMismatch::FaceAttributes;
+    case AttrDomain::Curve:
+      return GeoMismatch::CurveAttributes;
+    case AttrDomain::Layer:
+      return GeoMismatch::LayerAttributes;
+    default:
+      BLI_assert_unreachable();
+      return GeoMismatch::Attributes;
+  }
+}
+
+/**
  * Sort the domain using all the attributes on that domain except the ones in excluded_attributes
  *
  * \returns A mismatch if one of the attributes has different values between the two geometries.
@@ -653,70 +680,42 @@ static std::optional<GeoMismatch> sort_domain_using_attributes(
       continue;
     }
 
-    std::optional<GeoMismatch> mismatch = {};
+    const AttrType type = cpp_type_to_attribute_type(reader1.varray.type());
+    const std::optional<AttributeComponents> components = get_attribute_components(type);
+    if (!components) {
+      continue;
+    }
 
-    attribute_math::to_static_type(reader1.varray.type(), [&]<typename T>() {
-      const VArraySpan<T> values1 = reader1.varray.typed<T>();
-      const VArraySpan<T> values2 = reader2.varray.typed<T>();
+    const GVArraySpan values1(reader1.varray);
+    const GVArraySpan values2(reader2.varray);
 
-      /* Because sorting of float vectors is not very stable, we do a separate sort per component,
-       * re-computing the set ids each time. */
-      int num_loops = 1;
-      if constexpr (std::is_same_v<T, float2>) {
-        num_loops = 2;
-      }
-      else if constexpr (std::is_same_v<T, float3>) {
-        num_loops = 3;
-      }
-      else if constexpr (is_same_any_v<T, math::Quaternion, ColorGeometry4f>) {
-        num_loops = 4;
-      }
-      else if constexpr (is_same_any_v<T, float4x4>) {
-        num_loops = 16;
-      }
-      for (const int component_i : IndexRange(num_loops)) {
-        sort_per_set_based_on_attributes(
-            maps.set_sizes, maps.from_sorted1, maps.from_sorted2, values1, values2, component_i);
-        const bool attributes_line_up = update_set_ids(name,
-                                                       maps.set_ids,
-                                                       values1,
-                                                       values2,
-                                                       maps.from_sorted1,
-                                                       maps.from_sorted2,
-                                                       threshold,
-                                                       component_i);
-        if (!attributes_line_up) {
-          switch (domain) {
-            case AttrDomain::Point:
-              mismatch = GeoMismatch::PointAttributes;
-              return;
-            case AttrDomain::Edge:
-              mismatch = GeoMismatch::EdgeAttributes;
-              return;
-            case AttrDomain::Corner:
-              mismatch = GeoMismatch::CornerAttributes;
-              return;
-            case AttrDomain::Face:
-              mismatch = GeoMismatch::FaceAttributes;
-              return;
-            case AttrDomain::Curve:
-              mismatch = GeoMismatch::CurveAttributes;
-              return;
-            case AttrDomain::Layer:
-              mismatch = GeoMismatch::LayerAttributes;
-              return;
-            default:
-              BLI_assert_unreachable();
-              break;
-          }
-          return;
+    /* Because sorting of vectors is not very stable, we do a separate sort per component,
+     * re-computing the set ids each time. */
+    if (components->is_float) {
+      Array<float> component1(values1.size());
+      Array<float> component2(values2.size());
+      for (const int component : IndexRange(components->num)) {
+        gather_component<float>(values1, components->num, component, component1.as_mutable_span());
+        gather_component<float>(values2, components->num, component, component2.as_mutable_span());
+        if (!sort_using_values(name, component1.as_span(), component2.as_span(), threshold, maps))
+        {
+          return attribute_mismatch_for_domain(domain);
         }
-        update_set_sizes(maps.set_ids, maps.set_sizes);
       }
-    });
-
-    if (mismatch) {
-      return mismatch;
+    }
+    else {
+      Array<int> component1(values1.size());
+      Array<int> component2(values2.size());
+      for (const int component : IndexRange(components->num)) {
+        to_static_int_component_type(type, [&]<typename T>() {
+          gather_component<T>(values1, components->num, component, component1.as_mutable_span());
+          gather_component<T>(values2, components->num, component, component2.as_mutable_span());
+        });
+        if (!sort_using_values(name, component1.as_span(), component2.as_span(), threshold, maps))
+        {
+          return attribute_mismatch_for_domain(domain);
+        }
+      }
     }
   }
   return std::nullopt;
@@ -1029,15 +1028,13 @@ static bool sort_curves(const OffsetIndices<int> offset_indices1,
                                    curves.from_sorted1,
                                    curves.from_sorted2,
                                    curve_point_counts1.as_span(),
-                                   curve_point_counts2.as_span(),
-                                   0);
+                                   curve_point_counts2.as_span());
   const bool curves_sizes_match = update_set_ids("CURVE_IDS",
                                                  curves.set_ids,
                                                  curve_point_counts1.as_span(),
                                                  curve_point_counts2.as_span(),
                                                  curves.from_sorted1,
                                                  curves.from_sorted2,
-                                                 0,
                                                  0);
   if (!curves_sizes_match) {
     return false;
@@ -1122,7 +1119,7 @@ std::optional<GeoMismatch> compare_lattices(const Lattice &lattice1,
     const float3 co1 = bpoints1[i].vec;
     const float3 co2 = bpoints2[i].vec;
     for (const int component : IndexRange(3)) {
-      if (values_different(co1, co2, threshold, component)) {
+      if (values_different(co1[component], co2[component], threshold)) {
         return GeoMismatch::PointAttributes;
       }
     }

@@ -12,6 +12,13 @@
 
 namespace eevee::dof::setup {
 
+float4 weighted_sum_array(float4 val[4], float4 weights)
+{
+  auto weight_sum = weights[0] + weights[1] + weights[2] + weights[3];
+  return (val[0] * weights[0] + val[1] * weights[1] + val[2] * weights[2] + val[3] * weights[3]) *
+         safe_rcp(weight_sum);
+}
+
 /**
  * Setup pass: CoC and luma aware downsample to half resolution of the input scene color buffer.
  *
@@ -115,8 +122,8 @@ float bilateral_weight(float reference_coc, float sample_coc)
 }
 
 struct Resources {
-  [[resource_table]] srt_t<CameraVelocity> camera;
-  [[resource_table]] srt_t<draw::View> views;
+  [[resource_table]] CameraVelocity camera;
+  [[resource_table]] draw::View views;
 
   [[push_constant]] const bool u_use_history;
 
@@ -210,7 +217,7 @@ struct Resources {
   DofSample spatial_filtering(uint3 local_id) const
   {
     /* Plus (+) shape offsets. */
-    constexpr int2 plus_offsets[4] = {int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1)};
+    const int2 plus_offsets[4] = {int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1)};
     DofSample center = fetch_input_sample(int2(0), local_id);
     DofSample accum{float4(0.0f), 0.0f};
     float accum_weight = 0.0f;
@@ -239,7 +246,7 @@ struct Resources {
   DofNeighborhoodMinMax neighbor_boundbox(uint3 local_id) const
   {
     /* Plus (+) shape offsets. */
-    constexpr int2 plus_offsets[4] = {int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1)};
+    const int2 plus_offsets[4] = {int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1)};
     /**
      * Simple bounding box calculation in YCoCg as described in:
      * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
@@ -257,7 +264,7 @@ struct Resources {
      * Round bbox shape by averaging 2 different min/max from 2 different neighborhood. */
     DofSample min_c_3x3 = min_c;
     DofSample max_c_3x3 = max_c;
-    constexpr int2 corners[4] = {int2(-1, -1), int2(1, -1), int2(-1, 1), int2(1, 1)};
+    const int2 corners[4] = {int2(-1, -1), int2(1, -1), int2(-1, 1), int2(1, 1)};
     for (int i = 0; i < 4; i++) {
       DofSample samp = fetch_input_sample(corners[i], local_id);
       min_c_3x3.color = min(min_c_3x3.color, samp.color);
@@ -276,13 +283,11 @@ struct Resources {
   /* Returns motion in pixel space to retrieve the pixel history. */
   float2 pixel_history_motion_vector(int2 texel_sample, uint3 local_id) const
   {
-    [[resource_table]] const CameraVelocity &cam_vel = this->camera;
-
     /**
      * Dilate velocity by using the nearest pixel in a cross pattern.
      * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
      */
-    constexpr int2 corners[4] = {int2(-2, -2), int2(2, -2), int2(-2, 2), int2(2, 2)};
+    const int2 corners[4] = {int2(-2, -2), int2(2, -2), int2(-2, 2), int2(2, 2)};
     float min_depth = fetch_half_depth(int2(0), local_id);
     int2 nearest_texel = int2(0);
     for (int i = 0; i < 4; i++) {
@@ -295,7 +300,7 @@ struct Resources {
     /* Convert to full resolution buffer pixel. */
     int2 velocity_texel = (texel_sample + nearest_texel) * 2;
     velocity_texel = clamp(velocity_texel, int2(0), textureSize(velocity_tx, 0).xy - 1);
-    float4 vector = cam_vel.resolve(views, velocity_tx, velocity_texel, min_depth);
+    float4 vector = camera.resolve(views, velocity_tx, velocity_texel, min_depth);
     /* Transform to **half** pixel space. */
     return vector.xy * float2(textureSize(color_tx, 0));
   }

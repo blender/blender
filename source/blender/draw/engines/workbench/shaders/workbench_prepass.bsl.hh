@@ -4,14 +4,11 @@
 
 #pragma once
 
-#include "draw_view_infos.hh"  // IWYU pragma: export
-
-#include "draw_curves_lib.glsl"
+#include "draw_curves.bsl.hh"
 #include "draw_gsplat_lib.bsl.hh"
 #include "draw_model.bsl.hh"
-#include "draw_pointcloud_lib.glsl"
+#include "draw_pointcloud.bsl.hh"
 #include "draw_view.bsl.hh"
-#include "draw_view_clipping_lib.glsl"
 #include "gpu_shader_common_hash.bsl.hh"
 #include "gpu_shader_math_base.bsl.hh"
 #include "workbench_common.bsl.hh"
@@ -26,6 +23,33 @@ namespace workbench::prepass {
 #define WORKBENCH_LIGHTING_STUDIO 0
 #define WORKBENCH_LIGHTING_MATCAP 1
 #define WORKBENCH_LIGHTING_FLAT 2
+
+struct ClippingConstant {
+  [[compilation_constant]] const bool use_clipping;
+};
+
+struct Clipping {
+  [[resource_table]] ClippingConstant constants;
+
+  [[uniform(DRW_CLIPPING_UBO_SLOT)]] const float4 (&drw_clipping_)[6];
+
+  void set_clipping_distances(float3 ws_P,
+                              float &dist0,
+                              float &dist1,
+                              float &dist2,
+                              float &dist3,
+                              float &dist4,
+                              float &dist5) const
+  {
+    float4 pos_4d = float4(ws_P, 1.0f);
+    dist0 = dot(drw_clipping_[0], pos_4d);
+    dist1 = dot(drw_clipping_[1], pos_4d);
+    dist2 = dot(drw_clipping_[2], pos_4d);
+    dist3 = dot(drw_clipping_[3], pos_4d);
+    dist4 = dot(drw_clipping_[4], pos_4d);
+    dist5 = dot(drw_clipping_[5], pos_4d);
+  }
+};
 
 /* Special function only to be used with calculate_transparent_weight(). */
 float linear_zdepth(float depth, float4x4 proj_mat)
@@ -114,21 +138,12 @@ struct MeshIn {
   [[attribute(3)]] float2 au;
 };
 
-struct Mesh {
-  [[legacy_info]] ShaderCreateInfo drw_clipped;
-
-  /**
-   * WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
-   * distances.
-   */
-  [[compilation_constant]] const bool use_clipping;
-};
-
-[[vertex]] void vert_mesh([[resource_table]] Mesh &mesh,
-                          [[resource_table]] color::Materials &materials,
+[[vertex]] void vert_mesh([[resource_table]] color::Materials &materials,
                           [[resource_table]] draw::View &views,
                           [[resource_table]] draw::Model &models,
                           [[resource_table]] draw::ResourceCustomID &resources,
+                          [[resource_table]] const Clipping &clip,
+                          [[clip_distance]] [[condition(use_clipping)]] float (&clip_distances)[6],
                           [[instance_index]] const int inst_id,
                           [[in]] const MeshIn &v_in,
                           [[out]] VertOut &v_out,
@@ -143,8 +158,14 @@ struct Mesh {
   float3 world_pos = obj.point_object_to_world(v_in.pos);
   out_position = view.point_world_to_homogenous(world_pos);
 
-  if (mesh.use_clipping) [[static_branch]] {
-    view_clipping_distances(world_pos);
+  if (clip.constants.use_clipping) [[static_branch]] {
+    clip.set_clipping_distances(world_pos,
+                                clip_distances[0],
+                                clip_distances[1],
+                                clip_distances[2],
+                                clip_distances[3],
+                                clip_distances[4],
+                                clip_distances[5]);
   }
 
   v_out.uv = v_in.au;
@@ -158,30 +179,24 @@ struct Mesh {
 }
 
 struct Curves {
-  [[legacy_info]] ShaderCreateInfo draw_curves;
-  [[legacy_info]] ShaderCreateInfo draw_curves_infos;
-  [[legacy_info]] ShaderCreateInfo drw_clipped;
-
-  /**
-   * WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
-   * distances.
-   */
-  [[compilation_constant]] const bool use_clipping;
-
-  [[sampler(WB_CURVES_COLOR_SLOT) /*, frequency(batch)*/]] samplerBuffer ac;
-  [[sampler(WB_CURVES_UV_SLOT) /*, frequency(batch)*/]] samplerBuffer au;
+  [[sampler(WB_CURVES_COLOR_SLOT), frequency(BATCH)]] samplerBuffer ac;
+  [[sampler(WB_CURVES_UV_SLOT), frequency(BATCH)]] samplerBuffer au;
   [[push_constant]] const int emitter_object_id;
 };
 
-[[vertex]] void vert_curves([[resource_table]] Curves &curves,
-                            [[resource_table]] color::Materials &materials,
-                            [[resource_table]] draw::View &views,
-                            [[resource_table]] draw::Model &models,
-                            [[resource_table]] draw::ResourceCustomID &resources,
-                            [[instance_index]] const int inst_id,
-                            [[vertex_id]] const int vert_id,
-                            [[out]] VertOut &v_out,
-                            [[position]] float4 &out_position)
+[[vertex]] void vert_curves(
+    [[resource_table]] Curves &srt,
+    [[resource_table]] color::Materials &materials,
+    [[resource_table]] draw::View &views,
+    [[resource_table]] draw::Model &models,
+    [[resource_table]] draw::ResourceCustomID &resources,
+    [[resource_table]] draw::Curves &curves,
+    [[instance_index]] const int inst_id,
+    [[resource_table]] const Clipping &clip,
+    [[clip_distance]] [[condition(use_clipping)]] float (&clip_distances)[6],
+    [[vertex_id]] const int vert_id,
+    [[out]] VertOut &v_out,
+    [[position]] float4 &out_position)
 {
   int custom_id = int(resources.get_custom_id(inst_id));
 
@@ -189,12 +204,10 @@ struct Curves {
   ViewMatrices view = views.get(id.view_id<1>());
   ObjectMatrices obj = models.get(id.resource_id<1>());
 
-  const auto &drw_curves = buffer_get(draw_curves_infos, drw_curves);
-
-  const curves::Point ls_pt = curves::point_get(uint(vert_id));
-  const curves::Point ws_pt = curves::object_to_world(ls_pt, obj.model);
-  const curves::ShapePoint pt = curves::shape_point_get(ws_pt,
-                                                        view.world_incident_vector(ws_pt.P));
+  const draw::curves::Point ls_pt = curves.point_get(uint(vert_id));
+  const draw::curves::Point ws_pt = curves.object_to_world(ls_pt, obj.model);
+  const draw::curves::ShapePoint pt = curves.shape_point_get(ws_pt,
+                                                             view.world_incident_vector(ws_pt.P));
   float3 world_pos = pt.P;
 
   out_position = view.point_world_to_homogenous(world_pos);
@@ -202,26 +215,32 @@ struct Curves {
   float hair_rand = workbench::prepass::integer_noise(ws_pt.curve_id);
 
   float3 nor = pt.N;
-  if (drw_curves.half_cylinder_face_count == 1) {
+  if (curves.drw_curves.half_cylinder_face_count == 1) {
     /* Very cheap smooth normal using attribute interpolator.
      * Using the correct normals over the cylinder (-1..1) leads to unwanted result as the
      * interpolation is not spherical but linear. So we use a smaller range (-SQRT2..SQRT2) in
      * which the linear interpolation is close enough to the desired result. */
     nor = pt.N + pt.curve_N;
   }
-  else if (drw_curves.half_cylinder_face_count == 0) {
+  else if (curves.drw_curves.half_cylinder_face_count == 0) {
     nor = hair_random_normal(pt.curve_T, pt.curve_B, pt.curve_N, hair_rand);
   }
 
-  if (curves.use_clipping) [[static_branch]] {
-    view_clipping_distances(world_pos);
+  if (clip.constants.use_clipping) [[static_branch]] {
+    clip.set_clipping_distances(world_pos,
+                                clip_distances[0],
+                                clip_distances[1],
+                                clip_distances[2],
+                                clip_distances[3],
+                                clip_distances[4],
+                                clip_distances[5]);
   }
 
-  v_out.uv = curves::get_customdata_vec2(ws_pt.curve_id, curves.au);
+  v_out.uv = draw::curves::get_customdata_vec2(ws_pt.curve_id, srt.au);
 
   v_out.normal = normalize(view.normal_world_to_view(nor));
 
-  float3 vert_col = curves::get_customdata_vec3(ws_pt.curve_id, curves.ac);
+  float3 vert_col = draw::curves::get_customdata_vec3(ws_pt.curve_id, srt.ac);
   materials.material_data_get(
       custom_id, vert_col, v_out.color, v_out.alpha, v_out.roughness, v_out.metallic);
 
@@ -233,31 +252,24 @@ struct Curves {
 
   v_out.object_id = int(id.resource_id<1>() & 0xFFFFu) + 1;
 
-  if (curves.emitter_object_id != 0) {
-    v_out.object_id = int(uint(curves.emitter_object_id) & 0xFFFFu) + 1;
+  if (srt.emitter_object_id != 0) {
+    v_out.object_id = int(uint(srt.emitter_object_id) & 0xFFFFu) + 1;
   }
 }
 
-struct PointCloud {
-  [[legacy_info]] ShaderCreateInfo draw_pointcloud;
-  [[legacy_info]] ShaderCreateInfo drw_clipped;
-
-  /**
-   * WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
-   * distances.
-   */
-  [[compilation_constant]] const bool use_clipping;
-};
-
-[[vertex]] void vert_pointcloud([[resource_table]] PointCloud &point_cloud,
-                                [[resource_table]] color::Materials &materials,
-                                [[resource_table]] draw::View &views,
-                                [[resource_table]] draw::Model &models,
-                                [[resource_table]] draw::ResourceCustomID &resources,
-                                [[instance_index]] const int inst_id,
-                                [[vertex_id]] const int vert_id,
-                                [[out]] VertOut &v_out,
-                                [[position]] float4 &out_position)
+[[vertex]] void vert_pointcloud(
+    [[resource_table]] color::Materials &materials,
+    [[resource_table]] draw::View &views,
+    [[resource_table]] draw::Infos &infos,
+    [[resource_table]] draw::Model &models,
+    [[resource_table]] draw::PointCloud &pt_cloud,
+    [[resource_table]] draw::ResourceCustomID &resources,
+    [[resource_table]] const Clipping &clip,
+    [[clip_distance]] [[condition(use_clipping)]] float (&clip_distances)[6],
+    [[instance_index]] const int inst_id,
+    [[vertex_id]] const int vert_id,
+    [[out]] VertOut &v_out,
+    [[position]] float4 &out_position)
 {
   int custom_id = int(resources.get_custom_id(inst_id));
 
@@ -266,20 +278,26 @@ struct PointCloud {
 
   ViewMatrices view = views.get(id.view_id<1>());
   ObjectMatrices obj = models.get(res_id);
+  const ObjectInfos ob_infos = infos.get(res_id);
+  const eObjectInfoFlag ob_flag = ob_infos.flag;
 
-  const eObjectInfoFlag ob_flag = buffer_get(draw_object_infos, drw_infos)[res_id].flag;
-
-  const pointcloud::Point ls_pt = pointcloud::point_get(uint(vert_id));
-  const pointcloud::Point ws_pt = pointcloud::object_to_world(ls_pt, obj.model);
-  const pointcloud::ShapePoint pt = pointcloud::shape_point_get(
+  const draw::pointcloud::Point ls_pt = pt_cloud.point_get(uint(vert_id));
+  const draw::pointcloud::Point ws_pt = draw::pointcloud::object_to_world(ls_pt, obj.model);
+  const draw::pointcloud::ShapePoint pt = draw::pointcloud::shape_point_get(
       ws_pt, view.world_incident_vector(ws_pt.P), view.up(), ob_flag);
 
   v_out.normal = normalize(view.normal_world_to_view(pt.N));
 
   out_position = view.point_world_to_homogenous(pt.P);
 
-  if (point_cloud.use_clipping) [[static_branch]] {
-    view_clipping_distances(pt.P);
+  if (clip.constants.use_clipping) [[static_branch]] {
+    clip.set_clipping_distances(pt.P,
+                                clip_distances[0],
+                                clip_distances[1],
+                                clip_distances[2],
+                                clip_distances[3],
+                                clip_distances[4],
+                                clip_distances[5]);
   }
 
   v_out.uv = float2(0.0f);
@@ -290,24 +308,18 @@ struct PointCloud {
   v_out.object_id = int(id.resource_id<1>() & 0xFFFFu) + 1;
 }
 
-struct GSplat {
-  [[legacy_info]] ShaderCreateInfo drw_clipped;
-
-  /** WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
-   * distances. */
-  [[compilation_constant]] const bool use_clipping;
-};
-
-[[vertex]] void vert_gsplat([[resource_table]] GSplat &gsplat,
-                            [[resource_table]] const color::Materials &materials,
-                            [[resource_table]] const draw::gsplat::ShapeResource &shape,
-                            [[resource_table]] const draw::View &views,
-                            [[resource_table]] const draw::Model &models,
-                            [[resource_table]] const draw::ResourceCustomID &resources,
-                            [[instance_index]] const int inst_id,
-                            [[vertex_id]] const int vert_id,
-                            [[out]] VertOut &v_out,
-                            [[position]] float4 &out_position)
+[[vertex]] void vert_gsplat(
+    [[resource_table]] const color::Materials &materials,
+    [[resource_table]] const draw::gsplat::ShapeResource &shape,
+    [[resource_table]] const draw::View &views,
+    [[resource_table]] const draw::Model &models,
+    [[resource_table]] const draw::ResourceCustomID &resources,
+    [[resource_table]] const Clipping &clip,
+    [[clip_distance]] [[condition(use_clipping)]] float (&clip_distances)[6],
+    [[instance_index]] const int inst_id,
+    [[vertex_id]] const int vert_id,
+    [[out]] VertOut &v_out,
+    [[position]] float4 &out_position)
 {
   int custom_id = int(resources.get_custom_id(inst_id));
 
@@ -329,8 +341,14 @@ struct GSplat {
 
   out_position = gs.hP;
 
-  if (gsplat.use_clipping) [[static_branch]] {
-    view_clipping_distances(gs.wP);
+  if (clip.constants.use_clipping) [[static_branch]] {
+    clip.set_clipping_distances(gs.wP,
+                                clip_distances[0],
+                                clip_distances[1],
+                                clip_distances[2],
+                                clip_distances[3],
+                                clip_distances[4],
+                                clip_distances[5]);
   }
 
   materials.material_data_get(
@@ -447,102 +465,102 @@ struct TransparentOut {
 }
 
 /* clang-format off */
-PipelineGraphic mesh_opaque_studio_material_clip(            vert_mesh,       frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false},       Mesh{.use_clipping = true });
-PipelineGraphic mesh_opaque_studio_material_no_clip(         vert_mesh,       frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false},       Mesh{.use_clipping = false});
-PipelineGraphic mesh_opaque_studio_texture_clip(             vert_mesh,       frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false},       Mesh{.use_clipping = true });
-PipelineGraphic mesh_opaque_studio_texture_no_clip(          vert_mesh,       frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false},       Mesh{.use_clipping = false});
-PipelineGraphic mesh_opaque_matcap_material_clip(            vert_mesh,       frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false},       Mesh{.use_clipping = true });
-PipelineGraphic mesh_opaque_matcap_material_no_clip(         vert_mesh,       frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false},       Mesh{.use_clipping = false});
-PipelineGraphic mesh_opaque_matcap_texture_clip(             vert_mesh,       frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false},       Mesh{.use_clipping = true });
-PipelineGraphic mesh_opaque_matcap_texture_no_clip(          vert_mesh,       frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false},       Mesh{.use_clipping = false});
-PipelineGraphic mesh_opaque_flat_material_clip(              vert_mesh,       frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false},       Mesh{.use_clipping = true });
-PipelineGraphic mesh_opaque_flat_material_no_clip(           vert_mesh,       frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false},       Mesh{.use_clipping = false});
-PipelineGraphic mesh_opaque_flat_texture_clip(               vert_mesh,       frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false},       Mesh{.use_clipping = true });
-PipelineGraphic mesh_opaque_flat_texture_no_clip(            vert_mesh,       frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false},       Mesh{.use_clipping = false});
-PipelineGraphic curves_opaque_studio_material_clip(          vert_curves,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false},     Curves{.use_clipping = true });
-PipelineGraphic curves_opaque_studio_material_no_clip(       vert_curves,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false},     Curves{.use_clipping = false});
-PipelineGraphic curves_opaque_studio_texture_clip(           vert_curves,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false},     Curves{.use_clipping = true });
-PipelineGraphic curves_opaque_studio_texture_no_clip(        vert_curves,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false},     Curves{.use_clipping = false});
-PipelineGraphic curves_opaque_matcap_material_clip(          vert_curves,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false},     Curves{.use_clipping = true });
-PipelineGraphic curves_opaque_matcap_material_no_clip(       vert_curves,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false},     Curves{.use_clipping = false});
-PipelineGraphic curves_opaque_matcap_texture_clip(           vert_curves,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false},     Curves{.use_clipping = true });
-PipelineGraphic curves_opaque_matcap_texture_no_clip(        vert_curves,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false},     Curves{.use_clipping = false});
-PipelineGraphic curves_opaque_flat_material_clip(            vert_curves,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false},     Curves{.use_clipping = true });
-PipelineGraphic curves_opaque_flat_material_no_clip(         vert_curves,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false},     Curves{.use_clipping = false});
-PipelineGraphic curves_opaque_flat_texture_clip(             vert_curves,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false},     Curves{.use_clipping = true });
-PipelineGraphic curves_opaque_flat_texture_no_clip(          vert_curves,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false},     Curves{.use_clipping = false});
-PipelineGraphic ptcloud_opaque_studio_material_clip(         vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, PointCloud{.use_clipping = true });
-PipelineGraphic ptcloud_opaque_studio_material_no_clip(      vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, PointCloud{.use_clipping = false});
-PipelineGraphic ptcloud_opaque_studio_texture_clip(          vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, PointCloud{.use_clipping = true });
-PipelineGraphic ptcloud_opaque_studio_texture_no_clip(       vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, PointCloud{.use_clipping = false});
-PipelineGraphic ptcloud_opaque_matcap_material_clip(         vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, PointCloud{.use_clipping = true });
-PipelineGraphic ptcloud_opaque_matcap_material_no_clip(      vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, PointCloud{.use_clipping = false});
-PipelineGraphic ptcloud_opaque_matcap_texture_clip(          vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, PointCloud{.use_clipping = true });
-PipelineGraphic ptcloud_opaque_matcap_texture_no_clip(       vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, PointCloud{.use_clipping = false});
-PipelineGraphic ptcloud_opaque_flat_material_clip(           vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, PointCloud{.use_clipping = true });
-PipelineGraphic ptcloud_opaque_flat_material_no_clip(        vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, PointCloud{.use_clipping = false});
-PipelineGraphic ptcloud_opaque_flat_texture_clip(            vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, PointCloud{.use_clipping = true });
-PipelineGraphic ptcloud_opaque_flat_texture_no_clip(         vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, PointCloud{.use_clipping = false});
-PipelineGraphic gsplat_opaque_studio_material_clip(          vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = true},      GSplat{.use_clipping = true });
-PipelineGraphic gsplat_opaque_studio_material_no_clip(       vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = true},      GSplat{.use_clipping = false});
-PipelineGraphic gsplat_opaque_studio_texture_clip(           vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = true},      GSplat{.use_clipping = true });
-PipelineGraphic gsplat_opaque_studio_texture_no_clip(        vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = true},      GSplat{.use_clipping = false});
-PipelineGraphic gsplat_opaque_matcap_material_clip(          vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = true},      GSplat{.use_clipping = true });
-PipelineGraphic gsplat_opaque_matcap_material_no_clip(       vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = true},      GSplat{.use_clipping = false});
-PipelineGraphic gsplat_opaque_matcap_texture_clip(           vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = true},      GSplat{.use_clipping = true });
-PipelineGraphic gsplat_opaque_matcap_texture_no_clip(        vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = true},      GSplat{.use_clipping = false});
-PipelineGraphic gsplat_opaque_flat_material_clip(            vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = true},      GSplat{.use_clipping = true });
-PipelineGraphic gsplat_opaque_flat_material_no_clip(         vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = true},      GSplat{.use_clipping = false});
-PipelineGraphic gsplat_opaque_flat_texture_clip(             vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = true},      GSplat{.use_clipping = true });
-PipelineGraphic gsplat_opaque_flat_texture_no_clip(          vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = true},      GSplat{.use_clipping = false});
-PipelineGraphic mesh_transparent_studio_material_clip(       vert_mesh,       frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false},       Mesh{.use_clipping = true });
-PipelineGraphic mesh_transparent_studio_material_no_clip(    vert_mesh,       frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false},       Mesh{.use_clipping = false});
-PipelineGraphic mesh_transparent_studio_texture_clip(        vert_mesh,       frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false},       Mesh{.use_clipping = true });
-PipelineGraphic mesh_transparent_studio_texture_no_clip(     vert_mesh,       frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false},       Mesh{.use_clipping = false});
-PipelineGraphic mesh_transparent_matcap_material_clip(       vert_mesh,       frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false},       Mesh{.use_clipping = true });
-PipelineGraphic mesh_transparent_matcap_material_no_clip(    vert_mesh,       frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false},       Mesh{.use_clipping = false});
-PipelineGraphic mesh_transparent_matcap_texture_clip(        vert_mesh,       frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false},       Mesh{.use_clipping = true });
-PipelineGraphic mesh_transparent_matcap_texture_no_clip(     vert_mesh,       frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false},       Mesh{.use_clipping = false});
-PipelineGraphic mesh_transparent_flat_material_clip(         vert_mesh,       frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false},       Mesh{.use_clipping = true });
-PipelineGraphic mesh_transparent_flat_material_no_clip(      vert_mesh,       frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false},       Mesh{.use_clipping = false});
-PipelineGraphic mesh_transparent_flat_texture_clip(          vert_mesh,       frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false},       Mesh{.use_clipping = true });
-PipelineGraphic mesh_transparent_flat_texture_no_clip(       vert_mesh,       frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false},       Mesh{.use_clipping = false});
-PipelineGraphic curves_transparent_studio_material_clip(     vert_curves,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false},     Curves{.use_clipping = true });
-PipelineGraphic curves_transparent_studio_material_no_clip(  vert_curves,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false},     Curves{.use_clipping = false});
-PipelineGraphic curves_transparent_studio_texture_clip(      vert_curves,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false},     Curves{.use_clipping = true });
-PipelineGraphic curves_transparent_studio_texture_no_clip(   vert_curves,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false},     Curves{.use_clipping = false});
-PipelineGraphic curves_transparent_matcap_material_clip(     vert_curves,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false},     Curves{.use_clipping = true });
-PipelineGraphic curves_transparent_matcap_material_no_clip(  vert_curves,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false},     Curves{.use_clipping = false});
-PipelineGraphic curves_transparent_matcap_texture_clip(      vert_curves,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false},     Curves{.use_clipping = true });
-PipelineGraphic curves_transparent_matcap_texture_no_clip(   vert_curves,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false},     Curves{.use_clipping = false});
-PipelineGraphic curves_transparent_flat_material_clip(       vert_curves,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false},     Curves{.use_clipping = true });
-PipelineGraphic curves_transparent_flat_material_no_clip(    vert_curves,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false},     Curves{.use_clipping = false});
-PipelineGraphic curves_transparent_flat_texture_clip(        vert_curves,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false},     Curves{.use_clipping = true });
-PipelineGraphic curves_transparent_flat_texture_no_clip(     vert_curves,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false},     Curves{.use_clipping = false});
-PipelineGraphic ptcloud_transparent_studio_material_clip(    vert_pointcloud, frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, PointCloud{.use_clipping = true });
-PipelineGraphic ptcloud_transparent_studio_material_no_clip( vert_pointcloud, frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, PointCloud{.use_clipping = false});
-PipelineGraphic ptcloud_transparent_studio_texture_clip(     vert_pointcloud, frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, PointCloud{.use_clipping = true });
-PipelineGraphic ptcloud_transparent_studio_texture_no_clip(  vert_pointcloud, frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, PointCloud{.use_clipping = false});
-PipelineGraphic ptcloud_transparent_matcap_material_clip(    vert_pointcloud, frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, PointCloud{.use_clipping = true });
-PipelineGraphic ptcloud_transparent_matcap_material_no_clip( vert_pointcloud, frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, PointCloud{.use_clipping = false});
-PipelineGraphic ptcloud_transparent_matcap_texture_clip(     vert_pointcloud, frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, PointCloud{.use_clipping = true });
-PipelineGraphic ptcloud_transparent_matcap_texture_no_clip(  vert_pointcloud, frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, PointCloud{.use_clipping = false});
-PipelineGraphic ptcloud_transparent_flat_material_clip(      vert_pointcloud, frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, PointCloud{.use_clipping = true });
-PipelineGraphic ptcloud_transparent_flat_material_no_clip(   vert_pointcloud, frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, PointCloud{.use_clipping = false});
-PipelineGraphic ptcloud_transparent_flat_texture_clip(       vert_pointcloud, frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, PointCloud{.use_clipping = true });
-PipelineGraphic ptcloud_transparent_flat_texture_no_clip(    vert_pointcloud, frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, PointCloud{.use_clipping = false});
-PipelineGraphic gsplat_transparent_studio_material_clip(     vert_gsplat,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = true},      GSplat{.use_clipping = true });
-PipelineGraphic gsplat_transparent_studio_material_no_clip(  vert_gsplat,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = true},      GSplat{.use_clipping = false});
-PipelineGraphic gsplat_transparent_studio_texture_clip(      vert_gsplat,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = true},      GSplat{.use_clipping = true });
-PipelineGraphic gsplat_transparent_studio_texture_no_clip(   vert_gsplat,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = true},      GSplat{.use_clipping = false});
-PipelineGraphic gsplat_transparent_matcap_material_clip(     vert_gsplat,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = true},      GSplat{.use_clipping = true });
-PipelineGraphic gsplat_transparent_matcap_material_no_clip(  vert_gsplat,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = true},      GSplat{.use_clipping = false});
-PipelineGraphic gsplat_transparent_matcap_texture_clip(      vert_gsplat,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = true},      GSplat{.use_clipping = true });
-PipelineGraphic gsplat_transparent_matcap_texture_no_clip(   vert_gsplat,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = true},      GSplat{.use_clipping = false});
-PipelineGraphic gsplat_transparent_flat_material_clip(       vert_gsplat,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = true},      GSplat{.use_clipping = true });
-PipelineGraphic gsplat_transparent_flat_material_no_clip(    vert_gsplat,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = true},      GSplat{.use_clipping = false});
-PipelineGraphic gsplat_transparent_flat_texture_clip(        vert_gsplat,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = true},      GSplat{.use_clipping = true });
-PipelineGraphic gsplat_transparent_flat_texture_no_clip(     vert_gsplat,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = true},      GSplat{.use_clipping = false});
+PipelineGraphic mesh_opaque_studio_material_clip(            vert_mesh,       frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic mesh_opaque_studio_material_no_clip(         vert_mesh,       frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic mesh_opaque_studio_texture_clip(             vert_mesh,       frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic mesh_opaque_studio_texture_no_clip(          vert_mesh,       frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic mesh_opaque_matcap_material_clip(            vert_mesh,       frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic mesh_opaque_matcap_material_no_clip(         vert_mesh,       frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic mesh_opaque_matcap_texture_clip(             vert_mesh,       frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic mesh_opaque_matcap_texture_no_clip(          vert_mesh,       frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic mesh_opaque_flat_material_clip(              vert_mesh,       frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic mesh_opaque_flat_material_no_clip(           vert_mesh,       frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic mesh_opaque_flat_texture_clip(               vert_mesh,       frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic mesh_opaque_flat_texture_no_clip(            vert_mesh,       frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic curves_opaque_studio_material_clip(          vert_curves,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic curves_opaque_studio_material_no_clip(       vert_curves,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic curves_opaque_studio_texture_clip(           vert_curves,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic curves_opaque_studio_texture_no_clip(        vert_curves,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic curves_opaque_matcap_material_clip(          vert_curves,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic curves_opaque_matcap_material_no_clip(       vert_curves,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic curves_opaque_matcap_texture_clip(           vert_curves,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic curves_opaque_matcap_texture_no_clip(        vert_curves,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic curves_opaque_flat_material_clip(            vert_curves,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic curves_opaque_flat_material_no_clip(         vert_curves,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic curves_opaque_flat_texture_clip(             vert_curves,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic curves_opaque_flat_texture_no_clip(          vert_curves,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic ptcloud_opaque_studio_material_clip(         vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic ptcloud_opaque_studio_material_no_clip(      vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic ptcloud_opaque_studio_texture_clip(          vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic ptcloud_opaque_studio_texture_no_clip(       vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic ptcloud_opaque_matcap_material_clip(         vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic ptcloud_opaque_matcap_material_no_clip(      vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic ptcloud_opaque_matcap_texture_clip(          vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic ptcloud_opaque_matcap_texture_no_clip(       vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic ptcloud_opaque_flat_material_clip(           vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic ptcloud_opaque_flat_material_no_clip(        vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic ptcloud_opaque_flat_texture_clip(            vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic ptcloud_opaque_flat_texture_no_clip(         vert_pointcloud, frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic gsplat_opaque_studio_material_clip(          vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = true},  ClippingConstant{.use_clipping = true });
+PipelineGraphic gsplat_opaque_studio_material_no_clip(       vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = true},  ClippingConstant{.use_clipping = false});
+PipelineGraphic gsplat_opaque_studio_texture_clip(           vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = true},  ClippingConstant{.use_clipping = true });
+PipelineGraphic gsplat_opaque_studio_texture_no_clip(        vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = true},  ClippingConstant{.use_clipping = false});
+PipelineGraphic gsplat_opaque_matcap_material_clip(          vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = true},  ClippingConstant{.use_clipping = true });
+PipelineGraphic gsplat_opaque_matcap_material_no_clip(       vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = true},  ClippingConstant{.use_clipping = false});
+PipelineGraphic gsplat_opaque_matcap_texture_clip(           vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = true},  ClippingConstant{.use_clipping = true });
+PipelineGraphic gsplat_opaque_matcap_texture_no_clip(        vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = true},  ClippingConstant{.use_clipping = false});
+PipelineGraphic gsplat_opaque_flat_material_clip(            vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = true},  ClippingConstant{.use_clipping = true });
+PipelineGraphic gsplat_opaque_flat_material_no_clip(         vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = true},  ClippingConstant{.use_clipping = false});
+PipelineGraphic gsplat_opaque_flat_texture_clip(             vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = true},  ClippingConstant{.use_clipping = true });
+PipelineGraphic gsplat_opaque_flat_texture_no_clip(          vert_gsplat,     frag_opaque,      Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = true},  ClippingConstant{.use_clipping = false});
+PipelineGraphic mesh_transparent_studio_material_clip(       vert_mesh,       frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic mesh_transparent_studio_material_no_clip(    vert_mesh,       frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic mesh_transparent_studio_texture_clip(        vert_mesh,       frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic mesh_transparent_studio_texture_no_clip(     vert_mesh,       frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic mesh_transparent_matcap_material_clip(       vert_mesh,       frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic mesh_transparent_matcap_material_no_clip(    vert_mesh,       frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic mesh_transparent_matcap_texture_clip(        vert_mesh,       frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic mesh_transparent_matcap_texture_no_clip(     vert_mesh,       frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic mesh_transparent_flat_material_clip(         vert_mesh,       frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic mesh_transparent_flat_material_no_clip(      vert_mesh,       frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic mesh_transparent_flat_texture_clip(          vert_mesh,       frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic mesh_transparent_flat_texture_no_clip(       vert_mesh,       frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic curves_transparent_studio_material_clip(     vert_curves,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic curves_transparent_studio_material_no_clip(  vert_curves,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic curves_transparent_studio_texture_clip(      vert_curves,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic curves_transparent_studio_texture_no_clip(   vert_curves,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic curves_transparent_matcap_material_clip(     vert_curves,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic curves_transparent_matcap_material_no_clip(  vert_curves,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic curves_transparent_matcap_texture_clip(      vert_curves,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic curves_transparent_matcap_texture_no_clip(   vert_curves,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic curves_transparent_flat_material_clip(       vert_curves,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic curves_transparent_flat_material_no_clip(    vert_curves,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic curves_transparent_flat_texture_clip(        vert_curves,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic curves_transparent_flat_texture_no_clip(     vert_curves,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic ptcloud_transparent_studio_material_clip(    vert_pointcloud, frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic ptcloud_transparent_studio_material_no_clip( vert_pointcloud, frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic ptcloud_transparent_studio_texture_clip(     vert_pointcloud, frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic ptcloud_transparent_studio_texture_no_clip(  vert_pointcloud, frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic ptcloud_transparent_matcap_material_clip(    vert_pointcloud, frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic ptcloud_transparent_matcap_material_no_clip( vert_pointcloud, frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic ptcloud_transparent_matcap_texture_clip(     vert_pointcloud, frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic ptcloud_transparent_matcap_texture_no_clip(  vert_pointcloud, frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic ptcloud_transparent_flat_material_clip(      vert_pointcloud, frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic ptcloud_transparent_flat_material_no_clip(   vert_pointcloud, frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic ptcloud_transparent_flat_texture_clip(       vert_pointcloud, frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = true });
+PipelineGraphic ptcloud_transparent_flat_texture_no_clip(    vert_pointcloud, frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = false}, ClippingConstant{.use_clipping = false});
+PipelineGraphic gsplat_transparent_studio_material_clip(     vert_gsplat,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = true},  ClippingConstant{.use_clipping = true });
+PipelineGraphic gsplat_transparent_studio_material_no_clip(  vert_gsplat,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = false, .use_gsplat = true},  ClippingConstant{.use_clipping = false});
+PipelineGraphic gsplat_transparent_studio_texture_clip(      vert_gsplat,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = true},  ClippingConstant{.use_clipping = true });
+PipelineGraphic gsplat_transparent_studio_texture_no_clip(   vert_gsplat,     frag_transparent, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_texture = true,  .use_gsplat = true},  ClippingConstant{.use_clipping = false});
+PipelineGraphic gsplat_transparent_matcap_material_clip(     vert_gsplat,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = true},  ClippingConstant{.use_clipping = true });
+PipelineGraphic gsplat_transparent_matcap_material_no_clip(  vert_gsplat,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = false, .use_gsplat = true},  ClippingConstant{.use_clipping = false});
+PipelineGraphic gsplat_transparent_matcap_texture_clip(      vert_gsplat,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = true},  ClippingConstant{.use_clipping = true });
+PipelineGraphic gsplat_transparent_matcap_texture_no_clip(   vert_gsplat,     frag_transparent, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_texture = true,  .use_gsplat = true},  ClippingConstant{.use_clipping = false});
+PipelineGraphic gsplat_transparent_flat_material_clip(       vert_gsplat,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = true},  ClippingConstant{.use_clipping = true });
+PipelineGraphic gsplat_transparent_flat_material_no_clip(    vert_gsplat,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = false, .use_gsplat = true},  ClippingConstant{.use_clipping = false});
+PipelineGraphic gsplat_transparent_flat_texture_clip(        vert_gsplat,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = true},  ClippingConstant{.use_clipping = true });
+PipelineGraphic gsplat_transparent_flat_texture_no_clip(     vert_gsplat,     frag_transparent, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_texture = true,  .use_gsplat = true},  ClippingConstant{.use_clipping = false});
 /* clang-format on */
 
 }  // namespace workbench::prepass

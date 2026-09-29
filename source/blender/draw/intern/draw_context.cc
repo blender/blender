@@ -814,6 +814,107 @@ bool is_object_instancer(const Object &ob)
 {
   return (ob.transflag & OB_DUPLI) || (ob.runtime->geometry_set_eval != nullptr);
 }
+
+/**
+ * This shared function decides which objects are displayed/selectable.
+ * As the logic involved here is fairly involved, avoid the checks between
+ * drawing and selection diverging.
+ *
+ * The `check_select` argument applies some additional checks,
+ * since there are times when an object may be drawn but not selectable,
+ * however the reverse should never occur (hidden but selectable).
+ *
+ * This function should only be accessed via wrapper functions:
+ *
+ * - #draw_filter_from_viewport_object_for_draw
+ * - #draw_filter_from_viewport_object_for_select
+ *
+ * \param has_duplis: See #foreach_obref_in_scene `should_draw_object_cb` callback.
+ * \param object_filter_fn: Optional caller filter (may be null).
+ * \param check_select: Also apply the selection checks (type exclusion & select-ability).
+ */
+DrawFilter draw_filter_from_viewport_object_impl(const DRWContext &draw_ctx,
+                                                 Object &ob,
+                                                 const bool has_duplis,
+                                                 const DRW_ObjectFilterFn object_filter_fn,
+                                                 void *object_filter_user_data,
+                                                 const bool check_select)
+{
+  const View3D &v3d = *draw_ctx.v3d;
+
+  /* Checks on top-level objects, for an instancer these also apply to its duplis.
+   * Duplis reach this predicate only to check draw-ability;
+   * these checks were already done on their instancer during the top-level iteration. */
+  if ((ob.base_flag & BASE_FROM_DUPLI) == 0) {
+    /* For an instancer that may spawn duplis these checks control instance generation,
+     * so run them before the visibility / selectable checks. */
+    const bool filter_can_exclude_duplis = is_object_instancer(ob) && has_duplis;
+    const DrawFilter skip = filter_can_exclude_duplis ? DrawFilter::SkipRecursive :
+                                                        DrawFilter::Skip;
+
+    /* Take into account viewport settings for object type visibility on an instancer that may
+     * spawn duplis. The exclusion applies to its instances too, see: #159219.
+     *
+     * Duplis are skipped here on purpose: viewport exclusion is handled by
+     * #BKE_object_is_visible_in_viewport below, selection exclusion uses the instancer's
+     * type since selecting a dupli selects its instancer (they share a `select_id`). */
+    int object_type_exclude = v3d.object_type_exclude_viewport;
+
+    /* Selection also honors viewport exclusion so hidden instances can't occlude or be picked. */
+    if (check_select) {
+      object_type_exclude |= v3d.object_type_exclude_select;
+    }
+    if ((object_type_exclude & (1 << ob.type)) != 0) {
+      return skip;
+    }
+
+    if (object_filter_fn != nullptr) {
+      if (object_filter_fn(&ob, object_filter_user_data) == false) {
+        return skip;
+      }
+    }
+  }
+
+  /* Checks which only skip the object itself (never its duplis),
+   * a dupli may be visible & selectable when its instancer is not. */
+  if (!BKE_object_is_visible_in_viewport(&v3d, &ob)) {
+    return DrawFilter::Skip;
+  }
+
+  if (check_select) {
+    /* When selecting pose-bones in pose mode, check for visibility not select-ability
+     * as pose-bones have their own selection restriction flag. */
+    if ((draw_ctx.object_pose != nullptr) && (ob.mode & OB_MODE_POSE)) {
+      if ((ob.base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
+        return DrawFilter::Skip;
+      }
+    }
+    else if ((ob.base_flag & BASE_SELECTABLE) == 0) {
+      return DrawFilter::Skip;
+    }
+  }
+
+  return DrawFilter::Draw;
+}
+
+/** Predicate for the viewport draw loop, see #draw_filter_from_viewport_object_impl. */
+DrawFilter draw_filter_from_viewport_object_for_draw(const DRWContext &draw_ctx,
+                                                     Object &ob,
+                                                     const bool has_duplis)
+{
+  return draw_filter_from_viewport_object_impl(draw_ctx, ob, has_duplis, nullptr, nullptr, false);
+}
+
+/** Predicate for the selection loop, see #draw_filter_from_viewport_object_impl. */
+DrawFilter draw_filter_from_viewport_object_for_select(const DRWContext &draw_ctx,
+                                                       Object &ob,
+                                                       const bool has_duplis,
+                                                       const DRW_ObjectFilterFn object_filter_fn,
+                                                       void *object_filter_user_data)
+{
+  return draw_filter_from_viewport_object_impl(
+      draw_ctx, ob, has_duplis, object_filter_fn, object_filter_user_data, true);
+}
 }  // namespace
 
 /**
@@ -1689,8 +1790,8 @@ static void drw_draw_render_loop_3d(DRWContext &draw_ctx, RenderEngineType *engi
   const bool do_populate_loop = internal_engine || overlays_on || !draw_type_render ||
                                 gpencil_engine_needed;
 
-  auto should_draw_object = [&](Object &ob, bool /*has_duplis*/) -> DrawFilter {
-    return BKE_object_is_visible_in_viewport(v3d, &ob) ? DrawFilter::Draw : DrawFilter::Skip;
+  auto should_draw_object = [&](Object &ob, const bool has_duplis) -> DrawFilter {
+    return draw_filter_from_viewport_object_for_draw(draw_ctx, ob, has_duplis);
   };
 
   draw_ctx.enable_engines(gpencil_engine_needed, engine_type);
@@ -2028,14 +2129,18 @@ void DRW_render_object_iter(
   using namespace blender::draw;
 
   DRWContext &draw_ctx = drw_get();
-  View3D *v3d = draw_ctx.v3d;
 
-  auto should_draw_object = [&](Object &ob, bool /*has_duplis*/) -> DrawFilter {
-    if (v3d && !BKE_object_is_visible_in_viewport(v3d, &ob)) {
-      return DrawFilter::Skip;
-    }
+  /* Without a viewport there are no viewport settings to hide objects, draw everything. */
+  auto should_draw_object_all = [](Object & /*ob*/, const bool /*has_duplis*/) -> DrawFilter {
     return DrawFilter::Draw;
   };
+  auto should_draw_object_viewport = [&](Object &ob, const bool has_duplis) -> DrawFilter {
+    return draw_filter_from_viewport_object_for_draw(draw_ctx, ob, has_duplis);
+  };
+  FunctionRef<DrawFilter(Object &, bool)> should_draw_object = should_draw_object_viewport;
+  if (draw_ctx.v3d == nullptr) {
+    should_draw_object = should_draw_object_all;
+  }
 
   draw_ctx.sync([&](DupliCacheManager &duplis, ExtractionGraph &extraction) {
     foreach_obref_in_scene(draw_ctx, should_draw_object, [&](ObjectRef &ob_ref) {
@@ -2150,49 +2255,9 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
   draw_ctx.enable_engines(use_gpencil);
   draw_ctx.engines_data_validate();
   draw_ctx.engines_init_and_sync([&](DupliCacheManager &duplis, ExtractionGraph &extraction) {
-    /* When selecting pose-bones in pose mode, check for visibility not select-ability
-     * as pose-bones have their own selection restriction flag. */
-    const bool use_pose_exception = (draw_ctx.object_pose != nullptr);
-
-    const int object_type_exclude_select = v3d->object_type_exclude_select;
-
     auto should_draw_object = [&](Object &ob, const bool has_duplis) -> DrawFilter {
-      const bool is_dupli = (ob.base_flag & BASE_FROM_DUPLI) != 0;
-      const bool is_instancer = !is_dupli && is_object_instancer(ob);
-      /* Duplis reach this predicate only to check draw-ability;
-       * the filter was already checked on their instancer during the top-level iteration. */
-      const bool use_object_filter = !is_dupli && object_filter_fn != nullptr &&
-                                     (object_type_exclude_select & (1 << ob.type)) == 0;
-      /* For an instancer that may spawn duplis the filter controls instance generation,
-       * so check it before the visibility / selectable checks.
-       * Otherwise it only affects self-draw and runs after those checks. */
-      const bool filter_can_exclude_duplis = is_instancer && has_duplis;
-
-      if (use_object_filter && filter_can_exclude_duplis) {
-        if (object_filter_fn(&ob, object_filter_user_data) == false) {
-          return DrawFilter::SkipRecursive;
-        }
-      }
-
-      if (!BKE_object_is_visible_in_viewport(v3d, &ob)) {
-        return DrawFilter::Skip;
-      }
-      if (use_pose_exception && (ob.mode & OB_MODE_POSE)) {
-        if ((ob.base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
-          return DrawFilter::Skip;
-        }
-      }
-      else if ((ob.base_flag & BASE_SELECTABLE) == 0) {
-        return DrawFilter::Skip;
-      }
-
-      if (use_object_filter && !filter_can_exclude_duplis) {
-        if (object_filter_fn(&ob, object_filter_user_data) == false) {
-          return DrawFilter::Skip;
-        }
-      }
-
-      return DrawFilter::Draw;
+      return draw_filter_from_viewport_object_for_select(
+          draw_ctx, ob, has_duplis, object_filter_fn, object_filter_user_data);
     };
 
     foreach_obref_in_scene(draw_ctx, should_draw_object, [&](ObjectRef &ob_ref) {
@@ -2250,9 +2315,12 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
   draw_ctx.acquire_data();
   draw_ctx.enable_engines(use_gpencil);
   draw_ctx.engines_init_and_sync([&](DupliCacheManager &duplis, ExtractionGraph &extraction) {
-    auto should_draw_object = [&](Object &ob, bool /*has_duplis*/) -> DrawFilter {
-      if (!BKE_object_is_visible_in_viewport(v3d, &ob)) {
-        return DrawFilter::Skip;
+    auto should_draw_object = [&](Object &ob, const bool has_duplis) -> DrawFilter {
+      if (const DrawFilter filter = draw_filter_from_viewport_object_for_draw(
+              draw_ctx, ob, has_duplis);
+          filter != DrawFilter::Draw)
+      {
+        return filter;
       }
       if (use_only_selected && !(ob.base_flag & BASE_SELECTED)) {
         return DrawFilter::Skip;
@@ -2318,7 +2386,16 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
     }
 
     if (RETOPOLOGY_ENABLED(v3d) && !XRAY_ENABLED(v3d)) {
-      auto should_draw_object = [&](Object &ob, bool /*has_duplis*/) -> DrawFilter {
+      auto should_draw_object = [&](Object &ob, const bool has_duplis) -> DrawFilter {
+        /* Check visibility first so an excluded instancer skips its duplis,
+         * the type check below would otherwise reject a non-mesh instancer (an empty)
+         * before the exclusion could be applied to its duplis. */
+        if (const DrawFilter filter = draw_filter_from_viewport_object_for_draw(
+                draw_ctx, ob, has_duplis);
+            filter != DrawFilter::Draw)
+        {
+          return filter;
+        }
         if (ob.type != OB_MESH) {
           /* The iterator has evaluated meshes for all solid objects.
            * It also has non-mesh objects however, which are not supported here. */
@@ -2326,9 +2403,6 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
         }
         if (DRW_object_is_in_edit_mode(&ob)) {
           /* Only background (non-edit) objects are used for occlusion. */
-          return DrawFilter::Skip;
-        }
-        if (!BKE_object_is_visible_in_viewport(v3d, &ob)) {
           return DrawFilter::Skip;
         }
         return DrawFilter::Draw;

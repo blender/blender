@@ -28,9 +28,11 @@ namespace geometry {
  * \returns #std::nullopt if the mesh should not be changed (no vertices are merged), in order to
  * avoid copying the input. Otherwise returns the new mesh with merged geometry.
  */
-std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
-                                                 const IndexMask &selection,
-                                                 float merge_distance);
+std::optional<Mesh *> mesh_merge_by_distance_all(
+    const Mesh &mesh,
+    const IndexMask &selection,
+    float merge_distance,
+    const bke::AttributeFilter &attribute_filter = bke::AttributeFilter::default_filter());
 
 /**
  * Merge selected vertices along edges to other selected vertices. Only vertices connected by edges
@@ -39,10 +41,12 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
  * \returns #std::nullopt if the mesh should not be changed (no vertices are merged), in order to
  * avoid copying the input. Otherwise returns the new mesh with merged geometry.
  */
-std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
-                                                       Span<bool> selection,
-                                                       float merge_distance,
-                                                       bool only_loose_edges);
+std::optional<Mesh *> mesh_merge_by_distance_connected(
+    const Mesh &mesh,
+    Span<bool> selection,
+    float merge_distance,
+    bool only_loose_edges,
+    const bke::AttributeFilter &attribute_filter = bke::AttributeFilter::default_filter());
 
 /**
  * Merge vertices into target vertices targets.
@@ -64,10 +68,16 @@ Mesh *mesh_merge_verts(const Mesh &mesh,
                        int removed_verts_num,
                        bool do_mix_data);
 
-Mesh *mesh_merge_verts(const Mesh &mesh,
-                       const IndexMask &selection,
-                       Span<int> merge_ids,
-                       const bke::AttributeFilter &attribute_filter);
+/**
+ * Merge selected vertices that share the same ID. Each group of vertices merges into the vertex
+ * with the lowest index.
+ * \returns #std::nullopt if the mesh should not be changed (no vertices are merged), in order to
+ * avoid copying the input. Otherwise returns the new mesh with merged geometry.
+ */
+std::optional<Mesh *> mesh_merge_verts(const Mesh &mesh,
+                                       const IndexMask &selection,
+                                       Span<int> merge_ids,
+                                       const bke::AttributeFilter &attribute_filter);
 
 }  // namespace geometry
 }  // namespace blender

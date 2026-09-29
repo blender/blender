@@ -229,7 +229,7 @@ TEST(shader_tool, Reference)
     string input = R"(
 int b[1]; const int i = 0; auto &a = b[i]; a = 0;)";
     string expect = R"(
-int b[1]; const int i = 0;                 b[i] = 0;)";
+int b[1]; const int i = 0;                 b[i]= 0;)";
     auto [output, _, error] = process_test_local(input, Language::BSL);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");

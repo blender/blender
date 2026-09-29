@@ -10,7 +10,7 @@
 namespace eevee::dof {
 
 struct Gather {
-  [[resource_table]] srt_t<Accumulator> accumulator;
+  [[resource_table]] Accumulator accumulator;
 
   [[sampler(0)]] sampler2D color_tx;
   [[sampler(1)]] sampler2D color_bilinear_tx;

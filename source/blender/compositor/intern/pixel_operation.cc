@@ -13,6 +13,7 @@
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_zones.hh"
 
 #include "NOD_eval_log.hh"
 
@@ -190,25 +191,23 @@ int PixelOperation::get_internal_input_reference_count(const StringRef &identifi
 void PixelOperation::compute_results_reference_counts(const Schedule &schedule)
 {
   for (const auto item : output_sockets_to_output_identifiers_map_.items()) {
-    int reference_count = number_of_inputs_linked_to_output_conditioned(
-        *item.key, [&](const bNodeSocket &input) {
-          /* We only consider inputs that are not part of the pixel operations, because inputs
-           * that are part of the pixel operations are internal and do not deal with the result
-           * directly. */
-          return schedule.nodes.contains(&input.owner_node()) &&
-                 !schedule.unneeded_inputs.contains(&input) &&
-                 !node_tree_evaluator_.pixel_compile_unit().contains(&input.owner_node());
-        });
+    const bNodeSocket &output = *item.key;
+    const std::string identifier = item.value;
 
-    if (preview_outputs_.contains(item.key)) {
+    /* We ignore inputs that are part of the pixel compile unit, because they are internal and do
+     * not deal with the result directly. */
+    int reference_count = compute_output_reference_count(
+        output, schedule, &node_tree_evaluator_.pixel_compile_unit());
+
+    if (preview_outputs_.contains(&output)) {
       reference_count++;
     }
 
-    if (logged_outputs_.contains(item.key)) {
+    if (logged_outputs_.contains(&output)) {
       reference_count++;
     }
 
-    get_result(item.value).set_reference_count(reference_count);
+    this->get_result(identifier).set_reference_count(reference_count);
   }
 }
 

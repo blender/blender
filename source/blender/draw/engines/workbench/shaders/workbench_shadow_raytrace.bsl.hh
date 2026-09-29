@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_view_lib.glsl"
+#include "draw_view.bsl.hh"
 #include "gpu_shader_fullscreen.bsl.hh"
 #include "gpu_shader_utildefines.bsl.hh"
 #include "workbench_common.bsl.hh"
@@ -13,8 +13,6 @@
 namespace workbench::shadow::rt {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[uniform(1)]] const ShadowPassData &pass_data;
   [[sampler(2)]] const sampler2DDepth depth_tx;
   [[sampler(3)]] const sampler2D normal_tx;
@@ -26,7 +24,9 @@ struct Resources {
   fullscreen_vertex(vert_id, out_pos);
 }
 
-[[fragment]] void frag([[frag_coord]] const float4 &frag_coord, [[resource_table]] Resources &srt)
+[[fragment]] void frag([[frag_coord]] const float4 &frag_coord,
+                       [[resource_table]] Resources &srt,
+                       [[resource_table]] const draw::View &views)
 {
   const float2 resolution = float2(textureSize(srt.depth_tx, 0).xy);
   const float2 screen_uv = frag_coord.xy / resolution;
@@ -37,7 +37,9 @@ struct Resources {
     return;
   }
 
-  const float3 N = drw_normal_view_to_world(
+  ViewMatrices view = views.get(0);
+
+  const float3 N = view.normal_view_to_world(
       workbench::normal_decode(texture(srt.normal_tx, screen_uv)));
   if (dot(N, srt.pass_data.light_direction_ws) >= 0.0f) {
     /* We already know the fragment is in shadow. No need to query. */
@@ -45,11 +47,11 @@ struct Resources {
   }
 
   /* Offset depth to compensate for depth buffer precision. */
-  float3 P = drw_point_screen_to_world(
+  float3 P = view.point_screen_to_world(
       float3(screen_uv, intBitsToFloat(floatBitsToInt(depth) - 2)));
 
   const float pixel_size = srt.pass_data.pixel_size *
-                           (drw_view_is_perspective() ? drw_view_z_distance(P) : 1.0f);
+                           (view.is_perspective() ? view.z_distance(P) : 1.0f);
 
   /* Offset by pixel size to compensate for floating point precision. */
   const float tMin = pixel_size / max(dot(N, -srt.pass_data.light_direction_ws), 0.1f);

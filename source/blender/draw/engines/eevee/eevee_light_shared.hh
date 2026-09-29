@@ -218,10 +218,10 @@ struct [[host_shared]] LightData {
   uint2 light_set_membership;
 
   union {
-    union_t<struct LightLocalData> local;
-    union_t<struct LightSpotData> spot;
-    union_t<struct LightAreaData> area;
-    union_t<struct LightSunData> sun;
+    LightLocalData local;
+    LightSpotData spot;
+    LightAreaData area;
+    LightSunData sun;
   };
 
   float3 x_axis() const
@@ -245,16 +245,16 @@ struct [[host_shared]] LightData {
   {
     /* This is not something we need in performance critical code. */
     if (is_sun_light(this->type)) {
-      return this->tilemap_index + (this->sun().clipmap_lod_max - this->sun().clipmap_lod_min);
+      return this->tilemap_index + (this->sun.clipmap_lod_max - this->sun.clipmap_lod_min);
     }
-    return this->tilemap_index + this->local().tilemaps_count - 1;
+    return this->tilemap_index + this->local.tilemaps_count - 1;
   }
 
   /* Return the number of tilemap needed for a local light. */
   int local_tilemap_count() const
   {
     if (is_spot_light(this->type)) {
-      return (this->spot().spot_tan > tanf(EEVEE_PI / 4.0)) ? 5 : 1;
+      return (this->spot.spot_tan > tanf(EEVEE_PI / 4.0)) ? 5 : 1;
     }
     if (is_area_light(this->type)) {
       return 5;
@@ -268,11 +268,11 @@ struct [[host_shared]] LightData {
  * \{ */
 
 /* Number of items we can cull. Limited by how we store CullingZBin. */
-#define CULLING_MAX_ITEM 65536
+static constexpr int CULLING_MAX_ITEM = 65536;
 /* Fine grained subdivision in the Z direction. Limited by the LDS in z-binning compute shader. */
-#define CULLING_ZBIN_COUNT 4096
+static constexpr int CULLING_ZBIN_COUNT = 4096;
 /* Max tile map resolution per axes. */
-#define CULLING_TILE_RES 16
+static constexpr int CULLING_TILE_RES = 16;
 
 struct [[host_shared]] LightCullingData {
   /** Scale applied to tile pixel coordinates to get target UV coordinate. */

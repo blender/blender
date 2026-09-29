@@ -48,6 +48,11 @@ namespace io::alembic {
 
 static CLG_LogRef LOG = {"io.alembic"};
 
+static IndexRange get_sane_range(IndexRange range, size_t alembic_size)
+{
+  return IndexRange(std::min(range.size(), int64_t(alembic_size)));
+}
+
 /* Specialization of #has_animations() as defined in abc_reader_object.h. */
 template<> bool has_animations(Alembic::AbcGeom::ICurvesSchema &schema, ImportSettings *settings)
 {
@@ -251,6 +256,7 @@ struct PreprocessedSampleData {
   P3fArraySamplePtr ceil_positions = nullptr;
   FloatArraySamplePtr weights = nullptr;
   FloatArraySamplePtr radii = nullptr;
+  Alembic::AbcGeom::GeometryScope radii_scope;
 
   V3fArraySamplePtr velocities = nullptr;
 };
@@ -383,7 +389,8 @@ static std::optional<PreprocessedSampleData> preprocess_sample(
     data.weights = weights;
   }
 
-  if (radii && radii->size() > 1) {
+  if (radii && radii->size() >= 1) {
+    data.radii_scope = widths_param.getScope();
     data.radii = radii;
   }
 
@@ -587,11 +594,40 @@ void AbcCurveReader::read_curves_sample(Curves *curves_id,
   }
 
   if (data.radii) {
-    MutableSpan<float> radii = curves.radius_for_write();
+    switch (data.radii_scope) {
+      case Alembic::AbcGeom::kConstantScope: {
+        const float radius = (*data.radii)[0] / 2.0f;
+        bke::MutableAttributeAccessor attribute_accessor = curves.attributes_for_write();
+        attribute_accessor.remove("radius");
+        attribute_accessor.add<float>(
+            "radius", bke::AttrDomain::Point, bke::AttributeInitValue(radius));
+        break;
+      }
+      case Alembic::AbcGeom::kVertexScope:
+      case Alembic::AbcGeom::kVaryingScope:
+      case Alembic::AbcGeom::kFacevaryingScope: {
+        MutableSpan<float> radii = curves.radius_for_write();
 
-    Alembic::Abc::FloatArraySample alembic_widths = *data.radii;
-    for (const int i_point : curves.points_range()) {
-      radii[i_point] = alembic_widths[i_point] / 2.0f;
+        Alembic::Abc::FloatArraySample alembic_widths = *data.radii;
+        for (const int i_point : get_sane_range(curves.points_range(), alembic_widths.size())) {
+          radii[i_point] = alembic_widths[i_point] / 2.0f;
+        }
+        break;
+      }
+      case Alembic::AbcGeom::kUniformScope: {
+        MutableSpan<float> radii = curves.radius_for_write();
+
+        Alembic::Abc::FloatArraySample alembic_widths = *data.radii;
+
+        for (const int i_curve : get_sane_range(curves.curves_range(), alembic_widths.size())) {
+          for (const int i_point : curves.points_by_curve()[i_curve]) {
+            radii[i_point] = alembic_widths[i_curve] / 2.0f;
+          }
+        }
+        break;
+      }
+      case Alembic::AbcGeom::kUnknownScope:
+        break;
     }
   }
 

@@ -179,12 +179,14 @@ void SymbolFunction::add_overload(SymbolFunction *fn)
 
 void SymbolFunction::reserve_arguments(int n)
 {
+  this->arg_const.reserve(n);
   this->arg_types.reserve(n);
   this->arg_defaults.reserve(n);
 }
 
-void SymbolFunction::add_argument(SymbolClass *type, Expr default_value)
+void SymbolFunction::add_argument(bool is_const, SymbolClass *type, Expr default_value)
 {
+  this->arg_const.emplace_back(is_const);
   this->arg_types.emplace_back(type);
   this->arg_defaults.emplace_back(default_value);
 }

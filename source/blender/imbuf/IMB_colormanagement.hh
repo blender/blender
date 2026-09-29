@@ -131,6 +131,8 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
  */
 StringRefNull IMB_colormanagement_space_get_interop_id(const ColorSpace *colorspace);
 const ColorSpace *IMB_colormanagement_space_from_interop_id(StringRefNull interop_id);
+int IMB_colormanagement_colorspace_get_interop_id_index(const char *name, const char *interop_id);
+void IMB_colormanagement_colorspace_interop_id_set(char *name, char *interop_id, int index);
 
 BLI_INLINE void IMB_colormanagement_get_luminance_coefficients(float r_rgb[3]);
 
@@ -420,6 +422,13 @@ const char *IMB_colormanagement_look_validate_for_view(const char *view_name,
 int IMB_colormanagement_colorspace_get_named_index(const char *name);
 const char *IMB_colormanagement_colorspace_get_indexed_name(int index);
 const char *IMB_colormanagement_colorspace_get_name(const ColorSpace *colorspace);
+
+/** Set the color space name. Always use this when setting color space name to write
+ * both the name and interop ID, for compatibility with multiple configs. */
+void IMB_colormanagement_colorspace_name_set(char *name, char *interop_id, const char *new_name);
+void IMB_colormanagement_colorspace_settings_set(ColorManagedColorspaceSettings *settings,
+                                                 const char *name);
+
 const char *IMB_colormanagement_colorspace_get_family(const ColorSpace *colorspace);
 const char *IMB_colormanagement_colorspace_get_description(const ColorSpace *colorspace);
 const char *IMB_colormanagement_view_get_default_name(const char *display_name);
@@ -469,6 +478,8 @@ void IMB_colormanagement_view_items_add(EnumPropertyItem **items,
 void IMB_colormanagement_look_items_add(EnumPropertyItem **items,
                                         int *totitem,
                                         const char *view_name);
+
+void IMB_colormanagement_interop_id_items_add(EnumPropertyItem **items, int *totitem);
 void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *totitem);
 
 /** \} */

@@ -414,10 +414,10 @@ mf::Variable *MultiFunctionProcedureOperation::get_multi_function_input_variable
   const std::string input_identifier = "input" + std::to_string(input_index);
 
   /* Declare the input descriptor for this input and prefer to declare its type to be the same as
-   * the type of the output socket because doing type conversion in the multi-function procedure is
+   * the type of the output because doing type conversion in the multi-function procedure is
    * cheaper. */
   InputDescriptor input_descriptor = input_descriptor_from_input_socket(&input_socket);
-  input_descriptor.type = get_node_socket_result_type(&output_socket);
+  input_descriptor.type = result.type();
   declare_input_descriptor(input_identifier, input_descriptor);
 
   mf::Variable &variable = procedure_builder_.add_input_parameter(
@@ -463,15 +463,12 @@ void MultiFunctionProcedureOperation::assign_output_variables(const bNode &node,
     mf::Variable *output_variable = variables[available_outputs_index];
     output_to_variable_map_.add_new(output, output_variable);
 
-    /* If any of the nodes linked to the output are not part of the multi-function procedure
-     * operation but are part of the execution schedule, then an output result needs to be
-     * populated for it. */
-    const bool is_operation_output = is_output_linked_to_input_conditioned(
-        *output, [&](const bNodeSocket &input) {
-          return node_tree_evaluator_.schedule().nodes.contains(&input.owner_node()) &&
-                 !node_tree_evaluator_.schedule().unneeded_inputs.contains(&input) &&
-                 !node_tree_evaluator_.pixel_compile_unit().contains(&input.owner_node());
-        });
+    /* If the output is referenced by the schedule outside of the pixel compile unit, then an
+     * output result needs to be populated for it. */
+    const bool is_operation_output = compute_output_reference_count(
+                                         *output,
+                                         node_tree_evaluator_.schedule(),
+                                         &node_tree_evaluator_.pixel_compile_unit()) != 0;
 
     /* If the output is used as the node preview, then an output result needs to be populated for
      * it, and we additionally keep track of that output to later compute the previews from. */

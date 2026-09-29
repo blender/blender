@@ -195,14 +195,13 @@ void BKE_blender_globals_init()
 {
   blender_version_init();
 
-  memset(&G, 0, sizeof(Global));
+  G = Global{};
 
   U.savetime = 1;
 
   BKE_blender_globals_main_replace(BKE_main_new());
 
   STRNCPY(G.filepath_last_image, "//");
-  G.filepath_last_blend[0] = '\0';
 
 #ifndef WITH_PYTHON_SECURITY /* default */
   G.f |= G_FLAG_SCRIPT_AUTOEXEC;
@@ -211,8 +210,6 @@ void BKE_blender_globals_init()
 #endif
 
   G.log.level = CLG_LEVEL_WARN;
-
-  G.profile_gpu = false;
 }
 
 void BKE_blender_globals_clear()

@@ -68,8 +68,8 @@ class Context : public compositor::Context {
  private:
   /* Input data. */
   CompositorInputData input_data_;
-  /* The hash of the compute context of the active viewer. */
-  const ComputeContextHash viewer_compute_context_hash_;
+  /* The hash of the compute context of the active viewer if one exists. */
+  const std::optional<ComputeContextHash> viewer_compute_context_hash_;
 
   /* Cached GPU and CPU passes that the compositor took ownership of. Those had their reference
    * count incremented when accessed and need to be freed/have their reference count decremented
@@ -125,7 +125,7 @@ class Context : public compositor::Context {
     return input_data_.needed_side_effects_outputs;
   }
 
-  const ComputeContextHash &get_viewer_compute_context_hash() const override
+  const std::optional<ComputeContextHash> &get_viewer_compute_context_hash() const override
   {
     return viewer_compute_context_hash_;
   }
@@ -746,7 +746,7 @@ class Context : public compositor::Context {
      * viewer. */
     const bool needs_viewer_output = flag_is_set(this->needed_side_effect_output_types(),
                                                  compositor::SideEffectOutputTypes::ViewerNode);
-    if (!operation.has_viewer_output() && needs_viewer_output) {
+    if (!this->get_viewer_compute_context_hash().has_value() && needs_viewer_output) {
       this->write_viewer(output_result);
     }
 

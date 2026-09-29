@@ -25,11 +25,11 @@
 namespace eevee::shadow::usage {
 
 struct TagUsage {
-  [[resource_table]] srt_t<LightRenderData> light_data;
-  [[resource_table]] srt_t<TileMaps> tilemaps;
-  [[resource_table]] srt_t<Tiles> tiles;
-  [[resource_table]] srt_t<Uniform> uniforms;
-  [[resource_table]] srt_t<draw::View> views_;
+  [[resource_table]] LightRenderData light_data;
+  [[resource_table]] TileMaps tilemaps;
+  [[resource_table]] Tiles tiles;
+  [[resource_table]] Uniform uniforms;
+  [[resource_table]] draw::View views;
 
  public:
   void tag_usage_tile(LightData light, uint2 tile_co, int lod, int tilemap_index)
@@ -39,16 +39,13 @@ struct TagUsage {
     }
 
     tile_co >>= uint(lod);
-    [[resource_table]] Tiles &tiles_ref = tiles;
-    [[resource_table]] TileMaps &maps = tilemaps;
-    int index = shadow_tile_offset(tile_co, maps.tilemaps_buf[tilemap_index].tiles_index, lod);
-    atomicOr(tiles_ref.tiles_buf[index], uint(SHADOW_IS_USED));
+    int index = shadow_tile_offset(tile_co, tilemaps.tilemaps_buf[tilemap_index].tiles_index, lod);
+    atomicOr(tiles.tiles_buf[index], uint(SHADOW_IS_USED));
   }
 
   void tag_usage_tilemap_directional_at_level(uint l_idx, float3 P, int level)
   {
-    [[resource_table]] LightRenderData &lrd = light_data;
-    LightData light = lrd.light_buf[l_idx];
+    LightData light = light_data.light_buf[l_idx];
 
     if (light.tilemap_index == LIGHT_NO_SHADOW) {
       return;
@@ -56,7 +53,7 @@ struct TagUsage {
 
     float3 lP = light_world_to_local_direction(light, P);
 
-    level = clamp(level, light.sun().clipmap_lod_min, light.sun().clipmap_lod_max);
+    level = clamp(level, light.sun.clipmap_lod_min, light.sun.clipmap_lod_max);
 
     ShadowCoordinates coord = shadow_directional_coordinates_at_level(light, lP, level);
     tag_usage_tile(light, coord.tilemap_tile, 0, coord.tilemap_index);
@@ -65,8 +62,7 @@ struct TagUsage {
   void shadow_tag_usage_tilemap_directional(
       uint l_idx, float3 P, float3 V, float radius, int lod_bias)
   {
-    [[resource_table]] LightRenderData &lrd = light_data;
-    LightData light = lrd.light_buf[l_idx];
+    LightData light = light_data.light_buf[l_idx];
 
     if (light.tilemap_index == LIGHT_NO_SHADOW) {
       return;
@@ -74,7 +70,7 @@ struct TagUsage {
 
     float3 lP = light_world_to_local_direction(light, P);
 
-    LightSunData sun = light.sun();
+    LightSunData sun = light.sun;
 
     if (radius == 0.0f) {
       int level = shadow_directional_level(light, lP - light.position());
@@ -107,11 +103,7 @@ struct TagUsage {
 
   void tag_usage_tilemap_punctual(uint l_idx, float3 P, float radius, int lod_bias)
   {
-    [[resource_table]] LightRenderData &lrd = light_data;
-    [[resource_table]] const Uniform &uni = uniforms;
-    [[resource_table]] const draw::View &views = views_;
-
-    LightData light = lrd.light_buf[l_idx];
+    LightData light = light_data.light_buf[l_idx];
 
     if (light.tilemap_index == LIGHT_NO_SHADOW) {
       return;
@@ -119,13 +111,13 @@ struct TagUsage {
 
     float3 lP = light_world_to_local_point(light, P);
     float dist_to_light = max(length(lP) - radius, 1e-5f);
-    if (dist_to_light > light.local().local.influence_radius_max) {
+    if (dist_to_light > light.local.local.influence_radius_max) {
       return;
     }
     if (is_spot_light(light.type)) {
       /* Early out if out of cone. */
       float angle_tan = length(lP.xy / dist_to_light);
-      if (angle_tan > light.spot().spot_tan) {
+      if (angle_tan > light.spot.spot_tan) {
         return;
       }
     }
@@ -137,7 +129,7 @@ struct TagUsage {
     }
 
     /* Transform to shadow local space. */
-    lP -= light.local().local.shadow_position;
+    lP -= light.local.local.shadow_position;
 
     const ViewMatrices view = views.get(0);
 
@@ -145,10 +137,10 @@ struct TagUsage {
                                     lP,
                                     view.is_perspective(),
                                     view.z_distance(P),
-                                    uni.uniform_buf.shadow.film_pixel_radius);
+                                    uniforms.uniform_buf.shadow.film_pixel_radius);
     lod = clamp(lod + lod_bias, 0, SHADOW_TILEMAP_LOD);
 
-    if (radius == 0) {
+    if (radius == 0.0f) {
       int face_id = shadow_punctual_face_index_get(lP);
       lP = shadow_punctual_local_position_to_face_local(face_id, lP);
       ShadowCoordinates coord = shadow_punctual_coordinates(light, lP, face_id);
@@ -198,12 +190,12 @@ struct TagPixelCtx {
   float radius;
   int lod_bias;
 
-  void eval_directional([[resource_table]] TagUsage &srt, uint index, LightData /*light*/)
+  void eval_directional(TagUsage &srt, uint index, LightData /*light*/)
   {
     srt.shadow_tag_usage_tilemap_directional(index, P, V, radius, lod_bias);
   }
 
-  void eval_local([[resource_table]] TagUsage &srt, uint index, LightData /*light*/)
+  void eval_local(TagUsage &srt, uint index, LightData /*light*/)
   {
     srt.tag_usage_tilemap_punctual(index, P, radius, lod_bias);
   }
@@ -213,12 +205,12 @@ struct TagSurfelCtx {
   float3 P;
   int directional_lvl;
 
-  void eval_directional([[resource_table]] TagUsage &srt, uint index, LightData /*light*/)
+  void eval_directional(TagUsage &srt, uint index, LightData /*light*/)
   {
     srt.tag_usage_tilemap_directional_at_level(index, P, directional_lvl);
   }
 
-  void eval_local([[resource_table]] TagUsage &srt, uint index, LightData /*light*/)
+  void eval_local(TagUsage &srt, uint index, LightData /*light*/)
   {
     srt.tag_usage_tilemap_punctual(index, P, 0, 0);
   }
@@ -257,8 +249,6 @@ void tag_usage_opaque([[resource_table]] TagUsageOpaque &srt,
                       [[resource_table]] TagUsage &tag,
                       [[global_invocation_id]] const uint3 global_id)
 {
-  [[resource_table]] LightRenderData &lrd = tag.light_data;
-
   int2 texel = int2(global_id.xy);
   int2 tex_size = srt.input_depth_extent;
 
@@ -283,7 +273,7 @@ void tag_usage_opaque([[resource_table]] TagUsageOpaque &srt,
       .lod_bias = 0,
   };
 
-  light::foreach_visible(lrd, float2(global_id.xy), vP.z, ctx, tag);
+  light::foreach_visible(tag.light_data, float2(global_id.xy), vP.z, ctx, tag);
 }
 
 struct TagUsageSurfel {
@@ -305,8 +295,6 @@ void tag_usage_surfel([[resource_table]] TagUsageSurfel &srt,
                       [[resource_table]] SurfelCapture &capture,
                       [[global_invocation_id]] const uint3 global_id)
 {
-  [[resource_table]] LightRenderData &lrd = tag.light_data;
-
   uint index = global_id.x;
   if (index >= capture.capture_info_buf.surfel_len) {
     return;
@@ -319,7 +307,7 @@ void tag_usage_surfel([[resource_table]] TagUsageSurfel &srt,
       .directional_lvl = srt.directional_level,
   };
 
-  light::foreach(lrd, ctx, tag);
+  light::foreach(tag.light_data, ctx, tag);
 }
 
 /**
@@ -334,8 +322,6 @@ void tag_usage_volume([[resource_table]] UnifiedVolumeProperties &volume,
                       [[resource_table]] const HiZ &hiz,
                       [[global_invocation_id]] const uint3 global_id)
 {
-  [[resource_table]] LightRenderData &lrd = tag.light_data;
-
   int3 froxel = int3(global_id);
 
   if (any(greaterThanEqual(froxel, uni.uniform_buf.volumes.tex_size))) {
@@ -377,7 +363,7 @@ void tag_usage_volume([[resource_table]] UnifiedVolumeProperties &volume,
       .lod_bias = bias,
   };
 
-  light::foreach_visible(lrd, pixel, vP.z, ctx, tag);
+  light::foreach_visible(tag.light_data, pixel, vP.z, ctx, tag);
 }
 
 }  // namespace eevee::shadow::usage

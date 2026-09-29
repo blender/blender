@@ -55,7 +55,6 @@ Result<ParsedAttribute> resource_type_from_attributes(AttrList list)
         {"smooth",                                  {ResourceTableType::VERTEX_OUT,     ResourceType::VERT_ATTR_OUT,           0}},
         /* Fragment outputs. */
         {"frag_color",                              {ResourceTableType::FRAGMENT_OUT,   ResourceType::FRAG_OUT,                1}},
-        {"frag_stencil_ref",                        {ResourceTableType::FRAGMENT_OUT,   ResourceType::FRAG_OUT,                0}},
         /* Fragment inputs. */
         {"subpass_input",                           {ResourceTableType::FRAGMENT_IN,    ResourceType::FRAG_IN,                 2}},
         /* Entry point type. */
@@ -102,7 +101,7 @@ Result<ParsedAttribute> resource_type_from_attributes(AttrList list)
         {"num_work_groups",                         {ResourceTableType::ENTRY_POINT,    ResourceType::NUM_WORK_GROUP,          0}},
         {"frag_depth",                              {ResourceTableType::ENTRY_POINT,    ResourceType::FRAG_DEPTH,              1}},
         {"frag_coord",                              {ResourceTableType::ENTRY_POINT,    ResourceType::FRAG_COORD,              0}},
-        {"frag_stencil_ref",                        {ResourceTableType::ENTRY_POINT,    ResourceType::FRAG_STENCIL_REF,        0}},
+        {"frag_stencil_ref",                        {ResourceTableType::ENTRY_POINT,    ResourceType::STENCIL_REF,        0}},
         /* Misc. */
         {"fallthrough",                             {ResourceTableType::NONE,           ResourceType::NONE,                    0}},
         {"maybe_unused",                            {ResourceTableType::NONE,           ResourceType::NONE,                    0}},

@@ -2152,6 +2152,7 @@ void BKE_color_managed_colorspace_settings_init(
     ColorManagedColorspaceSettings *colorspace_settings)
 {
   STRNCPY_UTF8(colorspace_settings->name, "");
+  STRNCPY_UTF8(colorspace_settings->interop_id, "");
 }
 
 void BKE_color_managed_colorspace_settings_copy(
@@ -2159,6 +2160,7 @@ void BKE_color_managed_colorspace_settings_copy(
     const ColorManagedColorspaceSettings *settings)
 {
   STRNCPY_UTF8(colorspace_settings->name, settings->name);
+  STRNCPY_UTF8(colorspace_settings->interop_id, settings->interop_id);
 }
 
 bool BKE_color_managed_colorspace_settings_equals(const ColorManagedColorspaceSettings *settings1,

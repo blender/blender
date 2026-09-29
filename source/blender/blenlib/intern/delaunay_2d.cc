@@ -2278,7 +2278,7 @@ template<typename T> void add_edge_constraints(CDT_state<T> *cdt_state, const CD
     CDTVert<T> *v2 = cdt_state->cdt.get_vert_resolve_merge(iv2);
     /* Safe to drop to 0 here (unlike in `add_face_constraints`): loose-edge ids
      * stay below any face's id range, so `add_face_ids` doesn't depend on them. */
-    uint32_t id = (cdt_state->needed_ids & CDT_ORIG_EDGES) ? i : 0;
+    uint32_t id = (cdt_state->needed_ids & (CDT_ORIG_EDGES | CDT_INTERSECTED_EDGES)) ? i : 0;
     add_edge_constraint(cdt_state, v1, v2, id, nullptr);
   }
   cdt_state->face_edge_offset = ne;

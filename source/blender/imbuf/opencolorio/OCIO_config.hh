@@ -124,9 +124,15 @@ class Config {
   virtual const ColorSpace *get_color_space(StringRefNull name) const = 0;
 
   /**
-   * Get the number of color spaces in this configuration.
+   * Get the number of active color spaces in this configuration.
    */
-  virtual int get_num_color_spaces() const = 0;
+  virtual int get_num_active_color_spaces() const = 0;
+
+  /**
+   * Get the number of all color spaces, including the inactive color spaces
+   * after the active ones.
+   */
+  virtual int get_num_all_color_spaces() const = 0;
 
   /**
    * Get color space with the given index within the configuration.
@@ -153,6 +159,9 @@ class Config {
    * may need adjustments compared to the colorspace as chosen by the user.
    */
   virtual const ColorSpace *get_color_space_for_hdr_image(StringRefNull name) const = 0;
+
+  /** Returns true if the name is a role rather than a color space. */
+  virtual bool is_role(StringRefNull name) const = 0;
 
   /** \} */
 

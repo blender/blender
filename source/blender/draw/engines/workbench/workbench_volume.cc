@@ -24,7 +24,9 @@ void VolumePass::sync(SceneResources &resources)
 {
   active_ = false;
   ps_.init();
-  ps_.bind_ubo(WB_WORLD_SLOT, resources.world_buf);
+  /* Workaround limitation of PassSortable. Use dummy pass that will be sorted first in all
+   * circumstances. */
+  ps_.sub("Resource Bindings", FLT_MIN).bind_ubo(WB_WORLD_SLOT, resources.world_buf);
 
   dummy_shadow_tx_.ensure_3d(
       gpu::TextureFormat::UNORM_8_8_8_8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(1));
@@ -57,7 +59,8 @@ void VolumePass::object_sync_volume(Manager &manager,
 
   active_ = true;
 
-  PassMain::Sub &sub_ps = ps_.sub("Volume Object SubPass");
+  PassSortable::Sub &sub_ps = ps_.sub(
+      "Volume Object SubPass", dot(ob_ref.object_to_world().location(), scene_state.view_forward));
 
   const bool use_slice = (volume.display.axis_slice_method == VOLUME_AXIS_SLICE_SINGLE);
 
@@ -126,7 +129,9 @@ void VolumePass::object_sync_modifier(Manager &manager,
 
   active_ = true;
 
-  PassMain::Sub &sub_ps = ps_.sub("Volume Modifier SubPass");
+  PassSortable::Sub &sub_ps = ps_.sub(
+      "Volume Modifier SubPass",
+      dot(ob_ref.object_to_world().location(), scene_state.view_forward));
 
   const bool use_slice = settings.axis_slice_method == AXIS_SLICE_SINGLE;
 
@@ -212,7 +217,7 @@ void VolumePass::draw(Manager &manager, View &view, SceneResources &resources)
 
 void VolumePass::draw_slice_ps(Manager &manager,
                                SceneResources &resources,
-                               PassMain::Sub &ps,
+                               PassSortable::Sub &ps,
                                ObjectRef &ob_ref,
                                int slice_axis_enum,
                                float slice_depth)
@@ -238,7 +243,7 @@ void VolumePass::draw_slice_ps(Manager &manager,
 
 void VolumePass::draw_volume_ps(Manager &manager,
                                 SceneResources &resources,
-                                PassMain::Sub &ps,
+                                PassSortable::Sub &ps,
                                 ObjectRef &ob_ref,
                                 int taa_sample,
                                 float3 slice_count,

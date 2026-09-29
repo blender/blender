@@ -28,8 +28,6 @@ class SceneCompositorEffectsOperation : public SimpleOperation {
  private:
   /* True if the operation wrote an output. */
   bool has_output_ = false;
-  /* True if the operation wrote a viewer output. */
-  bool has_viewer_output_ = false;
 
  public:
   /* Declares an input of type color and an output of type color. */
@@ -44,13 +42,6 @@ class SceneCompositorEffectsOperation : public SimpleOperation {
   bool has_output()
   {
     return has_output_;
-  }
-
-  /* An assessor for has_viewer_output_. This is only initialized after the operation was
-   * evaluated. */
-  bool has_viewer_output()
-  {
-    return has_viewer_output_;
   }
 };
 

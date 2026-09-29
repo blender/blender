@@ -22,9 +22,6 @@ class HIPDeviceQueue : public DeviceQueue {
   HIPDeviceQueue(HIPDevice *device);
   ~HIPDeviceQueue() override;
 
-  int num_concurrent_states(const size_t state_size) const override;
-  int num_concurrent_busy_states(const size_t state_size) const override;
-
   void init_execution() override;
   void load_image_info() override;
 
@@ -49,6 +46,9 @@ class HIPDeviceQueue : public DeviceQueue {
  protected:
   HIPDevice *hip_device_;
   hipStream_t hip_stream_;
+
+  ConcurrentStatesParams concurrent_states_params() const override;
+  void get_memory_info(size_t &total, size_t &free) const override;
 
   void assert_success(hipError_t result, const char *operation);
 };

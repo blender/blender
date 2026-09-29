@@ -30,39 +30,23 @@ CUDADeviceQueue::~CUDADeviceQueue()
   cuStreamDestroy(cuda_stream_);
 }
 
-int CUDADeviceQueue::num_concurrent_states(const size_t state_size) const
+ConcurrentStatesParams CUDADeviceQueue::concurrent_states_params() const
 {
   const int max_num_threads = cuda_device_->get_num_multiprocessors() *
                               cuda_device_->get_max_num_threads_per_multiprocessor();
-  int num_states = max(max_num_threads, 65536) * 16;
 
-  const char *factor_str = getenv("CYCLES_CONCURRENT_STATES_FACTOR");
-  if (factor_str) {
-    const float factor = (float)atof(factor_str);
-    if (factor != 0.0f) {
-      num_states = max((int)(num_states * factor), 1024);
-    }
-    else {
-      LOG_TRACE << "CYCLES_CONCURRENT_STATES_FACTOR evaluated to 0";
-    }
-  }
-
-  LOG_TRACE << "GPU queue concurrent states: " << num_states << ", using up to "
-            << string_human_readable_size(num_states * state_size);
-
-  return num_states;
+  /* Benefit stops being measurable at around 10x the baseline, but we are a bit
+   * more conservative and only grow up to 4x and shrink up to 2x. */
+  ConcurrentStatesParams params;
+  params.baseline = max(max_num_threads, 65536) * 16;
+  params.min = params.baseline / 2;
+  params.max = params.baseline * 4;
+  return params;
 }
 
-int CUDADeviceQueue::num_concurrent_busy_states(const size_t /*state_size*/) const
+void CUDADeviceQueue::get_memory_info(size_t &total, size_t &free) const
 {
-  const int max_num_threads = cuda_device_->get_num_multiprocessors() *
-                              cuda_device_->get_max_num_threads_per_multiprocessor();
-
-  if (max_num_threads == 0) {
-    return 65536;
-  }
-
-  return 4 * max_num_threads;
+  cuda_device_->get_device_memory_info(total, free);
 }
 
 int CUDADeviceQueue::num_sort_partitions(int max_num_paths, uint max_scene_shaders) const

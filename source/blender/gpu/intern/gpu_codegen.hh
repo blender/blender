@@ -63,6 +63,7 @@ class GPUCodegen {
   BLI_HashMurmur2A hm2a_;
   ListBaseT<LinkData> ubo_inputs_ = {nullptr, nullptr};
   GPUInput *cryptomatte_input_ = nullptr;
+  GPUInput *thickness_input_ = nullptr;
 
   /** Cache parameters for complexity heuristic. */
   uint nodes_total_ = 0;
@@ -74,7 +75,7 @@ class GPUCodegen {
   ~GPUCodegen();
 
   void generate_graphs();
-  void generate_cryptomatte();
+  void generate_material_props();
   void generate_uniform_buffer();
   void generate_attribs();
   void generate_resources();

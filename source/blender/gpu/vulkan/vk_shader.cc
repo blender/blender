@@ -354,7 +354,7 @@ static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifie
 static void print_resource(std::ostream &os,
                            const VKDescriptorSet::Location location,
                            const ShaderCreateInfo::Resource &res,
-                           const ShaderCreateInfo &info)
+                           const ShaderCreateInfo & /*info*/)
 {
   os << "layout(binding = " << uint32_t(location);
   if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
@@ -381,14 +381,13 @@ static void print_resource(std::ostream &os,
       os << res.image.name << ";";
       break;
     case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
-      os << "uniform _" << res.uniformbuf.name.str_no_array() << " { "
-         << info.buffer_typename(res.uniformbuf.type_name, true) << " " << res.uniformbuf.name
-         << "; };";
+      os << "uniform _" << res.uniformbuf.name.str_no_array() << " { " << res.uniformbuf.type_name
+         << " " << res.uniformbuf.name << "; };";
       break;
     case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
       print_qualifier(os, res.storagebuf.qualifiers);
-      os << "buffer _" << res.storagebuf.name.str_no_array() << " { "
-         << info.buffer_typename(res.storagebuf.type_name) << " " << res.storagebuf.name << "; };";
+      os << "buffer _" << res.storagebuf.name.str_no_array() << " { " << res.storagebuf.type_name
+         << " " << res.storagebuf.name << "; };";
       break;
     case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
       os << "uniform accelerationStructureEXT " << res.acceleration_structure.name << ";";
@@ -433,11 +432,12 @@ inline int get_location_count(const Type &type)
 static void print_interface_as_attributes(std::ostream &os,
                                           const std::string &prefix,
                                           const StageInterfaceInfo &iface,
-                                          int &location)
+                                          int &location,
+                                          const StringRefNull &suffix)
 {
   for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
     os << "layout(location=" << location << ") " << prefix << " " << to_string(inout.interp) << " "
-       << to_string(inout.type) << " " << inout.name << ";\n";
+       << to_string(inout.type) << " " << inout.name << suffix << ";\n";
     location += get_location_count(inout.type);
   }
 }
@@ -471,7 +471,7 @@ static void print_interface(std::ostream &os,
                             const StringRefNull &suffix = "")
 {
   if (iface.instance_name.is_empty()) {
-    print_interface_as_attributes(os, prefix, iface, location);
+    print_interface_as_attributes(os, prefix, iface, location, suffix);
   }
   else {
     print_interface_as_struct(os, prefix, iface, location, suffix);
@@ -1261,9 +1261,22 @@ std::string VKShader::workaround_geometry_shader_source_create(
   ss << "{\n";
   for (int i : IndexRange(3)) {
     for (const StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
-      for (const StageInterfaceInfo::InOut &inout : iface->inouts) {
-        ss << "  " << iface->instance_name << "_out." << inout.name;
-        ss << " = " << iface->instance_name << "_in[" << i << "]." << inout.name << ";\n";
+      bool has_matching_output_iface = find_interface_by_name(
+                                           info_modified.geometry_out_interfaces_,
+                                           iface->instance_name) != nullptr;
+      const char *out_suffix = (has_matching_output_iface) ? "_out" : "";
+      const char *in_suffix = (has_matching_output_iface) ? "_in" : "";
+      if (iface->instance_name.is_empty()) {
+        for (const StageInterfaceInfo::InOut &inout : iface->inouts) {
+          ss << inout.name << out_suffix << " = " << inout.name << in_suffix << "[" << i << "];\n";
+        }
+      }
+      else {
+        for (const StageInterfaceInfo::InOut &inout : iface->inouts) {
+          ss << "  " << iface->instance_name << out_suffix << "." << inout.name;
+          ss << " = " << iface->instance_name << in_suffix << "[" << i << "]." << inout.name
+             << ";\n";
+        }
       }
     }
     if (do_barycentric_workaround) {

@@ -393,10 +393,10 @@ static PyObject *bpy_app_global_flag_get(PyObject * /*self*/, void *closure)
 
 static PyObject *bpy_app_autoexec_override_get(PyObject * /*self*/, void * /*closure*/)
 {
-  if ((G.f & G_FLAG_SCRIPT_OVERRIDE_PREF) == 0) {
+  if (!G.autoexec_override.has_value()) {
     Py_RETURN_NONE;
   }
-  return PyBool_FromLong(G.f & G_FLAG_SCRIPT_AUTOEXEC);
+  return PyBool_FromLong(*G.autoexec_override);
 }
 
 static int bpy_app_global_flag_set(PyObject * /*self*/, PyObject *value, void *closure)

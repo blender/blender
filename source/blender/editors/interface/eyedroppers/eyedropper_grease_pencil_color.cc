@@ -276,7 +276,7 @@ static void eyedropper_set_brush_color(bContext *C, const float3 &color)
     return;
   }
 
-  copy_v3_v3(brush->color, color);
+  BKE_brush_color_set(paint, brush, color);
   BKE_brush_color_sync_legacy(brush);
   BKE_brush_tag_unsaved_changes(brush);
 }

@@ -212,6 +212,8 @@ struct SpaceOutliner {
   eSpaceOutliner_StateFilter filter_state = SO_FILTER_OB_ALL;
   eSpaceOutliner_ShowRestrictFlag show_restrict_flags = {};
   short filter_id_type = 0;
+  eSpaceOutliner_SortMethod sort_method = SO_SORT_CUSTOM;
+  char _pad1[6] = {};
 
   ed::outliner::SpaceOutliner_Runtime *runtime = nullptr;
 };

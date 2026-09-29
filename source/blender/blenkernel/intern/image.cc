@@ -1148,7 +1148,7 @@ static void image_init_color_management(Image *ima)
 
   /* Will set input color space to image format default's. */
   ibuf = IMB_load_image_from_filepath(
-      filepath, ImBufFlags::Test | ImBufFlags::AlphaDetect, ima->colorspace_settings.name);
+      filepath, ImBufFlags::Test | ImBufFlags::AlphaDetect, &ima->colorspace_settings);
 
   if (ibuf) {
     if (flag_is_set(ibuf->flags, ImBufFlags::AlphaPremul)) {
@@ -1341,7 +1341,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
       const char *colorspace = IMB_colormanagement_role_colorspace_name_get(
           COLOR_ROLE_SCENE_LINEAR);
 
-      STRNCPY_UTF8(ima->colorspace_settings.name, colorspace);
+      IMB_colormanagement_colorspace_settings_set(&ima->colorspace_settings, colorspace);
     }
 
     if (ibuf != nullptr) {
@@ -1366,7 +1366,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
       const char *colorspace = IMB_colormanagement_role_colorspace_name_get(
           COLOR_ROLE_DEFAULT_BYTE);
 
-      STRNCPY_UTF8(ima->colorspace_settings.name, colorspace);
+      IMB_colormanagement_colorspace_settings_set(&ima->colorspace_settings, colorspace);
     }
 
     if (ibuf != nullptr) {
@@ -1445,8 +1445,8 @@ Image *BKE_image_add_generated(Main *bmain,
   copy_v4_v4(tile->gen_color, color);
 
   if (is_data) {
-    STRNCPY_UTF8(ima->colorspace_settings.name,
-                 IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
+    IMB_colormanagement_colorspace_settings_set(
+        &ima->colorspace_settings, IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
   }
 
   for (view_id = 0; view_id < 2; view_id++) {
@@ -1481,7 +1481,7 @@ static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
   }
 
   if (colorspace_name) {
-    STRNCPY_UTF8(image->colorspace_settings.name, colorspace_name);
+    IMB_colormanagement_colorspace_settings_set(&image->colorspace_settings, colorspace_name);
   }
 }
 
@@ -2884,11 +2884,12 @@ MovieReader *openanim_noload(const char *filepath,
                              const ImBufFlags flags,
                              const int streamindex,
                              const bool keep_original_colorspace,
-                             char colorspace[IMA_MAX_SPACE])
+                             ColorManagedColorspaceSettings *colorspace_settings)
 {
   MovieReader *anim;
 
-  anim = MOV_open_file(filepath, flags, streamindex, keep_original_colorspace, colorspace);
+  anim = MOV_open_file(
+      filepath, flags, streamindex, keep_original_colorspace, colorspace_settings);
   return anim;
 }
 
@@ -2896,12 +2897,13 @@ MovieReader *openanim(const char *filepath,
                       const ImBufFlags ibuf_flags,
                       const int streamindex,
                       const bool keep_original_colorspace,
-                      char colorspace[IMA_MAX_SPACE])
+                      ColorManagedColorspaceSettings *colorspace_settings)
 {
   MovieReader *anim;
   ImBuf *ibuf;
 
-  anim = MOV_open_file(filepath, ibuf_flags, streamindex, keep_original_colorspace, colorspace);
+  anim = MOV_open_file(
+      filepath, ibuf_flags, streamindex, keep_original_colorspace, colorspace_settings);
   if (anim == nullptr) {
     return nullptr;
   }
@@ -4262,6 +4264,11 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int e
     // else printf("pass not found\n");
   }
 
+  /* Cache null to indicate failed load. */
+  if (ibuf == nullptr && ima->rr == nullptr) {
+    image_assign_ibuf(ima, nullptr, iuser ? iuser->multi_index : 0, entry);
+  }
+
   return ibuf;
 }
 
@@ -4286,7 +4293,7 @@ static ImBuf *load_movie_single(Image *ima, ImageUser *iuser, int frame, const i
     BKE_image_user_file_path(&iuser_t, ima, filepath);
 
     /* FIXME: make several stream accessible in image editor, too. */
-    ia->anim = openanim(filepath, flags, 0, false, ima->colorspace_settings.name);
+    ia->anim = openanim(filepath, flags, 0, false, &ima->colorspace_settings);
 
     /* let's initialize this user */
     if (ia->anim && iuser && iuser->frames == 0) {
@@ -4388,7 +4395,7 @@ static ImBuf *load_image_single(Image *ima,
                                             flag,
                                             "<packed data>",
                                             nullptr,
-                                            ima->colorspace_settings.name);
+                                            &ima->colorspace_settings);
           if (ibuf && flag_is_set(ibuf->flags, ImBufFlags::MultiLayer)) {
             exr_handle = IMB_exr_open_multilayer_from_memory(data, imapf.packedfile->size);
           }
@@ -4421,7 +4428,7 @@ static ImBuf *load_image_single(Image *ima,
     BKE_image_user_file_path(&iuser_t, ima, filepath);
 
     /* read ibuf */
-    ibuf = IMB_load_image_from_filepath(filepath, flag, ima->colorspace_settings.name);
+    ibuf = IMB_load_image_from_filepath(filepath, flag, &ima->colorspace_settings);
     if (ibuf && flag_is_set(ibuf->flags, ImBufFlags::MultiLayer)) {
       exr_handle = IMB_exr_open_multilayer(filepath);
     }
@@ -4589,7 +4596,7 @@ void BKE_image_populate_cache_from_autosave(Image *ima)
           flag,
           "<packed data>",
           nullptr,
-          ima->colorspace_settings.name);
+          &ima->colorspace_settings);
       if (ibuf) {
         ibuf->userflags |= IB_BITMAPDIRTY;
         image_assign_ibuf(ima, ibuf, index, entry);
@@ -4626,6 +4633,11 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 
       image_assign_ibuf(ima, ibuf, iuser ? iuser->multi_index : IMA_NO_INDEX, 0);
     }
+  }
+
+  /* Cache null to indicate failed load. */
+  if (ibuf == nullptr && ima->rr == nullptr) {
+    image_assign_ibuf(ima, nullptr, iuser ? iuser->multi_index : IMA_NO_INDEX, 0);
   }
 
   return ibuf;

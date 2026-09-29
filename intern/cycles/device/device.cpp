@@ -766,6 +766,9 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
 
   const size_t headroom = (is_texture) ? device_image_headroom : device_working_headroom;
 
+  const bool no_host_fallback = (mem.type == MEM_DEVICE_ONLY) ||
+                                (mem.flags & MEM_FLAG_NO_HOST_FALLBACK);
+
   /* Move textures to host memory if needed. */
   if (!mem.move_to_host && !is_image && can_map_host) {
     move_textures_to_host(size, headroom, is_texture);
@@ -776,10 +779,9 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
   get_device_memory_info(total, free);
 
   /* Allocate in device memory. */
-  if ((!mem.move_to_host && (size + headroom) < free) || (mem.type == MEM_DEVICE_ONLY)) {
+  if ((!mem.move_to_host && (size + headroom) < free) || no_host_fallback) {
     mem_alloc_result = alloc_device(device_pointer, size);
     if (mem_alloc_result) {
-      device_mem_in_use += size;
       status = " in device memory";
     }
   }
@@ -788,7 +790,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
 
   void *shared_pointer = nullptr;
 
-  if (!mem_alloc_result && can_map_host && mem.type != MEM_DEVICE_ONLY) {
+  if (!mem_alloc_result && can_map_host && !no_host_fallback) {
     if (mem.shared_pointer) {
       /* Another device already allocated host memory. */
       mem_alloc_result = true;
@@ -810,7 +812,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
   }
 
   if (!mem_alloc_result) {
-    if (mem.type == MEM_DEVICE_ONLY) {
+    if (no_host_fallback) {
       status = " failed, out of device memory";
       set_error("System is out of GPU memory");
     }
@@ -889,7 +891,6 @@ void GPUDevice::generic_free(device_memory &mem)
   else {
     /* Free device memory. */
     free_device((void *)mem.device_pointer);
-    device_mem_in_use -= mem.device_size;
   }
 
   stats.mem_free(mem.device_size);

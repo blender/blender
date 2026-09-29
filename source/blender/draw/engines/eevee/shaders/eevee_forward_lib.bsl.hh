@@ -10,14 +10,12 @@
  * This is used by alpha blended materials and materials using Shader to RGB nodes.
  */
 
-#include "infos/eevee_geom_infos.hh"
-
 #include "draw_model.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_light_eval.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
 #include "eevee_lightprobe_plane.bsl.hh"
-#include "eevee_nodetree_closures_lib.glsl"
+#include "eevee_nodetree_closures_lib.bsl.hh"
 #include "eevee_nodetree_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_subsurface_lib.bsl.hh"
@@ -29,6 +27,10 @@
 
 /* Allow static compilation of forward materials. */
 #ifndef CLOSURE_BIN_COUNT
+/* WORKAROUND: Because of stupid create infos relying on define extraction (which bypass the
+ * conditional). This definition would create a redefinition warning from a previously defined one.
+ */
+#  undef CLOSURE_BIN_COUNT
 #  define CLOSURE_BIN_COUNT SRT_CONSTANT_light_closure_eval_count
 #endif
 
@@ -64,7 +66,7 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
 
     light::EvalCtx<false> ctx;
     for (uint i = 0u; i < 3; i++) [[unroll]] {
-      if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
+      if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
         ClosureUndetermined cl = sd.closure_get(uchar(i)).data;
         ctx.stack.cl[i] = closure_light_new(kg.util_tx, cl, V);
       }
@@ -82,10 +84,12 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
     ctx.receiver_light_set = receiver_light_set_get(object_infos);
     ctx.terminator_normal_offset = object_infos.shadow_terminator_normal_offset;
     ctx.terminator_geometry_offset = object_infos.shadow_terminator_geometry_offset;
+    ctx.ray_count = uni.uniform_buf.shadow.ray_count;
+    ctx.ray_step_count = uni.uniform_buf.shadow.step_count;
 
     lights.eval_reflection(ctx, vPz);
 
-    if (srt.light_closure_eval_count_transmit > 0) [[static_branch]] {
+    if (srt.constants.light_closure_eval_count_transmit > 0) [[static_branch]] {
       ClosureUndetermined cl_transmit = sd.closure_get(0).data;
       if (closure_has_transmission(cl_transmit.type) ||
           cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID)
@@ -125,7 +129,7 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
     {
       /* Get average normal.  */
       for (uint i = 0u; i < 3; i++) [[unroll]] {
-        if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
+        if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
           ClosureUndetermined cl = sd.closure_get(uchar(i)).data;
           average_N += cl.N * cl.weight();
         }
@@ -163,7 +167,7 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
     float3 radiance_indirect = float3(0.0f);
 
     for (uint i = 0u; i < 3; i++) [[unroll]] {
-      if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
+      if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
         ClosureUndetermined cl = sd.closure_get_resolved(uchar(i), 1.0f);
         if (cl.weight() > CLOSURE_WEIGHT_CUTOFF) {
           float3 direct_light = ctx.stack.cl[i].light_shadowed;

@@ -27,6 +27,11 @@ class Context;
 class Result;
 
 struct Schedule {
+  /* The node group the schedule is for. */
+  const bNodeTree &node_group;
+  /* The zone that the schedule is for, if nullptr, the schedule is for the root node tree. */
+  const bke::bNodeTreeZone *zone = nullptr;
+  /* The node execution schedule. */
   VectorSet<const bNode *> nodes;
   /* Holds the set of all inputs sockets that needn't be computed because the node does not need
    * them, for instance, the unneeded inputs of a Switch node. */
@@ -55,11 +60,10 @@ Schedule compute_schedule(const Context &context,
                           SocketResultFn socket_result_fn,
                           const bke::bNodeTreeZone *zone = nullptr);
 
-/* Checks if the given node group with the given compute context has an active Viewer node in it or
- * in one of its descendants. Only nodes of node groups whose compute context match that of the
- * given active compute context hash are considered active. */
-bool has_viewer_node(const bNodeTree &node_group,
-                     const ComputeContext &compute_context,
-                     const ComputeContextHash &active_compute_context_hash);
+/* Computes how many times the given output is referenced in the given schedule, ignoring outgoing
+ * links to the given ignored nodes if not nullptr. */
+int compute_output_reference_count(const bNodeSocket &output,
+                                   const Schedule &schedule,
+                                   const VectorSet<const bNode *> *ignored_nodes = nullptr);
 
 }  // namespace blender::compositor

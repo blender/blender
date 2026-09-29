@@ -13,13 +13,11 @@ set(INC_SYS
 
 set(SRC
   cineonlib.h
-  dpxlib.h
   logImageCore.h
   logmemfile.h
 
   cineon_dpx.cc
   cineonlib.cc
-  dpxlib.cc
   logImageCore.cc
   logmemfile.cc
 )

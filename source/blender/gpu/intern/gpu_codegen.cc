@@ -174,6 +174,7 @@ GPUCodegen::GPUCodegen(GPUMaterial *mat_, GPUNodeGraph *graph_, const char *debu
 GPUCodegen::~GPUCodegen()
 {
   MEM_SAFE_DELETE(cryptomatte_input_);
+  MEM_SAFE_DELETE(thickness_input_);
   MEM_delete(create_info);
   ubo_inputs_.free_no_destruct();
 };
@@ -295,7 +296,10 @@ void GPUCodegen::generate_resources()
     ss << "struct NodeTree {\n";
     for (LinkData &link : ubo_inputs_) {
       GPUInput *input = static_cast<GPUInput *>(link.data);
-      if (input->source == GPU_SOURCE_CRYPTOMATTE) {
+      if (input->source == GPU_SOURCE_THICKNESS_MODE) {
+        ss << "bool32_t thickness_mode;\n";
+      }
+      else if (input->source == GPU_SOURCE_CRYPTOMATTE) {
         ss << input->type << " crypto_hash;\n";
       }
       else {
@@ -536,22 +540,38 @@ GPUGraphOutput GPUCodegen::graph_serialize(GPUNodeTag tree_tag)
   return {str, set_to_vector_stable(used_libraries)};
 }
 
-void GPUCodegen::generate_cryptomatte()
+void GPUCodegen::generate_material_props()
 {
-  cryptomatte_input_ = MEM_new<GPUInput>(__func__);
-  cryptomatte_input_->type = GPU_FLOAT;
-  cryptomatte_input_->source = GPU_SOURCE_CRYPTOMATTE;
+  {
+    cryptomatte_input_ = MEM_new<GPUInput>(__func__);
+    cryptomatte_input_->type = GPU_FLOAT;
+    cryptomatte_input_->source = GPU_SOURCE_CRYPTOMATTE;
 
-  float material_hash = 0.0f;
-  Material *material = GPU_material_get_material(&mat);
-  if (material) {
-    bke::cryptomatte::CryptomatteHash hash(material->id.name + 2,
-                                           BLI_strnlen(material->id.name + 2, MAX_NAME - 2));
-    material_hash = hash.float_encoded();
+    float material_hash = 0.0f;
+    Material *material = GPU_material_get_material(&mat);
+    if (material) {
+      bke::cryptomatte::CryptomatteHash hash(material->id.name + 2,
+                                             BLI_strnlen(material->id.name + 2, MAX_NAME - 2));
+      material_hash = hash.float_encoded();
+    }
+    cryptomatte_input_->constant_data = material_hash;
+
+    BLI_addtail(&ubo_inputs_, BLI_genericNodeN(cryptomatte_input_));
   }
-  cryptomatte_input_->constant_data = material_hash;
+  {
+    thickness_input_ = MEM_new<GPUInput>(__func__);
+    thickness_input_->type = GPU_BOOL;
+    thickness_input_->source = GPU_SOURCE_THICKNESS_MODE;
 
-  BLI_addtail(&ubo_inputs_, BLI_genericNodeN(cryptomatte_input_));
+    int thickness_mode = MA_THICKNESS_SPHERE;
+    Material *material = GPU_material_get_material(&mat);
+    if (material) {
+      thickness_mode = material->thickness_mode;
+    }
+    thickness_input_->constant_data = bool(thickness_mode);
+
+    BLI_addtail(&ubo_inputs_, BLI_genericNodeN(thickness_input_));
+  }
 }
 
 void GPUCodegen::generate_uniform_buffer()

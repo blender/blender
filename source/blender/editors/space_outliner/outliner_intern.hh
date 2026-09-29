@@ -304,6 +304,11 @@ struct IDsSelectedData {
 TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void *customdata);
 TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *customdata);
 
+bool outliner_treesort_tiebreak(bool a_is_object,
+                                const char *a_name,
+                                bool b_is_object,
+                                const char *b_name);
+
 /* `outliner_draw.cc` */
 
 /**

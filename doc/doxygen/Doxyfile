@@ -1643,7 +1643,7 @@ MATHJAX_VERSION        = MathJax_2
 # Possible values are: HTML-CSS (which is slower, but has the best
 # compatibility. This is the name for Mathjax version 2, for MathJax version 3
 # this will be translated into chtml), NativeMML (i.e. MathML. Only supported
-# for NathJax 2. For MathJax version 3 chtml will be used instead.), chtml (This
+# for MathJax 2. For MathJax version 3 chtml will be used instead.), chtml (This
 # is the name for Mathjax version 3, for MathJax version 2 this will be
 # translated into HTML-CSS) and SVG.
 # The default value is: HTML-CSS.

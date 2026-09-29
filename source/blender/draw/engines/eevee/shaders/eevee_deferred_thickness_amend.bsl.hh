@@ -29,9 +29,6 @@ struct FromShadowEvalCtx {
 
   void eval([[resource_table]] ShadowRenderData &srd, LightData light, const bool is_directional)
   {
-    [[resource_table]] const Uniform &uni = srd.uniforms;
-    [[resource_table]] const draw::View &views = srd.views;
-
     if (light.tilemap_index == LIGHT_NO_SHADOW) {
       return;
     }
@@ -44,7 +41,8 @@ struct FromShadowEvalCtx {
       return;
     }
 
-    float texel_radius = shadow_texel_radius_at_position(uni, views, light, is_directional, P);
+    float texel_radius = shadow_texel_radius_at_position(
+        srd.uniforms, srd.views, light, is_directional, P);
 
     float3 P_offset = P;
     /* Invert all biases to get value inside the surface.
@@ -171,6 +169,6 @@ void amend_frag([[resource_table]] ThicknessAmend &srt,
 
 PipelineGraphic deferred_thickness_amend(amend_vert,
                                          amend_frag,
-                                         eevee::ShadowRenderData{.shadow_random = true});
+                                         eevee::ShadowRenderConstants{.shadow_random = true});
 
 }  // namespace eevee

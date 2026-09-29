@@ -682,6 +682,7 @@ struct Layout : public Item, NonCopyable, NonMovable {
   void textbox(const bContext *C,
                PointerRNA *ptr,
                StringRefNull propname,
+               std::optional<StringRefNull> name_opt = std::nullopt,
                std::optional<StringRefNull> placeholder = std::nullopt,
                const int initial_visible_lines = 3);
   /**
@@ -691,6 +692,7 @@ struct Layout : public Item, NonCopyable, NonMovable {
   void textbox_with_state(PointerRNA *ptr,
                           StringRefNull propname,
                           TextboxState *textbox_state,
+                          std::optional<StringRefNull> name_opt = std::nullopt,
                           std::optional<StringRefNull> placeholder = std::nullopt);
 
   /**

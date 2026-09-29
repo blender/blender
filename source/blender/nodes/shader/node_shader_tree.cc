@@ -1011,7 +1011,11 @@ static void ntree_shader_setup_custom_lighting_zone(bNodeTree *ntree)
              SH_NODE_LIGHT_EVALUATION,
              SH_NODE_SHADOW_RAYCAST) ||
         (node.type_legacy == SH_NODE_ATTRIBUTE &&
-         static_cast<NodeShaderAttribute *>(node.storage)->type == SHD_ATTRIBUTE_LIGHT))
+         static_cast<NodeShaderAttribute *>(node.storage)->type == SHD_ATTRIBUTE_LIGHT) ||
+        (node.type_legacy == SH_NODE_VECT_TRANSFORM &&
+         ELEM(SHD_VECT_TRANSFORM_SPACE_LIGHT,
+              static_cast<NodeShaderVectTransform *>(node.storage)->convert_from,
+              static_cast<NodeShaderVectTransform *>(node.storage)->convert_to)))
     {
       ensure_nodes();
       /* Connect LightIndex socket */

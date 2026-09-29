@@ -71,7 +71,7 @@ struct TileBuf {
 namespace flatten {
 
 template<enum TextureWriteFormat velocity_format> struct Resources {
-  [[resource_table]] srt_t<CameraVelocity> camera;
+  [[resource_table]] CameraVelocity camera;
 
   [[uniform(0)]] const MotionBlurData &motion_blur_buf;
   [[sampler(0)]] sampler2DDepth depth_tx;

@@ -9,18 +9,14 @@
  */
 #pragma once
 
-#include "infos/eevee_geom_infos.hh"
-#include "infos/eevee_nodetree_infos.hh"
-
-#include "eevee_attributes_world_lib.glsl"
+#include "eevee_attributes_world_lib.bsl.hh" /* IWYU pragma: export */
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
-#include "eevee_nodetree_frag_lib.glsl"
+#include "eevee_nodetree_frag_lib.bsl.hh"
 #include "eevee_pipeline.bsl.hh"
-#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 
-float4 closure_to_rgba_world([[resource_table]] KernelGlobals &kg, ShadingData &sd, Closure /*cl*/)
+float4 closure_to_rgba_world(KernelGlobals &kg, ShadingData &sd, Closure /*cl*/)
 {
   float3 transmittance = sd.transmittance;
   closure_weights_reset(kg, sd, 0.0f);
@@ -30,8 +26,6 @@ float4 closure_to_rgba_world([[resource_table]] KernelGlobals &kg, ShadingData &
 namespace eevee {
 
 struct SurfWorld {
-  [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
-
   [[push_constant]] float world_opacity_fade;
   [[push_constant]] float world_background_blur;
   [[push_constant]] int4 world_coord_packed;
@@ -51,14 +45,14 @@ void surf_world([[resource_table]] KernelGlobals &kg,
                 [[resource_table]] const UtilityTexture & /*util_tx*/,
                 [[resource_table]] const draw::View &views,
                 [[frag_coord]] const float4 frag_co,
+                [[in]] const VertOutCommon &interp,
                 [[out]] SurfWorldFragOut &frag_out,
                 [[front_facing]] const bool front_face)
 {
-  FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info);
-
   const ViewMatrices view = views.get(0);
 
-  ShadingData sd = init_globals(uni, view, front_face, frag_co);
+  ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+
   /* View position is passed to keep accuracy. */
   sd.N = view.normal_view_to_world(view.view_incident_vector(interp.P));
   sd.Ng = sd.N;
@@ -80,17 +74,14 @@ void surf_world([[resource_table]] KernelGlobals &kg,
   }
 
   if (sd.ray_type == RAY_TYPE_CAMERA && srt.world_background_blur != 0.0f) {
-    [[resource_table]] const LightprobeVolumeRenderData &lp_volumes = lightprobes.volumes;
-    [[resource_table]] const LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
-
     float base_lod = lightprobe::sphere::roughness_to_lod(srt.world_background_blur);
     float lod = max(1.0f, base_lod);
     float mix_factor = min(1.0f, base_lod);
     SphereProbeUvArea world_atlas_coord = reinterpret_as_atlas_coord(srt.world_coord_packed);
-    float4 probe_color = lp_spheres.sample_probe(-sd.N, lod, world_atlas_coord);
+    float4 probe_color = lightprobes.spheres.sample_probe(-sd.N, lod, world_atlas_coord);
     frag_out.background.rgb = mix(frag_out.background.rgb, probe_color.rgb, mix_factor);
 
-    SphericalHarmonicL1<float4> volume_irradiance = lp_volumes.world();
+    SphericalHarmonicL1<float4> volume_irradiance = lightprobes.volumes.world();
     float3 radiance_sh = volume_irradiance.evaluate_lambert(-sd.N).rgb;
     float radiance_mix_factor = lightprobe::sphere::roughness_to_mix_fac(
         srt.world_background_blur);

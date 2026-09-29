@@ -236,20 +236,23 @@ void OneapiDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
 size_t OneapiDevice::get_free_mem() const
 {
-  /* Accurate: Use device info, which is practically useful only on dGPU.
-   * This is because for non-discrete GPUs, all GPU memory allocations would
-   * be in the RAM, thus having the same performance for device and host pointers,
-   * so there is no need to be very accurate about what would end where. */
-  const sycl::device &device = reinterpret_cast<sycl::queue *>(device_queue_)->get_device();
-  const bool is_integrated_gpu = device.get_info<sycl::info::device::host_unified_memory>();
-  if (device.has(sycl::aspect::ext_intel_free_memory) && is_integrated_gpu == false) {
-    return device.get_info<sycl::ext::intel::info::device::free_memory>();
-  }
+  size_t free_memory = 0;
+
   /* Estimate: Capacity - in use. */
-  if (device_mem_in_use < max_memory_on_device_) {
-    return max_memory_on_device_ - device_mem_in_use;
+  const size_t resident_memory = stats.mem_used - map_host_used;
+  if (resident_memory < max_memory_on_device_) {
+    free_memory = max_memory_on_device_ - resident_memory;
   }
-  return 0;
+
+  /* Accurate: Use device info.
+   * Some drivers don't update free memory promptly after allocations, so we
+   * clamp to previous estimate to avoid over-reporting. */
+  const sycl::device &device = reinterpret_cast<sycl::queue *>(device_queue_)->get_device();
+  if (device.has(sycl::aspect::ext_intel_free_memory)) {
+    free_memory = min(device.get_info<sycl::ext::intel::info::device::free_memory>(), free_memory);
+  }
+
+  return free_memory;
 }
 
 bool OneapiDevice::load_kernels(const uint64_t requested_features)

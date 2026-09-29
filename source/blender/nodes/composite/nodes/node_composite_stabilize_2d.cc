@@ -95,6 +95,7 @@ class Stabilize2DOperation : public NodeOperation {
 
     MovieClip *movie_clip = get_movie_clip();
     if (input.is_single_value() || !movie_clip) {
+      output.set_type(input.type());
       output.share_data(input);
       return;
     }

@@ -11,6 +11,7 @@
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_mesh_types.h"
@@ -23,13 +24,14 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_listbase_iterator.hh"
-#include "BLI_math_base.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.hh"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"
+#include "BKE_colorband.hh"
 #include "BKE_compositor.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh_legacy_convert.hh"
@@ -250,6 +252,63 @@ void do_versions_after_linking_503(FileData * /*fd*/, Main *bmain)
     /* Shift animation data to accommodate the new anisotropic inputs. */
     version_node_socket_index_animdata(bmain, NTREE_SHADER, "ShaderNodeBsdfGlass", 5, 3, 7);
     version_node_socket_index_animdata(bmain, NTREE_SHADER, "ShaderNodeBsdfGlass", 2, 2, 4);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 23)) {
+    bool has_skip_alphabet_sort_method = false;
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &space : area.spacedata) {
+          if (space.spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(&space);
+            if (space_outliner->flag & SO_FLAG_UNUSED_4) {
+              has_skip_alphabet_sort_method = true;
+            }
+          }
+        }
+      }
+    }
+    auto version_collection_fn = [&](Collection &collection) {
+      Map<Object *, int> parent_child_indices;
+      int index = 0;
+      for (CollectionChild &child : collection.children) {
+        child.sort_index = index++;
+      }
+      for (CollectionObject &cob : collection.gobject) {
+        cob.sort_index = (has_skip_alphabet_sort_method) ? index++ : -1;
+        if (has_skip_alphabet_sort_method && cob.ob != nullptr && cob.ob->parent != nullptr) {
+          int &child_index = parent_child_indices.lookup_or_add(cob.ob->parent, 0);
+          cob.parented_sort_index = child_index++;
+        }
+        else {
+          cob.parented_sort_index = -1;
+        }
+      }
+    };
+    for (Collection &collection : bmain->collections) {
+      version_collection_fn(collection);
+    }
+    for (Scene &scene : bmain->scenes) {
+      if (scene.master_collection != nullptr) {
+        version_collection_fn(*scene.master_collection);
+      }
+    }
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &space : area.spacedata) {
+          if (space.spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(&space);
+            if (has_skip_alphabet_sort_method && !(space_outliner->flag & SO_FLAG_UNUSED_4)) {
+              space_outliner->sort_method = SO_SORT_ALPHA;
+            }
+            else {
+              space_outliner->sort_method = SO_SORT_CUSTOM;
+            }
+            space_outliner->flag &= ~SO_FLAG_UNUSED_4;
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -568,6 +627,46 @@ void blo_do_versions_503(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       clear_deprecated_brush_flags(brush);
     }
   }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 24)) {
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &space : area.spacedata) {
+          if (space.spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(&space);
+            space_outliner->flag &= ~SO_EXPAND_ON_FOCUS;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 25)) {
+    for (Material &materials : bmain->materials) {
+      if (materials.gp_style == nullptr) {
+        continue;
+      }
+
+      if (materials.gp_style->fill_style != GP_MATERIAL_FILL_STYLE_GRADIENT) {
+        continue;
+      }
+
+      materials.gp_style->gradient = BKE_colorband_add(true);
+
+      if (materials.gp_style->flag & GP_MATERIAL_FLIP_FILL) {
+        copy_v4_v4(&materials.gp_style->gradient->data[0].r, materials.gp_style->mix_rgba);
+        copy_v4_v4(&materials.gp_style->gradient->data[1].r, materials.gp_style->fill_rgba);
+      }
+      else {
+        copy_v4_v4(&materials.gp_style->gradient->data[0].r, materials.gp_style->fill_rgba);
+        copy_v4_v4(&materials.gp_style->gradient->data[1].r, materials.gp_style->mix_rgba);
+      }
+
+      /* This flag is now deprecated. */
+      materials.gp_style->flag &= ~GP_MATERIAL_FLIP_FILL;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

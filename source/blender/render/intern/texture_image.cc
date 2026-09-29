@@ -237,12 +237,17 @@ int imagewrap(Tex *tex,
     filterx = (0.5f * tex->filtersize) / ibuf->x;
     filtery = (0.5f * tex->filtersize) / ibuf->y;
 
-    /* Important that this value is wrapped #27782.
-     * this applies the modifications made by the checks above,
-     * back to the floating point values */
-    fx -= float(xi - x) / float(ibuf->x);
-    fy -= float(yi - y) / float(ibuf->y);
-
+    /* Important that this value is wrapped #27782. */
+    if (tex->extend == TEX_EXTEND) {
+      CLAMP(fx, 0.0f, 1.0f);
+      CLAMP(fy, 0.0f, 1.0f);
+    }
+    else {
+      /* this applies the modifications made by the checks above,
+       * back to the floating point values */
+      fx -= float(xi - x) / float(ibuf->x);
+      fy -= float(yi - y) / float(ibuf->y);
+    }
     boxsample(ibuf,
               fx - filterx,
               fy - filtery,

@@ -20,6 +20,7 @@
 #include "BLT_lang.hh"
 #include "BLT_translation.hh"
 
+#include "BKE_autoexec.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
@@ -155,6 +156,14 @@ int template_recent_files(Layout *layout, int rows)
                                 UI_ITEM_NONE);
     RNA_string_set(&ptr, "filepath", recent.filepath);
     RNA_boolean_set(&ptr, "display_file_selector", false);
+    RNA_boolean_set(&ptr,
+                    "use_scripts",
+                    BKE_autoexec_default_trust_source(recent.filepath,
+                                                      {
+                                                          .skip_overrides = false,
+                                                          .canonicalize = true,
+                                                          .strip_filename = true,
+                                                      }));
 
     Block *block = layout->block();
     Button *but = button_last(block);

@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include "draw_shader_shared.hh"
 #include "eevee_uniform.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee {
 

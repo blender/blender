@@ -55,6 +55,21 @@ struct DofGatherData {
   float layer_opacity;
 };
 
+/* -------------------------------------------------------------------- */
+/** \name Constants.
+ * \{ */
+
+#define unit_ring_radius float(1.0f / float(gather_ring_count))
+#define unit_sample_radius float(1.0f / float(gather_ring_count + 0.5f))
+#define large_kernel_radius float(0.5f + float(gather_ring_count))
+#define smaller_kernel_radius float(0.5f + float(gather_ring_count - gather_density_change_ring))
+/* NOTE(fclem) the bias is reducing issues with density change visible transition. */
+#define radius_downscale_factor float(smaller_kernel_radius / large_kernel_radius)
+#define change_density_at_ring int((gather_ring_count - gather_density_change_ring + 1))
+#define coc_radius_error float(2.0f)
+
+/** \} */
+
 struct Accumulator {
   [[compilation_constant]] const bool is_hole_fill;
   [[compilation_constant]] const bool is_resolve;
@@ -65,23 +80,8 @@ struct Accumulator {
 
   [[uniform(0)]] const DepthOfFieldData &dof_buf;
 
-  [[resource_table]] srt_t<Sampling> sampling;
-  [[resource_table]] srt_t<draw::View> views;
-
-  /** \} */
-
-  /* -------------------------------------------------------------------- */
-  /** \name Constants.
-   * \{ */
-
-#define unit_ring_radius float(1.0f / float(gather_ring_count))
-#define unit_sample_radius float(1.0f / float(gather_ring_count + 0.5f))
-#define large_kernel_radius float(0.5f + float(gather_ring_count))
-#define smaller_kernel_radius float(0.5f + float(gather_ring_count - gather_density_change_ring))
-/* NOTE(fclem) the bias is reducing issues with density change visible transition. */
-#define radius_downscale_factor float(smaller_kernel_radius / large_kernel_radius)
-#define change_density_at_ring int((gather_ring_count - gather_density_change_ring + 1))
-#define coc_radius_error float(2.0f)
+  [[resource_table]] Sampling sampling;
+  [[resource_table]] draw::View views;
 
   /** \} */
 
@@ -440,9 +440,7 @@ struct Accumulator {
                               float &out_weight,
                               float2 &out_occlusion)
   {
-    [[resource_table]] const Sampling &samp = sampling;
-
-    float2 noise_offset = samp.rng_2D_get(SAMPLING_LENS_U);
+    float2 noise_offset = sampling.rng_2D_get(SAMPLING_LENS_U);
     float2 noise = no_gather_random ?
                        float2(0.0f, 0.0f) :
                        float2(interleaved_gradient_noise(frag_coord, 0, noise_offset.x),
@@ -540,8 +538,8 @@ struct Accumulator {
           ring += gather_density_change_ring;
           /* We need to account for the density change in the weights (slide 62).
            * For that multiply old kernel data by its area divided by the new kernel area. */
-          constexpr float outer_rings_weight = 1.0f /
-                                               (radius_downscale_factor * radius_downscale_factor);
+          const float outer_rings_weight = 1.0f /
+                                           (radius_downscale_factor * radius_downscale_factor);
           /* Samples are already weighted per ring in foreground pass. */
           if (!is_foreground) {
             dof_gather_amend_weight(accum_data, outer_rings_weight);
@@ -610,8 +608,7 @@ struct Accumulator {
                                float &out_weight,
                                float &out_center_coc)
   {
-    [[resource_table]] const Sampling &samp = sampling;
-    float2 noise_offset = samp.rng_2D_get(SAMPLING_LENS_U);
+    float2 noise_offset = sampling.rng_2D_get(SAMPLING_LENS_U);
     float2 noise = no_gather_random ?
                        float2(0.0f) :
                        float2(interleaved_gradient_noise(frag_coord, 3, noise_offset.x),

@@ -10,6 +10,7 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_rotation.hh"
 #include "BLI_string_utils.hh"
+#include "BLI_vector_set.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_volume.hh"

@@ -1058,9 +1058,11 @@ void BKE_curveprofile_update(CurveProfile *profile, const int update_flags)
     for (int i = 0; i < profile->path_len - 1; i++) {
       if (len_squared_v2v2(&points[i].x, &points[i + 1].x) < thresh) {
         if (i == 0) {
+          points[0].flag |= (points[1].flag & (PROF_SELECT | PROF_ACTIVE));
           BKE_curveprofile_remove_point(profile, &points[1]);
         }
         else {
+          points[i + 1].flag |= (points[i].flag & (PROF_SELECT | PROF_ACTIVE));
           BKE_curveprofile_remove_point(profile, &points[i]);
         }
         break; /* Assumes 1 deletion per update call is ok. */

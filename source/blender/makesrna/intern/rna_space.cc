@@ -4548,6 +4548,19 @@ static void rna_def_space_outliner(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem rna_enum_space_outliner_sort_method_items[] = {
+      {SO_SORT_ALPHA, "ALPHA", 0, "Alphabetical", "Order items alphabetically"},
+      {SO_SORT_CUSTOM, "CUSTOM", 0, "Custom", "Order items manually"},
+      {SO_SORT_NONE,
+       "NONE",
+       0,
+       "No Sorting",
+       "Order items according to the actual internal data (matches the order in which "
+       "operators will typically process them when working on collections/objects "
+       "hierarchies)"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   static const EnumPropertyItem lib_override_view_mode[] = {
       {SO_LIB_OVERRIDE_VIEW_PROPERTIES,
        "PROPERTIES",
@@ -4607,9 +4620,9 @@ static void rna_def_space_outliner(BlenderRNA *brna)
       prop, "Complete Matches Only", "Only use complete matches of search string");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
 
-  prop = RNA_def_property(srna, "use_sort_alpha", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", SO_SKIP_SORT_ALPHA);
-  RNA_def_property_ui_text(prop, "Sort Alphabetically", "");
+  prop = RNA_def_property(srna, "sort_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_space_outliner_sort_method_items);
+  RNA_def_property_ui_text(prop, "Sort Method", "Sorting method for Outliner elements");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
 
   prop = RNA_def_property(srna, "use_sync_select", PROP_BOOLEAN, PROP_NONE);
@@ -4629,15 +4642,20 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Scroll to Active",
-      "Scroll the active item into view when it changes outside of the Outliner");
+      "Scroll the active item into view when it changes outside of the outliner");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
 
   prop = RNA_def_property(srna, "expand_on_focus", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SO_EXPAND_ON_FOCUS);
   RNA_def_property_ui_text(
-      prop,
-      "Expand on Focus",
-      "Uncollapse the active item and scroll it into view when it changes outside the Outliner");
+      prop, "Expand on Focus", "Uncollapse the active item when scrolling it into view");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  prop = RNA_def_property(srna, "show_users_column", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SO_USERS_COLUMN);
+  RNA_def_property_ui_text(prop,
+                           "Show Users Column",
+                           "Display a column showing the number of users for each data-block");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
 
   /* Granular restriction column option. */

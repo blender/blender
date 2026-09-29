@@ -559,5 +559,70 @@ AbcUvScope get_uv_scope(const Alembic::AbcGeom::GeometryScope scope,
   return ABC_UV_SCOPE_NONE;
 }
 
+static std::string get_string_property(const ICompoundProperty &prop,
+                                       const StringRefNull name,
+                                       const Alembic::AbcGeom::ISampleSelector &sample_sel)
+{
+  if (!prop.valid()) {
+    return "";
+  }
+  const PropertyHeader *header = prop.getPropertyHeader(name);
+  if (header && header->isScalar() && Alembic::AbcGeom::IStringProperty::matches(*header)) {
+    Alembic::AbcGeom::IStringProperty active_color_attribute(prop, header->getName());
+    return active_color_attribute.getValue(sample_sel);
+  }
+  return "";
+}
+
+void read_active_and_default_color_attributes(Mesh &mesh,
+                                              const ICompoundProperty &user_props,
+                                              const Alembic::AbcGeom::ISampleSelector &sample_sel)
+{
+  std::string active_color_attribute = get_string_property(
+      user_props, ABC_ACTIVE_COLOR_ATTRIBUTE_PROPNAME, sample_sel);
+  std::string default_color_attribute = get_string_property(
+      user_props, ABC_DEFAULT_COLOR_ATTRIBUTE_PROPNAME, sample_sel);
+
+  StringRefNull first_color_attribute;
+  StringRefNull final_active_color_attribute;
+  StringRefNull final_default_color_attribute;
+
+  mesh.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain != bke::AttrDomain::Corner && iter.domain != bke::AttrDomain::Point) {
+      return;
+    }
+
+    if (iter.data_type != bke::AttrType::ColorByte && iter.data_type != bke::AttrType::ColorFloat)
+    {
+      return;
+    }
+
+    if (first_color_attribute.is_empty()) {
+      first_color_attribute = iter.name;
+    }
+
+    if (iter.name == active_color_attribute) {
+      final_active_color_attribute = active_color_attribute;
+    }
+    if (iter.name == default_color_attribute) {
+      final_default_color_attribute = default_color_attribute;
+    }
+  });
+
+  if (final_active_color_attribute.is_empty()) {
+    final_active_color_attribute = first_color_attribute;
+  }
+  if (final_default_color_attribute.is_empty()) {
+    final_default_color_attribute = first_color_attribute;
+  }
+
+  if (!final_default_color_attribute.is_empty()) {
+    BKE_id_attributes_default_color_set(&mesh.id, final_default_color_attribute);
+  }
+  if (!final_active_color_attribute.is_empty()) {
+    BKE_id_attributes_active_color_set(&mesh.id, final_active_color_attribute);
+  }
+}
+
 }  // namespace io::alembic
 }  // namespace blender

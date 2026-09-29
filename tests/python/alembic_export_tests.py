@@ -796,6 +796,38 @@ class AttributesExportTest(AbstractAlembicTest):
                 self.assertEqual(len(attribute), attribute_sizes[domain])
 
 
+class WidthScopeExportTest(AbstractAlembicTest):
+    """Test scope export of points and curves radii."""
+
+    @with_tempdir
+    def test_pointcloud_radius_scope(self, tempdir: pathlib.Path) -> pathlib.Path:
+        abc = tempdir / 'point-radius-scope.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1)" % abc.as_posix()
+        )
+        self.run_blender('point-radius-scope.blend', script)
+
+        self.do_check_widths(abc, '/ConstantScope/PointCloud/.geom', [0.2], '.widths')
+        self.do_check_widths(abc, '/VertexScope/PointCloud/.geom', [0.4, 0.6], '.widths')
+
+    @with_tempdir
+    def test_curves_radius_scope(self, tempdir: pathlib.Path) -> pathlib.Path:
+        abc = tempdir / 'curve-radius-scope.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1)" % abc.as_posix()
+        )
+        self.run_blender('curve-radius-scope.blend', script)
+
+        self.do_check_widths(abc, '/ConstantScope/Curves/.geom', [0.2], 'width')
+        self.do_check_widths(abc, '/VertexScope/Curves_001/.geom', [0.2, 0.4, 0.6, 0.8], 'width')
+
+    def do_check_widths(self, abc, geom_path, expected_values, prop_key):
+        abcprop = self.abcprop(abc, geom_path)
+        self.assertEqual(abcprop[prop_key], expected_values)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--blender', required=True)

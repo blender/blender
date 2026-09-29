@@ -64,6 +64,15 @@ CCL_NAMESPACE_BEGIN
 #  define INTEGRATOR_SHADOW_ISECT_SIZE INTEGRATOR_SHADOW_ISECT_SIZE_CPU
 #endif
 
+/* All ShaderData structs need to have the same alignment. */
+#ifdef __KERNEL_ONEAPI__
+/* On Intel GPUs, for large structs in private memory, an alignment of 64 gives the best
+ * performance. */
+#  define SHADER_DATA_ALIGNMENT 64
+#else
+#  define SHADER_DATA_ALIGNMENT 16
+#endif
+
 // NOLINTEND
 
 /* Sampling Patterns */
@@ -672,7 +681,12 @@ struct Intersection {
 #  define KERNEL_STRUCT_BEGIN(name) struct dummy_##name {
 #  define KERNEL_STRUCT_BEGIN_PACKED(parent_struct, feature) struct packed_##parent_struct {
 #  define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature)
-#  define KERNEL_STRUCT_MEMBER_PACKED(parent_struct, type, name, feature) type name;
+#  ifdef __KERNEL_GPU__
+#    define KERNEL_STRUCT_MEMBER_PACKED(parent_struct, type, name, feature) type name;
+#  else
+#    define KERNEL_STRUCT_MEMBER_PACKED(parent_struct, type, name, feature) \
+      gpu_state_storage<type>::gpu_type name;
+#  endif
 #  define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) type name;
 #  define KERNEL_STRUCT_END(name) \
     } \
@@ -1042,7 +1056,7 @@ enum ShaderDataObjectFlag : uint {
                      SD_OBJECT_HAS_VOLUME_MOTION | SD_OBJECT_HAS_CORNER_NORMALS)
 };
 
-struct ccl_align(16) ShaderData {
+struct ccl_align(SHADER_DATA_ALIGNMENT) ShaderData {
   /* position */
   float3 P;
   /* smooth normal for shading */
@@ -1130,13 +1144,13 @@ struct ccl_align(16) ShaderData {
 #ifdef __KERNEL_GPU__
 /* ShaderDataTinyStorage needs the same alignment as ShaderData, or else
  * the pointer cast in AS_SHADER_DATA invokes undefined behavior. */
-struct ccl_align(16) ShaderDataTinyStorage {
+struct ccl_align(SHADER_DATA_ALIGNMENT) ShaderDataTinyStorage {
   char pad[sizeof(ShaderData) - sizeof(ShaderClosure) * MAX_CLOSURE];
 };
 
 /* ShaderDataCausticsStorage needs the same alignment as ShaderData, or else
  * the pointer cast in AS_SHADER_DATA invokes undefined behavior. */
-struct ccl_align(16) ShaderDataCausticsStorage {
+struct ccl_align(SHADER_DATA_ALIGNMENT) ShaderDataCausticsStorage {
   char pad[sizeof(ShaderData) - sizeof(ShaderClosure) * (MAX_CLOSURE - CAUSTICS_MAX_CLOSURE)];
 };
 #else

@@ -28,6 +28,7 @@
 #include "BLI_math_vector_c.hh"
 #include "BLI_utildefines.hh"
 #include "BLI_utildefines_stack.hh"
+#include "BLI_vector_set.hh"
 
 #include "BKE_curve.hh"
 

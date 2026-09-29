@@ -70,7 +70,7 @@ namespace io::alembic {
 
 static CLG_LogRef LOG = {"io.alembic"};
 
-/* NOTE: Alembic's face winding order is clockwise, to match with Renderman. */
+/* NOTE: Alembic's face winding order is clockwise, to match with RenderMan. */
 
 /* Some helpers for mesh generation */
 namespace utils {
@@ -811,6 +811,9 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   if (m_settings->always_add_cache_reader || has_animations(m_schema, m_settings)) {
     addCacheModifier();
   }
+
+  ICompoundProperty user_props = m_schema.getUserProperties();
+  read_active_and_default_color_attributes(*mesh, user_props, sample_sel);
 }
 
 bool AbcMeshReader::accepts_object_type(
@@ -1153,6 +1156,9 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   }
 
   add_subdiv_modifier();
+
+  ICompoundProperty user_props = m_schema.getUserProperties();
+  read_active_and_default_color_attributes(*mesh, user_props, sample_sel);
 }
 
 bool AbcSubDReader::topology_changed(const Mesh *existing_mesh, const ISampleSelector &sample_sel)

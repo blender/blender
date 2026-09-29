@@ -25,6 +25,7 @@ struct ImBuf;
 struct rctf;
 struct rcti;
 
+struct ColorManagedColorspaceSettings;
 struct ImageFormatData;
 struct Stereo3dFormat;
 
@@ -53,16 +54,17 @@ ImBuf *IMB_load_image_from_memory(const unsigned char *mem,
                                   ImBufFlags flags,
                                   const char *descr,
                                   const char *filepath = nullptr,
-                                  char r_colorspace[IM_MAX_SPACE] = nullptr);
+                                  ColorManagedColorspaceSettings *colorspace_settings = nullptr);
 
-ImBuf *IMB_load_image_from_file_descriptor(int file,
-                                           ImBufFlags flags,
-                                           const char *filepath = nullptr,
-                                           char r_colorspace[IM_MAX_SPACE] = nullptr);
+ImBuf *IMB_load_image_from_file_descriptor(
+    int file,
+    ImBufFlags flags,
+    const char *filepath = nullptr,
+    ColorManagedColorspaceSettings *colorspace_settings = nullptr);
 
 ImBuf *IMB_load_image_from_filepath(const char *filepath,
                                     ImBufFlags flags,
-                                    char r_colorspace[IM_MAX_SPACE] = nullptr);
+                                    ColorManagedColorspaceSettings *colorspace_settings = nullptr);
 
 /**
  * Save image.
@@ -122,7 +124,7 @@ ENUM_OPERATORS(IMBThumbLoadFlags);
 
 ImBuf *IMB_thumb_load_image(const char *filepath,
                             size_t max_thumb_size,
-                            char colorspace[IM_MAX_SPACE],
+                            ColorManagedColorspaceSettings *colorspace_settings,
                             IMBThumbLoadFlags load_flags = IMBThumbLoadFlags::Zero);
 
 /**

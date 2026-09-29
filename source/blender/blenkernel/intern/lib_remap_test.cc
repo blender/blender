@@ -28,6 +28,7 @@ using namespace blender::bke::id;
 
 namespace bke::tests {
 
+namespace {
 class TestData {
  public:
   Main *bmain = nullptr;
@@ -102,6 +103,7 @@ class MeshObjectTestData : public MeshTestData {
     this->object->data = id_cast<ID *>(this->mesh);
   }
 };
+}  // namespace
 
 /* -------------------------------------------------------------------- */
 /** \name Embedded IDs

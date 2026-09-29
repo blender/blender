@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-#include "infos/eevee_geom_infos.hh"
-
-#include "draw_intersect_lib.glsl"
+#include "draw_gsplat_lib.bsl.hh"
+#include "draw_intersect.bsl.hh"
 #include "draw_model.bsl.hh"
 #include "draw_view.bsl.hh"
+#include "draw_viewlayer.bsl.hh"
+#include "draw_volume.bsl.hh"
 #include "eevee_bxdf_lut_lib.bsl.hh"
 #include "eevee_camera_lib.bsl.hh"
 #include "eevee_fast_gi.bsl.hh"
@@ -19,7 +19,8 @@
 #include "eevee_light_iter.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
 #include "eevee_lightprobe_plane.bsl.hh"
-#include "eevee_nodetree_closures_lib.glsl"
+#include "eevee_nodetree.bsl.hh"
+#include "eevee_nodetree_closures_lib.bsl.hh"
 #include "eevee_pipeline.bsl.hh"
 #include "eevee_ray_trace_screen_lib.bsl.hh"
 #include "eevee_renderpass.bsl.hh"
@@ -29,9 +30,30 @@
 #include "eevee_utility_tx.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_base.bsl.hh"
-#include "gpu_shader_math_safe.bsl.hh"
-#include "gpu_shader_math_vector_reduce.bsl.hh"
 #include "gpu_shader_utildefines.bsl.hh"
+
+#ifdef GLSL_CPP_STUBS
+#  define CLOSURE_BIN_COUNT 3
+#endif
+
+/* Maximum number of picked closure. */
+#ifndef CLOSURE_BIN_COUNT
+/* WORKAROUND: Because of stupid create infos relying on define extraction (which bypass the
+ * conditional). This definition would create a redefinition warning from the one defined above. */
+#  undef CLOSURE_BIN_COUNT
+#  define CLOSURE_BIN_COUNT 1
+#endif
+
+namespace eevee {
+
+/* Resource for the raycast node implementation using screen space raytracing. */
+struct Raycast {
+  [[sampler(PREPASS_NORMAL_TEX_SLOT)]] sampler2D prepass_normal_tx;
+  [[sampler(RAYCAST_DEPTH_TEX_SLOT)]] sampler2D raycast_depth_tx;
+  [[sampler(OBJECT_ID_TEX_SLOT)]] usampler2D object_id_tx;
+};
+
+}
 
 struct LightAccumulation {
   packed_float3 diffuse_light;
@@ -89,6 +111,8 @@ struct ShadingData {
   /* Global thickness set after nodetree_thickness evaluation. Otherwise set to 0.0f. */
   Thickness thickness;
 
+  uint resource_id_raw;
+
   /* Sampled closure parameters. */
   Reservoir<ClosureUndetermined> closure_bins[CLOSURE_BIN_COUNT];
 
@@ -123,47 +147,55 @@ struct ShadingData {
 };
 
 struct KernelGlobals {
-  [[resource_table]] srt_t<draw::View> view;
-  [[resource_table]] srt_t<draw::Model> model;
-  [[resource_table]] srt_t<draw::Infos> infos;
+  [[resource_table]] NodeTreeRes nt;
 
-  [[resource_table]] srt_t<eevee::PipelineConstants> pipe;
-  [[resource_table]] srt_t<eevee::Uniform> uniforms;
-  [[resource_table]] srt_t<eevee::Sampling> sampling;
+  [[resource_table]] draw::View view;
+  [[resource_table]] draw::Model model;
+  [[resource_table]] draw::Infos infos;
+  [[resource_table]] draw::Attributes ob_attr;
+  [[resource_table]] draw::ViewLayerAttributes vl_attr;
 
-  [[resource_table]] [[condition(!is_occupancy_pipe)]] srt_t<UtilityTexture> util_tx;
+  [[resource_table]] eevee::PipelineConstants pipe;
+  [[resource_table]] eevee::Uniform uniforms;
+  [[resource_table]] eevee::Sampling sampling;
 
-  [[resource_table]] [[condition(use_ambient_occlusion)]] srt_t<eevee::HiZ> hiz;
+  [[resource_table]] [[condition(is_volume_pipe)]] draw::Volume volume;
 
-  [[resource_table]] [[condition(use_aov_output)]] srt_t<eevee::RenderPassOutput> renderpass_out;
+  [[resource_table]] [[condition(!is_occupancy_pipe)]] UtilityTexture util_tx;
 
-  [[resource_table]] [[condition(
-      use_forward_lighting)]] srt_t<eevee::LightEvalIterator> light_eval;
-  [[resource_table]] [[condition(
-      use_forward_lighting)]] srt_t<eevee::LightprobeRenderData> lightprobes;
-  [[resource_table]] [[condition(
-      use_forward_lighting)]] srt_t<eevee::LightprobePlaneRenderData> lightprobe_planes;
+  [[resource_table]] [[condition(use_ambient_occlusion)]] eevee::HiZ hiz;
 
-  [[resource_table]] [[condition(use_lighting_nodes)]] srt_t<eevee::LightRenderData> lrd;
-  [[resource_table]] [[condition(use_lighting_nodes)]] srt_t<eevee::ShadowRenderData> srd;
+  [[resource_table]] [[condition(use_aov_output)]] eevee::RenderPassOutput renderpass_out;
 
-  uint resource_id_get(const ShadingData & /*sd*/)
+  [[resource_table]] [[condition(use_raycast)]] eevee::Raycast raycast;
+  [[resource_table]] [[condition(use_raycast)]] draw::ViewCulling view_culling;
+
+  [[resource_table]] [[condition(use_forward_lighting)]] eevee::LightEvalIterator light_eval;
+  [[resource_table]] [[condition(use_forward_lighting)]] eevee::LightprobeRenderData lightprobes;
+  [[resource_table]] [[condition(use_forward_lighting)]]
+  eevee::LightprobePlaneRenderData lightprobe_planes;
+
+  [[resource_table]] [[condition(use_forward_lighting && use_transparency)]]
+  eevee::PreviousLayerHiZ previous_layer_hiz;
+  [[resource_table]] [[condition(use_forward_lighting && use_transparency)]]
+  eevee::PreviousLayerRadiance previous_layer_radiance;
+
+  [[resource_table]] [[condition(use_lighting_nodes)]] eevee::LightRenderData lrd;
+  [[resource_table]] [[condition(use_lighting_nodes)]] eevee::ShadowRenderData srd;
+
+  uint resource_id_get(const ShadingData &sd)
   {
-    [[resource_table]] const eevee::PipelineConstants &pipeline = this->pipe;
-    auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
-    draw::ID id{interp_flat.resource_id_raw};
-    if (pipeline.is_shadow_pipe) {
+    draw::ID id{sd.resource_id_raw};
+    if (pipe.is_shadow_pipe) {
       return id.resource_id<64>();
     }
     return id.resource_id<1>();
   }
 
-  uint view_id_get(const ShadingData & /*sd*/)
+  uint view_id_get(const ShadingData &sd)
   {
-    [[resource_table]] const eevee::PipelineConstants &pipeline = this->pipe;
-    auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
-    draw::ID id{interp_flat.resource_id_raw};
-    if (pipeline.is_shadow_pipe) {
+    draw::ID id{sd.resource_id_raw};
+    if (pipe.is_shadow_pipe) {
       return id.view_id<64>();
     }
     return id.view_id<1>();
@@ -171,26 +203,26 @@ struct KernelGlobals {
 
   ObjectMatrices object_matrices_get(const ShadingData &sd)
   {
-    [[resource_table]] const draw::Model &models = this->model;
-    return models.get(resource_id_get(sd));
+    return model.get(resource_id_get(sd));
   }
 
   ObjectInfos object_infos_get(const ShadingData &sd)
   {
-    [[resource_table]] const draw::Infos &info = this->infos;
-    return info.get(resource_id_get(sd));
+    return infos.get(resource_id_get(sd));
   }
 
   ViewMatrices view_matrices_get(const ShadingData &sd)
   {
-    [[resource_table]] const draw::View &views = this->view;
-    return views.get(view_id_get(sd));
+    return view.get(view_id_get(sd));
+  }
+
+  ObjectMatrices light_matrices_get(int light_index)
+  {
+    return model.get(lrd.light_buf[light_index].resource_id);
   }
 };
 
-void closure_weights_reset([[resource_table]] KernelGlobals &kg,
-                           ShadingData &sd,
-                           float closure_rand)
+void closure_weights_reset(KernelGlobals &kg, ShadingData &sd, float closure_rand)
 {
   sd.closure_bins[0].reset(closure_rand);
 #if CLOSURE_BIN_COUNT > 1
@@ -212,17 +244,26 @@ void closure_weights_reset([[resource_table]] KernelGlobals &kg,
   sd.closure_reflection_bin = true;
 
 #if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_lighting_nodes) [[static_branch]] {
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
     sd.light_accum = LightAccumulation{};
   }
 #endif
 }
 
-#define closure_base_copy(cl, in_cl) \
-  cl.color = in_cl.color; \
-  cl.N = in_cl.N; \
+template<typename T> void closure_base_copy(ClosureUndetermined &cl, T in_cl)
+{
+  cl.color = in_cl.color;
+  cl.N = in_cl.N;
   cl.type = closure_type_get(in_cl);
+}
+
+template void closure_base_copy<ClosureDiffuse>(ClosureUndetermined &, ClosureDiffuse);
+template void closure_base_copy<ClosureSubsurface>(ClosureUndetermined &, ClosureSubsurface);
+template void closure_base_copy<ClosureTranslucent>(ClosureUndetermined &, ClosureTranslucent);
+template void closure_base_copy<ClosureReflection>(ClosureUndetermined &, ClosureReflection);
+template void closure_base_copy<ClosureRefraction>(ClosureUndetermined &, ClosureRefraction);
+template void closure_base_copy<ClosureThinRefraction>(ClosureUndetermined &,
+                                                       ClosureThinRefraction);
 
 /* Single BSDFs. */
 Closure closure_eval(ShadingData &sd, ClosureDiffuse diffuse)
@@ -435,22 +476,21 @@ Closure closure_mix(Closure /*cl1*/, Closure /*cl2*/, float /*fac*/)
   return Closure(0);
 }
 
-float ambient_occlusion_eval([[resource_table]] const KernelGlobals &kg,
-                             [[maybe_unused]] const ShadingData &sd,
-                             [[maybe_unused]] float3 normal,
-                             [[maybe_unused]] float max_distance,
-                             [[maybe_unused]] const float inverted,
-                             [[maybe_unused]] const float sample_count)
+float ambient_occlusion_eval(const KernelGlobals &kg,
+                             const ShadingData &sd,
+                             float3 normal,
+                             float max_distance,
+                             const float inverted,
+                             const float sample_count)
 {
 #if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_ambient_occlusion) [[static_branch]] {
-    if (!pipe.is_occupancy_pipe) [[static_branch]] {
-      [[resource_table]] [[maybe_unused]] const eevee::Sampling &samp = kg.sampling;
-      [[resource_table]] [[maybe_unused]] const UtilityTexture &util_tx = kg.util_tx;
-      [[resource_table]] [[maybe_unused]] const eevee::HiZ &hiz = kg.hiz;
-      [[resource_table]] [[maybe_unused]] const eevee::Uniform &uni = kg.uniforms;
-      [[resource_table]] [[maybe_unused]] const draw::View &views = kg.view;
+  if (kg.pipe.use_ambient_occlusion) [[static_branch]] {
+    if (!kg.pipe.is_occupancy_pipe) [[static_branch]] {
+      const eevee::Sampling &samp = kg.sampling;
+      const UtilityTexture &util_tx = kg.util_tx;
+      const eevee::HiZ &hiz = kg.hiz;
+      const eevee::Uniform &uni = kg.uniforms;
+      const draw::View &views = kg.view;
 
       const ViewMatrices view = views.get(0);
 
@@ -484,19 +524,18 @@ float ambient_occlusion_eval([[resource_table]] const KernelGlobals &kg,
   return 1.0f;
 }
 
-void raycast_eval([[resource_table]] KernelGlobals &kg,
+void raycast_eval(KernelGlobals &kg,
                   const ShadingData &sd,
-                  [[maybe_unused]] float3 position,
+                  float3 position,
                   float3 direction,
                   float max_distance,
-                  [[maybe_unused]] bool self_only,
+                  bool self_only,
                   bool &is_hit,
                   bool &self_hit,
                   float &hit_distance,
                   float3 &hit_position,
                   float3 &hit_normal)
 {
-  [[resource_table]] const eevee::Uniform &uni = kg.uniforms;
 
   is_hit = false;
   self_hit = false;
@@ -506,73 +545,69 @@ void raycast_eval([[resource_table]] KernelGlobals &kg,
 
   direction = normalize(direction);
 
-#if defined(MAT_RAYCAST)
-  if (!uni.pipeline_buf.can_raycast) {
-    /* We can't ray-cast on pre-pass for ray-cast visible objects.
-     * We use a UBO property to avoid compiling more shader variants. */
-    return;
-  }
+  if (kg.pipe.use_raycast) [[static_branch]] {
+    if (!kg.uniforms.pipeline_buf.can_raycast) {
+      /* We can't ray-cast on pre-pass for ray-cast visible objects.
+       * We use a UBO property to avoid compiling more shader variants. */
+      return;
+    }
 
-  float3 ws_start = position;
-  float3 ws_end = position + direction * max_distance;
-  if (!clip_ray(
-          ws_start, ws_end, direction, max_distance, drw_view_culling().frustum_planes.planes))
-  {
-    return;
-  }
-
-  {
-    [[resource_table]] const draw::View &views = kg.view;
-    [[resource_table]] const eevee::Sampling &samp = kg.sampling;
-    const auto &raycast_depth_tx = sampler_get(eevee_raycast, raycast_depth_tx);
-    const auto &prepass_normal_tx = sampler_get(eevee_raycast, prepass_normal_tx);
-    const auto &object_id_tx = sampler_get(eevee_raycast, object_id_tx);
-
-    const ViewMatrices view = views.get(0);
+    float3 ws_start = position;
+    float3 ws_end = position + direction * max_distance;
+    if (!clip_ray(ws_start,
+                  ws_end,
+                  direction,
+                  max_distance,
+                  kg.view_culling.get(0).frustum_planes.planes))
+    {
+      return;
+    }
 
     {
-      /* Offset the start to prevent wrong intersection due to depth precision. */
-      float3 vs_start = view.point_world_to_view(ws_start);
-      float start_depth = view.depth_view_to_screen(vs_start.z);
-      float offset_depth = uintBitsToFloat(floatBitsToUint(start_depth) + 2);
-      float offset_delta = abs(view.depth_screen_to_view(offset_depth) - vs_start.z);
-      ws_start += direction * offset_delta;
-    }
+      const eevee::Raycast &raycast = kg.raycast;
+      const ViewMatrices view = kg.view.get(0);
 
-    float noise_offset = samp.rng_1D_get(SAMPLING_RAYTRACE_W);
-    float jitter = interleaved_gradient_noise(sd.frag_co.xy, 1.0f, noise_offset);
+      {
+        /* Offset the start to prevent wrong intersection due to depth precision. */
+        float3 vs_start = view.point_world_to_view(ws_start);
+        float start_depth = view.depth_view_to_screen(vs_start.z);
+        float offset_depth = uintBitsToFloat(floatBitsToUint(start_depth) + 2);
+        float offset_delta = abs(view.depth_screen_to_view(offset_depth) - vs_start.z);
+        ws_start += direction * offset_delta;
+      }
 
-    float2 hit_uv = float2(0.0f);
-    uint self_id = kg.resource_id_get(sd) & uint(0xFFFF);
+      float noise_offset = kg.sampling.rng_1D_get(SAMPLING_RAYTRACE_W);
+      float jitter = interleaved_gradient_noise(sd.frag_co.xy, 1.0f, noise_offset);
 
-    float result = raytrace_screen_2(views.get(0),
-                                     view.point_world_to_view(ws_start),
-                                     view.point_world_to_view(ws_end),
-                                     view.normal_world_to_view(direction),
-                                     raycast_depth_tx,
-                                     uni.raytrace_buf,
-                                     64,
-                                     jitter,
-                                     object_id_tx,
-                                     self_only ? self_id : 0,
-                                     hit_uv);
-    if (result >= 0.0f) {
-      is_hit = true;
-      hit_position = ws_start + direction * result;
-      hit_distance = distance(position, hit_position);
-      hit_normal = normalize(texture(prepass_normal_tx, hit_uv).xyz * 2.0f - 1.0f);
-      int2 hit_texel = int2(hit_uv * float2(textureSize(object_id_tx, 0)));
-      uint hit_id = texelFetch(object_id_tx, hit_texel, 0).x;
-      self_hit = self_only || (hit_id == self_id);
+      float2 hit_uv = float2(0.0f);
+      uint self_id = kg.resource_id_get(sd) & uint(0xFFFF);
+
+      float result = raytrace_screen_2(view,
+                                       view.point_world_to_view(ws_start),
+                                       view.point_world_to_view(ws_end),
+                                       view.normal_world_to_view(direction),
+                                       raycast.raycast_depth_tx,
+                                       kg.uniforms.raytrace_buf,
+                                       64,
+                                       jitter,
+                                       raycast.object_id_tx,
+                                       self_only ? self_id : 0u,
+                                       hit_uv);
+      if (result >= 0.0f) {
+        is_hit = true;
+        hit_position = ws_start + direction * result;
+        hit_distance = distance(position, hit_position);
+        hit_normal = normalize(texture(raycast.prepass_normal_tx, hit_uv).xyz * 2.0f - 1.0f);
+        int2 hit_texel = int2(hit_uv * float2(textureSize(raycast.object_id_tx, 0)));
+        uint hit_id = texelFetch(raycast.object_id_tx, hit_texel, 0).x;
+        self_hit = self_only || (hit_id == self_id);
+      }
     }
   }
-#endif
 }
 
-#ifndef GPU_METAL
-float3 nodetree_displacement([[resource_table]] KernelGlobals &kg, ShadingData &sd);
-float4 closure_to_rgba([[resource_table]] KernelGlobals &kg, ShadingData &sd, Closure cl);
-#endif
+float3 nodetree_displacement(KernelGlobals &kg, ShadingData &sd);
+float4 closure_to_rgba(KernelGlobals &kg, ShadingData &sd, Closure cl);
 
 /**
  * Used for packing.
@@ -639,7 +674,7 @@ template float3 F_brdf_multi_scatter<eevee::lut::GGXBsdfData>(float3,
                                                               float3,
                                                               eevee::lut::GGXBsdfData);
 
-void brdf_f82_tint_lut([[resource_table]] KernelGlobals &kg,
+void brdf_f82_tint_lut(KernelGlobals &kg,
                        float3 F0,
                        float3 F82,
                        float cos_theta,
@@ -647,8 +682,7 @@ void brdf_f82_tint_lut([[resource_table]] KernelGlobals &kg,
                        bool do_multiscatter,
                        float3 &reflectance)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (!pipe.is_occupancy_pipe) [[static_branch]] {
+  if (!kg.pipe.is_occupancy_pipe) [[static_branch]] {
     eevee::lut::GGXBrdfData lut = eevee::lut::GGXBrdfData::sample_utility_tx(
         kg.util_tx, cos_theta, roughness);
 
@@ -673,7 +707,7 @@ void brdf_f82_tint_lut([[resource_table]] KernelGlobals &kg,
 
 /* Computes the reflectance and transmittance based on the tint (`f0`, `f90`, `transmission_tint`)
  * and the BSDF LUT. */
-void bsdf_lut([[resource_table]] KernelGlobals &kg,
+void bsdf_lut(KernelGlobals &kg,
               float3 F0,
               float3 F90,
               float3 transmission_tint,
@@ -684,7 +718,6 @@ void bsdf_lut([[resource_table]] KernelGlobals &kg,
               float3 &reflectance,
               float3 &transmittance)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
 
   if (ior == 1.0f) {
     reflectance = float3(0.0f);
@@ -697,7 +730,7 @@ void bsdf_lut([[resource_table]] KernelGlobals &kg,
 
   const float f0 = f0_from_ior(ior);
 
-  if (!pipe.is_occupancy_pipe) [[static_branch]] {
+  if (!kg.pipe.is_occupancy_pipe) [[static_branch]] {
     if (ior > 1.0f) {
       /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0f, 1.33f], to avoid
        * harsh transition at `IOR == 1`. */
@@ -737,11 +770,8 @@ void bsdf_lut([[resource_table]] KernelGlobals &kg,
 }
 
 /* Computes the reflectance and transmittance based on the BSDF LUT. */
-float2 bsdf_lut([[resource_table]] KernelGlobals &kg,
-                float cos_theta,
-                float roughness,
-                float ior,
-                bool do_multiscatter)
+float2 bsdf_lut(
+    KernelGlobals &kg, float cos_theta, float roughness, float ior, bool do_multiscatter)
 {
   float F0 = F0_from_ior(ior);
   float3 color = float3(1.0f);
@@ -759,15 +789,14 @@ float2 bsdf_lut([[resource_table]] KernelGlobals &kg,
   return float2(reflectance.r, transmittance.r);
 }
 
-float3 brdf_lut([[resource_table]] KernelGlobals &kg,
+float3 brdf_lut(KernelGlobals &kg,
                 float3 F0,
                 float3 F90,
                 float cos_theta,
                 float roughness,
                 bool do_multiscatter)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (!pipe.is_occupancy_pipe) [[static_branch]] {
+  if (!kg.pipe.is_occupancy_pipe) [[static_branch]] {
     eevee::lut::GGXBrdfData lut = eevee::lut::GGXBrdfData::sample_utility_tx(
         kg.util_tx, cos_theta, roughness);
 
@@ -778,6 +807,33 @@ float3 brdf_lut([[resource_table]] KernelGlobals &kg,
 }
 
 /* -------------------------------------------------------------------- */
+/** \name Mixed render resolution
+ *
+ * Callbacks image texture sampling.
+ *
+ * \{ */
+
+float texture_lod_bias_get(KernelGlobals &kg)
+{
+  const eevee::Uniform &uni = kg.uniforms;
+  return uni.uniform_buf.film.texture_lod_bias;
+}
+
+/**
+ * Scale hardware derivatives depending on render resolution.
+ * This is because the distance between pixels increases as we lower the resolution. The hardware
+ * uses neighboring pixels to compute derivatives and thus the value increases as we lower the
+ * resolution. So we compensate by scaling them back to the expected amplitude at full resolution.
+ */
+float derivative_scale_get(KernelGlobals &kg)
+{
+  const eevee::Uniform &uni = kg.uniforms;
+  return 1.0f / float(uni.uniform_buf.film.scaling_factor);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Fragment Displacement
  *
  * Displacement happening in the fragment shader.
@@ -785,15 +841,9 @@ float3 brdf_lut([[resource_table]] KernelGlobals &kg,
  *
  * \{ */
 
-#ifndef GPU_METAL
-/* Prototype. */
-float derivative_scale_get([[resource_table]] KernelGlobals &kg);
-#endif
-
 #ifdef MAT_DISPLACEMENT_BUMP
 /* Return new shading normal. */
-float3 displacement_bump([[resource_table]] [[maybe_unused]] KernelGlobals &kg,
-                         [[maybe_unused]] const ShadingData &sd)
+float3 displacement_bump([[maybe_unused]] KernelGlobals &kg, const ShadingData &sd)
 {
 #  if !defined(MAT_GEOM_CURVES)
   /* This is the filter width for automatic displacement + bump mapping, which is fixed.
@@ -823,8 +873,7 @@ float3 displacement_bump([[resource_table]] [[maybe_unused]] KernelGlobals &kg,
 }
 #endif
 
-void fragment_displacement([[resource_table]] [[maybe_unused]] KernelGlobals &kg,
-                           [[maybe_unused]] ShadingData &sd)
+void fragment_displacement([[maybe_unused]] KernelGlobals &kg, [[maybe_unused]] ShadingData &sd)
 {
 #ifdef MAT_DISPLACEMENT_BUMP
   sd.N = displacement_bump(kg, sd);
@@ -847,10 +896,7 @@ struct Coordinates {
   float3 incoming;
 };
 
-Coordinates coordinate_impl([[resource_table]] KernelGlobals &kg,
-                            const ShadingData &sd,
-                            float3 P,
-                            float3 N)
+Coordinates coordinate_impl(KernelGlobals &kg, const ShadingData &sd, float3 P, float3 N)
 {
   const ViewMatrices view = kg.view_matrices_get(sd);
 
@@ -862,67 +908,41 @@ Coordinates coordinate_impl([[resource_table]] KernelGlobals &kg,
     coords.screen.xy = float2(0.5f);
   }
   else {
-#ifdef MAT_GEOM_WORLD
-    coords.camera = view.normal_world_to_view(P);
-    coords.screen.xy = view.point_view_to_screen(interp.P).xy;
-    coords.screen.xy = coords.screen.xy * uni.uniform_buf.camera.uv_scale +
-                       uni.uniform_buf.camera.uv_bias;
-#else
-    [[resource_table]] const eevee::Uniform &uni = kg.uniforms;
-    const CameraData cam = uni.uniform_buf.camera;
-    if (is_panoramic(cam.type)) {
-      /* Panoramic camera render through per-face sub-views.
-       * Can't use `view` here because that's only one sub-view, not the camera. */
-      coords.camera = transform_point(cam.viewmat, P);
-      float3 dir = P - cam.viewinv[3].xyz;
-      coords.screen.xy = fract(eevee::camera::uv_from_world(cam, dir) + cam.uv_bias);
+    const eevee::Uniform &uni = kg.uniforms;
+    if (kg.pipe.is_world) [[static_branch]] {
+      coords.camera = view.normal_world_to_view(P);
+      coords.screen.xy = view.point_world_to_screen(P + view.position()).xy;
+      coords.screen.xy = coords.screen.xy * uni.uniform_buf.camera.uv_scale +
+                         uni.uniform_buf.camera.uv_bias;
     }
     else {
-      const ViewMatrices view = kg.view_matrices_get(sd);
-      coords.camera = view.point_world_to_view(P);
-      /* TODO(fclem): Actual camera transform. */
-      coords.screen.xy = view.point_world_to_screen(P).xy;
-      coords.screen.xy = coords.screen.xy * cam.uv_scale + cam.uv_bias;
+      const CameraData cam = uni.uniform_buf.camera;
+      if (is_panoramic(cam.type)) {
+        /* Panoramic camera render through per-face sub-views.
+         * Can't use `view` here because that's only one sub-view, not the camera. */
+        coords.camera = transform_point(cam.viewmat, P);
+        float3 dir = P - cam.viewinv[3].xyz;
+        coords.screen.xy = fract(eevee::camera::uv_from_world(cam, dir) + cam.uv_bias);
+      }
+      else {
+        const ViewMatrices view = kg.view_matrices_get(sd);
+        coords.camera = view.point_world_to_view(P);
+        coords.screen.xy = view.point_world_to_screen(P).xy;
+        coords.screen.xy = coords.screen.xy * cam.uv_scale + cam.uv_bias;
+      }
     }
-#endif
   }
   coords.camera.z = -coords.camera.z;
 
-#ifdef MAT_GEOM_WORLD
-  coords.reflect = N;
-  coords.incoming = -P;
-#else
-  coords.reflect = -reflect(view.world_incident_vector(P), N);
-  coords.incoming = view.world_incident_vector(P);
-#endif
+  if (kg.pipe.is_world) [[static_branch]] {
+    coords.reflect = N;
+    coords.incoming = -P;
+  }
+  else {
+    coords.reflect = -reflect(view.world_incident_vector(P), N);
+    coords.incoming = view.world_incident_vector(P);
+  }
   return coords;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Mixed render resolution
- *
- * Callbacks image texture sampling.
- *
- * \{ */
-
-float texture_lod_bias_get([[resource_table]] KernelGlobals &kg)
-{
-  [[resource_table]] const eevee::Uniform &uni = kg.uniforms;
-  return uni.uniform_buf.film.texture_lod_bias;
-}
-
-/**
- * Scale hardware derivatives depending on render resolution.
- * This is because the distance between pixels increases as we lower the resolution. The hardware
- * uses neighboring pixels to compute derivatives and thus the value increases as we lower the
- * resolution. So we compensate by scaling them back to the expected amplitude at full resolution.
- */
-float derivative_scale_get([[resource_table]] KernelGlobals &kg)
-{
-  [[resource_table]] const eevee::Uniform &uni = kg.uniforms;
-  return 1.0f / float(uni.uniform_buf.film.scaling_factor);
 }
 
 /** \} */
@@ -937,72 +957,29 @@ float derivative_scale_get([[resource_table]] KernelGlobals &kg)
 
 /* Point clouds and curves and splats are not compatible with volume grids.
  * They will fall back to their own attributes loading. */
-#if defined(MAT_VOLUME) && !defined(MAT_GEOM_CURVES) && !defined(MAT_GEOM_POINTCLOUD) && \
-    !defined(MAT_GEOM_GSPLAT)
-#  if defined(VOLUME_INFO_LIB) && !defined(MAT_GEOM_WORLD)
-/* We could just check for GRID_ATTRIBUTES but this avoids for header dependency. */
-#    define GRID_ATTRIBUTES_LOAD_POST
-#  endif
-#endif
 
-float attr_load_temperature_post(float attr)
+float attr_load_temperature_post(KernelGlobals &kg, float attr)
 {
-#ifdef GRID_ATTRIBUTES_LOAD_POST
-  /* Bring the value into standard range without having to modify the grid values */
-  attr = (attr > 0.01f) ? (attr * drw_volume.temperature_mul + drw_volume.temperature_bias) : 0.0f;
-#endif
+  if (kg.pipe.is_volume_pipe) [[static_branch]] {
+    const draw::Volume &vol = kg.volume;
+    /* Bring the value into standard range without having to modify the grid values */
+    attr = (attr > 0.01f) ?
+               (attr * vol.drw_volume.temperature_mul + vol.drw_volume.temperature_bias) :
+               0.0f;
+  }
   return attr;
 }
-float4 attr_load_color_post(float4 attr)
+float4 attr_load_color_post(KernelGlobals &kg, float4 attr)
 {
-#ifdef GRID_ATTRIBUTES_LOAD_POST
-  /* Density is premultiplied for interpolation, divide it out here. */
-  attr.rgb *= safe_rcp(attr.a);
-  attr.rgb *= drw_volume.color_mul.rgb;
-  attr.a = 1.0f;
-#endif
+  if (kg.pipe.is_volume_pipe) [[static_branch]] {
+    const draw::Volume &vol = kg.volume;
+    /* Density is premultiplied for interpolation, divide it out here. */
+    attr.rgb *= safe_rcp(attr.a);
+    attr.rgb *= vol.drw_volume.color_mul.rgb;
+    attr.a = 1.0f;
+  }
   return attr;
 }
-
-#undef GRID_ATTRIBUTES_LOAD_POST
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name GSplat Attributes
- *
- * GSplats override the radiance attribute, unpacking packed data from a float2. Additionally,
- * it applies its own alpha transparency on top of existing transmittance.
- *
- * \{ */
-
-float3 gsplat_amend_transmittance(float3 transmittance)
-{
-#ifdef MAT_GEOM_GSPLAT
-  float alpha = draw::gsplat::evaluate_gaussian(gsplat_interp.billboard_co,
-                                                gsplat_interp_flat.opacity);
-  alpha = saturate(alpha * (256.0f / 255.0f));
-  return float3(1.0f) - alpha * saturate(float3(1.0f) - transmittance);
-#else
-  return transmittance;
-#endif
-}
-
-#if defined(MAT_GEOM_GSPLAT) && !defined(MAT_VOLUME)
-#  define GSPLAT_ATTRIBUTES_LOAD_POST
-#endif
-
-float4 attr_load_radiance_post(float4 attr)
-{
-#ifdef GSPLAT_ATTRIBUTES_LOAD_POST
-  /* Radiance is packed as 2xfp16, unpack it from this representation. */
-  uint2 data = floatBitsToUint(attr.xy);
-  return float4(unpackHalf2x16(data.x), unpackHalf2x16(data.y));
-#endif
-  return attr;
-}
-
-#undef GSPLAT_ATTRIBUTES_LOAD_POST
 
 /** \} */
 
@@ -1014,85 +991,62 @@ float4 attr_load_radiance_post(float4 attr)
  *
  * \{ */
 
-float4 attr_load_uniform([[resource_table]] KernelGlobals &kg,
+float4 attr_load_uniform(KernelGlobals &kg,
                          const ShadingData &sd,
                          float4 /*attr*/,
                          const uint attr_hash)
 {
-  const auto &attrs_buf = buffer_get(draw_object_attributes, drw_attrs);
-
-  ObjectInfos infos = kg.object_infos_get(sd);
-  uint index = infos.object_attrs_offset;
-  for (uint i = 0; i < infos.object_attrs_len; i++, index++) {
-    ObjectAttribute attr = attrs_buf[index];
-    if (attr.hash_code == attr_hash) {
-      return float4(attr.data_x, attr.data_y, attr.data_z, attr.data_w);
-    }
-  }
-  return float4(0.0f);
+  const draw::Attributes &ob_attributes = kg.ob_attr;
+  return ob_attributes.get(kg.object_infos_get(sd), attr_hash);
 }
 
-float4 node_attribute_layer_impl([[resource_table]] KernelGlobals &kg, const uint attr_hash)
+float4 node_attribute_layer_impl(KernelGlobals &kg, const uint attr_hash)
 {
-  const auto &attrs_buf = buffer_get(draw_layer_attributes, drw_layer_attrs);
-
-  /* The first record of the buffer stores the length. */
-  uint left = 0, right = attrs_buf[0].buffer_length;
-
-  while (left < right) {
-    uint mid = (left + right) / 2;
-    uint hash = attrs_buf[mid].hash_code;
-
-    if (hash < attr_hash) {
-      left = mid + 1;
-    }
-    else if (hash > attr_hash) {
-      right = mid;
-    }
-    else {
-      return attrs_buf[mid].data;
-    }
-  }
-  return float4(0);
+  const draw::ViewLayerAttributes &vl_attributes = kg.vl_attr;
+  return vl_attributes.get(attr_hash);
 }
 
-void scene_time_uniforms([[resource_table]] KernelGlobals &kg, float &seconds, float &frame)
+void scene_time_uniforms(KernelGlobals &kg, float &seconds, float &frame)
 {
-  [[resource_table]] const eevee::Uniform &uni = kg.uniforms;
+  const eevee::Uniform &uni = kg.uniforms;
 
   seconds = uni.uniform_buf.scene.time;
   frame = uni.uniform_buf.scene.frame;
 }
 
-void light_iter_init([[resource_table]] [[maybe_unused]] KernelGlobals &kg,
-                     [[maybe_unused]] const ShadingData &sd,
-                     [[maybe_unused]] eevee::light::VisibleLightIterator &iter)
+void light_iter_init(KernelGlobals &kg,
+                     const ShadingData &sd,
+                     eevee::light::VisibleLightIterator &iter)
 {
-#if defined(GPU_FRAGMENT_SHADER)
-  const ViewMatrices view = kg.view_matrices_get(sd);
-  const float3 forward = view.forward();
-  const float linear_view_z = dot(forward, sd.P) - dot(forward, view.position());
-  iter.init(sd.frag_co.xy, linear_view_z, receiver_light_set_get(kg.object_infos_get(sd)));
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+#if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
+    const ViewMatrices view = kg.view_matrices_get(sd);
+    const float3 forward = view.forward();
+    const float linear_view_z = dot(forward, sd.P) - dot(forward, view.position());
+    iter.init(
+        kg.lrd, sd.frag_co.xy, linear_view_z, receiver_light_set_get(kg.object_infos_get(sd)));
 #endif
+  }
 }
 
-bool light_iter_next([[maybe_unused]] eevee::light::VisibleLightIterator &iter)
+bool light_iter_next(KernelGlobals &kg, eevee::light::VisibleLightIterator &iter)
 {
-#if defined(GPU_FRAGMENT_SHADER)
-  return iter.next();
-#else
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+#if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
+    return iter.next(kg.lrd);
+#endif
+  }
   return false;
-#endif
 }
 
-bool light_iter_should_skip([[maybe_unused]] eevee::light::VisibleLightIterator &iter,
-                            [[maybe_unused]] float3 P)
+bool light_iter_should_skip(KernelGlobals &kg, eevee::light::VisibleLightIterator &iter, float3 P)
 {
-#if defined(GPU_FRAGMENT_SHADER)
-  return iter.should_skip(P);
-#else
-  return true;
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+#if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
+    return iter.should_skip(kg.lrd, P);
 #endif
+  }
+  return true;
 }
 
 #if (defined(GPU_FRAGMENT_SHADER) && defined(SRT_CONSTANT_use_lighting_nodes)) || \
@@ -1100,10 +1054,10 @@ bool light_iter_should_skip([[maybe_unused]] eevee::light::VisibleLightIterator 
 
 #  define LIGHT_ITER_BEGIN(light_index) \
     { \
-      eevee::light::VisibleLightIterator iter; \
+      eevee_light_VisibleLightIterator iter; \
       light_iter_init(kg, sd, iter); \
-      while (light_iter_next(iter)) { \
-        if (light_iter_should_skip(iter, sd.P)) { \
+      while (light_iter_next(kg, iter)) { \
+        if (light_iter_should_skip(kg, iter, sd.P)) { \
           continue; \
         } \
         light_index = iter.index;
@@ -1125,16 +1079,12 @@ bool light_iter_should_skip([[maybe_unused]] eevee::light::VisibleLightIterator 
   } \
   }
 
-void node_light_info_impl([[resource_table]] KernelGlobals &kg,
-                          const int light_index,
-                          float4 &color,
-                          float &power,
-                          float3 &position)
+void node_light_info_impl(
+    KernelGlobals &kg, const int light_index, float4 &color, float &power, float3 &position)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_lighting_nodes) [[static_branch]] {
-    [[resource_table]] const eevee::LightRenderData &lrd = kg.lrd;
-    [[resource_table]] const draw::Model &models = kg.model;
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+    const eevee::LightRenderData &lrd = kg.lrd;
+    const draw::Model &models = kg.model;
 
     LightData light = lrd.light_buf[light_index];
 
@@ -1148,16 +1098,15 @@ void node_light_info_impl([[resource_table]] KernelGlobals &kg,
   }
 }
 
-void node_light_evaluation_common_impl([[resource_table]] KernelGlobals &kg,
+void node_light_evaluation_common_impl(KernelGlobals &kg,
                                        int light_index,
                                        float3 position,
                                        float3 &direction,
                                        float &distance,
                                        float &mask)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_lighting_nodes) [[static_branch]] {
-    [[resource_table]] const eevee::LightRenderData &lrd = kg.lrd;
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+    const eevee::LightRenderData &lrd = kg.lrd;
 
     LightData light = lrd.light_buf[light_index];
     const bool is_directional = (light.type == LIGHT_SUN) || (light.type == LIGHT_SUN_ORTHO);
@@ -1170,7 +1119,7 @@ void node_light_evaluation_common_impl([[resource_table]] KernelGlobals &kg,
 }
 
 template<bool use_diffuse>
-void node_light_evaluation_impl([[resource_table]] KernelGlobals &kg,
+void node_light_evaluation_impl(KernelGlobals &kg,
                                 const ShadingData &sd,
                                 int light_index,
                                 float3 position,
@@ -1178,10 +1127,9 @@ void node_light_evaluation_impl([[resource_table]] KernelGlobals &kg,
                                 float roughness,
                                 float &factor)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_lighting_nodes) [[static_branch]] {
-    [[resource_table]] const eevee::LightRenderData &lrd = kg.lrd;
-    [[resource_table]] UtilityTexture &util_tx = kg.util_tx;
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+    const eevee::LightRenderData &lrd = kg.lrd;
+    UtilityTexture &util_tx = kg.util_tx;
 
     LightData light = lrd.light_buf[light_index];
     const bool is_directional = (light.type == LIGHT_SUN) || (light.type == LIGHT_SUN_ORTHO);
@@ -1204,9 +1152,6 @@ void node_light_evaluation_impl([[resource_table]] KernelGlobals &kg,
     ltc_data.Minv = ltc_data.Minv * transpose(T);
     factor = eevee::ltc::evaluate(util_tx.utility_tx, light, light_shape_vertices, lv, ltc_data);
 
-    const bool is_transmission = false; /* TODO: Expose? */
-    factor *= light_attenuation_facing(light, lv.L, lv.dist, normal, is_transmission);
-
     factor *= light.shape_power;
     /* Remove the base power (exposed in Light Info).
      * The goal is to get a somewhat normalized factor. */
@@ -1220,41 +1165,29 @@ template void node_light_evaluation_impl<true>(
 template void node_light_evaluation_impl<false>(
     KernelGlobals &, const ShadingData &, int, float3, float3, float, float &);
 
-void node_shadow_raycast_impl([[resource_table]] KernelGlobals &kg,
-                              [[maybe_unused]] const ShadingData &sd,
-                              [[maybe_unused]] const int light_index,
-                              [[maybe_unused]] float3 position,
-                              [[maybe_unused]] float softness,
+void node_shadow_raycast_impl(KernelGlobals &kg,
+                              const ShadingData &sd,
+                              const int light_index,
+                              float3 position,
+                              float softness,
                               float4 &color)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_lighting_nodes) [[static_branch]] {
-    [[resource_table]] const eevee::LightRenderData &lrd = kg.lrd;
-    [[resource_table]] [[maybe_unused]] eevee::ShadowRenderData &srd = kg.srd;
-    [[resource_table]] [[maybe_unused]] draw::Infos &infos = kg.infos;
-    [[resource_table]] [[maybe_unused]] eevee::Uniform &uni = kg.uniforms;
-
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
     color = float4(1.0f);
 
-#if defined(GPU_FRAGMENT_SHADER)
-
-    LightData light = lrd.light_buf[light_index];
+#if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
+    LightData light = kg.lrd.light_buf[light_index];
 
     if (light.tilemap_index == LIGHT_NO_SHADOW) {
       return;
     }
 
-#  if defined(SPECIALIZED_SHADOW_PARAMS) || defined(SRT_CONSTANT_shadow_ray_count)
-    int ray_count = shadow_ray_count;
-    int ray_step_count = shadow_ray_step_count;
-#  else
-    int ray_count = uni.uniform_buf.shadow.ray_count;
-    int ray_step_count = uni.uniform_buf.shadow.step_count;
-#  endif
+    int ray_count = kg.uniforms.uniform_buf.shadow.ray_count;
+    int ray_step_count = kg.uniforms.uniform_buf.shadow.step_count;
 
     ObjectInfos object_infos = kg.object_infos_get(sd);
 
-    float shadow = eevee::shadow_eval(srd,
+    float shadow = eevee::shadow_eval(kg.srd,
                                       light,
                                       (light.type == LIGHT_SUN) || (light.type == LIGHT_SUN_ORTHO),
                                       false,
@@ -1279,88 +1212,62 @@ float4 node_attribute_light_impl([[resource_table]] KernelGlobals &kg,
                                  const int light_index,
                                  uint attr_hash)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_lighting_nodes) [[static_branch]] {
-    [[resource_table]] const eevee::LightRenderData &lrd = kg.lrd;
-    [[resource_table]] const draw::Infos &infos = kg.infos;
-
-    LightData light = lrd.light_buf[light_index];
-    ObjectInfos info = infos.get(light.resource_id);
-
-    const auto &attrs_buf = buffer_get(draw_object_attributes, drw_attrs);
-
-    uint index = info.object_attrs_offset;
-    for (uint i = 0; i < info.object_attrs_len; i++, index++) {
-      ObjectAttribute attr = attrs_buf[index];
-      if (attr.hash_code == attr_hash) {
-        return float4(attr.data_x, attr.data_y, attr.data_z, attr.data_w);
-      }
-    }
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+    LightData light = kg.lrd.light_buf[light_index];
+    return kg.ob_attr.get(kg.infos.get(light.resource_id), attr_hash);
   }
   return float4(0.0f);
 }
 
-bool node_attribute_light_is_sun_impl([[resource_table]] KernelGlobals &kg, const int light_index)
+bool node_attribute_light_is_sun_impl(KernelGlobals &kg, const int light_index)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_lighting_nodes) [[static_branch]] {
-    [[resource_table]] const eevee::LightRenderData &lrd = kg.lrd;
-    LightData light = lrd.light_buf[light_index];
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+    LightData light = kg.lrd.light_buf[light_index];
     return is_sun_light(light.type);
   }
   return false;
 }
 
-bool node_attribute_light_is_point_impl([[resource_table]] KernelGlobals &kg,
-                                        const int light_index)
+bool node_attribute_light_is_point_impl(KernelGlobals &kg, const int light_index)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_lighting_nodes) [[static_branch]] {
-    [[resource_table]] const eevee::LightRenderData &lrd = kg.lrd;
-    LightData light = lrd.light_buf[light_index];
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+    LightData light = kg.lrd.light_buf[light_index];
     return is_point_light(light.type) && !is_spot_light(light.type);
   }
   return false;
 }
 
-bool node_attribute_light_is_spot_impl([[resource_table]] KernelGlobals &kg, const int light_index)
+bool node_attribute_light_is_spot_impl(KernelGlobals &kg, const int light_index)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_lighting_nodes) [[static_branch]] {
-    [[resource_table]] const eevee::LightRenderData &lrd = kg.lrd;
-    LightData light = lrd.light_buf[light_index];
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+    LightData light = kg.lrd.light_buf[light_index];
     return is_spot_light(light.type);
   }
   return false;
 }
 
-bool node_attribute_light_is_area_impl([[resource_table]] KernelGlobals &kg, const int light_index)
+bool node_attribute_light_is_area_impl(KernelGlobals &kg, const int light_index)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_lighting_nodes) [[static_branch]] {
-    [[resource_table]] const eevee::LightRenderData &lrd = kg.lrd;
-    LightData light = lrd.light_buf[light_index];
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+    LightData light = kg.lrd.light_buf[light_index];
     return is_area_light(light.type);
   }
   return false;
 }
 
-float node_attribute_light_cutoff_distance_impl([[resource_table]] KernelGlobals &kg,
-                                                const int light_index)
+float node_attribute_light_cutoff_distance_impl(KernelGlobals &kg, const int light_index)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_lighting_nodes) [[static_branch]] {
-    [[resource_table]] const eevee::LightRenderData &lrd = kg.lrd;
-    LightData light = lrd.light_buf[light_index];
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+    LightData light = kg.lrd.light_buf[light_index];
     if (is_sun_light(light.type)) {
       return 1e20f;
     }
-    return inversesqrt(light.local().local.influence_radius_invsqr_surface);
+    return inversesqrt(light.local.local.influence_radius_invsqr_surface);
   }
   return 1.0f;
 }
 
-void node_light_accumulation_impl([[resource_table]] KernelGlobals &kg,
+void node_light_accumulation_impl(KernelGlobals &kg,
                                   ShadingData &sd,
                                   const int light_index,
                                   float3 diffuse_light,
@@ -1373,10 +1280,8 @@ void node_light_accumulation_impl([[resource_table]] KernelGlobals &kg,
                                   Closure &result)
 {
 #if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_lighting_nodes) [[static_branch]] {
-    [[resource_table]] const eevee::LightRenderData &lrd = kg.lrd;
-    LightData light = lrd.light_buf[light_index];
+  if (kg.pipe.use_lighting_nodes) [[static_branch]] {
+    LightData light = kg.lrd.light_buf[light_index];
     float3 diffuse_color_weight = diffuse_color * weight;
     float3 glossy_color_weight = glossy_color * weight;
     float3 transmission_color_weight = transmission_color * weight;
@@ -1398,7 +1303,7 @@ void node_light_accumulation_impl([[resource_table]] KernelGlobals &kg,
 
 /** \} */
 
-void output_aov([[resource_table]] KernelGlobals &kg,
+void output_aov(KernelGlobals &kg,
                 int2 texel,
                 float4 color,
                 float value,
@@ -1407,18 +1312,15 @@ void output_aov([[resource_table]] KernelGlobals &kg,
                 eObjectInfoFlag ob_flag)
 {
 #if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_aov_output) [[static_branch]] {
-    [[resource_table]] eevee::RenderPassOutput &rp = kg.renderpass_out;
-    [[resource_table]] const eevee::Uniform &uni = kg.uniforms;
+  if (kg.pipe.use_aov_output) [[static_branch]] {
+    const RenderBuffersInfoData &render_pass = kg.uniforms.uniform_buf.render_pass;
 
-    uint total_len = uni.uniform_buf.render_pass.aovs.color_len +
-                     uni.uniform_buf.render_pass.aovs.value_len;
+    uint total_len = render_pass.aovs.color_len + render_pass.aovs.value_len;
 
     /* Search hashes in uint4 packs with 4 comparisons to find the index of a matching AOV hash. */
     uint hash_index;
     for (hash_index = 0u; hash_index < AOV_MAX && hash_index < total_len; hash_index += 4u) {
-      bool4 cmp_mask = equal(uni.uniform_buf.render_pass.aovs.hash[hash_index >> 2u], uint4(hash));
+      bool4 cmp_mask = equal(render_pass.aovs.hash[hash_index >> 2u], uint4(hash));
       if (any(cmp_mask)) {
         /* Left-reduce `cmp_mask` to find the index of the matching AOV hash. */
         hash_index += (cmp_mask[0] ? 0u : (cmp_mask[1] ? 1u : (cmp_mask[2] ? 2u : 3u)));
@@ -1435,18 +1337,19 @@ void output_aov([[resource_table]] KernelGlobals &kg,
       holdout = saturate(holdout);
 
       /* Value hashes are stored after color hashes, so the index tells us the AOV type. */
-      bool is_value = hash_index >= uint(uni.uniform_buf.render_pass.aovs.color_len);
-      uint aov_index = hash_index - (is_value ? uni.uniform_buf.render_pass.aovs.color_len : 0u);
+      bool is_value = hash_index >= uint(render_pass.aovs.color_len);
+      uint aov_index = hash_index - (is_value ? render_pass.aovs.color_len : 0u);
 
       /* Apply holdout to relevant AOV type. */
       float4 out_aov = is_value ? float4(value) : color;
       out_aov *= 1.0f - holdout;
 
+      eevee::RenderPassOutput &rp_out = kg.renderpass_out;
       if (is_value) {
-        rp.store_value(texel, int(uni.uniform_buf.render_pass.value_len + aov_index), out_aov.r);
+        rp_out.store_value(texel, int(render_pass.value_len + aov_index), out_aov.r);
       }
       else {
-        rp.store_color(texel, int(uni.uniform_buf.render_pass.color_len + aov_index), out_aov);
+        rp_out.store_color(texel, int(render_pass.color_len + aov_index), out_aov);
       }
     }
   }

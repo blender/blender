@@ -102,6 +102,123 @@ void copy_attribute_using_map(const GSpan src, const Span<int> out_to_in_map, GM
   type.value_initialize_indices(dst.data(), valid_mask.complement(IndexRange(dst.size()), memory));
 }
 
+/**
+ * Describes how to create the values of output corners that don't correspond to an input corner.
+ * They are interpolated from all corners of the corresponding input face.
+ */
+struct CornerInterpolation {
+  IndexMaskMemory memory;
+  /** Output corners with a corresponding input corner, where values are copied directly. */
+  IndexMask copy_mask;
+  /** Output corners that are interpolated from the corners of the input face. */
+  IndexMask interp_mask;
+  /** Groups of input corners and weights, for every index in #interp_mask. */
+  Array<int> group_offsets;
+  Array<int> src_corners;
+  Array<float> weights;
+  /** Whether the output face is flipped compared to the input face, for every interpolated
+   * corner. */
+  Array<bool> flipped;
+};
+
+static void calc_corner_interpolation(const Mesh &output_mesh,
+                                      const Mesh &input_mesh,
+                                      const Span<int> out_to_in_corner_map,
+                                      const Span<int> out_to_in_face_map,
+                                      CornerInterpolation &r_interp)
+{
+  const OffsetIndices<int> output_faces = output_mesh.faces();
+  const OffsetIndices<int> input_faces = input_mesh.faces();
+  const Span<int> input_corner_verts = input_mesh.corner_verts();
+  const Span<float3> input_vert_positions = input_mesh.vert_positions();
+  const Span<int> output_corner_verts = output_mesh.corner_verts();
+  const Span<float3> output_vert_positions = output_mesh.vert_positions();
+
+  /* Count the interpolated corners and their weights per face to allocate flat arrays. */
+  Array<int> interp_corner_offsets_data(output_faces.size() + 1);
+  Array<int> weight_offsets_data(output_faces.size() + 1);
+  threading::parallel_for(output_faces.index_range(), 4096, [&](const IndexRange range) {
+    for (const int out_face : range) {
+      const Span<int> face_map = out_to_in_corner_map.slice(output_faces[out_face]);
+      const int interp_num = std::count(face_map.begin(), face_map.end(), -1);
+      const int in_face_size = input_faces[out_to_in_face_map[out_face]].size();
+      interp_corner_offsets_data[out_face] = interp_num;
+      weight_offsets_data[out_face] = interp_num * in_face_size;
+    }
+  });
+  const OffsetIndices<int> interp_corner_offsets = offset_indices::accumulate_counts_to_offsets(
+      interp_corner_offsets_data);
+  const OffsetIndices<int> weight_offsets = offset_indices::accumulate_counts_to_offsets(
+      weight_offsets_data);
+
+  Array<int> interp_corners(interp_corner_offsets.total_size());
+  r_interp.group_offsets.reinitialize(interp_corner_offsets.total_size() + 1);
+  r_interp.flipped.reinitialize(interp_corner_offsets.total_size());
+  r_interp.src_corners.reinitialize(weight_offsets.total_size());
+  r_interp.weights.reinitialize(weight_offsets.total_size());
+
+  /* Loop per output face, as there is an expensive calculation that needs to be done per face. */
+  threading::parallel_for(output_faces.index_range(), 256, [&](const IndexRange range) {
+    Vector<float2, 20> cos_2d;
+    for (const int out_face_index : range) {
+      const IndexRange interp_range = interp_corner_offsets[out_face_index];
+      if (interp_range.is_empty()) {
+        continue;
+      }
+      const int in_face_index = out_to_in_face_map[out_face_index];
+      const IndexRange in_face = input_faces[in_face_index];
+      const IndexRange out_face = output_faces[out_face_index];
+
+      /* First get coordinates of input face projected onto 2d. */
+      const Span<int> in_face_verts = input_corner_verts.slice(in_face);
+      const int in_face_size = in_face.size();
+      const Span<int> out_face_verts = output_corner_verts.slice(out_face);
+      cos_2d.resize(in_face_size);
+      float (*cos_2d_p)[2] = reinterpret_cast<float (*)[2]>(cos_2d.data());
+      const float3 axis_dominant = bke::mesh::face_normal_calc(input_vert_positions,
+                                                               in_face_verts);
+      float3x3 axis_mat;
+      axis_dominant_v3_to_m3(axis_mat.ptr(), axis_dominant);
+      /* We also need to know if the output face has a flipped normal compared
+       * to the corresponding input face (used if we have custom normals).
+       */
+      const float3 out_face_normal = bke::mesh::face_normal_calc(output_vert_positions,
+                                                                 out_face_verts);
+      const bool face_is_flipped = math::dot(axis_dominant, out_face_normal) < 0.0;
+      for (const int i : in_face_verts.index_range()) {
+        const float3 &co = input_vert_positions[in_face_verts[i]];
+        cos_2d[i] = (axis_mat * co).xy();
+      }
+
+      const int weights_start = weight_offsets[out_face_index].start();
+      int interp_i = 0;
+      for (const int out_c : out_face) {
+        if (out_to_in_corner_map[out_c] != -1) {
+          continue;
+        }
+        const int corner_i = interp_range[interp_i];
+        const IndexRange group(weights_start + interp_i * in_face_size, in_face_size);
+        interp_corners[corner_i] = out_c;
+        r_interp.group_offsets[corner_i] = group.start();
+        r_interp.flipped[corner_i] = face_is_flipped;
+        array_utils::fill_index_range<int>(r_interp.src_corners.as_mutable_span().slice(group),
+                                           in_face.start());
+
+        const int out_v = output_corner_verts[out_c];
+        float2 co;
+        mul_v2_m3v3(co, axis_mat.ptr(), output_vert_positions[out_v]);
+        interp_weights_poly_v2(&r_interp.weights[group.start()], cos_2d_p, in_face_size, co);
+        interp_i++;
+      }
+    }
+  });
+  r_interp.group_offsets.last() = weight_offsets.total_size();
+
+  r_interp.interp_mask = IndexMask::from_indices(interp_corners.as_span(), r_interp.memory);
+  r_interp.copy_mask = r_interp.interp_mask.complement(IndexRange(out_to_in_corner_map.size()),
+                                                       r_interp.memory);
+}
+
 void interpolate_corner_attributes(bke::MutableAttributeAccessor output_attrs,
                                    const bke::AttributeAccessor input_attrs,
                                    Mesh *output_mesh,
@@ -112,21 +229,15 @@ void interpolate_corner_attributes(bke::MutableAttributeAccessor output_attrs,
 #  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("interpolate corner attributes");
 #  endif
-  /* Make parallel arrays of things needed access and write all corner attributes to interpolate.
-   */
-  Vector<bke::GSpanAttributeWriter> writers;
-  Vector<bke::GAttributeReader> readers;
-  Vector<GVArraySpan> srcs;
-  Vector<GMutableSpan> dsts;
-  /* For each index of `srcs` and `dsts`, we need to know if it is a "normal"-like attribute. */
-  Vector<bool> is_normal_attribute;
+  /* Only calculated when there is an attribute to interpolate. */
+  std::optional<CornerInterpolation> interp;
+
   input_attrs.foreach_attribute([&](const bke::AttributeIter &iter) {
     if (iter.domain != bke::AttrDomain::Corner || ELEM(iter.name, ".corner_vert", ".corner_edge"))
     {
       return;
     }
-    const bke::GAttributeReader reader = input_attrs.lookup_or_default(
-        iter.name, iter.domain, iter.data_type);
+    const bke::GAttributeReader reader = iter.get();
     if (!reader) {
       return;
     }
@@ -138,124 +249,35 @@ void interpolate_corner_attributes(bke::MutableAttributeAccessor output_attrs,
       return;
     }
 
-    writers.append(
-        output_attrs.lookup_or_add_for_write_span(iter.name, iter.domain, iter.data_type));
-    readers.append(input_attrs.lookup_or_default(iter.name, iter.domain, iter.data_type));
-    srcs.append(*readers.last());
-    dsts.append(writers.last().span);
-    is_normal_attribute.append(iter.name == "custom_normal");
+    if (!interp) {
+      interp.emplace();
+      calc_corner_interpolation(
+          *output_mesh, *input_mesh, out_to_in_corner_map, out_to_in_face_map, *interp);
+    }
+
+    bke::GSpanAttributeWriter dst = output_attrs.lookup_or_add_for_write_only_span(
+        iter.name, iter.domain, iter.data_type);
+    const GVArraySpan src(*reader);
+    bke::attribute_math::gather(src, out_to_in_corner_map, interp->copy_mask, dst.span);
+    bke::attribute_math::mix_groups(src,
+                                    OffsetIndices<int>(interp->group_offsets),
+                                    interp->src_corners,
+                                    interp->weights.as_span(),
+                                    interp->interp_mask,
+                                    dst.span);
+    if (iter.name == "custom_normal" && dst.span.type().is<float3>()) {
+      /* The joined mesh has converted custom normals to float3. */
+      MutableSpan<float3> normals = dst.span.typed<float3>();
+      interp->interp_mask.foreach_index(
+          [&](const int corner, const int pos) {
+            if (interp->flipped[pos]) {
+              normals[corner] = -normals[corner];
+            }
+          },
+          exec_mode::grain_size(4096));
+    }
+    dst.finish();
   });
-
-  if (writers.is_empty()) {
-    return;
-  }
-
-  /* Loop per source face, as there is an expensive weight calculation that needs to be done per
-   * face. */
-  const OffsetIndices<int> output_faces = output_mesh->faces();
-  const OffsetIndices<int> input_faces = input_mesh->faces();
-  const Span<int> input_corner_verts = input_mesh->corner_verts();
-  const Span<float3> input_vert_positions = input_mesh->vert_positions();
-  const Span<int> output_corner_verts = output_mesh->corner_verts();
-  const Span<float3> output_vert_positions = output_mesh->vert_positions();
-  const int grain_size = 256;
-  threading::parallel_for(
-      out_to_in_face_map.index_range(), grain_size, [&](const IndexRange range) {
-        Vector<float, 20> weights;
-        Vector<float2, 20> cos_2d;
-        for (const int out_face_index : range) {
-          const int in_face_index = out_to_in_face_map[out_face_index];
-          const IndexRange in_face = input_faces[in_face_index];
-          /* Are there any corners needing interpolation in this face?
-           * The corners needing interpolation are those whose out_to_in_corner_map entry is -1.
-           */
-          IndexRange out_face = output_faces[out_face_index];
-          if (std::none_of(out_face.begin(), out_face.end(), [&](int c) {
-                return out_to_in_corner_map[c] == -1;
-              }))
-          {
-            for (const int attr_index : dsts.index_range()) {
-              const GSpan src = srcs[attr_index];
-              GMutableSpan dst = dsts[attr_index];
-              const CPPType &type = dst.type();
-              for (const int dst_corner : out_face) {
-                type.copy_construct(src[out_to_in_corner_map[dst_corner]], dst[dst_corner]);
-              }
-            }
-            continue;
-          }
-
-          /* At least one output corner did not map to an input corner. */
-
-          /* First get coordinates of input face projected onto 2d, and make sure that
-           * weights has the right size. */
-          const Span<int> in_face_verts = input_corner_verts.slice(in_face);
-          const int in_face_size = in_face.size();
-          const Span<int> out_face_verts = output_corner_verts.slice(out_face);
-          weights.resize(in_face_size);
-          cos_2d.resize(in_face_size);
-          float (*cos_2d_p)[2] = reinterpret_cast<float (*)[2]>(cos_2d.data());
-          const float3 axis_dominant = bke::mesh::face_normal_calc(input_vert_positions,
-                                                                   in_face_verts);
-          float3x3 axis_mat;
-          axis_dominant_v3_to_m3(axis_mat.ptr(), axis_dominant);
-          /* We also need to know if the output face has a flipped normal compared
-           * to the corresponding input face (used if we have custom normals).
-           */
-          const float3 out_face_normal = bke::mesh::face_normal_calc(output_vert_positions,
-                                                                     out_face_verts);
-          const bool face_is_flipped = math::dot(axis_dominant, out_face_normal) < 0.0;
-          for (const int i : in_face_verts.index_range()) {
-            const float3 &co = input_vert_positions[in_face_verts[i]];
-            cos_2d[i] = (axis_mat * co).xy();
-          }
-          /* Now the loop to actually interpolate attributes of the new-vertex corners of the
-           * output face. */
-          for (const int out_c : out_face) {
-            const int in_c = out_to_in_corner_map[out_c];
-            if (in_c != -1) {
-              for (const int attr_index : dsts.index_range()) {
-                const GSpan src = srcs[attr_index];
-                GMutableSpan dst = dsts[attr_index];
-                const CPPType &type = dst.type();
-                type.copy_construct(src[in_c], dst[out_c]);
-              }
-              continue;
-            }
-            const int out_v = output_corner_verts[out_c];
-            float2 co;
-            mul_v2_m3v3(co, axis_mat.ptr(), output_vert_positions[out_v]);
-            interp_weights_poly_v2(weights.data(), cos_2d_p, in_face_size, co);
-
-            for (const int attr_index : dsts.index_range()) {
-              const GSpan src = srcs[attr_index];
-              GMutableSpan dst = dsts[attr_index];
-              const bool need_flip = face_is_flipped && is_normal_attribute[attr_index];
-              const CPPType &type = dst.type();
-              bke::attribute_math::to_static_type(type, [&]<typename T>() {
-                if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
-                  const Span<T> src_typed = src.typed<T>();
-                  MutableSpan<T> dst_typed = dst.typed<T>();
-                  bke::attribute_math::DefaultMixer<T> mixer{MutableSpan(&dst_typed[out_c], 1)};
-                  for (const int i : in_face.index_range()) {
-                    mixer.mix_in(0, src_typed[in_face[i]], weights[i]);
-                  }
-                  mixer.finalize();
-                  if (need_flip) {
-                    /* The joined mesh has converted custom normals to float3. */
-                    if (type.is<float3>()) {
-                      dst.typed<float3>()[out_c] = -dst.typed<float3>()[out_c];
-                    }
-                  }
-                }
-              });
-            }
-          }
-        }
-      });
-  for (bke::GSpanAttributeWriter &writer : writers) {
-    writer.finish();
-  }
 }
 
 void set_material_from_map(const Span<int> out_to_in_map,

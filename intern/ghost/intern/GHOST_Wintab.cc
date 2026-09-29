@@ -154,7 +154,7 @@ static int access_violation_exception_filter(unsigned int code, LPEXCEPTION_POIN
 
 GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
 {
-  /* The only way to get the current handler is by seting a new one. */
+  /* The only way to get the current handler is by setting a new one. */
   LPTOP_LEVEL_EXCEPTION_FILTER current_filter = SetUnhandledExceptionFilter(nullptr);
   SetUnhandledExceptionFilter(current_filter);
 

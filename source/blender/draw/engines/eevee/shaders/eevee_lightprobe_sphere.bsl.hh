@@ -202,7 +202,7 @@ struct LightprobeSphereRenderData {
     for (int index = 0; index < SPHERE_PROBE_MAX; index++) {
       SphereProbeData probe_data = lightprobe_sphere_buf[index];
       /* SphereProbeData doesn't contain any gap, exit at first item that is invalid. */
-      if (probe_data.atlas_coord.layer == -1) {
+      if (probe_data.atlas_coord.layer == -1.0f) {
         /* We hit the end of the array. Return last valid index. */
         return index - 1;
       }

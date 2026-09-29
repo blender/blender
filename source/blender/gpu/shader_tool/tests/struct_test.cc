@@ -268,6 +268,7 @@ float4 _c(A this_) {
 void _c_set_(_ref(A ,this_), float4 v) {
   this_._0 = v.c;
 }
+#line 8
 )";
     auto [output, _, error] = process_test_string(input, Language::BSL);
     EXPECT_EQ(output, expect);
@@ -836,6 +837,7 @@ U U_ctor_() {U r;r._pad=0;return r;}
          void U_fn() {
 #line 5
                     }
+
 )";
     auto [output, _, error] = process_test_string(input, Language::BSL);
     EXPECT_EQ(output, expect);
@@ -880,6 +882,7 @@ struct S {
 };
 #line 4
   S S_ctor_() {S r;r.i=0;r.a0_=S_a0_ctor_();r.c=S_C_ctor_();return r;}
+#line 13
 )";
     auto [output, _, error] = process_test_string(input, Language::BSL);
     EXPECT_EQ(output, expect);

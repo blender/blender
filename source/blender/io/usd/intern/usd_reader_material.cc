@@ -1379,7 +1379,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
 
   if (is_udim_path(file_path)) {
     udim_tiles = get_udim_tiles(file_path);
-    /* We can skip the additional check for file existance if we've successfully found tiles. */
+    /* We can skip the additional check for file existence if we've successfully found tiles. */
     if (!udim_tiles.is_empty()) {
       check_open = false;
     }

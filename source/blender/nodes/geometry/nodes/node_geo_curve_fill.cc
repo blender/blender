@@ -158,10 +158,8 @@ static Array<meshintersect::CDT_result<double>> do_group_aware_cdt(
     return {do_cdt(curves, output_type)};
   }
 
-  VectorSet<int> group_indexing;
   IndexMaskMemory mask_memory;
-  const Vector<IndexMask> group_masks = IndexMask::from_group_ids(
-      curve_group_ids, mask_memory, group_indexing);
+  const Vector<IndexMask> group_masks = IndexMask::from_group_ids(curve_group_ids, mask_memory);
   const int groups_num = group_masks.size();
 
   Array<meshintersect::CDT_result<double>> cdt_results(groups_num);

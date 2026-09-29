@@ -33,6 +33,8 @@ namespace blender {
 
 static CLG_LogRef LOG = {"io.alembic"};
 
+using Alembic::AbcGeom::kConstantScope;
+using Alembic::AbcGeom::kVertexScope;
 using Alembic::AbcGeom::OCompoundProperty;
 using Alembic::AbcGeom::OCurves;
 using Alembic::AbcGeom::OCurvesSchema;
@@ -195,7 +197,13 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
   const Span<float3> positions = curves.positions();
   const std::optional<Span<float>> nurbs_weights = curves.nurbs_weights();
   const VArray<int8_t> nurbs_orders = curves.nurbs_orders();
+
   const VArray<float> radii = curves.radius();
+  Alembic::AbcGeom::GeometryScope width_scope = kVertexScope;
+  if (radii.is_single()) {
+    width_scope = kConstantScope;
+    widths.push_back(radii[0] * 2.0f);
+  }
 
   vert_counts.resize(curves.curves_num());
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -218,7 +226,9 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
        * ] */
       for (const int i_point : points.drop_back(1)) {
         verts.push_back(to_yup_V3f(positions[i_point]));
-        widths.push_back(radii[i_point] * 2.0f);
+        if (width_scope != kConstantScope) {
+          widths.push_back(radii[i_point] * 2.0f);
+        }
 
         verts.push_back(to_yup_V3f((*handles_r)[i_point]));
         verts.push_back(to_yup_V3f((*handles_l)[i_point + 1]));
@@ -227,7 +237,9 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
       /* The last vert in the array doesn't need a right handle because the curve stops
        * at that point. */
       verts.push_back(to_yup_V3f(positions[last_point_index]));
-      widths.push_back(radii[last_point_index] * 2.0f);
+      if (width_scope != kConstantScope) {
+        widths.push_back(radii[last_point_index] * 2.0f);
+      }
 
       /* If the curve is cyclic, include the right handle of the last point and the
        * left handle of the first point. */
@@ -241,10 +253,14 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
   }
   else {
     verts.resize(curves.points_num());
-    widths.resize(curves.points_num());
+    if (width_scope != kConstantScope) {
+      widths.resize(curves.points_num());
+    }
     for (const int i_point : curves.points_range()) {
       verts[i_point] = to_yup_V3f(positions[i_point]);
-      widths[i_point] = radii[i_point] * 2.0f;
+      if (width_scope != kConstantScope) {
+        widths[i_point] = radii[i_point] * 2.0f;
+      }
     }
 
     if (blender_curve_type == CURVE_TYPE_NURBS) {
@@ -264,6 +280,7 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
 
   Alembic::AbcGeom::OFloatGeomParam::Sample width_sample;
   width_sample.setVals(widths);
+  width_sample.setScope(width_scope);
 
   OCurvesSchema::Sample sample(verts,
                                vert_counts,

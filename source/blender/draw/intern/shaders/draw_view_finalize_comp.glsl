@@ -131,7 +131,7 @@ void main()
     return;
   }
 
-  /* Read frustom_corners from device memory, update, and write back. */
+  /* Read frustum_corners from device memory, update, and write back. */
   FrustumCorners frustum_corners = view_culling_buf[drw_view_id].frustum_corners;
   frustum_boundbox_calc(drw_view().winmat, drw_view().viewinv, frustum_corners);
   view_culling_buf[drw_view_id].frustum_corners = frustum_corners;

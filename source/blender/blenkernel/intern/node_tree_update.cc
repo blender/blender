@@ -1554,13 +1554,24 @@ class NodeTreeMainUpdater {
         }
         break;
       case SH_NODE_ATTRIBUTE:
-        if (static_cast<NodeShaderAttribute *>(node.storage)->type != SHD_ATTRIBUTE_LIGHT) {
-          break;
-        }
-        ATTR_FALLTHROUGH;
+      case SH_NODE_VECT_TRANSFORM:
       case SH_NODE_LIGHT_INFO:
       case SH_NODE_LIGHT_EVALUATION:
       case SH_NODE_SHADOW_RAYCAST:
+        /* Attribute and Vector Transform nodes are only lighting nodes in light mode. */
+        if (node.type_legacy == SH_NODE_ATTRIBUTE &&
+            static_cast<NodeShaderAttribute *>(node.storage)->type != SHD_ATTRIBUTE_LIGHT)
+        {
+          break;
+        }
+        if (node.type_legacy == SH_NODE_VECT_TRANSFORM) {
+          const NodeShaderVectTransform *nodeprop = static_cast<NodeShaderVectTransform *>(
+              node.storage);
+          if (!ELEM(SHD_VECT_TRANSFORM_SPACE_LIGHT, nodeprop->convert_from, nodeprop->convert_to))
+          {
+            break;
+          }
+        }
         if (bool(flags & ShaderNodeAncestorFlags::ShaderMaterialOutput)) {
           if (!bool(flags & ShaderNodeAncestorFlags::LightAccumulation)) {
             return TIP_(
@@ -1593,12 +1604,18 @@ class NodeTreeMainUpdater {
       fallback_zones = ntree.runtime->last_valid_zones.get();
     }
 
+    /* Clear the validity from the previous update first. The shader tagging below traverses the
+     * tree with an iterator that skips invalid links, so it would otherwise not see the links its
+     * own errors invalidated last time. */
+    for (bNodeLink &link : ntree.links) {
+      link.flag |= NODE_LINK_VALID;
+    }
+
     if (ntree.type == NTREE_SHADER) {
       this->shader_tree_tag_by_ancestor(ntree);
     }
 
     for (bNodeLink &link : ntree.links) {
-      link.flag |= NODE_LINK_VALID;
       if (!link.fromsock->is_available() || !link.tosock->is_available()) {
         link.flag &= ~NODE_LINK_VALID;
         continue;

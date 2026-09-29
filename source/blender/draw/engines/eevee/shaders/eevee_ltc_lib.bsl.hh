@@ -17,9 +17,7 @@
 #include "eevee_ltc_lut_lib.bsl.hh"
 #include "gpu_shader_compat.hh"
 #include "gpu_shader_math_constants.bsl.hh"
-#include "gpu_shader_math_matrix_construct.bsl.hh"
 #include "gpu_shader_math_safe.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh" /* IWYU pragma: export. FLT_MAX */
 
 namespace eevee::ltc {
 
@@ -375,7 +373,7 @@ float evaluate_disk(sampler2DArray util_tx, LightShape shape, LightVector lv, LT
 float evaluate(
     sampler2DArray util_tx, LightData light, LightShape shape, LightVector lv, LTCData ltc_data)
 {
-  if (is_sphere_light(light.type) && lv.dist < light.local().local.shape_radius) {
+  if (is_sphere_light(light.type) && lv.dist < light.local.local.shape_radius) {
     /* Inside the sphere light, integrate over the hemisphere. */
     return 1.0f;
   }

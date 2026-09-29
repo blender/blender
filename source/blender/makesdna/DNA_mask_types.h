@@ -166,7 +166,7 @@ struct Mask {
 
 struct MaskParent {
   /** Type of parenting. */
-  int id_type = 0;
+  int id_type = ID_MC;
   /** Type of parenting. */
   MaskParentType type = MASK_PARENT_POINT_TRACK;
   /**

@@ -274,13 +274,36 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
   MutableSpan<float3> point_positions = pointcloud->positions_for_write();
   read_points_sample(m_schema, sample_sel, point_positions);
 
+  bool widths_handled = false;
   if (widths) {
-    MutableSpan<float> point_radii = pointcloud->radius_for_write();
-    for (const int64_t i : IndexRange(std::min(point_radii.size(), int64_t(widths->size())))) {
-      point_radii[i] = (*widths)[i] / 2.0f;
+    switch (widths_param.getScope()) {
+      case Alembic::AbcGeom::kConstantScope: {
+        if (widths->size() >= 1) {
+          const float radius = (*widths)[0] / 2.0f;
+          attribute_accessor.remove("radius");
+          attribute_accessor.add<float>(
+              "radius", bke::AttrDomain::Point, bke::AttributeInitValue(radius));
+          widths_handled = true;
+        }
+        break;
+      }
+      case Alembic::AbcGeom::kUniformScope:
+      case Alembic::AbcGeom::kVaryingScope:
+      case Alembic::AbcGeom::kVertexScope:
+      case Alembic::AbcGeom::kFacevaryingScope: {
+        MutableSpan<float> point_radii = pointcloud->radius_for_write();
+        for (const int64_t i : IndexRange(std::min(point_radii.size(), int64_t(widths->size())))) {
+          point_radii[i] = (*widths)[i] / 2.0f;
+        }
+        widths_handled = true;
+        break;
+      }
+      case Alembic::AbcGeom::kUnknownScope:
+        break;
     }
   }
-  else {
+
+  if (!widths_handled) {
     attribute_accessor.remove("radius");
     attribute_accessor.add<float>(
         "radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.01f));

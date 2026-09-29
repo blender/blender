@@ -493,7 +493,7 @@ static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifie
 
 static void print_resource(std::ostream &os,
                            const ShaderCreateInfo::Resource &res,
-                           const ShaderCreateInfo &info)
+                           const ShaderCreateInfo & /*info*/)
 {
   {
     os << "layout(binding = " << res.slot;
@@ -523,14 +523,13 @@ static void print_resource(std::ostream &os,
       break;
     case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
       os << "uniform _" << res.uniformbuf.name.str_no_array() << " { ";
-      os << info.buffer_typename(res.uniformbuf.type_name, true) << " " << res.uniformbuf.name
-         << "; };";
+      os << res.uniformbuf.type_name << " " << res.uniformbuf.name << "; };";
       break;
     case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
       print_qualifier(os, res.storagebuf.qualifiers);
       os << "buffer _";
       os << res.storagebuf.name.str_no_array() << " { ";
-      os << info.buffer_typename(res.storagebuf.type_name) << " " << res.storagebuf.name << "; };";
+      os << res.storagebuf.type_name << " " << res.storagebuf.name << "; };";
       break;
     case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
       BLI_assert_unreachable();
@@ -556,12 +555,6 @@ static void print_interface(std::ostream &os,
                             const StageInterfaceInfo &iface,
                             const StringRefNull &suffix = "")
 {
-  /* TODO(@fclem): Move that to interface check. */
-  // if (iface.instance_name.is_empty()) {
-  //   BLI_assert_msg(0, "Interfaces require an instance name for geometry shader.");
-  //   std::cout << iface.name << ": Interfaces require an instance name for geometry shader.\n";
-  //   continue;
-  // }
   os << prefix << " " << iface.name << "{" << std::endl;
   for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
     os << "  " << to_string(inout.interp) << " " << to_string(inout.type) << " " << inout.name
@@ -902,33 +895,24 @@ std::string GLShader::geometry_layout_declare(const ShaderCreateInfo &info) cons
   return ss.str();
 }
 
-static StageInterfaceInfo *find_interface_by_name(
-    const Span<ShaderCreateInfo::StageInterfaceInfoHandle> ifaces, const StringRefNull &name)
-{
-  for (auto [iface, cond] : ifaces) {
-    if (iface->instance_name == name) {
-      return iface;
-    }
-  }
-  return nullptr;
-}
-
 std::string GLShader::geometry_interface_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
 
   /* Interfaces. */
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
-    bool has_matching_output_iface = find_interface_by_name(info.geometry_out_interfaces_,
-                                                            iface->instance_name) != nullptr;
-    const char *suffix = (has_matching_output_iface) ? "_in[]" : "[]";
+    std::string suffix = "_in[]";
+    if (iface->instance_name.is_empty()) {
+      suffix = iface->name + suffix;
+    }
     print_interface(ss, "in", *iface, suffix);
   }
   ss << "\n";
   for (const StageInterfaceInfo *iface : info.geometry_out_interfaces_) {
-    bool has_matching_input_iface = find_interface_by_name(info.vertex_out_interfaces_,
-                                                           iface->instance_name) != nullptr;
-    const char *suffix = (has_matching_input_iface) ? "_out" : "";
+    std::string suffix = "_out";
+    if (iface->instance_name.is_empty()) {
+      suffix = iface->name + suffix;
+    }
     print_interface(ss, "out", *iface, suffix);
   }
   ss << "\n";
@@ -999,9 +983,15 @@ std::string GLShader::workaround_geometry_shader_source_create(
   }
   for (auto i : IndexRange(3)) {
     for (const StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
+      std::string instance_in = (iface->instance_name.is_empty() ? iface->name :
+                                                                   iface->instance_name) +
+                                "_in";
+      std::string instance_out = (iface->instance_name.is_empty() ? iface->name :
+                                                                    iface->instance_name) +
+                                 "_out";
       for (auto &inout : iface->inouts) {
-        ss << "  " << iface->instance_name << "_out." << inout.name;
-        ss << " = " << iface->instance_name << "_in[" << i << "]." << inout.name << ";\n";
+        ss << "  " << instance_out << "." << inout.name;
+        ss << " = " << instance_in << "[" << i << "]." << inout.name << ";\n";
       }
     }
     if (do_barycentric_workaround) {

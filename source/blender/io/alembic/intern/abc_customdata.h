@@ -123,5 +123,14 @@ AbcUvScope get_uv_scope(const Alembic::AbcGeom::GeometryScope scope,
                         const CDStreamConfig &config,
                         const Alembic::AbcGeom::UInt32ArraySamplePtr &indices);
 
+/**
+ * Sets the active and default color attribute names on the mesh. Defaults to the first color
+ * attribute layer if the #user_props do not have the Blender-specific properties which are set
+ * by the exporter.
+ */
+void read_active_and_default_color_attributes(Mesh &mesh,
+                                              const ICompoundProperty &user_props,
+                                              const Alembic::AbcGeom::ISampleSelector &sample_sel);
+
 }  // namespace io::alembic
 }  // namespace blender

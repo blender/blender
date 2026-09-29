@@ -10,8 +10,8 @@
 namespace builtin::socket {
 
 /* TODO(lone_noel): Share with C code. */
-#define MAX_SOCKET_PARAMETERS 4
-#define MAX_SOCKET_INSTANCE 32
+static constexpr int MAX_SOCKET_PARAMETERS = 4;
+static constexpr int MAX_SOCKET_INSTANCE = 32;
 
 struct Parameters {
   [[push_constant]] float4 parameters[MAX_SOCKET_PARAMETERS];
@@ -22,7 +22,7 @@ struct ParametersInstancing {
 };
 
 struct Resources {
-  [[compilation_constant]] int use_instancing;
+  [[compilation_constant]] bool use_instancing;
 
   [[push_constant]] float4x4 ModelViewProjectionMatrix;
 };
@@ -44,8 +44,8 @@ struct FragOut {
 
 [[vertex]] void main_vert(
     [[resource_table]] const Resources &srt,
-    [[resource_table, condition(use_instancing == 0)]] const Parameters &params,
-    [[resource_table, condition(use_instancing == 1)]] const ParametersInstancing &params_inst,
+    [[resource_table]] [[condition(!use_instancing)]] const Parameters &params,
+    [[resource_table]] [[condition(use_instancing)]] const ParametersInstancing &params_inst,
     [[vertex_id]] const int vert_id,
     [[instance_id]] const int inst_id,
     [[position]] float4 &out_pos,
@@ -265,7 +265,7 @@ float2 calculate_thresholds(float aa_size, float threshold)
 
 PipelineGraphic gpu_shader_2D_node_socket(builtin::socket::main_vert,
                                           builtin::socket::main_frag,
-                                          builtin::socket::Resources{.use_instancing = 0});
+                                          builtin::socket::Resources{.use_instancing = false});
 PipelineGraphic gpu_shader_2D_node_socket_inst(builtin::socket::main_vert,
                                                builtin::socket::main_frag,
-                                               builtin::socket::Resources{.use_instancing = 1});
+                                               builtin::socket::Resources{.use_instancing = true});

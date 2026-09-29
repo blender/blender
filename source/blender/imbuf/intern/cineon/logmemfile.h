@@ -16,7 +16,8 @@
 
 namespace blender {
 
-int logimage_fseek(LogImageFile *logFile, intptr_t offset, int origin);
+/* Reading is done from memory, writing to a file. */
+int logimage_fseek(LogImageFile *logFile, uintptr_t offset);
 int logimage_fwrite(const void *buffer, size_t size, unsigned int count, LogImageFile *logFile);
 int logimage_fread(void *buffer, size_t size, unsigned int count, LogImageFile *logFile);
 int logimage_read_uchar(unsigned char *x, LogImageFile *logFile);

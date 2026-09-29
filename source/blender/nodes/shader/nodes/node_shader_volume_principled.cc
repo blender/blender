@@ -62,10 +62,11 @@ static void attribute_post_process(GPUMaterial *mat,
                                    GPUNodeLink **attribute_link)
 {
   if (STREQ(attribute_name, "color")) {
-    GPU_link(mat, "node_attribute_color", *attribute_link, attribute_link);
+    GPU_link(mat, "node_attribute_color", GPU_kernel_globals(), *attribute_link, attribute_link);
   }
   else if (STREQ(attribute_name, "temperature")) {
-    GPU_link(mat, "node_attribute_temperature", *attribute_link, attribute_link);
+    GPU_link(
+        mat, "node_attribute_temperature", GPU_kernel_globals(), *attribute_link, attribute_link);
   }
 }
 

@@ -255,7 +255,7 @@ class RENDER_PT_stamp_note(RenderOutputButtonsPanel, Panel):
         rd = context.scene.render
 
         layout.active = rd.use_stamp_note
-        layout.textbox(rd, "stamp_note_text")
+        layout.textbox(rd, "stamp_note_text", text="")
 
 
 class RENDER_PT_stamp_burn(RenderOutputButtonsPanel, Panel):

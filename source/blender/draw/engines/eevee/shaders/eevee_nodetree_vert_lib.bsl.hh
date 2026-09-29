@@ -1,0 +1,45 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+/* This file must replaced at runtime. The following content is only a possible implementation. */
+#pragma runtime_generated
+
+#include "eevee_geom_types_lib.bsl.hh"
+/* Note: Only included if there is a nodetree eval in the vertex shader. */
+#include "eevee_nodetree_lib.bsl.hh"
+
+/* Loading of the attributes into GlobalData. */
+void attrib_load(MeshVertex /*domain*/) {}
+void attrib_load(PointCloudPoint /*domain*/) {}
+void attrib_load(CurvesPoint /*domain*/) {}
+
+#ifndef NODETREE_FUNCTIONS /* Needed for linting. */
+#  define NODETREE_FUNCTIONS
+
+/* Material graph connected to the displacement output. */
+float3 nodetree_displacement(KernelGlobals & /*kg*/, ShadingData & /*sd*/)
+{
+  return float3(0.0f);
+}
+
+/* Material graph connected to the surface output. */
+Closure nodetree_surface(KernelGlobals & /*kg*/, ShadingData & /*sd*/, float /*closure_rand*/)
+{
+  return Closure(0);
+}
+
+/* Material graph connected to the volume output. */
+Closure nodetree_volume(KernelGlobals & /*kg*/, ShadingData & /*sd*/)
+{
+  return Closure(0);
+}
+
+/* Material graph connected to the volume output. */
+float nodetree_thickness(KernelGlobals & /*kg*/, ShadingData & /*sd*/)
+{
+  return 0.1f;
+}
+
+#endif

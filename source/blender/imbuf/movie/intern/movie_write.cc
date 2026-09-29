@@ -917,11 +917,10 @@ static void set_colorspace_options(AVCodecContext *c, const ColorSpace *colorspa
     c->color_range = AVCOL_RANGE_JPEG;
   }
   else if (!is_rgb_format) {
-    /* Note BT.709 is wrong for sRGB.
-     * But we have been writing sRGB like this forever, and there is the so called
-     * "Quicktime gamma shift bug" that complicates things. */
-    c->color_primaries = AVCOL_PRI_BT709;
-    c->color_trc = AVCOL_TRC_BT709;
+    /* Most colorspaces will have valid CICP values from the above but if not
+     * set to unspecified (which most players treat as sRGB) */
+    c->color_primaries = AVCOL_PRI_UNSPECIFIED;
+    c->color_trc = AVCOL_TRC_UNSPECIFIED;
     c->colorspace = AVCOL_SPC_BT709;
     /* TODO(sergey): Consider making the range an option to cover more use-cases. */
     c->color_range = AVCOL_RANGE_MPEG;

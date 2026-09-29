@@ -1839,8 +1839,6 @@ struct ShaderCreateInfo {
     return slot;
   }
 
-  std::string buffer_typename(StringRefNull type_name, bool uniform_buffer = false) const;
-
   /** \} */
 
   /* -------------------------------------------------------------------- */

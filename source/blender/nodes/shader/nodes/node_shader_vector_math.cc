@@ -253,6 +253,18 @@ static int gpu_shader_vector_math(GPUMaterial *mat,
                                   GPUNodeStack *in,
                                   GPUNodeStack *out)
 {
+  /* Can't emit 'a / a' (see #162948). So we have to fold it. */
+  if (in[0].link != nullptr && in[0].link == in[1].link) {
+    switch (node->custom1) {
+      case NODE_VECTOR_MATH_DIVIDE:
+        return GPU_stack_link(mat, node, "vector_math_divide_self", in, out);
+      case NODE_VECTOR_MATH_SNAP:
+        return GPU_stack_link(mat, node, "vector_math_snap_self", in, out);
+      default:
+        break;
+    }
+  }
+
   const char *name = gpu_shader_get_name(node->custom1);
   if (name != nullptr) {
     return GPU_stack_link(mat, node, name, in, out);

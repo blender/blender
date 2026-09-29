@@ -57,6 +57,12 @@ class ColorSpace {
    */
   virtual StringRefNull interop_id() const = 0;
   virtual bool is_primary_interop_id() const = 0;
+  /*
+   * Scene or display variant of the primary interop ID, when it is an alias of this
+   * color space. This is needed because the bundled config does not always distinguish
+   * between scene and display referred spaces.
+   */
+  virtual StringRefNull alternate_interop_id() const = 0;
 
   /*
    * ICC profile path from attribute in the configuration.

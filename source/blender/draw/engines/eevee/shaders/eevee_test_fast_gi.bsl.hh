@@ -8,7 +8,7 @@
 #include "gpu_shader_test_lib.bsl.hh"
 
 [[compute, local_size(1)]]
-void eevee_test_fast_gi_main([[resource_table]] const ShaderTestOutput & /*srt*/)
+void eevee_test_fast_gi_main([[resource_table]] [[maybe_unused]] const ShaderTestOutput &srt)
 {
   TEST(eevee_fast_gi, Bitmask)
   {

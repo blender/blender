@@ -27,7 +27,7 @@ namespace eevee {
 /** \name Shadow Map Tracing loop
  * \{ */
 
-#define SHADOW_TRACING_INVALID_HISTORY FLT_MAX
+static constexpr float SHADOW_TRACING_INVALID_HISTORY = FLT_MAX;
 
 struct ShadowMapTracingState {
   /* Occluder ray coordinate at previous valid depth sample. */
@@ -118,7 +118,7 @@ void shadow_map_trace_hit_check(ShadowMapTracingState &state,
  * Most of the code is wrapped into functions to avoid to debug issues inside macro code.
  */
 template<typename ShadowRayType>
-bool shadow_map_trace([[resource_table]] ShadowRenderData &srd,
+bool shadow_map_trace(ShadowRenderData &srd,
                       ShadowRayType ray,
                       int sample_count,
                       float step_offset)
@@ -161,13 +161,13 @@ ShadowRayDirectional shadow_ray_generate_directional(
   float max_tracing_distance = texel_radius * float(SHADOW_PAGE_RES << SHADOW_TILEMAP_LOD);
   float max_tracing_angle_cos = cos_from_tan(max_tracing_distance / dist_to_near_plane);
   /* Taking max of cosines to get the minimum of the angles. */
-  float shadow_angle_cos = max(light.sun().shadow_angle_cos, max_tracing_angle_cos);
+  float shadow_angle_cos = max(light.sun.shadow_angle_cos, max_tracing_angle_cos);
 
   /* Light shape is 1 unit away from the shading point. */
   float3 direction = sample_uniform_cone(random_2d, shadow_angle_cos);
 
   float3 shadow_space_light_direction = transform_direction_transposed(
-      light.object_to_world, float3(light.sun().direction));
+      light.object_to_world, float3(light.sun.direction));
   direction = spherical_interpolate(shadow_space_light_direction, direction, soft_shadow_scale);
 
   /* It only make sense to trace where there can be occluder. Clamp by distance to near plane. */
@@ -183,7 +183,7 @@ ShadowRayDirectional shadow_ray_generate_directional(
   return ray;
 }
 
-ShadowTracingSample shadow_map_trace_sample([[resource_table]] ShadowRenderData &srd,
+ShadowTracingSample shadow_map_trace_sample(ShadowRenderData &srd,
                                             ShadowMapTracingState state,
                                             ShadowRayDirectional &ray)
 {
@@ -243,14 +243,14 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
   random_2d *= soft_shadow_scale;
 
   float clip_near = intBitsToFloat(light.clip_near);
-  float shape_radius = light.spot().local.shadow_radius;
+  float shape_radius = light.spot.local.shadow_radius;
   /* Clamp to a minimum value to avoid `local_ray_up` being degenerate. Could be revisited as the
    * issue might reappear at different zoom level. */
   shape_radius = max(0.00002f, shape_radius);
 
   float3 point_on_light_shape;
   if (is_area_light(light.type)) {
-    random_2d *= light.area().size * light.area().shadow_scale;
+    random_2d *= light.area.size * light.area.shadow_scale;
 
     point_on_light_shape = float3(random_2d, 0.0f);
   }
@@ -276,7 +276,7 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
 
   float3 direction = point_on_light_shape - lP;
 
-  float3 shadow_position = light.local().local.shadow_position;
+  float3 shadow_position = light.local.local.shadow_position;
   /* Clip the ray to not cross the near plane.
    * Avoid traces that starts on tiles that have not been queried, creating noise. */
   float clip_distance = max(0.0f, length(lP - shadow_position) - clip_near);
@@ -294,7 +294,7 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
   return ray;
 }
 
-ShadowTracingSample shadow_map_trace_sample([[resource_table]] ShadowRenderData &srd,
+ShadowTracingSample shadow_map_trace_sample(ShadowRenderData &srd,
                                             ShadowMapTracingState state,
                                             ShadowRayPunctual &ray)
 {
@@ -356,8 +356,8 @@ float3 shadow_pcf_offset(float3 L, float3 Ng, float2 random)
  * This is a smooth (not discretized to the LOD transitions) conservative (always above actual
  * density) estimate value.
  */
-float shadow_texel_radius_at_position([[resource_table]] const Uniform &uni,
-                                      [[resource_table]] const draw::View &views,
+float shadow_texel_radius_at_position(const Uniform &uni,
+                                      const draw::View &views,
                                       LightData light,
                                       const bool is_directional,
                                       float3 P)
@@ -369,7 +369,7 @@ float shadow_texel_radius_at_position([[resource_table]] const Uniform &uni,
   if (is_directional) {
     float3 lP = transform_direction_transposed(light.object_to_world, P);
     lP -= light.position();
-    LightSunData sun = light.sun();
+    LightSunData sun = light.sun;
     if (light.type == LIGHT_SUN) {
       /* Simplification of `coverage_get(shadow_directional_level_fractional)`.
        * Do not apply the narrowing since we want the size of the tilemap (not its application
@@ -389,7 +389,7 @@ float shadow_texel_radius_at_position([[resource_table]] const Uniform &uni,
     const ViewMatrices view = views.get(0);
 
     float3 lP = light_world_to_local_point(light, P);
-    lP -= light.local().local.shadow_position;
+    lP -= light.local.local.shadow_position;
     /* Simplification of `exp2(shadow_punctual_level_fractional)`. */
     scale = shadow_punctual_pixel_ratio(light,
                                         lP,
@@ -452,7 +452,7 @@ float shadow_terminator_offset(float3 N,
  * Evaluate shadowing by casting rays toward the light direction.
  * Returns light visibility.
  */
-float shadow_eval([[resource_table]] ShadowRenderData &srd,
+float shadow_eval(ShadowRenderData &srd,
                   LightData light,
                   const bool is_directional,
                   const bool is_transmission,
@@ -472,15 +472,14 @@ float shadow_eval([[resource_table]] ShadowRenderData &srd,
   float3 random_shadow_3d = float3(0.5f);
   float2 random_pcf_2d = float2(0.0f);
 
-  [[resource_table]] const Uniform &uni = srd.uniforms;
-  [[resource_table]] const draw::View &views = srd.views;
+  if (srd.constants.shadow_random) [[static_branch]] {
+    random_shadow_3d = srd.util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).rgb;
+    random_pcf_2d = random_shadow_3d.xy;
 
-  if (srd.shadow_random) [[static_branch]] {
-    [[resource_table]] const Sampling sampling = srd.sampling;
-    [[resource_table]] const UtilityTexture util_tx = srd.util_tx;
-    float3 blue_noise_3d = util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).rgb;
-    random_shadow_3d = fract(blue_noise_3d + sampling.rng_3D_get(SAMPLING_SHADOW_U));
-    random_pcf_2d = fract(blue_noise_3d.xy + sampling.rng_2D_get(SAMPLING_SHADOW_X));
+    if (!srd.constants.shadow_static_noise) [[static_branch]] {
+      random_shadow_3d = fract(random_shadow_3d + srd.sampling.rng_3D_get(SAMPLING_SHADOW_U));
+      random_pcf_2d = fract(random_pcf_2d + srd.sampling.rng_2D_get(SAMPLING_SHADOW_X));
+    }
   }
 
   float distance_to_shadow;
@@ -491,7 +490,7 @@ float shadow_eval([[resource_table]] ShadowRenderData &srd,
     L = light.z_axis();
   }
   else {
-    L = light.position() + light.local().local.shadow_position - P;
+    L = light.position() + light.local.local.shadow_position - P;
     L = normalize_and_get_length(L, distance_to_shadow);
   }
 
@@ -500,7 +499,8 @@ float shadow_eval([[resource_table]] ShadowRenderData &srd,
   float3 N_bias = (is_transmission && !is_facing_light) ? reflect(Ng, L) : Ng;
 
   /* Shadow map texel radius at the receiver position. */
-  float texel_radius = shadow_texel_radius_at_position(uni, views, light, is_directional, P);
+  float texel_radius = shadow_texel_radius_at_position(
+      srd.uniforms, srd.views, light, is_directional, P);
 
   if (is_transmission && !is_facing_light) {
     /* Ideally, we should bias using the chosen ray direction. In practice, this conflict with our

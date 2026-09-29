@@ -128,9 +128,12 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
 
       /* Compute index masks for groups. */
       IndexMaskMemory memory;
-      const Vector<IndexMask> group_masks = IndexMask::from_group_ids(
-          group_ids, memory, group_indices_);
+      const Vector<IndexMask> group_masks = IndexMask::from_group_ids(group_ids, memory);
       const int groups_num = group_masks.size();
+      group_indices_.reserve(groups_num);
+      for (const IndexMask &group_mask : group_masks) {
+        group_indices_.add_new(group_ids[group_mask.first()]);
+      }
 
       if (groups_num == 1) {
         single_tree_ = &mesh.bvh_tris();

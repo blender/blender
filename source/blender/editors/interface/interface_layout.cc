@@ -2804,6 +2804,7 @@ void button_configure_search(Button *but,
 void Layout::textbox(const bContext *C,
                      PointerRNA *ptr,
                      StringRefNull propname,
+                     std::optional<StringRefNull> name_opt,
                      std::optional<StringRefNull> placeholder,
                      const int initial_visible_lines)
 {
@@ -2811,15 +2812,15 @@ void Layout::textbox(const bContext *C,
       CTX_wm_region(C),
       fmt::format("{}.{}", RNA_struct_identifier(ptr->type), propname),
       initial_visible_lines);
-  this->textbox_with_state(ptr, propname, textbox_state, placeholder);
+  this->textbox_with_state(ptr, propname, textbox_state, name_opt, placeholder);
 }
 
 void Layout::textbox_with_state(PointerRNA *ptr,
                                 StringRefNull propname,
                                 TextboxState *textbox_state,
+                                std::optional<StringRefNull> name_opt,
                                 std::optional<StringRefNull> placeholder)
 {
-
   Block *block = this->block();
   PropertyRNA *prop = RNA_struct_find_property_check(*ptr, propname.c_str(), PROP_STRING);
 
@@ -2832,7 +2833,14 @@ void Layout::textbox_with_state(PointerRNA *ptr,
     return;
   }
 
-  this->row(true).alignment_set(LayoutAlign::Expand);
+  StringRefNull name = name_opt.value_or(RNA_property_ui_name(prop));
+
+  if (!name.is_empty()) {
+    uiItemL_respect_property_split(this, name, ICON_NONE);
+  }
+  else {
+    this->row(true).alignment_set(LayoutAlign::Expand);
+  }
 
   int w, h;
   item_rna_size(block->curlayout, "", ICON_NONE, ptr, prop, -1, false, false, &w, &h);

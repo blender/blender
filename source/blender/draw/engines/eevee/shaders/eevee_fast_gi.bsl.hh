@@ -175,7 +175,7 @@ SphericalHarmonicL1<float4> select_result<SphericalHarmonicL1<float4>>(
  * If `reversed` is set to true, the input normal must be negated.
  */
 template<typename ResultT>
-ResultT eval([[resource_table]] const Uniform &uni,
+ResultT eval(const Uniform &uni,
              const ViewMatrices view,
              ScreenThicknessParameters thickness_params,
              sampler2D hiz_tx,
@@ -444,9 +444,7 @@ struct SampleInput {
   [[sampler(9)]] const sampler2D fast_gi_radiance_3_tx;
   [[sampler(10)]] const sampler2D screen_normal_tx;
 
-  float3 sample_normal_get([[resource_table]] const draw::View &views,
-                           int2 texel,
-                           bool &is_processed) const
+  float3 sample_normal_get(const draw::View &views, int2 texel, bool &is_processed) const
   {
     float4 normal = texelFetch(screen_normal_tx, texel, 0);
     is_processed = (normal.w != 0.0f);
@@ -454,8 +452,8 @@ struct SampleInput {
   }
 
   /* Used for denoise. */
-  float sample_weight_get([[resource_table]] const Uniform &uni,
-                          [[resource_table]] const draw::View &views,
+  float sample_weight_get(const Uniform &uni,
+                          const draw::View &views,
                           sampler2D hiz_tx,
                           float3 center_N,
                           float3 center_P,
@@ -486,8 +484,8 @@ struct SampleInput {
   }
 
   /* Used for resolve. */
-  float sample_weight_get([[resource_table]] const Uniform &uni,
-                          [[resource_table]] const draw::View &views,
+  float sample_weight_get(const Uniform &uni,
+                          const draw::View &views,
                           float3 center_N,
                           float3 center_P,
                           int2 center_texel,
@@ -629,7 +627,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
   /* Note we have to manually unroll the loop because of lack of image array.
    * Using a macro isn't compatible with BSL processing. */
   {
-    constexpr uint lod = 1;
+    constexpr uint lod = 1u;
     if (all(equal(local_id.xy & ((1u << lod) - 1u), uint2(0)))) {
       uint stride = (1u << (lod - 1u));
       float3 normal_avg = (srt.neigbhor_data[local_id.y][local_id.x] +
@@ -643,7 +641,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
   }
   barrier();
   {
-    constexpr uint lod = 2;
+    constexpr uint lod = 2u;
     if (all(equal(local_id.xy & ((1u << lod) - 1u), uint2(0)))) {
       uint stride = (1u << (lod - 1u));
       float3 normal_avg = (srt.neigbhor_data[local_id.y][local_id.x] +
@@ -657,7 +655,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
   }
   barrier();
   {
-    constexpr uint lod = 3;
+    constexpr uint lod = 3u;
     if (all(equal(local_id.xy & ((1u << lod) - 1u), uint2(0)))) {
       uint stride = (1u << (lod - 1u));
       float3 normal_avg = (srt.neigbhor_data[local_id.y][local_id.x] +
@@ -686,7 +684,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
 
   /* Downsample mip0 to the 3 other mips. */
   {
-    constexpr uint lod = 1;
+    constexpr uint lod = 1u;
     if (all(equal(local_id.xy & ((1u << lod) - 1u), uint2(0)))) {
       uint stride = (1u << (lod - 1u));
       float3 radiance_avg = (srt.neigbhor_data[local_id.y][local_id.x] +
@@ -700,7 +698,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
   }
   barrier();
   {
-    constexpr uint lod = 2;
+    constexpr uint lod = 2u;
     if (all(equal(local_id.xy & ((1u << lod) - 1u), uint2(0)))) {
       uint stride = (1u << (lod - 1u));
       float3 radiance_avg = (srt.neigbhor_data[local_id.y][local_id.x] +
@@ -714,7 +712,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
   }
   barrier();
   {
-    constexpr uint lod = 3;
+    constexpr uint lod = 3u;
     if (all(equal(local_id.xy & ((1u << lod) - 1u), uint2(0)))) {
       uint stride = (1u << (lod - 1u));
       float3 radiance_avg = (srt.neigbhor_data[local_id.y][local_id.x] +
@@ -759,7 +757,7 @@ void scan([[work_group_id]] const uint3 group_id,
           [[resource_table]] SampleOutput &sh_out,
           [[resource_table]] Constants &constants)
 {
-  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(RAYTRACE_GROUP_SIZE);
   uint2 tile_coord = unpackUvec2x16(tiles.tiles_coord_buf[group_id.x]);
   int2 texel = int2(local_id.xy + tile_coord * tile_size);
 
@@ -832,7 +830,7 @@ void denoise([[work_group_id]] const uint3 group_id,
              [[resource_table]] const draw::View &views,
              [[resource_table]] Tiles &tiles)
 {
-  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(RAYTRACE_GROUP_SIZE);
   uint2 tile_coord = unpackUvec2x16(tiles.tiles_coord_buf[group_id.x]);
   int2 texel = int2(local_id.xy + tile_coord * tile_size);
 
@@ -903,7 +901,7 @@ void resolve([[work_group_id]] const uint3 group_id,
              [[resource_table]] const draw::View &views,
              [[resource_table]] const LightprobeRenderData &lightprobes)
 {
-  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(RAYTRACE_GROUP_SIZE);
   uint2 tile_coord = unpackUvec2x16(tiles.tiles_coord_buf[group_id.x]);
   int2 texel_fullres = int2(local_id.xy + tile_coord * tile_size);
 

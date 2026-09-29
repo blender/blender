@@ -330,13 +330,15 @@ void Camera::sync()
     const float fit_xratio = float(render_width) * inst_.scene->r.xasp;
     const float fit_yratio = float(render_height) * inst_.scene->r.yasp;
     const int sensor_fit = BKE_camera_sensor_fit(cam->sensor_fit, fit_xratio, fit_yratio);
+    const float sensor_size = BKE_camera_sensor_size(
+        cam->sensor_fit, cam->sensor_x, cam->sensor_y);
     if (sensor_fit == CAMERA_SENSOR_FIT_HOR) {
-      data.fisheye_sensor.x = cam->sensor_x;
-      data.fisheye_sensor.y = cam->sensor_x * fit_yratio / fit_xratio;
+      data.fisheye_sensor.x = sensor_size;
+      data.fisheye_sensor.y = sensor_size * fit_yratio / fit_xratio;
     }
     else {
-      data.fisheye_sensor.x = cam->sensor_y * fit_xratio / fit_yratio;
-      data.fisheye_sensor.y = cam->sensor_y;
+      data.fisheye_sensor.x = sensor_size * fit_xratio / fit_yratio;
+      data.fisheye_sensor.y = sensor_size;
     }
     is_camera_object_ = true;
   }

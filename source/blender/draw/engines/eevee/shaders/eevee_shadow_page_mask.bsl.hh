@@ -20,9 +20,9 @@ using TileMaps = eevee::shadow::TileMaps;
 
 /* Reuse the same enum values for these transient flag during the amend phase.
  * They are never written to the tile data SSBO. */
-#define SHADOW_TILE_AMENDED SHADOW_IS_RENDERED
+static constexpr uint SHADOW_TILE_AMENDED = SHADOW_IS_RENDERED;
 /* Visibility value to write back. */
-#define SHADOW_TILE_MASKED SHADOW_IS_ALLOCATED
+static constexpr uint SHADOW_TILE_MASKED = SHADOW_IS_ALLOCATED;
 
 int shadow_tile_offset_lds(int2 tile, int lod)
 {

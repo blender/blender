@@ -157,6 +157,7 @@ struct SceneState {
   Object *camera_object = nullptr;
   Camera *camera = nullptr;
   float4x4 view_projection_matrix = float4x4::identity();
+  float3 view_forward{0};
   int2 resolution = int2(0);
 
   eContextObjectMode object_mode = CTX_MODE_OBJECT;
@@ -477,7 +478,7 @@ class ShadowPass {
 class VolumePass {
   bool active_ = true;
 
-  PassMain ps_ = {"Volume"};
+  PassSortable ps_ = {"Volume"};
   Framebuffer fb_ = {"Volume"};
 
   Texture dummy_shadow_tx_ = {"Volume.Dummy Shadow Tx"};

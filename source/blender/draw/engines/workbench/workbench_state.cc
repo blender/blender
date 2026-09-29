@@ -203,6 +203,8 @@ void SceneState::init(const DRWContext *context,
     reset_taa = true;
   }
 
+  view_forward = View::default_get().forward();
+
   bool is_playback = context->is_playback();
   bool is_navigating = context->is_navigating();
 

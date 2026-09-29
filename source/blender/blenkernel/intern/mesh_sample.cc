@@ -415,35 +415,20 @@ void BaryWeightSampleFn::call(const IndexMask &mask,
   const IndexMask valid_mask = array_utils::indices_non_negative(mask, triangle_indices, memory);
   switch (src_domain_) {
     case AttrDomain::Point:
-      attribute_math::to_static_type(dst.type(), [&]<typename T>() {
-        if constexpr (!std::is_same_v<T, std::string>) {
-          sample_point_attribute<T>(corner_verts_,
-                                    corner_tris_,
-                                    triangle_indices,
-                                    bary_weights,
-                                    source_data_->typed<T>(),
-                                    valid_mask,
-                                    dst.typed<T>());
-        }
-      });
+      sample_point_attribute(corner_verts_,
+                             corner_tris_,
+                             triangle_indices,
+                             bary_weights,
+                             *source_data_,
+                             valid_mask,
+                             dst);
       break;
     case AttrDomain::Face:
-      attribute_math::to_static_type(dst.type(), [&]<typename T>() {
-        sample_face_attribute<T>(
-            tri_faces_, triangle_indices, source_data_->typed<T>(), valid_mask, dst.typed<T>());
-      });
+      sample_face_attribute(tri_faces_, triangle_indices, *source_data_, valid_mask, dst);
       break;
     case AttrDomain::Corner:
-      attribute_math::to_static_type(dst.type(), [&]<typename T>() {
-        if constexpr (!std::is_same_v<T, std::string>) {
-          sample_corner_attribute<T>(corner_tris_,
-                                     triangle_indices,
-                                     bary_weights,
-                                     source_data_->typed<T>(),
-                                     valid_mask,
-                                     dst.typed<T>());
-        }
-      });
+      sample_corner_attribute(
+          corner_tris_, triangle_indices, bary_weights, *source_data_, valid_mask, dst);
       break;
     default:
       BLI_assert_unreachable();

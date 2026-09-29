@@ -32,6 +32,7 @@ static CLG_LogRef LOG = {"io.alembic"};
 
 namespace io::alembic {
 
+using Alembic::AbcGeom::kConstantScope;
 using Alembic::AbcGeom::kVertexScope;
 using Alembic::AbcGeom::OPoints;
 using Alembic::AbcGeom::OPointsSchema;
@@ -185,16 +186,20 @@ void ABCPointCloudWriter::do_write(HierarchyContext &context)
   VArray<float> radii = pointcloud->radius();
   std::vector<float> widths;
   if (!radii.is_empty()) {
-    widths.resize(radii.size());
-
-    /* TODO(kevindietrich): if the radius is stored as a single value, export it as such on the
-     * Uniform scope. */
-    for (const int i : radii.index_range()) {
-      widths[i] = radii[i] * 2.0f;
+    Alembic::AbcGeom::GeometryScope scope = kVertexScope;
+    if (radii.is_single()) {
+      scope = kConstantScope;
+      widths.push_back(radii[0] * 2.0f);
+    }
+    else {
+      widths.resize(radii.size());
+      for (const int i : radii.index_range()) {
+        widths[i] = radii[i] * 2.0f;
+      }
     }
 
     Alembic::Abc::FloatArraySample wsample_array(widths);
-    Alembic::AbcGeom::OFloatGeomParam::Sample wsample(wsample_array, kVertexScope);
+    Alembic::AbcGeom::OFloatGeomParam::Sample wsample(wsample_array, scope);
     sample.setWidths(wsample);
   }
 

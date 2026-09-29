@@ -18,16 +18,14 @@ float avg_albedo(float3 albedo)
 }
 
 struct SurfelRay {
-  [[resource_table]] srt_t<LightprobeSphereRenderData> lightprobe_spheres;
-  [[resource_table]] srt_t<SurfelData> surfels_data;
+  [[resource_table]] LightprobeSphereRenderData lp_spheres;
+  [[resource_table]] SurfelData surfels;
 
   [[push_constant]] const int radiance_src;
   [[push_constant]] const int radiance_dst;
 
   void radiance_transfer(Surfel &surfel, float3 in_radiance, float in_visibility, float3 L)
   {
-    [[resource_table]] SurfelData &surfels = surfels_data;
-
     /* Clamped brightness. */
     float luma = max(1e-8f, reduce_max(in_radiance));
     in_radiance *= 1.0f - max(0.0f, luma - surfels.capture_info_buf.clamp_indirect) / luma;
@@ -65,8 +63,6 @@ struct SurfelRay {
 
   void radiance_transfer_surfel(Surfel &receiver, Surfel sender)
   {
-    [[resource_table]] SurfelData &surfels = surfels_data;
-
     float3 L = safe_normalize(sender.position - receiver.position);
     bool front_facing = dot(-L, sender.normal) > 0.0f;
 
@@ -90,9 +86,6 @@ struct SurfelRay {
 
   void radiance_transfer_world(Surfel &receiver, float3 L)
   {
-    [[resource_table]] const LightprobeSphereRenderData &lp_spheres = lightprobe_spheres;
-    [[resource_table]] SurfelData &surfels = surfels_data;
-
     float3 radiance = float3(0.0f);
     float visibility = 0.0f;
 
@@ -122,7 +115,7 @@ void ray_main([[resource_table]] SurfelRay &srt,
               [[resource_table]] const draw::View &views,
               [[global_invocation_id]] const uint3 global_id)
 {
-  [[resource_table]] SurfelData &surfels = srt.surfels_data;
+  [[resource_table]] SurfelData &surfels = srt.surfels;
 
   int surfel_index = int(global_id.x);
   if (surfel_index >= int(surfels.capture_info_buf.surfel_len)) {

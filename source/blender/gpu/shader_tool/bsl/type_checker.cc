@@ -78,7 +78,7 @@ struct ExpressionTypeParser
             return scope->lookup_class(*table, var.identifier()).unwrap(err);
           }
           error(call.parameters(), Diag::ExpectedOneTypename);
-          return {table->err_cls, ConstexprError(), false};
+          return {table->err_cls, ConstexprError(0), false};
         }
         if (call.identifier().str() == "interface_get" ||
             call.identifier().str() == "sampler_get" || call.identifier().str() == "buffer_get")
@@ -95,7 +95,7 @@ struct ExpressionTypeParser
             return v;
           }
           error(call.parameters(), Diag::ExpectedOneTypename);
-          return {table->err_cls, ConstexprError(), false};
+          return {table->err_cls, ConstexprError(0), false};
         }
 
         if (is_reference) {
@@ -366,7 +366,7 @@ struct ExpressionTypeParser
   {
     SymbolClass *type = table->get_literal_type(t.str());
 
-    ConstexprValue value;
+    ConstexprValue value(0);
     try {
       std::string str_val(t.str());
 
@@ -452,7 +452,9 @@ struct ExpressionTypeParser
       if (left.array_dim > 0) {
         ExpressionResult arg = subscript_parameter(sub);
 
-        if (table->get_conversion_rank(arg.type, table->int_cls) < MatchRank::Promotion) {
+        if (!(table->get_conversion_rank(arg.type, table->int_cls) >= MatchRank::Promotion ||
+              table->get_conversion_rank(arg.type, table->uint_cls) >= MatchRank::Promotion))
+        {
           error(t, Diag::SubscriptNotInt);
         }
         if (is_reference && !(arg.flags & ExprFlag::IsConstant)) {
@@ -465,7 +467,9 @@ struct ExpressionTypeParser
       /* Call subscript operator */
       if (left.type->operator_subscript) {
         ExpressionResult arg = subscript_parameter(sub);
-        if (table->get_conversion_rank(arg.type, table->int_cls) < MatchRank::Promotion) {
+        if (!(table->get_conversion_rank(arg.type, table->int_cls) >= MatchRank::Promotion ||
+              table->get_conversion_rank(arg.type, table->uint_cls) >= MatchRank::Promotion))
+        {
           error(t, Diag::SubscriptNotInt);
         }
         return left.type->operator_subscript->return_type;

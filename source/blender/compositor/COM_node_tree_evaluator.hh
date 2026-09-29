@@ -23,6 +23,7 @@ struct bNodeSocket;
 namespace blender::compositor {
 
 struct Schedule;
+class ZoneOperation;
 
 /* ------------------------------------------------------------------------------------------------
  * Node Tree Evaluator
@@ -86,17 +87,26 @@ struct Schedule;
  * pixel operation to the operations stream and resetting the compile unit. Finally, node 6 is
  * compiled into a node operation similar to nodes 1 and 2 and added to the operations stream.
  *
+ * Zones are evaluated in a special manner. The scheduler only contains the output node of each
+ * zone, and when the evaluator encounters such a node, it constructs a zone operation that
+ * internally calls the node tree evaluator only on nodes inside the zone, and the same happens for
+ * nested zones recursively. The only complication is external inputs that go into a zone from the
+ * outside. Each of those inputs has a corresponding operation input with an identifier derived
+ * from the origin output as returned by ZoneTreeOperation::get_external_input_identifier, and
+ * those are linked appropriately when needed, additionally, their reference count is incremented
+ * by the number of references inside the zone as in compute_zone_external_input_reference_counts.
+ *
  * During compilation, the class tracks two important pieces of information, each of which is
  * described in one of the following sections.
  *
  * First, it stores a mapping between all nodes and the operations they were compiled into. The
  * mapping are stored independently depending on the type of the operation in the node_operations_
- * and pixel_operations_ maps. So those two maps are mutually exclusive. The compiler should call
- * the map_node_to_node_operation and map_node_to_pixel_operation methods to populate those maps
- * as soon as it compiles a node or multiple nodes into an operation. Those maps are used to
- * retrieve the results of outputs linked to the inputs of operations. For more details, see the
- * get_result_from_output_socket method. For the node tree in Figure (1), nodes 1, 2, and 6 are
- * mapped to their compiled operations in the node_operation_ map. While nodes 3 and 4 are both
+ * pixel_operations_, and zone_operations_ maps. So those maps are mutually exclusive. The compiler
+ * should call the map_node_to_node_operation and map_node_to_pixel_operation methods to populate
+ * those maps as soon as it compiles a node or multiple nodes into an operation. Those maps are
+ * used to retrieve the results of outputs linked to the inputs of operations. For more details,
+ * see the get_result_from_output_socket method. For the node tree in Figure (1), nodes 1, 2, and 6
+ * are mapped to their compiled operations in the node_operation_ map. While nodes 3 and 4 are both
  * mapped to the first pixel operation, and node 5 is mapped to the second pixel operation in the
  * pixel_operations_ map.
  *
@@ -177,13 +187,13 @@ class NodeTreeEvaluator {
   const ComputeContext &compute_context_;
   /* The compiled operations stream, which contains all compiled operations so far. */
   Vector<std::unique_ptr<Operation>> operations_stream_;
-  /* Those two maps associate each node with the operation it was compiled into. Each node is
-   * either compiled into a node operation and added to node_operations, or compiled into a pixel
-   * operation and added to pixel_operations. Those maps are used to retrieve the results of
-   * outputs linked to the inputs of operations. See the get_result_from_output_socket method for
-   * more information. */
+  /* Maps that associate each node with the operation it was compiled into, a node in the schedule
+   * must exist exclusively in one of those maps. They are used to retrieve the results of outputs
+   * linked to the inputs of operations. See the get_result_from_output_socket method for more
+   * information. */
   Map<const bNode *, NodeOperation *> node_operations_;
   Map<const bNode *, PixelOperation *> pixel_operations_;
+  Map<const bNode *, ZoneOperation *> zone_operations_;
   /* A contiguous subset of the node execution schedule that contains the group of nodes that will
    * be compiled together into a pixel operation. See the description of the class for more
    * information. */
@@ -217,6 +227,11 @@ class NodeTreeEvaluator {
   const Schedule &schedule();
 
  private:
+  /* Computes and sets the reference count for the inputs representing links that cross the border
+   * of the zone and are connected to outputs outside of the zone. Does nothing if the evaluator
+   * is not evaluating a zone. */
+  void compute_zone_external_input_reference_counts();
+
   /* Constructs and returns a node operation that represents the given node. */
   NodeOperation *create_node_operation(const bNode &node);
 
@@ -245,6 +260,17 @@ class NodeTreeEvaluator {
   /* Map each input of the pixel operation to the result of the output linked to it. This might
    * also correct the reference counts of the results, see the implementation for more details. */
   void map_pixel_operation_inputs_to_their_results(PixelOperation *operation);
+
+  /* Create one of the concrete subclasses of the ZoneOperation based on the given zone. Deleting
+   * the operation is the caller's responsibility. */
+  ZoneOperation *create_zone_operation(const bke::bNodeTreeZone &zone);
+
+  /* Compile the zone into a zone operation, map each input of the operation to the result of the
+   * output linked to it, and evaluate the operation. */
+  void evaluate_zone(const bke::bNodeTreeZone &zone);
+
+  /* Map each input of the zone operation to the result of the output linked to it. */
+  void map_zone_operation_inputs_to_their_results(ZoneOperation *operation);
 
   /* Add the given node to the compile unit. And if the domain of the compile unit is not yet
    * determined or was determined to be an identity domain, update it to the computed domain for

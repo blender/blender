@@ -130,21 +130,22 @@ SymbolVariable *SymbolScope::lookup_variable(const SymbolTable &table, IdQualifi
   return lookup_generic<SymbolVariable>(table, id, id.front());
 }
 
-ast::FuncForwardDecl SymbolScope::lookup_function_forward_decl(ast::FuncDecl decl) const
+std::pair<ast::FuncForwardDecl, SymbolFunction *> SymbolScope::lookup_function_forward_decl(
+    ast::FuncDecl decl) const
 {
   /* Note: while this linear search might seem very slow, it is only concerning a handful of
    * functions. */
-  for (ast::FuncForwardDecl fwd : function_prototypes) {
+  for (const auto &fwd : function_prototypes) {
     /* Check identifier. */
-    if (fwd.identifier().str() != decl.identifier().str()) {
+    if (fwd.first.identifier().str() != decl.identifier().str()) {
       continue;
     }
     /* Check return type. */
-    if (fwd.return_type().str() != decl.return_type().str()) {
+    if (fwd.first.return_type().str() != decl.return_type().str()) {
       continue;
     }
     /* Check arg type. */
-    FuncArg fwd_arg = fwd.arguments().child_first();
+    FuncArg fwd_arg = fwd.first.arguments().child_first();
     FuncArg decl_par = decl.arguments().child_first();
     while (fwd_arg.is_valid() &&
            /* Check type. */

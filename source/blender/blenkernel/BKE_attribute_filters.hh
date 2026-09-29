@@ -36,9 +36,10 @@ template<typename Fn> struct AttributeFilterFromFunc : public AttributeFilter {
  * Combines an existing #AttributeFilter and tags a few additional attributes that can/should be
  * skipped.
  */
-inline auto attribute_filter_with_skip_ref(AttributeFilter filter, const Span<StringRef> skip)
+inline auto attribute_filter_with_skip_ref(const AttributeFilter &filter,
+                                           const Span<StringRef> skip)
 {
-  return AttributeFilterFromFunc([filter, skip](const StringRef name) {
+  return AttributeFilterFromFunc([&filter, skip](const StringRef name) {
     if (skip.contains(name)) {
       return AttributeFilter::Result::AllowSkip;
     }
@@ -48,9 +49,9 @@ inline auto attribute_filter_with_skip_ref(AttributeFilter filter, const Span<St
 
 /** Same as above but with a #Set. */
 template<typename StringT>
-inline auto attribute_filter_with_skip_ref(AttributeFilter filter, const Set<StringT> &skip)
+inline auto attribute_filter_with_skip_ref(const AttributeFilter &filter, const Set<StringT> &skip)
 {
-  return AttributeFilterFromFunc([filter, &skip](const StringRef name) {
+  return AttributeFilterFromFunc([&filter, &skip](const StringRef name) {
     if (skip.contains_as(name)) {
       return AttributeFilter::Result::AllowSkip;
     }

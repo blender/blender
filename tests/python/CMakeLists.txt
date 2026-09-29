@@ -1893,6 +1893,7 @@ if(WITH_UI_TESTS)
     test_blend_autoexec.pref_disabled_drop_blend_file_trusted_source_enable_autoexec
     test_blend_autoexec.pref_disabled_open_file_selector_enable_autoexec
     test_blend_autoexec.pref_enabled_open_file_selector_untrusted_enable_autoexec
+    test_blend_autoexec.pref_disabled_drop_blend_file_trusted_source_next_enable_autoexec
   )
   foreach(ui_test ${_ui_tests_enable_autoexec})
     add_blender_test_ui(
@@ -1911,6 +1912,7 @@ if(WITH_UI_TESTS)
     test_blend_autoexec.pref_enabled_drop_blend_file_trusted_source_disable_autoexec
     test_blend_autoexec.pref_enabled_drop_blend_file_untrusted_trusted_source_disable_autoexec
     test_blend_autoexec.pref_enabled_open_file_selector_disable_autoexec
+    test_blend_autoexec.pref_enabled_drop_blend_file_trusted_source_next_disable_autoexec
   )
   foreach(ui_test ${_ui_tests_disable_autoexec})
     add_blender_test_ui(

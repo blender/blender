@@ -31,18 +31,14 @@
  */
 #pragma once
 
-#include "infos/eevee_geom_infos.hh"
-#include "infos/eevee_nodetree_infos.hh"
-
 #include "eevee_occupancy_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
+#include "eevee_surf_common.bsl.hh"
 #include "eevee_volume_lib.bsl.hh"
 
 namespace eevee {
 
 struct SurfOccupancy {
-  [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
-
   [[image(VOLUME_HIT_DEPTH_SLOT, write, SFLOAT_32)]] image3D hit_depth_img;
   [[image(VOLUME_HIT_COUNT_SLOT, read_write, UINT_32)]] uimage2DAtomic hit_count_img;
   [[image(VOLUME_OCCUPANCY_SLOT, read_write, UINT_32)]] uimage3DAtomic occupancy_img;
@@ -57,11 +53,10 @@ void surf_occupancy([[resource_table]] SurfOccupancy &srt,
                     [[resource_table]] const Uniform &uni,
                     [[resource_table]] const draw::View &views,
                     [[resource_table]] const Sampling &sampling,
+                    [[in]] const VertOutCommon &interp,
                     [[front_facing]] const bool front_facing,
                     [[frag_coord]] const float4 frag_co)
 {
-  FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info);
-
   const ViewMatrices view = views.get(0);
   int2 texel = int2(frag_co.xy);
   float vPz = dot(view.forward(), interp.P) - dot(view.forward(), view.position());

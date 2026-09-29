@@ -4,11 +4,13 @@
 
 #pragma once
 
+#include "gpu_shader_compat.hh"
+
 #include "gpu_shader_colorspace.bsl.hh"
 
 /* TODO(fclem): Share with C code. */
-#define MAX_PARAM 12
-#define MAX_INSTANCE 6
+static constexpr int MAX_PARAM = 12;
+static constexpr int MAX_INSTANCE = 6;
 
 namespace builtin::widget {
 
@@ -66,9 +68,8 @@ struct [[host_shared]] Widget {
     return abs(alpha_discard);
   }
 
-  VertOut do_widget(int vert_id, float2 &pos)
+  void do_widget(int vert_id, float2 &pos, VertOut &v_out)
   {
-    VertOut v_out;
     /* Offset to avoid losing pixels (mimics conservative rasterization). */
     const float2 ofs = float2(0.5f, -0.5f);
     v_out.line_width = abs(rect.x - recti.x);
@@ -113,13 +114,10 @@ struct [[host_shared]] Widget {
     /* We need premultiplied color for transparency. */
     v_out.border_color = color_edge * float4(color_edge.aaa, 1.0f);
     v_out.emboss_color = color_emboss * float4(color_emboss.aaa, 1.0f);
-
-    return v_out;
   }
 
-  VertOut do_tria(int vert_id, float2 &pos)
+  void do_tria(int vert_id, float2 &pos, VertOut &v_out)
   {
-    VertOut v_out;
     int vidx = vert_id % 4;
     bool tria2 = vert_id > 7;
 
@@ -224,18 +222,12 @@ struct [[host_shared]] Widget {
     v_out.emboss_color = float4(0.0f);
 
     v_out.but_co = -2.0f;
-
-    return v_out;
   }
 };
 
-/* WORKAROUND: We cannot use structs with push constants, so we push a float4 array and reinterpret
- * using a union. */
-struct WidgetUnion {
-  union {
-    union_t<WidgetRaw> raw;
-    union_t<Widget> data;
-  };
+union WidgetUnion {
+  WidgetRaw raw;
+  Widget data;
 };
 
 struct Resources {
@@ -245,6 +237,8 @@ struct Resources {
   [[push_constant]] const float3 checkerColorAndSize;
 
   [[compilation_constant]] const bool instanced;
+  /* WORKAROUND: We cannot use structs with push constants, so we push a float4 array and
+   * reinterpret using a union. */
   [[push_constant, condition(instanced)]] const float4 parameters_inst[MAX_PARAM * MAX_INSTANCE];
   [[push_constant, condition(!instanced)]] const float4 parameters[MAX_PARAM];
 
@@ -263,10 +257,11 @@ struct Resources {
         raw.data[i] = parameters[i];
       }
     }
+
     /* Equivalent of reinterpret_cast. */
     WidgetUnion widget;
-    widget.raw() = raw;
-    return widget.data();
+    widget.raw = raw;
+    return widget.data;
   }
 
   float4 do_checkerboard(float2 frag_co)
@@ -291,19 +286,14 @@ struct Resources {
 
   bool is_tria = (vert_id > 3);
   float2 pos;
-  VertOut vert_out = (is_tria) ? widget.do_tria(vert_id, pos) : widget.do_widget(vert_id, pos);
+  if (is_tria) {
+    widget.do_tria(vert_id, pos, v_out);
+  }
+  else {
+    widget.do_widget(vert_id, pos, v_out);
+  }
 
-  /* WORKAROUND: Quirk of current BSL implementation.
-   * Current implementation doesn't allow to assign the output struct at once. */
   v_out.discard_fac = widget.discard_factor();
-  v_out.line_width = vert_out.line_width;
-  v_out.out_rect_size = vert_out.out_rect_size;
-  v_out.border_color = vert_out.border_color;
-  v_out.emboss_color = vert_out.emboss_color;
-  v_out.out_round_corners = vert_out.out_round_corners;
-  v_out.but_co = vert_out.but_co;
-  v_out.uv_interp = vert_out.uv_interp;
-  v_out.inner_color = vert_out.inner_color;
 
   position = srt.ModelViewProjectionMatrix * float4(pos, 0.0f, 1.0f);
 }

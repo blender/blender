@@ -53,6 +53,7 @@ enum eUserPref_Flag : int {
   USER_ADD_VIEWALIGNED = (1 << 19),
   USER_RELPATHS = (1 << 20),
   USER_RELEASECONFIRM = (1 << 21),
+  /** See #G_FLAG_SCRIPT_AUTOEXEC for an overview of auto-execution. */
   USER_SCRIPT_AUTOEXEC_DISABLE = (1 << 22),
   USER_FILENOUI = (1 << 23),
   USER_NONEGFRAMES = (1 << 24),

@@ -26,6 +26,7 @@
 #include "BLI_array_utils_c.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_listbase.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
@@ -366,14 +367,23 @@ struct CurvesPointSelectionStatus {
   }
 };
 
+/**
+ * \param grease_pencil_layer_to_object: Grease pencil strokes are in layer space, the median in
+ * object space. Null when the points are already in object space.
+ */
 static CurvesPointSelectionStatus init_curves_point_selection_status(
-    const bke::CurvesGeometry &curves)
+    const bke::CurvesGeometry &curves, const float4x4 *grease_pencil_layer_to_object)
 {
   using namespace ed::curves;
 
   if (curves.is_empty()) {
     return CurvesPointSelectionStatus();
   }
+  auto to_object_space = [&](const float3 &co) {
+    return grease_pencil_layer_to_object ?
+               math::transform_point(*grease_pencil_layer_to_object, co) :
+               co;
+  };
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<int8_t> curve_types = curves.curve_types();
   const std::optional<Span<float>> nurbs_weights = curves.nurbs_weights();
@@ -401,7 +411,7 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
           value.total_curve_points += curve_selection.size();
 
           curve_selection.foreach_index([&](const int point) {
-            add_v3_v3(value.median.location, positions[point]);
+            add_v3_v3(value.median.location, to_object_space(positions[point]));
             value.total_nurbs_weights += is_nurbs;
             value.median.nurbs_weight += is_nurbs ?
                                              (nurbs_weights ? (*nurbs_weights)[point] : 1.0f) :
@@ -433,8 +443,9 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
 
     status.total += selection.size();
 
-    selection.foreach_index_optimized<int>(
-        [&](const int point) { add_v3_v3(status.median.location, (*positions)[point]); });
+    selection.foreach_index_optimized<int>([&](const int point) {
+      add_v3_v3(status.median.location, to_object_space((*positions)[point]));
+    });
   };
 
   add_handles(".selection_handle_left", curves.handle_positions_left());
@@ -442,14 +453,43 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
   return status;
 }
 
+/**
+ * Return the object to layer matrix.
+ *
+ * A layer that scales an axis to zero has no true inverse, #invert_m4_m4_safe_ortho fills that
+ * axis in from the others, so an edit still reaches the points on the axes that are left.
+ */
+static float4x4 object_to_grease_pencil_layer_calc(const float4x4 &grease_pencil_layer_to_object)
+{
+  float4x4 object_to_grease_pencil_layer;
+  invert_m4_m4_safe_ortho(object_to_grease_pencil_layer.ptr(),
+                          grease_pencil_layer_to_object.ptr());
+  return object_to_grease_pencil_layer;
+}
+
+/**
+ * \param grease_pencil_layer_to_object: See #init_curves_point_selection_status. The median is
+ * converted into layer space, cheaper than converting every point.
+ */
 static bool apply_to_curves_point_selection(const int tot,
                                             const TransformMedian_Curves &median,
                                             const TransformMedian_Curves &ve_median,
+                                            const float4x4 *grease_pencil_layer_to_object,
                                             bke::CurvesGeometry &curves)
 {
   using namespace ed::curves;
   if (curves.is_empty()) {
     return false;
+  }
+
+  /* The median is a delta, with a single point selected it's absolute, see #apply_raw_diff_v3. */
+  float3 median_location = median.location;
+  float3 ve_median_location = ve_median.location;
+  if (grease_pencil_layer_to_object) {
+    const float4x4 object_to_grease_pencil_layer = object_to_grease_pencil_layer_calc(
+        *grease_pencil_layer_to_object);
+    median_location = math::transform_direction(object_to_grease_pencil_layer, median_location);
+    ve_median_location = math::transform_point(object_to_grease_pencil_layer, ve_median_location);
   }
 
   bool changed = false;
@@ -464,7 +504,7 @@ static bool apply_to_curves_point_selection(const int tot,
 
   IndexMaskMemory memory;
   const IndexMask selection = retrieve_selected_points(curves, memory);
-  const bool update_location = math::length_manhattan(float3(median.location)) > 0;
+  const bool update_location = math::length_manhattan(median_location) > 0;
   MutableSpan<float3> positions = update_location && !selection.is_empty() ?
                                       curves.positions_for_write() :
                                       MutableSpan<float3>();
@@ -492,7 +532,7 @@ static bool apply_to_curves_point_selection(const int tot,
           apply_raw_diff(&tilt[point], tot, ve_median.tilt, median.tilt);
         }
         if (update_location) {
-          apply_raw_diff_v3(positions[point], tot, ve_median.location, median.location);
+          apply_raw_diff_v3(positions[point], tot, ve_median_location, median_location);
         }
       });
     }
@@ -517,7 +557,7 @@ static bool apply_to_curves_point_selection(const int tot,
         curves.attributes_for_write().lookup_for_write_span<float3>(handles_attribute);
     selection.foreach_index(
         [&](const int point) {
-          apply_raw_diff_v3(handles.span[point], tot, ve_median.location, median.location);
+          apply_raw_diff_v3(handles.span[point], tot, ve_median_location, median_location);
         },
         exec_mode::grain_size(2048));
     handles.finish();
@@ -1052,8 +1092,13 @@ static void v3d_editvertex_buts(
           [&](const IndexRange range, const CurvesPointSelectionStatus &acc) {
             CurvesPointSelectionStatus value = acc;
             for (const int drawing : range) {
+              const MutableDrawingInfo &info = drawings[drawing];
+              const float4x4 grease_pencil_layer_to_object =
+                  grease_pencil.layer(info.layer_index).to_object_space(*ob);
               value = CurvesPointSelectionStatus::sum(
-                  value, init_curves_point_selection_status(drawings[drawing].drawing.strokes()));
+                  value,
+                  init_curves_point_selection_status(info.drawing.strokes(),
+                                                     &grease_pencil_layer_to_object));
             }
             return value;
           },
@@ -1062,7 +1107,7 @@ static void v3d_editvertex_buts(
     else {
       using namespace ed::curves;
       const Curves &curves_id = *id_cast<Curves *>(ob->data);
-      status = init_curves_point_selection_status(curves_id.geometry.wrap());
+      status = init_curves_point_selection_status(curves_id.geometry.wrap(), nullptr);
     }
 
     TransformMedian_Curves &median = median_basis.curves;
@@ -1725,8 +1770,13 @@ static void v3d_editvertex_buts(
 
       threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
         bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-        if (apply_to_curves_point_selection(
-                tot, median_basis.curves, ve_median_basis.curves, curves))
+        const float4x4 grease_pencil_layer_to_object =
+            grease_pencil.layer(info.layer_index).to_object_space(*ob);
+        if (apply_to_curves_point_selection(tot,
+                                            median_basis.curves,
+                                            ve_median_basis.curves,
+                                            &grease_pencil_layer_to_object,
+                                            curves))
         {
           info.drawing.tag_positions_changed();
         }
@@ -1741,7 +1791,7 @@ static void v3d_editvertex_buts(
       Curves &curves_id = *id_cast<Curves *>(ob->data);
       bke::CurvesGeometry &curves = curves_id.geometry.wrap();
       if (apply_to_curves_point_selection(
-              tot, median_basis.curves, ve_median_basis.curves, curves))
+              tot, median_basis.curves, ve_median_basis.curves, nullptr, curves))
       {
         curves.tag_positions_changed();
       }
@@ -2333,7 +2383,7 @@ static void view3d_panel_transform(const bContext *C, Panel *panel)
     v3d_transform_butsR(C, col, &obptr);
 
     /* Dimensions and editmode are mostly the same check. */
-    if (OB_TYPE_SUPPORT_EDITMODE(ob->type) || ELEM(ob->type, OB_VOLUME)) {
+    if (OB_TYPE_SUPPORT_EDITMODE(ob->type) || ELEM(ob->type, OB_VOLUME, OB_LIGHTPROBE)) {
       View3D *v3d = CTX_wm_view3d(C);
       v3d_object_dimension_buts(nullptr, &col, v3d, ob);
     }

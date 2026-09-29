@@ -701,7 +701,7 @@ static void rna_userdef_script_autoexec_update(Main * /*bmain*/,
 {
   UserDef *userdef = static_cast<UserDef *>(ptr->data);
   /* The command line takes precedence over the preference. */
-  if ((G.f & G_FLAG_SCRIPT_OVERRIDE_PREF) == 0) {
+  if (!G.autoexec_override.has_value()) {
     if (userdef->flag & USER_SCRIPT_AUTOEXEC_DISABLE) {
       G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
     }

@@ -61,7 +61,7 @@ VertOut vertex_main(VertIn vert_in)
     float max_offset = vs_depth - (near_plane_distance * 1.01f);
     max_offset = max(0.0f, max_offset);
     /* Compensate for view angle. */
-    float radius = vert_in.radius * 1.5f;
+    float radius = abs(vert_in.radius) * 1.5f;
     vert.ws_P += I * min(radius, max_offset);
   }
   vert.gpu_position = drw_point_world_to_homogenous(vert.ws_P);

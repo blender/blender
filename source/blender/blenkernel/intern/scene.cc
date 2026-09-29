@@ -258,7 +258,8 @@ static void scene_init_data(ID *id)
 
   BKE_color_managed_display_settings_init(&scene->display_settings);
   BKE_color_managed_view_settings_init(&scene->view_settings, &scene->display_settings, "AgX");
-  STRNCPY_UTF8(scene->sequencer_colorspace_settings.name, colorspace_name);
+  IMB_colormanagement_colorspace_settings_set(&scene->sequencer_colorspace_settings,
+                                              colorspace_name);
 
   BKE_image_format_init(&scene->r.im_format);
   BKE_image_format_init(&scene->r.bake.im_format);

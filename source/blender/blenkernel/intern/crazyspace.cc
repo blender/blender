@@ -658,6 +658,8 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(
     return deformation;
   }
 
+  bool uses_drawing_hints = false;
+
   /* If there are edit hints, use the positions of those. */
   if (geometry_eval->has<GeometryComponentEditData>()) {
     const GeometryComponentEditData &edit_component_eval =
@@ -674,6 +676,25 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(
         }
         if (drawing_hints->deform_mats.has_value()) {
           deformation.deform_mats = *drawing_hints->deform_mats;
+        }
+        uses_drawing_hints = true;
+      }
+    }
+  }
+
+  /* Use the positions of the evaluated Grease Pencil directly, if the number of points matches. */
+  if (!uses_drawing_hints) {
+    const GreasePencil *grease_pencil_eval = geometry_eval->get_grease_pencil();
+    if (grease_pencil_eval != nullptr) {
+      for (const GreasePencilDrawingBase *base : grease_pencil_eval->drawings()) {
+        if (base->type != GP_DRAWING) {
+          continue;
+        }
+        const greasepencil::Drawing &drawing =
+            reinterpret_cast<const GreasePencilDrawing *>(base)->wrap();
+        if (drawing.strokes().positions().size() == drawing_orig.strokes().positions().size()) {
+          deformation.positions = drawing.strokes().positions();
+          break;
         }
       }
     }
