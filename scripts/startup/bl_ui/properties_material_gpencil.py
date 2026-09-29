@@ -242,12 +242,11 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
 
         elif gpcolor.fill_style == 'GRADIENT':
             col.prop(gpcolor, "gradient_type")
+            col.template_color_ramp(gpcolor, "gradient", expand=True)
 
-            col.prop(gpcolor, "fill_color", text="Base Color")
-            col.prop(gpcolor, "mix_color", text="Secondary Color")
+            col.separator()
+
             col.prop(gpcolor, "use_fill_holdout")
-            col.prop(gpcolor, "mix_factor", text="Blend", slider=True)
-            col.prop(gpcolor, "flip", text="Flip Colors")
 
             col.prop(gpcolor, "texture_offset", text="Location")
 

@@ -75,8 +75,7 @@ float4 get_color(float2 uv, float2 dx, float2 dy)
   else if (flag_test(gp_interp_flat.mat_flag, GP_FILL_GRADIENT_USE)) {
     bool radial = flag_test(gp_interp_flat.mat_flag, GP_FILL_GRADIENT_RADIAL);
     float fac = clamp(radial ? length(uv * 2.0f - 1.0f) : uv.x, 0.0f, 1.0f);
-    uint matid = gp_interp_flat.mat_flag >> GPENCIL_MATID_SHIFT;
-    col = mix(gp_materials[matid].fill_color, gp_materials[matid].fill_mix_color, fac);
+    col = textureLod(gp_fill_tx, float2(fac, 0.0f), 0.0f);
   }
   else /* SOLID */ {
     col = float4(1.0f);
