@@ -188,10 +188,11 @@ class PROJECT_PT_color_management(Panel, CenterAlignMixIn):
 
         col = layout.column()
         col.active = not overridden
-        col.alert = colorspace.is_failed_opencolorio_config
         col.prop(project, "ocio_config")
         if project.ocio_config == 'PATH':
-            col.prop(project, "ocio_config_path", text="Path")
+            row = col.row()
+            row.alert = colorspace.is_failed_opencolorio_config
+            row.prop(project, "ocio_config_path", text="Path")
 
         if overridden:
             row = layout.split(factor=0.4)
