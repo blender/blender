@@ -2298,7 +2298,7 @@ static void v3d_editmetaball_buts(ui::Layout &layout, Object *ob)
       col->prop(&ptr, "size_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
       col->prop(&ptr, "size_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
       break;
-    case MB_ELIPSOID:
+    case MB_ELLIPSOID:
       col->label(IFACE_("Size:"), ICON_NONE);
       col->prop(&ptr, "size_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
       col->prop(&ptr, "size_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);

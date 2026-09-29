@@ -98,7 +98,7 @@ void BKE_lightprobe_type_set(LightProbe *probe, const eLightProbeType lightprobe
       probe->clipsta = 0.001f;
       break;
     case LIGHTPROBE_TYPE_SPHERE:
-      probe->attenuation_type = LIGHTPROBE_SHAPE_ELIPSOID;
+      probe->attenuation_type = LIGHTPROBE_SHAPE_ELLIPSOID;
       break;
     default:
       BLI_assert_msg(0, "LightProbe type not configured.");
