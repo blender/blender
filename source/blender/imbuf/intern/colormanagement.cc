@@ -3407,7 +3407,7 @@ static float3 imb_working_space_convert(const float3x3 &m,
     else if (fabsf(1.0f - rgb[i]) < 5e-5) {
       rgb[i] = 1.0f;
     }
-    /* Clamp when goig to smaller gamut. We can't really distinguish
+    /* Clamp when going to smaller gamut. We can't really distinguish
      * between HDR and out of gamut colors. */
     if (is_smaller_gamut) {
       rgb[i] = math::clamp(rgb[i], 0.0f, 1.0f);
