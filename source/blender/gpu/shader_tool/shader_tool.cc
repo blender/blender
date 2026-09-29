@@ -190,7 +190,8 @@ int main(int argc, char **argv)
         filename.ends_with("workbench_shadow_raytrace.bsl.hh") ||
         (filename.find("gpu/shaders/") == std::string::npos &&
          filename.find("workbench/shaders/") == std::string::npos &&
-         filename.find("eevee/shaders/") == std::string::npos))
+         filename.find("eevee/shaders/") == std::string::npos &&
+         filename.find("gpencil/shaders/") == std::string::npos))
     {
       language = Language::BLENDER_GLSL;
     }

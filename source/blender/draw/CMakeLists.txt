@@ -330,7 +330,6 @@ set(GLSL_SRC
   engines/image/shaders/infos/engine_image_infos.hh
 
   engines/gpencil/shaders/infos/gpencil_infos.hh
-  engines/gpencil/shaders/infos/gpencil_vfx_infos.hh
 
   engines/overlay/shaders/infos/overlay_armature_infos.hh
   engines/overlay/shaders/infos/overlay_background_infos.hh
@@ -598,7 +597,7 @@ set(GLSL_SRC
   engines/gpencil/shaders/gpencil_depth_merge_frag.glsl
   engines/gpencil/shaders/gpencil_depth_merge_vert.glsl
   engines/gpencil/shaders/gpencil_depth_pass_merge_frag.glsl
-  engines/gpencil/shaders/gpencil_vfx_frag.glsl
+  engines/gpencil/shaders/gpencil_vfx.bsl.hh
 
   engines/gpencil/gpencil_defines.hh
   engines/gpencil/gpencil_shader_shared.hh
