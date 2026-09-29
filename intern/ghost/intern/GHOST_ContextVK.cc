@@ -926,7 +926,7 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
       render_frame_(0),
       use_hdr_swapchain_(false)
 {
-  frame_data_.reserve(5);
+  frame_data_.reserve(6);
 }
 
 GHOST_ContextVK::~GHOST_ContextVK()
