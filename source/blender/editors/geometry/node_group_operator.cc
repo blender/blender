@@ -618,7 +618,7 @@ static void store_result_geometry(const bContext &C,
       PointCloud *new_points =
           geometry.get_component_for_write<bke::PointCloudComponent>().release();
       if (!new_points) {
-        new_points->attribute_storage.wrap() = {};
+        points.attribute_storage.wrap() = {};
         points.totpoint = 0;
         break;
       }
