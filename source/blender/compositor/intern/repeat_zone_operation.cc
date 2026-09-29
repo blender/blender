@@ -22,7 +22,18 @@ void RepeatZoneOperation::execute()
 {
   const int iterations_count = this->get_input("Iterations").get_single_value_default<int>();
   if (iterations_count <= 0) {
-    this->allocate_default_remaining_outputs();
+    /* Pass the inputs to the outputs directly. */
+    for (const bNodeSocket *output : this->zone().output_node()->output_sockets()) {
+      if (!is_socket_available(output)) {
+        continue;
+      }
+
+      Result &result = this->get_result(output->identifier);
+      if (result.should_compute()) {
+        const Result &input = this->get_input(output->identifier);
+        result.share_data(input);
+      }
+    }
     return;
   }
 
