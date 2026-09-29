@@ -323,7 +323,7 @@ NODE_DEFINE(Mesh)
   return type;
 }
 
-bool Mesh::need_tesselation()
+bool Mesh::need_tessellation()
 {
   return (subdivision_type != SUBDIVISION_NONE) &&
          (position_is_modified() || subd_dicing_rate_is_modified() ||

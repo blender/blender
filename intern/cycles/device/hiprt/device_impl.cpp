@@ -731,14 +731,14 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT * /*bvh*/, const vector<Object *> &o
         assert(motion_size != 1);
 
         array<Transform> tfm_array = ob->get_motion();
-        float time_iternval = 1 / (float)(motion_size - 1);
+        float time_interval = 1 / (float)(motion_size - 1);
         current_header.frameCount = motion_size;
 
         vector<hiprtFrameMatrix> tfm_hiprt_mb;
         tfm_hiprt_mb.resize(motion_size);
         for (int i = 0; i < motion_size; i++) {
           get_hiprt_transform(tfm_hiprt_mb[i].matrix, tfm_array[i]);
-          tfm_hiprt_mb[i].time = (float)i * time_iternval;
+          tfm_hiprt_mb[i].time = (float)i * time_interval;
           transform_matrix.push_back_slow(tfm_hiprt_mb[i]);
         }
       }

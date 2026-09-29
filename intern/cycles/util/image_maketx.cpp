@@ -346,7 +346,7 @@ static std::string alpha_type_string(const ImageAlphaType alpha_type)
   return "auto";
 }
 
-static std::string format_tyoe_string(const ImageFormatType format_type)
+static std::string format_type_string(const ImageFormatType format_type)
 {
   switch (format_type) {
     case IMAGE_FORMAT_PLAIN:
@@ -382,7 +382,7 @@ static std::string unique_filename_tx(const string &filepath,
 
   md5.append("alpha:" + alpha_type_string(alpha_type));
 
-  md5.append("format:" + format_tyoe_string(format_type));
+  md5.append("format:" + format_type_string(format_type));
 
   /* For absolute texture cache path, include the full file path. This requires
    * a matching directory structure though. */

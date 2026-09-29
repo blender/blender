@@ -1619,10 +1619,10 @@ void OneapiDevice::architecture_information(const SyclDevice *device,
       reinterpret_cast<const sycl::device *>(device)
           ->get_info<sycl::ext::oneapi::experimental::info::device::architecture>();
 
-#  define FILL_ARCH_INFO(architecture_code, is_arch_optimised) \
+#  define FILL_ARCH_INFO(architecture_code, is_arch_optimized) \
     case sycl::ext::oneapi::experimental::architecture ::architecture_code: \
       name = #architecture_code; \
-      is_optimized = is_arch_optimised; \
+      is_optimized = is_arch_optimized; \
       break;
 
   /* List of architectures that have been optimized by Intel and Blender developers.
@@ -1699,13 +1699,13 @@ char *OneapiDevice::device_capabilities()
                  << device.get_platform().get_info<sycl::info::platform::name>() << "\n";
 
     string arch_name;
-    bool is_optimised_for_arch;
+    bool is_optimized_for_arch;
     architecture_information(
-        reinterpret_cast<const SyclDevice *>(&device), arch_name, is_optimised_for_arch);
+        reinterpret_cast<const SyclDevice *>(&device), arch_name, is_optimized_for_arch);
     capabilities << "\t\tsycl::info::device::architecture\t\t\t";
     capabilities << arch_name << "\n";
     capabilities << "\t\tsycl::info::device::is_cycles_optimized\t\t\t";
-    capabilities << is_optimised_for_arch << "\n";
+    capabilities << is_optimized_for_arch << "\n";
     capabilities << "\t\tsycl::info::device::meets_driver_requirement\t\t\t";
     capabilities << entry.meets_driver_requirement << "\n";
 
@@ -1827,9 +1827,9 @@ void OneapiDevice::iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_p
     std::string id = "ONEAPI_" + platform_name + "_" + name;
 
     string arch_name;
-    bool is_optimised_for_arch;
+    bool is_optimized_for_arch;
     architecture_information(
-        reinterpret_cast<const SyclDevice *>(&device), arch_name, is_optimised_for_arch);
+        reinterpret_cast<const SyclDevice *>(&device), arch_name, is_optimized_for_arch);
 
     if (device.has(sycl::aspect::ext_intel_pci_address)) {
       id.append("_" + device.get_info<sycl::ext::intel::info::device::pci_address>());
@@ -1839,7 +1839,7 @@ void OneapiDevice::iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_p
          num,
          hwrt_support,
          oidn_support,
-         is_optimised_for_arch,
+         is_optimized_for_arch,
          entry.meets_driver_requirement,
          user_ptr);
     num++;
