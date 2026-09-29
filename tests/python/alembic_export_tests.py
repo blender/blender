@@ -828,6 +828,19 @@ class WidthScopeExportTest(AbstractAlembicTest):
         self.assertEqual(abcprop[prop_key], expected_values)
 
 
+class DataValidationExportTest(AbstractAlembicTest):
+    """Test to ensure that invalid data does not crash Blender"""
+
+    @with_tempdir
+    def test_attribute_redefinition(self, tempdir: pathlib.Path):
+        abc = tempdir / 'attribute-changing-type.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s')" % abc.as_posix()
+        )
+        self.run_blender('attribute-changing-type.blend', script)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--blender', required=True)
