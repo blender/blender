@@ -1637,7 +1637,7 @@ struct CodegenContext : NodeErrorHandler {
 
     if (inst_fn->fn_type == SymbolFunction::MEMBER && decl.is_template()) {
       if (SymbolClass *cls = inst_fn->parent_class(); cls) {
-        /* Leave a breadcrum for a mutation pass which will move the following forward declaration
+        /* Leave a breadcrumb for a mutation pass which will move the following forward declaration
          * all the way up at the class declaration. This is needed to allow other member functions
          * to call the templated function. */
         builder.ss << "#pragma member_forward_decl " << inst_fn->parent_class()->identifier

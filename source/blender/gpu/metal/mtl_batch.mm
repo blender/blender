@@ -351,7 +351,7 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MutableSpan<MTLVertBuf *> 
    * batch has in its buffers, and those which are supported by the shader interface.
    *
    * We iterate through the buffers and resolve which attributes satisfy the requirements of the
-   * currently bound shader. We cache this data, for a given Batch<->ShderInterface pairing in a
+   * currently bound shader. We cache this data, for a given Batch<->ShaderInterface pairing in a
    * VAO cache to avoid the need to recalculate this data. */
 
   VertexDescriptorShaderInterfacePair *pair = this->vao_cache.find(&interface);
