@@ -3746,6 +3746,9 @@ std::optional<Bounds<float3>> BKE_object_boundbox_get(const Object *ob)
       return BKE_volume_min_max(id_cast<const Volume *>(ob->data));
     case OB_GREASE_PENCIL:
       return id_cast<const GreasePencil *>(ob->data)->bounds_min_max_eval();
+    case OB_LIGHTPROBE:
+      /* Set to enable additional functionality (e.g. the Scale Cage tool in object mode). */
+      return blender::Bounds(float3(-1.0f), float3(1.0f));
     default:
       break;
   }
