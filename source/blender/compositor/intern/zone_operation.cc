@@ -9,10 +9,13 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_zones.hh"
 
+#include "NOD_eval_log.hh"
+
 #include "COM_operation.hh"
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
 #include "COM_utilities.hh"
+#include "COM_utilities_node_tree_logging.hh"
 #include "COM_zone_operation.hh"
 #include "COM_zone_tree_operation.hh"
 
@@ -78,6 +81,35 @@ void ZoneOperation::compute_results_reference_counts(const Schedule &schedule)
 const bke::bNodeTreeZone &ZoneOperation::zone() const
 {
   return zone_;
+}
+
+void ZoneOperation::log_data()
+{
+  nodes::eval_log::NodesEvalLog *log = this->context().nodes_evaluation_log();
+  if (!log) {
+    return;
+  }
+  nodes::eval_log::NodeTreeLogger &tree_logger = log->get_local_tree_logger(compute_context_);
+
+  /* Log output values. */
+  for (const bNodeSocket *output_socket : this->zone().output_node()->output_sockets()) {
+    if (!is_socket_available(output_socket)) {
+      continue;
+    }
+
+    const Result &result = this->get_result(output_socket->identifier);
+    log_result(this->context(), tree_logger, *output_socket, result);
+  }
+
+  /* Log input values. */
+  for (const bNodeSocket *input_socket : this->zone().input_node()->input_sockets()) {
+    if (!is_socket_available(input_socket)) {
+      continue;
+    }
+
+    const Result &input = this->get_input(input_socket->identifier);
+    log_result(this->context(), tree_logger, *input_socket, input);
+  }
 }
 
 }  // namespace blender::compositor

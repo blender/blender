@@ -43,6 +43,10 @@ class ZoneOperation : public Operation {
   void compute_results_reference_counts(const Schedule &schedule);
 
   const bke::bNodeTreeZone &zone() const;
+
+ protected:
+  /* Log the values for the outputs of the zone. */
+  void log_data() override;
 };
 
 }  // namespace blender::compositor
