@@ -261,8 +261,10 @@ static void create_geom_param_for_attribute(const Alembic::Abc::OCompoundPropert
       return;
     }
 
+    const std::string valid_name = get_valid_abc_name(name.c_str());
+
     ParamType param;
-    param_maps.ensure_param(prop, param, name, corrected_scope);
+    param_maps.ensure_param(prop, param, valid_name, corrected_scope);
     param.setTimeSampling(timesample_index);
 
     write_empty_samples(param, num_geom_samples);

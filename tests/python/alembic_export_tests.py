@@ -840,6 +840,15 @@ class DataValidationExportTest(AbstractAlembicTest):
         )
         self.run_blender('attribute-changing-type.blend', script)
 
+    @with_tempdir
+    def test_invalid_names(self, tempdir: pathlib.Path):
+        abc = tempdir / 'invalid-names.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, vcolors=True)" % abc.as_posix()
+        )
+        self.run_blender('invalid-names.blend', script)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
