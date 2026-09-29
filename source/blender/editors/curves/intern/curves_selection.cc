@@ -504,6 +504,19 @@ void select_all(bke::CurvesGeometry &curves, const bke::AttrDomain selection_dom
   select_all(curves, selection, selection_domain, action);
 }
 
+static bool is_everything_selected(GMutableSpan &selection_curve)
+{
+  if (selection_curve.type().is<bool>()) {
+    return !selection_curve.typed<bool>().contains(false);
+  }
+
+  if (selection_curve.type().is<float>()) {
+    return !selection_curve.typed<float>().contains(0.0f);
+  }
+
+  return false;
+}
+
 void select_linked(bke::CurvesGeometry &curves, const IndexMask &curves_mask, const bool unselect)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -526,10 +539,9 @@ void select_linked(bke::CurvesGeometry &curves, const IndexMask &curves_mask, co
         for (const int i : curve_writers) {
           bke::GSpanAttributeWriter &selection = selection_writers[i];
           GMutableSpan selection_curve = selection.span.slice(points);
-          const array_utils::BooleanMix selection_state = array_utils::booleans_mix_calc(
-              VArray<bool>::from_span(selection_curve.typed<bool>()));
-          const bool all_points_selected = selection_state == array_utils::BooleanMix::AllTrue;
-          if (selection_state != array_utils::BooleanMix::AllFalse) {
+
+          const bool all_points_selected = is_everything_selected(selection_curve);
+          if (has_anything_selected(selection_curve)) {
             if (unselect == all_points_selected) {
               fill_selection(selection_curve, !unselect);
             }
