@@ -2387,7 +2387,7 @@ static void move_to_collection_menu_draw(Menu *menu,
   layout.operator_context_set(wm::OpCallContext::InvokeDefault);
 
   if (!is_scene_collection) {
-    PointerRNA op_ptr = layout.op(ot, is_move ? "Move Inside" : "Link Inside", ICON_NONE);
+    PointerRNA op_ptr = layout.op(ot, is_move ? IFACE_("Move Inside") : IFACE_("Link Inside"), ICON_NONE);
     RNA_int_set(&op_ptr, "collection_uid", collection->id.session_uid);
     layout.separator();
   }
