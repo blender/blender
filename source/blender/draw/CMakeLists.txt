@@ -559,9 +559,9 @@ set(GLSL_SRC
   intern/shaders/draw_object_infos_lib.glsl
   intern/shaders/draw_pointcloud_lib.glsl
   intern/shaders/draw_pointcloud.bsl.hh
-  intern/shaders/draw_resource_finalize_comp.glsl
+  intern/shaders/draw_resource_finalize.bsl.hh
   intern/shaders/draw_view_clipping_lib.glsl
-  intern/shaders/draw_view_finalize_comp.glsl
+  intern/shaders/draw_view_finalize.bsl.hh
   intern/shaders/draw_view_lib.glsl
   intern/shaders/draw_view.bsl.hh
   intern/shaders/draw_viewlayer.bsl.hh

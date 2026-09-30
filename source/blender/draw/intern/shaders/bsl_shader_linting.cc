@@ -18,8 +18,10 @@
 #include "draw_math_geom.bsl.hh"               /* IWYU pragma: export */
 #include "draw_mesh_to_corner.bsl.hh"          /* IWYU pragma: export */
 #include "draw_model.bsl.hh"                   /* IWYU pragma: export */
+#include "draw_resource_finalize.bsl.hh"       /* IWYU pragma: export */
 #include "draw_shape.bsl.hh"                   /* IWYU pragma: export */
 #include "draw_view.bsl.hh"                    /* IWYU pragma: export */
+#include "draw_view_finalize.bsl.hh"           /* IWYU pragma: export */
 #include "draw_visibility.bsl.hh"              /* IWYU pragma: export */
 #include "subdiv_attrib_interp.bsl.hh"         /* IWYU pragma: export */
 #include "subdiv_common.bsl.hh"                /* IWYU pragma: export */

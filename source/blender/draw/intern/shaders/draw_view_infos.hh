@@ -110,33 +110,6 @@ GPU_SHADER_CREATE_END()
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name Internal Draw Manager usage
- * \{ */
-
-GPU_SHADER_CREATE_INFO(draw_resource_finalize)
-DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("draw_shader_shared.hh")
-DEFINE("DRAW_FINALIZE_SHADER")
-LOCAL_GROUP_SIZE(DRW_FINALIZE_GROUP_SIZE)
-STORAGE_BUF(0, read, ObjectMatrices, matrix_buf[])
-STORAGE_BUF(1, read_write, ObjectBounds, bounds_buf[])
-STORAGE_BUF(2, read_write, ObjectInfos, infos_buf[])
-PUSH_CONSTANT(int, resource_len)
-COMPUTE_SOURCE("draw_resource_finalize_comp.glsl")
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(draw_view_finalize)
-DO_STATIC_COMPILATION()
-LOCAL_GROUP_SIZE(DRW_VIEW_MAX)
-DEFINE_VALUE("DRW_VIEW_LEN", STRINGIFY(DRW_VIEW_MAX))
-STORAGE_BUF(0, read_write, ViewCullingData, view_culling_buf[DRW_VIEW_LEN])
-COMPUTE_SOURCE("draw_view_finalize_comp.glsl")
-ADDITIONAL_INFO(draw_view)
-GPU_SHADER_CREATE_END()
-
-/** \} */
-
 /* Stub needs to be after all definitions to avoid conflict with legacy definitions. */
 #ifdef GLSL_CPP_STUBS
 /* Make it work for both draw_resource_id and draw_resource_with_custom_id. */

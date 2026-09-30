@@ -28,12 +28,6 @@ set(SRC_GLSL_FRAG
   draw_debug_draw_display_frag.glsl
 )
 
-set(SRC_GLSL_COMP
-  # Failed because of mixed definition of ObjectInfos
-  # draw_resource_finalize_comp.glsl
-  draw_view_finalize_comp.glsl
-)
-
 set(SRC_BSL
   bsl_shader_linting.cc
 )
@@ -45,6 +39,5 @@ if(WITH_GPU_SHADER_CPP_COMPILATION)
 
   compile_sources_as_cpp(draw_cpp_shaders_vert "${SRC_GLSL_VERT}" "GPU_VERTEX_SHADER")
   compile_sources_as_cpp(draw_cpp_shaders_frag "${SRC_GLSL_FRAG}" "GPU_FRAGMENT_SHADER")
-  compile_sources_as_cpp(draw_cpp_shaders_comp "${SRC_GLSL_COMP}" "GPU_COMPUTE_SHADER")
   compile_sources_as_cpp(draw_cpp_shaders_bsl  "${SRC_BSL}" "")
 endif()
