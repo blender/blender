@@ -737,14 +737,19 @@ bool block_can_add_separator(const Block *block)
   return true;
 }
 
-bool block_has_active_default_button(const Block *block)
+const Button *block_active_default_button_find(const Block *block)
 {
   for (const Button &but : block->buttons()) {
     if ((but.flag & BUT_ACTIVE_DEFAULT) && ((but.flag & UI_HIDDEN) == 0)) {
-      return true;
+      return &but;
     }
   }
-  return false;
+  return nullptr;
+}
+
+bool block_has_active_default_button(const Block *block)
+{
+  return block_active_default_button_find(block) != nullptr;
 }
 
 /** \} */

@@ -876,6 +876,10 @@ bool block_is_empty_ex(const Block *block, bool skip_title);
 bool block_is_empty(const Block *block);
 bool block_can_add_separator(const Block *block);
 /**
+ * Return the first default button (activated by "Return") or null.
+ */
+const Button *block_active_default_button_find(const Block *block);
+/**
  * Return true when the block has a default button.
  * Use this for popups to detect when pressing "Return" will run an action.
  */
