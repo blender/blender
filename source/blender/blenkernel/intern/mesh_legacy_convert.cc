@@ -2522,7 +2522,7 @@ void mesh_skin_to_generic(Mesh &mesh)
   CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN);
 
   AttributeStorage &storage = mesh.attribute_storage.wrap();
-  auto add_array = [&](const StringRef name, const AttrType type, void *array_data) {
+  auto add_array = [&]<typename T>(const StringRef name, const AttrType type, T *array_data) {
     Attribute::ArrayData array{};
     array.data = array_data;
     array.size = mesh.verts_num;

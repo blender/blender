@@ -206,7 +206,7 @@ PackedFile *BKE_packedfile_new_from_memory(const void *mem,
   BLI_assert(mem != nullptr);
   if (!sharing_info) {
     /* Assume we are the only owner of that memory currently. */
-    sharing_info = implicit_sharing::info_for_mem_free(const_cast<void *>(mem));
+    sharing_info = implicit_sharing::info_for_mem_free(static_cast<const std::byte *>(mem));
   }
 
   PackedFile *pf = MEM_new<PackedFile>("PackedFile");
@@ -962,7 +962,9 @@ void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p, Strin
     BLO_read_array_and_validate_size(
         reader, reinterpret_cast<std::byte **>(const_cast<void **>(&pf->data)), &pf->size);
     /* Do not create an implicit sharing if read data pointer is `nullptr`. */
-    return pf->data ? implicit_sharing::info_for_mem_free(const_cast<void *>(pf->data)) : nullptr;
+    return pf->data ?
+               implicit_sharing::info_for_mem_free(static_cast<const std::byte *>(pf->data)) :
+               nullptr;
   });
   if (pf->data == nullptr) {
     /* We cannot allow a #PackedFile with a nullptr data field,
