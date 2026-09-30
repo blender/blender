@@ -238,12 +238,23 @@ void USDParticleFieldReader::read_geometry(bke::GeometrySet &geometry_set,
 
 bool USDParticleFieldReader::is_animated() const
 {
-  bool is_animated = gsplat_prim_.GetPositionsAttr().ValueMightBeTimeVarying();
-  is_animated |= gsplat_prim_.GetScalesAttr().ValueMightBeTimeVarying();
-  is_animated |= gsplat_prim_.GetOpacitiesAttr().ValueMightBeTimeVarying();
-  is_animated |= gsplat_prim_.GetOrientationsAttr().ValueMightBeTimeVarying();
-  is_animated |=
-      gsplat_prim_.GetRadianceSphericalHarmonicsCoefficientsAttr().ValueMightBeTimeVarying();
+  auto check_time_varying = [](auto &&get_attr_fn) {
+    pxr::UsdAttribute usd_attr;
+    get_attr_fn(&usd_attr);
+    return usd_attr.ValueMightBeTimeVarying();
+  };
+
+  bool is_animated = false;
+  is_animated |= check_time_varying(
+      [&](pxr::UsdAttribute *attr) { gsplat_prim_.UsesFloatPositions(attr); });
+  is_animated |= check_time_varying(
+      [&](pxr::UsdAttribute *attr) { gsplat_prim_.UsesFloatScales(attr); });
+  is_animated |= check_time_varying(
+      [&](pxr::UsdAttribute *attr) { gsplat_prim_.UsesFloatOpacities(attr); });
+  is_animated |= check_time_varying(
+      [&](pxr::UsdAttribute *attr) { gsplat_prim_.UsesFloatOrientations(attr); });
+  is_animated |= check_time_varying(
+      [&](pxr::UsdAttribute *attr) { gsplat_prim_.UsesFloatRadianceCoefficients(attr); });
 
   return is_animated;
 }
