@@ -108,4 +108,23 @@ StoredFloat as_data(float interp)
   return data;
 }
 
+/* `uint` versions of the above structs to avoid special behavior when copying types that are not
+ * actually floats.  */
+
+struct StoredUint {
+  uint x;
+};
+
+struct StoredUint2 {
+  uint x, y;
+};
+
+struct StoredUint3 {
+  uint x, y, z;
+};
+
+struct StoredUint4 {
+  uint x, y, z, w;
+};
+
 /** \} */
