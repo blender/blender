@@ -1526,8 +1526,8 @@ static void emit_from_particles(Object *flow_ob,
                                 Scene *scene,
                                 float dt)
 {
-  if (ffs && ffs->psys && ffs->psys->part &&
-      ELEM(ffs->psys->part->type, PART_EMITTER, PART_FLUID)) /* Is particle system selected. */
+  /* Is particle system selected. */
+  if (ffs && ffs->psys && ffs->psys->part && ELEM(ffs->psys->part->type, PART_EMITTER, PART_FLUID))
   {
     ParticleSimulationData sim;
     ParticleSystem *psys = ffs->psys;
@@ -3063,7 +3063,8 @@ static void update_effectors_task_cb(void *__restrict userdata,
       if ((data->fuel && std::max(data->density[index], data->fuel[index]) < FLT_EPSILON) ||
           (!data->fuel && data->density && data->density[index] < FLT_EPSILON) ||
           (data->phi_obs_in && data->phi_obs_in[index] < 0.0f) ||
-          data->flags[index] & 2) /* Manta-flow convention: `2 == FlagObstacle`. */
+          /* Manta-flow convention: `2 == FlagObstacle`. */
+          data->flags[index] & 2)
       {
         continue;
       }

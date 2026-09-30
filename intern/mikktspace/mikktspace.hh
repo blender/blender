@@ -383,8 +383,7 @@ template<typename Mesh> class Mikktspace {
       const float3 p0 = getPosition(triangles[t].vertices[0]);
       const float3 p1 = getPosition(triangles[t].vertices[1]);
       const float3 p2 = getPosition(triangles[t].vertices[2]);
-      if (p0 == p1 || p0 == p2 || p1 == p2)  // degenerate
-      {
+      if (p0 == p1 || p0 == p2 || p1 == p2) {  // degenerate
         triangles[t].markDegenerate = true;
         degenTriangles.fetch_add(1);
       }
