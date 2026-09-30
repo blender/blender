@@ -131,7 +131,7 @@ void *BM_iter_as_arrayN(BMesh *bm,
                         const char itype,
                         void *data,
                         int *r_len,
-                        /* optional args to avoid an alloc (normally stack array) */
+                        /* Optional args to avoid an allocation (normally stack array). */
                         void **stack_array,
                         int stack_array_size)
 {
@@ -177,7 +177,7 @@ void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                          const char *slot_name,
                          const char restrictmask,
                          int *r_len,
-                         /* optional args to avoid an alloc (normally stack array) */
+                         /* Optional args to avoid an allocation (normally stack array). */
                          void **stack_array,
                          int stack_array_size)
 {

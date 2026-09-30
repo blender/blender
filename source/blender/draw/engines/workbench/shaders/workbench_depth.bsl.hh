@@ -18,7 +18,7 @@ struct Merge {
   [[sampler(0)]] sampler2DDepth depth_tx;
 };
 
-/* Merge a depth texture into the current framebuffer. */
+/* Merge a depth texture into the current frame-buffer. */
 [[fragment]] void merge([[resource_table]] const Merge &srt,
                         [[frag_coord]] const float4 frag_co,
                         [[frag_depth(any)]] float &out_depth)

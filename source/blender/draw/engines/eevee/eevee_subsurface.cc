@@ -25,7 +25,7 @@ void SubsurfaceModule::end_sync()
     return;
   }
 
-  /* Process direct / indirect radiance separately for correct ligthpath intensity. */
+  /* Process direct / indirect radiance separately for correct light-path intensity. */
   /* Note that we do not branch on clamp.surface_indirect since it is applied on the spherical
    * harmonics or rays before SSS evaluation. */
   use_split_radiance_ = inst_.uniform_data.data.clamp.direct_scale != 1.0f ||

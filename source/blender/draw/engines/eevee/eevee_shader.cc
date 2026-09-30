@@ -1319,7 +1319,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
       domain_type_vert = "MeshVertex";
       break;
     case MAT_GEOM_GSPLAT:
-      /* Fall through to pointclouds, reuse their attribute domain. */
+      /* Fall through to point-clouds, reuse their attribute domain. */
       ATTR_FALLTHROUGH;
     case MAT_GEOM_POINTCLOUD:
       domain_type_frag = (pipeline_type == MAT_PIPE_VOLUME_MATERIAL) ? "VolumePoint" :

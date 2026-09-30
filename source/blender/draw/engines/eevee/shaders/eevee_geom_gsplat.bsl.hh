@@ -73,7 +73,7 @@ namespace eevee {
   }
 
   /* Gaussian splats typically do an alpha cut off. The original paper used 1/255
-   * as a threshold, which persists in te fitted data. */
+   * as a threshold, which persists in the fitted data. */
   float opacity = shape.get_opacity(gs.id);
   if (opacity < (1.0f / 255.0f)) {
     out_position = float4(NAN_FLT);

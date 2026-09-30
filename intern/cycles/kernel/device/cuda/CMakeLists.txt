@@ -92,7 +92,7 @@ function(cuda_get_toolkit_for_arch arch out_root_dir out_nvcc_executable out_ver
   #
   # For the sm we choose the highest available toolkit to take advantage of the new
   # compiler, potentially improving performance.
-  # For the compute we choose the oldest toolit to improve compatibility with the
+  # For the compute we choose the oldest toolkit to improve compatibility with the
   # client-side drivers.
   set(_preferred_toolkits_sm      13 12)
   set(_preferred_toolkits_compute 12 13)
