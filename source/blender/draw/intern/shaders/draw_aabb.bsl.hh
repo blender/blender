@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "draw_shape_lib.glsl"
+#include "draw_shape.bsl.hh"
 
 /* ---------------------------------------------------------------------- */
 /** \name Axis Aligned Bound Box

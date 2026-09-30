@@ -13,7 +13,7 @@
  */
 
 #include "draw_debug_draw_lib.glsl"
-#include "draw_shape_lib.glsl"
+#include "draw_shape.bsl.hh"
 
 void drw_debug(Box shape, float4 color)
 {

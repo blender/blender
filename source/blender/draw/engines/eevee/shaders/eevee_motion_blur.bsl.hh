@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_math_geom_lib.glsl"
+#include "draw_math_geom.bsl.hh"
 #include "eevee_motion_blur_shared.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"

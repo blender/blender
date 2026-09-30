@@ -1138,7 +1138,7 @@ static PyObject *pygpu_shader_info_vertex_source(BPyGPUShaderCreateInfo *self, P
 #endif
 
   ShaderCreateInfo *info = reinterpret_cast<ShaderCreateInfo *>(self->info);
-  info->vertex_source("draw_colormanagement_lib.glsl");
+  info->vertex_source("gpu_shader_python_base.glsl");
   info->vertex_source_generated = vertex_source;
 
   Py_RETURN_NONE;
@@ -1184,7 +1184,7 @@ static PyObject *pygpu_shader_info_compute_source(BPyGPUShaderCreateInfo *self, 
 #endif
 
   ShaderCreateInfo *info = reinterpret_cast<ShaderCreateInfo *>(self->info);
-  info->compute_source("draw_colormanagement_lib.glsl");
+  info->compute_source("gpu_shader_python_base.glsl");
   info->compute_source_generated = compute_source;
 
   Py_RETURN_NONE;
@@ -1226,7 +1226,7 @@ static PyObject *pygpu_shader_info_fragment_source(BPyGPUShaderCreateInfo *self,
 #endif
 
   ShaderCreateInfo *info = reinterpret_cast<ShaderCreateInfo *>(self->info);
-  info->fragment_source("draw_colormanagement_lib.glsl");
+  info->fragment_source("gpu_shader_python_base.glsl");
   info->fragment_source_generated = fragment_source;
 
   Py_RETURN_NONE;

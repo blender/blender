@@ -14,7 +14,7 @@
  */
 
 #include "draw_shader_shared.hh"
-#include "draw_shape_lib.glsl"
+#include "draw_shape.bsl.hh"
 #include "gpu_shader_math_base.bsl.hh"
 #include "gpu_shader_math_safe.bsl.hh"
 #include "gpu_shader_math_vector.bsl.hh"

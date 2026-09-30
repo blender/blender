@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_math_geom_lib.glsl"
+#include "draw_math_geom.bsl.hh"
 #include "draw_shader_shared.hh"
 #include "gpu_shader_math_safe.bsl.hh"
 #include "gpu_shader_ray.bsl.hh"

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_math_geom_lib.glsl"
+#include "draw_math_geom.bsl.hh"
 #include "eevee_defines.hh"
 #include "eevee_lightprobe_shared.hh"
 #include "eevee_octahedron_lib.bsl.hh"

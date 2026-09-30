@@ -8,7 +8,7 @@
  * Film accumulation utils functions.
  */
 
-#include "draw_math_geom_lib.glsl"
+#include "draw_math_geom.bsl.hh"
 #include "eevee_camera_lib.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_cryptomatte.bsl.hh"

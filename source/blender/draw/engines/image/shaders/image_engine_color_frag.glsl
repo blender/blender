@@ -4,7 +4,7 @@
 
 #include "infos/engine_image_infos.hh"
 
-#include "draw_colormanagement_lib.glsl"
+#include "draw_colormanagement.bsl.hh"
 #include "image_engine_lib.glsl"
 
 void main()

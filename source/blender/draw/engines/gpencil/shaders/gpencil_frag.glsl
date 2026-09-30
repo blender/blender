@@ -6,7 +6,7 @@
 
 FRAGMENT_SHADER_CREATE_INFO(gpencil_geometry)
 
-#include "draw_colormanagement_lib.glsl"
+#include "draw_colormanagement.bsl.hh"
 #include "draw_grease_pencil_lib.glsl"
 #include "gpu_shader_common_color_utils.bsl.hh"
 #include "gpu_shader_common_hash.bsl.hh"
