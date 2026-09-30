@@ -767,7 +767,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
   const size_t headroom = (is_texture) ? device_image_headroom : device_working_headroom;
 
   const bool no_host_fallback = (mem.type == MEM_DEVICE_ONLY) ||
-                                (mem.flags & MEM_FLAG_NO_HOST_FALLBACK) && !mem.move_to_host;
+                                ((mem.flags & MEM_FLAG_NO_HOST_FALLBACK) && !mem.move_to_host);
 
   if (!mem.move_to_host) {
     /* Move textures to host memory if needed. */
