@@ -192,11 +192,11 @@ void count_indices(const Span<int> indices, MutableSpan<int> counts)
  * it much faster than a hash table, but the size of the table depends on the range of the IDs,
  * so still use a VectorSet instead of the lookup table would need to be too large.
  */
-int count_indices_with_table(const Span<int> ids,
-                             const IndexMask &mask,
-                             const Bounds<int> &id_bounds,
-                             MutableSpan<int> r_group_indices,
-                             Vector<int> *r_first_indices)
+static int count_indices_with_table(const Span<int> ids,
+                                    const IndexMask &mask,
+                                    const Bounds<int> &id_bounds,
+                                    MutableSpan<int> r_group_indices,
+                                    Vector<int> *r_first_indices)
 {
   const int id_min = id_bounds.min;
   const int64_t ids_range = int64_t(id_bounds.max) - int64_t(id_bounds.min) + 1;
