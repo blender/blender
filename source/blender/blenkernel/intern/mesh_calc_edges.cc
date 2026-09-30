@@ -7,6 +7,7 @@
  */
 
 #include "BLI_array_utils.hh"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_math_base_c.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_task.hh"
@@ -315,8 +316,8 @@ void mesh_calc_edges(Mesh &mesh,
   IndexRange back_range_of_new_edges;
   IndexMask src_to_dst_mask;
 
-  MutableSpan<int2> edge_verts(MEM_new_array_uninitialized<int2>(result_edges_num, AT),
-                               result_edges_num);
+  auto *edge_verts_data = new ImplicitSharedValue<Array<int2>>(result_edges_num);
+  MutableSpan<int2> edge_verts = edge_verts_data->data;
 #ifndef NDEBUG
   edge_verts.fill(int2(-1));
 #endif
@@ -545,7 +546,8 @@ void mesh_calc_edges(Mesh &mesh,
   mesh.edges_num = result_edges_num;
 
   dst_attributes.add<int2>(
-      ".edge_verts", AttrDomain::Edge, AttributeInitMoveArray(edge_verts.data()));
+      ".edge_verts", AttrDomain::Edge, AttributeInitShared(edge_verts.data(), *edge_verts_data));
+  edge_verts_data->remove_user_and_delete_if_last();
 
   if (select_new_edges) {
     dst_attributes.remove(".select_edge");

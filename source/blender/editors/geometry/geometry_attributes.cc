@@ -13,6 +13,8 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BLI_color.hh"
+#include "BLI_generic_array.hh"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_listbase.hh"
 
 #include "BKE_attribute.hh"
@@ -652,17 +654,17 @@ bool convert_attribute(AttributeOwner &owner,
   const std::string name_copy = name;
   const GVArray varray = *attributes.lookup_or_default(name_copy, dst_domain, dst_type);
 
-  const CPPType &cpp_type = varray.type();
-  void *new_data = MEM_new_uninitialized_aligned(
-      varray.size() * cpp_type.size, cpp_type.alignment, __func__);
-  varray.materialize_to_uninitialized(new_data);
+  GArray<> new_data(varray.type(), varray.size(), NoInitialization());
+  varray.materialize_to_uninitialized(new_data.data());
   if (!BKE_attribute_remove(owner, name_copy, reports)) {
-    MEM_delete_void(new_data);
     return false;
   }
-  if (!attributes.add(name_copy, dst_domain, dst_type, bke::AttributeInitMoveArray(new_data))) {
-    MEM_delete_void(new_data);
-  }
+  auto *sharing_info = new ImplicitSharedValue<GArray<>>(std::move(new_data));
+  attributes.add(name_copy,
+                 dst_domain,
+                 dst_type,
+                 bke::AttributeInitShared(sharing_info->data.data(), *sharing_info));
+  sharing_info->remove_user_and_delete_if_last();
 
   if (was_active) {
     /* The attribute active status is stored as an index. Changing the attribute's domain will

@@ -15,6 +15,8 @@
 #include "BKE_object.hh"
 
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_generic_array.hh"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
@@ -1044,18 +1046,15 @@ bool ensure_selection_domain(ToolSettings *ts, Object *object)
     /* Convert selection domain. */
     const GVArray src = *attributes.lookup(".selection", domain);
     if (src) {
-      const CPPType &type = src.type();
-      void *dst = MEM_new_array_uninitialized(attributes.domain_size(domain), type.size, __func__);
-      src.materialize(dst);
+      auto *dst = new ImplicitSharedValue<GArray<>>(src.type(), src.size(), NoInitialization());
+      src.materialize_to_uninitialized(dst->data.data());
 
       attributes.remove(".selection");
-      if (!attributes.add(".selection",
-                          domain,
-                          bke::cpp_type_to_attribute_type(type),
-                          bke::AttributeInitMoveArray(dst)))
-      {
-        MEM_delete_void(dst);
-      }
+      attributes.add(".selection",
+                     domain,
+                     bke::cpp_type_to_attribute_type(dst->data.type()),
+                     bke::AttributeInitShared(dst->data.data(), *dst));
+      dst->remove_user_and_delete_if_last();
 
       changed = true;
 
