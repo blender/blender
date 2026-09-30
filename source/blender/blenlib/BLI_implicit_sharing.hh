@@ -226,6 +226,15 @@ template<typename T> class ImplicitSharedValue : public ImplicitSharingInfo {
   {
     delete this;
   }
+
+  void delete_data_only() override
+  {
+    /* Free the data when there are only weak users left, since they may keep the sharing info
+     * alive much longer. Types that can't be reset are freed together with the sharing info. */
+    if constexpr (requires { this->data = T(); }) {
+      this->data = T();
+    }
+  }
 };
 
 /**
