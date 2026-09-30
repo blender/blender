@@ -369,7 +369,7 @@ bool OneapiDevice::shared_alloc(void *&shared_pointer, const size_t size)
   return shared_pointer != nullptr;
 }
 
-void OneapiDevice::shared_free(void *shared_pointer)
+void OneapiDevice::shared_free(void *shared_pointer, const size_t /*size*/)
 {
   usm_free(device_queue_, shared_pointer);
 }
