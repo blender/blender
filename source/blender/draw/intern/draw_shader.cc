@@ -118,6 +118,9 @@ class ShaderCache {
   gpu::StaticShader draw_resource_finalize = {"draw_resource_finalize"};
   gpu::StaticShader draw_command_generate = {"draw_command_generate"};
 
+  gpu::StaticShader mesh_gather = {"draw_mesh_gather"};
+  gpu::StaticShader mesh_scatter_faces = {"draw_mesh_scatter_faces"};
+
   gpu::StaticShader subdiv_sh[SUBDIVISION_MAX_SHADERS];
   gpu::StaticShader subdiv_custom_data_sh[SHADER_CUSTOM_DATA_INTERP_MAX_DIMENSIONS][GPU_COMP_MAX];
   gpu::StaticShader subdiv_interp_corner_normals_sh = {
@@ -224,6 +227,16 @@ gpu::Shader *DRW_shader_draw_resource_finalize_get()
 gpu::Shader *DRW_shader_draw_command_generate_get()
 {
   return ShaderCache::get().draw_command_generate.get();
+}
+
+gpu::Shader *DRW_shader_mesh_gather_get()
+{
+  return ShaderCache::get().mesh_gather.get();
+}
+
+gpu::Shader *DRW_shader_mesh_scatter_faces_get()
+{
+  return ShaderCache::get().mesh_scatter_faces.get();
 }
 
 gpu::Shader *DRW_shader_subdiv_get(SubdivShaderType shader_type)

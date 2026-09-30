@@ -31,6 +31,9 @@ gpu::Shader *DRW_shader_draw_view_finalize_get();
 gpu::Shader *DRW_shader_draw_resource_finalize_get();
 gpu::Shader *DRW_shader_draw_command_generate_get();
 
+gpu::Shader *DRW_shader_mesh_gather_get();
+gpu::Shader *DRW_shader_mesh_scatter_faces_get();
+
 /* Subdivision */
 enum class SubdivShaderType {
   BUFFER_LINES = 0,

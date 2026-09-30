@@ -587,6 +587,9 @@ static void mesh_buffer_cache_clear(MeshBufferCache *mbc)
 
   mbc->loose_geom = {};
   mbc->face_sorted = {};
+  mbc->corner_verts.reset();
+  mbc->corner_edges.reset();
+  mbc->face_offsets.reset();
 }
 
 static void mesh_batch_cache_free_subdiv_cache(MeshBatchCache &cache)

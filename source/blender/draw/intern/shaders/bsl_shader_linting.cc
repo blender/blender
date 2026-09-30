@@ -13,6 +13,7 @@
 #include "draw_curves_topology.bsl.hh"         /* IWYU pragma: export */
 #include "draw_gsplat.bsl.hh"                  /* IWYU pragma: export */
 #include "draw_gsplat_lib.bsl.hh"              /* IWYU pragma: export */
+#include "draw_mesh_to_corner.bsl.hh"          /* IWYU pragma: export */
 #include "draw_model.bsl.hh"                   /* IWYU pragma: export */
 #include "draw_view.bsl.hh"                    /* IWYU pragma: export */
 #include "draw_visibility.bsl.hh"              /* IWYU pragma: export */

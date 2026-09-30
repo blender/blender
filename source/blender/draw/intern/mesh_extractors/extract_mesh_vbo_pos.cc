@@ -15,38 +15,31 @@
 
 namespace blender::draw {
 
-static void extract_positions_mesh(const MeshRenderData &mr, MutableSpan<float3> vbo_data)
+static void extract_vert_positions_mesh(const MeshRenderData &mr,
+                                        MutableSpan<float3> vert_data,
+                                        MutableSpan<float3> loose_data)
 {
-  MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
-  MutableSpan loose_edge_data = vbo_data.slice(mr.corners_num, mr.loose_edges.size() * 2);
-  MutableSpan loose_vert_data = vbo_data.take_back(mr.loose_verts.size());
-
+  MutableSpan loose_edge_data = loose_data.take_front(mr.loose_edges.size() * 2);
+  MutableSpan loose_vert_data = loose_data.take_back(mr.loose_verts.size());
   threading::memory_bandwidth_bound_task(
-      mr.vert_positions.size_in_bytes() + mr.corner_verts.size_in_bytes() +
-          vbo_data.size_in_bytes() + mr.loose_edges.size(),
-      [&]() {
-        array_utils::gather(mr.vert_positions, mr.corner_verts, corners_data);
+      mr.vert_positions.size_in_bytes() * 2 + loose_data.size_in_bytes(), [&]() {
+        array_utils::copy(mr.vert_positions, vert_data);
         extract_mesh_loose_edge_data(mr.vert_positions, mr.edges, mr.loose_edges, loose_edge_data);
         array_utils::gather(mr.vert_positions, mr.loose_verts, loose_vert_data);
       });
 }
 
-static void extract_positions_bm(const MeshRenderData &mr, MutableSpan<float3> vbo_data)
+static void extract_vert_positions_bm(const MeshRenderData &mr,
+                                      MutableSpan<float3> vert_data,
+                                      MutableSpan<float3> loose_data)
 {
   const BMesh &bm = *mr.bm;
-  MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
-  MutableSpan loose_edge_data = vbo_data.slice(mr.corners_num, mr.loose_edges.size() * 2);
-  MutableSpan loose_vert_data = vbo_data.take_back(mr.loose_verts.size());
+  MutableSpan loose_edge_data = loose_data.take_front(mr.loose_edges.size() * 2);
+  MutableSpan loose_vert_data = loose_data.take_back(mr.loose_verts.size());
 
-  threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
-    for (const int face_index : range) {
-      const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-      const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
-      for ([[maybe_unused]] const int i : IndexRange(face.len)) {
-        const int index = BM_elem_index_get(loop);
-        corners_data[index] = bm_vert_co_get(mr, loop->v);
-        loop = loop->next;
-      }
+  threading::parallel_for(IndexRange(bm.totvert), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      vert_data[i] = bm_vert_co_get(mr, BM_vert_at_index(&const_cast<BMesh &>(bm), i));
     }
   });
 
@@ -66,21 +59,25 @@ static void extract_positions_bm(const MeshRenderData &mr, MutableSpan<float3> v
       exec_mode::grain_size(2048));
 }
 
-gpu::VertBufPtr extract_positions(const MeshRenderData &mr)
+gpu::VertBufPtr extract_positions(const MeshRenderData &mr, MeshBufferCache &cache)
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
       "pos", gpu::VertAttrType::SFLOAT_32_32_32);
-  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
-  GPU_vertbuf_data_alloc(*vbo, mr.corners_num + mr.loose_indices_num);
 
-  MutableSpan vbo_data = vbo->data<float3>();
+  gpu::VertBufPtr vert_vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vert_vbo, mr.verts_num);
+  Array<float3> loose_data(mr.loose_indices_num);
   if (mr.extract_type == MeshExtractType::Mesh) {
-    extract_positions_mesh(mr, vbo_data);
+    extract_vert_positions_mesh(mr, vert_vbo->data<float3>(), loose_data);
   }
   else {
-    extract_positions_bm(mr, vbo_data);
+    extract_vert_positions_bm(mr, vert_vbo->data<float3>(), loose_data);
   }
 
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(
+      GPU_vertbuf_create_on_device(format, mr.corners_num + mr.loose_indices_num));
+  gather_vert_to_corner_gpu(mr, cache, *vert_vbo, *vbo);
+  loose_data_upload(mr, loose_data.as_span(), *vbo);
   return vbo;
 }
 

@@ -78,13 +78,11 @@ static void extract_weights_mesh(const MeshRenderData &mr,
     return;
   }
 
-  Array<float> weights(dverts.size());
-  threading::parallel_for(weights.index_range(), 1024, [&](const IndexRange range) {
+  threading::parallel_for(vbo_data.index_range(), 1024, [&](const IndexRange range) {
     for (const int vert : range) {
-      weights[vert] = evaluate_vertex_weight(&dverts[vert], &weight_state);
+      vbo_data[vert] = evaluate_vertex_weight(&dverts[vert], &weight_state);
     }
   });
-  array_utils::gather(weights.as_span(), mr.corner_verts, vbo_data);
 }
 
 static void extract_weights_bm(const MeshRenderData &mr,
@@ -98,48 +96,50 @@ static void extract_weights_bm(const MeshRenderData &mr,
     return;
   }
 
-  threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
-    for (const int face_index : range) {
-      const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-      const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
-      for ([[maybe_unused]] const int i : IndexRange(face.len)) {
-        const int index = BM_elem_index_get(loop);
-        vbo_data[index] = evaluate_vertex_weight(
-            static_cast<const MDeformVert *>(BM_ELEM_CD_GET_VOID_P(loop->v, offset)),
-            &weight_state);
-        loop = loop->next;
-      }
+  threading::parallel_for(IndexRange(bm.totvert), 2048, [&](const IndexRange range) {
+    for (const int vert_index : range) {
+      const BMVert &vert = *BM_vert_at_index(&const_cast<BMesh &>(bm), vert_index);
+      vbo_data[vert_index] = evaluate_vertex_weight(
+          static_cast<const MDeformVert *>(BM_ELEM_CD_GET_VOID_P(&vert, offset)), &weight_state);
     }
   });
 }
 
-gpu::VertBufPtr extract_weights(const MeshRenderData &mr, const MeshBatchCache &cache)
+gpu::VertBufPtr extract_weights(const MeshRenderData &mr,
+                                const MeshBatchCache &batch_cache,
+                                MeshBufferCache &cache)
 {
   static GPUVertFormat format = GPU_vertformat_from_attribute("weight",
                                                               gpu::VertAttrType::SFLOAT_32);
 
-  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
-  GPU_vertbuf_data_alloc(*vbo, mr.corners_num);
-  MutableSpan<float> vbo_data = vbo->data<float>();
+  gpu::VertBufPtr vert_vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vert_vbo, mr.verts_num);
+  MutableSpan<float> vbo_data = vert_vbo->data<float>();
 
-  const DRW_MeshWeightState &weight_state = cache.weight_state;
+  const DRW_MeshWeightState &weight_state = batch_cache.weight_state;
   if (weight_state.defgroup_active == -1) {
     vbo_data.fill(weight_state.alert_mode == OB_DRAW_GROUPUSER_NONE ? 0.0f : -1.0f);
-    return vbo;
-  }
-
-  if (mr.extract_type == MeshExtractType::Mesh) {
-    extract_weights_mesh(mr, weight_state, vbo_data);
   }
   else {
-    extract_weights_bm(mr, weight_state, vbo_data);
+    if (mr.extract_type == MeshExtractType::Mesh) {
+      extract_weights_mesh(mr, weight_state, vbo_data);
+    }
+    else {
+      extract_weights_bm(mr, weight_state, vbo_data);
+    }
   }
+
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_on_device(format, mr.corners_num));
+
+  gather_vert_to_corner_gpu(mr, cache, *vert_vbo, *vbo);
+
   return vbo;
 }
 
 gpu::VertBufPtr extract_weights_subdiv(const MeshRenderData &mr,
                                        const DRWSubdivCache &subdiv_cache,
-                                       const MeshBatchCache &cache)
+                                       const MeshBatchCache &batch_cache,
+                                       MeshBufferCache &cache)
 {
   static GPUVertFormat format = GPU_vertformat_from_attribute("weight",
                                                               gpu::VertAttrType::SFLOAT_32);
@@ -147,7 +147,7 @@ gpu::VertBufPtr extract_weights_subdiv(const MeshRenderData &mr,
   gpu::VertBufPtr vbo = gpu::VertBufPtr(
       GPU_vertbuf_create_on_device(format, subdiv_cache.num_subdiv_loops));
 
-  gpu::VertBufPtr coarse_weights = extract_weights(mr, cache);
+  gpu::VertBufPtr coarse_weights = extract_weights(mr, batch_cache, cache);
   draw_subdiv_interp_custom_data(subdiv_cache, *coarse_weights, *vbo, GPU_COMP_F32, 1, 0);
   return vbo;
 }
