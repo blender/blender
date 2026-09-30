@@ -121,22 +121,7 @@ LibOCIOConfig::~LibOCIOConfig() = default;
 
 void LibOCIOConfig::initialize_active_color_spaces(Set<StringRef> &primary_interop_ids)
 {
-  OCIO_NAMESPACE::ColorSpaceSetRcPtr ocio_color_spaces;
-
-  try {
-    ocio_color_spaces = ocio_config_->getColorSpaces(nullptr);
-  }
-  catch (OCIO_NAMESPACE::Exception &exception) {
-    report_exception(exception);
-    return;
-  }
-
-  if (!ocio_color_spaces) {
-    report_error("Invalid OpenColorIO configuration: color spaces set is nullptr");
-    return;
-  }
-
-  const int num_color_spaces = ocio_color_spaces->getNumColorSpaces();
+  const int num_color_spaces = ocio_config_->getNumColorSpaces();
   if (num_color_spaces < 0) {
     report_error(fmt::format(
         "Invalid OpenColorIO configuration: invalid number of color spaces {}", num_color_spaces));
@@ -146,8 +131,23 @@ void LibOCIOConfig::initialize_active_color_spaces(Set<StringRef> &primary_inter
   color_spaces_.reserve(num_color_spaces);
 
   for (const int i : IndexRange(num_color_spaces)) {
-    const OCIO_NAMESPACE::ConstColorSpaceRcPtr ocio_color_space =
-        ocio_color_spaces->getColorSpaceByIndex(i);
+    const char *colorspace_name = ocio_config_->getColorSpaceNameByIndex(i);
+
+    OCIO_NAMESPACE::ConstColorSpaceRcPtr ocio_color_space;
+    try {
+      ocio_color_space = ocio_config_->getColorSpace(colorspace_name);
+    }
+    catch (OCIO_NAMESPACE::Exception &exception) {
+      report_exception(exception);
+      return;
+    }
+
+    if (!ocio_color_space) {
+      report_error(fmt::format("Invalid OpenColorIO configuration: color space {} not found",
+                               colorspace_name));
+      return;
+    }
+
     color_spaces_.append(std::make_unique<LibOCIOColorSpace>(
         i, ocio_config_, ocio_color_space, primary_interop_ids));
   }
