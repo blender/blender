@@ -2263,15 +2263,15 @@ void RNA_api_ui_layout(StructRNA *srna)
                 100.0f);
 
   func = RNA_def_function(srna, "template_histogram", "template_histogram");
-  RNA_def_function_ui_description(func, "Item. A histogramm widget to analyze imaga data.");
+  RNA_def_function_ui_description(func, "Item. A histogram widget to analyze image data.");
   api_ui_item_rna_common(func);
 
   func = RNA_def_function(srna, "template_waveform", "template_waveform");
-  RNA_def_function_ui_description(func, "Item. A waveform widget to analyze imaga data.");
+  RNA_def_function_ui_description(func, "Item. A waveform widget to analyze image data.");
   api_ui_item_rna_common(func);
 
   func = RNA_def_function(srna, "template_vectorscope", "template_vectorscope");
-  RNA_def_function_ui_description(func, "Item. A vectorscope widget to analyze imaga data.");
+  RNA_def_function_ui_description(func, "Item. A vectorscope widget to analyze image data.");
   api_ui_item_rna_common(func);
 
   func = RNA_def_function(srna, "template_layers", "template_layers");
