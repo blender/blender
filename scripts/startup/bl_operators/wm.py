@@ -3781,7 +3781,7 @@ class WM_OT_drop_blend_file(Operator):
         # Match the file selector.
         self.use_scripts = self._is_autoexec(self.filepath, skip_overrides=False)
         # The popup shows this operators own UI, keeping it alive while it's open.
-        return context.window_manager.invoke_popup(self, auto_keymap=True)
+        return context.window_manager.invoke_popup(self, width=200, auto_keymap=True)
 
 
 classes = (
