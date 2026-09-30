@@ -1078,7 +1078,6 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
        * collide with other resources. */
       Resource res(info, Resource::BindType::SAMPLER, input.index, nullptr);
       res.sampler.type = input.img_type;
-      res.sampler.sampler = GPUSamplerState::default_sampler();
       res.sampler.name = image_name;
       print_resource(ss, interface, res, info);
 
