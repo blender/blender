@@ -23,3 +23,7 @@
 #else
 #  define OSD_PATCH_BASIS_GLSL
 #endif
+
+#ifdef SRT_CONSTANT_use_1st_derivatives
+#  define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES
+#endif

@@ -17,5 +17,10 @@
 #include "draw_model.bsl.hh"                   /* IWYU pragma: export */
 #include "draw_view.bsl.hh"                    /* IWYU pragma: export */
 #include "draw_visibility.bsl.hh"              /* IWYU pragma: export */
+#include "subdiv_attrib_interp.bsl.hh"         /* IWYU pragma: export */
+#include "subdiv_common.bsl.hh"                /* IWYU pragma: export */
+#include "subdiv_ibo_generate.bsl.hh"          /* IWYU pragma: export */
+#include "subdiv_patch_evaluation.bsl.hh"      /* IWYU pragma: export */
+#include "subdiv_vbo_generate.bsl.hh"          /* IWYU pragma: export */
 
 void main() {}
