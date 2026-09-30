@@ -747,7 +747,7 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
 
   /* Process point normals after reading faces. */
   if ((settings->read_flag & MOD_MESHSEQ_READ_VERT) != 0 &&
-      usd_data.normal_interpolation == pxr::UsdGeomTokens->vertex)
+      ELEM(usd_data.normal_interpolation, pxr::UsdGeomTokens->vertex, pxr::UsdGeomTokens->varying))
   {
     process_normals_vertex_varying(mesh, usd_data.normals_for_write());
   }
