@@ -779,7 +779,7 @@ void gpu_shader_create_info_init()
 #ifndef NDEBUG
     /* Automatically amend the create info for ease of use of the debug feature. */
     if (flag_is_set(info->builtins_combined(), BuiltinBits::USE_DEBUG_DRAW)) {
-      info->additional_info("draw_debug_draw");
+      info->additional_info("DebugDraw");
     }
 #endif
   }

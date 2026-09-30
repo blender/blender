@@ -322,7 +322,6 @@ set(LIB
 
 set(GLSL_SRC
   intern/shaders/draw_curves_infos.hh
-  intern/shaders/draw_debug_infos.hh
   intern/shaders/draw_object_infos_infos.hh
   intern/shaders/draw_view_infos.hh
 
@@ -536,8 +535,8 @@ set(GLSL_SRC
   intern/shaders/subdiv_vbo_generate.bsl.hh
   intern/shaders/draw_aabb.bsl.hh
   intern/shaders/draw_colormanagement.bsl.hh
-  intern/shaders/draw_debug_draw_lib.glsl
-  intern/shaders/draw_debug_shape_lib.glsl
+  intern/shaders/draw_debug_draw.bsl.hh
+  intern/shaders/draw_debug_shape.bsl.hh
   intern/shaders/draw_fxaa_lib.glsl
   intern/shaders/draw_curves_interpolation.bsl.hh
   intern/shaders/draw_curves_length_intercept.bsl.hh
@@ -546,8 +545,7 @@ set(GLSL_SRC
   intern/shaders/draw_curves_topology.bsl.hh
   intern/shaders/draw_shape.bsl.hh
   intern/shaders/draw_command_generate.bsl.hh
-  intern/shaders/draw_debug_draw_display_frag.glsl
-  intern/shaders/draw_debug_draw_display_vert.glsl
+  intern/shaders/draw_debug_draw_display.bsl.hh
   intern/shaders/draw_grease_pencil_lib.glsl
   intern/shaders/draw_gsplat.bsl.hh
   intern/shaders/draw_gsplat_lib.bsl.hh

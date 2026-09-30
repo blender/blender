@@ -280,6 +280,7 @@ SourceProcessor::Result SourceProcessor::convert_bsl()
     parser.language = Language::BSL;
     parser.parse(error_handler);
 
+    parse_draw_debug(parser, filename);
     parse_library_functions_ast(parser);
     lower_preprocessor_ast(parser);
 
@@ -1322,11 +1323,30 @@ void SourceProcessor::parse_library_functions_ast(Parser &parser)
   }
 }
 
+void SourceProcessor::parse_draw_debug(Parser &parser, const string &filename)
+{
+  const bool skip_drw_debug = filename == "draw_debug_draw.bsl.hh" ||
+                              filename == "draw_debug_infos.hh" ||
+                              filename == "draw_debug_draw_display.bsl.hh" ||
+                              filename == "draw_shader_shared.hh";
+
+  if (skip_drw_debug) {
+    return;
+  }
+
+  for (auto fn : parser.root().descendants_of_type<FuncCall>()) {
+    if (fn.identifier().str().starts_with("drw_debug_")) {
+      metadata_.builtins.emplace_back(Builtin::drw_debug);
+      break;
+    }
+  }
+}
+
 void SourceProcessor::parse_builtins(const string &str, const string &filename, bool pure_glsl)
 {
-  const bool skip_drw_debug = filename == "draw_debug_draw_lib.glsl" ||
+  const bool skip_drw_debug = filename == "draw_debug_draw.bsl.hh" ||
                               filename == "draw_debug_infos.hh" ||
-                              filename == "draw_debug_draw_display_vert.glsl" ||
+                              filename == "draw_debug_draw_display.bsl.hh" ||
                               filename == "draw_shader_shared.hh";
   using namespace metadata;
   /* TODO: This can trigger false positive caused by disabled #if blocks. */

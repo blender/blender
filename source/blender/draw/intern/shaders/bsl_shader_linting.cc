@@ -13,6 +13,7 @@
 #include "draw_curves_interpolation.bsl.hh"    /* IWYU pragma: export */
 #include "draw_curves_length_intercept.bsl.hh" /* IWYU pragma: export */
 #include "draw_curves_topology.bsl.hh"         /* IWYU pragma: export */
+#include "draw_debug_draw_display.bsl.hh"      /* IWYU pragma: export */
 #include "draw_gsplat.bsl.hh"                  /* IWYU pragma: export */
 #include "draw_gsplat_lib.bsl.hh"              /* IWYU pragma: export */
 #include "draw_math_geom.bsl.hh"               /* IWYU pragma: export */

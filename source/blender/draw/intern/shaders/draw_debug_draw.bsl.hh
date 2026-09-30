@@ -8,9 +8,11 @@
 
 #pragma once
 
-#include "draw_debug_infos.hh"
+#include "draw_shader_shared.hh"
 
-SHADER_LIBRARY_CREATE_INFO(draw_debug_draw)
+struct DebugDraw {
+  [[storage(DRW_DEBUG_DRAW_SLOT, read_write)]] DRWDebugVertPair (&drw_debug_lines_buf)[];
+};
 
 /**
  * Debugging drawing library
@@ -19,13 +21,11 @@ SHADER_LIBRARY_CREATE_INFO(draw_debug_draw)
  * will be rendered in the default view. No additional setup required.
  */
 
-#ifdef DRW_DEBUG_DRAW
-
 /** Global switch option. */
 bool drw_debug_draw_enable = true;
-#  define drw_debug_default_color float4(1.0f, 0.0f, 0.0f, 1.0f)
-#  define drw_debug_default_lifetime 1
-#  define drw_debug_persistent_lifetime (~0u)
+#define drw_debug_default_color float4(1.0f, 0.0f, 0.0f, 1.0f)
+#define drw_debug_default_lifetime 1
+#define drw_debug_persistent_lifetime (~0u)
 
 /* -------------------------------------------------------------------- */
 /** \name Internals
@@ -33,21 +33,24 @@ bool drw_debug_draw_enable = true;
 
 uint drw_debug_start_draw(uint v_needed)
 {
-  uint vertid = atomicAdd(drw_debug_draw_v_count(drw_debug_lines_buf), v_needed);
+  [[resource_table]] DebugDraw &srt = resource_table_get(DebugDraw);
+  uint vertid = atomicAdd(drw_debug_draw_v_count(srt.drw_debug_lines_buf), v_needed);
   return vertid;
 }
 
 void drw_debug_line(uint &vertid, float3 v1, float3 v2, uint v_color, uint lifetime)
 {
+  [[resource_table]] DebugDraw &srt = resource_table_get(DebugDraw);
   uint out_line_id = vertid / 2u;
-  drw_debug_lines_buf[out_line_id + drw_debug_draw_offset] = debug_line_make(floatBitsToUint(v1.x),
-                                                                             floatBitsToUint(v1.y),
-                                                                             floatBitsToUint(v1.z),
-                                                                             floatBitsToUint(v2.x),
-                                                                             floatBitsToUint(v2.y),
-                                                                             floatBitsToUint(v2.z),
-                                                                             v_color,
-                                                                             lifetime);
+  srt.drw_debug_lines_buf[out_line_id + drw_debug_draw_offset] = debug_line_make(
+      floatBitsToUint(v1.x),
+      floatBitsToUint(v1.y),
+      floatBitsToUint(v1.z),
+      floatBitsToUint(v2.x),
+      floatBitsToUint(v2.y),
+      floatBitsToUint(v2.z),
+      v_color,
+      lifetime);
   vertid += 2;
 }
 
@@ -242,7 +245,5 @@ void drw_debug_matrix_as_bbox(float4x4 mat)
 {
   drw_debug_matrix_as_bbox(mat, drw_debug_default_color);
 }
-
-#endif
 
 /** \} */

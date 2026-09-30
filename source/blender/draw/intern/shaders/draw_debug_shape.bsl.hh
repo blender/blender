@@ -12,7 +12,7 @@
  * Debug drawing of shapes.
  */
 
-#include "draw_debug_draw_lib.glsl"
+#include "draw_debug_draw.bsl.hh"
 #include "draw_shape.bsl.hh"
 
 void drw_debug(Box shape, float4 color)
