@@ -332,6 +332,11 @@ def main():
 
     os.environ['BLENDER_HYDRA_EXPORT_METHOD'] = args.export_method
 
+    # Workaround OpenUSD bug with perspective projection and textures.
+    # Introduced in 05f6192 upstream.
+    os.environ['HGIVULKAN_ENABLE_BUILTIN_BARYCENTRICS'] = "0"
+    os.environ['HGIGL_ENABLE_BUILTIN_BARYCENTRICS'] = "0"
+
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 
     sys.exit(not ok)
