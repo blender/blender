@@ -1714,6 +1714,11 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   add_blender_test(
+    bl_texture_paint_undo
+    --python ${CMAKE_CURRENT_LIST_DIR}/sculpt_paint/texture_paint_undo_test.py
+  )
+
+  add_blender_test(
     bl_grease_pencil_paint_tests
     --python ${CMAKE_CURRENT_LIST_DIR}/sculpt_paint/grease_pencil_paint_tests.py
     --

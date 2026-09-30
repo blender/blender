@@ -391,6 +391,7 @@ bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, ImBufFlags flags)
   ibuf->channels = 4;
   /* IMB_DPI_DEFAULT -> pixels-per-meter. */
   ibuf->ppm[0] = ibuf->ppm[1] = IMB_DPI_DEFAULT / 0.0254;
+  ibuf->full_update_changeset_id = IMB_partial_update_changeset_id_next();
 
   const bool init_pixels = !flag_is_set(flags, ImBufFlags::UninitializedPixels);
 

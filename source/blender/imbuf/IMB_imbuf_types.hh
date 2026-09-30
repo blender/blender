@@ -34,6 +34,10 @@ namespace imbuf::partial_update {
 struct Tracker;
 }
 
+namespace imbuf {
+using ChangesetID = int64_t;
+}
+
 namespace ocio {
 class ColorSpace;
 }
@@ -152,7 +156,7 @@ struct ImBufGPU {
   ImBufGPUFlag flag = ImBufGPUFlag(0);
 
   /** Changeset tracking for partial update. */
-  std::atomic<int64_t> partial_update_changeset = -1;
+  std::atomic<imbuf::ChangesetID> partial_update_changeset_id = -1;
 
   /** Mutex guarding access to #texture, #lastused, and #flag. */
   blender::Mutex mutex;
@@ -232,6 +236,11 @@ struct ImBuf {
   /** Partial update tracking for GPU textures and image drawing. */
   imbuf::partial_update::Tracker *partial_update = nullptr;
   Mutex partial_update_mutex;
+
+  /** Unique changeset ID of the last full update, to track when the undo
+   * system needs to assume the whole image buffer has changed and no partial
+   * undo is possible. */
+  std::atomic<imbuf::ChangesetID> full_update_changeset_id = -1;
 
   /** Resolution in pixels per meter. Multiply by `0.0254` for DPI. */
   double ppm[2] = {0.0, 0.0};
