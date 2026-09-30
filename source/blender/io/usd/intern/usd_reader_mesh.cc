@@ -233,6 +233,15 @@ void USDMeshReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
     is_time_varying_ = true;
   }
 
+  /* Make one final check against the special primvars:normals in case that was set. */
+  if (!is_time_varying_) {
+    const pxr::UsdGeomPrimvarsAPI primvarsAPI(mesh_prim_);
+    const pxr::UsdGeomPrimvar primvar = primvarsAPI.GetPrimvar(usdtokens::normalsPrimvar);
+    if (primvar.HasValue() && primvar.ValueMightBeTimeVarying()) {
+      is_time_varying_ = true;
+    }
+  }
+
   if (is_time_varying_) {
     add_cache_modifier();
   }
