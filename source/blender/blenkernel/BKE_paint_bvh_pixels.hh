@@ -243,7 +243,6 @@ struct PixelData {
 
 void mark_image_dirty(bke::pbvh::Node &node,
                       PixelNode &pixel_node,
-                      Image &image,
                       Map<image::TileNumber, ImBuf *> &buffers);
 PixelData &data_get(bke::pbvh::Tree &pbvh);
 void collect_dirty_tiles(PixelNode &pixel_node, Vector<image::TileNumber> &r_dirty_tiles);

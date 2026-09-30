@@ -810,8 +810,7 @@ void do_3d_image_paint_brush(const Depsgraph &depsgraph,
   fix_non_manifold_seam_bleeding(ob, image_data, nodes, pixel_nodes, node_mask);
 
   node_mask.foreach_index([&](const int i) {
-    bke::pbvh::pixels::mark_image_dirty(
-        nodes[i], pixel_nodes[i], *image_data.image, image_data.image_buffers);
+    bke::pbvh::pixels::mark_image_dirty(nodes[i], pixel_nodes[i], image_data.image_buffers);
   });
 }
 }  // namespace ed::sculpt_paint::image
