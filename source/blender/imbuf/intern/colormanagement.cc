@@ -1342,16 +1342,18 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name)
 
 const char *IMB_colormanagement_srgb_colorspace_name_get()
 {
-  /* Make a best effort to find by common names. First two are from the ColorInterop forum. */
-  const char *names[] = {"sRGB Encoded Rec.709 (sRGB)",
-                         "srgb_rec709_scene",
-                         "Utility - sRGB - Texture",
-                         "sRGB - Texture",
-                         "sRGB",
-                         nullptr};
-  for (int i = 0; names[i]; i++) {
-    const ColorSpace *colorspace = g_config()->get_color_space(names[i]);
-    if (colorspace) {
+  /* Try interop ID. */
+  for (const char *interop_id : {"srgb_rec709_scene", "srgb_rec709_display"}) {
+    if (const ColorSpace *colorspace = g_config()->get_color_space_by_interop_id(interop_id)) {
+      return colorspace->name().c_str();
+    }
+  }
+
+  /* Common names in configs without interop IDs. */
+  for (const char *name :
+       {"sRGB Encoded Rec.709 (sRGB)", "Utility - sRGB - Texture", "sRGB - Texture", "sRGB"})
+  {
+    if (const ColorSpace *colorspace = g_config()->get_color_space(name)) {
       return colorspace->name().c_str();
     }
   }
