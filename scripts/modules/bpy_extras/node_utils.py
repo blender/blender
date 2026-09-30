@@ -26,32 +26,12 @@ def find_base_socket_type(socket):
         return socket.bl_idname
     if socket.type == 'VALUE':
         return 'NodeSocketFloat'
-    if socket.type == 'INT':
-        return 'NodeSocketInt'
     if socket.type == 'BOOLEAN':
         return 'NodeSocketBool'
-    if socket.type == 'VECTOR':
-        return 'NodeSocketVector'
-    if socket.type == 'ROTATION':
-        return 'NodeSocketRotation'
-    if socket.type == 'STRING':
-        return 'NodeSocketString'
     if socket.type == 'RGBA':
         return 'NodeSocketColor'
-    if socket.type == 'SHADER':
-        return 'NodeSocketShader'
-    if socket.type == 'OBJECT':
-        return 'NodeSocketObject'
-    if socket.type == 'IMAGE':
-        return 'NodeSocketImage'
-    if socket.type == 'GEOMETRY':
-        return 'NodeSocketGeometry'
-    if socket.type == 'COLLECTION':
-        return 'NodeSocketCollection'
-    if socket.type == 'TEXTURE':
-        return 'NodeSocketTexture'
-    if socket.type == 'MATERIAL':
-        return 'NodeSocketMaterial'
+    else:
+        return "NodeSocket" + socket.type.title()
 
 
 def connect_sockets(input, output):
