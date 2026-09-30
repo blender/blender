@@ -505,7 +505,7 @@ class ToolSelectPanelHelper:
             keymap_fn[0](km)
         keymap_fn[0] = km.name
 
-        # Ensure we have a default key map, so the add-ons keymap is properly overlayed.
+        # Ensure we have a default key map, so the add-ons keymap is properly overlaid.
         if kc_default is not kc:
             kc_default.keymaps.new(km_idname, **km_kwargs)
 

@@ -254,7 +254,7 @@ class Octree {
   DualConMode mode;
 
   /**
-   * Construtor
+   * Constructor
    */
   Octree(ModelReader *mr,
          DualConAllocOutput alloc_output_func,
@@ -754,7 +754,7 @@ class Octree {
   /** Find edge intersection on a given edge */
   int getEdgeIntersectionByIndex(int st[3], int index, float pt[3], int check) const
   {
-    /* First, locat the leaf */
+    /* First, locate the leaf */
     const LeafNode *leaf;
     if (check) {
       leaf = locateLeafCheck(st);

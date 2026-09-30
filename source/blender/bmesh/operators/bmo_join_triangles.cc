@@ -827,7 +827,7 @@ static void reprioritize_join(JoinEdgesState &s,
    * grids have an alignment of 100% Neither topology_influence nor alignment can be negative;
    * therefore the multiplier *never* makes error worse. once combined, 0 means no improvement, 1
    * means improve all the way to exactly match the quality of the contributing neighbor.
-   * topology_influece is allowed to exceed 1.0, which lets it cancel out some of the alignment
+   * topology_influence is allowed to exceed 1.0, which lets it cancel out some of the alignment
    * penalty. */
   float multiplier = s.topo_influnce * alignment;
 

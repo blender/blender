@@ -12,7 +12,7 @@
 #include "gpu_shader_math_matrix_transform.bsl.hh"
 #include "gpu_shader_math_spherical_harmonics.bsl.hh"
 
-/* Based on Frosbite Unified Volumetric.
+/* Based on Frostbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
 
 struct UnifiedVolumeProperties {

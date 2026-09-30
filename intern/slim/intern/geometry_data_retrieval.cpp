@@ -110,7 +110,7 @@ bool GeometryData::has_valid_preinitialized_map() const
   return false;
 }
 
-/* If we use interactive parametrisation, we usually start form an existing, flip-free unwrapping.
+/* If we use interactive parameterization, we usually start form an existing, flip-free unwrapping.
  * Also, pinning of vertices has some issues with initialisation with convex border.
  * We therefore may want to skip initialization. however, to skip initialization we need a
  * preexisting valid starting map. */

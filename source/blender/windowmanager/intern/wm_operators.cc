@@ -1437,7 +1437,7 @@ static ui::Block *wm_block_create_redo(bContext *C, ARegion *region, void *arg_o
                         ui::BLOCK_POPUP);
 
   /* If register is not enabled, the operator gets freed on #OPERATOR_FINISHED
-   * ui_apply_but_funcs_after calls #ED_undo_operator_repeate_cb and crashes. */
+   * ui_apply_but_funcs_after calls #ED_undo_operator_repeat_cb and crashes. */
   BLI_assert(op->type->flag & OPTYPE_REGISTER);
 
   block_func_handle_set(block, wm_block_redo_cb, arg_op);

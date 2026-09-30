@@ -1002,7 +1002,7 @@ class ViewEdge : public Interface1D {
     userdata = nullptr;
     _splittingId = nullptr;
     _isInImage = true;
-    UpdateFEdges();  // tells every FEdge between iFEdgeA and iFEdgeB that this is theit ViewEdge
+    UpdateFEdges();  // tells every FEdge between iFEdgeA and iFEdgeB that this is the ViewEdge
   }
 
   // soc protected:

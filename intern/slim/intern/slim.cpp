@@ -188,7 +188,7 @@ static inline void grad(const Eigen::PlainObjectBase<DerivedV> &V,
  * Inputs:
  *   A  3 by 3 matrix to be decomposed
  * Outputs:
- *   R  3 by 3 rotation matrix part of decomposition (**always rotataion**)
+ *   R  3 by 3 rotation matrix part of decomposition (**always rotation**)
  *   T  3 by 3 stretch matrix part of decomposition
  *   U  3 by 3 left-singular vectors
  *   S  3 by 1 singular values

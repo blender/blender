@@ -224,7 +224,7 @@ class SkyMultipleScattering {
   float aerosol_density;
   float ozone_density;
 
-  /* Compute absorption/scattering coeffients at the given altitude. */
+  /* Compute absorption/scattering coefficients at the given altitude. */
   void get_atmosphere_collision_coefficients(const float altitude,
                                              float4 &aerosol_absorption,
                                              float4 &aerosol_scattering,

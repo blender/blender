@@ -238,7 +238,7 @@ bool Distance::setControlParameters(struct ConstraintValues* _values, unsigned i
 						if (timestep>0.0) {
 							m_yddot = (_data->yd-m_yd)/timestep;
 						} else {
-							// allow the user to change target instantenously when this function
+							// allow the user to change target instantaneously when this function
 							// if called from setControlParameter with timestep = 0
 							m_yddot = m_nextyddot;
 							m_yd = m_nextyd;
