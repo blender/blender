@@ -323,6 +323,10 @@ class NODE_OT_merge_selected(Operator, NWBase):
                         add_type = 'GeometryNodeJoinGeometry'
                         add = self.merge_with_multi_input(
                             nodes_list, merge_position, do_hide, loc_x, links, nodes, add_type, [0])
+                    elif mode == 'INSTANCES':
+                        add_type = 'GeometryNodeGeometryToInstance'
+                        add = self.merge_with_multi_input(
+                            nodes_list, merge_position, do_hide, loc_x, links, nodes, add_type, [0])
                     else:
                         add_type = 'GeometryNodeMeshBoolean'
                         indices = [0, 1] if mode == 'DIFFERENCE' else [1]
