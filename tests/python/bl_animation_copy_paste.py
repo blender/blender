@@ -544,6 +544,22 @@ class WorldSpacePasteTest(AbstractCopyPasteTest):
 
         self._assert_objects_equal_world_space(copy_obj, paste_obj)
 
+    def test_parented_objects(self) -> None:
+        """Parent inverse matrix should be correctly accounted for during matrix calculations."""
+        copy_obj: bpy.types.Object = bpy.data.objects["parentinv_object"]
+        bpy.context.view_layer.objects.active = copy_obj
+        paste_obj: bpy.types.Object = bpy.data.objects["paste_parentinv_object"]
+        copy_obj.select_set(True)
+        paste_obj.select_set(False)
+
+        bpy.ops.anim.world_space_copy(range_mode='CUSTOM', start=0, end=10)
+
+        copy_obj.select_set(False)
+        paste_obj.select_set(True)
+        bpy.ops.anim.world_space_paste(offset='NONE')
+
+        self._assert_objects_equal_world_space(copy_obj, paste_obj)
+
 
 class SingleFrameCopyPasteTest(AbstractCopyPasteTest):
 
