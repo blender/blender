@@ -2151,6 +2151,11 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                 error_fn=self.error_fn_from_exception,
             )
 
+        extensions_enabled = _extensions_enabled_with_pending([
+            (repo_item.directory, pkg_id_sequence)
+            for (repo_item, pkg_id_sequence, _result) in self._addon_restore
+        ])
+
         # TODO: it would be nice to include this message in the banner.
         def handle_error(ex):
             self.report({'ERROR'}, str(ex))
@@ -2158,11 +2163,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
         # Ensure wheels are refreshed before re-enabling.
         _extensions_repo_refresh_on_change(
             repo_cache_store,
-            extensions_enabled=set(
-                (repo_item.module, pkg_id)
-                for (repo_item, pkg_id_sequence, result) in self._addon_restore
-                for pkg_id in pkg_id_sequence
-            ),
+            extensions_enabled=extensions_enabled,
             compat_calc=True,
             stats_calc=True,
             error_fn=handle_error,
