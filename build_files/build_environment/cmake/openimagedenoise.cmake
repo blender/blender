@@ -32,7 +32,7 @@ else()
       -DOIDN_DEVICE_HIP=ON)
   endif()
 
-  if(BLENDER_PLATFORM_ARM AND UNIX)
+  if(BLENDER_PLATFORM_ARM)
     # Target ARMv8.2-A with dot product and half float.
     # There is no -march=armv8.2-a+dotprod+fp16+lse flag for ISPC, so we target
     # a CPU with the same features. Otherwise ISPC will do something similar to
