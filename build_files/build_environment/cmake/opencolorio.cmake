@@ -107,8 +107,8 @@ if(WIN32)
         ${LIBDIR}/opencolorio/include
         ${HARVEST_TARGET}/opencolorio/include
       COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/opencolorio/bin/OpenColorIO_2_5.dll
-        ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_2_5.dll
+        ${LIBDIR}/opencolorio/bin/OpenColorIO_2_6.dll
+        ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_2_6.dll
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${LIBDIR}/opencolorio/lib
         ${HARVEST_TARGET}/opencolorio/lib
@@ -119,8 +119,8 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_opencolorio after_install
       COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/opencolorio/bin/OpenColorIO_d_2_5.dll
-        ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_d_2_5.dll
+        ${LIBDIR}/opencolorio/bin/OpenColorIO_d_2_6.dll
+        ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_d_2_6.dll
       COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/opencolorio/lib/OpenColorIO_d.lib
         ${HARVEST_TARGET}/opencolorio/lib/OpenColorIO_d.lib
