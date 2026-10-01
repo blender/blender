@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "draw_shader_shared.hh"
+#include "draw_debug_shared.hh"
 
 /* TODO(fclem): Deduplicate with overlay. */
 /* edge_start and edge_pos needs to be in the range [0..sizeViewport]. */
@@ -72,7 +72,8 @@ void vert_main([[resource_table]] DebugDrawDisplay &srt,
 
   /* Lifetime management. */
   if (is_provoking_vertex && vert.lifetime > 1) {
-    uint vertid = atomicAdd(drw_debug_draw_v_count(srt.out_debug_lines_buf), 2u);
+    /* drw_debug_draw_v_count */
+    uint vertid = atomicAdd(srt.out_debug_lines_buf[0].pos1_x, 2u);
     if (vertid < DRW_DEBUG_DRAW_VERT_MAX) {
       uint out_line_id = vertid / 2u;
       vert.lifetime -= 1;

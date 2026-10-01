@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "draw_shader_shared.hh"
+#include "draw_debug_shared.hh"
 
 struct DebugDraw {
   [[storage(DRW_DEBUG_DRAW_SLOT, read_write)]] DRWDebugVertPair (&drw_debug_lines_buf)[];
@@ -23,9 +23,9 @@ struct DebugDraw {
 
 /** Global switch option. */
 bool drw_debug_draw_enable = true;
-#define drw_debug_default_color float4(1.0f, 0.0f, 0.0f, 1.0f)
-#define drw_debug_default_lifetime 1
-#define drw_debug_persistent_lifetime (~0u)
+static constexpr float4 drw_debug_default_color = float4(1.0f, 0.0f, 0.0f, 1.0f);
+static constexpr uint drw_debug_default_lifetime = 1u;
+static constexpr uint drw_debug_persistent_lifetime = (~0u);
 
 /* -------------------------------------------------------------------- */
 /** \name Internals
@@ -34,7 +34,8 @@ bool drw_debug_draw_enable = true;
 uint drw_debug_start_draw(uint v_needed)
 {
   [[resource_table]] DebugDraw &srt = resource_table_get(DebugDraw);
-  uint vertid = atomicAdd(drw_debug_draw_v_count(srt.drw_debug_lines_buf), v_needed);
+  /* drw_debug_draw_v_count */
+  uint vertid = atomicAdd(srt.drw_debug_lines_buf[0].pos1_x, v_needed);
   return vertid;
 }
 

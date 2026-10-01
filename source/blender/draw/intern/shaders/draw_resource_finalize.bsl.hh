@@ -54,7 +54,7 @@ struct ResourceFinalize {
     bounds.bounding_sphere.xyz = transform_point(model_mat, center);
     /* We have to apply scaling to the diagonal. */
     bounds.bounding_sphere.w = length(transform_direction(model_mat, diagonal)) * 0.5f;
-    bounds._inner_sphere_radius = min_axis;
+    bounds.inner_sphere_radius_set(min_axis);
     bounds.bounding_corners[0].xyz = transform_point(model_mat, p0);
     bounds.bounding_corners[1].xyz = transform_direction(model_mat, p01);
     bounds.bounding_corners[2].xyz = transform_direction(model_mat, p02);

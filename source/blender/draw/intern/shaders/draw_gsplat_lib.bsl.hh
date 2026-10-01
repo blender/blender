@@ -68,10 +68,10 @@ template void swap<float2>(float2 &, float2 &);
 float2 pack_normal_octahedral(float3 N)
 {
   N /= reduce_add(abs(N));
-  N.xy = N.z >= 0.f ?
-             N.xy :
-             (1.f - abs(N.yx)) * mix(float2(-1.f), float2(1.f), greaterThanEqual(N.xy, float2(0)));
-  N.xy = N.xy * .5f + .5f;
+  N.xy = N.z >= 0.0f ? N.xy :
+                       (1.0f - abs(N.yx)) *
+                           mix(float2(-1.0f), float2(1.0f), greaterThanEqual(N.xy, float2(0)));
+  N.xy = N.xy * 0.5f + 0.5f;
   return N.xy;
 }
 

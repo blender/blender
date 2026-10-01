@@ -172,6 +172,7 @@ set(SRC
   intern/draw_context_private.hh
   intern/draw_curves_private.hh
   intern/draw_debug.hh
+  intern/draw_debug_shared.hh
   intern/draw_gsplat_private.hh
   intern/draw_hair_private.hh
   intern/draw_handle.hh
@@ -569,6 +570,7 @@ set(GLSL_SRC
   intern/draw_attribute_shader_shared.hh
   intern/draw_command_shared.hh
   intern/draw_curves_defines.hh
+  intern/draw_debug_shared.hh
   intern/draw_defines.hh
   intern/draw_shader_shared.hh
   intern/draw_subdiv_defines.hh

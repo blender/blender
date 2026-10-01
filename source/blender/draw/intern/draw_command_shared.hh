@@ -106,4 +106,56 @@ struct [[host_shared]] DrawPrototype {
 
 #ifndef GPU_SHADER
 };  // namespace blender::draw::command
+
+namespace blender {
+#endif
+
+/* -------------------------------------------------------------------- */
+/** \name Indirect commands structures.
+ * \{ */
+
+/* Regular draw commands (no index buffer). */
+struct [[host_shared]] DrawCommandArray {
+  uint vertex_len;
+  uint instance_len;
+  uint vertex_first;
+  uint instance_first;
+
+  uint _pad0;
+  uint _pad1;
+  uint _pad2;
+  uint _pad3;
+};
+
+/* Indexed draw commands (with index buffer). */
+struct [[host_shared]] DrawCommandIndexed {
+  uint vertex_len;
+  uint instance_len;
+  uint vertex_first;
+  uint base_index;
+
+  uint instance_first;
+  uint _pad0;
+  uint _pad1;
+  uint _pad2;
+};
+
+struct [[host_shared]] DrawCommand {
+  union {
+    DrawCommandArray array;
+    DrawCommandIndexed indexed;
+  };
+};
+
+struct [[host_shared]] DispatchCommand {
+  uint num_groups_x;
+  uint num_groups_y;
+  uint num_groups_z;
+  uint _pad0;
+};
+
+/** \} */
+
+#if !defined(GPU_SHADER)
+}  // namespace blender
 #endif

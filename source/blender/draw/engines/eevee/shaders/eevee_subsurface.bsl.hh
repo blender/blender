@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "draw_command_shared.hh"
 #include "draw_view.bsl.hh"
 #include "eevee_defines.hh"
 #include "eevee_gbuffer_read.bsl.hh"

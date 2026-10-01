@@ -20,7 +20,7 @@ namespace offset_indices {
 #ifdef GLSL_CPP_STUBS
 /* Equivalent of `IndexRange OffsetIndices<int>operator[]`.
  * Implementation for C++ compilation. */
-inline static IndexRange load_range_from_buffer(const int (&buf)[], int i)
+static inline IndexRange load_range_from_buffer(const int (&buf)[], int i)
 {
   return IndexRange::from_begin_end(buf[i], buf[i + 1]);
 }

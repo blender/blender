@@ -15,7 +15,10 @@
 
 namespace draw {
 
-#define atomicAddAndGet(dst, val) atomicAdd(dst, val) + val
+[[force_inline]] uint atomicAddAndGet(uint &dst, uint val)
+{
+  return atomicAdd(dst, val) + val;
+}
 
 struct GenerateCommand {
   [[storage(0, read_write)]] DrawGroup (&group_buf)[];
@@ -50,7 +53,7 @@ struct GenerateCommand {
       cmd_indexed.vertex_first = uint(group.vertex_first);
       cmd_indexed.base_index = uint(group.base_index);
       cmd_indexed.instance_first = back_facing_start;
-      cmd.indexed() = cmd_indexed;
+      cmd.indexed = cmd_indexed;
     }
     else {
       DrawCommandArray cmd_array;
@@ -58,7 +61,7 @@ struct GenerateCommand {
       cmd_array.instance_len = back_facing_len;
       cmd_array.vertex_first = uint(group.vertex_first);
       cmd_array.instance_first = back_facing_start;
-      cmd.array() = cmd_array;
+      cmd.array = cmd_array;
     }
     command_buf[group_id * 2 + 0] = cmd;
 
@@ -70,7 +73,7 @@ struct GenerateCommand {
       cmd_indexed.vertex_first = uint(group.vertex_first);
       cmd_indexed.base_index = uint(group.base_index);
       cmd_indexed.instance_first = front_facing_start;
-      cmd.indexed() = cmd_indexed;
+      cmd.indexed = cmd_indexed;
     }
     else {
       DrawCommandArray cmd_array;
@@ -78,7 +81,7 @@ struct GenerateCommand {
       cmd_array.instance_len = front_facing_len;
       cmd_array.vertex_first = uint(group.vertex_first);
       cmd_array.instance_first = front_facing_start;
-      cmd.array() = cmd_array;
+      cmd.array = cmd_array;
     }
     command_buf[group_id * 2 + 1] = cmd;
 
@@ -102,7 +105,7 @@ void command_gen([[resource_table]] GenerateCommand &srt,
   }
 
   DrawPrototype proto = srt.prototype_buf[proto_id];
-  uint group_id = proto.group_id;
+  const uint group_id = proto.group_id;
   bool is_inverted = (proto.res_id & 0x80000000u) != 0;
   uint resource_id = (proto.res_id & 0x7FFFFFFFu);
 

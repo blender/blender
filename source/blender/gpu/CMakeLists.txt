@@ -568,6 +568,7 @@ set(GLSL_SRC
   shaders/gpu_shader_simple.bsl.hh
 
   shaders/common/gpu_shader_attribute_load_lib.glsl
+  shaders/common/gpu_shader_attribute_load.bsl.hh
   shaders/common/gpu_shader_bicubic_sampler.bsl.hh
   shaders/common/gpu_shader_debug_gradients.bsl.hh
   shaders/common/gpu_shader_fullscreen_vert.glsl

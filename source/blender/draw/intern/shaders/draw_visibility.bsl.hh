@@ -59,7 +59,7 @@ void visibility([[resource_table]] Visibility &srt,
                                    bounds.bounding_corners[3].xyz);
     Sphere bounding_sphere = shape_sphere(bounds.bounding_sphere.xyz, bounds.bounding_sphere.w);
     Sphere inscribed_sphere = shape_sphere(bounds.bounding_sphere.xyz,
-                                           bounds._inner_sphere_radius);
+                                           bounds.inner_sphere_radius());
 
     for (uint view_id = 0u; view_id < uint(srt.view_len); view_id++) {
       if (culling.get(view_id).bound_sphere.w == -1.0f) {

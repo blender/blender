@@ -51,7 +51,7 @@
  * - The UBO limit (16KiB) of the ViewMatrices container.
  * - The maximum resource index supported for shaders using multi-view (see DRW_VIEW_SHIFT).
  */
-#define DRW_VIEW_MAX 64
+static constexpr int DRW_VIEW_MAX = 64;
 
 #define DRW_POINTCLOUD_STRIP_TILE_SIZE 8
 #define DRW_GSPLAT_STRIP_TILE_SIZE 5

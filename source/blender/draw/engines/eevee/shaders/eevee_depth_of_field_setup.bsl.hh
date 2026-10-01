@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "draw_command_shared.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_depth_of_field_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"

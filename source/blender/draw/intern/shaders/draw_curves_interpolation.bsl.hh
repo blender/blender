@@ -14,7 +14,7 @@
 #pragma once
 
 #include "draw_attribute_shader_shared.hh"
-#include "gpu_shader_attribute_load_lib.glsl"
+#include "gpu_shader_attribute_load.bsl.hh"
 #include "gpu_shader_math_matrix_transform.bsl.hh"
 #include "gpu_shader_math_safe.bsl.hh"
 #include "gpu_shader_offset_indices_lib.glsl"
@@ -284,8 +284,8 @@ void evaluate_segment<InterpPosition, float4>(
   float4 p1 = attr.input_load(points.y);
 
   const float3 point_0 = p0.xyz;
-  const float3 point_1 = gpu_attr_load_float3(handles_right, int2(3, 0), uint(points.x));
-  const float3 point_2 = gpu_attr_load_float3(handles_left, int2(3, 0), uint(points.y));
+  float3 point_1 = gpu_attr_load_float3(handles_right, int2(3, 0), uint(points.x));
+  float3 point_2 = gpu_attr_load_float3(handles_left, int2(3, 0), uint(points.y));
   const float3 point_3 = p1.xyz;
 
   const float rad_0 = p0.w;
@@ -432,7 +432,7 @@ void evaluate_curve([[resource_table]] const CurvesData &srt,
   const auto &curves_order_buf = srt.curves_resolution_buf;
   const auto &basis_cache_offset_buf = srt.bezier_offsets_buf;
 
-  const int order = int(gpu_attr_load_uchar(curves_order_buf, curve_index));
+  uint order = gpu_attr_load_uchar(curves_order_buf, curve_index);
 
   const int basis_cache_start = basis_cache_offset_buf[curve_index];
   const bool invalid = basis_cache_start < 0;
@@ -461,7 +461,7 @@ void evaluate_curve([[resource_table]] const CurvesData &srt,
     attr.output_set_zero(evaluated_point_index);
     float total_weight = 0.0f;
 
-    const IndexRange point_weights{weights_range_start + i * order, order};
+    const IndexRange point_weights{weights_range_start + i * int(order), int(order)};
     const int start_index = floatBitsToInt(basis_cache_buf[start_indices_range_start + i]);
 
     for (int j = 0; j < point_weights.size(); j++) {
@@ -508,8 +508,8 @@ template<typename StorageT, typename AttrT>
   }
   int curve_index = int(global_id.x) + srt.curves_start;
 
-  const CurveType curve_type = CurveType(gpu_attr_load_uchar(srt.curves_type_buf, curve_index));
-  if (curve_type != CurveType(srt.evaluated_type)) {
+  uint curve_type = gpu_attr_load_uchar(srt.curves_type_buf, curve_index);
+  if (CurveType(curve_type) != CurveType(srt.evaluated_type)) {
     return;
   }
   IndexRange points = offset_indices::load_range_from_buffer(srt.points_by_curve_buf, curve_index);

@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "gpu_shader_attribute_load_lib.glsl"
+#include "gpu_shader_attribute_load.bsl.hh"
 #include "gpu_shader_offset_indices_lib.glsl"
 #include "gpu_shader_utildefines.bsl.hh"
 
@@ -38,7 +38,9 @@ struct Topology {
 
   bool is_curve_cyclic = false;
   if (srt.use_cyclic) {
-    is_curve_cyclic = gpu_attr_load_bool(srt.curves_cyclic_buf, curve_id);
+    /* Note: Quirk of the force_inline implementation. */
+    bool value = gpu_attr_load_bool(srt.curves_cyclic_buf, curve_id);
+    is_curve_cyclic = value;
   }
 
   IndexRange points = offset_indices::load_range_from_buffer(srt.evaluated_offsets_buf,

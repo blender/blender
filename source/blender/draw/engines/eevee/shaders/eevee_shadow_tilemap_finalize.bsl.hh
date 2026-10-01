@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "draw_command_shared.hh"
 #include "draw_shader_shared.hh"
 #include "eevee_defines.hh"
 #include "eevee_shadow_shared.hh"
