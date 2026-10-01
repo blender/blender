@@ -13,11 +13,6 @@
 
 namespace eevee::raytracing {
 
-#if GBUFFER_LAYER_MAX > 4
-/* WORKAROUND: We can't use define inside shared variable definitions. */
-#  error Resize tile_contains_ray_tracing
-#endif
-
 struct TileClassify {
 
   [[image(0, write, RAYTRACE_TILEMASK_FORMAT)]] uimage2DArray tile_raytrace_denoise_img;
@@ -25,7 +20,7 @@ struct TileClassify {
   [[image(2, write, RAYTRACE_TILEMASK_FORMAT)]] uimage2DArray tile_fast_gi_denoise_img;
   [[image(3, write, RAYTRACE_TILEMASK_FORMAT)]] uimage2DArray tile_fast_gi_tracing_img;
 
-  [[shared]] uint tile_contains_ray_tracing[4];
+  [[shared]] uint tile_contains_ray_tracing[GBUFFER_LAYER_MAX];
   [[shared]] uint tile_contains_fast_gi_scan;
 };
 
