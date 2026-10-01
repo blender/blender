@@ -369,11 +369,17 @@ static void clean_baked_fcurves(AnimTransformable &transformable,
       channelbag.fcurve_remove(*paste_fcurve.fcurve);
       paste_fcurve.fcurve = nullptr;
     }
+  }
+  transformable.set_property(property_type, values, AxisMutable::AXIS_MUTABLE_ALL);
+}
+
+static void recalculate_handles(MutableSpan<PasteFCurve> fcurves)
+{
+  for (PasteFCurve &paste_fcurve : fcurves) {
     if (paste_fcurve.fcurve) {
       BKE_fcurve_handles_recalc(*paste_fcurve.fcurve);
     }
   }
-  transformable.set_property(property_type, values, AxisMutable::AXIS_MUTABLE_ALL);
 }
 
 static Rotation set_keys_to_transform(TransformFCurves &t_fcus,
@@ -751,8 +757,7 @@ static void paste_world_space(Main &bmain,
   BLI_assert(fcurve_buffer.size() == sorted_transformables.size());
 
   /* Since we potentially added FCurves, we have to rebuild the depsgraph relations. */
-  DEG_graph_tag_relations_update(depsgraph);
-  DEG_graph_relations_update(depsgraph);
+  DEG_graph_build_from_ids(depsgraph, ids);
 
   for (const int i : sorted_transformables.index_range()) {
     AnimTransformable *transformable = sorted_transformables[i];
@@ -796,6 +801,9 @@ static void paste_world_space(Main &bmain,
                         AnimTransformable::PropertyType::SCALE,
                         transform_fcurves.scale,
                         *transform_fcurves.channelbag);
+    recalculate_handles(transform_fcurves.location);
+    recalculate_handles(transform_fcurves.rotation);
+    recalculate_handles(transform_fcurves.scale);
   }
 
   const char *transformable_type_name = transformables[0].type() ==
@@ -806,6 +814,14 @@ static void paste_world_space(Main &bmain,
     BKE_reportf(&reports,
                 RPT_INFO,
                 "Pasted all %d %s over %d frames",
+                int(sorted_transformables.size()),
+                transformable_type_name,
+                range.max - range.min);
+  }
+  else if (clipboard_data.size() == 1) {
+    BKE_reportf(&reports,
+                RPT_INFO,
+                "Pasted the same animation to %d %s over %d frames",
                 int(sorted_transformables.size()),
                 transformable_type_name,
                 range.max - range.min);
@@ -852,6 +868,10 @@ const EnumPropertyItem rna_enum_copy_range_items[] = {
 static wmOperatorStatus world_space_copy_exec(bContext *C, wmOperator *op)
 {
   Vector<AnimTransformable> transformables = selected_transformables_from_context(*C);
+  if (transformables.is_empty()) {
+    BKE_report(op->reports, RPT_ERROR, "Nothing selected to copy");
+    return OPERATOR_CANCELLED;
+  }
   const CopyRange range_mode = CopyRange(RNA_enum_get(op->ptr, "range_mode"));
   Bounds<int> bounds;
   switch (range_mode) {
@@ -936,6 +956,10 @@ static bool has_constraints(const Span<AnimTransformable> transformables)
 static wmOperatorStatus world_space_paste_exec(bContext *C, wmOperator *op)
 {
   Vector<AnimTransformable> transformables = selected_transformables_from_context(*C);
+  if (transformables.is_empty()) {
+    BKE_report(op->reports, RPT_ERROR, "Nothing selected to paste to");
+    return OPERATOR_CANCELLED;
+  }
   if (has_constraints(transformables)) {
     BKE_report(op->reports,
                RPT_WARNING,
