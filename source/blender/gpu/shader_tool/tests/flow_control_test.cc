@@ -724,7 +724,7 @@ void f(Res res)
 
 #define E int
 #line 3
-static constexpr int E_ENUM  = 1;
+static constexpr int ENUM  = 1;
 #define access_Res_i() i
 
 
