@@ -12171,14 +12171,23 @@ static int handle_menu_event(bContext *C,
         if (but_active && menu->keynav_state.is_keynav) {
           /* Key-navigation activates the button navigated onto, not the default. */
         }
+        else if ((but_default != nullptr) &&
+                 ((but_default->type == ButtonType::But) &&
+                  ((but_default->active == nullptr) ||
+                   (but_default->active->state == BUTTON_STATE_HIGHLIGHT))))
+        {
+          /* Regarding the #BUTTON_STATE_HIGHLIGHT check above.
+           * It's important to run immediately in this case. Letting the button flash first
+           * (see #BUTTON_STATE_WAIT_FLASH) delays running it until a timer fires,
+           * so events after "Return" reach the popup while it's still open and are lost.
+           * This can happen while typing quickly or a slow redraw.
+           * It also happens during tests that use simulated events. */
+
+          button_execute(C, region, but_default);
+          retval = WM_UI_HANDLER_BREAK;
+        }
         else if ((but_default != nullptr) && (but_default->active == nullptr)) {
-          if (but_default->type == ButtonType::But) {
-            button_execute(C, region, but_default);
-            retval = WM_UI_HANDLER_BREAK;
-          }
-          else {
-            handle_button_activate_by_type(C, region, but_default);
-          }
+          handle_button_activate_by_type(C, region, but_default);
         }
         /* enter will always close this block, we let the event
          * get handled by the button if it is activated, otherwise we cancel */
