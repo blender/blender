@@ -199,7 +199,8 @@ class BlenderMaterialIdentifier:
                 self.__get_all_nodes_recursive(node.node_tree, new_group_path)
 
             # Check if we have the glTF material node
-            if self.gltf_material_node == -1 and node.node_tree.name.lower() in gltf_node_group_names:
+            if self.gltf_material_node == -1 \
+                    and any(node.node_tree.name.lower().startswith(name) for name in gltf_node_group_names):
                 self.gltf_material_node = node
                 self.gltf_material_node_group_path = group_path.copy()
 
