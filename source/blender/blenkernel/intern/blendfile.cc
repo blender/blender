@@ -2267,6 +2267,11 @@ bool PartialWriteContext::is_valid()
     if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING)) {
       return IDWALK_RET_NOP;
     }
+    /* 'Runtime' ID usages ignored by read/write file code can also be ignored here. Covers e.g.
+     * the 'parent' runtime pointer of Library. */
+    if (cb_data->cb_flag & (IDWALK_CB_READFILE_IGNORE | IDWALK_CB_WRITEFILE_IGNORE)) {
+      return IDWALK_RET_NOP;
+    }
 
     if (*id_p && !ids_in_context.contains(*id_p)) {
       if (owner_id != self_id) {

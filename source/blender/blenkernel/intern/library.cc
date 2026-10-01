@@ -113,7 +113,11 @@ static void library_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Library *lib = id_cast<Library *>(id);
   const LibraryForeachIDFlag foreach_flag = BKE_lib_query_foreachid_process_flags_get(data);
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, lib->runtime->parent, IDWALK_CB_NEVER_SELF);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+      data,
+      lib->runtime->parent,
+      /* The Library::runtime->parent pointer is strictly runtime informative data currently. */
+      (IDWALK_CB_NEVER_SELF | IDWALK_CB_READFILE_IGNORE | IDWALK_CB_WRITEFILE_IGNORE));
 
   if (lib->flag & LIBRARY_FLAG_IS_ARCHIVE) {
     /* Archive library must have a parent, this can't be nullptr. */
