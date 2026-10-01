@@ -497,9 +497,9 @@ set(TOMLI_W_VERSION 1.2.0)
 
 # When this numpy version is bumped, please also change the limit value set for variable `install_requires`
 # in build_files/utils/make_bpy_wheel.py
-set(NUMPY_VERSION 2.3.4)
+set(NUMPY_VERSION 2.4.6)
 set(NUMPY_URI https://github.com/numpy/numpy/releases/download/v${NUMPY_VERSION}/numpy-${NUMPY_VERSION}.tar.gz)
-set(NUMPY_HASH 8717ed1828a8a390c454c6636e91c46a)
+set(NUMPY_HASH 2794346c22169a5a103cd117a3f1394f)
 set(NUMPY_HASH_TYPE MD5)
 set(NUMPY_FILE numpy-${NUMPY_VERSION}.tar.gz)
 set(NUMPY_CPE "cpe:2.3:a:numpy:numpy:${NUMPY_VERSION}:*:*:*:*:*:*:*")
