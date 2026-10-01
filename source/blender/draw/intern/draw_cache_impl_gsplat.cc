@@ -175,7 +175,8 @@ BLI_INLINE RadiancePack pack_radiance(const Array<float3, radiance_coeffs_max> &
   RadiancePack pack;
   for (uint32_t i = 0u; i < radiance_coeffs_max; ++i) {
     /* Quantize float3 coefficients to 3x8b. */
-    uchar3 shu = static_cast<uchar3>(math::round(math::clamp(radiance_sh[i] * 255.0f, 0.0f, 255.0f)));
+    uchar3 shu = static_cast<uchar3>(
+        math::round(math::clamp(radiance_sh[i] * 255.0f, 0.0f, 255.0f)));
     /* Coefficients are stored in packs with a padding byte every 15 bytes.
      * This simplifies unpacking shader-side, until we find more data to pack in. */
     uchar3 *shu_data = reinterpret_cast<uchar3 *>(pack.radiance_sh + (3 * i));
