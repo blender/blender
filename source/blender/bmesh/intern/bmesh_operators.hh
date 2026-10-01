@@ -165,6 +165,19 @@ enum FlattenMethod {
   FLATTEN_VIEW = 2,
 };
 
+/* Interpolation method for fitting edge loops to a curve. */
+enum CurveInterpolation {
+  CURVE_INTERP_CUBIC = 0,
+  CURVE_INTERP_LINEAR = 1,
+};
+
+/* Curve elevation option. */
+enum CurveClampElevation {
+  CURVE_CLAMP_ELEVATION_NONE = 0,
+  CURVE_CLAMP_ELEVATION_RAISE = 1,
+  CURVE_CLAMP_ELEVATION_LOWER = 2,
+};
+
 /**
  * Mappings from a location on the surface of a cube onto a sphere,
  * used by the quad sphere primitive.

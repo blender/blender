@@ -780,6 +780,62 @@ static BMOpDefine bmo_create_vert_def = {
     /*type_flag*/ (BMO_OPTYPE_FLAG_NOP),
 };
 
+static BMO_FlagSet bmo_enum_curve_restriction[] = {
+    {CURVE_CLAMP_ELEVATION_NONE, "NONE"},
+    {CURVE_CLAMP_ELEVATION_RAISE, "RAISE"},
+    {CURVE_CLAMP_ELEVATION_LOWER, "LOWER"},
+    {0, nullptr},
+};
+
+static BMO_FlagSet bmo_enum_curve_interpolation_method[] = {
+    {CURVE_INTERP_CUBIC, "CUBIC"},
+    {CURVE_INTERP_LINEAR, "LINEAR"},
+    {0, nullptr},
+};
+
+/*
+ * Curve Edge Loops Between Selected.
+ *
+ * Fits the unselected edge loops to a curve defined by the selected vertices.
+ */
+static BMOpDefine bmo_curve_edge_loops_between_selected_def = {
+    /*opname*/ "curve_edge_loops_between_selected",
+    /*slot_types_in*/
+    {
+        /* Input geometry. */
+        {"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
+        /* Influence factor: spans from 0.0 to 1.0. */
+        {"factor", BMO_OP_SLOT_FLT},
+        /* Restrictions on how the vertices can be moved. */
+        {"clamp_elevation",
+         BMO_OP_SLOT_INT,
+         to_subtype_union(BMO_OP_SLOT_SUBTYPE_INT_ENUM),
+         bmo_enum_curve_restriction},
+        /* Limits the tool to work within the boundaries of the selected vertices if false. */
+        {"extend_loop", BMO_OP_SLOT_BOOL},
+        /* Distribute vertices at constant distances along the curve. */
+        {"regular", BMO_OP_SLOT_BOOL},
+        /* Lock X axis editing. */
+        {"lock_x", BMO_OP_SLOT_BOOL},
+        /* Lock Y axis editing. */
+        {"lock_y", BMO_OP_SLOT_BOOL},
+        /* Lock Z axis editing. */
+        {"lock_z", BMO_OP_SLOT_BOOL},
+        /* Method used for interpolation. */
+        {"interpolation",
+         BMO_OP_SLOT_INT,
+         to_subtype_union(BMO_OP_SLOT_SUBTYPE_INT_ENUM),
+         bmo_enum_curve_interpolation_method},
+        {{'\0'}},
+    },
+    /*slot_types_out*/
+    {{{'\0'}}},
+    /*init*/ nullptr,
+    /*exec*/ bmo_curve_edge_loops_between_selected_exec,
+    /*type_flag*/
+    (BMO_OPTYPE_FLAG_NORMALS_CALC),
+};
+
 /*
  * Join Triangles.
  *
@@ -3012,6 +3068,7 @@ const BMOpDefine *bmo_opdefines[] = {
     &bmo_create_quadsphere_def,
     &bmo_create_uvsphere_def,
     &bmo_create_vert_def,
+    &bmo_curve_edge_loops_between_selected_def,
     &bmo_delete_def,
     &bmo_dissolve_edges_def,
     &bmo_dissolve_faces_def,

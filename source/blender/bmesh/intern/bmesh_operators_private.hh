@@ -38,6 +38,7 @@ void bmo_create_monkey_exec(BMesh *bm, BMOperator *op);
 void bmo_create_quadsphere_exec(BMesh *bm, BMOperator *op);
 void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op);
 void bmo_create_vert_exec(BMesh *bm, BMOperator *op);
+void bmo_curve_edge_loops_between_selected_exec(BMesh *bm, BMOperator *op);
 void bmo_delete_exec(BMesh *bm, BMOperator *op);
 void bmo_dissolve_edges_init(BMOperator *op);
 void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op);
