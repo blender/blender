@@ -539,6 +539,7 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
   /* Set up the stage for animated data. */
   if (params.export_animation) {
     usd_stage->SetTimeCodesPerSecond(scene->frames_per_second());
+    usd_stage->SetFramesPerSecond(scene->frames_per_second());
     usd_stage->SetStartTimeCode(scene->r.sfra);
     usd_stage->SetEndTimeCode(scene->r.efra);
   }
