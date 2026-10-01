@@ -54,7 +54,7 @@ class LoopData:
             warning_already_displayed,
             warning_already_displayed_vc_nodetree):
         self.vc_infos = []
-        self.material_idxs_using_vc = {}
+        self.material_idxs_using_vc = []
         self.vc_infos_index = vc_infos_index
         self.materials_use_vc = materials_use_vc
         self.warning_already_displayed = warning_already_displayed
@@ -496,10 +496,12 @@ class PrimitiveCreator:
                             'gltf_name': 'COLOR_' + str(loop_data.vc_infos_index),
                             'forced': False
                         })
-                        loop_data.material_idxs_using_vc[material_idx] = 'COLOR_' + str(loop_data.vc_infos_index)
+                        loop_data.material_idxs_using_vc.append(
+                            'COLOR_' + str(loop_data.vc_infos_index))
                         loop_data.vc_infos_index += 1
                     else:
-                        loop_data.material_idxs_using_vc[material_idx] = 'COLOR_' + str(loop_data.vc_infos_index - 1)
+                        loop_data.material_idxs_using_vc.append(
+                            'COLOR_' + str(loop_data.vc_infos_index - 1))
                         pass  # Using the same Vertex Color
             elif base_material is not None and export_settings['gltf_vertex_color'] == "MATERIAL":
                 # Check if there is an active Vertex Color in mesh
@@ -574,11 +576,12 @@ class PrimitiveCreator:
                         'gltf_name': 'COLOR_' + str(loop_data.vc_infos_index),
                         'forced': False
                     })
-                    loop_data.material_idxs_using_vc[material_idx] = 'COLOR_' + str(loop_data.vc_infos_index)
+                    loop_data.material_idxs_using_vc.append('COLOR_' + str(loop_data.vc_infos_index))
                     loop_data.vc_infos_index += 1
 
                 else:
-                    loop_data.material_idxs_using_vc[material_idx] = 'COLOR_' + str(loop_data.vc_infos_index - 1)
+                    loop_data.material_idxs_using_vc.append(
+                        'COLOR_' + str(loop_data.vc_infos_index - 1))
                     pass  # Using the same Vertex Color
 
         return vc_infos
@@ -601,6 +604,9 @@ class PrimitiveCreator:
         warning_already_displayed_vc_nodetree = False
 
         for material_idx in self.prim_indices.keys():
+
+            self.material_idxs_using_vc[int(material_idx)] = []
+
             _, base_material, material_info = get_base_material(material_idx, self.materials, self.export_settings)
 
             # UVMaps
@@ -688,7 +694,7 @@ class PrimitiveCreator:
             vc_infos = PrimitiveCreator.manage_VC(
                 base_material, material_idx, material_info, self.blender_mesh, loop_data, self.export_settings)
             self.vc_infos.extend(vc_infos)
-            self.material_idxs_using_vc.update(loop_data.material_idxs_using_vc)
+            self.material_idxs_using_vc[int(material_idx)] = loop_data.material_idxs_using_vc
             self.vc_infos_index = loop_data.vc_infos_index
             materials_use_vc = loop_data.materials_use_vc
             warning_already_displayed = loop_data.warning_already_displayed
@@ -870,7 +876,7 @@ class PrimitiveCreator:
                     })
                     # This fake Vertex Color will be used by all materials
                     for material_idx in self.prim_indices.keys():
-                        self.material_idxs_using_vc[material_idx] = 'COLOR_0'
+                        self.material_idxs_using_vc[int(material_idx)].append('COLOR_0')
                     self.vc_infos_index += 1
 
             # Now, loop on existing Vertex Color, and add the missing ones
@@ -888,7 +894,7 @@ class PrimitiveCreator:
                         })
                         # This Vertex Color will be used by all materials
                         for material_idx in self.prim_indices.keys():
-                            self.material_idxs_using_vc[material_idx] = 'COLOR_' + str(self.vc_infos_index)
+                            self.material_idxs_using_vc[int(material_idx)].append('COLOR_' + str(self.vc_infos_index))
                         self.vc_infos_index += 1
 
         # Now, we need to populate Vertex Color data
@@ -1350,7 +1356,7 @@ class PrimitiveCreator:
                 # We need to artificially set data to 1.0 for any dots that are
                 # corresponding to a material not using this Vertex Color
                 for material_idx, prim_info in self.prim_indices.items():
-                    if self.material_idxs_using_vc.get(material_idx) == vc['gltf_name']:
+                    if vc['gltf_name'] in self.material_idxs_using_vc.get(material_idx, []):
                         # This material is using this Vertex Color, so keep real values
                         continue
 
