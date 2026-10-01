@@ -407,6 +407,8 @@ enum ButtonFlag : int64_t {
    * buttons currently.
    */
   BUT_FORCE_SEMI_MODAL_ACTIVE = int64_t(1) << 33,
+  /** On a full Tab auto-complete match, apply the value & keep editing (cursor at the end). */
+  BUT_TEXTEDIT_AUTOCOMPLETE_KEEP_ACTIVE = int64_t(1) << 34,
 };
 
 /** #Button.dragflag */
@@ -1263,11 +1265,6 @@ const ColorManagedDisplay *button_cm_display_get(Button &but);
  * Set at hint that describes the expected value when empty.
  */
 void button_placeholder_set(Button *but, StringRef placeholder_text);
-
-/**
- * Unselect any text selection in the button's text field.
- */
-void button_clear_selection(Button *but);
 
 /**
  * Special button case, only draw it when used actively, for outliner etc.

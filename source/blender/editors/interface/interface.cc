@@ -5892,12 +5892,6 @@ const char *button_placeholder_get(Button *but)
   return placeholder;
 }
 
-void button_clear_selection(Button *but)
-{
-  but->selsta = 0;
-  but->selend = 0;
-}
-
 void button_type_set_menu_from_pulldown(Button *but)
 {
   BLI_assert(but->type == ButtonType::Pulldown);

@@ -2951,7 +2951,7 @@ static bool can_create_dir_from_user_input(const char dir[FILE_MAX_LIBEXTRA])
   return true;
 }
 
-void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_but)
+void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*arg_but*/)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
@@ -2996,15 +2996,8 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_b
   BLI_path_normalize_dir(params->dir, sizeof(params->dir));
 
   if (filelist_is_dir(sfile->files, params->dir)) {
-    if (!STREQ(params->dir, filelist_dir(sfile->files))) {
-      /* Keep focus to allow Tab auto-completion. #150689. */
-      blender::ui::Button *but = static_cast<blender::ui::Button *>(arg_but);
-      textbutton_activate_but(C, but);
-      button_clear_selection(but);
-      ED_file_change_dir(C);
-    }
     /* Avoids flickering when nothing's changed. */
-    else if (!STREQ(params->dir, old_dir)) {
+    if (!STREQ(params->dir, old_dir)) {
       /* If directory exists, enter it immediately. */
       ED_file_change_dir(C);
     }

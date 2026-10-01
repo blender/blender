@@ -96,9 +96,8 @@ def _blend_file_save(e, filepath):
     # Activate the location field.
     yield e.ctrl.l()
     yield e.text_unicode(filepath)
-    # Two presses accept the path (changing the directory keeps the field
-    # active for auto-completion), a third saves the file.
-    for _ in range(3):
+    # The first press accepts the path, the second saves the file.
+    for _ in range(2):
         yield e.ret()
 
 
@@ -116,11 +115,10 @@ def _blend_file_open(e, filepath):
     # Activate the location field.
     yield e.ctrl.l()
     yield e.text_unicode(os.path.dirname(filepath) + os.sep)
-    # Accept the directory (twice, it stays active for auto-completion when it changes),
-    # then select the file in the list & open it.
+    # Accept the directory, then select the file in the list & open it.
     # A file may already be set so any press can open it,
     # stop once the selector closes since loading frees the window.
-    for action in ("ret", "ret", "down_arrow", "ret"):
+    for action in ("ret", "down_arrow", "ret"):
         if ui.get_window_area_by_type(bpy.context.window, 'FILE_BROWSER') is None:
             break
         yield getattr(e, action)()
