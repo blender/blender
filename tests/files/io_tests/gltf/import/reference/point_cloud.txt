@@ -2,6 +2,8 @@
 - PointCloud 'PointCloud' points:800
   - attr '_TEST' FLOAT POINT
     - 0.000 0.000 0.000 0.000 0.000 ... 0.200 0.200 0.200 0.200 0.200 
+  - attr 'glTF_primitive_index' INT POINT
+    - 0 0 0 0 0 ... 1 1 1 1 1 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.807, 0.658, 0.500)
     - (0.384, -0.155, 0.572)

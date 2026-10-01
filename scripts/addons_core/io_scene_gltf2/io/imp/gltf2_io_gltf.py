@@ -61,6 +61,7 @@ class glTFImporter():
             'KHR_materials_anisotropy',
             'KHR_materials_dispersion',
             'KHR_materials_iridescence',
+            'KHR_gaussian_splatting',
         ]
 
         # Add extensions required supported by custom import extensions

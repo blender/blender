@@ -13,6 +13,7 @@ from ..com.extras import set_extras
 from ..com.gltf2_blender_utils import fast_structured_np_unique
 from .material import BlenderMaterial
 from .draco_compression_extension import decode_primitive
+from .gsplat import convert_sh_d1_batch, convert_sh_d2_batch, convert_sh_d3_batch
 
 
 class BlenderMesh():
@@ -73,6 +74,11 @@ def create_pointcloud(gltf, mesh_idx):
     # no need to parent the pointcloud to an object, as there is no skinning or shapekeys for point clouds
     do_primitives_pointcloud(gltf, mesh_idx, pointcloud)
     set_extras(pointcloud, gltf.data.meshes[mesh_idx].extras)
+
+    # If the Point Cloud is Gaussian Splats, set the Blender property to display it correctly
+    if any(prim.extensions and "KHR_gaussian_splatting" in prim.extensions for prim in pypc.primitives):
+        pointcloud.type = 'GAUSSIAN_SPLAT'
+
     if pypc.extras:
         pypc.extras['blender_object_data'] = pointcloud  # Used in case of for KHR_animation_pointer
 
@@ -90,7 +96,10 @@ def do_primitives_pointcloud(gltf, mesh_idx, pointcloud):
     attribute_data_type = {}
     total_num_points = 0
 
-    for prim in pypc.primitives:
+    is_gaussian_splatting = any(attr.startswith("KHR_gaussian_splatting:")
+                                for attr in pypc.primitives[0].attributes)
+
+    for prim_idx, prim in enumerate(pypc.primitives):
         if 'POSITION' not in prim.attributes:
             continue
 
@@ -133,7 +142,19 @@ def do_primitives_pointcloud(gltf, mesh_idx, pointcloud):
                     gltf.data.accessors[prim.attributes[attr]].component_type,
                     gltf.data.accessors[prim.attributes[attr]].type
                 )
+
+        # When importing GS, we need to ignore materials,
+        # So no need to store the primitive index for Gaussian Splatting
+        if not is_gaussian_splatting and 'glTF_primitive_index' not in attributes:
+            attribute_type['glTF_primitive_index'] = 'SCALAR'
+            attributes['glTF_primitive_index'] = np.zeros(
+                len(point_locs) - len(vs[unique_indices]), dtype=np.uint32
+            )
+            attribute_data_type['glTF_primitive_index'] = 'INT'
+
         for idx, attr in enumerate(attributes.keys()):
+            if attr == "glTF_primitive_index":
+                continue
             if attr in prim.attributes:
                 attr_data = BinaryData.decode_accessor(gltf, prim.attributes[attr], cache=True)
                 attributes[attr] = np.concatenate((attributes[attr], attr_data[unique_indices]))
@@ -144,6 +165,11 @@ def do_primitives_pointcloud(gltf, mesh_idx, pointcloud):
                     dtype=ComponentType.to_numpy_dtype(attribute_component_type[attr])
                 )
                 attributes[attr] = np.concatenate((attributes[attr], attr_data))
+
+        if not is_gaussian_splatting:
+            attributes['glTF_primitive_index'] = np.concatenate(
+                (attributes['glTF_primitive_index'], np.full(
+                    len(unique_indices), prim_idx, dtype=np.uint32)))
 
         prim.num_points = len(unique_indices)
         total_num_points += prim.num_points
@@ -159,7 +185,46 @@ def do_primitives_pointcloud(gltf, mesh_idx, pointcloud):
 
     # Special cases (for example, _RADIUS will be imported as 'radius'))
     specials = {
-        '_RADIUS': 'radius'}
+        '_RADIUS': 'radius',
+        'KHR_gaussian_splatting:ROTATION': 'rotation',
+        'KHR_gaussian_splatting:SCALE': 'scale',
+    }
+
+    # Manage SH attribute names
+    degree = 0
+    coeff = 0
+    index = 0
+    while True:
+        sh_attr = f'KHR_gaussian_splatting:SH_DEGREE_{degree}_COEF_{coeff}'
+        if sh_attr in attributes:
+            if degree == 0 and coeff == 0:
+                specials[sh_attr] = 'radiance:base'
+            else:
+                specials[sh_attr] = f'radiance:sh_{index}'
+                index += 1
+            if coeff == degree * 2:
+                degree += 1
+                coeff = 0
+            else:
+                coeff += 1
+        else:
+            break
+
+    # SH conversion from Yup to Zup
+    sh_degree = degree - 1  # The last degree that was found
+    sh_prefix = 'KHR_gaussian_splatting:SH_DEGREE_'
+    if sh_degree >= 1:
+        new_attrs = convert_sh_d1_batch(*(attributes[f'{sh_prefix}1_COEF_{n}'] for n in range(3)))
+        for n, attr_name in enumerate(f'{sh_prefix}1_COEF_{n}' for n in range(3)):
+            attributes[attr_name] = new_attrs[n]
+    if sh_degree >= 2:
+        new_attrs = convert_sh_d2_batch(*(attributes[f'{sh_prefix}2_COEF_{n}'] for n in range(5)))
+        for n, attr_name in enumerate(f'{sh_prefix}2_COEF_{n}' for n in range(5)):
+            attributes[attr_name] = new_attrs[n]
+    if sh_degree >= 3:
+        new_attrs = convert_sh_d3_batch(*(attributes[f'{sh_prefix}3_COEF_{n}'] for n in range(7)))
+        for n, attr_name in enumerate(f'{sh_prefix}3_COEF_{n}' for n in range(7)):
+            attributes[attr_name] = new_attrs[n]
 
     for attr in attributes:
         blender_attribute_data_type = attribute_data_type[attr]
@@ -167,17 +232,46 @@ def do_primitives_pointcloud(gltf, mesh_idx, pointcloud):
         if blender_attribute_data_type is None:
             continue
 
+        if attr == "KHR_gaussian_splatting:OPACITY":
+            # Ignore this attribute, but the data will be merged with the
+            # KHR_gaussian_splatting:SH_DEGREE_0_COEF_0 attribute later
+            continue
+
+        # Special cases for glTF official extensions (for example Gaussian Splatting)
+        if attr == "KHR_gaussian_splatting:ROTATION":
+            blender_attribute_data_type = "QUATERNION"
+        elif attr == "KHR_gaussian_splatting:SH_DEGREE_0_COEF_0":
+            blender_attribute_data_type = "FLOAT4"
+
         blender_attribute = pointcloud.attributes.new(specials.get(attr, attr), blender_attribute_data_type, 'POINT')
+
+        # Special cases for glTF official extensions (for example Gaussian Splatting)
+        # where you know the content of the attribute, and you need to convert (for example, rotation)
+        if attr == "KHR_gaussian_splatting:ROTATION":
+            # Convert quaternions from glTF to Blender
+            gltf.quats_batch_gltf_to_blender(attributes[attr])
+        elif attr == "KHR_gaussian_splatting:SCALE":
+            # Convert scale from glTF to Blender
+            gltf.scales_batch_gltf_to_blender(attributes[attr])
+        elif attr == "KHR_gaussian_splatting:SH_DEGREE_0_COEF_0" and "KHR_gaussian_splatting:OPACITY" in attributes:
+            # We need to merge concatenate the data with the opacity
+            # going from VEC3 + SCALAR to VEC4
+            attributes[attr] = np.concatenate(
+                [attributes[attr], attributes["KHR_gaussian_splatting:OPACITY"].reshape(-1, 1)], axis=1)
+
         if DataType.num_elements(attribute_type[attr]) == 1:
             blender_attribute.data.foreach_set('value', attributes[attr].flatten())
         elif DataType.num_elements(gltf.data.accessors[prim.attributes[attr]].type) > 1:
             if blender_attribute_data_type in ["BYTE_COLOR", "FLOAT_COLOR"]:
                 blender_attribute.data.foreach_set('color', attributes[attr].flatten())
+            elif blender_attribute_data_type == "QUATERNION":
+                blender_attribute.data.foreach_set('value', attributes[attr].flatten())
             else:
                 blender_attribute.data.foreach_set('vector', attributes[attr].flatten())
 
     # Manage materials
-    manage_materials(gltf, pypc, pointcloud, num_points, on='POINT')
+    if not is_gaussian_splatting:
+        manage_materials(gltf, pypc, pointcloud, num_points, on='POINT')
 
 
 def do_primitives(gltf, mesh_idx, skin_idx, mesh, ob):
@@ -573,7 +667,15 @@ def manage_materials(gltf, pymesh, data, num_elements, on='FACE'):
     default_materials = {}  # Store VC => index
     we_can_merge_slots = gltf.import_settings['import_merge_material_slots']
 
-    if has_materials is True:
+    # If some primitives are Gaussian Splatting, we cannot merge slots,
+    # because some extension data are defined at primitive level
+    split_no_material_primitives = False
+    if any([prim.extensions is not None and 'KHR_gaussian_splatting' in prim.extensions.keys()
+           for prim in pymesh.primitives]):
+        we_can_merge_slots = False
+        split_no_material_primitives = True
+
+    if has_materials is True or split_no_material_primitives is True:
         bl_material_index_dtype = np.intc
         material_indices = np.empty(num_elements, dtype=bl_material_index_dtype)
         empty_material_slot_index = None
@@ -583,6 +685,12 @@ def manage_materials(gltf, pymesh, data, num_elements, on='FACE'):
 
             has_variant = prim.extensions is not None and 'KHR_materials_variants' in prim.extensions.keys() \
                 and 'mappings' in prim.extensions['KHR_materials_variants'].keys()
+
+            is_gaussian = prim.extensions is not None and 'KHR_gaussian_splatting' in prim.extensions.keys()
+
+            if is_gaussian and prim.material is not None:
+                # Extension specification: We need to ignore the material
+                prim.material = None
 
             if prim.material is not None:
                 # Get the material
@@ -621,7 +729,7 @@ def manage_materials(gltf, pymesh, data, num_elements, on='FACE'):
                         # In case of variant, do not merge slots // or if user does not want to merge slots
                         # So we are going to create a new slot if not exists already
                         # Else, create a new slot, but using the existing material
-                        if vertex_color in default_materials.keys():
+                        if vertex_color in default_materials.keys() or is_gaussian:
                             material_index = default_materials[vertex_color]
                             data.materials.append(bpy.data.materials[data.materials[material_index].name])
                             material_index = len(data.materials) - 1
