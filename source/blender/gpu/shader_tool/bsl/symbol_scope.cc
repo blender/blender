@@ -228,6 +228,19 @@ T *SymbolScope::lookup_generic(const SymbolTable &table,
     return v;
   }
 
+  /* Try to resolve in class scope if this is a member function scope (contains 'this_'). */
+  if (auto it = variables.find("this_"); it != variables.end()) {
+    LOOKUP_LOG("[Lookup] Member function scope ('this_' found). Checking class scope...\n")
+    const SymbolVariable *this_var = it->second.second;
+    /* Resolve class pointer/type from `this_` symbol */
+    const SymbolClass *cls = this_var->type;
+    const SymbolScope *this_scope = static_cast<const SymbolScope *>(cls);
+    if (auto v = this_scope->lookup_generic<T>(table, id, loc)) {
+      LOOKUP_LOG("[Lookup] Symbol found in class scope '" << cls->scope->identifier << "'.\n")
+      return v;
+    }
+  }
+
   /* Delegate to parent scope if not found locally. */
   if (parent) {
     LOOKUP_LOG("[Lookup] Not found locally. Delegating to parent scope\n")
