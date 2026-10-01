@@ -1189,18 +1189,24 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
         gpu::shader::Type::bool_t, "gbuffer_simple_layout", use_simple_layout);
   }
 
+  int transmit_eval_count = 0;
   if ((pipeline_type == MAT_PIPE_FORWARD) || use_shader_to_rgba || use_lighting_nodes) {
-    const int transmit_eval_count = (closure_bits &
-                                     (CLOSURE_REFRACTION | CLOSURE_TRANSLUCENT | CLOSURE_SSS)) ?
-                                        1 :
-                                        0;
-
+    transmit_eval_count = (closure_bits &
+                           (CLOSURE_REFRACTION | CLOSURE_TRANSLUCENT | CLOSURE_SSS)) ?
+                              1 :
+                              0;
     info.compilation_constant(
         gpu::shader::Type::int_t, "light_closure_eval_count_reflect", closure_bin_count);
     info.compilation_constant(
         gpu::shader::Type::int_t, "light_closure_eval_count_transmit", transmit_eval_count);
     info.compilation_constant(gpu::shader::Type::bool_t, "shadow_random", true);
   }
+
+  /* Always need to be defined. */
+  info.compilation_constant(
+      gpu::shader::Type::int_t, "light_closure_count_reflect", max(1, closure_bin_count));
+  info.compilation_constant(
+      gpu::shader::Type::int_t, "light_closure_count_transmit", max(1, transmit_eval_count));
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_BARYCENTRIC)) {
     switch (geometry_type) {

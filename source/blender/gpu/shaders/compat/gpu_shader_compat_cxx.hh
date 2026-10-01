@@ -146,7 +146,8 @@ template<typename VertFn,
          typename FragFn,
          typename ConstT1 = NoConstants,
          typename ConstT2 = NoConstants,
-         typename ConstT3 = NoConstants>
+         typename ConstT3 = NoConstants,
+         typename ConstT4 = NoConstants>
 struct PipelineGraphic {
   VertFn vert;
   FragFn frag;
@@ -154,6 +155,7 @@ struct PipelineGraphic {
   ConstT1 c1;
   ConstT2 c2;
   ConstT3 c3;
+  ConstT4 c4;
 
   PipelineGraphic(VertFn vert, FragFn frag) : vert(vert), frag(frag), c1({}), c2({}), c3({}) {}
   PipelineGraphic(VertFn vert, FragFn frag, ConstT1 c1)
@@ -166,6 +168,10 @@ struct PipelineGraphic {
   }
   PipelineGraphic(VertFn vert, FragFn frag, ConstT1 c1, ConstT2 c2, ConstT3 c3)
       : vert(vert), frag(frag), c1(c1), c2(c2), c3(c3)
+  {
+  }
+  PipelineGraphic(VertFn vert, FragFn frag, ConstT1 c1, ConstT2 c2, ConstT3 c3, ConstT4 c4)
+      : vert(vert), frag(frag), c1(c1), c2(c2), c3(c3), c4(c4)
   {
   }
 };

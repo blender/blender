@@ -435,8 +435,19 @@ void resolve_frag([[resource_table]] const Uniform &uni,
       int2(frag_co.xy), uni.uniform_buf.render_pass.volume_light_id, float4(vol.scattering, 1.0f));
 }
 
-PipelineCompute scatter(scatter_main, ScatterConstants{.use_volume_light = false});
-PipelineCompute scatter_with_lights(scatter_main, ScatterConstants{.use_volume_light = true});
-PipelineCompute integration(integration_main);
-PipelineGraphic resolve(resolve_vert, resolve_frag);
+PipelineCompute scatter(scatter_main,
+                        ScatterConstants{.use_volume_light = false},
+                        LightEvalConstants{.light_closure_count_reflect = 1,
+                                           .light_closure_count_transmit = 1});
+PipelineCompute scatter_with_lights(scatter_main,
+                                    ScatterConstants{.use_volume_light = true},
+                                    LightEvalConstants{.light_closure_count_reflect = 1,
+                                                       .light_closure_count_transmit = 1});
+PipelineCompute integration(integration_main,
+                            LightEvalConstants{.light_closure_count_reflect = 1,
+                                               .light_closure_count_transmit = 1});
+PipelineGraphic resolve(resolve_vert,
+                        resolve_frag,
+                        LightEvalConstants{.light_closure_count_reflect = 1,
+                                           .light_closure_count_transmit = 1});
 }  // namespace eevee::volume

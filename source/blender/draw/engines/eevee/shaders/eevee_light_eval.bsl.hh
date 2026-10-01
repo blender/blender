@@ -12,34 +12,14 @@
 #include "eevee_shadow_tracing.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"
 
-#if !defined(SRT_CONSTANT_light_closure_eval_count_reflect)
-#  define SRT_CONSTANT_light_closure_eval_count_reflect 0
-#endif
-#if !defined(SRT_CONSTANT_light_closure_eval_count_transmit)
-#  define SRT_CONSTANT_light_closure_eval_count_transmit 0
-#endif
-
-#ifdef GLSL_CPP_STUBS
-#  define LIGHT_STACK_SIZE_REFLECT 3
-#elif SRT_CONSTANT_light_closure_eval_count_reflect == 0
-#  define LIGHT_STACK_SIZE_REFLECT 1 /* Avoid compilation error. */
-#else
-#  define LIGHT_STACK_SIZE_REFLECT SRT_CONSTANT_light_closure_eval_count_reflect
-#endif
-
-#ifdef GLSL_CPP_STUBS
-#  define LIGHT_STACK_SIZE_TRANSMIT 3
-#elif SRT_CONSTANT_light_closure_eval_count_transmit == 0
-#  define LIGHT_STACK_SIZE_TRANSMIT 1 /* Avoid compilation error. */
-#else
-#  define LIGHT_STACK_SIZE_TRANSMIT SRT_CONSTANT_light_closure_eval_count_transmit
-#endif
-
 namespace eevee {
 
 struct LightEvalConstants {
   [[compilation_constant]] int light_closure_eval_count_reflect;
   [[compilation_constant]] int light_closure_eval_count_transmit;
+  /* Same as above but clamped to a minimum of 1 to avoid zero sized arrays. */
+  [[compilation_constant]] int light_closure_count_reflect;
+  [[compilation_constant]] int light_closure_count_transmit;
 };
 
 struct LightEvalData {
@@ -54,11 +34,11 @@ namespace light {
 template<bool is_transmission> struct ClosureStack {};
 
 template<> struct ClosureStack<false> {
-  ClosureLight cl[LIGHT_STACK_SIZE_REFLECT];
+  [[capacity(light_closure_count_reflect)]] ClosureLight cl[3];
 };
 
 template<> struct ClosureStack<true> {
-  ClosureLight cl[LIGHT_STACK_SIZE_TRANSMIT];
+  [[capacity(light_closure_count_transmit)]] ClosureLight cl[3];
 };
 
 void eval_single_closure(sampler2DArray util_tx,
