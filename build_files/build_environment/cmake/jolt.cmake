@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: 2026 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+set(JOLT_EXTRA_ARGS
+  -DCMAKE_DEBUG_POSTFIX=_d
+  -DJPH_BUILD_SHARED_LIBS=ON
+
+  -DCROSS_PLATFORM_DETERMINISTIC=ON
+  -DDEBUG_RENDERER_IN_DEBUG_AND_RELEASE=OFF
+  -DPROFILER_IN_DEBUG_AND_RELEASE=OFF
+  -DDOUBLE_PRECISION=ON
+  -DUSE_STATIC_MSVC_RUNTIME_LIBRARY=OFF
+
+  # Compute backends.
+  -DJPH_USE_DX12=OFF
+  -DJPH_USE_MTL=ON
+  -DJPH_USE_VK=ON
+
+  # Disable unused targets.
+  -DTARGET_HELLO_WORLD=OFF
+  -DTARGET_PERFORMANCE_TEST=OFF
+  -DTARGET_SAMPLES=OFF
+  -DTARGET_UNIT_TESTS=OFF
+  -DTARGET_VIEWER=OFF
+
+  # x86_64 instruction set toggles, do not use anything above x86_64-v2 (SSE4.1/SSE4.2)
+  -DUSE_SSE4_1=ON
+  -DUSE_SSE4_2=ON
+  -DUSE_AVX=OFF
+  -DUSE_AVX2=OFF
+  -DUSE_AVX512=OFF
+  -DUSE_LZCNT=OFF
+  -DUSE_TZCNT=OFF
+  -DUSE_F16C=OFF
+  -DUSE_FMADD=OFF
+)
+
+
+ExternalProject_Add(external_jolt
+  URL file://${PACKAGE_DIR}/${JOLT_FILE}
+  DOWNLOAD_DIR ${DOWNLOAD_DIR}
+  URL_HASH ${JOLT_HASH_TYPE}=${JOLT_HASH}
+  PREFIX ${BUILD_DIR}/jolt
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
+  SOURCE_SUBDIR Build
+
+  PATCH_COMMAND
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/jolt/src/external_jolt <
+      ${PATCH_DIR}/jolt_ndebug.diff
+
+  CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/jolt
+    ${DEFAULT_CMAKE_FLAGS}
+    ${JOLT_EXTRA_ARGS}
+
+  INSTALL_DIR ${LIBDIR}/jolt
+)
+
+if(WIN32)
+  if(BUILD_MODE STREQUAL Release)
+    ExternalProject_Add_Step(external_jolt after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/jolt
+        ${HARVEST_TARGET}/jolt
+      DEPENDEES install
+    )
+  else()
+    ExternalProject_Add_Step(external_jolt after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/jolt/lib
+        ${HARVEST_TARGET}/jolt/lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/jolt/bin
+        ${HARVEST_TARGET}/jolt/bin
+      DEPENDEES install
+    )
+  endif()
+else()
+  harvest(external_jolt jolt/include jolt/include "*.h")
+  harvest(external_jolt jolt/include jolt/include "*.inl")
+  harvest(external_jolt jolt/lib/cmake/Jolt jolt/lib/cmake/Jolt "*.cmake")
+  harvest_rpath_lib(external_jolt jolt/lib jolt/lib "*${SHAREDLIBEXT}*")
+endif()

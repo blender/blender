@@ -1,0 +1,27 @@
+diff --git a/src/lib/OpenEXR/ImfKeyCode.h b/src/lib/OpenEXR/ImfKeyCode.h
+index 9fca7b4f01..4ed4a788d8 100644
+--- a/src/lib/OpenEXR/ImfKeyCode.h
++++ b/src/lib/OpenEXR/ImfKeyCode.h
+@@ -93,6 +93,7 @@ class IMF_EXPORT_TYPE KeyCode
+     IMF_EXPORT
+     KeyCode& operator= (const KeyCode& other);
+ 
++    IMF_EXPORT
+     bool operator== (const KeyCode& other) const;
+ 
+     //----------------------------
+diff --git a/src/test/OpenEXRTest/testStandardAttributes.cpp b/src/test/OpenEXRTest/testStandardAttributes.cpp
+index a0b894e19f..247f6f3a4a 100644
+--- a/src/test/OpenEXRTest/testStandardAttributes.cpp
++++ b/src/test/OpenEXRTest/testStandardAttributes.cpp
+@@ -388,6 +388,10 @@ writeReadKeyCode (const char fileName[])
+         3,      // perfsPerFrame
+         80);    // perfsPerCount
+ 
++    KeyCode k2 = k1;
++
++    assert (k2 == k1);
++    
+     assert (k1.filmMfcCode () == 12);
+     assert (k1.filmType () == 34);
+     assert (k1.prefix () == 123456);

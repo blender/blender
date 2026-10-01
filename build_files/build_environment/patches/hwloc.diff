@@ -1,0 +1,14 @@
+diff --git a/hwloc/topology-x86.c b/hwloc/topology-x86.c
+index 7aabd168f..b01e44557 100644
+--- a/hwloc/topology-x86.c
++++ b/hwloc/topology-x86.c
+@@ -1375,6 +1375,9 @@ look_procs(struct hwloc_backend *backend, struct procinfo *infos, unsigned long
+   hwloc_bitmap_t set = NULL;
+   unsigned i;
+
++  if(!get_cpubind||!set_cpubind)
++    return -1;
++
+   if (!data->src_cpuiddump_path) {
+     orig_cpuset = hwloc_bitmap_alloc();
+     if (get_cpubind(topology, orig_cpuset, HWLOC_CPUBIND_STRICT)) {
