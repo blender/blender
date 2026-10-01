@@ -28,8 +28,7 @@ ccl_device void svm_node_aov_color(KernelGlobals kg,
                                    const ccl_global SVMNodeAOVColor &ccl_restrict node,
                                    ccl_global float *render_buffer)
 {
-  IF_KERNEL_NODES_FEATURE(AOV)
-  {
+  IF_KERNEL_NODES_FEATURE (AOV) {
     /* Don't write AOV on texture cache miss, we'll try again when the texture exists. */
     if (sd->runtime_flag & SR_CACHE_MISS) {
       return;
@@ -48,8 +47,7 @@ ccl_device void svm_node_aov_value(KernelGlobals kg,
                                    const ccl_global SVMNodeAOVValue &ccl_restrict node,
                                    ccl_global float *render_buffer)
 {
-  IF_KERNEL_NODES_FEATURE(AOV)
-  {
+  IF_KERNEL_NODES_FEATURE (AOV) {
     /* Don't write AOV on texture cache miss, we'll try again when the texture exists. */
     if (sd->runtime_flag & SR_CACHE_MISS) {
       return;

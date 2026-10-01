@@ -292,9 +292,9 @@ static void rna_GreasePencilDrawing_set_vertex_weights(ID *grease_pencil_id,
   const int def_nr = bke::greasepencil::ensure_vertex_group(vertex_group_name,
                                                             curves.vertex_group_names);
   const MutableSpan<MDeformVert> dverts = curves.deform_verts_for_write();
-  if (std::any_of(indices.begin(), indices.end(), [&](const int index) {
-        return !dverts.index_range().contains(index);
-      }))
+  if (std::any_of(indices.begin(),
+                  indices.end(),
+                  [&](const int index) { return !dverts.index_range().contains(index); }))
   {
     BKE_reportf(reports, RPT_ERROR, "Indices must be in range");
     return;

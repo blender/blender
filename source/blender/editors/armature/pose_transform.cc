@@ -239,9 +239,9 @@ static void applyarmature_process_selected_recursive(bArmature *arm,
   ApplyArmature_ParentState new_pstate{};
   new_pstate.bone = bone;
 
-  if (std::find_if(selected.begin(), selected.end(), [&](const PointerRNA &ptr) {
-        return ptr.data == pchan;
-      }) != selected.end())
+  if (std::find_if(selected.begin(),
+                   selected.end(),
+                   [&](const PointerRNA &ptr) { return ptr.data == pchan; }) != selected.end())
   {
     /* SELECTED BONE: Snap to final pose transform minus un-applied parent effects.
      *

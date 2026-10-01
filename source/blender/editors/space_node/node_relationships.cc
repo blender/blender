@@ -2379,9 +2379,9 @@ static wmOperatorStatus node_join_nodes_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (std::all_of(selected_nodes.begin(), selected_nodes.end(), [](const bNode *node) {
-        return node->is_group_input();
-      }))
+  if (std::all_of(selected_nodes.begin(),
+                  selected_nodes.end(),
+                  [](const bNode *node) { return node->is_group_input(); }))
   {
     join_group_inputs(ntree, std::move(selected_nodes), active_node);
   }

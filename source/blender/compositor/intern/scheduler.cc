@@ -575,9 +575,9 @@ static NeededBuffers compute_number_of_needed_buffers(const Context &context,
       /* If any of the links is not between two pixel nodes, it means that the node outputs
        * a buffer through this output and so we increment the number of output buffers. */
       if (!is_pixel_node(node) ||
-          is_output_linked_to_input_conditioned(*output, [&](const bNodeSocket &input) {
-            return !is_pixel_node(input.owner_node());
-          }))
+          is_output_linked_to_input_conditioned(
+              *output,
+              [&](const bNodeSocket &input) { return !is_pixel_node(input.owner_node()); }))
       {
         number_of_output_buffers++;
       }

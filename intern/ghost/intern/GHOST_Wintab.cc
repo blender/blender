@@ -160,18 +160,14 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
 
   /* __except and __finally cannot be used together, as such a second nested __try block is needed.
    */
-  __try
-  {
-    __try
-    {
+  __try {
+    __try {
       return GHOST_Wintab::loadWintabUnsafe(hwnd);
     }
-    __except (access_violation_exception_filter(GetExceptionCode(), GetExceptionInformation()))
-    {
+    __except (access_violation_exception_filter(GetExceptionCode(), GetExceptionInformation())) {
     }
   }
-  __finally
-  {
+  __finally {
     /* Restore our handler in case the Wintab driver replaced it. Huion's driver is known to do
      * this.
      */

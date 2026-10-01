@@ -1997,9 +1997,9 @@ static Set<StringRef> get_builtin_menus(const ObjectType object_type, const eObj
 
 static bool menu_operators_poll(const bContext &C, const RegistrationData::TypeTreeItem &node)
 {
-  if (std::ranges::any_of(node.types, [&](wmOperatorType *ot) {
-        return WM_operator_poll(&const_cast<bContext &>(C), ot);
-      }))
+  if (std::ranges::any_of(
+          node.types,
+          [&](wmOperatorType *ot) { return WM_operator_poll(&const_cast<bContext &>(C), ot); }))
   {
     return true;
   }

@@ -1084,7 +1084,8 @@ inline IndexMask IndexMask::from_predicate(const IndexMask &universe,
         const int16_t *in_end = indices.base_span().end();
         const int64_t offset = indices.offset();
         for (const int16_t *in_current = indices.base_span().data(); in_current < in_end;
-             in_current++) {
+             in_current++)
+        {
           const int16_t local_index = *in_current;
           const int64_t global_index = int64_t(local_index) + offset;
           const bool condition = predicate(global_index);

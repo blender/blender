@@ -4696,9 +4696,10 @@ FunctionRNA *RNA_def_function(StructRNA *srna, const char *identifier_c_str, con
 
   const UString identifier(identifier_c_str);
 
-  if (std::find_if(srna->functions.begin(), srna->functions.end(), [&](const auto &func) {
-        return func->identifier == identifier;
-      }) != srna->functions.end())
+  if (std::find_if(srna->functions.begin(),
+                   srna->functions.end(),
+                   [&](const auto &func) { return func->identifier == identifier; }) !=
+      srna->functions.end())
   {
     CLOG_ERROR(&LOG, "%s.%s already defined.", srna->identifier.c_str(), identifier.c_str());
     return nullptr;

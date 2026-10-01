@@ -1933,8 +1933,7 @@ void RGBToBWNode::compile(OSLCompiler &compiler)
 
 /* Convert */
 
-const NodeType *(&ConvertNode::get_node_types())[ConvertNode::MAX_TYPE][ConvertNode::MAX_TYPE]
-{
+const NodeType *(&ConvertNode::get_node_types()) [ConvertNode::MAX_TYPE][ConvertNode::MAX_TYPE] {
   static const NodeType *node_types[MAX_TYPE][MAX_TYPE];
   static std::once_flag node_types_flag;
 

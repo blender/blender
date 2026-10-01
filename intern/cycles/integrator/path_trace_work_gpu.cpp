@@ -26,8 +26,7 @@ static size_t estimate_single_state_size(const uint64_t kernel_features,
   size_t state_size = 0;
 
 #define KERNEL_STRUCT_VOLUME_STACK_SIZE (volume_stack_size)
-#define KERNEL_STRUCT_BEGIN(name) \
-  for (int array_index = 0;; array_index++) {
+#define KERNEL_STRUCT_BEGIN(name) for (int array_index = 0;; array_index++) {
 
 #ifdef __INTEGRATOR_GPU_PACKED_STATE__
 #  define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) \
@@ -157,8 +156,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
    * write the pointers into a struct that resides in constant memory.
    *
    * TODO: store float3 in separate XYZ arrays. */
-#define KERNEL_STRUCT_BEGIN(name) \
-  for (int array_index = 0;; array_index++) {
+#define KERNEL_STRUCT_BEGIN(name) for (int array_index = 0;; array_index++) {
 #define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) \
   if ((KernelFeatureRequest(feature).test(kernel_features)) && \
       (integrator_state_gpu_.parent_struct.name == nullptr)) \

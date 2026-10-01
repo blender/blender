@@ -197,9 +197,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     const UString identifier{ItemsAccessor::output_socket_identifier_for_item(items[item_i])};
     Array<bke::SocketValueVariant> &values = closure_results[required_i];
 
-    if (std::all_of(values.begin(), values.end(), [](const bke::SocketValueVariant &value) {
-          return value.is_single();
-        }))
+    if (std::all_of(values.begin(),
+                    values.end(),
+                    [](const bke::SocketValueVariant &value) { return value.is_single(); }))
     {
       const eNodeSocketDatatype socket_type = items[item_i].socket_type;
       const CPPType &type = *bke::socket_type_to_geo_nodes_base_cpp_type(socket_type);

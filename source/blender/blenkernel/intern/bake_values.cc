@@ -182,7 +182,8 @@ class RuntimeToBakeValue {
         }
         std::string attribute_name = this->get_next_bake_attribute_name();
         bool any_success = false;
-        for (const GeometryComponent::Type type : {
+        for (const GeometryComponent::Type type :
+             {
                  GeometryComponent::Type::Mesh,
                  GeometryComponent::Type::PointCloud,
                  GeometryComponent::Type::GreasePencil,

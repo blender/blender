@@ -379,9 +379,9 @@ static void clear_face_sets(const Depsgraph &depsgraph, Object &object, const In
     node_mask.foreach_index(
         [&](const int i) {
           const Span<int> faces = nodes[i].faces();
-          if (std::any_of(faces.begin(), faces.end(), [&](const int face) {
-                return face_sets[face] != default_face_set;
-              }))
+          if (std::any_of(faces.begin(),
+                          faces.end(),
+                          [&](const int face) { return face_sets[face] != default_face_set; }))
           {
             undo::push_node(depsgraph, object, &nodes[i], undo::Type::FaceSet);
             node_changed[i] = true;
@@ -397,9 +397,9 @@ static void clear_face_sets(const Depsgraph &depsgraph, Object &object, const In
           Vector<int> &face_indices = all_face_indices.local();
           const Span<int> faces = bke::pbvh::node_face_indices_calc_grids(
               *ss.subdiv_ccg, nodes[i], face_indices);
-          if (std::any_of(faces.begin(), faces.end(), [&](const int face) {
-                return face_sets[face] != default_face_set;
-              }))
+          if (std::any_of(faces.begin(),
+                          faces.end(),
+                          [&](const int face) { return face_sets[face] != default_face_set; }))
           {
             undo::push_node(depsgraph, object, &nodes[i], undo::Type::FaceSet);
             node_changed[i] = true;

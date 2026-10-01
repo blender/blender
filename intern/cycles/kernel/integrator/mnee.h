@@ -246,12 +246,11 @@ __attribute__((noinline))
 #else
 ccl_device_inline
 #endif
-bool mnee_compute_constraint_derivatives(
-  const int vertex_count,
-    ccl_private ManifoldVertex *vertices,
-     const ccl_private  float3 &surface_sample_pos,
-    const bool light_fixed_direction,
-    const float3 light_sample)
+bool mnee_compute_constraint_derivatives(const int vertex_count,
+                                         ccl_private ManifoldVertex *vertices,
+                                         const ccl_private float3 &surface_sample_pos,
+                                         const bool light_fixed_direction,
+                                         const float3 light_sample)
 {
   for (int vi = 0; vi < vertex_count; vi++) {
     ccl_private ManifoldVertex &v = vertices[vi];

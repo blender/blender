@@ -66,8 +66,7 @@ ccl_device_inline
 #else
 ccl_device_noinline
 #endif
-T kernel_image_interp_bicubic(const ccl_global KernelImageInfo &info,
-                                                const float2 uv)
+    T kernel_image_interp_bicubic(const ccl_global KernelImageInfo &info, const float2 uv)
 {
   ccl_gpu_image_object_2D tex = (ccl_gpu_image_object_2D)info.data;
 

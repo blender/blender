@@ -162,15 +162,14 @@ ccl_device_noinline
 #else
 ccl_device
 #endif
-    int
-    svm_node_closure_bsdf(KernelGlobals kg,
-                          ccl_private ShaderData *sd,
-                          ccl_private float *ccl_restrict stack,
-                          Spectrum closure_weight,
-                          const ccl_global SVMNodeClosureBsdf &ccl_restrict node,
-                          const PathRayVisibility ray_visibility,
-                          const uint32_t path_flag,
-                          int offset)
+    int svm_node_closure_bsdf(KernelGlobals kg,
+                              ccl_private ShaderData *sd,
+                              ccl_private float *ccl_restrict stack,
+                              Spectrum closure_weight,
+                              const ccl_global SVMNodeClosureBsdf &ccl_restrict node,
+                              const PathRayVisibility ray_visibility,
+                              const uint32_t path_flag,
+                              int offset)
 {
   ClosureType type = node.closure_type;
 
@@ -180,13 +179,12 @@ ccl_device
   if constexpr (shader_type != SHADER_TYPE_SURFACE) {
     return svm_node_closure_bsdf_skip(offset, type);
   }
-  IF_KERNEL_NODES_FEATURE(BSDF)
-  {
+  IF_KERNEL_NODES_FEATURE (BSDF) {
     if (mix_weight == 0.0f) {
       return svm_node_closure_bsdf_skip(offset, type);
     }
   }
-  else IF_KERNEL_NODES_FEATURE(EMISSION) {
+  else IF_KERNEL_NODES_FEATURE (EMISSION) {
     if (mix_weight == 0.0f || type != CLOSURE_BSDF_PRINCIPLED_ID) {
       /* Only principled BSDF can have emission. */
       return svm_node_closure_bsdf_skip(offset, type);

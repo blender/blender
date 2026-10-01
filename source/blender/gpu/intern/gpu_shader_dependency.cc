@@ -397,7 +397,8 @@ struct GPUSource {
   {
 #define CLOG_FILE_INCLUDE(_from, _include) \
   if (CLOG_CHECK(&LOG, CLG_LEVEL_TRACE) && \
-      (from).filename.c_str() != (_include).filename.c_str()) { \
+      (from).filename.c_str() != (_include).filename.c_str()) \
+  { \
     const char *from_filename = (_from).filename.c_str(); \
     const char *include_filename = (_include).filename.c_str(); \
     const int from_size = int((_from).source.size()); \

@@ -354,9 +354,11 @@ static void grid_hide_update(Depsgraph &depsgraph,
           calc_hide(grids[i], new_hide[i]);
         }
 
-        if (std::all_of(grids.index_range().begin(), grids.index_range().end(), [&](const int i) {
-              return bits::spans_equal(grid_hidden[grids[i]], new_hide[i]);
-            }))
+        if (std::all_of(grids.index_range().begin(),
+                        grids.index_range().end(),
+                        [&](const int i) {
+                          return bits::spans_equal(grid_hidden[grids[i]], new_hide[i]);
+                        }))
         {
           return;
         }

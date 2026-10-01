@@ -83,9 +83,9 @@ static void discard_buffers(MeshBatchCache &cache,
     if (buffer_ptrs.contains(batch.elem)) {
       return true;
     }
-    if (std::any_of(batch.verts, batch.verts + ARRAY_SIZE(batch.verts), [&](gpu::VertBuf *vbo) {
-          return vbo && buffer_ptrs.contains(vbo);
-        }))
+    if (std::any_of(batch.verts,
+                    batch.verts + ARRAY_SIZE(batch.verts),
+                    [&](gpu::VertBuf *vbo) { return vbo && buffer_ptrs.contains(vbo); }))
     {
       return true;
     }

@@ -2172,9 +2172,9 @@ Tree Tree::from_bmesh(BMesh &bm)
   threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
     for (const int i : range) {
       const Set<BMFace *, 0> &faces = BKE_pbvh_bmesh_node_faces(&nodes[i]);
-      if (std::all_of(faces.begin(), faces.end(), [&](const BMFace *face) {
-            return BM_elem_flag_test(face, BM_ELEM_HIDDEN);
-          }))
+      if (std::all_of(faces.begin(),
+                      faces.end(),
+                      [&](const BMFace *face) { return BM_elem_flag_test(face, BM_ELEM_HIDDEN); }))
       {
         nodes[i].flag_ |= Node::FullyHidden;
       }

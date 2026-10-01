@@ -47,14 +47,10 @@ struct ParallelGrainSize {
  */
 template<typename T>
 concept Tag = requires {
-  {
-    T::is_parallel
-  } -> std::convertible_to<bool>;
+  { T::is_parallel } -> std::convertible_to<bool>;
 
   requires(!T::is_parallel || requires(const T t, int fallback) {
-    {
-      t.grain_size(fallback)
-    } -> std::same_as<int>;
+    { t.grain_size(fallback) } -> std::same_as<int>;
   });
 };
 

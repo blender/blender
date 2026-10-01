@@ -2370,9 +2370,9 @@ static std::unique_ptr<IDProperty, idprop::IDPropertyDeleter> create_socket_meta
       const auto &value = node_interface::get_socket_data_as<bNodeSocketValueMenu>(socket);
       if (value.enum_items) {
         if (create_default_value_properties) {
-          if (std::ranges::any_of(value.enum_items->items, [&](const RuntimeNodeEnumItem &item) {
-                return item.identifier == value.value;
-              }))
+          if (std::ranges::any_of(
+                  value.enum_items->items,
+                  [&](const RuntimeNodeEnumItem &item) { return item.identifier == value.value; }))
           {
             /* Only add the default value property if it's contained in the enum items. */
             IDP_AddToGroup(socket_prop.get(),

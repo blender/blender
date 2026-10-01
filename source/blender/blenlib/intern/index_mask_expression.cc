@@ -1202,16 +1202,15 @@ static void evaluate_short_unknown_segments_exactly(
       Vector<EvaluatedSegment, 16> evaluated_segments;
     };
     threading::EnumerableThreadSpecific<LocalData> data_by_thread;
-    threading::parallel_for(short_unknown_segments.index_range(),
-                            unknown_segment_eval_grain_size,
-                            [&](const IndexRange range) {
-                              LocalData &data = data_by_thread.local();
-                              for (const IndexRange &bounds : short_unknown_segments.slice(range))
-                              {
-                                evaluate_unknown_segment(
-                                    bounds, data.allocator, data.evaluated_segments);
-                              }
-                            });
+    threading::parallel_for(
+        short_unknown_segments.index_range(),
+        unknown_segment_eval_grain_size,
+        [&](const IndexRange range) {
+          LocalData &data = data_by_thread.local();
+          for (const IndexRange &bounds : short_unknown_segments.slice(range)) {
+            evaluate_unknown_segment(bounds, data.allocator, data.evaluated_segments);
+          }
+        });
     for (LocalData &data : data_by_thread) {
       if (!data.evaluated_segments.is_empty()) {
         r_evaluated_segments.extend(data.evaluated_segments);

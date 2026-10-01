@@ -141,7 +141,7 @@ template<typename T> struct EulerXYZBase : public EulerBase<T> {
   /**
    * Create an euler x,y,z rotation from a triple of radian angle.
    */
-  template<typename AngleU> EulerXYZBase(const VecBase<AngleU, 3> &vec) : EulerBase<T>(vec){};
+  template<typename AngleU> EulerXYZBase(const VecBase<AngleU, 3> &vec) : EulerBase<T>(vec) {};
 
   EulerXYZBase(const AngleT &x, const AngleT &y, const AngleT &z) : EulerBase<T>(x, y, z) {};
 
@@ -246,7 +246,7 @@ template<typename T> struct Euler3Base : public EulerBase<T> {
    */
   template<typename AngleU>
   Euler3Base(const VecBase<AngleU, 3> &angles_xyz, EulerOrder order)
-      : EulerBase<T>(angles_xyz), order_(order){};
+      : EulerBase<T>(angles_xyz), order_(order) {};
 
   Euler3Base(const AngleT &x, const AngleT &y, const AngleT &z, EulerOrder order)
       : EulerBase<T>(x, y, z), order_(order) {};
