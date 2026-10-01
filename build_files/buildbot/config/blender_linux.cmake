@@ -23,7 +23,13 @@ set(WITH_LINUX_OFFICIAL_RELEASE_TESTS   ON CACHE BOOL "" FORCE)
 # Validate that some python scripts in our `build_files` and `docs` directories
 # can be used with the builder's system python.
 set(WITH_SYSTEM_PYTHON_TESTS ON CACHE BOOL "" FORCE)
+# Ensure we test Python 3.6 on Rocky, regardless of possible other ways of how the default
+# python3 executable is potentially altered by alternates.
 set(TEST_SYSTEM_PYTHON_EXE "/usr/bin/python3.6" CACHE PATH "" FORCE)
+if(NOT EXISTS "${TEST_SYSTEM_PYTHON_EXE}")
+  # If the specific Python version does not exist, fallback to the default system-wide python3.
+  set(TEST_SYSTEM_PYTHON_EXE "/usr/bin/python3" CACHE PATH "" FORCE)
+endif()
 
 # Paths to CUDA tookits with explicit versioning (CUDA<version>_) variables.
 function(buildbot_set_cuda_toolkit_major_version_paths_checked major_version)
