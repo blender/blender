@@ -601,7 +601,7 @@ class PrimitiveCreator:
         warning_already_displayed_vc_nodetree = False
 
         for material_idx in self.prim_indices.keys():
-            base_material, material_info = get_base_material(material_idx, self.materials, self.export_settings)
+            _, base_material, material_info = get_base_material(material_idx, self.materials, self.export_settings)
 
             # UVMaps
             self.uvmap_attribute_list = list(

@@ -64,7 +64,8 @@ def gather_primitives(
         if udim_material is None:  # classic case, not an udim material
             # We already call this function, in order to retrieve uvmap info, if any
             # So here, only the cache will be used
-            base_material, material_info = get_base_material(internal_primitive['material'], materials, export_settings)
+            _, base_material, material_info = get_base_material(
+                internal_primitive['material'], materials, export_settings)
 
             # Now, we can retrieve the real material, by checking attributes and active maps
             blender_mat = get_material_from_idx(internal_primitive['material'], materials, export_settings)
@@ -375,7 +376,7 @@ def __gather_extensions(blender_data,
         if len(variants) > 0:
             if i.material:
                 export_settings['current_paths'] = {}  # Used for KHR_animation_pointer.
-                base_material, material_info = gather_material(
+                _, base_material, material_info = gather_material(
                     i.material,
                     export_settings
                 )
