@@ -1422,6 +1422,7 @@ enum NodeGeometryMergeLayersMode {
 enum NodeGeometryGreasePencilStrokeType : int8_t {
   GEO_NODE_GREASE_PENCIL_STROKE = 0,
   GEO_NODE_GREASE_PENCIL_FILL = 1,
+  GEO_NODE_GREASE_PENCIL_BOTH = 2,
 };
 
 struct bNodeStack {
