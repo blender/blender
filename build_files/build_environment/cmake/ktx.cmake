@@ -35,6 +35,11 @@ ExternalProject_Add(external_ktx
   INSTALL_DIR ${LIBDIR}/ktx
 )
 
+add_dependencies(
+  external_ktx
+  external_zstd
+)
+
 if(WIN32)
   ExternalProject_Add_Step(external_ktx after_install
     COMMAND ${CMAKE_COMMAND} -E copy_directory
