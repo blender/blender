@@ -199,10 +199,10 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
    * declaration. */
   input_descriptor.domain_priority = socket->index();
 
-  /* Not every node has a declaration, in which case we assume the default values for the rest of
-   * the properties. */
+  /* Not every node has a declaration or the declaration might be empty due to a skipped update, in
+   * which case we assume the default values for the rest of the properties. */
   const nodes::NodeDeclaration *node_declaration = socket->owner_node().declaration();
-  if (!node_declaration) {
+  if (!node_declaration || node_declaration->skip_updating_sockets) {
     return input_descriptor;
   }
   const nodes::SocketDeclaration *socket_declaration = node_declaration->inputs[socket->index()];

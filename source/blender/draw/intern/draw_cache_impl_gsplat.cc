@@ -118,20 +118,19 @@ BLI_INLINE uint4 pack_gaussian(const float3 &bounded_mean,
                                float opacity)
 {
   /* Quantize mean to `pu`: 3x22b. */
-  uint3 pu = static_cast<uint3>(bounded_mean * ((1 << 22) - 1u));
+  uint3 pu = static_cast<uint3>(math::round(bounded_mean * ((1 << 22) - 1u)));
   /* Quantize scaling to `su`: 3x9b. */
-  uint3 su = static_cast<uint3>(bounded_log_scale * 511.0f);
+  uint3 su = static_cast<uint3>(math::round(bounded_log_scale * 511.0f));
   /* Quantize opacity to `au`, 1x8b. */
-  uint au = static_cast<uint>(clamp(opacity, 0.0f, 1.0f) * 255.0f);
+  uint au = static_cast<uint>(math::round(clamp(opacity, 0.0f, 1.0f) * 255.0f));
   /* Quantize rotation to `ru`: 3x9b.
-   * Note that we shuffle quaternion `wxyz` to `xyzw` for consistency inside draw module shaders.
-   */
+   * Note that we shuffle quaternion `wxyz` to `xyzw` for consistency inside draw shaders. */
   float4 q = math::normalize(float4(rotation.x, rotation.y, rotation.z, rotation.w));
   if (q.w < 0.0f) {
     q = -q;
   }
   float3 vr = math::clamp((pack_quaternion_4_to_3(q) + 1.0f) * 0.5f, 0.0f, 1.0f);
-  uint3 ru = static_cast<uint3>(vr * 511.0f);
+  uint3 ru = static_cast<uint3>(math::round(vr * 511.0f));
 
   /* Now for the fun part: pack quantized data to 4 words. */
   uint4 w;
@@ -176,7 +175,8 @@ BLI_INLINE RadiancePack pack_radiance(const Array<float3, radiance_coeffs_max> &
   RadiancePack pack;
   for (uint32_t i = 0u; i < radiance_coeffs_max; ++i) {
     /* Quantize float3 coefficients to 3x8b. */
-    uchar3 shu = static_cast<uchar3>(math::clamp(radiance_sh[i] * 255.0f, 0.0f, 255.0f));
+    uchar3 shu = static_cast<uchar3>(
+        math::round(math::clamp(radiance_sh[i] * 255.0f, 0.0f, 255.0f)));
     /* Coefficients are stored in packs with a padding byte every 15 bytes.
      * This simplifies unpacking shader-side, until we find more data to pack in. */
     uchar3 *shu_data = reinterpret_cast<uchar3 *>(pack.radiance_sh + (3 * i));

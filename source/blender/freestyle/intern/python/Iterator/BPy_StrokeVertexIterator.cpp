@@ -31,7 +31,7 @@ PyDoc_STRVAR(
     "resides in the object access: an Interface0DIterator only allows\n"
     "access to an Interface0D while one might need to access the\n"
     "specialized StrokeVertex type. In this case, one should use a\n"
-    "StrokeVertexIterator. To call functions of the UnaryFuntion0D type,\n"
+    "StrokeVertexIterator. To call functions of the UnaryFunction0D type,\n"
     "a StrokeVertexIterator can be converted to an Interface0DIterator by\n"
     "by calling Interface0DIterator(it).\n"
     "\n"

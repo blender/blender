@@ -81,7 +81,7 @@ private:
 			double yd;
 			double nextyd;
 			double nextyddot;
-		} output[3];		// inded numbex = same as m_rotData
+		} output[3];		// index = same as m_rotData
 	} m_rot, m_pos;
 
     void pushPose(CacheTS timestamp);
@@ -97,4 +97,4 @@ private:
 
 };
 }
-#endif /* COPYROTATION_H_ */
+#endif /* COPYPOSE_H_ */

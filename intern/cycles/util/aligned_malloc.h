@@ -15,9 +15,11 @@ CCL_NAMESPACE_BEGIN
 
 /* Allocate block of size bytes at least aligned to a given value. */
 void *util_aligned_malloc(const size_t size, const int alignment);
+void *util_page_aligned_malloc(const size_t size);
 
 /* Free memory allocated by util_aligned_malloc. */
 void util_aligned_free(void *ptr, const size_t size);
+void util_page_aligned_free(void *ptr, const size_t size);
 
 /* Aligned new operator. */
 template<typename T, typename... Args> T *util_aligned_new(Args... args)

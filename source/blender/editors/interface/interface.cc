@@ -578,6 +578,14 @@ static void block_bounds_calc_popup(
 {
   const int oldbounds = block->bounds;
 
+  /* Place the default button under the cursor. */
+  if (bounds_calc == BLOCK_BOUNDS_POPUP_MOUSE) {
+    if (const Button *but = block_active_default_button_find(block)) {
+      block->bounds_offset[0] = -(but->rect.xmin + 0.8f * BLI_rctf_size_x(&but->rect));
+      block->bounds_offset[1] = -BLI_rctf_cent_y(&but->rect);
+    }
+  }
+
   /* compute mouse position with user defined offset */
   block_bounds_calc(block);
 
@@ -5882,12 +5890,6 @@ const char *button_placeholder_get(Button *but)
   }
 
   return placeholder;
-}
-
-void button_clear_selection(Button *but)
-{
-  but->selsta = 0;
-  but->selend = 0;
 }
 
 void button_type_set_menu_from_pulldown(Button *but)

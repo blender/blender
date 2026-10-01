@@ -3282,22 +3282,26 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
  * Adjust widget display based on animated, driven, overridden ... etc.
  * \{ */
 
-/* put all widget colors on half alpha, use local storage */
-static void widget_color_disabled(WidgetType *wt, const WidgetStateInfo *state)
+/* Put all widget colors on reduced alpha. */
+static void widget_color_disabled(uiWidgetColors &wcol, const WidgetStateInfo *state)
+{
+  const float factor = widget_alpha_factor(state);
+  wcol.outline[3] *= factor;
+  wcol.outline_sel[3] *= factor;
+  wcol.inner[3] *= factor;
+  wcol.inner_sel[3] *= factor;
+  wcol.item[3] *= factor;
+  wcol.text[3] *= factor;
+  wcol.text_sel[3] *= factor;
+}
+
+/* Put all widget colors on reduced alpha, to avoid overriding theme colors use local storage. */
+static void widget_type_color_disabled(WidgetType *wt, const WidgetStateInfo *state)
 {
   static uiWidgetColors wcol_theme_s;
 
   wcol_theme_s = *wt->wcol_theme;
-
-  const float factor = widget_alpha_factor(state);
-
-  wcol_theme_s.outline[3] *= factor;
-  wcol_theme_s.outline_sel[3] *= factor;
-  wcol_theme_s.inner[3] *= factor;
-  wcol_theme_s.inner_sel[3] *= factor;
-  wcol_theme_s.item[3] *= factor;
-  wcol_theme_s.text[3] *= factor;
-  wcol_theme_s.text_sel[3] *= factor;
+  widget_color_disabled(wcol_theme_s, state);
 
   wt->wcol_theme = &wcol_theme_s;
 }
@@ -3350,7 +3354,7 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
     wt->wcol_theme = &btheme->tui.wcol_list_item;
 
     if (state->but_flag & (BUT_DISABLED | BUT_INACTIVE | UI_SEARCH_FILTER_NO_MATCH)) {
-      widget_color_disabled(wt, state);
+      widget_type_color_disabled(wt, state);
     }
   }
 
@@ -3358,6 +3362,9 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
   if (state->draw_as_link) {
     theme::get_color_4ubv(TH_LINK, wt->wcol.text);
     theme::get_color_4ubv(TH_LINK, wt->wcol.text_sel);
+    if (state->but_flag & (BUT_DISABLED | BUT_INACTIVE | UI_SEARCH_FILTER_NO_MATCH)) {
+      widget_color_disabled(wt->wcol, state);
+    }
   }
   const uchar *color_blend = widget_color_blend_from_flags(wcol_state, state, emboss);
 
@@ -4902,7 +4909,7 @@ static void widget_swatch(Button *but,
   /* Now we reduce alpha of the inner color (i.e. the color shown)
    * so that this setting can look grayed out, while retaining
    * the checkerboard (for transparent values). This is needed
-   * here as the effects of widget_color_disabled() are overwritten. */
+   * here as the effects of widget_type_color_disabled() are overwritten. */
   col[3] *= widget_alpha_factor(state);
 
   widgetbase_draw_color(&wtb, wcol, col, show_alpha_checkers);
@@ -6083,7 +6090,7 @@ void draw_button(const bContext *C, ARegion *region, uiStyle *style, Button *but
   if (but->emboss != EmbossType::Pulldown) {
     if (but->flag & (BUT_DISABLED | BUT_INACTIVE | UI_SEARCH_FILTER_NO_MATCH)) {
       use_alpha_blend = true;
-      widget_color_disabled(wt, &state);
+      widget_type_color_disabled(wt, &state);
     }
   }
 

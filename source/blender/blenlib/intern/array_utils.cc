@@ -7,13 +7,16 @@
  */
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <functional>
 
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
+#include "BLI_bounds.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_threads.hh"
+#include "BLI_vector_set.hh"
 
 #include "PRF_profile.hh"
 
@@ -182,6 +185,85 @@ void count_indices(const Span<int> indices, MutableSpan<int> counts)
       count_indices_atomics(indices, counts);
     }
   }
+}
+
+/**
+ * A lookup table indexed by the IDs avoids hashing and can be filled in parallel, which makes
+ * it much faster than a hash table, but the size of the table depends on the range of the IDs,
+ * so still use a VectorSet instead of the lookup table would need to be too large.
+ */
+static int count_indices_with_table(const Span<int> ids,
+                                    const IndexMask &mask,
+                                    const Bounds<int> &id_bounds,
+                                    MutableSpan<int> r_group_indices,
+                                    Vector<int> *r_first_indices)
+{
+  const int id_min = id_bounds.min;
+  const int64_t ids_range = int64_t(id_bounds.max) - int64_t(id_bounds.min) + 1;
+
+  /* Find the first element with each ID. */
+  Array<int, 64> first_elem(ids_range, std::numeric_limits<int>::max());
+  mask.foreach_index_optimized<int>(
+      [&](const int i) {
+        std::atomic_ref<int> first(first_elem[ids[i] - id_min]);
+        int prev = first.load(std::memory_order_relaxed);
+        while (i < prev && !first.compare_exchange_weak(prev, i, std::memory_order_relaxed)) {
+        }
+      },
+      exec_mode::grain_size(4096));
+
+  /* Number the groups in the order of their first elements, replacing the first element index in
+   * the table with the group index. */
+  IndexMaskMemory memory;
+  const IndexMask first_indices = IndexMask::from_predicate(
+      mask, memory, [&](const int i) { return first_elem[ids[i] - id_min] == i; });
+  first_indices.foreach_index_optimized<int>(
+      [&](const int i, const int group) { first_elem[ids[i] - id_min] = group; },
+      exec_mode::grain_size(4096));
+
+  /* Look up the group index of every element's ID. */
+  mask.foreach_index_optimized<int>(
+      [&](const int i, const int pos) { r_group_indices[pos] = first_elem[ids[i] - id_min]; },
+      exec_mode::grain_size(4096));
+
+  if (r_first_indices) {
+    r_first_indices->resize(first_indices.size());
+    first_indices.to_indices(r_first_indices->as_mutable_span());
+  }
+  return first_indices.size();
+}
+
+int group_ids_to_indices(const Span<int> ids,
+                         const IndexMask &mask,
+                         MutableSpan<int> r_group_indices,
+                         Vector<int> *r_first_indices)
+{
+  PRF_scope(ProfileCategory::Default);
+  BLI_assert(r_group_indices.size() == mask.size());
+  const std::optional<Bounds<int>> id_bounds = bounds::min_max(mask, ids);
+  if (!id_bounds) {
+    return 0;
+  }
+
+  if (id_bounds->size() < mask.size() * 4) {
+    return count_indices_with_table(ids, mask, *id_bounds, r_group_indices, r_first_indices);
+  }
+
+  using IdSet = VectorSet<int,
+                          4,
+                          DefaultProbingStrategy,
+                          DefaultHash<int>,
+                          DefaultEquality<int>,
+                          SimpleVectorSetSlot<int, int>>;
+  IdSet unique_ids;
+  mask.foreach_index_optimized<int>([&](const int i, const int pos) {
+    const int group = unique_ids.index_of_or_add(ids[i]);
+    if (r_first_indices && group == r_first_indices->size()) {
+      r_first_indices->append(i);
+    }
+    r_group_indices[pos] = group;
+  });
+  return unique_ids.size();
 }
 
 void invert_booleans(MutableSpan<bool> span)

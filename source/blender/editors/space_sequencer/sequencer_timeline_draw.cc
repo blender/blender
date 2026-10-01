@@ -80,6 +80,7 @@ namespace blender::ed::vse {
 constexpr int MUTE_ALPHA = 120;
 
 constexpr float ICON_SIZE = 12.0f;
+constexpr float ICON_SIZE_THUMBNAIL = 20.0f;
 
 Vector<Strip *> sequencer_visible_strips_get(const bContext *C)
 {
@@ -902,15 +903,57 @@ static void get_strip_text_color(const StripDrawContext &strip_ctx, uchar r_col[
   }
 }
 
+static int get_icon_id_from_strip_type(const Strip *strip)
+{
+  switch (strip->type) {
+    case STRIP_TYPE_SCENE:
+      return ICON_SCENE_DATA;
+    case STRIP_TYPE_MOVIECLIP:
+      return ICON_TRACKER;
+    case STRIP_TYPE_MASK:
+      return ICON_MOD_MASK;
+    case STRIP_TYPE_MOVIE:
+      return ICON_FILE_MOVIE;
+    case STRIP_TYPE_SOUND:
+      return ICON_FILE_SOUND;
+    case STRIP_TYPE_IMAGE:
+      return ICON_FILE_IMAGE;
+    case STRIP_TYPE_COLOR:
+    case STRIP_TYPE_ADJUSTMENT:
+      return ICON_COLOR;
+    case STRIP_TYPE_TEXT:
+      return ICON_FONT_DATA;
+    case STRIP_TYPE_COMPOSITOR:
+      return ICON_NODE_COMPOSITING;
+    case STRIP_TYPE_CROSS:
+    case STRIP_TYPE_ADD:
+    case STRIP_TYPE_SUB:
+    case STRIP_TYPE_ALPHAOVER:
+    case STRIP_TYPE_ALPHAUNDER:
+    case STRIP_TYPE_GAMCROSS:
+    case STRIP_TYPE_MUL:
+    case STRIP_TYPE_WIPE:
+    case STRIP_TYPE_GLOW:
+    case STRIP_TYPE_SPEED:
+    case STRIP_TYPE_MULTICAM:
+    case STRIP_TYPE_GAUSSIAN_BLUR:
+    case STRIP_TYPE_COLORMIX:
+      return ICON_SHADERFX;
+    default:
+      return ICON_SEQ_STRIP;
+  }
+}
+
 static void draw_icon_centered(const TimelineDrawContext &ctx,
                                const rctf &rect,
                                int icon_id,
-                               const uchar color[4])
+                               const uchar color[4],
+                               const float size = ICON_SIZE)
 {
   ui::view2d_view_ortho(ctx.v2d);
   wmOrtho2_region_pixelspace(ctx.region);
 
-  const float icon_size = ICON_SIZE * UI_SCALE_FAC;
+  const float icon_size = size * UI_SCALE_FAC;
   if (BLI_rctf_size_x(&rect) * 1.1f < icon_size * ctx.pixelx ||
       BLI_rctf_size_y(&rect) * 1.1f < icon_size * ctx.pixely)
   {
@@ -925,7 +968,7 @@ static void draw_icon_centered(const TimelineDrawContext &ctx,
   const float x_offset = (right - left - icon_size) * 0.5f;
   const float y_offset = (top - bottom - icon_size) * 0.5f;
 
-  const float inv_scale_fac = (ICON_DEFAULT_HEIGHT / ICON_SIZE) * UI_INV_SCALE_FAC;
+  const float inv_scale_fac = (ICON_DEFAULT_HEIGHT / size) * UI_INV_SCALE_FAC;
 
   ui::icon_draw_ex(left + x_offset,
                    bottom + y_offset,
@@ -995,14 +1038,26 @@ static void draw_strip_icons(const TimelineDrawContext &ctx,
       rctf rect;
       rect.xmin = strip.left_handle + strip.handle_width;
       rect.xmax = strip.right_handle - strip.handle_width;
-      rect.ymin = strip.bottom;
-      rect.ymax = strip.strip_content_top;
-      uchar col[4] = {112, 0, 0, 255};
-      if (missing_data) {
-        draw_icon_centered(ctx, rect, ICON_LIBRARY_DATA_BROKEN, col);
-      }
-      if (missing_media) {
-        draw_icon_centered(ctx, rect, ICON_STATUS_ERROR_FILLED, col);
+
+      const float pad_y = 5.0f * UI_SCALE_FAC * ctx.pixely;
+      rect.ymin = strip.bottom + pad_y;
+      rect.ymax = strip.strip_content_top - pad_y;
+
+      const int icon_id = get_icon_id_from_strip_type(strip.strip);
+
+      const float avail_size = BLI_rctf_size_y(&rect) / ctx.pixely * UI_INV_SCALE_FAC;
+      const float icon_size = min_ff(ICON_SIZE_THUMBNAIL, avail_size);
+
+      uchar col[4];
+      ui::theme::get_color_4ubv(TH_REDALERT, col);
+
+      if (icon_size >= ICON_SIZE) {
+        if (missing_data) {
+          draw_icon_centered(ctx, rect, icon_id, col, icon_size);
+        }
+        if (missing_media) {
+          draw_icon_centered(ctx, rect, icon_id, col, icon_size);
+        }
       }
     }
   }

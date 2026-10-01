@@ -133,9 +133,8 @@ ccl_device_inline void point_shader_setup(KernelGlobals kg,
   sd->N = sd->Ng;
 
 #  ifdef __DPDU__
-  /* dPdu/dPdv */
-  sd->dPdu = make_float3(0.0f, 0.0f, 0.0f);
-  sd->dPdv = make_float3(0.0f, 0.0f, 0.0f);
+  /* dPdu/dPdv: arbitrary tangent frame so bump mapping works. */
+  make_orthonormals(sd->Ng, &sd->dPdu, &sd->dPdv);
 #  endif
 }
 

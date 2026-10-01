@@ -852,7 +852,7 @@ struct wmEvent {
   short custom;
   short customdata_free;
   /**
-   * The #wmEvent::type implies the following #wmEvent::custodata.
+   * The #wmEvent::type implies the following #wmEvent::customdata.
    *
    * - #EVT_ACTIONZONE_AREA / #EVT_ACTIONZONE_FULLSCREEN / #EVT_ACTIONZONE_FULLSCREEN:
    *   Uses #sActionzoneData.

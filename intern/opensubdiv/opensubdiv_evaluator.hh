@@ -110,7 +110,7 @@ class EvalOutputAPI {
   // Evaluate varying data at a given bilinear coordinate of given ptex face.
   void evaluateVarying(const int ptex_face_index, float face_u, float face_v, float varying[3]);
 
-  // Evaluate facee-varying data at a given bilinear coordinate of given
+  // Evaluate face-varying data at a given bilinear coordinate of given
   // ptex face.
   void evaluateFaceVarying(const int face_varying_channel,
                            const int ptex_face_index,

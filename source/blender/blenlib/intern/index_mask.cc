@@ -1219,21 +1219,33 @@ Vector<IndexMask, 4> IndexMask::from_group_ids(const IndexMask &universe,
     return {universe};
   }
 
-  Vector<IndexMask, 4> result_masks;
-
   const VArraySpan<int> group_ids_span{group_ids};
-  VectorSet<int> index_by_group_id;
-  universe.foreach_index([&](const int64_t i) { index_by_group_id.add(group_ids_span[i]); });
-  const int64_t groups_num = index_by_group_id.size();
-  result_masks.resize(groups_num);
-  IndexMask::from_groups<int>(
-      universe,
-      memory,
-      [&](const int64_t i) {
-        const int group_id = group_ids_span[i];
-        return index_by_group_id.index_of(group_id);
+  Array<int> group_indices(universe.size());
+  const int groups_num = array_utils::group_ids_to_indices(
+      group_ids_span, universe, group_indices);
+
+  Array<int> offset_data;
+  Array<int> index_data;
+  const GroupedSpan<int> indices_by_group = offset_indices::build_groups_from_indices(
+      group_indices, groups_num, offset_data, index_data, universe);
+
+  /* Create the masks in parallel, with a separate allocator for each thread. */
+  Vector<IndexMask, 4> result_masks(groups_num);
+  threading::EnumerableThreadSpecific<LinearAllocator<>> allocators;
+  threading::parallel_for(
+      result_masks.index_range(),
+      256,
+      [&](const IndexRange range) {
+        LinearAllocator<> &allocator = allocators.local();
+        for (const int64_t group : range) {
+          result_masks[group] = IndexMask::from_indices(indices_by_group[group], allocator);
+        }
       },
-      result_masks);
+      threading::accumulated_task_sizes(
+          [&](const IndexRange range) { return indices_by_group.offsets[range].size(); }));
+  for (LinearAllocator<> &allocator : allocators) {
+    memory.transfer_ownership_from(allocator);
+  }
   return result_masks;
 }
 

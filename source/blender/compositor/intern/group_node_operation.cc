@@ -13,6 +13,8 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "COM_group_node_operation.hh"
 #include "COM_node_group_operation.hh"
 #include "COM_node_operation.hh"
@@ -46,7 +48,8 @@ class GroupNodeOperation : public NodeOperation {
   void execute() override
   {
     const bNodeTree *node_group = this->get_node_group();
-    if (!node_group) {
+    const bNodeTree *original_node_group = DEG_get_original(node_group);
+    if (!original_node_group || ID_MISSING(original_node_group)) {
       this->allocate_default_remaining_outputs();
       return;
     }

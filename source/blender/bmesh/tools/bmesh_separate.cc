@@ -30,7 +30,7 @@ void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_da
    * - Enable all vertex tags, then clear all tagged vertices from 'faces_b'.
    *
    * - Loop over 'faces_a', checking each vertex,
-   *   splitting out any which aren't tagged (and therefor shared), disabling tags as we go.
+   *   splitting out any which aren't tagged (and therefore shared), disabling tags as we go.
    */
 
   BMFace *f;

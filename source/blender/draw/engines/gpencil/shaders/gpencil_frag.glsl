@@ -6,7 +6,7 @@
 
 FRAGMENT_SHADER_CREATE_INFO(gpencil_geometry)
 
-#include "draw_colormanagement_lib.glsl"
+#include "draw_colormanagement.bsl.hh"
 #include "draw_grease_pencil_lib.glsl"
 #include "gpu_shader_common_color_utils.bsl.hh"
 #include "gpu_shader_common_hash.bsl.hh"
@@ -92,8 +92,7 @@ float4 get_color(float2 uv, float2 dx, float2 dy)
 
   col.rgb *= gpencil_lighting();
 
-  if (flag_test(gp_interp_flat.mat_flag, GP_STROKE_ALIGNMENT))  // dot and squares
-  {
+  if (flag_test(gp_interp_flat.mat_flag, GP_STROKE_ALIGNMENT)) {  // dot and squares
     uv = uv * 2.0f - 1.0f;
     if (flag_test(gp_interp_flat.mat_flag, GP_STROKE_DOTS)) {
       col *= gpencil_stroke_hardess_mask(length(uv), gp_interp_noperspective.hardness);
@@ -435,16 +434,14 @@ void main()
   bool is_single_dot = placement_mode == GP_DOTS_PLACEMENT_MODE_COUNT &&
                        gp_interp_flat.point_length.z == 1.0f;
 
-  if (flag_test(gp_interp_flat.mat_flag, GP_FILL))  // fill
-  {
+  if (flag_test(gp_interp_flat.mat_flag, GP_FILL)) {  // fill
     float2 dx = gpu_dfdx(gp_interp.uv);
     float2 dy = gpu_dfdy(gp_interp.uv);
 
     frag_color = get_color(gp_interp.uv, dx, dy);
   }
   else {
-    if (flag_test(gp_interp_flat.mat_flag, GP_STROKE_ALIGNMENT))  // dot and squares
-    {
+    if (flag_test(gp_interp_flat.mat_flag, GP_STROKE_ALIGNMENT)) {  // dot and squares
       if (!is_single_dot) {
         float radius1 = screen_space_to_radius(gp_interp_flat.sspos_1);
         float radius2 = screen_space_to_radius(gp_interp_flat.sspos_2);

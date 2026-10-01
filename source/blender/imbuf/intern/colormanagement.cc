@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <optional>
 #include <string>
 
 #include "DNA_ID.h"
@@ -49,6 +50,7 @@
 #include "BLI_vector_set.hh"
 
 #include "BKE_appdir.hh"
+#include "BKE_blender_project.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_idtype.hh"
@@ -57,6 +59,7 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
+#include "BKE_path_templates.hh"
 
 #include "GPU_capabilities.hh"
 
@@ -86,8 +89,6 @@ static void processor_transform_apply_threaded(uchar *byte_buffer,
                                                ColormanageProcessor *cm_processor,
                                                bool predivide);
 
-static bool g_config_is_custom = false;
-
 /* Lazily init inside function so it gets destructed before guardedalloc leak check. */
 static std::unique_ptr<ocio::Config> &g_config()
 {
@@ -101,6 +102,45 @@ static VectorSet<StringRefNull> &g_all_view_names()
   return g_all_view_names_;
 }
 
+struct ColorManagedConfigPath {
+  /* Absolute file path or URI. */
+  std::string path;
+  /* Unresolved path with templates. */
+  std::string unresolved_path;
+  ColorManagedConfigSource source = ColorManagedConfigSource::Fallback;
+
+  friend bool operator==(const ColorManagedConfigPath &a, const ColorManagedConfigPath &b)
+  {
+    return a.source == b.source && a.path == b.path && a.unresolved_path == b.unresolved_path;
+  }
+};
+
+/* The active config. */
+static ColorManagedConfigPath &g_config_active()
+{
+  static ColorManagedConfigPath g_config_active_;
+  return g_config_active_;
+}
+
+/* The config that was requested, possibly not active if failed to load. */
+static Vector<ColorManagedConfigPath> &g_config_requested()
+{
+  static Vector<ColorManagedConfigPath> g_config_requested_;
+  return g_config_requested_;
+}
+
+/* Environment variables at startup, as we modify these ourselves and need them
+ * for determining the appropriate config to load when opening a project. */
+struct ColorManagedStartupEnv {
+  std::optional<std::string> blender_ocio;
+  std::optional<std::string> ocio;
+};
+static ColorManagedStartupEnv &g_startup_env()
+{
+  static ColorManagedStartupEnv g_startup_env_;
+  return g_startup_env_;
+}
+
 #define DISPLAY_BUFFER_CHANNELS 4
 
 /* ** list of all supported color spaces, displays and views */
@@ -112,6 +152,7 @@ static char global_role_default_byte[MAX_COLORSPACE_NAME];
 static char global_role_default_float[MAX_COLORSPACE_NAME];
 static char global_role_default_sequencer[MAX_COLORSPACE_NAME];
 static char global_role_aces_interchange[MAX_COLORSPACE_NAME];
+static char global_role_video_rec709[MAX_COLORSPACE_NAME];
 
 /* Defaults from the config that never change with working space. */
 static char global_role_scene_linear_default[MAX_COLORSPACE_NAME];
@@ -222,6 +263,12 @@ static void colormanage_update_matrices(const ocio::Config &config)
       colorspace::scene_linear_to_rec709, float3x3::identity(), 0.0001f);
 }
 
+static void colormanage_clear_config()
+{
+  global_color_picking_state = GlobalColorPickingState();
+  g_all_view_names().clear();
+}
+
 /**
  * Load roles, view names and matrices from the config into the global state.
  * With #validate_only, only check the config is usable and leave global state untouched.
@@ -239,6 +286,7 @@ static bool colormanage_load_config(const ocio::Config &config, const bool valid
   char role_default_byte[MAX_COLORSPACE_NAME];
   char role_default_float[MAX_COLORSPACE_NAME];
   char role_aces_interchange[MAX_COLORSPACE_NAME];
+  char role_video_rec709[MAX_COLORSPACE_NAME] = "";
 
   ok &= colormanage_role_color_space_name_get(config, role_data, OCIO_ROLE_DATA, nullptr);
   ok &= colormanage_role_color_space_name_get(
@@ -256,6 +304,15 @@ static bool colormanage_load_config(const ocio::Config &config, const bool valid
 
   colormanage_role_color_space_name_get(
       config, role_aces_interchange, OCIO_ROLE_ACES_INTERCHANGE, nullptr, true);
+
+  /* Default to sRGB, see #video_rec709_colorspace. */
+  const ColorSpace *video_rec709 = config.get_color_space(OCIO_ROLE_VIDEO_REC709);
+  if (video_rec709 == nullptr) {
+    video_rec709 = config.get_color_space_by_interop_id("srgb_rec709_display");
+  }
+  if (video_rec709) {
+    STRNCPY_UTF8(role_video_rec709, video_rec709->name().c_str());
+  }
 
   if (config.get_num_displays() == 0) {
     CLOG_ERROR(&LOG, "Could not find any displays");
@@ -280,6 +337,8 @@ static bool colormanage_load_config(const ocio::Config &config, const bool valid
     return ok;
   }
 
+  colormanage_clear_config();
+
   STRNCPY(global_role_data, role_data);
   STRNCPY(global_role_scene_linear, role_scene_linear);
   STRNCPY(global_role_color_picking, role_color_picking);
@@ -288,6 +347,7 @@ static bool colormanage_load_config(const ocio::Config &config, const bool valid
   STRNCPY(global_role_default_byte, role_default_byte);
   STRNCPY(global_role_default_float, role_default_float);
   STRNCPY(global_role_aces_interchange, role_aces_interchange);
+  STRNCPY(global_role_video_rec709, role_video_rec709);
 
   for (const int display_index : IndexRange(config.get_num_displays())) {
     const ocio::Display *display = config.get_display_by_index(display_index);
@@ -308,8 +368,9 @@ static bool colormanage_load_config(const ocio::Config &config, const bool valid
 
 static void colormanage_free_config()
 {
+  colormanage_clear_config();
   g_config() = nullptr;
-  g_all_view_names().clear();
+  g_config_active() = {};
 }
 
 static void colormanage_set_ocio_env(const char *filepath,
@@ -332,77 +393,226 @@ static void colormanage_restore_ocio_env(const std::optional<std::string> &old_o
   BLI_setenv("OCIO", old_ocio_env.has_value() ? old_ocio_env->c_str() : nullptr);
 }
 
+static std::string colormanage_project_config_path_resolve(const StringRef path,
+                                                           const bke::BlenderProject &project)
+{
+  /* URI for configs built into OpenColorIO. */
+  if (path.startswith("ocio://")) {
+    return path;
+  }
+
+  /* Resolve path templates. */
+  char path_expanded[FILE_MAX];
+  path.copy_utf8_truncated(path_expanded);
+
+  bke::path_templates::VariableMap variables;
+  BKE_add_template_variables_for_project(variables, project);
+  if (!BKE_path_apply_template(path_expanded, sizeof(path_expanded), variables).is_empty()) {
+    return "";
+  }
+
+  /* Require absolute path, and no // blend file relative path. */
+  if (BLI_path_is_rel(path_expanded) || !BLI_path_is_abs_from_cwd(path_expanded)) {
+    return "";
+  }
+
+  return path_expanded;
+}
+
+static Vector<ColorManagedConfigPath> colormanage_config_candidates_get(const Main *bmain)
+{
+  Vector<ColorManagedConfigPath> candidates;
+
+  const ColorManagedStartupEnv &env = g_startup_env();
+  if (env.blender_ocio.has_value()) {
+    if (!env.blender_ocio->empty()) {
+      candidates.append(
+          {*env.blender_ocio, *env.blender_ocio, ColorManagedConfigSource::EnvBlenderOCIO});
+    }
+  }
+  else if (env.ocio.has_value() && !env.ocio->empty()) {
+    candidates.append({*env.ocio, *env.ocio, ColorManagedConfigSource::EnvOCIO});
+  }
+
+  /* Active project. */
+  if (bmain != nullptr) {
+    BKE_blender_project_read_callback(bmain, [&](const bke::BlenderProject *project) {
+      if (project == nullptr) {
+        return;
+      }
+      const StringRefNull unresolved_path = project->get_ocio_config_path();
+      if (!unresolved_path.is_empty()) {
+        std::string path = colormanage_project_config_path_resolve(unresolved_path, *project);
+        candidates.append({std::move(path), unresolved_path, ColorManagedConfigSource::Project});
+      }
+    });
+  }
+
+  /* Blender config. */
+  const std::optional<std::string> configdir = BKE_appdir_folder_id(BLENDER_DATAFILES,
+                                                                    "colormanagement");
+  if (configdir.has_value()) {
+    char configfile[FILE_MAX];
+    BLI_path_join(configfile, sizeof(configfile), configdir->c_str(), BCM_CONFIG_FILE);
+    candidates.append({configfile, configfile, ColorManagedConfigSource::Blender});
+  }
+
+  /* Fallback config. */
+  candidates.append({"", "", ColorManagedConfigSource::Fallback});
+
+  return candidates;
+}
+
+static const char *colormanage_config_source_identifier(const ColorManagedConfigSource source)
+{
+  switch (source) {
+    case ColorManagedConfigSource::EnvBlenderOCIO:
+      return "BLENDER_OCIO";
+    case ColorManagedConfigSource::EnvOCIO:
+      return "OCIO";
+    case ColorManagedConfigSource::Project:
+      return "project";
+    case ColorManagedConfigSource::Blender:
+      return "Blender";
+    case ColorManagedConfigSource::Fallback:
+      return "fallback";
+  }
+
+  BLI_assert_unreachable();
+  return "";
+}
+
+static void colormanage_config_load_candidates(const Span<ColorManagedConfigPath> candidates)
+{
+  g_config_requested() = candidates;
+
+  for (const ColorManagedConfigPath &candidate : candidates) {
+    /* Already active? */
+    if (g_config() && g_config_active() == candidate) {
+      break;
+    }
+
+    if (candidate.source == ColorManagedConfigSource::Project &&
+        !candidate.unresolved_path.empty() && candidate.path.empty())
+    {
+      CLOG_ERROR(
+          &LOG, "Invalid project config path, skipping: %s", candidate.unresolved_path.c_str());
+      continue;
+    }
+
+    const bool is_fallback = candidate.source == ColorManagedConfigSource::Fallback;
+
+    /* Load the config. */
+    std::unique_ptr<ocio::Config> config;
+    std::optional<std::string> old_ocio_env;
+    if (is_fallback) {
+      config = ocio::Config::create_fallback();
+    }
+    else {
+      BLI_assert(!candidate.path.empty());
+      colormanage_set_ocio_env(candidate.path.c_str(), old_ocio_env);
+      config = ocio::Config::create_from_environment();
+    }
+
+    /* Validate without touching global state, so a failed candidate leaves the active
+     * config as is. Fallback is always accepted, should never fail in practice. */
+    const auto validate = [&](const ocio::Config &new_config) {
+      return colormanage_load_config(new_config, true) || is_fallback;
+    };
+
+    bool loaded = false;
+    if (config && g_config()) {
+      loaded = g_config()->switch_to(*config, validate);
+    }
+    else if (config && validate(*config)) {
+      g_config() = std::move(config);
+      loaded = true;
+    }
+
+    if (loaded) {
+      /* Load roles, matrices and view names from the new configuration. */
+      colormanage_load_config(*g_config());
+      g_config_active() = candidate;
+      break;
+    }
+
+    colormanage_restore_ocio_env(old_ocio_env);
+
+    CLOG_ERROR(&LOG,
+               "Failed to load config from %s: %s",
+               colormanage_config_source_identifier(candidate.source),
+               candidate.path.c_str());
+  }
+
+  if (g_config_active().source == ColorManagedConfigSource::Blender) {
+    CLOG_INFO(&LOG, "Using Blender config: \"%s\"", g_config_active().path.c_str());
+  }
+  else if (g_config_active().source == ColorManagedConfigSource::Project) {
+    CLOG_INFO(&LOG, "Using project config: \"%s\"", g_config_active().path.c_str());
+  }
+  else {
+    CLOG_INFO_NOCHECK(&LOG,
+                      "Using config from %s: \"%s\"",
+                      colormanage_config_source_identifier(g_config_active().source),
+                      g_config_active().path.c_str());
+  }
+}
+
 void colormanagement_init()
 {
-  /* Handle Blender specific override. */
-  const char *blender_ocio_env = BLI_getenv("BLENDER_OCIO");
-  if (blender_ocio_env) {
-    BLI_setenv("OCIO", blender_ocio_env);
+  /* Remember the environment before loading overwrites it. */
+  if (const char *env = BLI_getenv("BLENDER_OCIO")) {
+    g_startup_env().blender_ocio = env;
+  }
+  if (const char *env = BLI_getenv("OCIO")) {
+    g_startup_env().ocio = env;
   }
 
-  /* First try config from environment variable. */
-  const char *ocio_env = BLI_getenv("OCIO");
-
-  if (ocio_env && ocio_env[0] != '\0') {
-    g_config() = ocio::Config::create_from_environment();
-    if (g_config() != nullptr) {
-      CLOG_INFO_NOCHECK(
-          &LOG, "Using %s=%s", (blender_ocio_env) ? "BLENDER_OCIO" : "OCIO", ocio_env);
-      const bool ok = colormanage_load_config(*g_config());
-
-      if (ok) {
-        g_config_is_custom = true;
-      }
-      else {
-        CLOG_ERROR(&LOG, "Failed to load config from environment");
-        colormanage_free_config();
-      }
-    }
-  }
-
-  /* Then try bundled configuration file. */
-  if (g_config() == nullptr) {
-    const std::optional<std::string> configdir = BKE_appdir_folder_id(BLENDER_DATAFILES,
-                                                                      "colormanagement");
-    if (configdir.has_value()) {
-      char configfile[FILE_MAX];
-      BLI_path_join(configfile, sizeof(configfile), configdir->c_str(), BCM_CONFIG_FILE);
-
-      std::optional<std::string> old_ocio_env;
-      colormanage_set_ocio_env(configfile, old_ocio_env);
-      g_config() = ocio::Config::create_from_environment();
-
-      bool ok = false;
-      if (g_config() != nullptr) {
-        ok = colormanage_load_config(*g_config());
-        if (!ok) {
-          CLOG_ERROR(&LOG, "Failed to load bundled config");
-          colormanage_free_config();
-        }
-      }
-
-      if (!ok) {
-        colormanage_restore_ocio_env(old_ocio_env);
-      }
-    }
-  }
-
-  /* Then use fallback. */
-  if (g_config() == nullptr) {
-    CLOG_STR_INFO_NOCHECK(&LOG, "Using fallback mode for management");
-    g_config() = ocio::Config::create_fallback();
-    colormanage_load_config(*g_config());
-  }
+  /* No project yet without a `Main`, the config is re-resolved on file read. */
+  colormanage_config_load_candidates(colormanage_config_candidates_get(nullptr));
 
   BLI_init_srgb_conversion();
+}
+
+void colormanage_environment_setup_for_test(std::optional<std::string> blender_ocio_env,
+                                            std::optional<std::string> ocio_env)
+{
+  g_startup_env().blender_ocio = std::move(blender_ocio_env);
+  g_startup_env().ocio = std::move(ocio_env);
 }
 
 void colormanagement_exit()
 {
   global_gpu_state.reset();
-  global_color_picking_state = GlobalColorPickingState();
-
   colormanage_free_config();
+}
+
+StringRefNull IMB_colormanagement_config_path_get()
+{
+  return g_config_active().unresolved_path;
+}
+
+ColorManagedConfigSource IMB_colormanagement_config_source_get()
+{
+  return g_config_active().source;
+}
+
+bool colormanage_config_reload(Main *bmain)
+{
+  const Vector<ColorManagedConfigPath> candidates = colormanage_config_candidates_get(bmain);
+
+  /* Already loaded? */
+  if (candidates == g_config_requested()) {
+    return false;
+  }
+
+  CLOG_INFO(&LOG, "Reloading OpenColorIO config");
+
+  const ColorManagedConfigPath old_config = g_config_active();
+
+  colormanage_config_load_candidates(candidates);
+
+  return g_config_active() != old_config;
 }
 
 /** \} */
@@ -427,12 +637,11 @@ bool IMB_colormanagement_switch_config(const char *filepath)
     return false;
   }
 
-  /* Reset cached state that depends on the configuration. */
-  global_color_picking_state = GlobalColorPickingState();
-  g_all_view_names().clear();
-
   /* Load roles, matrices and view names from the new configuration. */
   colormanage_load_config(*g_config());
+
+  /* The `OCIO` environment variable now points to this config. */
+  g_config_active() = {filepath, filepath, ColorManagedConfigSource::EnvOCIO};
 
   CLOG_INFO_NOCHECK(&LOG, "Switched OpenColorIO config to '%s'", filepath);
   return true;
@@ -1071,20 +1280,12 @@ void IMB_colormanagement_assign_byte_colorspace(ImBuf *ibuf, const char *name)
 
 const char *IMB_colormanagement_get_float_colorspace(const ImBuf *ibuf)
 {
-  if (ibuf->float_buffer.colorspace) {
-    return ibuf->float_buffer.colorspace->name().c_str();
-  }
-
-  return IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
+  return ibuf->float_colorspace().name().c_str();
 }
 
 const char *IMB_colormanagement_get_byte_colorspace(const ImBuf *ibuf)
 {
-  if (ibuf->byte_buffer.colorspace) {
-    return ibuf->byte_buffer.colorspace->name().c_str();
-  }
-
-  return IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
+  return ibuf->byte_colorspace().name().c_str();
 }
 
 const char *IMB_colormanagement_space_from_filepath_rules(const char *filepath)
@@ -1141,16 +1342,18 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name)
 
 const char *IMB_colormanagement_srgb_colorspace_name_get()
 {
-  /* Make a best effort to find by common names. First two are from the ColorInterop forum. */
-  const char *names[] = {"sRGB Encoded Rec.709 (sRGB)",
-                         "srgb_rec709_scene",
-                         "Utility - sRGB - Texture",
-                         "sRGB - Texture",
-                         "sRGB",
-                         nullptr};
-  for (int i = 0; names[i]; i++) {
-    const ColorSpace *colorspace = g_config()->get_color_space(names[i]);
-    if (colorspace) {
+  /* Try interop ID. */
+  for (const char *interop_id : {"srgb_rec709_scene", "srgb_rec709_display"}) {
+    if (const ColorSpace *colorspace = g_config()->get_color_space_by_interop_id(interop_id)) {
+      return colorspace->name().c_str();
+    }
+  }
+
+  /* Common names in configs without interop IDs. */
+  for (const char *name :
+       {"sRGB Encoded Rec.709 (sRGB)", "Utility - sRGB - Texture", "sRGB - Texture", "sRGB"})
+  {
+    if (const ColorSpace *colorspace = g_config()->get_color_space(name)) {
       return colorspace->name().c_str();
     }
   }
@@ -1243,13 +1446,40 @@ static const int CICP_MATRIX_RGB = 0;
 static const int CICP_MATRIX_BT709 = 1;
 static const int CICP_MATRIX_REC2020_NCL = 9;
 /* Range */
+static const int CICP_RANGE_LIMITED = 0;
 static const int CICP_RANGE_FULL = 1;
 
+/* Color space for Rec.709 tagged video, from the video_rec709 role.
+ *
+ * The Color Interop Forum and broadcast standards like Rec.1886 consider this to be gamma
+ * 2.4, however many applications consider this to be sRGB, or gamma 1.961 on macOS. This
+ * includes video players, browsers, YouTube uploads, and screen recording software.
+ *
+ * So, Blender by default writes sRGB video as Rec.709, and also defaults to sRGB output.
+ * Keeping the input and output defaults matched means that only cutting the video will
+ * not change colors, even if they might be in another colorspace. */
+static const ColorSpace *video_rec709_colorspace()
+{
+  return (global_role_video_rec709[0]) ? g_config()->get_color_space(global_role_video_rec709) :
+                                         nullptr;
+}
+
 bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
-                                       const ColorManagedFileOutput /*output*/,
+                                       const ColorManagedFileOutput output,
                                        const bool rgb_matrix,
                                        int cicp[4])
 {
+  if (output == ColorManagedFileOutput::Video && colorspace == video_rec709_colorspace()) {
+    /* Ambiguous BT.709 TRC, see #video_rec709_colorspace for details.
+     * Also use limited range to match existing Blender behavior and avoid potential
+     * incompatibilities in some software. */
+    cicp[0] = CICP_PRI_REC709;
+    cicp[1] = CICP_TRC_BT709;
+    cicp[2] = (rgb_matrix) ? CICP_MATRIX_RGB : CICP_MATRIX_BT709;
+    cicp[3] = (rgb_matrix) ? CICP_RANGE_FULL : CICP_RANGE_LIMITED;
+    return true;
+  }
+
   const StringRefNull interop_id = colorspace->interop_id();
   if (interop_id.is_empty()) {
     return false;
@@ -1339,6 +1569,14 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
     cicp[3] = CICP_RANGE_FULL;
     return true;
   }
+  if (interop_id == "blender:g1961_rec709_display") {
+    /* Apple interpretation of Rec.709 TRC with Gamma 1.961. */
+    cicp[0] = CICP_PRI_REC709;
+    cicp[1] = CICP_TRC_BT709;
+    cicp[2] = (rgb_matrix) ? CICP_MATRIX_RGB : CICP_MATRIX_BT709;
+    cicp[3] = CICP_RANGE_FULL;
+    return true;
+  }
   if (ELEM(interop_id, "lin_rec709_display", "lin_rec709_scene")) {
     cicp[0] = CICP_PRI_REC709;
     cicp[1] = CICP_TRC_LINEAR;
@@ -1400,7 +1638,8 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
     interop_id = "blender:g24_rec2020_display";
   }
   else if (cicp[0] == CICP_PRI_REC709 && cicp[1] == CICP_TRC_BT709) {
-    interop_id = "g24_rec709_display";
+    /* Ambiguous BT.709 TRC, see #video_rec709_colorspace for details. */
+    return video_rec709_colorspace();
   }
   else if (cicp[0] == CICP_PRI_P3D65 && ELEM(cicp[1], CICP_TRC_SRGB, CICP_TRC_BT709)) {
     interop_id = "srgb_p3d65_display";
@@ -1421,10 +1660,7 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
     interop_id = "lin_ciexyzd65_scene";
   }
   else if (cicp[0] == CICP_PRI_UNSPECIFIED && cicp[1] == CICP_TRC_UNSPECIFIED) {
-    /* Previous Blender behaviour was to tag sRGB as Rec709 to help roundtripping
-     * and avoid color shifts between Blender and other players.
-     * We now try to explicitly tag unknown media as "unknown", but can read it back
-     * as sRGB which is the default behaviour of many players */
+    /* Read unspecified color spaces as sRGB. */
     interop_id = "srgb_rec709_display";
   }
 
@@ -2461,13 +2697,9 @@ static ImBuf *imbuf_ensure_editable(ImBuf *ibuf, ImBuf *colormanaged_ibuf, bool 
 
 static const char *imbuf_colorspace_name(const ImBuf *ibuf, const bool prefer_byte_buffer)
 {
-  return (ibuf->float_data() && !(prefer_byte_buffer && ibuf->byte_data())) ?
-             /* From float buffer. */
-             (ibuf->float_buffer.colorspace) ? ibuf->float_buffer.colorspace->name().c_str() :
-                                               global_role_scene_linear :
-             /* From byte buffer. */
-             (ibuf->byte_buffer.colorspace) ? ibuf->byte_buffer.colorspace->name().c_str() :
-                                              global_role_default_byte;
+  const bool use_float = ibuf->float_data() && !(prefer_byte_buffer && ibuf->byte_data());
+  const ColorSpace &colorspace = use_float ? ibuf->float_colorspace() : ibuf->byte_colorspace();
+  return colorspace.name().c_str();
 }
 
 ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
@@ -3085,7 +3317,8 @@ bool IMB_colormanagement_working_space_set_from_name(const char *name)
 
 static bool imb_colormanagement_working_space_set_from_matrix(Main *bmain,
                                                               const char *name,
-                                                              const float3x3 &scene_linear_to_xyz)
+                                                              const float3x3 &scene_linear_to_xyz,
+                                                              const bool report_missing)
 {
   StringRefNull interop_id;
 
@@ -3134,7 +3367,7 @@ static bool imb_colormanagement_working_space_set_from_matrix(Main *bmain,
   STRNCPY(bmain->colorspace.scene_linear_name, global_role_scene_linear_default);
   bmain->colorspace.scene_linear_to_xyz = global_scene_linear_to_xyz_default;
 
-  if (bmain->filepath[0] != '\0') {
+  if (report_missing) {
     CLOG_ERROR(
         &LOG, "Unknown scene linear working space '%s'. Missing OpenColorIO configuration?", name);
     bmain->colorspace.is_missing_opencolorio_config = true;
@@ -3143,9 +3376,7 @@ static bool imb_colormanagement_working_space_set_from_matrix(Main *bmain,
   return IMB_colormanagement_working_space_set_from_name(global_role_scene_linear_default);
 }
 
-void IMB_colormanagement_working_space_check(Main *bmain,
-                                             const bool for_undo,
-                                             const bool have_editable_assets)
+static void imb_colormanagement_working_space_set_from_file(Main *bmain, const bool report_missing)
 {
   /* For old files without info, assume current OpenColorIO config. */
   if (math::is_zero(bmain->colorspace.scene_linear_to_xyz)) {
@@ -3155,27 +3386,11 @@ void IMB_colormanagement_working_space_check(Main *bmain,
                "Blend file has unknown scene linear working color space, setting to default");
   }
 
-  const float3x3 current_scene_linear_to_xyz = colorspace::scene_linear_to_xyz;
-
   /* Change the working space to the one from the blend file. */
-  const bool working_space_changed = imb_colormanagement_working_space_set_from_matrix(
-      bmain, bmain->colorspace.scene_linear_name, bmain->colorspace.scene_linear_to_xyz);
-  if (!working_space_changed) {
-    return;
-  }
-
-  /* For undo, we need to convert the linked datablocks as they were left unchanged by undo.
-   * For file load, we need to convert editable assets that came from the previous main. */
-  if (!(for_undo || have_editable_assets)) {
-    return;
-  }
-
-  IMB_colormanagement_working_space_convert(bmain,
-                                            current_scene_linear_to_xyz,
-                                            math::invert(bmain->colorspace.scene_linear_to_xyz),
-                                            for_undo,
-                                            for_undo,
-                                            !for_undo && have_editable_assets);
+  imb_colormanagement_working_space_set_from_matrix(bmain,
+                                                    bmain->colorspace.scene_linear_name,
+                                                    bmain->colorspace.scene_linear_to_xyz,
+                                                    report_missing);
 }
 
 static float3 imb_working_space_convert(const float3x3 &m,
@@ -3194,7 +3409,7 @@ static float3 imb_working_space_convert(const float3x3 &m,
     else if (fabsf(1.0f - rgb[i]) < 5e-5) {
       rgb[i] = 1.0f;
     }
-    /* Clamp when goig to smaller gamut. We can't really distinguish
+    /* Clamp when going to smaller gamut. We can't really distinguish
      * between HDR and out of gamut colors. */
     if (is_smaller_gamut) {
       rgb[i] = math::clamp(rgb[i], 0.0f, 1.0f);
@@ -3394,13 +3609,75 @@ void IMB_colormanagement_working_space_init_default(Main *bmain)
   bmain->colorspace.scene_linear_to_xyz = global_scene_linear_to_xyz_default;
 }
 
-void IMB_colormanagement_working_space_init_startup(Main *bmain)
+static void imb_colormanagement_working_space_init_startup(Main *bmain)
 {
   /* If using the default config, keep the one saved in the startup blend.
    * If using the non-default OCIO config, assume we want the working space from that config. */
-  if (math::is_zero(bmain->colorspace.scene_linear_to_xyz) || g_config_is_custom) {
+  const bool is_custom_config = !ELEM(g_config_active().source,
+                                      ColorManagedConfigSource::Blender,
+                                      ColorManagedConfigSource::Fallback);
+  if (math::is_zero(bmain->colorspace.scene_linear_to_xyz) || is_custom_config) {
     IMB_colormanagement_working_space_init_default(bmain);
   }
+}
+
+void IMB_colormanagement_project_read_post(Main *bmain)
+{
+  colormanage_config_reload(bmain);
+}
+
+void IMB_colormanagement_file_read_post(Main *bmain,
+                                        Main *old_bmain,
+                                        const bool is_startup,
+                                        const bool have_editable_assets)
+{
+  if (is_startup) {
+    imb_colormanagement_working_space_init_startup(bmain);
+  }
+
+  const bool report_missing = !is_startup;
+  imb_colormanagement_working_space_set_from_file(bmain, report_missing);
+
+  /* Inform user when project config failed to load. */
+  for (const ColorManagedConfigPath &candidate : g_config_requested()) {
+    if (candidate == g_config_active()) {
+      break;
+    }
+    if (candidate.source == ColorManagedConfigSource::Project) {
+      bmain->colorspace.is_failed_opencolorio_config = true;
+      bmain->colorspace.is_missing_opencolorio_config = true;
+      break;
+    }
+  }
+
+  /* Convert editable assets in the previous file, before they are moved to the new file. */
+  if (have_editable_assets) {
+    IMB_colormanagement_working_space_convert(old_bmain,
+                                              old_bmain->colorspace.scene_linear_to_xyz,
+                                              math::invert(bmain->colorspace.scene_linear_to_xyz),
+                                              false,
+                                              false,
+                                              true);
+  }
+}
+
+void IMB_colormanagement_undo_read_post(Main *bmain, const MainColorspace &old_colorspace)
+{
+  /* Preserve config warnings. */
+  bmain->colorspace.is_missing_opencolorio_config = old_colorspace.is_missing_opencolorio_config;
+  bmain->colorspace.is_failed_opencolorio_config = old_colorspace.is_failed_opencolorio_config;
+
+  /* Undo leaves linked data unchanged, in the working space from before undo. */
+  const float3x3 previous_scene_linear_to_xyz = colorspace::scene_linear_to_xyz;
+
+  const bool report_missing = bmain->filepath[0] != '\0';
+  imb_colormanagement_working_space_set_from_file(bmain, report_missing);
+
+  IMB_colormanagement_working_space_convert(bmain,
+                                            previous_scene_linear_to_xyz,
+                                            math::invert(bmain->colorspace.scene_linear_to_xyz),
+                                            true,
+                                            true);
 }
 
 /** \} */

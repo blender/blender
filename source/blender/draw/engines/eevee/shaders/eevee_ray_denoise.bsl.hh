@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "draw_math_geom_lib.glsl"
+#include "draw_math_geom.bsl.hh"
 #include "draw_view.bsl.hh"
 #include "eevee_closure.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"

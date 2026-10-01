@@ -492,6 +492,7 @@ Vector<const bNodeTreeZone *> bNodeTreeZones::get_zones_to_enter_from_root(
 const bNode *bNodeZoneType::get_corresponding_input(const bNodeTree &tree,
                                                     const bNode &output_bnode) const
 {
+  tree.ensure_topology_cache();
   for (const bNode *node : tree.nodes_by_type(this->input_idname)) {
     if (this->get_corresponding_output_id(*node) == output_bnode.identifier) {
       return node;

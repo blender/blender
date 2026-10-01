@@ -578,9 +578,6 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
               cur_proxy_size = IMB_PROXY_NONE;
               thumb = MOV_decode_frame(cur_anim, request.frame_index, cur_proxy_size);
             }
-            if (thumb != nullptr) {
-              seq_imbuf_assign_spaces(job->scene_, thumb);
-            }
           }
         }
         else if (request.strip_type == STRIP_TYPE_MOVIECLIP) {
@@ -599,9 +596,6 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
             }
             thumb = BKE_movieclip_get_ibuf_flag(
                 clip, &clip_user, MovieClipFlag(clip->flag), MovieClipCacheFlag::SkipCache);
-            if (thumb != nullptr) {
-              seq_imbuf_assign_spaces(job->scene_, thumb);
-            }
           }
         }
         else if (request.strip_type == STRIP_TYPE_MASK) {
@@ -609,9 +603,6 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
           Mask *mask = reinterpret_cast<Mask *>(
               get_id_copy(job->cache_, request, cur_id_copy, cur_source_generation));
           thumb = render_mask_thumb(mask, request.frame_index);
-          if (thumb != nullptr) {
-            seq_imbuf_assign_spaces(job->scene_, thumb);
-          }
         }
         else {
           BLI_assert_unreachable();
@@ -847,7 +838,6 @@ bool thumbnail_cache_update_scene_thumbs(const bContext *C, Scene *scene)
     ImBuf *thumb = render_scene_strip_thumbnail(
         bmain, scene, strip, float(frame_index), THUMB_SIZE);
     if (thumb != nullptr) {
-      seq_imbuf_assign_spaces(scene, thumb);
       scale_to_thumbnail_size(thumb);
 
       /* Add to thumbnail cache. */

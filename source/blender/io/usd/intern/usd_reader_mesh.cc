@@ -233,6 +233,15 @@ void USDMeshReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
     is_time_varying_ = true;
   }
 
+  /* Make one final check against the special primvars:normals in case that was set. */
+  if (!is_time_varying_) {
+    const pxr::UsdGeomPrimvarsAPI primvarsAPI(mesh_prim_);
+    const pxr::UsdGeomPrimvar primvar = primvarsAPI.GetPrimvar(usdtokens::normalsPrimvar);
+    if (primvar.HasValue() && primvar.ValueMightBeTimeVarying()) {
+      is_time_varying_ = true;
+    }
+  }
+
   if (is_time_varying_) {
     add_cache_modifier();
   }
@@ -738,7 +747,7 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
 
   /* Process point normals after reading faces. */
   if ((settings->read_flag & MOD_MESHSEQ_READ_VERT) != 0 &&
-      usd_data.normal_interpolation == pxr::UsdGeomTokens->vertex)
+      ELEM(usd_data.normal_interpolation, pxr::UsdGeomTokens->vertex, pxr::UsdGeomTokens->varying))
   {
     process_normals_vertex_varying(mesh, usd_data.normals_for_write());
   }

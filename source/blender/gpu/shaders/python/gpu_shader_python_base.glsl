@@ -1,9 +1,10 @@
-/* SPDX-FileCopyrightText: 2019-2022 Blender Authors
+/* SPDX-FileCopyrightText: 2020-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup draw
+/**
+ * This file has been included forever as a base to all python shaders.
+ * For compatibility, we keep it as is.
  */
 
 #pragma once
@@ -15,9 +16,7 @@ float linearrgb_to_srgb(float c)
   if (c < 0.0031308f) {
     return (c < 0.0f) ? 0.0f : c * 12.92f;
   }
-  else {
-    return 1.055f * pow(c, 1.0f / 2.4f) - 0.055f;
-  }
+  return 1.055f * pow(c, 1.0f / 2.4f) - 0.055f;
 }
 
 float4 texture_read_as_linearrgb(sampler2D tex, bool premultiplied, float2 co)

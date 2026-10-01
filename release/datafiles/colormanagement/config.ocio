@@ -44,6 +44,10 @@ roles:
   # Non-color data
   data: Non-Color
 
+  # Interpretation of Rec.709 tagged video for input and output.
+  # Change to Rec.1886 to match the Color Interop Forum.
+  video_rec709: sRGB
+
   # For interop between configs, and to determine XYZ for rendering
   aces_interchange: ACES2065-1
   cie_xyz_d65_interchange: Linear CIE-XYZ D65
@@ -179,6 +183,21 @@ display_colorspaces:
       children:
         - !<ColorSpaceTransform> {src: cie_xyz_d65_interchange, dst: Linear Rec.709}
         - !<ExponentTransform> {value: 2.4, direction: inverse}
+
+  - !<ColorSpace>
+    name: Rec.709-A
+    aliases: [blender:g1961_rec709_display]
+    family: Display
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Rec.709 1.961 Exponent EOTF Display, matching the interpretation of Rec.709 video on Apple devices. Use to match display of video files in e.g. QuickTime exactly. Not recommended to be used for any other purpose.
+    isdata: false
+    interop_id: blender:g1961_rec709_display
+    from_display_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: cie_xyz_d65_interchange, dst: Linear Rec.709}
+        - !<ExponentTransform> {value: 1.961, direction: inverse}
 
   - !<ColorSpace>
     name: Rec.2020

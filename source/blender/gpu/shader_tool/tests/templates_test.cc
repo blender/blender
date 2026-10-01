@@ -238,9 +238,9 @@ int bar()
 
 #define E char
 #line 2
-static constexpr char E_A = 0;
+static constexpr char A = 0;
 #line 2
-static constexpr char E_B  = 1;
+static constexpr char B  = 1;
                                int fooT17T2T_3() {
 #line 3
                                            return int(17 + 2 + -3);

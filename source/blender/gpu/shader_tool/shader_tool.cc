@@ -188,7 +188,12 @@ int main(int argc, char **argv)
         filename.ends_with("gpu_shader_material_tex_voronoi.bsl.hh") ||
         /* Need new compiler to have support for raytracing API. */
         filename.ends_with("workbench_shadow_raytrace.bsl.hh") ||
-        (filename.find("gpu/shaders/") == std::string::npos &&
+        /* Need new compiler. */
+        (filename.find("subdiv_attrib_interp.bsl.hh") == std::string::npos &&
+         filename.find("subdiv_ibo_generate.bsl.hh") == std::string::npos &&
+         filename.find("subdiv_vbo_generate.bsl.hh") == std::string::npos &&
+         filename.find("subdiv_patch_evaluation.bsl.hh") == std::string::npos &&
+         filename.find("gpu/shaders/") == std::string::npos &&
          filename.find("workbench/shaders/") == std::string::npos &&
          filename.find("eevee/shaders/") == std::string::npos &&
          filename.find("gpencil/shaders/") == std::string::npos))

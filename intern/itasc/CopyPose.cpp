@@ -326,7 +326,7 @@ void CopyPose::updateState(ConstraintValues* _values, ControlState* _state, unsi
 						if (timestep>0.0) {
 							_yval->yddot = (_data->yd-_yval->yd)/timestep;
 						} else {
-							// allow the user to change target instantenously when this function
+							// allow the user to change target instantaneously when this function
 							// if called from setControlParameter with timestep = 0
 							_yval->yd = _yval->nextyd;
 							_yval->yddot = _yval->nextyddot;

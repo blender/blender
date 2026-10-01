@@ -1269,7 +1269,7 @@ bool BM_mesh_intersect(BMesh *bm,
       }
 
       /* It's possible the vertex to dissolve is an edge on an existing face
-       * that doesn't divide the face, therefor the edges are not wire
+       * that doesn't divide the face, therefore the edges are not wire
        * and shouldn't be handled here, see: #63787. */
       if (!s.wire_edges->contains(e_pair[0]) || !s.wire_edges->contains(e_pair[1])) {
         continue;

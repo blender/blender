@@ -28,23 +28,6 @@ set(SRC_GLSL_FRAG
   draw_debug_draw_display_frag.glsl
 )
 
-set(SRC_GLSL_COMP
-  # Failed because of mixed definition of ObjectInfos
-  # draw_resource_finalize_comp.glsl
-  draw_view_finalize_comp.glsl
-
-  subdiv_ibo_lines_comp.glsl
-  subdiv_ibo_tris_comp.glsl
-  subdiv_vbo_edge_fac_comp.glsl
-  subdiv_custom_data_interp_comp.glsl
-  subdiv_vbo_sculpt_data_comp.glsl
-  subdiv_vbo_edituv_stretch_angle_comp.glsl
-  subdiv_vbo_edituv_stretch_area_comp.glsl
-  subdiv_vbo_lnor_comp.glsl
-  subdiv_vbo_paint_overlay_flag_comp.glsl
-  subdiv_normals_accumulate_comp.glsl
-)
-
 set(SRC_BSL
   bsl_shader_linting.cc
 )
@@ -56,6 +39,5 @@ if(WITH_GPU_SHADER_CPP_COMPILATION)
 
   compile_sources_as_cpp(draw_cpp_shaders_vert "${SRC_GLSL_VERT}" "GPU_VERTEX_SHADER")
   compile_sources_as_cpp(draw_cpp_shaders_frag "${SRC_GLSL_FRAG}" "GPU_FRAGMENT_SHADER")
-  compile_sources_as_cpp(draw_cpp_shaders_comp "${SRC_GLSL_COMP}" "GPU_COMPUTE_SHADER")
   compile_sources_as_cpp(draw_cpp_shaders_bsl  "${SRC_BSL}" "")
 endif()

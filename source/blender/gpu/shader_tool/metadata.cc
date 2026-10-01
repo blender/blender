@@ -41,7 +41,6 @@ std::string ParsedResource::serialize() const
     ss << ", ImageType::" << var_type;
     ss << ", \"" << var_name << "\"";
     ss << ", Frequency::" << res_frequency;
-    ss << ", GPUSamplerState::internal_sampler()";
     ss << res_condition_lambda << ")";
   }
   else if (res_type == "image") {

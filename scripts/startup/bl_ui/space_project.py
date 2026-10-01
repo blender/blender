@@ -164,6 +164,55 @@ class PROJECT_PT_main(Panel, CenterAlignMixIn):
         col.prop(project, "root_path")
 
 
+class PROJECT_PT_color_management(Panel, CenterAlignMixIn):
+    bl_label = "Color Management"
+    bl_space_type = 'PROJECT'
+    bl_region_type = 'WINDOW'
+    bl_category = MAIN_SECTION_NAME
+
+    @classmethod
+    def poll(cls, context):
+        return bpy.data.project is not None
+
+    def draw_centered(self, context, layout):
+        project = bpy.data.project
+        colorspace = bpy.data.colorspace
+
+        config_source = colorspace.ocio_config_source
+        overridden = config_source in {'BLENDER_OCIO', 'OCIO'}
+
+        if colorspace.ocio_config_source == 'PROJECT':
+            needs_reload = colorspace.ocio_config_path != project.ocio_config_path
+        else:
+            needs_reload = not overridden and (project.ocio_config_path or colorspace.is_failed_opencolorio_config)
+
+        col = layout.column()
+        col.active = not overridden
+        col.prop(project, "ocio_config")
+        if project.ocio_config == 'PATH':
+            row = col.row()
+            row.alert = colorspace.is_failed_opencolorio_config
+            row.prop(project, "ocio_config_path", text="Path")
+
+        if overridden:
+            row = layout.split(factor=0.4)
+            row.label()
+            row.label(
+                text=f"Overridden by the {config_source} environment variable",
+                icon='STATUS_INFO',
+            )
+
+        if needs_reload:
+            split = layout.split(factor=layout.property_split_factor)
+            split.label()
+            row = split.split()
+            row.label()
+            if not bpy.data.is_dirty:
+                # Skip prompt on unmodified blend file
+                row.operator_context = 'EXEC_DEFAULT'
+            row.operator("wm.revert_mainfile", text="Reload to Apply Changes", icon='FILE_REFRESH')
+
+
 class PROJECT_PT_main_unset(Panel, CenterAlignMixIn):
     bl_label = "No Project"
     bl_space_type = 'PROJECT'
@@ -302,6 +351,7 @@ classes = (
     PROJECT_PT_save_project,
     PROJECT_PT_main_unset,
     PROJECT_PT_main,
+    PROJECT_PT_color_management,
     PROJECT_PT_variables,
     PROJECT_UL_variables,
 )

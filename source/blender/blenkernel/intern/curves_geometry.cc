@@ -1628,7 +1628,6 @@ CurvesGeometry curves_copy_curve_selection(const CurvesGeometry &curves,
     copy_curve_selection_custom_knots(curves, curves_to_copy, dst_curves);
   }
 
-  dst_curves.update_curve_types();
   dst_curves.remove_attributes_based_on_types();
 
   return dst_curves;

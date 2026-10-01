@@ -54,6 +54,7 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
 
@@ -215,7 +216,8 @@ SceneCompositorEffect *get_active_effect(const Scene &scene)
 
 bool is_effect_enabled(const SceneCompositorEffect &effect, const ExecutionMode mode)
 {
-  if (!effect.node_group || ID_MISSING(effect.node_group)) {
+  const bNodeTree *original_node_group = DEG_get_original(effect.node_group);
+  if (!original_node_group || ID_MISSING(original_node_group)) {
     return false;
   }
 
@@ -776,7 +778,8 @@ static std::optional<ComputeContextHash> compute_viewer_compute_context_hash_rec
 
   /* Otherwise, we have to check node groups recursively. */
   for (const bNode *group_node : node_group.group_nodes()) {
-    if (group_node->is_muted() || !group_node->id || ID_MISSING(group_node->id)) {
+    const ID *original_node_group = DEG_get_original(group_node->id);
+    if (group_node->is_muted() || !original_node_group || ID_MISSING(original_node_group)) {
       continue;
     }
 
@@ -820,7 +823,8 @@ std::optional<ComputeContextHash> compute_viewer_compute_context_hash(const Scen
   const bke::SceneCompositorEffectComputeContext &effect_compute_context =
       compute_context_cache.for_scene_compositor_effect(&scene_compute_context, *active_effect);
 
-  if (!active_effect->node_group || ID_MISSING(active_effect->node_group)) {
+  const bNodeTree *original_node_group = DEG_get_original(active_effect->node_group);
+  if (!original_node_group || ID_MISSING(original_node_group)) {
     return std::nullopt;
   }
 

@@ -8,7 +8,7 @@
  * Evaluate shadowing using shadow map ray-tracing.
  */
 
-#include "draw_math_geom_lib.glsl"
+#include "draw_math_geom.bsl.hh"
 #include "draw_view.bsl.hh"
 #include "eevee_light_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"

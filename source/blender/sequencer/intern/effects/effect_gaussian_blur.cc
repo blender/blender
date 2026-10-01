@@ -153,11 +153,12 @@ static SeqResult do_gaussian_blur_effect(const RenderData *context,
 
   const int width = context->rectx;
   const int height = context->recty;
-  const bool is_float = ibuf1.image->float_data();
 
   /* Horizontal blur: create output, blur ibuf1 into it. */
   SeqResult out = prepare_effect_imbufs(context, ibuf1, {});
+
   {
+    const bool is_float = out.image->float_data();
     float *out_float = out.image->float_data_for_write();
     uint8_t *out_byte = out.image->byte_data_for_write();
     threading::parallel_for(IndexRange(context->recty), 32, [&](const IndexRange y_range) {
@@ -189,6 +190,7 @@ static SeqResult do_gaussian_blur_effect(const RenderData *context,
   SeqResult vin = out;
   out = prepare_effect_imbufs(context, vin, {});
   {
+    const bool is_float = out.image->float_data();
     float *out_float = out.image->float_data_for_write();
     uint8_t *out_byte = out.image->byte_data_for_write();
     threading::parallel_for(IndexRange(context->recty), 32, [&](const IndexRange y_range) {

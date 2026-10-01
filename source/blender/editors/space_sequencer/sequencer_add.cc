@@ -182,7 +182,6 @@ static void sequencer_add_ui(bContext * /*C*/, wmOperator *op)
 {
   ui::Layout &layout = *op->layout;
   SequencerAddData *sad = static_cast<SequencerAddData *>(op->customdata);
-  ImageFormatData *imf = &sad->im_format;
 
   bool is_redo_panel = sad == nullptr;
 
@@ -213,11 +212,12 @@ static void sequencer_add_ui(bContext * /*C*/, wmOperator *op)
     layout.prop(op->ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (RNA_struct_find_property(op->ptr, "show_multiview")) {
+  if (!is_redo_panel && RNA_struct_find_property(op->ptr, "show_multiview")) {
     layout.separator();
 
     /* Image template. */
-    PointerRNA imf_ptr = RNA_pointer_create_discrete(nullptr, RNA_ImageFormatSettings, imf);
+    PointerRNA imf_ptr = RNA_pointer_create_discrete(
+        nullptr, RNA_ImageFormatSettings, &sad->im_format);
 
     /* Multiview template. */
     if (RNA_boolean_get(op->ptr, "show_multiview")) {

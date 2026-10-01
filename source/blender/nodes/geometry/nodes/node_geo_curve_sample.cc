@@ -409,38 +409,18 @@ class SampleCurveFunction : public mf::MultiFunction {
       }
     }
     else {
-      Vector<int> valid_indices;
-      Vector<int> invalid_indices;
-      VectorSet<int> used_curves;
-      devirtualize_varray(curve_indices, [&](const auto curve_indices) {
-        mask.foreach_index([&](const int i) {
-          const int curve_i = curve_indices[i];
-          if (curves.curves_range().contains(curve_i)) {
-            used_curves.add(curve_i);
-            valid_indices.append(i);
-          }
-          else {
-            invalid_indices.append(i);
-          }
-        });
-      });
-
+      const VArraySpan<int> curve_indices_span(curve_indices);
       IndexMaskMemory memory;
-      const IndexMask valid_indices_mask = valid_indices.size() == mask.size() ?
-                                               mask :
-                                               IndexMask::from_indices(valid_indices.as_span(),
-                                                                       memory);
-      Array<IndexMask> mask_by_curve(used_curves.size());
-      IndexMask::from_groups<int>(
-          valid_indices_mask,
-          memory,
-          [&](const int i) { return used_curves.index_of(curve_indices[i]); },
-          mask_by_curve);
-
-      for (const int i : mask_by_curve.index_range()) {
-        sample_curve(used_curves[i], mask_by_curve[i]);
+      const IndexMask valid_mask = IndexMask::from_predicate(mask, memory, [&](const int i) {
+        return curves.curves_range().contains(curve_indices_span[i]);
+      });
+      const IndexMask invalid_mask = IndexMask::from_difference(mask, valid_mask, memory);
+      const Vector<IndexMask, 4> mask_by_curve = IndexMask::from_group_ids(
+          valid_mask, curve_indices, memory);
+      for (const IndexMask &curve_mask : mask_by_curve) {
+        sample_curve(curve_indices_span[curve_mask.first()], curve_mask);
       }
-      fill_invalid(IndexMask::from_indices<int>(invalid_indices, memory));
+      fill_invalid(invalid_mask);
     }
   }
 

@@ -82,7 +82,7 @@ namespace blender {
  * ============
  *
  * Unlike viewport selection there is no requirement for hidden elements not to be selected.
- * Therefor, UV selection checks must check the underlying geometry is not hidden.
+ * Therefore, UV selection checks must check the underlying geometry is not hidden.
  * In practice this means hidden faces must be assumed unselected,
  * since UV's are part of the faces (there is no such thing as a hidden face-corner)
  * and any hidden edge or vertex causes connected faces to be hidden.

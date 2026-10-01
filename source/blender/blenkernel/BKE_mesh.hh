@@ -493,6 +493,20 @@ bool mesh_validate_material_indices(Mesh &mesh);
  */
 IndexMask mesh_find_faces_duplicate_verts(const Mesh &mesh, IndexMaskMemory &memory);
 
+/**
+ * Find faces that use the same vertices as another face, in either winding direction. For every
+ * group of duplicates, the face that comes first in the mask isn't a part of the result. The faces
+ * must not contain the same vertex more than once.
+ *
+ * \param r_originals: Optional array with an element for every face, where the face that each
+ * duplicate face duplicates is stored.
+ */
+IndexMask find_duplicate_faces(OffsetIndices<int> faces,
+                               Span<int> corner_verts,
+                               const IndexMask &mask,
+                               IndexMaskMemory &memory,
+                               MutableSpan<int> r_originals = {});
+
 void mesh_apply_spatial_organization(Mesh &mesh);
 const AttributeAccessorFunctions &mesh_attribute_accessor_functions();
 

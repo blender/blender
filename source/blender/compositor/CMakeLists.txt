@@ -174,6 +174,7 @@ set(LIB
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blentranslation
+  PRIVATE bf::depsgraph
   PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::imbuf

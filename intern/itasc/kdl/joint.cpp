@@ -90,7 +90,7 @@ namespace KDL {
 			return Frame(Rot(Vector(q[0], q[1], q[2])));
 			break;
 		case Swing:
-			// the joint angles represent a 2D rotation vector in the XZ planee of the base frame of the joint
+			// the joint angles represent a 2D rotation vector in the XZ plane of the base frame of the joint
 			// (= the frame you get when there is no offset nor rotation)
 			assert(q);
 			return Frame(Rot(Vector(q[0], 0.0, q[1])));

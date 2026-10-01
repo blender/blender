@@ -127,7 +127,7 @@ void PatchMap::initializeQuadtree(PatchTable const &patchTable)
 
   //
   //  Reserve quadtree nodes for the worst case and prune later.  Set the
-  //  initial size to accomodate the root node of each patch face:
+  //  initial size to accommodate the root node of each patch face:
   //
   int nPatchFaces = (_maxPatchFace - _minPatchFace) + 1;
 

@@ -829,7 +829,6 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
        * collide with other resources. */
       Resource res(info, Resource::BindType::SAMPLER, input.index, nullptr);
       res.sampler.type = input.img_type;
-      res.sampler.sampler = GPUSamplerState::default_sampler();
       res.sampler.name = image_name;
       print_resource(ss, res, info);
 

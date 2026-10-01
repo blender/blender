@@ -120,7 +120,7 @@ void RNA_api_curve_nurb(StructRNA *srna)
                                 0.0f,
                                 FLT_MAX,
                                 "Length",
-                                "Length of the polygonaly approximated spline",
+                                "Length of the polygonally approximated spline",
                                 0.0f,
                                 FLT_MAX);
   RNA_def_function_return(func, parm);

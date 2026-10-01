@@ -17,7 +17,7 @@ namespace blender::opensubdiv {
 
 // Simplified representation of mesh topology.
 // Only includes parts of actual mesh topology which is needed to perform
-// comparison between Application side and OpenSubddiv side.
+// comparison between Application side and OpenSubdiv side.
 //
 // NOTE: It is an optimized storage which requires special order of topology
 // specification. Basically, counters is to be set prior to anything else, in

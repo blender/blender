@@ -456,7 +456,7 @@ class GPUDevice : public Device {
 
   /* Shared memory. */
   virtual bool shared_alloc(void *&shared_pointer, const size_t size) = 0;
-  virtual void shared_free(void *shared_pointer) = 0;
+  virtual void shared_free(void *shared_pointer, const size_t size) = 0;
   bool is_shared(const void *shared_pointer,
                  const device_ptr device_pointer,
                  Device *sub_device) override;

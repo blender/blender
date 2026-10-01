@@ -206,8 +206,6 @@ intern/ghost/intern/GHOST_ContextVK.*                   @Jeroen-Bakker
 intern/ghost/intern/GHOST_Xr.*                          @Jeroen-Bakker
 intern/opensubdiv/internal/evaluator/gpu.*              @Jeroen-Bakker
 intern/opensubdiv/internal/evaluator/shaders/.*         @Jeroen-Bakker
-source/blender/blenkernel/intern/image_gpu.*            @Jeroen-Bakker
-source/blender/blenkernel/intern/image_partial_update.* @Jeroen-Bakker
 source/blender/gpu/vulkan/.*                            @Jeroen-Bakker
 source/blender/python/gpu/.*                            @Jeroen-Bakker
 source/blender/eevee/.*                                 @fclem

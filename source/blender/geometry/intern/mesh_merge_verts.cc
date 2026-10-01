@@ -12,7 +12,6 @@
 #include "BKE_attribute_math.hh"
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
-#include "BLI_bit_vector.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_kdtree_new.hh"
 #include "BLI_listbase.hh"
@@ -49,11 +48,13 @@ namespace blender::geometry {
 #define ELEM_COLLAPSED int(-2)
 /* indicates whether an edge or vertex in groups_map will be merged. */
 #define ELEM_MERGED int(-2)
+/* Indicates that a face is a duplicate of another face after merging. */
+#define ELEM_DUPLICATE int(-3)
 
 struct WeldFace {
   /**
    * #OUT_OF_CONTEXT if the face remains in the result, #ELEM_COLLAPSED if all of its corners
-   * collapse, or the index of the face it's a duplicate of.
+   * collapse, or #ELEM_DUPLICATE if it's a duplicate of another face.
    */
   int face_dst;
   /* Indices in to the source Mesh. */
@@ -641,230 +642,48 @@ static void weld_face_corner_ctx_setup_collapsed_and_split(const Span<int> corne
 #endif
 }
 
-static int face_find_doubles(const OffsetIndices<int> face_corner_offsets,
-                             const int faces_num,
-                             const Span<int> corners,
-                             const int corner_index_max,
-                             Vector<int> &r_doubles_offsets,
-                             Array<int> &r_doubles_buffer)
-{
-  /* Fills the `r_buffer` buffer with the intersection of the arrays in `buffer_a` and `buffer_b`.
-   * `buffer_a` and `buffer_b` have a sequence of sorted, non-repeating indices representing
-   * faces. */
-  const auto intersect = [](const Span<int> buffer_a,
-                            const Span<int> buffer_b,
-                            const BitVector<> &is_double,
-                            int *r_buffer) {
-    int result_num = 0;
-    int index_a = 0, index_b = 0;
-    while (index_a < buffer_a.size() && index_b < buffer_b.size()) {
-      const int value_a = buffer_a[index_a];
-      const int value_b = buffer_b[index_b];
-      if (value_a < value_b) {
-        index_a++;
-      }
-      else if (value_b < value_a) {
-        index_b++;
-      }
-      else {
-        /* Equality. */
-
-        /* Do not add duplicates.
-         * As they are already in the source array, this can cause buffer overflow. */
-        if (!is_double[value_a]) {
-          r_buffer[result_num++] = value_a;
-        }
-        index_a++;
-        index_b++;
-      }
-    }
-
-    return result_num;
-  };
-
-  /* Add +1 to allow calculation of the length of the last group. */
-  Array<int> linked_faces_offset(corner_index_max + 1, 0);
-
-  for (const int elem_index : corners) {
-    linked_faces_offset[elem_index]++;
-  }
-
-  int link_faces_buffer_num = 0;
-  for (const int elem_index : IndexRange(corner_index_max)) {
-    link_faces_buffer_num += linked_faces_offset[elem_index];
-    linked_faces_offset[elem_index] = link_faces_buffer_num;
-  }
-  linked_faces_offset[corner_index_max] = link_faces_buffer_num;
-
-  if (link_faces_buffer_num == 0) {
-    return 0;
-  }
-
-  Array<int> linked_faces_buffer(link_faces_buffer_num);
-
-  /* Use a reverse for loop to ensure that indexes are assigned in ascending order. */
-  for (int face_index = faces_num; face_index--;) {
-    if (face_corner_offsets[face_index].is_empty()) {
-      continue;
-    }
-
-    for (int corner_index = face_corner_offsets[face_index].last();
-         corner_index >= face_corner_offsets[face_index].first();
-         corner_index--)
-    {
-      const int elem_index = corners[corner_index];
-      linked_faces_buffer[--linked_faces_offset[elem_index]] = face_index;
-    }
-  }
-
-  Array<int> doubles_buffer(faces_num);
-
-  Vector<int> doubles_offsets;
-  doubles_offsets.reserve((faces_num / 2) + 1);
-  doubles_offsets.append(0);
-
-  BitVector<> is_double(faces_num, false);
-
-  int doubles_buffer_num = 0;
-  int doubles_num = 0;
-  for (const int face_index : IndexRange(faces_num)) {
-    if (is_double[face_index]) {
-      continue;
-    }
-
-    int corner_num = face_corner_offsets[face_index].size();
-    if (corner_num == 0) {
-      continue;
-    }
-
-    /* Set or overwrite the first slot of the possible group. */
-    doubles_buffer[doubles_buffer_num] = face_index;
-
-    int corner_first = face_corner_offsets[face_index].first();
-    int elem_index = corners[corner_first];
-    int link_offs = linked_faces_offset[elem_index];
-    int faces_a_num = linked_faces_offset[elem_index + 1] - link_offs;
-    if (faces_a_num == 1) {
-      BLI_assert(linked_faces_buffer[linked_faces_offset[elem_index]] == face_index);
-      continue;
-    }
-
-    const int *faces_a = &linked_faces_buffer[link_offs];
-    int face_to_test;
-
-    /* Skip faces with lower index as these have already been checked. */
-    do {
-      face_to_test = *faces_a;
-      faces_a++;
-      faces_a_num--;
-    } while (face_to_test != face_index);
-
-    int *isect_result = doubles_buffer.data() + doubles_buffer_num + 1;
-
-    /* `faces_a` are the faces connected to the first corner. So skip the first corner. */
-    for (int corner_index : IndexRange(corner_first + 1, corner_num - 1)) {
-      elem_index = corners[corner_index];
-      link_offs = linked_faces_offset[elem_index];
-      int faces_b_num = linked_faces_offset[elem_index + 1] - link_offs;
-      const int *faces_b = &linked_faces_buffer[link_offs];
-
-      /* Skip faces with lower index as these have already been checked. */
-      do {
-        face_to_test = *faces_b;
-        faces_b++;
-        faces_b_num--;
-      } while (face_to_test != face_index);
-
-      doubles_num = intersect(Span<int>{faces_a, faces_a_num},
-                              Span<int>{faces_b, faces_b_num},
-                              is_double,
-                              isect_result);
-
-      if (doubles_num == 0) {
-        break;
-      }
-
-      /* Intersect the last result. */
-      faces_a = isect_result;
-      faces_a_num = doubles_num;
-    }
-
-    if (doubles_num) {
-      for (const int face_double : Span<int>{isect_result, doubles_num}) {
-        BLI_assert(face_double > face_index);
-        is_double[face_double].set();
-      }
-      doubles_buffer_num += doubles_num;
-      doubles_offsets.append(++doubles_buffer_num);
-
-      if ((doubles_buffer_num + 1) == faces_num) {
-        /* The last slot is the remaining unduplicated face.
-         * Avoid checking intersection as there are no more slots left. */
-        break;
-      }
-    }
-  }
-
-  r_doubles_buffer = std::move(doubles_buffer);
-  r_doubles_offsets = std::move(doubles_offsets);
-  return doubles_buffer_num - (r_doubles_offsets.size() - 1);
-}
-
-static void weld_face_find_doubles(const Span<int> corner_edges,
-                                   const int src_edges_num,
-                                   WeldMesh *r_weld_mesh)
+static void weld_face_find_doubles(const Span<int> corner_verts, WeldMesh *r_weld_mesh)
 {
   if (r_weld_mesh->removed_faces_num == r_weld_mesh->weld_faces.size()) {
     return;
   }
 
-  WeldFace *weld_faces = r_weld_mesh->weld_faces.data();
-  const Span<int> edge_src_to_target = r_weld_mesh->edge_src_to_target;
-  int face_index = 0;
+  MutableSpan<WeldFace> weld_faces = r_weld_mesh->weld_faces;
+  const Span<int> vert_src_to_target = r_weld_mesh->vert_src_to_target;
+  const Span<int> corner_next = r_weld_mesh->corner_next;
 
-  const int face_size = r_weld_mesh->weld_faces.size();
-  Array<int> face_offsets_(face_size + 1);
-  Vector<int> new_corner_edges;
-  new_corner_edges.reserve(corner_edges.size() - r_weld_mesh->removed_corners_num);
+  IndexMaskMemory memory;
+  const IndexMask remaining_faces = IndexMask::from_predicate(
+      weld_faces.index_range(),
+      memory,
+      [&](const int i) { return weld_faces[i].face_dst == OUT_OF_CONTEXT; },
+      exec_mode::grain_size(4096));
 
-  for (const WeldFace &weld_face : r_weld_mesh->weld_faces) {
-    face_offsets_[face_index++] = new_corner_edges.size();
-    if (weld_face.face_dst != OUT_OF_CONTEXT) {
-      continue;
-    }
-    foreach_weld_face_corner(weld_face, r_weld_mesh->corner_next, [&](const int corner) {
-      new_corner_edges.append(edge_src_to_target[corner_edges[corner]]);
-    });
-  }
+  /* Gather the vertices of the remaining faces after merging. */
+  Array<int> face_offset_data(weld_faces.size() + 1, 0);
+  remaining_faces.foreach_index(
+      [&](const int i) { face_offset_data[i] = weld_faces[i].corners_num; },
+      exec_mode::grain_size(4096));
+  const OffsetIndices face_offsets = offset_indices::accumulate_counts_to_offsets(
+      face_offset_data);
+  Array<int> face_verts(face_offsets.total_size());
+  remaining_faces.foreach_index(
+      [&](const int i) {
+        int *vert = face_verts.as_mutable_span().slice(face_offsets[i]).data();
+        foreach_weld_face_corner(weld_faces[i], corner_next, [&](const int corner) {
+          *vert++ = vert_src_to_target[corner_verts[corner]];
+        });
+      },
+      exec_mode::grain_size(1024));
 
-  face_offsets_[face_size] = new_corner_edges.size();
-  OffsetIndices<int> face_offsets(face_offsets_);
+  const IndexMask duplicate_faces = bke::find_duplicate_faces(
+      face_offsets, face_verts, remaining_faces, memory);
+  duplicate_faces.foreach_index([&](const int i) { weld_faces[i].face_dst = ELEM_DUPLICATE; },
+                                exec_mode::grain_size(4096));
 
-  Vector<int> doubles_offsets;
-  Array<int> doubles_buffer;
-  const int doubles_num = face_find_doubles(
-      face_offsets, face_size, new_corner_edges, src_edges_num, doubles_offsets, doubles_buffer);
-
-  if (doubles_num) {
-    int removed_corners_num = 0;
-
-    OffsetIndices<int> doubles_offset_indices(doubles_offsets);
-    for (const int i : doubles_offset_indices.index_range()) {
-      const int face_dst = weld_faces[doubles_buffer[doubles_offsets[i]]].face_src;
-
-      for (const int offset : doubles_offset_indices[i].drop_front(1)) {
-        const int weld_face_index = doubles_buffer[offset];
-        WeldFace &weld_face = weld_faces[weld_face_index];
-
-        BLI_assert(weld_face.face_dst == OUT_OF_CONTEXT);
-        weld_face.face_dst = face_dst;
-        removed_corners_num += face_offsets[weld_face_index].size();
-      }
-    }
-
-    r_weld_mesh->removed_faces_num += doubles_num;
-    r_weld_mesh->removed_corners_num += removed_corners_num;
-  }
+  r_weld_mesh->removed_faces_num += duplicate_faces.size();
+  r_weld_mesh->removed_corners_num += offset_indices::sum_group_sizes(face_offsets,
+                                                                      duplicate_faces);
 
 #ifdef USE_WELD_DEBUG
   weld_assert_removed_faces_and_corners_num(
@@ -927,7 +746,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
   weld_face_corner_ctx_setup_collapsed_and_split(
       corner_verts, corner_edges, weld_edges.size() - removed_double_edges_num, r_weld_mesh);
 
-  weld_face_find_doubles(corner_edges, edges.size(), r_weld_mesh);
+  weld_face_find_doubles(corner_verts, r_weld_mesh);
 }
 
 /** \} */
@@ -1596,28 +1415,20 @@ std::optional<Mesh *> mesh_merge_verts(const Mesh &mesh,
                                        const Span<int> merge_ids,
                                        const bke::AttributeFilter &attribute_filter)
 {
-  VectorSet<int> group_indices;
-  selection.foreach_index_optimized<int>([&](const int i) { group_indices.add(merge_ids[i]); });
-  const int removed_verts_num = selection.size() - group_indices.size();
+  Array<int> group_indices(selection.size());
+  Vector<int> first_verts;
+  const int groups_num = array_utils::group_ids_to_indices(
+      merge_ids, selection, group_indices, &first_verts);
+  const int removed_verts_num = selection.size() - groups_num;
   if (removed_verts_num == 0) {
     return std::nullopt;
   }
 
-  Array<int> dst_vert_by_group(group_indices.size(), -1);
-  selection.foreach_index_optimized<int>([&](const int i) {
-    const int group_i = group_indices.index_of(merge_ids[i]);
-    if (dst_vert_by_group[group_i] == -1) {
-      dst_vert_by_group[group_i] = i;
-    }
-  });
-
+  /* Every vertex merges into the first vertex with the same ID. */
   Array<int> vert_src_to_target(mesh.verts_num);
   array_utils::fill_index_range(vert_src_to_target.as_mutable_span());
   selection.foreach_index_optimized<int>(
-      [&](const int i) {
-        const int group_i = group_indices.index_of(merge_ids[i]);
-        vert_src_to_target[i] = dst_vert_by_group[group_i];
-      },
+      [&](const int i, const int pos) { vert_src_to_target[i] = first_verts[group_indices[pos]]; },
       exec_mode::grain_size(8192));
 
   return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, true, attribute_filter);

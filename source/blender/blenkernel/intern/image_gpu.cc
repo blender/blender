@@ -478,8 +478,8 @@ static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
   }
 
   /* Get changeset ID that we will update to, and last changeset ID. */
-  const int64_t new_changeset_id = BKE_image_partial_update_flush(image, &tile_user);
-  const int64_t last_changeset_id = atlas_ibuf->gpu.partial_update_changeset;
+  const imbuf::ChangesetID new_changeset_id = BKE_image_partial_update_flush(image, &tile_user);
+  const imbuf::ChangesetID last_changeset_id = atlas_ibuf->gpu.partial_update_changeset_id;
 
   for (ImageTile &tile : image->tiles) {
     tile_user.tile = tile.tile_number;
@@ -518,7 +518,7 @@ static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
     }
   }
 
-  atlas_ibuf->gpu.partial_update_changeset = new_changeset_id;
+  atlas_ibuf->gpu.partial_update_changeset_id = new_changeset_id;
   IMB_freeImBuf(atlas_ibuf);
 
   if (need_full_rebuild) {
@@ -569,7 +569,7 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
   }
 
   /* Get changeset ID that we will update to. */
-  const int64_t new_changeset_id = BKE_image_partial_update_flush(ima, nullptr);
+  const imbuf::ChangesetID new_changeset_id = BKE_image_partial_update_flush(ima, nullptr);
 
   /* Acquire image buffer. */
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, nullptr);
@@ -622,8 +622,8 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
   IMB_assign_gpu_texture(atlas_ibuf, atlas_tex);
   IMB_assign_gpu_texture(mapping_ibuf, mapping_tex);
 
-  atlas_ibuf->gpu.partial_update_changeset = new_changeset_id;
-  mapping_ibuf->gpu.partial_update_changeset = new_changeset_id;
+  atlas_ibuf->gpu.partial_update_changeset_id = new_changeset_id;
+  mapping_ibuf->gpu.partial_update_changeset_id = new_changeset_id;
 
   IMB_freeImBuf(atlas_ibuf);
   IMB_freeImBuf(mapping_ibuf);

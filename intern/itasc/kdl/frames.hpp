@@ -28,7 +28,7 @@
 /**
  * \file
  * \warning
- *       Efficienty can be improved by writing p2 = A*(B*(C*p1))) instead of
+ *       Efficiency can be improved by writing p2 = A*(B*(C*p1))) instead of
  *          p2=A*B*C*p1
  *
  * \par PROPOSED NAMING CONVENTION FOR FRAME-like OBJECTS
@@ -271,7 +271,7 @@ public:
      Suppose V2 = R*V,                                    (1)
      V is expressed in frame B
      V2 is expressed in frame A
-     This matrix R consists of 3 collumns [ X,Y,Z ],
+     This matrix R consists of 3 columns [ X,Y,Z ],
      X,Y, and Z contain the axes of frame B, expressed in frame A
      Because of linearity expr(1) is valid.
  \endverbatim
@@ -291,7 +291,7 @@ public:
       p2 = R*p;
  \endverbatim
    then the frame p2 is rotated around X axis with (-angle).
-   Analogue reasonings can be applyd to SetRotY,SetRotZ,SetRot
+   Analogue reasoning can be applied to SetRotY,SetRotZ,SetRot
  \par type
   Concrete implementation
 */
@@ -606,7 +606,7 @@ public:
     /*
     // DH_Craig1989 : constructs a transformationmatrix
     // T_link(i-1)_link(i) with the Denavit-Hartenberg convention as
-    // described in the Craigs book: Craig, J. J.,Introduction to
+    // described in the Craig's book: Craig, J. J.,Introduction to
     // Robotics: Mechanics and Control, Addison-Wesley,
     // isbn:0-201-10326-5, 1986.
     //

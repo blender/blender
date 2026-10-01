@@ -201,7 +201,7 @@ const EnumPropertyItem rna_enum_metaelem_type_items[] = {
     {MB_TUBE, "CAPSULE", ICON_META_CAPSULE, "Capsule", ""},
     {MB_PLANE, "PLANE", ICON_META_PLANE, "Plane", ""},
     /* NOTE: typo at original definition! */
-    {MB_ELIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, "Ellipsoid", ""},
+    {MB_ELLIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, "Ellipsoid", ""},
     {MB_CUBE, "CUBE", ICON_META_CUBE, "Cube", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
@@ -1608,9 +1608,12 @@ static void rna_Object_active_constraint_set(PointerRNA *ptr,
   BKE_constraints_active_set(&ob->constraints, static_cast<bConstraint *>(value.data));
 }
 
-static bConstraint *rna_Object_constraints_new(Object *object, Main *bmain, int type)
+static bConstraint *rna_Object_constraints_new(Object *object,
+                                               Main *bmain,
+                                               int type,
+                                               const char *name)
 {
-  bConstraint *new_con = BKE_constraint_add_for_object(object, nullptr, eBConstraint_Types(type));
+  bConstraint *new_con = BKE_constraint_add_for_object(object, name, eBConstraint_Types(type));
 
   ed::object::constraint_tag_update(bmain, object, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, object);
@@ -2496,6 +2499,12 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_enum(
       func, "type", rna_enum_constraint_type_items, 1, "", "Constraint type to add");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_string(func,
+                 "name",
+                 nullptr,
+                 0,
+                 "",
+                 "Name of the new constraint. If empty, the name of the constraint type is used");
   /* return type */
   parm = RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));

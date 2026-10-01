@@ -533,8 +533,12 @@ struct SymbolParser : NodeErrorHandler {
         error(sym->loc.tok, Diag::Redefinition, sym->identifier);
       }
     }
-    /* Set resolved identifier. */
-    sym->identifier = prefix + sym->identifier;
+    /* TODO(fclem): Not enabling this for non-class-enum to stay compatible with the older
+     * compiler. */
+    if (cls.is_enum_class()) {
+      /* Set resolved identifier. */
+      sym->identifier = prefix + sym->identifier;
+    }
   }
 
   SymbolClass *parse_class_decl(SymbolScope &scope,

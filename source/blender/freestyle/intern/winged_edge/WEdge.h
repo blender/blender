@@ -43,7 +43,7 @@ class WFace;
 
 class WVertex {
  protected:
-  int _Id;  // an identificator
+  int _Id;  // an identifier
   Vec3f _Vertex;
   vector<WEdge *> _EdgeList;
   WShape *_Shape;  // the shape to which the vertex belongs

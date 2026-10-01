@@ -327,8 +327,12 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
 
   /* Manipulate the context (setup). */
   if (self->ctx_temp.screen_is_set) {
-    self->ctx_temp_orig.screen = WM_window_get_active_screen(win);
-    bpy_rna_context_temp_set_screen_for_window(C, win, self->ctx_temp.screen);
+    /* A `None` window may be passed in, as the window defines the screen,
+     * there is nothing to do here. */
+    if (win != nullptr) {
+      self->ctx_temp_orig.screen = WM_window_get_active_screen(win);
+      bpy_rna_context_temp_set_screen_for_window(C, win, self->ctx_temp.screen);
+    }
   }
 
   /* NOTE: always set these members, even when they are equal to the current values because

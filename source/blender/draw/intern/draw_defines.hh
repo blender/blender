@@ -38,6 +38,7 @@
 /* Must be multiple of 32. Set to 32 for shader simplicity. */
 #define DRW_VISIBILITY_GROUP_SIZE 32
 #define DRW_GSPLAT_GROUP_SIZE 128
+#define DRW_MESH_TO_CORNER_GROUP_SIZE 128
 
 /* Only used during gsplat and deferred draws; does not conflict with gbuffer
  * sampling in engines. */

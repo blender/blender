@@ -28,6 +28,7 @@ set(SRC
   intern/draw_cache_extract_mesh.cc
   intern/draw_cache_extract_mesh_render_data.cc
   intern/mesh_extractors/extract_mesh.cc
+  intern/mesh_extractors/extract_mesh_corner_gpu.cc
   intern/mesh_extractors/extract_mesh_ibo_edituv.cc
   intern/mesh_extractors/extract_mesh_ibo_fdots.cc
   intern/mesh_extractors/extract_mesh_ibo_lines.cc
@@ -324,8 +325,6 @@ set(GLSL_SRC
   intern/shaders/draw_debug_infos.hh
   intern/shaders/draw_object_infos_infos.hh
   intern/shaders/draw_view_infos.hh
-  intern/shaders/subdiv_infos.hh
-  intern/shaders/subdiv_patch_eval_infos.hh
 
   engines/image/shaders/infos/engine_image_infos.hh
 
@@ -530,20 +529,13 @@ set(GLSL_SRC
 
   intern/shaders/osd_patch_defines.glsl
   intern/shaders/osd_patch_basis.glsl
-  intern/shaders/subdiv_custom_data_interp_comp.glsl
-  intern/shaders/subdiv_ibo_lines_comp.glsl
-  intern/shaders/subdiv_ibo_tris_comp.glsl
-  intern/shaders/subdiv_lib.glsl
-  intern/shaders/subdiv_normals_accumulate_comp.glsl
-  intern/shaders/subdiv_patch_evaluation_comp.glsl
-  intern/shaders/subdiv_vbo_edge_fac_comp.glsl
-  intern/shaders/subdiv_vbo_edituv_stretch_angle_comp.glsl
-  intern/shaders/subdiv_vbo_edituv_stretch_area_comp.glsl
-  intern/shaders/subdiv_vbo_lnor_comp.glsl
-  intern/shaders/subdiv_vbo_paint_overlay_flag_comp.glsl
-  intern/shaders/subdiv_vbo_sculpt_data_comp.glsl
-  intern/shaders/draw_aabb_lib.glsl
-  intern/shaders/draw_colormanagement_lib.glsl
+  intern/shaders/subdiv_patch_evaluation.bsl.hh
+  intern/shaders/subdiv_attrib_interp.bsl.hh
+  intern/shaders/subdiv_common.bsl.hh
+  intern/shaders/subdiv_ibo_generate.bsl.hh
+  intern/shaders/subdiv_vbo_generate.bsl.hh
+  intern/shaders/draw_aabb.bsl.hh
+  intern/shaders/draw_colormanagement.bsl.hh
   intern/shaders/draw_debug_draw_lib.glsl
   intern/shaders/draw_debug_shape_lib.glsl
   intern/shaders/draw_fxaa_lib.glsl
@@ -552,27 +544,26 @@ set(GLSL_SRC
   intern/shaders/draw_curves.bsl.hh
   intern/shaders/draw_curves_lib.glsl
   intern/shaders/draw_curves_topology.bsl.hh
-  intern/shaders/draw_shape_lib.glsl
+  intern/shaders/draw_shape.bsl.hh
   intern/shaders/draw_command_generate.bsl.hh
   intern/shaders/draw_debug_draw_display_frag.glsl
   intern/shaders/draw_debug_draw_display_vert.glsl
   intern/shaders/draw_grease_pencil_lib.glsl
   intern/shaders/draw_gsplat.bsl.hh
   intern/shaders/draw_gsplat_lib.bsl.hh
-  intern/shaders/draw_intersect_lib.glsl
   intern/shaders/draw_intersect.bsl.hh
-  intern/shaders/draw_math_geom_lib.glsl
+  intern/shaders/draw_math_geom.bsl.hh
+  intern/shaders/draw_mesh_to_corner.bsl.hh
   intern/shaders/draw_model_lib.glsl
   intern/shaders/draw_model.bsl.hh
   intern/shaders/draw_object_infos_lib.glsl
   intern/shaders/draw_pointcloud_lib.glsl
   intern/shaders/draw_pointcloud.bsl.hh
-  intern/shaders/draw_resource_finalize_comp.glsl
+  intern/shaders/draw_resource_finalize.bsl.hh
   intern/shaders/draw_view_clipping_lib.glsl
-  intern/shaders/draw_view_finalize_comp.glsl
+  intern/shaders/draw_view_finalize.bsl.hh
   intern/shaders/draw_view_lib.glsl
   intern/shaders/draw_view.bsl.hh
-  intern/shaders/draw_view_reconstruction_lib.glsl
   intern/shaders/draw_viewlayer.bsl.hh
   intern/shaders/draw_visibility.bsl.hh
   intern/shaders/draw_volume.bsl.hh

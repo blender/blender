@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_math_geom_lib.glsl"
+#include "draw_math_geom.bsl.hh"
 #include "eevee_light_shared.hh"
 #include "eevee_uniform_shared.hh"
 #include "gpu_shader_math_base.bsl.hh"

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(DLSS_VERSION   310.9.1)
-set(OPTIX_VERSION  8.0.0)
+set(OPTIX_VERSION  9.0.0)
 
 set(CUDA12_VERSION 12.9.1)
 set(CUDA13_VERSION 13.4.1)

@@ -278,7 +278,7 @@ inline void SphericalGrid::Iterator::reportDepth(Vec3r origin, Vec3r u, real t)
 {
   // The reported depth is the length of a ray in camera space. We need to convert it into the
   // distance from viewpoint If origin is the viewpoint, depth == t. A future optimization could
-  // allow the caller to tell us if origin is viewponit or target, at the cost of changing the
+  // allow the caller to tell us if origin is viewpoint or target, at the cost of changing the
   // OptimizedGrid API.
   real depth = (origin + u * t).norm();
 #if SPHERICAL_GRID_LOGGING

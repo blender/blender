@@ -8,12 +8,14 @@
  * Compute culling data for each views of a given view buffer.
  */
 
-#include "draw_view_infos.hh"
+#pragma once
 
-#include "draw_view_lib.glsl"
+#include "draw_defines.hh"
+#include "draw_shader_shared.hh"
+#include "draw_view.bsl.hh"
 #include "gpu_shader_math_matrix_transform.bsl.hh"
 
-COMPUTE_SHADER_CREATE_INFO(draw_view_finalize)
+namespace draw {
 
 void projmat_dimensions(float4x4 winmat,
                         float &r_left,
@@ -43,19 +45,19 @@ void projmat_dimensions(float4x4 winmat,
   }
 }
 
-void frustum_boundbox_calc(float4x4 winmat, float4x4 viewinv, FrustumCorners &frustum_corners)
+void frustum_boundbox_calc(float4x4 winmat, float4x4 viewinv, FrustumCorners &frustum)
 {
   float left = 0.0f, right = 0.0f, bottom = 0.0f, top = 0.0f, near = 0.0f, far = 0.0f;
   bool is_persp = winmat[3][3] == 0.0f;
 
   projmat_dimensions(winmat, left, right, bottom, top, near, far);
 
-  frustum_corners.corners[0][2] = frustum_corners.corners[3][2] = frustum_corners.corners[7][2] =
-      frustum_corners.corners[4][2] = -near;
-  frustum_corners.corners[0][0] = frustum_corners.corners[3][0] = left;
-  frustum_corners.corners[4][0] = frustum_corners.corners[7][0] = right;
-  frustum_corners.corners[0][1] = frustum_corners.corners[4][1] = bottom;
-  frustum_corners.corners[7][1] = frustum_corners.corners[3][1] = top;
+  frustum.corners[0][2] = frustum.corners[3][2] = frustum.corners[7][2] = frustum.corners[4][2] =
+      -near;
+  frustum.corners[0][0] = frustum.corners[3][0] = left;
+  frustum.corners[4][0] = frustum.corners[7][0] = right;
+  frustum.corners[0][1] = frustum.corners[4][1] = bottom;
+  frustum.corners[7][1] = frustum.corners[3][1] = top;
 
   /* Get the coordinates of the far plane. */
   if (is_persp) {
@@ -66,16 +68,16 @@ void frustum_boundbox_calc(float4x4 winmat, float4x4 viewinv, FrustumCorners &fr
     top *= sca_far;
   }
 
-  frustum_corners.corners[1][2] = frustum_corners.corners[2][2] = frustum_corners.corners[6][2] =
-      frustum_corners.corners[5][2] = -far;
-  frustum_corners.corners[1][0] = frustum_corners.corners[2][0] = left;
-  frustum_corners.corners[6][0] = frustum_corners.corners[5][0] = right;
-  frustum_corners.corners[1][1] = frustum_corners.corners[5][1] = bottom;
-  frustum_corners.corners[2][1] = frustum_corners.corners[6][1] = top;
+  frustum.corners[1][2] = frustum.corners[2][2] = frustum.corners[6][2] = frustum.corners[5][2] =
+      -far;
+  frustum.corners[1][0] = frustum.corners[2][0] = left;
+  frustum.corners[6][0] = frustum.corners[5][0] = right;
+  frustum.corners[1][1] = frustum.corners[5][1] = bottom;
+  frustum.corners[2][1] = frustum.corners[6][1] = top;
 
   /* Transform into world space. */
-  for (int i = 0; i < 8; i++) {
-    frustum_corners.corners[i].xyz = transform_point(viewinv, frustum_corners.corners[i].xyz);
+  for (int i = 0; i < 8; i++) [[unroll]] {
+    frustum.corners[i].xyz = transform_point(viewinv, frustum.corners[i].xyz);
   }
 }
 
@@ -120,26 +122,40 @@ float4 frustum_culling_sphere_calc(FrustumCorners frustum_corners)
   return bsphere;
 }
 
-void main()
+struct ViewFinalize {
+  [[storage(0, read_write)]] ViewCullingData (&view_culling_buf)[DRW_VIEW_MAX];
+};
+
+[[compute, local_size(DRW_VIEW_MAX)]] void view_finalize_main(
+    [[resource_table]] ViewFinalize &srt,
+    [[resource_table]] View &views,
+    [[local_invocation_id]] const uint3 local_id)
 {
-  drw_view_id = gl_LocalInvocationID.x;
+  /* Note: Only one thread group is dispatched. */
+  uint view_id = local_id.x;
+
+  ViewMatrices view = views.get(view_id);
 
   /* Invalid views are disabled. */
-  if (all(equal(drw_view().viewinv[2].xyz, float3(0.0f)))) {
+  if (all(equal(view.viewinv[2].xyz, float3(0.0f)))) {
     /* Views with negative radius are treated as disabled. */
-    view_culling_buf[drw_view_id].bound_sphere = float4(-1.0f);
+    srt.view_culling_buf[view_id].bound_sphere = float4(-1.0f);
     return;
   }
 
   /* Read frustum_corners from device memory, update, and write back. */
-  FrustumCorners frustum_corners = view_culling_buf[drw_view_id].frustum_corners;
-  frustum_boundbox_calc(drw_view().winmat, drw_view().viewinv, frustum_corners);
-  view_culling_buf[drw_view_id].frustum_corners = frustum_corners;
+  FrustumCorners frustum_corners = srt.view_culling_buf[view_id].frustum_corners;
+  frustum_boundbox_calc(view.winmat, view.viewinv, frustum_corners);
+  srt.view_culling_buf[view_id].frustum_corners = frustum_corners;
 
   /* Read frustum_planes from device memory, update, and write back. */
-  FrustumPlanes frustum_planes = view_culling_buf[drw_view_id].frustum_planes;
-  frustum_culling_planes_calc(drw_view().winmat, drw_view().viewmat, frustum_planes);
+  FrustumPlanes frustum_planes = srt.view_culling_buf[view_id].frustum_planes;
+  frustum_culling_planes_calc(view.winmat, view.viewmat, frustum_planes);
 
-  view_culling_buf[drw_view_id].frustum_planes = frustum_planes;
-  view_culling_buf[drw_view_id].bound_sphere = frustum_culling_sphere_calc(frustum_corners);
+  srt.view_culling_buf[view_id].frustum_planes = frustum_planes;
+  srt.view_culling_buf[view_id].bound_sphere = frustum_culling_sphere_calc(frustum_corners);
 }
+
+PipelineCompute view_finalize(view_finalize_main);
+
+}  // namespace draw

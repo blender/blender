@@ -502,7 +502,7 @@ bool HIPDevice::shared_alloc(void *&shared_pointer, const size_t size)
   return mem_alloc_result == hipSuccess;
 }
 
-void HIPDevice::shared_free(void *shared_pointer)
+void HIPDevice::shared_free(void *shared_pointer, const size_t /*size*/)
 {
   HIPContextScope scope(this);
 

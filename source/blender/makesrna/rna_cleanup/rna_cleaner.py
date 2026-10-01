@@ -10,7 +10,7 @@ Typical line in the input file (elements in [] are optional).
 
 [comment *] ToolSettings.snap_align_rotation -> use_snap_align_rotation:    boolean    [Align description]
 
-Geterate output format from blender run this:
+Generate output format from blender run this:
  ./blender.bin --background --python ./scripts/modules/_rna_info.py 2> source/blender/makesrna/rna_cleanup/out.txt
 """
 

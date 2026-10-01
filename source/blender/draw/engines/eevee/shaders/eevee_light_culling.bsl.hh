@@ -5,7 +5,7 @@
 #pragma once
 
 #include "draw_intersect.bsl.hh"
-#include "draw_shape_lib.glsl"
+#include "draw_shape.bsl.hh"
 #include "draw_view.bsl.hh"
 #include "eevee_hiz.bsl.hh"
 #include "eevee_light_iter.bsl.hh"

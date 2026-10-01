@@ -217,6 +217,10 @@ void CUDADeviceQueue::copy_to_device(device_memory &mem)
   assert(d_ptr != 0);
   assert(mem.host_pointer != nullptr);
 
+  if (mem.is_shared(cuda_device_) && mem.host_pointer == mem.shared_pointer) {
+    return;
+  }
+
   /* Copy memory to device. */
   const CUDAContextScope scope(cuda_device_);
   assert_success(
@@ -234,6 +238,10 @@ void CUDADeviceQueue::copy_from_device(device_memory &mem)
 
   assert(mem.device_pointer != 0);
   assert(mem.host_pointer != nullptr);
+
+  if (mem.is_shared(cuda_device_) && mem.host_pointer == mem.shared_pointer) {
+    return;
+  }
 
   /* Copy memory from device. */
   const CUDAContextScope scope(cuda_device_);

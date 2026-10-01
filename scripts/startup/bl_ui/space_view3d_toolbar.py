@@ -791,18 +791,6 @@ class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel, TextureMaskPanel):
         settings = cls.paint_settings_from_active_tool(context)
         return (settings and settings.brush and context.image_paint_object)
 
-    def draw(self, context):
-        layout = self.layout
-
-        brush = context.tool_settings.image_paint.brush
-
-        col = layout.column()
-        mask_tex_slot = brush.mask_texture_slot
-
-        col.template_ID_preview(mask_tex_slot, "texture", new="texture.new", rows=3, cols=8)
-
-        brush_mask_texture_settings(col, brush)
-
 
 class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel, StrokePanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)

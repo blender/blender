@@ -16,6 +16,7 @@
 #include "DNA_image_types.h"
 
 #include "BKE_appdir.hh"
+#include "BKE_blender_project.hh"
 #include "BKE_gtest_base.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -26,9 +27,11 @@
 #include "OCIO_colorspace.hh"
 #include "OCIO_config.hh"
 
+#include "intern/IMB_colormanagement_intern.hh"
+
 namespace blender::imbuf::tests {
 
-static std::string bundled_config_path()
+static std::string blender_config_path()
 {
   char configfile[FILE_MAX];
   BLI_path_join(configfile,
@@ -44,7 +47,7 @@ class ColorManagementConfigSwitchTest : public bke::BlenderGTestBase {
  public:
   static void SetUpTestSuite()
   {
-    BLI_setenv("OCIO", bundled_config_path().c_str());
+    BLI_setenv("OCIO", blender_config_path().c_str());
     bke::BlenderGTestBase::SetUpTestSuite();
     BKE_tempdir_init(nullptr);
   }
@@ -59,13 +62,13 @@ class ColorManagementConfigSwitchTest : public bke::BlenderGTestBase {
  protected:
   void TearDown() override
   {
-    IMB_colormanagement_switch_config(bundled_config_path().c_str());
+    IMB_colormanagement_switch_config(blender_config_path().c_str());
   }
 };
 
 TEST_F(ColorManagementConfigSwitchTest, colorspace_pointers_survive_switch)
 {
-  const std::string config = bundled_config_path();
+  const std::string config = blender_config_path();
 
   struct TrackedBuffer {
     ImBuf *ibuf;
@@ -166,10 +169,10 @@ static std::string write_config_with_extra_colorspace(const std::string &config_
 
 TEST_F(ColorManagementConfigSwitchTest, removed_colorspace_is_retained)
 {
-  const std::string config = bundled_config_path();
+  const std::string config = blender_config_path();
   const std::string extra_config = write_config_with_extra_colorspace(config);
 
-  /* Switch from bundled config to a new config with an extra colorspace, and:
+  /* Switch from blender config to a new config with an extra colorspace, and:
    * - Create an imbuf with this color space
    * - Compute the result of converting to this color space */
   ASSERT_TRUE(IMB_colormanagement_switch_config(extra_config.c_str()));
@@ -184,10 +187,10 @@ TEST_F(ColorManagementConfigSwitchTest, removed_colorspace_is_retained)
   IMB_colormanagement_colorspace_to_scene_linear_v3(expected_pixel, colorspace);
   ASSERT_NE(expected_pixel[0], 0.5f);
 
-  /* Switch back to the bundled config and verify conversion still has:
+  /* Switch back to the blender config and verify conversion still has:
    * - A matching color space in the ImBuf
    * - Converting to this color space continues to work as before, even though it
-   *   does not exist in the bundled config. */
+   *   does not exist in the blender config. */
   ASSERT_TRUE(IMB_colormanagement_switch_config(config.c_str()));
 
   EXPECT_EQ(ibuf->float_buffer.colorspace, colorspace);
@@ -308,6 +311,174 @@ TEST_F(ColorManagementConfigSwitchTest, alternate_interop_id)
   EXPECT_EQ(IMB_colormanagement_space_from_interop_id("g24_rec709_display")->name(), "Rec.1886");
   EXPECT_EQ(IMB_colormanagement_space_from_interop_id("g24_rec709_scene")->name(),
             "Gamma 2.4 Encoded Rec.709");
+}
+
+class ColorManagementProjectConfigTest : public bke::BlenderGTestBase {
+ public:
+  static void SetUpTestSuite()
+  {
+    /* Point at the release datafiles, so startup finds the blender config. */
+    char datafiles[FILE_MAX];
+    BLI_path_join(datafiles,
+                  sizeof(datafiles),
+                  blender::tests::flags_test_release_dir().c_str(),
+                  "datafiles");
+    BLI_setenv("BLENDER_SYSTEM_DATAFILES", datafiles);
+    bke::BlenderGTestBase::SetUpTestSuite();
+    BKE_tempdir_init(nullptr);
+  }
+
+  static void TearDownTestSuite()
+  {
+    BKE_tempdir_session_purge();
+    bke::BlenderGTestBase::TearDownTestSuite();
+    BLI_setenv("BLENDER_SYSTEM_DATAFILES", nullptr);
+  }
+
+ protected:
+  Main *bmain_ = nullptr;
+
+  void SetUp() override
+  {
+    bmain_ = BKE_main_new();
+    BKE_blender_project_init("test", BKE_tempdir_session());
+
+    colormanage_environment_setup_for_test(std::nullopt, std::nullopt);
+    colormanage_config_reload(bmain_);
+  }
+
+  void TearDown() override
+  {
+    colormanage_environment_setup_for_test(std::nullopt, std::nullopt);
+    switch_to_blender_config();
+    BKE_main_free(bmain_);
+  }
+
+  /* Switch to the config at #path, a file path or `ocio://` URI. */
+  bool switch_to_project_config(const StringRef path)
+  {
+    BKE_blender_project_write_callback(
+        bmain_, [&](bke::BlenderProject *project) { project->set_ocio_config_path(path); });
+    return colormanage_config_reload(bmain_) &&
+           IMB_colormanagement_config_source_get() == ColorManagedConfigSource::Project;
+  }
+
+  /* Switch back to the blender config, by leaving the project. */
+  bool switch_to_blender_config()
+  {
+    BKE_blender_project_clear();
+    return colormanage_config_reload(bmain_) &&
+           IMB_colormanagement_config_source_get() == ColorManagedConfigSource::Blender;
+  }
+
+  /* Expect #source and #unresolved_path to be active, with `OCIO` set to
+   * #resolved_path so that OpenColorIO and subprocesses see the same config. */
+  static void expect_active_config(const ColorManagedConfigSource source,
+                                   const StringRef unresolved_path,
+                                   const StringRef resolved_path)
+  {
+    EXPECT_EQ(IMB_colormanagement_config_source_get(), source);
+    EXPECT_EQ(IMB_colormanagement_config_path_get(), unresolved_path);
+
+    const char *ocio_env = BLI_getenv("OCIO");
+    ASSERT_NE(ocio_env, nullptr);
+    EXPECT_EQ(BLI_path_cmp_normalized(ocio_env, std::string(resolved_path).c_str()), 0)
+        << ocio_env << " != " << resolved_path;
+  }
+
+  static void expect_active_config(const ColorManagedConfigSource source, const StringRef path)
+  {
+    expect_active_config(source, path, path);
+  }
+};
+
+TEST_F(ColorManagementProjectConfigTest, blender_config_without_environment)
+{
+  expect_active_config(ColorManagedConfigSource::Blender, blender_config_path());
+}
+
+TEST_F(ColorManagementProjectConfigTest, ocio_env_is_used)
+{
+  colormanage_environment_setup_for_test(std::nullopt, "ocio://default");
+  EXPECT_TRUE(colormanage_config_reload(bmain_));
+  expect_active_config(ColorManagedConfigSource::EnvOCIO, "ocio://default");
+}
+
+TEST_F(ColorManagementProjectConfigTest, blender_ocio_env_replaces_ocio_env)
+{
+  /* Not tried alongside `OCIO`, so a broken `BLENDER_OCIO` does not reach it. */
+  colormanage_environment_setup_for_test("ocio://default", "/does/not/exist/config.ocio");
+  EXPECT_TRUE(colormanage_config_reload(bmain_));
+  expect_active_config(ColorManagedConfigSource::EnvBlenderOCIO, "ocio://default");
+
+  colormanage_environment_setup_for_test("/does/not/exist/config.ocio", "ocio://default");
+  colormanage_config_reload(bmain_);
+  expect_active_config(ColorManagedConfigSource::Blender, blender_config_path());
+}
+
+TEST_F(ColorManagementProjectConfigTest, empty_blender_ocio_env_hides_ocio_env)
+{
+  colormanage_environment_setup_for_test("", "ocio://default");
+  colormanage_config_reload(bmain_);
+  expect_active_config(ColorManagedConfigSource::Blender, blender_config_path());
+}
+
+TEST_F(ColorManagementProjectConfigTest, broken_ocio_env_falls_back_to_blender)
+{
+  colormanage_environment_setup_for_test(std::nullopt, "/does/not/exist/config.ocio");
+  colormanage_config_reload(bmain_);
+  expect_active_config(ColorManagedConfigSource::Blender, blender_config_path());
+}
+
+TEST_F(ColorManagementProjectConfigTest, broken_ocio_env_falls_back_to_project)
+{
+  /* A stale `OCIO` must not cost the user their project's config. */
+  colormanage_environment_setup_for_test(std::nullopt, "/does/not/exist/config.ocio");
+  ASSERT_TRUE(switch_to_project_config("ocio://default"));
+  expect_active_config(ColorManagedConfigSource::Project, "ocio://default");
+}
+
+TEST_F(ColorManagementProjectConfigTest, project_config_through_project_root)
+{
+  /* A config shipped inside the project. */
+  char color_dir[FILE_MAX];
+  BLI_path_join(color_dir, sizeof(color_dir), BKE_tempdir_session(), "color");
+  char config_path[FILE_MAX];
+  BLI_path_join(config_path, sizeof(config_path), color_dir, BCM_CONFIG_FILE);
+  ASSERT_TRUE(BLI_dir_create_recursive(color_dir));
+  ASSERT_EQ(BLI_copy(blender_config_path().c_str(), config_path), 0);
+
+  ASSERT_TRUE(switch_to_project_config("{project_root}/color/" BCM_CONFIG_FILE));
+  expect_active_config(
+      ColorManagedConfigSource::Project, "{project_root}/color/" BCM_CONFIG_FILE, config_path);
+}
+
+TEST_F(ColorManagementProjectConfigTest, broken_project_config_falls_back_to_blender)
+{
+  EXPECT_FALSE(switch_to_project_config("{project_root}/missing/config.ocio"));
+  expect_active_config(ColorManagedConfigSource::Blender, blender_config_path());
+}
+
+TEST_F(ColorManagementProjectConfigTest, config_follows_project)
+{
+  ASSERT_TRUE(switch_to_project_config("ocio://default"));
+  expect_active_config(ColorManagedConfigSource::Project, "ocio://default");
+
+  ASSERT_TRUE(switch_to_project_config(blender_config_path()));
+  expect_active_config(ColorManagedConfigSource::Project, blender_config_path());
+
+  ASSERT_TRUE(switch_to_blender_config());
+  expect_active_config(ColorManagedConfigSource::Blender, blender_config_path());
+}
+
+TEST_F(ColorManagementProjectConfigTest, reload_only_when_config_changes)
+{
+  /* Check we don't do unnecessary reloads. */
+  EXPECT_FALSE(colormanage_config_reload(bmain_));
+
+  ASSERT_TRUE(switch_to_project_config("ocio://default"));
+  EXPECT_FALSE(colormanage_config_reload(bmain_));
+  EXPECT_FALSE(switch_to_project_config("ocio://default"));
 }
 
 }  // namespace blender::imbuf::tests

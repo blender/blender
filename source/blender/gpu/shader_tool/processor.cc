@@ -881,6 +881,10 @@ void SourceProcessor::lower_namesless_parameters(Parser &parser)
       if (arg.token_count() == 1 || arg.back().prev() == TokenType::Const || arg.back() == '&' ||
           arg.back() == '>')
       {
+        Token back = arg.back();
+        if (back == ']') {
+          back = back.scope().front().prev();
+        }
         /* Append a name for nameless argument. */
         parser.replace(arg.back().str_index_last_no_whitespace() + 1,
                        arg.back().str_index_last(),
@@ -897,7 +901,9 @@ void SourceProcessor::lower_namesless_parameters_ast(Parser &parser)
     for (FuncArg arg : fn.arguments().children_of_type<FuncArg>()) {
       if (!arg.identifier().is_valid()) {
         bool is_ref = arg.is_reference();
-        Token arg_back(is_ref ? arg.declarator().reference().back() : arg.back());
+        ast::ArrayDecl arr = arg.array();
+        Token arg_back(is_ref ? arg.declarator().reference().back() :
+                                (arr.is_valid() ? arr.front().prev() : arg.back()));
         /* Append a name for nameless argument. */
         parser.replace(arg_back.str_index_last_no_whitespace() + 1,
                        arg_back.str_index_last(),

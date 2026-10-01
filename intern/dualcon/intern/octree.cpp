@@ -1017,7 +1017,7 @@ Node *Octree::patchSplit(Node *newnode,
 
 #ifdef IN_DEBUG_MODE
   dc_printf("Return from PATCHSPLIT with \n");
-  dc_printf("Rings gourp 1:\n");
+  dc_printf("Rings group 1:\n");
   printPaths(nrings1);
   dc_printf("Rings group 2:\n");
   printPaths(nrings2);
@@ -1123,7 +1123,7 @@ Node *Octree::patchSplitSingle(Node *newnode,
 
 #ifdef IN_DEBUG_MODE
   dc_printf("Return from PATCHSPLITSINGLE with \n");
-  dc_printf("Rings gourp 1:\n");
+  dc_printf("Rings group 1:\n");
   printPaths(nrings1);
   dc_printf("Rings group 2:\n");
   printPaths(nrings2);

@@ -50,4 +50,4 @@ private:
 
 }
 
-#endif /* MOVINGFRAME_H_ */
+#endif /* MOVINGFRAME_HPP_ */

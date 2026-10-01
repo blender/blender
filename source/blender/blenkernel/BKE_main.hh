@@ -236,6 +236,8 @@ struct MainColorspace {
    * used to create this blend file is missing.
    */
   bool is_missing_opencolorio_config = false;
+  /** The OpenColorIO config failed to load. */
+  bool is_failed_opencolorio_config = false;
 };
 
 struct Main : NonCopyable, NonMovable {

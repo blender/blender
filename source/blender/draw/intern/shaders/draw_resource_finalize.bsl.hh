@@ -8,25 +8,35 @@
  * Finish computation of a few draw resource after sync.
  */
 
-#include "draw_view_infos.hh"
+#pragma once
 
+#include "draw_shader_shared.hh"
 #include "gpu_shader_math_matrix_transform.bsl.hh"
 #include "gpu_shader_math_vector_reduce.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
 #include "gpu_shader_utildefines.bsl.hh"
 
-COMPUTE_SHADER_CREATE_INFO(draw_resource_finalize)
+namespace draw {
 
-void main()
+struct ResourceFinalize {
+  [[storage(0, read)]] ObjectMatrices (&matrix_buf)[];
+  [[storage(1, read_write)]] ObjectBounds (&bounds_buf)[];
+  [[storage(2, read_write)]] ObjectInfos (&infos_buf)[];
+
+  [[push_constant]] int resource_len;
+};
+
+[[compute, local_size(DRW_VIEW_MAX)]] void resource_finalize_main(
+    [[resource_table]] ResourceFinalize &srt, [[global_invocation_id]] const uint3 global_id)
 {
-  uint resource_id = gl_GlobalInvocationID.x;
-  if (resource_id >= uint(resource_len)) {
+  uint resource_id = global_id.x;
+  if (resource_id >= uint(srt.resource_len)) {
     return;
   }
 
-  float4x4 model_mat = matrix_buf[resource_id].model;
-  ObjectInfos infos = infos_buf[resource_id];
-  ObjectBounds bounds = bounds_buf[resource_id];
+  float4x4 model_mat = srt.matrix_buf[resource_id].model;
+  ObjectInfos infos = srt.infos_buf[resource_id];
+  ObjectBounds bounds = srt.bounds_buf[resource_id];
 
   if (drw_bounds_corners_are_valid(bounds)) {
     /* Convert corners to origin + sides in world space. */
@@ -71,13 +81,17 @@ void main()
     }
 
     /* Update bounds. */
-    bounds_buf[resource_id] = bounds;
+    srt.bounds_buf[resource_id] = bounds;
   }
 
   float3 loc = infos.orco_add;  /* Box center. */
   float3 size = infos.orco_mul; /* Box half-extent. */
   float3 orco_mul = safe_rcp(size * 2.0f);
   float3 orco_add = (loc - size) * -orco_mul;
-  infos_buf[resource_id].orco_add = orco_add;
-  infos_buf[resource_id].orco_mul = orco_mul;
+  srt.infos_buf[resource_id].orco_add = orco_add;
+  srt.infos_buf[resource_id].orco_mul = orco_mul;
 }
+
+PipelineCompute resource_finalize(resource_finalize_main);
+
+}  // namespace draw

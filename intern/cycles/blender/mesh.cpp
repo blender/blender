@@ -513,24 +513,24 @@ static void attr_create_pointiness(Mesh *mesh,
   /* STEP 1: Find out duplicated vertices and point duplicates to a single
    *         original vertex.
    */
-  vector<int> sorted_vert_indeices(num_verts);
+  vector<int> sorted_vert_indices(num_verts);
   for (int vert_index = 0; vert_index < num_verts; ++vert_index) {
-    sorted_vert_indeices[vert_index] = vert_index;
+    sorted_vert_indices[vert_index] = vert_index;
   }
   const VertexAverageComparator compare(mesh->get_position(), mesh->num_verts());
-  sort(sorted_vert_indeices.begin(), sorted_vert_indeices.end(), compare);
+  sort(sorted_vert_indices.begin(), sorted_vert_indices.end(), compare);
   /* This array stores index of the original vertex for the given vertex
    * index.
    */
   vector<int> vert_orig_index(num_verts);
   for (int sorted_vert_index = 0; sorted_vert_index < num_verts; ++sorted_vert_index) {
-    const int vert_index = sorted_vert_indeices[sorted_vert_index];
+    const int vert_index = sorted_vert_indices[sorted_vert_index];
     const float3 &vert_co = mesh->get_position()[vert_index];
     bool found = false;
     for (int other_sorted_vert_index = sorted_vert_index + 1; other_sorted_vert_index < num_verts;
          ++other_sorted_vert_index)
     {
-      const int other_vert_index = sorted_vert_indeices[other_sorted_vert_index];
+      const int other_vert_index = sorted_vert_indices[other_sorted_vert_index];
       const float3 &other_vert_co = mesh->get_position()[other_vert_index];
       /* We are too far away now, we wouldn't have duplicate. */
       if ((other_vert_co.x + other_vert_co.y + other_vert_co.z) -
@@ -558,7 +558,7 @@ static void attr_create_pointiness(Mesh *mesh,
     }
     vert_orig_index[vert_index] = orig_index;
   }
-  sorted_vert_indeices.free_memory();
+  sorted_vert_indices.free_memory();
   /* STEP 2: Calculate vertex normals taking into account their possible
    *         duplicates which gets "welded" together.
    */

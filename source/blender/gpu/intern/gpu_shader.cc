@@ -264,7 +264,7 @@ gpu::Shader *GPU_shader_create_from_info_python(const GPUShaderCreateInfo *_info
   const bool is_compute = !info.compute_source_generated.empty();
 
   std::array<StringRefNull, 2> includes = {
-      "draw_colormanagement_lib.glsl",
+      "gpu_shader_python_base.glsl",
       "gpu_shader_python_typedef_lib.glsl",
   };
 

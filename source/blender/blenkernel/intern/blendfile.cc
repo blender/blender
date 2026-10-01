@@ -989,6 +989,10 @@ static void setup_app_data(bContext *C,
                                      reuse_editable_asset_needed(&reuse_data);
 
   if (mode != LOAD_UNDO) {
+    /* Convert editable assets to the new file working space. */
+    IMB_colormanagement_file_read_post(
+        bfd->main, bmain, params->is_startup, reuse_editable_assets);
+
     const short ui_id_codes[]{ID_WS, ID_SCR};
 
     /* WM needs special complex handling, regardless of whether UI is kept or loaded from file. */
@@ -1154,6 +1158,9 @@ static void setup_app_data(bContext *C,
 
   BLI_assert(BKE_main_namemap_validate(*bfd->main));
 
+  /* For undo to preserve some runtime state. */
+  const MainColorspace old_colorspace = bmain->colorspace;
+
   /* This frees the `old_bmain`. */
   BKE_blender_globals_main_replace(bfd->main);
   bmain = G_MAIN;
@@ -1239,10 +1246,9 @@ static void setup_app_data(bContext *C,
   /* Setting scene might require having a dependency graph, with copy-on-eval
    * we need to make sure we ensure scene has correct color management before
    * constructing dependency graph. */
-  if (params->is_startup) {
-    IMB_colormanagement_working_space_init_startup(bmain);
+  if (mode == LOAD_UNDO) {
+    IMB_colormanagement_undo_read_post(bmain, old_colorspace);
   }
-  IMB_colormanagement_working_space_check(bmain, mode == LOAD_UNDO, reuse_editable_assets);
   IMB_colormanagement_check_file_config(bmain);
 
   BKE_scene_set_background(bmain, curscene);

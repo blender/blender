@@ -258,21 +258,16 @@ def addon_draw_item_expanded(
     col_b = split.column()
 
     col_a.alignment = 'RIGHT'
+    col_b.alignment = 'LEFT'
 
     if item_doc_url:
         col_a.label(text="Website")
-        col_b.split(factor=0.5).operator(
-            "wm.url_open",
-            text=domain_extract_from_url(item_doc_url),
-            icon='HELP' if addon_type in {ADDON_TYPE_LEGACY_CORE, ADDON_TYPE_LEGACY_USER} else 'URL',
-        ).url = item_doc_url
-    # Only add "Report a Bug" button if tracker_url is set.
+        col_b.link(url=item_doc_url, text=domain_extract_from_url(item_doc_url))
+    # Only add "Feedback" link if tracker_url is set.
     # None of the core add-ons are expected to have tracker info (glTF is the exception).
     if item_tracker_url:
         col_a.label(text="Feedback", text_ctxt=i18n_contexts.editor_preferences)
-        col_b.split(factor=0.5).operator(
-            "wm.url_open", text="Report a Bug", icon='URL',
-        ).url = item_tracker_url
+        col_b.link(url=item_tracker_url, text=domain_extract_from_url(item_tracker_url))
 
     if USE_SHOW_ADDON_TYPE_AS_TEXT:
         col_a.label(text="Type")
@@ -1420,6 +1415,7 @@ def extension_draw_item(
         col_a = split.column()
         col_b = split.column()
         col_a.alignment = "RIGHT"
+        col_b.alignment = "LEFT"
 
         if pkg_block is not None:
             col_a.label(text="Blocked")
@@ -1437,9 +1433,7 @@ def extension_draw_item(
 
         if value := (item_remote or item_local).website:
             col_a.label(text="Website")
-            col_b.split(factor=0.5).operator(
-                "wm.url_open", text=domain_extract_from_url(value), icon='URL',
-            ).url = value
+            col_b.link(url=value, text=domain_extract_from_url(value))
         del value
 
         if item.type == "add-on":

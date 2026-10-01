@@ -147,6 +147,11 @@ class BlenderProject {
    */
   std::string root_path_;
 
+  /**
+   * Path of the OpenColorIO configuration for this project.
+   */
+  std::string ocio_config_path_;
+
  public:
   Vector<std::unique_ptr<ProjectVariable>> variables;
   int active_variable_index = 0;
@@ -160,6 +165,11 @@ class BlenderProject {
    * `BlenderProject` is unsaved by definition.
    */
   bool is_dirty = true;
+
+  /**
+   * Show the OpenColorIO config a path even when empty or a preset, runtime UI state only.
+   */
+  bool ocio_config_use_path = false;
 
   /**
    * Set the project's name.
@@ -179,8 +189,14 @@ class BlenderProject {
    */
   void set_root_path(StringRef root_path);
 
+  /**
+   * Set the OpenColorIO configuration path and mark the project dirty.
+   */
+  void set_ocio_config_path(StringRef ocio_config_path);
+
   StringRefNull get_name() const;
   StringRefNull get_root_path() const;
+  StringRefNull get_ocio_config_path() const;
 
   /**
    * Get the array index of the given variable.
