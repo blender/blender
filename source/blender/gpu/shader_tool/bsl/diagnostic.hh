@@ -121,6 +121,9 @@ enum class Diag {
   BitFieldSizeNull,
   BitFieldNotSingleDeclarator,
 
+  CapacityArrayDimensionMismatch,
+  CapacityArrayImplicitSize,
+
   ConstexprDivisionByZero,
   ConstexprGlobalNonStatic,
   ConstexprIfConditionNotConstexpr,
@@ -317,6 +320,10 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Initializer for variable '{}' with type 'auto' contains multiple expressions";
     case Diag::AutoTypeNestedInitializer:
       return "Cannot deduce type for variable '{}' with type 'auto' from nested initializer list";
+    case Diag::CapacityArrayDimensionMismatch:
+      return "Runtime capacity can only be specified for one dimensional array";
+    case Diag::CapacityArrayImplicitSize:
+      return "Runtime capacity requires the array to be sized to its maximum size";
     case Diag::CompilerErrorADLOnTypesNotAllowed:
       return "Cannot use ADL on types";
     case Diag::CompilerErrorMemberFuncNoClass:

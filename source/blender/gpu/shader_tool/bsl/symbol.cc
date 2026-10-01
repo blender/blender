@@ -1048,6 +1048,15 @@ struct SymbolParser : NodeErrorHandler {
         error(decl, Diag::ResourceTableMustBeReference);
       }
 
+      /* Capacity attribute. */
+      if (attr.capacity.is_valid()) {
+        if (sym->array_dimensions != 1) {
+          error(decl, Diag::CapacityArrayDimensionMismatch);
+        }
+        /* TODO(fclem): Check that this references a single reachable compilation constant. */
+        sym->capacity_value = attr.capacity;
+      }
+
       /* Local References. */
       if (is_ref && cls == nullptr) {
         AssignStmt stmt = decl.initial_value();

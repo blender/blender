@@ -66,6 +66,7 @@ enum class ResourceType {
   FREQUENCY,
   DUAL_SOURCE_INDEX,
   RASTER_ORDER_GROUP,
+  CAPACITY,
 };
 
 static inline std::string to_str(ResourceType type)
@@ -119,6 +120,7 @@ static inline std::string to_str(ResourceType type)
     SERIALIZE(FREQUENCY);
     SERIALIZE(DUAL_SOURCE_INDEX);
     SERIALIZE(RASTER_ORDER_GROUP);
+    SERIALIZE(CAPACITY);
   }
   return "Unknown";
 #undef SERIALIZE
@@ -162,6 +164,7 @@ struct ParsedAttribute {
   ast::Attr attr;
   ast::Expr condition;
   ast::Expr frequency;
+  ast::Expr capacity;
   ast::Expr dual_source_index;
   ast::Expr raster_order_group;
 
