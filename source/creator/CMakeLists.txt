@@ -1459,16 +1459,16 @@ elseif(WIN32)
         PATTERN "*.pyo" EXCLUDE                 # * any cache *
       )
       install(
-        DIRECTORY ${USD_LIBRARY_DIR}/site-packages/
+        DIRECTORY ${LIBDIR}/usd/lib/site-packages/
         DESTINATION ${TARGETDIR_SITE_PACKAGES}/
         CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
         PATTERN "__pycache__" EXCLUDE           # * any cache *
         PATTERN "*.pyc" EXCLUDE                 # * any cache *
         PATTERN "*.pyo" EXCLUDE                 # * any cache *
       )
-      
+
       install(
-        DIRECTORY ${USD_LIBRARY_DIR}/debug/site-packages/
+        DIRECTORY ${LIBDIR}/usd/lib/debug/site-packages/
         DESTINATION ${TARGETDIR_SITE_PACKAGES}/
         CONFIGURATIONS Debug
         PATTERN "__pycache__" EXCLUDE           # * any cache *
