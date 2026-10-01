@@ -672,26 +672,14 @@ if(WIN32)
       DEBUG
     )
   endif()
-  if(EXISTS ${LIBDIR}/opencolorio/bin/opencolorio_2_4.dll) # 4.4
-    windows_install_shared_manifest(
-      FILES ${LIBDIR}/opencolorio/bin/opencolorio_2_4.dll
-      RELEASE
-    )
-    windows_install_shared_manifest(
-      FILES ${LIBDIR}/opencolorio/bin/opencolorio_d_2_4.dll
-      DEBUG
-    )
-  endif()
-  if(EXISTS ${LIBDIR}/opencolorio/bin/opencolorio_2_5.dll) # 5.1
-    windows_install_shared_manifest(
-      FILES ${LIBDIR}/opencolorio/bin/opencolorio_2_5.dll
-      RELEASE
-    )
-    windows_install_shared_manifest(
-      FILES ${LIBDIR}/opencolorio/bin/opencolorio_d_2_5.dll
-      DEBUG
-    )
-  endif()
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/opencolorio/bin/opencolorio_2_6.dll
+    RELEASE
+  )
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/opencolorio/bin/opencolorio_d_2_6.dll
+    DEBUG
+  )
   if(EXISTS ${LIBDIR}/openjph/bin/openjph.0.25.dll) # 5.1
     windows_install_shared_manifest(
       FILES ${LIBDIR}/openjph/bin/openjph.0.25.dll
@@ -1429,15 +1417,15 @@ elseif(WIN32)
       endif()
       install(
         FILES
-          ${LIBDIR}/openexr/python/openEXR/OpenEXR.cp${_PYTHON_VERSION_NO_DOTS}-win_${_openexr_arch}.pyd
-          ${LIBDIR}/openexr/python/openEXR/Imath.py
+          ${LIBDIR}/openexr/lib/site-packages/OpenEXR.cp${_PYTHON_VERSION_NO_DOTS}-win_${_openexr_arch}.pyd
+          ${LIBDIR}/openexr/lib/site-packages/Imath.py
         DESTINATION ${TARGETDIR_SITE_PACKAGES}
         CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
       )
       install(
         FILES
-          ${LIBDIR}/openexr/python/openEXR/OpenEXR_d.cp${_PYTHON_VERSION_NO_DOTS}-win_${_openexr_arch}.pyd
-          ${LIBDIR}/openexr/python/openEXR/Imath.py
+          ${LIBDIR}/openexr/lib/site-packages/OpenEXR_d.cp${_PYTHON_VERSION_NO_DOTS}-win_${_openexr_arch}.pyd
+          ${LIBDIR}/openexr/lib/site-packages/Imath.py
         DESTINATION ${TARGETDIR_SITE_PACKAGES}
         CONFIGURATIONS Debug
       )
