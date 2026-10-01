@@ -1108,6 +1108,15 @@ def _extensions_enabled():
     return extensions_enabled
 
 
+def _extensions_enabled_with_pending(
+        repo_directory_and_pkg_id_sequence,  # `Sequence[tuple[str, Sequence[str]]]`
+):  # `-> set[tuple[str, str]]`
+    # Return enabled extensions, including add-ons pending to be enabled.
+    return _extensions_enabled() | _extensions_enabled_from_repo_directory_and_pkg_id_sequence(
+        repo_directory_and_pkg_id_sequence,
+    )
+
+
 def _extensions_enabled_from_repo_directory_and_pkg_id_sequence(repo_directory_and_pkg_id_sequence):
     # Calculate which add-ons are pending to be enabled,
     # needed so wheels for extensions can be extracted before any add-on using them is enabled.
@@ -2284,12 +2293,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
 
         extensions_enabled = None
         if self.enable_on_install:
-            extensions_enabled = _extensions_enabled()
-            extensions_enabled.update(
-                _extensions_enabled_from_repo_directory_and_pkg_id_sequence(
-                    self._repo_map_packages_addon_only,
-                )
-            )
+            extensions_enabled = _extensions_enabled_with_pending(self._repo_map_packages_addon_only)
 
         _extensions_repo_refresh_on_change(
             repo_cache_store,
@@ -2681,13 +2685,8 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
 
         extensions_enabled = None
         if self.enable_on_install:
-            extensions_enabled = _extensions_enabled()
             # We may want to support multiple.
-            extensions_enabled.update(
-                _extensions_enabled_from_repo_directory_and_pkg_id_sequence(
-                    [(self.repo_directory, self.pkg_id_sequence)]
-                )
-            )
+            extensions_enabled = _extensions_enabled_with_pending([(self.repo_directory, self.pkg_id_sequence)])
 
         _extensions_repo_refresh_on_change(
             repo_cache_store,
@@ -3072,12 +3071,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
         extensions_enabled = None
         if self.enable_on_install:
-            extensions_enabled = _extensions_enabled()
-            extensions_enabled.update(
-                _extensions_enabled_from_repo_directory_and_pkg_id_sequence(
-                    [(self.repo_directory, (self.pkg_id,))]
-                )
-            )
+            extensions_enabled = _extensions_enabled_with_pending([(self.repo_directory, (self.pkg_id,))])
 
         _extensions_repo_refresh_on_change(
             repo_cache_store,
