@@ -1176,8 +1176,9 @@ void DRW_cache_free_old_batches(Main *bmain)
         continue;
       }
       /* Skip depsgraphs that may still hold dangling IDs from before their last rebuild
-       * (e.g. an inactive view layer), to avoid dereferencing freed data below. */
-      if (!DEG_is_fully_evaluated(depsgraph)) {
+       * (e.g. an inactive view layer), to avoid dereferencing freed data below. Pending ID
+       * updates are fine, the evaluated copies stay valid until the next evaluation. */
+      if (DEG_relations_need_update(depsgraph)) {
         continue;
       }
 
