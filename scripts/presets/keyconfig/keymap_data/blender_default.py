@@ -2347,6 +2347,7 @@ def km_node_editor(params):
          {"properties": [("run_in_geometry_nodes", True)]}),
         ("node.connect_to_output", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("run_in_geometry_nodes", False)]}),
+        # For shader editor and compositor.
         ("node.connect_to_output", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
          {"properties": [("run_in_geometry_nodes", False)]}),
         ("node.backimage_move", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "alt": True}, None),
