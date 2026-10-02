@@ -1133,6 +1133,7 @@ struct CodegenContext : NodeErrorHandler {
 
     if (cls.is_srt()) {
       generate_srt_placeholder_macros(cls);
+      lint_compilation_constant_redefinition(cls);
     }
 
     /* Emit static variables. */
@@ -1242,6 +1243,40 @@ struct CodegenContext : NodeErrorHandler {
     if (cls.is_srt()) {
       parse_class_metadata(cls, body);
     }
+  }
+
+  void lint_compilation_constant_redefinition(SymbolClass &cls)
+  {
+    vector<const SymbolVariable *> compilation_constants;
+    /* Avoid infinite loops or redundant visit. */
+    vector<const SymbolClass *> visited_srt;
+
+    auto check_class = [&](auto &self, SymbolClass *cls) {
+      if (std::ranges::find(visited_srt, cls) != visited_srt.end()) {
+        return;
+      }
+      visited_srt.emplace_back(cls);
+
+      for (const auto &[k, v] : cls->variables) {
+        const SymbolVariable &member = *v.second;
+        if (member.is_compilation_const) {
+          /* Check for duplicate O(N^2). */
+          for (const SymbolVariable *other : compilation_constants) {
+            if (other->original == member.original) {
+              NOTE(other->loc.tok, Diag::CompilationConstantPreviousDecl, "");
+              error(member.loc.tok, Diag::CompilationConstantRedefinition, member.original);
+            }
+          }
+          compilation_constants.emplace_back(&member);
+        }
+        if (member.type->srt_type == ResourceTableType::RESOURCE_TABLE) {
+          /* Recurse. */
+          self(self, member.type);
+        }
+      }
+    };
+
+    check_class(check_class, &cls);
   }
 
   void generate_srt_placeholder_macros(SymbolClass &cls)

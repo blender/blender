@@ -273,6 +273,23 @@ SRT SRT_new_();
   }
 }
 
+TEST(shader_tool, SrtCompilationConstant)
+{
+  {
+    string input = R"(
+struct A {
+  [[compilation_constant]] uint a;
+};
+struct B {
+  [[resource_table]] A srt;
+  [[compilation_constant]] uint a;
+};
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of compilation constant 'a'");
+  }
+}
+
 TEST(shader_tool, SrtTemplateWrapper)
 {
   {

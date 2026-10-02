@@ -18,9 +18,6 @@ struct Gather {
 
   [[image(2, write, SFLOAT_16_16_16_16)]] image2D out_color_img;
   [[image(3, write, SFLOAT_16)]] image2D out_weight_img;
-
-  [[compilation_constant]] const bool is_foreground;
-  [[compilation_constant]] const bool use_lut;
 };
 
 /**
@@ -55,7 +52,7 @@ void comp_main([[resource_table]] Resources &srt,
 
   float base_radius, min_radius, min_intersectable_radius;
   bool can_early_out;
-  if (gather.is_foreground) {
+  if (gather.accumulator.is_foreground) {
     base_radius = -coc_tile.fg_min_coc;
     min_radius = -coc_tile.fg_max_coc;
     min_intersectable_radius = -coc_tile.fg_max_intersectable_coc;

@@ -128,6 +128,9 @@ enum class Diag {
   ConditionAttributeNotOnResource,
   ConditionAttributeUnsupported,
 
+  CompilationConstantRedefinition,
+  CompilationConstantPreviousDecl,
+
   ConstexprDivisionByZero,
   ConstexprGlobalNonStatic,
   ConstexprIfConditionNotConstexpr,
@@ -437,6 +440,10 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Condition attribute is only allowed on resources declaration";
     case Diag::ConditionAttributeUnsupported:
       return "Condition attribute is not compatible with resource type '{}'";
+    case Diag::CompilationConstantRedefinition:
+      return "Redefinition of compilation constant '{}'";
+    case Diag::CompilationConstantPreviousDecl:
+      return "Previous definition is here";
     case Diag::NonConstVariableInExpr:
       return "Read of non-const variable is not allowed in a {}";
     case Diag::NoteDeclarationUnionRequested:
