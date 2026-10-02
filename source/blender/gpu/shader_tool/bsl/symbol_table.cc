@@ -193,6 +193,9 @@ Result<string> SymbolTable::expr_to_string(const SymbolScope &scope,
       case NodeType::Op:
       case NodeType::NumConst:
         expr_str += child.str();
+        /* WORKAROUND: The runtime shader preprocessor has a bug which mangles operators that are
+         * next to each others. */
+        expr_str += " ";
         node_count++;
         break;
       default:
