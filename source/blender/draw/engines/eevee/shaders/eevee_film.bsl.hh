@@ -1398,7 +1398,7 @@ void display_frag([[resource_table]] Film &film,
 {
   [[resource_table]] Cryptomatte &cryptomatte = film.cryptomatte;
 
-  int2 texel = int2(frag_co.xy);
+  int2 texel = int2(frag_co.xy) - uni.uniform_buf.film.offset;
 
   if (film.display_id == -1) {
     frag_out.color = texelFetch(film.in_combined_tx, texel, 0);
