@@ -443,8 +443,8 @@ struct Accumulator {
     float2 noise_offset = sampling.rng_2D_get(SAMPLING_LENS_U);
     float2 noise = no_gather_random ?
                        float2(0.0f, 0.0f) :
-                       float2(interleaved_gradient_noise(frag_coord, 0, noise_offset.x),
-                              interleaved_gradient_noise(frag_coord, 1, noise_offset.y));
+                       float2(random::interleaved_gradient(frag_coord, 0, noise_offset.x),
+                              random::interleaved_gradient(frag_coord, 1, noise_offset.y));
 
     if (!do_fast_gather) {
       /* Jitter the radius to reduce noticeable density changes. */
@@ -611,8 +611,8 @@ struct Accumulator {
     float2 noise_offset = sampling.rng_2D_get(SAMPLING_LENS_U);
     float2 noise = no_gather_random ?
                        float2(0.0f) :
-                       float2(interleaved_gradient_noise(frag_coord, 3, noise_offset.x),
-                              interleaved_gradient_noise(frag_coord, 5, noise_offset.y));
+                       float2(random::interleaved_gradient(frag_coord, 3, noise_offset.x),
+                              random::interleaved_gradient(frag_coord, 5, noise_offset.y));
 
     DofGatherData fg_accum = {};
     DofGatherData bg_accum = {};
@@ -626,7 +626,7 @@ struct Accumulator {
     bool first_ring = true;
 
     for (float s = 0.0f; s < sample_count; s++) {
-      float2 rand2 = fract(hammersley_2d(s, sample_count) + noise);
+      float2 rand2 = fract(random::hammersley_2d(s, sample_count) + noise);
       float2 offset = sample_disk(rand2) * radius;
       float ring_dist = length(offset);
 

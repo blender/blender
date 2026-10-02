@@ -244,7 +244,8 @@ struct LightprobeVolumeRenderData {
                              float3 &lP) const
   {
     int index = -1;
-    float random = square(pcg4d(float4(P, sampling.rng_1D_get(SAMPLING_LIGHTPROBE))).x) * 0.75f;
+    float random = square(random::pcg_4d(float4(P, sampling.rng_1D_get(SAMPLING_LIGHTPROBE))).x) *
+                   0.75f;
 #ifdef GPU_METAL
 /* NOTE: Performs a chunked unroll to avoid the compiler unrolling the entire loop, avoiding
  * very high instruction counts and long compilation time. Full unroll results in 90k +

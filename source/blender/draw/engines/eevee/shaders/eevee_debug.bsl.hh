@@ -79,7 +79,7 @@ struct ShadowDebug {
 
   float3 debug_random_color(int2 v) const
   {
-    float r = interleaved_gradient_noise(float2(v), 0.0f, 0.0f);
+    float r = random::interleaved_gradient(float2(v), 0.0f, 0.0f);
     return hue_gradient(r);
   }
 
@@ -529,7 +529,7 @@ void vert_main([[resource_table]] const Resources &srt,
 
 float3 debug_random_color(int v)
 {
-  float r = interleaved_gradient_noise(float2(v, 0), 0.0f, 0.0f);
+  float r = random::interleaved_gradient(float2(v, 0), 0.0f, 0.0f);
   return hue_gradient(r);
 }
 

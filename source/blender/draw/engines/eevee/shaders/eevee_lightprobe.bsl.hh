@@ -26,7 +26,7 @@ struct LightprobeRenderData {
    */
   LightProbeSample load(float2 screen_texel, float3 P, float3 Ng, float3 V) const
   {
-    float noise = interleaved_gradient_noise(screen_texel, 0.0f, 0.0f);
+    float noise = random::interleaved_gradient(screen_texel, 0.0f, 0.0f);
     noise = fract(noise + sampling.rng_1D_get(SAMPLING_LIGHTPROBE));
 
     LightProbeSample result;

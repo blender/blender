@@ -506,8 +506,8 @@ void gather_comp([[resource_table]] Resources &srt,
 
   float noise_offset = sampling.rng_1D_get(SAMPLING_TIME);
   /** TODO(fclem) Blue noise. */
-  float2 rand = float2(interleaved_gradient_noise(float2(global_id.xy), 0, noise_offset),
-                       interleaved_gradient_noise(float2(global_id.xy), 1, noise_offset));
+  float2 rand = float2(random::interleaved_gradient(float2(global_id.xy), 0, noise_offset),
+                       random::interleaved_gradient(float2(global_id.xy), 1, noise_offset));
 
   /* Randomize tile boundary to avoid ugly discontinuities. Randomize 1/4th of the tile.
    * Note this randomize only in one direction but in practice it's enough. */

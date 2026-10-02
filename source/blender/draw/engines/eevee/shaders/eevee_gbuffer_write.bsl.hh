@@ -152,7 +152,7 @@ float4 closure_data_dither_flush_to_zero(float4 data, float3 noise)
 float3 closure_dither_noise(float2 texel, uint layer_id, float3 offset)
 {
   float seed = float(layer_id) * 3.0f;
-  return interleaved_gradient_noise(texel, float3(seed, seed + 1.0f, seed + 2.0f), offset);
+  return random::interleaved_gradient_3d(texel, float3(seed, seed + 1.0f, seed + 2.0f), offset);
 }
 
 float4 closure_data_layer_dither_round_to_nearest(float4 data,

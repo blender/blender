@@ -316,7 +316,7 @@ template<typename F> float4 integrate(const F &func)
   float4 measure = float4(0.0f);
   for (uint i = 1u; i <= sample_count; i++) {
     /* Warp sequence to a point on the unit cylinder. */
-    float2 rand = hammersley_2d(i, sample_count);
+    float2 rand = random::hammersley_2d(i, sample_count);
     float3 Xi = sample_cylinder(rand);
 
     /* Add sample to measure. */

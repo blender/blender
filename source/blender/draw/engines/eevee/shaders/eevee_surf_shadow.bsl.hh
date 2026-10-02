@@ -81,7 +81,7 @@ void surf_shadow([[resource_table]] KernelGlobals &kg,
     }
 
     float noise_offset = sampling.rng_1D_get(SAMPLING_TRANSPARENCY);
-    float random_threshold = pcg4d(float4(sd.P, noise_offset)).x;
+    float random_threshold = random::pcg_4d(float4(sd.P, noise_offset)).x;
 
     float transparency = average(sd.transmittance);
     if (transparency > random_threshold) {
