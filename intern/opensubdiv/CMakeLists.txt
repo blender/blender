@@ -62,9 +62,6 @@ if(WITH_OPENSUBDIV)
 
 
     # Topology.
-    internal/topology/mesh_topology.cc
-    internal/topology/mesh_topology_compare.cc
-    internal/topology/mesh_topology.h
     internal/topology/topology_refiner_factory.cc
     internal/topology/topology_refiner_impl.cc
     internal/topology/topology_refiner_impl_compare.cc
@@ -144,13 +141,3 @@ else()
 endif()
 
 blender_add_lib(bf_intern_opensubdiv "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-
-# Tests.
-
-if(WITH_GTESTS AND WITH_OPENSUBDIV)
-  set(TEST_SRC
-    internal/topology/mesh_topology_test.cc
-  )
-
-  blender_add_test_suite_lib(intern_opensubdiv "${TEST_SRC}" "${INC}" "${INC_SYS}" "${LIB};bf_intern_opensubdiv")
-endif()
