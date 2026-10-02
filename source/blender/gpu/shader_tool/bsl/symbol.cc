@@ -347,6 +347,10 @@ struct SymbolParser : NodeErrorHandler {
       {
         error(arg, Diag::ResourceAttributesOnlyOnEntryPointArgs);
       }
+
+      if (!is_entry_point && attr.condition.is_valid()) {
+        error(arg, Diag::ConditionAttributeNotOnResource);
+      }
     }
 
     if (scope.parent != nullptr) {
@@ -1014,6 +1018,15 @@ struct SymbolParser : NodeErrorHandler {
     }
     else if (attr.res_type != ResourceType::NONE) {
       error(var, Diag::ResourceOutOfClassDeclaration);
+    }
+
+    if (attr.condition.is_valid()) {
+      if (attr.res_type == ResourceType::NONE) {
+        error(var, Diag::ConditionAttributeNotOnResource);
+      }
+      else if (attr.res_type == ResourceType::SHARED) {
+        error(var, Diag::ConditionAttributeUnsupported, to_str(attr.res_type));
+      }
     }
 
     const bool is_srt_local_ref = type->is_srt() && cls == nullptr;

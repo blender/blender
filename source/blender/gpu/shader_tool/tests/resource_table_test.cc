@@ -594,6 +594,41 @@ GPU_SHADER_CREATE_END()
   }
 }
 
+TEST(shader_tool, ConditionalLinting)
+{
+  using namespace std;
+  using namespace shader::parser;
+
+  {
+    string input = R"(
+void foo([[condition(false)]] float a) {}
+)";
+    auto [output, metadata, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Condition attribute is only allowed on resources declaration");
+  }
+  {
+    string input = R"(
+struct foo { [[condition(false)]] float a; };
+)";
+    auto [output, metadata, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Condition attribute is only allowed on resources declaration");
+  }
+  {
+    string input = R"(
+struct foo { [[condition(false)]] [[shared]] float a; };
+)";
+    auto [output, metadata, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Condition attribute is not compatible with resource type 'SHARED'");
+  }
+  {
+    string input = R"(
+struct foo { [[condition(false)]] [[push_constant]] float a; };
+)";
+    auto [output, metadata, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+}
+
 TEST(shader_tool, PipelineDescription)
 {
   using namespace std;

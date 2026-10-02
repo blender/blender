@@ -1921,7 +1921,7 @@ struct CodegenContext : NodeErrorHandler {
     for (Attr attr : attributes.children_of_type<Attr>()) {
       if (attr.identifier().str() == "condition") {
         if (!cond.empty()) {
-          error(attr.identifier(), Diag::MultipleConditionAttributes);
+          error(attr.identifier(), Diag::ConditionAttributeMultiple);
           break;
         }
         for (LocalVar var : attributes.descendants_of_type<LocalVar>()) {
