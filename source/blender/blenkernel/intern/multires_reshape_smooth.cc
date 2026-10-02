@@ -775,55 +775,25 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
 /** \name Generation of OpenSubdiv evaluator for topology created form reshape level
  * \{ */
 
-static OpenSubdiv_SchemeType get_scheme_type(const OpenSubdiv_Converter * /*converter*/)
-{
-  return OSD_SCHEME_CATMARK;
-}
-
-static OpenSubdiv_VtxBoundaryInterpolation get_vtx_boundary_interpolation(
-    const OpenSubdiv_Converter *converter)
-{
-  const MultiresReshapeSmoothContext *reshape_smooth_context =
-      static_cast<const MultiresReshapeSmoothContext *>(converter->user_data);
-  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-  const bke::subdiv::Settings *settings = &reshape_context->subdiv->settings;
-
-  return OpenSubdiv_VtxBoundaryInterpolation(
-      bke::subdiv::converter_vtx_boundary_interpolation_from_settings(settings));
-}
-
-static OpenSubdiv_FVarLinearInterpolation get_fvar_linear_interpolation(
-    const OpenSubdiv_Converter *converter)
-{
-  const MultiresReshapeSmoothContext *reshape_smooth_context =
-      static_cast<const MultiresReshapeSmoothContext *>(converter->user_data);
-  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-  const bke::subdiv::Settings *settings = &reshape_context->subdiv->settings;
-
-  return OpenSubdiv_FVarLinearInterpolation(
-      bke::subdiv::converter_fvar_linear_from_settings(settings));
-}
-
 static bool specifies_full_topology(const OpenSubdiv_Converter * /*converter*/)
 {
   return false;
 }
 
-static int get_num_vertices(const OpenSubdiv_Converter *converter)
-{
-  const MultiresReshapeSmoothContext *reshape_smooth_context =
-      static_cast<const MultiresReshapeSmoothContext *>(converter->user_data);
-
-  return reshape_smooth_context->geometry.vertices.size();
-}
-
 static void converter_init(const MultiresReshapeSmoothContext *reshape_smooth_context,
                            OpenSubdiv_Converter *converter)
 {
-  converter->getSchemeType = get_scheme_type;
-  converter->getVtxBoundaryInterpolation = get_vtx_boundary_interpolation;
-  converter->getFVarLinearInterpolation = get_fvar_linear_interpolation;
+  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
+  const bke::subdiv::Settings &settings = reshape_context->subdiv->settings;
+
+  converter->scheme_type = OSD_SCHEME_CATMARK;
+  converter->vtx_boundary_interpolation = OpenSubdiv_VtxBoundaryInterpolation(
+      bke::subdiv::converter_vtx_boundary_interpolation_from_settings(&settings));
+  converter->fvar_linear_interpolation = OpenSubdiv_FVarLinearInterpolation(
+      bke::subdiv::converter_fvar_linear_from_settings(&settings));
   converter->specifiesFullTopology = specifies_full_topology;
+
+  converter->verts_num = reshape_smooth_context->geometry.vertices.size();
 
   /* Only the first #num_edges entries of the sparse edge storage were filled in. */
   const int edges_num = int(reshape_smooth_context->geometry.num_edges);
@@ -835,8 +805,6 @@ static void converter_init(const MultiresReshapeSmoothContext *reshape_smooth_co
   converter->edge_sharpness = reshape_smooth_context->geometry.edge_sharpness.as_span().take_front(
       edges_num);
   converter->vert_sharpness = reshape_smooth_context->geometry.vert_sharpness;
-
-  converter->getNumVertices = get_num_vertices;
 
   converter->getFaceEdges = nullptr;
 

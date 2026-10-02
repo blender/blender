@@ -78,14 +78,13 @@ struct ConverterStorage : NonMovable {
   int num_manifold_edges;
 };
 
-static OpenSubdiv_SchemeType get_scheme_type(const OpenSubdiv_Converter *converter)
+static OpenSubdiv_SchemeType get_scheme_type(const Settings &settings)
 {
 #if BUGGY_SIMPLE_SCHEME_WORKAROUND
-  (void)converter;
+  (void)settings;
   return OSD_SCHEME_CATMARK;
 #else
-  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  if (storage->settings.is_simple) {
+  if (settings.is_simple) {
     return OSD_SCHEME_BILINEAR;
   }
   else {
@@ -94,31 +93,9 @@ static OpenSubdiv_SchemeType get_scheme_type(const OpenSubdiv_Converter *convert
 #endif
 }
 
-static OpenSubdiv_VtxBoundaryInterpolation get_vtx_boundary_interpolation(
-    const OpenSubdiv_Converter *converter)
-{
-  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  return OpenSubdiv_VtxBoundaryInterpolation(
-      converter_vtx_boundary_interpolation_from_settings(&storage->settings));
-}
-
-static OpenSubdiv_FVarLinearInterpolation get_fvar_linear_interpolation(
-    const OpenSubdiv_Converter *converter)
-{
-  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  return OpenSubdiv_FVarLinearInterpolation(
-      converter_fvar_linear_from_settings(&storage->settings));
-}
-
 static bool specifies_full_topology(const OpenSubdiv_Converter * /*converter*/)
 {
   return false;
-}
-
-static int get_num_vertices(const OpenSubdiv_Converter *converter)
-{
-  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  return storage->num_manifold_vertices;
 }
 
 /* Both `original_to_manifold()` and `manifold_to_original()` treat an empty map as the identity
@@ -204,12 +181,7 @@ static void free_user_data(const OpenSubdiv_Converter *converter)
 
 static void init_functions(OpenSubdiv_Converter *converter)
 {
-  converter->getSchemeType = get_scheme_type;
-  converter->getVtxBoundaryInterpolation = get_vtx_boundary_interpolation;
-  converter->getFVarLinearInterpolation = get_fvar_linear_interpolation;
   converter->specifiesFullTopology = specifies_full_topology;
-
-  converter->getNumVertices = get_num_vertices;
 
   converter->getFaceEdges = nullptr;
 
@@ -437,11 +409,17 @@ void converter_init_for_mesh(OpenSubdiv_Converter *converter,
   init_functions(converter);
   init_user_data(converter, settings, mesh);
   const auto &storage = *static_cast<ConverterStorage *>(converter->user_data);
+  converter->verts_num = storage.num_manifold_vertices;
   converter->face_offsets = storage.mesh->face_offsets();
   converter->edges = storage.edges.cast<std::pair<int, int>>();
   converter->corner_verts = storage.corner_verts;
   converter->edge_sharpness = storage.edge_sharpness;
   converter->vert_sharpness = storage.vert_sharpness;
+  converter->scheme_type = get_scheme_type(*settings);
+  converter->vtx_boundary_interpolation = OpenSubdiv_VtxBoundaryInterpolation(
+      converter_vtx_boundary_interpolation_from_settings(settings));
+  converter->fvar_linear_interpolation = OpenSubdiv_FVarLinearInterpolation(
+      converter_fvar_linear_from_settings(settings));
 }
 
 }  // namespace blender::bke::subdiv

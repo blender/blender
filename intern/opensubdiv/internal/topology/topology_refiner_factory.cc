@@ -47,8 +47,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology
   const OpenSubdiv_Converter *converter = cb_data.converter;
 
   // Vertices.
-  const int num_vertices = converter->getNumVertices(converter);
-  setNumBaseVertices(refiner, num_vertices);
+  setNumBaseVertices(refiner, converter->verts_num);
 
   // Faces and face-vertices.
   const std::span<const int> face_offsets = converter->face_offsets;
@@ -76,7 +75,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology
   }
 
   // Vertex-faces and vertex-edges.
-  for (int vertex_index = 0; vertex_index < num_vertices; ++vertex_index) {
+  for (int vertex_index = 0; vertex_index < converter->verts_num; ++vertex_index) {
     const int num_vert_edges = converter->getNumVertexEdges(converter, vertex_index);
     const int num_vert_faces = converter->getNumVertexFaces(converter, vertex_index);
     setNumBaseVertexEdges(refiner, vertex_index, num_vert_edges);
@@ -118,9 +117,8 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology
   }
 
   // Vertex relations.
-  const int num_vertices = converter->getNumVertices(converter);
   std::vector<int> vertex_faces, vertex_edges;
-  for (int vertex_index = 0; vertex_index < num_vertices; ++vertex_index) {
+  for (int vertex_index = 0; vertex_index < converter->verts_num; ++vertex_index) {
     // Vertex-faces.
     IndexArray dst_vertex_faces = getBaseVertexFaces(refiner, vertex_index);
     const int num_vertex_faces = converter->getNumVertexFaces(converter, vertex_index);
@@ -200,8 +198,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
   // vertices which are adjacent to a loose edge as sharp, but this decision
   // needs some more investigation.
   const std::span<const float> vert_sharpness = converter->vert_sharpness;
-  const int num_vertices = converter->getNumVertices(converter);
-  for (int vertex_index = 0; vertex_index < num_vertices; ++vertex_index) {
+  for (int vertex_index = 0; vertex_index < converter->verts_num; ++vertex_index) {
     float sharpness = vert_sharpness.empty() ? 0.0f : vert_sharpness[vertex_index];
 
     // If its vertex where 2 non-manifold edges meet adjust vertex sharpness to
@@ -276,11 +273,11 @@ static OpenSubdiv::Sdc::Options getSDCOptions(OpenSubdiv_Converter *converter)
   using OpenSubdiv::Sdc::Options;
 
   const Options::FVarLinearInterpolation linear_interpolation = getFVarLinearInterpolationFromCAPI(
-      converter->getFVarLinearInterpolation(converter));
+      converter->fvar_linear_interpolation);
 
   Options options;
   options.SetVtxBoundaryInterpolation(
-      getVtxBoundaryInterpolationFromCAPI(converter->getVtxBoundaryInterpolation(converter)));
+      getVtxBoundaryInterpolationFromCAPI(converter->vtx_boundary_interpolation));
   options.SetCreasingMethod(Options::CREASE_UNIFORM);
   options.SetFVarLinearInterpolation(linear_interpolation);
 
@@ -294,7 +291,7 @@ static TopologyRefinerFactoryType::Options getTopologyRefinerOptions(
 
   OpenSubdiv::Sdc::Options sdc_options = getSDCOptions(converter);
 
-  const SchemeType scheme_type = getSchemeTypeFromCAPI(converter->getSchemeType(converter));
+  const SchemeType scheme_type = getSchemeTypeFromCAPI(converter->scheme_type);
   TopologyRefinerFactoryType::Options topology_options(scheme_type, sdc_options);
 
   // NOTE: When debugging topology conversion related functionality it is helpful to set this
@@ -310,7 +307,7 @@ static TopologyRefinerFactoryType::Options getTopologyRefinerOptions(
 static void storeBaseMeshTopology(const OpenSubdiv_Converter *converter,
                                   TopologyRefinerImpl &refiner_impl)
 {
-  refiner_impl.base_verts_num = converter->getNumVertices(converter);
+  refiner_impl.base_verts_num = converter->verts_num;
   refiner_impl.base_face_offsets.assign(converter->face_offsets.begin(),
                                         converter->face_offsets.end());
   assert(converter->corner_verts.size() == total_size_from_offsets(converter->face_offsets));

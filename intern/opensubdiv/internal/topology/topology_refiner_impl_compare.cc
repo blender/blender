@@ -34,7 +34,7 @@ static bool checkSchemeTypeMatches(const TopologyRefinerImpl *topology_refiner_i
                                    const OpenSubdiv_Converter *converter)
 {
   const OpenSubdiv::Sdc::SchemeType converter_scheme_type =
-      blender::opensubdiv::getSchemeTypeFromCAPI(converter->getSchemeType(converter));
+      blender::opensubdiv::getSchemeTypeFromCAPI(converter->scheme_type);
   return (converter_scheme_type == getOSDTopologyRefiner(topology_refiner_impl)->GetSchemeType());
 }
 
@@ -46,7 +46,7 @@ static bool checkOptionsMatches(const TopologyRefinerImpl *topology_refiner_impl
   const Options::FVarLinearInterpolation fvar_interpolation = options.GetFVarLinearInterpolation();
   const Options::FVarLinearInterpolation converter_fvar_interpolation =
       blender::opensubdiv::getFVarLinearInterpolationFromCAPI(
-          converter->getFVarLinearInterpolation(converter));
+          converter->fvar_linear_interpolation);
   if (fvar_interpolation != converter_fvar_interpolation) {
     return false;
   }
@@ -66,7 +66,7 @@ static bool checkPreliminaryMatches(const TopologyRefinerImpl *topology_refiner_
 static bool checkBaseMeshTopologyMatches(const TopologyRefinerImpl *topology_refiner_impl,
                                          const OpenSubdiv_Converter *converter)
 {
-  if (topology_refiner_impl->base_verts_num != converter->getNumVertices(converter)) {
+  if (topology_refiner_impl->base_verts_num != converter->verts_num) {
     return false;
   }
   if (!std::ranges::equal(converter->face_offsets, topology_refiner_impl->base_face_offsets)) {

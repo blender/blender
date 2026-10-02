@@ -16,6 +16,7 @@
 constexpr float OPENSUBDIV_SHARPNESS_INFINITE = 10.0f;
 
 struct OpenSubdiv_Converter {
+  int verts_num;
   /**
    * The topology of the mesh to be subdivided. See #Mesh::edges(), #Mesh::face_offsets(), and
    * #Mesh::corner_verts() documentation for the details. Other topology information is currently
@@ -35,12 +36,10 @@ struct OpenSubdiv_Converter {
   std::span<const float> edge_sharpness;
   std::span<const float> vert_sharpness;
 
-  OpenSubdiv_SchemeType (*getSchemeType)(const OpenSubdiv_Converter *converter);
+  OpenSubdiv_SchemeType scheme_type;
 
-  OpenSubdiv_VtxBoundaryInterpolation (*getVtxBoundaryInterpolation)(
-      const OpenSubdiv_Converter *converter);
-  OpenSubdiv_FVarLinearInterpolation (*getFVarLinearInterpolation)(
-      const OpenSubdiv_Converter *converter);
+  OpenSubdiv_VtxBoundaryInterpolation vtx_boundary_interpolation;
+  OpenSubdiv_FVarLinearInterpolation fvar_linear_interpolation;
 
   // Denotes whether this converter specifies full topology, which includes
   // vertices, edges, faces, vertices+edges of a face and edges/faces of a
@@ -52,12 +51,6 @@ struct OpenSubdiv_Converter {
   // to provide number of edges and vertices-of-edge. Those are used to assign
   // topology tags.
   bool (*specifiesFullTopology)(const OpenSubdiv_Converter *converter);
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Global geometry counters.
-
-  // Number of vertices in the base mesh.
-  int (*getNumVertices)(const OpenSubdiv_Converter *converter);
 
   //////////////////////////////////////////////////////////////////////////////
   // Face relationships.

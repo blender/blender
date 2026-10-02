@@ -36,8 +36,7 @@ static bke::subdiv::Subdiv *subdiv_for_simple_to_catmull_clark(Object *object,
   /* Emulate the old simple subdivision by making all of the topology infinitely sharp. */
   const Array<float> edge_sharpness(int64_t(converter.edges.size()),
                                     OPENSUBDIV_SHARPNESS_INFINITE);
-  const Array<float> vert_sharpness(converter.getNumVertices(&converter),
-                                    OPENSUBDIV_SHARPNESS_INFINITE);
+  const Array<float> vert_sharpness(converter.verts_num, OPENSUBDIV_SHARPNESS_INFINITE);
   converter.edge_sharpness = edge_sharpness;
   converter.vert_sharpness = vert_sharpness;
 
