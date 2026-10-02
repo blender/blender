@@ -6,14 +6,17 @@
  * \ingroup bke
  */
 
+#include <map>
 #include <mutex>
 #include <shared_mutex>
+#include <vector>
 
 #include "BKE_blender_project.hh"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "BKE_path_templates.hh"
 #include "BKE_preferences.h"
+#include "BKE_recents.hh"
 
 #include "BLI_fileops.hh"
 #include "BLI_function_ref.hh"
@@ -517,5 +520,85 @@ std::string BKE_blender_project_path_make_relative(const StringRef path,
                                                 BKE_path_template_escape(path_relative);
   return "{project_root}/" + path_relative_escaped;
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Recent Projects
+ *
+ * Stored in #BLENDER_RECENTS_FILE.
+ * \{ */
+
+/* Stored as `{name = "...", path = "..."}` tables. */
+using RecentProjectsTOML = std::vector<std::map<std::string, std::string>>;
+
+Vector<RecentProject> BKE_blender_project_recent_get()
+{
+  Vector<RecentProject> projects;
+  for (const auto &item : recents::Section("project").get<RecentProjectsTOML>("recent")) {
+    const auto path = item.find("path");
+    if (path == item.end() || path->second.empty()) {
+      continue;
+    }
+    const auto name = item.find("name");
+    projects.append({path->second,
+                     (name != item.end() && !name->second.empty()) ?
+                         name->second :
+                         BLI_path_basename(path->second.c_str())});
+  }
+  return projects;
+}
+
+static void recent_projects_set(const Span<RecentProject> projects)
+{
+  RecentProjectsTOML items;
+  for (const RecentProject &project : projects) {
+    items.push_back({{"name", project.name}, {"path", project.path}});
+  }
+
+  recents::Section section("project");
+  if (section.get<RecentProjectsTOML>("recent") != items) {
+    section.set("recent", items);
+    recents::save();
+  }
+}
+
+void BKE_blender_project_recent_update(const Main *bmain)
+{
+  const std::optional<RecentProject> active = BKE_blender_project_read_callback(
+      bmain, [](const bke::BlenderProject *project) -> std::optional<RecentProject> {
+        if (project == nullptr) {
+          return std::nullopt;
+        }
+        char path[FILE_MAX];
+        STRNCPY(path, project->get_root_path().c_str());
+        BLI_path_normalize(path);
+        BLI_path_slash_rstrip(path);
+        return RecentProject{path, project->get_name()};
+      });
+  if (!active) {
+    return;
+  }
+
+  Vector<RecentProject> projects = BKE_blender_project_recent_get();
+  projects.remove_if([&](const RecentProject &project) {
+    return BLI_path_cmp(project.path.c_str(), active->path.c_str()) == 0;
+  });
+  projects.insert(0, *active);
+
+  if (projects.size() > U.recent_files) {
+    projects.resize(U.recent_files);
+  }
+  recent_projects_set(projects);
+}
+
+void BKE_blender_project_recent_clear(const bool only_missing)
+{
+  Vector<RecentProject> projects = BKE_blender_project_recent_get();
+  projects.remove_if([&](const RecentProject &project) {
+    return !only_missing || !BLI_is_dir(project.path.c_str());
+  });
+  recent_projects_set(projects);
+}
+
+/** \} */
 
 }  // namespace blender

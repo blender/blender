@@ -21,6 +21,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_autoexec.hh"
+#include "BKE_blender_project.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
@@ -32,7 +33,11 @@
 #include "RNA_access.hh"
 
 #include "UI_interface_layout.hh"
+
+#include "UI_resources.hh"
+#include "WM_api.hh"
 #include "WM_types.hh"
+
 #include "interface_intern.hh"
 
 namespace blender::ui {
@@ -168,6 +173,51 @@ int template_recent_files(Layout *layout, int rows)
     Button *but = button_last(block);
     button_func_tooltip_custom_set(
         but, template_recent_files_tooltip_func, BLI_strdup(recent.filepath), MEM_delete_void);
+    i++;
+  }
+
+  return i;
+}
+
+static void template_recent_projects_tooltip_func(bContext & /*C*/,
+                                                  TooltipData &tip,
+                                                  Button * /*but*/,
+                                                  void *argN)
+{
+  const char *path = static_cast<const char *>(argN);
+  tooltip_text_field_add(tip, path, {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
+
+  if (!BLI_is_dir(path)) {
+    tooltip_text_field_add(tip, {}, {}, TIP_STYLE_SPACER, TIP_LC_NORMAL);
+    tooltip_text_field_add(tip, TIP_("Project Not Found"), {}, TIP_STYLE_NORMAL, TIP_LC_ALERT);
+  }
+}
+
+int template_recent_projects(Layout *layout, int rows)
+{
+  wmOperatorType *ot = WM_operatortype_find("PROJECT_OT_open", false);
+
+  int i = 0;
+  for (const RecentProject &project : BKE_blender_project_recent_get()) {
+    if (i >= rows) {
+      break;
+    }
+
+    if (ot) {
+      PointerRNA ptr = layout->op(
+          ot, project.name, ICON_PROJECT, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
+      RNA_string_set(&ptr, "directory", project.path.c_str());
+
+      Block *block = layout->block();
+      Button *but = button_last(block);
+      button_func_tooltip_custom_set(but,
+                                     template_recent_projects_tooltip_func,
+                                     BLI_strdup(project.path.c_str()),
+                                     MEM_delete_void);
+    }
+    else {
+      layout->label(project.name, ICON_NONE);
+    }
     i++;
   }
 

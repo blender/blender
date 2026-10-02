@@ -92,6 +92,10 @@ static wmOperatorStatus project_open_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (!G.background) {
+    BKE_blender_project_recent_update(CTX_data_main(C));
+  }
+
   return OPERATOR_FINISHED;
 }
 
