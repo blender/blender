@@ -1046,14 +1046,6 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
                                    GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE) ||
                                    GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT);
 
-  if ((pipeline_type == MAT_PIPE_FORWARD ||
-       (pipeline_type == MAT_PIPE_DEFERRED && use_shader_to_rgba)) &&
-      GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT))
-  {
-    info.additional_info("eevee_PreviousLayerHiZ");
-    info.additional_info("eevee_PreviousLayerRadiance");
-  }
-
   if (ELEM(pipeline_type, MAT_PIPE_DEFERRED, MAT_PIPE_FORWARD) &&
       !ELEM(geometry_type, MAT_GEOM_WORLD, MAT_GEOM_VOLUME))
   {
