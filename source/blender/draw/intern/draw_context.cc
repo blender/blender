@@ -1123,6 +1123,11 @@ void DRW_cache_free_old_batches(Main *bmain)
       if (depsgraph == nullptr) {
         continue;
       }
+      /* Skip depsgraphs that may still hold dangling IDs from before their last rebuild
+       * (e.g. an inactive view layer), to avoid dereferencing freed data below. */
+      if (!DEG_is_fully_evaluated(depsgraph)) {
+        continue;
+      }
 
       /* TODO(fclem): This is not optimal since it iter over all dupli instances.
        * In this case only the source object should be tagged. */
