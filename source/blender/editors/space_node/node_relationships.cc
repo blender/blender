@@ -2341,9 +2341,9 @@ static void join_group_inputs(bNodeTree &tree, VectorSet<bNode *> group_inputs, 
 
     /* Using runtime data directly because we know the parts that are used are still valid. */
     for (const int group_input_i : node->runtime->outputs.index_range().drop_back(1)) {
-      bool keep_socket = false;
       bNodeSocket &new_socket = *main_node->runtime->outputs[group_input_i];
       bNodeSocket &old_socket = *node->runtime->outputs[group_input_i];
+      bool keep_socket = (old_socket.flag & SOCK_HIDDEN) == 0;
       for (bNodeLink *link : old_link_map.lookup(&old_socket)) {
         bNodeSocket &to_socket = *link->tosock;
         if (used_link_targets.lookup(&new_socket).contains(&to_socket)) {
@@ -2354,10 +2354,13 @@ static void join_group_inputs(bNodeTree &tree, VectorSet<bNode *> group_inputs, 
         used_link_targets.add(&new_socket, &to_socket);
         link->fromsock = &new_socket;
         link->fromnode = main_node;
-        new_socket.flag &= ~SOCK_HIDDEN;
+        keep_socket = true;
         BKE_ntree_update_tag_link_changed(&tree);
       }
-      if (!keep_socket) {
+      if (keep_socket) {
+        new_socket.flag &= ~SOCK_HIDDEN;
+      }
+      else {
         old_socket.flag |= SOCK_HIDDEN;
       }
     }
