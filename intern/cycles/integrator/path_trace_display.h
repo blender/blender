@@ -28,6 +28,9 @@ class PathTraceDisplay {
   explicit PathTraceDisplay(unique_ptr<DisplayDriver> driver);
   virtual ~PathTraceDisplay() = default;
 
+  /* Reset the display update pending state. Is called from the main thread immediately when
+   * requesting a session reset. */
+  void reset();
   /* Reset the display for the new state of render session. Is called whenever session is reset,
    * which happens on changes like viewport navigation or viewport dimension change.
    *

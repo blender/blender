@@ -962,6 +962,10 @@ void PathTrace::cancel()
   }
 
   render_cancel_.is_requested = false;
+
+  if (display_) {
+    display_->reset();
+  }
 }
 
 int PathTrace::get_num_samples_in_buffer()
