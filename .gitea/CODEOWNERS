@@ -133,6 +133,8 @@ source/blender/nodes/geometry/.*           @JacquesLucke
 
 source/blender/nodes/geometry/.*           @LukasTonne
 
+scripts/startup/bl_ui/node_add_menu_geometry.py     @zazizizou
+
 # --------------------------------------------------
 # Blenlib.
 source/blender/blenlib/BLI_allocator.*                     @JacquesLucke
