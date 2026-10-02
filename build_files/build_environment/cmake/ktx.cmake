@@ -44,5 +44,8 @@ if(WIN32)
     DEPENDEES install
   )
 else()
-  # TODO 
+  harvest(external_ktx ktx/include ktx/include "*.h")
+  # CMake files first because harvest_rpath_lib edits them.
+  harvest(external_ktx ktx/lib/cmake/ktx ktx/lib/cmake/ktx "*.cmake")
+  harvest_rpath_lib(external_ktx ktx/lib ktx/lib "*${SHAREDLIBEXT}*")
 endif()
