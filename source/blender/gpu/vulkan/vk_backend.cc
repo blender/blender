@@ -678,6 +678,16 @@ void VKBackend::delete_resources()
   MEM_delete(compiler_);
 }
 
+bool VKBackend::pipelines_compiled_since_last_reset()
+{
+  return device.pipelines.compiled_since_last_reset();
+}
+
+void VKBackend::reset_pipeline_compilation_tracking()
+{
+  device.pipelines.reset_compilation_tracking();
+}
+
 void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
 {
   VKContext &context = *VKContext::get();

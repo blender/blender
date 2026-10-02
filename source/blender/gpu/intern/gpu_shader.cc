@@ -343,7 +343,13 @@ void GPU_shader_async_compilation_cancel(AsyncCompilationHandle &handle)
 
 bool GPU_shader_compiler_has_pending_work()
 {
-  return GPUBackend::get()->get_compiler()->is_compiling();
+  return GPUBackend::get()->get_compiler()->is_compiling() ||
+         GPUBackend::get()->pipelines_compiled_since_last_reset();
+}
+
+void GPU_shader_compiler_reset_frame_pipeline_tracking()
+{
+  GPUBackend::get()->reset_pipeline_compilation_tracking();
 }
 
 void GPU_shader_compiler_wait_for_all()

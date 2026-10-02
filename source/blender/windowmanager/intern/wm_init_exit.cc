@@ -208,6 +208,28 @@ static void sound_jack_sync_callback(Main *bmain, int mode, double time)
   }
 }
 
+/* Reset the per-frame tracking of on-demand GPU pipeline compilation. Registered after Python is
+ * started so it runs after the `frame_change_post` Python handlers, letting a poll of
+ * `bpy.app.is_job_running("SHADER_COMPILATION")` reflect the pipelines compiled during a frame. */
+static void wm_frame_change_post_gpu_callback(Main * /*bmain*/,
+                                              PointerRNA ** /*pointers*/,
+                                              const int /*pointers_num*/,
+                                              void * /*arg*/)
+{
+  if (GPU_is_init()) {
+    GPU_shader_compiler_reset_frame_pipeline_tracking();
+  }
+}
+
+static bCallbackFuncStore wm_frame_change_post_gpu_callback_funcstore = {
+    /*next*/ nullptr,
+    /*prev*/ nullptr,
+    /*func*/ wm_frame_change_post_gpu_callback,
+    /*arg*/ nullptr,
+    /*alloc*/ 0,
+};
+static bool wm_frame_change_post_gpu_callback_registered = false;
+
 void WM_init(bContext *C, int argc, const char **argv)
 {
 
@@ -347,6 +369,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 #else
   UNUSED_VARS(argc, argv);
 #endif
+
+  /* Registered after Python so it runs after the `frame_change_post` Python handlers. */
+  BKE_callback_add(&wm_frame_change_post_gpu_callback_funcstore, BKE_CB_EVT_FRAME_CHANGE_POST);
+  wm_frame_change_post_gpu_callback_registered = true;
 
   if (!G.background) {
     GHOST_ISystem *ghost_system = GHOST_ISystem::getSystem();
@@ -501,6 +527,12 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   if (C) {
     /* Run `exit_pre` Python handlers. */
     BKE_callback_exec_boolean(CTX_data_main(C), do_user_exit_actions, BKE_CB_EVT_EXIT_PRE);
+  }
+
+  if (wm_frame_change_post_gpu_callback_registered) {
+    BKE_callback_remove(&wm_frame_change_post_gpu_callback_funcstore,
+                        BKE_CB_EVT_FRAME_CHANGE_POST);
+    wm_frame_change_post_gpu_callback_registered = false;
   }
 
   /* First wrap up running stuff, we assume only the active WM is running. */
