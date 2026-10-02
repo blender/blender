@@ -414,6 +414,11 @@ static void sound_mixdown_endjob(void *customdata)
 static wmOperatorStatus sound_mixdown_exec(bContext *C, wmOperator *op)
 {
 #ifdef WITH_AUDASPACE
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
+    BKE_report(op->reports, RPT_ERROR, "No filepath given");
+    return OPERATOR_CANCELLED;
+  }
+
   char filepath[FILE_MAX];
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
@@ -455,20 +460,33 @@ static wmOperatorStatus sound_mixdown_exec(bContext *C, wmOperator *op)
     mixdown_job_data->interface_locked = true;
   }
 
-  wmJob *wm_job = WM_jobs_get(wm,
-                              CTX_wm_window(C),
-                              CTX_data_scene(C),
-                              "Rendering Audio...",
-                              WM_JOB_PROGRESS,
-                              WM_JOB_TYPE_SOUND_MIXDOWN);
+  if (op->flag & OP_IS_INVOKE) {
+    /* Non blocking call. For when the operator has been called from the GUI. */
+    wmJob *wm_job = WM_jobs_get(wm,
+                                CTX_wm_window(C),
+                                CTX_data_scene(C),
+                                "Rendering Audio...",
+                                WM_JOB_PROGRESS,
+                                WM_JOB_TYPE_SOUND_MIXDOWN);
 
-  WM_jobs_customdata_set(wm_job, mixdown_job_data, [](void *j) {
-    MEM_delete(static_cast<SoundMixdownJobData *>(j));
-  });
-  WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_SEQUENCER, NC_SCENE | ND_SEQUENCER);
-  WM_jobs_callbacks(wm_job, sound_mixdown_startjob, nullptr, nullptr, sound_mixdown_endjob);
+    WM_jobs_customdata_set(wm_job, mixdown_job_data, [](void *j) {
+      MEM_delete(static_cast<SoundMixdownJobData *>(j));
+    });
+    WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_SEQUENCER, NC_SCENE | ND_SEQUENCER);
+    WM_jobs_callbacks(wm_job, sound_mixdown_startjob, nullptr, nullptr, sound_mixdown_endjob);
 
-  WM_jobs_start(wm, wm_job);
+    WM_jobs_start(wm, wm_job);
+  }
+  else {
+    /* This is called directly from the exec operator, this operation is now blocking. */
+    wmJobWorkerStatus worker_status = {};
+
+    sound_mixdown_startjob(mixdown_job_data, &worker_status);
+    sound_mixdown_endjob(mixdown_job_data);
+
+    MEM_delete(mixdown_job_data);
+  }
+
 #else  /* WITH_AUDASPACE */
   (void)C;
   (void)op;
