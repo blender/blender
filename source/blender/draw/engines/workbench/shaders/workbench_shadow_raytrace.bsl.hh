@@ -6,7 +6,6 @@
 
 #include "draw_view.bsl.hh"
 #include "gpu_shader_fullscreen.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 #include "workbench_common.bsl.hh"
 #include "workbench_shader_shared.hh"
 

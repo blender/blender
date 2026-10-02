@@ -7,7 +7,6 @@
 #include "gpu_shader_material_interface.bsl.hh"
 #include "gpu_shader_material_open_pbr_util.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 float3 principled_eval_translucent([[resource_table]] KernelGlobals &kg,
                                    ShadingData &sd,

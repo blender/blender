@@ -23,7 +23,6 @@
 #include "draw_view.bsl.hh"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 #include "workbench_shader_shared.hh"
 
 namespace workbench::shadow {

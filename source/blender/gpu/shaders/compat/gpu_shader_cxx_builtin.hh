@@ -161,6 +161,7 @@ template<int D> VecBase<float, D> mix(VecOp<float, D>, VecOp<float, D>, VecOp<fl
 template<typename T, int D> VecBase<T, D> mix(VecOp<T, D>, VecOp<T, D>, VecOp<bool, D>) RET;
 
 #define select(A, B, C) mix(A, B, C)
+#define saturate(a) clamp(a, 0.0f, 1.0f)
 
 VecBase<float, 3> cross(VecOp<float, 3>, VecOp<float, 3>) RET;
 template<int D> float dot(VecOp<float, D>, VecOp<float, D>) RET;

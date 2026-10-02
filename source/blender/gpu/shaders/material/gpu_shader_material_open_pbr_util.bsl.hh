@@ -11,7 +11,6 @@
 #include "gpu_shader_math_base.bsl.hh"
 #include "gpu_shader_math_fast.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 float ior_from_F0(const float F0)
 {

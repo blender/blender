@@ -207,6 +207,21 @@ struct PipelineCompute {
   }
 };
 
+#ifndef FLT_MAX
+#  define FLT_MAX uintBitsToFloat(0x7F7FFFFFu)
+#  define FLT_MIN uintBitsToFloat(0x00800000u)
+#  define FLT_EPSILON 1.192092896e-07F
+#endif
+#ifndef SHRT_MAX
+#  define SHRT_MAX 0x00007FFF
+#  define INT_MAX 0x7FFFFFFF
+#  define USHRT_MAX 0x0000FFFFu
+#  define UINT_MAX 0xFFFFFFFFu
+#endif
+#ifndef NAN_FLT
+#  define NAN_FLT uintBitsToFloat(0x7FC00000u)
+#endif
+
 #include "GPU_shader_shared_utils.hh"
 
 /* -------------------------------------------------------------------- */

@@ -11,7 +11,6 @@
 #include "draw_view.bsl.hh"
 #include "eevee_depth_of_field_shared.hh"
 #include "gpu_shader_math_base.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Constants.

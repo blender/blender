@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include "gpu_shader_utildefines.bsl.hh"
-
 #include "GPU_shader_shared.hh"
 
 namespace builtin::mipmaps {

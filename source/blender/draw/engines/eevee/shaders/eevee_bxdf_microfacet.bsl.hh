@@ -13,7 +13,6 @@
 #include "gpu_shader_math_vector.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
 #include "gpu_shader_ray.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Microfacet GGX distribution

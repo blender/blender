@@ -13,7 +13,6 @@ VERTEX_SHADER_CREATE_INFO(overlay_armature_shape_outline)
 
 #include "gpu_shader_math_matrix_transform.bsl.hh"
 #include "gpu_shader_math_safe.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 #include "overlay_common_lib.glsl"
 #include "select_lib.glsl"
 

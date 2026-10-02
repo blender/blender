@@ -21,6 +21,7 @@
 #include "gpu_shader_math_vector.bsl.hh"
 #include "gpu_shader_math_vector_compare.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee::film {
 

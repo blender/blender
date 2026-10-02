@@ -11,7 +11,6 @@
 #include "gpu_shader_math_base.bsl.hh"
 #include "gpu_shader_math_safe.bsl.hh"
 #include "gpu_shader_ray.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Diffuse BSDF

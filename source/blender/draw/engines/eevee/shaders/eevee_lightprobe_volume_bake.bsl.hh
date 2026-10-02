@@ -16,6 +16,7 @@
 #include "gpu_shader_math_base.bsl.hh"
 #include "gpu_shader_math_constants.bsl.hh"
 #include "gpu_shader_math_spherical_harmonics.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee::lightprobe::volume {
 
