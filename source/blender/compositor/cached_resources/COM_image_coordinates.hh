@@ -44,7 +44,8 @@ bool operator==(const ImageCoordinatesKey &a, const ImageCoordinatesKey &b);
  * Image Coordinates.
  *
  * A cached resource that computes and caches a result containing the coordinates of the pixels of
- * an image with the given domain. */
+ * an image with the given domain. The transformations of the domain are ignored to improve cache
+ * hits, the caller is expected to restore the transformation if needed. */
 class ImageCoordinates : public CachedResource {
  public:
   Result result;
