@@ -89,6 +89,10 @@ struct TriangleCache {
    */
   Vector<int3> triangles;
   Vector<int> triangle_offsets;
+
+  /** The extra points used when fill geometry intersect. Grouped by each fill. */
+  Vector<float3> intersection_points;
+  Vector<int> intersection_point_offsets;
 };
 
 class DrawingRuntime {
@@ -150,6 +154,11 @@ class Drawing : public blender::GreasePencilDrawing {
    * in this drawing. See #fills().
    */
   std::optional<GroupedSpan<int3>> triangles() const;
+  /**
+   * The extra points used when fill geometry intersect. Grouped by each fill. Can be empty when
+   * there are no fills in this drawing. See #fills().
+   */
+  GroupedSpan<float3> intersection_points() const;
   /**
    * Normal vectors for a plane that fits the stroke.
    */
