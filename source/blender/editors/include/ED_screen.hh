@@ -25,6 +25,7 @@ namespace blender {
 
 struct ARegion;
 struct AZone;
+enum AZEdge : int;
 struct Depsgraph;
 struct IDProperty;
 struct Main;
