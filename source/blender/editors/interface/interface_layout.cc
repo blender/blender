@@ -5105,7 +5105,7 @@ PanelLayout Layout::panel_prop(const bContext *C,
   const ARegion *region = CTX_wm_region(C);
 
   const bool is_real_open = RNA_boolean_get(open_prop_owner, open_prop_name.c_str());
-  const bool search_filter_active = region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE;
+  const bool search_filter_active = region && (region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE);
   const bool is_open = is_real_open || search_filter_active;
 
   PanelLayout panel_layout{};
