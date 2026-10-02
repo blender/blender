@@ -254,7 +254,8 @@ bool DLSSDenoiser::denoise_create_if_needed(DenoiseContext &context)
 
   params->Set(NVSDK_NGX_Parameter_DLSS_Denoise_Mode, NVSDK_NGX_DLSS_Denoise_Mode_DLUnified);
   params->Set(NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags,
-              NVSDK_NGX_DLSS_Feature_Flags_IsHDR | NVSDK_NGX_DLSS_Feature_Flags_MVLowRes);
+              NVSDK_NGX_DLSS_Feature_Flags_IsHDR | NVSDK_NGX_DLSS_Feature_Flags_MVLowRes |
+                  NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling);
   params->Set(NVSDK_NGX_Parameter_DLSS_Enable_Output_Subrects, 0);
   params->Set(NVSDK_NGX_Parameter_Use_HW_Depth, NVSDK_NGX_DLSS_Depth_Type_Linear);
   /* Normals and roughness are packed into one texture in 'denoise_filter_guiding_preprocess'. */
@@ -326,7 +327,8 @@ bool DLSSDenoiser::denoise_filter_color_preprocess(const DenoiseContext &context
                                    &buffer_params.offset,
                                    &buffer_params.stride,
                                    &buffer_params.pass_stride,
-                                   &pass.denoised_offset);
+                                   &pass.denoised_offset,
+                                   &pass.num_components);
 
   return denoiser_queue_->enqueue(
       DEVICE_KERNEL_FILTER_COLOR_PREPROCESS_TO_SURFACE, work_size, args);
@@ -361,7 +363,6 @@ bool DLSSDenoiser::denoise_filter_color_postprocess(const DenoiseContext &contex
                                    &pass.denoised_offset,
                                    &context.pass_sample_count,
                                    &pass.num_components,
-                                   &pass.use_compositing,
                                    &params_.upscale_factor);
 
   return denoiser_queue_->enqueue(

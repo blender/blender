@@ -80,7 +80,6 @@ class DenoiserGPU : public Denoiser {
 
       const PassInfo pass_info = Pass::get_info(type);
       num_components = pass_info.num_components;
-      use_compositing = pass_info.use_compositing;
       use_denoising_albedo = pass_info.use_denoising_albedo;
     }
 
@@ -90,7 +89,6 @@ class DenoiserGPU : public Denoiser {
     int denoised_offset;
 
     int num_components;
-    int use_compositing;
     bool use_denoising_albedo;
   };
 
