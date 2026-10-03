@@ -49,6 +49,7 @@ set(SRC
   util_path_test.cpp
   util_simd_test.cpp
   util_string_test.cpp
+  util_task_limiter_test.cpp
   util_task_test.cpp
   util_time_test.cpp
   util_transform_test.cpp
