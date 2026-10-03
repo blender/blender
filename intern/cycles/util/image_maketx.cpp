@@ -593,7 +593,9 @@ static void clamp_half_tx(OIIO::ImageBuf &buf, const TypeDesc out_format)
                       [&](const int64_t i) { pixels[i] = clamp(pixels[i], -HALF_MAX, HALF_MAX); });
 }
 
-static void convert_srgb_tx(OIIO::ImageBuf &buf, const bool from_srgb)
+static void convert_srgb_tx(OIIO::ImageBuf &buf,
+                            const bool from_srgb,
+                            const bool unassociate_alpha)
 {
   assert(buf.spec().format == TypeFloat);
   assert(buf.spec().nchannels == 1 || buf.spec().nchannels == 4);
@@ -615,7 +617,7 @@ static void convert_srgb_tx(OIIO::ImageBuf &buf, const bool from_srgb)
     float4 *pixels = static_cast<float4 *>(buf.localpixels());
     parallel_for_pixels(num_pixels, [&](const int64_t i) {
       float4 value = pixels[i];
-      const bool has_alpha = !(value.w <= 0.0f || value.w == 1.0f);
+      const bool has_alpha = unassociate_alpha && !(value.w <= 0.0f || value.w == 1.0f);
 
       if (has_alpha) {
         const float inv_alpha = 1.0f / value.w;
@@ -647,6 +649,7 @@ static bool write_buf_tx(std::unique_ptr<ImageOutput> &out,
                          const TypeDesc out_format,
                          const ImageFormatType format_type,
                          const bool compress_as_srgb,
+                         const bool unassociate_alpha,
                          const OIIO::ImageOutput::OpenMode mode,
                          OIIO::ImageBuf &buf)
 {
@@ -658,7 +661,7 @@ static bool write_buf_tx(std::unique_ptr<ImageOutput> &out,
   OIIO::ImageBuf srgb_buf;
   if (compress_as_srgb) {
     srgb_buf.copy(buf);
-    convert_srgb_tx(srgb_buf, false);
+    convert_srgb_tx(srgb_buf, false, unassociate_alpha);
   }
   clamp_half_tx(buf, out_format);
   OIIO::ImageBuf &write_buf = (compress_as_srgb) ? srgb_buf : buf;
@@ -680,6 +683,7 @@ static bool write_mipmap_tx(std::unique_ptr<ImageOutput> &out,
                             const TypeDesc out_format,
                             const ImageFormatType format_type,
                             const bool compress_as_srgb,
+                            const bool unassociate_alpha,
                             OIIO::ImageBuf &large_buf)
 {
   const bool envlatlmode = format_type == IMAGE_FORMAT_EQUIANGULAR;
@@ -687,13 +691,23 @@ static bool write_mipmap_tx(std::unique_ptr<ImageOutput> &out,
                                                                       ImageOutput::AppendSubimage;
 
   /* Write top level. */
-  write_buf_tx(
-      out, out_filepath, out_format, format_type, false, OIIO::ImageOutput::Create, large_buf);
+  write_buf_tx(out,
+               out_filepath,
+               out_format,
+               format_type,
+               false,
+               false,
+               OIIO::ImageOutput::Create,
+               large_buf);
 
   /* When using sRGB, convert to linear before resizing, and convert to sRGB again in write_buf_tx.
-   * for each mip level. */
+   * for each mip level.
+   *
+   * Pixels have associated alpha, which is unassociated for the conversion, matching the image
+   * texture node when the alpha output is used. Except for channel packed alpha, where alpha is
+   * unrelated to color and color can exceed alpha. */
   if (compress_as_srgb) {
-    convert_srgb_tx(large_buf, true);
+    convert_srgb_tx(large_buf, true, unassociate_alpha);
   }
 
   /* Write mip levels. */
@@ -724,8 +738,14 @@ static bool write_mipmap_tx(std::unique_ptr<ImageOutput> &out,
                    resize_block<float>(small_buf, large_buf, roi, envlatlmode);
                  });
 
-    write_buf_tx(
-        out, out_filepath, out_format, format_type, compress_as_srgb, append_mode, small_buf);
+    write_buf_tx(out,
+                 out_filepath,
+                 out_format,
+                 format_type,
+                 compress_as_srgb,
+                 unassociate_alpha,
+                 append_mode,
+                 small_buf);
     std::swap(large_buf, small_buf);
   }
 
@@ -878,8 +898,13 @@ static bool make_tx(const string &filepath,
   string tmp_filepath = OIIO::Filesystem::unique_path(out_filepath + tmp_extension);
 
   std::unique_ptr<ImageOutput> out = ImageOutput::create(tmp_filepath);
-  bool ok = write_mipmap_tx(
-      out, tmp_filepath, out_format, format_type, metadata.is_compressible_as_srgb, buf);
+  bool ok = write_mipmap_tx(out,
+                            tmp_filepath,
+                            out_format,
+                            format_type,
+                            metadata.is_compressible_as_srgb,
+                            !metadata.is_channel_packed,
+                            buf);
   out.reset();
 
   /* Stamp with same time as input image file to detect updates. */
