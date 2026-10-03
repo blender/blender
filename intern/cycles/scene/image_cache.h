@@ -198,7 +198,7 @@ class ImageCache {
                            InterpolationType interpolation,
                            const int tile_size_padded,
                            KernelTileDescriptor &r_tile_descriptor);
-  void free_tile(const KernelTileDescriptor tile);
+  void free_tile(const KernelTileDescriptor tile, const bool free_empty_image = true);
 
   void load_tile(Device &device,
                  DeviceScene &dscene,

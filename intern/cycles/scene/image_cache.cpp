@@ -18,6 +18,7 @@
 #include "util/image_metadata.h"
 #include "util/log.h"
 #include "util/simd.h"
+#include "util/tbb.h"
 
 #include <OpenImageIO/thread.h>
 
@@ -445,7 +446,7 @@ device_image &ImageCache::alloc_tile(Device &device,
   return *img;
 }
 
-void ImageCache::free_tile(const KernelTileDescriptor tile)
+void ImageCache::free_tile(const KernelTileDescriptor tile, const bool free_empty_image)
 {
   const uint image_info_id = kernel_tile_descriptor_image_info_id(tile);
   const uint tile_offset = kernel_tile_descriptor_offset(tile);
@@ -467,7 +468,7 @@ void ImageCache::free_tile(const KernelTileDescriptor tile)
     it_first_free->second = std::min(size_t(image_info_id), it_first_free->second);
   }
 
-  if (img->occupancy == 0) {
+  if (img->occupancy == 0 && free_empty_image) {
     /* All tiles free, remove the device image entirely. */
     stats.remove_tiled_bytes(img->memory_size());
     deferred_updates.erase(images[image_info_id]);
@@ -623,17 +624,22 @@ void ImageCache::load_tile(Device &device,
 
   uint8_t *pixels = mem.data<uint8_t>() + x_offset;
 
-  const bool ok = loader.load_pixels_tile(metadata,
-                                          miplevel,
-                                          x,
-                                          y,
-                                          w,
-                                          h,
-                                          x_stride,
-                                          y_stride,
-                                          KERNEL_IMAGE_TEX_PADDING,
-                                          extension,
-                                          pixels);
+  /* Isolate so we don't switch to a render task that waits for the same tile,
+   * in case (OIIO) loading does any parallel work. */
+  bool ok = false;
+  isolate_task([&]() {
+    ok = loader.load_pixels_tile(metadata,
+                                 miplevel,
+                                 x,
+                                 y,
+                                 w,
+                                 h,
+                                 x_stride,
+                                 y_stride,
+                                 KERNEL_IMAGE_TEX_PADDING,
+                                 extension,
+                                 pixels);
+  });
 
   dscene.image_texture_tile_descriptors.tag_modified();
 
@@ -646,10 +652,6 @@ void ImageCache::load_tile(Device &device,
                 << " (" << x << " " << y << ")";
   }
 
-  if (ok) {
-    stats.load_tile(bit_index);
-  }
-
   /* Mark image for deferred GPU update, after pixels have been loaded to all devices.
    * Insert GPU update and update tile descriptor under the same device lock.
    *
@@ -657,11 +659,28 @@ void ImageCache::load_tile(Device &device,
    * Copying a pooled tile image on every CPU cache miss is not needed. */
   const thread_scoped_lock device_lock(device_mutex);
 
-  if (ok && !device.has_unified_image_memory_all()) {
+  /* Another thread may have loaded the same tile concurrently, keep that one. */
+  if (kernel_tile_descriptor_loaded(r_tile_descriptor)) {
+    free_tile(tile_descriptor, false);
+    return;
+  }
+
+  if (!ok) {
+    /* Release the slot for another tile on failed to load. */
+    free_tile(tile_descriptor, false);
+    r_tile_descriptor = KERNEL_TILE_LOAD_FAILED;
+    return;
+  }
+
+  stats.load_tile(bit_index);
+
+  if (!device.has_unified_image_memory_all()) {
     deferred_updates.insert(&mem);
   }
 
-  r_tile_descriptor = (ok) ? tile_descriptor : KERNEL_TILE_LOAD_FAILED;
+  /* Atomic store so render threads reading the descriptor without a lock
+   * see the pixels written above. */
+  atomic_store_uint32(&r_tile_descriptor, tile_descriptor);
 }
 
 /* Find the mip level that contains the tile index. */
@@ -762,11 +781,9 @@ void ImageCache::load_requested_tile(Device &device,
 
   /* If we can atomically set KERNEL_TILE_LOAD_REQUEST, this thread is responsible
    * for loading the tile. */
-  KernelTileDescriptor tile_descriptor_old = r_tile_descriptor;
-  if (tile_descriptor_old != KERNEL_TILE_LOAD_REQUEST &&
-      tile_descriptor_old ==
-          atomic_cas_uint32(&r_tile_descriptor, tile_descriptor_old, KERNEL_TILE_LOAD_REQUEST))
-  {
+  const KernelTileDescriptor tile_descriptor_old = atomic_cas_uint32(
+      &r_tile_descriptor, KERNEL_TILE_LOAD_NONE, KERNEL_TILE_LOAD_REQUEST);
+  if (tile_descriptor_old == KERNEL_TILE_LOAD_NONE) {
     const InterpolationType interpolation = InterpolationType(tex.interpolation);
     const ExtensionType extension = ExtensionType(tex.extension);
     const size_t bit_index = &r_tile_descriptor - dscene.image_texture_tile_descriptors.data();
@@ -784,10 +801,13 @@ void ImageCache::load_requested_tile(Device &device,
               r_tile_descriptor);
     return;
   }
+  if (tile_descriptor_old != KERNEL_TILE_LOAD_REQUEST) {
+    return;
+  }
 
   /* Wait for other thread to load the tile. */
   OIIO::atomic_backoff backoff;
-  while (r_tile_descriptor == KERNEL_TILE_LOAD_REQUEST) {
+  while (atomic_load_uint32(&r_tile_descriptor) == KERNEL_TILE_LOAD_REQUEST) {
     backoff();
   }
 }
