@@ -495,19 +495,6 @@ static void conform_pixels_to_metadata_type(const ImageMetaData &metadata,
   const int channels = metadata.channels;
   const bool is_rgba = metadata.is_rgba();
 
-  /* Associate alpha. */
-  if (channels == 4 && metadata.is_unassociated_alpha) {
-    for (int64_t j = 0; j < height; j++) {
-      StorageType *pixel = pixels + j * in_y_stride;
-      for (int64_t i = 0; i < width; i++, pixel += 4) {
-        const StorageType alpha = pixel[3];
-        pixel[0] = util_image_multiply_native(pixel[0], alpha);
-        pixel[1] = util_image_multiply_native(pixel[1], alpha);
-        pixel[2] = util_image_multiply_native(pixel[2], alpha);
-      }
-    }
-  }
-
   if (is_rgba) {
     const StorageType one = util_image_cast_from_float<StorageType>(1.0f);
 
@@ -547,6 +534,20 @@ static void conform_pixels_to_metadata_type(const ImageMetaData &metadata,
           out_pixels[i * 4 + 2] = in_pixels[i * x_stride];
           out_pixels[i * 4 + 1] = in_pixels[i * x_stride];
           out_pixels[i * 4 + 0] = in_pixels[i * x_stride];
+        }
+      }
+    }
+
+    /* Associate alpha, after conversion to RGBA so it works for
+     * grayscale + alpha too. */
+    if (metadata.is_unassociated_alpha && channels != 3) {
+      for (int64_t j = 0; j < height; j++) {
+        StorageType *pixel = pixels + j * out_y_stride;
+        for (int64_t i = 0; i < width; i++, pixel += 4) {
+          const StorageType alpha = pixel[3];
+          pixel[0] = util_image_multiply_native(pixel[0], alpha);
+          pixel[1] = util_image_multiply_native(pixel[1], alpha);
+          pixel[2] = util_image_multiply_native(pixel[2], alpha);
         }
       }
     }
