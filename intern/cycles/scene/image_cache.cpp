@@ -412,11 +412,13 @@ device_image &ImageCache::alloc_tile(Device &device,
     }
   }
 
-  if (alloc_image && device.has_unified_memory_any()) {
-    /* If we allocated a new image and one of the devices is CPU or Metal
-     * that uses unified memory, we need to allocate the image immediately
-     * as the tile descriptor will be updated and rendering kernels can start
-     * using the new image immediately. */
+  if (alloc_image) {
+    /* Allocate the new image on all devices immediately:
+     * - If one of the devices is CPU or Metal using unified memory, the tile
+     *   descriptor will be updated and rendering kernels can start using the new
+     *   image immediately.
+     * - Allocation may perform host memory fallback, and other GPU device
+     *   threads should not perform copies to an old host pointer. */
     img->copy_to_device();
     deferred_updates.erase(img);
   }
