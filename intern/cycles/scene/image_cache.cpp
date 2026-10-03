@@ -152,7 +152,6 @@ void ImageCache::free_full(const uint image_info_id)
 {
   thread_scoped_lock device_lock(device_mutex);
   deferred_updates.erase(images[image_info_id]);
-  deferred_gpu_updates.erase(images[image_info_id]);
   images.steal(image_info_id);
 }
 
@@ -472,7 +471,6 @@ void ImageCache::free_tile(const KernelTileDescriptor tile)
     /* All tiles free, remove the device image entirely. */
     stats.remove_tiled_bytes(img->memory_size());
     deferred_updates.erase(images[image_info_id]);
-    deferred_gpu_updates.erase(images[image_info_id]);
     images.replace(image_info_id, nullptr);
 
     if (image_info_id == images_first_free[key]) {
@@ -602,7 +600,6 @@ void ImageCache::load_tile(Device &device,
                            const int miplevel,
                            const int x,
                            const int y,
-                           const bool for_cpu_cache_miss,
                            const size_t bit_index,
                            KernelTileDescriptor &r_tile_descriptor)
 {
@@ -654,18 +651,14 @@ void ImageCache::load_tile(Device &device,
   }
 
   /* Mark image for deferred GPU update, after pixels have been loaded to all devices.
-   * Insert GPU update and update tile descriptor under the same device lock. */
+   * Insert GPU update and update tile descriptor under the same device lock.
+   *
+   * This is copied by the next GPU tile loading round, also for CPU cache misses.
+   * Copying a pooled tile image on every CPU cache miss is not needed. */
   const thread_scoped_lock device_lock(device_mutex);
 
   if (ok && !device.has_unified_image_memory_all()) {
-    if (for_cpu_cache_miss) {
-      if (device.info.type == DEVICE_MULTI) {
-        deferred_gpu_updates.insert(&mem);
-      }
-    }
-    else {
-      deferred_updates.insert(&mem);
-    }
+    deferred_updates.insert(&mem);
   }
 
   r_tile_descriptor = (ok) ? tile_descriptor : KERNEL_TILE_LOAD_FAILED;
@@ -749,7 +742,6 @@ void ImageCache::load_requested_tiles(Device &device,
               miplevel + miplevel_offset,
               x,
               y,
-              false,
               base_offset + tile_idx,
               descriptors[tile_idx]);
   }
@@ -788,7 +780,6 @@ void ImageCache::load_requested_tile(Device &device,
               miplevel + miplevel_offset,
               x,
               y,
-              true,
               bit_index,
               r_tile_descriptor);
     return;
@@ -963,7 +954,7 @@ void ImageCache::copy_to_device(DeviceScene &dscene)
   /* Copy all device memory managed by the image cache to all devices, for updates
    * outside of rendering. */
   thread_scoped_lock device_lock(device_mutex);
-  copy_images_to_device_no_lock(false);
+  copy_images_to_device_no_lock();
 
   dscene.image_texture_tile_descriptors.copy_to_device_if_modified();
   dscene.image_texture_tile_access_state.copy_to_device_if_modified();
@@ -982,7 +973,7 @@ void ImageCache::copy_to_device(DeviceScene &dscene, DeviceQueue &queue)
    * without freeing, and load_image_info() is delayed. */
   {
     thread_scoped_lock device_lock(device_mutex);
-    copy_images_to_device_no_lock(false);
+    copy_images_to_device_no_lock();
 
     /* Copy updated tile descriptors for this GPU device only.
      * Note the tile access buffer is not zeroed here as we want to keep the USED
@@ -995,21 +986,8 @@ void ImageCache::copy_to_device(DeviceScene &dscene, DeviceQueue &queue)
   queue.load_image_info();
 }
 
-void ImageCache::copy_images_to_device(const bool for_cpu_cache_miss)
+void ImageCache::copy_images_to_device_no_lock()
 {
-  const thread_scoped_lock device_lock(device_mutex);
-  copy_images_to_device_no_lock(for_cpu_cache_miss);
-}
-
-void ImageCache::copy_images_to_device_no_lock(const bool for_cpu_cache_miss)
-{
-  /* For CPU cache miss we skip deferred updates that were only meant for the GPU. CPU cache
-   * misses are resolved immediately for each tile, in every thread. So it would be inefficient
-   * to copy data to the GPU every time. */
-  if (!for_cpu_cache_miss) {
-    deferred_updates.merge(deferred_gpu_updates);
-    deferred_gpu_updates.clear();
-  }
   for (device_image *mem : deferred_updates) {
     mem->copy_to_device();
   }
