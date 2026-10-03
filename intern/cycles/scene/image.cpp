@@ -552,10 +552,6 @@ void ImageManager::device_cpu_load_requested(Device *device,
                                              int y,
                                              KernelTileDescriptor &tile_descriptor)
 {
-  /* Apply any deferred updates from GPU devices that loaded tiles. */
-  const bool for_cpu_cache_miss = true;
-  image_cache.copy_images_to_device(for_cpu_cache_miss);
-
   /* Load the tile. */
   const ImageSingle *img = images[image_texture_id];
   const KernelImageTexture &tex = scene->dscene.image_textures[image_texture_id];
@@ -573,8 +569,6 @@ void ImageManager::device_cpu_load_requested(Device *device,
 
 void ImageManager::device_gpu_load_requested(Device *device, DeviceQueue &queue, Scene *scene)
 {
-  /* TODO: Check if this works correctly if access state or tile descriptors get moved to host
-   * memory, or prevent it from happening. */
   DeviceScene &dscene = scene->dscene;
 
   /* Copy tile access state from the device, using either the storage or just a pointer to
