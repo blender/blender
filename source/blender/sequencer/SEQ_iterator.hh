@@ -28,13 +28,9 @@ namespace seq {
 using ForEachFunc = bool (*)(Strip *strip, void *user_data);
 
 /**
- * Utility function to recursively iterate through all sequence strips in a `seqbase` list.
- * Uses callback to do operations on each element.
- * The callback can stop the iteration if needed.
+ * Recursively iterate through all strips in \a seqbase, calling \a callback on each.
  *
- * \param seqbase: List of sequences to be iterated over.
- * \param callback: query function callback, returns false if iteration should stop.
- * \param user_data: pointer to user data that can be used in the callback function.
+ * \param callback: Return false to stop iterating.
  */
 void foreach_strip(ListBaseT<Strip> *seqbase, ForEachFunc callback, void *user_data);
 
@@ -82,39 +78,23 @@ void expand_strips(Editing *ed, VectorSet<Strip *> &strips, StripRelation includ
 
 /**
  * Query all selected strips in seqbase.
- *
- * \param seqbase: List in which strips are queried
- * \return set of strips
  */
 VectorSet<Strip *> query_selected_strips(ListBaseT<Strip> *seqbase);
 /**
  * Query all unselected strips in seqbase.
- *
- * \param seqbase: List in which strips are queried
- * \return set of strips
  */
 VectorSet<Strip *> query_unselected_strips(ListBaseT<Strip> *seqbase);
 /**
  * Query all strips in seqbase. This does not include strips nested in meta strips.
- *
- * \param seqbase: List in which strips are queried
- * \return set of strips
  */
 VectorSet<Strip *> query_all_strips(ListBaseT<Strip> *seqbase);
 /**
  * Query all strips in seqbase and nested meta strips.
- *
- * \param seqbase: List in which strips are queried
- * \return set of strips
  */
 VectorSet<Strip *> query_all_strips_recursive(const ListBaseT<Strip> *seqbase);
 
 /**
  * Query strips at \a timeline_frame in seqbase and nested meta strips.
- *
- * \param seqbase: List in which strips are queried
- * \param timeline_frame: viewed frame
- * \return set of strips
  */
 VectorSet<Strip *> query_strips_recursive_at_frame(const Scene *scene,
                                                    const ListBaseT<Strip> *seqbase,

@@ -202,11 +202,8 @@ bool sequencer_view_preview_only_poll(const bContext *C);
 bool sequencer_view_strips_poll(bContext *C);
 
 /**
- * Returns collection with all strips presented to user. If operation is done in preview,
- * collection is limited to all presented strips that can produce image output.
- *
- * \param C: context
- * \return collection of strips (`Strip`)
+ * Returns all strips presented to the user. If the operation is done in preview, this is limited
+ * to presented strips that can produce image output.
  */
 VectorSet<Strip *> all_strips_from_context(bContext *C);
 
@@ -439,12 +436,11 @@ const Strip *sequencer_text_editing_cursor_strip_get(const Scene *scene);
  *
  * \param strip: The result of #sequencer_text_editing_cursor_strip_get.
  *
- * \note when \a strip is non-null this function may still return null.
- * The \a strip may be non-null even when no position is found below:
- * - The current-frame may be off the strip.
- * - The runtime not built until the strip renders.
+ * \note This may return null even when \a strip is non-null:
+ * - The current frame may be off the strip.
+ * - The runtime may not be built until the strip renders.
  *
- * In both recover while editing stays active.
+ * In both cases editing stays active and recovers.
  */
 std::optional<int2> sequencer_text_editing_cursor_region_xy_get(const Scene *scene,
                                                                 const ARegion *region,

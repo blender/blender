@@ -35,7 +35,7 @@ bool transform_test_overlap(const Scene *scene, ListBaseT<Strip> *seqbasep, Stri
 bool transform_test_overlap(const Scene *scene, Strip *strip1, Strip *strip2);
 void transform_translate_strip(Scene *evil_scene, Strip *strip, int delta);
 /**
- * \return 0 if there weren't enough space.
+ * \return False if there wasn't enough space.
  */
 bool transform_seqbase_shuffle_ex(ListBaseT<Strip> *seqbasep,
                                   Strip *test,
@@ -126,9 +126,6 @@ int2 image_transform_box_size_get(const Scene *scene, const Strip *strip);
  * 3--0
  * |  |
  * 2--1
- *
- * \param strip: Strip to calculate transformed image quad
- * \return array of four 2D points
  */
 Array<float2> image_transform_quad_get(const Scene *scene, const Strip *strip);
 
@@ -136,8 +133,7 @@ float2 image_preview_unit_to_px(const Scene *scene, float2 co_src);
 float2 image_preview_unit_from_px(const Scene *scene, float2 co_src);
 
 /**
- * Get viewport axis aligned bounding box from multiple strips.
- * \param strips: Span of strips to calculate the bounding box for
+ * Get viewport axis-aligned bounding box from multiple strips.
  */
 Bounds<float2> image_transform_bounding_box_from_strips_get(Scene *scene, Span<Strip *> strips);
 
