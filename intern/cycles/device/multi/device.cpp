@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <functional>
+#include <span>
 
 #include "bvh/multi.h"
 
@@ -27,6 +28,7 @@ class MultiDevice : public Device {
     map<device_ptr, device_ptr> ptr_map;
     int peer_island_index = -1;
   };
+  using Island = std::span<SubDevice *const>;
 
   list<SubDevice> devices;
   device_ptr unique_key = 1;
@@ -354,7 +356,7 @@ class MultiDevice : public Device {
     return owner_sub;
   }
 
-  SubDevice *find_suitable_mem_device(device_ptr key, const vector<SubDevice *> &island)
+  SubDevice *find_suitable_mem_device(device_ptr key, const Island island)
   {
     assert(!island.empty());
 
@@ -373,6 +375,23 @@ class MultiDevice : public Device {
   device_ptr find_matching_mem(device_ptr key, SubDevice &sub)
   {
     return find_matching_mem_device(key, sub)->ptr_map[key];
+  }
+
+  /* Islands to allocate memory in, with one allocation per island. */
+  vector<Island> mem_islands(const device_memory &mem) const
+  {
+    vector<Island> islands;
+    for (const vector<SubDevice *> &peer_island : peer_islands) {
+      if (!(mem.flags & MEM_FLAG_PER_DEVICE)) {
+        islands.emplace_back(peer_island);
+        continue;
+      }
+
+      for (SubDevice *const &sub : peer_island) {
+        islands.emplace_back(&sub, 1);
+      }
+    }
+    return islands;
   }
 
   void *host_alloc(const MemoryType type, const size_t size) override
@@ -404,7 +423,7 @@ class MultiDevice : public Device {
 
     assert(mem.type == MEM_READ_ONLY || mem.type == MEM_READ_WRITE || mem.type == MEM_DEVICE_ONLY);
     /* The remaining memory types can be distributed across devices */
-    for (const vector<SubDevice *> &island : peer_islands) {
+    for (const Island island : mem_islands(mem)) {
       SubDevice *owner_sub = find_suitable_mem_device(key, island);
       mem.device = owner_sub->device.get();
       mem.device_pointer = 0;
@@ -425,7 +444,7 @@ class MultiDevice : public Device {
     device_ptr key = (existing_key) ? existing_key : unique_key++;
     size_t existing_size = mem.device_size;
 
-    for (const vector<SubDevice *> &island : peer_islands) {
+    for (const Island island : mem_islands(mem)) {
       SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
       mem.device = owner_sub->device.get();
       mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
@@ -457,7 +476,7 @@ class MultiDevice : public Device {
     device_ptr key = (existing_key) ? existing_key : unique_key++;
     size_t existing_size = mem.device_size;
 
-    for (const vector<SubDevice *> &island : peer_islands) {
+    for (const Island island : mem_islands(mem)) {
       SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
       mem.device = owner_sub->device.get();
       mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
@@ -509,7 +528,7 @@ class MultiDevice : public Device {
   {
     device_ptr key = mem.device_pointer;
 
-    for (const vector<SubDevice *> &island : peer_islands) {
+    for (const Island island : mem_islands(mem)) {
       SubDevice *owner_sub = find_matching_mem_device(key, *island.front());
       mem.device = owner_sub->device.get();
       mem.device_pointer = owner_sub->ptr_map[key];
@@ -549,7 +568,7 @@ class MultiDevice : public Device {
     device_ptr key = (existing_key) ? existing_key : unique_key++;
     size_t existing_size = mem.device_size;
 
-    for (const vector<SubDevice *> &island : peer_islands) {
+    for (const Island island : mem_islands(mem)) {
       SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
       mem.device = owner_sub->device.get();
       mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
@@ -570,7 +589,7 @@ class MultiDevice : public Device {
     size_t existing_size = mem.device_size;
 
     /* Free memory that was allocated for all devices (see above) on each device */
-    for (const vector<SubDevice *> &island : peer_islands) {
+    for (const Island island : mem_islands(mem)) {
       SubDevice *owner_sub = find_matching_mem_device(key, *island.front());
       mem.device = owner_sub->device.get();
       mem.device_pointer = owner_sub->ptr_map[key];
