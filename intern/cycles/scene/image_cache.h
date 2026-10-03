@@ -202,17 +202,20 @@ class ImageCache {
                            KernelTileDescriptor &r_tile_descriptor);
   void free_tile(const KernelTileDescriptor tile);
 
-  KernelTileDescriptor load_tile(Device &device,
-                                 DeviceScene &dscene,
-                                 ImageLoader &loader,
-                                 const ImageMetaData &metadata,
-                                 InterpolationType interpolation,
-                                 ExtensionType extension,
-                                 int miplevel,
-                                 int x,
-                                 int y,
-                                 const bool for_cpu_cache_miss,
-                                 const size_t bit_index);
+  void load_tile(Device &device,
+                 DeviceScene &dscene,
+                 ImageLoader &loader,
+                 const ImageMetaData &metadata,
+                 InterpolationType interpolation,
+                 ExtensionType extension,
+                 int miplevel,
+                 int x,
+                 int y,
+                 const bool for_cpu_cache_miss,
+                 const size_t bit_index,
+                 KernelTileDescriptor &r_tile_descriptor);
+
+  void copy_images_to_device_no_lock(const bool for_cpu_cache_miss);
 
   ImageCacheStats stats;
 };
