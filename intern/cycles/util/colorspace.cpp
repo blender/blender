@@ -9,6 +9,7 @@
 #include "util/map.h"
 #include "util/math.h"
 #include "util/string.h"
+#include "util/tbb.h"
 #include "util/thread.h"
 #include "util/transform.h"
 #include "util/vector.h"
@@ -535,13 +536,14 @@ inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
                                                             processor->getDefaultCPUProcessor() :
                                                             nullptr;
 
-  /* Process large images in chunks to keep temporary memory requirement down. */
-  const int64_t chunk_rows = divide_up(std::min((int64_t)(16 * 1024 * 1024), width * height),
-                                       width);
-  vector<float4> float_pixels(chunk_rows * width);
+  /* Process large images in parallel chunks to keep temporary memory requirement down. */
+  const int64_t chunk_rows = divide_up(std::min((int64_t)(1024 * 1024), width * height), width);
+  const int64_t num_chunks = divide_up(height, chunk_rows);
 
-  for (int64_t row = 0; row < height; row += chunk_rows) {
+  parallel_for((int64_t)0, num_chunks, [&](const int64_t chunk) {
+    const int64_t row = chunk * chunk_rows;
     const int64_t num_rows = std::min(chunk_rows, height - row);
+    vector<float4> float_pixels(num_rows * width);
 
     for (int64_t j = 0; j < num_rows; j++) {
       T *pixel = pixels + (row + j) * y_stride;
@@ -588,7 +590,7 @@ inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
         cast_from_float4(pixel, value);
       }
     }
-  }
+  });
 }
 
 template<typename T, bool compress_as_srgb, bool expand_from_srgb>
@@ -602,13 +604,14 @@ inline void processor_apply_pixels_grayscale(const OCIO::Processor *processor,
                                                             processor->getDefaultCPUProcessor() :
                                                             nullptr;
 
-  /* Process large images in chunks to keep temporary memory requirement down. */
-  const int64_t chunk_rows = divide_up(std::min((int64_t)(16 * 1024 * 1024), width * height),
-                                       width);
-  vector<float> float_pixels(chunk_rows * width * 3);
+  /* Process large images in parallel chunks to keep temporary memory requirement down. */
+  const int64_t chunk_rows = divide_up(std::min((int64_t)(1024 * 1024), width * height), width);
+  const int64_t num_chunks = divide_up(height, chunk_rows);
 
-  for (int64_t row = 0; row < height; row += chunk_rows) {
+  parallel_for((int64_t)0, num_chunks, [&](const int64_t chunk) {
+    const int64_t row = chunk * chunk_rows;
     const int64_t num_rows = std::min(chunk_rows, height - row);
+    vector<float> float_pixels(num_rows * width * 3);
 
     /* Convert to 3 channels, since that's the minimum required by OpenColorIO. */
     for (int64_t j = 0; j < num_rows; j++) {
@@ -641,7 +644,7 @@ inline void processor_apply_pixels_grayscale(const OCIO::Processor *processor,
         *pixel = util_image_cast_from_float<T>(f);
       }
     }
-  }
+  });
 }
 
 template<typename T, bool compress_as_srgb, bool expand_from_srgb>
@@ -653,6 +656,10 @@ inline void processor_apply_pixels(const OCIO::Processor *processor,
                                    const bool is_rgba,
                                    const bool ignore_alpha)
 {
+  if (width == 0 || height == 0) {
+    return;
+  }
+
   if (is_rgba) {
     processor_apply_pixels_rgba<T, compress_as_srgb, expand_from_srgb>(
         processor, pixels, width, height, y_stride, ignore_alpha);
