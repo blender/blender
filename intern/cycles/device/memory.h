@@ -38,6 +38,9 @@ enum MemoryFlag {
    * GPU memory is essential for performance. Scene data will then be moved to
    * the host instead. */
   MEM_FLAG_NO_HOST_FALLBACK = (1 << 0),
+  /* Allocate a copy on every device instead of distributing across peer devices,
+   * for memory that devices write to during rendering. */
+  MEM_FLAG_PER_DEVICE = (1 << 1),
 };
 
 /* Supported Data Types */
