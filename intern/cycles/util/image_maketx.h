@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <functional>
 #include <string>
 
 #include "util/image_metadata.h"
@@ -32,7 +33,8 @@ bool make_tx(const string &filepath,
              const string &out_filepath,
              ustring colorspace,
              const ImageAlphaType alpha_type,
-             const ImageFormatType format_type);
+             const ImageFormatType format_type,
+             const std::function<bool()> &cancel = nullptr);
 
 ustring make_tx_get_file_colorspace(const ImageMetaData &metadata);
 

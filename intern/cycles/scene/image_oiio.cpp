@@ -36,6 +36,9 @@ bool OIIOImageLoader::load_metadata(ImageMetaData &metadata,
     return false;
   }
 
+  /* Metadata may be loaded again after cancelling, start from the original file. */
+  texture_cache_filepath_.clear();
+
   if (params.use_texture_cache) {
     const std::string &filepath = get_filepath();
     const bool found = resolve_tx(filepath,
@@ -53,14 +56,24 @@ bool OIIOImageLoader::load_metadata(ImageMetaData &metadata,
     if (params.auto_texture_cache) {
       progress.set_status("Generating tx cache | " + path_filename(filepath), "");
 
+      /* Track if generation stopped due to cancel or failure. */
+      bool cancelled = false;
+      const auto cancel = [&]() {
+        cancelled = cancelled || progress.get_cancel();
+        return cancelled;
+      };
+
       if (!make_tx(filepath,
                    texture_cache_filepath_,
                    params.colorspace,
                    params.alpha_type,
-                   IMAGE_FORMAT_PLAIN))
+                   IMAGE_FORMAT_PLAIN,
+                   cancel))
       {
         texture_cache_filepath_.clear();
-        params.tx_failure_num++;
+        if (!cancelled) {
+          params.tx_failure_num++;
+        }
       }
     }
     else {
