@@ -796,9 +796,10 @@ static bool make_tx(const string &filepath,
   /* Software info, version is used to detect if file format is known by old versions. */
   spec.attribute("Software", string_printf("Blender maketx v%d", TX_FILE_FORMAT_VERSION));
 
-  /* Compression. */
+  /* Compression is preserved for EXR, including lossy compression.
+   * For TIFF always use zip since it is parallelized and smaller than LZW. */
   std::string in_compression = in_spec.get_string_attribute("compression", "none");
-  if (in_compression == "none") {
+  if (!use_openexr || in_compression == "none") {
     spec.attribute("compression", "zip");
   }
   spec.attribute("planarconfig", "contig");
