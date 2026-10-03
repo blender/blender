@@ -1798,6 +1798,7 @@ static void draw_timeline_sfra_efra(const TimelineDrawContext &ctx)
 }
 
 struct CacheDrawData {
+  const Scene *scene;
   const View2D *v2d;
   float stripe_ofs_y;
   float stripe_ht;
@@ -1826,6 +1827,11 @@ static void draw_cache_source_iter_fn(void *userdata, const Strip *strip, int ti
   const uchar4 col{255, 25, 5, 100};
   float stripe_bot = strip->channel + STRIP_OFSBOTTOM + drawdata->stripe_ofs_y;
   float stripe_top = stripe_bot + drawdata->stripe_ht;
+  if (strip->type == STRIP_TYPE_IMAGE && seq::transform_single_image_check(strip)) {
+    drawdata->quads->add_quad(
+        strip->left_handle(), stripe_bot, strip->right_handle(drawdata->scene), stripe_top, col);
+    return;
+  }
   drawdata->quads->add_quad(timeline_frame, stripe_bot, timeline_frame + 1, stripe_top, col);
 }
 
@@ -1898,6 +1904,7 @@ static void draw_cache_view(const bContext *C)
 
   SeqQuadsBatch quads;
   CacheDrawData userdata;
+  userdata.scene = scene;
   userdata.v2d = v2d;
   userdata.stripe_ofs_y = stripe_ofs_y;
   userdata.stripe_ht = stripe_ht;
