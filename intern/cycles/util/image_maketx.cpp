@@ -34,6 +34,7 @@
 #include "util/log.h"
 #include "util/md5.h"
 #include "util/path.h"
+#include "util/task_limiter.h"
 #include "util/tbb.h"
 #include "util/types_image.h"
 
@@ -1000,7 +1001,30 @@ bool make_tx(const string &filepath,
   }
   metadata.finalize(alpha_type);
 
-  if (!make_tx(filepath, out_filepath, metadata, alpha_type, format_type, spec, cancel)) {
+  /* Memory usage is approximately two float buffers, plus a temporary buffer
+   * for images with > 4 channels. Use limiter so we don't run out of memory
+   * handling many high res images at the same time. */
+  const size_t num_pixels = size_t(metadata.width) * size_t(metadata.height);
+  size_t estimated_memory_size = num_pixels * (metadata.is_rgba() ? 4 : 1) * sizeof(float) * 2;
+  if (metadata.channels > 4) {
+    estimated_memory_size += num_pixels * metadata.channels * sizeof(float);
+  }
+
+  bool ok = false;
+  const auto generate = [&]() {
+    ok = make_tx(filepath, out_filepath, metadata, alpha_type, format_type, spec, cancel);
+  };
+  try {
+    if (!TaskLimiter::execute(estimated_memory_size, generate, cancel)) {
+      return false;
+    }
+  }
+  catch (const std::bad_alloc &) {
+    LOG_WARNING << "Out of memory generating tx file for " << filepath;
+    return false;
+  }
+
+  if (!ok) {
     LOG_WARNING << "Failed to write tx file";
     return false;
   }
