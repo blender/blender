@@ -29,7 +29,8 @@ bool CCL_resolve_texture_cache(const Image *image,
 
 bool CCL_generate_texture_cache(const Image *image,
                                 const char *filepath,
-                                const char *texture_cache_directory)
+                                const char *texture_cache_directory,
+                                const std::function<bool()> &cancel)
 {
   std::string tx_filepath;
   ccl::ImageMetaData tx_metadata;
@@ -53,7 +54,8 @@ bool CCL_generate_texture_cache(const Image *image,
                  tx_filepath,
                  ccl::ustring(image->colorspace_settings.name),
                  ccl::ImageAlphaType(image->alpha_mode),
-                 ccl::IMAGE_FORMAT_PLAIN);
+                 ccl::IMAGE_FORMAT_PLAIN,
+                 cancel);
 }
 
 }  // namespace blender

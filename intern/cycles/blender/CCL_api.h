@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 
 namespace blender {
@@ -25,6 +26,7 @@ bool CCL_resolve_texture_cache(const Image *image,
 
 bool CCL_generate_texture_cache(const Image *image,
                                 const char *filepath,
-                                const char *texture_cache_directory = "");
+                                const char *texture_cache_directory = "",
+                                const std::function<bool()> &cancel = nullptr);
 
 }  // namespace blender
