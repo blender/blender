@@ -593,17 +593,18 @@ void ImageCache::load_image_tiled_descriptors(DeviceScene &dscene,
 
 /* Tile request processing. */
 
-KernelTileDescriptor ImageCache::load_tile(Device &device,
-                                           DeviceScene &dscene,
-                                           ImageLoader &loader,
-                                           const ImageMetaData &metadata,
-                                           const InterpolationType interpolation,
-                                           const ExtensionType extension,
-                                           const int miplevel,
-                                           const int x,
-                                           const int y,
-                                           const bool for_cpu_cache_miss,
-                                           const size_t bit_index)
+void ImageCache::load_tile(Device &device,
+                           DeviceScene &dscene,
+                           ImageLoader &loader,
+                           const ImageMetaData &metadata,
+                           const InterpolationType interpolation,
+                           const ExtensionType extension,
+                           const int miplevel,
+                           const int x,
+                           const int y,
+                           const bool for_cpu_cache_miss,
+                           const size_t bit_index,
+                           KernelTileDescriptor &r_tile_descriptor)
 {
   const int width = std::max(int64_t(1), metadata.width >> miplevel);
   const int height = std::max(int64_t(1), metadata.height >> miplevel);
@@ -649,23 +650,25 @@ KernelTileDescriptor ImageCache::load_tile(Device &device,
   }
 
   if (ok) {
-    /* Mark image for deferred GPU update, after pixels have been loaded to all devices. */
-    if (!device.has_unified_image_memory_all()) {
-      const thread_scoped_lock device_lock(device_mutex);
-      if (for_cpu_cache_miss) {
-        if (device.info.type == DEVICE_MULTI) {
-          deferred_gpu_updates.insert(&mem);
-        }
-      }
-      else {
-        deferred_updates.insert(&mem);
-      }
-    }
-
     stats.load_tile(bit_index);
   }
 
-  return (ok) ? tile_descriptor : KERNEL_TILE_LOAD_FAILED;
+  /* Mark image for deferred GPU update, after pixels have been loaded to all devices.
+   * Insert GPU update and update tile descriptor under the same device lock. */
+  const thread_scoped_lock device_lock(device_mutex);
+
+  if (ok && !device.has_unified_image_memory_all()) {
+    if (for_cpu_cache_miss) {
+      if (device.info.type == DEVICE_MULTI) {
+        deferred_gpu_updates.insert(&mem);
+      }
+    }
+    else {
+      deferred_updates.insert(&mem);
+    }
+  }
+
+  r_tile_descriptor = (ok) ? tile_descriptor : KERNEL_TILE_LOAD_FAILED;
 }
 
 /* Find the mip level that contains the tile index. */
@@ -737,17 +740,18 @@ void ImageCache::load_requested_tiles(Device &device,
     const size_t x = tile_x * tile_size;
     const size_t y = tile_y * tile_size;
 
-    descriptors[tile_idx] = load_tile(device,
-                                      dscene,
-                                      loader,
-                                      metadata,
-                                      interpolation,
-                                      extension,
-                                      miplevel + miplevel_offset,
-                                      x,
-                                      y,
-                                      false,
-                                      base_offset + tile_idx);
+    load_tile(device,
+              dscene,
+              loader,
+              metadata,
+              interpolation,
+              extension,
+              miplevel + miplevel_offset,
+              x,
+              y,
+              false,
+              base_offset + tile_idx,
+              descriptors[tile_idx]);
   }
 }
 
@@ -775,18 +779,18 @@ void ImageCache::load_requested_tile(Device &device,
     const ExtensionType extension = ExtensionType(tex.extension);
     const size_t bit_index = &r_tile_descriptor - dscene.image_texture_tile_descriptors.data();
 
-    KernelTileDescriptor tile_descriptor_new = load_tile(device,
-                                                         dscene,
-                                                         loader,
-                                                         metadata,
-                                                         interpolation,
-                                                         extension,
-                                                         miplevel + miplevel_offset,
-                                                         x,
-                                                         y,
-                                                         true,
-                                                         bit_index);
-    r_tile_descriptor = tile_descriptor_new;
+    load_tile(device,
+              dscene,
+              loader,
+              metadata,
+              interpolation,
+              extension,
+              miplevel + miplevel_offset,
+              x,
+              y,
+              true,
+              bit_index,
+              r_tile_descriptor);
     return;
   }
 
@@ -958,9 +962,9 @@ void ImageCache::copy_to_device(DeviceScene &dscene)
 {
   /* Copy all device memory managed by the image cache to all devices, for updates
    * outside of rendering. */
-  copy_images_to_device();
-
   thread_scoped_lock device_lock(device_mutex);
+  copy_images_to_device_no_lock(false);
+
   dscene.image_texture_tile_descriptors.copy_to_device_if_modified();
   dscene.image_texture_tile_access_state.copy_to_device_if_modified();
 
@@ -976,13 +980,16 @@ void ImageCache::copy_to_device(DeviceScene &dscene, DeviceQueue &queue)
    * We run copy_device_images which will allocate image memory on all devices,
    * which is safe to do while kernels are executing because we only allocate
    * without freeing, and load_image_info() is delayed. */
-  copy_images_to_device();
+  {
+    thread_scoped_lock device_lock(device_mutex);
+    copy_images_to_device_no_lock(false);
 
-  /* Copy updated tile descriptors for this GPU device only.
-   * Note the tile access buffer is not zeroed here as we want to keep the USED
-   * state until cache eviction. Some tiles may remain as REQUESTED but that's
-   * fine, they will be skipped in load_requested_tiles if already loaded. */
-  queue.copy_to_device(dscene.image_texture_tile_descriptors);
+    /* Copy updated tile descriptors for this GPU device only.
+     * Note the tile access buffer is not zeroed here as we want to keep the USED
+     * state until cache eviction. Some tiles may remain as REQUESTED but that's
+     * fine, they will be skipped in load_requested_tiles if already loaded. */
+    queue.copy_to_device(dscene.image_texture_tile_descriptors);
+  }
 
   /* Update image info only for this GPU device. */
   queue.load_image_info();
@@ -990,10 +997,15 @@ void ImageCache::copy_to_device(DeviceScene &dscene, DeviceQueue &queue)
 
 void ImageCache::copy_images_to_device(const bool for_cpu_cache_miss)
 {
+  const thread_scoped_lock device_lock(device_mutex);
+  copy_images_to_device_no_lock(for_cpu_cache_miss);
+}
+
+void ImageCache::copy_images_to_device_no_lock(const bool for_cpu_cache_miss)
+{
   /* For CPU cache miss we skip deferred updates that were only meant for the GPU. CPU cache
    * misses are resolved immediately for each tile, in every thread. So it would be inefficient
    * to copy data to the GPU every time. */
-  thread_scoped_lock device_lock(device_mutex);
   if (!for_cpu_cache_miss) {
     deferred_updates.merge(deferred_gpu_updates);
     deferred_gpu_updates.clear();
