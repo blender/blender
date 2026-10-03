@@ -272,11 +272,6 @@ void CPUDevice::image_free(device_image &mem)
   }
 }
 
-bool CPUDevice::has_unified_memory_any() const
-{
-  return true;
-}
-
 bool CPUDevice::has_unified_image_memory_all() const
 {
   return true;
