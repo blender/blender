@@ -129,6 +129,7 @@ struct ShaderPreview {
   Tex *texcopy;
   Light *lampcopy;
   World *worldcopy;
+  World *world_simple;
 
   /** Copy of the active objects #Object.color */
   float color[4];
@@ -395,6 +396,14 @@ World *ED_preview_prepare_world_simple(Main *bmain)
   return world;
 }
 
+static World *preview_get_world_simple(ShaderPreview *sp)
+{
+  if (sp->world_simple == nullptr) {
+    sp->world_simple = ED_preview_prepare_world_simple(sp->pr_main);
+  }
+  return sp->world_simple;
+}
+
 void ED_preview_world_simple_set_rgb(World *world, const float color[4])
 {
   BLI_assert(world != nullptr);
@@ -571,7 +580,7 @@ static Scene *preview_prepare_scene(
         else if (sce->world && sp->pr_method != PR_ICON_RENDER) {
           /* Use a default world color. Using the current
            * scene world can be slow if it has big textures. */
-          sce->world = ED_preview_prepare_world_simple(pr_main);
+          sce->world = preview_get_world_simple(sp);
 
           /* Use brighter world color for grease pencil. */
           if (sp->pr_main == G_pr_main_grease_pencil) {
@@ -637,7 +646,7 @@ static Scene *preview_prepare_scene(
 
       if (sce->world) {
         /* Only use lighting from the light. */
-        sce->world = ED_preview_prepare_world_simple(pr_main);
+        sce->world = preview_get_world_simple(sp);
         const float black[4] = {0.0f, 0.0f, 0.0f, 0.0f};
         ED_preview_world_simple_set_rgb(sce->world, black);
       }
@@ -1369,6 +1378,10 @@ static void shader_preview_free(void *customdata)
     BLI_assert(main_id_copy == nullptr);
     main_id_copy = id_cast<ID *>(sp->lampcopy);
     BLI_remlink(&pr_main->lights, sp->lampcopy);
+  }
+  if (sp->world_simple) {
+    BKE_id_free_ex(
+        pr_main, &sp->world_simple->id, LIB_ID_FREE_NO_UI_USER | LIB_ID_FREE_NO_DEG_TAG, false);
   }
   if (sp->own_id_copy) {
     if (sp->id_copy) {
