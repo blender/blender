@@ -1087,7 +1087,7 @@ static bool ffmpeg_decode_video_frame(MovieReader *anim)
   return false;
 }
 
-static int64_t ffmpeg_seek_pts_get(MovieReader *anim, int64_t target_pts)
+static int64_t ffmpeg_seek_pts_get(const MovieReader *anim, int64_t target_pts)
 {
   /* FFMPEG seeks internally using DTS values instead of PTS. In some files DTS and PTS values are
    * offset and sometimes FFMPEG fails to take this into account when seeking.
@@ -1299,9 +1299,37 @@ static void ffmpeg_seek_to_key_frame(MovieReader *anim, int frame_index, int64_t
   ffmpeg_cur_packet_clear(anim);
 }
 
-static bool ffmpeg_must_seek(const MovieReader *anim, int frame_index)
+static bool ffmpeg_must_seek(const MovieReader *anim, int frame_index, int64_t target_pts)
 {
-  return !anim->frame_complete || frame_index != anim->cur_frame_index + 1;
+  if (!anim->frame_complete || frame_index < anim->cur_frame_index) {
+    return true;
+  }
+  if (frame_index == anim->cur_frame_index + 1) {
+    return false;
+  }
+
+  AVStream *stream = anim->format_ctx->streams[anim->video_stream_index];
+  const int64_t seek_pts = ffmpeg_seek_pts_get(anim, target_pts);
+
+  /* Get the index (not timestamp) of the closest keyframe before the #seek_pts to seek to. */
+  const int index = av_index_search_timestamp(stream, seek_pts, AVSEEK_FLAG_BACKWARD);
+  if (index < 0 || index + 1 >= avformat_index_get_entries_count(stream)) {
+    return true;
+  }
+  const AVIndexEntry *key_frame = avformat_index_get_entry(stream, index);
+  if (key_frame == nullptr) {
+    return true;
+  }
+  /* If the keyframe we would seek to (closest before #seek_pts) is at or before #cur_pts,
+   * #seek_pts is in the current GOP and decoding forward is faster.
+   *
+   * Otherwise it is in a new GOP, and if we seek, we can skip decoding up to that keyframe, but we
+   * will have to flush the frames the decoder threads are working on (roughly N frames for N
+   * threads) to avoid receiving stale reference frames. If the key frame is within those N frames,
+   * it is already being decoded, so only seek if the key frame is more than N frames ahead.
+   */
+  const double flush_cost_pts = ffmpeg_pts_per_frame_get(anim) * MOV_thread_count();
+  return key_frame->timestamp > anim->cur_pts + flush_cost_pts;
 }
 
 static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int frame_index)
@@ -1329,7 +1357,7 @@ static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int frame_index)
            v_st->start_time);
 
     if (!anim->frame_complete || anim->cur_frame_index != frame_index) {
-      const bool must_seek = ffmpeg_must_seek(anim, frame_index);
+      const bool must_seek = ffmpeg_must_seek(anim, frame_index, target_pts);
       if (must_seek) {
         ffmpeg_seek_to_key_frame(anim, frame_index, target_pts);
       }
