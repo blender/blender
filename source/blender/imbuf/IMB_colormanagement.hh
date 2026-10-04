@@ -100,6 +100,12 @@ void IMB_colormanagement_file_read_post(Main *bmain,
                                         bool have_editable_assets);
 
 /**
+ * Update config warnings after saving the active blend file, possible in another
+ * location that moves it into another project.
+ */
+void IMB_colormanagement_file_save_post(Main *bmain);
+
+/**
  * Set up color management after undo:
  * - Set the working space from the file
  * - Convert linked data (which undo left unchanged) to it.

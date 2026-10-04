@@ -3661,6 +3661,17 @@ void IMB_colormanagement_file_read_post(Main *bmain,
   }
 }
 
+void IMB_colormanagement_file_save_post(Main *bmain)
+{
+  /* Keep project config failure, unless the file was saved into another project. */
+  if (colormanage_config_candidates_get(bmain) != g_config_requested()) {
+    bmain->colorspace.is_failed_opencolorio_config = false;
+  }
+
+  /* Missing color spaces in the file are resolved by saving. */
+  bmain->colorspace.is_missing_opencolorio_config = bmain->colorspace.is_failed_opencolorio_config;
+}
+
 void IMB_colormanagement_undo_read_post(Main *bmain, const MainColorspace &old_colorspace)
 {
   /* Preserve config warnings. */
