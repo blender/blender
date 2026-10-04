@@ -94,6 +94,7 @@
 *.gltf filter=lfs diff=lfs merge=lfs -text
 *.glb filter=lfs diff=lfs merge=lfs -text
 *.bin filter=lfs diff=lfs merge=lfs -text
+*.ktx2 filter=lfs diff=lfs merge=lfs -text
 *.ply filter=lfs diff=lfs merge=lfs -text
 *.nvdb filter=lfs diff=lfs merge=lfs -text
 *.usd filter=lfs diff=lfs merge=lfs -text
