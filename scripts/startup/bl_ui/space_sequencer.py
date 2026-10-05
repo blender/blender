@@ -105,7 +105,11 @@ class SEQUENCER_HT_header(Header):
 
         if sequencer_tool_settings and st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
             row = layout.row(align=True)
-            row.prop(sequencer_tool_settings, "overlap_mode", text="")
+            row.prop(sequencer_tool_settings, "overlap_mode", expand=True, icon_only=True)
+            row.popover(
+                text="",
+                panel="SEQUENCER_PT_edit_mode",
+            )
 
         if tool_settings:
             row = layout.row(align=True)
@@ -879,6 +883,8 @@ class SEQUENCER_MT_strip_transform(Menu):
             col.operator("transform.seq_slide", text="Move").view2d_edge_pan = True
             col.operator("transform.transform", text="Move/Extend from Current Frame").mode = 'TIME_EXTEND'
             col.operator("sequencer.slip", text="Slip Strip Contents")
+            col.operator("sequencer.ripple_trim", text="Ripple Trim Start").side = 'LEFT'
+            col.operator("sequencer.ripple_trim", text="Ripple Trim End").side = 'RIGHT'
 
         # TODO (for preview)
         if has_sequencer:
@@ -2017,6 +2023,39 @@ class SEQUENCER_PT_custom_props(SequencerButtonsPanel, PropertyPanel, Panel):
     bl_category = "Strip"
 
 
+class SEQUENCER_PT_edit_mode(Panel):
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Edit Mode"
+    bl_ui_units_x = 11
+
+    @classmethod
+    def poll(cls, context):
+        return context.sequencer_scene is not None
+
+    def draw(self, context):
+        layout = self.layout
+        sequencer_tool_settings = context.sequencer_scene.tool_settings.sequencer_tool_settings
+
+        layout.label(text="Ripple")
+
+        col = layout.column(heading="Edit")
+        col.use_property_split = True
+
+        col.prop(sequencer_tool_settings, "ripple_all_channels")
+        col.prop(sequencer_tool_settings, "ripple_markers")
+
+        col = layout.column(heading="Add")
+        col.use_property_split = True
+
+        col.prop(sequencer_tool_settings, "ripple_insert")
+
+        col = layout.column(heading="Delete")
+        col.use_property_split = True
+
+        col.prop(sequencer_tool_settings, "ripple_clear_ranges")
+
+
 class SEQUENCER_PT_snapping(Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'HEADER'
@@ -2156,6 +2195,7 @@ classes = (
     SEQUENCER_PT_annotation,
     SEQUENCER_PT_annotation_onion,
 
+    SEQUENCER_PT_edit_mode,
     SEQUENCER_PT_snapping,
     SEQUENCER_PT_preview_snapping,
     SEQUENCER_PT_sequencer_snapping,

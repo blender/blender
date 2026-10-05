@@ -142,6 +142,8 @@ short tool_settings_snap_flag_get(Scene *scene);
 short tool_settings_snap_mode_get(Scene *scene);
 int tool_settings_snap_distance_get(Scene *scene);
 eSeqOverlapMode tool_settings_overlap_mode_get(Scene *scene);
+void tool_settings_overlap_mode_set(Scene *scene, eSeqOverlapMode overlap_mode);
+eSeqRippleFlag tool_settings_ripple_flag_get(Scene *scene);
 int tool_settings_pivot_point_get(Scene *scene);
 SequencerToolSettings *tool_settings_copy(SequencerToolSettings *tool_settings);
 Editing *editing_get(const Scene *scene);

@@ -198,9 +198,7 @@ bool edit_move_strip_to_seqbase(Scene *scene,
   relations_invalidate_cache(scene, strip);
 
   /* Update meta. */
-  if (transform_test_overlap(scene, dst_seqbase, strip)) {
-    transform_seqbase_shuffle(dst_seqbase, strip, scene);
-  }
+  transform_shuffle_vertical(dst_seqbase, {strip}, scene);
 
   return true;
 }

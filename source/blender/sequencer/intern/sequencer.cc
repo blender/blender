@@ -380,6 +380,8 @@ SequencerToolSettings *tool_settings_init()
   tool_settings->snap_flag = SEQ_SNAP_TO_ALL_CHANNEL_STRIPS;
   tool_settings->snap_distance = 15;
   tool_settings->overlap_mode = SEQ_OVERLAP_SHUFFLE;
+  tool_settings->ripple_flag = SEQ_RIPPLE_ALL_CHANNELS | SEQ_RIPPLE_MARKERS |
+                               SEQ_RIPPLE_CLEAR_RANGES;
   tool_settings->pivot_point = V3D_AROUND_CENTER_MEDIAN;
 
   return tool_settings;
@@ -431,10 +433,22 @@ void tool_settings_fit_method_set(Scene *scene, eSeqImageFitMethod fit_method)
   tool_settings->fit_method = fit_method;
 }
 
+void tool_settings_overlap_mode_set(Scene *scene, eSeqOverlapMode overlap_mode)
+{
+  SequencerToolSettings *tool_settings = tool_settings_ensure(scene);
+  tool_settings->overlap_mode = overlap_mode;
+}
+
 eSeqOverlapMode tool_settings_overlap_mode_get(Scene *scene)
 {
   const SequencerToolSettings *tool_settings = tool_settings_ensure(scene);
   return eSeqOverlapMode(tool_settings->overlap_mode);
+}
+
+eSeqRippleFlag tool_settings_ripple_flag_get(Scene *scene)
+{
+  const SequencerToolSettings *tool_settings = tool_settings_ensure(scene);
+  return eSeqRippleFlag(tool_settings->ripple_flag);
 }
 
 int tool_settings_pivot_point_get(Scene *scene)

@@ -29,6 +29,8 @@
 
 #include "ED_sequencer.hh"
 
+#include "SEQ_sequencer.hh"
+
 #include "transform.hh"
 #include "transform_convert.hh"
 #include "transform_mode.hh"
@@ -42,7 +44,21 @@ namespace blender::ed::transform {
 
 struct SeqSlideParams {
   bool use_restore_handle_selection;
+  wmOperator *op;
 };
+
+static const char *seq_slide_overlap_mode_name(const eSeqOverlapMode overlap_mode)
+{
+  switch (overlap_mode) {
+    case SEQ_OVERLAP_RIPPLE:
+      return IFACE_("Ripple");
+    case SEQ_OVERLAP_OVERWRITE:
+      return IFACE_("Overwrite");
+    case SEQ_OVERLAP_SHUFFLE:
+      return IFACE_("Shuffle");
+  }
+  return "";
+}
 
 static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRAW_STR])
 {
@@ -57,8 +73,21 @@ static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRA
     BLI_snprintf_utf8(&tvec[0], NUM_STR_REP_LEN, "%.0f, %.0f", val[0], val[1]);
   }
 
-  ofs += BLI_snprintf_utf8_rlen(
-      str + ofs, UI_MAX_DRAW_STR - ofs, IFACE_("Sequence Slide: %s%s"), &tvec[0], t->con.text);
+  const eSeqOverlapMode overlap_mode = seq::tool_settings_overlap_mode_get(scene);
+  ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                UI_MAX_DRAW_STR - ofs,
+                                IFACE_("Sequence Slide: %s%s | Overlap: %s"),
+                                &tvec[0],
+                                t->con.text,
+                                seq_slide_overlap_mode_name(overlap_mode));
+
+  if (overlap_mode == SEQ_OVERLAP_RIPPLE) {
+    const eSeqRippleFlag ripple_flag = seq::tool_settings_ripple_flag_get(scene);
+    ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                  UI_MAX_DRAW_STR - ofs,
+                                  IFACE_(" | Insert: %s"),
+                                  WM_bool_as_string((ripple_flag & SEQ_RIPPLE_INSERT) != 0));
+  }
 }
 
 static void applySeqSlideValue(TransInfo *t, const float val[2])
@@ -118,15 +147,12 @@ static void applySeqSlide(TransInfo *t)
 
 static void seq_slide_status(TransInfo *t)
 {
-  if (t->keymap == nullptr) {
+  if (t->keymap == nullptr || t->data_container_len == 0) {
     return;
   }
+
+  Scene *scene = CTX_data_sequencer_scene(t->context);
   const wmKeyMap &keymap = *t->keymap;
-
-  if (t->data_container_len == 0) {
-    return;
-  }
-
   const TransSeq *ts = static_cast<const TransSeq *>(
       TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data);
 
@@ -157,6 +183,28 @@ static void seq_slide_status(TransInfo *t)
                         TFM_MODAL_STRIP_CLAMP,
                         t->modifiers & MOD_STRIP_CLAMP_HOLDS);
   }
+
+  const eSeqOverlapMode overlap_mode = seq::tool_settings_overlap_mode_get(scene);
+  status.modal_keymap(IFACE_("Ripple"),
+                      keymap,
+                      TFM_MODAL_STRIP_OVERLAP_RIPPLE,
+                      overlap_mode == SEQ_OVERLAP_RIPPLE);
+  status.modal_keymap(IFACE_("Overwrite"),
+                      keymap,
+                      TFM_MODAL_STRIP_OVERLAP_OVERWRITE,
+                      overlap_mode == SEQ_OVERLAP_OVERWRITE);
+  status.modal_keymap(IFACE_("Shuffle"),
+                      keymap,
+                      TFM_MODAL_STRIP_OVERLAP_SHUFFLE,
+                      overlap_mode == SEQ_OVERLAP_SHUFFLE);
+
+  if (overlap_mode == SEQ_OVERLAP_RIPPLE) {
+    const eSeqRippleFlag ripple_flag = seq::tool_settings_ripple_flag_get(scene);
+    status.modal_keymap(IFACE_("Insert"),
+                        keymap,
+                        TFM_MODAL_STRIP_RIPPLE_INSERT,
+                        (ripple_flag & SEQ_RIPPLE_INSERT) != 0);
+  }
 }
 
 static void initSeqSlide(TransInfo *t, wmOperator *op)
@@ -164,6 +212,7 @@ static void initSeqSlide(TransInfo *t, wmOperator *op)
   SeqSlideParams *ssp = MEM_new_zeroed<SeqSlideParams>(__func__);
   t->custom.mode.data = ssp;
   t->custom.mode.use_free = true;
+  ssp->op = op;
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_restore_handle_selection");
   if (op != nullptr && prop != nullptr) {
     ssp->use_restore_handle_selection = RNA_property_boolean_get(op->ptr, prop);
@@ -195,6 +244,18 @@ bool transform_mode_edge_seq_slide_use_restore_handle_selection(const TransInfo 
     return false;
   }
   return ssp->use_restore_handle_selection;
+}
+
+wmOperator *transform_mode_edge_seq_slide_operator_get(const TransInfo *t)
+{
+  if (t->mode != TFM_SEQ_SLIDE) {
+    return nullptr;
+  }
+  SeqSlideParams *ssp = static_cast<SeqSlideParams *>(t->custom.mode.data);
+  if (ssp == nullptr) {
+    return nullptr;
+  }
+  return ssp->op;
 }
 
 /** \} */

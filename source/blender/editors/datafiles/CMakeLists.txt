@@ -829,6 +829,9 @@ if(WITH_BLENDER)
       seq_chroma_scope
       seq_histogram
       seq_luma_waveform
+      seq_overlap_overwrite
+      seq_overlap_ripple
+      seq_overlap_shuffle
       seq_preview
       seq_sequencer
       seq_splitview

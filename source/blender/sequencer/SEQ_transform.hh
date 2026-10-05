@@ -9,18 +9,23 @@
  */
 
 #include "DNA_listBase.h"
+#include "DNA_vec_types.h"
 
 #include "BLI_array.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
+#include "BLI_vector.hh"
 
 namespace blender {
+
+enum eSeqOverlapMode : int;
+enum eSeqRippleFlag : int;
 
 struct Scene;
 struct Strip;
 struct SeqTimelineChannel;
-struct TimeMarker;
 
 namespace seq {
 
@@ -34,35 +39,27 @@ bool transform_single_image_check(const Strip *strip);
 bool transform_test_overlap(const Scene *scene, ListBaseT<Strip> *seqbasep, Strip *test);
 bool transform_test_overlap(const Scene *scene, Strip *strip1, Strip *strip2);
 void transform_translate_strip(Scene *evil_scene, Strip *strip, int delta);
-/**
- * \return False if there wasn't enough space.
- */
-bool transform_seqbase_shuffle_ex(ListBaseT<Strip> *seqbasep,
-                                  Strip *test,
-                                  Scene *evil_scene,
-                                  int channel_delta);
-bool transform_seqbase_shuffle(ListBaseT<Strip> *seqbasep, Strip *test, Scene *evil_scene);
-bool transform_seqbase_shuffle_time(Span<Strip *> strips_to_shuffle,
-                                    Span<Strip *> time_dependent_strips,
-                                    ListBaseT<Strip> *seqbasep,
-                                    Scene *evil_scene,
-                                    ListBaseT<TimeMarker> *markers,
-                                    bool use_sync_markers);
-bool transform_seqbase_shuffle_time(Span<Strip *> strips_to_shuffle,
-                                    ListBaseT<Strip> *seqbasep,
-                                    Scene *evil_scene,
-                                    ListBaseT<TimeMarker> *markers,
-                                    bool use_sync_markers);
+void transform_shuffle_vertical(ListBaseT<Strip> *seqbasep,
+                                Span<Strip *> strips,
+                                Scene *scene,
+                                int channel_delta = 1);
 
 void transform_handle_overlap(Scene *scene,
                               ListBaseT<Strip> *seqbasep,
                               Span<Strip *> source_strips,
-                              Span<Strip *> time_dependent_strips,
-                              bool use_sync_markers);
+                              bool use_sync_markers,
+                              Span<Strip *> time_dependent_strips = {});
+/**
+ * As above, but resolve the overlap with an overridden \a overlap_mode and \a ripple_flag instead
+ * of the sequencer scene's tool settings.
+ */
 void transform_handle_overlap(Scene *scene,
                               ListBaseT<Strip> *seqbasep,
                               Span<Strip *> source_strips,
-                              bool use_sync_markers);
+                              bool use_sync_markers,
+                              eSeqOverlapMode overlap_mode,
+                              eSeqRippleFlag ripple_flag,
+                              Span<Strip *> time_dependent_strips = {});
 /**
  * Move strips and markers (if not locked) that start after \a timeline_frame by \a delta frames.
  */
@@ -76,6 +73,30 @@ void transform_strips_after_frame(Scene *scene,
  * This function also checks `SeqTimelineChannel` flag.
  */
 bool transform_is_locked(const ListBaseT<SeqTimelineChannel> *channels, const Strip *strip);
+
+/**
+ *  Returns the extents of the strip along channels and frames.
+ */
+rcti strip_int_bounds_get(const Scene *scene, const Strip *strip);
+
+struct RippleRange {
+  int start;
+  int end;
+  Set<int> channels;
+};
+
+/**
+ * Break up \a strips into "ranges" (rather than calculate an entire bounding box from all the
+ * strips under consideration). This lets us simultaneously ripple separated parts of the timeline
+ * if the user edits strips that are far apart. Returned ranges are sorted by start frame.
+ */
+Vector<RippleRange> transform_ripple_ranges_get(const Scene *scene, Span<Strip *> strips);
+/**
+ * Whether \a strip should be rippled by some transformation on a channel in \a range.
+ */
+bool transform_strip_is_on_rippled_channel(const RippleRange &range,
+                                           const Strip *strip,
+                                           bool all_channels);
 
 /* Image transformation. */
 
