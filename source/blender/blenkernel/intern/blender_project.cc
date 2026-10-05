@@ -521,6 +521,27 @@ std::string BKE_blender_project_path_make_relative(const StringRef path,
   return "{project_root}/" + path_relative_escaped;
 }
 
+std::string BKE_blender_project_path_resolve(const StringRef path,
+                                             const bke::BlenderProject &project)
+{
+  /* Resolve path templates. */
+  char path_expanded[FILE_MAX];
+  path.copy_utf8_truncated(path_expanded);
+
+  bke::path_templates::VariableMap variables;
+  BKE_add_template_variables_for_project(variables, project);
+  if (!BKE_path_apply_template(path_expanded, sizeof(path_expanded), variables).is_empty()) {
+    return "";
+  }
+
+  /* Require absolute path, and no // blend file relative path. */
+  if (BLI_path_is_rel(path_expanded) || !BLI_path_is_abs_from_cwd(path_expanded)) {
+    return "";
+  }
+
+  return path_expanded;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Recent Projects
  *

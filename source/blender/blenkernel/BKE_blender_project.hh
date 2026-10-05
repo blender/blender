@@ -433,6 +433,13 @@ std::string BKE_blender_project_path_make_relative(StringRef path,
                                                    bool path_is_template,
                                                    const bke::BlenderProject &project);
 
+/**
+ * Resolve path templates like {project_root} in a project setting file path.
+ *
+ * \return The absolute file path, or an empty string if the path is invalid or not absolute.
+ */
+std::string BKE_blender_project_path_resolve(StringRef path, const bke::BlenderProject &project);
+
 bool BKE_blender_project_config_file_write(Main *bmain);
 bool BKE_blender_project_init_from_root_path(Main *bmain, std::string project_root_path);
 
