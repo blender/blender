@@ -233,6 +233,7 @@ void SymbolTable::register_builtins(LocalScope node)
       {"bool32_t", 4, 4, builtin::bool_t},
 
       {"string_t", 4, 4, builtin::uint_t},
+      {"TextureWriteFormat", 4, 4, builtin::int_t},
   };
 
   for (const auto &t : basic_types) {
