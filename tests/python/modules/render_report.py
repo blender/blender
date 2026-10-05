@@ -425,26 +425,10 @@ class Report:
 
         tests_html = failed_tests + passed_tests
 
-        # Write html for all tests.
-        if self.pixelated:
-            image_rendering = 'pixelated'
-        else:
-            image_rendering = 'auto'
-
         # Navigation
         menu = self._navigation_html(comparison)
 
         failed = len(failed_tests) > 0
-        if failed:
-            message = """<div class="alert alert-danger" role="alert">"""
-            message += """<p>Run this command to regenerate reference (ground truth) images:</p>"""
-            message += """<p><tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt></p>""" % self.engine_name
-            message += """<p>This then happens for new and failing tests; reference images of """ \
-                       """passing test cases will not be updated. Be sure to commit the new reference """ \
-                       """images under the tests/files folder afterwards.</p>"""
-            message += """</div>"""
-        else:
-            message = ""
 
         if comparison:
             title = self.title + " Test Compare"
@@ -455,121 +439,20 @@ class Report:
             title = self.title + " Test Report"
             columns_html = "<tr><th>Name</th><th>New</th><th>Reference</th><th>Diff Color</th><th>Diff Alpha</th>"
 
-        filter_ui = """
-<div id="report-filter" class="form-inline mb-3">
-    <input type="text" id="report-filter-input" class="form-control mr-2"
-        style="width: 320px;"
-        placeholder="Category or test">
-    <select id="report-filter-result" class="form-control mr-3">
-        <option value="all">All</option>
-        <option value="failures">Failures</option>
-        <option value="crashes">Crashes</option>
-    </select>
-    <span id="report-filter-status" class="text-muted"></span>
-</div>
-"""
-
-        filter_script = """
-<script>
-(function () {
-    var input = document.getElementById('report-filter-input');
-    var resultSel = document.getElementById('report-filter-result');
-    var statusEl = document.getElementById('report-filter-status');
-    if (!input) {
-        return;
-    }
-    var rows = Array.prototype.slice.call(document.querySelectorAll('tr[data-name]'));
-    function apply() {
-        var q = input.value.trim().toLowerCase();
-        var f = resultSel ? resultSel.value : 'all';
-        var shown = 0;
-        rows.forEach(function (row) {
-            var category = row.getAttribute('data-category') || '';
-            var name = row.getAttribute('data-name') || '';
-            var combined = (category + ';' + name).toLowerCase();
-            var matchText = !q || combined.indexOf(q) !== -1;
-            var result = row.getAttribute('data-result') || '';
-            var matchResult =
-                f === 'all' ||
-                (f === 'failures' && result !== '') ||
-                (f === 'crashes' && result === 'CRASH');
-            var visible = matchText && matchResult;
-            row.style.display = visible ? '' : 'none';
-            if (visible) {
-                shown++;
-            }
-        });
-        if (statusEl) {
-            statusEl.textContent = 'Showing ' + shown + ' of ' + rows.length + ' rows';
+        # Fill in HTML template.
+        template_filepath = pathlib.Path(__file__).parent / "render_report.template.html"
+        replacements = {
+            "%TITLE%": title,
+            "%IMAGE_RENDERING%": "pixelated" if self.pixelated else "auto",
+            "%MENU%": menu,
+            "%MESSAGE_HIDDEN%": "" if failed else "hidden",
+            "%ENGINE_NAME%": self.engine_name,
+            "%COLUMNS%": columns_html,
+            "%TESTS%": tests_html,
         }
-    }
-    input.addEventListener('input', apply);
-    if (resultSel) {
-        resultSel.addEventListener('change', apply);
-    }
-    apply();
-})();
-</script>
-"""
-        html = f"""
-<html>
-<head>
-    <title>{title}</title>
-    <style>
-        div.page_container {{
-          text-align: center;
-        }}
-        div.page_container div {{
-          text-align: left;
-        }}
-        div.page_content {{
-          display: inline-block;
-        }}
-        img {{ image-rendering: {image_rendering}; width: 256px; background-color: #000; }}
-        img.render {{
-            background-color: #fff;
-            background-image:
-              -moz-linear-gradient(45deg, #eee 25%, transparent 25%),
-              -moz-linear-gradient(-45deg, #eee 25%, transparent 25%),
-              -moz-linear-gradient(45deg, transparent 75%, #eee 75%),
-              -moz-linear-gradient(-45deg, transparent 75%, #eee 75%);
-            background-image:
-              -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.25, #eee), color-stop(.25, transparent)),
-              -webkit-gradient(linear, 0 0, 100% 100%, color-stop(.25, #eee), color-stop(.25, transparent)),
-              -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.75, transparent), color-stop(.75, #eee)),
-              -webkit-gradient(linear, 0 0, 100% 100%, color-stop(.75, transparent), color-stop(.75, #eee));
-
-            -moz-background-size:50px 50px;
-            background-size:50px 50px;
-            -webkit-background-size:50px 51px; /* Override value for silly webkit. */
-
-            background-position:0 0, 25px 0, 25px -25px, 0px 25px;
-        }}
-        table th {{ width: 280px; }}
-        table th:first-child, table td:first-child {{ width: 256px; }}
-        p {{ margin-bottom: 0.5rem; }}
-    </style>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-</head>
-<body>
-    <div class="page_container"><div class="page_content">
-        <br/>
-        <h1>{title}</h1>
-        {menu}
-        {message}
-        {filter_ui}
-        <table class="table table-striped">
-            <thead class="thead-dark">
-                {columns_html}
-            </thead>
-            {tests_html}
-        </table>
-        {filter_script}
-        <br/>
-    </div></div>
-</body>
-</html>
-            """
+        html = template_filepath.read_text()
+        for key, value in replacements.items():
+            html = html.replace(key, value)
 
         filename = "report.html" if not comparison else "compare.html"
         filepath = os.path.join(self.output_dir, filename)
