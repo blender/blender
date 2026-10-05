@@ -120,10 +120,40 @@ ccl_device ShaderEvalResult integrate_light_nee(KernelGlobals kg, IntegratorShad
   integrator_state_read_shadow_ray_self(state, &ray);
 
   Intersection isect = {};
-  isect.object = ray.self.light_object;
-  isect.prim = ray.self.light_prim;
-  isect.type = kernel_data_fetch(objects, isect.object).primitive_type;
-  isect.t = ray.tmax;
+
+#ifdef __SHADOW_LINKING__
+  const bool is_shadow_linking = INTEGRATOR_STATE(state, shadow_path, flag) &
+                                 PATH_RAY_SHADOW_FOR_LIGHT_LINKING;
+
+  if (is_shadow_linking) {
+    /* Shadow linking stores the intersection in the shadow state,
+     * so it can be used directly. This can be any type of primitive. */
+    integrator_state_read_shadow_light_isect(state, &isect);
+  }
+  else
+#endif
+  {
+    /* NEE sampling from shade_surface only does lights and triangles. Here we
+     * have to recover the triangle UV from the ray, since the shadow state
+     * isect is used by shadow ray intersection and we want to save memory. */
+    isect.object = ray.self.light_object;
+    isect.prim = ray.self.light_prim;
+    isect.type = kernel_data_fetch(objects, isect.object).primitive_type;
+    isect.t = ray.tmax;
+
+    if (isect.type & PRIMITIVE_TRIANGLE) {
+      /* Triangles. */
+      const float2 uv = triangle_light_uv(kg, isect.object, isect.prim, ray.time, ray.P, ray.D);
+      isect.u = uv.x;
+      isect.v = uv.y;
+    }
+    else {
+      /* No NEE sampling for curves, points, etc. */
+      kernel_assert(isect.type == PRIMITIVE_LAMP);
+      isect.u = 0.0f;
+      isect.v = 0.0f;
+    }
+  }
 
   kernel_assert(isect.object != OBJECT_NONE);
   kernel_assert(isect.prim != PRIM_NONE);
@@ -176,12 +206,6 @@ ccl_device ShaderEvalResult integrate_light_nee(KernelGlobals kg, IntegratorShad
     }
   }
   else {
-    /* Triangles.
-     * Compute UV on demand so we don't have to store it in integrator state. */
-    const float2 uv = triangle_light_uv(kg, isect.object, isect.prim, ray.time, ray.P, ray.D);
-    isect.u = uv.x;
-    isect.v = uv.y;
-
     shader_setup_from_ray(kg, emission_sd, &ray, &isect);
   }
 
