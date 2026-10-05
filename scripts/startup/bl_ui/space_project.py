@@ -162,6 +162,7 @@ class PROJECT_PT_main(Panel, CenterAlignMixIn):
         col = layout.column()
         col.prop(project, "name")
         col.prop(project, "root_path")
+        col.prop(project, "splash_image_path")
 
 
 class PROJECT_PT_color_management(Panel, CenterAlignMixIn):
