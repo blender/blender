@@ -456,18 +456,16 @@ class Report:
             columns_html = "<tr><th>Name</th><th>New</th><th>Reference</th><th>Diff Color</th><th>Diff Alpha</th>"
 
         filter_ui = """
-<div id="report-filter" style="max-width: 640px;">
-    <div class="form-inline">
-        <input type="text" id="report-filter-input" class="form-control mr-2"
-            style="width: 320px;"
-            placeholder="Category or test">
-        <select id="report-filter-result" class="form-control mr-2">
-            <option value="all">All</option>
-            <option value="failures">Failures</option>
-            <option value="crashes">Crashes</option>
-        </select>
-        <span id="report-filter-status" class="ml-2 text-muted"></span>
-    </div>
+<div id="report-filter" class="form-inline mb-3">
+    <input type="text" id="report-filter-input" class="form-control mr-2"
+        style="width: 320px;"
+        placeholder="Category or test">
+    <select id="report-filter-result" class="form-control mr-3">
+        <option value="all">All</option>
+        <option value="failures">Failures</option>
+        <option value="crashes">Crashes</option>
+    </select>
+    <span id="report-filter-status" class="text-muted"></span>
 </div>
 """
 
@@ -547,7 +545,8 @@ class Report:
 
             background-position:0 0, 25px 0, 25px -25px, 0px 25px;
         }}
-        table td:first-child {{ width: 256px; }}
+        table th {{ width: 280px; }}
+        table th:first-child, table td:first-child {{ width: 256px; }}
         p {{ margin-bottom: 0.5rem; }}
     </style>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
