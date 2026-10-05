@@ -8344,6 +8344,14 @@ void RNA_def_userdef(BlenderRNA *brna)
       "Save projects automatically on exit and when saving or switching blend files");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+  prop = RNA_def_property(srna, "use_project_remember", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "pref_flag", USER_PREF_FLAG_PROJECT_REMEMBER);
+  RNA_def_property_ui_text(
+      prop,
+      "Remember Last Project",
+      "On startup, automatically re-open the project that was last open when Blender was closed");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
   prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "runtime.is_dirty", 0);
   RNA_def_property_ui_text(prop, "Dirty", "Preferences have changed");
