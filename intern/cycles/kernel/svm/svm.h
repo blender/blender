@@ -74,7 +74,6 @@
 #include "kernel/svm/value.h"
 #include "kernel/svm/vector_rotate.h"
 #include "kernel/svm/vector_transform.h"
-#include "kernel/svm/vertex_color.h"
 #include "kernel/svm/voronoi.h"
 #include "kernel/svm/wave.h"
 #include "kernel/svm/wavelength.h"
@@ -284,17 +283,6 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
         const ccl_global auto &node = svm_node_get<SVMNodeAttr>(kg, &offset);
         IF_NOT_KERNEL_NODES_FEATURE (VOLUME) {
           svm_node_attr_derivative(kg, sd, stack, node);
-        }
-      }
-      break;
-      SVM_CASE(NODE_VERTEX_COLOR)
-      svm_node_vertex_color(kg, sd, stack, svm_node_get<SVMNodeVertexColor>(kg, &offset));
-      break;
-      SVM_CASE(NODE_VERTEX_COLOR_DERIVATIVE)
-      {
-        const ccl_global auto &node = svm_node_get<SVMNodeVertexColor>(kg, &offset);
-        IF_NOT_KERNEL_NODES_FEATURE (VOLUME) {
-          svm_node_vertex_color_derivative(kg, sd, stack, node);
         }
       }
       break;

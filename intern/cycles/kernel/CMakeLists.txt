@@ -111,7 +111,6 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/voronoi.h
   svm/wave.h
   svm/white_noise.h
-  svm/vertex_color.h
 )
 
 if(WITH_CYCLES_OSL)
