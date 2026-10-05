@@ -713,7 +713,7 @@ static void init_draw_infos()
 /* Declare, register and construct the infos. */
 #include "glsl_draw_infos_list.hh"
 
-  if (GPU_stencil_clasify_buffer_workaround()) {
+  if (GPU_stencil_classify_buffer_workaround()) {
     /* WORKAROUND: Adding a dummy buffer that isn't used fixes a bug inside the Qualcomm driver. */
     eevee_deferred_tile_classify.storage_buf(
         12, Qualifier::read_write, "uint", "dummy_workaround_buf[]");
