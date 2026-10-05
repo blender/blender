@@ -265,12 +265,17 @@ template<typename T> void Section::set(const std::string &item_key, const T &val
   toml::value &current = current_get();
 
   std::lock_guard lock(recents_mutex);
-  if (section_.empty()) {
-    current[item_key] = value;
+  toml::value *table = &current;
+  if (!section_.empty()) {
+    table = &current[section_];
+    /* Replace with empty table if it's a different data type, to avoid exception. */
+    if (!table->is_table()) {
+      *table = toml::table{};
+    }
   }
-  else {
-    current[section_][item_key] = value;
-  }
+
+  toml::value &item = (*table)[item_key];
+  item = value;
 }
 
 void Section::remove(const std::string &item_key)

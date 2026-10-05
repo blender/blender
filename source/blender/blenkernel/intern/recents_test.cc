@@ -80,6 +80,28 @@ TEST_F(RecentsTest, RootSectionStoresAtTopLevel)
   EXPECT_EQ(root.get<int32_t>("unit_test_root_key"), 0);
 }
 
+TEST_F(RecentsTest, SetInSectionThatIsNotATable)
+{
+  /* A section name used as a plain value, for example in an edited file, is replaced. */
+  Section root("");
+  root.set<int32_t>("unit_test.not_a_table", 1);
+
+  Section section("unit_test.not_a_table");
+  section.set<int32_t>("value", 2);
+  EXPECT_EQ(section.get<int32_t>("value"), 2);
+
+  section.remove_section();
+}
+
+TEST_F(RecentsTest, GetWrongTypeReturnsTypeDefault)
+{
+  Section section("unit_test.wrong_type");
+  section.set<std::string>("value", "text");
+  EXPECT_EQ(section.get<int32_t>("value"), 0);
+
+  section.remove_section();
+}
+
 TEST_F(RecentsTest, BuiltinRootDefaultsAreReadable)
 {
   Section root("");
