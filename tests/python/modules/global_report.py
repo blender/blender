@@ -26,29 +26,9 @@ def _write_html(output_dir):
 
         combined_reports += "<br/>\n"
 
-    html = """
-<html>
-<head>
-    <title>{title}</title>
-    <style>
-        .ok {{ color: green; }}
-        .failed {{ color: red; }}
-        .none {{ color: #999; }}
-    </style>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-</head>
-<body>
-    <div class="container">
-        <br/>
-        <h1>{title}</h1>
-        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item active" aria-current="page">Test Reports</li></ol></nav>
-        {combined_reports}
-        <br/>
-    </div>
-</body>
-</html>
-    """ . format(title="Blender Test Reports",
-                 combined_reports=combined_reports)
+    # Fill in HTML template.
+    template_filepath = pathlib.Path(__file__).parent / "global_report.template.html"
+    html = template_filepath.read_text().replace("%REPORTS%", combined_reports)
 
     filepath = os.path.join(output_dir, "report.html")
     pathlib.Path(filepath).write_text(html)
