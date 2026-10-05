@@ -55,7 +55,7 @@ ImageCoordinates::ImageCoordinates(Context &context,
    * needed. */
   Domain untransformed_domain = domain;
   untransformed_domain.transformation = float3x3::identity();
-  this->result.allocate_texture(domain, false);
+  this->result.allocate_texture(untransformed_domain, false);
 
   if (context.use_gpu()) {
     this->compute_gpu(context, type);
