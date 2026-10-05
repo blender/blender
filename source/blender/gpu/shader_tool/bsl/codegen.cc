@@ -1877,9 +1877,18 @@ struct CodegenContext : NodeErrorHandler {
         case ResourceType::BASE_INSTANCE:
         case ResourceType::NUM_WORK_GROUP:
         case ResourceType::INSTANCE_INDEX:
-        case ResourceType::STENCIL_REF:
-          create_info_decl += "BUILTINS(BuiltinBits::" + to_str(attr.res_type) + ")\n";
+        case ResourceType::STENCIL_REF: {
+          string res_condition_lambda = parse_condition_as_lambda(fn, arg.attributes());
+          create_info_decl += ".builtins(BuiltinBits::" + to_str(attr.res_type) +
+                              res_condition_lambda + ")\n";
           break;
+        }
+        case ResourceType::BARY_COORD: {
+          string res_condition_lambda = parse_condition_as_lambda(fn, arg.attributes());
+          create_info_decl += ".builtins(BuiltinBits::BARYCENTRIC_COORD" + res_condition_lambda +
+                              ")\n";
+          break;
+        }
         case ResourceType::FRAG_DEPTH:
           for (Attr attr : arg.attributes().children_of_type<Attr>()) {
             string_view id = attr.identifier().str();

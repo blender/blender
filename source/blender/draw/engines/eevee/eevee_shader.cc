@@ -867,9 +867,6 @@ static SlotAllocator add_pipeline_create_info(gpu::shader::ShaderCreateInfo &inf
             info.fragment_source("eevee_surf_deferred.bsl.hh");
             info.fragment_function("eevee_surf_deferred");
           }
-          /* Enable the access to `nt.crypto_hash`.
-           * Necessary workaround for static shader compilation tests. */
-          info.define("CREATE_INFO_eevee_nodetree");
           break;
         case MAT_PIPE_FORWARD:
           pipeline_info_name = "eevee_surf_forward_infos_";
@@ -1161,22 +1158,10 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   info.compilation_constant(
       gpu::shader::Type::int_t, "light_closure_count_transmit", max(1, transmit_eval_count));
 
-  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_BARYCENTRIC)) {
-    switch (geometry_type) {
-      case MAT_GEOM_MESH:
-        /* Support using gpu builtin barycentrics. */
-        info.define("USE_BARYCENTRICS");
-        info.builtins(BuiltinBits::BARYCENTRIC_COORD);
-        break;
-      case MAT_GEOM_CURVES:
-        /* Support using one float2 attribute. See #hair_get_barycentric(). */
-        info.define("USE_BARYCENTRICS");
-        break;
-      default:
-        /* No support */
-        break;
-    }
-  }
+  /* Enabling barycentric coordinate only works for triangle primitives. */
+  bool use_barycentric = GPU_material_flag_get(gpumat, GPU_MATFLAG_BARYCENTRIC) &&
+                         geometry_type == MAT_GEOM_MESH;
+  info.compilation_constant(gpu::shader::Type::bool_t, "use_barycentric", use_barycentric);
 
   /* Allow to use Reverse-Z on OpenGL. Does nothing in other backend. */
   info.builtins(BuiltinBits::CLIP_CONTROL);

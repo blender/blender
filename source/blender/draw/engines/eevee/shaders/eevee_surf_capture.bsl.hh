@@ -41,14 +41,20 @@ void surf_capture([[resource_table]] KernelGlobals &kg,
                   [[in]] const VertOutCommon &interp,
                   [[in]] [[condition(is_curves)]] const VertOutCurves &curves_interp,
                   [[in]] [[condition(is_pointcloud)]] const VertOutPointcloud &ptcloud_interp,
+                  [[bary_coord]] [[condition(use_barycentric)]] const float3 bary_co,
                   [[frag_coord]] const float4 frag_co,
                   [[front_facing]] const bool front_face)
 {
   const ViewMatrices view = views.get(0);
 
+  float3 barycentric_co = float3(0.0f);
+  if (pipe.use_barycentric) [[static_branch]] {
+    barycentric_co = bary_co;
+  }
+
   ShadingData sd = init_globals(pipe, uni, interp, view, front_face, frag_co);
   if (pipe.is_mesh) [[static_branch]] {
-    init_globals_mesh(interp, sd);
+    init_globals_mesh(interp, sd, barycentric_co);
   }
   else if (pipe.is_curves) [[static_branch]] {
     init_globals_curves(interp, curves_interp, sd, view);

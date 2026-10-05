@@ -83,6 +83,9 @@
 #  define frag_coord maybe_unused
 #  define point_coord maybe_unused
 #  define front_facing maybe_unused
+/* Builtin barycentric computation per triangle vertex.
+ * Might be emulated using geometry shaders on low-end devices. */
+#  define bary_coord maybe_unused
 
 /* Fragment shader color input index for subpass input.
  * `sampler_type` is the type of image to bind to this (e.g. usampler2DArray).

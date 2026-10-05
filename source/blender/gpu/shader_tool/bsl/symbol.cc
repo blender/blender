@@ -249,6 +249,9 @@ struct SymbolParser : NodeErrorHandler {
         case ResourceType::FRAG_COORD:
           var->identifier = "gl_FragCoord";
           break;
+        case ResourceType::BARY_COORD:
+          var->identifier = "gpu_BaryCoord";
+          break;
         case ResourceType::STENCIL_REF:
           var->identifier = "gl_FragStencilRefARB";
           break;
