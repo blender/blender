@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
-import platform
 import sys
 import subprocess
 
@@ -106,7 +105,7 @@ strip.color_multiply = 1.0001
 
         try:
             subprocess.check_output(command)
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             pass
 
 

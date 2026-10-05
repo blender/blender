@@ -4,12 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
-import importlib.util
-import platform
-import subprocess
 import sys
 from pathlib import Path
-import sys
 
 from modules import render_report
 
@@ -96,7 +92,6 @@ def main():
     report.set_pixelated(True)
     report.set_reference_dir("overlay_renders")
 
-    test_dir_name = args.testdir.name
     gpu_vendor = render_report.get_gpu_device_vendor(args.blender, args.gpu_backend)
 
     if gpu_vendor == 'INTEL':

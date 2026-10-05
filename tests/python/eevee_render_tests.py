@@ -5,8 +5,6 @@
 
 import argparse
 import os
-import pathlib
-import subprocess
 import sys
 from pathlib import Path
 try:

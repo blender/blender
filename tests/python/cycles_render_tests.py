@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
-import platform
 import os
 import shlex
 import sys
@@ -141,10 +140,9 @@ class CyclesReport(render_report.Report):
     def __init__(
         self,
         title: str,
-        test_dir_name: str,
         output_dir: Path,
         oiiotool: Path,
-        device: str | None = None,
+        device: str,
         blocklist: list[str] = [],
         osl: bool = False,
     ) -> None:
@@ -328,7 +326,7 @@ def main():
         blocklist += BLOCKLIST_HIPRT
 
     test_dir_name = args.testdir.name
-    report = CyclesReport('Cycles', test_dir_name, args.outdir, args.oiiotool, device, blocklist, args.osl == 'all')
+    report = CyclesReport('Cycles', args.outdir, args.oiiotool, device, blocklist, args.osl == 'all')
 
     # Increase threshold for motion blur, see #78777.
     #

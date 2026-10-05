@@ -27,8 +27,6 @@ from pathlib import Path
 from . import global_report
 from .colored_print import (print_message, use_message_colors)
 
-# Callback returning Blender command line arguments to render a .blend file, given the
-# .blend file path and base output file path. Report subclasses may pass extra arguments.
 ArgumentsCallback = Callable[..., list[str | Path]]
 
 
@@ -48,7 +46,7 @@ def blend_list(dirpath: Path, blocklist: list[str], filter: str) -> Iterator[Pat
         positive_patterns = positive_filter.lower().split(":") if positive_filter else []
         negative_patterns = negative_filter.lower().split(":") if negative_filter else []
 
-    for root, dirs, files in dirpath.walk():
+    for root, _dirs, files in dirpath.walk():
         for filename in files:
             filepath = root / filename
             if filepath.suffix.lower() != ".blend":
@@ -178,7 +176,7 @@ def diff_output(
                     test.stats += "Max error = {:.3f}\n".format(float(max_error.group(1)))
                 if over_threshold:
                     test.stats += over_threshold[-1]
-        except Exception as e:
+        except Exception:
             print("Error parsing oiiotool output: \n", output, "\n", traceback.format_exc())
             test.error = "STATS ERROR"
             return test
@@ -443,6 +441,7 @@ class Report:
         failed = len(failed_tests) > 0
 
         if comparison:
+            assert self.compare_engine is not None
             title = self.title + " Test Compare"
             engine_self = self.title
             engine_other = self._engine_title(*self.compare_engine)
