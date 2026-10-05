@@ -35,11 +35,15 @@ struct UniformColor {
   [[push_constant]] const float4 color;
 };
 
-struct Resources {
+struct Constants {
   [[compilation_constant]] const bool use_clipping;
   [[compilation_constant]] const bool use_color_uniform;
   [[compilation_constant]] const bool use_color_flat;
   [[compilation_constant]] const bool use_color_smooth;
+};
+
+struct Resources {
+  [[resource_table]] Constants consts;
 
   [[push_constant]] float4x4 ModelViewProjectionMatrix;
   [[push_constant]] float2 viewportSize;
@@ -90,7 +94,7 @@ struct Resources {
     }
 
     vert_in.final_color = float4(0.0f, 0.0f, 0.0f, 1.0f);
-    if (!use_color_uniform) [[static_branch]] {
+    if (!consts.use_color_uniform) [[static_branch]] {
       /* Need to support 1, 2, 3 and 4 dimensional input (sigh). */
       vert_in.final_color.x = color[gpu_attr_load_index(v_i, gpu_attr_1) + 0 + ofs];
       if (gpu_attr_1_fetch_unorm8) {
@@ -162,15 +166,15 @@ struct Resources {
                       float2 ofs) const
   {
     GeomOut geom_out;
-    if (use_color_uniform) [[static_branch]] {
+    if (consts.use_color_uniform) [[static_branch]] {
       [[resource_table]] const UniformColor &uni = uniform_col;
       geom_out.final_color = uni.color;
     }
-    if (use_color_flat) [[static_branch]] {
+    if (consts.use_color_flat) [[static_branch]] {
       /* WATCH: Assuming last provoking vertex. */
       geom_out.final_color = geom_in[1].final_color;
     }
-    if (use_color_smooth) [[static_branch]] {
+    if (consts.use_color_smooth) [[static_branch]] {
       geom_out.final_color = geom_in[i].final_color;
     }
 
@@ -273,7 +277,7 @@ struct FragOut {
                             [[in]] const VertInterp &v_out,
                             [[out]] FragOut &frag_out)
 {
-  if (srt.use_clipping) [[static_branch]] {
+  if (srt.consts.use_clipping) [[static_branch]] {
     if (v_out.clip < 0.0f) {
       gpu_discard_fragment();
     }
@@ -288,10 +292,9 @@ struct FragOut {
 
 }  // namespace builtin::polyline
 
-#ifndef GLSL_CPP_STUBS
 PipelineGraphic gpu_shader_polyline_flat_color(builtin::polyline::vert_main,
                                                builtin::polyline::frag_main,
-                                               builtin::polyline::Resources{
+                                               builtin::polyline::Constants{
                                                    .use_clipping = false,
                                                    .use_color_uniform = false,
                                                    .use_color_flat = true,
@@ -299,7 +302,7 @@ PipelineGraphic gpu_shader_polyline_flat_color(builtin::polyline::vert_main,
                                                });
 PipelineGraphic gpu_shader_polyline_smooth_color(builtin::polyline::vert_main,
                                                  builtin::polyline::frag_main,
-                                                 builtin::polyline::InputAssembly{
+                                                 builtin::polyline::Constants{
                                                      .use_clipping = false,
                                                      .use_color_uniform = false,
                                                      .use_color_flat = false,
@@ -307,7 +310,7 @@ PipelineGraphic gpu_shader_polyline_smooth_color(builtin::polyline::vert_main,
                                                  });
 PipelineGraphic gpu_shader_polyline_uniform_color(builtin::polyline::vert_main,
                                                   builtin::polyline::frag_main,
-                                                  builtin::polyline::InputAssembly{
+                                                  builtin::polyline::Constants{
                                                       .use_clipping = false,
                                                       .use_color_uniform = true,
                                                       .use_color_flat = false,
@@ -315,10 +318,9 @@ PipelineGraphic gpu_shader_polyline_uniform_color(builtin::polyline::vert_main,
                                                   });
 PipelineGraphic gpu_shader_polyline_uniform_color_clipped(builtin::polyline::vert_main,
                                                           builtin::polyline::frag_main,
-                                                          builtin::polyline::InputAssembly{
+                                                          builtin::polyline::Constants{
                                                               .use_clipping = true,
                                                               .use_color_uniform = true,
                                                               .use_color_flat = false,
                                                               .use_color_smooth = false,
                                                           });
-#endif

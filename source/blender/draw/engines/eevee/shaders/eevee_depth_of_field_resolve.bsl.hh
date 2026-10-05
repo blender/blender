@@ -184,7 +184,7 @@ void comp_main([[resource_table]] Resources &srt,
 
   if (!no_slight_focus_pass && prediction.do_slight_focus) {
     float center_coc;
-    if (accum.use_lut) [[static_branch]] {
+    if (accum.consts.use_lut) [[static_branch]] {
       accum.dof_slight_focus_gather(float2(global_id.xy) + 0.5f,
                                     srt.depth_tx,
                                     srt.color_tx,
@@ -251,19 +251,17 @@ void comp_main([[resource_table]] Resources &srt,
 
 }  // namespace eevee::dof::resolve
 
-#ifndef GLSL_CPP_STUBS
 PipelineCompute eevee_depth_of_field_resolve_lut(eevee::dof::resolve::comp_main,
-                                                 eevee::dof::Accumulator{
+                                                 eevee::dof::AccumulatorConstants{
                                                      .is_hole_fill = false,
                                                      .is_resolve = true,
                                                      .is_foreground = false,
                                                      .use_lut = true,
                                                  });
 PipelineCompute eevee_depth_of_field_resolve_no_lut(eevee::dof::resolve::comp_main,
-                                                    eevee::dof::Accumulator{
+                                                    eevee::dof::AccumulatorConstants{
                                                         .is_hole_fill = false,
                                                         .is_resolve = true,
                                                         .is_foreground = false,
                                                         .use_lut = false,
                                                     });
-#endif

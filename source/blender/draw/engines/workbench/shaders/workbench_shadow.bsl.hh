@@ -44,7 +44,14 @@ struct GeomOut {
   float4 gpu_position;
 };
 
+struct Constants {
+  [[compilation_constant]] const bool double_manifold;
+  [[compilation_constant]] const bool shadow_pass; /* shadow_fail if false. */
+};
+
 struct Resources {
+  [[resource_table]] Constants consts;
+
   [[resource_table]] IndexLoad index_load;
 
   [[resource_table]] draw::View views;
@@ -55,9 +62,6 @@ struct Resources {
 
   [[storage(3, read), frequency(GEOMETRY)]] const float (&pos)[];
   [[uniform(1)]] const ShadowPassData &pass_data;
-
-  [[compilation_constant]] const bool double_manifold;
-  [[compilation_constant]] const bool shadow_pass; /* shadow_fail if false. */
 
   VertIn input_assembly(uint in_vertex_id) const
   {
@@ -235,7 +239,7 @@ struct GeometryShaderEmulator {
       return;
     }
 
-    if (srt.double_manifold) [[static_branch]] {
+    if (srt.consts.double_manifold) [[static_branch]] {
       if (out_invocation_id != 0u && !is_manifold) {
         /* Only Increment/Decrement twice for manifold edges. */
         return;
@@ -267,7 +271,7 @@ struct GeometryShaderEmulator {
 
     bool invert = false;
     bool is_manifold = true;
-    if (srt.double_manifold) [[static_branch]] {
+    if (srt.consts.double_manifold) [[static_branch]] {
       /* In case of non manifold geom, we only increase/decrease
        * the stencil buffer by one but do every faces as they were facing the light. */
       invert = backface;
@@ -295,7 +299,7 @@ void vert_main([[resource_table]] const Resources &srt,
   constexpr uint output_primitive_count = 2u;
 
   uint output_invocation_count = 1u;
-  if (srt.double_manifold) [[static_branch]] {
+  if (srt.consts.double_manifold) [[static_branch]] {
     output_invocation_count = 2u;
   }
 
@@ -396,7 +400,7 @@ void frag_debug([[resource_table]] const Resources &srt,
 {
   constexpr float a = 0.1f;
 
-  if (srt.shadow_pass) [[static_branch]] {
+  if (srt.consts.shadow_pass) [[static_branch]] {
     frag_out.color.rgb = front_facing ? float3(a, -a, 0.0f) : float3(-a, a, 0.0f);
   }
   else {
@@ -405,21 +409,19 @@ void frag_debug([[resource_table]] const Resources &srt,
   frag_out.color.a = a;
 }
 
-#ifndef GLSL_CPP_STUBS
 /* clang-format off */
-PipelineGraphic pass_manifold_no_caps(         vert_main,      frag_main, Resources{.shadow_pass = true, .double_manifold = false});
-PipelineGraphic pass_no_manifold_no_caps(      vert_main,      frag_main, Resources{.shadow_pass = true, .double_manifold = true});
-PipelineGraphic fail_manifold_caps(            vert_main_caps, frag_main, Resources{.shadow_pass = false, .double_manifold = false});
-PipelineGraphic fail_manifold_no_caps(         vert_main,      frag_main, Resources{.shadow_pass = false, .double_manifold = false});
-PipelineGraphic fail_no_manifold_caps(         vert_main_caps, frag_main, Resources{.shadow_pass = false, .double_manifold = true});
-PipelineGraphic fail_no_manifold_no_caps(      vert_main,      frag_main, Resources{.shadow_pass = false, .double_manifold = true});
-PipelineGraphic pass_manifold_no_caps_debug(   vert_main,      frag_debug, Resources{.shadow_pass = true, .double_manifold = false});
-PipelineGraphic pass_no_manifold_no_caps_debug(vert_main,      frag_debug, Resources{.shadow_pass = true, .double_manifold = true});
-PipelineGraphic fail_manifold_caps_debug(      vert_main_caps, frag_debug, Resources{.shadow_pass = false, .double_manifold = false});
-PipelineGraphic fail_manifold_no_caps_debug(   vert_main,      frag_debug, Resources{.shadow_pass = false, .double_manifold = false});
-PipelineGraphic fail_no_manifold_caps_debug(   vert_main_caps, frag_debug, Resources{.shadow_pass = false, .double_manifold = true});
-PipelineGraphic fail_no_manifold_no_caps_debug(vert_main,      frag_debug, Resources{.shadow_pass = false, .double_manifold = true});
+PipelineGraphic pass_manifold_no_caps(         vert_main,      frag_main,  Constants{.double_manifold = false, .shadow_pass = true});
+PipelineGraphic pass_no_manifold_no_caps(      vert_main,      frag_main,  Constants{.double_manifold = true,  .shadow_pass = true});
+PipelineGraphic fail_manifold_caps(            vert_main_caps, frag_main,  Constants{.double_manifold = false, .shadow_pass = false});
+PipelineGraphic fail_manifold_no_caps(         vert_main,      frag_main,  Constants{.double_manifold = false, .shadow_pass = false});
+PipelineGraphic fail_no_manifold_caps(         vert_main_caps, frag_main,  Constants{.double_manifold = true,  .shadow_pass = false});
+PipelineGraphic fail_no_manifold_no_caps(      vert_main,      frag_main,  Constants{.double_manifold = true,  .shadow_pass = false});
+PipelineGraphic pass_manifold_no_caps_debug(   vert_main,      frag_debug, Constants{.double_manifold = false, .shadow_pass = true});
+PipelineGraphic pass_no_manifold_no_caps_debug(vert_main,      frag_debug, Constants{.double_manifold = true,  .shadow_pass = true});
+PipelineGraphic fail_manifold_caps_debug(      vert_main_caps, frag_debug, Constants{.double_manifold = false, .shadow_pass = false});
+PipelineGraphic fail_manifold_no_caps_debug(   vert_main,      frag_debug, Constants{.double_manifold = false, .shadow_pass = false});
+PipelineGraphic fail_no_manifold_caps_debug(   vert_main_caps, frag_debug, Constants{.double_manifold = true,  .shadow_pass = false});
+PipelineGraphic fail_no_manifold_no_caps_debug(vert_main,      frag_debug, Constants{.double_manifold = true,  .shadow_pass = false});
 /* clang-format on */
-#endif
 
 }  // namespace workbench::shadow
