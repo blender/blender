@@ -712,6 +712,7 @@ class VIEW3D_PT_stencil_projectpaint(Panel):
 
         tool_settings = context.tool_settings
         ipaint = tool_settings.image_paint
+        brush = ipaint.brush
         ob = context.active_object
         mesh = ob.data
 
@@ -721,15 +722,16 @@ class VIEW3D_PT_stencil_projectpaint(Panel):
         col.label(text="Stencil Image")
         col.template_ID(ipaint, "stencil_image", new="image.new", open="image.open")
 
-        stencil_text = mesh.uv_layer_stencil.name if mesh.uv_layer_stencil else ""
+        if not show_experimental_texture_paint(brush):
+            stencil_text = mesh.uv_layer_stencil.name if mesh.uv_layer_stencil else ""
 
-        col.separator()
+            col.separator()
 
-        split = col.split()
-        colsub = split.column()
-        colsub.alignment = 'RIGHT'
-        colsub.label(text="UV Layer")
-        split.column().menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
+            split = col.split()
+            colsub = split.column()
+            colsub.alignment = 'RIGHT'
+            colsub.label(text="UV Layer")
+            split.column().menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
 
         col.separator()
 
