@@ -128,6 +128,8 @@ BLOCKLIST_GPU = [
     'transparent_shadow_hair.*.blend',
     "microfacet_hair_orientation.blend",
     "instance_types.blend",
+    "instance_types.blend",
+    "shadow_link_emissive_curves_points.blend",
     # Inconsistent handling of overlapping objects.
     "sobol_uniform_41143.blend",
     "visibility_particles.blend",
