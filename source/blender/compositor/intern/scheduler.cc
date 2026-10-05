@@ -270,7 +270,6 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
                                              SocketResultFn socket_result_fn)
 {
   node_group.ensure_topology_cache();
-  bke::ComputeContextCache compute_context_cache;
   const bke::bNodeTreeZones &zones = *node_group.zones();
   const SideEffectOutputTypes needed_side_effect_output_types =
       context.needed_side_effect_output_types();
@@ -302,11 +301,11 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
 
     const ComputeContext &zone_viewer_compute_context =
         bke::compositor::get_zone_viewer_compute_context(
-            *group_node, zone, compute_context, compute_context_cache);
+            *group_node, zone, compute_context, context.compute_context_cache());
 
     const bNodeTree &child_tree = *reinterpret_cast<const bNodeTree *>(group_node->id);
     const bke::GroupNodeComputeContext &node_compute_context =
-        compute_context_cache.for_group_node(
+        context.compute_context_cache().for_group_node(
             &zone_viewer_compute_context, group_node->identifier, &group_node->owner_tree());
     const std::optional<ComputeContextHash> viewer_compute_context_hash =
         context.get_viewer_compute_context_hash();
@@ -315,7 +314,7 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
         has_viewer_node(child_tree,
                         node_compute_context,
                         viewer_compute_context_hash.value(),
-                        compute_context_cache))
+                        context.compute_context_cache()))
     {
       push_node_to_stack(*group_node);
       continue;
@@ -378,7 +377,7 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
       /* Only consider nodes in the viewer compute context. */
       const ComputeContext &zone_viewer_compute_context =
           bke::compositor::get_zone_viewer_compute_context(
-              *node, zone, compute_context, compute_context_cache);
+              *node, zone, compute_context, context.compute_context_cache());
       if (viewer_compute_context_hash.value() != zone_viewer_compute_context.hash()) {
         continue;
       }

@@ -16,6 +16,7 @@
 
 #include "BKE_camera.h"
 #include "BKE_compositor.hh"
+#include "BKE_compute_context_cache.hh"
 #include "BKE_node.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -47,15 +48,17 @@ class Context : public compositor::Context {
  private:
   const Main *main_;
   const Scene *scene_;
+  bke::ComputeContextCache compute_context_cache_;
   /* The hash of the compute context of the active viewer if one exists. */
   const std::optional<ComputeContextHash> active_compute_context_hash_;
 
  public:
   Context(compositor::StaticCacheManager &cache_manager, const Main *main, const Scene *scene)
-      : compositor::Context(cache_manager),
+      : compositor::Context(cache_manager, compute_context_cache_),
         main_(main),
         scene_(scene),
-        active_compute_context_hash_(bke::compositor::compute_viewer_compute_context_hash(*scene))
+        active_compute_context_hash_(
+            bke::compositor::compute_viewer_compute_context_hash(*scene, compute_context_cache_))
   {
   }
 

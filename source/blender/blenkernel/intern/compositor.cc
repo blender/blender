@@ -806,9 +806,9 @@ static std::optional<ComputeContextHash> compute_viewer_compute_context_hash_rec
   return std::nullopt;
 }
 
-std::optional<ComputeContextHash> compute_viewer_compute_context_hash(const Scene &scene)
+std::optional<ComputeContextHash> compute_viewer_compute_context_hash(
+    const Scene &scene, bke::ComputeContextCache &compute_context_cache)
 {
-  bke::ComputeContextCache compute_context_cache;
   const bke::DataBlockComputeContext &scene_compute_context = compute_context_cache.for_data_block(
       nullptr, scene.id);
   const SceneCompositorEffect *active_effect = get_active_effect(scene);
@@ -837,9 +837,10 @@ std::optional<ComputeContextHash> compute_viewer_compute_context_hash(const Scen
 }
 
 std::optional<ComputeContextHash> compute_viewer_compute_context_hash(
-    const Scene &scene, const bNodeTree &root_node_group)
+    const Scene &scene,
+    const bNodeTree &root_node_group,
+    bke::ComputeContextCache &compute_context_cache)
 {
-  bke::ComputeContextCache compute_context_cache;
   const bke::DataBlockComputeContext &scene_compute_context = compute_context_cache.for_data_block(
       nullptr, scene.id);
   return compute_viewer_compute_context_hash_recursive(root_node_group,

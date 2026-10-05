@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_compute_context_cache.hh"
+
 #include "COM_context.hh"
 #include "COM_node_group_operation.hh"
 #include "SEQ_render.hh"
@@ -32,6 +34,8 @@ class CompositorContext : public compositor::Context {
   const Strip *strip_ = nullptr;
   float2 result_translation_ = float2(0, 0);
 
+  bke::ComputeContextCache compute_context_cache_;
+
   /* True if GPU compute is supported and can be used, if false, we fallback to CPU. */
   bool gpu_supported_ = true;
 
@@ -39,7 +43,9 @@ class CompositorContext : public compositor::Context {
   CompositorContext(compositor::StaticCacheManager &cache_manager,
                     const RenderData &render_data,
                     const Strip &strip)
-      : compositor::Context(cache_manager), render_data_(render_data), strip_(&strip)
+      : compositor::Context(cache_manager, compute_context_cache_),
+        render_data_(render_data),
+        strip_(&strip)
   {
   }
   const Main &get_main() const override

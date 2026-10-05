@@ -9,6 +9,7 @@
 #include "BLI_resource_scope.hh"
 
 #include "BKE_compositor.hh"
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_idprop.hh"
 #include "BKE_node_runtime.hh"
@@ -66,7 +67,7 @@ class CompositorEffectContext : public CompositorContext {
         output_(output),
         factor_(factor),
         viewer_compute_context_hash_(bke::compositor::compute_viewer_compute_context_hash(
-            *render_data_.scene, *node_group_))
+            *render_data_.scene, *node_group_, compute_context_cache_))
   {
   }
 

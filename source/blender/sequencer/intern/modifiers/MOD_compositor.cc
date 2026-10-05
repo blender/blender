@@ -100,7 +100,7 @@ class CompositorModifierContext : public CompositorContext {
         mask_(*this, compositor::ResultType::Color, compositor::ResultPrecision::Full),
         timeline_frame_(mod_context.timeline_frame),
         viewer_compute_context_hash_(bke::compositor::compute_viewer_compute_context_hash(
-            *render_data_.scene, *modifier_data_->node_group))
+            *render_data_.scene, *modifier_data_->node_group, compute_context_cache_))
   {
     PointerRNA ptr = RNA_pointer_create_discrete(
         &mod_context.render_data.scene->id, RNA_SequencerCompositorModifierData, modifier_data);

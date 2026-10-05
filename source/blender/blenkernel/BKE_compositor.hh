@@ -221,9 +221,12 @@ const ComputeContext &get_zone_viewer_compute_context(
 
 /* Computes the hash of the compute context of the active viewer node. If no active viewer node
  * exists, a nullopt is returned. */
-std::optional<ComputeContextHash> compute_viewer_compute_context_hash(const Scene &scene);
 std::optional<ComputeContextHash> compute_viewer_compute_context_hash(
-    const Scene &scene, const bNodeTree &root_node_group);
+    const Scene &scene, bke::ComputeContextCache &compute_context_cache);
+std::optional<ComputeContextHash> compute_viewer_compute_context_hash(
+    const Scene &scene,
+    const bNodeTree &root_node_group,
+    bke::ComputeContextCache &compute_context_cache);
 
 }  // namespace bke::compositor
 }  // namespace blender

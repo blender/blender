@@ -20,6 +20,7 @@
 #include "DNA_node_types.h"
 
 #include "BKE_compositor.hh"
+#include "BKE_compute_context_cache.hh"
 #include "BKE_cryptomatte.hh"
 #include "BKE_global.hh"
 #include "BKE_image.hh"
@@ -68,6 +69,7 @@ class Context : public compositor::Context {
  private:
   /* Input data. */
   CompositorInputData input_data_;
+  bke::ComputeContextCache compute_context_cache_;
   /* The hash of the compute context of the active viewer if one exists. */
   const std::optional<ComputeContextHash> viewer_compute_context_hash_;
 
@@ -82,10 +84,10 @@ class Context : public compositor::Context {
 
  public:
   Context(compositor::StaticCacheManager &cache_manager, const CompositorInputData &input_data)
-      : compositor::Context(cache_manager),
+      : compositor::Context(cache_manager, compute_context_cache_),
         input_data_(input_data),
-        viewer_compute_context_hash_(
-            bke::compositor::compute_viewer_compute_context_hash(input_data_.scene))
+        viewer_compute_context_hash_(bke::compositor::compute_viewer_compute_context_hash(
+            input_data_.scene, compute_context_cache_))
   {
   }
 
