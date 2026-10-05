@@ -6,11 +6,14 @@
  * \ingroup edinterface
  */
 
+#include <cmath>
+
 #include <fmt/format.h>
 
 #include "BLI_fileops.hh"
 #include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
+#include "BLI_set.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
 
@@ -143,40 +146,111 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
   }
 }
 
-int template_recent_files(Layout *layout, int rows)
+struct RecentFilesList {
+  Vector<std::string> project_files;
+  Vector<std::string> other_files;
+};
+
+static RecentFilesList recent_files_get(const std::optional<std::string> &project_root,
+                                        const int rows,
+                                        const int project_rows)
 {
-  int i = 0;
-  for (RecentFile &recent : G.recent_files) {
-    if (i >= rows) {
-      break;
+  /* In a project, reserve rows for the most recent project files. */
+  Set<const RecentFile *> shown;
+  if (project_root) {
+    for (const RecentFile &recent : G.recent_files) {
+      if (shown.size() >= project_rows) {
+        break;
+      }
+      if (BLI_path_contains(project_root->c_str(), recent.filepath)) {
+        shown.add(&recent);
+      }
     }
-
-    const char *filename = BLI_path_basename(recent.filepath);
-    PointerRNA ptr = layout->op("WM_OT_open_mainfile",
-                                filename,
-                                BKE_blendfile_extension_check(filename) ? ICON_FILE_BLEND :
-                                                                          ICON_FILE_BACKUP,
-                                wm::OpCallContext::InvokeDefault,
-                                UI_ITEM_NONE);
-    RNA_string_set(&ptr, "filepath", recent.filepath);
-    RNA_boolean_set(&ptr, "display_file_selector", false);
-    RNA_boolean_set(&ptr,
-                    "use_scripts",
-                    BKE_autoexec_default_trust_source(recent.filepath,
-                                                      {
-                                                          .skip_overrides = false,
-                                                          .canonicalize = true,
-                                                          .strip_filename = true,
-                                                      }));
-
-    Block *block = layout->block();
-    Button *but = button_last(block);
-    button_func_tooltip_custom_set(
-        but, template_recent_files_tooltip_func, BLI_strdup(recent.filepath), MEM_delete_void);
-    i++;
   }
 
-  return i;
+  /* Fill remaining rows with the most recent other files, in the project or not. */
+  int64_t remaining = rows - shown.size();
+  for (const RecentFile &recent : G.recent_files) {
+    if (remaining <= 0) {
+      break;
+    }
+    if (shown.add(&recent)) {
+      remaining--;
+    }
+  }
+
+  /* Project files first, each group most recent first. */
+  RecentFilesList list;
+  for (const RecentFile &recent : G.recent_files) {
+    if (!shown.contains(&recent)) {
+      continue;
+    }
+    if (project_root && BLI_path_contains(project_root->c_str(), recent.filepath)) {
+      list.project_files.append(recent.filepath);
+    }
+    else {
+      list.other_files.append(recent.filepath);
+    }
+  }
+  return list;
+}
+
+static void template_recent_file(Layout *layout, const std::string &filepath)
+{
+  const char *filename = BLI_path_basename(filepath.c_str());
+  PointerRNA ptr = layout->op("WM_OT_open_mainfile",
+                              filename,
+                              BKE_blendfile_extension_check(filename) ? ICON_FILE_BLEND :
+                                                                        ICON_FILE_BACKUP,
+                              wm::OpCallContext::InvokeDefault,
+                              UI_ITEM_NONE);
+  RNA_string_set(&ptr, "filepath", filepath.c_str());
+  RNA_boolean_set(&ptr, "display_file_selector", false);
+  RNA_boolean_set(&ptr,
+                  "use_scripts",
+                  BKE_autoexec_default_trust_source(filepath.c_str(),
+                                                    {
+                                                        .skip_overrides = false,
+                                                        .canonicalize = true,
+                                                        .strip_filename = true,
+                                                    }));
+
+  Block *block = layout->block();
+  Button *but = button_last(block);
+  button_func_tooltip_custom_set(
+      but, template_recent_files_tooltip_func, BLI_strdup(filepath.c_str()), MEM_delete_void);
+}
+
+int template_recent_files(Layout *layout,
+                          int rows,
+                          const RecentFilesFilter filter,
+                          const float project_ratio)
+{
+  const std::optional<std::string> project_root = BKE_blender_project_read_callback(
+      G_MAIN, [](const bke::BlenderProject *project) -> std::optional<std::string> {
+        if (project == nullptr) {
+          return std::nullopt;
+        }
+        return project->get_root_path();
+      });
+
+  const int project_rows = int(std::ceil(rows * project_ratio));
+  const RecentFilesList list = recent_files_get(project_root, rows, project_rows);
+
+  int found = 0;
+  if (filter != RecentFilesFilter::Other) {
+    for (const std::string &filepath : list.project_files) {
+      template_recent_file(layout, filepath);
+      found++;
+    }
+  }
+  if (filter != RecentFilesFilter::Project) {
+    for (const std::string &filepath : list.other_files) {
+      template_recent_file(layout, filepath);
+      found++;
+    }
+  }
+  return found;
 }
 
 static void template_recent_projects_tooltip_func(bContext & /*C*/,

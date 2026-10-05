@@ -2836,7 +2836,15 @@ void template_colormanaged_view_settings(Layout *layout,
                                          PointerRNA *ptr,
                                          StringRefNull propname);
 
-int template_recent_files(Layout *layout, int rows);
+enum class RecentFilesFilter : int8_t {
+  All,
+  Project, /**< Files in the active project. */
+  Other,   /**< Files not in the active project. */
+};
+int template_recent_files(Layout *layout,
+                          int rows,
+                          RecentFilesFilter filter = RecentFilesFilter::All,
+                          float project_ratio = 0.5f);
 int template_recent_projects(Layout *layout, int rows);
 void template_file_select_path(Layout *layout, bContext *C, FileSelectParams *params);
 
