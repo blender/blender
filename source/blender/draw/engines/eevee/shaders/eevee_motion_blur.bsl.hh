@@ -139,10 +139,10 @@ void flatten_comp([[resource_table]] Resources<velocity_format> &srt,
   float2 uv = (float2(texel) + 0.5f) / render_size;
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel, 0).r);
   float4 motion = cam_vel.resolve(views, imageLoad(srt.velocity_img, texel), uv, depth);
-#ifdef FLATTEN_RG
-  /* imageLoad does not perform the swizzling like sampler does. Do it manually. */
-  motion = motion.xyxy;
-#endif
+  if constexpr (velocity_format == SFLOAT_16_16) {
+    /* imageLoad does not perform the swizzling like sampler does. Do it manually. */
+    motion = motion.xyxy;
+  }
 
   /* Store resolved velocity to speedup the gather pass. Out of bounds writes are ignored.
    * Unfortunately, we cannot convert to pixel space here since it is also used by TAA and the
