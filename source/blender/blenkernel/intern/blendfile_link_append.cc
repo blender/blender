@@ -1125,17 +1125,19 @@ void BKE_blendfile_link_pack(BlendfileLinkAppendContext *lapp_context, ReportLis
     BLI_assert(ID_IS_LINKED(id));
     if (!(ID_IS_PACKED(id) || (id->newid && ID_IS_PACKED(id->newid)))) {
       /* No yet packed. */
-      bke::library::pack_linked_id_hierarchy(*bmain, *id);
+      Set<ID *> ids_to_pack = bke::library::pack_linked_id_hierarchy(*bmain, *id);
+
+      /* If packing failed for a linked ID, do not delete its linked version. */
+      for (ID *id_iter : ids_to_pack) {
+        if (!id_iter->newid || !ID_IS_PACKED(id_iter->newid)) {
+          linked_ids_to_delete.remove(id_iter);
+        }
+      }
     }
     /* Calling code may want to access newly packed embedded IDs from the link/append context
      * items. */
     if (id->newid) {
       BKE_blendfile_link_append_context_item_newid_set(lapp_context, &item, id->newid);
-    }
-
-    /* If packing failed for a linked ID, do not delete its linked version. */
-    if (!ID_IS_PACKED(item.new_id) && linked_ids_to_delete.contains(id)) {
-      linked_ids_to_delete.remove(id);
     }
   }
   BKE_main_id_newptr_and_tag_clear(bmain);
