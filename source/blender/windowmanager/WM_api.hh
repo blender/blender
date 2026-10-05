@@ -172,7 +172,7 @@ void WM_main(bContext *C) ATTR_NORETURN;
  */
 void WM_init_splash_on_startup(bContext *C);
 /**
- * Open the project that was open on exit, if preference is enabeld.
+ * Open the project that was open on exit, if preference is enabled.
  */
 void WM_init_project_on_startup(bContext *C);
 /**

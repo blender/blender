@@ -972,8 +972,7 @@ struct UserDef {
                          USER_DUP_CAMERA | USER_DUP_SPEAKER | USER_DUP_ACT | USER_DUP_LIGHTPROBE |
                          USER_DUP_GPENCIL | USER_DUP_CURVES | USER_DUP_POINTCLOUD;
   /** Preferences for the preferences. */
-  eUserPref_PrefFlag pref_flag = USER_PREF_FLAG_SAVE | USER_PREF_FLAG_PROJECT_SAVE |
-                                 USER_PREF_FLAG_PROJECT_REMEMBER;
+  eUserPref_PrefFlag pref_flag = USER_PREF_FLAG_SAVE | USER_PREF_FLAG_PROJECT_SAVE;
   char savetime = 2;
   eUserpref_EmulateMMBMod mouse_emulate_3_button_modifier = {};
   /**

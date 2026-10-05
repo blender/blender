@@ -271,6 +271,11 @@ int template_recent_projects(Layout *layout, int rows)
 {
   wmOperatorType *ot = WM_operatortype_find("PROJECT_OT_open", false);
 
+  const std::string active_path = BKE_blender_project_read_callback(
+      G_MAIN, [](const bke::BlenderProject *project) -> std::string {
+        return project ? project->get_root_path() : "";
+      });
+
   int i = 0;
   for (const RecentProject &project : BKE_blender_project_recent_get()) {
     if (i >= rows) {
@@ -278,8 +283,14 @@ int template_recent_projects(Layout *layout, int rows)
     }
 
     if (ot) {
-      PointerRNA ptr = layout->op(
-          ot, project.name, ICON_PROJECT, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
+      const bool is_active = !active_path.empty() &&
+                             BLI_path_cmp_normalized(project.path.c_str(), active_path.c_str()) ==
+                                 0;
+      PointerRNA ptr = layout->op(ot,
+                                  project.name,
+                                  is_active ? ICON_PROJECT : ICON_NONE,
+                                  wm::OpCallContext::InvokeDefault,
+                                  UI_ITEM_NONE);
       RNA_string_set(&ptr, "directory", project.path.c_str());
 
       Block *block = layout->block();
@@ -288,6 +299,9 @@ int template_recent_projects(Layout *layout, int rows)
                                      template_recent_projects_tooltip_func,
                                      BLI_strdup(project.path.c_str()),
                                      MEM_delete_void);
+      if (is_active) {
+        button_disable(but, TIP_("Project is already open"));
+      }
     }
     else {
       layout->label(project.name, ICON_NONE);

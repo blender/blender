@@ -229,7 +229,8 @@ static int recent_files_menu_list(const bContext *C, ui::Layout &layout, const i
     if (found_project) {
       other_title.separator();
     }
-    recent_files_menu_label(other_title, IFACE_("More Recent Files"));
+    recent_files_menu_label(other_title,
+                            found_project ? IFACE_("Other Recent Files") : IFACE_("Recent Files"));
   }
 
   return found_project + found_other;
