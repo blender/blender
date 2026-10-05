@@ -3326,14 +3326,12 @@ static brushes::CursorSampleResult calc_brush_node_mask(const Depsgraph &depsgra
     if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
       /* Calculate sculpt normal from a estimate of the surface normal. */
 
-      /* TODO: Test to see if we need to pass in math::square(ss.cache->radius *
-       * std::numbers::sqrt2) as the radius_sq param in gather_nodes, as in
-       * clay_strips::calc_node_mask. */
+      const float initial_radius = math::square(ss.cache->radius * std::numbers::sqrt3);
       const IndexMask initial_node_mask = gather_nodes(pbvh,
                                                        eBrushFalloffShape(brush.falloff_shape),
                                                        use_original,
                                                        ss.cache->location_symm,
-                                                       M_SQRT3,
+                                                       initial_radius,
                                                        ss.cache->view_normal_symm,
                                                        memory);
       tip_normal = calc_sculpt_normal(depsgraph, sd, ob, initial_node_mask);
