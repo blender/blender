@@ -128,7 +128,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
     build_viewport_state(shaders_info);
     build_rasterization_state(shaders_info, extensions);
     build_depth_stencil_state(shaders_info);
-    build_dynamic_rendering_shaders_lib(extensions, shaders_info.max_input_attachment_index);
+    build_dynamic_rendering_shaders_lib(extensions, shaders_info);
   }
 
   /**
@@ -578,24 +578,25 @@ struct VKGraphicsPipelineCreateInfoBuilder {
   }
 
   /* Shaders lib only requires the view-mask to be set. When dynamic rendering local read is
-   * used and the shader declares input attachments, we must set colorAttachmentCount to cover
-   * the input attachment indices and provide VkRenderingInputAttachmentIndexInfo to satisfy the
-   * VUID-VkGraphicsPipelineCreateInfo-renderPass-09652 constraint. */
+   * used and the shader declares input attachments, the render pass color attachment count
+   * must be declared and VkRenderingInputAttachmentIndexInfo provided. The count must equal
+   * the fragment output library's VkPipelineRenderingCreateInfo::colorAttachmentCount
+   * (VUID-VkGraphicsPipelineCreateInfo-renderPass-09531). */
   void build_dynamic_rendering_shaders_lib(const VKExtensions &extensions,
-                                           uint32_t max_input_attachment_index)
+                                           const VKGraphicsInfo::Shaders &shaders_info)
   {
     vk_pipeline_rendering_create_info = {VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
-    if (extensions.dynamic_rendering_local_read && max_input_attachment_index > 0) {
-      vk_pipeline_rendering_create_info.colorAttachmentCount = max_input_attachment_index + 1;
-      dummy_color_attachment_formats_.resize(max_input_attachment_index + 1, VK_FORMAT_UNDEFINED);
+    if (extensions.dynamic_rendering_local_read && shaders_info.max_input_attachment_index > 0) {
+      const uint32_t color_attachment_count = shaders_info.color_attachment_count;
+      vk_pipeline_rendering_create_info.colorAttachmentCount = color_attachment_count;
+      dummy_color_attachment_formats_.resize(color_attachment_count, VK_FORMAT_UNDEFINED);
       vk_pipeline_rendering_create_info.pColorAttachmentFormats =
           dummy_color_attachment_formats_.data();
 
       vk_rendering_input_attachment_index_info_ = {};
       vk_rendering_input_attachment_index_info_.sType =
           VK_STRUCTURE_TYPE_RENDERING_INPUT_ATTACHMENT_INDEX_INFO;
-      vk_rendering_input_attachment_index_info_.colorAttachmentCount = max_input_attachment_index +
-                                                                       1;
+      vk_rendering_input_attachment_index_info_.colorAttachmentCount = color_attachment_count;
       vk_pipeline_rendering_create_info.pNext = &vk_rendering_input_attachment_index_info_;
     }
   }
