@@ -7,7 +7,7 @@
 from pathlib import Path
 
 
-def _write_html(output_dir):
+def _write_html(output_dir: Path) -> None:
     combined_reports = ""
 
     # Gather intermediate data for all tests and combine into one HTML file.
@@ -28,7 +28,13 @@ def _write_html(output_dir):
     (output_dir / "report.html").write_text(html)
 
 
-def add(output_dir, category, name, filepath, failed=None):
+def add(
+    output_dir: Path | str,
+    category: str,
+    name: str,
+    filepath: Path | str,
+    failed: bool | None = None,
+) -> None:
     # Write HTML for single test.
     if failed is None:
         status = "none"

@@ -108,7 +108,7 @@ if inside_blender:
         sys.exit(1)
 
 
-def get_arguments(filepath, output_filepath):
+def get_arguments(filepath: Path, output_filepath: Path) -> list[str | Path]:
     args = [
         "--background",
         "--factory-startup",

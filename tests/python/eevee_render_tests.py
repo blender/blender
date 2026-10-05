@@ -14,11 +14,23 @@ try:
     from modules import render_report
 
     class EEVEEReport(render_report.Report):
-        def __init__(self, title, output_dir, oiiotool, variation=None, blocklist=[]):
+        def __init__(
+            self,
+            title: str,
+            output_dir: Path,
+            oiiotool: Path,
+            variation: str | None = None,
+            blocklist: list[str] = [],
+        ) -> None:
             super().__init__(title, output_dir, oiiotool, variation=variation, blocklist=blocklist)
             self.gpu_backend = variation
 
-        def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
+        def _get_render_arguments(
+            self,
+            arguments_cb: render_report.ArgumentsCallback,
+            filepath: Path,
+            base_output_filepath: Path,
+        ) -> list[str | Path]:
             return arguments_cb(filepath, base_output_filepath, gpu_backend=self.gpu_backend)
 
 except ImportError:
@@ -309,8 +321,12 @@ if inside_blender:
         sys.exit(1)
 
 
-def get_arguments(filepath, output_filepath, gpu_backend):
-    arguments = [
+def get_arguments(
+    filepath: Path,
+    output_filepath: Path,
+    gpu_backend: str | None,
+) -> list[str | Path]:
+    arguments: list[str | Path] = [
         "--background",
         "--factory-startup",
         "--enable-autoexec",

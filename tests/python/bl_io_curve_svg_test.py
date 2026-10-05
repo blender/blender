@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 
-def get_arguments(filepath, output_filepath):
+def get_arguments(filepath: Path, output_filepath: Path) -> list[str | Path]:
     basedir = filepath.parent.parent
 
     args = [

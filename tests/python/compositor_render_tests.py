@@ -17,12 +17,12 @@ except ImportError:
     inside_blender = False
 
 
-def get_compositor_device_setter_script(execution_device):
+def get_compositor_device_setter_script(execution_device: str) -> str:
     return f"import bpy; bpy.data.scenes[0].render.compositor_device = '{execution_device}'"
 
 
-def get_arguments(filepath, output_filepath, backend):
-    arguments = [
+def get_arguments(filepath: Path, output_filepath: Path, backend: str) -> list[str | Path]:
+    arguments: list[str | Path] = [
         "--background",
         "--factory-startup",
         "--enable-autoexec",
@@ -92,7 +92,8 @@ def main():
         report.set_fail_threshold(0.06)
         report.set_fail_percent(2)
 
-    def arguments_callback(filepath, output_filepath): return get_arguments(filepath, output_filepath, backend)
+    def arguments_callback(filepath: Path, output_filepath: Path) -> list[str | Path]:
+        return get_arguments(filepath, output_filepath, backend)
     ok = report.run(args.testdir, args.blender, arguments_callback, batch=args.batch)
 
     sys.exit(not ok)

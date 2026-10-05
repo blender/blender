@@ -18,13 +18,21 @@ import traceback
 import re
 import json
 
+from collections.abc import (
+    Callable,
+    Iterator,
+)
 from pathlib import Path
 
 from . import global_report
 from .colored_print import (print_message, use_message_colors)
 
+# Callback returning Blender command line arguments to render a .blend file, given the
+# .blend file path and base output file path. Report subclasses may pass extra arguments.
+ArgumentsCallback = Callable[..., list[str | Path]]
 
-def blend_list(dirpath, blocklist, filter):
+
+def blend_list(dirpath: Path, blocklist: list[str], filter: str) -> Iterator[Path]:
     import re
 
     positive_patterns = []
@@ -74,11 +82,17 @@ def blend_list(dirpath, blocklist, filter):
                 yield filepath
 
 
-def test_get_name(filepath):
+def test_get_name(filepath: Path) -> str:
     return filepath.stem
 
 
-def test_get_images(output_dir, filepath, testname, reference_dir, reference_override_dir):
+def test_get_images(
+    output_dir: Path,
+    filepath: Path,
+    testname: str,
+    reference_dir: str,
+    reference_override_dir: str | None,
+) -> tuple[Path, Path, Path, Path, Path]:
     dirpath = filepath.parent
 
     old_img = dirpath / reference_dir / (testname + ".png")
@@ -106,18 +120,25 @@ def test_get_images(output_dir, filepath, testname, reference_dir, reference_ove
 
 
 class TestResult:
-    def __init__(self, report, filepath, name):
+    def __init__(self, report: "Report", filepath: Path, name: str) -> None:
         self.filepath = filepath
         self.name = name
-        self.error = None
-        self.stats = None
+        self.error: str | None = None
+        self.stats: str | None = None
         self.tmp_out_img_base = report.output_dir / ("tmp_" + name)
         self.tmp_out_img = report.output_dir / ("tmp_" + name + "0001.png")
         self.old_img, self.ref_img, self.new_img, self.diff_color_img, self.diff_alpha_img = test_get_images(
             report.output_dir, filepath, name, report.reference_dir, report.reference_override_dir)
 
 
-def diff_output(test, oiiotool, fail_threshold, fail_percent, verbose, update):
+def diff_output(
+    test: TestResult,
+    oiiotool: Path,
+    fail_threshold: float,
+    fail_percent: float,
+    verbose: bool,
+    update: bool,
+) -> TestResult:
     # Create reference render directory.
     test.old_img.parent.mkdir(parents=True, exist_ok=True)
 
@@ -222,7 +243,7 @@ def diff_output(test, oiiotool, fail_threshold, fail_percent, verbose, update):
     return test
 
 
-def get_gpu_device_info(blender, gpu_backend):
+def get_gpu_device_info(blender: Path, gpu_backend: str) -> dict[str, str]:
     command = [
         blender,
         "--background",
@@ -238,11 +259,11 @@ def get_gpu_device_info(blender, gpu_backend):
     return json.loads(info)
 
 
-def get_gpu_device_vendor(blender, gpu_backend):
+def get_gpu_device_vendor(blender: Path, gpu_backend: str) -> str:
     return get_gpu_device_info(blender, gpu_backend)["DEVICE_TYPE"]
 
 
-def get_gpu_device_ray_queries_support(blender, gpu_backend):
+def get_gpu_device_ray_queries_support(blender: Path, gpu_backend: str) -> bool:
     command = [
         blender,
         "--background",
@@ -279,19 +300,26 @@ class Report:
         'blocklist',
     )
 
-    def __init__(self, title, output_dir, oiiotool, variation=None, blocklist=[]):
+    def __init__(
+        self,
+        title: str,
+        output_dir: Path,
+        oiiotool: Path,
+        variation: str | None = None,
+        blocklist: list[str] = [],
+    ) -> None:
         self.title = title
 
         self.output_dir = output_dir.resolve()
         self.global_dir = self.output_dir.parent
 
         self.reference_dir = 'reference_renders'
-        self.reference_override_dir = None
+        self.reference_override_dir: str | None = None
         self.test_name_suffix = ""
         self.oiiotool = oiiotool
-        self.compare_engine = None
+        self.compare_engine: tuple[str, str | None] | None = None
         self.fail_threshold = 0.016
-        self.fail_percent = 1
+        self.fail_percent: float = 1
         self.engine_name = self.title.lower().replace(" ", "_")
         self.blocklist = [] if os.getenv('BLENDER_TEST_IGNORE_BLOCKLIST') is not None else blocklist
 
@@ -313,31 +341,38 @@ class Report:
 
         output_dir.mkdir(parents=True, exist_ok=True)
 
-    def set_pixelated(self, pixelated):
+    def set_pixelated(self, pixelated: bool) -> None:
         self.pixelated = pixelated
 
-    def set_fail_threshold(self, threshold):
+    def set_fail_threshold(self, threshold: float) -> None:
         self.fail_threshold = threshold
 
-    def set_fail_percent(self, percent):
+    def set_fail_percent(self, percent: float) -> None:
         self.fail_percent = percent
 
-    def set_reference_dir(self, reference_dir):
+    def set_reference_dir(self, reference_dir: str) -> None:
         self.reference_dir = reference_dir
 
-    def set_reference_override_dir(self, reference_override_dir):
+    def set_reference_override_dir(self, reference_override_dir: str) -> None:
         self.reference_override_dir = reference_override_dir
 
-    def set_compare_engine(self, other_engine, other_variation=None):
+    def set_compare_engine(self, other_engine: str, other_variation: str | None = None) -> None:
         self.compare_engine = (other_engine, other_variation)
 
-    def set_engine_name(self, engine_name):
+    def set_engine_name(self, engine_name: str) -> None:
         self.engine_name = engine_name
 
-    def set_test_name_suffix(self, suffix):
+    def set_test_name_suffix(self, suffix: str) -> None:
         self.test_name_suffix = suffix
 
-    def run(self, dirpath, blender, arguments_cb, batch=False, fail_silently=False):
+    def run(
+        self,
+        dirpath: Path,
+        blender: Path,
+        arguments_cb: ArgumentsCallback,
+        batch: bool = False,
+        fail_silently: bool = False,
+    ) -> bool:
         # Run tests and output report.
         dirname = dirpath.name
         ok = self._run_all_tests(dirname, dirpath, blender, arguments_cb, batch, fail_silently)
@@ -347,7 +382,7 @@ class Report:
             self._write_html(comparison=True)
         return ok
 
-    def _write_data(self, dirname):
+    def _write_data(self, dirname: str) -> None:
         # Write intermediate data for single test.
         outdir = self.output_dir / dirname
         outdir.mkdir(parents=True, exist_ok=True)
@@ -357,26 +392,26 @@ class Report:
         if self.compare_engine:
             (outdir / "compare.data").write_text(self.compare_tests)
 
-    def _navigation_item(self, title, href, active):
+    def _navigation_item(self, title: str, href: str, active: bool) -> str:
         if active:
             return """<li class="breadcrumb-item active" aria-current="page">%s</li>""" % title
         else:
             return """<li class="breadcrumb-item"><a href="%s">%s</a></li>""" % (href, title)
 
-    def _engine_title(self, engine, variation):
+    def _engine_title(self, engine: str, variation: str | None) -> str:
         if variation:
             return engine.title() + ' ' + variation
         else:
             return engine.title()
 
-    def _engine_path(self, path, variation):
+    def _engine_path(self, path: Path | str, variation: str | None) -> Path:
         if variation:
             variation = variation.replace(' ', '_')
             return Path(path) / variation.lower()
         else:
             return Path(path)
 
-    def _navigation_html(self, comparison):
+    def _navigation_html(self, comparison: bool) -> str:
         html = """<nav aria-label="breadcrumb"><ol class="breadcrumb">"""
         global_report_url = self._relative_url(self.global_dir / "report.html")
         html += self._navigation_item("Test Reports", global_report_url, False)
@@ -388,7 +423,7 @@ class Report:
 
         return html
 
-    def _write_html(self, comparison=False):
+    def _write_html(self, comparison: bool = False) -> None:
         # Gather intermediate data for all tests.
         if comparison:
             failed_data = []
@@ -442,10 +477,10 @@ class Report:
             global_failed = failed if not comparison else None
             global_report.add(self.global_dir, "Render", self.title, filepath, global_failed)
 
-    def _relative_url(self, filepath):
+    def _relative_url(self, filepath: Path) -> str:
         return filepath.relative_to(self.output_dir, walk_up=True).as_posix()
 
-    def _write_test_html(self, test_category, test_result):
+    def _write_test_html(self, test_category: str, test_result: TestResult) -> None:
         name = test_result.name + self.test_name_suffix
         result_attr = test_result.error or ""
 
@@ -493,13 +528,18 @@ class Report:
 
             self.compare_tests += test_html
 
-    def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
+    def _get_render_arguments(
+        self,
+        arguments_cb: ArgumentsCallback,
+        filepath: Path,
+        base_output_filepath: Path,
+    ) -> list[str | Path]:
         # Each render test can override this method to provide extra functionality.
         # See Cycles render tests for an example.
         # Do not delete.
         return arguments_cb(filepath, base_output_filepath)
 
-    def _get_arguments_suffix(self):
+    def _get_arguments_suffix(self) -> list[str]:
         # Get command line arguments that need to be provided after all file-specific ones.
         # For example the Cycles render device argument needs to be added at the end of
         # the argument list, otherwise tests can't be batched together.
@@ -507,7 +547,7 @@ class Report:
         # Each render test is supposed to override this method.
         return []
 
-    def _get_filepath_tests(self, filepath):
+    def _get_filepath_tests(self, filepath: Path) -> list[TestResult]:
         list_filepath = filepath.with_name(filepath.stem + "_permutations.txt")
         if list_filepath.exists():
             with open(list_filepath, 'r') as file:
@@ -516,7 +556,13 @@ class Report:
             testname = test_get_name(filepath)
             return [TestResult(self, filepath, testname)]
 
-    def _run_tests(self, filepaths, blender, arguments_cb, batch):
+    def _run_tests(
+        self,
+        filepaths: list[Path],
+        blender: Path,
+        arguments_cb: ArgumentsCallback,
+        batch: bool,
+    ) -> list[TestResult]:
         # Run multiple tests in a single Blender process since startup can be
         # a significant factor. In case of crashes, re-run the remaining tests.
         verbose = os.environ.get("BLENDER_VERBOSE") is not None
@@ -526,7 +572,7 @@ class Report:
         arguments_suffix = self._get_arguments_suffix()
 
         while len(remaining_filepaths) > 0:
-            command = [blender]
+            command: list[str | Path] = [blender]
             running_tests = []
 
             # On Windows, there is a maximum length of 32,767 characters (including the terminating null character)
@@ -575,7 +621,7 @@ class Report:
                 crash = True
 
             if verbose:
-                def quote_expr_args(cmd):
+                def quote_expr_args(cmd: list[str | Path]) -> list[str]:
                     quoted = []
                     quote_next = False
                     for arg in cmd:
@@ -638,7 +684,7 @@ class Report:
 
         return test_results
 
-    def postprocess_test(self, blender, test):
+    def postprocess_test(self, blender: Path, test: TestResult) -> None:
         """
         Post-process test result after the Blender has run.
         For example, this function is where conversion from video to a still image suitable for image diffing.
@@ -646,7 +692,15 @@ class Report:
 
         pass
 
-    def _run_all_tests(self, dirname, dirpath, blender, arguments_cb, batch, fail_silently):
+    def _run_all_tests(
+        self,
+        dirname: str,
+        dirpath: Path,
+        blender: Path,
+        arguments_cb: ArgumentsCallback,
+        batch: bool,
+        fail_silently: bool,
+    ) -> bool:
         if self.filter:
             print_message(f"Note: Blender Test filter = {self.filter}", type='WARNING', status="RAW")
 

@@ -15,16 +15,32 @@ from modules import render_report
 
 
 class OverlayReport(render_report.Report):
-    def __init__(self, title, output_dir, oiiotool, variation=None, blocklist=[]):
+    def __init__(
+        self,
+        title: str,
+        output_dir: Path,
+        oiiotool: Path,
+        variation: str | None = None,
+        blocklist: list[str] = [],
+    ) -> None:
         super().__init__(title, output_dir, oiiotool, variation=variation, blocklist=blocklist)
         self.gpu_backend = variation
 
-    def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
+    def _get_render_arguments(
+        self,
+        arguments_cb: render_report.ArgumentsCallback,
+        filepath: Path,
+        base_output_filepath: Path,
+    ) -> list[str | Path]:
         return arguments_cb(filepath, base_output_filepath, gpu_backend=self.gpu_backend)
 
 
-def get_arguments(filepath, output_filepath, gpu_backend):
-    arguments = [
+def get_arguments(
+    filepath: Path,
+    output_filepath: Path,
+    gpu_backend: str | None,
+) -> list[str | Path]:
+    arguments: list[str | Path] = [
         "--no-window-focus",
         "--window-geometry",
         "0", "0", "128", "128",
@@ -40,7 +56,7 @@ def get_arguments(filepath, output_filepath, gpu_backend):
         arguments.extend(["--gpu-backend", gpu_backend, "--debug-gpu-backend-no-fallback"])
 
     # Windows separators get messed up when passing them inside the python expression
-    output_filepath = output_filepath.as_posix()
+    output_filepath_posix = output_filepath.as_posix()
 
     script_dir = Path(__file__).resolve().parent / "overlay"
     script_filepath = script_dir / (filepath.stem + ".py")
@@ -48,7 +64,7 @@ def get_arguments(filepath, output_filepath, gpu_backend):
     arguments.extend([
         filepath,
         "--python-expr",
-        f'import bpy; bpy.context.scene.render.filepath = "{output_filepath}"',
+        f'import bpy; bpy.context.scene.render.filepath = "{output_filepath_posix}"',
         "-P",
         script_filepath])
 

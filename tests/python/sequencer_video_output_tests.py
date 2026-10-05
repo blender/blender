@@ -12,7 +12,7 @@ from pathlib import Path
 from modules import render_report
 
 
-def get_movie_file_suffix(filepath):
+def get_movie_file_suffix(filepath: Path) -> str:
     """
     Get suffix used for the video output.
     The script does not have access to the .blend file content, so deduct it from the .blend filename.
@@ -21,7 +21,7 @@ def get_movie_file_suffix(filepath):
     return filepath.stem.split("_")[-1]
 
 
-def get_arguments(filepath, output_filepath):
+def get_arguments(filepath: Path, output_filepath: Path) -> list[str | Path]:
     suffix = get_movie_file_suffix(filepath)
 
     args = [
@@ -52,7 +52,7 @@ def create_argparse():
 
 
 class VideoOutputReport(render_report.Report):
-    def postprocess_test(self, blender, test):
+    def postprocess_test(self, blender: Path, test: render_report.TestResult) -> None:
         suffix = get_movie_file_suffix(test.filepath)
 
         video_file = Path(f"{test.tmp_out_img_base}.{suffix}").as_posix()

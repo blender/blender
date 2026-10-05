@@ -33,7 +33,7 @@ if inside_blender:
     sys.exit(0)
 
 
-def get_arguments(filepath, output_filepath):
+def get_arguments(filepath: Path, output_filepath: Path) -> list[str | Path]:
     return [
         "--no-window-focus",
         "--window-geometry",
