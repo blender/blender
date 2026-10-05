@@ -53,6 +53,7 @@ class CompositorEffectContext : public CompositorContext {
 
  public:
   CompositorEffectContext(compositor::StaticCacheManager &cache_manager,
+                          bke::ComputeContextCache &compute_context_cache,
                           const RenderData &render_data,
                           bNodeTree *node_tree,
                           ImBuf *input_1,
@@ -60,14 +61,14 @@ class CompositorEffectContext : public CompositorContext {
                           ImBuf *output,
                           float factor,
                           const Strip &strip)
-      : CompositorContext(cache_manager, render_data, strip),
+      : CompositorContext(cache_manager, compute_context_cache, render_data, strip),
         node_group_(node_tree),
         input_1_(input_1),
         input_2_(input_2),
         output_(output),
         factor_(factor),
         viewer_compute_context_(bke::compositor::compute_viewer_compute_context(
-            *render_data_.scene, *node_group_, compute_context_cache_))
+            *render_data_.scene, *node_group_, compute_context_cache))
   {
   }
 
@@ -174,7 +175,9 @@ static SeqResult do_compositor_effect(const RenderData *context,
   }
   else {
     CompositorCache &com_cache = context->scene->ed->runtime->ensure_compositor_cache();
+    bke::ComputeContextCache compute_context_cache;
     CompositorEffectContext com_context(com_cache.get_cache_manager(),
+                                        compute_context_cache,
                                         *context,
                                         data->node_group,
                                         src1.image,

@@ -69,7 +69,6 @@ class Context : public compositor::Context {
  private:
   /* Input data. */
   CompositorInputData input_data_;
-  bke::ComputeContextCache compute_context_cache_;
   /* The compute context of the active viewer if one exists. */
   const ComputeContext *viewer_compute_context_;
 
@@ -83,11 +82,13 @@ class Context : public compositor::Context {
   bool gpu_supported_ = true;
 
  public:
-  Context(compositor::StaticCacheManager &cache_manager, const CompositorInputData &input_data)
-      : compositor::Context(cache_manager, compute_context_cache_),
+  Context(compositor::StaticCacheManager &cache_manager,
+          bke::ComputeContextCache &compute_context_cache,
+          const CompositorInputData &input_data)
+      : compositor::Context(cache_manager, compute_context_cache),
         input_data_(input_data),
         viewer_compute_context_(bke::compositor::compute_viewer_compute_context(
-            input_data_.scene, compute_context_cache_))
+            input_data_.scene, compute_context_cache))
   {
   }
 
@@ -809,7 +810,8 @@ class Compositor {
 
   void execute(const CompositorInputData &input_data)
   {
-    Context context(cache_manager_, input_data);
+    bke::ComputeContextCache compute_context_cache;
+    Context context(cache_manager_, compute_context_cache, input_data);
 
     if (context.use_gpu()) {
       /* For main thread rendering in background mode, blocking rendering, or when we do not have a
@@ -871,7 +873,8 @@ class Compositor {
    * compositor, since it is much easier and safer. */
   bool needs_to_be_recreated(const CompositorInputData &input_data)
   {
-    Context context(cache_manager_, input_data);
+    bke::ComputeContextCache compute_context_cache;
+    Context context(cache_manager_, compute_context_cache, input_data);
     /* See last_evaluation_used_gpu_ and last_evaluation_precision_ for more information what how
      * they are different from the ones returned from the context. */
     return context.use_gpu() != last_evaluation_used_gpu_ ||
