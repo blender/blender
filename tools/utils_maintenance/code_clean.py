@@ -1016,7 +1016,7 @@ class edit_generators:
             edits = []
 
             # Keep:
-            # - `strucrt Foo;` (forward declaration).
+            # - `struct Foo;` (forward declaration).
             # - `struct Foo {` (declaration).
             # - `struct {` (declaration).
             # In these cases removing will cause a build error (which is technically "safe")
