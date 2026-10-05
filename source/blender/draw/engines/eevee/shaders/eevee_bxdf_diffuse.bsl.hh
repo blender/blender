@@ -35,7 +35,7 @@ BsdfSample bxdf_diffuse_sample(const float3 rand_cylinder)
 BsdfEval bxdf_diffuse_eval(float3 N, float3 L)
 {
   BsdfEval eval;
-  eval.throughput = eval.pdf = saturate(dot(N, L));
+  eval.throughput = eval.pdf = saturate(dot(N, L)) * M_1_PI;
   return eval;
 }
 
