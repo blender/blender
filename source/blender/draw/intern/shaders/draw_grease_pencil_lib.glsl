@@ -659,8 +659,8 @@ float4 gpencil_vertex(float4 viewport_res,
       x *= out_aspect.x;
       y *= out_aspect.y;
 
-      /* Invert for vertex shader. */
-      out_aspect.xy = 1.0f / out_aspect.xy;
+      /* The aspect has been applied in the vertex shader, don't apply in the fragment. */
+      out_aspect.xy = float2(1.0f);
 
       out_ndc.xy += (x * x_axis + y * y_axis) * viewport_res.zw * clamped_thickness;
       out_sspos_0.xy = ss1.xy + x_axis * 0.5f;
