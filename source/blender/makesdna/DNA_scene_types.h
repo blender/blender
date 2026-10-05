@@ -1209,7 +1209,7 @@ enum ePaintCanvasSource : char {
 struct MeshAutomaskingSettings {
   DNA_DEFINE_CXX_METHODS(MeshAutomaskingSettings)
 
-  int flags = 0;
+  eAutomasking_flag flags = eAutomasking_flag(0);
 
   int boundary_edges_propagation_steps = 1;
   int cavity_blur_steps = 2;
