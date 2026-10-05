@@ -6,6 +6,7 @@
 
 #include "eevee_bxdf_types.bsl.hh"
 #include "eevee_ltc_lut_lib.bsl.hh"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_base.bsl.hh"
@@ -23,12 +24,11 @@
  *              The Z component can be biased towards 1.
  * \return pdf: the pdf of sampling the reflected/refracted ray. 0 if ray is invalid.
  */
-BsdfSample bxdf_diffuse_sample(float3 rand)
+BsdfSample bxdf_diffuse_sample(const float3 rand_cylinder)
 {
-  float cos_theta = safe_sqrt(rand.x);
   BsdfSample samp;
-  samp.direction = float3(rand.yz * sin_from_cos(cos_theta), cos_theta);
-  samp.pdf = cos_theta * M_1_PI;
+  samp.direction = sample_cos_hemisphere(rand_cylinder);
+  samp.pdf = samp.direction.z * M_1_PI;
   return samp;
 }
 

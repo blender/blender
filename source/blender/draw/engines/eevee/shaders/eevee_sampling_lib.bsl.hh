@@ -313,4 +313,27 @@ float3 sample_uniform_cone(float2 rand, float cos_angle)
   return float3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 
+/**
+ * Cosine-weighted direction in hemisphere
+ * \a rand contains 2 random floats in the [0..1] range
+ * PDF = cos_angle / pi
+ */
+float3 sample_cos_hemisphere(const float2 rand)
+{
+  const float cos_theta = safe_sqrt(rand.x);
+  const float sin_theta = safe_sqrt(1.0f - rand.x);
+  return float3(sin_theta * sample_circle(rand.y), cos_theta);
+}
+
+/**
+ * Cosine-weighted direction in hemisphere
+ * \a rand is a random point on a unit cylinder
+ * PDF = cos_angle / pi
+ */
+float3 sample_cos_hemisphere(const float3 rand_cylinder)
+{
+  const float cos_theta = safe_sqrt(rand_cylinder.x);
+  return float3(rand_cylinder.yz * sin_from_cos(cos_theta), cos_theta);
+}
+
 /** \} */
