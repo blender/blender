@@ -102,7 +102,7 @@ void surf_forward([[resource_table]] KernelGlobals &kg,
 
   const ViewMatrices view = views.get(0);
 
-  ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+  ShadingData sd = init_globals(pipe, uni, interp, view, front_face, frag_co);
   if (pipe.is_mesh) [[static_branch]] {
     init_globals_mesh(interp, sd);
   }

@@ -35,7 +35,8 @@ static int node_shader_gpu_bsdf_translucent(GPUMaterial *mat,
 
   GPU_material_flag_set(mat, GPU_MATFLAG_TRANSLUCENT);
 
-  return GPU_stack_link(mat, node, "node_bsdf_translucent", in, out, GPU_shading_data());
+  return GPU_stack_link(
+      mat, node, "node_bsdf_translucent", in, out, GPU_kernel_globals(), GPU_shading_data());
 }
 
 NODE_SHADER_MATERIALX_BEGIN

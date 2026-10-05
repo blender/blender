@@ -102,7 +102,7 @@ void surf_deferred([[resource_table]] KernelGlobals &kg,
 
   const ViewMatrices view = views.get(0);
 
-  ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+  ShadingData sd = init_globals(pipe, uni, interp, view, front_face, frag_co);
   if (pipe.is_mesh) [[static_branch]] {
     init_globals_mesh(interp, sd);
   }
@@ -163,7 +163,7 @@ void surf_deferred([[resource_table]] KernelGlobals &kg,
   }
   for (int i = 0; i < 3; i++) [[unroll]] {
     if (pipe.closure_bin_count > i) [[static_branch]] {
-      gbuf_data.closure[i] = sd.closure_get_resolved(i, alpha_rcp);
+      gbuf_data.closure[i] = sd.closure_get_resolved(kg.pipe, i, alpha_rcp);
     }
   }
   const bool use_object_id = pipe.use_sss || use_light_linking || use_terminator_offset;

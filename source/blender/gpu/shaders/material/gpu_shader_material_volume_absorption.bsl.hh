@@ -8,7 +8,7 @@
 
 [[node]]
 void node_volume_absorption(
-    float4 color, float density, float weight, ShadingData &sd, Closure &result)
+    float4 color, float density, float weight, KernelGlobals &kg, ShadingData &sd, Closure &result)
 {
   color = max(color, float4(0.0f));
   density = max(density, 0.0f);
@@ -16,5 +16,5 @@ void node_volume_absorption(
   ClosureVolumeAbsorption volume_absorption_data;
   volume_absorption_data.absorption = (1.0f - color.rgb) * density * weight;
 
-  result = closure_eval(sd, volume_absorption_data);
+  result = closure_eval(kg, sd, volume_absorption_data);
 }

@@ -35,5 +35,5 @@ void node_bsdf_glossy(float4 color,
   reflection_data.N = N;
   reflection_data.roughness = roughness;
 
-  result = closure_eval(sd, reflection_data);
+  result = closure_eval(kg, sd, reflection_data);
 }

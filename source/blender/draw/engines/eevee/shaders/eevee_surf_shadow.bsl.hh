@@ -63,7 +63,7 @@ void surf_shadow([[resource_table]] KernelGlobals &kg,
   if (pipe.use_transparency) [[static_branch]] {
     const ViewMatrices view = views.get(shadow_iface.shadow_view_id);
 
-    ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+    ShadingData sd = init_globals(pipe, uni, interp, view, front_face, frag_co);
     if (pipe.is_mesh) [[static_branch]] {
       init_globals_mesh(interp, sd);
     }

@@ -13,6 +13,7 @@ void node_bsdf_refraction(float4 color,
                           float ior,
                           float3 N,
                           float weight,
+                          KernelGlobals &kg,
                           ShadingData &sd,
                           Closure &result)
 {
@@ -27,5 +28,5 @@ void node_bsdf_refraction(float4 color,
   refraction_data.roughness = roughness;
   refraction_data.ior = ior;
 
-  result = closure_eval(sd, refraction_data);
+  result = closure_eval(kg, sd, refraction_data);
 }

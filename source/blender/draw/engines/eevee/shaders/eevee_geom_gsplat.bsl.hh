@@ -107,7 +107,7 @@ namespace eevee {
   /* Compute Original Coordinate (ORCO). */
   float3 lP_orco = gs.mean * ob_infos.orco_mul + ob_infos.orco_add;
 
-  [[maybe_unused]] ShadingData sd = init_globals(uni, interp, view, true, float4(0));
+  [[maybe_unused]] ShadingData sd = init_globals(pipe, uni, interp, view, true, float4(0));
 
   attrib_load(PointCloudPoint{gs.mean, int(gs.id), lP_orco});
 
