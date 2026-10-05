@@ -9387,7 +9387,7 @@ static ARegion *but_tooltip_init(
   if (*pass == 1) {
     is_quick_tip = true;
     (*pass)--;
-    (*r_pass_delay) = UI_TOOLTIP_DELAY - UI_TOOLTIP_DELAY_QUICK;
+    (*r_pass_delay) = UI_TOOLTIP_DELAY + UI_TOOLTIP_DELAY_QUICK;
   }
 
   Button *but = region_active_but_get(region);
