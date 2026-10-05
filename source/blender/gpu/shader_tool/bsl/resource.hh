@@ -167,8 +167,6 @@ struct ParsedAttribute {
   ast::Expr capacity;
   ast::Expr dual_source_index;
   ast::Expr raster_order_group;
-
-  std::string parse_condition() const;
 };
 
 Result<ParsedAttribute> resource_type_from_attributes(ast::AttrList list);

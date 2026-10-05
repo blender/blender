@@ -218,7 +218,10 @@ struct KernelGlobals {
 
   ObjectMatrices light_matrices_get(int light_index)
   {
-    return model.get(lrd.light_buf[light_index].resource_id);
+    if (pipe.use_lighting_nodes) [[static_branch]] {
+      return model.get(lrd.light_buf[light_index].resource_id);
+    }
+    return {};
   }
 };
 

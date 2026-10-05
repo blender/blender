@@ -19,11 +19,6 @@
 
 namespace workbench::prepass {
 
-/* TODO(fclem): Move to workbench. */
-#define WORKBENCH_LIGHTING_STUDIO 0
-#define WORKBENCH_LIGHTING_MATCAP 1
-#define WORKBENCH_LIGHTING_FLAT 2
-
 struct ClippingConstant {
   [[compilation_constant]] const bool use_clipping;
 };
@@ -368,7 +363,7 @@ struct Resources {
 
   [[resource_table, condition(use_texture)]] srt_t<color::Texture> texture;
 
-  [[sampler(WB_MATCAP_SLOT), condition(lighting_mode == 1 /* WORKBENCH_LIGHTING_MATCAP */)]]
+  [[sampler(WB_MATCAP_SLOT), condition(lighting_mode == WORKBENCH_LIGHTING_MATCAP)]]
   sampler2DArray matcap_tx;
 };
 

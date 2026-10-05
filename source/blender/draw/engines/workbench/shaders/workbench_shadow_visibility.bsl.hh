@@ -90,7 +90,7 @@ struct Resources {
 
   void set_visibility(bool visibility, uint instance_id)
   {
-    if (dynamic_pass_selection == false) [[static_branch]] {
+    if (!dynamic_pass_selection) [[static_branch]] {
       if (!visibility) {
         atomicAnd(visibility_buf[instance_id / 32u], ~(1u << (instance_id & 31u)));
       }

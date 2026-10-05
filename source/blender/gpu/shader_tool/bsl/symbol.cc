@@ -351,6 +351,10 @@ struct SymbolParser : NodeErrorHandler {
       if (!is_entry_point && attr.condition.is_valid()) {
         error(arg, Diag::ConditionAttributeNotOnResource);
       }
+
+      if (attr.condition.is_valid()) {
+        var->condition = attr.condition;
+      }
     }
 
     if (scope.parent != nullptr) {
@@ -1068,6 +1072,10 @@ struct SymbolParser : NodeErrorHandler {
         }
         /* TODO(fclem): Check that this references a single reachable compilation constant. */
         sym->capacity_value = attr.capacity;
+      }
+
+      if (attr.condition.is_valid()) {
+        sym->condition = attr.condition;
       }
 
       /* Local References. */

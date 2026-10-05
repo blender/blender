@@ -59,12 +59,12 @@ struct Resources {
   [[push_constant]] const bool gpu_attr_0_fetch_int;
 
   [[storage(GPU_SSBO_POLYLINE_COL_BUF_SLOT, read),
-    frequency(GEOMETRY)]] [[condition(use_color_uniform == 0)]] const float (&color)[];
+    frequency(GEOMETRY)]] [[condition(!use_color_uniform)]] const float (&color)[];
   [[push_constant]] const int2 gpu_attr_1;
   [[push_constant]] const int gpu_attr_1_len;
   [[push_constant]] const bool gpu_attr_1_fetch_unorm8;
 
-  [[resource_table]] [[condition(use_color_uniform == 1)]] srt_t<UniformColor> uniform_col;
+  [[resource_table]] [[condition(use_color_uniform)]] srt_t<UniformColor> uniform_col;
 
   [[resource_table]] srt_t<IndexLoad> index_load;
 

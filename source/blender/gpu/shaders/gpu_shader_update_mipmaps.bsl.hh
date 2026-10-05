@@ -188,7 +188,7 @@ struct Resources {
       color_out.g = linearrgb_to_srgb(color_out.g);
       color_out.b = linearrgb_to_srgb(color_out.b);
     }
-    if (is_layered == false) [[static_branch]] {
+    if (!is_layered) [[static_branch]] {
       if (dst_level == 1) {
         imageStore(mip_out1, dst_coord, color_out);
       }
@@ -219,7 +219,7 @@ struct Resources {
     }
     else {
       float4 loaded_color;
-      if (is_layered == false) [[static_branch]] {
+      if (!is_layered) [[static_branch]] {
         loaded_color = imageLoad(mip_in, src_coord);
       }
       if (is_layered) [[static_branch]] {
@@ -238,7 +238,7 @@ struct Resources {
   int2 level_size(int level)
   {
     int2 mip_in_size;
-    if (is_layered == false) [[static_branch]] {
+    if (!is_layered) [[static_branch]] {
       mip_in_size = imageSize(mip_in);
     }
     if (is_layered) [[static_branch]] {

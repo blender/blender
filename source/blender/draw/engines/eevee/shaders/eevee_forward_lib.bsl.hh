@@ -53,7 +53,7 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
                            float3 &transmittance)
 {
   [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_forward_lighting) [[static_branch]] {
+  if (!pipe.is_occupancy_pipe && pipe.use_forward_lighting) [[static_branch]] {
     [[resource_table]] LightEvalIterator &lights = kg.light_eval;
     [[resource_table]] const Uniform &uni = kg.uniforms;
     [[resource_table]] LightprobeRenderData &lightprobes = kg.lightprobes;

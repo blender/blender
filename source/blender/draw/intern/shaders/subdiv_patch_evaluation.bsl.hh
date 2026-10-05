@@ -151,10 +151,12 @@ struct PatchEval {
 
   float3 read_vec3_extra(int index) const
   {
-    float3 result;
-    result.x = srcExtraVertexBuffer[index * 3];
-    result.y = srcExtraVertexBuffer[index * 3 + 1];
-    result.z = srcExtraVertexBuffer[index * 3 + 2];
+    float3 result = float3(0);
+    if (consts.do_orcos) [[static_branch]] {
+      result.x = srcExtraVertexBuffer[index * 3];
+      result.y = srcExtraVertexBuffer[index * 3 + 1];
+      result.z = srcExtraVertexBuffer[index * 3 + 2];
+    }
     return result;
   }
 

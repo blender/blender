@@ -32,7 +32,7 @@ struct Resources {
 
   [[sampler(8), condition(use_shadow)]] usampler2D stencil_tx;
 
-  [[sampler(WB_MATCAP_SLOT), condition(lighting_mode == 1 /* WORKBENCH_LIGHTING_MATCAP */)]]
+  [[sampler(WB_MATCAP_SLOT), condition(lighting_mode == WORKBENCH_LIGHTING_MATCAP)]]
   sampler2DArray matcap_tx;
 
   [[resource_table]] srt_t<workbench::World> world;
@@ -108,30 +108,30 @@ struct FragOut {
 }
 
 /* clang-format off */
-PipelineGraphic opaque_studio_cavity_curvature_shadow(         vert, frag, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_cavity = true,  .use_curvature = true,  .use_shadow = true });
-PipelineGraphic opaque_studio_cavity_curvature_no_shadow(      vert, frag, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_cavity = true,  .use_curvature = true,  .use_shadow = false});
-PipelineGraphic opaque_studio_cavity_no_curvature_shadow(      vert, frag, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_cavity = true,  .use_curvature = false, .use_shadow = true });
-PipelineGraphic opaque_studio_cavity_no_curvature_no_shadow(   vert, frag, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_cavity = true,  .use_curvature = false, .use_shadow = false});
-PipelineGraphic opaque_studio_no_cavity_curvature_shadow(      vert, frag, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_cavity = false, .use_curvature = true,  .use_shadow = true });
-PipelineGraphic opaque_studio_no_cavity_curvature_no_shadow(   vert, frag, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_cavity = false, .use_curvature = true,  .use_shadow = false});
-PipelineGraphic opaque_studio_no_cavity_no_curvature_shadow(   vert, frag, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_cavity = false, .use_curvature = false, .use_shadow = true });
-PipelineGraphic opaque_studio_no_cavity_no_curvature_no_shadow(vert, frag, Resources{.lighting_mode = 0 /* WORKBENCH_LIGHTING_STUDIO */, .use_cavity = false, .use_curvature = false, .use_shadow = false});
-PipelineGraphic opaque_matcap_cavity_curvature_shadow(         vert, frag, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_cavity = true,  .use_curvature = true,  .use_shadow = true });
-PipelineGraphic opaque_matcap_cavity_curvature_no_shadow(      vert, frag, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_cavity = true,  .use_curvature = true,  .use_shadow = false});
-PipelineGraphic opaque_matcap_cavity_no_curvature_shadow(      vert, frag, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_cavity = true,  .use_curvature = false, .use_shadow = true });
-PipelineGraphic opaque_matcap_cavity_no_curvature_no_shadow(   vert, frag, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_cavity = true,  .use_curvature = false, .use_shadow = false});
-PipelineGraphic opaque_matcap_no_cavity_curvature_shadow(      vert, frag, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_cavity = false, .use_curvature = true,  .use_shadow = true });
-PipelineGraphic opaque_matcap_no_cavity_curvature_no_shadow(   vert, frag, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_cavity = false, .use_curvature = true,  .use_shadow = false});
-PipelineGraphic opaque_matcap_no_cavity_no_curvature_shadow(   vert, frag, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_cavity = false, .use_curvature = false, .use_shadow = true });
-PipelineGraphic opaque_matcap_no_cavity_no_curvature_no_shadow(vert, frag, Resources{.lighting_mode = 1 /* WORKBENCH_LIGHTING_MATCAP */, .use_cavity = false, .use_curvature = false, .use_shadow = false});
-PipelineGraphic opaque_flat_cavity_curvature_shadow(           vert, frag, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_cavity = true,  .use_curvature = true,  .use_shadow = true });
-PipelineGraphic opaque_flat_cavity_curvature_no_shadow(        vert, frag, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_cavity = true,  .use_curvature = true,  .use_shadow = false});
-PipelineGraphic opaque_flat_cavity_no_curvature_shadow(        vert, frag, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_cavity = true,  .use_curvature = false, .use_shadow = true });
-PipelineGraphic opaque_flat_cavity_no_curvature_no_shadow(     vert, frag, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_cavity = true,  .use_curvature = false, .use_shadow = false});
-PipelineGraphic opaque_flat_no_cavity_curvature_shadow(        vert, frag, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_cavity = false, .use_curvature = true,  .use_shadow = true });
-PipelineGraphic opaque_flat_no_cavity_curvature_no_shadow(     vert, frag, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_cavity = false, .use_curvature = true,  .use_shadow = false});
-PipelineGraphic opaque_flat_no_cavity_no_curvature_shadow(     vert, frag, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_cavity = false, .use_curvature = false, .use_shadow = true });
-PipelineGraphic opaque_flat_no_cavity_no_curvature_no_shadow(  vert, frag, Resources{.lighting_mode = 2 /* WORKBENCH_LIGHTING_FLAT */,   .use_cavity = false, .use_curvature = false, .use_shadow = false});
+PipelineGraphic opaque_studio_cavity_curvature_shadow(         vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_STUDIO, .use_cavity = true,  .use_curvature = true,  .use_shadow = true });
+PipelineGraphic opaque_studio_cavity_curvature_no_shadow(      vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_STUDIO, .use_cavity = true,  .use_curvature = true,  .use_shadow = false});
+PipelineGraphic opaque_studio_cavity_no_curvature_shadow(      vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_STUDIO, .use_cavity = true,  .use_curvature = false, .use_shadow = true });
+PipelineGraphic opaque_studio_cavity_no_curvature_no_shadow(   vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_STUDIO, .use_cavity = true,  .use_curvature = false, .use_shadow = false});
+PipelineGraphic opaque_studio_no_cavity_curvature_shadow(      vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_STUDIO, .use_cavity = false, .use_curvature = true,  .use_shadow = true });
+PipelineGraphic opaque_studio_no_cavity_curvature_no_shadow(   vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_STUDIO, .use_cavity = false, .use_curvature = true,  .use_shadow = false});
+PipelineGraphic opaque_studio_no_cavity_no_curvature_shadow(   vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_STUDIO, .use_cavity = false, .use_curvature = false, .use_shadow = true });
+PipelineGraphic opaque_studio_no_cavity_no_curvature_no_shadow(vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_STUDIO, .use_cavity = false, .use_curvature = false, .use_shadow = false});
+PipelineGraphic opaque_matcap_cavity_curvature_shadow(         vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_MATCAP, .use_cavity = true,  .use_curvature = true,  .use_shadow = true });
+PipelineGraphic opaque_matcap_cavity_curvature_no_shadow(      vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_MATCAP, .use_cavity = true,  .use_curvature = true,  .use_shadow = false});
+PipelineGraphic opaque_matcap_cavity_no_curvature_shadow(      vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_MATCAP, .use_cavity = true,  .use_curvature = false, .use_shadow = true });
+PipelineGraphic opaque_matcap_cavity_no_curvature_no_shadow(   vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_MATCAP, .use_cavity = true,  .use_curvature = false, .use_shadow = false});
+PipelineGraphic opaque_matcap_no_cavity_curvature_shadow(      vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_MATCAP, .use_cavity = false, .use_curvature = true,  .use_shadow = true });
+PipelineGraphic opaque_matcap_no_cavity_curvature_no_shadow(   vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_MATCAP, .use_cavity = false, .use_curvature = true,  .use_shadow = false});
+PipelineGraphic opaque_matcap_no_cavity_no_curvature_shadow(   vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_MATCAP, .use_cavity = false, .use_curvature = false, .use_shadow = true });
+PipelineGraphic opaque_matcap_no_cavity_no_curvature_no_shadow(vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_MATCAP, .use_cavity = false, .use_curvature = false, .use_shadow = false});
+PipelineGraphic opaque_flat_cavity_curvature_shadow(           vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_FLAT,   .use_cavity = true,  .use_curvature = true,  .use_shadow = true });
+PipelineGraphic opaque_flat_cavity_curvature_no_shadow(        vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_FLAT,   .use_cavity = true,  .use_curvature = true,  .use_shadow = false});
+PipelineGraphic opaque_flat_cavity_no_curvature_shadow(        vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_FLAT,   .use_cavity = true,  .use_curvature = false, .use_shadow = true });
+PipelineGraphic opaque_flat_cavity_no_curvature_no_shadow(     vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_FLAT,   .use_cavity = true,  .use_curvature = false, .use_shadow = false});
+PipelineGraphic opaque_flat_no_cavity_curvature_shadow(        vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_FLAT,   .use_cavity = false, .use_curvature = true,  .use_shadow = true });
+PipelineGraphic opaque_flat_no_cavity_curvature_no_shadow(     vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_FLAT,   .use_cavity = false, .use_curvature = true,  .use_shadow = false});
+PipelineGraphic opaque_flat_no_cavity_no_curvature_shadow(     vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_FLAT,   .use_cavity = false, .use_curvature = false, .use_shadow = true });
+PipelineGraphic opaque_flat_no_cavity_no_curvature_no_shadow(  vert, frag, Resources{.lighting_mode = WORKBENCH_LIGHTING_FLAT,   .use_cavity = false, .use_curvature = false, .use_shadow = false});
 /* clang-format on */
 
 }  // namespace workbench::resolve
