@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -1298,14 +1298,6 @@ msgid "Mask Layers"
 msgstr "Маска каттары"
 
 
-msgid "Import"
-msgstr "Импорттоо"
-
-
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Mirror"
 msgstr "Чагылтуу"
 
@@ -1316,6 +1308,14 @@ msgstr "Колдонуу"
 
 msgid "Tracking"
 msgstr "Трекинг"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Import"
+msgstr "Импорттоо"
 
 
 msgctxt "MovieClip"
@@ -2994,11 +2994,6 @@ msgstr "Баары"
 
 
 msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "Ката жөнүндө маалымдоо"
-
-
-msgctxt "Operator"
 msgid "Clear"
 msgstr "Тазалоо"
 
@@ -3022,6 +3017,11 @@ msgstr "Версиясы:"
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Документация"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Ката жөнүндө маалымдоо"
 
 
 msgid "File:"
@@ -3281,11 +3281,6 @@ msgstr "Жалпак"
 msgctxt "Operator"
 msgid "Calculate"
 msgstr "Эсептөө"
-
-
-msgctxt "Operator"
-msgid "Quick Edit"
-msgstr "Тез оңдоо"
 
 
 msgctxt "Operator"

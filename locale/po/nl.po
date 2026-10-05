@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
 "PO-Revision-Date: 2026-07-08 11:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2617,6 +2617,10 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "Er was geen kleurruimte, beeld of weergave gevonden, wat waarschijnlijk betekent dat de OpenColorIO config gebruikt om dit blend bestand te creëren mist"
 
 
+msgid "Blender"
+msgstr "Blender"
+
+
 msgid "Only link data, instead of appending it"
 msgstr "Alleen data linken, in plaats van het bij te voegen"
 
@@ -2756,6 +2760,10 @@ msgstr "Blendbestand Importeer Context Bibliotheken"
 
 msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Collectie van bron bibliotheken, d.w.z. blendbestand paden"
+
+
+msgid "Path"
+msgstr "Pad"
 
 
 msgid "Blender RNA"
@@ -5080,10 +5088,6 @@ msgid "Fill Caps"
 msgstr "Vul Kap"
 
 
-msgid "Path"
-msgstr "Pad"
-
-
 msgid "Follow"
 msgstr "Volg"
 
@@ -5764,48 +5768,52 @@ msgid "Show/Hide"
 msgstr "Toon/Verberg"
 
 
-msgid "Import"
-msgstr "Importeren"
-
-
-msgid "Mirror"
-msgstr "Spiegel"
-
-
 msgid "Local View"
 msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
 
 
 msgid "Light"
 msgstr "Licht"
 
 
+msgid "Mirror"
+msgstr "Spiegel"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Import"
+msgstr "Importeren"
+
+
 msgid "Linked"
 msgstr "Gekoppeld"
-
-
-msgid "Layout"
-msgstr "Indeling"
-
-
-msgid "Add Image"
-msgstr "Voeg Afbeelding Toe"
-
-
-msgid "Relations"
-msgstr "Relaties"
 
 
 msgid "Rigid Body"
@@ -5816,20 +5824,16 @@ msgid "Quick Effects"
 msgstr "Snelle Effecten"
 
 
-msgid "Convert"
-msgstr "Converteer"
+msgid "Relations"
+msgstr "Relaties"
 
 
-msgid "Hooks"
-msgstr "Haken"
+msgid "Add Image"
+msgstr "Voeg Afbeelding Toe"
 
 
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
-
-
-msgid "Names"
-msgstr "Namen"
+msgid "Layout"
+msgstr "Indeling"
 
 
 msgctxt "MovieClip"
@@ -5894,10 +5898,6 @@ msgstr "Tekst naar 3D Object"
 
 msgid "Python"
 msgstr "Python"
-
-
-msgid "Blender"
-msgstr "Blender"
 
 
 msgid "System"
@@ -10094,10 +10094,6 @@ msgid "Show collections"
 msgstr "Keer collecties"
 
 
-msgid "Sort Alphabetically"
-msgstr "Sorteer Alfabetisch"
-
-
 msgid "Scene Properties"
 msgstr "Scene-eigenschappen"
 
@@ -10437,11 +10433,6 @@ msgid ":"
 msgstr ":"
 
 
-msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "Een Bug Melden"
-
-
 msgid "Noise Threshold"
 msgstr "Ruisdrempel"
 
@@ -10511,6 +10502,11 @@ msgstr "Waarschuwing:"
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Documentatie"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Een Bug Melden"
 
 
 msgid "File:"
@@ -11723,11 +11719,6 @@ msgstr "Locaties"
 
 
 msgctxt "Operator"
-msgid "Quick Edit"
-msgstr "Snel Bewerken"
-
-
-msgctxt "Operator"
 msgid "Apply"
 msgstr "Toevoegen"
 
@@ -12352,12 +12343,12 @@ msgid "Mask not found"
 msgstr "Masker niet gevonden"
 
 
-msgid "Mean Crease:"
-msgstr "Gemiddelde Vouw:"
-
-
 msgid "Dimensions:"
 msgstr "Dimensies:"
+
+
+msgid "Mean Crease:"
+msgstr "Gemiddelde Vouw:"
 
 
 msgid "User Perspective"
@@ -12473,10 +12464,6 @@ msgstr "Niet Opslaan"
 
 msgid "unable to open the file"
 msgstr "kan het bestand niet openen"
-
-
-msgid "This may lead to unexpected behavior"
-msgstr "Dit kan leiden tot onverwacht gedrag"
 
 
 msgid "Save changes before closing?"
