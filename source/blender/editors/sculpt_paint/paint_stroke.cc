@@ -652,7 +652,12 @@ static float paint_space_stroke_spacing(const ViewContext &vc,
   if (paint_stroke_use_scene_spacing(*brush, paint_mode)) {
     /* Low pressure on size (with tablets) can cause infinite recursion in paint_space_stroke(),
      * see #129853. */
-    return max_ff(FLT_EPSILON, size_clamp * spacing / 50.0f);
+
+    /* Calculates the 3D distance that one pixel of movement would cover in object space. Using
+     * FLT_MIN can cause long lag, see #160057. */
+    const float min_spacing = paint_calc_object_space_radius(
+        vc, math::transform_point(vc.obact->world_to_object(), last_world_space_position), 1.0f);
+    return max_ff(min_spacing, size_clamp * spacing / 50.0f);
   }
   return max_ff(zoom_2d, size_clamp * spacing / 50.0f);
 }
