@@ -1062,6 +1062,12 @@ static void but_update_old_active_from_new(Button *oldbut, Button *but)
       scroll_oldbut->visual_height = scroll_but->visual_height;
       break;
     }
+    case ButtonType::Image: {
+      ButtonImage *image_oldbut = static_cast<ButtonImage *>(oldbut);
+      ButtonImage *image_but = static_cast<ButtonImage *>(but);
+      std::swap(image_oldbut->key, image_but->key);
+      break;
+    }
     case ButtonType::ViewItem: {
       ButtonViewItem *view_item_oldbut = static_cast<ButtonViewItem *>(oldbut);
       ButtonViewItem *view_item_newbut = static_cast<ButtonViewItem *>(but);
@@ -4498,6 +4504,9 @@ static std::unique_ptr<Button> but_new(const ButtonType type)
       break;
     case ButtonType::Scroll:
       but = std::make_unique<ButtonScrollBar>();
+      break;
+    case ButtonType::Image:
+      but = std::make_unique<ButtonImage>();
       break;
     case ButtonType::Menu:
       ATTR_FALLTHROUGH;

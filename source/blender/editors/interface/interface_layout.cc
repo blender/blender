@@ -36,6 +36,8 @@
 #include "BKE_path_templates.hh"
 #include "BKE_screen.hh"
 
+#include "IMB_imbuf_types.hh"
+
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
@@ -3401,6 +3403,48 @@ void Layout::label_markdown(const StringRef text)
   }
 }
 
+static ButtonImage *image_find_in_old_block(Block *block, const StringRef key)
+{
+  /* Take over the image with the given key from the previous redraw. */
+  if (block->oldblock == nullptr) {
+    return nullptr;
+  }
+  for (const std::unique_ptr<Button> &old_but : block->oldblock->buttons_ptrs) {
+    if (old_but->type != ButtonType::Image) {
+      continue;
+    }
+    ButtonImage *old_image_but = static_cast<ButtonImage *>(old_but.get());
+    if (old_image_but->key != key) {
+      continue;
+    }
+    return old_image_but;
+  }
+  return nullptr;
+}
+
+bool Layout::image(const StringRef key, const FunctionRef<ImBuf *()> create_fn)
+{
+  BLI_assert(!key.is_empty());
+  Block *block = this->block();
+
+  ImBuf *ibuf = nullptr;
+  if (ButtonImage *old_but = image_find_in_old_block(block, key)) {
+    ibuf = reinterpret_cast<ImBuf *>(std::exchange(old_but->poin, nullptr));
+    old_but->key.clear();
+  }
+  else {
+    ibuf = create_fn();
+  }
+
+  block_layout_set_current(block, this);
+  /* Placeholder size, the height is resolved from the final width. */
+  ButtonImage *but = static_cast<ButtonImage *>(
+      uiDefButImage(block, ibuf, 0, 0, UI_UNIT_X, ibuf ? UI_UNIT_Y : 0, nullptr));
+  but->key = key;
+  this->root_->use_dynamic_height = true;
+  return ibuf != nullptr;
+}
+
 void Layout::link(const StringRef url, const StringRef name, int icon)
 {
   wmOperatorType *ot = WM_operatortype_find("WM_OT_url_open", false); /* print error next */
@@ -5755,6 +5799,17 @@ static void resolve_label_multiline(ButtonLabel *button)
   button->rect.ymin = button->rect.ymax - std::max<float>(UI_UNIT_Y, height);
 }
 
+/** Keep the image aspect ratio for the resolved button width. */
+static void resolve_image_height(Button *button)
+{
+  const ImBuf *ibuf = reinterpret_cast<const ImBuf *>(button->poin);
+  if (ibuf == nullptr || ibuf->x <= 0 || ibuf->y <= 0) {
+    return;
+  }
+  const float height = BLI_rctf_size_x(&button->rect) * ibuf->y / ibuf->x;
+  button->rect.ymin = button->rect.ymax - std::max(height, 1.0f);
+}
+
 void Layout::resolve_dynamic_height()
 {
   if (this->items().is_empty()) {
@@ -5817,6 +5872,9 @@ void Layout::resolve_dynamic_height()
         }
         else if (button_label_is_markdown(sub_bitem->but)) {
           label_markdown_resolve(static_cast<ButtonLabel *>(sub_bitem->but));
+        }
+        else if (sub_bitem->but->type == ButtonType::Image) {
+          resolve_image_height(sub_bitem->but);
         }
       }
       else {
