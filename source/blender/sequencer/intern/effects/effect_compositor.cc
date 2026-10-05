@@ -48,8 +48,8 @@ class CompositorEffectContext : public CompositorContext {
   ImBuf *output_;
   float factor_;
 
-  /* The hash of the compute context of the active viewer if one exists. */
-  const std::optional<ComputeContextHash> viewer_compute_context_hash_;
+  /* The compute context of the active viewer if one exists. */
+  const ComputeContext *viewer_compute_context_;
 
  public:
   CompositorEffectContext(compositor::StaticCacheManager &cache_manager,
@@ -66,14 +66,14 @@ class CompositorEffectContext : public CompositorContext {
         input_2_(input_2),
         output_(output),
         factor_(factor),
-        viewer_compute_context_hash_(bke::compositor::compute_viewer_compute_context_hash(
+        viewer_compute_context_(bke::compositor::compute_viewer_compute_context(
             *render_data_.scene, *node_group_, compute_context_cache_))
   {
   }
 
-  const std::optional<ComputeContextHash> &get_viewer_compute_context_hash() const override
+  const ComputeContext *viewer_compute_context() const override
   {
-    return viewer_compute_context_hash_;
+    return viewer_compute_context_;
   }
 
   compositor::Domain get_compositing_domain() const override

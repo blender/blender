@@ -11,7 +11,6 @@
 #include <optional>
 #include <string>
 
-#include "BLI_compute_context.hh"
 #include "BLI_map.hh"
 #include "BLI_mutex.hh"
 #include "BLI_set.hh"
@@ -37,6 +36,8 @@ struct SceneCompositorEffect;
 struct DepsNodeHandle;
 struct bNodeTree;
 struct PointerRNA;
+
+class ComputeContext;
 
 namespace bke {
 class bNodeTreeZone;
@@ -219,11 +220,11 @@ const ComputeContext &get_zone_viewer_compute_context(
     const ComputeContext &compute_context,
     bke::ComputeContextCache &compute_context_cache);
 
-/* Computes the hash of the compute context of the active viewer node. If no active viewer node
- * exists, a nullopt is returned. */
-std::optional<ComputeContextHash> compute_viewer_compute_context_hash(
+/* Computes the compute context of the active viewer node. If no active viewer node exists, a
+ * nullptr is returned. */
+const ComputeContext *compute_viewer_compute_context(
     const Scene &scene, bke::ComputeContextCache &compute_context_cache);
-std::optional<ComputeContextHash> compute_viewer_compute_context_hash(
+const ComputeContext *compute_viewer_compute_context(
     const Scene &scene,
     const bNodeTree &root_node_group,
     bke::ComputeContextCache &compute_context_cache);

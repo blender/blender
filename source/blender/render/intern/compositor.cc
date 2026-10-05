@@ -70,8 +70,8 @@ class Context : public compositor::Context {
   /* Input data. */
   CompositorInputData input_data_;
   bke::ComputeContextCache compute_context_cache_;
-  /* The hash of the compute context of the active viewer if one exists. */
-  const std::optional<ComputeContextHash> viewer_compute_context_hash_;
+  /* The compute context of the active viewer if one exists. */
+  const ComputeContext *viewer_compute_context_;
 
   /* Cached GPU and CPU passes that the compositor took ownership of. Those had their reference
    * count incremented when accessed and need to be freed/have their reference count decremented
@@ -86,7 +86,7 @@ class Context : public compositor::Context {
   Context(compositor::StaticCacheManager &cache_manager, const CompositorInputData &input_data)
       : compositor::Context(cache_manager, compute_context_cache_),
         input_data_(input_data),
-        viewer_compute_context_hash_(bke::compositor::compute_viewer_compute_context_hash(
+        viewer_compute_context_(bke::compositor::compute_viewer_compute_context(
             input_data_.scene, compute_context_cache_))
   {
   }
@@ -127,9 +127,9 @@ class Context : public compositor::Context {
     return input_data_.needed_side_effects_outputs;
   }
 
-  const std::optional<ComputeContextHash> &get_viewer_compute_context_hash() const override
+  const ComputeContext *viewer_compute_context() const override
   {
-    return viewer_compute_context_hash_;
+    return viewer_compute_context_;
   }
 
   const RenderData &get_render_data() const override
@@ -748,7 +748,7 @@ class Context : public compositor::Context {
      * viewer. */
     const bool needs_viewer_output = flag_is_set(this->needed_side_effect_output_types(),
                                                  compositor::SideEffectOutputTypes::ViewerNode);
-    if (!this->get_viewer_compute_context_hash().has_value() && needs_viewer_output) {
+    if (!this->viewer_compute_context() && needs_viewer_output) {
       this->write_viewer(output_result);
     }
 

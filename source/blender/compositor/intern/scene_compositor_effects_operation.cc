@@ -169,8 +169,7 @@ void SceneCompositorEffectsOperation::execute()
 
   const bool needs_viewer_output = flag_is_set(this->context().needed_side_effect_output_types(),
                                                SideEffectOutputTypes::ViewerNode);
-  const bool has_viewer_output = needs_viewer_output &&
-                                 this->context().get_viewer_compute_context_hash().has_value();
+  const bool has_viewer_output = needs_viewer_output && this->context().viewer_compute_context();
 
   std::unique_ptr<NodeGroupOperation> last_operation;
   const bke::compositor::ExecutionMode execution_mode = get_execution_mode(this->context());
