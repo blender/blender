@@ -455,6 +455,64 @@ class Report:
             title = self.title + " Test Report"
             columns_html = "<tr><th>Name</th><th>New</th><th>Reference</th><th>Diff Color</th><th>Diff Alpha</th>"
 
+        filter_ui = """
+<div id="report-filter" style="max-width: 640px;">
+    <div class="form-inline">
+        <input type="text" id="report-filter-input" class="form-control mr-2"
+            style="width: 320px;"
+            placeholder="Category or test">
+        <select id="report-filter-result" class="form-control mr-2">
+            <option value="all">All</option>
+            <option value="failures">Failures</option>
+            <option value="crashes">Crashes</option>
+        </select>
+        <span id="report-filter-status" class="ml-2 text-muted"></span>
+    </div>
+</div>
+"""
+
+        filter_script = """
+<script>
+(function () {
+    var input = document.getElementById('report-filter-input');
+    var resultSel = document.getElementById('report-filter-result');
+    var statusEl = document.getElementById('report-filter-status');
+    if (!input) {
+        return;
+    }
+    var rows = Array.prototype.slice.call(document.querySelectorAll('tr[data-name]'));
+    function apply() {
+        var q = input.value.trim().toLowerCase();
+        var f = resultSel ? resultSel.value : 'all';
+        var shown = 0;
+        rows.forEach(function (row) {
+            var category = row.getAttribute('data-category') || '';
+            var name = row.getAttribute('data-name') || '';
+            var combined = (category + ';' + name).toLowerCase();
+            var matchText = !q || combined.indexOf(q) !== -1;
+            var result = row.getAttribute('data-result') || '';
+            var matchResult =
+                f === 'all' ||
+                (f === 'failures' && result !== '') ||
+                (f === 'crashes' && result === 'CRASH');
+            var visible = matchText && matchResult;
+            row.style.display = visible ? '' : 'none';
+            if (visible) {
+                shown++;
+            }
+        });
+        if (statusEl) {
+            statusEl.textContent = 'Showing ' + shown + ' of ' + rows.length + ' rows';
+        }
+    }
+    input.addEventListener('input', apply);
+    if (resultSel) {
+        resultSel.addEventListener('change', apply);
+    }
+    apply();
+})();
+</script>
+"""
         html = f"""
 <html>
 <head>
@@ -500,12 +558,14 @@ class Report:
         <h1>{title}</h1>
         {menu}
         {message}
+        {filter_ui}
         <table class="table table-striped">
             <thead class="thead-dark">
                 {columns_html}
             </thead>
             {tests_html}
         </table>
+        {filter_script}
         <br/>
     </div></div>
 </body>
@@ -529,6 +589,7 @@ class Report:
 
     def _write_test_html(self, test_category, test_result):
         name = test_result.name + self.test_name_suffix
+        result_attr = test_result.error or ""
 
         status = "<strong>" + test_result.error + "</strong><br>" if test_result.error else ""
         if test_result.stats:
@@ -541,7 +602,7 @@ class Report:
         diff_alpha_url = self._relative_url(test_result.diff_alpha_img)
 
         test_html = f"""
-            <tr{tr_style}>
+            <tr{tr_style} data-category="{test_category}" data-name="{name}" data-result="{result_attr}">
                 <td><b>{name}</b><br/>{test_category}<br/>{status}</td>
                 <td><img src="{new_url}" onmouseover="this.src='{ref_url}';" onmouseout="this.src='{new_url}';" class="render"></td>
                 <td><img src="{ref_url}" onmouseover="this.src='{new_url}';" onmouseout="this.src='{ref_url}';" class="render"></td>
@@ -559,11 +620,13 @@ class Report:
             ref_url = os.path.join(base_path, self._engine_path(*self.compare_engine), new_url)
 
             test_html = """
-                <tr{tr_style}>
+                <tr{tr_style} data-category="{test_category}" data-name="{name}" data-result="{result_attr}">
                     <td><b>{name}</b><br/>{testname}<br/>{status}</td>
                     <td><img src="{new_url}" onmouseover="this.src='{ref_url}';" onmouseout="this.src='{new_url}';" class="render"></td>
                     <td><img src="{ref_url}" onmouseover="this.src='{new_url}';" onmouseout="this.src='{ref_url}';" class="render"></td>
                 </tr>""" . format(tr_style=tr_style,
+                                  test_category=test_category,
+                                  result_attr=result_attr,
                                   name=name,
                                   testname=test_result.name,
                                   status=status,
