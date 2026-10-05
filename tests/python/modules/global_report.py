@@ -4,34 +4,28 @@
 
 # Generate a HTML page that links to all test reports.
 
-import glob
-import os
-import pathlib
+from pathlib import Path
 
 
 def _write_html(output_dir):
     combined_reports = ""
 
     # Gather intermediate data for all tests and combine into one HTML file.
-    categories = sorted(glob.glob(os.path.join(output_dir, "report", "*")))
+    categories = sorted((output_dir / "report").glob("*"))
 
     for category in categories:
-        category_name = os.path.basename(category)
-        combined_reports += "<h3>" + category_name + "</h3>\n"
+        combined_reports += "<h3>" + category.name + "</h3>\n"
 
-        reports = sorted(glob.glob(os.path.join(category, "*.data")))
-        for filename in reports:
-            filepath = os.path.join(output_dir, filename)
-            combined_reports += pathlib.Path(filepath).read_text()
+        for filepath in sorted(category.glob("*.data")):
+            combined_reports += filepath.read_text()
 
         combined_reports += "<br/>\n"
 
     # Fill in HTML template.
-    template_filepath = pathlib.Path(__file__).parent / "global_report.template.html"
+    template_filepath = Path(__file__).parent / "global_report.template.html"
     html = template_filepath.read_text().replace("%REPORTS%", combined_reports)
 
-    filepath = os.path.join(output_dir, "report.html")
-    pathlib.Path(filepath).write_text(html)
+    (output_dir / "report.html").write_text(html)
 
 
 def add(output_dir, category, name, filepath, failed=None):
@@ -43,19 +37,20 @@ def add(output_dir, category, name, filepath, failed=None):
     else:
         status = "ok"
 
-    relpath = os.path.relpath(filepath, output_dir)
+    output_dir = Path(output_dir).resolve()
+    filepath = Path(filepath).resolve()
+    relpath = filepath.relative_to(output_dir, walk_up=True)
 
     html = """
         <span class="{status}">&#11044;</span>
         <a href="{relpath}">{name}</a><br/>
         """ . format(status=status,
                      name=name,
-                     relpath=relpath)
+                     relpath=relpath.as_posix())
 
-    dirpath = os.path.join(output_dir, "report", category)
-    os.makedirs(dirpath, exist_ok=True)
-    filepath = os.path.join(dirpath, name + ".data")
-    pathlib.Path(filepath).write_text(html)
+    dirpath = output_dir / "report" / category
+    dirpath.mkdir(parents=True, exist_ok=True)
+    (dirpath / (name + ".data")).write_text(html)
 
     # Combined into HTML, each time so we can see intermediate results
     # while tests are still running.

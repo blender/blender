@@ -7,11 +7,9 @@ Compare renders or screenshots against reference versions and generate
 a HTML report showing the differences, for regression testing.
 """
 
-import glob
 import fnmatch
 import os
 import sys
-import pathlib
 import shutil
 import subprocess
 import time
@@ -42,9 +40,10 @@ def blend_list(dirpath, blocklist, filter):
         positive_patterns = positive_filter.lower().split(":") if positive_filter else []
         negative_patterns = negative_filter.lower().split(":") if negative_filter else []
 
-    for root, dirs, files in os.walk(dirpath):
+    for root, dirs, files in dirpath.walk():
         for filename in files:
-            if not filename.lower().endswith(".blend"):
+            filepath = root / filename
+            if filepath.suffix.lower() != ".blend":
                 continue
 
             skip = False
@@ -56,7 +55,7 @@ def blend_list(dirpath, blocklist, filter):
             if skip:
                 continue
 
-            name_for_filter = Path(filename).stem.lower()
+            name_for_filter = filepath.stem.lower()
 
             if positive_patterns:
                 skip = True
@@ -72,41 +71,36 @@ def blend_list(dirpath, blocklist, filter):
                         break
 
             if not skip:
-                filepath = os.path.join(root, filename)
                 yield filepath
 
 
 def test_get_name(filepath):
-    filename = os.path.basename(filepath)
-    return os.path.splitext(filename)[0]
+    return filepath.stem
 
 
 def test_get_images(output_dir, filepath, testname, reference_dir, reference_override_dir):
-    dirpath = os.path.dirname(filepath)
+    dirpath = filepath.parent
 
-    old_dirpath = os.path.join(dirpath, reference_dir)
-    old_img = os.path.join(old_dirpath, testname + ".png")
+    old_img = dirpath / reference_dir / (testname + ".png")
     if reference_override_dir:
-        override_dirpath = os.path.join(dirpath, reference_override_dir)
-        override_img = os.path.join(override_dirpath, testname + ".png")
-        if os.path.exists(override_img):
-            old_dirpath = override_dirpath
+        override_img = dirpath / reference_override_dir / (testname + ".png")
+        if override_img.exists():
             old_img = override_img
 
-    ref_dirpath = os.path.join(output_dir, os.path.basename(dirpath), "ref")
-    ref_img = os.path.join(ref_dirpath, testname + ".png")
-    os.makedirs(ref_dirpath, exist_ok=True)
-    if os.path.exists(old_img):
+    ref_dirpath = output_dir / dirpath.name / "ref"
+    ref_img = ref_dirpath / (testname + ".png")
+    ref_dirpath.mkdir(parents=True, exist_ok=True)
+    if old_img.exists():
         shutil.copy(old_img, ref_img)
 
-    new_dirpath = os.path.join(output_dir, os.path.basename(dirpath))
-    os.makedirs(new_dirpath, exist_ok=True)
-    new_img = os.path.join(new_dirpath, testname + ".png")
+    new_dirpath = output_dir / dirpath.name
+    new_dirpath.mkdir(parents=True, exist_ok=True)
+    new_img = new_dirpath / (testname + ".png")
 
-    diff_dirpath = os.path.join(output_dir, os.path.basename(dirpath), "diff")
-    os.makedirs(diff_dirpath, exist_ok=True)
-    diff_color_img = os.path.join(diff_dirpath, testname + ".diff_color.png")
-    diff_alpha_img = os.path.join(diff_dirpath, testname + ".diff_alpha.png")
+    diff_dirpath = output_dir / dirpath.name / "diff"
+    diff_dirpath.mkdir(parents=True, exist_ok=True)
+    diff_color_img = diff_dirpath / (testname + ".diff_color.png")
+    diff_alpha_img = diff_dirpath / (testname + ".diff_alpha.png")
 
     return old_img, ref_img, new_img, diff_color_img, diff_alpha_img
 
@@ -117,24 +111,22 @@ class TestResult:
         self.name = name
         self.error = None
         self.stats = None
-        self.tmp_out_img_base = os.path.join(report.output_dir, "tmp_" + name)
-        self.tmp_out_img = self.tmp_out_img_base + '0001.png'
+        self.tmp_out_img_base = report.output_dir / ("tmp_" + name)
+        self.tmp_out_img = report.output_dir / ("tmp_" + name + "0001.png")
         self.old_img, self.ref_img, self.new_img, self.diff_color_img, self.diff_alpha_img = test_get_images(
             report.output_dir, filepath, name, report.reference_dir, report.reference_override_dir)
 
 
 def diff_output(test, oiiotool, fail_threshold, fail_percent, verbose, update):
     # Create reference render directory.
-    old_dirpath = os.path.dirname(test.old_img)
-    os.makedirs(old_dirpath, exist_ok=True)
+    test.old_img.parent.mkdir(parents=True, exist_ok=True)
 
     # Copy temporary to new image.
-    if os.path.exists(test.new_img):
-        os.remove(test.new_img)
-    if os.path.exists(test.tmp_out_img):
+    test.new_img.unlink(missing_ok=True)
+    if test.tmp_out_img.exists():
         shutil.copy(test.tmp_out_img, test.new_img)
 
-    if os.path.exists(test.ref_img):
+    if test.ref_img.exists():
         # Diff images test with threshold.
         command = (
             oiiotool,
@@ -238,7 +230,7 @@ def get_gpu_device_info(blender, gpu_backend):
         "--gpu-backend",
         gpu_backend,
         "--python",
-        str(pathlib.Path(__file__).parent / "gpu_info.py")
+        str(Path(__file__).parent / "gpu_info.py")
     ]
 
     completed_process = subprocess.run(command, stdout=subprocess.PIPE, universal_newlines=True)
@@ -290,10 +282,8 @@ class Report:
     def __init__(self, title, output_dir, oiiotool, variation=None, blocklist=[]):
         self.title = title
 
-        # Normalize the path to avoid output_dir and global_dir being the same when a directory
-        # ends with a trailing slash.
-        self.output_dir = os.path.normpath(output_dir)
-        self.global_dir = os.path.dirname(self.output_dir)
+        self.output_dir = output_dir.resolve()
+        self.global_dir = self.output_dir.parent
 
         self.reference_dir = 'reference_renders'
         self.reference_override_dir = None
@@ -321,7 +311,7 @@ class Report:
         self.passed_tests = ""
         self.compare_tests = ""
 
-        os.makedirs(output_dir, exist_ok=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
     def set_pixelated(self, pixelated):
         self.pixelated = pixelated
@@ -349,7 +339,7 @@ class Report:
 
     def run(self, dirpath, blender, arguments_cb, batch=False, fail_silently=False):
         # Run tests and output report.
-        dirname = os.path.basename(dirpath)
+        dirname = dirpath.name
         ok = self._run_all_tests(dirname, dirpath, blender, arguments_cb, batch, fail_silently)
         self._write_data(dirname)
         self._write_html()
@@ -359,18 +349,13 @@ class Report:
 
     def _write_data(self, dirname):
         # Write intermediate data for single test.
-        outdir = os.path.join(self.output_dir, dirname)
-        os.makedirs(outdir, exist_ok=True)
+        outdir = self.output_dir / dirname
+        outdir.mkdir(parents=True, exist_ok=True)
 
-        filepath = os.path.join(outdir, "failed.data")
-        pathlib.Path(filepath).write_text(self.failed_tests)
-
-        filepath = os.path.join(outdir, "passed.data")
-        pathlib.Path(filepath).write_text(self.passed_tests)
-
+        (outdir / "failed.data").write_text(self.failed_tests)
+        (outdir / "passed.data").write_text(self.passed_tests)
         if self.compare_engine:
-            filepath = os.path.join(outdir, "compare.data")
-            pathlib.Path(filepath).write_text(self.compare_tests)
+            (outdir / "compare.data").write_text(self.compare_tests)
 
     def _navigation_item(self, title, href, active):
         if active:
@@ -387,15 +372,14 @@ class Report:
     def _engine_path(self, path, variation):
         if variation:
             variation = variation.replace(' ', '_')
-            return os.path.join(path, variation.lower())
+            return Path(path) / variation.lower()
         else:
-            return path
+            return Path(path)
 
     def _navigation_html(self, comparison):
         html = """<nav aria-label="breadcrumb"><ol class="breadcrumb">"""
-        base_path = os.path.relpath(self.global_dir, self.output_dir)
-        global_report_path = os.path.join(base_path, "report.html")
-        html += self._navigation_item("Test Reports", global_report_path, False)
+        global_report_url = self._relative_url(self.global_dir / "report.html")
+        html += self._navigation_item("Test Reports", global_report_url, False)
         html += self._navigation_item(self.title, "report.html", not comparison)
         if self.compare_engine:
             compare_title = "Compare with %s" % self._engine_title(*self.compare_engine)
@@ -408,20 +392,13 @@ class Report:
         # Gather intermediate data for all tests.
         if comparison:
             failed_data = []
-            passed_data = sorted(glob.glob(os.path.join(self.output_dir, "*/compare.data")))
+            passed_data = sorted(self.output_dir.glob("*/compare.data"))
         else:
-            failed_data = sorted(glob.glob(os.path.join(self.output_dir, "*/failed.data")))
-            passed_data = sorted(glob.glob(os.path.join(self.output_dir, "*/passed.data")))
+            failed_data = sorted(self.output_dir.glob("*/failed.data"))
+            passed_data = sorted(self.output_dir.glob("*/passed.data"))
 
-        failed_tests = ""
-        passed_tests = ""
-
-        for filename in failed_data:
-            filepath = os.path.join(self.output_dir, filename)
-            failed_tests += pathlib.Path(filepath).read_text()
-        for filename in passed_data:
-            filepath = os.path.join(self.output_dir, filename)
-            passed_tests += pathlib.Path(filepath).read_text()
+        failed_tests = "".join(filepath.read_text() for filepath in failed_data)
+        passed_tests = "".join(filepath.read_text() for filepath in passed_data)
 
         tests_html = failed_tests + passed_tests
 
@@ -440,7 +417,7 @@ class Report:
             columns_html = "<tr><th>Name</th><th>New</th><th>Reference</th><th>Diff Color</th><th>Diff Alpha</th>"
 
         # Fill in HTML template.
-        template_filepath = pathlib.Path(__file__).parent / "render_report.template.html"
+        template_filepath = Path(__file__).parent / "render_report.template.html"
         replacements = {
             "%TITLE%": title,
             "%IMAGE_RENDERING%": "pixelated" if self.pixelated else "auto",
@@ -455,10 +432,10 @@ class Report:
             html = html.replace(key, value)
 
         filename = "report.html" if not comparison else "compare.html"
-        filepath = os.path.join(self.output_dir, filename)
-        pathlib.Path(filepath).write_text(html)
+        filepath = self.output_dir / filename
+        filepath.write_text(html)
 
-        print_message("Report saved to: " + pathlib.Path(filepath).as_uri())
+        print_message("Report saved to: " + filepath.as_uri())
 
         # Update global report
         if not comparison:
@@ -466,8 +443,7 @@ class Report:
             global_report.add(self.global_dir, "Render", self.title, filepath, global_failed)
 
     def _relative_url(self, filepath):
-        relpath = os.path.relpath(filepath, self.output_dir)
-        return pathlib.Path(relpath).as_posix()
+        return filepath.relative_to(self.output_dir, walk_up=True).as_posix()
 
     def _write_test_html(self, test_category, test_result):
         name = test_result.name + self.test_name_suffix
@@ -498,8 +474,8 @@ class Report:
             self.passed_tests += test_html
 
         if self.compare_engine:
-            base_path = os.path.relpath(self.global_dir, self.output_dir)
-            ref_url = os.path.join(base_path, self._engine_path(*self.compare_engine), new_url)
+            compare_dir = self.global_dir / self._engine_path(*self.compare_engine)
+            ref_url = self._relative_url(compare_dir / new_url)
 
             test_html = """
                 <tr{tr_style} data-category="{test_category}" data-name="{name}" data-result="{result_attr}">
@@ -532,8 +508,8 @@ class Report:
         return []
 
     def _get_filepath_tests(self, filepath):
-        list_filepath = filepath.replace('.blend', '_permutations.txt')
-        if os.path.exists(list_filepath):
+        list_filepath = filepath.with_name(filepath.stem + "_permutations.txt")
+        if list_filepath.exists():
             with open(list_filepath, 'r') as file:
                 return [TestResult(self, filepath, testname.rstrip('\n')) for testname in file]
         else:
@@ -556,21 +532,21 @@ class Report:
             # On Windows, there is a maximum length of 32,767 characters (including the terminating null character)
             # for process command line commands, see:
             # https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessa
-            command_line_length = len(blender)
+            command_line_length = len(str(blender))
             for suffix in arguments_suffix:
                 # Add 3 for taking into account spaces and quotation marks potentially added by Python.
-                command_line_length += len(suffix) + 3
+                command_line_length += len(str(suffix)) + 3
 
             # Construct output filepaths and command to run
             for filepath in remaining_filepaths:
                 testname = test_get_name(filepath)
 
-                base_output_filepath = os.path.join(self.output_dir, "tmp_" + testname)
+                base_output_filepath = self.output_dir / ("tmp_" + testname)
                 command_filepath = self._get_render_arguments(arguments_cb, filepath, base_output_filepath)
 
                 # Check if we have surpassed the command line limit.
                 for cmd in command_filepath:
-                    command_line_length += len(cmd) + 3
+                    command_line_length += len(str(cmd)) + 3
                 if sys.platform == 'win32' and command_line_length > 32766 and len(running_tests) > 0:
                     break
 
@@ -578,9 +554,8 @@ class Report:
                 running_tests.append(filepath)
                 command.extend(command_filepath)
 
-                output_filepath = base_output_filepath + '0001.png'
-                if os.path.exists(output_filepath):
-                    os.remove(output_filepath)
+                output_filepath = self.output_dir / ("tmp_" + testname + "0001.png")
+                output_filepath.unlink(missing_ok=True)
 
                 # Only chain multiple commands for batch
                 if not batch:
@@ -608,7 +583,7 @@ class Report:
                             quoted.append('"{}"'.format(arg))  # wrap the expression in quotes
                             quote_next = False
                         else:
-                            quoted.append(arg)
+                            quoted.append(str(arg))
                             if arg == "--python-expr":
                                 quote_next = True
                     return quoted
@@ -625,7 +600,7 @@ class Report:
                 file_crashed = False
                 for test in self._get_filepath_tests(filepath):
                     self.postprocess_test(blender, test)
-                    if not os.path.exists(test.tmp_out_img) or os.path.getsize(test.tmp_out_img) == 0:
+                    if not test.tmp_out_img.exists() or test.tmp_out_img.stat().st_size == 0:
                         if crash:
                             # In case of crash, stop after missing files and re-render remaining
                             test.error = "CRASH"
@@ -652,15 +627,14 @@ class Report:
                 print_message(test.name, 'FAILURE', 'FAILED')
             elif test.error == "NO OUTPUT":
                 print_message("No render result file found")
-                print_message(test.tmp_out_img, 'FAILURE', 'FAILED')
+                print_message(str(test.tmp_out_img), 'FAILURE', 'FAILED')
             elif test.error == "VERIFY":
                 print_message("Render result is different from reference image")
                 print_message(test.name, 'FAILURE', 'FAILED')
             else:
                 print_message(test.name, 'SUCCESS', 'OK')
 
-            if os.path.exists(test.tmp_out_img):
-                os.remove(test.tmp_out_img)
+            test.tmp_out_img.unlink(missing_ok=True)
 
         return test_results
 

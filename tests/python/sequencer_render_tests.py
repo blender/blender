@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
@@ -22,9 +21,6 @@ def get_compositor_device_setter_script(execution_device):
 
 
 def get_arguments(filepath, output_filepath, backend):
-    dirname = os.path.dirname(filepath)
-    basedir = os.path.dirname(dirname)
-
     args = [
         "--background",
         "--factory-startup",
@@ -53,10 +49,10 @@ def create_argparse():
     parser = argparse.ArgumentParser(
         description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
     )
-    parser.add_argument("--blender", required=True)
-    parser.add_argument("--testdir", required=True)
-    parser.add_argument("--outdir", required=True)
-    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--blender", required=True, type=Path)
+    parser.add_argument("--testdir", required=True, type=Path)
+    parser.add_argument("--outdir", required=True, type=Path)
+    parser.add_argument("--oiiotool", required=True, type=Path)
     parser.add_argument("--batch", default=False, action="store_true")
     parser.add_argument('--gpu-backend')
     return parser

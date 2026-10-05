@@ -337,10 +337,10 @@ def create_argparse():
     parser = argparse.ArgumentParser(
         description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
     )
-    parser.add_argument("--blender", required=True)
-    parser.add_argument("--testdir", required=True)
-    parser.add_argument("--outdir", required=True)
-    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--blender", required=True, type=Path)
+    parser.add_argument("--testdir", required=True, type=Path)
+    parser.add_argument("--outdir", required=True, type=Path)
+    parser.add_argument("--oiiotool", required=True, type=Path)
     parser.add_argument('--batch', default=False, action='store_true')
     parser.add_argument('--gpu-backend')
     return parser
@@ -383,7 +383,7 @@ def main():
     report.set_fail_percent(0.08)
     report.set_fail_threshold(4.0 / 255.0)
 
-    test_dir_name = Path(args.testdir).name
+    test_dir_name = args.testdir.name
     if gpu_vendor == "NVIDIA" and args.gpu_backend == "opengl":
         # References are supposed to be generated on OpenGL Nvidia. Tighten the threshold for this platform.
         report.set_fail_percent(0.049)

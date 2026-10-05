@@ -6,6 +6,7 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 
 # When run from inside Blender, render and exit.
@@ -48,10 +49,10 @@ def create_argparse():
     parser = argparse.ArgumentParser(
         description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
     )
-    parser.add_argument("--blender", required=True)
-    parser.add_argument("--testdir", required=True)
-    parser.add_argument("--outdir", required=True)
-    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--blender", required=True, type=Path)
+    parser.add_argument("--testdir", required=True, type=Path)
+    parser.add_argument("--outdir", required=True, type=Path)
+    parser.add_argument("--oiiotool", required=True, type=Path)
     parser.add_argument('--batch', default=False, action='store_true')
     parser.add_argument('--gpu-backend')
     return parser
@@ -80,10 +81,10 @@ def main():
     report.set_pixelated(True)
     report.set_reference_dir("compositor_renders")
 
-    if os.path.basename(args.testdir) == 'filter':
+    if args.testdir.name == 'filter':
         # Temporary change to pass OpenImageDenoise test with both 1.3 and 1.4.
         report.set_fail_threshold(0.05)
-    elif os.path.basename(args.testdir) == 'mask' or os.path.basename(args.testdir) == 'keying':
+    elif args.testdir.name == 'mask' or args.testdir.name == 'keying':
         # The node_keying_matte.blend test is very sensitive to the exact values in the
         # input image. It makes it hard to precisely match results on different systems
         # (with and without SSE, i.e.), especially when OCIO has different precision for
