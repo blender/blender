@@ -13,6 +13,7 @@
 #include "BLI_listbase.hh"
 
 #include "BKE_anim_data.hh"
+#include "BKE_armature.hh"
 #include "BKE_nla.hh"
 
 #include "DNA_constraint_types.h"
@@ -20,6 +21,8 @@
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
+
+#include "DEG_depsgraph_query.hh"
 
 namespace blender::animrig {
 
@@ -144,7 +147,8 @@ bool foreach_action_slot_use_with_references(
     return true;
   }
 
-  const Object &object = reinterpret_cast<const Object &>(animated_id);
+  /* Cannot be `const` because of the BKE_pose_ensure() call below. */
+  Object &object = reinterpret_cast<Object &>(animated_id);
 
   /**
    * Visit a constraint, and call the callback if it's an Action constraint.
@@ -175,6 +179,8 @@ bool foreach_action_slot_use_with_references(
 
   /* Visit Pose Bone constraints. */
   if (object.type == OB_ARMATURE) {
+    bArmature *arm = id_cast<bArmature *>(object.data);
+    BKE_pose_ensure(nullptr, &object, arm, /*do_id_user=*/DEG_is_original(&object));
     for (bPoseChannel &pchan : object.pose->chanbase) {
       for (bConstraint &con : pchan.constraints) {
         if (!visit_constraint(con)) {
@@ -231,7 +237,8 @@ bool foreach_action_slot_use_with_rna(ID &animated_id,
     return true;
   }
 
-  const Object &object = reinterpret_cast<const Object &>(animated_id);
+  /* Cannot be `const` because of the BKE_pose_ensure() call below. */
+  Object &object = reinterpret_cast<Object &>(animated_id);
 
   /**
    * Visit a constraint, and call the callback if it's an Action constraint.
@@ -264,6 +271,9 @@ bool foreach_action_slot_use_with_rna(ID &animated_id,
 
   /* Visit Pose Bone constraints. */
   if (object.type == OB_ARMATURE) {
+    bArmature *arm = id_cast<bArmature *>(object.data);
+    BKE_pose_ensure(nullptr, &object, arm, /*do_id_user=*/DEG_is_original(&object));
+
     for (bPoseChannel &pchan : object.pose->chanbase) {
       for (bConstraint &con : pchan.constraints) {
         if (!visit_constraint(con)) {
