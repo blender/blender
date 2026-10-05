@@ -582,9 +582,9 @@ void do_paint_brush(const Depsgraph &depsgraph,
   /* If the brush is round the tip does not need to be aligned to the surface, so this saves a
    * whole iteration over the affected nodes. */
   if (BKE_brush_has_cube_tip(&brush, PaintMode::Sculpt)) {
-    cube_tip_init(sd, ob, brush, mat.ptr());
+    mat = cube_tip_init(sd, ob, brush);
 
-    if (is_zero_m4(mat.ptr())) {
+    if (math::is_zero(mat)) {
       return;
     }
   }
