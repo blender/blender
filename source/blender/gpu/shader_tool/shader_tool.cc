@@ -192,6 +192,8 @@ int main(int argc, char **argv)
         (filename.find("gpu/shaders/") == std::string::npos &&
          filename.find("draw/intern/shaders/") == std::string::npos &&
          filename.find("workbench/shaders/") == std::string::npos &&
+         filename.find("overlay/shaders/") == std::string::npos &&
+         filename.find("select/shaders/") == std::string::npos &&
          filename.find("eevee/shaders/") == std::string::npos &&
          filename.find("gpencil/shaders/") == std::string::npos))
     {
