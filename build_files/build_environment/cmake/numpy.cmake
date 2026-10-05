@@ -12,6 +12,14 @@ else()
     export CYTHON=${HOST_LIBDIR}/python/bin/cython &&
     export PATH=${HOST_LIBDIR}/python/bin:$ENV{PATH}
   )
+
+  if(CMAKE_CROSSCOMPILING)
+    # Constrain pkg-config to avoid picking up host libs.
+    set(NUMPY_CONF
+      ${NUMPY_CONF} &&
+      export PKG_CONFIG_LIBDIR=${LIBDIR}/python/lib/pkgconfig
+    )
+  endif()
 endif()
 
 set(NUMPY_CROSSFILE_ARG "")

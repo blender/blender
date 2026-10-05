@@ -10,9 +10,17 @@ if(NOT WITH_LIBS_PRECOMPILED)
   unset(LIBDIR)
 else()
   if(NOT DEFINED LIBDIR AND ANDROID)
-    set(LIBDIR_ANDROID ${CMAKE_SOURCE_DIR}/lib/android_arm64)
+    # Map the Android ABI onto Blender's own architecture naming conventions,
+    # matching the directory the dependency builder harvests into.
+    if(ANDROID_ABI STREQUAL "arm64-v8a")
+      set(LIBDIR_ANDROID ${CMAKE_SOURCE_DIR}/lib/android_arm64)
+    elseif(ANDROID_ABI STREQUAL "x86_64")
+      set(LIBDIR_ANDROID ${CMAKE_SOURCE_DIR}/lib/android_x64)
+    else()
+      message(FATAL_ERROR "Unsupported Android ABI \"${ANDROID_ABI}\".")
+    endif()
 
-    file(GLOB LIBDIR_RESULT ${ANDROID_LIBDIR}/*)
+    file(GLOB LIBDIR_RESULT ${LIBDIR_ANDROID}/*)
     list(LENGTH LIBDIR_RESULT LIBDIR_LEN)
 
     if(NOT LIBDIR_LEN EQUAL 0)
@@ -1094,7 +1102,7 @@ unset(_IS_LINKER_DEFAULT)
 # Avoid conflicts with Mesa llvmpipe, Luxrender, and other plug-ins that may
 # use the same libraries as Blender with a different version or build options.
 set(PLATFORM_SYMBOLS_MAP ${CMAKE_SOURCE_DIR}/source/creator/symbols_unix.map)
-set(PLATFORM_LINKFLAGS_SYMBOL_HIDING "-Wl,--version-script='${PLATFORM_SYMBOLS_MAP}'")
+set(PLATFORM_LINKFLAGS_SYMBOL_HIDING "-Wl,--version-script=\"${PLATFORM_SYMBOLS_MAP}\"")
 
 # Don't use position independent executable for portable install since file
 # browsers can't properly detect blender as an executable then. Still enabled

@@ -10,9 +10,12 @@
 # - GRADLE_STAGING_DIR: Directory to stage the Gradle project into.
 # - INSTALL_TARGET_DIR: Installed target version runtime directory to stage.
 # - ANDROID_NDK_ROOT:   Root of the Android NDK used while building.
+# - ANDROID_ABI:        Android ABI the libraries were built for (e.g. arm64-v8a, x86_64).
+# - ANDROID_ARCH_TRIPLE: Android architecture triple of that ABI, naming the NDK sysroot
+#                        library directory (e.g. aarch64-linux-android, x86_64-linux-android).
 #
 # Staged into `GRADLE_STAGING_DIR` within the Gradle project itself:
-# - jniLibs/arm64-v8a/: Stripped native libraries, extracted by the package installer at install
+# - jniLibs/<abi>/:     Stripped native libraries, extracted by the package installer at install
 #                       time (see the useLegacyPackaging note in app/build.gradle).
 # - assets/<target>/:   Runtime files, unpacked into the application's private storage on
 #                       first launch by BlenderActivity.
@@ -24,6 +27,8 @@ foreach(required_var
   GRADLE_STAGING_DIR
   INSTALL_TARGET_DIR
   ANDROID_NDK_ROOT
+  ANDROID_ABI
+  ANDROID_ARCH_TRIPLE
 )
   if(NOT DEFINED ${required_var})
     message(FATAL_ERROR "Gradle staging: ${required_var} is not set")
@@ -37,7 +42,7 @@ endforeach()
 get_filename_component(sdk_dir "${ANDROID_NDK_ROOT}/../.." ABSOLUTE)
 
 set(main_dir "${GRADLE_STAGING_DIR}/app/src/main")
-set(jni_dir "${main_dir}/jniLibs/arm64-v8a")
+set(jni_dir "${main_dir}/jniLibs/${ANDROID_ABI}")
 set(assets_dir "${main_dir}/assets")
 
 # The NDK toolchain directory is named after the build host, only the one is ever installed.
@@ -48,8 +53,11 @@ endif()
 list(POP_BACK ndk_toolchain_dirs ndk_toolchain_dir)
 
 # `libc++_shared.so` must be bundled as we used the shared STL due to the use of multiple shared libraries.
-set(libcxx_shared "${ndk_toolchain_dir}/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so")
+set(libcxx_shared "${ndk_toolchain_dir}/sysroot/usr/lib/${ANDROID_ARCH_TRIPLE}/libc++_shared.so")
 set(strip_command "${ndk_toolchain_dir}/bin/llvm-strip")
+if(CMAKE_HOST_WIN32)
+  string(APPEND strip_command ".exe")
+endif()
 
 # TODO: Could add more patterns, see the source/creator install_dir macro.
 set(copy_excludes

@@ -182,7 +182,7 @@ if(WIN32)
     external_osl
     external_flexbison
   )
-elseif(UNIX AND NOT APPLE)
+elseif(UNIX AND NOT APPLE AND NOT CMAKE_CROSSCOMPILING)
   add_dependencies(
     external_osl
     external_flex

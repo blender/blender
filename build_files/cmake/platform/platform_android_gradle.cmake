@@ -30,18 +30,45 @@
 
 set(_apk_version_name "${BLENDER_VERSION}.${BLENDER_VERSION_PATCH}-${BLENDER_VERSION_CYCLE}")
 
-# Version code integer required by Android, used in the form: 5.1.2 -> 5010200, keeping the last
-# two digits for an eventual build increment field.
+# Version code integer required by Android.
+# As arm64-v8a is often supported on other platforms through emulation,
+# the highest number must be assigned to the other ABIs.
+# Current Layout:
+# - ABI identifier (arm64-v8a=1, x86_64=4)
+# - Blender major version (00-99)
+# - Blender minor version (00-99)
+# - Blender patch version (00-99)
+# - Build increment (reserved - currently 00)
+#
+# Examples:
+# 5.4.1 arm64-v8a -> 105040100
+# 5.4.1 x86_64 -> 405040100
+#
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+  set(_abi_prefix 1)
+elseif(ANDROID_ABI STREQUAL "x86_64")
+  set(_abi_prefix 4)
+else()
+  message(FATAL_ERROR "Unsupported ANDROID_ABI: ${ANDROID_ABI}")
+endif()
 math(EXPR _apk_version_code
-  "${BLENDER_VERSION_MAJOR} * 1000000 + ${BLENDER_VERSION_MINOR} * 10000 + ${BLENDER_VERSION_PATCH} * 100"
+  "${_abi_prefix} * 100000000 +
+   ${BLENDER_VERSION_MAJOR} * 1000000 +
+   ${BLENDER_VERSION_MINOR} * 10000 +
+   ${BLENDER_VERSION_PATCH} * 100"
 )
+unset(_abi_prefix)
 
 set(_gradle_source_dir "${CMAKE_SOURCE_DIR}/release/android")
 set(_gradle_staging_dir "${CMAKE_BINARY_DIR}/gradle")
 # Installed target version runtime directory, equivalent to TARGETDIR_VER in source/creator/CMakelists.txt.
 set(_install_target_dir "${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}")
 
-set(_gradle_executable "${_gradle_staging_dir}/gradlew")
+if(CMAKE_HOST_WIN32)
+  set(_gradle_executable "${_gradle_staging_dir}/gradlew.bat")
+else()
+  set(_gradle_executable "${_gradle_staging_dir}/gradlew")
+endif()
 
 # Assume CMAKE_BUILD_TYPE other than "Debug" as "Release
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -55,6 +82,22 @@ endif()
 set(_apk_output "${_gradle_staging_dir}/app/build/outputs/apk/${_gradle_build_type}/app-${_gradle_build_type}.apk")
 
 unset(_gradle_build_type)
+
+# -----------------------------------------------------------------------------
+# Android architecture triple
+
+# Names the NDK sysroot library directory of the target ABI, used by the staging script to
+# pick up the matching libc++ shared library.
+# NOTE: This differs from ANDROID_LLVM_TRIPLE, which carries a `-none-` infix and an API
+# level suffix, and from CMAKE_ANDROID_ARCH_TRIPLE, which is only set when CMake drives the
+# NDK itself rather than through the NDK own toolchain file.
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+  set(_android_arch_triple "aarch64-linux-android")
+elseif(ANDROID_ABI STREQUAL "x86_64")
+  set(_android_arch_triple "x86_64-linux-android")
+else()
+  message(FATAL_ERROR "Unsupported Android ABI \"${ANDROID_ABI}\".")
+endif()
 
 # -----------------------------------------------------------------------------
 # Main Android APK building targets
@@ -74,6 +117,8 @@ add_custom_target(gradle_stage
           "-DGRADLE_STAGING_DIR=${_gradle_staging_dir}"
           "-DINSTALL_TARGET_DIR=${_install_target_dir}"
           "-DANDROID_NDK_ROOT=${ANDROID_NDK_ROOT}"
+          "-DANDROID_ABI=${ANDROID_ABI}"
+          "-DANDROID_ARCH_TRIPLE=${_android_arch_triple}"
           -P "${CMAKE_CURRENT_LIST_DIR}/platform_android_stage.cmake"
   COMMENT "Staging the Gradle project into ${_gradle_staging_dir}"
   USES_TERMINAL VERBATIM
@@ -85,6 +130,7 @@ add_custom_target(gradle_assemble
           "-PblenderVersionName=${_apk_version_name}"
           "-PblenderVersionCode=${_apk_version_code}"
           "-PblenderMinSdk=${ANDROID_PLATFORM_LEVEL}"
+          "-PblenderAbi=${ANDROID_ABI}"
   COMMAND ${CMAKE_COMMAND} -E echo "APK built: ${_apk_output}"
   COMMENT "Assembling Blender APK via Gradle"
   USES_TERMINAL VERBATIM
@@ -94,6 +140,7 @@ add_dependencies(gradle_assemble gradle_stage)
 unset(_apk_version_name)
 unset(_apk_version_code)
 unset(_gradle_source_dir)
+unset(_android_arch_triple)
 unset(_gradle_staging_dir)
 unset(_gradle_executable)
 unset(_gradle_assemble_target)

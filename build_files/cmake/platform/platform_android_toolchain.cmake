@@ -8,11 +8,6 @@
 # ----------------------------------------------------------------------------
 # Android NDK discovery
 
-# Buildling for Android is only supported on macOS and Linux.
-if(NOT (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux"))
-  message(FATAL_ERROR "Building for Android isn't supported on host ${CMAKE_HOST_SYSTEM_NAME}.")
-endif()
-
 # May be set explicitly by setting ANDROID_NDK_ROOT. Otherwise we try to infer the most
 # recent NDK version installed on the host from default paths.
 if(NOT DEFINED ANDROID_NDK_ROOT)
@@ -21,6 +16,8 @@ if(NOT DEFINED ANDROID_NDK_ROOT)
     set(_android_sdk_dir "$ENV{ANDROID_HOME}")
   elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
     set(_android_sdk_dir "$ENV{HOME}/Library/Android/sdk")
+  elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    set(_android_sdk_dir "$ENV{LOCALAPPDATA}/Android/Sdk")
   else()
     set(_android_sdk_dir "$ENV{HOME}/Android/Sdk")
   endif()
@@ -54,9 +51,19 @@ endif()
 # ----------------------------------------------------------------------------
 # Android ABI
 
-# arm64-v8a the only ABI we directly support (64-bit ARM CPUs).
+# Supported ABIs are arm64-v8a (default) and x86_64.
+# 32-bit ABIs (armeabi-v7a, x86) are not supported.
+if(NOT ANDROID_ABI)
+  set(ANDROID_ABI arm64-v8a)
+endif()
 
-set(ANDROID_ABI arm64-v8a)
+if(NOT (ANDROID_ABI STREQUAL "arm64-v8a" OR ANDROID_ABI STREQUAL "x86_64"))
+  message(FATAL_ERROR
+    "Unsupported Android ABI \"${ANDROID_ABI}\", expected one of: arm64-v8a, x86_64."
+  )
+endif()
+
+message(STATUS "Using Android ABI: ${ANDROID_ABI}")
 
 # ----------------------------------------------------------------------------
 # Android platform / minimum SDK version.

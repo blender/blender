@@ -16,10 +16,15 @@ set(THEORA_EXTRA_ARGS
 
 if(ANDROID)
   # Theora doesn't recognize the modern android host triplet, possibly due it using an older autoconf version.
-  # Circumvent this by setting it to a more generic aarch64 (then defaulting to aarch64-unknown-none).
-  list(APPEND THEORA_EXTRA_ARGS
-    --host=aarch64
-  )
+  # Circumvent this by setting it to the bare target architecture
+  # (then defaulting to <arch>-unknown-none).
+  if(ANDROID_ABI STREQUAL "arm64-v8a")
+    list(APPEND THEORA_EXTRA_ARGS --host=aarch64)
+  elseif(ANDROID_ABI STREQUAL "x86_64")
+    list(APPEND THEORA_EXTRA_ARGS --host=x86_64)
+  else()
+    message(FATAL_ERROR "Unsupported Android ABI \"${ANDROID_ABI}\".")
+  endif()
 endif()
 
 if(NOT WIN32)

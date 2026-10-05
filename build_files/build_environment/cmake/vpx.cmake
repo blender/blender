@@ -58,6 +58,17 @@ else()
     else()
       set(VPX_EXTRA_FLAGS --target=x86_64-darwin17-gcc)
     endif()
+  elseif(ANDROID)
+    # Use LibVPX's own Android targets, it avoids the -lpthread that the generic targets add.
+    if(ANDROID_ABI STREQUAL "arm64-v8a")
+      set(VPX_EXTRA_FLAGS --target=arm64-android-gcc)
+    elseif(ANDROID_ABI STREQUAL "x86_64")
+      # The x86 assembly needs yasm on the host side.
+      set(VPX_EXTRA_FLAGS --target=x86_64-android-gcc --as=yasm)
+      set(VPX_CONFIGURE_ENV_EXTRA export AS=yasm &&)
+    else()
+      message(FATAL_ERROR "Unsupported Android ABI \"${ANDROID_ABI}\".")
+    endif()
   else()
     if(NOT BLENDER_PLATFORM_ARM)
       set(VPX_EXTRA_FLAGS --target=x86_64-linux-gcc)
@@ -66,7 +77,7 @@ else()
     endif()
   endif()
 
-  set(VPX_CONFIGURE_COMMAND ${CONFIGURE_ENV})
+  set(VPX_CONFIGURE_COMMAND ${CONFIGURE_ENV} && ${VPX_CONFIGURE_ENV_EXTRA} true)
 
   set(VPX_BUILD_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/vpx/src/external_vpx/ &&

@@ -351,10 +351,28 @@ else()
       export AR=${CMAKE_AR} &&
       export LD=${CMAKE_C_COMPILER_LINKER} &&
       export RANLIB=${CMAKE_RANLIB} &&
-      export STRIP=${CMAKE_STRIP}
+      export STRIP=${CMAKE_STRIP} &&
+      # Keep pkg-config from leaking host packages into the cross-compiled build.
+      export PKG_CONFIG_LIBDIR=${LIBDIR}/pkgconfig
     )
 
     # For Meson projects, a similar cross-compilation environment is defined via a cross-file.
+    # Meson has its own CPU naming conventions, and needs to be told about the target long
+    # double format as it cannot determine it by running an executable while cross-compiling.
+    # See https://mesonbuild.com/Reference-tables.html for the accepted values.
+    if(ANDROID_ABI STREQUAL "arm64-v8a")
+      set(ANDROID_MESON_CPU_FAMILY "aarch64")
+      set(ANDROID_MESON_CPU "armv8")
+      set(ANDROID_MESON_LONGDOUBLE_FORMAT "IEEE_QUAD_LE")
+    elseif(ANDROID_ABI STREQUAL "x86_64")
+      set(ANDROID_MESON_CPU_FAMILY "x86_64")
+      set(ANDROID_MESON_CPU "x86_64")
+      # 80-bit extended precision stored in 16 bytes, unlike AArch64's 128-bit quad precision.
+      set(ANDROID_MESON_LONGDOUBLE_FORMAT "INTEL_EXTENDED_16_BYTES_LE")
+    else()
+      message(FATAL_ERROR "Unsupported Android ABI \"${ANDROID_ABI}\".")
+    endif()
+
     configure_file(
       ${CMAKE_SOURCE_DIR}/cmake/android_meson_crossfile.txt.in
       ${BUILD_DIR}/android_meson_crossfile.txt

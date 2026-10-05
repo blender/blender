@@ -35,7 +35,8 @@ if(NOT BLENDER_PLATFORM_ARM)
   )
 endif()
 
-if(NOT APPLE AND NOT BLENDER_PLATFORM_ARM)
+# Embree GPU support
+if(NOT APPLE AND NOT BLENDER_PLATFORM_ARM AND NOT ANDROID)
   if(WIN32)
     # Levels below -O2 don't work well for Embree+SYCL.
     string(REGEX REPLACE "-O[A-Za-z0-9]" "" EMBREE_CLANG_CMAKE_CXX_FLAGS_DEBUG ${BLENDER_CLANG_CMAKE_CXX_FLAGS_DEBUG})
@@ -101,7 +102,7 @@ ExternalProject_Add(external_embree
   INSTALL_DIR ${LIBDIR}/embree
 )
 
-if(NOT APPLE AND NOT BLENDER_PLATFORM_ARM)
+if(NOT APPLE AND NOT BLENDER_PLATFORM_ARM AND NOT ANDROID)
   add_dependencies(
     external_embree
     external_tbb

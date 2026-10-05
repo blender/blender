@@ -41,6 +41,14 @@ Other Convenience Targets
 Cross-Compilation Targets
    * android:       Build for Android via cross-compilation, applies to regular Blender builds and `deps` dependency builds.
 
+                    The target architecture may be selected by combining it with one of the
+                    architecture goals below, defaulting to 'arm64' when none is given.
+                    The build directory is suffixed with the target architecture,
+                    for example 'make android x64 release' builds in '../build_android_x64_release'.
+
+   * arm64:         Target the 64-bit ARM architecture (Android ABI 'arm64-v8a').
+   * x64:           Target the 64-bit x86 architecture (Android ABI 'x86_64').
+
 Project Files
    Generate project files for development environments.
 
@@ -203,7 +211,21 @@ CMAKE_CONFIG_ENV:=
 ifneq "$(findstring android, $(MAKECMDGOALS))" ""
 	TARGET_OS:=Android
 	TARGET_OS_NCASE:=android
-	TARGET_CPU:=arm64
+	IS_CROSSCOMPILING:=1
+
+	# Target architecture selection, defaults to 64-bit ARM when no architecture goal is given.
+	TARGET_CPU:=$(strip $(filter arm64 x64, $(MAKECMDGOALS)))
+	ifeq ($(TARGET_CPU),)
+		TARGET_CPU:=arm64
+	endif
+
+	# Map the target architecture onto its Android ABI name, passed to the toolchain file below.
+	# See https://developer.android.com/ndk/guides/abis for the list of Android ABI names.
+	ifeq ($(TARGET_CPU),arm64)
+		ANDROID_ABI:=arm64-v8a
+	else
+		ANDROID_ABI:=x86_64
+	endif
 
 	# The pre-defined CMake config/cache files loaded by this Makefile are loaded *before* the Android toolchain file,
 	# which is only loaded on the first project() call. As such, these files cannot use the `ANDROID` variable.
@@ -212,7 +234,8 @@ ifneq "$(findstring android, $(MAKECMDGOALS))" ""
 
 	# Use our own Android CMake toolchain file wrapper.
 	ANDROID_TOOLCHAIN_FILE:=$(BLENDER_DIR)/build_files/cmake/platform/platform_android_toolchain.cmake
-	CMAKE_CROSSCOMPILE_CONFIG_ARGS:=-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_TOOLCHAIN_FILE)
+	CMAKE_CROSSCOMPILE_CONFIG_ARGS:=-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_TOOLCHAIN_FILE) \
+									-DANDROID_ABI=$(ANDROID_ABI)
 
 	ifdef ANDROID_NDK_ROOT
 		CMAKE_CROSSCOMPILE_CONFIG_ARGS:=$(CMAKE_CROSSCOMPILE_CONFIG_ARGS) \
@@ -245,14 +268,25 @@ endif
 CMAKE_CONFIG_ARGS := $(BUILD_CMAKE_ARGS)
 
 ifndef BUILD_DIR
-	BUILD_DIR:=$(shell dirname "$(BLENDER_DIR)")/build_$(TARGET_OS_NCASE)
+	BUILD_DIR_BASE:=$(shell dirname "$(BLENDER_DIR)")/build_$(TARGET_OS_NCASE)
+
+	# When cross-compiling, several target architectures may be built from the same host for the
+	# same target OS. Suffix the Blender build directory with the target architecture so their
+	# CMake caches don't collide. Dependency build directories are already architecture specific.
+	ifdef IS_CROSSCOMPILING
+		BUILD_DIR:=$(BUILD_DIR_BASE)_$(TARGET_CPU)
+	else
+		BUILD_DIR:=$(BUILD_DIR_BASE)
+	endif
+else
+	BUILD_DIR_BASE:=$(BUILD_DIR)
 endif
 
 # Dependencies DIR's
 DEPS_SOURCE_DIR:=$(BLENDER_DIR)/build_files/build_environment
 
 ifndef DEPS_BUILD_DIR
-	DEPS_BUILD_DIR:=$(BUILD_DIR)/deps_$(TARGET_CPU)
+	DEPS_BUILD_DIR:=$(BUILD_DIR_BASE)/deps_$(TARGET_CPU)
 endif
 
 ifndef DEPS_INSTALL_DIR
@@ -522,7 +556,12 @@ deps: .FORCE
 # Cross-compilation targets
 
 android: .FORCE
-	@echo "Building for Android from host $(HOST_OS)."
+	@echo "Building for Android $(ANDROID_ABI) from host $(HOST_OS)."
+
+# Target architecture selection goals, only meaningful combined with a cross-compilation
+# target such as `android`.
+arm64: .FORCE
+x64: .FORCE
 
 
 # -----------------------------------------------------------------------------

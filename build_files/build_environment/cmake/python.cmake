@@ -142,18 +142,24 @@ else()
   )
 
   # Unlike other autoconf project, Python *requires* both --build and --host to be *explicitely* set. Even if, from
-  # the log, it can already infer the --build triplet by itself. Ask clang for the triplet to mimic the implicit
-  # autoconf behavior.
+  # the log, it can already infer the --build triplet by itself. Ask the host compiler for the triplet to mimic the
+  # implicit autoconf behavior.
+  # NOTE: While cross-compiling, CMAKE_C_COMPILER points at the *target* compiler, so the compiler of the build
+  # machine has to be looked up separately.
+  find_program(BUILD_MACHINE_C_COMPILER NAMES cc gcc clang)
+  if(NOT BUILD_MACHINE_C_COMPILER)
+    message(FATAL_ERROR "Python: Found no host C compiler to determine the build triplet with.")
+  endif()
   execute_process(
-    COMMAND /usr/bin/clang -dumpmachine
-    OUTPUT_VARIABLE BUILD_LLVM_TRIPLE
+    COMMAND ${BUILD_MACHINE_C_COMPILER} -dumpmachine
+    OUTPUT_VARIABLE BUILD_MACHINE_TRIPLE
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
   if(ANDROID)
     set(PYTHON_CONFIGURE_EXTRA_ARGS
       ${PYTHON_CONFIGURE_EXTRA_ARGS}
-      --build=${BUILD_LLVM_TRIPLE}
+      --build=${BUILD_MACHINE_TRIPLE}
       --host=${ANDROID_LLVM_TRIPLE}
       --with-build-python=${PYTHON_BINARY}
       # Build `libpython` as a shared library, for extension modules to properly load as Android doesn't resolve

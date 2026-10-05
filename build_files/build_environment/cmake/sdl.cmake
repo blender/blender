@@ -10,7 +10,13 @@ set(SDL_EXTRA_ARGS
   -DSDL_SNDIO=OFF
 )
 
-if(UNIX AND NOT APPLE)
+if(ANDROID)
+  set(SDL_EXTRA_ARGS
+    ${SDL_EXTRA_ARGS}
+    # We have our own copy of the SDL Java activity sources
+    -DSDL_ANDROID_JAR=OFF
+  )
+elseif(UNIX AND NOT APPLE)
   set(SDL_EXTRA_ARGS
     ${SDL_EXTRA_ARGS}
     -DSDL_X11_XSCRNSAVER=OFF

@@ -10,10 +10,10 @@ cmake = 'cmake'
 
 [host_machine]
 system = 'android'
-cpu_family = 'aarch64'
-cpu = 'armv8'
+cpu_family = '@ANDROID_MESON_CPU_FAMILY@'
+cpu = '@ANDROID_MESON_CPU@'
 endian = 'little'
 
 [properties]
 # Required for building numpy, without which meson configure tries to determine it by running an executable.
-longdouble_format = 'IEEE_QUAD_LE'
+longdouble_format = '@ANDROID_MESON_LONGDOUBLE_FORMAT@'

@@ -34,6 +34,10 @@ elseif(ANDROID)
   set(OIDN_EXTRA_ARGS
     ${OIDN_EXTRA_ARGS}
     -DISPC_TARGET_OS=--target-os=android
+    # Android NDK toolchain sets the find root path modes to ONLY,
+    # which prevents TBB to be found using TBB_ROOT.
+    -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=BOTH
+    -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=BOTH
   )
 else()
   set(OIDN_EXTRA_ARGS
@@ -163,7 +167,7 @@ if(NOT CMAKE_CROSSCOMPILING)
   )
 endif()
 
-if(NOT (APPLE OR WIN32 OR BLENDER_PLATFORM_ARM))
+if(NOT (APPLE OR WIN32 OR BLENDER_PLATFORM_ARM OR ANDROID))
   add_dependencies(
     external_openimagedenoise
     external_dpcpp

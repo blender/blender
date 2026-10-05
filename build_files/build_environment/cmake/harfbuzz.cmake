@@ -10,6 +10,7 @@ else()
   set(HARFBUZZ_PKG_ENV "PKG_CONFIG_PATH=\
 ${LIBDIR}/freetype/lib/pkgconfig:\
 ${LIBDIR}/brotli/lib/pkgconfig:\
+${LIBDIR}/zlib/share/pkgconfig:\
 ${LIBDIR}/lib/python3.10/pkgconfig:\
 $PKG_CONFIG_PATH"
   )
