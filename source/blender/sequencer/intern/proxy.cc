@@ -351,14 +351,14 @@ struct MultiViewPrefixVars {
 };
 
 /**
- * Returns whether the file this context would read from even exist,
- * if not, don't create the context.
+ * Returns true if the file this context would read from doesn't exist,
+ * in which case the context shouldn't be created.
  *
- * \param prefix_vars: Stores prefix variables for reuse,
- * these variables are for internal use, the caller must not depend on them.
+ * \param prefix_vars: Stores prefix variables for reuse.
+ * These are for internal use, the caller must not depend on them.
  *
- * \note This function must first a `view_id` of zero, to initialize `prefix_vars`
- * for use with other views.
+ * \note This function must first be called with a `view_id` of zero, to initialize
+ * `prefix_vars` for use with other views.
  */
 static bool seq_proxy_multiview_context_invalid(Strip *strip,
                                                 Scene *scene,

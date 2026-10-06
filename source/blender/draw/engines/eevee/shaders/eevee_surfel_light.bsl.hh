@@ -90,4 +90,6 @@ PipelineCompute eevee_surfel_light(eevee::surfel::eval_light,
                                    eevee::LightEvalConstants{
                                        .light_closure_eval_count_reflect = 1,
                                        .light_closure_eval_count_transmit = 0,
+                                       .light_closure_count_reflect = 1,
+                                       .light_closure_count_transmit = 1,
                                    });

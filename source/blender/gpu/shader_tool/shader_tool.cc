@@ -186,12 +186,12 @@ int main(int argc, char **argv)
     if (/* Add non-ported files here. */
         filename.ends_with("gpu_shader_material_radial_tiling.bsl.hh") ||
         filename.ends_with("gpu_shader_material_tex_voronoi.bsl.hh") ||
-        /* Need new compiler to have support for raytracing API. */
-        filename.ends_with("workbench_shadow_raytrace.bsl.hh") ||
         /* Need new compiler. */
         (filename.find("gpu/shaders/") == std::string::npos &&
          filename.find("draw/intern/shaders/") == std::string::npos &&
          filename.find("workbench/shaders/") == std::string::npos &&
+         filename.find("overlay/shaders/") == std::string::npos &&
+         filename.find("select/shaders/") == std::string::npos &&
          filename.find("eevee/shaders/") == std::string::npos &&
          filename.find("gpencil/shaders/") == std::string::npos))
     {

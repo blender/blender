@@ -3,6 +3,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
+  ../blender/compositor
+  ../blender/compositor/algorithms
+  ../blender/compositor/cached_resources
+  ../blender/compositor/derived_resources
+  ../blender/compositor/utilities
   ../blender/editors/include
   ../blender/io/usd
   ../blender/makesrna
@@ -12,6 +17,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
+  bf_compositor
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::functions
@@ -626,7 +632,7 @@ if(WIN32)
       DEBUG
     )
   endif()
-  if(EXISTS ${LIBDIR}/opentimelineio/lib/opentime.dll) # 5.3+  
+  if(EXISTS ${LIBDIR}/opentimelineio/lib/opentime.dll) # 5.3+
     windows_install_shared_manifest(
       FILES
         ${LIBDIR}/opentimelineio/lib/opentime.dll
@@ -634,14 +640,14 @@ if(WIN32)
       RELEASE
     )
   endif()
-  if(EXISTS ${LIBDIR}/opentimelineio/lib/opentime_d.dll) # 5.3+  
+  if(EXISTS ${LIBDIR}/opentimelineio/lib/opentime_d.dll) # 5.3+
     windows_install_shared_manifest(
       FILES
         ${LIBDIR}/opentimelineio/lib/opentime_d.dll
         ${LIBDIR}/opentimelineio/lib/opentimelineio_d.dll
       DEBUG
     )
-  endif()  
+  endif()
   if(EXISTS ${LIBDIR}/ceres/bin/ceres.dll) # 5.1+
     windows_install_shared_manifest(
       FILES
@@ -1436,8 +1442,8 @@ elseif(WIN32)
         PATTERN "__pycache__" EXCLUDE           # * any cache *
         PATTERN "*.pyc" EXCLUDE                 # * any cache *
         PATTERN "*.pyo" EXCLUDE                 # * any cache *
-        PATTERN "*_d.cp*" EXCLUDE                # * do not install debug libs * 
-      )      
+        PATTERN "*_d.cp*" EXCLUDE                # * do not install debug libs *
+      )
       install(
         DIRECTORY ${LIBDIR}/opentimelineio/python/opentimelineio/
         DESTINATION ${TARGETDIR_SITE_PACKAGES}/opentimelineio/
@@ -1447,16 +1453,16 @@ elseif(WIN32)
         PATTERN "*.pyo" EXCLUDE                 # * any cache *
       )
       install(
-        DIRECTORY ${USD_LIBRARY_DIR}/site-packages/
+        DIRECTORY ${LIBDIR}/usd/lib/site-packages/
         DESTINATION ${TARGETDIR_SITE_PACKAGES}/
         CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
         PATTERN "__pycache__" EXCLUDE           # * any cache *
         PATTERN "*.pyc" EXCLUDE                 # * any cache *
         PATTERN "*.pyo" EXCLUDE                 # * any cache *
       )
-      
+
       install(
-        DIRECTORY ${USD_LIBRARY_DIR}/debug/site-packages/
+        DIRECTORY ${LIBDIR}/usd/lib/debug/site-packages/
         DESTINATION ${TARGETDIR_SITE_PACKAGES}/
         CONFIGURATIONS Debug
         PATTERN "__pycache__" EXCLUDE           # * any cache *

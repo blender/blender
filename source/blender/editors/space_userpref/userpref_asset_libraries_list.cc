@@ -7,6 +7,7 @@
  */
 
 #include "BKE_global.hh"
+#include "BKE_preferences.h"
 
 #include "BLI_listbase.hh"
 #include "BLT_translation.hh"
@@ -21,6 +22,7 @@
 #include "RNA_prototypes.hh"
 
 #include "ED_asset_library_ui.hh"
+#include "ED_userpref.hh"
 
 #include "userpref_intern.hh"
 
@@ -37,13 +39,33 @@ static Vector<AnyAssetLibraryDefinition> userpref_ui_asset_libraries()
 
   BLI_assert(result.size() == FIXED_ITEMS_COUNT);
 
+  Vector<bUserAssetLibrary *> extension_libraries;
   for (bUserAssetLibrary &user_library : U.asset_libraries) {
     if (!USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries) &&
         user_library.flag & ASSET_LIBRARY_USE_REMOTE_URL)
     {
       continue;
     }
+    if (BKE_preferences_extension_asset_library_repo_get(&U, &user_library)) {
+      extension_libraries.append(&user_library);
+      continue;
+    }
     result.append(AnyAssetLibraryDefinition{ASSET_LIBRARY_CUSTOM, &user_library});
+  }
+
+  /* Extension libraries are listed under their repository. */
+  for (bUserExtensionRepo &repo : U.extension_repos) {
+    bool has_repo_row = false;
+    for (bUserAssetLibrary *user_library : extension_libraries) {
+      if (BKE_preferences_extension_asset_library_repo_get(&U, user_library) != &repo) {
+        continue;
+      }
+      if (!has_repo_row) {
+        result.append(AnyAssetLibraryDefinition{ASSET_LIBRARY_CUSTOM, nullptr, &repo});
+        has_repo_row = true;
+      }
+      result.append(AnyAssetLibraryDefinition{ASSET_LIBRARY_CUSTOM, user_library, &repo});
+    }
   }
 
   return result;
@@ -54,7 +76,16 @@ int userpref_ui_asset_libraries_count()
   /* Instead of constructing the vector (potentially allocating memory), just count the list items
    * and use the fixed item count. */
   if (USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
-    const int count = U.asset_libraries.count() + FIXED_ITEMS_COUNT;
+    int count = U.asset_libraries.count() + FIXED_ITEMS_COUNT;
+    /* A row for each repository with extension libraries. */
+    for (bUserExtensionRepo &repo : U.extension_repos) {
+      for (bUserAssetLibrary &user_library : U.asset_libraries) {
+        if (BKE_preferences_extension_asset_library_repo_get(&U, &user_library) == &repo) {
+          count++;
+          break;
+        }
+      }
+    }
     BLI_assert(count == userpref_ui_asset_libraries().size());
     return count;
   }
@@ -63,7 +94,7 @@ int userpref_ui_asset_libraries_count()
   return userpref_ui_asset_libraries().size();
 }
 
-std::optional<int> userpref_ui_asset_libraries_index_from_user_library(
+static std::optional<int> userpref_ui_asset_libraries_index_from_user_library(
     const bUserAssetLibrary &user_library)
 {
   int i = 0;
@@ -79,6 +110,31 @@ std::optional<int> userpref_ui_asset_libraries_index_from_user_library(
   return std::nullopt;
 }
 
+bUserAssetLibrary *ED_userpref_asset_library_active_get()
+{
+  const Vector<AnyAssetLibraryDefinition> libraries = userpref_ui_asset_libraries();
+  if (!libraries.index_range().contains(U.active_asset_library)) {
+    return nullptr;
+  }
+  return libraries[U.active_asset_library].user_library;
+}
+
+void ED_userpref_asset_library_active_set(const bUserAssetLibrary &asset_library)
+{
+  const std::optional<int> index = userpref_ui_asset_libraries_index_from_user_library(
+      asset_library);
+  if (index) {
+    U.active_asset_library = *index;
+  }
+}
+
+/** Extension libraries are only used while the repository defining them is enabled. */
+static bool asset_library_repo_is_disabled(const AnyAssetLibraryDefinition &library)
+{
+  return library.extension_repo &&
+         (library.extension_repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED);
+}
+
 struct AssetLibraryListItem : public AssetLibraryListItemCommon {
 
   /* Use the constructor from AssetLibraryListItemCommon. */
@@ -91,8 +147,19 @@ struct AssetLibraryListItem : public AssetLibraryListItemCommon {
     const bool project_library = library.user_library &&
                                  (library.user_library->flag & ASSET_LIBRARY_PROJECT_DEFINED);
 
+    /* Draw grayed out, the "enabled" setting stays editable, it just has no effect. */
+    if (asset_library_repo_is_disabled(library)) {
+      row.active_set(false);
+    }
+
     if (library.user_library) {
-      row.label(label_, is_remote_library ? ICON_INTERNET : ICON_DISK_DRIVE);
+      int icon = is_remote_library ? ICON_INTERNET : ICON_DISK_DRIVE;
+      if (BKE_preferences_asset_library_owner_get(library.user_library) ==
+          bUserAssetLibraryOwner::Extension)
+      {
+        icon = ICON_EXTENSION;
+      }
+      row.label(label_, icon);
 
       if (project_library) {
         row.active_set(false);
@@ -112,8 +179,8 @@ struct AssetLibraryListItem : public AssetLibraryListItemCommon {
       sub.label(IFACE_("Built-In"), ICON_NONE);
     }
 
-    if (library.user_library && library.user_library->is_enabled() && is_remote_library &&
-        !library.user_library->remote_url[0])
+    if (library.user_library && !(library.user_library->flag & ASSET_LIBRARY_DISABLED) &&
+        is_remote_library && !library.user_library->remote_url[0])
     {
       row.label("", ICON_STATUS_ERROR);
     }
@@ -125,7 +192,8 @@ struct AssetLibraryListItem : public AssetLibraryListItemCommon {
                "enabled",
                UI_ITEM_NONE,
                "",
-               library.user_library->is_enabled() ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT);
+               (library.user_library->flag & ASSET_LIBRARY_DISABLED) ? ICON_CHECKBOX_DEHLT :
+                                                                       ICON_CHECKBOX_HLT);
     }
   }
 
@@ -139,6 +207,60 @@ struct AssetLibraryListItem : public AssetLibraryListItemCommon {
   }
 };
 
+/** The collapsible row grouping the libraries of an extension repository. */
+struct AssetLibraryRepoItem : public AssetLibraryListItem {
+
+  using AssetLibraryListItem::AssetLibraryListItem;
+
+  void build_row(ui::Layout &row) override
+  {
+    row.label(label_, ICON_NONE);
+
+    if (asset_library_repo_is_disabled(library)) {
+      row.active_set(false);
+      ui::Layout &sub = row.row(true);
+      /* Draw text grayed out. */
+      sub.alignment_set(ui::LayoutAlign::Right);
+      sub.label(IFACE_("Disabled"), ICON_NONE);
+    }
+  }
+
+  bool matches_single(const ui::AbstractTreeViewItem &other) const override
+  {
+    /* Match by the repository, the name isn't stable across renaming. */
+    const auto *other_item = dynamic_cast<const AssetLibraryRepoItem *>(&other);
+    return other_item && (library.extension_repo == other_item->library.extension_repo);
+  }
+
+  std::optional<bool> should_be_collapsed() const override
+  {
+    const bUserExtensionRepo &repo = *library.extension_repo;
+    return (repo.flag & USER_EXTENSION_REPO_FLAG_ASSET_LIBRARIES_COLLAPSED) != 0;
+  }
+
+  bool set_collapsed(const bool collapsed) override
+  {
+    if (!AbstractTreeViewItem::set_collapsed(collapsed)) {
+      return false;
+    }
+    /* NOTE: also set for changes made by the tree view, user changes set it again through RNA. */
+    SET_FLAG_FROM_TEST(library.extension_repo->flag,
+                       collapsed,
+                       USER_EXTENSION_REPO_FLAG_ASSET_LIBRARIES_COLLAPSED);
+    return true;
+  }
+
+  void on_collapse_change(bContext &C, const bool is_collapsed) override
+  {
+    /* Set through RNA so the preferences are tagged as changed. */
+    PointerRNA repo_ptr = RNA_pointer_create_discrete(
+        nullptr, RNA_UserExtensionRepo, library.extension_repo);
+    PropertyRNA *prop = RNA_struct_find_property(&repo_ptr, "show_expanded");
+    RNA_property_boolean_set(&repo_ptr, prop, !is_collapsed);
+    RNA_property_update(&C, &repo_ptr, prop);
+  }
+};
+
 void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
 {
   Vector<AnyAssetLibraryDefinition> libraries = userpref_ui_asset_libraries();
@@ -147,7 +269,8 @@ void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
 
   ui::Layout &row = layout.row(false);
 
-  draw_library_list<AssetLibraryListItem>(*C, row, libraries, "Asset Libraries Preferences");
+  draw_library_list<AssetLibraryListItem, AssetLibraryRepoItem>(
+      *C, row, libraries, "Asset Libraries Preferences");
 
   ui::Layout &col = row.column(true);
   if (USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
@@ -161,28 +284,47 @@ void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
   ui::Layout &sub = col.row(true);
   const bool active_idx_in_range = U.active_asset_library >= 0 &&
                                    U.active_asset_library < libraries.size();
-  const bool is_custom_library = active_idx_in_range &&
-                                 libraries[U.active_asset_library].type == ASSET_LIBRARY_CUSTOM;
-  const bool is_project_library = is_custom_library &&
-                                  (libraries[U.active_asset_library].user_library->flag &
-                                   ASSET_LIBRARY_PROJECT_DEFINED);
-  sub.enabled_set(active_idx_in_range && is_custom_library && !is_project_library);
+  const bUserAssetLibrary *active_library = active_idx_in_range ?
+                                                libraries[U.active_asset_library].user_library :
+                                                nullptr;
+  const bool is_project_library = active_library &&
+                                  (BKE_preferences_asset_library_owner_get(active_library) ==
+                                   bUserAssetLibraryOwner::Project);
+  /* Only user libraries can be removed here, extension libraries are removed by uninstalling
+   * the extension & project libraries from the project setup. */
+  sub.enabled_set(active_library && (BKE_preferences_asset_library_owner_get(active_library) ==
+                                     bUserAssetLibraryOwner::User));
   PointerRNA props = sub.op("preferences.asset_library_remove", "", ICON_REMOVE);
-  /* Convert from UI-items list index to #U.asset_libraries index. */
-  RNA_int_set(&props, "index", U.active_asset_library - FIXED_ITEMS_COUNT);
+  if (active_library) {
+    RNA_int_set(&props, "index", BKE_preferences_asset_library_get_index(&U, active_library));
+  }
 
   if (!active_idx_in_range) {
     return;
   }
 
-  layout.separator();
-
   if (is_project_library) {
-    layout.label(IFACE_("Settings of project asset libraries can be edited in Project Setup."),
+    ui::Layout &label_row = layout.row(false);
+    label_row.label(IFACE_("Edit Project asset libraries in Project Settings."), ICON_NONE);
+    ui::Layout &operator_row = label_row.row(false);
+    operator_row.alignment_set(ui::LayoutAlign::Right);
+    operator_row.op("SCREEN_OT_project_setup_show",
+                    "Open Project Settings",
+                    ICON_PROJECT,
+                    wm::OpCallContext::InvokeDefault,
+                    UI_ITEM_NONE);
+  }
+  else {
+    layout.separator();
+  }
+  if (libraries[U.active_asset_library].is_extension_repo()) {
+    layout.label(IFACE_("Asset libraries installed by extensions from this repository."),
                  ICON_NONE);
     return;
   }
-  draw_active_library_settings(C, layout, libraries[U.active_asset_library]);
+  ui::Layout &settings_row = layout.column(false);
+  settings_row.enabled_set(!is_project_library);
+  draw_active_library_settings(C, settings_row, libraries[U.active_asset_library]);
 }
 
 }  // namespace blender

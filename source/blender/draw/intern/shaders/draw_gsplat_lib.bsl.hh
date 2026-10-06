@@ -47,7 +47,6 @@
 #include "gpu_shader_math_quaternion.bsl.hh"
 #include "gpu_shader_math_vector.bsl.hh"
 #include "gpu_shader_math_vector_reduce.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 namespace draw::gsplat {
 

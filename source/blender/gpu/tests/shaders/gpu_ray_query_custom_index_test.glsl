@@ -10,16 +10,16 @@ void main()
 {
   uint ray_index = gl_GlobalInvocationID.x;
 
-  rayQueryEXT query;
-  rayQueryInitializeEXT(query,
-                        scene_as,
-                        gl_RayFlagsTerminateOnFirstHitEXT,
-                        0xFFu,
-                        ray_pos_in[ray_index].xyz,
-                        0.01,
-                        ray_dir_in[ray_index].xyz,
-                        5.0);
-  rayQueryProceedEXT(query);
+  rayQuery query;
+  rayQueryInitialize(query,
+                     scene_as,
+                     gpu_RayFlagsTerminateOnFirstHit,
+                     0xFFu,
+                     ray_pos_in[ray_index].xyz,
+                     0.01,
+                     ray_dir_in[ray_index].xyz,
+                     5.0);
+  rayQueryProceed(query);
 
-  custom_index_out[ray_index] = rayQueryGetIntersectionInstanceCustomIndexEXT(query, true);
+  custom_index_out[ray_index] = rayQueryGetIntersectionInstanceCustomIndex(query, true);
 }

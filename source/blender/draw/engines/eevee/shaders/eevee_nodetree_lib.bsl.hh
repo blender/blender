@@ -32,18 +32,6 @@
 #include "gpu_shader_math_base.bsl.hh"
 #include "gpu_shader_utildefines.bsl.hh"
 
-#ifdef GLSL_CPP_STUBS
-#  define CLOSURE_BIN_COUNT 3
-#endif
-
-/* Maximum number of picked closure. */
-#ifndef CLOSURE_BIN_COUNT
-/* WORKAROUND: Because of stupid create infos relying on define extraction (which bypass the
- * conditional). This definition would create a redefinition warning from the one defined above. */
-#  undef CLOSURE_BIN_COUNT
-#  define CLOSURE_BIN_COUNT 1
-#endif
-
 namespace eevee {
 
 /* Resource for the raycast node implementation using screen space raytracing. */
@@ -114,32 +102,36 @@ struct ShadingData {
   uint resource_id_raw;
 
   /* Sampled closure parameters. */
-  Reservoir<ClosureUndetermined> closure_bins[CLOSURE_BIN_COUNT];
+  [[capacity(closure_bin_len)]] Reservoir<ClosureUndetermined> closure_bins[3];
 
   bool closure_reflection_bin;
 
-  Reservoir<ClosureUndetermined> closure_get(uchar i) const
+  Reservoir<ClosureUndetermined> closure_get(const eevee::PipelineConstants &pipe, uchar i) const
   {
     switch (i) {
       case 0:
         return closure_bins[0];
-#if CLOSURE_BIN_COUNT > 1
       case 1:
-        return closure_bins[1];
-#endif
-#if CLOSURE_BIN_COUNT > 2
+        if (pipe.closure_bin_count > 1) [[static_branch]] {
+          return closure_bins[1];
+        }
+        break;
       case 2:
-        return closure_bins[2];
-#endif
+        if (pipe.closure_bin_count > 2) [[static_branch]] {
+          return closure_bins[2];
+        }
+        break;
     }
     /* Unreachable. */
     assert(false);
     return closure_bins[0];
   }
 
-  ClosureUndetermined closure_get_resolved(uchar i, float additional_weight) const
+  ClosureUndetermined closure_get_resolved(const eevee::PipelineConstants &pipe,
+                                           uchar i,
+                                           float additional_weight) const
   {
-    Reservoir<ClosureUndetermined> r = closure_get(i);
+    Reservoir<ClosureUndetermined> r = closure_get(pipe, i);
     ClosureUndetermined cl = r.data;
     cl.color *= r.get_final_weight() * additional_weight;
     return cl;
@@ -218,19 +210,22 @@ struct KernelGlobals {
 
   ObjectMatrices light_matrices_get(int light_index)
   {
-    return model.get(lrd.light_buf[light_index].resource_id);
+    if (pipe.use_lighting_nodes) [[static_branch]] {
+      return model.get(lrd.light_buf[light_index].resource_id);
+    }
+    return {};
   }
 };
 
 void closure_weights_reset(KernelGlobals &kg, ShadingData &sd, float closure_rand)
 {
   sd.closure_bins[0].reset(closure_rand);
-#if CLOSURE_BIN_COUNT > 1
-  sd.closure_bins[1].reset(closure_rand);
-#endif
-#if CLOSURE_BIN_COUNT > 2
-  sd.closure_bins[2].reset(closure_rand);
-#endif
+  if (kg.pipe.closure_bin_count > 1) [[static_branch]] {
+    sd.closure_bins[1].reset(closure_rand);
+  }
+  if (kg.pipe.closure_bin_count > 2) [[static_branch]] {
+    sd.closure_bins[2].reset(closure_rand);
+  }
 
   sd.volume_scattering = float3(0.0f);
   sd.volume_anisotropy = 0.0f;
@@ -243,11 +238,9 @@ void closure_weights_reset(KernelGlobals &kg, ShadingData &sd, float closure_ran
   sd.holdout = 0.0f;
   sd.closure_reflection_bin = true;
 
-#if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
   if (kg.pipe.use_lighting_nodes) [[static_branch]] {
     sd.light_accum = LightAccumulation{};
   }
-#endif
 }
 
 template<typename T> void closure_base_copy(ClosureUndetermined &cl, T in_cl)
@@ -266,203 +259,235 @@ template void closure_base_copy<ClosureThinRefraction>(ClosureUndetermined &,
                                                        ClosureThinRefraction);
 
 /* Single BSDFs. */
-Closure closure_eval(ShadingData &sd, ClosureDiffuse diffuse)
+Closure closure_eval(KernelGlobals &kg, ShadingData &sd, ClosureDiffuse diffuse)
 {
-  ClosureUndetermined cl;
-  closure_base_copy(cl, diffuse);
-#if (CLOSURE_BIN_COUNT > 1) && defined(MAT_TRANSLUCENT) && !defined(MAT_CLEARCOAT)
-  /* Use second slot so we can have diffuse + translucent without noise. */
-  closure_select(sd.closure_bins[1], cl);
-#else
-  /* Either is single closure or use same bin as transmission bin. */
-  closure_select(sd.closure_bins[0], cl);
-#endif
-  return Closure(0);
-}
-
-Closure closure_eval(ShadingData &sd, ClosureSubsurface diffuse)
-{
-  ClosureUndetermined cl;
-  closure_base_copy(cl, diffuse);
-  cl.data.rgb = diffuse.sss_radius;
-  /* Transmission Closures are always in first bin. */
-  closure_select(sd.closure_bins[0], cl);
-  return Closure(0);
-}
-
-Closure closure_eval(ShadingData &sd, ClosureTranslucent translucent)
-{
-  ClosureUndetermined cl;
-  closure_base_copy(cl, translucent);
-  /* Transmission Closures are always in first bin. */
-  closure_select(sd.closure_bins[0], cl);
-  return Closure(0);
-}
-
-Closure closure_eval(ShadingData &sd, ClosureReflection reflection)
-{
-  ClosureUndetermined cl;
-  closure_base_copy(cl, reflection);
-  cl.data.r = reflection.roughness;
-
-#ifdef MAT_CLEARCOAT
-/* Alternate between two bins on a per closure basis.
- * Allow clearcoat layer without noise.
- * Choosing the bin with the least weight can choose a
- * different bin for the same closure and
- * produce issue with ray-tracing denoiser.
- * Always start with the second bin, this one doesn't
- * overlap with other closure. */
-#  if CLOSURE_BIN_COUNT == 2
-  /* Multiple reflection closures. */
-  if (sd.closure_reflection_bin) {
-    closure_select(sd.closure_bins[1], cl);
+  if (kg.pipe.use_diffuse) [[static_branch]] {
+    ClosureUndetermined cl;
+    closure_base_copy(cl, diffuse);
+    if (!kg.pipe.use_clearcoat && kg.pipe.use_translucent && kg.pipe.closure_bin_count > 1)
+        [[static_branch]]
+    {
+      /* Use second slot so we can have diffuse + translucent without noise. */
+      closure_select(sd.closure_bins[1], cl);
+    }
+    else {
+      /* Either is single closure or use same bin as transmission bin. */
+      closure_select(sd.closure_bins[0], cl);
+    }
   }
-  else {
+  return Closure(0);
+}
+
+Closure closure_eval(KernelGlobals &kg, ShadingData &sd, ClosureSubsurface subsurface)
+{
+  if (kg.pipe.use_sss) [[static_branch]] {
+    ClosureUndetermined cl;
+    closure_base_copy(cl, subsurface);
+    cl.data.rgb = subsurface.sss_radius;
+    /* Transmission Closures are always in first bin. */
     closure_select(sd.closure_bins[0], cl);
   }
-#  elif CLOSURE_BIN_COUNT == 3
-  /* Multiple reflection closures and one other closure. */
-  if (sd.closure_reflection_bin) {
-    closure_select(sd.closure_bins[2], cl);
-  }
-  else {
-    closure_select(sd.closure_bins[1], cl);
-  }
-#  else
-#    error Clearcoat should always have at least 2 bins
-#  endif
-  sd.closure_reflection_bin = !sd.closure_reflection_bin;
-#else
-#  if CLOSURE_BIN_COUNT == 1
-  /* Only one reflection closure is present in the whole tree. */
-  closure_select(sd.closure_bins[0], cl);
-#  elif CLOSURE_BIN_COUNT == 2
-  /* Only one reflection and one other closure. */
-  closure_select(sd.closure_bins[1], cl);
-#  elif CLOSURE_BIN_COUNT == 3
-  /* Only one reflection and two other closures. */
-  closure_select(sd.closure_bins[2], cl);
-#  endif
-#endif
-
-#undef CHOOSE_MIN_WEIGHT_CLOSURE_BIN
-
   return Closure(0);
 }
 
-Closure closure_eval(ShadingData &sd, ClosureRefraction refraction)
+Closure closure_eval(KernelGlobals &kg, ShadingData &sd, ClosureTranslucent translucent)
 {
-  ClosureUndetermined cl;
-  closure_base_copy(cl, refraction);
-  cl.data.r = refraction.roughness;
-  cl.data.g = refraction.ior;
-  /* Transmission Closures are always in first bin. */
-  closure_select(sd.closure_bins[0], cl);
+  if (kg.pipe.use_translucent) [[static_branch]] {
+    ClosureUndetermined cl;
+    closure_base_copy(cl, translucent);
+    /* Transmission Closures are always in first bin. */
+    closure_select(sd.closure_bins[0], cl);
+  }
   return Closure(0);
 }
 
-Closure closure_eval(ShadingData &sd, ClosureThinRefraction refraction)
+Closure closure_eval(KernelGlobals &kg, ShadingData &sd, ClosureReflection reflection)
 {
-  ClosureUndetermined cl;
-  closure_base_copy(cl, refraction);
-  cl.data.r = refraction.roughness;
-  /* Transmission Closures are always in first bin. */
-  closure_select(sd.closure_bins[0], cl);
+  if (kg.pipe.use_reflection) [[static_branch]] {
+    ClosureUndetermined cl;
+    closure_base_copy(cl, reflection);
+    cl.data.r = reflection.roughness;
+    if (kg.pipe.use_clearcoat) [[static_branch]] {
+      /* Alternate between two bins on a per closure basis.
+       * Allow clearcoat layer without noise.
+       * Choosing the bin with the least weight can choose a
+       * different bin for the same closure and
+       * produce issue with ray-tracing denoiser.
+       * Always start with the second bin, this one doesn't
+       * overlap with other closure. */
+      if (kg.pipe.closure_bin_count == 2) [[static_branch]] {
+        /* Multiple reflection closures. */
+        if (sd.closure_reflection_bin) {
+          closure_select(sd.closure_bins[1], cl);
+        }
+        else {
+          closure_select(sd.closure_bins[0], cl);
+        }
+      }
+      else if (kg.pipe.closure_bin_count == 3) [[static_branch]] {
+        /* Multiple reflection closures and one other closure. */
+        if (sd.closure_reflection_bin) {
+          closure_select(sd.closure_bins[2], cl);
+        }
+        else {
+          closure_select(sd.closure_bins[1], cl);
+        }
+      }
+      else {
+        /* Clearcoat should always have at least 2 bins. */
+        assert(0);
+      }
+      sd.closure_reflection_bin = !sd.closure_reflection_bin;
+    }
+    else {
+      if (kg.pipe.closure_bin_count == 1) [[static_branch]] {
+        /* Only one reflection closure is present in the whole tree. */
+        closure_select(sd.closure_bins[0], cl);
+      }
+      else if (kg.pipe.closure_bin_count == 2) [[static_branch]] {
+        /* Only one reflection and one other closure. */
+        closure_select(sd.closure_bins[1], cl);
+      }
+      else if (kg.pipe.closure_bin_count == 3) [[static_branch]] {
+        /* Only one reflection and two other closures. */
+        closure_select(sd.closure_bins[2], cl);
+      }
+    }
+  }
+
   return Closure(0);
 }
 
-Closure closure_eval(ShadingData &sd, ClosureEmission emission)
+Closure closure_eval(KernelGlobals &kg, ShadingData &sd, ClosureRefraction refraction)
+{
+  if (kg.pipe.use_refraction) [[static_branch]] {
+    ClosureUndetermined cl;
+    closure_base_copy(cl, refraction);
+    cl.data.r = refraction.roughness;
+    cl.data.g = refraction.ior;
+    /* Transmission Closures are always in first bin. */
+    closure_select(sd.closure_bins[0], cl);
+  }
+  return Closure(0);
+}
+
+Closure closure_eval(KernelGlobals &kg, ShadingData &sd, ClosureThinRefraction refraction)
+{
+  if (kg.pipe.use_refraction) [[static_branch]] {
+    ClosureUndetermined cl;
+    closure_base_copy(cl, refraction);
+    cl.data.r = refraction.roughness;
+    /* Transmission Closures are always in first bin. */
+    closure_select(sd.closure_bins[0], cl);
+  }
+  return Closure(0);
+}
+
+Closure closure_eval(KernelGlobals & /*kg*/, ShadingData &sd, ClosureEmission emission)
 {
   sd.emission += emission.emission;
   return Closure(0);
 }
 
-Closure closure_eval(ShadingData &sd, ClosureTransparency transparency)
+Closure closure_eval(KernelGlobals & /*kg*/, ShadingData &sd, ClosureTransparency transparency)
 {
   sd.transmittance += transparency.transmittance;
   sd.holdout += transparency.holdout;
   return Closure(0);
 }
 
-Closure closure_eval(ShadingData &sd, ClosureVolumeScatter volume_scatter)
+Closure closure_eval(KernelGlobals & /*kg*/, ShadingData &sd, ClosureVolumeScatter volume_scatter)
 {
   sd.volume_scattering += volume_scatter.scattering;
   sd.volume_anisotropy += volume_scatter.anisotropy;
   return Closure(0);
 }
 
-Closure closure_eval(ShadingData &sd, ClosureVolumeAbsorption volume_absorption)
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData &sd,
+                     ClosureVolumeAbsorption volume_absorption)
 {
   sd.volume_absorption += volume_absorption.absorption;
   return Closure(0);
 }
 
-Closure closure_eval(ShadingData & /*sd*/, ClosureHair /*hair*/)
+Closure closure_eval(KernelGlobals & /*kg*/, ShadingData & /*sd*/, ClosureHair /*hair*/)
 {
   /* TODO */
   return Closure(0);
 }
 
 /* Glass BSDF. */
-Closure closure_eval(ShadingData &sd, ClosureReflection reflection, ClosureRefraction refraction)
+Closure closure_eval(KernelGlobals &kg,
+                     ShadingData &sd,
+                     ClosureReflection reflection,
+                     ClosureRefraction refraction)
 {
-  closure_eval(sd, reflection);
-  closure_eval(sd, refraction);
+  closure_eval(kg, sd, reflection);
+  closure_eval(kg, sd, refraction);
   return Closure(0);
 }
 
 /* Dielectric BSDF. */
-Closure closure_eval(ShadingData &sd, ClosureDiffuse diffuse, ClosureReflection reflection)
+Closure closure_eval(KernelGlobals &kg,
+                     ShadingData &sd,
+                     ClosureDiffuse diffuse,
+                     ClosureReflection reflection)
 {
-  closure_eval(sd, diffuse);
-  closure_eval(sd, reflection);
+  closure_eval(kg, sd, diffuse);
+  closure_eval(kg, sd, reflection);
   return Closure(0);
 }
 
 /* Coat BSDF. */
-Closure closure_eval(ShadingData &sd, ClosureReflection reflection, ClosureReflection coat)
+Closure closure_eval(KernelGlobals &kg,
+                     ShadingData &sd,
+                     ClosureReflection reflection,
+                     ClosureReflection coat)
 {
-  closure_eval(sd, reflection);
-  closure_eval(sd, coat);
+  closure_eval(kg, sd, reflection);
+  closure_eval(kg, sd, coat);
   return Closure(0);
 }
 
 /* Volume BSDF. */
-Closure closure_eval(ShadingData &sd,
+Closure closure_eval(KernelGlobals &kg,
+                     ShadingData &sd,
                      ClosureVolumeScatter volume_scatter,
                      ClosureVolumeAbsorption volume_absorption,
                      ClosureEmission emission)
 {
-  closure_eval(sd, volume_scatter);
-  closure_eval(sd, volume_absorption);
-  closure_eval(sd, emission);
+  closure_eval(kg, sd, volume_scatter);
+  closure_eval(kg, sd, volume_absorption);
+  closure_eval(kg, sd, emission);
   return Closure(0);
 }
 
 /* Specular BSDF. */
-Closure closure_eval(ShadingData &sd,
+Closure closure_eval(KernelGlobals &kg,
+                     ShadingData &sd,
                      ClosureDiffuse diffuse,
                      ClosureReflection reflection,
                      ClosureReflection coat)
 {
-  closure_eval(sd, diffuse);
-  closure_eval(sd, reflection);
-  closure_eval(sd, coat);
+  closure_eval(kg, sd, diffuse);
+  closure_eval(kg, sd, reflection);
+  closure_eval(kg, sd, coat);
   return Closure(0);
 }
 
 /* Principled BSDF. */
-Closure closure_eval(ShadingData &sd,
+Closure closure_eval(KernelGlobals &kg,
+                     ShadingData &sd,
                      ClosureDiffuse diffuse,
                      ClosureReflection reflection,
                      ClosureReflection coat,
                      ClosureRefraction refraction)
 {
-  closure_eval(sd, diffuse);
-  closure_eval(sd, reflection);
-  closure_eval(sd, coat);
-  closure_eval(sd, refraction);
+  closure_eval(kg, sd, diffuse);
+  closure_eval(kg, sd, reflection);
+  closure_eval(kg, sd, coat);
+  closure_eval(kg, sd, refraction);
   return Closure(0);
 }
 
@@ -577,7 +602,7 @@ void raycast_eval(KernelGlobals &kg,
       }
 
       float noise_offset = kg.sampling.rng_1D_get(SAMPLING_RAYTRACE_W);
-      float jitter = interleaved_gradient_noise(sd.frag_co.xy, 1.0f, noise_offset);
+      float jitter = random::interleaved_gradient(sd.frag_co.xy, 1.0f, noise_offset);
 
       float2 hit_uv = float2(0.0f);
       uint self_id = kg.resource_id_get(sd) & uint(0xFFFF);
@@ -841,35 +866,36 @@ float derivative_scale_get(KernelGlobals &kg)
  *
  * \{ */
 
-#ifdef MAT_DISPLACEMENT_BUMP
+#if defined(MAT_DISPLACEMENT_BUMP) || defined(GLSL_CPP_STUBS)
 /* Return new shading normal. */
-float3 displacement_bump([[maybe_unused]] KernelGlobals &kg, const ShadingData &sd)
+float3 displacement_bump([[maybe_unused]] KernelGlobals &kg, ShadingData &sd)
 {
-#  if !defined(MAT_GEOM_CURVES)
-  /* This is the filter width for automatic displacement + bump mapping, which is fixed.
-   * NOTE: keep the same as default bump node filter width. */
-  constexpr float bump_filter_width = 0.1f;
+  if (!kg.pipe.is_curves) [[static_branch]] {
+    /* This is the filter width for automatic displacement + bump mapping, which is fixed.
+     * NOTE: keep the same as default bump node filter width. */
+    constexpr float bump_filter_width = 0.1f;
 
-  float2 dHd;
-  dF_branch(dot(nodetree_displacement(kg, sd), sd.N + dF_impl(sd.N)), bump_filter_width, dHd);
+    float2 dHd;
+    dF_branch(dot(nodetree_displacement(kg, sd), sd.N + dF_impl(sd.N)), bump_filter_width, dHd);
 
-  float3 dPdx = gpu_dfdx(sd.P) * derivative_scale_get(kg);
-  float3 dPdy = gpu_dfdy(sd.P) * derivative_scale_get(kg);
+    float3 dPdx = gpu_dfdx(sd.P) * derivative_scale_get(kg);
+    float3 dPdy = gpu_dfdy(sd.P) * derivative_scale_get(kg);
 
-  /* Get surface tangents from normal. */
-  float3 Rx = cross(dPdy, sd.N);
-  float3 Ry = cross(sd.N, dPdx);
+    /* Get surface tangents from normal. */
+    float3 Rx = cross(dPdy, sd.N);
+    float3 Ry = cross(sd.N, dPdx);
 
-  /* Compute surface gradient and determinant. */
-  float det = dot(dPdx, Rx);
+    /* Compute surface gradient and determinant. */
+    float det = dot(dPdx, Rx);
 
-  float3 surfgrad = dHd.x * Rx + dHd.y * Ry;
+    float3 surfgrad = dHd.x * Rx + dHd.y * Ry;
 
-  float facing = FrontFacing ? 1.0f : -1.0f;
-  return normalize(bump_filter_width * abs(det) * sd.N - facing * sign(det) * surfgrad);
-#  else
-  return sd.N;
-#  endif
+    float facing = FrontFacing ? 1.0f : -1.0f;
+    return normalize(bump_filter_width * abs(det) * sd.N - facing * sign(det) * surfgrad);
+  }
+  else {
+    return sd.N;
+  }
 }
 #endif
 

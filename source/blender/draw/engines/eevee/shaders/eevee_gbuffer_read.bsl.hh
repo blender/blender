@@ -22,11 +22,6 @@
 
 #include "eevee_gbuffer_types.bsl.hh"
 
-/* NOTE: Only specialized for the gbuffer pass. */
-#ifndef GBUFFER_LAYER_MAX
-#  define GBUFFER_LAYER_MAX 3
-#endif
-
 namespace gbuffer::detail {
 
 /* -------------------------------------------------------------------- */

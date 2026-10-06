@@ -49,6 +49,7 @@ void surf_shadow([[resource_table]] KernelGlobals &kg,
                  [[in]] [[condition(is_curves)]] const VertOutCurves &curves_interp,
                  [[in]] [[condition(is_pointcloud)]] const VertOutPointcloud &ptcloud_interp,
                  [[in]] [[condition(is_gsplat)]] const VertOutGSplat &gsplat_interp,
+                 [[bary_coord]] [[condition(use_barycentric)]] const float3 bary_co,
                  [[front_facing]] const bool front_face,
                  [[frag_coord]] const float4 frag_co)
 {
@@ -63,9 +64,14 @@ void surf_shadow([[resource_table]] KernelGlobals &kg,
   if (pipe.use_transparency) [[static_branch]] {
     const ViewMatrices view = views.get(shadow_iface.shadow_view_id);
 
-    ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+    float3 barycentric_co = float3(0.0f);
+    if (pipe.use_barycentric) [[static_branch]] {
+      barycentric_co = bary_co;
+    }
+
+    ShadingData sd = init_globals(pipe, uni, interp, view, front_face, frag_co);
     if (pipe.is_mesh) [[static_branch]] {
-      init_globals_mesh(interp, sd);
+      init_globals_mesh(interp, sd, barycentric_co);
     }
     else if (pipe.is_curves) [[static_branch]] {
       init_globals_curves(interp, curves_interp, sd, view);
@@ -81,7 +87,7 @@ void surf_shadow([[resource_table]] KernelGlobals &kg,
     }
 
     float noise_offset = sampling.rng_1D_get(SAMPLING_TRANSPARENCY);
-    float random_threshold = pcg4d(float4(sd.P, noise_offset)).x;
+    float random_threshold = random::pcg_4d(float4(sd.P, noise_offset)).x;
 
     float transparency = average(sd.transmittance);
     if (transparency > random_threshold) {

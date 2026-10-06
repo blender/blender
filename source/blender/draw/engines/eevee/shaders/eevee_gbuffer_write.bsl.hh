@@ -36,12 +36,6 @@ struct PackParameters {
   [[compilation_constant]] bool gbuffer_simple_layout;
 };
 
-/* WORKAROUND: Arrays cannot be sized using compilation_constant. */
-#ifdef SRT_CONSTANT_gbuffer_layer_max
-#  undef GBUFFER_LAYER_MAX
-#  define GBUFFER_LAYER_MAX SRT_CONSTANT_gbuffer_layer_max
-#endif
-
 /* -------------------------------------------------------------------- */
 /** \name G-buffer Write
  * \{ */
@@ -123,8 +117,8 @@ ClosurePacking pack_closure(const PackParameters &srt, ClosureUndetermined cl)
 
 /* Data laid-out as stored in the gbuffer. */
 struct Packed {
-  float4 closure[GBUFFER_LAYER_MAX * 2];
-  float2 normal[GBUFFER_LAYER_MAX];
+  [[capacity(gbuffer_layer_max * 2)]] float4 closure[GBUFFER_LAYER_MAX * 2];
+  [[capacity(gbuffer_layer_max)]] float2 normal[GBUFFER_LAYER_MAX];
   float2 additional_info;
   uint header;
   uint object_id;
@@ -158,7 +152,7 @@ float4 closure_data_dither_flush_to_zero(float4 data, float3 noise)
 float3 closure_dither_noise(float2 texel, uint layer_id, float3 offset)
 {
   float seed = float(layer_id) * 3.0f;
-  return interleaved_gradient_noise(texel, float3(seed, seed + 1.0f, seed + 2.0f), offset);
+  return random::interleaved_gradient_3d(texel, float3(seed, seed + 1.0f, seed + 2.0f), offset);
 }
 
 float4 closure_data_layer_dither_round_to_nearest(float4 data,
@@ -180,7 +174,7 @@ float4 closure_data_layer_dither_flush_to_zero(float4 data,
 /* Transient data used during packing. */
 struct Packer {
   /* Packed GBuffer data in layer indexing. */
-  ClosurePacking closures[GBUFFER_LAYER_MAX];
+  [[capacity(gbuffer_layer_max)]] ClosurePacking closures[GBUFFER_LAYER_MAX];
   /* Additional info to be stored inside the normal stack. */
   float additional_info;
   /* Header containing which closures are encoded and which normals are used. */
@@ -342,7 +336,7 @@ struct Packer {
 };
 
 struct InputClosures {
-  ClosureUndetermined closure[GBUFFER_LAYER_MAX];
+  [[capacity(gbuffer_layer_max)]] ClosureUndetermined closure[GBUFFER_LAYER_MAX];
 };
 
 /**

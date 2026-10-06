@@ -166,7 +166,7 @@ class VKDescriptorSetPoolUpdator : public VKDescriptorSetUpdator {
   Vector<VkDescriptorImageInfo> vk_descriptor_image_infos_;
   Vector<VkWriteDescriptorSet> vk_write_descriptor_sets_;
   Vector<VkWriteDescriptorSetAccelerationStructureKHR>
-      vk_write_descrtiptor_sets_acceleration_structures_;
+      vk_write_descriptor_sets_acceleration_structures_;
   Vector<VkAccelerationStructureKHR> vk_acceleration_structures_;
 };
 

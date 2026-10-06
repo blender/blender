@@ -42,19 +42,19 @@ static size_t padded_size(const shader::ShaderCreateInfo::PushConst &push_consta
 MTLPushConstantBuf::MTLPushConstantBuf(const shader::ShaderCreateInfo &info)
 {
   BLI_assert(info.push_constants_.is_empty() == false);
-  size_t max_alignement = 0;
+  size_t max_alignment = 0;
   /* Compute size of backing buffer. */
   size_ = 0;
   for (const shader::ShaderCreateInfo::PushConst &push_constant : info.push_constants_) {
     size_t alignment;
     size_t pc_size = padded_size(push_constant, alignment);
-    max_alignement = max_uu(max_alignement, alignment);
+    max_alignment = max_uu(max_alignment, alignment);
     /* Padding for alignment. */
     size_ = ceil_to_multiple_u(size_, alignment);
     size_ += pc_size;
   }
   /* Pad to max alignment. */
-  size_ = ceil_to_multiple_u(size_, max_alignement);
+  size_ = ceil_to_multiple_u(size_, max_alignment);
   data_ = reinterpret_cast<uint8_t *>(
       MEM_new_array_zeroed_aligned(1, size_, 128, "MTLPushConstantData"));
 

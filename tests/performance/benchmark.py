@@ -42,50 +42,172 @@ def use_revision_columns(config: api.TestConfig) -> bool:
     )
 
 
-def init_table(config: api.TestConfig) -> api.MarkdownTable:
+# Fields that can be printed as result columns.
+STATUS_FIELDS = ('revision', 'device')
+
+# All fields that can determine row identity.
+ROW_FIELDS = ('revision', 'category', 'device')
+
+# Header name of the key column for each field.
+STATUS_FIELD_NAMES = {
+    'revision': 'Revision',
+    'category': 'Category',
+    'device': 'Device',
+}
+
+
+def parse_status_columns(columns_arg: str) -> list:
+    # Parse and validate the comma-separated --columns argument.
+    columns = [item.strip().lower() for item in (columns_arg or '').split(',') if item.strip()]
+
+    invalid = [field for field in sorted(set(columns)) if field not in STATUS_FIELDS]
+    if invalid:
+        sys.stderr.write(
+            f'Unknown field: {", ".join(invalid)} '
+            f'(valid fields are: {", ".join(STATUS_FIELDS)})\n')
+        sys.exit(1)
+
+    duplicated = [field for field in sorted(set(columns)) if columns.count(field) > 1]
+    if duplicated:
+        sys.stderr.write(f'Field listed multiple times: {", ".join(duplicated)}\n')
+        sys.exit(1)
+    return columns
+
+
+def field_value(entry: api.TestEntry, field: str) -> str:
+    # Value of a configurable field for a test entry.
+    if field == 'revision':
+        return entry.revision
+    if field == 'category':
+        return entry.category
+    return api.normalize_device_id(entry.device_id)
+
+
+def field_values(config: api.TestConfig, entries: list, field: str) -> list:
+    # Distinct values of a configurable field.
+    if field == 'revision':
+        return config.revision_names()
+    return sorted({field_value(entry, field) for entry in entries})
+
+
+def resolve_status_layout(config: api.TestConfig, columns: list) -> dict:
+    # Reorientate the data for printing:
+    # - fields in --columns become result columns, one per distinct value;
+    # - fields not listed automatically become rows.
+    if not columns:
+        if use_revision_columns(config):
+            dims = ['revision']
+            left = []
+        else:
+            dims = []
+            left = ['revision']
+        if config.queue.has_multiple_categories:
+            left.append('category')
+        if config.queue.has_multiple_devices:
+            left.append('device')
+    else:
+        dims = columns
+        # Fields not listed automatically become rows; show them as key
+        # columns when they have more than one value.
+        left = []
+        if len({field_value(entry, 'revision') for entry in config.queue.entries}) > 1:
+            left.append('revision')
+        if config.queue.has_multiple_categories:
+            left.append('category')
+        if config.queue.has_multiple_devices:
+            left.append('device')
+        left = [field for field in left if field not in columns]
+
+    # One result column per combination of the values of the --columns fields.
+    combos = [()]
+    for field in dims:
+        combos = [combo + (value,) for combo in combos
+                  for value in field_values(config, config.queue.entries, field)]
+
+    return {
+        'default': not columns,
+        'left': left,
+        'dims': dims,
+        'combos': combos,
+    }
+
+
+def status_rows(config: api.TestConfig, layout: dict) -> list:
+    # Rows of entries for the resolved layout: one row per combination of
+    # the fields that are not result columns.
+    if layout['default']:
+        return config.queue.rows(use_revision_columns(config))
+
+    keys = [field for field in ROW_FIELDS if field not in layout['dims']]
+    groups = {}
+    for entry in config.queue.entries:
+        key = tuple(field_value(entry, field) for field in keys) + (entry.test,)
+        if key in groups:
+            groups[key].append(entry)
+        else:
+            groups[key] = [entry]
+
+    return [groups[key] for key in sorted(groups)]
+
+
+def init_table(config: api.TestConfig, layout: dict = None) -> api.MarkdownTable:
+    if layout is None:
+        layout = resolve_status_layout(config, [])
+
     table = api.MarkdownTable()
-    table.add_column("Revision")
-    table.add_column("Category", is_visible=config.queue.has_multiple_categories)
-    table.add_column("Device", is_visible=config.queue.has_multiple_devices)
+    for field in layout['left']:
+        table.add_column(STATUS_FIELD_NAMES[field])
     table.add_column("Test", width=40)
-    if use_revision_columns(config):
-        for revision_name in config.revision_names():
-            table.add_column(revision_name, width=20, alignment='RIGHT')
-        table.columns[0].is_visible = False
+    if layout['dims']:
+        for combo in layout['combos']:
+            table.add_column(' / '.join(combo), width=20, alignment='RIGHT',
+                             key=list(zip(layout['dims'], combo)))
     else:
         table.add_column("Result", width=20, alignment='RIGHT')
     return table
 
 
+def entry_result(entry: api.TestEntry) -> str:
+    # Format the result of a single test entry for printing.
+    status = entry.status
+    output = entry.output
+    if status in {'done', 'outdated'} and output:
+        if 'time' in output:
+            result = '%7.4f s' % output['time']
+        elif 'fps' in output:
+            result = '%8.3f fps' % output['fps']
+        else:
+            result = ''
+        if status == 'outdated':
+            result += " (outdated)"
+    elif status == 'failed':
+        result = "failed: " + entry.error_msg
+    else:
+        result = status
+    return result
+
+
 def print_row(table: api.MarkdownTable, entries: list, end='\n') -> None:
     # Print one or more test entries on a row.
     row = []
-
-    # For time series, revision is printed first.
-    row.append(entries[0].revision)
-    row.append(entries[0].category)
-    row.append(api.normalize_device_id(entries[0].device_id))
-    row.append(entries[0].test)
-
-    for entry in entries:
-        # Show time or status.
-        status = entry.status
-        output = entry.output
-        result = ''
-        if status in {'done', 'outdated'} and output:
-            if 'time' in output:
-                result = '%7.4f s' % output['time']
-            elif 'fps' in output:
-                result = '%8.3f fps' % output['fps']
-
-            if status == 'outdated':
-                result += " (outdated)"
-        elif status == 'failed':
-            result = "failed: " + entry.error_msg
+    for column in table.columns:
+        if column.key is None:
+            # Key column: Revision, Category, Device, Test or Result.
+            if column.name == 'Revision':
+                row.append(entries[0].revision)
+            elif column.name == 'Category':
+                row.append(entries[0].category)
+            elif column.name == 'Device':
+                row.append(api.normalize_device_id(entries[0].device_id))
+            elif column.name == 'Test':
+                row.append(entries[0].test)
+            else:
+                row.append(entry_result(entries[0]))
         else:
-            result = status
-        row.append(result)
-
+            # Result column: the entry matching all (field, value) pairs of its key.
+            entry = next((e for e in entries
+                          if all(field_value(e, field) == value for field, value in column.key)), None)
+            row.append(entry_result(entry) if entry else '')
     table.print_row(row, end=end)
 
 
@@ -269,11 +391,18 @@ def cmd_status(env: api.TestEnvironment, argv: list):
     parser = argparse.ArgumentParser()
     parser.add_argument('config', nargs='?', default=None)
     parser.add_argument('test', nargs='?', default='*')
+    parser.add_argument(
+        '--columns',
+        default=None,
+        help="Fields to reorientate into result columns, comma-separated (valid fields: device, revision).")
     args = parser.parse_args(argv)
+
+    columns = parse_status_columns(args.columns)
 
     configs = env.get_configs(args.config)
     first = True
     for config in configs:
+        layout = resolve_status_layout(config, columns)
         if not args.config:
             if first:
                 first = False
@@ -281,9 +410,9 @@ def cmd_status(env: api.TestEnvironment, argv: list):
                 print("")
             print(config.name.upper())
 
-        table = init_table(config)
+        table = init_table(config, layout)
         table.print_header()
-        for row in config.queue.rows(use_revision_columns(config)):
+        for row in status_rows(config, layout):
             if match_entry(row[0], args):
                 print_row(table, row)
 

@@ -615,6 +615,9 @@ static bool relative_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
 
   data->summary.count_total++;
 
+  if (path_src[0] == '\0') {
+    return false; /* Empty, nothing to make relative. */
+  }
   if (BLI_path_is_rel(path_src)) {
     return false; /* Already relative. */
   }

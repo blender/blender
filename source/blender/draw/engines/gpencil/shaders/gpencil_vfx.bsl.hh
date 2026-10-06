@@ -383,14 +383,14 @@ struct Pixelize {
 
 [[fragment]]
 void frag([[resource_table]] const Vfx &srt,
-          [[resource_table]] [[condition(vfx_mode == 0 /*COMPOSITE*/)]] const Composite &composite,
-          [[resource_table]] [[condition(vfx_mode == 1 /*COLORIZE*/)]] const Colorize &colorize,
-          [[resource_table]] [[condition(vfx_mode == 2 /*BLUR*/)]] const Blur &blur,
-          [[resource_table]] [[condition(vfx_mode == 3 /*TRANSFORM*/)]] const Transform &transform,
-          [[resource_table]] [[condition(vfx_mode == 4 /*GLOW*/)]] const Glow &glow,
-          [[resource_table]] [[condition(vfx_mode == 5 /*RIM*/)]] const Rim &rim,
-          [[resource_table]] [[condition(vfx_mode == 6 /*SHADOW*/)]] const Shadow &shadow,
-          [[resource_table]] [[condition(vfx_mode == 7 /*PIXELIZE*/)]] const Pixelize &pixelize,
+          [[resource_table]] [[condition(vfx_mode == COMPOSITE)]] const Composite &composite,
+          [[resource_table]] [[condition(vfx_mode == COLORIZE)]] const Colorize &colorize,
+          [[resource_table]] [[condition(vfx_mode == BLUR)]] const Blur &blur,
+          [[resource_table]] [[condition(vfx_mode == TRANSFORM)]] const Transform &transform,
+          [[resource_table]] [[condition(vfx_mode == GLOW)]] const Glow &glow,
+          [[resource_table]] [[condition(vfx_mode == RIM)]] const Rim &rim,
+          [[resource_table]] [[condition(vfx_mode == SHADOW)]] const Shadow &shadow,
+          [[resource_table]] [[condition(vfx_mode == PIXELIZE)]] const Pixelize &pixelize,
           [[frag_coord]] const float4 frag_co,
           [[out]] FragOut &frag_out)
 {

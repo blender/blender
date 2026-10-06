@@ -57,7 +57,7 @@ void SourceProcessor::lint_attributes(Parser &parser)
           attr_str == "force_inline" || attr_str == "compilation_constant" ||
           attr_str == "compute" || attr_str == "shared" || attr_str == "early_fragment_tests" ||
           attr_str == "flat" || attr_str == "frag_coord" || attr_str == "frag_stencil_ref" ||
-          attr_str == "fragment" || attr_str == "front_facing" ||
+          attr_str == "fragment" || attr_str == "front_facing" || attr_str == "bary_coord" ||
           attr_str == "global_invocation_id" || attr_str == "in" || attr_str == "instance_id" ||
           attr_str == "instance_index" || attr_str == "layer" ||
           attr_str == "local_invocation_id" || attr_str == "local_invocation_index" ||
@@ -195,6 +195,7 @@ void SourceProcessor::lint_attributes_ast(Parser &parser)
       {"frag_stencil_ref", ArgCount(0, 0)},
       {"fragment", ArgCount(0, 0)},
       {"front_facing", ArgCount(0, 0)},
+      {"bary_coord", ArgCount(0, 0)},
       {"global_invocation_id", ArgCount(0, 0)},
       {"host_shared", ArgCount(0, 0)},
       {"in", ArgCount(0, 0)},
@@ -239,6 +240,7 @@ void SourceProcessor::lint_attributes_ast(Parser &parser)
       {"sampler", ArgCount(1, 1)},
       {"specialization_constant", ArgCount(1, 1)},
       {"uniform", ArgCount(1, 1)},
+      {"acceleration_structure", ArgCount(1, 1)},
       /* 2 arguments. */
       {"storage", ArgCount(2, 1)},
       {"subpass_input", ArgCount(2, 1)},

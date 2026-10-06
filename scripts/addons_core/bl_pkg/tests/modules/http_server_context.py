@@ -4,7 +4,8 @@
 
 """
 Starts up a web server pointed to a local directory for the purpose of simulating online access.
-With basic options for PORT/path & verbosity (so tests aren't too noisy).
+With basic options for PORT/path & verbosity (so tests aren't too noisy),
+optionally requiring an access token for some of the directories served.
 """
 __all__ = (
     "HTTPServerContext",
@@ -12,6 +13,7 @@ __all__ = (
 
 import socketserver
 import http.server
+import os
 import threading
 
 from typing import (
@@ -21,6 +23,7 @@ from typing import (
 
 class HTTPServerContext:
     __slots__ = (
+        "_auth_tokens",
         "_directory",
         "_port",
         "_http_thread",
@@ -40,10 +43,27 @@ class HTTPServerContext:
             return s.connect_ex(("localhost", port)) == 0
 
     @staticmethod
-    def _test_handler_factory(directory: str, verbose: bool = False) -> type:
+    def _test_handler_factory(
+            directory: str,
+            verbose: bool = False,
+            auth_tokens: dict[str, str] | None = None,
+    ) -> type:
         class TestHandler(http.server.SimpleHTTPRequestHandler):
             def __init__(self, *args: Any, **kwargs: Any) -> None:
                 super().__init__(*args, directory=directory, **kwargs)
+
+            # Both "GET" & "HEAD" requests are handled here.
+            def send_head(self) -> Any:
+                if auth_tokens is not None:
+                    # The leading component of the path selects the token, other paths need none.
+                    # Take it from the resolved path, so quoting & "." / ".." can't skip the check.
+                    name = os.path.relpath(self.translate_path(self.path), self.directory)
+                    if (token := auth_tokens.get(name.replace(os.sep, "/").partition("/")[0])) is not None:
+                        if self.headers.get("Authorization") != "Bearer {:s}".format(token):
+                            self.send_error(401, "Unauthorized")
+                            return None
+                return super().send_head()
+
             # Suppress messages by overriding the function.
             if not verbose:
                 def log_message(self, *_args: Any, **_kw: Any) -> None:
@@ -56,11 +76,16 @@ class HTTPServerContext:
             port: int,
             *,
             verbose: bool = False,
+            # Require an access token for some of the directories served.
+            # - key: A directory name (the leading path component), other directories need no token.
+            # - value: The access token requests under that directory must pass.
+            auth_tokens: dict[str, str] | None = None,
             wait_delay: float = 0.0,
             wait_tries: int = 0,
     ) -> None:
         self._directory = directory
         self._port = port
+        self._auth_tokens = auth_tokens
         self._wait_delay = wait_delay
         self._wait_tries = wait_tries
         self._verbose = verbose
@@ -83,6 +108,7 @@ class HTTPServerContext:
             HTTPServerContext._test_handler_factory(
                 self._directory,
                 verbose=self._verbose,
+                auth_tokens=self._auth_tokens,
             ),
         )
 

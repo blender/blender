@@ -9,7 +9,6 @@
 #pragma once
 
 #include <array>
-#include <optional>
 #include <string>
 
 #include "DNA_userdef_types.h"
@@ -32,15 +31,12 @@ void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel);
 /* -------------------------------------------------------------------- */
 /** \name Asset UI List
  *
- * The list in the UI includes items like the "All" or "Essentials" libraries. These functions help
- * converting the index from that list to the #U.asset_libraries index (which doesn't contain these
- * libraries).
+ * The list in the UI includes the "All" & "Essentials" libraries and the extension repositories,
+ * so its size differs from #U.asset_libraries.
  *
  * \{ */
 
 int userpref_ui_asset_libraries_count();
-std::optional<int> userpref_ui_asset_libraries_index_from_user_library(
-    const bUserAssetLibrary &user_library);
 
 /** \} */
 

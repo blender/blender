@@ -79,8 +79,8 @@ struct GeomMeshVertIn {
   /* Compute Original Coordinate (ORCO). */
   float3 lP_orco = vert_in.pos * ob_infos.orco_mul + ob_infos.orco_add;
 
-  ShadingData sd = init_globals(uni, interp, view, true, float4(0));
-  init_globals_mesh(interp, sd);
+  ShadingData sd = init_globals(pipe, uni, interp, view, true, float4(0));
+  init_globals_mesh(interp, sd, float3(0.0));
 
   attrib_load(MeshVertex{vert_in.pos, to_float3x3(obj.model_inverse), lP_orco});
 

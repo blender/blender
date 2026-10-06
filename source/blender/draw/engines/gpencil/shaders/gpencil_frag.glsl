@@ -157,6 +157,9 @@ float4 get_dot_color(float2 uv, int i, float2 dx, float2 dy)
 
   float noise_x = float(i) * Parameters.random_noise_scale;
 
+  /* Apply scale, rotate and aspect around the center of the dot/square.*/
+  uv -= 0.5f;
+
   if (Parameters.random_rotation > 0.0f || Parameters.random_size > 0.0f) {
     float rand_rot = noise_level_2(noise_x + 69637.532f);
     rand_rot -= 0.5f;
@@ -176,12 +179,16 @@ float4 get_dot_color(float2 uv, int i, float2 dx, float2 dy)
       mat[1] = mat[1] * rand_siz;
     }
 
-    uv -= 0.5f;
     uv = mat * uv;
     dx = mat * dx;
     dy = mat * dy;
-    uv += 0.5f;
   }
+
+  uv *= gp_interp_flat.aspect.xy;
+  dx *= gp_interp_flat.aspect.xy;
+  dy *= gp_interp_flat.aspect.xy;
+
+  uv += 0.5f;
 
   float4 col = get_color(uv, dx, dy);
   if (Parameters.random_hue > 0.0f || Parameters.random_saturation > 0.0f ||

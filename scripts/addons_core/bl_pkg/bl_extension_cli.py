@@ -362,7 +362,8 @@ class subcmd_pkg:
             return False  # The error was reported (and printed) by the operator.
 
         if not no_prefs:
-            if enable_on_install:
+            # Enabling add-ons & registering asset libraries changes the preferences.
+            if bpy.context.preferences.is_dirty:
                 blender_preferences_write()
 
         return True
@@ -420,7 +421,8 @@ class subcmd_pkg:
             sys.stderr.write("\n")
 
         if not no_prefs:
-            if enable_on_install:
+            # Enabling add-ons & registering asset libraries changes the preferences.
+            if bpy.context.preferences.is_dirty:
                 blender_preferences_write()
 
         return True
@@ -452,6 +454,48 @@ class subcmd_repo:
                 ))
             else:
                 print("    source: \"{:s}\"".format(repo.source))
+
+        return True
+
+    @staticmethod
+    def info(
+            *,
+            repo_id: str,
+            sync: bool,
+    ) -> bool:
+        from .bl_extension_ops import extension_repos_read
+        from .cli.blender_ext import (
+            pkg_repo_data_as_info_lines,
+            repo_pkginfo_from_local_or_none,
+        )
+
+        if sync:
+            if not subcmd_utils.sync():
+                return False
+
+        repos_module_map = {repo.module: repo for repo in extension_repos_read()}
+        repo = repos_module_map.get(repo_id)
+        if repo is None:
+            sys.stderr.write("Repository: \"{:s}\" not found in [{:s}]\n".format(
+                repo_id,
+                ", ".join(["\"{:s}\"".format(x) for x in sorted(repos_module_map.keys())])
+            ))
+            return False
+
+        if not repo.remote_url:
+            sys.stderr.write("Repository: \"{:s}\" is local, it has no listing\n".format(repo_id))
+            return False
+
+        # Use the listing from the last "sync", never access the network.
+        if isinstance(result := repo_pkginfo_from_local_or_none(local_dir=repo.directory), str):
+            sys.stderr.write("Repository: \"{:s}\" listing unavailable, run \"sync\" first ({:s})\n".format(
+                repo_id,
+                result,
+            ))
+            return False
+
+        for line in pkg_repo_data_as_info_lines(result):
+            print(line)
 
         return True
 
@@ -768,6 +812,28 @@ def cli_extension_args_repo_list(subparsers: "argparse._SubParsersAction[argpars
     )
 
 
+def cli_extension_args_repo_info(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
+    # Implement "repo-info".
+    subparse = subparsers.add_parser(
+        "repo-info",
+        help="Show repository information.",
+        description=(
+            "Show high level information about a repository,\n"
+            "using the listing downloaded by the last \"sync\"."
+        ),
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    generic_arg_sync(subparse)
+    generic_arg_package_repo_id_positional(subparse)
+
+    subparse.set_defaults(
+        func=lambda args: subcmd_repo.info(
+            repo_id=args.repo_id,
+            sync=args.sync,
+        ),
+    )
+
+
 def cli_extension_args_repo_add(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     # Implement "repo-add".
     subparse = subparsers.add_parser(
@@ -911,6 +977,7 @@ def cli_extension_args_extra(subparsers: "argparse._SubParsersAction[argparse.Ar
 
     # Preference commands.
     cli_extension_args_repo_list(subparsers)
+    cli_extension_args_repo_info(subparsers)
     cli_extension_args_repo_add(subparsers)
     cli_extension_args_repo_remove(subparsers)
 

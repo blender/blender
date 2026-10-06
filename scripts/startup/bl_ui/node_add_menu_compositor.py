@@ -174,9 +174,7 @@ class NODE_MT_compositor_node_filter_base(node_add_menu.NodeMenu):
         )
         self.node_operator_with_searchable_enum_socket(
             context, layout, "CompositorNodeGlare", "Type", [
-                "Bloom", "Ghosts", "Streaks", "Fog Glow", "Simple Star", "Sun Beams", "Kernel",
-            ],
-        )
+                "Ghosts", "Streaks", "Fog Glow", "Simple Star", "Sun Beams", "Kernel", ], )
 
         self.draw_assets_for_catalog(layout, self.bl_label)
 

@@ -1942,15 +1942,26 @@ static wmOperatorStatus wm_operator_call_internal(bContext *C,
   return wmOperatorStatus(0);
 }
 
+wmOperatorStatus WM_operator_type_call_ptr_with_reports(bContext *C,
+                                                        wmOperatorType *ot,
+                                                        wm::OpCallContext context,
+                                                        PointerRNA *properties,
+                                                        ReportList *reports,
+                                                        const wmEvent *event)
+{
+  BLI_assert(ot == WM_operatortype_find(ot->idname, true));
+  return wm_operator_call_internal(C, ot, properties, reports, context, false, event);
+}
+
 wmOperatorStatus WM_operator_name_call_ptr(bContext *C,
                                            wmOperatorType *ot,
                                            wm::OpCallContext context,
                                            PointerRNA *properties,
                                            const wmEvent *event)
 {
-  BLI_assert(ot == WM_operatortype_find(ot->idname, true));
-  return wm_operator_call_internal(C, ot, properties, nullptr, context, false, event);
+  return WM_operator_type_call_ptr_with_reports(C, ot, context, properties, nullptr, event);
 }
+
 wmOperatorStatus WM_operator_name_call(bContext *C,
                                        const char *opstring,
                                        wm::OpCallContext context,
@@ -1959,7 +1970,7 @@ wmOperatorStatus WM_operator_name_call(bContext *C,
 {
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
   if (ot) {
-    return WM_operator_name_call_ptr(C, ot, context, properties, event);
+    return WM_operator_type_call_ptr_with_reports(C, ot, context, properties, nullptr, event);
   }
 
   return wmOperatorStatus(0);
@@ -1984,7 +1995,7 @@ wmOperatorStatus WM_operator_name_call_with_properties(bContext *C,
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
   PointerRNA props_ptr = RNA_pointer_create_discrete(
       &G_MAIN->wm.first()->id, ot->srna, properties);
-  return WM_operator_name_call_ptr(C, ot, context, &props_ptr, event);
+  return WM_operator_type_call_ptr_with_reports(C, ot, context, &props_ptr, nullptr, event);
 }
 
 void WM_menu_name_call(bContext *C, const char *menu_name, wm::OpCallContext context)

@@ -60,12 +60,14 @@ enum class ResourceType {
   NUM_WORK_GROUP,
   FRAG_DEPTH,
   FRAG_COORD,
+  BARY_COORD,
   STENCIL_REF,
 
   CONDITION,
   FREQUENCY,
   DUAL_SOURCE_INDEX,
   RASTER_ORDER_GROUP,
+  CAPACITY,
 };
 
 static inline std::string to_str(ResourceType type)
@@ -111,6 +113,7 @@ static inline std::string to_str(ResourceType type)
     SERIALIZE(WORK_GROUP_ID);
     SERIALIZE(FRAG_DEPTH);
     SERIALIZE(FRAG_COORD);
+    SERIALIZE(BARY_COORD);
     SERIALIZE(RESOURCE_TABLE);
     SERIALIZE(SHARED);
     SERIALIZE(NUM_WORK_GROUP);
@@ -119,6 +122,7 @@ static inline std::string to_str(ResourceType type)
     SERIALIZE(FREQUENCY);
     SERIALIZE(DUAL_SOURCE_INDEX);
     SERIALIZE(RASTER_ORDER_GROUP);
+    SERIALIZE(CAPACITY);
   }
   return "Unknown";
 #undef SERIALIZE
@@ -162,10 +166,9 @@ struct ParsedAttribute {
   ast::Attr attr;
   ast::Expr condition;
   ast::Expr frequency;
+  ast::Expr capacity;
   ast::Expr dual_source_index;
   ast::Expr raster_order_group;
-
-  std::string parse_condition() const;
 };
 
 Result<ParsedAttribute> resource_type_from_attributes(ast::AttrList list);

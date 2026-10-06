@@ -5,7 +5,6 @@
 #pragma once
 
 #include "gpu_shader_math_quaternion.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 [[node]]
 void rotate_rotation_global(float4 rotation, float4 rotate_by, float4 &result)

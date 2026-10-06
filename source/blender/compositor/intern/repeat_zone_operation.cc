@@ -4,6 +4,7 @@
 
 #include "DNA_node_types.h"
 
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -40,8 +41,9 @@ void RepeatZoneOperation::execute()
   std::unique_ptr<ZoneTreeOperation> last_operation;
   const IndexRange iterations_range = IndexRange(iterations_count);
   for (const int64_t i : iterations_range) {
-    const bke::RepeatZoneComputeContext compute_context(
-        &compute_context_, *this->zone().output_node(), i);
+    const bke::RepeatZoneComputeContext &compute_context =
+        this->context().compute_context_cache().for_repeat_zone(
+            &compute_context_, *this->zone().output_node(), i);
     ZoneTreeOperation *zone_tree_operation = new ZoneTreeOperation(
         this->context(), this->zone(), compute_context);
 

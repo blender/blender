@@ -4621,21 +4621,6 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem scale_overlap_modes[] = {
-      {SEQ_OVERLAP_EXPAND, "EXPAND", 0, "Expand", "Move strips so transformed strips fit"},
-      {SEQ_OVERLAP_OVERWRITE,
-       "OVERWRITE",
-       0,
-       "Overwrite",
-       "Trim or split strips to resolve overlap"},
-      {SEQ_OVERLAP_SHUFFLE,
-       "SHUFFLE",
-       0,
-       "Shuffle",
-       "Move transformed strips to nearest free space to resolve overlap"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem pivot_points[] = {
       {V3D_AROUND_CENTER_BOUNDS, "CENTER", ICON_PIVOT_BOUNDBOX, "Bounding Box Center", ""},
       {V3D_AROUND_CENTER_MEDIAN, "MEDIAN", ICON_PIVOT_MEDIAN, "Median Point", ""},
@@ -4731,8 +4716,36 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
 
   /* Transform overlap handling. */
   prop = RNA_def_property(srna, "overlap_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, scale_overlap_modes);
+  RNA_def_property_enum_items(prop, rna_enum_strip_overlap_mode_items);
   RNA_def_property_ui_text(prop, "Overlap Mode", "How to resolve overlap after transformation");
+
+  /* Ripple handling. */
+  prop = RNA_def_property(srna, "ripple_all_channels", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ripple_flag", SEQ_RIPPLE_ALL_CHANNELS);
+  RNA_def_property_ui_text(prop,
+                           "All Channels",
+                           "Ripple strips on other channels too, else only strips on the same "
+                           "channels as the edited strips");
+
+  prop = RNA_def_property(srna, "ripple_markers", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ripple_flag", SEQ_RIPPLE_MARKERS);
+  RNA_def_property_ui_text(prop, "Markers", "Ripple markers along with strips");
+
+  prop = RNA_def_property(srna, "ripple_clear_ranges", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ripple_flag", SEQ_RIPPLE_CLEAR_RANGES);
+  RNA_def_property_ui_text(
+      prop,
+      "Clear Ranges",
+      "Delete strip contents inside the removed ranges on rippled channels so later strips "
+      "close the full gap, else ripple later strips only as far as they can");
+
+  prop = RNA_def_property(srna, "ripple_insert", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ripple_flag", SEQ_RIPPLE_INSERT);
+  RNA_def_property_ui_text(prop,
+                           "Insert",
+                           "Split strips at the leftmost edited handle and push the remainder "
+                           "aside, else ripple only as far as needed to resolve the overlap");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
   prop = RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, pivot_points);

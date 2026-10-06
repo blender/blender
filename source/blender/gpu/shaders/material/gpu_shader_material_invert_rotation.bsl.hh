@@ -5,7 +5,6 @@
 #pragma once
 
 #include "gpu_shader_math_quaternion.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 [[node]]
 void invert_rotation(float4 rotation, float4 &result)

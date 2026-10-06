@@ -319,7 +319,7 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
   filter_rotation[1] *= clamp(filter_radius * aspect, min_filter_radius, max_filter_radius);
 
   for (uint i = 0u; i < sample_count; i++) {
-    float2 Xi = hammersley_2d(i, sample_count);
+    float2 Xi = random::hammersley_2d(i, sample_count);
     /* Only randomize rotation (Y component of the noise). We want to always sample the center
      * pixel. Scaling the noise instead of rotating preserve cache locality. */
     Xi.y *= 1.0f - (noise.x / float(sample_count));
@@ -727,7 +727,7 @@ void bilateral_main([[resource_table]] DenoiseBilateral &srt,
     return;
   }
 
-  float2 noise = interleaved_gradient_noise(
+  float2 noise = random::interleaved_gradient_2d(
       float2(texel_fullres) + 0.5f, float2(3, 5), float2(0.0f));
   noise += sampling.rng_2D_get(SAMPLING_RAYTRACE_W);
 
@@ -738,7 +738,7 @@ void bilateral_main([[resource_table]] DenoiseBilateral &srt,
    * So we do a random sampling around the center point. */
   for (uint i = 0u; i < sample_count; i++) {
     /* Essentially a box radius overtime. */
-    float2 offset_f = (fract(hammersley_2d(i, sample_count) + noise) - 0.5f) * filter_size;
+    float2 offset_f = (fract(random::hammersley_2d(i, sample_count) + noise) - 0.5f) * filter_size;
     int2 offset = int2(floor(offset_f + 0.5f));
 
     int2 sample_texel = texel_fullres + offset;

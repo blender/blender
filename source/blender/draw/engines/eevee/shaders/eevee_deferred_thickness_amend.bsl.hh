@@ -147,7 +147,7 @@ void amend_frag([[resource_table]] ThicknessAmend &srt,
       .gbuffer_thickness = gbuffer_thickness,
       .thickness_accum = 0.0f,
       .weight_accum = 0.0f,
-      .pcf_random = pcg4d(float4(frag_co.xyz, sampling.rng_1D_get(SAMPLING_SHADOW_X))).xy,
+      .pcf_random = random::pcg_4d(float4(frag_co.xyz, sampling.rng_1D_get(SAMPLING_SHADOW_X))).xy,
   };
 
   light::foreach_visible(lrd, frag_co.xy, vPz, ctx, srd);

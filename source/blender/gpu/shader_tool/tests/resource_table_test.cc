@@ -273,6 +273,23 @@ SRT SRT_new_();
   }
 }
 
+TEST(shader_tool, SrtCompilationConstant)
+{
+  {
+    string input = R"(
+struct A {
+  [[compilation_constant]] uint a;
+};
+struct B {
+  [[resource_table]] A srt;
+  [[compilation_constant]] uint a;
+};
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of compilation constant 'a'");
+  }
+}
+
 TEST(shader_tool, SrtTemplateWrapper)
 {
   {
@@ -590,6 +607,41 @@ GPU_SHADER_CREATE_END()
 
     EXPECT_EQ(output, expect);
     EXPECT_EQ(infos, expect_infos);
+    EXPECT_EQ(error, "");
+  }
+}
+
+TEST(shader_tool, ConditionalLinting)
+{
+  using namespace std;
+  using namespace shader::parser;
+
+  {
+    string input = R"(
+void foo([[condition(false)]] float a) {}
+)";
+    auto [output, metadata, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Condition attribute is only allowed on resources declaration");
+  }
+  {
+    string input = R"(
+struct foo { [[condition(false)]] float a; };
+)";
+    auto [output, metadata, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Condition attribute is only allowed on resources declaration");
+  }
+  {
+    string input = R"(
+struct foo { [[condition(false)]] [[shared]] float a; };
+)";
+    auto [output, metadata, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Condition attribute is not compatible with resource type 'SHARED'");
+  }
+  {
+    string input = R"(
+struct foo { [[condition(false)]] [[push_constant]] float a; };
+)";
+    auto [output, metadata, error] = process_test_string(input, shader::Language::BSL);
     EXPECT_EQ(error, "");
   }
 }

@@ -955,6 +955,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
                            "Speed",
                            "Limit speed of tracking to make visual feedback easier "
                            "(this does not affect the tracking quality)");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
 
   /* use keyframe selection */
   prop = RNA_def_property(srna, "use_keyframe_selection", PROP_BOOLEAN, PROP_NONE);

@@ -20,6 +20,7 @@ namespace blender {
 
 namespace bke {
 struct CollectionRuntime;
+struct CollectionImportRuntime;
 }  // namespace bke
 
 struct Collection;
@@ -144,7 +145,7 @@ struct CollectionChild {
 };
 
 /* Collection IO property storage and access. */
-typedef struct CollectionImport {
+struct CollectionImport {
   /** Identifier that matches the #FileHandlerType.idname. */
   char fh_idname[64] = "";
 
@@ -152,7 +153,10 @@ typedef struct CollectionImport {
   uint32_t flag = 0;
 
   uint32_t _pad0 = {};
-} CollectionImport;
+
+  /* Keep last. */
+  bke::CollectionImportRuntime *runtime = nullptr;
+};
 
 struct CollectionExport {
   struct CollectionExport *next = nullptr, *prev = nullptr;

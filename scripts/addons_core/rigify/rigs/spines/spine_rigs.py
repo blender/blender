@@ -24,7 +24,6 @@ class BaseSpineRig(TweakChainRig):
     Spine rig with tweaks.
     """
 
-    bbone_segments = 8
     min_chain_length = 3
 
     use_torso_pivot: bool  # Generate the custom pivot control
@@ -34,6 +33,7 @@ class BaseSpineRig(TweakChainRig):
         super().initialize()
 
         self.use_torso_pivot = self.params.make_custom_pivot
+        self.bbone_segments = self.params.spine_bbones
         self.length = sum([self.get_bone(b).length for b in self.bones.org])
 
     ####################################################
@@ -174,12 +174,24 @@ class BaseSpineRig(TweakChainRig):
             description="Create a rotation pivot control that can be repositioned arbitrarily"
         )
 
+        # Deliberately not the `bbones` parameter shared by the limb and chain
+        # rigs: Rigify parameters all live in one shared property group, so
+        # separate default values require separate property names.
+        params.spine_bbones = bpy.props.IntProperty(
+            name='B-Bone Segments',
+            default=8,
+            min=1,
+            max=32,
+            description='Number of B-Bone segments'
+        )
+
         # Setting up extra layers for the FK and tweak
         ControlLayersOption.TWEAK.add_parameters(params)
 
     @classmethod
     def parameters_ui(cls, layout, params):
         layout.prop(params, 'make_custom_pivot')
+        layout.prop(params, 'spine_bbones')
 
         ControlLayersOption.TWEAK.parameters_ui(layout, params)
 
@@ -203,6 +215,7 @@ class BaseHeadTailRig(ConnectingChainRig):
     def initialize(self):
         super().initialize()
 
+        self.bbone_segments = self.params.spine_bbones
         self.rotation_bones = []
 
     ####################################################
@@ -285,11 +298,25 @@ class BaseHeadTailRig(ConnectingChainRig):
     def add_parameters(cls, params):
         super().add_parameters(params)
 
+        # Deliberately not the `bbones` parameter shared by the limb and chain
+        # rigs: Rigify parameters all live in one shared property group, so
+        # separate default values require separate property names.
+        # Must stay identical to the definition in BaseSpineRig.
+        params.spine_bbones = bpy.props.IntProperty(
+            name='B-Bone Segments',
+            default=8,
+            min=1,
+            max=32,
+            description='Number of B-Bone segments'
+        )
+
         # Setting up extra layers for the FK and tweak
         ControlLayersOption.TWEAK.add_parameters(params)
 
     @classmethod
     def parameters_ui(cls, layout, params):
         super().parameters_ui(layout, params)
+
+        layout.prop(params, 'spine_bbones')
 
         ControlLayersOption.TWEAK.parameters_ui(layout, params)

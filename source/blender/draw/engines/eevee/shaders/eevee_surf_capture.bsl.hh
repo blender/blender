@@ -41,14 +41,20 @@ void surf_capture([[resource_table]] KernelGlobals &kg,
                   [[in]] const VertOutCommon &interp,
                   [[in]] [[condition(is_curves)]] const VertOutCurves &curves_interp,
                   [[in]] [[condition(is_pointcloud)]] const VertOutPointcloud &ptcloud_interp,
+                  [[bary_coord]] [[condition(use_barycentric)]] const float3 bary_co,
                   [[frag_coord]] const float4 frag_co,
                   [[front_facing]] const bool front_face)
 {
   const ViewMatrices view = views.get(0);
 
-  ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+  float3 barycentric_co = float3(0.0f);
+  if (pipe.use_barycentric) [[static_branch]] {
+    barycentric_co = bary_co;
+  }
+
+  ShadingData sd = init_globals(pipe, uni, interp, view, front_face, frag_co);
   if (pipe.is_mesh) [[static_branch]] {
-    init_globals_mesh(interp, sd);
+    init_globals_mesh(interp, sd, barycentric_co);
   }
   else if (pipe.is_curves) [[static_branch]] {
     init_globals_curves(interp, curves_interp, sd, view);
@@ -64,14 +70,15 @@ void surf_capture([[resource_table]] KernelGlobals &kg,
 
   float3 albedo = float3(0.0f);
 
-  for (int i = 0; i < CLOSURE_BIN_COUNT; i++) {
-    ClosureUndetermined cl = sd.closure_get_resolved(uchar(i), 1.0f);
-    if (cl.weight() <= CLOSURE_WEIGHT_CUTOFF) {
-      continue;
-    }
-    if (!closure_has_transmission(cl.type)) {
-      /* Refraction is not supported in volume light probe capture. */
-      albedo += cl.color;
+  for (int i = 0; i < 3; i++) [[unroll]] {
+    if (i < kg.pipe.closure_bin_count) [[static_branch]] {
+      ClosureUndetermined cl = sd.closure_get_resolved(kg.pipe, uchar(i), 1.0f);
+      if (cl.weight() > CLOSURE_WEIGHT_CUTOFF) {
+        if (!closure_has_transmission(cl.type)) {
+          /* Refraction is not supported in volume light probe capture. */
+          albedo += cl.color;
+        }
+      }
     }
   }
 

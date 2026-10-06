@@ -290,16 +290,6 @@ rctf strip_bounds_get(const Scene *scene, const Strip *strip)
   return bounds;
 }
 
-rcti strip_int_bounds_get(const Scene *scene, const Strip *strip)
-{
-  rcti bounds;
-  bounds.xmin = strip->left_handle();
-  bounds.xmax = strip->right_handle(scene);
-  bounds.ymin = strip->channel;
-  bounds.ymax = strip->channel;
-  return bounds;
-}
-
 Strip *find_neighboring_strip(const Scene *scene, const Strip *test, const seq::Side lr, int sel)
 {
   /* sel: 0==unselected, 1==selected, -1==don't care. */

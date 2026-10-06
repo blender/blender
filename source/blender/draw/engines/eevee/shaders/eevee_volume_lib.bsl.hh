@@ -27,7 +27,7 @@ struct UnifiedVolumeProperties {
  * Wrapped so that changing it is easier. */
 float volume_froxel_jitter(int2 froxel, float offset)
 {
-  return interleaved_gradient_noise(float2(froxel), 0.0f, offset);
+  return random::interleaved_gradient(float2(froxel), 0.0f, offset);
 }
 
 /* Volume froxel texture normalized linear Z to view space Z.

@@ -387,7 +387,7 @@ void CompositorContext::set_output_refcount(const bNodeTree &node_group,
 
   /* If the node group has no viewer node in the active context, and the context requires a viewer
    * output, we use the group output as a viewer. */
-  const bool has_viewer = this->get_viewer_compute_context_hash().has_value();
+  const bool has_viewer = this->viewer_compute_context() != nullptr;
   const bool needs_viewer_output = flag_is_set(this->needed_side_effect_output_types(),
                                                SideEffectOutputTypes::ViewerNode);
   const bool use_group_output_as_viewer = (!has_viewer && needs_viewer_output);

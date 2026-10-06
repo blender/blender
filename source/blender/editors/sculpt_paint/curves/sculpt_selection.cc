@@ -2,6 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array.hh"
+#include "BLI_implicit_sharing.hh"
+
 #include "BKE_curves.hh"
 
 #include "sculpt_intern.hh"
@@ -17,12 +20,15 @@ bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id)
   if (const auto meta_data = attributes.lookup_meta_data(".selection")) {
     if (meta_data->data_type == bke::AttrType::Bool) {
       const VArray<float> selection = *attributes.lookup<float>(".selection");
-      float *dst = MEM_new_array_uninitialized<float>(selection.size(), __func__);
-      selection.materialize({dst, selection.size()});
+      auto *dst = new ImplicitSharedValue<Array<float>>(selection.size());
+      selection.materialize(dst->data);
 
       attributes.remove(".selection");
-      attributes.add(
-          ".selection", meta_data->domain, bke::AttrType::Float, bke::AttributeInitMoveArray(dst));
+      attributes.add(".selection",
+                     meta_data->domain,
+                     bke::AttrType::Float,
+                     bke::AttributeInitShared(dst->data.data(), *dst));
+      dst->remove_user_and_delete_if_last();
     }
   }
   else {

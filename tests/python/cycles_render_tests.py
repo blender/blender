@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
-import platform
 import os
 import shlex
 import sys
@@ -129,6 +128,8 @@ BLOCKLIST_GPU = [
     'transparent_shadow_hair.*.blend',
     "microfacet_hair_orientation.blend",
     "instance_types.blend",
+    "instance_types.blend",
+    "shadow_link_emissive_curves_points.blend",
     # Inconsistent handling of overlapping objects.
     "sobol_uniform_41143.blend",
     "visibility_particles.blend",
@@ -139,20 +140,20 @@ BLOCKLIST_GPU = [
 
 class CyclesReport(render_report.Report):
     def __init__(
-            self,
-            title,
-            test_dir_name,
-            output_dir,
-            oiiotool,
-            device=None,
-            blocklist=[],
-            osl=False):
+        self,
+        title: str,
+        output_dir: Path,
+        oiiotool: Path,
+        device: str,
+        blocklist: list[str] = [],
+        osl: bool = False,
+    ) -> None:
         # Split device name in format "<device_type>[-<RT>]" into individual
         # tokens, setting the RT suffix to an empty string if its not specified.
         self.device, suffix = (device.split("-") + [""])[:2]
         self.use_hwrt = (suffix == "RT")
         self.osl = osl
-        self.extra_args = []
+        self.extra_args: list[str] = []
 
         variation = self.device
         if suffix:
@@ -169,7 +170,12 @@ class CyclesReport(render_report.Report):
         else:
             self.set_compare_engine('cycles', 'CPU')
 
-    def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
+    def _get_render_arguments(
+        self,
+        arguments_cb: render_report.ArgumentsCallback,
+        filepath: Path,
+        base_output_filepath: Path,
+    ) -> list[str | Path]:
         return arguments_cb(
             filepath,
             base_output_filepath,
@@ -177,14 +183,19 @@ class CyclesReport(render_report.Report):
             self.osl,
             self.extra_args)
 
-    def _get_arguments_suffix(self):
+    def _get_arguments_suffix(self) -> list[str]:
         return ['--', '--cycles-device', self.device] if self.device else []
 
 
-def get_arguments(filepath, output_filepath, use_hwrt, osl, extra_args):
-    dirname = os.path.dirname(filepath)
-    basedir = os.path.dirname(dirname)
-    subject = os.path.basename(dirname)
+def get_arguments(
+    filepath: Path,
+    output_filepath: Path,
+    use_hwrt: bool,
+    osl: bool,
+    extra_args: list[str],
+) -> list[str | Path]:
+    basedir = filepath.parent.parent
+    subject = filepath.parent.name
 
     args = [
         "--background",
@@ -230,11 +241,11 @@ def get_arguments(filepath, output_filepath, use_hwrt, osl, extra_args):
     args.extend(extra_args)
 
     if subject.startswith('bake'):
-        args.extend(['--python', os.path.join(basedir, "util", "render_bake.py")])
+        args.extend(['--python', basedir / "util" / "render_bake.py"])
     elif subject == 'denoise_animation':
-        args.extend(['--python', os.path.join(basedir, "util", "render_denoise.py")])
+        args.extend(['--python', basedir / "util" / "render_denoise.py"])
     elif subject == 'updates':
-        args.extend(['--python', os.path.join(basedir, "util", "render_updates.py")])
+        args.extend(['--python', basedir / "util" / "render_updates.py"])
     else:
         args.extend(["-f", "1"])
 
@@ -245,17 +256,17 @@ def create_argparse():
     parser = argparse.ArgumentParser(
         description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
     )
-    parser.add_argument("--blender", required=True)
-    parser.add_argument("--testdir", required=True)
-    parser.add_argument("--outdir", required=True)
-    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--blender", required=True, type=Path)
+    parser.add_argument("--testdir", required=True, type=Path)
+    parser.add_argument("--outdir", required=True, type=Path)
+    parser.add_argument("--oiiotool", required=True, type=Path)
     parser.add_argument("--device", required=True)
     parser.add_argument("--osl", default='none', type=str, choices=["none", "limited", "all"])
     parser.add_argument('--batch', default=False, action='store_true')
     return parser
 
 
-def test_volume_ray_marching(args, report):
+def test_volume_ray_marching(args: argparse.Namespace, report: CyclesReport) -> bool:
     # Default volume rendering algorithm is null scattering, but we also want to test ray marching
     report.extra_args = ["--python-expr", "import bpy; bpy.context.scene.cycles.volume_biased = True"]
     report.set_reference_dir("cycles_ray_marching_renders")
@@ -263,10 +274,10 @@ def test_volume_ray_marching(args, report):
     return report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 
 
-def test_texture_cache(args, report):
+def test_texture_cache(args: argparse.Namespace, report: CyclesReport) -> bool:
     # Use texture cache directory in output folder, and clear it to test auto generating.
-    test_dir_name = Path(args.testdir).name
-    texture_cache_dir = Path(args.outdir) / test_dir_name / "texture_cache"
+    test_dir_name = args.testdir.name
+    texture_cache_dir = args.outdir / test_dir_name / "texture_cache"
     for tx_file in texture_cache_dir.glob("*.tx"):
         tx_file.unlink()
 
@@ -316,8 +327,8 @@ def main():
     if device == 'HIP-RT':
         blocklist += BLOCKLIST_HIPRT
 
-    test_dir_name = Path(args.testdir).name
-    report = CyclesReport('Cycles', test_dir_name, args.outdir, args.oiiotool, device, blocklist, args.osl == 'all')
+    test_dir_name = args.testdir.name
+    report = CyclesReport('Cycles', args.outdir, args.oiiotool, device, blocklist, args.osl == 'all')
 
     # Increase threshold for motion blur, see #78777.
     #

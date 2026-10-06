@@ -18,6 +18,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.hh"
 #include "BKE_compositor.hh"
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_idprop.hh"
@@ -83,8 +84,8 @@ class CompositorModifierContext : public CompositorContext {
   ImBuf *mask_buffer_ = nullptr;
   int timeline_frame_;
 
-  /* The hash of the compute context of the active viewer if one exists. */
-  const std::optional<ComputeContextHash> viewer_compute_context_hash_;
+  /* The compute context of the active viewer if one exists. */
+  const ComputeContext *viewer_compute_context_;
 
   bool owns_mask_ = false;
   PointerRNA properties_ptr_;
@@ -92,15 +93,17 @@ class CompositorModifierContext : public CompositorContext {
  public:
   CompositorModifierContext(const ModifierApplyContext &mod_context,
                             compositor::StaticCacheManager &cache_manager,
+                            bke::ComputeContextCache &compute_context_cache,
                             SequencerCompositorModifierData *modifier_data)
-      : CompositorContext(cache_manager, mod_context.render_data, mod_context.strip),
+      : CompositorContext(
+            cache_manager, compute_context_cache, mod_context.render_data, mod_context.strip),
         mod_context_(mod_context),
         modifier_data_(modifier_data),
         image_buffer_(mod_context.result.image),
         mask_(*this, compositor::ResultType::Color, compositor::ResultPrecision::Full),
         timeline_frame_(mod_context.timeline_frame),
-        viewer_compute_context_hash_(bke::compositor::compute_viewer_compute_context_hash(
-            *render_data_.scene, *modifier_data_->node_group))
+        viewer_compute_context_(bke::compositor::compute_viewer_compute_context(
+            *render_data_.scene, *modifier_data_->node_group, compute_context_cache))
   {
     PointerRNA ptr = RNA_pointer_create_discrete(
         &mod_context.render_data.scene->id, RNA_SequencerCompositorModifierData, modifier_data);
@@ -118,9 +121,9 @@ class CompositorModifierContext : public CompositorContext {
     }
   }
 
-  const std::optional<ComputeContextHash> &get_viewer_compute_context_hash() const override
+  const ComputeContext *viewer_compute_context() const override
   {
-    return viewer_compute_context_hash_;
+    return viewer_compute_context_;
   }
 
   compositor::Domain get_compositing_domain() const override
@@ -282,7 +285,9 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
   }
 
   CompositorCache &com_cache = context.render_data.scene->ed->runtime->ensure_compositor_cache();
-  CompositorModifierContext com_mod_context(context, com_cache.get_cache_manager(), modifier_data);
+  bke::ComputeContextCache compute_context_cache;
+  CompositorModifierContext com_mod_context(
+      context, com_cache.get_cache_manager(), compute_context_cache, modifier_data);
 
   GpuContextState gpu_state = GpuContextState::Unsupported;
   if (com_mod_context.use_gpu()) {

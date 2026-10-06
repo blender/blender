@@ -732,6 +732,104 @@ class TestCLI_WithRepo(unittest.TestCase):
         output = command_output(["server-generate", "--repo-dir", self.dirpath])
         self.assertEqual(output, "found 3 packages.\n")
 
+    def test_client_repo_info(self) -> None:
+        # TODO: only run once.
+        self.test_server_generate()
+
+        output = command_output(["repo-info", "--remote-url", self.dirpath_url])
+        self.assertEqual(
+            output, (
+                "version: v1\n"
+                "blocklist: 0\n"
+                "packages: 3\n"
+                "  add-on: 3\n"
+                "assetlib_auth_method: PER_LIBRARY\n"
+            )
+        )
+
+    def test_client_repo_info_split_platforms(self) -> None:
+        platforms = ["linux-x64", "macos-arm64", "windows-x64"]
+        with tempfile.TemporaryDirectory(dir=TEMP_DIR_LOCAL) as temp_dir_repo:
+            my_create_package(
+                temp_dir_repo,
+                "my_split_package" + PKG_EXT,
+                metadata={
+                    "schema_version": "1.0.0",
+                    "id": "my_split_package",
+                    "name": "My Split Package",
+                    "tagline": """This package has a tagline""",
+                    "version": "1.0.0",
+                    "type": "add-on",
+                    "tags": ["UV"],
+                    "blender_version_min": "0.0.0",
+                    "maintainer": "Some Developer",
+                    "license": ["SPDX:GPL-2.0-or-later"],
+                    "platforms": platforms,
+                },
+                files={"__init__.py": b"# This is a script\n"},
+                build_args_extra=("--split-platforms",),
+            )
+
+            output = command_output(["server-generate", "--repo-dir", temp_dir_repo])
+            self.assertEqual(output, "found {:d} packages.\n".format(len(platforms)))
+
+            # One entry per platform, all sharing a single ID.
+            output = command_output(["repo-info", "--remote-url", path_to_url(temp_dir_repo)])
+            self.assertEqual(
+                output, (
+                    "version: v1\n"
+                    "blocklist: 0\n"
+                    "packages: 1\n"
+                    "  add-on: 1\n"
+                    "assetlib_auth_method: PER_LIBRARY\n"
+                )
+            )
+
+    def test_server_generate_assetlib_auth_method_from_repository(self) -> None:
+        output = command_output([
+            "server-generate",
+            "--repo-dir", self.dirpath,
+            "--assetlib-auth-method", "FROM_REPOSITORY",
+        ])
+        self.assertEqual(output, "found 3 packages.\n")
+
+        output = command_output(["repo-info", "--remote-url", self.dirpath_url])
+        self.assertEqual(
+            output, (
+                "version: v1\n"
+                "blocklist: 0\n"
+                "packages: 3\n"
+                "  add-on: 3\n"
+                "assetlib_auth_method: FROM_REPOSITORY\n"
+            )
+        )
+
+    def test_server_generate_assetlib_auth_method_invalid(self) -> None:
+        # TODO: only run once.
+        self.test_server_generate()
+        output_before = command_output(["repo-info", "--remote-url", self.dirpath_url])
+
+        proc = subprocess.run(
+            [*CMD, "server-generate", "--repo-dir", self.dirpath, "--assetlib-auth-method", "OTHER"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        self.assertEqual(proc.returncode, 2)
+        self.assertEqual(proc.stdout.decode("utf-8"), "")
+        # The usage text precedes the error, only compare the error itself.
+        stderr = proc.stderr.decode("utf-8")
+        if IS_WIN32:
+            stderr = stderr.replace("\r\n", "\n")
+        self.assertEqual(
+            stderr.rstrip("\n").rpartition("\n")[2],
+            "blender_ext server-generate: error: argument --assetlib-auth-method: "
+            "invalid choice: 'OTHER' (choose from 'PER_LIBRARY', 'FROM_REPOSITORY')",
+        )
+
+        # The listing must be left as-is.
+        self.assertEqual(command_output(["repo-info", "--remote-url", self.dirpath_url]), output_before)
+
     def test_client_list(self) -> None:
         # TODO: only run once.
         self.test_server_generate()

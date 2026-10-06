@@ -53,7 +53,7 @@ bool imb_alloc_buffer(BufferType &buffer,
     return false;
   }
   buffer.data = static_cast<decltype(BufferType::data)>(data);
-  buffer.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data));
+  buffer.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(buffer.data));
   return true;
 }
 

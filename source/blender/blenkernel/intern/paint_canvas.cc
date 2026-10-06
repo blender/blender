@@ -9,6 +9,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_string.hh"
 
+#include "DNA_brush_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
@@ -116,11 +117,20 @@ std::string BKE_paint_canvas_key_get(ImagePaintSettings &settings, Object *ob)
 {
   std::stringstream ss;
   ss << "UV_MAP:" << BKE_paint_canvas_uvmap_name_get(settings, ob).value_or("");
+  const Brush *brush = settings.paint.brush;
+  const bool is_mask_brush = brush && brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK;
 
-  if (std::optional<CanvasImageData> canvas_image_data = BKE_paint_canvas_image_get(settings, *ob))
+  Image *image = nullptr;
+  ImageUser tile_user;
+
+  if (is_mask_brush) {
+    image = settings.stencil;
+    tile_user = ImageUser{};
+  }
+  else if (std::optional<CanvasImageData> canvas_image_data = BKE_paint_canvas_image_get(settings,
+                                                                                         *ob))
   {
-    Image *image = canvas_image_data->first;
-    ImageUser tile_user;
+    image = canvas_image_data->first;
 
     if (std::holds_alternative<ImageUser *>(canvas_image_data->second)) {
       tile_user = *std::get<ImageUser *>(canvas_image_data->second);
@@ -128,7 +138,9 @@ std::string BKE_paint_canvas_key_get(ImagePaintSettings &settings, Object *ob)
     else {
       tile_user = std::get<ImageUser>(canvas_image_data->second);
     }
+  }
 
+  if (image) {
     ss << ",SEAM_MARGIN:" << image->seam_margin;
     for (ImageTile &image_tile : image->tiles) {
       tile_user.tile = image_tile.tile_number;

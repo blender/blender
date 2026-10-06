@@ -530,7 +530,8 @@ float shadow_eval(ShadowRenderData &srd,
 
   float surface_hit = 0.0f;
   for (int ray_index = 0; ray_index < ray_count && ray_index < SHADOW_MAX_RAY; ray_index++) {
-    float2 random_ray_2d = fract(hammersley_2d(ray_index, ray_count) + random_shadow_3d.xy);
+    float2 random_ray_2d = fract(random::hammersley_2d(ray_index, ray_count) +
+                                 random_shadow_3d.xy);
 
     bool has_hit;
     if (is_directional) {

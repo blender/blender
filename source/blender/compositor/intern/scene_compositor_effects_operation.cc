@@ -13,6 +13,7 @@
 #include "RNA_prototypes.hh"
 
 #include "BKE_compositor.hh"
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -163,12 +164,12 @@ static Result *get_effect_input(Context &context,
 void SceneCompositorEffectsOperation::execute()
 {
   const Scene &scene = this->context().get_scene();
-  const bke::DataBlockComputeContext scene_compute_context(nullptr, scene.id);
+  const bke::DataBlockComputeContext &scene_compute_context =
+      this->context().compute_context_cache().for_data_block(nullptr, scene.id);
 
   const bool needs_viewer_output = flag_is_set(this->context().needed_side_effect_output_types(),
                                                SideEffectOutputTypes::ViewerNode);
-  const bool has_viewer_output = needs_viewer_output &&
-                                 this->context().get_viewer_compute_context_hash().has_value();
+  const bool has_viewer_output = needs_viewer_output && this->context().viewer_compute_context();
 
   std::unique_ptr<NodeGroupOperation> last_operation;
   const bke::compositor::ExecutionMode execution_mode = get_execution_mode(this->context());
@@ -181,8 +182,9 @@ void SceneCompositorEffectsOperation::execute()
       continue;
     }
 
-    const bke::SceneCompositorEffectComputeContext effect_compute_context(&scene_compute_context,
-                                                                          effect);
+    const bke::SceneCompositorEffectComputeContext &effect_compute_context =
+        this->context().compute_context_cache().for_scene_compositor_effect(&scene_compute_context,
+                                                                            effect);
 
     const bNodeTree &node_group = *effect.node_group;
     NodeGroupOperation *effect_operation = new NodeGroupOperation(

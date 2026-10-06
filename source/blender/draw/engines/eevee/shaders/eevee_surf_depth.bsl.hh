@@ -61,14 +61,20 @@ void surf_depth([[resource_table]] KernelGlobals &kg,
                 [[in]] [[condition(use_velocity)]] const VertOutVelocity &motion,
                 [[in]] [[condition(use_clip_plane)]] const VertOutClipPlane &clip_interp,
                 [[out]] SurfaceDepthFragOut<with_velocity> &frag_out,
+                [[bary_coord]] [[condition(use_barycentric)]] const float3 bary_co,
                 [[front_facing]] const bool front_face)
 {
   if (pipe.use_transparency) [[static_branch]] {
     const ViewMatrices view = views.get(0);
 
-    ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+    float3 barycentric_co = float3(0.0f);
+    if (pipe.use_barycentric) [[static_branch]] {
+      barycentric_co = bary_co;
+    }
+
+    ShadingData sd = init_globals(pipe, uni, interp, view, front_face, frag_co);
     if (pipe.is_mesh) [[static_branch]] {
-      init_globals_mesh(interp, sd);
+      init_globals_mesh(interp, sd, barycentric_co);
     }
     else if (pipe.is_curves) [[static_branch]] {
       init_globals_curves(interp, curves_interp, sd, view);
@@ -84,6 +90,7 @@ void surf_depth([[resource_table]] KernelGlobals &kg,
     }
 
     float noise_offset = sampling.rng_1D_get(SAMPLING_TRANSPARENCY);
+
     float threshold = hashed_transparency::alpha_threshold(
         uni.pipeline_buf.alpha_hash_scale, noise_offset, sd.P);
 
@@ -132,6 +139,7 @@ template void surf_depth<true>(KernelGlobals &,
                                const VertOutVelocity &,
                                const VertOutClipPlane &,
                                SurfaceDepthFragOut<true> &,
+                               const float3,
                                const bool);
 template void surf_depth<false>(KernelGlobals &,
                                 PipelineConstants &,
@@ -148,6 +156,7 @@ template void surf_depth<false>(KernelGlobals &,
                                 const VertOutVelocity &,
                                 const VertOutClipPlane &,
                                 SurfaceDepthFragOut<false> &,
+                                const float3,
                                 const bool);
 
 }  // namespace eevee

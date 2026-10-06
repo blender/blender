@@ -35,12 +35,11 @@ ConcurrentStatesParams CUDADeviceQueue::concurrent_states_params() const
   const int max_num_threads = cuda_device_->get_num_multiprocessors() *
                               cuda_device_->get_max_num_threads_per_multiprocessor();
 
-  /* Benefit stops being measurable at around 10x the baseline, but we are a bit
-   * more conservative and only grow up to 4x and shrink up to 2x. */
+  /* Benefit stops being measurable at around 10x the baseline. */
   ConcurrentStatesParams params;
   params.baseline = max(max_num_threads, 65536) * 16;
   params.min = params.baseline / 2;
-  params.max = params.baseline * 4;
+  params.max = params.baseline * 10;
   return params;
 }
 

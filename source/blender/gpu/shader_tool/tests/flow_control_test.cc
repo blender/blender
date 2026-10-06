@@ -753,12 +753,12 @@ Res Res_ctor_() {Res r;r._pad=0;return r;}
 
 void f(Res res)
 {
-  #if SRT_CONSTANT_i+1+1==1
+  #if SRT_CONSTANT_i+ 1 + 1== 1
 #line 12
                                                      {
     0;
   }
-  #elif SRT_CONSTANT_i==1
+  #elif SRT_CONSTANT_i== 1
 #line 15
                                          {
     1;

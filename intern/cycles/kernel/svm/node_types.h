@@ -221,17 +221,6 @@ struct SVMNodeAttr {
 static_assert(alignof(SVMNodeAttr) <= alignof(uint));
 static_assert(sizeof(SVMNodeAttr) % sizeof(uint) == 0);
 
-/* NODE_VERTEX_COLOR / NODE_VERTEX_COLOR_DERIVATIVE */
-struct SVMNodeVertexColor {
-  uint8_t layer_id;
-  SVMStackOffset color_offset;
-  SVMStackOffset alpha_offset;
-  NodeBumpOffset bump_offset;
-  float bump_filter_width;
-};
-static_assert(alignof(SVMNodeVertexColor) <= alignof(uint));
-static_assert(sizeof(SVMNodeVertexColor) % sizeof(uint) == 0);
-
 /* NODE_TEX_COORD / NODE_TEX_COORD_DERIVATIVE */
 struct SVMNodeTexCoord {
   NodeTexCoord texco_type;

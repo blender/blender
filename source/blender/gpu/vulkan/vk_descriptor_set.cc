@@ -645,7 +645,7 @@ void VKDescriptorSetPoolUpdator::bind_acceleration_structure(
                                     nullptr,
                                     nullptr,
                                     nullptr});
-  vk_write_descrtiptor_sets_acceleration_structures_.append(
+  vk_write_descriptor_sets_acceleration_structures_.append(
       {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR, nullptr, 1, nullptr});
   vk_acceleration_structures_.append(vk_acceleration_structure);
 }
@@ -679,10 +679,10 @@ void VKDescriptorSetPoolUpdator::upload_descriptor_sets()
         break;
 
       case VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR:
-        vk_write_descrtiptor_sets_acceleration_structures_[acceleration_structure_index]
+        vk_write_descriptor_sets_acceleration_structures_[acceleration_structure_index]
             .pAccelerationStructures = &vk_acceleration_structures_[acceleration_structure_index];
         vk_write_descriptor_set.pNext =
-            &vk_write_descrtiptor_sets_acceleration_structures_[acceleration_structure_index++];
+            &vk_write_descriptor_sets_acceleration_structures_[acceleration_structure_index++];
         break;
 
       default:
@@ -750,7 +750,7 @@ void VKDescriptorSetPoolUpdator::upload_descriptor_sets()
   vk_descriptor_buffer_infos_.clear();
   vk_buffer_views_.clear();
   vk_acceleration_structures_.clear();
-  vk_write_descrtiptor_sets_acceleration_structures_.clear();
+  vk_write_descriptor_sets_acceleration_structures_.clear();
   vk_write_descriptor_sets_.clear();
 }
 

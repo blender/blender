@@ -1093,33 +1093,10 @@ void snap_object_context_destroy(SnapObjectContext *sctx)
   MEM_delete(sctx);
 }
 
-void snap_object_context_set_editmesh_callbacks(SnapObjectContext *sctx,
-                                                bool (*test_vert_fn)(BMVert *, void *user_data),
-                                                bool (*test_edge_fn)(BMEdge *, void *user_data),
-                                                bool (*test_face_fn)(BMFace *, void *user_data),
-                                                void *user_data)
+void snap_object_context_set_editmesh_target(SnapObjectContext *sctx,
+                                             const SnapEditMeshTarget target)
 {
-  bool is_cache_dirty = false;
-  if (sctx->callbacks.edit_mesh.test_vert_fn != test_vert_fn) {
-    sctx->callbacks.edit_mesh.test_vert_fn = test_vert_fn;
-    is_cache_dirty = true;
-  }
-  if (sctx->callbacks.edit_mesh.test_edge_fn != test_edge_fn) {
-    sctx->callbacks.edit_mesh.test_edge_fn = test_edge_fn;
-    is_cache_dirty = true;
-  }
-  if (sctx->callbacks.edit_mesh.test_face_fn != test_face_fn) {
-    sctx->callbacks.edit_mesh.test_face_fn = test_face_fn;
-    is_cache_dirty = true;
-  }
-  if (sctx->callbacks.edit_mesh.user_data != user_data) {
-    sctx->callbacks.edit_mesh.user_data = user_data;
-    is_cache_dirty = true;
-  }
-
-  if (is_cache_dirty) {
-    sctx->editmesh_caches.clear();
-  }
+  sctx->editmesh_target = target;
 }
 
 static bool snap_object_context_runtime_init(SnapObjectContext *sctx,

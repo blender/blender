@@ -161,6 +161,7 @@ template<int D> VecBase<float, D> mix(VecOp<float, D>, VecOp<float, D>, VecOp<fl
 template<typename T, int D> VecBase<T, D> mix(VecOp<T, D>, VecOp<T, D>, VecOp<bool, D>) RET;
 
 #define select(A, B, C) mix(A, B, C)
+#define saturate(a) clamp(a, 0.0f, 1.0f)
 
 VecBase<float, 3> cross(VecOp<float, 3>, VecOp<float, 3>) RET;
 template<int D> float dot(VecOp<float, D>, VecOp<float, D>) RET;
@@ -261,68 +262,64 @@ void groupMemoryBarrier() {}
  * See https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GLSL_EXT_ray_query.txt
  */
 
-/* TODO: Use our own API abstraction for Metal compatibility. */
+struct rayQuery {};
+struct accelerationStructure {};
 
-struct rayQueryEXT {};
-struct accelerationStructureEXT {};
+const uint gpu_RayFlagsNone = 0u;
+const uint gpu_RayFlagsOpaque = 0x00000001u;
+const uint gpu_RayFlagsNoOpaque = 0x00000002u;
+const uint gpu_RayFlagsTerminateOnFirstHit = 0x00000004u;
+const uint gpu_RayFlagsSkipClosestHitShader = 0x00000008u;
+const uint gpu_RayFlagsCullBackFacingTriangles = 0x00000010u;
+const uint gpu_RayFlagsCullFrontFacingTriangles = 0x00000020u;
+const uint gpu_RayFlagsCullOpaque = 0x00000040u;
+const uint gpu_RayFlagsCullNoOpaque = 0x00000080u;
 
-const uint gl_RayFlagsNoneEXT = 0u;
-const uint gl_RayFlagsOpaqueEXT = 0x00000001u;
-const uint gl_RayFlagsNoOpaqueEXT = 0x00000002u;
-const uint gl_RayFlagsTerminateOnFirstHitEXT = 0x00000004u;
-const uint gl_RayFlagsSkipClosestHitShaderEXT = 0x00000008u;
-const uint gl_RayFlagsCullBackFacingTrianglesEXT = 0x00000010u;
-const uint gl_RayFlagsCullFrontFacingTrianglesEXT = 0x00000020u;
-const uint gl_RayFlagsCullOpaqueEXT = 0x00000040u;
-const uint gl_RayFlagsCullNoOpaqueEXT = 0x00000080u;
+const uint gpu_RayQueryCommittedIntersectionNone = 0u;
+const uint gpu_RayQueryCommittedIntersectionTriangle = 1u;
+const uint gpu_RayQueryCommittedIntersectionGenerated = 2u;
 
-const uint gl_RayQueryCommittedIntersectionNoneEXT = 0u;
-const uint gl_RayQueryCommittedIntersectionTriangleEXT = 1u;
-const uint gl_RayQueryCommittedIntersectionGeneratedEXT = 2u;
+const uint gpu_RayQueryCandidateIntersectionTriangle = 1u;
+const uint gpu_RayQueryCandidateIntersectionAABB = 2u;
 
-const uint gl_RayQueryCandidateIntersectionTriangleEXT = 1u;
-const uint gl_RayQueryCandidateIntersectionAABBEXT = 2u;
-
-void rayQueryInitializeEXT(rayQueryEXT /*rayQuery*/,
-                           accelerationStructureEXT /*topLevel*/,
-                           uint /*rayFlags*/,
-                           uint /*cullMask*/,
-                           float3 /*origin*/,
-                           float /*tMin*/,
-                           float3 /*direction*/,
-                           float /*tMax*/) {};
-bool rayQueryProceedEXT(rayQueryEXT /*rayQuery*/) RET;
-void rayQueryTerminateEXT(rayQueryEXT /*rayQuery*/) {}
-void rayQueryGenerateIntersectionEXT(rayQueryEXT /*rayQuery*/, float /*hitT*/) {}
-void rayQueryConfirmIntersectionEXT(rayQueryEXT /*rayQuery*/) {}
-uint rayQueryGetIntersectionTypeEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
-float rayQueryGetRayTMinEXT(rayQueryEXT /*rayQuery*/) RET;
+void rayQueryInitialize(rayQuery /*rayQuery*/,
+                        accelerationStructure /*topLevel*/,
+                        uint /*rayFlags*/,
+                        uint /*cullMask*/,
+                        float3 /*origin*/,
+                        float /*tMin*/,
+                        float3 /*direction*/,
+                        float /*tMax*/) {};
+bool rayQueryProceed(rayQuery /*rayQuery*/) RET;
+void rayQueryTerminate(rayQuery /*rayQuery*/) {}
+void rayQueryGenerateIntersection(rayQuery /*rayQuery*/, float /*hitT*/) {}
+void rayQueryConfirmIntersection(rayQuery /*rayQuery*/) {}
+uint rayQueryGetIntersectionType(rayQuery /*rayQuery*/, bool /*committed*/) RET;
+float rayQueryGetRayTMin(rayQuery /*rayQuery*/) RET;
 /* Not available on Metal: no query-side ray-flags accessor. Gated off so use is a compile error.
  */
 #if 0
-uint rayQueryGetRayFlagsEXT(rayQueryEXT /*rayQuery*/) RET;
+uint rayQueryGetRayFlags(rayQuery /*rayQuery*/) RET;
 #endif
-float3 rayQueryGetWorldRayOriginEXT(rayQueryEXT /*rayQuery*/) RET;
-float3 rayQueryGetWorldRayDirectionEXT(rayQueryEXT /*rayQuery*/) RET;
-float rayQueryGetIntersectionTEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
-uint rayQueryGetIntersectionInstanceCustomIndexEXT(rayQueryEXT /*rayQuery*/,
-                                                   bool /*committed*/) RET;
-uint rayQueryGetIntersectionInstanceIdEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
+float3 rayQueryGetWorldRayOrigin(rayQuery /*rayQuery*/) RET;
+float3 rayQueryGetWorldRayDirection(rayQuery /*rayQuery*/) RET;
+float rayQueryGetIntersectionT(rayQuery /*rayQuery*/, bool /*committed*/) RET;
+uint rayQueryGetIntersectionInstanceCustomIndex(rayQuery /*rayQuery*/, bool /*committed*/) RET;
+uint rayQueryGetIntersectionInstanceId(rayQuery /*rayQuery*/, bool /*committed*/) RET;
 /* Not available on Metal: no inline equivalent. Gated off so use is a compile error. */
 #if 0
-uint rayQueryGetIntersectionInstanceShaderBindingTableRecordOffsetEXT(rayQueryEXT /*rayQuery*/,
+uint rayQueryGetIntersectionInstanceShaderBindingTableRecordOffset(rayQuery /*rayQuery*/,
                                                                       bool /*committed*/) RET;
 #endif
-uint rayQueryGetIntersectionGeometryIndexEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
-uint rayQueryGetIntersectionPrimitiveIndexEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
-float2 rayQueryGetIntersectionBarycentricsEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
-bool rayQueryGetIntersectionFrontFaceEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
-bool rayQueryGetIntersectionCandidateAABBOpaqueEXT(rayQueryEXT /*rayQuery*/) RET;
-float3 rayQueryGetIntersectionObjectRayDirectionEXT(rayQueryEXT /*rayQuery*/,
-                                                    bool /*committed*/) RET;
-float3 rayQueryGetIntersectionObjectRayOriginEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
-float4x3 rayQueryGetIntersectionObjectToWorldEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
-float4x3 rayQueryGetIntersectionWorldToObjectEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
+uint rayQueryGetIntersectionGeometryIndex(rayQuery /*rayQuery*/, bool /*committed*/) RET;
+uint rayQueryGetIntersectionPrimitiveIndex(rayQuery /*rayQuery*/, bool /*committed*/) RET;
+float2 rayQueryGetIntersectionBarycentrics(rayQuery /*rayQuery*/, bool /*committed*/) RET;
+bool rayQueryGetIntersectionFrontFace(rayQuery /*rayQuery*/, bool /*committed*/) RET;
+bool rayQueryGetIntersectionCandidateAABBOpaque(rayQuery /*rayQuery*/) RET;
+float3 rayQueryGetIntersectionObjectRayDirection(rayQuery /*rayQuery*/, bool /*committed*/) RET;
+float3 rayQueryGetIntersectionObjectRayOrigin(rayQuery /*rayQuery*/, bool /*committed*/) RET;
+float4x3 rayQueryGetIntersectionObjectToWorld(rayQuery /*rayQuery*/, bool /*committed*/) RET;
+float4x3 rayQueryGetIntersectionWorldToObject(rayQuery /*rayQuery*/, bool /*committed*/) RET;
 
 /** \} */
 

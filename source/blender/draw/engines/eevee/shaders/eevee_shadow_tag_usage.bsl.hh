@@ -338,7 +338,7 @@ void tag_usage_volume([[resource_table]] UnifiedVolumeProperties &volume,
   const ViewMatrices view = views.get(0);
 
   float offset = sampling.rng_1D_get(SAMPLING_VOLUME_W);
-  float jitter = interleaved_gradient_noise(float2(froxel.xy), 0.0f, offset);
+  float jitter = random::interleaved_gradient(float2(froxel.xy), 0.0f, offset);
 
   float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, jitter)) *
                uni.uniform_buf.volumes.inv_tex_size;

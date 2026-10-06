@@ -49,31 +49,6 @@
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name Compatibility
- * \{ */
-
-/**
- * Member hiding type.
- * Wrapper type for members of unions in host shared structure.
- * This is needed to force the accessor syntax in the shader code.
- */
-template<typename T> struct union_t {
-  char bytes[sizeof(T)];
-
-  const T &operator()() const
-  {
-    return *reinterpret_cast<const T *>(&bytes);
-  }
-
-  T &operator()()
-  {
-    return *reinterpret_cast<T *>(&bytes);
-  }
-};
-
-/** \} */
-
 /* GLSL main function must return void. C++ need to return int.
  * Inject real main (C++) inside the GLSL main definition. */
 #define main() \
@@ -118,26 +93,6 @@ template<typename T> struct union_t {
  */
 #define resource_table_get(table_type) (*(table_type *)(new char[1024 * 16]))
 
-/**
- * Member hiding type.
- * Allows to declare fake references to Shader Resource Tables.
- * This make sure we cannot directly reference them.
- * This is just a safety measure for our fragile SRT implementation which cannot safely directly
- * access SRT members that are more that 1 level deep.
- * This should only be used in SRT struct member declaration for wrapping other SRT types.
- */
-template<typename T> struct srt_t {
-  operator const T &() const
-  {
-    return *reinterpret_cast<const T *>(this);
-  }
-
-  operator T &()
-  {
-    return *reinterpret_cast<T *>(this);
-  }
-};
-
 struct ShaderCreateInfo {};
 
 struct NoConstants {};
@@ -146,7 +101,8 @@ template<typename VertFn,
          typename FragFn,
          typename ConstT1 = NoConstants,
          typename ConstT2 = NoConstants,
-         typename ConstT3 = NoConstants>
+         typename ConstT3 = NoConstants,
+         typename ConstT4 = NoConstants>
 struct PipelineGraphic {
   VertFn vert;
   FragFn frag;
@@ -154,6 +110,7 @@ struct PipelineGraphic {
   ConstT1 c1;
   ConstT2 c2;
   ConstT3 c3;
+  ConstT4 c4;
 
   PipelineGraphic(VertFn vert, FragFn frag) : vert(vert), frag(frag), c1({}), c2({}), c3({}) {}
   PipelineGraphic(VertFn vert, FragFn frag, ConstT1 c1)
@@ -166,6 +123,10 @@ struct PipelineGraphic {
   }
   PipelineGraphic(VertFn vert, FragFn frag, ConstT1 c1, ConstT2 c2, ConstT3 c3)
       : vert(vert), frag(frag), c1(c1), c2(c2), c3(c3)
+  {
+  }
+  PipelineGraphic(VertFn vert, FragFn frag, ConstT1 c1, ConstT2 c2, ConstT3 c3, ConstT4 c4)
+      : vert(vert), frag(frag), c1(c1), c2(c2), c3(c3), c4(c4)
   {
   }
 };
@@ -200,6 +161,21 @@ struct PipelineCompute {
   {
   }
 };
+
+#ifndef FLT_MAX
+#  define FLT_MAX uintBitsToFloat(0x7F7FFFFFu)
+#  define FLT_MIN uintBitsToFloat(0x00800000u)
+#  define FLT_EPSILON 1.192092896e-07F
+#endif
+#ifndef SHRT_MAX
+#  define SHRT_MAX 0x00007FFF
+#  define INT_MAX 0x7FFFFFFF
+#  define USHRT_MAX 0x0000FFFFu
+#  define UINT_MAX 0xFFFFFFFFu
+#endif
+#ifndef NAN_FLT
+#  define NAN_FLT uintBitsToFloat(0x7FC00000u)
+#endif
 
 #include "GPU_shader_shared_utils.hh"
 

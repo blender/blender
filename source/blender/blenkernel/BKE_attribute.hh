@@ -75,8 +75,6 @@ struct AttributeInit {
     DefaultValue,
     /** #AttributeInitVArray. */
     VArray,
-    /** #AttributeInitMoveArray. */
-    MoveArray,
     /** #AttributeInitShared. */
     Shared,
   };
@@ -121,20 +119,6 @@ struct AttributeInitVArray : public AttributeInit {
   GVArray varray;
 
   AttributeInitVArray(GVArray varray) : AttributeInit(Type::VArray), varray(std::move(varray)) {}
-};
-
-/**
- * Create an attribute with a by passing ownership of a pre-allocated contiguous array of data.
- * Sometimes data is created before a geometry component is available. In that case, it's
- * preferable to move data directly to the created attribute to avoid a new allocation and a copy.
- *
- * The array must be allocated with MEM_*, since `attribute_try_create` will free the array if it
- * can't be used directly, and that is generally how Blender expects custom data to be allocated.
- */
-struct AttributeInitMoveArray : public AttributeInit {
-  void *data = nullptr;
-
-  AttributeInitMoveArray(void *data) : AttributeInit(Type::MoveArray), data(data) {}
 };
 
 /**

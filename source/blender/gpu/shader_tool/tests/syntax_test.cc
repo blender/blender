@@ -563,4 +563,27 @@ TEST(shader_tool, ArrayAggregate)
   }
 }
 
+TEST(shader_tool, AttributeCapacity)
+{
+  {
+    string input = "[[capacity(my_const)]] int a[4];\n";
+    string expect = "                       int a[SRT_CONSTANT_my_const];\n";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = "struct A { [[capacity(my_const)]] int a[4]; };\n";
+    string expect =
+        "struct A {                        int a[SRT_CONSTANT_my_const];\n"
+        "#line 1\n"
+        "                                            };\n"
+        "#line 1\n"
+        "A A_ctor_() {A r;for(int a =0;a < SRT_CONSTANT_my_const;++a) {r.a[a]=0;}return r;}\n";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+
 }  // namespace blender::gpu::tests

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
 "PO-Revision-Date: 2026-01-20 15:20+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -1046,6 +1046,14 @@ msgid "Collection of worlds"
 msgstr "תומלוע ףסוא"
 
 
+msgid "Blender"
+msgstr "Blender"
+
+
+msgid "Path"
+msgstr "ביתנ"
+
+
 msgid "Separate"
 msgstr "הדרפה"
 
@@ -1764,10 +1772,6 @@ msgid "Twist Method"
 msgstr "לותיפ תטיש"
 
 
-msgid "Path"
-msgstr "ביתנ"
-
-
 msgid "Mean"
 msgstr "עצוממ"
 
@@ -2237,10 +2241,6 @@ msgid "Mirror"
 msgstr "הארמ"
 
 
-msgid "Layout"
-msgstr "הסירפ"
-
-
 msgid "Apply"
 msgstr "לחה"
 
@@ -2251,6 +2251,10 @@ msgstr "רמה"
 
 msgid "Face Data"
 msgstr "האפ ינותנ"
+
+
+msgid "Layout"
+msgstr "הסירפ"
 
 
 msgid "Proxy"
@@ -2287,10 +2291,6 @@ msgstr "תוינבת"
 
 msgid "Python"
 msgstr "Python"
-
-
-msgid "Blender"
-msgstr "Blender"
 
 
 msgid "System"

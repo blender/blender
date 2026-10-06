@@ -15,10 +15,6 @@ namespace blender {
 
 // #define DEBUG_SNAP_TIME
 
-struct BMEdge;
-struct BMFace;
-struct BMVert;
-
 struct ARegion;
 struct Depsgraph;
 struct Object;
@@ -41,6 +37,17 @@ enum eSnapOcclusionTest {
   SNAP_OCCLUSION_NEVER = 0,
   SNAP_OCCLUSION_AS_SEEM = 1,
   SNAP_OCCLUSION_ALWAYS = 2,
+};
+
+/** Which elements of a mesh in edit-mode are valid snap targets. */
+enum class SnapEditMeshTarget {
+  /** Every element that isn't hidden. */
+  Visible = 0,
+  /**
+   * Also skip selected elements and elements that use a selected vertex, since they are the ones
+   * being transformed.
+   */
+  VisibleUnselected = 1,
 };
 
 /** used for storing multiple hits */
@@ -86,12 +93,8 @@ struct SnapObjectContext;
 SnapObjectContext *snap_object_context_create();
 void snap_object_context_destroy(SnapObjectContext *sctx);
 
-/** Callbacks to filter how snap works. */
-void snap_object_context_set_editmesh_callbacks(SnapObjectContext *sctx,
-                                                bool (*test_vert_fn)(BMVert *, void *user_data),
-                                                bool (*test_edge_fn)(BMEdge *, void *user_data),
-                                                bool (*test_face_fn)(BMFace *, void *user_data),
-                                                void *user_data);
+/** Choose which elements of meshes in edit-mode can be snapped to. */
+void snap_object_context_set_editmesh_target(SnapObjectContext *sctx, SnapEditMeshTarget target);
 
 bool snap_object_project_ray_ex(SnapObjectContext *sctx,
                                 Depsgraph *depsgraph,

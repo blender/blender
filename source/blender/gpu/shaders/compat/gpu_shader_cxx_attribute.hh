@@ -83,6 +83,9 @@
 #  define frag_coord maybe_unused
 #  define point_coord maybe_unused
 #  define front_facing maybe_unused
+/* Builtin barycentric computation per triangle vertex.
+ * Might be emulated using geometry shaders on low-end devices. */
+#  define bary_coord maybe_unused
 
 /* Fragment shader color input index for subpass input.
  * `sampler_type` is the type of image to bind to this (e.g. usampler2DArray).
@@ -127,6 +130,9 @@
 #  define condition(cond) maybe_unused
 /* Set binding frequency of a resource (storage, uniform, image, sampler). */
 #  define frequency(freq) maybe_unused
+/* Allow to resize array at runtime using the given compilation constants.
+ * The array must be sized to its maximum size. */
+#  define capacity(const) maybe_unused
 
 /* Make a structure layout or enum shared between CPU and GPU code.
  * Required for structs defining storage and uniform buffer layout. */

@@ -24,6 +24,8 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_color_types.hh"
+#include "BLI_generic_array.hh"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
@@ -566,19 +568,21 @@ GAttributeWriter MutableAttributeAccessor::convert_or_add_for_write(
     /* The attribute already exists, but with the wrong domain or type.
      * Convert it. */
     GVArray data_on_domain = *this->lookup(name, domain, data_type);
-    const CPPType &type = data_on_domain.type();
-    void *converted_data = MEM_new_array_uninitialized_aligned(
-        data_on_domain.size(), type.size, type.alignment, __func__);
-    data_on_domain.materialize_to_uninitialized(converted_data);
-    AttributeInitMoveArray attributeInit(converted_data);
-    if (this->add_override(name, domain, data_type, attributeInit)) {
+    auto *converted_data = new ImplicitSharedValue<GArray<>>(
+        data_on_domain.type(), data_on_domain.size(), NoInitialization());
+    data_on_domain.materialize_to_uninitialized(converted_data->data.data());
+    const bool added = this->add_override(
+        name,
+        domain,
+        data_type,
+        AttributeInitShared(converted_data->data.data(), *converted_data));
+    converted_data->remove_user_and_delete_if_last();
+    if (added) {
       return this->lookup_for_write(name);
     }
     /* Transfer failed, convert_or_add_for_write() should not be used for attributes
      * that can't be converted. */
     BLI_assert_unreachable();
-    type.destruct_n(converted_data, data_on_domain.size());
-    MEM_delete_void(converted_data);
     return {};
   }
   this->add(name, domain, data_type, initializer);
@@ -996,14 +1000,14 @@ void transform_custom_normal_attribute(const float4x4 &transform,
   }
   else {
     /* It's a bit faster to combine transforming and copying the attribute if it's shared. */
-    float3 *new_data = MEM_new_array_uninitialized<float3>(size_t(normals.varray.size()),
-                                                           __func__);
-    math::transform_normals(VArraySpan(normals.varray.typed<float3>()),
-                            float3x3(transform),
-                            {new_data, normals.varray.size()});
+    auto *new_data = new ImplicitSharedValue<Array<float3>>(normals.varray.size());
+    math::transform_normals(
+        VArraySpan(normals.varray.typed<float3>()), float3x3(transform), new_data->data);
     const AttrDomain domain = normals.domain;
     attributes.remove("custom_normal");
-    attributes.add<float3>("custom_normal", domain, AttributeInitMoveArray(new_data));
+    attributes.add<float3>(
+        "custom_normal", domain, AttributeInitShared(new_data->data.data(), *new_data));
+    new_data->remove_user_and_delete_if_last();
   }
 }
 

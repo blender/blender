@@ -241,6 +241,23 @@ string string_remove_gpu_from_cpu_name(const string &s)
 
 /* Wide char strings helpers for Windows. */
 
+#ifndef _WIN32
+static locale_t utf8_locale_new()
+{
+  /* Try common locales that the DLSS libraries understands. */
+  static const char *names[] = {"en_US.UTF-8", "C.UTF-8"};
+
+  for (const char *name : names) {
+    locale_t locale = newlocale(LC_CTYPE_MASK, name, (locale_t) nullptr);
+    if (locale) {
+      return locale;
+    }
+  }
+
+  return (locale_t) nullptr;
+}
+#endif
+
 wstring string_to_wstring(const string &str)
 {
 #ifdef _WIN32
@@ -248,8 +265,8 @@ wstring string_to_wstring(const string &str)
   wstring str_wc(length_wc, 0);
   MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &str_wc[0], length_wc);
 #else
-  locale_t new_locale = newlocale(LC_CTYPE_MASK, "en_US.UTF-8", (locale_t)0);
-  locale_t old_locale = new_locale ? uselocale(new_locale) : (locale_t)0;
+  locale_t new_locale = utf8_locale_new();
+  locale_t old_locale = new_locale ? uselocale(new_locale) : (locale_t) nullptr;
   mbstate_t state = {};
   const char *str_p = str.c_str();
   const size_t length_wc = mbsrtowcs(nullptr, &str_p, 0, &state);
@@ -275,8 +292,8 @@ string string_from_wstring(const wstring &str)
   WideCharToMultiByte(
       CP_UTF8, 0, str.c_str(), str.size(), &str_mb[0], length_mb, nullptr, nullptr);
 #else
-  locale_t new_locale = newlocale(LC_CTYPE_MASK, "en_US.UTF-8", (locale_t)0);
-  locale_t old_locale = new_locale ? uselocale(new_locale) : (locale_t)0;
+  locale_t new_locale = utf8_locale_new();
+  locale_t old_locale = new_locale ? uselocale(new_locale) : (locale_t) nullptr;
   const wchar_t *str_p = str.c_str();
   mbstate_t state = {};
   const size_t length_mb = wcsrtombs(nullptr, &str_p, 0, &state);

@@ -13,8 +13,12 @@
 
 namespace workbench::shadow::visibility {
 
-struct Resources {
+struct Constants {
   [[compilation_constant]] const bool dynamic_pass_selection;
+};
+
+struct Resources {
+  [[resource_table]] Constants consts;
 
   [[resource_table]] draw::ViewCulling view_culling;
   [[storage(0, read)]] const ObjectBounds (&bounds_buf)[];
@@ -78,7 +82,7 @@ struct Resources {
 
   void set_visibility(bool pass, bool fail, uint instance_id)
   {
-    if (dynamic_pass_selection) [[static_branch]] {
+    if (consts.dynamic_pass_selection) [[static_branch]] {
       if (!pass) {
         atomicAnd(pass_visibility_buf[instance_id / 32u], ~(1u << (instance_id & 31u)));
       }
@@ -90,7 +94,7 @@ struct Resources {
 
   void set_visibility(bool visibility, uint instance_id)
   {
-    if (dynamic_pass_selection == false) [[static_branch]] {
+    if (!consts.dynamic_pass_selection) [[static_branch]] {
       if (!visibility) {
         atomicAnd(visibility_buf[instance_id / 32u], ~(1u << (instance_id & 31u)));
       }
@@ -116,7 +120,7 @@ void culling_main([[resource_table]] Resources &srt,
                                  bounds.bounding_corners[2].xyz,
                                  bounds.bounding_corners[3].xyz);
 
-  if (srt.dynamic_pass_selection) [[static_branch]] {
+  if (srt.consts.dynamic_pass_selection) [[static_branch]] {
     if (srt.is_visible(box)) {
       bool use_fail_pass = srt.force_fail_method || srt.intersects_near_plane(box);
       srt.set_visibility(!use_fail_pass, use_fail_pass, global_id.x);
@@ -130,9 +134,7 @@ void culling_main([[resource_table]] Resources &srt,
   }
 }
 
-#ifndef GLSL_CPP_STUBS
-PipelineCompute compute_dynamic_pass_type(culling_main, Resources{.dynamic_pass_selection = true});
-PipelineCompute compute_static_pass_type(culling_main, Resources{.dynamic_pass_selection = false});
-#endif
+PipelineCompute compute_dynamic_pass_type(culling_main, Constants{.dynamic_pass_selection = true});
+PipelineCompute compute_static_pass_type(culling_main, Constants{.dynamic_pass_selection = false});
 
 }  // namespace workbench::shadow::visibility

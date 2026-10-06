@@ -104,7 +104,7 @@ namespace eevee {
   float3 lP_root = curves.get_curve_root_pos(ws_pt.point_id, ws_pt.curve_segment);
   float3 lP_orco = lP_root * ob_infos.orco_mul + ob_infos.orco_add;
 
-  ShadingData sd = init_globals(uni, interp, view, true, float4(0));
+  ShadingData sd = init_globals(pipe, uni, interp, view, true, float4(0));
   init_globals_curves(interp, curve_interp, sd, view);
 
   attrib_load(CurvesPoint{ws_pt.curve_id,

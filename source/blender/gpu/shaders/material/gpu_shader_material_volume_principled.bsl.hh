@@ -24,6 +24,7 @@ void node_volume_principled(float4 color,
                             float4 temperature_attribute,
                             sampler1DArray spectrum_map,
                             float layer,
+                            KernelGlobals &kg,
                             ShadingData &sd,
                             Closure &result)
 {
@@ -89,5 +90,5 @@ void node_volume_principled(float4 color,
   ClosureEmission emission_data;
   emission_data.emission = emission_coeff * weight;
 
-  result = closure_eval(sd, volume_scatter_data, volume_absorption_data, emission_data);
+  result = closure_eval(kg, sd, volume_scatter_data, volume_absorption_data, emission_data);
 }

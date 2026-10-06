@@ -37,12 +37,11 @@ struct SurfWorldFragOut {
 
 [[fragment]] [[early_fragment_tests]]
 void surf_world([[resource_table]] KernelGlobals &kg,
-                [[resource_table]] PipelineConstants & /*pipe*/,
+                [[resource_table]] PipelineConstants &pipe,
                 [[resource_table]] SurfWorld &srt,
                 [[resource_table]] const LightprobeRenderData &lightprobes,
                 [[resource_table]] RenderPassOutput &render_passes,
                 [[resource_table]] const Uniform &uni,
-                [[resource_table]] const UtilityTexture & /*util_tx*/,
                 [[resource_table]] const draw::View &views,
                 [[frag_coord]] const float4 frag_co,
                 [[in]] const VertOutCommon &interp,
@@ -51,7 +50,7 @@ void surf_world([[resource_table]] KernelGlobals &kg,
 {
   const ViewMatrices view = views.get(0);
 
-  ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+  ShadingData sd = init_globals(pipe, uni, interp, view, front_face, frag_co);
 
   /* View position is passed to keep accuracy. */
   sd.N = view.normal_view_to_world(view.view_incident_vector(interp.P));

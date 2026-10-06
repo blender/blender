@@ -6,6 +6,7 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 
 def set_view3d_context_override(context_override):
@@ -107,9 +108,7 @@ if inside_blender:
         sys.exit(1)
 
 
-def get_arguments(filepath, output_filepath):
-    dirname = os.path.dirname(filepath)
-
+def get_arguments(filepath: Path, output_filepath: Path) -> list[str | Path]:
     args = [
         "--background",
         "--factory-startup",
@@ -131,10 +130,10 @@ def create_argparse():
     parser = argparse.ArgumentParser(
         description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
     )
-    parser.add_argument("--blender", required=True)
-    parser.add_argument("--testdir", required=True)
-    parser.add_argument("--outdir", required=True)
-    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--blender", required=True, type=Path)
+    parser.add_argument("--testdir", required=True, type=Path)
+    parser.add_argument("--outdir", required=True, type=Path)
+    parser.add_argument("--oiiotool", required=True, type=Path)
     parser.add_argument("--batch", default=False, action="store_true")
     return parser
 

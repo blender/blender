@@ -7,6 +7,8 @@
  */
 
 #include "BLI_array_utils.hh"
+#include "BLI_generic_array.hh"
+#include "BLI_implicit_sharing_ptr.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
@@ -1031,7 +1033,7 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
       void *value;
     };
     struct Array {
-      void *data;
+      ImplicitSharingPtr<ImplicitSharedValue<GArray<>>> data;
     };
     std::variant<Single, Array> new_data;
   };
@@ -1075,15 +1077,15 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
     if (field.depends_on_input() || !selection_is_full) {
       /* Could avoid allocating a new buffer if:
        * - The field does not depend on that attribute (we can't easily check for that yet). */
-      void *buffer = MEM_new_uninitialized_aligned(
-          type.size * domain_size, type.alignment, __func__);
+      auto *data = new ImplicitSharedValue<GArray<>>(type, domain_size, NoInitialization());
+      void *buffer = data->data.data();
       if (!selection_is_full) {
         initialize_new_data(attributes, domain, domain_size, name, type, data_type, buffer);
       }
 
       GMutableSpan dst(type, buffer, domain_size);
       evaluator.add_with_destination(field, dst);
-      results_to_add.append({input_index, AddResult::Array{buffer}});
+      results_to_add.append({input_index, AddResult::Array{ImplicitSharingPtr(data)}});
     }
     else {
       void *value = scope.allocate_owned(field.cpp_type());
@@ -1120,11 +1122,10 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
     const CPPType &type = fields[result.input_index].cpp_type();
     const bke::AttrType data_type = bke::cpp_type_to_attribute_type(type);
     if (auto *array = std::get_if<AddResult::Array>(&result.new_data)) {
-      if (!attributes.add(name, domain, data_type, AttributeInitMoveArray(array->data))) {
+      const ImplicitSharedValue<GArray<>> &data = *array->data;
+      if (!attributes.add(name, domain, data_type, AttributeInitShared(data.data.data(), data))) {
         /* If the name corresponds to a builtin attribute, removing the attribute might fail if
          * it's required, adding the attribute might fail if the domain or type is incorrect. */
-        type.destruct_n(array->data, domain_size);
-        MEM_delete_void(array->data);
         success = false;
       }
     }

@@ -212,9 +212,6 @@ class TexturePaintBrushTest(api.Test):
 
 def generate(env):
     filepaths = env.find_blend_files('texture_paint/*')
-    # For now, we only expect there to ever be a single file to use as the basis for generating other brush tests
-    assert len(filepaths) == 1
-
     brush_tests = [TexturePaintBrushTest(filepaths[0], object_type, dimension, data_type)
                    for object_type in MeshType for dimension in DIMENSIONS for data_type in DataType]
     return brush_tests

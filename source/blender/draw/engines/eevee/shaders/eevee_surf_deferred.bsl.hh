@@ -94,17 +94,23 @@ void surf_deferred([[resource_table]] KernelGlobals &kg,
                    [[in]] [[condition(is_curves)]] const VertOutCurves &curves_interp,
                    [[in]] [[condition(is_pointcloud)]] const VertOutPointcloud &ptcloud_interp,
                    [[frag_coord]] const float4 frag_co,
+                   [[bary_coord]] [[condition(use_barycentric)]] const float3 bary_co,
                    [[out]] DeferredFragOut &frag_out,
                    [[front_facing]] const bool front_face)
 {
   draw::ID id{interp.resource_id_raw};
   const uint resource_id = id.resource_id<1>();
 
+  float3 barycentric_co = float3(0.0f);
+  if (pipe.use_barycentric) [[static_branch]] {
+    barycentric_co = bary_co;
+  }
+
   const ViewMatrices view = views.get(0);
 
-  ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+  ShadingData sd = init_globals(pipe, uni, interp, view, front_face, frag_co);
   if (pipe.is_mesh) [[static_branch]] {
-    init_globals_mesh(interp, sd);
+    init_globals_mesh(interp, sd, barycentric_co);
   }
   else if (pipe.is_curves) [[static_branch]] {
     init_globals_curves(interp, curves_interp, sd, view);
@@ -163,7 +169,7 @@ void surf_deferred([[resource_table]] KernelGlobals &kg,
   }
   for (int i = 0; i < 3; i++) [[unroll]] {
     if (pipe.closure_bin_count > i) [[static_branch]] {
-      gbuf_data.closure[i] = sd.closure_get_resolved(i, alpha_rcp);
+      gbuf_data.closure[i] = sd.closure_get_resolved(kg.pipe, i, alpha_rcp);
     }
   }
   const bool use_object_id = pipe.use_sss || use_light_linking || use_terminator_offset;

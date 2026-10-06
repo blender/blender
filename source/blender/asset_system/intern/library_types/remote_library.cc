@@ -23,6 +23,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
+#include "BKE_preferences.h"
 #include "BKE_report.hh"
 
 #ifdef WITH_PYTHON
@@ -51,6 +52,18 @@
 #include "remote_library.hh"
 
 static CLG_LogRef LOG = {"asset.remote_library"};
+
+/**
+ * An extension repository may define itself as the origin of an asset-libraries token.
+ * In this case, always use the token from the extensions repository.
+ *
+ * \note `_remote_asset_library_sync_all_periodic` in `bl_pkg/__init__.py`
+ * does the same for the startup sync, which doesn't run this script.
+ */
+#define AUTH_TOKEN_MAYBE_OVERRIDE_FROM_EXTENSIONS \
+  "from _bpy_internal.extensions.asset_library_query import token_from_asset_url\n" \
+  "if (auth_token_override := token_from_asset_url(library_url)) is not None:\n" \
+  "    auth_token = auth_token_override\n"
 
 namespace blender::asset_system {
 
@@ -150,7 +163,7 @@ bool PreferencesRemoteAssetLibrary::is_enabled() const
     return false;
   }
 
-  return (library_definition->flag & ASSET_LIBRARY_DISABLED) == 0;
+  return BKE_preferences_asset_library_is_available(&U, library_definition);
 }
 
 std::optional<StringRefNull> PreferencesRemoteAssetLibrary::auth_token() const
@@ -655,6 +668,7 @@ void remote_library_request_download(const RemoteLibraryDefinitionRef &library_d
     std::string script =
         "import bl_pkg\n"
         "from pathlib import Path\n"
+        "\n" AUTH_TOKEN_MAYBE_OVERRIDE_FROM_EXTENSIONS
         "\n"
         "bl_pkg.remote_asset_library_sync(\n"
         "    library_url, auth_token, Path(library_path)\n"
@@ -752,6 +766,7 @@ static std::optional<std::string> remote_library_request_asset_download_file(
   std::string script =
       "import _bpy_internal.assets.remote_library.asset_downloader as asset_dl\n"
       "from pathlib import Path\n"
+      "\n" AUTH_TOKEN_MAYBE_OVERRIDE_FROM_EXTENSIONS
       "\n"
       "_result = asset_dl.download_asset_file(\n"
       "    library_url, auth_token, Path(library_path),\n"
@@ -898,16 +913,16 @@ void remote_library_request_preview_download(const bContext &C,
     std::string script =
         "import _bpy_internal.assets.remote_library.asset_downloader as asset_dl\n"
         "from pathlib import Path\n"
+        "\n" AUTH_TOKEN_MAYBE_OVERRIDE_FROM_EXTENSIONS
         "\n"
         "asset_dl.download_preview(\n"
-        "    library_url, library_auth_token, Path(library_path),\n"
+        "    library_url, auth_token, Path(library_path),\n"
         "    preview_url, preview_hash, Path(dst_filepath),\n"
         ")\n";
 
     std::unique_ptr locals = bke::idprop::create_group("locals");
     IDP_AddToGroup(locals.get(), IDP_NewString(*library_url, "library_url"));
-    IDP_AddToGroup(locals.get(),
-                   IDP_NewString(library.auth_token().value_or(""), "library_auth_token"));
+    IDP_AddToGroup(locals.get(), IDP_NewString(library.auth_token().value_or(""), "auth_token"));
     IDP_AddToGroup(locals.get(), IDP_NewString(library.root_path(), "library_path"));
     IDP_AddToGroup(locals.get(), IDP_NewString(*preview_url, "preview_url"));
     IDP_AddToGroup(locals.get(), IDP_NewString(*preview_hash, "preview_hash"));

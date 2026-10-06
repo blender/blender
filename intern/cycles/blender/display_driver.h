@@ -88,6 +88,7 @@ class BlenderDisplayDriver : public DisplayDriver {
   void set_zoom(const float zoom_x, const float zoom_y);
 
  protected:
+  void reset() override;
   void next_tile_begin() override;
 
   bool update_begin(const Params &params,
@@ -139,6 +140,7 @@ class BlenderDisplayDriver : public DisplayDriver {
 
   thread_condition_variable has_update_cond_;
   thread_mutex has_update_mutex_;
+  bool update_pending_ = true;
 };
 
 CCL_NAMESPACE_END

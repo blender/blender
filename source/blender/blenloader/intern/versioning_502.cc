@@ -664,7 +664,7 @@ void blo_do_versions_502(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       if (scene.toolsettings->sculpt) {
         Sculpt &sculpt = *scene.toolsettings->sculpt;
         MeshAutomaskingSettings *settings = MEM_new<MeshAutomaskingSettings>(__func__);
-        settings->flags = sculpt.automasking_flags;
+        settings->flags = eAutomasking_flag(sculpt.automasking_flags);
         settings->boundary_edges_propagation_steps =
             sculpt.automasking_boundary_edges_propagation_steps;
         settings->cavity_blur_steps = sculpt.automasking_cavity_blur_steps;
@@ -694,7 +694,7 @@ void blo_do_versions_502(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
 
       brush.mesh_automasking_settings = MEM_new<MeshAutomaskingSettings>(__func__);
-      brush.mesh_automasking_settings->flags = brush.automasking_flags;
+      brush.mesh_automasking_settings->flags = eAutomasking_flag(brush.automasking_flags);
       brush.mesh_automasking_settings->boundary_edges_propagation_steps =
           brush.automasking_boundary_edges_propagation_steps;
       brush.mesh_automasking_settings->cavity_blur_steps = brush.automasking_cavity_blur_steps;

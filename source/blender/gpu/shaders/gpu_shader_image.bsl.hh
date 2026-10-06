@@ -6,7 +6,6 @@
 
 #include "gpu_shader_colorspace.bsl.hh"
 #include "gpu_shader_math_vector_reduce.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 namespace builtin::image {
 

@@ -13,6 +13,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
 #include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
@@ -39,6 +40,7 @@
 #include "ED_screen.hh"
 /** For #USE_LOOPSLIDE_HACK only. */
 #include "ED_mesh.hh"
+#include "ED_sequencer.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -1369,6 +1371,17 @@ static void TRANSFORM_OT_edge_bevelweight(wmOperatorType *ot)
   properties_register(ot, P_SNAP);
 }
 
+static bool seq_slide_poll_property(const bContext * /*C*/,
+                                    wmOperator *op,
+                                    const PropertyRNA *prop)
+{
+  const char *prop_id = RNA_property_identifier(prop);
+  if (STR_ELEM(prop_id, "all_channels", "markers", "insert")) {
+    return RNA_enum_get(op->ptr, "overlap_mode") == SEQ_OVERLAP_RIPPLE;
+  }
+  return true;
+}
+
 static void TRANSFORM_OT_seq_slide(wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -1383,6 +1396,7 @@ static void TRANSFORM_OT_seq_slide(wmOperatorType *ot)
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
   ot->poll = ED_operator_sequencer_active;
+  ot->poll_property = seq_slide_poll_property;
 
   /* Properties. */
   PropertyRNA *prop;
@@ -1397,6 +1411,17 @@ static void TRANSFORM_OT_seq_slide(wmOperatorType *ot)
                          "Restore Handle Selection",
                          "Restore handle selection after tweaking");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  prop = RNA_def_enum(ot->srna,
+                      "overlap_mode",
+                      rna_enum_strip_overlap_mode_items,
+                      SEQ_OVERLAP_SHUFFLE,
+                      "Overlap Mode",
+                      "How to resolve overlap after transformation");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  vse::operator_properties_ripple(
+      ot, SEQ_RIPPLE_ALL_CHANNELS | SEQ_RIPPLE_MARKERS | SEQ_RIPPLE_INSERT);
 
   WM_operatortype_props_advanced_begin(ot);
 

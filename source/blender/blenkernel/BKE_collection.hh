@@ -84,6 +84,12 @@ struct CollectionRuntime {
   uint8_t tag = 0;
 };
 
+struct CollectionImportRuntime {
+  /** The archive library this importer is associated with. Will be null when an import has not
+   * occurred yet or has since been cleared. */
+  Library *archive_library = nullptr;
+};
+
 }  // namespace bke
 
 /* Collections */

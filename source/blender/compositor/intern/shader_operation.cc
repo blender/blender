@@ -220,6 +220,7 @@ static const char *get_set_function_name(const ResultType type)
     case ResultType::Text:
     case ResultType::Mask:
     case ResultType::Bundle:
+    case ResultType::Closure:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -453,6 +454,7 @@ static GPUNodeLink *get_result_single_value_link(const Result &result)
     case ResultType::Text:
     case ResultType::Mask:
     case ResultType::Bundle:
+    case ResultType::Closure:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(result.type()));
       BLI_assert_unreachable();
@@ -513,6 +515,24 @@ void ShaderOperation::link_node_input_external(const bNodeSocket &input_socket,
   stack.link = output_to_material_attribute_map_.lookup(&output_socket);
 }
 
+ResultType ShaderOperation::get_source_output_type(const bNodeSocket &input,
+                                                   const bNodeSocket &output)
+{
+  /* Output is inside the pixel operation, get its type from socket directly. */
+  if (node_tree_evaluator_.pixel_compile_unit().contains(&output.owner_node())) {
+    return get_node_socket_result_type(&output);
+  }
+
+  /* Otherwise, it is an external input and we know its result, so get the type from the result
+   * directly. An exception is when the output is a single value only type, which is not supported
+   * on GPU, so we assume the input type. */
+  Result &result = node_tree_evaluator_.get_result_from_output_socket(output);
+  if (Result::is_single_value_only_type(result.type())) {
+    return get_node_socket_result_type(&input);
+  }
+  return result.type();
+}
+
 void ShaderOperation::declare_operation_input(const bNodeSocket &input_socket,
                                               const bNodeSocket &output_socket)
 {
@@ -520,15 +540,9 @@ void ShaderOperation::declare_operation_input(const bNodeSocket &input_socket,
   std::string input_identifier = "input" + std::to_string(input_index);
 
   /* Declare the input descriptor for this input and prefer to declare its type to be the same as
-   * the type of the output because doing type conversion in the shader is much cheaper. An
-   * exception is when the output is a single value only type, which is not supported on GPU, so we
-   * assume the input type. */
+   * the type of the output because doing type conversion in the shader is much cheaper.  */
   InputDescriptor input_descriptor = input_descriptor_from_input_socket(&input_socket);
-  Result &result = node_tree_evaluator_.get_result_from_output_socket(output_socket);
-  const ResultType output_type = result.type();
-  if (!Result::is_single_value_only_type(output_type)) {
-    input_descriptor.type = output_type;
-  }
+  input_descriptor.type = this->get_source_output_type(input_socket, output_socket);
 
   declare_input_descriptor(input_identifier, input_descriptor);
 
@@ -629,6 +643,7 @@ static const char *get_store_function_name(ResultType type)
     case ResultType::Text:
     case ResultType::Mask:
     case ResultType::Bundle:
+    case ResultType::Closure:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -697,6 +712,7 @@ static GPUNodeLink *get_default_input_value_link(const ResultType type)
     case ResultType::Text:
     case ResultType::Mask:
     case ResultType::Bundle:
+    case ResultType::Closure:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -709,7 +725,7 @@ static GPUNodeLink *get_default_input_value_link(const ResultType type)
 
 void ShaderOperation::convert_input_link_type(const bNodeSocket &input, const bNodeSocket &output)
 {
-  const ResultType source_type = get_node_socket_result_type(&output);
+  const ResultType source_type = this->get_source_output_type(input, output);
   const ResultType target_type = get_node_socket_result_type(&input);
   if (target_type == source_type) {
     return;
@@ -857,6 +873,7 @@ static const char *glsl_store_expression_from_result_type(ResultType type)
     case ResultType::Text:
     case ResultType::Mask:
     case ResultType::Bundle:
+    case ResultType::Closure:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -894,6 +911,7 @@ static ImageType gpu_image_type_from_result_type(const ResultType type)
     case ResultType::Text:
     case ResultType::Mask:
     case ResultType::Bundle:
+    case ResultType::Closure:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -1036,6 +1054,7 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
       case ResultType::Text:
       case ResultType::Mask:
       case ResultType::Bundle:
+      case ResultType::Closure:
         /* Single only types do not support GPU code path. */
         BLI_assert(Result::is_single_value_only_type(result.type()));
         BLI_assert_unreachable();
@@ -1103,6 +1122,7 @@ static const char *glsl_type_from_result_type(ResultType type)
     case ResultType::Text:
     case ResultType::Mask:
     case ResultType::Bundle:
+    case ResultType::Closure:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -1152,6 +1172,7 @@ static const char *glsl_swizzle_from_result_type(ResultType type)
     case ResultType::Text:
     case ResultType::Mask:
     case ResultType::Bundle:
+    case ResultType::Closure:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();

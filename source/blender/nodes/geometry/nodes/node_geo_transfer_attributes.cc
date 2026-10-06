@@ -4,6 +4,9 @@
 
 #include <fmt/format.h>
 
+#include "BLI_generic_array.hh"
+#include "BLI_implicit_sharing.hh"
+
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
@@ -114,6 +117,25 @@ static bool should_transfer(const Span<StringPattern> patterns,
     return !match_found;
   }
   return match_found;
+}
+
+/**
+ * Add an attribute that takes ownership of the array. When `replace_existing` is true, an existing
+ * attribute with the same name is replaced.
+ */
+static bool add_attribute_with_array(bke::MutableAttributeAccessor &attributes,
+                                     const StringRef name,
+                                     const AttrDomain domain,
+                                     const bke::AttrType type,
+                                     GArray<> array,
+                                     const bool replace_existing)
+{
+  auto *sharing_info = new ImplicitSharedValue<GArray<>>(std::move(array));
+  const bke::AttributeInitShared init(sharing_info->data.data(), *sharing_info);
+  const bool success = replace_existing ? attributes.add_override(name, domain, type, init) :
+                                          attributes.add(name, domain, type, init);
+  sharing_info->remove_user_and_delete_if_last();
+  return success;
 }
 
 static void transfer_attributes(
@@ -269,39 +291,29 @@ static void transfer_attributes(
         if (!adapted_old_dst) {
           continue;
         }
-        void *dst_data = MEM_new_array_uninitialized_aligned(
-            dst_size, type.size, type.alignment, __func__);
-        src_attr.varray.materialize_to_uninitialized(copy_slice, dst_data);
+        GArray<> dst_data(type, dst_size, NoInitialization());
+        src_attr.varray.materialize_to_uninitialized(copy_slice, dst_data.data());
         adapted_old_dst.varray.materialize_to_uninitialized(
-            IndexRange(dst_size).drop_front(copy_num), dst_data);
-        if (dst_attributes.add_override(
-                item.name, item.domain, item.type, bke::AttributeInitMoveArray(dst_data)))
+            IndexRange(dst_size).drop_front(copy_num), dst_data.data());
+        if (add_attribute_with_array(
+                dst_attributes, item.name, item.domain, item.type, std::move(dst_data), true))
         {
           r_transferred_names.add(item.name);
-          continue;
         }
-        /* Transfer failed. */
-        type.destruct_n(dst_data, dst_size);
-        MEM_delete_void(dst_data);
         continue;
       }
 
       /* Create a new array, copy the first few elements and fill the rest with the defaults. */
-      void *dst_data = MEM_new_array_uninitialized_aligned(
-          dst_size, type.size, type.alignment, __func__);
-      GMutableSpan dst(type, dst_data, dst_size);
-      array_utils::copy(src_attr.varray.slice(copy_slice), dst.slice(copy_slice));
+      GArray<> dst_data(type, dst_size, NoInitialization());
+      array_utils::copy(src_attr.varray.slice(copy_slice),
+                        dst_data.as_mutable_span().slice(copy_slice));
       type.fill_construct_indices(
-          type.default_value(), dst_data, IndexRange(dst_size).drop_front(copy_num));
-      if (dst_attributes.add(
-              item.name, item.domain, item.type, bke::AttributeInitMoveArray(dst_data)))
+          type.default_value(), dst_data.data(), IndexRange(dst_size).drop_front(copy_num));
+      if (add_attribute_with_array(
+              dst_attributes, item.name, item.domain, item.type, std::move(dst_data), false))
       {
         r_transferred_names.add(item.name);
-        continue;
       }
-      /* Transfer failed. */
-      type.destruct_n(dst_data, dst_size);
-      MEM_delete_void(dst_data);
       continue;
     }
 
@@ -328,18 +340,13 @@ static void transfer_attributes(
         continue;
       }
       /* Create a new array for the attribute. */
-      void *dst_data = MEM_new_array_uninitialized_aligned(
-          dst_size, type.size, type.alignment, __func__);
-      bke::attribute_math::gather(*src_attr, ids.src_by_dst_index, {type, dst_data, dst_size});
-      if (dst_attributes.add_override(
-              item.name, item.domain, item.type, bke::AttributeInitMoveArray(dst_data)))
+      GArray<> dst_data(type, dst_size, NoInitialization());
+      bke::attribute_math::gather(*src_attr, ids.src_by_dst_index, dst_data.as_mutable_span());
+      if (add_attribute_with_array(
+              dst_attributes, item.name, item.domain, item.type, std::move(dst_data), true))
       {
         r_transferred_names.add(item.name);
-        continue;
       }
-      /* Transfer failed. */
-      type.destruct_n(dst_data, dst_size);
-      MEM_delete_void(dst_data);
       continue;
     }
 
@@ -354,20 +361,15 @@ static void transfer_attributes(
       continue;
     }
     if (!old_dst_meta) {
-      void *dst_data = MEM_new_array_uninitialized_aligned(
-          dst_size, type.size, type.alignment, __func__);
+      GArray<> dst_data(type, dst_size, NoInitialization());
       bke::attribute_math::gather(
-          *src_attr, ids.src_by_dst_index, ids.gather_mask, {type, dst_data, dst_size});
-      type.fill_construct_indices(type.default_value(), dst_data, ids.default_mask);
-      if (dst_attributes.add(
-              item.name, item.domain, item.type, bke::AttributeInitMoveArray(dst_data)))
+          *src_attr, ids.src_by_dst_index, ids.gather_mask, dst_data.as_mutable_span());
+      type.fill_construct_indices(type.default_value(), dst_data.data(), ids.default_mask);
+      if (add_attribute_with_array(
+              dst_attributes, item.name, item.domain, item.type, std::move(dst_data), false))
       {
         r_transferred_names.add(item.name);
-        continue;
       }
-      /* Transfer failed. */
-      type.destruct_n(dst_data, dst_size);
-      MEM_delete_void(dst_data);
       continue;
     }
     const bke::GAttributeReader adapted_old_dst = dst_attributes.lookup(
@@ -375,20 +377,15 @@ static void transfer_attributes(
     if (!adapted_old_dst) {
       continue;
     }
-    void *dst_data = MEM_new_array_uninitialized_aligned(
-        dst_size, type.size, type.alignment, __func__);
+    GArray<> dst_data(type, dst_size, NoInitialization());
     bke::attribute_math::gather(
-        src_attr.varray, ids.src_by_dst_index, ids.gather_mask, {type, dst_data, dst_size});
-    adapted_old_dst.varray.materialize_to_uninitialized(ids.default_mask, dst_data);
-    if (dst_attributes.add_override(
-            item.name, item.domain, item.type, bke::AttributeInitMoveArray(dst_data)))
+        src_attr.varray, ids.src_by_dst_index, ids.gather_mask, dst_data.as_mutable_span());
+    adapted_old_dst.varray.materialize_to_uninitialized(ids.default_mask, dst_data.data());
+    if (add_attribute_with_array(
+            dst_attributes, item.name, item.domain, item.type, std::move(dst_data), true))
     {
       r_transferred_names.add(item.name);
-      continue;
     }
-    /* Transfer failed. */
-    type.destruct_n(dst_data, dst_size);
-    MEM_delete_void(dst_data);
   }
 }
 

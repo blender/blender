@@ -502,7 +502,8 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
 
       layer.sharing_info->remove_user_and_delete_if_last();
       layer.data = dst;
-      layer.sharing_info = implicit_sharing::info_for_mem_free(dst);
+      layer.sharing_info = CustomData_make_layer_sharing_info(
+          cd_type, dst, new_faces.total_size());
     }
   }
 

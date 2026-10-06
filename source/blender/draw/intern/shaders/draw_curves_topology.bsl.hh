@@ -13,7 +13,6 @@
 
 #include "gpu_shader_attribute_load.bsl.hh"
 #include "gpu_shader_offset_indices_lib.glsl"
-#include "gpu_shader_utildefines.bsl.hh"
 
 namespace curves {
 

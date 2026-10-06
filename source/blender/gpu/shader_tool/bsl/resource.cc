@@ -14,20 +14,6 @@ namespace bsl {
 
 using namespace blender::gpu::shader::parser::ast;
 
-string ParsedAttribute::parse_condition() const
-{
-  if (!condition.is_valid()) {
-    return "";
-  }
-  string str;
-  for (LocalVar node : condition.children_of_type<LocalVar>()) {
-    str += "int " + string(node.str()) + " = ";
-    str += "ShaderCreateInfo::find_constant(constants, \"" + string(node.str()) + "\"); ";
-  }
-  str += "return " + string(condition.str()) + ";";
-  return str;
-}
-
 Result<ParsedAttribute> resource_type_from_attributes(AttrList list)
 {
   struct AttributeDescriptor {
@@ -78,11 +64,13 @@ Result<ParsedAttribute> resource_type_from_attributes(AttrList list)
         {"uniform",                                 {ResourceTableType::RESOURCE_TABLE, ResourceType::UNIFORM_BUF,             1}},
         {"storage",                                 {ResourceTableType::RESOURCE_TABLE, ResourceType::STORAGE_BUF,             2}},
         {"image",                                   {ResourceTableType::RESOURCE_TABLE, ResourceType::IMAGE,                   3}},
+        {"acceleration_structure",                  {ResourceTableType::RESOURCE_TABLE, ResourceType::ACCELERATION_STRUCTURE,  1}},
         /* Entry point argument. */
         {"base_instance",                           {ResourceTableType::ENTRY_POINT,    ResourceType::BASE_INSTANCE,           0}},
         {"clip_control",                            {ResourceTableType::ENTRY_POINT,    ResourceType::CLIP_CONTROL,            0}},
         {"clip_distance",                           {ResourceTableType::ENTRY_POINT,    ResourceType::CLIP_DISTANCES,          0}},
         {"front_facing",                            {ResourceTableType::ENTRY_POINT,    ResourceType::FRONT_FACING,            0}},
+        {"bary_coord",                              {ResourceTableType::ENTRY_POINT,    ResourceType::BARY_COORD,              0}},
         {"global_invocation_id",                    {ResourceTableType::ENTRY_POINT,    ResourceType::GLOBAL_INVOCATION_ID,    0}},
         {"in",                                      {ResourceTableType::ENTRY_POINT,    ResourceType::IN,                      0}},
         {"instance_id",                             {ResourceTableType::ENTRY_POINT,    ResourceType::INSTANCE_ID,             0}},
@@ -113,6 +101,7 @@ Result<ParsedAttribute> resource_type_from_attributes(AttrList list)
         {"frequency",                               {ResourceTableType::NONE,           ResourceType::FREQUENCY,               1}},
         {"index",                                   {ResourceTableType::NONE,           ResourceType::DUAL_SOURCE_INDEX,       1}},
         {"raster_order_group",                      {ResourceTableType::NONE,           ResourceType::RASTER_ORDER_GROUP,      1}},
+        {"capacity",                                {ResourceTableType::NONE,           ResourceType::CAPACITY,                1}},
       /* clang-format on */
   };
 
@@ -147,6 +136,9 @@ Result<ParsedAttribute> resource_type_from_attributes(AttrList list)
 
       if (res_type == ResourceType::CONDITION) {
         result.value.condition = params.child_first();
+      }
+      else if (res_type == ResourceType::CAPACITY) {
+        result.value.capacity = params.child_first();
       }
       else if (res_type == ResourceType::FREQUENCY) {
         result.value.frequency = params.child_first();

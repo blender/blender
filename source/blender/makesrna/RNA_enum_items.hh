@@ -54,6 +54,7 @@ DEF_ENUM(rna_enum_strip_modifier_type_items)
 DEF_ENUM(rna_enum_strip_video_modifier_type_items)
 DEF_ENUM(rna_enum_strip_sound_modifier_type_items)
 DEF_ENUM(rna_enum_strip_scale_method_items)
+DEF_ENUM(rna_enum_strip_overlap_mode_items)
 DEF_ENUM(rna_enum_object_shaderfx_type_items)
 
 DEF_ENUM(rna_enum_modifier_triangulate_quad_method_items)

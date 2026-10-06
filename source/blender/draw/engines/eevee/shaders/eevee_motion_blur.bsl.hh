@@ -139,10 +139,10 @@ void flatten_comp([[resource_table]] Resources<velocity_format> &srt,
   float2 uv = (float2(texel) + 0.5f) / render_size;
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel, 0).r);
   float4 motion = cam_vel.resolve(views, imageLoad(srt.velocity_img, texel), uv, depth);
-#ifdef FLATTEN_RG
-  /* imageLoad does not perform the swizzling like sampler does. Do it manually. */
-  motion = motion.xyxy;
-#endif
+  if constexpr (velocity_format == SFLOAT_16_16) {
+    /* imageLoad does not perform the swizzling like sampler does. Do it manually. */
+    motion = motion.xyxy;
+  }
 
   /* Store resolved velocity to speedup the gather pass. Out of bounds writes are ignored.
    * Unfortunately, we cannot convert to pixel space here since it is also used by TAA and the
@@ -506,8 +506,8 @@ void gather_comp([[resource_table]] Resources &srt,
 
   float noise_offset = sampling.rng_1D_get(SAMPLING_TIME);
   /** TODO(fclem) Blue noise. */
-  float2 rand = float2(interleaved_gradient_noise(float2(global_id.xy), 0, noise_offset),
-                       interleaved_gradient_noise(float2(global_id.xy), 1, noise_offset));
+  float2 rand = float2(random::interleaved_gradient(float2(global_id.xy), 0, noise_offset),
+                       random::interleaved_gradient(float2(global_id.xy), 1, noise_offset));
 
   /* Randomize tile boundary to avoid ugly discontinuities. Randomize 1/4th of the tile.
    * Note this randomize only in one direction but in practice it's enough. */

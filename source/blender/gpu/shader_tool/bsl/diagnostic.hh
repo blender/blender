@@ -121,6 +121,18 @@ enum class Diag {
   BitFieldSizeNull,
   BitFieldNotSingleDeclarator,
 
+  CapacityArrayDimensionMismatch,
+  CapacityArrayImplicitSize,
+
+  ConditionAttributeDeclaredHere,
+  ConditionAttributeMultiple,
+  ConditionAttributeNotChecked,
+  ConditionAttributeNotOnResource,
+  ConditionAttributeUnsupported,
+
+  CompilationConstantRedefinition,
+  CompilationConstantPreviousDecl,
+
   ConstexprDivisionByZero,
   ConstexprGlobalNonStatic,
   ConstexprIfConditionNotConstexpr,
@@ -181,8 +193,6 @@ enum class Diag {
   InvalidUnaryArgumentType,
 
   MissingParameterForCall,
-
-  MultipleConditionAttributes,
 
   OperatorCalledIsNotFunction,
   OperatorTokenInvalid,
@@ -317,6 +327,10 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Initializer for variable '{}' with type 'auto' contains multiple expressions";
     case Diag::AutoTypeNestedInitializer:
       return "Cannot deduce type for variable '{}' with type 'auto' from nested initializer list";
+    case Diag::CapacityArrayDimensionMismatch:
+      return "Runtime capacity can only be specified for one dimensional array";
+    case Diag::CapacityArrayImplicitSize:
+      return "Runtime capacity requires the array to be sized to its maximum size";
     case Diag::CompilerErrorADLOnTypesNotAllowed:
       return "Cannot use ADL on types";
     case Diag::CompilerErrorMemberFuncNoClass:
@@ -422,8 +436,20 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Invalid argument type '{0}' to unary expression ({0}'{1}')";
     case Diag::MissingParameterForCall:
       return "Missing parameter for call to '{}'";
-    case Diag::MultipleConditionAttributes:
+    case Diag::ConditionAttributeDeclaredHere:
+      return "Condition declared here";
+    case Diag::ConditionAttributeMultiple:
       return "Only one condition attribute is allowed";
+    case Diag::ConditionAttributeNotChecked:
+      return "Access to conditional resource '{}' is not guarded by any static check";
+    case Diag::ConditionAttributeNotOnResource:
+      return "Condition attribute is only allowed on resources declaration";
+    case Diag::ConditionAttributeUnsupported:
+      return "Condition attribute is not compatible with resource type '{}'";
+    case Diag::CompilationConstantRedefinition:
+      return "Redefinition of compilation constant '{}'";
+    case Diag::CompilationConstantPreviousDecl:
+      return "Previous definition is here";
     case Diag::NonConstVariableInExpr:
       return "Read of non-const variable is not allowed in a {}";
     case Diag::NoteDeclarationUnionRequested:

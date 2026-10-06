@@ -17,6 +17,7 @@ void node_subsurface_scattering(float4 color,
                                 float3 N,
                                 float weight,
                                 float random_walk_radius_scale,
+                                KernelGlobals &kg,
                                 ShadingData &sd,
                                 Closure &result)
 {
@@ -30,5 +31,5 @@ void node_subsurface_scattering(float4 color,
   sss_data.N = N;
   sss_data.sss_radius = max(radius * scale * random_walk_radius_scale, float3(0.0f));
 
-  result = closure_eval(sd, sss_data);
+  result = closure_eval(kg, sd, sss_data);
 }

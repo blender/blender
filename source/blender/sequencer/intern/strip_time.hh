@@ -29,12 +29,7 @@ struct GapInfo {
 };
 
 /**
- * Find first gap between strips after initial_frame and describe it by filling data of r_gap_info
- *
- * \param scene: Scene in which strips are located.
- * \param seqbase: List in which strips are located.
- * \param initial_frame: frame on timeline from where gaps are searched for.
- * \param r_gap_info: data structure describing gap, that will be filled in by this function.
+ * Find the first gap between strips after \a initial_frame and fill \a r_gap_info with it.
  */
 void seq_time_gap_info_get(const Scene *scene,
                            ListBaseT<Strip> *seqbase,

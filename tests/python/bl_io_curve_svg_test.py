@@ -8,14 +8,12 @@ __all__ = (
 )
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
 
-def get_arguments(filepath, output_filepath):
-    dirname = os.path.dirname(filepath)
-    basedir = os.path.dirname(dirname)
+def get_arguments(filepath: Path, output_filepath: Path) -> list[str | Path]:
+    basedir = filepath.parent.parent
 
     args = [
         "--background",
@@ -28,7 +26,7 @@ def get_arguments(filepath, output_filepath):
         "-E", "CYCLES",
         "-o", output_filepath,
         "-F", "PNG",
-        "--python", os.path.join(basedir, "util", "import_svg.py"),
+        "--python", basedir / "util" / "import_svg.py",
         "-f", "1",
     ]
 
@@ -39,10 +37,10 @@ def create_argparse():
     parser = argparse.ArgumentParser(
         description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
     )
-    parser.add_argument("--blender", required=True)
-    parser.add_argument("--testdir", required=True)
-    parser.add_argument("--outdir", required=True)
-    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--blender", required=True, type=Path)
+    parser.add_argument("--testdir", required=True, type=Path)
+    parser.add_argument("--outdir", required=True, type=Path)
+    parser.add_argument("--oiiotool", required=True, type=Path)
     parser.add_argument('--batch', default=False, action='store_true')
     return parser
 
@@ -55,7 +53,7 @@ def main():
     report = render_report.Report('IO Curve SVG', args.outdir, args.oiiotool)
     report.set_pixelated(True)
 
-    test_dir_name = Path(args.testdir).name
+    test_dir_name = args.testdir.name
     if test_dir_name == 'complex':
         report.set_fail_percent(0.01)
 

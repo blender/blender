@@ -646,8 +646,8 @@ float dist_squared_ray_to_seg_v3(const float ray_origin[3],
     }
   }
   else {
-    /* has no nearest point, only distance squared. */
-    /* Calculate the distance to the point v0 then */
+    /* Has no nearest point because two lines are parallel, only distance squared. */
+    /* Calculate the distance to the point v0 then. */
     copy_v3_v3(r_point, v0);
   }
 
@@ -725,6 +725,8 @@ float dist_squared_ray_to_aabb_v3(const DistRayAABB_Precalc *data,
   float local_bvmin[3], local_bvmax[3];
   aabb_get_near_far_from_plane(data->ray_direction, bb_min, bb_max, local_bvmin, local_bvmax);
 
+  /* Distance along the ray where the ray crosses the near-plane (tmin) and far-plane (tmax) of the
+   * AABB on each axis. */
   const float tmin[3] = {
       (local_bvmin[0] - data->ray_origin[0]) * data->ray_inv_dir[0],
       (local_bvmin[1] - data->ray_origin[1]) * data->ray_inv_dir[1],
@@ -741,6 +743,7 @@ float dist_squared_ray_to_aabb_v3(const DistRayAABB_Precalc *data,
   float rtmin, rtmax;
   int main_axis;
 
+  /* Find the first far plane that the ray exits. */
   if ((tmax[0] <= tmax[1]) && (tmax[0] <= tmax[2])) {
     rtmax = tmax[0];
     va[0] = vb[0] = local_bvmax[0];
@@ -760,6 +763,7 @@ float dist_squared_ray_to_aabb_v3(const DistRayAABB_Precalc *data,
     // r_axis_closest[2] = neasrest_precalc->ray_direction[2] < 0.0f;
   }
 
+  /* Find the last near plane that the ray enters. */
   if ((tmin[0] >= tmin[1]) && (tmin[0] >= tmin[2])) {
     rtmin = tmin[0];
     va[0] = vb[0] = local_bvmin[0];
@@ -782,7 +786,9 @@ float dist_squared_ray_to_aabb_v3(const DistRayAABB_Precalc *data,
     main_axis += 3;
   }
 
-  /* if rtmin <= rtmax, ray intersect `AABB` */
+  /* If rtmin <= rtmax, the ray intersects the AABB. Otherwise, there is no moment where the ray
+   * has entered through all three near planes but has not exited from any far plane, meaning the
+   * ray does not intersect the AABB. */
   if (rtmin <= rtmax) {
     float dvec[3];
     copy_v3_v3(r_point, local_bvmax);
@@ -791,6 +797,8 @@ float dist_squared_ray_to_aabb_v3(const DistRayAABB_Precalc *data,
     return 0.0f;
   }
 
+  /* The main_axis is the intersection of the first far plane and the last near plane, which must
+   * be the third axis that is orthogonal to the normals of both planes. */
   if (data->ray_direction[main_axis] >= 0.0f) {
     va[main_axis] = local_bvmin[main_axis];
     vb[main_axis] = local_bvmax[main_axis];
@@ -2195,6 +2203,13 @@ bool isect_ray_line_v3(const float ray_origin[3],
     /* The lines are parallel. */
     return false;
   }
+
+  /* The following lines use a math trick to do the same thing as:
+
+    const float numerator = dot_v3v3(t, ray_direction) * dot_v3v3(a, ray_direction) -
+                          dot_v3v3(t, a) * len_squared_v3(ray_direction);
+
+    *r_lambda = numerator / nlen; */
 
   float c[3], cray[3];
   sub_v3_v3v3(c, n, t);

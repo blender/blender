@@ -25,6 +25,8 @@ struct ImageCacheKey {
 /* Index for UDIM aggregate textures. */
 #define IMA_INDEX_UDIM_ATLAS 0x7FEFEFE0
 #define IMA_INDEX_UDIM_TILE_MAPPING 0x7FEFEFE1
+/* Index for a missing multilayer layer, to cache a failed load. Fits in IMA_MAKE_INDEX. */
+#define IMA_INDEX_MISSING_LAYER ((1 << 10) - 1)
 
 /* Encode and decode animation frame in index. */
 #define IMA_MAKE_INDEX(entry, index) (((entry) << 10) + (index))

@@ -643,14 +643,6 @@ void SourceProcessor::parse_defines(Parser &parser)
 {
   parser().foreach_match<true>("#A", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "define") {
-      if (tokens[1].next().str().starts_with("LIGHT_STACK_SIZE_")) {
-        /* WORKAROUND: Avoid warning caused by EEVEE macro setup. */
-        return;
-      }
-      if (tokens[1].next().str() == "GBUFFER_LAYER_MAX") {
-        /* WORKAROUND: Avoid warning caused by EEVEE macro setup. */
-        return;
-      }
       if (tokens[1].next().str().starts_with("gather_")) {
         /* WORKAROUND: Avoid warning caused by EEVEE macro setup. */
         return;
@@ -791,10 +783,11 @@ void SourceProcessor::parse_includes(Parser &parser)
     string_view dependency_name = str_view_exclusive(tokens[2]);
 
     if (dependency_name.find("defines.hh") != string::npos ||
-        /* WORKAROUND(fclem): Only needed in EEVEE for now. Needs the file to be in the same
-           folder. */
+        /* WORKAROUND(fclem): Only needed in EEVEE and overlays for now. Needs the file to be in
+           the same folder. */
         (dependency_name.ends_with(".bsl.hh") && filename.ends_with(".bsl.hh") &&
-         dependency_name.starts_with("eevee_") && filename.starts_with("eevee_")))
+         ((dependency_name.starts_with("eevee_") && filename.starts_with("eevee_")) ||
+          (dependency_name.starts_with("overlay_") && filename.starts_with("overlay_")))))
     {
       /* Dependencies between create infos are not needed for reflections.
        * Only the dependencies on the defines are needed. */

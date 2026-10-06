@@ -34,7 +34,8 @@ static int node_shader_gpu_volume_absorption(GPUMaterial *mat,
   if (in[SOCK_DENSITY_ID].socket_not_zero() && in[SOCK_COLOR_ID].socket_not_white()) {
     GPU_material_flag_set(mat, GPU_MATFLAG_VOLUME_ABSORPTION);
   }
-  return GPU_stack_link(mat, node, "node_volume_absorption", in, out, GPU_shading_data());
+  return GPU_stack_link(
+      mat, node, "node_volume_absorption", in, out, GPU_kernel_globals(), GPU_shading_data());
 }
 
 #undef SOCK_COLOR_ID

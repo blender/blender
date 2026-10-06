@@ -171,7 +171,7 @@ static void tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
   const float pad_y = data->lineh * TIP_PADDING_Y;
   const uiWidgetColors *theme = tooltip_get_theme();
   rcti bbox = data->bbox;
-  float tip_colors[TIP_LC_MAX][3];
+  float tip_colors[TIP_LC_MAX][4];
   uchar drawcol[4] = {0, 0, 0, 255}; /* to store color in while drawing (alpha is always 255) */
 
   /* The color from the theme. */
@@ -204,11 +204,10 @@ static void tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
   copy_v3_v3(dimmed_color, main_color);
   color_blend_f3_f3(dimmed_color, background_color, 0.5f);
 
-  /* `active_color` is a light blue, push a bit toward text color. */
-  active_color[0] = 0.4f;
-  active_color[1] = 0.55f;
-  active_color[2] = 0.75f;
-  color_blend_f3_f3(active_color, main_color, 0.3f);
+  /* Use the info color (light blue) to highlight things like the
+   * active enum value, use info's alpha as blend factor toward text color. */
+  theme::get_color_4fv(TH_INFO, active_color);
+  color_blend_f3_f3(active_color, main_color, 1.0f - active_color[3]);
 
   /* `alert_color` is red, push a bit toward text color. */
   theme::get_color_3fv(TH_REDALERT, alert_color);

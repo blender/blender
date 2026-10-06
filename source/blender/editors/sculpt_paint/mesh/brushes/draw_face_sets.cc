@@ -116,7 +116,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   if (cache.automasking) {
     const OffsetIndices<int> faces = mesh.faces();
     const Span<int> corner_verts = mesh.corner_verts();
-    auto_mask::calc_face_factors(
+    auto_mask::calc_interpolated_face_factors(
         depsgraph, object, faces, corner_verts, *cache.automasking, node, face_indices, factors);
   }
 

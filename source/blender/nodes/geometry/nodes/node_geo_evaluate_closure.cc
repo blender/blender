@@ -6,6 +6,7 @@
 #include "UI_resources.hh"
 
 #include "NOD_geo_closure.hh"
+#include "NOD_geometry_nodes_closure_location.hh"
 #include "NOD_geometry_nodes_closure_signature.hh"
 #include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
@@ -13,10 +14,17 @@
 #include "NOD_socket_search_link.hh"
 #include "NOD_sync_sockets.hh"
 
+#include "BKE_compute_context_cache.hh"
+#include "BKE_compute_contexts.hh"
 #include "BKE_idprop.hh"
 #include "BKE_node_tree_reference_lifetimes.hh"
 
 #include "BLO_read_write.hh"
+
+#include "COM_closure.hh"
+#include "COM_node_operation.hh"
+#include "COM_utilities.hh"
+#include "COM_zone_tree_operation.hh"
 
 #include "node_geometry_util.hh"
 #include "shader/node_shader_util.hh"
@@ -113,6 +121,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       else {
         decl.structure_type(StructureType::Dynamic);
       }
+      decl.compositor_realization_mode(CompositorInputRealizationMode::None);
     }
     panel.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
         .custom_draw(socket_items::ui::draw_extend_socket_fn<EvaluateClosureInputItemsAccessor>());
@@ -268,6 +277,190 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
   socket_items::blend_read_data<EvaluateClosureOutputItemsAccessor>(&reader, node);
 }
 
+using namespace blender::compositor;
+
+class EvaluateClosureOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    const compositor::ClosurePtr closure =
+        this->get_input("Closure").get_single_value<compositor::ClosurePtr>();
+    if (!closure) {
+      this->write_default_outputs();
+      return;
+    }
+
+    const ClosureSourceLocation closure_source_location{&closure->zone.output_node()->owner_tree(),
+                                                        closure->zone.output_node()->identifier,
+                                                        closure->compute_context.hash(),
+                                                        &closure->compute_context};
+    const bke::EvaluateClosureComputeContext &evaluate_closure_context =
+        this->context().compute_context_cache().for_evaluate_closure(&this->get_compute_context(),
+                                                                     this->node().identifier,
+                                                                     &this->node().owner_tree(),
+                                                                     closure_source_location);
+    ZoneTreeOperation zone_tree_operation = ZoneTreeOperation(
+        this->context(), closure->zone, evaluate_closure_context);
+    this->set_reference_counts(zone_tree_operation, closure);
+    Vector<std::unique_ptr<Result>> inputs = this->map_inputs(zone_tree_operation, closure);
+    Vector<std::unique_ptr<Result>> captured_values = this->map_captured_values(
+        zone_tree_operation, closure);
+    zone_tree_operation.evaluate();
+    this->write_outputs(zone_tree_operation, closure);
+  }
+
+  /* Write a default value for each of the needed outputs, if an input with the same name and type
+   * as the output exists, the output shares the value of that input, otherwise, the output is
+   * default initialized. */
+  void write_default_outputs()
+  {
+    for (const bNodeSocket *output : this->node().output_sockets()) {
+      if (!is_socket_available(output)) {
+        continue;
+      }
+
+      Result &result = this->get_result(output->identifier);
+      if (!result.should_compute()) {
+        continue;
+      }
+
+      const bNodeSocket *matching_input = bke::node_find_enabled_input_socket(
+          const_cast<bNode &>(this->node()), output->name);
+      if (!matching_input) {
+        continue;
+      }
+
+      Result &input = this->get_input(matching_input->identifier);
+      if (input.type() != result.type()) {
+        continue;
+      }
+
+      result.share_data(input);
+    }
+
+    this->allocate_default_remaining_outputs();
+  }
+
+  /* Setup the reference count of each of the outputs of the given zone tree operation of the given
+   * closure. This is either 0 or 1 depending on whether a corresponding output with the same name
+   * exists in the evaluate node and is needed. If no corresponding output exists, the zone output
+   * will not be used. */
+  void set_reference_counts(ZoneTreeOperation &zone_tree_operation,
+                            const compositor::ClosurePtr &closure)
+  {
+    for (const bNodeSocket *zone_output : closure->zone.output_node()->input_sockets()) {
+      if (!is_socket_available(zone_output)) {
+        continue;
+      }
+
+      Result &zone_result = zone_tree_operation.get_result(zone_output->identifier);
+      const bNodeSocket *evaluate_node_output = bke::node_find_enabled_output_socket(
+          const_cast<bNode &>(this->node()), zone_output->name);
+      if (!evaluate_node_output) {
+        zone_result.set_reference_count(0);
+        continue;
+      }
+
+      Result &evaluate_node_result = this->get_result(evaluate_node_output->identifier);
+      zone_result.set_reference_count(evaluate_node_result.should_compute() ? 1 : 0);
+    }
+  }
+
+  /* Map each input of the zone tree operation for the given closure to the input we get from the
+   * evaluate node. If no input corresponding input with the same name in the evaluate node is
+   * found, a default value is mapped. The mapped inputs are returned. */
+  Vector<std::unique_ptr<Result>> map_inputs(ZoneTreeOperation &zone_tree_operation,
+                                             const compositor::ClosurePtr &closure)
+  {
+    Vector<std::unique_ptr<Result>> temporary_inputs;
+    for (const bNodeSocket *zone_input : closure->zone.input_node()->output_sockets()) {
+      if (!is_socket_available(zone_input)) {
+        continue;
+      }
+
+      const bNodeSocket *evaluate_node_input = bke::node_find_enabled_input_socket(
+          const_cast<bNode &>(this->node()), zone_input->name);
+      if (!evaluate_node_input) {
+        const ResultType zone_input_type = get_node_socket_result_type(zone_input);
+        std::unique_ptr<Result> temporary_input = std::make_unique<Result>(
+            this->context().create_result(zone_input_type));
+        temporary_input->allocate_invalid();
+        temporary_inputs.append(std::move(temporary_input));
+        zone_tree_operation.map_input_to_result(zone_input->identifier,
+                                                temporary_inputs.last().get());
+        continue;
+      }
+
+      const Result &input_result = this->get_input(evaluate_node_input->identifier);
+      std::unique_ptr<Result> temporary_input = std::make_unique<Result>(
+          this->context().create_result(input_result.type(), input_result.precision()));
+      temporary_input->share_data(input_result);
+      temporary_inputs.append(std::move(temporary_input));
+      zone_tree_operation.map_input_to_result(zone_input->identifier,
+                                              temporary_inputs.last().get());
+    }
+    return temporary_inputs;
+  }
+
+  /* Map each captured value from the closure to its corresponding input of the zone tree
+   * operation. The mapped captured inputs are returned. */
+  Vector<std::unique_ptr<Result>> map_captured_values(ZoneTreeOperation &zone_tree_operation,
+                                                      const compositor::ClosurePtr &closure)
+  {
+    Vector<std::unique_ptr<Result>> temporary_inputs;
+    for (const auto &item : closure->captured_values.items()) {
+      const std::string &identifier = item.key;
+      const Result *value = item.value;
+      std::unique_ptr<Result> temporary_input = std::make_unique<Result>(
+          this->context().create_result(value->type(), value->precision()));
+      temporary_input->share_data(*value);
+      temporary_inputs.append(std::move(temporary_input));
+      zone_tree_operation.map_input_to_result(identifier, temporary_inputs.last().get());
+    }
+    return temporary_inputs;
+  }
+
+  /* Writes the output results of the zone tree operation to this evaluate node operation outputs
+   * by sharing its data and freeing the results. */
+  void write_outputs(ZoneTreeOperation &zone_tree_operation, const compositor::ClosurePtr &closure)
+  {
+    for (const bNodeSocket *zone_output : closure->zone.output_node()->input_sockets()) {
+      if (!is_socket_available(zone_output)) {
+        continue;
+      }
+
+      const bNodeSocket *evaluate_node_output = bke::node_find_enabled_output_socket(
+          const_cast<bNode &>(this->node()), zone_output->name);
+      if (!evaluate_node_output) {
+        continue;
+      }
+
+      Result &evaluate_node_result = this->get_result(evaluate_node_output->identifier);
+      if (!evaluate_node_result.should_compute()) {
+        continue;
+      }
+
+      Result &zone_tree_result = zone_tree_operation.get_result(zone_output->identifier);
+      if (zone_tree_result.type() != evaluate_node_result.type()) {
+        zone_tree_result.release();
+        continue;
+      }
+
+      evaluate_node_result.share_data(zone_tree_result);
+      zone_tree_result.release();
+    }
+
+    this->allocate_default_remaining_outputs();
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
+{
+  return new EvaluateClosureOperation(context, node);
+}
+
 static void node_register()
 {
   static bke::bNodeType ntype;
@@ -285,6 +478,7 @@ static void node_register()
   ntype.register_operators = node_operators;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
+  ntype.get_compositor_operation = get_compositor_operation;
   bke::node_type_storage(ntype, "NodeEvaluateClosure", node_free_storage, node_copy_storage);
   bke::node_register_type(ntype);
 }

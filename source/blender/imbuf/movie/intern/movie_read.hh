@@ -23,6 +23,7 @@ struct SwsContext;
 #ifdef WITH_FFMPEG
 
 extern "C" {
+#  include <libavutil/pixfmt.h>
 #  include <libavutil/rational.h>
 }
 
@@ -65,6 +66,9 @@ struct MovieReader {
   bool pFrame_complete = false;
   AVFrame *pFrame_backup = nullptr;
   bool pFrame_backup_complete = false;
+
+  AVFrame *pFrameSW = nullptr;
+  AVPixelFormat src_pix_fmt = AV_PIX_FMT_NONE;
 
   int64_t cur_pts = 0;
   int64_t cur_key_frame_pts = 0;

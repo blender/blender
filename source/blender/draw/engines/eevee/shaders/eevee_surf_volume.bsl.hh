@@ -9,10 +9,6 @@
 
 #pragma once
 
-#ifdef GLSL_CPP_STUBS
-#  define MAT_VOLUME
-#endif
-
 #include "eevee_volume_lib.bsl.hh"
 
 /* Needed includes for shader nodes. */
@@ -152,9 +148,9 @@ void surf_volume([[resource_table]] KernelGlobals &kg,
 
   VolumeProperties prop;
 
-  ShadingData sd = init_globals(uni, interp, view, front_face, frag_co);
+  ShadingData sd = init_globals(pipe, uni, interp, view, front_face, frag_co);
   if (pipe.is_mesh) [[static_branch]] {
-    init_globals_mesh(interp, sd);
+    init_globals_mesh(interp, sd, float3(0.0));
   }
   else if (pipe.is_curves) [[static_branch]] {
     init_globals_curves(interp, curves_interp, sd, view);

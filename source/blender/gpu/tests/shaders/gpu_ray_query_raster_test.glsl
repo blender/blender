@@ -6,7 +6,7 @@
 
 #include "infos/gpu_shader_test_infos.hh"
 
-#ifdef GPU_VERTEX_SHADER
+#if defined(GPU_VERTEX_SHADER)
 VERTEX_SHADER_CREATE_INFO(gpu_ray_query_raster_test)
 
 void main()
@@ -19,26 +19,25 @@ void main()
 }
 #endif
 
-#ifdef GPU_FRAGMENT_SHADER
+#if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
 FRAGMENT_SHADER_CREATE_INFO(gpu_ray_query_raster_test)
 
 void main()
 {
   int ray_index = int(gl_FragCoord.x);
 
-  rayQueryEXT query;
-  rayQueryInitializeEXT(query,
-                        scene_as,
-                        gl_RayFlagsTerminateOnFirstHitEXT,
-                        0xFFu,
-                        ray_pos_in[ray_index].xyz,
-                        0.01f,
-                        ray_dir_in[ray_index].xyz,
-                        5.0f);
-  rayQueryProceedEXT(query);
+  rayQuery query;
+  rayQueryInitialize(query,
+                     scene_as,
+                     gpu_RayFlagsTerminateOnFirstHit,
+                     0xFFu,
+                     ray_pos_in[ray_index].xyz,
+                     0.01f,
+                     ray_dir_in[ray_index].xyz,
+                     5.0f);
+  rayQueryProceed(query);
 
-  bool is_hit = rayQueryGetIntersectionTypeEXT(query, true) !=
-                gl_RayQueryCommittedIntersectionNoneEXT;
+  bool is_hit = rayQueryGetIntersectionType(query, true) != gpu_RayQueryCommittedIntersectionNone;
 
   hit_out = int(is_hit);
 }

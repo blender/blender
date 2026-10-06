@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1124,14 +1124,6 @@ msgid "Type of event"
 msgstr "Вид събитие"
 
 
-msgid "Release"
-msgstr "Освобождаване"
-
-
-msgid "Click"
-msgstr "Клик"
-
-
 msgid "Mix"
 msgstr "Смесване"
 
@@ -1148,10 +1140,6 @@ msgid "ID Type"
 msgstr "ID тип"
 
 
-msgid "Import"
-msgstr "Внеси"
-
-
 msgid "UV Mapping"
 msgstr "UV Картиране"
 
@@ -1160,28 +1148,32 @@ msgid "Light"
 msgstr "Светлина"
 
 
-msgid "Rigid Body"
-msgstr "Твърдо тяло"
-
-
 msgid "Apply"
 msgstr "Прилагане"
 
 
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
-
-
-msgid "Hooks"
-msgstr "Куки"
+msgid "Merge"
+msgstr "Слей"
 
 
 msgid "In-Betweens"
 msgstr "Междинни Кадри"
 
 
-msgid "Merge"
-msgstr "Слей"
+msgid "Hooks"
+msgstr "Куки"
+
+
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Import"
+msgstr "Внеси"
+
+
+msgid "Rigid Body"
+msgstr "Твърдо тяло"
 
 
 msgid "Cache"
@@ -2228,6 +2220,10 @@ msgstr "Шаблон"
 
 msgid "Animated"
 msgstr "Анимирани"
+
+
+msgid "Release"
+msgstr "Освобождаване"
 
 
 msgid "Cancel"

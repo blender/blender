@@ -371,6 +371,13 @@ static wmOperatorStatus preferences_asset_library_remove_exec(bContext *C, wmOpe
   if (!library) {
     return OPERATOR_CANCELLED;
   }
+  if (library->extension_id[0]) {
+    BKE_report(
+        op->reports,
+        RPT_ERROR,
+        "Asset libraries defined by an extension are removed by uninstalling the extension");
+    return OPERATOR_CANCELLED;
+  }
 
   ED_userpref_asset_library_remove(C, library);
   U.runtime.is_dirty = true;

@@ -15,6 +15,16 @@ namespace blender {
 struct AnyAssetLibraryDefinition {
   eAssetLibraryType type;
   bUserAssetLibrary *user_library;
+  /**
+   * The repository of extension defined libraries.
+   * Set without a `user_library` for the row grouping the repository's libraries.
+   */
+  bUserExtensionRepo *extension_repo = nullptr;
+
+  bool is_extension_repo() const
+  {
+    return (user_library == nullptr) && (extension_repo != nullptr);
+  }
 };
 
 struct AssetLibraryListItemCommon : public ui::AbstractTreeViewItem {
@@ -27,23 +37,40 @@ struct AssetLibraryListItemCommon : public ui::AbstractTreeViewItem {
   bool rename(const bContext &C, StringRefNull new_name) override;
 };
 
-template<typename AssetLibraryListItemType> struct AssetLibraryList : public ui::AbstractTreeView {
+/**
+ * A list of asset libraries, `AssetLibraryRepoItemType` is used for the rows grouping the
+ * libraries of an extension repository, see #AnyAssetLibraryDefinition::is_extension_repo.
+ */
+template<typename AssetLibraryListItemType,
+         typename AssetLibraryRepoItemType = AssetLibraryListItemType>
+struct AssetLibraryList : public ui::AbstractTreeView {
   Vector<AnyAssetLibraryDefinition> libraries;
 
   AssetLibraryList(const Vector<AnyAssetLibraryDefinition> libraries) : libraries(libraries) {};
 
   void build_tree() override
   {
-    this->is_flat_ = true;
+    /* Group the libraries of an extension repository under its row. */
+    AssetLibraryRepoItemType *repo_parent = nullptr;
 
     int i = 0;
     for (const AnyAssetLibraryDefinition &library : libraries) {
-      add_tree_item<AssetLibraryListItemType>(library, i++);
+      if (library.is_extension_repo()) {
+        repo_parent = &add_tree_item<AssetLibraryRepoItemType>(library, i++);
+        continue;
+      }
+      ui::TreeViewOrItem *parent = this;
+      if (repo_parent && library.extension_repo == repo_parent->library.extension_repo) {
+        parent = repo_parent;
+      }
+      parent->add_tree_item<AssetLibraryListItemType>(library, i++);
     }
+    this->is_flat_ = (repo_parent == nullptr);
   }
 };
 
-template<typename AssetLibraryListItemType>
+template<typename AssetLibraryListItemType,
+         typename AssetLibraryRepoItemType = AssetLibraryListItemType>
 void draw_library_list(const bContext &C,
                        ui::Layout &layout,
                        Vector<AnyAssetLibraryDefinition> &libraries,
@@ -54,7 +81,8 @@ void draw_library_list(const bContext &C,
   ui::AbstractTreeView *tree_view = ui::block_add_view(
       *block,
       view_description,
-      std::make_unique<AssetLibraryList<AssetLibraryListItemType>>(libraries));
+      std::make_unique<AssetLibraryList<AssetLibraryListItemType, AssetLibraryRepoItemType>>(
+          libraries));
   tree_view->set_default_rows(5);
 
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout);

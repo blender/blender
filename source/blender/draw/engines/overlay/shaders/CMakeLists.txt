@@ -27,16 +27,6 @@ set(INC_GLSL
 )
 
 set(SRC_GLSL_VERT
-  overlay_armature_dof_vert.glsl
-  overlay_armature_envelope_outline_vert.glsl
-  overlay_armature_envelope_solid_vert.glsl
-  overlay_armature_shape_outline_vert.glsl
-  overlay_armature_shape_solid_vert.glsl
-  overlay_armature_shape_wire_vert.glsl
-  overlay_armature_sphere_outline_vert.glsl
-  overlay_armature_sphere_solid_vert.glsl
-  overlay_armature_stick_vert.glsl
-  overlay_armature_wire_vert.glsl
   overlay_clipbound_vert.glsl
   overlay_depth_only_curves_vert.glsl
   overlay_depth_only_gpencil_vert.glsl
@@ -106,13 +96,6 @@ set(SRC_GLSL_VERT
 )
 
 set(SRC_GLSL_FRAG
-  overlay_armature_dof_solid_frag.glsl
-  overlay_armature_envelope_solid_frag.glsl
-  overlay_armature_shape_solid_frag.glsl
-  overlay_armature_shape_wire_frag.glsl
-  overlay_armature_sphere_solid_frag.glsl
-  overlay_armature_stick_frag.glsl
-  overlay_armature_wire_frag.glsl
   overlay_background_frag.glsl
   overlay_depth_only_frag.glsl
   overlay_depth_only_gpencil_frag.glsl

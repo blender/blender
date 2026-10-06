@@ -45,12 +45,9 @@ enum UsedLayerFlag : uchar {
   OBJECT_ID = 1u << 7u,
 };
 
-namespace gbuffer {
+static constexpr int GBUFFER_LAYER_MAX = 3;
 
-/* NOTE: Only specialized for the gbuffer pass. */
-#ifndef GBUFFER_LAYER_MAX
-#  define GBUFFER_LAYER_MAX 3
-#endif
+namespace gbuffer {
 
 /* -------------------------------------------------------------------- */
 /** \name Utilities

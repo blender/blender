@@ -3,11 +3,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 class MarkdownColumn:
-    def __init__(self, name, width=10, is_visible=True, alignment='LEFT'):
+    def __init__(self, name, width=10, is_visible=True, alignment='LEFT', key=None):
         self.name = name
         self.width = width
         self.is_visible = is_visible
         self.alignment = alignment
+        self.key = key
         if len(self.name) > self.width:
             self.width = len(self.name)
 

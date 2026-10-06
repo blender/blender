@@ -13,7 +13,6 @@
 #include "gpu_shader_math_matrix_construct.bsl.hh"
 #include "gpu_shader_math_spherical_harmonics.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee::lightprobe::sphere {
 
@@ -366,7 +365,7 @@ void mip_convolve([[resource_table]] Convolve &srt, [[global_invocation_id]] con
 
   int sample_count = sample_count_get();
   for (int i = 0; i < sample_count; i++) {
-    float2 rand = hammersley_2d(i, sample_count);
+    float2 rand = random::hammersley_2d(i, sample_count);
     float3 in_direction = basis * sample_uniform_cone(rand, cone_cos);
 
     float2 in_uv = direction_to_uv(in_direction, float(srt.read_lod), sample_coord);

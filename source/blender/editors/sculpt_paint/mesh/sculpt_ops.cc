@@ -1077,7 +1077,7 @@ static wmOperatorStatus mask_from_cavity_exec(bContext *C, wmOperator *op)
                                                        BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
       }
       else {
-        scene_copy.mesh_automasking_settings->flags = 0;
+        scene_copy.mesh_automasking_settings->flags = eAutomasking_flag(0);
         BKE_report(op->reports, RPT_WARNING, "No active brush");
 
         return OPERATOR_CANCELLED;
@@ -1099,7 +1099,7 @@ static wmOperatorStatus mask_from_cavity_exec(bContext *C, wmOperator *op)
   /* Create copy of brush with cleared automasking settings. */
   Brush brush_copy = dna::shallow_copy(*brush);
   MeshAutomaskingSettings brush_settings;
-  brush_settings.flags = 0;
+  brush_settings.flags = eAutomasking_flag(0);
   brush_settings.boundary_edges_propagation_steps = 1;
   brush_settings.cavity_curve = scene_copy.mesh_automasking_settings->cavity_curve;
 
@@ -1283,7 +1283,7 @@ static wmOperatorStatus mask_from_boundary_exec(bContext *C, wmOperator *op)
                                                        BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS;
       }
       else {
-        scene_copy.mesh_automasking_settings->flags = 0;
+        scene_copy.mesh_automasking_settings->flags = eAutomasking_flag(0);
         BKE_report(op->reports, RPT_WARNING, "No active brush");
 
         return OPERATOR_CANCELLED;
@@ -1299,7 +1299,7 @@ static wmOperatorStatus mask_from_boundary_exec(bContext *C, wmOperator *op)
   /* Create copy of brush with cleared automasking settings. */
   Brush brush_copy = dna::shallow_copy(*brush);
   MeshAutomaskingSettings brush_settings;
-  brush_settings.flags = 0;
+  brush_settings.flags = eAutomasking_flag(0);
   brush_settings.boundary_edges_propagation_steps = 1;
   /* Set a brush type that doesn't change topology so automasking isn't "disabled". */
   brush_copy.mesh_automasking_settings = &brush_settings;

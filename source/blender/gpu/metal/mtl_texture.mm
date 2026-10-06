@@ -649,7 +649,7 @@ void gpu::MTLTexture::update_sub(int mip,
     int destination_num_channels = get_mtl_format_num_components(destination_format);
 
     /* Prepare specialization struct (For texture update routine). */
-    TextureUpdateRoutineSpecialisation compute_specialization_kernel = {
+    TextureUpdateRoutineSpecialization compute_specialization_kernel = {
         tex_data_format_to_msl_type_str(type),              /* INPUT DATA FORMAT */
         tex_data_format_to_msl_texture_template_type(type), /* TEXTURE DATA FORMAT */
         num_channels,
@@ -1637,7 +1637,7 @@ void gpu::MTLTexture::read_internal(int mip,
     }
   }
 
-  TextureReadRoutineSpecialisation compute_specialization_kernel = {
+  TextureReadRoutineSpecialization compute_specialization_kernel = {
       tex_data_format_to_msl_texture_template_type(data_format), /* TEXTURE DATA TYPE */
       tex_data_format_to_msl_type_str(desired_output_format),    /* OUTPUT DATA TYPE */
       num_channels,                                              /* TEXTURE COMPONENT COUNT */

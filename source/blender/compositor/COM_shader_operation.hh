@@ -151,6 +151,12 @@ class ShaderOperation : public PixelOperation {
    * before. */
   void link_node_input_external(const bNodeSocket &input_socket, const bNodeSocket &output_socket);
 
+  /* Gets the type of the result associated with the given output socket that is linked to the
+   * given input socket. In the base case, this is just derived from the type of the socket.
+   * However, if it belongs to a node that is outside of the pixel operation, get the type from the
+   * result associated with that output directly. */
+  ResultType get_source_output_type(const bNodeSocket &input, const bNodeSocket &output);
+
   /* Given the input socket of a node that is part of the shader operation which is linked to the
    * given output socket of a node that is not part of the shader operation, declare a new input to
    * the operation that is represented in the GPU material by a newly created GPU attribute. It is

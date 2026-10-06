@@ -2347,6 +2347,7 @@ def km_node_editor(params):
          {"properties": [("run_in_geometry_nodes", True)]}),
         ("node.connect_to_output", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("run_in_geometry_nodes", False)]}),
+        # For shader editor and compositor.
         ("node.connect_to_output", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
          {"properties": [("run_in_geometry_nodes", False)]}),
         ("node.backimage_move", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "alt": True}, None),
@@ -3224,6 +3225,10 @@ def km_sequencer(params):
         ("sequencer.delete", {"type": 'DEL', "value": 'PRESS'}, None),
         ("sequencer.ripple_delete", {"type": 'X', "value": 'PRESS', "shift": True}, None),
         ("sequencer.ripple_delete", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
+        ("sequencer.ripple_trim", {"type": 'Q', "value": 'PRESS', "shift": True},
+         {"properties": [("side", 'LEFT')]}),
+        ("sequencer.ripple_trim", {"type": 'W', "value": 'PRESS', "shift": True},
+         {"properties": [("side", 'RIGHT')]}),
         ("sequencer.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.paste", {"type": 'V', "value": 'PRESS', "ctrl": True, "shift": True},
@@ -6279,6 +6284,10 @@ def km_transform_modal_map(params):
         ("PRECISION", {"type": 'LEFT_SHIFT', "value": 'ANY', "any": True}, None),
         ("PRECISION", {"type": 'RIGHT_SHIFT', "value": 'ANY', "any": True}, None),
         ("STRIP_CLAMP_TOGGLE", {"type": 'C', "value": 'PRESS', "any": True}, None),
+        ("STRIP_OVERLAP_SHUFFLE", {"type": 'S', "value": 'PRESS'}, None),
+        ("STRIP_OVERLAP_RIPPLE", {"type": 'R', "value": 'PRESS'}, None),
+        ("STRIP_OVERLAP_OVERWRITE", {"type": 'V', "value": 'PRESS'}, None),
+        ("STRIP_RIPPLE_INSERT", {"type": 'I', "value": 'PRESS'}, None),
     ])
 
     if params.use_alt_navigation:

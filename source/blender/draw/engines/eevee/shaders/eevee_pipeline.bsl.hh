@@ -20,16 +20,25 @@ struct PipelineConstants {
   [[compilation_constant]] bool use_velocity;
   [[compilation_constant]] bool use_transparency;
   [[compilation_constant]] bool use_clip_plane;
+  [[compilation_constant]] bool use_diffuse;
+  [[compilation_constant]] bool use_translucent;
+  [[compilation_constant]] bool use_reflection;
+  [[compilation_constant]] bool use_refraction;
+  [[compilation_constant]] bool use_clearcoat;
   [[compilation_constant]] bool use_sss;
   [[compilation_constant]] bool use_aov_output;
   [[compilation_constant]] bool use_raycast;
   [[compilation_constant]] bool use_additional_data;
   [[compilation_constant]] bool is_volume_pipe;
   [[compilation_constant]] bool is_shadow_pipe;
+  [[compilation_constant]] bool is_capture_pipe;
   [[compilation_constant]] bool is_occupancy_pipe;
   [[compilation_constant]] bool use_forward_lighting;
   [[compilation_constant]] bool use_multi_viewport;
+  [[compilation_constant]] bool use_barycentric;
   [[compilation_constant]] int closure_bin_count;
+  /* Same closure_bin_count but clamped to a minimum of 1. */
+  [[compilation_constant]] int closure_bin_len;
 };
 
 }  // namespace eevee

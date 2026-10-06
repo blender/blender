@@ -193,6 +193,9 @@ Result<string> SymbolTable::expr_to_string(const SymbolScope &scope,
       case NodeType::Op:
       case NodeType::NumConst:
         expr_str += child.str();
+        /* WORKAROUND: The runtime shader preprocessor has a bug which mangles operators that are
+         * next to each others. */
+        expr_str += " ";
         node_count++;
         break;
       default:
@@ -230,6 +233,7 @@ void SymbolTable::register_builtins(LocalScope node)
       {"bool32_t", 4, 4, builtin::bool_t},
 
       {"string_t", 4, 4, builtin::uint_t},
+      {"TextureWriteFormat", 4, 4, builtin::int_t},
   };
 
   for (const auto &t : basic_types) {
@@ -316,6 +320,9 @@ void SymbolTable::register_builtins(LocalScope node)
       {"uimage3DAtomic", 0, 1},
       {"iimage2DArrayAtomic", 0, 1},
       {"uimage2DArrayAtomic", 0, 1},
+
+      {"rayQuery", 0, 1},
+      {"accelerationStructure", 0, 1},
 
       {"ShaderCreateInfo", 1, 1}, /* Only for compatibility. To be removed. */
   };
@@ -563,7 +570,21 @@ void SymbolTable::register_builtins(LocalScope node)
 
       /* WORKAROUND: Should become an entry point argument. */
       {"gl_FragStencilRefARB", "uint", false, ConstexprError(0)},
-      {"gpu_BaryCoord", "float3", false, ConstexprError(0)},
+
+      {"gpu_RayFlagsNone", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsOpaque", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsNoOpaque", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsTerminateOnFirstHit", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsSkipClosestHitShader", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsCullBackFacingTriangles", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsCullFrontFacingTriangles", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsCullOpaque", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsCullNoOpaque", "uint", false, ConstexprValue(0)},
+      {"gpu_RayQueryCommittedIntersectionNone", "uint", false, ConstexprValue(0)},
+      {"gpu_RayQueryCommittedIntersectionTriangle", "uint", false, ConstexprValue(0)},
+      {"gpu_RayQueryCommittedIntersectionGenerated", "uint", false, ConstexprValue(0)},
+      {"gpu_RayQueryCandidateIntersectionTriangle", "uint", false, ConstexprValue(0)},
+      {"gpu_RayQueryCandidateIntersectionAABB", "uint", false, ConstexprValue(0)},
 
       {"FLT_MAX", "float", true, ConstexprValue(std::bit_cast<float>(0x7F7FFFFFu))},
       {"FLT_MIN", "float", true, ConstexprValue(std::bit_cast<float>(0x00800000u))},
@@ -1139,6 +1160,54 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
       }
     }
   }
+
+  /* Ray queries. */
+  SymbolClass *rayQuery_cls = root->lookup_class("rayQuery");
+  SymbolClass *accelerationStructure_cls = root->lookup_class("accelerationStructure");
+  functions.push_back({void_cls,
+                       "rayQueryInitialize",
+                       {rayQuery_cls,
+                        accelerationStructure_cls,
+                        uint_cls,
+                        uint_cls,
+                        float3_cls,
+                        float_cls,
+                        float3_cls,
+                        float_cls}});
+  functions.push_back({bool_cls, "rayQueryProceed", {rayQuery_cls}});
+  functions.push_back({void_cls, "rayQueryTerminate", {rayQuery_cls}});
+  functions.push_back({void_cls, "rayQueryGenerateIntersection", {rayQuery_cls, float_cls}});
+  functions.push_back({void_cls, "rayQueryConfirmIntersection", {rayQuery_cls}});
+  functions.push_back({uint_cls, "rayQueryGetIntersectionType", {rayQuery_cls, bool_cls}});
+  functions.push_back({float_cls, "rayQueryGetRayTMin", {rayQuery_cls}});
+  functions.push_back({float3_cls, "rayQueryGetWorldRayOrigin", {rayQuery_cls}});
+  functions.push_back({float3_cls, "rayQueryGetWorldRayDirection", {rayQuery_cls}});
+  functions.push_back({float_cls, "rayQueryGetIntersectionT", {rayQuery_cls, bool_cls}});
+  functions.push_back({uint_cls, "rayQueryGetIntersectionInstanceId", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {uint_cls, "rayQueryGetIntersectionInstanceCustomIndex", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {uint_cls, "rayQueryGetIntersectionGeometryIndex", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {uint_cls, "rayQueryGetIntersectionPrimitiveIndex", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {float2_cls, "rayQueryGetIntersectionBarycentrics", {rayQuery_cls, bool_cls}});
+  functions.push_back({bool_cls, "rayQueryGetIntersectionFrontFace", {rayQuery_cls, bool_cls}});
+  functions.push_back({bool_cls, "rayQueryGetIntersectionCandidateAABBOpaque", {rayQuery_cls}});
+  functions.push_back(
+      {float3_cls, "rayQueryGetIntersectionObjectRayDirection", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {float3_cls, "rayQueryGetIntersectionObjectRayOrigin", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {float4x3_cls, "rayQueryGetIntersectionObjectToWorld", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {float4x3_cls, "rayQueryGetIntersectionWorldToObject", {rayQuery_cls, bool_cls}});
+  /* Not mapped to Metal: no query-side ray-flags accessor, and MSL forbids caching the flags on
+   * the query object. Gated off so a shader using it fails to compile rather than silently reading
+   * 0. */
+  // rayQueryGetRayFlagsEXT;
+  /* Not mapped to Metal: no inline equivalent. Gated off so use is a compile error. */
+  // rayQueryGetIntersectionInstanceShaderBindingTableRecordOffsetEXT;
 
   return functions;
 }

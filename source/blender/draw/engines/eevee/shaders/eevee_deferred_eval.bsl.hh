@@ -61,7 +61,10 @@ void aov_clear_frag([[resource_table]] RenderPassOutput &render_passes,
   render_passes.clear_aovs(uni, int2(frag_co.xy));
 }
 
-PipelineGraphic aov_clear(fullscreen_vert, aov_clear_frag);
+PipelineGraphic aov_clear(fullscreen_vert,
+                          aov_clear_frag,
+                          LightEvalConstants{.light_closure_count_reflect = 1,
+                                             .light_closure_count_transmit = 1});
 
 /** \} */
 
@@ -559,6 +562,8 @@ PipelineGraphic light_single(fullscreen_vert,
                              LightEvalConstants{
                                  .light_closure_eval_count_reflect = 1,
                                  .light_closure_eval_count_transmit = 1,
+                                 .light_closure_count_reflect = 1,
+                                 .light_closure_count_transmit = 1,
                              },
                              ShadowRenderConstants{
                                  .shadow_random = true,
@@ -569,6 +574,8 @@ PipelineGraphic light_double(fullscreen_vert,
                              LightEvalConstants{
                                  .light_closure_eval_count_reflect = 2,
                                  .light_closure_eval_count_transmit = 1,
+                                 .light_closure_count_reflect = 2,
+                                 .light_closure_count_transmit = 1,
                              },
                              ShadowRenderConstants{
                                  .shadow_random = true,
@@ -579,6 +586,8 @@ PipelineGraphic light_triple(fullscreen_vert,
                              LightEvalConstants{
                                  .light_closure_eval_count_reflect = 3,
                                  .light_closure_eval_count_transmit = 1,
+                                 .light_closure_count_reflect = 3,
+                                 .light_closure_count_transmit = 1,
                              },
                              ShadowRenderConstants{
                                  .shadow_random = true,
@@ -589,6 +598,8 @@ PipelineGraphic sphere_eval(fullscreen_vert,
                             LightEvalConstants{
                                 .light_closure_eval_count_reflect = 1,
                                 .light_closure_eval_count_transmit = 1,
+                                .light_closure_count_reflect = 1,
+                                .light_closure_count_transmit = 1,
                             },
                             ShadowRenderConstants{
                                 .shadow_random = true,
@@ -603,6 +614,8 @@ PipelineGraphic planar_eval(fullscreen_vert,
                             LightEvalConstants{
                                 .light_closure_eval_count_reflect = 2,
                                 .light_closure_eval_count_transmit = 2,
+                                .light_closure_count_reflect = 2,
+                                .light_closure_count_transmit = 2,
                             },
                             ShadowRenderConstants{
                                 .shadow_random = true,

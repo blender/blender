@@ -875,6 +875,32 @@ static void rna_uiTemplateSearchPreview(Layout *layout,
       layout, C, ptr, propname, searchptr, searchpropname, newop, unlinkop, rows, cols, text);
 }
 
+static void rna_uiTemplateFilePath(Layout *layout,
+                                   const bContext *C,
+                                   PointerRNA *ptr,
+                                   const char *propname,
+                                   const char *pathselect_op,
+                                   const char *filter_glob,
+                                   const char *placeholder,
+                                   const char *text_ctxt,
+                                   bool translate)
+{
+  PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+
+  if (!prop) {
+    RNA_warning_bare("UILayout.template_filepath(): property not found: %s.%s",
+                     RNA_struct_identifier(ptr->type),
+                     propname);
+    return;
+  }
+
+  /* Get translated name (label). */
+  std::optional<StringRefNull> placeholder_text = rna_translate_ui_text(
+      placeholder, text_ctxt, nullptr, prop, translate);
+
+  template_filepath(layout, C, ptr, propname, pathselect_op, filter_glob, placeholder_text);
+}
+
 void rna_template_list(Layout *layout,
                        bContext *C,
                        const char *listtype_name,
@@ -2114,6 +2140,38 @@ void RNA_api_ui_layout(StructRNA *srna)
               "",
               0,
               INT_MAX);
+
+  func = RNA_def_function(srna, "template_filepath", "rna_uiTemplateFilePath");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  RNA_def_function_ui_description(func,
+                                  "Define a file or directory path text widget, with a button to "
+                                  "its right to open a filebrowser. Only for String properties "
+                                  "with a Filepath or Dirpath subtype.");
+  api_ui_item_rna_common(func);
+  prop = RNA_def_string(func,
+                        "open",
+                        nullptr,
+                        0,
+                        "",
+                        "Operator identifier to select a filepath (if unset, the relevant generic "
+                        "path selection operator is used)");
+  RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
+  prop = RNA_def_string(func,
+                        "filter_glob",
+                        nullptr,
+                        0,
+                        "",
+                        "If set, controls wich file extensions are shown in the filebrowser, for "
+                        "Filepath properties only (e.g. '*.glb;*.gltf')");
+  RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
+  prop = RNA_def_string(func,
+                        "placeholder",
+                        nullptr,
+                        0,
+                        "",
+                        "Placeholder text to display in the text widget when no path is set");
+  RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
+  api_ui_item_common_translation(func);
 
   func = RNA_def_function(srna, "template_path_builder", "rna_uiTemplatePathBuilder");
   parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");

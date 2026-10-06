@@ -712,6 +712,7 @@ class VIEW3D_PT_stencil_projectpaint(Panel):
 
         tool_settings = context.tool_settings
         ipaint = tool_settings.image_paint
+        brush = ipaint.brush
         ob = context.active_object
         mesh = ob.data
 
@@ -721,15 +722,16 @@ class VIEW3D_PT_stencil_projectpaint(Panel):
         col.label(text="Stencil Image")
         col.template_ID(ipaint, "stencil_image", new="image.new", open="image.open")
 
-        stencil_text = mesh.uv_layer_stencil.name if mesh.uv_layer_stencil else ""
+        if not show_experimental_texture_paint(brush):
+            stencil_text = mesh.uv_layer_stencil.name if mesh.uv_layer_stencil else ""
 
-        col.separator()
+            col.separator()
 
-        split = col.split()
-        colsub = split.column()
-        colsub.alignment = 'RIGHT'
-        colsub.label(text="UV Layer")
-        split.column().menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
+            split = col.split()
+            colsub = split.column()
+            colsub.alignment = 'RIGHT'
+            colsub.label(text="UV Layer")
+            split.column().menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
 
         col.separator()
 
@@ -1273,17 +1275,15 @@ class VIEW3D_PT_tools_imagepaint_options_external(Panel, View3DPaintPanel):
         tool_settings = context.tool_settings
         ipaint = tool_settings.image_paint
 
-        layout.prop(ipaint, "screen_grab_size", text="Screen Grab Size")
+        layout.prop(ipaint, "screen_grab_size", text="Image Size")
 
         layout.separator()
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        col = flow.column()
-        col.operator("image.project_edit", text="Quick Edit")
-        col = flow.column()
-        col.operator("image.project_apply", text="Apply")
-        col = flow.column()
-        col.operator("paint.project_image", text="Apply Camera Image")
+        layout.operator("image.project_edit", text="Quick Edit...")
+
+        row = layout.row(align=True)
+        row.operator("image.project_apply", text="Apply")
+        row.operator("paint.project_image", text="Apply Camera Image")
 
 
 class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
@@ -1336,6 +1336,7 @@ class VIEW3D_PT_tools_imagepaint_options(View3DPaintPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 14
 
     @classmethod
     def poll(cls, context):

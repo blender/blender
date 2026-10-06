@@ -1363,10 +1363,6 @@ static void do_render_compositor(Render *re)
 
         compositor::SideEffectOutputTypes needed_side_effects_outputs =
             compositor::SideEffectOutputTypes::FileOutputNode;
-        if (!G.background) {
-          needed_side_effects_outputs |= compositor::SideEffectOutputTypes::ViewerNode |
-                                         compositor::SideEffectOutputTypes::NodePreviews;
-        }
 
         CLOG_STR_INFO(&LOG, "Executing compositor");
 

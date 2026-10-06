@@ -4,28 +4,39 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
-import importlib.util
-import os
-import platform
-import subprocess
 import sys
 from pathlib import Path
-import sys
 
 from modules import render_report
 
 
 class OverlayReport(render_report.Report):
-    def __init__(self, title, output_dir, oiiotool, variation=None, blocklist=[]):
+    def __init__(
+        self,
+        title: str,
+        output_dir: Path,
+        oiiotool: Path,
+        variation: str | None = None,
+        blocklist: list[str] = [],
+    ) -> None:
         super().__init__(title, output_dir, oiiotool, variation=variation, blocklist=blocklist)
         self.gpu_backend = variation
 
-    def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
+    def _get_render_arguments(
+        self,
+        arguments_cb: render_report.ArgumentsCallback,
+        filepath: Path,
+        base_output_filepath: Path,
+    ) -> list[str | Path]:
         return arguments_cb(filepath, base_output_filepath, gpu_backend=self.gpu_backend)
 
 
-def get_arguments(filepath, output_filepath, gpu_backend):
-    arguments = [
+def get_arguments(
+    filepath: Path,
+    output_filepath: Path,
+    gpu_backend: str | None,
+) -> list[str | Path]:
+    arguments: list[str | Path] = [
         "--no-window-focus",
         "--window-geometry",
         "0", "0", "128", "128",
@@ -41,16 +52,15 @@ def get_arguments(filepath, output_filepath, gpu_backend):
         arguments.extend(["--gpu-backend", gpu_backend, "--debug-gpu-backend-no-fallback"])
 
     # Windows separators get messed up when passing them inside the python expression
-    output_filepath = output_filepath.replace("\\", "/")
+    output_filepath_posix = output_filepath.as_posix()
 
-    script_name = Path(filepath).stem + ".py"
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    script_filepath = os.path.join(current_dir, "overlay", script_name)
+    script_dir = Path(__file__).resolve().parent / "overlay"
+    script_filepath = script_dir / (filepath.stem + ".py")
 
     arguments.extend([
         filepath,
         "--python-expr",
-        f'import bpy; bpy.context.scene.render.filepath = "{output_filepath}"',
+        f'import bpy; bpy.context.scene.render.filepath = "{output_filepath_posix}"',
         "-P",
         script_filepath])
 
@@ -61,10 +71,10 @@ def create_argparse():
     parser = argparse.ArgumentParser(
         description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
     )
-    parser.add_argument("--blender", required=True)
-    parser.add_argument("--testdir", required=True)
-    parser.add_argument("--outdir", required=True)
-    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--blender", required=True, type=Path)
+    parser.add_argument("--testdir", required=True, type=Path)
+    parser.add_argument("--outdir", required=True, type=Path)
+    parser.add_argument("--oiiotool", required=True, type=Path)
     parser.add_argument('--batch', default=False, action='store_true')
     parser.add_argument('--gpu-backend')
     return parser
@@ -82,7 +92,6 @@ def main():
     report.set_pixelated(True)
     report.set_reference_dir("overlay_renders")
 
-    test_dir_name = Path(args.testdir).name
     gpu_vendor = render_report.get_gpu_device_vendor(args.blender, args.gpu_backend)
 
     if gpu_vendor == 'INTEL':

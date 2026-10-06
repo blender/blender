@@ -11,6 +11,7 @@ void node_bsdf_ray_portal(float4 color,
                           float3 /*position*/,
                           float3 /*direction*/,
                           float weight,
+                          KernelGlobals &kg,
                           ShadingData &sd,
                           Closure &result)
 {
@@ -18,5 +19,5 @@ void node_bsdf_ray_portal(float4 color,
   transparency_data.transmittance = color.rgb * weight;
   transparency_data.holdout = 0.0f;
 
-  result = closure_eval(sd, transparency_data);
+  result = closure_eval(kg, sd, transparency_data);
 }

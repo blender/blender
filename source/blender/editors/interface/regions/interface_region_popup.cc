@@ -931,6 +931,11 @@ PopupBlockHandle *popup_block_create(bContext *C,
                                      const bool can_refresh)
 {
   wmWindow *window = CTX_wm_window(C);
+
+  if (window->runtime && window->runtime->ghostwin) {
+    WM_window_dpi_set_userdef(window);
+  }
+
   Button *activebut = context_active_but_get(C);
 
   /* disable tooltips from buttons below */

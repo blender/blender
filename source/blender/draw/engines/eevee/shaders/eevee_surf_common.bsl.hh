@@ -66,25 +66,17 @@ struct GeomShadow {
             read)]] const ShadowRenderView (&render_view_buf)[SHADOW_VIEW_MAX];
 };
 
-#if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_MESH)
-float3 barycentric_distances_get(const VertOutCommon &interp)
+void init_globals_mesh(const VertOutCommon &interp, ShadingData &sd, float3 barycentric_co)
 {
-  float wp_delta = length(gpu_dfdx(interp.P)) + length(gpu_dfdy(interp.P));
-  float bc_delta = length(gpu_dfdx(gpu_BaryCoord)) + length(gpu_dfdy(gpu_BaryCoord));
-  float rate_of_change = wp_delta / bc_delta;
-  return rate_of_change * (1.0f - gpu_BaryCoord);
-}
+  float wp_delta = 0.0f;
+  float bc_delta = 0.0f;
+#if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
+  wp_delta = length(gpu_dfdx(interp.P)) + length(gpu_dfdy(interp.P));
+  bc_delta = length(gpu_dfdx(barycentric_co)) + length(gpu_dfdy(barycentric_co));
 #endif
-
-void init_globals_mesh([[maybe_unused]] const VertOutCommon &interp, ShadingData &sd)
-{
-#if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_MESH)
-  sd.barycentric_coords = gpu_BaryCoord.xy;
-  sd.barycentric_dists = barycentric_distances_get(interp);
-#else
-  sd.barycentric_coords = float2(0.0f);
-  sd.barycentric_dists = float3(0.0f);
-#endif
+  float rate_of_change = wp_delta * safe_rcp(bc_delta);
+  sd.barycentric_dists = rate_of_change * (1.0f - barycentric_co);
+  sd.barycentric_coords = barycentric_co.xy;
 }
 
 void init_globals_curves(const VertOutCommon &interp,
@@ -106,10 +98,8 @@ void init_globals_curves(const VertOutCommon &interp,
   sd.is_strand = true;
   sd.hair_diameter = curve_interp.radius * 2.0;
   sd.hair_strand_id = curve_interp.strand_id;
-#if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER)
   sd.barycentric_coords.y = fract(curve_interp.point_id);
   sd.barycentric_coords.x = 1.0 - sd.barycentric_coords.y;
-#endif
 }
 
 void init_globals_pointcloud(const VertOutPointcloud &ptcloud_interp, ShadingData &sd)
@@ -119,7 +109,8 @@ void init_globals_pointcloud(const VertOutPointcloud &ptcloud_interp, ShadingDat
   sd.point_id = ptcloud_interp.id;
 }
 
-[[nodiscard]] ShadingData init_globals([[resource_table]] const eevee::Uniform &uni,
+[[nodiscard]] ShadingData init_globals(const eevee::PipelineConstants &pipe,
+                                       const eevee::Uniform &uni,
                                        const VertOutCommon &interp,
                                        const ViewMatrices view,
                                        bool front_face,
@@ -139,13 +130,15 @@ void init_globals_pointcloud(const VertOutPointcloud &ptcloud_interp, ShadingDat
   sd.point_position = float3(0.0f);
   sd.point_radius = 0.0f;
   sd.point_id = 0;
-#if defined(MAT_SHADOW)
-  sd.ray_type = RAY_TYPE_SHADOW;
-#elif defined(MAT_CAPTURE)
-  sd.ray_type = RAY_TYPE_DIFFUSE;
-#else
-  sd.ray_type = uni.pipeline_buf.ray_type;
-#endif
+  if (pipe.is_shadow_pipe) [[static_branch]] {
+    sd.ray_type = RAY_TYPE_SHADOW;
+  }
+  else if (pipe.is_capture_pipe) [[static_branch]] {
+    sd.ray_type = RAY_TYPE_DIFFUSE;
+  }
+  else {
+    sd.ray_type = uni.pipeline_buf.ray_type;
+  }
   sd.ray_depth = 0.0f;
   sd.ray_length = distance(sd.P, view.position());
   sd.barycentric_coords = float2(0.0f);

@@ -971,6 +971,19 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
 
         layout.separator()
 
+        active_asset = context.asset
+        user_library = active_asset.owner_asset_library.user_library if active_asset else None
+        extension_id = user_library.extension_id if user_library else ""
+        row = layout.row()
+        row.enabled = bool(extension_id)
+        row.operator(
+            "extensions.userpref_show_package",
+            text="View Extension...",
+            icon='EXTENSION',
+        ).extension_id = extension_id
+
+        layout.separator()
+
         if params.display_type == 'THUMBNAIL':
             layout.prop_menu_enum(params, "display_size_discrete")
         layout.prop_menu_enum(params, "sort_method")

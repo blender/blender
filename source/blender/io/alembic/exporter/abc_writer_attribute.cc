@@ -252,8 +252,19 @@ static void create_geom_param_for_attribute(const Alembic::Abc::OCompoundPropert
   using SampleType = typename ParamType::Sample;
 
   try {
+    const Alembic::Abc::PropertyHeader *prop_header = prop.getPropertyHeader(name);
+    if (prop_header && !ParamType::matches(*prop_header)) {
+      CLOG_WARN(&LOG,
+                "On object '%s', cannot write attribute '%s' as the type has changed",
+                object_name.c_str(),
+                name.c_str());
+      return;
+    }
+
+    const std::string valid_name = get_valid_abc_name(name.c_str());
+
     ParamType param;
-    param_maps.ensure_param(prop, param, name, corrected_scope);
+    param_maps.ensure_param(prop, param, valid_name, corrected_scope);
     param.setTimeSampling(timesample_index);
 
     write_empty_samples(param, num_geom_samples);

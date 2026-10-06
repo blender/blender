@@ -323,13 +323,14 @@ class PROJECT_PT_variables(Panel):
         col.operator("project.move_variable", text="", icon='TRIA_UP').direction = 'UP'
         col.operator("project.move_variable", text="", icon='TRIA_DOWN').direction = 'DOWN'
 
-        col = layout.column()
-        col.use_property_split = True
-        col.alignment = 'LEFT'
-        col.separator(factor=1)
-
         if project.active_variable_index >= 0 and project.active_variable_index < len(project.variables):
             var = project.variables[project.active_variable_index]
+
+            col = layout.column()
+            col.use_property_split = True
+            col.alignment = 'LEFT'
+            col.separator()
+
             col.prop(var, "type")
             if var.type == 'STRING':
                 col.prop(var, "subtype")

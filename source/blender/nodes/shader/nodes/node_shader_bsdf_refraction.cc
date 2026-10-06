@@ -49,7 +49,8 @@ static int node_shader_gpu_bsdf_refraction(GPUMaterial *mat,
     GPU_material_flag_set(mat, GPU_MATFLAG_REFRACTION_MAYBE_COLORED);
   }
 
-  return GPU_stack_link(mat, node, "node_bsdf_refraction", in, out, GPU_shading_data());
+  return GPU_stack_link(
+      mat, node, "node_bsdf_refraction", in, out, GPU_kernel_globals(), GPU_shading_data());
 }
 
 NODE_SHADER_MATERIALX_BEGIN

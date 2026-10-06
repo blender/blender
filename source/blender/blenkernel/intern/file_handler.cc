@@ -201,4 +201,20 @@ std::string FileHandlerType::label_with_extensions() const
   return std::string(label) + " (" + extensions + ")";
 }
 
+std::optional<std::string> FileHandlerType::filter_glob_from_extensions() const
+{
+  if (file_extensions.is_empty()) {
+    return std::nullopt;
+  }
+
+  std::string filter_glob;
+  bool is_first = true;
+  for (StringRef extension : file_extensions) {
+    filter_glob += StringRef((is_first ? "" : ";")) +
+                   ((!extension.is_empty() && extension[0] == '.') ? "*" : "*.") + extension;
+    is_first = false;
+  }
+  return filter_glob;
+}
+
 }  // namespace blender::bke

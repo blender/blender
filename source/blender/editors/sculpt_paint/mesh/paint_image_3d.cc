@@ -83,10 +83,25 @@ std::unique_ptr<ImageData> ImageData::init_active_image(Object &ob, ImagePaintSe
 
   return image_data;
 }
+std::unique_ptr<ImageData> ImageData::init_mask_image(ImagePaintSettings &settings)
+{
+  if (!settings.stencil) {
+    return nullptr;
+  }
+
+  std::unique_ptr<ImageData> image_data = std::make_unique<ImageData>();
+  image_data->image = settings.stencil;
+  image_data->image_user = ImageUser{};
+
+  BLI_assert(image_data->image);
+
+  return image_data;
+}
 
 static void fetch_image_buffers(ImageData &image_data,
                                 bke::pbvh::Node & /*node*/,
-                                PixelNode &pixel_node)
+                                PixelNode &pixel_node,
+                                const bool is_mask_brush)
 {
   PRF_scope(ProfileCategory::Editor);
   for (const UDIMTilePixels &tile : pixel_node.tiles) {
@@ -116,6 +131,9 @@ static void fetch_image_buffers(ImageData &image_data,
                                                                      buffer->byte_colorspace();
 
         TileColorspaceProcessor processor;
+        if (is_mask_brush) {
+          return processor;
+        }
 
         /* Fast path for sRGB byte, to avoid overhead of calling into OpenColorIO. */
         if (!buffer->float_data() && buffer->byte_data() &&
@@ -210,6 +228,7 @@ static void apply_selection_filter(const Span<int> corner_tri_faces,
 
 /** Cached settings for faster paint blending. */
 struct PaintBlendSettings {
+  PaintBlendSettings() = default;
   PaintBlendSettings(const Paint &paint, const Brush &brush, const bool invert)
   {
     brush_color = float4(invert ? BKE_brush_secondary_color_get(&paint, &brush) :
@@ -223,6 +242,16 @@ struct PaintBlendSettings {
   float brush_alpha;
   IMB_BlendMode blend_mode;
 };
+
+static PaintBlendSettings mask_brush_blend_settings(const Brush &brush, const bool invert)
+{
+  PaintBlendSettings blend_settings;
+  blend_settings.brush_color = float4(invert ? float3(1.0f - brush.weight) : float3(brush.weight),
+                                      1.0f);
+  blend_settings.brush_alpha = brush.alpha;
+  blend_settings.blend_mode = IMB_BlendMode(brush.blend);
+  return blend_settings;
+}
 
 /** Blend one pixel with the brush. */
 BLI_INLINE float4 paint_blend_pixel(const float4 &brush_color,
@@ -472,7 +501,7 @@ static void mark_seam_tiles_modified(MutableSpan<uint8_t> mask,
   }
 }
 
-static void do_paint_pixels(const Paint &paint,
+static void do_paint_pixels(const PaintBlendSettings &blend_settings,
                             const Brush &brush,
                             Object &object,
                             Span<float3> positions_eval,
@@ -495,8 +524,6 @@ static void do_paint_pixels(const Paint &paint,
     apply_selection_filter(
         corner_tri_faces, pixel_node.uv_primitives.tri_indices, select_poly, brush_test);
   }
-
-  const PaintBlendSettings blend_settings(paint, brush, ss.cache->toggle_settings.invert);
 
 #ifdef DEBUG_PIXEL_NODES
   float4 debug_color;
@@ -773,8 +800,15 @@ void do_3d_image_paint_brush(const Depsgraph &depsgraph,
   PixelData &pixel_data = *pbvh.pixels_;
   MutableSpan<PixelNode> pixel_nodes = pixel_data.nodes;
 
-  node_mask.foreach_index(
-      [&](const int i) { fetch_image_buffers(image_data, nodes[i], pixel_nodes[i]); });
+  const bool is_mask_brush = brush.image_brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK;
+  const bool is_inverted = ob.runtime->sculpt_session->cache->toggle_settings.invert;
+  const PaintBlendSettings blend_settings = is_mask_brush ?
+                                                mask_brush_blend_settings(brush, is_inverted) :
+                                                PaintBlendSettings(paint, brush, is_inverted);
+
+  node_mask.foreach_index([&](const int i) {
+    fetch_image_buffers(image_data, nodes[i], pixel_nodes[i], is_mask_brush);
+  });
 
   const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
 
@@ -793,7 +827,7 @@ void do_3d_image_paint_brush(const Depsgraph &depsgraph,
 
   node_mask.foreach_index(
       [&](const int i) {
-        do_paint_pixels(paint,
+        do_paint_pixels(blend_settings,
                         brush,
                         ob,
                         positions,

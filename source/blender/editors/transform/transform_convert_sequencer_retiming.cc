@@ -96,7 +96,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
     const bool use_sync_markers = ((t->area->spacedata.first_as<SpaceSeq>())->flag &
                                    SEQ_MARKER_TRANS) != 0;
     seq::transform_handle_overlap(
-        scene, seqbasep, transformed_strips, dependant, use_sync_markers);
+        scene, seqbasep, transformed_strips, use_sync_markers, dependant);
   }
 
   if ((custom_data->data != nullptr) && custom_data->use_free) {

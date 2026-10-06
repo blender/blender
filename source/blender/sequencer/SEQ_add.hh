@@ -74,115 +74,62 @@ struct LoadData {
 };
 
 /**
- * Initialize common SeqLoadData members
+ * Initialize common #LoadData members.
  *
- * \param load_data: SeqLoadData to be initialized
- * \param name: strip name (can be NULL)
- * \param path: path to file that is used as strip input (can be NULL)
- * \param start_frame: timeline frame where strip will be created
- * \param channel: timeline channel where strip will be created
+ * \param name: Can be null.
+ * \param path: File used as strip input, can be null.
  */
 void add_load_data_init(
     LoadData *load_data, const char *name, const char *path, int start_frame, int channel);
 /**
  * Add image strip.
- * \note Use #SEQ_add_image_set_directory() and #SEQ_add_image_load_file() to load image sequences
- *
- * \param bmain: Main reference
- * \param scene: Scene where strips will be added
- * \param seqbase: List where strips will be added
- * \param load_data: SeqLoadData with information necessary to create strip
- * \return created strip
+ * \note Use #add_image_set_directory() and #add_image_load_file() to load image sequences.
  */
 Strip *add_image_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add sound strip.
- * \note Use SEQ_add_image_set_directory() and SEQ_add_image_load_file() to load image sequences
- *
- * \param bmain: Main reference
- * \param scene: Scene where strips will be added
- * \param seqbase: List where strips will be added
- * \param load_data: SeqLoadData with information necessary to create strip
- * \return created strip
  */
 Strip *add_sound_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 
 /**
  * Add meta strip.
- *
- * \param scene: Scene where strips will be added
- * \param seqbase: List where strips will be added
- * \param load_data: SeqLoadData with information necessary to create strip
- * \return created strip
  */
 Strip *add_meta_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add movie strip.
  *
  * NOTE: This function can change the scene FPS if `SEQ_LOAD_MOVIE_SYNC_FPS` is set, take caution!
- *
- * \param bmain: Main reference
- * \param scene: Scene where strips will be added
- * \param seqbase: List where strips will be added
- * \param load_data: SeqLoadData with information necessary to create strip
- * \return created strip
  */
 Strip *add_movie_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add scene strip.
- *
- * \param scene: Scene where strips will be added
- * \param seqbase: List where strips will be added
- * \param load_data: SeqLoadData with information necessary to create strip
- * \return created strip
  */
 Strip *add_scene_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add movieclip strip.
- *
- * \param scene: Scene where strips will be added
- * \param seqbase: List where strips will be added
- * \param load_data: SeqLoadData with information necessary to create strip
- * \return created strip
  */
 Strip *add_movieclip_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add mask strip.
- *
- * \param scene: Scene where strips will be added
- * \param seqbase: List where strips will be added
- * \param load_data: SeqLoadData with information necessary to create strip
- * \return created strip
  */
 Strip *add_mask_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add effect strip.
- *
- * \param scene: Scene where strips will be added
- * \param seqbase: List where strips will be added
- * \param load_data: SeqLoadData with information necessary to create strip
- * \return created strip
  */
 Strip *add_effect_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Set directory used by image strip.
- *
- * \param strip: image strip to be changed
- * \param dirpath: directory path
  */
 void add_image_set_directory(Strip *strip, const char *dirpath);
 /**
- * Set directory used by image strip.
+ * Set file name of one image strip element.
  *
- * \param strip: image strip to be changed
- * \param strip_frame: frame index of strip to be changed
- * \param filename: image filename (only filename, not complete path)
+ * \param strip_frame: Frame relative to the strip's content start.
+ * \param filename: File name only, without the directory.
  */
 void add_image_load_file(Scene *scene, Strip *strip, size_t strip_frame, const char *filename);
 /**
- * Set image strip alpha mode
- *
- * \param strip: image strip to be changed
+ * Set image strip alpha mode.
  */
 void add_image_init_alpha_mode(Main *bmain, Scene *scene, Strip *strip);
 void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, bool lock_range);

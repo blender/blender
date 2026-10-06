@@ -142,37 +142,32 @@ short tool_settings_snap_flag_get(Scene *scene);
 short tool_settings_snap_mode_get(Scene *scene);
 int tool_settings_snap_distance_get(Scene *scene);
 eSeqOverlapMode tool_settings_overlap_mode_get(Scene *scene);
+void tool_settings_overlap_mode_set(Scene *scene, eSeqOverlapMode overlap_mode);
+eSeqRippleFlag tool_settings_ripple_flag_get(Scene *scene);
 int tool_settings_pivot_point_get(Scene *scene);
 SequencerToolSettings *tool_settings_copy(SequencerToolSettings *tool_settings);
 Editing *editing_get(const Scene *scene);
 Editing *editing_ensure(Scene *scene);
 void editing_free(Scene *scene, bool do_id_user);
 /**
- * Get seqbase that is being viewed currently. This can be main seqbase or meta strip seqbase
- *
- * \param ed: sequence editor data
- * \return pointer to active seqbase. returns NULL if ed is NULL
+ * Get the seqbase currently being viewed, either the main seqbase or a meta strip's.
+ * Returns null if \a ed is null.
  */
 ListBaseT<Strip> *active_seqbase_get(const Editing *ed);
 Strip *strip_alloc(ListBaseT<Strip> *lb, int timeline_frame, int channel, StripType type);
 void strip_free(Scene *scene, Strip *strip);
 /**
- * Get #MetaStack that corresponds to current level that is being viewed
- *
- * \return pointer to meta stack
+ * Get the #MetaStack of the level currently being viewed.
  */
 MetaStack *meta_stack_active_get(const Editing *ed);
 /**
- * Open Meta strip content for editing.
+ * Open meta strip content for editing.
  *
- * \param scene: Scene containing the sequence editor data.
- * \param dst: meta strip or NULL for top level view
+ * \param dst: Meta strip, or null for the top level.
  */
 void meta_stack_set(const Scene *scene, Strip *dst);
 /**
- * Close last Meta strip open for editing.
- *
- * \param ed: sequence editor data
+ * Close the last meta strip open for editing.
  */
 Strip *meta_stack_pop(Editing *ed);
 Strip *strip_duplicate_recursive(Main *bmain,
@@ -212,42 +207,27 @@ void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBaseT<Strip> *seqbase);
  * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
  * rebuilt.
  *
- * \param ed: Editing that owns lookup hash
- * \param key: Strip name without SQ prefix (strip->name + 2)
- *
- * \return pointer to Strip
+ * \param key: Strip name without SQ prefix (strip->name + 2).
  */
 Strip *lookup_strip_by_name(Editing *ed, const char *key);
 
 /**
- * Find a strips using provided scene as input
- *
- * \param ed: Editing that owns lookup hash
- * \param key: Input Scene pointer
- *
- * \return Span of strips
+ * Find strips using \a key as their input scene.
  */
 Span<Strip *> lookup_strips_by_scene(Editing *ed, const Scene *key);
 
 /**
- * Returns Map of scenes to scene strips
- *
- * \param ed: Editing that owns lookup hash
+ * Returns a map of scenes to the scene strips using them.
  */
 Map<const Scene *, VectorSet<Strip *>> &lookup_strips_by_scene_map_get(Editing *ed);
 
 /**
- * Find all strips using provided compositor node tree
- *
- * \param ed: Editing that owns lookup hash
- * \param key: Node tree pointer
- *
- * \return Span of strips
+ * Find all strips using \a key as their compositor node tree.
  */
 Span<Strip *> lookup_strips_by_compositor_node_group(Editing *ed, const bNodeTree *key);
 
 /**
- * Find effect strips, that use strip `key` as one of inputs.
+ * Find effect strips that use \a key as one of their inputs.
  * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
  * rebuilt.
  */
@@ -259,13 +239,9 @@ Span<Strip *> lookup_effects_by_strip(Editing *ed, const Strip *key);
  */
 Strip *lookup_strip_by_channel_owner(Editing *ed, const SeqTimelineChannel *channel);
 /**
- * Find meta strip, that contains strip `key`.
+ * Find the meta strip that contains \a key.
  * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
  * rebuilt.
- *
- * \param key: pointer to Strip inside of meta strip
- *
- * \return pointer to meta strip
  */
 Strip *lookup_meta_by_strip(Editing *ed, const Strip *key);
 /**
