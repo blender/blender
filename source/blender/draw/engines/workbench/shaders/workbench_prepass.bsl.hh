@@ -104,13 +104,12 @@ float3 hair_random_normal(float3 tangent, float3 binor, float3 nor, float rand)
   return nor;
 }
 
-void hair_random_material(float rand, float3 &color, float &roughness, float &metallic)
+void hair_random_material(float rand, float3 &color, float &roughness)
 {
   /* Center noise around 0. */
   rand -= 0.5f;
   rand *= 0.1f;
   /* Add some variation to the hairs to avoid uniform look. */
-  metallic = saturate(metallic + rand);
   roughness = saturate(roughness + rand);
   /* Modulate by color intensity to reduce very high contrast when color is dark. */
   color = saturate(color + rand * (color + 0.05f));
@@ -243,7 +242,7 @@ struct Curves {
    * So we lower their alpha artificially. */
   v_out.alpha *= 0.3f;
 
-  hair_random_material(hair_rand, v_out.color, v_out.roughness, v_out.metallic);
+  hair_random_material(hair_rand, v_out.color, v_out.roughness);
 
   v_out.object_id = int(id.resource_id<1>() & 0xFFFFu) + 1;
 
