@@ -43,23 +43,22 @@ ID *TreeElementModifierBase::owner_id(Object &object)
 void TreeElementModifierBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
 
-  for (const auto [index, md] : object_.modifiers.enumerate()) {
-    ModifierDataStoreElem md_store(&md);
+  for (const auto [index, modifier] : object_.modifiers.enumerate()) {
 
-    add_element<TreeElementModifier>({.index = index}, object_, md_store);
+    add_element<TreeElementModifier>({.index = index}, object_, modifier);
   }
 }
 
 TreeElementModifier::TreeElementModifier(TreeElement &legacy_te,
                                          Object &object,
-                                         ModifierDataStoreElem &md)
-    : AbstractTreeElement(legacy_te), object_(object), md_(md)
+                                         ModifierData &modifier)
+    : AbstractTreeElement(legacy_te), object_(object), modifier_(modifier)
 {
-  legacy_te.name = md_.md->name;
-  legacy_te.directdata = md_.md;
+  legacy_te.name = modifier_.name;
+  legacy_te.directdata = &modifier_;
 }
 
-ID *TreeElementModifier::owner_id(Object &object, ModifierDataStoreElem & /*md*/)
+ID *TreeElementModifier::owner_id(Object &object, ModifierData & /*modifier*/)
 {
   return &object.id;
 }
@@ -75,8 +74,8 @@ void TreeElementModifier::add_linked_object(Object *object) const
 
 void TreeElementModifier::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  ModifierData *md = md_.md;
-  PointerRNA ptr_mod = RNA_pointer_create_discrete(&object_.id, RNA_Modifier, md);
+  ModifierData *modifier = &modifier_;
+  PointerRNA ptr_mod = RNA_pointer_create_discrete(&object_.id, RNA_Modifier, modifier);
   PropertyRNA *iterprop = RNA_struct_iterator_property(ptr_mod.type);
   RNA_PROP_BEGIN (&ptr_mod, itemptr, iterprop) {
     PropertyRNA *prop = static_cast<PropertyRNA *>(itemptr.data);
@@ -105,9 +104,10 @@ std::optional<BIFIconID> TreeElementModifier::get_icon() const
 {
   Object *ob = reinterpret_cast<Object *>(legacy_te_.store_elem->id);
 
-  ModifierData *md = static_cast<ModifierData *>(
+  ModifierData *modifier = static_cast<ModifierData *>(
       BLI_findlink(&ob->modifiers, legacy_te_.store_elem->nr));
-  if (const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(ModifierType(md->type))) {
+  if (const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(ModifierType(modifier->type)))
+  {
     return modifier_type->icon;
   }
   else {
