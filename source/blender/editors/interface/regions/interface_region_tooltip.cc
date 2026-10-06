@@ -908,7 +908,6 @@ void tooltip_color_field_add(TooltipData &data,
   if (has_alpha) {
     tooltip_text_field_add(data, alpha_st, {}, TIP_STYLE_MONO, color_id, false);
   }
-  tooltip_text_field_add(data, {}, {}, TIP_STYLE_SPACER, color_id, false);
   tooltip_text_field_add(data, hex_st, {}, TIP_STYLE_MONO, color_id, false);
 
   /* Tooltip now owns a copy of the ImBuf, so we can delete ours. */
@@ -1296,14 +1295,6 @@ static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
     }
   }
 
-  if (U.flag & USER_TOOLTIPS_PYTHON) {
-    tooltip_uibut_python_add(*data, *C, *but, extra_icon);
-  }
-
-  if (U.flag & USER_DEVELOPER_UI) {
-    tooltip_uibut_icon_add(*data, *but);
-  }
-
   if (but->type == ButtonType::Color) {
     const ColorManagedDisplay *display = button_cm_display_get(*but);
 
@@ -1322,6 +1313,14 @@ static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
 
     tooltip_color_field_add(
         *data, color, has_alpha, button_is_color_gamma(but), display, TIP_LC_VALUE);
+  }
+
+  if (U.flag & USER_DEVELOPER_UI) {
+    tooltip_uibut_icon_add(*data, *but);
+  }
+
+  if (U.flag & USER_TOOLTIPS_PYTHON) {
+    tooltip_uibut_python_add(*data, *C, *but, extra_icon);
   }
 
   /* If the last field is a spacer, remove it. */
