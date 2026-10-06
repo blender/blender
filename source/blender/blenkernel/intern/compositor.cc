@@ -721,7 +721,7 @@ void add_depsgraph_relations(Scene &scene,
  * Compute Contexts.
  */
 
-const ComputeContext &get_zone_viewer_compute_context(
+const ComputeContext *get_zone_viewer_compute_context(
     const bNode &node,
     const bke::bNodeTreeZone *zone,
     const ComputeContext &compute_context,
@@ -730,7 +730,7 @@ const ComputeContext &get_zone_viewer_compute_context(
   const ComputeContext *current_context = &compute_context;
   const bke::bNodeTreeZones *zones = node.owner_tree().zones();
   if (!zones) {
-    return *current_context;
+    return current_context;
   }
   const bke::bNodeTreeZone *node_zone = zones->get_zone_by_node(node.identifier);
   Vector<const bke::bNodeTreeZone *> zone_stack = zones->get_zones_to_enter(zone, node_zone);
@@ -743,12 +743,17 @@ const ComputeContext &get_zone_viewer_compute_context(
       current_context = &compute_context_cache.for_repeat_zone(
           current_context, *current_zone->output_node(), inspection_index);
     }
+    else if (output_node.is_type("NodeClosureOutput"_ustr)) {
+      /* Viewers inside closures are not supported and are ignored. */
+      return nullptr;
+    }
     else {
       BLI_assert_unreachable();
+      return nullptr;
     }
   }
 
-  return *current_context;
+  return current_context;
 }
 
 /* Recursively search node groups to find the node group whose instance key matches the given
@@ -768,9 +773,9 @@ static const ComputeContext *compute_viewer_compute_context_recursive(
   if (active_node_group_instance_key == instance_key) {
     for (const bNode *node : node_group.nodes_by_type("CompositorNodeViewer"_ustr)) {
       if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
-        const ComputeContext &zone_viewer_compute_context = get_zone_viewer_compute_context(
+        const ComputeContext *zone_viewer_compute_context = get_zone_viewer_compute_context(
             *node, nullptr, compute_context, compute_context_cache);
-        return &zone_viewer_compute_context;
+        return zone_viewer_compute_context;
       }
     }
     return nullptr;
@@ -783,15 +788,18 @@ static const ComputeContext *compute_viewer_compute_context_recursive(
       continue;
     }
 
-    const ComputeContext &zone_compute_context = get_zone_viewer_compute_context(
+    const ComputeContext *zone_compute_context = get_zone_viewer_compute_context(
         *group_node, nullptr, compute_context, compute_context_cache);
+    if (!zone_compute_context) {
+      continue;
+    }
 
     const bNodeTree &child_node_group = *id_cast<const bNodeTree *>(group_node->id);
     const bNodeInstanceKey child_instance_key = bke::node_instance_key(
         instance_key, &node_group, group_node);
     const bke::GroupNodeComputeContext &child_compute_context =
         compute_context_cache.for_group_node(
-            &zone_compute_context, group_node->identifier, &group_node->owner_tree());
+            zone_compute_context, group_node->identifier, &group_node->owner_tree());
     const ComputeContext *viewer_compute_context = compute_viewer_compute_context_recursive(
         child_node_group,
         child_compute_context,

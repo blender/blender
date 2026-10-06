@@ -46,10 +46,14 @@ static bool has_viewer_node(const bNodeTree &node_group,
       continue;
     }
 
-    const ComputeContext &zone_viewer_compute_context =
+    const ComputeContext *zone_viewer_compute_context =
         bke::compositor::get_zone_viewer_compute_context(
             *node, nullptr, compute_context, compute_context_cache);
-    if (&viewer_compute_context == &zone_viewer_compute_context) {
+    if (!zone_viewer_compute_context) {
+      break;
+    }
+
+    if (&viewer_compute_context == zone_viewer_compute_context) {
       return true;
     }
   }
@@ -60,14 +64,17 @@ static bool has_viewer_node(const bNodeTree &node_group,
       continue;
     }
 
-    const ComputeContext &zone_viewer_compute_context =
+    const ComputeContext *zone_viewer_compute_context =
         bke::compositor::get_zone_viewer_compute_context(
             *group_node, nullptr, compute_context, compute_context_cache);
+    if (!zone_viewer_compute_context) {
+      continue;
+    }
 
     const bNodeTree &child_node_group = *reinterpret_cast<const bNodeTree *>(group_node->id);
     const bke::GroupNodeComputeContext &node_compute_context =
         compute_context_cache.for_group_node(
-            &zone_viewer_compute_context, group_node->identifier, &group_node->owner_tree());
+            zone_viewer_compute_context, group_node->identifier, &group_node->owner_tree());
     if (has_viewer_node(
             child_node_group, node_compute_context, viewer_compute_context, compute_context_cache))
     {
@@ -297,14 +304,24 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
       continue;
     }
 
-    const ComputeContext &zone_viewer_compute_context =
+    const bNodeTree &child_tree = *reinterpret_cast<const bNodeTree *>(group_node->id);
+    if (flag_is_set(needed_side_effect_output_types, SideEffectOutputTypes::FileOutputNode) &&
+        has_file_output_recursive(child_tree))
+    {
+      push_node_to_stack(*group_node);
+      continue;
+    }
+
+    const ComputeContext *zone_viewer_compute_context =
         bke::compositor::get_zone_viewer_compute_context(
             *group_node, zone, compute_context, context.compute_context_cache());
+    if (!zone_viewer_compute_context) {
+      continue;
+    }
 
-    const bNodeTree &child_tree = *reinterpret_cast<const bNodeTree *>(group_node->id);
     const bke::GroupNodeComputeContext &node_compute_context =
         context.compute_context_cache().for_group_node(
-            &zone_viewer_compute_context, group_node->identifier, &group_node->owner_tree());
+            zone_viewer_compute_context, group_node->identifier, &group_node->owner_tree());
     const ComputeContext *viewer_compute_context = context.viewer_compute_context();
     if (flag_is_set(needed_side_effect_output_types, SideEffectOutputTypes::ViewerNode) &&
         viewer_compute_context &&
@@ -312,13 +329,6 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
                         node_compute_context,
                         *viewer_compute_context,
                         context.compute_context_cache()))
-    {
-      push_node_to_stack(*group_node);
-      continue;
-    }
-
-    if (flag_is_set(needed_side_effect_output_types, SideEffectOutputTypes::FileOutputNode) &&
-        has_file_output_recursive(child_tree))
     {
       push_node_to_stack(*group_node);
       continue;
@@ -367,15 +377,19 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
 
       /* Only consider nodes inside the same zone being scheduled. */
       if (zone && !zone->contains_node_recursively(*node)) {
-        continue;
+        break;
       }
 
       /* Only consider nodes in the viewer compute context. */
-      const ComputeContext &zone_viewer_compute_context =
+      const ComputeContext *zone_viewer_compute_context =
           bke::compositor::get_zone_viewer_compute_context(
               *node, zone, compute_context, context.compute_context_cache());
-      if (viewer_compute_context != &zone_viewer_compute_context) {
-        continue;
+      if (!zone_viewer_compute_context) {
+        break;
+      }
+
+      if (viewer_compute_context != zone_viewer_compute_context) {
+        break;
       }
 
       push_node_to_stack(*node);
