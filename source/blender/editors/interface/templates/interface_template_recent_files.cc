@@ -79,7 +79,7 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
 
   if (version_str[0]) {
     tooltip_text_field_add(
-        tip, fmt::format("Blender {}", version_str), {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
+        tip, fmt::format("Blender {}", version_str), {}, TIP_STYLE_NORMAL, TIP_LC_VALUE);
     tooltip_text_field_add(tip, {}, {}, TIP_STYLE_SPACER, TIP_LC_NORMAL);
   }
 
@@ -100,7 +100,7 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
                            fmt::format(fmt::runtime(TIP_("Modified: {}")), modified_s),
                            {},
                            TIP_STYLE_NORMAL,
-                           TIP_LC_NORMAL);
+                           TIP_LC_VALUE);
 
     if (status.st_size > 0) {
       char size[16];
@@ -109,7 +109,7 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
                              fmt::format(fmt::runtime(TIP_("Size: {}")), size),
                              {},
                              TIP_STYLE_NORMAL,
-                             TIP_LC_NORMAL);
+                             TIP_LC_VALUE);
     }
   }
 

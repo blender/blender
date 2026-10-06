@@ -418,7 +418,7 @@ static bool tooltip_data_append_from_keymap(bContext *C, TooltipData &data, wmKe
                            fmt::format(fmt::runtime(TIP_("Shortcut: {}")), kmi_str),
                            {},
                            TIP_STYLE_NORMAL,
-                           TIP_LC_NORMAL);
+                           TIP_LC_VALUE);
 
     /* Python. */
     if (U.flag & USER_TOOLTIPS_PYTHON) {
@@ -779,7 +779,7 @@ static std::unique_ptr<TooltipData> tooltip_data_from_tool(bContext *C,
     else if (BPY_run_string_as_intptr(C, expr_imports, expr, nullptr, &expr_result)) {
       if (expr_result != 0) {
         tooltip_text_field_add(
-            *data, TIP_("Tool Keymap:"), {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL, true);
+            *data, TIP_("Tool Keymap:"), {}, TIP_STYLE_NORMAL, TIP_LC_VALUE, true);
         wmKeyMap *keymap = reinterpret_cast<wmKeyMap *>(expr_result);
         tooltip_data_append_from_keymap(C, *data, keymap);
       }
@@ -1102,7 +1102,7 @@ static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
   }
   /* When there is only an enum label (no button label or tip), draw that as header. */
   else if (!enum_label.empty() && but_label.empty()) {
-    tooltip_text_field_add(*data, std::move(enum_label), {}, TIP_STYLE_HEADER, TIP_LC_NORMAL);
+    tooltip_text_field_add(*data, std::move(enum_label), {}, TIP_STYLE_HEADER, TIP_LC_MAIN);
   }
 
   /* Don't include further details if this is just a quick label tooltip. */
@@ -1196,7 +1196,7 @@ static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
                                fmt::format(fmt::runtime(TIP_("Expression: {}")), buf),
                                {},
                                TIP_STYLE_NORMAL,
-                               TIP_LC_NORMAL);
+                               TIP_LC_VALUE);
       }
     }
 
@@ -1210,7 +1210,7 @@ static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
         const StringRef path = is_builtin ? lib_path.substr(assets_path.size()) :
                                             id->lib->filepath;
         tooltip_text_field_add(
-            *data, fmt::format("{}: {}", title, path), {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
+            *data, fmt::format("{}: {}", title, path), {}, TIP_STYLE_NORMAL, TIP_LC_VALUE, true);
       }
     }
   }
@@ -1321,7 +1321,7 @@ static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
     }
 
     tooltip_color_field_add(
-        *data, color, has_alpha, button_is_color_gamma(but), display, TIP_LC_NORMAL);
+        *data, color, has_alpha, button_is_color_gamma(but), display, TIP_LC_VALUE);
   }
 
   /* If the last field is a spacer, remove it. */
@@ -1369,7 +1369,7 @@ static std::unique_ptr<TooltipData> tooltip_data_from_gizmo(bContext *C, wmGizmo
               *data,
               gzop_actions[i].prefix ? fmt::format("{}: {}", gzop_actions[i].prefix, info) : info,
               {},
-              TIP_STYLE_HEADER,
+              TIP_STYLE_NORMAL,
               TIP_LC_VALUE,
               false);
         }
@@ -1784,7 +1784,7 @@ static void tooltip_from_image(Image &ima, TooltipData &data)
   if (ima.filepath[0]) {
     char root[FILE_MAX];
     BLI_path_split_dir_part(ima.filepath, root, FILE_MAX);
-    tooltip_text_field_add(data, root, {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
+    tooltip_text_field_add(data, root, {}, TIP_STYLE_NORMAL, TIP_LC_VALUE, true);
   }
 
   std::string image_type;
@@ -1808,7 +1808,7 @@ static void tooltip_from_image(Image &ima, TooltipData &data)
       image_type = TIP_("UDIM Tiles");
       break;
   }
-  tooltip_text_field_add(data, image_type, {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
+  tooltip_text_field_add(data, image_type, {}, TIP_STYLE_NORMAL, TIP_LC_VALUE, true);
 
   short w;
   short h;
@@ -1816,7 +1816,7 @@ static void tooltip_from_image(Image &ima, TooltipData &data)
 
   if (ibuf) {
     tooltip_text_field_add(
-        data, fmt::format("{} \u00D7 {}", w, h), {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
+        data, fmt::format("{} \u00D7 {}", w, h), {}, TIP_STYLE_NORMAL, TIP_LC_VALUE);
   }
 
   if (BKE_image_has_anim(&ima)) {
@@ -1827,17 +1827,17 @@ static void tooltip_from_image(Image &ima, TooltipData &data)
                              fmt::format(fmt::runtime(TIP_("Frames: {}")), duration),
                              {},
                              TIP_STYLE_NORMAL,
-                             TIP_LC_NORMAL);
+                             TIP_LC_VALUE);
     }
   }
 
-  tooltip_text_field_add(data, ima.colorspace_settings.name, {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
+  tooltip_text_field_add(data, ima.colorspace_settings.name, {}, TIP_STYLE_NORMAL, TIP_LC_VALUE);
 
   tooltip_text_field_add(data,
                          fmt::format(fmt::runtime(TIP_("Users: {}")), ima.id.us),
                          {},
                          TIP_STYLE_NORMAL,
-                         TIP_LC_NORMAL);
+                         TIP_LC_VALUE);
 
   if (ibuf) {
     TooltipImage image_data;
@@ -1871,7 +1871,7 @@ static void tooltip_from_clip(MovieClip &clip, TooltipData &data)
       image_type = TIP_("Movie");
       break;
   }
-  tooltip_text_field_add(data, image_type, {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
+  tooltip_text_field_add(data, image_type, {}, TIP_STYLE_NORMAL, TIP_LC_VALUE);
 
   if (clip.anim) {
     MovieReader *anim = clip.anim;
@@ -1881,14 +1881,14 @@ static void tooltip_from_clip(MovieClip &clip, TooltipData &data)
         fmt::format("{} \u00D7 {}", MOV_get_image_width(anim), MOV_get_image_height(anim)),
         {},
         TIP_STYLE_NORMAL,
-        TIP_LC_NORMAL);
+        TIP_LC_VALUE);
 
     tooltip_text_field_add(
         data,
         fmt::format(fmt::runtime(TIP_("Frames: {}")), MOV_get_duration_frames(anim)),
         {},
         TIP_STYLE_NORMAL,
-        TIP_LC_NORMAL);
+        TIP_LC_VALUE);
 
     ImBuf *ibuf = MOV_decode_preview_frame(anim);
 
@@ -1986,7 +1986,7 @@ static std::unique_ptr<TooltipData> tooltip_data_from_search_item_tooltip_data(I
                                        id->lib->filepath),
                            {},
                            TIP_STYLE_NORMAL,
-                           TIP_LC_NORMAL);
+                           TIP_LC_VALUE);
   }
 
   return data->fields.is_empty() ? nullptr : std::move(data);
