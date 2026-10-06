@@ -990,6 +990,7 @@ class NODE_MT_gn_volume_read_base(node_add_menu.NodeMenu):
     def draw(self, context):
         del context
         layout = self.layout
+        self.node_operator(layout, "GeometryNodeGetGridNames")
         self.node_operator(layout, "GeometryNodeGetNamedGrid")
         self.node_operator(layout, "GeometryNodeGridInfo")
         self.node_operator(layout, "GeometryNodeInputVoxelIndex")
