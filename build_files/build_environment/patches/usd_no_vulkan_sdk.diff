@@ -508,7 +508,7 @@ diff --git a/pxr/pxrConfig.cmake.in b/pxr/pxrConfig.cmake.in
 index bc94973b9..5374b5447 100644
 --- a/pxr/pxrConfig.cmake.in
 +++ b/pxr/pxrConfig.cmake.in
-@@ -112,6 +112,32 @@ if(NOT "@PXR_WORK_IMPL_PACKAGE@" STREQUAL "")
+@@ -112,6 +112,34 @@ if(NOT "@PXR_WORK_IMPL_PACKAGE@" STREQUAL "")
      find_dependency(@PXR_WORK_IMPL_PACKAGE@)
  endif()
  
@@ -523,14 +523,16 @@ index bc94973b9..5374b5447 100644
 +                "${Vulkan_INCLUDE_DIR}/vma")
 +        endif()
 +    else()
-+        if (NOT DEFINED VulkanHeaders_DIR AND NOT [[@VulkanHeaders_DIR@]] STREQUAL "")
-+            set(VulkanHeaders_DIR [[@VulkanHeaders_DIR@]])
-+        endif()
-+        if (NOT DEFINED VulkanUtilityLibraries_DIR AND NOT [[@VulkanUtilityLibraries_DIR@]] STREQUAL "")
-+            set(VulkanUtilityLibraries_DIR [[@VulkanUtilityLibraries_DIR@]])
-+        endif()
-+        if (NOT DEFINED VulkanMemoryAllocator_DIR AND NOT [[@VulkanMemoryAllocator_DIR@]] STREQUAL "")
-+            set(VulkanMemoryAllocator_DIR [[@VulkanMemoryAllocator_DIR@]])
++        if(@PXR_EMBED_DEPENDENCY_PATHS_IN_CONFIG@)
++            if (NOT DEFINED VulkanHeaders_DIR AND NOT [[@PXR_CONFIG_VulkanHeaders_DIR@]] STREQUAL "")
++                set(VulkanHeaders_DIR [[@PXR_CONFIG_VulkanHeaders_DIR@]])
++            endif()
++            if (NOT DEFINED VulkanUtilityLibraries_DIR AND NOT [[@PXR_CONFIG_VulkanUtilityLibraries_DIR@]] STREQUAL "")
++                set(VulkanUtilityLibraries_DIR [[@PXR_CONFIG_VulkanUtilityLibraries_DIR@]])
++            endif()
++            if (NOT DEFINED VulkanMemoryAllocator_DIR AND NOT [[@PXR_CONFIG_VulkanMemoryAllocator_DIR@]] STREQUAL "")
++                set(VulkanMemoryAllocator_DIR [[@PXR_CONFIG_VulkanMemoryAllocator_DIR@]])
++            endif()
 +        endif()
 +        find_dependency(VulkanHeaders CONFIG)
 +        find_dependency(VulkanUtilityLibraries CONFIG)

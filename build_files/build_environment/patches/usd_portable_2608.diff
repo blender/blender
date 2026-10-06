@@ -1,0 +1,574 @@
+diff --git a/cmake/defaults/Options.cmake b/cmake/defaults/Options.cmake
+index 4afac0537..68d5a1b3d 100644
+--- a/cmake/defaults/Options.cmake
++++ b/cmake/defaults/Options.cmake
+@@ -31,6 +31,12 @@ option(PXR_BUILD_PYTHON_DOCUMENTATION "Generate Python documentation" OFF)
+ option(PXR_BUILD_HTML_DOCUMENTATION "Generate HTML documentation if PXR_BUILD_DOCUMENTATION is ON" ON)
+ option(PXR_ENABLE_PYTHON_SUPPORT "Enable Python based components for USD" ON)
+ option(PXR_USE_DEBUG_PYTHON "Build with debug python" OFF)
++option(PXR_EMBED_DEPENDENCY_PATHS_IN_CONFIG
++       "Write the absolute paths of the third-party dependencies used for \
++this build (Python, MaterialX, Imath) into the installed pxrConfig.cmake. \
++This pins consumers to those exact installations and makes the installed \
++package non-relocatable, so it is off by default."
++       OFF)
+ option(PXR_ENABLE_HDF5_SUPPORT "Enable HDF5 backend in the Alembic plugin for USD" OFF)
+ option(PXR_ENABLE_OSL_SUPPORT "Enable OSL (OpenShadingLanguage) based components" OFF)
+ option(PXR_ENABLE_PTEX_SUPPORT "Enable Ptex support" OFF)
+diff --git a/cmake/defaults/Packages.cmake b/cmake/defaults/Packages.cmake
+index 7f3d1a2ae..027e900b1 100644
+--- a/cmake/defaults/Packages.cmake
++++ b/cmake/defaults/Packages.cmake
+@@ -20,18 +20,6 @@ set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+ find_package(Threads REQUIRED)
+ set(PXR_THREAD_LIBS "${CMAKE_THREAD_LIBS_INIT}")
+ 
+-if(PXR_ENABLE_OPENVDB_SUPPORT)
+-    # Find Boost package before getting any boost specific components as we need to
+-    # disable boost-provided cmake config, based on the boost version found.
+-    find_package(Boost REQUIRED)
+-    # If a user explicitly sets Boost_NO_BOOST_CMAKE to On, following will
+-    # disable the use of boost provided cmake config.
+-    option(Boost_NO_BOOST_CMAKE "Disable boost-provided cmake config" OFF)
+-    if (Boost_NO_BOOST_CMAKE)
+-      message(STATUS "Disabling boost-provided cmake config")
+-    endif()
+-endif()
+-
+ if(PXR_ENABLE_PYTHON_SUPPORT)
+     # 1--Python.
+     macro(setup_python_package package)
+diff --git a/cmake/macros/Private.cmake b/cmake/macros/Private.cmake
+index cddb4e095..d03df3279 100644
+--- a/cmake/macros/Private.cmake
++++ b/cmake/macros/Private.cmake
+@@ -1101,11 +1101,7 @@ function(_pxr_python_module NAME)
+     # as system include directories so that compiler warnings from these
+     # headers are ignored, since we have no control over the contents
+     # of those headers.
+-    target_include_directories(${LIBRARY_NAME}
+-        SYSTEM
+-        PUBLIC
+-            ${args_INCLUDE_DIRS}
+-    )
++    _pxr_target_include_directories(${LIBRARY_NAME} ${args_INCLUDE_DIRS})
+ 
+     # Ensure the Python header directory is included as a system include
+     # directory. This is a workaround for an issue in which Python headers 
+@@ -1113,11 +1109,7 @@ function(_pxr_python_module NAME)
+     # This behavior prevents users from running strict builds with
+     # PXR_STRICT_BUILD_MODE as the redefinition warnings would cause build
+     # failures.
+-    target_include_directories(${LIBRARY_NAME}
+-        SYSTEM
+-        PUBLIC
+-            ${PYTHON_INCLUDE_DIRS}
+-    )
++    _pxr_target_include_directories(${LIBRARY_NAME} ${PYTHON_INCLUDE_DIRS})
+ 
+     install(
+         TARGETS ${LIBRARY_NAME}
+@@ -1135,6 +1127,47 @@ function(_pxr_python_module NAME)
+     endif()
+ endfunction() # pxr_python_module
+ 
++# Add third-party include directories to TARGET as SYSTEM PUBLIC includes.
++#
++# Directories that are not part of the USD install prefix must not be baked
++# into the exported interface, otherwise the installed package is not
++# relocatable: consumers on other machines would pick up absolute paths
++# pointing into the build machine's filesystem.
++#
++# The Python headers are the only such case today. They are added to the
++# build interface only. Consumers still get them transitively, because the
++# Python3::Python imported target is part of the link interface of the
++# exported targets and pxrConfig.cmake re-creates it via
++# find_dependency(Python3 ... COMPONENTS Development).
++function(_pxr_target_include_directories TARGET)
++    set(_publicDirs "")
++    set(_buildOnlyDirs "")
++
++    foreach(_dir IN LISTS ARGN)
++        if(PYTHON_INCLUDE_DIRS AND _dir IN_LIST PYTHON_INCLUDE_DIRS)
++            list(APPEND _buildOnlyDirs "${_dir}")
++        else()
++            list(APPEND _publicDirs "${_dir}")
++        endif()
++    endforeach()
++
++    if(_publicDirs)
++        target_include_directories(${TARGET}
++            SYSTEM
++            PUBLIC
++                ${_publicDirs}
++        )
++    endif()
++
++    foreach(_dir IN LISTS _buildOnlyDirs)
++        target_include_directories(${TARGET}
++            SYSTEM
++            PUBLIC
++                "$<BUILD_INTERFACE:${_dir}>"
++        )
++    endforeach()
++endfunction()
++
+ # Add a library target named NAME.
+ function(_pxr_library NAME)
+     # Argument parsing.
+@@ -1395,11 +1428,7 @@ function(_pxr_library NAME)
+     # as system include directories so that compiler warnings from these
+     # headers are ignored, since we have no control over the contents
+     # of those headers.
+-    target_include_directories(${NAME}
+-        SYSTEM
+-        PUBLIC
+-            ${args_INCLUDE_DIRS}
+-    )
++    _pxr_target_include_directories(${NAME} ${args_INCLUDE_DIRS})
+ 
+     # If we're building documentation, we need to copy the files we want
+     # doxygen to process to a parallel structure in the build directory.
+diff --git a/cmake/modules/FindOpenImageIO.cmake b/cmake/modules/FindOpenImageIO.cmake
+index 4d2ff1ec4..f49a0e003 100644
+--- a/cmake/modules/FindOpenImageIO.cmake
++++ b/cmake/modules/FindOpenImageIO.cmake
+@@ -146,3 +146,17 @@ find_package_handle_standard_args(OpenImageIO
+     VERSION_VAR
+         OIIO_VERSION
+ )
++
++# Expose OpenImageIO as an imported target rather than bare filesystem paths.
++# USD's exported targets reference this by name, so the absolute paths are
++# resolved by whichever find module is in play. That keeps the installed
++# package relocatable: a consumer re-runs the find module against their own
++# OpenImageIO instead of inheriting a path that only exists on the build
++# machine.
++if(OpenImageIO_FOUND AND NOT TARGET OpenImageIO::OpenImageIO)
++    add_library(OpenImageIO::OpenImageIO INTERFACE IMPORTED)
++    set_target_properties(OpenImageIO::OpenImageIO PROPERTIES
++        INTERFACE_INCLUDE_DIRECTORIES "${OIIO_INCLUDE_DIRS}"
++        INTERFACE_LINK_LIBRARIES "${OIIO_LIBRARIES}"
++    )
++endif()
+diff --git a/cmake/modules/FindOpenSubdiv.cmake b/cmake/modules/FindOpenSubdiv.cmake
+index 6fd1b9dcb..7bcc50dd9 100644
+--- a/cmake/modules/FindOpenSubdiv.cmake
++++ b/cmake/modules/FindOpenSubdiv.cmake
+@@ -117,6 +117,25 @@ IF(OPENSUBDIV_FOUND)
+   SET(OPENSUBDIV_LIBRARIES ${_opensubdiv_LIBRARIES})
+   SET(OPENSUBDIV_INCLUDE_DIRS ${OPENSUBDIV_INCLUDE_DIR})
+ 
++  # Expose OpenSubdiv as imported targets rather than bare filesystem paths.
++  # USD's exported targets reference these by name, so the absolute paths are
++  # resolved by whichever find module is in play. That keeps the installed
++  # package relocatable: a consumer re-runs the find module against their own
++  # OpenSubdiv instead of inheriting a path that only exists on the build
++  # machine.
++  FOREACH(COMPONENT ${_opensubdiv_FIND_COMPONENTS})
++    STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
++    if(OPENSUBDIV_${UPPERCOMPONENT}_LIBRARY AND
++       NOT TARGET OpenSubdiv::${COMPONENT})
++      add_library(OpenSubdiv::${COMPONENT} UNKNOWN IMPORTED)
++      set_target_properties(OpenSubdiv::${COMPONENT} PROPERTIES
++          IMPORTED_LOCATION "${OPENSUBDIV_${UPPERCOMPONENT}_LIBRARY}"
++          INTERFACE_INCLUDE_DIRECTORIES "${OPENSUBDIV_INCLUDE_DIR}"
++      )
++    endif()
++  ENDFOREACH()
++
++
+   # Find available compute controllers that USD may want to use.
+   OPENSUBDIV_CHECK_CONTROLLER("glXFBEvaluator.h" OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK)
+   OPENSUBDIV_CHECK_CONTROLLER("glComputeEvaluator.h" OPENSUBDIV_HAS_GLSL_COMPUTE)
+diff --git a/cmake/modules/FindOpenVDB.cmake b/cmake/modules/FindOpenVDB.cmake
+index 791982729..c46e456b0 100644
+--- a/cmake/modules/FindOpenVDB.cmake
++++ b/cmake/modules/FindOpenVDB.cmake
+@@ -37,3 +37,17 @@ find_package_handle_standard_args(OpenVDB
+     OPENVDB_INCLUDE_DIR
+     OPENVDB_LIBRARY
+ )
++
++# Expose OpenVDB as an imported target rather than a bare filesystem path.
++# USD's exported targets reference this target in their link interface, so the
++# absolute path to the library is resolved by whichever FindOpenVDB module is
++# in play. That keeps the installed package relocatable: a consumer re-runs
++# the find module against their own OpenVDB instead of inheriting a path that
++# only exists on the build machine.
++if(OpenVDB_FOUND AND NOT TARGET OpenVDB::OpenVDB)
++    add_library(OpenVDB::OpenVDB UNKNOWN IMPORTED)
++    set_target_properties(OpenVDB::OpenVDB PROPERTIES
++        IMPORTED_LOCATION "${OPENVDB_LIBRARY}"
++        INTERFACE_INCLUDE_DIRECTORIES "${OPENVDB_INCLUDE_DIR}"
++    )
++endif()
+diff --git a/pxr/CMakeLists.txt b/pxr/CMakeLists.txt
+index a02287dda..96bf0ebf6 100644
+--- a/pxr/CMakeLists.txt
++++ b/pxr/CMakeLists.txt
+@@ -63,6 +63,92 @@ foreach(property IN ITEMS
+     endif()
+ endforeach()
+ 
++# The TBB properties captured above are only written into the installed config
++# file when explicitly requested via PXR_EMBED_DEPENDENCY_PATHS_IN_CONFIG. They
++# are consumed by the fallback branch that synthesises TBB::tbb when TBB was not
++# found in CONFIG mode, but emitting them unconditionally still bakes
++# build-machine paths into the installed package. The compile definitions carry
++# no paths, so they are always preserved.
++foreach(property
++    INTERFACE_INCLUDE_DIRECTORIES
++    INTERFACE_LINK_DIRECTORIES
++    IMPORTED_IMPLIB
++    IMPORTED_LOCATION)
++    if(PXR_EMBED_DEPENDENCY_PATHS_IN_CONFIG)
++        set(PXR_CONFIG_tbb_${property} "${tbb_${property}}")
++    else()
++        set(PXR_CONFIG_tbb_${property} "")
++    endif()
++endforeach()
++
++# FindOpenSubdiv.cmake only searches for osdGPU when OPENSUBDIV_USE_GPU is set.
++# Packages.cmake assigns it from PXR_BUILD_GPU_SUPPORT as a plain (non-cache)
++# variable, so it is not visible when a consumer re-runs the module from the
++# installed config file. Record it as an explicit ON/OFF so the consumer
++# reproduces the same component set and OpenSubdiv::osdGPU gets created.
++if(PXR_BUILD_GPU_SUPPORT)
++    set(PXR_CONFIG_OPENSUBDIV_USE_GPU ON)
++else()
++    set(PXR_CONFIG_OPENSUBDIV_USE_GPU OFF)
++endif()
++
++# The find modules also branch on these user-supplied inputs, which are plain
++# variables. Record them so a consumer re-running the modules sees the same
++# behaviour this build did.
++if(OPENSUBDIV_USE_STATIC_LIBS)
++    set(PXR_CONFIG_OPENSUBDIV_USE_STATIC_LIBS ON)
++else()
++    set(PXR_CONFIG_OPENSUBDIV_USE_STATIC_LIBS OFF)
++endif()
++if(PXR_USE_DEBUG_BUILD)
++    set(PXR_CONFIG_PXR_USE_DEBUG_BUILD ON)
++else()
++    set(PXR_CONFIG_PXR_USE_DEBUG_BUILD OFF)
++endif()
++
++# OpenGL is only searched for when GL support is enabled and we are not
++# targeting an Apple embedded platform, which is exactly when the exported
++# targets end up referencing OpenGL::GL. Record that as an explicit ON/OFF so
++# the installed config file can re-run the find module under the same
++# conditions. PXR_APPLE_EMBEDDED is only defined on APPLE, so it cannot be
++# substituted directly into the template.
++if(PXR_ENABLE_GL_SUPPORT AND NOT PXR_APPLE_EMBEDDED)
++    set(PXR_CONFIG_FIND_OPENGL ON)
++else()
++    set(PXR_CONFIG_FIND_OPENGL OFF)
++endif()
++
++# Vulkan is located through package config files, so the directories recorded
++# during this build are absolute paths into the build machine. They are only
++# written into the installed config file when explicitly requested via
++# PXR_EMBED_DEPENDENCY_PATHS_IN_CONFIG.
++foreach(vulkan_pkg VulkanHeaders VulkanUtilityLibraries VulkanMemoryAllocator)
++    if(PXR_EMBED_DEPENDENCY_PATHS_IN_CONFIG)
++        set(PXR_CONFIG_${vulkan_pkg}_DIR "${${vulkan_pkg}_DIR}")
++    else()
++        set(PXR_CONFIG_${vulkan_pkg}_DIR "")
++    endif()
++endforeach()
++
++# The absolute paths of the Python interpreter, library and headers used for
++# this build are only written into the installed config file when explicitly
++# requested via PXR_EMBED_PYTHON_PATHS_IN_CONFIG. Baking them in pins
++# consumers to that exact Python installation and makes the installed package
++# non-relocatable, so they are left empty by default.
++if(PXR_EMBED_DEPENDENCY_PATHS_IN_CONFIG)
++    set(PXR_CONFIG_Python3_EXECUTABLE "${Python3_EXECUTABLE}")
++    set(PXR_CONFIG_Python3_LIBRARY "${Python3_LIBRARY}")
++    set(PXR_CONFIG_Python3_INCLUDE_DIR "${Python3_INCLUDE_DIR}")
++    set(PXR_CONFIG_MaterialX_DIR "${MaterialX_DIR}")
++    set(PXR_CONFIG_Imath_DIR "${Imath_DIR}")
++else()
++    set(PXR_CONFIG_Python3_EXECUTABLE "")
++    set(PXR_CONFIG_Python3_LIBRARY "")
++    set(PXR_CONFIG_Python3_INCLUDE_DIR "")
++    set(PXR_CONFIG_MaterialX_DIR "")
++    set(PXR_CONFIG_Imath_DIR "")
++endif()
++
+ configure_file(pxrConfig.cmake.in
+   "${PROJECT_BINARY_DIR}/pxrConfig.cmake" @ONLY)
+ install(FILES
+@@ -70,4 +156,14 @@ install(FILES
+   DESTINATION "${CMAKE_INSTALL_PREFIX}"
+ )
+ 
++# Install the find modules that the config file above re-runs, so that
++# consumers resolve the same third-party dependencies without having to
++# supply their own copies.
++install(FILES
++  "${PROJECT_SOURCE_DIR}/cmake/modules/FindOpenVDB.cmake"
++  "${PROJECT_SOURCE_DIR}/cmake/modules/FindOpenSubdiv.cmake"
++  "${PROJECT_SOURCE_DIR}/cmake/modules/FindOpenImageIO.cmake"
++  DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake/modules"
++)
++
+ install(EXPORT pxrTargets DESTINATION "cmake")
+diff --git a/pxr/imaging/hdSt/CMakeLists.txt b/pxr/imaging/hdSt/CMakeLists.txt
+index f43e95f9c..56882893b 100644
+--- a/pxr/imaging/hdSt/CMakeLists.txt
++++ b/pxr/imaging/hdSt/CMakeLists.txt
+@@ -50,11 +50,11 @@ pxr_library(hdSt
+         tf
+         trace
+         TBB::tbb
+-        ${OPENSUBDIV_LIBRARIES}
++        OpenSubdiv::osdCPU
++        OpenSubdiv::osdGPU
+         ${optionalLibs}
+ 
+     INCLUDE_DIRS
+-        ${OPENSUBDIV_INCLUDE_DIR}
+         ${optionalIncludeDirs}
+ 
+     PUBLIC_CLASSES
+diff --git a/pxr/imaging/hioOpenVDB/CMakeLists.txt b/pxr/imaging/hioOpenVDB/CMakeLists.txt
+index c94b63c5a..c20c90065 100644
+--- a/pxr/imaging/hioOpenVDB/CMakeLists.txt
++++ b/pxr/imaging/hioOpenVDB/CMakeLists.txt
+@@ -28,10 +28,9 @@ pxr_library(hioOpenVDB
+         tf
+         usd
+         ${__VDB_IMATH_LIBS}
+-        ${OPENVDB_LIBRARY}
++        OpenVDB::OpenVDB
+ 
+     INCLUDE_DIRS
+-        ${OPENVDB_INCLUDE_DIR}
+         ${Boost_INCLUDE_DIRS}
+ 
+     PUBLIC_CLASSES
+diff --git a/pxr/imaging/plugin/hdStorm/CMakeLists.txt b/pxr/imaging/plugin/hdStorm/CMakeLists.txt
+index dcca26658..ea1ebec2d 100644
+--- a/pxr/imaging/plugin/hdStorm/CMakeLists.txt
++++ b/pxr/imaging/plugin/hdStorm/CMakeLists.txt
+@@ -16,10 +16,10 @@ pxr_plugin(hdStorm
+         work
+         hd
+         hdSt
+-        ${OPENSUBDIV_LIBRARIES}
++        OpenSubdiv::osdCPU
++        OpenSubdiv::osdGPU
+ 
+     INCLUDE_DIRS
+-        ${OPENSUBDIV_INCLUDE_DIR}
+ 
+     PUBLIC_CLASSES
+         rendererPlugin
+diff --git a/pxr/imaging/plugin/hioOiio/CMakeLists.txt b/pxr/imaging/plugin/hioOiio/CMakeLists.txt
+index 0a055b711..bc6a630b0 100644
+--- a/pxr/imaging/plugin/hioOiio/CMakeLists.txt
++++ b/pxr/imaging/plugin/hioOiio/CMakeLists.txt
+@@ -22,11 +22,10 @@ pxr_plugin(hioOiio
+         gf
+         hio
+         tf
+-        ${OIIO_LIBRARIES}
++        OpenImageIO::OpenImageIO
+         ${__OIIO_IMATH_LIBS}
+ 
+     INCLUDE_DIRS
+-        ${OIIO_INCLUDE_DIRS}
+         ${__OIIO_IMATH_INCLUDE}
+ 
+     CPPFILES
+diff --git a/pxr/imaging/pxOsd/CMakeLists.txt b/pxr/imaging/pxOsd/CMakeLists.txt
+index 923686004..cd6785ab1 100644
+--- a/pxr/imaging/pxOsd/CMakeLists.txt
++++ b/pxr/imaging/pxOsd/CMakeLists.txt
+@@ -6,11 +6,10 @@ pxr_library(pxOsd
+         tf
+         gf
+         vt
+-        ${OPENSUBDIV_OSDCPU_LIBRARY}
++        OpenSubdiv::osdCPU
+ 
+     INCLUDE_DIRS
+-        ${OPENSUBDIV_INCLUDE_DIR}
+-        
++
+     PUBLIC_HEADERS
+         api.h
+ 
+diff --git a/pxr/pxrConfig.cmake.in b/pxr/pxrConfig.cmake.in
+index 1a28e14d6..9da8363a4 100644
+--- a/pxr/pxrConfig.cmake.in
++++ b/pxr/pxrConfig.cmake.in
+@@ -11,6 +11,12 @@
+ 
+ get_filename_component(PXR_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+ 
++# USD's own find modules are installed next to this file. Put them on the
++# module path so the find_dependency() calls below resolve the same way they
++# did when USD itself was built, without requiring consumers to ship their own
++# copies.
++list(INSERT CMAKE_MODULE_PATH 0 "${PXR_CMAKE_DIR}/cmake/modules")
++
+ set(PXR_MAJOR_VERSION "@PXR_MAJOR_VERSION@")
+ set(PXR_MINOR_VERSION "@PXR_MINOR_VERSION@")
+ set(PXR_PATCH_VERSION "@PXR_PATCH_VERSION@")
+@@ -24,21 +30,30 @@ include(CMakeFindDependencyMacro)
+ # were set. This can be overridden by specifying different values when
+ # running cmake.
+ if(@PXR_ENABLE_PYTHON_SUPPORT@)
+-    if (NOT DEFINED Python3_EXECUTABLE)
+-        if (NOT [[@Python3_EXECUTABLE@]] STREQUAL "")
+-            set(Python3_EXECUTABLE [[@Python3_EXECUTABLE@]])
++    # The absolute paths of the Python interpreter, library and headers
++    # used for this build are only written into this file when
++    # PXR_EMBED_DEPENDENCY_PATHS_IN_CONFIG was enabled. Baking them in
++    # pins consumers to that exact Python installation and makes the
++    # installed package non-relocatable. When they are omitted,
++    # find_dependency below locates a compatible Python on the consumer
++    # machine, and consumers may still supply their own hints.
++    if(@PXR_EMBED_DEPENDENCY_PATHS_IN_CONFIG@)
++        if (NOT DEFINED Python3_EXECUTABLE)
++            if (NOT [[@PXR_CONFIG_Python3_EXECUTABLE@]] STREQUAL "")
++                set(Python3_EXECUTABLE [[@PXR_CONFIG_Python3_EXECUTABLE@]])
++            endif()
+         endif()
+-    endif()
+ 
+-    if (NOT DEFINED Python3_LIBRARY)
+-        if (NOT [[@Python3_LIBRARY@]] STREQUAL "")
+-            set(Python3_LIBRARY [[@Python3_LIBRARY@]])
++        if (NOT DEFINED Python3_LIBRARY)
++            if (NOT [[@PXR_CONFIG_Python3_LIBRARY@]] STREQUAL "")
++                set(Python3_LIBRARY [[@PXR_CONFIG_Python3_LIBRARY@]])
++            endif()
+         endif()
+-    endif()
+ 
+-    if (NOT DEFINED Python3_INCLUDE_DIR)
+-        if (NOT [[@Python3_INCLUDE_DIR@]] STREQUAL "")
+-            set(Python3_INCLUDE_DIR [[@Python3_INCLUDE_DIR@]])
++        if (NOT DEFINED Python3_INCLUDE_DIR)
++            if (NOT [[@PXR_CONFIG_Python3_INCLUDE_DIR@]] STREQUAL "")
++                set(Python3_INCLUDE_DIR [[@PXR_CONFIG_Python3_INCLUDE_DIR@]])
++            endif()
+         endif()
+     endif()
+ 
+@@ -63,11 +78,11 @@ else()
+         endif()
+     endmacro()
+ 
+-    _add_property(INTERFACE_INCLUDE_DIRECTORIES "@tbb_INTERFACE_INCLUDE_DIRECTORIES@")
++    _add_property(INTERFACE_INCLUDE_DIRECTORIES "@PXR_CONFIG_tbb_INTERFACE_INCLUDE_DIRECTORIES@")
+     _add_property(INTERFACE_COMPILE_DEFINITIONS "@tbb_INTERFACE_COMPILE_DEFINITIONS@")
+-    _add_property(INTERFACE_LINK_DIRECTORIES "@tbb_INTERFACE_LINK_DIRECTORIES@")
+-    _add_property(IMPORTED_IMPLIB "@tbb_IMPORTED_IMPLIB@")
+-    _add_property(IMPORTED_LOCATION "@tbb_IMPORTED_LOCATION@")
++    _add_property(INTERFACE_LINK_DIRECTORIES "@PXR_CONFIG_tbb_INTERFACE_LINK_DIRECTORIES@")
++    _add_property(IMPORTED_IMPLIB "@PXR_CONFIG_tbb_IMPORTED_IMPLIB@")
++    _add_property(IMPORTED_LOCATION "@PXR_CONFIG_tbb_IMPORTED_LOCATION@")
+ endif()
+ 
+ if (NOT DEFINED PXR_FIND_OPENSUBDIV_IN_CONFIG)
+@@ -75,6 +90,39 @@ if (NOT DEFINED PXR_FIND_OPENSUBDIV_IN_CONFIG)
+ endif()
+ if (PXR_FIND_OPENSUBDIV_IN_CONFIG)
+     find_dependency(OpenSubdiv @OpenSubdiv_VERSION@ CONFIG)
++else()
++    # OpenSubdiv was located with USD's find module rather than a package
++    # config file. Re-run that module so the OpenSubdiv::osdCPU and
++    # OpenSubdiv::osdGPU imported targets exist before pxrTargets.cmake is
++    # included. The module is installed alongside this file.
++    #
++    # FindOpenSubdiv.cmake only searches for osdGPU when OPENSUBDIV_USE_GPU is
++    # set. That is a plain (non-cache) variable assigned in Packages.cmake, so
++    # it does not survive into this file. Without restoring it the consumer
++    # would only get osdCPU and pxrTargets.cmake would fail to resolve
++    # OpenSubdiv::osdGPU.
++    if (NOT DEFINED OPENSUBDIV_USE_GPU)
++        set(OPENSUBDIV_USE_GPU @PXR_CONFIG_OPENSUBDIV_USE_GPU@)
++    endif()
++    if (NOT DEFINED OPENSUBDIV_USE_STATIC_LIBS)
++        set(OPENSUBDIV_USE_STATIC_LIBS @PXR_CONFIG_OPENSUBDIV_USE_STATIC_LIBS@)
++    endif()
++    find_dependency(OpenSubdiv)
++endif()
++
++# If OpenImageIO support was enabled for this USD build, re-run the find module
++# that was used for that build so the OpenImageIO::OpenImageIO imported target
++# exists before pxrTargets.cmake is included. The module is installed alongside
++# this file, so it is picked up from here rather than from the consumer's own
++# module path.
++if(@PXR_BUILD_OPENIMAGEIO_PLUGIN@)
++    # FindOpenImageIO.cmake picks a debug library postfix when
++    # PXR_USE_DEBUG_BUILD is set. That is a plain variable, so restore it or
++    # the consumer would look for a different library name than this build did.
++    if (NOT DEFINED PXR_USE_DEBUG_BUILD)
++        set(PXR_USE_DEBUG_BUILD @PXR_CONFIG_PXR_USE_DEBUG_BUILD@)
++    endif()
++    find_dependency(OpenImageIO)
+ endif()
+ 
+ # If MaterialX support was enabled for this USD build, try to find the
+@@ -82,9 +130,11 @@ endif()
+ # module that was used for that build. This can be overridden by
+ # specifying a different MaterialX_DIR when running cmake.
+ if(@PXR_ENABLE_MATERIALX_SUPPORT@)
+-    if (NOT DEFINED MaterialX_DIR)
+-        if (NOT [[@MaterialX_DIR@]] STREQUAL "")
+-            set(MaterialX_DIR [[@MaterialX_DIR@]])
++    if(@PXR_EMBED_DEPENDENCY_PATHS_IN_CONFIG@)
++        if (NOT DEFINED MaterialX_DIR)
++            if (NOT [[@PXR_CONFIG_MaterialX_DIR@]] STREQUAL "")
++                set(MaterialX_DIR [[@PXR_CONFIG_MaterialX_DIR@]])
++            endif()
+         endif()
+     endif()
+     find_dependency(MaterialX)
+@@ -92,18 +142,36 @@ endif()
+ 
+ # Similar to MaterialX above, we are using Imath's cmake package config, so set
+ # the Imath_DIR accordingly to find the associated import targets which were
+-# used for this USD build. 
++# used for this USD build.
+ # Note that we only need to do this, when it is determined by Imath is being
+ # used instead of OpenExr (refer Packages.cmake)
+ if(@Imath_FOUND@)
+-    if (NOT DEFINED Imath_DIR)
+-        if (NOT [[@Imath_DIR@]] STREQUAL "")
+-            set(Imath_DIR [[@Imath_DIR@]])
++    if(@PXR_EMBED_DEPENDENCY_PATHS_IN_CONFIG@)
++        if (NOT DEFINED Imath_DIR)
++            if (NOT [[@PXR_CONFIG_Imath_DIR@]] STREQUAL "")
++                set(Imath_DIR [[@PXR_CONFIG_Imath_DIR@]])
++            endif()
+         endif()
+     endif()
+     find_dependency(Imath)
+ endif()
+ 
++# If OpenVDB support was enabled for this USD build, re-run the find module
++# that was used for that build so the OpenVDB::OpenVDB imported target exists
++# before pxrTargets.cmake is included. The module is installed alongside this
++# file, so it is picked up from here rather than from the consumer's own module
++# path. Consumers may pre-set OPENVDB_LOCATION to point at their own OpenVDB.
++if(@PXR_ENABLE_OPENVDB_SUPPORT@)
++    find_dependency(OpenVDB)
++endif()
++
++# If OpenGL support was enabled for this USD build, re-run the find module so
++# the OpenGL::GL imported target exists before pxrTargets.cmake is included.
++# garch references it in its link interface.
++if(@PXR_CONFIG_FIND_OPENGL@)
++    find_dependency(OpenGL)
++endif()
++
+ # If this build is using a custom work implementation, find the package
+ # providing that implementation.
+ if(NOT "@PXR_WORK_IMPL_PACKAGE@" STREQUAL "")

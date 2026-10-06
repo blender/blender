@@ -79,7 +79,7 @@ set(USD_EXTRA_ARGS
   -DPXR_ENABLE_OPENVDB_SUPPORT=ON
   -DPYTHON_EXECUTABLE=${PYTHON_BINARY}
   -DPython3_EXECUTABLE=${PYTHON_BINARY}
-  -DPXR_BUILD_MONOLITHIC=ON
+  -DPXR_BUILD_MONOLITHIC=OFF
   # OSL is an optional dependency of the Imaging module. However, since that
   # module was included for its support for converting primitive shapes (sphere,
   # cube, etc.) to geometry, it's not necessary. Disabling it will make it
@@ -110,6 +110,8 @@ set(USD_EXTRA_ARGS
   -DVulkanMemoryAllocator_ROOT=${LIBDIR}/vulkan_memory_allocator
   -DShaderC_ROOT=${LIBDIR}/shaderc
   -DSpirvReflect_ROOT=${LIBDIR}/spirv_reflect
+  -DPXR_FIND_OPENSUBDIV_IN_CONFIG=ON
+  -DPXR_FIND_TBB_IN_CONFIG=ON
 )
 
 # Ray: I'm not sure if the other platforms relied on this or not but this is no longer
@@ -136,13 +138,16 @@ ExternalProject_Add(external_usd
       ${PATCH_DIR}/usd.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_portable_2608.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
       ${PATCH_DIR}/usd_core_profile.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
       ${PATCH_DIR}/usd_ctor.diff &&
-    ${PATCH_CMD} -p 1 -d
-      ${BUILD_DIR}/usd/src/external_usd <
-      ${PATCH_DIR}/usd_noboost.diff &&
+#    ${PATCH_CMD} -p 1 -d
+#      ${BUILD_DIR}/usd/src/external_usd <
+#      ${PATCH_DIR}/usd_noboost.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
       ${PATCH_DIR}/usd_no_vulkan_sdk.diff &&
@@ -193,29 +198,16 @@ if(NOT WIN32)
 endif()
 
 if(WIN32)
-  if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_usd after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${LIBDIR}/usd
         ${HARVEST_TARGET}/usd
 
+      COMMAND ${CMAKE_COMMAND}
+        -DCLEAN_DIR=${HARVEST_TARGET}/usd
+        -P ${CMAKE_CURRENT_LIST_DIR}/win_clean_pdb.cmake
       DEPENDEES install
     )
-  endif()
-  if(BUILD_MODE STREQUAL Debug)
-    ExternalProject_Add_Step(external_usd after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/usd/lib/site-packages
-        ${HARVEST_TARGET}/usd/lib/debug/site-packages
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/usd/lib/usd_ms_d.dll
-        ${HARVEST_TARGET}/usd/lib/usd_ms_d.dll
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/usd/lib/usd_ms_d.lib
-        ${HARVEST_TARGET}/usd/lib/usd_ms_d.lib
-      DEPENDEES install
-    )
-  endif()
 else()
   harvest(external_usd usd/include usd/include "*.h")
   harvest(external_usd usd/include usd/include "*.hpp")
