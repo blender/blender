@@ -23,6 +23,7 @@
 #include "draw_view.bsl.hh"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load.bsl.hh"
+#include "gpu_shader_math_vector.bsl.hh"
 #include "workbench_shader_shared.hh"
 
 namespace workbench::shadow {
@@ -197,7 +198,8 @@ struct GeometryShaderEmulator {
     float3 n1 = cross(v12, v10);
     float3 n2 = cross(v13, v12);
 
-#if 0 /* DEGENERATE_TRIS_WORKAROUND */
+#if 1 /* DEGENERATE_TRIS_WORKAROUND */
+    constexpr float DEGENERATE_TRIS_AREA_THRESHOLD = 4e-15f;
     /* Check if area is null */
     float2 faces_area = float2(length_squared(n1), length_squared(n2));
     bool2 degen_faces = lessThan(abs(faces_area), float2(DEGENERATE_TRIS_AREA_THRESHOLD));
@@ -219,8 +221,8 @@ struct GeometryShaderEmulator {
     /* WATCH: maybe unpredictable in some cases. */
     bool is_manifold = any(notEqual(geom_in[0].lP, geom_in[3].lP));
 
-#if 0 /* DEGENERATE_TRIS_WORKAROUND */
-    if (srt.double_manifold == false) [[static_branch]] {
+#if 1 /* DEGENERATE_TRIS_WORKAROUND */
+    if (srt.consts.double_manifold == false) [[static_branch]] {
       /* If the mesh is known to be manifold and we don't use double count,
        * only create an quad if the we encounter a facing geom. */
       if ((degen_faces.x && backface.y) || (degen_faces.y && backface.x)) {
