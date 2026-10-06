@@ -259,21 +259,15 @@ gpu::VertBufPtr extract_attribute_subdiv(const MeshRenderData &mr,
   return vbo;
 }
 
-gpu::VertBufPtr extract_attr_viewer(const MeshRenderData &mr)
+gpu::VertBufPtr extract_attr_viewer(const MeshRenderData &mr, MeshBufferCache &cache)
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
       "attribute_value", gpu::VertAttrType::SFLOAT_32_32_32_32);
-
-  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
-  GPU_vertbuf_data_alloc(*vbo, mr.corners_num);
-  MutableSpan vbo_data = vbo->data<ColorGeometry4f>();
-
   const StringRefNull attr_name = ".viewer";
   const bke::AttributeAccessor attributes = mr.mesh->attributes();
-  const bke::AttributeReader attribute = attributes.lookup_or_default<ColorGeometry4f>(
-      attr_name, bke::AttrDomain::Corner, {1.0f, 0.0f, 1.0f, 1.0f});
-  attribute.varray.materialize(vbo_data);
-  return vbo;
+  const bke::GAttributeReader attr = attributes.lookup(
+      attr_name, std::nullopt, bke::AttrType::ColorFloat);
+  return extract_attribute_data(mr, cache, attr, format);
 }
 
 /** \} */
