@@ -1265,6 +1265,27 @@ static bool collection_drop_init(bContext *C, wmDrag *drag, const int xy[2], Col
     }
   }
 
+  const Collection *target_collection = to_collection;
+  if (ELEM(insert_type, TE_INSERT_BEFORE, TE_INSERT_AFTER)) {
+    target_collection = nullptr;
+    for (const TreeElement *te_parent =
+             outliner_find_parent_element(&space_outliner->runtime->tree, nullptr, te);
+         te_parent != nullptr;
+         te_parent = te_parent->parent)
+    {
+      target_collection = outliner_collection_from_tree_element(te_parent);
+      if (target_collection != nullptr) {
+        break;
+      }
+    }
+  }
+
+  if (target_collection != nullptr &&
+      (!ID_IS_EDITABLE(target_collection) || ID_IS_OVERRIDE_LIBRARY(target_collection)))
+  {
+    return false;
+  }
+
   data->from = from_collection;
   data->to = to_collection;
   data->te = te;
