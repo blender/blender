@@ -347,12 +347,12 @@ class NODE_MT_shader_node_shader_base(node_add_menu.NodeMenu):
         )
         self.node_operator(
             layout,
-            "ShaderNodeVolumeScatter",
+            "ShaderNodeVolumeCoefficients",
             poll=not object_light_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
-            "ShaderNodeVolumeCoefficients",
+            "ShaderNodeVolumeScatter",
             poll=not object_light_shader_nodes_poll(context),
         )
 
