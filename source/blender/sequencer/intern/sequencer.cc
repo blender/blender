@@ -146,6 +146,7 @@ Strip *strip_alloc(ListBaseT<Strip> *lb, int timeline_frame, int channel, StripT
   strip->type = type;
   strip->media_playback_rate = 0.0f;
   strip->speed_factor = 1.0f;
+  strip->strobe = 1.0f;
 
   if (strip->type == STRIP_TYPE_ADJUSTMENT) {
     strip->blend_mode = STRIP_BLEND_CROSS;

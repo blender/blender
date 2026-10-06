@@ -451,6 +451,8 @@ class TOPBAR_MT_file_export(Menu):
         if bpy.app.build_options.io_stl:
             self.layout.operator(
                 "wm.stl_export", text=FileHandler.label_with_extensions("IO_FH_stl"))
+        if bpy.app.build_options.opentimelineio:
+            self.layout.operator("wm.otio_export", text="OpenTimelineIO (.otio)")
 
 
 class TOPBAR_MT_file_external_data(Menu):
