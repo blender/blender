@@ -1523,7 +1523,10 @@ class NodeTreeMainUpdater {
         for (const bNodeSocket *linked_socket : socket->logically_linked_sockets()) {
           node->runtime->tmp_flag |= linked_socket->owner_node().runtime->tmp_flag;
           if (linked_socket->owner_node().type_legacy == SH_NODE_LIGHT_ACCUMULATION &&
-              ELEM(StringRefNull(linked_socket->name), "Diffuse Color", "Glossy Color"))
+              ELEM(StringRefNull(linked_socket->name),
+                   "Diffuse Color",
+                   "Glossy Color",
+                   "Transmission Color"))
           {
             node->runtime->tmp_flag |= short(ShaderNodeAncestorFlags::LightAccumulationColor);
           }
@@ -1580,7 +1583,10 @@ class NodeTreeMainUpdater {
           }
           if (bool(flags & ShaderNodeAncestorFlags::LightAccumulationColor) &&
               (link.tonode->type_legacy != SH_NODE_LIGHT_ACCUMULATION ||
-               ELEM(StringRefNull(link.tosock->name), "Diffuse Color", "Glossy Color")))
+               ELEM(StringRefNull(link.tosock->name),
+                    "Diffuse Color",
+                    "Glossy Color",
+                    "Transmission Color")))
           {
             return TIP_(
                 "Lighting nodes can't be connected to the Color sockets of a Light Accumulation "
