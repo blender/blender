@@ -23,6 +23,7 @@ set(OPENSUBDIV_EXTRA_ARGS
   -DNO_GLFW=ON
   -DNO_GLFW_X11=ON
   -DTBB_DIR=${LIBDIR}/tbb/lib/cmake/tbb
+  -DCMAKE_DEBUG_POSTFIX=_d
 )
 
 ExternalProject_Add(external_opensubdiv
@@ -56,13 +57,9 @@ if(WIN32)
   endif()
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_opensubdiv after_install
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/opensubdiv/lib/osdCPU.lib
-        ${HARVEST_TARGET}/opensubdiv/lib/osdCPU_d.lib
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/opensubdiv/lib/osdGPU.lib
-        ${HARVEST_TARGET}/opensubdiv/lib/osdGPU_d.lib
-
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/opensubdiv/lib
+        ${HARVEST_TARGET}/opensubdiv/lib
       DEPENDEES install
     )
   endif()
