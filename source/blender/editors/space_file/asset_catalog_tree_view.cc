@@ -13,7 +13,11 @@
 #include "AS_asset_library.hh"
 
 #include "BKE_asset.hh"
+#include "BKE_asset_edit.hh"
+#include "BKE_context.hh"
+#include "BKE_report.hh"
 
+#include "BLI_assert.hh"
 #include "BLI_listbase.hh"
 #include "BLI_string_ref.hh"
 
@@ -21,6 +25,7 @@
 
 #include "ED_asset.hh"
 #include "ED_asset_catalog.hh"
+#include "ED_asset_list.hh"
 #include "ED_fileselect.hh"
 #include "ED_undo.hh"
 
@@ -490,30 +495,71 @@ bool AssetCatalogDropTarget::drop_assets_into_catalog(bContext *C,
                                                       StringRefNull simple_name)
 {
   BLI_assert(drag.type == WM_DRAG_ASSET_LIST);
+  Main *bmain = CTX_data_main(C);
+  ReportList *reports = CTX_wm_reports(C);
+  BLI_assert(CTX_wm_reports(C));
+
   const ListBaseT<wmDragAssetListItem> *asset_drags = WM_drag_asset_list_get(&drag);
   if (!asset_drags) {
     return false;
   }
 
-  bool did_update = false;
+  bool is_local_id_modified = false;
   for (wmDragAssetListItem &asset_item : *asset_drags) {
+    ID *asset_id = nullptr;
+
     if (asset_item.is_external) {
-      /* Only internal assets can be modified! */
-      continue;
+      /* Load the external asset. Note that asset_edit_id_from_weak_reference() can still return a
+       * local datablock (if it was already used in the local file), which is why the remainder of
+       * this loop iteration just uses `ID_IS_LINKED()` and not `asset_item.is_external`. */
+      const asset_system::AssetRepresentation *asset = asset_item.asset_data.external_info->asset;
+      const AssetWeakReference asset_reference = asset->make_weak_reference();
+      asset_id = bke::asset_edit_id_from_weak_reference(
+          *bmain, asset->get_id_type(), asset_reference);
+
+      if (ID_IS_LINKED(asset_id) && (!bke::asset_edit_id_is_editable(*asset_id) ||
+                                     !bke::asset_edit_id_is_writable(*asset_id)))
+      {
+        continue;
+      }
+    }
+    else {
+      asset_id = asset_item.asset_data.local_id;
+      BLI_assert_msg(!ID_IS_LINKED(asset_id), "Local assets are not expected to be linked");
     }
 
-    did_update = true;
-    BKE_asset_metadata_catalog_id_set(
-        asset_item.asset_data.local_id->asset_data, catalog_id, simple_name.c_str());
+    /* Set the catalog. */
+    BLI_assert(asset_id != nullptr);
+    BKE_asset_metadata_catalog_id_set(asset_id->asset_data, catalog_id, simple_name.c_str());
 
-    /* Trigger re-run of filtering to update visible assets. */
-    filelist_tag_needs_filtering(tree_view.space_file_.files);
-    file_select_deselect_all(&tree_view.space_file_, FILE_SEL_SELECTED | FILE_SEL_HIGHLIGHTED);
-    WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
-    WM_main_add_notifier(NC_ASSET | ND_ASSET_CATALOGS, nullptr);
+    /* Ensure the asset system also sees the new metadata, without having to reload the planet.
+     * It's a little hacky, but when reloading the planet, the asset browser also reloads the
+     * catalogs, which in turn collapses the entire tree except for the active catalog, which means
+     * that after dragging into another catalog, that destination catalog may suddenly be hidden.
+     * And that's nasty. */
+    if (asset_item.is_external) {
+      const asset_system::AssetRepresentation *asset = asset_item.asset_data.external_info->asset;
+      AssetMetaData &cached_metadata = asset->get_metadata();
+      BKE_asset_metadata_catalog_id_set(&cached_metadata, catalog_id, simple_name.c_str());
+    }
+
+    if (ID_IS_LINKED(asset_id)) {
+      /* Saving is not needed for local assets. */
+      bke::asset_edit_id_save(*bmain, *asset_id, *reports);
+    }
+    else {
+      is_local_id_modified = true;
+    }
   }
 
-  if (did_update) {
+  /* Trigger re-run of filtering to update visible assets. */
+  filelist_tag_needs_filtering(tree_view.space_file_.files);
+  file_select_deselect_all(&tree_view.space_file_, FILE_SEL_SELECTED | FILE_SEL_HIGHLIGHTED);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
+  WM_main_add_notifier(NC_ASSET | ND_ASSET_CATALOGS, nullptr);
+
+  if (is_local_id_modified) {
+    /* Only create undo-step for local actions. Undoing external files isn't supported. */
     ED_undo_push(C, "Assign Asset Catalog");
   }
   return true;
@@ -540,9 +586,16 @@ bool AssetCatalogDropTarget::has_droppable_asset(const wmDrag &drag, const char 
     if (!asset_item.is_external) {
       return true;
     }
+    BLI_assert(asset_item.asset_data.external_info);
+    BLI_assert(asset_item.asset_data.external_info->asset);
+    if (asset_item.asset_data.external_info->asset->is_potentially_editable_asset_blend()) {
+      return true;
+    }
   }
 
-  *r_disabled_hint = RPT_("Only assets from this current file can be moved between catalogs");
+  *r_disabled_hint = RPT_(
+      "Only assets from the current file or asset system files (.asset.blend) can be moved "
+      "between catalogs");
   return false;
 }
 
