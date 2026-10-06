@@ -7,6 +7,7 @@
  */
 
 #include "BKE_context.hh"
+#include "BKE_scene_context.hh"
 
 #include "DNA_scene_types.h"
 
