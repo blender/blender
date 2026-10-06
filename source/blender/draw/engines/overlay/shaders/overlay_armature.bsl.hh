@@ -699,6 +699,7 @@ struct Resources {
 
 [[vertex]]
 void vert([[resource_table]] const Resources &srt,
+          [[resource_table]] const Armature &armature,
           [[resource_table]] const Clipping &clip,
           [[resource_table]] const draw::View &views,
           [[resource_table, condition(selectable)]] const draw::Select &sel,
@@ -734,7 +735,7 @@ void vert([[resource_table]] const Resources &srt,
   constexpr float s = 0.2f; /* [0.0f-0.5f] range */
   float fac = clamp((n * (1.0f - s)) + s, 0.0f, 1.0f);
   v_out.final_color.rgb = mix(state_color.rgb, bone_color.rgb, fac * fac);
-  v_out.final_color.a = 1.0f;
+  v_out.final_color.a = armature.alpha;
 
   float3 ws_P = transform_point(model_mat, v_in.pos);
   out_pos = view.point_world_to_homogenous(ws_P);
@@ -1132,22 +1133,22 @@ PipelineGraphic shape_solid_selectable_clipped(shape::solid::vert,
                                                draw::SelectConstant{.selectable = true});
 
 PipelineGraphic shape_wire(shape::wire::vert,
-                           wire_frag,
+                           shape::wire::frag,
                            shape::wire::Constants{.from_line_strip = false},
                            ClippingConstant{.use_clipping = false},
                            draw::SelectConstant{.selectable = false});
 PipelineGraphic shape_wire_selectable(shape::wire::vert,
-                                      wire_frag,
+                                      shape::wire::frag,
                                       shape::wire::Constants{.from_line_strip = false},
                                       ClippingConstant{.use_clipping = false},
                                       draw::SelectConstant{.selectable = true});
 PipelineGraphic shape_wire_clipped(shape::wire::vert,
-                                   wire_frag,
+                                   shape::wire::frag,
                                    shape::wire::Constants{.from_line_strip = false},
                                    ClippingConstant{.use_clipping = true},
                                    draw::SelectConstant{.selectable = false});
 PipelineGraphic shape_wire_selectable_clipped(shape::wire::vert,
-                                              wire_frag,
+                                              shape::wire::frag,
                                               shape::wire::Constants{.from_line_strip = false},
                                               ClippingConstant{.use_clipping = true},
                                               draw::SelectConstant{.selectable = true});
