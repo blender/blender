@@ -1447,6 +1447,10 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(
   graphics_info.shaders.vk_topology = vk_topology;
   graphics_info.shaders.state = state_manager.state;
   graphics_info.shaders.viewport_count = framebuffer.viewport_size();
+  if (device.workarounds_get().static_viewport_scissor) {
+    framebuffer.vk_viewports_append(graphics_info.shaders.viewports);
+    framebuffer.vk_render_areas_append(graphics_info.shaders.scissors);
+  }
   graphics_info.shaders.specialization_constants.extend(constants_state.values);
   graphics_info.shaders.has_depth = depth_attachment_format != VK_FORMAT_UNDEFINED;
   graphics_info.shaders.has_stencil = stencil_attachment_format != VK_FORMAT_UNDEFINED;

@@ -136,6 +136,15 @@ struct VKWorkarounds {
    */
   bool not_aligned_pixel_formats = false;
 
+  /**
+   * Some Qualcomm drivers keep command-buffer-local state written by `vkCmdSetViewport` across
+   * command buffer resets.
+   *
+   * When set, viewports and scissors are baked into the pipeline as static state and
+   * `vkCmdSetViewport`/`vkCmdSetScissor` are never used.
+   */
+  bool static_viewport_scissor = false;
+
   /** Log enabled workarounds. */
   void log() const;
 };

@@ -64,6 +64,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
                   VkPipeline vk_pipeline_base)
   {
     const VKExtensions &extensions = device.extensions_get();
+    const VKWorkarounds &workarounds = device.workarounds_get();
     build_graphics_pipeline(extensions, graphics_info, vk_pipeline_base);
 
     build_input_assembly_state(graphics_info.vertex_in);
@@ -77,9 +78,9 @@ struct VKGraphicsPipelineCreateInfoBuilder {
     if (do_specialization_constants) {
       build_specialization_constants(graphics_info.shaders);
     }
-    build_dynamic_state(graphics_info.shaders, extensions);
+    build_dynamic_state(graphics_info.shaders, extensions, workarounds);
     build_multisample_state();
-    build_viewport_state(graphics_info.shaders);
+    build_viewport_state(graphics_info.shaders, workarounds);
     build_rasterization_state(graphics_info.shaders, extensions);
     build_depth_stencil_state(graphics_info.shaders);
 
@@ -111,6 +112,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
    */
   void build_shaders_lib(const VKGraphicsInfo::Shaders &shaders_info,
                          const VKExtensions &extensions,
+                         const VKWorkarounds &workarounds,
                          VkPipeline vk_pipeline_base)
   {
     build_graphics_pipeline_library(
@@ -123,9 +125,9 @@ struct VKGraphicsPipelineCreateInfoBuilder {
     if (do_specialization_constants) {
       build_specialization_constants(shaders_info);
     }
-    build_dynamic_state(shaders_info, extensions);
+    build_dynamic_state(shaders_info, extensions, workarounds);
     build_multisample_state();
-    build_viewport_state(shaders_info);
+    build_viewport_state(shaders_info, workarounds);
     build_rasterization_state(shaders_info, extensions);
     build_depth_stencil_state(shaders_info);
     build_dynamic_rendering_shaders_lib(extensions, shaders_info);
@@ -319,7 +321,8 @@ struct VKGraphicsPipelineCreateInfoBuilder {
         VK_FALSE};
   }
 
-  void build_viewport_state(const VKGraphicsInfo::Shaders &shaders_info)
+  void build_viewport_state(const VKGraphicsInfo::Shaders &shaders_info,
+                            const VKWorkarounds &workarounds)
   {
     vk_pipeline_viewport_state_create_info = {
         VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
@@ -329,6 +332,12 @@ struct VKGraphicsPipelineCreateInfoBuilder {
         nullptr,
         shaders_info.viewport_count,
         nullptr};
+    if (workarounds.static_viewport_scissor) {
+      BLI_assert(shaders_info.viewports.size() == shaders_info.viewport_count);
+      BLI_assert(shaders_info.scissors.size() == shaders_info.viewport_count);
+      vk_pipeline_viewport_state_create_info.pViewports = shaders_info.viewports.data();
+      vk_pipeline_viewport_state_create_info.pScissors = shaders_info.scissors.data();
+    }
   }
 
   void build_input_assembly_state(const VKGraphicsInfo::VertexIn &vertex_input_info)
@@ -421,9 +430,15 @@ struct VKGraphicsPipelineCreateInfoBuilder {
   }
 
   void build_dynamic_state(const VKGraphicsInfo::Shaders &shaders_info,
-                           const VKExtensions &extensions)
+                           const VKExtensions &extensions,
+                           const VKWorkarounds &workarounds)
   {
-    vk_dynamic_states = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+    /* Viewports & scissors are dynamic unless baked into the pipeline
+     * (see `VKWorkarounds::static_viewport_scissor`). */
+    if (!workarounds.static_viewport_scissor) {
+      vk_dynamic_states.append(VK_DYNAMIC_STATE_VIEWPORT);
+      vk_dynamic_states.append(VK_DYNAMIC_STATE_SCISSOR);
+    }
     const bool is_line_topology = ELEM(shaders_info.vk_topology,
                                        VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
                                        VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,

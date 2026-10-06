@@ -9,6 +9,7 @@
 #pragma once
 
 #include <atomic>
+#include <cstring>
 
 #include "xxhash.h"
 
@@ -84,6 +85,12 @@ struct VKGraphicsInfo {
     VkShaderModule vk_fragment_module;
     VkPrimitiveTopology vk_topology;
     uint32_t viewport_count;
+    /**
+     * Viewports & scissors baked into the pipeline when
+     * `VKWorkarounds::static_viewport_scissor` is set; part of the pipeline key.
+     */
+    Vector<VkViewport, GPU_MAX_VIEWPORTS> viewports;
+    Vector<VkRect2D, GPU_MAX_VIEWPORTS> scissors;
     GPUState state;
     Vector<shader::SpecializationConstant::Value> specialization_constants;
     bool has_depth;
@@ -107,12 +114,21 @@ struct VKGraphicsInfo {
              specialization_constants == other.specialization_constants &&
              has_depth == other.has_depth && has_stencil == other.has_stencil &&
              max_input_attachment_index == other.max_input_attachment_index &&
-             color_attachment_count == other.color_attachment_count;
+             color_attachment_count == other.color_attachment_count &&
+             viewports.size() == other.viewports.size() &&
+             scissors.size() == other.scissors.size() &&
+             memcmp(viewports.data(),
+                    other.viewports.data(),
+                    viewports.size() * sizeof(VkViewport)) == 0 &&
+             memcmp(scissors.data(), other.scissors.data(), scissors.size() * sizeof(VkRect2D)) ==
+                 0;
     }
 
     uint64_t hash() const
     {
       uint64_t hash = viewport_count;
+      hash = hash * 33 ^ XXH3_64bits(viewports.data(), viewports.size() * sizeof(VkViewport));
+      hash = hash * 33 ^ XXH3_64bits(scissors.data(), scissors.size() * sizeof(VkRect2D));
       hash = hash * 33 ^ uint64_t(vk_vertex_module);
       hash = hash * 33 ^ uint64_t(vk_geometry_module);
       hash = hash * 33 ^ uint64_t(vk_fragment_module);
