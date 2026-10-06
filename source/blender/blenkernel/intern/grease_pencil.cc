@@ -1125,8 +1125,11 @@ static void update_triangle_and_offsets_changed(const Span<float3> positions,
                                                 const IndexMask &changed_curves,
                                                 const std::optional<GroupedSpan<int>> fills,
                                                 const GroupedSpan<int3> src_triangles,
+                                                const GroupedSpan<float3> src_intersection_points,
                                                 Vector<int3> &r_triangles,
-                                                MutableSpan<int> r_triangle_offsets)
+                                                MutableSpan<int> r_triangle_offsets,
+                                                Vector<float3> &r_intersection_points,
+                                                MutableSpan<int> r_intersection_point_offsets)
 {
   const int num_fills = fills.has_value() ? fills->size() : 0;
 
@@ -1156,34 +1159,69 @@ static void update_triangle_and_offsets_changed(const Span<float3> positions,
 
   const OffsetIndices<int> changed_triangle_offsets = OffsetIndices<int>(
       changed_triangle_offsets_data);
+  const OffsetIndices<int> changed_intersection_point_offsets = OffsetIndices<int>(
+      changed_intersection_point_offsets_data);
 
-  Array<int> all_src_sizes(num_fills);
-  Array<int> changed_sizes(changed_fills.size());
-  copy_group_sizes(src_triangles.offsets, src_triangles.index_range(), all_src_sizes);
+  Array<int> all_src_triangle_sizes(num_fills);
+  Array<int> changed_triangle_sizes(changed_fills.size());
+  Array<int> all_src_intersection_point_sizes(num_fills);
+  Array<int> changed_intersection_point_sizes(changed_fills.size());
+  copy_group_sizes(src_triangles.offsets, src_triangles.index_range(), all_src_triangle_sizes);
   copy_group_sizes(
-      changed_triangle_offsets, changed_triangle_offsets.index_range(), changed_sizes);
+      changed_triangle_offsets, changed_triangle_offsets.index_range(), changed_triangle_sizes);
+  copy_group_sizes(src_intersection_points.offsets,
+                   src_intersection_points.index_range(),
+                   all_src_intersection_point_sizes);
+  copy_group_sizes(changed_intersection_point_offsets,
+                   changed_intersection_point_offsets.index_range(),
+                   changed_intersection_point_sizes);
 
-  Array<int> src_sizes(unchanged_fills.size());
-  array_utils::gather(all_src_sizes.as_span(), unchanged_fills, src_sizes.as_mutable_span());
+  Array<int> src_triangle_sizes(unchanged_fills.size());
+  Array<int> src_intersection_point_sizes(unchanged_fills.size());
+  array_utils::gather(
+      all_src_triangle_sizes.as_span(), unchanged_fills, src_triangle_sizes.as_mutable_span());
+  array_utils::gather(all_src_intersection_point_sizes.as_span(),
+                      unchanged_fills,
+                      src_intersection_point_sizes.as_mutable_span());
 
-  array_utils::scatter(src_sizes.as_span(), unchanged_fills, r_triangle_offsets);
-  array_utils::scatter(changed_sizes.as_span(), changed_fills, r_triangle_offsets);
+  array_utils::scatter(src_triangle_sizes.as_span(), unchanged_fills, r_triangle_offsets);
+  array_utils::scatter(changed_triangle_sizes.as_span(), changed_fills, r_triangle_offsets);
+  array_utils::scatter(
+      src_intersection_point_sizes.as_span(), unchanged_fills, r_intersection_point_offsets);
+  array_utils::scatter(
+      changed_intersection_point_sizes.as_span(), changed_fills, r_intersection_point_offsets);
 
   const OffsetIndices<int> triangle_offsets = offset_indices::accumulate_counts_to_offsets(
       r_triangle_offsets);
+  const OffsetIndices<int> intersection_point_offsets =
+      offset_indices::accumulate_counts_to_offsets(r_intersection_point_offsets);
 
   r_triangles.resize(r_triangle_offsets.last());
+  r_intersection_points.resize(r_intersection_point_offsets.last());
   array_utils::copy_group_to_group(src_triangles.offsets,
                                    triangle_offsets,
                                    unchanged_fills,
                                    src_triangles.data,
                                    r_triangles.as_mutable_span());
+  array_utils::copy_group_to_group(src_intersection_points.offsets,
+                                   intersection_point_offsets,
+                                   unchanged_fills,
+                                   src_intersection_points.data,
+                                   r_intersection_points.as_mutable_span());
 
   changed_fills.foreach_index(
       [&](const int i, const int pos) {
         r_triangles.as_mutable_span()
             .slice(triangle_offsets[i])
             .copy_from(changed_triangles.as_span().slice(changed_triangle_offsets[pos]));
+      },
+      exec_mode::grain_size(512));
+  changed_fills.foreach_index(
+      [&](const int i, const int pos) {
+        r_intersection_points.as_mutable_span()
+            .slice(intersection_point_offsets[i])
+            .copy_from(changed_intersection_points.as_span().slice(
+                changed_intersection_point_offsets[pos]));
       },
       exec_mode::grain_size(512));
 }
@@ -1222,12 +1260,19 @@ void Drawing::tag_positions_changed(const IndexMask &changed_curves)
   /* Fills cache needs to be up-to-date. */
   this->runtime->fill_cache.tag_dirty();
 
-  if (const std::optional<GroupedSpan<int3>> triangles = this->triangles()) {
+  if (const std::optional<TriangleCache> src_triangle_cache = this->runtime->triangle_cache.data())
+  {
     /* Copy the triangle data. */
-    const Array<int> src_triangles_offsets(triangles->offsets.data());
-    const Array<int3> src_triangles_data(triangles->data);
-    const GroupedSpan<int3> src_triangles(src_triangles_offsets.as_span(),
+    const Array<int> src_triangle_offsets(src_triangle_cache->triangle_offsets.as_span());
+    const Array<int3> src_triangles_data(src_triangle_cache->triangles.as_span());
+    const GroupedSpan<int3> src_triangles(src_triangle_offsets.as_span(),
                                           src_triangles_data.as_span());
+    const Array<int> src_intersection_point_offsets(
+        src_triangle_cache->intersection_point_offsets.as_span());
+    const Array<float3> src_intersection_points_data(
+        src_triangle_cache->intersection_points.as_span());
+    const GroupedSpan<float3> src_intersection_points(src_intersection_point_offsets.as_span(),
+                                                      src_intersection_points_data.as_span());
 
     this->runtime->triangle_cache.update([&](std::optional<TriangleCache> &r_triangle_cache) {
       const std::optional<GroupedSpan<int>> fills = this->fills();
@@ -1235,6 +1280,7 @@ void Drawing::tag_positions_changed(const IndexMask &changed_curves)
 
       TriangleCache triangle_cache;
       triangle_cache.triangle_offsets.resize(fills->size() + 1);
+      triangle_cache.intersection_point_offsets.resize(fills->size() + 1);
 
       update_triangle_and_offsets_changed(this->strokes().evaluated_positions(),
                                           this->curve_plane_normals(),
@@ -1242,8 +1288,11 @@ void Drawing::tag_positions_changed(const IndexMask &changed_curves)
                                           changed_curves,
                                           fills,
                                           src_triangles,
+                                          src_intersection_points,
                                           triangle_cache.triangles,
-                                          triangle_cache.triangle_offsets);
+                                          triangle_cache.triangle_offsets,
+                                          triangle_cache.intersection_points,
+                                          triangle_cache.intersection_point_offsets);
       r_triangle_cache = std::move(triangle_cache);
     });
   }
@@ -1291,12 +1340,19 @@ void Drawing::tag_topology_changed(const IndexMask &changed_curves)
   /* Fills cache needs to be up-to-date. */
   this->runtime->fill_cache.tag_dirty();
 
-  if (const std::optional<GroupedSpan<int3>> triangles = this->triangles()) {
+  if (const std::optional<TriangleCache> src_triangle_cache = this->runtime->triangle_cache.data())
+  {
     /* Copy the triangle data. */
-    const Array<int> src_triangles_offsets(triangles->offsets.data());
-    const Array<int3> src_triangles_data(triangles->data);
-    const GroupedSpan<int3> src_triangles(src_triangles_offsets.as_span(),
+    const Array<int> src_triangle_offsets(src_triangle_cache->triangle_offsets.as_span());
+    const Array<int3> src_triangles_data(src_triangle_cache->triangles.as_span());
+    const GroupedSpan<int3> src_triangles(src_triangle_offsets.as_span(),
                                           src_triangles_data.as_span());
+    const Array<int> src_intersection_point_offsets(
+        src_triangle_cache->intersection_point_offsets.as_span());
+    const Array<float3> src_intersection_points_data(
+        src_triangle_cache->intersection_points.as_span());
+    const GroupedSpan<float3> src_intersection_points(src_intersection_point_offsets.as_span(),
+                                                      src_intersection_points_data.as_span());
 
     this->runtime->triangle_cache.update([&](std::optional<TriangleCache> &r_triangle_cache) {
       const std::optional<GroupedSpan<int>> fills = this->fills();
@@ -1304,6 +1360,7 @@ void Drawing::tag_topology_changed(const IndexMask &changed_curves)
 
       TriangleCache triangle_cache;
       triangle_cache.triangle_offsets.resize(fills->size() + 1);
+      triangle_cache.intersection_point_offsets.resize(fills->size() + 1);
 
       update_triangle_and_offsets_changed(this->strokes().evaluated_positions(),
                                           this->curve_plane_normals(),
@@ -1311,8 +1368,11 @@ void Drawing::tag_topology_changed(const IndexMask &changed_curves)
                                           changed_curves,
                                           fills,
                                           src_triangles,
+                                          src_intersection_points,
                                           triangle_cache.triangles,
-                                          triangle_cache.triangle_offsets);
+                                          triangle_cache.triangle_offsets,
+                                          triangle_cache.intersection_points,
+                                          triangle_cache.intersection_point_offsets);
       r_triangle_cache = std::move(triangle_cache);
     });
   }
