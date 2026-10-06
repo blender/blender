@@ -1857,7 +1857,7 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
         size = "size"
         if brush.use_locked_size == 'SCENE' and (grease_pencil_brush_type == 'DRAW' or is_primitive_tool):
             size = "unprojected_size"
-        UnifiedPaintPanel.prop_unified(
+        unified_row = UnifiedPaintPanel.prop_unified(
             layout,
             context,
             brush,
@@ -1868,7 +1868,18 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
             slider=True,
             header=compact,
         )
-        UnifiedPaintPanel.prop_unified(
+        if not compact:
+            UnifiedPaintPanel.prop_custom_pressure(
+                layout,
+                context,
+                unified_row,
+                brush,
+                pressure_name="use_pressure_size",
+                curve_visibility_name="show_size_curve",
+                custom_curve_name="curve_size",
+            )
+
+        unified_row = UnifiedPaintPanel.prop_unified(
             layout,
             context,
             brush,
@@ -1878,6 +1889,16 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
             text="Strength",
             header=compact,
         )
+        if not compact:
+            UnifiedPaintPanel.prop_custom_pressure(
+                layout,
+                context,
+                unified_row,
+                brush,
+                pressure_name="use_pressure_strength",
+                curve_visibility_name="show_strength_curve",
+                custom_curve_name="curve_strength",
+            )
 
     if props:
         layout.prop(props, "subdivision")
@@ -1978,7 +1999,7 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
 
 
 def brush_basic_grease_pencil_sculpt_settings(layout, context, brush, *, compact=False):
-    UnifiedPaintPanel.prop_unified(
+    unified_row = UnifiedPaintPanel.prop_unified(
         layout,
         context,
         brush,
@@ -1989,8 +2010,18 @@ def brush_basic_grease_pencil_sculpt_settings(layout, context, brush, *, compact
         slider=True,
         header=compact,
     )
+    if not compact:
+        UnifiedPaintPanel.prop_custom_pressure(
+            layout,
+            context,
+            unified_row,
+            brush,
+            pressure_name="use_pressure_size",
+            curve_visibility_name="show_size_curve",
+            custom_curve_name="curve_size",
+        )
 
-    UnifiedPaintPanel.prop_unified(
+    unified_row = UnifiedPaintPanel.prop_unified(
         layout,
         context,
         brush,
@@ -2000,10 +2031,20 @@ def brush_basic_grease_pencil_sculpt_settings(layout, context, brush, *, compact
         text="Strength",
         header=compact,
     )
+    if not compact:
+        UnifiedPaintPanel.prop_custom_pressure(
+            layout,
+            context,
+            unified_row,
+            brush,
+            pressure_name="use_pressure_strength",
+            curve_visibility_name="show_strength_curve",
+            custom_curve_name="curve_strength",
+        )
 
 
 def brush_basic_grease_pencil_weight_settings(layout, context, brush, *, compact=False):
-    UnifiedPaintPanel.prop_unified(
+    unified_row = UnifiedPaintPanel.prop_unified(
         layout,
         context,
         brush,
@@ -2014,8 +2055,18 @@ def brush_basic_grease_pencil_weight_settings(layout, context, brush, *, compact
         slider=True,
         header=compact,
     )
+    if not compact:
+        UnifiedPaintPanel.prop_custom_pressure(
+            layout,
+            context,
+            unified_row,
+            brush,
+            pressure_name="use_pressure_size",
+            curve_visibility_name="show_size_curve",
+            custom_curve_name="curve_size",
+        )
 
-    UnifiedPaintPanel.prop_unified(
+    unified_row = UnifiedPaintPanel.prop_unified(
         layout,
         context,
         brush,
@@ -2025,6 +2076,16 @@ def brush_basic_grease_pencil_weight_settings(layout, context, brush, *, compact
         text="Strength",
         header=compact,
     )
+    if not compact:
+        UnifiedPaintPanel.prop_custom_pressure(
+            layout,
+            context,
+            unified_row,
+            brush,
+            pressure_name="use_pressure_strength",
+            curve_visibility_name="show_strength_curve",
+            custom_curve_name="curve_strength",
+        )
 
     if brush.gpencil_weight_brush_type in {'WEIGHT'}:
         UnifiedPaintPanel.prop_unified(
@@ -2045,7 +2106,7 @@ def brush_basic_grease_pencil_vertex_settings(layout, context, brush, *, compact
         layout.prop(brush, "blend", text="Blend")
         layout.separator()
 
-    UnifiedPaintPanel.prop_unified(
+    unified_row = UnifiedPaintPanel.prop_unified(
         layout,
         context,
         brush,
@@ -2056,9 +2117,19 @@ def brush_basic_grease_pencil_vertex_settings(layout, context, brush, *, compact
         slider=True,
         header=compact,
     )
+    if not compact:
+        UnifiedPaintPanel.prop_custom_pressure(
+            layout,
+            context,
+            unified_row,
+            brush,
+            pressure_name="use_pressure_size",
+            curve_visibility_name="show_size_curve",
+            custom_curve_name="curve_size",
+        )
 
     if brush.gpencil_vertex_brush_type in {'DRAW', 'BLUR', 'SMEAR'}:
-        UnifiedPaintPanel.prop_unified(
+        unified_row = UnifiedPaintPanel.prop_unified(
             layout,
             context,
             brush,
@@ -2068,6 +2139,16 @@ def brush_basic_grease_pencil_vertex_settings(layout, context, brush, *, compact
             text="Strength",
             header=compact,
         )
+        if not compact:
+            UnifiedPaintPanel.prop_custom_pressure(
+                layout,
+                context,
+                unified_row,
+                brush,
+                pressure_name="use_pressure_strength",
+                curve_visibility_name="show_strength_curve",
+                custom_curve_name="curve_strength",
+            )
 
     gp_settings = brush.gpencil_settings
     if brush.gpencil_vertex_brush_type in {'DRAW', 'REPLACE'}:
