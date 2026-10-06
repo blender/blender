@@ -2561,6 +2561,26 @@ void template_search_preview(Layout *layout,
                              int rows,
                              int cols,
                              std::optional<StringRef> text = std::nullopt);
+
+/**
+ * Create a filepath with filebrowser button, similar to the default layout generated for this type
+ * of string property by `Layout::prop()`, but with more control.
+ *
+ * \param filter_glob If not empty, a 'glob filter' string listing all allowed extensions to list
+ * in the filebrowser, separated by semi-columns (e.g. `*.usd;*.usda;*.usdc;*.usdz`). Only used if
+ * the property sub-type is `PROP_FILEPATH`.
+ * \param pathselect_op If not null, the name of the operator to call (instead of the generic
+ * `BUTTONS_OT_file_browse` or `BUTTONS_OT_directory_browse` ones).
+ * \param placeholder the placeholder text to show in the text widget, when enpty.
+ */
+void template_filepath(Layout *layout,
+                       const bContext *C,
+                       PointerRNA *ptr,
+                       const StringRefNull propname,
+                       const char *pathselect_op,
+                       const char *filter_glob,
+                       const std::optional<StringRef> placeholder);
+
 /**
  * This is creating/editing RNA-Paths
  *

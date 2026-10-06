@@ -1224,18 +1224,20 @@ static Button *item_with_label(Layout *layout,
       }
     }
 
-    /* #BUTTONS_OT_file_browse calls #context_active_but_prop_get_filebrowser. */
-    uiDefIconButO(block,
-                  ButtonType::But,
-                  subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" :
-                                            "BUTTONS_OT_file_browse",
-                  wm::OpCallContext::InvokeDefault,
-                  RNA_property_editable(ptr, prop) ? ICON_FILEBROWSER : ICON_FOLDER_REDIRECT,
-                  x,
-                  y,
-                  UI_UNIT_X,
-                  h,
-                  std::nullopt);
+    if ((flag & ITEM_R_PATH_NO_OPEN_BUTTON) == 0) {
+      /* #BUTTONS_OT_file_browse calls #context_active_but_prop_get_filebrowser. */
+      uiDefIconButO(block,
+                    ButtonType::But,
+                    subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" :
+                                              "BUTTONS_OT_file_browse",
+                    wm::OpCallContext::InvokeDefault,
+                    RNA_property_editable(ptr, prop) ? ICON_FILEBROWSER : ICON_FOLDER_REDIRECT,
+                    x,
+                    y,
+                    UI_UNIT_X,
+                    h,
+                    std::nullopt);
+    }
   }
   else if (flag & ITEM_R_EVENT) {
     but = uiDefButR_prop(block,
