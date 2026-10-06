@@ -35,6 +35,7 @@
 #include <string>
 #include <string_view>
 
+#include "BLI_compiler_attrs.hh"
 #include "BLI_span.hh"
 
 namespace blender {
@@ -47,6 +48,7 @@ class StringRef;
  */
 class StringRefBase {
  protected:
+  /* May be nullptr when used in StringRef. */
   const char *data_;
   int64_t size_;
 
@@ -143,9 +145,9 @@ class StringRefNull : public StringRefBase {
 
  public:
   constexpr StringRefNull();
-  constexpr StringRefNull(const char *str, int64_t size);
+  constexpr StringRefNull(const char *str, int64_t size) ATTR_NONNULL(2);
   StringRefNull(std::nullptr_t) = delete;
-  constexpr StringRefNull(const char *str);
+  constexpr StringRefNull(const char *str) ATTR_NONNULL(2);
   StringRefNull(const std::string &str);
 
   constexpr char operator[](int64_t index) const;
@@ -156,6 +158,9 @@ class StringRefNull : public StringRefBase {
  * References a const char array. It might not be null terminated.
  *
  * StringRef can be compared with StringRef and StringRefNull.
+ *
+ * \note It is valid to pass `nullptr` to the constructor, as it can be used to indicate an empty
+ * string.
  */
 class StringRef : public StringRefBase {
  public:
