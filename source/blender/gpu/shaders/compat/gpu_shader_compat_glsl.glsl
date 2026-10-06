@@ -7,6 +7,7 @@
 #pragma no_processing
 
 #include "gpu_shader_glsl_extension.glsl"
+#include "gpu_shader_glsl_ray_query.glsl"
 
 /** Type aliases. */
 /* IMPORTANT: Be wary of size and alignment matching for types that are present

@@ -240,6 +240,7 @@ void SourceProcessor::lint_attributes_ast(Parser &parser)
       {"sampler", ArgCount(1, 1)},
       {"specialization_constant", ArgCount(1, 1)},
       {"uniform", ArgCount(1, 1)},
+      {"acceleration_structure", ArgCount(1, 1)},
       /* 2 arguments. */
       {"storage", ArgCount(2, 1)},
       {"subpass_input", ArgCount(2, 1)},

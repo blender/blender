@@ -3089,6 +3089,15 @@ struct CodegenContext : NodeErrorHandler {
                 .res_type = string(attr.attr.identifier().str()),
                 .res_value = string(attr.param1.str()),
                 .res_condition = parse_condition(cls, attr.condition)};
+      case ResourceType::ACCELERATION_STRUCTURE:
+        return {.line = 0,
+                .var_type = type,
+                .var_name = name,
+                .var_array = array_size_to_string(array, cls),
+                .res_type = string(attr.attr.identifier().str()),
+                .res_slot = string(attr.param1.str()),
+                .res_condition = parse_condition(cls, attr.condition),
+                .res_frequency = parse_frequency(attr.frequency)};
       case ResourceType::SAMPLER:
         return {.line = 0,
                 .var_type = type,

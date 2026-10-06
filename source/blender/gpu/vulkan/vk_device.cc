@@ -313,6 +313,7 @@ shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define,
   }
   if (use_ray_query) {
     ss << "#extension GL_EXT_ray_query : enable\n";
+    ss << "#define GPU_EXT_RAY_QUERY\n";
   }
   if (!extensions_.provoking_vertex) {
     ss << "#define GPU_PROVOKING_VERTEX_LAST\n";

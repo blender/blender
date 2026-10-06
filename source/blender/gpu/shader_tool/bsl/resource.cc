@@ -64,6 +64,7 @@ Result<ParsedAttribute> resource_type_from_attributes(AttrList list)
         {"uniform",                                 {ResourceTableType::RESOURCE_TABLE, ResourceType::UNIFORM_BUF,             1}},
         {"storage",                                 {ResourceTableType::RESOURCE_TABLE, ResourceType::STORAGE_BUF,             2}},
         {"image",                                   {ResourceTableType::RESOURCE_TABLE, ResourceType::IMAGE,                   3}},
+        {"acceleration_structure",                  {ResourceTableType::RESOURCE_TABLE, ResourceType::ACCELERATION_STRUCTURE,  1}},
         /* Entry point argument. */
         {"base_instance",                           {ResourceTableType::ENTRY_POINT,    ResourceType::BASE_INSTANCE,           0}},
         {"clip_control",                            {ResourceTableType::ENTRY_POINT,    ResourceType::CLIP_CONTROL,            0}},
