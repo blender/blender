@@ -96,6 +96,8 @@ void ED_operatortypes_io()
 
 #ifdef WITH_OPENTIMELINEIO
   WM_operatortype_append(WM_OT_otio_export);
+  WM_operatortype_append(WM_OT_otio_import);
+  ed::io::otio_file_handler_add();
 #endif
 
   WM_operatortype_append(WM_OT_drop_import_file);
