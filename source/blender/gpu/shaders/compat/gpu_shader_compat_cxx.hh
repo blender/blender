@@ -49,31 +49,6 @@
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name Compatibility
- * \{ */
-
-/**
- * Member hiding type.
- * Wrapper type for members of unions in host shared structure.
- * This is needed to force the accessor syntax in the shader code.
- */
-template<typename T> struct union_t {
-  char bytes[sizeof(T)];
-
-  const T &operator()() const
-  {
-    return *reinterpret_cast<const T *>(&bytes);
-  }
-
-  T &operator()()
-  {
-    return *reinterpret_cast<T *>(&bytes);
-  }
-};
-
-/** \} */
-
 /* GLSL main function must return void. C++ need to return int.
  * Inject real main (C++) inside the GLSL main definition. */
 #define main() \
@@ -117,26 +92,6 @@ template<typename T> struct union_t {
  * Note that this placeholder is just for the code to compile.
  */
 #define resource_table_get(table_type) (*(table_type *)(new char[1024 * 16]))
-
-/**
- * Member hiding type.
- * Allows to declare fake references to Shader Resource Tables.
- * This make sure we cannot directly reference them.
- * This is just a safety measure for our fragile SRT implementation which cannot safely directly
- * access SRT members that are more that 1 level deep.
- * This should only be used in SRT struct member declaration for wrapping other SRT types.
- */
-template<typename T> struct srt_t {
-  operator const T &() const
-  {
-    return *reinterpret_cast<const T *>(this);
-  }
-
-  operator T &()
-  {
-    return *reinterpret_cast<T *>(this);
-  }
-};
 
 struct ShaderCreateInfo {};
 

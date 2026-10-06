@@ -68,9 +68,9 @@ struct Resources {
   [[push_constant]] const int gpu_attr_1_len;
   [[push_constant]] const bool gpu_attr_1_fetch_unorm8;
 
-  [[resource_table]] [[condition(use_color_uniform)]] srt_t<UniformColor> uniform_col;
+  [[resource_table]] [[condition(use_color_uniform)]] UniformColor uniform_col;
 
-  [[resource_table]] srt_t<IndexLoad> index_load;
+  [[resource_table]] IndexLoad index_load;
 
   VertIn pull_vertex_data(uint in_vertex_id) const
   {

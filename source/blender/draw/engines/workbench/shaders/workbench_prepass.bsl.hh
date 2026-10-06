@@ -361,7 +361,7 @@ struct Resources {
 
   [[push_constant]] const bool force_shadowing;
 
-  [[resource_table, condition(use_texture)]] srt_t<color::Texture> texture;
+  [[resource_table, condition(use_texture)]] color::Texture texture;
 
   [[sampler(WB_MATCAP_SLOT), condition(lighting_mode == WORKBENCH_LIGHTING_MATCAP)]]
   sampler2DArray matcap_tx;
