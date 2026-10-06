@@ -1123,14 +1123,23 @@ void BKE_blendfile_link_pack(BlendfileLinkAppendContext *lapp_context, ReportLis
       continue;
     }
     BLI_assert(ID_IS_LINKED(id));
+    if (id->id_type() == ID_KE) {
+      /* Shape keys are packed along with their owner ID. */
+      continue;
+    }
     if (!(ID_IS_PACKED(id) || (id->newid && ID_IS_PACKED(id->newid)))) {
       /* No yet packed. */
       Set<ID *> ids_to_pack = bke::library::pack_linked_id_hierarchy(*bmain, *id);
 
-      /* If packing failed for a linked ID, do not delete its linked version. */
-      for (ID *id_iter : ids_to_pack) {
-        if (!id_iter->newid || !ID_IS_PACKED(id_iter->newid)) {
+      /* If packing failed, do not delete the linked versions of the whole hierarchy. Packing is
+       * all or nothing, but IDs shared with another hierarchy may still have been packed with
+       * that one, and remain used by this linked hierarchy. */
+      if (!id->newid || !ID_IS_PACKED(id->newid)) {
+        for (ID *id_iter : ids_to_pack) {
           linked_ids_to_delete.remove(id_iter);
+          if (Key *key = BKE_key_from_id(id_iter)) {
+            linked_ids_to_delete.remove(&key->id);
+          }
         }
       }
     }
