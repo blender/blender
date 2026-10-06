@@ -30,6 +30,7 @@ static void template_filepath_buttons(const bContext * /* C */,
                                       Layout &layout,
                                       TemplatePathData &path_data,
                                       const char *pathselect_op,
+                                      std::optional<StringRef> text,
                                       const std::optional<StringRef> placeholder)
 {
   Layout &row = layout.row(true);
@@ -39,7 +40,7 @@ static void template_filepath_buttons(const bContext * /* C */,
            RNA_NO_INDEX,
            0,
            ITEM_R_PATH_NO_OPEN_BUTTON,
-           std::nullopt,
+           text,
            ICON_NONE,
            placeholder);
 
@@ -49,7 +50,8 @@ static void template_filepath_buttons(const bContext * /* C */,
   if (pathselect_op) {
     PointerRNA op_ptr = row.op(
         pathselect_op, std::nullopt, icon, wm::OpCallContext::InvokeDefault, ITEM_R_ICON_ONLY);
-    if (path_data.path_prop_subtype == PROP_FILEPATH && path_data.filter_glob) {
+    /* Unknown operators return an empty pointer. */
+    if (op_ptr.data && path_data.path_prop_subtype == PROP_FILEPATH && path_data.filter_glob) {
       PropertyRNA *filter_glob_prop = RNA_struct_find_property(&op_ptr, "filter_glob");
       if (filter_glob_prop) {
         RNA_property_string_set(&op_ptr, filter_glob_prop, path_data.filter_glob->c_str());
@@ -83,6 +85,7 @@ void template_filepath(Layout *layout,
                        const StringRefNull propname,
                        const char *pathselect_op,
                        const char *filter_glob,
+                       const std::optional<StringRef> text,
                        const std::optional<StringRef> placeholder)
 {
   TemplatePathData template_path_data;
@@ -108,7 +111,7 @@ void template_filepath(Layout *layout,
     template_path_data.filter_glob = filter_glob;
   }
 
-  template_filepath_buttons(C, *layout, template_path_data, pathselect_op, placeholder);
+  template_filepath_buttons(C, *layout, template_path_data, pathselect_op, text, placeholder);
 }
 
 }  // namespace blender::ui
