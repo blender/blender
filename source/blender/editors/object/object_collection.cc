@@ -670,6 +670,10 @@ static wmOperatorStatus collection_importer_import_exec(bContext *C, wmOperator 
   BKE_reports_init(&reports, RPT_STORE | RPT_OP_HOLD | RPT_PRINT_HANDLED_BY_OWNER);
   wmOperatorStatus op_result = WM_operator_type_call_ptr_with_reports(
       temp_C, ot, wm::OpCallContext::ExecDefault, &properties, &reports, nullptr);
+  /* In case of modal operator, WM would take ownership of the given reportlist. This should never
+   * happen here, and is not supported at all for now. In case this would be needed, we'd need some
+   * heap-allocated reportlist instead, similar to what `bpy_op_fn_call_impl` is doing. */
+  BLI_assert(op_result != OPERATOR_RUNNING_MODAL);
   BKE_reports_move_to_reports(op->reports, &reports);
   BKE_reports_free(&reports);
 
