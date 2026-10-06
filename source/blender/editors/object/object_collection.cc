@@ -590,7 +590,6 @@ static wmOperatorStatus collection_importer_import_exec(bContext *C, wmOperator 
     return OPERATOR_CANCELLED;
   }
 
-  using namespace blender;
   bke::FileHandlerType *fh = bke::file_handler_find(data->fh_idname);
   if (!fh) {
     BKE_reportf(op->reports, RPT_ERROR, "File handler '%s' not found", data->fh_idname);
@@ -607,44 +606,41 @@ static wmOperatorStatus collection_importer_import_exec(bContext *C, wmOperator 
   /* Execute operator with our stored properties. */
   IDProperty *op_props = IDP_CopyProperty(data->import_properties);
   PointerRNA properties = RNA_pointer_create_discrete(nullptr, ot->srna, op_props);
-  const char *collection_name = collection->id.name + 2;
+  Main *bmain = CTX_data_main(C);
 
   /* Ensure we have a valid filepath set. Create one if the user has not specified anything yet. */
-  char filepath[FILE_MAX];
-  RNA_string_get(&properties, "filepath", filepath);
-  if (!filepath[0]) {
+  char filepath_abs[FILE_MAX];
+  RNA_string_get(&properties, "filepath", filepath_abs);
+  BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
+
+  if (!filepath_abs[0]) {
     BKE_report(op->reports, RPT_ERROR, "No filepath set");
 
     IDP_FreeProperty(op_props);
     return OPERATOR_CANCELLED;
   }
   else {
-    const char *filename = BLI_path_basename(filepath);
+    const char *filename = BLI_path_basename(filepath_abs);
     if (!filename[0] || !BLI_path_extension(filename)) {
-      BKE_reportf(op->reports, RPT_ERROR, "File path '%s' is not a valid file", filepath);
+      BKE_reportf(op->reports, RPT_ERROR, "File path '%s' is not a valid file", filepath_abs);
 
       IDP_FreeProperty(op_props);
       return OPERATOR_CANCELLED;
     }
   }
 
-  Main *bmain = CTX_data_main(C);
-  BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
-  RNA_string_set(&properties, "filepath", filepath);
+  RNA_string_set(&properties, "filepath", filepath_abs);
 
-  /* TODO: If there is already a library for this collection, then an import has already occurred.
-   * Return early until "reload" is implemented in the future. */
-  for (Library *lib = bmain->libraries.first(); lib; lib = static_cast<Library *>(lib->id.next)) {
-    if (STREQ(lib->id.name + 2, collection_name)) {
-      BKE_reportf(op->reports,
-                  RPT_WARNING,
-                  "Collection '%s' has already been imported from '%s'",
-                  collection_name,
-                  filepath);
-
-      IDP_FreeProperty(op_props);
-      return OPERATOR_CANCELLED;
-    }
+  /* If there is already a library for this collection importer, then an import has already
+   * occurred. */
+  if (data->runtime->archive_library) {
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "Collection '%s' has already been imported from '%s'",
+                collection->id.name + 2,
+                filepath_abs);
+    IDP_FreeProperty(op_props);
+    return OPERATOR_CANCELLED;
   }
 
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -668,20 +664,48 @@ static wmOperatorStatus collection_importer_import_exec(bContext *C, wmOperator 
    * push an undo step. */
   wm->op_undo_depth++;
 
-  wmOperatorStatus op_result = WM_operator_name_call_ptr(
-      temp_C, ot, wm::OpCallContext::ExecDefault, &properties, nullptr);
+  /* Use own reportlist, which is then moved back into this operator's reports once import
+   * operation into the temp Main is done. */
+  ReportList reports;
+  BKE_reports_init(&reports, RPT_STORE | RPT_OP_HOLD | RPT_PRINT_HANDLED_BY_OWNER);
+  wmOperatorStatus op_result = WM_operator_type_call_ptr_with_reports(
+      temp_C, ot, wm::OpCallContext::ExecDefault, &properties, &reports, nullptr);
+  BKE_reports_move_to_reports(op->reports, &reports);
+  BKE_reports_free(&reports);
 
   wm->op_undo_depth--;
 
-  if (op_result == OPERATOR_FINISHED) {
-    /* Create a real library to encapsulate our external archive library.
-     * TODO: Adjust after determining what to do about the missing library check above. */
-    Library *external_lib = BKE_id_new<Library>(bmain, collection_name);
-    external_lib->flag |= LIBRARY_FLAG_IS_EXTERNAL;
-    id_us_ensure_real(&external_lib->id);
-    BKE_library_filepath_set(bmain, external_lib, filepath);
+  /* Only complete the collection import if there's at least one real object that was imported. */
+  if (temp_main->objects.is_empty()) {
+    BKE_reportf(op->reports, RPT_WARNING, "No objects were imported from '%s'", filepath_abs);
+    op_result = OPERATOR_CANCELLED;
+  }
 
-    /* Create an external archive library to serve as the namespace for all IDs imported from the
+  if (op_result == OPERATOR_FINISHED) {
+    /* Create an external parent library to encapsulate the external archive library if one is
+     * not already present. */
+    Library *external_lib = nullptr;
+    for (Library &lib : bmain->libraries) {
+      if ((lib.flag & LIBRARY_FLAG_IS_EXTERNAL) && STREQ(lib.runtime->filepath_abs, filepath_abs))
+      {
+        external_lib = &lib;
+        break;
+      }
+    }
+
+    if (!external_lib) {
+      external_lib = BKE_id_new<Library>(bmain, BLI_path_basename(filepath_abs));
+      external_lib->flag |= LIBRARY_FLAG_IS_EXTERNAL;
+      id_us_ensure_real(&external_lib->id);
+      BKE_library_filepath_set(bmain, external_lib, filepath_abs);
+
+      /* Immediately make the filepath relative for UI display and other queries. */
+      if (U.flag & USER_RELPATHS) {
+        BLI_path_rel(external_lib->filepath, BKE_main_blendfile_path(bmain));
+      }
+    }
+
+    /* Create the external archive library to serve as the namespace for all IDs imported from the
      * external file. The library is marked as both an archive (it will never be written out as a
      * separate .blend) and external (it originates outside Blender). */
     Library *external_archive_lib = bke::library::create_external_archive_library(*bmain,
@@ -704,6 +728,7 @@ static wmOperatorStatus collection_importer_import_exec(bContext *C, wmOperator 
 
     BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, false);
 
+    data->runtime->archive_library = external_archive_lib;
     collection->importer = data;
 
     DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
@@ -712,7 +737,7 @@ static wmOperatorStatus collection_importer_import_exec(bContext *C, wmOperator 
 
     BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
 
-    BKE_reportf(op->reports, RPT_INFO, "Imported '%s'", filepath);
+    BKE_reportf(op->reports, RPT_INFO, "Imported '%s'", filepath_abs);
   }
   else {
     BKE_main_free(temp_main);

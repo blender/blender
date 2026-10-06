@@ -824,7 +824,6 @@ static Library *add_external_archive_library(Main &bmain, Library &reference_lib
 Library *bke::library::create_external_archive_library(Main &bmain, Library &external_library)
 {
   BLI_assert(external_library.flag & LIBRARY_FLAG_IS_EXTERNAL);
-  BLI_assert(external_library.runtime->archived_libraries.is_empty());
 
   Library *archive_library = add_external_archive_library(bmain, external_library);
 

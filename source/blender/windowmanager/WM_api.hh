@@ -1204,23 +1204,35 @@ bool WM_operator_name_poll(bContext *C, const char *opstring);
 /**
  * Invokes operator in context.
  *
+ * \param reports: If not null, use the given ReportList to be used by the called operator, instead
+ * of creating a new one. Code will then assume that the reports are managed by the caller. Usefull
+ * for operators called from within another operator e.g.
+ *
  * \param event: Optionally pass in an event to use when context uses one of the
  * `WM_OP_INVOKE_*` values. When left unset the #wmWindow.eventstate will be used,
  * this can cause problems for operators that read the events type - for example,
  * storing the key that was pressed so as to be able to detect its release.
  * In these cases it's necessary to forward the current event being handled.
  */
+wmOperatorStatus WM_operator_type_call_ptr_with_reports(bContext *C,
+                                                        wmOperatorType *ot,
+                                                        wm::OpCallContext context,
+                                                        PointerRNA *properties,
+                                                        ReportList *reports,
+                                                        const wmEvent *event);
+/** See #WM_operator_type_call_ptr_with_reports. */
 wmOperatorStatus WM_operator_name_call_ptr(bContext *C,
                                            wmOperatorType *ot,
                                            wm::OpCallContext context,
                                            PointerRNA *properties,
                                            const wmEvent *event);
-/** See #WM_operator_name_call_ptr. */
+/** See #WM_operator_type_call_ptr_with_reports. */
 wmOperatorStatus WM_operator_name_call(bContext *C,
                                        const char *opstring,
                                        wm::OpCallContext context,
                                        PointerRNA *properties,
                                        const wmEvent *event);
+/** See #WM_operator_type_call_ptr_with_reports. */
 wmOperatorStatus WM_operator_name_call_with_properties(bContext *C,
                                                        const char *opstring,
                                                        wm::OpCallContext context,
