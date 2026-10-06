@@ -988,8 +988,12 @@ static void tooltip_uibut_icon_add(TooltipData &data, Button &but)
     return;
   }
 
-  tooltip_text_field_add(
-      data, fmt::format("Icon: {}", icon_name), {}, TIP_STYLE_MONO, TIP_LC_DIMMED);
+  tooltip_text_field_add(data,
+                         fmt::format("Icon: {}", icon_name),
+                         {},
+                         TIP_STYLE_MONO,
+                         TIP_LC_DIMMED,
+                         !data.fields.is_empty());
 }
 
 static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
