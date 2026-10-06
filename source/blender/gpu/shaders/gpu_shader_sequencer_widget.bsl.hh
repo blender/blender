@@ -190,7 +190,9 @@ struct VertOut {
   /* Thumbnails background. */
   if ((strip.flags & GPU_SEQ_FLAG_THUMBNAILS_BACKGROUND) != 0) {
     if (co.y < strip.strip_content_top) {
-      if (co.x >= strip.content_start && co.x <= strip.content_end) {
+      if ((strip.flags & GPU_SEQ_FLAG_SINGLE_IMAGE) != 0 ||
+          (co.x >= strip.content_start && co.x <= strip.content_end))
+      {
         /* Re use the color band color here. */
         col.rgb = unpackUnorm4x8(strip.col_color_band).rgb;
       }
