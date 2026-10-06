@@ -165,10 +165,8 @@ class BrushAssetShelf:
             'SCULPT_CURVES': "VIEW3D_AST_brush_sculpt_curves",
         }
         mode = UnifiedPaintPanel.get_brush_mode(context)
-        if not mode:
-            return None
 
-        return mode_map[mode]
+        return mode_map.get(mode)
 
     @staticmethod
     def draw_popup_selector(layout, context, brush, show_name=True):
