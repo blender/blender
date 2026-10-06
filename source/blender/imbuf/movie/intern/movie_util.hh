@@ -12,6 +12,7 @@
 
 extern "C" {
 #  include <libavcodec/avcodec.h>
+#  include <libavutil/hwcontext.h>
 #  include <libavutil/pixfmt.h>
 }
 #  include "DNA_scene_types.h"
@@ -34,6 +35,7 @@ bool ffmpeg_stream_counts_as_video(const AVFormatContext *format_ctx, const AVSt
 
 const char *ffmpeg_last_error();
 AVCodecID mov_av_codec_id_get(IMB_Ffmpeg_Codec_ID id);
+AVBufferRef *ffmpeg_hw_device_get(AVHWDeviceType device_type);
 
 /** Checks whether given FFMPEG codec and profile combination supports alpha channel (RGBA). */
 bool MOV_codec_supports_alpha(AVCodecID codec_id, int ffmpeg_profile);

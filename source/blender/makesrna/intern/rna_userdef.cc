@@ -210,6 +210,18 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
     {GPU_BACKEND_VULKAN, "VULKAN", 0, "Vulkan", "Use Vulkan backend"},
     {0, nullptr, 0, nullptr, nullptr},
 };
+static const EnumPropertyItem rna_enum_preference_video_decoding_device_items[] = {
+    {USER_VIDEO_DECODING_DEVICE_AUTOMATIC,
+     "AUTOMATIC",
+     0,
+     "Automatic",
+     "Use the first device that supports the video"},
+    {USER_VIDEO_DECODING_DEVICE_VIDEOTOOLBOX, "VIDEOTOOLBOX", 0, "VideoToolbox", ""},
+    {USER_VIDEO_DECODING_DEVICE_D3D11VA, "D3D11VA", 0, "Direct3D 11", ""},
+    {USER_VIDEO_DECODING_DEVICE_CUDA, "CUDA", 0, "CUDA", ""},
+    {USER_VIDEO_DECODING_DEVICE_VULKAN, "VULKAN", 0, "Vulkan", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 static const EnumPropertyItem rna_enum_preference_gpu_preferred_device_items[] = {
     {0, "AUTO", 0, "Auto", "Auto detect best GPU for running Blender"},
     RNA_ENUM_ITEM_SEPR,
@@ -1622,6 +1634,43 @@ static const EnumPropertyItem *rna_preference_gpu_backend_itemf(bContext * /*C*/
 #  endif
 #  ifndef WITH_VULKAN_BACKEND
     if (item->value == GPU_BACKEND_VULKAN) {
+      continue;
+    }
+#  endif
+    RNA_enum_item_add(&result, &totitem, item);
+  }
+
+  RNA_enum_item_end(&result, &totitem);
+  *r_free = true;
+  return result;
+}
+
+static const EnumPropertyItem *rna_preference_video_decoding_device_itemf(bContext * /*C*/,
+                                                                          PointerRNA * /*ptr*/,
+                                                                          PropertyRNA * /*prop*/,
+                                                                          bool *r_free)
+{
+  int totitem = 0;
+  EnumPropertyItem *result = nullptr;
+  for (int i = 0; rna_enum_preference_video_decoding_device_items[i].identifier != nullptr; i++) {
+    const EnumPropertyItem *item = &rna_enum_preference_video_decoding_device_items[i];
+#  ifdef __APPLE__
+    if (ELEM(item->value,
+             USER_VIDEO_DECODING_DEVICE_D3D11VA,
+             USER_VIDEO_DECODING_DEVICE_CUDA,
+             USER_VIDEO_DECODING_DEVICE_VULKAN))
+    {
+      continue;
+    }
+#  elif defined(_WIN32)
+    if (item->value == USER_VIDEO_DECODING_DEVICE_VIDEOTOOLBOX) {
+      continue;
+    }
+#  else
+    if (ELEM(item->value,
+             USER_VIDEO_DECODING_DEVICE_VIDEOTOOLBOX,
+             USER_VIDEO_DECODING_DEVICE_D3D11VA))
+    {
       continue;
     }
 #  endif
@@ -6313,6 +6362,24 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, nullptr, "sequencer_proxy_setup");
   RNA_def_property_ui_text(prop, "Proxy Setup", "When and how proxies are created");
 
+  /* Video hardware acceleration */
+  prop = RNA_def_property(srna, "use_hardware_video_decoding", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "gpu_flag", USER_GPU_FLAG_VIDEO_DECODING);
+  RNA_def_property_ui_text(prop,
+                           "Hardware Video Decoding",
+                           "Use the GPU to decode videos when supported. Videos that are already "
+                           "open are not affected");
+
+  prop = RNA_def_property(srna, "video_decoding_device", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "video_decoding_device");
+  RNA_def_property_enum_items(prop, rna_enum_preference_video_decoding_device_items);
+  RNA_def_property_enum_funcs(
+      prop, nullptr, nullptr, "rna_preference_video_decoding_device_itemf");
+  RNA_def_property_ui_text(prop,
+                           "Video Decoding Device",
+                           "Force a specific hardware device to decode videos with. Videos that "
+                           "are already open are not affected");
+
   prop = RNA_def_property(srna, "scrollback", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "scrollback");
   RNA_def_property_range(prop, 32, 32768);
@@ -7945,6 +8012,12 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "use_paint_debug", 1);
   RNA_def_property_ui_text(
       prop, "Paint Debug", "Enable paint & sculpt debugging options for developers");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "use_video_decoding_debug", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "use_video_decoding_debug", 1);
+  RNA_def_property_ui_text(
+      prop, "Video Decoding Debug", "Enable video decoding debugging options for developers");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 

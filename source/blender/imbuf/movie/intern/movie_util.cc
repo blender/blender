@@ -6,6 +6,8 @@
  * \ingroup imbuf
  */
 
+#include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_threads.hh"
 #include "BLI_utildefines.hh"
@@ -28,6 +30,7 @@ extern "C" {
 #  include <libavcodec/avcodec.h>
 #  include <libavdevice/avdevice.h>
 #  include <libavformat/avformat.h>
+#  include <libavutil/hwcontext.h>
 #  include <libavutil/log.h>
 }
 #endif
@@ -579,6 +582,27 @@ int MOV_thread_count()
   return std::min(BLI_system_thread_count(), 16);
 }
 
+static Mutex hw_device_lock;
+static Map<AVHWDeviceType, AVBufferRef *> hw_devices;
+
+AVBufferRef *ffmpeg_hw_device_get(const AVHWDeviceType device_type)
+{
+  std::lock_guard lock(hw_device_lock);
+  return hw_devices.lookup_or_add_cb(device_type, [&]() {
+    AVBufferRef *hw_device_ctx = nullptr;
+    const int ret = av_hwdevice_ctx_create(&hw_device_ctx, device_type, nullptr, nullptr, 0);
+    if (ret < 0) {
+      char error_str[AV_ERROR_MAX_STRING_SIZE];
+      av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+      CLOG_INFO(&LOG,
+                "ffmpeg: couldn't create %s decoding device: %s",
+                av_hwdevice_get_type_name(device_type),
+                error_str);
+    }
+    return hw_device_ctx;
+  });
+}
+
 #endif /* WITH_FFMPEG */
 
 bool MOV_is_movie_file(const char *filepath)
@@ -622,6 +646,11 @@ void MOV_exit()
 {
 #ifdef WITH_FFMPEG
   ffmpeg_sws_exit();
+  std::lock_guard lock(hw_device_lock);
+  for (AVBufferRef *&hw_device_ctx : hw_devices.values()) {
+    av_buffer_unref(&hw_device_ctx);
+  }
+  hw_devices.clear();
 #endif
 }
 
