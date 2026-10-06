@@ -2846,6 +2846,7 @@ int template_recent_files(Layout *layout,
                           RecentFilesFilter filter = RecentFilesFilter::All,
                           float project_ratio = 0.5f);
 int template_recent_projects(Layout *layout, int rows);
+void template_project_splash(Layout *layout, bContext *C);
 void template_file_select_path(Layout *layout, bContext *C, FileSelectParams *params);
 
 void template_asset_shelf_popover(

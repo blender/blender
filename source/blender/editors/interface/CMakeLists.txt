@@ -86,6 +86,7 @@ set(SRC
   templates/interface_template_node_tree_interface.cc
   templates/interface_template_operator_property.cc
   templates/interface_template_preview.cc
+  templates/interface_template_project_splash.cc
   templates/interface_template_recent_files.cc
   templates/interface_template_running_jobs.cc
   templates/interface_template_scene_compositor_effects.cc

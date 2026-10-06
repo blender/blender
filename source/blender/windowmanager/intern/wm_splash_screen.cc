@@ -175,7 +175,7 @@ static void wm_project_splash_logo_add(ImBuf *ibuf)
 }
 #endif /* !WITH_HEADLESS */
 
-static std::string wm_project_splash_image_filepath(const Main *bmain)
+std::string WM_project_splash_image_filepath(const Main *bmain)
 {
   return BKE_blender_project_read_callback(
       bmain, [](const bke::BlenderProject *project) -> std::string {
@@ -186,12 +186,10 @@ static std::string wm_project_splash_image_filepath(const Main *bmain)
       });
 }
 
-static ImBuf *wm_project_splash_image_load(const StringRefNull filepath,
-                                           const int width,
-                                           int *r_height)
+ImBuf *WM_project_splash_image_load(const StringRefNull filepath,
+                                    const int width,
+                                    const bool add_logo)
 {
-  *r_height = 0;
-#ifndef WITH_HEADLESS
   if (filepath.is_empty() || width <= 0) {
     return nullptr;
   }
@@ -223,28 +221,29 @@ static ImBuf *wm_project_splash_image_load(const StringRefNull filepath,
   }
 
   /* Scale to fit specified width. */
-  const int height = (width * ibuf->y) / ibuf->x;
+  const int height = std::max(width / 2, 1);
   if (width != ibuf->x || height != ibuf->y) {
     IMB_scale(ibuf, width, height, IMBScaleFilter::Box, false);
   }
 
-  /* Composite in logo. */
-  wm_project_splash_logo_add(ibuf);
-
-  *r_height = height;
-  return ibuf;
+#ifndef WITH_HEADLESS
+  if (add_logo) {
+    wm_project_splash_logo_add(ibuf);
+  }
 #else
-  UNUSED_VARS(filepath, width);
-  return nullptr;
+  UNUSED_VARS(add_logo);
 #endif
+
+  return ibuf;
 }
 
 static ImBuf *wm_block_splash_image(const Main *bmain, int width, int *r_height)
 {
+  ImBuf *ibuf = nullptr;
   int height = 0;
-  ImBuf *ibuf = wm_project_splash_image_load(
-      wm_project_splash_image_filepath(bmain), width, &height);
 #ifndef WITH_HEADLESS
+  ibuf = WM_project_splash_image_load(WM_project_splash_image_filepath(bmain), width, true);
+
   if (ibuf == nullptr && U.app_template[0] != '\0') {
     char splash_filepath[FILE_MAX];
     char template_directory[FILE_MAX];
