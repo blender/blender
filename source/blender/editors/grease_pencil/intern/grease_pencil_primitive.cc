@@ -17,6 +17,7 @@
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_grease_pencil_fills.hh"
 #include "BKE_material.hh"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
@@ -609,8 +610,10 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
   if (ptd.use_fill) {
     bke::SpanAttributeWriter<int> fill_id = attributes.lookup_or_add_for_write_span<int>(
         "fill_id", bke::AttrDomain::Curve);
-    /* TODO: Use the first available ID. */
-    fill_id.span[target_curve_index] = target_curve_index + 1;
+    /* Set new fill id to zero, because it will have uninitialized memory otherwise.
+     * Then get the #VArray of all fill ids to compute a new one. */
+    fill_id.span[target_curve_index] = 0;
+    fill_id.span[target_curve_index] = bke::greasepencil::get_next_available_fill_id(fill_id.span);
     curve_attributes_to_skip.add("fill_id");
     fill_id.finish();
   }
