@@ -1115,7 +1115,8 @@ static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
 
   /* Enum field label & tip. */
   if (!enum_tip.empty()) {
-    tooltip_text_field_add(*data, std::move(enum_tip), {}, TIP_STYLE_NORMAL, TIP_LC_VALUE);
+    enum_tip = tooltip_with_period(enum_tip);
+    tooltip_text_field_add(*data, std::move(enum_tip), {}, TIP_STYLE_NORMAL, TIP_LC_VALUE, true);
   }
 
   /* Operator shortcut. */
