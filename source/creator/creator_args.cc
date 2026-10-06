@@ -2957,6 +2957,8 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
   STRNCPY(filepath, filepath_arg);
   BLI_path_canonicalize_native(filepath, sizeof(filepath));
 
+  const bool is_directory = BLI_is_dir(filepath);
+
   /* Load the file. */
   ReportList reports;
   BKE_reports_init(&reports, RPT_PRINT | RPT_STORE);
@@ -2965,7 +2967,9 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
    * Instead, enabling auto-execution via `--enable-autoexec` causes the auto-execution
    * check to be skipped (if it's set), so it's fine to always enable the check here. */
   const bool use_scripts_autoexec_check = true;
-  const bool success = WM_file_read(C, filepath, use_scripts_autoexec_check, &reports);
+  const bool success = !is_directory ?
+                           WM_file_read(C, filepath, use_scripts_autoexec_check, &reports) :
+                           WM_file_read_project(C, filepath, &reports);
 
   wmWindowManager *wm = CTX_wm_manager(C);
   WM_reports_from_reports_move(wm, &reports);
@@ -2976,55 +2980,59 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
       /* Ensure we use 'C->data.scene' for background render. */
       CTX_wm_window_set(C, nullptr);
     }
+    return true;
   }
-  else {
-    /* Failed to load file, stop processing arguments if running in background mode. */
-    if (G.background) {
-      /* Set `is_break` if running in the background mode so
-       * blender will return non-zero exit code which then
-       * could be used in automated script to control how
-       * good or bad things are. */
-      G.is_break = true;
-      return false;
-    }
 
-    const char *error_msg_generic = "file could not be loaded";
-    const char *error_msg = nullptr;
-
-    if (load_empty_file == false) {
-      error_msg = error_msg_generic;
-    }
-    else if (!BKE_blendfile_extension_check(filepath)) {
-      /* Non-blend. Continue loading and give warning. */
-      G_MAIN->is_read_invalid = true;
-      return true;
-    }
-    else if (BLI_exists(filepath)) {
-      /* When a file is found but can't be loaded, handling it as a new file
-       * could cause it to be unintentionally overwritten (data loss).
-       * Further this is almost certainly not that a user would expect or want.
-       * If they do, they can delete the file beforehand. */
-      error_msg = error_msg_generic;
-    }
-
-    if (error_msg) {
-      fprintf(stderr, "Error: %s, exiting! %s\n", error_msg, filepath);
-      WM_exit(C, EXIT_FAILURE);
-      /* Unreachable, return for clarity. */
-      return false;
-    }
-
-    /* Behave as if a file was loaded, calling "Save" will write to the `filepath` from the CLI.
-     *
-     * WARNING: The path referenced may be incorrect, no attempt is made to validate the path
-     * here or check that writing to it will work. If the users enters the path of a directory
-     * that doesn't exist (for example) saving will fail.
-     * Attempting to create the file at this point is possible but likely to cause more
-     * trouble than it's worth (what with network drives), removable devices ... etc. */
-
-    STRNCPY(G_MAIN->filepath, filepath);
-    printf("... opened default scene instead; saving will write to: %s\n", filepath);
+  /* Failed to load file, stop processing arguments if running in background mode. */
+  if (G.background) {
+    /* Set `is_break` if running in the background mode so
+     * blender will return non-zero exit code which then
+     * could be used in automated script to control how
+     * good or bad things are. */
+    G.is_break = true;
+    return false;
   }
+
+  if (is_directory) {
+    return false;
+  }
+
+  const char *error_msg_generic = "file could not be loaded";
+  const char *error_msg = nullptr;
+
+  if (load_empty_file == false) {
+    error_msg = error_msg_generic;
+  }
+  else if (!BKE_blendfile_extension_check(filepath)) {
+    /* Non-blend. Continue loading and give warning. */
+    G_MAIN->is_read_invalid = true;
+    return true;
+  }
+  else if (BLI_exists(filepath)) {
+    /* When a file is found but can't be loaded, handling it as a new file
+     * could cause it to be unintentionally overwritten (data loss).
+     * Further this is almost certainly not that a user would expect or want.
+     * If they do, they can delete the file beforehand. */
+    error_msg = error_msg_generic;
+  }
+
+  if (error_msg) {
+    fprintf(stderr, "Error: %s, exiting! %s\n", error_msg, filepath);
+    WM_exit(C, EXIT_FAILURE);
+    /* Unreachable, return for clarity. */
+    return false;
+  }
+
+  /* Behave as if a file was loaded, calling "Save" will write to the `filepath` from the CLI.
+   *
+   * WARNING: The path referenced may be incorrect, no attempt is made to validate the path
+   * here or check that writing to it will work. If the users enters the path of a directory
+   * that doesn't exist (for example) saving will fail.
+   * Attempting to create the file at this point is possible but likely to cause more
+   * trouble than it's worth (what with network drives), removable devices ... etc. */
+
+  STRNCPY(G_MAIN->filepath, filepath);
+  printf("... opened default scene instead; saving will write to: %s\n", filepath);
 
   return true;
 }

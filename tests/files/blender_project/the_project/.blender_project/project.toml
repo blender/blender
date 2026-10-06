@@ -1,0 +1,14 @@
+schema_version = 1
+name = "Ružena"
+
+[[asset_libraries]]
+name = "Lorem Ipsum"
+path = "{project_root}/assets"
+use_relative_path = true
+import_method = "PACK"
+
+[[asset_libraries]]
+name = "Материалы"
+path = "{project_root}/новый\\assets"
+use_relative_path = true
+import_method = "PACK"

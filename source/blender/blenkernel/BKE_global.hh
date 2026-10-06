@@ -306,8 +306,6 @@ enum {
    * - Reverting a file keeps the trust of the current session.
    * - Scripts calling `wm.open_mainfile` without "use_scripts"
    *   use the trust of the file already open.
-   * - FIXME: opening a project blend-file, see `PROJECT_OT_OpenBlendInProject`,
-   *   uses the trust of the file already open, needs investigation.
    */
   G_FLAG_SCRIPT_AUTOEXEC = (1 << 13),
   G_FLAG_SCRIPT_AUTOEXEC_FAIL = (1 << 15),

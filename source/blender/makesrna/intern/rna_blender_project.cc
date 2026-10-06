@@ -637,6 +637,9 @@ static bUserAssetLibrary *rna_BlenderProject_asset_library_new(const bContext *C
                                                                const char *directory,
                                                                const char *uuid_str)
 {
+  /* Keep this function in sync with the logic in project_asset_library_add in
+   * blender_project_config.cc. */
+
   bUserAssetLibrary *new_library;
   Main *bmain = CTX_data_main(C);
 

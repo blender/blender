@@ -9,20 +9,21 @@
 #include <mutex>
 #include <shared_mutex>
 
-#include "BKE_preferences.h"
-#include "BLI_listbase.hh"
-#include "RNA_types.hh"
-
 #include "BKE_blender_project.hh"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "BKE_path_templates.hh"
+#include "BKE_preferences.h"
 
+#include "BLI_fileops.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
+
+#include "RNA_types.hh"
 
 #include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
@@ -182,6 +183,9 @@ void ProjectVariable::value_set(float value)
 
 StringRefNull ProjectVariable::description_get() const
 {
+  if (this->ui_data->description == nullptr) {
+    return StringRefNull();
+  }
   return StringRefNull(this->ui_data->description);
 }
 
@@ -389,6 +393,42 @@ std::string ensure_is_valid_project_variable_name(StringRef name)
 
 }  // namespace bke
 
+std::string BKE_is_path_inside_blender_project(const char *path)
+{
+  char project_root_path[FILE_MAX];
+  if (BLI_is_file(path)) {
+    BLI_path_split_dir_part(path, project_root_path, sizeof(project_root_path));
+  }
+  else if (BLI_is_dir(path)) {
+    STRNCPY(project_root_path, path);
+  }
+  else {
+    /* The provided path doesn't exist. */
+    return "";
+  }
+
+  bool found_project = false;
+  char project_root_path_test[FILE_MAX];
+
+  /* Loop as long as project_root_path has a parent dir.
+   * Stop if project_root_path contains a .blender_project folder.
+   */
+  do {
+    STRNCPY(project_root_path_test, project_root_path);
+    BLI_path_append(project_root_path_test, FILE_MAX, ".blender_project");
+    found_project = BLI_is_dir(project_root_path_test);
+  } while (!found_project && BLI_path_parent_dir(project_root_path));
+
+  if (found_project) {
+    /* Ensure that we don't have a trailing slash in the path.
+     * IE, we always return "/my/folder" and not "/my/folder/".
+     */
+    BLI_path_slash_rstrip(project_root_path);
+    return project_root_path;
+  }
+  return "";
+}
+
 bke::BlenderProject *BKE_blender_project_get(const Main *bmain)
 {
   if (bmain == nullptr || !bmain->is_part_of_project) {
@@ -403,7 +443,7 @@ bke::BlenderProject *BKE_blender_project_get(const Main *bmain)
   return &*project;
 }
 
-bool BKE_blender_project_init(blender::StringRef name, blender::StringRef root_path)
+bool BKE_blender_project_init(StringRef name, StringRef root_path)
 {
   if (name.is_empty() || root_path.is_empty()) {
     return false;
@@ -414,7 +454,7 @@ bool BKE_blender_project_init(blender::StringRef name, blender::StringRef root_p
   bke::with_blender_project_write_lock([&] {
     std::optional<bke::BlenderProject> &project = get_project();
 
-    project = blender::bke::BlenderProject();
+    project = bke::BlenderProject();
 
     project->set_name(name);
     project->set_root_path(root_path);

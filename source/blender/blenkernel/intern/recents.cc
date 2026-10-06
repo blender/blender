@@ -27,7 +27,7 @@
 
 namespace blender::recents {
 
-constexpr toml::spec version = toml::spec::v(1, 1, 0);
+constexpr toml::spec version = toml::spec::v(1, 0, 0);
 
 /* TOML storage. Protected by recents_mutex. */
 static Mutex recents_mutex;      /* protects TOML values */

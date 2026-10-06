@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "intern/blender_project_config.h"
+
 #include <concepts>
 #include <cstdint>
 #include <memory>
@@ -294,6 +296,18 @@ std::string ensure_is_valid_project_variable_name(StringRef name);
 }  // namespace bke
 
 /**
+ * Checks if the provided path is inside of a blender project.
+ *
+ * Note that this function will not check if the project has a valid config.
+ *
+ * \param path: The file or folder to check if it belongs to a project or not.
+ *
+ * \returns The project root path as a string. If no project was found, it
+ * will return an empty string.
+ */
+std::string BKE_is_path_inside_blender_project(const char *path);
+
+/**
  * Fetch the current active Blender Project, if any.
  *
  * WARNING: this fetches the project without any synchronization for
@@ -418,5 +432,8 @@ void BKE_blender_project_clear();
 std::string BKE_blender_project_path_make_relative(StringRef path,
                                                    bool path_is_template,
                                                    const bke::BlenderProject &project);
+
+bool BKE_blender_project_config_file_write(Main *bmain);
+bool BKE_blender_project_init_from_root_path(Main *bmain, std::string project_root_path);
 
 }  // namespace blender

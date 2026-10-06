@@ -574,6 +574,7 @@ bool WM_file_read(bContext *C,
                   const char *filepath,
                   const bool use_scripts_autoexec_check,
                   ReportList *reports);
+bool WM_file_read_project(bContext *C, const char *filepath, ReportList *reports);
 void WM_file_autosave_init(wmWindowManager *wm);
 bool WM_file_recover_last_session(bContext *C,
                                   const bool use_scripts_autoexec_check,
