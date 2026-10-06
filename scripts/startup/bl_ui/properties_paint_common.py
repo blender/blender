@@ -225,6 +225,17 @@ class UnifiedPaintPanel:
     # bl_region_type = 'UI'
 
     @staticmethod
+    def active_tool_uses_brushes(context):
+        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+        tool = ToolSelectPanelHelper.tool_active_from_context(context)
+
+        if not tool:
+            # If there is no active tool, then there can't be an active brush.
+            return False
+
+        return tool.use_brushes
+
+    @staticmethod
     def get_brush_mode(context):
         """ Get the correct mode for this context. For any context where this returns None,
             no brush options should be displayed."""
@@ -232,16 +243,6 @@ class UnifiedPaintPanel:
 
         if mode == 'PARTICLE':
             # Particle brush settings currently completely do their own thing.
-            return None
-
-        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
-        tool = ToolSelectPanelHelper.tool_active_from_context(context)
-
-        if not tool:
-            # If there is no active tool, then there can't be an active brush.
-            return None
-
-        if not tool.use_brushes:
             return None
 
         space_data = context.space_data
@@ -381,7 +382,7 @@ class UnifiedPaintPanel:
 class BrushPanel(UnifiedPaintPanel):
     @classmethod
     def poll(cls, context):
-        return cls.get_brush_mode(context) is not None
+        return cls.active_tool_uses_brushes(context) and cls.get_brush_mode(context) is not None
 
 
 class BrushSelectPanel(BrushPanel):
