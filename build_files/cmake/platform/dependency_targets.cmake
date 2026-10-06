@@ -151,8 +151,13 @@ add_library(bf::dependencies::optional::usd ALIAS bf_deps_optional_usd)
 
 if(WITH_USD)
   target_compile_definitions(bf_deps_optional_usd INTERFACE WITH_USD)
-  target_include_directories(bf_deps_optional_usd SYSTEM INTERFACE ${USD_INCLUDE_DIRS})
-  target_link_libraries(bf_deps_optional_usd INTERFACE ${USD_LIBRARIES})
+  if(TARGET usd_m)
+    target_link_libraries(bf_deps_optional_usd INTERFACE usd_m)
+  else()
+    # TODO: We should probably do a better job at figuring out what libs we use but for now
+    # these two do the job on windows. 
+    target_link_libraries(bf_deps_optional_usd INTERFACE usdImagingGL usdVolImaging)
+  endif()
 endif()
 
 # -----------------------------------------------------------------------------
@@ -175,8 +180,11 @@ add_library(bf::dependencies::optional::opensubdiv ALIAS bf_deps_optional_opensu
 
 if(WITH_OPENSUBDIV)
   target_compile_definitions(bf_deps_optional_opensubdiv INTERFACE WITH_OPENSUBDIV)
-  target_include_directories(bf_deps_optional_opensubdiv SYSTEM INTERFACE ${OPENSUBDIV_INCLUDE_DIRS})
-  target_link_libraries(bf_deps_optional_opensubdiv INTERFACE ${OPENSUBDIV_LIBRARIES})
+  if(TARGET OpenSubdiv::osdGPU_static)
+    target_link_libraries(bf_deps_optional_opensubdiv INTERFACE OpenSubdiv::osdGPU_static OpenSubdiv::osdCPU_static)
+  else()
+    target_link_libraries(bf_deps_optional_opensubdiv INTERFACE OpenSubdiv::osdGPU OpenSubdiv::osdCPU)
+  endif()
 endif()
 
 # -----------------------------------------------------------------------------

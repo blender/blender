@@ -14,9 +14,8 @@ endif()
 # or MINSIZEREL location, to the debug libs, which is not good as this will cause
 # all sorts of linking issues with MSVC. Map them explicitly to Release libs.
 # for further reading: https://gitlab.kitware.com/cmake/cmake/-/issues/20319
-set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL MinSizeRel RelWithDebInfo Release)
-set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release MinSizeRel)
-set(CMAKE_MAP_IMPORTED_CONFIG_RELEASE Release RelWithDebInfo MinSizeRel)
+set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL MinSizeRel "" Release)
+set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo "" Release)
 
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(MSVC_CLANG ON)
@@ -576,6 +575,12 @@ endif()
 set(PYTHON_EXECUTABLE ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python$<$<CONFIG:Debug>:_d>.exe)
 
 if(WITH_PYTHON)
+  set(Python3_FIND_REGISTRY NEVER)
+  set(Python3_FIND_VIRTUALENV NEVER)
+  set(Python3_FIND_STRATEGY LOCATION)
+  set(Python3_ROOT_DIR ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS})
+  find_package(Python3 ${_PYTHON_VERSION} EXACT COMPONENTS Development)
+
   # Cache version for make_bpy_wheel.py to detect.
   unset(PYTHON_VERSION CACHE)
   set(PYTHON_VERSION "${_PYTHON_VERSION}" CACHE STRING "Python version")
@@ -736,21 +741,6 @@ if(WITH_IMAGE_OPENJPEG)
     set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include/openjpeg-2.4)
   endif()
   set(OPENJPEG_LIBRARIES ${OPENJPEG}/lib/openjp2.lib)
-endif()
-
-if(WITH_OPENSUBDIV)
-  windows_find_package(OpenSubdiv)
-  if(NOT OpenSubdiv_FOUND)
-    set(OPENSUBDIV ${LIBDIR}/opensubdiv)
-    set(OPENSUBDIV_INCLUDE_DIRS ${OPENSUBDIV}/include)
-    set(OPENSUBDIV_LIBPATH ${OPENSUBDIV}/lib)
-    set(OPENSUBDIV_LIBRARIES
-      optimized ${OPENSUBDIV_LIBPATH}/osdCPU.lib
-      optimized ${OPENSUBDIV_LIBPATH}/osdGPU.lib
-      debug ${OPENSUBDIV_LIBPATH}/osdCPU_d.lib
-      debug ${OPENSUBDIV_LIBPATH}/osdGPU_d.lib
-    )
-  endif()
 endif()
 
 if(WITH_RUBBERBAND)
@@ -946,30 +936,17 @@ if(WITH_EMBREE)
   endif()
 endif()
 
+if(WITH_OPENSUBDIV)
+  set(OpenSubdiv_DIR ${LIBDIR}/opensubdiv/lib/cmake/OpenSubdiv)
+  find_package(OpenSubdiv REQUIRED CONFIG)
+  message("OpenSubdiv_FOUND = ${OpenSubdiv_FOUND}")
+endif()
+
 if(WITH_USD)
-  windows_find_package(USD)
-  if(NOT USD_FOUND)
-    # 3.5 22.03 libs
-    set(USD_INCLUDE_DIRS ${LIBDIR}/usd/include)
-    set(USD_RELEASE_LIB ${LIBDIR}/usd/lib/usd_usd_ms.lib)
-    set(USD_DEBUG_LIB ${LIBDIR}/usd/lib/usd_usd_ms_d.lib)
-    set(USD_LIBRARY_DIR ${LIBDIR}/usd/lib)
-    if(NOT EXISTS "${USD_RELEASE_LIB}") # 3.5 22.11 libs
-      set(USD_RELEASE_LIB ${LIBDIR}/usd/lib/usd_ms.lib)
-      set(USD_DEBUG_LIB ${LIBDIR}/usd/lib/usd_ms_d.lib)
-    endif()
-    # Older USD had different filenames, if the new ones are
-    # not found see if the older ones exist, to ease the
-    # transition period while landing libs.
-    if(NOT EXISTS "${USD_RELEASE_LIB}") # 3.3 static libs
-      set(USD_RELEASE_LIB ${LIBDIR}/usd/lib/usd_usd_m.lib)
-      set(USD_DEBUG_LIB ${LIBDIR}/usd/lib/usd_usd_m_d.lib)
-    endif()
-    set(USD_LIBRARIES
-      debug ${USD_DEBUG_LIB}
-      optimized ${USD_RELEASE_LIB}
-    )
-  endif()
+  set(USD_LIBRARY_DIR ${LIBDIR}/usd)
+  set(USD_DIR ${USD_LIBRARY_DIR}/lib/cmake)
+  find_package(pxr REQUIRED CONFIG)
+  set(USD_LIBRARIES usdImagingGL usdVolImaging)
 endif()
 
 if(WITH_MATERIALX)

@@ -1497,13 +1497,25 @@ function(add_bundled_libraries library_dir)
   endif()
 endfunction()
 
+# `DIRECTORY` globs all shared libraries in the given folder, this avoids having to
+# list every single library for dependencies that ship a large number of them
+# (USD ships one shared library per module for example).
+#
+# `PATTERN` filters the resulting file list, each entry is a globbing pattern
+# optionally followed by `INCLUDE` (the default, only keep matching files) or
+# `EXCLUDE` (drop matching files). This mirrors `install(DIRECTORY ... FILES_MATCHING)`
+# and is used to keep debug libraries out of release installs and vice versa:
+#
+#   windows_install_shared_manifest(DIRECTORY ${LIBDIR}/usd/lib PATTERN "*_d.dll" EXCLUDE RELEASE)
+#   windows_install_shared_manifest(DIRECTORY ${LIBDIR}/usd/lib PATTERN "*_d.dll" INCLUDE DEBUG)
+#
 # Modifies in parent scope:
 # - `WINDOWS_SHARED_MANIFEST_DEBUG`: appended with files (when debug).
 # - `WINDOWS_SHARED_MANIFEST_RELEASE`: appended with files (when release).
 function(windows_install_shared_manifest)
   set(options OPTIONAL DEBUG RELEASE ALL)
-  set(oneValueArgs "")
-  set(multiValueArgs FILES)
+  set(oneValueArgs DIRECTORY)
+  set(multiValueArgs FILES PATTERN)
   cmake_parse_arguments(
     WINDOWS_INSTALL
     "${options}"
@@ -1529,29 +1541,112 @@ function(windows_install_shared_manifest)
   if(WINDOWS_INSTALL_RELEASE)
     set(WINDOWS_CONFIGURATIONS "${WINDOWS_CONFIGURATIONS};Release;RelWithDebInfo;MinSizeRel")
   endif()
+
+  set(_files ${WINDOWS_INSTALL_FILES})
+  if(WINDOWS_INSTALL_DIRECTORY)
+    file(GLOB _directory_files ${WINDOWS_INSTALL_DIRECTORY}/*\.dll)
+    list(APPEND _files ${_directory_files})
+    unset(_directory_files)
+  endif()
+
+  # Sort the patterns into include/exclude lists. `EXCLUDE`/`INCLUDE` apply to the
+  # pattern that precedes them, matching the argument order of
+  # `install(DIRECTORY ... PATTERN <pattern> EXCLUDE)`, patterns default to `INCLUDE`.
+  set(_include_patterns "")
+  set(_exclude_patterns "")
+  foreach(_arg ${WINDOWS_INSTALL_PATTERN})
+    if(_arg STREQUAL "EXCLUDE" OR _arg STREQUAL "INCLUDE")
+      list(LENGTH _include_patterns _pattern_count)
+      if(_pattern_count EQUAL 0)
+        message(FATAL_ERROR "windows_install_shared_manifest: `${_arg}` without a preceding PATTERN")
+      endif()
+      math(EXPR _last_pattern "${_pattern_count} - 1")
+      list(GET _include_patterns ${_last_pattern} _pattern)
+      list(REMOVE_AT _include_patterns ${_last_pattern})
+      if(_arg STREQUAL "EXCLUDE")
+        list(APPEND _exclude_patterns "${_pattern}")
+      else()
+        list(APPEND _include_patterns "${_pattern}")
+      endif()
+    else()
+      list(APPEND _include_patterns "${_arg}")
+    endif()
+  endforeach()
+
+  # Translate the globbing patterns into regular expressions, they are matched
+  # against the full path of each file.
+  set(_translated_patterns "")
+  foreach(_pattern ${_include_patterns})
+    string(REPLACE "." "[.]" _pattern_regex "${_pattern}")
+    string(REPLACE "*" ".*" _pattern_regex "${_pattern_regex}")
+    string(REPLACE "?" "." _pattern_regex "${_pattern_regex}")
+    list(APPEND _translated_patterns "${_pattern_regex}$")
+  endforeach()
+  set(_include_patterns ${_translated_patterns})
+
+  set(_translated_patterns "")
+  foreach(_pattern ${_exclude_patterns})
+    string(REPLACE "." "[.]" _pattern_regex "${_pattern}")
+    string(REPLACE "*" ".*" _pattern_regex "${_pattern_regex}")
+    string(REPLACE "?" "." _pattern_regex "${_pattern_regex}")
+    list(APPEND _translated_patterns "${_pattern_regex}$")
+  endforeach()
+  set(_exclude_patterns ${_translated_patterns})
+
+  unset(_translated_patterns)
+  unset(_pattern)
+  unset(_pattern_regex)
+
+  if(_include_patterns)
+    set(_included_files "")
+    foreach(_file ${_files})
+      foreach(_pattern ${_include_patterns})
+        if(_file MATCHES "${_pattern}")
+          list(APPEND _included_files ${_file})
+          break()
+        endif()
+      endforeach()
+    endforeach()
+    set(_files ${_included_files})
+    unset(_included_files)
+  endif()
+
+  foreach(_pattern ${_exclude_patterns})
+    list(FILTER _files EXCLUDE REGEX "${_pattern}")
+  endforeach()
+  unset(_include_patterns)
+  unset(_exclude_patterns)
+
+  # Nothing to install, this happens when a dependency is built statically.
+  if(NOT _files)
+    unset(_files)
+    return()
+  endif()
+
   if(NOT WITH_PYTHON_MODULE)
     # Blender executable with manifest.
     if(WINDOWS_INSTALL_DEBUG)
-      list(APPEND WINDOWS_SHARED_MANIFEST_DEBUG ${WINDOWS_INSTALL_FILES})
+      list(APPEND WINDOWS_SHARED_MANIFEST_DEBUG ${_files})
     endif()
     if(WINDOWS_INSTALL_RELEASE)
-      list(APPEND WINDOWS_SHARED_MANIFEST_RELEASE ${WINDOWS_INSTALL_FILES})
+      list(APPEND WINDOWS_SHARED_MANIFEST_RELEASE ${_files})
     endif()
     set(WINDOWS_SHARED_MANIFEST_DEBUG "${WINDOWS_SHARED_MANIFEST_DEBUG}" PARENT_SCOPE)
     set(WINDOWS_SHARED_MANIFEST_RELEASE "${WINDOWS_SHARED_MANIFEST_RELEASE}" PARENT_SCOPE)
     install(
-      FILES ${WINDOWS_INSTALL_FILES}
+      FILES ${_files}
       DESTINATION "blender.shared"
       CONFIGURATIONS ${WINDOWS_CONFIGURATIONS}
     )
   else()
     # Python module without manifest.
     install(
-      FILES ${WINDOWS_INSTALL_FILES}
+      FILES ${_files}
       DESTINATION "bpy"
       CONFIGURATIONS ${WINDOWS_CONFIGURATIONS}
     )
   endif()
+  unset(_files)
 endfunction()
 
 function(windows_generate_manifest)

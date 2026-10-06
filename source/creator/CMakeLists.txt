@@ -2085,14 +2085,9 @@ if((DEFINED LIBDIR) AND TARGETDIR_LIB)
   # relative to the location of the USD DLL, if the DLL does not exist
   # assume we are linking against the static 3.5 lib.
   if(WITH_USD)
-    if(WIN32 AND
-        (
-          EXISTS ${LIBDIR}/usd/lib/usd_usd_ms.dll OR  # USD 22.03
-          EXISTS ${LIBDIR}/usd/lib/usd_ms.dll         # USD 22.11
-        )
-      )
+    if(WIN32)
       install(DIRECTORY
-        ${USD_LIBRARY_DIR}/usd
+        ${USD_LIBRARY_DIR}/lib/usd
         DESTINATION ${TARGETDIR_LIB}
       )
       install(DIRECTORY ${LIBDIR}/usd/plugin/usd/ DESTINATION "blender.shared/usd")
@@ -2111,30 +2106,16 @@ if((DEFINED LIBDIR) AND TARGETDIR_LIB)
     endif()
   endif()
   if(WIN32)
-    # If this file exists we are building against a 3.5 22.03 library directory
-    # that needs these DLL's installed.
-    if(EXISTS ${LIBDIR}/usd/lib/usd_usd_ms.dll)
-      windows_install_shared_manifest(FILES
-        ${LIBDIR}/usd/lib/usd_usd_ms.dll
-        RELEASE
-      )
-      windows_install_shared_manifest(FILES
-        ${LIBDIR}/usd/lib/usd_usd_ms_d.dll
-        DEBUG
-      )
-    endif()
-    # If this file exists we are building against a 3.5 22.11 library directory
-    # that needs these DLL's installed.
-    if(EXISTS ${LIBDIR}/usd/lib/usd_ms.dll)
-      windows_install_shared_manifest(FILES
-        ${LIBDIR}/usd/lib/usd_ms.dll
-        RELEASE
-      )
-      windows_install_shared_manifest(FILES
-        ${LIBDIR}/usd/lib/usd_ms_d.dll
-        DEBUG
-      )
-    endif()
+    windows_install_shared_manifest(
+      DIRECTORY ${LIBDIR}/usd/lib
+      PATTERN "*_d.dll" EXCLUDE
+      RELEASE
+    )
+    windows_install_shared_manifest(
+      DIRECTORY ${LIBDIR}/usd/lib
+      PATTERN "*_d.dll" INCLUDE
+      DEBUG
+    )
   endif()
 endif()
 
