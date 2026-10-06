@@ -455,7 +455,9 @@ void COLLECTION_OT_create(wmOperatorType *ot)
 static bool collection_importer_add_poll(bContext *C)
 {
   const Collection *collection = CTX_data_collection(C);
-  if (!BKE_collection_is_content_editable(collection)) {
+  std::string reason;
+  if (!BKE_collection_is_content_editable(collection, &reason)) {
+    CTX_wm_operator_poll_msg_set(C, reason.c_str());
     return false;
   }
   if (!BKE_collection_is_empty(collection)) {
@@ -493,55 +495,154 @@ static bool collection_importer_import_poll(bContext *C)
   return true;
 }
 
-static wmOperatorStatus collection_importer_add_exec(bContext *C, wmOperator *op)
+struct CollectionImporterAddData {
+  const bke::FileHandlerType *fh = nullptr;
+  Collection *collection = nullptr;
+  CollectionImport *collection_importer = nullptr;
+};
+
+static CollectionImporterAddData *collection_importer_data_ensure(bContext *C, wmOperator *op)
 {
-  /* TODO - There should only be 1 importer in the hierarchy.
-   * This needs to be enforced either here or in the poll. */
+  CollectionImporterAddData *data = static_cast<CollectionImporterAddData *>(op->customdata);
 
-  using namespace blender;
+  if (data) {
+    BLI_assert(data->fh && data->collection && data->collection_importer);
+    BLI_assert(STREQ(data->collection_importer->fh_idname, data->fh->idname));
+    return data;
+  }
+
   Collection *collection = CTX_data_collection(C);
+  if (!collection) {
+    BKE_report(op->reports, RPT_ERROR, "Could not find an active collection");
+    return nullptr;
+  }
 
-  char name[MAX_ID_NAME - 2]; /* id name */
-  RNA_string_get(op->ptr, "name", name);
-
+  const std::string name = RNA_string_get(op->ptr, "name");
   bke::FileHandlerType *fh = bke::file_handler_find(name);
   if (!fh) {
-    BKE_reportf(op->reports, RPT_ERROR, "File handler '%s' not found", name);
-    return OPERATOR_CANCELLED;
+    BKE_reportf(op->reports, RPT_ERROR, "File handler '%s' not found", name.c_str());
+    return nullptr;
   }
 
   if (!WM_operatortype_find(fh->import_operator, true)) {
     BKE_reportf(
         op->reports, RPT_ERROR, "File handler operator '%s' not found", fh->import_operator);
+    return nullptr;
+  }
+
+  data = MEM_new<CollectionImporterAddData>(__func__);
+  data->fh = fh;
+  data->collection = collection;
+  data->collection_importer = BKE_collection_importer_add(collection, fh->idname);
+  op->customdata = data;
+
+  return data;
+}
+
+static void collection_importer_add_cleanup(bContext * /*C*/, wmOperator *op)
+{
+  if (op->customdata) {
+    MEM_delete(static_cast<CollectionImporterAddData *>(op->customdata));
+  }
+}
+
+static wmOperatorStatus collection_importer_add_exec(bContext *C, wmOperator *op)
+{
+  /* TODO - There should only be 1 importer in the hierarchy.
+   * This needs to be enforced either here or in the poll. */
+
+  CollectionImporterAddData *data = collection_importer_data_ensure(C, op);
+  if (!data) {
+    /* No data, so no need to call `collection_importer_add_cleanup` here. */
     return OPERATOR_CANCELLED;
   }
 
-  BKE_collection_importer_add(collection, fh->idname);
+  const std::string filepath = RNA_string_get(op->ptr, "filepath");
+  if (!filepath.empty()) {
+    if (!data->collection_importer->import_properties) {
+      data->collection_importer->import_properties =
+          bke::idprop::create_group("Collection Import System Properties").release();
+    }
+    IDProperty *import_properties = data->collection_importer->import_properties;
+    IDProperty *filepath_property = bke::idprop::create("filepath", filepath).release();
+    IDP_AddToGroup(import_properties, filepath_property);
+  }
 
   BKE_view_layer_need_resync_tag(CTX_data_view_layer(C));
-  DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&data->collection->id, ID_RECALC_SYNC_TO_EVAL);
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_PROPERTIES, nullptr);
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
 
+  collection_importer_add_cleanup(C, op);
+
   return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus collection_importer_add_invoke(bContext *C,
+                                                       wmOperator *op,
+                                                       const wmEvent *event)
+{
+  if (!RNA_struct_property_is_set(op->ptr, "relative_path")) {
+    RNA_boolean_set(op->ptr, "relative_path", (U.flag & USER_RELPATHS) != 0);
+  }
+
+  if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+    return WM_operator_call_notest(C, op); /* Call exec direct. */
+  }
+
+  const CollectionImporterAddData *data = collection_importer_data_ensure(C, op);
+  if (!data) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const std::optional<std::string> filter_glob = data->fh->filter_glob_from_extensions();
+  if (filter_glob) {
+    RNA_string_set(op->ptr, "filter_glob", filter_glob->c_str());
+  }
+
+  /* This will call again `collection_importer_add_exec` when user validate their choice, which
+   * will copy the value of the 'filepath' property of this operator, into the collection_importer
+   * 'filepath' property. */
+  return WM_operator_filesel(C, op, event);
 }
 
 static void COLLECTION_OT_importer_add(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Add Importer";
   ot->description = "Add Importer";
   ot->idname = "COLLECTION_OT_importer_add";
 
   /* api callbacks */
+  ot->invoke = collection_importer_add_invoke;
+  ot->cancel = collection_importer_add_cleanup;
   ot->exec = collection_importer_add_exec;
   ot->poll = collection_importer_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_string(ot->srna, "name", nullptr, MAX_ID_NAME - 2, "Name", "FileHandler idname");
+  prop = RNA_def_string(ot->srna, "name", nullptr, MAX_ID_NAME - 2, "Name", "FileHandler idname");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  prop = RNA_def_string(
+      ot->srna, "filepath", nullptr, FILE_MAX, "Filepath", "Filepath for the collection import");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+  prop = RNA_def_string(ot->srna,
+                        "filter_glob",
+                        nullptr,
+                        FH_MAX_FILE_EXTENSIONS_STR,
+                        "File Extension",
+                        "'Glob' file type extension(s), as defined by the selected file handler");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+  RNA_def_boolean(ot->srna,
+                  "relative_path",
+                  true,
+                  "Relative Path",
+                  "Select the file relative to the blend file");
 }
 
 static wmOperatorStatus collection_importer_remove_exec(bContext *C, wmOperator * /*op*/)
