@@ -1014,6 +1014,8 @@ static void but_update_old_active_from_new(Button *oldbut, Button *but)
   but_extra_icons_update_from_old_but(but, oldbut);
   std::swap(but->extra_op_icons, oldbut->extra_op_icons);
 
+  std::swap(but->icon_overlay_text, oldbut->icon_overlay_text);
+
   if (oldbut->type == ButtonType::SearchMenu) {
     ButtonSearch *search_oldbut = static_cast<ButtonSearch *>(oldbut),
                  *search_but = static_cast<ButtonSearch *>(but);
