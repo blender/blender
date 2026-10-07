@@ -260,6 +260,7 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
     if (object::editmode_free_ex(bmain, &ob)) {
       if (do_undo_system == false) {
         DEG_id_tag_update(&ob.id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+        DEG_id_tag_update(ob.data, ID_RECALC_GEOMETRY);
       }
     }
   }
