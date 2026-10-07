@@ -8,11 +8,14 @@
 
 namespace blender {
 struct bContext;
+struct bNode;
 struct wmGizmoGroup;
 struct ARegion;
 struct wmGizmoGroupType;
 
 namespace nodes::gizmos {
+
+bool node_has_gizmo(const bNode &node);
 
 /* -------------------------------------------------------------------- */
 /** \name Common BBox Gizmos
@@ -97,9 +100,9 @@ bool split_poll_space_image(const bContext *C, wmGizmoGroupType *gzgt);
 /** \name Backdrop Gizmo
  * \{ */
 
-bool transform_poll(const bContext *C, wmGizmoGroupType *gzgt);
-void transform_refresh(const bContext *C, wmGizmoGroup *gzgroup);
-void transform_setup(const bContext *C, wmGizmoGroup *gzgroup);
+bool viewer_poll(const bContext *C, wmGizmoGroupType *gzgt);
+void viewer_refresh(const bContext *C, wmGizmoGroup *gzgroup);
+void viewer_setup(const bContext *C, wmGizmoGroup *gzgroup);
 
 /** \} */
 
@@ -111,6 +114,28 @@ void translate_refresh(const bContext *C, wmGizmoGroup *gzgroup);
 void translate_setup(const bContext *C, wmGizmoGroup *gzgroup);
 bool translate_poll_space_node(const bContext *C, wmGizmoGroupType *gzgt);
 bool translate_poll_space_image(const bContext *C, wmGizmoGroupType *gzgt);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform Gizmo
+ * \{ */
+
+void transform_refresh(const bContext *C, wmGizmoGroup *gzgroup);
+void transform_setup(const bContext *C, wmGizmoGroup *gzgroup);
+bool transform_poll_space_node(const bContext *C, wmGizmoGroupType *gzgt);
+bool transform_poll_space_image(const bContext *C, wmGizmoGroupType *gzgt);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scale Gizmo
+ * \{ */
+
+void scale_refresh(const bContext *C, wmGizmoGroup *gzgroup);
+void scale_setup(const bContext *C, wmGizmoGroup *gzgroup);
+bool scale_poll_space_node(const bContext *C, wmGizmoGroupType *gzgt);
+bool scale_poll_space_image(const bContext *C, wmGizmoGroupType *gzgt);
 
 /** \} */
 

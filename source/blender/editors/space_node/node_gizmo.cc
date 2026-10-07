@@ -50,10 +50,10 @@ void NODE_GGT_backdrop_transform(wmGizmoGroupType *gzgt)
 
   gzgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
 
-  gzgt->poll = nodes::gizmos::transform_poll;
-  gzgt->setup = nodes::gizmos::transform_setup;
+  gzgt->poll = nodes::gizmos::viewer_poll;
+  gzgt->setup = nodes::gizmos::viewer_setup;
   gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
-  gzgt->refresh = nodes::gizmos::transform_refresh;
+  gzgt->refresh = nodes::gizmos::viewer_refresh;
 }
 
 /** \} */
@@ -194,6 +194,46 @@ void NODE_GGT_compositor_translate(wmGizmoGroupType *gzgt)
   gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
   gzgt->draw_prepare = nodes::gizmos::bbox_draw_prepare_space_node;
   gzgt->refresh = nodes::gizmos::translate_refresh;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform
+ * \{ */
+
+void NODE_GGT_compositor_transform(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Transform Widget";
+  gzgt->idname = "NODE_GGT_compositor_transform";
+
+  gzgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
+
+  gzgt->poll = nodes::gizmos::transform_poll_space_node;
+  gzgt->setup = nodes::gizmos::transform_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
+  gzgt->draw_prepare = nodes::gizmos::bbox_draw_prepare_space_node;
+  gzgt->refresh = nodes::gizmos::transform_refresh;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scale
+ * \{ */
+
+void NODE_GGT_compositor_scale(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Scale Widget";
+  gzgt->idname = "NODE_GGT_compositor_scale";
+
+  gzgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
+
+  gzgt->poll = nodes::gizmos::scale_poll_space_node;
+  gzgt->setup = nodes::gizmos::scale_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
+  gzgt->draw_prepare = nodes::gizmos::bbox_draw_prepare_space_node;
+  gzgt->refresh = nodes::gizmos::scale_refresh;
 }
 
 /** \} */
