@@ -533,7 +533,7 @@ static Collection *collection_importer_add_ensure(bContext *C,
     if (StringRef(collection->importer->fh_idname) == fh->idname) {
       return collection;
     }
-    BKE_report(op->reports, RPT_ERROR, "The active collection already have another importer");
+    BKE_report(op->reports, RPT_ERROR, "The active collection already has another importer");
     return nullptr;
   }
 
