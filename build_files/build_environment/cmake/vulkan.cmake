@@ -14,7 +14,7 @@ ExternalProject_Add(external_vulkan_headers
     -Wno-dev
     ${DEFAULT_CMAKE_FLAGS}
     ${VULKAN_HEADERS_EXTRA_ARGS}
-
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   INSTALL_DIR ${LIBDIR}/vulkan_headers
 )
 
@@ -31,12 +31,12 @@ ExternalProject_Add(external_vulkan_utility_libraries
   PREFIX ${BUILD_DIR}/vulkan_utility_libraries
 
   CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/vulkan_headers
+    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/vulkan_utility_libraries
     -Wno-dev
     ${DEFAULT_CMAKE_FLAGS}
     ${VULKAN_UTILITY_LIBRARIES_EXTRA_ARGS}
-
-  INSTALL_DIR ${LIBDIR}/vulkan_headers
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
+  INSTALL_DIR ${LIBDIR}/vulkan_utility_libraries
 )
 
 add_dependencies(
@@ -56,34 +56,10 @@ ExternalProject_Add(external_spirv_headers
     -Wno-dev
     ${DEFAULT_CMAKE_FLAGS}
     ${SPIRV_HEADERS_EXTRA_ARGS}
-
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   INSTALL_DIR ${LIBDIR}/vulkan_headers
 )
 
-set(SPIRV_TOOLS_EXTRA_ARGS
-  -DSPIRV-Headers_SOURCE_DIR=${LIBDIR}/vulkan_headers
-  -DPython3_EXECUTABLE=${PYTHON_BINARY}
-)
-
-ExternalProject_Add(external_spirv_tools
-  URL file://${PACKAGE_DIR}/${SPIRV_TOOLS_FILE}
-  URL_HASH ${SPIRV_TOOLS_HASH_TYPE}=${SPIRV_TOOLS_HASH}
-  PREFIX ${BUILD_DIR}/spirv_tools
-
-  CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/spirv_tools
-    -Wno-dev
-    ${DEFAULT_CMAKE_FLAGS}
-    ${SPIRV_TOOLS_EXTRA_ARGS}
-
-  INSTALL_DIR ${LIBDIR}/spirv_tools
-)
-
-add_dependencies(
-  external_spirv_tools
-  external_spirv_headers
-  external_python
-)
 
 if(UNIX AND NOT APPLE)
   # These are used in `cmake/FindWayland.cmake` from `external_vulkan_loader`.
@@ -111,7 +87,7 @@ ExternalProject_Add(external_vulkan_loader
     -Wno-dev
     ${DEFAULT_CMAKE_FLAGS}
     ${VULKAN_LOADER_EXTRA_ARGS}
-
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   INSTALL_DIR ${LIBDIR}/vulkan_loader
 )
 
@@ -129,13 +105,22 @@ endif()
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
+    ExternalProject_Add_Step(external_vulkan_headers after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/vulkan_headers/
+        ${HARVEST_TARGET}/vulkan_headers
+      DEPENDEES install
+    )
     ExternalProject_Add_Step(external_vulkan_loader after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${LIBDIR}/vulkan_loader/
-        ${HARVEST_TARGET}/vulkan
+        ${HARVEST_TARGET}/vulkan_loader
+      DEPENDEES install
+    )
+    ExternalProject_Add_Step(external_vulkan_utility_libraries after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/vulkan_headers/
-        ${HARVEST_TARGET}/vulkan
+        ${LIBDIR}/vulkan_utility_libraries/
+        ${HARVEST_TARGET}/vulkan_utility_libraries
       DEPENDEES install
     )
   endif()

@@ -6,8 +6,8 @@
 # shaderc will build them.
 
 ExternalProject_Add(external_shaderc_glslang
-  URL file://${PACKAGE_DIR}/${SHADERC_GLSLANG_FILE}
-  URL_HASH ${SHADERC_GLSLANG_HASH_TYPE}=${SHADERC_GLSLANG_HASH}
+  URL file://${PACKAGE_DIR}/${GLSLANG_FILE}
+  URL_HASH ${GLSLANG_HASH_TYPE}=${GLSLANG_HASH}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   PREFIX ${BUILD_DIR}/shaderc_glslang
   CONFIGURE_COMMAND echo .

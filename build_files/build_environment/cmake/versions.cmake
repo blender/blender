@@ -1349,26 +1349,30 @@ set(SHADERC_COPYRIGHT "Copyright 2015 The Shaderc Authors. All rights reserved."
 # The versions of shaderc's dependencies can be found in the root of shaderc's
 # source in a file called DEPS.
 
-set(SHADERC_GLSLANG_VERSION d213562e35573012b6348b2d584457c3704ac09b)
-set(SHADERC_GLSLANG_URI https://github.com/KhronosGroup/glslang/archive/${SHADERC_GLSLANG_VERSION}.tar.gz)
-set(SHADERC_GLSLANG_HASH ac98b61f77ffade6bf819e342dc40c4c)
-set(SHADERC_GLSLANG_HASH_TYPE MD5)
-set(SHADERC_GLSLANG_FILE glslang-${SHADERC_GLSLANG_VERSION}.tar.gz)
-set(SHADERC_GLSLANG_HOMEPAGE https://github.com/KhronosGroup/glslang)
-set(SHADERC_GLSLANG_LICENSE SPDX:Apache-2.0)
-set(SHADERC_GLSLANG_COPYRIGHT [=[
+# we build glslang for our selves shared however shaderc is hellbend on building
+# it from source as well and there is seemingly no convincing it not to do that
+# and just use the version we already have, so currently this source is shared
+# between shaderc and our copy of glslang, but shaderc is picky on its versions
+# this may need to diverge in the future. 
+set(GLSLANG_VERSION vulkan-sdk-1.4.363.0)
+set(GLSLANG_URI https://github.com/KhronosGroup/glslang/archive/refs/tags/${GLSLANG_VERSION}.tar.gz)
+set(GLSLANG_HASH cff49e2030f82248be94adc1b03e6ca2)
+set(GLSLANG_HASH_TYPE MD5)
+set(GLSLANG_FILE glslang-${GLSLANG_VERSION}.tar.gz)
+set(GLSLANG_HOMEPAGE https://github.com/KhronosGroup/glslang)
+set(GLSLANG_LICENSE SPDX:Apache-2.0)
+set(GLSLANG_COPYRIGHT [=[
 Copyright 2020 The Khronos Group Inc.
 Copyright (C) 2015-2018 Google, Inc.
 ]=])
 
-
-set(VULKAN_VERSION 1.4.341)
+set(VULKAN_VERSION 1.4.363)
 set(VULKAN_CPE "cpe:2.3:a:khronos:vulkan:${VULKAN_VERSION}:*:*:*:*:*:*:*")
 
 set(VULKAN_HEADERS_VERSION ${VULKAN_VERSION})
 set(VULKAN_HEADERS_NAME Vulkan-Headers)
 set(VULKAN_HEADERS_URI https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/v${VULKAN_HEADERS_VERSION}.tar.gz)
-set(VULKAN_HEADERS_HASH 57f17871ef2c43fc9ac01708a4bd3c82)
+set(VULKAN_HEADERS_HASH 5d64c2359246cd3e0958c6eb04e38aa6)
 set(VULKAN_HEADERS_HASH_TYPE MD5)
 set(VULKAN_HEADERS_FILE Vulkan-Headers-${VULKAN_HEADERS_VERSION}.tar.gz)
 set(VULKAN_HEADERS_HOMEPAGE https://github.com/KhronosGroup/Vulkan-Headers)
@@ -1378,7 +1382,7 @@ set(VULKAN_HEADERS_COPYRIGHT "Copyright 2015-2023 The Khronos Group Inc.")
 set(VULKAN_LOADER_VERSION ${VULKAN_VERSION})
 set(VULKAN_LOADER_NAME Vulkan-Loader)
 set(VULKAN_LOADER_URI https://github.com/KhronosGroup/Vulkan-Loader/archive/refs/tags/v${VULKAN_LOADER_VERSION}.tar.gz)
-set(VULKAN_LOADER_HASH 30c6850af7ed0e4af5c57002253c0138)
+set(VULKAN_LOADER_HASH 6cc4e21c9c7a24a663e5f58ba332da6a)
 set(VULKAN_LOADER_HASH_TYPE MD5)
 set(VULKAN_LOADER_FILE Vulkan-Loader-${VULKAN_LOADER_VERSION}.tar.gz)
 set(VULKAN_LOADER_HOMEPAGE https://github.com/KhronosGroup/Vulkan-Loader)
@@ -1392,7 +1396,7 @@ Copyright (c) 2019 Google Inc.
 
 set(VULKAN_UTILITY_LIBRARIES_VERSION ${VULKAN_VERSION})
 set(VULKAN_UTILITY_LIBRARIES_URI https://github.com/KhronosGroup/Vulkan-Utility-Libraries/archive/refs/tags/v${VULKAN_UTILITY_LIBRARIES_VERSION}.tar.gz)
-set(VULKAN_UTILITY_LIBRARIES_HASH 7b0980463b271b6e78269b3828841bb6)
+set(VULKAN_UTILITY_LIBRARIES_HASH 10dff705b19635199162a433f68ac2c6)
 set(VULKAN_UTILITY_LIBRARIES_HASH_TYPE MD5)
 set(VULKAN_UTILITY_LIBRARIES_FILE Vulkan-Utility-Libraries-${VULKAN_UTILITY_LIBRARIES_VERSION}.tar.gz)
 set(VULKAN_UTILITY_LIBRARIES_HOMEPAGE https://github.com/KhronosGroup/Vulkan-Utility-Libraries)
@@ -1412,7 +1416,7 @@ set(VULKAN_MEMORY_ALLOCATOR_COPYRIGHT "Copyright (c) 2017-2025 Advanced Micro De
 
 set(SPIRV_HEADERS_VERSION ${VULKAN_VERSION})
 set(SPIRV_HEADERS_URI https://github.com/KhronosGroup/SPIRV-Headers/archive/refs/tags/vulkan-sdk-${SPIRV_HEADERS_VERSION}.0.tar.gz)
-set(SPIRV_HEADERS_HASH 38bcd69036ec1443ac19b417bef8685e)
+set(SPIRV_HEADERS_HASH 67fec63779cccdc562338d316da46678)
 set(SPIRV_HEADERS_HASH_TYPE MD5)
 set(SPIRV_HEADERS_FILE SPIRV-Headers-${SPIRV_HEADERS_VERSION}.tar.gz)
 set(SPIRV_HEADERS_NAME SPIR-V Headers)
@@ -1424,16 +1428,16 @@ set(SPIRV_REFLECT_VERSION ${VULKAN_VERSION})
 set(SPIRV_REFLECT_NAME SPIRV-Reflect)
 set(SPIRV_REFLECT_URI
 https://github.com/KhronosGroup/SPIRV-Reflect/archive/refs/tags/vulkan-sdk-${SPIRV_REFLECT_VERSION}.0.tar.gz)
-set(SPIRV_REFLECT_HASH a604577ed56b6687a3bbfa88ab3a6712)
+set(SPIRV_REFLECT_HASH 51901b4c50019334b262fa0046a0a21f)
 set(SPIRV_REFLECT_HASH_TYPE MD5)
 set(SPIRV_REFLECT_FILE SPIRV-Reflect-${SPIRV_REFLECT_VERSION}.tar.gz)
 set(SPIRV_REFLECT_HOMEPAGE https://github.com/KhronosGroup/SPIRV-Reflect)
 set(SPIRV_REFLECT_LICENSE SPDX:Apache-2.0)
 set(SPIRV_REFLECT_COPYRIGHT "Copyright 2017-2018 Google Inc.")
 
-set(SPIRV_TOOLS_VERSION v2026.1)
+set(SPIRV_TOOLS_VERSION vulkan-sdk-1.4.363.0)
 set(SPIRV_TOOLS_URI https://github.com/KhronosGroup/SPIRV-Tools/archive/refs/tags/${SPIRV_TOOLS_VERSION}.tar.gz)
-set(SPIRV_TOOLS_HASH 35dc16cf2dc64be5b6bbbe86d210e6f4a82b070cffd751605a3365cd8bce2d7e)
+set(SPIRV_TOOLS_HASH e6c83a215538fbfd265ccf398d3877985055df1273dbed73912bd05307664688)
 set(SPIRV_TOOLS_HASH_TYPE SHA256)
 set(SPIRV_TOOLS_FILE SPIR-V-Tools-${SPIRV_TOOLS_VERSION}.tar.gz)
 set(SPIRV_TOOLS_NAME "SPIR-V Tools")
