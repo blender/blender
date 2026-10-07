@@ -352,6 +352,16 @@ static bool allow_parenting_without_modifier_key(SpaceOutliner *space_outliner)
   }
 }
 
+static bool drag_ids_are_all_objects(const wmDrag *drag)
+{
+  for (const wmDragID &drag_id : drag->ids) {
+    if (GS(drag_id.id->name) != ID_OB) {
+      return false;
+    }
+  }
+  return true;
+}
+
 static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
@@ -363,6 +373,10 @@ static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 
   Object *potential_child = id_cast<Object *>(WM_drag_get_local_ID(drag, ID_OB));
   if (!potential_child) {
+    return false;
+  }
+
+  if (!drag_ids_are_all_objects(drag)) {
     return false;
   }
 
@@ -1702,6 +1716,36 @@ void OUTLINER_OT_collection_drop(wmOperatorType *ot)
 
 #define OUTLINER_DRAG_SCOLL_OUTSIDE_PAD 7 /* In UI units */
 
+static bool outliner_is_scene_collection_tree_element(const TreeElement *te)
+{
+  return ELEM(TREESTORE(te)->type, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE);
+}
+
+/* Gathers selected objects and collections together in tree order. */
+static TreeTraversalAction outliner_collect_selected_objects_and_collections(TreeElement *te,
+                                                                             void *customdata)
+{
+  IDsSelectedData *data = static_cast<IDsSelectedData *>(customdata);
+  TreeStoreElem *tselem = TREESTORE(te);
+
+  if (outliner_is_collection_tree_element(te)) {
+    if (outliner_is_scene_collection_tree_element(te)) {
+      return TRAVERSE_CONTINUE;
+    }
+    BLI_addtail(&data->selected_array, BLI_genericNodeN(te));
+    return TRAVERSE_SKIP_CHILDS;
+  }
+
+  if ((tselem->type != TSE_SOME_ID) || (tselem->id == nullptr) || (tselem->id->id_type() != ID_OB))
+  {
+    return TRAVERSE_SKIP_CHILDS;
+  }
+
+  BLI_addtail(&data->selected_array, BLI_genericNodeN(te));
+
+  return TRAVERSE_CONTINUE;
+}
+
 static TreeElement *outliner_item_drag_element_find(SpaceOutliner *space_outliner,
                                                     ARegion *region,
                                                     const wmEvent *event)
@@ -1781,52 +1825,25 @@ static wmOperatorStatus outliner_item_drag_drop_invoke(bContext *C,
       tselem->flag |= TSE_SELECTED;
     }
 
-    /* Gather all selected elements. */
+    /* Gather all selected elements. Objects and collections are dragged together, preserving
+     * their on-screen order. */
     IDsSelectedData selected{};
-
-    if (GS(data.drag_id->name) == ID_OB) {
-      outliner_tree_traverse(space_outliner,
-                             &space_outliner->runtime->tree,
-                             0,
-                             TSE_SELECTED,
-                             outliner_collect_selected_objects,
-                             &selected);
-    }
-    else {
-      outliner_tree_traverse(space_outliner,
-                             &space_outliner->runtime->tree,
-                             0,
-                             TSE_SELECTED,
-                             outliner_collect_selected_collections,
-                             &selected);
-    }
+    outliner_tree_traverse(space_outliner,
+                           &space_outliner->runtime->tree,
+                           0,
+                           TSE_SELECTED,
+                           outliner_collect_selected_objects_and_collections,
+                           &selected);
 
     for (LinkData &link : selected.selected_array) {
       TreeElement *te_selected = static_cast<TreeElement *>(link.data);
       ID *id;
 
-      if (GS(data.drag_id->name) == ID_OB) {
-        id = TREESTORE(te_selected)->id;
+      if (outliner_is_collection_tree_element(te_selected)) {
+        id = &outliner_collection_from_tree_element(te_selected)->id;
       }
       else {
-        /* Keep collection hierarchies intact when dragging. */
-        bool parent_selected = false;
-        for (TreeElement *te_parent = te_selected->parent; te_parent;
-             te_parent = te_parent->parent)
-        {
-          if (outliner_is_collection_tree_element(te_parent)) {
-            if (TREESTORE(te_parent)->flag & TSE_SELECTED) {
-              parent_selected = true;
-              break;
-            }
-          }
-        }
-
-        if (parent_selected) {
-          continue;
-        }
-
-        id = &outliner_collection_from_tree_element(te_selected)->id;
+        id = TREESTORE(te_selected)->id;
       }
 
       /* Find parent collection. */
