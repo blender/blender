@@ -662,6 +662,7 @@ static void COLLECTION_OT_importer_add(wmOperatorType *ot)
 
   prop = RNA_def_string(
       ot->srna, "filepath", nullptr, FILE_MAX, "Filepath", "Filepath for the collection import");
+  RNA_def_property_subtype(prop, PROP_FILEPATH);
   RNA_def_property_flag(prop, PROP_HIDDEN);
   prop = RNA_def_string(ot->srna,
                         "filter_glob",
