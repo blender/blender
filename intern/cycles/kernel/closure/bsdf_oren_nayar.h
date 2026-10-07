@@ -85,7 +85,7 @@ ccl_device_inline OrenNayarParam bsdf_oren_nayar_param(const Spectrum color,
   /* Compute energy compensation term (except for (1.0f - El) factor since it depends on wo). */
   const Spectrum albedo = saturate(color);
   const float Eavg = a * M_PI_F + ((M_2PI_F - 5.6f) / 3.0f) * b;
-  const Spectrum Ems = M_1_PI_F * sqr(albedo) * (Eavg / (1.0f - Eavg)) /
+  const Spectrum Ems = M_1_PI_F * albedo * (Eavg / (1.0f - Eavg)) /
                        (one_spectrum() - albedo * (1.0f - Eavg));
   const float Ev = a * M_PI_F + b * bsdf_oren_nayar_G(max(nv, 0.0f));
 
