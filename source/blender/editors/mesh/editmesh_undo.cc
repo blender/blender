@@ -335,7 +335,7 @@ static BArrayCustomData *um_arraystore_cd_create(CustomData *cdata,
     const eCustomDataType type = *bke::attr_type_to_custom_data_type(attribute->data_type());
     switch (attribute->storage_type()) {
       case bke::AttrStorageType::Array: {
-        const auto &data = std::get<bke::Attribute::ArrayData>(attribute->data());
+        const auto &data = std::get<bke::GList::ArrayData>(attribute->data().data());
         store_layer(type,
                     data.data,
                     data.sharing_info.get(),
@@ -344,7 +344,7 @@ static BArrayCustomData *um_arraystore_cd_create(CustomData *cdata,
                     bcd_reference,
                     index_in_type,
                     bcd);
-        attribute->assign_data(bke::Attribute::ArrayData{});
+        attribute->assign_data(bke::GList(attribute->data().cpp_type()));
         break;
       }
       case bke::AttrStorageType::Single: {
@@ -473,11 +473,10 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
       continue;
     }
 
-    bke::Attribute::ArrayData array_data{};
+    bke::GList::ArrayData array_data{};
     if (bcd->non_trivial_arrays.contains(type)) {
       const ImplicitSharingInfoAndData &state = bcd->non_trivial_arrays.lookup(type)[i];
-      array_data.data = const_cast<void *>(state.data);
-      array_data.size = data_len;
+      array_data.data = state.data;
       array_data.sharing_info = ImplicitSharingPtr<>(state.sharing_info);
       array_data.sharing_info->add_user();
     }
@@ -485,11 +484,11 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
       const BArrayState *state = bcd->trivial_arrays.lookup(type)[i];
       uint8_t *data = get_arraystore_data(state, data_len, type);
       array_data.data = data;
-      array_data.size = data_len;
       array_data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data));
     }
 
-    attribute->assign_data(std::move(array_data));
+    attribute->assign_data(
+        bke::GList(attribute->data().cpp_type(), std::move(array_data), data_len));
   }
 }
 
@@ -661,7 +660,7 @@ static void um_arraystore_expand_clear(UndoMesh *um)
     if (attr.storage_type() == bke::AttrStorageType::Single) {
       continue;
     }
-    attr.assign_data(bke::Attribute::ArrayData{});
+    attr.assign_data(bke::GList(attr.data().cpp_type()));
   }
   if (mesh->face_offset_indices) {
     implicit_sharing::free_shared_data(&mesh->face_offset_indices,

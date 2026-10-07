@@ -171,8 +171,8 @@ static constexpr AttributeAccessorFunctions get_instances_accessor_functions()
       return false;
     }
     const bool array = array_storage_required().contains(name);
-    Attribute::DataVariant data = attribute_init_to_data(type, domain_size, initializer, array);
-    storage.add(name, domain, type, std::move(data));
+    GList data = attribute_init_to_list(type, domain_size, initializer, array);
+    storage.add(name, domain, std::move(data));
     if (initializer.type != AttributeInit::Type::Construct) {
       if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
         (*fn)(owner);
@@ -201,10 +201,10 @@ static constexpr AttributeAccessorFunctions get_instances_accessor_functions()
     if (!attr) {
       return false;
     }
-    Attribute::DataVariant data = attribute_init_to_data(attr->data_type(),
-                                                         instances.instances_num(),
-                                                         initializer,
-                                                         array_storage_required().contains(name));
+    GList data = attribute_init_to_list(attr->data_type(),
+                                        instances.instances_num(),
+                                        initializer,
+                                        array_storage_required().contains(name));
     attr->assign_data(std::move(data));
     if (initializer.type != AttributeInit::Type::Construct) {
       if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {

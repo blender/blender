@@ -71,6 +71,27 @@ GList::SingleData GList::SingleData::ForDefaultValue(const CPPType &type)
   return ForValue(GPointer(type, type.default_value()));
 }
 
+void GList::resize(const int64_t new_size)
+{
+  if (const auto *array_data = std::get_if<ArrayData>(&data_)) {
+    const CPPType &type = *cpp_type_;
+    GArray<> new_array(type, new_size, NoInitialization());
+    type.copy_construct_n(array_data->data, new_array.data(), std::min(size_, new_size));
+    if (size_ < new_size) {
+      type.default_construct_n(new_array[size_], new_size - size_);
+    }
+    data_ = array_data_from_garray(std::move(new_array));
+  }
+  size_ = new_size;
+}
+
+void GList::ensure_array_storage()
+{
+  if (const auto *single_data = std::get_if<SingleData>(&data_)) {
+    data_ = ArrayData::ForValue(GPointer(*cpp_type_, single_data->value), size_);
+  }
+}
+
 GVArray GList::varray() const
 {
   if (const auto *array_data = std::get_if<ArrayData>(&data_)) {
@@ -167,6 +188,12 @@ GList::GList(GList &&other) noexcept
 {
 }
 
+GList::GList(GArray<> array) : GList(array.type())
+{
+  size_ = array.size();
+  data_ = array_data_from_garray(std::move(array));
+}
+
 GList &GList::operator=(GList &&other) noexcept
 {
   return move_assign_container(*this, std::move(other));
@@ -179,9 +206,7 @@ GListPtr GList::create(const CPPType &type, DataVariant data, const int64_t size
 
 GListPtr GList::from_garray(GArray<> array)
 {
-  const CPPType &type = array.type();
-  const int64_t size = array.size();
-  return GList::create(type, array_data_from_garray(std::move(array)), size);
+  return GListPtr(GList(std::move(array)));
 }
 
 GListPtr GList::from_single(const GPointer value, const int64_t size)

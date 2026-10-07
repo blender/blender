@@ -467,7 +467,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   CustomData_blend_read(reader, &mesh->fdata_legacy, mesh->totface_legacy);
   CustomData_blend_read(reader, &mesh->corner_data, mesh->corners_num);
   CustomData_blend_read(reader, &mesh->face_data, mesh->faces_num);
-  mesh->attribute_storage.wrap().blend_read(*reader);
   if (mesh->deform_verts().is_empty()) {
     /* Vertex group data was also an owning pointer in old Blender versions.
      * Don't read them again if they were read as part of #CustomData. */
@@ -495,6 +494,10 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
                      nullptr;
         });
   }
+
+  mesh->attribute_storage.wrap().blend_read(*reader, [&](const bke::AttrDomain domain) {
+    return mesh->attributes().domain_size(domain);
+  });
 
   if (mesh->mselect == nullptr) {
     mesh->totselect = 0;

@@ -70,6 +70,7 @@ class GList {
   GList() = delete;
   GList(const CPPType &type) : GList(type, DataVariant{}, 0) {}
   GList(const CPPType &type, DataVariant data, const int64_t size);
+  explicit GList(GArray<> array);
   GList(const GList &other) = default;
   GList(GList &&other) noexcept;
   GList &operator=(const GList &other) = default;
@@ -93,6 +94,15 @@ class GList {
 
   /** Access the list as virtual array. */
   GVArray varray() const;
+
+  /**
+   * Change the number of elements. Array storage is reallocated, keeping existing values and
+   * default constructing new ones. Single value storage only changes the size.
+   */
+  void resize(int64_t new_size);
+
+  /** Replace single value storage with an array that contains the value for every element. */
+  void ensure_array_storage();
 
   void count_memory(MemoryCounter &memory) const;
 

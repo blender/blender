@@ -2447,13 +2447,14 @@ void mesh_freestyle_marks_to_generic(Mesh &mesh)
     if (data != nullptr) {
       static_assert(sizeof(FreestyleEdge) == sizeof(bool));
       static_assert(char(FREESTYLE_EDGE_MARK) == char(true));
-      Attribute::ArrayData array_data{};
+      GList::ArrayData array_data{};
       array_data.data = data;
-      array_data.size = mesh.edges_num;
       sharing_info->add_user();
       array_data.sharing_info = ImplicitSharingPtr<>(sharing_info);
       mesh.attribute_storage.wrap().add(
-          "freestyle_edge", bke::AttrDomain::Edge, bke::AttrType::Bool, std::move(array_data));
+          "freestyle_edge",
+          bke::AttrDomain::Edge,
+          GList(CPPType::get<bool>(), std::move(array_data), mesh.edges_num));
     }
     if (sharing_info != nullptr) {
       sharing_info->remove_user_and_delete_if_last();
@@ -2476,13 +2477,14 @@ void mesh_freestyle_marks_to_generic(Mesh &mesh)
     if (data != nullptr) {
       static_assert(sizeof(FreestyleFace) == sizeof(bool));
       static_assert(char(FREESTYLE_FACE_MARK) == char(true));
-      Attribute::ArrayData array_data{};
+      GList::ArrayData array_data{};
       array_data.data = data;
-      array_data.size = mesh.faces_num;
       sharing_info->add_user();
       array_data.sharing_info = ImplicitSharingPtr<>(sharing_info);
       mesh.attribute_storage.wrap().add(
-          "freestyle_face", bke::AttrDomain::Face, bke::AttrType::Bool, std::move(array_data));
+          "freestyle_face",
+          bke::AttrDomain::Face,
+          GList(CPPType::get<bool>(), std::move(array_data), mesh.faces_num));
     }
     if (sharing_info != nullptr) {
       sharing_info->remove_user_and_delete_if_last();
@@ -2523,11 +2525,12 @@ void mesh_skin_to_generic(Mesh &mesh)
 
   AttributeStorage &storage = mesh.attribute_storage.wrap();
   auto add_array = [&]<typename T>(const StringRef name, const AttrType type, T *array_data) {
-    Attribute::ArrayData array{};
+    GList::ArrayData array{};
     array.data = array_data;
-    array.size = mesh.verts_num;
     array.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(array_data));
-    storage.add(name, AttrDomain::Point, type, std::move(array));
+    storage.add(name,
+                AttrDomain::Point,
+                GList(attribute_type_to_cpp_type(type), std::move(array), mesh.verts_num));
   };
   add_array("skin_modifier_radius", AttrType::Float2, radius_data);
   add_array("skin_modifier_root", AttrType::Bool, root_data);
@@ -2805,12 +2808,12 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
     mesh->attribute_storage.wrap().remove(name);
   }
   OrderedEdge *vector_data = eh.extract_vector().release().data;
-  bke::Attribute::ArrayData data{};
-  data.size = numEdges;
+  bke::GList::ArrayData data{};
   data.data = reinterpret_cast<int2 *>(vector_data);
   data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(vector_data));
-  mesh->attribute_storage.wrap().add(
-      ".edge_verts", bke::AttrDomain::Edge, bke::AttrType::Int32_2D, std::move(data));
+  mesh->attribute_storage.wrap().add(".edge_verts",
+                                     bke::AttrDomain::Edge,
+                                     bke::GList(CPPType::get<int2>(), std::move(data), numEdges));
   mesh->edge_data = edgeData;
   mesh->edges_num = numEdges;
 }

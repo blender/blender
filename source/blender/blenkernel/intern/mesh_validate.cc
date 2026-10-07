@@ -425,15 +425,14 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
       case AttrDomain::Face: {
         switch (attr.storage_type()) {
           case AttrStorageType::Array: {
-            const auto &src_data = std::get<Attribute::ArrayData>(attr.data());
-            auto dst_data = Attribute::ArrayData::from_uninitialized(type, valid_faces_num);
-            array_utils::gather(GSpan(type, src_data.data, mesh.faces_num),
-                                valid_faces,
-                                GMutableSpan(type, dst_data.data, valid_faces_num));
-            attr.assign_data(std::move(dst_data));
+            GArray<> dst_data(type, valid_faces_num, NoInitialization());
+            array_utils::gather(
+                std::get<GSpan>(attr.data().values()), valid_faces, dst_data.as_mutable_span());
+            attr.assign_data(GList(std::move(dst_data)));
             break;
           }
           case AttrStorageType::Single:
+            attr.data().resize(valid_faces_num);
             break;
         }
         break;
@@ -441,18 +440,17 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
       case AttrDomain::Corner: {
         switch (attr.storage_type()) {
           case AttrStorageType::Array: {
-            const auto &src_data = std::get<Attribute::ArrayData>(attr.data());
-            auto dst_data = Attribute::ArrayData::from_uninitialized(type, new_faces.total_size());
-            bke::attribute_math::gather_group_to_group(
-                old_faces,
-                new_faces,
-                valid_faces,
-                GSpan(type, src_data.data, mesh.corners_num),
-                GMutableSpan(type, dst_data.data, new_faces.total_size()));
-            attr.assign_data(std::move(dst_data));
+            GArray<> dst_data(type, new_faces.total_size(), NoInitialization());
+            bke::attribute_math::gather_group_to_group(old_faces,
+                                                       new_faces,
+                                                       valid_faces,
+                                                       std::get<GSpan>(attr.data().values()),
+                                                       dst_data.as_mutable_span());
+            attr.assign_data(GList(std::move(dst_data)));
             break;
           }
           case AttrStorageType::Single:
+            attr.data().resize(new_faces.total_size());
             break;
         }
         break;
@@ -528,15 +526,14 @@ static void remove_invalid_edges(Mesh &mesh, const IndexMask &valid_edges)
     const CPPType &type = attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
       case AttrStorageType::Array: {
-        const auto &src_data = std::get<Attribute::ArrayData>(attr.data());
-        auto dst_data = Attribute::ArrayData::from_uninitialized(type, valid_edges_num);
-        array_utils::gather(GSpan(type, src_data.data, mesh.edges_num),
-                            valid_edges,
-                            GMutableSpan(type, dst_data.data, valid_edges_num));
-        attr.assign_data(std::move(dst_data));
+        GArray<> dst_data(type, valid_edges_num, NoInitialization());
+        array_utils::gather(
+            std::get<GSpan>(attr.data().values()), valid_edges, dst_data.as_mutable_span());
+        attr.assign_data(GList(std::move(dst_data)));
         break;
       }
       case AttrStorageType::Single:
+        attr.data().resize(valid_edges_num);
         break;
     }
   }

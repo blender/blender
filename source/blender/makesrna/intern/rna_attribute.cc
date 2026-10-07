@@ -616,26 +616,13 @@ void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 
   bke::Attribute *attr = ptr->data_as<bke::Attribute>();
   const int domain_size = accessor.domain_size(attr->domain());
-  const CPPType &type = bke::attribute_type_to_cpp_type(attr->data_type());
+  bke::GList &data = attr->data();
+  BLI_assert(data.size() == domain_size);
 
-  auto begin_array = [&]() {
-    const auto &data = std::get<bke::Attribute::ArrayData>(attr->data_for_write());
-    rna_iterator_array_begin(iter, ptr, data.data, type.size, domain_size, false, nullptr);
-  };
-  switch (attr->storage_type()) {
-    case bke::AttrStorageType::Array: {
-      begin_array();
-      break;
-    }
-    case bke::AttrStorageType::Single: {
-      /* Convert storage to array data until single-value access API is developed. */
-      const auto &data = std::get<bke::Attribute::SingleData>(attr->data());
-      const GPointer value(type, data.value);
-      attr->assign_data(bke::Attribute::ArrayData::from_value(value, domain_size));
-      begin_array();
-      break;
-    }
-  }
+  /* Convert storage to array data until single-value access API is developed. */
+  data.ensure_array_storage();
+  const GMutableSpan span = std::get<GMutableSpan>(data.values_for_write());
+  rna_iterator_array_begin(iter, ptr, span.data(), span.type().size, domain_size, false, nullptr);
 }
 
 int rna_Attribute_data_length(PointerRNA *ptr)
@@ -863,11 +850,9 @@ static PointerRNA rna_AttributeGroupID_new(
 
   bke::AttributeStorage &attributes = *owner.get_storage();
   const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(eCustomDataType(type));
-  bke::Attribute &attr = attributes.add(
-      BKE_attribute_calc_unique_name(owner, name),
-      AttrDomain(domain),
-      *bke::custom_data_type_to_attr_type(eCustomDataType(type)),
-      bke::Attribute::ArrayData::from_default_value(cpp_type, domain_size));
+  bke::Attribute &attr = attributes.add(BKE_attribute_calc_unique_name(owner, name),
+                                        AttrDomain(domain),
+                                        bke::Attribute::default_array_data(cpp_type, domain_size));
 
   if (owner.type() == AttributeOwnerType::Mesh) {
     Mesh *mesh = owner.get_mesh();
@@ -1322,11 +1307,9 @@ static PointerRNA rna_AttributeGroupGreasePencilDrawing_new(ID *grease_pencil_id
 
   bke::AttributeStorage &attributes = *owner.get_storage();
   const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(eCustomDataType(type));
-  bke::Attribute &attr = attributes.add(
-      attributes.unique_name_calc(name),
-      AttrDomain(domain),
-      *bke::custom_data_type_to_attr_type(eCustomDataType(type)),
-      bke::Attribute::ArrayData::from_default_value(cpp_type, domain_size));
+  bke::Attribute &attr = attributes.add(attributes.unique_name_calc(name),
+                                        AttrDomain(domain),
+                                        bke::Attribute::default_array_data(cpp_type, domain_size));
 
   DEG_id_tag_update(grease_pencil_id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, grease_pencil_id);

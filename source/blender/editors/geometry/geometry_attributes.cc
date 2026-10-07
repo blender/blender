@@ -407,11 +407,9 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
   const int domain_size = accessor.domain_size(bke::AttrDomain(domain));
 
   const CPPType &cpp_type = bke::attribute_type_to_cpp_type(type);
-  bke::Attribute &attr = attributes.add(
-      BKE_attribute_calc_unique_name(owner, name),
-      bke::AttrDomain(domain),
-      type,
-      bke::Attribute::ArrayData::from_default_value(cpp_type, domain_size));
+  bke::Attribute &attr = attributes.add(BKE_attribute_calc_unique_name(owner, name),
+                                        bke::AttrDomain(domain),
+                                        bke::Attribute::default_array_data(cpp_type, domain_size));
 
   BKE_attributes_active_set(owner, attr.name());
 
