@@ -475,7 +475,7 @@ static bool collection_importer_add_poll(bContext *C)
   const Collection *collection = CTX_data_collection(C);
   std::string reason;
   if (!collection_importer_add_collection_validate(collection, reason)) {
-    CTX_wm_operator_poll_msg_set(C, reason.c_str());
+    CTX_wm_operator_poll_msg_set(C, reason);
     return false;
   }
   return true;
