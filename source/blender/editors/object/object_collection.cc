@@ -453,20 +453,29 @@ void COLLECTION_OT_create(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", nullptr, MAX_ID_NAME - 2, "Name", "Name of the new collection");
 }
 
-static bool collection_importer_add_poll(bContext *C)
+static bool collection_importer_add_collection_validate(const Collection *collection,
+                                                        std::string &reason)
 {
-  const Collection *collection = CTX_data_collection(C);
   if (!collection) {
-    CTX_wm_operator_poll_msg_set(C, "Could not find an active collection");
+    reason = "Could not find an active collection";
     return false;
   }
-  std::string reason;
   if (!BKE_collection_is_content_editable(collection, &reason)) {
-    CTX_wm_operator_poll_msg_set(C, reason.c_str());
     return false;
   }
   if (!BKE_collection_is_empty(collection)) {
-    CTX_wm_operator_poll_msg_set(C, "Collection needs to be empty");
+    reason = "Collection needs to be empty";
+    return false;
+  }
+  return true;
+}
+
+static bool collection_importer_add_poll(bContext *C)
+{
+  const Collection *collection = CTX_data_collection(C);
+  std::string reason;
+  if (!collection_importer_add_collection_validate(collection, reason)) {
+    CTX_wm_operator_poll_msg_set(C, reason.c_str());
     return false;
   }
   return true;
@@ -525,15 +534,25 @@ static Collection *collection_importer_add_ensure(bContext *C,
   }
 
   Collection *collection = CTX_data_collection(C);
-  if (!collection) {
-    BKE_report(op->reports, RPT_ERROR, "Could not find an active collection");
-    return nullptr;
-  }
-  if (collection->importer) {
+  std::string reason;
+  if (collection && collection->importer) {
+    /* Note: In theory, this is weak, as another collection with an importer of the same type might
+     * have been made active between the invocation of the filebrowser, and the call to this
+     * function from the 'exec' callback. Very unlikely in practice, so think that we can live with
+     * this for now. */
     if (StringRef(collection->importer->fh_idname) == fh->idname) {
       return collection;
     }
     BKE_report(op->reports, RPT_ERROR, "The active collection already has another importer");
+    return nullptr;
+  }
+  /* 'collection_importer_add_exec' called after invoking the filebrowser might get different
+   * context data, and the poll function is not called again in this case (which is a good thing
+   * anyway, since the collection will alredy have its importer data created at that point). So
+   * the collection needs to be re-validated here - after the check for an existing compatible
+   * importer data has been performed. */
+  if (!collection_importer_add_collection_validate(collection, reason)) {
+    BKE_report(op->reports, RPT_ERROR, reason.c_str());
     return nullptr;
   }
 
