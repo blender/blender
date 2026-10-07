@@ -156,6 +156,11 @@ std::optional<AssetLibraryReference> PreferencesRemoteAssetLibrary::library_refe
   return library_ref;
 }
 
+const bUserAssetLibrary *PreferencesRemoteAssetLibrary::user_asset_library() const
+{
+  return user_library_.user_asset_library();
+}
+
 bool PreferencesRemoteAssetLibrary::is_enabled() const
 {
   const bUserAssetLibrary *library_definition = user_library_.user_asset_library();

@@ -750,8 +750,22 @@ class ASSETBROWSER_MT_asset(Menu):
 
         layout.separator()
 
+        col = layout.column()
+        col.operator_context = 'INVOKE_REGION_WIN'
+        col.operator("asset.external_asset_rename", text="Rename Asset...")
+
+        layout.separator()
+
         layout.operator("asset.open_containing_blend_file", icon='FILE_BLEND')
         layout.operator("asset.browse_containing_blend_file")
+
+
+class ASSETBROWSER_MT_asset_rename(Menu):
+    bl_label = "Rename Asset"
+
+    def draw(self, _context) -> None:
+        layout = self.layout
+        layout.operator("asset.external_asset_rename", text="Rename Asset...")
 
 
 class ASSETBROWSER_PT_import_settings(asset_utils.AssetBrowserPanel, Panel):
@@ -824,7 +838,13 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
                 col.prop(asset.local_id.asset_data, "catalog_id", text="UUID")
                 col.prop(asset.local_id.asset_data, "catalog_simple_name", text="Simple Name")
         else:
-            layout.prop(asset, "name")
+            if asset.is_online:
+                # Online assets cannot be renamed, so just show the read-only name field.
+                layout.prop(asset, "name")
+            else:
+                row = layout.row(align=True)
+                row.prop(asset, "name")
+                row.menu("ASSETBROWSER_MT_asset_rename", text="", icon='DOWNARROW_HLT')
 
             if show_asset_debug_info:
                 col = layout.column(align=True)
@@ -1015,6 +1035,7 @@ classes = (
     ASSETBROWSER_MT_library,
     ASSETBROWSER_MT_catalog,
     ASSETBROWSER_MT_asset,
+    ASSETBROWSER_MT_asset_rename,
     ASSETBROWSER_PT_import_settings,
     ASSETBROWSER_MT_metadata_preview_menu,
     ASSETBROWSER_PT_metadata,
