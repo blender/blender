@@ -48,7 +48,10 @@ ExternalProject_Add(external_jolt
   PATCH_COMMAND
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/jolt/src/external_jolt <
-      ${PATCH_DIR}/jolt_ndebug.diff
+      ${PATCH_DIR}/jolt_ndebug.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/jolt/src/external_jolt <
+      ${PATCH_DIR}/jolt_debug_asset.diff
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/jolt
