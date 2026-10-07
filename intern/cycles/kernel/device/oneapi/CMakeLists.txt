@@ -199,6 +199,10 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     list(APPEND sycl_compiler_flags -DWITH_CYCLES_DEBUG)
   endif()
 
+  if(WITH_CYCLES_ONEAPI_SOFTWARE_TEXTURING)
+    list(APPEND sycl_compiler_flags -DWITH_CYCLES_ONEAPI_SOFTWARE_TEXTURING)
+  endif()
+
   get_filename_component(sycl_compiler_root ${SYCL_COMPILER} DIRECTORY)
 
   if(WIN32) # Add Windows specific compiler flags.

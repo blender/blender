@@ -17,6 +17,7 @@
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_grease_pencil_fills.hh"
 #include "BKE_material.hh"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
@@ -313,9 +314,9 @@ static void grease_pencil_primitive_load(PrimitiveToolOperation &ptd)
   array_utils::copy(ptd.temp_control_points.as_span(), ptd.control_points.as_mutable_span());
 }
 
-static void primitive_calulate_curve_positions(PrimitiveToolOperation &ptd,
-                                               Span<float2> control_points,
-                                               MutableSpan<float2> new_positions)
+static void primitive_calculate_curve_positions(PrimitiveToolOperation &ptd,
+                                                Span<float2> control_points,
+                                                MutableSpan<float2> new_positions)
 {
   const int subdivision = ptd.subdivision;
   const int new_points_num = new_positions.size();
@@ -424,15 +425,15 @@ static float2 primitive_local_to_screen(const PrimitiveToolOperation &ptd, const
       ptd.vc.region, math::transform_point(ptd.local_transform, point), ptd.projection);
 }
 
-static void primitive_calulate_curve_positions_2d(PrimitiveToolOperation &ptd,
-                                                  MutableSpan<float2> new_positions)
+static void primitive_calculate_curve_positions_2d(PrimitiveToolOperation &ptd,
+                                                   MutableSpan<float2> new_positions)
 {
   Array<float2> control_points_2d(ptd.control_points.size());
   for (const int i : ptd.control_points.index_range()) {
     control_points_2d[i] = primitive_local_to_screen(ptd, ptd.control_points[i]);
   }
 
-  primitive_calulate_curve_positions(ptd, control_points_2d, new_positions);
+  primitive_calculate_curve_positions(ptd, control_points_2d, new_positions);
 }
 
 static int grease_pencil_primitive_curve_points_number(PrimitiveToolOperation &ptd)
@@ -474,7 +475,7 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
   MutableSpan<float3> positions_3d = curves.positions_for_write().slice(curve_points);
   Array<float2> positions_2d(new_points_num);
 
-  primitive_calulate_curve_positions_2d(ptd, positions_2d);
+  primitive_calculate_curve_positions_2d(ptd, positions_2d);
   ptd.placement.project(positions_2d, positions_3d);
 
   Set<std::string> point_attributes_to_skip;
@@ -609,8 +610,10 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
   if (ptd.use_fill) {
     bke::SpanAttributeWriter<int> fill_id = attributes.lookup_or_add_for_write_span<int>(
         "fill_id", bke::AttrDomain::Curve);
-    /* TODO: Use the first available ID. */
-    fill_id.span[target_curve_index] = target_curve_index + 1;
+    /* Set new fill id to zero, because it will have uninitialized memory otherwise.
+     * Then get the #VArray of all fill ids to compute a new one. */
+    fill_id.span[target_curve_index] = 0;
+    fill_id.span[target_curve_index] = bke::greasepencil::get_next_available_fill_id(fill_id.span);
     curve_attributes_to_skip.add("fill_id");
     fill_id.finish();
   }

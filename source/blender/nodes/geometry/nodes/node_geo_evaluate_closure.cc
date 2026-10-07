@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
+#include "DNA_userdef_types.h"
+
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
@@ -18,10 +22,12 @@
 #include "BKE_compute_contexts.hh"
 #include "BKE_idprop.hh"
 #include "BKE_node_tree_reference_lifetimes.hh"
+#include "BKE_type_conversions.hh"
 
 #include "BLO_read_write.hh"
 
 #include "COM_closure.hh"
+#include "COM_conversion_operation.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 #include "COM_zone_tree_operation.hh"
@@ -292,6 +298,13 @@ class EvaluateClosureOperation : public NodeOperation {
       return;
     }
 
+    if (this->get_compute_context().parents_num() >= U.nodes_stack_limit) {
+      this->add_warning(NodeWarningType::Error,
+                        TIP_("Stack limit reached. Closure becomes pass-through."));
+      this->write_default_outputs();
+      return;
+    }
+
     const ClosureSourceLocation closure_source_location{&closure->zone.output_node()->owner_tree(),
                                                         closure->zone.output_node()->identifier,
                                                         closure->compute_context.hash(),
@@ -390,6 +403,9 @@ class EvaluateClosureOperation : public NodeOperation {
         temporary_inputs.append(std::move(temporary_input));
         zone_tree_operation.map_input_to_result(zone_input->identifier,
                                                 temporary_inputs.last().get());
+        this->add_warning(NodeWarningType::Error,
+                          fmt::format(fmt::runtime(TIP_("Node does not have zone input: \"{}\"")),
+                                      zone_input->name));
         continue;
       }
 
@@ -434,6 +450,10 @@ class EvaluateClosureOperation : public NodeOperation {
       const bNodeSocket *evaluate_node_output = bke::node_find_enabled_output_socket(
           const_cast<bNode &>(this->node()), zone_output->name);
       if (!evaluate_node_output) {
+        this->add_warning(
+            NodeWarningType::Error,
+            fmt::format(fmt::runtime(TIP_("Node does not have the zone output: \"{}\"")),
+                        zone_output->name));
         continue;
       }
 
@@ -443,8 +463,38 @@ class EvaluateClosureOperation : public NodeOperation {
       }
 
       Result &zone_tree_result = zone_tree_operation.get_result(zone_output->identifier);
+      const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
       if (zone_tree_result.type() != evaluate_node_result.type()) {
-        zone_tree_result.release();
+        if (!conversions.is_convertible(zone_tree_result.get_cpp_type(),
+                                        evaluate_node_result.get_cpp_type()))
+        {
+          zone_tree_result.release();
+          this->add_warning(
+              NodeWarningType::Error,
+              fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
+                          " {})",
+                          TIP_("Conversion not supported when evaluating closure"),
+                          TIP_("Output"),
+                          zone_output->name,
+                          TIP_(Result::type_name(zone_tree_result.type())),
+                          TIP_(Result::type_name(evaluate_node_result.type()))));
+          continue;
+        }
+        ConversionOperation conversion_operation(
+            this->context(), zone_tree_result.type(), evaluate_node_result.type());
+        conversion_operation.map_input_to_result(&zone_tree_result);
+        conversion_operation.evaluate();
+        evaluate_node_result.share_data(conversion_operation.get_result());
+        conversion_operation.get_result().release();
+        this->add_warning(
+            NodeWarningType::Info,
+            fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
+                        " {})",
+                        TIP_("Implicit type conversion when evaluating closure"),
+                        TIP_("Output"),
+                        zone_output->name,
+                        TIP_(Result::type_name(zone_tree_result.type())),
+                        TIP_(Result::type_name(evaluate_node_result.type()))));
         continue;
       }
 

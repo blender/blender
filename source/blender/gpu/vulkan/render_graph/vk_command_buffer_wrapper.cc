@@ -13,11 +13,13 @@
 namespace blender::gpu::render_graph {
 VKCommandBufferWrapper::VKCommandBufferWrapper(VkCommandBuffer vk_command_buffer,
                                                const VolkDeviceTable &functions,
-                                               const VKExtensions &extensions)
+                                               const VKExtensions &extensions,
+                                               const VKWorkarounds &workarounds)
     : vk_command_buffer_(vk_command_buffer), functions(&functions)
 {
   use_dynamic_rendering_local_read = extensions.dynamic_rendering_local_read;
   use_multi_draw_indirect = extensions.multi_draw_indirect;
+  use_dynamic_state_viewport_scissor = !workarounds.static_viewport_scissor;
 }
 
 void VKCommandBufferWrapper::begin_recording()
@@ -263,11 +265,17 @@ void VKCommandBufferWrapper::push_constants(VkPipelineLayout layout,
 
 void VKCommandBufferWrapper::set_viewport(const Vector<VkViewport> viewports)
 {
+  if (!use_dynamic_state_viewport_scissor) {
+    return;
+  }
   functions->vkCmdSetViewport(vk_command_buffer_, 0, viewports.size(), viewports.data());
 }
 
 void VKCommandBufferWrapper::set_scissor(const Vector<VkRect2D> scissors)
 {
+  if (!use_dynamic_state_viewport_scissor) {
+    return;
+  }
   functions->vkCmdSetScissor(vk_command_buffer_, 0, scissors.size(), scissors.data());
 }
 void VKCommandBufferWrapper::set_line_width(const float line_width)

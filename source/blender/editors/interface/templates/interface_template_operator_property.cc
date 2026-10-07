@@ -376,6 +376,7 @@ static void draw_import_properties(bContext *C,
                     "filepath",
                     nullptr,
                     filter_glob ? filter_glob->c_str() : nullptr,
+                    "",
                     IFACE_("Select a file..."));
 
   template_operator_property_buts_draw_single(

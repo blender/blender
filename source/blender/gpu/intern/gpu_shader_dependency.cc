@@ -42,8 +42,14 @@ extern "C" {
   extern char datatoc_##filename_underscore[];
 #include "glsl_compositor_source_list.h"
 #include "glsl_draw_source_list.h"
+#include "glsl_eevee_source_list.h"
+#include "glsl_gpencil_source_list.h"
 #include "glsl_gpu_source_list.h"
+#include "glsl_image_source_list.h"
 #include "glsl_ocio_source_list.h"
+#include "glsl_overlay_source_list.h"
+#include "glsl_select_id_source_list.h"
+#include "glsl_workbench_source_list.h"
 #ifdef WITH_OPENSUBDIV
 #  include "glsl_osd_source_list.h"
 #endif
@@ -513,8 +519,14 @@ namespace shader {
 
 #include "glsl_compositor_metadata_list.hh"
 #include "glsl_draw_metadata_list.hh"
+#include "glsl_eevee_metadata_list.hh"
+#include "glsl_gpencil_metadata_list.hh"
 #include "glsl_gpu_metadata_list.hh"
+#include "glsl_image_metadata_list.hh"
 #include "glsl_ocio_metadata_list.hh"
+#include "glsl_overlay_metadata_list.hh"
+#include "glsl_select_id_metadata_list.hh"
+#include "glsl_workbench_metadata_list.hh"
 #ifdef WITH_OPENSUBDIV
 #  include "glsl_osd_metadata_list.hh"
 #endif
@@ -550,10 +562,17 @@ void gpu_shader_dependency_init()
                                    g_formats, \
                                    gpu::shader::metadata_##filename_underscore));
 
+#include "glsl_gpu_source_list.h"
+
 #include "glsl_compositor_source_list.h"
 #include "glsl_draw_source_list.h"
-#include "glsl_gpu_source_list.h"
+#include "glsl_eevee_source_list.h"
+#include "glsl_gpencil_source_list.h"
+#include "glsl_image_source_list.h"
 #include "glsl_ocio_source_list.h"
+#include "glsl_overlay_source_list.h"
+#include "glsl_select_id_source_list.h"
+#include "glsl_workbench_source_list.h"
 #ifdef WITH_OPENSUBDIV
 #  include "glsl_osd_source_list.h"
 #endif

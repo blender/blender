@@ -12,6 +12,8 @@
 
 namespace blender {
 
+struct AssetLibraryListItem;
+
 struct AnyAssetLibraryDefinition {
   eAssetLibraryType type;
   bUserAssetLibrary *user_library;
@@ -38,6 +40,14 @@ struct AssetLibraryListItemCommon : public ui::AbstractTreeViewItem {
 };
 
 /**
+ * Group view item that contains all the asset libraries from the project.
+ */
+struct AssetLibraryProjectHeading : public ui::AbstractTreeViewItem {
+  AssetLibraryProjectHeading() = default;
+  void build_row(ui::Layout &row) override;
+};
+
+/**
  * A list of asset libraries, `AssetLibraryRepoItemType` is used for the rows grouping the
  * libraries of an extension repository, see #AnyAssetLibraryDefinition::is_extension_repo.
  */
@@ -52,6 +62,7 @@ struct AssetLibraryList : public ui::AbstractTreeView {
   {
     /* Group the libraries of an extension repository under its row. */
     AssetLibraryRepoItemType *repo_parent = nullptr;
+    AssetLibraryProjectHeading *project_group = nullptr;
 
     int i = 0;
     for (const AnyAssetLibraryDefinition &library : libraries) {
@@ -63,9 +74,19 @@ struct AssetLibraryList : public ui::AbstractTreeView {
       if (repo_parent && library.extension_repo == repo_parent->library.extension_repo) {
         parent = repo_parent;
       }
+      if constexpr (std::is_same_v<AssetLibraryListItemType, AssetLibraryListItem>) {
+        const bool project_library = library.user_library &&
+                                     (library.user_library->flag & ASSET_LIBRARY_PROJECT_DEFINED);
+        if (project_library) {
+          if (!project_group) {
+            project_group = &add_tree_item<AssetLibraryProjectHeading>();
+          }
+          parent = project_group;
+        }
+      }
       parent->add_tree_item<AssetLibraryListItemType>(library, i++);
     }
-    this->is_flat_ = (repo_parent == nullptr);
+    this->is_flat_ = (!repo_parent && !project_group);
   }
 };
 

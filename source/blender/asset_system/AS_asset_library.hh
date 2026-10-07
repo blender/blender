@@ -23,6 +23,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_callbacks.hh"
+#include "DNA_userdef_types.h"
 
 namespace blender {
 
@@ -159,6 +160,11 @@ class AssetLibrary {
    * were loaded directly through a path.
    */
   virtual std::optional<AssetLibraryReference> library_reference() const = 0;
+
+  /**
+   * Get the bUserAssetLibrary that's backing this asset library, if there is any.
+   */
+  virtual const bUserAssetLibrary *user_asset_library() const;
 
   /**
    * Get the import method that should be used for assets in this library.

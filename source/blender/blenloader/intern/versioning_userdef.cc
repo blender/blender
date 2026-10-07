@@ -439,10 +439,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->space_view3d.grid_axis_brightness = U_theme_default.space_view3d.grid_axis_brightness;
   }
 
-  if (!USER_VERSION_ATLEAST(502, 42)) {
-    FROM_DEFAULT_V4_UCHAR(tui.wcol_state.error);
-  }
-
   if (!USER_VERSION_ATLEAST(503, 5)) {
     FROM_DEFAULT_V4_UCHAR(tui.wcol_list_item.item);
   }
@@ -454,6 +450,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 
   if (!USER_VERSION_ATLEAST(503, 26)) {
     FROM_DEFAULT_V4_UCHAR(tui.wcol_state.info);
+  }
+
+  if (!USER_VERSION_ATLEAST(503, 27)) {
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_state.error);
   }
 
   /**

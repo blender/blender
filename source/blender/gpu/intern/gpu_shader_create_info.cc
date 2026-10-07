@@ -712,12 +712,44 @@ static void init_draw_infos()
 {
 /* Declare, register and construct the infos. */
 #include "glsl_draw_infos_list.hh"
+}
+
+static void init_eevee_infos()
+{
+/* Declare, register and construct the infos. */
+#include "glsl_eevee_infos_list.hh"
 
   if (GPU_stencil_classify_buffer_workaround()) {
     /* WORKAROUND: Adding a dummy buffer that isn't used fixes a bug inside the Qualcomm driver. */
     eevee_deferred_tile_classify.storage_buf(
         12, Qualifier::read_write, "uint", "dummy_workaround_buf[]");
   }
+}
+
+static void init_overlay_infos()
+{
+/* Declare, register and construct the infos. */
+#include "glsl_select_id_infos_list.hh"
+/* Requires select id infos. */
+#include "glsl_overlay_infos_list.hh"
+}
+
+static void init_image_infos()
+{
+/* Declare, register and construct the infos. */
+#include "glsl_image_infos_list.hh"
+}
+
+static void init_gpencil_infos()
+{
+/* Declare, register and construct the infos. */
+#include "glsl_gpencil_infos_list.hh"
+}
+
+static void init_workbench_infos()
+{
+/* Declare, register and construct the infos. */
+#include "glsl_workbench_infos_list.hh"
 }
 
 static void init_gpu_infos()
@@ -747,6 +779,11 @@ void gpu_shader_create_info_init()
 
   init_compositor_infos();
   init_draw_infos();
+  init_eevee_infos();
+  init_overlay_infos();
+  init_image_infos();
+  init_gpencil_infos();
+  init_workbench_infos();
   init_gpu_infos();
   init_ocio_infos();
   init_osd_infos();

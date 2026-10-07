@@ -356,7 +356,9 @@ static void GREASE_PENCIL_OT_brush_stroke(wmOperatorType *ot)
   ot->modal = grease_pencil_brush_stroke_modal;
   ot->cancel = grease_pencil_brush_stroke_cancel;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* No #OPTYPE_REGISTER: interactive strokes don't record their samples, so redo and repeat
+   * would run #exec with an empty stroke. */
+  ot->flag = OPTYPE_UNDO;
 
   paint_stroke_operator_properties(ot);
 }

@@ -7399,10 +7399,10 @@ static void SCREEN_OT_userpref_show(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Show Project Setup Operator
+/** \name Show Project Settings Operator
  * \{ */
 
-static wmOperatorStatus project_setup_show_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus project_settings_show_exec(bContext *C, wmOperator *op)
 {
   /* changes context! */
   if (ScrArea *area = ED_screen_temp_space_open(
@@ -7432,17 +7432,17 @@ static wmOperatorStatus project_setup_show_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static void SCREEN_OT_project_setup_show(wmOperatorType *ot)
+static void SCREEN_OT_project_settings_show(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Open Project Setup...";
+  ot->name = "Open Project Settings...";
   ot->description = "Create and manage projects";
-  ot->idname = "SCREEN_OT_project_setup_show";
+  ot->idname = "SCREEN_OT_project_settings_show";
 
   /* API callbacks. */
-  ot->exec = project_setup_show_exec;
+  ot->exec = project_settings_show_exec;
   ot->poll = ED_operator_screenactive_nobackground; /* Not in background as this opens a window. */
 
   prop = RNA_def_string(ot->srna,
@@ -7450,7 +7450,7 @@ static void SCREEN_OT_project_setup_show(wmOperatorType *ot)
                         "General",
                         MAX_NAME,
                         "Active Section",
-                        "Section to activate in Project Setup");
+                        "Section to activate in Project Settings");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
@@ -8065,7 +8065,7 @@ void ED_operatortypes_screen()
   WM_operatortype_append(SCREEN_OT_screenshot);
   WM_operatortype_append(SCREEN_OT_screenshot_area);
   WM_operatortype_append(SCREEN_OT_userpref_show);
-  WM_operatortype_append(SCREEN_OT_project_setup_show);
+  WM_operatortype_append(SCREEN_OT_project_settings_show);
   WM_operatortype_append(SCREEN_OT_drivers_editor_show);
   WM_operatortype_append(SCREEN_OT_info_log_show);
   WM_operatortype_append(SCREEN_OT_region_blend);

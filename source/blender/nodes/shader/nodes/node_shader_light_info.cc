@@ -34,7 +34,8 @@ static int node_shader_gpu_light_info(GPUMaterial *mat,
                                       GPUNodeStack *out)
 {
   if (!in[0].link) {
-    /* Error: not linked to a light accumulation node */
+    /* Error: not linked to a light accumulation zone. */
+    BLI_assert_unreachable();
     return false;
   }
 

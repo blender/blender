@@ -2292,6 +2292,11 @@ void BKE_main_id_indirect_linked_update(Main &bmain, std::optional<Span<ID *>> l
     if (!id) {
       return IDWALK_RET_NOP;
     }
+    if (cb_data->cb_flag & IDWALK_CB_LOOPBACK) {
+      /* Loop-back usages (e.g. from shpaekey to their mesh etc.) can be ignored in ID dependency
+       * processes. */
+      return IDWALK_RET_NOP;
+    }
     if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING)) {
       /* Embedded IDs should always share the directly/indirectly linked status of their owner
        * regular ID (ensured as part of `id_lib_extern` calls).

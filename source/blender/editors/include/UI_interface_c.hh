@@ -2566,11 +2566,12 @@ void template_search_preview(Layout *layout,
  * Create a filepath with filebrowser button, similar to the default layout generated for this type
  * of string property by `Layout::prop()`, but with more control.
  *
+ * \param pathselect_op If not null, the name of the operator to call (instead of the generic
+ * `BUTTONS_OT_file_browse` or `BUTTONS_OT_directory_browse` ones).
  * \param filter_glob If not empty, a 'glob filter' string listing all allowed extensions to list
  * in the filebrowser, separated by semi-columns (e.g. `*.usd;*.usda;*.usdc;*.usdz`). Only used if
  * the property sub-type is `PROP_FILEPATH`.
- * \param pathselect_op If not null, the name of the operator to call (instead of the generic
- * `BUTTONS_OT_file_browse` or `BUTTONS_OT_directory_browse` ones).
+ * \param name Label text, the property name is used if unset.
  * \param placeholder the placeholder text to show in the text widget, when enpty.
  */
 void template_filepath(Layout *layout,
@@ -2579,6 +2580,7 @@ void template_filepath(Layout *layout,
                        const StringRefNull propname,
                        const char *pathselect_op,
                        const char *filter_glob,
+                       const std::optional<StringRef> name,
                        const std::optional<StringRef> placeholder);
 
 /**

@@ -87,8 +87,10 @@ void VKWorkarounds::log() const
   CLOG_DEBUG(&LOG,
              "Activated workarounds\n"
              " - [%c] Not 16/32 bit aligned image formats\n"
+             " - [%c] Static viewport & scissor state\n"
              " - [%c] No texture pool",
              not_aligned_pixel_formats ? 'X' : ' ',
+             static_viewport_scissor ? 'X' : ' ',
              GCaps.texture_pool_workaround ? 'X' : ' ');
 }
 

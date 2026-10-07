@@ -378,6 +378,84 @@ bool asset_edit_id_save(Main &global_main, ID &id, ReportList &reports)
   return true;
 }
 
+bool asset_edit_id_rename(Main &global_main,
+                          ID &id,
+                          const StringRefNull new_name,
+                          const bUserAssetLibrary &user_library,
+                          ReportList &reports)
+{
+  BLI_assert(ID_IS_LINKED(&id));
+
+  /* Check the asset blend file for writability. */
+  if (!asset_edit_id_is_editable(id)) {
+    BKE_report(&reports, RPT_ERROR, "Asset is not from an editable .asset.blend file.");
+    return false;
+  }
+  if (!asset_edit_id_is_writable(id)) {
+    BKE_report(&reports, RPT_ERROR, "Asset is not from a writable .asset.blend file.");
+    return false;
+  }
+
+  const std::optional<AssetWeakReference> old_weak_ref = asset_edit_weak_reference_from_id(id);
+  std::optional<AssetWeakReference> new_weak_ref;
+  const std::string old_name = id.name + 2;
+  const std::string old_filepath = id.lib->runtime->filepath_abs;
+
+  /* Brushes have their own rename logic, so renaming their files has more consequences than for
+   * other assets. For now, just avoid renaming the blend files. This means renaming just the ID,
+   * and then saving it into the library it came from. */
+  /* TODO: is this special case for brushes still needed? The
+   * #BKE_asset_weak_reference_foreach_main() should handle brush references correctly already. */
+  if (id.id_type() == ID_BR) {
+    const IDNewNameResult result = BKE_id_rename(
+        global_main, id, new_name, IDNewNameMode::RenameExistingAlways);
+    if (result.action == IDNewNameResult::Action::UNCHANGED) {
+      BKE_report(&reports, RPT_WARNING, "Asset name was not changed.");
+      return false;
+    }
+
+    if (!asset_edit_id_save(global_main, id, reports)) {
+      return false;
+    }
+
+    new_weak_ref = asset_edit_weak_reference_from_id(id);
+  }
+  else {
+    /* Save the asset under a new name, which also means saving to a new file. */
+    AssetWeakReference weak_ref;
+    const std::optional<std::string> saved_as_filepath = asset_edit_id_save_as(
+        global_main, id, new_name, user_library, weak_ref, reports);
+    if (!saved_as_filepath) {
+      return false;
+    }
+
+    /* Saving was successful, so now delete the old file path. */
+    if (old_filepath != *saved_as_filepath) {
+      const char *error_message = nullptr;
+      if (!BLI_delete_soft(old_filepath.c_str(), &error_message)) {
+        /* In case of error removing the old asset file, report it but do continue. The new,
+         * renamed asset has been written already, and so the work should continue. */
+        BKE_reportf(&reports, RPT_WARNING, "Could not remove old asset file: %s", error_message);
+      }
+    }
+
+    new_weak_ref = weak_ref;
+  }
+
+  /* Update any weak references to the renamed asset. */
+  if (old_weak_ref && new_weak_ref && *old_weak_ref != *new_weak_ref) {
+    BKE_asset_weak_reference_foreach_main(global_main, [&](AssetWeakReference &weak_ref) {
+      if (weak_ref == *old_weak_ref) {
+        weak_ref = *new_weak_ref;
+      }
+    });
+  }
+
+  BKE_reportf(
+      &reports, RPT_INFO, "Asset '%s' was renamed to '%s'.", old_name.c_str(), new_name.c_str());
+  return true;
+}
+
 ID *asset_edit_id_revert(Main &global_main, ID &id, ReportList &reports)
 {
   if (!asset_edit_id_is_editable(id)) {

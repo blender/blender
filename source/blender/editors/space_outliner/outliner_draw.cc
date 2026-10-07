@@ -257,20 +257,6 @@ static void restrictbutton_gp_layer_flag_fn(bContext *C, void *poin, void * /*po
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 }
 
-static void restrictbutton_id_user_toggle(bContext * /*C*/, void *poin, void * /*poin2*/)
-{
-  ID *id = static_cast<ID *>(poin);
-
-  BLI_assert(id != nullptr);
-
-  if (id->flag & ID_FLAG_FAKEUSER) {
-    id_us_plus(id);
-  }
-  else {
-    id_us_min(id);
-  }
-}
-
 static void outliner_object_set_flag_recursive_fn(bContext *C,
                                                   Base *base,
                                                   Object *ob,
@@ -1927,6 +1913,34 @@ static void outliner_draw_restrictbuts(ui::Block *block,
   }
 }
 
+struct UserTooltip_Store {
+  bool has_fake_user;
+  bool is_linked;
+  int real_users;
+};
+
+static std::string user_tooltip_func(bContext * /*C*/, void *argN, const StringRef /*tip*/)
+{
+  const UserTooltip_Store *arg = static_cast<UserTooltip_Store *>(argN);
+  const bool has_fake_user = arg->has_fake_user;
+  const bool is_linked = arg->is_linked;
+  const int real_users = arg->real_users;
+
+  if (has_fake_user) {
+    return is_linked ? TIP_("Item is protected from deletion") :
+                       TIP_("Click to remove protection from deletion");
+  }
+
+  if (real_users) {
+    return is_linked ? TIP_("Item is not protected from deletion") :
+                       TIP_("Click to add protection from deletion");
+  }
+
+  return is_linked ?
+             TIP_("Item has no users and will be removed") :
+             TIP_("Item has no users and will be removed.\nClick to protect from deletion");
+}
+
 static void outliner_draw_userbuts(ui::Block *block,
                                    const ARegion *region,
                                    const SpaceOutliner *space_outliner)
@@ -1952,13 +1966,17 @@ static void outliner_draw_userbuts(ui::Block *block,
     }
 
     ui::Button *bt;
-    std::optional<StringRef> tip;
     const int real_users = id->us - ID_FAKE_USERS(id);
     const bool has_fake_user = id->flag & ID_FLAG_FAKEUSER;
     const bool is_linked = ID_IS_LINKED(id);
     const bool is_object = GS(id->name) == ID_OB;
     char overlay[5];
     BLI_str_format_integer_unit(overlay, id->us);
+
+    UserTooltip_Store *tip_arg = MEM_new_uninitialized<UserTooltip_Store>(__func__);
+    tip_arg->has_fake_user = has_fake_user;
+    tip_arg->is_linked = is_linked;
+    tip_arg->real_users = real_users;
 
     if (is_object) {
       bt = uiDefBut(block,
@@ -1974,35 +1992,22 @@ static void outliner_draw_userbuts(ui::Block *block,
                     TIP_("Number of users"));
     }
     else {
+      PointerRNA idptr = RNA_id_pointer_create(id);
+      bt = uiDefIconButR(block,
+                         ui::ButtonType::IconToggle,
+                         ICON_FAKE_USER_OFF,
+                         int(region->v2d.cur.xmax - xmax_offset),
+                         te->ys,
+                         UI_UNIT_X,
+                         UI_UNIT_Y,
+                         &idptr,
+                         "use_fake_user",
+                         -1,
+                         0,
+                         0,
+                         nullptr);
 
-      if (has_fake_user) {
-        tip = is_linked ? TIP_("Item is protected from deletion") :
-                          TIP_("Click to remove protection from deletion");
-      }
-      else {
-        if (real_users) {
-          tip = is_linked ? TIP_("Item is not protected from deletion") :
-                            TIP_("Click to add protection from deletion");
-        }
-        else {
-          tip = is_linked ?
-                    TIP_("Item has no users and will be removed") :
-                    TIP_("Item has no users and will be removed.\nClick to protect from deletion");
-        }
-      }
-
-      bt = uiDefIconButBit(block,
-                           ui::ButtonType::IconToggle,
-                           ID_FLAG_FAKEUSER,
-                           ICON_FAKE_USER_OFF,
-                           int(region->v2d.cur.xmax - xmax_offset),
-                           te->ys,
-                           UI_UNIT_X,
-                           UI_UNIT_Y,
-                           &id->flag,
-                           0,
-                           0,
-                           tip);
+      button_func_tooltip_set(bt, user_tooltip_func, tip_arg, MEM_delete_void);
 
       if (is_linked) {
         blender::ui::button_disable(bt,
@@ -2010,7 +2015,6 @@ static void outliner_draw_userbuts(ui::Block *block,
                                     "referencing it through a Custom Property");
       }
       else {
-        button_func_set(bt, restrictbutton_id_user_toggle, id, nullptr);
         /* Allow _inaccurate_ dragging over multiple toggles. */
         button_flag_enable(bt, ui::BUT_DRAG_LOCK);
       }

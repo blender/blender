@@ -63,26 +63,26 @@ static CLG_LogRef LOG = {"context"};
 /* struct */
 
 struct bContext {
-  int thread;
+  int thread = 0;
 
   /* windowmanager context */
   struct {
-    wmWindowManager *manager;
-    wmWindow *window;
-    WorkSpace *workspace;
-    bScreen *screen;
-    ScrArea *area;
-    ARegion *region;
-    ARegion *region_popup;
-    wmGizmoGroup *gizmo_group;
-    const bContextStore *store;
+    wmWindowManager *manager = nullptr;
+    wmWindow *window = nullptr;
+    WorkSpace *workspace = nullptr;
+    bScreen *screen = nullptr;
+    ScrArea *area = nullptr;
+    ARegion *region = nullptr;
+    ARegion *region_popup = nullptr;
+    wmGizmoGroup *gizmo_group = nullptr;
+    const bContextStore *store = nullptr;
 
     /* Operator poll. */
     /**
-     * Store the reason the poll function fails (static string, not allocated).
-     * For more advanced formatting use `operator_poll_msg_dyn_params`.
+     * Store the reason the poll function fails.
+     * For more advanced or dynamic formatting, use `operator_poll_msg_dyn_params`.
      */
-    const char *operator_poll_msg;
+    std::string operator_poll_msg = "";
     /**
      * Store values to dynamically to create the string (called when a tool-tip is shown).
      */
@@ -91,26 +91,26 @@ struct bContext {
 
   /* data context */
   struct {
-    Main *main;
-    Scene *scene;
+    Main *main = nullptr;
+    Scene *scene = nullptr;
 
-    int recursion;
+    int recursion = 0;
 
     /** Flag to disallow using the UI context for data retrieval. */
-    bool ui_data_access_deny;
+    bool ui_data_access_deny = false;
 
     /** True if python is initialized. */
-    bool py_init;
-    void *py_context;
+    bool py_init = false;
+    void *py_context = nullptr;
     /**
      * If we need to remove members, do so in a copy
      * (keep this to check if the copy needs freeing).
      */
-    void *py_context_orig;
+    void *py_context_orig = nullptr;
     /** Logging control flags (access, hide_missing). */
-    CTX_LogFlag log_flag;
+    CTX_LogFlag log_flag = {};
     /** Optional flag to disallow writing via RNA. */
-    const bool *rna_disallow_writes;
+    const bool *rna_disallow_writes = nullptr;
   } data;
 };
 
@@ -118,23 +118,21 @@ struct bContext {
 
 bContext *CTX_create()
 {
-  bContext *C = MEM_new_zeroed<bContext>(__func__);
+  bContext *C = MEM_new<bContext>(__func__);
   return C;
 }
 
 bContext *CTX_copy(const bContext *C)
 {
-  bContext *newC = MEM_new_zeroed<bContext>(__func__);
-  *newC = *C;
-
-  memset(&newC->wm.operator_poll_msg_dyn_params, 0, sizeof(newC->wm.operator_poll_msg_dyn_params));
-
+  bContext *newC = MEM_new<bContext>(__func__, *C);
+  /* This may contain a dynamically allocated data, which cannot be shallow-copied, reset. */
+  newC->wm.operator_poll_msg_dyn_params = {};
   return newC;
 }
 
 void CTX_free(bContext *C)
 {
-  /* This may contain a dynamically allocated message, free. */
+  /* This may contain a dynamically allocated data, free. */
   CTX_wm_operator_poll_msg_clear(C);
 
   MEM_delete(C);
@@ -1273,9 +1271,15 @@ void CTX_wm_operator_poll_msg_clear(bContext *C)
   params->free_fn = nullptr;
   params->user_data = nullptr;
 
-  C->wm.operator_poll_msg = nullptr;
+  C->wm.operator_poll_msg = "";
 }
 void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)
+{
+  CTX_wm_operator_poll_msg_clear(C);
+
+  C->wm.operator_poll_msg = msg;
+}
+void CTX_wm_operator_poll_msg_set(bContext *C, const StringRef msg)
 {
   CTX_wm_operator_poll_msg_clear(C);
 
@@ -1301,7 +1305,7 @@ const char *CTX_wm_operator_poll_msg_get(bContext *C, bool *r_free)
   }
 
   *r_free = false;
-  return IFACE_(C->wm.operator_poll_msg);
+  return IFACE_(C->wm.operator_poll_msg.c_str());
 }
 
 /* data context */

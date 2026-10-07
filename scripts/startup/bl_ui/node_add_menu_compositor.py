@@ -20,8 +20,8 @@ class NODE_MT_compositor_node_input_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "CompositorNodeBokehImage")
         self.node_operator(layout, "NodeGroupInput")
         self.node_operator(layout, "CompositorNodeImage")
-        self.node_operator(layout, "CompositorNodeImageInfo")
         self.node_operator(layout, "CompositorNodeImageCoordinates")
+        self.node_operator(layout, "CompositorNodeImageInfo")
         self.node_operator(layout, "GeometryNodeImportText")
         self.node_operator(layout, "CompositorNodeMask")
         self.node_operator(layout, "CompositorNodeMovieClip")
@@ -360,15 +360,15 @@ class NODE_MT_compositor_node_math_base(node_add_menu.NodeMenu):
         self.node_operator_with_searchable_enum(context, layout, "FunctionNodeBooleanMath", "operation")
         self.node_operator(layout, "ShaderNodeClamp")
         self.node_operator(layout, "FunctionNodeCompare")
+        self.node_operator(layout, "ShaderNodeFloatCurve")
+        self.node_operator_with_searchable_enum(context, layout, "FunctionNodeFloatToInt", "rounding_mode")
+        self.node_operator(layout, "FunctionNodeHashValue")
         self.node_operator_with_searchable_enum(
             context,
             layout,
             "FunctionNodeIntegerMath",
             "operation",
             defaults_callback=node_add_menu.set_int_math_node_default_props)
-        self.node_operator_with_searchable_enum(context, layout, "FunctionNodeFloatToInt", "rounding_mode")
-        self.node_operator(layout, "ShaderNodeFloatCurve")
-        self.node_operator(layout, "FunctionNodeHashValue")
         self.node_operator(layout, "ShaderNodeMapRange")
         self.node_operator_with_searchable_enum(
             context,
@@ -434,8 +434,8 @@ class NODE_MT_compositor_utilities_matrix_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "FunctionNodeCombineTransform")
         self.node_operator(layout, "FunctionNodeMatrixDeterminant", label="Determinant")
         self.node_operator(layout, "FunctionNodeInvertMatrix")
-        self.node_operator(layout, "FunctionNodeMatrixMultiply")
         self.node_operator(layout, "FunctionNodeMatrixSVD")
+        self.node_operator(layout, "FunctionNodeMatrixMultiply")
         self.node_operator(layout, "FunctionNodeProjectPoint")
         self.node_operator(layout, "FunctionNodeSeparateMatrix")
         self.node_operator(layout, "FunctionNodeSeparateTransform")
@@ -461,12 +461,12 @@ class NODE_MT_compositor_node_rotation_base(node_add_menu.NodeMenu):
         ops = props.settings.add()
         ops.name = "data_type"
         ops.value = "'ROTATION'"
+        self.node_operator(layout, "FunctionNodeQuaternionToRotation")
         self.node_operator(layout, "FunctionNodeRotateRotation")
         self.node_operator(layout, "FunctionNodeRotateVector")
         self.node_operator(layout, "FunctionNodeRotationToAxisAngle")
         self.node_operator(layout, "FunctionNodeRotationToEuler")
         self.node_operator(layout, "FunctionNodeRotationToQuaternion")
-        self.node_operator(layout, "FunctionNodeQuaternionToRotation")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 

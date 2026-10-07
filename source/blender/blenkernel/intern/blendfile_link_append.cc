@@ -1123,11 +1123,11 @@ void BKE_blendfile_link_pack(BlendfileLinkAppendContext *lapp_context, ReportLis
       continue;
     }
     BLI_assert(ID_IS_LINKED(id));
-    if (id->id_type() == ID_KE) {
-      /* Shape keys are packed along with their owner ID. */
-      continue;
-    }
-    if (!(ID_IS_PACKED(id) || (id->newid && ID_IS_PACKED(id->newid)))) {
+    /* Shape keys should always have been already packed by their owner ID.
+     *
+     * This might not always be true, in case the owner of the shapekey failed to be packed for
+     * some reason, in that case do not attempt to pack the shapekey either. */
+    if (id->id_type() != ID_KE && !(ID_IS_PACKED(id) || (id->newid && ID_IS_PACKED(id->newid)))) {
       /* No yet packed. */
       Set<ID *> ids_to_pack = bke::library::pack_linked_id_hierarchy(*bmain, *id);
 

@@ -1883,13 +1883,18 @@ static void icon_draw_size(float x,
 static void id_preview_image_render_size(
     const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job)
 {
+  BLI_assert(BKE_previewimg_id_get(id) == pi);
+
   /* changed only ever set by dynamic icons */
   if ((pi->flag[size] & PRV_CHANGED) || (!pi->rect[size] && !BKE_previewimg_is_invalid(pi, size)))
   {
     /* create the rect if necessary */
     icon_set_image(C, scene, id, pi, eIconSizes(size), use_job);
 
-    pi->flag[size] &= ~PRV_CHANGED;
+    if (BKE_previewimg_id_get(id)) {
+      /* Only change the preview image flag if it hasn't been freed yet. */
+      pi->flag[size] &= ~PRV_CHANGED;
+    }
   }
 }
 

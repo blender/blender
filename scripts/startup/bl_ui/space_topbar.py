@@ -600,7 +600,7 @@ class TOPBAR_MT_project(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("screen.project_setup_show", text="Settings...", icon='PREFERENCES')
+        layout.operator("screen.project_settings_show", text="Settings...", icon='PREFERENCES')
 
 
 class TOPBAR_MT_window(Menu):

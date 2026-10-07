@@ -322,6 +322,7 @@ static GPUNodeLink *get_input_value_link(const bNodeSocket &input, GPUNodeStack 
     case SOCK_TEXT_ID:
     case SOCK_MASK:
     case SOCK_BUNDLE:
+    case SOCK_CLOSURE:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(get_node_socket_result_type(&input)));
       break;

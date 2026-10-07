@@ -3399,14 +3399,19 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
   }
 
   if (state->but_flag & BUT_REDALERT) {
+    uchar red[4];
+    theme::get_color_4ubv(TH_REDALERT, red);
+    /* Alpha is used to blend between the original color (text, background) and alert theme. */
+    const float red_alpha = float(red[3]) / 255.0f;
+
+    /* In regular widgets, tint the background and outline. */
     if (wt->draw && emboss != EmbossType::None) {
-      theme::get_color_3ubv(TH_REDALERT, wt->wcol.inner);
+      color_blend_v3_v3(wt->wcol.outline, red, red_alpha);
+      color_blend_v3_v3(wt->wcol.inner, red, red_alpha);
     }
+    /* Text such as labels or widgets without emboss. Tint the text only. */
     else {
-      uchar red[4];
-      theme::get_color_3ubv(TH_REDALERT, red);
-      color_mul_hsl_v3(red, 1.0f, 1.5f, 1.5f);
-      color_blend_v3_v3(wt->wcol.text, red, 0.5f);
+      color_blend_v3_v3(wt->wcol.text, red, red_alpha);
     }
   }
 
@@ -5266,9 +5271,12 @@ static void widget_state_label(WidgetType *wt, const WidgetStateInfo *state, Emb
 
   if (state->but_flag & BUT_REDALERT) {
     uchar red[4];
-    theme::get_color_3ubv(TH_REDALERT, red);
-    color_mul_hsl_v3(red, 1.0f, 1.5f, 1.5f);
-    color_blend_v3_v3(wt->wcol.text, red, 0.5f);
+    theme::get_color_4ubv(TH_REDALERT, red);
+
+    /* Alert color's alpha is used to blend between the text and alert tint.
+     * This ensures the text be always readable, lighter or darker depending on the theme. */
+    float red_alpha = float(red[3]) / 255.0f;
+    color_blend_v3_v3(wt->wcol.text, red, red_alpha);
   }
 }
 

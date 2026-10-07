@@ -881,9 +881,10 @@ static void rna_uiTemplateFilePath(Layout *layout,
                                    const char *propname,
                                    const char *pathselect_op,
                                    const char *filter_glob,
-                                   const char *placeholder,
+                                   const char *text,
                                    const char *text_ctxt,
-                                   bool translate)
+                                   bool translate,
+                                   const char *placeholder)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -895,10 +896,15 @@ static void rna_uiTemplateFilePath(Layout *layout,
   }
 
   /* Get translated name (label). */
-  std::optional<StringRefNull> placeholder_text = rna_translate_ui_text(
-      placeholder, text_ctxt, nullptr, prop, translate);
+  std::optional<StringRefNull> text_final = rna_translate_ui_text(
+      text, text_ctxt, nullptr, prop, translate);
+  std::optional<StringRefNull> placeholder_final = std::nullopt;
+  if (placeholder) {
+    placeholder_final = rna_translate_ui_text(placeholder, text_ctxt, nullptr, prop, translate);
+  }
 
-  template_filepath(layout, C, ptr, propname, pathselect_op, filter_glob, placeholder_text);
+  template_filepath(
+      layout, C, ptr, propname, pathselect_op, filter_glob, text_final, placeholder_final);
 }
 
 void rna_template_list(Layout *layout,
@@ -2164,6 +2170,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                         "If set, controls wich file extensions are shown in the filebrowser, for "
                         "Filepath properties only (e.g. '*.glb;*.gltf')");
   RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
+  api_ui_item_common_text(func);
   prop = RNA_def_string(func,
                         "placeholder",
                         nullptr,
@@ -2171,7 +2178,6 @@ void RNA_api_ui_layout(StructRNA *srna)
                         "",
                         "Placeholder text to display in the text widget when no path is set");
   RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
-  api_ui_item_common_translation(func);
 
   func = RNA_def_function(srna, "template_path_builder", "rna_uiTemplatePathBuilder");
   parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");

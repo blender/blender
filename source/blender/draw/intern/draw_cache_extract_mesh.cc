@@ -241,6 +241,9 @@ void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
     else if (type == VBOType::Orco) {
       created_vbos[i] = extract_orco(mr, mbc);
     }
+    else if (type == VBOType::AttrViewer) {
+      created_vbos[i] = extract_attr_viewer(mr, mbc);
+    }
     else if (type >= VBOType::Attr0 && type <= VBOType::Attr15) {
       const int8_t attr_index = int8_t(type) - int8_t(VBOType::Attr0);
       created_vbos[i] = extract_attribute(mr, mbc, cache.attr_used[attr_index]);
@@ -254,6 +257,7 @@ void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
       case VBOType::VertexGroupWeight:
       case VBOType::VertexNormal:
       case VBOType::Orco:
+      case VBOType::AttrViewer:
       case VBOType::Attr0:
       case VBOType::Attr1:
       case VBOType::Attr2:
@@ -324,9 +328,6 @@ void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
         break;
       case VBOType::IndexFaceDot:
         created_vbos[i] = extract_face_dot_index(mr);
-        break;
-      case VBOType::AttrViewer:
-        created_vbos[i] = extract_attr_viewer(mr);
         break;
       case VBOType::PaintOverlayFlag:
         created_vbos[i] = extract_paint_overlay_flags(mr);
