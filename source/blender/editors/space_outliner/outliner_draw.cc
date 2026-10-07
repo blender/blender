@@ -1966,7 +1966,6 @@ static void outliner_draw_userbuts(ui::Block *block,
     }
 
     ui::Button *bt;
-    std::optional<StringRef> tip;
     const int real_users = id->us - ID_FAKE_USERS(id);
     const bool has_fake_user = id->flag & ID_FLAG_FAKEUSER;
     const bool is_linked = ID_IS_LINKED(id);
