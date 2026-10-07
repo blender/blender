@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
 #include "kernel/util/image_2d.h"
 
 #include "util/defines.h"
@@ -14,9 +12,11 @@
 
 CCL_NAMESPACE_BEGIN
 
+#ifndef __KERNEL_GPU__
 /* Make template functions private so symbols don't conflict between kernels with different
  * instruction sets. */
 namespace {
+#endif
 
 #define SET_CUBIC_SPLINE_WEIGHTS(u, t) \
   { \
@@ -26,13 +26,6 @@ namespace {
     u[3] = (1.0f / 6.0f) * t * t * t; \
   } \
   (void)0
-
-ccl_device_inline float frac(const float x, int *ix)
-{
-  int i = float_to_int(x) - ((x < 0.0f) ? 1 : 0);
-  *ix = i;
-  return x - (float)i;
-}
 
 template<typename TexT, typename OutT = float4> struct ImageInterpolator {
 
@@ -91,7 +84,7 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
   /* Read 2D Texture Data
    * Does not check if data request is in bounds. */
   static ccl_always_inline OutT
-  read(const TexT *data, const int x, int y, const int width, const int /*height*/)
+  read(const ccl_global TexT *data, const int x, int y, const int width, const int /*height*/)
   {
     return read(data[int64_t(y) * width + x]);
   }
@@ -99,12 +92,19 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
   /* Read 2D Texture Data Clip
    * Returns transparent black if data request is out of bounds. */
   static ccl_always_inline OutT
-  read_clip(const TexT *data, const int x, int y, const int width, const int height)
+  read_clip(const ccl_global TexT *data, const int x, int y, const int width, const int height)
   {
     if (x < 0 || x >= width || y < 0 || y >= height) {
       return zero();
     }
     return read(data[int64_t(y) * width + x]);
+  }
+
+  static ccl_always_inline float frac(const float x, ccl_private int *ix)
+  {
+    int i = float_to_int(x) - ((x < 0.0f) ? 1 : 0);
+    *ix = i;
+    return x - (float)i;
   }
 
   static ccl_always_inline int wrap_periodic(int x, const int width)
@@ -132,7 +132,9 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
 
   /* ********  2D interpolation ******** */
 
-  static ccl_always_inline OutT interp_closest(const KernelImageInfo &info, const float x, float y)
+  static ccl_always_inline OutT interp_closest(const ccl_global KernelImageInfo &info,
+                                               const float x,
+                                               float y)
   {
     const int width = info.width;
     const int height = info.height;
@@ -163,11 +165,13 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
         return zero();
     }
 
-    const TexT *data = (const TexT *)info.data;
+    const ccl_global TexT *data = (const ccl_global TexT *)info.data;
     return read(data, ix, iy, width, height);
   }
 
-  static ccl_always_inline OutT interp_linear(const KernelImageInfo &info, const float x, float y)
+  static ccl_always_inline OutT interp_linear(const ccl_global KernelImageInfo &info,
+                                              const float x,
+                                              float y)
   {
     const int width = info.width;
     const int height = info.height;
@@ -177,7 +181,7 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
     int nix, niy;
     const float tx = frac(x - 0.5f, &ix);
     const float ty = frac(y - 0.5f, &iy);
-    const TexT *data = (const TexT *)info.data;
+    const ccl_global TexT *data = (const ccl_global TexT *)info.data;
 
     switch (info.extension) {
       case EXTENSION_REPEAT:
@@ -221,7 +225,9 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
            ty * tx * read(data, nix, niy, width, height);
   }
 
-  static ccl_always_inline OutT interp_cubic(const KernelImageInfo &info, const float x, float y)
+  static ccl_always_inline OutT interp_cubic(const ccl_global KernelImageInfo &info,
+                                             const float x,
+                                             float y)
   {
     const int width = info.width;
     const int height = info.height;
@@ -288,7 +294,7 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
         return zero();
     }
 
-    const TexT *data = (const TexT *)info.data;
+    const ccl_global TexT *data = (const ccl_global TexT *)info.data;
     const int xc[4] = {pix, ix, nix, nnix};
     const int yc[4] = {piy, iy, niy, nniy};
     float u[4], v[4];
@@ -310,7 +316,9 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
 #undef DATA
   }
 
-  static ccl_always_inline OutT interp(const KernelImageInfo &info, const float x, float y)
+  static ccl_always_inline OutT interp(const ccl_global KernelImageInfo &info,
+                                       const float x,
+                                       float y)
   {
     switch (info.interpolation) {
       case INTERPOLATION_CLOSEST:
@@ -326,7 +334,7 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
 #undef SET_CUBIC_SPLINE_WEIGHTS
 
 ccl_device float4 kernel_image_interp(KernelGlobals kg,
-                                      ShaderData *sd,
+                                      ccl_private ShaderData *sd,
                                       const int image_texture_id,
                                       dual2 uv,
                                       const float4 missing_rgba)
@@ -401,8 +409,11 @@ ccl_device float4 kernel_image_interp(KernelGlobals kg,
   }
 }
 
-ccl_device_forceinline float4 kernel_image_interp_with_udim(
-    KernelGlobals kg, ShaderData *sd, const int udim_id, dual2 uv, const float4 missing_rgba)
+ccl_device_forceinline float4 kernel_image_interp_with_udim(KernelGlobals kg,
+                                                            ccl_private ShaderData *sd,
+                                                            const int udim_id,
+                                                            dual2 uv,
+                                                            const float4 missing_rgba)
 {
   const int image_texture_id = kernel_image_udim_map(kg, udim_id, uv.val);
   if (image_texture_id == KERNEL_IMAGE_NONE) {
@@ -412,6 +423,8 @@ ccl_device_forceinline float4 kernel_image_interp_with_udim(
   return kernel_image_interp(kg, sd, image_texture_id, uv, missing_rgba);
 }
 
+#ifndef __KERNEL_GPU__
 } /* Namespace. */
+#endif
 
 CCL_NAMESPACE_END

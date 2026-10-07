@@ -19,7 +19,6 @@ set(SRC_KERNEL_DEVICE_CPU
 set(SRC_KERNEL_DEVICE_CPU_HEADERS
   bvh.h
   compat.h
-  image.h
   globals.h
   kernel.h
   kernel_arch.h

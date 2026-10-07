@@ -7,5 +7,9 @@
 /* clang-format off */
 struct ONEAPIKernelContext : public KernelGlobalsGPU {
   public:
+#ifndef WITH_CYCLES_ONEAPI_SOFTWARE_TEXTURING
 #    include "kernel/device/gpu/image.h"
+#else
+#    include "kernel/util/image.h"
+#endif
   /* clang-format on */
