@@ -584,7 +584,7 @@ static wmOperatorStatus collection_importer_add_exec(bContext *C, wmOperator *op
     }
     IDProperty *import_properties = collection_importer->import_properties;
     IDProperty *filepath_property = bke::idprop::create("filepath", filepath).release();
-    IDP_AddToGroup(import_properties, filepath_property);
+    IDP_ReplaceInGroup(import_properties, filepath_property);
   }
 
   collection_importer_add_tag_update(C, *collection);
