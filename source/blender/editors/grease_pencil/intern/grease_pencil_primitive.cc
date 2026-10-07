@@ -314,9 +314,9 @@ static void grease_pencil_primitive_load(PrimitiveToolOperation &ptd)
   array_utils::copy(ptd.temp_control_points.as_span(), ptd.control_points.as_mutable_span());
 }
 
-static void primitive_calulate_curve_positions(PrimitiveToolOperation &ptd,
-                                               Span<float2> control_points,
-                                               MutableSpan<float2> new_positions)
+static void primitive_calculate_curve_positions(PrimitiveToolOperation &ptd,
+                                                Span<float2> control_points,
+                                                MutableSpan<float2> new_positions)
 {
   const int subdivision = ptd.subdivision;
   const int new_points_num = new_positions.size();
@@ -425,15 +425,15 @@ static float2 primitive_local_to_screen(const PrimitiveToolOperation &ptd, const
       ptd.vc.region, math::transform_point(ptd.local_transform, point), ptd.projection);
 }
 
-static void primitive_calulate_curve_positions_2d(PrimitiveToolOperation &ptd,
-                                                  MutableSpan<float2> new_positions)
+static void primitive_calculate_curve_positions_2d(PrimitiveToolOperation &ptd,
+                                                   MutableSpan<float2> new_positions)
 {
   Array<float2> control_points_2d(ptd.control_points.size());
   for (const int i : ptd.control_points.index_range()) {
     control_points_2d[i] = primitive_local_to_screen(ptd, ptd.control_points[i]);
   }
 
-  primitive_calulate_curve_positions(ptd, control_points_2d, new_positions);
+  primitive_calculate_curve_positions(ptd, control_points_2d, new_positions);
 }
 
 static int grease_pencil_primitive_curve_points_number(PrimitiveToolOperation &ptd)
@@ -475,7 +475,7 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
   MutableSpan<float3> positions_3d = curves.positions_for_write().slice(curve_points);
   Array<float2> positions_2d(new_points_num);
 
-  primitive_calulate_curve_positions_2d(ptd, positions_2d);
+  primitive_calculate_curve_positions_2d(ptd, positions_2d);
   ptd.placement.project(positions_2d, positions_3d);
 
   Set<std::string> point_attributes_to_skip;
