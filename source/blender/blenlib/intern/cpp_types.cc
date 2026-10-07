@@ -22,6 +22,12 @@ template<> void hash_unique_default(const std::string &value, UniqueHashBytes &h
 
 void register_cpp_types()
 {
+  static bool initialized = false;
+  if (initialized) {
+    return;
+  }
+  initialized = true;
+
   BLI_CPP_TYPE_REGISTER(bool, CPPTypeFlags::BasicType);
 
   BLI_CPP_TYPE_REGISTER(float, CPPTypeFlags::BasicType);

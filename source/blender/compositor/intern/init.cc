@@ -5,6 +5,7 @@
 #include "BLI_cpp_type_make.hh"
 
 #include "COM_closure.hh"
+#include "COM_init.hh"
 
 namespace blender::compositor {
 
@@ -15,6 +16,12 @@ static void register_cpp_types()
 
 void init()
 {
+  static bool initialized = false;
+  if (initialized) {
+    return;
+  }
+  initialized = true;
+
   register_cpp_types();
 }
 
