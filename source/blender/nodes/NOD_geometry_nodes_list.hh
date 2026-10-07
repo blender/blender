@@ -19,7 +19,7 @@
 
 namespace blender::nodes {
 
-class GList : public ImplicitSharingMixin {
+class GList {
  public:
   class ArrayData {
    public:
@@ -58,7 +58,7 @@ class GList : public ImplicitSharingMixin {
   using DataVariant = std::variant<ArrayData, SingleData>;
 
  private:
-  const CPPType &cpp_type_;
+  const CPPType *cpp_type_;
   DataVariant data_;
   int64_t size_ = 0;
 
@@ -70,6 +70,10 @@ class GList : public ImplicitSharingMixin {
   GList() = delete;
   GList(const CPPType &type) : GList(type, DataVariant{}, 0) {}
   GList(const CPPType &type, DataVariant data, const int64_t size);
+  GList(const GList &other) = default;
+  GList(GList &&other) noexcept;
+  GList &operator=(const GList &other) = default;
+  GList &operator=(GList &&other) noexcept;
   static GListPtr create(const CPPType &type, DataVariant data, const int64_t size);
   template<typename ContainerT> static GListPtr from_container(ContainerT &&container);
   static GListPtr from_garray(GArray<> array);
@@ -87,16 +91,10 @@ class GList : public ImplicitSharingMixin {
   std::variant<GSpan, GPointer> values() const;
   std::variant<GMutableSpan, GMutablePointer> values_for_write();
 
-  void delete_self() override;
-  GListPtr copy() const;
-
   /** Access the list as virtual array. */
   GVArray varray() const;
 
   void count_memory(MemoryCounter &memory) const;
-
-  void ensure_owns_direct_data();
-  bool owns_direct_data() const;
 
   /**
    * Get a typed reference to this field. Note that #Field<T> happens to be identical to #GField on
@@ -146,12 +144,12 @@ template<typename T> class List {
 
 class GListPtr {
  private:
-  ImplicitSharingPtr<GList> data_;
+  ImplicitSharingPtr<ImplicitSharedValue<GList>> data_;
 
  public:
   GListPtr() = default;
-  explicit GListPtr(const GList *data) : data_(data) {}
-  explicit GListPtr(const CPPType &type) : GListPtr(MEM_new<GList>(__func__, type)) {}
+  explicit GListPtr(GList list) : data_(new ImplicitSharedValue<GList>(std::move(list))) {}
+  explicit GListPtr(const CPPType &type) : GListPtr(GList(type)) {}
 
   operator bool() const;
   const GList *operator->() const;
@@ -159,6 +157,7 @@ class GListPtr {
 
   const GList *get() const;
   GList &get_for_write();
+  bool is_mutable() const;
 
   template<typename T> const ListPtr<T> &typed() const;
   template<typename T> ListPtr<T> &typed();
@@ -217,7 +216,7 @@ inline const GList::DataVariant &GList::data() const
 
 inline const CPPType &GList::cpp_type() const
 {
-  return cpp_type_;
+  return *cpp_type_;
 }
 
 inline int64_t GList::size() const
@@ -331,41 +330,46 @@ inline GListPtr::operator bool() const
 
 inline const GList *GListPtr::operator->() const
 {
-  return data_.get();
+  return this->get();
 }
 
 inline const GList &GListPtr::operator*() const
 {
-  return *data_;
+  return data_->data;
 }
 
 inline const GList *GListPtr::get() const
 {
-  return data_.get();
+  return data_ ? &data_->data : nullptr;
 }
 
 inline GList &GListPtr::get_for_write()
 {
   BLI_assert(data_);
   if (!data_->is_mutable()) {
-    *this = data_->copy();
+    *this = GListPtr(data_->data);
   }
   BLI_assert(data_->is_mutable());
   data_->tag_ensured_mutable();
-  return const_cast<GList &>(*data_);
+  return const_cast<GList &>(data_->data);
+}
+
+inline bool GListPtr::is_mutable() const
+{
+  return data_->is_mutable();
 }
 
 template<typename T> inline const ListPtr<T> &GListPtr::typed() const
 {
   static_assert(sizeof(GList) == sizeof(List<T>));
-  BLI_assert(!data_ || data_->cpp_type().is<T>());
+  BLI_assert(!data_ || data_->data.cpp_type().is<T>());
   return reinterpret_cast<const ListPtr<T> &>(*this);
 }
 
 template<typename T> inline ListPtr<T> &GListPtr::typed()
 {
   static_assert(sizeof(GList) == sizeof(List<T>));
-  BLI_assert(!data_ || data_->cpp_type().is<T>());
+  BLI_assert(!data_ || data_->data.cpp_type().is<T>());
   return reinterpret_cast<ListPtr<T> &>(*this);
 }
 

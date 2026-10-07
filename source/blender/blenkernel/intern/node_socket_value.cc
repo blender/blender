@@ -523,6 +523,95 @@ bool SocketValueVariant::is_context_dependent_field() const
   return field->depends_on_input();
 }
 
+static void ensure_list_owns_direct_data(GList &list)
+{
+  if (list.cpp_type().is<BundlePtr>()) {
+    list.typed<BundlePtr>().foreach_for_write([](BundlePtr &bundle_ptr) {
+      if (!bundle_ptr) {
+        return;
+      }
+      bundle_ptr.ensure_mutable_inplace();
+      const_cast<nodes::Bundle &>(*bundle_ptr).ensure_owns_direct_data();
+    });
+  }
+  else if (list.cpp_type().is<SocketValueVariant>()) {
+    list.typed<SocketValueVariant>().foreach_for_write(
+        [](SocketValueVariant &value) { value.ensure_owns_direct_data(); });
+  }
+  else if (list.cpp_type().is<GeometrySet>()) {
+    list.typed<GeometrySet>().foreach_for_write(
+        [](GeometrySet &geometry) { geometry.ensure_owns_direct_data(); });
+  }
+}
+
+static bool list_owns_direct_data(const GList &list)
+{
+  const std::variant<GSpan, GPointer> &values = list.values();
+  if (list.cpp_type().is<BundlePtr>()) {
+    /* Null bundles don't reference any data, so they are trivially owned. */
+    return std::visit(
+        []<typename T>(const T &value) {
+          if constexpr (std::is_same_v<T, GSpan>) {
+            const Span span = value.template typed<BundlePtr>();
+            return std::all_of(span.begin(), span.end(), [](const BundlePtr &bundle_ptr) {
+              if (!bundle_ptr) {
+                return true;
+              }
+              return bundle_ptr->owns_direct_data();
+            });
+          }
+          else if constexpr (std::is_same_v<T, GPointer>) {
+            const BundlePtr *value_ptr = value.template get<BundlePtr>();
+            if (!value_ptr || !*value_ptr) {
+              return true;
+            }
+            return (*value_ptr)->owns_direct_data();
+          }
+          else {
+            BLI_assert_unreachable_static_t(T);
+          }
+        },
+        values);
+  }
+  if (list.cpp_type().is<SocketValueVariant>()) {
+    return std::visit(
+        []<typename T>(const T &value) {
+          if constexpr (std::is_same_v<T, GSpan>) {
+            const Span span = value.template typed<SocketValueVariant>();
+            return std::all_of(span.begin(), span.end(), [](const SocketValueVariant &value) {
+              return value.owns_direct_data();
+            });
+          }
+          else if constexpr (std::is_same_v<T, GPointer>) {
+            return value.template get<SocketValueVariant>()->owns_direct_data();
+          }
+          else {
+            BLI_assert_unreachable_static_t(T);
+          }
+        },
+        values);
+  }
+  if (list.cpp_type().is<GeometrySet>()) {
+    return std::visit(
+        []<typename T>(const T &value) {
+          if constexpr (std::is_same_v<T, GSpan>) {
+            const Span span = value.template typed<GeometrySet>();
+            return std::all_of(span.begin(), span.end(), [](const GeometrySet &value) {
+              return value.owns_direct_data();
+            });
+          }
+          else if constexpr (std::is_same_v<T, GPointer>) {
+            return value.template get<GeometrySet>()->owns_direct_data();
+          }
+          else {
+            BLI_assert_unreachable_static_t(T);
+          }
+        },
+        values);
+  }
+  return true;
+}
+
 void SocketValueVariant::ensure_owns_direct_data()
 {
   if (this->owns_direct_data()) {
@@ -538,7 +627,7 @@ void SocketValueVariant::ensure_owns_direct_data()
   if (this->is_list()) {
     if (nodes::GListPtr &list_ptr = value_.get<nodes::GListPtr>()) {
       auto &list = list_ptr.get_for_write();
-      list.ensure_owns_direct_data();
+      ensure_list_owns_direct_data(list);
     }
   }
   if (this->get().is_type<GeometrySet>()) {
@@ -557,7 +646,7 @@ bool SocketValueVariant::owns_direct_data() const
   }
   if (this->is_list()) {
     if (const nodes::GListPtr &list_ptr = value_.get<nodes::GListPtr>()) {
-      return list_ptr->owns_direct_data();
+      return list_owns_direct_data(*list_ptr);
     }
   }
   if (this->get().is_type<GeometrySet>()) {
