@@ -585,9 +585,6 @@ static Collection *collection_importer_add_ensure(bContext *C,
 
 static wmOperatorStatus collection_importer_add_exec(bContext *C, wmOperator *op)
 {
-  /* TODO - There should only be 1 importer in the hierarchy.
-   * This needs to be enforced either here or in the poll. */
-
   Collection *collection = collection_importer_add_ensure(C, op, false, nullptr);
   if (!collection) {
     return OPERATOR_CANCELLED;
