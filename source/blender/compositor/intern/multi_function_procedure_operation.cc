@@ -323,6 +323,7 @@ mf::Variable *MultiFunctionProcedureOperation::get_constant_input_variable(
       break;
     }
     case SOCK_BUNDLE:
+    case SOCK_CLOSURE:
       /* Not supported in multi-function nodes. */
       BLI_assert_unreachable();
       break;

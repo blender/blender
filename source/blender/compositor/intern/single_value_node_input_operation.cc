@@ -154,6 +154,10 @@ void SingleValueNodeInputOperation::execute()
       result.set_single_value(nodes::Bundle::create());
       break;
     }
+    case SOCK_CLOSURE: {
+      result.set_single_value(ClosurePtr());
+      break;
+    }
     case SOCK_CUSTOM:
       /* An undefined socket, its value does not matter. */
       break;
