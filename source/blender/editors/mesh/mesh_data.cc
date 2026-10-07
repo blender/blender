@@ -805,7 +805,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::fill_attribute_range_default(
-      attributes, bke::AttrDomain::Edge, {}, IndexRange::from_begin_end(old_size, len));
+      attributes, bke::AttrDomain::Edge, {}, IndexRange::from_begin_size(old_size, len));
   bke::SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_span<bool>(
       ".select_edge", bke::AttrDomain::Edge);
   select_edge.span.take_back(len).fill(true);
@@ -830,7 +830,7 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::fill_attribute_range_default(
-      attributes, bke::AttrDomain::Corner, {}, IndexRange::from_begin_end(old_size, len));
+      attributes, bke::AttrDomain::Corner, {}, IndexRange::from_begin_size(old_size, len));
   attributes.add<int>(".corner_vert", bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
   attributes.add<int>(".corner_edge", bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
 
@@ -866,7 +866,7 @@ static void mesh_add_faces(Mesh *mesh, int len)
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::fill_attribute_range_default(
-      attributes, bke::AttrDomain::Face, {}, IndexRange::from_begin_end(old_size, len));
+      attributes, bke::AttrDomain::Face, {}, IndexRange::from_begin_size(old_size, len));
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".select_poly", bke::AttrDomain::Face);
   select_poly.span.take_back(len).fill(true);
