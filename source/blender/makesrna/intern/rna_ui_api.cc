@@ -898,9 +898,10 @@ static void rna_uiTemplateFilePath(Layout *layout,
   /* Get translated name (label). */
   std::optional<StringRefNull> text_final = rna_translate_ui_text(
       text, text_ctxt, nullptr, prop, translate);
-  std::optional<StringRefNull> placeholder_final = placeholder ? std::make_optional<StringRefNull>(
-                                                                     placeholder) :
-                                                                 std::nullopt;
+  std::optional<StringRefNull> placeholder_final = std::nullopt;
+  if (placeholder) {
+    placeholder_final = rna_translate_ui_text(placeholder, text_ctxt, nullptr, prop, translate);
+  }
 
   template_filepath(
       layout, C, ptr, propname, pathselect_op, filter_glob, text_final, placeholder_final);
