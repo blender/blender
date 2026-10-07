@@ -512,7 +512,7 @@ constexpr StringRefNull::StringRefNull(const char *str, const int64_t size)
 constexpr StringRefNull::StringRefNull(const char *str)
     : StringRefBase(str, int64_t(std::char_traits<char>::length(str)))
 {
-  BLI_assert(str != nullptr);
+  BLI_assert(data_ != nullptr);
   BLI_assert(data_[size_] == '\0');
 }
 
