@@ -1020,10 +1020,14 @@ static void action_preview_render_cleanup(IconPreview *preview, PoseBackup *pose
   DEG_id_tag_update(&preview->active_object->id, ID_RECALC_GEOMETRY);
 }
 
-/* Render a pose from the scene camera. It is assumed that the scene camera is
+/**
+ * Render a pose from the scene camera. It is assumed that the scene camera is
  * capturing the pose. The pose is applied temporarily to the current object
- * before rendering. */
-static void action_preview_render(const PreviewImage *prv_img,
+ * before rendering.
+ *
+ * \return whether a preview was actually rendered.
+ */
+static bool action_preview_render(const PreviewImage *prv_img,
                                   IconPreview *preview,
                                   const eIconSizes icon_size)
 {
@@ -1045,7 +1049,7 @@ static void action_preview_render(const PreviewImage *prv_img,
     printf("Scene has no camera, unable to render preview of %s without it.\n",
            preview->id->name + 2);
     action_preview_render_cleanup(preview, pose_backup);
-    return;
+    return false;
   }
 
   /* This renders with the Workbench engine settings stored on the Scene. */
@@ -1069,11 +1073,13 @@ static void action_preview_render(const PreviewImage *prv_img,
   if (err_out[0] != '\0') {
     printf("Error rendering Action %s preview: %s\n", preview->id->name + 2, err_out);
   }
-
-  if (ibuf) {
-    icon_copy_rect(ibuf, prv_img->w[icon_size], prv_img->h[icon_size], prv_img->rect[icon_size]);
-    IMB_freeImBuf(ibuf);
+  if (!ibuf) {
+    return false;
   }
+
+  icon_copy_rect(ibuf, prv_img->w[icon_size], prv_img->h[icon_size], prv_img->rect[icon_size]);
+  IMB_freeImBuf(ibuf);
+  return true;
 }
 
 /** \} */
@@ -1653,7 +1659,15 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
           rendered = true;
           break;
         case ID_AC:
-          action_preview_render(prv, ip, icon_size);
+          if (!action_preview_render(prv, ip, icon_size)) {
+            /* Free the preview image, as it's already been overwritten in `icon_set_image()` in
+             * interface_icons.cc. */
+            BKE_previewimg_id_free(ip->id);
+            /* Avoid freeing the preview again in icon_preview_endjob(). */
+            ip->owner = nullptr;
+          }
+          /* Always mark as 'rendered' as the call to other_id_types_preview_render() should be
+           * skipped. */
           rendered = true;
           break;
         case ID_SCE:
