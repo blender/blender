@@ -4,6 +4,8 @@
 
 #include <fmt/format.h>
 
+#include "DNA_userdef_types.h"
+
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
@@ -292,6 +294,13 @@ class EvaluateClosureOperation : public NodeOperation {
     const compositor::ClosurePtr closure =
         this->get_input("Closure").get_single_value<compositor::ClosurePtr>();
     if (!closure) {
+      this->write_default_outputs();
+      return;
+    }
+
+    if (this->get_compute_context().parents_num() >= U.nodes_stack_limit) {
+      this->add_warning(NodeWarningType::Error,
+                        TIP_("Stack limit reached. Closure becomes pass-through."));
       this->write_default_outputs();
       return;
     }

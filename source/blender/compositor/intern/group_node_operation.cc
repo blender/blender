@@ -7,7 +7,10 @@
 #include "BLI_assert.hh"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.hh"
+
 #include "DNA_node_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
@@ -51,6 +54,13 @@ class GroupNodeOperation : public NodeOperation {
     const bNodeTree *node_group = this->get_node_group();
     const bNodeTree *original_node_group = DEG_get_original(node_group);
     if (!original_node_group || ID_MISSING(original_node_group)) {
+      this->allocate_default_remaining_outputs();
+      return;
+    }
+
+    if (this->get_compute_context().parents_num() >= U.nodes_stack_limit) {
+      this->add_warning(nodes::NodeWarningType::Error,
+                        TIP_("Stack limit reached. Group node is ignored."));
       this->allocate_default_remaining_outputs();
       return;
     }
