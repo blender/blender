@@ -287,7 +287,7 @@ def prepare_udim_scene(context: any, data_type: DataType, subdivide_level: int =
 
     bpy.ops.paint.texture_paint_toggle()
 
-    tool_settings.sculpt.unified_paint_settings.size = UDIM_BRUSH_SIZE
+    tool_settings.image_paint.unified_paint_settings.size = UDIM_BRUSH_SIZE
 
 
 def _run_udim_brush_test(args: dict):
