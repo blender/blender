@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup nodes
+ * \ingroup bke
  */
 
 #include "BLI_generic_array.hh"
 #include "BLI_memory_counter.hh"
 
-#include "NOD_geometry_nodes_list.hh"
+#include "BKE_list.hh"
 
-namespace blender::nodes {
+namespace blender::bke {
 
 /** Create array data that owns the array's buffer. */
 static GList::ArrayData array_data_from_garray(GArray<> array)
@@ -190,4 +190,4 @@ GListPtr GList::from_single(const GPointer value, const int64_t size)
   return GListPtr{GList(type, SingleData::ForValue(value), size)};
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::bke
