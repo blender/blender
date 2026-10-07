@@ -1015,7 +1015,7 @@ static void rna_def_blender_project(BlenderRNA *brna)
                              nullptr);
   RNA_def_property_ui_text(prop,
                            "Active Asset Library",
-                           "Index of the asset library being edited in the Project Setup UI");
+                           "Index of the asset library being edited in the Project Settings UI");
 }
 
 void RNA_def_blender_project(BlenderRNA *brna)

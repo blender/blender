@@ -291,7 +291,7 @@ void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
                                   (BKE_preferences_asset_library_owner_get(active_library) ==
                                    bUserAssetLibraryOwner::Project);
   /* Only user libraries can be removed here, extension libraries are removed by uninstalling
-   * the extension & project libraries from the project setup. */
+   * the extension & project libraries from the project settings. */
   sub.enabled_set(active_library && (BKE_preferences_asset_library_owner_get(active_library) ==
                                      bUserAssetLibraryOwner::User));
   PointerRNA props = sub.op("preferences.asset_library_remove", "", ICON_REMOVE);
@@ -308,7 +308,7 @@ void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
     label_row.label(IFACE_("Edit Project asset libraries in Project Settings."), ICON_NONE);
     ui::Layout &operator_row = label_row.row(false);
     operator_row.alignment_set(ui::LayoutAlign::Right);
-    operator_row.op("SCREEN_OT_project_setup_show",
+    operator_row.op("SCREEN_OT_project_settings_show",
                     "Open Project Settings",
                     ICON_PROJECT,
                     wm::OpCallContext::InvokeDefault,

@@ -1855,7 +1855,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
     ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
     wmOperatorType *ot;
     if (is_project_library) {
-      ot = WM_operatortype_find("SCREEN_OT_project_setup_show", false);
+      ot = WM_operatortype_find("SCREEN_OT_project_settings_show", false);
     }
     else {
       ot = WM_operatortype_find("SCREEN_OT_userpref_show", false);
