@@ -6,6 +6,7 @@
  * \ingroup spuserpref
  */
 
+#include "BKE_blender_project.hh"
 #include "BKE_global.hh"
 #include "BKE_preferences.h"
 
@@ -110,6 +111,14 @@ static std::optional<int> userpref_ui_asset_libraries_index_from_user_library(
   return std::nullopt;
 }
 
+void AssetLibraryProjectHeading::build_row(ui::Layout &row)
+{
+  bke::BlenderProject *project = BKE_blender_project_get(G_MAIN);
+  if (project) {
+    row.label(project->get_name(), ICON_PROJECT);
+  }
+}
+
 bUserAssetLibrary *ED_userpref_asset_library_active_get()
 {
   const Vector<AnyAssetLibraryDefinition> libraries = userpref_ui_asset_libraries();
@@ -137,7 +146,6 @@ static bool asset_library_repo_is_disabled(const AnyAssetLibraryDefinition &libr
 
 struct AssetLibraryListItem : public AssetLibraryListItemCommon {
 
-  /* Use the constructor from AssetLibraryListItemCommon. */
   using AssetLibraryListItemCommon::AssetLibraryListItemCommon;
 
   void build_row(ui::Layout &row) override
@@ -161,13 +169,8 @@ struct AssetLibraryListItem : public AssetLibraryListItemCommon {
       }
       row.label(label_, icon);
 
-      if (project_library) {
-        row.active_set(false);
-        ui::Layout &sub = row.row(true);
-        /* Draw text grayed out. */
-        sub.alignment_set(ui::LayoutAlign::Right);
-        sub.label(IFACE_("Project Defined"), ICON_NONE);
-      }
+      /* Disable row if asset library is project defined. */
+      row.enabled_set(!project_library);
     }
     else {
       row.label(label_, ICON_NONE);
@@ -185,7 +188,7 @@ struct AssetLibraryListItem : public AssetLibraryListItemCommon {
       row.label("", ICON_STATUS_ERROR);
     }
 
-    if (library.user_library && !project_library) {
+    if (library.user_library) {
       PointerRNA ptr = RNA_pointer_create_discrete(
           nullptr, RNA_UserAssetLibrary, library.user_library);
       row.prop(&ptr,
