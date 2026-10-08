@@ -229,12 +229,11 @@ class CYCLES_RENDER_PT_sampling_viewport(CyclesButtonsPanel, Panel):
         scene = context.scene
         cscene = scene.cycles
 
-        layout.active = not show_preview_dlss_active(context)
-
         layout.use_property_split = True
         layout.use_property_decorate = False
 
         heading = layout.column(align=True, heading="Noise Threshold")
+        heading.active = not show_preview_dlss_active(context)
         row = heading.row(align=True)
         row.prop(cscene, "use_preview_adaptive_sampling", text="")
         sub = row.row()
