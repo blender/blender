@@ -257,10 +257,7 @@ eSnapMode snapLattice(SnapObjectContext *sctx, const Object *ob_eval, const floa
 
 /* `transform_snap_object_camera.cc` */
 
-eSnapMode snapCamera(SnapObjectContext *sctx,
-                     const Object *object,
-                     const float4x4 &obmat,
-                     eSnapMode snap_to_flag);
+eSnapMode snapCamera(SnapObjectContext *sctx, const Object *object, const float4x4 &obmat);
 
 /* `transform_snap_object_curve.cc` */
 
