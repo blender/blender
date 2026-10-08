@@ -322,6 +322,7 @@ class EvaluateClosureOperation : public NodeOperation {
         zone_tree_operation, closure);
     zone_tree_operation.evaluate();
     this->write_outputs(zone_tree_operation, closure);
+    this->add_missing_inputs_outputs_warnings(closure);
   }
 
   /* Write a default value for each of the needed outputs, if an input with the same name and type
@@ -403,9 +404,6 @@ class EvaluateClosureOperation : public NodeOperation {
         temporary_inputs.append(std::move(temporary_input));
         zone_tree_operation.map_input_to_result(zone_input->identifier,
                                                 temporary_inputs.last().get());
-        this->add_warning(NodeWarningType::Error,
-                          fmt::format(fmt::runtime(TIP_("Node does not have zone input: \"{}\"")),
-                                      zone_input->name));
         continue;
       }
 
@@ -450,10 +448,6 @@ class EvaluateClosureOperation : public NodeOperation {
       const bNodeSocket *evaluate_node_output = bke::node_find_enabled_output_socket(
           const_cast<bNode &>(this->node()), zone_output->name);
       if (!evaluate_node_output) {
-        this->add_warning(
-            NodeWarningType::Error,
-            fmt::format(fmt::runtime(TIP_("Node does not have the zone output: \"{}\"")),
-                        zone_output->name));
         continue;
       }
 
@@ -503,6 +497,44 @@ class EvaluateClosureOperation : public NodeOperation {
     }
 
     this->allocate_default_remaining_outputs();
+  }
+
+  /* Adds an error for each input/output in the evaluate node that does not match a corresponding
+   * one in the provided closure. */
+  void add_missing_inputs_outputs_warnings(const compositor::ClosurePtr &closure)
+  {
+    for (const bNodeSocket *output : this->node().output_sockets()) {
+      if (!is_socket_available(output)) {
+        continue;
+      }
+
+      const bNodeSocket *closure_output = bke::node_find_enabled_input_socket(
+          const_cast<bNode &>(*closure->zone.output_node()), output->name);
+      if (closure_output) {
+        continue;
+      }
+      this->add_warning(
+          NodeWarningType::Error,
+          fmt::format(fmt::runtime(TIP_("Closure not have output: \"{}\"")), output->name));
+    }
+    for (const bNodeSocket *input : this->node().input_sockets()) {
+      if (!is_socket_available(input)) {
+        continue;
+      }
+
+      if (input->identifier_ustr() == "Closure"_ustr) {
+        continue;
+      }
+
+      const bNodeSocket *closure_input = bke::node_find_enabled_output_socket(
+          const_cast<bNode &>(*closure->zone.input_node()), input->name);
+      if (closure_input) {
+        continue;
+      }
+      this->add_warning(
+          NodeWarningType::Error,
+          fmt::format(fmt::runtime(TIP_("Closure not have input: \"{}\"")), input->name));
+    }
   }
 };
 
