@@ -2205,11 +2205,12 @@ bool isect_ray_line_v3(const float ray_origin[3],
   }
 
   /* The following lines use a math trick to do the same thing as:
-
-    const float numerator = dot_v3v3(t, ray_direction) * dot_v3v3(a, ray_direction) -
-                          dot_v3v3(t, a) * len_squared_v3(ray_direction);
-
-    *r_lambda = numerator / nlen; */
+   * <pre>
+   * const float numerator = dot_v3v3(t, ray_direction) * dot_v3v3(a, ray_direction) -
+   *                       dot_v3v3(t, a) * len_squared_v3(ray_direction);
+   *
+   * *r_lambda = numerator / nlen;
+   * </pre> */
 
   float c[3], cray[3];
   sub_v3_v3v3(c, n, t);

@@ -157,7 +157,7 @@ float4 get_dot_color(float2 uv, int i, float2 dx, float2 dy)
 
   float noise_x = float(i) * Parameters.random_noise_scale;
 
-  /* Apply scale, rotate and aspect around the center of the dot/square.*/
+  /* Apply scale, rotate and aspect around the center of the dot/square. */
   uv -= 0.5f;
 
   if (Parameters.random_rotation > 0.0f || Parameters.random_size > 0.0f) {

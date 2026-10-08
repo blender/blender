@@ -1793,7 +1793,8 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->asset_flag |= USER_ASSETS_USE_ONLINE_ESSENTIALS;
   }
 
-  /* Make Vulkan default on Linux/Windows x64. Keep existing option for Apple and Windows on ARM.*/
+  /* Make Vulkan default on Linux/Windows x64.
+   * Keep existing option for Apple and Windows on ARM. */
 #ifdef __APPLE__
 #elif defined(WIN32) && (defined(_M_ARM64) || defined(__aarch64__))
 #else
