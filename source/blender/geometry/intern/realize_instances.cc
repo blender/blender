@@ -1457,18 +1457,27 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
   }
 
   /* Actually execute all tasks. */
-  threading::parallel_for(tasks.index_range(), 100, [&](const IndexRange task_range) {
-    for (const int task_index : task_range) {
-      const RealizePointCloudTask &task = tasks[task_index];
-      execute_realize_pointcloud_task(options,
-                                      task,
-                                      ordered_attributes,
-                                      dst_attribute_writers,
-                                      point_radii.span,
-                                      point_ids.span,
-                                      positions.span);
-    }
-  });
+  threading::parallel_for(
+      tasks.index_range(),
+      4096,
+      [&](const IndexRange task_range) {
+        for (const int task_index : task_range) {
+          const RealizePointCloudTask &task = tasks[task_index];
+          execute_realize_pointcloud_task(options,
+                                          task,
+                                          ordered_attributes,
+                                          dst_attribute_writers,
+                                          point_radii.span,
+                                          point_ids.span,
+                                          positions.span);
+        }
+      },
+      threading::accumulated_task_sizes([&](const IndexRange task_range) {
+        const RealizePointCloudTask &task_begin = tasks[task_range.first()];
+        const RealizePointCloudTask &task_end = tasks[task_range.last()];
+        return task_end.start_index + task_end.pointcloud_info->pointcloud->totpoint -
+               task_begin.start_index;
+      }));
 
   /* Tag modified attributes. */
   for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
@@ -1949,36 +1958,45 @@ static void join_mesh_material_indices(const AllMeshesInfo &all_meshes_info,
   bke::SpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span<int>(
       "material_index", bke::AttrDomain::Face);
 
-  threading::parallel_for(tasks.index_range(), 100, [&](const IndexRange range) {
-    for (const int task_i : range) {
-      const RealizeMeshTask &task = tasks[task_i];
-      const MeshRealizeInfo &mesh_info = *task.mesh_info;
-      const Mesh &mesh = *mesh_info.mesh;
-      const IndexRange dst_face_range(task.start_indices.face, mesh.faces_num);
-      MutableSpan<int> dst_material_indices = dst_attr.span.slice(dst_face_range);
-      if (mesh.totcol == 0) {
-        /* The material index map contains the index of the null material in the result. */
-        dst_material_indices.fill(get_mapped_material_index(mesh_info, 0));
-      }
-      else {
-        if (const std::optional<int> src_index = mesh_info.material_indices.get_if_single()) {
-          dst_material_indices.fill(get_mapped_material_index(mesh_info, *src_index));
+  threading::parallel_for(
+      tasks.index_range(),
+      4096,
+      [&](const IndexRange range) {
+        for (const int task_i : range) {
+          const RealizeMeshTask &task = tasks[task_i];
+          const MeshRealizeInfo &mesh_info = *task.mesh_info;
+          const Mesh &mesh = *mesh_info.mesh;
+          const IndexRange dst_face_range(task.start_indices.face, mesh.faces_num);
+          MutableSpan<int> dst_material_indices = dst_attr.span.slice(dst_face_range);
+          if (mesh.totcol == 0) {
+            /* The material index map contains the index of the null material in the result. */
+            dst_material_indices.fill(get_mapped_material_index(mesh_info, 0));
+          }
+          else if (const std::optional<int> src_index =
+                       mesh_info.material_indices.get_if_single()) {
+            dst_material_indices.fill(get_mapped_material_index(mesh_info, *src_index));
+          }
+          else {
+            const VArraySpan<int> src_span(mesh_info.material_indices);
+            const Span<int> map = mesh_info.material_index_map;
+            const int src_mat_num = mesh.totcol;
+            threading::parallel_for(
+                src_span.index_range(), 1024, [&](const IndexRange face_range) {
+                  for (const int i : face_range) {
+                    const int src_index = src_span[i];
+                    const bool valid = IndexRange(src_mat_num).contains(src_index);
+                    dst_material_indices[i] = valid ? map[src_index] : 0;
+                  }
+                });
+          }
         }
-        else {
-          const VArraySpan<int> src_span(mesh_info.material_indices);
-          const Span<int> map = mesh_info.material_index_map;
-          const int src_mat_num = mesh.totcol;
-          threading::parallel_for(src_span.index_range(), 1024, [&](const IndexRange face_range) {
-            for (const int i : face_range) {
-              const int src_index = src_span[i];
-              const bool valid = IndexRange(src_mat_num).contains(src_index);
-              dst_material_indices[i] = valid ? map[src_index] : 0;
-            }
-          });
-        }
-      }
-    }
-  });
+      },
+      threading::accumulated_task_sizes([&](const IndexRange task_range) {
+        const RealizeMeshTask &task_begin = tasks[task_range.first()];
+        const RealizeMeshTask &task_end = tasks[task_range.last()];
+        return task_end.start_indices.face + task_end.mesh_info->mesh->faces_num -
+               task_begin.start_indices.face;
+      }));
 
   dst_attr.finish();
 }
@@ -2116,26 +2134,34 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
         dst_attributes.lookup_or_add_for_write_only_span(name, domain, data_type));
   }
 
-  /* Actually execute all tasks. */
-  threading::parallel_for(tasks.index_range(), 100, [&](const IndexRange task_range) {
-    for (const int task_index : task_range) {
-      const RealizeMeshTask &task = tasks[task_index];
-      execute_realize_mesh_task(options,
-                                task,
-                                ordered_attributes,
-                                dst_attribute_writers,
-                                dst_positions,
-                                dst_edges,
-                                dst_face_offsets,
-                                dst_corner_verts,
-                                dst_corner_edges,
-                                vert_ids.span,
-                                custom_normals,
-                                dst_origindex_vert,
-                                dst_origindex_edge,
-                                dst_origindex_face);
-    }
-  });
+  threading::parallel_for(
+      tasks.index_range(),
+      4096,
+      [&](const IndexRange task_range) {
+        for (const int task_index : task_range) {
+          const RealizeMeshTask &task = tasks[task_index];
+          execute_realize_mesh_task(options,
+                                    task,
+                                    ordered_attributes,
+                                    dst_attribute_writers,
+                                    dst_positions,
+                                    dst_edges,
+                                    dst_face_offsets,
+                                    dst_corner_verts,
+                                    dst_corner_edges,
+                                    vert_ids.span,
+                                    custom_normals,
+                                    dst_origindex_vert,
+                                    dst_origindex_edge,
+                                    dst_origindex_face);
+        }
+      },
+      threading::accumulated_task_sizes([&](const IndexRange task_range) {
+        const RealizeMeshTask &task_begin = tasks[task_range.first()];
+        const RealizeMeshTask &task_end = tasks[task_range.last()];
+        return task_end.start_indices.vert + task_end.mesh_info->mesh->verts_num -
+               task_begin.start_indices.vert;
+      }));
 
   join_mesh_material_indices(all_meshes_info, tasks, *dst_mesh);
 
@@ -2576,24 +2602,32 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
         "custom_normal", bke::AttrDomain::Point);
   }
 
-  /* Actually execute all tasks. */
-  threading::parallel_for(tasks.index_range(), 100, [&](const IndexRange task_range) {
-    for (const int task_index : task_range) {
-      const RealizeCurveTask &task = tasks[task_index];
-      execute_realize_curve_task(options,
-                                 all_curves_info,
-                                 task,
-                                 ordered_attributes,
-                                 dst_curves,
-                                 dst_attribute_writers,
-                                 point_ids.span,
-                                 fill_ids.span,
-                                 handle_left.span,
-                                 handle_right.span,
-                                 radius.span,
-                                 custom_normal.span);
-    }
-  });
+  threading::parallel_for(
+      tasks.index_range(),
+      4096,
+      [&](const IndexRange task_range) {
+        for (const int task_index : task_range) {
+          const RealizeCurveTask &task = tasks[task_index];
+          execute_realize_curve_task(options,
+                                     all_curves_info,
+                                     task,
+                                     ordered_attributes,
+                                     dst_curves,
+                                     dst_attribute_writers,
+                                     point_ids.span,
+                                     fill_ids.span,
+                                     handle_left.span,
+                                     handle_right.span,
+                                     radius.span,
+                                     custom_normal.span);
+        }
+      },
+      threading::accumulated_task_sizes([&](const IndexRange task_range) {
+        const RealizeCurveTask &task_begin = tasks[task_range.first()];
+        const RealizeCurveTask &task_end = tasks[task_range.last()];
+        return task_end.start_indices.point + task_end.curve_info->curves->geometry.point_num -
+               task_begin.start_indices.point;
+      }));
 
   /* Type counts have to be updated eagerly. */
   dst_curves.runtime->type_counts.fill(0);
