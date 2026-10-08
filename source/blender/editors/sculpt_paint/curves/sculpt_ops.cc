@@ -943,7 +943,7 @@ static void min_distance_edit_draw(bContext *C,
   }
 
   float4 circle_col = float4(op_data.brush->add_col);
-  float circle_alpha = op_data.brush->cursor_overlay_alpha;
+  float circle_alpha = op_data.brush->cursor_overlay_alpha * 0.01f;
   float brush_radius_re = BKE_brush_radius_get(paint, op_data.brush);
 
   /* Draw the grid. */
@@ -984,7 +984,8 @@ static void min_distance_edit_draw(bContext *C,
     ED_view3d_project_v2(region, pos_wo, pos_re);
 
     const float dist_to_point_re = math::distance(pos_re, brush_origin_re);
-    const float alpha = 1.0f - ((dist_to_point_re - dist_to_inner_border_re) / alpha_border_re);
+    const float alpha = clamp_f(
+        1.0f - ((dist_to_point_re - dist_to_inner_border_re) / alpha_border_re), 0.0f, 1.0f);
 
     immAttr1f(siz3d, 3.0f);
     immAttr4f(col3d, 0.9f, 0.9f, 0.9f, alpha);
