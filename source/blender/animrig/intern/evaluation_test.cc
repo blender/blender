@@ -12,8 +12,10 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_mesh.hh"
 #include "BKE_object.hh"
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
@@ -175,6 +177,52 @@ TEST_F(AnimationEvaluationTest, evaluate_layer__keyframes)
   EXPECT_EQ(3.0f, cube->rot[0]) << "Evaluation should not modify the animated ID";
   EXPECT_EQ(2.0f, cube->rot[1]) << "Evaluation should not modify the animated ID";
   EXPECT_EQ(7.0f, cube->rot[2]) << "Evaluation should not modify the animated ID";
+}
+
+TEST_F(AnimationEvaluationTest, evaluate_layer__mesh_vertices)
+{
+  Mesh *mesh = BKE_mesh_add(bmain, "Mesh");
+  constexpr int vertex_count = 200;
+  mesh->verts_num = vertex_count;
+  bke::mesh_ensure_required_data_layers(*mesh);
+
+  Action *mesh_action = BKE_id_new<Action>(bmain, "MeshAction");
+  Slot &mesh_slot = mesh_action->slot_add();
+  ASSERT_EQ(assign_action_and_slot(mesh_action, &mesh_slot, mesh->id),
+            ActionSlotAssignmentResult::OK);
+
+  Layer &mesh_layer = mesh_action->layer_add("Mesh layer");
+  Strip &strip = mesh_layer.strip_add(*mesh_action, Strip::Type::Keyframe);
+  StripKeyframeData &strip_data = strip.data<StripKeyframeData>(*mesh_action);
+
+  for (const int vertex_index : IndexRange(vertex_count)) {
+    const std::string rna_path = "vertices[" + std::to_string(vertex_index) + "].co";
+    for (const int component : IndexRange(3)) {
+      strip_data.keyframe_insert(
+          bmain, mesh_slot, {rna_path, component}, {1.0f, float(vertex_index)}, settings);
+    }
+  }
+
+  PointerRNA mesh_rna_ptr = RNA_id_pointer_create(&mesh->id);
+  anim_eval_context.eval_time = 1.0f;
+
+  EvaluationResult result = evaluate_layer(
+      mesh_rna_ptr, *mesh_action, mesh_layer, mesh_slot.handle, anim_eval_context);
+
+  ASSERT_FALSE(result.is_empty());
+
+  for (const int vertex_index : IndexRange(vertex_count)) {
+    const std::string rna_path = "vertices[" + std::to_string(vertex_index) + "].co";
+    const std::optional<ParsedRNAPath<>> parsed_rna_path = ParsedRNAPath<>::from_string(rna_path);
+    ASSERT_TRUE(parsed_rna_path.has_value());
+
+    for (const int component : IndexRange(3)) {
+      const AnimatedProperty *property = result.lookup_ptr(
+          PropIdentifier(*parsed_rna_path, component));
+      ASSERT_NE(nullptr, property);
+      EXPECT_EQ(float(vertex_index), property->value);
+    }
+  }
 }
 
 TEST_F(AnimationEvaluationTest, strip_boundaries__single_strip)
