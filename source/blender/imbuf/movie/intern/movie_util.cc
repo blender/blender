@@ -627,14 +627,14 @@ void MOV_init()
 
   ffmpeg_last_error_buffer[0] = '\0';
 
-  if (CLOG_CHECK(&LOG, CLG_LEVEL_INFO)) {
-    av_log_set_level(AV_LOG_INFO);
+  if (CLOG_CHECK(&LOG, CLG_LEVEL_TRACE)) {
+    av_log_set_level(AV_LOG_TRACE);
   }
   else if (CLOG_CHECK(&LOG, CLG_LEVEL_DEBUG)) {
     av_log_set_level(AV_LOG_DEBUG);
   }
-  else if (CLOG_CHECK(&LOG, CLG_LEVEL_TRACE)) {
-    av_log_set_level(AV_LOG_TRACE);
+  else if (CLOG_CHECK(&LOG, CLG_LEVEL_INFO)) {
+    av_log_set_level(AV_LOG_INFO);
   }
 
   /* set separate callback which could store last error to report to UI */

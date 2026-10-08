@@ -150,6 +150,7 @@ const EnumPropertyItem rna_enum_mesh_select_mode_uv_items[] = {
 #define RNA_SNAP_ELEMENTS_BASE \
   {SCE_SNAP_TO_INCREMENT, "INCREMENT", ICON_SNAP_INCREMENT, "Increment", "Snap to increments"}, \
   {SCE_SNAP_TO_GRID, "GRID", ICON_SNAP_GRID, "Grid", "Snap to grid"}, \
+  {SCE_SNAP_TO_ORIGIN, "ORIGIN", ICON_OBJECT_ORIGIN, "Origin", "Snap to origins"}, \
   {SCE_SNAP_TO_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices"}, \
   {SCE_SNAP_TO_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges"}, \
   {SCE_SNAP_TO_FACE, "FACE", ICON_SNAP_FACE, "Face", "Snap by projecting onto faces"}, \

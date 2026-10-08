@@ -500,7 +500,7 @@ class TestBlendLibAppendCollectionInstances(TestBlendLibLinkHelper):
         for item in expected_list:
             self.assertTrue(item in actual_list, f"Could not find {item}")
 
-    def test_dependency_instatiation(self):
+    def test_dependency_instantiation(self):
         # Append collection instances (see issue #154707)
         self.reset_blender()
 
@@ -524,7 +524,7 @@ class TestBlendLibAppendCollectionInstances(TestBlendLibLinkHelper):
         self.assert_contains_all(
             bpy.data.collections["Coll_154707_Data"].all_objects, ["Plane_A", "Plane_B"])
 
-    def test_recusive_instantiation(self):
+    def test_recursive_instantiation(self):
         # Append collection instances (see issue #155006)
         self.reset_blender()
 

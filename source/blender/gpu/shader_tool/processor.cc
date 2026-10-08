@@ -783,8 +783,8 @@ void SourceProcessor::parse_includes(Parser &parser)
     string_view dependency_name = str_view_exclusive(tokens[2]);
 
     if (dependency_name.find("defines.hh") != string::npos ||
-        /* WORKAROUND(fclem): Only needed in EEVEE and overlays for now. Needs the file to be in
-           the same folder. */
+        /* WORKAROUND(fclem): Only needed in EEVEE and overlays for now.
+         * Needs the file to be in the same folder. */
         (dependency_name.ends_with(".bsl.hh") && filename.ends_with(".bsl.hh") &&
          ((dependency_name.starts_with("eevee_") && filename.starts_with("eevee_")) ||
           (dependency_name.starts_with("overlay_") && filename.starts_with("overlay_")))))

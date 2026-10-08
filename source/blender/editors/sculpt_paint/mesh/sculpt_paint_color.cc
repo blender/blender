@@ -143,6 +143,17 @@ float4 color_vert_get(const OffsetIndices<int> faces,
   return color;
 }
 
+float4 color_corner_get(const GSpan color_attribute, int corner_index)
+{
+  float4 r_color;
+  to_static_color_type(color_attribute.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    const T *colors_typed = static_cast<const T *>(color_attribute.data());
+    r_color = to_float(colors_typed[corner_index]);
+  });
+  return r_color;
+}
+
 void color_vert_set(const OffsetIndices<int> faces,
                     const Span<int> corner_verts,
                     const GroupedSpan<int> vert_to_face_map,

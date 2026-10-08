@@ -55,6 +55,8 @@ struct DofGatherData {
   float layer_opacity;
 };
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Constants.
  * \{ */
@@ -86,8 +88,6 @@ struct Accumulator {
 
   [[resource_table]] Sampling sampling;
   [[resource_table]] draw::View views;
-
-  /** \} */
 
   /* -------------------------------------------------------------------- */
   /** \name Gather common.

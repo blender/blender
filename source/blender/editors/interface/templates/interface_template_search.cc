@@ -80,9 +80,7 @@ static void template_search_add_button_searchmenu(const bContext *C,
                                   ui_description,
                                   template_search.use_previews,
                                   editable,
-                                  live_icon,
-                                  but_func_argN_free<TemplateSearch>,
-                                  but_func_argN_copy<TemplateSearch>);
+                                  live_icon);
 }
 
 static void template_search_add_button_name(Block *block,

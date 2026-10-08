@@ -561,20 +561,9 @@ static void curvemap_buttons_layout(Layout *layout,
         block, curvemap_tools_posslope_func, tools_cb, ICON_NONE, 0, 0, dx, dx, TIP_("Tools"));
   }
   /* Pass ownership of `tools_cb` to the button. */
-  button_funcN_set(
-      bt,
-      [](bContext *, void *, void *) {},
-      tools_cb,
-      nullptr,
-      but_func_argN_free<RNAUpdateCb>,
-      but_func_argN_copy<RNAUpdateCb>);
+  button_funcN_set(bt, [](bContext *, void *, void *) {}, tools_cb, nullptr);
 
-  block_funcN_set(block,
-                  rna_update_cb,
-                  MEM_new<RNAUpdateCb>(__func__, cb),
-                  nullptr,
-                  but_func_argN_free<RNAUpdateCb>,
-                  but_func_argN_copy<RNAUpdateCb>);
+  block_funcN_set(block, rna_update_cb, MEM_new<RNAUpdateCb>(__func__, cb), nullptr);
 
   /* Curve itself. */
   const int size = max_ii(layout->width(), UI_UNIT_X);
@@ -857,7 +846,7 @@ static void curvemap_buttons_layout(Layout *layout,
         block, dx, ICON_NOCURVE, TIP_("Constant preset"), cumap, neg_slope, CURVE_PRESET_MAX, cb);
   }
 
-  block_funcN_set(block, nullptr, nullptr, nullptr);
+  block_funcN_set(block, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 
 void template_curve_mapping(Layout *layout,

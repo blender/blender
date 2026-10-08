@@ -82,7 +82,7 @@ struct bContext {
      * Store the reason the poll function fails.
      * For more advanced or dynamic formatting, use `operator_poll_msg_dyn_params`.
      */
-    std::string operator_poll_msg = "";
+    std::optional<std::string> operator_poll_msg = {};
     /**
      * Store values to dynamically to create the string (called when a tool-tip is shown).
      */
@@ -1271,13 +1271,13 @@ void CTX_wm_operator_poll_msg_clear(bContext *C)
   params->free_fn = nullptr;
   params->user_data = nullptr;
 
-  C->wm.operator_poll_msg = "";
+  C->wm.operator_poll_msg = {};
 }
 void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)
 {
   CTX_wm_operator_poll_msg_clear(C);
 
-  C->wm.operator_poll_msg = msg;
+  C->wm.operator_poll_msg = msg ? std::make_optional(msg) : std::nullopt;
 }
 void CTX_wm_operator_poll_msg_set(bContext *C, const StringRef msg)
 {
@@ -1305,7 +1305,7 @@ const char *CTX_wm_operator_poll_msg_get(bContext *C, bool *r_free)
   }
 
   *r_free = false;
-  return IFACE_(C->wm.operator_poll_msg.c_str());
+  return C->wm.operator_poll_msg ? IFACE_(C->wm.operator_poll_msg->c_str()) : nullptr;
 }
 
 /* data context */

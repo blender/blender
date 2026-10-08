@@ -1139,12 +1139,12 @@ bool WM_operator_poll_or_report_error(bContext *C, wmOperatorType *ot, ReportLis
   }
   bool msg_free = false;
   const char *msg = CTX_wm_operator_poll_msg_get(C, &msg_free);
-  CTX_wm_operator_poll_msg_clear(C);
   BKE_reportf(reports,
               RPT_ERROR,
               RPT_("Invalid context: \"%s\", %s"),
               CTX_RPT_(ot->translation_context, ot->name),
               msg ? RPT_(msg) : RPT_("poll failed"));
+  CTX_wm_operator_poll_msg_clear(C);
   if (msg_free) {
     MEM_delete(msg);
   }
@@ -4397,6 +4397,11 @@ void wm_event_do_handlers(bContext *C)
            * Also used in `wm_draw.cc`, fails for modal handlers though. */
           ED_screen_set_active_region(C, &win, event->xy);
           /* For regions having custom cursors. */
+          wm_paintcursor_test(C, event);
+        }
+        else if (ISKEYMODIFIER(event->type)) {
+          /* Paint cursors may change appearance based on modifier keys,
+           * e.g. blade tool in the sequencer. */
           wm_paintcursor_test(C, event);
         }
 #ifdef WITH_INPUT_NDOF

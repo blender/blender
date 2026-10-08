@@ -745,6 +745,35 @@ static std::unique_ptr<TooltipData> tooltip_data_from_tool(bContext *C,
     }
   }
 
+  if (show_shortcut) {
+    /* Shortcut for Hold
+     *
+     * As a third option, we may have a shortcut that enables a tool when held, and
+     * returns to the previous tool when released.
+     */
+
+    std::optional<std::string> shortcut;
+    if (wmOperatorType *ot_hold = WM_operatortype_find("WM_OT_tool_set_by_id_hold", false)) {
+      PointerRNA op_props = WM_operator_properties_create_ptr(ot_hold);
+      RNA_string_set(&op_props, "name", tool_id);
+      shortcut = WM_key_event_operator_string(C,
+                                              ot_hold->idname,
+                                              wm::OpCallContext::InvokeRegionWin,
+                                              static_cast<IDProperty *>(op_props.data),
+                                              true);
+      WM_operator_properties_free(&op_props);
+    }
+
+    if (shortcut) {
+      tooltip_text_field_add(*data,
+                             fmt::format(fmt::runtime(TIP_("Shortcut Hold: {}")), *shortcut),
+                             {},
+                             TIP_STYLE_NORMAL,
+                             TIP_LC_VALUE,
+                             true);
+    }
+  }
+
   /* Python */
   if ((is_quick_tip == false) && (U.flag & USER_TOOLTIPS_PYTHON)) {
     std::string str = tooltip_text_python_from_op(C, but->optype, but->opptr);
@@ -1790,6 +1819,18 @@ ARegion *tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
     }
   }
 
+  return tooltip_create_with_data(C, std::move(data), init_position, nullptr);
+}
+
+ARegion *tooltip_create_from_func(bContext *C,
+                                  const FunctionRef<void(TooltipData &data)> create_fn,
+                                  const float init_position[2])
+{
+  std::unique_ptr<TooltipData> data = std::make_unique<TooltipData>();
+  create_fn(*data);
+  if (data->fields.is_empty()) {
+    return nullptr;
+  }
   return tooltip_create_with_data(C, std::move(data), init_position, nullptr);
 }
 

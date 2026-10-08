@@ -39,4 +39,10 @@ int BLI_convexhull_2d(Span<float2> points, int r_points[/*points_num*/]);
  */
 float BLI_convexhull_aabb_fit_points_2d(Span<float2> points);
 
+/**
+ * A version of #BLI_convexhull_aabb_fit_points_2d that returns the sine & cosine of the angle.
+ * Use this to construct a rotation matrix without trigonometry functions.
+ */
+float2 BLI_convexhull_aabb_fit_points_2d_as_sincos(Span<float2> points);
+
 }  // namespace blender

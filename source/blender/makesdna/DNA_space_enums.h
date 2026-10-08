@@ -457,7 +457,7 @@ enum eSpaceSeq_RegionType : short {
 enum eSpaceSeq_DrawFlag : char {
   SEQ_DRAW_UNUSED_0 = (1 << 0),
   SEQ_DRAW_UNUSED_1 = (1 << 1),
-  SEQ_DRAW_TRANSFORM_PREVIEW = (1 << 2),
+  SEQ_DRAW_EDIT_POINT_PREVIEW = (1 << 2),
 };
 ENUM_OPERATORS(eSpaceSeq_DrawFlag)
 

@@ -266,7 +266,7 @@ def extern_fn_assets_create() -> None:
 def extern_fn_asset_library_registered() -> None:
     # Fail unless each asset library URL is registered or not, as the "1" or "0" after it says.
     # pylint: disable=reimported,redefined-outer-name
-    # NOTE: mypy reports the missing module once, the first import suppresses it.
+    # NOTE: MYPY reports the missing module once, the first import suppresses it.
     import bpy
     import sys
     args = sys.argv[sys.argv.index("--") + 1:]
@@ -736,7 +736,7 @@ class TestAssetAuth(unittest.TestCase):
         """
         Remove the extensions, which removes the asset libraries they registered.
 
-        NOTE: only the preferences entry is removed, the librarys cache directory under
+        NOTE: only the preferences entry is removed, the libraries cache directory under
         "remote-assets" is left behind, so anything downloaded for it stays on disk.
         Removing an extension doesn't remove the assets it pulled in.
         """

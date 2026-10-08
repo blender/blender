@@ -457,14 +457,14 @@ static bool collection_importer_add_collection_validate(const Collection *collec
                                                         std::string &reason)
 {
   if (!collection) {
-    reason = "Could not find an active collection";
+    reason = N_("Could not find an active collection");
     return false;
   }
   if (!BKE_collection_is_content_editable(collection, &reason)) {
     return false;
   }
   if (!BKE_collection_is_empty(collection)) {
-    reason = "Collection needs to be empty";
+    reason = N_("Collection needs to be empty");
     return false;
   }
   return true;
@@ -537,7 +537,7 @@ static Collection *collection_importer_add_ensure(bContext *C,
   std::string reason;
   if (collection && collection->importer) {
     /* Note: In theory, this is weak, as another collection with an importer of the same type might
-     * have been made active between the invocation of the filebrowser, and the call to this
+     * have been made active between the invocation of the file-browser, and the call to this
      * function from the 'exec' callback. Very unlikely in practice, so think that we can live with
      * this for now. */
     if (StringRef(collection->importer->fh_idname) == fh->idname) {
@@ -546,9 +546,9 @@ static Collection *collection_importer_add_ensure(bContext *C,
     BKE_report(op->reports, RPT_ERROR, "The active collection already has another importer");
     return nullptr;
   }
-  /* 'collection_importer_add_exec' called after invoking the filebrowser might get different
+  /* 'collection_importer_add_exec' called after invoking the file-browser might get different
    * context data, and the poll function is not called again in this case (which is a good thing
-   * anyway, since the collection will alredy have its importer data created at that point). So
+   * anyway, since the collection will already have its importer data created at that point). So
    * the collection needs to be re-validated here - after the check for an existing compatible
    * importer data has been performed. */
   if (!collection_importer_add_collection_validate(collection, reason)) {
@@ -571,11 +571,11 @@ static Collection *collection_importer_add_ensure(bContext *C,
   }
 
   collection_importer_add_tag_update(C, *collection);
-  /* Since the importer is added even if the operator is 'cancelled' (through filebrowser
+  /* Since the importer is added even if the operator is 'cancelled' (through file-browser
    * cancellation), undo must be handled manually here.
    *
-   * This does imply that selecting a file and validating the filebrowser operation will create
-   * another undo push - not sure how to avoid that currenlty. */
+   * This does imply that selecting a file and validating the file-browser operation will create
+   * another undo push - not sure how to avoid that currently. */
   if (do_undo_push) {
     ED_undo_push(C, op->type->name);
   }
@@ -628,6 +628,7 @@ static wmOperatorStatus collection_importer_add_invoke(bContext *C,
   CollectionImport *collection_importer = collection->importer;
   BLI_assert(collection_importer);
   BLI_assert(fh);
+  UNUSED_VARS_NDEBUG(collection_importer);
 
   const std::optional<std::string> filter_glob = fh->filter_glob_from_extensions();
   if (filter_glob) {
@@ -801,15 +802,15 @@ static wmOperatorStatus collection_importer_import_exec(bContext *C, wmOperator 
    * push an undo step. */
   wm->op_undo_depth++;
 
-  /* Use own reportlist, which is then moved back into this operator's reports once import
+  /* Use own report-list, which is then moved back into this operator's reports once import
    * operation into the temp Main is done. */
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE | RPT_OP_HOLD | RPT_PRINT_HANDLED_BY_OWNER);
   wmOperatorStatus op_result = WM_operator_type_call_ptr_with_reports(
       temp_C, ot, wm::OpCallContext::ExecDefault, &properties, &reports, nullptr);
-  /* In case of modal operator, WM would take ownership of the given reportlist. This should never
+  /* In case of modal operator, WM would take ownership of the given report-list. This should never
    * happen here, and is not supported at all for now. In case this would be needed, we'd need some
-   * heap-allocated reportlist instead, similar to what `bpy_op_fn_call_impl` is doing. */
+   * heap-allocated report-list instead, similar to what `bpy_op_fn_call_impl` is doing. */
   BLI_assert(op_result != OPERATOR_RUNNING_MODAL);
   BKE_reports_move_to_reports(op->reports, &reports);
   BKE_reports_free(&reports);

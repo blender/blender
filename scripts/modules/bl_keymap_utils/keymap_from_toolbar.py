@@ -35,6 +35,9 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
     def dict_as_tuple(d):
         return tuple((k, v) for (k, v) in sorted(d.items()))
 
+    wm_tool_set_by_id_compat = {"wm.tool_set_by_id_hold"}
+    wm_tool_set_by_id_all = {"wm.tool_set_by_id", *wm_tool_set_by_id_compat}
+
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
 
     items_all = [
@@ -85,12 +88,18 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
     if keymap_src is not None:
         for kmi_src in keymap_src.keymap_items:
             # Skip tools that aren't currently shown.
+            kmi_src_idname = kmi_src.idname
             if (
-                    (kmi_src.idname == "wm.tool_set_by_id") and
+                    (kmi_src_idname in wm_tool_set_by_id_all) and
                     (kmi_src.properties.name not in items_all_id)
             ):
                 continue
-            keymap.keymap_items.new_from_item(kmi_src)
+            kmi_new = keymap.keymap_items.new_from_item(kmi_src)
+            if kmi_src_idname in wm_tool_set_by_id_compat:
+                # The popup closes once a tool is picked, so holding is meaningless, set the tool instead.
+                # NOTE: changing the `idname` clears all properties, so the tool name must be copied back.
+                kmi_new.idname = "wm.tool_set_by_id"
+                kmi_new.properties.name = kmi_src.properties.name
     del keymap_src
     del items_all_id
 
@@ -158,13 +167,18 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
         if use_hack_properties:
             # First check for direct assignment.
             kmi_hack_properties.name = item.idname
-            kmi_found = wm.keyconfigs.find_item_from_operator(
-                idname="wm.tool_set_by_id",
-                context='INVOKE_REGION_WIN',
-                # properties={"name": item.idname},
-                properties=kmi_hack_properties,
-                include={'KEYBOARD'},
-            )[1]
+            # Only the `name` is set, so these properties also match the "hold" operator.
+            for kmi_found_idname in ("wm.tool_set_by_id", *wm_tool_set_by_id_compat):
+                kmi_found = wm.keyconfigs.find_item_from_operator(
+                    idname=kmi_found_idname,
+                    context='INVOKE_REGION_WIN',
+                    # properties={"name": item.idname},
+                    properties=kmi_hack_properties,
+                    include={'KEYBOARD'},
+                )[1]
+                if kmi_found is not None:
+                    break
+            del kmi_found_idname
 
         else:
             kmi_found = None
@@ -225,7 +239,7 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
         if (
                 (len(kmi_found_type) == 1) or
                 # When a tool is being activated instead of running an operator, just copy the shortcut.
-                (kmi_found.idname in {"wm.tool_set_by_id", "WM_OT_tool_set_by_id"})
+                (kmi_found.idname in wm_tool_set_by_id_all)
         ):
             kmi_args = {"type": kmi_found_type, **modifier_keywords_from_item(kmi_found)}
             if kmi_unique_or_pass(kmi_args):

@@ -23,6 +23,8 @@
 
 #include "BLI_enum_flags.hh"
 
+#include <optional>
+
 namespace blender {
 
 struct MovieClip;
@@ -537,12 +539,11 @@ struct Strip {
    */
   void channel_set(int channel);
   /**
-   * Test if this strip intersects with timeline frame.
-   * \note This checks if strip would be rendered at this frame. For rendering it is assumed, that
-   * timeline frame has width of 1 frame and therefore ends at timeline_frame + 1
+   * Test if this strip would be rendered at the given frame.
    *
-   * \param timeline_frame: absolute frame position
-   * \return true if strip intersects with timeline frame.
+   * \param timeline_frame: absolute frame in the timeline
+   * \return true if \a timeline_frame exists in the strip's [start_frame, end_frame) range,
+   * i.e., inclusive start and exclusive end.
    */
   bool intersects_frame(const Scene *scene, int timeline_frame) const;
   /**
@@ -688,6 +689,9 @@ struct Editing {
   /** Access currently displayed channels, from root sequence or a meta-strip. */
   ListBaseT<SeqTimelineChannel> *current_channels();
   ListBaseT<SeqTimelineChannel> *current_channels() const;
+
+  std::optional<int> edit_point() const;
+  void edit_point_set(Scene *scene, std::optional<int> frame);
 #endif
 };
 

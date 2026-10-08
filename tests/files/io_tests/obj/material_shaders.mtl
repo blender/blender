@@ -1,0 +1,162 @@
+# Blender 5.3.0 Alpha MTL File: 'material_shaders.blend'
+# www.blender.org
+
+newmtl MatDiffuse
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd checkerboard_diffuse.png
+map_Ns checkerboard_roughness.png
+map_Bump -bm 3.000000 checkerboard_normal.png
+
+newmtl MatEmission
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Ke checkerboard_emissive.png
+
+newmtl MatGlass
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.400000
+d 0.000000
+illum 7
+map_Kd tiny_clouds.png
+map_Bump -bm 1.000000 checkerboard_normal.png
+
+newmtl MatGlossy
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.354537 0.485491 0.633731
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 3
+map_Ns checkerboard_roughness.png
+map_Bump -bm 1.000000 checkerboard_normal.png
+
+newmtl MatHair
+Ns 489.999969
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd tiny_clouds.png
+
+newmtl MatPrincipled
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+illum 2
+map_Kd -s 2 3 4 checkerboard_diffuse.png
+map_Ns checkerboard_roughness.png
+map_refl checkerboard_metallic.png
+map_Ke -s 2 1 1 checkerboard_emissive.png
+map_d alpha.png
+map_Bump -bm 3.000000 checkerboard_normal.png
+
+newmtl MatPrincipledHair
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.550000
+d 1.000000
+illum 1
+map_Kd checkerboard_diffuse.png
+map_Ns checkerboard_roughness.png
+
+newmtl MatRefraction
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 0.000000
+illum 6
+map_Kd checkerboard_ambient.png
+map_Ns checkerboard_roughness.png
+
+newmtl MatSheen
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd checkerboard_diffuse.png
+map_Ns checkerboard_roughness.png
+map_Bump -bm 3.000000 checkerboard_normal.png
+
+newmtl MatSpecular
+Ka 1.000000 1.000000 1.000000
+Ks 0.030000 0.030000 0.030000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd -s 2 3 4 checkerboard_diffuse.png
+map_Ns checkerboard_roughness.png
+map_Bump -bm 3.000000 checkerboard_normal.png
+
+newmtl MatSpecular2
+Ka 1.000000 1.000000 1.000000
+Kd 0.800007 0.418008 0.139854
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.750000
+illum 9
+map_Ks tiny_clouds.png
+map_Ns checkerboard_roughness.png
+map_Bump -bm 3.000000 checkerboard_normal.png
+
+newmtl MatSubsurface
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.400000
+d 1.000000
+illum 1
+map_Kd tiny_clouds.png
+map_Ns checkerboard_roughness.png
+map_Bump -bm 3.000000 checkerboard_normal.png
+
+newmtl MatToon
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd tiny_clouds.png
+map_Bump -bm 3.000000 checkerboard_normal.png
+
+newmtl MatTranslucent
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd checkerboard_ambient.png
+
+newmtl MatTransparent
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.000000
+illum 1
+map_Kd checkerboard_diffuse.png

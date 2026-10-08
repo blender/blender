@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
+
 #include "DNA_listBase.h"
 
 namespace blender {
@@ -52,9 +54,30 @@ enum eSplitMethod {
 };
 
 /**
+ * Test if this strip can be split at the given frame.
+ *
+ * \param timeline_frame: absolute frame in the timeline
+ * \return true if \a timeline_frame exists in the strip's (start_frame, end_frame) range,
+ * i.e., exclusive start and end.
+ */
+bool edit_frame_splits_strip(const Scene *scene, const Strip *strip, const int timeline_frame);
+
+/**
+ * Strips that #SEQUENCER_OT_split splits at \a frame; note that this does not include effects or
+ * connections, the caller must propagate to them by #edit_strip_split or #split_expand_strips.
+ *
+ * With \a channel set, there is only one possible strip split in that channel at that frame,
+ * assuming no bugged overlapping strips.
+ */
+Vector<Strip *> edit_split_strips_get(Scene *scene,
+                                      int frame,
+                                      std::optional<int> channel,
+                                      bool only_selected);
+
+/**
  * Split \a strip in two at \a timeline_frame.
  *
- * \param method: Soft keeps the cut content reachable by the handles, hard turns it into holds.
+ * \param method: Soft keeps content beyond the split point, hard turns them into hold frames.
  * \return The new right-side strip, or null if the split failed.
  */
 Strip *edit_strip_split(Main *bmain,

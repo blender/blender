@@ -450,7 +450,7 @@ class SEQUENCER_MT_view(Menu):
         layout.separator()
 
         if is_preview:
-            layout.prop(st, "show_transform_preview", text="Preview During Transform")
+            layout.prop(st, "show_transform_preview")
         layout.separator()
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -1170,9 +1170,11 @@ class SEQUENCER_MT_strip(Menu):
             with operator_context(layout, 'EXEC_REGION_WIN'):
                 props = layout.operator("sequencer.split", text="Split", text_ctxt=i18n_contexts.id_sequence)
                 props.type = 'SOFT'
+                props.only_selected = True
 
-                props = layout.operator("sequencer.split", text="Hold Split", text_ctxt=i18n_contexts.id_sequence)
+                props = layout.operator("sequencer.split", text="Hard Split", text_ctxt=i18n_contexts.id_sequence)
                 props.type = 'HARD'
+                props.only_selected = True
 
             layout.separator()
 
@@ -1354,7 +1356,9 @@ class SEQUENCER_MT_context_menu(Menu):
 
         if has_selection:
             layout.separator()
-            layout.operator("sequencer.split", text="Split", text_ctxt=i18n_contexts.id_sequence).type = 'SOFT'
+            props = layout.operator("sequencer.split", text="Split", text_ctxt=i18n_contexts.id_sequence)
+            props.type = 'SOFT'
+            props.only_selected = True
             layout.operator("sequencer.snap").keep_offset = True
             layout.operator("sequencer.slip", text="Slip Strips").use_cursor_position = False
 

@@ -3874,6 +3874,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   if (!main->is_read_invalid) {
     blo_do_versions_503(fd, lib, main);
   }
+  if (!main->is_read_invalid) {
+    blo_do_versions_504(fd, lib, main);
+  }
 
   /* WATCH IT!!!: pointers from libdata have not been converted yet here! */
   /* WATCH IT 2!: #UserDef struct init see #do_versions_userdef() above! */
@@ -3944,6 +3947,9 @@ static void do_versions_after_linking(FileData *fd, Main *main)
   }
   if (!main->is_read_invalid) {
     do_versions_after_linking_503(fd, main);
+  }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_504(fd, main);
   }
 
   main->is_locked_for_linking = false;
@@ -5199,10 +5205,10 @@ static void expand_doit_library(void *fdhandle,
      * Supporting expanding of non-archive library should be fairly straightforward (based on their
      * absolute filepath), whether they are regular blendfile ones, new or external ones.
      *
-     * Supporting expanding of archive libraries however is much much more complex:
+     * Supporting expanding of archive libraries however is significantly more complex:
      *   - Archive libraries for packed data are essentially purely runtime data. They are only
-     *     used as namesapce, and there is not even any guarantee that packed IDs end up in the
-     *     same archive library namespace, depending on linking order etc.
+     *     used as name-space, and there is not even any guarantee that packed IDs end up in the
+     *     same archive library name-space, depending on linking order etc.
      *   - External archive libraries are more of an actual 'real container', their IDs are not
      *     expected to move between them, even after a save & reload cycle. So we _could_ assign
      *     some form of unique identifier to them, maybe abusing the 'deep hash' of packed IDs for

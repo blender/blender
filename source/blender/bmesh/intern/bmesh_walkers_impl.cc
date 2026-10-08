@@ -1898,13 +1898,13 @@ static void *bmw_NonManifoldedgeWalker_step(BMWalker *walker)
 
 static const BMWalker bmw_VertShellWalker_Type = {
     /*begin_htype*/ BM_VERT | BM_EDGE,
-    /*step*/ bmw_VertShellWalker_begin,
+    /*begin*/ bmw_VertShellWalker_begin,
     /*step*/ bmw_VertShellWalker_step,
     /*yield*/ bmw_VertShellWalker_yield,
     /*structsize*/ sizeof(BMwShellWalker),
     /*order*/ BMW_BREADTH_FIRST,
     /*valid_mask*/ BM_EDGE, /* Valid restrict masks. */
-    /*delimit_supported=*/BMW_DELIMIT_NONE,
+    /*delimit_supported*/ BMW_DELIMIT_NONE,
 };
 
 static const BMWalker bmw_LoopShellWalker_Type = {

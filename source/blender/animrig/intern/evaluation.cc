@@ -159,30 +159,38 @@ static EvaluationResult evaluate_keyframe_data(PointerRNA &animated_id_ptr,
   }
 
   Span<FCurve *> fcurves = channelbag_for_slot->fcurves();
-  /* Stores true for FCurves that have been evaluated. Not using BitVector because writing to it
-   * from threads will introduce race conditions.*/
+  /* Stores true for FCurves with successfully resolved RNA paths. */
   Array<bool> valid(fcurves.size(), false);
   Array<float> results(fcurves.size());
   Array<PathResolvedRNA> resolved_rna(fcurves.size());
 
+  /* RNA path resolution may access data for writing and is not safe to parallelize here. */
+  for (const int i : fcurves.index_range()) {
+    FCurve *fcu = fcurves[i];
+    if (!is_fcurve_evaluatable(fcu)) {
+      continue;
+    }
+
+    PathResolvedRNA &anim_rna = resolved_rna[i];
+    if (!BKE_animsys_rna_path_resolve(
+            &animated_id_ptr, fcu->rna_path_parsed(), fcu->array_index, &anim_rna))
+    {
+      continue;
+    }
+
+    valid[i] = true;
+  }
+
   threading::parallel_for(fcurves.index_range(), 512, [&](const IndexRange range) {
     for (const int i : range) {
+      if (!valid[i]) {
+        continue;
+      }
+
       FCurve *fcu = fcurves[i];
-      if (!is_fcurve_evaluatable(fcu)) {
-        continue;
-      }
-      /* Resolve the RNA path to skip unresolvable properties. It's faster to do that in a thread
-       * and store the result for later. */
-      PathResolvedRNA &anim_rna = resolved_rna[i];
-      if (!BKE_animsys_rna_path_resolve(
-              &animated_id_ptr, fcu->rna_path_parsed(), fcu->array_index, &anim_rna))
-      {
-        continue;
-      }
       BLI_assert(fcu->driver == nullptr);
       /* Not using calculate_fcurve because FCurves of channelbags are not drivers. */
       results[i] = evaluate_fcurve(fcu, offset_eval_context.eval_time);
-      valid[i] = true;
     }
   });
 

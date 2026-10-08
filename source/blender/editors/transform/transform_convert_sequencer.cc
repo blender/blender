@@ -321,6 +321,8 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
     return;
   }
 
+  ed->edit_point_set(scene, std::nullopt);
+
   VectorSet transformed_strips = seq_transform_collection_from_transdata(tc);
   seq::expand_strips(ed, transformed_strips, seq::StripRelation::Effects);
 
@@ -769,6 +771,22 @@ static void flushTransSeq(TransInfo *t)
   }
 }
 
+static void seq_transform_edit_point_update(Scene *scene)
+{
+  Editing *ed = seq::editing_get(scene);
+  const Strip *strip = ed->act_strip;
+  std::optional<int> edit_point;
+  if (strip != nullptr && (strip->flag & SEQ_SELECT)) {
+    if (strip->flag & SEQ_RIGHTSEL) {
+      edit_point = strip->right_handle(scene) - 1;
+    }
+    else if (strip->flag & SEQ_LEFTSEL) {
+      edit_point = strip->left_handle();
+    }
+  }
+  ed->edit_point_set(scene, edit_point);
+}
+
 static void recalcData_sequencer(TransInfo *t)
 {
   TransData *td;
@@ -793,6 +811,7 @@ static void recalcData_sequencer(TransInfo *t)
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
 
   flushTransSeq(t);
+  seq_transform_edit_point_update(scene);
 }
 
 /** \} */

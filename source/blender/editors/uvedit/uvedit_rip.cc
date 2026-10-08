@@ -976,6 +976,9 @@ static wmOperatorStatus uv_rip_exec(bContext *C, wmOperator *op)
   }
 
   if (!changed_multi) {
+    if (!BKE_reports_contain(op->reports, RPT_WARNING)) {
+      BKE_report(op->reports, RPT_WARNING, "No UVs to rip");
+    }
     return OPERATOR_CANCELLED;
   }
   return OPERATOR_FINISHED;

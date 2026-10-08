@@ -4964,9 +4964,9 @@ void button_rna_menu_convert_to_panel_type(Button *but, const char *panel_type)
   but->funcN = nullptr;
 
   but->menu_create_func = def_but_rna__panel_type;
-  but->func_argN = BLI_strdup(panel_type);
-  but->func_argN_free_fn = MEM_delete_void;
-  but->func_argN_copy_fn = MEM_dupalloc_void;
+  but->func_argN = MEM_new<std::string>(__func__, panel_type);
+  but->func_argN_free_fn = but_func_argN_free<std::string>;
+  but->func_argN_copy_fn = but_func_argN_copy<std::string>;
 }
 
 bool button_menu_draw_as_popover(const Button *but)
@@ -4977,14 +4977,14 @@ bool button_menu_draw_as_popover(const Button *but)
 static void def_but_rna__menu_type(bContext *C, Layout *layout, void *but_p)
 {
   Button *but = static_cast<Button *>(but_p);
-  const char *menu_type = static_cast<const char *>(but->func_argN);
+  const std::string &menu_type = *static_cast<const std::string *>(but->func_argN);
   MenuType *mt = WM_menutype_find(menu_type, true);
   if (mt) {
     item_menutype_func(C, layout, mt);
   }
   else {
     char msg[256];
-    SNPRINTF_UTF8(msg, RPT_("Missing Menu: %s"), menu_type);
+    SNPRINTF_UTF8(msg, RPT_("Missing Menu: %s"), menu_type.c_str());
     layout->label(msg, ICON_NONE);
   }
 }
@@ -5002,9 +5002,9 @@ void button_rna_menu_convert_to_menu_type(Button *but, const char *menu_type)
   but->funcN = nullptr;
 
   but->menu_create_func = def_but_rna__menu_type;
-  but->func_argN_free_fn = MEM_delete_void;
-  but->func_argN_copy_fn = MEM_dupalloc_void;
-  but->func_argN = BLI_strdup(menu_type);
+  but->func_argN_free_fn = but_func_argN_free<std::string>;
+  but->func_argN_copy_fn = but_func_argN_copy<std::string>;
+  but->func_argN = MEM_new<std::string>(__func__, menu_type);
 }
 
 static void but_submenu_enable(Block *block, Button *but)
@@ -6343,7 +6343,12 @@ void button_func_search_set(Button *but,
        * arg1, which takes part in the comparison, so the pointer needs to be stable over redraws.
        * #button_funcN_set() doesn't set it, but takes ownership of the memory and frees it later.
        * So give it a duplicate of the memory. */
-      button_funcN_set(but, search_exec_fn, MEM_dupalloc_void(search_but->arg.get()), nullptr);
+      button_funcN_set(but,
+                       search_exec_fn,
+                       MEM_dupalloc_void(search_but->arg.get()),
+                       nullptr,
+                       MEM_delete_void,
+                       MEM_dupalloc_void);
     }
     else {
       button_func_set(but, search_exec_fn, search_but->arg.get(), nullptr);

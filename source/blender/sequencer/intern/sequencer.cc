@@ -62,6 +62,8 @@
 
 #include "BLO_read_write.hh"
 
+#include "WM_api.hh"
+
 #include "cache/compositor_cache.hh"
 #include "cache/final_image_cache.hh"
 #include "cache/intra_frame_cache.hh"
@@ -1370,6 +1372,20 @@ ListBaseT<SeqTimelineChannel> *Editing::current_channels() const
   }
   /* NOTE: Const correctness is non-existent with ListBaseT anyway. */
   return &const_cast<ListBaseT<SeqTimelineChannel> &>(this->channels);
+}
+
+std::optional<int> Editing::edit_point() const
+{
+  return this->runtime->edit_point;
+}
+
+void Editing::edit_point_set(Scene *scene, const std::optional<int> frame)
+{
+  if (this->runtime->edit_point == frame) {
+    return;
+  }
+  this->runtime->edit_point = frame;
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
 bool Strip::is_effect() const

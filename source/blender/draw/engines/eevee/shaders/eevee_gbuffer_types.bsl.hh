@@ -473,9 +473,9 @@ struct Header {
     /* NOTE: Need to be adjusted for different global GBUFFER_LAYER_MAX. */
     constexpr uint bits_per_layer = uint(GBUFFER_HEADER_BITS_PER_BIN);
     /* TODO(@fclem): Compiler should allow uchar to uint cast in constexpr. */
-    /*constexpr */ uint header_mask = (uint(GBUF_TRANSMISSION_BIT) << (bits_per_layer * 0)) |
-                                      (uint(GBUF_TRANSMISSION_BIT) << (bits_per_layer * 1)) |
-                                      (uint(GBUF_TRANSMISSION_BIT) << (bits_per_layer * 2));
+    /*constexpr*/ uint header_mask = (uint(GBUF_TRANSMISSION_BIT) << (bits_per_layer * 0)) |
+                                     (uint(GBUF_TRANSMISSION_BIT) << (bits_per_layer * 1)) |
+                                     (uint(GBUF_TRANSMISSION_BIT) << (bits_per_layer * 2));
     return (this->header_ & header_mask) != 0;
   }
 

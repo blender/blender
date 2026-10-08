@@ -3694,9 +3694,19 @@ bool ED_space_image_color_sample(
   if (sima->image == nullptr) {
     return false;
   }
+
   float uv[2];
   ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &uv[0], &uv[1]);
-  int tile = BKE_image_get_tile_from_pos(sima->image, uv, uv, nullptr);
+  const int tile = BKE_image_get_tile_from_pos(sima->image, uv, uv, nullptr);
+  const bool is_repeat_display = sima->image->source != IMA_SRC_TILED &&
+                                 ((sima->flag & SI_DRAW_TILE) != 0);
+  if (is_repeat_display) {
+    /* When displaying with "Repeat Image" and the mouse outside the main view, make sure we still
+     * sample from the ImBuf (so warp back the uv), otherwise we would sample directly from the GPU
+     * buffer. */
+    uv[0] = fmodf(uv[0], 1.0f);
+    uv[1] = fmodf(uv[1], 1.0f);
+  }
 
   void *lock;
   ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, tile, true);

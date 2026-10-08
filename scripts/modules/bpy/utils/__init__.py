@@ -1111,6 +1111,7 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
             "icon": getattr(tool_cls, "bl_icon", None),
             "cursor": getattr(tool_cls, "bl_cursor", None),
             "options": getattr(tool_cls, "bl_options", None),
+            "brush_type": getattr(tool_cls, "bl_brush_type", None),
             "widget": getattr(tool_cls, "bl_widget", None),
             "widget_properties": getattr(tool_cls, "bl_widget_properties", None),
             "keymap": getattr(tool_cls, "bl_keymap", None),

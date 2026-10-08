@@ -8,7 +8,7 @@
  * Overlay shaders for all gsplat-related overlay draws: viewer attribute, outline prepass,
  * depth-only, edit vertices, and wireframe.
  *
- * \note Many of the fragment shaders here are duplicates or partial reimplementations of glsl
+ * \note Many of the fragment shaders here are duplicates or partial reimplementations of GLSL
  *       shaders. These can be deduplicated during the BSL-porting of the overlay shaders.
  */
 

@@ -741,6 +741,51 @@ class AlembicAnimatedSchemaImportTests(AbstractAlembicTest):
         self.do_import_test("curve-velocity-animated.abc", 13, 169, "Curves")
 
 
+class AlembicEmptyGeometrySamplesTests(AbstractAlembicTest):
+    def setUp(self):
+        self._tempdir = tempfile.TemporaryDirectory()
+        self.tempdir = pathlib.Path(self._tempdir.name)
+
+    def test_empty_geometry_samples(self):
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "empty-geometry-samples.blend"))
+
+        abc_path = self.tempdir / "empty-geometry-samples.abc"
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_export(
+            filepath=str(abc_path),
+        ))
+
+        # Re-import what we just exported into an empty file.
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "empty.blend"))
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_import(filepath=str(abc_path)))
+
+        scene = bpy.context.scene
+        self.assertEqual(scene.frame_start, 1)
+        self.assertEqual(scene.frame_end, 11)
+
+        # Simple animation where geometry exists only on even frames
+        for frame in range(1, 12):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+
+            curves_object = bpy.data.objects["Curves"].evaluated_get(depsgraph)
+            curves = curves_object.data
+
+            mesh_object = bpy.data.objects["Plane"].evaluated_get(depsgraph)
+            mesh = mesh_object.data
+
+            points_object = bpy.data.objects["PointCloud"].evaluated_get(depsgraph)
+            points = points_object.data
+
+            if frame % 2 == 0:
+                self.assertEqual(len(curves.points), 8)
+                self.assertEqual(len(mesh.vertices), 4)
+                self.assertEqual(len(points.points), 1)
+            else:
+                self.assertEqual(len(curves.points), 0)
+                self.assertEqual(len(mesh.vertices), 0)
+                self.assertEqual(len(points.points), 0)
+
+
 class AlembicImportComparisonTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

@@ -78,36 +78,11 @@ static bool is_excluded_attr(StringRefNull name)
 
 ABCCurveWriter::ABCCurveWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args) {}
 
-void ABCCurveWriter::create_alembic_objects(const HierarchyContext *context)
+void ABCCurveWriter::create_alembic_objects(const HierarchyContext * /*context*/)
 {
   CLOG_DEBUG(&LOG, "exporting %s", args_.abc_path.c_str());
   abc_curve_ = OCurves(args_.abc_parent, args_.abc_name, timesample_index_);
   abc_curve_schema_ = abc_curve_.getSchema();
-
-  /* TODO: Blender supports per-curve resolutions but we're only using the first curve's data
-   * here. Investigate using OInt16ArrayProperty to write out all the data but do so efficiently.
-   * e.g. Write just a single value if all curves share the same resolution etc. */
-
-  int resolution_u = 1;
-  switch (context->object->type) {
-    case OB_CURVES_LEGACY: {
-      Curve *curves_id = id_cast<Curve *>(context->object->data);
-      resolution_u = curves_id->resolu;
-      break;
-    }
-    case OB_CURVES: {
-      Curves *curves_id = id_cast<Curves *>(context->object->data);
-      const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      resolution_u = curves.resolution().first();
-      break;
-    }
-    default:
-      break;
-  }
-
-  OCompoundProperty user_props = abc_curve_schema_.getUserProperties();
-  OInt16Property user_prop_resolu(user_props, ABC_CURVE_RESOLUTION_U_PROPNAME);
-  user_prop_resolu.set(resolution_u);
 }
 
 Alembic::Abc::OObject ABCCurveWriter::get_alembic_object() const
@@ -142,9 +117,6 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
   }
 
   const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-  if (curves.is_empty()) {
-    return;
-  }
 
   /* Alembic only supports 1 curve type / periodicity combination per object. Enforce this here.
    * See: Alembic source code for OCurves.h as no documentation explicitly exists for this. */
@@ -162,12 +134,27 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
     return;
   }
 
-  const bool is_cyclic = curves.cyclic().first();
+  if (!curves.is_empty()) {
+    /* TODO: Blender supports per-curve resolutions but we're only using the first curve's data
+     * here. Investigate using OInt16ArrayProperty to write out all the data but do so efficiently.
+     * e.g. Write just a single value if all curves share the same resolution etc. */
+    OCompoundProperty user_props = abc_curve_schema_.getUserProperties();
+    const Alembic::Abc::PropertyHeader *prop_header = user_props.getPropertyHeader(
+        ABC_CURVE_RESOLUTION_U_PROPNAME);
+    if (!prop_header) {
+      const int resolution_u = curves.resolution().first();
+      OInt16Property user_prop_resolu(user_props, ABC_CURVE_RESOLUTION_U_PROPNAME);
+      user_prop_resolu.set(resolution_u);
+    }
+  }
+
+  const bool is_cyclic = !curves.is_empty() && curves.cyclic().first();
   Alembic::AbcGeom::BasisType curve_basis = Alembic::AbcGeom::kNoBasis;
   Alembic::AbcGeom::CurveType curve_type = Alembic::AbcGeom::kLinear;
   Alembic::AbcGeom::CurvePeriodicity periodicity = is_cyclic ? Alembic::AbcGeom::kPeriodic :
                                                                Alembic::AbcGeom::kNonPeriodic;
-  const CurveType blender_curve_type = CurveType(curves.curve_types().first());
+  const CurveType blender_curve_type = curves.is_empty() ? CURVE_TYPE_POLY :
+                                                           CurveType(curves.curve_types().first());
   switch (blender_curve_type) {
     case CURVE_TYPE_POLY:
       curve_basis = Alembic::AbcGeom::kNoBasis;
@@ -200,7 +187,7 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
 
   const VArray<float> radii = curves.radius();
   Alembic::AbcGeom::GeometryScope width_scope = kVertexScope;
-  if (radii.is_single()) {
+  if (radii.is_single() && !radii.is_empty()) {
     width_scope = kConstantScope;
     widths.push_back(radii[0] * 2.0f);
   }

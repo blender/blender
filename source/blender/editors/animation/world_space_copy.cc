@@ -269,7 +269,7 @@ static Vector<AnimTransformable *> depsgraph_sorted_transformables(
 }
 
 /**
- * \param range inclusive/exclusive
+ * \param range: inclusive/exclusive.
  */
 static void ensure_baked_fcurves(Main &bmain,
                                  const AnimTransformable &transformable,
@@ -437,7 +437,7 @@ static Rotation set_keys_to_transform(TransformFCurves &t_fcus,
  * \{ */
 
 /**
- * \param range inclusive/exclusive
+ * \param range: inclusive/exclusive.
  */
 static void copy_world_space(Main &bmain,
                              Scene &scene,

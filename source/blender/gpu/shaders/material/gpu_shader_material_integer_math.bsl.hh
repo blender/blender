@@ -156,6 +156,6 @@ void integer_math_divide_round(int a, int b, int /*c*/, int &result)
 [[node]]
 void integer_math_modulo(int a, int b, int /*c*/, int &result)
 {
-  /* Can't use `%` as it is undefined for negative b on the GPU.*/
+  /* Can't use `%` as it is undefined for negative b on the GPU. */
   result = (b != 0) ? a - (a / b) * b : 0;
 }

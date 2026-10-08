@@ -695,8 +695,8 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
   }
 
   /*
-  Generates a new thumb if we can't find an exact match OR if we have one but its stale
-  */
+   * Generates a new thumb if we can't find an exact match OR if we have one but its stale
+   */
   const bool needs_new_thumb = (best_score > 0) ||
                                (best_index >= 0 && val->frames[best_index].stale);
   if (needs_new_thumb && strip->type == STRIP_TYPE_SCENE) {

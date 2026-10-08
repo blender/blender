@@ -699,7 +699,7 @@ static void seq_load_handle_overlap(bContext *C, wmOperator *op, Span<Strip *> s
 
   /* Do some minimal shuffling now (on add) if there will be a move afterwards; this parks the
    * strip in a free channel so that there will be no overlap on undo of the add. Otherwise, this
-   * is the final placement, so resolve overlap more properly instead of hardcoding to shuffle. */
+   * is the final placement, so resolve overlap more properly instead of hard-coding to shuffle. */
   if (should_move_strips_after_add(op) ||
       (!overlap_mode_is_set && overlap_mode == SEQ_OVERLAP_SHUFFLE))
   {

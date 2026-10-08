@@ -88,6 +88,33 @@ float4x4 extract_matrix_packed_data(float4x4 mat, float4 &dataA, float4 &dataB)
   return mat;
 }
 
+/* View-space Z is used to adjust for perspective projection.
+ * Homogenous W is used to convert from NDC to homogenous space.
+ * Offset is in view-space, so positive values are closer to the camera. */
+float get_homogenous_z_offset(float4x4 winmat, float vs_z, float hs_w, float vs_offset)
+{
+  if (vs_offset == 0.0f) {
+    /* Don't calculate homogenous offset if view-space offset is zero. */
+    return 0.0f;
+  }
+  if (winmat[3][3] == 0.0f) {
+    /* Clamp offset to half of Z to avoid floating point precision errors. */
+    vs_offset = min(vs_offset, vs_z * -0.5f);
+    /* From "Projection Matrix Tricks" by Eric Lengyel:
+     * http://www.terathon.com/gdc07_lengyel.pdf (p. 24 Depth Modification) */
+    return winmat[3][2] * (vs_offset / (vs_z * (vs_z + vs_offset))) * hs_w;
+  }
+  return winmat[2][2] * vs_offset * hs_w;
+}
+
+float3 non_linear_blend_color(float3 col1, float3 col2, float fac)
+{
+  col1 = pow(col1, float3(1.0f / 2.2f));
+  col2 = pow(col2, float3(1.0f / 2.2f));
+  float3 col = mix(col1, col2, fac);
+  return pow(col, float3(2.2f));
+}
+
 [[fragment]]
 void wire_frag([[resource_table, condition(selectable)]] draw::Select &sel,
                [[frag_coord]] const float4 frag_co,

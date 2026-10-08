@@ -92,6 +92,7 @@ void bmo_split_exec(BMesh *bm, BMOperator *op);
 void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op);
 void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op);
 void bmo_symmetrize_exec(BMesh *bm, BMOperator *op);
+void bmo_fit_edge_loops_to_annotation_exec(BMesh *bm, BMOperator *op);
 void bmo_transform_exec(BMesh *bm, BMOperator *op);
 void bmo_translate_exec(BMesh *bm, BMOperator *op);
 void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op);

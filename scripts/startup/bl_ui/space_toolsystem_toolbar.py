@@ -3359,23 +3359,46 @@ class _defs_sequencer_generic:
 
     @ToolDef.from_fn
     def blade():
-        def draw_settings(_context, layout, tool):
-            props = tool.operator_properties("sequencer.split")
-            row = layout.row()
-            row.prop(props, "type", expand=True)
+        def draw_settings(context, layout, tool, *, extra=False):
+            # If tool settings are shown in the header, we can't draw panels in there.
+            # Instead, show just the first split option, and the rest of the options in an extra "..."
+            region_is_header = context.region.type == 'TOOL_HEADER'
+            if region_is_header and not extra:
+                props = tool.operator_properties("sequencer.split")
+                layout.row().prop(props, "type", text="Split", expand=True)
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
+                return
 
-            layout.separator()
+            # Split properties.
+            header, panel = layout.panel("SEQUENCER_PT_tool_split")
+            header.label(text="Split")
+            if panel:
+                props = tool.operator_properties("sequencer.split")
+                if not extra:
+                    panel.row().prop(props, "type", expand=True)
+                panel.prop(props, "all_channels")
+                panel.prop(props, "only_selected")
+                row = panel.row()
+                row.active = not (props.all_channels or props.only_selected)
+                row.prop(props, "ignore_connections")
 
-            props = tool.operator_properties("sequencer.box_blade")
-            layout.prop(props, "remove_gaps", expand=True)
-            layout.prop(props, "ignore_selection", expand=True)
-            layout.prop(props, "ignore_connections", expand=True)
+            # Box Blade properties.
+            header, panel = layout.panel("SEQUENCER_PT_tool_box_blade")
+            header.label(text="Box Blade")
+            if panel:
+                props = tool.operator_properties("sequencer.box_blade")
+                panel.row().prop(props, "type", expand=True)
+                panel.prop(props, "remove_gaps")
+                panel.prop(props, "only_selected")
+                row = panel.row()
+                row.active = not props.only_selected
+                row.prop(props, "ignore_connections")
         return dict(
             idname="builtin.blade",
             label="Blade",
             icon="ops.sequencer.blade",
             cursor='CROSSHAIR',
-            widget=None,
+            widget="SEQUENCER_GGT_blade",
             keymap="Sequencer Tool: Blade",
             draw_settings=draw_settings,
             options={'KEYMAP_FALLBACK'},

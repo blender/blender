@@ -25,7 +25,7 @@ TempLibraryContext *BLO_library_temp_load_id(Main *real_main,
   temp_lib_ctx->bmain_base = BKE_main_new();
   temp_lib_ctx->bf_reports.reports = reports;
 
-  /* Copy the file path and colorspace so any remapping is performed properly. */
+  /* Copy the file path and color-space so any remapping is performed properly. */
   BKE_main_init_from_reference(*temp_lib_ctx->bmain_base, *real_main);
 
   BlendHandle *blendhandle = BLO_blendhandle_from_file(blend_file_path, &temp_lib_ctx->bf_reports);
