@@ -484,7 +484,8 @@ namespace detail {
 template<typename T, CPPTypeFlags FLAGS> inline void register_cpp_type(const StringRef type_name)
 {
   /* Check that it was not registered before already. */
-  BLI_assert(CPPType::get_pre_register<T>()->size == 0);
+  BLI_assert(!is_cpp_type_registered<T>);
+  is_cpp_type_registered<T> = true;
   static CPPType *cpp_type = new (detail::cpp_type_impl<T>.ptr())
       CPPType(TypeTag<T>(), TypeForValue<CPPTypeFlags, FLAGS>(), type_name);
 
