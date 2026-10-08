@@ -178,6 +178,13 @@ enum CurveClampElevation {
   CURVE_CLAMP_ELEVATION_LOWER = 2,
 };
 
+/* Methods for determining the way to stretch vertices to an annotation. */
+enum ToAnnotationMethod {
+  TO_ANNOTATION_SPREAD = 0,
+  TO_ANNOTATION_SPREAD_EVENLY = 1,
+  TO_ANNOTATION_PROJECT = 2
+};
+
 /**
  * Mappings from a location on the surface of a cube onto a sphere,
  * used by the quad sphere primitive.
