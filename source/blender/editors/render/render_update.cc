@@ -387,6 +387,7 @@ static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bma
     {
       seq::prefetch_stop(changed_scene);
       seq::cache_cleanup(changed_scene, seq::CacheCleanup::FinalAndIntra);
+      seq::relations_invalidate_generator_strips(changed_scene);
     }
   }
 

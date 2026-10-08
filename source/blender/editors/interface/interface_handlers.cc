@@ -12800,8 +12800,11 @@ static int handle_menus_recursive(bContext *C,
       }
       else if (event->type == LEFTMOUSE || event->val != KM_DBL_CLICK) {
         bool handled = false;
-
-        if (Button *listbox = listbox_find_mouse_over(menu->region, event)) {
+        const bool is_actbut_in_modal_state = but && button_modal_state(but->active->state);
+        /* Handle uilist events if there not an active button in modal state. */
+        if (Button *listbox = listbox_find_mouse_over(menu->region, event);
+            listbox && !is_actbut_in_modal_state)
+        {
           const int retval_test = handle_uilist_event(C, event, menu->region, listbox);
           if (retval_test != WM_UI_HANDLER_CONTINUE) {
             retval = retval_test;
