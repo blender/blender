@@ -640,6 +640,16 @@ static void rna_CollectionImport_filepath_set(PointerRNA *ptr, const char *value
     IDP_AssignStringMaxSize(prop, value, value_maxsize);
   }
 }
+static int rna_CollectionImport_filepath_is_editable(const PointerRNA *ptr, const char **r_info)
+{
+  CollectionImport *data = ptr->data_as<CollectionImport>();
+
+  if (data->runtime && data->runtime->archive_library) {
+    *r_info = N_("Path of imported external data cannot be edited");
+    return 0;
+  }
+  return int(PROP_EDITABLE);
+}
 
 static const char *rna_CollectionExport_filepath_value_from_idprop(CollectionExport *data)
 {
@@ -930,6 +940,7 @@ static void rna_def_collection_importer_data(BlenderRNA *brna)
   RNA_def_property_string_maxlength(prop, FILE_MAX);
   RNA_def_property_ui_text(prop, "File Path", "The file path used for importing");
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_editable_func(prop, "rna_CollectionImport_filepath_is_editable");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, nullptr);
 }
 
