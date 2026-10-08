@@ -457,14 +457,14 @@ static bool collection_importer_add_collection_validate(const Collection *collec
                                                         std::string &reason)
 {
   if (!collection) {
-    reason = "Could not find an active collection";
+    reason = N_("Could not find an active collection");
     return false;
   }
   if (!BKE_collection_is_content_editable(collection, &reason)) {
     return false;
   }
   if (!BKE_collection_is_empty(collection)) {
-    reason = "Collection needs to be empty";
+    reason = N_("Collection needs to be empty");
     return false;
   }
   return true;
