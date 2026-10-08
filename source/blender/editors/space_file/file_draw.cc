@@ -493,10 +493,8 @@ static void file_but_tooltip_func_set(const SpaceFile *sfile,
     button_func_tooltip_custom_set(but, file_draw_asset_tooltip_custom_func, file->asset, nullptr);
   }
   else {
-    button_func_tooltip_custom_set(but,
-                                   file_draw_tooltip_custom_func,
-                                   file_tooltip_data_create(sfile, file),
-                                   MEM_delete_void);
+    button_func_tooltip_custom_set(
+        but, file_draw_tooltip_custom_func, file_tooltip_data_create(sfile, file));
   }
 }
 

@@ -4920,14 +4920,12 @@ static void def_but_rna__menu(bContext *C, Layout *layout, void *but_p)
 
       if (use_enum_copy_description) {
         if (item->description && item->description[0]) {
-          char *description_copy = BLI_strdup(item->description);
           button_func_tooltip_set(
               item_but,
               [](bContext * /*C*/, void *argN, const StringRef /*tip*/) -> std::string {
-                return static_cast<const char *>(argN);
+                return *static_cast<const std::string *>(argN);
               },
-              description_copy,
-              MEM_delete_void);
+              MEM_new<std::string>(__func__, item->description));
         }
       }
     }
