@@ -95,27 +95,32 @@ enum [[host_shared]] StickBoneFlag : uint32_t {
 ENUM_OPERATORS(StickBoneFlag)
 #endif
 
-/* TODO(fclem): Convert into enum. */
+enum EditFaceUvFlag : uint32_t {
+  /* data[0] (1st byte flags) */
+  FACE_ACTIVE = (1u << 0),
+  FACE_SELECTED = (1u << 1),
+  FACE_FREESTYLE = (1u << 2),
+  VERT_UV_SELECT = (1u << 3),
+  VERT_UV_PINNED = (1u << 4),
+  EDGE_UV_SELECT = (1u << 5),
+  FACE_UV_ACTIVE = (1u << 6),
+  FACE_UV_SELECT = (1u << 7),
+};
+
+enum EditVertEdgeFlag : uint32_t {
+  /* data[1] (2nd byte flags) */
+  VERT_ACTIVE = (1u << 0),
+  VERT_SELECTED = (1u << 1),
+  VERT_SELECTED_BEZT_HANDLE = (1u << 2),
+  EDGE_ACTIVE = (1u << 3),
+  EDGE_SELECTED = (1u << 4),
+  EDGE_SEAM = (1u << 5),
+  EDGE_SHARP = (1u << 6),
+  EDGE_FREESTYLE = (1u << 7),
+};
+
 /* See: 'draw_cache_impl.hh' for matching includes. */
 #define VERT_GPENCIL_BEZT_HANDLE (1u << 30)
-/* data[0] (1st byte flags) */
-#define FACE_ACTIVE (1u << 0)
-#define FACE_SELECTED (1u << 1)
-#define FACE_FREESTYLE (1u << 2)
-#define VERT_UV_SELECT (1u << 3)
-#define VERT_UV_PINNED (1u << 4)
-#define EDGE_UV_SELECT (1u << 5)
-#define FACE_UV_ACTIVE (1u << 6)
-#define FACE_UV_SELECT (1u << 7)
-/* data[1] (2nd byte flags) */
-#define VERT_ACTIVE (1u << 0)
-#define VERT_SELECTED (1u << 1)
-#define VERT_SELECTED_BEZT_HANDLE (1u << 2)
-#define EDGE_ACTIVE (1u << 3)
-#define EDGE_SELECTED (1u << 4)
-#define EDGE_SEAM (1u << 5)
-#define EDGE_SHARP (1u << 6)
-#define EDGE_FREESTYLE (1u << 7)
 
 static inline uint outline_id_pack(uint outline_id, uint object_id)
 {

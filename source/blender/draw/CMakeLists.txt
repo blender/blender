@@ -572,17 +572,11 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/overlay_edit_gpencil_canvas_vert.glsl
   engines/overlay/shaders/overlay_edit_lattice_point_vert.glsl
   engines/overlay/shaders/overlay_edit_lattice_wire_vert.glsl
+  engines/overlay/shaders/overlay_edit_mesh.bsl.hh
   engines/overlay/shaders/overlay_edit_mesh_analysis_frag.glsl
   engines/overlay/shaders/overlay_edit_mesh_analysis_vert.glsl
-  engines/overlay/shaders/overlay_edit_mesh_common_lib.glsl
-  engines/overlay/shaders/overlay_edit_mesh_depth_vert.glsl
-  engines/overlay/shaders/overlay_edit_mesh_frag.glsl
   engines/overlay/shaders/overlay_edit_mesh_normal_vert.glsl
   engines/overlay/shaders/overlay_edit_mesh_skin_root_vert.glsl
-  engines/overlay/shaders/overlay_edit_mesh_vert.glsl
-  engines/overlay/shaders/overlay_edit_mesh_lib.glsl
-  engines/overlay/shaders/overlay_edit_mesh_edge_vert.glsl
-  engines/overlay/shaders/overlay_edit_mesh_facedot_vert.glsl
   engines/overlay/shaders/overlay_edit_particle_point_vert.glsl
   engines/overlay/shaders/overlay_edit_particle_strand_vert.glsl
   engines/overlay/shaders/overlay_edit_pointcloud_vert.glsl
