@@ -684,7 +684,7 @@ static bool uvedit_uv_islands_arrange(const Scene *scene,
                      }
                      const float area_a = (a.bounds.size()[0] * a.bounds.size()[1]);
                      const float area_b = (b.bounds.size()[0] * b.bounds.size()[1]);
-                     return (order == UVAlignIslandOrder::LargeToSmall) ? (area_a >= area_b) :
+                     return (order == UVAlignIslandOrder::LargeToSmall) ? (area_a > area_b) :
                                                                           (area_a < area_b);
                    });
 
