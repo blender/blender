@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_assert.hh"
 #include "BLI_span.hh"
 
 #include "BKE_context.hh"
@@ -123,6 +124,54 @@ ed::animfilter::ChannelArena get_data_channels(const bContext &C)
   return arena;
 }
 
+static Span<ed::animfilter::ChannelTagType> tag_order_for_dope_sheet_mode(
+    const eAnimEdit_Context mode)
+{
+  using namespace ed::animfilter;
+
+  static const Array<ChannelTagType> default_tag_order = {
+      ChannelTagType::ACTION,
+      ChannelTagType::ID,
+      ChannelTagType::GREASEPENCIL_GROUP,
+      ChannelTagType::FCURVE_GROUP,
+      ChannelTagType::BONE,
+  };
+
+  switch (mode) {
+    case SACTCONT_DOPESHEET:
+    case SACTCONT_TIMELINE: {
+      static const Array<ChannelTagType> dopesheet_tag_order = {
+          ChannelTagType::ACTION,
+          ChannelTagType::ID,
+          ChannelTagType::GREASEPENCIL_GROUP,
+          ChannelTagType::FCURVE_GROUP,
+          ChannelTagType::BONE,
+      };
+      return dopesheet_tag_order;
+    }
+
+    case SACTCONT_ACTION: {
+      static const Array<ChannelTagType> action_tag_order = {
+          ChannelTagType::ID,
+          ChannelTagType::ACTION_SLOT,
+          ChannelTagType::GREASEPENCIL_GROUP,
+          ChannelTagType::FCURVE_GROUP,
+          ChannelTagType::BONE,
+      };
+      return action_tag_order;
+    }
+
+    case SACTCONT_SHAPEKEY:
+    case SACTCONT_GPENCIL:
+    case SACTCONT_MASK:
+    case SACTCONT_CACHEFILE:
+      return default_tag_order;
+  }
+
+  BLI_assert_unreachable();
+  return default_tag_order;
+}
+
 ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
 {
   using namespace ed::animfilter;
@@ -137,16 +186,8 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
 
   ChannelArena arena;
   collect_animation_channels(C, get_filters(*saction), arena);
-  /* TODO: don't hard-code the hierarchy. */
   group_channels(arena,
-                 {
-                     ChannelTagType::ID,
-                     ChannelTagType::GREASEPENCIL_GROUP,
-                     ChannelTagType::ACTION,
-                     ChannelTagType::ACTION_SLOT,
-                     ChannelTagType::FCURVE_GROUP,
-                     ChannelTagType::BONE,
-                 },
+                 tag_order_for_dope_sheet_mode(saction->mode),
                  saction->ads.flag & ADS_FLAG_MINIMAL_GROUPING);
 
   {
