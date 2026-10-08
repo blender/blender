@@ -1718,28 +1718,12 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
 
   math::transform_points(src_positions, task.transform, dst_positions);
 
-  threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange edge_range) {
-    for (const int i : edge_range) {
-      dst_edges[i] = src_edges[i] + task.start_indices.vert;
-    }
-  });
-  threading::parallel_for(
-      src_corner_verts.index_range(), 1024, [&](const IndexRange corner_range) {
-        for (const int i : corner_range) {
-          dst_corner_verts[i] = src_corner_verts[i] + task.start_indices.vert;
-        }
-      });
-  threading::parallel_for(
-      src_corner_edges.index_range(), 1024, [&](const IndexRange corner_range) {
-        for (const int i : corner_range) {
-          dst_corner_edges[i] = src_corner_edges[i] + task.start_indices.edge;
-        }
-      });
-  threading::parallel_for(src_faces.index_range(), 1024, [&](const IndexRange face_range) {
-    for (const int i : face_range) {
-      dst_face_offsets[i] = src_faces[i].start() + task.start_indices.corner;
-    }
-  });
+  array_utils::copy_ints_with_offset(
+      src_edges.cast<int>(), task.start_indices.vert, dst_edges.cast<int>());
+  array_utils::copy_ints_with_offset(src_corner_verts, task.start_indices.vert, dst_corner_verts);
+  array_utils::copy_ints_with_offset(src_corner_edges, task.start_indices.edge, dst_corner_edges);
+  array_utils::copy_ints_with_offset(
+      src_faces.data().take_front(src_faces.size()), task.start_indices.corner, dst_face_offsets);
 
   if (!all_dst_vert_ids.is_empty()) {
     create_result_ids(options,
@@ -2414,11 +2398,8 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
   /* Copy curve offsets. */
   const Span<int> src_offsets = curves.offsets();
   const MutableSpan<int> dst_offsets = dst_curves.offsets_for_write().slice(dst_curve_range);
-  threading::parallel_for(curves.curves_range(), 2048, [&](const IndexRange range) {
-    for (const int i : range) {
-      dst_offsets[i] = task.start_indices.point + src_offsets[i];
-    }
-  });
+  array_utils::copy_ints_with_offset(
+      src_offsets.take_front(dst_offsets.size()), task.start_indices.point, dst_offsets);
 
   dst_curves.nurbs_custom_knots_for_write()
       .slice(dst_custom_knot_range)
