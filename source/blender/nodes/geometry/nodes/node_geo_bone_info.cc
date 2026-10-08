@@ -25,12 +25,8 @@ namespace blender::nodes::node_geo_bone_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Object>("Armature"_ustr)
-      .optional_label()
-      .description("Armature object to retrieve the bone information from");
-  b.add_input<decl::String>("Bone Name"_ustr)
-      .optional_label()
-      .description("Name of the bone to retrieve");
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
 
   b.add_output<decl::Matrix>("Pose"_ustr)
       .description("Evaluated final transform of the bone in armature space");
@@ -42,6 +38,23 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Original transform of the bone in armature space, defined in edit mode");
   b.add_output<decl::Float>("Rest Length"_ustr).description("Original length of the bone");
   b.add_output<decl::Bool>("Exists"_ustr).description("Whether the bone exists in the armature");
+
+  {
+    auto &p = b.add_panel("Envelope"_ustr).default_closed(true);
+    p.add_output<decl::Float>("Envelope Distance"_ustr)
+        .description("Original envelope distance to the bone");
+    p.add_output<decl::Float>("Radius Head"_ustr)
+        .description("Original radius of the head of the bone");
+    p.add_output<decl::Float>("Radius Tail"_ustr)
+        .description("Original radius of the tail of the bone");
+  }
+
+  b.add_input<decl::Object>("Armature"_ustr)
+      .optional_label()
+      .description("Armature object to retrieve the bone information from");
+  b.add_input<decl::String>("Bone Name"_ustr)
+      .optional_label()
+      .description("Name of the bone to retrieve");
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -80,6 +93,18 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
         bNode &node = params.add_node("GeometryNodeBoneInfo"_ustr);
         params.update_and_connect_available_socket(node, "Rest Length"_ustr);
       });
+      params.add_item(IFACE_("Envelope Distance"), [](LinkSearchOpParams &params) {
+        bNode &node = params.add_node("GeometryNodeBoneInfo"_ustr);
+        params.update_and_connect_available_socket(node, "Envelope Distance"_ustr);
+      });
+      params.add_item(IFACE_("Radius Head"), [](LinkSearchOpParams &params) {
+        bNode &node = params.add_node("GeometryNodeBoneInfo"_ustr);
+        params.update_and_connect_available_socket(node, "Radius Head"_ustr);
+      });
+      params.add_item(IFACE_("Radius Tail"), [](LinkSearchOpParams &params) {
+        bNode &node = params.add_node("GeometryNodeBoneInfo"_ustr);
+        params.update_and_connect_available_socket(node, "Radius Tail"_ustr);
+      });
     }
   }
   else {
@@ -109,6 +134,9 @@ struct BoneInfo {
   float4x4 transform_pose;
   float4x4 rest_pose;
   float rest_length;
+  float envelope;
+  float radius_head;
+  float radius_tail;
 };
 
 /* Computes the bone info of the bone with the given pose channel in the given armature object.
@@ -131,7 +159,16 @@ static BoneInfo compute_bone_info(const Object &object,
   float4x4 transform_pose;
   BKE_pchan_to_mat4({&pchan, bone}, transform_pose.ptr());
 
-  return {pose, local_pose, transform_pose, rest_pose, bone->length};
+  return {
+      pose,
+      local_pose,
+      transform_pose,
+      rest_pose,
+      bone->length,
+      bone->dist,
+      bone->rad_head,
+      bone->rad_tail,
+  };
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -193,6 +230,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Rest Pose"_ustr, values.rest_pose);
   params.set_output("Rest Length"_ustr, values.rest_length);
   params.set_output("Exists"_ustr, true);
+  params.set_output("Envelope Distance"_ustr, values.envelope);
+  params.set_output("Radius Head"_ustr, values.radius_head);
+  params.set_output("Radius Tail"_ustr, values.radius_tail);
 }
 
 class BoneInfoOperation : public compositor::NodeOperation {
@@ -271,6 +311,24 @@ class BoneInfoOperation : public compositor::NodeOperation {
     if (exists_result.should_compute()) {
       exists_result.allocate_single_value();
       exists_result.set_single_value(true);
+    }
+
+    compositor::Result &envelope_result = this->get_result("Envelope Distance");
+    if (envelope_result.should_compute()) {
+      envelope_result.allocate_single_value();
+      envelope_result.set_single_value(values.envelope);
+    }
+
+    compositor::Result &radius_head_result = this->get_result("Radius Head");
+    if (radius_head_result.should_compute()) {
+      radius_head_result.allocate_single_value();
+      radius_head_result.set_single_value(values.radius_head);
+    }
+
+    compositor::Result &radius_tail_result = this->get_result("Radius Tail");
+    if (radius_tail_result.should_compute()) {
+      radius_tail_result.allocate_single_value();
+      radius_tail_result.set_single_value(values.radius_tail);
     }
   }
 };
