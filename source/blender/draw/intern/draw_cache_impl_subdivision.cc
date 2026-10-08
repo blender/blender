@@ -612,7 +612,6 @@ static void draw_subdiv_edge_cb(const bke::subdiv::ForeachContext *foreach_conte
                                 void * /*tls*/,
                                 const int coarse_edge_index,
                                 const int subdiv_edge_index,
-                                const bool /*is_loose*/,
                                 const int /*subdiv_v1*/,
                                 const int /*subdiv_v2*/)
 {

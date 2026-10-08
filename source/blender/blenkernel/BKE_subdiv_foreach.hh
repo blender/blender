@@ -95,7 +95,6 @@ using ForeachEdgeCb = void (*)(const ForeachContext *context,
                                void *tls,
                                int coarse_edge_index,
                                int subdiv_edge_index,
-                               bool is_loose,
                                int subdiv_v1,
                                int subdiv_v2);
 

@@ -667,11 +667,17 @@ static void store_edge(MultiresReshapeSmoothContext *reshape_smooth_context,
       crease);
 }
 
+static bool is_loose_base_edge(const MultiresReshapeSmoothContext &reshape_smooth_context,
+                               const int base_edge_index)
+{
+  return !reshape_smooth_context.loose_base_edges.is_empty() &&
+         reshape_smooth_context.loose_base_edges[base_edge_index];
+}
+
 static void foreach_edge(const bke::subdiv::ForeachContext *foreach_context,
                          void * /*tls*/,
                          const int coarse_edge_index,
                          const int /*subdiv_edge_index*/,
-                         const bool is_loose,
                          const int subdiv_v1,
                          const int subdiv_v2)
 {
@@ -679,7 +685,9 @@ static void foreach_edge(const bke::subdiv::ForeachContext *foreach_context,
       static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
 
   if (reshape_smooth_context->smoothing_type == MultiresSubdivideModeType::Linear) {
-    if (!is_loose) {
+    if (coarse_edge_index == ORIGINDEX_NONE ||
+        !is_loose_base_edge(*reshape_smooth_context, coarse_edge_index))
+    {
       store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, 1.0f);
     }
     return;
@@ -690,10 +698,8 @@ static void foreach_edge(const bke::subdiv::ForeachContext *foreach_context,
     return;
   }
   /* Ignore all loose edges as well, as they are not communicated to the OpenSubdiv. */
-  if (!reshape_smooth_context->loose_base_edges.is_empty()) {
-    if (reshape_smooth_context->loose_base_edges[coarse_edge_index]) {
-      return;
-    }
+  if (is_loose_base_edge(*reshape_smooth_context, coarse_edge_index)) {
+    return;
   }
   /* Edges without crease are to be ignored as well. */
   const float crease = get_effective_crease(reshape_smooth_context, coarse_edge_index);
