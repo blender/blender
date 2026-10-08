@@ -8196,6 +8196,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "active_section", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "space_data.section_active");
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
   RNA_def_property_enum_items(prop, rna_enum_preference_section_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_UseDef_active_section_itemf");
   RNA_def_property_ui_text(prop, "Active Section", "Preferences");
