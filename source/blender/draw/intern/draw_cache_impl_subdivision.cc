@@ -471,7 +471,6 @@ struct DRWCacheBuildingContext {
   int *subdiv_loop_face_index;
 
   /* Temporary buffers used during traversal. */
-  int *vert_origindex_map;
   int *edge_draw_flag_map;
   int *edge_origindex_map;
 
@@ -559,14 +558,6 @@ static bool draw_subdiv_init_cache(DRWCacheBuildingContext *ctx,
   ctx->orig_index_edge = static_cast<const int *>(
       CustomData_get_layer(&ctx->coarse_mesh->edge_data, CD_ORIGINDEX));
 
-  if (cache->num_subdiv_verts) {
-    ctx->vert_origindex_map = MEM_new_array_uninitialized<int>(cache->num_subdiv_verts,
-                                                               "subdiv_vert_origindex_map");
-    for (int i = 0; i < layout.verts_num; i++) {
-      ctx->vert_origindex_map[i] = -1;
-    }
-  }
-
   if (cache->num_subdiv_edges) {
     ctx->edge_origindex_map = MEM_new_array_uninitialized<int>(cache->num_subdiv_edges,
                                                                "subdiv_edge_origindex_map");
@@ -578,34 +569,6 @@ static bool draw_subdiv_init_cache(DRWCacheBuildingContext *ctx,
   }
 
   return true;
-}
-
-static void draw_subdiv_vert_corner_cb(const bke::subdiv::ForeachContext *foreach_context,
-                                       void * /*tls*/,
-                                       const int /*ptex_face_index*/,
-                                       const float /*u*/,
-                                       const float /*v*/,
-                                       const int coarse_vert_index,
-                                       const int /*coarse_face_index*/,
-                                       const int /*coarse_corner*/,
-                                       const int subdiv_vert_index)
-{
-  BLI_assert(coarse_vert_index != ORIGINDEX_NONE);
-  DRWCacheBuildingContext *ctx = (DRWCacheBuildingContext *)(foreach_context->user_data);
-  ctx->vert_origindex_map[subdiv_vert_index] = coarse_vert_index;
-}
-
-static void draw_subdiv_vert_edge_cb(const bke::subdiv::ForeachContext * /*foreach_context*/,
-                                     void * /*tls_v*/,
-                                     const int /*ptex_face_index*/,
-                                     const float /*u*/,
-                                     const float /*v*/,
-                                     const int /*coarse_edge_index*/,
-                                     const int /*coarse_face_index*/,
-                                     const int /*coarse_corner*/,
-                                     const int /*subdiv_vert_index*/)
-{
-  /* Required if bke::subdiv::ForeachContext.vert_corner is also set. */
 }
 
 static void draw_subdiv_edge_cb(const bke::subdiv::ForeachContext *foreach_context,
@@ -659,7 +622,11 @@ static void draw_subdiv_loop_cb(const bke::subdiv::ForeachContext *foreach_conte
   DRWCacheBuildingContext *ctx = (DRWCacheBuildingContext *)(foreach_context->user_data);
   ctx->patch_coords[subdiv_loop_index] = make_patch_coord(ptex_face_index, u, v);
 
-  int coarse_vert_index = ctx->vert_origindex_map[subdiv_vert_index];
+  /* Subdivided vertices corresponding to base mesh vertices have the same indices, see
+   * #bke::subdiv::MeshLayout. */
+  const int coarse_vert_index = subdiv_vert_index < ctx->coarse_mesh->verts_num ?
+                                    subdiv_vert_index :
+                                    ORIGINDEX_NONE;
 
   ctx->subdiv_loop_subdiv_vert_index[subdiv_loop_index] = subdiv_vert_index;
   ctx->subdiv_loop_subdiv_edge_index[subdiv_loop_index] = subdiv_edge_index;
@@ -672,8 +639,6 @@ static void draw_subdiv_foreach_callbacks(bke::subdiv::ForeachContext *foreach_c
   *foreach_context = {};
   foreach_context->loop = draw_subdiv_loop_cb;
   foreach_context->edge = draw_subdiv_edge_cb;
-  foreach_context->vert_corner = draw_subdiv_vert_corner_cb;
-  foreach_context->vert_edge = draw_subdiv_vert_edge_cb;
 }
 
 static void do_subdiv_traversal(DRWCacheBuildingContext *cache_building_context,
@@ -849,7 +814,6 @@ static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
   }
 
   /* Cleanup. */
-  MEM_SAFE_DELETE(cache_building_context.vert_origindex_map);
   MEM_SAFE_DELETE(cache_building_context.edge_origindex_map);
   MEM_SAFE_DELETE(cache_building_context.edge_draw_flag_map);
 
