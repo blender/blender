@@ -2167,7 +2167,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                         nullptr,
                         0,
                         "",
-                        "If set, controls wich file extensions are shown in the filebrowser, for "
+                        "If set, controls which file extensions are shown in the filebrowser, for "
                         "Filepath properties only (e.g. '*.glb;*.gltf')");
   RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
   api_ui_item_common_text(func);

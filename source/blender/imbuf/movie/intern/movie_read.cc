@@ -464,9 +464,9 @@ static void ffmpeg_hw_setup_decode(const MovieReader *anim,
 
 static AVPixelFormat ffmpeg_codec_pix_fmt_get(const AVCodecContext *codec_ctx)
 {
-  /* If using hwaccel, #pix_fmt does not have the nominal codec format and only refers to the
-   * hardware frame format. However, we can't just always choose #sw_pix_fmt, as it's not set until
-   * the first frame is decoded. */
+  /* If using hardware-accelerated, #pix_fmt does not have the nominal codec format and only refers
+   * to the hardware frame format. However, we can't just always choose #sw_pix_fmt, as it's not
+   * set until the first frame is decoded. */
   const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(codec_ctx->pix_fmt);
   return (desc->flags & AV_PIX_FMT_FLAG_HWACCEL) ? codec_ctx->sw_pix_fmt : codec_ctx->pix_fmt;
 }

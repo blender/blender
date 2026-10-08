@@ -2572,7 +2572,7 @@ void template_search_preview(Layout *layout,
  * in the filebrowser, separated by semi-columns (e.g. `*.usd;*.usda;*.usdc;*.usdz`). Only used if
  * the property sub-type is `PROP_FILEPATH`.
  * \param name Label text, the property name is used if unset.
- * \param placeholder the placeholder text to show in the text widget, when enpty.
+ * \param placeholder the placeholder text to show in the text widget, when empty.
  */
 void template_filepath(Layout *layout,
                        const bContext *C,

@@ -375,7 +375,7 @@ static std::string unique_filename_tx(const string &filepath,
   /* Scene linear colorspace that we may be converting to. */
   md5.append("xyz_to_scene_linear:" + ColorSpaceManager::get_xyz_to_scene_linear_rgb_string());
 
-  /* Colorspace. */
+  /* Color-space. */
   md5.append("colorspace:" + (ColorSpaceManager::colorspace_is_data(colorspace) ?
                                   u_colorspace_data.string() :
                                   colorspace.string()));

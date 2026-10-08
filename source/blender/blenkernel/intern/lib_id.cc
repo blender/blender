@@ -2293,7 +2293,7 @@ void BKE_main_id_indirect_linked_update(Main &bmain, std::optional<Span<ID *>> l
       return IDWALK_RET_NOP;
     }
     if (cb_data->cb_flag & IDWALK_CB_LOOPBACK) {
-      /* Loop-back usages (e.g. from shpaekey to their mesh etc.) can be ignored in ID dependency
+      /* Loop-back usages (e.g. from shape-key to their mesh etc.) can be ignored in ID dependency
        * processes. */
       return IDWALK_RET_NOP;
     }
