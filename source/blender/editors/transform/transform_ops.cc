@@ -153,7 +153,6 @@ const EnumPropertyItem rna_enum_transform_mode_type_items[] = {
     {ed::transform::TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time Slide", ""},
     {ed::transform::TFM_TIME_SCALE, "TIME_SCALE", 0, "Time Scale", ""},
     {ed::transform::TFM_TIME_EXTEND, "TIME_EXTEND", 0, "Time Extend", ""},
-    {ed::transform::TFM_BAKE_TIME, "BAKE_TIME", 0, "Bake Time", ""},
     {ed::transform::TFM_BWEIGHT, "BWEIGHT", 0, "Bevel Weight", ""},
     {ed::transform::TFM_ALIGN, "ALIGN", 0, "Align", ""},
     {ed::transform::TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},

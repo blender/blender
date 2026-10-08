@@ -119,10 +119,6 @@ bool transform_mode_is_axis_pointing_to_screen(const TransInfo *t, const float3 
 
 extern TransModeInfo TransMode_align;
 
-/* `transform_mode_baketime.cc` */
-
-extern TransModeInfo TransMode_baketime;
-
 /* `transform_mode_bbone_resize.cc` */
 
 extern TransModeInfo TransMode_bboneresize;

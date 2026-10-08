@@ -54,7 +54,6 @@ set(SRC
   transform_input.cc
   transform_mode.cc
   transform_mode_align.cc
-  transform_mode_baketime.cc
   transform_mode_bbone_resize.cc
   transform_mode_bend.cc
   transform_mode_boneenvelope.cc
