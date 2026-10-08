@@ -8,6 +8,7 @@
  */
 
 #include <cmath>
+#include <fmt/format.h>
 
 #include "BLI_listbase.hh"
 #include "BLI_math_color_c.hh"
@@ -25,15 +26,18 @@
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
+#include "BKE_main.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.hh"
 
 #include "ED_anim_api.hh"
+#include "ED_gizmo_utils.hh"
 #include "ED_markers.hh"
 #include "ED_mask.hh"
 #include "ED_sequencer.hh"
@@ -50,7 +54,9 @@
 
 #include "SEQ_channels.hh"
 #include "SEQ_connect.hh"
+#include "SEQ_edit.hh"
 #include "SEQ_effects.hh"
+#include "SEQ_iterator.hh"
 #include "SEQ_prefetch.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
@@ -62,11 +68,13 @@
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
+#include "UI_interface_c.hh"
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
 #include "WM_api.hh"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "BLF_api.hh"
@@ -2093,6 +2101,371 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
   else {
     region->v2d.scroll &= ~V2D_SCROLL_BOTTOM;
   }
+}
+
+static bool blade_paint_cursor_poll(bContext *C)
+{
+  ScrArea *area = CTX_wm_area(C);
+  const bToolRef *tref = area->runtime.tool;
+  if (tref == nullptr || !STREQ(tref->idname, "builtin.blade")) {
+    return false;
+  }
+  Scene *scene = CTX_data_sequencer_scene(C);
+  return scene != nullptr && seq::editing_get(scene) != nullptr;
+}
+
+static wmOperator *box_blade_op_get(wmWindow *win)
+{
+  return WM_operator_find_modal_by_type(win,
+                                        WM_operatortype_find("SEQUENCER_OT_box_blade", false));
+}
+
+/* Expand to the strips each split propagates to, skip chains that fail to split. */
+static void split_expand_strips(Editing *ed,
+                                Strip *strip,
+                                const bool ignore_connections,
+                                VectorSet<Strip *> &targets)
+{
+  if (targets.contains(strip)) {
+    return;
+  }
+  VectorSet<Strip *> chain;
+  chain.add(strip);
+  seq::expand_strips(ed,
+                     chain,
+                     ignore_connections ? seq::StripRelation::EffectChain :
+                                          seq::StripRelation::ConnectedEffectChain);
+  const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
+  for (Strip *strip_chain : chain) {
+    if (seq::transform_is_locked(channels, strip_chain)) {
+      return;
+    }
+  }
+  targets.add_multiple(chain.as_span());
+}
+
+static void box_blade_draw(Scene *scene, const ARegion *region, wmOperator *op)
+{
+  Editing *ed = seq::editing_get(scene);
+  const View2D *v2d = &region->v2d;
+
+  const rctf box_rect = box_blade_rect_get(op, v2d);
+  const bool remove_gaps = RNA_boolean_get(op->ptr, "remove_gaps");
+  const bool only_selected = split_only_selected_get(op);
+  const bool ignore_connections = only_selected || RNA_boolean_get(op->ptr, "ignore_connections");
+  const int2 rect_frames = {round_fl_to_int(box_rect.xmin), round_fl_to_int(box_rect.xmax)};
+
+  /* Gather the strips the cut propagates to, like the split preview does. */
+  VectorSet<Strip *> targets;
+  for (Strip &candidate : *ed->current_strips()) {
+    if (only_selected && (candidate.flag & SEQ_SELECT) == 0) {
+      continue;
+    }
+    rctf strip_rect = strip_bounds_get(scene, &candidate);
+    if (!BLI_rctf_isect(&strip_rect, &box_rect, nullptr)) {
+      continue;
+    }
+    split_expand_strips(ed, &candidate, ignore_connections, targets);
+  }
+
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
+  GPU_blend(GPU_BLEND_ALPHA);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
+  /* Paint cursors draw in window space, not region space. */
+  auto draw_view_rect = [&](const rctf &rect) {
+    rcti rect_region;
+    ui::view2d_view_to_region_rcti(v2d, &rect, &rect_region);
+    BLI_rcti_translate(&rect_region, region->winrct.xmin, region->winrct.ymin);
+    immRectf(pos, rect_region.xmin, rect_region.ymin, rect_region.xmax, rect_region.ymax);
+  };
+
+  if (remove_gaps) {
+    const int channel_min = max_ii(int(box_rect.ymin), 1);
+    const int channel_max = min_ii(int(box_rect.ymax) - 1, seq::MAX_CHANNELS);
+    /* Slightly brighten all channels that the box touches. */
+    immUniformColor4ub(255, 255, 255, 15);
+    for (int channel = channel_min; channel <= channel_max; channel++) {
+      draw_view_rect({v2d->cur.xmin, v2d->cur.xmax, float(channel), float(channel + 1)});
+    }
+  }
+
+  immUniformThemeColorAlpha(TH_REDALERT, 0.4f);
+  for (const Strip *strip : targets) {
+    rctf cut_rect = strip_bounds_get(scene, strip);
+    cut_rect.xmin = max_ff(cut_rect.xmin, rect_frames[0]);
+    cut_rect.xmax = min_ff(cut_rect.xmax, rect_frames[1]);
+    if (cut_rect.xmin < cut_rect.xmax) {
+      draw_view_rect(cut_rect);
+    }
+  }
+
+  immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
+}
+
+static bool split_tool_prop_from_toolsettings(bToolRef *tref,
+                                              const char *identifier,
+                                              const bool default_value)
+{
+  if (tref == nullptr) {
+    return default_value;
+  }
+
+  wmOperatorType *ot_split = WM_operatortype_find("SEQUENCER_OT_split", false);
+  if (ot_split == nullptr) {
+    return default_value;
+  }
+
+  PointerRNA tool_props;
+  if (!WM_toolsystem_ref_properties_get_from_operator(tref, ot_split, &tool_props)) {
+    return default_value;
+  }
+
+  return RNA_boolean_get(&tool_props, identifier);
+}
+
+struct BladeSplit {
+  int frame;
+  bool all_channels;
+  VectorSet<Strip *> strips;
+};
+
+static std::optional<BladeSplit> blade_split_get(
+    Scene *scene, const ARegion *region, const wmWindow *win, bToolRef *tref, const int2 &xy)
+{
+  const View2D *v2d = &region->v2d;
+  Editing *ed = seq::editing_get(scene);
+
+  const int2 mval = xy - int2(region->winrct.xmin, region->winrct.ymin);
+  float2 mouse_co;
+  ui::view2d_region_to_view(v2d, mval.x, mval.y, &mouse_co.x, &mouse_co.y);
+  const int split_frame = round_fl_to_int(mouse_co.x);
+
+  const wmEvent *event = win->runtime->eventstate;
+  const bool all_channels = (event->modifier & KM_SHIFT) != 0 ||
+                            split_tool_prop_from_toolsettings(tref, "all_channels", false);
+  const bool only_selected = split_tool_prop_from_toolsettings(tref, "only_selected", false);
+  const bool ignore_connections = only_selected ||
+                                  (!all_channels && ((event->modifier & KM_ALT) != 0 ||
+                                                     split_tool_prop_from_toolsettings(
+                                                         tref, "ignore_connections", false)));
+
+  const std::optional<int> channel = all_channels ? std::nullopt :
+                                                    std::optional<int>(int(mouse_co.y));
+  BladeSplit split = {split_frame, all_channels, {}};
+  for (Strip *strip : seq::edit_split_strips_get(scene, split_frame, channel, only_selected)) {
+    split_expand_strips(ed, strip, ignore_connections, split.strips);
+  }
+
+  if (split.strips.is_empty() && !all_channels) {
+    return std::nullopt;
+  }
+  return split;
+}
+
+static void blade_split_draw(Scene *scene, const ARegion *region, const BladeSplit &split)
+{
+  const View2D *v2d = &region->v2d;
+  const int split_frame = split.frame;
+
+  /* Paint cursors draw in window space, not region space. */
+  const float2 region_offset = {float(region->winrct.xmin), float(region->winrct.ymin)};
+
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  if (split.all_channels) {
+    const float x = ui::view2d_view_to_region_x(v2d, split_frame) + region_offset.x;
+    immUniformThemeColorAlpha(TH_GIZMO_PRIMARY, 0.3f);
+    immRectf(pos, x - 1.5f, region_offset.y, x + 1.5f, region_offset.y + region->winy);
+  }
+
+  auto draw_lines = [&](const float expand) {
+    for (const Strip *strip : split.strips) {
+      if (!seq::edit_frame_splits_strip(scene, strip, split_frame)) {
+        continue;
+      }
+      const rctf bounds = strip_bounds_get(scene, strip);
+      float x, y_bottom, y_top;
+      ui::view2d_view_to_region_fl(v2d, split_frame, bounds.ymin, &x, &y_bottom);
+      ui::view2d_view_to_region_fl(v2d, split_frame, bounds.ymax, &x, &y_top);
+      immRectf(pos,
+               x + region_offset.x - expand,
+               y_bottom + region_offset.y - (expand - 1.0f),
+               x + region_offset.x + expand,
+               y_top + region_offset.y + (expand - 1.0f));
+    }
+  };
+
+  /* Draw dark outline underneath so the line is visible on light strips too. */
+  immUniformColor4f(0.0f, 0.0f, 0.0f, 0.8f);
+  draw_lines(2.5f);
+  immUniformThemeColor(TH_GIZMO_PRIMARY);
+  draw_lines(1.5f);
+  GPU_blend(GPU_BLEND_NONE);
+
+  immUnbindProgram();
+}
+
+static void blade_paint_cursor_draw(bContext *C,
+                                    const int2 &xy,
+                                    const float2 & /*tilt*/,
+                                    void *customdata)
+{
+  wmWindow *win = CTX_wm_window(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = CTX_wm_region(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
+
+  if (region != customdata) {
+    return;
+  }
+
+  if (wmOperator *box_blade_op = box_blade_op_get(win)) {
+    box_blade_draw(scene, region, box_blade_op);
+  }
+  else if (const std::optional<BladeSplit> split = blade_split_get(
+               scene, region, win, area->runtime.tool, xy))
+  {
+    blade_split_draw(scene, region, *split);
+  }
+}
+
+static void blade_paint_cursor_free_fn(void *customdata)
+{
+  if (G_MAIN->wm.first()) {
+    WM_paint_cursor_end(static_cast<wmPaintCursor *>(customdata));
+  }
+}
+
+static void WIDGETGROUP_blade_setup(const bContext *C, wmGizmoGroup *gzgroup)
+{
+  ARegion *region = CTX_wm_region(C);
+  gzgroup->customdata = WM_paint_cursor_activate(
+      SPACE_SEQ, RGN_TYPE_WINDOW, blade_paint_cursor_poll, blade_paint_cursor_draw, region);
+  gzgroup->customdata_free = blade_paint_cursor_free_fn;
+}
+
+void SEQUENCER_GGT_blade(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Blade Widget";
+  gzgt->idname = "SEQUENCER_GGT_blade";
+
+  gzgt->gzmap_params.spaceid = SPACE_SEQ;
+  gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
+
+  gzgt->poll = ED_gizmo_poll_or_unlink_delayed_from_tool;
+  gzgt->setup = WIDGETGROUP_blade_setup;
+}
+
+static std::string blade_frame_str_get(const Scene *scene, const int frame, const bool timecode)
+{
+  char str[64];
+  ED_time_scrub_frame_str_get(scene, timecode, frame, str, sizeof(str));
+  return str;
+}
+
+/* Shown without delay & re-created on every cursor move, unlike regular tooltips. */
+static ARegion *blade_tooltip_init(
+    bContext *C, ARegion *region, int * /*pass*/, double * /*pass_delay*/, bool *r_exit_on_event)
+{
+  wmWindow *win = CTX_wm_window(C);
+  ScrArea *area = CTX_wm_area(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
+  const wmEvent *event = win->runtime->eventstate;
+
+  *r_exit_on_event = false;
+
+  std::string frames_str, timecode_str;
+  /* Box blade. */
+  if (wmOperator *box_blade_op = box_blade_op_get(win)) {
+    const rctf box_rect = box_blade_rect_get(box_blade_op, &region->v2d);
+    const int2 rect_frames = {round_fl_to_int(box_rect.xmin), round_fl_to_int(box_rect.xmax)};
+    auto range_str_get = [&](const bool timecode) {
+      return fmt::format("{} " BLI_STR_UTF8_RIGHTWARDS_ARROW " {}  ({})",
+                         blade_frame_str_get(scene, rect_frames[0], timecode),
+                         blade_frame_str_get(scene, rect_frames[1], timecode),
+                         blade_frame_str_get(scene, rect_frames[1] - rect_frames[0], timecode));
+    };
+    frames_str = range_str_get(false);
+    timecode_str = range_str_get(true);
+  }
+  /* Regular blade. */
+  else if (const std::optional<BladeSplit> split = blade_split_get(
+               scene, region, win, area->runtime.tool, int2(event->xy)))
+  {
+    frames_str = blade_frame_str_get(scene, split->frame, false);
+    timecode_str = blade_frame_str_get(scene, split->frame, true);
+  }
+  else {
+    return nullptr;
+  }
+
+  /* Offset the tooltip to the right to avoid covering the split line. */
+  const float right_offset = UI_SCALE_FAC * 55.0f;
+  const float init_position[2] = {float(event->xy[0]) + right_offset, float(event->xy[1])};
+
+  return ui::tooltip_create_from_func(
+      C,
+      [&](ui::TooltipData &data) {
+        ui::tooltip_text_field_add(data, frames_str, {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_MAIN);
+        ui::tooltip_text_field_add(data, timecode_str, {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_VALUE);
+      },
+      init_position);
+}
+
+void sequencer_blade_tooltip_show(bContext *C)
+{
+  WM_tooltip_immediate_init(
+      C, CTX_wm_window(C), CTX_wm_area(C), CTX_wm_region(C), blade_tooltip_init);
+}
+
+static void blade_edit_point_update(bContext *C)
+{
+  wmWindow *win = CTX_wm_window(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = CTX_wm_region(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (scene == nullptr || scene->ed == nullptr) {
+    return;
+  }
+
+  std::optional<int> frame;
+  if (blade_paint_cursor_poll(C)) {
+    if (const std::optional<BladeSplit> split = blade_split_get(
+            scene, region, win, area->runtime.tool, int2(win->runtime->eventstate->xy)))
+    {
+      frame = split->frame;
+    }
+  }
+  scene->ed->edit_point_set(scene, frame);
+}
+
+static int blade_handler(bContext *C, const wmEvent *event, void * /*user_data*/)
+{
+  if (event->type == MOUSEMOVE || ISKEYMODIFIER(event->type)) {
+    blade_edit_point_update(C);
+  }
+  if (blade_paint_cursor_poll(C)) {
+    if (event->type == MOUSEMOVE || ISKEYMODIFIER(event->type)) {
+      sequencer_blade_tooltip_show(C);
+    }
+  }
+  return WM_UI_HANDLER_CONTINUE;
+}
+
+void sequencer_blade_handlers_add(ARegion *region)
+{
+  /* Region init can run more than once, keep a single instance of the handler. */
+  WM_event_remove_ui_handler(&region->runtime->handlers, blade_handler, nullptr, nullptr, false);
+  WM_event_add_ui_handler(nullptr,
+                          &region->runtime->handlers,
+                          blade_handler,
+                          nullptr,
+                          nullptr,
+                          eWM_EventHandlerFlag(0));
 }
 
 }  // namespace blender::ed::vse

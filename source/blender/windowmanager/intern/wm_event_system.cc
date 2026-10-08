@@ -4399,6 +4399,11 @@ void wm_event_do_handlers(bContext *C)
           /* For regions having custom cursors. */
           wm_paintcursor_test(C, event);
         }
+        else if (ISKEYMODIFIER(event->type)) {
+          /* Paint cursors may change appearance based on modifier keys,
+           * e.g. blade tool in the sequencer. */
+          wm_paintcursor_test(C, event);
+        }
 #ifdef WITH_INPUT_NDOF
         else if (event->type == NDOF_MOTION) {
           win.addmousemove = true;

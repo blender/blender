@@ -1232,18 +1232,18 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   wm_draw_callbacks(win);
   wmWindowViewport(win);
 
+  /* Always draw, not only when screen tagged. */
+  if (win->runtime->gesture.first_) {
+    wm_gesture_draw(win);
+    wmWindowViewport(win);
+  }
+
   /* Blend in floating regions (menus). */
   for (ARegion &region : screen->regionbase) {
     if (!region.runtime->visible) {
       continue;
     }
     wm_draw_region_blend(&region, 0, true);
-  }
-
-  /* Always draw, not only when screen tagged. */
-  if (win->runtime->gesture.first_) {
-    wm_gesture_draw(win);
-    wmWindowViewport(win);
   }
 
   /* Needs pixel coords in screen. */

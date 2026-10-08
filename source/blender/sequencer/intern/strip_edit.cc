@@ -304,11 +304,39 @@ static void seq_split_set_left_hold_offset(Main *bmain,
   strip->left_handle_set(scene, timeline_frame);
 }
 
-static bool seq_edit_split_intersect_check(const Scene *scene,
-                                           const Strip *strip,
-                                           const int timeline_frame)
+bool edit_frame_splits_strip(const Scene *scene, const Strip *strip, const int timeline_frame)
 {
   return timeline_frame > strip->left_handle() && timeline_frame < strip->right_handle(scene);
+}
+
+Vector<Strip *> edit_split_strips_get(Scene *scene,
+                                      const int frame,
+                                      const std::optional<int> channel,
+                                      const bool only_selected)
+{
+  Editing *ed = editing_get(scene);
+  const ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(ed);
+
+  Vector<Strip *> strips;
+  for (Strip &strip : *ed->current_strips()) {
+    if (!edit_frame_splits_strip(scene, &strip, frame)) {
+      continue;
+    }
+    if (only_selected && (strip.flag & SEQ_SELECT) == 0) {
+      continue;
+    }
+    if (channel) {
+      if (strip.channel == *channel) {
+        return {&strip};
+      }
+      continue;
+    }
+    if (!only_selected && transform_is_locked(channels, &strip)) {
+      continue;
+    }
+    strips.append(&strip);
+  }
+  return strips;
 }
 
 static void seq_edit_split_handle_strip_offsets(Main *bmain,
@@ -318,7 +346,7 @@ static void seq_edit_split_handle_strip_offsets(Main *bmain,
                                                 const int timeline_frame,
                                                 const eSplitMethod method)
 {
-  if (seq_edit_split_intersect_check(scene, right_strip, timeline_frame)) {
+  if (edit_frame_splits_strip(scene, right_strip, timeline_frame)) {
     switch (method) {
       case SPLIT_SOFT:
         right_strip->left_handle_set(scene, timeline_frame);
@@ -329,7 +357,7 @@ static void seq_edit_split_handle_strip_offsets(Main *bmain,
     }
   }
 
-  if (seq_edit_split_intersect_check(scene, left_strip, timeline_frame)) {
+  if (edit_frame_splits_strip(scene, left_strip, timeline_frame)) {
     switch (method) {
       case SPLIT_SOFT:
         left_strip->right_handle_set(scene, timeline_frame);
@@ -347,14 +375,14 @@ static bool seq_edit_split_effect_inputs_intersect(const Scene *scene,
 {
   bool input_does_intersect = false;
   if (strip->input1) {
-    input_does_intersect |= seq_edit_split_intersect_check(scene, strip->input1, timeline_frame);
+    input_does_intersect |= edit_frame_splits_strip(scene, strip->input1, timeline_frame);
     if (strip->input1->is_effect()) {
       input_does_intersect |= seq_edit_split_effect_inputs_intersect(
           scene, strip->input1, timeline_frame);
     }
   }
   if (strip->input2) {
-    input_does_intersect |= seq_edit_split_intersect_check(scene, strip->input2, timeline_frame);
+    input_does_intersect |= edit_frame_splits_strip(scene, strip->input2, timeline_frame);
     if (strip->input2->is_effect()) {
       input_does_intersect |= seq_edit_split_effect_inputs_intersect(
           scene, strip->input2, timeline_frame);
@@ -371,13 +399,13 @@ static bool seq_edit_split_operation_permitted_check(const Scene *scene,
   for (Strip *strip : strips) {
     const ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(editing_get(scene));
     if (transform_is_locked(channels, strip)) {
-      *r_error = "Strip is locked.";
+      *r_error = "Strip is locked, cannot split";
       return false;
     }
     if (!strip->is_effect()) {
       continue;
     }
-    if (!seq_edit_split_intersect_check(scene, strip, timeline_frame)) {
+    if (!edit_frame_splits_strip(scene, strip, timeline_frame)) {
       continue;
     }
     if (strip->effect_num_inputs_get() <= 1) {
@@ -404,7 +432,7 @@ Strip *edit_strip_split(Main *bmain,
                         const bool ignore_connections,
                         const char **r_error)
 {
-  if (!seq_edit_split_intersect_check(scene, strip, timeline_frame)) {
+  if (!edit_frame_splits_strip(scene, strip, timeline_frame)) {
     return nullptr;
   }
 

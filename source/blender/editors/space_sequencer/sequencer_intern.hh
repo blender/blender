@@ -49,6 +49,7 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
+struct wmGizmoGroupType;
 
 namespace ed::asset {
 struct AssetItemTree;
@@ -143,6 +144,10 @@ float strip_handle_draw_size_get(const Scene *scene, const Strip *strip, float p
 void draw_timeline_seq(const bContext *C, const ARegion *region);
 void sequencer_scrubbing_region_draw(const bContext *C, ARegion *region);
 void draw_timeline_seq_display(const bContext *C, ARegion *region);
+void sequencer_blade_handlers_add(ARegion *region);
+void sequencer_blade_tooltip_show(bContext *C);
+
+void SEQUENCER_GGT_blade(wmGizmoGroupType *gzgt);
 
 /* `sequencer_preview_draw.cc` */
 
@@ -206,6 +211,11 @@ bool sequencer_view_strips_poll(bContext *C);
  * to presented strips that can produce image output.
  */
 VectorSet<Strip *> all_strips_from_context(bContext *C);
+
+/** Temporary shim to query split & box blade property, where either the new #only_selected or
+ * deprecated #ignore_selection may be used, to be removed in 6.0.  */
+bool split_only_selected_get(wmOperator *op);
+rctf box_blade_rect_get(wmOperator *op, const View2D *v2d);
 
 /* Externals. */
 
