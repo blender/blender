@@ -2467,11 +2467,11 @@ bool BM_mesh_uvselect_is_valid(BMesh *bm,
    *
    * Notes:
    * - When all vertices of a face are selected in the viewport
-   *   (and therefor the face) is selected, it's possible the UV face is *not* selected,
+   *   (and therefore the face) is selected, it's possible the UV face is *not* selected,
    *   because the vertices in the viewport may be selected because of other selected UV's,
    *   not part of the UV's associated with the face.
    *
-   *   Therefor it is possible for a viewport face to be selected
+   *   Therefore it is possible for a viewport face to be selected
    *   with an unselected UV face.
    */
 

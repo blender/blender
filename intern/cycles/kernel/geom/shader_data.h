@@ -45,11 +45,10 @@ ccl_device_noinline
 #else
 ccl_device_inline
 #endif
-    void
-    shader_setup_from_ray(KernelGlobals kg,
-                          ccl_private ShaderData *ccl_restrict sd,
-                          const ccl_private Ray *ccl_restrict ray,
-                          const ccl_private Intersection *ccl_restrict isect)
+    void shader_setup_from_ray(KernelGlobals kg,
+                               ccl_private ShaderData *ccl_restrict sd,
+                               const ccl_private Ray *ccl_restrict ray,
+                               const ccl_private Intersection *ccl_restrict isect)
 {
   /* Read intersection data into shader globals.
    *

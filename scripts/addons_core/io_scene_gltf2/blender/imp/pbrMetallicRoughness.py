@@ -635,7 +635,7 @@ def base_color(
     pbr = mh.pymat.pbr_metallic_roughness
 
     if alpha_socket:
-        # Maybe overwiten later
+        # Maybe overwritten later
         mh.gltf.socket_infos[mh.material_idx]['Base Color Alpha'] = alpha_socket
 
     if not is_diffuse:

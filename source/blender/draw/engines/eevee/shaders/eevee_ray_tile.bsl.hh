@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_shader_shared.hh"
+#include "draw_command_shared.hh"
 #include "eevee_closure.bsl.hh"
 #include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_uniform.bsl.hh"
@@ -13,11 +13,6 @@
 
 namespace eevee::raytracing {
 
-#if GBUFFER_LAYER_MAX > 4
-/* WORKAROUND: We can't use define inside shared variable definitions. */
-#  error Resize tile_contains_ray_tracing
-#endif
-
 struct TileClassify {
 
   [[image(0, write, RAYTRACE_TILEMASK_FORMAT)]] uimage2DArray tile_raytrace_denoise_img;
@@ -25,7 +20,7 @@ struct TileClassify {
   [[image(2, write, RAYTRACE_TILEMASK_FORMAT)]] uimage2DArray tile_fast_gi_denoise_img;
   [[image(3, write, RAYTRACE_TILEMASK_FORMAT)]] uimage2DArray tile_fast_gi_tracing_img;
 
-  [[shared]] uint tile_contains_ray_tracing[4];
+  [[shared]] uint tile_contains_ray_tracing[GBUFFER_LAYER_MAX];
   [[shared]] uint tile_contains_fast_gi_scan;
 };
 
@@ -135,12 +130,12 @@ void tile_compact([[resource_table]] TileCompact &srt,
      *
      * Ref #124060.
      */
-#if defined(GPU_INTEL) && defined(OS_WIN)
-    atomicExchange(raytrace_tracing_dispatch_buf.num_groups_y, 1u);
-    atomicExchange(raytrace_denoise_dispatch_buf.num_groups_y, 1u);
+#if (defined(GPU_INTEL) && defined(OS_WIN)) || defined(GLSL_CPP_STUBS)
+    atomicExchange(srt.raytrace_tracing_dispatch_buf.num_groups_y, 1u);
+    atomicExchange(srt.raytrace_denoise_dispatch_buf.num_groups_y, 1u);
 
-    atomicExchange(raytrace_tracing_dispatch_buf.num_groups_z, 1u);
-    atomicExchange(raytrace_denoise_dispatch_buf.num_groups_z, 1u);
+    atomicExchange(srt.raytrace_tracing_dispatch_buf.num_groups_z, 1u);
+    atomicExchange(srt.raytrace_denoise_dispatch_buf.num_groups_z, 1u);
 #else
     srt.raytrace_tracing_dispatch_buf.num_groups_y = 1u;
     srt.raytrace_denoise_dispatch_buf.num_groups_y = 1u;

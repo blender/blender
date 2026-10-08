@@ -387,6 +387,12 @@ BlenderDisplayDriver::~BlenderDisplayDriver()
  * Update procedure.
  */
 
+void BlenderDisplayDriver::reset()
+{
+  const thread_scoped_lock lock(has_update_mutex_);
+  update_pending_ = true;
+}
+
 void BlenderDisplayDriver::next_tile_begin()
 {
   if (!tiles_->current_tile.tile.ready_to_draw()) {
@@ -524,6 +530,10 @@ void BlenderDisplayDriver::update_end()
 
   gpu_context_disable();
 
+  {
+    const thread_scoped_lock lock(has_update_mutex_);
+    update_pending_ = false;
+  }
   has_update_cond_.notify_all();
 }
 
@@ -749,11 +759,13 @@ void BlenderDisplayDriver::draw(const Params &params)
 {
   if (b_rv3d_ && (b_rv3d_->rflag & (blender::RV3D_NAVIGATING | blender::RV3D_PAINTING))) {
     /* Before drawing, wait that an update to the texture has actually occurred, to synchronize
-     * rendering of Cycles with Blender. Use a timeout to prevent user interface in the main thread
-     * from becoming unresponsive when rendering is too heavy. */
+     * rendering of Cycles with Blender. Only do this after a reset, e.g. due to the camera
+     * changing while navigating. Redraws that did not trigger a reset can reuse the current
+     * texture immediately to avoid stutters. Also use a timeout to prevent user interface in the
+     * main thread from becoming unresponsive when rendering is too heavy. */
     thread_scoped_lock lock(has_update_mutex_);
-    has_update_cond_.wait_for(lock, std::chrono::milliseconds(33));
-    lock.unlock();
+    has_update_cond_.wait_for(
+        lock, std::chrono::milliseconds(33), [this] { return !update_pending_; });
   }
 
   gpu_context_lock();

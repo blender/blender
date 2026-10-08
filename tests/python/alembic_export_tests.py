@@ -796,6 +796,60 @@ class AttributesExportTest(AbstractAlembicTest):
                 self.assertEqual(len(attribute), attribute_sizes[domain])
 
 
+class WidthScopeExportTest(AbstractAlembicTest):
+    """Test scope export of points and curves radii."""
+
+    @with_tempdir
+    def test_pointcloud_radius_scope(self, tempdir: pathlib.Path) -> pathlib.Path:
+        abc = tempdir / 'point-radius-scope.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1)" % abc.as_posix()
+        )
+        self.run_blender('point-radius-scope.blend', script)
+
+        self.do_check_widths(abc, '/ConstantScope/PointCloud/.geom', [0.2], '.widths')
+        self.do_check_widths(abc, '/VertexScope/PointCloud/.geom', [0.4, 0.6], '.widths')
+
+    @with_tempdir
+    def test_curves_radius_scope(self, tempdir: pathlib.Path) -> pathlib.Path:
+        abc = tempdir / 'curve-radius-scope.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1)" % abc.as_posix()
+        )
+        self.run_blender('curve-radius-scope.blend', script)
+
+        self.do_check_widths(abc, '/ConstantScope/Curves/.geom', [0.2], 'width')
+        self.do_check_widths(abc, '/VertexScope/Curves_001/.geom', [0.2, 0.4, 0.6, 0.8], 'width')
+
+    def do_check_widths(self, abc, geom_path, expected_values, prop_key):
+        abcprop = self.abcprop(abc, geom_path)
+        self.assertEqual(abcprop[prop_key], expected_values)
+
+
+class DataValidationExportTest(AbstractAlembicTest):
+    """Test to ensure that invalid data does not crash Blender"""
+
+    @with_tempdir
+    def test_attribute_redefinition(self, tempdir: pathlib.Path):
+        abc = tempdir / 'attribute-changing-type.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s')" % abc.as_posix()
+        )
+        self.run_blender('attribute-changing-type.blend', script)
+
+    @with_tempdir
+    def test_invalid_names(self, tempdir: pathlib.Path):
+        abc = tempdir / 'invalid-names.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, vcolors=True)" % abc.as_posix()
+        )
+        self.run_blender('invalid-names.blend', script)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--blender', required=True)

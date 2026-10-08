@@ -616,9 +616,13 @@ void WM_toolsystem_ref_set_from_runtime(bContext *C,
                                         const char *idname)
 {
   Main *bmain = CTX_data_main(C);
+  wmWindow *win = CTX_wm_window(C);
 
   if (tref->runtime) {
     toolsystem_unlink_ref(C, workspace, tref);
+  }
+  if (win) {
+    WM_tooltip_clear(C, win);
   }
 
   STRNCPY_UTF8(tref->idname, idname);

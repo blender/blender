@@ -548,8 +548,9 @@ void ForwardPipeline::transparent_add(const Object *ob,
    * since this function is not called from PipelineModule::material_add. */
   inst_.pipelines.has_raycast |= GPU_material_flag_get(gpumat, GPU_MATFLAG_RAYCAST);
 
-  const bool bind_previous_layer = GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA) &&
-                                   GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT);
+  /* Must match the `use_forward_lighting && use_transparency` condition on previous_layer_hiz /
+   * previous_layer_radiance. */
+  const bool bind_previous_layer = GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT);
 
   /* Transparent needs to use one sub pass per object to support reordering.
    * NOTE: Pre-pass needs to be created first in order to be sorted first. */
@@ -856,7 +857,8 @@ void DeferredLayer::end_sync(bool is_first_pass,
 
     /* Add the stencil classification step at the end of the GBuffer pass. */
     {
-      gpu::Shader *sh = inst_.shaders.static_shader_get(DEFERRED_TILE_CLASSIFY);
+      gpu::Shader *sh = inst_.shaders.static_shader_get(
+          GPU_stencil_export_support() ? DEFERRED_TILE_CLASSIFY : DEFERRED_TILE_CLASSIFY_FALLBACK);
       PassMain::Sub &sub = gbuffer_ps_.sub("StencilClassify");
       sub.subpass_transition(GPU_ATTACHMENT_WRITE, /* Needed for depth test. */
                              {GPU_ATTACHMENT_IGNORE,
@@ -865,7 +867,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
                               GPU_ATTACHMENT_IGNORE,
                               GPU_ATTACHMENT_IGNORE});
       sub.shader_set(sh);
-      if (GPU_stencil_clasify_buffer_workaround()) {
+      if (GPU_stencil_classify_buffer_workaround()) {
         /* Binding any buffer to satisfy the binding. The buffer is not actually used. */
         sub.bind_ssbo("dummy_workaround_buf", &inst_.film.aovs_info);
       }

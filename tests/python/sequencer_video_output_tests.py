@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
-import platform
 import sys
 import subprocess
 
@@ -12,16 +11,16 @@ from pathlib import Path
 from modules import render_report
 
 
-def get_movie_file_suffix(filepath):
+def get_movie_file_suffix(filepath: Path) -> str:
     """
     Get suffix used for the video output.
     The script does not have access to the .blend file content, so deduct it from the .blend filename.
     """
 
-    return Path(filepath).stem.split("_")[-1]
+    return filepath.stem.split("_")[-1]
 
 
-def get_arguments(filepath, output_filepath):
+def get_arguments(filepath: Path, output_filepath: Path) -> list[str | Path]:
     suffix = get_movie_file_suffix(filepath)
 
     args = [
@@ -43,16 +42,16 @@ def create_argparse():
     parser = argparse.ArgumentParser(
         description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
     )
-    parser.add_argument("--blender", required=True)
-    parser.add_argument("--testdir", required=True)
-    parser.add_argument("--outdir", required=True)
-    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--blender", required=True, type=Path)
+    parser.add_argument("--testdir", required=True, type=Path)
+    parser.add_argument("--outdir", required=True, type=Path)
+    parser.add_argument("--oiiotool", required=True, type=Path)
     parser.add_argument("--batch", default=False, action="store_true")
     return parser
 
 
 class VideoOutputReport(render_report.Report):
-    def postprocess_test(self, blender, test):
+    def postprocess_test(self, blender: Path, test: render_report.TestResult) -> None:
         suffix = get_movie_file_suffix(test.filepath)
 
         video_file = Path(f"{test.tmp_out_img_base}.{suffix}").as_posix()
@@ -74,7 +73,8 @@ class VideoOutputReport(render_report.Report):
         # Blender's render pipeline always appends frame suffix unless # is present in the file path.
         # Here we need the file name to match exactly, so we trick Blender by going 0001 -> #### mask
         # allowing render piepline to expand it back to 0001.
-        out_filepath = test.tmp_out_img.replace("0001", "####")
+        out_filename = test.tmp_out_img.name.replace("0001", "####")
+        out_filepath = test.tmp_out_img.with_name(out_filename)
 
         python_expr = (
             f"""
@@ -105,7 +105,7 @@ strip.color_multiply = 1.0001
 
         try:
             subprocess.check_output(command)
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             pass
 
 

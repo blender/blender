@@ -39,7 +39,7 @@ enum eMaterialGPencilStyle_Flag : short {
   /* mix fill texture */
   GP_MATERIAL_FILL_TEX_MIX = (1 << 5),
   /* Flip fill colors */
-  GP_MATERIAL_FLIP_FILL = (1 << 6),
+  GP_MATERIAL_FLIP_FILL = (1 << 6), /* Deprecated. Only used for compatibility. */
   /* Stroke Texture is a pattern */
   GP_MATERIAL_STROKE_PATTERN = (1 << 7),
   GP_MATERIAL_STROKE_SHOW = (1 << 8), /* Deprecated. Only used for compatibility. */
@@ -353,6 +353,9 @@ struct MaterialGPencilStyle {
 
   float random_noise_scale = 0;
   char _pad3[4] = {};
+
+  /** Color gradient. */
+  struct ColorBand *gradient = nullptr;
 };
 
 struct MaterialLineArt {

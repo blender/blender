@@ -72,11 +72,10 @@ static MovieReader *movie_reader_open(Strip &strip, const char *filepath, const 
   const ImBufFlags flags = (strip.flag & SEQ_DEINTERLACE) ? ImBufFlags::Deinterlace :
                                                             ImBufFlags::Zero;
   if (open_file) {
-    return openanim(
-        filepath, flags, strip.streamindex, true, strip.data->colorspace_settings.name);
+    return openanim(filepath, flags, strip.streamindex, true, &strip.data->colorspace_settings);
   }
   return openanim_noload(
-      filepath, flags, strip.streamindex, true, strip.data->colorspace_settings.name);
+      filepath, flags, strip.streamindex, true, &strip.data->colorspace_settings);
 }
 
 static void movie_reader_proxy_dir_set(const Editing &ed, const Strip &strip, MovieReader *reader)
@@ -314,7 +313,7 @@ ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_fra
       /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
        * kept unchanged for the performance reasons. */
       proxy->anim = openanim(
-          filepath, ImBufFlags::Zero, 0, true, strip->data->colorspace_settings.name);
+          filepath, ImBufFlags::Zero, 0, true, &strip->data->colorspace_settings);
     }
     if (proxy->anim == nullptr) {
       return nullptr;
@@ -332,12 +331,12 @@ ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_fra
   if (BLI_exists(filepath)) {
     /* Proxies are already be in the sequencer colorspace for fast loading, don't perform
      * conversion of float to scene linear that would usually be done. */
-    char colorspace[IMA_MAX_SPACE];
-    STRNCPY(colorspace, context->scene->sequencer_colorspace_settings.name);
+    ColorManagedColorspaceSettings colorspace_settings =
+        context->scene->sequencer_colorspace_settings;
     return IMB_load_image_from_filepath(filepath,
                                         ImBufFlags::ByteData | ImBufFlags::Metadata |
                                             ImBufFlags::NoColorspaceConvert,
-                                        colorspace);
+                                        &colorspace_settings);
   }
 
   return nullptr;
@@ -352,14 +351,14 @@ struct MultiViewPrefixVars {
 };
 
 /**
- * Returns whether the file this context would read from even exist,
- * if not, don't create the context.
+ * Returns true if the file this context would read from doesn't exist,
+ * in which case the context shouldn't be created.
  *
- * \param prefix_vars: Stores prefix variables for reuse,
- * these variables are for internal use, the caller must not depend on them.
+ * \param prefix_vars: Stores prefix variables for reuse.
+ * These are for internal use, the caller must not depend on them.
  *
- * \note This function must first a `view_id` of zero, to initialize `prefix_vars`
- * for use with other views.
+ * \note This function must first be called with a `view_id` of zero, to initialize
+ * `prefix_vars` for use with other views.
  */
 static bool seq_proxy_multiview_context_invalid(Strip *strip,
                                                 Scene *scene,
@@ -608,7 +607,7 @@ static ImBuf *render_image_strip_frame(const ProxyBuildContext &context,
   }
 
   if (prefix[0] == '\0') {
-    ibuf = IMB_load_image_from_filepath(filepath, flag, strip.data->colorspace_settings.name);
+    ibuf = IMB_load_image_from_filepath(filepath, flag, &strip.data->colorspace_settings);
   }
   else {
     char filepath_view[FILE_MAX];
@@ -617,7 +616,7 @@ static ImBuf *render_image_strip_frame(const ProxyBuildContext &context,
     {
       return nullptr;
     }
-    ibuf = IMB_load_image_from_filepath(filepath_view, flag, strip.data->colorspace_settings.name);
+    ibuf = IMB_load_image_from_filepath(filepath_view, flag, &strip.data->colorspace_settings);
   }
   if (ibuf == nullptr) {
     return nullptr;
@@ -689,9 +688,6 @@ static void image_proxy_builder_process(ProxyBuildContext &context,
           if (ib != ibuf) {
             IMB_freeImBuf(ib);
           }
-        }
-        if (ibuf) {
-          seq_imbuf_assign_spaces(context.scene, ibuf);
         }
       }
     }

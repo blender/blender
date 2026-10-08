@@ -4,8 +4,11 @@
  *
  * Author: Sergey Sharybin. */
 
+#include <algorithm>
+#include <utility>
+#include <vector>
+
 #include "internal/base/type_convert.h"
-#include "internal/topology/mesh_topology.h"
 
 #include "opensubdiv_converter_capi.hh"
 #include "opensubdiv_topology_refiner.hh"
@@ -31,7 +34,7 @@ static bool checkSchemeTypeMatches(const TopologyRefinerImpl *topology_refiner_i
                                    const OpenSubdiv_Converter *converter)
 {
   const OpenSubdiv::Sdc::SchemeType converter_scheme_type =
-      blender::opensubdiv::getSchemeTypeFromCAPI(converter->getSchemeType(converter));
+      blender::opensubdiv::getSchemeTypeFromCAPI(converter->scheme_type);
   return (converter_scheme_type == getOSDTopologyRefiner(topology_refiner_impl)->GetSchemeType());
 }
 
@@ -43,7 +46,7 @@ static bool checkOptionsMatches(const TopologyRefinerImpl *topology_refiner_impl
   const Options::FVarLinearInterpolation fvar_interpolation = options.GetFVarLinearInterpolation();
   const Options::FVarLinearInterpolation converter_fvar_interpolation =
       blender::opensubdiv::getFVarLinearInterpolationFromCAPI(
-          converter->getFVarLinearInterpolation(converter));
+          converter->fvar_linear_interpolation);
   if (fvar_interpolation != converter_fvar_interpolation) {
     return false;
   }
@@ -55,6 +58,45 @@ static bool checkPreliminaryMatches(const TopologyRefinerImpl *topology_refiner_
 {
   return checkSchemeTypeMatches(topology_refiner_impl, converter) &&
          checkOptionsMatches(topology_refiner_impl, converter);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Base mesh topology.
+
+static bool checkBaseMeshTopologyMatches(const TopologyRefinerImpl *topology_refiner_impl,
+                                         const OpenSubdiv_Converter *converter)
+{
+  if (topology_refiner_impl->base_verts_num != converter->verts_num) {
+    return false;
+  }
+  if (!std::ranges::equal(converter->face_offsets, topology_refiner_impl->base_face_offsets)) {
+    return false;
+  }
+  if (!std::ranges::equal(converter->corner_verts, topology_refiner_impl->base_corner_verts)) {
+    return false;
+  }
+  if (!std::ranges::equal(converter->edge_sharpness, topology_refiner_impl->base_edge_sharpness)) {
+    return false;
+  }
+  if (!std::ranges::equal(converter->vert_sharpness, topology_refiner_impl->base_vert_sharpness)) {
+    return false;
+  }
+
+  // NOTE: Ignoring the sharpness we don't really care about the content of the edges, they should
+  // be in the consistent state with the faces and face-vertices compared above. If that's not the
+  // case the mesh is invalid and comparison can not happen reliably. For sharpness it is
+  // important to know that the edges still connect the same pair of vertices though.
+  const std::vector<std::pair<int, int>> &base_edges = topology_refiner_impl->base_edges_sparse;
+  for (size_t edge_index = 0; edge_index < base_edges.size(); edge_index++) {
+    if (topology_refiner_impl->base_edge_sharpness[edge_index] < 1e-6f) {
+      continue;
+    }
+    if (base_edges[edge_index] != converter->edges[edge_index]) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -117,7 +159,7 @@ bool TopologyRefinerImpl::isEqualToConverter(const OpenSubdiv_Converter *convert
     return false;
   }
 
-  if (!base_mesh_topology.isEqualToConverter(converter)) {
+  if (!checkBaseMeshTopologyMatches(this, converter)) {
     return false;
   }
 

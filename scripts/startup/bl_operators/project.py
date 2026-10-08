@@ -156,6 +156,7 @@ class ProjectConfig:
     name: str
     variables: list[ProjectVariable] | None = None
     asset_libraries: list[AssetLibraryDefinition] | None = None
+    ocio_config: str = ""
 
     @staticmethod
     def new_from_real(project):
@@ -186,6 +187,7 @@ class ProjectConfig:
             name=project.name,
             variables=variables,
             asset_libraries=asset_list,
+            ocio_config=project.ocio_config_path,
         )
 
     def populate_real(self, project):
@@ -193,6 +195,9 @@ class ProjectConfig:
         if self.variables is not None:
             for config_var in self.variables:
                 config_var.add_as_real(bpy.data.project.variables)
+
+        # Populate the project's OpenColorIO config path.
+        project.ocio_config_path = self.ocio_config
 
         if self.asset_libraries is None:
             return

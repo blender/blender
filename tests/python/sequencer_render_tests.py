@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
@@ -17,15 +16,12 @@ BLOCKLIST = [
 ]
 
 
-def get_compositor_device_setter_script(execution_device):
+def get_compositor_device_setter_script(execution_device: str) -> str:
     return f"import bpy; bpy.data.scenes[0].render.compositor_device = '{execution_device}'"
 
 
-def get_arguments(filepath, output_filepath, backend):
-    dirname = os.path.dirname(filepath)
-    basedir = os.path.dirname(dirname)
-
-    args = [
+def get_arguments(filepath: Path, output_filepath: Path, backend: str) -> list[str | Path]:
+    args: list[str | Path] = [
         "--background",
         "--factory-startup",
         "--enable-autoexec",
@@ -53,10 +49,10 @@ def create_argparse():
     parser = argparse.ArgumentParser(
         description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
     )
-    parser.add_argument("--blender", required=True)
-    parser.add_argument("--testdir", required=True)
-    parser.add_argument("--outdir", required=True)
-    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--blender", required=True, type=Path)
+    parser.add_argument("--testdir", required=True, type=Path)
+    parser.add_argument("--outdir", required=True, type=Path)
+    parser.add_argument("--oiiotool", required=True, type=Path)
     parser.add_argument("--batch", default=False, action="store_true")
     parser.add_argument('--gpu-backend')
     return parser
@@ -76,7 +72,8 @@ def main():
     report.set_fail_percent(0.01)
     report.set_reference_dir("reference")
 
-    def arguments_callback(filepath, output_filepath): return get_arguments(filepath, output_filepath, backend)
+    def arguments_callback(filepath: Path, output_filepath: Path) -> list[str | Path]:
+        return get_arguments(filepath, output_filepath, backend)
     ok = report.run(args.testdir, args.blender, arguments_callback, batch=args.batch)
 
     sys.exit(not ok)

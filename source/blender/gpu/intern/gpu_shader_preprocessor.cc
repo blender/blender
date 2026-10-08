@@ -1488,7 +1488,7 @@ struct Preprocessor {
       if (tok != ParOpen) {
         /* Macro doesn't have parameters. It should not expand. */
         /* Currently still replace by the original token (noop).
-         * Would be better to bypass replacement alltogether. */
+         * Would be better to bypass replacement altogether. */
         TokenStreamPtr expanded = stream_pool.alloc();
         *expanded << expanded_tok;
         return {std::move(expanded), expanded_tok};

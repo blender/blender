@@ -23,10 +23,6 @@ class OneapiDeviceQueue : public DeviceQueue {
  public:
   explicit OneapiDeviceQueue(OneapiDevice *device);
 
-  int num_concurrent_states(const size_t state_size) const override;
-
-  int num_concurrent_busy_states(const size_t state_size) const override;
-
   int num_sort_partitions(int max_num_paths, uint max_scene_shaders) const override;
 
   void init_execution() override;
@@ -55,6 +51,9 @@ class OneapiDeviceQueue : public DeviceQueue {
  protected:
   OneapiDevice *oneapi_device_;
   unique_ptr<KernelContext> kernel_context_;
+
+  ConcurrentStatesParams concurrent_states_params() const override;
+  void get_memory_info(size_t &total, size_t &free) const override;
 };
 
 CCL_NAMESPACE_END

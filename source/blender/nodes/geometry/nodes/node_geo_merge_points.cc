@@ -72,9 +72,11 @@ static void node_geo_exec(GeoNodeExecParams params)
         return;
       }
       const VArraySpan<int> masked_group_ids = evaluator.get_evaluated<int>(0);
-      Mesh *new_mesh = geometry::mesh_merge_verts(
-          *mesh, selection, masked_group_ids, attribute_filter);
-      geometry_set.replace_mesh(new_mesh);
+      if (const std::optional<Mesh *> new_mesh = geometry::mesh_merge_verts(
+              *mesh, selection, masked_group_ids, attribute_filter))
+      {
+        geometry_set.replace_mesh(*new_mesh);
+      }
     }
   });
 

@@ -789,7 +789,7 @@ NSScreen *GHOST_WindowCocoa::getScreen() const
 
 NSScreen *GHOST_WindowCocoa::getPrimaryScreen()
 {
-  /* The first element of the screens array is guaranted to be the primary screen by AppKit. */
+  /* The first element of the screens array is guaranteed to be the primary screen by AppKit. */
   return [[NSScreen screens] firstObject];
 }
 

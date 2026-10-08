@@ -353,11 +353,11 @@ class TestBlendFilePathForeach(TestHelper):
 
         A set is used because the order of visiting is not relevant.
         """
-        visisted_paths: set[tuple[bpy.types.ID, Path]] = set()
+        visited_paths: set[tuple[bpy.types.ID, Path]] = set()
 
         def visit_path_fn(owner_id: bpy.types.ID, path: str, _meta) -> str | None:
             abspath = Path(str(bpy.path.abspath(path, library=owner_id.library)))
-            visisted_paths.add((owner_id, abspath))
+            visited_paths.add((owner_id, abspath))
 
         # Dynamically build the keyword arguments, because the None values are not
         # valid, and should be encoded as not having the kwarg.
@@ -371,7 +371,7 @@ class TestBlendFilePathForeach(TestHelper):
 
         bpy.data.file_path_foreach(visit_path_fn, **kwargs)
 
-        return visisted_paths
+        return visited_paths
 
 
 TESTS = (

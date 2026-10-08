@@ -882,23 +882,25 @@ Provided by SIL’s Non-Roman Script Initiative. Contact us at nrsi@sil.org.
 | [Audaspace](https://audaspace.github.io/) | 1.6.0 (cb49 | `Copyright © 2009-2025 Jörg Müller. All rights reserved.` |
 | [Cuda Wrangler](https://github.com/CudaWrangler/cuew) | cbf465b | `Copyright 2011-2014 Blender Foundation` |
 | [Cython](https://cython.org/) | 3.0.11 | `Copyright Contributors to the Cython Project` |
-| [DPC++](https://github.com/intel/llvm#oneapi-dpc-compiler) | v6.3.0 | `Copyright (C) 2021-2026 Intel Corporation` |
+| [DPC++](https://github.com/intel/llvm#oneapi-dpc-compiler) | v7.1.0 | `Copyright (C) 2021-2026 Intel Corporation` |
 | [Draco](https://google.github.io/draco/) | 1.5.7 | `Copyright 2022 The Draco Authors.` |
 | [Embree](https://github.com/RenderKit/embree) | 4.4.1 | `Copyright 2009-2024 Intel Corporation` |
 | [HIP Extension Wrangler Library (HIPEW)](https://projects.blender.org/blender/blender.git) | N/A | `Copyright 2011-2023 Blender Foundation` |
-| [Icdloader](https://github.com/KhronosGroup/OpenCL-ICD-Loader) | ddf6c70230a | ` Copyright (c) 2020 The Khronos Group Inc.` |
+| [Icdloader](https://github.com/KhronosGroup/OpenCL-ICD-Loader) | v2025.07.22 | ` Copyright (c) 2020 The Khronos Group Inc.` |
 | [Igc Llvm](https://github.com/llvm/llvm-project/)¹ | llvmorg-16. | `Copyright (c) 2003-2019 University of Illinois at Urbana-Champaign. All rights reserved.` |
 | [Igc Opencl Clang](https://github.com/intel/opencl-clang/)¹ | v16.0.10 | `Copyright (c) Intel Corporation (2009-2017).` |
-| [LLVM](https://github.com/llvm/llvm-project/)¹ | 20.1.8 | `Copyright (c) 2003-2019 University of Illinois at Urbana-Champaign. All rights reserved.` |
+| [Ktx](https://github.com/KhronosGroup/KTX-Software) | 4.4.2 | `Copyright Mark Callow, The Khronos Group Inc.` |
+| [LLVM](https://github.com/llvm/llvm-project/)¹ | 22.1.7 | `Copyright (c) 2003-2019 University of Illinois at Urbana-Champaign. All rights reserved.` |
 | [Manifold](https://github.com/elalish/manifold) | v3.5.2 | `Copyright 2021-2026 The Manifold Authors.` |
 | [Mantaflow](http://mantaflow.com/) | 0.13 | `Copyright 2011 Tobias Pfaff, Nils Thuerey` |
 | [MaterialX](https://github.com/AcademySoftwareFoundation/MaterialX) | 1.39.4 | `Copyright Contributors to the MaterialX Project` |
 | [oneTBB](https://software.intel.com/en-us/oneapi/onetbb) | v2022.3.0 | `Copyright (c) 2005-2020 Intel Corporation` |
 | [Open PGL](http://www.openpgl.org/) | v0.7.1 | `Copyright 2020 Intel Corporation.` |
-| [OpenCL-Headers](https://github.com/KhronosGroup/OpenCL-Headers) | 6eabe90aa7b | `Copyright (c) 2023 The Khronos Group Inc.` |
+| [OpenCL-Headers](https://github.com/KhronosGroup/OpenCL-Headers) | v2025.07.22 | `Copyright (c) 2023 The Khronos Group Inc.` |
 | [OpenImageDenoise](https://www.openimagedenoise.org/) | 2.5.0 | `Copyright 2018-2026 Intel Corporation` |
-| [OpenImageIO](https://github.com/AcademySoftwareFoundation/OpenImageIO) | v3.1.13.1 | `Copyright Contributors to the OpenImageIO project.` |
+| [OpenImageIO](https://github.com/AcademySoftwareFoundation/OpenImageIO) | v3.1.16.0 | `Copyright Contributors to the OpenImageIO project.` |
 | [OpenSSL](https://www.openssl.org) | 3.5.6 | `Copyright (c) 1998-2026 The OpenSSL Project Authors. Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson; All rights reserved.` |
+| [Opentimelineio](https://github.com/AcademySoftwareFoundation/OpenTimelineIO) | 31e3101e750 | `Copyright Contributors to the OpenTimelineIO project.` |
 | [OpenXR](https://khronos.org/openxr/) | 1.1.53 | `Copyright (c) 2017-2025 The Khronos Group Inc. Copyright (c) 2017-2019 Valve Corporation. Copyright (c) 2017-2019 LunarG, Inc. Copyright (c) 2019 Collabora, Ltd.` |
 | [Parallel Hashmap](https://github.com/greg7mdp/parallel-hashmap) | 8a889d3699b | `Copyright (c) 2019, Gregory Popovitch - greg7mdp@gmail.com` |
 | [Pthreads](https://github.com/fwbuilder/pthreads4w) | 3.0.0 | `Copyright 1998 John E. Bossom Copyright 1999-2018, Pthreads4w contributors  This product includes software developed through the collaborative effort of several individuals, each of whom is listed in the file CONTRIBUTORS included with this software.  The following files are not covered under the Copyrights listed above:      [1] tests/rwlock7.c     [1] tests/rwlock7_1.c     [1] tests/rwlock8.c     [1] tests/rwlock8_1.c     [2] tests/threestage.c  [1] The file tests/rwlock7.c and those similarly named are derived from code written by Dave Butenhof for his book 'Programming With POSIX(R) Threads'. The original code was obtained by free download from his website http://home.earthlink.net/~anneart/family/Threads/source.html  [2] The file tests/threestage.c is taken directly from examples in the book "Windows System Programming, Edition 4" by Johnson (John) Hart Session 6, Chapter 10. ThreeStage.c Several required additional header and source files from the book examples have been included inline to simplify compilation. The only modification to the code has been to provide default values when run without arguments.` |
@@ -909,7 +911,7 @@ Provided by SIL’s Non-Roman Script Initiative. Contact us at nrsi@sil.org.
 | [SPIR-V Tools](https://github.com/KhronosGroup/SPIRV-Tools/) | 28a883ba4c6 | `Copyright (c) 2015-2016 The Khronos Group Inc.` |
 | [SPIR-V Tools](https://github.com/KhronosGroup/SPIRV-Tools/) | v2026.1 | `Copyright (c) 2015-2016 The Khronos Group Inc.` |
 | [SPIRV-Reflect](https://github.com/KhronosGroup/SPIRV-Reflect) | 1.4.341 | `Copyright 2017-2018 Google Inc.` |
-| [Unified Memory Framework](https://github.com/oneapi-src/unified-memory-framework)¹ | v1.0.0-rc2 | `Copyright (C) 2023-2024 Intel Corporation` |
+| [Unified Memory Framework](https://github.com/oneapi-src/unified-memory-framework)¹ | v1.1.0 | `Copyright (C) 2023-2024 Intel Corporation` |
 | [Vulkan Utility Libraries](https://github.com/KhronosGroup/Vulkan-Utility-Libraries) | 1.4.341 | `Copyright 2015-2025 The Khronos Group Inc.` |
 | [Vulkan-Headers](https://github.com/KhronosGroup/Vulkan-Headers) | 1.4.341 | `Copyright 2015-2023 The Khronos Group Inc.` |
 | [Vulkan-Loader](https://github.com/KhronosGroup/Vulkan-Loader) | 1.4.341 | `Copyright (c) 2019 The Khronos Group Inc. Copyright (c) 2019 Valve Corporation. Copyright (c) 2019 LunarG, Inc. Copyright (c) 2019 Google Inc.` |
@@ -1179,12 +1181,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 | [Google Logging](https://github.com/google/glog) | 0.4.0, 96a2 | `Copyright (c) 2006, Google Inc. All rights reserved.` |
 | [GoogleTest (GoogleMock)](https://github.com/google/googletest) | 1.15.2 (b51 | `Copyright 2007, Google Inc. All rights reserved.` |
 | [GoogleTest (GoogleTest)](https://github.com/google/googletest) | 1.15.2 (b51 | `Copyright 2007, Google Inc. All rights reserved.` |
+| [Hwloc](https://github.com/open-mpi/hwloc) | 2.10.0 | `Copyright (c) 2004-2016 The hwloc contributors` |
 | [Imath](https://github.com/AcademySoftwareFoundation/Imath) | 3.2.2 | `Copyright Contributors to the OpenEXR Project. All rights reserved.` |
 | [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo/) | 2.1.3 | `Copyright (C)2009-2020 D. R. Commander. All Rights Reserved. Copyright (C)2015 Viktor Szathmáry. All Rights Reserved.` |
 | [NanoBind](https://github.com/wjakob/nanobind) | v2.1.0 | `2023, Wenzel Jakob` |
 | [Numpy](https://numpy.org/) | 2.3.4 | `Copyright (c) 2005-2022, NumPy Developers. All rights reserved.` |
 | [Ogg](https://xiph.org/ogg/) | 1.3.5 | `COPYRIGHT (C) 1994-2019 by the Xiph.Org Foundation https://www.xiph.org/` |
-| [Open Shading Language](https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/) | 1.15.3.0 | `Copyright (c) 2009-present Contributors to the Open Shading Language project.` |
+| [Open Shading Language](https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/) | 1.15.6.0 | `Copyright (c) 2009-present Contributors to the Open Shading Language project.` |
 | [OpenColorIO](https://github.com/AcademySoftwareFoundation/OpenColorIO) | 2.5.0 | `Copyright Contributors to the OpenColorIO Project.` |
 | [Openexr](https://github.com/AcademySoftwareFoundation/openexr) | 3.4.10 | `Copyright Contributors to the OpenEXR Project. All rights reserved.` |
 | [OpenGL Extension Wrangler Library](http://glew.sourceforge.net/) | 2.0.0 | `Copyright (C) 2008-2015, Nigel Stewart <nigels[]users sourceforge net>; Copyright (C) 2002-2008, Milan Ikits <milan ikits[]ieee org>; Copyright (C) 2002-2008, Marcelo E. Magallon <mmagallo[]debian org>; Copyright (C) 2002, Lev Povalahev; All rights reserved.` |
@@ -1449,7 +1452,7 @@ Legal Terms
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
 | [FFTW](https://www.fftw.org/) | 3.3.10 | `Copyright (c) 2003, 2007-14 Matteo Frigo. Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology` |
-| [Flac](https://xiph.org/flac/) | 1.4.2 | `Copyright (C) 2001-2009  Josh Coalson. Copyright (C) 2011-2016  Xiph.Org Foundation.` |
+| [Flac](https://xiph.org/flac/) | 1.5.0 | `Copyright (C) 2001-2009  Josh Coalson. Copyright (C) 2011-2016  Xiph.Org Foundation.` |
 | [GMP](https://gmplib.org/) | 6.3.0 | `Copyright 1996-2020 Free Software Foundation, Inc.` |
 | [Potrace](https://potrace.sourceforge.net/) | 1.16 | `Copyright © 2001-2019 Peter Selinger.` |
 | [Rubber Band Library](https://breakfastquay.com/rubberband/) | 4.0.0 | `Copyright (c) 2025 Particular Programs Ltd` |
@@ -2563,29 +2566,35 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
+| [AMF](https://github.com/GPUOpen-LibrariesAndSDKs/AMF) | 1.5.2 | `Copyright (c) 2017-2026 Advanced Micro Devices, Inc.` |
 | [Brotli](https://github.com/google/brotli) | 1.0.9 | `Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.` |
 | [Deflate](https://github.com/ebiggers/libdeflate) | 1.18 | `Copyright 2016 Eric Biggers` |
-| [Emhash](https://github.com/ktprime/emhash) | 3ba9abdfdc2 | `Copyright (c) 2019 hyb` |
+| [Emhash](https://github.com/ktprime/emhash) | 5e131ba09a5 | `Copyright (c) 2019 hyb` |
 | [Epoxy](https://github.com/anholt/libepoxy) | 1.5.10 | `Copyright © 2013-2014 Intel Corporation. Copyright © 2013 The Khronos Group Inc.` |
 | [Expat](https://github.com/libexpat/libexpat/) | 2_7_5 | `Copyright (c) 1998-2000 Thai Open Source Software Center Ltd and Clark Cooper. Copyright (c) 2001-2025 Expat maintainers.` |
 | [fast_float](https://github.com/fastfloat/fast_float) | 5.0.0 (f5a3 | `Copyright 2023 The Wuffs Authors; Copyright (c) 2021 The fast_float authors` |
+| [ffnvcodec](https://github.com/FFmpeg/nv-codec-headers) | n12.1.14.0 | `Copyright (c) 2010-2026 NVIDIA Corporation` |
 | [Fmt](https://github.com/fmtlib/fmt) | 12.1.0 | `Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors` |
 | [Hiprt](https://github.com/GPUOpen-LibrariesAndSDKs/HIPRT) | 606b4886efa | `Copyright (C) 2024 Advanced Micro Devices, Inc. All Rights Reserved. ` |
 | [IGC](https://github.com/intel/intel-graphics-compiler) | 2.30.1 | `Copyright (C) 2019-2026 Intel Corporation` |
 | [Intel(R) Graphics Memory Management Library](https://github.com/intel/gmmlib) | intel-gmmli | `Copyright (c) 2017 Intel Corporation. Copyright (c) 2016 Gabi Melman. Copyright 2008, Google Inc. All rights reserved.` |
+| [Jolt](https://github.com/jrouwe/JoltPhysics) | 5.6.0 | `Copyright 2021 Jorrit Rouwe` |
 | [JSON](https://github.com/nlohmann/json/) | 3.11.3 | `Copyright (c) 2013-2021 Niels Lohmann` |
 | [libffi](https://github.com/libffi/libffi/) | 3.5.2 | `Copyright (c) 1996-2025  Anthony Green, Red Hat, Inc and others.` |
 | [libxml2](https://gitlab.gnome.org/GNOME/libxml2) | 2.14.6 | `Copyright (C) 1998-2012 Daniel Veillard. All Rights Reserved.` |
+| [MD4C](https://github.com/mity/md4c) | 0.5.3 (472c | `Copyright (c) 2016-2024 Martin Mitáš` |
 | [Meshoptimizer](https://meshoptimizer.org) | 1.1 | `Copyright (c) 2016-2026 Arseny Kapoulkine` |
 | [Ocloc](https://github.com/intel/compute-runtime) | 25.31.34666 | `Copyright (C) 2018-2023 Intel Corporation` |
-| [oneAPI Level Zero](https://github.com/oneapi-src/level-zero) | 35c037cdf4a | `Copyright (C) 2019-2024 Intel Corporation` |
+| [oneAPI Level Zero](https://github.com/oneapi-src/level-zero) | v1.29.0 | `Copyright (C) 2019-2024 Intel Corporation` |
 | [Pugixml](https://pugixml.org/) | 1.10 | `Copyright (c) 2006-2020 Arseny Kapoulkine` |
 | [QuadriFlow](https://github.com/hjwdzh/QuadriFlow) | 27a6867 | `Copyright (c) 2018 Jingwei Huang, Yichao Zhou, Matthias Niessner, Jonathan Shewchuk and Leonidas Guibas. All rights reserved.` |
+| [Rapidjson](http://rapidjson.org) | 24b5e7a8b27 | `Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip. All rights reserved.` |
 | [RenderDoc](https://github.com/baldurk/renderdoc/) | d47e79ae079 | `Copyright (c) 2015-2024 Baldur Karlsson; Copyright (c) 2014 Crytek` |
 | [Robinmap](https://github.com/Tessil/robin-map) | v1.3.0 | `Copyright (c) 2017 Thibaut Goetghebuer-Planchon <tessil@gmx.com>` |
 | [sse2neon](https://github.com/DLTcollab/sse2neon) | 227cc413fb2 | `Copyright sse2neon contributors` |
 | [Thorvg](https://www.thorvg.org/) | v1.0.3 | `Copyright (c) 2020 - 2026 ThorVG Project` |
 | [TinyGLTF](https://github.com/syoyo/tinygltf) | 2.8.21, 4bf | `Copyright (c) 2017 Syoyo Fujita, Aurélien Chatelain and many contributors` |
+| [toml11](https://github.com/ToruNiina/toml11) | b32a2fff0d2 | `Copyright (c) 2017 Toru Niina` |
 | [ufbx - Single source file FBX loader](https://github.com/ufbx/ufbx) | v0.20.0 (a6 | `Copyright (c) 2020 Samuli Raivio` |
 | [VC Intrinsics](https://github.com/intel/vc-intrinsics) | 0.25.0 | `Copyright (C) 2020-2021 Intel Corporation` |
 | [Vcintrinsics](https://github.com/intel/vc-intrinsics) | 60cea7590bd | `Copyright (c) 2019-2024 Intel Corporation` |
@@ -2626,7 +2635,7 @@ IN THE SOFTWARE.
 
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
-| [Dpcpp Spirv Headers](https://github.com/KhronosGroup/SPIRV-Headers) | c9aad99f927 | `Copyright (c) 2015-2024 The Khronos Group Inc.` |
+| [Dpcpp Spirv Headers](https://github.com/KhronosGroup/SPIRV-Headers) | 9268f305735 | `Copyright (c) 2015-2024 The Khronos Group Inc.` |
 | [SPIR-V Headers](https://github.com/KhronosGroup/SPIRV-Headers) | 9268f305735 | `Copyright (c) 2015-2024 The Khronos Group Inc.` |
 <details>
 <summary>MIT Khronos - old variant</summary>
@@ -3025,7 +3034,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 </details>
 
-## [Public Domain](https://spdx.org/licenses/CC0-1.0.html)
+## Public Domain
 
 Public domain projects have no specific license or requirements in regards to copyright enforcement.
 
@@ -3101,7 +3110,7 @@ Agreement.
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
 | [OpenSubdiv](https://graphics.pixar.com/opensubdiv/docs/intro.html) | v3_7_0 | `OpenSubdiv Copyright 2013 Pixar All rights reserved. This product includes software developed at: Pixar (http://www.pixar.com/). Dreamworks Animation (http://www.dreamworksanimation.com/). Autodesk, Inc. (http://www.autodesk.com/). Google, Inc. (http://www.google.com/). DigitalFish (http://digitalfish.com/).` |
-| [USD](https://openusd.org/) | 26.03 | `Universal Scene Description Copyright 2016 Pixar All rights reserved. This product includes software developed at: Pixar (http://www.pixar.com/).` |
+| [USD](https://openusd.org/) | 26.08 | `Universal Scene Description Copyright 2016 Pixar All rights reserved. This product includes software developed at: Pixar (http://www.pixar.com/).` |
 <details>
 <summary>Tomorrow Open Source Technology License 1.0</summary>
 
@@ -3319,7 +3328,7 @@ disclaims all warranties with regard to this software.
 | ------- | ------- | --------- |
 | [Bullet Continuous Collision Detection and Physics Library](http://bulletphysics.org) | 3.07 | `Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/` |
 | [Haru](http://libharu.org/) | 2.4.5 | `Copyright (C) 1999-2006 Takeshi Kanno. Copyright (C) 2007-2009 Antony Dovgal.` |
-| [minizip-ng](https://github.com/zlib-ng/minizip-ng) | 4.0.10 | `Copyright (C) Nathan Moinvaziri https://github.com/zlib-ng/minizip-ng. Copyright (C) 1998-2010 Gilles Vollant https://www.winimage.com/zLibDll/minizip.html.` |
+| [minizip-ng](https://github.com/zlib-ng/minizip-ng) | 4.2.2 | `Copyright (C) Nathan Moinvaziri https://github.com/zlib-ng/minizip-ng. Copyright (C) 1998-2010 Gilles Vollant https://www.winimage.com/zLibDll/minizip.html.` |
 | [NanoSVG](https://github.com/memononen/nanosvg) | - | `Copyright (c) 2013-14 Mikko Mononen memon@inside.org` |
 | [SDL](https://www.libsdl.org) | 3.4.2 | `Copyright (C) 1997-2020 Sam Lantinga <slouken@libsdl.org>` |
 | [Zlib](https://zlib.net) | 1.3.1 | `Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler` |

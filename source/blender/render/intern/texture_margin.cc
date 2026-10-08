@@ -445,7 +445,7 @@ class TextureMarginMap {
         bool valid = (cross > 0.0);
 
         if (valid && (found_dist < 0 || reflectLen < found_dist)) {
-          /* Stother_ab the info of the closest edge so far. */
+          /* Store the info of the closest edge so far. */
           found_dist = reflectLen;
           found_t = t;
           found_edge = i + faces_[src_poly].start();
@@ -487,7 +487,7 @@ class TextureMarginMap {
     perpendicular_other_ab.x = other_ab.y;
     perpendicular_other_ab.y = -other_ab.x;
 
-    /* The new point is dound_dist distance from other_reflect_point at a 90 degree angle to
+    /* The new point is found_dist distance from other_reflect_point at a 90 degree angle to
      * other_ab */
     float2 new_point = other_reflect_point + (found_dist / math::length(perpendicular_other_ab)) *
                                                  perpendicular_other_ab;

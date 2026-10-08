@@ -47,7 +47,7 @@ def clean_structs(fn: str, data_src: str) -> str | None:
     from pygments.token import Token
     from pygments import lexers
 
-    word_occurance: dict[str, int] = {}
+    word_occurrence: dict[str, int] = {}
 
     lex = lexers.get_lexer_by_name("c++")
     lex.get_tokens(data_src)
@@ -64,9 +64,9 @@ def clean_structs(fn: str, data_src: str) -> str | None:
     for w_match in re_words.finditer(data_src):
         w = w_match.group(0)
         try:
-            word_occurance[w] += 1
+            word_occurrence[w] += 1
         except KeyError:
-            word_occurance[w] = 1
+            word_occurrence[w] = 1
 
     lines = data_src.splitlines(keepends=True)
 
@@ -75,7 +75,7 @@ def clean_structs(fn: str, data_src: str) -> str | None:
         m = re_match_struct.match(lines[i])
         if m is not None:
             struct_name = m.group(1)
-            if word_occurance[struct_name] == 1:
+            if word_occurrence[struct_name] == 1:
                 print(struct_name, fn)
                 del lines[i]
                 i -= 1

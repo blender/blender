@@ -463,7 +463,7 @@ void SourceProcessor::lower_structured_bindings(Parser &parser)
       }
     }
 
-    /* Search symbols inside this file. This can help find instanciated structs. */
+    /* Search symbols inside this file. This can help find instantiated structs. */
     vector<pair<string, string>> members;
     parser().foreach_match("sA{", [&](const Tokens &t) {
       if (t[1].str() != struct_name) {

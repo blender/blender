@@ -541,6 +541,42 @@ class GeometryAttributeConstraintTest(AbstractConstraintTests):
         )
 
 
+class ConstraintAPITests(unittest.TestCase):
+    """Basic constraint API tests."""
+
+    def test_object_constraints_new(self) -> None:
+        bpy.ops.wm.read_homefile(use_factory_startup=True)
+
+        ob_cube = bpy.context.scene.objects["Cube"]
+        con_default_1 = ob_cube.constraints.new('COPY_LOCATION')
+        con_default_2 = ob_cube.constraints.new('COPY_LOCATION')
+        con_custom_1 = ob_cube.constraints.new('COPY_LOCATION', name='Custom Name')
+        con_custom_2 = ob_cube.constraints.new('COPY_LOCATION', name='Custom Name')
+
+        self.assertEqual(con_default_1.name, 'Copy Location')
+        self.assertEqual(con_default_2.name, 'Copy Location.001')
+        self.assertEqual(con_custom_1.name, 'Custom Name')
+        self.assertEqual(con_custom_2.name, 'Custom Name.001')
+
+    def test_bone_constraints_new(self) -> None:
+        bpy.ops.wm.read_homefile(use_empty=True)
+
+        # Easiest way to get a single-bone armature.
+        bpy.ops.object.armature_add()
+        ob_arm = bpy.context.scene.objects["Armature"]
+        bone = ob_arm.pose.bones["Bone"]
+
+        con_default_1 = bone.constraints.new('COPY_LOCATION')
+        con_default_2 = bone.constraints.new('COPY_LOCATION')
+        con_custom_1 = bone.constraints.new('COPY_LOCATION', name='Custom Name')
+        con_custom_2 = bone.constraints.new('COPY_LOCATION', name='Custom Name')
+
+        self.assertEqual(con_default_1.name, 'Copy Location')
+        self.assertEqual(con_default_2.name, 'Copy Location.001')
+        self.assertEqual(con_custom_1.name, 'Custom Name')
+        self.assertEqual(con_custom_2.name, 'Custom Name.001')
+
+
 def main():
     global args
     import argparse

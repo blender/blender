@@ -34,6 +34,9 @@ Tests:
 - test_cli_blender
   Runs tests that access & manipulate extensions via the command line.
 
+- test_blender_asset_auth
+  Runs tests for authenticating asset libraries provided by extensions.
+
 
 Environment Variables:
 
@@ -135,6 +138,7 @@ test: FORCE
 	@$(MAKE) -C "$(BASE_DIR)" test_cli;
 	@$(MAKE) -C "$(BASE_DIR)" test_blender;
 	@$(MAKE) -C "$(BASE_DIR)" test_cli_blender;
+	@$(MAKE) -C "$(BASE_DIR)" test_blender_asset_auth;
 	@$(MAKE) -C "$(BASE_DIR)" test_path_pattern_match;
 watch_test: FORCE
 	@cd "$(BASE_DIR)" && \
@@ -189,6 +193,19 @@ watch_test_cli_blender: FORCE
 	while true; do \
 		env BLENDER_BIN=$(BLENDER_BIN) \
 		    $(MAKE) test_cli_blender; \
+		inotifywait -q -e close_write $(EXTRA_WATCH_FILES) $(PY_FILES) ; \
+		tput clear; \
+	done
+
+test_blender_asset_auth: FORCE
+	@cd "$(BASE_DIR)" && \
+	    env BLENDER_BIN=$(BLENDER_BIN) \
+	    $(PYTHON_BIN) ./tests/test_blender_asset_auth.py
+watch_test_blender_asset_auth: FORCE
+	@cd "$(BASE_DIR)" && \
+	while true; do \
+		env BLENDER_BIN=$(BLENDER_BIN) \
+		    $(MAKE) test_blender_asset_auth; \
 		inotifywait -q -e close_write $(EXTRA_WATCH_FILES) $(PY_FILES) ; \
 		tput clear; \
 	done

@@ -267,6 +267,36 @@ IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
   return curves::curve_to_point_selection(curves.points_by_curve(), selected_curves, memory);
 }
 
+IndexMask curves_mask_to_shapes(const IndexMask &curve_mask,
+                                const GroupedSpan<int> shapes,
+                                IndexMaskMemory &memory)
+{
+  const int curves_num = shapes.data.size();
+
+  /* If every shape is just one curve then the sames and curves are the same. */
+  if (shapes.size() == curves_num) {
+    return curve_mask;
+  }
+
+  Array<int> curve_to_shape_map(curves_num);
+  threading::parallel_for(shapes.index_range(), 4096, [&](const IndexRange range) {
+    for (const int shape_i : range) {
+      const Span<int> shape = shapes[shape_i];
+      for (const int curve_i : shape) {
+        curve_to_shape_map[curve_i] = shape_i;
+      }
+    }
+  });
+
+  VectorSet<int> selected_shapes;
+  curve_mask.foreach_index([&](const int curve_i) {
+    const int shape_i = curve_to_shape_map[curve_i];
+    selected_shapes.add(shape_i);
+  });
+
+  return IndexMask::from_indices(selected_shapes.as_span(), memory);
+}
+
 void separate_fill_ids(CurvesGeometry &curves, const IndexMask &strokes_to_keep)
 {
   IndexMaskMemory memory;

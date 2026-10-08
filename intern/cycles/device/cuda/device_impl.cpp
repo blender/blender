@@ -101,6 +101,9 @@ CUDADevice::CUDADevice(const DeviceInfo &info, Stats &stats, Profiler &profiler,
   cuda_assert(cuDeviceGetAttribute(&value, CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY, cuDevice));
   can_map_host = value != 0;
 
+  cuda_assert(cuDeviceGetAttribute(&value, CU_DEVICE_ATTRIBUTE_INTEGRATED, cuDevice));
+  integrated_gpu = value != 0;
+
   cuda_assert(cuDeviceGetAttribute(
       &pitch_alignment, CU_DEVICE_ATTRIBUTE_TEXTURE_PITCH_ALIGNMENT, cuDevice));
 
@@ -534,6 +537,25 @@ void CUDADevice::reserve_local_memory(const uint64_t kernel_features)
 #  endif
 }
 
+GPUDevice::Mem *CUDADevice::generic_alloc(device_memory &mem, const size_t pitch_padding)
+{
+  /* Force frequently copied allocations into shared memory on integrated GPUs. */
+  if (integrated_gpu && mem.type == MEM_READ_WRITE && mem.host_pointer) {
+    mem.move_to_host = true;
+    Mem *const cmem = GPUDevice::generic_alloc(mem, pitch_padding);
+    mem.move_to_host = false;
+
+    if (cmem && mem.shared_pointer && mem.host_pointer != mem.shared_pointer) {
+      memcpy(mem.shared_pointer, mem.host_pointer, mem.memory_size());
+      host_free(mem.type, mem.host_pointer, mem.memory_size());
+      mem.host_pointer = mem.shared_pointer;
+    }
+    return cmem;
+  }
+
+  return GPUDevice::generic_alloc(mem, pitch_padding);
+}
+
 void CUDADevice::get_device_memory_info(size_t &total, size_t &free)
 {
   CUDAContextScope scope(this);
@@ -558,26 +580,48 @@ void CUDADevice::free_device(void *device_pointer)
 
 bool CUDADevice::shared_alloc(void *&shared_pointer, const size_t size)
 {
-  CUDAContextScope scope(this);
+  const CUDAContextScope scope(this);
 
-  CUresult mem_alloc_result = cuMemHostAlloc(
-      &shared_pointer, size, CU_MEMHOSTALLOC_DEVICEMAP | CU_MEMHOSTALLOC_WRITECOMBINED);
+#  if 1
+  /* Register memory aligned to large page boundaries, since on integrated GPUs that is currently
+   * the most optimal path for performance. */
+  shared_pointer = util_page_aligned_malloc(size);
+  if (!shared_pointer) {
+    return false;
+  }
+  const unsigned int flags = CU_MEMHOSTREGISTER_PORTABLE | CU_MEMHOSTREGISTER_DEVICEMAP;
+  if (cuMemHostRegister(shared_pointer, size, flags) == CUDA_SUCCESS) {
+    return true;
+  }
+  util_page_aligned_free(shared_pointer, size);
+  shared_pointer = nullptr;
+  return false;
+#  else
+  const unsigned int flags = CU_MEMHOSTALLOC_PORTABLE | CU_MEMHOSTALLOC_DEVICEMAP;
+  CUresult mem_alloc_result = cuMemHostAlloc(&shared_pointer, size, flags);
   return mem_alloc_result == CUDA_SUCCESS;
+#  endif
 }
 
-void CUDADevice::shared_free(void *shared_pointer)
+void CUDADevice::shared_free(void *shared_pointer, const size_t size)
 {
-  CUDAContextScope scope(this);
+  const CUDAContextScope scope(this);
 
+#  if 1
+  cuMemHostUnregister(shared_pointer);
+  util_page_aligned_free(shared_pointer, size);
+#  else
   cuMemFreeHost(shared_pointer);
+#  endif
 }
 
 void *CUDADevice::shared_to_device_pointer(const void *shared_pointer)
 {
-  CUDAContextScope scope(this);
+  const CUDAContextScope scope(this);
+
   void *device_pointer = nullptr;
   cuda_assert(
-      cuMemHostGetDevicePointer_v2((CUdeviceptr *)&device_pointer, (void *)shared_pointer, 0));
+      cuMemHostGetDevicePointer((CUdeviceptr *)&device_pointer, (void *)shared_pointer, 0));
   return device_pointer;
 }
 
@@ -640,20 +684,28 @@ void CUDADevice::mem_copy_from(
 {
   if (mem.type == MEM_IMAGE_TEXTURE) {
     assert(!"mem_copy_from not supported for images.");
+    return;
   }
-  else if (mem.host_pointer) {
-    const size_t size = elem * w * h;
-    const size_t offset = elem * y * w;
 
-    if (mem.device_pointer) {
-      const CUDAContextScope scope(this);
-      cuda_assert(cuMemcpyDtoH(
-          (char *)mem.host_pointer + offset, (CUdeviceptr)mem.device_pointer + offset, size));
-    }
-    else {
-      memset((char *)mem.host_pointer + offset, 0, size);
-    }
+  const size_t size = elem * w * h;
+  const size_t offset = elem * y * w;
+
+  if (!mem.host_pointer) {
+    return;
   }
+  if (!mem.device_pointer) {
+    memset((char *)mem.host_pointer + offset, 0, size);
+    return;
+  }
+
+  if (mem.is_shared(this) && mem.host_pointer == mem.shared_pointer) {
+    return;
+  }
+
+  const CUDAContextScope scope(this);
+
+  cuda_assert(cuMemcpyDtoH(
+      (char *)mem.host_pointer + offset, (CUdeviceptr)mem.device_pointer + offset, size));
 }
 
 void CUDADevice::mem_zero(device_memory &mem)
@@ -665,13 +717,14 @@ void CUDADevice::mem_zero(device_memory &mem)
     return;
   }
 
-  if (!(mem.is_shared(this) && mem.host_pointer == mem.shared_pointer)) {
-    const CUDAContextScope scope(this);
-    cuda_assert(cuMemsetD8((CUdeviceptr)mem.device_pointer, 0, mem.memory_size()));
-  }
-  else if (mem.host_pointer) {
+  if (mem.is_shared(this) && mem.host_pointer == mem.shared_pointer) {
     memset(mem.host_pointer, 0, mem.memory_size());
+    return;
   }
+
+  const CUDAContextScope scope(this);
+
+  cuda_assert(cuMemsetD8((CUdeviceptr)mem.device_pointer, 0, mem.memory_size()));
 }
 
 void CUDADevice::mem_free(device_memory &mem)
@@ -853,8 +906,10 @@ void CUDADevice::image_alloc(device_image &mem)
       return;
     }
 
-    const CUDA_MEMCPY2D param = tex_2d_copy_param(mem, pitch_alignment);
-    cuda_assert(cuMemcpy2DUnaligned(&param));
+    if (!(mem.is_shared(this) && mem.host_pointer == mem.shared_pointer)) {
+      const CUDA_MEMCPY2D param = tex_2d_copy_param(mem, pitch_alignment);
+      cuda_assert(cuMemcpy2DUnaligned(&param));
+    }
   }
   else {
     /* 1D image, using linear memory. */
@@ -863,7 +918,9 @@ void CUDADevice::image_alloc(device_image &mem)
       return;
     }
 
-    cuda_assert(cuMemcpyHtoD(mem.device_pointer, mem.host_pointer, mem.memory_size()));
+    if (!(mem.is_shared(this) && mem.host_pointer == mem.shared_pointer)) {
+      cuda_assert(cuMemcpyHtoD(mem.device_pointer, mem.host_pointer, mem.memory_size()));
+    }
   }
 
   /* Set Mapping and tag that we need to (re-)upload to device */
@@ -945,7 +1002,7 @@ void CUDADevice::image_copy_to(device_image &mem)
       image_alloc(mem);
     }
   }
-  else {
+  else if (!(mem.is_shared(this) && mem.host_pointer == mem.shared_pointer)) {
     /* Resident and fully allocated, only copy. */
     if (mem.data_height > 0) {
       CUDAContextScope scope(this);

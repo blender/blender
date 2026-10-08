@@ -10,7 +10,7 @@
 
 namespace blender::draw {
 
-gpu::VertBufPtr extract_orco(const MeshRenderData &mr)
+gpu::VertBufPtr extract_orco(const MeshRenderData &mr, MeshBufferCache &cache)
 {
   const Span<float3> orco_data(
       static_cast<const float3 *>(CustomData_get_layer(&mr.mesh->vert_data, CD_ORCO)),
@@ -23,35 +23,20 @@ gpu::VertBufPtr extract_orco(const MeshRenderData &mr)
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
       "orco", gpu::VertAttrType::SFLOAT_32_32_32_32);
 
-  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
-  GPU_vertbuf_data_alloc(*vbo, mr.corners_num);
-  MutableSpan vbo_data = vbo->data<float4>();
-
+  gpu::VertBufPtr vert_vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vert_vbo, mr.verts_num);
+  MutableSpan vbo_data = vert_vbo->data<float4>();
   const int64_t bytes = orco_data.size_in_bytes() + vbo_data.size_in_bytes();
   threading::memory_bandwidth_bound_task(bytes, [&]() {
-    if (mr.extract_type == MeshExtractType::BMesh) {
-      const BMesh &bm = *mr.bm;
-      threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
-        for (const int face_index : range) {
-          const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-          const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
-          for ([[maybe_unused]] const int i : IndexRange(face.len)) {
-            const int index = BM_elem_index_get(loop);
-            vbo_data[index] = float4(orco_data[BM_elem_index_get(loop->v)], 0.0f);
-            loop = loop->next;
-          }
-        }
-      });
-    }
-    else {
-      const Span<int> corner_verts = mr.corner_verts;
-      threading::parallel_for(corner_verts.index_range(), 4096, [&](const IndexRange range) {
-        for (const int corner : range) {
-          vbo_data[corner] = float4(orco_data[corner_verts[corner]], 0.0f);
-        }
-      });
-    }
+    threading::parallel_for(IndexRange(mr.verts_num), 2048, [&](const IndexRange range) {
+      for (const int vert : range) {
+        vbo_data[vert] = float4(orco_data[vert], 0.0f);
+      }
+    });
   });
+
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_on_device(format, mr.corners_num));
+  gather_vert_to_corner_gpu(mr, cache, *vert_vbo, *vbo);
   return vbo;
 }
 

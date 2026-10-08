@@ -3326,14 +3326,12 @@ static brushes::CursorSampleResult calc_brush_node_mask(const Depsgraph &depsgra
     if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
       /* Calculate sculpt normal from a estimate of the surface normal. */
 
-      /* TODO: Test to see if we need to pass in math::square(ss.cache->radius *
-       * std::numbers::sqrt2) as the radius_sq param in gather_nodes, as in
-       * clay_strips::calc_node_mask. */
+      const float initial_radius = math::square(ss.cache->radius * std::numbers::sqrt3);
       const IndexMask initial_node_mask = gather_nodes(pbvh,
                                                        eBrushFalloffShape(brush.falloff_shape),
                                                        use_original,
                                                        ss.cache->location_symm,
-                                                       M_SQRT3,
+                                                       initial_radius,
                                                        ss.cache->view_normal_symm,
                                                        memory);
       tip_normal = calc_sculpt_normal(depsgraph, sd, ob, initial_node_mask);
@@ -6459,33 +6457,31 @@ void ensure_cache(Object &object)
 
 }  // namespace islands
 
-void cube_tip_init(const Sculpt & /*sd*/, const Object &ob, const Brush &brush, float mat[4][4])
+float4x4 cube_tip_init(const Sculpt & /*sd*/, const Object &ob, const Brush &brush)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
-  float scale[4][4];
-  float tmat[4][4];
-  float unused[4][4];
+  float4x4 unused;
+  float4x4 mat;
 
-  zero_m4(mat);
   calc_brush_local_mat(0.0,
                        ob,
                        eBrushFalloffShape(brush.falloff_shape) == PAINT_FALLOFF_SHAPE_SPHERE ?
                            ss.cache->sculpt_normal_symm :
                            ss.cache->view_normal_symm,
-                       unused,
-                       mat);
+                       unused.ptr(),
+                       mat.ptr());
 
   /* NOTE: we ignore the radius scaling done inside of calc_brush_local_mat to
    * duplicate prior behavior.
    *
    * TODO: try disabling this and check that all edge cases work properly.
    */
-  normalize_m4(mat);
+  normalize_m4(mat.ptr());
 
-  scale_m4_fl(scale, ss.cache->radius);
-  mul_m4_m4m4(tmat, mat, scale);
-  mul_v3_fl(tmat[1], brush.tip_scale_x);
-  invert_m4_m4(mat, tmat);
+  const float4x4 scale = math::from_scale<float4x4>(float3(ss.cache->radius));
+  float4x4 tmat = mat * scale;
+  tmat.y_axis() *= brush.tip_scale_x;
+  return math::invert(tmat);
 }
 /** \} */
 

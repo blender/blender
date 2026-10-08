@@ -127,7 +127,9 @@ void ED_file_path_button(bScreen *screen,
   BLI_assert(!but_is_utf8(but));
 
   button_func_complete_set(but, autocomplete_directory, nullptr);
-  button_funcN_set(but, file_directory_enter_handle, nullptr, but);
+  button_funcN_set(but, file_directory_enter_handle, nullptr, but, nullptr, nullptr);
+  /* Keep editing after Tab completes a directory. */
+  button_flag_enable(but, ui::BUT_TEXTEDIT_AUTOCOMPLETE_KEEP_ACTIVE);
 
   /* TODO: directory editing is non-functional while a library is loaded
    * until this is properly supported just disable it. */
@@ -1853,7 +1855,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
     ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
     wmOperatorType *ot;
     if (is_project_library) {
-      ot = WM_operatortype_find("SCREEN_OT_project_setup_show", false);
+      ot = WM_operatortype_find("SCREEN_OT_project_settings_show", false);
     }
     else {
       ot = WM_operatortype_find("SCREEN_OT_userpref_show", false);

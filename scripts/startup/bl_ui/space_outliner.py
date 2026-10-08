@@ -441,8 +441,12 @@ class OUTLINER_PT_filter(Panel):
             layout.separator()
 
         if display_mode != 'DATA_API':
-            col = layout.column(align=True)
-            col.prop(space, "use_sort_alpha")
+            col = layout.column()
+            col.use_property_split = True
+            col.use_property_decorate = False
+            sub = col.column()
+            sub.prop(space, "sort_method", text="Sort")
+            layout.separator()
 
         if display_mode != 'LIBRARY_OVERRIDES':
             col = layout.column(align=True)
@@ -457,6 +461,11 @@ class OUTLINER_PT_filter(Panel):
 
             row = layout.row(align=True)
             row.prop(space, "show_mode_column", text="Show Mode Column")
+
+            if display_mode in {'VIEW_LAYER', 'SCENES'}:
+                row = layout.row(align=True)
+                row.prop(space, "show_users_column", text="Show Users Column")
+
             layout.separator()
 
         if display_mode == 'LIBRARY_OVERRIDES' and space.lib_override_view_mode == 'PROPERTIES' and bpy.data.libraries:

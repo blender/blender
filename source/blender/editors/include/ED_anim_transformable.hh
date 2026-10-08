@@ -36,11 +36,15 @@ enum AxisMutable : uint8_t {
   AXIS_MUTABLE_X = 1 << 0,
   AXIS_MUTABLE_Y = 1 << 1,
   AXIS_MUTABLE_Z = 1 << 2,
-  /* All bits set to 1 so support generic properties larger than 3. Note that this doesn't
-     mean the W axis is supported. See AnimTransformable::set_property. */
+  /**
+   * All bits set to 1 so support generic properties larger than 3. Note that this doesn't
+   * mean the W axis is supported. See #AnimTransformable::set_property.
+   */
   AXIS_MUTABLE_ALL = (1 << 8) - 1,
-  /* There is currently no support for a W axis. This was already the case when porting this enum
-   * from the pose slide code. */
+  /**
+   * There is currently no support for a W axis. This was already the case when porting this enum
+   * from the pose slide code.
+   */
 };
 ENUM_OPERATORS(AxisMutable);
 

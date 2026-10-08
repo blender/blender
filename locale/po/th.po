@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -3610,6 +3610,10 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "ไม่พบพื้นที่สี มุมมอง หรือการแสดงผล ซึ่งอาจหมายความว่าไฟล์การกำหนดค่า OpenColorIO ที่ใช้สร้างไฟล์ Blend นี้หายไป"
 
 
+msgid "Blender"
+msgstr "Blender"
+
+
 msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
 msgstr "พื้นที่สีที่ใช้สำหรับสีเชิงเส้นทั้งหมดในฉากในไฟล์นี้ รวมถึงการประมวลผลโหนดการจัดองค์ประกอบภาพ เชเดอร์ และเรขาคณิต"
 
@@ -3648,6 +3652,10 @@ msgstr "ตัวเลือกสำหรับการนำเข้าไ
 
 msgid "Only link data, instead of appending it"
 msgstr "เพียงแค่เชื่อมโยงข้อมูล ไม่ใช่เพิ่มข้อมูลต่อท้าย"
+
+
+msgid "Path"
+msgstr "เส้นทาง"
 
 
 msgid "Speed"
@@ -4334,10 +4342,6 @@ msgid "Resolution V"
 msgstr "ความละเอียด V"
 
 
-msgid "Path"
-msgstr "เส้นทาง"
-
-
 msgid "Font Bold"
 msgstr "ฟอนต์ตัวหนา"
 
@@ -4841,10 +4845,6 @@ msgid "Shift"
 msgstr "เลื่อน"
 
 
-msgid "Release"
-msgstr "ปล่อย"
-
-
 msgid "Paths"
 msgstr "เส้นทาง"
 
@@ -4893,104 +4893,104 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Pivot Point"
-msgstr "จุดหมุน"
-
-
-msgid "Snap"
-msgstr "ยึดติด"
+msgid "Metaball"
+msgstr "เมตาบอล"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "แก้ไข"
 
 
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
+msgid "Snap"
+msgstr "ยึดติด"
 
 
-msgid "Import"
-msgstr "นำเข้า"
-
-
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
+msgid "Pivot Point"
+msgstr "จุดหมุน"
 
 
 msgid "Local View"
 msgstr "มุมมองท้องถิ่น"
 
 
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
-
-
-msgid "Navigation"
-msgstr "การนำทาง"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
-
-
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
 msgid "Light"
 msgstr "แสง"
 
 
-msgid "Layout"
-msgstr "เค้าโครง"
-
-
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Apply"
 msgstr "นำไปใช้"
 
 
-msgid "Track"
-msgstr "แทร็ค"
+msgid "Merge"
+msgstr "ผสาน"
 
 
-msgid "Keying"
-msgstr "คีย์"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
 
 
 msgid "Names"
 msgstr "ชื่อ"
 
 
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
+
+
+msgid "Math"
+msgstr "คณิตศาสตร์"
+
+
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
+
+
+msgid "Keying"
+msgstr "คีย์"
+
+
+msgid "Align View"
+msgstr "จัดมุมมอง"
+
+
+msgid "Navigation"
+msgstr "การนำทาง"
+
+
+msgid "Import"
+msgstr "นำเข้า"
+
+
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
 msgid "Face Data"
 msgstr "ข้อมูลด้าน"
 
 
-msgid "Merge"
-msgstr "ผสาน"
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
+
+
+msgid "Layout"
+msgstr "เค้าโครง"
 
 
 msgid "Zoom"
@@ -5020,10 +5020,6 @@ msgstr "เพิ่มการปรับแต่ง"
 
 msgid "Save & Load"
 msgstr "บันทึกและโหลด"
-
-
-msgid "Blender"
-msgstr "Blender"
 
 
 msgid "System"
@@ -6791,6 +6787,10 @@ msgid "Error Message"
 msgstr "ข้อความแสดงข้อผิดพลาด"
 
 
+msgid "Release"
+msgstr "ปล่อย"
+
+
 msgid "Cancel"
 msgstr "ยกเลิก"
 
@@ -6854,11 +6854,6 @@ msgid ":"
 msgstr ":"
 
 
-msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "รายงานข้อผิดพลาด"
-
-
 msgid "Description:"
 msgstr "คำอธิบาย:"
 
@@ -6882,6 +6877,11 @@ msgstr "ระวัง:"
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "เอกสาร"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "รายงานข้อผิดพลาด"
 
 
 msgid "File:"
@@ -7357,11 +7357,6 @@ msgstr "เพิ่มเติม..."
 
 
 msgctxt "Operator"
-msgid "Alembic (.abc)"
-msgstr "Alembic (.abc)"
-
-
-msgctxt "Operator"
 msgid "Render Image"
 msgstr "เรนเดอร์ภาพ"
 
@@ -7794,10 +7789,6 @@ msgid "Reset Curve"
 msgstr "ตั้งค่าเส้นโค้งใหม่"
 
 
-msgid "S"
-msgstr "S"
-
-
 msgid "Zoom in"
 msgstr "ซูมเข้า"
 
@@ -8193,6 +8184,10 @@ msgstr "แทนที่อันดั้งเดิม"
 
 msgid "Val"
 msgstr "Val"
+
+
+msgid "S"
+msgstr "S"
 
 
 msgid "Old"

@@ -132,7 +132,7 @@ def __check_iridescence(json, export_settings):
         factor_animated = False
         if 'KHR_materials_iridescence' in export_settings['gltf_animated_extensions'].keys() and \
                 'iridescenceFactor' in export_settings['gltf_animated_extensions']['KHR_materials_iridescence']:
-            # We need to chec for this specific material, as it seems that some material can have animated factor
+            # We need to check for this specific material, as it seems that some material can have animated factor
             for anim in json['animations']:
                 for channel in anim['channels']:
                     if not channel['target']['path'] == "pointer":
@@ -150,7 +150,7 @@ def __check_iridescence(json, export_settings):
         thickness_animated = False
         if 'KHR_materials_iridescence' in export_settings['gltf_animated_extensions'].keys(
         ) and 'iridescenceThicknessMaximum' in export_settings['gltf_animated_extensions']['KHR_materials_iridescence']:
-            # We need to chec for this specific material, as it seems that some material can have animated thickness
+            # We need to check for this specific material, as it seems that some material can have animated thickness
             for anim in json['animations']:
                 for channel in anim['channels']:
                     if not channel['target']['path'] == "pointer":

@@ -7,7 +7,8 @@
 #include "gpu_shader_material_interface.bsl.hh"
 
 [[node]]
-void node_bsdf_transparent(float4 color, float weight, ShadingData &sd, Closure &result)
+void node_bsdf_transparent(
+    float4 color, float weight, KernelGlobals &kg, ShadingData &sd, Closure &result)
 {
   color = max(color, float4(0.0f));
 
@@ -15,5 +16,5 @@ void node_bsdf_transparent(float4 color, float weight, ShadingData &sd, Closure 
   transparency_data.transmittance = color.rgb * weight;
   transparency_data.holdout = 0.0f;
 
-  result = closure_eval(sd, transparency_data);
+  result = closure_eval(kg, sd, transparency_data);
 }

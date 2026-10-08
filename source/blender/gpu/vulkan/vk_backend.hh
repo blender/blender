@@ -91,6 +91,9 @@ class VKBackend : public GPUBackend {
     VKShaderCompiler::cache_dir_clear_old();
   }
 
+  bool pipelines_compiled_since_last_reset() override;
+  void reset_pipeline_compilation_tracking() override;
+
   /* Render Frame Coordination --
    * Used for performing per-frame actions globally */
   void render_begin() override;

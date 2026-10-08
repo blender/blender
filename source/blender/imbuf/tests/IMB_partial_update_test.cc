@@ -16,10 +16,10 @@ namespace blender::imbuf::partial_update::tests {
 
 /* Collect the changes to #buffer since #changeset_id, then advance #changeset_id to the
  * returned point, mirroring how a consumer persists its #changeset_id between collects. */
-static Changes collect(ImBuf *buffer, int64_t &changeset_id)
+static Changes collect(ImBuf *buffer, imbuf::ChangesetID &changeset_id)
 {
   IMB_partial_update_flush(buffer);
-  const int64_t new_changeset_id = IMB_partial_update_changeset_id_current();
+  const imbuf::ChangesetID new_changeset_id = IMB_partial_update_changeset_id_current();
   Changes changes = IMB_partial_update_collect(buffer, changeset_id);
   changeset_id = new_changeset_id;
   return changes;
@@ -44,16 +44,16 @@ class IMBPartialUpdateTest : public ::testing::Test {
 TEST_F(IMBPartialUpdateTest, initial_full_update)
 {
   /* Check that we get a single full update for a new image buffer. */
-  const int64_t last_changeset_id = -1;
+  const imbuf::ChangesetID last_changeset_id = -1;
   IMB_partial_update_flush(image_buffer);
-  const int64_t new_changeset_id = IMB_partial_update_changeset_id_current();
+  const imbuf::ChangesetID new_changeset_id = IMB_partial_update_changeset_id_current();
   EXPECT_EQ(IMB_partial_update_collect(image_buffer, last_changeset_id).kind, Changes::Kind::Full);
   EXPECT_EQ(IMB_partial_update_collect(image_buffer, new_changeset_id).kind, Changes::Kind::None);
 }
 
 TEST_F(IMBPartialUpdateTest, mark_full_update)
 {
-  int64_t changeset_id = -1;
+  imbuf::ChangesetID changeset_id = -1;
   /* The first collect should always return a full update. */
   EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::Full);
   /* The second collect should detect no changes. */
@@ -70,7 +70,7 @@ TEST_F(IMBPartialUpdateTest, mark_full_update)
 TEST_F(IMBPartialUpdateTest, mark_update_global_order)
 {
   /* Test full and partial update. */
-  int64_t changeset_id = -1;
+  imbuf::ChangesetID changeset_id = -1;
   EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::Full);
   rcti region;
   BLI_rcti_init(&region, 10, 20, 40, 50);
@@ -85,7 +85,7 @@ TEST_F(IMBPartialUpdateTest, mark_update_global_order)
 
 TEST_F(IMBPartialUpdateTest, resize)
 {
-  int64_t changeset_id = -1;
+  imbuf::ChangesetID changeset_id = -1;
 
   /* Add some history. */
   EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::Full);
@@ -95,7 +95,7 @@ TEST_F(IMBPartialUpdateTest, resize)
   EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::Partial);
 
   /* A consumer in sync at the old resolution. */
-  int64_t old_changeset_id = changeset_id;
+  imbuf::ChangesetID old_changeset_id = changeset_id;
 
   /* Change resolution. and detect resize */
   IMB_scale(image_buffer, 512, 512, IMBScaleFilter::Nearest);
@@ -114,7 +114,7 @@ TEST_F(IMBPartialUpdateTest, resize)
 
 TEST_F(IMBPartialUpdateTest, mark_single_region)
 {
-  int64_t changeset_id = -1;
+  imbuf::ChangesetID changeset_id = -1;
   /* First should always return a full update. */
   EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::Full);
   /* Second should now detect no changes. */
@@ -139,7 +139,7 @@ TEST_F(IMBPartialUpdateTest, mark_single_region)
 
 TEST_F(IMBPartialUpdateTest, mark_unconnected_regions)
 {
-  int64_t changeset_id = -1;
+  imbuf::ChangesetID changeset_id = -1;
   EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::Full);
 
   /* Two regions in different chunks. */
@@ -168,7 +168,7 @@ TEST_F(IMBPartialUpdateTest, mark_unconnected_regions)
 
 TEST_F(IMBPartialUpdateTest, donot_mark_outside_image)
 {
-  int64_t changeset_id = -1;
+  imbuf::ChangesetID changeset_id = -1;
   /* First tile should always return a full update. */
   EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::Full);
   /* Second invoke should now detect no changes. */
@@ -203,7 +203,7 @@ TEST_F(IMBPartialUpdateTest, donot_mark_outside_image)
 
 TEST_F(IMBPartialUpdateTest, mark_inside_image)
 {
-  int64_t changeset_id = -1;
+  imbuf::ChangesetID changeset_id = -1;
   /* First should always return a full update. */
   EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::Full);
   /* Second should now detect no changes. */
@@ -228,7 +228,7 @@ TEST_F(IMBPartialUpdateTest, mark_inside_image)
 
 TEST_F(IMBPartialUpdateTest, sequential_mark_region)
 {
-  int64_t changeset_id = -1;
+  imbuf::ChangesetID changeset_id = -1;
   /* First should always return a full update. */
   EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::Full);
   /* Second should now detect no changes. */
@@ -273,7 +273,7 @@ TEST_F(IMBPartialUpdateTest, sequential_mark_region)
 
 TEST_F(IMBPartialUpdateTest, mark_multiple_chunks)
 {
-  int64_t changeset_id = -1;
+  imbuf::ChangesetID changeset_id = -1;
   /* First should always return a full update. */
   EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::Full);
   /* Second should now detect no changes. */

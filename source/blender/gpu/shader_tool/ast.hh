@@ -864,7 +864,7 @@ struct Declarator : Node {
 
   ArrayDecl array() const
   {
-    return identifier().next();
+    return child_last(NodeType::ArrayDecl);
   }
 
   BitField bitfield() const
@@ -948,7 +948,7 @@ struct FuncArg : Node {
     return declarator().identifier();
   }
 
-  Subscript array() const
+  ArrayDecl array() const
   {
     return declarator().array();
   }

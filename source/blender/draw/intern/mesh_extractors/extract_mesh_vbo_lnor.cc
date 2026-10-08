@@ -6,8 +6,6 @@
  * \ingroup draw
  */
 
-#include "BLI_array_utils.hh"
-
 #include "GPU_attribute_convert.hh"
 
 #include "extract_mesh.hh"
@@ -16,162 +14,80 @@
 
 namespace blender::draw {
 
-template<typename GPUType>
-static void extract_vert_normals(const Span<int> corner_verts,
-                                 const Span<float3> vert_normals,
-                                 MutableSpan<GPUType> normals)
+static Span<float3> get_vert_normals(const MeshRenderData &mr)
 {
-  Array<GPUType> vert_normals_converted(vert_normals.size());
-  gpu::convert_normals(vert_normals, vert_normals_converted.as_mutable_span());
-  array_utils::gather(vert_normals_converted.as_span(), corner_verts, normals);
+  return mr.use_simplify_normals ? mr.mesh->vert_normals_true() : mr.mesh->vert_normals();
 }
 
 template<typename GPUType>
-static void extract_face_normals(const MeshRenderData &mr, MutableSpan<GPUType> normals)
+static void extract_vert_normals_mesh(const MeshRenderData &mr, MutableSpan<GPUType> vert_data)
 {
-  const OffsetIndices faces = mr.faces;
-  const Span<float3> face_normals = mr.face_normals;
-  threading::parallel_for(faces.index_range(), 4096, [&](const IndexRange range) {
-    for (const int face : range) {
-      normals.slice(faces[face]).fill(gpu::convert_normal<GPUType>(face_normals[face]));
+  gpu::convert_normals(get_vert_normals(mr), vert_data);
+}
+
+template<typename GPUType>
+static void extract_vert_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> vert_data)
+{
+  const BMesh &bm = *mr.bm;
+  threading::parallel_for(IndexRange(bm.totvert), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      const BMVert *vert = BM_vert_at_index(&const_cast<BMesh &>(bm), i);
+      vert_data[i] = gpu::convert_normal<GPUType>(bm_vert_no_get(mr, vert));
     }
   });
 }
 
 template<typename GPUType>
-static void extract_normals_mesh(const MeshRenderData &mr, MutableSpan<GPUType> normals)
+static void extract_face_normals_mesh(const MeshRenderData &mr, MutableSpan<GPUType> face_data)
 {
-  const auto get_vert_normals = [&]() {
-    return mr.use_simplify_normals ? mr.mesh->vert_normals_true() : mr.mesh->vert_normals();
-  };
-  if (mr.normals_domain == bke::MeshNormalDomain::Face) {
-    extract_face_normals(mr, normals);
-  }
-  else if (mr.normals_domain == bke::MeshNormalDomain::Point) {
-    extract_vert_normals(mr.corner_verts, get_vert_normals(), normals);
-  }
-  else if (!mr.corner_normals.is_empty()) {
+  gpu::convert_normals(mr.face_normals, face_data);
+}
+
+template<typename GPUType>
+static void extract_face_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> face_data)
+{
+  const BMesh &bm = *mr.bm;
+  threading::parallel_for(IndexRange(bm.totface), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      const BMFace *face = BM_face_at_index(&const_cast<BMesh &>(bm), i);
+      face_data[i] = gpu::convert_normal<GPUType>(bm_face_no_get(mr, face));
+    }
+  });
+}
+
+template<typename GPUType>
+static void extract_corner_normals_mesh(const MeshRenderData &mr, MutableSpan<GPUType> normals)
+{
+  if (!mr.corner_normals.is_empty()) {
     gpu::convert_normals(mr.corner_normals, normals);
+    return;
   }
-  else if (mr.sharp_faces.is_empty()) {
-    extract_vert_normals(mr.corner_verts, get_vert_normals(), normals);
-  }
-  else {
-    const OffsetIndices faces = mr.faces;
-    const Span<int> corner_verts = mr.corner_verts;
-    const Span<bool> sharp_faces = mr.sharp_faces;
-    const Span<float3> vert_normals = get_vert_normals();
-    const Span<float3> face_normals = mr.face_normals;
-    threading::parallel_for(faces.index_range(), 2048, [&](const IndexRange range) {
-      for (const int face : range) {
-        if (sharp_faces[face]) {
-          normals.slice(faces[face]).fill(gpu::convert_normal<GPUType>(face_normals[face]));
-        }
-        else {
-          for (const int corner : faces[face]) {
-            normals[corner] = gpu::convert_normal<GPUType>(vert_normals[corner_verts[corner]]);
-          }
+  /* The corner normals span can still be empty with the "simplify" option. That forces
+   * mixed face and vertex normals. */
+  const OffsetIndices faces = mr.faces;
+  const Span<int> corner_verts = mr.corner_verts;
+  const Span<bool> sharp_faces = mr.sharp_faces;
+  const Span<float3> vert_normals = get_vert_normals(mr);
+  const Span<float3> face_normals = mr.face_normals;
+  threading::parallel_for(faces.index_range(), 2048, [&](const IndexRange range) {
+    for (const int face : range) {
+      if (!sharp_faces.is_empty() && sharp_faces[face]) {
+        normals.slice(faces[face]).fill(gpu::convert_normal<GPUType>(face_normals[face]));
+      }
+      else {
+        for (const int corner : faces[face]) {
+          normals[corner] = gpu::convert_normal<GPUType>(vert_normals[corner_verts[corner]]);
         }
       }
-    });
-  }
+    }
+  });
 }
 
 template<typename GPUType>
-static void extract_vert_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
+static void extract_corner_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
 {
   const BMesh &bm = *mr.bm;
-  if (mr.bm_free_normal_offset_vert != -1) {
-    threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
-      for (const int face_index : range) {
-        const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-        const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
-        const IndexRange face_range(BM_elem_index_get(loop), face.len);
-        for (const int corner : face_range) {
-          normals[corner] = gpu::convert_normal<GPUType>(
-              BM_ELEM_CD_GET_FLOAT_P(loop->v, mr.bm_free_normal_offset_vert));
-          loop = loop->next;
-        }
-      }
-    });
-  }
-  else if (!mr.bm_vert_normals.is_empty()) {
-    Array<GPUType> vert_normals_converted(mr.bm_vert_normals.size());
-    gpu::convert_normals(mr.bm_vert_normals, vert_normals_converted.as_mutable_span());
-    threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
-      for (const int face_index : range) {
-        const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-        const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
-        const IndexRange face_range(BM_elem_index_get(loop), face.len);
-        for (const int corner : face_range) {
-          normals[corner] = vert_normals_converted[BM_elem_index_get(loop->v)];
-          loop = loop->next;
-        }
-      }
-    });
-  }
-  else {
-    threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
-      for (const int face_index : range) {
-        const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-        const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
-        const IndexRange face_range(BM_elem_index_get(loop), face.len);
-        for (const int corner : face_range) {
-          normals[corner] = gpu::convert_normal<GPUType>(loop->v->no);
-          loop = loop->next;
-        }
-      }
-    });
-  }
-}
-
-template<typename GPUType>
-static void extract_face_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
-{
-  const BMesh &bm = *mr.bm;
-  if (mr.bm_free_normal_offset_face != -1) {
-    threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
-      for (const int face_index : range) {
-        const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-        const IndexRange face_range(BM_elem_index_get(BM_FACE_FIRST_LOOP(&face)), face.len);
-        normals.slice(face_range)
-            .fill(gpu::convert_normal<GPUType>(
-                BM_ELEM_CD_GET_FLOAT_P(&face, mr.bm_free_normal_offset_face)));
-      }
-    });
-  }
-  else if (!mr.bm_face_normals.is_empty()) {
-    threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
-      for (const int face_index : range) {
-        const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-        const IndexRange face_range(BM_elem_index_get(BM_FACE_FIRST_LOOP(&face)), face.len);
-        normals.slice(face_range)
-            .fill(gpu::convert_normal<GPUType>(mr.bm_face_normals[face_index]));
-      }
-    });
-  }
-  else {
-    threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
-      for (const int face_index : range) {
-        const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-        const IndexRange face_range(BM_elem_index_get(BM_FACE_FIRST_LOOP(&face)), face.len);
-        normals.slice(face_range).fill(gpu::convert_normal<GPUType>(face.no));
-      }
-    });
-  }
-}
-
-template<typename GPUType>
-static void extract_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
-{
-  const BMesh &bm = *mr.bm;
-  if (mr.normals_domain == bke::MeshNormalDomain::Face) {
-    extract_face_normals_bm(mr, normals);
-  }
-  else if (mr.normals_domain == bke::MeshNormalDomain::Point) {
-    extract_vert_normals_bm(mr, normals);
-  }
-  else if (mr.bm_free_normal_offset_corner != -1) {
+  if (mr.bm_free_normal_offset_corner != -1) {
     threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
       for (const int face_index : range) {
         const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
@@ -184,49 +100,90 @@ static void extract_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> no
         }
       }
     });
+    return;
   }
-  else if (!mr.bm_loop_normals.is_empty()) {
+  if (!mr.bm_loop_normals.is_empty()) {
     gpu::convert_normals(mr.bm_loop_normals, normals);
+    return;
   }
-  else {
-    threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
-      for (const int face_index : range) {
-        const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-        const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
-        const IndexRange face_range(BM_elem_index_get(loop), face.len);
-
-        if (!BM_elem_flag_test(&face, BM_ELEM_SMOOTH)) {
-          if (!mr.bm_face_normals.is_empty()) {
-            normals.slice(face_range)
-                .fill(gpu::convert_normal<GPUType>(mr.bm_face_normals[face_index]));
-          }
-          else {
-            normals.slice(face_range).fill(gpu::convert_normal<GPUType>(face.no));
-          }
-        }
-        else {
-          if (!mr.bm_vert_normals.is_empty()) {
-            for (const int corner : face_range) {
-              normals[corner] = gpu::convert_normal<GPUType>(
-                  mr.bm_vert_normals[BM_elem_index_get(loop->v)]);
-              loop = loop->next;
-            }
-          }
-          else {
-            for (const int corner : face_range) {
-              normals[corner] = gpu::convert_normal<GPUType>(loop->v->no);
-              loop = loop->next;
-            }
-          }
+  threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
+    for (const int face_index : range) {
+      const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+      const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
+      const IndexRange face_range(BM_elem_index_get(loop), face.len);
+      if (!BM_elem_flag_test(&face, BM_ELEM_SMOOTH)) {
+        normals.slice(face_range).fill(gpu::convert_normal<GPUType>(bm_face_no_get(mr, &face)));
+      }
+      else {
+        for (const int corner : face_range) {
+          normals[corner] = gpu::convert_normal<GPUType>(bm_vert_no_get(mr, loop->v));
+          loop = loop->next;
         }
       }
-    });
-  }
+    }
+  });
 }
 
-gpu::VertBufPtr extract_normals(const MeshRenderData &mr, const bool use_hq)
+template<typename GPUType>
+static gpu::VertBufPtr extract_normals(const MeshRenderData &mr,
+                                       MeshBufferCache &cache,
+                                       const GPUVertFormat &format)
 {
+  const bool is_mesh = mr.extract_type == MeshExtractType::Mesh;
   const int size = mr.corners_num + mr.loose_indices_num;
+  const Array<GPUType> loose_data(mr.loose_indices_num, GPUType{});
+
+  switch (mr.normals_domain) {
+    case bke::MeshNormalDomain::Point: {
+      gpu::VertBufPtr vert_vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+      GPU_vertbuf_data_alloc(*vert_vbo, mr.verts_num);
+      if (is_mesh) {
+        extract_vert_normals_mesh(mr, vert_vbo->data<GPUType>());
+      }
+      else {
+        extract_vert_normals_bm(mr, vert_vbo->data<GPUType>());
+      }
+      gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_on_device(format, size));
+      gather_vert_to_corner_gpu(mr, cache, *vert_vbo, *vbo);
+      loose_data_upload(mr, loose_data.as_span(), *vbo);
+      return vbo;
+    }
+    case bke::MeshNormalDomain::Face: {
+      gpu::VertBufPtr face_vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+      GPU_vertbuf_data_alloc(*face_vbo, mr.faces_num);
+      if (is_mesh) {
+        extract_face_normals_mesh(mr, face_vbo->data<GPUType>());
+      }
+      else {
+        extract_face_normals_bm(mr, face_vbo->data<GPUType>());
+      }
+      gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_on_device(format, size));
+      scatter_face_to_corner_gpu(mr, cache, *face_vbo, *vbo);
+      loose_data_upload(mr, loose_data.as_span(), *vbo);
+      return vbo;
+    }
+    case bke::MeshNormalDomain::Corner: {
+      gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+      GPU_vertbuf_data_alloc(*vbo, size);
+      MutableSpan vbo_data = vbo->data<GPUType>();
+      if (is_mesh) {
+        extract_corner_normals_mesh(mr, vbo_data.take_front(mr.corners_num));
+      }
+      else {
+        extract_corner_normals_bm(mr, vbo_data.take_front(mr.corners_num));
+      }
+      vbo_data.take_back(mr.loose_indices_num).copy_from(loose_data);
+      return vbo;
+    }
+  }
+  BLI_assert_unreachable();
+  return {};
+}
+
+gpu::VertBufPtr extract_normals(const MeshRenderData &mr,
+                                MeshBufferCache &cache,
+                                const bool use_hq)
+{
   if (use_hq) {
     static const GPUVertFormat format = []() {
       GPUVertFormat format{};
@@ -235,21 +192,7 @@ gpu::VertBufPtr extract_normals(const MeshRenderData &mr, const bool use_hq)
       GPU_vertformat_alias_add(&format, "vnor");
       return format;
     }();
-    gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
-    GPU_vertbuf_data_alloc(*vbo, size);
-    MutableSpan vbo_data = vbo->data<short4>();
-    MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
-    MutableSpan loose_data = vbo_data.take_back(mr.loose_indices_num);
-
-    if (mr.extract_type == MeshExtractType::Mesh) {
-      extract_normals_mesh(mr, corners_data);
-    }
-    else {
-      extract_normals_bm(mr, corners_data);
-    }
-
-    loose_data.fill(short4(0));
-    return vbo;
+    return extract_normals<short4>(mr, cache, format);
   }
   static const GPUVertFormat format = []() {
     GPUVertFormat format{};
@@ -258,21 +201,7 @@ gpu::VertBufPtr extract_normals(const MeshRenderData &mr, const bool use_hq)
     GPU_vertformat_alias_add(&format, "vnor");
     return format;
   }();
-  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
-  GPU_vertbuf_data_alloc(*vbo, size);
-  MutableSpan vbo_data = vbo->data<int1010102_norm>();
-  MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
-  MutableSpan loose_data = vbo_data.take_back(mr.loose_indices_num);
-
-  if (mr.extract_type == MeshExtractType::Mesh) {
-    extract_normals_mesh(mr, corners_data);
-  }
-  else {
-    extract_normals_bm(mr, corners_data);
-  }
-
-  loose_data.fill(int1010102_norm{});
-  return vbo;
+  return extract_normals<int1010102_norm>(mr, cache, format);
 }
 
 static const GPUVertFormat &get_normals_format()

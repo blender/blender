@@ -60,6 +60,12 @@ struct FileHandlerType {
    * Return `label` with the supported file extensions appended, e.g. "Alembic (.abc)".
    */
   std::string label_with_extensions() const;
+
+  /**
+   * Return a string usable as 'glob filter' containing all the supported extensions (e.g.
+   * "*.usd;*.usda;*.usdc;*.usdz"), or `std::nullopt` if no extensions are defined.
+   */
+  std::optional<std::string> filter_glob_from_extensions() const;
 };
 
 /**

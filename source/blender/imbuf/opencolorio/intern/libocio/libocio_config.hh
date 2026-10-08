@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_set.hh"
 #include "BLI_vector.hh"
 
 #include "OCIO_config.hh"
@@ -63,10 +64,12 @@ class LibOCIOConfig : public Config {
 
   /* Color space API. */
   const ColorSpace *get_color_space(StringRefNull name) const override;
-  int get_num_color_spaces() const override;
+  int get_num_active_color_spaces() const override;
+  int get_num_all_color_spaces() const override;
   const ColorSpace *get_color_space_by_index(int index) const override;
   const ColorSpace *get_sorted_color_space_by_index(int index) const override;
   const ColorSpace *get_color_space_by_interop_id(StringRefNull interop_id) const override;
+  bool is_role(StringRefNull name) const override;
   const ColorSpace *get_color_space_for_hdr_image(StringRefNull name) const override;
 
   /* Working space API. */
@@ -117,10 +120,10 @@ class LibOCIOConfig : public Config {
 
   /* Initialize BLender-side representation of color spaces, displays, etc. from the current
    * OpenColorIO configuration. */
-  void initialize_active_color_spaces();
+  void initialize_active_color_spaces(Set<StringRef> &primary_interop_ids);
   void initialize_sorted_color_space_index();
-  void initialize_inactive_color_spaces();
-  void initialize_hdr_color_spaces();
+  void initialize_inactive_color_spaces(Set<StringRef> &primary_interop_ids);
+  void initialize_hdr_color_spaces(Set<StringRef> &primary_interop_ids);
   void initialize_looks();
   void initialize_displays();
 

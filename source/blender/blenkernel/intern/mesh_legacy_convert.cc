@@ -1266,9 +1266,9 @@ void BKE_mesh_legacy_sharp_faces_from_flags(Mesh *mesh)
   const Span<MPoly> polys(
       static_cast<const MPoly *>(CustomData_get_layer(&mesh->face_data, CD_MPOLY)),
       mesh->faces_num);
-  if (std::any_of(polys.begin(), polys.end(), [](const MPoly &poly) {
-        return !(poly.flag_legacy & ME_SMOOTH);
-      }))
+  if (std::any_of(polys.begin(),
+                  polys.end(),
+                  [](const MPoly &poly) { return !(poly.flag_legacy & ME_SMOOTH); }))
   {
     SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_only_span<bool>(
         "sharp_face", AttrDomain::Face);
@@ -1518,9 +1518,9 @@ void BKE_mesh_legacy_sharp_edges_from_flags(Mesh *mesh)
   if (attributes.contains("sharp_edge")) {
     return;
   }
-  if (std::any_of(edges.begin(), edges.end(), [](const MEdge &edge) {
-        return edge.flag_legacy & ME_SHARP;
-      }))
+  if (std::any_of(edges.begin(),
+                  edges.end(),
+                  [](const MEdge &edge) { return edge.flag_legacy & ME_SHARP; }))
   {
     SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_only_span<bool>(
         "sharp_edge", AttrDomain::Edge);
@@ -1550,9 +1550,9 @@ void BKE_mesh_legacy_uv_seam_from_flags(Mesh *mesh)
   if (attributes.contains(".uv_seam")) {
     return;
   }
-  if (std::any_of(edges.begin(), edges.end(), [](const MEdge &edge) {
-        return edge.flag_legacy & ME_SEAM;
-      }))
+  if (std::any_of(edges.begin(),
+                  edges.end(),
+                  [](const MEdge &edge) { return edge.flag_legacy & ME_SEAM; }))
   {
     SpanAttributeWriter<bool> uv_seams = attributes.lookup_or_add_for_write_only_span<bool>(
         ".uv_seam", AttrDomain::Edge);
@@ -1581,9 +1581,9 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
     return;
   }
   const Span<MVert> verts(mesh->mvert, mesh->verts_num);
-  if (std::any_of(verts.begin(), verts.end(), [](const MVert &vert) {
-        return vert.flag_legacy & ME_HIDE;
-      }))
+  if (std::any_of(verts.begin(),
+                  verts.end(),
+                  [](const MVert &vert) { return vert.flag_legacy & ME_HIDE; }))
   {
     SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_only_span<bool>(
         ".hide_vert", AttrDomain::Point);
@@ -1597,9 +1597,9 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
 
   if (mesh->medge) {
     const Span<MEdge> edges(mesh->medge, mesh->edges_num);
-    if (std::any_of(edges.begin(), edges.end(), [](const MEdge &edge) {
-          return int(edge.flag_legacy) & ME_HIDE;
-        }))
+    if (std::any_of(edges.begin(),
+                    edges.end(),
+                    [](const MEdge &edge) { return int(edge.flag_legacy) & ME_HIDE; }))
     {
       SpanAttributeWriter<bool> hide_edge = attributes.lookup_or_add_for_write_only_span<bool>(
           ".hide_edge", AttrDomain::Edge);
@@ -1615,9 +1615,9 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
   const Span<MPoly> polys(
       static_cast<const MPoly *>(CustomData_get_layer(&mesh->face_data, CD_MPOLY)),
       mesh->faces_num);
-  if (std::any_of(polys.begin(), polys.end(), [](const MPoly &poly) {
-        return int(poly.flag_legacy) & ME_HIDE;
-      }))
+  if (std::any_of(polys.begin(),
+                  polys.end(),
+                  [](const MPoly &poly) { return int(poly.flag_legacy) & ME_HIDE; }))
   {
     SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
         ".hide_poly", AttrDomain::Face);
@@ -1789,9 +1789,9 @@ void BKE_mesh_legacy_convert_flags_to_selection_layers(Mesh *mesh)
 
   if (mesh->medge) {
     const Span<MEdge> edges(mesh->medge, mesh->edges_num);
-    if (std::any_of(edges.begin(), edges.end(), [](const MEdge &edge) {
-          return edge.flag_legacy & SELECT;
-        }))
+    if (std::any_of(edges.begin(),
+                    edges.end(),
+                    [](const MEdge &edge) { return edge.flag_legacy & SELECT; }))
     {
       SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_only_span<bool>(
           ".select_edge", AttrDomain::Edge);
@@ -1807,9 +1807,9 @@ void BKE_mesh_legacy_convert_flags_to_selection_layers(Mesh *mesh)
   const Span<MPoly> polys(
       static_cast<const MPoly *>(CustomData_get_layer(&mesh->face_data, CD_MPOLY)),
       mesh->faces_num);
-  if (std::any_of(polys.begin(), polys.end(), [](const MPoly &poly) {
-        return poly.flag_legacy & ME_FACE_SEL;
-      }))
+  if (std::any_of(polys.begin(),
+                  polys.end(),
+                  [](const MPoly &poly) { return poly.flag_legacy & ME_FACE_SEL; }))
   {
     SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_only_span<bool>(
         ".select_poly", AttrDomain::Face);
@@ -2522,7 +2522,7 @@ void mesh_skin_to_generic(Mesh &mesh)
   CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN);
 
   AttributeStorage &storage = mesh.attribute_storage.wrap();
-  auto add_array = [&](const StringRef name, const AttrType type, void *array_data) {
+  auto add_array = [&]<typename T>(const StringRef name, const AttrType type, T *array_data) {
     Attribute::ArrayData array{};
     array.data = array_data;
     array.size = mesh.verts_num;

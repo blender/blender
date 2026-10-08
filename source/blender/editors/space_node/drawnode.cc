@@ -2179,7 +2179,14 @@ static void nodelink_batch_draw(const SpaceNode &snode)
   ui::theme::get_color_4fv(TH_ACTIVE, node_link_data.colors[nodelink_get_color_id(TH_ACTIVE)]);
   ui::theme::get_color_4fv(TH_EDGE_SELECT,
                            node_link_data.colors[nodelink_get_color_id(TH_EDGE_SELECT)]);
-  ui::theme::get_color_4fv(TH_REDALERT, node_link_data.colors[nodelink_get_color_id(TH_REDALERT)]);
+
+  /* Ensure alert wires are visible regardless of alert's alpha. */
+  float alert_color[4];
+  ui::theme::get_color_4fv(TH_REDALERT, alert_color);
+  alert_color[3] = std::min(alert_color[3] + 0.6f, 0.8f);
+  ui::theme::get_color_blend_3f(TH_WIRE_INNER, TH_REDALERT, alert_color[3], alert_color);
+  copy_v4_v4(node_link_data.colors[nodelink_get_color_id(TH_REDALERT)], alert_color);
+
   node_link_data.aspect = snode.runtime->aspect;
   node_link_data.arrow_size = ARROW_SIZE;
 
@@ -2399,6 +2406,8 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
     ui::theme::get_color_4fv(th_col1, draw_config.start_color);
     ui::theme::get_color_4fv(th_col2, draw_config.end_color);
   }
+
+  draw_config.outline_color.a = 1.0f;
 
   /* Highlight links connected to selected nodes. */
   if (selected) {

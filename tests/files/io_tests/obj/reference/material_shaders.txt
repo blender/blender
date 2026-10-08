@@ -1,0 +1,812 @@
+==== Meshes: 15
+- Mesh 'CubeDiffuse' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (3.486, 1.000, -1.000)
+    - (3.486, -1.000, -1.000)
+    - (3.486, 1.000, 1.000)
+      ...
+    - (1.486, -1.000, -1.000)
+    - (1.486, 1.000, 1.000)
+    - (1.486, -1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatDiffuse' 
+
+- Mesh 'CubeEmission' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (6.125, 1.000, -1.000)
+    - (6.125, -1.000, -1.000)
+    - (6.125, 1.000, 1.000)
+      ...
+    - (4.125, -1.000, -1.000)
+    - (4.125, 1.000, 1.000)
+    - (4.125, -1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatEmission' 
+
+- Mesh 'CubeGlass' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (8.674, 1.000, -1.000)
+    - (8.674, -1.000, -1.000)
+    - (8.674, 1.000, 1.000)
+      ...
+    - (6.674, -1.000, -1.000)
+    - (6.674, 1.000, 1.000)
+    - (6.674, -1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatGlass' 
+
+- Mesh 'CubeGlossy' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (11.162, 1.000, -1.000)
+    - (11.162, -1.000, -1.000)
+    - (11.162, 1.000, 1.000)
+      ...
+    - (9.162, -1.000, -1.000)
+    - (9.162, 1.000, 1.000)
+    - (9.162, -1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatGlossy' 
+
+- Mesh 'CubeHair' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (11.162, 1.000, -4.230)
+    - (11.162, -1.000, -4.230)
+    - (11.162, 1.000, -2.230)
+      ...
+    - (9.162, -1.000, -4.230)
+    - (9.162, 1.000, -2.230)
+    - (9.162, -1.000, -2.230)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatHair' 
+
+- Mesh 'CubePrincipled' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 1.000, -1.000)
+    - (1.000, -1.000, -1.000)
+    - (1.000, 1.000, 1.000)
+      ...
+    - (-1.000, -1.000, -1.000)
+    - (-1.000, 1.000, 1.000)
+    - (-1.000, -1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatPrincipled' 
+
+- Mesh 'CubePrincipledHair' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (8.674, 1.000, -4.230)
+    - (8.674, -1.000, -4.230)
+    - (8.674, 1.000, -2.230)
+      ...
+    - (6.674, -1.000, -4.230)
+    - (6.674, 1.000, -2.230)
+    - (6.674, -1.000, -2.230)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatPrincipledHair' 
+
+- Mesh 'CubeRefraction' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (6.125, 1.000, -4.230)
+    - (6.125, -1.000, -4.230)
+    - (6.125, 1.000, -2.230)
+      ...
+    - (4.125, -1.000, -4.230)
+    - (4.125, 1.000, -2.230)
+    - (4.125, -1.000, -2.230)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatRefraction' 
+
+- Mesh 'CubeSheen' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (3.486, 1.000, -4.230)
+    - (3.486, -1.000, -4.230)
+    - (3.486, 1.000, -2.230)
+      ...
+    - (1.486, -1.000, -4.230)
+    - (1.486, 1.000, -2.230)
+    - (1.486, -1.000, -2.230)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatSheen' 
+
+- Mesh 'CubeSpecular' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 1.000, -4.230)
+    - (1.000, -1.000, -4.230)
+    - (1.000, 1.000, -2.230)
+      ...
+    - (-1.000, -1.000, -4.230)
+    - (-1.000, 1.000, -2.230)
+    - (-1.000, -1.000, -2.230)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatSpecular' 
+
+- Mesh 'CubeSpecular2' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 1.000, -10.719)
+    - (1.000, -1.000, -10.719)
+    - (1.000, 1.000, -8.719)
+      ...
+    - (-1.000, -1.000, -10.719)
+    - (-1.000, 1.000, -8.719)
+    - (-1.000, -1.000, -8.719)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatSpecular2' 
+
+- Mesh 'CubeSubsurface' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 1.000, -7.558)
+    - (1.000, -1.000, -7.558)
+    - (1.000, 1.000, -5.558)
+      ...
+    - (-1.000, -1.000, -7.558)
+    - (-1.000, 1.000, -5.558)
+    - (-1.000, -1.000, -5.558)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatSubsurface' 
+
+- Mesh 'CubeToon' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (3.486, 1.000, -7.558)
+    - (3.486, -1.000, -7.558)
+    - (3.486, 1.000, -5.558)
+      ...
+    - (1.486, -1.000, -7.558)
+    - (1.486, 1.000, -5.558)
+    - (1.486, -1.000, -5.558)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatToon' 
+
+- Mesh 'CubeTranslucent' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (6.125, 1.000, -7.558)
+    - (6.125, -1.000, -7.558)
+    - (6.125, 1.000, -5.558)
+      ...
+    - (4.125, -1.000, -7.558)
+    - (4.125, 1.000, -5.558)
+    - (4.125, -1.000, -5.558)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatTranslucent' 
+
+- Mesh 'CubeTransparent' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.625, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (8.674, 1.000, -7.558)
+    - (8.674, -1.000, -7.558)
+    - (8.674, 1.000, -5.558)
+      ...
+    - (6.674, -1.000, -7.558)
+    - (6.674, 1.000, -5.558)
+    - (6.674, -1.000, -5.558)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - 1 materials
+    - 'MatTransparent' 
+
+==== Objects: 15
+- Obj 'CubeDiffuse' MESH data:'CubeDiffuse'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeEmission' MESH data:'CubeEmission'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeGlass' MESH data:'CubeGlass'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeGlossy' MESH data:'CubeGlossy'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeHair' MESH data:'CubeHair'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubePrincipled' MESH data:'CubePrincipled'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubePrincipledHair' MESH data:'CubePrincipledHair'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeRefraction' MESH data:'CubeRefraction'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeSheen' MESH data:'CubeSheen'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeSpecular' MESH data:'CubeSpecular'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeSpecular2' MESH data:'CubeSpecular2'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeSubsurface' MESH data:'CubeSubsurface'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeToon' MESH data:'CubeToon'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeTranslucent' MESH data:'CubeTranslucent'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeTransparent' MESH data:'CubeTransparent'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Materials: 15
+- Mat 'MatDiffuse'
+  - base color (0.800, 0.800, 0.800) tex:'checkerboard_diffuse.png' (//obj/checkerboard_diffuse.png) a:False
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 1.000 tex:'checkerboard_roughness.png' (//obj/checkerboard_roughness.png) a:False Non-Color
+  - metallic 0.000
+  - ior 1.000
+  - normalmap 3.000 tex:'checkerboard_normal.png' (//obj/checkerboard_normal.png) a:False data
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 1.000
+  - backface False probe True shadow False
+
+- Mat 'MatEmission'
+  - base color (0.000, 0.000, 0.000)
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.000
+  - emission color (1.000, 1.000, 1.000) tex:'checkerboard_emissive.png' (//obj/checkerboard_emissive.png) a:False
+  - emission strength 1.000
+  - viewport diffuse (0.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'MatGlass'
+  - base color (0.800, 0.800, 0.800) tex:'tiny_clouds.png' (//obj/tiny_clouds.png) a:False
+  - specular ior 1.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.400
+  - metallic 1.000
+  - ior 1.400
+  - alpha 0.000
+  - normalmap 1.000 tex:'checkerboard_normal.png' (//obj/checkerboard_normal.png) a:False data
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 1.000, roughness 0.400
+  - backface False probe True shadow False
+
+- Mat 'MatGlossy'
+  - base color (0.000, 0.000, 0.000)
+  - specular ior 0.491
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 1.000 tex:'checkerboard_roughness.png' (//obj/checkerboard_roughness.png) a:False Non-Color
+  - metallic 1.000
+  - ior 1.000
+  - normalmap 1.000 tex:'checkerboard_normal.png' (//obj/checkerboard_normal.png) a:False data
+  - viewport diffuse (0.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 1.000, roughness 1.000
+  - backface False probe True shadow False
+
+- Mat 'MatHair'
+  - base color (0.800, 0.800, 0.800) tex:'tiny_clouds.png' (//obj/tiny_clouds.png) a:False
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.300
+  - metallic 0.000
+  - ior 1.000
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.300
+  - backface False probe True shadow False
+
+- Mat 'MatPrincipled'
+  - base color (0.800, 0.800, 0.800) tex:'checkerboard_diffuse.png' (//obj/checkerboard_diffuse.png) a:False scl:(2.000, 3.000, 4.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.000 tex:'checkerboard_roughness.png' (//obj/checkerboard_roughness.png) a:False Non-Color
+  - metallic 0.000 tex:'checkerboard_metallic.png' (checkerboard_metallic.png) a:False Non-Color
+  - ior 1.500
+  - alpha 1.000 tex:'alpha.png' (alpha.png) a:True Non-Color
+  - emission color (1.000, 1.000, 1.000) tex:'checkerboard_emissive.png' (//obj/checkerboard_emissive.png) a:False scl:(2.000, 1.000, 1.000)
+  - emission strength 1.000
+  - normalmap 3.000 tex:'checkerboard_normal.png' (//obj/checkerboard_normal.png) a:False data
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.000
+  - backface False probe True shadow False
+
+- Mat 'MatPrincipledHair'
+  - base color (0.800, 0.800, 0.800) tex:'checkerboard_diffuse.png' (//obj/checkerboard_diffuse.png) a:False
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 1.000 tex:'checkerboard_roughness.png' (//obj/checkerboard_roughness.png) a:False Non-Color
+  - metallic 0.000
+  - ior 1.550
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 1.000
+  - backface False probe True shadow False
+
+- Mat 'MatRefraction'
+  - base color (0.800, 0.800, 0.800) tex:'checkerboard_ambient.png' (//obj/checkerboard_ambient.png) a:False
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 1.000 tex:'checkerboard_roughness.png' (//obj/checkerboard_roughness.png) a:False Non-Color
+  - metallic 1.000
+  - ior 1.450
+  - alpha 0.000
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 1.000, roughness 1.000
+  - backface False probe True shadow False
+
+- Mat 'MatSheen'
+  - base color (0.800, 0.800, 0.800) tex:'checkerboard_diffuse.png' (//obj/checkerboard_diffuse.png) a:False
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 1.000 tex:'checkerboard_roughness.png' (//obj/checkerboard_roughness.png) a:False Non-Color
+  - metallic 0.000
+  - ior 1.000
+  - normalmap 3.000 tex:'checkerboard_normal.png' (//obj/checkerboard_normal.png) a:False data
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 1.000
+  - backface False probe True shadow False
+
+- Mat 'MatSpecular'
+  - base color (0.800, 0.800, 0.800) tex:'checkerboard_diffuse.png' (//obj/checkerboard_diffuse.png) a:False scl:(2.000, 3.000, 4.000)
+  - specular ior 0.030
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.000 tex:'checkerboard_roughness.png' (//obj/checkerboard_roughness.png) a:False Non-Color
+  - metallic 0.000
+  - ior 1.000
+  - normalmap 3.000 tex:'checkerboard_normal.png' (//obj/checkerboard_normal.png) a:False data
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.000
+  - backface False probe True shadow False
+
+- Mat 'MatSpecular2'
+  - base color (0.800, 0.418, 0.140)
+  - specular ior 0.000 tex:'tiny_clouds.png' (//obj/tiny_clouds.png) a:False Non-Color
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 1.000 tex:'checkerboard_roughness.png' (//obj/checkerboard_roughness.png) a:False Non-Color
+  - metallic 0.000
+  - ior 1.000
+  - alpha 0.750
+  - normalmap 3.000 tex:'checkerboard_normal.png' (//obj/checkerboard_normal.png) a:False data
+  - viewport diffuse (0.800, 0.418, 0.140, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 1.000
+  - backface False probe True shadow False
+
+- Mat 'MatSubsurface'
+  - base color (0.800, 0.800, 0.800) tex:'tiny_clouds.png' (//obj/tiny_clouds.png) a:False
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 1.000 tex:'checkerboard_roughness.png' (//obj/checkerboard_roughness.png) a:False Non-Color
+  - metallic 0.000
+  - ior 1.400
+  - normalmap 3.000 tex:'checkerboard_normal.png' (//obj/checkerboard_normal.png) a:False data
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 1.000
+  - backface False probe True shadow False
+
+- Mat 'MatToon'
+  - base color (0.800, 0.800, 0.800) tex:'tiny_clouds.png' (//obj/tiny_clouds.png) a:False
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.000
+  - normalmap 3.000 tex:'checkerboard_normal.png' (//obj/checkerboard_normal.png) a:False data
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'MatTranslucent'
+  - base color (0.800, 0.800, 0.800) tex:'checkerboard_ambient.png' (//obj/checkerboard_ambient.png) a:False
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.000
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'MatTransparent'
+  - base color (0.800, 0.800, 0.800) tex:'checkerboard_diffuse.png' (//obj/checkerboard_diffuse.png) a:False
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.000
+  - alpha 0.000
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+==== Images: 8
+- Image 'alpha.png' 0x0 0bpp
+- Image 'checkerboard_ambient.png' 0x0 0bpp
+- Image 'checkerboard_diffuse.png' 0x0 0bpp
+- Image 'checkerboard_emissive.png' 0x0 0bpp
+- Image 'checkerboard_metallic.png' 0x0 0bpp
+- Image 'checkerboard_normal.png' 0x0 0bpp
+- Image 'checkerboard_roughness.png' 0x0 0bpp
+- Image 'tiny_clouds.png' 0x0 0bpp
+

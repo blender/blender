@@ -171,7 +171,7 @@ MANTA::MANTA(int *res, FluidModifierData *fmd)
   /* Setup Mantaflow in Python. */
   initializeMantaflow();
 
-  /* Initializa RNA map with values that Python will need. */
+  /* Initialize RNA map with values that Python will need. */
   initializeRNAMap(fmd);
 
   bool initSuccess = true;
@@ -570,7 +570,7 @@ MANTA::~MANTA()
   tmpString += manta_import;
   tmpString += fluid_delete_all;
 
-  /* Initializa RNA map with values that Python will need. */
+  /* Initialize RNA map with values that Python will need. */
   initializeRNAMap();
 
   /* Leave out fmd argument in parseScript since only looking up IDs. */

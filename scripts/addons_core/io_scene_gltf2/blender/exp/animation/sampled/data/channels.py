@@ -65,7 +65,7 @@ def gather_data_sampled_channels(blender_main_type, blender_type_data, blender_i
                 if slot_identifier is not None and slot_identifier.startswith("NT") and path.startswith("[\""):
                     continue
 
-                # Do not manage alpha, as it will be managaed by the baseColorFactor (merging Color and alpha)
+                # Do not manage alpha, as it will be managed by the baseColorFactor (merging Color and alpha)
                 if export_settings['KHR_animation_pointer'][blender_main_type][blender_type_data][used_blender_id]['paths'][path][
                         'path'] == "/materials/XXX/pbrMetallicRoughness/baseColorFactor" and baseColorFactor_alpha_merged_already_done is True:
                     continue

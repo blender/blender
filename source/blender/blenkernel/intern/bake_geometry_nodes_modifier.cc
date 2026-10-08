@@ -12,6 +12,7 @@
 #include "BKE_collection.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
+#include "BKE_path_templates.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
@@ -104,24 +105,42 @@ void scene_simulation_states_reset(Scene &scene)
   FOREACH_SCENE_OBJECT_END;
 }
 
-std::optional<std::string> get_modifier_bake_path(const Main &bmain,
-                                                  const Object &object,
-                                                  const NodesModifierData &nmd)
+static std::optional<std::string> resolve_bake_directory(const Main &bmain,
+                                                         const Object &object,
+                                                         const StringRef directory)
 {
-  if (StringRef(nmd.bake_directory).is_empty()) {
+  if (directory.is_empty() || directory.size() >= FILE_MAX) {
     return std::nullopt;
   }
-  if (!BLI_path_is_rel(nmd.bake_directory)) {
-    return nmd.bake_directory;
+  char absolute_bake_dir[FILE_MAX];
+  directory.copy_bytes_truncated(absolute_bake_dir);
+  path_templates::VariableMap variables;
+  BKE_blender_project_read_callback(&bmain, [&](const BlenderProject *project) {
+    BKE_add_template_variables_general(variables, &object.id, project);
+  });
+  if (!BKE_path_apply_template(absolute_bake_dir, sizeof(absolute_bake_dir), variables).is_empty())
+  {
+    return std::nullopt;
+  }
+  if (absolute_bake_dir[0] == '\0') {
+    return std::nullopt;
+  }
+  if (!BLI_path_is_rel(absolute_bake_dir)) {
+    return absolute_bake_dir;
   }
   const char *base_path = ID_BLEND_PATH(&bmain, &object.id);
   if (StringRef(base_path).is_empty()) {
     return std::nullopt;
   }
-  char absolute_bake_dir[FILE_MAX];
-  STRNCPY(absolute_bake_dir, nmd.bake_directory);
   BLI_path_abs(absolute_bake_dir, base_path);
   return absolute_bake_dir;
+}
+
+std::optional<std::string> get_modifier_bake_path(const Main &bmain,
+                                                  const Object &object,
+                                                  const NodesModifierData &nmd)
+{
+  return resolve_bake_directory(bmain, object, nmd.bake_directory);
 }
 
 std::optional<NodesModifierBakeTarget> get_node_bake_target(const Object & /*object*/,
@@ -151,20 +170,12 @@ std::optional<bake::BakePath> get_node_bake_path(const Main &bmain,
     return std::nullopt;
   }
   if (bake->flag & NODES_MODIFIER_BAKE_CUSTOM_PATH) {
-    if (StringRef(bake->directory).is_empty()) {
+    const std::optional<std::string> bake_dir = resolve_bake_directory(
+        bmain, object, bake->directory);
+    if (!bake_dir) {
       return std::nullopt;
     }
-    if (!BLI_path_is_rel(bake->directory)) {
-      return BakePath::from_single_root(bake->directory);
-    }
-    const char *base_path = ID_BLEND_PATH(&bmain, &object.id);
-    if (StringRef(base_path).is_empty()) {
-      return std::nullopt;
-    }
-    char absolute_bake_dir[FILE_MAX];
-    STRNCPY(absolute_bake_dir, bake->directory);
-    BLI_path_abs(absolute_bake_dir, base_path);
-    return bake::BakePath::from_single_root(absolute_bake_dir);
+    return BakePath::from_single_root(*bake_dir);
   }
   const std::optional<std::string> modifier_bake_path = get_modifier_bake_path(bmain, object, nmd);
   if (!modifier_bake_path) {

@@ -61,7 +61,6 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
 {
   NodeShaderAttribute *attr = static_cast<NodeShaderAttribute *>(node->storage);
   float attr_hash = 0.0f;
-  float error_attr[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
   GPUNodeLink *cd_attr;
 
@@ -69,7 +68,7 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
     case SHD_ATTRIBUTE_LIGHT: {
       if (!in[0].link) {
         /* Error: Attribute node is not linked to a light accumulation node. */
-        cd_attr = GPU_constant(error_attr);
+        return false;
       }
       else if (STREQ(attr->name, "is_sun")) {
         GPU_link(mat, "node_attribute_light_is_sun", in[0].link, GPU_kernel_globals(), &cd_attr);
@@ -110,13 +109,10 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
       cd_attr = GPU_attribute(mat, CD_AUTO_FROM_NAME, attr->name);
 
       if (STREQ(attr->name, "color")) {
-        GPU_link(mat, "node_attribute_color", cd_attr, &cd_attr);
+        GPU_link(mat, "node_attribute_color", GPU_kernel_globals(), cd_attr, &cd_attr);
       }
       else if (STREQ(attr->name, "temperature")) {
-        GPU_link(mat, "node_attribute_temperature", cd_attr, &cd_attr);
-      }
-      else if (STREQ(attr->name, "radiance")) {
-        GPU_link(mat, "node_attribute_radiance", cd_attr, &cd_attr);
+        GPU_link(mat, "node_attribute_temperature", GPU_kernel_globals(), cd_attr, &cd_attr);
       }
       break;
     }

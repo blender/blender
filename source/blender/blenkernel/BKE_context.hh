@@ -275,6 +275,7 @@ const char *CTX_wm_operator_poll_msg_get(bContext *C, bool *r_free);
  * will show.
  */
 void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg);
+void CTX_wm_operator_poll_msg_set(bContext *C, StringRef msg);
 void CTX_wm_operator_poll_msg_set_dynamic(bContext *C, const bContextPollMsgDyn_Params *params);
 void CTX_wm_operator_poll_msg_clear(bContext *C);
 

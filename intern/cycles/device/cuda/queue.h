@@ -22,10 +22,7 @@ class CUDADeviceQueue : public DeviceQueue {
   CUDADeviceQueue(CUDADevice *device);
   ~CUDADeviceQueue() override;
 
-  int num_concurrent_states(const size_t state_size) const override;
-  int num_concurrent_busy_states(const size_t state_size) const override;
   int num_sort_partitions(int max_num_paths, uint max_scene_shaders) const override;
-
   bool supports_local_atomic_sort() const override;
 
   void init_execution() override;
@@ -52,6 +49,9 @@ class CUDADeviceQueue : public DeviceQueue {
  protected:
   CUDADevice *cuda_device_;
   CUstream cuda_stream_;
+
+  ConcurrentStatesParams concurrent_states_params() const override;
+  void get_memory_info(size_t &total, size_t &free) const override;
 
   void assert_success(CUresult result, const char *operation);
 };

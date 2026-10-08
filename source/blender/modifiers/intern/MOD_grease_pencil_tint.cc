@@ -288,10 +288,7 @@ static void modify_fill_color(Object &ob,
     if (!gp_style) {
       return ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f);
     }
-    const bool is_gradient = gp_style->fill_style == GP_MATERIAL_FILL_STYLE_GRADIENT;
-    const float4 average_color = math::interpolate(
-        float4(gp_style->fill_rgba), float4(gp_style->mix_rgba), is_gradient ? 0.5f : 0.0f);
-    return ColorGeometry4f(average_color);
+    return ColorGeometry4f(gp_style->fill_rgba);
   };
 
   auto get_curve_factor = [&](const int64_t curve_i) {

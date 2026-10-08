@@ -86,7 +86,7 @@ class HIPDevice : public GPUDevice {
 
   /* Shared memory. */
   bool shared_alloc(void *&shared_pointer, const size_t size) override;
-  void shared_free(void *shared_pointer) override;
+  void shared_free(void *shared_pointer, const size_t size) override;
   void *shared_to_device_pointer(const void *shared_pointer) override;
 
   /* Memory copy. */

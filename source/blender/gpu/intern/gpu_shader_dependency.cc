@@ -42,8 +42,14 @@ extern "C" {
   extern char datatoc_##filename_underscore[];
 #include "glsl_compositor_source_list.h"
 #include "glsl_draw_source_list.h"
+#include "glsl_eevee_source_list.h"
+#include "glsl_gpencil_source_list.h"
 #include "glsl_gpu_source_list.h"
+#include "glsl_image_source_list.h"
 #include "glsl_ocio_source_list.h"
+#include "glsl_overlay_source_list.h"
+#include "glsl_select_id_source_list.h"
+#include "glsl_workbench_source_list.h"
 #ifdef WITH_OPENSUBDIV
 #  include "glsl_osd_source_list.h"
 #endif
@@ -365,7 +371,7 @@ struct GPUSource {
       dependencies.append_non_duplicates(dict.lookup("gpu_shader_print_lib.glsl"));
     }
     if (flag_is_set(builtins, BuiltinBits::USE_DEBUG_DRAW)) {
-      dependencies.append_non_duplicates(dict.lookup("draw_debug_draw_lib.glsl"));
+      dependencies.append_non_duplicates(dict.lookup("draw_debug_draw.bsl.hh"));
     }
 
     for (auto dependency_name : dependencies_names) {
@@ -397,7 +403,8 @@ struct GPUSource {
   {
 #define CLOG_FILE_INCLUDE(_from, _include) \
   if (CLOG_CHECK(&LOG, CLG_LEVEL_TRACE) && \
-      (from).filename.c_str() != (_include).filename.c_str()) { \
+      (from).filename.c_str() != (_include).filename.c_str()) \
+  { \
     const char *from_filename = (_from).filename.c_str(); \
     const char *include_filename = (_include).filename.c_str(); \
     const int from_size = int((_from).source.size()); \
@@ -512,8 +519,14 @@ namespace shader {
 
 #include "glsl_compositor_metadata_list.hh"
 #include "glsl_draw_metadata_list.hh"
+#include "glsl_eevee_metadata_list.hh"
+#include "glsl_gpencil_metadata_list.hh"
 #include "glsl_gpu_metadata_list.hh"
+#include "glsl_image_metadata_list.hh"
 #include "glsl_ocio_metadata_list.hh"
+#include "glsl_overlay_metadata_list.hh"
+#include "glsl_select_id_metadata_list.hh"
+#include "glsl_workbench_metadata_list.hh"
 #ifdef WITH_OPENSUBDIV
 #  include "glsl_osd_metadata_list.hh"
 #endif
@@ -549,10 +562,17 @@ void gpu_shader_dependency_init()
                                    g_formats, \
                                    gpu::shader::metadata_##filename_underscore));
 
+#include "glsl_gpu_source_list.h"
+
 #include "glsl_compositor_source_list.h"
 #include "glsl_draw_source_list.h"
-#include "glsl_gpu_source_list.h"
+#include "glsl_eevee_source_list.h"
+#include "glsl_gpencil_source_list.h"
+#include "glsl_image_source_list.h"
 #include "glsl_ocio_source_list.h"
+#include "glsl_overlay_source_list.h"
+#include "glsl_select_id_source_list.h"
+#include "glsl_workbench_source_list.h"
 #ifdef WITH_OPENSUBDIV
 #  include "glsl_osd_source_list.h"
 #endif

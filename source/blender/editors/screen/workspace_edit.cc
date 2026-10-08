@@ -538,7 +538,8 @@ static void workspace_append_button(ui::Layout &layout,
 
 static void workspace_add_menu(bContext * /*C*/, ui::Layout *layout, void *template_v)
 {
-  const char *app_template = static_cast<const char *>(template_v);
+  const std::string *app_template_str = static_cast<const std::string *>(template_v);
+  const char *app_template = app_template_str ? app_template_str->c_str() : nullptr;
   bool has_startup_items = false;
 
   wmOperatorType *ot_append = WM_operatortype_find("WORKSPACE_OT_append_activate", true);
@@ -606,8 +607,13 @@ static void workspace_add_menu_draw(ui::Layout &layout)
 
     BLI_path_to_display_name(display_name, sizeof(display_name), IFACE_(app_template));
 
-    /* Steals ownership of link data string. */
-    layout.menu_fn_argN_free(display_name, ICON_NONE, workspace_add_menu, app_template);
+    layout.menu_fn_argN_free(display_name,
+                             ICON_NONE,
+                             workspace_add_menu,
+                             MEM_new<std::string>(__func__, app_template),
+                             ui::but_func_argN_free<std::string>,
+                             ui::but_func_argN_copy<std::string>);
+    MEM_delete(app_template);
   }
 
   templates.free_no_destruct();

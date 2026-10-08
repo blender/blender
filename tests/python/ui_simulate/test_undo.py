@@ -357,7 +357,51 @@ def view3d_simple():
     yield e.ctrl.shift.z(12)            # Redo until end.
     t.assertEqual(len(window.view_layer.objects.active.data.polygons), 16)
 
-# Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
+
+def view3d_multi_mode_undo_history():
+    e, t, window = ui.test_window()
+    yield from _view3d_startup_area_maximized(e)
+
+    # NOTE: it should be possible to consider "Add -> Mesh -> Plane" an exact match.
+    # However, shortcuts are now included so without them this ends up fuzzy-matching to "Add -> Image -> Mesh Plane".
+    # To resolve that it's necessary to match the entire shortcut which... changes based on the platform (sign!).
+    use_menu_search_workaround = True
+    if use_menu_search_workaround:
+        import sys
+        yield from ui.call_menu(e, "Add ({:s} A) -> Mesh -> Plane".format(
+            "\u21e7" if sys.platform == "darwin" else "Shift"
+        ))
+        del sys
+    else:
+        # It would be nice if this could be restored.
+        yield from ui.call_menu(e, "Add -> Mesh -> Plane")
+
+    # Duplicate and rotate.
+    for _ in range(3):
+        yield e.shift.d().x().text("3").ret()
+        yield e.r.z().text("15").ret()
+    t.assertEqual(len(window.view_layer.objects), 4)
+    yield e.a()                         # Select all.
+    yield e.numpad_7().numpad_period()  # View top.
+    yield e.ctrl.j()                    # Join.
+    t.assertEqual(len(window.view_layer.objects), 1)
+    yield e.tab()                       # Edit mode.
+    yield from ui.call_menu(e, "Edge -> Subdivide")
+    yield e.tab()                       # Object mode.
+    t.assertEqual(len(window.view_layer.objects.active.data.polygons), 16)
+    yield e.ctrl.z(12)                  # Undo until start.
+    t.assertEqual(len(window.view_layer.objects), 0)
+    yield e.ctrl.shift.z(12)            # Redo until end.
+    t.assertEqual(len(window.view_layer.objects.active.data.polygons), 16)
+
+    yield e.ctrl.tab().s()              # Sculpt via pie menu.
+    yield e.ctrl.one()                  # Add and set multires level 1
+
+    yield from ui.call_operator(e, "Undo History")
+    yield e.o()                         # Undo everything to Original step.
+    t.assertEqual(window.view_layer.objects.active.mode, 'OBJECT')
+
+# Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly)
 
 
 def _extract_mesh_positions(window):
@@ -578,63 +622,6 @@ def view3d_texture_paint_simple():
     t.assertEqual(window.view_layer.objects.active.mode, 'TEXTURE_PAINT')
     yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
     yield e.ctrl.z()                    # Used to crash T61172.
-
-
-def view3d_texture_paint_complex():
-    import bpy
-    # More complex test than `view3d_texture_paint_simple`,
-    # including interleaved memfile steps,
-    # and a call to history to undo several steps at once.
-    e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
-
-    yield from ui.call_menu(e, "Add -> Mesh -> Monkey")
-    yield e.numpad_period()             # View monkey
-    yield e.ctrl.tab().t()              # Paint via pie menu.
-
-    yield from ui.call_operator(e, "Add Texture Paint Slot")
-    yield e.ret()                       # Accept popup.
-
-    initial_data = tuple(bpy.data.images['Suzanne Base Color'].pixels)
-
-    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
-    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
-
-    after_strokes = tuple(bpy.data.images['Suzanne Base Color'].pixels)
-    t.assertTrue(any([orig != new for (orig, new) in zip(initial_data, after_strokes)]),
-                 "At least one pixel should differ in color component")
-
-    yield from ui.call_operator(e, "Add Texture Paint Slot")
-    yield e.ret()                       # Accept popup.
-
-    yield from ui.call_operator(e, "Add Modifier")
-    yield e.a()                         # Array modifier
-    t.assertEqual(len(bpy.context.active_object.modifiers), 1, "One modifier should exist")
-
-    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
-    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
-
-    yield e.ctrl.z(6)                   # Undo: second slot added.
-    t.assertEqual(len(bpy.context.active_object.modifiers), 0, "No modifiers should exist")
-
-    after_undo = tuple(bpy.data.images['Suzanne Base Color'].pixels)
-    t.assertTrue(all([orig == new for (orig, new) in zip(initial_data, after_undo)]),
-                 "All pixels should be the same as their original state")
-
-    yield e.ctrl.z(1)                   # Undo: initial texture paint.
-    t.assertEqual(window.view_layer.objects.active.mode, 'TEXTURE_PAINT')
-    yield e.ctrl.z()                    # Undo: object mode.
-    t.assertEqual(window.view_layer.objects.active.mode, 'OBJECT')
-
-    yield e.ctrl.shift.z(2)             # Redo: initial blank canvas.
-    t.assertEqual(window.view_layer.objects.active.mode, 'TEXTURE_PAINT')
-
-    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
-    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
-
-    yield from ui.call_operator(e, "Undo History")
-    yield e.o()                         # Undo everything to Original step.
-    t.assertEqual(window.view_layer.objects.active.mode, 'OBJECT')
 
 
 def view3d_particle_edit_undo_from_texture_paint():

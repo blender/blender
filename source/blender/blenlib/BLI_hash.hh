@@ -90,18 +90,14 @@ template<typename T> struct DefaultHash {
       return uint64_t(value);
     }
     else if constexpr (requires {
-                         {
-                           value.hash()
-                         } -> std::convertible_to<uint64_t>;
+                         { value.hash() } -> std::convertible_to<uint64_t>;
                        })
     {
       /* When the type has a hash method directly. */
       return value.hash();
     }
     else if constexpr (requires(const T &v) {
-                         {
-                           hash_value(v)
-                         } -> std::convertible_to<uint64_t>;
+                         { hash_value(v) } -> std::convertible_to<uint64_t>;
                        })
     {
       /* When the type has an overload of the #hash_value which is standard popularized by boost.

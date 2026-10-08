@@ -41,15 +41,15 @@ struct GGXBrdfClosure {
   float roughness;
   float3 V;
 
-  static GGXBrdfClosure from_params(float3 params)
+  static GGXBrdfClosure from_coords(float3 coords)
   {
     /* We use squared roughness for approximate perceptual linearity
      * following [Physically Based Shading at Disney]
      * (https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf)
      * Section 5.4. */
-    float roughness = square(params.x);
+    float roughness = square(coords.x);
 
-    float NV = clamp(1.0f - square(params.y), 1e-4f, 0.9999f);
+    float NV = clamp(1.0f - square(coords.y), 1e-4f, 0.9999f);
     float3 V = float3(sqrt(1.0f - square(NV)), 0.0f, NV);
 
     return {roughness, V};
@@ -109,26 +109,26 @@ struct GGXBsdfClosure {
   float ior;
   float3 V;
 
-  static GGXBsdfClosure from_params(float3 params)
+  static GGXBsdfClosure from_coords(float3 coords)
   {
     /* We use squared roughness for approximate perceptual linearity
      * following [Physically Based Shading at Disney]
      * (https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf)
      * Section 5.4. */
-    float roughness = square(params.z);
+    float roughness = square(coords.z);
 
     /* ior is sin of critical angle. */
-    float ior = clamp(sqrt(params.x), 1e-4f, 0.9999f);
+    float ior = clamp(sqrt(coords.x), 1e-4f, 0.9999f);
     float critical_cos = sqrt(1.0f - saturate(square(ior)));
 
     /* Maximize texture usage on both sides of the critical angle. */
-    params.y = params.y * 2.0f - 1.0f;
-    params.y *= (params.y > 0.0f) ? (1.0f - critical_cos) : critical_cos;
+    coords.y = coords.y * 2.0f - 1.0f;
+    coords.y *= (coords.y > 0.0f) ? (1.0f - critical_cos) : critical_cos;
     /* Center LUT around critical angle to avoid strange interpolation
      * issues when the critical angle is changing. */
-    params.y += critical_cos;
+    coords.y += critical_cos;
 
-    float NV = clamp(params.y, 1e-4f, 0.9999f);
+    float NV = clamp(coords.y, 1e-4f, 0.9999f);
     float3 V = float3(sqrt(1.0f - square(NV)), 0.0f, NV);
 
     return {roughness, ior, V};
@@ -197,18 +197,18 @@ struct GGXBtdfGt1Closure {
   float ior;
   float3 V;
 
-  static GGXBtdfGt1Closure from_params(float3 params)
+  static GGXBtdfGt1Closure from_coords(float3 coords)
   {
     /* We use squared roughness for approximate perceptual linearity
      * following [Physically Based Shading at Disney]
      * (https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf)
      * Section 5.4. */
-    float roughness = square(params.z);
+    float roughness = square(coords.z);
 
-    float F0 = clamp(square(params.x), 1e-4f, 0.9999f);
+    float F0 = clamp(square(coords.x), 1e-4f, 0.9999f);
     float ior = (1.0f + F0) / (1.0f - F0);
 
-    float NV = clamp(1.0f - square(params.y), 1e-4f, 0.9999f);
+    float NV = clamp(1.0f - square(coords.y), 1e-4f, 0.9999f);
     float3 V = float3(sqrt(1.0f - square(NV)), 0.0f, NV);
 
     return {roughness, ior, V};
@@ -252,12 +252,12 @@ struct GGXBtdfGt1Closure {
  *
  * Parameters: `x = distance`, while output is interpreted as exit radiance.
  */
-float4 burley_sss_translucency(float3 params)
+float4 burley_sss_translucency(float3 coords)
 {
   /* Note that we only store the 1st (radius == 1) component.
    * The others are here for debugging overall appearance. */
   float3 radii = float3(1.0f, 0.2f, 0.1f);
-  float thickness = params.x * SSS_TRANSMIT_LUT_RADIUS;
+  float thickness = coords.x * SSS_TRANSMIT_LUT_RADIUS;
   float3 r = thickness / radii;
 
   /* Manual fit based on cycles render of a backlit slab of varying thickness.
@@ -269,18 +269,18 @@ float4 burley_sss_translucency(float3 params)
   float3 profile = saturate(mix(gaussian, exponential, fac));
 
   /* Mask off the end progressively to 0. */
-  profile *= saturate(1.0f - pow5f(params.x));
+  profile *= saturate(1.0f - pow5f(coords.x));
 
   return float4(profile, 0.0f);
 }
 
 /* Note: unused. */
-float4 random_walk_sss_translucency(float3 params)
+float4 random_walk_sss_translucency(float3 coords)
 {
   /* Note that we only store the 1st (radius == 1) component.
    * The others are here for debugging overall appearance. */
   float3 radii = float3(1.0f, 0.2f, 0.1f);
-  float thickness = params.x * SSS_TRANSMIT_LUT_RADIUS;
+  float thickness = coords.x * SSS_TRANSMIT_LUT_RADIUS;
   float3 r = thickness / radii;
 
   /* Manual fit based on cycles render of a backlit slab of varying thickness.
@@ -294,7 +294,7 @@ float4 random_walk_sss_translucency(float3 params)
   profile = saturate(profile - 0.1f);
 
   /* Mask off the end progressively to 0. */
-  profile *= saturate(1.0f - pow5f(params.x));
+  profile *= saturate(1.0f - pow5f(coords.x));
 
   return float4(profile, 0.0f);
 }
@@ -310,13 +310,13 @@ template<typename F> float4 integrate(const F &func)
   constexpr uint sample_count = 512u * 512u;
 
   /* TODO(not_mark): Remove workaround for BSL-spec #4. */
-  // F func = F::from_params(params);
+  // F func = F::from_coords(coords);
 
   /* Measure func using N samples. */
   float4 measure = float4(0.0f);
   for (uint i = 1u; i <= sample_count; i++) {
     /* Warp sequence to a point on the unit cylinder. */
-    float2 rand = hammersley_2d(i, sample_count);
+    float2 rand = random::hammersley_2d(i, sample_count);
     float3 Xi = sample_cylinder(rand);
 
     /* Add sample to measure. */
@@ -344,13 +344,13 @@ void comp_main([[global_invocation_id]] const uint3 global_id, [[resource_table]
   float4 result = float4(-1);
   switch (uint(lut.type)) {
     case LUT_GGX_BRDF_SPLIT_SUM:
-      result = integrate(GGXBrdfClosure::from_params(lut_normalized_coordinate));
+      result = integrate(GGXBrdfClosure::from_coords(lut_normalized_coordinate));
       break;
     case LUT_GGX_BSDF_SPLIT_SUM:
-      result = integrate(GGXBsdfClosure::from_params(lut_normalized_coordinate));
+      result = integrate(GGXBsdfClosure::from_coords(lut_normalized_coordinate));
       break;
     case LUT_GGX_BTDF_IOR_GT_ONE:
-      result = integrate(GGXBtdfGt1Closure::from_params(lut_normalized_coordinate));
+      result = integrate(GGXBtdfGt1Closure::from_coords(lut_normalized_coordinate));
       break;
     case LUT_BURLEY_SSS_PROFILE:
       result = burley_sss_translucency(lut_normalized_coordinate);

@@ -11,39 +11,22 @@
 #include "eevee_shadow.bsl.hh"
 #include "eevee_shadow_tracing.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
-
-#if !defined(SRT_CONSTANT_light_closure_eval_count_reflect)
-#  define SRT_CONSTANT_light_closure_eval_count_reflect 0
-#endif
-#if !defined(SRT_CONSTANT_light_closure_eval_count_transmit)
-#  define SRT_CONSTANT_light_closure_eval_count_transmit 0
-#endif
-
-#ifdef GLSL_CPP_STUBS
-#  define LIGHT_STACK_SIZE_REFLECT 3
-#elif SRT_CONSTANT_light_closure_eval_count_reflect == 0
-#  define LIGHT_STACK_SIZE_REFLECT 1 /* Avoid compilation error. */
-#else
-#  define LIGHT_STACK_SIZE_REFLECT SRT_CONSTANT_light_closure_eval_count_reflect
-#endif
-
-#ifdef GLSL_CPP_STUBS
-#  define LIGHT_STACK_SIZE_TRANSMIT 3
-#elif SRT_CONSTANT_light_closure_eval_count_transmit == 0
-#  define LIGHT_STACK_SIZE_TRANSMIT 1 /* Avoid compilation error. */
-#else
-#  define LIGHT_STACK_SIZE_TRANSMIT SRT_CONSTANT_light_closure_eval_count_transmit
-#endif
 
 namespace eevee {
 
-struct LightEvalData {
-  [[resource_table]] srt_t<ShadowRenderData> shadow_data;
-  [[resource_table]] srt_t<UtilityTexture> utility_tx;
-
+struct LightEvalConstants {
   [[compilation_constant]] int light_closure_eval_count_reflect;
   [[compilation_constant]] int light_closure_eval_count_transmit;
+  /* Same as above but clamped to a minimum of 1 to avoid zero sized arrays. */
+  [[compilation_constant]] int light_closure_count_reflect;
+  [[compilation_constant]] int light_closure_count_transmit;
+};
+
+struct LightEvalData {
+  [[resource_table]] LightEvalConstants constants;
+
+  [[resource_table]] ShadowRenderData shadow_data;
+  [[resource_table]] UtilityTexture utility_tx;
 };
 
 namespace light {
@@ -51,11 +34,11 @@ namespace light {
 template<bool is_transmission> struct ClosureStack {};
 
 template<> struct ClosureStack<false> {
-  ClosureLight cl[LIGHT_STACK_SIZE_REFLECT];
+  [[capacity(light_closure_count_reflect)]] ClosureLight cl[3];
 };
 
 template<> struct ClosureStack<true> {
-  ClosureLight cl[LIGHT_STACK_SIZE_TRANSMIT];
+  [[capacity(light_closure_count_transmit)]] ClosureLight cl[3];
 };
 
 void eval_single_closure(sampler2DArray util_tx,
@@ -96,25 +79,14 @@ template<bool is_transmission> struct EvalCtx {
   uchar receiver_light_set;
   float terminator_normal_offset;
   float terminator_geometry_offset;
+  int ray_count;
+  int ray_step_count;
 
-  void light_eval_single([[resource_table]] LightEvalData &srt,
-                         LightData light,
-                         const bool is_directional)
+  void light_eval_single(LightEvalData &srt, LightData light, const bool is_directional)
   {
-    [[resource_table]] ShadowRenderData &srd = srt.shadow_data;
-    [[resource_table]] Uniform &uni = srd.uniforms;
-
     if (!light_linking_affects_receiver(light.light_set_membership, receiver_light_set)) {
       return;
     }
-
-#if defined(SPECIALIZED_SHADOW_PARAMS) || defined(SRT_CONSTANT_shadow_ray_count)
-    int ray_count = shadow_ray_count;
-    int ray_step_count = shadow_ray_step_count;
-#else
-    int ray_count = uni.uniform_buf.shadow.ray_count;
-    int ray_step_count = uni.uniform_buf.shadow.step_count;
-#endif
 
     LightVector lv = LightVector::get(light, is_directional, P);
 
@@ -129,7 +101,7 @@ template<bool is_transmission> struct EvalCtx {
 
     float shadow = 1.0f;
     if (light.tilemap_index != LIGHT_NO_SHADOW) {
-      shadow = shadow_eval(srd,
+      shadow = shadow_eval(srt.shadow_data,
                            light,
                            is_directional,
                            is_transmission,
@@ -148,29 +120,29 @@ template<bool is_transmission> struct EvalCtx {
 
     LightShape shape = LightShape::get(light, lv);
 
-    [[resource_table]] const UtilityTexture &util = srt.utility_tx;
+    const UtilityTexture &util = srt.utility_tx;
     const auto &util_tx = util.utility_tx;
 
     for (uint i = 0u; i < 3; i++) [[unroll]] {
-      if (is_transmission) [[static_branch]] {
-        if (srt.light_closure_eval_count_transmit > i) [[static_branch]] {
+      if constexpr (is_transmission) {
+        if (srt.constants.light_closure_eval_count_transmit > i) [[static_branch]] {
           eval_single_closure(util_tx, light, lv, shape, stack.cl[i], V, attenuation, shadow);
         }
       }
       else {
-        if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
+        if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
           eval_single_closure(util_tx, light, lv, shape, stack.cl[i], V, attenuation, shadow);
         }
       }
     }
   }
 
-  void eval_directional([[resource_table]] LightEvalData &srt, uint /*l_idx*/, LightData light)
+  void eval_directional(LightEvalData &srt, uint /*l_idx*/, LightData light)
   {
     light_eval_single(srt, light, true);
   }
 
-  void eval_local([[resource_table]] LightEvalData &srt, uint /*l_idx*/, LightData light)
+  void eval_local(LightEvalData &srt, uint /*l_idx*/, LightData light)
   {
     light_eval_single(srt, light, false);
   }
@@ -196,28 +168,28 @@ EvalCtx<true> init_from_reflect_ctx(EvalCtx<false> ctx)
   ctx_tr.receiver_light_set = ctx.receiver_light_set;
   ctx_tr.terminator_normal_offset = ctx.terminator_normal_offset;
   ctx_tr.terminator_geometry_offset = ctx.terminator_geometry_offset;
+  ctx_tr.ray_count = ctx.ray_count;
+  ctx_tr.ray_step_count = ctx.ray_step_count;
   return ctx_tr;
 }
 
 }  // namespace light
 
 struct LightEvalIterator {
-  [[resource_table]] srt_t<LightEvalData> inner;
-  [[resource_table]] srt_t<LightRenderData> light_data;
+  [[resource_table]] LightEvalData inner;
+  [[resource_table]] LightRenderData light_data;
 
   void eval_reflection(light::EvalCtx<false> &ctx, float vPz)
   {
-    [[resource_table]] LightEvalData &srt = inner;
-    if (srt.light_closure_eval_count_reflect > 0) [[static_branch]] {
-      light::foreach_visible(light_data, ctx.texel, vPz, ctx, srt);
+    if (inner.constants.light_closure_eval_count_reflect > 0) [[static_branch]] {
+      light::foreach_visible(light_data, ctx.texel, vPz, ctx, inner);
     }
   }
 
   void eval_transmission(light::EvalCtx<true> &ctx, float vPz)
   {
-    [[resource_table]] LightEvalData &srt = inner;
-    if (srt.light_closure_eval_count_transmit > 0) [[static_branch]] {
-      light::foreach_visible(light_data, ctx.texel, vPz, ctx, srt);
+    if (inner.constants.light_closure_eval_count_transmit > 0) [[static_branch]] {
+      light::foreach_visible(light_data, ctx.texel, vPz, ctx, inner);
     }
   }
 };

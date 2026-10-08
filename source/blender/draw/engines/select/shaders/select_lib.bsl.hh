@@ -9,7 +9,13 @@
 
 namespace draw {
 
+struct SelectConstant {
+  [[compilation_constant]] bool selectable;
+};
+
 struct Select {
+  [[resource_table]] SelectConstant consts;
+
   [[uniform(SELECT_DATA)]] const SelectInfoData &select_info_buf;
   [[storage(SELECT_ID_IN, read)]] const uint (&in_select_buf)[];
   [[storage(SELECT_ID_OUT, read_write)]] uint (&out_select_buf)[];
@@ -56,6 +62,10 @@ struct Select {
       }
     }
   }
+};
+
+struct SelectOut {
+  [[flat]] uint select_id;
 };
 
 }  // namespace draw

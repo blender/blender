@@ -6,20 +6,6 @@
 
 #include "gpu_shader_compat.hh"
 
-#ifndef FLT_MAX
-#  define FLT_MAX uintBitsToFloat(0x7F7FFFFFu)
-#  define FLT_MIN uintBitsToFloat(0x00800000u)
-#  define FLT_EPSILON 1.192092896e-07F
-#endif
-#ifndef SHRT_MAX
-#  define SHRT_MAX 0x00007FFF
-#  define INT_MAX 0x7FFFFFFF
-#  define USHRT_MAX 0x0000FFFFu
-#  define UINT_MAX 0xFFFFFFFFu
-#endif
-#ifndef NAN_FLT
-#  define NAN_FLT uintBitsToFloat(0x7FC00000u)
-#endif
 #define FLT_11_MAX uintBitsToFloat(0x477E0000)
 #define FLT_10_MAX uintBitsToFloat(0x477C0000)
 #define FLT_11_11_10_MAX float3(FLT_11_MAX, FLT_11_MAX, FLT_10_MAX)
@@ -28,11 +14,6 @@
 #define UNPACK3(a) (a)[0], (a)[1], (a)[2]
 #define UNPACK4(a) (a)[0], (a)[1], (a)[2], (a)[3]
 
-/**
- * Clamp input into [0..1] range.
- */
-#define saturate(a) clamp(a, 0.0f, 1.0f)
-
 /* clang-format off */
 #define in_range_inclusive(val, min_v, max_v) (all(greaterThanEqual(val, min_v)) && all(lessThanEqual(val, max_v)))
 #define in_range_exclusive(val, min_v, max_v) (all(greaterThan(val, min_v)) && all(lessThan(val, max_v)))
@@ -40,7 +21,6 @@
 #define in_image_range(texel, tex) (all(greaterThanEqual(texel, int2(0))) && all(lessThan(texel, imageSize(tex).xy)))
 
 #define weighted_sum(val0, val1, val2, val3, weights) ((val0 * weights[0] + val1 * weights[1] + val2 * weights[2] + val3 * weights[3]) * safe_rcp(weights[0] + weights[1] + weights[2] + weights[3]))
-#define weighted_sum_array(val, weights) ((val[0] * weights[0] + val[1] * weights[1] + val[2] * weights[2] + val[3] * weights[3]) * safe_rcp(weights[0] + weights[1] + weights[2] + weights[3]))
 /* clang-format on */
 
 bool flag_test(uint flag, uint val)

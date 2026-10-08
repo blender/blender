@@ -114,7 +114,7 @@ public:
 	/* add a new cache item
 	   channel: the cache channel (as returned by AddChannel
 	   data, length: the cache item and length in bytes
-	                 If data is NULL, the memory is allocated in the cache but not writen
+	                 If data is NULL, the memory is allocated in the cache but not written
 	   return: error: NULL, success: pointer to item in cache */
 	void *addCacheItem(const void *device, int channel, CacheTS timestamp, void *data, unsigned int length);
 

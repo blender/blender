@@ -118,6 +118,16 @@ class ShaderCache {
   gpu::StaticShader draw_resource_finalize = {"draw_resource_finalize"};
   gpu::StaticShader draw_command_generate = {"draw_command_generate"};
 
+  /* Indexed by the element size in 32-bit words, minus one. */
+  gpu::StaticShader mesh_gather[4] = {{"draw_mesh_gather_4"},
+                                      {"draw_mesh_gather_8"},
+                                      {"draw_mesh_gather_12"},
+                                      {"draw_mesh_gather_16"}};
+  gpu::StaticShader mesh_scatter_faces[4] = {{"draw_mesh_scatter_faces_4"},
+                                             {"draw_mesh_scatter_faces_8"},
+                                             {"draw_mesh_scatter_faces_12"},
+                                             {"draw_mesh_scatter_faces_16"}};
+
   gpu::StaticShader subdiv_sh[SUBDIVISION_MAX_SHADERS];
   gpu::StaticShader subdiv_custom_data_sh[SHADER_CUSTOM_DATA_INTERP_MAX_DIMENSIONS][GPU_COMP_MAX];
   gpu::StaticShader subdiv_interp_corner_normals_sh = {
@@ -224,6 +234,18 @@ gpu::Shader *DRW_shader_draw_resource_finalize_get()
 gpu::Shader *DRW_shader_draw_command_generate_get()
 {
   return ShaderCache::get().draw_command_generate.get();
+}
+
+gpu::Shader *DRW_shader_mesh_gather_get(const int element_size)
+{
+  BLI_assert(ELEM(element_size, 4, 8, 12, 16));
+  return ShaderCache::get().mesh_gather[element_size / 4 - 1].get();
+}
+
+gpu::Shader *DRW_shader_mesh_scatter_faces_get(const int element_size)
+{
+  BLI_assert(ELEM(element_size, 4, 8, 12, 16));
+  return ShaderCache::get().mesh_scatter_faces[element_size / 4 - 1].get();
 }
 
 gpu::Shader *DRW_shader_subdiv_get(SubdivShaderType shader_type)

@@ -39,13 +39,13 @@ void vert_main([[resource_table]] const Resources &srt,
 {
   /* Constant array moved inside function scope.
    * Minimizes local register allocation in MSL. */
-  constexpr float2 pos[6] = {float2(-1.0f, -1.0f),
-                             float2(1.0f, -1.0f),
-                             float2(-1.0f, 1.0f),
+  const float2 pos[6] = {float2(-1.0f, -1.0f),
+                         float2(1.0f, -1.0f),
+                         float2(-1.0f, 1.0f),
 
-                             float2(1.0f, -1.0f),
-                             float2(1.0f, 1.0f),
-                             float2(-1.0f, 1.0f)};
+                         float2(1.0f, -1.0f),
+                         float2(1.0f, 1.0f),
+                         float2(-1.0f, 1.0f)};
 
   float2 lP = pos[vert_id % 6];
 
@@ -132,13 +132,13 @@ void vert_main([[resource_table]] const Resources &srt,
 {
   /* Constant array moved inside function scope.
    * Minimizes local register allocation in MSL. */
-  constexpr float2 pos[6] = {float2(-1.0f, -1.0f),
-                             float2(1.0f, -1.0f),
-                             float2(-1.0f, 1.0f),
+  const float2 pos[6] = {float2(-1.0f, -1.0f),
+                         float2(1.0f, -1.0f),
+                         float2(-1.0f, 1.0f),
 
-                             float2(1.0f, -1.0f),
-                             float2(1.0f, 1.0f),
-                             float2(-1.0f, 1.0f)};
+                         float2(1.0f, -1.0f),
+                         float2(1.0f, 1.0f),
+                         float2(-1.0f, 1.0f)};
 
   v_out.lP = pos[vert_id % 6];
   int cell_index = vert_id / 6;
@@ -220,7 +220,7 @@ struct FragOut {
 };
 
 struct Resources {
-  [[resource_table]] srt_t<LightprobeSphereRenderData> lightprobe_sphere;
+  [[resource_table]] LightprobeSphereRenderData lightprobe_sphere;
 
   [[storage(0, read)]] SphereProbeDisplayData (&display_data_buf)[];
 };
@@ -235,13 +235,13 @@ void vert_main([[resource_table]] const Resources &srt,
 {
   /* Constant array moved inside function scope.
    * Minimizes local register allocation in MSL. */
-  constexpr float2 pos[6] = {float2(-1.0f, -1.0f),
-                             float2(1.0f, -1.0f),
-                             float2(-1.0f, 1.0f),
+  const float2 pos[6] = {float2(-1.0f, -1.0f),
+                         float2(1.0f, -1.0f),
+                         float2(-1.0f, 1.0f),
 
-                             float2(1.0f, -1.0f),
-                             float2(1.0f, 1.0f),
-                             float2(-1.0f, 1.0f)};
+                         float2(1.0f, -1.0f),
+                         float2(1.0f, 1.0f),
+                         float2(-1.0f, 1.0f)};
 
   v_out.lP = pos[vert_id % 6];
   int display_index = vert_id / 6;

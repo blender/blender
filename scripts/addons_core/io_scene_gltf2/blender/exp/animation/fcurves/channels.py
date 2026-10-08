@@ -333,7 +333,7 @@ def get_channel_groups(obj_uuid: str, blender_action: bpy.types.Action,
                         elif slot.target_id_type == 'OBJECT':
                             extras_target = export_settings['vtree'].nodes[obj_uuid].node.extras
                         else:
-                            extras_target = None  # Should not happen if all is implemeted # TODOEXTRAS ????
+                            extras_target = None  # Should not happen if all is implemented # TODOEXTRAS ????
 
                         if extras_target is not None and extras_target.get(test_custom_prop) is not None:
                             # We manage only 1 item extras for now

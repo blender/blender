@@ -62,6 +62,21 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
                                                  ReportList &reports);
 
 bool asset_edit_id_save(Main &global_main, ID &id, ReportList &reports);
+
+/**
+ * Rename an external asset.
+ *
+ * For non-brush assets, this also renames the .asset.blend file the asset is stored in. Brush
+ * assets have their own name-handling logic, and renaming their files can break the brush system.
+ *
+ * \note this does not trigger any reloads in the asset browser/shelf.
+ */
+bool asset_edit_id_rename(Main &global_main,
+                          ID &id,
+                          StringRefNull new_name,
+                          const bUserAssetLibrary &user_library,
+                          ReportList &reports);
+
 /**
  * Relink the asset from the library. This causes the ID to be re-allocated, so its address
  * changes. Even in case of failure to reload the asset, \a id will be deleted.

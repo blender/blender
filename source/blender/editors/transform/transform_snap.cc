@@ -19,7 +19,6 @@
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
 
-#include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
@@ -588,7 +587,7 @@ static bool transform_snap_mixed_is_active(const TransInfo *t)
   return (t->tsnap.mode &
           (SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_EDGE | SCE_SNAP_TO_FACE | SCE_SNAP_TO_FACE_MIDPOINT |
            SCE_SNAP_TO_VOLUME | SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR |
-           SCE_SNAP_TO_GRID)) != 0;
+           SCE_SNAP_TO_GRID | SCE_SNAP_TO_ORIGIN)) != 0;
 }
 
 void transform_snap_mixed_apply(TransInfo *t, float *vec)
@@ -648,34 +647,6 @@ bool validSnappingNormal(const TransInfo *t)
   }
 
   return false;
-}
-
-static bool bm_edge_is_snap_target(BMEdge *e, void * /*user_data*/)
-{
-  if (BM_elem_flag_test(e, BM_ELEM_SELECT | BM_ELEM_HIDDEN) ||
-      BM_elem_flag_test(e->v1, BM_ELEM_SELECT) || BM_elem_flag_test(e->v2, BM_ELEM_SELECT))
-  {
-    return false;
-  }
-
-  return true;
-}
-
-static bool bm_face_is_snap_target(BMFace *f, void * /*user_data*/)
-{
-  if (BM_elem_flag_test(f, BM_ELEM_SELECT | BM_ELEM_HIDDEN)) {
-    return false;
-  }
-
-  BMLoop *l_iter, *l_first;
-  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  do {
-    if (BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
-      return false;
-    }
-  } while ((l_iter = l_iter->next) != l_first);
-
-  return true;
 }
 
 eSnapFlag *transform_snap_flag_from_spacetype_ptr(TransInfo *t,
@@ -863,24 +834,13 @@ static eSnapTargetOP snap_target_select_from_spacetype_and_tool_settings(TransIn
 
 static void snap_object_context_init(TransInfo *t)
 {
-  if (t->data_type == &TransConvertType_Mesh) {
-    /* Ignore elements being transformed. */
-    ed::transform::snap_object_context_set_editmesh_callbacks(
-        t->tsnap.object_context,
-        reinterpret_cast<bool (*)(BMVert *, void *)>(BM_elem_cb_check_hflag_disabled),
-        bm_edge_is_snap_target,
-        bm_face_is_snap_target,
-        POINTER_FROM_UINT(BM_ELEM_SELECT | BM_ELEM_HIDDEN));
-  }
-  else {
-    /* Ignore hidden geometry in the general case. */
-    ed::transform::snap_object_context_set_editmesh_callbacks(
-        t->tsnap.object_context,
-        reinterpret_cast<bool (*)(BMVert *, void *)>(BM_elem_cb_check_hflag_disabled),
-        reinterpret_cast<bool (*)(BMEdge *, void *)>(BM_elem_cb_check_hflag_disabled),
-        reinterpret_cast<bool (*)(BMFace *, void *)>(BM_elem_cb_check_hflag_disabled),
-        POINTER_FROM_UINT(BM_ELEM_HIDDEN));
-  }
+  /* When editing a mesh, the selected elements are the ones being transformed, so snapping to
+   * them is meaningless. */
+  ed::transform::snap_object_context_set_editmesh_target(
+      t->tsnap.object_context,
+      t->data_type == &TransConvertType_Mesh ?
+          ed::transform::SnapEditMeshTarget::VisibleUnselected :
+          ed::transform::SnapEditMeshTarget::Visible);
 }
 
 static void initSnappingMode(TransInfo *t)
@@ -1352,7 +1312,7 @@ static void snap_target_view3d_fn(TransInfo *t, float * /*vec*/)
   eSnapMode snap_elem = SCE_SNAP_TO_NONE;
   float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
 
-  if (t->tsnap.mode & (SCE_SNAP_TO_GEOM | SCE_SNAP_TO_GRID)) {
+  if (t->tsnap.mode & (SCE_SNAP_TO_GEOM | SCE_SNAP_TO_GRID | SCE_SNAP_TO_ORIGIN)) {
     zero_v3(no); /* objects won't set this */
     snap_elem = snapObjectsTransform(t, t->mval, &dist_px, loc, no);
     found = (snap_elem != SCE_SNAP_TO_NONE);

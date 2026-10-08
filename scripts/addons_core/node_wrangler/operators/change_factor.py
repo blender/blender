@@ -17,8 +17,13 @@ from ..utils.nodes import (
 class NODE_OT_change_factor(Operator, NWBase):
     bl_idname = "node.nw_factor"
     bl_label = "Change Factor"
-    bl_description = "Change factors of Mix nodes and Mix Shader nodes"
+    bl_description = "Change factor inputs of selected nodes"
     bl_options = {'REGISTER', 'UNDO'}
+
+    @staticmethod
+    def get_socket_min_and_max(socket):
+        prop = socket.bl_rna.properties["default_value"]
+        return prop.soft_min, prop.soft_max
 
     @classmethod
     def poll(cls, context):
@@ -30,21 +35,30 @@ class NODE_OT_change_factor(Operator, NWBase):
     option: FloatProperty()
 
     def execute(self, context):
-        tree = context.space_data.edit_tree
-        nodes = tree.nodes
         option = self.option
-        selected = []  # entry = index
-        for si, node in enumerate(nodes):
-            if node.select:
-                if node.type in {'MIX_RGB', 'MIX_SHADER'} or node.bl_idname == 'ShaderNodeMix':
-                    selected.append(si)
+        any_socket_modified = False
 
-        for si in selected:
-            fac = nodes[si].inputs[0]
-            nodes[si].hide = False
-            if option in {0.0, 1.0}:
-                fac.default_value = option
-            else:
-                fac.default_value += option
+        if option in {0.0, 1.0}:
+            for node in context.selected_nodes:
+                if socket := node.inputs.get("Factor"):
+                    socket.hide = False
+                    if socket.default_value != option:
+                        socket.default_value = option
+                        any_socket_modified = True
+        else:
+            for node in context.selected_nodes:
+                if socket := node.inputs.get("Factor"):
+                    socket.hide = False
+                    min_fac, max_fac = self.get_min_and_max(socket)
+                    if (option < 0.0) and (socket.default_value > min_fac):
+                        socket.default_value = max(0.0, socket.default_value + option)
+                        any_socket_modified = True
+                    elif (option > 0.0) and (socket.default_value < max_fac):
+                        socket.default_value = min(1.0, socket.default_value + option)
+                        any_socket_modified = True
+
+        if not any_socket_modified:
+            self.report({'WARNING'}, "No factor values were modified.")
+            return {'CANCELLED'}
 
         return {'FINISHED'}

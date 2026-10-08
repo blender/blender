@@ -1224,18 +1224,20 @@ static Button *item_with_label(Layout *layout,
       }
     }
 
-    /* #BUTTONS_OT_file_browse calls #context_active_but_prop_get_filebrowser. */
-    uiDefIconButO(block,
-                  ButtonType::But,
-                  subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" :
-                                            "BUTTONS_OT_file_browse",
-                  wm::OpCallContext::InvokeDefault,
-                  RNA_property_editable(ptr, prop) ? ICON_FILEBROWSER : ICON_FOLDER_REDIRECT,
-                  x,
-                  y,
-                  UI_UNIT_X,
-                  h,
-                  std::nullopt);
+    if ((flag & ITEM_R_PATH_NO_OPEN_BUTTON) == 0) {
+      /* #BUTTONS_OT_file_browse calls #context_active_but_prop_get_filebrowser. */
+      uiDefIconButO(block,
+                    ButtonType::But,
+                    subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" :
+                                              "BUTTONS_OT_file_browse",
+                    wm::OpCallContext::InvokeDefault,
+                    RNA_property_editable(ptr, prop) ? ICON_FILEBROWSER : ICON_FOLDER_REDIRECT,
+                    x,
+                    y,
+                    UI_UNIT_X,
+                    h,
+                    std::nullopt);
+    }
   }
   else if (flag & ITEM_R_EVENT) {
     but = uiDefButR_prop(block,
@@ -2804,6 +2806,7 @@ void button_configure_search(Button *but,
 void Layout::textbox(const bContext *C,
                      PointerRNA *ptr,
                      StringRefNull propname,
+                     std::optional<StringRefNull> name_opt,
                      std::optional<StringRefNull> placeholder,
                      const int initial_visible_lines)
 {
@@ -2811,15 +2814,15 @@ void Layout::textbox(const bContext *C,
       CTX_wm_region(C),
       fmt::format("{}.{}", RNA_struct_identifier(ptr->type), propname),
       initial_visible_lines);
-  this->textbox_with_state(ptr, propname, textbox_state, placeholder);
+  this->textbox_with_state(ptr, propname, textbox_state, name_opt, placeholder);
 }
 
 void Layout::textbox_with_state(PointerRNA *ptr,
                                 StringRefNull propname,
                                 TextboxState *textbox_state,
+                                std::optional<StringRefNull> name_opt,
                                 std::optional<StringRefNull> placeholder)
 {
-
   Block *block = this->block();
   PropertyRNA *prop = RNA_struct_find_property_check(*ptr, propname.c_str(), PROP_STRING);
 
@@ -2832,7 +2835,14 @@ void Layout::textbox_with_state(PointerRNA *ptr,
     return;
   }
 
-  this->row(true).alignment_set(LayoutAlign::Expand);
+  StringRefNull name = name_opt.value_or(RNA_property_ui_name(prop));
+
+  if (!name.is_empty()) {
+    uiItemL_respect_property_split(this, name, ICON_NONE);
+  }
+  else {
+    this->row(true).alignment_set(LayoutAlign::Expand);
+  }
 
   int w, h;
   item_rna_size(block->curlayout, "", ICON_NONE, ptr, prop, -1, false, false, &w, &h);
@@ -2967,8 +2977,8 @@ static Button *item_menu(Layout *layout,
                          void *argN,
                          const std::optional<StringRef> tip,
                          bool force_menu,
-                         ButtonArgNFree func_argN_free_fn = MEM_delete_void,
-                         ButtonArgNCopy func_argN_copy_fn = MEM_dupalloc_void)
+                         ButtonArgNFree func_argN_free_fn,
+                         ButtonArgNCopy func_argN_copy_fn)
 {
   Block *block = layout->block();
   Layout *heading_layout = layout_heading_find(layout);
@@ -3056,7 +3066,9 @@ void Layout::menu(MenuType *mt, const std::optional<StringRef> name_opt, int ico
             mt,
             nullptr,
             mt->description ? TIP_(mt->description) : "",
-            false);
+            false,
+            nullptr,
+            nullptr);
 }
 
 void Layout::menu(const StringRef menuname, const std::optional<StringRef> name, int icon)
@@ -3189,8 +3201,16 @@ void Layout::popover(const bContext *C,
 
   CTX_store_set(const_cast<bContext *>(C), previous_ctx);
 
-  Button *but = item_menu(
-      layout, name, icon, item_paneltype_func, pt, nullptr, TIP_(pt->description), true);
+  Button *but = item_menu(layout,
+                          name,
+                          icon,
+                          item_paneltype_func,
+                          pt,
+                          nullptr,
+                          TIP_(pt->description),
+                          true,
+                          nullptr,
+                          nullptr);
   but->type = ButtonType::Popover;
 
   /* Override button size when there is no icon or label. */
@@ -3642,17 +3662,22 @@ void Layout::menu_fn(const StringRefNull name, int icon, MenuCreateFunc func, vo
     return;
   }
 
-  item_menu(this, name, icon, func, arg, nullptr, "", false);
+  item_menu(this, name, icon, func, arg, nullptr, "", false, nullptr, nullptr);
 }
 
-void Layout::menu_fn_argN_free(const StringRefNull name, int icon, MenuCreateFunc func, void *argN)
+void Layout::menu_fn_argN_free(const StringRefNull name,
+                               int icon,
+                               MenuCreateFunc func,
+                               void *argN,
+                               void (*argN_free_fn)(void *argN),
+                               void *(*argN_copy_fn)(const void *argN))
 {
   if (!func) {
     return;
   }
 
   /* Second 'argN' only ensures it gets freed. */
-  item_menu(this, name, icon, func, argN, argN, "", false);
+  item_menu(this, name, icon, func, argN, argN, "", false, argN_free_fn, argN_copy_fn);
 }
 
 struct MenuItemLevel {
@@ -5097,7 +5122,7 @@ PanelLayout Layout::panel_prop(const bContext *C,
   const ARegion *region = CTX_wm_region(C);
 
   const bool is_real_open = RNA_boolean_get(open_prop_owner, open_prop_name.c_str());
-  const bool search_filter_active = region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE;
+  const bool search_filter_active = region && (region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE);
   const bool is_open = is_real_open || search_filter_active;
 
   PanelLayout panel_layout{};

@@ -134,7 +134,7 @@ PackIsland::PackIsland()
   caller_index = -31415927; /* Accidentally -pi */
   pivot_ = float2(0.0f);
   half_diagonal_ = float2(0.0f);
-  pre_rotate_ = 0.0f;
+  pre_rotate_sincos_ = float2(0.0f, 1.0f);
 }
 
 void PackIsland::add_triangle(const float2 uv0, const float2 uv1, const float2 uv2)
@@ -198,38 +198,69 @@ static bool can_rotate(const Span<PackIsland *> islands, const UVPackIsland_Para
   return true;
 }
 
-/** Angle rounding helper for "D4" transforms. */
-static float angle_match(float angle_radians, float target_radians)
+/* Rotation helpers operating on the sine & cosine of an angle,
+ * avoiding trigonometric functions which can give different results between platforms. */
+
+/** Add 90 degrees to the angle. */
+static float2 sincos_rotate_90(const float2 &sincos)
 {
-  if (fabsf(angle_radians - target_radians) < DEG2RADF(0.1f)) {
-    return target_radians;
+  return {sincos.y, -sincos.x};
+}
+
+/**
+ * Wrap the angle into the `[-90, 90]` degree range.
+ *
+ * Angles of exactly +/-90 degrees are negated, matching the previous angle based logic
+ * where `float(M_PI_2)` being slightly larger than `M_PI_2` wrapped these to the opposite sign.
+ */
+static float2 sincos_wrap(const float2 &sincos)
+{
+  if (sincos.y <= 0.0f) {
+    return -sincos;
   }
-  return angle_radians;
+  return sincos;
 }
 
-static float angle_wrap(float angle_radians)
+/** Rounding helper for "D4" transforms, snapping to -90, 0 & 90 degrees. */
+static float2 sincos_plusminus_90(const float2 &sincos)
 {
-  angle_radians = angle_radians - floorf((angle_radians + M_PI_2) / M_PI) * M_PI;
-  BLI_assert(DEG2RADF(-90.0f) <= angle_radians);
-  BLI_assert(angle_radians <= DEG2RADF(90.0f));
-  return angle_radians;
+  float2 result = sincos_wrap(sincos);
+  /* Close enough to the sine of 0.1 degrees. */
+  const float eps = DEG2RADF(0.1f);
+  if (fabsf(result.x) < eps) {
+    result = {0.0f, 1.0f};
+  }
+  else if (fabsf(result.y) < eps) {
+    result = {(result.x < 0.0f) ? -1.0f : 1.0f, 0.0f};
+  }
+  return result;
 }
 
-/** Angle rounding helper for "D4" transforms. */
-static float plusminus_90_angle(float angle_radians)
+/** Equivalent to #PackIsland::build_transformation. */
+static void transformation_from_sincos(const float2 &sincos,
+                                       const float aspect_y,
+                                       float r_matrix[2][2])
 {
-  angle_radians = angle_wrap(angle_radians);
-  angle_radians = angle_match(angle_radians, DEG2RADF(-90.0f));
-  angle_radians = angle_match(angle_radians, DEG2RADF(0.0f));
-  angle_radians = angle_match(angle_radians, DEG2RADF(90.0f));
-  BLI_assert(DEG2RADF(-90.0f) <= angle_radians);
-  BLI_assert(angle_radians <= DEG2RADF(90.0f));
-  return angle_radians;
+  r_matrix[0][0] = sincos.y;
+  r_matrix[0][1] = -sincos.x * aspect_y;
+  r_matrix[1][0] = sincos.x / aspect_y;
+  r_matrix[1][1] = sincos.y;
+}
+
+/** Equivalent to #PackIsland::build_inverse_transformation. */
+static void inverse_transformation_from_sincos(const float2 &sincos,
+                                               const float aspect_y,
+                                               float r_matrix[2][2])
+{
+  r_matrix[0][0] = sincos.y;
+  r_matrix[0][1] = sincos.x * aspect_y;
+  r_matrix[1][0] = -sincos.x / aspect_y;
+  r_matrix[1][1] = sincos.y;
 }
 
 void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
 {
-  pre_rotate_ = 0.0f;
+  pre_rotate_sincos_ = float2(0.0f, 1.0f);
   if (params.rotate_method == ED_UVPACK_ROTATION_CARDINAL) {
     /* Arbitrary rotations are not allowed. */
     return;
@@ -246,10 +277,11 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
 
   /* As a heuristic to improve layout efficiency, #PackIsland's are first rotated by an
    * angle which minimizes the area of the enclosing AABB. This angle is stored in the
-   * `pre_rotate_` member. The different packing strategies will later rotate the island further,
-   * stored in the `angle_` member.
+   * `pre_rotate_sincos_` member. The different packing strategies will later rotate
+   * the island further, stored in the `angle_` member.
    *
-   * As AABBs have 180 degree rotational symmetry, we only consider `-90 <= pre_rotate_ <= 90`.
+   * As AABBs have 180 degree rotational symmetry, we only consider angles in the `[-90, 90]`
+   * range.
    *
    * As a further heuristic, we "stand up" the AABBs so they are "tall" rather than "wide". */
 
@@ -261,13 +293,16 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
       coords[i].y = triangle_vertices_[i].y;
     }
 
-    float angle = -BLI_convexhull_aabb_fit_points_2d(coords);
+    /* Using sin-cos directly because MACOS `atan2f` result differs currently, see: #163873. */
+    const float2 fit_sincos = BLI_convexhull_aabb_fit_points_2d_as_sincos(coords);
+    /* Negate the fitting angle. */
+    float2 sincos = {-fit_sincos.x, fit_sincos.y};
 
     if (true) {
       /* "Stand-up" islands. */
 
-      float matrix[2][2];
-      angle_to_mat2(matrix, -angle);
+      /* Equivalent to #angle_to_mat2. */
+      const float matrix[2][2] = {{fit_sincos.y, fit_sincos.x}, {-fit_sincos.x, fit_sincos.y}};
       for (const int64_t i : coords.index_range()) {
         mul_m2_v2(matrix, coords[i]);
       }
@@ -277,35 +312,36 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
       switch (params.rotate_method) {
         case ED_UVPACK_ROTATION_AXIS_ALIGNED_X: {
           if (diagonal.x < diagonal.y) {
-            angle += DEG2RADF(90.0f);
+            sincos = sincos_rotate_90(sincos);
           }
-          pre_rotate_ = angle_wrap(angle);
+          sincos = sincos_wrap(sincos);
           break;
         }
         case ED_UVPACK_ROTATION_AXIS_ALIGNED_Y: {
           if (diagonal.x > diagonal.y) {
-            angle += DEG2RADF(90.0f);
+            sincos = sincos_rotate_90(sincos);
           }
-          pre_rotate_ = angle_wrap(angle);
+          sincos = sincos_wrap(sincos);
           break;
         }
         default: {
           if (diagonal.y < diagonal.x) {
-            angle += DEG2RADF(90.0f);
+            sincos = sincos_rotate_90(sincos);
           }
-          pre_rotate_ = plusminus_90_angle(angle);
+          sincos = sincos_plusminus_90(sincos);
           break;
         }
       }
     }
-  }
-  if (!pre_rotate_) {
-    return;
+    if (sincos == float2(0.0f, 1.0f)) {
+      return;
+    }
+    pre_rotate_sincos_ = sincos;
   }
 
   /* Pre-Rotate `triangle_vertices_`. */
   float matrix[2][2];
-  build_transformation(1.0f, pre_rotate_, matrix);
+  transformation_from_sincos(pre_rotate_sincos_, aspect_y, matrix);
   for (const int64_t i : triangle_vertices_.index_range()) {
     mul_m2_v2(matrix, triangle_vertices_[i]);
   }
@@ -387,15 +423,17 @@ void PackIsland::calculate_pivot_()
 
 void PackIsland::place_(const float scale, const UVPhi phi)
 {
-  angle = phi.rotation + pre_rotate_;
+  /* The angle is only used for output, rounding differences between platforms are harmless
+   * since the rotation used for packing is calculated from `pre_rotate_sincos_`. */
+  angle = phi.rotation + atan2f(pre_rotate_sincos_.x, pre_rotate_sincos_.y);
 
   float matrix_inverse[2][2];
   build_inverse_transformation(scale, phi.rotation, matrix_inverse);
   mul_v2_m2v2(pre_translate, matrix_inverse, phi.translation);
   pre_translate -= pivot_;
 
-  if (pre_rotate_) {
-    build_inverse_transformation(1.0f, pre_rotate_, matrix_inverse);
+  if (pre_rotate_sincos_ != float2(0.0f, 1.0f)) {
+    inverse_transformation_from_sincos(pre_rotate_sincos_, aspect_y, matrix_inverse);
     mul_m2_v2(matrix_inverse, pre_translate);
   }
 }
@@ -2238,13 +2276,13 @@ class OverlapMerger {
       PackIsland *sub_b = merge_trace[i + 1];
       PackIsland *merge = merge_trace[i + 2];
 
-      /* Copy `angle`, `pre_translate` and `pre_rotate` from merged island to sub islands. */
+      /* Copy `angle`, `pre_translate` & `pre_rotate_sincos_` from merged island to sub islands. */
       sub_a->angle = merge->angle;
       sub_b->angle = merge->angle;
       sub_a->pre_translate = merge->pre_translate;
       sub_b->pre_translate = merge->pre_translate;
-      sub_a->pre_rotate_ = merge->pre_rotate_;
-      sub_b->pre_rotate_ = merge->pre_rotate_;
+      sub_a->pre_rotate_sincos_ = merge->pre_rotate_sincos_;
+      sub_b->pre_rotate_sincos_ = merge->pre_rotate_sincos_;
 
       /* If the merged island is pinned, the sub-islands are also pinned to correct scaling. */
       if (merge->pinned) {

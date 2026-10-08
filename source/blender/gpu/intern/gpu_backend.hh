@@ -80,6 +80,16 @@ class GPUBackend {
   virtual TopLevelAS *tlas_alloc(const char *name) = 0;
   virtual BottomLevelAS *blas_alloc(const char *name) = 0;
   virtual void shader_cache_dir_clear_old() = 0;
+  /* Returns true when GPU pipelines have been compiled on demand since the last frame reset.
+   * Backends such as Vulkan can create pipelines lazily during drawing outside the async shader
+   * compiler. Backends without deferred pipeline compilation always return false. */
+  virtual bool pipelines_compiled_since_last_reset()
+  {
+    return false;
+  }
+
+  /* Reset the on-demand pipeline compilation tracking. Called after the frame change handlers. */
+  virtual void reset_pipeline_compilation_tracking() {}
 
   /* Render Frame Coordination --
    * Used for performing per-frame actions globally */

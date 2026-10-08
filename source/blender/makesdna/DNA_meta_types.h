@@ -47,11 +47,11 @@ enum eMetaElem_Type : short {
   MB_TUBEZ = 3, /* Deprecated. */
   MB_TUBE = 4,
   MB_PLANE = 5,
-  MB_ELIPSOID = 6,
+  MB_ELLIPSOID = 6,
   MB_CUBE = 7,
 };
 
-#define MB_TYPE_SIZE_SQUARED(type) ((type) == MB_ELIPSOID)
+#define MB_TYPE_SIZE_SQUARED(type) ((type) == MB_ELLIPSOID)
 
 /** #MetaElem::flag */
 enum eMetaElem_Flag : short {

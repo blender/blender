@@ -15,7 +15,8 @@
 #define DRW_VIEW_UBO_SLOT 11
 #define DRW_VIEW_CULLING_UBO_SLOT 10
 #define DRW_OBJ_DATA_INFO_UBO_SLOT 9
-#define DRW_LAYER_ATTR_UBO_SLOT 7
+#define DRW_LAYER_ATTR_UBO_SLOT 8
+#define DRW_VOLUME_UBO_SLOT 7
 /* Slots 0-6 are reserved for engine use. */
 /* TODO(fclem): Legacy. To be removed once we remove the old DRW. */
 #define DRW_OBJ_INFOS_UBO_SLOT 6
@@ -37,6 +38,7 @@
 /* Must be multiple of 32. Set to 32 for shader simplicity. */
 #define DRW_VISIBILITY_GROUP_SIZE 32
 #define DRW_GSPLAT_GROUP_SIZE 128
+#define DRW_MESH_TO_CORNER_GROUP_SIZE 128
 
 /* Only used during gsplat and deferred draws; does not conflict with gbuffer
  * sampling in engines. */
@@ -49,7 +51,7 @@
  * - The UBO limit (16KiB) of the ViewMatrices container.
  * - The maximum resource index supported for shaders using multi-view (see DRW_VIEW_SHIFT).
  */
-#define DRW_VIEW_MAX 64
+static constexpr int DRW_VIEW_MAX = 64;
 
 #define DRW_POINTCLOUD_STRIP_TILE_SIZE 8
 #define DRW_GSPLAT_STRIP_TILE_SIZE 5

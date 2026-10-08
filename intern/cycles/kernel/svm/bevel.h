@@ -296,17 +296,15 @@ ccl_device_inline
 #  else
 ccl_device_noinline
 #  endif
-    void
-    svm_node_bevel(KernelGlobals kg,
-                   ConstIntegratorGenericState state,
-                   ccl_private ShaderData *sd,
-                   ccl_private float *ccl_restrict stack,
-                   const ccl_global SVMNodeBevel &ccl_restrict node)
+    void svm_node_bevel(KernelGlobals kg,
+                        ConstIntegratorGenericState state,
+                        ccl_private ShaderData *sd,
+                        ccl_private float *ccl_restrict stack,
+                        const ccl_global SVMNodeBevel &ccl_restrict node)
 {
   float3 bevel_N = sd->N;
 
-  IF_KERNEL_NODES_FEATURE(RAYTRACE)
-  {
+  IF_KERNEL_NODES_FEATURE (RAYTRACE) {
     float radius = stack_load(stack, node.radius);
 
 #  ifdef __KERNEL_OPTIX__

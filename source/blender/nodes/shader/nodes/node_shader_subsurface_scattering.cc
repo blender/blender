@@ -98,6 +98,7 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat,
                         in,
                         out,
                         random_walk_radius_scale,
+                        GPU_kernel_globals(),
                         GPU_shading_data());
 }
 

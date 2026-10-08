@@ -20,7 +20,6 @@
 
 #include "BLI_mutex.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_main.hh"
@@ -29,6 +28,7 @@
 
 #include "SEQ_sequencer.hh"
 
+#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 
 #include "MOV_read.hh"
@@ -282,11 +282,12 @@ void MovieReaderCache::reader_open(MovieReaderCacheEntry &entry)
   }
 
   const MovieReaderKey &key = entry.key;
-  char colorspace[IM_MAX_SPACE];
-  STRNCPY(colorspace, key.colorspace.c_str());
+  ColorManagedColorspaceSettings colorspace_settings;
+  IMB_colormanagement_colorspace_settings_set(&colorspace_settings, key.colorspace.c_str());
   const std::string &filepath = key.multiview_filepath.empty() ? key.source_filepath :
                                                                  key.multiview_filepath;
-  entry.reader = MOV_open_file(filepath.c_str(), key.flags, key.stream_index, true, colorspace);
+  entry.reader = MOV_open_file(
+      filepath.c_str(), key.flags, key.stream_index, true, &colorspace_settings);
   if (entry.reader == nullptr) {
     return;
   }

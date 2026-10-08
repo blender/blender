@@ -434,8 +434,6 @@ class GPUDevice : public Device {
   using MemMap = map<device_memory *, Mem>;
   MemMap device_mem_map;
   thread_mutex device_mem_map_mutex;
-  /* Simple counter which will try to track amount of used device memory */
-  size_t device_mem_in_use = 0;
 
   virtual void init_host_memory(const size_t preferred_texture_headroom = 0,
                                 const size_t preferred_working_headroom = 0);
@@ -458,7 +456,7 @@ class GPUDevice : public Device {
 
   /* Shared memory. */
   virtual bool shared_alloc(void *&shared_pointer, const size_t size) = 0;
-  virtual void shared_free(void *shared_pointer) = 0;
+  virtual void shared_free(void *shared_pointer, const size_t size) = 0;
   bool is_shared(const void *shared_pointer,
                  const device_ptr device_pointer,
                  Device *sub_device) override;

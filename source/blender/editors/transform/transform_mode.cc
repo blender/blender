@@ -1178,8 +1178,6 @@ static TransModeInfo *mode_info_get(TransInfo *t, const int mode)
         return &TransMode_translate;
       }
       return &TransMode_timetranslate;
-    case TFM_BAKE_TIME:
-      return &TransMode_baketime;
     case TFM_MIRROR:
       return &TransMode_mirror;
     case TFM_BWEIGHT:

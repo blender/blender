@@ -160,7 +160,7 @@ void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
     mRes.propagateConstraints();
   }
 
-  /* Optimize the mesh field orientations (tangental field etc) */
+  /* Optimize the mesh field orientations (tangential field etc) */
   Optimizer::optimize_orientations(field.hierarchy);
   field.ComputeOrientationSingularities();
 

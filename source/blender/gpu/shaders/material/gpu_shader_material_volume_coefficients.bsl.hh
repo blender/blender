@@ -16,6 +16,7 @@ void node_volume_coefficients(float weight,
                               float /*alpha*/,
                               float /*diameter*/,
                               float3 emission_coefficients,
+                              KernelGlobals &kg,
                               ShadingData &sd,
                               Closure &result)
 {
@@ -29,5 +30,5 @@ void node_volume_coefficients(float weight,
   ClosureEmission emission_data;
   emission_data.emission = emission_coefficients * weight;
 
-  result = closure_eval(sd, volume_scatter_data, volume_absorption_data, emission_data);
+  result = closure_eval(kg, sd, volume_scatter_data, volume_absorption_data, emission_data);
 }

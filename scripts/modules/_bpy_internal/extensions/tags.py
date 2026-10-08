@@ -43,6 +43,18 @@ addons = {
     "UV",
 }
 
+# NOTE(@ideasman42): these values match what we have in the "Essentials" bundle as of (v5.2).
+asset_libraries = {
+    "Brush",
+    "Compositor",
+    "Geometry Nodes",
+    "Hair",
+    "Material",
+    "Model",
+    "Shading",
+    "World",
+}
+
 themes = {
     "Accessibility",
     "Colorful",

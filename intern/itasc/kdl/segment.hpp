@@ -89,7 +89,7 @@ namespace KDL {
 
         /**
          * Request the 6D-velocity at a given point p, relative to base frame of the segment
-         * givven the joint velocity qdot.
+         * given the joint velocity qdot.
          *
          * @param p reference point
          * @param qdot ND velocity of the joint

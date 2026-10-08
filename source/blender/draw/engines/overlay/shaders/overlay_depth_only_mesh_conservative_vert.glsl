@@ -13,7 +13,6 @@ VERTEX_SHADER_CREATE_INFO(overlay_depth_mesh_conservative)
 #include "gpu_shader_index_load_lib.glsl"
 
 #include "gpu_shader_math_matrix_compare.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 #include "select_lib.glsl"
 
 struct VertIn {

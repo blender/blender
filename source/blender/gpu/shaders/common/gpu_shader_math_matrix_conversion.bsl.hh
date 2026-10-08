@@ -8,7 +8,6 @@
 #include "gpu_shader_math_euler.bsl.hh"
 #include "gpu_shader_math_matrix_compare.bsl.hh"
 #include "gpu_shader_math_quaternion.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Conversion function.

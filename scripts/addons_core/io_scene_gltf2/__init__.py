@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 3, 32),
+    "version": (5, 3, 36),
     'blender': (5, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1757,7 +1757,7 @@ def export_panel_animation_bake_and_merge(layout, operator):
 
         row = body.row()
         row.active = operator.export_force_sampling and operator.export_animation_mode in [
-            'ACTIONS', 'ACTIVE_ACTIONS', 'BROACAST']
+            'ACTIONS', 'ACTIVE_ACTIONS', 'BROADCAST']
         row.prop(operator, 'export_bake_animation')
 
         if operator.export_animation_mode == "SCENE":

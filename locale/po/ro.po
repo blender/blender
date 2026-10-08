@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
-"PO-Revision-Date: 2026-06-29 10:51+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
+"PO-Revision-Date: 2026-10-04 17:12+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
 "Language: ro\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;\n"
-"X-Generator: Weblate 5.16.2"
+"X-Generator: Weblate 2026.6.1"
 
 
 msgid "Shader AOV"
@@ -309,6 +309,18 @@ msgstr "Indexul marcatorului de poziție activ"
 
 msgid "Index of active pose marker"
 msgstr "Indexul marcatorului de poziție activ"
+
+
+msgid "Action slot"
+msgstr "Acțiuni"
+
+
+msgid "Identifier for a set of channels in this Action, that can be used by a data-block to specify what it gets animated by"
+msgstr "Identificator pentru un set de canale din această acțiune, care poate fi utilizat de un bloc de date pentru a specifica elementul care îi generează animația"
+
+
+msgid "Active"
+msgstr "Activ"
 
 
 msgctxt "ID"
@@ -1766,6 +1778,14 @@ msgid "Shape Key data-blocks"
 msgstr "Blocurile de date ale Cheilor de Formă"
 
 
+msgid "Blender"
+msgstr "Blender"
+
+
+msgid "Path"
+msgstr "Cale"
+
+
 msgid "Deflectors"
 msgstr "Deflectoare"
 
@@ -2037,10 +2057,6 @@ msgid "Up"
 msgstr "Sus"
 
 
-msgid "Path"
-msgstr "Cale"
-
-
 msgid "Min"
 msgstr "Min"
 
@@ -2160,20 +2176,8 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Light"
 msgstr "Lumină"
-
-
-msgid "Layout"
-msgstr "Aspect"
-
-
-msgid "Add Image"
-msgstr "Adăugare Imagine"
 
 
 msgid "Apply"
@@ -2184,8 +2188,20 @@ msgid "Tracking"
 msgstr "Urmărire"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Convert"
 msgstr "Convertire"
+
+
+msgid "Add Image"
+msgstr "Adăugare Imagine"
+
+
+msgid "Layout"
+msgstr "Aspect"
 
 
 msgid "Marker"
@@ -2206,10 +2222,6 @@ msgstr "Generare"
 
 msgid "Physics"
 msgstr "Fizică"
-
-
-msgid "Blender"
-msgstr "Blender"
 
 
 msgid "System"
@@ -3074,11 +3086,6 @@ msgstr "Locații"
 
 msgid "Multi-Paint"
 msgstr "Multi-Pictură"
-
-
-msgctxt "Operator"
-msgid "Quick Edit"
-msgstr "Editare Rapidă"
 
 
 msgctxt "Operator"

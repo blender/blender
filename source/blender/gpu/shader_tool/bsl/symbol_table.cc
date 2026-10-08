@@ -193,6 +193,9 @@ Result<string> SymbolTable::expr_to_string(const SymbolScope &scope,
       case NodeType::Op:
       case NodeType::NumConst:
         expr_str += child.str();
+        /* WORKAROUND: The runtime shader preprocessor has a bug which mangles operators that are
+         * next to each others. */
+        expr_str += " ";
         node_count++;
         break;
       default:
@@ -228,6 +231,9 @@ void SymbolTable::register_builtins(LocalScope node)
       {"float", 4, 4, builtin::float_t},
       {"bool", 1, 1, builtin::bool_t},
       {"bool32_t", 4, 4, builtin::bool_t},
+
+      {"string_t", 4, 4, builtin::uint_t},
+      {"TextureWriteFormat", 4, 4, builtin::int_t},
   };
 
   for (const auto &t : basic_types) {
@@ -256,8 +262,6 @@ void SymbolTable::register_builtins(LocalScope node)
       {err_symbol, 1, 1},
 
       {"void", 1, 1}, /* Only for function return type. */
-
-      {"string_t", 4, 4},
 
       {"samplerBuffer", 0, 1},
       {"sampler1D", 0, 1},
@@ -316,6 +320,9 @@ void SymbolTable::register_builtins(LocalScope node)
       {"uimage3DAtomic", 0, 1},
       {"iimage2DArrayAtomic", 0, 1},
       {"uimage2DArrayAtomic", 0, 1},
+
+      {"rayQuery", 0, 1},
+      {"accelerationStructure", 0, 1},
 
       {"ShaderCreateInfo", 1, 1}, /* Only for compatibility. To be removed. */
   };
@@ -508,7 +515,7 @@ void SymbolTable::register_builtins(LocalScope node)
         sym->is_builtin = true;
         sym->reserve_arguments(fn.arg_types.size());
         for (SymbolClass *arg : fn.arg_types) {
-          sym->add_argument(arg);
+          sym->add_argument(true, arg);
         }
         root->function_emplace(sym, true);
       };
@@ -563,15 +570,29 @@ void SymbolTable::register_builtins(LocalScope node)
 
       /* WORKAROUND: Should become an entry point argument. */
       {"gl_FragStencilRefARB", "uint", false, ConstexprError(0)},
-      {"gpu_BaryCoord", "float3", false, ConstexprError(0)},
+
+      {"gpu_RayFlagsNone", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsOpaque", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsNoOpaque", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsTerminateOnFirstHit", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsSkipClosestHitShader", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsCullBackFacingTriangles", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsCullFrontFacingTriangles", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsCullOpaque", "uint", false, ConstexprValue(0)},
+      {"gpu_RayFlagsCullNoOpaque", "uint", false, ConstexprValue(0)},
+      {"gpu_RayQueryCommittedIntersectionNone", "uint", false, ConstexprValue(0)},
+      {"gpu_RayQueryCommittedIntersectionTriangle", "uint", false, ConstexprValue(0)},
+      {"gpu_RayQueryCommittedIntersectionGenerated", "uint", false, ConstexprValue(0)},
+      {"gpu_RayQueryCandidateIntersectionTriangle", "uint", false, ConstexprValue(0)},
+      {"gpu_RayQueryCandidateIntersectionAABB", "uint", false, ConstexprValue(0)},
 
       {"FLT_MAX", "float", true, ConstexprValue(std::bit_cast<float>(0x7F7FFFFFu))},
       {"FLT_MIN", "float", true, ConstexprValue(std::bit_cast<float>(0x00800000u))},
       {"FLT_EPSILON", "float", true, ConstexprValue(1.192092896e-07f)},
-      {"SHRT_MAX", "float", true, ConstexprValue(0x00007FFF)},
-      {"INT_MAX", "float", true, ConstexprValue(0x7FFFFFFF)},
-      {"USHRT_MAX", "float", true, ConstexprValue(0x0000FFFFu)},
-      {"UINT_MAX", "float", true, ConstexprValue(0xFFFFFFFFu)},
+      {"SHRT_MAX", "int", true, ConstexprValue(0x00007FFF)},
+      {"INT_MAX", "int", true, ConstexprValue(0x7FFFFFFF)},
+      {"USHRT_MAX", "uint", true, ConstexprValue(0x0000FFFFu)},
+      {"UINT_MAX", "uint", true, ConstexprValue(0xFFFFFFFFu)},
       {"NAN_FLT", "float", true, ConstexprValue(NAN)},
       {"FLT_11_MAX", "float", false, ConstexprValue(0)},
       {"FLT_10_MAX", "float", false, ConstexprValue(0)},
@@ -651,9 +672,9 @@ MatchRank SymbolTable::get_conversion_rank(const SymbolClass *from,
     return MatchRank::None;
   }
 
-  /* Casting enum or packed types. */
+  /* Casting enum or packed types of the underlying type matches. */
   if (from->builtin_class == to->builtin_class) {
-    return MatchRank::Conversion;
+    return from->is_enum ? MatchRank::Promotion : MatchRank::Conversion;
   }
 
   using namespace builtin;
@@ -669,7 +690,9 @@ MatchRank SymbolTable::get_conversion_rank(const SymbolClass *from,
   const uint16_t to_len = to_raw & LEN_MASK;
   /* Check standard GLSL compatible convertible base types (int <-> uint <-> float). */
   const bool both_numeric = (from_raw & FLAG_NUMERIC) && (to_raw & FLAG_NUMERIC);
-  const bool is_promotion = (from_raw & FLAG_INTEGER) == (to_raw & FLAG_INTEGER);
+  /* Require both the family (Integer vs Float) and the signedness to match exactly */
+  const uint16_t PROMOTE_MASK = FLAG_INTEGER | FLAG_SIGN;
+  const bool is_promotion = (from_raw & PROMOTE_MASK) == (to_raw & PROMOTE_MASK);
 
   if (from_len == to_len) {
     if (from_len == 1) {
@@ -694,7 +717,8 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
   vector<BuiltinFunc> functions = {{err_cls, err_symbol, {}}};
 
   /* Special functions */
-  functions.push_back({void_cls, "printf", {str_cls}});
+  functions.push_back({uint_cls, "print_data", {uint_cls, str_cls}});
+  functions.push_back({uint_cls, "print_start", {uint_cls}});
   functions.push_back({void_cls, "static_assert", {bool_cls}});
 
   for (SymbolClass *type : {float_cls,
@@ -833,20 +857,27 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
     }
   };
 
-  const vector<string> trig_unary = {"radians",
-                                     "degrees",
-                                     "sin",
-                                     "cos",
-                                     "tan",
-                                     "asin",
-                                     "acos",
-                                     "atan",
-                                     "sinh",
-                                     "cosh",
-                                     "tanh",
-                                     "asinh",
-                                     "acosh",
-                                     "atanh"};
+  const vector<string> trig_unary = {
+      "radians",
+      "degrees",
+      "sin",
+      "cos",
+      "tan",
+      "asin",
+      "acos",
+      "atan",
+      "sinh",
+      "cosh",
+      "tanh",
+      "asinh",
+      "acosh",
+      "atanh",
+      /* For C++ compat. Do something about it. Doesn't belong here. */
+      "sinf",
+      "cosf",
+      "tanf",
+      "atanf",
+  };
   for (const auto &name : trig_unary) {
     add_unary(name, f_types);
   }
@@ -865,7 +896,17 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
   add_ternary("EXPECT_NEAR", f_types);
   add_vec_vec_scalar_ternary("EXPECT_NEAR", f_types);
 
-  const vector<string> exp_unary = {"exp", "log", "exp2", "log2", "sqrt", "inversesqrt"};
+  const vector<string> exp_unary = {
+      "exp",
+      "log",
+      "exp2",
+      "log2",
+      "sqrt",
+      "inversesqrt",
+      /* For C++ compat. Do something about it. Doesn't belong here. */
+      "expf",
+      "sqrtf",
+  };
   for (const auto &name : exp_unary) {
     add_unary(name, f_types);
   }
@@ -879,6 +920,9 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
       "ceil",
       "fract",
       "saturate",
+      /* For C++ compat. Do something about it. Doesn't belong here. */
+      "floorf",
+      "ceilf",
   };
   for (const auto &name : common_float_unary) {
     add_unary(name, f_types);
@@ -1038,6 +1082,11 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
   };
 
   for (auto [type, prefix] : image_types) {
+    SymbolClass *sampler = root->classes[prefix + "samplerBuffer"];
+    functions.push_back({type, "texelFetch", {sampler, i_types[0]}});
+  }
+
+  for (auto [type, prefix] : image_types) {
     vector<tuple<SymbolClass *, int, int>> samplers = {
         /* Name, Coordinate Dimensions. */
         {root->classes[prefix + "sampler1D"], 1, 1},
@@ -1074,6 +1123,7 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
       functions.push_back({type, "textureGrad", {sampler, coord_type, deriv_type, deriv_type}});
       functions.push_back({icoord_type, "textureSize", {sampler, int_cls}});
       functions.push_back({type, "texelFetch", {sampler, icoord_type, int_cls}});
+      functions.push_back({type, "texelFetchExtend", {sampler, icoord_type, int_cls}});
     }
 
     vector<tuple<SymbolClass *, int>> images = {
@@ -1110,6 +1160,54 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
       }
     }
   }
+
+  /* Ray queries. */
+  SymbolClass *rayQuery_cls = root->lookup_class("rayQuery");
+  SymbolClass *accelerationStructure_cls = root->lookup_class("accelerationStructure");
+  functions.push_back({void_cls,
+                       "rayQueryInitialize",
+                       {rayQuery_cls,
+                        accelerationStructure_cls,
+                        uint_cls,
+                        uint_cls,
+                        float3_cls,
+                        float_cls,
+                        float3_cls,
+                        float_cls}});
+  functions.push_back({bool_cls, "rayQueryProceed", {rayQuery_cls}});
+  functions.push_back({void_cls, "rayQueryTerminate", {rayQuery_cls}});
+  functions.push_back({void_cls, "rayQueryGenerateIntersection", {rayQuery_cls, float_cls}});
+  functions.push_back({void_cls, "rayQueryConfirmIntersection", {rayQuery_cls}});
+  functions.push_back({uint_cls, "rayQueryGetIntersectionType", {rayQuery_cls, bool_cls}});
+  functions.push_back({float_cls, "rayQueryGetRayTMin", {rayQuery_cls}});
+  functions.push_back({float3_cls, "rayQueryGetWorldRayOrigin", {rayQuery_cls}});
+  functions.push_back({float3_cls, "rayQueryGetWorldRayDirection", {rayQuery_cls}});
+  functions.push_back({float_cls, "rayQueryGetIntersectionT", {rayQuery_cls, bool_cls}});
+  functions.push_back({uint_cls, "rayQueryGetIntersectionInstanceId", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {uint_cls, "rayQueryGetIntersectionInstanceCustomIndex", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {uint_cls, "rayQueryGetIntersectionGeometryIndex", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {uint_cls, "rayQueryGetIntersectionPrimitiveIndex", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {float2_cls, "rayQueryGetIntersectionBarycentrics", {rayQuery_cls, bool_cls}});
+  functions.push_back({bool_cls, "rayQueryGetIntersectionFrontFace", {rayQuery_cls, bool_cls}});
+  functions.push_back({bool_cls, "rayQueryGetIntersectionCandidateAABBOpaque", {rayQuery_cls}});
+  functions.push_back(
+      {float3_cls, "rayQueryGetIntersectionObjectRayDirection", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {float3_cls, "rayQueryGetIntersectionObjectRayOrigin", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {float4x3_cls, "rayQueryGetIntersectionObjectToWorld", {rayQuery_cls, bool_cls}});
+  functions.push_back(
+      {float4x3_cls, "rayQueryGetIntersectionWorldToObject", {rayQuery_cls, bool_cls}});
+  /* Not mapped to Metal: no query-side ray-flags accessor, and MSL forbids caching the flags on
+   * the query object. Gated off so a shader using it fails to compile rather than silently reading
+   * 0. */
+  // rayQueryGetRayFlagsEXT;
+  /* Not mapped to Metal: no inline equivalent. Gated off so use is a compile error. */
+  // rayQueryGetIntersectionInstanceShaderBindingTableRecordOffsetEXT;
 
   return functions;
 }

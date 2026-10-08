@@ -691,12 +691,11 @@ template<typename T>
  * disable inlining for this function until we can get the compiler fixed. */
 BLI_NOINLINE
 #endif
-    float
-    perlin_fbm(T p,
-               const float detail,
-               const float roughness,
-               const float lacunarity,
-               const bool normalize)
+    float perlin_fbm(T p,
+                     const float detail,
+                     const float roughness,
+                     const float lacunarity,
+                     const bool normalize)
 {
   float fscale = 1.0f;
   float amp = 1.0f;

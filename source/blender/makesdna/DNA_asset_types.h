@@ -56,6 +56,10 @@ enum eAssetImportMethod : int {
 
 enum eAssetLibrary_Flag : int {
   ASSET_LIBRARY_RELATIVE_PATH = (1 << 0),
+  /**
+   * The setting the user controls. Use #BKE_preferences_asset_library_is_available to check if the
+   * library is used, it also accounts for the repository of extension defined libraries.
+   */
   ASSET_LIBRARY_DISABLED = (1 << 1),
   ASSET_LIBRARY_USE_REMOTE_URL = (1 << 2),
   ASSET_LIBRARY_USE_AUTH_TOKEN = (1 << 3),

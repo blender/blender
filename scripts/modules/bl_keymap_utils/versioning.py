@@ -406,4 +406,34 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                         item_prop["properties"][fill_color_override_test_path_index] = (
                             "fill_color_override_test_path", new_fill_color_override_test_path)
 
+    if keyconfig_version < (5, 3, 29):
+        if not has_copy:
+            keyconfig_data = copy.deepcopy(keyconfig_data)
+            has_copy = True
+
+        for _km_name, _km_parms, km_items_data in keyconfig_data:
+            km_items = km_items_data["items"]
+            for item_index, (item_op, item_event, item_prop) in enumerate(km_items):
+                if item_op not in {"sequencer.split", "sequencer.box_blade"}:
+                    continue
+                properties = item_prop.get("properties", []) if item_prop else []
+                ignore_selection = dict(properties).get("ignore_selection")
+
+                # Previously `ignore_selection` was off by default for split, now make it on.
+                # Rationale: we want blade tool to have it on, but if we just set it on that click keymap item,
+                # it would override tool settings and make it impossible to change the behavior from the N-panel.
+                # Instead, keep tool at the new default of "on", making sure to convert keymap items
+                # with the old default into an explicit "off".
+                if ignore_selection is None and item_op == "sequencer.split":
+                    ignore_selection = False
+
+                # Box blade already had `ignore_selection` on by default, continue.
+                if ignore_selection is None:
+                    continue
+
+                # Then, replace `ignore_selection` with a more intuitive `only_selected` property which is its inverse.
+                properties = [prop for prop in properties if prop[0] != "ignore_selection"]
+                properties.append(("only_selected", not ignore_selection))
+                km_items[item_index] = (item_op, item_event, {**(item_prop or {}), "properties": properties})
+
     return keyconfig_data

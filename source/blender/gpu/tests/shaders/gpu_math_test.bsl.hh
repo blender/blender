@@ -25,6 +25,7 @@
 #include "gpu_shader_math_quaternion.bsl.hh"
 #include "gpu_shader_math_rotation.bsl.hh"
 #include "gpu_shader_math_rotation_conversion.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 [[compute, local_size(1)]]
 void gpu_math_test_main([[resource_table]] const ShaderTestOutput & /*srt*/)

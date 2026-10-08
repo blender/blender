@@ -121,7 +121,8 @@ def frame_change_handler(scene):
         elapsed_seconds = stop_record_time - start_record_time
         avg_frame_time = elapsed_seconds / num_frames
         fps = 1.0 / avg_frame_time
-        print(f"{LOG_KEY}{{'fps': {fps} }}")
+        shader_compilation_time = start_warmup_time - start_time
+        print(f"{LOG_KEY}{{'fps': {fps}, 'shader_compilation_time': {shader_compilation_time} }}")
         bpy.app.handlers.frame_change_post.remove(frame_change_handler)
         bpy.ops.wm.quit_blender()
 
@@ -147,8 +148,11 @@ else:
 
         def supported_device_types(self):
             return [
-                "METAL", "VULKAN", "OPENGL",
+                "METAL", "METAL-RT", "VULKAN", "OPENGL",
             ]
+
+        def remove_redundant_device_types(self, devices):
+            return self.remove_redundant_hwrt_device_types(devices)
 
         def use_background(self):
             return False

@@ -99,7 +99,6 @@ set(SRC_OSL
   node_vector_map_range.osl
   node_vector_rotate.osl
   node_vector_transform.osl
-  node_vertex_color.osl
   node_voronoi_texture.osl
   node_wavelength.osl
   node_blackbody.osl

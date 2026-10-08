@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -2287,6 +2287,10 @@ msgid "Collection of worlds"
 msgstr "Kokoelma maailmoista"
 
 
+msgid "Blender"
+msgstr "Blender"
+
+
 msgid "Only link data, instead of appending it"
 msgstr "Ainoastaan linkitä data sen liittämisen sijaan"
 
@@ -2321,6 +2325,10 @@ msgstr "Lähdekirjastot"
 
 msgid "Source Library"
 msgstr "Lähdekirjasto"
+
+
+msgid "Path"
+msgstr "Polku"
 
 
 msgid "Boid Rule"
@@ -3567,6 +3575,10 @@ msgstr "Numeraalinen ongelma"
 
 msgid "Invalid Input"
 msgstr "Virheellinen syöte"
+
+
+msgid "sRGB"
+msgstr "sRGB"
 
 
 msgid "Is Data"
@@ -6138,10 +6150,6 @@ msgid "Resolution V"
 msgstr "V-Resoluutio"
 
 
-msgid "Path"
-msgstr "Polku"
-
-
 msgid "Follow"
 msgstr "Seuraa"
 
@@ -7120,88 +7128,48 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Read"
-msgstr "Lue"
-
-
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
+msgid "Utilities"
+msgstr "Työkalut"
 
 
 msgid "Write"
 msgstr "Kirjoita"
 
 
-msgid "Instances"
-msgstr "Instanssit"
-
-
-msgid "Import"
-msgstr "Tuo"
-
-
-msgid "Utilities"
-msgstr "Työkalut"
-
-
-msgid "Math"
-msgstr "Matematiikka"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
+msgid "Read"
+msgstr "Lue"
 
 
 msgid "Metaball"
 msgstr "Metapallo"
 
 
-msgid "Light"
-msgstr "Valo"
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
 
 
 msgid "Light Probe"
 msgstr "Valoluotain"
 
 
-msgid "Linked"
-msgstr "Linkitetyt"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
+msgid "Light"
+msgstr "Valo"
 
 
 msgid "Names"
@@ -7210,6 +7178,46 @@ msgstr "Nimet"
 
 msgid "Mesh Select Mode"
 msgstr "Muodon valintatila"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Math"
+msgstr "Matematiikka"
+
+
+msgid "Import"
+msgstr "Tuo"
+
+
+msgid "Linked"
+msgstr "Linkitetyt"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Instances"
+msgstr "Instanssit"
 
 
 msgid "Basic"
@@ -7275,10 +7283,6 @@ msgstr "Valitse kahva"
 
 msgid "Python"
 msgstr "Python"
-
-
-msgid "Blender"
-msgstr "Blender"
 
 
 msgid "File"
@@ -7742,10 +7746,6 @@ msgstr "Etsi koko"
 
 msgid "Refine Focal Length"
 msgstr "Puhdista polttoväli"
-
-
-msgid "Fastest"
-msgstr "Nopein"
 
 
 msgid "Use Blue Channel"
@@ -8523,18 +8523,49 @@ msgid "Store Named Grid"
 msgstr "Säilytä nimetty ruudukko"
 
 
+msgctxt "Volume"
+msgid "Data Type"
+msgstr "Datatyyppi"
+
+
+msgctxt "Volume"
+msgid "Boolean"
+msgstr "Totuusarvo"
+
+
+msgctxt "Volume"
+msgid "Float"
+msgstr "Liukuluku"
+
+
+msgctxt "Volume"
+msgid "Integer"
+msgstr "Kokonaisluku"
+
+
 msgid "64-bit integer"
 msgstr "64-bittinen kokonaisluku"
+
+
+msgctxt "Volume"
+msgid "Mask"
+msgstr "Maski"
 
 
 msgid "3D float vector"
 msgstr "3D-liukulukuvektori"
 
 
+msgctxt "Volume"
+msgid "Integer Vector"
+msgstr "Kokonaislukuvektori"
+
+
 msgid "3D integer vector"
 msgstr "3D-vektori, joka on kokonaisluku"
 
 
+msgctxt "Volume"
 msgid "Unknown"
 msgstr "Tuntematon"
 
@@ -9380,10 +9411,6 @@ msgstr "Mitätön"
 
 msgid "All Actions"
 msgstr "Kaikki toiminnot"
-
-
-msgid "sRGB"
-msgstr "sRGB"
 
 
 msgid "Normals Only"
@@ -11497,41 +11524,6 @@ msgid "Node ID"
 msgstr "Noodi ID"
 
 
-msgctxt "Volume"
-msgid "Data Type"
-msgstr "Datatyyppi"
-
-
-msgctxt "Volume"
-msgid "Boolean"
-msgstr "Totuusarvo"
-
-
-msgctxt "Volume"
-msgid "Float"
-msgstr "Liukuluku"
-
-
-msgctxt "Volume"
-msgid "Integer"
-msgstr "Kokonaisluku"
-
-
-msgctxt "Volume"
-msgid "Mask"
-msgstr "Maski"
-
-
-msgctxt "Volume"
-msgid "Integer Vector"
-msgstr "Kokonaislukuvektori"
-
-
-msgctxt "Volume"
-msgid "Unknown"
-msgstr "Tuntematon"
-
-
 msgid "Is Loaded"
 msgstr "On ladattu"
 
@@ -12386,6 +12378,10 @@ msgid "Rotation"
 msgstr "Kierto"
 
 
+msgid "Unknown"
+msgstr "Tuntematon"
+
+
 msgid "After"
 msgstr "Jälkeen"
 
@@ -12586,10 +12582,6 @@ msgstr "Varjosta"
 
 msgid "Material Mask"
 msgstr "Materiaalimaski"
-
-
-msgid "Flip Colors"
-msgstr "Käännä Värit"
 
 
 msgid "All Edges"
@@ -13813,14 +13805,6 @@ msgid "Reset Curve"
 msgstr "Nollaa käyrä"
 
 
-msgid "H"
-msgstr "H"
-
-
-msgid "S"
-msgstr "S"
-
-
 msgid "Zoom in"
 msgstr "Suurenna sisään"
 
@@ -14826,6 +14810,10 @@ msgid "W:"
 msgstr "W:"
 
 
+msgid "Dimensions:"
+msgstr "Ulottuvuudet:"
+
+
 msgid "Vertex Data:"
 msgstr "Kärkitieto:"
 
@@ -14856,10 +14844,6 @@ msgstr "Säde:"
 
 msgid "Tilt:"
 msgstr "Kallistus:"
-
-
-msgid "Dimensions:"
-msgstr "Ulottuvuudet:"
 
 
 msgid "4L"
@@ -15534,6 +15518,10 @@ msgstr "Tuntematon"
 
 msgid "Invertible"
 msgstr "Käännettävä"
+
+
+msgid "S"
+msgstr "S"
 
 
 msgid "Rotate By"
@@ -16376,6 +16364,10 @@ msgid "iScale"
 msgstr "iSkaala"
 
 
+msgid "H"
+msgstr "H"
+
+
 msgid ""
 "%s: %.*s\n"
 "Location: %s:%d"
@@ -16472,10 +16464,6 @@ msgstr "Tallenna..."
 
 msgid "Don't Save"
 msgstr "Älä tallenna"
-
-
-msgid "Enable scripts"
-msgstr "Salli koodit"
 
 
 msgid "unable to open the file"

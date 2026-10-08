@@ -55,20 +55,19 @@ void gpu_parallel_active_index_array_impl(const uint num_states,
 template<typename IsActiveOp>
 __device__
 #  endif
-    void
-    gpu_parallel_active_index_array_impl(const uint num_states,
-                                         ccl_global int *indices,
-                                         ccl_global int *num_indices,
+    void gpu_parallel_active_index_array_impl(const uint num_states,
+                                              ccl_global int *indices,
+                                              ccl_global int *num_indices,
 #  ifdef __KERNEL_METAL__
-                                         const uint is_active,
-                                         const uint blocksize,
-                                         const int thread_index,
-                                         const uint state_index,
-                                         const int ccl_gpu_warp_size,
-                                         const int thread_warp,
-                                         const int warp_index,
-                                         const int num_warps,
-                                         threadgroup int *warp_offset)
+                                              const uint is_active,
+                                              const uint blocksize,
+                                              const int thread_index,
+                                              const uint state_index,
+                                              const int ccl_gpu_warp_size,
+                                              const int thread_warp,
+                                              const int warp_index,
+                                              const int num_warps,
+                                              threadgroup int *warp_offset)
 {
 #  else
                                           IsActiveOp is_active_op)

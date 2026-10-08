@@ -552,11 +552,15 @@ def _remote_asset_library_sync_all_periodic():
 
     prefs = bpy.context.preferences
     for asset_lib in prefs.filepaths.asset_libraries:
-        if not asset_lib.enabled:
+        if not asset_lib.is_available():
             continue
         if not asset_lib.use_remote_url:
             continue
-        remote_asset_library_sync(asset_lib.remote_url, asset_lib.auth_token, Path(asset_lib.path),
+        auth_token = asset_lib.auth_token
+        # Match `AUTH_TOKEN_MAYBE_OVERRIDE_FROM_EXTENSIONS` in `remote_library.cc`.
+        if (auth_token_override := asset_auth_token_from_url(asset_lib.remote_url)) is not None:
+            auth_token = auth_token_override
+        remote_asset_library_sync(asset_lib.remote_url, auth_token, Path(asset_lib.path),
                                   only_if_older_than_sec=REMOTE_ASSET_LIBS_AUTOSYNC_PERIOD_SEC)
 
     # The online essentials library is not listed in the 'asset_libraries' list above, because it's not a preference.
@@ -579,13 +583,41 @@ def _remote_asset_library_restore_backups() -> None:
         return
 
     for asset_lib in bpy.context.preferences.filepaths.asset_libraries:
-        if not asset_lib.enabled:
+        if not asset_lib.is_available():
             continue
         if not asset_lib.use_remote_url:
             continue
 
         from _bpy_internal.assets.remote_library import listing_downloader
         listing_downloader.restore_backup_if_exists_locked(asset_lib.remote_url, Path(asset_lib.path))
+
+
+# -----------------------------------------------------------------------------
+# Remote Asset Library Authentication
+
+def asset_auth_token_from_url(remote_url: str) -> str | None:
+    """
+    Given an asset library URL, return it's authentication token
+    in the case the repository is declared as a repository that uses a single repository-wide token.
+    """
+    from .bl_extension_ops import extension_asset_library_repo_and_item_from_url
+    repo_cache_store = repo_cache_store_ensure()
+    result = extension_asset_library_repo_and_item_from_url(repo_cache_store, remote_url, error_fn=print)
+    # When the asset-library isn't from an extensions repository.
+    if result is None:
+        return None
+
+    repo_item, value = result
+
+    # When the manifest requests no authentication, don't pass in a token.
+    if value.asset_library.auth is None:
+        return None
+
+    # Special case, this extensions repository declares all extension-asset libraries
+    assetlib_auth_method = repo_cache_store.assetlib_auth_method_from_directory(repo_item.directory, error_fn=print)
+    if assetlib_auth_method == 'FROM_REPOSITORY':
+        return repo_item.access_token
+    return None
 
 
 # -----------------------------------------------------------------------------
@@ -662,13 +694,17 @@ def extension_repos_files_clear(directory, _):
 # Wrap Handlers
 
 _monkeypatch_extensions_repos_update_dirs = set()
+# Map `repo.as_pointer()` to the module before the update, to follow renamed & removed repositories.
+_monkeypatch_extensions_repos_update_modules = {}
 
 
 def monkeypatch_extensions_repos_update_pre_impl():
     _monkeypatch_extensions_repos_update_dirs.clear()
+    _monkeypatch_extensions_repos_update_modules.clear()
 
     extension_repos = bpy.context.preferences.extensions.repos
     for repo_item in extension_repos:
+        _monkeypatch_extensions_repos_update_modules[repo_item.as_pointer()] = repo_item.module
         if not repo_item.enabled:
             continue
         directory, _repo_path = repo_paths_or_none(repo_item)
@@ -704,6 +740,11 @@ def monkeypatch_extensions_repos_update_post_impl():
         repo_cache_store.refresh_local_from_directory(directory=directory, error_fn=print, ignore_missing=True)
 
     _monkeypatch_extensions_repos_update_dirs.clear()
+
+    # Repositories may have been added, removed, renamed or toggled.
+    bl_extension_ops.extension_asset_libraries_repos_update(_monkeypatch_extensions_repos_update_modules)
+    _monkeypatch_extensions_repos_update_modules.clear()
+    bl_extension_ops.extension_asset_libraries_sync(repo_cache_store, error_fn=print)
 
     # Based on changes, the statistics may need to be re-calculated.
     repo_stats_calc()
@@ -928,6 +969,7 @@ def register():
             ('ALL', "All", "Show all extension types"),
             None,
             ('ADDON', "Add-ons", "Only show add-ons"),
+            ('ASSET_LIBRARY', "Asset Libraries", "Only show asset libraries"),
             ('THEME', "Themes", "Only show themes"),
         ),
         name="Filter by Type",
@@ -982,6 +1024,9 @@ def register():
     cli_commands.append(bpy.utils.register_cli_command("asset_listing", remote_library.asset_listing_main))
 
     monkeypatch_install()
+
+    # The preferences may have been reset or extensions changed while Blender wasn't running.
+    bl_extension_ops.extension_asset_libraries_sync_if_dirty(repo_cache_store_ensure(), error_fn=print)
 
     _remote_asset_library_restore_backups()
 

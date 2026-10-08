@@ -408,7 +408,7 @@ static void retiming_key_overlap(Scene *scene, Strip *strip)
   expand_strips(editing_get(scene), dependant, StripRelation::EffectChain);
   strips.add_multiple(dependant);
   dependant.remove(strip);
-  transform_handle_overlap(scene, seqbase, strips, dependant, true);
+  transform_handle_overlap(scene, seqbase, strips, true, dependant);
 }
 
 void retiming_reset(Scene *scene, Strip *strip)

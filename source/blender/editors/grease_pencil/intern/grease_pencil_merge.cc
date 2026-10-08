@@ -318,8 +318,8 @@ void merge_layers(const GreasePencil &src_grease_pencil,
 
       /* Gather all the source curves to be merged. */
       Vector<const bke::CurvesGeometry *> all_src_curves;
-      for (const int src_darwing_i : src_drawing_indices) {
-        const GreasePencilDrawingBase *src_base = src_drawings[src_darwing_i];
+      for (const int src_drawing_i : src_drawing_indices) {
+        const GreasePencilDrawingBase *src_base = src_drawings[src_drawing_i];
         BLI_assert(src_base->type == GP_DRAWING);
         const Drawing &src_drawing =
             reinterpret_cast<const GreasePencilDrawing *>(src_base)->wrap();

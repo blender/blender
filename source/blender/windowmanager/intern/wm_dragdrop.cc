@@ -765,10 +765,6 @@ void WM_drag_add_local_ID(wmDrag *drag, ID *id, ID *from_parent)
       }
       return;
     }
-    if (GS(drag_id.id->name) != GS(id->name)) {
-      BLI_assert_msg(0, "All dragged IDs must have the same type");
-      return;
-    }
   }
 
   /* Add to list. */
@@ -1150,11 +1146,11 @@ static void wm_drop_redalert_draw(const StringRef redalert_str, int x, int y)
   rgba_uchar_to_float(col_fg, wcol->text);
   ui::theme::get_color_4fv(TH_REDALERT, col_alert);
 
-  /* Blend between the original text color and alert.
+  /* Alert color's alpha is used to blend between the text and alert tint.
    * This ensures the text be always readable, lighter or darker depending on the theme. */
-  col_fg[0] = (1.0f - 0.66f) * col_fg[0] + (0.66f * col_alert[0]);
-  col_fg[1] = (1.0f - 0.66f) * col_fg[1] + (0.66f * col_alert[1]);
-  col_fg[2] = (1.0f - 0.66f) * col_fg[2] + (0.66f * col_alert[2]);
+  col_fg[0] = (1.0f - col_alert[3]) * col_fg[0] + (col_alert[3] * col_alert[0]);
+  col_fg[1] = (1.0f - col_alert[3]) * col_fg[1] + (col_alert[3] * col_alert[1]);
+  col_fg[2] = (1.0f - col_alert[3]) * col_fg[2] + (col_alert[3] * col_alert[2]);
 
   ui::fontstyle_draw_simple_backdrop(fstyle, x, y, redalert_str, col_fg, col_bg);
 }

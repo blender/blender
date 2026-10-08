@@ -48,6 +48,14 @@ dnf config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/
 # Version lock CUDA install/update candidates to 12.8
 dnf versionlock add 'cuda-*-12-8*'
 
+# Install cmake manually as they version we need is not in the rocky8 package repos.
+# Go back to using the package manager with rocky9
+dnf -y install wget
+wget https://github.com/Kitware/CMake/releases/download/v3.31.12/cmake-3.31.12-linux-${ARCH}.sh
+chmod +x cmake-3.31.12-linux-${ARCH}.sh
+./cmake-3.31.12-linux-${ARCH}.sh --prefix=/usr --skip-license
+rm -f cmake-3.31.12-linux-${ARCH}.sh
+
 # Install packages needed for Blender's dependencies.
 PACKAGES_FOR_LIBS=(
     # Used to checkout Blender's code.
@@ -58,7 +66,7 @@ PACKAGES_FOR_LIBS=(
     # Used to extract packages.
     tar
     # Blender and some dependencies use `cmake`.
-    cmake3
+    #cmake3
     # Apply patches from Blender's: `./build_files/build_environment/patches`
     patch
     # Use by `cmake` and `autoconf`.

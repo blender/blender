@@ -510,7 +510,7 @@ void TokenBuffer::tokenize(const CharClass char_class_table[128])
    * emit:     1 0 0 0 1 1 1 1 1 1
    * offsets:  0       4   6 7 8 9
    *
-   * If whitespaces are merged with preceding tokens, one offset is emitted for the begining of
+   * If whitespaces are merged with preceding tokens, one offset is emitted for the beginning of
    * each token *and* at either the start of the next token or the start of the next whitespace.
    *
    * str:           i n t   a = 0 ;   EndOfFile

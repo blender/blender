@@ -222,19 +222,61 @@ void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
   const bool do_hq_normals = (scene.r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
                              GPU_use_hq_normals_workaround();
 
+  /* These buffers are copied to face corners on the GPU, which is only possible from this thread
+   * rather than from the worker threads in the parallel_for_each loop below. */
+  for (const int i : vbos_to_create.index_range()) {
+    const VBOType type = vbos_to_create[i];
+    if (type == VBOType::Position) {
+      created_vbos[i] = extract_positions(mr, mbc);
+    }
+    else if (type == VBOType::CornerNormal) {
+      created_vbos[i] = extract_normals(mr, mbc, do_hq_normals);
+    }
+    else if (type == VBOType::VertexNormal) {
+      created_vbos[i] = extract_vert_normals(mr, mbc);
+    }
+    else if (type == VBOType::VertexGroupWeight) {
+      created_vbos[i] = extract_weights(mr, cache, mbc);
+    }
+    else if (type == VBOType::Orco) {
+      created_vbos[i] = extract_orco(mr, mbc);
+    }
+    else if (type == VBOType::AttrViewer) {
+      created_vbos[i] = extract_attr_viewer(mr, mbc);
+    }
+    else if (type >= VBOType::Attr0 && type <= VBOType::Attr15) {
+      const int8_t attr_index = int8_t(type) - int8_t(VBOType::Attr0);
+      created_vbos[i] = extract_attribute(mr, mbc, cache.attr_used[attr_index]);
+    }
+  }
+
   threading::parallel_for_each(vbos_to_create.index_range(), [&](const int i) {
     switch (vbos_to_create[i]) {
       case VBOType::Position:
-        created_vbos[i] = extract_positions(mr);
-        break;
       case VBOType::CornerNormal:
-        created_vbos[i] = extract_normals(mr, do_hq_normals);
+      case VBOType::VertexGroupWeight:
+      case VBOType::VertexNormal:
+      case VBOType::Orco:
+      case VBOType::AttrViewer:
+      case VBOType::Attr0:
+      case VBOType::Attr1:
+      case VBOType::Attr2:
+      case VBOType::Attr3:
+      case VBOType::Attr5:
+      case VBOType::Attr6:
+      case VBOType::Attr7:
+      case VBOType::Attr8:
+      case VBOType::Attr9:
+      case VBOType::Attr10:
+      case VBOType::Attr11:
+      case VBOType::Attr12:
+      case VBOType::Attr13:
+      case VBOType::Attr14:
+      case VBOType::Attr15:
         break;
       case VBOType::EdgeFactor:
         created_vbos[i] = extract_edge_factor(mr);
         break;
-      case VBOType::VertexGroupWeight:
-        created_vbos[i] = extract_weights(mr, cache);
         break;
       case VBOType::UVs:
         created_vbos[i] = extract_uv_maps(mr, cache);
@@ -244,9 +286,6 @@ void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
         break;
       case VBOType::SculptData:
         created_vbos[i] = extract_sculpt_data(mr);
-        break;
-      case VBOType::Orco:
-        created_vbos[i] = extract_orco(mr);
         break;
       case VBOType::EditData:
         created_vbos[i] = extract_edit_data(mr);
@@ -289,31 +328,6 @@ void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
         break;
       case VBOType::IndexFaceDot:
         created_vbos[i] = extract_face_dot_index(mr);
-        break;
-      case VBOType::Attr0:
-      case VBOType::Attr1:
-      case VBOType::Attr2:
-      case VBOType::Attr3:
-      case VBOType::Attr5:
-      case VBOType::Attr6:
-      case VBOType::Attr7:
-      case VBOType::Attr8:
-      case VBOType::Attr9:
-      case VBOType::Attr10:
-      case VBOType::Attr11:
-      case VBOType::Attr12:
-      case VBOType::Attr13:
-      case VBOType::Attr14:
-      case VBOType::Attr15: {
-        const int8_t attr_index = int8_t(vbos_to_create[i]) - int8_t(VBOType::Attr0);
-        created_vbos[i] = extract_attribute(mr, cache.attr_used[attr_index]);
-        break;
-      }
-      case VBOType::AttrViewer:
-        created_vbos[i] = extract_attr_viewer(mr);
-        break;
-      case VBOType::VertexNormal:
-        created_vbos[i] = extract_vert_normals(mr);
         break;
       case VBOType::PaintOverlayFlag:
         created_vbos[i] = extract_paint_overlay_flags(mr);
@@ -434,7 +448,7 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   }
   if (vbos_to_create.contains(VBOType::VertexGroupWeight)) {
     buffers.vbos.add_new(VBOType::VertexGroupWeight,
-                         extract_weights_subdiv(mr, subdiv_cache, cache));
+                         extract_weights_subdiv(mr, subdiv_cache, cache, mbc));
   }
   if (vbos_to_create.contains(VBOType::FaceDotNormal) ||
       vbos_to_create.contains(VBOType::FaceDotPosition) ||
@@ -514,7 +528,7 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
     const VBOType request = VBOType(int8_t(VBOType::Attr0) + i);
     if (vbos_to_create.contains(request)) {
       buffers.vbos.add_new(request,
-                           extract_attribute_subdiv(mr, subdiv_cache, cache.attr_used[i]));
+                           extract_attribute_subdiv(mr, mbc, subdiv_cache, cache.attr_used[i]));
     }
   }
 }

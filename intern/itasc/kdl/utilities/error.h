@@ -127,7 +127,7 @@ public:
     virtual const char* Description() const {return "Unexpected identifier, expecting TRANS or ROT";}
     virtual int GetType() const {return 201;}
 };
-//! Error_Redundancy indicates an error that occured during solving for redundancy.
+//! Error_Redundancy indicates an error that occurred during solving for redundancy.
 class Error_RedundancyIO:public Error_IO  {};
 class Error_Redundancy_Illegal_Resolutiontype : public Error_RedundancyIO {
 public:

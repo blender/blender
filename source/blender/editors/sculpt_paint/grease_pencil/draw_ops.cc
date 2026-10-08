@@ -356,7 +356,9 @@ static void GREASE_PENCIL_OT_brush_stroke(wmOperatorType *ot)
   ot->modal = grease_pencil_brush_stroke_modal;
   ot->cancel = grease_pencil_brush_stroke_cancel;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* No #OPTYPE_REGISTER: interactive strokes don't record their samples, so redo and repeat
+   * would run #exec with an empty stroke. */
+  ot->flag = OPTYPE_UNDO;
 
   paint_stroke_operator_properties(ot);
 }
@@ -1541,6 +1543,7 @@ static bke::CurvesGeometry simplify_fixed(bke::CurvesGeometry &curves, const int
 
 static void set_fill_attributes(bke::CurvesGeometry &fill_curves,
                                 const ViewContext &view_context,
+                                const Paint &paint,
                                 const Brush &brush,
                                 const Scene &scene,
                                 const float4x4 &to_world,
@@ -1565,13 +1568,14 @@ static void set_fill_attributes(bke::CurvesGeometry &fill_curves,
     const float pressure = 1.0f;
     radii.span[point_i] = ed::greasepencil::radius_from_input_sample(view_context.rv3d,
                                                                      view_context.region,
+                                                                     paint,
                                                                      &brush,
                                                                      pressure,
                                                                      positions[point_i],
                                                                      to_world,
                                                                      brush.gpencil_settings);
     opacities.span[point_i] = ed::greasepencil::opacity_from_input_sample(
-        pressure, &brush, brush.gpencil_settings);
+        pressure, paint, &brush, brush.gpencil_settings);
   }
 
   radii.finish();
@@ -1589,7 +1593,7 @@ static void set_fill_attributes(bke::CurvesGeometry &fill_curves,
       scene.toolsettings->gp_paint, &brush);
   if (use_vertex_color) {
     ColorGeometry4f vertex_color;
-    copy_v3_v3(vertex_color, brush.color);
+    copy_v3_v3(vertex_color, BKE_brush_color_get(&paint, &brush));
     vertex_color.a = brush.gpencil_settings->vertex_factor;
 
     skip_curve_attributes.add("fill_color");
@@ -1645,7 +1649,8 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
   auto &op_data = *static_cast<GreasePencilFillOpData *>(op.customdata);
   const ToolSettings &ts = *CTX_data_tool_settings(&C);
-  Brush &brush = *BKE_paint_brush(&ts.gp_paint->paint);
+  Paint &paint = ts.gp_paint->paint;
+  Brush &brush = *BKE_paint_brush(&paint);
   const float2 mouse_position = float2(event.mval);
   const int simplify_levels = brush.gpencil_settings->fill_simplylvl;
   const std::optional<float> opacity_threshold =
@@ -1722,6 +1727,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
 
     set_fill_attributes(fill_curves,
                         view_context,
+                        paint,
                         brush,
                         scene,
                         layer.to_world_space(object),
@@ -2152,27 +2158,33 @@ static void GREASE_PENCIL_OT_fill(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static bke::greasepencil::Drawing *get_current_drawing_or_duplicate_for_autokey(
-    const Scene &scene, GreasePencil &grease_pencil, const int layer_index)
+/* Ensure a drawing at the current frame up front. For erasing, we don't want the auto-key to
+ * create an empty keyframe, so we duplicate the previous key. */
+static void ensure_drawing_for_autokey(bContext *C, GreasePencil &grease_pencil)
 {
-  using namespace bke::greasepencil;
-  const int current_frame = scene.r.cfra;
-  Layer &layer = grease_pencil.layer(layer_index);
-  if (!layer.has_drawing_at(current_frame) && !animrig::is_autokey_on(&scene)) {
-    return nullptr;
-  }
+  const Scene *scene = CTX_data_scene(C);
 
-  const std::optional<int> previous_key_frame_start = layer.start_frame_at(current_frame);
-  const bool has_previous_key = previous_key_frame_start.has_value();
-  if (animrig::is_autokey_on(&scene) && has_previous_key) {
-    grease_pencil.insert_duplicate_frame(layer, *previous_key_frame_start, current_frame, false);
+  if (bke::greasepencil::Layer *active_layer = grease_pencil.get_active_layer()) {
+    bool inserted_keyframe = false;
+    const bool use_duplicate_previous_key = true;
+    if (active_layer->is_editable()) {
+      ed::greasepencil::ensure_active_keyframe(
+          *scene, grease_pencil, *active_layer, use_duplicate_previous_key, inserted_keyframe);
+    }
+    if (inserted_keyframe) {
+      /* Select new keyframe (deselect others). */
+      for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
+        for (auto [frame_number, frame] : layer->frames_for_write().items()) {
+          const bool select_keyframe = (frame_number == scene->r.cfra) && (layer == active_layer);
+          SET_FLAG_FROM_TEST(frame.flag, select_keyframe, GP_FRAME_SELECTED);
+        }
+      }
+      WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
+    }
   }
-  return grease_pencil.get_drawing_at(layer, current_frame);
 }
 
 static bool remove_points_and_split_from_drawings(
-    const Scene &scene,
-    GreasePencil &grease_pencil,
     const Span<ed::greasepencil::MutableDrawingInfo> drawings,
     const Span<IndexMask> points_to_remove_per_drawing)
 {
@@ -2186,14 +2198,11 @@ static bool remove_points_and_split_from_drawings(
       continue;
     }
 
-    if (Drawing *drawing = get_current_drawing_or_duplicate_for_autokey(
-            scene, grease_pencil, info.layer_index))
-    {
-      drawing->strokes_for_write() = geometry::grease_pencil_remove_points_and_split(
-          drawing->strokes(), points_to_remove);
-      drawing->tag_topology_changed();
-      changed = true;
-    }
+    Drawing &drawing = info.drawing;
+    drawing.strokes_for_write() = geometry::grease_pencil_remove_points_and_split(
+        drawing.strokes(), points_to_remove);
+    drawing.tag_topology_changed();
+    changed = true;
   }
 
   return changed;
@@ -2240,6 +2249,8 @@ static wmOperatorStatus grease_pencil_erase_lasso_exec(bContext *C, wmOperator *
 
   const Bounds<int2> lasso_bounds_int = *bounds::min_max(lasso.as_span());
   const Bounds<float2> lasso_bounds(float2(lasso_bounds_int.min), float2(lasso_bounds_int.max));
+
+  ensure_drawing_for_autokey(C, grease_pencil);
 
   const Vector<MutableDrawingInfo> drawings = ed::greasepencil::retrieve_editable_drawings(
       *scene, grease_pencil);
@@ -2310,8 +2321,8 @@ static wmOperatorStatus grease_pencil_erase_lasso_exec(bContext *C, wmOperator *
     }
   });
 
-  const bool changed = remove_points_and_split_from_drawings(
-      *scene, grease_pencil, drawings.as_span(), points_to_remove_per_drawing);
+  const bool changed = remove_points_and_split_from_drawings(drawings.as_span(),
+                                                             points_to_remove_per_drawing);
   if (changed) {
     DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
@@ -2353,6 +2364,8 @@ static wmOperatorStatus grease_pencil_erase_box_exec(bContext *C, wmOperator *op
     return OPERATOR_FINISHED;
   }
 
+  ensure_drawing_for_autokey(C, grease_pencil);
+
   const Vector<MutableDrawingInfo> drawings = ed::greasepencil::retrieve_editable_drawings(
       *scene, grease_pencil);
   Array<IndexMaskMemory> memories(drawings.size());
@@ -2386,8 +2399,8 @@ static wmOperatorStatus grease_pencil_erase_box_exec(bContext *C, wmOperator *op
     }
   });
 
-  const bool changed = remove_points_and_split_from_drawings(
-      *scene, grease_pencil, drawings.as_span(), points_to_remove_per_drawing);
+  const bool changed = remove_points_and_split_from_drawings(drawings.as_span(),
+                                                             points_to_remove_per_drawing);
   if (changed) {
     DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);

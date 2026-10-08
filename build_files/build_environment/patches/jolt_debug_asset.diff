@@ -1,0 +1,43 @@
+This makes it so that asset functions are available release builds.
+Otherwise jolt will error out when trying to link when building a
+blender debug build on linux/mac.
+
+diff -Naur a/Jolt/Core/IssueReporting.cpp b/Jolt/Core/IssueReporting.cpp
+--- a/Jolt/Core/IssueReporting.cpp	2026-09-28 10:40:16.005788200 -0700
++++ b/Jolt/Core/IssueReporting.cpp	2026-10-02 06:32:01.074317500 -0700
+@@ -13,8 +13,6 @@
+ 
+ TraceFunction Trace = DummyTrace;
+ 
+-#ifdef JPH_ENABLE_ASSERTS
+-
+ static bool DummyAssertFailed(const char *inExpression, const char *inMessage, const char *inFile, uint inLine)
+ {
+ 	return true; // Trigger breakpoint
+@@ -22,6 +20,4 @@
+ 
+ AssertFailedFunction AssertFailed = DummyAssertFailed;
+ 
+-#endif // JPH_ENABLE_ASSERTS
+-
+ JPH_NAMESPACE_END
+diff -Naur a/Jolt/Core/IssueReporting.h b/Jolt/Core/IssueReporting.h
+--- a/Jolt/Core/IssueReporting.h	2026-09-28 10:40:16.005788200 -0700
++++ b/Jolt/Core/IssueReporting.h	2026-10-02 06:32:53.712831500 -0700
+@@ -15,11 +15,11 @@
+ 	#define JPH_ENABLE_ASSERTS
+ #endif
+ 
+-#ifdef JPH_ENABLE_ASSERTS
+-	/// Function called when an assertion fails. This function should return true if a breakpoint needs to be triggered
+-	using AssertFailedFunction = bool(*)(const char *inExpression, const char *inMessage, const char *inFile, uint inLine);
+-	JPH_EXPORT extern AssertFailedFunction AssertFailed;
++/// Function called when an assertion fails. This function should return true if a breakpoint needs to be triggered
++using AssertFailedFunction = bool(*)(const char *inExpression, const char *inMessage, const char *inFile, uint inLine);
++JPH_EXPORT extern AssertFailedFunction AssertFailed;
+ 
++#ifdef JPH_ENABLE_ASSERTS
+ 	// Helper functions to pass message on to failed function
+ 	struct AssertLastParam { };
+ 	inline bool AssertFailedParamHelper(const char *inExpression, const char *inFile, uint inLine, AssertLastParam) { return AssertFailed(inExpression, nullptr, inFile, inLine); }
+

@@ -2553,7 +2553,8 @@ void ED_region_floating_init(ARegion *region)
 
 void ED_region_cursor_set(wmWindow *win, ScrArea *area, ARegion *region)
 {
-  if (region && region->runtime->type->do_lock) {
+  if (region && region->runtime->type && region->runtime->type->do_lock) {
+    WM_cursor_set(win, WM_CURSOR_DEFAULT);
     return;
   }
 

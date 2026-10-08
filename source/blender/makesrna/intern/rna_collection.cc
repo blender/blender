@@ -451,6 +451,22 @@ static void rna_CollectionLightLinking_update(Main *bmain, Scene * /*scene*/, Po
   DEG_relations_tag_update(bmain);
 }
 
+static void rna_Collection_sort_index_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+{
+  Collection *collection = id_cast<Collection *>(ptr->owner_id);
+  if (collection != nullptr) {
+    DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_HIERARCHY);
+    DEG_relations_tag_update(bmain);
+    WM_main_add_notifier(NC_SCENE | ND_LAYER, nullptr);
+  }
+}
+
+static PointerRNA rna_CollectionImport_archive_library_get(PointerRNA *ptr)
+{
+  const CollectionImport *data = reinterpret_cast<CollectionImport *>(ptr->data);
+  return RNA_pointer_create_discrete(ptr->owner_id, RNA_Library, data->runtime->archive_library);
+}
+
 static PointerRNA rna_CollectionImport_import_properties_get(PointerRNA *ptr)
 {
   const CollectionImport *data = reinterpret_cast<CollectionImport *>(ptr->data);
@@ -817,6 +833,22 @@ static void rna_def_collection_object(BlenderRNA *brna)
 
   RNA_define_lib_overridable(true);
 
+  /* Sort Index. */
+  prop = RNA_def_property(srna, "sort_index", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "sort_index");
+  RNA_def_property_ui_text(
+      prop, "Sort Index", "Custom sort index of the object in the collection");
+  RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_Collection_sort_index_update");
+
+  /* Sort Index Child. */
+  prop = RNA_def_property(srna, "parented_sort_index", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "parented_sort_index");
+  RNA_def_property_ui_text(
+      prop,
+      "Sort Index Child",
+      "Custom sort index when the object is shown under a parent of another object");
+  RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_Collection_sort_index_update");
+
   /* Light Linking. */
   prop = RNA_def_property(srna, "light_linking", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -838,6 +870,13 @@ static void rna_def_collection_child(BlenderRNA *brna)
 
   RNA_define_lib_overridable(true);
 
+  /* Sort Index. */
+  prop = RNA_def_property(srna, "sort_index", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "sort_index");
+  RNA_def_property_ui_text(
+      prop, "Sort Index", "Custom sort index of the collection in the parent collection");
+  RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_Collection_sort_index_update");
+
   /* Light Linking. */
   prop = RNA_def_property(srna, "light_linking", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -856,6 +895,17 @@ static void rna_def_collection_importer_data(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "CollectionImport", nullptr);
   RNA_def_struct_sdna(srna, "CollectionImport");
   RNA_def_struct_ui_text(srna, "Collection Import Data", "Importer configured for the collection");
+
+  prop = RNA_def_property(srna, "archive_library", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "runtime->archive_library");
+  RNA_def_property_struct_type(prop, "Library");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_CollectionImport_archive_library_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Imported Library",
+                           "Archive library owning all imported data from this collection "
+                           "importer (None if no data has been imported yet)");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "is_open", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", IO_HANDLER_PANEL_OPEN);

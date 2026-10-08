@@ -114,14 +114,6 @@ Attribute::DataVariant attribute_init_to_data(const bke::AttrType data_type,
       varray.materialize_to_uninitialized(varray.index_range(), data.data);
       return data;
     }
-    case AttributeInit::Type::MoveArray: {
-      const auto &init = static_cast<const AttributeInitMoveArray &>(initializer);
-      Attribute::ArrayData data;
-      data.data = init.data;
-      data.size = domain_size;
-      data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data.data));
-      return data;
-    }
     case AttributeInit::Type::Shared: {
       const auto &init = static_cast<const AttributeInitShared &>(initializer);
       Attribute::ArrayData data;

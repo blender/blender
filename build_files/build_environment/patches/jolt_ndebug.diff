@@ -1,0 +1,100 @@
+From 37682b4e27f10dd224c6f256ca046f52eddb106f Mon Sep 17 00:00:00 2001
+From: Jorrit Rouwe <jrouwe@gmail.com>
+Date: Sat, 19 Sep 2026 12:22:58 +0200
+Subject: [PATCH] Removed JPH_NO_DEBUG in favor of JPH_DEBUG
+
+- No longer overriding the defaults for CMAKE_CXX_FLAGS_DEBUG and CMAKE_CXX_FLAGS_RELEASE
+- NDEBUG is now provided through the default value of CMAKE_CXX_FLAGS_RELEASE (so overridable by the application)
+- JPH_DEBUG is explicitly turned on in Debug builds.
+- OVERRIDE_CXX_FLAGS is now only used on MSVC to turn on some extra optimizations
+
+NOTE: This version of the patch has been backported to Jolt 5.6.0
+
+---
+ Build/CMakeLists.txt | 17 +++++++----------
+ Jolt/Core/Core.h     |  5 -----
+ Jolt/Jolt.cmake      |  4 ++--
+ 3 files changed, 9 insertions(+), 17 deletions(-)
+
+diff --git a/Build/CMakeLists.txt b/Build/CMakeLists.txt
+index 67e04ebc1..2f9443325 100644
+--- a/Build/CMakeLists.txt
++++ b/Build/CMakeLists.txt
+@@ -14,8 +14,8 @@ option(GENERATE_DEBUG_SYMBOLS "Generate debug symbols" ON)
+ # Which type of debug symbols to generate, e.g. using source-map when compiling with emscripten makes compilation a lot faster
+ set(JPH_DEBUG_SYMBOL_FORMAT "" CACHE STRING "Which type of debug symbols to generate")
+ 
+-# When turning this option on, the library will override the default CMAKE_CXX_FLAGS_DEBUG/RELEASE values, otherwise they will use the platform defaults
+-option(OVERRIDE_CXX_FLAGS "Override CMAKE_CXX_FLAGS_DEBUG/RELEASE" ON)
++# When turning this option on, the library will override the default CMAKE_CXX_FLAGS_RELEASE values, otherwise they will use the platform defaults
++option(OVERRIDE_CXX_FLAGS "Override CMAKE_CXX_FLAGS_RELEASE" ON)
+ 
+ # When turning this option on, the library will be compiled in such a way to attempt to keep the simulation deterministic across platforms
+ option(CROSS_PLATFORM_DETERMINISTIC "Cross platform deterministic" OFF)
+@@ -152,7 +152,7 @@ if (MSVC)
+ 	endif()
+ 
+ 	# Set general compiler flags
+-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /Gm- /MP /nologo /diagnostics:classic /FC /fp:except- /Zc:inline")
++	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /MP /nologo /diagnostics:classic /FC /fp:except- /Zc:inline")
+ 
+ 	# Enable warnings
+ 	if (ENABLE_ALL_WARNINGS)
+@@ -183,11 +183,12 @@ if (MSVC)
+ 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+ 	endif()
+ 
+-	# Set compiler flags for various configurations
+ 	if (OVERRIDE_CXX_FLAGS)
+-		set(CMAKE_CXX_FLAGS_DEBUG "/GS /Od /Ob0 /RTC1")
+-		set(CMAKE_CXX_FLAGS_RELEASE "/GS- /Gy /O2 /Oi /Ot")
++		# No buffer security checks, enable function-level linking, enable intrinsic functions, favor fast code
++		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GS- /Gy /Oi /Ot")
+ 	endif()
++
++	# Set compiler flags for various configurations
+ 	set(CMAKE_CXX_FLAGS_DISTRIBUTION "${CMAKE_CXX_FLAGS_RELEASE}")
+ 	set(CMAKE_CXX_FLAGS_RELEASEASAN "-fsanitize=address /Od")
+ 	set(CMAKE_CXX_FLAGS_RELEASEUBSAN "-fsanitize=undefined,implicit-conversion,float-divide-by-zero,local-bounds -fno-sanitize-recover=all")
+@@ -275,10 +276,6 @@ else()
+ 	endif()
+ 
+ 	# Set compiler flags for various configurations
+-	if (OVERRIDE_CXX_FLAGS)
+-		set(CMAKE_CXX_FLAGS_DEBUG "")
+-		set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+-	endif()
+ 	set(CMAKE_CXX_FLAGS_DISTRIBUTION "${CMAKE_CXX_FLAGS_RELEASE}")
+ 	set(CMAKE_CXX_FLAGS_RELEASEASAN "-fsanitize=address")
+ 	set(CMAKE_CXX_FLAGS_RELEASEUBSAN "-fsanitize=undefined,implicit-conversion,float-divide-by-zero,local-bounds -fno-sanitize-recover=all")
+diff --git a/Jolt/Core/Core.h b/Jolt/Core/Core.h
+index bdeae7a27..5e19ebfb7 100644
+--- a/Jolt/Core/Core.h
++++ b/Jolt/Core/Core.h
+@@ -558,11 +558,6 @@
+ static_assert(sizeof(uint32) == 4, "Invalid size of uint32");
+ static_assert(sizeof(uint64) == 8, "Invalid size of uint64");
+ 
+-// Determine if we want extra debugging code to be active
+-#if !defined(NDEBUG) && !defined(JPH_NO_DEBUG)
+-	#define JPH_DEBUG
+-#endif
+-
+ // Define inline macro
+ #if defined(JPH_NO_FORCE_INLINE)
+ 	#define JPH_INLINE inline
+diff --git a/Jolt/Jolt.cmake b/Jolt/Jolt.cmake
+index c7ea8cfdf..2bea70368 100644
+--- a/Jolt/Jolt.cmake
++++ b/Jolt/Jolt.cmake
+@@ -830,8 +830,8 @@ else()
+ 	target_precompile_headers(Jolt PRIVATE "$<$<NOT:$<CONFIG:ReleaseCoverage>>:${JOLT_PHYSICS_ROOT}/Jolt.h>")
+ endif()
+ 
+-# Set the NDEBUG define for release builds
+-target_compile_definitions(Jolt PUBLIC "$<$<CONFIG:Release,Distribution,ReleaseASAN,ReleaseUBSAN,ReleaseTSAN,ReleaseCoverage>:NDEBUG>")
++# Set the JPH_DEBUG define for debug builds
++target_compile_definitions(Jolt PUBLIC "$<$<CONFIG:Debug>:JPH_DEBUG>")
+ 
+ # ASAN and TSAN should use the default allocators
+ target_compile_definitions(Jolt PUBLIC "$<$<CONFIG:ReleaseASAN,ReleaseTSAN>:JPH_DISABLE_TEMP_ALLOCATOR;JPH_DISABLE_CUSTOM_ALLOCATOR>")

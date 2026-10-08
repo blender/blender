@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <atomic>
+#include <cstring>
+
 #include "xxhash.h"
 
 #include "BLI_map.hh"
@@ -82,11 +85,24 @@ struct VKGraphicsInfo {
     VkShaderModule vk_fragment_module;
     VkPrimitiveTopology vk_topology;
     uint32_t viewport_count;
+    /**
+     * Viewports & scissors baked into the pipeline when
+     * `VKWorkarounds::static_viewport_scissor` is set; part of the pipeline key.
+     */
+    Vector<VkViewport, GPU_MAX_VIEWPORTS> viewports;
+    Vector<VkRect2D, GPU_MAX_VIEWPORTS> scissors;
     GPUState state;
     Vector<shader::SpecializationConstant::Value> specialization_constants;
     bool has_depth;
     bool has_stencil;
     uint32_t max_input_attachment_index = 0;
+    /* Color attachment count of the render pass this shaders library is linked with.
+     *
+     * When VK_KHR_dynamic_rendering_local_read is used and the shader declares input attachments,
+     * VkPipelineRenderingCreateInfo::colorAttachmentCount and
+     * VkRenderingInputAttachmentIndexInfo::colorAttachmentCount must match the count declared
+     * by the fragment output library (VUID-VkGraphicsPipelineCreateInfo-renderPass-09531). */
+    uint32_t color_attachment_count = 0;
 
     bool operator==(const Shaders &other) const
     {
@@ -97,12 +113,22 @@ struct VKGraphicsInfo {
              viewport_count == other.viewport_count && state == other.state &&
              specialization_constants == other.specialization_constants &&
              has_depth == other.has_depth && has_stencil == other.has_stencil &&
-             max_input_attachment_index == other.max_input_attachment_index;
+             max_input_attachment_index == other.max_input_attachment_index &&
+             color_attachment_count == other.color_attachment_count &&
+             viewports.size() == other.viewports.size() &&
+             scissors.size() == other.scissors.size() &&
+             memcmp(viewports.data(),
+                    other.viewports.data(),
+                    viewports.size() * sizeof(VkViewport)) == 0 &&
+             memcmp(scissors.data(), other.scissors.data(), scissors.size() * sizeof(VkRect2D)) ==
+                 0;
     }
 
     uint64_t hash() const
     {
       uint64_t hash = viewport_count;
+      hash = hash * 33 ^ XXH3_64bits(viewports.data(), viewports.size() * sizeof(VkViewport));
+      hash = hash * 33 ^ XXH3_64bits(scissors.data(), scissors.size() * sizeof(VkRect2D));
       hash = hash * 33 ^ uint64_t(vk_vertex_module);
       hash = hash * 33 ^ uint64_t(vk_geometry_module);
       hash = hash * 33 ^ uint64_t(vk_fragment_module);
@@ -112,6 +138,7 @@ struct VKGraphicsInfo {
       hash = hash * 33 ^ specialization_constants.hash();
       hash = hash * 33 ^ (uint64_t(has_depth) << 1 | uint64_t(has_stencil));
       hash = hash * 33 ^ uint64_t(max_input_attachment_index);
+      hash = hash * 33 ^ uint64_t(color_attachment_count);
       return hash;
     }
 
@@ -368,6 +395,12 @@ class VKPipelinePool : public NonCopyable {
   VKPipelineMap<VKGraphicsInfo::Shaders> shaders_libs_;
   VKPipelineMap<VKGraphicsInfo::FragmentOut> fragment_output_libs_;
 
+  /* Total count of pipelines compiled on demand since app start so ongoing pipeline compilation
+   * can be reported to `bpy.app.is_job_running("SHADER_COMPILATION")`. */
+  std::atomic<uint64_t> compilation_counter_ = 0;
+  /* The value of the compilation counter at the last frame boundary. */
+  uint64_t compilation_counter_at_reset_ = 0;
+
  public:
   void init();
 
@@ -443,6 +476,17 @@ class VKPipelinePool : public NonCopyable {
    * Discard all pipelines that uses the given pipeline_layout.
    */
   void discard(VKDiscardPool &discard_pool, VkPipelineLayout vk_pipeline_layout);
+
+  /**
+   * Returns true when any pipeline has been created on demand since the last reset.
+   */
+  bool compiled_since_last_reset() const;
+
+  /**
+   * Snapshot the on-demand pipeline compilation counter, so `compiled_since_last_reset` reports
+   * only pipelines created after this call. Meant to be called once per frame.
+   */
+  void reset_compilation_tracking();
 
   /**
    * Destroy all created pipelines.

@@ -94,6 +94,15 @@ class BlenderGlTF():
                 ns[:, [1, 2]] = ns[:, [2, 1]]
                 ns[:, 1] *= -1
 
+            def convert_quats_batch(quats):
+                # glTF quat is x,y,z,w ; Blender quat is w,x,y,z
+                # x,y,z,w -> w,x,-z,y
+                quats[:, [0, 1, 2, 3]] = quats[:, [3, 0, 2, 1]]
+                quats[:, 2] *= -1
+
+            def convert_scales_batch(scales):
+                scales[:, [1, 2]] = scales[:, [2, 1]]
+
             # Correction for cameras and lights.
             # glTF: right = +X, forward = -Z, up = +Y
             # glTF after Yup2Zup: right = +X, forward = +Y, up = +Z
@@ -110,7 +119,12 @@ class BlenderGlTF():
                 return Matrix([m[0::4], m[1::4], m[2::4], m[3::4]])
 
             def convert_locs_batch(_locs): return
+            def convert_scales_batch(_scales): return
             def convert_normals_batch(_ns): return
+
+            def convert_quats_batch(quats):
+                # x,y,z,w -> w,x,y,z
+                quats[:, [0, 1, 2, 3]] = quats[:, [3, 0, 1, 2]]
 
             # Same convention, no correction needed.
             gltf.camera_correction = None
@@ -118,6 +132,8 @@ class BlenderGlTF():
         gltf.loc_gltf_to_blender = convert_loc
         gltf.locs_batch_gltf_to_blender = convert_locs_batch
         gltf.quaternion_gltf_to_blender = convert_quat
+        gltf.quats_batch_gltf_to_blender = convert_quats_batch
+        gltf.scales_batch_gltf_to_blender = convert_scales_batch
         gltf.normals_batch_gltf_to_blender = convert_normals_batch
         gltf.scale_gltf_to_blender = convert_scale
         gltf.matrix_gltf_to_blender = convert_matrix

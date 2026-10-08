@@ -160,12 +160,32 @@ int BKE_preferences_asset_library_get_index(const UserDef *userdef,
   return BLI_findindex(&userdef->asset_libraries, library);
 }
 
+bool BKE_preferences_asset_library_is_available(const UserDef *userdef,
+                                                const bUserAssetLibrary *library)
+{
+  if (library->flag & ASSET_LIBRARY_DISABLED) {
+    return false;
+  }
+  if (library->extension_id[0]) {
+    const bUserExtensionRepo *repo = BKE_preferences_extension_asset_library_repo_get(userdef,
+                                                                                      library);
+    /* The libraries of a removed repository are removed too, any that remain are unusable. */
+    if (repo == nullptr) {
+      return false;
+    }
+    if (repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool BKE_preferences_asset_library_is_valid(const UserDef *userdef,
                                             const bUserAssetLibrary *library,
                                             const bool check_directory_exists)
 {
   /* Check disabled libraries. */
-  if (library->flag & ASSET_LIBRARY_DISABLED) {
+  if (!BKE_preferences_asset_library_is_available(userdef, library)) {
     return false;
   }
 
@@ -255,6 +275,31 @@ bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,
   }
 
   return library;
+}
+
+bUserAssetLibraryOwner BKE_preferences_asset_library_owner_get(const bUserAssetLibrary *library)
+{
+  if (library->flag & ASSET_LIBRARY_PROJECT_DEFINED) {
+    return bUserAssetLibraryOwner::Project;
+  }
+  if (library->extension_id[0]) {
+    return bUserAssetLibraryOwner::Extension;
+  }
+  return bUserAssetLibraryOwner::User;
+}
+
+bUserExtensionRepo *BKE_preferences_extension_asset_library_repo_get(
+    const UserDef *userdef, const bUserAssetLibrary *library)
+{
+  /* The repository module is the part before the first `.`, modules never contain one. */
+  char module[sizeof(bUserAssetLibrary::extension_id)];
+  STRNCPY(module, library->extension_id);
+  char *sep = strchr(module, '.');
+  if (sep == nullptr) {
+    return nullptr;
+  }
+  *sep = '\0';
+  return BKE_preferences_extension_repo_find_by_module(userdef, module);
 }
 
 /**

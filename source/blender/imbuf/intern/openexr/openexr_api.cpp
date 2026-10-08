@@ -505,6 +505,12 @@ static int openexr_header_get_compression(const Header &header)
     case HTJ2K32_COMPRESSION:
       return R_IMF_EXR_CODEC_HTJ2K;
 #endif
+#if COMBINED_OPENEXR_VERSION >= 30500
+    case LJ2K_COMPRESSION:
+      return R_IMF_EXR_CODEC_HTJ2K;
+    case ZSTD_COMPRESSION:
+      return R_IMF_EXR_CODEC_ZIP;
+#endif
     case NUM_COMPRESSION_METHODS:
       return R_IMF_EXR_CODEC_NONE;
   }

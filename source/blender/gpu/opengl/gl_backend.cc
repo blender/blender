@@ -409,7 +409,7 @@ static void detect_workarounds()
     printf("    renderer: %s\n", renderer);
     printf("    version: %s\n\n", version);
     GCaps.depth_blitting_workaround = true;
-    GCaps.stencil_clasify_buffer_workaround = true;
+    GCaps.stencil_classify_buffer_workaround = true;
     GCaps.texture_pool_workaround = true;
     GLContext::debug_layer_workaround = true;
     /* Turn off Blender features. */
@@ -526,7 +526,7 @@ static void detect_workarounds()
        * GPU driver renders the cube correctly. This will be changed when a working driver version
        * is released to commercial devices to only enable this flags on older drivers. */
       if (ver0 == 31) {
-        GCaps.stencil_clasify_buffer_workaround = true;
+        GCaps.stencil_classify_buffer_workaround = true;
       }
 
       /* Disable OpenGL texture pool on Snapdragon 8cx Gen 3 devices. See #142229. We assume that
@@ -572,7 +572,7 @@ static void detect_workarounds()
       }
     }
 
-    /* #107642, #120273 The legacy Intel 7-10th Gen Processsor iGPU driver incorrectly reports that
+    /* #107642, #120273 The legacy Intel 7-10th Gen Processor iGPU driver incorrectly reports that
      * image binding is supported. But when used it results in `GL_INVALID_OPERATION` with
      * `internal format of texture N is not supported`. 101.5972 is the oldest checked driver where
      * it was manually confirmed that this issue is no longer present on newer driver versions. */
@@ -837,7 +837,7 @@ void GLBackend::log_workarounds()
              GLContext::debug_layer_workaround ? 'X' : ' ',
              GLContext::unused_fb_slot_workaround ? 'X' : ' ',
              GCaps.depth_blitting_workaround ? 'X' : ' ',
-             GCaps.stencil_clasify_buffer_workaround ? 'X' : ' ',
+             GCaps.stencil_classify_buffer_workaround ? 'X' : ' ',
              GCaps.use_hq_normals_workaround ? 'X' : ' ',
              GCaps.use_main_context_workaround ? 'X' : ' ');
 }

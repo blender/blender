@@ -39,8 +39,6 @@
 #include "IMB_openexr.hh"
 #include "IMB_partial_update.hh"
 
-#include "GPU_texture.hh"
-
 #include "render_result.h"
 #include "render_types.h"
 

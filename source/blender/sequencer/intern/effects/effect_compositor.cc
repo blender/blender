@@ -9,6 +9,7 @@
 #include "BLI_resource_scope.hh"
 
 #include "BKE_compositor.hh"
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_idprop.hh"
 #include "BKE_node_runtime.hh"
@@ -47,11 +48,12 @@ class CompositorEffectContext : public CompositorContext {
   ImBuf *output_;
   float factor_;
 
-  /* The hash of the active compute context. */
-  const ComputeContextHash active_compute_context_hash_;
+  /* The compute context of the active viewer if one exists. */
+  const ComputeContext *viewer_compute_context_;
 
  public:
   CompositorEffectContext(compositor::StaticCacheManager &cache_manager,
+                          bke::ComputeContextCache &compute_context_cache,
                           const RenderData &render_data,
                           bNodeTree *node_tree,
                           ImBuf *input_1,
@@ -59,20 +61,20 @@ class CompositorEffectContext : public CompositorContext {
                           ImBuf *output,
                           float factor,
                           const Strip &strip)
-      : CompositorContext(cache_manager, render_data, strip),
+      : CompositorContext(cache_manager, compute_context_cache, render_data, strip),
         node_group_(node_tree),
         input_1_(input_1),
         input_2_(input_2),
         output_(output),
         factor_(factor),
-        active_compute_context_hash_(bke::compositor::compute_active_compute_context_hash(
-            *render_data_.scene, *node_group_))
+        viewer_compute_context_(bke::compositor::compute_viewer_compute_context(
+            *render_data_.scene, *node_group_, compute_context_cache))
   {
   }
 
-  const ComputeContextHash &get_active_compute_context_hash() const override
+  const ComputeContext *viewer_compute_context() const override
   {
-    return active_compute_context_hash_;
+    return viewer_compute_context_;
   }
 
   compositor::Domain get_compositing_domain() const override
@@ -90,7 +92,8 @@ class CompositorEffectContext : public CompositorContext {
     using namespace compositor;
     const bNodeTree &node_group = *DEG_get_evaluated<bNodeTree>(render_data_.depsgraph,
                                                                 node_group_);
-    const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
+    const bke::DataBlockComputeContext &compute_context =
+        this->compute_context_cache().for_data_block(nullptr, this->get_scene().id);
     NodeGroupOperation node_group_operation(*this, node_group, compute_context);
     set_output_refcount(node_group, node_group_operation);
 
@@ -173,7 +176,9 @@ static SeqResult do_compositor_effect(const RenderData *context,
   }
   else {
     CompositorCache &com_cache = context->scene->ed->runtime->ensure_compositor_cache();
+    bke::ComputeContextCache compute_context_cache;
     CompositorEffectContext com_context(com_cache.get_cache_manager(),
+                                        compute_context_cache,
                                         *context,
                                         data->node_group,
                                         src1.image,

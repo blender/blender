@@ -55,7 +55,12 @@ VkPipeline VKPipelinePool::get_or_create_compute_pipeline(const VKComputeInfo &c
   bool created = false;
   VkPipelineCache vk_pipeline_cache = is_static_shader ? vk_pipeline_cache_static_ :
                                                          vk_pipeline_cache_non_static_;
-  return compute_.get_or_create(compute_info, vk_pipeline_cache, vk_pipeline_base, name, created);
+  VkPipeline pipeline = compute_.get_or_create(
+      compute_info, vk_pipeline_cache, vk_pipeline_base, name, created);
+  if (created) {
+    compilation_counter_.fetch_add(1, std::memory_order_relaxed);
+  }
+  return pipeline;
 }
 
 template<>
@@ -137,8 +142,12 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(const VKGraphicsInfo 
       "otherwise an incorrect fragment output library will be linked.");
   VkPipelineCache vk_pipeline_cache = is_static_shader ? vk_pipeline_cache_static_ :
                                                          vk_pipeline_cache_non_static_;
-  return graphics_.get_or_create(
+  VkPipeline pipeline = graphics_.get_or_create(
       graphics_info, vk_pipeline_cache, vk_pipeline_base, name, r_created);
+  if (r_created) {
+    compilation_counter_.fetch_add(1, std::memory_order_relaxed);
+  }
+  return pipeline;
 }
 
 static VkPipeline create_graphics_pipeline_no_libs(const VKGraphicsInfo &graphics_info,
@@ -542,8 +551,9 @@ VkPipeline VKPipelineMap<VKGraphicsInfo::Shaders>::create(
 {
   VKDevice &device = VKBackend::get().device;
   const VKExtensions &extensions = device.extensions_get();
+  const VKWorkarounds &workarounds = device.workarounds_get();
   VKGraphicsPipelineCreateInfoBuilder builder;
-  builder.build_shaders_lib(shaders_info, extensions, vk_pipeline_base);
+  builder.build_shaders_lib(shaders_info, extensions, workarounds, vk_pipeline_base);
 
   /* Build pipeline. */
   VkPipeline pipeline = VK_NULL_HANDLE;
@@ -608,6 +618,17 @@ void VKPipelinePool::discard(VKDiscardPool &discard_pool, VkPipelineLayout vk_pi
   compute_.discard(discard_pool, vk_pipeline_layout);
   shaders_libs_.discard(discard_pool, vk_pipeline_layout);
   /* vertex_input_libs_ and fragment_output_libs_ are NOT dependent on vk_pipeline_layout. */
+}
+
+bool VKPipelinePool::compiled_since_last_reset() const
+{
+  /* The counter increases monotonically, so checking inequality means compilation happened. */
+  return compilation_counter_.load(std::memory_order_relaxed) != compilation_counter_at_reset_;
+}
+
+void VKPipelinePool::reset_compilation_tracking()
+{
+  compilation_counter_at_reset_ = compilation_counter_.load(std::memory_order_relaxed);
 }
 
 void VKPipelinePool::free_data(const VKDevice &device)

@@ -2334,7 +2334,7 @@ int BM_mesh_calc_face_groups(BMesh *bm,
 
   MEM_delete(stack);
 
-  /* reduce alloc to required size */
+  /* Reduce allocation to the required size. */
   if (group_index_len != group_curr) {
     group_index = static_cast<int (*)[2]>(
         MEM_realloc_uninitialized(group_index, sizeof(*group_index) * group_curr));
@@ -2458,7 +2458,7 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
 
   MEM_delete(stack);
 
-  /* reduce alloc to required size */
+  /* Reduce allocation to the required size. */
   if (group_index_len != group_curr) {
     group_index = static_cast<int (*)[2]>(
         MEM_realloc_uninitialized(group_index, sizeof(*group_index) * group_curr));
@@ -2547,7 +2547,7 @@ int BM_mesh_calc_edge_groups_as_arrays(
 
   MEM_delete(stack);
 
-  /* Reduce alloc to required size. */
+  /* Reduce allocation to the required size. */
   groups = static_cast<int (*)[3]>(
       MEM_realloc_uninitialized(groups, sizeof(*groups) * STACK_SIZE(groups)));
   *r_groups = groups;

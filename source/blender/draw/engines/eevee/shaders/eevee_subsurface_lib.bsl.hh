@@ -10,9 +10,8 @@
 
 #include "eevee_subsurface_shared.hh"
 #include "eevee_utility_tx.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
-float subsurface_transmittance_profile([[resource_table]] const UtilityTexture &util_tx, float u)
+float subsurface_transmittance_profile(const UtilityTexture &util_tx, float u)
 {
   return util_tx.sample_extend(float2(u, 0.0f), UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER).r;
 }
@@ -20,9 +19,7 @@ float subsurface_transmittance_profile([[resource_table]] const UtilityTexture &
 /**
  * Returns the amount of light that can travels through a uniform medium and exit at the backface.
  */
-float3 subsurface_transmission([[resource_table]] const UtilityTexture &util,
-                               float3 sss_radii,
-                               float thickness)
+float3 subsurface_transmission(const UtilityTexture &util, float3 sss_radii, float thickness)
 {
   sss_radii *= SSS_TRANSMIT_LUT_RADIUS;
   float3 channels_co = saturate(thickness / sss_radii) * SSS_TRANSMIT_LUT_SCALE +

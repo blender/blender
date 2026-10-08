@@ -2805,7 +2805,11 @@ static ColorTheme4f node_header_color_get(const bNodeTree &ntree,
   /* The base color of the node header. */
   if (node_undefined_or_unsupported(ntree, node)) {
     /* Use warning color to indicate undefined types. */
-    ui::theme::get_color_blend_shade_4fv(TH_REDALERT, color_id, 0.1f, -40, color_header);
+    ColorTheme4f color_alert;
+    ui::theme::get_color_4fv(TH_REDALERT, color_alert);
+    ui::theme::get_color_blend_shade_3fv(
+        TH_REDALERT, color_id, 1.0f - color_alert.a, -60, color_header);
+    color_header.a = alpha;
   }
   else if ((node.flag & NODE_COLLAPSED) && (node.flag & NODE_CUSTOM_COLOR)) {
     rgba_float_args_set(color_header, node.color[0], node.color[1], node.color[2], alpha);
@@ -2897,7 +2901,8 @@ static void node_draw_basis(const bContext &C,
   }
 
   const rctf &rct = node.runtime->draw_bounds;
-  float color[4];
+  float color[4], color_alert[4];
+  ui::theme::get_color_4fv(TH_REDALERT, color_alert);
   int color_id = node_get_colorid(tree_draw_ctx, node);
 
   GPU_line_width(1.0f);
@@ -3157,7 +3162,8 @@ static void node_draw_basis(const bContext &C,
   {
     /* Use warning color to indicate undefined types. */
     if (node_undefined_or_unsupported(ntree, node)) {
-      ui::theme::get_color_shade_4fv(TH_REDALERT, -40, color);
+      ui::theme::get_color_blend_shade_3fv(
+          TH_REDALERT, color_id, 1.0f - color_alert[3], -80, color);
     }
     else if (node.flag & NODE_CUSTOM_COLOR) {
       rgba_float_args_set(color, node.color[0], node.color[1], node.color[2], 1.0f);
@@ -3215,6 +3221,7 @@ static void node_draw_basis(const bContext &C,
     }
     else if (node_undefined_or_unsupported(ntree, node)) {
       ui::theme::get_color_4fv(TH_REDALERT, color_outline);
+      color_outline[3] = 1.0f;
     }
     else if (const bke::bNodeZoneType *zone_type = bke::zone_type_by_node_type(node.type_legacy)) {
       ui::theme::get_color_4fv(zone_type->theme_id, color_outline);
@@ -3370,6 +3377,7 @@ static void node_draw_collapsed(const bContext &C,
     }
     else if (node_undefined_or_unsupported(ntree, node)) {
       ui::theme::get_color_4fv(TH_REDALERT, color_outline);
+      color_outline[3] = 1.0f;
     }
     else if (node.is_muted()) {
       /* Muted nodes get a mix of the background with the node color. */
@@ -4662,8 +4670,12 @@ static void draw_link_errors(const bContext &C,
   /* Draw a background for the error icon. */
   rctf bg_rect;
   BLI_rctf_init_pt_radius(&bg_rect, float2(draw_position), bg_radius);
-  ColorTheme4f bg_color;
+  ColorTheme4f bg_color, alert_color;
   ui::theme::get_color_4fv(TH_REDALERT, bg_color);
+  ui::theme::get_color_4fv(TH_REDALERT, alert_color);
+  alert_color.a = std::min(alert_color.a + 0.4f, 0.8f);
+  ui::theme::get_color_blend_3f(TH_REDALERT, TH_NODE, 1.0f - alert_color.a, bg_color);
+  bg_color.a = 1.0f;
   draw_roundbox_corner_set(ui::CNR_ALL);
   ui::draw_dropshadow(&bg_rect, bg_corner_radius, UI_UNIT_X * 0.2f, snode.runtime->aspect, 0.5f);
   ui::draw_roundbox_4fv(&bg_rect, true, bg_corner_radius, bg_color);

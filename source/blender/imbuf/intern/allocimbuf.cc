@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cstddef>
 
+#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_partial_update.hh"
@@ -52,7 +53,7 @@ bool imb_alloc_buffer(BufferType &buffer,
     return false;
   }
   buffer.data = static_cast<decltype(BufferType::data)>(data);
-  buffer.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data));
+  buffer.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(buffer.data));
   return true;
 }
 
@@ -92,6 +93,26 @@ float *ImBuf::float_data_for_write()
         implicit_sharing::info_for_mem_free(new_data));
   }
   return const_cast<float *>(this->float_buffer.data);
+}
+
+const ColorSpace &ImBuf::byte_colorspace() const
+{
+  if (this->byte_buffer.colorspace) {
+    return *this->byte_buffer.colorspace;
+  }
+
+  return *IMB_colormanagement_space_get_named(
+      IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE));
+}
+
+const ColorSpace &ImBuf::float_colorspace() const
+{
+  if (this->float_buffer.colorspace) {
+    return *this->float_buffer.colorspace;
+  }
+
+  return *IMB_colormanagement_space_get_named(
+      IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
 }
 
 void IMB_free_float_pixels(ImBuf *ibuf)
@@ -370,6 +391,7 @@ bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, ImBufFlags flags)
   ibuf->channels = 4;
   /* IMB_DPI_DEFAULT -> pixels-per-meter. */
   ibuf->ppm[0] = ibuf->ppm[1] = IMB_DPI_DEFAULT / 0.0254;
+  ibuf->full_update_changeset_id = IMB_partial_update_changeset_id_next();
 
   const bool init_pixels = !flag_is_set(flags, ImBufFlags::UninitializedPixels);
 

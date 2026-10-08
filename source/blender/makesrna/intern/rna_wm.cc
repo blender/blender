@@ -3292,6 +3292,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_event_value_items);
   RNA_def_property_ui_text(prop, "Value", "");
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
 
   prop = RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "direction");

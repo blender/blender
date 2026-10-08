@@ -149,7 +149,7 @@ void CulledOccluderSource::cullViewEdges(ViewMap &viewMap, bool extensiveFEdgeSe
       if (!bestOccluderTargetFound) {
         // If center point is inside occluder proscenium,
         if (insideProscenium(occluderProscenium, fe->center2d())) {
-          // Use this feature edge for visibility deterimination
+          // Use this feature edge for visibility determination
           fe->setIsInImage(true);
           expandGridSpaceOccluderProscenium(fe);
           // Mark bestOccluderTarget as found

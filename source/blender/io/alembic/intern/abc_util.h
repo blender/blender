@@ -36,6 +36,10 @@ class AbcObjectReader;
 struct AbcReaderConstructorArgs;
 
 static inline const std::string ABC_CURVE_RESOLUTION_U_PROPNAME = "blender:resolution";
+static inline const std::string ABC_ACTIVE_COLOR_ATTRIBUTE_PROPNAME =
+    "blender:active_color_attribute";
+static inline const std::string ABC_DEFAULT_COLOR_ATTRIBUTE_PROPNAME =
+    "blender:default_color_attribute";
 
 std::string get_valid_abc_name(const char *name);
 

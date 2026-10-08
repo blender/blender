@@ -77,13 +77,13 @@ gpu::Batch *pointcloud_sub_pass_setup_implementation(PassT &sub_ps,
 
   PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*object);
   if (pointcloud.type == PointCloudType::GSplat) {
-    /* GSplats are a subtype of pointclouds, so we forward to their implementation. */
+    /* GSplats are a subtype of point-clouds, so we forward to their implementation. */
     return gsplat_sub_pass_setup(sub_ps, ob_ref, res_handle, gpu_material);
   }
 
   PointCloudModule &module = *drw_get().data->pointcloud_module;
 
-  /* An empty pointcloud should never result in a draw-call. However, the buffer binding commands
+  /* An empty point-cloud should never result in a draw-call. However, the buffer binding commands
    * will still be executed. In this case, in order to avoid assertion, we bind dummy VBOs. */
   const bool is_empty = pointcloud.totpoint == 0;
 

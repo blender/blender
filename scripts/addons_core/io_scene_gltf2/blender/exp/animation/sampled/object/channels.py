@@ -17,7 +17,7 @@ from .channel_target import gather_object_sampled_channel_target
 def gather_object_sampled_channels(object_uuid: str, blender_action_name: str, slot_identifier: str,
                                    export_settings) -> typing.List[gltf2_io.AnimationChannel]:
     channels = []
-    additionnal_channels = {}
+    additional_channels = {}
 
     # Bake situation does not export any extra animation channels, as we bake TRS + weights on Track or scene level, without direct
     # Access to fcurve and action data
@@ -27,7 +27,7 @@ def gather_object_sampled_channels(object_uuid: str, blender_action_name: str, s
     if slot_identifier is not None:
         if object_uuid != blender_action_name and blender_action_name in bpy.data.actions:
             # Not bake situation
-            channels_animated, to_be_sampled, additionnal_channels, extras_channels = get_channel_groups(
+            channels_animated, to_be_sampled, additional_channels, extras_channels = get_channel_groups(
                 object_uuid, bpy.data.actions[blender_action_name], bpy.data.actions[blender_action_name].slots[slot_identifier], export_settings)
             for chan in [chan for chan in channels_animated.values() if chan['bone'] is None]:
                 for prop in chan['properties'].keys():
@@ -82,7 +82,7 @@ def gather_object_sampled_channels(object_uuid: str, blender_action_name: str, s
     blender_object = export_settings['vtree'].nodes[object_uuid].blender_object
     export_user_extensions('animation_gather_object_channel', export_settings, blender_object, blender_action_name)
 
-    return channels if len(channels) > 0 else None, additionnal_channels
+    return channels if len(channels) > 0 else None, additional_channels
 
 
 @cached

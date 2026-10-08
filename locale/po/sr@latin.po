@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -1051,8 +1051,16 @@ msgid "Window Managers"
 msgstr "Upravljači prozorima"
 
 
+msgid "Project"
+msgstr "Projekcija"
+
+
 msgid "Dirty"
 msgstr "Prljavo"
+
+
+msgid "Path"
+msgstr "Putanja"
 
 
 msgid "Blender RNA"
@@ -1544,6 +1552,10 @@ msgstr "Zasićenost"
 
 msgid "Active Layer"
 msgstr "Aktivni sloj"
+
+
+msgid "Cyclic"
+msgstr "Kružno"
 
 
 msgid "Stroke"
@@ -2443,10 +2455,6 @@ msgid "Z"
 msgstr "Z"
 
 
-msgid "Cyclic"
-msgstr "Kružno"
-
-
 msgid "Head/Tail"
 msgstr "Glava/rep"
 
@@ -2754,10 +2762,6 @@ msgstr "Udaljenost projekcije"
 
 msgid "Nearest Surface Point"
 msgstr "Najbliža tačka na površi"
-
-
-msgid "Project"
-msgstr "Projekcija"
 
 
 msgid "Nearest Vertex"
@@ -5431,10 +5435,6 @@ msgid "Fill caps for beveled curves"
 msgstr "Popuni krajeve iskošene krive"
 
 
-msgid "Path"
-msgstr "Putanja"
-
-
 msgid "Follow"
 msgstr "Prati"
 
@@ -5937,10 +5937,6 @@ msgstr "Grupa temena pod uticajem kaveza"
 
 msgid "External .blend file from which data is linked"
 msgstr "Eksterna .blend datoteka iz poje su povezani podaci"
-
-
-msgid "Path to the library .blend file"
-msgstr "Putanja do .blend datoteke zbirke"
 
 
 msgid "Light color"
@@ -8017,22 +8013,6 @@ msgid "Type of event"
 msgstr "Vrsta događaja"
 
 
-msgid "Press"
-msgstr "Pritisak"
-
-
-msgid "Release"
-msgstr "Otpuštanje"
-
-
-msgid "Click"
-msgstr "Klik"
-
-
-msgid "Double Click"
-msgstr "Dupli klik"
-
-
 msgid "Left Handle"
 msgstr "Leva ručka"
 
@@ -8155,6 +8135,10 @@ msgstr "Aktivan objekat"
 
 msgid "Selected Objects"
 msgstr "Prikaži sve izabrane objekte"
+
+
+msgid "Path to the library .blend file"
+msgstr "Putanja do .blend datoteke zbirke"
 
 
 msgid "Modifier Name"
@@ -8498,72 +8482,124 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
+msgid "Metaball"
+msgstr "Meta lopta"
 
 
 msgid "Snap"
 msgstr "Lepljenje"
 
 
-msgid "Import"
-msgstr "Uvoz"
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
 
 
 msgid "Local View"
 msgstr "Lokalni pogled"
 
 
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
-
-
-msgid "Select Linked"
-msgstr "Izaberi povezano"
-
-
-msgid "Metaball"
-msgstr "Meta lopta"
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
 
 
 msgid "Light"
 msgstr "Svetlost"
 
 
-msgid "Linked"
-msgstr "Povezano"
-
-
-msgid "Relations"
-msgstr "Odnosi"
-
-
-msgid "Rigid Body"
-msgstr "Kruto telo"
+msgid "Mirror"
+msgstr "Ogledalo"
 
 
 msgid "Apply"
 msgstr "Primeni"
+
+
+msgid "Merge"
+msgstr "Sjedini"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
+
+
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
+
+
+msgid "Names"
+msgstr "Imena"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mod izbora mreže"
+
+
+msgid "Disable Bone Options"
+msgstr "Onemogući opcije kostiju"
+
+
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
+
+
+msgid "Select Linked"
+msgstr "Izaberi povezano"
+
+
+msgid "Propagate"
+msgstr "Prenesi"
+
+
+msgid "In-Betweens"
+msgstr "U međuvremenu"
+
+
+msgid "Clear Transform"
+msgstr "Očisti transformacije"
+
+
+msgid "Hooks"
+msgstr "Udice"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Keying"
+msgstr "Zbirka tastera"
+
+
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
+msgid "Special Characters"
+msgstr "Specijalni znaci"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Import"
+msgstr "Uvoz"
+
+
+msgid "Linked"
+msgstr "Povezano"
+
+
+msgid "Rigid Body"
+msgstr "Kruto telo"
 
 
 msgid "Track"
@@ -8574,60 +8610,8 @@ msgid "Quick Effects"
 msgstr "Brzi efekti"
 
 
-msgid "Keying"
-msgstr "Zbirka tastera"
-
-
-msgid "Tracking"
-msgstr "Praćenje"
-
-
-msgid "Hooks"
-msgstr "Udice"
-
-
-msgid "Clear Transform"
-msgstr "Očisti transformacije"
-
-
-msgid "In-Betweens"
-msgstr "U međuvremenu"
-
-
-msgid "Propagate"
-msgstr "Prenesi"
-
-
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
-
-
-msgid "Disable Bone Options"
-msgstr "Onemogući opcije kostiju"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mod izbora mreže"
-
-
-msgid "Merge"
-msgstr "Sjedini"
-
-
-msgid "Special Characters"
-msgstr "Specijalni znaci"
-
-
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
+msgid "Relations"
+msgstr "Odnosi"
 
 
 msgid "Basic"
@@ -10354,14 +10338,6 @@ msgid "Distance between two bundles used for object scaling"
 msgstr "Rastojanje između dva objekta ili kosti"
 
 
-msgid "Fastest"
-msgstr "Najbrže"
-
-
-msgid "Double"
-msgstr "Duplo"
-
-
 msgid "Use Blue Channel"
 msgstr "Koristi plavi kanal"
 
@@ -10788,10 +10764,6 @@ msgstr "Informacije o objektu"
 
 msgid "Tangent Space"
 msgstr "Ciljni prostor"
-
-
-msgid "Unknown"
-msgstr "Nepoznato"
 
 
 msgid "Selection"
@@ -19264,10 +19236,6 @@ msgid "Walk"
 msgstr "Šetnja"
 
 
-msgid "Auto Run Python Scripts"
-msgstr "Auto-pokretajuće Python skripte"
-
-
 msgid "Theme Space"
 msgstr "Prostor teme"
 
@@ -19905,6 +19873,10 @@ msgstr "Kompresuj datoteku"
 
 msgid "Enable file compression when saving .blend files"
 msgstr "Koristi kompresovanje prilikom čuvanja .blend datoteka"
+
+
+msgid "Auto Run Python Scripts"
+msgstr "Auto-pokretajuće Python skripte"
 
 
 msgid "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)"
@@ -22281,6 +22253,14 @@ msgid "Use Mist"
 msgstr "Koristi maglu"
 
 
+msgid "Press"
+msgstr "Pritisak"
+
+
+msgid "Release"
+msgstr "Otpuštanje"
+
+
 msgid "Operator Properties"
 msgstr "Osobine operatora"
 
@@ -22504,11 +22484,6 @@ msgid "All"
 msgstr "Sve"
 
 
-msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "Prijava greške"
-
-
 msgid "Object Index"
 msgstr "Indeks objekta"
 
@@ -22549,6 +22524,11 @@ msgstr "Verzija:"
 
 msgid "Warning:"
 msgstr "Upozorenje:"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Prijava greške"
 
 
 msgid "File:"
@@ -22625,6 +22605,10 @@ msgstr "Lokacija"
 msgctxt "Operator"
 msgid "Rotation"
 msgstr "Okretanje"
+
+
+msgid "Unknown"
+msgstr "Nepoznato"
 
 
 msgid "Frame Numbers"
@@ -23710,11 +23694,6 @@ msgstr "Višestruko bojenje"
 
 
 msgctxt "Operator"
-msgid "Quick Edit"
-msgstr "Brza izmena"
-
-
-msgctxt "Operator"
 msgid "Apply"
 msgstr "Primeni"
 
@@ -24038,14 +24017,6 @@ msgstr "Proširi vodoravno"
 
 msgid "Reset Curve"
 msgstr "Resetuj krivu"
-
-
-msgid "H"
-msgstr "T"
-
-
-msgid "S"
-msgstr "Z"
 
 
 msgid "Zoom in"
@@ -25060,6 +25031,10 @@ msgid "Val"
 msgstr "Vr."
 
 
+msgid "S"
+msgstr "Z"
+
+
 msgid "Old"
 msgstr "Staro"
 
@@ -25222,6 +25197,10 @@ msgstr "W3"
 
 msgid "W4"
 msgstr "W4"
+
+
+msgid "H"
+msgstr "T"
 
 
 msgid "Image too small"

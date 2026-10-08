@@ -62,6 +62,8 @@
 
 #include "BLO_read_write.hh"
 
+#include "WM_api.hh"
+
 #include "cache/compositor_cache.hh"
 #include "cache/final_image_cache.hh"
 #include "cache/intra_frame_cache.hh"
@@ -146,6 +148,7 @@ Strip *strip_alloc(ListBaseT<Strip> *lb, int timeline_frame, int channel, StripT
   strip->type = type;
   strip->media_playback_rate = 0.0f;
   strip->speed_factor = 1.0f;
+  strip->strobe = 1.0f;
 
   if (strip->type == STRIP_TYPE_ADJUSTMENT) {
     strip->blend_mode = STRIP_BLEND_CROSS;
@@ -380,6 +383,8 @@ SequencerToolSettings *tool_settings_init()
   tool_settings->snap_flag = SEQ_SNAP_TO_ALL_CHANNEL_STRIPS;
   tool_settings->snap_distance = 15;
   tool_settings->overlap_mode = SEQ_OVERLAP_SHUFFLE;
+  tool_settings->ripple_flag = SEQ_RIPPLE_ALL_CHANNELS | SEQ_RIPPLE_MARKERS |
+                               SEQ_RIPPLE_CLEAR_RANGES;
   tool_settings->pivot_point = V3D_AROUND_CENTER_MEDIAN;
 
   return tool_settings;
@@ -431,10 +436,22 @@ void tool_settings_fit_method_set(Scene *scene, eSeqImageFitMethod fit_method)
   tool_settings->fit_method = fit_method;
 }
 
+void tool_settings_overlap_mode_set(Scene *scene, eSeqOverlapMode overlap_mode)
+{
+  SequencerToolSettings *tool_settings = tool_settings_ensure(scene);
+  tool_settings->overlap_mode = overlap_mode;
+}
+
 eSeqOverlapMode tool_settings_overlap_mode_get(Scene *scene)
 {
   const SequencerToolSettings *tool_settings = tool_settings_ensure(scene);
   return eSeqOverlapMode(tool_settings->overlap_mode);
+}
+
+eSeqRippleFlag tool_settings_ripple_flag_get(Scene *scene)
+{
+  const SequencerToolSettings *tool_settings = tool_settings_ensure(scene);
+  return eSeqRippleFlag(tool_settings->ripple_flag);
 }
 
 int tool_settings_pivot_point_get(Scene *scene)
@@ -1355,6 +1372,20 @@ ListBaseT<SeqTimelineChannel> *Editing::current_channels() const
   }
   /* NOTE: Const correctness is non-existent with ListBaseT anyway. */
   return &const_cast<ListBaseT<SeqTimelineChannel> &>(this->channels);
+}
+
+std::optional<int> Editing::edit_point() const
+{
+  return this->runtime->edit_point;
+}
+
+void Editing::edit_point_set(Scene *scene, const std::optional<int> frame)
+{
+  if (this->runtime->edit_point == frame) {
+    return;
+  }
+  this->runtime->edit_point = frame;
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
 bool Strip::is_effect() const

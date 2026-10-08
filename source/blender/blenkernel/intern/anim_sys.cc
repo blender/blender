@@ -1099,10 +1099,13 @@ static void nlaeval_snapshot_free_data(NlaEvalSnapshot *snapshot)
 /* ---------------------- */
 
 /* Free memory owned by this evaluation channel. */
-static void nlaevalchan_free_data(NlaEvalChannel *nec)
+static void nlaevalchan_free(NlaEvalChannel *nec)
 {
   nlavalidmask_free(&nec->domain);
   nec->key.~NlaEvalChannelKey();
+  /* The channel is allocated as raw memory with extra space for the values of its base snapshot,
+   * see #nlaevalchan_verify_key. */
+  MEM_delete_void(static_cast<void *>(nec));
 }
 
 /* Initialize a full NLA evaluation state structure. */
@@ -1123,11 +1126,10 @@ static void nlaeval_free(NlaEvalData *nlaeval)
   nlaeval_snapshot_free_data(&nlaeval->eval_snapshot);
 
   /* Delete channels. */
-  for (NlaEvalChannel &nec : nlaeval->channels) {
-    nlaevalchan_free_data(&nec);
+  for (NlaEvalChannel &nec : nlaeval->channels.items_mutable()) {
+    nlaevalchan_free(&nec);
   }
-
-  nlaeval->channels.free_no_destruct();
+  nlaeval->channels.clear_no_delete();
   BLI_ghash_free(nlaeval->path_hash, nullptr, nullptr);
   MEM_delete(nlaeval->key_hash);
 }

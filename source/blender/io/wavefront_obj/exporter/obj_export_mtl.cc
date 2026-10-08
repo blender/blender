@@ -51,15 +51,15 @@ static void copy_property_from_node(const eNodeSocketDatatype property_type,
                                     const char *identifier,
                                     MutableSpan<float> r_property)
 {
-  if (!node) {
+  if (!node || !identifier) {
     return;
   }
   const bNodeSocket *socket = bke::node_find_socket(
       *const_cast<bNode *>(node), SOCK_IN, UString(identifier));
-  BLI_assert(socket && socket->type == property_type);
   if (!socket) {
     return;
   }
+  BLI_assert(socket->type == property_type);
   switch (property_type) {
     case SOCK_FLOAT: {
       BLI_assert(r_property.size() == 1);
@@ -94,16 +94,14 @@ static void copy_property_from_node(const eNodeSocketDatatype property_type,
  * Collect all the source sockets linked to the destination socket in a destination node.
  */
 static void linked_sockets_to_dest_id(const bNode *dest_node,
-                                      const bNodeTree &node_tree,
                                       const char *dest_socket_id,
                                       Vector<const bNodeSocket *> &r_linked_sockets)
 {
   r_linked_sockets.clear();
-  if (!dest_node) {
+  if (!dest_node || !dest_socket_id) {
     return;
   }
-  Span<const bNode *> object_dest_nodes = node_tree.nodes_by_type(UString(dest_node->idname));
-  Span<const bNodeSocket *> dest_inputs = object_dest_nodes.first()->input_sockets();
+  Span<const bNodeSocket *> dest_inputs = dest_node->input_sockets();
   const bNodeSocket *dest_socket = nullptr;
   for (const bNodeSocket *curr_socket : dest_inputs) {
     if (STREQ(curr_socket->identifier, dest_socket_id)) {
@@ -171,9 +169,8 @@ static std::string get_image_filepath(const bNode *tex_node)
 }
 
 /**
- * Find the Principled-BSDF Node in nodetree.
- * We only want one that feeds directly into a Material Output node
- * (that is the behavior of the legacy Python exporter).
+ * Find a supported surface shader in nodetree.
+ * We only want one that feeds directly into a Material Output node.
  */
 static const bNode *find_bsdf_node(const bNodeTree *nodetree)
 {
@@ -184,7 +181,23 @@ static const bNode *find_bsdf_node(const bNodeTree *nodetree)
     const bNodeSocket &node_input_socket0 = node->input_socket(0);
     for (const bNodeSocket *out_sock : node_input_socket0.directly_linked_sockets()) {
       const bNode &in_node = out_sock->owner_node();
-      if (in_node.typeinfo->type_legacy == SH_NODE_BSDF_PRINCIPLED) {
+      if (ELEM(in_node.typeinfo->type_legacy,
+               SH_NODE_BSDF_PRINCIPLED,
+               SH_NODE_EEVEE_SPECULAR,
+               SH_NODE_BSDF_DIFFUSE,
+               SH_NODE_BSDF_GLOSSY,
+               SH_NODE_BSDF_METALLIC,
+               SH_NODE_BSDF_GLASS,
+               SH_NODE_BSDF_REFRACTION,
+               SH_NODE_BSDF_TRANSLUCENT,
+               SH_NODE_BSDF_TRANSPARENT,
+               SH_NODE_BSDF_SHEEN,
+               SH_NODE_BSDF_TOON,
+               SH_NODE_BSDF_HAIR,
+               SH_NODE_BSDF_HAIR_PRINCIPLED,
+               SH_NODE_SUBSURFACE_SCATTERING,
+               SH_NODE_EMISSION))
+      {
         return &in_node;
       }
     }
@@ -304,6 +317,107 @@ static void store_bsdf_properties(const bNode *bsdf_node,
   r_mtl_mat.transmit_color = {transmission, transmission, transmission};
 }
 
+/* Socket mapping for properties that can be represented in MTL. */
+static const char *shader_socket_id(const bNode &node, const MTLTexMapType key)
+{
+  const int type = node.typeinfo->type_legacy;
+  if (type == SH_NODE_BSDF_PRINCIPLED) {
+    return tex_map_type_to_socket_id[int(key)];
+  }
+
+  switch (key) {
+    case MTLTexMapType::Color:
+      if (ELEM(type, SH_NODE_BSDF_GLOSSY, SH_NODE_BSDF_METALLIC, SH_NODE_EMISSION)) {
+        return nullptr;
+      }
+      if (type == SH_NODE_BSDF_HAIR_PRINCIPLED &&
+          static_cast<const NodeShaderHairPrincipled *>(node.storage)->parametrization !=
+              SHD_PRINCIPLED_HAIR_REFLECTANCE)
+      {
+        return nullptr;
+      }
+      return type == SH_NODE_EEVEE_SPECULAR ? "Base Color" : "Color";
+    case MTLTexMapType::Specular:
+      if (type == SH_NODE_EEVEE_SPECULAR) {
+        return "Specular";
+      }
+      if (type == SH_NODE_BSDF_GLOSSY) {
+        return "Color";
+      }
+      return type == SH_NODE_BSDF_METALLIC ? "Base Color" : nullptr;
+    case MTLTexMapType::SpecularExponent:
+    case MTLTexMapType::Roughness:
+      return type == SH_NODE_BSDF_HAIR ? "RoughnessU" : "Roughness";
+    case MTLTexMapType::Emission:
+      if (type == SH_NODE_EEVEE_SPECULAR) {
+        return "Emissive Color";
+      }
+      return type == SH_NODE_EMISSION ? "Color" : nullptr;
+    case MTLTexMapType::Normal:
+      return "Normal";
+    default:
+      return nullptr;
+  }
+}
+
+static void store_shader_properties(const bNode &node, MTLMaterial &mtl)
+{
+  const int type = node.typeinfo->type_legacy;
+  mtl.ambient_color = float3(1.0f);
+  mtl.color = float3(0.8f);
+  mtl.spec_color = float3(0.0f);
+  mtl.emission_color = float3(0.0f);
+  mtl.metallic = 0.0f;
+  mtl.alpha = 1.0f;
+  mtl.ior = 1.0f;
+  mtl.roughness = 0.5f;
+  mtl.illum_mode = 1;
+  copy_property_from_node(
+      SOCK_RGBA, &node, shader_socket_id(node, MTLTexMapType::Color), {mtl.color, 3});
+  copy_property_from_node(
+      SOCK_FLOAT, &node, shader_socket_id(node, MTLTexMapType::Roughness), {&mtl.roughness, 1});
+  copy_property_from_node(
+      SOCK_RGBA, &node, shader_socket_id(node, MTLTexMapType::Specular), {mtl.spec_color, 3});
+  copy_property_from_node(
+      SOCK_RGBA, &node, shader_socket_id(node, MTLTexMapType::Emission), {mtl.emission_color, 3});
+  /* Metallic IOR is a vector; no direct mapping to MTL scalar Ni. */
+  if (type != SH_NODE_BSDF_METALLIC) {
+    copy_property_from_node(SOCK_FLOAT, &node, "IOR", {&mtl.ior, 1});
+  }
+  if (ELEM(type, SH_NODE_BSDF_GLOSSY, SH_NODE_BSDF_METALLIC)) {
+    mtl.color = float3(0.0f);
+    mtl.metallic = 1.0f;
+    mtl.illum_mode = 3;
+  }
+  else if (type == SH_NODE_EEVEE_SPECULAR) {
+    float transparency = 0.0f;
+    copy_property_from_node(SOCK_FLOAT, &node, "Transparency", {&transparency, 1});
+    mtl.alpha = 1.0f - transparency;
+    mtl.illum_mode = mtl.alpha < 1.0f ? 9 : 2;
+    copy_property_from_node(SOCK_FLOAT, &node, "Clear Coat", {&mtl.cc_thickness, 1});
+    copy_property_from_node(SOCK_FLOAT, &node, "Clear Coat Roughness", {&mtl.cc_roughness, 1});
+    mtl.cc_thickness *= 4.0f;
+  }
+  else if (ELEM(type, SH_NODE_BSDF_GLASS, SH_NODE_BSDF_REFRACTION)) {
+    mtl.transmit_color = mtl.color;
+    mtl.alpha = 0.0f;
+    mtl.illum_mode = type == SH_NODE_BSDF_GLASS ? 7 : 6;
+    mtl.spec_color = float3(type == SH_NODE_BSDF_GLASS ? 1.0f : 0.0f);
+  }
+  else if (type == SH_NODE_BSDF_TRANSPARENT) {
+    mtl.transmit_color = mtl.color;
+    mtl.alpha = 0.0f;
+  }
+  else if (type == SH_NODE_EMISSION) {
+    float strength = 1.0f;
+    copy_property_from_node(SOCK_FLOAT, &node, "Strength", {&strength, 1});
+    mtl.emission_color *= strength;
+    mtl.color = float3(0.0f);
+  }
+  const float smoothness = 1.0f - mtl.roughness;
+  mtl.spec_exponent = smoothness * smoothness * 1000.0f;
+}
+
 /**
  * Store image texture options and file-paths in `r_mtl_mat`.
  */
@@ -313,7 +427,7 @@ static void store_image_textures(const bNode *bsdf_node,
                                  MTLMaterial &r_mtl_mat)
 {
   if (!material || !node_tree || !bsdf_node) {
-    /* No nodetree, no images, or no Principled BSDF node. */
+    /* No nodetree, no images, or no supported shader node. */
     return;
   }
 
@@ -328,27 +442,29 @@ static void store_image_textures(const bNode *bsdf_node,
     const bNode *normal_map_node{nullptr};
 
     if (key == int(MTLTexMapType::Normal)) {
-      /* Find sockets linked to destination "Normal" socket in P-BSDF node. */
-      linked_sockets_to_dest_id(bsdf_node, *node_tree, "Normal", linked_sockets);
+      /* Find sockets linked to destination "Normal" socket in the shader node. */
+      linked_sockets_to_dest_id(bsdf_node, "Normal", linked_sockets);
       /* Among the linked sockets, find Normal Map shader node. */
       normal_map_node = get_node_of_type(linked_sockets, SH_NODE_NORMAL_MAP);
 
       /* Find sockets linked to "Color" socket in normal map node. */
-      linked_sockets_to_dest_id(normal_map_node, *node_tree, "Color", linked_sockets);
+      linked_sockets_to_dest_id(normal_map_node, "Color", linked_sockets);
     }
     else {
       /* Skip emission map if emission strength is zero. */
       if (key == int(MTLTexMapType::Emission)) {
-        float emission_strength = 0.0f;
-        copy_property_from_node(
-            SOCK_FLOAT, bsdf_node, "Emission Strength", {&emission_strength, 1});
+        float emission_strength = 1.0f;
+        const char *strength_socket = bsdf_node->typeinfo->type_legacy == SH_NODE_EMISSION ?
+                                          "Strength" :
+                                          "Emission Strength";
+        copy_property_from_node(SOCK_FLOAT, bsdf_node, strength_socket, {&emission_strength, 1});
         if (emission_strength == 0.0f) {
           continue;
         }
       }
-      /* Find sockets linked to the destination socket of interest, in P-BSDF node. */
+      /* Find sockets linked to the destination socket of interest, in the shader node. */
       linked_sockets_to_dest_id(
-          bsdf_node, *node_tree, tex_map_type_to_socket_id[key], linked_sockets);
+          bsdf_node, shader_socket_id(*bsdf_node, MTLTexMapType(key)), linked_sockets);
     }
 
     /* Among the linked sockets, find Image Texture shader node. */
@@ -362,7 +478,7 @@ static void store_image_textures(const bNode *bsdf_node,
     }
 
     /* Find "Mapping" node if connected to texture node. */
-    linked_sockets_to_dest_id(tex_node, *node_tree, "Vector", linked_sockets);
+    linked_sockets_to_dest_id(tex_node, "Vector", linked_sockets);
     const bNode *mapping = get_node_of_type(linked_sockets, SH_NODE_MAPPING);
 
     if (normal_map_node) {
@@ -390,7 +506,12 @@ MTLMaterial mtlmaterial_for_material(const Material *material)
   }
 
   const bNode *bsdf_node = find_bsdf_node(nodetree);
-  store_bsdf_properties(bsdf_node, material, mtlmat);
+  if (bsdf_node && bsdf_node->typeinfo->type_legacy != SH_NODE_BSDF_PRINCIPLED) {
+    store_shader_properties(*bsdf_node, mtlmat);
+  }
+  else {
+    store_bsdf_properties(bsdf_node, material, mtlmat);
+  }
   store_image_textures(bsdf_node, nodetree, material, mtlmat);
   return mtlmat;
 }

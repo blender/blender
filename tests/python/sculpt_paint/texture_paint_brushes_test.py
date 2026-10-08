@@ -92,6 +92,16 @@ class ExperimentalBrushTests(unittest.TestCase):
                 self._activate_brush("Paint Hard")
                 self._check_paint_stroke()
 
+    @unittest.skipIf(bpy.app.version_cycle != 'alpha', "Experimental features are only testable in alpha")
+    def test_mask_brush_creates_valid_data(self):
+        for data_type in DataType:
+            with self.subTest(data_type):
+                self._initialize(data_type)
+                mask_image = bpy.data.images.new("Mask", 512, 512, float_buffer=data_type == DataType.FLOAT)
+                bpy.context.scene.tool_settings.image_paint.stencil_image = mask_image
+                self._activate_brush("Mask")
+                self._check_paint_stroke(image_name="Mask")
+
 
 class BrushTests(unittest.TestCase):
     """

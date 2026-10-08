@@ -529,8 +529,8 @@ static short keyframe_ok_checks(
   if (check(ked, bezt, 1)) {
     ok |= KEYFRAME_OK_KEY;
   }
-  if (ked && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES))
-  { /* Only act on visible items, so check handle visibility state. */
+  /* Only act on visible items, so check handle visibility state. */
+  if (ked && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES)) {
     if (handles_visible(ked, bezt)) {
       if (check(ked, bezt, 0)) {
         ok |= KEYFRAME_OK_H1;

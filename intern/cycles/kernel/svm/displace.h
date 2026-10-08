@@ -23,8 +23,7 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
                                            const ccl_global SVMNodeSetBump &node)
 {
 #ifdef __RAY_DIFFERENTIALS__
-  IF_KERNEL_NODES_FEATURE(BUMP)
-  {
+  IF_KERNEL_NODES_FEATURE (BUMP) {
     /* get normal input */
     float3 normal_in = stack_load_float3_default(stack, node.normal_offset, sd->N);
 
@@ -104,8 +103,7 @@ ccl_device void svm_node_set_displacement(ccl_private ShaderData *sd,
                                           ccl_private float *stack,
                                           const ccl_global SVMNodeSetDisplacement &node)
 {
-  IF_KERNEL_NODES_FEATURE(BUMP)
-  {
+  IF_KERNEL_NODES_FEATURE (BUMP) {
     const float3 dP = stack_load_float3(stack, node.fac_offset);
     sd->P += dP;
   }
@@ -117,8 +115,7 @@ ccl_device_noinline void svm_node_displacement(KernelGlobals kg,
                                                ccl_private float *stack,
                                                const ccl_global SVMNodeDisplacement &node)
 {
-  IF_KERNEL_NODES_FEATURE(BUMP)
-  {
+  IF_KERNEL_NODES_FEATURE (BUMP) {
     const float height = stack_load(stack, node.height);
     const float midlevel = stack_load(stack, node.midlevel);
     const float scale = stack_load(stack, node.scale);
@@ -151,8 +148,7 @@ ccl_device_noinline void svm_node_vector_displacement(
     ccl_private float *stack,
     const ccl_global SVMNodeVectorDisplacement &node)
 {
-  IF_KERNEL_NODES_FEATURE(BUMP)
-  {
+  IF_KERNEL_NODES_FEATURE (BUMP) {
     const float3 vector = stack_load(stack, node.vector);
     const float midlevel = stack_load(stack, node.midlevel);
     const float scale = stack_load(stack, node.scale);

@@ -32,6 +32,7 @@ struct ID;
 struct CollectionChild;
 struct CollectionImport;
 struct CollectionExport;
+struct CollectionObject;
 struct Main;
 struct Object;
 struct Scene;
@@ -81,6 +82,12 @@ struct CollectionRuntime {
   CollectionObjectMap *gobject_hash = nullptr;
 
   uint8_t tag = 0;
+};
+
+struct CollectionImportRuntime {
+  /** The archive library this importer is associated with. Will be null when an import has not
+   * occurred yet or has since been cleared. */
+  Library *archive_library = nullptr;
 };
 
 }  // namespace bke
@@ -274,6 +281,27 @@ void BKE_collection_object_move(
     Main *bmain, Scene *scene, Collection *collection_dst, Collection *collection_src, Object *ob);
 
 /**
+ * Find the entry for \a ob inside \a collection.
+ *
+ * \return nullptr if not found.
+ */
+CollectionObject *BKE_collection_object_find_in(const Collection &collection, const Object &ob);
+
+/**
+ *  Unsets the CollectionObject.parented_sort_index for the given \a object.
+ */
+void BKE_collection_object_parented_sort_index_reset(Main &bmain, Object &ob);
+
+/**
+ * Unsets the CollectionObject.parented_sort_index for the given \a object.
+ * Also walks the object's current parent chain to check if the parent is also a member of the same
+ * collection as the given object. If both are in the same collection unset
+ * CollectionObject.sort_index for the given \a object. This should be called when an object is
+ * unparented.
+ */
+void BKE_collection_object_parent_clear_sort_index_reset(Main &bmain, Object &ob);
+
+/**
  * Remove object from all collections of scene
  */
 bool BKE_scene_collections_object_remove(Main *bmain, Scene *scene, Object *ob, bool free_us);
@@ -445,7 +473,8 @@ using BKE_scene_collections_Cb = void (*)(Collection *ob, void *data);
     { \
       Object *_object = _base->object; \
       if ((_base->flag & _base_flag) && \
-          (_object->visibility_flag & _object_visibility_flag) == 0) {
+          (_object->visibility_flag & _object_visibility_flag) == 0) \
+      {
 
 #define FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END \
   } \

@@ -445,7 +445,8 @@ static bke::CurvesGeometry test_curve_boolean(const Operation opt,
                                                      src_curves.curves_num());
   const GroupedSpan<int> shapes = shapes_data.shapes();
 
-  return curve_boolean(op_params, src_curves, project_fn, shapes, clipping_shapes);
+  return curve_boolean(
+      op_params, src_curves, project_fn, shapes, shapes.index_range(), clipping_shapes);
 }
 
 class GreasePencilBooleanTest : public bke::BlenderGTestBase {};

@@ -129,6 +129,7 @@ struct ShaderPreview {
   Tex *texcopy;
   Light *lampcopy;
   World *worldcopy;
+  World *world_simple;
 
   /** Copy of the active objects #Object.color */
   float color[4];
@@ -395,6 +396,14 @@ World *ED_preview_prepare_world_simple(Main *bmain)
   return world;
 }
 
+static World *preview_get_world_simple(ShaderPreview *sp)
+{
+  if (sp->world_simple == nullptr) {
+    sp->world_simple = ED_preview_prepare_world_simple(sp->pr_main);
+  }
+  return sp->world_simple;
+}
+
 void ED_preview_world_simple_set_rgb(World *world, const float color[4])
 {
   BLI_assert(world != nullptr);
@@ -571,7 +580,7 @@ static Scene *preview_prepare_scene(
         else if (sce->world && sp->pr_method != PR_ICON_RENDER) {
           /* Use a default world color. Using the current
            * scene world can be slow if it has big textures. */
-          sce->world = ED_preview_prepare_world_simple(pr_main);
+          sce->world = preview_get_world_simple(sp);
 
           /* Use brighter world color for grease pencil. */
           if (sp->pr_main == G_pr_main_grease_pencil) {
@@ -637,7 +646,7 @@ static Scene *preview_prepare_scene(
 
       if (sce->world) {
         /* Only use lighting from the light. */
-        sce->world = ED_preview_prepare_world_simple(pr_main);
+        sce->world = preview_get_world_simple(sp);
         const float black[4] = {0.0f, 0.0f, 0.0f, 0.0f};
         ED_preview_world_simple_set_rgb(sce->world, black);
       }
@@ -1011,10 +1020,14 @@ static void action_preview_render_cleanup(IconPreview *preview, PoseBackup *pose
   DEG_id_tag_update(&preview->active_object->id, ID_RECALC_GEOMETRY);
 }
 
-/* Render a pose from the scene camera. It is assumed that the scene camera is
+/**
+ * Render a pose from the scene camera. It is assumed that the scene camera is
  * capturing the pose. The pose is applied temporarily to the current object
- * before rendering. */
-static void action_preview_render(const PreviewImage *prv_img,
+ * before rendering.
+ *
+ * \return whether a preview was actually rendered.
+ */
+static bool action_preview_render(const PreviewImage *prv_img,
                                   IconPreview *preview,
                                   const eIconSizes icon_size)
 {
@@ -1036,7 +1049,7 @@ static void action_preview_render(const PreviewImage *prv_img,
     printf("Scene has no camera, unable to render preview of %s without it.\n",
            preview->id->name + 2);
     action_preview_render_cleanup(preview, pose_backup);
-    return;
+    return false;
   }
 
   /* This renders with the Workbench engine settings stored on the Scene. */
@@ -1060,11 +1073,13 @@ static void action_preview_render(const PreviewImage *prv_img,
   if (err_out[0] != '\0') {
     printf("Error rendering Action %s preview: %s\n", preview->id->name + 2, err_out);
   }
-
-  if (ibuf) {
-    icon_copy_rect(ibuf, prv_img->w[icon_size], prv_img->h[icon_size], prv_img->rect[icon_size]);
-    IMB_freeImBuf(ibuf);
+  if (!ibuf) {
+    return false;
   }
+
+  icon_copy_rect(ibuf, prv_img->w[icon_size], prv_img->h[icon_size], prv_img->rect[icon_size]);
+  IMB_freeImBuf(ibuf);
+  return true;
 }
 
 /** \} */
@@ -1370,6 +1385,10 @@ static void shader_preview_free(void *customdata)
     main_id_copy = id_cast<ID *>(sp->lampcopy);
     BLI_remlink(&pr_main->lights, sp->lampcopy);
   }
+  if (sp->world_simple) {
+    BKE_id_free_ex(
+        pr_main, &sp->world_simple->id, LIB_ID_FREE_NO_UI_USER | LIB_ID_FREE_NO_DEG_TAG, false);
+  }
   if (sp->own_id_copy) {
     if (sp->id_copy) {
       preview_id_copy_free(sp->id_copy);
@@ -1640,7 +1659,15 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
           rendered = true;
           break;
         case ID_AC:
-          action_preview_render(prv, ip, icon_size);
+          if (!action_preview_render(prv, ip, icon_size)) {
+            /* Free the preview image, as it's already been overwritten in `icon_set_image()` in
+             * interface_icons.cc. */
+            BKE_previewimg_id_free(ip->id);
+            /* Avoid freeing the preview again in icon_preview_endjob(). */
+            ip->owner = nullptr;
+          }
+          /* Always mark as 'rendered' as the call to other_id_types_preview_render() should be
+           * skipped. */
           rendered = true;
           break;
         case ID_SCE:

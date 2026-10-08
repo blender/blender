@@ -62,7 +62,7 @@ enum eMaterialGeometry {
   MAT_GEOM_POINTCLOUD,
   MAT_GEOM_CURVES,
 
-  /* GSplats are a type of pointclouds . */
+  /* GSplats are a type of point-clouds . */
   MAT_GEOM_GSPLAT,
 
   /* In this position to account for `geometry_type_has_surface`. */

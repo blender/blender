@@ -154,24 +154,20 @@ static int access_violation_exception_filter(unsigned int code, LPEXCEPTION_POIN
 
 GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
 {
-  /* The only way to get the current handler is by seting a new one. */
+  /* The only way to get the current handler is by setting a new one. */
   LPTOP_LEVEL_EXCEPTION_FILTER current_filter = SetUnhandledExceptionFilter(nullptr);
   SetUnhandledExceptionFilter(current_filter);
 
   /* __except and __finally cannot be used together, as such a second nested __try block is needed.
    */
-  __try
-  {
-    __try
-    {
+  __try {
+    __try {
       return GHOST_Wintab::loadWintabUnsafe(hwnd);
     }
-    __except (access_violation_exception_filter(GetExceptionCode(), GetExceptionInformation()))
-    {
+    __except (access_violation_exception_filter(GetExceptionCode(), GetExceptionInformation())) {
     }
   }
-  __finally
-  {
+  __finally {
     /* Restore our handler in case the Wintab driver replaced it. Huion's driver is known to do
      * this.
      */

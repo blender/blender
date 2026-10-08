@@ -258,7 +258,49 @@ void extract_mesh_loose_edge_data(const Span<T> vert_data,
       exec_mode::grain_size(4096));
 }
 
-gpu::VertBufPtr extract_positions(const MeshRenderData &mr);
+/* ---------------------------------------------------------------------- */
+/** \name Copy to Face Corners on the GPU
+ *
+ * Vertex, edge, and face data is copied to face corners on the GPU to reduce the size of data
+ * uploads. For example, on a typical quad mesh there are four times as many corners as faces and
+ * vertices. Topology data used for the copy (see #MeshBufferCache::corner_verts, etc.) is only
+ * uploaded once and is shared by all buffers.
+ *
+ * In each function, \a src has a value for every element of the source domain, and \a dst is a
+ * device-only buffer with the same format and a value for every face corner, optionally followed
+ * by values for loose geometry. These GPU tasks can only be submitted from the thread with the GPU
+ * context.
+ * \{ */
+
+void gather_vert_to_corner_gpu(const MeshRenderData &mr,
+                               MeshBufferCache &cache,
+                               gpu::VertBuf &src,
+                               gpu::VertBuf &dst);
+void gather_edge_to_corner_gpu(const MeshRenderData &mr,
+                               MeshBufferCache &cache,
+                               gpu::VertBuf &src,
+                               gpu::VertBuf &dst);
+void scatter_face_to_corner_gpu(const MeshRenderData &mr,
+                                MeshBufferCache &cache,
+                                gpu::VertBuf &src,
+                                gpu::VertBuf &dst);
+
+/** Upload values for loose geometry after the face corner values in \a dst. */
+template<typename T>
+void loose_data_upload(const MeshRenderData &mr, const Span<T> loose_data, gpu::VertBuf &dst)
+{
+  if (loose_data.is_empty()) {
+    return;
+  }
+  BLI_assert(GPU_vertbuf_get_format(&dst)->stride == sizeof(T));
+  GPU_vertbuf_use(&dst);
+  GPU_vertbuf_update_sub(
+      &dst, mr.corners_num * sizeof(T), loose_data.size_in_bytes(), loose_data.data());
+}
+
+/** \} */
+
+gpu::VertBufPtr extract_positions(const MeshRenderData &mr, MeshBufferCache &cache);
 gpu::VertBufPtr extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
                                          const MeshRenderData &mr,
                                          gpu::VertBufPtr *orco_vbo);
@@ -269,11 +311,11 @@ void extract_face_dots_subdiv(const DRWSubdivCache &subdiv_cache,
                               gpu::VertBufPtr *fdots_nor,
                               gpu::IndexBufPtr &fdots);
 
-gpu::VertBufPtr extract_normals(const MeshRenderData &mr, bool use_hq);
+gpu::VertBufPtr extract_normals(const MeshRenderData &mr, MeshBufferCache &cache, bool use_hq);
 gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
                                        const DRWSubdivCache &subdiv_cache,
                                        gpu::VertBuf &pos);
-gpu::VertBufPtr extract_vert_normals(const MeshRenderData &mr);
+gpu::VertBufPtr extract_vert_normals(const MeshRenderData &mr, MeshBufferCache &cache);
 gpu::VertBufPtr extract_face_dot_normals(const MeshRenderData &mr, bool use_hq);
 gpu::VertBufPtr extract_edge_factor(const MeshRenderData &mr);
 gpu::VertBufPtr extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,
@@ -323,10 +365,13 @@ gpu::VertBufPtr extract_edge_index_subdiv(const DRWSubdivCache &subdiv_cache,
 gpu::VertBufPtr extract_face_index_subdiv(const DRWSubdivCache &subdiv_cache,
                                           const MeshRenderData &mr);
 
-gpu::VertBufPtr extract_weights(const MeshRenderData &mr, const MeshBatchCache &cache);
+gpu::VertBufPtr extract_weights(const MeshRenderData &mr,
+                                const MeshBatchCache &batch_cache,
+                                MeshBufferCache &cache);
 gpu::VertBufPtr extract_weights_subdiv(const MeshRenderData &mr,
                                        const DRWSubdivCache &subdiv_cache,
-                                       const MeshBatchCache &cache);
+                                       const MeshBatchCache &batch_cache,
+                                       MeshBufferCache &cache);
 
 gpu::IndexBufPtr extract_face_dots(const MeshRenderData &mr);
 
@@ -385,13 +430,16 @@ gpu::VertBufPtr extract_sculpt_data(const MeshRenderData &mr);
 gpu::VertBufPtr extract_sculpt_data_subdiv(const MeshRenderData &mr,
                                            const DRWSubdivCache &subdiv_cache);
 
-gpu::VertBufPtr extract_orco(const MeshRenderData &mr);
+gpu::VertBufPtr extract_orco(const MeshRenderData &mr, MeshBufferCache &cache);
 
-gpu::VertBufPtr extract_attribute(const MeshRenderData &mr, StringRef name);
+gpu::VertBufPtr extract_attribute(const MeshRenderData &mr,
+                                  MeshBufferCache &cache,
+                                  StringRef name);
 gpu::VertBufPtr extract_attribute_subdiv(const MeshRenderData &mr,
+                                         MeshBufferCache &cache,
                                          const DRWSubdivCache &subdiv_cache,
                                          StringRef name);
-gpu::VertBufPtr extract_attr_viewer(const MeshRenderData &mr);
+gpu::VertBufPtr extract_attr_viewer(const MeshRenderData &mr, MeshBufferCache &cache);
 
 gpu::VertBufPtr extract_paint_overlay_flags(const MeshRenderData &mr);
 gpu::VertBufPtr extract_paint_overlay_flags_subdiv(const MeshRenderData &mr,

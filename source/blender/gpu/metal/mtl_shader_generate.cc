@@ -739,7 +739,7 @@ static void generate_acceleration_structure(GeneratedStreams &generated,
 static void generate_resource(GeneratedStreams &generated,
                               const ShaderCreateInfo::Resource &res,
                               const ShaderStage stage,
-                              const ShaderCreateInfo &info,
+                              const ShaderCreateInfo & /*info*/,
                               const bool use_sampler_argument_buffer)
 {
   switch (res.bind_type) {
@@ -765,7 +765,7 @@ static void generate_resource(GeneratedStreams &generated,
     case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
       generate_buffer(generated,
                       false,
-                      info.buffer_typename(res.uniformbuf.type_name, true),
+                      res.uniformbuf.type_name,
                       res.uniformbuf.name,
                       MTL_UBO_SLOT_OFFSET + res.slot,
                       stage);
@@ -773,7 +773,7 @@ static void generate_resource(GeneratedStreams &generated,
     case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
       generate_buffer(generated,
                       bool(res.storagebuf.qualifiers & shader::Qualifier::write),
-                      info.buffer_typename(res.storagebuf.type_name),
+                      res.storagebuf.type_name,
                       res.storagebuf.name,
                       MTL_SSBO_SLOT_OFFSET + res.slot,
                       stage);

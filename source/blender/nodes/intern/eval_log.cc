@@ -112,17 +112,16 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
    * attributes with the same name but different domains or data types on separate components. */
   Set<StringRef> names;
 
-  geometry_set.attribute_foreach(all_component_types,
-                                 true,
-                                 [&](const StringRef name,
-                                     const bke::AttributeMetaData &meta_data,
-                                     const bke::GeometryComponent & /*component*/) {
-                                   if (!bke::attribute_name_is_anonymous(name) && names.add(name))
-                                   {
-                                     this->attributes.append(
-                                         {name, meta_data.domain, meta_data.data_type});
-                                   }
-                                 });
+  geometry_set.attribute_foreach(
+      all_component_types,
+      true,
+      [&](const StringRef name,
+          const bke::AttributeMetaData &meta_data,
+          const bke::GeometryComponent & /*component*/) {
+        if (!bke::attribute_name_is_anonymous(name) && names.add(name)) {
+          this->attributes.append({name, meta_data.domain, meta_data.data_type});
+        }
+      });
 
   for (const bke::GeometryComponent *component : geometry_set.get_components()) {
     this->component_types.append(component->type());
@@ -902,9 +901,15 @@ NodeTreeLogger &NodesEvalLog::get_local_tree_logger(const ComputeContext &comput
     const std::optional<nodes::ClosureSourceLocation> &location =
         context->closure_source_location();
     if (location.has_value()) {
-      tree_logger.tree_orig_session_uid =
-          location->tree->runtime->self_geometry_nodes_lazy_function_graph_info
-              ->original_tree_session_uid;
+      if (location->tree->runtime->self_geometry_nodes_lazy_function_graph_info) {
+        tree_logger.tree_orig_session_uid =
+            location->tree->runtime->self_geometry_nodes_lazy_function_graph_info
+                ->original_tree_session_uid;
+      }
+      else {
+        tree_logger.tree_orig_session_uid = get_original_session_uid(
+            id_cast<const ID *>(location->tree));
+      }
     }
   }
   else if (const auto *context = dynamic_cast<const bke::GeometryNodesModifierComputeContext *>(

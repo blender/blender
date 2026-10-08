@@ -193,6 +193,7 @@ class SourceProcessor {
    * points. */
   void parse_builtins(const std::string &str, const std::string &filename, bool pure_glsl = false);
   void parse_builtins(Parser &parser, const std::string &filename);
+  void parse_draw_debug(Parser &parser, const std::string &filename);
 
   /* Legacy shared variable support. */
   std::string threadgroup_variables_parse_and_remove(const std::string &str);

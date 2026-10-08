@@ -64,8 +64,8 @@ enum eTfmMode {
   TFM_TIME_SCALE,
   TFM_TIME_EXTEND,
   /* TFM_TIME_DUPLICATE (deprecated). */
-  TFM_BAKE_TIME = 26,
-  TFM_DEPRECATED, /* was BEVEL */
+  /* TFM_BAKE_TIME (deprecated). */
+  TFM_DEPRECATED = 27, /* was BEVEL */
   TFM_BWEIGHT,
   TFM_ALIGN,
   TFM_EDGE_SLIDE,

@@ -222,7 +222,7 @@ CAVEAT #2: we always use limb darkening data from our own sun to provide this
            temperature. Which is presumably not very realistic, but (as with
            the unaltered blackbody spectrum from caveat #1) probably not a bad
            first guess, either. If you need more accuracy than we provide here,
-           please make inquiries with a friendly astro-physicst of your choice.
+           please make inquiries with a friendly astrophysicist of your choice.
 
 CAVEAT #3: you have to provide a value for the solar intensity of the star
            which illuminates the alien world. For this, please bear in mind
@@ -243,7 +243,7 @@ CAVEAT #3: you have to provide a value for the solar intensity of the star
            all too far from a solar intensity value of 1.0.
 
 CAVEAT #4: although we now support different solar radii for the actual solar
-           disc, the sky dome luminance patterns are *not* parameterised by
+           disc, the sky dome luminance patterns are *not* parameterized by
            this value - i.e. the patterns stay exactly the same for different
            solar radii! Which is of course not correct. But in our experience,
            solar discs up to several degrees in diameter (! - our own sun is
@@ -263,9 +263,9 @@ CAVEAT #4: although we now support different solar radii for the actual solar
 HINT #1:   if you want to model the sky of an earth-like planet that orbits
            a binary star, just super-impose two of these models with solar
            intensity of ~0.5 each, and closely spaced solar positions. Light is
-           additive, after all. Tattooine, here we come... :-)
+           additive, after all. Tatooine, here we come... :-)
 
-           P.S. according to Star Wars canon, Tattooine orbits a binary
+           P.S. according to Star Wars canon, Tatooine orbits a binary
            that is made up of a G and K class star, respectively.
            So ~5500K and ~4200K should be good first guesses for their
            temperature. Just in case you were wondering, after reading the

@@ -7,7 +7,7 @@
  */
 
 #ifdef _MSC_VER
-/* This needs to be included first to prevent ffmpegs headers adding defines for various math
+/* This needs to be included first to prevent FFmpeg's headers adding defines for various math
  * constants leading to duplicate definitions. */
 #  include <cmath>
 #endif

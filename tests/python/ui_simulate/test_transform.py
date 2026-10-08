@@ -138,8 +138,8 @@ def view3d_mesh_edit_snap_to_self():
 
     yield e.tab()                       # Object mode.
 
-    # Snapping is currently implemented by building its own copy of the mesh and hiding
-    # what must not be snapped to. None of that may reach the mesh being edited.
+    # Snapping builds its own copy of the mesh to find the elements that can be snapped to.
+    # None of that may reach the mesh being edited.
     mesh = window.view_layer.objects.active.data
     t.assertFalse(any(vert.hide for vert in mesh.vertices))
     t.assertFalse(any(edge.hide for edge in mesh.edges))
@@ -173,5 +173,72 @@ def view3d_mesh_edit_snap_to_self_shape_key():
     co = _assert_snapped_onto_other_vert(t, window, 0)
     # The basis is at zero, so this is what tells the two shapes apart.
     t.assertAlmostEqual(co.z, 2.0, places=4)
+
+    yield e.tab()                       # Object mode.
+
+
+def view3d_mesh_edit_snap_skips_hidden():
+    """Hidden geometry must never be a snap target, even when the cursor is right over it."""
+    import bmesh
+    from mathutils import Vector
+    e, t, window = ui.test_window()
+
+    yield from _snapping_setup(e, window)
+    yield e.tab()                       # Edit mode.
+    yield
+
+    # Hide everything but the vertex that is about to be moved, so the only thing the cursor
+    # passes over on its way is hidden and nothing is left to snap to.
+    ob, bm = _mesh_edit_verts(window)
+    for vert in bm.verts:
+        vert.hide_set(vert.index != 0)
+    bmesh.update_edit_mesh(ob.data)
+    yield
+
+    target = Vector((1.0, 1.0, 0.0))
+    yield from _snap_vert_onto_location(e, window, 0, target)
+
+    _ob, bm = _mesh_edit_verts(window)
+    moved = bm.verts[0].co.copy()
+    t.assertGreater((moved - target).length, 1e-4,
+                    "vertex 0 snapped onto the hidden vertex at {!r}".format(target[:]))
+
+    yield e.tab()                       # Object mode.
+
+
+def view3d_mesh_edit_snap_skips_selection():
+    """
+    The selection is what's being transformed, so it must not be a snap target.
+
+    If it were a target, nudging a vertex a few pixels would snap it straight back onto
+    its own original location and the transform would do nothing at all.
+    """
+    e, t, window = ui.test_window()
+
+    yield from _snapping_setup(e, window)
+    yield e.tab()                       # Edit mode.
+    yield
+
+    location_src = _mesh_edit_select_single_vert(window, 0)
+    _ob, bm = _mesh_edit_verts(window)
+    co_orig = bm.verts[0].co.copy()
+    yield
+
+    src_co = _view3d_calc_screen_space_location(window, location_src)
+    e.cursor_position_set(*src_co, move=True)
+    yield
+    yield e.g()
+    # Stay close, so the vertex's own original location is well within snapping range while the
+    # other three corners of the plane are far outside it.
+    for offset in range(1, 9):
+        e.cursor_position_set(src_co[0] + offset, src_co[1] + offset, move=True)
+        yield
+    yield e.ret()
+
+    _ob, bm = _mesh_edit_verts(window)
+    moved = bm.verts[0].co.copy()
+    t.assertGreater((moved - co_orig).length, 1e-4,
+                    "vertex 0 snapped back onto its own original location {!r}".format(
+                        co_orig[:]))
 
     yield e.tab()                       # Object mode.

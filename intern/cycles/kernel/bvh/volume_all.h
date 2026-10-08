@@ -24,12 +24,11 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    uint
-    BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
-                                const ccl_private Ray *ray,
-                                Intersection *isect_array,
-                                const uint max_hits,
-                                const uint visibility)
+    uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
+                                     const ccl_private Ray *ray,
+                                     Intersection *isect_array,
+                                     const uint max_hits,
+                                     const uint visibility)
 {
   /* todo:
    * - test if pushing distance on the stack helps (for non shadow rays)

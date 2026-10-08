@@ -263,6 +263,12 @@ ForEachMacros:
   - WL_ARRAY_FOR_EACH
   - FOREACH_SPECTRUM_CHANNEL
 
+# Macros that expand to an `if` statement; ensures correct `else {...}` formatting.
+IfMacros:
+  - IF_KERNEL_FEATURE
+  - IF_KERNEL_NODES_FEATURE
+  - IF_NOT_KERNEL_NODES_FEATURE
+
 StatementMacros:
   - PyObject_HEAD
   - PyObject_VAR_HEAD

@@ -24,12 +24,15 @@ set(INC_SYS
 
 set(SRC
   COM_bundle_item.hh
+  COM_closure.hh
+  COM_closure_zone_operation.hh
   COM_context.hh
   COM_conversion_operation.hh
   COM_derived_resources.hh
   COM_domain.hh
   COM_group_node_operation.hh
   COM_implicit_input_operation.hh
+  COM_init.hh
   COM_input_descriptor.hh
   COM_meta_data.hh
   COM_multi_function_procedure_operation.hh
@@ -42,6 +45,7 @@ set(SRC
   COM_pixel_operation.hh
   COM_realize_on_domain_operation.hh
   COM_render_context.hh
+  COM_repeat_zone_operation.hh
   COM_result.hh
   COM_scene_compositor_effects_operation.hh
   COM_scheduler.hh
@@ -52,13 +56,18 @@ set(SRC
   COM_static_cache_manager.hh
   COM_undefined_node_operation.hh
   COM_utilities.hh
+  COM_zone_operation.hh
+  COM_zone_tree_operation.hh
 
   intern/bundle_item.cc
+  intern/closure.cc
+  intern/closure_zone_operation.cc
   intern/context.cc
   intern/conversion_operation.cc
   intern/domain.cc
   intern/group_node_operation.cc
   intern/implicit_input_operation.cc
+  intern/init.cc
   intern/meta_data.cc
   intern/multi_function_procedure_operation.cc
   intern/node_group_operation.cc
@@ -70,6 +79,7 @@ set(SRC
   intern/pixel_operation.cc
   intern/realize_on_domain_operation.cc
   intern/render_context.cc
+  intern/repeat_zone_operation.cc
   intern/result.cc
   intern/scene_compositor_effects_operation.cc
   intern/scheduler.cc
@@ -80,6 +90,8 @@ set(SRC
   intern/static_cache_manager.cc
   intern/undefined_node_operation.cc
   intern/utilities.cc
+  intern/zone_operation.cc
+  intern/zone_tree_operation.cc
 
   algorithms/intern/compute_preview.cc
   algorithms/intern/convolve.cc
@@ -156,9 +168,11 @@ set(SRC
 
   derived_resources/COM_denoised_auxiliary_pass.hh
 
+  utilities/intern/node_tree_logging.cc
   utilities/intern/oidn.cc
 
   utilities/COM_utilities_diagonals.hh
+  utilities/COM_utilities_node_tree_logging.hh
   utilities/COM_utilities_oidn.hh
 )
 
@@ -166,6 +180,7 @@ set(LIB
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blentranslation
+  PRIVATE bf::depsgraph
   PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::imbuf

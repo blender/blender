@@ -551,12 +551,11 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    Spectrum
-    bsdf_eval(KernelGlobals kg,
-              ccl_private ShaderData *sd,
-              const ccl_private ShaderClosure *sc,
-              const float3 wo,
-              ccl_private float *pdf)
+    Spectrum bsdf_eval(KernelGlobals kg,
+                       ccl_private ShaderData *sd,
+                       const ccl_private ShaderClosure *sc,
+                       const float3 wo,
+                       ccl_private float *pdf)
 {
   Spectrum eval = zero_spectrum();
   *pdf = 0.f;

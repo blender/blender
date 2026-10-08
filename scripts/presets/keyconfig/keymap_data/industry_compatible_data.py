@@ -1863,7 +1863,7 @@ def km_sequencer(params):
          "shift": True}, {"properties": [("action", 'DESELECT')]}),
         ("sequencer.select_all", {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
         ("sequencer.split", {"type": 'B', "value": 'PRESS', "ctrl": True},
-         {"properties": [("type", 'SOFT')]}),
+         {"properties": [("type", 'SOFT'), ("only_selected", True)]}),
         ("sequencer.mute", {"type": 'M', "value": 'PRESS'},
          {"properties": [("unselected", False)]}),
         ("sequencer.mute", {"type": 'M', "value": 'PRESS', "shift": True},
@@ -3682,6 +3682,9 @@ def km_transform_modal_map(_params):
         ("PRECISION", {"type": 'LEFT_SHIFT', "value": 'ANY', "any": True}, None),
         ("PRECISION", {"type": 'RIGHT_SHIFT', "value": 'ANY', "any": True}, None),
         ("STRIP_CLAMP_TOGGLE", {"type": 'C', "value": 'PRESS', "any": True}, None),
+        ("STRIP_OVERLAP_SHUFFLE", {"type": 'S', "value": 'PRESS'}, None),
+        ("STRIP_OVERLAP_RIPPLE", {"type": 'R', "value": 'PRESS'}, None),
+        ("STRIP_OVERLAP_OVERWRITE", {"type": 'V', "value": 'PRESS'}, None),
     ])
 
     return keymap

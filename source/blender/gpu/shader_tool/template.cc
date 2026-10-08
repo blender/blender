@@ -201,7 +201,7 @@ void SourceProcessor::lower_template_instantiation(
                                    SourceProcessor::template_arguments_mangle(inst_args));
     }
     /* Append namespace to symbol name because the appended mangled arguments (above) make
-     * namespace resolution impossible. Methods do not need it because they are instanciated inside
+     * namespace resolution impossible. Methods do not need it because they are instantiated inside
      * their struct. They will get the correct namespace prefix (if they are static) later on. */
     if (!template_def.is_method) {
       instance_parser.insert_after(symbol_name_pos, string(template_def.name_space));
@@ -226,7 +226,7 @@ void SourceProcessor::lower_template_instantiation(
   /* Method are put back in their classes. */
   const Token insert_at = template_def.is_method ? method_end : inst_end;
 
-  /* Insert instantiation content. Instance line directived was already added. */
+  /* Insert instantiation content. Instance line directive was already added. */
   parser.insert_after(insert_at, instance_content);
   parser.insert_line_number(insert_at, insert_at.line_number(true), instance_filename);
 }
@@ -464,10 +464,10 @@ void SourceProcessor::lower_templates(Parser &parser)
   parser.apply_mutations();
 
   /* Then process methods. We can only process methods if their struct exists in the same file.
-   * This holds true for instanciated struct templates. */
+   * This holds true for instantiated struct templates. */
   parser().foreach_struct([&](Token, Scope, Token, Scope body) {
     body.foreach_match("t<..>", [&](const vector<Token> &toks) {
-      /* Since this can be an instanciated struct, we need to make sure to instanciate its own
+      /* Since this can be an instantiated struct, we need to make sure to instantiate its own
        * methods. Hence the need to parse the definition. */
       TemplateDefinition template_def = parse_template_definition(
           parser, toks[0], true, toks[0].scope(), filepath_);

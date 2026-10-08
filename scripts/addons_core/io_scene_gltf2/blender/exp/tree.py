@@ -128,7 +128,7 @@ class VExportTree:
 
         self.export_settings = export_settings
 
-        self.tree_troncated = False
+        self.tree_truncated = False
 
         self.axis_basis_change = Matrix.Identity(4)
         if self.export_settings['gltf_yup']:
@@ -522,7 +522,7 @@ class VExportTree:
             depsgraph = bpy.context.evaluated_depsgraph_get()
             children_found = False
             for (
-                dupl,
+                dupli,
                 mat) in [
                 (dup.object.original,
                  dup.matrix_world.copy()) for dup in depsgraph.object_instances if
@@ -534,7 +534,7 @@ class VExportTree:
             ]:
                 children_found = True
                 self.recursive_node_traverse(
-                    dupl,
+                    dupli,
                     None,
                     node.uuid,
                     parent_coll_matrix_world,
@@ -582,7 +582,7 @@ class VExportTree:
                     if not inst.is_instance:
                         continue
                     if type(inst.object.data).__name__ == "Mesh" and len(inst.object.data.vertices) == 0:
-                        continue  # This is nested instances, and this mesh has no vertices, so is an instancier for other instances
+                        continue  # This is nested instances, and this mesh has no vertices, so is an instancer for other instances
                     node.is_instancer = True
                     self.recursive_node_traverse(
                         None,
@@ -728,12 +728,12 @@ class VExportTree:
 
             # If parent_uuid is not parent_kept_uuid, we need to modify children list of parent_kept_uuid
             if parent_kept_uuid != self.nodes[uuid].parent_uuid and parent_kept_uuid is not None:
-                self.tree_troncated = True
+                self.tree_truncated = True
                 self.nodes[parent_kept_uuid].children.append(uuid)
 
             # If parent_kept_uuid is None, and parent_uuid was not, add to root list
             if self.nodes[uuid].parent_uuid is not None and parent_kept_uuid is None:
-                self.tree_troncated = True
+                self.tree_truncated = True
                 self.roots.append(uuid)
 
             # Modify parent uuid
@@ -1012,7 +1012,7 @@ class VExportTree:
         return skins
 
     def variants_reset_to_original(self):
-        # Only if Variants are displayed and exported
+        # Only if variants are displayed and exported
         if bpy.context.preferences.addons['io_scene_gltf2'].preferences.KHR_materials_variants_ui is False:
             return
         objects = [self.nodes[o].blender_object for o in self.get_all_node_of_type(VExportNode.OBJECT) if self.nodes[o].blender_object.type == "MESH"
@@ -1045,7 +1045,7 @@ class VExportTree:
         # TODO: if we get real collection one day, we probably need to adapt this code
         for obj in self.get_all_objects():
             if self.nodes[obj].armature is not None and self.nodes[obj].parent_uuid == self.nodes[obj].armature:
-                continue  # Keep skined meshs as children of armature
+                continue  # Keep skined meshes as children of armature
             if self.nodes[obj].parent_uuid is not None:
                 self.nodes[self.nodes[obj].parent_uuid].children.remove(obj)
                 self.nodes[obj].parent_uuid = None

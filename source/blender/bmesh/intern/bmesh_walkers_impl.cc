@@ -883,16 +883,22 @@ static bool bmw_EdgeLoopWalker_delimit_mark_check(BMWalker *walker,
                                                   BMLoop *l)
 {
   if ((walker->delimit & BMW_DELIMIT_EDGE_MARK_SEAM) &&
-      bmw_EdgeLoopWalker_delimit_by_mark(walker, v, e, l, [](const BMEdge *e) -> bool {
-        return BM_elem_flag_test(e, BM_ELEM_SEAM);
-      }))
+      bmw_EdgeLoopWalker_delimit_by_mark(
+          walker,
+          v,
+          e,
+          l,
+          [](const BMEdge *e) -> bool { return BM_elem_flag_test(e, BM_ELEM_SEAM); }))
   {
     return true;
   }
   if ((walker->delimit & BMW_DELIMIT_EDGE_MARK_SHARP) &&
-      bmw_EdgeLoopWalker_delimit_by_mark(walker, v, e, l, [](const BMEdge *e) -> bool {
-        return !BM_elem_flag_test(e, BM_ELEM_SMOOTH);
-      }))
+      bmw_EdgeLoopWalker_delimit_by_mark(
+          walker,
+          v,
+          e,
+          l,
+          [](const BMEdge *e) -> bool { return !BM_elem_flag_test(e, BM_ELEM_SMOOTH); }))
   {
     return true;
   }
@@ -1892,13 +1898,13 @@ static void *bmw_NonManifoldedgeWalker_step(BMWalker *walker)
 
 static const BMWalker bmw_VertShellWalker_Type = {
     /*begin_htype*/ BM_VERT | BM_EDGE,
-    /*step*/ bmw_VertShellWalker_begin,
+    /*begin*/ bmw_VertShellWalker_begin,
     /*step*/ bmw_VertShellWalker_step,
     /*yield*/ bmw_VertShellWalker_yield,
     /*structsize*/ sizeof(BMwShellWalker),
     /*order*/ BMW_BREADTH_FIRST,
     /*valid_mask*/ BM_EDGE, /* Valid restrict masks. */
-    /*delimit_supported=*/BMW_DELIMIT_NONE,
+    /*delimit_supported*/ BMW_DELIMIT_NONE,
 };
 
 static const BMWalker bmw_LoopShellWalker_Type = {

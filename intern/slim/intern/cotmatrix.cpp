@@ -33,10 +33,10 @@ static inline void cotmatrix_entries(const Eigen::PlainObjectBase<DerivedV> &V,
   assert(F.cols() == 3);
 
   /* Law of cosines + law of sines. */
-  /* Compute Squared Edge lenghts. */
+  /* Compute Squared Edge lengths. */
   Matrix<typename DerivedC::Scalar, Dynamic, 3> l2;
   squared_edge_lengths(V, F, l2);
-  /* Compute Edge lenghts. */
+  /* Compute Edge lengths. */
   Matrix<typename DerivedC::Scalar, Dynamic, 3> l;
   l = l2.array().sqrt();
 
@@ -66,7 +66,7 @@ inline void cotmatrix(const Eigen::PlainObjectBase<DerivedV> &V,
   /* 3 for triangles. */
   assert(F.cols() == 3);
 
-  /* This is important! it could decrease the comptuation time by a factor of 2
+  /* This is important! it could decrease the computation time by a factor of 2
    * Laplacian for a closed 2d manifold mesh will have on average 7 entries per
    * row. */
   L.reserve(10 * V.rows());

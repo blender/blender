@@ -23,6 +23,7 @@ set(SRC
   operators/bmo_connect_nonplanar.cc
   operators/bmo_connect_pair.cc
   operators/bmo_create.cc
+  operators/bmo_curve_edge_loops_between_selected.cc
   operators/bmo_dissolve.cc
   operators/bmo_dupe.cc
   operators/bmo_edgenet.cc
@@ -51,6 +52,7 @@ set(SRC
   operators/bmo_subdivide.cc
   operators/bmo_subdivide_edgering.cc
   operators/bmo_symmetrize.cc
+  operators/bmo_fit_edge_loops_to_annotation.cc
   operators/bmo_triangulate.cc
   operators/bmo_unsubdivide.cc
   operators/bmo_utils.cc

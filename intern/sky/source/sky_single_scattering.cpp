@@ -175,7 +175,7 @@ static float3 ray_optical_depth(float3 ray_origin, float3 ray_dir)
    * Instead of using classic ray marching, the code is based on Gauss-Laguerre quadrature,
    * which is designed to compute the integral of f(x)*exp(-x) from 0 to infinity.
    * This works well here, since the optical depth along the ray tends to decrease exponentially.
-   * By setting f(x) = g(x) exp(x), the exponentials cancel out and we get the integral of g(x).
+   * By setting f(x) = g(x) exp(x), the exponents cancel out and we get the integral of g(x).
    * The nodes and weights used here are the standard n=6 Gauss-Laguerre values, except that
    * the exp(x) scaling factor is already included in the weights.
    * The parametrization along the ray is scaled so that the last quadrature node is still within

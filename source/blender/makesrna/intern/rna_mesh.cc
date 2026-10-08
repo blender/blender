@@ -3062,7 +3062,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Corner Normals",
-      "The \"slit\" normal direction of each face corner, influenced by vertex normals, "
+      "The \"split\" normal direction of each face corner, influenced by vertex normals, "
       "sharp faces, sharp edges, and custom normals. May be empty.");
   RNA_def_property_collection_funcs(prop,
                                     "rna_Mesh_corner_normals_begin",

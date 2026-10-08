@@ -892,6 +892,16 @@ void mix_groups(GSpan src,
                 Span<int> all_indices,
                 std::optional<Span<float>> all_weights,
                 GMutableSpan dst);
+/**
+ * Mix the source values of each group into the corresponding index in the destination mask.
+ * \param groups: Groups of source indices and weights for every index in #dst_mask.
+ */
+void mix_groups(GSpan src,
+                OffsetIndices<int> groups,
+                Span<int> all_indices,
+                std::optional<Span<float>> all_weights,
+                const IndexMask &dst_mask,
+                GMutableSpan dst);
 inline void mix_groups(GSpan src,
                        OffsetIndices<int> groups,
                        Span<int> all_indices,

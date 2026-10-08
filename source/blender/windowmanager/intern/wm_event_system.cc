@@ -1315,7 +1315,7 @@ static void wm_operator_finished(bContext *C,
     }
     else if (has_undo_step) {
       /* An undo step was added but the operator wasn't registered (and won't register itself),
-       * therefor a redo panel wouldn't redo this action but the previous registered action,
+       * therefore a redo panel wouldn't redo this action but the previous registered action,
        * causing the "redo" to remove/loose this operator. See: #101743.
        * Register check is needed so nested operator calls don't clear the HUD. See: #103587. */
       if (!(has_register || do_register)) {
@@ -1942,15 +1942,26 @@ static wmOperatorStatus wm_operator_call_internal(bContext *C,
   return wmOperatorStatus(0);
 }
 
+wmOperatorStatus WM_operator_type_call_ptr_with_reports(bContext *C,
+                                                        wmOperatorType *ot,
+                                                        wm::OpCallContext context,
+                                                        PointerRNA *properties,
+                                                        ReportList *reports,
+                                                        const wmEvent *event)
+{
+  BLI_assert(ot == WM_operatortype_find(ot->idname, true));
+  return wm_operator_call_internal(C, ot, properties, reports, context, false, event);
+}
+
 wmOperatorStatus WM_operator_name_call_ptr(bContext *C,
                                            wmOperatorType *ot,
                                            wm::OpCallContext context,
                                            PointerRNA *properties,
                                            const wmEvent *event)
 {
-  BLI_assert(ot == WM_operatortype_find(ot->idname, true));
-  return wm_operator_call_internal(C, ot, properties, nullptr, context, false, event);
+  return WM_operator_type_call_ptr_with_reports(C, ot, context, properties, nullptr, event);
 }
+
 wmOperatorStatus WM_operator_name_call(bContext *C,
                                        const char *opstring,
                                        wm::OpCallContext context,
@@ -1959,7 +1970,7 @@ wmOperatorStatus WM_operator_name_call(bContext *C,
 {
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
   if (ot) {
-    return WM_operator_name_call_ptr(C, ot, context, properties, event);
+    return WM_operator_type_call_ptr_with_reports(C, ot, context, properties, nullptr, event);
   }
 
   return wmOperatorStatus(0);
@@ -1984,7 +1995,7 @@ wmOperatorStatus WM_operator_name_call_with_properties(bContext *C,
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
   PointerRNA props_ptr = RNA_pointer_create_discrete(
       &G_MAIN->wm.first()->id, ot->srna, properties);
-  return WM_operator_name_call_ptr(C, ot, context, &props_ptr, event);
+  return WM_operator_type_call_ptr_with_reports(C, ot, context, &props_ptr, nullptr, event);
 }
 
 void WM_menu_name_call(bContext *C, const char *menu_name, wm::OpCallContext context)
@@ -4386,6 +4397,11 @@ void wm_event_do_handlers(bContext *C)
            * Also used in `wm_draw.cc`, fails for modal handlers though. */
           ED_screen_set_active_region(C, &win, event->xy);
           /* For regions having custom cursors. */
+          wm_paintcursor_test(C, event);
+        }
+        else if (ISKEYMODIFIER(event->type)) {
+          /* Paint cursors may change appearance based on modifier keys,
+           * e.g. blade tool in the sequencer. */
           wm_paintcursor_test(C, event);
         }
 #ifdef WITH_INPUT_NDOF

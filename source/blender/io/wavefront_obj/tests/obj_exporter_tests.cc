@@ -520,6 +520,16 @@ TEST_F(OBJExportRegressionTest, cubes_vertex_colors)
                                params);
 }
 
+TEST_F(OBJExportRegressionTest, material_shaders)
+{
+  OBJExportParams params;
+  params.path_mode = PATH_REFERENCE_STRIP;
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_scene" SEP_STR "material_shaders.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "material_shaders.obj",
+                               "io_tests" SEP_STR "obj" SEP_STR "material_shaders.mtl",
+                               params);
+}
+
 TEST_F(OBJExportRegressionTest, cubes_with_textures_strip)
 {
   OBJExportParams params;

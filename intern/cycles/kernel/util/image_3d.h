@@ -181,8 +181,8 @@ __attribute__((noinline))
 ccl_device_noinline
 #  endif
 OutT kernel_image_interp_nanovdb(const ccl_global KernelImageInfo &info,
-                                     float3 P,
-                                     const InterpolationType interp)
+                                 float3 P,
+                                 const InterpolationType interp)
 {
   ccl_global nanovdb::NanoGrid<T> *const grid = (ccl_global nanovdb::NanoGrid<T> *)info.data;
 

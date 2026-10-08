@@ -28,7 +28,7 @@ static int node_shader_gpu_volume_info(GPUMaterial *mat,
 {
   if (out[0].hasoutput) {
     out[0].link = GPU_attribute(mat, CD_AUTO_FROM_NAME, "color");
-    GPU_link(mat, "node_attribute_color", out[0].link, &out[0].link);
+    GPU_link(mat, "node_attribute_color", GPU_kernel_globals(), out[0].link, &out[0].link);
   }
   if (out[1].hasoutput) {
     out[1].link = GPU_attribute(mat, CD_AUTO_FROM_NAME, "density");
@@ -40,7 +40,7 @@ static int node_shader_gpu_volume_info(GPUMaterial *mat,
   }
   if (out[3].hasoutput) {
     out[3].link = GPU_attribute(mat, CD_AUTO_FROM_NAME, "temperature");
-    GPU_link(mat, "node_attribute_temperature", out[3].link, &out[3].link);
+    GPU_link(mat, "node_attribute_temperature", GPU_kernel_globals(), out[3].link, &out[3].link);
   }
 
   return true;

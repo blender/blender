@@ -72,11 +72,13 @@ struct VertOutDashed {
 {
   out_pos = srt.ModelViewProjectionMatrix * float4(v_in.pos, 1.0f);
 
-  if (srt.use_uniform_color) [[static_branch]] {
-    flat_out.color = srt.color;
+  if (srt.use_smooth_color) [[static_branch]] {
+    if (!srt.use_uniform_color) [[static_branch]] {
+      smooth_out.color = v_in.color;
+    }
   }
-  else if (srt.use_smooth_color) [[static_branch]] {
-    smooth_out.color = v_in.color;
+  else if (srt.use_uniform_color) [[static_branch]] {
+    flat_out.color = srt.color;
   }
   else {
     flat_out.color = v_in.color;
@@ -119,8 +121,8 @@ struct SimplePoint {
 
   [[push_constant, condition(use_uniform_color)]] const float4 color;
   [[push_constant, condition(use_uniform_point_size)]] const float size;
-  [[push_constant, condition(point_style == 4)]] const float4 outlineColor;
-  [[push_constant, condition(point_style == 4)]] const float outlineWidth;
+  [[push_constant, condition(point_style == POINT_CIRCLE_AA_OUTLINE)]] const float4 outlineColor;
+  [[push_constant, condition(point_style == POINT_CIRCLE_AA_OUTLINE)]] const float outlineWidth;
 };
 
 struct VertInPoint {
@@ -140,7 +142,7 @@ struct VertOutPoint {
     [[in]] const VertInPoint &v_in,
     [[position]] float4 &out_pos,
     [[out]] VertOutPoint &v_out,
-    [[point_size]] [[condition(point_style != 0)]] float &out_point_size,
+    [[point_size]] float &out_point_size,
     [[clip_distance]] [[condition(use_clipping)]] float (&clip_distance)[6])
 {
   out_pos = srt.ModelViewProjectionMatrix * float4(v_in.pos, 1.0f);
@@ -163,7 +165,7 @@ struct VertOutPoint {
   float radius = 0.5f * out_point_size;
   /* Start at the outside and progress toward the center. */
   v_out.radii = float2(radius, radius - 1.0f).xyxy;
-  if (srt.point_style == 4 /* POINT_CIRCLE_AA_OUTLINE */) [[static_branch]] {
+  if (srt.point_style == POINT_CIRCLE_AA_OUTLINE) [[static_branch]] {
     v_out.radii.zw -= srt.outlineWidth;
   }
   /* Convert to PointCoord units. */
@@ -180,11 +182,10 @@ struct VertOutPoint {
   }
 }
 
-[[fragment]] void simple_point_frag(
-    [[resource_table]] const SimplePoint &srt,
-    [[point_coord]] const float2 pt_coord,
-    [[in]] [[condition(!use_smooth_color)]] const VertOutPoint &v_out,
-    [[out]] FragOut &frag_out)
+[[fragment]] void simple_point_frag([[resource_table]] const SimplePoint &srt,
+                                    [[point_coord]] const float2 pt_coord,
+                                    [[in]] const VertOutPoint &v_out,
+                                    [[out]] FragOut &frag_out)
 {
   /* transparent outside of point
    * --- 0 ---
@@ -199,7 +200,7 @@ struct VertOutPoint {
    * dist = 0 at center of point */
   float dist = length(pt_coord - float2(0.5f));
 
-  if (srt.point_style == 4 /* POINT_CIRCLE_AA_OUTLINE */) [[static_branch]] {
+  if (srt.point_style == POINT_CIRCLE_AA_OUTLINE) [[static_branch]] {
     float fac = smoothstep(v_out.radii[3], v_out.radii[2], dist);
     frag_out.color = mix(v_out.color, srt.outlineColor, fac);
   }

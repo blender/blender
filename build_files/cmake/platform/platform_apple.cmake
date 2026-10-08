@@ -174,6 +174,7 @@ if(WITH_CODEC_FFMPEG)
     vorbisfile vpx x264)
   # Frameworks required by libavfilter, using legacy macOS CGL
   string(APPEND PLATFORM_LINKFLAGS " -framework CoreImage -framework OpenGL")
+  string(APPEND PLATFORM_LINKFLAGS " -framework VideoToolbox -framework CoreMedia -framework CoreVideo")
   if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
     list(APPEND FFMPEG_FIND_COMPONENTS aom)
   endif()
@@ -375,9 +376,18 @@ endif()
 add_bundled_libraries(meshoptimizer/lib)
 
 if(WITH_TRACY)
-  set(Tracy_ROOT_DIR ${LIBDIR}/tracy)
   find_package(Tracy REQUIRED CONFIG)
 endif()
+
+if(WITH_JOLT)
+  find_package(Jolt REQUIRED CONFIG)
+endif()
+add_bundled_libraries(jolt/lib)
+
+if(WITH_OPENTIMELINEIO)
+  find_package(OpenTimelineIO REQUIRED CONFIG)
+endif()
+add_bundled_libraries(opentimelineio/lib)
 
 if(EXISTS ${LIBDIR})
   without_system_libs_end()

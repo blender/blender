@@ -8,25 +8,21 @@
 #include "gpu_shader_material_interface.bsl.hh"
 
 [[node]]
-void node_attribute_color(float4 attr, float4 &out_attr)
+void node_attribute_color([[resource_table]] KernelGlobals &kg, float4 attr, float4 &out_attr)
 {
-  out_attr = attr_load_color_post(attr);
+  out_attr = attr_load_color_post(kg, attr);
 }
 
 [[node]]
-void node_attribute_temperature(float4 attr, float4 &out_attr)
+void node_attribute_temperature([[resource_table]] KernelGlobals &kg,
+                                float4 attr,
+                                float4 &out_attr)
 {
-  float temperature = attr_load_temperature_post(attr.x);
+  float temperature = attr_load_temperature_post(kg, attr.x);
   out_attr.x = temperature;
   out_attr.y = temperature;
   out_attr.z = temperature;
   out_attr.w = 1.0f;
-}
-
-[[node]]
-void node_attribute_radiance(float4 attr, float4 &out_attr)
-{
-  out_attr = attr_load_radiance_post(attr);
 }
 
 [[node]]

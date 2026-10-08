@@ -57,8 +57,7 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
       /* Read bounce from different locations depending on if this is a shadow
        * path. It's a bit dubious to have integrate state details leak into
        * this function but hard to avoid currently. */
-      IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
-      {
+      IF_KERNEL_NODES_FEATURE (LIGHT_PATH) {
         info = (float)integrator_state_bounce(state, path_flag);
       }
 
@@ -70,33 +69,28 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
       break;
     }
     case NODE_LP_ray_transparent: {
-      IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
-      {
+      IF_KERNEL_NODES_FEATURE (LIGHT_PATH) {
         info = (float)integrator_state_transparent_bounce(state, path_flag);
       }
       break;
     }
     case NODE_LP_ray_diffuse:
-      IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
-      {
+      IF_KERNEL_NODES_FEATURE (LIGHT_PATH) {
         info = (float)integrator_state_diffuse_bounce(state, path_flag);
       }
       break;
     case NODE_LP_ray_glossy:
-      IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
-      {
+      IF_KERNEL_NODES_FEATURE (LIGHT_PATH) {
         info = (float)integrator_state_glossy_bounce(state, path_flag);
       }
       break;
     case NODE_LP_ray_transmission:
-      IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
-      {
+      IF_KERNEL_NODES_FEATURE (LIGHT_PATH) {
         info = (float)integrator_state_transmission_bounce(state, path_flag);
       }
       break;
     case NODE_LP_ray_portal:
-      IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
-      {
+      IF_KERNEL_NODES_FEATURE (LIGHT_PATH) {
         info = (float)integrator_state_portal_bounce(kg, state, path_flag);
       }
       break;

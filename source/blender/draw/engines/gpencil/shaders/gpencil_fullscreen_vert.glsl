@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpencil_vfx_infos.hh"
+#include "infos/gpencil_infos.hh"
 
-VERTEX_SHADER_CREATE_INFO(gpencil_fx_common)
+VERTEX_SHADER_CREATE_INFO(gpencil_layer_blend)
 
 #include "gpu_shader_fullscreen.bsl.hh"
 

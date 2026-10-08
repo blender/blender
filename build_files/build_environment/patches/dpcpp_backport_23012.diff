@@ -1,0 +1,511 @@
+diff --git a/clang/include/clang/Basic/DiagnosticGroups.td b/clang/include/clang/Basic/DiagnosticGroups.td
+index 266b821db..d3874cceb 100644
+--- a/clang/include/clang/Basic/DiagnosticGroups.td
++++ b/clang/include/clang/Basic/DiagnosticGroups.td
+@@ -1592,6 +1592,7 @@ def SyclFPGAMismatch : DiagGroup<"sycl-fpga-mismatch">;
+ def SyclAspectMismatch : DiagGroup<"sycl-aspect-mismatch">;
+ def SyclNativeCPUTargets: DiagGroup<"sycl-native-cpu-targets">;
+ def SyclPrivateAllocaPositiveSize : DiagGroup<"sycl-private-alloca-positive-size">;
++def SyclUndefinedFuncInImage : DiagGroup<"sycl-undefined-func-in-image">;
+
+ // Common warnings for SYCL and OpenMP offloading
+ def OffloadTarget : DiagGroup<"offload-target">;
+diff --git a/clang/include/clang/Options/Options.td b/clang/include/clang/Options/Options.td
+index ea1598bf8..da5988767 100644
+--- a/clang/include/clang/Options/Options.td
++++ b/clang/include/clang/Options/Options.td
+@@ -942,6 +942,14 @@ def Wno_nonportable_cfstrings : Joined<["-"], "Wno-nonportable-cfstrings">, Grou
+ def Wnonportable_cfstrings : Joined<["-"], "Wnonportable-cfstrings">, Group<W_Group>,
+   Visibility<[ClangOption, CC1Option]>;
+ def Wno_sycl_strict : Flag<["-"], "Wno-sycl-strict">, Group<W_Group>, Flags<[HelpHidden]>, HelpText<"Disable warnings which enforce strict SYCL language compatibility.">;
++def Wsycl_undefined_func_in_image : Flag<["-"], "Wsycl-undefined-func-in-image">,
++  Group<W_Group>, Flags<[HelpHidden]>, Visibility<[ClangOption, CLOption]>,
++  HelpText<"Warn when a device-code function is referenced but has no "
++           "definition in the linked device image.">;
++def Wno_sycl_undefined_func_in_image : Flag<["-"], "Wno-sycl-undefined-func-in-image">,
++  Group<W_Group>, Flags<[HelpHidden]>, Visibility<[ClangOption, CLOption]>,
++  HelpText<"Silence -Wsycl-undefined-func-in-image. Useful when the "
++           "undefined symbol is resolved at runtime.">;
+ def Wp_COMMA : CommaJoined<["-"], "Wp,">,
+   HelpText<"Pass the comma separated arguments in <arg> to the preprocessor">,
+   MetaVarName<"<arg>">, Group<Preprocessor_Group>;
+diff --git a/clang/lib/Driver/ToolChains/Clang.cpp b/clang/lib/Driver/ToolChains/Clang.cpp
+index 7aeb681b4..9f08fa002 100644
+--- a/clang/lib/Driver/ToolChains/Clang.cpp
++++ b/clang/lib/Driver/ToolChains/Clang.cpp
+@@ -10921,6 +10921,13 @@ static void getNonTripleBasedSYCLPostLinkOpts(const ToolChain &TC,
+   if (allowDeviceImageDependencies(TCArgs))
+     addArgs(PostLinkArgs, TCArgs, {"-allow-device-image-dependencies"});
+
++  // Silence sycl-post-link's "Undefined function ... found in ..." warning
++  // when the user opts out with -Wno-sycl-undefined-func-in-image.
++  if (!TCArgs.hasFlag(options::OPT_Wsycl_undefined_func_in_image,
++                      options::OPT_Wno_sycl_undefined_func_in_image,
++                      /*Default=*/true))
++    addArgs(PostLinkArgs, TCArgs, {"-suppress-undefined-func-warnings"});
++
+   // For bfloat16 conversions LLVM IR devicelib, we only need to embed it
+   // when non-AOT compilation is used.
+   if (TC.getTriple().isSPIROrSPIRV() && !TC.getTriple().isSPIRAOT()) {
+@@ -11600,6 +11607,16 @@ void LinkerWrapper::ConstructJob(Compilation &C, const JobAction &JA,
+       CmdArgs.push_back(
+           Args.MakeArgString("-sycl-allow-device-image-dependencies"));
+
++    // Mirror -Wno-sycl-undefined-func-in-image as a native linker-wrapper
++    // flag. --sycl-post-link-options= reaches only the external
++    // sycl-post-link tool; the in-process post-link path in
++    // clang-linker-wrapper builds its settings from its own arg list.
++    if (!Args.hasFlag(options::OPT_Wsycl_undefined_func_in_image,
++                      options::OPT_Wno_sycl_undefined_func_in_image,
++                      /*Default=*/true))
++      CmdArgs.push_back(
++          Args.MakeArgString("--sycl-suppress-undefined-func-warnings"));
++
+     // Pass backend compiler and linker options specified at link time to
+     // clang-linker-wrapper. Link-time options passed via -Xsycl-target-backend
+     // are forwarded using --device-compiler, while options passed via
+diff --git a/clang/test/Driver/sycl-suppress-undefined-func-warnings.cpp b/clang/test/Driver/sycl-suppress-undefined-func-warnings.cpp
+new file mode 100644
+index 000000000..f14968efd
+--- /dev/null
++++ b/clang/test/Driver/sycl-suppress-undefined-func-warnings.cpp
+@@ -0,0 +1,62 @@
++/// Verify how -W[no-]sycl-undefined-func-in-image maps to what actually
++/// reaches sycl-post-link. The warning is emitted by sycl-post-link, and
++/// -Wno-... is expected to silence it in every driver mode.
++// Legacy offload path.
++// RUN: %clangxx -### -fsycl -fsycl-targets=spir64 %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=NO-FLAG %s
++// RUN: %clang_cl -### -fsycl -fsycl-targets=spir64 %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=NO-FLAG %s
++// NO-FLAG: "{{.*}}sycl-post-link{{(\.exe)?}}"
++// NO-FLAG-NOT: "-suppress-undefined-func-warnings"
++
++// RUN: %clangxx -### -fsycl -fsycl-targets=spir64 -Wno-sycl-undefined-func-in-image %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=WNO %s
++// RUN: %clang_cl -### -fsycl -fsycl-targets=spir64 -Wno-sycl-undefined-func-in-image %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=WNO %s
++// WNO: "{{.*}}sycl-post-link{{(\.exe)?}}"
++// WNO-SAME: "-suppress-undefined-func-warnings"
++
++// RUN: %clangxx -### -fsycl -fsycl-targets=spir64 -Wsycl-undefined-func-in-image %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=W %s
++// RUN: %clang_cl -### -fsycl -fsycl-targets=spir64 -Wsycl-undefined-func-in-image %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=W %s
++// W: "{{.*}}sycl-post-link{{(\.exe)?}}"
++// W-NOT: "-suppress-undefined-func-warnings"
++
++// -Wno- then -W ==> warning stays enabled (last -W wins).
++// RUN: %clangxx -### -fsycl -fsycl-targets=spir64 -Wno-sycl-undefined-func-in-image -Wsycl-undefined-func-in-image %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=LAST-W %s
++// RUN: %clang_cl -### -fsycl -fsycl-targets=spir64 -Wno-sycl-undefined-func-in-image -Wsycl-undefined-func-in-image %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=LAST-W %s
++// LAST-W: "{{.*}}sycl-post-link{{(\.exe)?}}"
++// LAST-W-NOT: "-suppress-undefined-func-warnings"
++
++// -W then -Wno- ==> warning suppressed (last -W wins).
++// RUN: %clangxx -### -fsycl -fsycl-targets=spir64 -Wsycl-undefined-func-in-image -Wno-sycl-undefined-func-in-image %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=LAST-WNO %s
++// RUN: %clang_cl -### -fsycl -fsycl-targets=spir64 -Wsycl-undefined-func-in-image -Wno-sycl-undefined-func-in-image %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=LAST-WNO %s
++// LAST-WNO: "{{.*}}sycl-post-link{{(\.exe)?}}"
++// LAST-WNO-SAME: "-suppress-undefined-func-warnings"
++
++// New offload path:
++
++// RUN: %clangxx -### -fsycl --offload-new-driver -fsycl-targets=spir64 %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=NO-FLAG-NEW %s
++// RUN: %clang_cl -### -fsycl --offload-new-driver -fsycl-targets=spir64 %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=NO-FLAG-NEW %s
++// NO-FLAG-NEW: clang-linker-wrapper
++// NO-FLAG-NEW-NOT: "--sycl-suppress-undefined-func-warnings"
++
++// RUN: %clangxx -### -fsycl --offload-new-driver -fsycl-targets=spir64 -Wno-sycl-undefined-func-in-image %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=WNO-NEW %s
++// RUN: %clang_cl -### -fsycl --offload-new-driver -fsycl-targets=spir64 -Wno-sycl-undefined-func-in-image %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=WNO-NEW %s
++// WNO-NEW: clang-linker-wrapper
++// WNO-NEW-SAME: "--sycl-suppress-undefined-func-warnings"
++
++// AOT target (spir64_gen): forwarding is target-independent.
++// RUN: %clangxx -### -fsycl -fsycl-targets=spir64_gen -Wno-sycl-undefined-func-in-image %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=WNO %s
++// RUN: %clangxx -### -fsycl --offload-new-driver -fsycl-targets=spir64_gen -Wno-sycl-undefined-func-in-image %s 2>&1 \
++// RUN:   | FileCheck --check-prefix=WNO-NEW %s
+diff --git a/clang/tools/clang-linker-wrapper/ClangLinkerWrapper.cpp b/clang/tools/clang-linker-wrapper/ClangLinkerWrapper.cpp
+index 1cd1e5b84..83900a2d8 100644
+--- a/clang/tools/clang-linker-wrapper/ClangLinkerWrapper.cpp
++++ b/clang/tools/clang-linker-wrapper/ClangLinkerWrapper.cpp
+@@ -829,6 +829,8 @@ runSYCLSplitLibrary(ArrayRef<StringRef> InputFiles, const ArgList &Args,
+   llvm::module_split::ModuleSplitterSettings Settings;
+   Settings.Mode = Mode;
+   Settings.OutputPrefix = "";
++  Settings.SuppressUndefinedFuncWarnings =
++      Args.hasArg(OPT_sycl_suppress_undefined_func_warnings);
+
+   for (StringRef InputFile : InputFiles) {
+     SMDiagnostic Err;
+diff --git a/clang/tools/clang-linker-wrapper/LinkerWrapperOpts.td b/clang/tools/clang-linker-wrapper/LinkerWrapperOpts.td
+index 1ec664111..e4e2d293b 100644
+--- a/clang/tools/clang-linker-wrapper/LinkerWrapperOpts.td
++++ b/clang/tools/clang-linker-wrapper/LinkerWrapperOpts.td
+@@ -224,6 +224,15 @@ def sycl_allow_device_image_dependencies : Flag<["--", "-"], "sycl-allow-device-
+   Flags<[WrapperOnlyOption, HelpHidden]>,
+   HelpText<"Allow dependencies between device code images">;
+
++// Silences sycl-post-link's per-image "Undefined function ... found in ..."
++// warning when the in-process library path is used. Forwarded by the clang
++// driver from -Wno-sycl-undefined-func-in-image.
++def sycl_suppress_undefined_func_warnings :
++    Flag<["--", "-"], "sycl-suppress-undefined-func-warnings">,
++    Flags<[WrapperOnlyOption, HelpHidden]>,
++    HelpText<"Suppress sycl-post-link's warning about undefined functions in "
++             "a device image.">;
++
+ // Options to force the output to be of the SYCLBIN format.
+ def syclbin_EQ : Joined<["--", "-"], "syclbin=">,
+   Flags<[WrapperOnlyOption]>,
+diff --git a/llvm/include/llvm/SYCLPostLink/ESIMDPostSplitProcessing.h b/llvm/include/llvm/SYCLPostLink/ESIMDPostSplitProcessing.h
+index ef379b815..49aa51b09 100644
+--- a/llvm/include/llvm/SYCLPostLink/ESIMDPostSplitProcessing.h
++++ b/llvm/include/llvm/SYCLPostLink/ESIMDPostSplitProcessing.h
+@@ -27,6 +27,7 @@ struct ESIMDProcessingOptions {
+       llvm::module_split::IRSplitMode::SPLIT_NONE;
+   bool EmitOnlyKernelsAsEntryPoints = false;
+   bool AllowDeviceImageDependencies = false;
++  bool SuppressUndefinedFuncWarnings = false;
+   bool LowerESIMD = false;
+   bool SplitESIMD = false;
+   unsigned OptLevel = 0;
+diff --git a/llvm/include/llvm/SYCLPostLink/ModuleSplitter.h b/llvm/include/llvm/SYCLPostLink/ModuleSplitter.h
+index 1446f8b9f..3c644b5d7 100644
+--- a/llvm/include/llvm/SYCLPostLink/ModuleSplitter.h
++++ b/llvm/include/llvm/SYCLPostLink/ModuleSplitter.h
+@@ -255,6 +255,7 @@ protected:
+   std::unique_ptr<ModuleDesc> Input;
+   EntryPointGroupVec Groups;
+   bool AllowDeviceImageDependencies;
++  bool SuppressUndefinedFuncWarnings;
+
+ protected:
+   EntryPointGroup nextGroup() {
+@@ -273,9 +274,11 @@ protected:
+ public:
+   ModuleSplitterBase(std::unique_ptr<ModuleDesc> MD,
+                      EntryPointGroupVec &&GroupVec,
+-                     bool AllowDeviceImageDependencies)
++                     bool AllowDeviceImageDependencies,
++                     bool SuppressUndefinedFuncWarnings)
+       : Input(std::move(MD)), Groups(std::move(GroupVec)),
+-        AllowDeviceImageDependencies(AllowDeviceImageDependencies) {
++        AllowDeviceImageDependencies(AllowDeviceImageDependencies),
++        SuppressUndefinedFuncWarnings(SuppressUndefinedFuncWarnings) {
+     assert(!Groups.empty() && "Entry points groups collection is empty!");
+   }
+
+@@ -301,12 +304,14 @@ public:
+
+ SmallVector<std::unique_ptr<ModuleDesc>, 2>
+ splitByESIMD(std::unique_ptr<ModuleDesc> MD, bool EmitOnlyKernelsAsEntryPoints,
+-             bool AllowDeviceImageDependencies);
++             bool AllowDeviceImageDependencies,
++             bool SuppressUndefinedFuncWarnings);
+
+ std::unique_ptr<ModuleSplitterBase>
+ getDeviceCodeSplitter(std::unique_ptr<ModuleDesc> MD, IRSplitMode Mode,
+                       bool IROutputOnly, bool EmitOnlyKernelsAsEntryPoints,
+-                      bool AllowDeviceImageDependencies);
++                      bool AllowDeviceImageDependencies,
++                      bool SuppressUndefinedFuncWarnings);
+
+ #if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)
+ LLVM_DUMP_METHOD void dumpEntryPoints(const EntryPointSet &C,
+@@ -342,6 +347,7 @@ struct ModuleSplitterSettings {
+   bool OutputAssembly = false; // Bitcode or LLVM IR.
+   StringRef OutputPrefix;
+   bool AllowDeviceImageDependencies = false;
++  bool SuppressUndefinedFuncWarnings = false;
+ };
+
+ /// Parses the output table file from sycl-post-link tool.
+diff --git a/llvm/lib/SYCLPostLink/ESIMDPostSplitProcessing.cpp b/llvm/lib/SYCLPostLink/ESIMDPostSplitProcessing.cpp
+index a1c1a0832..f9a14eb50 100644
+--- a/llvm/lib/SYCLPostLink/ESIMDPostSplitProcessing.cpp
++++ b/llvm/lib/SYCLPostLink/ESIMDPostSplitProcessing.cpp
+@@ -118,7 +118,8 @@ llvm::sycl::handleESIMD(std::unique_ptr<ModuleDesc> MDesc,
+                         bool &Modified, bool &SplitOccurred) {
+   SmallVector<std::unique_ptr<ModuleDesc>, 2> Result =
+       splitByESIMD(std::move(MDesc), Options.EmitOnlyKernelsAsEntryPoints,
+-                   Options.AllowDeviceImageDependencies);
++                   Options.AllowDeviceImageDependencies,
++                   Options.SuppressUndefinedFuncWarnings);
+
+   assert(Result.size() <= 2 &&
+          "Split modules aren't expected to be more than 2.");
+diff --git a/llvm/lib/SYCLPostLink/ModuleSplitter.cpp b/llvm/lib/SYCLPostLink/ModuleSplitter.cpp
+index 32e241e4f..499cd2714 100644
+--- a/llvm/lib/SYCLPostLink/ModuleSplitter.cpp
++++ b/llvm/lib/SYCLPostLink/ModuleSplitter.cpp
+@@ -308,14 +308,16 @@ static bool isIntrinsicOrBuiltin(const Function &F) {
+ // Checks for use of undefined user functions and emits a warning message.
+ static void
+ checkForCallsToUndefinedFunctions(const Module &M,
+-                                  bool AllowDeviceImageDependencies) {
+-  if (AllowDeviceImageDependencies)
++                                  bool AllowDeviceImageDependencies,
++                                  bool SuppressUndefinedFuncWarnings) {
++  if (AllowDeviceImageDependencies || SuppressUndefinedFuncWarnings)
+     return;
+   for (const Function &F : M) {
+     if (!isIntrinsicOrBuiltin(F) && F.isDeclaration() && !F.use_empty())
+-      WithColor::warning() << "Undefined function " << F.getName()
+-                           << " found in " << M.getName()
+-                           << ". This may result in runtime errors.\n";
++      WithColor::warning()
++          << "Undefined function " << F.getName() << " found in " << M.getName()
++          << ". This may result in runtime errors. Use "
++             "-Wno-sycl-undefined-func-in-image to suppress this warning.\n";
+   }
+ }
+
+@@ -392,6 +394,7 @@ extractSubModule(const ModuleDesc &MD, const SetVector<const GlobalValue *> GVs,
+ std::unique_ptr<ModuleDesc> extractCallGraph(
+     const ModuleDesc &MD, EntryPointGroup &&ModuleEntryPoints,
+     const DependencyGraph &CG, bool AllowDeviceImageDependencies,
++    bool SuppressUndefinedFuncWarnings,
+     const std::function<bool(const Function *)> &IncludeFunctionPredicate =
+         nullptr) {
+   SetVector<const GlobalValue *> GVs;
+@@ -406,7 +409,8 @@ std::unique_ptr<ModuleDesc> extractCallGraph(
+   // can be removed once that pass no longer depends on this cleanup.
+   SplitM->cleanup(AllowDeviceImageDependencies);
+   checkForCallsToUndefinedFunctions(SplitM->getModule(),
+-                                    AllowDeviceImageDependencies);
++                                    AllowDeviceImageDependencies,
++                                    SuppressUndefinedFuncWarnings);
+
+   return SplitM;
+ }
+@@ -459,14 +463,17 @@ public:
+ class ModuleSplitter : public ModuleSplitterBase {
+ public:
+   ModuleSplitter(std::unique_ptr<ModuleDesc> MD, EntryPointGroupVec &&GroupVec,
+-                 bool AllowDeviceImageDependencies)
++                 bool AllowDeviceImageDependencies,
++                 bool SuppressUndefinedFuncWarnings)
+       : ModuleSplitterBase(std::move(MD), std::move(GroupVec),
+-                           AllowDeviceImageDependencies),
++                           AllowDeviceImageDependencies,
++                           SuppressUndefinedFuncWarnings),
+         CG(Input->getModule(), AllowDeviceImageDependencies) {}
+
+   std::unique_ptr<ModuleDesc> nextSplit() override {
+     return extractCallGraph(*Input, nextGroup(), CG,
+-                            AllowDeviceImageDependencies);
++                            AllowDeviceImageDependencies,
++                            SuppressUndefinedFuncWarnings);
+   }
+
+ private:
+@@ -1045,7 +1052,8 @@ std::string computeFuncCategoryForSplitting(const Function &F,
+ std::unique_ptr<ModuleSplitterBase>
+ getDeviceCodeSplitter(std::unique_ptr<ModuleDesc> MD, IRSplitMode Mode,
+                       bool IROutputOnly, bool EmitOnlyKernelsAsEntryPoints,
+-                      bool AllowDeviceImageDependencies) {
++                      bool AllowDeviceImageDependencies,
++                      bool SuppressUndefinedFuncWarnings) {
+   EntryPointsGroupScope Scope =
+       selectDeviceCodeGroupScope(MD->getModule(), Mode, IROutputOnly);
+
+@@ -1091,10 +1099,12 @@ getDeviceCodeSplitter(std::unique_ptr<ModuleDesc> MD, IRSplitMode Mode,
+
+   if (DoSplit)
+     return std::make_unique<ModuleSplitter>(std::move(MD), std::move(Groups),
+-                                            AllowDeviceImageDependencies);
++                                            AllowDeviceImageDependencies,
++                                            SuppressUndefinedFuncWarnings);
+
+   return std::make_unique<ModuleCopier>(std::move(MD), std::move(Groups),
+-                                        AllowDeviceImageDependencies);
++                                        AllowDeviceImageDependencies,
++                                        SuppressUndefinedFuncWarnings);
+ }
+
+ // Splits input module into two:
+@@ -1118,7 +1128,8 @@ getDeviceCodeSplitter(std::unique_ptr<ModuleDesc> MD, IRSplitMode Mode,
+ // outside of this function.
+ SmallVector<std::unique_ptr<ModuleDesc>, 2>
+ splitByESIMD(std::unique_ptr<ModuleDesc> MD, bool EmitOnlyKernelsAsEntryPoints,
+-             bool AllowDeviceImageDependencies) {
++             bool AllowDeviceImageDependencies,
++             bool SuppressUndefinedFuncWarnings) {
+
+   SmallVector<std::unique_ptr<module_split::ModuleDesc>, 2> Result;
+   EntryPointGroupVec EntryPointGroups{};
+@@ -1178,6 +1189,7 @@ splitByESIMD(std::unique_ptr<ModuleDesc> MD, bool EmitOnlyKernelsAsEntryPoints,
+       // module here.
+       Result.emplace_back(extractCallGraph(
+           *MD, std::move(Group), CG, AllowDeviceImageDependencies,
++          SuppressUndefinedFuncWarnings,
+           [=](const Function *F) -> bool { return !isESIMDFunction(*F); }));
+     }
+   }
+@@ -1321,7 +1333,8 @@ splitSYCLModule(std::unique_ptr<Module> M, ModuleSplitterSettings Settings) {
+   auto Splitter = getDeviceCodeSplitter(std::move(MD), Settings.Mode,
+                                         /*IROutputOnly=*/false,
+                                         /*EmitOnlyKernelsAsEntryPoints=*/false,
+-                                        Settings.AllowDeviceImageDependencies);
++                                        Settings.AllowDeviceImageDependencies,
++                                        Settings.SuppressUndefinedFuncWarnings);
+
+   size_t ID = 0;
+   std::vector<SplitModule> OutputImages;
+diff --git a/llvm/test/tools/sycl-post-link/suppress-undefined-func-warnings.ll b/llvm/test/tools/sycl-post-link/suppress-undefined-func-warnings.ll
+new file mode 100644
+index 000000000..d1bdd660c
+--- /dev/null
++++ b/llvm/test/tools/sycl-post-link/suppress-undefined-func-warnings.ll
+@@ -0,0 +1,28 @@
++; Verify that sycl-post-link's "Undefined function ... found in ..." warning
++; can be silenced via -suppress-undefined-func-warnings. This is the raw
++; sycl-post-link flag that clang forwards when the user passes
++; -Wno-sycl-undefined-func-in-image (see clang/lib/Driver/ToolChains/Clang.cpp).
++
++; Default: warning fires for an undefined, referenced, non-builtin function.
++; RUN: sycl-post-link -split=auto -symbols -S < %s -o %t.default.table 2>&1 \
++; RUN:   | FileCheck %s --check-prefix=CHECK-WARN
++
++; With the flag: warning is suppressed.
++; RUN: sycl-post-link -split=auto -symbols -suppress-undefined-func-warnings \
++; RUN:   -S < %s -o %t.suppressed.table 2>&1 \
++; RUN:   | FileCheck %s --allow-empty --check-prefix=CHECK-SUPPRESSED
++
++; CHECK-WARN: warning: Undefined function undefined_user_func found in
++; CHECK-SUPPRESSED-NOT: warning: Undefined function undefined_user_func found in
++
++target datalayout = "e-i64:64-v16:16-v24:32-v32:32-v48:64-v96:128-v192:256-v256:256-v512:512-v1024:1024"
++target triple = "spir64-unknown-linux"
++
++declare spir_func void @undefined_user_func()
++
++define weak_odr dso_local spir_kernel void @kernel() #0 {
++  call spir_func void @undefined_user_func()
++  ret void
++}
++
++attributes #0 = { "sycl-module-id"="a.cpp" }
+diff --git a/llvm/tools/sycl-post-link/sycl-post-link.cpp b/llvm/tools/sycl-post-link/sycl-post-link.cpp
+index c49c552c1..258c6e1b7 100644
+--- a/llvm/tools/sycl-post-link/sycl-post-link.cpp
++++ b/llvm/tools/sycl-post-link/sycl-post-link.cpp
+@@ -255,6 +255,12 @@ cl::opt<bool> AllowDeviceImageDependencies{
+     cl::desc("Allow dependencies between device images"), cl::cat(PostLinkCat),
+     cl::init(false)};
+
++cl::opt<bool> SuppressUndefinedFuncWarnings{
++    "suppress-undefined-func-warnings",
++    cl::desc("Suppress warning about undefined functions "
++             "in a device image."),
++    cl::cat(PostLinkCat), cl::init(false)};
++
+ struct IrPropSymFilenameTriple {
+   std::string Ir;
+   std::string Prop;
+@@ -542,7 +548,7 @@ processInputModule(std::unique_ptr<Module> M, const StringRef OutputPrefix) {
+       module_split::getDeviceCodeSplitter(
+           std::make_unique<module_split::ModuleDesc>(std::move(M)), SplitMode,
+           IROutputOnly, EmitOnlyKernelsAsEntryPoints,
+-          AllowDeviceImageDependencies);
++          AllowDeviceImageDependencies, SuppressUndefinedFuncWarnings);
+   bool SplitOccurred = Splitter->remainingSplits() > 1;
+   Modified |= SplitOccurred;
+
+@@ -571,6 +577,7 @@ processInputModule(std::unique_ptr<Module> M, const StringRef OutputPrefix) {
+     ESIMDProcessingOptions Options = {SplitMode,
+                                       EmitOnlyKernelsAsEntryPoints,
+                                       AllowDeviceImageDependencies,
++                                      SuppressUndefinedFuncWarnings,
+                                       LowerEsimd,
+                                       SplitEsimd,
+                                       getOptLevel(),
+diff --git a/sycl-jit/jit-compiler/lib/rtc/DeviceCompilation.cpp b/sycl-jit/jit-compiler/lib/rtc/DeviceCompilation.cpp
+index e1db08d9e..abc63be7a 100644
+--- a/sycl-jit/jit-compiler/lib/rtc/DeviceCompilation.cpp
++++ b/sycl-jit/jit-compiler/lib/rtc/DeviceCompilation.cpp
+@@ -1012,6 +1012,10 @@ jit_compiler::performPostLink(ModuleUPtr Module,
+       options::OPT_fsycl_allow_device_image_dependencies,
+       options::OPT_fno_sycl_allow_device_image_dependencies, false);
+
++  const bool SuppressUndefinedFuncWarnings =
++      !UserArgList.hasFlag(options::OPT_Wsycl_undefined_func_in_image,
++                           options::OPT_Wno_sycl_undefined_func_in_image, true);
++
+   // TODO: EmitOnlyKernelsAsEntryPoints is controlled by
+   //       `shouldEmitOnlyKernelsAsEntryPoints` in
+   //       `clang/lib/Driver/ToolChains/Clang.cpp`.
+@@ -1051,7 +1055,7 @@ jit_compiler::performPostLink(ModuleUPtr Module,
+   std::unique_ptr<ModuleSplitterBase> Splitter = getDeviceCodeSplitter(
+       std::make_unique<ModuleDesc>(std::move(Module)), SplitMode,
+       /*IROutputOnly=*/false, EmitOnlyKernelsAsEntryPoints,
+-      AllowDeviceImageDependencies);
++      AllowDeviceImageDependencies, SuppressUndefinedFuncWarnings);
+   assert(Splitter->hasMoreSplits());
+
+   if (auto Err = Splitter->verifyNoCrossModuleDeviceGlobalUsage()) {
+@@ -1073,9 +1077,9 @@ jit_compiler::performPostLink(ModuleUPtr Module,
+     // TODO: Call `MDesc.fixupLinkageOfDirectInvokeSimdTargets()` when
+     //       `invoke_simd` is supported.
+
+-    SmallVector<std::unique_ptr<ModuleDesc>, 2> ESIMDSplits =
+-        splitByESIMD(std::move(MDesc), EmitOnlyKernelsAsEntryPoints,
+-                     AllowDeviceImageDependencies);
++    SmallVector<std::unique_ptr<ModuleDesc>, 2> ESIMDSplits = splitByESIMD(
++        std::move(MDesc), EmitOnlyKernelsAsEntryPoints,
++        AllowDeviceImageDependencies, SuppressUndefinedFuncWarnings);
+     for (auto &ES : ESIMDSplits) {
+       MDesc = std::move(ES);
+
+diff --git a/sycl/doc/UsersManual.md b/sycl/doc/UsersManual.md
+index dbb739f28..3956c61fc 100644
+--- a/sycl/doc/UsersManual.md
++++ b/sycl/doc/UsersManual.md
+@@ -486,6 +486,17 @@ and not recommended to use in production environment.
+     When this option is used in conjunction with -fsycl, the driver will link
+     against an alternate form of libsycl, libsycl-preview.
+
++**`-W[no-]sycl-undefined-func-in-image`**
++
++    Controls the SYCL link-time "Undefined function <name> found in <image>"
++    warning. Enabled by default. Use `-Wno-sycl-undefined-func-in-image`
++    when the symbol is resolved at runtime. This option only silences the
++    diagnostic; it does not change generated device code or how the SYCL
++    runtime attempts to resolve the symbol.
++
++    Only -W[no-]sycl-undefined-func-in-image controls this warning. -w,
++    -Wno-everything and -Werror=sycl-undefined-func-in-image do not apply.
++
+ # Example: SYCL device code compilation
+
+ To invoke SYCL device compiler set `-fsycl-device-only` flag.
+diff --git a/sycl/test/warnings/undefined_functions.cpp b/sycl/test/warnings/undefined_functions.cpp
+index 9ab4d2513..ce15e8d2a 100644
+--- a/sycl/test/warnings/undefined_functions.cpp
++++ b/sycl/test/warnings/undefined_functions.cpp
+@@ -1,11 +1,14 @@
+ // RUN: %clangxx %s -fsycl -fsycl-link 2>&1 | FileCheck %s --check-prefix=CHECK-WARNING
+ // RUN: %clangxx %s -fsycl -fsycl-link -fsycl-allow-device-image-dependencies 2>&1 | FileCheck --allow-empty %s --check-prefix=CHECK-WARNING-DYNAMIC
+-// This test is intended to check that we emit a helpful warning message for
+-// undefined user functions in a fully linked device image after the
+-// sycl-post-link stage of compilation.
++// RUN: %clangxx %s -fsycl -fsycl-link -Wno-sycl-undefined-func-in-image 2>&1 | FileCheck --allow-empty %s --check-prefix=CHECK-WARNING-SUPPRESSED
++// This test checks that sycl-post-link emits the "Undefined function ..."
++// warning by default, that -fsycl-allow-device-image-dependencies suppresses
++// it (existing behaviour), and that -Wno-sycl-undefined-func-in-image
++// suppresses it.
+
+ // CHECK-WARNING: warning: Undefined function _Z11external_f1ii found in
+ // CHECK-WARNING-DYNAMIC-NOT: warning: Undefined function _Z11external_f1ii found in
++// CHECK-WARNING-SUPPRESSED-NOT: warning: Undefined function _Z11external_f1ii found in
+
+ #include <sycl/sycl.hpp>
+

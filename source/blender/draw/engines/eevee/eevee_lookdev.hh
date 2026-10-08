@@ -159,6 +159,7 @@ class LookdevModule {
   float3 sphere_position_;
 
   rcti visible_rect_;
+  bool is_camera_view_ = false;
 
   /* Dummy textures: required to reuse forward mesh shader and avoid another shader variation. */
   Texture dummy_cryptomatte_tx_;

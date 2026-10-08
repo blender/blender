@@ -197,7 +197,7 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
                      display_colorspace);
   }
 
-  /* Detect untonemppaed view transform. */
+  /* Detect untonemapped view transform. */
   if (untonemapped_view_ == nullptr) {
     /* Use Blender config and ACES config naming conventions. */
     for (const LibOCIOView &view : views_) {

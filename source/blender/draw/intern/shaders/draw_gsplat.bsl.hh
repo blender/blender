@@ -75,7 +75,7 @@ struct Resources {
   [[storage(0, read)]] const uint4 (&shape_data)[];
   [[storage(1, read)]] const uint4 (&radiance_data)[];
   [[storage(2, write)]] uint2 (&ellipses_comp)[];
-  [[storage(3, write)]] float2 (&radiance_comp)[];
+  [[storage(3, write)]] uint2 (&radiance_comp)[];
 
   [[push_constant]] const float2 viewport_size;
   [[push_constant]] const int resource_id;
@@ -234,7 +234,7 @@ float3 eval_radiance(Gaussian gs,
   /* Resolve radiance as sh + 0.5, matching the implementation of [3dgs2023]. Note that our
    * conversion to linear rgb is erroneous; splat data is fitted for sRGB data. */
   float3 resolved_radiance = detail::scene_linear_from_bt709(radiance + 0.5f);
-  return resolved_radiance;
+  return max(resolved_radiance, 0.0f);
 }
 template float3 eval_radiance<1>(Gaussian,
                                  ObjectMatrices,
@@ -252,7 +252,7 @@ template float3 eval_radiance<4>(Gaussian,
     [[resource_table]] const draw::Model &models,
     [[global_invocation_id]] const uint3 global_id)
 {
-  if (global_id.x >= srt.num_points) {
+  if (global_id.x >= uint(srt.num_points)) {
     return;
   }
 
@@ -283,8 +283,7 @@ template float3 eval_radiance<4>(Gaussian,
     }
 
     /* Radiance is packed to fp16. */
-    srt.radiance_comp[global_id.x] = uintBitsToFloat(
-        uint2(packHalf2x16(radiance.xy), packHalf2x16(radiance.zw)));
+    srt.radiance_comp[global_id.x] = uint2(packHalf2x16(radiance.xy), packHalf2x16(radiance.zw));
   }
 }
 

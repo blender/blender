@@ -13,6 +13,7 @@ void node_bsdf_toon(float4 color,
                     float /*tsmooth*/,
                     float3 N,
                     float weight,
+                    KernelGlobals &kg,
                     ShadingData &sd,
                     Closure &result)
 {
@@ -24,5 +25,5 @@ void node_bsdf_toon(float4 color,
   diffuse_data.color = color.rgb * weight;
   diffuse_data.N = N;
 
-  result = closure_eval(sd, diffuse_data);
+  result = closure_eval(kg, sd, diffuse_data);
 }

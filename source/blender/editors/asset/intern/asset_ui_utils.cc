@@ -75,10 +75,10 @@ void asset_tooltip(const asset_system::AssetRepresentation &asset,
       BLI_path_split_dir_file(full_blend_path.c_str(), dir, sizeof(dir), file, sizeof(file));
 
       if (file[0]) {
-        tooltip_text_field_add(tip, file, {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_MAIN);
+        tooltip_text_field_add(tip, file, {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_VALUE);
       }
       if (dir[0]) {
-        tooltip_text_field_add(tip, dir, {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_MAIN);
+        tooltip_text_field_add(tip, dir, {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_VALUE);
       }
       break;
     }
@@ -162,7 +162,10 @@ std::optional<AssetLibraryReference> get_user_library_ref_for_save(
 
   /* Fallback to the first enabled on-disk user library. */
   for (const bUserAssetLibrary &asset_library : U.asset_libraries) {
-    if (asset_library.flag & (ASSET_LIBRARY_DISABLED | ASSET_LIBRARY_USE_REMOTE_URL)) {
+    if (asset_library.flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+      continue;
+    }
+    if (!BKE_preferences_asset_library_is_available(&U, &asset_library)) {
       continue;
     }
     return asset::user_library_to_library_ref(asset_library);

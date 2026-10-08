@@ -14,9 +14,9 @@ endif()
 # or MINSIZEREL location, to the debug libs, which is not good as this will cause
 # all sorts of linking issues with MSVC. Map them explicitly to Release libs.
 # for further reading: https://gitlab.kitware.com/cmake/cmake/-/issues/20319
-set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL MinSizeRel RelWithDebInfo Release Debug)
-set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release MinSizeRel Debug)
-set(CMAKE_MAP_IMPORTED_CONFIG_RELEASE Release RelWithDebInfo MinSizeRel Debug)
+set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL MinSizeRel RelWithDebInfo Release)
+set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release MinSizeRel)
+set(CMAKE_MAP_IMPORTED_CONFIG_RELEASE Release RelWithDebInfo MinSizeRel)
 
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(MSVC_CLANG ON)
@@ -1193,8 +1193,15 @@ if((WITH_EMBREE AND EMBREE_SYCL_SUPPORT) OR (WITH_CYCLES AND WITH_CYCLES_DEVICE_
 endif()
 
 if(WITH_TRACY)
-  set(Tracy_ROOT_DIR ${LIBDIR}/tracy)
   find_package(Tracy REQUIRED CONFIG)
+endif()
+
+if(WITH_JOLT)
+  find_package(Jolt REQUIRED CONFIG)
+endif()
+
+if(WITH_OPENTIMELINEIO)
+  find_package(OpenTimelineIO REQUIRED CONFIG)
 endif()
 
 # Add the MSVC directory to the path so when building with ASAN enabled tools such as

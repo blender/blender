@@ -85,7 +85,7 @@ void SourceProcessor::lower_assert_ast(Parser &parser, [[maybe_unused]] const st
   /* Example: `assert(i < 0)` > `if (!(i < 0)) { printf(...); }` */
   for (FuncCall call : parser.root().descendants_of_type<FuncCall>()) {
     if (call.identifier().str() != "assert") {
-      return;
+      continue;
     }
 
     string replacement;
@@ -147,10 +147,12 @@ void SourceProcessor::lower_strings(Parser &parser)
  * This allows to emulate the variadic arguments of printf. */
 void SourceProcessor::lower_printf(Parser &parser)
 {
+  bool has_printf = false;
   parser().foreach_match("A(..)", [&](const vector<Token> &tokens) {
     if (tokens[0].str() != "printf") {
       return;
     }
+    has_printf = true;
 
     int arg_count = 0;
     tokens[1].scope().foreach_scope(ScopeType::FunctionParam, [&](const Scope &) { arg_count++; });
@@ -163,6 +165,10 @@ void SourceProcessor::lower_printf(Parser &parser)
     parser.replace(tokens.front(), tokens.back(), unrolled);
   });
   parser.apply_mutations();
+
+  if (has_printf) {
+    metadata_.builtins.emplace_back(Builtin::printf);
+  }
 }
 
 }  // namespace blender::gpu::shader

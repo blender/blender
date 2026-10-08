@@ -237,6 +237,7 @@ struct Instance : public DrawEngine {
   }
 
   ElemIndexRanges edit_mesh_sync(Object *ob,
+                                 const BMesh *bm,
                                  ResourceHandleRange res_handle,
                                  short select_mode,
                                  bool draw_facedot,
@@ -244,12 +245,11 @@ struct Instance : public DrawEngine {
   {
     using namespace blender::draw;
     Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(&mesh);
 
     ElemIndexRanges ranges{};
     ranges.total = IndexRange::from_begin_size(initial_index, 0);
 
-    BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
+    BM_mesh_elem_table_ensure(const_cast<BMesh *>(bm), BM_VERT | BM_EDGE | BM_FACE);
 
     if (select_mode & SCE_SELECT_FACE) {
       ranges.face = alloc_range(ranges.total, bm->totface);
@@ -349,11 +349,11 @@ struct Instance : public DrawEngine {
          * because the evaluated mesh may not have an edit-mesh, see #138715.
          * Match edit-mesh access from #mesh_render_data_create. */
         const Mesh *orig_edit_mesh = is_editmode ? BKE_object_get_pre_modified_mesh(ob) : nullptr;
-        BMEditMesh *em = (orig_edit_mesh) ? orig_edit_mesh->runtime->edit_mesh.get() : nullptr;
+        const BMesh *bm = orig_edit_mesh ? BKE_editmesh_bmesh_get(orig_edit_mesh) : nullptr;
 
-        if (em) {
+        if (bm) {
           bool draw_facedot = check_ob_drawface_dot(select_mode, v3d, eDrawType(ob->dt));
-          return edit_mesh_sync(ob, res_handle, select_mode, draw_facedot, index_start);
+          return edit_mesh_sync(ob, bm, res_handle, select_mode, draw_facedot, index_start);
         }
         return mesh_sync(ob, res_handle, select_mode, index_start);
       }

@@ -437,6 +437,7 @@ struct HandleButtonData {
   std::string text_edit_unit_hint;
 
   wmTimer *text_select_auto_scroll = nullptr;
+  double text_select_auto_scroll_last_time = std::numeric_limits<double>::lowest();
 
   double value = 0.0f;
   double origvalue = 0.0f;
@@ -1204,6 +1205,13 @@ static void apply_but_funcs_after(bContext *C)
     }
 
     if (after.region_popup) {
+      /* The operator may have freed the popup, for example by loading a file. */
+      bScreen *screen = CTX_wm_screen(C);
+      if (region_popup_prev &&
+          !(screen && BLI_findindex(&screen->regionbase, region_popup_prev) != -1))
+      {
+        region_popup_prev = nullptr;
+      }
       CTX_wm_region_popup_set(C, region_popup_prev);
     }
 
@@ -4315,23 +4323,6 @@ static int do_but_textedit(
         retval = WM_UI_HANDLER_BREAK;
         break;
       }
-      case MOUSEPAN: {
-        if (textbox) {
-          int type = event->type;
-          int value = event->val;
-
-          pan_to_scroll(event, &type, &value);
-          int scroll_dir = 1;
-          if (event->flag & WM_EVENT_SCROLL_INVERT) {
-            scroll_dir = -1;
-          }
-          if (type != MOUSEPAN) {
-            textbox_add_scroll(textbox, (type == WHEELUPMOUSE ? -1 : 1) * scroll_dir);
-          }
-          retval = WM_UI_HANDLER_BREAK;
-        }
-        break;
-      }
       case WHEELDOWNMOUSE:
       case EVT_DOWNARROWKEY:
         if (data->searchbox) {
@@ -4432,6 +4423,13 @@ static int do_but_textedit(
           changed = autocomplete != AUTOCOMPLETE_NO_MATCH;
 
           if (autocomplete == AUTOCOMPLETE_FULL_MATCH) {
+            if (but->flag & BUT_TEXTEDIT_AUTOCOMPLETE_KEEP_ACTIVE) {
+              /* Exit to apply, then re-activate (as with Tab cycling between text fields),
+               * so this only runs when Tab is pressed, see: #150689. */
+              but->flag |= BUT_ACTIVATE_ON_INIT_NO_SELECT;
+              data->postbut = but;
+              data->posttype = BUTTON_ACTIVATE_TEXT_EDITING;
+            }
             button_activate_state(C, but, BUTTON_STATE_EXIT);
           }
         }
@@ -4590,6 +4588,14 @@ static int do_but_textedit_select(
       if (!textbox || event->customdata != data->text_select_auto_scroll) {
         break;
       }
+
+      const wmTimer *timer = static_cast<const wmTimer *>(event->customdata);
+      if (timer->time_duration == data->text_select_auto_scroll_last_time) {
+        retval = WM_UI_HANDLER_BREAK;
+        break;
+      }
+      data->text_select_auto_scroll_last_time = timer->time_duration;
+
       rctf rect;
       block_to_window_rctf(data->region, block, &rect, &but->rect);
 
@@ -4878,7 +4884,7 @@ static void block_open_begin(bContext *C, Button *but, HandleButtonData *data)
     case ButtonType::Menu:
       BLI_assert(but->menu_create_func);
       if (button_menu_draw_as_popover(but)) {
-        const char *idname = static_cast<const char *>(but->func_argN);
+        const std::string &idname = *static_cast<const std::string *>(but->func_argN);
         popover_panel_type = WM_paneltype_find(idname, false);
       }
 
@@ -4901,7 +4907,7 @@ static void block_open_begin(bContext *C, Button *but, HandleButtonData *data)
       but->editvec = data->vec;
 
       if (button_menu_draw_as_popover(but)) {
-        const char *idname = static_cast<const char *>(but->func_argN);
+        const std::string &idname = *static_cast<const std::string *>(but->func_argN);
         popover_panel_type = WM_paneltype_find(idname, false);
       }
 
@@ -5472,6 +5478,21 @@ static int do_but_TEXTBOX(bContext *C,
   switch (data->state) {
     case BUTTON_STATE_TEXT_EDITING:
     case BUTTON_STATE_HIGHLIGHT: {
+      if (event->type == MOUSEPAN && textbox->last_total_lines > textbox->visible_lines()) {
+        int type = event->type;
+        int value = event->val;
+
+        pan_to_scroll(event, &type, &value);
+        int scroll_dir = 1;
+        if (event->flag & WM_EVENT_SCROLL_INVERT) {
+          scroll_dir = -1;
+        }
+        if (type != MOUSEPAN) {
+          textbox_add_scroll(textbox, (type == WHEELUPMOUSE ? -1 : 1) * scroll_dir);
+          ED_region_tag_redraw(data->region);
+        }
+        return WM_UI_HANDLER_BREAK;
+      }
       if (ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
         if (textbox->last_total_lines > textbox->visible_lines()) {
           textbox_add_scroll(textbox, (event->type == WHEELUPMOUSE ? -1 : 1));
@@ -9371,7 +9392,7 @@ static ARegion *but_tooltip_init(
   if (*pass == 1) {
     is_quick_tip = true;
     (*pass)--;
-    (*r_pass_delay) = UI_TOOLTIP_DELAY - UI_TOOLTIP_DELAY_QUICK;
+    (*r_pass_delay) = UI_TOOLTIP_DELAY + UI_TOOLTIP_DELAY_QUICK;
   }
 
   Button *but = region_active_but_get(region);
@@ -12171,14 +12192,23 @@ static int handle_menu_event(bContext *C,
         if (but_active && menu->keynav_state.is_keynav) {
           /* Key-navigation activates the button navigated onto, not the default. */
         }
+        else if ((but_default != nullptr) &&
+                 ((but_default->type == ButtonType::But) &&
+                  ((but_default->active == nullptr) ||
+                   (but_default->active->state == BUTTON_STATE_HIGHLIGHT))))
+        {
+          /* Regarding the #BUTTON_STATE_HIGHLIGHT check above.
+           * It's important to run immediately in this case. Letting the button flash first
+           * (see #BUTTON_STATE_WAIT_FLASH) delays running it until a timer fires,
+           * so events after "Return" reach the popup while it's still open and are lost.
+           * This can happen while typing quickly or a slow redraw.
+           * It also happens during tests that use simulated events. */
+
+          button_execute(C, region, but_default);
+          retval = WM_UI_HANDLER_BREAK;
+        }
         else if ((but_default != nullptr) && (but_default->active == nullptr)) {
-          if (but_default->type == ButtonType::But) {
-            button_execute(C, region, but_default);
-            retval = WM_UI_HANDLER_BREAK;
-          }
-          else {
-            handle_button_activate_by_type(C, region, but_default);
-          }
+          handle_button_activate_by_type(C, region, but_default);
         }
         /* enter will always close this block, we let the event
          * get handled by the button if it is activated, otherwise we cancel */

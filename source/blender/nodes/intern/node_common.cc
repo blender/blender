@@ -1233,7 +1233,7 @@ static void node_comment_layout_ex(ui::Layout &layout, bContext * /*C*/, Pointer
 {
   bNode &node = *ptr->data_as<bNode>();
   NodeComment &storage = *static_cast<NodeComment *>(node.storage);
-  layout.textbox_with_state(ptr, "text", &storage.textbox_state_panel);
+  layout.textbox_with_state(ptr, "text", &storage.textbox_state_panel, "");
 }
 
 static void node_comment_blend_write(const bNodeTree & /*ntree*/,

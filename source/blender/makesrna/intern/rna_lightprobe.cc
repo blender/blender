@@ -58,7 +58,7 @@ static void rna_LightProbe_recalc(Main * /*bmain*/, Scene * /*scene*/, PointerRN
 namespace blender {
 
 static EnumPropertyItem parallax_type_items[] = {
-    {LIGHTPROBE_SHAPE_ELIPSOID, "ELIPSOID", ICON_NONE, "Sphere", ""},
+    {LIGHTPROBE_SHAPE_ELLIPSOID, "ELIPSOID", ICON_NONE, "Sphere", ""},
     {LIGHTPROBE_SHAPE_BOX, "BOX", ICON_NONE, "Box", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };

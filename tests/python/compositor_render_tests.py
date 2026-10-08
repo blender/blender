@@ -6,6 +6,7 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 
 # When run from inside Blender, render and exit.
@@ -16,12 +17,12 @@ except ImportError:
     inside_blender = False
 
 
-def get_compositor_device_setter_script(execution_device):
+def get_compositor_device_setter_script(execution_device: str) -> str:
     return f"import bpy; bpy.data.scenes[0].render.compositor_device = '{execution_device}'"
 
 
-def get_arguments(filepath, output_filepath, backend):
-    arguments = [
+def get_arguments(filepath: Path, output_filepath: Path, backend: str) -> list[str | Path]:
+    arguments: list[str | Path] = [
         "--background",
         "--factory-startup",
         "--enable-autoexec",
@@ -48,10 +49,10 @@ def create_argparse():
     parser = argparse.ArgumentParser(
         description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
     )
-    parser.add_argument("--blender", required=True)
-    parser.add_argument("--testdir", required=True)
-    parser.add_argument("--outdir", required=True)
-    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--blender", required=True, type=Path)
+    parser.add_argument("--testdir", required=True, type=Path)
+    parser.add_argument("--outdir", required=True, type=Path)
+    parser.add_argument("--oiiotool", required=True, type=Path)
     parser.add_argument('--batch', default=False, action='store_true')
     parser.add_argument('--gpu-backend')
     return parser
@@ -80,10 +81,10 @@ def main():
     report.set_pixelated(True)
     report.set_reference_dir("compositor_renders")
 
-    if os.path.basename(args.testdir) == 'filter':
+    if args.testdir.name == 'filter':
         # Temporary change to pass OpenImageDenoise test with both 1.3 and 1.4.
         report.set_fail_threshold(0.05)
-    elif os.path.basename(args.testdir) == 'mask' or os.path.basename(args.testdir) == 'keying':
+    elif args.testdir.name == 'mask' or args.testdir.name == 'keying':
         # The node_keying_matte.blend test is very sensitive to the exact values in the
         # input image. It makes it hard to precisely match results on different systems
         # (with and without SSE, i.e.), especially when OCIO has different precision for
@@ -91,7 +92,8 @@ def main():
         report.set_fail_threshold(0.06)
         report.set_fail_percent(2)
 
-    def arguments_callback(filepath, output_filepath): return get_arguments(filepath, output_filepath, backend)
+    def arguments_callback(filepath: Path, output_filepath: Path) -> list[str | Path]:
+        return get_arguments(filepath, output_filepath, backend)
     ok = report.run(args.testdir, args.blender, arguments_callback, batch=args.batch)
 
     sys.exit(not ok)

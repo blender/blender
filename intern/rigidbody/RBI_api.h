@@ -352,7 +352,7 @@ void RB_constraint_set_target_velocity_motor(rbConstraint *con,
                                              float velocity_lin,
                                              float velocity_ang);
 
-/* Set number of constraint solver iterations made per step, this overrided world setting
+/* Set number of constraint solver iterations made per step, this overrides world setting
  * To use default set it to -1 */
 void RB_constraint_set_solver_iterations(rbConstraint *con, int num_solver_iterations);
 

@@ -83,9 +83,9 @@ static void discard_buffers(MeshBatchCache &cache,
     if (buffer_ptrs.contains(batch.elem)) {
       return true;
     }
-    if (std::any_of(batch.verts, batch.verts + ARRAY_SIZE(batch.verts), [&](gpu::VertBuf *vbo) {
-          return vbo && buffer_ptrs.contains(vbo);
-        }))
+    if (std::any_of(batch.verts,
+                    batch.verts + ARRAY_SIZE(batch.verts),
+                    [&](gpu::VertBuf *vbo) { return vbo && buffer_ptrs.contains(vbo); }))
     {
       return true;
     }
@@ -587,6 +587,9 @@ static void mesh_buffer_cache_clear(MeshBufferCache *mbc)
 
   mbc->loose_geom = {};
   mbc->face_sorted = {};
+  mbc->corner_verts.reset();
+  mbc->corner_edges.reset();
+  mbc->face_offsets.reset();
 }
 
 static void mesh_batch_cache_free_subdiv_cache(MeshBatchCache &cache)

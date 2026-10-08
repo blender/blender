@@ -10,14 +10,17 @@
 #pragma once
 
 #include "DNA_listBase.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_index_mask.hh"
+#include "BLI_vector_set.hh"
 
 #include "ED_grease_pencil.hh"
 
 #include "UI_view2d.hh"
 
 #include "transform.hh"
+
 struct TransData;
 struct TransDataCurveHandleFlags;
 struct TransInfo;
@@ -441,6 +444,9 @@ struct TransSeq {
 
   /* Strips that aren't selected, but their position entirely depends on transformed strips. */
   VectorSet<Strip *> time_dependent_strips;
+
+  /* Overlap mode when the transform started, restored if the transform is canceled. */
+  eSeqOverlapMode overlap_mode_orig = SEQ_OVERLAP_OVERWRITE;
 };
 
 bool seq_transform_check_overlap(Span<Strip *> transformed_strips);

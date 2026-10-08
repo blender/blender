@@ -12,6 +12,8 @@
 
 namespace blender {
 
+enum eSeqRippleFlag : int;
+
 struct Scene;
 struct Strip;
 struct SpaceSeq;
@@ -19,6 +21,7 @@ struct bContext;
 struct View2D;
 struct rctf;
 struct ARegion;
+struct wmOperatorType;
 
 namespace ed::vse {
 
@@ -93,6 +96,11 @@ const Strip *get_scene_strip_for_time_sync(const Scene *sequencer_scene);
 void sync_active_scene_and_time_with_scene_strip(bContext &C);
 
 rctf sequencer_clamped_view_bounds_get(const bContext *C, ARegion *region);
+
+/*
+ * Default properties for operators that make use of rippling features.
+ */
+void operator_properties_ripple(wmOperatorType *ot, eSeqRippleFlag options);
 
 }  // namespace ed::vse
 }  // namespace blender

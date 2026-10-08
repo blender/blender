@@ -412,6 +412,9 @@ class TOPBAR_MT_file_import(Menu):
             self.layout.operator(
                 "wm.fbx_import", text=FileHandler.label_with_extensions("IO_FH_fbx"))
 
+        if bpy.app.build_options.opentimelineio:
+            self.layout.operator("wm.otio_import", text="OpenTimelineIO (.otio)")
+
 
 class TOPBAR_MT_file_export(Menu):
     bl_idname = "TOPBAR_MT_file_export"
@@ -451,6 +454,8 @@ class TOPBAR_MT_file_export(Menu):
         if bpy.app.build_options.io_stl:
             self.layout.operator(
                 "wm.stl_export", text=FileHandler.label_with_extensions("IO_FH_stl"))
+        if bpy.app.build_options.opentimelineio:
+            self.layout.operator("wm.otio_export", text="OpenTimelineIO (.otio)")
 
 
 class TOPBAR_MT_file_external_data(Menu):
@@ -595,7 +600,7 @@ class TOPBAR_MT_project(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("screen.project_setup_show", text="Settings...", icon='PREFERENCES')
+        layout.operator("screen.project_settings_show", text="Settings...", icon='PREFERENCES')
 
 
 class TOPBAR_MT_window(Menu):

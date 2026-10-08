@@ -280,6 +280,7 @@ SourceProcessor::Result SourceProcessor::convert_bsl()
     parser.language = Language::BSL;
     parser.parse(error_handler);
 
+    parse_draw_debug(parser, filename);
     parse_library_functions_ast(parser);
     lower_preprocessor_ast(parser);
 
@@ -296,8 +297,11 @@ SourceProcessor::Result SourceProcessor::convert_bsl()
     lower_trailing_comma_in_list_ast(parser);
     lower_assert_ast(parser, filename);
     lower_this_keyword(parser);
-
     parser.apply_mutations();
+
+    /* Lower string, assert, printf. */
+    lower_strings(parser);
+    lower_printf(parser);
 
     /* Linting phase. Detect valid syntax with invalid usage. */
     lint_reserved_tokens(parser);
@@ -316,9 +320,6 @@ SourceProcessor::Result SourceProcessor::convert_bsl()
     lower_union_setters(parser);
     lower_bitfield_setters(parser);
     lower_method_calls(parser, false);
-    /* Lower string, assert, printf. */
-    lower_strings(parser);
-    lower_printf(parser);
     /* Needs to be last. */
     lower_resource_macro_placeholder_ast(parser);
     lower_constructors(parser);
@@ -391,7 +392,9 @@ SourceProcessor::Result SourceProcessor::convert(metadata::Source external_sourc
     case Language::CPP:
       /* Should become BSL, but until the new compiler is fully working, fallback
        * to the legacy path. */
-      return convert_bsl_legacy(external_sources_symbols);
+      return (filename.starts_with("eevee_") || filename.starts_with("draw_")) ?
+                 convert_bsl() :
+                 convert_bsl_legacy(external_sources_symbols);
     case Language::BSL:
       return convert_bsl(); /* WIP */
     case Language::BLENDER_GLSL:
@@ -640,14 +643,6 @@ void SourceProcessor::parse_defines(Parser &parser)
 {
   parser().foreach_match<true>("#A", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "define") {
-      if (tokens[1].next().str().starts_with("LIGHT_STACK_SIZE_")) {
-        /* WORKAROUND: Avoid warning caused by EEVEE macro setup. */
-        return;
-      }
-      if (tokens[1].next().str() == "GBUFFER_LAYER_MAX") {
-        /* WORKAROUND: Avoid warning caused by EEVEE macro setup. */
-        return;
-      }
       if (tokens[1].next().str().starts_with("gather_")) {
         /* WORKAROUND: Avoid warning caused by EEVEE macro setup. */
         return;
@@ -787,10 +782,21 @@ void SourceProcessor::parse_includes(Parser &parser)
     }
     string_view dependency_name = str_view_exclusive(tokens[2]);
 
-    if (dependency_name.find("defines.hh") != string::npos) {
+    if (dependency_name.find("defines.hh") != string::npos ||
+        /* WORKAROUND(fclem): Only needed in EEVEE and overlays for now.
+         * Needs the file to be in the same folder. */
+        (dependency_name.ends_with(".bsl.hh") && filename.ends_with(".bsl.hh") &&
+         ((dependency_name.starts_with("eevee_") && filename.starts_with("eevee_")) ||
+          (dependency_name.starts_with("overlay_") && filename.starts_with("overlay_")))))
+    {
       /* Dependencies between create infos are not needed for reflections.
        * Only the dependencies on the defines are needed. */
-      metadata_.create_infos_dependencies.emplace_back(dependency_name);
+      if (dependency_name.ends_with(".bsl.hh")) {
+        metadata_.create_infos_dependencies.emplace_back(string(dependency_name) + ".info");
+      }
+      else {
+        metadata_.create_infos_dependencies.emplace_back(dependency_name);
+      }
     }
 
     if (dependency_name == "BLI_utildefines_variadic.hh") {
@@ -870,6 +876,10 @@ void SourceProcessor::lower_namesless_parameters(Parser &parser)
       if (arg.token_count() == 1 || arg.back().prev() == TokenType::Const || arg.back() == '&' ||
           arg.back() == '>')
       {
+        Token back = arg.back();
+        if (back == ']') {
+          back = back.scope().front().prev();
+        }
         /* Append a name for nameless argument. */
         parser.replace(arg.back().str_index_last_no_whitespace() + 1,
                        arg.back().str_index_last(),
@@ -886,7 +896,9 @@ void SourceProcessor::lower_namesless_parameters_ast(Parser &parser)
     for (FuncArg arg : fn.arguments().children_of_type<FuncArg>()) {
       if (!arg.identifier().is_valid()) {
         bool is_ref = arg.is_reference();
-        Token arg_back(is_ref ? arg.declarator().reference().back() : arg.back());
+        ast::ArrayDecl arr = arg.array();
+        Token arg_back(is_ref ? arg.declarator().reference().back() :
+                                (arr.is_valid() ? arr.front().prev() : arg.back()));
         /* Append a name for nameless argument. */
         parser.replace(arg_back.str_index_last_no_whitespace() + 1,
                        arg_back.str_index_last(),
@@ -1305,11 +1317,30 @@ void SourceProcessor::parse_library_functions_ast(Parser &parser)
   }
 }
 
+void SourceProcessor::parse_draw_debug(Parser &parser, const string &filename)
+{
+  const bool skip_drw_debug = filename == "draw_debug_draw.bsl.hh" ||
+                              filename == "draw_debug_infos.hh" ||
+                              filename == "draw_debug_draw_display.bsl.hh" ||
+                              filename == "draw_shader_shared.hh";
+
+  if (skip_drw_debug) {
+    return;
+  }
+
+  for (auto fn : parser.root().descendants_of_type<FuncCall>()) {
+    if (fn.identifier().str().starts_with("drw_debug_")) {
+      metadata_.builtins.emplace_back(Builtin::drw_debug);
+      break;
+    }
+  }
+}
+
 void SourceProcessor::parse_builtins(const string &str, const string &filename, bool pure_glsl)
 {
-  const bool skip_drw_debug = filename == "draw_debug_draw_lib.glsl" ||
+  const bool skip_drw_debug = filename == "draw_debug_draw.bsl.hh" ||
                               filename == "draw_debug_infos.hh" ||
-                              filename == "draw_debug_draw_display_vert.glsl" ||
+                              filename == "draw_debug_draw_display.bsl.hh" ||
                               filename == "draw_shader_shared.hh";
   using namespace metadata;
   /* TODO: This can trigger false positive caused by disabled #if blocks. */
@@ -1339,7 +1370,6 @@ void SourceProcessor::parse_builtins(const string &str, const string &filename, 
   else {
     /* Assume blender GLSL or BSL. */
     tokens.emplace_back("drw_debug_");
-    tokens.emplace_back("printf");
 #ifdef WITH_GPU_SHADER_ASSERT
     tokens.emplace_back("assert");
 #endif

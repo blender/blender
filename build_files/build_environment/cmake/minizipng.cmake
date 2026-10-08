@@ -11,11 +11,13 @@ set(MINIZIPNG_EXTRA_ARGS
   -DMZ_WZAES=OFF
   -DMZ_OPENSSL=OFF
   -DMZ_SIGNING=OFF
+  -DMZ_PPMD=OFF
   -DMZ_LZMA=OFF
   -DMZ_ZSTD=OFF
   -DMZ_BZIP2=OFF
   -DMZ_ICONV=OFF
   -DMZ_ZLIB=ON
+  -DMZ_ZLIB_FLAVOR=zlib
   -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
   -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include/
   # Because OCIO hardcodes a non standard include path

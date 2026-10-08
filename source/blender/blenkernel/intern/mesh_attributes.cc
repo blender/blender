@@ -239,31 +239,11 @@ static GVArray adapt_mesh_domain_face_to_point(const Mesh &mesh, const GVArray &
 }
 
 /* Each corner's value is simply a copy of the value at its face. */
-template<typename T>
-void adapt_mesh_domain_face_to_corner_impl(const Mesh &mesh,
-                                           const VArray<T> &old_values,
-                                           MutableSpan<T> r_values)
-{
-  BLI_assert(r_values.size() == mesh.corners_num);
-  const OffsetIndices faces = mesh.faces();
-
-  threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
-    for (const int face_index : range) {
-      MutableSpan<T> face_corner_values = r_values.slice(faces[face_index]);
-      face_corner_values.fill(old_values[face_index]);
-    }
-  });
-}
-
 static GVArray adapt_mesh_domain_face_to_corner(const Mesh &mesh, const GVArray &varray)
 {
+  const OffsetIndices faces = mesh.faces();
   GArray<> values(varray.type(), mesh.corners_num);
-  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
-    if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      adapt_mesh_domain_face_to_corner_impl<T>(
-          mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
-    }
-  });
+  attribute_math::gather_to_groups(faces, faces.index_range(), GVArraySpan(varray), values);
   return GVArray::from_garray(std::move(values));
 }
 

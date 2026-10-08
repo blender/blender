@@ -1832,9 +1832,9 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
 
     MeshGL meshgl_result;
     Operation op = op_params.boolean_mode;
-    if (std::any_of(manifolds.begin(), manifolds.end(), [](const Manifold &m) {
-          return m.Status() != Manifold::Error::NoError;
-        }))
+    if (std::any_of(manifolds.begin(),
+                    manifolds.end(),
+                    [](const Manifold &m) { return m.Status() != Manifold::Error::NoError; }))
     {
       /* Check special case of subtracting a plane, which Manifold can handle. */
       float3 normal;

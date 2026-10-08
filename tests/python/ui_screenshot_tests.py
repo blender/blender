@@ -6,6 +6,7 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 
 def screenshot():
@@ -32,7 +33,7 @@ if inside_blender:
     sys.exit(0)
 
 
-def get_arguments(filepath, output_filepath):
+def get_arguments(filepath: Path, output_filepath: Path) -> list[str | Path]:
     return [
         "--no-window-focus",
         "--window-geometry",
@@ -47,17 +48,17 @@ def get_arguments(filepath, output_filepath):
         "-P",
         os.path.realpath(__file__),
         "--",
-        output_filepath + '0001.png']
+        f"{output_filepath}0001.png"]
 
 
 def create_argparse():
     parser = argparse.ArgumentParser(
         description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
     )
-    parser.add_argument("--blender", required=True)
-    parser.add_argument("--testdir", required=True)
-    parser.add_argument("--outdir", required=True)
-    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--blender", required=True, type=Path)
+    parser.add_argument("--testdir", required=True, type=Path)
+    parser.add_argument("--outdir", required=True, type=Path)
+    parser.add_argument("--oiiotool", required=True, type=Path)
     parser.add_argument('--batch', default=False, action='store_true')
     return parser
 

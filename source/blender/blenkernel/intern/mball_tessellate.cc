@@ -354,7 +354,7 @@ static float densfunc(const MetaElem *ball, float x, float y, float z)
         dvec[0] = 0.0;
       }
       break;
-    case MB_ELIPSOID:
+    case MB_ELLIPSOID:
       dvec[0] /= ball->expx;
       dvec[1] /= ball->expy;
       dvec[2] /= ball->expz;
@@ -1309,7 +1309,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
         case MB_TUBE: /* tube is "expanded" by expx */
           expx += ml.expx;
           break;
-        case MB_ELIPSOID: /* ellipsoid is "stretched" by exp* */
+        case MB_ELLIPSOID: /* ellipsoid is "stretched" by exp* */
           expx *= ml.expx;
           expy *= ml.expy;
           expz *= ml.expz;

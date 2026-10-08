@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_light_shared.hh"
 #include "eevee_lightprobe_sphere.bsl.hh"
@@ -15,7 +13,6 @@
 #include "gpu_shader_math_matrix_construct.bsl.hh"
 #include "gpu_shader_math_spherical_harmonics.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee::lightprobe::sphere {
 
@@ -119,7 +116,7 @@ void remap_cubemap_to_octahedral([[resource_table]] Remap &srt,
                                  [[local_invocation_index]] const uint local_index)
 {
   const uint work_group_index = num_groups.x * group_id.y + group_id.x;
-  constexpr uint group_size = SPHERE_PROBE_REMAP_GROUP_SIZE * SPHERE_PROBE_REMAP_GROUP_SIZE;
+  constexpr uint group_size = uint(SPHERE_PROBE_REMAP_GROUP_SIZE * SPHERE_PROBE_REMAP_GROUP_SIZE);
 
   SphereProbeUvArea world_coord = reinterpret_as_atlas_coord(srt.world_coord_packed);
   SphereProbePixelArea write_coord = reinterpret_as_write_coord(srt.write_coord_packed);
@@ -368,14 +365,13 @@ void mip_convolve([[resource_table]] Convolve &srt, [[global_invocation_id]] con
 
   int sample_count = sample_count_get();
   for (int i = 0; i < sample_count; i++) {
-    float2 rand = hammersley_2d(i, sample_count);
+    float2 rand = random::hammersley_2d(i, sample_count);
     float3 in_direction = basis * sample_uniform_cone(rand, cone_cos);
 
-#ifndef ALWAYS_SAMPLE_CUBEMAP
     float2 in_uv = direction_to_uv(in_direction, float(srt.read_lod), sample_coord);
     float4 radiance = texture(srt.in_atlas_mip_tx, float3(in_uv, sample_coord.layer));
-#else /* For reference and debugging. */
-    float4 radiance = texture(cubemap_tx, in_direction);
+#ifdef ALWAYS_SAMPLE_CUBEMAP /* For reference and debugging. */
+    radiance = texture(srt.cubemap_tx, in_direction);
 #endif
 
     float weight = sample_weight(out_direction, in_direction, mip_roughness_clamped);
@@ -405,7 +401,7 @@ struct IrradianceSum {
 void irradiance_sum([[resource_table]] IrradianceSum &srt,
                     [[local_invocation_index]] const uint local_index)
 {
-  constexpr uint group_size = SPHERE_PROBE_SH_GROUP_SIZE;
+  constexpr uint group_size = uint(SPHERE_PROBE_SH_GROUP_SIZE);
 
   SphericalHarmonicL1<float4> sh;
   sh.L0.M0 = float4(0.0f);
@@ -470,7 +466,7 @@ struct SunExtraction {
 void sun_extraction([[resource_table]] SunExtraction &srt,
                     [[local_invocation_index]] const uint local_index)
 {
-  constexpr uint group_size = SPHERE_PROBE_SH_GROUP_SIZE;
+  constexpr uint group_size = uint(SPHERE_PROBE_SH_GROUP_SIZE);
 
   SphereProbeSunLight sun;
   sun.radiance = float3(0.0f);

@@ -113,11 +113,21 @@ template<typename PassType>
 PassType *volume_world_grids_init(PassType &ps, ListBaseWrapper<GPUMaterialAttribute> &attrs)
 {
   VolumeModule &module = *drw_get().data->volume_module;
+  VolumeInfosBuf &volume_infos = *module.ubo_pool.alloc();
+  volume_infos.density_scale = 1.0f;
+  volume_infos.color_mul = float4(1.0f);
+  volume_infos.temperature_mul = 1.0f;
+  volume_infos.temperature_bias = 0.0f;
+  for (int i : IndexRange(DRW_GRID_PER_VOLUME_MAX)) {
+    volume_infos.grids_xform[i] = float4x4::identity();
+  }
+  volume_infos.push_update();
 
   PassType *sub = &ps.sub("World Volume");
   for (const GPUMaterialAttribute *attr : attrs) {
     sub->bind_texture(attr->input_name, module.grid_default_texture(attr->default_value));
   }
+  sub->bind_ubo("drw_volume", volume_infos);
 
   return sub;
 }

@@ -32,7 +32,7 @@ CacheItem *CacheChannel::_findBlock(CacheBuffer *buffer, unsigned short timeOffs
 		return &buffer->m_firstItem;
 	}
 	// general case, the item is in the middle of the buffer
-	// before doing a dycotomic search, we will assume that timestamp
+	// before doing a dichotomic search, we will assume that timestamp
 	// are regularly spaced so that we can try to locate the block directly
 	highBlock = buffer->m_lastItemPositionW>>m_positionToBlockShiftW;
 	lowBlock = midBlock = (timeOffset*highBlock)/(buffer->m_lastTimestamp-buffer->m_firstTimestamp);
@@ -52,12 +52,12 @@ CacheItem *CacheChannel::_findBlock(CacheBuffer *buffer, unsigned short timeOffs
 			highBlock = midBlock;
 		}
 	}
-	// the item is in a different block, do a dycotomic search
+	// the item is in a different block, do a dichotomic search
 	// the timestamp is alway > lowBlock and <= highBlock
 	while (1) {
 		midBlock = (lowBlock+highBlock)/2;
 		if (midBlock == lowBlock) {
-			// low block and high block are contigous, we can start search from the low block
+			// low block and high block are contiguous, we can start search from the low block
 			break;
 		} else if (timeOffset <= buffer->lookup[midBlock].m_timeOffset) {
 			highBlock = midBlock;

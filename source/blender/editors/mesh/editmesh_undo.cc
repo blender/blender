@@ -381,9 +381,10 @@ static void um_arraystore_cd_clear(CustomData *cdata)
   }
 }
 
-static void *get_arraystore_data(const BArrayState *state,
-                                 const size_t data_len,
-                                 const eCustomDataType type)
+/** Get a copy of the layer's data as raw bytes. */
+static uint8_t *get_arraystore_data(const BArrayState *state,
+                                    const size_t data_len,
+                                    const eCustomDataType type)
 {
   size_t state_len;
   void *data = BLI_array_store_state_data_get_alloc(state, &state_len);
@@ -411,7 +412,7 @@ static void *get_arraystore_data(const BArrayState *state,
   BLI_assert(stride * data_len == state_len);
   UNUSED_VARS_NDEBUG(stride, data_len);
 
-  return data;
+  return static_cast<uint8_t *>(data);
 }
 
 /**
@@ -457,7 +458,7 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
       continue;
     }
 
-    void *data = get_arraystore_data(state, data_len, type);
+    uint8_t *data = get_arraystore_data(state, data_len, type);
     layer.data = data;
     layer.sharing_info = implicit_sharing::info_for_mem_free(data);
   }
@@ -482,10 +483,10 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
     }
     else {
       const BArrayState *state = bcd->trivial_arrays.lookup(type)[i];
-      array_data.data = get_arraystore_data(state, data_len, type);
+      uint8_t *data = get_arraystore_data(state, data_len, type);
+      array_data.data = data;
       array_data.size = data_len;
-      array_data.sharing_info = ImplicitSharingPtr<>(
-          implicit_sharing::info_for_mem_free(array_data.data));
+      array_data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data));
     }
 
     attribute->assign_data(std::move(array_data));

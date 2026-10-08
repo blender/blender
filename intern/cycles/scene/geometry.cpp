@@ -493,7 +493,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
         /* Attributes might need to be tessellated if added. */
         if (geom->is_mesh()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
-          if (mesh->need_tesselation()) {
+          if (mesh->need_tessellation()) {
             mesh->tag_modified();
           }
         }
@@ -505,7 +505,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
         /* Attributes might need to be tessellated if added. */
         if (geom->is_mesh()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
-          if (mesh->need_tesselation()) {
+          if (mesh->need_tessellation()) {
             mesh->tag_modified();
           }
         }
@@ -854,7 +854,7 @@ void GeometryManager::device_update(Device *device,
           Mesh *mesh = static_cast<Mesh *>(geom);
 
           /* Test if we need tessellation and setup normals if required. */
-          if (mesh->need_tesselation()) {
+          if (mesh->need_tessellation()) {
             num_tessellation++;
             /* OPENSUBDIV Catmull-Clark does not make use of input normals and will overwrite them.
              */
@@ -939,7 +939,7 @@ void GeometryManager::device_update(Device *device,
     /* Apply generated attribute if needed or remove if not needed */
     mesh->update_generated(scene);
 
-    if (num_tessellation && mesh->need_tesselation()) {
+    if (num_tessellation && mesh->need_tessellation()) {
       {
         const thread_scoped_lock status_lock(status_mutex);
         string msg = "Tessellating ";

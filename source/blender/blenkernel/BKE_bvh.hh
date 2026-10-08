@@ -148,13 +148,13 @@ class Tree {
   /**
    * Create a BVH tree from a subset of the given points. Query results reference indices in the
    * full #positions array rather than indices in the mask.
-   * \note Memory referenced by the span must live at least as long as the tree.`
+   * \note Memory referenced by the span must live at least as long as the tree.
    */
   static Tree from_points(Span<float3> positions, const IndexMask &mask);
   /**
    * Create a BVH tree from a subset of the given edges. Query results reference indices in the
    * full #edges array rather than indices in the mask.
-   * \note Memory referenced by the span must live at least as long as the tree.`
+   * \note Memory referenced by the span must live at least as long as the tree.
    */
   static Tree from_edges(Span<float3> positions, Span<int2> edges, const IndexMask &mask);
 

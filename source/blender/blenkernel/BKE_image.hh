@@ -31,6 +31,7 @@ class ColorSpace;
 using ColorSpace = ocio::ColorSpace;
 
 struct rcti;
+struct ColorManagedColorspaceSettings;
 struct Depsgraph;
 struct ID;
 struct ImBuf;
@@ -156,12 +157,12 @@ MovieReader *openanim(const char *filepath,
                       ImBufFlags ibuf_flags,
                       int streamindex,
                       bool keep_original_colorspace,
-                      char colorspace[IMA_MAX_SPACE]);
+                      ColorManagedColorspaceSettings *colorspace_settings);
 MovieReader *openanim_noload(const char *filepath,
                              ImBufFlags flags,
                              int streamindex,
                              bool keep_original_colorspace,
-                             char colorspace[IMA_MAX_SPACE]);
+                             ColorManagedColorspaceSettings *colorspace_settings);
 
 /* ********************************** NEW IMAGE API *********************** */
 

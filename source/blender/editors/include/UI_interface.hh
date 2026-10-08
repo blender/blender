@@ -42,24 +42,6 @@ struct SearchItems;
 void button_func_set(Button *but, std::function<void(bContext &)> func);
 void button_func_pushed_state_set(Button *but, std::function<bool(const Button &)> func);
 
-/**
- * Template generating a freeing callback matching the #uiButArgNFree signature, for data created
- * with #MEM_new.
- */
-template<typename T> void but_func_argN_free(void *argN)
-{
-  MEM_delete(static_cast<T *>(argN));
-}
-
-/**
- * Template generating a copying callback matching the #uiButArgNCopy signature, for data created
- * with #MEM_new.
- */
-template<typename T> void *but_func_argN_copy(const void *argN)
-{
-  return MEM_new<T>(__func__, *static_cast<const T *>(argN));
-}
-
 class AbstractGridView;
 class AbstractTreeView;
 class DropTargetInterface;
@@ -76,13 +58,18 @@ struct ContextPathItem {
   int icon_indicator_number;
 
   std::function<void(bContext &)> handle_func;
+  /* Optional dropdown menu opened by the arrow button. */
+  MenuCreateFunc menu_func;
+  void *menu_arg;
 };
 
 void context_path_add_generic(Vector<ContextPathItem> &path,
                               StructRNA &rna_type,
                               void *ptr,
                               const BIFIconID icon_override = ICON_NONE,
-                              std::function<void(bContext &)> handle_func = nullptr);
+                              std::function<void(bContext &)> handle_func = nullptr,
+                              MenuCreateFunc menu_func = nullptr,
+                              void *menu_arg = nullptr);
 
 void template_breadcrumbs(Layout &layout, Span<ContextPathItem> context_path);
 

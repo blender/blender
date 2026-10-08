@@ -44,6 +44,7 @@ struct ImageData : NonCopyable {
   ~ImageData();
 
   static std::unique_ptr<ImageData> init_active_image(Object &ob, ImagePaintSettings &settings);
+  static std::unique_ptr<ImageData> init_mask_image(ImagePaintSettings &settings);
   const ImageUser &image_user_get() const
   {
     if (std::holds_alternative<ImageUser *>(image_user)) {

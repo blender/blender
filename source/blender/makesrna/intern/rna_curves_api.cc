@@ -60,9 +60,9 @@ static std::optional<IndexMask> rna_indices_to_mask(const IndexRange universe,
     return IndexMask(universe);
   }
   const Span<int> indices(indices_ptr, indices_num);
-  if (std::any_of(indices.begin(), indices.end(), [&](const int index) {
-        return !universe.contains(index);
-      }))
+  if (std::any_of(indices.begin(),
+                  indices.end(),
+                  [&](const int index) { return !universe.contains(index); }))
   {
     BKE_report(&reports, RPT_ERROR, "Indices must be in range");
     return std::nullopt;

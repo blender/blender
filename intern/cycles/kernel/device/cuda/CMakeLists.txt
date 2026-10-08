@@ -92,7 +92,7 @@ function(cuda_get_toolkit_for_arch arch out_root_dir out_nvcc_executable out_ver
   #
   # For the sm we choose the highest available toolkit to take advantage of the new
   # compiler, potentially improving performance.
-  # For the compute we choose the oldest toolit to improve compatibility with the
+  # For the compute we choose the oldest toolkit to improve compatibility with the
   # client-side drivers.
   set(_preferred_toolkits_sm      13 12)
   set(_preferred_toolkits_compute 12 13)
@@ -197,9 +197,13 @@ function(cuda_add_common_flags cuda_version arch in_flags out_flags)
     set(flags ${flags} -D WITH_NANOVDB)
   endif()
 
-  if("${cuda_version}" VERSION_GREATER_EQUAL 12.3 AND "${arch}" STREQUAL "sm_120")
-    # Enable jump table generation for the SVM switch statement.
-    set(flags ${flags} --jump-table-density 80)
+  if("${cuda_version}" VERSION_GREATER_EQUAL 12.3)
+    string(REPLACE "compute_" "" sm_version "${arch}")
+    string(REPLACE "sm_" "" sm_version "${sm_version}")
+    # Enable jump table generation for the SVM switch statement where it benefits.
+    if(sm_version GREATER_EQUAL 120)
+      set(flags ${flags} --jump-table-density 80)
+    endif()
   endif()
 
   if(NOT WITH_CYCLES_CUDA_BUILD_SERIAL AND "${cuda_version}" VERSION_GREATER_EQUAL 12.9)
@@ -215,10 +219,7 @@ function(cuda_add_common_flags cuda_version arch in_flags out_flags)
 endfunction()
 
 if(WITH_CYCLES_CUDA_BINARIES)
-  # 64 bit only
-  set(CUDA_BITS 64)
-
-  # warn for other versions
+  # Warn for other versions.
   if((CUDA_VERSION_MAJOR STREQUAL "12") OR
      (CUDA_VERSION_MAJOR STREQUAL "13"))
   else()
@@ -227,7 +228,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
       "build may succeed but only CUDA 13 and 12 have been tested")
   endif()
 
-  # build for each arch
+  # Build for each architecture.
   set(cuda_sources kernel.cu
     ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
     $<TARGET_PROPERTY:cycles_kernel,INTERFACE_SOURCES>
@@ -261,7 +262,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
       -D CCL_NAMESPACE_END=
       -D NVCC
       -D _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH
-      -m ${CUDA_BITS}
       -I ${CMAKE_CURRENT_SOURCE_DIR}/../../..
       -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_file})
 

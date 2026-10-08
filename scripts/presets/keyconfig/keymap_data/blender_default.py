@@ -2347,6 +2347,7 @@ def km_node_editor(params):
          {"properties": [("run_in_geometry_nodes", True)]}),
         ("node.connect_to_output", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("run_in_geometry_nodes", False)]}),
+        # For shader editor and compositor.
         ("node.connect_to_output", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
          {"properties": [("run_in_geometry_nodes", False)]}),
         ("node.backimage_move", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "alt": True}, None),
@@ -3167,9 +3168,10 @@ def km_sequencer(params):
          {"properties": [("linked_time", True), ("extend", True)]}),
         ("sequencer.select", {"type": params.select_mouse, "value": 'CLICK', "ctrl": True},
          {"properties": [("side_of_frame", True)]}),
-        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "alt": True},
+        ("sequencer.select", {"type": params.select_mouse, "value": params.select_mouse_value_fallback, "alt": True},
          {"properties": [("deselect_all", True), ("ignore_connections", True)]}),
-        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "alt": True, "shift": True},
+        ("sequencer.select",
+         {"type": params.select_mouse, "value": params.select_mouse_value_fallback, "alt": True, "shift": True},
          {"properties": [("toggle", True), ("ignore_connections", True)]}),
         ("sequencer.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("sequencer.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
@@ -3188,7 +3190,6 @@ def km_sequencer(params):
         ("sequencer.select_box", {"type": 'B', "value": 'PRESS'}, None),
         ("sequencer.select_box", {"type": 'B', "value": 'PRESS', "ctrl": True},
          {"properties": [("include_handles", True)]}),
-        ("sequencer.select_circle", {"type": 'C', "value": 'PRESS'}, None),
         ("sequencer.select_grouped", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         *_template_items_select_actions(params, "sequencer.select_all"),
         ("sequencer.select_side_of_frame", {"type": 'LEFT_BRACKET', "value": 'PRESS'},
@@ -3196,9 +3197,9 @@ def km_sequencer(params):
         ("sequencer.select_side_of_frame", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
          {"properties": [("side", 'RIGHT')]}),
         ("sequencer.split", {"type": 'K', "value": 'PRESS'},
-         {"properties": [("type", 'SOFT')]}),
+         {"properties": [("type", 'SOFT'), ("only_selected", True)]}),
         ("sequencer.split", {"type": 'K', "value": 'PRESS', "shift": True},
-         {"properties": [("type", 'HARD')]}),
+         {"properties": [("type", 'HARD'), ("only_selected", True)]}),
         ("sequencer.mute", {"type": 'H', "value": 'PRESS'},
          {"properties": [("unselected", False)]}),
         ("sequencer.mute", {"type": 'H', "value": 'PRESS', "shift": True},
@@ -3224,6 +3225,10 @@ def km_sequencer(params):
         ("sequencer.delete", {"type": 'DEL', "value": 'PRESS'}, None),
         ("sequencer.ripple_delete", {"type": 'X', "value": 'PRESS', "shift": True}, None),
         ("sequencer.ripple_delete", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
+        ("sequencer.ripple_trim", {"type": 'Q', "value": 'PRESS', "shift": True},
+         {"properties": [("side", 'LEFT')]}),
+        ("sequencer.ripple_trim", {"type": 'W', "value": 'PRESS', "shift": True},
+         {"properties": [("side", 'RIGHT')]}),
         ("sequencer.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.paste", {"type": 'V', "value": 'PRESS', "ctrl": True, "shift": True},
@@ -3264,7 +3269,9 @@ def km_sequencer(params):
              )
         ),
         op_menu("SEQUENCER_MT_add", {"type": 'A', "value": 'PRESS', "shift": True}),
-        op_menu("SEQUENCER_MT_change", {"type": 'C', "value": 'PRESS', "shift": True}),
+        op_menu("SEQUENCER_MT_change", {"type": 'C', "value": 'PRESS', "shift": True, "ctrl": True}),
+        ("wm.tool_set_by_id_hold", {"type": 'C', "value": 'PRESS'},
+         {"properties": [("name", "builtin.blade")]}),
         op_menu_pie("SEQUENCER_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}),
         ("sequencer.slip", {"type": 'S', "value": 'PRESS'}, {"properties": [("use_cursor_position", False)]}),
         ("wm.context_set_int", {"type": 'O', "value": 'PRESS'},
@@ -4102,12 +4109,8 @@ def km_grease_pencil_paint_mode(params):
         # Lasso/Box erase
         ("grease_pencil.erase_lasso", {"type": 'RIGHTMOUSE', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         ("grease_pencil.erase_box", {"type": "B", "value": 'PRESS'}, {"properties": [("wait_for_input", True)]}),
-        # Brush size
-        ("wm.radial_control", {"type": 'F', "value": 'PRESS'},
-         {"properties": [("data_path_primary", "tool_settings.gpencil_paint.brush.size")]}),
-        # Brush strength
-        ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path_primary", "tool_settings.gpencil_paint.brush.strength")]}),
+        # Radial controls
+        *_template_paint_radial_control("gpencil_paint"),
 
         *_template_asset_shelf_popup("VIEW3D_AST_brush_gpencil_paint", params.spacebar_action),
 
@@ -6283,6 +6286,10 @@ def km_transform_modal_map(params):
         ("PRECISION", {"type": 'LEFT_SHIFT', "value": 'ANY', "any": True}, None),
         ("PRECISION", {"type": 'RIGHT_SHIFT', "value": 'ANY', "any": True}, None),
         ("STRIP_CLAMP_TOGGLE", {"type": 'C', "value": 'PRESS', "any": True}, None),
+        ("STRIP_OVERLAP_SHUFFLE", {"type": 'S', "value": 'PRESS'}, None),
+        ("STRIP_OVERLAP_RIPPLE", {"type": 'R', "value": 'PRESS'}, None),
+        ("STRIP_OVERLAP_OVERWRITE", {"type": 'V', "value": 'PRESS'}, None),
+        ("STRIP_RIPPLE_INSERT", {"type": 'I', "value": 'PRESS'}, None),
     ])
 
     if params.use_alt_navigation:
@@ -8794,6 +8801,10 @@ def km_sequencer_tool_generic_select_lcs(_params):
          {"properties": [("deselect_all", True)]}),
         ("sequencer.select", {"type": 'LEFTMOUSE', "value": 'PRESS',
          "shift": True}, {"properties": [("toggle", True)]}),
+        ("sequencer.select", {"type": 'LEFTMOUSE', "value": 'PRESS',
+         "alt": True}, {"properties": [("deselect_all", True), ("ignore_connections", True)]}),
+        ("sequencer.select", {"type": 'LEFTMOUSE', "value": 'PRESS',
+         "shift": True, "alt": True}, {"properties": [("toggle", True), ("ignore_connections", True)]}),
         ("anim.change_frame", {"type": 'RIGHTMOUSE', "value": 'PRESS',
          "shift": True}, {"properties": [("seq_solo_preview", True), ("pass_through_on_strip_handles", False)]}),
     ]
@@ -8930,21 +8941,25 @@ def km_sequencer_tool_blade(_params):
         "Sequencer Tool: Blade",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
+            # Split.
             ("sequencer.split", {"type": 'LEFTMOUSE', "value": 'CLICK'},
              {"properties": [
-                 ("type", 'SOFT'),
                  ("side", 'NO_CHANGE'),
                  ("use_cursor_position", True),
-                 ("ignore_selection", True),
              ]}),
             ("sequencer.split", {"type": 'LEFTMOUSE', "value": 'CLICK', "alt": True},
              {"properties": [
-                 ("type", 'SOFT'),
                  ("side", 'NO_CHANGE'),
                  ("use_cursor_position", True),
-                 ("ignore_selection", True),
                  ("ignore_connections", True),
              ]}),
+            ("sequencer.split", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True},
+             {"properties": [
+                 ("side", 'NO_CHANGE'),
+                 ("use_cursor_position", True),
+                 ("all_channels", True),
+             ]}),
+            # Box Blade.
             ("sequencer.box_blade", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, {"properties": []}),
             ("sequencer.box_blade", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True},
              {"properties": [

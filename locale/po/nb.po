@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
 "PO-Revision-Date: 2026-01-30 13:12+0000\n"
 "Last-Translator: Martin Hansen <martini-141@users.noreply.translate.blender.org>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
@@ -3792,6 +3792,10 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "Fant ikke et fargerom, visning eller skjerm, noe som sannsynligvis betyr at OpenColorIO-oppsettet brukt til opprettelse av denne blend-fila mangler"
 
 
+msgid "Blender"
+msgstr "Blender"
+
+
 msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
 msgstr "Fargerom brukt for alle lineære scenefarger i denne fila, og for sammensetting, skyggelegging og behandling av geometrinoder"
 
@@ -5114,10 +5118,6 @@ msgstr "Språk"
 
 msgid "Python"
 msgstr "Python"
-
-
-msgid "Blender"
-msgstr "Blender"
 
 
 msgid "System"

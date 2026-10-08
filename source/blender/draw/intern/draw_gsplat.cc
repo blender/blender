@@ -209,7 +209,7 @@ void DRW_gsplat_ensure_ellipses_radiance(draw::Manager &manager, draw::View &vie
 
 bool pointcloud_is_gsplat(Object *object)
 {
-  /* GSplats and pointclouds share the base DNA type. We treat them separately
+  /* GSplats and point-clouds share the base DNA type. We treat them separately
    * in draw engines as the implementations are quite different. This check is
    * done often, so it is kept as a helper function for now. */
   if (object->type == OB_POINTCLOUD) {

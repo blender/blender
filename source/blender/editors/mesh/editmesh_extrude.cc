@@ -851,8 +851,9 @@ static wmOperatorStatus edbm_dupli_extrude_cursor_invoke(bContext *C,
         EDBM_op_callf(
             bm, op, "rotate verts=%hv cent=%v matrix=%m3", BM_ELEM_SELECT, local_center, mat);
 
-        /* Also project the source, for retopology workflow. */
-        if (use_proj) {
+        /* Re-project the rotated source for the retopology workflow.
+         * Check `done` so a single vertex source for example doesn't project, see: #89647. */
+        if (done && use_proj) {
           EDBM_project_snap_verts(C, depsgraph, vc.region, vc.obedit);
         }
       }

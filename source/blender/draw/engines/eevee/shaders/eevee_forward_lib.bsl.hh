@@ -10,38 +10,20 @@
  * This is used by alpha blended materials and materials using Shader to RGB nodes.
  */
 
-#include "infos/eevee_geom_infos.hh"
-
 #include "draw_model.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_light_eval.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
 #include "eevee_lightprobe_plane.bsl.hh"
-#include "eevee_nodetree_closures_lib.glsl"
+#include "eevee_nodetree_closures_lib.bsl.hh"
 #include "eevee_nodetree_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_subsurface_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 
-#ifdef GLSL_CPP_STUBS
-#  define MAT_REFLECTION
-#endif
-
-/* Allow static compilation of forward materials. */
-#ifndef CLOSURE_BIN_COUNT
-#  define CLOSURE_BIN_COUNT SRT_CONSTANT_light_closure_eval_count
-#endif
-
-#ifndef GLSL_CPP_STUBS
-#  if CLOSURE_BIN_COUNT != SRT_CONSTANT_light_closure_eval_count && \
-      SRT_CONSTANT_light_closure_eval_count != 0
-#    error Closure data count and eval count must match
-#  endif
-#endif
-
 namespace eevee {
 
-void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
+void forward_lighting_eval(KernelGlobals &kg,
                            const ShadingData &sd,
                            const ViewMatrices view,
                            uint resource_id,
@@ -50,22 +32,22 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
                            float3 &radiance,
                            float3 &transmittance)
 {
-  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
-  if (pipe.use_forward_lighting) [[static_branch]] {
-    [[resource_table]] LightEvalIterator &lights = kg.light_eval;
-    [[resource_table]] const Uniform &uni = kg.uniforms;
-    [[resource_table]] LightprobeRenderData &lightprobes = kg.lightprobes;
-    [[resource_table]] LightprobePlaneRenderData &lightprobe_planes = kg.lightprobe_planes;
-    [[resource_table]] LightEvalData &srt = lights.inner;
-    [[resource_table]] draw::Infos &infos = kg.infos;
+  const eevee::PipelineConstants &pipe = kg.pipe;
+  if (!pipe.is_occupancy_pipe && pipe.use_forward_lighting) [[static_branch]] {
+    LightEvalIterator &lights = kg.light_eval;
+    const Uniform &uni = kg.uniforms;
+    LightprobeRenderData &lightprobes = kg.lightprobes;
+    LightprobePlaneRenderData &lightprobe_planes = kg.lightprobe_planes;
+    LightEvalData &srt = lights.inner;
+    draw::Infos &infos = kg.infos;
 
     float vPz = dot(view.forward(), sd.P) - dot(view.forward(), view.position());
     float3 V = view.world_incident_vector(sd.P);
 
     light::EvalCtx<false> ctx;
     for (uint i = 0u; i < 3; i++) [[unroll]] {
-      if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
-        ClosureUndetermined cl = sd.closure_get(uchar(i)).data;
+      if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
+        ClosureUndetermined cl = sd.closure_get(pipe, uchar(i)).data;
         ctx.stack.cl[i] = closure_light_new(kg.util_tx, cl, V);
       }
     }
@@ -82,11 +64,13 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
     ctx.receiver_light_set = receiver_light_set_get(object_infos);
     ctx.terminator_normal_offset = object_infos.shadow_terminator_normal_offset;
     ctx.terminator_geometry_offset = object_infos.shadow_terminator_geometry_offset;
+    ctx.ray_count = uni.uniform_buf.shadow.ray_count;
+    ctx.ray_step_count = uni.uniform_buf.shadow.step_count;
 
     lights.eval_reflection(ctx, vPz);
 
-    if (srt.light_closure_eval_count_transmit > 0) [[static_branch]] {
-      ClosureUndetermined cl_transmit = sd.closure_get(0).data;
+    if (srt.constants.light_closure_eval_count_transmit > 0) [[static_branch]] {
+      ClosureUndetermined cl_transmit = sd.closure_get(pipe, 0).data;
       if (closure_has_transmission(cl_transmit.type) ||
           cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID)
       {
@@ -97,13 +81,13 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
         lights.eval_transmission(ctx_tr, vPz);
 
         if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
-#if defined(GLSL_CPP_STUBS) || defined(MAT_SUBSURFACE)
-          /* Apply transmission profile onto transmitted light and sum with reflected light. */
-          float3 sss_profile = subsurface_transmission(
-              kg.util_tx, to_closure_subsurface(cl_transmit).sss_radius, thickness.value());
-          ctx.stack.cl[0].light_shadowed += ctx_tr.stack.cl[0].light_shadowed * sss_profile;
-          ctx.stack.cl[0].light_unshadowed += ctx_tr.stack.cl[0].light_unshadowed * sss_profile;
-#endif
+          if (pipe.use_sss) [[static_branch]] {
+            /* Apply transmission profile onto transmitted light and sum with reflected light. */
+            float3 sss_profile = subsurface_transmission(
+                kg.util_tx, to_closure_subsurface(cl_transmit).sss_radius, thickness.value());
+            ctx.stack.cl[0].light_shadowed += ctx_tr.stack.cl[0].light_shadowed * sss_profile;
+            ctx.stack.cl[0].light_unshadowed += ctx_tr.stack.cl[0].light_unshadowed * sss_profile;
+          }
         }
         else {
           ctx.stack.cl[0].light_shadowed = ctx_tr.stack.cl[0].light_shadowed;
@@ -118,15 +102,15 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
     samp.volume_irradiance = spherical_harmonics::clamp_energy(samp.volume_irradiance,
                                                                clamp_indirect_sh);
 
-#ifdef MAT_REFLECTION /* Disable if only rough surfaces. */
     /* Planar reflection. */
     float3 planar_probe_radiance = float3(0.0f);
     float3 average_N = sd.Ng * 0.001f;
-    {
+    /* Disable if only rough surfaces. */
+    if (pipe.use_reflection) [[static_branch]] {
       /* Get average normal.  */
       for (uint i = 0u; i < 3; i++) [[unroll]] {
-        if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
-          ClosureUndetermined cl = sd.closure_get(uchar(i)).data;
+        if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
+          ClosureUndetermined cl = sd.closure_get(pipe, uchar(i)).data;
           average_N += cl.N * cl.weight();
         }
       }
@@ -156,26 +140,25 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
         }
       }
     }
-#endif
 
     /* Combine all radiance. */
     float3 radiance_direct = float3(0.0f);
     float3 radiance_indirect = float3(0.0f);
 
     for (uint i = 0u; i < 3; i++) [[unroll]] {
-      if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
-        ClosureUndetermined cl = sd.closure_get_resolved(uchar(i), 1.0f);
+      if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
+        ClosureUndetermined cl = sd.closure_get_resolved(pipe, uchar(i), 1.0f);
         if (cl.weight() > CLOSURE_WEIGHT_CUTOFF) {
           float3 direct_light = ctx.stack.cl[i].light_shadowed;
           float3 indirect_light = lightprobes.eval(samp, cl, sd.P, V, thickness);
 
-#ifdef MAT_REFLECTION
-          if (cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID) {
-            const float blend = saturate(to_closure_reflection(cl).roughness * -10.0f + 1.0f) *
-                                saturate(dot(average_N, cl.N) * 100.0f - 99.0f);
-            indirect_light = mix(indirect_light, planar_probe_radiance, blend);
+          if (kg.pipe.use_reflection) [[static_branch]] {
+            if (cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID) {
+              const float blend = saturate(to_closure_reflection(cl).roughness * -10.0f + 1.0f) *
+                                  saturate(dot(average_N, cl.N) * 100.0f - 99.0f);
+              indirect_light = mix(indirect_light, planar_probe_radiance, blend);
+            }
           }
-#endif
 
           if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
                cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) &&

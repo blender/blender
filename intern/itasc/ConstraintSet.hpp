@@ -27,7 +27,7 @@ enum ConstraintAction {
 
 struct ConstraintSingleValue {
 	unsigned int id;	// identifier of constraint value, depends on constraint
-	unsigned int action;// action performed, compbination of ACT_..., set on return
+	unsigned int action;// action performed, combination of ACT_..., set on return
 	const double y;		// actual constraint value
 	const double ydot;	// actual constraint velocity
 	double yd;			// current desired constraint value, changed on return

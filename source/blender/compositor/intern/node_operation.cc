@@ -13,6 +13,7 @@
 
 #include "GPU_debug.hh"
 
+#include "NOD_compositor_gizmos.hh"
 #include "NOD_eval_log.hh"
 
 #include "COM_algorithm_compute_preview.hh"
@@ -24,6 +25,7 @@
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
 #include "COM_utilities.hh"
+#include "COM_utilities_node_tree_logging.hh"
 
 namespace blender::compositor {
 
@@ -96,12 +98,7 @@ void NodeOperation::compute_results_reference_counts(const Schedule &schedule)
       continue;
     }
 
-    const int reference_count = number_of_inputs_linked_to_output_conditioned(
-        *output, [&](const bNodeSocket &input) {
-          return schedule.nodes.contains(&input.owner_node()) &&
-                 !schedule.unneeded_inputs.contains(&input);
-        });
-
+    const int reference_count = compute_output_reference_count(*output, schedule);
     this->get_result(output->identifier).set_reference_count(reference_count);
   }
 }
@@ -128,33 +125,6 @@ void NodeOperation::add_warning(nodes::NodeWarningType type, std::string message
                                    {this->node().identifier, {type, message}});
 }
 
-static destruct_ptr<nodes::eval_log::ImageInfoLog> get_image_info_log(LinearAllocator<> *allocator,
-                                                                      const Result &result)
-{
-  const Domain &domain = result.domain();
-  return allocator->construct<nodes::eval_log::ImageInfoLog>(
-      domain.data_size,
-      domain.display_size,
-      domain.data_offset,
-      domain.transformation,
-      to_string(domain.realization_options.interpolation),
-      to_string(domain.realization_options.extension_x),
-      to_string(domain.realization_options.extension_y),
-      to_string(result.precision()));
-}
-
-static destruct_ptr<nodes::eval_log::BundleValueLog> get_bundle_info_log(
-    Context &context, LinearAllocator<> *allocator, const Result &result)
-{
-  Vector<nodes::eval_log::BundleValueLog::Item> items;
-  for (const auto &item : result.get_single_value<nodes::BundlePtr>()->items()) {
-    Result bundle_result = BundleItem::get_result(context, item.value);
-    BLI_SCOPED_DEFER([&]() { bundle_result.release(); });
-    items.append({item.key.ustr(), {Result::type_name(bundle_result.type())}});
-  }
-  return allocator->construct<nodes::eval_log::BundleValueLog>(std::move(items));
-}
-
 void NodeOperation::log_data()
 {
   nodes::eval_log::NodesEvalLog *log = this->context().nodes_evaluation_log();
@@ -162,6 +132,10 @@ void NodeOperation::log_data()
     return;
   }
   nodes::eval_log::NodeTreeLogger &tree_logger = log->get_local_tree_logger(*compute_context_);
+
+  if (nodes::gizmos::node_has_gizmo(this->node())) {
+    tree_logger.evaluated_gizmo_nodes.append(*tree_logger.allocator, {node_.identifier});
+  }
 
   /* Log input values. */
   for (const bNodeSocket *input_socket : this->node().input_sockets()) {
@@ -175,23 +149,7 @@ void NodeOperation::log_data()
     }
 
     const Result &input = this->get_input(input_socket->identifier);
-    if (input.is_single_value()) {
-      if (input.type() == ResultType::Bundle) {
-        tree_logger.input_socket_values.append(
-            *tree_logger.allocator,
-            {node_.identifier,
-             input_socket->index(),
-             get_bundle_info_log(this->context(), tree_logger.allocator, input)});
-        continue;
-      }
-      tree_logger.log_value(this->node(), *input_socket, input.single_value());
-      continue;
-    }
-
-    tree_logger.input_socket_values.append(*tree_logger.allocator,
-                                           {node_.identifier,
-                                            input_socket->index(),
-                                            get_image_info_log(tree_logger.allocator, input)});
+    log_result(this->context(), tree_logger, *input_socket, input);
   }
 
   /* Log output values. */
@@ -201,36 +159,14 @@ void NodeOperation::log_data()
     }
 
     const Result &result = this->get_result(output_socket->identifier);
-    if (!result.is_allocated()) {
-      continue;
-    }
-
-    if (result.is_single_value()) {
-      if (result.type() == ResultType::Bundle) {
-        tree_logger.output_socket_values.append(
-            *tree_logger.allocator,
-            {node_.identifier,
-             output_socket->index(),
-             get_bundle_info_log(this->context(), tree_logger.allocator, result)});
-        continue;
-      }
-      tree_logger.log_value(this->node(), *output_socket, result.single_value());
-      continue;
-    }
-
-    tree_logger.output_socket_values.append(*tree_logger.allocator,
-                                            {node_.identifier,
-                                             output_socket->index(),
-                                             get_image_info_log(tree_logger.allocator, result)});
+    log_result(this->context(), tree_logger, *output_socket, result);
   }
 
   /* Log node preview if they are needed and the node group is active. */
   const bool node_needs_preview = is_node_preview_needed(this->node());
   const bool needs_node_previews = flag_is_set(this->context().needed_side_effect_output_types(),
                                                SideEffectOutputTypes::NodePreviews);
-  const bool is_active_context = compute_context_->hash() ==
-                                 this->context().get_active_compute_context_hash();
-  if (node_needs_preview && needs_node_previews && is_active_context) {
+  if (node_needs_preview && needs_node_previews) {
     const Result *result = this->get_preview_result();
     if (result && !result->is_single_value()) {
       ImBuf *preview = compositor::compute_preview(this->context(), *result);

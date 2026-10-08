@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -2644,6 +2644,10 @@ msgid "Collection of worlds"
 msgstr "Kolekce se slovy"
 
 
+msgid "Project"
+msgstr "Projekce"
+
+
 msgctxt "ID"
 msgid "ID Type"
 msgstr "ID typ"
@@ -2651,6 +2655,10 @@ msgstr "ID typ"
 
 msgid "Dirty"
 msgstr "Špinavé"
+
+
+msgid "Path"
+msgstr "Cesta"
 
 
 msgid "Blender RNA"
@@ -3534,6 +3542,10 @@ msgstr "Faktor zjednodušení pomocí adaptivního algoritmu"
 
 msgid "Active Layer"
 msgstr "Aktivní vrstva"
+
+
+msgid "Cyclic"
+msgstr "Cyklický"
 
 
 msgid "Affect Position"
@@ -4965,10 +4977,6 @@ msgid "Target Object (Curves only)"
 msgstr "Vytvořit proxy objekt"
 
 
-msgid "Cyclic"
-msgstr "Cyklický"
-
-
 msgid "Copy Location Constraint"
 msgstr "Kopírovat omezení umístění"
 
@@ -5568,10 +5576,6 @@ msgstr "Nejbližší Povrchový Bod"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Odstranit označené Objekt(y)"
-
-
-msgid "Project"
-msgstr "Projekce"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -9318,10 +9322,6 @@ msgid "Map Taper"
 msgstr "Stejné typy"
 
 
-msgid "Path"
-msgstr "Cesta"
-
-
 msgid "Follow"
 msgstr "Následovat Cestu"
 
@@ -9796,10 +9796,6 @@ msgstr "V"
 
 msgid "W"
 msgstr "W"
-
-
-msgid "Path to the library .blend file"
-msgstr "Uložit současný soubor Blenderu"
 
 
 msgid "Version of Blender the library .blend was saved with"
@@ -13150,22 +13146,6 @@ msgid "Type of event"
 msgstr "Typ události"
 
 
-msgid "Press"
-msgstr "Stisknout"
-
-
-msgid "Release"
-msgstr "Pustit"
-
-
-msgid "Click"
-msgstr "Klik"
-
-
-msgid "Double Click"
-msgstr "Dvojklik"
-
-
 msgid "Left Handle"
 msgstr "Vazby a spojení"
 
@@ -13372,6 +13352,10 @@ msgstr "Aktivní Objekt"
 
 msgid "Selected Objects"
 msgstr "Vybrané objekty"
+
+
+msgid "Path to the library .blend file"
+msgstr "Uložit současný soubor Blenderu"
 
 
 msgid "Modifier Name"
@@ -13811,6 +13795,30 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Utilities"
+msgstr "Nástroje"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Způsob útlumu"
+
+
+msgid "Snap"
+msgstr "Přichytit"
+
+
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
+
+
 msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
 
@@ -13819,144 +13827,120 @@ msgid "Clean Up"
 msgstr "Vyčistit"
 
 
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
-
-
-msgid "Snap"
-msgstr "Přichytit"
-
-
-msgid "Instances"
-msgstr "Instance"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Způsob útlumu"
-
-
-msgid "Import"
-msgstr "Importovat"
-
-
-msgid "Utilities"
-msgstr "Nástroje"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Mirror"
-msgstr "Zrcadlit"
+msgid "Local View"
+msgstr "Lokální pohled"
 
 
 msgid "UV Mapping"
 msgstr "UV mapování"
 
 
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
-msgid "Navigation"
-msgstr "Navigace"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
-
-
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
 msgid "Light"
 msgstr "Světlo"
 
 
-msgid "Linked"
-msgstr "Propojené"
-
-
-msgid "Layout"
-msgstr "Rozložení"
-
-
-msgid "Relations"
-msgstr "Vztahy"
-
-
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
+msgid "Mirror"
+msgstr "Zrcadlit"
 
 
 msgid "Apply"
 msgstr "Použít"
 
 
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Keying"
-msgstr "Klíčovací sestava"
-
-
-msgid "Make Single User"
-msgstr "Přivlastnit"
+msgid "Merge"
+msgstr "Sloučit"
 
 
 msgid "Tracking"
 msgstr "Sledování"
 
 
-msgid "Hooks"
-msgstr "Háky"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
 msgid "Names"
 msgstr "Názvy"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
 
 
 msgid "Mesh Select Mode"
 msgstr "Síťový mód výběru"
 
 
-msgid "Face Data"
-msgstr "Data Ploch"
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
 
 
-msgid "Merge"
-msgstr "Sloučit"
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Hooks"
+msgstr "Háky"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Keying"
+msgstr "Klíčovací sestava"
+
+
+msgid "Align View"
+msgstr "Zarovnat pohled"
 
 
 msgid "Special Characters"
 msgstr "Speciální Znaky"
 
 
-msgid "Bone Roll"
-msgstr "Kost"
+msgid "Navigation"
+msgstr "Navigace"
+
+
+msgid "Import"
+msgstr "Importovat"
+
+
+msgid "Linked"
+msgstr "Propojené"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Instances"
+msgstr "Instance"
+
+
+msgid "Layout"
+msgstr "Rozložení"
 
 
 msgid "Basic"
@@ -16496,14 +16480,6 @@ msgid "Distance between two bundles used for object scaling"
 msgstr "Vzdálenost mezi dvěmi kostmi nebo objekty"
 
 
-msgid "Fastest"
-msgstr "Vložit"
-
-
-msgid "Double"
-msgstr "Dvojklik"
-
-
 msgid "Use Blue Channel"
 msgstr "Kanál textury"
 
@@ -17126,6 +17102,10 @@ msgstr "Výběr"
 
 msgid "Warning"
 msgstr "Varování"
+
+
+msgid "Comment"
+msgstr "Komentovat"
 
 
 msgctxt "NodeTree"
@@ -24195,6 +24175,10 @@ msgid "Zoom in/out the background image"
 msgstr "Seznam obrázků na pozadí"
 
 
+msgid "Use Active"
+msgstr "Použít Aktivní"
+
+
 msgctxt "Operator"
 msgid "Delete with Reconnect"
 msgstr "Odstranit s připojením"
@@ -26003,10 +25987,6 @@ msgstr "Otevřít/Zavřít"
 msgctxt "Operator"
 msgid "Rename"
 msgstr "Přejmenovat"
-
-
-msgid "Use Active"
-msgstr "Použít Aktivní"
 
 
 msgctxt "Operator"
@@ -28156,10 +28136,6 @@ msgid "Toggle Comments"
 msgstr "Přepnout Komenty"
 
 
-msgid "Comment"
-msgstr "Komentovat"
-
-
 msgid "Un-Comment"
 msgstr "Od-komentovat"
 
@@ -30268,60 +30244,60 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Active Tool"
-msgstr "Aktivní nástroj"
+msgid "Shadow Settings"
+msgstr "Nastavení Stínů"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
 
 
 msgid "View Lock"
 msgstr "Zámek zobrazení"
 
 
-msgid "Shadow Settings"
-msgstr "Nastavení Stínů"
-
-
-msgid "SSAO Settings"
-msgstr "Nastavení SSAO"
-
-
-msgid "Cavity"
-msgstr "Dutina"
-
-
-msgid "Overlays"
-msgstr "Překrytí"
-
-
-msgid "Guides"
-msgstr "Vodítka"
-
-
-msgid "Motion Tracking"
-msgstr "Sledování Pohybu"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Editační Režim Sítě"
-
-
-msgid "Measurement"
-msgstr "Měření"
+msgid "Active Tool"
+msgstr "Aktivní nástroj"
 
 
 msgid "Curve Edit Mode"
 msgstr "Editační Režim Křivky"
 
 
-msgid "Transform Orientations"
-msgstr "Orientace transformací"
+msgid "Measurement"
+msgstr "Měření"
+
+
+msgid "Guides"
+msgstr "Vodítka"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Editační Režim Sítě"
+
+
+msgid "Motion Tracking"
+msgstr "Sledování Pohybu"
 
 
 msgid "Stereoscopy"
 msgstr "Stereoskopie"
 
 
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
+msgid "Transform Orientations"
+msgstr "Orientace transformací"
+
+
+msgid "Overlays"
+msgstr "Překrytí"
+
+
+msgid "Cavity"
+msgstr "Dutina"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavení SSAO"
 
 
 msgid "Chain Scaling"
@@ -30946,10 +30922,6 @@ msgstr "Nastavení 3D myši"
 
 msgid "Save Preferences"
 msgstr "Uložit předvolby"
-
-
-msgid "Auto Run Python Scripts"
-msgstr "Spustit Python skript"
 
 
 msgid "Blend Files"
@@ -32121,6 +32093,10 @@ msgstr "Komprimovat soubor"
 
 msgid "Enable file compression when saving .blend files"
 msgstr "Povolit komprimaci souboru"
+
+
+msgid "Auto Run Python Scripts"
+msgstr "Spustit Python skript"
 
 
 msgid "Drag Threshold"
@@ -34543,10 +34519,6 @@ msgid "Show Other Objects"
 msgstr "Zobrazit Ostatní Objekty"
 
 
-msgid "Sort Alphabetically"
-msgstr "Seřadit podle Abecedy"
-
-
 msgid "Filter method"
 msgstr "Metoda filtrování"
 
@@ -36621,6 +36593,14 @@ msgid "Use Mist"
 msgstr "Limity"
 
 
+msgid "Press"
+msgstr "Stisknout"
+
+
+msgid "Release"
+msgstr "Pustit"
+
+
 msgid "Operator Properties"
 msgstr "Generátory"
 
@@ -36863,11 +36843,6 @@ msgid "None"
 msgstr "Žádný"
 
 
-msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "Nahlásit chybu"
-
-
 msgid "Object Index"
 msgstr "Index objektu"
 
@@ -36998,6 +36973,11 @@ msgstr "Varování:"
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentace"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Nahlásit chybu"
 
 
 msgid "File:"
@@ -38936,11 +38916,6 @@ msgstr "Více..."
 
 
 msgctxt "Operator"
-msgid "Alembic (.abc)"
-msgstr "Alembic (.abc)"
-
-
-msgctxt "Operator"
 msgid "Render Image"
 msgstr "Render obrázku"
 
@@ -39993,11 +39968,6 @@ msgstr "Detailování"
 
 msgid "Multi-Paint"
 msgstr "VBar malování"
-
-
-msgctxt "Operator"
-msgid "Quick Edit"
-msgstr "Rychlá úprava"
 
 
 msgctxt "Operator"
@@ -41924,6 +41894,10 @@ msgid "Median:"
 msgstr "Median:"
 
 
+msgid "Dimensions:"
+msgstr "Rozměry:"
+
+
 msgid "Radius X:"
 msgstr "Poloměr X:"
 
@@ -41946,10 +41920,6 @@ msgstr "Poloměr:"
 
 msgid "Weight:"
 msgstr "Váha:"
-
-
-msgid "Dimensions:"
-msgstr "Rozměry:"
 
 
 msgid "4L"

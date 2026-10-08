@@ -1433,7 +1433,7 @@ class USDExportTest(AbstractUSDTest):
         shader_id = shader.GetIdAttr().Get()
         self.assertEqual(shader_id, "ND_open_pbr_surface_surfaceshader", "Shader is not an OpenPBR Surface")
 
-    def test_get_prim_map_export_xfrom_not_merged_animated(self):
+    def test_get_prim_map_export_xform_not_merged_animated(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_anim_test.blend"))
         bpy.data.scenes["Scene"].frame_end = 2
         bpy.utils.register_class(GetPrimMapUsdExportHook)
@@ -1463,7 +1463,7 @@ class USDExportTest(AbstractUSDTest):
 
         self.assertDictEqual(prim_map, expected_prim_map)
 
-    def test_get_prim_map_export_xfrom_not_merged(self):
+    def test_get_prim_map_export_xform_not_merged(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_extent_test.blend"))
         bpy.utils.register_class(GetPrimMapUsdExportHook)
         bpy.ops.wm.usd_export(filepath=str(self.tempdir / "test_prim_map_export.usda"), merge_parent_xform=False)
@@ -1486,7 +1486,7 @@ class USDExportTest(AbstractUSDTest):
 
         self.assertDictEqual(prim_map, expected_prim_map)
 
-    def test_get_prim_map_export_xfrom_merged(self):
+    def test_get_prim_map_export_xform_merged(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_extent_test.blend"))
         bpy.utils.register_class(GetPrimMapUsdExportHook)
         bpy.ops.wm.usd_export(filepath=str(self.tempdir / "test_prim_map_export.usda"), merge_parent_xform=True)

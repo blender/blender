@@ -11,6 +11,8 @@
  *   for every fresh Blender run.
  */
 
+#include <optional>
+
 #include "DNA_listBase.h"
 
 namespace blender {
@@ -33,36 +35,36 @@ struct Global {
    * Note that `CTX_data_main(C)` should be used where possible.
    * Otherwise access via #G_MAIN.
    */
-  Main *main;
+  Main *main = nullptr;
 
   /**
    * Preview main is stored to avoid loading the preview file in multiple scenarios.
    * It is actually shared between shader node previews and asset previews.
    */
-  Main *pr_main;
+  Main *pr_main = nullptr;
 
   /** Last saved location for images. */
-  char filepath_last_image[/*FILE_MAX*/ 1024];
+  char filepath_last_image[/*FILE_MAX*/ 1024] = "";
   /** Last used location for library link/append. */
-  char filepath_last_library[/*FILE_MAX*/ 1024];
+  char filepath_last_library[/*FILE_MAX*/ 1024] = "";
   /**
    * Last saved location for .blend files.
    * This is used for recovery in case of a crash.
    * It is set when a .blend file is loaded or when saving (manually or through autosave).
    */
-  char filepath_last_blend[/*FILE_MAX*/ 1024];
+  char filepath_last_blend[/*FILE_MAX*/ 1024] = "";
 
   /**
    * Strings of recently opened files to show in the file menu.
    * A list of #RecentFile read from #BLENDER_HISTORY_FILE.
    */
-  ListBaseT<RecentFile> recent_files;
+  ListBaseT<RecentFile> recent_files = {};
 
   /**
    * Set when Escape been pressed or `Ctrl-C` pressed in background mode.
    * Used for render quit and some other background tasks such as baking.
    */
-  bool is_break;
+  bool is_break = false;
 
   /**
    * Blender is running without any Windows or OpenGLES context.
@@ -71,23 +73,23 @@ struct Global {
    * Also enabled when build defines `WITH_PYTHON_MODULE` or `WITH_HEADLESS` are set
    * (which use background mode by definition).
    */
-  bool background;
+  bool background = false;
 
   /**
    * Skip reading the startup file and user preferences.
    * Also disable saving the preferences on exit (see #G_FLAG_USERPREF_NO_SAVE_ON_EXIT),
    * see via the command line argument: `--factory-startup`.
    */
-  bool factory_startup;
+  bool factory_startup = false;
 
   /**
    * Set when the user is interactively moving (transforming) content.
    * see: #G_TRANSFORM_OBJ and related flags.
    */
-  short moving;
+  short moving = 0;
 
   /** To indicate render is busy, prevent render-window events, animation playback etc. */
-  bool is_rendering;
+  bool is_rendering = false;
 
   /**
    * Debug value, can be set from the UI and python, used for testing nonstandard features.
@@ -111,7 +113,7 @@ struct Global {
    *   *   4002: Enable markdown dev UI (08/2026).
    *   * 16384 and above: Reserved for python (add-ons) usage.
    */
-  short debug_value;
+  short debug_value = 0;
 
   /**
    * Saved to the blend file as #FileGlobal.globalf
@@ -119,19 +121,28 @@ struct Global {
    * \note Currently this is only used for runtime options, adding flags to #G_FLAG_ALL_READFILE
    * will cause them to be written and read to files.
    */
-  int f;
+  int f = 0;
+
+  /**
+   * Command line override for the #USER_SCRIPT_AUTOEXEC_DISABLE preference,
+   * set for the whole session.
+   *
+   * The user may opt in or out when opening a file interactively,
+   * files opened afterwards still default to this value.
+   */
+  std::optional<bool> autoexec_override;
 
   struct {
     /**
      * Logging vars (different loggers may use).
      * Set via `--log-level` command line argument.
      */
-    int level;
+    int level = 0;
     /**
      * FILE handle or use `stderr` (we own this so close when done).
      * Set via `--log-file` command line argument.
      */
-    void *file;
+    void *file = nullptr;
   } log;
 
   /**
@@ -139,7 +150,7 @@ struct Global {
    * - Command line arguments: `--debug`, `--debug-memory` ... etc.
    * - Python API: `bpy.app.debug`, `bpy.app.debug_memory` ... etc.
    */
-  int debug;
+  int debug = 0;
 
   /**
    * When true, various geometry processing algorithms randomize the order of elements (e.g.
@@ -148,7 +159,7 @@ struct Global {
    * break in a different Blender version. Explicitly turning on randomization can help protect
    * oneself against such breakages.
    */
-  bool randomize_geometry_element_order;
+  bool randomize_geometry_element_order = false;
 
   /**
    * Control behavior of file reading/writing.
@@ -156,7 +167,7 @@ struct Global {
    * This variable is written to / read from #FileGlobal.fileflags.
    * See: #G_FILE_COMPRESS and related flags.
    */
-  int fileflags;
+  int fileflags = 0;
 
   /**
    * Message to show when loading a `.blend` file attempts to execute
@@ -166,21 +177,21 @@ struct Global {
    * so users can be alerted to the reason why the file may not be behaving as expected.
    * Typically Python drivers.
    */
-  char autoexec_fail[200];
+  char autoexec_fail[200] = "";
 
   /**
    * Triggers a GPU capture if the name matches a DebugScope.
    * Set using `--debug-gpu-scope-capture "debug_scope"`.
    */
-  char gpu_debug_scope_name[100];
+  char gpu_debug_scope_name[100] = "";
 
   /**
    * Save final shader string to disk.
    * Set using `--debug-gpu-shader-source "shader_name"`.
    */
-  char gpu_debug_shader_source_name[100];
+  char gpu_debug_shader_source_name[100] = "";
 
-  bool profile_gpu;
+  bool profile_gpu = false;
 };
 
 /* **************** GLOBAL ********************* */
@@ -213,9 +224,92 @@ enum {
   /** Launched with `--offline-mode` (overrides #USER_INTERNET_ALLOW when set). */
   G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE = (1 << 12),
 
+  /**
+   * Automatic Script Execution
+   * ==========================
+   *
+   * This flag defines when auto-execution from a blend-file is allowed,
+   * this amounts to trusting the file, exposed as "Trusted Source" in the UI.
+   *
+   * From a user perspective trust is controlled in the following way.
+   *
+   * Preferences
+   * -----------
+   *
+   * Two preferences set the default trust:
+   * - "Auto Run Python Scripts", note the flag is inverted: #USER_SCRIPT_AUTOEXEC_DISABLE.
+   * - "Excluded Paths" (#UserDef.autoexec_paths),
+   *   only used when "Auto Run Python Scripts" is enabled,
+   *   with it disabled everything defaults to untrusted & any path may be trusted by opting in.
+   *
+   * Opening a File Interactively
+   * ----------------------------
+   *
+   * Cases where we can prompt the user for a "Trusted Source":
+   * - File Selector.
+   * - Drag & Drop.
+   *
+   * Expected behavior:
+   * - When "Auto Run Python Scripts" is disabled, you may opt-in to trust.
+   * - When "Auto Run Python Scripts" is enabled, you may opt-out of trusting.
+   * - When it's enabled and the blend-file's directory is in "Excluded Paths",
+   *   trust is off and cannot be enabled.
+   *
+   * Opening a File Non-Interactively
+   * --------------------------------
+   *
+   * Cases where there isn't the chance to prompt for trust:
+   * - From the command line (including double clicking a blend-file in the file manager).
+   * - Opening via "Open Recent".
+   *
+   * Expected behavior:
+   * - The default is the same as opening interactively.
+   * - Files opened later are unaffected, unlike the command-line override.
+   *
+   * Recovering a File
+   * -----------------
+   *
+   * Cases where the path the recovered file will have isn't known:
+   * - "Recover Last Session".
+   * - "Recover Auto Save".
+   *
+   * Expected behavior:
+   * - Never trusted, neither the preference nor the excluded paths apply,
+   *   unless the command line overrides the preference.
+   * - You may opt-in from "Recover Auto Save"'s file selector,
+   *   "Recover Last Session" has no file selector so there is no chance to opt-in.
+   *
+   * Command Line Override
+   * ---------------------
+   *
+   * #Global.autoexec_override sets trust for the whole session,
+   * see `--enable-autoexec` / `--disable-autoexec`. It replaces the default in each case above,
+   * the preference & excluded paths no longer apply.
+   *
+   * Opting in/out via the "Trusted Source" option when loading a file still works,
+   * but loading a file after that defaults to the override value for the trust setting.
+   *
+   * Blocked Execution
+   * -----------------
+   *
+   * Whenever loading a file blocks a script,
+   * a warning is shown with an "Allow Execution" option, see #wm_test_autorun_warning.
+   * This applies to any file load & is the only chance to opt-in when opening non-interactively.
+   *
+   * Other Notes
+   * -----------
+   *
+   * - On macOS, files opened from the file-manager don't pass the path via the command line,
+   *   they always go through #GHOST_kEventOpenMainFile (even on startup),
+   *   which uses the default trust as there is no file selector to opt in/out.
+   *   Other systems pass the path on the command line.
+   * - Reverting a file keeps the trust of the current session.
+   * - Scripts calling `wm.open_mainfile` without "use_scripts"
+   *   use the trust of the file already open.
+   * - FIXME: opening a project blend-file, see `PROJECT_OT_OpenBlendInProject`,
+   *   uses the trust of the file already open, needs investigation.
+   */
   G_FLAG_SCRIPT_AUTOEXEC = (1 << 13),
-  /** When this flag is set ignore the preferences #USER_SCRIPT_AUTOEXEC_DISABLE. */
-  G_FLAG_SCRIPT_OVERRIDE_PREF = (1 << 14),
   G_FLAG_SCRIPT_AUTOEXEC_FAIL = (1 << 15),
   G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET = (1 << 16),
 
@@ -230,9 +324,9 @@ enum {
 
 /** Don't overwrite these flags when reading a file. */
 #define G_FLAG_ALL_RUNTIME \
-  (G_FLAG_SCRIPT_AUTOEXEC | G_FLAG_SCRIPT_OVERRIDE_PREF | G_FLAG_INTERNET_ALLOW | \
-   G_FLAG_INTERNET_OVERRIDE_PREF_ONLINE | G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE | \
-   G_FLAG_EVENT_SIMULATE | G_FLAG_USERPREF_NO_SAVE_ON_EXIT | G_FLAG_GPU_BACKEND_FALLBACK | \
+  (G_FLAG_SCRIPT_AUTOEXEC | G_FLAG_INTERNET_ALLOW | G_FLAG_INTERNET_OVERRIDE_PREF_ONLINE | \
+   G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE | G_FLAG_EVENT_SIMULATE | \
+   G_FLAG_USERPREF_NO_SAVE_ON_EXIT | G_FLAG_GPU_BACKEND_FALLBACK | \
    G_FLAG_GPU_BACKEND_FALLBACK_QUIET | \
 \
    /* #BPY_python_reset is responsible for resetting these flags on file load. */ \

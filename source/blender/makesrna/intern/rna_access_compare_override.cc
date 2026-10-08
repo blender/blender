@@ -881,7 +881,7 @@ bool RNA_struct_override_matches(Main *bmain,
 
               if (is_restored) {
                 CLOG_DEBUG(&LOG,
-                           "Restoreed forbidden liboverride `%s` for override data '%s'",
+                           "Restored forbidden liboverride `%s` for override data '%s'",
                            rna_path->c_str(),
                            ptr_local->owner_id->name);
                 if (r_report_flags) {
@@ -1215,7 +1215,7 @@ static void rna_property_override_collection_subitem_lookup(
   BLI_assert(opop->subitem_reference_name || !subitem_reference_id);
   /* Do not match by index only, if there are valid item names and ID.
    *
-   * Otherwise, it can end up 'matching by index' e.g. collection childrens, re-assigning
+   * Otherwise, it can end up 'matching by index' e.g. collection children, re-assigning
    * completely wrong collections only based on indices. This is especially bad when some
    * collections are _removed_ from the reference collection's children. */
   const bool ignore_index_only_lookup = (subitem_local_id || subitem_reference_id);

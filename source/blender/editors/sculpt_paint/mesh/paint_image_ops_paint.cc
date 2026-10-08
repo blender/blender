@@ -463,6 +463,7 @@ bool TexturePaintStroke::test_start(wmOperator *op, const float2 mouse)
 
 struct TexturePaintData : public PaintModeData {
   std::unique_ptr<ImageData> image_data;
+  std::unique_ptr<ImageData> mask_data;
 };
 
 struct ExperimentalTexturePaintStroke final : public PaintStroke {
@@ -493,6 +494,13 @@ struct ExperimentalTexturePaintStroke final : public PaintStroke {
       StrokeToggleSettings toggle_settings;
 
       toggle_settings.invert = stroke_mode == BrushStrokeMode::Invert || pen_flip;
+
+      if (this->brush && this->brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK) {
+        toggle_settings.invert = toggle_settings.invert ^
+                                 ((tool_settings->imapaint.flag &
+                                   IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) != 0);
+      }
+
       ss.cache->toggle_settings = toggle_settings;
 
       /* TODO: Further toggle support */
@@ -533,7 +541,11 @@ bool ExperimentalTexturePaintStroke::test_start(wmOperator *op, float2 mouse)
 
   std::unique_ptr<TexturePaintData> texture_paint_data = std::make_unique<TexturePaintData>();
   texture_paint_data->image_data = ImageData::init_active_image(*this->object, *settings_);
-  if (!texture_paint_data->image_data) {
+  texture_paint_data->mask_data = ImageData::init_mask_image(*settings_);
+  if (!texture_paint_data->image_data ||
+      (this->brush && this->brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK &&
+       !texture_paint_data->mask_data))
+  {
     BLI_assert(0);
     return false;
   }
@@ -624,8 +636,12 @@ static void do_brush_action(const Depsgraph &depsgraph,
   SculptSession &ss = *ob.runtime->sculpt_session;
   IndexMaskMemory memory;
 
-  bke::pbvh::build_pixels(
-      depsgraph, ob, *mode_data->image_data->image, mode_data->image_data->image_user_get());
+  const bool is_mask_brush = brush.image_brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK;
+  Image *image = is_mask_brush ? mode_data->mask_data->image : mode_data->image_data->image;
+  ImageUser image_user = is_mask_brush ? mode_data->mask_data->image_user_get() :
+                                         mode_data->image_data->image_user_get();
+
+  bke::pbvh::build_pixels(depsgraph, ob, *image, image_user);
 
   const IndexMask node_mask = gather_brush_nodes(ob, brush, memory, node_fully_masked_or_hidden);
 
@@ -653,6 +669,10 @@ static void do_brush_action(const Depsgraph &depsgraph,
     case IMAGE_PAINT_BRUSH_TYPE_DRAW:
       do_3d_image_paint_brush(
           depsgraph, image_paint_settings.paint, brush, ob, *mode_data->image_data, node_mask);
+      break;
+    case IMAGE_PAINT_BRUSH_TYPE_MASK:
+      do_3d_image_paint_brush(
+          depsgraph, image_paint_settings.paint, brush, ob, *mode_data->mask_data, node_mask);
       break;
     default:
       /* TODO: Implement the rest of them... */
@@ -725,7 +745,9 @@ void ExperimentalTexturePaintStroke::done(bool is_cancel, bool stroke_started)
 
   if (stroke_started) {
     TexturePaintData *mode_data = static_cast<TexturePaintData *>(mode_data_.get());
-    Image *image = mode_data->image_data->image;
+    const bool is_mask_brush = this->brush &&
+                               this->brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK;
+    Image *image = is_mask_brush ? mode_data->mask_data->image : mode_data->image_data->image;
 
     WM_event_add_notifier(this->evil_C, NC_OBJECT | ND_DRAW, &ob);
     WM_event_add_notifier(this->evil_C, NC_IMAGE | NA_PAINTING, image);

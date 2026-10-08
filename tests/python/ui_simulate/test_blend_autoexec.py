@@ -11,6 +11,8 @@ Covered test cases, with automatic script execution enabled & disabled:
   - Enabling "Trusted Source" for an excluded path when dropping.
   - Both of the above with the command line overriding the preference,
     see the tests ending in ``_enable_autoexec`` & ``_disable_autoexec``.
+  - Opening a second file after opting in/out of the command line default,
+    see the tests with ``_next_`` in their name.
 """
 
 import modules.ui_test_utils as ui
@@ -94,9 +96,8 @@ def _blend_file_save(e, filepath):
     # Activate the location field.
     yield e.ctrl.l()
     yield e.text_unicode(filepath)
-    # Two presses accept the path (changing the directory keeps the field
-    # active for auto-completion), a third saves the file.
-    for _ in range(3):
+    # The first press accepts the path, the second saves the file.
+    for _ in range(2):
         yield e.ret()
 
 
@@ -114,11 +115,10 @@ def _blend_file_open(e, filepath):
     # Activate the location field.
     yield e.ctrl.l()
     yield e.text_unicode(os.path.dirname(filepath) + os.sep)
-    # Accept the directory (twice, it stays active for auto-completion when it changes),
-    # then select the file in the list & open it.
+    # Accept the directory, then select the file in the list & open it.
     # A file may already be set so any press can open it,
     # stop once the selector closes since loading frees the window.
-    for action in ("ret", "ret", "down_arrow", "ret"):
+    for action in ("ret", "down_arrow", "ret"):
         if ui.get_window_area_by_type(bpy.context.window, 'FILE_BROWSER') is None:
             break
         yield getattr(e, action)()
@@ -296,6 +296,48 @@ def _blend_file_drop_test(
             is_trusted=is_trusted,
             message=message,
         )
+
+
+def _blend_file_drop_test_next(
+        filename, *,
+        use_autoexec,
+        autoexec_override,
+        is_trusted,
+        message,
+):
+    """
+    Drop ``filename`` twice, toggling "Trusted Source" for the first open only,
+    checking the second open falls back to ``is_trusted`` (the command line default).
+
+    :arg is_trusted: The command line default, the first file opens with the opposite.
+    """
+    with _temp_dir_context() as dirpath_temp:
+        e, t, filepaths = yield from _setup(
+            dirpath_temp, use_autoexec=use_autoexec, autoexec_override=autoexec_override)
+        filepath = filepaths[filename]
+        is_trusted_first = not is_trusted
+
+        # Opt in/out of the command line default for this file only.
+        yield from _blend_file_drop(e, filepath=filepath)
+        yield from _drop_ui_trusted_source_toggle(e)
+        yield from _drop_ui_open(e)
+        e = _events_after_load()
+
+        _assert_blend_file_opened(t, filename, is_trusted=is_trusted_first, message=message)
+
+        if not is_trusted_first:
+            # Opening untrusted blocked the file's script, showing a warning popup,
+            # dismiss it so the next drop receives the events.
+            yield e.esc()
+
+        # The next file must use the command line default, not the previous file's choice.
+        yield from _blend_file_drop(e, filepath=filepath)
+
+        _assert_blend_file_dropped(t, filepath, is_trusted=is_trusted, message=message)
+
+        yield from _drop_ui_open(e)
+
+        _assert_blend_file_opened(t, filename, is_trusted=is_trusted, message=message)
 
 
 # -----------------------------------------------------------------------------
@@ -541,6 +583,23 @@ def pref_enabled_open_file_selector_untrusted_enable_autoexec():
         )
 
 
+def pref_disabled_drop_blend_file_trusted_source_next_enable_autoexec():
+    """
+    Drop a trusted file with "--enable-autoexec" passed, disable "Trusted Source"
+    & open it, then drop it again, "Trusted Source" must default to enabled.
+
+    Proves opting out for one file doesn't distrust the files opened afterwards.
+    """
+    message = "Opting out for one file must not distrust the next with \"--enable-autoexec\""
+    yield from _blend_file_drop_test_next(
+        BLEND_TRUSTED,
+        use_autoexec=False,
+        autoexec_override=True,
+        is_trusted=True,
+        message=message,
+    )
+
+
 # -----------------------------------------------------------------------------
 # Tests with `--disable-autoexec` Overriding the Preference
 #
@@ -616,3 +675,20 @@ def pref_enabled_open_file_selector_disable_autoexec():
             is_trusted=False,
             message="\"--disable-autoexec\" must override the preference in the file selector",
         )
+
+
+def pref_enabled_drop_blend_file_trusted_source_next_disable_autoexec():
+    """
+    Drop a trusted file with "--disable-autoexec" passed, enable "Trusted Source"
+    & open it, then drop it again, "Trusted Source" must default to disabled.
+
+    Proves opting in for one file doesn't trust the files opened afterwards.
+    """
+    message = "Opting in for one file must not trust the next with \"--disable-autoexec\""
+    yield from _blend_file_drop_test_next(
+        BLEND_TRUSTED,
+        use_autoexec=True,
+        autoexec_override=False,
+        is_trusted=False,
+        message=message,
+    )

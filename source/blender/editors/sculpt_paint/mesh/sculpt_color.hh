@@ -61,6 +61,8 @@ float4 color_vert_get(OffsetIndices<int> faces,
                       bke::AttrDomain color_domain,
                       int vert);
 
+float4 color_corner_get(const GSpan color_attribute, int corner_index);
+
 bke::GAttributeReader active_color_attribute(const Mesh &mesh);
 bke::GSpanAttributeWriter active_color_attribute_for_write(Mesh &mesh);
 

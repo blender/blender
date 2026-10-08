@@ -12,6 +12,7 @@ class ASSETSHELF_PT_display(Panel):
     # Doesn't actually matter. Panel is instanced through popover only.
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
+    bl_ui_units_x = 11
 
     def draw(self, context):
         layout = self.layout

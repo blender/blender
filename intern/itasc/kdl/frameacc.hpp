@@ -93,7 +93,7 @@ class RotationAcc
 public:
     Rotation R;     //!< rotation matrix
     Vector   w;     //!< angular velocity vector
-    Vector   dw;    //!< angular acceration vector
+    Vector   dw;    //!< angular acceleration vector
 public:
     RotationAcc():R(),w() {}
     explicit RotationAcc(const Rotation& R_):R(R_),w(Vector::Zero()){}

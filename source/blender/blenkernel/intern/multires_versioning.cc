@@ -21,18 +21,6 @@ namespace blender {
 
 #ifdef WITH_OPENSUBDIV
 
-static float simple_to_catmull_clark_get_edge_sharpness(const OpenSubdiv_Converter * /*converter*/,
-                                                        int /*manifold_edge_index*/)
-{
-  return 10.0f;
-}
-
-static bool simple_to_catmull_clark_is_infinite_sharp_vertex(
-    const OpenSubdiv_Converter * /*converter*/, int /*manifold_vertex_index*/)
-{
-  return true;
-}
-
 static bke::subdiv::Subdiv *subdiv_for_simple_to_catmull_clark(Object *object,
                                                                MultiresModifierData *mmd)
 {
@@ -44,8 +32,13 @@ static bke::subdiv::Subdiv *subdiv_for_simple_to_catmull_clark(Object *object,
 
   OpenSubdiv_Converter converter;
   subdiv::converter_init_for_mesh(&converter, &subdiv_settings, base_mesh);
-  converter.getEdgeSharpness = simple_to_catmull_clark_get_edge_sharpness;
-  converter.isInfiniteSharpVertex = simple_to_catmull_clark_is_infinite_sharp_vertex;
+
+  /* Emulate the old simple subdivision by making all of the topology infinitely sharp. */
+  const Array<float> edge_sharpness(int64_t(converter.edges.size()),
+                                    OPENSUBDIV_SHARPNESS_INFINITE);
+  const Array<float> vert_sharpness(converter.verts_num, OPENSUBDIV_SHARPNESS_INFINITE);
+  converter.edge_sharpness = edge_sharpness;
+  converter.vert_sharpness = vert_sharpness;
 
   subdiv::Subdiv *subdiv = subdiv::new_from_converter(&subdiv_settings, &converter);
   subdiv::converter_free(&converter);

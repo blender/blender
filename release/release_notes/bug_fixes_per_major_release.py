@@ -224,7 +224,7 @@ LIST_OF_OFFICIAL_BLENDER_VERSIONS = (
     # 4.x.
     '4.0', '4.1', '4.2', '4.3', '4.4', '4.5',
     # 5.x.
-    '5.0', '5.1', '5.2',
+    '5.0', '5.1', '5.2', '5.3', '5.4',
 )
 
 # Catch duplicates
@@ -542,10 +542,11 @@ def get_fix_commits(
 # -----------------------------------------------------------------------------
 # Utility Functions for `classify_based_on_report()`
 
-def get_version_numbers(broken_lines: str, working_lines: str) -> tuple[list[str], list[str]]:
-    def extract_numbers(string: str) -> list[str]:
-        return re.findall(r"(\d+\.\d+)", string)
+def extract_numbers(string: str) -> list[str]:
+    return re.findall(r"(\d+\.\d+)", string)
 
+
+def get_version_numbers(broken_lines: str, working_lines: str) -> tuple[list[str], list[str]]:
     # Extracts all version numbers from the broken and working fields
     # (Sometimes including weird version numbers like dates).
     temp_broken_versions = extract_numbers(broken_lines)
@@ -582,6 +583,27 @@ def version_extraction(report_body: str) -> tuple[list[str], list[str]]:
                 # because it means the user probably wrote something like "Worked: It was also broken in X.X"
                 # which lead to incorrect information.
                 working_lines += f'{line}\n'
+
+    if not broken_lines and not working_lines:
+        # Broken and working lines is most comonly empty as a result of someone filling out the
+        # Blender version field with something like "Blender 5.2" instead of "Broken: Blender 5.2".
+        # This tries to handle the case automatically.
+        version_info = re.search(r"### Blender Version\s*"
+                                 r"(.*?)\s*"
+                                 r"### Description of the Issue",
+                                 report_body, re.DOTALL)
+
+        if version_info:
+            broken_version_numbers = extract_numbers(version_info.group(1))
+            if broken_version_numbers:
+                # If a user lists multiple version numbers, it could be in this format:
+                # "Blender 5.2, but it used to work in 5.1"
+                # So only use the first extracted version number to avoid the wrong version
+                # numbers ending up in the wrong catagory.
+                version_number = broken_version_numbers[0]
+                if version_number in LIST_OF_OFFICIAL_BLENDER_VERSIONS:
+                    return [version_number], []
+            return [], []
 
     return get_version_numbers(broken_lines, working_lines)
 

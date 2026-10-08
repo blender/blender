@@ -2790,7 +2790,7 @@ class GlareOperation : public NodeOperation {
     const int2 quality_factor = int2(this->get_quality_factor());
     domain.data_size = math::divide_ceil(domain.data_size, quality_factor);
     domain.display_size = math::divide_ceil(domain.display_size, quality_factor);
-    domain.data_offset = math::divide_ceil(domain.data_offset, quality_factor);
+    domain.data_offset = domain.data_offset / quality_factor;
     return domain;
   }
 

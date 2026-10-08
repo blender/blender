@@ -229,7 +229,7 @@ TEST(shader_tool, Reference)
     string input = R"(
 int b[1]; const int i = 0; auto &a = b[i]; a = 0;)";
     string expect = R"(
-int b[1]; const int i = 0;                 b[i] = 0;)";
+int b[1]; const int i = 0;                 b[i]= 0;)";
     auto [output, _, error] = process_test_local(input, Language::BSL);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
@@ -557,6 +557,29 @@ TEST(shader_tool, ArrayAggregate)
   {
     string input = "int a[4][2] = {{0,0}, {1,1}, {int{2},{2}}, {3,3}};\n";
     string expect = "int a[4][2] = {{0,0}, {1,1}, {int(2),int(2)}, {3,3}};\n";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+
+TEST(shader_tool, AttributeCapacity)
+{
+  {
+    string input = "[[capacity(my_const)]] int a[4];\n";
+    string expect = "                       int a[SRT_CONSTANT_my_const];\n";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = "struct A { [[capacity(my_const)]] int a[4]; };\n";
+    string expect =
+        "struct A {                        int a[SRT_CONSTANT_my_const];\n"
+        "#line 1\n"
+        "                                            };\n"
+        "#line 1\n"
+        "A A_ctor_() {A r;for(int a =0;a < SRT_CONSTANT_my_const;++a) {r.a[a]=0;}return r;}\n";
     auto [output, _, error] = process_test_string(input, shader::Language::BSL);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");

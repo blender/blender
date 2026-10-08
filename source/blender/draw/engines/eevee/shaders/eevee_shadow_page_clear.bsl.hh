@@ -6,7 +6,6 @@
 
 #include "eevee_defines.hh"
 #include "eevee_shadow_shared.hh"
-#include "gpu_shader_utildefines.bsl.hh" /* IWYU pragma: export FLT_MAX */
 
 namespace eevee::shadow {
 

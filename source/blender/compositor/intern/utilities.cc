@@ -92,6 +92,8 @@ ResultType socket_data_type_to_result_type(const eNodeSocketDatatype data_type,
       return ResultType::Mask;
     case SOCK_BUNDLE:
       return ResultType::Bundle;
+    case SOCK_CLOSURE:
+      return ResultType::Closure;
     default:
       BLI_assert_unreachable();
       return ResultType::Float;
@@ -149,22 +151,6 @@ bool is_output_linked_to_input_conditioned(const bNodeSocket &output,
   return false;
 }
 
-int number_of_inputs_linked_to_output_conditioned(const bNodeSocket &output,
-                                                  FunctionRef<bool(const bNodeSocket &)> condition)
-{
-  if (!output.is_logically_linked()) {
-    return 0;
-  }
-
-  int count = 0;
-  for (const bNodeSocket *input : output.logically_linked_sockets()) {
-    if (condition(*input)) {
-      count++;
-    }
-  }
-  return count;
-}
-
 bool is_pixel_node(const bNode &node)
 {
   return node.typeinfo->build_multi_function;
@@ -215,10 +201,10 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
    * declaration. */
   input_descriptor.domain_priority = socket->index();
 
-  /* Not every node has a declaration, in which case we assume the default values for the rest of
-   * the properties. */
+  /* Not every node has a declaration or the declaration might be empty due to a skipped update, in
+   * which case we assume the default values for the rest of the properties. */
   const nodes::NodeDeclaration *node_declaration = socket->owner_node().declaration();
-  if (!node_declaration) {
+  if (!node_declaration || node_declaration->skip_updating_sockets) {
     return input_descriptor;
   }
   const nodes::SocketDeclaration *socket_declaration = node_declaration->inputs[socket->index()];

@@ -271,7 +271,8 @@ TEST(convexhull_2d, Simple)
               float(math::AngleRadian::from_degree(90.0f)),
               ROTATION_EPS);
 
-  for (const Array<float2> &points_orig : {
+  for (const Array<float2> &points_orig :
+       {
            points_square_diagonal,
            points_square_aligned,
        })

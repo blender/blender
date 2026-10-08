@@ -82,6 +82,7 @@ ExternalProject_Add(external_spirv_tools
 add_dependencies(
   external_spirv_tools
   external_spirv_headers
+  external_python
 )
 
 if(UNIX AND NOT APPLE)

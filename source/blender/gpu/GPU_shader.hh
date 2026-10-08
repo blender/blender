@@ -112,11 +112,17 @@ gpu::Shader *GPU_shader_async_compilation_finalize(AsyncCompilationHandle &handl
 void GPU_shader_async_compilation_cancel(AsyncCompilationHandle &handle);
 
 /**
- * Returns true if there's any shader still being compiled.
+ * Returns true if there's any shader or pipeline still being compiled.
  * NOTE: This returns true as long as there are batches in the compilation queue.
  * It doesn't take into account if compilation is paused.
  */
 bool GPU_shader_compiler_has_pending_work();
+/**
+ * Reset the per-frame tracking of on-demand pipeline compilation. Should be called once per frame
+ * after the frame change handlers have run, so that `GPU_shader_compiler_has_pending_work` reports
+ * the pipelines compiled during the last frame.
+ */
+void GPU_shader_compiler_reset_frame_pipeline_tracking();
 /**
  *  Wait until all the requested shaders have been compiled.
  */

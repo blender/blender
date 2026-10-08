@@ -602,6 +602,7 @@ static void store_result_geometry(const bContext &C,
       Curves *new_curves = geometry.get_curves_for_write();
       if (!new_curves) {
         curves.geometry.wrap() = {};
+        DEG_id_tag_update(&curves.id, ID_RECALC_GEOMETRY);
         break;
       }
 
@@ -618,8 +619,9 @@ static void store_result_geometry(const bContext &C,
       PointCloud *new_points =
           geometry.get_component_for_write<bke::PointCloudComponent>().release();
       if (!new_points) {
-        new_points->attribute_storage.wrap() = {};
+        points.attribute_storage.wrap() = {};
         points.totpoint = 0;
+        DEG_id_tag_update(&points.id, ID_RECALC_GEOMETRY);
         break;
       }
 
@@ -1995,9 +1997,9 @@ static Set<StringRef> get_builtin_menus(const ObjectType object_type, const eObj
 
 static bool menu_operators_poll(const bContext &C, const RegistrationData::TypeTreeItem &node)
 {
-  if (std::ranges::any_of(node.types, [&](wmOperatorType *ot) {
-        return WM_operator_poll(&const_cast<bContext &>(C), ot);
-      }))
+  if (std::ranges::any_of(
+          node.types,
+          [&](wmOperatorType *ot) { return WM_operator_poll(&const_cast<bContext &>(C), ot); }))
   {
     return true;
   }

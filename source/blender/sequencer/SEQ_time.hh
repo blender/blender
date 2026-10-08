@@ -21,34 +21,23 @@ namespace seq {
 enum class Side : int;
 
 /**
- * Initialize given rectangle with the Scene's timeline boundaries.
- *
- * \param scene: the Scene instance whose timeline boundaries are extracted from
- * \param r_rect: output parameter to be filled with timeline boundaries
+ * Initialize \a r_rect with the scene's timeline boundaries.
  */
 void timeline_init_boundbox(const Scene *scene, rctf *r_rect);
 /**
- * Stretch the given rectangle to include the given strips boundaries
- *
- * \param seqbase: List in which strips are located
- * \param rect: output parameter to be filled with strips' boundaries
+ * Stretch \a rect to include the boundaries of the strips in \a seqbase.
  */
 void timeline_expand_boundbox(const Scene *scene, const ListBaseT<Strip> *seqbase, rctf *rect);
 /**
- * Define boundary rectangle of sequencer timeline and fill in rect data
- *
- * \param scene: Scene in which strips are located
- * \param seqbase: List in which strips are located
- * \param r_rect: data structure describing rectangle, that will be filled in by this function
+ * Fill \a r_rect with the scene's timeline boundaries, stretched to include the strips in
+ * \a seqbase.
  */
 void timeline_boundbox(const Scene *scene, const ListBaseT<Strip> *seqbase, rctf *r_rect);
 /**
- * Find start or end position of next or previous strip.
- * \param scene: Video editing scene
- * \param timeline_frame: reference frame for searching
- * \param side: direction of searching, `Side::Left`, `Side::Right` or `Side::Both`.
- * \param do_center: find closest strip center if true, otherwise finds closest handle position.
- * \param do_unselected: only find closest position of unselected strip.
+ * Find start or end position of the next or previous strip from \a timeline_frame.
+ *
+ * \param do_center: Find the closest strip center instead of handle.
+ * \param do_unselected: Only consider unselected strips.
  */
 int time_find_next_prev_edit(Scene *scene,
                              int timeline_frame,

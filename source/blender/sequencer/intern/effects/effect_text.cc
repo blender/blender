@@ -32,6 +32,7 @@
 #include "DNA_space_types.h"
 #include "DNA_vfont_types.h"
 
+#include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "PRF_profile.hh"
@@ -1116,6 +1117,9 @@ static SeqResult do_text_effect(const RenderData *context,
   /* NOTE: text rasterization only fills in part of output image,
    * need to clear it. */
   SeqResult out = prepare_effect_imbufs(context, {}, {}, false);
+  /* Text colors are stored as sRGB in DNA, so image buffer is as well. */
+  IMB_colormanagement_assign_byte_colorspace(out.image,
+                                             IMB_colormanagement_srgb_colorspace_name_get());
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
   /* Guard against parallel accesses to the fonts map. */

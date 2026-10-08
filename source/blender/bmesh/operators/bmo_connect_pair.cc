@@ -111,6 +111,11 @@ struct PathLinkState {
   float co_prev[3];
 };
 
+static void state_free(void *state)
+{
+  MEM_delete(static_cast<PathLinkState *>(state));
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Min Dist Dir Utilities
  *
@@ -660,7 +665,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
         state_best = *state;
 
         /* we're done, exit all loops */
-        BLI_heapsimple_clear(pc.states, MEM_delete_void);
+        BLI_heapsimple_clear(pc.states, state_free);
         continue_search = false;
       }
       else if (state_step(&pc, state)) {
@@ -722,7 +727,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 
   BLI_mempool_destroy(pc.link_pool);
 
-  BLI_heapsimple_free(pc.states, MEM_delete_void);
+  BLI_heapsimple_free(pc.states, state_free);
 
 #if 1
   if (state_best.link_last) {

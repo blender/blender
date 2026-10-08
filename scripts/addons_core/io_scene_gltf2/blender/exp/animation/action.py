@@ -174,7 +174,7 @@ def gather_actions_animations(export_settings):
         animations += animations_
         first_cache_is_done = True
 
-    # Now we finished to loop on objects and gather all animations, we can enble viewport again if we disabled it
+    # Now we finished to loop on objects and gather all animations, we can enable viewport again if we disabled it
     if export_settings['gltf_optimize_disable_viewport']:
         for obj, default_hide_viewport in [
             (n.blender_object, n.default_hide_viewport) for n in export_settings['vtree'].nodes.values() if n.blender_type in [
@@ -1208,7 +1208,7 @@ def __get_data_blender_actions(blender_main_type,
         elif blender_data_type == "cameras":
             blender_element = [c for c in bpy.data.cameras if id(c) == data_uuid][0]
 
-    # No brodcast mode for data implemented (yet)
+    # No broadcast mode for data implemented (yet)
 
     # Data animation (not nodetree)
     if blender_element and blender_element.animation_data is not None:
@@ -1244,7 +1244,7 @@ def __get_material_blender_actions(mat_uuid: str,
     blender_material = export_settings['material_identifiers'][mat_uuid]['blender']
     export_user_extensions('pre_gather_actions_hook', export_settings, blender_material)
 
-    # No brodcast mode for material implemented (yet)
+    # No broadcast mode for material implemented (yet)
 
     # Material animation (not nodetree)
     if blender_material and blender_material.animation_data is not None:

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
 "PO-Revision-Date: 2026-03-19 19:12+0000\n"
 "Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -1124,6 +1124,14 @@ msgid "Collection of window managers"
 msgstr "Ablakkezelők gyűjteménye"
 
 
+msgid "Project"
+msgstr "Vetítés"
+
+
+msgid "Path"
+msgstr "Útvonal"
+
+
 msgid "Speed"
 msgstr "Sebesség"
 
@@ -1273,6 +1281,10 @@ msgstr "Telítettség"
 
 msgid "Active Layer"
 msgstr "Aktív réteg"
+
+
+msgid "Cyclic"
+msgstr "Ciklikus"
 
 
 msgid "Keep material assigned to brush"
@@ -1942,10 +1954,6 @@ msgstr "Y"
 
 msgid "Target Object (Curves only)"
 msgstr "Célobjektum (csak görbék)"
-
-
-msgid "Cyclic"
-msgstr "Ciklikus"
 
 
 msgid "Treat curve as cyclic curve (no clamping to curve bounding box)"
@@ -2626,10 +2634,6 @@ msgstr "A legközelebbi felületi pont"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "A helyzet simítása a legközelebbi célfelülethez"
-
-
-msgid "Project"
-msgstr "Vetítés"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -4280,10 +4284,6 @@ msgid "Map Taper"
 msgstr "Hozzárendelés típusa"
 
 
-msgid "Path"
-msgstr "Útvonal"
-
-
 msgid "Text Selected"
 msgstr "Kijelölt szöveg"
 
@@ -5825,22 +5825,6 @@ msgid "Type of event"
 msgstr "Esemény típusa"
 
 
-msgid "Press"
-msgstr "Lenyomás"
-
-
-msgid "Release"
-msgstr "Felengedés"
-
-
-msgid "Click"
-msgstr "Kattintás"
-
-
-msgid "Double Click"
-msgstr "Dupla Kattintás"
-
-
 msgid "Left Handle"
 msgstr "Bal fogantyú"
 
@@ -6602,6 +6586,10 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
+msgid "Metaball"
+msgstr "Meta test"
+
+
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
@@ -6610,64 +6598,60 @@ msgid "Clean Up"
 msgstr "Tisztítás"
 
 
-msgid "Import"
-msgstr "Importálás"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
 msgid "Local View"
 msgstr "Helyi nézet"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
-msgid "Metaball"
-msgstr "Meta test"
 
 
 msgid "Light"
 msgstr "Fényforrás"
 
 
-msgid "Relations"
-msgstr "Kapcsolatok"
-
-
-msgid "Rigid Body"
-msgstr "Szilárd test"
+msgid "Mirror"
+msgstr "Tükrözés"
 
 
 msgid "Apply"
 msgstr "Elfogadás"
 
 
-msgid "Track"
-msgstr "Nyom"
-
-
-msgid "Keying"
-msgstr "Kulcsozás"
+msgid "Merge"
+msgstr "Összefésülés"
 
 
 msgid "Tracking"
 msgstr "Követés"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Keying"
+msgstr "Kulcsozás"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
+
+
+msgid "Import"
+msgstr "Importálás"
+
+
+msgid "Rigid Body"
+msgstr "Szilárd test"
+
+
+msgid "Track"
+msgstr "Nyom"
+
+
+msgid "Relations"
+msgstr "Kapcsolatok"
 
 
 msgctxt "MovieClip"
@@ -12879,10 +12863,6 @@ msgid "Menus"
 msgstr "Menük"
 
 
-msgid "Auto Run Python Scripts"
-msgstr "Python szkriptek automatikus futtatása"
-
-
 msgid "Bone Color Sets"
 msgstr "Csont színkészletek"
 
@@ -13224,6 +13204,10 @@ msgstr "Fájltömörítés engedélyezése .blend fájlok mentésekor"
 
 msgid "Load user interface setup when loading .blend files"
 msgstr "Felhasználói felület beállítások betöltése .blend fájlok betöltésekor"
+
+
+msgid "Auto Run Python Scripts"
+msgstr "Python szkriptek automatikus futtatása"
 
 
 msgid "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)"
@@ -14858,6 +14842,14 @@ msgid "Occlude objects with the environment color as they are further away"
 msgstr "Objektumok elnyelése a környezeti szín által, minnél távolabb vannak"
 
 
+msgid "Press"
+msgstr "Lenyomás"
+
+
+msgid "Release"
+msgstr "Felengedés"
+
+
 msgid "XR Data for Window Manager Event"
 msgstr "XR adat ablakkezelő eseményhez"
 
@@ -15060,11 +15052,6 @@ msgid "All"
 msgstr "Mind"
 
 
-msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "Hiba bejelentése"
-
-
 msgid "Object Index"
 msgstr "Objektum index"
 
@@ -15112,6 +15099,11 @@ msgstr "Figyelmeztetés:"
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentáció"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Hiba bejelentése"
 
 
 msgid "File:"
@@ -15991,6 +15983,10 @@ msgid "KeyingSet"
 msgstr "Kulcskészlet"
 
 
+msgid "GP_Layer"
+msgstr "GP_Réteg"
+
+
 msgid "Const"
 msgstr "kényszer"
 
@@ -16002,10 +15998,6 @@ msgstr "Szín"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "Felület"
-
-
-msgid "GP_Layer"
-msgstr "GP_Réteg"
 
 
 msgid "Basis"
@@ -16687,6 +16679,10 @@ msgid "Z:"
 msgstr "Z:"
 
 
+msgid "Dimensions:"
+msgstr "Dimenziók:"
+
+
 msgid "Crease:"
 msgstr "Domborítás:"
 
@@ -16697,10 +16693,6 @@ msgstr "Sugár:"
 
 msgid "Weight:"
 msgstr "Súly:"
-
-
-msgid "Dimensions:"
-msgstr "Dimenziók:"
 
 
 msgid "Size:"

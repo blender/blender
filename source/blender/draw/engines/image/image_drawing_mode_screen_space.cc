@@ -90,8 +90,8 @@ void ScreenSpaceDrawingMode::update_textures(blender::Image *image, ImageUser *i
   }
 
   /* Get changeset ID that we will update to, and last changeset ID. */
-  const int64_t new_changeset_id = BKE_image_partial_update_flush(image, image_user);
-  const int64_t last_changset_id = state.partial_update.last_changeset_id;
+  const imbuf::ChangesetID new_changeset_id = BKE_image_partial_update_flush(image, image_user);
+  const imbuf::ChangesetID last_changset_id = state.partial_update.last_changeset_id;
 
   bool need_full_update = false;
   for (ImageTile &image_tile_ptr : image->tiles) {

@@ -17,52 +17,22 @@
 
 namespace blender {
 
-int logimage_fseek(LogImageFile *logFile, intptr_t offset, int origin)
+int logimage_fseek(LogImageFile *logFile, uintptr_t offset)
 {
-  if (logFile->file) {
-    fseek(logFile->file, offset, origin);
+  if (offset > logFile->memBufferSize) {
+    return 1;
   }
-  else { /* we're seeking in memory */
-    if (origin == SEEK_SET) {
-      if (offset > logFile->memBufferSize) {
-        return 1;
-      }
-      logFile->memCursor = logFile->memBuffer + offset;
-    }
-    else if (origin == SEEK_END) {
-      if (offset > logFile->memBufferSize) {
-        return 1;
-      }
-      logFile->memCursor = (logFile->memBuffer + logFile->memBufferSize) - offset;
-    }
-    else if (origin == SEEK_CUR) {
-      uintptr_t pos = uintptr_t(logFile->memCursor) - uintptr_t(logFile->memBuffer);
-      if (pos + offset > logFile->memBufferSize) {
-        return 1;
-      }
-
-      logFile->memCursor += offset;
-    }
-  }
+  logFile->memCursor = logFile->memBuffer + offset;
   return 0;
 }
 
 int logimage_fwrite(const void *buffer, size_t size, uint count, LogImageFile *logFile)
 {
-  if (logFile->file) {
-    return fwrite(buffer, size, count, logFile->file);
-  }
-  /* we're writing to memory */
-  /* do nothing as this isn't supported yet */
-  return count;
+  return fwrite(buffer, size, count, logFile->file);
 }
 
 int logimage_fread(void *buffer, size_t size, uint count, LogImageFile *logFile)
 {
-  if (logFile->file) {
-    return fread(buffer, size, count, logFile->file);
-  }
-  /* we're reading from memory */
   uchar *buf = static_cast<uchar *>(buffer);
   uintptr_t pos = uintptr_t(logFile->memCursor) - uintptr_t(logFile->memBuffer);
   size_t total_size = size * count;

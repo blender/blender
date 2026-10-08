@@ -34,7 +34,7 @@ class FrameBuffer;
 }  // namespace gpu
 
 /* Texture Update system structs. */
-struct TextureUpdateRoutineSpecialisation {
+struct TextureUpdateRoutineSpecialization {
 
   /* The METAL type of data in input array, e.g. half, float, short, int */
   std::string input_data_type;
@@ -52,7 +52,7 @@ struct TextureUpdateRoutineSpecialisation {
    * be read. */
   bool is_clear;
 
-  bool operator==(const TextureUpdateRoutineSpecialisation &other) const
+  bool operator==(const TextureUpdateRoutineSpecialization &other) const
   {
     return ((input_data_type == other.input_data_type) &&
             (output_data_type == other.output_data_type) &&
@@ -82,10 +82,10 @@ enum DepthTextureUpdateMode {
   MTL_DEPTH_UPDATE_MODE_INT32 = 2
 };
 
-struct DepthTextureUpdateRoutineSpecialisation {
+struct DepthTextureUpdateRoutineSpecialization {
   DepthTextureUpdateMode data_mode;
 
-  bool operator==(const DepthTextureUpdateRoutineSpecialisation &other) const
+  bool operator==(const DepthTextureUpdateRoutineSpecialization &other) const
   {
     return ((data_mode == other.data_mode));
   }
@@ -97,7 +97,7 @@ struct DepthTextureUpdateRoutineSpecialisation {
 };
 
 /* Texture Read system structs. */
-struct TextureReadRoutineSpecialisation {
+struct TextureReadRoutineSpecialization {
   std::string input_data_type;
   std::string output_data_type;
   int component_count_input;
@@ -110,7 +110,7 @@ struct TextureReadRoutineSpecialisation {
    * 4 = 32bit Unsigned-Integer Depth. */
   int depth_format_mode;
 
-  bool operator==(const TextureReadRoutineSpecialisation &other) const
+  bool operator==(const TextureReadRoutineSpecialization &other) const
   {
     return ((input_data_type == other.input_data_type) &&
             (output_data_type == other.output_data_type) &&
@@ -429,19 +429,19 @@ class MTLTexture : public Texture {
   };
 
   id<MTLComputePipelineState> texture_update_1d_get_kernel(
-      TextureUpdateRoutineSpecialisation specialization);
+      TextureUpdateRoutineSpecialization specialization);
   id<MTLComputePipelineState> texture_update_1d_array_get_kernel(
-      TextureUpdateRoutineSpecialisation specialization);
+      TextureUpdateRoutineSpecialization specialization);
   id<MTLComputePipelineState> texture_update_2d_get_kernel(
-      TextureUpdateRoutineSpecialisation specialization);
+      TextureUpdateRoutineSpecialization specialization);
   id<MTLComputePipelineState> texture_update_2d_array_get_kernel(
-      TextureUpdateRoutineSpecialisation specialization);
+      TextureUpdateRoutineSpecialization specialization);
   id<MTLComputePipelineState> texture_update_3d_get_kernel(
-      TextureUpdateRoutineSpecialisation specialization);
+      TextureUpdateRoutineSpecialization specialization);
 
   id<MTLComputePipelineState> mtl_texture_update_impl(
-      TextureUpdateRoutineSpecialisation specialization_params,
-      Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>> &specialization_cache,
+      TextureUpdateRoutineSpecialization specialization_params,
+      Map<TextureUpdateRoutineSpecialization, id<MTLComputePipelineState>> &specialization_cache,
       GPUTextureType texture_type);
 
   /* Depth Update Utilities */
@@ -449,7 +449,7 @@ class MTLTexture : public Texture {
    * use a compute shader to write to depth, so we must instead render to a depth target.
    * These processes use vertex/fragment shaders to render texture data from an intermediate
    * source, in order to prime the depth buffer. */
-  gpu::Shader *depth_2d_update_sh_get(DepthTextureUpdateRoutineSpecialisation specialization);
+  gpu::Shader *depth_2d_update_sh_get(DepthTextureUpdateRoutineSpecialization specialization);
 
   void update_sub_depth_2d(
       int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data);
@@ -462,19 +462,19 @@ class MTLTexture : public Texture {
   };
 
   id<MTLComputePipelineState> texture_read_1d_get_kernel(
-      TextureReadRoutineSpecialisation specialization);
+      TextureReadRoutineSpecialization specialization);
   id<MTLComputePipelineState> texture_read_1d_array_get_kernel(
-      TextureReadRoutineSpecialisation specialization);
+      TextureReadRoutineSpecialization specialization);
   id<MTLComputePipelineState> texture_read_2d_get_kernel(
-      TextureReadRoutineSpecialisation specialization);
+      TextureReadRoutineSpecialization specialization);
   id<MTLComputePipelineState> texture_read_2d_array_get_kernel(
-      TextureReadRoutineSpecialisation specialization);
+      TextureReadRoutineSpecialization specialization);
   id<MTLComputePipelineState> texture_read_3d_get_kernel(
-      TextureReadRoutineSpecialisation specialization);
+      TextureReadRoutineSpecialization specialization);
 
   id<MTLComputePipelineState> mtl_texture_read_impl(
-      TextureReadRoutineSpecialisation specialization_params,
-      Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>> &specialization_cache,
+      TextureReadRoutineSpecialization specialization_params,
+      Map<TextureReadRoutineSpecialization, id<MTLComputePipelineState>> &specialization_cache,
       GPUTextureType texture_type);
 
   /* fullscreen blit utilities. */

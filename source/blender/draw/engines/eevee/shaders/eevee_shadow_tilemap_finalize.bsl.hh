@@ -4,12 +4,14 @@
 
 #pragma once
 
+#include "draw_command_shared.hh"
 #include "draw_shader_shared.hh"
 #include "eevee_defines.hh"
 #include "eevee_shadow_shared.hh"
 
 #include "eevee_shadow_tilemap_lib.bsl.hh"
 #include "gpu_shader_math_matrix_projection.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee::shadow {
 

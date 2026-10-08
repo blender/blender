@@ -32,8 +32,8 @@ enum [[host_shared]] GPUKeyframeShapes : uint32_t {
                                GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL),
 };
 
-#define MAX_SOCKET_PARAMETERS 4
-#define MAX_SOCKET_INSTANCE 32
+static constexpr int MAX_SOCKET_PARAMETERS = 4;
+static constexpr int MAX_SOCKET_INSTANCE = 32;
 
 /* Node Socket shader parameters. Must match the shader layout of "gpu_shader_2D_node_socket". */
 struct [[host_shared]] NodeSocketShaderParameters {
@@ -69,10 +69,10 @@ struct [[host_shared]] NodeLinkData {
 };
 
 /* Destination tile size handled by one workgroup of the mipmap compute shader. */
-#define MIPMAP_UPDATE_TILE_SIZE 8
+static constexpr int MIPMAP_UPDATE_TILE_SIZE = 8;
 
 /* Chunk size for partial mipmap updates. */
-#define MIPMAP_UPDATE_CHUNK_SIZE 256
+static constexpr int MIPMAP_UPDATE_CHUNK_SIZE = 256;
 
 /* Coordinate of a mipmap chunk for partial mipmap updates. */
 struct [[host_shared]] MipmapChunkCoord {
@@ -108,13 +108,13 @@ struct [[host_shared]] SimpleLightingData {
   float _pad;
 };
 
-#define MAX_CALLS 16
+static constexpr int MAX_CALLS = 16;
 
 struct [[host_shared]] MultiIconCallData {
   float4 calls_data[MAX_CALLS * 3];
 };
 
-#define GPU_SEQ_STRIP_DRAW_DATA_LEN 256
+static constexpr int GPU_SEQ_STRIP_DRAW_DATA_LEN = 256;
 
 enum [[host_shared]] GPUSeqFlags : uint32_t {
   GPU_SEQ_FLAG_BACKGROUND = (1u << 0u),

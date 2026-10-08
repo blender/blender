@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_view_lib.glsl"
+#include "draw_view.bsl.hh"
 
 #include "workbench_common.bsl.hh"
 
@@ -20,6 +20,7 @@ struct Cavity {
 
 void cavity_compute([[resource_table]] const workbench::Cavity &cavity,
                     [[resource_table]] const workbench::World &world,
+                    ViewMatrices view,
                     sampler2DDepth depth_tx,
                     sampler2D normal_tx,
                     float2 screenco,
@@ -37,7 +38,7 @@ void cavity_compute([[resource_table]] const workbench::Cavity &cavity,
 
   const WorldData &world_data = world.world_data;
 
-  float3 position = drw_point_screen_to_view(float3(screenco, depth));
+  float3 position = view.point_screen_to_view(float3(screenco, depth));
   float3 normal = workbench::normal_decode(texture(normal_tx, screenco));
 
   float2 jitter_co = (screenco * world_data.viewport_size.xy) * world_data.cavity_jitter_scale;
@@ -46,9 +47,9 @@ void cavity_compute([[resource_table]] const workbench::Cavity &cavity,
   /* find the offset in screen space by multiplying a point
    * in camera space at the depth of the point by the projection matrix. */
   float2 offset;
-  float homcoord = drw_view().winmat[2][3] * position.z + drw_view().winmat[3][3];
-  offset.x = drw_view().winmat[0][0] * world_data.cavity_distance / homcoord;
-  offset.y = drw_view().winmat[1][1] * world_data.cavity_distance / homcoord;
+  float homcoord = view.winmat[2][3] * position.z + view.winmat[3][3];
+  offset.x = view.winmat[0][0] * world_data.cavity_distance / homcoord;
+  offset.y = view.winmat[1][1] * world_data.cavity_distance / homcoord;
   /* convert from -1...1 range to 0..1 for easy use with texture coordinates */
   offset *= 0.5f;
 
@@ -77,7 +78,7 @@ void cavity_compute([[resource_table]] const workbench::Cavity &cavity,
     bool is_background = (s_depth == 1.0f);
     /* This trick provide good edge effect even if no neighbor is found. */
     s_depth = (is_background) ? depth : s_depth;
-    float3 s_pos = drw_point_screen_to_view(float3(uvcoords, s_depth));
+    float3 s_pos = view.point_screen_to_view(float3(uvcoords, s_depth));
 
     if (is_background) {
       s_pos.z -= world_data.cavity_distance;

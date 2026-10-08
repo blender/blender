@@ -16,14 +16,15 @@
 namespace blender::eevee {
 #endif
 
-#define SSS_SAMPLE_MAX 64
-#define SSS_BURLEY_TRUNCATE 16.0f
-#define SSS_BURLEY_TRUNCATE_CDF 0.9963790093708328
-#define SSS_TRANSMIT_LUT_SIZE 64.0f
-#define SSS_TRANSMIT_LUT_RADIUS 2.0f
-#define SSS_TRANSMIT_LUT_SCALE ((SSS_TRANSMIT_LUT_SIZE - 1.0f) / float(SSS_TRANSMIT_LUT_SIZE))
-#define SSS_TRANSMIT_LUT_BIAS (0.5f / float(SSS_TRANSMIT_LUT_SIZE))
-#define SSS_TRANSMIT_LUT_STEP_RES 64.0f
+static constexpr int SSS_SAMPLE_MAX = 64;
+static constexpr float SSS_BURLEY_TRUNCATE = 16.0f;
+static constexpr float SSS_BURLEY_TRUNCATE_CDF = 0.9963790093708328;
+static constexpr float SSS_TRANSMIT_LUT_SIZE = 64.0f;
+static constexpr float SSS_TRANSMIT_LUT_RADIUS = 2.0f;
+static constexpr float SSS_TRANSMIT_LUT_SCALE = ((SSS_TRANSMIT_LUT_SIZE - 1.0f) /
+                                                 float(SSS_TRANSMIT_LUT_SIZE));
+static constexpr float SSS_TRANSMIT_LUT_BIAS = (0.5f / float(SSS_TRANSMIT_LUT_SIZE));
+static constexpr float SSS_TRANSMIT_LUT_STEP_RES = 64.0f;
 
 struct [[host_shared]] SubsurfaceData {
   /** xy: 2D sample position [-1..1], zw: sample_bounds. */

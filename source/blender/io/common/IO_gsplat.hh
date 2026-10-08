@@ -77,7 +77,7 @@ inline int dimension_for_degree(const int degree)
 }
 
 /* Get spherical harmonics for given point.
- * Essentially a slize of all elements of the sh_attrs at the given index.
+ * Essentially a slice of all elements of the sh_attrs at the given index.
  *
  * The sh_attrs are used read-only. The reason it is a MutableSpan is for the ease of integration
  * with the IO code that acquires attributes for write. */

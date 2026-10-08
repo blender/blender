@@ -53,6 +53,7 @@ enum eUserPref_Flag : int {
   USER_ADD_VIEWALIGNED = (1 << 19),
   USER_RELPATHS = (1 << 20),
   USER_RELEASECONFIRM = (1 << 21),
+  /** See #G_FLAG_SCRIPT_AUTOEXEC for an overview of auto-execution. */
   USER_SCRIPT_AUTOEXEC_DISABLE = (1 << 22),
   USER_FILENOUI = (1 << 23),
   USER_NONEGFRAMES = (1 << 24),
@@ -200,6 +201,7 @@ enum eUserpref_GPU_Flag : char {
   USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE = (1 << 2),
   USER_GPU_FLAG_SUBDIVISION_EVALUATION = (1 << 3),
   USER_GPU_FLAG_FRESNEL_EDIT = (1 << 4),
+  USER_GPU_FLAG_VIDEO_DECODING = (1 << 5),
 };
 ENUM_OPERATORS(eUserpref_GPU_Flag)
 
@@ -562,6 +564,14 @@ enum eUserpref_SeqProxySetup : short {
   USER_SEQ_PROXY_SETUP_AUTOMATIC = 1,
 };
 
+enum eUserpref_VideoDecodingDevice : short {
+  USER_VIDEO_DECODING_DEVICE_AUTOMATIC = 0,
+  USER_VIDEO_DECODING_DEVICE_VIDEOTOOLBOX = 1,
+  USER_VIDEO_DECODING_DEVICE_D3D11VA = 2,
+  USER_VIDEO_DECODING_DEVICE_CUDA = 3,
+  USER_VIDEO_DECODING_DEVICE_VULKAN = 4,
+};
+
 enum eUserpref_SeqEditorFlags : int {
   USER_SEQ_ED_UNUSED_0 = (1 << 0), /* Dirty. */
   USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT = (1 << 1),
@@ -688,17 +698,15 @@ struct bUserAssetLibrary {
    * UUIDs to files. (If it is invalid it is up to the end user to fix it.
    */
   char *invalid_uuid = nullptr;
+  /**
+   * The `{repo_module}.{pkg_id}` of the extension defining this library
+   * (see #bUserExtensionRepo::module), empty for libraries the user defined.
+   */
+  char extension_id[128] = "";
 
   short import_method = ASSET_IMPORT_PACK;  /* eAssetImportMethod */
   short flag = ASSET_LIBRARY_RELATIVE_PATH; /* eAssetLibrary_Flag */
   char _pad0[4] = {};
-
-#ifdef __cplusplus
-  bool is_enabled() const
-  {
-    return (this->flag & ASSET_LIBRARY_DISABLED) == 0;
-  }
-#endif
 };
 
 enum eUserExtensionRepo_Flag : uint8_t {
@@ -709,6 +717,16 @@ enum eUserExtensionRepo_Flag : uint8_t {
   USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL = 1 << 3,
   USER_EXTENSION_REPO_FLAG_SYNC_ON_STARTUP = 1 << 4,
   USER_EXTENSION_REPO_FLAG_USE_ACCESS_TOKEN = 1 << 5,
+  /** Collapse the repository's asset libraries in the preferences list. */
+  USER_EXTENSION_REPO_FLAG_ASSET_LIBRARIES_COLLAPSED = 1 << 6,
+  /**
+   * The access token is used by asset libraries from this repository.
+   *
+   * \note This is a cache of `assetlib_auth_method` from the repository listing (`index.json`)
+   * which the extension system updates when syncing, kept for convenience so the UI can
+   * show it without reading the listing.
+   */
+  USER_EXTENSION_REPO_FLAG_USE_ACCESS_TOKEN_ASSET_LIBRARIES = 1 << 7,
 };
 ENUM_OPERATORS(eUserExtensionRepo_Flag)
 
@@ -884,6 +902,7 @@ struct UserDef_Experimental {
   char write_legacy_blend_file_format = 0;
   char no_data_block_packing = 0;
   char use_paint_debug = 0;
+  char use_video_decoding_debug = 0;
   char SANITIZE_AFTER_HERE = {};
   /**
    * The following options are automatically sanitized (set to 0)
@@ -1299,7 +1318,7 @@ struct UserDef {
   float sequencer_default_strip_length = 1.0f;
 
   eUserpref_SeqProxySetup sequencer_proxy_setup = USER_SEQ_PROXY_SETUP_AUTOMATIC;
-  short _pad1 = {};
+  eUserpref_VideoDecodingDevice video_decoding_device = USER_VIDEO_DECODING_DEVICE_AUTOMATIC;
 
   float collection_instance_empty_size = 1.0f;
   eTextEdit_Flags text_flag = {};

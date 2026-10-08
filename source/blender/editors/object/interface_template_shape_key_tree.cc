@@ -29,6 +29,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_object.hh"
 #include "ED_undo.hh"
 
 namespace blender::ed::object::shapekey {
@@ -154,7 +155,7 @@ class ShapeKeyDropTarget : public ui::TreeViewItemDropTarget {
 
   bool on_drop(bContext *C, const ui::DragInfo &drag_info) const override
   {
-    Object *ob = CTX_data_active_object(C);
+    Object *ob = ed::object::context_active_object(C);
     Key *key = BKE_key_from_object(ob);
     const KeyBlock **drag_shapekey = static_cast<const KeyBlock **>(drag_info.drag_data.poin);
 
@@ -328,7 +329,7 @@ void ShapeKeyTreeView::build_tree()
 
 void template_tree(ui::Layout *layout, bContext *C)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
   if (ob == nullptr) {
     return;
   }

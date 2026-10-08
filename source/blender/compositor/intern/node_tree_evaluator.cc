@@ -14,7 +14,9 @@
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_zones.hh"
 
+#include "COM_closure_zone_operation.hh"
 #include "COM_context.hh"
 #include "COM_domain.hh"
 #include "COM_group_node_operation.hh"
@@ -26,12 +28,14 @@
 #include "COM_node_tree_input_node_operation.hh"
 #include "COM_node_tree_output_node_operation.hh"
 #include "COM_pixel_operation.hh"
+#include "COM_repeat_zone_operation.hh"
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
 #include "COM_shader_operation.hh"
 #include "COM_single_value_node_input_operation.hh"
 #include "COM_undefined_node_operation.hh"
 #include "COM_utilities.hh"
+#include "COM_zone_tree_operation.hh"
 
 namespace blender::compositor {
 
@@ -48,6 +52,8 @@ NodeTreeEvaluator::NodeTreeEvaluator(Context &context,
 
 void NodeTreeEvaluator::evaluate()
 {
+  this->compute_zone_external_input_reference_counts();
+
   for (const bNode *node : this->schedule().nodes) {
     if (this->context().is_canceled()) {
       this->cancel_evaluation();
@@ -60,10 +66,18 @@ void NodeTreeEvaluator::evaluate()
 
     if (is_pixel_node(*node)) {
       this->add_node_to_pixel_compile_unit(*node);
+      continue;
     }
-    else {
-      this->evaluate_node(*node);
+
+    const bke::bNodeTreeZones &zones = *node->owner_tree().zones();
+    const bke::bNodeTreeZone *node_zone = zones.get_zone_by_node(node->identifier);
+    if (node_zone && node_zone != this->schedule().zone) {
+      BLI_assert(node == node_zone->output_node());
+      this->evaluate_zone(*node_zone);
+      continue;
     }
+
+    this->evaluate_node(*node);
   }
 }
 
@@ -83,6 +97,20 @@ Result &NodeTreeEvaluator::get_result_from_output_socket(const bNodeSocket &outp
     return pixel_operation->get_result(identifier);
   }
 
+  /* The output belongs to a zone output node that was compiled into a zone operation. */
+  ZoneOperation *zone_operation = zone_operations_.lookup_default(&node, nullptr);
+  if (zone_operation) {
+    return zone_operation->get_result(output.identifier);
+  }
+
+  /* If the output is in a different zone, then we retrieve the result from the ZoneTreeOperation
+   * operation using its special identifier. */
+  const bke::bNodeTreeZones &zones = *output.owner_tree().zones();
+  const bke::bNodeTreeZone *node_zone = zones.get_zone_by_node(node.identifier);
+  if (node_zone != this->schedule().zone) {
+    return this->operation().get_input(ZoneTreeOperation::get_external_input_identifier(output));
+  }
+
   BLI_assert_unreachable();
   return node_operation->get_result(output.identifier);
 }
@@ -97,6 +125,40 @@ const Schedule &NodeTreeEvaluator::schedule()
   return schedule_;
 }
 
+void NodeTreeEvaluator::compute_zone_external_input_reference_counts()
+{
+  /* Not evaluating a zone, nothing to do. */
+  if (!this->schedule().zone) {
+    return;
+  }
+
+  Set<const bNodeSocket *> outputs_already_considered;
+  for (const bNodeLink *link : this->schedule().zone->border_links) {
+    const bNodeSocket *output = get_output_linked_to_input(*link->tosock);
+    if (!output) {
+      continue;
+    }
+
+    if (outputs_already_considered.contains(output)) {
+      continue;
+    }
+    outputs_already_considered.add_new(output);
+
+    const int reference_count = compute_output_reference_count(*output, this->schedule());
+    Result &result = this->get_result_from_output_socket(*output);
+    result.set_reference_count(result.reference_count() + reference_count);
+  }
+}
+
+/* Identifies if the given node is a node tree input, this includes the Group Input and Zone Input
+ * nodes. Those nodes are a special case, while they are compiled as node operation, their outputs
+ * are retrieved from the operation using the evaluator, while their inputs are ignored from the
+ * perspective of the node operation. */
+static bool is_node_tree_input_node(const bNode &node)
+{
+  return node.is_group_input() || bke::all_zone_input_node_types().contains(node.type_legacy);
+}
+
 NodeOperation *NodeTreeEvaluator::create_node_operation(const bNode &node)
 {
   const char *disabled_hint = nullptr;
@@ -108,11 +170,11 @@ NodeOperation *NodeTreeEvaluator::create_node_operation(const bNode &node)
     return get_group_node_operation(this->context(), node);
   }
 
-  if (node.is_group_output()) {
+  if (node.is_group_output() || bke::all_zone_output_node_types().contains(node.type_legacy)) {
     return get_node_tree_output_node_operation(this->context(), node, this->operation());
   }
 
-  if (node.is_group_input()) {
+  if (is_node_tree_input_node(node)) {
     return get_node_tree_input_node_operation(this->context(), node, this->operation());
   }
 
@@ -163,8 +225,8 @@ void NodeTreeEvaluator::map_node_operation_inputs_to_their_results(const bNode &
     }
 
     const bNodeSocket *output = get_output_linked_to_input(*input);
-    if (!output || !this->schedule().nodes.contains(&output->owner_node()) ||
-        this->schedule().unneeded_inputs.contains(input))
+    if (!output || this->schedule().unneeded_inputs.contains(input) ||
+        is_node_tree_input_node(node))
     {
       this->map_unlinked_input(*input, operation);
       continue;
@@ -195,16 +257,13 @@ void NodeTreeEvaluator::evaluate_pixel_compile_unit()
   /* Only compute previews if they are needed and the node group is currently active. */
   const bool needs_node_previews = flag_is_set(this->context().needed_side_effect_output_types(),
                                                SideEffectOutputTypes::NodePreviews);
-  const bool is_active_context = compute_context_.hash() ==
-                                 this->context().get_active_compute_context_hash();
-  const bool are_node_previews_needed = needs_node_previews && is_active_context;
 
   /* Pixel operations might have limitations on the number of outputs or inputs they can have, so
    * we might have to split the compile unit into smaller units to workaround this limitation. In
    * practice, splitting will almost always never happen due to the scheduling strategy we use, so
    * the base case remains fast. */
   if (compile_unit.size() > 1 &&
-      (this->pixel_compile_unit_has_too_many_outputs(are_node_previews_needed) ||
+      (this->pixel_compile_unit_has_too_many_outputs(needs_node_previews) ||
        this->pixel_compile_unit_has_too_many_inputs()))
   {
     const int split_index = compile_unit.size() / 2;
@@ -264,6 +323,69 @@ void NodeTreeEvaluator::map_pixel_operation_inputs_to_their_results(PixelOperati
     operations_stream_.append(std::unique_ptr<ImplicitInputOperation>(input_operation));
 
     input_operation->evaluate();
+  }
+}
+
+ZoneOperation *NodeTreeEvaluator::create_zone_operation(const bke::bNodeTreeZone &zone)
+{
+  if (zone.output_node()->is_type("GeometryNodeRepeatOutput"_ustr)) {
+    return new RepeatZoneOperation(this->context(), zone, compute_context_);
+  }
+  if (zone.output_node()->is_type("NodeClosureOutput"_ustr)) {
+    return new ClosureZoneOperation(this->context(), zone, compute_context_);
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+void NodeTreeEvaluator::evaluate_zone(const bke::bNodeTreeZone &zone)
+{
+  ZoneOperation *operation = this->create_zone_operation(zone);
+
+  zone_operations_.add_new(zone.output_node(), operation);
+
+  this->map_zone_operation_inputs_to_their_results(operation);
+
+  operations_stream_.append(std::unique_ptr<Operation>(operation));
+
+  operation->compute_results_reference_counts(this->schedule());
+
+  operation->evaluate();
+}
+
+void NodeTreeEvaluator::map_zone_operation_inputs_to_their_results(ZoneOperation *operation)
+{
+  for (const bNodeSocket *input : operation->zone().input_node()->input_sockets()) {
+    if (!is_socket_available(input)) {
+      continue;
+    }
+
+    const bNodeSocket *output = get_output_linked_to_input(*input);
+    if (!output || this->schedule().unneeded_inputs.contains(input)) {
+      this->map_unlinked_input(*input, operation);
+      continue;
+    }
+
+    Result &input_result = this->get_result_from_output_socket(*output);
+    operation->map_input_to_result(input->identifier, &input_result);
+  }
+
+  Set<const bNodeSocket *> outputs_already_considered;
+  for (const bNodeLink *link : operation->zone().border_links) {
+    const bNodeSocket *output = get_output_linked_to_input(*link->tosock);
+    if (!output) {
+      continue;
+    }
+
+    if (outputs_already_considered.contains(output)) {
+      continue;
+    }
+    outputs_already_considered.add_new(output);
+
+    std::string input_identifier = ZoneTreeOperation::get_external_input_identifier(*output);
+    Result *input_result = &this->get_result_from_output_socket(*output);
+    operation->map_input_to_result(input_identifier, input_result);
   }
 }
 
@@ -495,14 +617,10 @@ bool NodeTreeEvaluator::pixel_compile_unit_has_too_many_outputs(
       /* If the output is used as the node preview, then an operation output will exist for it. */
       const bool is_preview_output = output == preview_output;
 
-      /* If any of the nodes linked to the output are not part of the pixel compile unit but are
-       * part of the execution schedule, then an operation output will exist for it. */
-      const bool is_operation_output = is_output_linked_to_input_conditioned(
-          *output, [&](const bNodeSocket &input) {
-            return schedule_.nodes.contains(&input.owner_node()) &&
-                   !schedule_.unneeded_inputs.contains(&input) &&
-                   !pixel_compile_unit_.contains(&input.owner_node());
-          });
+      /* If the output is referenced by the schedule outside of the pixel compile unit, then an
+       * output result needs to be populated for it. */
+      const bool is_operation_output = compute_output_reference_count(
+                                           *output, schedule_, &pixel_compile_unit_) != 0;
 
       if (is_operation_output || is_preview_output) {
         outputs_count += 1;

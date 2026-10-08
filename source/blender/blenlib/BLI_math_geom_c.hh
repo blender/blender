@@ -260,7 +260,7 @@ struct DistRayAABB_Precalc {
 struct DistRayAABB_Precalc dist_squared_ray_to_aabb_v3_precalc(const float ray_origin[3],
                                                                const float ray_direction[3]);
 /**
- * Returns the distance from a ray to a bound-box (projected on ray)
+ * Returns the distance from a ray to a bound-box.
  */
 float dist_squared_ray_to_aabb_v3(const struct DistRayAABB_Precalc *data,
                                   const float bb_min[3],

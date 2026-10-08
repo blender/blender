@@ -36,7 +36,7 @@ inline void doublearea(const Eigen::PlainObjectBase<DerivedV> &V,
                        const Eigen::PlainObjectBase<DerivedF> &F,
                        Eigen::PlainObjectBase<DeriveddblA> &dblA);
 
-/* Same as above but use instrinsic edge lengths rather than (V,F) mesh
+/* Same as above but use intrinsic edge lengths rather than (V,F) mesh
  * Inputs:
  *   l  #F by dim list of edge lengths using
  *     for triangles, columns correspond to edges 23,31,12

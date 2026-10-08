@@ -354,7 +354,7 @@ static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifie
 static void print_resource(std::ostream &os,
                            const VKDescriptorSet::Location location,
                            const ShaderCreateInfo::Resource &res,
-                           const ShaderCreateInfo &info)
+                           const ShaderCreateInfo & /*info*/)
 {
   os << "layout(binding = " << uint32_t(location);
   if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
@@ -381,14 +381,13 @@ static void print_resource(std::ostream &os,
       os << res.image.name << ";";
       break;
     case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
-      os << "uniform _" << res.uniformbuf.name.str_no_array() << " { "
-         << info.buffer_typename(res.uniformbuf.type_name, true) << " " << res.uniformbuf.name
-         << "; };";
+      os << "uniform _" << res.uniformbuf.name.str_no_array() << " { " << res.uniformbuf.type_name
+         << " " << res.uniformbuf.name << "; };";
       break;
     case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
       print_qualifier(os, res.storagebuf.qualifiers);
-      os << "buffer _" << res.storagebuf.name.str_no_array() << " { "
-         << info.buffer_typename(res.storagebuf.type_name) << " " << res.storagebuf.name << "; };";
+      os << "buffer _" << res.storagebuf.name.str_no_array() << " { " << res.storagebuf.type_name
+         << " " << res.storagebuf.name << "; };";
       break;
     case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
       os << "uniform accelerationStructureEXT " << res.acceleration_structure.name << ";";
@@ -433,11 +432,12 @@ inline int get_location_count(const Type &type)
 static void print_interface_as_attributes(std::ostream &os,
                                           const std::string &prefix,
                                           const StageInterfaceInfo &iface,
-                                          int &location)
+                                          int &location,
+                                          const StringRefNull &suffix)
 {
   for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
     os << "layout(location=" << location << ") " << prefix << " " << to_string(inout.interp) << " "
-       << to_string(inout.type) << " " << inout.name << ";\n";
+       << to_string(inout.type) << " " << inout.name << suffix << ";\n";
     location += get_location_count(inout.type);
   }
 }
@@ -471,7 +471,7 @@ static void print_interface(std::ostream &os,
                             const StringRefNull &suffix = "")
 {
   if (iface.instance_name.is_empty()) {
-    print_interface_as_attributes(os, prefix, iface, location);
+    print_interface_as_attributes(os, prefix, iface, location, suffix);
   }
   else {
     print_interface_as_struct(os, prefix, iface, location, suffix);
@@ -1078,7 +1078,6 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
        * collide with other resources. */
       Resource res(info, Resource::BindType::SAMPLER, input.index, nullptr);
       res.sampler.type = input.img_type;
-      res.sampler.sampler = GPUSamplerState::default_sampler();
       res.sampler.name = image_name;
       print_resource(ss, interface, res, info);
 
@@ -1261,9 +1260,22 @@ std::string VKShader::workaround_geometry_shader_source_create(
   ss << "{\n";
   for (int i : IndexRange(3)) {
     for (const StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
-      for (const StageInterfaceInfo::InOut &inout : iface->inouts) {
-        ss << "  " << iface->instance_name << "_out." << inout.name;
-        ss << " = " << iface->instance_name << "_in[" << i << "]." << inout.name << ";\n";
+      bool has_matching_output_iface = find_interface_by_name(
+                                           info_modified.geometry_out_interfaces_,
+                                           iface->instance_name) != nullptr;
+      const char *out_suffix = (has_matching_output_iface) ? "_out" : "";
+      const char *in_suffix = (has_matching_output_iface) ? "_in" : "";
+      if (iface->instance_name.is_empty()) {
+        for (const StageInterfaceInfo::InOut &inout : iface->inouts) {
+          ss << inout.name << out_suffix << " = " << inout.name << in_suffix << "[" << i << "];\n";
+        }
+      }
+      else {
+        for (const StageInterfaceInfo::InOut &inout : iface->inouts) {
+          ss << "  " << iface->instance_name << out_suffix << "." << inout.name;
+          ss << " = " << iface->instance_name << in_suffix << "[" << i << "]." << inout.name
+             << ";\n";
+        }
       }
     }
     if (do_barycentric_workaround) {
@@ -1379,6 +1391,8 @@ bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_st
       graphics_info.fragment_out.color_attachment_formats.append(to_vk_format(color_format));
     }
     graphics_info.fragment_out.state = pipeline_state.state_;
+    graphics_info.shaders.color_attachment_count = uint32_t(
+        graphics_info.fragment_out.color_attachment_formats.size());
 
     bool pipeline_created = false;
     VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(
@@ -1433,6 +1447,10 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(
   graphics_info.shaders.vk_topology = vk_topology;
   graphics_info.shaders.state = state_manager.state;
   graphics_info.shaders.viewport_count = framebuffer.viewport_size();
+  if (device.workarounds_get().static_viewport_scissor) {
+    framebuffer.vk_viewports_append(graphics_info.shaders.viewports);
+    framebuffer.vk_render_areas_append(graphics_info.shaders.scissors);
+  }
   graphics_info.shaders.specialization_constants.extend(constants_state.values);
   graphics_info.shaders.has_depth = depth_attachment_format != VK_FORMAT_UNDEFINED;
   graphics_info.shaders.has_stencil = stencil_attachment_format != VK_FORMAT_UNDEFINED;
@@ -1451,6 +1469,8 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(
   graphics_info.fragment_out.color_attachment_formats.extend(
       framebuffer.color_attachment_formats_get());
   graphics_info.fragment_out.state = graphics_info.shaders.state;
+  graphics_info.shaders.color_attachment_count = uint32_t(
+      graphics_info.fragment_out.color_attachment_formats.size());
 
   bool pipeline_created = false;
   VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(

@@ -674,6 +674,7 @@ static void render_endjob(void *rjv)
   /* XXX render stability hack */
   G.is_rendering = false;
   WM_main_add_notifier(NC_SCENE | ND_RENDER_RESULT, nullptr);
+  DEG_id_tag_update(&rj->scene->id, ID_RECALC_COMPOSITOR);
 
   /* Finally unlock the user interface (if it was locked). */
   if (rj->interface_locked) {

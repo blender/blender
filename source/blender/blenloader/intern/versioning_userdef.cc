@@ -439,10 +439,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->space_view3d.grid_axis_brightness = U_theme_default.space_view3d.grid_axis_brightness;
   }
 
-  if (!USER_VERSION_ATLEAST(502, 42)) {
-    FROM_DEFAULT_V4_UCHAR(tui.wcol_state.error);
-  }
-
   if (!USER_VERSION_ATLEAST(503, 5)) {
     FROM_DEFAULT_V4_UCHAR(tui.wcol_list_item.item);
   }
@@ -450,6 +446,14 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
   if (!USER_VERSION_ATLEAST(503, 19)) {
     /* Alpha is now used, but was hardcoded to be opaque before. */
     btheme->common.anim.playhead[3] = 255;
+  }
+
+  if (!USER_VERSION_ATLEAST(503, 26)) {
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_state.info);
+  }
+
+  if (!USER_VERSION_ATLEAST(503, 27)) {
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_state.error);
   }
 
   /**
@@ -1789,7 +1793,8 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->asset_flag |= USER_ASSETS_USE_ONLINE_ESSENTIALS;
   }
 
-  /* Make Vulkan default on Linux/Windows x64. Keep existing option for Apple and Windows on ARM.*/
+  /* Make Vulkan default on Linux/Windows x64.
+   * Keep existing option for Apple and Windows on ARM. */
 #ifdef __APPLE__
 #elif defined(WIN32) && (defined(_M_ARM64) || defined(__aarch64__))
 #else

@@ -278,6 +278,9 @@ endif()
 
 if(WITH_CYCLES_DEVICE_ONEAPI)
   add_definitions(-DWITH_ONEAPI)
+  if(WITH_CYCLES_ONEAPI_SOFTWARE_TEXTURING)
+    add_definitions(-DWITH_CYCLES_ONEAPI_SOFTWARE_TEXTURING)
+  endif()
 endif()
 
 if(WITH_EMBREE)

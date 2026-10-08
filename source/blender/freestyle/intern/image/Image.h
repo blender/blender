@@ -369,7 +369,7 @@ class GrayImage : public FrsImage {
 
   /** Sets the array.
    *    copy
-   *      If true, the array is copied, otherwise the pounsigneder is copied
+   *      If true, the array is copied, otherwise the pointer is copied
    */
   void setArray(
       float *lvl, uint width, uint height, uint sw, uint sh, uint x, uint y, bool copy = true)

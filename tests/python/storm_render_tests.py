@@ -12,11 +12,23 @@ try:
     from modules import render_report
 
     class StormReport(render_report.Report):
-        def __init__(self, title, output_dir, oiiotool, variation=None, blocklist=[]):
+        def __init__(
+            self,
+            title: str,
+            output_dir: Path,
+            oiiotool: Path,
+            variation: str | None = None,
+            blocklist: list[str] = [],
+        ) -> None:
             super().__init__(title, output_dir, oiiotool, variation=variation, blocklist=blocklist)
             self.gpu_backend = variation
 
-        def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
+        def _get_render_arguments(
+            self,
+            arguments_cb: render_report.ArgumentsCallback,
+            filepath: Path,
+            base_output_filepath: Path,
+        ) -> list[str | Path]:
             return arguments_cb(filepath, base_output_filepath, gpu_backend=self.gpu_backend)
 
 except ImportError:
@@ -211,8 +223,12 @@ if inside_blender:
         sys.exit(1)
 
 
-def get_arguments(filepath, output_filepath, gpu_backend):
-    arguments = [
+def get_arguments(
+    filepath: Path,
+    output_filepath: Path,
+    gpu_backend: str | None,
+) -> list[str | Path]:
+    arguments: list[str | Path] = [
         "--background",
         "--factory-startup",
         "--enable-autoexec",
@@ -238,10 +254,10 @@ def create_argparse():
     parser = argparse.ArgumentParser(
         description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
     )
-    parser.add_argument("--blender", required=True)
-    parser.add_argument("--testdir", required=True)
-    parser.add_argument("--outdir", required=True)
-    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--blender", required=True, type=Path)
+    parser.add_argument("--testdir", required=True, type=Path)
+    parser.add_argument("--outdir", required=True, type=Path)
+    parser.add_argument("--oiiotool", required=True, type=Path)
     parser.add_argument("--export_method", required=True)
     parser.add_argument('--batch', default=False, action='store_true')
     parser.add_argument('--gpu-backend')
@@ -313,7 +329,7 @@ def main():
     report.set_pixelated(True)
 
     # Try to account for image filtering differences from OS/drivers
-    test_dir_name = Path(args.testdir).name
+    test_dir_name = args.testdir.name
     if (test_dir_name in {'image_mapping'}):
         report.set_fail_threshold(0.028)
         report.set_fail_percent(1.3)
@@ -328,9 +344,14 @@ def main():
         report.set_fail_threshold(0.036)
         report.set_fail_percent(2.3)
 
-    test_dir_name = Path(args.testdir).name
+    test_dir_name = args.testdir.name
 
     os.environ['BLENDER_HYDRA_EXPORT_METHOD'] = args.export_method
+
+    # Workaround OpenUSD bug with perspective projection and textures.
+    # Introduced in 05f6192 upstream.
+    os.environ['HGIVULKAN_ENABLE_BUILTIN_BARYCENTRICS'] = "0"
+    os.environ['HGIGL_ENABLE_BUILTIN_BARYCENTRICS'] = "0"
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 

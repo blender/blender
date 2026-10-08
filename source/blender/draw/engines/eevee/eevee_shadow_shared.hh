@@ -339,9 +339,11 @@ static inline ShadowSamplingTilePacked shadow_sampling_tile_pack(ShadowSamplingT
     tile.lod_offset.x = 1;
   }
   uint data = shadow_page_pack(tile.page);
+#ifndef GPU_SHADER
   BLI_STATIC_ASSERT(SHADOW_MAX_PAGE <= 8192, "Update page packing")
   /* Max value is actually SHADOW_TILEMAP_MAX_CLIPMAP_LOD but we mask the bits. */
   BLI_STATIC_ASSERT(SHADOW_TILEMAP_MAX_CLIPMAP_LOD <= 8u, "Update lod packing")
+#endif
   data |= (tile.lod & 7u) << 13u;
   data |= shadow_lod_offset_pack(tile.lod_offset) << 16u;
   return data;

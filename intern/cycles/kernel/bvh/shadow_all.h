@@ -26,10 +26,9 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    void
-    BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
-                                const ccl_private Ray *ccl_restrict ray,
-                                ccl_private BVHShadowAllPayload &ccl_restrict payload)
+    void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
+                                     const ccl_private Ray *ccl_restrict ray,
+                                     ccl_private BVHShadowAllPayload &ccl_restrict payload)
 {
   /* todo:
    * - likely and unlikely for if() statements

@@ -396,13 +396,11 @@ static void rna_PoseChannel_active_constraint_set(PointerRNA *ptr,
   BKE_constraints_active_set(&pchan->constraints, static_cast<bConstraint *>(value.data));
 }
 
-static bConstraint *rna_PoseChannel_constraints_new(ID *id,
-                                                    bPoseChannel *pchan,
-                                                    Main *main,
-                                                    int type)
+static bConstraint *rna_PoseChannel_constraints_new(
+    ID *id, bPoseChannel *pchan, Main *main, int type, const char *name)
 {
   Object *ob = id_cast<Object *>(id);
-  bConstraint *new_con = BKE_constraint_add_for_pose(ob, pchan, nullptr, eBConstraint_Types(type));
+  bConstraint *new_con = BKE_constraint_add_for_pose(ob, pchan, name, eBConstraint_Types(type));
 
   ed::object::constraint_dependency_tag_update(main, ob, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, id);
@@ -812,6 +810,12 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
   parm = RNA_def_enum(
       func, "type", rna_enum_constraint_type_items, 1, "", "Constraint type to add");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_string(func,
+                 "name",
+                 nullptr,
+                 0,
+                 "",
+                 "Name of the new constraint. If empty, the name of the constraint type is used");
 
   func = RNA_def_function(srna, "remove", "rna_PoseChannel_constraints_remove");
   RNA_def_function_ui_description(func, "Remove a constraint from this object");

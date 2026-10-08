@@ -6,7 +6,7 @@
 
 FRAGMENT_SHADER_CREATE_INFO(gpencil_geometry)
 
-#include "draw_colormanagement_lib.glsl"
+#include "draw_colormanagement.bsl.hh"
 #include "draw_grease_pencil_lib.glsl"
 #include "gpu_shader_common_color_utils.bsl.hh"
 #include "gpu_shader_common_hash.bsl.hh"
@@ -75,8 +75,7 @@ float4 get_color(float2 uv, float2 dx, float2 dy)
   else if (flag_test(gp_interp_flat.mat_flag, GP_FILL_GRADIENT_USE)) {
     bool radial = flag_test(gp_interp_flat.mat_flag, GP_FILL_GRADIENT_RADIAL);
     float fac = clamp(radial ? length(uv * 2.0f - 1.0f) : uv.x, 0.0f, 1.0f);
-    uint matid = gp_interp_flat.mat_flag >> GPENCIL_MATID_SHIFT;
-    col = mix(gp_materials[matid].fill_color, gp_materials[matid].fill_mix_color, fac);
+    col = textureLod(gp_fill_tx, float2(fac, 0.0f), 0.0f);
   }
   else /* SOLID */ {
     col = float4(1.0f);
@@ -93,8 +92,7 @@ float4 get_color(float2 uv, float2 dx, float2 dy)
 
   col.rgb *= gpencil_lighting();
 
-  if (flag_test(gp_interp_flat.mat_flag, GP_STROKE_ALIGNMENT))  // dot and squares
-  {
+  if (flag_test(gp_interp_flat.mat_flag, GP_STROKE_ALIGNMENT)) {  // dot and squares
     uv = uv * 2.0f - 1.0f;
     if (flag_test(gp_interp_flat.mat_flag, GP_STROKE_DOTS)) {
       col *= gpencil_stroke_hardess_mask(length(uv), gp_interp_noperspective.hardness);
@@ -159,6 +157,9 @@ float4 get_dot_color(float2 uv, int i, float2 dx, float2 dy)
 
   float noise_x = float(i) * Parameters.random_noise_scale;
 
+  /* Apply scale, rotate and aspect around the center of the dot/square. */
+  uv -= 0.5f;
+
   if (Parameters.random_rotation > 0.0f || Parameters.random_size > 0.0f) {
     float rand_rot = noise_level_2(noise_x + 69637.532f);
     rand_rot -= 0.5f;
@@ -178,12 +179,16 @@ float4 get_dot_color(float2 uv, int i, float2 dx, float2 dy)
       mat[1] = mat[1] * rand_siz;
     }
 
-    uv -= 0.5f;
     uv = mat * uv;
     dx = mat * dx;
     dy = mat * dy;
-    uv += 0.5f;
   }
+
+  uv *= gp_interp_flat.aspect.xy;
+  dx *= gp_interp_flat.aspect.xy;
+  dy *= gp_interp_flat.aspect.xy;
+
+  uv += 0.5f;
 
   float4 col = get_color(uv, dx, dy);
   if (Parameters.random_hue > 0.0f || Parameters.random_saturation > 0.0f ||
@@ -436,16 +441,14 @@ void main()
   bool is_single_dot = placement_mode == GP_DOTS_PLACEMENT_MODE_COUNT &&
                        gp_interp_flat.point_length.z == 1.0f;
 
-  if (flag_test(gp_interp_flat.mat_flag, GP_FILL))  // fill
-  {
+  if (flag_test(gp_interp_flat.mat_flag, GP_FILL)) {  // fill
     float2 dx = gpu_dfdx(gp_interp.uv);
     float2 dy = gpu_dfdy(gp_interp.uv);
 
     frag_color = get_color(gp_interp.uv, dx, dy);
   }
   else {
-    if (flag_test(gp_interp_flat.mat_flag, GP_STROKE_ALIGNMENT))  // dot and squares
-    {
+    if (flag_test(gp_interp_flat.mat_flag, GP_STROKE_ALIGNMENT)) {  // dot and squares
       if (!is_single_dot) {
         float radius1 = screen_space_to_radius(gp_interp_flat.sspos_1);
         float radius2 = screen_space_to_radius(gp_interp_flat.sspos_2);

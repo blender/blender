@@ -62,7 +62,7 @@ def gather_point_cloud(blender_pointcloud, materials, export_settings):
         warning_already_displayed=False,
         warning_already_displayed_vc_nodetree=False
     )
-    base_material, material_info = get_base_material(0, materials, export_settings)
+    _, base_material, material_info = get_base_material(0, materials, export_settings)
 
     vc_infos = PrimitiveCreator.manage_VC(
         base_material,

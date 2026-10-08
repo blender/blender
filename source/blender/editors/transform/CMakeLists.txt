@@ -54,7 +54,6 @@ set(SRC
   transform_input.cc
   transform_mode.cc
   transform_mode_align.cc
-  transform_mode_baketime.cc
   transform_mode_bbone_resize.cc
   transform_mode_bend.cc
   transform_mode_boneenvelope.cc
@@ -118,6 +117,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_mask
+  PRIVATE bf::geometry
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc

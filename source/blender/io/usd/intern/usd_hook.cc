@@ -317,7 +317,7 @@ void register_hook_converters()
   python::import("pxr.Usd");
   python::import("pxr.UsdShade");
 
-  /* Register converter from PoinerRNA to a PyObject*. */
+  /* Register converter from PointerRNA to a PyObject*. */
   python::to_python_converter<PointerRNA, PointerRNAToPython>();
 
   /* Register context class converters. */

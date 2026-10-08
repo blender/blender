@@ -584,7 +584,7 @@ bool Scene::update(double timestamp,
     else {
       // set substep to false for last iteration so that controlled output
       // can be updated in updateKinematics() and model_update)() before next call to
-      // Secne::update()
+      // Scene::update()
       ts.substep = 0;
     }
     // change timestep so that integration is done correctly

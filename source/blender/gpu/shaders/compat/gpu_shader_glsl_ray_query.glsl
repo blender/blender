@@ -1,0 +1,52 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+/* Do not apply C++ processing to this file. */
+#pragma no_processing
+
+#ifdef GPU_EXT_RAY_QUERY
+
+#  define gpu_RayFlagsNone gl_RayFlagsNoneEXT
+#  define gpu_RayFlagsOpaque gl_RayFlagsOpaqueEXT
+#  define gpu_RayFlagsNoOpaque gl_RayFlagsNoOpaqueEXT
+#  define gpu_RayFlagsTerminateOnFirstHit gl_RayFlagsTerminateOnFirstHitEXT
+#  define gpu_RayFlagsSkipClosestHitShader gl_RayFlagsSkipClosestHitShaderEXT
+#  define gpu_RayFlagsCullBackFacingTriangles gl_RayFlagsCullBackFacingTrianglesEXT
+#  define gpu_RayFlagsCullFrontFacingTriangles gl_RayFlagsCullFrontFacingTrianglesEXT
+#  define gpu_RayFlagsCullOpaque gl_RayFlagsCullOpaqueEXT
+#  define gpu_RayFlagsCullNoOpaque gl_RayFlagsCullNoOpaqueEXT
+
+#  define gpu_RayQueryCommittedIntersectionNone gl_RayQueryCommittedIntersectionNoneEXT
+#  define gpu_RayQueryCommittedIntersectionTriangle gl_RayQueryCommittedIntersectionTriangleEXT
+#  define gpu_RayQueryCommittedIntersectionGenerated gl_RayQueryCommittedIntersectionGeneratedEXT
+#  define gpu_RayQueryCandidateIntersectionTriangle gl_RayQueryCandidateIntersectionTriangleEXT
+#  define gpu_RayQueryCandidateIntersectionAABB gl_RayQueryCandidateIntersectionAABBEXT
+
+#  define rayQuery rayQueryEXT
+#  define accelerationStructure accelerationStructureEXT
+
+#  define rayQueryInitialize rayQueryInitializeEXT
+#  define rayQueryProceed rayQueryProceedEXT
+#  define rayQueryTerminate rayQueryTerminateEXT
+#  define rayQueryGenerateIntersection rayQueryGenerateIntersectionEXT
+#  define rayQueryConfirmIntersection rayQueryConfirmIntersectionEXT
+#  define rayQueryGetIntersectionType rayQueryGetIntersectionTypeEXT
+#  define rayQueryGetRayTMin rayQueryGetRayTMinEXT
+#  define rayQueryGetWorldRayOrigin rayQueryGetWorldRayOriginEXT
+#  define rayQueryGetWorldRayDirection rayQueryGetWorldRayDirectionEXT
+#  define rayQueryGetIntersectionT rayQueryGetIntersectionTEXT
+#  define rayQueryGetIntersectionInstanceId rayQueryGetIntersectionInstanceIdEXT
+#  define rayQueryGetIntersectionInstanceCustomIndex rayQueryGetIntersectionInstanceCustomIndexEXT
+#  define rayQueryGetIntersectionGeometryIndex rayQueryGetIntersectionGeometryIndexEXT
+#  define rayQueryGetIntersectionPrimitiveIndex rayQueryGetIntersectionPrimitiveIndexEXT
+#  define rayQueryGetIntersectionBarycentrics rayQueryGetIntersectionBarycentricsEXT
+#  define rayQueryGetIntersectionFrontFace rayQueryGetIntersectionFrontFaceEXT
+#  define rayQueryGetIntersectionCandidateAABBOpaque rayQueryGetIntersectionCandidateAABBOpaqueEXT
+#  define rayQueryGetIntersectionObjectRayDirection rayQueryGetIntersectionObjectRayDirectionEXT
+#  define rayQueryGetIntersectionObjectRayOrigin rayQueryGetIntersectionObjectRayOriginEXT
+#  define rayQueryGetIntersectionObjectToWorld rayQueryGetIntersectionObjectToWorldEXT
+#  define rayQueryGetIntersectionWorldToObject rayQueryGetIntersectionWorldToObjectEXT
+
+#endif

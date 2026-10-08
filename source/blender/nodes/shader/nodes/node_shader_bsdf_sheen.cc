@@ -53,7 +53,8 @@ static int node_shader_gpu_bsdf_sheen(GPUMaterial *mat,
 
   GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
 
-  return GPU_stack_link(mat, node, "node_bsdf_sheen", in, out, GPU_shading_data());
+  return GPU_stack_link(
+      mat, node, "node_bsdf_sheen", in, out, GPU_kernel_globals(), GPU_shading_data());
 }
 
 NODE_SHADER_MATERIALX_BEGIN

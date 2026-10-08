@@ -15,6 +15,7 @@
 
 namespace blender::nodes::tests {
 
+namespace {
 class StructureTypeInferenceTest : public bke::BlenderGTestBase {};
 
 class TestData {
@@ -33,6 +34,7 @@ class TestData {
     G.main = nullptr;
   }
 };
+}  // namespace
 
 static bNode &add_field_boolean_node(bNodeTree &tree)
 {

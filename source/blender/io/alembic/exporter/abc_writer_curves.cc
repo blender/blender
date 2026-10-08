@@ -33,6 +33,8 @@ namespace blender {
 
 static CLG_LogRef LOG = {"io.alembic"};
 
+using Alembic::AbcGeom::kConstantScope;
+using Alembic::AbcGeom::kVertexScope;
 using Alembic::AbcGeom::OCompoundProperty;
 using Alembic::AbcGeom::OCurves;
 using Alembic::AbcGeom::OCurvesSchema;
@@ -76,36 +78,11 @@ static bool is_excluded_attr(StringRefNull name)
 
 ABCCurveWriter::ABCCurveWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args) {}
 
-void ABCCurveWriter::create_alembic_objects(const HierarchyContext *context)
+void ABCCurveWriter::create_alembic_objects(const HierarchyContext * /*context*/)
 {
   CLOG_DEBUG(&LOG, "exporting %s", args_.abc_path.c_str());
   abc_curve_ = OCurves(args_.abc_parent, args_.abc_name, timesample_index_);
   abc_curve_schema_ = abc_curve_.getSchema();
-
-  /* TODO: Blender supports per-curve resolutions but we're only using the first curve's data
-   * here. Investigate using OInt16ArrayProperty to write out all the data but do so efficiently.
-   * e.g. Write just a single value if all curves share the same resolution etc. */
-
-  int resolution_u = 1;
-  switch (context->object->type) {
-    case OB_CURVES_LEGACY: {
-      Curve *curves_id = id_cast<Curve *>(context->object->data);
-      resolution_u = curves_id->resolu;
-      break;
-    }
-    case OB_CURVES: {
-      Curves *curves_id = id_cast<Curves *>(context->object->data);
-      const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      resolution_u = curves.resolution().first();
-      break;
-    }
-    default:
-      break;
-  }
-
-  OCompoundProperty user_props = abc_curve_schema_.getUserProperties();
-  OInt16Property user_prop_resolu(user_props, ABC_CURVE_RESOLUTION_U_PROPNAME);
-  user_prop_resolu.set(resolution_u);
 }
 
 Alembic::Abc::OObject ABCCurveWriter::get_alembic_object() const
@@ -140,9 +117,6 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
   }
 
   const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-  if (curves.is_empty()) {
-    return;
-  }
 
   /* Alembic only supports 1 curve type / periodicity combination per object. Enforce this here.
    * See: Alembic source code for OCurves.h as no documentation explicitly exists for this. */
@@ -160,12 +134,27 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
     return;
   }
 
-  const bool is_cyclic = curves.cyclic().first();
+  if (!curves.is_empty()) {
+    /* TODO: Blender supports per-curve resolutions but we're only using the first curve's data
+     * here. Investigate using OInt16ArrayProperty to write out all the data but do so efficiently.
+     * e.g. Write just a single value if all curves share the same resolution etc. */
+    OCompoundProperty user_props = abc_curve_schema_.getUserProperties();
+    const Alembic::Abc::PropertyHeader *prop_header = user_props.getPropertyHeader(
+        ABC_CURVE_RESOLUTION_U_PROPNAME);
+    if (!prop_header) {
+      const int resolution_u = curves.resolution().first();
+      OInt16Property user_prop_resolu(user_props, ABC_CURVE_RESOLUTION_U_PROPNAME);
+      user_prop_resolu.set(resolution_u);
+    }
+  }
+
+  const bool is_cyclic = !curves.is_empty() && curves.cyclic().first();
   Alembic::AbcGeom::BasisType curve_basis = Alembic::AbcGeom::kNoBasis;
   Alembic::AbcGeom::CurveType curve_type = Alembic::AbcGeom::kLinear;
   Alembic::AbcGeom::CurvePeriodicity periodicity = is_cyclic ? Alembic::AbcGeom::kPeriodic :
                                                                Alembic::AbcGeom::kNonPeriodic;
-  const CurveType blender_curve_type = CurveType(curves.curve_types().first());
+  const CurveType blender_curve_type = curves.is_empty() ? CURVE_TYPE_POLY :
+                                                           CurveType(curves.curve_types().first());
   switch (blender_curve_type) {
     case CURVE_TYPE_POLY:
       curve_basis = Alembic::AbcGeom::kNoBasis;
@@ -195,7 +184,13 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
   const Span<float3> positions = curves.positions();
   const std::optional<Span<float>> nurbs_weights = curves.nurbs_weights();
   const VArray<int8_t> nurbs_orders = curves.nurbs_orders();
+
   const VArray<float> radii = curves.radius();
+  Alembic::AbcGeom::GeometryScope width_scope = kVertexScope;
+  if (radii.is_single() && !radii.is_empty()) {
+    width_scope = kConstantScope;
+    widths.push_back(radii[0] * 2.0f);
+  }
 
   vert_counts.resize(curves.curves_num());
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -218,7 +213,9 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
        * ] */
       for (const int i_point : points.drop_back(1)) {
         verts.push_back(to_yup_V3f(positions[i_point]));
-        widths.push_back(radii[i_point] * 2.0f);
+        if (width_scope != kConstantScope) {
+          widths.push_back(radii[i_point] * 2.0f);
+        }
 
         verts.push_back(to_yup_V3f((*handles_r)[i_point]));
         verts.push_back(to_yup_V3f((*handles_l)[i_point + 1]));
@@ -227,7 +224,9 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
       /* The last vert in the array doesn't need a right handle because the curve stops
        * at that point. */
       verts.push_back(to_yup_V3f(positions[last_point_index]));
-      widths.push_back(radii[last_point_index] * 2.0f);
+      if (width_scope != kConstantScope) {
+        widths.push_back(radii[last_point_index] * 2.0f);
+      }
 
       /* If the curve is cyclic, include the right handle of the last point and the
        * left handle of the first point. */
@@ -241,10 +240,14 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
   }
   else {
     verts.resize(curves.points_num());
-    widths.resize(curves.points_num());
+    if (width_scope != kConstantScope) {
+      widths.resize(curves.points_num());
+    }
     for (const int i_point : curves.points_range()) {
       verts[i_point] = to_yup_V3f(positions[i_point]);
-      widths[i_point] = radii[i_point] * 2.0f;
+      if (width_scope != kConstantScope) {
+        widths[i_point] = radii[i_point] * 2.0f;
+      }
     }
 
     if (blender_curve_type == CURVE_TYPE_NURBS) {
@@ -264,6 +267,7 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
 
   Alembic::AbcGeom::OFloatGeomParam::Sample width_sample;
   width_sample.setVals(widths);
+  width_sample.setScope(width_scope);
 
   OCurvesSchema::Sample sample(verts,
                                vert_counts,

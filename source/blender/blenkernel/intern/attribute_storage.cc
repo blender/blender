@@ -11,6 +11,7 @@
 #include "BLI_array_utils.hh"
 #include "BLI_assert.hh"
 #include "BLI_color_types.hh"
+#include "BLI_generic_array.hh"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_memory_counter.hh"
 #include "BLI_resource_scope.hh"
@@ -41,59 +42,31 @@ static CLG_LogRef LOG = {"geom.attribute"};
 
 namespace bke {
 
-class ArrayDataImplicitSharing : public ImplicitSharingInfo {
- private:
-  void *data_;
-  int64_t size_;
-  const CPPType &type_;
-  /* This struct could also store caches about the array data, like the min and max values. */
-
- public:
-  ArrayDataImplicitSharing(void *data, const int64_t size, const CPPType &type)
-      : ImplicitSharingInfo(), data_(data), size_(size), type_(type)
-  {
-  }
-
- private:
-  void delete_self_with_data() override
-  {
-    if (data_ != nullptr) {
-      type_.destruct_n(data_, size_);
-      MEM_delete_void(data_);
-    }
-    MEM_delete(this);
-  }
-
-  void delete_data_only() override
-  {
-    type_.destruct_n(data_, size_);
-    MEM_delete_void(data_);
-    data_ = nullptr;
-    size_ = 0;
-  }
-};
+/** Create array data that owns the array's buffer. */
+static Attribute::ArrayData array_data_from_garray(GArray<> array)
+{
+  auto *sharing_info = new ImplicitSharedValue<GArray<>>(std::move(array));
+  Attribute::ArrayData data{};
+  data.data = sharing_info->data.data();
+  data.size = sharing_info->data.size();
+  data.sharing_info = ImplicitSharingPtr<>(sharing_info);
+  return data;
+}
 
 Attribute::ArrayData Attribute::ArrayData::from_value(const GPointer &value,
                                                       const int64_t domain_size)
 {
-  Attribute::ArrayData data{};
   const CPPType &type = *value.type();
   const void *value_ptr = value.get();
 
   /* Prefer `calloc` to zeroing after allocation since it is faster. */
   if (memory_is_zero(value_ptr, type.size)) {
-    data.data = MEM_new_array_zeroed_aligned(domain_size, type.size, type.alignment, __func__);
+    void *buffer = MEM_new_array_zeroed_aligned(domain_size, type.size, type.alignment, __func__);
+    return array_data_from_garray(GArray<>(type, buffer, domain_size));
   }
-  else {
-    data.data = MEM_new_array_uninitialized_aligned(
-        domain_size, type.size, type.alignment, __func__);
-    type.fill_construct_n(value_ptr, data.data, domain_size);
-  }
-
-  data.size = domain_size;
-  BLI_assert(type.is_trivially_destructible);
-  data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data.data));
-  return data;
+  GArray<> array(type, domain_size, NoInitialization());
+  type.fill_construct_n(value_ptr, array.data(), domain_size);
+  return array_data_from_garray(std::move(array));
 }
 
 static GPointer default_value_for_type(const CPPType &type)
@@ -118,13 +91,7 @@ Attribute::ArrayData Attribute::ArrayData::from_default_value(const CPPType &typ
 Attribute::ArrayData Attribute::ArrayData::from_uninitialized(const CPPType &type,
                                                               const int64_t domain_size)
 {
-  Attribute::ArrayData data{};
-  data.data = MEM_new_array_uninitialized_aligned(
-      domain_size, type.size, type.alignment, __func__);
-  data.size = domain_size;
-  BLI_assert(type.is_trivially_destructible);
-  data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data.data));
-  return data;
+  return array_data_from_garray(GArray<>(type, domain_size, NoInitialization()));
 }
 
 Attribute::ArrayData Attribute::ArrayData::from_constructed(const CPPType &type,
@@ -137,12 +104,11 @@ Attribute::ArrayData Attribute::ArrayData::from_constructed(const CPPType &type,
 
 Attribute::SingleData Attribute::SingleData::from_value(const GPointer &value)
 {
+  /* Use an array with a single element to store the value. */
+  auto *sharing_info = new ImplicitSharedValue<GArray<>>(GSpan(*value.type(), value.get(), 1));
   Attribute::SingleData data{};
-  const CPPType &type = *value.type();
-  data.value = MEM_new_uninitialized_aligned(type.size, type.alignment, __func__);
-  type.copy_construct(value.get(), data.value);
-  BLI_assert(type.is_trivially_destructible);
-  data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data.value));
+  data.value = sharing_info->data.data();
+  data.sharing_info = ImplicitSharingPtr<>(sharing_info);
   return data;
 }
 
@@ -456,14 +422,13 @@ static void read_shared_array(BlendDataReader &reader,
                               void **data,
                               const ImplicitSharingInfo **sharing_info)
 {
-  const char *func = __func__;
   *sharing_info = BLO_read_shared(&reader, data, [&]() -> const ImplicitSharingInfo * {
     read_array_data(reader, dna_attr_type, size, data);
     if (*data == nullptr) {
       return nullptr;
     }
     const CPPType &cpp_type = attribute_type_to_cpp_type(AttrType(dna_attr_type));
-    return MEM_new<ArrayDataImplicitSharing>(func, *data, size, cpp_type);
+    return new ImplicitSharedValue<GArray<>>(cpp_type, *data, size);
   });
 }
 
@@ -475,7 +440,10 @@ static std::optional<Attribute::DataVariant> read_attr_data(BlendDataReader &rea
   switch (dna_storage_type) {
     case int8_t(AttrStorageType::Array): {
       BLO_read_struct(&reader, AttributeArray, &dna_attr.data);
-      auto &data = *static_cast<blender::AttributeArray *>(dna_attr.data);
+      auto *dna_data = static_cast<blender::AttributeArray *>(dna_attr.data);
+      dna_attr.data = nullptr;
+      BLI_SCOPED_DEFER([&]() { MEM_delete(dna_data); });
+      auto &data = *dna_data;
       read_shared_array(reader, dna_attr_type, data.size, &data.data, &data.sharing_info);
       if (data.size != 0 && !data.data) {
         return std::nullopt;
@@ -490,7 +458,10 @@ static std::optional<Attribute::DataVariant> read_attr_data(BlendDataReader &rea
     }
     case int8_t(AttrStorageType::Single): {
       BLO_read_struct(&reader, AttributeSingle, &dna_attr.data);
-      auto &data = *static_cast<blender::AttributeSingle *>(dna_attr.data);
+      auto *dna_data = static_cast<blender::AttributeSingle *>(dna_attr.data);
+      dna_attr.data = nullptr;
+      BLI_SCOPED_DEFER([&]() { MEM_delete(dna_data); });
+      auto &data = *dna_data;
       read_shared_array(reader, dna_attr_type, 1, &data.data, &data.sharing_info);
       if (!data.data) {
         return std::nullopt;
@@ -553,7 +524,6 @@ void AttributeStorage::blend_read(BlendDataReader &reader)
 
     std::optional<Attribute::DataVariant> data = read_attr_data(
         reader, dna_attr.storage_type, dna_attr.data_type, dna_attr);
-    BLI_SCOPED_DEFER([&]() { MEM_SAFE_DELETE_VOID(dna_attr.data); });
     if (!data) {
       continue;
     }

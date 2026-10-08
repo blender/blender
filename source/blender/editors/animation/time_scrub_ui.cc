@@ -65,7 +65,7 @@ static void draw_background(const rcti *rect)
   immUnbindProgram();
 }
 
-static void get_current_time_str(
+void ED_time_scrub_frame_str_get(
     const Scene *scene, bool display_seconds, const float frame, char *r_str, uint str_maxncpy)
 {
   if (display_seconds) {
@@ -104,7 +104,8 @@ static PlayheadDimensions get_playhead_dimensions(const Scene *scene,
   PlayheadDimensions dimensions;
   constexpr int max_frame_string_len = 64;
   char frame_str[max_frame_string_len];
-  get_current_time_str(scene, display_seconds, current_frame, frame_str, max_frame_string_len);
+  ED_time_scrub_frame_str_get(
+      scene, display_seconds, current_frame, frame_str, max_frame_string_len);
 
   /* Forcing the outline width to always be a full pixel solves alignment issues between
    * the tip, the box and the stalk. */
@@ -247,7 +248,7 @@ static void draw_playhead_ghost(const float frame,
 
   constexpr int max_frame_string_len = 64;
   char frame_str[max_frame_string_len];
-  get_current_time_str(scene, display_seconds, frame, frame_str, max_frame_string_len);
+  ED_time_scrub_frame_str_get(scene, display_seconds, frame, frame_str, max_frame_string_len);
   draw_playhead_box(region_x, frame_str, scrub_region_rect, dimensions, fg_color, bg_color);
 
   if (display_stalk) {
@@ -267,7 +268,8 @@ static void draw_current_frame(const Scene *scene,
 
   constexpr int max_frame_string_len = 64;
   char frame_str[max_frame_string_len];
-  get_current_time_str(scene, display_seconds, current_frame, frame_str, max_frame_string_len);
+  ED_time_scrub_frame_str_get(
+      scene, display_seconds, current_frame, frame_str, max_frame_string_len);
 
   PlayheadDimensions dimensions = get_playhead_dimensions(
       scene, scrub_region_rect, current_frame, display_seconds, region_x);

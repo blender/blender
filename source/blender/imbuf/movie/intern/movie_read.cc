@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <sys/types.h>
 
+#include "BLI_build_config.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
@@ -21,6 +22,7 @@
 #include "BLI_utildefines.hh"
 
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -43,6 +45,7 @@
 extern "C" {
 #  include <libavcodec/avcodec.h>
 #  include <libavformat/avformat.h>
+#  include <libavutil/hwcontext.h>
 #  include <libavutil/imgutils.h>
 #  include <libavutil/rational.h>
 #  include <libswscale/swscale.h>
@@ -88,12 +91,12 @@ IDProperty *MOV_load_metadata(MovieReader *anim)
 {
   if (anim->state == MovieReader::State::Valid) {
 #ifdef WITH_FFMPEG
-    BLI_assert(anim->pFormatCtx != nullptr);
-    av_log(anim->pFormatCtx, AV_LOG_DEBUG, "METADATA FETCH\n");
+    BLI_assert(anim->format_ctx != nullptr);
+    av_log(anim->format_ctx, AV_LOG_DEBUG, "METADATA FETCH\n");
 
     AVDictionaryEntry *entry = nullptr;
     while (true) {
-      entry = av_dict_get(anim->pFormatCtx->metadata, "", entry, AV_DICT_IGNORE_SUFFIX);
+      entry = av_dict_get(anim->format_ctx->metadata, "", entry, AV_DICT_IGNORE_SUFFIX);
       if (entry == nullptr) {
         break;
       }
@@ -123,10 +126,10 @@ static void probe_video_colorspace(MovieReader *anim, char r_colorspace_name[IM_
 
 #ifdef WITH_FFMPEG
   /* Note that the ffmpeg enums are documented to match CICP codes. */
-  const int cicp[4] = {anim->pCodecCtx->color_primaries,
-                       anim->pCodecCtx->color_trc,
-                       anim->pCodecCtx->colorspace,
-                       anim->pCodecCtx->color_range};
+  const int cicp[4] = {anim->codec_ctx->color_primaries,
+                       anim->codec_ctx->color_trc,
+                       anim->codec_ctx->colorspace,
+                       anim->codec_ctx->color_range};
   const ColorSpace *colorspace = IMB_colormanagement_space_from_cicp(
       cicp, ColorManagedFileOutput::Video);
 
@@ -143,7 +146,7 @@ MovieReader *MOV_open_file(const char *filepath,
                            const ImBufFlags ib_flags,
                            const int streamindex,
                            const bool keep_original_colorspace,
-                           char colorspace[IM_MAX_SPACE])
+                           ColorManagedColorspaceSettings *colorspace_settings)
 {
   MovieReader *anim;
 
@@ -157,9 +160,9 @@ MovieReader *MOV_open_file(const char *filepath,
     anim->streamindex = streamindex;
     anim->keep_original_colorspace = keep_original_colorspace;
 
-    if (colorspace && colorspace[0] != '\0') {
+    if (colorspace_settings && colorspace_settings->name[0] != '\0') {
       /* Use colorspace from argument, if provided. */
-      STRNCPY_UTF8(anim->colorspace, colorspace);
+      STRNCPY_UTF8(anim->colorspace, colorspace_settings->name);
     }
     else {
       /* Try to initialize colorspace from the FFmpeg stream by interpreting color information from
@@ -167,9 +170,9 @@ MovieReader *MOV_open_file(const char *filepath,
       char file_colorspace[IM_MAX_SPACE];
       probe_video_colorspace(anim, file_colorspace);
       STRNCPY_UTF8(anim->colorspace, file_colorspace);
-      if (colorspace) {
+      if (colorspace_settings) {
         /* Copy the used colorspace into output argument. */
-        BLI_strncpy_utf8(colorspace, file_colorspace, IM_MAX_SPACE);
+        IMB_colormanagement_colorspace_settings_set(colorspace_settings, file_colorspace);
       }
     }
   }
@@ -183,7 +186,7 @@ bool MOV_is_initialized_and_valid(const MovieReader *anim)
 #endif
 
 #ifdef WITH_FFMPEG
-  if (anim->pCodecCtx != nullptr) {
+  if (anim->codec_ctx != nullptr) {
     return true;
   }
 #endif
@@ -206,7 +209,7 @@ static double ffmpeg_stream_start_time_get(const AVStream *stream)
   return stream->start_time * av_q2d(stream->time_base);
 }
 
-static int ffmpeg_container_frame_count_get(const AVFormatContext *pFormatCtx,
+static int ffmpeg_container_frame_count_get(const AVFormatContext *format_ctx,
                                             const AVStream *video_stream,
                                             const double frame_rate)
 {
@@ -218,9 +221,9 @@ static int ffmpeg_container_frame_count_get(const AVFormatContext *pFormatCtx,
   const double video_start = ffmpeg_stream_start_time_get(video_stream);
   double audio_start = 0;
 
-  for (int i = 0; i < pFormatCtx->nb_streams; i++) {
-    if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-      AVStream *audio_stream = pFormatCtx->streams[i];
+  for (int i = 0; i < format_ctx->nb_streams; i++) {
+    if (format_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+      AVStream *audio_stream = format_ctx->streams[i];
       audio_start = ffmpeg_stream_start_time_get(audio_stream);
       break;
     }
@@ -229,19 +232,19 @@ static int ffmpeg_container_frame_count_get(const AVFormatContext *pFormatCtx,
   double stream_dur;
 
   if (video_start > audio_start) {
-    stream_dur = double(pFormatCtx->duration) / AV_TIME_BASE - (video_start - audio_start);
+    stream_dur = double(format_ctx->duration) / AV_TIME_BASE - (video_start - audio_start);
   }
   else {
     /* The video stream starts before or at the same time as the audio stream!
-     * We have to assume that the video stream is as long as the full pFormatCtx->duration.
+     * We have to assume that the video stream is as long as the full format_ctx->duration.
      */
-    stream_dur = double(pFormatCtx->duration) / AV_TIME_BASE;
+    stream_dur = double(format_ctx->duration) / AV_TIME_BASE;
   }
 
   return lround(stream_dur * frame_rate);
 }
 
-static int ffmpeg_frame_count_get(const AVFormatContext *pFormatCtx,
+static int ffmpeg_frame_count_get(const AVFormatContext *format_ctx,
                                   const AVStream *video_stream,
                                   const double frame_rate)
 {
@@ -252,10 +255,10 @@ static int ffmpeg_frame_count_get(const AVFormatContext *pFormatCtx,
   }
 
   /* Fall back to manually estimating the video stream duration.
-   * This is because the video stream duration can be shorter than the `pFormatCtx->duration`.
+   * This is because the video stream duration can be shorter than the `format_ctx->duration`.
    */
-  if (pFormatCtx->duration != AV_NOPTS_VALUE) {
-    return ffmpeg_container_frame_count_get(pFormatCtx, video_stream, frame_rate);
+  if (format_ctx->duration != AV_NOPTS_VALUE) {
+    return ffmpeg_container_frame_count_get(format_ctx, video_stream, frame_rate);
   }
 
   /* Read frame count from the stream if we can. Note, that this value can not be trusted. */
@@ -267,7 +270,7 @@ static int ffmpeg_frame_count_get(const AVFormatContext *pFormatCtx,
    * NOTE: Leave the duration zeroed, although it could set to 1 so the file is recognized
    * as a movie with 1 frame, leave as-is since image loading code-paths are preferred
    * in this case. The following assertion should be valid in this case. */
-  BLI_assert(pFormatCtx->duration == AV_NOPTS_VALUE);
+  BLI_assert(format_ctx->duration == AV_NOPTS_VALUE);
   return 0;
 }
 
@@ -372,6 +375,122 @@ static AVFormatContext *init_format_context_vpx_workarounds(const char *filepath
   return format_ctx;
 }
 
+/* Device types are listed in order of priority. */
+#  if OS_MAC
+static constexpr AVHWDeviceType ffmpeg_hw_device_types[] = {AV_HWDEVICE_TYPE_VIDEOTOOLBOX};
+#  elif OS_WINDOWS
+static constexpr AVHWDeviceType ffmpeg_hw_device_types[] = {
+    AV_HWDEVICE_TYPE_D3D11VA, AV_HWDEVICE_TYPE_CUDA, AV_HWDEVICE_TYPE_VULKAN};
+#  else
+static constexpr AVHWDeviceType ffmpeg_hw_device_types[] = {AV_HWDEVICE_TYPE_CUDA,
+                                                            AV_HWDEVICE_TYPE_VULKAN};
+#  endif
+
+static bool ffmpeg_hw_codec_supports_device(const AVCodec *codec, const AVHWDeviceType device_type)
+{
+  for (int i = 0; const AVCodecHWConfig *config = avcodec_get_hw_config(codec, i); i++) {
+    if ((config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) &&
+        config->device_type == device_type)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+static AVHWDeviceType ffmpeg_hw_device_type_forced()
+{
+  if (!USER_DEVELOPER_TOOL_TEST(&U, use_video_decoding_debug)) {
+    return AV_HWDEVICE_TYPE_NONE;
+  }
+  switch (U.video_decoding_device) {
+    case USER_VIDEO_DECODING_DEVICE_AUTOMATIC:
+      return AV_HWDEVICE_TYPE_NONE;
+    case USER_VIDEO_DECODING_DEVICE_VIDEOTOOLBOX:
+      return AV_HWDEVICE_TYPE_VIDEOTOOLBOX;
+    case USER_VIDEO_DECODING_DEVICE_D3D11VA:
+      return AV_HWDEVICE_TYPE_D3D11VA;
+    case USER_VIDEO_DECODING_DEVICE_CUDA:
+      return AV_HWDEVICE_TYPE_CUDA;
+    case USER_VIDEO_DECODING_DEVICE_VULKAN:
+      return AV_HWDEVICE_TYPE_VULKAN;
+  }
+  return AV_HWDEVICE_TYPE_NONE;
+}
+
+static void ffmpeg_hw_setup_decode(const MovieReader *anim,
+                                   AVCodecContext *codec_ctx,
+                                   const AVCodec *codec)
+{
+  if ((U.gpu_flag & USER_GPU_FLAG_VIDEO_DECODING) == 0 ||
+      flag_is_set(anim->ib_flags, ImBufFlags::Deinterlace))
+  {
+    return;
+  }
+  const char *pix_fmt_name = av_get_pix_fmt_name(codec_ctx->pix_fmt);
+  if (pix_fmt_name == nullptr) {
+    pix_fmt_name = "unknown";
+  }
+  const AVHWDeviceType forced_device_type = ffmpeg_hw_device_type_forced();
+  const Span<AVHWDeviceType> device_types = forced_device_type != AV_HWDEVICE_TYPE_NONE ?
+                                                Span(&forced_device_type, 1) :
+                                                Span(ffmpeg_hw_device_types,
+                                                     ARRAY_SIZE(ffmpeg_hw_device_types));
+  for (const AVHWDeviceType device_type : device_types) {
+    if (!ffmpeg_hw_codec_supports_device(codec, device_type)) {
+      continue;
+    }
+    if (AVBufferRef *hw_device_ctx = ffmpeg_hw_device_get(device_type)) {
+      codec_ctx->hw_device_ctx = av_buffer_ref(hw_device_ctx);
+      CLOG_INFO(&LOG,
+                "Using %s hardware decoding for %s %s %dx%d (%s)",
+                av_hwdevice_get_type_name(device_type),
+                codec->name,
+                pix_fmt_name,
+                codec_ctx->width,
+                codec_ctx->height,
+                anim->filepath);
+      return;
+    }
+  }
+  CLOG_INFO(&LOG,
+            "Using software decoding for %s %s %dx%d (%s)",
+            codec->name,
+            pix_fmt_name,
+            codec_ctx->width,
+            codec_ctx->height,
+            anim->filepath);
+}
+
+static AVPixelFormat ffmpeg_codec_pix_fmt_get(const AVCodecContext *codec_ctx)
+{
+  /* If using hardware-accelerated, #pix_fmt does not have the nominal codec format and only refers
+   * to the hardware frame format. However, we can't just always choose #sw_pix_fmt, as it's not
+   * set until the first frame is decoded. */
+  const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(codec_ctx->pix_fmt);
+  return (desc->flags & AV_PIX_FMT_FLAG_HWACCEL) ? codec_ctx->sw_pix_fmt : codec_ctx->pix_fmt;
+}
+
+static void ffmpeg_free_decoder(MovieReader *anim)
+{
+  avcodec_free_context(&anim->codec_ctx);
+  avformat_close_input(&anim->format_ctx);
+  av_packet_free(&anim->cur_packet);
+
+  av_frame_free(&anim->frame);
+  av_frame_free(&anim->frame_sw);
+  av_frame_free(&anim->frame_backup);
+  av_frame_free(&anim->frame_rgb);
+  if (anim->frame_deinterlaced->data[0] != nullptr) {
+    MEM_delete(anim->frame_deinterlaced->data[0]);
+  }
+  av_frame_free(&anim->frame_deinterlaced);
+  if (anim->sws_ctx != nullptr) {
+    ffmpeg_sws_release_context(anim->sws_ctx);
+    anim->sws_ctx = nullptr;
+  }
+}
+
 static int startffmpeg(MovieReader *anim)
 {
   if (anim == nullptr) {
@@ -379,50 +498,53 @@ static int startffmpeg(MovieReader *anim)
   }
 
   int video_stream_index;
-  const AVCodec *pCodec = nullptr;
-  AVFormatContext *pFormatCtx = init_format_context_vpx_workarounds(
-      anim->filepath, anim->streamindex, video_stream_index, pCodec);
-  if (pFormatCtx == nullptr || pCodec == nullptr) {
-    avformat_close_input(&pFormatCtx);
+  const AVCodec *codec = nullptr;
+  AVFormatContext *format_ctx = init_format_context_vpx_workarounds(
+      anim->filepath, anim->streamindex, video_stream_index, codec);
+  if (format_ctx == nullptr || codec == nullptr) {
+    avformat_close_input(&format_ctx);
     return -1;
   }
 
-  AVCodecContext *pCodecCtx = avcodec_alloc_context3(nullptr);
-  AVStream *video_stream = pFormatCtx->streams[video_stream_index];
-  avcodec_parameters_to_context(pCodecCtx, video_stream->codecpar);
-  pCodecCtx->workaround_bugs = FF_BUG_AUTODETECT;
+  AVCodecContext *codec_ctx = avcodec_alloc_context3(nullptr);
+  AVStream *video_stream = format_ctx->streams[video_stream_index];
+  avcodec_parameters_to_context(codec_ctx, video_stream->codecpar);
+  codec_ctx->workaround_bugs = FF_BUG_AUTODETECT;
 
-  if (pCodec->capabilities & AV_CODEC_CAP_OTHER_THREADS) {
-    pCodecCtx->thread_count = 0;
+  if (codec->capabilities & AV_CODEC_CAP_OTHER_THREADS) {
+    codec_ctx->thread_count = 0;
   }
   else {
-    pCodecCtx->thread_count = MOV_thread_count();
+    codec_ctx->thread_count = MOV_thread_count();
   }
 
-  if (pCodec->capabilities & AV_CODEC_CAP_FRAME_THREADS) {
-    pCodecCtx->thread_type = FF_THREAD_FRAME;
+  if (codec->capabilities & AV_CODEC_CAP_FRAME_THREADS) {
+    codec_ctx->thread_type = FF_THREAD_FRAME;
   }
-  else if (pCodec->capabilities & AV_CODEC_CAP_SLICE_THREADS) {
-    pCodecCtx->thread_type = FF_THREAD_SLICE;
+  else if (codec->capabilities & AV_CODEC_CAP_SLICE_THREADS) {
+    codec_ctx->thread_type = FF_THREAD_SLICE;
   }
 
-  if (avcodec_open2(pCodecCtx, pCodec, nullptr) < 0) {
-    avformat_close_input(&pFormatCtx);
+  ffmpeg_hw_setup_decode(anim, codec_ctx, codec);
+
+  if (avcodec_open2(codec_ctx, codec, nullptr) < 0) {
+    avcodec_free_context(&codec_ctx);
+    avformat_close_input(&format_ctx);
     return -1;
   }
-  if (pCodecCtx->pix_fmt == AV_PIX_FMT_NONE) {
-    avcodec_free_context(&anim->pCodecCtx);
-    avformat_close_input(&pFormatCtx);
+  if (codec_ctx->pix_fmt == AV_PIX_FMT_NONE) {
+    avcodec_free_context(&codec_ctx);
+    avformat_close_input(&format_ctx);
     return -1;
   }
 
   /* Check if we need the "never seek, only decode one frame" ffmpeg bug workaround. */
-  const bool is_ogg_container = STREQ(pFormatCtx->iformat->name, "ogg");
+  const bool is_ogg_container = STREQ(format_ctx->iformat->name, "ogg");
   const bool is_non_ogg_video = video_stream->codecpar->codec_id != AV_CODEC_ID_THEORA;
   const bool is_video_thumbnail = (video_stream->disposition & AV_DISPOSITION_ATTACHED_PIC) != 0;
   anim->never_seek_decode_one_frame = is_ogg_container && is_non_ogg_video && is_video_thumbnail;
 
-  anim->frame_rate = av_guess_frame_rate(pFormatCtx, video_stream, nullptr);
+  anim->frame_rate = av_guess_frame_rate(format_ctx, video_stream, nullptr);
   if (anim->never_seek_decode_one_frame) {
     /* Files that need this workaround have nonsensical frame rates too, resulting
      * in "millions of frames" if done through regular math. Treat frame-rate as 24/1 instead. */
@@ -444,110 +566,98 @@ static int startffmpeg(MovieReader *anim)
    * starts. */
   anim->start_offset = ffmpeg_stream_start_time_get(video_stream);
   anim->duration_in_frames = ffmpeg_frame_count_get(
-      pFormatCtx, video_stream, av_q2d(anim->frame_rate));
+      format_ctx, video_stream, av_q2d(anim->frame_rate));
 
-  anim->x = pCodecCtx->width;
-  anim->y = pCodecCtx->height;
+  anim->x = codec_ctx->width;
+  anim->y = codec_ctx->height;
   anim->video_rotation = ffmpeg_get_video_rotation(video_stream);
 
   /* Decode >8bit videos into floating point image. */
-  anim->is_float = calc_pix_fmt_max_component_bits(pCodecCtx->pix_fmt) > 8;
+  anim->is_float = calc_pix_fmt_max_component_bits(ffmpeg_codec_pix_fmt_get(codec_ctx)) > 8;
 
-  anim->pFormatCtx = pFormatCtx;
-  anim->pCodecCtx = pCodecCtx;
-  anim->pCodec = pCodec;
-  anim->videoStream = video_stream_index;
+  anim->format_ctx = format_ctx;
+  anim->codec_ctx = codec_ctx;
+  anim->codec = codec;
+  anim->video_stream_index = video_stream_index;
 
-  anim->cur_position = 0;
+  anim->cur_frame_index = 0;
   anim->cur_pts = -1;
   anim->cur_key_frame_pts = -1;
   anim->cur_packet = av_packet_alloc();
   anim->cur_packet->stream_index = -1;
 
-  anim->pFrame = av_frame_alloc();
-  anim->pFrame_backup = av_frame_alloc();
-  anim->pFrame_backup_complete = false;
-  anim->pFrame_complete = false;
-  anim->pFrameDeinterlaced = av_frame_alloc();
-  anim->pFrameRGB = av_frame_alloc();
+  anim->frame = av_frame_alloc();
+  anim->frame_sw = av_frame_alloc();
+  anim->frame_backup = av_frame_alloc();
+  anim->frame_backup_complete = false;
+  anim->frame_complete = false;
+  anim->frame_deinterlaced = av_frame_alloc();
+  anim->frame_rgb = av_frame_alloc();
   /* Ideally we'd use AV_PIX_FMT_RGBAF32LE for floats, but currently (ffmpeg 6.1)
    * swscale does not support that as destination. So using AV_PIX_FMT_GBRAPF32LE
    * with manual interleaving to RGBA floats. */
-  anim->pFrameRGB->format = anim->is_float ? AV_PIX_FMT_GBRAPF32LE : AV_PIX_FMT_RGBA;
-  anim->pFrameRGB->width = anim->x;
-  anim->pFrameRGB->height = anim->y;
+  anim->frame_rgb->format = anim->is_float ? AV_PIX_FMT_GBRAPF32LE : AV_PIX_FMT_RGBA;
+  anim->frame_rgb->width = anim->x;
+  anim->frame_rgb->height = anim->y;
 
   const size_t align = ffmpeg_get_buffer_alignment();
-  if (av_frame_get_buffer(anim->pFrameRGB, align) < 0) {
+  if (av_frame_get_buffer(anim->frame_rgb, align) < 0) {
     CLOG_ERROR(&LOG, "Could not allocate frame data.");
-    avcodec_free_context(&anim->pCodecCtx);
-    avformat_close_input(&anim->pFormatCtx);
-    av_packet_free(&anim->cur_packet);
-    av_frame_free(&anim->pFrameRGB);
-    av_frame_free(&anim->pFrameDeinterlaced);
-    av_frame_free(&anim->pFrame);
-    av_frame_free(&anim->pFrame_backup);
-    anim->pCodecCtx = nullptr;
+    ffmpeg_free_decoder(anim);
     return -1;
   }
 
   if (flag_is_set(anim->ib_flags, ImBufFlags::Deinterlace)) {
-    anim->pFrameDeinterlaced->format = anim->pCodecCtx->pix_fmt;
-    anim->pFrameDeinterlaced->width = anim->pCodecCtx->width;
-    anim->pFrameDeinterlaced->height = anim->pCodecCtx->height;
+    anim->frame_deinterlaced->format = anim->codec_ctx->pix_fmt;
+    anim->frame_deinterlaced->width = anim->codec_ctx->width;
+    anim->frame_deinterlaced->height = anim->codec_ctx->height;
     av_image_fill_arrays(
-        anim->pFrameDeinterlaced->data,
-        anim->pFrameDeinterlaced->linesize,
+        anim->frame_deinterlaced->data,
+        anim->frame_deinterlaced->linesize,
         MEM_new_array_zeroed<uint8_t>(
             av_image_get_buffer_size(
-                anim->pCodecCtx->pix_fmt, anim->pCodecCtx->width, anim->pCodecCtx->height, 1),
+                anim->codec_ctx->pix_fmt, anim->codec_ctx->width, anim->codec_ctx->height, 1),
             "ffmpeg deinterlace"),
-        anim->pCodecCtx->pix_fmt,
-        anim->pCodecCtx->width,
-        anim->pCodecCtx->height,
+        anim->codec_ctx->pix_fmt,
+        anim->codec_ctx->width,
+        anim->codec_ctx->height,
         1);
   }
+
+  anim->src_pix_fmt = ffmpeg_codec_pix_fmt_get(anim->codec_ctx);
 
   /* Use full_chroma_int + accurate_rnd YUV->RGB conversion flags. Otherwise
    * the conversion is not fully accurate and introduces some banding and color
    * shifts, particularly in dark regions. See issue #111703 or upstream
    * ffmpeg ticket https://trac.ffmpeg.org/ticket/1582 */
-  anim->img_convert_ctx = ffmpeg_sws_get_context(anim->x,
-                                                 anim->y,
-                                                 anim->pCodecCtx->pix_fmt,
-                                                 anim->pCodecCtx->color_range == AVCOL_RANGE_JPEG,
-                                                 anim->pCodecCtx->colorspace,
-                                                 anim->x,
-                                                 anim->y,
-                                                 anim->pFrameRGB->format,
-                                                 false,
-                                                 -1,
-                                                 SWS_POINT | SWS_FULL_CHR_H_INT |
-                                                     SWS_ACCURATE_RND);
+  anim->sws_ctx = ffmpeg_sws_get_context(anim->x,
+                                         anim->y,
+                                         anim->src_pix_fmt,
+                                         anim->codec_ctx->color_range == AVCOL_RANGE_JPEG,
+                                         anim->codec_ctx->colorspace,
+                                         anim->x,
+                                         anim->y,
+                                         anim->frame_rgb->format,
+                                         false,
+                                         -1,
+                                         SWS_POINT | SWS_FULL_CHR_H_INT | SWS_ACCURATE_RND);
 
-  if (!anim->img_convert_ctx) {
+  if (!anim->sws_ctx) {
     CLOG_ERROR(&LOG,
                "ffmpeg: swscale can't transform from pixel format %s to %s (%s)",
-               av_get_pix_fmt_name(anim->pCodecCtx->pix_fmt),
-               av_get_pix_fmt_name((AVPixelFormat)anim->pFrameRGB->format),
+               av_get_pix_fmt_name(anim->src_pix_fmt),
+               av_get_pix_fmt_name((AVPixelFormat)anim->frame_rgb->format),
                anim->filepath);
-    avcodec_free_context(&anim->pCodecCtx);
-    avformat_close_input(&anim->pFormatCtx);
-    av_packet_free(&anim->cur_packet);
-    av_frame_free(&anim->pFrameRGB);
-    av_frame_free(&anim->pFrameDeinterlaced);
-    av_frame_free(&anim->pFrame);
-    av_frame_free(&anim->pFrame_backup);
-    anim->pCodecCtx = nullptr;
+    ffmpeg_free_decoder(anim);
     return -1;
   }
 
   return 0;
 }
 
-static double ffmpeg_steps_per_frame_get(const MovieReader *anim)
+static double ffmpeg_pts_per_frame_get(const MovieReader *anim)
 {
-  const AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
+  const AVStream *v_st = anim->format_ctx->streams[anim->video_stream_index];
   const AVRational time_base = v_st->time_base;
   return av_q2d(av_inv_q(av_mul_q(anim->frame_rate, time_base)));
 }
@@ -557,43 +667,43 @@ static double ffmpeg_steps_per_frame_get(const MovieReader *anim)
  * It is likely to overshoot and scanning stops. Having previous frame backed up, it is possible
  * to use it when overshoot happens.
  */
-static void ffmpeg_double_buffer_backup_frame_store(MovieReader *anim, int64_t pts_to_search)
+static void ffmpeg_double_buffer_backup_frame_store(MovieReader *anim, int64_t target_pts)
 {
-  /* `anim->pFrame` is beyond `pts_to_search`. Don't store it. */
-  if (anim->pFrame_backup_complete && anim->cur_pts >= pts_to_search) {
+  /* `anim->frame` is beyond `target_pts`. Don't store it. */
+  if (anim->frame_backup_complete && anim->cur_pts >= target_pts) {
     return;
   }
-  if (!anim->pFrame_complete) {
+  if (!anim->frame_complete) {
     return;
   }
 
-  if (anim->pFrame_backup_complete) {
-    av_frame_unref(anim->pFrame_backup);
+  if (anim->frame_backup_complete) {
+    av_frame_unref(anim->frame_backup);
   }
 
-  av_frame_move_ref(anim->pFrame_backup, anim->pFrame);
-  anim->pFrame_backup_complete = true;
+  av_frame_move_ref(anim->frame_backup, anim->frame);
+  anim->frame_backup_complete = true;
 }
 
 /* Free stored backup frame. */
 static void ffmpeg_double_buffer_backup_frame_clear(MovieReader *anim)
 {
-  if (anim->pFrame_backup_complete) {
-    av_frame_unref(anim->pFrame_backup);
+  if (anim->frame_backup_complete) {
+    av_frame_unref(anim->frame_backup);
   }
-  anim->pFrame_backup_complete = false;
+  anim->frame_backup_complete = false;
 }
 
 /* Return recently decoded frame. If it does not exist, return frame from backup buffer. */
 static AVFrame *ffmpeg_double_buffer_frame_fallback_get(MovieReader *anim)
 {
-  av_log(anim->pFormatCtx, AV_LOG_ERROR, "DECODE UNHAPPY: PTS not matched!\n");
+  av_log(anim->format_ctx, AV_LOG_ERROR, "DECODE UNHAPPY: PTS not matched!\n");
 
-  if (anim->pFrame_complete) {
-    return anim->pFrame;
+  if (anim->frame_complete) {
+    return anim->frame;
   }
-  if (anim->pFrame_backup_complete) {
-    return anim->pFrame_backup;
+  if (anim->frame_backup_complete) {
+    return anim->frame_backup;
   }
   return nullptr;
 }
@@ -689,7 +799,7 @@ static void float_planar_to_interleaved(const AVFrame *frame, const int rotation
 }
 
 /**
- * Postprocess the image in anim->pFrame and do color conversion and de-interlacing stuff.
+ * Postprocess the image in anim->frame and do color conversion and de-interlacing stuff.
  *
  * \param ibuf: The frame just read by `ffmpeg_fetchibuf`, processed in-place.
  */
@@ -708,7 +818,7 @@ static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
     return;
   }
 
-  av_log(anim->pFormatCtx,
+  av_log(anim->format_ctx,
          AV_LOG_DEBUG,
          "  POSTPROC: AVFrame planes: %p %p %p %p\n",
          input->data[0],
@@ -717,17 +827,45 @@ static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
          input->data[3]);
 
   if (flag_is_set(anim->ib_flags, ImBufFlags::Deinterlace)) {
-    if (ffmpeg_deinterlace(anim->pFrameDeinterlaced,
-                           anim->pFrame,
-                           anim->pCodecCtx->pix_fmt,
-                           anim->pCodecCtx->width,
-                           anim->pCodecCtx->height) < 0)
+    if (ffmpeg_deinterlace(anim->frame_deinterlaced,
+                           anim->frame,
+                           anim->codec_ctx->pix_fmt,
+                           anim->codec_ctx->width,
+                           anim->codec_ctx->height) < 0)
     {
       filter_y = true;
     }
     else {
-      input = anim->pFrameDeinterlaced;
+      input = anim->frame_deinterlaced;
     }
+  }
+
+  /* Hardware-decoded frames from the GPU might be in a different format than the video's original
+   * format, e.g. we might get NV12 from a YUV420P video. Even with software decoding, the format
+   * can change mid-stream, e.g. 8-bit to 10-bit, so try to resync the swscale context. */
+  if (input->format != anim->src_pix_fmt && anim->sws_ctx != nullptr) {
+    ffmpeg_sws_release_context(anim->sws_ctx);
+    anim->src_pix_fmt = AVPixelFormat(input->format);
+    anim->sws_ctx = ffmpeg_sws_get_context(anim->x,
+                                           anim->y,
+                                           anim->src_pix_fmt,
+                                           anim->codec_ctx->color_range == AVCOL_RANGE_JPEG,
+                                           anim->codec_ctx->colorspace,
+                                           anim->x,
+                                           anim->y,
+                                           anim->frame_rgb->format,
+                                           false,
+                                           -1,
+                                           SWS_POINT | SWS_FULL_CHR_H_INT | SWS_ACCURATE_RND);
+  }
+
+  if (anim->sws_ctx == nullptr) {
+    CLOG_ERROR(&LOG,
+               "ffmpeg: swscale can't transform from pixel format %s to %s (%s)",
+               av_get_pix_fmt_name(anim->src_pix_fmt),
+               av_get_pix_fmt_name(AVPixelFormat(anim->frame_rgb->format)),
+               anim->filepath);
+    return;
   }
 
   bool already_rotated = false;
@@ -736,9 +874,9 @@ static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
      * it does not support direct YUV->RGBA float interleaved conversion).
      * Do vertical flip and interleave into RGBA manually. */
     /* Decode, then do vertical flip into destination. */
-    ffmpeg_sws_scale_frame(anim->img_convert_ctx, anim->pFrameRGB, input);
+    ffmpeg_sws_scale_frame(anim->sws_ctx, anim->frame_rgb, input);
 
-    float_planar_to_interleaved(anim->pFrameRGB, anim->video_rotation, ibuf);
+    float_planar_to_interleaved(anim->frame_rgb, anim->video_rotation, ibuf);
     already_rotated = true;
   }
   else {
@@ -747,7 +885,7 @@ static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
      * decode into that, doing the vertical flip in the same step. Otherwise have
      * to do a separate flip. */
     const int ibuf_linesize = ibuf->x * 4;
-    const int rgb_linesize = anim->pFrameRGB->linesize[0];
+    const int rgb_linesize = anim->frame_rgb->linesize[0];
     bool scale_to_ibuf = (rgb_linesize == ibuf_linesize);
     /* swscale on arm64 before ffmpeg 6.0 (libswscale major version 7)
      * could not handle negative line sizes. That has been fixed in all major
@@ -755,36 +893,36 @@ static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
 #  if (defined(__aarch64__) || defined(_M_ARM64)) && (LIBSWSCALE_VERSION_MAJOR < 7)
     scale_to_ibuf = false;
 #  endif
-    uint8_t *rgb_data = anim->pFrameRGB->data[0];
+    uint8_t *rgb_data = anim->frame_rgb->data[0];
 
     if (scale_to_ibuf) {
       /* Decode RGB and do vertical flip directly into destination image, by using negative
        * line size. */
-      anim->pFrameRGB->linesize[0] = -ibuf_linesize;
-      anim->pFrameRGB->data[0] = ibuf->byte_data_for_write() + (ibuf->y - 1) * ibuf_linesize;
+      anim->frame_rgb->linesize[0] = -ibuf_linesize;
+      anim->frame_rgb->data[0] = ibuf->byte_data_for_write() + (ibuf->y - 1) * ibuf_linesize;
 
-      ffmpeg_sws_scale_frame(anim->img_convert_ctx, anim->pFrameRGB, input);
+      ffmpeg_sws_scale_frame(anim->sws_ctx, anim->frame_rgb, input);
 
-      anim->pFrameRGB->linesize[0] = rgb_linesize;
-      anim->pFrameRGB->data[0] = rgb_data;
+      anim->frame_rgb->linesize[0] = rgb_linesize;
+      anim->frame_rgb->data[0] = rgb_data;
     }
     else {
       /* Decode, then do vertical flip into destination. */
-      ffmpeg_sws_scale_frame(anim->img_convert_ctx, anim->pFrameRGB, input);
+      ffmpeg_sws_scale_frame(anim->sws_ctx, anim->frame_rgb, input);
 
       /* Use negative line size to do vertical image flip. */
       const int src_linesize[4] = {-rgb_linesize, 0, 0, 0};
       const uint8_t *const src[4] = {
           rgb_data + (anim->y - 1) * rgb_linesize, nullptr, nullptr, nullptr};
-      int dst_size = av_image_get_buffer_size(AVPixelFormat(anim->pFrameRGB->format),
-                                              anim->pFrameRGB->width,
-                                              anim->pFrameRGB->height,
+      int dst_size = av_image_get_buffer_size(AVPixelFormat(anim->frame_rgb->format),
+                                              anim->frame_rgb->width,
+                                              anim->frame_rgb->height,
                                               1);
       av_image_copy_to_buffer(ibuf->byte_data_for_write(),
                               dst_size,
                               src,
                               src_linesize,
-                              AVPixelFormat(anim->pFrameRGB->format),
+                              AVPixelFormat(anim->frame_rgb->format),
                               anim->x,
                               anim->y,
                               1);
@@ -806,7 +944,7 @@ static void final_frame_log(MovieReader *anim,
                             int64_t frame_pts_end,
                             const char *str)
 {
-  av_log(anim->pFormatCtx,
+  av_log(anim->format_ctx,
          AV_LOG_INFO,
          "DECODE HAPPY: %s frame PTS range %" PRId64 " - %" PRId64 ".\n",
          str,
@@ -814,69 +952,69 @@ static void final_frame_log(MovieReader *anim,
          frame_pts_end);
 }
 
-static bool ffmpeg_pts_isect(int64_t pts_start, int64_t pts_end, int64_t pts_to_search)
+static bool ffmpeg_pts_isect(int64_t pts_start, int64_t pts_end, int64_t target_pts)
 {
-  return pts_start <= pts_to_search && pts_to_search < pts_end;
+  return pts_start <= target_pts && target_pts < pts_end;
 }
 
-/* Return frame that matches `pts_to_search`, nullptr if matching frame does not exist. */
-static AVFrame *ffmpeg_frame_by_pts_get(MovieReader *anim, int64_t pts_to_search)
+/* Return frame that matches `target_pts`, nullptr if matching frame does not exist. */
+static AVFrame *ffmpeg_frame_by_pts_get(MovieReader *anim, int64_t target_pts)
 {
   /* NOTE: `frame->pts + frame->pkt_duration` does not always match pts of next frame.
    * See footage from #86361. Here it is OK to use, because PTS must match current or backup frame.
    * If there is no current frame, return nullptr.
    */
-  if (!anim->pFrame_complete) {
+  if (!anim->frame_complete) {
     return nullptr;
   }
 
   if (anim->never_seek_decode_one_frame) {
     /* If we only decode one frame, return it. */
-    return anim->pFrame;
+    return anim->frame;
   }
 
-  const bool backup_frame_ready = anim->pFrame_backup_complete;
-  const int64_t recent_start = av_get_pts_from_frame(anim->pFrame);
-  const int64_t recent_end = recent_start + av_get_frame_duration_in_pts_units(anim->pFrame);
-  const int64_t backup_start = backup_frame_ready ? av_get_pts_from_frame(anim->pFrame_backup) : 0;
+  const bool backup_frame_ready = anim->frame_backup_complete;
+  const int64_t recent_start = av_get_pts_from_frame(anim->frame);
+  const int64_t recent_end = recent_start + av_get_frame_duration_in_pts_units(anim->frame);
+  const int64_t backup_start = backup_frame_ready ? av_get_pts_from_frame(anim->frame_backup) : 0;
 
   AVFrame *best_frame = nullptr;
-  if (ffmpeg_pts_isect(recent_start, recent_end, pts_to_search)) {
+  if (ffmpeg_pts_isect(recent_start, recent_end, target_pts)) {
     final_frame_log(anim, recent_start, recent_end, "Recent");
-    best_frame = anim->pFrame;
+    best_frame = anim->frame;
   }
-  else if (backup_frame_ready && ffmpeg_pts_isect(backup_start, recent_start, pts_to_search)) {
+  else if (backup_frame_ready && ffmpeg_pts_isect(backup_start, recent_start, target_pts)) {
     final_frame_log(anim, backup_start, recent_start, "Backup");
-    best_frame = anim->pFrame_backup;
+    best_frame = anim->frame_backup;
   }
   return best_frame;
 }
 
 static void ffmpeg_decode_store_frame_pts(MovieReader *anim)
 {
-  anim->cur_pts = av_get_pts_from_frame(anim->pFrame);
+  anim->cur_pts = av_get_pts_from_frame(anim->frame);
 
 #  ifdef FFMPEG_OLD_KEY_FRAME_QUERY_METHOD
-  if (anim->pFrame->key_frame)
+  if (anim->frame->key_frame)
 #  else
-  if (anim->pFrame->flags & AV_FRAME_FLAG_KEY)
+  if (anim->frame->flags & AV_FRAME_FLAG_KEY)
 #  endif
   {
     anim->cur_key_frame_pts = anim->cur_pts;
   }
 
-  av_log(anim->pFormatCtx,
+  av_log(anim->format_ctx,
          AV_LOG_DEBUG,
          "  FRAME DONE: cur_pts=%" PRId64 ", guessed_pts=%" PRId64 "\n",
-         av_get_pts_from_frame(anim->pFrame),
+         av_get_pts_from_frame(anim->frame),
          int64_t(anim->cur_pts));
 }
 
 static int ffmpeg_read_video_frame(MovieReader *anim, AVPacket *packet)
 {
   int ret = 0;
-  while ((ret = av_read_frame(anim->pFormatCtx, packet)) >= 0) {
-    if (packet->stream_index == anim->videoStream) {
+  while ((ret = av_read_frame(anim->format_ctx, packet)) >= 0) {
+    if (packet->stream_index == anim->video_stream_index) {
       break;
     }
     av_packet_unref(packet);
@@ -886,32 +1024,31 @@ static int ffmpeg_read_video_frame(MovieReader *anim, AVPacket *packet)
   return ret;
 }
 
-/* decode one video frame also considering the packet read into cur_packet */
-static int ffmpeg_decode_video_frame(MovieReader *anim)
+static void ffmpeg_cur_packet_clear(MovieReader *anim)
 {
-  av_log(anim->pFormatCtx, AV_LOG_DEBUG, "  DECODE VIDEO FRAME\n");
+  av_packet_unref(anim->cur_packet);
+  anim->cur_packet->stream_index = -1;
+}
+
+/* decode one video frame also considering the packet read into cur_packet */
+static bool ffmpeg_decode_video_frame(MovieReader *anim)
+{
+  av_log(anim->format_ctx, AV_LOG_DEBUG, "  DECODE VIDEO FRAME\n");
 
   /* Sometimes, decoder returns more than one frame per sent packet. Check if frames are available.
    * This frames must be read, otherwise decoding will fail. See #91405. */
-  anim->pFrame_complete = avcodec_receive_frame(anim->pCodecCtx, anim->pFrame) == 0;
-  if (anim->pFrame_complete) {
-    av_log(anim->pFormatCtx, AV_LOG_DEBUG, "  DECODE FROM CODEC BUFFER\n");
+  anim->frame_complete = avcodec_receive_frame(anim->codec_ctx, anim->frame) == 0;
+  if (anim->frame_complete) {
+    av_log(anim->format_ctx, AV_LOG_DEBUG, "  DECODE FROM CODEC BUFFER\n");
     ffmpeg_decode_store_frame_pts(anim);
-    return 1;
+    return true;
   }
 
-  int rval = 0;
-  if (anim->cur_packet->stream_index == anim->videoStream) {
-    av_packet_unref(anim->cur_packet);
-    anim->cur_packet->stream_index = -1;
-  }
+  ffmpeg_cur_packet_clear(anim);
 
-  while ((rval = ffmpeg_read_video_frame(anim, anim->cur_packet)) >= 0) {
-    if (anim->cur_packet->stream_index != anim->videoStream) {
-      continue;
-    }
-
-    av_log(anim->pFormatCtx,
+  int ret;
+  while ((ret = ffmpeg_read_video_frame(anim, anim->cur_packet)) >= 0) {
+    av_log(anim->format_ctx,
            AV_LOG_DEBUG,
            "READ: strID=%d dts=%" PRId64 " pts=%" PRId64 " %s\n",
            anim->cur_packet->stream_index,
@@ -919,46 +1056,38 @@ static int ffmpeg_decode_video_frame(MovieReader *anim)
            (anim->cur_packet->pts == AV_NOPTS_VALUE) ? -1 : int64_t(anim->cur_packet->pts),
            (anim->cur_packet->flags & AV_PKT_FLAG_KEY) ? " KEY" : "");
 
-    avcodec_send_packet(anim->pCodecCtx, anim->cur_packet);
-    anim->pFrame_complete = avcodec_receive_frame(anim->pCodecCtx, anim->pFrame) == 0;
-
-    if (anim->pFrame_complete) {
+    avcodec_send_packet(anim->codec_ctx, anim->cur_packet);
+    anim->frame_complete = avcodec_receive_frame(anim->codec_ctx, anim->frame) == 0;
+    if (anim->frame_complete) {
       ffmpeg_decode_store_frame_pts(anim);
-      break;
+      return true;
     }
-    av_packet_unref(anim->cur_packet);
-    anim->cur_packet->stream_index = -1;
+    ffmpeg_cur_packet_clear(anim);
   }
 
-  if (rval == AVERROR_EOF) {
+  if (ret == AVERROR_EOF) {
     /* Flush any remaining frames out of the decoder. */
-    avcodec_send_packet(anim->pCodecCtx, nullptr);
-    anim->pFrame_complete = avcodec_receive_frame(anim->pCodecCtx, anim->pFrame) == 0;
-
-    if (anim->pFrame_complete) {
+    avcodec_send_packet(anim->codec_ctx, nullptr);
+    anim->frame_complete = avcodec_receive_frame(anim->codec_ctx, anim->frame) == 0;
+    if (anim->frame_complete) {
       ffmpeg_decode_store_frame_pts(anim);
-      rval = 0;
+      return true;
     }
   }
 
-  if (rval < 0) {
-    av_packet_unref(anim->cur_packet);
-    anim->cur_packet->stream_index = -1;
+  ffmpeg_cur_packet_clear(anim);
 
-    char error_str[AV_ERROR_MAX_STRING_SIZE];
-    av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, rval);
-
-    av_log(anim->pFormatCtx,
-           AV_LOG_ERROR,
-           "  DECODE READ FAILED: av_read_frame() "
-           "returned error: %s\n",
-           error_str);
-  }
-
-  return (rval >= 0);
+  char error_str[AV_ERROR_MAX_STRING_SIZE];
+  av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+  av_log(anim->format_ctx,
+         AV_LOG_ERROR,
+         "  DECODE READ FAILED: av_read_frame() "
+         "returned error: %s\n",
+         error_str);
+  return false;
 }
 
-static int64_t ffmpeg_get_seek_pts(MovieReader *anim, int64_t pts_to_search)
+static int64_t ffmpeg_seek_pts_get(const MovieReader *anim, int64_t target_pts)
 {
   /* FFMPEG seeks internally using DTS values instead of PTS. In some files DTS and PTS values are
    * offset and sometimes FFMPEG fails to take this into account when seeking.
@@ -967,7 +1096,7 @@ static int64_t ffmpeg_get_seek_pts(MovieReader *anim, int64_t pts_to_search)
    * this value is determined experimentally.
    * NOTE: Too big offset can impact performance. Current 3 frame offset has no measurable impact.
    */
-  int64_t seek_pts = pts_to_search - (ffmpeg_steps_per_frame_get(anim) * 3);
+  int64_t seek_pts = target_pts - (ffmpeg_pts_per_frame_get(anim) * 3);
 
   seek_pts = std::max<int64_t>(seek_pts, 0);
   return seek_pts;
@@ -976,53 +1105,48 @@ static int64_t ffmpeg_get_seek_pts(MovieReader *anim, int64_t pts_to_search)
 /* This gives us an estimate of which pts our requested frame will have.
  * Note that this might be off a bit in certain video files, but it should still be close enough.
  */
-static int64_t ffmpeg_get_pts_to_search(MovieReader *anim, int position)
+static int64_t ffmpeg_frame_index_to_pts(MovieReader *anim, int frame_index)
 {
-  AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
+  AVStream *v_st = anim->format_ctx->streams[anim->video_stream_index];
   int64_t start_pts = v_st->start_time;
 
-  int64_t pts_to_search = round(position * ffmpeg_steps_per_frame_get(anim));
+  int64_t target_pts = round(frame_index * ffmpeg_pts_per_frame_get(anim));
 
   if (start_pts != AV_NOPTS_VALUE) {
-    pts_to_search += start_pts;
+    target_pts += start_pts;
   }
-  return pts_to_search;
+  return target_pts;
 }
 
-static bool ffmpeg_is_first_frame_decode(MovieReader *anim)
+static void ffmpeg_scan_log(MovieReader *anim, int64_t target_pts)
 {
-  return anim->pFrame_complete == false;
-}
-
-static void ffmpeg_scan_log(MovieReader *anim, int64_t pts_to_search)
-{
-  int64_t frame_pts_start = av_get_pts_from_frame(anim->pFrame);
-  int64_t frame_pts_end = frame_pts_start + av_get_frame_duration_in_pts_units(anim->pFrame);
-  av_log(anim->pFormatCtx,
+  int64_t frame_pts_start = av_get_pts_from_frame(anim->frame);
+  int64_t frame_pts_end = frame_pts_start + av_get_frame_duration_in_pts_units(anim->frame);
+  av_log(anim->format_ctx,
          AV_LOG_DEBUG,
          "  SCAN WHILE: PTS range %" PRId64 " - %" PRId64 " in search of %" PRId64 "\n",
          frame_pts_start,
          frame_pts_end,
-         pts_to_search);
+         target_pts);
 }
 
-/* Decode frames one by one until its PTS matches pts_to_search. */
-static void ffmpeg_decode_video_frame_scan(MovieReader *anim, int64_t pts_to_search)
+/* Decode frames one by one until its PTS matches target_pts. */
+static void ffmpeg_decode_until_pts(MovieReader *anim, int64_t target_pts, const bool did_seek)
 {
-  const int64_t start_gop_frame = anim->cur_key_frame_pts;
+  const int64_t start_key_frame_pts = anim->cur_key_frame_pts;
   bool decode_error = false;
 
-  while (!decode_error && anim->cur_pts < pts_to_search) {
-    ffmpeg_scan_log(anim, pts_to_search);
-    ffmpeg_double_buffer_backup_frame_store(anim, pts_to_search);
-    decode_error = ffmpeg_decode_video_frame(anim) < 1;
+  while (!decode_error && anim->cur_pts < target_pts) {
+    ffmpeg_scan_log(anim, target_pts);
+    ffmpeg_double_buffer_backup_frame_store(anim, target_pts);
+    decode_error = !ffmpeg_decode_video_frame(anim);
 
     /* We should not get a new GOP keyframe while scanning if seeking is working as intended.
      * If this condition triggers, there may be and error in our seeking code.
      * NOTE: This seems to happen if DTS value is used for seeking in ffmpeg internally. There
      * seems to be no good way to handle such case. */
-    if (anim->seek_before_decode && start_gop_frame != anim->cur_key_frame_pts) {
-      av_log(anim->pFormatCtx, AV_LOG_ERROR, "SCAN: Frame belongs to an unexpected GOP!\n");
+    if (did_seek && start_key_frame_pts != anim->cur_key_frame_pts) {
+      av_log(anim->format_ctx, AV_LOG_ERROR, "SCAN: Frame belongs to an unexpected GOP!\n");
     }
   }
 }
@@ -1031,45 +1155,39 @@ static void ffmpeg_decode_video_frame_scan(MovieReader *anim, int64_t pts_to_sea
  * read_seek2() functions defined. When seeking in these formats, rule to seek to last
  * necessary I-frame is not honored. It is not even guaranteed that I-frame, that must be
  * decoded will be read. See https://trac.ffmpeg.org/ticket/1607 & #86944. */
-static int ffmpeg_generic_seek_workaround(MovieReader *anim,
-                                          int64_t *requested_pts,
-                                          int64_t pts_to_search)
+static int ffmpeg_generic_seek_workaround(MovieReader *anim, int64_t *seek_pts, int64_t target_pts)
 {
-  AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
+  AVStream *v_st = anim->format_ctx->streams[anim->video_stream_index];
   int64_t start_pts = v_st->start_time;
-  int64_t current_pts = *requested_pts;
+  int64_t current_pts = *seek_pts;
   int64_t offset = 0;
+  AVPacket *packet = av_packet_alloc();
 
   /* Step backward frame by frame until we find the key frame we are looking for. */
   while (current_pts != 0) {
-    current_pts = *requested_pts - int64_t(round(offset * ffmpeg_steps_per_frame_get(anim)));
+    current_pts = *seek_pts - int64_t(round(offset * ffmpeg_pts_per_frame_get(anim)));
     current_pts = std::max(current_pts, int64_t(0));
 
     /* Seek to timestamp. */
-    if (av_seek_frame(anim->pFormatCtx, anim->videoStream, current_pts, AVSEEK_FLAG_BACKWARD) < 0)
+    if (av_seek_frame(
+            anim->format_ctx, anim->video_stream_index, current_pts, AVSEEK_FLAG_BACKWARD) < 0)
     {
       break;
     }
 
     /* Read first video stream packet. */
-    AVPacket *read_packet = av_packet_alloc();
-    while (av_read_frame(anim->pFormatCtx, read_packet) >= 0) {
-      if (read_packet->stream_index == anim->videoStream) {
-        break;
-      }
-      av_packet_unref(read_packet);
-    }
+    ffmpeg_read_video_frame(anim, packet);
 
     /* If this packet contains an I-frame, this could be the frame that we need. */
-    const bool is_key_frame = read_packet->flags & AV_PKT_FLAG_KEY;
+    const bool is_key_frame = packet->flags & AV_PKT_FLAG_KEY;
     /* We need to check the packet timestamp as the key frame could be for a GOP forward in the
      * video stream. So if it has a larger timestamp than the frame we want, ignore it.
      */
-    const int64_t cur_pts = timestamp_from_pts_or_dts(read_packet->pts, read_packet->dts);
-    av_packet_free(&read_packet);
+    const int64_t cur_pts = timestamp_from_pts_or_dts(packet->pts, packet->dts);
+    av_packet_unref(packet);
 
     if (is_key_frame) {
-      if (cur_pts <= pts_to_search) {
+      if (cur_pts <= target_pts) {
         /* We found the I-frame we were looking for! */
         break;
       }
@@ -1082,11 +1200,13 @@ static int ffmpeg_generic_seek_workaround(MovieReader *anim,
 
     offset++;
   }
+  av_packet_free(&packet);
 
-  *requested_pts = current_pts;
+  *seek_pts = current_pts;
 
   /* Re-seek to timestamp that gave I-frame, so it can be read by decode function. */
-  return av_seek_frame(anim->pFormatCtx, anim->videoStream, current_pts, AVSEEK_FLAG_BACKWARD);
+  return av_seek_frame(
+      anim->format_ctx, anim->video_stream_index, current_pts, AVSEEK_FLAG_BACKWARD);
 }
 
 /* Read packet until timestamp matches `anim->cur_packet`, thus recovering internal `anim` stream
@@ -1107,144 +1227,150 @@ static void ffmpeg_seek_recover_stream_position(MovieReader *anim)
 }
 
 /* Check if seeking and mainly flushing codec buffers is needed. */
-static bool ffmpeg_seek_buffers_need_flushing(MovieReader *anim, int position, int64_t seek_pos)
+static bool ffmpeg_seek_needs_flush(MovieReader *anim, int frame_index, int64_t seek_pts)
 {
   /* Get timestamp of packet read after seeking. */
-  AVPacket *temp_packet = av_packet_alloc();
-  ffmpeg_read_video_frame(anim, temp_packet);
-  int64_t gop_pts = timestamp_from_pts_or_dts(temp_packet->pts, temp_packet->dts);
-  av_packet_unref(temp_packet);
-  av_packet_free(&temp_packet);
+  AVPacket *packet = av_packet_alloc();
+  ffmpeg_read_video_frame(anim, packet);
+  const int64_t seek_key_frame_pts = timestamp_from_pts_or_dts(packet->pts, packet->dts);
+  av_packet_free(&packet);
 
   /* Seeking gives packet, that is currently read. No seeking was necessary, so buffers don't have
    * to be flushed. */
-  if (gop_pts == timestamp_from_pts_or_dts(anim->cur_packet->pts, anim->cur_packet->dts)) {
+  if (seek_key_frame_pts ==
+      timestamp_from_pts_or_dts(anim->cur_packet->pts, anim->cur_packet->dts))
+  {
     return false;
   }
 
   /* Packet after seeking is same key frame as current, and further in time. No seeking was
    * necessary, so buffers don't have to be flushed. But stream position has to be recovered. */
-  if (gop_pts == anim->cur_key_frame_pts && position > anim->cur_position) {
+  if (seek_key_frame_pts == anim->cur_key_frame_pts && frame_index > anim->cur_frame_index) {
     ffmpeg_seek_recover_stream_position(anim);
     return false;
   }
 
   /* Seeking was necessary, but we have read packets. Therefore we must seek again. */
-  av_seek_frame(anim->pFormatCtx, anim->videoStream, seek_pos, AVSEEK_FLAG_BACKWARD);
-  anim->cur_key_frame_pts = gop_pts;
+  av_seek_frame(anim->format_ctx, anim->video_stream_index, seek_pts, AVSEEK_FLAG_BACKWARD);
+  anim->cur_key_frame_pts = seek_key_frame_pts;
   return true;
 }
 
 /* Seek to last necessary key frame. */
-static int ffmpeg_seek_to_key_frame(MovieReader *anim, int position, int64_t pts_to_search)
+static void ffmpeg_seek_to_key_frame(MovieReader *anim, int frame_index, int64_t target_pts)
 {
-  int64_t seek_pos;
+  int64_t seek_pts = ffmpeg_seek_pts_get(anim, target_pts);
+  av_log(anim->format_ctx, AV_LOG_DEBUG, "Final seek seek_pts = %" PRId64 "\n", seek_pts);
+
   int ret;
-
-  seek_pos = ffmpeg_get_seek_pts(anim, pts_to_search);
-  av_log(anim->pFormatCtx, AV_LOG_DEBUG, "Final seek seek_pos = %" PRId64 "\n", seek_pos);
-
-  AVFormatContext *format_ctx = anim->pFormatCtx;
-
   /* This used to check if the codec implemented "read_seek" or "read_seek2". However this is
    * now hidden from us in FFMPEG 7.0. While not as accurate, usually the AVFMT_TS_DISCONT is
    * set for formats where we need to apply the seek workaround to (like in MPEGTS). */
-  if (!(format_ctx->iformat->flags & AVFMT_TS_DISCONT)) {
-    ret = av_seek_frame(anim->pFormatCtx, anim->videoStream, seek_pos, AVSEEK_FLAG_BACKWARD);
+  if (!(anim->format_ctx->iformat->flags & AVFMT_TS_DISCONT)) {
+    ret = av_seek_frame(
+        anim->format_ctx, anim->video_stream_index, seek_pts, AVSEEK_FLAG_BACKWARD);
   }
   else {
-    ret = ffmpeg_generic_seek_workaround(anim, &seek_pos, pts_to_search);
+    ret = ffmpeg_generic_seek_workaround(anim, &seek_pts, target_pts);
     av_log(
-        anim->pFormatCtx, AV_LOG_DEBUG, "Adjusted final seek seek_pos = %" PRId64 "\n", seek_pos);
+        anim->format_ctx, AV_LOG_DEBUG, "Adjusted final seek seek_pts = %" PRId64 "\n", seek_pts);
   }
 
-  if (ret <= 0 && !ffmpeg_seek_buffers_need_flushing(anim, position, seek_pos)) {
-    return 0;
+  if (ret <= 0 && !ffmpeg_seek_needs_flush(anim, frame_index, seek_pts)) {
+    return;
   }
 
   if (ret < 0) {
-    av_log(anim->pFormatCtx,
+    av_log(anim->format_ctx,
            AV_LOG_ERROR,
            "FETCH: "
            "error while seeking to DTS = %" PRId64 " (frameno = %d, PTS = %" PRId64
            "): errcode = %d\n",
-           seek_pos,
-           position,
-           pts_to_search,
+           seek_pts,
+           frame_index,
+           target_pts,
            ret);
   }
   /* Flush the internal buffers of ffmpeg. This needs to be done after seeking to avoid decoding
    * errors. */
-  avcodec_flush_buffers(anim->pCodecCtx);
+  avcodec_flush_buffers(anim->codec_ctx);
   ffmpeg_double_buffer_backup_frame_clear(anim);
-
   anim->cur_pts = -1;
+  ffmpeg_cur_packet_clear(anim);
+}
 
-  if (anim->cur_packet->stream_index == anim->videoStream) {
-    av_packet_unref(anim->cur_packet);
-    anim->cur_packet->stream_index = -1;
+static bool ffmpeg_must_seek(const MovieReader *anim, int frame_index, int64_t target_pts)
+{
+  if (!anim->frame_complete || frame_index < anim->cur_frame_index) {
+    return true;
+  }
+  if (frame_index == anim->cur_frame_index + 1) {
+    return false;
   }
 
-  return ret;
-}
+  AVStream *stream = anim->format_ctx->streams[anim->video_stream_index];
+  const int64_t seek_pts = ffmpeg_seek_pts_get(anim, target_pts);
 
-static bool ffmpeg_must_decode(MovieReader *anim, int position)
-{
-  return !anim->pFrame_complete || anim->cur_position != position;
-}
-
-static bool ffmpeg_must_seek(MovieReader *anim, int position)
-{
-  bool must_seek = position != anim->cur_position + 1 || ffmpeg_is_first_frame_decode(anim);
-  anim->seek_before_decode = must_seek;
-  return must_seek;
-}
-
-static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position)
-{
-  if (anim == nullptr) {
-    return nullptr;
+  /* Get the index (not timestamp) of the closest keyframe before the #seek_pts to seek to. */
+  const int index = av_index_search_timestamp(stream, seek_pts, AVSEEK_FLAG_BACKWARD);
+  if (index < 0 || index + 1 >= avformat_index_get_entries_count(stream)) {
+    return true;
   }
+  const AVIndexEntry *key_frame = avformat_index_get_entry(stream, index);
+  if (key_frame == nullptr) {
+    return true;
+  }
+  /* If the keyframe we would seek to (closest before #seek_pts) is at or before #cur_pts,
+   * #seek_pts is in the current GOP and decoding forward is faster.
+   *
+   * Otherwise it is in a new GOP, and if we seek, we can skip decoding up to that keyframe, but we
+   * will have to flush the frames the decoder threads are working on (roughly N frames for N
+   * threads) to avoid receiving stale reference frames. If the key frame is within those N frames,
+   * it is already being decoded, so only seek if the key frame is more than N frames ahead.
+   */
+  const double flush_cost_pts = ffmpeg_pts_per_frame_get(anim) * MOV_thread_count();
+  return key_frame->timestamp > anim->cur_pts + flush_cost_pts;
+}
 
-  av_log(anim->pFormatCtx, AV_LOG_DEBUG, "FETCH: seek_pos=%d\n", position);
+static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int frame_index)
+{
+  av_log(anim->format_ctx, AV_LOG_DEBUG, "FETCH: frame_index=%d\n", frame_index);
 
-  int64_t pts_to_search = ffmpeg_get_pts_to_search(anim, position);
-  AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
-  double frame_rate = av_q2d(v_st->r_frame_rate);
-  double pts_time_base = av_q2d(v_st->time_base);
-  int64_t start_pts = v_st->start_time;
+  const int64_t target_pts = ffmpeg_frame_index_to_pts(anim, frame_index);
 
   if (anim->never_seek_decode_one_frame) {
     /* If we must only ever decode one frame, and never seek, do so here. */
-    if (!anim->pFrame_complete) {
+    if (!anim->frame_complete) {
       ffmpeg_decode_video_frame(anim);
     }
   }
   else {
     /* For all regular video files, do the seek/decode as needed. */
-    av_log(anim->pFormatCtx,
+    const AVStream *v_st = anim->format_ctx->streams[anim->video_stream_index];
+    av_log(anim->format_ctx,
            AV_LOG_DEBUG,
            "FETCH: looking for PTS=%" PRId64 " (pts_timebase=%g, frame_rate=%g, start_pts=%" PRId64
            ")\n",
-           int64_t(pts_to_search),
-           pts_time_base,
-           frame_rate,
-           start_pts);
+           target_pts,
+           av_q2d(v_st->time_base),
+           av_q2d(v_st->r_frame_rate),
+           v_st->start_time);
 
-    if (ffmpeg_must_decode(anim, position)) {
-      if (ffmpeg_must_seek(anim, position)) {
-        ffmpeg_seek_to_key_frame(anim, position, pts_to_search);
+    if (!anim->frame_complete || anim->cur_frame_index != frame_index) {
+      const bool must_seek = ffmpeg_must_seek(anim, frame_index, target_pts);
+      if (must_seek) {
+        ffmpeg_seek_to_key_frame(anim, frame_index, target_pts);
       }
-
-      ffmpeg_decode_video_frame_scan(anim, pts_to_search);
+      ffmpeg_decode_until_pts(anim, target_pts, must_seek);
     }
   }
 
   /* Update resolution as it can change per-frame with WebM. See #100741 & #100081. */
-  anim->x = anim->pCodecCtx->width;
-  anim->y = anim->pCodecCtx->height;
+  anim->x = anim->codec_ctx->width;
+  anim->y = anim->codec_ctx->height;
 
-  const AVPixFmtDescriptor *pix_fmt_descriptor = av_pix_fmt_desc_get(anim->pCodecCtx->pix_fmt);
+  const AVPixFmtDescriptor *pix_fmt_descriptor = av_pix_fmt_desc_get(
+      ffmpeg_codec_pix_fmt_get(anim->codec_ctx));
 
   ImColorMode color_mode = ImColorMode::RGBA;
   if ((pix_fmt_descriptor->flags & AV_PIX_FMT_FLAG_ALPHA) == 0) {
@@ -1266,17 +1392,36 @@ static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position)
     cur_frame_final->assign_byte_data(buffer_data);
   }
 
-  AVFrame *final_frame = ffmpeg_frame_by_pts_get(anim, pts_to_search);
+  AVFrame *final_frame = ffmpeg_frame_by_pts_get(anim, target_pts);
   if (final_frame == nullptr) {
     /* No valid frame was decoded for requested PTS, fall back on most recent decoded frame, even
      * if it is incorrect. */
     final_frame = ffmpeg_double_buffer_frame_fallback_get(anim);
   }
 
+  /* If the final frame is a GPU surface, transfer only this frame to system RAM */
+  if (final_frame != nullptr && final_frame->hw_frames_ctx != nullptr) {
+    av_frame_unref(anim->frame_sw);
+    const int ret = av_hwframe_transfer_data(anim->frame_sw, final_frame, 0);
+    if (ret < 0) {
+      char error_str[AV_ERROR_MAX_STRING_SIZE];
+      av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+      CLOG_ERROR(&LOG, "ffmpeg: couldn't transfer frame from the decoding device: %s", error_str);
+      final_frame = nullptr;
+    }
+    else {
+      av_frame_copy_props(anim->frame_sw, final_frame);
+      final_frame = anim->frame_sw;
+    }
+  }
+
   /* Even with the fallback from above it is possible that the current decode frame is nullptr. In
    * this case skip post-processing and return current image buffer. */
   if (final_frame != nullptr) {
     ffmpeg_postprocess(anim, final_frame, cur_frame_final);
+  }
+  else {
+    memset(buffer_data, 0, pixel_size * anim->x * anim->y);
   }
 
   if (anim->is_float) {
@@ -1304,7 +1449,7 @@ static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position)
     cur_frame_final->byte_buffer.colorspace = colormanage_colorspace_get_named(anim->colorspace);
   }
 
-  anim->cur_position = position;
+  anim->cur_frame_index = frame_index;
 
   return cur_frame_final;
 }
@@ -1315,19 +1460,8 @@ static void free_anim_ffmpeg(MovieReader *anim)
     return;
   }
 
-  if (anim->pCodecCtx) {
-    avcodec_free_context(&anim->pCodecCtx);
-    avformat_close_input(&anim->pFormatCtx);
-    av_packet_free(&anim->cur_packet);
-
-    av_frame_free(&anim->pFrame);
-    av_frame_free(&anim->pFrame_backup);
-    av_frame_free(&anim->pFrameRGB);
-    if (anim->pFrameDeinterlaced->data[0] != nullptr) {
-      MEM_delete(anim->pFrameDeinterlaced->data[0]);
-    }
-    av_frame_free(&anim->pFrameDeinterlaced);
-    ffmpeg_sws_release_context(anim->img_convert_ctx);
+  if (anim->codec_ctx) {
+    ffmpeg_free_decoder(anim);
   }
   anim->duration_in_frames = 0;
 }
@@ -1361,13 +1495,13 @@ static bool anim_getnew(MovieReader *anim)
 ImBuf *MOV_decode_preview_frame(MovieReader *anim)
 {
   ImBuf *ibuf = nullptr;
-  int position = 0;
+  int frame_index = 0;
 
   ibuf = MOV_decode_frame(anim, 0, IMB_PROXY_NONE);
   if (ibuf) {
     IMB_freeImBuf(ibuf);
-    position = anim->duration_in_frames / 2;
-    ibuf = MOV_decode_frame(anim, position, IMB_PROXY_NONE);
+    frame_index = anim->duration_in_frames / 2;
+    ibuf = MOV_decode_frame(anim, frame_index, IMB_PROXY_NONE);
 
     char value[128];
     IDProperty *metadata = ibuf->metadata_for_write();
@@ -1379,16 +1513,16 @@ ImBuf *MOV_decode_preview_frame(MovieReader *anim)
     IMB_metadata_set_field(metadata, "Thumb::Video::Frames", value);
 
 #ifdef WITH_FFMPEG
-    if (anim->pFormatCtx) {
-      AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
-      AVRational frame_rate = av_guess_frame_rate(anim->pFormatCtx, v_st, nullptr);
+    if (anim->format_ctx) {
+      AVStream *v_st = anim->format_ctx->streams[anim->video_stream_index];
+      AVRational frame_rate = av_guess_frame_rate(anim->format_ctx, v_st, nullptr);
       if (frame_rate.num != 0) {
         double duration = anim->duration_in_frames / av_q2d(frame_rate);
         SNPRINTF_UTF8(value, "%g", av_q2d(frame_rate));
         IMB_metadata_set_field(metadata, "Thumb::Video::FPS", value);
         SNPRINTF_UTF8(value, "%g", duration);
         IMB_metadata_set_field(metadata, "Thumb::Video::Duration", value);
-        IMB_metadata_set_field(metadata, "Thumb::Video::Codec", anim->pCodec->long_name);
+        IMB_metadata_set_field(metadata, "Thumb::Video::Codec", anim->codec->long_name);
       }
     }
 #endif
@@ -1396,7 +1530,7 @@ ImBuf *MOV_decode_preview_frame(MovieReader *anim)
   return ibuf;
 }
 
-ImBuf *MOV_decode_frame(MovieReader *anim, int position, IMB_Proxy_Size preview_size)
+ImBuf *MOV_decode_frame(MovieReader *anim, int frame_index, IMB_Proxy_Size preview_size)
 {
   ImBuf *ibuf = nullptr;
   if (anim == nullptr) {
@@ -1410,32 +1544,29 @@ ImBuf *MOV_decode_frame(MovieReader *anim, int position, IMB_Proxy_Size preview_
       }
     }
 
-    if (position < 0) {
+    if (frame_index < 0) {
       return nullptr;
     }
-    if (position >= anim->duration_in_frames) {
+    if (frame_index >= anim->duration_in_frames) {
       return nullptr;
     }
   }
   else {
     MovieReader *proxy = movie_open_proxy(anim, preview_size);
     if (proxy) {
-      return MOV_decode_frame(proxy, position, IMB_PROXY_NONE);
+      return MOV_decode_frame(proxy, frame_index, IMB_PROXY_NONE);
     }
   }
 
 #ifdef WITH_FFMPEG
   if (anim->state == MovieReader::State::Valid) {
-    ibuf = ffmpeg_fetchibuf(anim, position);
-    if (ibuf) {
-      anim->cur_position = position;
-    }
+    ibuf = ffmpeg_fetchibuf(anim, frame_index);
   }
 #endif
 
   if (ibuf) {
     ibuf->filepath = anim->filepath;
-    ibuf->fileframe = anim->cur_position + 1;
+    ibuf->fileframe = anim->cur_frame_index + 1;
   }
   return ibuf;
 }
@@ -1449,12 +1580,12 @@ int MOV_get_video_stream_count(MovieReader *anim)
   if (anim->state == MovieReader::State::Uninitialized && !anim_getnew(anim)) {
     return 0;
   }
-  if (anim->pFormatCtx == nullptr) {
+  if (anim->format_ctx == nullptr) {
     return 0;
   }
   int count = 0;
-  for (int i = 0; i < anim->pFormatCtx->nb_streams; i++) {
-    if (ffmpeg_stream_counts_as_video(anim->pFormatCtx, anim->pFormatCtx->streams[i])) {
+  for (int i = 0; i < anim->format_ctx->nb_streams; i++) {
+    if (ffmpeg_stream_counts_as_video(anim->format_ctx, anim->format_ctx->streams[i])) {
       count++;
     }
   }

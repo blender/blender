@@ -276,8 +276,8 @@ namespace blender {
 #  define STORAGE_BUF_FREQ(slot, qualifiers, type_name, name, freq) \
     extern _##qualifiers type_name name;
 
-#  define ACCELERATION_STRUCTURE(slot, name) accelerationStructureEXT name;
-#  define ACCELERATION_STRUCTURE_FREQ(slot, name, freq) accelerationStructureEXT name;
+#  define ACCELERATION_STRUCTURE(slot, name) accelerationStructure name;
+#  define ACCELERATION_STRUCTURE_FREQ(slot, name, freq) accelerationStructure name;
 
 #  define SAMPLER(slot, type, name) type name;
 #  define SAMPLER_FREQ(slot, type, name, freq) type name;
@@ -990,7 +990,6 @@ struct ShaderCreateInfo {
 
   struct Sampler {
     ImageType type;
-    GPUSamplerState sampler;
     StringRefNull name;
   };
 
@@ -1060,7 +1059,6 @@ struct ShaderCreateInfo {
           break;
         case SAMPLER:
           TEST_EQUAL(*this, b, sampler.type);
-          TEST_EQUAL(*this, b, sampler.sampler);
           TEST_EQUAL(*this, b, sampler.name);
           break;
         case IMAGE:
@@ -1471,15 +1469,11 @@ struct ShaderCreateInfo {
                 ImageType type,
                 StringRefNull name,
                 Frequency freq = Frequency::PASS,
-                GPUSamplerState sampler = GPUSamplerState::internal_sampler(),
                 ConditionFn cond = nullptr)
   {
     Resource res(*this, Resource::BindType::SAMPLER, slot, cond);
     res.sampler.type = type;
     res.sampler.name = name;
-    /* Produces ASAN errors for the moment. */
-    // res.sampler.sampler = sampler;
-    UNUSED_VARS(sampler);
     resources_get_(freq).append(res);
     interface_names_size_ += name.size() + 1;
     return *static_cast<Self *>(this);
@@ -1838,8 +1832,6 @@ struct ShaderCreateInfo {
     }
     return slot;
   }
-
-  std::string buffer_typename(StringRefNull type_name, bool uniform_buffer = false) const;
 
   /** \} */
 

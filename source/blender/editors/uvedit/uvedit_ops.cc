@@ -684,7 +684,7 @@ static bool uvedit_uv_islands_arrange(const Scene *scene,
                      }
                      const float area_a = (a.bounds.size()[0] * a.bounds.size()[1]);
                      const float area_b = (b.bounds.size()[0] * b.bounds.size()[1]);
-                     return (order == UVAlignIslandOrder::LargeToSmall) ? (area_a >= area_b) :
+                     return (order == UVAlignIslandOrder::LargeToSmall) ? (area_a > area_b) :
                                                                           (area_a < area_b);
                    });
 
@@ -2977,6 +2977,7 @@ void ED_operatormacros_uvedit()
                                     "Rip Move UVs",
                                     "Unstitch UVs and move the result",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
+  ot->cursor_pending = WM_CURSOR_CROSS;
   WM_operatortype_macro_define(ot, "UV_OT_rip");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);

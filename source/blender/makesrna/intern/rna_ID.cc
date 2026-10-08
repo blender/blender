@@ -2785,7 +2785,11 @@ static void rna_def_library(BlenderRNA *brna)
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, nullptr, "filepath");
   RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
-  RNA_def_property_ui_text(prop, "File Path", "Path to the library .blend file");
+  RNA_def_property_ui_text(prop,
+                           "File Path",
+                           "Path to the library .blend file. WARNING: Typically, this value "
+                           "should be considered read-only, changing this path without proper "
+                           "processing afterwards can leave Blender data in an invalid state");
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_Library_filepath_set");
 
   prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);

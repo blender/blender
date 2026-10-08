@@ -1,0 +1,1312 @@
+diff --git a/src/opentime/CMakeLists.txt b/src/opentime/CMakeLists.txt
+index 4f07106..73cdcfb 100644
+--- a/src/opentime/CMakeLists.txt
++++ b/src/opentime/CMakeLists.txt
+@@ -30,7 +30,7 @@ if(OTIO_SHARED_LIBS)
+         VERSION ${OTIO_VERSION})
+     target_compile_definitions(
+         opentime
+-        PUBLIC
++        PRIVATE
+         OPENTIME_EXPORTS)
+ else()
+     target_compile_definitions(
+diff --git a/src/opentimelineio/CMakeLists.txt b/src/opentimelineio/CMakeLists.txt
+index dd1c881..81338d7 100644
+--- a/src/opentimelineio/CMakeLists.txt
++++ b/src/opentimelineio/CMakeLists.txt
+@@ -107,7 +107,7 @@ if(OTIO_SHARED_LIBS)
+         VERSION ${OTIO_VERSION})
+     target_compile_definitions(
+         opentimelineio
+-        PUBLIC
++        PRIVATE
+         OTIO_EXPORTS)
+ else()
+     target_compile_definitions(
+diff --git a/src/opentimelineio/bundle.h b/src/opentimelineio/bundle.h
+index daa46a7..d708ed3 100644
+--- a/src/opentimelineio/bundle.h
++++ b/src/opentimelineio/bundle.h
+@@ -37,7 +37,7 @@ namespace bundle {
+     };
+ 
+     /// @brief Get a file from a URL.
+-    std::optional<std::string> file_from_url(std::string const& url);
++    OTIO_API std::optional<std::string> file_from_url(std::string const& url);
+ 
+     /// @brief Options for writing bundles.
+     struct OTIO_API_TYPE WriteOptions
+diff --git a/src/opentimelineio/clip.h b/src/opentimelineio/clip.h
+index 37878a0..afee818 100644
+--- a/src/opentimelineio/clip.h
++++ b/src/opentimelineio/clip.h
+@@ -88,10 +88,10 @@ public:
+     available_image_bounds(ErrorStatus* error_status = nullptr) const override;
+ 
+ protected:
+-    virtual ~Clip();
++    OTIO_API virtual ~Clip();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     template <typename MediaRefMap>
+diff --git a/src/opentimelineio/color.h b/src/opentimelineio/color.h
+index d20bf87..19622d5 100644
+--- a/src/opentimelineio/color.h
++++ b/src/opentimelineio/color.h
+@@ -39,23 +39,24 @@ public:
+ 
+     OTIO_API Color(Color const& other);
+ 
+-    static const Color pink;
+-    static const Color red;
+-    static const Color orange;
+-    static const Color yellow;
+-    static const Color green;
+-    static const Color cyan;
+-    static const Color blue;
+-    static const Color purple;
+-    static const Color magenta;
+-    static const Color black;
+-    static const Color white;
+-    static const Color transparent;
+-
+-    static Color* from_hex(std::string const& color);
+-    static Color* from_int_list(std::vector<int> const& color, int bit_depth);
+-    static Color* from_agbr_int(unsigned int agbr) noexcept;
+-    static Color* from_float_list(std::vector<double> const& color);
++    OTIO_API static const Color pink;
++    OTIO_API static const Color red;
++    OTIO_API static const Color orange;
++    OTIO_API static const Color yellow;
++    OTIO_API static const Color green;
++    OTIO_API static const Color cyan;
++    OTIO_API static const Color blue;
++    OTIO_API static const Color purple;
++    OTIO_API static const Color magenta;
++    OTIO_API static const Color black;
++    OTIO_API static const Color white;
++    OTIO_API static const Color transparent;
++
++    OTIO_API static Color* from_hex(std::string const& color);
++    OTIO_API static Color*
++    from_int_list(std::vector<int> const& color, int bit_depth);
++    OTIO_API static Color* from_agbr_int(unsigned int agbr) noexcept;
++    OTIO_API static Color* from_float_list(std::vector<double> const& color);
+ 
+     friend bool operator==(Color lhs, Color rhs) noexcept
+     {
+diff --git a/src/opentimelineio/composable.h b/src/opentimelineio/composable.h
+index a6f29f7..b51d26f 100644
+--- a/src/opentimelineio/composable.h
++++ b/src/opentimelineio/composable.h
+@@ -34,34 +34,35 @@ public:
+         AnyDictionary const& metadata = AnyDictionary());
+ 
+     /// @brief Return whether the composable is visible.
+-    virtual bool visible() const;
++    OTIO_API virtual bool visible() const;
+ 
+     /// @brief Return whether the composable is overlapping another item.
+-    virtual bool overlapping() const;
++    OTIO_API virtual bool overlapping() const;
+ 
+     /// @brief Return the parent composition.
+     Composition* parent() const { return _parent; }
+ 
+     /// @brief Return the duration of the composable.
+-    virtual RationalTime duration(ErrorStatus* error_status = nullptr) const;
++    OTIO_API virtual RationalTime
++    duration(ErrorStatus* error_status = nullptr) const;
+ 
+     /// @brief Return the available image bounds.
+-    virtual std::optional<IMATH_NAMESPACE::Box2d>
++    OTIO_API virtual std::optional<IMATH_NAMESPACE::Box2d>
+     available_image_bounds(ErrorStatus* error_status = nullptr) const;
+ 
+ protected:
+-    bool        _set_parent(Composition*) noexcept;
+-    Composable* _highest_ancestor() noexcept;
++    OTIO_API bool        _set_parent(Composition*) noexcept;
++    OTIO_API Composable* _highest_ancestor() noexcept;
+ 
+     Composable const* _highest_ancestor() const noexcept
+     {
+         return const_cast<Composable*>(this)->_highest_ancestor();
+     }
+ 
+-    virtual ~Composable();
++    OTIO_API virtual ~Composable();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     Composition* _parent;
+diff --git a/src/opentimelineio/composition.h b/src/opentimelineio/composition.h
+index e2a72a4..ec599df 100644
+--- a/src/opentimelineio/composition.h
++++ b/src/opentimelineio/composition.h
+@@ -44,7 +44,7 @@ public:
+         std::optional<Color> const&     color        = std::nullopt);
+ 
+     /// @brief Return the kind of composition.
+-    virtual std::string composition_kind() const;
++    OTIO_API virtual std::string composition_kind() const;
+ 
+     /// @brief Return the list of children.
+     std::vector<Retainer<Composable>> const& children() const noexcept
+@@ -93,18 +93,19 @@ public:
+     OTIO_API bool is_parent_of(Composable const* other) const;
+ 
+     /// @brief Return the in and out handles of the given child.
+-    virtual std::pair<std::optional<RationalTime>, std::optional<RationalTime>>
+-    handles_of_child(
+-        Composable const* child,
+-        ErrorStatus*      error_status = nullptr) const;
++    OTIO_API virtual
++        std::pair<std::optional<RationalTime>, std::optional<RationalTime>>
++        handles_of_child(
++            Composable const* child,
++            ErrorStatus*      error_status = nullptr) const;
+ 
+     /// @brief Return the range of the given child.
+-    virtual TimeRange range_of_child_at_index(
++    OTIO_API virtual TimeRange range_of_child_at_index(
+         int          index,
+         ErrorStatus* error_status = nullptr) const;
+ 
+     /// @brief Return the trimmed range of the given child.
+-    virtual TimeRange trimmed_range_of_child_at_index(
++    OTIO_API virtual TimeRange trimmed_range_of_child_at_index(
+         int          index,
+         ErrorStatus* error_status = nullptr) const;
+ 
+@@ -131,7 +132,7 @@ public:
+     OTIO_API bool has_clips() const;
+ 
+     /// @brief Return the range of all children.
+-    virtual std::map<Composable*, TimeRange>
++    OTIO_API virtual std::map<Composable*, TimeRange>
+     range_of_all_children(ErrorStatus* error_status = nullptr) const;
+ 
+     /// @brief Return the child that overlaps with the given time.
+@@ -146,7 +147,7 @@ public:
+         bool                shallow_search = false) const;
+ 
+     /// @brief Return all objects within the given search_range.
+-    virtual std::vector<Retainer<Composable>> children_in_range(
++    OTIO_API virtual std::vector<Retainer<Composable>> children_in_range(
+         TimeRange const& search_range,
+         ErrorStatus*     error_status = nullptr) const;
+ 
+@@ -156,8 +157,11 @@ public:
+     /// @param search_range An optional range to limit the search.
+     /// @param shallow_search The search is recursive unless shallow_search is
+     /// set to true.
++    // NOTE: Templates are instantiated in the consumer's translation unit, so
++    // this member must not be marked with OTIO_API (dllexport/dllimport). The
++    // definition below would otherwise trigger MSVC error C2491 for clients.
+     template <typename T = Composable>
+-    OTIO_API std::vector<Retainer<T>> find_children(
++    std::vector<Retainer<T>> find_children(
+         ErrorStatus*             error_status   = nullptr,
+         std::optional<TimeRange> search_range   = std::nullopt,
+         bool                     shallow_search = false) const;
+@@ -174,18 +178,18 @@ public:
+         bool                            shallow_search = false) const;
+ 
+ protected:
+-    virtual ~Composition();
++    OTIO_API virtual ~Composition();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+-    std::vector<Composition*> _path_from_child(
++    OTIO_API std::vector<Composition*> _path_from_child(
+         Composable const* child,
+         ErrorStatus*      error_status = nullptr) const;
+ 
+ private:
+     // XXX: python implementation is O(n^2) in number of children
+-    std::vector<Composable*>
++    OTIO_API std::vector<Composable*>
+     _children_at_time(RationalTime, ErrorStatus* error_status = nullptr) const;
+ 
+     // Return the index of the last item in seq such that all e in seq[:index]
+@@ -197,7 +201,7 @@ private:
+     // lower_search_bound and upper_search_bound bound the slice to be searched.
+     //
+     // Assumes that seq is already sorted.
+-    int64_t _bisect_right(
++    OTIO_API int64_t _bisect_right(
+         RationalTime const&                             tgt,
+         std::function<RationalTime(Composable*)> const& key_func,
+         ErrorStatus*                                    error_status = nullptr,
+@@ -213,7 +217,7 @@ private:
+     // lower_search_bound and upper_search_bound bound the slice to be searched.
+     //
+     // Assumes that seq is already sorted.
+-    int64_t _bisect_left(
++    OTIO_API int64_t _bisect_left(
+         RationalTime const&                             tgt,
+         std::function<RationalTime(Composable*)> const& key_func,
+         ErrorStatus*                                    error_status = nullptr,
+diff --git a/src/opentimelineio/deserialization.cpp b/src/opentimelineio/deserialization.cpp
+index 51f85c6..151cac9 100644
+--- a/src/opentimelineio/deserialization.cpp
++++ b/src/opentimelineio/deserialization.cpp
+@@ -1,6 +1,8 @@
+ // SPDX-License-Identifier: Apache-2.0
+ // Copyright Contributors to the OpenTimelineIO project
+ 
++#include "opentimelineio/deserialization.h"
++
+ #include "opentime/rationalTime.h"
+ #include "opentime/timeRange.h"
+ #include "opentime/timeTransform.h"
+diff --git a/src/opentimelineio/effect.h b/src/opentimelineio/effect.h
+index a48ff58..8144455 100644
+--- a/src/opentimelineio/effect.h
++++ b/src/opentimelineio/effect.h
+@@ -49,10 +49,10 @@ public:
+     void set_enabled(bool enabled) { _enabled = enabled; }
+ 
+ protected:
+-    virtual ~Effect();
++    OTIO_API virtual ~Effect();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     std::string _effect_name;
+diff --git a/src/opentimelineio/externalReference.h b/src/opentimelineio/externalReference.h
+index ddb028f..31d7f6c 100644
+--- a/src/opentimelineio/externalReference.h
++++ b/src/opentimelineio/externalReference.h
+@@ -44,10 +44,10 @@ public:
+     }
+ 
+ protected:
+-    virtual ~ExternalReference();
++    OTIO_API virtual ~ExternalReference();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     std::string _target_url;
+diff --git a/src/opentimelineio/freezeFrame.h b/src/opentimelineio/freezeFrame.h
+index 25df4d8..5dc4567 100644
+--- a/src/opentimelineio/freezeFrame.h
++++ b/src/opentimelineio/freezeFrame.h
+@@ -30,7 +30,7 @@ public:
+         AnyDictionary const& metadata = AnyDictionary());
+ 
+ protected:
+-    virtual ~FreezeFrame();
++    OTIO_API virtual ~FreezeFrame();
+ };
+ 
+ }} // namespace opentimelineio::OPENTIMELINEIO_VERSION_NS
+diff --git a/src/opentimelineio/gap.h b/src/opentimelineio/gap.h
+index 071ceb9..f294e1e 100644
+--- a/src/opentimelineio/gap.h
++++ b/src/opentimelineio/gap.h
+@@ -54,13 +54,13 @@ public:
+         std::vector<Marker*> const& markers  = std::vector<Marker*>(),
+         AnyDictionary const&        metadata = AnyDictionary());
+ 
+-    bool visible() const override;
++    OTIO_API bool visible() const override;
+ 
+ protected:
+-    virtual ~Gap();
++    OTIO_API virtual ~Gap();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ };
+ 
+ }} // namespace opentimelineio::OPENTIMELINEIO_VERSION_NS
+diff --git a/src/opentimelineio/generatorReference.h b/src/opentimelineio/generatorReference.h
+index 15f78d6..277f88c 100644
+--- a/src/opentimelineio/generatorReference.h
++++ b/src/opentimelineio/generatorReference.h
+@@ -54,10 +54,10 @@ public:
+     AnyDictionary parameters() const noexcept { return _parameters; }
+ 
+ protected:
+-    virtual ~GeneratorReference();
++    OTIO_API virtual ~GeneratorReference();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     std::string   _generator_kind;
+diff --git a/src/opentimelineio/imageSequenceReference.h b/src/opentimelineio/imageSequenceReference.h
+index 007a9f6..28fd7be 100644
+--- a/src/opentimelineio/imageSequenceReference.h
++++ b/src/opentimelineio/imageSequenceReference.h
+@@ -136,31 +136,31 @@ public:
+     }
+ 
+     /// @brief Return the end frame.
+-    int end_frame() const;
++    OTIO_API int end_frame() const;
+ 
+     /// @brief Return the number of images in the sequence.
+-    int number_of_images_in_sequence() const;
++    OTIO_API int number_of_images_in_sequence() const;
+ 
+     /// @brief Return the frame for the given time.
+-    int frame_for_time(
++    OTIO_API int frame_for_time(
+         RationalTime const& time,
+         ErrorStatus*        error_status = nullptr) const;
+ 
+     /// @brief Return the target URL for the given image number.
+-    std::string target_url_for_image_number(
++    OTIO_API std::string target_url_for_image_number(
+         int          image_number,
+         ErrorStatus* error_status = nullptr) const;
+ 
+     /// @brief Return the presentation time for the given image number.
+-    RationalTime presentation_time_for_image_number(
++    OTIO_API RationalTime presentation_time_for_image_number(
+         int          image_number,
+         ErrorStatus* error_status = nullptr) const;
+ 
+ protected:
+-    virtual ~ImageSequenceReference();
++    OTIO_API virtual ~ImageSequenceReference();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     std::string        _target_url_base;
+@@ -172,7 +172,7 @@ private:
+     int                _frame_zero_padding;
+     MissingFramePolicy _missing_frame_policy;
+ 
+-    RationalTime frame_duration() const noexcept;
++    OTIO_API RationalTime frame_duration() const noexcept;
+ };
+ 
+ }} // namespace opentimelineio::OPENTIMELINEIO_VERSION_NS
+diff --git a/src/opentimelineio/item.h b/src/opentimelineio/item.h
+index 5a7a06a..e95e120 100644
+--- a/src/opentimelineio/item.h
++++ b/src/opentimelineio/item.h
+@@ -46,8 +46,8 @@ public:
+         bool                            enabled      = true,
+         std::optional<Color> const&     color        = std::nullopt);
+ 
+-    bool visible() const override;
+-    bool overlapping() const override;
++    OTIO_API bool visible() const override;
++    OTIO_API bool overlapping() const override;
+ 
+     /// @brief Return whether the item is enabled.
+     bool enabled() const { return _enabled; };
+@@ -85,10 +85,11 @@ public:
+         return _markers;
+     }
+ 
+-    RationalTime duration(ErrorStatus* error_status = nullptr) const override;
++    OTIO_API RationalTime
++    duration(ErrorStatus* error_status = nullptr) const override;
+ 
+     /// @brief Return the available range of the item.
+-    virtual TimeRange
++    OTIO_API virtual TimeRange
+     available_range(ErrorStatus* error_status = nullptr) const;
+ 
+     /// @brief Return the trimmed range of the item.
+@@ -126,10 +127,10 @@ public:
+     void set_color(std::optional<Color> const& color) { _color = color; }
+ 
+ protected:
+-    virtual ~Item();
++    OTIO_API virtual ~Item();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     std::optional<TimeRange>      _source_range;
+diff --git a/src/opentimelineio/linearTimeWarp.h b/src/opentimelineio/linearTimeWarp.h
+index effd401..66e9c39 100644
+--- a/src/opentimelineio/linearTimeWarp.h
++++ b/src/opentimelineio/linearTimeWarp.h
+@@ -43,10 +43,10 @@ public:
+     }
+ 
+ protected:
+-    virtual ~LinearTimeWarp();
++    OTIO_API virtual ~LinearTimeWarp();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     double _time_scalar;
+diff --git a/src/opentimelineio/marker.h b/src/opentimelineio/marker.h
+index c465bb5..001ed21 100644
+--- a/src/opentimelineio/marker.h
++++ b/src/opentimelineio/marker.h
+@@ -63,10 +63,10 @@ public:
+     void set_comment(std::string const& comment) { _comment = comment; }
+ 
+ protected:
+-    virtual ~Marker();
++    OTIO_API virtual ~Marker();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     std::optional<Color> _color;
+diff --git a/src/opentimelineio/mediaReference.h b/src/opentimelineio/mediaReference.h
+index 1d2c95d..d361fc1 100644
+--- a/src/opentimelineio/mediaReference.h
++++ b/src/opentimelineio/mediaReference.h
+@@ -51,7 +51,7 @@ public:
+     }
+ 
+     /// @brief Return whether the reference is missing.
+-    virtual bool is_missing_reference() const;
++    OTIO_API virtual bool is_missing_reference() const;
+ 
+     /// @brief Return the spatial bounds of the media reference.
+     std::optional<IMATH_NAMESPACE::Box2d> available_image_bounds() const
+@@ -67,10 +67,10 @@ public:
+     }
+ 
+ protected:
+-    virtual ~MediaReference();
++    OTIO_API virtual ~MediaReference();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     std::optional<TimeRange>              _available_range;
+diff --git a/src/opentimelineio/missingReference.h b/src/opentimelineio/missingReference.h
+index 093e6d9..00e7903 100644
+--- a/src/opentimelineio/missingReference.h
++++ b/src/opentimelineio/missingReference.h
+@@ -37,13 +37,13 @@ public:
+         std::optional<IMATH_NAMESPACE::Box2d> const& available_image_bounds =
+             std::nullopt);
+ 
+-    bool is_missing_reference() const override;
++    OTIO_API bool is_missing_reference() const override;
+ 
+ protected:
+-    virtual ~MissingReference();
++    OTIO_API virtual ~MissingReference();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ };
+ 
+ }} // namespace opentimelineio::OPENTIMELINEIO_VERSION_NS
+diff --git a/src/opentimelineio/safely_typed_any.h b/src/opentimelineio/safely_typed_any.h
+index f9586b9..905d466 100644
+--- a/src/opentimelineio/safely_typed_any.h
++++ b/src/opentimelineio/safely_typed_any.h
+@@ -23,6 +23,7 @@
+ #include "opentime/timeRange.h"
+ #include "opentime/timeTransform.h"
+ #include "opentimelineio/color.h"
++#include "opentimelineio/export.h"
+ #include "opentimelineio/serializableObject.h"
+ #include "opentimelineio/version.h"
+ 
+@@ -31,48 +32,49 @@ namespace opentimelineio { namespace OPENTIMELINEIO_VERSION_NS {
+ /// @name Any Create
+ ///@{
+ 
+-std::any create_safely_typed_any(bool&&);
+-std::any create_safely_typed_any(int&&);
+-std::any create_safely_typed_any(int64_t&&);
+-std::any create_safely_typed_any(uint64_t&&);
+-std::any create_safely_typed_any(double&&);
+-std::any create_safely_typed_any(std::string&&);
+-std::any create_safely_typed_any(RationalTime&&);
+-std::any create_safely_typed_any(TimeRange&&);
+-std::any create_safely_typed_any(Color&&);
+-std::any create_safely_typed_any(TimeTransform&&);
+-std::any create_safely_typed_any(IMATH_NAMESPACE::V2d&&);
+-std::any create_safely_typed_any(IMATH_NAMESPACE::Box2d&&);
+-std::any create_safely_typed_any(AnyVector&&);
+-std::any create_safely_typed_any(AnyDictionary&&);
+-std::any create_safely_typed_any(SerializableObject*);
++OTIO_API std::any create_safely_typed_any(bool&&);
++OTIO_API std::any create_safely_typed_any(int&&);
++OTIO_API std::any create_safely_typed_any(int64_t&&);
++OTIO_API std::any create_safely_typed_any(uint64_t&&);
++OTIO_API std::any create_safely_typed_any(double&&);
++OTIO_API std::any create_safely_typed_any(std::string&&);
++OTIO_API std::any create_safely_typed_any(RationalTime&&);
++OTIO_API std::any create_safely_typed_any(TimeRange&&);
++OTIO_API std::any create_safely_typed_any(Color&&);
++OTIO_API std::any create_safely_typed_any(TimeTransform&&);
++OTIO_API std::any create_safely_typed_any(IMATH_NAMESPACE::V2d&&);
++OTIO_API std::any create_safely_typed_any(IMATH_NAMESPACE::Box2d&&);
++OTIO_API std::any create_safely_typed_any(AnyVector&&);
++OTIO_API std::any create_safely_typed_any(AnyDictionary&&);
++OTIO_API std::any create_safely_typed_any(SerializableObject*);
+ 
+ ///@}
+ 
+ /// @name Any Casting
+ ///@{
+ 
+-bool                   safely_cast_bool_any(std::any const& a);
+-int                    safely_cast_int_any(std::any const& a);
+-int64_t                safely_cast_int64_any(std::any const& a);
+-uint64_t               safely_cast_uint64_any(std::any const& a);
+-double                 safely_cast_double_any(std::any const& a);
+-std::string            safely_cast_string_any(std::any const& a);
+-RationalTime           safely_cast_rational_time_any(std::any const& a);
+-TimeRange              safely_cast_time_range_any(std::any const& a);
+-TimeTransform          safely_cast_time_transform_any(std::any const& a);
+-Color                  safely_cast_color_any(std::any const& a);
+-IMATH_NAMESPACE::V2d   safely_cast_point_any(std::any const& a);
+-IMATH_NAMESPACE::Box2d safely_cast_box_any(std::any const& a);
++OTIO_API bool        safely_cast_bool_any(std::any const& a);
++OTIO_API int         safely_cast_int_any(std::any const& a);
++OTIO_API int64_t     safely_cast_int64_any(std::any const& a);
++OTIO_API uint64_t    safely_cast_uint64_any(std::any const& a);
++OTIO_API double      safely_cast_double_any(std::any const& a);
++OTIO_API std::string safely_cast_string_any(std::any const& a);
++OTIO_API RationalTime  safely_cast_rational_time_any(std::any const& a);
++OTIO_API TimeRange     safely_cast_time_range_any(std::any const& a);
++OTIO_API TimeTransform safely_cast_time_transform_any(std::any const& a);
++OTIO_API Color         safely_cast_color_any(std::any const& a);
++OTIO_API IMATH_NAMESPACE::V2d   safely_cast_point_any(std::any const& a);
++OTIO_API IMATH_NAMESPACE::Box2d safely_cast_box_any(std::any const& a);
+ 
+-SerializableObject* safely_cast_retainer_any(std::any const& a);
++OTIO_API SerializableObject* safely_cast_retainer_any(std::any const& a);
+ 
+-AnyDictionary safely_cast_any_dictionary_any(std::any const& a);
+-AnyVector     safely_cast_any_vector_any(std::any const& a);
++OTIO_API AnyDictionary safely_cast_any_dictionary_any(std::any const& a);
++OTIO_API AnyVector     safely_cast_any_vector_any(std::any const& a);
+ 
+ /// @bug Don't use these unless you know what you're doing...
+-AnyDictionary& temp_safely_cast_any_dictionary_any(std::any const& a);
+-AnyVector&     temp_safely_cast_any_vector_any(std::any const& a);
++OTIO_API AnyDictionary&
++temp_safely_cast_any_dictionary_any(std::any const& a);
++OTIO_API AnyVector& temp_safely_cast_any_vector_any(std::any const& a);
+ 
+ ///@}
+ 
+diff --git a/src/opentimelineio/serializableCollection.h b/src/opentimelineio/serializableCollection.h
+index cf2d008..05212f2 100644
+--- a/src/opentimelineio/serializableCollection.h
++++ b/src/opentimelineio/serializableCollection.h
+@@ -97,17 +97,20 @@ public:
+     /// @param search_range An optional range to limit the search.
+     /// @param shallow_search The search is recursive unless shallow_search is
+     /// set to true.
++    // NOTE: Templates are instantiated in the consumer's translation unit, so
++    // this member must not be marked with OTIO_API (dllexport/dllimport). The
++    // definition below would otherwise trigger MSVC error C2491 for clients.
+     template <typename T = Composable>
+-    OTIO_API std::vector<Retainer<T>> find_children(
++    std::vector<Retainer<T>> find_children(
+         ErrorStatus*             error_status   = nullptr,
+         std::optional<TimeRange> search_range   = std::nullopt,
+         bool                     shallow_search = false) const;
+ 
+ protected:
+-    virtual ~SerializableCollection();
++    OTIO_API virtual ~SerializableCollection();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     std::vector<Retainer<SerializableObject>> _children;
+diff --git a/src/opentimelineio/serializableObject.h b/src/opentimelineio/serializableObject.h
+index 4f2e6c6..eb3054e 100644
+--- a/src/opentimelineio/serializableObject.h
++++ b/src/opentimelineio/serializableObject.h
+@@ -120,28 +120,33 @@ public:
+             }
+         }
+ 
+-        bool read(std::string const& key, bool* dest);
+-        bool read(std::string const& key, int* dest);
+-        bool read(std::string const& key, double* dest);
+-        bool read(std::string const& key, std::string* dest);
+-        bool read(std::string const& key, RationalTime* dest);
+-        bool read(std::string const& key, TimeRange* dest);
+-        bool read(std::string const& key, class TimeTransform* dest);
+-        bool read(std::string const& key, Color* dest);
+-        bool read(std::string const& key, IMATH_NAMESPACE::V2d* value);
+-        bool read(std::string const& key, IMATH_NAMESPACE::Box2d* value);
+-        bool read(std::string const& key, AnyVector* dest);
+-        bool read(std::string const& key, AnyDictionary* dest);
+-        bool read(std::string const& key, std::any* dest);
+-
+-        bool read(std::string const& key, std::optional<bool>* dest);
+-        bool read(std::string const& key, std::optional<int>* dest);
+-        bool read(std::string const& key, std::optional<double>* dest);
+-        bool read(std::string const& key, std::optional<RationalTime>* dest);
+-        bool read(std::string const& key, std::optional<TimeRange>* dest);
+-        bool read(std::string const& key, std::optional<TimeTransform>* dest);
+-        bool read(std::string const& key, std::optional<Color>* dest);
+-        bool read(
++        OTIO_API bool read(std::string const& key, bool* dest);
++        OTIO_API bool read(std::string const& key, int* dest);
++        OTIO_API bool read(std::string const& key, double* dest);
++        OTIO_API bool read(std::string const& key, std::string* dest);
++        OTIO_API bool read(std::string const& key, RationalTime* dest);
++        OTIO_API bool read(std::string const& key, TimeRange* dest);
++        OTIO_API bool read(std::string const& key, class TimeTransform* dest);
++        OTIO_API bool read(std::string const& key, Color* dest);
++        OTIO_API bool
++        read(std::string const& key, IMATH_NAMESPACE::V2d* value);
++        OTIO_API bool
++        read(std::string const& key, IMATH_NAMESPACE::Box2d* value);
++        OTIO_API bool read(std::string const& key, AnyVector* dest);
++        OTIO_API bool read(std::string const& key, AnyDictionary* dest);
++        OTIO_API bool read(std::string const& key, std::any* dest);
++
++        OTIO_API bool read(std::string const& key, std::optional<bool>* dest);
++        OTIO_API bool read(std::string const& key, std::optional<int>* dest);
++        OTIO_API bool read(std::string const& key, std::optional<double>* dest);
++        OTIO_API bool
++        read(std::string const& key, std::optional<RationalTime>* dest);
++        OTIO_API bool
++        read(std::string const& key, std::optional<TimeRange>* dest);
++        OTIO_API bool
++        read(std::string const& key, std::optional<TimeTransform>* dest);
++        OTIO_API bool read(std::string const& key, std::optional<Color>* dest);
++        OTIO_API bool read(
+             std::string const&                     key,
+             std::optional<IMATH_NAMESPACE::Box2d>* value);
+ 
+@@ -207,10 +212,11 @@ public:
+         typedef std::function<void(ErrorStatus const&)> error_function_t;
+ 
+         // forward functions to keep stringUtils.h private
+-        static std::string
++        OTIO_API static std::string
+         fwd_type_name_for_error_message(std::type_info const&);
+-        static std::string fwd_type_name_for_error_message(std::any const& a);
+-        static std::string
++        OTIO_API static std::string
++        fwd_type_name_for_error_message(std::any const& a);
++        OTIO_API static std::string
+         fwd_type_name_for_error_message(class SerializableObject*);
+ 
+         struct _Resolver
+@@ -385,13 +391,13 @@ public:
+             return true;
+         }
+ 
+-        Reader(
++        OTIO_API Reader(
+             AnyDictionary&,
+             error_function_t const& error_function,
+             SerializableObject*     source,
+             int                     line_number = -1);
+ 
+-        void _error(ErrorStatus const& error_status);
++        OTIO_API void _error(ErrorStatus const& error_status);
+ 
+         template <typename T>
+         bool _fetch(std::string const& key, T* dest, bool* had_null = nullptr);
+@@ -399,22 +405,22 @@ public:
+         template <typename T>
+         bool _read_optional(std::string const& key, std::optional<T>* value);
+ 
+-        bool _fetch(std::string const& key, int64_t* dest);
+-        bool _fetch(std::string const& key, double* dest);
+-        bool _fetch(std::string const& key, SerializableObject** dest);
+-        bool
++        OTIO_API bool _fetch(std::string const& key, int64_t* dest);
++        OTIO_API bool _fetch(std::string const& key, double* dest);
++        OTIO_API bool _fetch(std::string const& key, SerializableObject** dest);
++        OTIO_API bool
+         _type_check(std::type_info const& wanted, std::type_info const& found);
+-        bool _type_check_so(
++        OTIO_API bool _type_check_so(
+             std::type_info const& wanted,
+             std::type_info const& found,
+             std::type_info const& so_type);
+ 
+-        static void _fix_reference_ids(
++        OTIO_API static void _fix_reference_ids(
+             AnyDictionary&,
+             error_function_t const& error_function,
+             _Resolver&,
+             int line_number);
+-        static void _fix_reference_ids(
++        OTIO_API static void _fix_reference_ids(
+             std::any&,
+             error_function_t const& error_function,
+             _Resolver&,
+@@ -439,36 +445,40 @@ public:
+     class Writer
+     {
+     public:
+-        static bool write_root(
++        OTIO_API static bool write_root(
+             std::any const&           value,
+             class Encoder&            encoder,
+             const schema_version_map* downgrade_version_manifest = nullptr,
+             ErrorStatus*              error_status               = nullptr);
+ 
+-        void write(std::string const& key, bool value);
+-        void write(std::string const& key, int64_t value);
+-        void write(std::string const& key, double value);
+-        void write(std::string const& key, std::string const& value);
+-        void write(std::string const& key, RationalTime value);
+-        void write(std::string const& key, TimeRange value);
+-        void write(std::string const& key, IMATH_NAMESPACE::V2d value);
+-        void write(std::string const& key, IMATH_NAMESPACE::Box2d value);
+-        void write(std::string const& key, std::optional<Color> value);
+-        void write(std::string const& key, std::optional<RationalTime> value);
+-        void write(std::string const& key, std::optional<TimeRange> value);
+-        void write(
++        OTIO_API void write(std::string const& key, bool value);
++        OTIO_API void write(std::string const& key, int64_t value);
++        OTIO_API void write(std::string const& key, double value);
++        OTIO_API void write(std::string const& key, std::string const& value);
++        OTIO_API void write(std::string const& key, RationalTime value);
++        OTIO_API void write(std::string const& key, TimeRange value);
++        OTIO_API void write(std::string const& key, IMATH_NAMESPACE::V2d value);
++        OTIO_API void
++        write(std::string const& key, IMATH_NAMESPACE::Box2d value);
++        OTIO_API void write(std::string const& key, std::optional<Color> value);
++        OTIO_API void
++        write(std::string const& key, std::optional<RationalTime> value);
++        OTIO_API void
++        write(std::string const& key, std::optional<TimeRange> value);
++        OTIO_API void write(
+             std::string const&                    key,
+             std::optional<IMATH_NAMESPACE::Box2d> value);
+-        void write(std::string const& key, class TimeTransform value);
+-        void write(std::string const& key, Color value);
+-        void write(std::string const& key, SerializableObject const* value);
++        OTIO_API void write(std::string const& key, class TimeTransform value);
++        OTIO_API void write(std::string const& key, Color value);
++        OTIO_API void
++        write(std::string const& key, SerializableObject const* value);
+         void write(std::string const& key, SerializableObject* value)
+         {
+             write(key, (SerializableObject const*) (value));
+         }
+-        void write(std::string const& key, AnyDictionary const& value);
+-        void write(std::string const& key, AnyVector const& value);
+-        void write(std::string const& key, std::any const& value);
++        OTIO_API void write(std::string const& key, AnyDictionary const& value);
++        OTIO_API void write(std::string const& key, AnyVector const& value);
++        OTIO_API void write(std::string const& key, std::any const& value);
+ 
+         template <typename T>
+         void write(std::string const& key, T const& value)
+@@ -604,13 +614,13 @@ public:
+     };
+ 
+     /// @brief Deserialize from the given reader.
+-    virtual bool read_from(Reader&);
++    OTIO_API virtual bool read_from(Reader&);
+ 
+     /// @brief Serialize to the given writer.
+-    virtual void write_to(Writer&) const;
++    OTIO_API virtual void write_to(Writer&) const;
+ 
+     /// @brief Return whether this schema is unknown.
+-    virtual bool is_unknown_schema() const;
++    OTIO_API virtual bool is_unknown_schema() const;
+ 
+     /// @brief Return the schema name.
+     std::string schema_name() const { return _type_record()->schema_name; }
+@@ -673,11 +683,11 @@ public:
+     };
+ 
+ protected:
+-    virtual ~SerializableObject();
++    OTIO_API virtual ~SerializableObject();
+ 
+-    virtual bool _is_deletable();
++    OTIO_API virtual bool _is_deletable();
+ 
+-    virtual std::string _schema_name_for_reference() const;
++    OTIO_API virtual std::string _schema_name_for_reference() const;
+ 
+ private:
+     SerializableObject(SerializableObject const&)            = delete;
+@@ -700,12 +710,12 @@ public:
+     };
+ 
+     /// @todo Add comment.
+-    void install_external_keepalive_monitor(
++    OTIO_API void install_external_keepalive_monitor(
+         std::function<void()> monitor,
+         bool                  apply_now);
+ 
+     /// @brief Return the current reference count.
+-    int current_ref_count() const;
++    OTIO_API int current_ref_count() const;
+ 
+     /// @brief This struct provides an unknown type.
+     struct UnknownType
+@@ -719,7 +729,7 @@ private:
+         _cached_type_record = type_record;
+     }
+ 
+-    TypeRegistry::_TypeRecord const* _type_record() const;
++    OTIO_API TypeRegistry::_TypeRecord const* _type_record() const;
+ 
+     mutable TypeRegistry::_TypeRecord const* _cached_type_record;
+     int                                      _managed_ref_count;
+diff --git a/src/opentimelineio/serializableObjectWithMetadata.h b/src/opentimelineio/serializableObjectWithMetadata.h
+index 4eeac3f..a7e558c 100644
+--- a/src/opentimelineio/serializableObjectWithMetadata.h
++++ b/src/opentimelineio/serializableObjectWithMetadata.h
+@@ -42,10 +42,10 @@ public:
+     AnyDictionary metadata() const noexcept { return _metadata; }
+ 
+ protected:
+-    virtual ~SerializableObjectWithMetadata();
++    OTIO_API virtual ~SerializableObjectWithMetadata();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     std::string   _name;
+diff --git a/src/opentimelineio/stack.h b/src/opentimelineio/stack.h
+index 26a0f67..ab7e043 100644
+--- a/src/opentimelineio/stack.h
++++ b/src/opentimelineio/stack.h
+@@ -39,32 +39,32 @@ public:
+         std::vector<Effect*> const&     effects      = std::vector<Effect*>(),
+         std::vector<Marker*> const&     markers      = std::vector<Marker*>());
+ 
+-    TimeRange range_of_child_at_index(
++    OTIO_API TimeRange range_of_child_at_index(
+         int          index,
+         ErrorStatus* error_status = nullptr) const override;
+-    TimeRange trimmed_range_of_child_at_index(
++    OTIO_API TimeRange trimmed_range_of_child_at_index(
+         int          index,
+         ErrorStatus* error_status = nullptr) const override;
+-    TimeRange
++    OTIO_API TimeRange
+     available_range(ErrorStatus* error_status = nullptr) const override;
+ 
+-    std::map<Composable*, TimeRange>
++    OTIO_API std::map<Composable*, TimeRange>
+     range_of_all_children(ErrorStatus* error_status = nullptr) const override;
+ 
+-    std::vector<Retainer<Composable>> children_in_range(
++    OTIO_API std::vector<Retainer<Composable>> children_in_range(
+         TimeRange const& search_range,
+         ErrorStatus*     error_status = nullptr) const override;
+ 
+-    std::optional<IMATH_NAMESPACE::Box2d>
++    OTIO_API std::optional<IMATH_NAMESPACE::Box2d>
+     available_image_bounds(ErrorStatus* error_status) const override;
+ 
+ protected:
+-    virtual ~Stack();
++    OTIO_API virtual ~Stack();
+ 
+-    std::string composition_kind() const override;
++    OTIO_API std::string composition_kind() const override;
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ };
+ 
+ }} // namespace opentimelineio::OPENTIMELINEIO_VERSION_NS
+diff --git a/src/opentimelineio/stringUtils.cpp b/src/opentimelineio/stringUtils.cpp
+index 20ac2c2..c6b6051 100644
+--- a/src/opentimelineio/stringUtils.cpp
++++ b/src/opentimelineio/stringUtils.cpp
+@@ -1,6 +1,8 @@
+ // SPDX-License-Identifier: Apache-2.0
+ // Copyright Contributors to the OpenTimelineIO project
+ 
++#include "stringUtils.h"
++
+ #include "opentimelineio/serializableObject.h"
+ #include <cstdlib>
+ #include <memory>
+diff --git a/src/opentimelineio/stringUtils.h b/src/opentimelineio/stringUtils.h
+index 709b5c1..bd2a047 100644
+--- a/src/opentimelineio/stringUtils.h
++++ b/src/opentimelineio/stringUtils.h
+@@ -4,6 +4,7 @@
+ #pragma once
+ 
+ #include "opentime/stringPrintf.h"
++#include "opentimelineio/export.h"
+ #include "opentimelineio/version.h"
+ using opentime::string_printf;
+ 
+@@ -15,11 +16,12 @@ namespace opentimelineio { namespace OPENTIMELINEIO_VERSION_NS {
+ /// @name String Utilities
+ ///@{
+ 
+-void fatal_error(std::string const& errMsg);
++OTIO_API void fatal_error(std::string const& errMsg);
+ 
+-std::string type_name_for_error_message(std::type_info const&);
+-std::string type_name_for_error_message(std::any const& a);
+-std::string type_name_for_error_message(class SerializableObject*);
++OTIO_API std::string type_name_for_error_message(std::type_info const&);
++OTIO_API std::string type_name_for_error_message(std::any const& a);
++OTIO_API std::string
++type_name_for_error_message(class SerializableObject*);
+ 
+ template <typename T>
+ std::string
+@@ -28,7 +30,7 @@ type_name_for_error_message()
+     return type_name_for_error_message(typeid(T));
+ }
+ 
+-bool split_schema_string(
++OTIO_API bool split_schema_string(
+     std::string const& schema_and_version,
+     std::string*       schema_name,
+     int*               schema_version);
+diff --git a/src/opentimelineio/timeEffect.h b/src/opentimelineio/timeEffect.h
+index 437135b..c1ae72f 100644
+--- a/src/opentimelineio/timeEffect.h
++++ b/src/opentimelineio/timeEffect.h
+@@ -32,7 +32,7 @@ public:
+         AnyDictionary const& metadata    = AnyDictionary());
+ 
+ protected:
+-    virtual ~TimeEffect();
++    OTIO_API virtual ~TimeEffect();
+ };
+ 
+ }} // namespace opentimelineio::OPENTIMELINEIO_VERSION_NS
+diff --git a/src/opentimelineio/timeline.h b/src/opentimelineio/timeline.h
+index 9273ad5..53a0962 100644
+--- a/src/opentimelineio/timeline.h
++++ b/src/opentimelineio/timeline.h
+@@ -44,7 +44,7 @@ public:
+     }*/
+ 
+     /// @brief Set the timeline stack.
+-    void set_tracks(Stack* stack);
++    OTIO_API void set_tracks(Stack* stack);
+ 
+     /// @brief Return the global start time.
+     std::optional<RationalTime> global_start_time() const noexcept
+@@ -96,8 +96,11 @@ public:
+     /// @param search_range An optional range to limit the search.
+     /// @param shallow_search The search is recursive unless shallow_search is
+     /// set to true.
++    // NOTE: Templates are instantiated in the consumer's translation unit, so
++    // this member must not be marked with OTIO_API (dllexport/dllimport). The
++    // definition below would otherwise trigger MSVC error C2491 for clients.
+     template <typename T = Composable>
+-    OTIO_API std::vector<Retainer<T>> find_children(
++    std::vector<Retainer<T>> find_children(
+         ErrorStatus*             error_status   = nullptr,
+         std::optional<TimeRange> search_range   = std::nullopt,
+         bool                     shallow_search = false) const;
+@@ -110,10 +113,10 @@ public:
+     }
+ 
+ protected:
+-    virtual ~Timeline();
++    OTIO_API virtual ~Timeline();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     std::optional<RationalTime> _global_start_time;
+diff --git a/src/opentimelineio/track.h b/src/opentimelineio/track.h
+index aa52983..1240660 100644
+--- a/src/opentimelineio/track.h
++++ b/src/opentimelineio/track.h
+@@ -56,15 +56,16 @@ public:
+     /// @brief Set this kind of track.
+     void set_kind(std::string const& kind) { _kind = kind; }
+ 
+-    TimeRange range_of_child_at_index(
++    OTIO_API TimeRange range_of_child_at_index(
+         int          index,
+         ErrorStatus* error_status = nullptr) const override;
+-    TimeRange trimmed_range_of_child_at_index(
++    OTIO_API TimeRange trimmed_range_of_child_at_index(
+         int          index,
+         ErrorStatus* error_status = nullptr) const override;
+-    TimeRange
++    OTIO_API TimeRange
+     available_range(ErrorStatus* error_status = nullptr) const override;
+ 
++    OTIO_API
+     std::pair<std::optional<RationalTime>, std::optional<RationalTime>>
+     handles_of_child(
+         Composable const* child,
+@@ -76,19 +77,19 @@ public:
+         ErrorStatus*      error_status = nullptr,
+         NeighborGapPolicy insert_gap   = NeighborGapPolicy::never) const;
+ 
+-    std::map<Composable*, TimeRange>
++    OTIO_API std::map<Composable*, TimeRange>
+     range_of_all_children(ErrorStatus* error_status = nullptr) const override;
+ 
+-    std::optional<IMATH_NAMESPACE::Box2d>
++    OTIO_API std::optional<IMATH_NAMESPACE::Box2d>
+     available_image_bounds(ErrorStatus* error_status) const override;
+ 
+ protected:
+-    virtual ~Track();
++    OTIO_API virtual ~Track();
+ 
+-    std::string composition_kind() const override;
++    OTIO_API std::string composition_kind() const override;
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     std::string _kind;
+diff --git a/src/opentimelineio/transition.h b/src/opentimelineio/transition.h
+index 2dd75cf..12209d8 100644
+--- a/src/opentimelineio/transition.h
++++ b/src/opentimelineio/transition.h
+@@ -44,7 +44,7 @@ public:
+         AnyDictionary const& metadata        = AnyDictionary(),
+         bool                 enabled         = true);
+ 
+-    bool overlapping() const override;
++    OTIO_API bool overlapping() const override;
+ 
+     /// @brief Return the transition type.
+     std::string transition_type() const noexcept { return _transition_type; }
+@@ -79,21 +79,22 @@ public:
+     /// @brief Set whether the transition is enabled.
+     void set_enabled(bool enabled) { _enabled = enabled; }
+ 
+-    RationalTime duration(ErrorStatus* error_status = nullptr) const override;
++    OTIO_API RationalTime
++    duration(ErrorStatus* error_status = nullptr) const override;
+ 
+     /// @brief Return the range in the parent's time.
+-    std::optional<TimeRange>
++    OTIO_API std::optional<TimeRange>
+     range_in_parent(ErrorStatus* error_status = nullptr) const;
+ 
+     /// @brief Return the range trimmed in the parent's time.
+-    std::optional<TimeRange>
++    OTIO_API std::optional<TimeRange>
+     trimmed_range_in_parent(ErrorStatus* error_status = nullptr) const;
+ 
+ protected:
+-    virtual ~Transition();
++    OTIO_API virtual ~Transition();
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+ private:
+     std::string  _transition_type;
+diff --git a/src/opentimelineio/typeRegistry.h b/src/opentimelineio/typeRegistry.h
+index 2f9182a..3b1d461 100644
+--- a/src/opentimelineio/typeRegistry.h
++++ b/src/opentimelineio/typeRegistry.h
+@@ -33,7 +33,7 @@ using label_to_schema_version_map =
+ 
+ ///@}
+ 
+-extern const label_to_schema_version_map CORE_VERSION_MAP;
++extern OTIO_API const label_to_schema_version_map CORE_VERSION_MAP;
+ 
+ /// @brief Type registry.
+ class OTIO_API_TYPE TypeRegistry
+@@ -42,7 +42,7 @@ public:
+     /// @brief Get the type registry singleton.
+     ///
+     /// Access to functions are thread-safe.
+-    static TypeRegistry& instance();
++    OTIO_API static TypeRegistry& instance();
+ 
+     /// @brief Register a new schema.
+     ///
+@@ -51,7 +51,7 @@ public:
+     /// the templated form of this call.
+     ///
+     /// If the specified schema_name has already been registered, this function does nothing and returns false.
+-    bool register_type(
++    OTIO_API bool register_type(
+         std::string const&                   schema_name,
+         int                                  schema_version,
+         std::type_info const*                type,
+@@ -79,7 +79,7 @@ public:
+     /// case a schema name is changed and the old name needs to be allowed as well.
+     ///
+     /// On success, returns true; otherwise, returns false and sets error_status if non-null.
+-    bool register_type_from_existing_type(
++    OTIO_API bool register_type_from_existing_type(
+         std::string const& schema_name,
+         int                schema_version,
+         std::string const& existing_schema_name,
+@@ -98,7 +98,7 @@ public:
+     ///
+     /// Returns false if an upgrade function has been registered for this (schema_name, version)
+     /// pair, or if schema_name itself has not been registered, and true otherwise.
+-    bool register_upgrade_function(
++    OTIO_API bool register_upgrade_function(
+         std::string const&                  schema_name,
+         int                                 version_to_upgrade_to,
+         std::function<void(AnyDictionary*)> upgrade_function);
+@@ -119,7 +119,7 @@ public:
+ 
+     /// @brief Downgrade function from version_to_downgrade_from to
+     /// version_to_downgrade_from - 1
+-    bool register_downgrade_function(
++    OTIO_API bool register_downgrade_function(
+         std::string const&                  schema_name,
+         int                                 version_to_downgrade_from,
+         std::function<void(AnyDictionary*)> downgrade_function);
+@@ -154,16 +154,16 @@ public:
+     }
+ 
+     /// @brief For use by external bridging systems.
+-    bool set_type_record(
++    OTIO_API bool set_type_record(
+         SerializableObject*,
+         std::string const& schema_name,
+         ErrorStatus*       error_status = nullptr);
+ 
+     /// @brief For inspecting the type registry, build a map of schema name to version.
+-    void type_version_map(schema_version_map& result);
++    OTIO_API void type_version_map(schema_version_map& result);
+ 
+ private:
+-    TypeRegistry();
++    OTIO_API TypeRegistry();
+ 
+     TypeRegistry(TypeRegistry const&)            = delete;
+     TypeRegistry& operator=(TypeRegistry const&) = delete;
+@@ -190,7 +190,7 @@ private:
+             this->create         = _create;
+         }
+ 
+-        SerializableObject* create_object() const;
++        OTIO_API SerializableObject* create_object() const;
+ 
+         friend class TypeRegistry;
+         friend class SerializableObject;
+@@ -204,17 +204,17 @@ private:
+         return it == _type_records.end() ? nullptr : it->second;
+     }
+ 
+-    SerializableObject* _instance_from_schema(
++    OTIO_API SerializableObject* _instance_from_schema(
+         std::string    schema_name,
+         int            schema_version,
+         AnyDictionary& dict,
+         bool           internal_read,
+         ErrorStatus*   error_status = nullptr);
+ 
+-    static std::pair<std::string, int>
+-                 _schema_and_version_from_label(std::string const& label);
+-    _TypeRecord* _lookup_type_record(std::string const& schema_name);
+-    _TypeRecord* _lookup_type_record(std::type_info const& type);
++    OTIO_API static std::pair<std::string, int>
++    _schema_and_version_from_label(std::string const& label);
++    OTIO_API _TypeRecord* _lookup_type_record(std::string const& schema_name);
++    OTIO_API _TypeRecord* _lookup_type_record(std::type_info const& type);
+ 
+     std::mutex                          _registry_mutex;
+     std::map<std::string, _TypeRecord*> _type_records;
+diff --git a/src/opentimelineio/unknownSchema.h b/src/opentimelineio/unknownSchema.h
+index 04b22a2..6893d7e 100644
+--- a/src/opentimelineio/unknownSchema.h
++++ b/src/opentimelineio/unknownSchema.h
+@@ -23,7 +23,7 @@ public:
+     ///
+     /// @param original_schema_name The original schema name.
+     /// @param original_schema_version The original schema version.
+-    UnknownSchema(
++    OTIO_API UnknownSchema(
+         std::string const& original_schema_name,
+         int                original_schema_version);
+ 
+@@ -45,15 +45,15 @@ public:
+         return _data;
+     }
+ 
+-    bool read_from(Reader&) override;
+-    void write_to(Writer&) const override;
++    OTIO_API bool read_from(Reader&) override;
++    OTIO_API void write_to(Writer&) const override;
+ 
+-    bool is_unknown_schema() const override;
++    OTIO_API bool is_unknown_schema() const override;
+ 
+ protected:
+-    virtual ~UnknownSchema();
++    OTIO_API virtual ~UnknownSchema();
+ 
+-    std::string _schema_name_for_reference() const override;
++    OTIO_API std::string _schema_name_for_reference() const override;
+ 
+ private:
+     std::string _original_schema_name;

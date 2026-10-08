@@ -407,6 +407,8 @@ enum ButtonFlag : int64_t {
    * buttons currently.
    */
   BUT_FORCE_SEMI_MODAL_ACTIVE = int64_t(1) << 33,
+  /** On a full Tab auto-complete match, apply the value & keep editing (cursor at the end). */
+  BUT_TEXTEDIT_AUTOCOMPLETE_KEEP_ACTIVE = int64_t(1) << 34,
 };
 
 /** #Button.dragflag */
@@ -773,7 +775,8 @@ Vector<StringRef> text_clip_multiline_middle(const uiFontStyle *fstyle,
  * - #block_func_set and button_func_set are callbacks run when a button is used,
  *   in case events, operators or RNA are not sufficient to handle the button.
  *
- * - #button_funcN_set will free the argument with MEM_delete_void. */
+ * - #button_funcN_set takes ownership of the argument, freeing and copying it based on its type
+ *   unless explicit callbacks are given. */
 
 struct SearchItems;
 
@@ -788,6 +791,25 @@ using ButtonCompleteFunc = int (*)(bContext *C, char *str, void *arg);
  */
 using ButtonArgNFree = void (*)(void *argN);
 using ButtonArgNCopy = void *(*)(const void *argN);
+
+/**
+ * Template generating a freeing callback matching the #ButtonArgNFree signature.
+ */
+template<typename T> void but_func_argN_free(void *argN)
+{
+  MEM_delete(static_cast<T *>(argN));
+}
+
+/**
+ * Template generating a copying callback matching the #ButtonArgNCopy signature. Raw arrays are
+ * not supported; use a container like #Array or #std::string instead.
+ */
+template<typename T> void *but_func_argN_copy(const void *argN)
+{
+  static_assert(!std::is_pointer_v<T> && !std::is_arithmetic_v<T>,
+                "Likely a raw array or C-string, use a container like Array or std::string");
+  return MEM_new<T>(__func__, *static_cast<const T *>(argN));
+}
 
 /**
  * Function to compare the identity of two buttons over redraws, to check if they represent the
@@ -875,6 +897,10 @@ bool but_is_utf8(const Button *but);
 bool block_is_empty_ex(const Block *block, bool skip_title);
 bool block_is_empty(const Block *block);
 bool block_can_add_separator(const Block *block);
+/**
+ * Return the first default button (activated by "Return") or null.
+ */
+const Button *block_active_default_button_find(const Block *block);
 /**
  * Return true when the block has a default button.
  * Use this for popups to detect when pressing "Return" will run an action.
@@ -1259,11 +1285,6 @@ const ColorManagedDisplay *button_cm_display_get(Button &but);
  * Set at hint that describes the expected value when empty.
  */
 void button_placeholder_set(Button *but, StringRef placeholder_text);
-
-/**
- * Unselect any text selection in the button's text field.
- */
-void button_clear_selection(Button *but);
 
 /**
  * Special button case, only draw it when used actively, for outliner etc.
@@ -1750,8 +1771,32 @@ Button *uiDefBlockButN(Block *block,
                        short width,
                        short height,
                        std::optional<StringRef> tip,
-                       ButtonArgNFree func_argN_free_fn = MEM_delete_void,
-                       ButtonArgNCopy func_argN_copy_fn = MEM_dupalloc_void);
+                       ButtonArgNFree func_argN_free_fn,
+                       ButtonArgNCopy func_argN_copy_fn);
+/** Variant that frees and copies \a argN based on its type, see #but_func_argN_free. */
+template<typename T>
+Button *uiDefBlockButN(Block *block,
+                       BlockCreateFunc func,
+                       T *argN,
+                       StringRef str,
+                       int x,
+                       int y,
+                       short width,
+                       short height,
+                       std::optional<StringRef> tip)
+{
+  return uiDefBlockButN(block,
+                        func,
+                        argN,
+                        str,
+                        x,
+                        y,
+                        width,
+                        height,
+                        tip,
+                        but_func_argN_free<T>,
+                        but_func_argN_copy<T>);
+}
 
 /**
  * Block button containing icon.
@@ -1986,8 +2031,14 @@ void block_funcN_set(Block *block,
                      ButtonHandleNFunc funcN,
                      void *argN,
                      void *arg2,
-                     ButtonArgNFree func_argN_free_fn = MEM_delete_void,
-                     ButtonArgNCopy func_argN_copy_fn = MEM_dupalloc_void);
+                     ButtonArgNFree func_argN_free_fn,
+                     ButtonArgNCopy func_argN_copy_fn);
+/** Variant that frees and copies \a argN based on its type, see #but_func_argN_free. */
+template<typename T>
+void block_funcN_set(Block *block, ButtonHandleNFunc funcN, T *argN, void *arg2)
+{
+  block_funcN_set(block, funcN, argN, arg2, but_func_argN_free<T>, but_func_argN_copy<T>);
+}
 
 void text_button_func_rename_set(
     Button *but, std::function<void(bContext &C, StringRefNull oldname)> rename_func);
@@ -1998,8 +2049,14 @@ void button_funcN_set(Button *but,
                       ButtonHandleNFunc funcN,
                       void *argN,
                       void *arg2,
-                      ButtonArgNFree func_argN_free_fn = MEM_delete_void,
-                      ButtonArgNCopy func_argN_copy_fn = MEM_dupalloc_void);
+                      ButtonArgNFree func_argN_free_fn,
+                      ButtonArgNCopy func_argN_copy_fn);
+/** Variant that frees and copies \a argN based on its type, see #but_func_argN_free. */
+template<typename T>
+void button_funcN_set(Button *but, ButtonHandleNFunc funcN, T *argN, void *arg2)
+{
+  button_funcN_set(but, funcN, argN, arg2, but_func_argN_free<T>, but_func_argN_copy<T>);
+}
 
 void button_func_complete_set(Button *but, ButtonCompleteFunc func, void *arg);
 
@@ -2560,6 +2617,28 @@ void template_search_preview(Layout *layout,
                              int rows,
                              int cols,
                              std::optional<StringRef> text = std::nullopt);
+
+/**
+ * Create a filepath with filebrowser button, similar to the default layout generated for this type
+ * of string property by `Layout::prop()`, but with more control.
+ *
+ * \param pathselect_op: If not null, the name of the operator to call (instead of the generic
+ * `BUTTONS_OT_file_browse` or `BUTTONS_OT_directory_browse` ones).
+ * \param filter_glob: If not empty, a 'glob filter' string listing all allowed extensions to list
+ * in the filebrowser, separated by semi-columns (e.g. `*.usd;*.usda;*.usdc;*.usdz`). Only used if
+ * the property sub-type is `PROP_FILEPATH`.
+ * \param name: Label text, the property name is used if unset.
+ * \param placeholder: the placeholder text to show in the text widget, when empty.
+ */
+void template_filepath(Layout *layout,
+                       const bContext *C,
+                       PointerRNA *ptr,
+                       const StringRefNull propname,
+                       const char *pathselect_op,
+                       const char *filter_glob,
+                       const std::optional<StringRef> name,
+                       const std::optional<StringRef> placeholder);
+
 /**
  * This is creating/editing RNA-Paths
  *
@@ -3096,6 +3175,9 @@ ARegion *tooltip_create_from_button_or_extra_icon(bContext *C,
                                                   ButtonExtraOpIcon *extra_icon,
                                                   bool is_quick_tip);
 ARegion *tooltip_create_from_gizmo(bContext *C, wmGizmo *gz);
+ARegion *tooltip_create_from_func(bContext *C,
+                                  FunctionRef<void(TooltipData &data)> create_fn,
+                                  const float init_position[2]);
 
 void tooltip_free(bContext *C, bScreen *screen, ARegion *region);
 
@@ -3112,7 +3194,7 @@ ARegion *tooltip_create_from_search_item_generic(bContext *C,
                                                  ID *id);
 
 /* How long before a tool-tip shows. */
-#define UI_TOOLTIP_DELAY 1.0
+#define UI_TOOLTIP_DELAY 0.5
 #define UI_TOOLTIP_DELAY_QUICK 0.2
 
 /* Float precision helpers */

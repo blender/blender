@@ -9,6 +9,7 @@ __all__ = (
     "AttributeType",
     "get_attribute_data",
     "set_view3d_context_override",
+    "set_image_editor_context_override",
     "generate_stroke",
     "generate_monkey"
 )
@@ -144,6 +145,25 @@ def set_view3d_context_override(context_override):
                     continue
                 context_override["area"] = area
                 context_override["region"] = region
+
+
+def set_image_editor_context_override(context_override):
+    """
+    Set context override to become the first image editor in the screen
+
+    The ``context_override`` is expected to be a copy of an actual current context
+    obtained by `context.copy()`
+    """
+
+    for area in context_override["screen"].areas:
+        if area.type != 'IMAGE_EDITOR':
+            continue
+        for region in area.regions:
+            if region.type != 'WINDOW':
+                continue
+            context_override["area"] = area
+            context_override["region"] = region
+            return
 
 
 def generate_monkey(backend):

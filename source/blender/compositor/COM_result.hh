@@ -31,6 +31,7 @@
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_menu_value.hh"
 
+#include "COM_closure.hh"
 #include "COM_domain.hh"
 #include "COM_meta_data.hh"
 
@@ -73,6 +74,7 @@ enum class ResultType : uint8_t {
   Text,
   Mask,
   Bundle,
+  Closure,
 };
 
 /* The precision of the data. CPU data is always stored using full precision at the moment. */
@@ -83,7 +85,7 @@ enum class ResultPrecision : uint8_t {
 
 /* The type of storage used to hold the result data. */
 enum class ResultStorageType : uint8_t {
-  /* Stored as a single value in an #std::varient of all types. */
+  /* Stored as a single value in an #std::variant of all types. */
   SingleValue,
   /* Stored as an image in a #gpu::Texture on the GPU. */
   GPUImage,
@@ -179,7 +181,8 @@ class Result {
                Scene *,
                Text *,
                Mask *,
-               nodes::BundlePtr>
+               nodes::BundlePtr,
+               ClosurePtr>
       single_value_ = std::monostate{};
   /* The domain of the result. This only matters if the result was not a single value. See the
    * discussion in COM_domain.hh for more information. */

@@ -350,6 +350,7 @@ static void draw_import_controls(bContext *C, Layout &layout, const std::string 
 
 static void draw_import_properties(bContext *C,
                                    Layout &layout,
+                                   const bke::FileHandlerType *fh,
                                    PointerRNA &importer_ptr,
                                    wmOperator *op)
 {
@@ -358,11 +359,6 @@ static void draw_import_properties(bContext *C,
   col.separator();
   col.use_property_decorate_set(false);
 
-  /* Note this property is used as an alternative to the `filepath` property of `op->ptr`.
-   * This property is a wrapper to access that property, see the `CollectionExport::filepath`
-   * code comments for details. */
-  PropertyRNA *prop = RNA_struct_find_property(&importer_ptr, "filepath");
-
   /* Style filepath field as alert when empty, it's required for importing. */
   char filepath[FILE_MAX];
   RNA_string_get(&importer_ptr, "filepath", filepath);
@@ -370,14 +366,18 @@ static void draw_import_properties(bContext *C,
     col.red_alert_set(true);
   }
 
-  col.prop(&importer_ptr,
-           prop,
-           RNA_NO_INDEX,
-           0,
-           UI_ITEM_NONE,
-           "",
-           ICON_NONE,
-           IFACE_("Select a file..."));
+  /* NOTE: This property is used as an alternative to the `filepath` property of `op->ptr`.
+   * This property is a wrapper to access that property, see the `CollectionExport::filepath`
+   * code comments for details. */
+  const std::optional<std::string> filter_glob = fh->filter_glob_from_extensions();
+  template_filepath(&col,
+                    C,
+                    &importer_ptr,
+                    "filepath",
+                    nullptr,
+                    filter_glob ? filter_glob->c_str() : nullptr,
+                    "",
+                    IFACE_("Select a file..."));
 
   template_operator_property_buts_draw_single(
       C, op, layout, BUT_LABEL_ALIGN_NONE, TEMPLATE_OP_PROPS_HIDE_PRESETS);
@@ -433,7 +433,7 @@ void template_collection_importer(Layout *layout, bContext *C)
   std::string label(fh->label);
   draw_import_controls(C, *panel.header, label, true);
   if (panel.body) {
-    draw_import_properties(C, *panel.body, importer_ptr, op);
+    draw_import_properties(C, *panel.body, fh, importer_ptr, op);
   }
 }
 

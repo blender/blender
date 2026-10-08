@@ -45,9 +45,13 @@ struct SymbolVariable : Symbol {
   /* Valid if the variable is a local reference.
    * The variable will be substituted to this statement. */
   ast::Expr reference_value = {};
+  /* Valid if the variable has runtime array capacity. */
+  ast::Expr capacity_value = {};
+  /* Condition set when declaring a resource using the condition attribute. */
+  ast::Expr condition = {};
 
   /* Value if constexpr. */
-  ConstexprValue value = ConstexprError();
+  ConstexprValue value = ConstexprError(0);
 
   ResourceType res_type = ResourceType::NONE;
 
@@ -66,6 +70,7 @@ struct SymbolVariable : Symbol {
   bool is_static = false;
   bool is_error = false;
   bool is_constexpr = false;
+  bool is_macro = false;
   bool is_const = false;
   bool is_compilation_const = false;
 

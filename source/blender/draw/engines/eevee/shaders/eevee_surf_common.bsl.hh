@@ -4,52 +4,86 @@
 
 #pragma once
 
-#include "infos/eevee_geom_infos.hh"
-
-#include "eevee_lightprobe_shared.hh" /* IWYU pragma: export: Needed for resource declaration. */
+#include "draw_gsplat_lib.bsl.hh"
 #include "eevee_nodetree_lib.bsl.hh"
-#include "eevee_sampling_shared.hh" /* IWYU pragma: export: Needed for resource declaration. */
 #include "eevee_shadow_shared.hh"
 #include "eevee_uniform.bsl.hh"
-#include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_base.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
 
 namespace eevee {
+
+/* Common interface */
+struct VertOutCommon {
+  /* World Position. */
+  [[smooth]] float3 P;
+  /* World Normal. */
+  [[smooth]] float3 N;
+  /* Resource ID. */
+  [[flat]] uint resource_id_raw;
+};
+
+struct VertOutShadow {
+  [[flat]] int shadow_view_id;
+};
+
+struct VertOutShadowClipping {
+  [[smooth]] float3 position;
+  [[smooth]] float3 vector;
+};
+
+struct VertOutCurves {
+  [[smooth]] float3 tangent;
+  [[smooth]] float3 binormal;
+  [[smooth]] float time;
+  [[smooth]] float time_width;
+  [[smooth]] float radius;
+  [[smooth]] float point_id; /* Smooth to be used for barycentric. */
+  [[flat]] int strand_id;
+};
+
+struct VertOutPointcloud {
+  [[smooth]] float radius;
+  [[smooth]] float3 position;
+  [[flat]] int id;
+};
+
+struct VertOutGSplat {
+  [[smooth]] float2 billboard_co;
+  [[flat]] float opacity;
+};
+
+struct VertOutClipPlane {
+  [[smooth]] float clip_distance;
+};
+
+struct ClipPlane {
+  [[uniform(CLIP_PLANE_BUF)]] ClipPlaneData &clip_plane;
+};
 
 struct GeomShadow {
   [[storage(SHADOW_RENDER_VIEW_BUF_SLOT,
             read)]] const ShadowRenderView (&render_view_buf)[SHADOW_VIEW_MAX];
 };
 
-}  // namespace eevee
-
-#if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_MESH)
-float3 barycentric_distances_get()
+void init_globals_mesh(const VertOutCommon &interp, ShadingData &sd, float3 barycentric_co)
 {
-  float wp_delta = length(gpu_dfdx(interp.P)) + length(gpu_dfdy(interp.P));
-  float bc_delta = length(gpu_dfdx(gpu_BaryCoord)) + length(gpu_dfdy(gpu_BaryCoord));
-  float rate_of_change = wp_delta / bc_delta;
-  return rate_of_change * (1.0f - gpu_BaryCoord);
-}
+  float wp_delta = 0.0f;
+  float bc_delta = 0.0f;
+#if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
+  wp_delta = length(gpu_dfdx(interp.P)) + length(gpu_dfdy(interp.P));
+  bc_delta = length(gpu_dfdx(barycentric_co)) + length(gpu_dfdy(barycentric_co));
 #endif
-
-void init_globals_mesh(ShadingData &sd)
-{
-#if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_MESH)
-  sd.barycentric_coords = gpu_BaryCoord.xy;
-  sd.barycentric_dists = barycentric_distances_get();
-#else
-  sd.barycentric_coords = float2(0.0f);
-  sd.barycentric_dists = float3(0.0f);
-#endif
+  float rate_of_change = wp_delta * safe_rcp(bc_delta);
+  sd.barycentric_dists = rate_of_change * (1.0f - barycentric_co);
+  sd.barycentric_coords = barycentric_co.xy;
 }
 
-void init_globals_curves(ShadingData &sd, const ViewMatrices view)
+void init_globals_curves(const VertOutCommon &interp,
+                         const VertOutCurves &curve_interp,
+                         ShadingData &sd,
+                         const ViewMatrices view)
 {
-  auto &interp = interface_get(eevee_geom_iface_info, interp);
-  auto &curve_interp = interface_get(eevee_geom_curves_iface_info, curve_interp);
-  auto &curve_interp_flat = interface_get(eevee_geom_curves_iface_info, curve_interp_flat);
   /* Shade as a cylinder. */
   float cos_theta = curve_interp.time_width / curve_interp.radius;
   float sin_theta = sin_from_cos(cos_theta);
@@ -63,30 +97,25 @@ void init_globals_curves(ShadingData &sd, const ViewMatrices view)
 
   sd.is_strand = true;
   sd.hair_diameter = curve_interp.radius * 2.0;
-  sd.hair_strand_id = curve_interp_flat.strand_id;
-#if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER)
+  sd.hair_strand_id = curve_interp.strand_id;
   sd.barycentric_coords.y = fract(curve_interp.point_id);
   sd.barycentric_coords.x = 1.0 - sd.barycentric_coords.y;
-#endif
 }
 
-void init_globals_pointcloud(ShadingData &sd)
+void init_globals_pointcloud(const VertOutPointcloud &ptcloud_interp, ShadingData &sd)
 {
-  auto &ptcloud_interp = interface_get(eevee_geom_pointcloud_iface_info, pointcloud_interp);
-  auto &ptcloud_interp_flat = interface_get(eevee_geom_pointcloud_iface_info,
-                                            pointcloud_interp_flat);
-
   sd.point_position = ptcloud_interp.position;
   sd.point_radius = ptcloud_interp.radius;
-  sd.point_id = ptcloud_interp_flat.id;
+  sd.point_id = ptcloud_interp.id;
 }
 
-[[nodiscard]] ShadingData init_globals([[resource_table]] const eevee::Uniform &uni,
+[[nodiscard]] ShadingData init_globals(const eevee::PipelineConstants &pipe,
+                                       const eevee::Uniform &uni,
+                                       const VertOutCommon &interp,
                                        const ViewMatrices view,
                                        bool front_face,
                                        float4 fragment_co)
 {
-  auto &interp = interface_get(eevee_geom_iface_info, interp);
   ShadingData sd;
   /* Default values. */
   sd.frag_co = fragment_co;
@@ -101,18 +130,21 @@ void init_globals_pointcloud(ShadingData &sd)
   sd.point_position = float3(0.0f);
   sd.point_radius = 0.0f;
   sd.point_id = 0;
-#if defined(MAT_SHADOW)
-  sd.ray_type = RAY_TYPE_SHADOW;
-#elif defined(MAT_CAPTURE)
-  sd.ray_type = RAY_TYPE_DIFFUSE;
-#else
-  sd.ray_type = uni.pipeline_buf.ray_type;
-#endif
+  if (pipe.is_shadow_pipe) [[static_branch]] {
+    sd.ray_type = RAY_TYPE_SHADOW;
+  }
+  else if (pipe.is_capture_pipe) [[static_branch]] {
+    sd.ray_type = RAY_TYPE_DIFFUSE;
+  }
+  else {
+    sd.ray_type = uni.pipeline_buf.ray_type;
+  }
   sd.ray_depth = 0.0f;
   sd.ray_length = distance(sd.P, view.position());
   sd.barycentric_coords = float2(0.0f);
   sd.barycentric_dists = float3(0.0f);
   sd.thickness = Thickness::zero();
+  sd.resource_id_raw = interp.resource_id_raw;
 
   sd.N = (front_face) ? sd.N : -sd.N;
   sd.Ni = (front_face) ? sd.Ni : -sd.Ni;
@@ -122,28 +154,26 @@ void init_globals_pointcloud(ShadingData &sd)
     sd.Ng = -sd.Ng;
   }
 #endif
-
-#if defined(MAT_GEOM_MESH)
-  init_globals_mesh(sd);
-#elif defined(MAT_GEOM_POINTCLOUD)
-  init_globals_pointcloud(sd);
-#elif defined(MAT_GEOM_CURVES)
-  init_globals_curves(sd, view);
-#endif
   return sd;
 }
 
 /* Avoid some compiler issue with non set interface parameters. */
-void init_interface([[maybe_unused]] uint resource_id_raw)
+void init_interface(VertOutCommon &interp, uint resource_id_raw)
 {
-#ifdef GPU_VERTEX_SHADER
-  auto &interp = interface_get(eevee_geom_iface_info, interp);
-  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
   interp.P = float3(0.0f);
   interp.N = float3(0.0f);
-  interp_flat.resource_id_raw = resource_id_raw;
-#endif
+  interp.resource_id_raw = resource_id_raw;
 }
+
+float3 gsplat_amend_transmittance([[maybe_unused]] const VertOutGSplat &gsplat_interp,
+                                  float3 transmittance)
+{
+  float alpha = draw::gsplat::evaluate_gaussian(gsplat_interp.billboard_co, gsplat_interp.opacity);
+  alpha = saturate(alpha * (256.0f / 255.0f));
+  return float3(1.0f) - alpha * saturate(float3(1.0f) - transmittance);
+}
+
+}  // namespace eevee
 
 float3 shadow_position_vector_get(float3 view_position, ShadowRenderView view)
 {

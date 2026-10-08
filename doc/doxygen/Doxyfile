@@ -38,7 +38,7 @@ PROJECT_NAME           = Blender
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = V5.3
+PROJECT_NUMBER         = V5.4
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -1643,7 +1643,7 @@ MATHJAX_VERSION        = MathJax_2
 # Possible values are: HTML-CSS (which is slower, but has the best
 # compatibility. This is the name for Mathjax version 2, for MathJax version 3
 # this will be translated into chtml), NativeMML (i.e. MathML. Only supported
-# for NathJax 2. For MathJax version 3 chtml will be used instead.), chtml (This
+# for MathJax 2. For MathJax version 3 chtml will be used instead.), chtml (This
 # is the name for Mathjax version 3, for MathJax version 2 this will be
 # translated into HTML-CSS) and SVG.
 # The default value is: HTML-CSS.

@@ -187,6 +187,10 @@ ccl_device void shadow_linking_shade(KernelGlobals kg, IntegratorState state)
   IntegratorShadowState shadow_state = integrate_direct_light_shadow_init_common(
       kg, state, &ray, light_eval, light_group, 0, is_constant_light_shader);
 
+  if (!is_constant_light_shader) {
+    integrator_state_write_shadow_light_isect(shadow_state, &isect);
+  }
+
   /* The light is accumulated from the shade_surface kernel, which will make the clamping decision
    * based on the actual value of the bounce. For the dedicated shadow ray we want to follow the
    * main path clamping rules, which subtracts one from the bounds before accumulation. */

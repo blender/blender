@@ -150,6 +150,7 @@ const EnumPropertyItem rna_enum_mesh_select_mode_uv_items[] = {
 #define RNA_SNAP_ELEMENTS_BASE \
   {SCE_SNAP_TO_INCREMENT, "INCREMENT", ICON_SNAP_INCREMENT, "Increment", "Snap to increments"}, \
   {SCE_SNAP_TO_GRID, "GRID", ICON_SNAP_GRID, "Grid", "Snap to grid"}, \
+  {SCE_SNAP_TO_ORIGIN, "ORIGIN", ICON_OBJECT_ORIGIN, "Origin", "Snap to origins"}, \
   {SCE_SNAP_TO_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices"}, \
   {SCE_SNAP_TO_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges"}, \
   {SCE_SNAP_TO_FACE, "FACE", ICON_SNAP_FACE, "Face", "Snap by projecting onto faces"}, \
@@ -2197,7 +2198,7 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *valu
       const Scene *scene = WM_window_get_active_scene(&win);
       ViewLayer *view_layer = WM_window_get_active_view_layer(&win);
       if (view_layer) {
-        /* FIXME Using G_MAIN is weak, but should work in practrice given current context (code
+        /* FIXME Using G_MAIN is weak, but should work in practice given current context (code
          * already relies on 'G_MAIN data'). */
         BKE_view_layer_synced_ensure(*G_MAIN, scene, view_layer);
         Object *object = BKE_view_layer_active_object_get(view_layer);
@@ -4621,21 +4622,6 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem scale_overlap_modes[] = {
-      {SEQ_OVERLAP_EXPAND, "EXPAND", 0, "Expand", "Move strips so transformed strips fit"},
-      {SEQ_OVERLAP_OVERWRITE,
-       "OVERWRITE",
-       0,
-       "Overwrite",
-       "Trim or split strips to resolve overlap"},
-      {SEQ_OVERLAP_SHUFFLE,
-       "SHUFFLE",
-       0,
-       "Shuffle",
-       "Move transformed strips to nearest free space to resolve overlap"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem pivot_points[] = {
       {V3D_AROUND_CENTER_BOUNDS, "CENTER", ICON_PIVOT_BOUNDBOX, "Bounding Box Center", ""},
       {V3D_AROUND_CENTER_MEDIAN, "MEDIAN", ICON_PIVOT_MEDIAN, "Median Point", ""},
@@ -4731,8 +4717,36 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
 
   /* Transform overlap handling. */
   prop = RNA_def_property(srna, "overlap_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, scale_overlap_modes);
+  RNA_def_property_enum_items(prop, rna_enum_strip_overlap_mode_items);
   RNA_def_property_ui_text(prop, "Overlap Mode", "How to resolve overlap after transformation");
+
+  /* Ripple handling. */
+  prop = RNA_def_property(srna, "ripple_all_channels", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ripple_flag", SEQ_RIPPLE_ALL_CHANNELS);
+  RNA_def_property_ui_text(prop,
+                           "All Channels",
+                           "Ripple strips on other channels too, else only strips on the same "
+                           "channels as the edited strips");
+
+  prop = RNA_def_property(srna, "ripple_markers", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ripple_flag", SEQ_RIPPLE_MARKERS);
+  RNA_def_property_ui_text(prop, "Markers", "Ripple markers along with strips");
+
+  prop = RNA_def_property(srna, "ripple_clear_ranges", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ripple_flag", SEQ_RIPPLE_CLEAR_RANGES);
+  RNA_def_property_ui_text(
+      prop,
+      "Clear Ranges",
+      "Delete strip contents inside the removed ranges on rippled channels so later strips "
+      "close the full gap, else ripple later strips only as far as they can");
+
+  prop = RNA_def_property(srna, "ripple_insert", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ripple_flag", SEQ_RIPPLE_INSERT);
+  RNA_def_property_ui_text(prop,
+                           "Insert",
+                           "Split strips at the leftmost edited handle and push the remainder "
+                           "aside, else ripple only as far as needed to resolve the overlap");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
   prop = RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, pivot_points);

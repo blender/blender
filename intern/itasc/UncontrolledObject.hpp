@@ -35,4 +35,4 @@ public:
 
 }
 
-#endif /* UNCONTROLLEDOBJECT_H_ */
+#endif /* UNCONTROLLEDOBJECT_HPP_ */

@@ -35,6 +35,7 @@
 #include "BKE_nla.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
+#include "BKE_scene_context.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -216,8 +217,7 @@ static bool get_selection(bContext *C, Vector<PointerRNA> *r_selection)
 
 static wmOperatorStatus insert_key_with_keyingset(bContext *C, wmOperator *op, KeyingSet *ks)
 {
-  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  Scene *scene = bke::scene_or_sequencer_scene_from_context(*C);
   if (!scene) {
     return OPERATOR_CANCELLED;
   }
@@ -359,8 +359,7 @@ static wmOperatorStatus insert_key(bContext *C, wmOperator *op)
   }
 
   Main *bmain = CTX_data_main(C);
-  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  Scene *scene = bke::scene_or_sequencer_scene_from_context(*C);
   const float scene_frame = BKE_scene_frame_get(scene);
 
   const eInsertKeyFlags insert_key_flags = animrig::get_keyframing_flags(scene);
@@ -417,8 +416,7 @@ static wmOperatorStatus insert_key_exec(bContext *C, wmOperator *op)
 {
   ANIM_deselect_keys_in_animation_editors(C);
 
-  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  Scene *scene = bke::scene_or_sequencer_scene_from_context(*C);
   if (!scene) {
     return OPERATOR_CANCELLED;
   }
@@ -470,8 +468,7 @@ static wmOperatorStatus keyframe_insert_with_keyingset_exec(bContext *C, wmOpera
 {
   ANIM_deselect_keys_in_animation_editors(C);
 
-  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  Scene *scene = bke::scene_or_sequencer_scene_from_context(*C);
   if (!scene) {
     return OPERATOR_CANCELLED;
   }
@@ -520,8 +517,7 @@ static wmOperatorStatus insert_key_menu_invoke(bContext *C,
                                                wmOperator *op,
                                                const wmEvent * /*event*/)
 {
-  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  Scene *scene = bke::scene_or_sequencer_scene_from_context(*C);
   if (!scene) {
     return OPERATOR_CANCELLED;
   }
@@ -617,8 +613,7 @@ void ANIM_OT_keyframe_insert_menu(wmOperatorType *ot)
 
 static wmOperatorStatus delete_key_exec(bContext *C, wmOperator *op)
 {
-  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  Scene *scene = bke::scene_or_sequencer_scene_from_context(*C);
   if (!scene) {
     return OPERATOR_CANCELLED;
   }
@@ -632,8 +627,7 @@ static wmOperatorStatus delete_key_exec(bContext *C, wmOperator *op)
 
 static wmOperatorStatus delete_key_using_keying_set(bContext *C, wmOperator *op, KeyingSet *ks)
 {
-  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  Scene *scene = bke::scene_or_sequencer_scene_from_context(*C);
   if (!scene) {
     return OPERATOR_CANCELLED;
   }
@@ -1312,8 +1306,7 @@ static wmOperatorStatus insert_key_button_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::animrig;
   Main *bmain = CTX_data_main(C);
-  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  Scene *scene = bke::scene_or_sequencer_scene_from_context(*C);
   if (!scene) {
     return OPERATOR_CANCELLED;
   }
@@ -1482,8 +1475,7 @@ void ANIM_OT_keyframe_insert_button(wmOperatorType *ot)
 
 static wmOperatorStatus delete_key_button_exec(bContext *C, wmOperator *op)
 {
-  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  Scene *scene = bke::scene_or_sequencer_scene_from_context(*C);
   if (!scene) {
     return OPERATOR_CANCELLED;
   }

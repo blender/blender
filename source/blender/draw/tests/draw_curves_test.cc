@@ -57,8 +57,7 @@ static void test_draw_curves_lib()
                                          float4{2.0f}});
 
   UniformBuffer<CurvesInfos> curves_info_buf;
-  curves_info_buf.is_point_attribute[0].x = 0;
-  curves_info_buf.is_point_attribute[1].x = 1;
+  curves_info_buf.is_point_attribute = 0b10;
   /* Ribbon. */
   curves_info_buf.vertex_per_segment = 2;
   curves_info_buf.half_cylinder_face_count = 1;

@@ -433,6 +433,7 @@ class TestEnvironment:
                 gpu_backend = {
                     'VULKAN': 'vulkan',
                     'METAL': 'metal',
+                    'METAL-RT': 'metal',
                     'OPENGL': 'opengl'
                 }.get(device.type, 'default')
                 break

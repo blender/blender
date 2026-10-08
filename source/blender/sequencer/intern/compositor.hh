@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_compute_context_cache_fwd.hh"
+
 #include "COM_context.hh"
 #include "COM_node_group_operation.hh"
 #include "SEQ_render.hh"
@@ -37,9 +39,12 @@ class CompositorContext : public compositor::Context {
 
  public:
   CompositorContext(compositor::StaticCacheManager &cache_manager,
+                    bke::ComputeContextCache &compute_context_cache,
                     const RenderData &render_data,
                     const Strip &strip)
-      : compositor::Context(cache_manager), render_data_(render_data), strip_(&strip)
+      : compositor::Context(cache_manager, compute_context_cache),
+        render_data_(render_data),
+        strip_(&strip)
   {
   }
   const Main &get_main() const override

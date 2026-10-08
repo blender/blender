@@ -28,6 +28,7 @@
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 
+#include "BLI_assert.hh"
 #include "BLI_fnmatch.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.hh"
@@ -35,6 +36,7 @@
 #include "BLI_string.hh"
 
 #include "ED_asset.hh"
+#include "ED_asset_list.hh"
 #include "ED_screen.hh"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
 #include "ED_asset_menu_utils.hh"
@@ -1835,6 +1837,93 @@ static void ASSET_OT_asset_download(wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 
+static bool external_asset_rename_poll(bContext *C)
+{
+  const asset_system::AssetRepresentation *asset_handle = CTX_wm_asset(C);
+  if (!asset_handle) {
+    CTX_wm_operator_poll_msg_set(C, "No selected asset.");
+    return false;
+  }
+  if (asset_handle->is_local_id()) {
+    CTX_wm_operator_poll_msg_set(C, "Asset is local to this file and can be renamed directly.");
+    return false;
+  }
+  if (!asset_handle->is_potentially_editable_asset_blend()) {
+    CTX_wm_operator_poll_msg_set(C, "Asset cannot be modified from this file.");
+    return false;
+  }
+
+  return true;
+}
+
+static wmOperatorStatus external_asset_rename_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+
+  /* Get the asset. */
+  const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
+  BLI_assert(asset);
+  const AssetWeakReference asset_reference = asset->make_weak_reference();
+
+  ID *asset_id = bke::asset_edit_id_from_weak_reference(
+      *bmain, asset->get_id_type(), asset_reference);
+  BLI_assert(asset_id);
+
+  const bUserAssetLibrary *user_asset_lib = asset->owner_asset_library().user_asset_library();
+  if (!user_asset_lib) {
+    /* Editable .asset.blend files can only come from an asset library with a bUserAssetLibrary. */
+    BLI_assert_unreachable();
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Rename the asset. */
+  const std::string new_name = RNA_string_get(op->ptr, "new_name");
+  if (!bke::asset_edit_id_rename(*bmain, *asset_id, new_name, *user_asset_lib, *op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  std::optional<AssetLibraryReference> asset_lib_ref =
+      asset->owner_asset_library().library_reference();
+  if (asset_lib_ref) {
+    asset::list::clear(&*asset_lib_ref, C);
+  }
+  WM_main_add_notifier(NC_ASSET | NA_EDITED, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus external_asset_rename_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent * /*event*/)
+{
+  const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
+  RNA_string_set(op->ptr, "new_name", asset->get_name().c_str());
+  return WM_operator_props_dialog_popup(C, op, 400, std::nullopt, IFACE_("Rename Asset"));
+}
+
+/**
+ * Rename operator for external assets (in .asset.blend files).
+ */
+static void ASSET_OT_external_asset_rename(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Rename Asset";
+  ot->description =
+      "Change the name of this asset. Note that this cannot be un-done via the undo system";
+  ot->idname = "ASSET_OT_external_asset_rename";
+
+  /* No UNDO possible, as it may rename an external file. */
+  ot->flag = OPTYPE_REGISTER;
+
+  /* API callbacks. */
+  ot->invoke = external_asset_rename_invoke;
+  ot->exec = external_asset_rename_exec;
+  ot->poll = external_asset_rename_poll;
+
+  RNA_def_string(ot->srna, "new_name", nullptr, 0, "New Name", "");
+}
+
+/* -------------------------------------------------------------------- */
+
 void operatortypes_asset()
 {
   WM_operatortype_append(ASSET_OT_mark);
@@ -1857,6 +1946,8 @@ void operatortypes_asset()
 
   WM_operatortype_append(ASSET_OT_assets_download);
   WM_operatortype_append(ASSET_OT_asset_download);
+
+  WM_operatortype_append(ASSET_OT_external_asset_rename);
 }
 
 }  // namespace blender::ed::asset

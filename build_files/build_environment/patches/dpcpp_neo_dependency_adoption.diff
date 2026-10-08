@@ -1,0 +1,481 @@
+diff --git a/unified-runtime/cmake/FetchLevelZero.cmake b/unified-runtime/cmake/FetchLevelZero.cmake
+index ecfe854ce..fe88553e4 100644
+--- a/unified-runtime/cmake/FetchLevelZero.cmake
++++ b/unified-runtime/cmake/FetchLevelZero.cmake
+@@ -121,35 +121,17 @@ target_include_directories(LevelZeroLoader-Headers
+     INTERFACE "$<BUILD_INTERFACE:${LEVEL_ZERO_INCLUDE_DIR}>"
+               "$<INSTALL_INTERFACE:${LEVEL_ZERO_TARGET_INCLUDE_DIR}>"
+ )
+-find_path(L0_COMPUTE_RUNTIME_HEADERS
+-  NAMES "ze_intel_gpu.h"
+-  PATH_SUFFIXES "level_zero"
+-)
+-if(L0_COMPUTE_RUNTIME_HEADERS)
+-    set(COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE "${L0_COMPUTE_RUNTIME_HEADERS}")
+-    set(COMPUTE_RUNTIME_REPO_PATH "${L0_COMPUTE_RUNTIME_HEADERS}")
+-else()
+-    set(UR_COMPUTE_RUNTIME_REPO "https://github.com/intel/compute-runtime.git")
+-    set(UR_COMPUTE_RUNTIME_TAG 26.18.38308.1)
+-
+-    include(FetchContent)
+-    # Sparse fetch only the dir with level zero headers for experimental features to avoid pulling in the entire compute-runtime.
+-    FetchContentSparse_Declare(exp-headers ${UR_COMPUTE_RUNTIME_REPO} "${UR_COMPUTE_RUNTIME_TAG}" "level_zero/include")
+-    FetchContent_GetProperties(exp-headers)
+-    if(NOT exp-headers_POPULATED)
+-      FetchContent_Populate(exp-headers)
+-    endif()
+-    set(COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE "${exp-headers_SOURCE_DIR}")
+-    set(COMPUTE_RUNTIME_REPO_PATH "${exp-headers_SOURCE_DIR}/../..")
+-endif()
+
+-message(STATUS "Using Level Zero include headers from ${COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE}")
++# Level Zero experimental headers which are not part of the Level Zero loader
++# are vendored in the L0 adapter's 'external' directory, so that building does
++# not require a compute-runtime checkout. See its README.md for the version.
++set(COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE
++    "${CMAKE_CURRENT_LIST_DIR}/../source/adapters/level_zero/external")
+
++message(STATUS "Level Zero Adapter: Using Level Zero experimental headers from ${COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE}")
+ add_library(ComputeRuntimeLevelZero-Headers INTERFACE)
+-message(STATUS "Level Zero Adapter: Using Level Zero headers from ${COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE}")
+ target_include_directories(ComputeRuntimeLevelZero-Headers
+     INTERFACE "$<BUILD_INTERFACE:${COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE}>"
+-              "$<BUILD_INTERFACE:${COMPUTE_RUNTIME_REPO_PATH}>"
+               "$<BUILD_INTERFACE:${LEVEL_ZERO_INCLUDE_DIR}/..>"
+               "$<INSTALL_INTERFACE:${LEVEL_ZERO_TARGET_INCLUDE_DIR}>"
+ )
+diff --git a/unified-runtime/source/adapters/level_zero/common.cpp b/unified-runtime/source/adapters/level_zero/common.cpp
+index 8f5062976..64311fddd 100644
+--- a/unified-runtime/source/adapters/level_zero/common.cpp
++++ b/unified-runtime/source/adapters/level_zero/common.cpp
+@@ -339,20 +339,6 @@ ze_structure_type_t getZeStructureType<
+   return ZE_STRUCTURE_TYPE_COMMAND_LIST_APPEND_PARAM_COOPERATIVE_DESC;
+ }
+
+-#ifdef ZE_INTEL_DEVICE_BLOCK_ARRAY_EXP_NAME
+-template <>
+-ze_structure_type_ext_t
+-getZexStructureType<ze_intel_device_block_array_exp_properties_t>() {
+-  return ZE_INTEL_DEVICE_BLOCK_ARRAY_EXP_PROPERTIES;
+-}
+-#endif // ZE_INTEL_DEVICE_BLOCK_ARRAY_EXP_NAME
+-
+-template <>
+-ze_structure_type_ext_t
+-getZexStructureType<ze_intel_xe_device_exp_properties_t>() {
+-  return ZE_STRUCTURE_TYPE_INTEL_XE_DEVICE_EXP_PROPERTIES;
+-}
+-
+ // Global variables for ZER_EXT_RESULT_ADAPTER_SPECIFIC_ERROR
+ thread_local int32_t ErrorMessageCode = 0;
+ thread_local char ErrorMessage[MaxMessageSize]{};
+diff --git a/unified-runtime/source/adapters/level_zero/common.hpp b/unified-runtime/source/adapters/level_zero/common.hpp
+index 2f7885ed8..283af1b77 100644
+--- a/unified-runtime/source/adapters/level_zero/common.hpp
++++ b/unified-runtime/source/adapters/level_zero/common.hpp
+@@ -31,7 +31,6 @@
+ #include <ze_api.h>
+ #include <zes_api.h>
+
+-#include <level_zero/ze_intel_gpu.h>
+ #include <umf_pools/disjoint_pool_config_parser.hpp>
+
+ #include "common/ur_ref_count.hpp"
+@@ -170,7 +169,6 @@ bool setEnvVar(const char *name, const char *value);
+ // Returns the ze_structure_type_t to use in .stype of a structured descriptor.
+ // Intentionally not defined; will give an error if no proper specialization
+ template <class T> ze_structure_type_t getZeStructureType();
+-template <class T> ze_structure_type_ext_t getZexStructureType();
+ template <class T> zes_structure_type_t getZesStructureType();
+
+ // The helpers to properly default initialize Level-Zero descriptor and
+@@ -182,13 +180,6 @@ template <class T> struct ZeStruct : public T {
+   }
+ };
+
+-template <class T> struct ZexStruct : public T {
+-  ZexStruct() : T{} { // zero initializes base struct
+-    this->stype = getZexStructureType<T>();
+-    this->pNext = nullptr;
+-  }
+-};
+-
+ template <class T> struct ZesStruct : public T {
+   ZesStruct() : T{} { // zero initializes base struct
+     this->stype = getZesStructureType<T>();
+diff --git a/unified-runtime/source/adapters/level_zero/device.cpp b/unified-runtime/source/adapters/level_zero/device.cpp
+index 43253bd84..ed9d2bd75 100644
+--- a/unified-runtime/source/adapters/level_zero/device.cpp
++++ b/unified-runtime/source/adapters/level_zero/device.cpp
+@@ -1358,28 +1358,24 @@ ur_result_t urDeviceGetInfo(
+   case UR_DEVICE_INFO_USM_POOL_SUPPORT:
+     return ReturnValue(true);
+   case UR_DEVICE_INFO_2D_BLOCK_ARRAY_CAPABILITIES_EXP: {
+-#ifdef ZE_INTEL_DEVICE_BLOCK_ARRAY_EXP_NAME
+     const auto ZeDeviceBlockArrayFlags =
+         Device->ZeDeviceBlockArrayProperties->flags;
+
+     auto supportsFlags =
+-        [&](ze_intel_device_block_array_exp_flags_t RequiredFlags) {
++        [&](ur_ze_intel_device_block_array_exp_flags_t RequiredFlags) {
+           return (ZeDeviceBlockArrayFlags & RequiredFlags) == RequiredFlags;
+         };
+
+     ur_exp_device_2d_block_array_capability_flags_t BlockArrayCapabilities = 0;
+-    if (supportsFlags(ZE_INTEL_DEVICE_EXP_FLAG_2D_BLOCK_LOAD)) {
++    if (supportsFlags(UR_ZE_INTEL_DEVICE_EXP_FLAG_2D_BLOCK_LOAD)) {
+       BlockArrayCapabilities |=
+           UR_EXP_DEVICE_2D_BLOCK_ARRAY_CAPABILITY_FLAG_LOAD;
+     }
+-    if (supportsFlags(ZE_INTEL_DEVICE_EXP_FLAG_2D_BLOCK_STORE)) {
++    if (supportsFlags(UR_ZE_INTEL_DEVICE_EXP_FLAG_2D_BLOCK_STORE)) {
+       BlockArrayCapabilities |=
+           UR_EXP_DEVICE_2D_BLOCK_ARRAY_CAPABILITY_FLAG_STORE;
+     }
+     return ReturnValue(BlockArrayCapabilities);
+-#else
+-    return UR_RESULT_ERROR_UNSUPPORTED_ENUMERATION;
+-#endif
+   }
+   case UR_DEVICE_INFO_IPC_MEMORY_SUPPORT_EXP:
+ #ifdef _WIN32
+@@ -2123,16 +2119,14 @@ ur_result_t ur_device_handle_t_::initialize(int SubSubDeviceOrdinal,
+         ZE_CALL_NOCHECK(zeDeviceGetProperties, (ZeDevice, &P));
+       };
+
+-#ifdef ZE_INTEL_DEVICE_BLOCK_ARRAY_EXP_NAME
+   ZeDeviceBlockArrayProperties.Compute =
+-      [ZeDevice](
+-          ZexStruct<ze_intel_device_block_array_exp_properties_t> &Properties) {
++      [ZeDevice](ZeStruct<ur_ze_intel_device_block_array_exp_properties_t>
++                     &Properties) {
+         ze_device_properties_t P;
+         P.stype = ZE_STRUCTURE_TYPE_DEVICE_PROPERTIES;
+         P.pNext = &Properties;
+         ZE_CALL_NOCHECK(zeDeviceGetProperties, (ZeDevice, &P));
+       };
+-#endif // ZE_INTEL_DEVICE_BLOCK_ARRAY_EXP_NAME
+
+   auto UrPlatform = this->Platform;
+   ZeDeviceVectorWidthPropertiesExt.Compute =
+@@ -2196,7 +2190,7 @@ ur_result_t ur_device_handle_t_::initialize(int SubSubDeviceOrdinal,
+       };
+
+   ZeXEDeviceProperties.Compute =
+-      [ZeDevice](ze_intel_xe_device_exp_properties_t &Properties) {
++      [ZeDevice](ZeStruct<ur_ze_intel_xe_device_exp_properties_t> &Properties) {
+         // Set up default values of 0
+         Properties.numXeStacks = 0;
+         Properties.numXeRegionsPerStack = 0;
+diff --git a/unified-runtime/source/adapters/level_zero/device.hpp b/unified-runtime/source/adapters/level_zero/device.hpp
+index a47fdf69f..a87dc1e97 100644
+--- a/unified-runtime/source/adapters/level_zero/device.hpp
++++ b/unified-runtime/source/adapters/level_zero/device.hpp
+@@ -57,6 +57,57 @@ struct ur_ze_external_memory_data {
+   size_t size;
+ };
+
++// UR copy of the driver-experimental
++// ze_intel_device_block_array_exp_properties_t: 2D block array device
++// properties, queried through the `pNext` chain of ze_device_properties_t.
++#define UR_ZE_INTEL_DEVICE_BLOCK_ARRAY_EXP_PROPERTIES                          \
++  ((ze_structure_type_t)0x00030007)
++
++typedef uint32_t ur_ze_intel_device_block_array_exp_flags_t;
++enum ur_ze_intel_device_block_array_exp_flag_t {
++  UR_ZE_INTEL_DEVICE_EXP_FLAG_2D_BLOCK_LOAD = ZE_BIT(0),
++  UR_ZE_INTEL_DEVICE_EXP_FLAG_2D_BLOCK_STORE = ZE_BIT(1),
++};
++
++typedef struct _ur_ze_intel_device_block_array_exp_properties_t {
++  ze_structure_type_t stype;
++  void *pNext;
++  ur_ze_intel_device_block_array_exp_flags_t flags;
++} ur_ze_intel_device_block_array_exp_properties_t;
++
++template <>
++inline ze_structure_type_t
++getZeStructureType<ur_ze_intel_device_block_array_exp_properties_t>() {
++  return UR_ZE_INTEL_DEVICE_BLOCK_ARRAY_EXP_PROPERTIES;
++}
++
++// UR copy of the driver-experimental ze_intel_xe_device_exp_properties_t: Xe
++// device topology, queried through the `pNext` chain of ze_device_properties_t.
++#define UR_ZE_STRUCTURE_TYPE_INTEL_XE_DEVICE_EXP_PROPERTIES                    \
++  ((ze_structure_type_t)0x00030021)
++
++typedef struct _ur_ze_intel_xe_device_exp_properties_t {
++  ze_structure_type_t stype;
++  void *pNext;
++  uint32_t numXeStacks;            ///< number of stacks/chiplets/tiles
++  uint32_t numXeRegionsPerStack;   ///< number of Regions sharing local L2/L3
++                                   ///< (XE_CU) per stack
++  uint32_t numXeClustersPerRegion; ///< number of Clusters (slices) per Region
++  uint32_t numXeCorePerCluster;    ///< number of XE Cores per Cluster
++  uint32_t numExecutionEnginesPerXeCore;      ///< number of Execution Engines
++                                              ///< (EUs) per XE Core
++  uint32_t maxNumHwThreadsPerExecutionEngine; ///< maximal number of HW threads
++                                              ///< per Execution Engine
++  uint32_t maxNumLanesPerHwThread; ///< maximal number of lanes (virtual SIMD
++                                   ///< size) per HW thread
++} ur_ze_intel_xe_device_exp_properties_t;
++
++template <>
++inline ze_structure_type_t
++getZeStructureType<ur_ze_intel_xe_device_exp_properties_t>() {
++  return UR_ZE_STRUCTURE_TYPE_INTEL_XE_DEVICE_EXP_PROPERTIES;
++}
++
+ struct ur_device_handle_t_ : ur_object {
+   ur_device_handle_t_(ze_device_handle_t Device, ur_platform_handle_t Plt,
+                       ur_device_handle_t ParentDevice = nullptr)
+@@ -250,13 +301,12 @@ struct ur_device_handle_t_ : ur_object {
+   ZeCache<struct ze_global_memsize> ZeGlobalMemSize;
+   ZeCache<ZeStruct<ze_mutable_command_list_exp_properties_t>>
+       ZeDeviceMutableCmdListsProperties;
+-#ifdef ZE_INTEL_DEVICE_BLOCK_ARRAY_EXP_NAME
+-  ZeCache<ZexStruct<ze_intel_device_block_array_exp_properties_t>>
++  ZeCache<ZeStruct<ur_ze_intel_device_block_array_exp_properties_t>>
+       ZeDeviceBlockArrayProperties;
+-#endif // ZE_INTEL_DEVICE_BLOCK_ARRAY_EXP_NAME
+   ZeCache<ZeStruct<ze_device_vector_width_properties_ext_t>>
+       ZeDeviceVectorWidthPropertiesExt;
+-  ZeCache<ZexStruct<ze_intel_xe_device_exp_properties_t>> ZeXEDeviceProperties;
++  ZeCache<ZeStruct<ur_ze_intel_xe_device_exp_properties_t>>
++      ZeXEDeviceProperties;
+
+   // Map device bindless image offset to corresponding host image handle.
+   std::unordered_map<ur_exp_image_native_handle_t, ze_image_handle_t>
+diff --git a/unified-runtime/source/adapters/level_zero/external/level_zero/ze_stypes.h b/unified-runtime/source/adapters/level_zero/external/level_zero/ze_stypes.h
+new file mode 100644
+index 000000000..0303ad2ab
+--- /dev/null
++++ b/unified-runtime/source/adapters/level_zero/external/level_zero/ze_stypes.h
+@@ -0,0 +1,95 @@
++/*
++ * Copyright (C) 2024-2025 Intel Corporation
++ *
++ * SPDX-License-Identifier: MIT
++ *
++ */
++
++#ifndef _ZE_STYPES_H
++#define _ZE_STYPES_H
++
++#include <level_zero/ze_api.h>
++#include <level_zero/zes_api.h>
++#include <level_zero/zet_api.h>
++
++#include <cstdint>
++using ze_structure_type_ext_t = uint32_t;
++using zet_structure_type_ext_t = uint32_t;
++using zes_structure_type_ext_t = uint32_t;
++
++#define ZE_STRUCTURE_TYPE_SYNCHRONIZED_DISPATCH_EXP_DESC                       \
++  static_cast<ze_structure_type_ext_t>(0x00020020)
++#define ZE_STRUCTURE_TYPE_INTEL_MEDIA_COMMUNICATION_DESC                       \
++  static_cast<ze_structure_type_ext_t>(0x00020021)
++#define ZE_STRUCTURE_TYPE_INTEL_MEDIA_DOORBELL_HANDLE_DESC                     \
++  static_cast<ze_structure_type_ext_t>(0x00020022)
++#define ZE_STRUCTURE_TYPE_INTEL_DEVICE_MEDIA_EXP_PROPERTIES                    \
++  static_cast<ze_structure_type_ext_t>(0x00020023)
++#define ZEX_STRUCTURE_TYPE_LABEL_DESCRIPTOR                                    \
++  static_cast<ze_structure_type_ext_t>(0x00030002)
++#define ZEX_STRUCTURE_TYPE_OPERAND_DESCRIPTOR                                  \
++  static_cast<ze_structure_type_ext_t>(0x00030003)
++#define ZEX_STRUCTURE_TYPE_VARIABLE_DESCRIPTOR                                 \
++  static_cast<ze_structure_type_ext_t>(0x00030004)
++#define ZEX_STRUCTURE_TYPE_TEMP_VARIABLE_DESCRIPTOR                            \
++  static_cast<ze_structure_type_ext_t>(0x00030005)
++#define ZEX_STRUCTURE_TYPE_VARIABLE_INFO                                       \
++  static_cast<ze_structure_type_ext_t>(0x00030006)
++#define ZE_INTEL_DEVICE_BLOCK_ARRAY_EXP_PROPERTIES                             \
++  static_cast<ze_structure_type_ext_t>(0x00030007)
++#define ZEX_STRUCTURE_DEVICE_MODULE_REGISTER_FILE_EXP                          \
++  static_cast<ze_structure_type_ext_t>(0x00030010)
++#define ZEX_STRUCTURE_KERNEL_REGISTER_FILE_SIZE_EXP                            \
++  static_cast<ze_structure_type_ext_t>(0x00030012)
++#define ZE_STRUCTURE_INTEL_DEVICE_MODULE_DP_EXP_PROPERTIES                     \
++  static_cast<ze_structure_type_ext_t>(0x00030013)
++#define ZEX_INTEL_STRUCTURE_TYPE_EVENT_SYNC_MODE_EXP_DESC                      \
++  static_cast<ze_structure_type_ext_t>(0x00030016)
++#define ZE_INTEL_STRUCTURE_TYPE_DEVICE_COMMAND_LIST_WAIT_ON_MEMORY_DATA_SIZE_EXP_DESC \
++  static_cast<ze_structure_type_ext_t>(0x00030017)
++#define ZEX_INTEL_STRUCTURE_TYPE_QUEUE_ALLOCATE_MSIX_HINT_EXP_PROPERTIES       \
++  static_cast<ze_structure_type_ext_t>(0x00030018)
++#define ZEX_INTEL_STRUCTURE_TYPE_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_PROPERTIES \
++  static_cast<ze_structure_type_ext_t>(0x0003001B)
++#define ZEX_STRUCTURE_COUNTER_BASED_EVENT_DESC                                 \
++  static_cast<ze_structure_type_ext_t>(0x0003001C)
++#define ZEX_STRUCTURE_COUNTER_BASED_EVENT_EXTERNAL_SYNC_ALLOC_PROPERTIES       \
++  static_cast<ze_structure_type_ext_t>(0x0003001D)
++#define ZEX_STRUCTURE_COUNTER_BASED_EVENT_EXTERNAL_STORAGE_ALLOC_PROPERTIES    \
++  static_cast<ze_structure_type_ext_t>(0x00030027)
++#define ZE_STRUCTURE_TYPE_QUEUE_PRIORITY_DESC                                  \
++  static_cast<ze_structure_type_ext_t>(0x00030028)
++#ifndef ZE_RECORD_REPLAY_GRAPH_EXP_NAME
++#define ZE_STRUCTURE_TYPE_RECORD_REPLAY_GRAPH_EXP_PROPERTIES                   \
++  static_cast<ze_structure_type_ext_t>(0x00030029)
++#define ZE_STRUCTURE_TYPE_RECORD_REPLAY_GRAPH_EXP_DUMP_DESC                    \
++  static_cast<ze_structure_type_ext_t>(0x00030031)
++#endif // ZE_RECORD_REPLAY_GRAPH_EXP_NAME
++#define ZEX_STRUCTURE_TYPE_MEMORY_FREE_CALLBACK_EXT_DESC                       \
++  static_cast<ze_structure_type_ext_t>(0x00030030)
++
++// Metric structure types
++#define ZET_STRUCTURE_TYPE_INTEL_METRIC_SCOPE_PROPERTIES_EXP                   \
++  static_cast<zet_structure_type_ext_t>(0x00010006)
++#define ZET_INTEL_STRUCTURE_TYPE_METRIC_HW_BUFFER_SIZE_EXP_DESC                \
++  static_cast<zet_structure_type_ext_t>(0x00010007)
++#define ZET_INTEL_STRUCTURE_TYPE_METRIC_GROUP_CALCULATION_EXP_PROPERTIES       \
++  static_cast<zet_structure_type_ext_t>(0x00010008)
++#define ZET_INTEL_STRUCTURE_TYPE_METRIC_CALCULATION_DESC_EXP                   \
++  static_cast<zet_structure_type_ext_t>(0x00010009)
++#define ZET_INTEL_STRUCTURE_TYPE_METRIC_SOURCE_ID_EXP                          \
++  static_cast<zet_structure_type_ext_t>(0x0001000a)
++#define ZET_INTEL_STRUCTURE_TYPE_METRIC_DECODED_BUFFER_PROPERTIES_EXP          \
++  static_cast<zet_structure_type_ext_t>(0x0001000b)
++#define ZET_INTEL_STRUCTURE_TYPE_METRIC_CALCULABLE_PROPERTIES_EXP              \
++  static_cast<zet_structure_type_ext_t>(0x0001000c)
++
++// Sysman structure types
++#define ZES_INTEL_PCI_LINK_SPEED_DOWNGRADE_EXP_STATE                           \
++  static_cast<zes_structure_type_ext_t>(0x00040001)
++#define ZES_INTEL_PCI_LINK_SPEED_DOWNGRADE_EXP_PROPERTIES                      \
++  static_cast<zes_structure_type_ext_t>(0x00040002)
++#define ZES_INTEL_DRIVER_NAME_EXP_PROPERTIES                                   \
++  static_cast<zes_structure_type_ext_t>(0x00040003)
++
++#endif
+diff --git a/unified-runtime/source/adapters/level_zero/platform.cpp b/unified-runtime/source/adapters/level_zero/platform.cpp
+index 669a6210e..7eb805d7c 100644
+--- a/unified-runtime/source/adapters/level_zero/platform.cpp
++++ b/unified-runtime/source/adapters/level_zero/platform.cpp
+@@ -276,15 +276,6 @@ ur_result_t ur_platform_handle_t_::initialize() {
+         ZeDriverEuCountExtensionFound = true;
+       }
+     }
+-    if (strncmp(extension.name,
+-                ZEX_INTEL_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_NAME,
+-                strlen(ZEX_INTEL_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_NAME) +
+-                    1) == 0) {
+-      if (extension.version ==
+-          ZEX_INTEL_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_VERSION_1_0) {
+-        ZeCopyOffloadExtensionSupported = true;
+-      }
+-    }
+     if (strncmp(extension.name, ZE_BINDLESS_IMAGE_EXP_NAME,
+                 strlen(ZE_BINDLESS_IMAGE_EXP_NAME) + 1) == 0) {
+       if (extension.version == ZE_BINDLESS_IMAGE_EXP_VERSION_1_0) {
+diff --git a/unified-runtime/source/adapters/level_zero/v2/command_list_cache.cpp b/unified-runtime/source/adapters/level_zero/v2/command_list_cache.cpp
+index b33569bd1..faa703a84 100644
+--- a/unified-runtime/source/adapters/level_zero/v2/command_list_cache.cpp
++++ b/unified-runtime/source/adapters/level_zero/v2/command_list_cache.cpp
+@@ -13,40 +13,6 @@
+
+ #include "../device.hpp"
+
+-// UR copy of the deprecated
+-// zex_intel_queue_copy_operations_offload_hint_exp_desc_t
+-typedef struct _ur_zex_intel_queue_copy_operations_offload_hint_exp_desc_t {
+-  ze_structure_type_ext_t stype; ///< [in] type of this structure
+-  const void
+-      *pNext; ///< [in][optional] must be null or a pointer to an
+-              ///< extension-specific structure (i.e. contains stype and pNext).
+-  ze_bool_t
+-      copyOffloadEnabled; ///< [in] If set, try to offload copy operations to
+-                          ///< different engines. Applicable only for compute
+-                          ///< queues. This is only a hint. Driver may ignore it
+-                          ///< per append call, based on platform capabilities
+-                          ///< or internal heuristics. If not set, driver will
+-                          ///< follow default behaviour. Copy operations will be
+-                          ///< submitted to same engine as compute operations.
+-
+-} ur_zex_intel_queue_copy_operations_offload_hint_exp_desc_t;
+-
+-// ZEX_INTEL_STRUCTURE_TYPE_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_PROPERTIES is
+-// deprecated and will be removed
+-#ifdef ZEX_INTEL_STRUCTURE_TYPE_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_PROPERTIES
+-#define UR_ZEX_INTEL_STRUCTURE_TYPE_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_PROPERTIES \
+-  ZEX_INTEL_STRUCTURE_TYPE_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_PROPERTIES
+-#else
+-#define UR_ZEX_INTEL_STRUCTURE_TYPE_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_PROPERTIES \
+-  static_cast<ze_structure_type_ext_t>(0x0003001B)
+-#endif // ZEX_INTEL_STRUCTURE_TYPE_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_PROPERTIES
+-
+-template <>
+-ze_structure_type_ext_t getZexStructureType<
+-    ur_zex_intel_queue_copy_operations_offload_hint_exp_desc_t>() {
+-  return UR_ZEX_INTEL_STRUCTURE_TYPE_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_PROPERTIES;
+-}
+-
+ bool v2::immediate_command_list_descriptor_t::operator==(
+     const immediate_command_list_descriptor_t &rhs) const {
+   return ZeDevice == rhs.ZeDevice && IsInOrder == rhs.IsInOrder &&
+@@ -91,8 +57,6 @@ static bool ForceDisableCopyOffload = [] {
+
+ raii::ze_command_list_handle_t
+ command_list_cache_t::createCommandList(const command_list_descriptor_t &desc) {
+-  ZexStruct<ur_zex_intel_queue_copy_operations_offload_hint_exp_desc_t>
+-      offloadDesc;
+   auto requestedCopyOffload =
+       std::visit([](auto &&arg) { return arg.CopyOffloadEnabled; }, desc);
+
+@@ -101,14 +65,13 @@ command_list_cache_t::createCommandList(const command_list_descriptor_t &desc) {
+     requestedCopyOffload = false;
+   }
+
+-  if (!ZeCopyOffloadExtensionSupported && requestedCopyOffload) {
++  // ZeCopyOffloadFlagSupported is set during platform initialization
++  if (!ZeCopyOffloadFlagSupported && requestedCopyOffload) {
+     UR_LOG(INFO,
+            "Copy offload is requested but is not supported by the driver.");
+     requestedCopyOffload = false;
+   }
+
+-  offloadDesc.copyOffloadEnabled = requestedCopyOffload;
+-
+   if (auto ImmCmdDesc =
+           std::get_if<immediate_command_list_descriptor_t>(&desc)) {
+     ze_command_list_handle_t ZeCommandList;
+@@ -123,12 +86,8 @@ command_list_cache_t::createCommandList(const command_list_descriptor_t &desc) {
+       QueueDesc.index = ImmCmdDesc->Index.value();
+     }
+
+-    // ZeCopyOffloadFlagSupported is set during platform initialization
+-    if (requestedCopyOffload && ZeCopyOffloadFlagSupported) {
++    if (requestedCopyOffload) {
+       QueueDesc.flags |= ZE_COMMAND_QUEUE_FLAG_COPY_OFFLOAD_HINT;
+-      QueueDesc.pNext = nullptr;
+-    } else {
+-      QueueDesc.pNext = &offloadDesc;
+     }
+
+     UR_LOG(DEBUG,
+@@ -153,11 +112,10 @@ command_list_cache_t::createCommandList(const command_list_descriptor_t &desc) {
+     CmdListDesc.flags =
+         RegCmdDesc.IsInOrder ? ZE_COMMAND_LIST_FLAG_IN_ORDER : 0;
+     CmdListDesc.commandQueueGroupOrdinal = RegCmdDesc.Ordinal;
+-    CmdListDesc.pNext = &offloadDesc;
+     ZeStruct<ze_mutable_command_list_exp_desc_t> ZeMutableCommandListDesc;
+     if (IsMutable) {
+       ZeMutableCommandListDesc.flags = 0;
+-      offloadDesc.pNext = &ZeMutableCommandListDesc;
++      CmdListDesc.pNext = &ZeMutableCommandListDesc;
+     }
+
+     UR_LOG(DEBUG,
+diff --git a/unified-runtime/source/adapters/level_zero/v2/event_provider_counter.hpp b/unified-runtime/source/adapters/level_zero/v2/event_provider_counter.hpp
+index ee57d3a5b..129da115a 100644
+--- a/unified-runtime/source/adapters/level_zero/v2/event_provider_counter.hpp
++++ b/unified-runtime/source/adapters/level_zero/v2/event_provider_counter.hpp
+@@ -25,8 +25,7 @@
+
+ #include "../device.hpp"
+
+-#include <level_zero/driver_experimental/zex_event.h>
+-#include <level_zero/ze_intel_gpu.h>
++#include "../external/driver_experimental/zex_common.h"
+
+ namespace v2 {
+

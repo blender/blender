@@ -32,4 +32,5 @@ ExternalProject_Add(external_nanobind
 add_dependencies(
   external_nanobind
   external_robinmap
+  external_python
 )

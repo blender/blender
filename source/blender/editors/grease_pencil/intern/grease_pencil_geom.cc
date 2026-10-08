@@ -104,7 +104,7 @@ Array<float2> polyline_fit_curve(Span<float2> points,
 
   Array<int32_t> indices(corner_mask.size());
   corner_mask.to_indices(indices.as_mutable_span());
-  uint *indicies_ptr = corner_mask.is_empty() ? nullptr : reinterpret_cast<uint *>(indices.data());
+  uint *indices_ptr = corner_mask.is_empty() ? nullptr : reinterpret_cast<uint *>(indices.data());
 
   float *cubic_array;
   uint cubic_array_len;
@@ -113,7 +113,7 @@ Array<float2> polyline_fit_curve(Span<float2> points,
                                            2,
                                            error_threshold,
                                            CURVE_FIT_CALC_HIGH_QUALITY,
-                                           indicies_ptr,
+                                           indices_ptr,
                                            indices.size(),
                                            &cubic_array,
                                            &cubic_array_len,

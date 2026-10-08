@@ -44,35 +44,25 @@ SeqResult prepare_effect_imbufs(const RenderData *context,
   ImBufFlags base_flags = uninitialized_pixels ? ImBufFlags::UninitializedPixels :
                                                  ImBufFlags::Zero;
 
-  if (!ibuf1.is_valid() && !ibuf2.is_valid()) {
-    out.image = IMB_allocImBuf(x, y, ImBufFlags::ByteData | base_flags);
-  }
-  else if ((ibuf1.is_valid() && ibuf1.image->float_data()) ||
-           (ibuf2.is_valid() && ibuf2.image->float_data()))
-  {
-    /* if any inputs are float, output is float too */
-    out.image = IMB_allocImBuf(x, y, ImBufFlags::FloatData | base_flags);
-  }
-  else {
-    out.image = IMB_allocImBuf(x, y, ImBufFlags::ByteData | base_flags);
-  }
+  /* Convert everything to the sequencer colorspace before applying the effects. */
+  const ColorSpace *sequencer_colorspace = IMB_colormanagement_space_get_named(
+      scene->sequencer_colorspace_settings.name);
+  const bool use_float =
+      (ibuf1.is_valid() &&
+       (ibuf1.image->float_data() || &ibuf1.image->byte_colorspace() != sequencer_colorspace)) ||
+      (ibuf2.is_valid() &&
+       (ibuf2.image->float_data() || &ibuf2.image->byte_colorspace() != sequencer_colorspace));
 
-  if (out.image->float_data()) {
+  out.image = IMB_allocImBuf(
+      x, y, (use_float ? ImBufFlags::FloatData : ImBufFlags::ByteData) | base_flags);
+  seq_imbuf_assign_sequencer_space(scene, out.image);
+
+  if (use_float) {
     if (ibuf1.is_valid()) {
       ensure_ibuf_is_sequencer_space(scene, ibuf1.image, true);
     }
     if (ibuf2.is_valid()) {
       ensure_ibuf_is_sequencer_space(scene, ibuf2.image, true);
-    }
-    IMB_colormanagement_assign_float_colorspace(out.image,
-                                                scene->sequencer_colorspace_settings.name);
-  }
-  else {
-    if (ibuf1.is_valid() && !ibuf1.image->byte_data()) {
-      IMB_byte_from_float(ibuf1.image);
-    }
-    if (ibuf2.is_valid() && !ibuf2.image->byte_data()) {
-      IMB_byte_from_float(ibuf2.image);
     }
   }
 

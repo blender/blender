@@ -31,19 +31,16 @@ struct Knot {
   float tan[2][3];
   float handles[2];
 
+  /** Node in the heap if the knot can be removed. */
   HeapNode *heap_node;
+  /** New handles for the previous and next knots when this knot is removed. */
+  float removal_handles[2];
   uint can_remove : 1;
   uint is_removed : 1;
 
 #ifndef NDEBUG
   const float *co;
 #endif
-};
-
-struct Removal {
-  uint knot_index;
-  /* handles for prev/next knots */
-  float handles[2];
 };
 
 static float knot_remove_error_value(const float tan_l[3],
@@ -106,27 +103,12 @@ static void knot_remove_error_recalculate(
       k->prev->tan[1], k->next->tan[0], points_offset, points_offset_len, handles);
 
   if (cost_sq < error_sq_max) {
-    Removal *r;
-    if (k->heap_node) {
-      r = static_cast<Removal *>(BLI_heap_node_ptr(k->heap_node));
-    }
-    else {
-      r = MEM_new_uninitialized<Removal>(__func__);
-      r->knot_index = k->knot_index;
-    }
-
-    copy_v2_v2(r->handles, handles);
-
-    BLI_heap_insert_or_update(heap, &k->heap_node, cost_sq, r);
+    copy_v2_v2(k->removal_handles, handles);
+    BLI_heap_insert_or_update(heap, &k->heap_node, cost_sq, k);
   }
   else {
     if (k->heap_node) {
-      Removal *r;
-      r = static_cast<Removal *>(BLI_heap_node_ptr(k->heap_node));
       BLI_heap_remove(heap, k->heap_node);
-
-      MEM_delete(r);
-
       k->heap_node = nullptr;
     }
   }
@@ -150,16 +132,10 @@ static void curve_decimate(const float (*points)[3],
   uint knots_len_remaining = knots_len;
 
   while ((knots_len_remaining > error_target_len) && (BLI_heap_is_empty(heap) == false)) {
-    Knot *k;
-
-    {
-      Removal *r = static_cast<Removal *>(BLI_heap_pop_min(heap));
-      k = &knots[r->knot_index];
-      k->heap_node = nullptr;
-      k->prev->handles[1] = r->handles[0];
-      k->next->handles[0] = r->handles[1];
-      MEM_delete(r);
-    }
+    Knot *k = static_cast<Knot *>(BLI_heap_pop_min(heap));
+    k->heap_node = nullptr;
+    k->prev->handles[1] = k->removal_handles[0];
+    k->next->handles[0] = k->removal_handles[1];
 
     Knot *k_prev = k->prev;
     Knot *k_next = k->next;
@@ -183,7 +159,7 @@ static void curve_decimate(const float (*points)[3],
     knots_len_remaining -= 1;
   }
 
-  BLI_heap_free(heap, MEM_delete_void);
+  BLI_heap_free(heap, nullptr);
 }
 
 uint BKE_curve_decimate_bezt_array(BezTriple *bezt_array,

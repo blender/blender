@@ -1489,6 +1489,9 @@ static void node_widgets()
   WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_backdrop_ellipse_mask);
   WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_backdrop_split);
   WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_compositor_translate);
+  WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_compositor_transform);
+  WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_compositor_scale);
+  // WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_compositor_rotate);
 }
 
 static void node_id_remap(ID *old_id, ID *new_id, SpaceNode *snode)

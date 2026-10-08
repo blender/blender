@@ -188,7 +188,7 @@ void Grid::insertOccluder(Polygon3r *occluder)
           coord[2] = z;
           // We retrieve the box coordinates of the current cell
           getCellBox(coord, boxmin, boxmax);
-          // We check whether the triangle and the box ovewrlap:
+          // We check whether the triangle and the box overlap:
           Vec3r boxcenter((boxmin + boxmax) / 2.0);
           Vec3r boxhalfsize(_cell_size / 2.0);
           if (GeomUtils::overlapTriangleBox(boxcenter, boxhalfsize, triverts)) {

@@ -75,13 +75,13 @@ Additional notes:
 
 IV SOF format
 
-SOF (Signed Octree Format) records an octree grid with signes attached to the 8 corners of each leaf node. All leaf nodes appear at the same depth that is specified by the <octree_depth> argument to the program. The tree is recorded in SOF file using pre-order traversal. Here is the structure of a SOF file (binary):
+SOF (Signed Octree Format) records an octree grid with signs attached to the 8 corners of each leaf node. All leaf nodes appear at the same depth that is specified by the <octree_depth> argument to the program. The tree is recorded in SOF file using pre-order traversal. Here is the structure of a SOF file (binary):
 
 <header>
 
 <node>
 
-<header> is a 4-bytes integer that equals 2 ^ octree_depth. The first byte of a <node> is either 0 (denoting an intermediate node) or 1 (denoting an empty node) or 2 (denoting a leaf node). After the first byte, an intermediate node <node> contains (after the first byte) eight <node> structures for its eight children; an empty node <node> contains one byte of value 0 or 1 denoting if it is inside or outside; and a leaf node contains one byte whose eight bits correspond to the signs at its eight corners (0 for inside and 1 for outside). The order of enumeration of the eight children nodes in an intermediate nodeis the following (expressed in coordinates <x,y,z> ): <0,0,0>,<0,0,1>,<0,1,0>,<0,1,1>,<1,0,0>,<1,0,1>,<1,1,0>,<1,1,1>. The enumeration of the eight corners in a leaf node follows the same order (e.g., the lowest bit records the sign at <0,0,0>).
+<header> is a 4-bytes integer that equals 2 ^ octree_depth. The first byte of a <node> is either 0 (denoting an intermediate node) or 1 (denoting an empty node) or 2 (denoting a leaf node). After the first byte, an intermediate node <node> contains (after the first byte) eight <node> structures for its eight children; an empty node <node> contains one byte of value 0 or 1 denoting if it is inside or outside; and a leaf node contains one byte whose eight bits correspond to the signs at its eight corners (0 for inside and 1 for outside). The order of enumeration of the eight children nodes in an intermediate nodes the following (expressed in coordinates <x,y,z> ): <0,0,0>,<0,0,1>,<0,1,0>,<0,1,1>,<1,0,0>,<1,0,1>,<1,1,0>,<1,1,1>. The enumeration of the eight corners in a leaf node follows the same order (e.g., the lowest bit records the sign at <0,0,0>).
 
 
 
@@ -91,7 +91,7 @@ SOF (Signed Octree with Geometry) has the same data structure with SOG, with the
 
 1. The file starts with a 128-byte long header. Currently, the header begins with the string "SOG.Format 1.0" followed by 3 floats representing the lower-left-near corner of the octree follwed by 1 float denoting the length of the octree (in one direction). The locations and lengths are in the input model's coordinate space. The rest of the header is left empty.
 
-2. Each leaf node has additioanl three floats {x,y,z} (following the signs) denoting the geometric location of a feature vertex within the cell.
+2. Each leaf node has additional three floats {x,y,z} (following the signs) denoting the geometric location of a feature vertex within the cell.
 
 
 

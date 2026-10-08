@@ -156,6 +156,9 @@ NODE_DEFINE(Camera)
   SOCKET_FLOAT(border.bottom, "Border Bottom", 0);
   SOCKET_FLOAT(border.top, "Border Top", 1);
 
+  SOCKET_FLOAT(border_pre_left, "Border Pre Left", -1);
+  SOCKET_FLOAT(border_pre_bottom, "Border Pre Bottom", -1);
+
   SOCKET_FLOAT(viewport_camera_border.left, "Viewport Border Left", 0);
   SOCKET_FLOAT(viewport_camera_border.right, "Viewport Border Right", 1);
   SOCKET_FLOAT(viewport_camera_border.bottom, "Viewport Border Bottom", 0);
@@ -381,9 +384,15 @@ void Camera::update(Scene *scene)
       kcam->motion_pass_post = kcam->worldtocamera;
     }
     if (camera_type != CAMERA_PANORAMA && camera_type != CAMERA_CUSTOM) {
-      const BoundBox2D motion_viewplane_pre = viewplane_pre.is_empty() ? viewplane : viewplane_pre;
-      const BoundBox2D motion_viewplane_post = viewplane_post.is_empty() ? viewplane :
-                                                                           viewplane_post;
+      BoundBox2D motion_viewplane_pre = viewplane_pre.is_empty() ? viewplane : viewplane_pre;
+      BoundBox2D motion_viewplane_post = viewplane_post.is_empty() ? viewplane : viewplane_post;
+      if (border_pre_left >= 0 && border_pre_bottom >= 0) {
+        /* Filter out panning movements of the border, since they do not result in pixels moving in
+         * the render buffer. */
+        motion_viewplane_pre = motion_viewplane_pre.offset(
+            make_float2(-(border.left - border_pre_left) * motion_viewplane_pre.width(),
+                        -(border.bottom - border_pre_bottom) * motion_viewplane_pre.height()));
+      }
 
       if (have_motion || fov != fov_pre || fov != fov_post || viewplane != motion_viewplane_pre ||
           viewplane != motion_viewplane_post)
@@ -539,6 +548,8 @@ void Camera::update_interactive_motion()
   }
 
   set_fov_pre(fov);
+  set_border_pre_left(border.left);
+  set_border_pre_bottom(border.bottom);
   set_viewplane_pre_left(viewplane.left);
   set_viewplane_pre_right(viewplane.right);
   set_viewplane_pre_bottom(viewplane.bottom);
@@ -611,7 +622,8 @@ void Camera::device_update_volume(Device * /*device*/, DeviceScene *dscene, Scen
                      for (size_t i = r.begin(); i != r.end(); i++) {
                        Object *object = scene->objects[i];
                        if (object->get_geometry()->has_volume &&
-                           viewplane_boundbox.intersects(object->bounds)) {
+                           viewplane_boundbox.intersects(object->bounds))
+                       {
                          /* TODO(sergey): Consider adding more grained check. */
                          LOG_INFO << "Detected camera inside volume.";
                          kernel_camera.is_inside_volume = 1;

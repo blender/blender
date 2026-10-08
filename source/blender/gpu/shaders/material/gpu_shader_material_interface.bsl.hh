@@ -34,10 +34,12 @@ enum eObjectInfoFlag : uint32_t {
   OBJECT_NO_INFO = ~OBJECT_HOLDOUT
 };
 
-#define RAY_TYPE_CAMERA 0
-#define RAY_TYPE_SHADOW 1
-#define RAY_TYPE_DIFFUSE 2
-#define RAY_TYPE_GLOSSY 3
+enum RayPipelineType : uint32_t {
+  RAY_TYPE_CAMERA,
+  RAY_TYPE_SHADOW,
+  RAY_TYPE_DIFFUSE,
+  RAY_TYPE_GLOSSY,
+};
 
 /* Expected members of ViewMatrices. */
 struct ViewMatrices {
@@ -117,6 +119,11 @@ struct KernelGlobals {
   {
     return {};
   }
+
+  ObjectMatrices light_matrices_get(int /*light_index*/)
+  {
+    return {};
+  }
 };
 
 /* Closure Nodes. */
@@ -129,83 +136,103 @@ Closure closure_mix(Closure /*cl1*/, Closure /*cl2*/, float /*fac*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/, ClosureDiffuse /*diffuse*/)
+Closure closure_eval(KernelGlobals & /*kg*/, ShadingData & /*sd*/, ClosureDiffuse /*diffuse*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/, ClosureSubsurface /*diffuse*/)
+Closure closure_eval(KernelGlobals & /*kg*/, ShadingData & /*sd*/, ClosureSubsurface /*diffuse*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/, ClosureTranslucent /*translucent*/)
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
+                     ClosureTranslucent /*translucent*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/, ClosureReflection /*reflection*/)
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
+                     ClosureReflection /*reflection*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/, ClosureRefraction /*refraction*/)
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
+                     ClosureRefraction /*refraction*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/, ClosureThinRefraction /*refraction*/)
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
+                     ClosureThinRefraction /*refraction*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/, ClosureEmission /*emission*/)
+Closure closure_eval(KernelGlobals & /*kg*/, ShadingData & /*sd*/, ClosureEmission /*emission*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/, ClosureTransparency /*transparency*/)
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
+                     ClosureTransparency /*transparency*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/, ClosureVolumeScatter /*volume_scatter*/)
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
+                     ClosureVolumeScatter /*volume_scatter*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/, ClosureVolumeAbsorption /*volume_absorption*/)
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
+                     ClosureVolumeAbsorption /*volume_absorption*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/, ClosureHair /*hair*/)
+Closure closure_eval(KernelGlobals & /*kg*/, ShadingData & /*sd*/, ClosureHair /*hair*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/,
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
                      ClosureReflection /*reflection*/,
                      ClosureRefraction /*refraction*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/,
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
                      ClosureDiffuse /*diffuse*/,
                      ClosureReflection /*reflection*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/,
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
                      ClosureReflection /*reflection*/,
                      ClosureReflection /*coat*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/,
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
                      ClosureVolumeScatter /*volume_scatter*/,
                      ClosureVolumeAbsorption /*volume_absorption*/,
                      ClosureEmission /*emission*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/,
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
                      ClosureDiffuse /*diffuse*/,
                      ClosureReflection /*reflection*/,
                      ClosureReflection /*coat*/)
 {
   return {};
 }
-Closure closure_eval(ShadingData & /*sd*/,
+Closure closure_eval(KernelGlobals & /*kg*/,
+                     ShadingData & /*sd*/,
                      ClosureDiffuse /*diffuse*/,
                      ClosureReflection /*reflection*/,
                      ClosureReflection /*coat*/,
@@ -314,15 +341,11 @@ float ambient_occlusion_eval([[resource_table]] const KernelGlobals & /*kg*/,
 
 /* Attribute node occlusion node. */
 
-float4 attr_load_color_post(float4 attr)
+float4 attr_load_color_post([[resource_table]] KernelGlobals & /*kg*/, float4 attr)
 {
   return attr;
 }
-float attr_load_temperature_post(float attr)
-{
-  return attr;
-}
-float4 attr_load_radiance_post(float4 attr)
+float attr_load_temperature_post([[resource_table]] KernelGlobals & /*kg*/, float attr)
 {
   return attr;
 }
@@ -380,7 +403,7 @@ void scene_time_uniforms([[resource_table]] KernelGlobals & /*kg*/,
 {
 }
 
-/* Shadow Raycast Node. */
+/* Shadow Ray-cast Node. */
 
 void node_shadow_raycast_impl([[resource_table]] KernelGlobals & /*kg*/,
                               const ShadingData & /*sd*/,
@@ -444,7 +467,7 @@ template void node_light_evaluation_impl<true>(
 template void node_light_evaluation_impl<false>(
     KernelGlobals &, const ShadingData &, int, float3, float3, float, float &);
 
-/* Raycast Node. */
+/* Ray-cast Node. */
 
 void raycast_eval([[resource_table]] KernelGlobals & /*kg*/,
                   const ShadingData & /*sd*/,

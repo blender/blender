@@ -13,6 +13,7 @@
 #include "RNA_prototypes.hh"
 
 #include "BKE_compositor.hh"
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -163,9 +164,12 @@ static Result *get_effect_input(Context &context,
 void SceneCompositorEffectsOperation::execute()
 {
   const Scene &scene = this->context().get_scene();
+  const bke::DataBlockComputeContext &scene_compute_context =
+      this->context().compute_context_cache().for_data_block(nullptr, scene.id);
+
   const bool needs_viewer_output = flag_is_set(this->context().needed_side_effect_output_types(),
                                                SideEffectOutputTypes::ViewerNode);
-  const bke::DataBlockComputeContext scene_compute_context(nullptr, scene.id);
+  const bool has_viewer_output = needs_viewer_output && this->context().viewer_compute_context();
 
   std::unique_ptr<NodeGroupOperation> last_operation;
   const bke::compositor::ExecutionMode execution_mode = get_execution_mode(this->context());
@@ -178,26 +182,26 @@ void SceneCompositorEffectsOperation::execute()
       continue;
     }
 
-    const bke::SceneCompositorEffectComputeContext effect_compute_context(&scene_compute_context,
-                                                                          effect);
+    const bke::SceneCompositorEffectComputeContext &effect_compute_context =
+        this->context().compute_context_cache().for_scene_compositor_effect(&scene_compute_context,
+                                                                            effect);
 
     const bNodeTree &node_group = *effect.node_group;
     NodeGroupOperation *effect_operation = new NodeGroupOperation(
         this->context(), node_group, effect_compute_context);
 
-    /* If the node group has no viewer node in the active context, and the context requires a
-     * viewer output, we use the group output as a viewer. */
-    if (needs_viewer_output && has_viewer_node(node_group,
-                                               effect_compute_context,
-                                               this->context().get_active_compute_context_hash()))
-    {
-      has_viewer_output_ = true;
-    }
-
-    /* We need the output of the effect if we are rendering or do not have a viewer, in which
-     * case, the viewer will be in a later effect which needs the output of this one, or the
-     * viewer result will be the last operation. */
-    const bool is_effect_output_needed = this->context().render_context() || !has_viewer_output_;
+    /* We need the output of the effect if:
+     * - We are doing a final render.
+     * - We need a viewer output but do not have a viewer, in which case, the output of the last
+     *   effect will be double as the viewer output.
+     * - We need a viewer output and have a viewer, in which case, the output is needed until the
+     *   active effect, since it is the one that have the viewer. Note that we break if this is
+     *   false, so effects after the active one are not evaluated. */
+    const bool is_active_effect = flag_is_set(effect.flags, SceneCompositorEffectFlags::IsActive);
+    const bool is_effect_output_needed = this->context().render_context() ||
+                                         (needs_viewer_output && !has_viewer_output) ||
+                                         (needs_viewer_output && has_viewer_output &&
+                                          !is_active_effect);
 
     /* Set the reference count for the outputs, only the first color output is actually needed,
      * while the rest are ignored. */

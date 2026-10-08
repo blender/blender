@@ -93,7 +93,7 @@ struct ExtraLinkInfo {
  * the same name as the USD material.  If the USD material has a
  * #UsdPreviewSurface source, the Blender material's viewport display
  * color, roughness and metallic properties are set to the corresponding
- * #UsdPreoviewSurface inputs.
+ * #UsdPreviewSurface inputs.
  *
  * If the Import USD Preview option is enabled, the current implementation
  * converts #UsdPreviewSurface to Blender nodes as follows:

@@ -19,6 +19,8 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_constructors(
 {
   vector<BuiltinFunc> funcs;
 
+  funcs.push_back({this->str_cls, this->str_cls->identifier, {this->uint_cls}});
+
   /* Vector and Scalar Constructors (restricted to matching component types). */
   for (const auto [type, base] : types) {
     SymbolClass *s = base;

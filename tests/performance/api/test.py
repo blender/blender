@@ -32,6 +32,24 @@ class Test:
         """
         return ['CPU']
 
+    def remove_redundant_device_types(self, devices: list) -> list:
+        """
+        Remove redundant device types that do not improve coverage.
+        """
+        return devices
+
+    def remove_redundant_hwrt_device_types(self, devices: list) -> list:
+        """
+        Remove HW-RT devices from the list if the corresponding non-HW-RT device is present.
+        """
+        new_devices = []
+        for device in devices:
+            device_id = device.id.replace("-RT", "", 1)
+            found = any(d.id == device_id for d in new_devices)
+            if not found:
+                new_devices.append(device)
+        return new_devices
+
     def use_background(self) -> bool:
         """
         Test runs in background mode and requires no display.

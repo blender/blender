@@ -15,6 +15,10 @@ PathTraceDisplay::PathTraceDisplay(unique_ptr<DisplayDriver> driver) : driver_(s
 {
 }
 
+void PathTraceDisplay::reset()
+{
+  driver_->reset();
+}
 void PathTraceDisplay::reset(const BufferParams &buffer_params, const bool reset_rendering)
 {
   const thread_scoped_lock lock(mutex_);

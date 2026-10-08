@@ -58,11 +58,9 @@ void set_scale_to_fit(const Strip *strip,
                       int preview_height,
                       eSeqImageFitMethod fit_method);
 /**
- * Ensure, that provided Strip has unique name. If animation data exists for this Strip, it
- * will be duplicated and mapped onto new name
+ * Ensure \a strip has a unique name in \a scene. If animation data exists for it, it will be
+ * duplicated and mapped onto the new name.
  *
- * \param strip: Strip which name will be ensured to be unique
- * \param scene: Scene in which name must be unique
  * \param driver_map: Used to update driver paths to the new name. Pass an empty map when the strip
  * is a copy and the original still carries the old name.
  * See `BKE_animdata_build_driver_target_map`.
@@ -72,13 +70,9 @@ void ensure_unique_name(Strip *strip, Scene *scene, const DriverMap &driver_map)
 void fontmap_clear();
 
 /**
- * Check whether a sequence strip has missing media.
+ * Check whether a strip has missing media.
  * Results of the query for this strip will be cached into #MediaPresence cache. The cache
  * will be created on demand.
- *
- * \param scene: Scene to query.
- * \param strip: Sequencer strip.
- * \return True if media file is missing.
  */
 bool media_presence_is_missing(Scene *scene, const Strip *strip);
 

@@ -32,7 +32,7 @@
 
 #include "DNA_vec_types.h"
 
-struct ImBuf;
+#include "IMB_imbuf_types.hh"
 
 namespace blender {
 
@@ -99,13 +99,14 @@ struct Changes {
 void IMB_partial_update_flush(ImBuf *ibuf);
 
 /** Current global changeset ID. */
-int64_t IMB_partial_update_changeset_id_current();
+imbuf::ChangesetID IMB_partial_update_changeset_id_current();
 
 /** Next global changeset ID. */
-int64_t IMB_partial_update_changeset_id_next();
+imbuf::ChangesetID IMB_partial_update_changeset_id_next();
 
 /** Collect the changes to an image buffer since #last_changeset_id. */
-imbuf::partial_update::Changes IMB_partial_update_collect(ImBuf *ibuf, int64_t last_changeset_id);
+imbuf::partial_update::Changes IMB_partial_update_collect(ImBuf *ibuf,
+                                                          imbuf::ChangesetID last_changeset_id);
 
 /** \} */
 

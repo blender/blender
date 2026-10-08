@@ -110,65 +110,6 @@ GPU_SHADER_CREATE_END()
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name Internal Draw Manager usage
- * \{ */
-
-GPU_SHADER_CREATE_INFO(draw_resource_finalize)
-DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("draw_shader_shared.hh")
-DEFINE("DRAW_FINALIZE_SHADER")
-LOCAL_GROUP_SIZE(DRW_FINALIZE_GROUP_SIZE)
-STORAGE_BUF(0, read, ObjectMatrices, matrix_buf[])
-STORAGE_BUF(1, read_write, ObjectBounds, bounds_buf[])
-STORAGE_BUF(2, read_write, ObjectInfos, infos_buf[])
-PUSH_CONSTANT(int, resource_len)
-COMPUTE_SOURCE("draw_resource_finalize_comp.glsl")
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(draw_view_finalize)
-DO_STATIC_COMPILATION()
-LOCAL_GROUP_SIZE(DRW_VIEW_MAX)
-DEFINE_VALUE("DRW_VIEW_LEN", STRINGIFY(DRW_VIEW_MAX))
-STORAGE_BUF(0, read_write, ViewCullingData, view_culling_buf[DRW_VIEW_LEN])
-COMPUTE_SOURCE("draw_view_finalize_comp.glsl")
-ADDITIONAL_INFO(draw_view)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(draw_visibility_compute)
-DO_STATIC_COMPILATION()
-LOCAL_GROUP_SIZE(DRW_VISIBILITY_GROUP_SIZE)
-DEFINE_VALUE("DRW_VIEW_LEN", STRINGIFY(DRW_VIEW_MAX))
-STORAGE_BUF(0, read, ObjectBounds, bounds_buf[])
-STORAGE_BUF(1, read_write, uint, visibility_buf[])
-PUSH_CONSTANT(int, resource_len)
-PUSH_CONSTANT(int, view_len)
-PUSH_CONSTANT(int, visibility_word_per_draw)
-COMPUTE_SOURCE("draw_visibility_comp.glsl")
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_view_culling)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(draw_command_generate)
-DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("draw_shader_shared.hh")
-TYPEDEF_SOURCE("draw_command_shared.hh")
-LOCAL_GROUP_SIZE(DRW_COMMAND_GROUP_SIZE)
-STORAGE_BUF(0, read_write, DrawGroup, group_buf[])
-STORAGE_BUF(1, read, uint, visibility_buf[])
-STORAGE_BUF(2, read, DrawPrototype, prototype_buf[])
-STORAGE_BUF(3, write, DrawCommand, command_buf[])
-STORAGE_BUF(DRW_RESOURCE_ID_SLOT, write, uint, resource_id_buf[])
-PUSH_CONSTANT(int, prototype_len)
-PUSH_CONSTANT(int, visibility_word_per_draw)
-PUSH_CONSTANT(int, view_shift)
-PUSH_CONSTANT(int, view_len)
-PUSH_CONSTANT(bool, use_custom_ids)
-COMPUTE_SOURCE("draw_command_generate_comp.glsl")
-GPU_SHADER_CREATE_END()
-
-/** \} */
-
 /* Stub needs to be after all definitions to avoid conflict with legacy definitions. */
 #ifdef GLSL_CPP_STUBS
 /* Make it work for both draw_resource_id and draw_resource_with_custom_id. */

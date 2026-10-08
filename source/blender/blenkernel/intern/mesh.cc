@@ -298,9 +298,11 @@ static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     /* CustomDataExternal should only be the case for CD_MDISPS, but check all layers regardless.
      */
     const Span<CustomDataLayer> layers(data.layers, data.totlayer);
-    if (std::any_of(layers.begin(), layers.end(), [&](const CustomDataLayer &layer) {
-          return CustomData_external_test(&data, eCustomDataType(layer.type));
-        }))
+    if (std::any_of(layers.begin(),
+                    layers.end(),
+                    [&](const CustomDataLayer &layer) {
+                      return CustomData_external_test(&data, eCustomDataType(layer.type));
+                    }))
     {
       BKE_bpath_foreach_path_fixed_process(
           bpath_data, data.external->filepath, sizeof(data.external->filepath));

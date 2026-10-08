@@ -107,6 +107,10 @@ static std::optional<XXH128_hash_t> get_source_file_hash(const ID &id, DeepHashE
     r_errors.missing_files.add_as(path);
     return std::nullopt;
   }
+  else if ((id.tag & ID_TAG_MISSING) != 0) {
+    r_errors.missing_from_files.add_as(path);
+    return std::nullopt;
+  }
 
   std::lock_guard lock(mutex);
   if (const CachedFileHash *cached_hash = cache.lookup_ptr_as(path)) {
@@ -252,7 +256,9 @@ IDHashResult compute_linked_id_deep_hashes(const Main &bmain, Span<const ID *> i
   for (const ID *id : ids) {
     compute_deep_hash_recursive(bmain, *id, current_stack, hashes, errors);
   }
-  if (!errors.missing_files.is_empty() || !errors.updated_files.is_empty()) {
+  if (!errors.missing_files.is_empty() || !errors.missing_from_files.is_empty() ||
+      !errors.updated_files.is_empty())
+  {
     return errors;
   }
   return ValidDeepHashes{hashes};

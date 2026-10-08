@@ -62,7 +62,7 @@ enum class ImBufFlags {
    */
   HasDisplayWindow = 1 << 17,
 
-  /** Perform no color space conversions when reading, leave the image in the file colorspace. */
+  /** Perform no color space conversions when reading, leave the image in the file color-space. */
   NoColorspaceConvert = 1 << 18,
 };
 ENUM_OPERATORS(ImBufFlags);

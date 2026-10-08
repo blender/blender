@@ -250,6 +250,14 @@ void *CustomData_add_layer(CustomData *data,
                            int totelem);
 
 /**
+ * Create an #ImplicitSharingInfo that takes ownership of the layer data. This also frees data
+ * owned by the layer's elements, like the displacement arrays of #MDisps.
+ */
+const ImplicitSharingInfo *CustomData_make_layer_sharing_info(eCustomDataType type,
+                                                              const void *data,
+                                                              int totelem);
+
+/**
  * Adds a layer of the given type to the #CustomData object. The new layer takes ownership of the
  * passed in `layer_data`. If a #ImplicitSharingInfo is passed in, its user count is increased.
  */

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -558,6 +558,10 @@ msgstr "खिडकी प्रबंधक"
 
 msgid "Dirty"
 msgstr "गंदे"
+
+
+msgid "Path"
+msgstr "पथ"
 
 
 msgid "Goal"
@@ -1801,10 +1805,6 @@ msgid "Z-Up"
 msgstr "Z-ऊर्ध्व"
 
 
-msgid "Path"
-msgstr "पथ"
-
-
 msgid "Flush"
 msgstr "फ्लश"
 
@@ -2478,14 +2478,6 @@ msgid "Timer"
 msgstr "कालक"
 
 
-msgid "Press"
-msgstr "प्रेस"
-
-
-msgid "Click"
-msgstr "क्लिक करें"
-
-
 msgid "Paths"
 msgstr "पथ"
 
@@ -2586,40 +2578,72 @@ msgid "Placement"
 msgstr "नियोजन"
 
 
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
 msgid "Snap"
 msgstr "स्नैप"
 
 
-msgid "Import"
-msgstr "आयात करें"
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
 
 
-msgid "Math"
-msgstr "गणित"
-
-
-msgid "UV"
-msgstr "यूवी"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
 
 
 msgid "Light"
 msgstr "प्रकाश"
 
 
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Apply"
 msgstr "लागू करें"
+
+
+msgid "Merge"
+msgstr "विलय करें"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "UV"
+msgstr "यूवी"
+
+
+msgid "Math"
+msgstr "गणित"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Import"
+msgstr "आयात करें"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
 
 
 msgid "Track"
@@ -2628,38 +2652,6 @@ msgstr "ट्रैक"
 
 msgid "Quick Effects"
 msgstr "त्वरित प्रभाव"
-
-
-msgid "Keying"
-msgstr "कुंजीयन"
-
-
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
-
-
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
-
-
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Merge"
-msgstr "विलय करें"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
 
 
 msgid "Basic"
@@ -3007,10 +2999,6 @@ msgid "Correlation"
 msgstr "सहसंबंध"
 
 
-msgid "Quarter"
-msgstr "तिमाही"
-
-
 msgid "Select Anchor"
 msgstr "लंगर का चयन करें"
 
@@ -3061,10 +3049,6 @@ msgstr "बराबर"
 
 msgid "Bake"
 msgstr "भर्जन"
-
-
-msgid "Unknown"
-msgstr "अज्ञात"
 
 
 msgid "Warning"
@@ -4961,6 +4945,10 @@ msgid "Relationship Lines"
 msgstr "संबंध रेखाएँ"
 
 
+msgid "Press"
+msgstr "प्रेस"
+
+
 msgid "Cancel"
 msgstr "रद्द करें"
 
@@ -5150,6 +5138,10 @@ msgstr "स्थिति"
 msgctxt "Operator"
 msgid "Rotation"
 msgstr "घूर्णन"
+
+
+msgid "Unknown"
+msgstr "अज्ञात"
 
 
 msgid "After"
@@ -5624,11 +5616,6 @@ msgstr "सब से हटाएँ"
 
 
 msgctxt "Operator"
-msgid "Quick Edit"
-msgstr "त्वरित संपादन"
-
-
-msgctxt "Operator"
 msgid "Apply"
 msgstr "लागू करें"
 
@@ -5874,14 +5861,6 @@ msgstr "ठीक है"
 
 msgid "Pos"
 msgstr "पीओएस"
-
-
-msgid "H"
-msgstr "एच"
-
-
-msgid "S"
-msgstr "एस"
 
 
 msgid "Delete points"
@@ -6444,6 +6423,10 @@ msgid "Fac"
 msgstr "एफ़एसी"
 
 
+msgid "S"
+msgstr "एस"
+
+
 msgid "Old"
 msgstr "पुराने"
 
@@ -6478,6 +6461,10 @@ msgstr "डब्ल्यु३"
 
 msgid "W4"
 msgstr "डब्ल्यु4"
+
+
+msgid "H"
+msgstr "एच"
 
 
 msgid "Strips must be the same length"

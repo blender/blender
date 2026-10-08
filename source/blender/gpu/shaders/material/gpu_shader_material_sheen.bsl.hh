@@ -6,11 +6,15 @@
 
 #include "gpu_shader_material_interface.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 [[node]]
-void node_bsdf_sheen(
-    float4 color, float roughness, float3 N, float weight, ShadingData &sd, Closure &result)
+void node_bsdf_sheen(float4 color,
+                     float roughness,
+                     float3 N,
+                     float weight,
+                     KernelGlobals &kg,
+                     ShadingData &sd,
+                     Closure &result)
 {
   color = max(color, float4(0.0f));
   roughness = saturate(roughness);
@@ -21,5 +25,5 @@ void node_bsdf_sheen(
   diffuse_data.color = color.rgb * weight;
   diffuse_data.N = N;
 
-  result = closure_eval(sd, diffuse_data);
+  result = closure_eval(kg, sd, diffuse_data);
 }

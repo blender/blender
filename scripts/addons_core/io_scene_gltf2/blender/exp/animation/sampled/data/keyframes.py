@@ -49,7 +49,7 @@ def gather_data_sampled_keyframes(
             export_settings['gltf_animation_mode'] not in ["ACTIONS", "ACTIVE_ACTIONS"]:
         action_name = used_blender_id
 
-    # Use object_uuid always, here (so keep range_blender_id, that comes from blender_id not overriden)
+    # Use object_uuid always, here (so keep range_blender_id, that comes from blender_id not overridden)
     start_frame = export_settings['ranges'][range_blender_id][action_name_for_range]['start']
     end_frame = export_settings['ranges'][range_blender_id][action_name_for_range]['end']
 
@@ -162,7 +162,7 @@ def gather_data_sampled_keyframes(
 
             # innerConeAngle is handled in cache retrieval, as it requires spot_size and spot_blend
 
-        # Camera yvof is calculated in cache retrieval, as it requires sensor_fit, angle, aspect ratio
+        # Camera yfov is calculated in cache retrieval, as it requires sensor_fit, angle, aspect ratio
 
         key.value_total = value
         keyframes.append(key)

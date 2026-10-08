@@ -23,7 +23,7 @@ enum ExprFlag : uint8_t {
 struct ExpressionResult {
   SymbolClass *type;
   /* Value if constexpr. */
-  ConstexprValue value = ConstexprError();
+  ConstexprValue value = ConstexprError(0);
   /* Array dimension of the current temporary. */
   uint8_t array_dim = 0;
 

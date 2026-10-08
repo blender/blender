@@ -232,7 +232,7 @@ bool parent_set(ReportList *reports,
                 bool xmirror,
                 bool keep_transform,
                 const int vert_par[3]);
-void parent_clear(Object *ob, int type);
+void parent_clear(Main *bmain, Object *ob, int type);
 
 /**
  * Simple API for object selection, rather than just using the flag

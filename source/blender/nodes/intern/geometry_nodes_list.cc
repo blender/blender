@@ -6,6 +6,7 @@
  * \ingroup nodes
  */
 
+#include "BLI_generic_array.hh"
 #include "BLI_memory_counter.hh"
 
 #include "NOD_geometry_nodes_bundle.hh"
@@ -13,56 +14,29 @@
 
 namespace blender::nodes {
 
-class ArrayImplicitSharingData : public ImplicitSharingInfo {
- public:
-  const CPPType &type;
-  void *data;
-  int64_t size;
-
-  ArrayImplicitSharingData(void *data, const int64_t size, const CPPType &type)
-      : ImplicitSharingInfo(), type(type), data(data), size(size)
-  {
-  }
-
- private:
-  void delete_self_with_data() override
-  {
-    type.destruct_n(this->data, this->size);
-    MEM_delete_void(this->data);
-    MEM_delete(this);
-  }
-};
-
-static ImplicitSharingPtr<> sharing_ptr_for_array(void *data,
-                                                  const int64_t size,
-                                                  const CPPType &type)
+/** Create array data that owns the array's buffer. */
+static GList::ArrayData array_data_from_garray(GArray<> array)
 {
-  if (type.is_trivially_destructible) {
-    /* Avoid storing size and type in sharing info if unnecessary. */
-    return ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data));
-  }
-  return ImplicitSharingPtr<>(MEM_new<ArrayImplicitSharingData>(__func__, data, size, type));
+  auto *sharing_info = new ImplicitSharedValue<GArray<>>(std::move(array));
+  GList::ArrayData data;
+  data.data = sharing_info->data.data();
+  data.sharing_info = ImplicitSharingPtr<>(sharing_info);
+  return data;
 }
 
 GList::ArrayData GList::ArrayData::ForValue(const GPointer &value, const int64_t size)
 {
-  GList::ArrayData data{};
   const CPPType &type = *value.type();
-  const void *value_ptr = type.default_value();
+  const void *value_ptr = value.get();
 
-  void *new_data;
   /* Prefer `calloc` to zeroing after allocation since it is faster. */
   if (memory_is_zero(value_ptr, type.size)) {
-    new_data = MEM_new_array_zeroed_aligned(size, type.size, type.alignment, __func__);
+    void *buffer = MEM_new_array_zeroed_aligned(size, type.size, type.alignment, __func__);
+    return array_data_from_garray(GArray<>(type, buffer, size));
   }
-  else {
-    new_data = MEM_new_array_uninitialized_aligned(size, type.size, type.alignment, __func__);
-    type.fill_construct_n(value_ptr, new_data, size);
-  }
-
-  data.data = new_data;
-  data.sharing_info = sharing_ptr_for_array(new_data, size, type);
-  return data;
+  GArray<> array(type, size, NoInitialization());
+  type.fill_construct_n(value_ptr, array.data(), size);
+  return array_data_from_garray(std::move(array));
 }
 
 GList::ArrayData GList::ArrayData::ForDefaultValue(const CPPType &type, const int64_t size)
@@ -72,59 +46,24 @@ GList::ArrayData GList::ArrayData::ForDefaultValue(const CPPType &type, const in
 
 GList::ArrayData GList::ArrayData::ForConstructed(const CPPType &type, const int64_t size)
 {
-  GList::ArrayData data{};
-  void *new_data = MEM_new_array_uninitialized_aligned(size, type.size, type.alignment, __func__);
-  type.default_construct_n(new_data, size);
-  data.data = new_data;
-  data.sharing_info = sharing_ptr_for_array(new_data, size, type);
-  return data;
+  return array_data_from_garray(GArray<>(type, size));
 }
 
 GList::ArrayData GList::ArrayData::ForUninitialized(const CPPType &type, const int64_t size)
 {
-  GList::ArrayData data{};
-  void *new_data = MEM_new_array_uninitialized_aligned(size, type.size, type.alignment, __func__);
-  data.data = new_data;
-  data.sharing_info = sharing_ptr_for_array(new_data, size, type);
-  return data;
-}
-
-class SingleImplicitSharingData : public ImplicitSharingInfo {
- public:
-  const CPPType &type;
-  void *data;
-
-  SingleImplicitSharingData(void *data, const CPPType &type)
-      : ImplicitSharingInfo(), type(type), data(data)
-  {
-  }
-
- private:
-  void delete_self_with_data() override
-  {
-    type.destruct(this->data);
-    MEM_delete_void(this->data);
-    MEM_delete(this);
-  }
-};
-
-static ImplicitSharingPtr<> sharing_ptr_for_value(void *data, const CPPType &type)
-{
-  if (type.is_trivially_destructible) {
-    /* Avoid storing size and type in sharing info if unnecessary. */
-    return ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data));
-  }
-  return ImplicitSharingPtr<>(MEM_new<SingleImplicitSharingData>(__func__, data, type));
+  return array_data_from_garray(GArray<>(type, size, NoInitialization()));
 }
 
 GList::SingleData GList::SingleData::ForValue(const GPointer &value)
 {
-  GList::SingleData data{};
   const CPPType &type = *value.type();
-  void *new_value = MEM_new_uninitialized_aligned(type.size, type.alignment, __func__);
-  type.copy_construct(value.get(), new_value);
-  data.value = new_value;
-  data.sharing_info = sharing_ptr_for_value(new_value, type);
+  /* Use an array with a single element to store the value. */
+  GArray<> array(type, 1, NoInitialization());
+  type.copy_construct(value.get(), array.data());
+  auto *sharing_info = new ImplicitSharedValue<GArray<>>(std::move(array));
+  GList::SingleData data;
+  data.value = sharing_info->data.data();
+  data.sharing_info = ImplicitSharingPtr<>(sharing_info);
   return data;
 }
 
@@ -271,11 +210,9 @@ void GList::SingleData::count_memory(MemoryCounter &memory, const CPPType &type)
 GMutableSpan GList::ArrayData::span_for_write(const CPPType &type, int64_t size)
 {
   if (this->sharing_info && !this->sharing_info->is_mutable()) {
-    void *new_data = MEM_new_array_uninitialized_aligned(
-        size, type.size, type.alignment, __func__);
-    type.copy_construct_n(this->data, new_data, size);
-    this->data = new_data;
-    this->sharing_info = sharing_ptr_for_array(new_data, size, type);
+    GArray<> new_array(type, size, NoInitialization());
+    type.copy_construct_n(this->data, new_array.data(), size);
+    *this = array_data_from_garray(std::move(new_array));
   }
   if (this->sharing_info) {
     this->sharing_info->tag_ensured_mutable();
@@ -286,10 +223,7 @@ GMutableSpan GList::ArrayData::span_for_write(const CPPType &type, int64_t size)
 GMutablePointer GList::SingleData::value_for_write(const CPPType &type)
 {
   if (this->sharing_info && !this->sharing_info->is_mutable()) {
-    void *new_data = MEM_new_uninitialized_aligned(type.size, type.alignment, __func__);
-    type.copy_construct(this->value, new_data);
-    this->value = new_data;
-    this->sharing_info = sharing_ptr_for_value(new_data, type);
+    *this = SingleData::ForValue(GPointer(type, this->value));
   }
   if (this->sharing_info) {
     this->sharing_info->tag_ensured_mutable();
@@ -333,12 +267,9 @@ GListPtr GList::create(const CPPType &type, DataVariant data, const int64_t size
 
 GListPtr GList::from_garray(GArray<> array)
 {
-  auto *sharable_data = new ImplicitSharedValue<GArray<>>(std::move(array));
-  ArrayData array_data;
-  array_data.data = sharable_data->data.data();
-  array_data.sharing_info = ImplicitSharingPtr<>(sharable_data);
-  return GList::create(
-      sharable_data->data.type(), std::move(array_data), sharable_data->data.size());
+  const CPPType &type = array.type();
+  const int64_t size = array.size();
+  return GList::create(type, array_data_from_garray(std::move(array)), size);
 }
 
 GListPtr GList::from_single(const GPointer value, const int64_t size)

@@ -931,6 +931,12 @@ PopupBlockHandle *popup_block_create(bContext *C,
                                      const bool can_refresh)
 {
   wmWindow *window = CTX_wm_window(C);
+
+  /* Needed for the splash popup which may be called before the DPI is set, see #161001. */
+  if (window->runtime && window->runtime->ghostwin) {
+    WM_window_dpi_set_userdef(window);
+  }
+
   Button *activebut = context_active_but_get(C);
 
   /* disable tooltips from buttons below */

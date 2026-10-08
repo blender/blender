@@ -428,7 +428,6 @@ static bool move_handles_in_curve(const PenToolOperation &ptd,
 
   MutableSpan<float3> positions = curves.positions_for_write();
   const bke::AttributeAccessor attributes = curves.attributes();
-  const Array<int> point_to_curve_map = curves.point_to_curve_map();
 
   MutableSpan<int8_t> handle_types_left = curves.handle_types_left_for_write();
   MutableSpan<int8_t> handle_types_right = curves.handle_types_right_for_write();

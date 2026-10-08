@@ -108,7 +108,7 @@ class Mesh : public Geometry {
     return s;
   }
 
-  bool need_tesselation();
+  bool need_tessellation();
 
   enum SubdivisionType {
     SUBDIVISION_NONE,

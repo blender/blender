@@ -247,7 +247,7 @@ def cppcheck(cppcheck_dir: str, temp_dir: str, log_fh: IO[bytes]) -> None:
             "--include=" + cppcheck_compiler_h,
             # NOTE: for some reason failing to include this crease a large number of syntax errors
             # from `intern/guardedalloc/MEM_guardedalloc.h`. Include directly to resolve.
-            "--include={:s}".format(os.path.join(source_dir, "source", "blender", "blenlib", "BLI_compiler_attrs.h")),
+            "--include={:s}".format(os.path.join(source_dir, "source", "blender", "blenlib", "BLI_compiler_attrs.hh")),
             c,
             *[("-I{:s}".format(i)) for i in inc_dirs],
             *[("-D{:s}".format(d)) for d in defs],

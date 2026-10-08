@@ -40,7 +40,7 @@ class Paints : Overlay {
   PassSimple::Sub *weight_opaque_ps_ = nullptr;
   /* Used when there's a valid pre-pass (depth ==). */
   PassSimple::Sub *weight_masked_transparency_ps_ = nullptr;
-  /* Black and white mask overlayed on top of mesh to preview painting influence. */
+  /* Black and white mask overlaid on top of mesh to preview painting influence. */
   PassSimple paint_mask_ps_ = {"paint_mask_ps_"};
 
   bool show_weight_ = false;

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 """
 This file does not run anything; its methods are accessed by run_blender_setup.py.
 """

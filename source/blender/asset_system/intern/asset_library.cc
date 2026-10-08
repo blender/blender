@@ -253,6 +253,11 @@ void AssetLibrary::force_remote_listing_download() const
   /* Default implementation is a no-op. */
 }
 
+const bUserAssetLibrary *AssetLibrary::user_asset_library() const
+{
+  return nullptr;
+}
+
 bool AssetLibrary::use_relative_paths() const
 {
   return true;

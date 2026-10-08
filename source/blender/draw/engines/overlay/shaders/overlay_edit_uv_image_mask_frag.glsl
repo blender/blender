@@ -6,7 +6,7 @@
 
 FRAGMENT_SHADER_CREATE_INFO(overlay_edit_uv_mask_image)
 
-#include "draw_colormanagement_lib.glsl"
+#include "draw_colormanagement.bsl.hh"
 
 void main()
 {

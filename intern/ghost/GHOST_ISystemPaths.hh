@@ -78,7 +78,7 @@ class GHOST_ISystemPaths {
 
   /**
    * Determine a special ("well known") and easy to reach user directory.
-   * \return If successfull, a string containing the user directory path (eg `~/Documents/`).
+   * \return If successful, a string containing the user directory path (eg `~/Documents/`).
    */
   virtual std::optional<std::string> getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const = 0;
 

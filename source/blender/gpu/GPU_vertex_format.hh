@@ -58,6 +58,9 @@ enum class VertAttrType : uint8_t {
   UINT_32_32_32_(impl) \
   UINT_32_32_32_32_(impl) \
 \
+  SFLOAT_16_16_(impl) \
+  SFLOAT_16_16_16_16_(impl) \
+\
   SFLOAT_32_(impl) \
   SFLOAT_32_32_(impl) \
   SFLOAT_32_32_32_(impl) \

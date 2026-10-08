@@ -69,7 +69,7 @@ static void compute_centroid(const MatrixXd &point_cloud, Vector2d &centroid)
  * T = |a 0|
  *     |0 a|
  *
- * s.t. if to each point p in the inizialized map the following is applied
+ * s.t. if to each point p in the initialized map the following is applied
  *
  *  T*p
  *

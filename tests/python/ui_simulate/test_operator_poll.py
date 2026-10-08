@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 import modules.ui_test_utils as ui
 
 

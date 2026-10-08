@@ -8,6 +8,7 @@
 #include "BLI_array_utils_c.hh"
 #include "BLI_utildefines.hh"
 #include "BLI_utildefines_stack.hh"
+#include "BLI_vector_set.hh"
 #include "BLI_virtual_array.hh"
 
 namespace blender {
@@ -319,6 +320,72 @@ TEST(array_utils, FindMaxElement4)
 {
   /* Inverted parabola with roots 0 and 9 and a peak at (x = 4.5, y = 20.25). */
   find_max_element_test(VArray<int>::from_func(10, [](const int x) { return -x * x + 9 * x; }), 4);
+}
+
+static void group_ids_to_indices_test(const Span<int> ids, const IndexMask &mask)
+{
+  /* Compare with the simpler #VectorSet implementation. */
+  VectorSet<int> expected_ids;
+  Vector<int> expected_first_indices;
+  Vector<int> expected_group_indices;
+  mask.foreach_index([&](const int i) {
+    if (expected_ids.add(ids[i])) {
+      expected_first_indices.append(i);
+    }
+    expected_group_indices.append(expected_ids.index_of(ids[i]));
+  });
+
+  Array<int> group_indices(mask.size());
+  Vector<int> first_indices;
+  const int groups_num = array_utils::group_ids_to_indices(
+      ids, mask, group_indices, &first_indices);
+  EXPECT_EQ(groups_num, expected_ids.size());
+  EXPECT_EQ(first_indices.as_span(), expected_first_indices.as_span());
+  Array<int> group_indices_only(mask.size());
+  EXPECT_EQ(array_utils::group_ids_to_indices(ids, mask, group_indices_only), groups_num);
+  EXPECT_EQ(group_indices_only.as_span(), expected_group_indices.as_span());
+  EXPECT_EQ(group_indices.as_span(), expected_group_indices.as_span());
+}
+
+TEST(array_utils, GroupIdsToIndicesEmpty)
+{
+  group_ids_to_indices_test({}, IndexMask());
+}
+
+TEST(array_utils, GroupIdsToIndicesDense)
+{
+  const std::array ids{5, 3, 5, -2, 3, 3, 0, -2};
+  group_ids_to_indices_test(ids, IndexMask(ids.size()));
+}
+
+TEST(array_utils, GroupIdsToIndicesSparse)
+{
+  const std::array ids{1000000, 3, 1000000, -2000000, 3, 7};
+  group_ids_to_indices_test(ids, IndexMask(ids.size()));
+}
+
+TEST(array_utils, GroupIdsToIndicesMask)
+{
+  const std::array ids{4, 1, 4, 2, 1, 2, 4, 3};
+  IndexMaskMemory memory;
+  group_ids_to_indices_test(ids, IndexMask::from_indices<int>({1, 2, 5, 6, 7}, memory));
+}
+
+TEST(array_utils, GroupIdsToIndicesLarge)
+{
+  Array<int> dense_ids(100000);
+  Array<int> sparse_ids(100000);
+  for (const int i : dense_ids.index_range()) {
+    dense_ids[i] = (i * 7919) % 20011;
+    sparse_ids[i] = ((i * 7919) % 1009) * 1000003;
+  }
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_predicate(
+      dense_ids.index_range(), memory, [](const int i) { return i % 3 != 0; });
+  group_ids_to_indices_test(dense_ids, IndexMask(dense_ids.size()));
+  group_ids_to_indices_test(dense_ids, mask);
+  group_ids_to_indices_test(sparse_ids, IndexMask(sparse_ids.size()));
+  group_ids_to_indices_test(sparse_ids, mask);
 }
 
 }  // namespace blender

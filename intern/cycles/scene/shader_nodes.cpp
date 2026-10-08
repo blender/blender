@@ -1933,8 +1933,7 @@ void RGBToBWNode::compile(OSLCompiler &compiler)
 
 /* Convert */
 
-const NodeType *(&ConvertNode::get_node_types())[ConvertNode::MAX_TYPE][ConvertNode::MAX_TYPE]
-{
+const NodeType *(&ConvertNode::get_node_types()) [ConvertNode::MAX_TYPE][ConvertNode::MAX_TYPE] {
   static const NodeType *node_types[MAX_TYPE][MAX_TYPE];
   static std::once_flag node_types_flag;
 
@@ -5229,7 +5228,7 @@ void VertexColorNode::attributes(Shader *shader, AttributeRequestSet *attributes
 {
   if (!(output("Color")->links.empty() && output("Alpha")->links.empty())) {
     if (!layer_name.empty()) {
-      attributes->add(layer_name);
+      attributes->add_name_or_standard(layer_name);
     }
     else {
       attributes->add(ATTR_STD_VERTEX_COLOR);
@@ -5238,58 +5237,28 @@ void VertexColorNode::attributes(Shader *shader, AttributeRequestSet *attributes
   ShaderNode::attributes(shader, attributes);
 }
 
-ShaderNodeType VertexColorNode::shader_node_type() const
+void VertexColorNode::expand(ShaderGraph *graph)
 {
-  return NODE_VERTEX_COLOR;
+  /* Replace with an attribute node, which has the same functionality. */
+  ShaderOutput *color_out = output("Color");
+  ShaderOutput *alpha_out = output("Alpha");
+  if (color_out->links.empty() && alpha_out->links.empty()) {
+    return;
+  }
+
+  AttributeNode *attr = graph->create_node<AttributeNode>();
+  attr->set_attribute(
+      layer_name.empty() ? ustring(Attribute::standard_name(ATTR_STD_VERTEX_COLOR)) : layer_name);
+  attr->set_missing(zero_float3());
+  attr->set_missing_alpha(0.0f);
+
+  graph->relink(color_out, attr->output("Color"));
+  graph->relink(alpha_out, attr->output("Alpha"));
 }
 
-void VertexColorNode::compile(SVMCompiler &compiler)
-{
-  const NodeBumpOffset bump_offset = shader_bump_to_node_bump_offset(bump);
-  const bool use_derivative = need_derivatives() || (bump != SHADER_BUMP_NONE);
-  int layer_id = 0;
+void VertexColorNode::compile(SVMCompiler & /*compiler*/) {}
 
-  if (!layer_name.empty()) {
-    layer_id = compiler.attribute(layer_name);
-  }
-  else {
-    layer_id = compiler.attribute(ATTR_STD_VERTEX_COLOR);
-  }
-
-  compiler.add_node(this,
-                    NODE_VERTEX_COLOR,
-                    SVMNodeVertexColor{
-                        .layer_id = uint8_t(layer_id),
-                        .color_offset = compiler.output("Color"),
-                        .alpha_offset = compiler.output("Alpha"),
-                        .bump_offset = bump_offset,
-                        .bump_filter_width = bump_filter_width,
-                    },
-                    use_derivative);
-}
-
-void VertexColorNode::compile(OSLCompiler &compiler)
-{
-  if (bump == SHADER_BUMP_DX) {
-    compiler.parameter("bump_offset", "dx");
-  }
-  else if (bump == SHADER_BUMP_DY) {
-    compiler.parameter("bump_offset", "dy");
-  }
-  else {
-    compiler.parameter("bump_offset", "center");
-  }
-  compiler.parameter("bump_filter_width", bump_filter_width);
-
-  if (layer_name.empty()) {
-    compiler.parameter("layer_name", ustring("geom:vertex_color"));
-  }
-  else {
-    compiler.parameter("layer_name", layer_name);
-  }
-
-  compiler.add(this, "node_vertex_color");
-}
+void VertexColorNode::compile(OSLCompiler & /*compiler*/) {}
 
 /* Value */
 

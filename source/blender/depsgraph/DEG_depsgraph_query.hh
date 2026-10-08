@@ -439,7 +439,7 @@ void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
  * Iterate the dependency graph on a component level starting at a component of the given type and
  * name in `start_id`.
  *
- * \param start_component_name can be empty. Not all components have a name. For bones this is the
+ * \param start_component_name: can be empty. Not all components have a name. For bones this is the
  * bone name.
  *
  * \note The callback determines if iteration should continue into dependent components. If true,

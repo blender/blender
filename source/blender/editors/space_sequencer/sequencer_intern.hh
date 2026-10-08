@@ -49,6 +49,7 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
+struct wmGizmoGroupType;
 
 namespace ed::asset {
 struct AssetItemTree;
@@ -143,6 +144,10 @@ float strip_handle_draw_size_get(const Scene *scene, const Strip *strip, float p
 void draw_timeline_seq(const bContext *C, const ARegion *region);
 void sequencer_scrubbing_region_draw(const bContext *C, ARegion *region);
 void draw_timeline_seq_display(const bContext *C, ARegion *region);
+void sequencer_blade_handlers_add(ARegion *region);
+void sequencer_blade_tooltip_show(bContext *C);
+
+void SEQUENCER_GGT_blade(wmGizmoGroupType *gzgt);
 
 /* `sequencer_preview_draw.cc` */
 
@@ -202,13 +207,15 @@ bool sequencer_view_preview_only_poll(const bContext *C);
 bool sequencer_view_strips_poll(bContext *C);
 
 /**
- * Returns collection with all strips presented to user. If operation is done in preview,
- * collection is limited to all presented strips that can produce image output.
- *
- * \param C: context
- * \return collection of strips (`Strip`)
+ * Returns all strips presented to the user. If the operation is done in preview, this is limited
+ * to presented strips that can produce image output.
  */
 VectorSet<Strip *> all_strips_from_context(bContext *C);
+
+/** Temporary shim to query split & box blade property, where either the new #only_selected or
+ * deprecated #ignore_selection may be used, to be removed in 6.0.  */
+bool split_only_selected_get(wmOperator *op);
+rctf box_blade_rect_get(wmOperator *op, const View2D *v2d);
 
 /* Externals. */
 
@@ -234,6 +241,7 @@ void SEQUENCER_OT_swap_inputs(wmOperatorType *ot);
 void SEQUENCER_OT_duplicate(wmOperatorType *ot);
 void SEQUENCER_OT_delete(wmOperatorType *ot);
 void SEQUENCER_OT_ripple_delete(wmOperatorType *ot);
+void SEQUENCER_OT_ripple_trim(wmOperatorType *ot);
 void SEQUENCER_OT_offset_clear(wmOperatorType *ot);
 void SEQUENCER_OT_images_separate(wmOperatorType *ot);
 void SEQUENCER_OT_meta_toggle(wmOperatorType *ot);
@@ -277,13 +285,9 @@ void SEQUENCER_OT_scene_frame_range_update(wmOperatorType *ot);
  * \note Strips are slightly shorter than their containing channels:
  * their height starts at `STRIP_OFSBOTTOM` and ends at `STRIP_OFSTOP`.
  * For a strip's channel and frame extents (rather than the size),
- * see #strip_int_bounds_get.
+ * see #seq::strip_int_bounds_get.
  */
 rctf strip_bounds_get(const Scene *scene, const Strip *strip);
-/**
- *  Returns the extents of the strip along channels and frames.
- */
-rcti strip_int_bounds_get(const Scene *scene, const Strip *strip);
 
 Strip *find_neighboring_strip(const Scene *scene, const Strip *test, const seq::Side lr, int sel);
 
@@ -439,12 +443,11 @@ const Strip *sequencer_text_editing_cursor_strip_get(const Scene *scene);
  *
  * \param strip: The result of #sequencer_text_editing_cursor_strip_get.
  *
- * \note when \a strip is non-null this function may still return null.
- * The \a strip may be non-null even when no position is found below:
- * - The current-frame may be off the strip.
- * - The runtime not built until the strip renders.
+ * \note This may return null even when \a strip is non-null:
+ * - The current frame may be off the strip.
+ * - The runtime may not be built until the strip renders.
  *
- * In both recover while editing stays active.
+ * In both cases editing stays active and recovers.
  */
 std::optional<int2> sequencer_text_editing_cursor_region_xy_get(const Scene *scene,
                                                                 const ARegion *region,

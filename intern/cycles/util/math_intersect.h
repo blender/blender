@@ -94,8 +94,7 @@ ccl_device bool ray_disk_intersect(const float3 ray_P,
   const float3 vp = ray_P - disk_P;
   const float dp = dot(vp, disk_N);
   const float cos_angle = dot(disk_N, -ray_D);
-  if (dp * cos_angle > 0.f)  // front of light
-  {
+  if (dp * cos_angle > 0.f) {  // front of light
     const float t = dp / cos_angle;
     if (t < 0.f) { /* Ray points away from the light. */
       return false;

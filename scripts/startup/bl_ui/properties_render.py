@@ -153,6 +153,19 @@ class RENDER_PT_color_management_advanced(RenderButtonsPanel, Panel):
         col.active = scene.view_settings.support_emulation
         col.prop(scene.display_settings, "emulation")
 
+        colorspace = context.blend_data.colorspace
+        source = colorspace.bl_rna.properties["ocio_config_source"].enum_items[colorspace.ocio_config_source]
+
+        split = layout.split(factor=layout.property_split_factor)
+        row = split.row()
+        row.alignment = 'RIGHT'
+        row.label(text="OpenColorIO Config")
+        col = split.column()
+        col.active = False
+        col.label(text=source.name)
+        if colorspace.ocio_config_source != 'BLENDER' and colorspace.ocio_config_path:
+            col.label(text=colorspace.ocio_config_path, translate=False)
+
 
 class RENDER_PT_color_management_curves(RenderButtonsPanel, Panel):
     bl_label = "Curves"

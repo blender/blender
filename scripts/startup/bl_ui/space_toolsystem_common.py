@@ -505,7 +505,7 @@ class ToolSelectPanelHelper:
             keymap_fn[0](km)
         keymap_fn[0] = km.name
 
-        # Ensure we have a default key map, so the add-ons keymap is properly overlayed.
+        # Ensure we have a default key map, so the add-ons keymap is properly overlaid.
         if kc_default is not kc:
             kc_default.keymaps.new(km_idname, **km_kwargs)
 
@@ -784,8 +784,9 @@ class ToolSelectPanelHelper:
             return None, None
 
     @staticmethod
-    def tool_active_from_context(context):
-        space_type = context.space_data.type
+    def tool_active_from_context(context, space_type=None):
+        if space_type is None:
+            space_type = context.space_data.type
         return ToolSelectPanelHelper._tool_active_from_context(context, space_type)
 
     @staticmethod

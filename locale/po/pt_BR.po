@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"POT-Creation-Date: 2026-10-05 07:25+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -3013,6 +3013,10 @@ msgid "Collection of worlds"
 msgstr "Coleção de mundos"
 
 
+msgid "Project"
+msgstr "Projetar"
+
+
 msgctxt "ID"
 msgid "ID Type"
 msgstr "Tipo de identificador"
@@ -3020,6 +3024,10 @@ msgstr "Tipo de identificador"
 
 msgid "Dirty"
 msgstr "Incongruente"
+
+
+msgid "Path"
+msgstr "Caminho"
 
 
 msgid "Blender RNA"
@@ -4059,6 +4067,10 @@ msgstr "Mostrar Laço"
 
 msgid "Active Layer"
 msgstr "Camada ativa"
+
+
+msgid "Cyclic"
+msgstr "Cíclico(a)"
 
 
 msgid "Affect Position"
@@ -5770,10 +5782,6 @@ msgid "Target Object (Curves only)"
 msgstr "Objeto alvo (somente curvas)"
 
 
-msgid "Cyclic"
-msgstr "Cíclico(a)"
-
-
 msgid "Treat curve as cyclic curve (no clamping to curve bounding box)"
 msgstr "Trata a curva como curva cíclica (sem amarração para a caixa circundante da curva)."
 
@@ -6605,10 +6613,6 @@ msgstr "Pontos mais próximos da superfície"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Encolhe a localização para as superfícies mais próximas do alvo."
-
-
-msgid "Project"
-msgstr "Projetar"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -12807,10 +12811,6 @@ msgid "Map Taper"
 msgstr "Mapear afilador"
 
 
-msgid "Path"
-msgstr "Caminho"
-
-
 msgid "Enable the curve to become a translation path"
 msgstr "Habilita a curva para se tornar um caminho de movimentação (translação)."
 
@@ -13986,10 +13986,6 @@ msgstr "Grupo de vértices para aplicar a influência da treliça."
 
 msgid "External .blend file from which data is linked"
 msgstr "Arquivo .blend externo ao qual os dados estão vinculados."
-
-
-msgid "Path to the library .blend file"
-msgstr "Caminho para o arquivo de biblioteca Blender."
 
 
 msgctxt "Light"
@@ -19462,22 +19458,6 @@ msgid "Type of event"
 msgstr "Tipo de evento"
 
 
-msgid "Press"
-msgstr "Pressionar"
-
-
-msgid "Release"
-msgstr "Liberar"
-
-
-msgid "Click"
-msgstr "Clicar"
-
-
-msgid "Double Click"
-msgstr "Duplo clique"
-
-
 msgid "KeyMap Items"
 msgstr "Item de mapa de teclas"
 
@@ -19973,6 +19953,10 @@ msgstr "Objetos ativos"
 
 msgid "Selected Objects"
 msgstr "Objetos selecionados"
+
+
+msgid "Path to the library .blend file"
+msgstr "Caminho para o arquivo de biblioteca Blender."
 
 
 msgid "Alpha modifiers for changing line alphas"
@@ -21152,6 +21136,38 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
@@ -21160,200 +21176,168 @@ msgid "Clean Up"
 msgstr "Limpeza"
 
 
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
+msgid "Light Probe"
+msgstr "Sonda de Luz"
 
 
 msgid "Local View"
 msgstr "Visão local"
 
 
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
 
 
 msgid "Light"
 msgstr "Luz"
 
 
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "Apply"
 msgstr "Aplicar"
 
 
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
+msgid "Merge"
+msgstr "Fundir"
 
 
 msgid "Tracking"
 msgstr "Rastreamento"
 
 
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Propagate"
-msgstr "Propagar"
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
 
 
 msgid "Names"
 msgstr "Nomes"
 
 
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
 
 
 msgid "Disable Bone Options"
 msgstr "Desabilitar as opções de ossos"
 
 
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
 
 
-msgid "Face Data"
-msgstr "Dados das faces"
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
 
 
-msgid "Merge"
-msgstr "Fundir"
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
 
 
 msgid "Special Characters"
 msgstr "Caracteres especiais"
 
 
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Basic"
@@ -26106,14 +26090,6 @@ msgid "Limit speed of tracking to make visual feedback easier (this does not aff
 msgstr "Limita a velocidade de rastreamento para tornar o efeito de retorno visual mais fácil (isto não afeta a qualidade de rastreamento)."
 
 
-msgid "Fastest"
-msgstr "A mais rápida"
-
-
-msgid "Double"
-msgstr "Dobrar"
-
-
 msgid "Track with double speed"
 msgstr "Rastreia com o dobro da velocidade."
 
@@ -26124,10 +26100,6 @@ msgstr "Rastreia com velocidade em tempo real."
 
 msgid "Track with half of realtime speed"
 msgstr "Rastreia com metade da velocidade em tempo real."
-
-
-msgid "Quarter"
-msgstr "Um quarto"
 
 
 msgid "Track with quarter of realtime speed"
@@ -27210,10 +27182,6 @@ msgid "Tangent Space"
 msgstr "Espaço tangente"
 
 
-msgid "Unknown"
-msgstr "Desconhecido"
-
-
 msgid "Subdivide Curve"
 msgstr "Subdividir Curva"
 
@@ -27236,6 +27204,10 @@ msgstr "Empacotar as ilhas UV"
 
 msgid "Warning"
 msgstr "Alerta"
+
+
+msgid "Comment"
+msgstr "Comentar"
 
 
 msgid "Input Items"
@@ -38383,6 +38355,10 @@ msgid "Clear the boundaries for viewer operations"
 msgstr "Limpa as limitações para as operações de visualização."
 
 
+msgid "Use Active"
+msgstr "Usar os dados ativos"
+
+
 msgctxt "Operator"
 msgid "Delete with Reconnect"
 msgstr "Apagar com reconexão"
@@ -41120,10 +41096,6 @@ msgstr "Fecha ou abre todos os itens"
 msgctxt "Operator"
 msgid "Rename"
 msgstr "Renomear"
-
-
-msgid "Use Active"
-msgstr "Usar os dados ativos"
 
 
 msgctxt "Operator"
@@ -44178,6 +44150,11 @@ msgid "Append active modifiers to selected strips"
 msgstr "Anexa os modificadores ativos às faixas selecionadas."
 
 
+msgctxt "Sequence"
+msgid "Double"
+msgstr "Duplo"
+
+
 msgctxt "Operator"
 msgid "Move Strip Modifier"
 msgstr "Mover modificador de faixa"
@@ -44500,10 +44477,6 @@ msgstr "Mostra uma lista de textos usados no documento aberto."
 msgctxt "Operator"
 msgid "Toggle Comments"
 msgstr "Alternar Comentários"
-
-
-msgid "Comment"
-msgstr "Comentar"
 
 
 msgid "Un-Comment"
@@ -47881,16 +47854,16 @@ msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
 
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
+msgid "Stereoscopy"
+msgstr "Estereoscopia"
 
 
 msgid "Quad View"
 msgstr "Exibição Quadrante"
 
 
-msgid "Stereoscopy"
-msgstr "Estereoscopia"
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
 
 
 msgid "Bone Constraints"
@@ -48419,10 +48392,6 @@ msgstr "Órbita e Pan"
 
 msgid "3D Mouse Settings"
 msgstr "Configurações de mouse 3D"
-
-
-msgid "Auto Run Python Scripts"
-msgstr "Executar scripts Python automaticamente"
 
 
 msgid "Cycles Render Devices"
@@ -50191,6 +50160,10 @@ msgid "Load user interface setup when loading .blend files"
 msgstr "Carrega as configurações de interface de usuário ao carregar arquivos .blend."
 
 
+msgid "Auto Run Python Scripts"
+msgstr "Executar scripts Python automaticamente"
+
+
 msgid "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)"
 msgstr "Permite que qualquer arquivo .blend rode scripts automaticamente (inseguro para arquivos de fontes não confiáveis)."
 
@@ -51169,10 +51142,6 @@ msgstr "Usa uma amostragem equiangular, melhor para volumes com baixa densidade 
 
 msgid "Multiple Importance"
 msgstr "Múltipla importância"
-
-
-msgid "Combine distance and equi-angular sampling for volumes where neither method is ideal"
-msgstr "Combina a distância e a amostragem equiangular para volumes onde nenhum método é ideal."
 
 
 msgid "AO Distance"
@@ -54815,10 +54784,6 @@ msgid "Show camera objects"
 msgstr "Mostrar objetos de câmera"
 
 
-msgid "Sort Alphabetically"
-msgstr "Ordenar alfabeticamente"
-
-
 msgid "Search term for filtering in the UI"
 msgstr "Termo de pesquisa para filtragem na interface de usuário."
 
@@ -55730,11 +55695,6 @@ msgstr "Tipo de transição"
 msgctxt "Sequence"
 msgid "Single"
 msgstr "Único"
-
-
-msgctxt "Sequence"
-msgid "Double"
-msgstr "Duplo"
 
 
 msgctxt "Sequence"
@@ -58284,6 +58244,14 @@ msgid "Occlude objects with the environment color as they are further away"
 msgstr "Calcula a oclusão dos objetos com a cor do ambiente, como se eles estivessem distantes."
 
 
+msgid "Press"
+msgstr "Pressionar"
+
+
+msgid "Release"
+msgstr "Liberar"
+
+
 msgid "Operator Properties"
 msgstr "Propriedades de operador"
 
@@ -58732,11 +58700,6 @@ msgid ":"
 msgstr ":"
 
 
-msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "Relatar defeito (em inglês)"
-
-
 msgid "Object Index"
 msgstr "Índice de objeto"
 
@@ -58891,6 +58854,11 @@ msgstr "Alerta:"
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Documentação"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Relatar defeito (em inglês)"
 
 
 msgid "File:"
@@ -59069,6 +59037,10 @@ msgstr "Localização"
 msgctxt "Operator"
 msgid "Rotation"
 msgstr "Rotação"
+
+
+msgid "Unknown"
+msgstr "Desconhecido"
 
 
 msgctxt "Operator"
@@ -60785,11 +60757,6 @@ msgstr "Geral"
 
 
 msgctxt "Operator"
-msgid "Alembic (.abc)"
-msgstr "Alembic (.abc)"
-
-
-msgctxt "Operator"
 msgid "Render Image"
 msgstr "Renderizar imagem"
 
@@ -61944,11 +61911,6 @@ msgstr "Pintura múltipla"
 
 
 msgctxt "Operator"
-msgid "Quick Edit"
-msgstr "Edição rápida"
-
-
-msgctxt "Operator"
 msgid "Apply"
 msgstr "Aplicar"
 
@@ -62025,6 +61987,10 @@ msgstr ", não é possível ter caminhos de um único quadro."
 
 msgid "Motion path frame extents invalid for %s (%d to %d)%s"
 msgstr "Extensão de caminho de quadros de movimento inválido para %s (%d para %d)%s"
+
+
+msgid "GP_Layer"
+msgstr "Camada de lápis de cera"
 
 
 msgid "Saved \"%s\""
@@ -62162,10 +62128,6 @@ msgstr "Sem título"
 
 msgid "True Normal"
 msgstr "Normal verdadeira"
-
-
-msgid "GP_Layer"
-msgstr "Camada de lápis de cera"
 
 
 msgid "Slot %d"
@@ -63136,14 +63098,6 @@ msgstr "Estender extrapolações"
 
 msgid "Reset Curve"
 msgstr "Redefinir curva"
-
-
-msgid "H"
-msgstr "H"
-
-
-msgid "S"
-msgstr "S"
 
 
 msgid "Zoom in"
@@ -66708,6 +66662,10 @@ msgid "Val"
 msgstr "Valor"
 
 
+msgid "S"
+msgstr "S"
+
+
 msgid "Invert Arc"
 msgstr "Inverter Arco"
 
@@ -67010,6 +66968,10 @@ msgstr "Peso de funcionalidade 4"
 
 msgid "iScale"
 msgstr "Escala de intensidade"
+
+
+msgid "H"
+msgstr "H"
 
 
 msgid "Could not resolve path (%s)"

@@ -33,7 +33,7 @@ from .search_node_tree import \
     previous_socket, next_node
 
 
-class BlenderMaterialIndentifier:
+class BlenderMaterialIdentifier:
     def __init__(self, blender_material, export_settings):
         self.id = id(blender_material)
         self.used = None
@@ -199,7 +199,8 @@ class BlenderMaterialIndentifier:
                 self.__get_all_nodes_recursive(node.node_tree, new_group_path)
 
             # Check if we have the glTF material node
-            if self.gltf_material_node == -1 and node.node_tree.name.lower() in gltf_node_group_names:
+            if self.gltf_material_node == -1 \
+                    and any(node.node_tree.name.lower().startswith(name) for name in gltf_node_group_names):
                 self.gltf_material_node = node
                 self.gltf_material_node_group_path = group_path.copy()
 
@@ -295,23 +296,24 @@ def get_material_cache_key(blender_material, export_settings):
 
 
 @cached_by_key(key=get_material_cache_key)
-def gather_material(bmat, export_settings):
+def gather_material(mat, export_settings):
     """
     Gather the material used by the blender primitive.
 
-    :param blender_material: the blender material used in the glTF primitive
+    :param mat: the blender material used in the glTF primitive
     :param export_settings:
-    :return: a glTF material
+    :return: a glTF material and some info about UV maps, vertex colors, and UDIMs
     """
+    # Also: Make sure to return bmat, so temporary inline material node tree will continue to exist
 
-    bmat = BlenderMaterialIndentifier(bmat, export_settings)
+    bmat = BlenderMaterialIdentifier(mat, export_settings)
 
     if not __filter_material(bmat, export_settings):
-        return None, {"uv_info": {}, "vc_info": {'color': None, 'alpha': None,
-                                                 'color_type': None, 'alpha_type': None, 'alpha_mode': "OPAQUE"}, "udim_info": {}}
+        return bmat, None, {"uv_info": {}, "vc_info": {'color': None, 'alpha': None,
+                                                       'color_type': None, 'alpha_type': None, 'alpha_mode': "OPAQUE"}, "udim_info": {}}
 
     if export_settings['gltf_materials'] == "VIEWPORT":
-        return export_viewport_material(bmat.material, export_settings), {"uv_info": {}, "vc_info": {
+        return bmat, export_viewport_material(bmat.material, export_settings), {"uv_info": {}, "vc_info": {
             'color': None, 'alpha': None, 'color_type': None, 'alpha_type': None, 'alpha_mode': "OPAQUE"}, "udim_info": {}}
 
     nodes_used = export_settings['nodes_used'] = {}
@@ -321,10 +323,10 @@ def gather_material(bmat, export_settings):
 
     mat_unlit, uvmap_info, vc_info, udim_info = __export_unlit(bmat, export_settings)
     if mat_unlit is not None:
-        # Make sure to expose bmat.material (the original material), so users can retrieve additional proporties
+        # Make sure to expose bmat.material (the original material), so users can retrieve additional properties
         # (These properties are not available on the inline material)
         export_user_extensions('gather_material_hook', export_settings, mat_unlit, bmat.material)
-        return mat_unlit, {"uv_info": uvmap_info, "vc_info": vc_info, "udim_info": udim_info}
+        return bmat, mat_unlit, {"uv_info": uvmap_info, "vc_info": vc_info, "udim_info": udim_info}
 
     orm_texture = __gather_orm_texture(bmat, export_settings)
 
@@ -412,7 +414,7 @@ def gather_material(bmat, export_settings):
     if material.emissive_factor is not None and bmat.get_socket("Base Color").socket is None:
         material.pbr_metallic_roughness = gltf2_pbr_metallic_roughness.get_default_pbr_for_emissive_node()
 
-    # Make sure to expose bmat.material (the original material), so users can retrieve additional proporties
+    # Make sure to expose bmat.material (the original material), so users can retrieve additional properties
     # (These properties are not available on the inline material)
     export_user_extensions('gather_material_hook', export_settings, material, bmat.material)
 
@@ -425,7 +427,7 @@ def gather_material(bmat, export_settings):
 
     export_settings['current_paths'] = {}
 
-    return material, {"uv_info": uvmap_infos, "vc_info": vc_info, "udim_info": udim_infos}
+    return bmat, material, {"uv_info": uvmap_infos, "vc_info": vc_info, "udim_info": udim_infos}
 
 
 def get_new_material_texture_shared(base, node):
@@ -629,7 +631,7 @@ def __gather_orm_texture(bmat, export_settings):
     hasRough = roughness_socket.socket is not None and has_image_node_from_socket(roughness_socket, export_settings)
 
     # Warning: for default socket, do not use NodeSocket object, because it will break cache
-    # Using directlty the Blender socket object
+    # Using directly the Blender socket object
     if not hasMetal and not hasRough:
         metallic_roughness = bmat.get_socket_from_gltf_material_node("MetallicRoughness")
         if metallic_roughness.socket is None or not has_image_node_from_socket(metallic_roughness, export_settings):
@@ -786,7 +788,7 @@ def __export_unlit(bmat, export_settings):
     if export_settings['gltf_extras'] and export_settings['gltf_export_anim_pointer']:
         export_settings['KHR_animation_pointer']['extras']['materials'][bmat.id]['glTF_extras'] = material
 
-    # Make sure to expose bmat.material (the original material), so users can retrieve additional proporties
+    # Make sure to expose bmat.material (the original material), so users can retrieve additional properties
     # (These properties are not available on the inline material)
     export_user_extensions('gather_material_unlit_hook', export_settings, material, bmat.material)
 
@@ -922,7 +924,7 @@ def __get_final_material_with_indices(blender_material, base_material, caching_i
                 material.extensions["KHR_materials_sheen"].extension['sheenRoughnessTexture'].tex_coord = ind
         elif tex == "thicknessTexture":
             if material.extensions["KHR_materials_volume"].extension['thicknessTexture']:
-                material.extensions["KHR_materials_volume"].extension['thicknessTexture'].tex_ccord = ind
+                material.extensions["KHR_materials_volume"].extension['thicknessTexture'].tex_coord = ind
         elif tex == "anisotropyTexture":
             if material.extensions["KHR_materials_anisotropy"].extension['anisotropyTexture']:
                 material.extensions["KHR_materials_anisotropy"].extension['anisotropyTexture'].tex_coord = ind
@@ -954,6 +956,7 @@ def get_material_from_idx(material_idx, materials, export_settings):
 
 def get_base_material(material_idx, materials, export_settings):
 
+    bmat = None
     export_settings['current_paths'] = {}
 
     material = None
@@ -971,7 +974,7 @@ def get_base_material(material_idx, materials, export_settings):
 
     mat = get_material_from_idx(material_idx, materials, export_settings)
     if mat is not None:
-        material, material_info = gather_material(
+        bmat, material, material_info = gather_material(
             mat,
             export_settings
         )
@@ -984,7 +987,7 @@ def get_base_material(material_idx, materials, export_settings):
             # VC will have alpha, as there is no material to know if alpha is used or not
             material_info["vc_info"]["alpha_mode"] = "BLEND"
 
-    return material, material_info
+    return bmat, material, material_info
 
 
 def get_all_textures(idx=0):

@@ -5,7 +5,6 @@
 #pragma once
 
 #include "gpu_shader_material_interface.bsl.hh"
-#include "gpu_shader_utildefines.bsl.hh"
 
 [[node]]
 void input_normal_displaced(const ShadingData &sd, float3 &out_N)

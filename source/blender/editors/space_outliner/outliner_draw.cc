@@ -257,20 +257,6 @@ static void restrictbutton_gp_layer_flag_fn(bContext *C, void *poin, void * /*po
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 }
 
-static void restrictbutton_id_user_toggle(bContext * /*C*/, void *poin, void * /*poin2*/)
-{
-  ID *id = static_cast<ID *>(poin);
-
-  BLI_assert(id != nullptr);
-
-  if (id->flag & ID_FLAG_FAKEUSER) {
-    id_us_plus(id);
-  }
-  else {
-    id_us_min(id);
-  }
-}
-
 static void outliner_object_set_flag_recursive_fn(bContext *C,
                                                   Base *base,
                                                   Object *ob,
@@ -1235,6 +1221,12 @@ static void outliner_draw_restrictbuts(ui::Block *block,
   int restrict_column_offset = 0;
 
   /* This will determine the order of drawing from RIGHT to LEFT. */
+  if (ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES)) {
+    /* Users column is the rightmost in both View Layer and Scenes; reserve its slot. */
+    if (space_outliner->flag & SO_USERS_COLUMN) {
+      restrict_column_offset++;
+    }
+  }
   if (space_outliner->outlinevis == SO_VIEW_LAYER) {
     if (space_outliner->show_restrict_flags & SO_RESTRICT_INDIRECT_ONLY) {
       restrict_offsets.indirect_only = (++restrict_column_offset) * UI_UNIT_X + V2D_SCROLL_WIDTH;
@@ -1921,24 +1913,59 @@ static void outliner_draw_restrictbuts(ui::Block *block,
   }
 }
 
+struct UserTooltip_Store {
+  bool has_fake_user;
+  bool is_linked;
+  int real_users;
+};
+
+static std::string user_tooltip_func(bContext * /*C*/, void *argN, const StringRef /*tip*/)
+{
+  const UserTooltip_Store *arg = static_cast<UserTooltip_Store *>(argN);
+  const bool has_fake_user = arg->has_fake_user;
+  const bool is_linked = arg->is_linked;
+  const int real_users = arg->real_users;
+
+  if (has_fake_user) {
+    return is_linked ? TIP_("Item is protected from deletion") :
+                       TIP_("Click to remove protection from deletion");
+  }
+
+  if (real_users) {
+    return is_linked ? TIP_("Item is not protected from deletion") :
+                       TIP_("Click to add protection from deletion");
+  }
+
+  return is_linked ?
+             TIP_("Item has no users and will be removed") :
+             TIP_("Item has no users and will be removed.\nClick to protect from deletion");
+}
+
 static void outliner_draw_userbuts(ui::Block *block,
                                    const ARegion *region,
                                    const SpaceOutliner *space_outliner)
 {
+  const int xmax_offset = ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES) ?
+                              int(UI_UNIT_X + V2D_SCROLL_WIDTH) :
+                              int(OL_TOG_USER_BUTS_USERS);
+
   tree_iterator::all_open(*space_outliner, [&](const TreeElement *te) {
     if (!outliner_is_element_in_view(te, &region->v2d)) {
       return;
     }
 
     const TreeStoreElem *tselem = TREESTORE(te);
-    ID *id = tselem->id;
 
-    if (tselem->type != TSE_SOME_ID || id->tag & ID_TAG_EXTRAUSER) {
+    if (tselem->type != TSE_SOME_ID && tselem->type != TSE_LAYER_COLLECTION) {
+      return;
+    }
+
+    ID *id = tselem->id;
+    if (!id || id->tag & ID_TAG_EXTRAUSER) {
       return;
     }
 
     ui::Button *bt;
-    std::optional<StringRef> tip;
     const int real_users = id->us - ID_FAKE_USERS(id);
     const bool has_fake_user = id->flag & ID_FLAG_FAKEUSER;
     const bool is_linked = ID_IS_LINKED(id);
@@ -1950,7 +1977,7 @@ static void outliner_draw_userbuts(ui::Block *block,
       bt = uiDefBut(block,
                     ui::ButtonType::But,
                     overlay,
-                    int(region->v2d.cur.xmax - OL_TOG_USER_BUTS_USERS),
+                    int(region->v2d.cur.xmax - xmax_offset),
                     te->ys,
                     UI_UNIT_X,
                     UI_UNIT_Y,
@@ -1960,35 +1987,26 @@ static void outliner_draw_userbuts(ui::Block *block,
                     TIP_("Number of users"));
     }
     else {
+      PointerRNA idptr = RNA_id_pointer_create(id);
+      bt = uiDefIconButR(block,
+                         ui::ButtonType::IconToggle,
+                         ICON_FAKE_USER_OFF,
+                         int(region->v2d.cur.xmax - xmax_offset),
+                         te->ys,
+                         UI_UNIT_X,
+                         UI_UNIT_Y,
+                         &idptr,
+                         "use_fake_user",
+                         -1,
+                         0,
+                         0,
+                         nullptr);
 
-      if (has_fake_user) {
-        tip = is_linked ? TIP_("Item is protected from deletion") :
-                          TIP_("Click to remove protection from deletion");
-      }
-      else {
-        if (real_users) {
-          tip = is_linked ? TIP_("Item is not protected from deletion") :
-                            TIP_("Click to add protection from deletion");
-        }
-        else {
-          tip = is_linked ?
-                    TIP_("Item has no users and will be removed") :
-                    TIP_("Item has no users and will be removed.\nClick to protect from deletion");
-        }
-      }
-
-      bt = uiDefIconButBit(block,
-                           ui::ButtonType::IconToggle,
-                           ID_FLAG_FAKEUSER,
-                           ICON_FAKE_USER_OFF,
-                           int(region->v2d.cur.xmax - OL_TOG_USER_BUTS_USERS),
-                           te->ys,
-                           UI_UNIT_X,
-                           UI_UNIT_Y,
-                           &id->flag,
-                           0,
-                           0,
-                           tip);
+      UserTooltip_Store *tip_arg = MEM_new_uninitialized<UserTooltip_Store>(__func__);
+      tip_arg->has_fake_user = has_fake_user;
+      tip_arg->is_linked = is_linked;
+      tip_arg->real_users = real_users;
+      button_func_tooltip_set(bt, user_tooltip_func, tip_arg, MEM_delete_void);
 
       if (is_linked) {
         blender::ui::button_disable(bt,
@@ -1996,7 +2014,6 @@ static void outliner_draw_userbuts(ui::Block *block,
                                     "referencing it through a Custom Property");
       }
       else {
-        button_func_set(bt, restrictbutton_id_user_toggle, id, nullptr);
         /* Allow _inaccurate_ dragging over multiple toggles. */
         button_flag_enable(bt, ui::BUT_DRAG_LOCK);
       }
@@ -3950,6 +3967,13 @@ void draw_outliner(const bContext *C, bool do_rebuild)
                                space_outliner,
                                &space_outliner->runtime->tree,
                                props_active);
+
+    /* For View Layer and Scenes, draw the optional users column as the rightmost column. */
+    if (ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES) &&
+        (space_outliner->flag & SO_USERS_COLUMN))
+    {
+      outliner_draw_userbuts(block, region, space_outliner);
+    }
   }
 
   /* Draw mode icons */

@@ -6,7 +6,7 @@
 
 #include "eevee_shadow_shared.hh"
 
-#define max_page uint(SHADOW_MAX_PAGE)
+static constexpr uint max_page = uint(SHADOW_MAX_PAGE);
 
 namespace eevee::shadow {
 

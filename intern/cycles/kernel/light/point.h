@@ -211,10 +211,10 @@ ccl_device_forceinline bool point_light_tree_parameters(const ccl_global KernelL
     }
   }
   else {
-    const float hypotenus = sqrtf(sqr(radius) + sqr(min_distance));
-    cos_theta_u = min_distance / hypotenus;
+    const float hypotenuse = sqrtf(sqr(radius) + sqr(min_distance));
+    cos_theta_u = min_distance / hypotenuse;
 
-    distance.x = hypotenus;
+    distance.x = hypotenuse;
   }
 
   return true;

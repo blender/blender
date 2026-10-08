@@ -46,7 +46,6 @@
 #include <optional>
 
 #include <cstring>    /* For `memcpy`. */
-#include <malloc.h>   /* For `malloc_usable_size`. */
 #include <sys/mman.h> /* For `munmap`. */
 
 /* Logging, use `ghost.wl.*` prefix. */

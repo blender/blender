@@ -323,11 +323,10 @@ ccl_device_forceinline
 /* MSVC has very long compilation time (x20) if we force inline this function */
 ccl_device
 #endif
-    ShaderEvalResult
-    integrate_surface_direct_light(KernelGlobals kg,
-                                   IntegratorState state,
-                                   ccl_private ShaderData *sd,
-                                   const ccl_private RNGState *rng_state)
+    ShaderEvalResult integrate_surface_direct_light(KernelGlobals kg,
+                                                    IntegratorState state,
+                                                    ccl_private ShaderData *sd,
+                                                    const ccl_private RNGState *rng_state)
 {
   /* Test if there is a light or BSDF that needs direct light. */
   if (!(kernel_data.integrator.use_direct_light && (sd->runtime_flag & SR_BSDF_HAS_EVAL))) {

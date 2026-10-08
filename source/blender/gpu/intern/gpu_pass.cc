@@ -370,7 +370,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
 
   GPUCodegen codegen(material, graph, debug_name);
   codegen.generate_graphs();
-  codegen.generate_cryptomatte();
+  codegen.generate_material_props();
 
   GPUPass *pass = nullptr;
 

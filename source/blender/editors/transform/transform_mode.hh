@@ -119,10 +119,6 @@ bool transform_mode_is_axis_pointing_to_screen(const TransInfo *t, const float3 
 
 extern TransModeInfo TransMode_align;
 
-/* `transform_mode_baketime.cc` */
-
-extern TransModeInfo TransMode_baketime;
-
 /* `transform_mode_bbone_resize.cc` */
 
 extern TransModeInfo TransMode_bboneresize;
@@ -157,6 +153,7 @@ extern TransModeInfo TransMode_rotatenormal;
 
 extern TransModeInfo TransMode_seqslide;
 bool transform_mode_edge_seq_slide_use_restore_handle_selection(const TransInfo *t);
+wmOperator *transform_mode_edge_seq_slide_operator_get(const TransInfo *t);
 
 /* `transform_mode_edge_slide.cc` */
 

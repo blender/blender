@@ -40,4 +40,8 @@ struct bUserAssetLibrary *ED_userpref_asset_library_new(const struct bContext *C
                                                         std::optional<char *> auth_token);
 void ED_userpref_asset_library_remove(bContext *C, struct bUserAssetLibrary *asset_library);
 
+/** The library active in the preferences, null when a built-in or repository row is active. */
+struct bUserAssetLibrary *ED_userpref_asset_library_active_get();
+void ED_userpref_asset_library_active_set(const struct bUserAssetLibrary &asset_library);
+
 }  // namespace blender

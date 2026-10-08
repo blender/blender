@@ -220,6 +220,10 @@ class VertexColourImportTest(AbstractAlembicTest):
         self.assertAlmostEqualFloatArray(layer.data[98].color, (0.9019607, 0.4745098, 0.2666666, 1.0))
         self.assertAlmostEqualFloatArray(layer.data[99].color, (0.8941176, 0.4705882, 0.2627451, 1.0))
 
+        mesh = ob.data
+        self.assertEqual(mesh.color_attributes.active_color_name, 'Cf')
+        self.assertEqual(mesh.color_attributes.default_color_name, 'Cf')
+
     def test_import_from_blender(self):
         # Blender saved per-vertex, and as RGBA.
         res = bpy.ops.wm.alembic_import(
@@ -234,6 +238,37 @@ class VertexColourImportTest(AbstractAlembicTest):
         self.assertAlmostEqualFloatArray(layer.data[0].color, (1.0, 0.0156862, 0.3607843, 1.0))
         self.assertAlmostEqualFloatArray(layer.data[98].color, (0.0941176, 0.1215686, 0.9137254, 1.0))
         self.assertAlmostEqualFloatArray(layer.data[99].color, (0.1294117, 0.3529411, 0.7529411, 1.0))
+
+        mesh = ob.data
+        self.assertEqual(mesh.color_attributes.active_color_name, 'Cf')
+        self.assertEqual(mesh.color_attributes.default_color_name, 'Cf')
+
+
+class VertexColourImportExportTest(AbstractAlembicTest):
+    def setUp(self):
+        self._tempdir = tempfile.TemporaryDirectory()
+        self.tempdir = pathlib.Path(self._tempdir.name)
+
+    def test_export_import_default_active(self):
+        """Test export and import of the default and active color attribute names"""
+
+        abc_path = str(self.tempdir / "vertex-colours-default-active.abc")
+
+        # Export
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "vertex-colours-default-active.blend"))
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_export(
+            filepath=abc_path,
+            vcolors=True
+        ))
+
+        # Import back
+        res = bpy.ops.wm.alembic_import(filepath=abc_path, as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        ob = bpy.context.active_object
+        mesh = ob.data
+        self.assertEqual(mesh.color_attributes.active_color_name, 'Active')
+        self.assertEqual(mesh.color_attributes.default_color_name, 'Default')
 
 
 class CameraExportImportTest(unittest.TestCase):
@@ -704,6 +739,51 @@ class AlembicAnimatedSchemaImportTests(AbstractAlembicTest):
 
     def test_animated_curve_velocity(self):
         self.do_import_test("curve-velocity-animated.abc", 13, 169, "Curves")
+
+
+class AlembicEmptyGeometrySamplesTests(AbstractAlembicTest):
+    def setUp(self):
+        self._tempdir = tempfile.TemporaryDirectory()
+        self.tempdir = pathlib.Path(self._tempdir.name)
+
+    def test_empty_geometry_samples(self):
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "empty-geometry-samples.blend"))
+
+        abc_path = self.tempdir / "empty-geometry-samples.abc"
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_export(
+            filepath=str(abc_path),
+        ))
+
+        # Re-import what we just exported into an empty file.
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "empty.blend"))
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_import(filepath=str(abc_path)))
+
+        scene = bpy.context.scene
+        self.assertEqual(scene.frame_start, 1)
+        self.assertEqual(scene.frame_end, 11)
+
+        # Simple animation where geometry exists only on even frames
+        for frame in range(1, 12):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+
+            curves_object = bpy.data.objects["Curves"].evaluated_get(depsgraph)
+            curves = curves_object.data
+
+            mesh_object = bpy.data.objects["Plane"].evaluated_get(depsgraph)
+            mesh = mesh_object.data
+
+            points_object = bpy.data.objects["PointCloud"].evaluated_get(depsgraph)
+            points = points_object.data
+
+            if frame % 2 == 0:
+                self.assertEqual(len(curves.points), 8)
+                self.assertEqual(len(mesh.vertices), 4)
+                self.assertEqual(len(points.points), 1)
+            else:
+                self.assertEqual(len(curves.points), 0)
+                self.assertEqual(len(mesh.vertices), 0)
+                self.assertEqual(len(points.points), 0)
 
 
 class AlembicImportComparisonTests(unittest.TestCase):

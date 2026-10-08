@@ -1626,6 +1626,9 @@ void outliner_scroll_to_active(SpaceOutliner *space_outliner, ARegion *region, s
 
   tree_iterator::all(space_outliner->runtime->tree, [&](TreeElement *te) {
     TreeStoreElem *tselem = TREESTORE(te);
+    if (te->flag & TE_CHILD_NOT_IN_COLLECTION) {
+      return;
+    }
     if (tselem->flag & TSE_ACTIVE) {
       if (tselem->type == TSE_SOME_ID) {
         if (te->idcode == idcode) {

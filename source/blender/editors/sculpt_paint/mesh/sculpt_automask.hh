@@ -35,8 +35,7 @@ struct BMeshNode;
 namespace ed::sculpt_paint::auto_mask {
 
 struct Settings {
-  /* eAutomasking_flag. */
-  int flags;
+  eAutomasking_flag flags;
   int initial_face_set;
   std::array<int, PAINT_SYMM_AREAS> initial_island_nr = {-1, -1, -1, -1, -1, -1, -1, -1};
 
@@ -181,15 +180,19 @@ inline void calc_vert_factors(const Depsgraph &depsgraph,
 
 /**
  * Calculate all auto-masking influence on each face.
+ *
+ * TODO: This method is a bit odd, we interpolate the value across the vertices, even for cases
+ * that could be calculated on a per-face basis. Additionally, it is only used for the face set
+ * brush. Evaluate whether this specialization is needed.
  */
-void calc_face_factors(const Depsgraph &depsgraph,
-                       const Object &object,
-                       OffsetIndices<int> faces,
-                       Span<int> corner_verts,
-                       const Cache &automasking,
-                       const bke::pbvh::MeshNode &node,
-                       Span<int> face_indices,
-                       MutableSpan<float> factors);
+void calc_interpolated_face_factors(const Depsgraph &depsgraph,
+                                    const Object &object,
+                                    OffsetIndices<int> faces,
+                                    Span<int> corner_verts,
+                                    const Cache &automasking,
+                                    const bke::pbvh::MeshNode &node,
+                                    Span<int> face_indices,
+                                    MutableSpan<float> factors);
 
 }  // namespace ed::sculpt_paint::auto_mask
 

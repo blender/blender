@@ -27,16 +27,6 @@ set(INC_GLSL
 )
 
 set(SRC_GLSL_VERT
-  overlay_armature_dof_vert.glsl
-  overlay_armature_envelope_outline_vert.glsl
-  overlay_armature_envelope_solid_vert.glsl
-  overlay_armature_shape_outline_vert.glsl
-  overlay_armature_shape_solid_vert.glsl
-  overlay_armature_shape_wire_vert.glsl
-  overlay_armature_sphere_outline_vert.glsl
-  overlay_armature_sphere_solid_vert.glsl
-  overlay_armature_stick_vert.glsl
-  overlay_armature_wire_vert.glsl
   overlay_clipbound_vert.glsl
   overlay_depth_only_curves_vert.glsl
   overlay_depth_only_gpencil_vert.glsl
@@ -53,12 +43,8 @@ set(SRC_GLSL_VERT
   overlay_edit_lattice_wire_vert.glsl
   overlay_edit_pointcloud_vert.glsl
   overlay_edit_mesh_analysis_vert.glsl
-  overlay_edit_mesh_depth_vert.glsl
-  overlay_edit_mesh_edge_vert.glsl
-  overlay_edit_mesh_facedot_vert.glsl
   overlay_edit_mesh_normal_vert.glsl
   overlay_edit_mesh_skin_root_vert.glsl
-  overlay_edit_mesh_vert.glsl
   overlay_edit_particle_point_vert.glsl
   overlay_edit_particle_strand_vert.glsl
   overlay_edit_uv_edges_vert.glsl
@@ -106,18 +92,10 @@ set(SRC_GLSL_VERT
 )
 
 set(SRC_GLSL_FRAG
-  overlay_armature_dof_solid_frag.glsl
-  overlay_armature_envelope_solid_frag.glsl
-  overlay_armature_shape_solid_frag.glsl
-  overlay_armature_shape_wire_frag.glsl
-  overlay_armature_sphere_solid_frag.glsl
-  overlay_armature_stick_frag.glsl
-  overlay_armature_wire_frag.glsl
   overlay_background_frag.glsl
   overlay_depth_only_frag.glsl
   overlay_depth_only_gpencil_frag.glsl
   overlay_edit_mesh_analysis_frag.glsl
-  overlay_edit_mesh_frag.glsl
   overlay_edit_uv_edges_frag.glsl
   overlay_edit_uv_image_mask_frag.glsl
   overlay_edit_uv_verts_frag.glsl

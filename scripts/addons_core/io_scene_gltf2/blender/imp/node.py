@@ -293,7 +293,12 @@ class BlenderNode():
             if all([prim.mode == 0 for prim in pymesh.primitives]):  # All POINTS
                 is_point_cloud = True
         else:
-            is_point_cloud = False
+            # If all primitives are Gaussian Splatting, we will create a Point Cloud object
+            if all([prim.extensions is not None and 'KHR_gaussian_splatting' in prim.extensions.keys()
+                   for prim in pymesh.primitives]):
+                is_point_cloud = True
+            else:
+                is_point_cloud = False
 
         # Key to cache the Blender mesh by.
         # Same cache key = instances of the same Blender mesh.

@@ -1097,10 +1097,8 @@ class NODE_PT_node_tree_properties(Panel):
         col = layout.column()
         col.prop(group, "name", text="Name", placeholder="Name")
 
-        if group.asset_data:
-            col.prop(group.asset_data, "description", text="Description", placeholder="Description")
-        else:
-            col.prop(group, "description", text="Description", placeholder="Description")
+        data = group.asset_data if group.asset_data else group
+        col.textbox(data, "description", placeholder="Description")
 
         if not group.bl_use_group_interface:
             return

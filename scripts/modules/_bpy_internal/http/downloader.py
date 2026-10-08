@@ -1111,7 +1111,7 @@ def _download_queued_items(
         unqueued = unqueue_request(request_to_cancel)
 
         if request_to_cancel in in_flight_downloads:
-            # Only queue cancelation for already-in-flight downloads, as the item will only be popped off the cancel
+            # Only queue cancellation for already-in-flight downloads, as the item will only be popped off the cancel
             # queue when a worker is done with it. Without a worker thread, the item would be queued indefinitely,
             # interfering with future queues of the same download.
             cancel_queue.add(request_to_cancel)

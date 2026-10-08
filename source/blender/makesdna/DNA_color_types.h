@@ -245,7 +245,12 @@ struct ColorManagedDisplaySettings {
 };
 
 struct ColorManagedColorspaceSettings {
+  /** Name of the color space in the current config. */
   char name[/*MAX_COLORSPACE_NAME*/ 64] = "";
+  /** Interop ID of the color space, to match color spaces between configs
+   * on blend load and update the name. When changing the name, this must be
+   * updated also with #IMB_colormanagement_colorspace_settings_set. */
+  char interop_id[/*MAX_COLORSPACE_NAME*/ 64] = "";
 };
 
 }  // namespace blender

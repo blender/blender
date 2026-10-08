@@ -13,6 +13,7 @@ void node_bsdf_hair(float4 color,
                     float /*roughness_v*/,
                     float3 /*T*/,
                     float weight,
+                    KernelGlobals &kg,
                     ShadingData &sd,
                     Closure &result)
 {
@@ -32,7 +33,7 @@ void node_bsdf_hair(float4 color,
   hair_data.color = color.rgb * weight;
   hair_data.N = sd.N;
 #endif
-  result = closure_eval(sd, hair_data);
+  result = closure_eval(kg, sd, hair_data);
 }
 
 [[node]]
@@ -54,6 +55,7 @@ void node_bsdf_hair_principled(float4 color,
                                float /*random_roughness*/,
                                float /*random*/,
                                float weight,
+                               KernelGlobals &kg,
                                ShadingData &sd,
                                Closure &result)
 {
@@ -71,5 +73,5 @@ void node_bsdf_hair_principled(float4 color,
   hair_data.color = color.rgb * weight;
   hair_data.N = sd.N;
 #endif
-  result = closure_eval(sd, hair_data);
+  result = closure_eval(kg, sd, hair_data);
 }

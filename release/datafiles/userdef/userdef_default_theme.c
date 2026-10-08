@@ -230,9 +230,9 @@ const bTheme U_theme_default = {
       .roundness = 0.2f,
     },
     .wcol_state = {
-      .error = RGBA(0x991616ff),
+      .error = RGBA(0xe6000099),
       .warning = RGBA(0xac8737ff),
-      .info = RGBA(0x28487dff),
+      .info = RGBA(0x1a8cff66),
       .success = RGBA(0x188625ff),
       .inner_anim = RGBA(0x53992eff),
       .inner_anim_sel = RGBA(0x38a600ff),

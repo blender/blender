@@ -10,7 +10,7 @@
 namespace eevee::dof {
 
 struct Gather {
-  [[resource_table]] srt_t<Accumulator> accumulator;
+  [[resource_table]] Accumulator accumulator;
 
   [[sampler(0)]] sampler2D color_tx;
   [[sampler(1)]] sampler2D color_bilinear_tx;
@@ -18,9 +18,6 @@ struct Gather {
 
   [[image(2, write, SFLOAT_16_16_16_16)]] image2D out_color_img;
   [[image(3, write, SFLOAT_16)]] image2D out_weight_img;
-
-  [[compilation_constant]] const bool is_foreground;
-  [[compilation_constant]] const bool use_lut;
 };
 
 /**
@@ -55,7 +52,7 @@ void comp_main([[resource_table]] Resources &srt,
 
   float base_radius, min_radius, min_intersectable_radius;
   bool can_early_out;
-  if (gather.is_foreground) {
+  if (gather.accumulator.consts.is_foreground) {
     base_radius = -coc_tile.fg_min_coc;
     min_radius = -coc_tile.fg_max_coc;
     min_intersectable_radius = -coc_tile.fg_max_intersectable_coc;
@@ -68,7 +65,8 @@ void comp_main([[resource_table]] Resources &srt,
     can_early_out = !prediction.do_background;
   }
 
-  bool do_fast_gather = dof_do_fast_gather(base_radius, min_radius, accum.is_foreground, false);
+  bool do_fast_gather = dof_do_fast_gather(
+      base_radius, min_radius, accum.consts.is_foreground, false);
 
   /* Gather at half resolution. Divide CoC by 2. */
   base_radius *= 0.5f;
@@ -160,7 +158,8 @@ void comp_main([[resource_table]] Gather &gather,
   float min_intersectable_radius = dof_tile_large_coc;
   bool can_early_out = !prediction.do_hole_fill;
 
-  bool do_fast_gather = dof_do_fast_gather(base_radius, min_radius, accum.is_foreground, false);
+  bool do_fast_gather = dof_do_fast_gather(
+      base_radius, min_radius, accum.consts.is_foreground, false);
 
   /* Gather at half resolution. Divide CoC by 2. */
   base_radius *= 0.5f;
@@ -209,30 +208,29 @@ void comp_main([[resource_table]] Gather &gather,
 
 }  // namespace eevee::dof
 
-#ifndef GLSL_CPP_STUBS
 PipelineCompute eevee_depth_of_field_gather_background_lut(eevee::dof::gather::comp_main,
-                                                           eevee::dof::Accumulator{
+                                                           eevee::dof::AccumulatorConstants{
                                                                .is_hole_fill = false,
                                                                .is_resolve = false,
                                                                .is_foreground = false,
                                                                .use_lut = true,
                                                            });
 PipelineCompute eevee_depth_of_field_gather_background_no_lut(eevee::dof::gather::comp_main,
-                                                              eevee::dof::Accumulator{
+                                                              eevee::dof::AccumulatorConstants{
                                                                   .is_hole_fill = false,
                                                                   .is_resolve = false,
                                                                   .is_foreground = false,
                                                                   .use_lut = false,
                                                               });
 PipelineCompute eevee_depth_of_field_gather_foreground_lut(eevee::dof::gather::comp_main,
-                                                           eevee::dof::Accumulator{
+                                                           eevee::dof::AccumulatorConstants{
                                                                .is_hole_fill = false,
                                                                .is_resolve = false,
                                                                .is_foreground = true,
                                                                .use_lut = true,
                                                            });
 PipelineCompute eevee_depth_of_field_gather_foreground_no_lut(eevee::dof::gather::comp_main,
-                                                              eevee::dof::Accumulator{
+                                                              eevee::dof::AccumulatorConstants{
                                                                   .is_hole_fill = false,
                                                                   .is_resolve = false,
                                                                   .is_foreground = true,
@@ -240,10 +238,9 @@ PipelineCompute eevee_depth_of_field_gather_foreground_no_lut(eevee::dof::gather
                                                               });
 
 PipelineCompute eevee_depth_of_field_hole_fill(eevee::dof::hole_fill::comp_main,
-                                               eevee::dof::Accumulator{
+                                               eevee::dof::AccumulatorConstants{
                                                    .is_hole_fill = true,
                                                    .is_resolve = false,
                                                    .is_foreground = false,
                                                    .use_lut = false,
                                                });
-#endif

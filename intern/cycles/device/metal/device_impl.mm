@@ -1033,7 +1033,8 @@ void MetalDevice::const_copy_to(const char *name, void *host, const size_t size)
            sizeof(IntegratorStateGPU) - pointer_block_size);
   }
 #  define KERNEL_DATA_ARRAY(data_type, tex_name) \
-    else if (strcmp(name, #tex_name) == 0) { \
+    else if (strcmp(name, #tex_name) == 0) \
+    { \
       update_launch_pointers(offsetof(KernelParamsMetal, tex_name), host, size); \
     }
 #  include "kernel/data_arrays.h"

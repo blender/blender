@@ -51,7 +51,8 @@ bool wayland_dynload_client_init(const bool verbose)
   { \
     const void *symbol_val; \
     if (!(symbol_val = dynamic_library_find_with_error( \
-              lib, #symbol, paths[path_found], verbose))) { \
+              lib, #symbol, paths[path_found], verbose))) \
+    { \
       wayland_dynload_client_exit(); \
       return false; \
     } \

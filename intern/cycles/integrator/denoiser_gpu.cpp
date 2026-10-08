@@ -266,7 +266,6 @@ bool DenoiserGPU::denoise_filter_color_postprocess(const DenoiseContext &context
                                    &pass.denoised_offset,
                                    &context.pass_sample_count,
                                    &pass.num_components,
-                                   &pass.use_compositing,
                                    &params_.upscale_factor);
 
   return denoiser_queue_->enqueue(DEVICE_KERNEL_FILTER_COLOR_POSTPROCESS, work_size, args);
@@ -322,7 +321,8 @@ bool DenoiserGPU::denoise_filter_color_flip_y(const DenoiseContext &context,
                                    &buffer_params.offset,
                                    &buffer_params.stride,
                                    &buffer_params.pass_stride,
-                                   &pass.denoised_offset);
+                                   &pass.denoised_offset,
+                                   &pass.num_components);
 
   return denoiser_queue_->enqueue(DEVICE_KERNEL_FILTER_COLOR_FLIP_Y, work_size, args);
 }
@@ -338,6 +338,7 @@ bool DenoiserGPU::denoise_filter_guiding_flip_y(const DenoiseContext &context)
   const BufferParams &buffer_params = context.buffer_params;
 
   const int guiding_offset = 0;
+  const int num_components = 3;
 
   const int work_size = buffer_params.width * buffer_params.height / 2;
 
@@ -356,7 +357,8 @@ bool DenoiserGPU::denoise_filter_guiding_flip_y(const DenoiseContext &context)
                                      &guiding_offset,
                                      &context.guiding_params.stride,
                                      &context.guiding_params.pass_stride,
-                                     &guiding_pass);
+                                     &guiding_pass,
+                                     &num_components);
 
     if (!denoiser_queue_->enqueue(DEVICE_KERNEL_FILTER_COLOR_FLIP_Y, work_size, args)) {
       return false;
@@ -407,7 +409,7 @@ void DenoiserGPU::denoise_color_read(const DenoiseContext &context, const Denois
 
   PassAccessor::Destination destination(pass_access_info.type, pass_access_info.mode);
   destination.d_pixels = context.render_buffers->buffer.device_pointer;
-  destination.num_components = 3;
+  destination.num_components = pass.num_components;
   destination.pixel_offset = pass.denoised_offset;
   destination.pixel_stride = context.buffer_params.pass_stride;
 

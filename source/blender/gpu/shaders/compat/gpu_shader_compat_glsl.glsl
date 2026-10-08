@@ -7,6 +7,7 @@
 #pragma no_processing
 
 #include "gpu_shader_glsl_extension.glsl"
+#include "gpu_shader_glsl_ray_query.glsl"
 
 /** Type aliases. */
 /* IMPORTANT: Be wary of size and alignment matching for types that are present
@@ -223,6 +224,11 @@ float4 texelFetchExtend(sampler2D samp, int2 texel, int lvl)
   return texelFetch(samp, texel, lvl);
 }
 
+/**
+ * Clamp input into [0..1] range.
+ */
+#define saturate(a) clamp(a, 0.0f, 1.0f)
+
 /* For assert support. */
 #if defined(GPU_VERTEX_SHADER)
 #  define GPU_THREAD uint3(gl_VertexID, gpu_InstanceIndex, 0)
@@ -253,3 +259,12 @@ float4 texelFetchExtend(sampler2D samp, int2 texel, int lvl)
 #  define gpu_dfdy(x) x
 #  define gpu_fwidth(x) x
 #endif
+
+#define FLT_MAX uintBitsToFloat(0x7F7FFFFFu)
+#define FLT_MIN uintBitsToFloat(0x00800000u)
+#define FLT_EPSILON 1.192092896e-07F
+#define SHRT_MAX 0x00007FFF
+#define INT_MAX 0x7FFFFFFF
+#define USHRT_MAX 0x0000FFFFu
+#define UINT_MAX 0xFFFFFFFFu
+#define NAN_FLT uintBitsToFloat(0x7FC00000u)

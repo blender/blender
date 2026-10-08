@@ -64,6 +64,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
                   VkPipeline vk_pipeline_base)
   {
     const VKExtensions &extensions = device.extensions_get();
+    const VKWorkarounds &workarounds = device.workarounds_get();
     build_graphics_pipeline(extensions, graphics_info, vk_pipeline_base);
 
     build_input_assembly_state(graphics_info.vertex_in);
@@ -77,9 +78,9 @@ struct VKGraphicsPipelineCreateInfoBuilder {
     if (do_specialization_constants) {
       build_specialization_constants(graphics_info.shaders);
     }
-    build_dynamic_state(graphics_info.shaders, extensions);
+    build_dynamic_state(graphics_info.shaders, extensions, workarounds);
     build_multisample_state();
-    build_viewport_state(graphics_info.shaders);
+    build_viewport_state(graphics_info.shaders, workarounds);
     build_rasterization_state(graphics_info.shaders, extensions);
     build_depth_stencil_state(graphics_info.shaders);
 
@@ -111,6 +112,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
    */
   void build_shaders_lib(const VKGraphicsInfo::Shaders &shaders_info,
                          const VKExtensions &extensions,
+                         const VKWorkarounds &workarounds,
                          VkPipeline vk_pipeline_base)
   {
     build_graphics_pipeline_library(
@@ -123,12 +125,12 @@ struct VKGraphicsPipelineCreateInfoBuilder {
     if (do_specialization_constants) {
       build_specialization_constants(shaders_info);
     }
-    build_dynamic_state(shaders_info, extensions);
+    build_dynamic_state(shaders_info, extensions, workarounds);
     build_multisample_state();
-    build_viewport_state(shaders_info);
+    build_viewport_state(shaders_info, workarounds);
     build_rasterization_state(shaders_info, extensions);
     build_depth_stencil_state(shaders_info);
-    build_dynamic_rendering_shaders_lib(extensions, shaders_info.max_input_attachment_index);
+    build_dynamic_rendering_shaders_lib(extensions, shaders_info);
   }
 
   /**
@@ -319,7 +321,8 @@ struct VKGraphicsPipelineCreateInfoBuilder {
         VK_FALSE};
   }
 
-  void build_viewport_state(const VKGraphicsInfo::Shaders &shaders_info)
+  void build_viewport_state(const VKGraphicsInfo::Shaders &shaders_info,
+                            const VKWorkarounds &workarounds)
   {
     vk_pipeline_viewport_state_create_info = {
         VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
@@ -329,6 +332,12 @@ struct VKGraphicsPipelineCreateInfoBuilder {
         nullptr,
         shaders_info.viewport_count,
         nullptr};
+    if (workarounds.static_viewport_scissor) {
+      BLI_assert(shaders_info.viewports.size() == shaders_info.viewport_count);
+      BLI_assert(shaders_info.scissors.size() == shaders_info.viewport_count);
+      vk_pipeline_viewport_state_create_info.pViewports = shaders_info.viewports.data();
+      vk_pipeline_viewport_state_create_info.pScissors = shaders_info.scissors.data();
+    }
   }
 
   void build_input_assembly_state(const VKGraphicsInfo::VertexIn &vertex_input_info)
@@ -421,9 +430,15 @@ struct VKGraphicsPipelineCreateInfoBuilder {
   }
 
   void build_dynamic_state(const VKGraphicsInfo::Shaders &shaders_info,
-                           const VKExtensions &extensions)
+                           const VKExtensions &extensions,
+                           const VKWorkarounds &workarounds)
   {
-    vk_dynamic_states = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+    /* Viewports & scissors are dynamic unless baked into the pipeline
+     * (see `VKWorkarounds::static_viewport_scissor`). */
+    if (!workarounds.static_viewport_scissor) {
+      vk_dynamic_states.append(VK_DYNAMIC_STATE_VIEWPORT);
+      vk_dynamic_states.append(VK_DYNAMIC_STATE_SCISSOR);
+    }
     const bool is_line_topology = ELEM(shaders_info.vk_topology,
                                        VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
                                        VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
@@ -578,24 +593,25 @@ struct VKGraphicsPipelineCreateInfoBuilder {
   }
 
   /* Shaders lib only requires the view-mask to be set. When dynamic rendering local read is
-   * used and the shader declares input attachments, we must set colorAttachmentCount to cover
-   * the input attachment indices and provide VkRenderingInputAttachmentIndexInfo to satisfy the
-   * VUID-VkGraphicsPipelineCreateInfo-renderPass-09652 constraint. */
+   * used and the shader declares input attachments, the render pass color attachment count
+   * must be declared and VkRenderingInputAttachmentIndexInfo provided. The count must equal
+   * the fragment output library's VkPipelineRenderingCreateInfo::colorAttachmentCount
+   * (VUID-VkGraphicsPipelineCreateInfo-renderPass-09531). */
   void build_dynamic_rendering_shaders_lib(const VKExtensions &extensions,
-                                           uint32_t max_input_attachment_index)
+                                           const VKGraphicsInfo::Shaders &shaders_info)
   {
     vk_pipeline_rendering_create_info = {VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
-    if (extensions.dynamic_rendering_local_read && max_input_attachment_index > 0) {
-      vk_pipeline_rendering_create_info.colorAttachmentCount = max_input_attachment_index + 1;
-      dummy_color_attachment_formats_.resize(max_input_attachment_index + 1, VK_FORMAT_UNDEFINED);
+    if (extensions.dynamic_rendering_local_read && shaders_info.max_input_attachment_index > 0) {
+      const uint32_t color_attachment_count = shaders_info.color_attachment_count;
+      vk_pipeline_rendering_create_info.colorAttachmentCount = color_attachment_count;
+      dummy_color_attachment_formats_.resize(color_attachment_count, VK_FORMAT_UNDEFINED);
       vk_pipeline_rendering_create_info.pColorAttachmentFormats =
           dummy_color_attachment_formats_.data();
 
       vk_rendering_input_attachment_index_info_ = {};
       vk_rendering_input_attachment_index_info_.sType =
           VK_STRUCTURE_TYPE_RENDERING_INPUT_ATTACHMENT_INDEX_INFO;
-      vk_rendering_input_attachment_index_info_.colorAttachmentCount = max_input_attachment_index +
-                                                                       1;
+      vk_rendering_input_attachment_index_info_.colorAttachmentCount = color_attachment_count;
       vk_pipeline_rendering_create_info.pNext = &vk_rendering_input_attachment_index_info_;
     }
   }

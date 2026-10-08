@@ -151,9 +151,7 @@ void template_icon_view(Layout *layout,
                          0,
                          UI_UNIT_X * icon_scale,
                          UI_UNIT_Y * icon_scale,
-                         "",
-                         but_func_argN_free<IconViewMenuArgs>,
-                         but_func_argN_copy<IconViewMenuArgs>);
+                         "");
   }
   else {
     but = uiDefIconBut(block,

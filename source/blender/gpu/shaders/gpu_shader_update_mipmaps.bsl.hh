@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include "gpu_shader_utildefines.bsl.hh"
-
 #include "GPU_shader_shared.hh"
 
 namespace builtin::mipmaps {
@@ -65,9 +63,9 @@ float linearrgb_to_srgb(float c)
  * Dispatch with y, z = 1
  */
 #define LOCAL_SIZE_X 128
-#define TILE_SIZE MIPMAP_UPDATE_TILE_SIZE
-#define MAX_SHARED_SAMPLES (TILE_SIZE + TILE_SIZE + 1)
-#define INPUT_LEVEL 0
+static constexpr int TILE_SIZE = MIPMAP_UPDATE_TILE_SIZE;
+static constexpr int MAX_SHARED_SAMPLES = (TILE_SIZE + TILE_SIZE + 1);
+static constexpr int INPUT_LEVEL = 0;
 
 /** Shared storage that can store intermediate results using without encoding. */
 template<typename T> struct Shared {
@@ -145,6 +143,11 @@ int2 kernel_size_from_input_size(int2 input_size)
               input_size.y == 1 ? 1 : (2 | (input_size.y & 1)));
 }
 
+struct Constants {
+  [[compilation_constant]] const bool is_srgb_texture;
+  [[compilation_constant]] const bool is_layered;
+};
+
 /**
  * \brief Templated struct for bindings and performing the mipmap generation.
  *
@@ -162,8 +165,7 @@ int2 kernel_size_from_input_size(int2 input_size)
  */
 template<enum TextureWriteFormat format, typename SharedStorage, typename InnerType>
 struct Resources {
-  [[compilation_constant]] const bool is_srgb_texture;
-  [[compilation_constant]] const bool is_layered;
+  [[resource_table]] Constants consts;
   [[push_constant]] const int num_levels;
   [[push_constant]] const int group_offset;
   [[push_constant]] const int partial_dst_level;
@@ -178,19 +180,19 @@ struct Resources {
   [[image(0, read, format), condition(is_layered)]] image2DArray mip_array_in;
   [[image(1, write, format), condition(is_layered)]] image2DArray mip_array_out1;
   [[image(2, write, format), condition(is_layered)]] image2DArray mip_array_out2;
-  [[resource_table]] srt_t<SharedStorage> shared_storage;
+  [[resource_table]] SharedStorage shared_storage;
 
   /** Store sample result into an output mip image. */
   void store_sample(int2 dst_coord, int dst_level, InnerType color)
   {
     float4 color_out;
     convert<float4, InnerType>(color_out, color);
-    if (is_srgb_texture) [[static_branch]] {
+    if (consts.is_srgb_texture) [[static_branch]] {
       color_out.r = linearrgb_to_srgb(color_out.r);
       color_out.g = linearrgb_to_srgb(color_out.g);
       color_out.b = linearrgb_to_srgb(color_out.b);
     }
-    if (is_layered == false) [[static_branch]] {
+    if (!consts.is_layered) [[static_branch]] {
       if (dst_level == 1) {
         imageStore(mip_out1, dst_coord, color_out);
       }
@@ -198,7 +200,7 @@ struct Resources {
         imageStore(mip_out2, dst_coord, color_out);
       }
     }
-    if (is_layered) [[static_branch]] {
+    if (consts.is_layered) [[static_branch]] {
       if (dst_level == 1) {
         imageStore(mip_array_out1, int3(dst_coord, dst_layer), color_out);
       }
@@ -210,26 +212,24 @@ struct Resources {
 
   void store_shared_sample(int2 dst_coord, InnerType color)
   {
-    SharedStorage &storage = shared_storage;
-    storage.store_sample(dst_coord, color);
+    shared_storage.store_sample(dst_coord, color);
   }
 
   InnerType load_sample(int2 src_coord, bool load_from_shared)
   {
     InnerType color;
     if (load_from_shared) {
-      SharedStorage &storage = shared_storage;
-      color = storage.load_sample(src_coord);
+      color = shared_storage.load_sample(src_coord);
     }
     else {
       float4 loaded_color;
-      if (is_layered == false) [[static_branch]] {
+      if (!consts.is_layered) [[static_branch]] {
         loaded_color = imageLoad(mip_in, src_coord);
       }
-      if (is_layered) [[static_branch]] {
+      if (consts.is_layered) [[static_branch]] {
         loaded_color = imageLoad(mip_array_in, int3(src_coord, dst_layer));
       }
-      if (is_srgb_texture) [[static_branch]] {
+      if (consts.is_srgb_texture) [[static_branch]] {
         loaded_color.r = srgb_to_linearrgb(loaded_color.r);
         loaded_color.g = srgb_to_linearrgb(loaded_color.g);
         loaded_color.b = srgb_to_linearrgb(loaded_color.b);
@@ -242,10 +242,10 @@ struct Resources {
   int2 level_size(int level)
   {
     int2 mip_in_size;
-    if (is_layered == false) [[static_branch]] {
+    if (!consts.is_layered) [[static_branch]] {
       mip_in_size = imageSize(mip_in);
     }
-    if (is_layered) [[static_branch]] {
+    if (consts.is_layered) [[static_branch]] {
       mip_in_size = imageSize(mip_array_in).xy;
     }
     int2 mip_size = max((mip_in_size >> level), int2(1));
@@ -534,7 +534,7 @@ void update_mipmaps([[global_invocation_id]] const uint3 global_id,
                     [[local_invocation_id]] const uint3 local_index,
                     [[resource_table]] Resources<format, SharedStorage, InnerType> &srt)
 {
-  if (srt.num_levels == 1u) {
+  if (srt.num_levels == 1) {
     uint sample_index = global_id.x + uint(srt.group_offset) * uint(LOCAL_SIZE_X);
     int2 kernel_size = kernel_size_from_input_size(srt.level_size(INPUT_LEVEL));
     int2 dst_image_size = srt.level_size(INPUT_LEVEL + 1);
@@ -733,61 +733,45 @@ template void update_mipmaps<SFLOAT_32_32_32_32, Shared<float4>, float4>(
 
 }  // namespace builtin::mipmaps
 
-#ifndef GLSL_CPP_STUBS
 PipelineCompute gpu_shader_2D_update_mipmaps_unorm_8(
     builtin::mipmaps::update_mipmaps<UNORM_8, builtin::mipmaps::SharedUnorm, float>,
-    builtin::mipmaps::Resources<UNORM_8, builtin::mipmaps::SharedUnorm, float>{
-        .is_srgb_texture = false, .is_layered = false});
+    builtin::mipmaps::Constants{.is_srgb_texture = false, .is_layered = false});
 PipelineCompute gpu_shader_2D_update_mipmaps_unorm_8_layered(
     builtin::mipmaps::update_mipmaps<UNORM_8, builtin::mipmaps::SharedUnorm, float>,
-    builtin::mipmaps::Resources<UNORM_8, builtin::mipmaps::SharedUnorm, float>{
-        .is_srgb_texture = false, .is_layered = true});
+    builtin::mipmaps::Constants{.is_srgb_texture = false, .is_layered = true});
 PipelineCompute gpu_shader_2D_update_mipmaps_unorm_8_8_8_8(
     builtin::mipmaps::update_mipmaps<UNORM_8_8_8_8, builtin::mipmaps::SharedSRGB, float4>,
-    builtin::mipmaps::Resources<UNORM_8_8_8_8, builtin::mipmaps::SharedSRGB, float4>{
-        .is_srgb_texture = false, .is_layered = false});
+    builtin::mipmaps::Constants{.is_srgb_texture = false, .is_layered = false});
 PipelineCompute gpu_shader_2D_update_mipmaps_unorm_8_8_8_8_layered(
     builtin::mipmaps::update_mipmaps<UNORM_8_8_8_8, builtin::mipmaps::SharedSRGB, float4>,
-    builtin::mipmaps::Resources<UNORM_8_8_8_8, builtin::mipmaps::SharedSRGB, float4>{
-        .is_srgb_texture = false, .is_layered = true});
+    builtin::mipmaps::Constants{.is_srgb_texture = false, .is_layered = true});
 PipelineCompute gpu_shader_2D_update_mipmaps_sfloat_16(
     builtin::mipmaps::update_mipmaps<SFLOAT_16, builtin::mipmaps::Shared<float>, float>,
-    builtin::mipmaps::Resources<SFLOAT_16, builtin::mipmaps::Shared<float>, float>{
-        .is_srgb_texture = false, .is_layered = false});
+    builtin::mipmaps::Constants{.is_srgb_texture = false, .is_layered = false});
 PipelineCompute gpu_shader_2D_update_mipmaps_sfloat_16_layered(
     builtin::mipmaps::update_mipmaps<SFLOAT_16, builtin::mipmaps::Shared<float>, float>,
-    builtin::mipmaps::Resources<SFLOAT_16, builtin::mipmaps::Shared<float>, float>{
-        .is_srgb_texture = false, .is_layered = true});
+    builtin::mipmaps::Constants{.is_srgb_texture = false, .is_layered = true});
 PipelineCompute gpu_shader_2D_update_mipmaps_sfloat_16_16_16_16(
     builtin::mipmaps::update_mipmaps<SFLOAT_16_16_16_16, builtin::mipmaps::Shared<float4>, float4>,
-    builtin::mipmaps::Resources<SFLOAT_16_16_16_16, builtin::mipmaps::Shared<float4>, float4>{
-        .is_srgb_texture = false, .is_layered = false});
+    builtin::mipmaps::Constants{.is_srgb_texture = false, .is_layered = false});
 PipelineCompute gpu_shader_2D_update_mipmaps_sfloat_16_16_16_16_layered(
     builtin::mipmaps::update_mipmaps<SFLOAT_16_16_16_16, builtin::mipmaps::Shared<float4>, float4>,
-    builtin::mipmaps::Resources<SFLOAT_16_16_16_16, builtin::mipmaps::Shared<float4>, float4>{
-        .is_srgb_texture = false, .is_layered = true});
+    builtin::mipmaps::Constants{.is_srgb_texture = false, .is_layered = true});
 PipelineCompute gpu_shader_2D_update_mipmaps_sfloat_32(
     builtin::mipmaps::update_mipmaps<SFLOAT_32, builtin::mipmaps::Shared<float>, float>,
-    builtin::mipmaps::Resources<SFLOAT_32, builtin::mipmaps::Shared<float>, float>{
-        .is_srgb_texture = false, .is_layered = false});
+    builtin::mipmaps::Constants{.is_srgb_texture = false, .is_layered = false});
 PipelineCompute gpu_shader_2D_update_mipmaps_sfloat_32_layered(
     builtin::mipmaps::update_mipmaps<SFLOAT_32, builtin::mipmaps::Shared<float>, float>,
-    builtin::mipmaps::Resources<SFLOAT_32, builtin::mipmaps::Shared<float>, float>{
-        .is_srgb_texture = false, .is_layered = true});
+    builtin::mipmaps::Constants{.is_srgb_texture = false, .is_layered = true});
 PipelineCompute gpu_shader_2D_update_mipmaps_sfloat_32_32_32_32(
     builtin::mipmaps::update_mipmaps<SFLOAT_32_32_32_32, builtin::mipmaps::Shared<float4>, float4>,
-    builtin::mipmaps::Resources<SFLOAT_32_32_32_32, builtin::mipmaps::Shared<float4>, float4>{
-        .is_srgb_texture = false, .is_layered = false});
+    builtin::mipmaps::Constants{.is_srgb_texture = false, .is_layered = false});
 PipelineCompute gpu_shader_2D_update_mipmaps_sfloat_32_32_32_32_layered(
     builtin::mipmaps::update_mipmaps<SFLOAT_32_32_32_32, builtin::mipmaps::Shared<float4>, float4>,
-    builtin::mipmaps::Resources<SFLOAT_32_32_32_32, builtin::mipmaps::Shared<float4>, float4>{
-        .is_srgb_texture = false, .is_layered = true});
+    builtin::mipmaps::Constants{.is_srgb_texture = false, .is_layered = true});
 PipelineCompute gpu_shader_2D_update_mipmaps_srgba_8_8_8_8(
     builtin::mipmaps::update_mipmaps<UNORM_8_8_8_8, builtin::mipmaps::SharedSRGB, float4>,
-    builtin::mipmaps::Resources<UNORM_8_8_8_8, builtin::mipmaps::SharedSRGB, float4>{
-        .is_srgb_texture = true, .is_layered = false});
+    builtin::mipmaps::Constants{.is_srgb_texture = true, .is_layered = false});
 PipelineCompute gpu_shader_2D_update_mipmaps_srgba_8_8_8_8_layered(
     builtin::mipmaps::update_mipmaps<UNORM_8_8_8_8, builtin::mipmaps::SharedSRGB, float4>,
-    builtin::mipmaps::Resources<UNORM_8_8_8_8, builtin::mipmaps::SharedSRGB, float4>{
-        .is_srgb_texture = true, .is_layered = true});
-#endif
+    builtin::mipmaps::Constants{.is_srgb_texture = true, .is_layered = true});

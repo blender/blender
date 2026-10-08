@@ -307,6 +307,27 @@ ccl_device_forceinline void integrator_state_read_shadow_isect(
   isect->t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, index, t);
 }
 
+#ifdef __SHADOW_LINKING__
+
+/* Shadow linking state for shade_light_nee, reusing shadow state
+ * to avoid increasing state memory usage. */
+
+static_assert(INTEGRATOR_SHADOW_ISECT_SIZE > 1, "Light and self intersection must not overlap");
+
+ccl_device_forceinline void integrator_state_write_shadow_light_isect(
+    IntegratorShadowState state, const ccl_private Intersection *ccl_restrict isect)
+{
+  integrator_state_write_shadow_isect(state, isect, 0);
+}
+
+ccl_device_forceinline void integrator_state_read_shadow_light_isect(
+    ConstIntegratorShadowState state, ccl_private Intersection *ccl_restrict isect)
+{
+  integrator_state_read_shadow_isect(state, isect, 0);
+}
+
+#endif
+
 /* MNEE state.
  *
  * This is packed into the shadow_state to avoid increasing overall path state size. */

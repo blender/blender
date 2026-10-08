@@ -4,13 +4,9 @@
 
 #pragma once
 
-#include "gpu_shader_compat.hh"
-
-#include "draw_object_infos_infos.hh"
-
-#include "draw_model_lib.glsl"
-#include "draw_object_infos_lib.glsl"
-#include "draw_view_lib.glsl"
+#include "draw_model.bsl.hh"
+#include "draw_view.bsl.hh"
+#include "draw_volume.bsl.hh"
 #include "gpu_shader_math_constants.bsl.hh"
 #include "gpu_shader_math_vector_compare.bsl.hh"
 #include "gpu_shader_math_vector_reduce.bsl.hh"
@@ -74,7 +70,7 @@ float4 sample_closest(sampler3D ima, float3 co)
 
 /* Legacy Fluid Simulation Modifier. */
 struct Smoke {
-  [[legacy_info]] const ShaderCreateInfo draw_modelmat;
+  [[resource_table]] draw::Model model;
 
   [[sampler(2)]] const sampler3D flame_tx;
   [[sampler(3)]] const sampler1D flame_color_tx;
@@ -82,8 +78,6 @@ struct Smoke {
 
 /* Volume Objects. */
 struct Volume {
-  [[legacy_info]] const ShaderCreateInfo draw_volume;
-
   [[push_constant]] const float4x4 volume_texture_to_object;
   [[push_constant]] const float4x4 volume_object_to_texture;
 };
@@ -107,15 +101,15 @@ struct ColorUniform {
   [[push_constant]] const float grid_scale;
 };
 
-struct Resources {
-  [[legacy_info]] const ShaderCreateInfo draw_view;
-  [[legacy_info]] const ShaderCreateInfo draw_object_infos;
-  [[legacy_info]] const ShaderCreateInfo draw_resource_id_varying;
-
+struct Constants {
   [[compilation_constant]] const bool use_slice;
   [[compilation_constant]] const bool use_color_band;
   [[compilation_constant]] const bool is_legacy_smoke;
   [[compilation_constant]] const int interpolation;
+};
+
+struct Resources {
+  [[resource_table]] Constants consts;
 
   [[sampler(0)]] const sampler2DDepth depth_buffer;
   [[sampler(1)]] const sampler3D density_tx;
@@ -130,18 +124,18 @@ struct Resources {
   [[push_constant, condition(use_slice)]] const int slice_axis; /* -1 is no slice. */
   [[push_constant, condition(use_slice)]] const float slice_position;
 
-  [[resource_table, condition(!is_legacy_smoke)]] srt_t<Volume> volume;
-  [[resource_table, condition(is_legacy_smoke)]] srt_t<Smoke> smoke;
+  [[resource_table, condition(!is_legacy_smoke)]] Volume volume;
+  [[resource_table, condition(is_legacy_smoke)]] Smoke smoke;
 
-  [[resource_table, condition(use_color_band)]] srt_t<ColorBand> color_band;
-  [[resource_table, condition(!use_color_band)]] srt_t<ColorUniform> color_uniform;
+  [[resource_table, condition(use_color_band)]] ColorBand color_band;
+  [[resource_table, condition(!use_color_band)]] ColorUniform color_uniform;
 
   float4 sample_volume_texture(sampler3D ima, float3 co)
   {
-    if (this->interpolation == 0) [[static_branch]] {
+    if (consts.interpolation == 0) [[static_branch]] {
       return sample_closest(ima, co);
     }
-    if (this->interpolation == 2) [[static_branch]] {
+    if (consts.interpolation == 2) [[static_branch]] {
       return sample_tricubic(ima, co);
     }
     /* Use hardware interpolation. */
@@ -197,7 +191,7 @@ void volume_properties([[resource_table]] Resources &srt,
 {
   float3 co = ls_pos * 0.5f + 0.5f;
 
-  if (srt.use_color_band) [[static_branch]] {
+  if (srt.consts.use_color_band) [[static_branch]] {
     [[resource_table]] ColorBand &color_band = srt.color_band;
     float4 tval;
     if (color_band.show_phi) {
@@ -250,7 +244,7 @@ void volume_properties([[resource_table]] Resources &srt,
     /* Scale shadows in log space and clamp them to avoid completely black shadows. */
     scattering *= exp(clamp(log(shadows) * srt.density_fac * 0.1f, -2.5f, 0.0f)) * M_PI;
 
-    if (srt.is_legacy_smoke) [[static_branch]] {
+    if (srt.consts.is_legacy_smoke) [[static_branch]] {
       [[resource_table]] Smoke &smoke = srt.smoke;
       float flame = srt.sample_volume_texture(smoke.flame_tx, co).r;
       float4 emission = texture(smoke.flame_color_tx, flame);
@@ -269,8 +263,6 @@ void eval_volume_step(float3 &Lscat, float extinction, float step_len, float &Tr
   Lscat = (Lscat - Lscat * Tr) / extinction;
 }
 
-#define P(x) ((x + 0.5f) * (1.0f / 16.0f))
-
 float4 volume_integration([[resource_table]] Resources &srt,
                           float4 frag_coord,
                           float3 ray_ori,
@@ -281,10 +273,10 @@ float4 volume_integration([[resource_table]] Resources &srt,
 {
   /* NOTE: Constant array declared inside function scope to reduce shader core thread memory
    * pressure on Apple Silicon. */
-  constexpr float4 dither_mat[4] = {float4(P(0.0f), P(8.0f), P(2.0f), P(10.0f)),
-                                    float4(P(12.0f), P(4.0f), P(14.0f), P(6.0f)),
-                                    float4(P(3.0f), P(11.0f), P(1.0f), P(9.0f)),
-                                    float4(P(15.0f), P(7.0f), P(13.0f), P(5.0f))};
+  const float4 dither_mat[4] = {(float4(0.0f, 8.0f, 2.0f, 10.0f) + 0.5f) / 16.0f,
+                                (float4(12.0f, 4.0f, 14.0f, 6.0f) + 0.5f) / 16.0f,
+                                (float4(3.0f, 11.0f, 1.0f, 9.0f) + 0.5f) / 16.0f,
+                                (float4(15.0f, 7.0f, 13.0f, 5.0f) + 0.5f) / 16.0f};
   /* Start with full transmittance and no scattered light. */
   float3 final_scattering = float3(0.0f);
   float final_transmittance = 1.0f;
@@ -318,22 +310,33 @@ struct VertIn {
   [[attribute(0)]] float3 pos;
 };
 
+struct ResourceIDOut {
+  [[flat]] uint id;
+};
+
 struct VertOut {
   [[smooth]] float3 local_pos;
 };
 
 [[vertex]] void vertex_function([[resource_table]] Resources &srt,
+                                [[resource_table]] draw::Resource &ids,
+                                [[resource_table]] draw::View &views,
+                                [[resource_table]] draw::Model &models,
+                                [[resource_table, condition(is_legacy_smoke)]] draw::Infos &infos,
+                                [[instance_index]] const int inst_index,
                                 [[in]] const VertIn &v_in,
+                                [[out]] ResourceIDOut &res_id_out,
                                 [[out, condition(use_slice)]] VertOut &v_out,
                                 [[position]] float4 &out_position)
 {
-  SHADER_LIBRARY_CREATE_INFO(draw_resource_id_varying);
+  res_id_out.id = ids.get(inst_index).resource_id<1>();
 
-  drw_ResourceID_iface.resource_id = drw_resource_id_raw();
+  ObjectMatrices model = models.get(res_id_out.id);
+  ViewMatrices view = views.get(0);
 
   float3 final_pos;
 
-  if (srt.use_slice) [[static_branch]] {
+  if (srt.consts.use_slice) [[static_branch]] {
     if (srt.slice_axis == 0) {
       v_out.local_pos = float3(srt.slice_position * 2.0f - 1.0f, v_in.pos.xy);
     }
@@ -349,25 +352,30 @@ struct VertOut {
     final_pos = v_in.pos;
   }
 
-  if (srt.is_legacy_smoke) [[static_branch]] {
-    ObjectInfos info = drw_object_infos();
+  if (srt.consts.is_legacy_smoke) [[static_branch]] {
+    ObjectInfos info = infos.get(res_id_out.id);
     final_pos = ((final_pos * 0.5f + 0.5f) - info.orco_add) / info.orco_mul;
   }
   else {
     [[resource_table]] Volume &volume = srt.volume;
     final_pos = (volume.volume_texture_to_object * float4(final_pos * 0.5f + 0.5f, 1.0f)).xyz;
   }
-  out_position = drw_point_world_to_homogenous(drw_point_object_to_world(final_pos));
+  out_position = view.point_world_to_homogenous(model.point_object_to_world(final_pos));
 }
 
 struct FragOut {
   [[frag_color(0)]] float4 color;
 };
 
-[[fragment]] void fragment_function([[resource_table]] Resources &srt,
-                                    [[frag_coord]] const float4 &frag_coord,
-                                    [[in, condition(use_slice)]] const VertOut &v_out,
-                                    [[out]] FragOut &frag_out)
+[[fragment]] void fragment_function(
+    [[resource_table]] Resources &srt,
+    [[resource_table]] draw::View &views,
+    [[resource_table]] draw::Model &models,
+    [[resource_table]] [[condition(is_legacy_smoke)]] draw::Infos &infos,
+    [[frag_coord]] const float4 &frag_coord,
+    [[in]] const ResourceIDOut &res_id,
+    [[in, condition(use_slice)]] const VertOut &v_out,
+    [[out]] FragOut &frag_out)
 {
   uint stencil = texelFetch(srt.stencil_tx, int2(frag_coord.xy), 0).r;
 
@@ -378,7 +386,10 @@ struct FragOut {
     return;
   }
 
-  if (srt.use_slice) [[static_branch]] {
+  ObjectMatrices model = models.get(res_id.id);
+  ViewMatrices view = views.get(0);
+
+  if (srt.consts.use_slice) [[static_branch]] {
     /* Manual depth test. TODO: remove. */
     float depth = texelFetch(srt.depth_buffer, int2(frag_coord.xy), 0).r;
     if (srt.do_depth_test && frag_coord.z >= depth) {
@@ -402,24 +413,25 @@ struct FragOut {
   }
   else {
     float2 screen_uv = frag_coord.xy / float2(textureSize(srt.depth_buffer, 0).xy);
-    bool is_persp = drw_view().winmat[3][3] == 0.0f;
+    bool is_persp = view.winmat[3][3] == 0.0f;
 
     float depth = srt.do_depth_test ? texelFetch(srt.depth_buffer, int2(frag_coord.xy), 0).r :
                                       1.0f;
     float depth_end = min(depth, frag_coord.z);
-    float3 vs_ray_end = drw_point_screen_to_view(float3(screen_uv, depth_end));
-    float3 vs_ray_ori = drw_point_screen_to_view(float3(screen_uv, 0.0f));
+    float3 vs_ray_end = view.point_screen_to_view(float3(screen_uv, depth_end));
+    float3 vs_ray_ori = view.point_screen_to_view(float3(screen_uv, 0.0f));
     float3 vs_ray_dir = (is_persp) ? (vs_ray_end - vs_ray_ori) : float3(0.0f, 0.0f, -1.0f);
     vs_ray_dir /= abs(vs_ray_dir.z);
 
-    float3 ls_ray_dir = drw_point_view_to_object(vs_ray_ori + vs_ray_dir);
-    float3 ls_ray_ori = drw_point_view_to_object(vs_ray_ori);
-    float3 ls_ray_end = drw_point_view_to_object(vs_ray_end);
+    float3 ls_ray_dir = model.point_view_to_object(view, vs_ray_ori + vs_ray_dir);
+    float3 ls_ray_ori = model.point_view_to_object(view, vs_ray_ori);
+    float3 ls_ray_end = model.point_view_to_object(view, vs_ray_end);
 
-    if (srt.is_legacy_smoke) [[static_branch]] {
-      ls_ray_dir = (drw_object_orco(ls_ray_dir)) * 2.0f - 1.0f;
-      ls_ray_ori = (drw_object_orco(ls_ray_ori)) * 2.0f - 1.0f;
-      ls_ray_end = (drw_object_orco(ls_ray_end)) * 2.0f - 1.0f;
+    if (srt.consts.is_legacy_smoke) [[static_branch]] {
+      ObjectInfos ob_infos = infos.get(res_id.id);
+      ls_ray_dir = (ob_infos.orco_mul * ls_ray_dir + ob_infos.orco_add) * 2.0f - 1.0f;
+      ls_ray_ori = (ob_infos.orco_mul * ls_ray_ori + ob_infos.orco_add) * 2.0f - 1.0f;
+      ls_ray_end = (ob_infos.orco_mul * ls_ray_end + ob_infos.orco_add) * 2.0f - 1.0f;
     }
     else {
       [[resource_table]] Volume &volume = srt.volume;
@@ -459,30 +471,30 @@ struct FragOut {
 }
 
 /* clang-format off */
-PipelineGraphic smoke_closest_coba_slice(       vertex_function, fragment_function, Resources{.use_slice = true,  .use_color_band = true,  .is_legacy_smoke = true,   .interpolation = 0});
-PipelineGraphic smoke_closest_coba_no_slice(    vertex_function, fragment_function, Resources{.use_slice = false, .use_color_band = true,  .is_legacy_smoke = true,   .interpolation = 0});
-PipelineGraphic smoke_linear_coba_slice(        vertex_function, fragment_function, Resources{.use_slice = true,  .use_color_band = true,  .is_legacy_smoke = true,   .interpolation = 1});
-PipelineGraphic smoke_linear_coba_no_slice(     vertex_function, fragment_function, Resources{.use_slice = false, .use_color_band = true,  .is_legacy_smoke = true,   .interpolation = 1});
-PipelineGraphic smoke_cubic_coba_slice(         vertex_function, fragment_function, Resources{.use_slice = true,  .use_color_band = true,  .is_legacy_smoke = true,   .interpolation = 2});
-PipelineGraphic smoke_cubic_coba_no_slice(      vertex_function, fragment_function, Resources{.use_slice = false, .use_color_band = true,  .is_legacy_smoke = true,   .interpolation = 2});
-PipelineGraphic smoke_closest_no_coba_slice(    vertex_function, fragment_function, Resources{.use_slice = true,  .use_color_band = false, .is_legacy_smoke = true,   .interpolation = 0});
-PipelineGraphic smoke_closest_no_coba_no_slice( vertex_function, fragment_function, Resources{.use_slice = false, .use_color_band = false, .is_legacy_smoke = true,   .interpolation = 0});
-PipelineGraphic smoke_linear_no_coba_slice(     vertex_function, fragment_function, Resources{.use_slice = true,  .use_color_band = false, .is_legacy_smoke = true,   .interpolation = 1});
-PipelineGraphic smoke_linear_no_coba_no_slice(  vertex_function, fragment_function, Resources{.use_slice = false, .use_color_band = false, .is_legacy_smoke = true,   .interpolation = 1});
-PipelineGraphic smoke_cubic_no_coba_slice(      vertex_function, fragment_function, Resources{.use_slice = true,  .use_color_band = false, .is_legacy_smoke = true,   .interpolation = 2});
-PipelineGraphic smoke_cubic_no_coba_no_slice(   vertex_function, fragment_function, Resources{.use_slice = false, .use_color_band = false, .is_legacy_smoke = true,   .interpolation = 2});
-PipelineGraphic object_closest_coba_slice(      vertex_function, fragment_function, Resources{.use_slice = true,  .use_color_band = true,  .is_legacy_smoke = false,  .interpolation = 0});
-PipelineGraphic object_closest_coba_no_slice(   vertex_function, fragment_function, Resources{.use_slice = false, .use_color_band = true,  .is_legacy_smoke = false,  .interpolation = 0});
-PipelineGraphic object_linear_coba_slice(       vertex_function, fragment_function, Resources{.use_slice = true,  .use_color_band = true,  .is_legacy_smoke = false,  .interpolation = 1});
-PipelineGraphic object_linear_coba_no_slice(    vertex_function, fragment_function, Resources{.use_slice = false, .use_color_band = true,  .is_legacy_smoke = false,  .interpolation = 1});
-PipelineGraphic object_cubic_coba_slice(        vertex_function, fragment_function, Resources{.use_slice = true,  .use_color_band = true,  .is_legacy_smoke = false,  .interpolation = 2});
-PipelineGraphic object_cubic_coba_no_slice(     vertex_function, fragment_function, Resources{.use_slice = false, .use_color_band = true,  .is_legacy_smoke = false,  .interpolation = 2});
-PipelineGraphic object_closest_no_coba_slice(   vertex_function, fragment_function, Resources{.use_slice = true,  .use_color_band = false, .is_legacy_smoke = false,  .interpolation = 0});
-PipelineGraphic object_closest_no_coba_no_slice(vertex_function, fragment_function, Resources{.use_slice = false, .use_color_band = false, .is_legacy_smoke = false,  .interpolation = 0});
-PipelineGraphic object_linear_no_coba_slice(    vertex_function, fragment_function, Resources{.use_slice = true,  .use_color_band = false, .is_legacy_smoke = false,  .interpolation = 1});
-PipelineGraphic object_linear_no_coba_no_slice( vertex_function, fragment_function, Resources{.use_slice = false, .use_color_band = false, .is_legacy_smoke = false,  .interpolation = 1});
-PipelineGraphic object_cubic_no_coba_slice(     vertex_function, fragment_function, Resources{.use_slice = true,  .use_color_band = false, .is_legacy_smoke = false,  .interpolation = 2});
-PipelineGraphic object_cubic_no_coba_no_slice(  vertex_function, fragment_function, Resources{.use_slice = false, .use_color_band = false, .is_legacy_smoke = false,  .interpolation = 2});
+PipelineGraphic smoke_closest_coba_slice(       vertex_function, fragment_function, Constants{.use_slice = true,  .use_color_band = true,  .is_legacy_smoke = true,   .interpolation = 0});
+PipelineGraphic smoke_closest_coba_no_slice(    vertex_function, fragment_function, Constants{.use_slice = false, .use_color_band = true,  .is_legacy_smoke = true,   .interpolation = 0});
+PipelineGraphic smoke_linear_coba_slice(        vertex_function, fragment_function, Constants{.use_slice = true,  .use_color_band = true,  .is_legacy_smoke = true,   .interpolation = 1});
+PipelineGraphic smoke_linear_coba_no_slice(     vertex_function, fragment_function, Constants{.use_slice = false, .use_color_band = true,  .is_legacy_smoke = true,   .interpolation = 1});
+PipelineGraphic smoke_cubic_coba_slice(         vertex_function, fragment_function, Constants{.use_slice = true,  .use_color_band = true,  .is_legacy_smoke = true,   .interpolation = 2});
+PipelineGraphic smoke_cubic_coba_no_slice(      vertex_function, fragment_function, Constants{.use_slice = false, .use_color_band = true,  .is_legacy_smoke = true,   .interpolation = 2});
+PipelineGraphic smoke_closest_no_coba_slice(    vertex_function, fragment_function, Constants{.use_slice = true,  .use_color_band = false, .is_legacy_smoke = true,   .interpolation = 0});
+PipelineGraphic smoke_closest_no_coba_no_slice( vertex_function, fragment_function, Constants{.use_slice = false, .use_color_band = false, .is_legacy_smoke = true,   .interpolation = 0});
+PipelineGraphic smoke_linear_no_coba_slice(     vertex_function, fragment_function, Constants{.use_slice = true,  .use_color_band = false, .is_legacy_smoke = true,   .interpolation = 1});
+PipelineGraphic smoke_linear_no_coba_no_slice(  vertex_function, fragment_function, Constants{.use_slice = false, .use_color_band = false, .is_legacy_smoke = true,   .interpolation = 1});
+PipelineGraphic smoke_cubic_no_coba_slice(      vertex_function, fragment_function, Constants{.use_slice = true,  .use_color_band = false, .is_legacy_smoke = true,   .interpolation = 2});
+PipelineGraphic smoke_cubic_no_coba_no_slice(   vertex_function, fragment_function, Constants{.use_slice = false, .use_color_band = false, .is_legacy_smoke = true,   .interpolation = 2});
+PipelineGraphic object_closest_coba_slice(      vertex_function, fragment_function, Constants{.use_slice = true,  .use_color_band = true,  .is_legacy_smoke = false,  .interpolation = 0});
+PipelineGraphic object_closest_coba_no_slice(   vertex_function, fragment_function, Constants{.use_slice = false, .use_color_band = true,  .is_legacy_smoke = false,  .interpolation = 0});
+PipelineGraphic object_linear_coba_slice(       vertex_function, fragment_function, Constants{.use_slice = true,  .use_color_band = true,  .is_legacy_smoke = false,  .interpolation = 1});
+PipelineGraphic object_linear_coba_no_slice(    vertex_function, fragment_function, Constants{.use_slice = false, .use_color_band = true,  .is_legacy_smoke = false,  .interpolation = 1});
+PipelineGraphic object_cubic_coba_slice(        vertex_function, fragment_function, Constants{.use_slice = true,  .use_color_band = true,  .is_legacy_smoke = false,  .interpolation = 2});
+PipelineGraphic object_cubic_coba_no_slice(     vertex_function, fragment_function, Constants{.use_slice = false, .use_color_band = true,  .is_legacy_smoke = false,  .interpolation = 2});
+PipelineGraphic object_closest_no_coba_slice(   vertex_function, fragment_function, Constants{.use_slice = true,  .use_color_band = false, .is_legacy_smoke = false,  .interpolation = 0});
+PipelineGraphic object_closest_no_coba_no_slice(vertex_function, fragment_function, Constants{.use_slice = false, .use_color_band = false, .is_legacy_smoke = false,  .interpolation = 0});
+PipelineGraphic object_linear_no_coba_slice(    vertex_function, fragment_function, Constants{.use_slice = true,  .use_color_band = false, .is_legacy_smoke = false,  .interpolation = 1});
+PipelineGraphic object_linear_no_coba_no_slice( vertex_function, fragment_function, Constants{.use_slice = false, .use_color_band = false, .is_legacy_smoke = false,  .interpolation = 1});
+PipelineGraphic object_cubic_no_coba_slice(     vertex_function, fragment_function, Constants{.use_slice = true,  .use_color_band = false, .is_legacy_smoke = false,  .interpolation = 2});
+PipelineGraphic object_cubic_no_coba_no_slice(  vertex_function, fragment_function, Constants{.use_slice = false, .use_color_band = false, .is_legacy_smoke = false,  .interpolation = 2});
 /* clang-format on */
 
 }  // namespace workbench::volume

@@ -536,10 +536,10 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *input_ib
 
   /* Convert to the output pixel format, if it's different that Blender's internal one. */
   if (context->img_convert_frame != nullptr) {
-    BLI_assert(context->img_convert_ctx != nullptr);
+    BLI_assert(context->sws_ctx != nullptr);
     /* Ensure the frame we are scaling to is writable as well. */
     av_frame_make_writable(context->current_frame);
-    ffmpeg_sws_scale_frame(context->img_convert_ctx, context->current_frame, rgb_frame);
+    ffmpeg_sws_scale_frame(context->sws_ctx, context->current_frame, rgb_frame);
   }
 
   if (image != input_ibuf) {
@@ -914,14 +914,14 @@ static void set_colorspace_options(AVCodecContext *c, const ColorSpace *colorspa
     c->color_primaries = AVColorPrimaries(cicp[0]);
     c->color_trc = AVColorTransferCharacteristic(cicp[1]);
     c->colorspace = (is_rgb_format) ? AVCOL_SPC_RGB : AVColorSpace(cicp[2]);
-    c->color_range = AVCOL_RANGE_JPEG;
+    /* CICP 1 means full range, FFmpeg enum is the other way around. */
+    c->color_range = (is_rgb_format || cicp[3] == 1) ? AVCOL_RANGE_JPEG : AVCOL_RANGE_MPEG;
   }
   else if (!is_rgb_format) {
-    /* Note BT.709 is wrong for sRGB.
-     * But we have been writing sRGB like this forever, and there is the so called
-     * "Quicktime gamma shift bug" that complicates things. */
-    c->color_primaries = AVCOL_PRI_BT709;
-    c->color_trc = AVCOL_TRC_BT709;
+    /* Most colorspaces will have valid CICP values from the above but if not
+     * set to unspecified (which most players treat as sRGB) */
+    c->color_primaries = AVCOL_PRI_UNSPECIFIED;
+    c->color_trc = AVCOL_TRC_UNSPECIFIED;
     c->colorspace = AVCOL_SPC_BT709;
     /* TODO(sergey): Consider making the range an option to cover more use-cases. */
     c->color_range = AVCOL_RANGE_MPEG;
@@ -1252,7 +1252,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   if (c->pix_fmt == AV_PIX_FMT_RGBA && ELEM(c->colorspace, AVCOL_SPC_RGB, AVCOL_SPC_UNSPECIFIED)) {
     /* Output pixel format and colorspace is the same we use internally, no conversion needed. */
     context->img_convert_frame = nullptr;
-    context->img_convert_ctx = nullptr;
+    context->sws_ctx = nullptr;
   }
   else {
     /* Output pixel format is different, allocate frame for conversion.
@@ -1260,18 +1260,17 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     const AVPixelFormat src_format = is_10_bpp || is_12_bpp || is_16_bpp ? AV_PIX_FMT_GBRAPF32LE :
                                                                            AV_PIX_FMT_RGBA;
     context->img_convert_frame = alloc_frame(src_format, c->width, c->height);
-    context->img_convert_ctx = ffmpeg_sws_get_context(
-        c->width,
-        c->height,
-        src_format,
-        true,
-        -1,
-        c->width,
-        c->height,
-        c->pix_fmt,
-        c->color_range == AVCOL_RANGE_JPEG,
-        c->colorspace != AVCOL_SPC_RGB ? c->colorspace : -1,
-        SWS_BICUBIC);
+    context->sws_ctx = ffmpeg_sws_get_context(c->width,
+                                              c->height,
+                                              src_format,
+                                              true,
+                                              -1,
+                                              c->width,
+                                              c->height,
+                                              c->pix_fmt,
+                                              c->color_range == AVCOL_RANGE_JPEG,
+                                              c->colorspace != AVCOL_SPC_RGB ? c->colorspace : -1,
+                                              SWS_BICUBIC);
   }
 
   avcodec_parameters_from_context(st->codecpar, c);
@@ -1833,9 +1832,9 @@ static void end_ffmpeg_impl(MovieWriter *context, bool is_autosplit)
     context->audio_deinterleave_buffer = nullptr;
   }
 
-  if (context->img_convert_ctx != nullptr) {
-    ffmpeg_sws_release_context(context->img_convert_ctx);
-    context->img_convert_ctx = nullptr;
+  if (context->sws_ctx != nullptr) {
+    ffmpeg_sws_release_context(context->sws_ctx);
+    context->sws_ctx = nullptr;
   }
 }
 

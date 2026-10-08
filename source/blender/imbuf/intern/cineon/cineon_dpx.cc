@@ -23,7 +23,6 @@ namespace blender {
 
 static ImBuf *imb_load_dpx_cineon(const uchar *mem,
                                   size_t size,
-                                  int use_cineon,
                                   ImBufFlags flags,
                                   ImFileColorSpace &r_colorspace)
 {
@@ -36,7 +35,7 @@ static ImBuf *imb_load_dpx_cineon(const uchar *mem,
   image = logImageOpenFromMemory(mem, size);
 
   if (image == nullptr) {
-    printf("DPX/Cineon: error opening image.\n");
+    printf("Cineon: error opening image.\n");
     return nullptr;
   }
 
@@ -58,7 +57,7 @@ static ImBuf *imb_load_dpx_cineon(const uchar *mem,
   }
 
   logImageClose(image);
-  ibuf->ftype = use_cineon ? IMB_FTYPE_CINEON : IMB_FTYPE_DPX;
+  ibuf->ftype = IMB_FTYPE_CINEON;
 
   if (flag_is_set(flags, ImBufFlags::AlphaDetect)) {
     ibuf->flags |= ImBufFlags::AlphaPremul;
@@ -69,62 +68,30 @@ static ImBuf *imb_load_dpx_cineon(const uchar *mem,
   return ibuf;
 }
 
-static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon)
+static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath)
 {
   LogImageFile *logImage;
   float *fbuf;
   float *fbuf_ptr;
   const uchar *rect_ptr;
-  int x, y, bitspersample, rvalue;
+  int x, y, rvalue;
 
   logImageSetVerbose((G.debug & G_DEBUG) ? 1 : 0);
 
   if (!ELEM(ibuf->color_mode, ImColorMode::RGB, ImColorMode::RGBA)) {
-    printf("DPX/Cineon: only RGB/RGBA is supported, file: '%s'\n", filepath);
+    printf("Cineon: only RGB/RGBA is supported, file: '%s'\n", filepath);
     return 0;
-  }
-
-  if (use_cineon) {
-    /* Only 10bit is supported. */
-    bitspersample = 10;
-  }
-  else {
-    if (ibuf->foptions.flag & CINEON_10BIT) {
-      bitspersample = 10;
-    }
-    else if (ibuf->foptions.flag & CINEON_12BIT) {
-      bitspersample = 12;
-    }
-    else if (ibuf->foptions.flag & CINEON_16BIT) {
-      bitspersample = 16;
-    }
-    else {
-      bitspersample = 8;
-    }
   }
 
   const bool has_alpha = ibuf->color_mode == ImColorMode::RGBA;
-  logImage = logImageCreate(filepath,
-                            use_cineon,
-                            ibuf->x,
-                            ibuf->y,
-                            bitspersample,
-                            has_alpha,
-                            (ibuf->foptions.flag & CINEON_LOG),
-                            -1,
-                            -1,
-                            -1,
-                            "Blender");
+  logImage = logImageCreate(filepath, ibuf->x, ibuf->y, "Blender");
 
   if (logImage == nullptr) {
-    printf("DPX/Cineon: error creating file.\n");
+    printf("Cineon: error creating file.\n");
     return 0;
   }
 
-  if (ibuf->float_data() != nullptr && bitspersample != 8) {
-    /* Don't use the float buffer to save 8 BPP picture to prevent color banding
-     * (there's no dithering algorithm behind the #logImageSetDataRGBA function). */
-
+  if (ibuf->float_data() != nullptr) {
     fbuf = MEM_new_array_uninitialized<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
                                               "fbuf in imb_save_dpx_cineon");
 
@@ -147,7 +114,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon
     fbuf = MEM_new_array_uninitialized<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
                                               "fbuf in imb_save_dpx_cineon");
     if (fbuf == nullptr) {
-      printf("DPX/Cineon: error allocating memory.\n");
+      printf("Cineon: error allocating memory.\n");
       logImageClose(logImage);
       return 0;
     }
@@ -174,7 +141,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon
 
 bool imb_save_cineon(ImBuf *buf, const char *filepath, ImBufFlags /*flags*/)
 {
-  return imb_save_dpx_cineon(buf, filepath, 1);
+  return imb_save_dpx_cineon(buf, filepath);
 }
 
 bool imb_is_a_cineon(const uchar *mem, size_t size)
@@ -190,7 +157,7 @@ ImBuf *imb_load_cineon(const uchar *mem,
   if (!imb_is_a_cineon(mem, size)) {
     return nullptr;
   }
-  return imb_load_dpx_cineon(mem, size, 1, flags, r_colorspace);
+  return imb_load_dpx_cineon(mem, size, flags, r_colorspace);
 }
 
 }  // namespace blender

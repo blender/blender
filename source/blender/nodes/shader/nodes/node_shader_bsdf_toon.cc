@@ -53,7 +53,8 @@ static int node_shader_gpu_bsdf_toon(GPUMaterial *mat,
 
   GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
 
-  return GPU_stack_link(mat, node, "node_bsdf_toon", in, out, GPU_shading_data());
+  return GPU_stack_link(
+      mat, node, "node_bsdf_toon", in, out, GPU_kernel_globals(), GPU_shading_data());
 }
 
 }  // namespace nodes::node_shader_bsdf_toon_cc

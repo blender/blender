@@ -519,12 +519,8 @@ static void template_texture_user_menu(bContext *C, ui::Layout *layout, void * /
 
     ui::Button *but = uiDefIconTextBut(
         block, ui::ButtonType::But, user.icon, name, 0, 0, UI_UNIT_X * 4, UI_UNIT_Y, nullptr, "");
-    button_funcN_set(but,
-                     template_texture_select,
-                     MEM_new<ButsTextureUser>("ButsTextureUser", user),
-                     nullptr,
-                     ui::but_func_argN_free<ButsTextureUser>,
-                     ui::but_func_argN_copy<ButsTextureUser>);
+    button_funcN_set(
+        but, template_texture_select, MEM_new<ButsTextureUser>("ButsTextureUser", user), nullptr);
 
     last_category = user.category;
   }

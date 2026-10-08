@@ -37,6 +37,7 @@ set(SRC
   intern/versioning_501.cc
   intern/versioning_502.cc
   intern/versioning_503.cc
+  intern/versioning_504.cc
   intern/versioning_common.cc
   intern/versioning_defaults.cc
   intern/versioning_dna.cc

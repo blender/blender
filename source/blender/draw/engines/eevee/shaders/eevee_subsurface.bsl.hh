@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "draw_command_shared.hh"
 #include "draw_view.bsl.hh"
 #include "eevee_defines.hh"
 #include "eevee_gbuffer_read.bsl.hh"
@@ -198,7 +199,7 @@ void convolve_main([[resource_table]] Convolve &srt,
                    [[work_group_id]] const uint3 group_id,
                    [[local_invocation_id]] const uint3 local_thread_id)
 {
-  constexpr uint tile_size = SUBSURFACE_GROUP_SIZE;
+  constexpr uint tile_size = uint(SUBSURFACE_GROUP_SIZE);
   uint2 tile_coord = unpackUvec2x16(srt.tiles_coord_buf[group_id.x]);
   int2 texel = int2(local_thread_id.xy + tile_coord * tile_size);
 
@@ -242,7 +243,7 @@ void convolve_main([[resource_table]] Convolve &srt,
 
   /* Do not rotate too much to avoid too much cache misses. */
   float golden_angle = M_PI * (3.0f - sqrt(5.0f));
-  float theta = interleaved_gradient_noise(float2(texel), 0, 0.0f) * golden_angle;
+  float theta = random::interleaved_gradient(float2(texel), 0, 0.0f) * golden_angle;
 
   float2x2 sample_space = from_scale(sample_scale) * from_rotation(AngleRadian{theta});
 

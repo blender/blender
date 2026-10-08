@@ -132,25 +132,29 @@ void colorspace_to_image_texture(const pxr::UsdShadeShader &usd_shader,
   if (color_space == usdtokens::auto_) {
     /* If it's auto, determine whether to apply color correction based
      * on incoming connection (passed in from outer functions). */
-    STRNCPY_UTF8(image->colorspace_settings.name,
-                 IMB_colormanagement_role_colorspace_name_get(is_data ? COLOR_ROLE_DATA :
-                                                                        COLOR_ROLE_DEFAULT_BYTE));
+    IMB_colormanagement_colorspace_settings_set(
+        &image->colorspace_settings,
+        IMB_colormanagement_role_colorspace_name_get(is_data ? COLOR_ROLE_DATA :
+                                                               COLOR_ROLE_DEFAULT_BYTE));
   }
 
   else if (color_space == usdtokens::sRGB) {
-    STRNCPY_UTF8(image->colorspace_settings.name, IMB_colormanagement_srgb_colorspace_name_get());
+    IMB_colormanagement_colorspace_settings_set(&image->colorspace_settings,
+                                                IMB_colormanagement_srgb_colorspace_name_get());
   }
   /* Due to there being a lot of non-compliant USD assets out there, this is
    * a special case where we need to check for different spellings here.
    * On write, we are *only* using the correct, lower-case "raw" token. */
   else if (ELEM(color_space, usdtokens::data, usdtokens::RAW, usdtokens::raw)) {
-    STRNCPY_UTF8(image->colorspace_settings.name,
-                 IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
+    IMB_colormanagement_colorspace_settings_set(
+        &image->colorspace_settings,
+        IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
   }
   else {
     const ColorSpace *cs = IMB_colormanagement_space_get_named(color_space.GetText());
     if (cs) {
-      STRNCPY_UTF8(image->colorspace_settings.name, IMB_colormanagement_colorspace_get_name(cs));
+      IMB_colormanagement_colorspace_settings_set(&image->colorspace_settings,
+                                                  IMB_colormanagement_colorspace_get_name(cs));
     }
   }
 }

@@ -644,11 +644,12 @@ float4x4 AnimTransformable::world_to_local(const Depsgraph &depsgraph,
       Object *ob_eval = id_cast<Object *>(evaluated_id);
       float4x4 parent_matrix = float4x4::identity();
       if (ob_eval->parent) {
-        parent_matrix = ob_eval->parent->world_to_object();
+        parent_matrix = math::invert(float4x4(ob_eval->parentinv)) *
+                        ob_eval->parent->world_to_object();
       }
 
       float4x4 delta_matrix = BKE_object_delta_matrix_get(*ob_eval);
-      return parent_matrix * math::invert(delta_matrix) * world_matrix;
+      return math::invert(delta_matrix) * parent_matrix * world_matrix;
     }
   }
 

@@ -35,6 +35,7 @@ set(SRC
   util_aligned_malloc_test.cpp
   util_boundbox_test.cpp
   util_cache_limiter_test.cpp
+  util_colorspace_test.cpp
   util_half_test.cpp
   util_ies_test.cpp
   util_math_test.cpp
