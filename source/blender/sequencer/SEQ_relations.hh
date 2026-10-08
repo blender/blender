@@ -86,6 +86,11 @@ void relations_update_view_layer_scene_strips(Main *bmain,
  */
 void relations_invalidate_compositor_users(const Main *bmain, const bNodeTree *node_tree);
 
+/**
+ * Invalidates cached source images of effect strips without inputs, like color and text strips.
+ */
+void relations_invalidate_generator_strips(Scene *scene);
+
 void relations_invalidate_movieclip_strips(Main *bmain, MovieClip *clip_target);
 /**
  * A debug and development function which checks whether strips have unique UIDs.
