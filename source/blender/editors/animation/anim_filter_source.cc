@@ -385,7 +385,9 @@ void collection_channels_for_object(Object &obj,
 
       case OB_MESH: {
         Mesh *mesh = id_cast<Mesh *>(obj.data);
-        collect_channels_for_id(&mesh->key->id, collection_filters, arena);
+        if (mesh->key) {
+          collect_channels_for_id(&mesh->key->id, collection_filters, arena);
+        }
         break;
       }
 
