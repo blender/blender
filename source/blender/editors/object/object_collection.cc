@@ -628,6 +628,7 @@ static wmOperatorStatus collection_importer_add_invoke(bContext *C,
   CollectionImport *collection_importer = collection->importer;
   BLI_assert(collection_importer);
   BLI_assert(fh);
+  UNUSED_VARS_NDEBUG(collection_importer);
 
   const std::optional<std::string> filter_glob = fh->filter_glob_from_extensions();
   if (filter_glob) {
