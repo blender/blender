@@ -1535,50 +1535,6 @@ static void subdiv_foreach_loops(ForeachTaskContext *ctx, void *tls, int face_in
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Loose elements traverse process
- * \{ */
-
-static void subdiv_foreach_vertices_of_loose_edges_task(void *__restrict userdata,
-                                                        const int coarse_edge_index,
-                                                        const TaskParallelTLS *__restrict tls)
-{
-  ForeachTaskContext *ctx = static_cast<ForeachTaskContext *>(userdata);
-  if (BLI_BITMAP_TEST_BOOL(ctx->coarse_edges_used_map, coarse_edge_index)) {
-    /* Vertex is not loose, was handled when handling polygons. */
-    return;
-  }
-  const int resolution = ctx->layout->resolution;
-  const int resolution_1 = resolution - 1;
-  const float inv_resolution_1 = 1.0f / float(resolution_1);
-  const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
-  const int2 &coarse_edge = ctx->coarse_edges[coarse_edge_index];
-  /* Subdivision vertices which corresponds to edge's v1 and v2. */
-  const int subdiv_v1_index = coarse_edge[0];
-  const int subdiv_v2_index = coarse_edge[1];
-  /* First subdivided inner vertex of the edge. */
-  const int subdiv_start_vert = ctx->layout->edge_verts_start +
-                                coarse_edge_index * num_subdiv_vertices_per_coarse_edge;
-  /* Perform interpolation. */
-  for (int i = 0; i < resolution; i++) {
-    const float u = i * inv_resolution_1;
-    int subdiv_vert_index;
-    if (i == 0) {
-      subdiv_vert_index = subdiv_v1_index;
-    }
-    else if (i == resolution - 1) {
-      subdiv_vert_index = subdiv_v2_index;
-    }
-    else {
-      subdiv_vert_index = subdiv_start_vert + (i - 1);
-    }
-    ctx->foreach_context->vert_of_loose_edge(
-        ctx->foreach_context, tls->userdata_chunk, coarse_edge_index, u, subdiv_vert_index);
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Subdivision process entry points
  * \{ */
 
@@ -1591,16 +1547,6 @@ static void subdiv_foreach_single_geometry_vertices(ForeachTaskContext *ctx, voi
   for (int face_index = 0; face_index < coarse_mesh->faces_num; face_index++) {
     subdiv_foreach_corner_vertices(ctx, tls, face_index);
     subdiv_foreach_edge_vertices(ctx, tls, face_index);
-  }
-}
-
-static void subdiv_foreach_mark_non_loose_geometry(ForeachTaskContext *ctx)
-{
-  for (const int face_index : ctx->coarse_faces.index_range()) {
-    for (const int corner : ctx->coarse_faces[face_index]) {
-      BLI_BITMAP_ENABLE(ctx->coarse_vertices_used_map, ctx->coarse_corner_verts[corner]);
-      BLI_BITMAP_ENABLE(ctx->coarse_edges_used_map, ctx->coarse_corner_edges[corner]);
-    }
   }
 }
 
@@ -1617,14 +1563,6 @@ static void subdiv_foreach_single_thread_tasks(ForeachTaskContext *ctx)
   /* Run callbacks which are supposed to be run once per shared geometry. */
   subdiv_foreach_single_geometry_vertices(ctx, tls);
   subdiv_foreach_tls_free(ctx, tls);
-
-  const ForeachContext *foreach_context = ctx->foreach_context;
-  const bool is_loose_geometry_tagged = (foreach_context->vert_every_edge != nullptr &&
-                                         foreach_context->vert_every_corner != nullptr);
-  const bool is_loose_geometry_tags_needed = foreach_context->vert_of_loose_edge != nullptr;
-  if (is_loose_geometry_tagged && is_loose_geometry_tags_needed) {
-    subdiv_foreach_mark_non_loose_geometry(ctx);
-  }
 }
 
 static void subdiv_foreach_task(void *__restrict userdata,
@@ -1688,20 +1626,10 @@ void foreach_subdiv_geometry(Subdiv *subdiv,
   }
 
   /* TODO(sergey): Possible optimization is to have a single pool and push all
-   * the tasks into it.
-   * NOTE: Watch out for callbacks which needs to run for loose geometry as they
-   * currently are relying on the fact that face/grid callbacks will tag non-
-   * loose geometry. */
+   * the tasks into it. */
 
   BLI_task_parallel_range(
       0, coarse_mesh->faces_num, &ctx, subdiv_foreach_task, &parallel_range_settings);
-  if (context->vert_of_loose_edge != nullptr) {
-    BLI_task_parallel_range(0,
-                            coarse_mesh->edges_num,
-                            &ctx,
-                            subdiv_foreach_vertices_of_loose_edges_task,
-                            &parallel_range_settings);
-  }
   if (context->edge != nullptr) {
     BLI_task_parallel_range(0,
                             coarse_mesh->edges_num,

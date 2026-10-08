@@ -1389,13 +1389,11 @@ static void subdiv_mesh_vert_of_loose_edge_interpolate(SubdivMeshContext *ctx,
   }
 }
 
-static void subdiv_mesh_vert_of_loose_edge(const ForeachContext *foreach_context,
-                                           void * /*tls*/,
+static void subdiv_mesh_vert_of_loose_edge(SubdivMeshContext *ctx,
                                            const int coarse_edge_index,
                                            const float u,
                                            const int subdiv_vert_index)
 {
-  SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
   const int2 &coarse_edge = ctx->coarse_edges[coarse_edge_index];
   const bool is_simple = ctx->subdiv->settings.is_simple;
 
@@ -1412,6 +1410,32 @@ static void subdiv_mesh_vert_of_loose_edge(const ForeachContext *foreach_context
       coarse_edge_index,
       is_simple,
       u);
+}
+
+static void subdiv_mesh_loose_edges(SubdivMeshContext *ctx, const MeshLayout &layout)
+{
+  const int resolution = layout.resolution;
+  const float inv_resolution_1 = 1.0f / float(resolution - 1);
+  ctx->coarse_mesh->loose_edges().foreach_index(
+      [&](const int coarse_edge_index) {
+        const int2 &coarse_edge = ctx->coarse_edges[coarse_edge_index];
+        const IndexRange edge_verts = layout.base_edge_verts(coarse_edge_index);
+        for (const int i : IndexRange(resolution)) {
+          const float u = i * inv_resolution_1;
+          int subdiv_vert_index;
+          if (i == 0) {
+            subdiv_vert_index = coarse_edge[0];
+          }
+          else if (i == resolution - 1) {
+            subdiv_vert_index = coarse_edge[1];
+          }
+          else {
+            subdiv_vert_index = edge_verts[i - 1];
+          }
+          subdiv_mesh_vert_of_loose_edge(ctx, coarse_edge_index, u, subdiv_vert_index);
+        }
+      },
+      exec_mode::grain_size(64));
 }
 
 /** \} */
@@ -1435,7 +1459,6 @@ static void setup_foreach_callbacks(const SubdivMeshContext *subdiv_context,
   foreach_context->edge = subdiv_mesh_edge;
   foreach_context->loop = subdiv_mesh_loop;
   foreach_context->faces = subdiv_mesh_face;
-  foreach_context->vert_of_loose_edge = subdiv_mesh_vert_of_loose_edge;
   foreach_context->user_data_tls_free = subdiv_mesh_tls_free;
 }
 
@@ -1492,6 +1515,7 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
   foreach_context.user_data_tls_size = sizeof(SubdivMeshTLS);
   foreach_context.user_data_tls = &tls;
   foreach_subdiv_geometry(subdiv, &foreach_context, layout, coarse_mesh);
+  subdiv_mesh_loose_edges(&subdiv_context, layout);
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
   Mesh *result = subdiv_context.subdiv_mesh;
 

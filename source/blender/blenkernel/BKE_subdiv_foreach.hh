@@ -54,6 +54,13 @@ struct MeshLayout {
   Array<int> inner_edge_offsets;
   /** Groups subdivided faces by the base mesh face they come from. */
   Array<int> face_offsets;
+
+  /** Vertices created inside of a base mesh edge, ordered from its first to second vertex. */
+  IndexRange base_edge_verts(const int base_edge) const
+  {
+    const int verts_num = this->resolution - 2;
+    return IndexRange(this->edge_verts_start + base_edge * verts_num, verts_num);
+  }
 };
 
 /**
@@ -118,12 +125,6 @@ using ForeachLoopCb = void (*)(const ForeachContext *context,
 using FacesCb = void (*)(const ForeachContext *context,
                          OffsetIndices<int> subdiv_faces_by_base_face);
 
-using ForeachVertOfLooseEdgeCb = void (*)(const ForeachContext *context,
-                                          void *tls,
-                                          int coarse_edge_index,
-                                          float u,
-                                          int subdiv_vert_index);
-
 struct ForeachContext {
   /**
    * These callbacks are called from every ptex which shares "emitting"
@@ -140,8 +141,6 @@ struct ForeachContext {
   ForeachVertFromEdgeCb vert_edge = nullptr;
   /** Called exactly once, always corresponds to a single ptex face. */
   ForeachVertInnerCb vert_inner = nullptr;
-  /** Called once per vertex created for loose edge. */
-  ForeachVertOfLooseEdgeCb vert_of_loose_edge = nullptr;
   /**
    * \note If subdivided edge does not come from coarse edge, ORIGINDEX_NONE
    * will be passed as coarse_edge_index.

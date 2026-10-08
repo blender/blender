@@ -636,20 +636,23 @@ static void foreach_loop(const bke::subdiv::ForeachContext *foreach_context,
   geometry.corner_grid_indices[subdiv_loop_index] = first_grid_index + coarse_corner;
 }
 
-static void foreach_vert_of_loose_edge(const bke::subdiv::ForeachContext *foreach_context,
-                                       void * /*tls*/,
-                                       const int /*coarse_edge_index*/,
-                                       const float /*u*/,
-                                       const int vert_index)
+static void geometry_tag_loose_edge_verts_sharp(
+    MultiresReshapeSmoothContext *reshape_smooth_context)
 {
-  MultiresReshapeSmoothContext *reshape_smooth_context =
-      static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
-
-  /* NOTE: This runs in a separate pass after every other vertex callback, so it is fine to
-   * override the sharpness which may have been set from the vertex crease. */
-  if (!reshape_smooth_context->geometry.vertices[vert_index].grid_coords.is_empty()) {
-    reshape_smooth_context->geometry.vert_sharpness[vert_index] = OPENSUBDIV_SHARPNESS_INFINITE;
-  }
+  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
+  const Span<int2> base_edges = reshape_context->base_edges;
+  auto &geometry = reshape_smooth_context->geometry;
+  /* NOTE: This runs after every other vertex is processed, so it is fine to override the
+   * sharpness which may have been set from the vertex crease. The vertices inside of loose edges
+   * are never used by faces, so only the base mesh vertices at the ends of the edges (which have
+   * the same indices in the subdivided mesh) are relevant. */
+  reshape_context->base_mesh->loose_edges().foreach_index([&](const int edge) {
+    for (const int vert : {base_edges[edge][0], base_edges[edge][1]}) {
+      if (!geometry.vertices[vert].grid_coords.is_empty()) {
+        geometry.vert_sharpness[vert] = OPENSUBDIV_SHARPNESS_INFINITE;
+      }
+    }
+  });
 }
 
 static void store_edge(MultiresReshapeSmoothContext *reshape_smooth_context,
@@ -747,7 +750,6 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
   foreach_context.vert_every_corner = foreach_vert_every_corner;
   foreach_context.vert_every_edge = foreach_vert_every_edge;
   foreach_context.loop = foreach_loop;
-  foreach_context.vert_of_loose_edge = foreach_vert_of_loose_edge;
   foreach_context.edge = foreach_edge;
   foreach_context.user_data = reshape_smooth_context;
 
@@ -760,6 +762,8 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
   /* TODO(sergey): Tell the foreach() to ignore loose vertices. */
   bke::subdiv::foreach_subdiv_geometry(
       reshape_context->subdiv, &foreach_context, layout, reshape_context->base_mesh);
+
+  geometry_tag_loose_edge_verts_sharp(reshape_smooth_context);
 }
 
 /** \} */
