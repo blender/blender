@@ -5808,9 +5808,9 @@ void Layout::resolve_dynamic_height()
   /* Dynamic height is resolved row by row, and each row pushes down following rows. */
   for (const int row : IndexRange(rows)) {
     /* Maximum sub-item height in the row before resolving its dynamic height. */
-    int max_row_subitem_heigth = 0;
+    int max_row_subitem_height = 0;
     /* Maximum sub-item height in the row after resolving its dynamic height. */
-    int max_row_subitem_heigth_new = 0;
+    int max_row_subitem_height_new = 0;
 
     for (const int col : IndexRange(cols)) {
       const int i = (row_major ? (row * cols + col) : (col * rows + row));
@@ -5819,7 +5819,7 @@ void Layout::resolve_dynamic_height()
       }
       Item *subitem = this->items_[i];
       const int2 size = subitem->size();
-      max_row_subitem_heigth = std::max(max_row_subitem_heigth, size.y);
+      max_row_subitem_height = std::max(max_row_subitem_height, size.y);
 
       /* Apply accumulated offset from previous rows. */
       item_translate_y(subitem, -y_offs);
@@ -5838,10 +5838,10 @@ void Layout::resolve_dynamic_height()
         static_cast<Layout *>(subitem)->resolve_dynamic_height();
       }
       const int2 new_size = subitem->size();
-      max_row_subitem_heigth_new = std::max(max_row_subitem_heigth_new, new_size.y);
+      max_row_subitem_height_new = std::max(max_row_subitem_height_new, new_size.y);
     }
     /* Apply this row's extra height as offset to following rows. */
-    y_offs += std::max(max_row_subitem_heigth_new - max_row_subitem_heigth, 0);
+    y_offs += std::max(max_row_subitem_height_new - max_row_subitem_height, 0);
   }
 
   /* Apply change in height to this layout. */

@@ -328,7 +328,7 @@ void template_palette(Layout *layout, PointerRNA *ptr, const StringRefNull propn
                                                                   0.0,
                                                                   1.0,
                                                                   ""));
-    color_but->is_pallete_color = true;
+    color_but->is_palette_color = true;
     color_but->palette_color_index = col_id;
     row_cols++;
     col_id++;
