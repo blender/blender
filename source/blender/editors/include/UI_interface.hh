@@ -42,24 +42,6 @@ struct SearchItems;
 void button_func_set(Button *but, std::function<void(bContext &)> func);
 void button_func_pushed_state_set(Button *but, std::function<bool(const Button &)> func);
 
-/**
- * Template generating a freeing callback matching the #uiButArgNFree signature, for data created
- * with #MEM_new.
- */
-template<typename T> void but_func_argN_free(void *argN)
-{
-  MEM_delete(static_cast<T *>(argN));
-}
-
-/**
- * Template generating a copying callback matching the #uiButArgNCopy signature, for data created
- * with #MEM_new.
- */
-template<typename T> void *but_func_argN_copy(const void *argN)
-{
-  return MEM_new<T>(__func__, *static_cast<const T *>(argN));
-}
-
 class AbstractGridView;
 class AbstractTreeView;
 class DropTargetInterface;

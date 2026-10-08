@@ -700,7 +700,8 @@ void uiTemplateNodeLink(
   button_node_link_set(but, input, socket_col);
   button_drawflag_enable(but, ui::BUT_ICON_LEFT);
 
-  ui::button_poin_menu_argN_set(but, but, arg, MEM_delete_void, MEM_dupalloc_void);
+  ui::button_poin_menu_argN_set(
+      but, but, arg, ui::but_func_argN_free<NodeLinkArg>, ui::but_func_argN_copy<NodeLinkArg>);
 
   if (input->link && input->link->fromnode) {
     if (input->link->fromnode->flag & NODE_ACTIVE_TEXTURE) {

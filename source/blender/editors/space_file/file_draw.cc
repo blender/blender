@@ -127,7 +127,7 @@ void ED_file_path_button(bScreen *screen,
   BLI_assert(!but_is_utf8(but));
 
   button_func_complete_set(but, autocomplete_directory, nullptr);
-  button_funcN_set(but, file_directory_enter_handle, nullptr, but);
+  button_funcN_set(but, file_directory_enter_handle, nullptr, but, nullptr, nullptr);
   /* Keep editing after Tab completes a directory. */
   button_flag_enable(but, ui::BUT_TEXTEDIT_AUTOCOMPLETE_KEEP_ACTIVE);
 

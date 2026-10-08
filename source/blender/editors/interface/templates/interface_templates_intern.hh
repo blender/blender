@@ -66,8 +66,36 @@ void template_add_button_search_menu(const bContext *C,
                                      const bool use_previews,
                                      const bool editable,
                                      const bool live_icon,
-                                     ButtonArgNFree func_argN_free_fn = MEM_delete_void,
-                                     ButtonArgNCopy func_argN_copy_fn = MEM_dupalloc);
+                                     ButtonArgNFree func_argN_free_fn,
+                                     ButtonArgNCopy func_argN_copy_fn);
+/** Variant that frees and copies \a block_argN based on its type, see #but_func_argN_free. */
+template<typename T>
+void template_add_button_search_menu(const bContext *C,
+                                     Layout &layout,
+                                     Block *block,
+                                     PointerRNA *ptr,
+                                     PropertyRNA *prop,
+                                     BlockCreateFunc block_func,
+                                     T *block_argN,
+                                     std::optional<StringRef> tip,
+                                     const bool use_previews,
+                                     const bool editable,
+                                     const bool live_icon)
+{
+  template_add_button_search_menu(C,
+                                  layout,
+                                  block,
+                                  ptr,
+                                  prop,
+                                  block_func,
+                                  block_argN,
+                                  tip,
+                                  use_previews,
+                                  editable,
+                                  live_icon,
+                                  but_func_argN_free<T>,
+                                  but_func_argN_copy<T>);
+}
 
 Block *template_common_search_menu(const bContext *C,
                                    ARegion *region,

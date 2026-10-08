@@ -4884,7 +4884,7 @@ static void block_open_begin(bContext *C, Button *but, HandleButtonData *data)
     case ButtonType::Menu:
       BLI_assert(but->menu_create_func);
       if (button_menu_draw_as_popover(but)) {
-        const char *idname = static_cast<const char *>(but->func_argN);
+        const std::string &idname = *static_cast<const std::string *>(but->func_argN);
         popover_panel_type = WM_paneltype_find(idname, false);
       }
 
@@ -4907,7 +4907,7 @@ static void block_open_begin(bContext *C, Button *but, HandleButtonData *data)
       but->editvec = data->vec;
 
       if (button_menu_draw_as_popover(but)) {
-        const char *idname = static_cast<const char *>(but->func_argN);
+        const std::string &idname = *static_cast<const std::string *>(but->func_argN);
         popover_panel_type = WM_paneltype_find(idname, false);
       }
 

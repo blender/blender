@@ -2977,8 +2977,8 @@ static Button *item_menu(Layout *layout,
                          void *argN,
                          const std::optional<StringRef> tip,
                          bool force_menu,
-                         ButtonArgNFree func_argN_free_fn = MEM_delete_void,
-                         ButtonArgNCopy func_argN_copy_fn = MEM_dupalloc_void)
+                         ButtonArgNFree func_argN_free_fn,
+                         ButtonArgNCopy func_argN_copy_fn)
 {
   Block *block = layout->block();
   Layout *heading_layout = layout_heading_find(layout);
@@ -3066,7 +3066,9 @@ void Layout::menu(MenuType *mt, const std::optional<StringRef> name_opt, int ico
             mt,
             nullptr,
             mt->description ? TIP_(mt->description) : "",
-            false);
+            false,
+            nullptr,
+            nullptr);
 }
 
 void Layout::menu(const StringRef menuname, const std::optional<StringRef> name, int icon)
@@ -3199,8 +3201,16 @@ void Layout::popover(const bContext *C,
 
   CTX_store_set(const_cast<bContext *>(C), previous_ctx);
 
-  Button *but = item_menu(
-      layout, name, icon, item_paneltype_func, pt, nullptr, TIP_(pt->description), true);
+  Button *but = item_menu(layout,
+                          name,
+                          icon,
+                          item_paneltype_func,
+                          pt,
+                          nullptr,
+                          TIP_(pt->description),
+                          true,
+                          nullptr,
+                          nullptr);
   but->type = ButtonType::Popover;
 
   /* Override button size when there is no icon or label. */
@@ -3652,17 +3662,22 @@ void Layout::menu_fn(const StringRefNull name, int icon, MenuCreateFunc func, vo
     return;
   }
 
-  item_menu(this, name, icon, func, arg, nullptr, "", false);
+  item_menu(this, name, icon, func, arg, nullptr, "", false, nullptr, nullptr);
 }
 
-void Layout::menu_fn_argN_free(const StringRefNull name, int icon, MenuCreateFunc func, void *argN)
+void Layout::menu_fn_argN_free(const StringRefNull name,
+                               int icon,
+                               MenuCreateFunc func,
+                               void *argN,
+                               void (*argN_free_fn)(void *argN),
+                               void *(*argN_copy_fn)(const void *argN))
 {
   if (!func) {
     return;
   }
 
   /* Second 'argN' only ensures it gets freed. */
-  item_menu(this, name, icon, func, argN, argN, "", false);
+  item_menu(this, name, icon, func, argN, argN, "", false, argN_free_fn, argN_copy_fn);
 }
 
 struct MenuItemLevel {

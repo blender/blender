@@ -775,7 +775,8 @@ Vector<StringRef> text_clip_multiline_middle(const uiFontStyle *fstyle,
  * - #block_func_set and button_func_set are callbacks run when a button is used,
  *   in case events, operators or RNA are not sufficient to handle the button.
  *
- * - #button_funcN_set will free the argument with MEM_delete_void. */
+ * - #button_funcN_set takes ownership of the argument, freeing and copying it based on its type
+ *   unless explicit callbacks are given. */
 
 struct SearchItems;
 
@@ -790,6 +791,25 @@ using ButtonCompleteFunc = int (*)(bContext *C, char *str, void *arg);
  */
 using ButtonArgNFree = void (*)(void *argN);
 using ButtonArgNCopy = void *(*)(const void *argN);
+
+/**
+ * Template generating a freeing callback matching the #ButtonArgNFree signature.
+ */
+template<typename T> void but_func_argN_free(void *argN)
+{
+  MEM_delete(static_cast<T *>(argN));
+}
+
+/**
+ * Template generating a copying callback matching the #ButtonArgNCopy signature. Raw arrays are
+ * not supported; use a container like #Array or #std::string instead.
+ */
+template<typename T> void *but_func_argN_copy(const void *argN)
+{
+  static_assert(!std::is_pointer_v<T> && !std::is_arithmetic_v<T>,
+                "Likely a raw array or C-string, use a container like Array or std::string");
+  return MEM_new<T>(__func__, *static_cast<const T *>(argN));
+}
 
 /**
  * Function to compare the identity of two buttons over redraws, to check if they represent the
@@ -1751,8 +1771,32 @@ Button *uiDefBlockButN(Block *block,
                        short width,
                        short height,
                        std::optional<StringRef> tip,
-                       ButtonArgNFree func_argN_free_fn = MEM_delete_void,
-                       ButtonArgNCopy func_argN_copy_fn = MEM_dupalloc_void);
+                       ButtonArgNFree func_argN_free_fn,
+                       ButtonArgNCopy func_argN_copy_fn);
+/** Variant that frees and copies \a argN based on its type, see #but_func_argN_free. */
+template<typename T>
+Button *uiDefBlockButN(Block *block,
+                       BlockCreateFunc func,
+                       T *argN,
+                       StringRef str,
+                       int x,
+                       int y,
+                       short width,
+                       short height,
+                       std::optional<StringRef> tip)
+{
+  return uiDefBlockButN(block,
+                        func,
+                        argN,
+                        str,
+                        x,
+                        y,
+                        width,
+                        height,
+                        tip,
+                        but_func_argN_free<T>,
+                        but_func_argN_copy<T>);
+}
 
 /**
  * Block button containing icon.
@@ -1987,8 +2031,14 @@ void block_funcN_set(Block *block,
                      ButtonHandleNFunc funcN,
                      void *argN,
                      void *arg2,
-                     ButtonArgNFree func_argN_free_fn = MEM_delete_void,
-                     ButtonArgNCopy func_argN_copy_fn = MEM_dupalloc_void);
+                     ButtonArgNFree func_argN_free_fn,
+                     ButtonArgNCopy func_argN_copy_fn);
+/** Variant that frees and copies \a argN based on its type, see #but_func_argN_free. */
+template<typename T>
+void block_funcN_set(Block *block, ButtonHandleNFunc funcN, T *argN, void *arg2)
+{
+  block_funcN_set(block, funcN, argN, arg2, but_func_argN_free<T>, but_func_argN_copy<T>);
+}
 
 void text_button_func_rename_set(
     Button *but, std::function<void(bContext &C, StringRefNull oldname)> rename_func);
@@ -1999,8 +2049,14 @@ void button_funcN_set(Button *but,
                       ButtonHandleNFunc funcN,
                       void *argN,
                       void *arg2,
-                      ButtonArgNFree func_argN_free_fn = MEM_delete_void,
-                      ButtonArgNCopy func_argN_copy_fn = MEM_dupalloc_void);
+                      ButtonArgNFree func_argN_free_fn,
+                      ButtonArgNCopy func_argN_copy_fn);
+/** Variant that frees and copies \a argN based on its type, see #but_func_argN_free. */
+template<typename T>
+void button_funcN_set(Button *but, ButtonHandleNFunc funcN, T *argN, void *arg2)
+{
+  button_funcN_set(but, funcN, argN, arg2, but_func_argN_free<T>, but_func_argN_copy<T>);
+}
 
 void button_func_complete_set(Button *but, ButtonCompleteFunc func, void *arg);
 
