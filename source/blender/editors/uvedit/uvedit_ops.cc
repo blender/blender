@@ -2977,6 +2977,7 @@ void ED_operatormacros_uvedit()
                                     "Rip Move UVs",
                                     "Unstitch UVs and move the result",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
+  ot->cursor_pending = WM_CURSOR_CROSS;
   WM_operatortype_macro_define(ot, "UV_OT_rip");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
