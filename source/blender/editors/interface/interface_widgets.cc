@@ -2928,10 +2928,10 @@ static void widget_draw_multiline_text(const uiFontStyle *fstyle,
 
   float ymax = rect->ymax - padding;
   rcti line_rect = *rect;
-  int sccissors[4];
-  GPU_scissor_get(sccissors);
-  int sccisors_ymin = sccissors[1];
-  int sccisors_ymax = sccisors_ymin + sccissors[3];
+  int scissors[4];
+  GPU_scissor_get(scissors);
+  int scissors_ymin = scissors[1];
+  int scissors_ymax = scissors_ymin + scissors[3];
 
   for (const int i : multiline_label->wrap_cache->wrapped_lines.index_range().take_front(lines)) {
     StringRef line = multiline_label->wrap_cache->wrapped_lines[i];
@@ -2939,11 +2939,11 @@ static void widget_draw_multiline_text(const uiFontStyle *fstyle,
     ymax -= line_height;
     line_rect.ymin = ymax;
     /* Break when there is not more space to draw. */
-    if (line_rect.ymax < sccisors_ymin) {
+    if (line_rect.ymax < scissors_ymin) {
       break;
     }
     /* Skip the line if the line is not in visible bounds. */
-    if (line_rect.ymin > sccisors_ymax) {
+    if (line_rect.ymin > scissors_ymax) {
       continue;
     }
     if (i < (lines - 1) || total_lines == lines) {
@@ -4918,7 +4918,7 @@ static void widget_swatch(Button *but,
   col[3] *= widget_alpha_factor(state);
 
   widgetbase_draw_color(&wtb, wcol, col, show_alpha_checkers);
-  if (color_but->is_pallete_color &&
+  if (color_but->is_palette_color &&
       (id_cast<Palette *>(but->rnapoin.owner_id))->active_color == color_but->palette_color_index)
   {
     const float width = rect->xmax - rect->xmin;
