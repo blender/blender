@@ -78,11 +78,10 @@ struct ForeachTaskContext {
   int num_subdiv_edges;
   int num_subdiv_loops;
   int num_subdiv_faces;
-  /* Offsets of various geometry in the subdivision mesh arrays. */
-  int vertices_corner_offset;
+  /* Offsets of various geometry in the subdivision mesh arrays. Vertices corresponding to coarse
+   * vertices and edges corresponding to coarse edges come first. */
   int vertices_edge_offset;
   int vertices_inner_offset;
-  int edge_boundary_offset;
   int edge_inner_offset;
   /* Indexed by coarse face index, indicates offset in subdivided mesh
    * vertices, edges and polygons arrays, where first element of the face
@@ -143,56 +142,6 @@ static void subdiv_foreach_tls_free(ForeachTaskContext *ctx, void *tls)
 /** \name Initialization
  * \{ */
 
-/* NOTE: Expects edge map to be zeroed. */
-static void subdiv_foreach_ctx_count(ForeachTaskContext *ctx)
-{
-  /* Reset counters. */
-  ctx->num_subdiv_vertices = 0;
-  ctx->num_subdiv_edges = 0;
-  ctx->num_subdiv_loops = 0;
-  ctx->num_subdiv_faces = 0;
-  /* Static geometry counters. */
-  const int resolution = ctx->settings->resolution;
-  const int no_quad_patch_resolution = ((resolution >> 1) + 1);
-  const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
-  const int num_inner_vertices_per_quad = (resolution - 2) * (resolution - 2);
-  const int num_inner_vertices_per_noquad_patch = (no_quad_patch_resolution - 2) *
-                                                  (no_quad_patch_resolution - 2);
-  const Mesh *coarse_mesh = ctx->coarse_mesh;
-  ctx->num_subdiv_vertices = coarse_mesh->verts_num;
-  ctx->num_subdiv_edges = coarse_mesh->edges_num * (num_subdiv_vertices_per_coarse_edge + 1);
-  /* Calculate extra vertices and edges created by non-loose geometry. */
-  for (int face_index = 0; face_index < coarse_mesh->faces_num; face_index++) {
-    const IndexRange coarse_face = ctx->coarse_faces[face_index];
-    const int num_ptex_faces_per_face = num_ptex_faces_per_face_get(coarse_face);
-    /* Inner vertices of face. */
-    if (num_ptex_faces_per_face == 1) {
-      ctx->num_subdiv_vertices += num_inner_vertices_per_quad;
-      ctx->num_subdiv_edges += num_edges_per_ptex_face_get(resolution - 2) +
-                               4 * num_subdiv_vertices_per_coarse_edge;
-      ctx->num_subdiv_faces += num_faces_per_ptex_get(resolution);
-    }
-    else {
-      ctx->num_subdiv_vertices += 1 + num_ptex_faces_per_face * (no_quad_patch_resolution - 2) +
-                                  num_ptex_faces_per_face * num_inner_vertices_per_noquad_patch;
-      ctx->num_subdiv_edges += num_ptex_faces_per_face *
-                               (num_inner_edges_per_ptex_face_get(no_quad_patch_resolution - 1) +
-                                (no_quad_patch_resolution - 2) +
-                                num_subdiv_vertices_per_coarse_edge);
-      if (no_quad_patch_resolution >= 3) {
-        ctx->num_subdiv_edges += coarse_face.size();
-      }
-      ctx->num_subdiv_faces += num_ptex_faces_per_face *
-                               num_faces_per_ptex_get(no_quad_patch_resolution);
-    }
-  }
-
-  /* Add vertices used by outer edges on subdivided faces and loose edges. */
-  ctx->num_subdiv_vertices += num_subdiv_vertices_per_coarse_edge * coarse_mesh->edges_num;
-
-  ctx->num_subdiv_loops = ctx->num_subdiv_faces * 4;
-}
-
 static void subdiv_foreach_ctx_init_offsets(ForeachTaskContext *ctx)
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
@@ -205,13 +154,10 @@ static void subdiv_foreach_ctx_init_offsets(ForeachTaskContext *ctx)
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
   const int num_subdiv_edges_per_coarse_edge = resolution - 1;
   /* Constant offsets in arrays. */
-  ctx->vertices_corner_offset = 0;
   ctx->vertices_edge_offset = coarse_mesh->verts_num;
   ctx->vertices_inner_offset = ctx->vertices_edge_offset +
                                coarse_mesh->edges_num * num_subdiv_vertices_per_coarse_edge;
-  ctx->edge_boundary_offset = 0;
-  ctx->edge_inner_offset = ctx->edge_boundary_offset +
-                           coarse_mesh->edges_num * num_subdiv_edges_per_coarse_edge;
+  ctx->edge_inner_offset = coarse_mesh->edges_num * num_subdiv_edges_per_coarse_edge;
   /* "Indexed" offsets. */
   int vert_offset = 0;
   int edge_offset = 0;
@@ -240,6 +186,10 @@ static void subdiv_foreach_ctx_init_offsets(ForeachTaskContext *ctx)
     }
   }
   ctx->subdiv_face_offset.last() = face_offset;
+  ctx->num_subdiv_vertices = ctx->vertices_inner_offset + vert_offset;
+  ctx->num_subdiv_edges = ctx->edge_inner_offset + edge_offset;
+  ctx->num_subdiv_faces = face_offset;
+  ctx->num_subdiv_loops = face_offset * 4;
 }
 
 static void subdiv_foreach_ctx_init(Subdiv *subdiv, ForeachTaskContext *ctx)
@@ -252,10 +202,8 @@ static void subdiv_foreach_ctx_init(Subdiv *subdiv, ForeachTaskContext *ctx)
   ctx->subdiv_edge_offset.reinitialize(coarse_mesh->faces_num);
   /* One extra element for #OffsetIndices encoding. */
   ctx->subdiv_face_offset.reinitialize(coarse_mesh->faces_num + 1);
-  /* Initialize all offsets. */
+  /* Initialize all offsets and the number of geometry in the result subdivision mesh. */
   subdiv_foreach_ctx_init_offsets(ctx);
-  /* Calculate number of geometry in the result subdivision mesh. */
-  subdiv_foreach_ctx_count(ctx);
   ctx->face_ptex_offset = face_ptex_offset_get(subdiv);
 }
 
@@ -289,7 +237,7 @@ static void subdiv_foreach_corner_vertices_regular_do(ForeachTaskContext *ctx,
       continue;
     }
     const int coarse_vert_index = coarse_vert;
-    const int subdiv_vert_index = ctx->vertices_corner_offset + coarse_vert_index;
+    const int subdiv_vert_index = coarse_vert_index;
     const float u = weights[corner][0];
     const float v = weights[corner][1];
     vert_corner(ctx->foreach_context,
@@ -327,7 +275,7 @@ static void subdiv_foreach_corner_vertices_special_do(ForeachTaskContext *ctx,
       continue;
     }
     const int coarse_vert_index = coarse_vert;
-    const int subdiv_vert_index = ctx->vertices_corner_offset + coarse_vert_index;
+    const int subdiv_vert_index = coarse_vert_index;
     vert_corner(ctx->foreach_context,
                 tls,
                 ptex_face_index,
@@ -948,9 +896,8 @@ static void subdiv_foreach_boundary_edges(ForeachTaskContext *ctx,
   const int num_subdiv_edges_per_coarse_edge = resolution - 1;
   const bool is_loose = !BLI_BITMAP_TEST_BOOL(ctx->coarse_edges_used_map, coarse_edge_index);
 
-  int subdiv_edge_index = ctx->edge_boundary_offset +
-                          coarse_edge_index * num_subdiv_edges_per_coarse_edge;
-  int last_vert_index = ctx->vertices_corner_offset + coarse_edge[0];
+  int subdiv_edge_index = coarse_edge_index * num_subdiv_edges_per_coarse_edge;
+  int last_vert_index = coarse_edge[0];
   for (int i = 0; i < num_subdiv_edges_per_coarse_edge - 1; i++, subdiv_edge_index++) {
     const int v1 = last_vert_index;
     const int v2 = ctx->vertices_edge_offset +
@@ -960,7 +907,7 @@ static void subdiv_foreach_boundary_edges(ForeachTaskContext *ctx,
     last_vert_index = v2;
   }
   const int v1 = last_vert_index;
-  const int v2 = ctx->vertices_corner_offset + coarse_edge[1];
+  const int v2 = coarse_edge[1];
   ctx->foreach_context->edge(
       ctx->foreach_context, tls, coarse_edge_index, subdiv_edge_index, is_loose, v1, v2);
 }
@@ -1141,19 +1088,18 @@ static void subdiv_foreach_loops_regular(ForeachTaskContext *ctx,
     const bool flip = (coarse_edge[1] == coarse_vert);
     int side_start_index = start_vert_index;
     int side_stride = 0;
-    int v0 = ctx->vertices_corner_offset + coarse_vert;
+    int v0 = coarse_vert;
     int v3, e3;
     int e2_offset, e2_stride;
     float u, v, delta_u, delta_v;
     if (coarse_prev_vert == prev_coarse_edge[0]) {
       v3 = ctx->vertices_edge_offset + coarse_prev_edge * num_subdiv_vertices_per_coarse_edge +
            num_subdiv_vertices_per_coarse_edge - 1;
-      e3 = ctx->edge_boundary_offset + coarse_prev_edge * num_subdiv_edges_per_coarse_edge +
-           num_subdiv_edges_per_coarse_edge - 1;
+      e3 = (coarse_prev_edge + 1) * num_subdiv_edges_per_coarse_edge - 1;
     }
     else {
       v3 = ctx->vertices_edge_offset + coarse_prev_edge * num_subdiv_vertices_per_coarse_edge;
-      e3 = ctx->edge_boundary_offset + coarse_prev_edge * num_subdiv_edges_per_coarse_edge;
+      e3 = coarse_prev_edge * num_subdiv_edges_per_coarse_edge;
     }
     /* Calculate starting vertex of corresponding inner part of ptex. */
     if (corner == 0) {
@@ -1210,11 +1156,10 @@ static void subdiv_foreach_loops_regular(ForeachTaskContext *ctx,
       const int v2 = side_start_index + side_stride * i;
       int e0;
       if (flip) {
-        e0 = ctx->edge_boundary_offset + coarse_edge_i * num_subdiv_edges_per_coarse_edge +
-             num_subdiv_edges_per_coarse_edge - i - 1;
+        e0 = (coarse_edge_i + 1) * num_subdiv_edges_per_coarse_edge - i - 1;
       }
       else {
-        e0 = ctx->edge_boundary_offset + coarse_edge_i * num_subdiv_edges_per_coarse_edge + i;
+        e0 = coarse_edge_i * num_subdiv_edges_per_coarse_edge + i;
       }
       int e1 = start_edge_index + num_edges_per_ptex_face_get(resolution - 2) +
                corner * num_subdiv_vertices_per_coarse_edge + i;
@@ -1446,17 +1391,16 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
     const int corner_vert_index = start_vert_index + corner * num_inner_vertices_per_ptex;
     const int corner_edge_index = start_edge_index + corner * num_inner_edges_per_ptex_face;
     /* Create loops for polygons along U axis. */
-    int v0 = ctx->vertices_corner_offset + coarse_vert;
+    int v0 = coarse_vert;
     int v3, e3;
     if (coarse_prev_vert == prev_coarse_edge[0]) {
       v3 = ctx->vertices_edge_offset + coarse_prev_edge * num_subdiv_vertices_per_coarse_edge +
            num_subdiv_vertices_per_coarse_edge - 1;
-      e3 = ctx->edge_boundary_offset + coarse_prev_edge * num_subdiv_edges_per_coarse_edge +
-           num_subdiv_edges_per_coarse_edge - 1;
+      e3 = (coarse_prev_edge + 1) * num_subdiv_edges_per_coarse_edge - 1;
     }
     else {
       v3 = ctx->vertices_edge_offset + coarse_prev_edge * num_subdiv_vertices_per_coarse_edge;
-      e3 = ctx->edge_boundary_offset + coarse_prev_edge * num_subdiv_edges_per_coarse_edge;
+      e3 = coarse_prev_edge * num_subdiv_edges_per_coarse_edge;
     }
     for (int i = 0; i <= ptex_face_inner_resolution; i++, subdiv_loop_index += 4) {
       int v1;
@@ -1475,11 +1419,10 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
       }
       int e0;
       if (flip) {
-        e0 = ctx->edge_boundary_offset + coarse_edge_i * num_subdiv_edges_per_coarse_edge +
-             num_subdiv_edges_per_coarse_edge - i - 1;
+        e0 = (coarse_edge_i + 1) * num_subdiv_edges_per_coarse_edge - i - 1;
       }
       else {
-        e0 = ctx->edge_boundary_offset + coarse_edge_i * num_subdiv_edges_per_coarse_edge + i;
+        e0 = coarse_edge_i * num_subdiv_edges_per_coarse_edge + i;
       }
       int e1 = start_edge_index + corner * (2 * ptex_face_inner_resolution + 1);
       if (ptex_face_resolution >= 3) {
@@ -1560,12 +1503,11 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
       int v2 = flip_prev ? v3 - 1 : v3 + 1;
       int e2;
       if (flip_prev) {
-        e2 = ctx->edge_boundary_offset + coarse_prev_edge * num_subdiv_edges_per_coarse_edge +
+        e2 = coarse_prev_edge * num_subdiv_edges_per_coarse_edge +
              num_subdiv_edges_per_coarse_edge - 2 - i;
       }
       else {
-        e2 = ctx->edge_boundary_offset + coarse_prev_edge * num_subdiv_edges_per_coarse_edge + 1 +
-             i;
+        e2 = coarse_prev_edge * num_subdiv_edges_per_coarse_edge + 1 + i;
       }
       const float u = 0.0f;
       const float v = du * (i + 1);
@@ -1620,7 +1562,7 @@ static void subdiv_foreach_loose_vertices_task(void *__restrict userdata,
     /* Vertex is not loose, was handled when handling polygons. */
     return;
   }
-  const int subdiv_vert_index = ctx->vertices_corner_offset + coarse_vert_index;
+  const int subdiv_vert_index = coarse_vert_index;
   ctx->foreach_context->vert_loose(
       ctx->foreach_context, tls->userdata_chunk, coarse_vert_index, subdiv_vert_index);
 }
@@ -1640,8 +1582,8 @@ static void subdiv_foreach_vertices_of_loose_edges_task(void *__restrict userdat
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
   const int2 &coarse_edge = ctx->coarse_edges[coarse_edge_index];
   /* Subdivision vertices which corresponds to edge's v1 and v2. */
-  const int subdiv_v1_index = ctx->vertices_corner_offset + coarse_edge[0];
-  const int subdiv_v2_index = ctx->vertices_corner_offset + coarse_edge[1];
+  const int subdiv_v1_index = coarse_edge[0];
+  const int subdiv_v2_index = coarse_edge[1];
   /* First subdivided inner vertex of the edge. */
   const int subdiv_start_vert = ctx->vertices_edge_offset +
                                 coarse_edge_index * num_subdiv_vertices_per_coarse_edge;
