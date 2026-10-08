@@ -50,10 +50,6 @@ struct AttributeSearchData {
   char socket_identifier[MAX_NAME];
 };
 
-/* This class must not have a destructor, since it is used by buttons and freed with
- * #MEM_delete_void. */
-BLI_STATIC_ASSERT(std::is_trivially_destructible_v<AttributeSearchData>, "");
-
 static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
     const bContext &C, AttributeSearchData &data)
 {
@@ -261,14 +257,8 @@ void node_geometry_add_attribute_search_button(const bContext & /*C*/,
 
   button_func_search_set_results_are_suggestions(but, true);
   button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
-  button_func_search_set(but,
-                         nullptr,
-                         attribute_search_update_fn,
-                         static_cast<void *>(data),
-                         true,
-                         nullptr,
-                         attribute_search_exec_fn,
-                         nullptr);
+  button_func_search_set(
+      but, nullptr, attribute_search_update_fn, data, attribute_search_exec_fn, nullptr);
 }
 
 }  // namespace ed::space_node

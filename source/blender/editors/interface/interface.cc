@@ -6298,8 +6298,8 @@ void button_func_search_set(Button *but,
                             ButtonSearchCreateFn search_create_fn,
                             ButtonSearchUpdateFn search_update_fn,
                             void *arg,
-                            const bool free_arg,
                             FreeArgFunc search_arg_free_fn,
+                            ButtonArgNCopy search_arg_copy_fn,
                             ButtonHandleFunc search_exec_fn,
                             void *active)
 {
@@ -6317,9 +6317,6 @@ void button_func_search_set(Button *but,
   search_but->items_update_fn = search_update_fn;
   search_but->item_active = active;
 
-  if (free_arg && !search_arg_free_fn) {
-    search_arg_free_fn = MEM_delete_void;
-  }
   search_but->arg = std::shared_ptr<void>(
       arg,
       search_arg_free_fn ?
@@ -6335,18 +6332,19 @@ void button_func_search_set(Button *but,
     }
 #endif
     /* Handling will pass the active item as arg2 later, so keep it nullptr here. */
-    if (free_arg) {
+    if (search_arg_copy_fn) {
       /* XXX This is only done so `but_equals_old()` can recognize this button over redraws,
        * otherwise interaction breaks entirely. Unlike #button_funcN_set(), #button_func_set() sets
        * arg1, which takes part in the comparison, so the pointer needs to be stable over redraws.
        * #button_funcN_set() doesn't set it, but takes ownership of the memory and frees it later.
        * So give it a duplicate of the memory. */
+      BLI_assert(search_arg_free_fn);
       button_funcN_set(but,
                        search_exec_fn,
-                       MEM_dupalloc_void(search_but->arg.get()),
+                       search_arg_copy_fn(search_but->arg.get()),
                        nullptr,
-                       MEM_delete_void,
-                       MEM_dupalloc_void);
+                       search_arg_free_fn,
+                       search_arg_copy_fn);
     }
     else {
       button_func_set(but, search_exec_fn, search_but->arg.get(), nullptr);
@@ -6485,7 +6483,7 @@ Button *uiDefSearchButO_ptr(Block *block,
                          searchbox_create_generic,
                          operator_enum_search_update_fn,
                          but,
-                         false,
+                         nullptr,
                          nullptr,
                          operator_enum_search_exec_fn,
                          nullptr);

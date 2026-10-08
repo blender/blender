@@ -1945,9 +1945,10 @@ bool search_item_add(SearchItems *items,
  * \param search_create_fn: Function to create the menu.
  * \param search_update_fn: Function to refresh search content after the search text has changed.
  * \param arg: user value.
- * \param free_arg: Set to true if the argument is newly allocated memory for every redraw and
- * should be freed when the button is destroyed.
- * \param search_arg_free_fn: When non-null, use this function to free \a arg.
+ * \param search_arg_free_fn: When non-null, use this function to free \a arg when the button is
+ * destroyed.
+ * \param search_arg_copy_fn: Must be set when \a arg is newly allocated memory for every redraw,
+ * so a copy of it can be passed to \a search_exec_fn.
  * \param search_exec_fn: Function that executes the action, gets \a arg as the first argument.
  * The second argument as the active item-pointer
  * \param active: When non-null, this item-pointer item will be visible and selected,
@@ -1957,10 +1958,27 @@ void button_func_search_set(Button *but,
                             ButtonSearchCreateFn search_create_fn,
                             ButtonSearchUpdateFn search_update_fn,
                             void *arg,
-                            bool free_arg,
                             FreeArgFunc search_arg_free_fn,
+                            ButtonArgNCopy search_arg_copy_fn,
                             ButtonHandleFunc search_exec_fn,
                             void *active);
+template<typename T>
+void button_func_search_set(Button *but,
+                            ButtonSearchCreateFn search_create_fn,
+                            ButtonSearchUpdateFn search_update_fn,
+                            T *arg,
+                            ButtonHandleFunc search_exec_fn,
+                            void *active)
+{
+  button_func_search_set(but,
+                         search_create_fn,
+                         search_update_fn,
+                         arg,
+                         but_func_argN_free<T>,
+                         but_func_argN_copy<T>,
+                         search_exec_fn,
+                         active);
+}
 void button_func_search_set_context_menu(Button *but, ButtonSearchContextMenuFn context_menu_fn);
 void button_func_search_set_tooltip(Button *but, ButtonSearchTooltipFn tooltip_fn);
 void button_func_search_set_listen(Button *but, ButtonSearchListenFn listen_fn);

@@ -2787,8 +2787,8 @@ void button_configure_search(Button *but,
                            searchbox_create_generic,
                            rna_collection_search_update_fn,
                            coll_search,
-                           false,
                            rna_collection_search_arg_free_fn,
+                           nullptr,
                            nullptr,
                            nullptr);
     /* If this is called multiple times for the same button, an earlier call may have taken the

@@ -1146,8 +1146,8 @@ void button_func_menu_search(Button *but, const char *single_menu_idname)
                          searchbox_create_menu,
                          menu_search_update_fn,
                          data,
-                         false,
                          menu_search_arg_free_fn,
+                         nullptr,
                          menu_search_exec_fn,
                          nullptr);
 

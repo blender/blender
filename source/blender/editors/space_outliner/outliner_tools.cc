@@ -890,7 +890,7 @@ static ui::Block *merged_element_search_menu(bContext *C, ARegion *region, void 
                          nullptr,
                          merged_element_search_update_fn,
                          data,
-                         false,
+                         nullptr,
                          nullptr,
                          merged_element_search_exec_fn,
                          nullptr);
