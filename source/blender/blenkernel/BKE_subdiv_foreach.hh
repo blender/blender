@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 #include "BLI_sys_types.hh"
@@ -18,16 +19,48 @@ struct Mesh;
 
 namespace bke::subdiv {
 
-struct ToMeshSettings;
 struct ForeachContext;
 struct Subdiv;
 
-using ForeachTopologyInformationCb = bool (*)(const ForeachContext *context,
-                                              int num_vertices,
-                                              int num_edges,
-                                              int num_loops,
-                                              int num_faces,
-                                              Span<int> subdiv_face_offset);
+/**
+ * Describes how elements of the subdivided mesh correspond to the elements of the base mesh.
+ * The subdivided elements are stored in groups for each base element:
+ * - Vertices: The mesh starts with a vertex for every base mesh vertex, with the same index. Then
+ *   `resolution - 2` vertices for every base mesh edge. Then the vertices inside of every base
+ *   mesh face.
+ * - Edges: First `resolution - 1` edges for every base mesh edge, then the edges inside of every
+ *   base mesh face.
+ * - Faces: The quads created for every base mesh face are contiguous.
+ */
+struct MeshLayout {
+  /** Number of vertices along each side of the grid that a base mesh quad is subdivided into. */
+  int resolution = 0;
+
+  int verts_num = 0;
+  int edges_num = 0;
+  int faces_num = 0;
+  int corners_num = 0;
+
+  /** Index of the first vertex inside of a base mesh edge. */
+  int edge_verts_start = 0;
+  /** Index of the first vertex inside of a base mesh face. */
+  int inner_verts_start = 0;
+  /** Index of the first edge inside of a base mesh face. */
+  int inner_edges_start = 0;
+
+  /** Groups vertices inside of base mesh faces by face, relative to #inner_verts_start. */
+  Array<int> inner_vert_offsets;
+  /** Groups edges inside of base mesh faces by face, relative to #inner_edges_start. */
+  Array<int> inner_edge_offsets;
+  /** Groups subdivided faces by the base mesh face they come from. */
+  Array<int> face_offsets;
+};
+
+/**
+ * Calculate how the elements of a mesh subdivided with the given resolution are indexed. See
+ * #ToMeshSettings::resolution.
+ */
+MeshLayout build_mesh_layout(const Mesh &coarse_mesh, int resolution);
 
 using ForeachVertFromCornerCb = void (*)(const ForeachContext *context,
                                          void *tls,
@@ -99,13 +132,6 @@ using ForeachVertOfLooseEdgeCb = void (*)(const ForeachContext *context,
 
 struct ForeachContext {
   /**
-   * Is called when topology information becomes available.
-   * Is only called once.
-   *
-   * \note If this callback returns false, the foreach loop is aborted.
-   */
-  ForeachTopologyInformationCb topology_info = nullptr;
-  /**
    * These callbacks are called from every ptex which shares "emitting"
    * vertex or edge.
    */
@@ -169,15 +195,15 @@ struct ForeachContext {
  * indices (for vertices, edges, loops, faces) in the same way as subdivision
  * modifier will do for a dense mesh.
  *
- * Returns true if the whole topology was traversed, without any early exits.
+ * \param layout: The result of #build_mesh_layout for the base mesh.
  *
  * TODO(@sergey): Need to either get rid of subdiv or of coarse_mesh.
  * The main point here is to be able to get base level topology, which can be
  * done with either of those. Having both of them is kind of redundant.
  */
-bool foreach_subdiv_geometry(Subdiv *subdiv,
+void foreach_subdiv_geometry(Subdiv *subdiv,
                              const ForeachContext *context,
-                             const ToMeshSettings *mesh_settings,
+                             const MeshLayout &layout,
                              const Mesh *coarse_mesh);
 
 }  // namespace bke::subdiv

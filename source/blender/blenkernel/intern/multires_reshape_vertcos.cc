@@ -91,23 +91,6 @@ static void multires_reshape_vertcos_foreach_vert(
   }
 }
 
-/* bke::subdiv::ForeachContext::topology_info() */
-static bool multires_reshape_vertcos_foreach_topology_info(
-    const bke::subdiv::ForeachContext *foreach_context,
-    const int num_vertices,
-    const int /*num_edges*/,
-    const int /*num_loops*/,
-    const int /*num_faces*/,
-    const Span<int> /*subdiv_face_offset*/)
-{
-  MultiresReshapeAssignVertcosContext *reshape_vertcos_context =
-      static_cast<MultiresReshapeAssignVertcosContext *>(foreach_context->user_data);
-  if (num_vertices != reshape_vertcos_context->positions.size()) {
-    return false;
-  }
-  return true;
-}
-
 /* bke::subdiv::ForeachContext::vert_inner() */
 static void multires_reshape_vertcos_foreach_vert_inner(
     const bke::subdiv::ForeachContext *foreach_context,
@@ -172,18 +155,20 @@ bool multires_reshape_assign_final_coords_from_vertcos(
   reshape_vertcos_context.positions = positions;
 
   bke::subdiv::ForeachContext foreach_context{};
-  foreach_context.topology_info = multires_reshape_vertcos_foreach_topology_info;
   foreach_context.vert_inner = multires_reshape_vertcos_foreach_vert_inner;
   foreach_context.vert_every_edge = multires_reshape_vertcos_foreach_vert_every_edge;
   foreach_context.vert_every_corner = multires_reshape_vertcos_foreach_vert_every_corner;
   foreach_context.user_data = &reshape_vertcos_context;
 
-  bke::subdiv::ToMeshSettings mesh_settings;
-  mesh_settings.resolution = (1 << reshape_context->reshape.level) + 1;
-  mesh_settings.use_optimal_display = false;
+  const bke::subdiv::MeshLayout layout = bke::subdiv::build_mesh_layout(
+      *reshape_context->base_mesh, (1 << reshape_context->reshape.level) + 1);
+  if (layout.verts_num != positions.size()) {
+    return false;
+  }
 
-  return bke::subdiv::foreach_subdiv_geometry(
-      reshape_context->subdiv, &foreach_context, &mesh_settings, reshape_context->base_mesh);
+  bke::subdiv::foreach_subdiv_geometry(
+      reshape_context->subdiv, &foreach_context, layout, reshape_context->base_mesh);
+  return true;
 }
 
 }  // namespace blender

@@ -1043,26 +1043,11 @@ static Array<GridCoord> get_subdivided_corner_grid_coords(subdiv::Subdiv &subdiv
     Array<GridCoord> corner_grid_coords;
   };
 
-  subdiv::ToMeshSettings mesh_settings;
-  mesh_settings.resolution = (1 << level) + 1;
-
   SubdividedCornerGridCoordData data;
   data.coarse_mesh_arrays = MeshArrays(coarse_mesh);
 
   subdiv::ForeachContext foreach_context;
   foreach_context.user_data = &data;
-
-  foreach_context.topology_info = [](const subdiv::ForeachContext *context,
-                                     const int /*num_vertices*/,
-                                     const int /*num_edges*/,
-                                     const int num_corners,
-                                     const int /*num_faces*/,
-                                     const Span<int> /*subdiv_face_offset*/) -> bool {
-    SubdividedCornerGridCoordData *data = static_cast<SubdividedCornerGridCoordData *>(
-        context->user_data);
-    data->corner_grid_coords.reinitialize(num_corners);
-    return true;
-  };
 
   foreach_context.loop = [](const subdiv::ForeachContext *context,
                             void * /*tls*/,
@@ -1093,7 +1078,9 @@ static Array<GridCoord> get_subdivided_corner_grid_coords(subdiv::Subdiv &subdiv
     }
   };
 
-  foreach_subdiv_geometry(&subdiv, &foreach_context, &mesh_settings, &coarse_mesh);
+  const subdiv::MeshLayout layout = subdiv::build_mesh_layout(coarse_mesh, (1 << level) + 1);
+  data.corner_grid_coords.reinitialize(layout.corners_num);
+  foreach_subdiv_geometry(&subdiv, &foreach_context, layout, &coarse_mesh);
 
   return data.corner_grid_coords;
 }
@@ -1297,9 +1284,6 @@ static Array<GridCoord> get_highres_mesh_loop_grid_coords(
   const int bake_level = multires_modifier.lvl;
   const int subdivide_level = top_level - bake_level;
 
-  subdiv::ToMeshSettings mesh_settings;
-  mesh_settings.resolution = (1 << subdivide_level) + 1;
-
   HighresCornerGridCoordData data;
   data.bake_level_mesh_arrays = MeshArrays(bake_level_mesh);
   data.bake_level_corner_grid_coords = get_subdivided_corner_grid_coords(
@@ -1307,18 +1291,6 @@ static Array<GridCoord> get_highres_mesh_loop_grid_coords(
 
   subdiv::ForeachContext foreach_context;
   foreach_context.user_data = &data;
-
-  foreach_context.topology_info = [](const subdiv::ForeachContext *context,
-                                     const int /*num_vertices*/,
-                                     const int /*num_edges*/,
-                                     const int num_corners,
-                                     const int /*num_faces*/,
-                                     const Span<int> /*subdiv_face_offset*/) -> bool {
-    HighresCornerGridCoordData *data = static_cast<HighresCornerGridCoordData *>(
-        context->user_data);
-    data->corner_grid_coords.reinitialize(num_corners);
-    return true;
-  };
 
   foreach_context.loop = [](const subdiv::ForeachContext *context,
                             void * /*tls*/,
@@ -1360,7 +1332,10 @@ static Array<GridCoord> get_highres_mesh_loop_grid_coords(
                bake_level_corner_grid_coords[bake_level_face_start + 3].grid_index);
   };
 
-  foreach_subdiv_geometry(&subdiv, &foreach_context, &mesh_settings, &bake_level_mesh);
+  const subdiv::MeshLayout layout = subdiv::build_mesh_layout(bake_level_mesh,
+                                                              (1 << subdivide_level) + 1);
+  data.corner_grid_coords.reinitialize(layout.corners_num);
+  foreach_subdiv_geometry(&subdiv, &foreach_context, layout, &bake_level_mesh);
 
   BLI_assert(data.corner_grid_coords.size() == highres_bake_mesh.corners_num);
   return data.corner_grid_coords;

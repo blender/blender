@@ -98,19 +98,6 @@ static void subdiv_accumulate_vert_displacement(SubdivDeformContext *ctx,
 /** \name Subdivision callbacks
  * \{ */
 
-static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
-                                      const int /*num_vertices*/,
-                                      const int /*num_edges*/,
-                                      const int /*num_loops*/,
-                                      const int /*num_faces*/,
-                                      const Span<int> /*subdiv_face_offset*/)
-{
-  SubdivDeformContext *subdiv_context = static_cast<SubdivDeformContext *>(
-      foreach_context->user_data);
-  subdiv_mesh_prepare_accumulator(subdiv_context, subdiv_context->coarse_mesh->verts_num);
-  return true;
-}
-
 static void subdiv_mesh_vert_every_corner(const ForeachContext *foreach_context,
                                           void * /*tls*/,
                                           const int ptex_face_index,
@@ -164,8 +151,6 @@ static void setup_foreach_callbacks(const SubdivDeformContext *subdiv_context,
                                     ForeachContext *foreach_context)
 {
   *foreach_context = {};
-  /* General information. */
-  foreach_context->topology_info = subdiv_mesh_topology_info;
   /* Every boundary geometry. Used for displacement and normals averaging. */
   if (subdiv_context->have_displacement) {
     foreach_context->vert_every_corner = subdiv_mesh_vert_every_corner;
@@ -209,14 +194,12 @@ void deform_coarse_vertices(Subdiv *subdiv,
   setup_foreach_callbacks(&subdiv_context, &foreach_context);
   foreach_context.user_data = &subdiv_context;
 
-  /* Dummy mesh rasterization settings. */
-  ToMeshSettings mesh_settings;
-  mesh_settings.resolution = 1;
-  mesh_settings.use_optimal_display = false;
+  const MeshLayout layout = build_mesh_layout(*coarse_mesh, 1);
+  subdiv_mesh_prepare_accumulator(&subdiv_context, coarse_mesh->verts_num);
 
   /* Multi-threaded traversal/evaluation. */
   stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
-  foreach_subdiv_geometry(subdiv, &foreach_context, &mesh_settings, coarse_mesh);
+  foreach_subdiv_geometry(subdiv, &foreach_context, layout, coarse_mesh);
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
 
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);

@@ -811,26 +811,20 @@ static void create_attrs_and_retrieve_interp_spans(const AttributeAccessor src_a
   });
 }
 
-static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
-                                      const int num_vertices,
-                                      const int num_edges,
-                                      const int num_loops,
-                                      const int num_faces,
-                                      const Span<int> /*subdiv_face_offset*/)
+static void subdiv_mesh_create(SubdivMeshContext *subdiv_context, const MeshLayout &layout)
 {
   /* Multi-resolution grid data will be applied or become invalid after subdivision,
    * so don't try to preserve it and use memory. Crease values should also not be interpolated. */
   CustomData_MeshMasks mask = CD_MASK_EVERYTHING;
   mask.lmask &= ~CD_MASK_MULTIRES_GRIDS;
 
-  SubdivMeshContext *subdiv_context = static_cast<SubdivMeshContext *>(foreach_context->user_data);
-
   const Mesh &coarse_mesh = *subdiv_context->coarse_mesh;
-  subdiv_context->subdiv_mesh = BKE_mesh_new_nomain(num_vertices, num_edges, num_faces, num_loops);
+  subdiv_context->subdiv_mesh = BKE_mesh_new_nomain(
+      layout.verts_num, layout.edges_num, layout.faces_num, layout.corners_num);
   Mesh &subdiv_mesh = *subdiv_context->subdiv_mesh;
   BKE_mesh_copy_parameters_for_eval(subdiv_context->subdiv_mesh, &coarse_mesh);
 
-  if (num_faces != 0) {
+  if (layout.faces_num != 0) {
     offset_indices::fill_constant_group_size(4, 0, subdiv_mesh.face_offsets_for_write());
   }
 
@@ -887,12 +881,11 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
                                          subdiv_context->subdiv_corner_attr_spans);
 
   subdiv_mesh_ctx_cache_custom_data_layers(subdiv_context);
-  subdiv_mesh_prepare_accumulator(subdiv_context, num_vertices);
-  subdiv_context->subdiv_face_dot_tags = Array<bool>(num_vertices, false);
+  subdiv_mesh_prepare_accumulator(subdiv_context, layout.verts_num);
+  subdiv_context->subdiv_face_dot_tags = Array<bool>(layout.verts_num, false);
   if (subdiv_context->settings->use_optimal_display) {
-    subdiv_context->subdiv_display_edges = Array<bool>(num_edges, false);
+    subdiv_context->subdiv_display_edges = Array<bool>(layout.edges_num, false);
   }
-  return true;
 }
 
 /** \} */
@@ -1431,8 +1424,6 @@ static void setup_foreach_callbacks(const SubdivMeshContext *subdiv_context,
                                     ForeachContext *foreach_context)
 {
   *foreach_context = {};
-  /* General information. */
-  foreach_context->topology_info = subdiv_mesh_topology_info;
   /* Every boundary geometry. Used for displacement averaging. */
   if (subdiv_context->have_displacement) {
     foreach_context->vert_every_corner = subdiv_mesh_vert_displacement_every_corner;
@@ -1492,13 +1483,15 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
   subdiv_context.have_displacement = (subdiv->displacement_evaluator != nullptr);
   /* Multi-threaded traversal/evaluation. */
   stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
+  const MeshLayout layout = build_mesh_layout(*coarse_mesh, settings->resolution);
+  subdiv_mesh_create(&subdiv_context, layout);
   ForeachContext foreach_context;
   setup_foreach_callbacks(&subdiv_context, &foreach_context);
   SubdivMeshTLS tls{};
   foreach_context.user_data = &subdiv_context;
   foreach_context.user_data_tls_size = sizeof(SubdivMeshTLS);
   foreach_context.user_data_tls = &tls;
-  foreach_subdiv_geometry(subdiv, &foreach_context, settings, coarse_mesh);
+  foreach_subdiv_geometry(subdiv, &foreach_context, layout, coarse_mesh);
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
   Mesh *result = subdiv_context.subdiv_mesh;
 

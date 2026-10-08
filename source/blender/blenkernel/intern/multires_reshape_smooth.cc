@@ -456,35 +456,27 @@ static float get_effective_crease_float(const MultiresReshapeSmoothContext *resh
   return crease;
 }
 
-static bool foreach_topology_info(const bke::subdiv::ForeachContext *foreach_context,
-                                  const int num_vertices,
-                                  const int num_edges,
-                                  const int num_loops,
-                                  const int num_faces,
-                                  const Span<int> /*subdiv_face_offset*/)
+static void geometry_allocate(MultiresReshapeSmoothContext *reshape_smooth_context,
+                              const bke::subdiv::MeshLayout &layout)
 {
-  MultiresReshapeSmoothContext *reshape_smooth_context =
-      static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
   const int max_edges = reshape_smooth_context->smoothing_type ==
                                 MultiresSubdivideModeType::Linear ?
-                            num_edges :
+                            layout.edges_num :
                             reshape_smooth_context->geometry.max_edges;
 
-  reshape_smooth_context->geometry.vertices.reinitialize(num_vertices);
-  reshape_smooth_context->geometry.vert_sharpness = Array<float>(num_vertices, 0.0f);
+  reshape_smooth_context->geometry.vertices.reinitialize(layout.verts_num);
+  reshape_smooth_context->geometry.vert_sharpness = Array<float>(layout.verts_num, 0.0f);
 
   reshape_smooth_context->geometry.max_edges = max_edges;
   reshape_smooth_context->geometry.edges.reinitialize(max_edges);
   reshape_smooth_context->geometry.edge_sharpness.reinitialize(max_edges);
 
-  reshape_smooth_context->geometry.corner_verts.reinitialize(num_loops);
-  reshape_smooth_context->geometry.corner_grid_indices.reinitialize(num_loops);
+  reshape_smooth_context->geometry.corner_verts.reinitialize(layout.corners_num);
+  reshape_smooth_context->geometry.corner_grid_indices.reinitialize(layout.corners_num);
 
-  reshape_smooth_context->geometry.face_offsets.reinitialize(num_faces + 1);
+  reshape_smooth_context->geometry.face_offsets.reinitialize(layout.faces_num + 1);
   offset_indices::fill_constant_group_size(4, 0, reshape_smooth_context->geometry.face_offsets);
-  reshape_smooth_context->geometry.face_offsets.last() = num_loops;
-
-  return true;
+  reshape_smooth_context->geometry.face_offsets.last() = layout.corners_num;
 }
 
 static void foreach_single_vert(const bke::subdiv::ForeachContext *foreach_context,
@@ -745,7 +737,6 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
   bke::subdiv::ForeachContext foreach_context{};
-  foreach_context.topology_info = foreach_topology_info;
   foreach_context.vert_inner = foreach_vert_inner;
   foreach_context.vert_every_corner = foreach_vert_every_corner;
   foreach_context.vert_every_edge = foreach_vert_every_edge;
@@ -756,13 +747,13 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
 
   geometry_init_loose_information(reshape_smooth_context);
 
-  bke::subdiv::ToMeshSettings mesh_settings;
-  mesh_settings.resolution = get_reshape_level_resolution(reshape_context);
-  mesh_settings.use_optimal_display = false;
+  const bke::subdiv::MeshLayout layout = bke::subdiv::build_mesh_layout(
+      *reshape_context->base_mesh, get_reshape_level_resolution(reshape_context));
+  geometry_allocate(reshape_smooth_context, layout);
 
   /* TODO(sergey): Tell the foreach() to ignore loose vertices. */
   bke::subdiv::foreach_subdiv_geometry(
-      reshape_context->subdiv, &foreach_context, &mesh_settings, reshape_context->base_mesh);
+      reshape_context->subdiv, &foreach_context, layout, reshape_context->base_mesh);
 }
 
 /** \} */

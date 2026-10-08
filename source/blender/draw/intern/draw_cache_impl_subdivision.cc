@@ -482,32 +482,27 @@ struct DRWCacheBuildingContext {
   const int *orig_index_edge;
 };
 
-static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *foreach_context,
-                                         const int num_verts,
-                                         const int num_edges,
-                                         const int num_loops,
-                                         const int num_faces,
-                                         const Span<int> subdiv_face_offset)
+static bool draw_subdiv_init_cache(DRWCacheBuildingContext *ctx,
+                                   const bke::subdiv::MeshLayout &layout)
 {
-  /* num_loops does not take into account meshes with only loose geometry, which might be meshes
-   * used as custom bone shapes, so let's check the num_verts also. */
-  if (num_verts == 0 && num_loops == 0) {
+  /* The number of corners does not take into account meshes with only loose geometry, which might
+   * be meshes used as custom bone shapes, so let's check the number of vertices also. */
+  if (layout.verts_num == 0 && layout.corners_num == 0) {
     return false;
   }
 
-  DRWCacheBuildingContext *ctx = (DRWCacheBuildingContext *)(foreach_context->user_data);
   DRWSubdivCache *cache = ctx->cache;
 
   /* Set topology information only if we have loops. */
-  if (num_loops != 0) {
-    cache->num_subdiv_edges = uint(num_edges);
-    cache->num_subdiv_loops = uint(num_loops);
-    cache->num_subdiv_verts = uint(num_verts);
-    cache->num_subdiv_quads = uint(num_faces);
-    cache->subdiv_face_offset = subdiv_face_offset;
+  if (layout.corners_num != 0) {
+    cache->num_subdiv_edges = uint(layout.edges_num);
+    cache->num_subdiv_loops = uint(layout.corners_num);
+    cache->num_subdiv_verts = uint(layout.verts_num);
+    cache->num_subdiv_quads = uint(layout.faces_num);
+    cache->subdiv_face_offset = layout.face_offsets.as_span().drop_back(1);
   }
 
-  cache->may_have_loose_geom = num_verts != 0 || num_edges != 0;
+  cache->may_have_loose_geom = layout.verts_num != 0 || layout.edges_num != 0;
 
   /* Initialize cache buffers, prefer dynamic usage so we can reuse memory on the host even after
    * it was sent to the device, since we may use the data while building other buffers on the CPU
@@ -567,7 +562,7 @@ static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *fore
   if (cache->num_subdiv_verts) {
     ctx->vert_origindex_map = MEM_new_array_uninitialized<int>(cache->num_subdiv_verts,
                                                                "subdiv_vert_origindex_map");
-    for (int i = 0; i < num_verts; i++) {
+    for (int i = 0; i < layout.verts_num; i++) {
       ctx->vert_origindex_map[i] = -1;
     }
   }
@@ -575,7 +570,7 @@ static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *fore
   if (cache->num_subdiv_edges) {
     ctx->edge_origindex_map = MEM_new_array_uninitialized<int>(cache->num_subdiv_edges,
                                                                "subdiv_edge_origindex_map");
-    for (int i = 0; i < num_edges; i++) {
+    for (int i = 0; i < layout.edges_num; i++) {
       ctx->edge_origindex_map[i] = -1;
     }
     ctx->edge_draw_flag_map = MEM_new_array_zeroed<int>(cache->num_subdiv_edges,
@@ -676,7 +671,6 @@ static void draw_subdiv_loop_cb(const bke::subdiv::ForeachContext *foreach_conte
 static void draw_subdiv_foreach_callbacks(bke::subdiv::ForeachContext *foreach_context)
 {
   *foreach_context = {};
-  foreach_context->topology_info = draw_subdiv_topology_info_cb;
   foreach_context->loop = draw_subdiv_loop_cb;
   foreach_context->edge = draw_subdiv_edge_cb;
   foreach_context->vert_corner = draw_subdiv_vert_corner_cb;
@@ -686,14 +680,18 @@ static void draw_subdiv_foreach_callbacks(bke::subdiv::ForeachContext *foreach_c
 static void do_subdiv_traversal(DRWCacheBuildingContext *cache_building_context,
                                 bke::subdiv::Subdiv *subdiv)
 {
+  const bke::subdiv::MeshLayout layout = bke::subdiv::build_mesh_layout(
+      *cache_building_context->coarse_mesh, cache_building_context->settings->resolution);
+  if (!draw_subdiv_init_cache(cache_building_context, layout)) {
+    return;
+  }
+
   bke::subdiv::ForeachContext foreach_context;
   draw_subdiv_foreach_callbacks(&foreach_context);
   foreach_context.user_data = cache_building_context;
 
-  bke::subdiv::foreach_subdiv_geometry(subdiv,
-                                       &foreach_context,
-                                       cache_building_context->settings,
-                                       cache_building_context->coarse_mesh);
+  bke::subdiv::foreach_subdiv_geometry(
+      subdiv, &foreach_context, layout, cache_building_context->coarse_mesh);
 
   /* Now that traversal is done, we can set up the right original indices for the
    * subdiv-loop-to-coarse-edge map.
