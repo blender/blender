@@ -2229,7 +2229,7 @@ bool textbutton_activate_but(const bContext *C, Button *actbut);
  */
 void button_focus_on_enter_event(wmWindow *win, Button *but);
 
-void button_func_hold_set(Button *but, ButtonHandleHoldFunc func, void *argN);
+void button_func_hold_set(Button *but, ButtonHandleHoldFunc func, std::string arg);
 
 PointerRNA *button_extra_operator_icon_add(Button *but,
                                            StringRefNull opname,

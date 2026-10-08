@@ -264,7 +264,7 @@ struct Button : NonMovable {
 
   /** Run an action when holding the button down. */
   ButtonHandleHoldFunc hold_func = nullptr;
-  void *hold_argN = nullptr;
+  std::string *hold_arg = nullptr;
 
   StringRef tip;
   ButtonToolTipFunc tip_func = nullptr;

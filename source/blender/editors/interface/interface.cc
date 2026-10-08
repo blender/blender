@@ -3857,9 +3857,7 @@ static void but_free(const bContext *C, Button *but)
     but->tip_arg_free(but->tip_arg);
   }
 
-  if (but->hold_argN) {
-    MEM_delete_void(but->hold_argN);
-  }
+  MEM_delete(but->hold_arg);
 
   if (but->placeholder) {
     MEM_delete(but->placeholder);
@@ -6630,10 +6628,11 @@ void button_focus_on_enter_event(wmWindow *win, Button *but)
   WM_event_add(win, &event);
 }
 
-void button_func_hold_set(Button *but, ButtonHandleHoldFunc func, void *argN)
+void button_func_hold_set(Button *but, ButtonHandleHoldFunc func, std::string arg)
 {
   but->hold_func = func;
-  but->hold_argN = argN;
+  MEM_delete(but->hold_arg);
+  but->hold_arg = MEM_new<std::string>(__func__, std::move(arg));
 }
 
 /** \} */

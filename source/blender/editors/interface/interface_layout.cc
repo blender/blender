@@ -1515,7 +1515,7 @@ static void item_menu_hold(bContext *C, ARegion *butregion, Button *but)
   }
   block_direction_set(block, direction);
 
-  const char *menu_id = static_cast<const char *>(but->hold_argN);
+  const StringRef menu_id = *but->hold_arg;
   MenuType *mt = WM_menutype_find(menu_id, true);
   if (mt) {
     layout->context_set_from_but(but);
@@ -1548,7 +1548,7 @@ PointerRNA Layout::op_menu_hold(wmOperatorType *ot,
 {
   PointerRNA ptr;
   Button *but = uiItemFullO_ptr_ex(this, ot, name, icon, context, flag, &ptr);
-  button_func_hold_set(but, item_menu_hold, BLI_strdup(menu_id));
+  button_func_hold_set(but, item_menu_hold, menu_id);
   return ptr;
 }
 

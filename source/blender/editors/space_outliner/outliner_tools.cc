@@ -925,7 +925,8 @@ void merged_element_search_menu_invoke(bContext *C,
   select_data->parent_element = parent_te;
   select_data->select_element = activate_te;
 
-  popup_block_invoke(C, merged_element_search_menu, select_data, MEM_delete_void);
+  popup_block_invoke(
+      C, merged_element_search_menu, select_data, ui::but_func_argN_free<MergedSearchData>);
 }
 
 static void object_select_fn(bContext *C,
