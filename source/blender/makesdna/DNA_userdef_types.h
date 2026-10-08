@@ -919,7 +919,7 @@ struct UserDef_Experimental {
    */
   char use_remote_asset_libraries = 1;
   char use_collection_importer = 0;
-  char _pad[3] = {};
+  char _pad[2] = {};
 };
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) (((userdef)->experimental).member)
