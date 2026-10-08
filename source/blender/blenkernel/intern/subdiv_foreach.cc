@@ -1539,20 +1539,6 @@ static void subdiv_foreach_loops(ForeachTaskContext *ctx, void *tls, int face_in
 /** \name Loose elements traverse process
  * \{ */
 
-static void subdiv_foreach_loose_vertices_task(void *__restrict userdata,
-                                               const int coarse_vert_index,
-                                               const TaskParallelTLS *__restrict tls)
-{
-  ForeachTaskContext *ctx = static_cast<ForeachTaskContext *>(userdata);
-  if (BLI_BITMAP_TEST_BOOL(ctx->coarse_vertices_used_map, coarse_vert_index)) {
-    /* Vertex is not loose, was handled when handling polygons. */
-    return;
-  }
-  const int subdiv_vert_index = coarse_vert_index;
-  ctx->foreach_context->vert_loose(
-      ctx->foreach_context, tls->userdata_chunk, coarse_vert_index, subdiv_vert_index);
-}
-
 static void subdiv_foreach_vertices_of_loose_edges_task(void *__restrict userdata,
                                                         const int coarse_edge_index,
                                                         const TaskParallelTLS *__restrict tls)
@@ -1636,8 +1622,7 @@ static void subdiv_foreach_single_thread_tasks(ForeachTaskContext *ctx)
   const ForeachContext *foreach_context = ctx->foreach_context;
   const bool is_loose_geometry_tagged = (foreach_context->vert_every_edge != nullptr &&
                                          foreach_context->vert_every_corner != nullptr);
-  const bool is_loose_geometry_tags_needed = (foreach_context->vert_loose != nullptr ||
-                                              foreach_context->vert_of_loose_edge != nullptr);
+  const bool is_loose_geometry_tags_needed = foreach_context->vert_of_loose_edge != nullptr;
   if (is_loose_geometry_tagged && is_loose_geometry_tags_needed) {
     subdiv_foreach_mark_non_loose_geometry(ctx);
   }
@@ -1711,13 +1696,6 @@ void foreach_subdiv_geometry(Subdiv *subdiv,
 
   BLI_task_parallel_range(
       0, coarse_mesh->faces_num, &ctx, subdiv_foreach_task, &parallel_range_settings);
-  if (context->vert_loose != nullptr) {
-    BLI_task_parallel_range(0,
-                            coarse_mesh->verts_num,
-                            &ctx,
-                            subdiv_foreach_loose_vertices_task,
-                            &parallel_range_settings);
-  }
   if (context->vert_of_loose_edge != nullptr) {
     BLI_task_parallel_range(0,
                             coarse_mesh->edges_num,

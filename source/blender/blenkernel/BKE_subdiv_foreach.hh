@@ -119,11 +119,6 @@ using ForeachLoopCb = void (*)(const ForeachContext *context,
 using FacesCb = void (*)(const ForeachContext *context,
                          OffsetIndices<int> subdiv_faces_by_base_face);
 
-using ForeachLooseCb = void (*)(const ForeachContext *context,
-                                void *tls,
-                                int coarse_vert_index,
-                                int subdiv_vert_index);
-
 using ForeachVertOfLooseEdgeCb = void (*)(const ForeachContext *context,
                                           void *tls,
                                           int coarse_edge_index,
@@ -146,11 +141,6 @@ struct ForeachContext {
   ForeachVertFromEdgeCb vert_edge = nullptr;
   /** Called exactly once, always corresponds to a single ptex face. */
   ForeachVertInnerCb vert_inner = nullptr;
-  /**
-   * Called once for each loose vertex. One loose coarse vertex corresponds
-   * to a single subdivision vertex.
-   */
-  ForeachLooseCb vert_loose = nullptr;
   /** Called once per vertex created for loose edge. */
   ForeachVertOfLooseEdgeCb vert_of_loose_edge = nullptr;
   /**

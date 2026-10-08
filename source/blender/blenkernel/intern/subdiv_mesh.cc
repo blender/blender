@@ -1288,14 +1288,15 @@ static void subdiv_mesh_face(const ForeachContext *foreach_context,
 /** \name Loose elements subdivision process
  * \{ */
 
-static void subdiv_mesh_vert_loose(const ForeachContext *foreach_context,
-                                   void * /*tls*/,
-                                   const int coarse_vert_index,
-                                   const int subdiv_vert_index)
+static void subdiv_mesh_verts_no_face(SubdivMeshContext *ctx)
 {
-  SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
-  subdiv_vert_data_copy(ctx, coarse_vert_index, subdiv_vert_index);
-  ctx->subdiv_positions[subdiv_vert_index] = ctx->coarse_positions[coarse_vert_index];
+  /* Subdivided vertices corresponding to base mesh vertices have the same indices. */
+  ctx->coarse_mesh->verts_no_face().foreach_index(
+      [&](const int vert) {
+        subdiv_vert_data_copy(ctx, vert, vert);
+        ctx->subdiv_positions[vert] = ctx->coarse_positions[vert];
+      },
+      exec_mode::grain_size(1024));
 }
 
 /* Get neighbor edges of the given one.
@@ -1400,7 +1401,7 @@ static void subdiv_mesh_vert_of_loose_edge(const ForeachContext *foreach_context
   const bool is_simple = ctx->subdiv->settings.is_simple;
 
   /* Interpolate custom data when not an end point.
-   * This data has already been copied from the original vertex by #subdiv_mesh_vert_loose. */
+   * This data has already been copied from the original vertex by #subdiv_mesh_verts_no_face. */
   if (!ELEM(u, 0.0, 1.0)) {
     subdiv_mesh_vert_of_loose_edge_interpolate(ctx, coarse_edge, u, subdiv_vert_index);
   }
@@ -1435,7 +1436,6 @@ static void setup_foreach_callbacks(const SubdivMeshContext *subdiv_context,
   foreach_context->edge = subdiv_mesh_edge;
   foreach_context->loop = subdiv_mesh_loop;
   foreach_context->faces = subdiv_mesh_face;
-  foreach_context->vert_loose = subdiv_mesh_vert_loose;
   foreach_context->vert_of_loose_edge = subdiv_mesh_vert_of_loose_edge;
   foreach_context->user_data_tls_free = subdiv_mesh_tls_free;
 }
@@ -1485,6 +1485,7 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
   stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
   const MeshLayout layout = build_mesh_layout(*coarse_mesh, settings->resolution);
   subdiv_mesh_create(&subdiv_context, layout);
+  subdiv_mesh_verts_no_face(&subdiv_context);
   ForeachContext foreach_context;
   setup_foreach_callbacks(&subdiv_context, &foreach_context);
   SubdivMeshTLS tls{};
