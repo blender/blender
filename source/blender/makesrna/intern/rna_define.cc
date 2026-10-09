@@ -444,7 +444,7 @@ bool RNA_validate_identifier(const char *identifier, bool is_property, const cha
       "return", "try",  "while",  "with",   "yield",    nullptr,
   };
 
-  if (!isalpha(identifier[0])) {
+  if (!isalpha(identifier[0]) && identifier[0] != '_') {
     if (r_error) {
       *r_error = "first character failed isalpha() check";
     }
@@ -527,7 +527,7 @@ void RNA_identifier_sanitize(char *identifier, bool is_property)
       "raise",  "return", "try",    "while",   "with",     "yield",    nullptr,
   };
 
-  if (!isalpha(identifier[0])) {
+  if (!isalpha(identifier[0]) && identifier[0] != '_') {
     /* first character failed isalpha() check */
     identifier[0] = '_';
   }
