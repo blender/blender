@@ -98,3 +98,19 @@ set(ANDROID_USE_LEGACY_TOOLCHAIN ON)
 # Main Android NDK toolchain file include
 
 include(${NDK_TOOLCHAIN_FILE})
+
+# ----------------------------------------------------------------------------
+# NDK toolchain file CMake variable overrides
+
+## Android NDK YASM macOS arm64 workaround
+
+# When cross-compiling for Android on macOS arm64, the Yasm executable bundled into
+# the NDK is used as the CMAKE_ASM_NASM_COMPILER. However, this executable is only
+# built for macOS x64, preventing it to run on arm64.
+# See NDK Github issue: https://github.com/android/ndk/issues/1549
+
+# Workaround this issue by overriding it with Homebrew's Yasm, which is ensured to be
+# installed on the system by build_environment/cmake/check_software.cmake.
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+  set(CMAKE_ASM_NASM_COMPILER /opt/homebrew/bin/yasm)
+endif()
