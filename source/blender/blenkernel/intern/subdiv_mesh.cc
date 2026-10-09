@@ -667,45 +667,34 @@ static void loop_interpolation_from_corner(const SubdivMeshContext *ctx,
 /** \name Evaluation helper functions
  * \{ */
 
-static void subdiv_vert_orco_evaluate(const SubdivMeshContext *ctx,
-                                      const int ptex_face_index,
-                                      const float u,
-                                      const float v,
-                                      const int subdiv_vert_index)
+/**
+ * Evaluate undeformed texture coordinates.
+ * \param subdiv_verts: The vertex for each coordinate, either #Span<int> or #IndexRange.
+ */
+template<typename IndicesT>
+static void subdiv_verts_orco_evaluate(const SubdivMeshContext *ctx,
+                                       const Span<PtexCoord> coords,
+                                       const IndicesT &subdiv_verts)
 {
-  if (ctx->orco || ctx->cloth_orco) {
-    float vert_data[6];
-    eval_vert_data(ctx->subdiv, ptex_face_index, u, v, vert_data);
-
+  if (!ctx->orco && !ctx->cloth_orco) {
+    return;
+  }
+  const int vert_data_size = (ctx->orco ? 3 : 0) + (ctx->cloth_orco ? 3 : 0);
+  Array<float> vert_data(coords.size() * vert_data_size);
+  eval_vert_data(ctx->subdiv, coords, vert_data);
+  for (const int i : coords.index_range()) {
+    const float *data = &vert_data[i * vert_data_size];
+    const int subdiv_vert_index = subdiv_verts[i];
     if (ctx->orco) {
-      copy_v3_v3(ctx->orco[subdiv_vert_index], vert_data);
+      copy_v3_v3(ctx->orco[subdiv_vert_index], data);
       if (ctx->cloth_orco) {
-        copy_v3_v3(ctx->cloth_orco[subdiv_vert_index], vert_data + 3);
+        copy_v3_v3(ctx->cloth_orco[subdiv_vert_index], data + 3);
       }
     }
     else if (ctx->cloth_orco) {
-      copy_v3_v3(ctx->cloth_orco[subdiv_vert_index], vert_data);
+      copy_v3_v3(ctx->cloth_orco[subdiv_vert_index], data);
     }
   }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Displacement helpers
- * \{ */
-
-static float3 eval_displacement_at_ptex_coord(Subdiv *subdiv, const PtexCoord &coord)
-{
-  float3 dummy_P;
-  float3 dPdu;
-  float3 dPdv;
-  float3 D;
-  const float u = coord.uv.x;
-  const float v = coord.uv.y;
-  eval_limit_point_and_derivatives(subdiv, coord.ptex_face_index, u, v, dummy_P, dPdu, dPdv);
-  eval_displacement(subdiv, coord.ptex_face_index, u, v, dPdu, dPdv, D);
-  return D;
 }
 
 /** \} */
@@ -879,43 +868,6 @@ static void subdiv_vert_data_interpolate(const SubdivMeshContext *ctx,
   }
 }
 
-static void evaluate_vert_and_apply_displacement_copy(const SubdivMeshContext *ctx,
-                                                      const PtexCoord &coord,
-                                                      const float3 &D,
-                                                      const int coarse_vert_index,
-                                                      const int subdiv_vert_index)
-{
-  float3 &subdiv_position = ctx->subdiv_positions[subdiv_vert_index];
-  const float u = coord.uv.x;
-  const float v = coord.uv.y;
-  /* Copy custom data and evaluate position. */
-  subdiv_vert_data_copy(ctx, coarse_vert_index, subdiv_vert_index);
-  subdiv_position = eval_limit_point(ctx->subdiv, coord.ptex_face_index, u, v);
-  /* Apply displacement. */
-  subdiv_position += D;
-  /* Evaluate undeformed texture coordinate. */
-  subdiv_vert_orco_evaluate(ctx, coord.ptex_face_index, u, v, subdiv_vert_index);
-}
-
-static void evaluate_vert_and_apply_displacement_interpolate(
-    const SubdivMeshContext *ctx,
-    const PtexCoord &coord,
-    const float3 &D,
-    VerticesForInterpolation *vert_interpolation,
-    const int subdiv_vert_index)
-{
-  float3 &subdiv_position = ctx->subdiv_positions[subdiv_vert_index];
-  const float u = coord.uv.x;
-  const float v = coord.uv.y;
-  /* Interpolate custom data and evaluate position. */
-  subdiv_vert_data_interpolate(ctx, subdiv_vert_index, vert_interpolation, u, v);
-  subdiv_position = eval_limit_point(ctx->subdiv, coord.ptex_face_index, u, v);
-  /* Apply displacement. */
-  subdiv_position += D;
-  /* Evaluate undeformed texture coordinate. */
-  subdiv_vert_orco_evaluate(ctx, coord.ptex_face_index, u, v, subdiv_vert_index);
-}
-
 /**
  * Evaluate subdivided vertices corresponding to base mesh vertices and inside of base mesh
  * edges used by faces. These vertices are shared by multiple base faces and are evaluated from
@@ -934,6 +886,11 @@ static void subdiv_mesh_boundary_verts(SubdivMeshContext *ctx, const MeshLayout 
   const Span<int> face_ptex_offset = face_ptex_offset_get(ctx->subdiv);
   const int edge_verts_num = layout.resolution - 2;
 
+  const auto corner_vert_ptex_coord = [&](const int corner) {
+    const int face = corner_to_face[corner];
+    return face_corner_ptex_coord(
+        faces[face], face_ptex_offset[face], corner - faces[face].start());
+  };
   const auto corner_edge_ptex_coords = [&](const int corner,
                                            const int edge,
                                            MutableSpan<PtexCoord> coords) {
@@ -946,7 +903,16 @@ static void subdiv_mesh_boundary_verts(SubdivMeshContext *ctx, const MeshLayout 
   threading::parallel_for(faces.index_range(), 256, [&](const IndexRange range) {
     VerticesForInterpolation vert_interpolation(*ctx);
     Array<PtexCoord> edge_coords(edge_verts_num);
-    Array<float3> edge_displacement(edge_verts_num);
+    Array<PtexCoord> other_edge_coords;
+
+    /* The vertices processed by this task, which are evaluated together afterwards. */
+    Vector<int> verts;
+    Vector<PtexCoord> coords;
+    /* The coordinates of the vertices in every face that uses them, for averaging displacement.
+     * Every vertex has a group of coordinates. */
+    Vector<int> displacement_offsets = {0};
+    Vector<PtexCoord> displacement_coords;
+
     for (const int face_index : range) {
       const IndexRange face = faces[face_index];
       bool interpolation_initialized = false;
@@ -956,40 +922,23 @@ static void subdiv_mesh_boundary_verts(SubdivMeshContext *ctx, const MeshLayout 
         const int vert = corner_verts[corner];
         const Span<int> vert_corners = vert_to_corner[vert];
         if (vert_corners.first() == corner) {
-          float3 D(0.0f);
+          /* Subdivided vertices corresponding to base mesh vertices have the same indices. */
+          subdiv_vert_data_copy(ctx, vert, vert);
+          verts.append(vert);
+          coords.append(
+              face_corner_ptex_coord(face, face_ptex_offset[face_index], corner - face.start()));
           if (ctx->have_displacement) {
             for (const int other_corner : vert_corners) {
-              const int other_face = corner_to_face[other_corner];
-              D += eval_displacement_at_ptex_coord(
-                  ctx->subdiv,
-                  face_corner_ptex_coord(faces[other_face],
-                                         face_ptex_offset[other_face],
-                                         other_corner - faces[other_face].start()));
+              displacement_coords.append(corner_vert_ptex_coord(other_corner));
             }
-            D *= 1.0f / float(vert_corners.size());
+            displacement_offsets.append(displacement_coords.size());
           }
-          const PtexCoord coord = face_corner_ptex_coord(
-              face, face_ptex_offset[face_index], corner - face.start());
-          /* Subdivided vertices corresponding to base mesh vertices have the same indices. */
-          evaluate_vert_and_apply_displacement_copy(ctx, coord, D, vert, vert);
         }
 
         const int edge = corner_edges[corner];
         const Span<int> edge_corners = edge_to_corner[edge];
         if (edge_corners.first() != corner) {
           continue;
-        }
-        edge_displacement.fill(float3(0.0f));
-        if (ctx->have_displacement) {
-          for (const int other_corner : edge_corners) {
-            corner_edge_ptex_coords(other_corner, edge, edge_coords);
-            for (const int i : edge_coords.index_range()) {
-              edge_displacement[i] += eval_displacement_at_ptex_coord(ctx->subdiv, edge_coords[i]);
-            }
-          }
-          for (float3 &D : edge_displacement) {
-            D *= 1.0f / float(edge_corners.size());
-          }
         }
         if (!interpolation_initialized) {
           vert_interpolation_from_face(ctx, &vert_interpolation, face);
@@ -1007,11 +956,43 @@ static void subdiv_mesh_boundary_verts(SubdivMeshContext *ctx, const MeshLayout 
             vert_interpolation_from_corner(ctx, &vert_interpolation, face, coarse_corner);
             interpolation_corner = coarse_corner;
           }
-          evaluate_vert_and_apply_displacement_interpolate(
-              ctx, coord, edge_displacement[i], &vert_interpolation, edge_verts[i]);
+          subdiv_vert_data_interpolate(
+              ctx, edge_verts[i], &vert_interpolation, coord.uv.x, coord.uv.y);
+          verts.append(edge_verts[i]);
+        }
+        coords.extend(edge_coords);
+        if (ctx->have_displacement) {
+          other_edge_coords.reinitialize(edge_corners.size() * edge_verts_num);
+          for (const int i : edge_corners.index_range()) {
+            corner_edge_ptex_coords(
+                edge_corners[i],
+                edge,
+                other_edge_coords.as_mutable_span().slice(i * edge_verts_num, edge_verts_num));
+          }
+          for (const int vert_i : IndexRange(edge_verts_num)) {
+            for (const int i : edge_corners.index_range()) {
+              displacement_coords.append(other_edge_coords[i * edge_verts_num + vert_i]);
+            }
+            displacement_offsets.append(displacement_coords.size());
+          }
         }
       }
     }
+
+    Array<float3> positions(coords.size());
+    eval_limit_points(ctx->subdiv, coords, positions);
+    if (ctx->have_displacement) {
+      /* Average the displacement from all faces using each vertex. */
+      Array<float3> displacement(coords.size());
+      eval_displacement_averaged(
+          ctx->subdiv, displacement_coords, displacement_offsets.as_span(), displacement);
+      for (const int i : positions.index_range()) {
+        positions[i] += displacement[i];
+      }
+    }
+    array_utils::scatter(
+        positions.as_span(), verts.as_span(), ctx->subdiv_positions, exec_mode::serial);
+    subdiv_verts_orco_evaluate(ctx, coords.as_span(), verts.as_span());
   });
 }
 
@@ -1041,6 +1022,9 @@ static void subdiv_mesh_inner_verts(SubdivMeshContext *ctx, const MeshLayout &la
         Array<PtexCoord> ptex_coords(chunk_verts.size());
         fill_inner_vert_ptex_coords(
             layout, *ctx->coarse_mesh, face_ptex_offset, range, ptex_coords);
+        const IndexRange subdiv_verts = chunk_verts.shift(layout.inner_verts_start);
+        eval_final_points(subdiv, ptex_coords, ctx->subdiv_positions.slice(subdiv_verts));
+        subdiv_verts_orco_evaluate(ctx, ptex_coords.as_span(), subdiv_verts);
 
         VerticesForInterpolation vert_interpolation(*ctx);
         for (const int coarse_face_index : range) {
@@ -1049,25 +1033,22 @@ static void subdiv_mesh_inner_verts(SubdivMeshContext *ctx, const MeshLayout &la
           int prev_coarse_corner = -1;
           for (const int vert : inner_verts_by_face[coarse_face_index]) {
             const PtexCoord &coord = ptex_coords[vert - chunk_verts.start()];
-            const int ptex_face_index = coord.ptex_face_index;
             const float u = coord.uv.x;
             const float v = coord.uv.y;
             /* Quads have a single ptex face, other faces have a ptex face for every corner. */
             const int coarse_corner = coarse_face.size() == 4 ?
                                           0 :
-                                          ptex_face_index - face_ptex_offset[coarse_face_index];
+                                          coord.ptex_face_index -
+                                              face_ptex_offset[coarse_face_index];
             if (coarse_corner != prev_coarse_corner) {
               vert_interpolation_from_corner(ctx, &vert_interpolation, coarse_face, coarse_corner);
               prev_coarse_corner = coarse_corner;
             }
             const int subdiv_vert_index = layout.inner_verts_start + vert;
             subdiv_vert_data_interpolate(ctx, subdiv_vert_index, &vert_interpolation, u, v);
-            ctx->subdiv_positions[subdiv_vert_index] = eval_final_point(
-                subdiv, ptex_face_index, u, v);
             if (subdiv_mesh_is_center_vert(coarse_face, u, v)) {
               ctx->subdiv_face_dot_tags[subdiv_vert_index] = true;
             }
-            subdiv_vert_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vert_index);
           }
         }
       });
@@ -1158,18 +1139,6 @@ static void subdiv_interpolate_corner_data(const SubdivMeshContext *ctx,
   }
 }
 
-static void subdiv_eval_uv_layer(SubdivMeshContext *ctx,
-                                 const int corner_index,
-                                 const int ptex_face_index,
-                                 const float u,
-                                 const float v)
-{
-  Subdiv *subdiv = ctx->subdiv;
-  for (const int i : ctx->uv_maps.index_range()) {
-    eval_face_varying(subdiv, i, ptex_face_index, u, v, ctx->uv_maps[i].span[corner_index]);
-  }
-}
-
 static void subdiv_mesh_corner_data(SubdivMeshContext *ctx, const MeshLayout &layout)
 {
   const Span<int> face_ptex_offset = face_ptex_offset_get(ctx->subdiv);
@@ -1182,6 +1151,11 @@ static void subdiv_mesh_corner_data(SubdivMeshContext *ctx, const MeshLayout &la
         Array<int> base_corners(chunk_faces.size());
         fill_corner_ptex_coords(
             layout, *ctx->coarse_mesh, face_ptex_offset, range, ptex_coords, base_corners);
+
+        for (const int i : ctx->uv_maps.index_range()) {
+          eval_face_varying(
+              ctx->subdiv, i, ptex_coords, ctx->uv_maps[i].span.slice(chunk_corners));
+        }
 
         LoopsForInterpolation loop_interpolation(*ctx);
         for (const int coarse_face_index : range) {
@@ -1199,7 +1173,6 @@ static void subdiv_mesh_corner_data(SubdivMeshContext *ctx, const MeshLayout &la
               const float u = coord.uv.x;
               const float v = coord.uv.y;
               subdiv_interpolate_corner_data(ctx, corner, &loop_interpolation, u, v);
-              subdiv_eval_uv_layer(ctx, corner, coord.ptex_face_index, u, v);
             }
           }
         }

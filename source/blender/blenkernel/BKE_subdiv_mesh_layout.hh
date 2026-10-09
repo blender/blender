@@ -17,17 +17,13 @@
 #include "BLI_span.hh"
 #include "BLI_sys_types.hh"
 
+#include "BKE_subdiv_eval.hh"
+
 namespace blender {
 
 struct Mesh;
 
 namespace bke::subdiv {
-
-/** A location on a ptex face of the limit surface, see #eval_limit_point(). */
-struct PtexCoord {
-  int ptex_face_index;
-  float2 uv;
-};
 
 /**
  * Describes how elements of the subdivided mesh correspond to the elements of the base mesh.

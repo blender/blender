@@ -130,6 +130,21 @@ class EvalOutputAPI {
                             float *dPdu,
                             float *dPdv);
 
+  // Evaluate vertex data at given bilinear coordinates.
+  //
+  // NOTE: Output array must point to a memory of size float[num_vertex_data]*num_patch_coords.
+  void evaluatePatchesVertexData(const OpenSubdiv_PatchCoord *patch_coords,
+                                 const int num_patch_coords,
+                                 float *vertex_data);
+
+  // Evaluate face-varying data at given bilinear coordinates.
+  //
+  // NOTE: Output array must point to a memory of size float[2]*num_patch_coords.
+  void evaluatePatchesFaceVarying(const int face_varying_channel,
+                                  const OpenSubdiv_PatchCoord *patch_coords,
+                                  const int num_patch_coords,
+                                  float *face_varying);
+
   // Fill the output buffers and variables with data from the PatchMap.
   void getPatchMap(blender::gpu::VertBuf *patch_map_handles,
                    blender::gpu::VertBuf *patch_map_quadtree,
