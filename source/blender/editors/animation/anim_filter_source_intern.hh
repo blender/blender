@@ -16,7 +16,7 @@ struct ChannelSourcingContext {
 
 void collection_channels_for_object(Object &obj,
                                     const CollectionFilters &collection_filters,
-                                    ChannelSourcingContext &arena);
+                                    ChannelSourcingContext &ctx);
 
 void debug_stream_hierarchy(std::ostream &stream,
                             const AnimationChannel &channel,

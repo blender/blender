@@ -121,6 +121,12 @@ class ChannelTagStack {
   {
     tags_.pop_last();
   };
+
+  bool is_empty() const
+  {
+    return tags_.is_empty();
+  }
+
   const ChannelTag *find_type(const ChannelTagType t) const
   {
     for (const ChannelTag &tag : this->tags_) {
@@ -618,12 +624,13 @@ struct CollectionFilters {
 };
 
 /**
- * Collect all channels of the given Action.
+ * Collect all channels for the Action Editor.
  */
-void collect_action_channels(ChannelArena &arena);
-
+void collect_action_editor_channels(const bContext &C,
+                                    const CollectionFilters &collection_filters,
+                                    ChannelArena &arena);
 /**
- * Collect all channels in the given context.
+ * Collect all channels in the given context, for Dope Sheet and Graph Editor.
  */
 void collect_animation_channels(const bContext &C,
                                 const CollectionFilters &collection_filters,

@@ -7,6 +7,8 @@
 
 #include "BKE_context.hh"
 
+#include "DNA_action_types.h"
+
 #include "ED_anim_filter.hh"
 #include "ED_space_action.hh"
 
@@ -109,6 +111,22 @@ static ed::animfilter::CollectionFilters get_filters(SpaceAction &saction)
   return filters;
 }
 
+/* Get the data channels for the given dope sheet mode. */
+static void collect_data_channels(const bContext &C,
+                                  const eAnimEdit_Context dopesheet_mode,
+                                  const ed::animfilter::CollectionFilters &collection_filters,
+                                  ed::animfilter::ChannelArena &arena)
+{
+  if (dopesheet_mode == SACTCONT_ACTION) {
+    /* The Action editor has its own way to gather channels. */
+    collect_action_editor_channels(C, collection_filters, arena);
+  }
+  else {
+    collect_animation_channels(C, collection_filters, arena);
+  }
+}
+
+/* Get just the data channels for the current space, skip all the grouping. */
 ed::animfilter::ChannelArena get_data_channels(const bContext &C)
 {
   using namespace ed::animfilter;
@@ -120,7 +138,7 @@ ed::animfilter::ChannelArena get_data_channels(const bContext &C)
   }
 
   ChannelArena arena;
-  collect_animation_channels(C, get_filters(*saction), arena);
+  collect_data_channels(C, saction->mode, get_filters(*saction), arena);
   return arena;
 }
 
@@ -152,7 +170,6 @@ static Span<ed::animfilter::ChannelTagType> tag_order_for_dope_sheet_mode(
 
     case SACTCONT_ACTION: {
       static const Array<ChannelTagType> action_tag_order = {
-          ChannelTagType::ID,
           ChannelTagType::ACTION_SLOT,
           ChannelTagType::GREASEPENCIL_GROUP,
           ChannelTagType::FCURVE_GROUP,
@@ -185,7 +202,7 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
   PRF_scope_with_name("ed::animfilter::get_summary_tree", ProfileCategory::Editor);
 
   ChannelArena arena;
-  collect_animation_channels(C, get_filters(*saction), arena);
+  collect_data_channels(C, saction->mode, get_filters(*saction), arena);
   group_channels(arena,
                  tag_order_for_dope_sheet_mode(saction->mode),
                  saction->ads.flag & ADS_FLAG_MINIMAL_GROUPING);

@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_function_ref.hh"
 #include "anim_filter_source_intern.hh"
 
+#include "BLI_assert.hh"
 #include "BLI_listbase.hh"
 #include "BLI_span.hh"
 
@@ -141,7 +141,7 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
 }
 
 static void channels_for_action_slot(animrig::Action &action,
-                                     const animrig::slot_handle_t slot_handle,
+                                     animrig::Slot &slot,
                                      ChannelTagStack &tags,
                                      ChannelArena &arena,
                                      const CollectionFilters &collection_filters)
@@ -154,13 +154,12 @@ static void channels_for_action_slot(animrig::Action &action,
   PointerRNA action_ptr = RNA_pointer_create_discrete(&action.id, RNA_Action, &action);
   tags.push({ChannelTagType::ACTION, action.id.name + 2, action_ptr, ParsedRNAPathRef()});
 
-  Slot *slot = action.slot_for_handle(slot_handle);
-  PointerRNA slot_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionSlot, slot);
+  PointerRNA slot_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionSlot, &slot);
 
   rna_path_items.append(rna_path::Member{UString("slots")});
-  rna_path_items.append(rna_path::LookupKey{UString(slot->identifier)});
+  rna_path_items.append(rna_path::LookupKey{UString(slot.identifier)});
   tags.push({ChannelTagType::ACTION_SLOT,
-             slot->identifier + 2,
+             slot.identifier + 2,
              slot_ptr,
              ParsedRNAPathRef(rna_path_items)});
   rna_path_items.pop_last();
@@ -187,7 +186,7 @@ static void channels_for_action_slot(animrig::Action &action,
         continue;
       }
       StripKeyframeData &action_strip = strip->data<StripKeyframeData>(action);
-      const int64_t channelbag_index = action_strip.channelbag_index_for_slot(slot_handle);
+      const int64_t channelbag_index = action_strip.channelbag_index_for_slot(slot.handle);
       if (channelbag_index < 0) {
         continue;
       }
@@ -230,6 +229,19 @@ static void channels_for_action_slot(animrig::Action &action,
 
   tags.pop();
   tags.pop();
+}
+
+static void channels_for_action_slot(animrig::Action &action,
+                                     const animrig::slot_handle_t slot_handle,
+                                     ChannelTagStack &tags,
+                                     ChannelArena &arena,
+                                     const CollectionFilters &collection_filters)
+{
+  animrig::Slot *slot = action.slot_for_handle(slot_handle);
+  if (!slot) {
+    return;
+  }
+  channels_for_action_slot(action, *slot, tags, arena, collection_filters);
 }
 
 static void collect_channels_for_id(ID *animated_id,
@@ -407,9 +419,134 @@ void collection_channels_for_object(Object &obj,
   }
 }
 
-void collect_action_channels(ChannelArena & /* arena */)
+void collect_action_channels(animrig::Action &action,
+                             const CollectionFilters &collection_filters,
+                             ChannelArena &arena)
 {
-  /* TODO */
+  using namespace animrig;
+  PRF_scope_with_name("ed::animfilter::collect_action_channels", ProfileCategory::Editor);
+
+  ChannelTagStack tags;
+  ChannelSourcingContext ctx(arena);
+
+  /* Start building the RNA path from the Action. */
+  Vector<rna_path::Item> rna_path_items;
+  PointerRNA action_ptr = RNA_id_pointer_create(&action.id);
+  tags.push({ChannelTagType::ACTION, action.id.name + 2, action_ptr, ParsedRNAPathRef()});
+
+  /* Loop over the layers. */
+  for (const int layer_index : action.layers().index_range()) {
+    Layer *layer = action.layer(layer_index);
+
+    /* Append the layer to the RNA path. */
+    rna_path_items.append(rna_path::Member{UString("layers")});
+    rna_path_items.append(rna_path::LookupKey{UString(layer->name)});
+
+    PointerRNA layer_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionLayer, layer);
+    /* Passing the layer index to guarantee layers are always sorted by their hierarchy. */
+    tags.push({ChannelTagType::ACTION_LAYER,
+               layer->name,
+               layer_ptr,
+               ParsedRNAPathRef(rna_path_items),
+               layer_index});
+
+    for (const int strip_index : layer->strips().index_range()) {
+      Strip *strip = layer->strip(strip_index);
+      if (strip->type() != Strip::Type::Keyframe) {
+        continue;
+      }
+
+      /* Append the strip to the RNA path. */
+      rna_path_items.append(rna_path::Member{UString("strips")});
+      rna_path_items.append(rna_path::LookupIndex{strip_index});
+
+      /* Add tag for the strip. */
+      PointerRNA strip_ptr = RNA_pointer_create_with_parent(
+          layer_ptr, RNA_ActionKeyframeStrip, strip);
+      tags.push({ChannelTagType::ACTION_STRIP,
+                 "strip_name_placeholder",
+                 strip_ptr,
+                 ParsedRNAPathRef(rna_path_items),
+                 strip_index});
+
+      /* Loop over the Channelbags in this Strip. */
+      StripKeyframeData &stripdata = strip->data<StripKeyframeData>(action);
+      for (const int channelbag_index : stripdata.channelbags().index_range()) {
+        Channelbag *channelbag = stripdata.channelbag(channelbag_index);
+        Slot *slot = action.slot_for_handle(channelbag->slot_handle);
+        BLI_assert(slot); /* A channelbag should always have a matching slot. */
+
+        {
+          /* Push the tag for the slot itself. The RNA path starts at the Action directly. */
+          PointerRNA slot_ptr = RNA_pointer_create_with_parent(action_ptr, RNA_ActionSlot, slot);
+          tags.push({ChannelTagType::ACTION_SLOT,
+                     slot->identifier + 2,
+                     slot_ptr,
+                     ParsedRNAPathRef({
+                         rna_path::Member{UString("slots")},
+                         rna_path::LookupKey{UString(slot->identifier)},
+                     })});
+        }
+
+        /* Push a tag for the first ID animated by this Slot. That way, the F-Curve labels
+         * can be resolved properly. */
+        bool did_push_slot_user_tag = false;
+        if (slot && !slot->runtime_users().is_empty()) {
+          did_push_slot_user_tag = true;
+          ID *slot_user = slot->runtime_users()[0];
+          PointerRNA slot_user_id_ptr = RNA_id_pointer_create(slot_user);
+          tags.push(
+              {ChannelTagType::ID, slot_user->name + 2, slot_user_id_ptr, ParsedRNAPathRef()});
+        }
+        /* Append the channelbag to the RNA path (no tag for channelbags). */
+        rna_path_items.append(rna_path::Member{UString("channelbags")});
+        rna_path_items.append(rna_path::LookupIndex{channelbag_index});
+
+        PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
+            strip_ptr, RNA_ActionChannelbag, channelbag);
+        channels_for_channelbag(channelbag_ptr, tags, rna_path_items, arena, collection_filters);
+
+        /* Pop the slot & user tags. */
+        if (did_push_slot_user_tag) {
+          tags.pop();
+        }
+        tags.pop();
+
+        /* Pop the channelbag off the RNA path. */
+        rna_path_items.pop_last();
+        rna_path_items.pop_last();
+      }
+
+      /* Pop the strip off the tags & RNA path. */
+      tags.pop();
+      rna_path_items.pop_last();
+      rna_path_items.pop_last();
+    }
+
+    /* Pop the layer off the tags & RNA path. */
+    tags.pop();
+    rna_path_items.pop_last();
+    rna_path_items.pop_last();
+  }
+
+  /* Pop the Action off the tags. */
+  tags.pop();
+  BLI_assert(tags.is_empty());
+  BLI_assert(rna_path_items.is_empty());
+}
+
+void collect_action_editor_channels(const bContext &C,
+                                    const CollectionFilters &collection_filters,
+                                    ChannelArena &arena)
+{
+  /* At this moment, the Action editor always shows the Action assigned to the active Object. */
+  Object *active_object = CTX_data_active_object(&C);
+  if (!active_object || !active_object->adt || !active_object->adt->action) {
+    return;
+  }
+  animrig::Action &action = active_object->adt->action->wrap();
+
+  collect_action_channels(action, collection_filters, arena);
 }
 
 void collect_animation_channels(const bContext &C,
