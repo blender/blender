@@ -9,6 +9,9 @@
 #include "BLI_hash.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_mpq_types.hh"
+#include "BLI_task.hh"
+
+#include "PRF_profile.hh"
 
 namespace blender::math {
 
@@ -113,5 +116,46 @@ uint64_t hash_mpq_class(const mpq_class &value)
 }
 
 #endif
+
+static void translate_points_range(float3 *data,
+                                   const int64_t start,
+                                   const int64_t size,
+                                   const float3 translation)
+{
+  /* This is written such that auto-vectorization works. */
+  const float tx = translation.x;
+  const float ty = translation.y;
+  const float tz = translation.z;
+  float *f = reinterpret_cast<float *>(data + start);
+  const int64_t n = size;
+  for (const int64_t i : IndexRange(n)) {
+    f[i * 3 + 0] += tx;
+    f[i * 3 + 1] += ty;
+    f[i * 3 + 2] += tz;
+  }
+}
+
+void translate_points(MutableSpan<float3> points,
+                      const float3 &translation,
+                      const bool use_threading)
+{
+  if (math::is_zero(translation)) {
+    return;
+  }
+
+  float3 *data = points.data();
+  const float3 t = translation;
+  const auto translate_range = [&](const IndexRange range) {
+    PRF_scope(ProfileCategory::Default);
+    translate_points_range(data, range.start(), range.size(), t);
+  };
+
+  if (use_threading) {
+    threading::parallel_for(points.index_range(), 2048, translate_range);
+  }
+  else {
+    translate_range(points.index_range());
+  }
+}
 
 }  // namespace blender::math

@@ -381,8 +381,7 @@ static void draw_warnings(const bContext *C, ui::Layout &layout, PointerRNA &eff
         [](bContext * /*C*/, void *argN, StringRef /*tip*/) -> std::string {
           return *static_cast<std::string *>(argN);
         },
-        MEM_new<std::string>(__func__, message),
-        [](void *arg) { MEM_delete(static_cast<std::string *>(arg)); });
+        MEM_new<std::string>(__func__, message));
   }
 }
 

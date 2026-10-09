@@ -225,34 +225,20 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignFaceVaryingTopolo
     TopologyRefiner &refiner, const TopologyRefinerData &cb_data)
 {
   const OpenSubdiv_Converter *converter = cb_data.converter;
-  if (converter->getNumUVLayers == nullptr) {
-    assert(converter->precalcUVLayer == nullptr);
-    assert(converter->getNumUVCoordinates == nullptr);
-    assert(converter->getFaceCornerUVIndex == nullptr);
-    assert(converter->finishUVLayer == nullptr);
-    return true;
-  }
-  const int num_layers = converter->getNumUVLayers(converter);
-  if (num_layers <= 0) {
-    // No UV maps, we can skip any face-varying data.
-    return true;
-  }
+  const std::span<const int> face_offsets = converter->face_offsets;
   const int num_faces = getNumBaseFaces(refiner);
-  for (int layer_index = 0; layer_index < num_layers; ++layer_index) {
-    converter->precalcUVLayer(converter, layer_index);
-    const int num_uvs = converter->getNumUVCoordinates(converter);
+  for (const OpenSubdiv_Converter::UVLayer &uv_layer : converter->uv_layers) {
+    assert(uv_layer.corner_uv_indices.size() == converter->corner_verts.size());
     // Fill in per-corner index of the UV.
-    const int channel = createBaseFVarChannel(refiner, num_uvs);
+    const int channel = createBaseFVarChannel(refiner, uv_layer.uvs_num);
     // TODO(sergey): Need to check whether converter changed the winding of
     // face to match OpenSubdiv's expectations.
     for (int face_index = 0; face_index < num_faces; ++face_index) {
       Far::IndexArray dst_face_uvs = getBaseFaceFVarValues(refiner, face_index, channel);
-      for (int corner = 0; corner < dst_face_uvs.size(); ++corner) {
-        const int uv_index = converter->getFaceCornerUVIndex(converter, face_index, corner);
-        dst_face_uvs[corner] = uv_index;
-      }
+      std::copy_n(uv_layer.corner_uv_indices.data() + face_offsets[face_index],
+                  dst_face_uvs.size(),
+                  dst_face_uvs.begin());
     }
-    converter->finishUVLayer(converter);
   }
   return true;
 }

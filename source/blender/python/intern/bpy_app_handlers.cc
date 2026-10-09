@@ -191,7 +191,7 @@ static PyStructSequence_Field app_cb_info_fields[] = {
 
 static PyStructSequence_Desc app_cb_info_desc = {
     /*name*/ "bpy.app.handlers",
-    /*doc*/ "This module contains callback lists",
+    /*doc*/ ".. include:: include__bpy_app_handlers.rst\n",
     /*fields*/ app_cb_info_fields,
     /*n_in_sequence*/ ARRAY_SIZE(app_cb_info_fields) - 1,
 };
@@ -441,16 +441,15 @@ void bpy_app_generic_callback(Main * /*main*/,
                               const int pointers_num,
                               void *arg)
 {
-  PyObject *cb_list = py_cb_array[POINTER_AS_INT(arg)];
-  if (PyList_GET_SIZE(cb_list) > 0) {
+  const int cb_index = POINTER_AS_INT(arg);
+  PyObject *cb_list = py_cb_array[cb_index];
+  Py_ssize_t cb_list_num = PyList_GET_SIZE(cb_list);
+  if (cb_list_num > 0) {
     const PyGILState_STATE gilstate = PyGILState_Ensure();
 
     const int num_arguments = 2;
     PyObject *args_all = PyTuple_New(num_arguments); /* save python creating each call */
     PyObject *args_single = PyTuple_New(1);
-    PyObject *func;
-    PyObject *ret;
-    Py_ssize_t pos;
 
     /* setup arguments */
     for (int i = 0; i < pointers_num; ++i) {
@@ -470,11 +469,11 @@ void bpy_app_generic_callback(Main * /*main*/,
     }
 
     /* Iterate the list and run the callbacks
-     * NOTE: don't store the list size since the scripts may remove themselves. */
-    for (pos = 0; pos < PyList_GET_SIZE(cb_list); pos++) {
-      func = PyList_GET_ITEM(cb_list, pos);
+     * NOTE: the list size is checked after each call since the scripts may remove themselves. */
+    for (Py_ssize_t pos = 0; pos < cb_list_num; pos++) {
+      PyObject *func = PyList_GET_ITEM(cb_list, pos);
       PyObject *args = choose_arguments(func, args_all, args_single);
-      ret = PyObject_Call(func, args, nullptr);
+      PyObject *ret = PyObject_Call(func, args, nullptr);
       if (ret == nullptr) {
         /* Don't set last system variables because they might cause some
          * dangling pointers to external render engines (when exception
@@ -483,13 +482,39 @@ void bpy_app_generic_callback(Main * /*main*/,
          * is finished. */
 
         /* Note the handler called, the exception itself typically has the function name. */
-        PySys_WriteStderr("Error in bpy.app.handlers.%s[%d]:\n",
-                          app_cb_info_fields[POINTER_AS_INT(arg)].name,
-                          int(pos));
+        PySys_WriteStderr(
+            "Error in bpy.app.handlers.%s[%d]:\n", app_cb_info_fields[cb_index].name, int(pos));
         PyErr_PrintEx(0);
       }
       else {
         Py_DECREF(ret);
+      }
+
+      /* Only support removing itself, anything else is impractical to support.
+       * Furthermore it's bad practice and should not be needed.
+       *
+       * Script authors removing other handlers get undefined behavior (although it won't crash).
+       *
+       * NOTE: changes that keep the list size aren't detected, so a handler that removes itself
+       * and appends a handler skips the next handler, accept this limitation. */
+      const Py_ssize_t cb_list_num_next = PyList_GET_SIZE(cb_list);
+      if (cb_list_num != cb_list_num_next) [[unlikely]] {
+        if (cb_list_num_next + 1 == cb_list_num) {
+          /* When a later handler was removed, the handler is still at `pos`. */
+          if (!((pos < cb_list_num_next) && (PyList_GET_ITEM(cb_list, pos) == func))) {
+            pos--;
+          }
+        }
+        else if (cb_list_num_next < cb_list_num) {
+          /* Removed more than one. */
+          PySys_WriteStderr(
+              "Warning in bpy.app.handlers.%s[%d]:\n"
+              "Handlers must only ever remove themselves!\n",
+              app_cb_info_fields[cb_index].name,
+              int(pos));
+        }
+        /* Appending is supported. */
+        cb_list_num = cb_list_num_next;
       }
     }
 

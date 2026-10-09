@@ -394,7 +394,8 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     dscene->sample_pattern_lut.copy_to_device();
   }
 
-  kintegrator->has_shadow_catcher = scene->has_shadow_catcher();
+  scene_has_shadow_catcher_ = scene->has_shadow_catcher();
+  kintegrator->has_shadow_catcher = scene_has_shadow_catcher_;
 
   if (use_pixel_jitter) {
     if (use_custom_pixel_jitter_sample) {
@@ -480,7 +481,7 @@ AdaptiveSampling Integrator::get_adaptive_sampling() const
   adaptive_sampling.use = use_adaptive_sampling;
 
   /* Disable sample count pass with upscaling. */
-  if (use_denoise && denoiser_upscale_factor != 1.0f) {
+  if (use_denoise && (denoiser_upscale_factor != 1.0f || denoiser_type == DENOISER_DLSS)) {
     adaptive_sampling.use = false;
   }
 
@@ -548,6 +549,12 @@ DenoiseParams Integrator::get_denoise_params() const
   denoise_params.prefilter = denoiser_prefilter;
   denoise_params.quality = denoiser_quality;
   denoise_params.upscale_factor = denoiser_upscale_factor;
+
+  if (scene_has_shadow_catcher_) {
+    /* Disable upscaling with shadow catcher, since not all passes required for shadow catcher
+     * compositing can be upscaled currently. */
+    denoise_params.upscale_factor = 1.0f;
+  }
 
   return denoise_params;
 }

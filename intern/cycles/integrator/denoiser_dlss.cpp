@@ -22,6 +22,11 @@ CCL_NAMESPACE_BEGIN
 /* Application ID for Blender from NVIDIA. */
 static const int NGX_APPLICATION_ID = 100334311;
 
+static PassType get_actual_display_pass_type(const BufferParams &buffer_params)
+{
+  return buffer_params.get_actual_display_pass(PASS_COMBINED, PassMode::DENOISED)->type;
+}
+
 void DLSSDenoiser::CUDATexture::init(Device *device, int width, int height, int num_components)
 {
   CUDA_ARRAY_DESCRIPTOR desc = {};
@@ -309,8 +314,8 @@ bool DLSSDenoiser::denoise_configure_if_needed(DenoiseContext & /*context*/)
 bool DLSSDenoiser::denoise_filter_color_preprocess(const DenoiseContext &context,
                                                    const DenoisePass &pass)
 {
-  if (pass.type != PASS_COMBINED) {
-    return true;
+  if (pass.type != get_actual_display_pass_type(context.buffer_params)) {
+    return DenoiserGPU::denoise_filter_color_preprocess(context, pass);
   }
 
   /* Input params (with resolution divider applied). */
@@ -336,8 +341,8 @@ bool DLSSDenoiser::denoise_filter_color_preprocess(const DenoiseContext &context
 bool DLSSDenoiser::denoise_filter_color_postprocess(const DenoiseContext &context,
                                                     const DenoisePass &pass)
 {
-  if (pass.type != PASS_COMBINED) {
-    return true;
+  if (pass.type != get_actual_display_pass_type(context.buffer_params)) {
+    return DenoiserGPU::denoise_filter_color_postprocess(context, pass);
   }
 
   /* Output params. */
@@ -353,10 +358,6 @@ bool DLSSDenoiser::denoise_filter_color_postprocess(const DenoiseContext &contex
                                    &buffer_params.height,
                                    &buffer_params.offset,
                                    &buffer_params.stride,
-                                   &context.buffer_params.full_x,
-                                   &context.buffer_params.full_y,
-                                   &context.buffer_params.offset,
-                                   &context.buffer_params.stride,
                                    &buffer_params.pass_stride,
                                    &context.num_samples,
                                    &pass.noisy_offset,
@@ -412,7 +413,7 @@ bool DLSSDenoiser::denoise_filter_guiding_preprocess(DenoiseContext &context)
 
 bool DLSSDenoiser::denoise_run(const DenoiseContext &context, const DenoisePass &pass)
 {
-  if (pass.type != PASS_COMBINED) {
+  if (pass.type != get_actual_display_pass_type(context.buffer_params)) {
     return true;
   }
 

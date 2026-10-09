@@ -42,7 +42,7 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
                                                Button * /*but*/,
                                                void *argN)
 {
-  char *path = static_cast<char *>(argN);
+  const char *path = static_cast<const std::string *>(argN)->c_str();
 
   /* File name and path. */
   char dirname[FILE_MAX];
@@ -167,7 +167,7 @@ int template_recent_files(Layout *layout, int rows)
     Block *block = layout->block();
     Button *but = button_last(block);
     button_func_tooltip_custom_set(
-        but, template_recent_files_tooltip_func, BLI_strdup(recent.filepath), MEM_delete_void);
+        but, template_recent_files_tooltip_func, MEM_new<std::string>(__func__, recent.filepath));
     i++;
   }
 

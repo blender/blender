@@ -6,6 +6,8 @@
  * \ingroup spseq
  */
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -15,7 +17,6 @@
 #include "BKE_screen.hh"
 
 #include "BLI_math_base_c.hh"
-#include "BLI_string.hh"
 #include "BLI_utildefines.hh"
 
 #include "ED_screen.hh"
@@ -91,8 +92,7 @@ static std::string draw_channel_widget_tooltip(bContext * /*C*/,
                                                void *argN,
                                                const StringRef /*tip*/)
 {
-  char *dyn_tooltip = static_cast<char *>(argN);
-  return dyn_tooltip;
+  return *static_cast<const std::string *>(argN);
 }
 
 static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
@@ -125,9 +125,12 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
                                        0,
                                        std::nullopt);
 
-  char *tooltip = BLI_sprintfN(
-      "%s channel %d", channel->is_muted() ? "Unmute" : "Mute", channel_index);
-  button_func_tooltip_set(but, draw_channel_widget_tooltip, tooltip, MEM_delete_void);
+  button_func_tooltip_set(
+      but,
+      draw_channel_widget_tooltip,
+      MEM_new<std::string>(
+          __func__,
+          fmt::format("{} channel {}", channel->is_muted() ? "Unmute" : "Mute", channel_index)));
 
   return width;
 }
@@ -163,9 +166,12 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
                                        0,
                                        "");
 
-  char *tooltip = BLI_sprintfN(
-      "%s channel %d", channel->is_locked() ? "Unlock" : "Lock", channel_index);
-  button_func_tooltip_set(but, draw_channel_widget_tooltip, tooltip, MEM_delete_void);
+  button_func_tooltip_set(
+      but,
+      draw_channel_widget_tooltip,
+      MEM_new<std::string>(
+          __func__,
+          fmt::format("{} channel {}", channel->is_locked() ? "Unlock" : "Lock", channel_index)));
 
   return width;
 }

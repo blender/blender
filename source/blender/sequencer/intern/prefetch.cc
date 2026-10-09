@@ -505,10 +505,11 @@ static bool strip_renders_scene_strip(const Scene *scene,
   }
 
   /* Recurse on all strips in the meta strip `seqbase`. */
-  if (strip->type == STRIP_TYPE_META &&
-      seqbase_renders_scene_strip(scene, &strip->channels, &strip->seqbase, frame, state))
-  {
-    return true;
+  if (strip->type == STRIP_TYPE_META) {
+    int meta_frame = give_frame_index(scene, strip, frame) + strip->content_start();
+    if (seqbase_renders_scene_strip(scene, &strip->channels, &strip->seqbase, meta_frame, state)) {
+      return true;
+    }
   }
 
   /* Recurse on all strips in the sequencer-input scene strip `seqbase`. */

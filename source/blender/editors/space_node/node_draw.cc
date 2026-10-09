@@ -1575,8 +1575,8 @@ void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, ui
         build_socket_tooltip(tip, C, but, *data->ntree, *data->socket);
       },
       data,
-      MEM_dupalloc_void,
-      MEM_delete_void);
+      ui::but_func_argN_copy<SocketTooltipData>,
+      ui::but_func_argN_free<SocketTooltipData>);
 }
 
 #define NODE_SOCKET_OUTLINE U.pixelsize

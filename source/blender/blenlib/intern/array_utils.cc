@@ -498,4 +498,21 @@ bool indices_are_range(Span<int> indices, IndexRange range)
       std::logical_and<>());
 }
 
+void copy_ints_with_offset(const Span<int> src,
+                           const int offset,
+                           MutableSpan<int> dst,
+                           const int64_t grain_size)
+{
+  BLI_assert(src.size() == dst.size());
+  threading::parallel_for_aligned(src.index_range(), grain_size, 16, [&](const IndexRange range) {
+    /* Create local copies of the data for better auto-vectorization in the loop. */
+    const int *src_ = src.data();
+    int *dst_ = dst.data();
+    const int offset_ = offset;
+    for (const int64_t i : range) {
+      dst_[i] = src_[i] + offset_;
+    }
+  });
+}
+
 }  // namespace blender::array_utils

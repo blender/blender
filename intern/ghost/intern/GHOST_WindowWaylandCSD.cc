@@ -13,52 +13,11 @@
 #include "GHOST_utildefines.hh"
 
 #include <array> /* For `std::array`. */
-#include <optional>
-#include <sstream> /* For `std::stringstream`. */
-#include <string>
-
-/* Logging, use `ghost.wl.*` prefix. */
-#include "CLG_log.h"
+#include <string_view>
 
 /* -------------------------------------------------------------------- */
 /** \name Private CSD Integration
  * \{ */
-
-static CLG_LogRef LOG_WL_CSD = {"ghost.wl.csd"};
-#define LOG (&LOG_WL_CSD)
-
-static std::optional<std::string> command_exec(const char *cmd, const size_t output_limit)
-{
-  std::array<char, 128> buffer;
-  std::stringstream result;
-  FILE *pipe = popen(cmd, "r");
-  if (!pipe) {
-    CLOG_DEBUG(LOG, "failed to open: %s", cmd);
-    return std::nullopt;
-  }
-
-  bool error = false;
-  while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
-    if (error) {
-      /* Read the remaining data and exit, sophisticated process handling
-       * could kill the process but that's not possible with `popen`. */
-      continue;
-    }
-    result << buffer.data();
-    if (result.tellp() > output_limit) {
-      error = true;
-      CLOG_DEBUG(LOG, "over-sized output (%zu)", output_limit);
-    }
-  }
-  const int exit_code = pclose(pipe);
-  if (exit_code != 0) {
-    error = true;
-  }
-  if (error) {
-    return std::nullopt;
-  }
-  return result.str();
-}
 
 static std::array<std::string_view, 2> string_partition(std::string_view s, const char delimiter)
 {
@@ -118,39 +77,16 @@ static int string_parse_buttons(std::string_view buttons,
   return i;
 }
 
-static bool ghost_window_csd_layout_from_gnome(GHOST_CSD_Layout &layout)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public CSD API
+ * \{ */
+
+bool GHOST_WindowCSD_LayoutFromString(GHOST_CSD_Layout &layout, const std::string_view buttons)
 {
-  /* NOTE(@ideasman42): this could/should use DBUS, although previously
-   * DBUS would hang for 5+ seconds when not available. */
-
-  /* Extract a string such as: `'"icon:minimize,maximize,close"'\n`
-   * and convert it into an array in #GHOST_CSD_Layout::buttons
-   * to follow the systems button layout. */
-  std::optional<std::string> output = command_exec(
-      "gsettings get org.gnome.desktop.wm.preferences button-layout 2>&1", 512);
-  if (!output.has_value()) {
-    return false;
-  }
-
-  std::string_view output_trim = *output;
-  while (output_trim.length() > 0) {
-    const char c = output_trim.back();
-    if (c != '\n') {
-      break;
-    }
-    output_trim.remove_suffix(1);
-  }
-  /* Check for surrounding single quotes. */
-  if (!((output_trim.length() >= 2) && (output_trim.front() == '\'') &&
-        (output_trim.back() == '\'')))
-  {
-    return false;
-  }
-  output_trim.remove_prefix(1);
-  output_trim.remove_suffix(1);
-
   /* Access buttons from both sides of the `:` which represents the title bar. */
-  std::array<std::string_view, 2> output_pair = string_partition(output_trim, ':');
+  std::array<std::string_view, 2> buttons_pair = string_partition(buttons, ':');
   int i = 0;
   uint32_t button_mask = 0;
   for (int side = 0; side < 2; side++) {
@@ -163,25 +99,10 @@ static bool ghost_window_csd_layout_from_gnome(GHOST_CSD_Layout &layout)
       }
     }
     i += string_parse_buttons(
-        output_pair[side], &button_mask, &layout.buttons[i], buttons_capacity);
+        buttons_pair[side], &button_mask, &layout.buttons[i], buttons_capacity);
   }
   layout.buttons_num = i;
-  return true;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Public CSD API
- * \{ */
-
-bool GHOST_WindowCSD_LayoutFromSystem(GHOST_CSD_Layout &layout)
-{
-  /* In the future CSD may be used for KDE and others,
-   * currently only GNOME support is needed as CSD is only used with GNOME. */
-  bool result = ghost_window_csd_layout_from_gnome(layout);
-
-  return result;
+  return button_mask != 0;
 }
 
 void GHOST_WindowCSD_LayoutDefault(GHOST_CSD_Layout &layout)

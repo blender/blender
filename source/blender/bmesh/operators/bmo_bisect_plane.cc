@@ -46,9 +46,10 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
 
   plane_from_point_normal_v3(plane, plane_co, plane_no);
 
-  /* tag geometry to bisect */
-  BM_mesh_elem_hflag_disable_all(bm, BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
-  BMO_slot_buffer_hflag_enable(bm, op->slots_in, "geom", BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  /* Tag geometry to bisect, include vertices so loose vertices on the plane are handled. */
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  BMO_slot_buffer_hflag_enable(
+      bm, op->slots_in, "geom", BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
   BMO_slot_buffer_flag_enable(bm, op->slots_in, "geom", BM_ALL_NOLOOP, ELE_INPUT);
 

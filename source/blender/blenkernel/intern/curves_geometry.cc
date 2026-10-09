@@ -1276,15 +1276,6 @@ void CurvesGeometry::tag_material_index_changed()
   this->runtime->max_material_index_cache.tag_dirty();
 }
 
-static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
-{
-  threading::parallel_for(positions.index_range(), 2048, [&](const IndexRange range) {
-    for (float3 &position : positions.slice(range)) {
-      position += translation;
-    }
-  });
-}
-
 void CurvesGeometry::calculate_bezier_auto_handles()
 {
   if (!this->has_curve_with_type(CURVE_TYPE_BEZIER)) {
@@ -1354,12 +1345,12 @@ void CurvesGeometry::translate(const float3 &translation)
     bounds = this->runtime->bounds_cache.data();
   }
 
-  translate_positions(this->positions_for_write(), translation);
+  math::translate_points(this->positions_for_write(), translation);
   if (this->handle_positions_left()) {
-    translate_positions(this->handle_positions_left_for_write(), translation);
+    math::translate_points(this->handle_positions_left_for_write(), translation);
   }
   if (this->handle_positions_right()) {
-    translate_positions(this->handle_positions_right_for_write(), translation);
+    math::translate_points(this->handle_positions_right_for_write(), translation);
   }
   this->tag_positions_changed();
 

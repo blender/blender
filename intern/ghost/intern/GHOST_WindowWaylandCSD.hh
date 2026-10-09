@@ -15,8 +15,18 @@
 
 #  include "GHOST_SystemWayland.hh"
 
+#  include <string_view>
+
 struct GHOST_CSD_Layout;
-bool GHOST_WindowCSD_LayoutFromSystem(GHOST_CSD_Layout &layout);
+
+/**
+ * Fill `layout` from the desktop's button layout,
+ * a string such as `icon:minimize,maximize,close`.
+ *
+ * \return false when no known buttons are found (`layout` should be ignored),
+ * unknown button names are skipped as GNOME does.
+ */
+bool GHOST_WindowCSD_LayoutFromString(GHOST_CSD_Layout &layout, std::string_view buttons);
 void GHOST_WindowCSD_LayoutDefault(GHOST_CSD_Layout &layout);
 
 /** Return true if CSD should be used. */

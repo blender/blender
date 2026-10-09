@@ -70,6 +70,7 @@ highlight_options = {"default": {"encoding": "utf-8"}}
 # Quiet file not in table-of-contents warnings.
 exclude_patterns = [
     "include__bmesh.rst",
+    "include__bpy_app_handlers.rst",
 ]
 
 html_title = "Blender Python API"

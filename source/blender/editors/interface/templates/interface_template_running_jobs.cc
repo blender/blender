@@ -298,7 +298,7 @@ void template_running_jobs(Layout *layout, bContext *C)
                            nullptr));
 
       but_progress->progress_factor = progress;
-      button_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg, MEM_delete_void);
+      button_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg);
     }
 
     if (cancel_fn && !wm->runtime->is_interface_locked) {

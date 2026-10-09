@@ -257,6 +257,15 @@ void relations_invalidate_compositor_users(const Main *bmain, const bNodeTree *n
   }
 }
 
+void relations_invalidate_generator_strips(Scene *scene)
+{
+  for (Strip *strip : query_all_strips_recursive(&editing_get(scene)->seqbase)) {
+    if (strip->is_effect() && !strip->is_effect_with_inputs()) {
+      source_image_cache_invalidate_strip(scene, strip);
+    }
+  }
+}
+
 static void invalidate_movieclip_strips(Scene *scene,
                                         MovieClip *clip_target,
                                         ListBaseT<Strip> *seqbase)

@@ -405,10 +405,8 @@ void BM_mesh_bisect_plane(BMesh *bm,
     BMEdge *e;
     einput_len = 0;
 
-    /* Flush edge tags to verts. */
-    BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
-
-    /* Keep face tags as is. */
+    /* Keep vertex tags set by the caller (needed for loose vertices),
+     * edge tags are flushed to their vertices below. */
     BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
       if (edge_is_cut_test(e)) {
         edges_arr[einput_len++] = e;

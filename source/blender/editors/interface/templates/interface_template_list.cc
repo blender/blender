@@ -598,13 +598,13 @@ static void uilist_resize_update(bContext *C, uiList *ui_list)
   ED_region_tag_refresh_ui(CTX_wm_region_popup(C));
 }
 
-static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *propname)
+static std::string *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *propname)
 {
   if (propname && propname[0] && itemptr && *itemptr) {
     PropertyRNA *prop = RNA_struct_find_property(itemptr, propname);
 
     if (prop && (RNA_property_type(prop) == PROP_STRING)) {
-      return RNA_property_string_get_alloc(itemptr, prop, nullptr, 0, nullptr);
+      return MEM_new<std::string>(__func__, RNA_property_string_get(itemptr, prop));
     }
   }
   return nullptr;
@@ -612,8 +612,7 @@ static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *pr
 
 static std::string uilist_item_tooltip_func(bContext * /*C*/, void *argN, const StringRef tip)
 {
-  char *dyn_tooltip = static_cast<char *>(argN);
-  std::string tooltip_string = dyn_tooltip;
+  std::string tooltip_string = *static_cast<const std::string *>(argN);
   if (!tip.is_empty()) {
     tooltip_string += '\n';
     tooltip_string += tip;
@@ -723,7 +722,7 @@ static void template_uilist_layout_draw(const bContext *C,
         /* create list items */
         for (i = visual_info.start_idx; i < visual_info.end_idx; i++) {
           PointerRNA *itemptr = &items->item_vec[i].item;
-          void *dyntip_data;
+          std::string *dyntip_data;
           const int org_i = items->item_vec[i].org_idx;
           const int flt_flag = items->item_vec[i].flt_flag;
           Block *subblock = col->block();
@@ -754,7 +753,7 @@ static void template_uilist_layout_draw(const bContext *C,
           if ((dyntip_data = uilist_item_use_dynamic_tooltip(itemptr,
                                                              input_data->item_dyntip_propname)))
           {
-            button_func_tooltip_set(but, uilist_item_tooltip_func, dyntip_data, MEM_delete_void);
+            button_func_tooltip_set(but, uilist_item_tooltip_func, dyntip_data);
           }
 
           Layout &item_row = overlap->row(true);

@@ -94,11 +94,6 @@ void RenderScheduler::set_sample_params(const int num_samples,
 
 int RenderScheduler::get_num_samples() const
 {
-  /* Do continuous rendering when DLSS is active. */
-  if (is_denoiser_interactive()) {
-    return Integrator::MAX_SAMPLES;
-  }
-
   return num_samples_;
 }
 
@@ -129,6 +124,11 @@ int RenderScheduler::get_num_rendered_samples() const
   return state_.num_rendered_samples;
 }
 
+int RenderScheduler::get_total_rendered_samples() const
+{
+  return state_.total_rendered_samples;
+}
+
 void RenderScheduler::reset(const BufferParams &buffer_params)
 {
   buffer_params_ = buffer_params;
@@ -146,6 +146,7 @@ void RenderScheduler::reset(const BufferParams &buffer_params)
   }
 
   state_.num_rendered_samples = 0;
+  state_.total_rendered_samples = 0;
   state_.last_display_update_time = 0.0;
   state_.last_display_update_sample = -1;
 
@@ -248,6 +249,7 @@ void RenderScheduler::render_work_reschedule_on_cancel(RenderWork &render_work)
 
   /* Un-schedule samples: they will not be rendered and should not be counted. */
   state_.num_rendered_samples -= render_work.path_trace.num_samples;
+  state_.total_rendered_samples -= render_work.path_trace.num_samples;
 
   const bool has_rendered_samples = get_num_rendered_samples() != 0;
 
@@ -297,7 +299,7 @@ bool RenderScheduler::done() const
     return true;
   }
 
-  return get_num_rendered_samples() >= get_num_samples();
+  return get_total_rendered_samples() >= get_num_samples();
 }
 
 RenderWork RenderScheduler::get_render_work()
@@ -346,6 +348,7 @@ RenderWork RenderScheduler::get_render_work()
 
     state_.resolution_divider = max(state_.resolution_divider, pixel_size_);
     state_.num_rendered_samples = 0;
+    state_.total_rendered_samples = 0;
     state_.last_display_update_sample = -1;
   }
 
@@ -370,6 +373,7 @@ RenderWork RenderScheduler::get_render_work()
   /* NOTE: Advance number of samples now, so that filter and denoising check can see that all the
    * samples are rendered. */
   state_.num_rendered_samples += render_work.path_trace.num_samples;
+  state_.total_rendered_samples += render_work.path_trace.num_samples;
 
   render_work.adaptive_sampling.filter = work_need_adaptive_filter();
   render_work.adaptive_sampling.threshold = work_adaptive_threshold();
@@ -491,11 +495,10 @@ void RenderScheduler::report_work_begin(const RenderWork &render_work)
   /* Start counting render time when rendering samples at their final resolution.
    *
    * NOTE: The work might have the path trace part be all zero: this happens when a post-processing
-   * work is scheduled after the path tracing. Checking for just a start sample doesn't work here
-   * because it might be wrongly 0. Check for whether path tracing is actually happening as it is
-   * expected to happen in the first work. */
+   * work is scheduled after the path tracing. Check for whether path tracing is actually happening
+   * as it is expected to happen in the first work. */
   if (render_work.resolution_divider == pixel_size_ && render_work.path_trace.num_samples != 0 &&
-      render_work.path_trace.start_sample == get_sample_offset())
+      state_.start_render_time == 0.0)
   {
     state_.start_render_time = time_dt();
   }
@@ -642,7 +645,7 @@ void RenderScheduler::report_rebalance_time(const RenderWork &render_work,
 string RenderScheduler::full_report() const
 {
   const double render_wall_time = state_.end_render_time - state_.start_render_time;
-  const int num_rendered_samples = get_num_rendered_samples();
+  const int num_rendered_samples = get_total_rendered_samples();
 
   string result = "\nRender Scheduler Summary\n\n";
 
@@ -898,8 +901,7 @@ int RenderScheduler::get_num_samples_to_path_trace() const
    * more than N samples. */
   const int num_samples_pot = round_num_samples_to_power_of_2(num_samples_per_update);
 
-  const int max_num_samples_to_render = sample_offset_ + get_num_samples() -
-                                        path_trace_start_sample;
+  const int max_num_samples_to_render = get_num_samples() - get_total_rendered_samples();
 
   int num_samples_to_render = min(num_samples_pot, max_num_samples_to_render);
 

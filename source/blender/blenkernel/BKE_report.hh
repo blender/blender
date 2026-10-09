@@ -31,7 +31,7 @@ struct wmTimer;
  * printed to the console then.
  */
 
-/** Keep in sync with 'rna_enum_wm_report_items' in `wm_rna.c`. */
+/** Keep in sync with 'rna_enum_wm_report_items' in `rna_wm.cc`. */
 enum eReportType : uint16_t {
   RPT_DEBUG = (1 << 0),
   RPT_INFO = (1 << 1),
