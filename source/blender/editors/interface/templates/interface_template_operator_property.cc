@@ -189,7 +189,7 @@ static AutoPropButsReturn template_operator_property_buts_draw_single(
       /* if button is operator's default property, and a text-field, enable focus for it
        * - this is used for allowing operators with popups to rename stuff with fewer clicks
        */
-      if (is_popup) {
+      if (is_popup && op->type->prop) {
         if ((but.rnaprop == op->type->prop) && ELEM(but.type, ButtonType::Text, ButtonType::Num)) {
           button_focus_on_enter_event(CTX_wm_window(C), &but);
         }
