@@ -98,10 +98,10 @@ struct LTCData {
   {
     /* Sample 4 components from isotropic LTC LUT. */
     const float2 coords = detail::get_isotropic_coords(cos_theta, roughness);
-    float4 lut_pack = util_tx.sample_lut(coords, layer);
+    const float4 lut_packed = util_tx.sample_lut(coords, layer);
 
     /* Expand components to full inverse LTC matrix. */
-    float3x3 Minv = detail::unpack_isotropic_matrix(lut_pack);
+    float3x3 Minv = detail::unpack_isotropic_matrix(lut_packed);
 
     /* Rotate into orthonormal basis around N. */
     const float3x3 T = from_incident_vector(N, V);
@@ -115,13 +115,12 @@ struct LTCData {
   /**
    * Return matrix data producing a cosine distribution.
    */
-  static LTCData identity(float3 N, float3 V)
+  static LTCData identity(const float3 N, const float3 V)
   {
     /* Rotate into orthonormal basis around N. LTC matrix is simply the identity matrix. */
-    float3x3 T = from_incident_vector(N, V);
-    float3x3 Minv = transpose(T);
+    const float3x3 T = from_incident_vector(N, V);
 
-    return {.Minv = Minv,
+    return {.Minv = transpose(T),
             .attenuation_factor = 1.0f,
             .form_factor_type = LTCFormFactorType::OneSidedCosineSphereClipped};
   }
@@ -145,7 +144,7 @@ struct LTCData {
   /**
    * Define matrix data producing a cosine distribution and store to ClosureLight packing.
    */
-  static void pack_identity(ClosureLight &cl, float3 N, float3 V)
+  static void pack_identity(ClosureLight &cl, const float3 N, const float3 V)
   {
     LTCData ltc_data = LTCData::identity(N, V);
     ltc_data.pack_to(cl);

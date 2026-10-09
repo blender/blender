@@ -412,10 +412,10 @@ Ray bxdf_ggx_ray_amend_transmission(ClosureUndetermined cl, float3 V, Ray ray, T
 }
 
 ClosureLight bxdf_ggx_light_reflection(const UtilityTexture &util_tx,
-                                       ClosureReflection cl,
-                                       float3 V)
+                                       const ClosureReflection cl,
+                                       const float3 V)
 {
-  float cos_theta = dot(cl.N, V);
+  const float cos_theta = dot(cl.N, V);
 
   ClosureLight light;
   light.N = cl.N;
@@ -428,9 +428,10 @@ ClosureLight bxdf_ggx_light_reflection(const UtilityTexture &util_tx,
 ClosureLight bxdf_ggx_light_transmission(const UtilityTexture &util_tx,
                                          ClosureRefraction cl,
                                          float3 V,
-                                         Thickness thickness)
+                                         const Thickness thickness)
 {
-  float perceptual_roughness = bxdf_ggx_perceived_roughness_transmission(cl.roughness, cl.ior);
+  const float perceptual_roughness = bxdf_ggx_perceived_roughness_transmission(cl.roughness,
+                                                                               cl.ior);
 
   /* Given non-zero thickness, simulate transmission through a slab/sphere, and output
    * an amended view vector as the direction of the first scatter. */
@@ -446,8 +447,8 @@ ClosureLight bxdf_ggx_light_transmission(const UtilityTexture &util_tx,
   light.type = LIGHT_TRANSMISSION;
 
   /* Reuse the isotropic LTC LUT by using the refracted exitant view as direction. */
-  float3 R = refract(-V, cl.N, (thickness.value() != 0.0f) ? cl.ior : (1.0f / cl.ior));
-  float cos_theta = dot(light.N, R);
+  const float3 R = refract(-V, cl.N, (thickness.value() != 0.0f) ? cl.ior : (1.0f / cl.ior));
+  const float cos_theta = dot(light.N, R);
   eevee::LTCData::sample_ggx_lut(util_tx, light.N, V, cos_theta, perceptual_roughness)
       .pack_to(light);
 
@@ -455,10 +456,10 @@ ClosureLight bxdf_ggx_light_transmission(const UtilityTexture &util_tx,
 }
 
 ClosureLight bxdf_ggx_light_thin_glass_transmission(const UtilityTexture &util_tx,
-                                                    ClosureThinRefraction cl,
-                                                    float3 V)
+                                                    const ClosureThinRefraction cl,
+                                                    const float3 V)
 {
-  float cos_theta = dot(cl.N, V);
+  const float cos_theta = dot(cl.N, V);
 
   ClosureLight light;
   light.N = -cl.N;
