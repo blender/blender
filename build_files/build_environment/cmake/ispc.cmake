@@ -131,10 +131,10 @@ ExternalProject_Add(external_ispc
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/ispc/src/external_ispc <
       ${PATCH_DIR}/ispc.diff &&
-    # For Android target cross-compiling support: Update the Android NDK include sysroot, changed in NDK r19+.
+    # For Android target cross-compilation support on macOS: Update the Android NDK include sysroot, changed in NDK r19+.
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/ispc/src/external_ispc <
-      ${PATCH_DIR}/ispc_crosscompile_android.diff
+      ${PATCH_DIR}/ispc_macos_crosscompile_android.diff
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ispc
