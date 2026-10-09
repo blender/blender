@@ -388,10 +388,6 @@ static void draw_import_properties(bContext *C,
 
 void template_collection_importer(Layout *layout, bContext *C)
 {
-  if (!U.experimental.use_collection_importer) {
-    return;
-  }
-
   Collection *collection = CTX_data_collection(C);
   CollectionImport *data = collection->importer;
 
