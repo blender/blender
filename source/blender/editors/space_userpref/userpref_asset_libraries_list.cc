@@ -321,8 +321,6 @@ void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
     layout.separator();
   }
   if (libraries[U.active_asset_library].is_extension_repo()) {
-    layout.label(IFACE_("Asset libraries installed by extensions from this repository."),
-                 ICON_NONE);
     return;
   }
   ui::Layout &settings_row = layout.column(false);
