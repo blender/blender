@@ -26,6 +26,7 @@
 
 #include "BLI_linklist.hh"
 #include "BLI_mutex.hh"
+#include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 
 #include "DRW_engine.hh"
@@ -557,27 +558,6 @@ static bool draw_subdiv_init_cache(DRWCacheBuildingContext *ctx,
   return true;
 }
 
-static void draw_subdiv_loop_cb(const bke::subdiv::ForeachContext *foreach_context,
-                                void * /*tls_v*/,
-                                const int ptex_face_index,
-                                const float u,
-                                const float v,
-                                const int /*coarse_loop_index*/,
-                                const int coarse_face_index,
-                                const int /*coarse_corner*/,
-                                const int subdiv_loop_index)
-{
-  DRWCacheBuildingContext *ctx = (DRWCacheBuildingContext *)(foreach_context->user_data);
-  ctx->patch_coords[subdiv_loop_index] = make_patch_coord(ptex_face_index, u, v);
-  ctx->subdiv_loop_face_index[subdiv_loop_index] = coarse_face_index;
-}
-
-static void draw_subdiv_foreach_callbacks(bke::subdiv::ForeachContext *foreach_context)
-{
-  *foreach_context = {};
-  foreach_context->loop = draw_subdiv_loop_cb;
-}
-
 static void do_subdiv_traversal(DRWCacheBuildingContext *cache_building_context,
                                 bke::subdiv::Subdiv *subdiv)
 {
@@ -586,13 +566,6 @@ static void do_subdiv_traversal(DRWCacheBuildingContext *cache_building_context,
   if (!draw_subdiv_init_cache(cache_building_context, layout)) {
     return;
   }
-
-  bke::subdiv::ForeachContext foreach_context;
-  draw_subdiv_foreach_callbacks(&foreach_context);
-  foreach_context.user_data = cache_building_context;
-
-  bke::subdiv::foreach_subdiv_geometry(
-      subdiv, &foreach_context, layout, cache_building_context->coarse_mesh);
 
   const DRWSubdivCache &cache = *cache_building_context->cache;
   const Mesh &coarse_mesh = *cache_building_context->coarse_mesh;
@@ -603,6 +576,28 @@ static void do_subdiv_traversal(DRWCacheBuildingContext *cache_building_context,
         coarse_mesh.faces().index_range(),
         {cache_building_context->subdiv_loop_subdiv_vert_index, cache.num_subdiv_loops},
         {cache_building_context->subdiv_loop_subdiv_edge_index, cache.num_subdiv_loops});
+
+    const Span<int> face_ptex_offset = bke::subdiv::face_ptex_offset_get(subdiv);
+    MutableSpan<CompressedPatchCoord> patch_coords(cache_building_context->patch_coords,
+                                                   cache.num_subdiv_loops);
+    MutableSpan<int> corner_face_index(cache_building_context->subdiv_loop_face_index,
+                                       cache.num_subdiv_loops);
+    threading::parallel_for(coarse_mesh.faces().index_range(),
+                            layout.base_face_grain_size(),
+                            [&](const IndexRange range) {
+                              const IndexRange chunk_corners = layout.base_face_corners(range);
+                              Array<bke::subdiv::PtexCoord> ptex_coords(chunk_corners.size());
+                              bke::subdiv::fill_corner_ptex_coords(
+                                  layout, coarse_mesh, face_ptex_offset, range, ptex_coords, {});
+                              for (const int i : ptex_coords.index_range()) {
+                                const bke::subdiv::PtexCoord &coord = ptex_coords[i];
+                                patch_coords[chunk_corners[i]] = make_patch_coord(
+                                    coord.ptex_face_index, coord.uv.x, coord.uv.y);
+                              }
+                              for (const int face : range) {
+                                corner_face_index.slice(layout.base_face_corners(face)).fill(face);
+                              }
+                            });
   }
 
   /* Now that traversal is done, we can set up the right original indices for the

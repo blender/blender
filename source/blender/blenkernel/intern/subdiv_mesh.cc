@@ -691,19 +691,13 @@ struct SubdivMeshTLS {
   VerticesForInterpolation *vert_interpolation = nullptr;
   int vert_interpolation_coarse_face_index = -1;
   int vert_interpolation_coarse_corner = -1;
-
-  LoopsForInterpolation *loop_interpolation = nullptr;
-  int loop_interpolation_coarse_face_index = -1;
-  int loop_interpolation_coarse_corner = -1;
 };
 
 static void subdiv_mesh_tls_free(void *tls_v)
 {
   SubdivMeshTLS *tls = static_cast<SubdivMeshTLS *>(tls_v);
   delete tls->vert_interpolation;
-  delete tls->loop_interpolation;
   tls->vert_interpolation = nullptr;
-  tls->loop_interpolation = nullptr;
 }
 
 /** \} */
@@ -1221,41 +1215,40 @@ static void subdiv_eval_uv_layer(SubdivMeshContext *ctx,
   }
 }
 
-static void subdiv_mesh_ensure_loop_interpolation(SubdivMeshContext *ctx,
-                                                  SubdivMeshTLS *tls,
-                                                  const int coarse_face_index,
-                                                  const int coarse_corner)
+static void subdiv_mesh_corner_data(SubdivMeshContext *ctx, const MeshLayout &layout)
 {
-  const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
-  if (!tls->loop_interpolation) {
-    tls->loop_interpolation = new LoopsForInterpolation(*ctx);
-  }
-  if (tls->loop_interpolation_coarse_face_index != coarse_face_index) {
-    loop_interpolation_from_face(ctx, tls->loop_interpolation, coarse_face);
-    loop_interpolation_from_corner(ctx, tls->loop_interpolation, coarse_face, coarse_corner);
-  }
-  else if (tls->loop_interpolation_coarse_corner != coarse_corner) {
-    loop_interpolation_from_corner(ctx, tls->loop_interpolation, coarse_face, coarse_corner);
-  }
-  tls->loop_interpolation_coarse_face_index = coarse_face_index;
-  tls->loop_interpolation_coarse_corner = coarse_corner;
-}
+  const Span<int> face_ptex_offset = face_ptex_offset_get(ctx->subdiv);
+  const OffsetIndices<int> faces_by_base_face = layout.faces_by_base_face();
+  threading::parallel_for(
+      ctx->coarse_faces.index_range(), layout.base_face_grain_size(), [&](const IndexRange range) {
+        const IndexRange chunk_faces = faces_by_base_face[range];
+        const IndexRange chunk_corners = layout.base_face_corners(range);
+        Array<PtexCoord> ptex_coords(chunk_corners.size());
+        Array<int> base_corners(chunk_faces.size());
+        fill_corner_ptex_coords(
+            layout, *ctx->coarse_mesh, face_ptex_offset, range, ptex_coords, base_corners);
 
-static void subdiv_mesh_loop(const ForeachContext *foreach_context,
-                             void *tls_v,
-                             const int ptex_face_index,
-                             const float u,
-                             const float v,
-                             const int /*coarse_loop_index*/,
-                             const int coarse_face_index,
-                             const int coarse_corner,
-                             const int subdiv_loop_index)
-{
-  SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
-  SubdivMeshTLS *tls = static_cast<SubdivMeshTLS *>(tls_v);
-  subdiv_mesh_ensure_loop_interpolation(ctx, tls, coarse_face_index, coarse_corner);
-  subdiv_interpolate_corner_data(ctx, subdiv_loop_index, tls->loop_interpolation, u, v);
-  subdiv_eval_uv_layer(ctx, subdiv_loop_index, ptex_face_index, u, v);
+        LoopsForInterpolation loop_interpolation(*ctx);
+        for (const int coarse_face_index : range) {
+          const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
+          loop_interpolation_from_face(ctx, &loop_interpolation, coarse_face);
+          int prev_coarse_corner = -1;
+          for (const int face : faces_by_base_face[coarse_face_index]) {
+            const int coarse_corner = base_corners[face - chunk_faces.start()];
+            if (coarse_corner != prev_coarse_corner) {
+              loop_interpolation_from_corner(ctx, &loop_interpolation, coarse_face, coarse_corner);
+              prev_coarse_corner = coarse_corner;
+            }
+            for (const int corner : IndexRange(face * 4, 4)) {
+              const PtexCoord &coord = ptex_coords[corner - chunk_corners.start()];
+              const float u = coord.uv.x;
+              const float v = coord.uv.y;
+              subdiv_interpolate_corner_data(ctx, corner, &loop_interpolation, u, v);
+              subdiv_eval_uv_layer(ctx, corner, coord.ptex_face_index, u, v);
+            }
+          }
+        }
+      });
 }
 
 /** \} */
@@ -1459,7 +1452,6 @@ static void setup_foreach_callbacks(const SubdivMeshContext *subdiv_context,
   foreach_context->vert_corner = subdiv_mesh_vert_corner;
   foreach_context->vert_edge = subdiv_mesh_vert_edge;
   foreach_context->vert_inner = subdiv_mesh_vert_inner;
-  foreach_context->loop = subdiv_mesh_loop;
   foreach_context->faces = subdiv_mesh_face;
   foreach_context->user_data_tls_free = subdiv_mesh_tls_free;
 }
@@ -1523,6 +1515,7 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
                               subdiv_context.coarse_faces.index_range(),
                               subdiv_context.subdiv_corner_verts,
                               subdiv_context.subdiv_corner_edges);
+  subdiv_mesh_corner_data(&subdiv_context, layout);
   subdiv_mesh_loose_edges(&subdiv_context, layout);
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
   Mesh *result = subdiv_context.subdiv_mesh;

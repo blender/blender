@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <algorithm>
+
 #include "BLI_array.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_vector_types.hh"
@@ -23,6 +25,12 @@ namespace bke::subdiv {
 
 struct ForeachContext;
 struct Subdiv;
+
+/** A location on a ptex face of the limit surface, see #eval_limit_point(). */
+struct PtexCoord {
+  int ptex_face_index;
+  float2 uv;
+};
 
 /**
  * Describes how elements of the subdivided mesh correspond to the elements of the base mesh.
@@ -95,6 +103,15 @@ struct MeshLayout {
     const IndexRange faces = this->faces_by_base_face()[base_face];
     return IndexRange(faces.start() * 4, faces.size() * 4);
   }
+
+  /**
+   * A grain size for parallel loops over base mesh faces, so that each task processes a similar
+   * number of subdivided elements regardless of the resolution.
+   */
+  int base_face_grain_size() const
+  {
+    return std::max(1, 4096 / (this->resolution * this->resolution));
+  }
 };
 
 /**
@@ -129,6 +146,21 @@ void fill_corner_verts_and_edges(const MeshLayout &layout,
                                  MutableSpan<int> corner_verts,
                                  MutableSpan<int> corner_edges);
 
+/**
+ * \param face_ptex_offset: ptex face coordinates of the corners created from the given base mesh
+ * faces. See #face_ptex_offset_get().
+ * \param corner_ptex_coords: The corners for the base faces, see #MeshLayout::base_face_corners().
+ * \param face_base_corners: The subdivided faces for the base faces, as an index within the base
+ * face. For quads that is the quadrant of the face that contains the subdivided face, for other
+ * faces it corresponds to the ptex face. See #MeshLayout::faces_by_base_face().
+ */
+void fill_corner_ptex_coords(const MeshLayout &layout,
+                             const Mesh &base_mesh,
+                             Span<int> face_ptex_offset,
+                             IndexRange base_faces,
+                             MutableSpan<PtexCoord> corner_ptex_coords,
+                             MutableSpan<int> face_base_corners);
+
 using ForeachVertFromCornerCb = void (*)(const ForeachContext *context,
                                          void *tls,
                                          int ptex_face_index,
@@ -158,16 +190,6 @@ using ForeachVertInnerCb = void (*)(const ForeachContext *context,
                                     int coarse_corner,
                                     int subdiv_vert_index);
 
-using ForeachLoopCb = void (*)(const ForeachContext *context,
-                               void *tls,
-                               int ptex_face_index,
-                               float u,
-                               float v,
-                               int coarse_loop_index,
-                               int coarse_face_index,
-                               int coarse_corner,
-                               int subdiv_loop_index);
-
 /**
  * \param subdiv_faces_by_base_face: Groups the subdivided faces by the base mesh face they came
  * from (all the subdivided faces for a single base mesh face are contiguous). For more
@@ -192,14 +214,6 @@ struct ForeachContext {
   ForeachVertFromEdgeCb vert_edge = nullptr;
   /** Called exactly once, always corresponds to a single ptex face. */
   ForeachVertInnerCb vert_inner = nullptr;
-  /**
-   * \note If subdivided loop does not come from coarse loop, ORIGINDEX_NONE
-   * will be passed as coarse_loop_index.
-   *
-   * \note All the face corners for a particular face are contiguous, and the face corners have the
-   * same order in the mesh as their faces.
-   */
-  ForeachLoopCb loop = nullptr;
 
   /**
    * Called once for the whole mesh, passing the #OffsetIndices encoding the groups of subdivided

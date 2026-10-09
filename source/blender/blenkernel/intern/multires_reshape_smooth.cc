@@ -591,25 +591,29 @@ static void foreach_vert_every_edge(const bke::subdiv::ForeachContext *foreach_c
   foreach_vert(foreach_context, &ptex_coord, -1, subdiv_vert_index);
 }
 
-static void foreach_loop(const bke::subdiv::ForeachContext *foreach_context,
-                         void * /*tls*/,
-                         const int /*ptex_face_index*/,
-                         const float /*ptex_face_u*/,
-                         const float /*ptex_face_v*/,
-                         const int /*coarse_loop_index*/,
-                         const int coarse_face_index,
-                         const int coarse_corner,
-                         const int subdiv_loop_index)
+static void geometry_create_corner_grid_indices(
+    MultiresReshapeSmoothContext *reshape_smooth_context, const bke::subdiv::MeshLayout &layout)
 {
-  MultiresReshapeSmoothContext *reshape_smooth_context =
-      static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-
-  auto &geometry = reshape_smooth_context->geometry;
-  BLI_assert(subdiv_loop_index < geometry.corner_verts.size());
-
-  const int first_grid_index = reshape_context->base_faces[coarse_face_index].start();
-  geometry.corner_grid_indices[subdiv_loop_index] = first_grid_index + coarse_corner;
+  const OffsetIndices<int> base_faces = reshape_context->base_faces;
+  const OffsetIndices<int> faces_by_base_face = layout.faces_by_base_face();
+  const Span<int> face_ptex_offset = bke::subdiv::face_ptex_offset_get(reshape_context->subdiv);
+  MutableSpan<int> corner_grid_indices = reshape_smooth_context->geometry.corner_grid_indices;
+  threading::parallel_for(
+      base_faces.index_range(), layout.base_face_grain_size(), [&](const IndexRange range) {
+        const IndexRange chunk_faces = faces_by_base_face[range];
+        Array<int> face_base_corners(chunk_faces.size());
+        bke::subdiv::fill_corner_ptex_coords(
+            layout, *reshape_context->base_mesh, face_ptex_offset, range, {}, face_base_corners);
+        for (const int base_face : range) {
+          /* The first grid index of a face is the index of its first corner. */
+          const int first_grid_index = base_faces[base_face].start();
+          for (const int face : faces_by_base_face[base_face]) {
+            const int base_corner = face_base_corners[face - chunk_faces.start()];
+            corner_grid_indices.slice(face * 4, 4).fill(first_grid_index + base_corner);
+          }
+        }
+      });
 }
 
 static void geometry_tag_loose_edge_verts_sharp(
@@ -687,7 +691,6 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
   foreach_context.vert_inner = foreach_vert_inner;
   foreach_context.vert_every_corner = foreach_vert_every_corner;
   foreach_context.vert_every_edge = foreach_vert_every_edge;
-  foreach_context.loop = foreach_loop;
   foreach_context.user_data = reshape_smooth_context;
 
   const bke::subdiv::MeshLayout layout = bke::subdiv::build_mesh_layout(
@@ -699,6 +702,7 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
                                            reshape_context->base_faces.index_range(),
                                            reshape_smooth_context->geometry.corner_verts,
                                            {});
+  geometry_create_corner_grid_indices(reshape_smooth_context, layout);
 
   /* TODO(sergey): Tell the foreach() to ignore loose vertices. */
   bke::subdiv::foreach_subdiv_geometry(
