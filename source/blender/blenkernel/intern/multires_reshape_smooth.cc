@@ -721,7 +721,7 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
   const Mesh *base_mesh = reshape_context->base_mesh;
 
   const IndexMask &loose_edges = base_mesh->loose_edges();
-  if (loose_edges.is_empty()) {
+  if (!loose_edges.is_empty()) {
     reshape_smooth_context->loose_base_edges.resize(base_mesh->edges_num);
     loose_edges.to_bits(reshape_smooth_context->loose_base_edges);
   }
