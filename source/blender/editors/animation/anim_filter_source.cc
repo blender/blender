@@ -234,9 +234,14 @@ static void channels_for_action_slot(animrig::Action &action,
 
 static void collect_channels_for_id(ID *animated_id,
                                     const CollectionFilters &collection_filters,
-                                    ChannelArena &arena)
+                                    ChannelSourcingContext &ctx)
 {
   if (!animated_id) {
+    return;
+  }
+
+  if (!ctx.visited_ids.add(animated_id)) {
+    /* This ID was already visited. */
     return;
   }
 
@@ -335,7 +340,7 @@ static void collect_channels_for_grease_pencil(GreasePencil &gp, ChannelArena &a
 
 struct ModifierIDIterArgs {
   const CollectionFilters &collection_filters;
-  ChannelArena &arena;
+  ChannelSourcingContext &ctx;
 };
 
 static void foreach_modifier_ID_callback(void *user_data,
@@ -352,7 +357,7 @@ static void foreach_modifier_ID_callback(void *user_data,
     case ID_NT:
     case ID_TE:
     case ID_CF:
-      collect_channels_for_id(id, args->collection_filters, args->arena);
+      collect_channels_for_id(id, args->collection_filters, args->ctx);
       break;
     default:
       break;
@@ -361,32 +366,32 @@ static void foreach_modifier_ID_callback(void *user_data,
 
 void collection_channels_for_object(Object &obj,
                                     const CollectionFilters &collection_filters,
-                                    ChannelArena &arena)
+                                    ChannelSourcingContext &ctx)
 {
-  collect_channels_for_id(&obj.id, collection_filters, arena);
-  collect_channels_for_id(obj.data, collection_filters, arena);
+  collect_channels_for_id(&obj.id, collection_filters, ctx);
+  collect_channels_for_id(obj.data, collection_filters, ctx);
 
   for (const int i : IndexRange(obj.totcol)) {
     /* The given number is expected to be 1 based... why........ */
     Material *mat = BKE_object_material_get(&obj, i + 1);
 
     if (mat) {
-      collect_channels_for_id(&mat->id, collection_filters, arena);
-      collect_channels_for_id(&mat->nodetree->id, collection_filters, arena);
+      collect_channels_for_id(&mat->id, collection_filters, ctx);
+      collect_channels_for_id(&mat->nodetree->id, collection_filters, ctx);
     }
   }
   if (obj.data) {
     switch (obj.type) {
       case OB_GREASE_PENCIL:
         if (!collection_filters.id_type_blocklist.contains(ID_GP)) {
-          collect_channels_for_grease_pencil(*id_cast<GreasePencil *>(obj.data), arena);
+          collect_channels_for_grease_pencil(*id_cast<GreasePencil *>(obj.data), ctx.arena);
         }
         break;
 
       case OB_MESH: {
         Mesh *mesh = id_cast<Mesh *>(obj.data);
         if (mesh->key) {
-          collect_channels_for_id(&mesh->key->id, collection_filters, arena);
+          collect_channels_for_id(&mesh->key->id, collection_filters, ctx);
         }
         break;
       }
@@ -397,7 +402,7 @@ void collection_channels_for_object(Object &obj,
   }
 
   if (!collection_filters.ignore_modifier_ids) {
-    ModifierIDIterArgs args(collection_filters, arena);
+    ModifierIDIterArgs args(collection_filters, ctx);
     BKE_modifiers_foreach_ID_link(&obj, foreach_modifier_ID_callback, &args);
   }
 }
@@ -430,9 +435,10 @@ void collect_animation_channels(const bContext &C,
     CTX_data_visible_objects(&C, &objects);
   }
 
+  ChannelSourcingContext ctx(arena);
   for (PointerRNA &obj_ptr : objects) {
     Object *obj = static_cast<Object *>(obj_ptr.data);
-    collection_channels_for_object(*obj, collection_filters, arena);
+    collection_channels_for_object(*obj, collection_filters, ctx);
   }
 }
 
