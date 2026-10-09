@@ -590,9 +590,6 @@ void Film::update_passes(Scene *scene)
     if (denoiser_passes & DENOISER_PASS_DEPTH) {
       add_auto_pass(scene, PASS_DENOISING_DEPTH);
     }
-    if (denoiser_passes & DENOISER_PASS_MOTION) {
-      add_auto_pass(scene, PASS_MOTION);
-    }
     if (denoiser_passes & DENOISER_PASS_BACKWARD_MOTION) {
       add_auto_pass(scene, PASS_DENOISING_BACKWARD_MOTION);
     }

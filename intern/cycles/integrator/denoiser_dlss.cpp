@@ -380,6 +380,8 @@ bool DLSSDenoiser::denoise_filter_guiding_preprocess(DenoiseContext &context)
   const int pass_specular_albedo = context.buffer_params.get_pass_offset(
       PASS_DENOISING_SPECULAR_ALBEDO);
   const int pass_roughness = context.buffer_params.get_pass_offset(PASS_DENOISING_ROUGHNESS);
+  const int pass_backward_motion = context.buffer_params.get_pass_offset(
+      PASS_DENOISING_BACKWARD_MOTION);
   const int pass_specular_motion = context.buffer_params.get_pass_offset(
       PASS_DENOISING_SPECULAR_MOTION);
 
@@ -399,7 +401,7 @@ bool DLSSDenoiser::denoise_filter_guiding_preprocess(DenoiseContext &context)
                                    &pass_specular_albedo,
                                    &context.pass_denoising_normal,
                                    &pass_roughness,
-                                   &context.pass_motion,
+                                   &pass_backward_motion,
                                    &pass_specular_motion,
                                    &buffer_params.full_x,
                                    &buffer_params.full_y,
