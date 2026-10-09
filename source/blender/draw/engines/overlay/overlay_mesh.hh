@@ -221,6 +221,7 @@ class Meshes : Overlay {
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA,
                      state.clipping_plane_count);
       pass.shader_set(res.shaders->mesh_analysis.get());
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_texture("weight_tx", res.weight_ramp_tx);
     }
 
