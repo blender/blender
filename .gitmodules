@@ -3,6 +3,11 @@
 	path = lib/linux_x64
 	url = https://projects.blender.org/blender/lib-linux_x64.git
 	branch = blender-v5.3-release
+[submodule "lib/linux_arm64"]
+	update = none
+	path = lib/linux_arm64
+	url = https://projects.blender.org/blender/lib-linux_arm64.git
+	branch = blender-v5.3-release
 [submodule "lib/macos_arm64"]
 	update = none
 	path = lib/macos_arm64
