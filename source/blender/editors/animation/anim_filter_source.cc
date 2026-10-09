@@ -35,7 +35,6 @@
 
 #include "ED_anim_filter.hh"
 
-#include <deque>
 #include <optional>
 
 namespace blender::ed::animfilter {
