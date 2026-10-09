@@ -1285,15 +1285,6 @@ static float3 arithmetic_mean(const Span<float3> values)
   return std::accumulate(values.begin(), values.end(), float3(0)) / values.size();
 }
 
-static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
-{
-  threading::parallel_for(positions.index_range(), 2048, [&](const IndexRange range) {
-    for (float3 &position : positions.slice(range)) {
-      position += translation;
-    }
-  });
-}
-
 static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1761,7 +1752,7 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
       }
 
       tot_change++;
-      translate_positions(positions, -cent);
+      math::translate_points(positions, -cent);
       pointcloud.tag_positions_changed();
       pointcloud.id.tag |= ID_TAG_DOIT;
       do_inverse_offset = true;

@@ -834,4 +834,9 @@ template<typename T, int Size>
                                                            const VecBase<T, Size> &v3,
                                                            const VecBase<T, Size> &v4);
 
+/** Add a translation to every point, optionally using multi-threading. */
+void translate_points(MutableSpan<float3> points,
+                      const float3 &translation,
+                      bool use_threading = true);
+
 }  // namespace blender::math
