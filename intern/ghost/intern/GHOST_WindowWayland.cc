@@ -80,6 +80,12 @@ struct GWL_WindowCSD {
   GHOST_CSD_Elem csd_elems[GHOST_kCSDType_NUM] = {};
   int csd_elems_num = 0;
 
+  /**
+   * Bit-mask of the button types the compositor supports,
+   * all bits set until #xdg_toplevel_listener::wm_capabilities reports otherwise.
+   */
+  uint32_t wm_capabilities_mask = ~uint32_t(0);
+
   /** Track the active type, intersecting the pointing device. */
   GHOST_TCSD_Type active_type = GHOST_kCSDTypeBody;
   /** For tracking double click/drag. */
@@ -866,6 +872,46 @@ static void gwl_window_pending_actions_handle(GWL_Window *win)
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
 #ifdef WITH_GHOST_CSD
+/** Recalculate the decoration elements from the windows size, state & button layout. */
+static void gwl_window_csd_elems_update(GWL_Window *win)
+{
+  GWL_WindowCSD *xdg_csd = win->xdg_csd;
+  GHOST_SystemWayland *system = win->ghost_system;
+  const GHOST_CSD_Params &params = system->getWindowCSD();
+  const GHOST_CSD_Layout &button_layout = system->getWindowCSD_Layout();
+
+  const int32_t fractional_scale[2] = {
+      GHOST_CSD_DPI_FRACTIONAL_BASE,
+      win->ghost_window->getDPIHint(),
+  };
+  xdg_csd->csd_elems_num = params.layout_callback(win->frame.size,
+                                                  fractional_scale,
+                                                  gwl_window_state_get(win),
+                                                  &button_layout,
+                                                  xdg_csd->csd_elems);
+}
+
+/**
+ * Set the layout used to draw & hit-test this windows decorations,
+ * the base layout with any buttons the compositor doesn't support removed.
+ */
+static void gwl_window_csd_layout_apply(GWL_Window *win)
+{
+  const uint32_t type_mask = win->xdg_csd->wm_capabilities_mask;
+  const GHOST_CSD_Layout &layout_base = win->ghost_system->preferences_csd_button_layout_get();
+  GHOST_CSD_Layout layout = {};
+
+  int dst = 0;
+  for (int src = 0; src < layout_base.buttons_num; src++) {
+    GHOST_TCSD_Type type = layout_base.buttons[src];
+    if (type_mask & (1 << type)) {
+      layout.buttons[dst++] = type;
+    }
+  }
+  layout.buttons_num = dst;
+  win->ghost_system->setWindowCSD_Layout(layout);
+}
+
 /**
  * Keep the XDG "window geometry" in sync with the window's visible rectangle.
  * Without this the compositors default (bounding-box) geometry includes the
@@ -1175,19 +1221,7 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
       xdg_csd->csd_elems_num = 0;
     }
     else {
-      GHOST_SystemWayland *system = win->ghost_system;
-      const GHOST_CSD_Params &params = system->getWindowCSD();
-      const GHOST_CSD_Layout &button_layout = system->getWindowCSD_Layout();
-
-      const int32_t fractional_scale[2] = {
-          GHOST_CSD_DPI_FRACTIONAL_BASE,
-          win->ghost_window->getDPIHint(),
-      };
-      xdg_csd->csd_elems_num = params.layout_callback(win->frame.size,
-                                                      fractional_scale,
-                                                      gwl_window_state_get(win),
-                                                      &button_layout,
-                                                      xdg_csd->csd_elems);
+      gwl_window_csd_elems_update(win);
 
       if (state_changed) {
         /* NOTE(@ideasman42) This is not technically correct because after the
@@ -1435,20 +1469,11 @@ static void xdg_toplevel_handle_wm_capabilities(void *data,
     }
   }
 
-  /* Filter the base CSD layout to only include supported buttons. */
   GWL_Window *win = static_cast<GWL_Window *>(data);
-  const GHOST_CSD_Layout &layout_base = win->ghost_system->csd_layout_base_get();
-  GHOST_CSD_Layout layout = {};
-
-  int dst = 0;
-  for (int src = 0; src < layout_base.buttons_num; src++) {
-    GHOST_TCSD_Type type = layout_base.buttons[src];
-    if (type_mask & (1 << type)) {
-      layout.buttons[dst++] = type;
-    }
+  if (win->xdg_csd) {
+    win->xdg_csd->wm_capabilities_mask = type_mask;
+    gwl_window_csd_layout_apply(win);
   }
-  layout.buttons_num = dst;
-  win->ghost_system->setWindowCSD_Layout(layout);
 
   /* NOTE(@ideasman42): don't trigger a redraw here.
    * In practice this callback runs on newly created windows,
@@ -2960,6 +2985,18 @@ const GHOST_CSD_Elem *GHOST_WindowWayland::csd_layout(int *r_num)
   GHOST_ASSERT(this->system_->use_window_frame_csd_get(), "caller must ensure");
   *r_num = window_->xdg_csd->csd_elems_num;
   return window_->xdg_csd->csd_elems;
+}
+
+void GHOST_WindowWayland::csd_layout_refresh()
+{
+  if (!window_->xdg_csd) {
+    return;
+  }
+  gwl_window_csd_layout_apply(window_);
+  if (gwl_window_state_get(window_) != GHOST_kWindowStateFullScreen) {
+    gwl_window_csd_elems_update(window_);
+  }
+  this->notify_decor_redraw();
 }
 
 GHOST_CSD_EventState &GHOST_WindowWayland::csd_eventstate_get()

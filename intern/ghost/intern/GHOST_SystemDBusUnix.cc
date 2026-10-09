@@ -33,6 +33,10 @@
 #  include <sys/stat.h>
 #  include <unistd.h>
 
+#  include "CLG_log.h"
+
+static CLG_LogRef LOG = {"ghost.dbus"};
+
 static constexpr const char *PORTAL_SERVICE = "org.freedesktop.portal.Desktop";
 static constexpr const char *PORTAL_PATH = "/org/freedesktop/portal/desktop";
 static constexpr const char *PORTAL_SETTINGS_IFACE = "org.freedesktop.portal.Settings";
@@ -241,6 +245,7 @@ static bool setting_read(DBusConnection *connection,
   dbus_message_unref(message);
 
   if (dbus_error_is_set(&error)) {
+    CLOG_WARN(&LOG, "unable to read %s/%s: %s", name_space, key, error.message);
     dbus_error_free(&error);
   }
   if (!reply) {
@@ -249,6 +254,9 @@ static bool setting_read(DBusConnection *connection,
 
   DBusMessageIter iter;
   const bool ok = dbus_message_iter_init(reply, &iter) && value_from_variant(&iter, r_value);
+  if (!ok) {
+    CLOG_WARN(&LOG, "unexpected value type reading %s/%s", name_space, key);
+  }
   dbus_message_unref(reply);
   return ok;
 }
@@ -294,6 +302,9 @@ static DBusHandlerResult filter_func(DBusConnection * /*connection*/,
     if (value_from_variant(&iter, value)) {
       data->pending.emplace_back(i, std::move(value));
     }
+    else {
+      CLOG_WARN(&LOG, "unexpected value type in change signal for %s/%s", name_space, key);
+    }
     break;
   }
 
@@ -332,6 +343,7 @@ static DBusConnection *bus_connect()
    * process, dispatching it here would steal their messages. */
   DBusConnection *connection = dbus_bus_get_private(DBUS_BUS_SESSION, &error);
   if (dbus_error_is_set(&error)) {
+    CLOG_WARN(&LOG, "unable to connect to the session bus: %s", error.message);
     dbus_error_free(&error);
   }
   if (!connection) {
@@ -352,12 +364,19 @@ static bool settings_subscribe(WatcherData *data, DBusConnection *connection)
     dbus_error_init(&error);
     dbus_bus_add_match(connection, match_rule.c_str(), &error);
     if (dbus_error_is_set(&error)) {
+      CLOG_WARN(&LOG,
+                "unable to subscribe to %s/%s: %s",
+                setting.name_space.c_str(),
+                setting.key.c_str(),
+                error.message);
       dbus_error_free(&error);
       return false;
     }
+    CLOG_DEBUG(&LOG, "subscribed to %s/%s", setting.name_space.c_str(), setting.key.c_str());
   }
 
   if (!dbus_connection_add_filter(connection, filter_func, data, nullptr)) {
+    CLOG_WARN(&LOG, "unable to add the signal filter");
     return false;
   }
   dbus_connection_flush(connection);
