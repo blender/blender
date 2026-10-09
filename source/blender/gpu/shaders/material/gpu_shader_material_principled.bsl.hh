@@ -107,7 +107,7 @@ void node_bsdf_principled(float4 base_color,
                           const float /*thin_film_ior*/,
                           const float do_multiscatter,
                           const float subsurface_random_walk_radius_scale,
-                          [[resource_table]] KernelGlobals &kg,
+                          KernelGlobals &kg,
                           ShadingData &sd,
                           Closure &result)
 {

@@ -27,7 +27,7 @@ void node_normal_map(float4 T,
                      float strength,
                      float3 tex_normal,
                      float3 N,
-                     [[resource_table]] KernelGlobals &kg,
+                     KernelGlobals &kg,
                      const ShadingData &sd,
                      float3 &out_N)
 {

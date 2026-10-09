@@ -9,7 +9,7 @@
 
 [[node]]
 void node_geometry(float3 orco_attr,
-                   [[resource_table]] KernelGlobals &kg,
+                   KernelGlobals &kg,
                    ShadingData &sd,
                    float3 &position,
                    float3 &normal,

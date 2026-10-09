@@ -13,7 +13,7 @@ void node_ambient_occlusion(float4 color,
                             float3 normal,
                             const float inverted,
                             const float sample_count,
-                            [[resource_table]] const KernelGlobals &kg,
+                            const KernelGlobals &kg,
                             const ShadingData &sd,
                             float4 &result_color,
                             float &result_ao)

@@ -16,7 +16,7 @@ void node_tex_coord_position(const ShadingData &sd, float3 &out_pos)
 void node_tex_coord(float4x4 obmatinv,
                     float3 attr_orco,
                     float4 attr_uv,
-                    [[resource_table]] KernelGlobals &kg,
+                    KernelGlobals &kg,
                     const ShadingData &sd,
                     float3 &generated,
                     float3 &normal,
