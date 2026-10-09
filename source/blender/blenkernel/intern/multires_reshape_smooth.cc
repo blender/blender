@@ -459,14 +459,11 @@ static void geometry_allocate(MultiresReshapeSmoothContext *reshape_smooth_conte
   reshape_smooth_context->geometry.face_offsets.last() = layout.corners_num;
 }
 
-static void foreach_single_vert(const bke::subdiv::ForeachContext *foreach_context,
-                                const GridCoord *grid_coord,
-                                const int coarse_vert_index,
-                                const int subdiv_vert_index)
+static void add_grid_coord_to_vert(MultiresReshapeSmoothContext *reshape_smooth_context,
+                                   const GridCoord *grid_coord,
+                                   const int coarse_vert_index,
+                                   const int subdiv_vert_index)
 {
-  MultiresReshapeSmoothContext *reshape_smooth_context =
-      static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
-
   BLI_assert(subdiv_vert_index < reshape_smooth_context->geometry.vertices.size());
 
   Vertex *vert = &reshape_smooth_context->geometry.vertices[subdiv_vert_index];
@@ -493,16 +490,18 @@ static void foreach_single_vert(const bke::subdiv::ForeachContext *foreach_conte
 }
 
 /* TODO(sergey): De-duplicate with similar function in multires_reshape_vertcos.cc */
-static void foreach_vert(const bke::subdiv::ForeachContext *foreach_context,
-                         const PTexCoord *ptex_coord,
-                         const int coarse_vert_index,
-                         const int subdiv_vert_index)
+static void add_ptex_coord_to_vert(MultiresReshapeSmoothContext *reshape_smooth_context,
+                                   const bke::subdiv::PtexCoord &coord,
+                                   const int coarse_vert_index,
+                                   const int subdiv_vert_index)
 {
-  const MultiresReshapeSmoothContext *reshape_smooth_context =
-      static_cast<const MultiresReshapeSmoothContext *>(foreach_context->user_data);
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
-  const GridCoord grid_coord = multires_reshape_ptex_coord_to_grid(reshape_context, ptex_coord);
+  PTexCoord ptex_coord{};
+  ptex_coord.ptex_face_index = coord.ptex_face_index;
+  ptex_coord.u = coord.uv.x;
+  ptex_coord.v = coord.uv.y;
+  const GridCoord grid_coord = multires_reshape_ptex_coord_to_grid(reshape_context, &ptex_coord);
   const int face_index = multires_reshape_grid_to_face_index(reshape_context,
                                                              grid_coord.grid_index);
 
@@ -514,13 +513,14 @@ static void foreach_vert(const bke::subdiv::ForeachContext *foreach_context,
     for (int current_corner = 0; current_corner < num_corners; ++current_corner) {
       GridCoord corner_grid_coord = grid_coord;
       corner_grid_coord.grid_index = start_grid_index + current_corner;
-      foreach_single_vert(
-          foreach_context, &corner_grid_coord, coarse_vert_index, subdiv_vert_index);
+      add_grid_coord_to_vert(
+          reshape_smooth_context, &corner_grid_coord, coarse_vert_index, subdiv_vert_index);
     }
     return;
   }
 
-  foreach_single_vert(foreach_context, &grid_coord, coarse_vert_index, subdiv_vert_index);
+  add_grid_coord_to_vert(
+      reshape_smooth_context, &grid_coord, coarse_vert_index, subdiv_vert_index);
 
   if (grid_coord.u == 0.0f) {
     GridCoord prev_grid_coord;
@@ -528,7 +528,8 @@ static void foreach_vert(const bke::subdiv::ForeachContext *foreach_context,
     prev_grid_coord.u = grid_coord.v;
     prev_grid_coord.v = 0.0f;
 
-    foreach_single_vert(foreach_context, &prev_grid_coord, coarse_vert_index, subdiv_vert_index);
+    add_grid_coord_to_vert(
+        reshape_smooth_context, &prev_grid_coord, coarse_vert_index, subdiv_vert_index);
   }
 
   if (grid_coord.v == 0.0f) {
@@ -537,24 +538,9 @@ static void foreach_vert(const bke::subdiv::ForeachContext *foreach_context,
     next_grid_coord.u = 0.0f;
     next_grid_coord.v = grid_coord.u;
 
-    foreach_single_vert(foreach_context, &next_grid_coord, coarse_vert_index, subdiv_vert_index);
+    add_grid_coord_to_vert(
+        reshape_smooth_context, &next_grid_coord, coarse_vert_index, subdiv_vert_index);
   }
-}
-
-static void foreach_vert_inner(const bke::subdiv::ForeachContext *foreach_context,
-                               void * /*tls*/,
-                               const int ptex_face_index,
-                               const float ptex_face_u,
-                               const float ptex_face_v,
-                               const int /*coarse_face_index*/,
-                               const int /*coarse_corner*/,
-                               const int subdiv_vert_index)
-{
-  PTexCoord ptex_coord{};
-  ptex_coord.ptex_face_index = ptex_face_index;
-  ptex_coord.u = ptex_face_u;
-  ptex_coord.v = ptex_face_v;
-  foreach_vert(foreach_context, &ptex_coord, -1, subdiv_vert_index);
 }
 
 static void foreach_vert_every_corner(const bke::subdiv::ForeachContext *foreach_context,
@@ -567,11 +553,12 @@ static void foreach_vert_every_corner(const bke::subdiv::ForeachContext *foreach
                                       const int /*coarse_face_corner*/,
                                       const int subdiv_vert_index)
 {
-  PTexCoord ptex_coord{};
-  ptex_coord.ptex_face_index = ptex_face_index;
-  ptex_coord.u = ptex_face_u;
-  ptex_coord.v = ptex_face_v;
-  foreach_vert(foreach_context, &ptex_coord, coarse_vert_index, subdiv_vert_index);
+  MultiresReshapeSmoothContext *reshape_smooth_context =
+      static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
+  add_ptex_coord_to_vert(reshape_smooth_context,
+                         {ptex_face_index, float2(ptex_face_u, ptex_face_v)},
+                         coarse_vert_index,
+                         subdiv_vert_index);
 }
 
 static void foreach_vert_every_edge(const bke::subdiv::ForeachContext *foreach_context,
@@ -584,11 +571,35 @@ static void foreach_vert_every_edge(const bke::subdiv::ForeachContext *foreach_c
                                     const int /*coarse_face_corner*/,
                                     const int subdiv_vert_index)
 {
-  PTexCoord ptex_coord{};
-  ptex_coord.ptex_face_index = ptex_face_index;
-  ptex_coord.u = ptex_face_u;
-  ptex_coord.v = ptex_face_v;
-  foreach_vert(foreach_context, &ptex_coord, -1, subdiv_vert_index);
+  MultiresReshapeSmoothContext *reshape_smooth_context =
+      static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
+  add_ptex_coord_to_vert(reshape_smooth_context,
+                         {ptex_face_index, float2(ptex_face_u, ptex_face_v)},
+                         -1,
+                         subdiv_vert_index);
+}
+
+static void geometry_create_inner_verts(MultiresReshapeSmoothContext *reshape_smooth_context,
+                                        const bke::subdiv::MeshLayout &layout)
+{
+  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
+  const OffsetIndices<int> inner_verts_by_face = layout.inner_verts_by_face();
+  const Span<int> face_ptex_offset = bke::subdiv::face_ptex_offset_get(reshape_context->subdiv);
+  threading::parallel_for(
+      reshape_context->base_faces.index_range(),
+      layout.base_face_grain_size(),
+      [&](const IndexRange range) {
+        const IndexRange chunk_verts = inner_verts_by_face[range];
+        Array<bke::subdiv::PtexCoord> ptex_coords(chunk_verts.size());
+        bke::subdiv::fill_inner_vert_ptex_coords(
+            layout, *reshape_context->base_mesh, face_ptex_offset, range, ptex_coords);
+        for (const int i : ptex_coords.index_range()) {
+          add_ptex_coord_to_vert(reshape_smooth_context,
+                                 ptex_coords[i],
+                                 -1,
+                                 layout.inner_verts_start + chunk_verts[i]);
+        }
+      });
 }
 
 static void geometry_create_corner_grid_indices(
@@ -688,7 +699,6 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
   bke::subdiv::ForeachContext foreach_context{};
-  foreach_context.vert_inner = foreach_vert_inner;
   foreach_context.vert_every_corner = foreach_vert_every_corner;
   foreach_context.vert_every_edge = foreach_vert_every_edge;
   foreach_context.user_data = reshape_smooth_context;
@@ -703,6 +713,7 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
                                            reshape_smooth_context->geometry.corner_verts,
                                            {});
   geometry_create_corner_grid_indices(reshape_smooth_context, layout);
+  geometry_create_inner_verts(reshape_smooth_context, layout);
 
   /* TODO(sergey): Tell the foreach() to ignore loose vertices. */
   bke::subdiv::foreach_subdiv_geometry(

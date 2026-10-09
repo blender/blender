@@ -8,7 +8,6 @@
 
 #include "BLI_bitmap.hh"
 #include "BLI_task.hh"
-#include "BLI_task_c.hh"
 
 #include "BKE_customdata.hh"
 #include "BKE_subdiv.hh"
@@ -518,87 +517,67 @@ static void subdiv_foreach_every_edge_vertices(ForeachTaskContext *ctx, void *tl
 
 /* Traversal of inner vertices, they are coming from ptex patches. */
 
-static void subdiv_foreach_inner_vertices_regular(ForeachTaskContext *ctx,
-                                                  void *tls,
-                                                  const int coarse_face_index)
+static void subdiv_foreach_inner_vertices_regular(const ForeachTaskContext *ctx,
+                                                  const int ptex_face_index,
+                                                  MutableSpan<PtexCoord> ptex_coords)
 {
   const int resolution = ctx->layout->resolution;
   const float inv_resolution_1 = 1.0f / float(resolution - 1);
-  const int ptex_face_index = ctx->face_ptex_offset[coarse_face_index];
-  const int start_vert_index = ctx->layout->inner_vert_offsets[coarse_face_index];
-  int subdiv_vert_index = ctx->layout->inner_verts_start + start_vert_index;
+  int subdiv_vert_index = 0;
   for (int y = 1; y < resolution - 1; y++) {
     const float v = y * inv_resolution_1;
     for (int x = 1; x < resolution - 1; x++, subdiv_vert_index++) {
       const float u = x * inv_resolution_1;
-      ctx->foreach_context->vert_inner(ctx->foreach_context,
-                                       tls,
-                                       ptex_face_index,
-                                       u,
-                                       v,
-                                       coarse_face_index,
-                                       0,
-                                       subdiv_vert_index);
+      ptex_coords[subdiv_vert_index] = {ptex_face_index, float2(u, v)};
     }
   }
 }
 
-static void subdiv_foreach_inner_vertices_special(ForeachTaskContext *ctx,
-                                                  void *tls,
-                                                  const int coarse_face_index)
+static void subdiv_foreach_inner_vertices_special(const ForeachTaskContext *ctx,
+                                                  const int coarse_face_index,
+                                                  int ptex_face_index,
+                                                  MutableSpan<PtexCoord> ptex_coords)
 {
   const int resolution = ctx->layout->resolution;
   const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
   const int ptex_face_resolution = ptex_face_resolution_get(coarse_face, resolution);
   const float inv_ptex_face_resolution_1 = 1.0f / float(ptex_face_resolution - 1);
-  int ptex_face_index = ctx->face_ptex_offset[coarse_face_index];
-  const int start_vert_index = ctx->layout->inner_vert_offsets[coarse_face_index];
-  int subdiv_vert_index = ctx->layout->inner_verts_start + start_vert_index;
-  ctx->foreach_context->vert_inner(ctx->foreach_context,
-                                   tls,
-                                   ptex_face_index,
-                                   1.0f,
-                                   1.0f,
-                                   coarse_face_index,
-                                   0,
-                                   subdiv_vert_index);
+  int subdiv_vert_index = 0;
+  ptex_coords[subdiv_vert_index] = {ptex_face_index, float2(1.0f, 1.0f)};
   subdiv_vert_index++;
   for (int corner = 0; corner < coarse_face.size(); corner++, ptex_face_index++) {
     for (int y = 1; y < ptex_face_resolution - 1; y++) {
       const float v = y * inv_ptex_face_resolution_1;
       for (int x = 1; x < ptex_face_resolution; x++, subdiv_vert_index++) {
         const float u = x * inv_ptex_face_resolution_1;
-        ctx->foreach_context->vert_inner(ctx->foreach_context,
-                                         tls,
-                                         ptex_face_index,
-                                         u,
-                                         v,
-                                         coarse_face_index,
-                                         corner,
-                                         subdiv_vert_index);
+        ptex_coords[subdiv_vert_index] = {ptex_face_index, float2(u, v)};
       }
     }
   }
 }
 
-static void subdiv_foreach_inner_vertices(ForeachTaskContext *ctx,
-                                          void *tls,
-                                          const int coarse_face_index)
+void fill_inner_vert_ptex_coords(const MeshLayout &layout,
+                                 const Mesh &base_mesh,
+                                 const Span<int> face_ptex_offset,
+                                 const IndexRange base_faces,
+                                 MutableSpan<PtexCoord> vert_ptex_coords)
 {
-  if (ctx->coarse_faces[coarse_face_index].size() == 4) {
-    subdiv_foreach_inner_vertices_regular(ctx, tls, coarse_face_index);
-  }
-  else {
-    subdiv_foreach_inner_vertices_special(ctx, tls, coarse_face_index);
-  }
-}
-
-/* Traverse all vertices which are emitted from given coarse face. */
-static void subdiv_foreach_vertices(ForeachTaskContext *ctx, void *tls, const int face_index)
-{
-  if (ctx->foreach_context->vert_inner != nullptr) {
-    subdiv_foreach_inner_vertices(ctx, tls, face_index);
-  }
+  const ForeachTaskContext ctx = task_context_from_mesh(base_mesh, layout);
+  const OffsetIndices<int> inner_verts_by_face = layout.inner_verts_by_face();
+  const IndexRange chunk_verts = inner_verts_by_face[base_faces];
+  BLI_assert(vert_ptex_coords.size() == chunk_verts.size());
+  threading::parallel_for(base_faces, layout.base_face_grain_size(), [&](const IndexRange range) {
+    for (const int face : range) {
+      MutableSpan<PtexCoord> face_coords = vert_ptex_coords.slice(
+          inner_verts_by_face[face].shift(-chunk_verts.start()));
+      if (ctx.coarse_faces[face].size() == 4) {
+        subdiv_foreach_inner_vertices_regular(&ctx, face_ptex_offset[face], face_coords);
+      }
+      else {
+        subdiv_foreach_inner_vertices_special(&ctx, face, face_ptex_offset[face], face_coords);
+      }
+    }
+  });
 }
 
 /** \} */
@@ -1572,22 +1551,6 @@ static void subdiv_foreach_single_thread_tasks(ForeachTaskContext *ctx)
   subdiv_foreach_tls_free(ctx, tls);
 }
 
-static void subdiv_foreach_task(void *__restrict userdata,
-                                const int face_index,
-                                const TaskParallelTLS *__restrict tls)
-{
-  ForeachTaskContext *ctx = static_cast<ForeachTaskContext *>(userdata);
-  /* Traverse hi-poly vertex coordinates and normals. */
-  subdiv_foreach_vertices(ctx, tls->userdata_chunk, face_index);
-  /* Traverse mesh geometry for the given base poly index. */
-}
-
-static void subdiv_foreach_free(const void *__restrict userdata, void *__restrict userdata_chunk)
-{
-  const ForeachTaskContext *ctx = static_cast<const ForeachTaskContext *>(userdata);
-  ctx->foreach_context->user_data_tls_free(userdata_chunk);
-}
-
 void foreach_subdiv_geometry(Subdiv *subdiv,
                              const ForeachContext *context,
                              const MeshLayout &layout,
@@ -1598,25 +1561,11 @@ void foreach_subdiv_geometry(Subdiv *subdiv,
   subdiv_foreach_ctx_init(subdiv, &ctx);
   /* Run all the code which is not supposed to be run from threads. */
   subdiv_foreach_single_thread_tasks(&ctx);
-  /* Threaded traversal of the rest of topology. */
-  TaskParallelSettings parallel_range_settings;
-  BLI_parallel_range_settings_defaults(&parallel_range_settings);
-  parallel_range_settings.userdata_chunk = context->user_data_tls;
-  parallel_range_settings.userdata_chunk_size = context->user_data_tls_size;
-  parallel_range_settings.min_iter_per_thread = 1;
-  if (context->user_data_tls_free != nullptr) {
-    parallel_range_settings.func_free = subdiv_foreach_free;
-  }
 
   if (context->faces) {
     context->faces(context, OffsetIndices<int>(layout.face_offsets));
   }
 
-  /* TODO(sergey): Possible optimization is to have a single pool and push all
-   * the tasks into it. */
-
-  BLI_task_parallel_range(
-      0, coarse_mesh->faces_num, &ctx, subdiv_foreach_task, &parallel_range_settings);
   subdiv_foreach_ctx_free(&ctx);
 }
 

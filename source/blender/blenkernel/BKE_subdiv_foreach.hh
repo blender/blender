@@ -161,6 +161,18 @@ void fill_corner_ptex_coords(const MeshLayout &layout,
                              MutableSpan<PtexCoord> corner_ptex_coords,
                              MutableSpan<int> face_base_corners);
 
+/**
+ * Fill ptex face coordinates of subdivided vertices inside the given base mesh faces.
+ * \param face_ptex_offset: See #face_ptex_offset_get().
+ * \param vert_ptex_coords: The vertices for the base faces, see
+ * #MeshLayout::inner_verts_by_face().
+ */
+void fill_inner_vert_ptex_coords(const MeshLayout &layout,
+                                 const Mesh &base_mesh,
+                                 Span<int> face_ptex_offset,
+                                 IndexRange base_faces,
+                                 MutableSpan<PtexCoord> vert_ptex_coords);
+
 using ForeachVertFromCornerCb = void (*)(const ForeachContext *context,
                                          void *tls,
                                          int ptex_face_index,
@@ -180,15 +192,6 @@ using ForeachVertFromEdgeCb = void (*)(const ForeachContext *context,
                                        int coarse_face_index,
                                        int coarse_corner,
                                        int subdiv_vert_index);
-
-using ForeachVertInnerCb = void (*)(const ForeachContext *context,
-                                    void *tls,
-                                    int ptex_face_index,
-                                    float u,
-                                    float v,
-                                    int coarse_face_index,
-                                    int coarse_corner,
-                                    int subdiv_vert_index);
 
 /**
  * \param subdiv_faces_by_base_face: Groups the subdivided faces by the base mesh face they came
@@ -212,8 +215,6 @@ struct ForeachContext {
    */
   ForeachVertFromCornerCb vert_corner = nullptr;
   ForeachVertFromEdgeCb vert_edge = nullptr;
-  /** Called exactly once, always corresponds to a single ptex face. */
-  ForeachVertInnerCb vert_inner = nullptr;
 
   /**
    * Called once for the whole mesh, passing the #OffsetIndices encoding the groups of subdivided

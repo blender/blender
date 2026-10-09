@@ -1087,35 +1087,47 @@ static bool subdiv_mesh_is_center_vert(const IndexRange coarse_face, const float
   return false;
 }
 
-static void subdiv_mesh_tag_center_vert(const IndexRange coarse_face,
-                                        const int subdiv_vert_index,
-                                        const float u,
-                                        const float v,
-                                        SubdivMeshContext *ctx)
+static void subdiv_mesh_inner_verts(SubdivMeshContext *ctx, const MeshLayout &layout)
 {
-  if (subdiv_mesh_is_center_vert(coarse_face, u, v)) {
-    ctx->subdiv_face_dot_tags[subdiv_vert_index] = true;
-  }
-}
-
-static void subdiv_mesh_vert_inner(const ForeachContext *foreach_context,
-                                   void *tls_v,
-                                   const int ptex_face_index,
-                                   const float u,
-                                   const float v,
-                                   const int coarse_face_index,
-                                   const int coarse_corner,
-                                   const int subdiv_vert_index)
-{
-  SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
-  SubdivMeshTLS *tls = static_cast<SubdivMeshTLS *>(tls_v);
   Subdiv *subdiv = ctx->subdiv;
-  const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
-  subdiv_mesh_ensure_vert_interpolation(ctx, tls, coarse_face_index, coarse_corner);
-  subdiv_vert_data_interpolate(ctx, subdiv_vert_index, tls->vert_interpolation, u, v);
-  ctx->subdiv_positions[subdiv_vert_index] = eval_final_point(subdiv, ptex_face_index, u, v);
-  subdiv_mesh_tag_center_vert(coarse_face, subdiv_vert_index, u, v, ctx);
-  subdiv_vert_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vert_index);
+  const Span<int> face_ptex_offset = face_ptex_offset_get(subdiv);
+  const OffsetIndices<int> inner_verts_by_face = layout.inner_verts_by_face();
+  threading::parallel_for(
+      ctx->coarse_faces.index_range(), layout.base_face_grain_size(), [&](const IndexRange range) {
+        const IndexRange chunk_verts = inner_verts_by_face[range];
+        Array<PtexCoord> ptex_coords(chunk_verts.size());
+        fill_inner_vert_ptex_coords(
+            layout, *ctx->coarse_mesh, face_ptex_offset, range, ptex_coords);
+
+        VerticesForInterpolation vert_interpolation(*ctx);
+        for (const int coarse_face_index : range) {
+          const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
+          vert_interpolation_from_face(ctx, &vert_interpolation, coarse_face);
+          int prev_coarse_corner = -1;
+          for (const int vert : inner_verts_by_face[coarse_face_index]) {
+            const PtexCoord &coord = ptex_coords[vert - chunk_verts.start()];
+            const int ptex_face_index = coord.ptex_face_index;
+            const float u = coord.uv.x;
+            const float v = coord.uv.y;
+            /* Quads have a single ptex face, other faces have a ptex face for every corner. */
+            const int coarse_corner = coarse_face.size() == 4 ?
+                                          0 :
+                                          ptex_face_index - face_ptex_offset[coarse_face_index];
+            if (coarse_corner != prev_coarse_corner) {
+              vert_interpolation_from_corner(ctx, &vert_interpolation, coarse_face, coarse_corner);
+              prev_coarse_corner = coarse_corner;
+            }
+            const int subdiv_vert_index = layout.inner_verts_start + vert;
+            subdiv_vert_data_interpolate(ctx, subdiv_vert_index, &vert_interpolation, u, v);
+            ctx->subdiv_positions[subdiv_vert_index] = eval_final_point(
+                subdiv, ptex_face_index, u, v);
+            if (subdiv_mesh_is_center_vert(coarse_face, u, v)) {
+              ctx->subdiv_face_dot_tags[subdiv_vert_index] = true;
+            }
+            subdiv_vert_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vert_index);
+          }
+        }
+      });
 }
 
 /** \} */
@@ -1451,7 +1463,6 @@ static void setup_foreach_callbacks(const SubdivMeshContext *subdiv_context,
   }
   foreach_context->vert_corner = subdiv_mesh_vert_corner;
   foreach_context->vert_edge = subdiv_mesh_vert_edge;
-  foreach_context->vert_inner = subdiv_mesh_vert_inner;
   foreach_context->faces = subdiv_mesh_face;
   foreach_context->user_data_tls_free = subdiv_mesh_tls_free;
 }
@@ -1515,6 +1526,7 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
                               subdiv_context.coarse_faces.index_range(),
                               subdiv_context.subdiv_corner_verts,
                               subdiv_context.subdiv_corner_edges);
+  subdiv_mesh_inner_verts(&subdiv_context, layout);
   subdiv_mesh_corner_data(&subdiv_context, layout);
   subdiv_mesh_loose_edges(&subdiv_context, layout);
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
