@@ -556,6 +556,81 @@ static void subdiv_foreach_inner_vertices_special(const ForeachTaskContext *ctx,
   }
 }
 
+PtexCoord face_corner_ptex_coord(const IndexRange face,
+                                 const int face_ptex_offset,
+                                 const int corner)
+{
+  if (face.size() == 4) {
+    static constexpr float2 quad_uvs[4] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
+    return {face_ptex_offset, quad_uvs[corner]};
+  }
+  return {face_ptex_offset + corner, float2(0.0f)};
+}
+
+void fill_face_corner_edge_ptex_coords(const MeshLayout &layout,
+                                       const IndexRange face,
+                                       const int face_ptex_offset,
+                                       const int corner,
+                                       const bool flip,
+                                       MutableSpan<PtexCoord> ptex_coords)
+{
+  const int resolution = layout.resolution;
+  const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
+  BLI_assert(ptex_coords.size() == num_subdiv_vertices_per_coarse_edge);
+  if (num_subdiv_vertices_per_coarse_edge <= 0) {
+    return;
+  }
+  if (face.size() == 4) {
+    const int resolution_1 = resolution - 1;
+    const float inv_resolution_1 = 1.0f / float(resolution_1);
+    for (int vert_index = 0; vert_index < num_subdiv_vertices_per_coarse_edge; vert_index++) {
+      float fac = (vert_index + 1) * inv_resolution_1;
+      if (flip) {
+        fac = 1.0f - fac;
+      }
+      if (corner >= 2) {
+        fac = 1.0f - fac;
+      }
+      float u, v;
+      if ((corner & 1) == 0) {
+        u = fac;
+        v = (corner == 2) ? 1.0f : 0.0f;
+      }
+      else {
+        u = (corner == 1) ? 1.0f : 0.0f;
+        v = fac;
+      }
+      ptex_coords[vert_index] = {face_ptex_offset, float2(u, v)};
+    }
+    return;
+  }
+  /* The first half of the edge is in the ptex face of the corner, the second half is in the ptex
+   * face of the next corner. */
+  const int num_vertices_per_ptex_edge = ((resolution >> 1) + 1);
+  const float inv_ptex_resolution_1 = 1.0f / float(num_vertices_per_ptex_edge - 1);
+  const int ptex_face_index = face_ptex_offset + corner;
+  const int next_corner = (corner + 1) % face.size();
+  const int next_ptex_face_index = face_ptex_offset + next_corner;
+  int subdiv_vert_index = 0;
+  int vert_delta = 1;
+  if (flip) {
+    subdiv_vert_index += num_subdiv_vertices_per_coarse_edge - 1;
+    vert_delta = -1;
+  }
+  for (int vert_index = 1; vert_index < num_vertices_per_ptex_edge;
+       vert_index++, subdiv_vert_index += vert_delta)
+  {
+    const float u = vert_index * inv_ptex_resolution_1;
+    ptex_coords[subdiv_vert_index] = {ptex_face_index, float2(u, 0.0f)};
+  }
+  for (int vert_index = 1; vert_index < num_vertices_per_ptex_edge - 1;
+       vert_index++, subdiv_vert_index += vert_delta)
+  {
+    const float v = 1.0f - vert_index * inv_ptex_resolution_1;
+    ptex_coords[subdiv_vert_index] = {next_ptex_face_index, float2(0.0f, v)};
+  }
+}
+
 void fill_inner_vert_ptex_coords(const MeshLayout &layout,
                                  const Mesh &base_mesh,
                                  const Span<int> face_ptex_offset,

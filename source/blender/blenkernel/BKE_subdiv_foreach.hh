@@ -173,6 +173,26 @@ void fill_inner_vert_ptex_coords(const MeshLayout &layout,
                                  IndexRange base_faces,
                                  MutableSpan<PtexCoord> vert_ptex_coords);
 
+/**
+ * The ptex face coordinate of the vertex of a base mesh face corner, in that face.
+ * \param face_ptex_offset: The first ptex face of the face, see #face_ptex_offset_get().
+ * \param corner: The index of the corner within the face.
+ */
+PtexCoord face_corner_ptex_coord(IndexRange face, int face_ptex_offset, int corner);
+
+/**
+ * Fill the ptex face coordinates of the subdivided vertices inside of the edge of a base mesh face
+ * corner (the edge from the corner's vertex to the next corner's vertex), in that face.
+ * \param flip: Whether the corner's vertex is the edge's second vertex.
+ * \param ptex_coords: Ordered like #MeshLayout::base_edge_verts().
+ */
+void fill_face_corner_edge_ptex_coords(const MeshLayout &layout,
+                                       IndexRange face,
+                                       int face_ptex_offset,
+                                       int corner,
+                                       bool flip,
+                                       MutableSpan<PtexCoord> ptex_coords);
+
 using ForeachVertFromCornerCb = void (*)(const ForeachContext *context,
                                          void *tls,
                                          int ptex_face_index,

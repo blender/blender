@@ -15,6 +15,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_eval.hh"
+#include "BKE_subdiv_foreach.hh"
 
 namespace blender::bke::subdiv {
 
@@ -22,24 +23,14 @@ namespace blender::bke::subdiv {
 /** \name Evaluation
  * \{ */
 
-struct PtexCoord {
-  int ptex_face_index;
-  float2 uv;
-};
-
 /** The ptex face coordinate of a vertex in a base mesh face. */
 static PtexCoord face_vert_ptex_coord(const IndexRange face,
                                       const int face_ptex_offset,
                                       const Span<int> corner_verts,
                                       const int vert)
 {
-  const int corner_in_face = mesh::face_find_corner_from_vert(face, corner_verts, vert) -
-                             face.start();
-  if (face.size() == 4) {
-    static constexpr float2 quad_uvs[4] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
-    return {face_ptex_offset, quad_uvs[corner_in_face]};
-  }
-  return {face_ptex_offset + corner_in_face, float2(0.0f)};
+  const int corner = mesh::face_find_corner_from_vert(face, corner_verts, vert);
+  return face_corner_ptex_coord(face, face_ptex_offset, corner - face.start());
 }
 
 static float3 eval_displacement_at_ptex_coord(Subdiv *subdiv, const PtexCoord &coord)

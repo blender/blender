@@ -90,44 +90,6 @@ static void assign_ptex_coord_from_vert(
   }
 }
 
-/* bke::subdiv::ForeachContext::vert_every_corner() */
-static void multires_reshape_vertcos_foreach_vert_every_corner(
-    const bke::subdiv::ForeachContext *foreach_context,
-    void * /*tls_v*/,
-    const int ptex_face_index,
-    const float ptex_face_u,
-    const float ptex_face_v,
-    const int /*coarse_vert_index*/,
-    const int /*coarse_face_index*/,
-    const int /*coarse_face_corner*/,
-    const int subdiv_vert_index)
-{
-  const MultiresReshapeAssignVertcosContext *reshape_vertcos_context =
-      static_cast<const MultiresReshapeAssignVertcosContext *>(foreach_context->user_data);
-  assign_ptex_coord_from_vert(reshape_vertcos_context,
-                              {ptex_face_index, float2(ptex_face_u, ptex_face_v)},
-                              subdiv_vert_index);
-}
-
-/* bke::subdiv::ForeachContext::vert_every_edge() */
-static void multires_reshape_vertcos_foreach_vert_every_edge(
-    const bke::subdiv::ForeachContext *foreach_context,
-    void * /*tls_v*/,
-    const int ptex_face_index,
-    const float ptex_face_u,
-    const float ptex_face_v,
-    const int /*coarse_edge_index*/,
-    const int /*coarse_face_index*/,
-    const int /*coarse_face_corner*/,
-    const int subdiv_vert_index)
-{
-  const MultiresReshapeAssignVertcosContext *reshape_vertcos_context =
-      static_cast<const MultiresReshapeAssignVertcosContext *>(foreach_context->user_data);
-  assign_ptex_coord_from_vert(reshape_vertcos_context,
-                              {ptex_face_index, float2(ptex_face_u, ptex_face_v)},
-                              subdiv_vert_index);
-}
-
 bool multires_reshape_assign_final_coords_from_vertcos(
     const MultiresReshapeContext *reshape_context, const Span<float3> positions)
 {
@@ -135,19 +97,18 @@ bool multires_reshape_assign_final_coords_from_vertcos(
   reshape_vertcos_context.reshape_context = reshape_context;
   reshape_vertcos_context.positions = positions;
 
-  bke::subdiv::ForeachContext foreach_context{};
-  foreach_context.vert_every_edge = multires_reshape_vertcos_foreach_vert_every_edge;
-  foreach_context.vert_every_corner = multires_reshape_vertcos_foreach_vert_every_corner;
-  foreach_context.user_data = &reshape_vertcos_context;
-
   const bke::subdiv::MeshLayout layout = bke::subdiv::build_mesh_layout(
       *reshape_context->base_mesh, (1 << reshape_context->reshape.level) + 1);
   if (layout.verts_num != positions.size()) {
     return false;
   }
 
-  bke::subdiv::foreach_subdiv_geometry(
-      reshape_context->subdiv, &foreach_context, layout, reshape_context->base_mesh);
+  multires_reshape_foreach_boundary_vert_ptex_coord(
+      reshape_context,
+      layout,
+      [&](const bke::subdiv::PtexCoord &coord, const int /*base_vert*/, const int subdiv_vert) {
+        assign_ptex_coord_from_vert(&reshape_vertcos_context, coord, subdiv_vert);
+      });
 
   const OffsetIndices<int> inner_verts_by_face = layout.inner_verts_by_face();
   const Span<int> face_ptex_offset = bke::subdiv::face_ptex_offset_get(reshape_context->subdiv);

@@ -10,6 +10,7 @@
 
 #include "DNA_key_types.h"
 
+#include "BLI_function_ref.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
@@ -26,8 +27,10 @@ struct Mesh;
 struct MultiresModifierData;
 struct Object;
 namespace bke::subdiv {
+struct MeshLayout;
+struct PtexCoord;
 struct Subdiv;
-}
+}  // namespace bke::subdiv
 struct SubdivCCG;
 
 struct MultiresReshapeContext {
@@ -230,6 +233,20 @@ PTexCoord multires_reshape_grid_coord_to_ptex(const MultiresReshapeContext *resh
  */
 GridCoord multires_reshape_ptex_coord_to_grid(const MultiresReshapeContext *reshape_context,
                                               const PTexCoord *ptex_coord);
+
+/**
+ * Call the function with the ptex face coordinates of the subdivided vertices at the reshape level
+ * that correspond to base mesh vertices or are inside of base mesh edges, for every base mesh face
+ * that uses them. The function is called from multiple threads, but all the coordinates of each
+ * vertex are processed by the same thread, in the order of the faces.
+ *
+ * \param fn: Called with the ptex face coordinate, the base mesh vertex (or -1 for vertices
+ * inside of base mesh edges), and the subdivided vertex.
+ */
+void multires_reshape_foreach_boundary_vert_ptex_coord(
+    const MultiresReshapeContext *reshape_context,
+    const bke::subdiv::MeshLayout &layout,
+    FunctionRef<void(const bke::subdiv::PtexCoord &coord, int base_vert, int subdiv_vert)> fn);
 
 /**
  * Calculate tangent matrix which converts displacement to an object vector.
