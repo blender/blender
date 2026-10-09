@@ -1515,7 +1515,7 @@ static void item_menu_hold(bContext *C, ARegion *butregion, Button *but)
   }
   block_direction_set(block, direction);
 
-  const char *menu_id = static_cast<const char *>(but->hold_argN);
+  const StringRef menu_id = *but->hold_arg;
   MenuType *mt = WM_menutype_find(menu_id, true);
   if (mt) {
     layout->context_set_from_but(but);
@@ -1548,7 +1548,7 @@ PointerRNA Layout::op_menu_hold(wmOperatorType *ot,
 {
   PointerRNA ptr;
   Button *but = uiItemFullO_ptr_ex(this, ot, name, icon, context, flag, &ptr);
-  button_func_hold_set(but, item_menu_hold, BLI_strdup(menu_id));
+  button_func_hold_set(but, item_menu_hold, menu_id);
   return ptr;
 }
 
@@ -2787,8 +2787,8 @@ void button_configure_search(Button *but,
                            searchbox_create_generic,
                            rna_collection_search_update_fn,
                            coll_search,
-                           false,
                            rna_collection_search_arg_free_fn,
+                           nullptr,
                            nullptr,
                            nullptr);
     /* If this is called multiple times for the same button, an earlier call may have taken the
@@ -5808,9 +5808,9 @@ void Layout::resolve_dynamic_height()
   /* Dynamic height is resolved row by row, and each row pushes down following rows. */
   for (const int row : IndexRange(rows)) {
     /* Maximum sub-item height in the row before resolving its dynamic height. */
-    int max_row_subitem_heigth = 0;
+    int max_row_subitem_height = 0;
     /* Maximum sub-item height in the row after resolving its dynamic height. */
-    int max_row_subitem_heigth_new = 0;
+    int max_row_subitem_height_new = 0;
 
     for (const int col : IndexRange(cols)) {
       const int i = (row_major ? (row * cols + col) : (col * rows + row));
@@ -5819,7 +5819,7 @@ void Layout::resolve_dynamic_height()
       }
       Item *subitem = this->items_[i];
       const int2 size = subitem->size();
-      max_row_subitem_heigth = std::max(max_row_subitem_heigth, size.y);
+      max_row_subitem_height = std::max(max_row_subitem_height, size.y);
 
       /* Apply accumulated offset from previous rows. */
       item_translate_y(subitem, -y_offs);
@@ -5838,10 +5838,10 @@ void Layout::resolve_dynamic_height()
         static_cast<Layout *>(subitem)->resolve_dynamic_height();
       }
       const int2 new_size = subitem->size();
-      max_row_subitem_heigth_new = std::max(max_row_subitem_heigth_new, new_size.y);
+      max_row_subitem_height_new = std::max(max_row_subitem_height_new, new_size.y);
     }
     /* Apply this row's extra height as offset to following rows. */
-    y_offs += std::max(max_row_subitem_heigth_new - max_row_subitem_heigth, 0);
+    y_offs += std::max(max_row_subitem_height_new - max_row_subitem_height, 0);
   }
 
   /* Apply change in height to this layout. */

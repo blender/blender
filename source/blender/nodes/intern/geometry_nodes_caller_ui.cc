@@ -77,9 +77,6 @@ struct SocketSearchData {
 
   SearchInfo info(const bContext &C) const;
 };
-/* This class must not have a destructor, since it is used by buttons and freed with
- * #MEM_delete_void. */
-BLI_STATIC_ASSERT(std::is_trivially_destructible_v<SocketSearchData>, "");
 
 struct DrawGroupInputsContext {
   const bContext &C;
@@ -275,21 +272,11 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
     return;
   }
 
-  /* Using a custom free function make the search not work currently. So make sure this data can be
-   * freed with MEM_delete. */
-  SocketSearchData *data = static_cast<SocketSearchData *>(
-      MEM_new_uninitialized(sizeof(SocketSearchData), __func__));
-  *data = ctx.socket_search_data_fn(socket);
+  SocketSearchData *data = MEM_new<SocketSearchData>(__func__, ctx.socket_search_data_fn(socket));
   button_func_search_set_results_are_suggestions(but, true);
   button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
-  button_func_search_set(but,
-                         nullptr,
-                         layer_name_search_update_fn,
-                         data,
-                         true,
-                         nullptr,
-                         layer_name_search_exec_fn,
-                         nullptr);
+  button_func_search_set(
+      but, nullptr, layer_name_search_update_fn, data, layer_name_search_exec_fn, nullptr);
 }
 
 static void attribute_search_update_fn(
@@ -386,21 +373,11 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
     return;
   }
 
-  /* Using a custom free function make the search not work currently. So make sure this data can be
-   * freed with MEM_delete. */
-  SocketSearchData *data = static_cast<SocketSearchData *>(
-      MEM_new_uninitialized(sizeof(SocketSearchData), __func__));
-  *data = ctx.socket_search_data_fn(socket);
+  SocketSearchData *data = MEM_new<SocketSearchData>(__func__, ctx.socket_search_data_fn(socket));
   button_func_search_set_results_are_suggestions(but, true);
   button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
-  button_func_search_set(but,
-                         nullptr,
-                         attribute_search_update_fn,
-                         data,
-                         true,
-                         nullptr,
-                         attribute_search_exec_fn,
-                         nullptr);
+  button_func_search_set(
+      but, nullptr, attribute_search_update_fn, data, attribute_search_exec_fn, nullptr);
 
   std::string attribute_name = RNA_string_get(socket_props_ptr, "attribute_name");
   const bool access_allowed = bke::allow_procedural_attribute_access(attribute_name);
@@ -715,8 +692,7 @@ static void draw_warnings(const bContext *C,
         [](bContext * /*C*/, void *argN, StringRef /*tip*/) -> std::string {
           return *static_cast<std::string *>(argN);
         },
-        MEM_new<std::string>(__func__, message),
-        [](void *arg) { MEM_delete(static_cast<std::string *>(arg)); });
+        MEM_new<std::string>(__func__, message));
   }
 }
 

@@ -60,7 +60,7 @@ bool OptiXDenoiser::denoise_create_if_needed(DenoiseContext &context)
   const bool use_pass_albedo = (context.denoise_params.passes & DENOISER_PASS_ALBEDO) != 0;
   const bool use_pass_normal = (context.denoise_params.passes & DENOISER_PASS_NORMAL) != 0;
   const bool use_pass_motion = context.denoise_params.temporally_stable &&
-                               (context.denoise_params.passes & DENOISER_PASS_MOTION) != 0;
+                               context.guiding_params.pass_flow != PASS_UNUSED;
   const bool use_upscale_model = context.denoise_params.upscale_factor == 2.0f;
 
   const bool recreate_denoiser = (optix_denoiser_ == nullptr) ||

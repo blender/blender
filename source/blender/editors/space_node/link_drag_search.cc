@@ -461,8 +461,8 @@ static ui::Block *create_search_popup_block(bContext *C, ARegion *region, void *
                          nullptr,
                          link_drag_search_update_fn,
                          &storage,
-                         false,
                          link_drag_search_free_fn,
+                         nullptr,
                          link_drag_search_exec_fn,
                          nullptr);
   button_flag_enable(but, ui::BUT_ACTIVATE_ON_INIT);

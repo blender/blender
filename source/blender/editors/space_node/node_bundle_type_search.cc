@@ -46,8 +46,6 @@ struct BundleTypeSocketSearchData {
     return node_tree->node_by_id(this->node_id);
   }
 };
-/* This class must not have a destructor, since it is used by buttons and freed with #MEM_freeN. */
-static_assert(std::is_trivially_destructible_v<BundleTypeSocketSearchData>);
 
 static Vector<std::string> get_type_names_from_context(const bContext &C,
                                                        const BundleTypeSocketSearchData &data)
@@ -154,14 +152,8 @@ void node_bundle_type_add_string_search_button(const bContext & /*C*/,
 
   ui::button_func_search_set_results_are_suggestions(but, true);
   ui::button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
-  ui::button_func_search_set(but,
-                             nullptr,
-                             bundle_type_string_search,
-                             data,
-                             true,
-                             nullptr,
-                             bundle_type_string_search_exec,
-                             nullptr);
+  ui::button_func_search_set(
+      but, nullptr, bundle_type_string_search, data, bundle_type_string_search_exec, nullptr);
 }
 
 }  // namespace blender::ed::space_node

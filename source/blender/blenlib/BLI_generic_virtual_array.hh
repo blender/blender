@@ -387,7 +387,15 @@ template<typename T> class GVMutableArrayImpl_For_VMutableArray : public GVMutab
  protected:
   void get(const int64_t index, void *r_value) const override
   {
+/* Quiet false-positive warning in GCC. */
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
     *static_cast<T *>(r_value) = varray_[index];
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic pop
+#endif
   }
 
   void get_to_uninitialized(const int64_t index, void *r_value) const override
@@ -408,9 +416,17 @@ template<typename T> class GVMutableArrayImpl_For_VMutableArray : public GVMutab
 
   void set_by_relocate(const int64_t index, void *value) override
   {
+/* Quiet false-positive warning in GCC. */
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
     T &value_ = *static_cast<T *>(value);
     varray_.set(index, std::move(value_));
     value_.~T();
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic pop
+#endif
   }
 
   void set_by_move(const int64_t index, void *value) override

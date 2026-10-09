@@ -36,6 +36,17 @@ struct OpenSubdiv_Converter {
   std::span<const float> edge_sharpness;
   std::span<const float> vert_sharpness;
 
+  struct UVLayer {
+    /** Number of distinct UV "vertices" (face-varying values) in the layer. */
+    int uvs_num;
+    /**
+     * The index of every face corner's UV vertex in `[0, uvs_num)`. Corners that use the
+     * same mesh vertex and have connected UVs share an index. Aligned with #corner_verts.
+     */
+    std::span<const int> corner_uv_indices;
+  };
+  std::span<const UVLayer> uv_layers;
+
   OpenSubdiv_SchemeType scheme_type;
 
   OpenSubdiv_VtxBoundaryInterpolation vtx_boundary_interpolation;
@@ -85,32 +96,6 @@ struct OpenSubdiv_Converter {
   void (*getVertexFaces)(const OpenSubdiv_Converter *converter,
                          const int vertex_index,
                          int *vertex_faces);
-
-  /////////////////////////////////////
-  // UV coordinates.
-
-  // Number of UV layers.
-  int (*getNumUVLayers)(const OpenSubdiv_Converter *converter);
-
-  // We need some corner connectivity information, which might not be trivial
-  // to be gathered (might require multiple matching calculations per corver
-  // query).
-  // precalc() is called before any corner connectivity or UV coordinate is
-  // queried from the given layer, allowing converter to calculate and cache
-  // complex complex-to-calculate information.
-  // finish() is called after converter is done porting UV layer to OpenSubdiv,
-  // allowing to free cached data.
-  void (*precalcUVLayer)(const OpenSubdiv_Converter *converter, const int layer_index);
-  void (*finishUVLayer)(const OpenSubdiv_Converter *converter);
-
-  // Get number of UV coordinates in the current layer (layer which was
-  // specified in precalcUVLayer().
-  int (*getNumUVCoordinates)(const OpenSubdiv_Converter *converter);
-  // For the given face index and its corner (known as loop in Blender)
-  // get corresponding UV coordinate index.
-  int (*getFaceCornerUVIndex)(const OpenSubdiv_Converter *converter,
-                              const int face_index,
-                              const int corner_index);
 
   //////////////////////////////////////////////////////////////////////////////
   // User data associated with this converter.

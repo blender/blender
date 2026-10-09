@@ -899,7 +899,15 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   {
     BLI_assert(index >= 0);
     BLI_assert(index < this->size());
+/* Quiet false-positive warning in GCC. */
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
     this->get_impl()->set(index, std::move(value));
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic pop
+#endif
   }
 
   /**

@@ -3343,7 +3343,7 @@ static wmOperatorStatus region_clear_filter_exec(bContext *C, wmOperator * /*op*
   return OPERATOR_FINISHED;
 }
 
-static bool reion_clear_filter_poll(blender::bContext *C)
+static bool region_clear_filter_poll(blender::bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
   return region && BKE_region_panel_categories_search_filter_visible(region);
@@ -3355,7 +3355,7 @@ static void UI_OT_region_clear_filter(wmOperatorType *ot)
   ot->description = "Clear and hide the region search filter";
   ot->idname = "UI_OT_region_clear_filter";
   ot->exec = region_clear_filter_exec;
-  ot->poll = reion_clear_filter_poll;
+  ot->poll = region_clear_filter_poll;
 }
 
 /** \} */
