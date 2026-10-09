@@ -122,6 +122,18 @@ template<size_t... Indices> struct SomeSpanOrSingle {
 
 namespace detail {
 
+template<typename Arg> inline decltype(auto) execute_array_fetch(Arg &&arg, const int64_t i)
+{
+  using A = std::decay_t<Arg>;
+  if constexpr (std::is_same_v<A, Span<bool>>) {
+    /* Casting bools to chars for loading allows GCC to auto-vectorize. */
+    return bool(reinterpret_cast<const char *>(arg.data())[i]);
+  }
+  else {
+    return std::forward<Arg>(arg)[i];
+  }
+}
+
 /**
  * Executes #element_fn for all indices in the mask. The passed in #args contain the input as well
  * as output parameters. Usually types in #args are devirtualized (e.g. a `Span<int>` is passed in
@@ -144,12 +156,12 @@ inline void execute_array(const ElementFn &element_fn,
     const int64_t start = mask.start();
     const int64_t end = mask.one_after_last();
     for (int64_t i = start; i < end; i++) {
-      element_fn(args[i]...);
+      element_fn(execute_array_fetch(args, i)...);
     }
   }
   else {
     for (const int64_t i : mask) {
-      element_fn(args[i]...);
+      element_fn(execute_array_fetch(args, i)...);
     }
   }
 }
