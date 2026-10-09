@@ -9,7 +9,7 @@
 #include "BLI_index_mask.hh"
 #include "BLI_task.hh"
 
-#include "BKE_subdiv_foreach.hh"
+#include "BKE_subdiv_mesh_layout.hh"
 
 #include "DNA_mesh_types.h"
 

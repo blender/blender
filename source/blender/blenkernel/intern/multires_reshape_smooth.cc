@@ -20,8 +20,8 @@
 #include "BKE_multires.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_eval.hh"
-#include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"
+#include "BKE_subdiv_mesh_layout.hh"
 
 #include "opensubdiv_converter_capi.hh"
 #ifdef WITH_OPENSUBDIV

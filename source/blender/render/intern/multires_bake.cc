@@ -94,8 +94,8 @@
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_eval.hh"
-#include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"
+#include "BKE_subdiv_mesh_layout.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

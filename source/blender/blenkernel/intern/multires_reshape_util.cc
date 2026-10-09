@@ -29,7 +29,7 @@
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_eval.hh"
-#include "BKE_subdiv_foreach.hh"
+#include "BKE_subdiv_mesh_layout.hh"
 
 #include "DEG_depsgraph_query.hh"
 
