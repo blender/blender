@@ -39,11 +39,6 @@
 
 namespace blender::ed::animfilter {
 
-static bool has_assigned_action(AnimData &anim_data)
-{
-  return anim_data.action != nullptr && anim_data.slot_handle != animrig::Slot::unassigned;
-}
-
 /* Find the bPoseChannel that this FCurve references. If it does not reference a pose bone, nullptr
  * is returned. The `tags` have to contain a tag of type ID that is an Object. */
 static PointerRNA pose_bone_for_fcurve(const FCurve &fcurve, const ChannelTagStack &tags)
@@ -245,8 +240,10 @@ static void collect_channels_for_id(ID *animated_id,
     return;
   }
 
-  AnimData *adt = BKE_animdata_from_id(animated_id);
-  if (!adt || !has_assigned_action(*adt)) {
+  std::optional<std::pair<animrig::Action *, animrig::Slot *>> action_and_slot =
+      animrig::get_action_slot_pair(*animated_id);
+
+  if (!action_and_slot) {
     return;
   }
 
@@ -258,7 +255,11 @@ static void collect_channels_for_id(ID *animated_id,
   PointerRNA animated_id_ptr = RNA_pointer_create_discrete(
       animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
   tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr, ParsedRNAPathRef()});
-  channels_for_action_slot(adt->action->wrap(), adt->slot_handle, tags, arena, collection_filters);
+  channels_for_action_slot(*action_and_slot->first,
+                           action_and_slot->second->handle,
+                           tags,
+                           ctx.arena,
+                           collection_filters);
   tags.pop();
 }
 
