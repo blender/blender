@@ -372,6 +372,7 @@ class NODE_OT_merge_selected(Operator, NWBase):
                 'CompositorNodeZcombine': [0, 2],
                 'CompositorNodeAlphaOver': [1, 2],
                 'FunctionNodeBooleanMath': [0, 1],
+                'FunctionNodeIntegerMath': [0, 1],
             }
 
             first, second = socket_dict[add.bl_idname]

@@ -68,6 +68,7 @@ struct AssetLibraryList : public ui::AbstractTreeView {
     for (const AnyAssetLibraryDefinition &library : libraries) {
       if (library.is_extension_repo()) {
         repo_parent = &add_tree_item<AssetLibraryRepoItemType>(library, i++);
+        repo_parent->disable_activatable();
         continue;
       }
       ui::TreeViewOrItem *parent = this;
