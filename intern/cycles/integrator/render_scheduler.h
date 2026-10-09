@@ -107,6 +107,9 @@ class RenderScheduler {
   void set_denoiser_params(const DenoiseParams &params);
   bool is_denoiser_gpu_used() const;
 
+  /* Check whether a real-time denoiser like DLSS is active. */
+  bool is_denoiser_interactive() const;
+
   void set_adaptive_sampling(const AdaptiveSampling &adaptive_sampling);
   bool is_adaptive_sampling_used() const;
 
@@ -252,9 +255,6 @@ class RenderScheduler {
   /* Check whether denoising is active during interactive update while resolution divider is not
    * unit. */
   bool is_denoise_active_during_update() const;
-
-  /* Check whether a real-time denoiser like DLSS is active. */
-  bool is_denoiser_interactive() const;
 
   /* Heuristic which aims to give perceptually pleasant update of display interval in a way that at
    * lower samples and near the beginning of rendering, updates happen more often, but with higher
