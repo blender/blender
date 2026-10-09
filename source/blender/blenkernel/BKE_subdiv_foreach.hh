@@ -83,6 +83,18 @@ struct MeshLayout {
   {
     return this->face_offsets.as_span();
   }
+
+  /** The corners of the subdivided faces created for base mesh faces. */
+  IndexRange base_face_corners(const IndexRange base_faces) const
+  {
+    const IndexRange faces = this->faces_by_base_face()[base_faces];
+    return IndexRange(faces.start() * 4, faces.size() * 4);
+  }
+  IndexRange base_face_corners(const int base_face) const
+  {
+    const IndexRange faces = this->faces_by_base_face()[base_face];
+    return IndexRange(faces.start() * 4, faces.size() * 4);
+  }
 };
 
 /**
@@ -105,6 +117,17 @@ void fill_base_edge_edges(const MeshLayout &layout,
  * \param edges: The edges inside of base mesh faces, see #MeshLayout::inner_edges_by_face().
  */
 void fill_inner_edges(const MeshLayout &layout, const Mesh &base_mesh, MutableSpan<int2> edges);
+
+/**
+ * Fill vertex and edge indices of subdivided face corners of the given base mesh faces.
+ * \param corner_verts, corner_edges: The corners for the base faces, see
+ * #MeshLayout::base_face_corners(). Either may be empty to skip filling it.
+ */
+void fill_corner_verts_and_edges(const MeshLayout &layout,
+                                 const Mesh &base_mesh,
+                                 IndexRange base_faces,
+                                 MutableSpan<int> corner_verts,
+                                 MutableSpan<int> corner_edges);
 
 using ForeachVertFromCornerCb = void (*)(const ForeachContext *context,
                                          void *tls,
@@ -143,9 +166,7 @@ using ForeachLoopCb = void (*)(const ForeachContext *context,
                                int coarse_loop_index,
                                int coarse_face_index,
                                int coarse_corner,
-                               int subdiv_loop_index,
-                               int subdiv_vert_index,
-                               int subdiv_edge_index);
+                               int subdiv_loop_index);
 
 /**
  * \param subdiv_faces_by_base_face: Groups the subdivided faces by the base mesh face they came

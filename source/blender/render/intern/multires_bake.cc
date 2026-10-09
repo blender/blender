@@ -1057,9 +1057,7 @@ static Array<GridCoord> get_subdivided_corner_grid_coords(subdiv::Subdiv &subdiv
                             const int /*coarse_corner_index*/,
                             const int coarse_face_index,
                             const int coarse_corner,
-                            const int subdiv_corner_index,
-                            const int /*subdiv_vert_index*/,
-                            const int /*subdiv_edge_index*/) {
+                            const int subdiv_corner_index) {
     SubdividedCornerGridCoordData *data = static_cast<SubdividedCornerGridCoordData *>(
         context->user_data);
 
@@ -1300,9 +1298,7 @@ static Array<GridCoord> get_highres_mesh_loop_grid_coords(
                             const int /*bake_level_corner_index*/,
                             const int bake_level_face_index,
                             const int /*bake_level_corner*/,
-                            const int highres_corner_index,
-                            const int /*highres_vert_index*/,
-                            const int /*highres_edge_index*/) {
+                            const int highres_corner_index) {
     HighresCornerGridCoordData *data = static_cast<HighresCornerGridCoordData *>(
         context->user_data);
 

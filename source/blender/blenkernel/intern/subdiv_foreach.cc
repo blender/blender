@@ -896,8 +896,20 @@ static void rotate_indices(const int rot, int *a, int *b, int *c, int *d)
   *d = values[(3 - rot + 4) % 4];
 }
 
-static void subdiv_foreach_loops_of_face(ForeachTaskContext *ctx,
+/**
+ * Optional outputs of the face corner traversal for a single base mesh face, aligned with the
+ * corners of its subdivided faces. Empty spans are skipped.
+ */
+struct FaceCornerOutputs {
+  MutableSpan<int> corner_verts;
+  MutableSpan<int> corner_edges;
+  /* The index of the first corner of the base face's subdivided faces, for the callbacks. */
+  int corners_start = 0;
+};
+
+static void subdiv_foreach_loops_of_face(const ForeachTaskContext *ctx,
                                          void *tls,
+                                         const FaceCornerOutputs &out,
                                          int subdiv_loop_start_index,
                                          const int ptex_face_index,
                                          const int coarse_face_index,
@@ -918,6 +930,22 @@ static void subdiv_foreach_loops_of_face(ForeachTaskContext *ctx,
 {
   rotate_indices(rotation, &v0, &v1, &v2, &v3);
   rotate_indices(rotation, &e0, &e1, &e2, &e3);
+  if (!out.corner_verts.is_empty()) {
+    out.corner_verts[subdiv_loop_start_index + 0] = v0;
+    out.corner_verts[subdiv_loop_start_index + 1] = v1;
+    out.corner_verts[subdiv_loop_start_index + 2] = v2;
+    out.corner_verts[subdiv_loop_start_index + 3] = v3;
+  }
+  if (!out.corner_edges.is_empty()) {
+    out.corner_edges[subdiv_loop_start_index + 0] = e0;
+    out.corner_edges[subdiv_loop_start_index + 1] = e1;
+    out.corner_edges[subdiv_loop_start_index + 2] = e2;
+    out.corner_edges[subdiv_loop_start_index + 3] = e3;
+  }
+  if (ctx->foreach_context == nullptr || ctx->foreach_context->loop == nullptr) {
+    return;
+  }
+  subdiv_loop_start_index += out.corners_start;
   ctx->foreach_context->loop(ctx->foreach_context,
                              tls,
                              ptex_face_index,
@@ -926,9 +954,7 @@ static void subdiv_foreach_loops_of_face(ForeachTaskContext *ctx,
                              ORIGINDEX_NONE,
                              coarse_face_index,
                              coarse_corner_index,
-                             subdiv_loop_start_index + 0,
-                             v0,
-                             e0);
+                             subdiv_loop_start_index + 0);
   ctx->foreach_context->loop(ctx->foreach_context,
                              tls,
                              ptex_face_index,
@@ -937,9 +963,7 @@ static void subdiv_foreach_loops_of_face(ForeachTaskContext *ctx,
                              ORIGINDEX_NONE,
                              coarse_face_index,
                              coarse_corner_index,
-                             subdiv_loop_start_index + 1,
-                             v1,
-                             e1);
+                             subdiv_loop_start_index + 1);
   ctx->foreach_context->loop(ctx->foreach_context,
                              tls,
                              ptex_face_index,
@@ -948,9 +972,7 @@ static void subdiv_foreach_loops_of_face(ForeachTaskContext *ctx,
                              ORIGINDEX_NONE,
                              coarse_face_index,
                              coarse_corner_index,
-                             subdiv_loop_start_index + 2,
-                             v2,
-                             e2);
+                             subdiv_loop_start_index + 2);
   ctx->foreach_context->loop(ctx->foreach_context,
                              tls,
                              ptex_face_index,
@@ -959,9 +981,7 @@ static void subdiv_foreach_loops_of_face(ForeachTaskContext *ctx,
                              ORIGINDEX_NONE,
                              coarse_face_index,
                              coarse_corner_index,
-                             subdiv_loop_start_index + 3,
-                             v3,
-                             e3);
+                             subdiv_loop_start_index + 3);
 }
 
 static int subdiv_foreach_loops_corner_index(const float u,
@@ -981,9 +1001,11 @@ static int subdiv_foreach_loops_corner_index(const float u,
   return 3;
 }
 
-static void subdiv_foreach_loops_regular(ForeachTaskContext *ctx,
+static void subdiv_foreach_loops_regular(const ForeachTaskContext *ctx,
                                          void *tls,
-                                         const int coarse_face_index)
+                                         const int coarse_face_index,
+                                         const int ptex_face_index,
+                                         const FaceCornerOutputs &out)
 {
   const int resolution = ctx->layout->resolution;
   /* Base/coarse mesh information. */
@@ -993,17 +1015,14 @@ static void subdiv_foreach_loops_regular(ForeachTaskContext *ctx,
   const int num_subdiv_edges_per_coarse_edge = resolution - 1;
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
   const float inv_ptex_resolution_1 = 1.0f / float(ptex_resolution - 1);
-  const int ptex_face_index = ctx->face_ptex_offset[coarse_face_index];
   const int start_vert_index = ctx->layout->inner_verts_start +
                                ctx->layout->inner_vert_offsets[coarse_face_index];
   const int start_edge_index = ctx->layout->inner_edges_start +
                                ctx->layout->inner_edge_offsets[coarse_face_index];
-  const int start_face_index = ctx->layout->face_offsets[coarse_face_index];
-  const int start_loop_index = 4 * start_face_index;
   const float du = inv_ptex_resolution_1;
   const float dv = inv_ptex_resolution_1;
   /* Hi-poly subdivided mesh. */
-  int subdiv_loop_index = start_loop_index;
+  int subdiv_loop_index = 0;
   /* Loops for inner part of ptex. */
   for (int y = 1; y < ptex_resolution - 2; y++) {
     const float v = y * inv_ptex_resolution_1;
@@ -1024,6 +1043,7 @@ static void subdiv_foreach_loops_regular(ForeachTaskContext *ctx,
 
       subdiv_foreach_loops_of_face(ctx,
                                    tls,
+                                   out,
                                    subdiv_loop_index,
                                    ptex_face_index,
                                    coarse_face_index,
@@ -1149,6 +1169,7 @@ static void subdiv_foreach_loops_regular(ForeachTaskContext *ctx,
 
       subdiv_foreach_loops_of_face(ctx,
                                    tls,
+                                   out,
                                    subdiv_loop_index,
                                    ptex_face_index,
                                    coarse_face_index,
@@ -1174,9 +1195,11 @@ static void subdiv_foreach_loops_regular(ForeachTaskContext *ctx,
   }
 }
 
-static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
+static void subdiv_foreach_loops_special(const ForeachTaskContext *ctx,
                                          void *tls,
-                                         const int coarse_face_index)
+                                         const int coarse_face_index,
+                                         const int ptex_face_index,
+                                         const FaceCornerOutputs &out)
 {
   const int resolution = ctx->layout->resolution;
   /* Base/coarse mesh information. */
@@ -1189,19 +1212,16 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
       ptex_face_inner_resolution + 1);
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
   const int num_subdiv_edges_per_coarse_edge = resolution - 1;
-  const int ptex_face_index = ctx->face_ptex_offset[coarse_face_index];
   const int center_vert_index = ctx->layout->inner_verts_start +
                                 ctx->layout->inner_vert_offsets[coarse_face_index];
   const int start_vert_index = center_vert_index + 1;
   const int start_inner_vert_index = center_vert_index + 1;
   const int start_edge_index = ctx->layout->inner_edges_start +
                                ctx->layout->inner_edge_offsets[coarse_face_index];
-  const int start_face_index = ctx->layout->face_offsets[coarse_face_index];
-  const int start_loop_index = 4 * start_face_index;
   const float du = inv_ptex_resolution_1;
   const float dv = inv_ptex_resolution_1;
   /* Hi-poly subdivided mesh. */
-  int subdiv_loop_index = start_loop_index;
+  int subdiv_loop_index = 0;
   for (int corner = 0; corner < coarse_face.size(); corner++) {
     const int corner_vert_index = start_vert_index + corner * num_inner_vertices_per_ptex;
     const int corner_edge_index = start_edge_index + corner * num_inner_edges_per_ptex_face;
@@ -1224,6 +1244,7 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
         const int e3 = e0 + ptex_face_inner_resolution;
         subdiv_foreach_loops_of_face(ctx,
                                      tls,
+                                     out,
                                      subdiv_loop_index,
                                      ptex_face_index + corner,
                                      coarse_face_index,
@@ -1270,6 +1291,7 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
       const float v = 1.0f - dv;
       subdiv_foreach_loops_of_face(ctx,
                                    tls,
+                                   out,
                                    subdiv_loop_index,
                                    ptex_face_index + next_corner,
                                    coarse_face_index,
@@ -1326,6 +1348,7 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
       const float v = 1.0f - dv;
       subdiv_foreach_loops_of_face(ctx,
                                    tls,
+                                   out,
                                    subdiv_loop_index,
                                    ptex_face_index + corner,
                                    coarse_face_index,
@@ -1418,6 +1441,7 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
       const float v = 0.0f;
       subdiv_foreach_loops_of_face(ctx,
                                    tls,
+                                   out,
                                    subdiv_loop_index,
                                    ptex_face_index + corner,
                                    coarse_face_index,
@@ -1484,6 +1508,7 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
       const float v = du * (i + 1);
       subdiv_foreach_loops_of_face(ctx,
                                    tls,
+                                   out,
                                    subdiv_loop_index,
                                    ptex_face_index + corner,
                                    coarse_face_index,
@@ -1508,14 +1533,44 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
   }
 }
 
-static void subdiv_foreach_loops(ForeachTaskContext *ctx, void *tls, int face_index)
+static void subdiv_foreach_loops(const ForeachTaskContext *ctx,
+                                 void *tls,
+                                 const int face_index,
+                                 const int ptex_face_index,
+                                 const FaceCornerOutputs &out)
 {
   if (ctx->coarse_faces[face_index].size() == 4) {
-    subdiv_foreach_loops_regular(ctx, tls, face_index);
+    subdiv_foreach_loops_regular(ctx, tls, face_index, ptex_face_index, out);
   }
   else {
-    subdiv_foreach_loops_special(ctx, tls, face_index);
+    subdiv_foreach_loops_special(ctx, tls, face_index, ptex_face_index, out);
   }
+}
+
+void fill_corner_verts_and_edges(const MeshLayout &layout,
+                                 const Mesh &base_mesh,
+                                 const IndexRange base_faces,
+                                 MutableSpan<int> corner_verts,
+                                 MutableSpan<int> corner_edges)
+{
+  const ForeachTaskContext ctx = task_context_from_mesh(base_mesh, layout);
+  const IndexRange chunk_corners = layout.base_face_corners(base_faces);
+  BLI_assert(corner_verts.is_empty() || corner_verts.size() == chunk_corners.size());
+  BLI_assert(corner_edges.is_empty() || corner_edges.size() == chunk_corners.size());
+  threading::parallel_for(base_faces, face_grain_size(layout), [&](const IndexRange range) {
+    for (const int face : range) {
+      const IndexRange face_corners = layout.base_face_corners(face).shift(-chunk_corners.start());
+      FaceCornerOutputs out;
+      if (!corner_verts.is_empty()) {
+        out.corner_verts = corner_verts.slice(face_corners);
+      }
+      if (!corner_edges.is_empty()) {
+        out.corner_edges = corner_edges.slice(face_corners);
+      }
+      /* The ptex face index is only used for the callbacks. */
+      subdiv_foreach_loops(&ctx, nullptr, face, 0, out);
+    }
+  });
 }
 
 /** \} */
@@ -1560,7 +1615,10 @@ static void subdiv_foreach_task(void *__restrict userdata,
   subdiv_foreach_vertices(ctx, tls->userdata_chunk, face_index);
   /* Traverse mesh geometry for the given base poly index. */
   if (ctx->foreach_context->loop != nullptr) {
-    subdiv_foreach_loops(ctx, tls->userdata_chunk, face_index);
+    FaceCornerOutputs out;
+    out.corners_start = ctx->layout->base_face_corners(face_index).start();
+    subdiv_foreach_loops(
+        ctx, tls->userdata_chunk, face_index, ctx->face_ptex_offset[face_index], out);
   }
 }
 

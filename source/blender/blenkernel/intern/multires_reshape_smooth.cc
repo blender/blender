@@ -599,9 +599,7 @@ static void foreach_loop(const bke::subdiv::ForeachContext *foreach_context,
                          const int /*coarse_loop_index*/,
                          const int coarse_face_index,
                          const int coarse_corner,
-                         const int subdiv_loop_index,
-                         const int subdiv_vert_index,
-                         const int /*subdiv_edge_index*/)
+                         const int subdiv_loop_index)
 {
   MultiresReshapeSmoothContext *reshape_smooth_context =
       static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
@@ -609,8 +607,6 @@ static void foreach_loop(const bke::subdiv::ForeachContext *foreach_context,
 
   auto &geometry = reshape_smooth_context->geometry;
   BLI_assert(subdiv_loop_index < geometry.corner_verts.size());
-
-  geometry.corner_verts[subdiv_loop_index] = subdiv_vert_index;
 
   const int first_grid_index = reshape_context->base_faces[coarse_face_index].start();
   geometry.corner_grid_indices[subdiv_loop_index] = first_grid_index + coarse_corner;
@@ -698,6 +694,11 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
       *reshape_context->base_mesh, get_reshape_level_resolution(reshape_context));
   geometry_allocate(reshape_smooth_context, layout);
   geometry_create_edges(reshape_smooth_context, layout);
+  bke::subdiv::fill_corner_verts_and_edges(layout,
+                                           *reshape_context->base_mesh,
+                                           reshape_context->base_faces.index_range(),
+                                           reshape_smooth_context->geometry.corner_verts,
+                                           {});
 
   /* TODO(sergey): Tell the foreach() to ignore loose vertices. */
   bke::subdiv::foreach_subdiv_geometry(

@@ -565,23 +565,11 @@ static void draw_subdiv_loop_cb(const bke::subdiv::ForeachContext *foreach_conte
                                 const int /*coarse_loop_index*/,
                                 const int coarse_face_index,
                                 const int /*coarse_corner*/,
-                                const int subdiv_loop_index,
-                                const int subdiv_vert_index,
-                                const int subdiv_edge_index)
+                                const int subdiv_loop_index)
 {
   DRWCacheBuildingContext *ctx = (DRWCacheBuildingContext *)(foreach_context->user_data);
   ctx->patch_coords[subdiv_loop_index] = make_patch_coord(ptex_face_index, u, v);
-
-  /* Subdivided vertices corresponding to base mesh vertices have the same indices, see
-   * #bke::subdiv::MeshLayout. */
-  const int coarse_vert_index = subdiv_vert_index < ctx->coarse_mesh->verts_num ?
-                                    subdiv_vert_index :
-                                    ORIGINDEX_NONE;
-
-  ctx->subdiv_loop_subdiv_vert_index[subdiv_loop_index] = subdiv_vert_index;
-  ctx->subdiv_loop_subdiv_edge_index[subdiv_loop_index] = subdiv_edge_index;
   ctx->subdiv_loop_face_index[subdiv_loop_index] = coarse_face_index;
-  ctx->subdiv_loop_vert_index[subdiv_loop_index] = coarse_vert_index;
 }
 
 static void draw_subdiv_foreach_callbacks(bke::subdiv::ForeachContext *foreach_context)
@@ -606,12 +594,29 @@ static void do_subdiv_traversal(DRWCacheBuildingContext *cache_building_context,
   bke::subdiv::foreach_subdiv_geometry(
       subdiv, &foreach_context, layout, cache_building_context->coarse_mesh);
 
+  const DRWSubdivCache &cache = *cache_building_context->cache;
+  const Mesh &coarse_mesh = *cache_building_context->coarse_mesh;
+  if (cache.num_subdiv_loops != 0) {
+    bke::subdiv::fill_corner_verts_and_edges(
+        layout,
+        coarse_mesh,
+        coarse_mesh.faces().index_range(),
+        {cache_building_context->subdiv_loop_subdiv_vert_index, cache.num_subdiv_loops},
+        {cache_building_context->subdiv_loop_subdiv_edge_index, cache.num_subdiv_loops});
+  }
+
   /* Now that traversal is done, we can set up the right original indices for the
    * subdiv-loop-to-coarse-edge map.
    */
-  const DRWSubdivCache &cache = *cache_building_context->cache;
   const int *orig_index_edge = cache_building_context->orig_index_edge;
   for (int i = 0; i < cache.num_subdiv_loops; i++) {
+    /* Subdivided vertices corresponding to base mesh vertices have the same indices, see
+     * #bke::subdiv::MeshLayout. */
+    const int subdiv_vert_index = cache_building_context->subdiv_loop_subdiv_vert_index[i];
+    cache_building_context->subdiv_loop_vert_index[i] = subdiv_vert_index < coarse_mesh.verts_num ?
+                                                            subdiv_vert_index :
+                                                            ORIGINDEX_NONE;
+
     const int subdiv_edge_index = cache_building_context->subdiv_loop_subdiv_edge_index[i];
     int &origindex = cache_building_context->subdiv_loop_edge_index[i];
     int &draw_flag = cache_building_context->subdiv_loop_edge_draw_flag[i];

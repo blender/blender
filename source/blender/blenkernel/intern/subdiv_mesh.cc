@@ -1249,17 +1249,13 @@ static void subdiv_mesh_loop(const ForeachContext *foreach_context,
                              const int /*coarse_loop_index*/,
                              const int coarse_face_index,
                              const int coarse_corner,
-                             const int subdiv_loop_index,
-                             const int subdiv_vert_index,
-                             const int subdiv_edge_index)
+                             const int subdiv_loop_index)
 {
   SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
   SubdivMeshTLS *tls = static_cast<SubdivMeshTLS *>(tls_v);
   subdiv_mesh_ensure_loop_interpolation(ctx, tls, coarse_face_index, coarse_corner);
   subdiv_interpolate_corner_data(ctx, subdiv_loop_index, tls->loop_interpolation, u, v);
   subdiv_eval_uv_layer(ctx, subdiv_loop_index, ptex_face_index, u, v);
-  ctx->subdiv_corner_verts[subdiv_loop_index] = subdiv_vert_index;
-  ctx->subdiv_corner_edges[subdiv_loop_index] = subdiv_edge_index;
 }
 
 /** \} */
@@ -1522,6 +1518,11 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
   foreach_context.user_data_tls = &tls;
   foreach_subdiv_geometry(subdiv, &foreach_context, layout, coarse_mesh);
   subdiv_mesh_edges(&subdiv_context, layout);
+  fill_corner_verts_and_edges(layout,
+                              *coarse_mesh,
+                              subdiv_context.coarse_faces.index_range(),
+                              subdiv_context.subdiv_corner_verts,
+                              subdiv_context.subdiv_corner_edges);
   subdiv_mesh_loose_edges(&subdiv_context, layout);
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
   Mesh *result = subdiv_context.subdiv_mesh;
