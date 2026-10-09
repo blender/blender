@@ -414,12 +414,10 @@ std::string BKE_is_path_inside_blender_project(const char *path)
   if (BLI_is_file(path)) {
     BLI_path_split_dir_part(path, project_root_path, sizeof(project_root_path));
   }
-  else if (BLI_is_dir(path)) {
-    STRNCPY(project_root_path, path);
-  }
   else {
-    /* The provided path doesn't exist. */
-    return "";
+    /* Note this function is used for paths that don't yet exist. We still
+     * check its parent directories then. */
+    STRNCPY(project_root_path, path);
   }
 
   bool found_project = false;
