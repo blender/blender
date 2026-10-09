@@ -2763,15 +2763,21 @@ static void update_sculpt_normal(const Depsgraph &depsgraph,
   /* Grab brush does not update the sculpt normal during a stroke. */
   const bool update_normal = !(brush.flag & BRUSH_ORIGINAL_NORMAL) &&
                              !(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_GRAB) &&
-                             !(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_THUMB &&
-                               !(brush.stroke_method == BRUSH_STROKE_ANCHORED)) &&
+                             !(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_THUMB) &&
+                             !(brush.stroke_method == BRUSH_STROKE_ANCHORED) &&
                              !(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ELASTIC_DEFORM) &&
                              !(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SNAKE_HOOK &&
                                bke::brush::normal_weight_get(brush, cache.toggle_settings.invert) >
                                    0.0f);
 
+  /* We check whether sculpt_normal is zero because it would be uninitialized on the second brush
+   * step when brush has cube tip. For brushes where update_normal is false, sculpt_normal would
+   * remain uninitialized if we do not add this zero check. */
+  /* TODO: sculpt_normal can't always be initialized at a usual point. To distinguish a degenerate
+   * normal <0,0,0> from an uninitialized one, we can make it into an std::optional. */
   if (cache.mirror_symmetry_pass == 0 && cache.radial_symmetry_pass == 0 &&
-      (stroke_is_first_brush_step_of_symmetry_pass(cache) || update_normal))
+      (stroke_is_first_brush_step_of_symmetry_pass(cache) || update_normal ||
+       math::is_zero(cache.sculpt_normal)))
   {
     if (cursor_sample_result.plane_normal) {
       cache.sculpt_normal = *cursor_sample_result.plane_normal;
@@ -2809,16 +2815,16 @@ static void calc_local_from_screen(const ViewContext &vc,
   mul_m4_v3(ob.world_to_object().ptr(), r_local_dir);
 }
 
-static void calc_brush_local_mat(const float rotation,
+static void calc_brush_local_mat(const float texture_rotation,
+                                 const float tip_rotation,
                                  const Object &ob,
                                  const float3 &tip_normal,
                                  float local_mat[4][4],
                                  float local_mat_inv[4][4])
 {
   const StrokeCache *cache = ob.runtime->sculpt_session->cache;
-
-  calc_brush_local_mat(rotation,
-                       cache->special_rotation,
+  calc_brush_local_mat(texture_rotation,
+                       tip_rotation,
                        *cache->vc,
                        ob,
                        tip_normal,
@@ -2828,8 +2834,8 @@ static void calc_brush_local_mat(const float rotation,
                        local_mat_inv);
 }
 
-void calc_brush_local_mat(const float rotation,
-                          const float special_rotation,
+void calc_brush_local_mat(const float texture_rotation,
+                          const float tip_rotation,
                           const ViewContext &vc,
                           const Object &ob,
                           const float3 &tip_normal,
@@ -2854,7 +2860,7 @@ void calc_brush_local_mat(const float rotation,
 
   /* Read rotation (user angle, rake, etc.) to find the view's movement direction (negative X of
    * the brush). */
-  angle = rotation + special_rotation;
+  angle = texture_rotation + tip_rotation;
   /* By convention, motion direction points down the brush's Y axis, the angle represents the X
    * axis, normal is a 90 deg CCW rotation of the motion direction. */
   float motion_normal_screen[2];
@@ -2935,6 +2941,7 @@ static void update_brush_local_mat(const Sculpt &sd, Object &ob)
     const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
     const MTex *mask_tex = BKE_brush_mask_texture_get(brush, PaintMode::Sculpt);
     calc_brush_local_mat(mask_tex->rot,
+                         cache->special_rotation,
                          ob,
                          eBrushFalloffShape(brush->falloff_shape) == PAINT_FALLOFF_SHAPE_SPHERE ?
                              cache->sculpt_normal_symm :
@@ -3302,7 +3309,7 @@ static brushes::CursorSampleResult calc_brush_node_mask(const Depsgraph &depsgra
     return {all_leaf_nodes(pbvh, memory), std::nullopt, std::nullopt};
   }
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PLANE) {
-    return brushes::plane::calc_node_mask(depsgraph, ob, brush, memory);
+    return brushes::plane::calc_node_mask(depsgraph, sd.paint, ob, brush, memory);
   }
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLAY_STRIPS) {
     return brushes::clay_strips::calc_node_mask(depsgraph, ob, brush, memory);
@@ -3352,9 +3359,14 @@ static brushes::CursorSampleResult calc_brush_node_mask(const Depsgraph &depsgra
 
     tip_normal = tilt_apply_to_normal(tip_normal, *ss.cache, brush.tilt_strength_factor);
 
+    /* TODO: For brushes that does not support rake, we should allow users to set a starting
+     * rotation. Should be implemented after moving Rake and Rotation settings from the texture
+     * datablock. */
+    const float tip_rotation = bke::brush::tip_rotation_get(sd.paint, brush);
     float4x4 brush_local_mat;
     float4x4 brush_local_mat_inv;
-    calc_brush_local_mat(0, ob, tip_normal, brush_local_mat.ptr(), brush_local_mat_inv.ptr());
+    calc_brush_local_mat(
+        0, tip_rotation, ob, tip_normal, brush_local_mat.ptr(), brush_local_mat_inv.ptr());
 
     std::optional<float3> plane_normal = brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE ?
                                              std::optional{tip_normal} :
@@ -4157,7 +4169,7 @@ static void brush_delta_update(const Depsgraph &depsgraph,
             SCULPT_BRUSH_TYPE_BOUNDARY,
             SCULPT_BRUSH_TYPE_SMEAR,
             SCULPT_BRUSH_TYPE_THUMB) &&
-      !brush_uses_topology_rake(ss, brush))
+      !brush_uses_topology_rake(ss, brush) && !BKE_brush_has_cube_tip(&brush, PaintMode::Sculpt))
   {
     return;
   }
@@ -6457,20 +6469,24 @@ void ensure_cache(Object &object)
 
 }  // namespace islands
 
-float4x4 cube_tip_init(const Sculpt & /*sd*/, const Object &ob, const Brush &brush)
+float4x4 cube_tip_init(const Sculpt &sd, const Object &ob, const Brush &brush)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
   float4x4 unused;
   float4x4 mat;
 
+  /* TODO: For brushes that does not support rake, we should allow users to set a starting
+   * rotation. Should be implemented after moving Rake and Rotation settings from the texture
+   * datablock. */
+  const float tip_rotation = bke::brush::tip_rotation_get(sd.paint, brush);
   calc_brush_local_mat(0.0,
+                       tip_rotation,
                        ob,
                        eBrushFalloffShape(brush.falloff_shape) == PAINT_FALLOFF_SHAPE_SPHERE ?
                            ss.cache->sculpt_normal_symm :
                            ss.cache->view_normal_symm,
                        unused.ptr(),
                        mat.ptr());
-
   /* NOTE: we ignore the radius scaling done inside of calc_brush_local_mat to
    * duplicate prior behavior.
    *
@@ -6801,6 +6817,53 @@ void calc_factors_common_mesh(const Depsgraph &depsgraph,
   calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
 }
 
+void calc_cube_tip_factors_common_mesh_indexed(const Depsgraph &depsgraph,
+                                               const Brush &brush,
+                                               const Object &object,
+                                               const float4x4 &mat,
+                                               const MeshAttributeData &attribute_data,
+                                               Span<float3> vert_positions,
+                                               Span<float3> vert_normals,
+                                               const MutableSpan<float3> local_positions,
+                                               const bke::pbvh::MeshNode &node,
+                                               MutableSpan<float> factors,
+                                               MutableSpan<float> distances)
+{
+  const SculptSession &ss = *object.runtime->sculpt_session;
+  const StrokeCache &cache = *ss.cache;
+
+  const Span<int> verts = node.verts();
+  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
+  filter_region_clip_factors(ss, vert_positions, verts, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
+  }
+
+  calc_local_positions(vert_positions,
+                       verts,
+                       mat,
+                       cache.location_symm,
+                       cache.view_normal_symm,
+                       eBrushFalloffShape(brush.falloff_shape),
+                       local_positions);
+
+  calc_brush_cube_distances<float3>(brush, local_positions, distances);
+
+  /* The radius is already applied to the local positions, so use a radius of 1.0 here. */
+  filter_distances_with_radius(1.0f, distances, factors);
+  apply_hardness_to_distances(1.0f, cache.hardness, distances);
+
+  BKE_brush_calc_curve_factors(eBrushCurvePreset(brush.curve_distance_falloff_preset),
+                               brush.curve_distance_falloff,
+                               distances,
+                               1.0f,
+                               factors);
+
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, vert_positions, verts, factors);
+}
+
 void calc_factors_common_grids(const Depsgraph &depsgraph,
                                const Brush &brush,
                                const Object &object,
@@ -6840,6 +6903,7 @@ void calc_cube_tip_factors_common_grids(const Depsgraph &depsgraph,
                                         const Object &object,
                                         const float4x4 &mat,
                                         Span<float3> positions,
+                                        const MutableSpan<float3> local_positions,
                                         const bke::pbvh::GridsNode &node,
                                         Vector<float> &r_factors,
                                         Vector<float> &r_distances)
@@ -6860,8 +6924,6 @@ void calc_cube_tip_factors_common_grids(const Depsgraph &depsgraph,
   }
 
   /* Calculate local positions. */
-  Vector<float3> local_positions_storage(positions.size());
-  MutableSpan<float3> local_positions = local_positions_storage;
   calc_local_positions(positions,
                        mat,
                        cache.location_symm,
@@ -6926,6 +6988,7 @@ void calc_cube_tip_factors_common_bmesh(const Depsgraph &depsgraph,
                                         const Object &object,
                                         const float4x4 &mat,
                                         Span<float3> positions,
+                                        const MutableSpan<float3> local_positions,
                                         bke::pbvh::BMeshNode &node,
                                         Vector<float> &r_factors,
                                         Vector<float> &r_distances)
@@ -6945,8 +7008,6 @@ void calc_cube_tip_factors_common_bmesh(const Depsgraph &depsgraph,
   }
 
   /* Calculate local positions. */
-  Vector<float3> local_positions_storage(verts.size());
-  MutableSpan<float3> local_positions = local_positions_storage;
   calc_local_positions(positions,
                        mat,
                        cache.location_symm,
@@ -7005,6 +7066,51 @@ void calc_factors_common_from_orig_data_mesh(const Depsgraph &depsgraph,
   calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
 }
 
+void calc_cube_tip_factors_common_from_orig_data_mesh(const Depsgraph &depsgraph,
+                                                      const Brush &brush,
+                                                      const Object &object,
+                                                      const float4x4 &mat,
+                                                      const MeshAttributeData &attribute_data,
+                                                      const Span<float3> positions,
+                                                      const Span<float3> normals,
+                                                      const MutableSpan<float3> local_positions,
+                                                      const bke::pbvh::MeshNode &node,
+                                                      MutableSpan<float> factors,
+                                                      MutableSpan<float> distances)
+{
+  const SculptSession &ss = *object.runtime->sculpt_session;
+  const StrokeCache &cache = *ss.cache;
+
+  const Span<int> verts = node.verts();
+
+  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
+  filter_region_clip_factors(ss, positions, factors);
+
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, normals, factors);
+  }
+
+  calc_local_positions(positions,
+                       mat,
+                       cache.location_symm,
+                       cache.view_normal_symm,
+                       eBrushFalloffShape(brush.falloff_shape),
+                       local_positions);
+
+  calc_brush_cube_distances<float3>(brush, local_positions, distances);
+  filter_distances_with_radius(1.0f, distances, factors);
+  apply_hardness_to_distances(1.0f, cache.hardness, distances);
+  BKE_brush_calc_curve_factors(eBrushCurvePreset(brush.curve_distance_falloff_preset),
+                               brush.curve_distance_falloff,
+                               distances,
+                               1.0f,
+                               factors);
+
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
+}
+
 void calc_factors_common_from_orig_data_grids(const Depsgraph &depsgraph,
                                               const Brush &brush,
                                               const Object &object,
@@ -7040,6 +7146,54 @@ void calc_factors_common_from_orig_data_grids(const Depsgraph &depsgraph,
   calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
 }
 
+void calc_cube_tip_factors_common_from_orig_data_grids(const Depsgraph &depsgraph,
+                                                       const Brush &brush,
+                                                       const Object &object,
+                                                       const float4x4 &mat,
+                                                       const Span<float3> positions,
+                                                       const Span<float3> normals,
+                                                       const MutableSpan<float3> local_positions,
+                                                       const bke::pbvh::GridsNode &node,
+                                                       Vector<float> &r_factors,
+                                                       Vector<float> &r_distances)
+{
+  SculptSession &ss = *object.runtime->sculpt_session;
+  const StrokeCache &cache = *ss.cache;
+  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+
+  const Span<int> grids = node.grids();
+
+  r_factors.resize(positions.size());
+  const MutableSpan<float> factors = r_factors;
+  fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, normals, factors);
+  }
+
+  calc_local_positions(positions,
+                       mat,
+                       cache.location_symm,
+                       cache.view_normal_symm,
+                       eBrushFalloffShape(brush.falloff_shape),
+                       local_positions);
+
+  r_distances.resize(positions.size());
+  const MutableSpan<float> distances = r_distances;
+  calc_brush_cube_distances<float3>(brush, local_positions, distances);
+  filter_distances_with_radius(1.0f, distances, factors);
+  apply_hardness_to_distances(1.0f, cache.hardness, distances);
+  BKE_brush_calc_curve_factors(eBrushCurvePreset(brush.curve_distance_falloff_preset),
+                               brush.curve_distance_falloff,
+                               distances,
+                               1.0f,
+                               factors);
+
+  auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
+
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
+}
+
 void calc_factors_common_from_orig_data_bmesh(const Depsgraph &depsgraph,
                                               const Brush &brush,
                                               const Object &object,
@@ -7068,6 +7222,53 @@ void calc_factors_common_from_orig_data_bmesh(const Depsgraph &depsgraph,
   filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
+
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
+}
+
+void calc_cube_tip_factors_common_from_orig_data_bmesh(const Depsgraph &depsgraph,
+                                                       const Brush &brush,
+                                                       const Object &object,
+                                                       const float4x4 &mat,
+                                                       const Span<float3> positions,
+                                                       const Span<float3> normals,
+                                                       const MutableSpan<float3> local_positions,
+                                                       bke::pbvh::BMeshNode &node,
+                                                       Vector<float> &r_factors,
+                                                       Vector<float> &r_distances)
+{
+  SculptSession &ss = *object.runtime->sculpt_session;
+  const StrokeCache &cache = *ss.cache;
+
+  const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
+
+  r_factors.resize(verts.size());
+  const MutableSpan<float> factors = r_factors;
+  fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, normals, factors);
+  }
+
+  calc_local_positions(positions,
+                       mat,
+                       cache.location_symm,
+                       cache.view_normal_symm,
+                       eBrushFalloffShape(brush.falloff_shape),
+                       local_positions);
+
+  r_distances.resize(verts.size());
+  const MutableSpan<float> distances = r_distances;
+  calc_brush_cube_distances<float3>(brush, local_positions, distances);
+  filter_distances_with_radius(1.0f, distances, factors);
+  apply_hardness_to_distances(1.0f, cache.hardness, distances);
+  BKE_brush_calc_curve_factors(eBrushCurvePreset(brush.curve_distance_falloff_preset),
+                               brush.curve_distance_falloff,
+                               distances,
+                               1.0f,
+                               factors);
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 

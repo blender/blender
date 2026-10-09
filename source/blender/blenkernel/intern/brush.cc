@@ -1954,7 +1954,23 @@ bool supports_normal_radius(const Brush &brush)
 }
 bool supports_tip_roundness(const Brush &brush)
 {
-  return ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_CLAY_STRIPS, SCULPT_BRUSH_TYPE_PAINT);
+  return ELEM(brush.sculpt_brush_type,
+              SCULPT_BRUSH_TYPE_BLOB,
+              SCULPT_BRUSH_TYPE_CLAY,
+              SCULPT_BRUSH_TYPE_CLAY_STRIPS,
+              SCULPT_BRUSH_TYPE_CREASE,
+              SCULPT_BRUSH_TYPE_DRAW,
+              SCULPT_BRUSH_TYPE_DRAW_SHARP,
+              SCULPT_BRUSH_TYPE_GRAB,
+              SCULPT_BRUSH_TYPE_INFLATE,
+              SCULPT_BRUSH_TYPE_LAYER,
+              SCULPT_BRUSH_TYPE_NUDGE,
+              SCULPT_BRUSH_TYPE_PAINT,
+              SCULPT_BRUSH_TYPE_PINCH,
+              SCULPT_BRUSH_TYPE_PLANE,
+              SCULPT_BRUSH_TYPE_SCENE_PROJECT,
+              SCULPT_BRUSH_TYPE_SLIDE_RELAX) ||
+         ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_SMOOTH, SCULPT_BRUSH_TYPE_THUMB);
 }
 bool supports_hardness(const Brush &brush)
 {
@@ -1983,6 +1999,10 @@ bool supports_normal_weight(const Brush &brush)
               SCULPT_BRUSH_TYPE_GRAB,
               SCULPT_BRUSH_TYPE_SNAKE_HOOK,
               SCULPT_BRUSH_TYPE_ELASTIC_DEFORM);
+}
+bool supports_rake(const Brush &brush)
+{
+  return !is_grab_tool(brush);
 }
 bool supports_rake_factor(const Brush &brush)
 {
@@ -2107,6 +2127,10 @@ bool supports_tilt(const Brush &brush)
               SCULPT_BRUSH_TYPE_DRAW_SHARP,
               SCULPT_BRUSH_TYPE_PLANE,
               SCULPT_BRUSH_TYPE_CLAY_STRIPS);
+}
+float tip_rotation_get(const Paint &paint, const Brush &brush)
+{
+  return supports_rake(brush) ? paint.runtime->brush_rotation : 0.0f;
 }
 }  // namespace bke::brush
 
