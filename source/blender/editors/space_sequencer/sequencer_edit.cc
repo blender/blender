@@ -3171,8 +3171,7 @@ static wmOperatorStatus sequencer_offset_clear_exec(bContext *C, wmOperator * /*
     }
 
     if (!strip->is_effect() && (strip->flag & SEQ_SELECT)) {
-      strip->startofs = 0;
-      strip->end_offset_set(0);
+      strip->handles_set(scene, strip->content_start(), strip->content_end(scene));
     }
   }
 
