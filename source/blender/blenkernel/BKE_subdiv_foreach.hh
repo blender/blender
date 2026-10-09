@@ -23,9 +23,6 @@ struct Mesh;
 
 namespace bke::subdiv {
 
-struct ForeachContext;
-struct Subdiv;
-
 /** A location on a ptex face of the limit surface, see #eval_limit_point(). */
 struct PtexCoord {
   int ptex_face_index;
@@ -192,88 +189,6 @@ void fill_face_corner_edge_ptex_coords(const MeshLayout &layout,
                                        int corner,
                                        bool flip,
                                        MutableSpan<PtexCoord> ptex_coords);
-
-using ForeachVertFromCornerCb = void (*)(const ForeachContext *context,
-                                         void *tls,
-                                         int ptex_face_index,
-                                         float u,
-                                         float v,
-                                         int coarse_vert_index,
-                                         int coarse_face_index,
-                                         int coarse_corner,
-                                         int subdiv_vert_index);
-
-using ForeachVertFromEdgeCb = void (*)(const ForeachContext *context,
-                                       void *tls,
-                                       int ptex_face_index,
-                                       float u,
-                                       float v,
-                                       int coarse_edge_index,
-                                       int coarse_face_index,
-                                       int coarse_corner,
-                                       int subdiv_vert_index);
-
-/**
- * \param subdiv_faces_by_base_face: Groups the subdivided faces by the base mesh face they came
- * from (all the subdivided faces for a single base mesh face are contiguous). For more
- * information, see #OffsetIndices.
- */
-using FacesCb = void (*)(const ForeachContext *context,
-                         OffsetIndices<int> subdiv_faces_by_base_face);
-
-struct ForeachContext {
-  /**
-   * These callbacks are called from every ptex which shares "emitting"
-   * vertex or edge.
-   */
-  ForeachVertFromCornerCb vert_every_corner = nullptr;
-  ForeachVertFromEdgeCb vert_every_edge = nullptr;
-  /**
-   * Those callbacks are run once per subdivision vertex, ptex is undefined
-   * as in it will be whatever first ptex face happened to be traversed in
-   * the multi-threaded environment and which shares "emitting" vertex or edge.
-   */
-  ForeachVertFromCornerCb vert_corner = nullptr;
-  ForeachVertFromEdgeCb vert_edge = nullptr;
-
-  /**
-   * Called once for the whole mesh, passing the #OffsetIndices encoding the groups of subdivided
-   * faces corresponding to each base mesh face.
-   */
-  FacesCb faces = nullptr;
-
-  /**
-   * User-defined pointer, to allow callbacks know something about context the
-   * traversal is happening for.
-   */
-  void *user_data = nullptr;
-
-  /** Initial value of TLS data. */
-  void *user_data_tls = nullptr;
-  /** Size of TLS data. */
-  size_t user_data_tls_size = 0;
-  /** Function to free TLS storage. */
-  void (*user_data_tls_free)(void *tls) = nullptr;
-};
-
-/**
- * Invokes callbacks in the order and with values which corresponds to creation
- * of final subdivided mesh.
- *
- * Main goal is to abstract all the traversal routines to give geometry element
- * indices (for vertices, edges, loops, faces) in the same way as subdivision
- * modifier will do for a dense mesh.
- *
- * \param layout: The result of #build_mesh_layout for the base mesh.
- *
- * TODO(@sergey): Need to either get rid of subdiv or of coarse_mesh.
- * The main point here is to be able to get base level topology, which can be
- * done with either of those. Having both of them is kind of redundant.
- */
-void foreach_subdiv_geometry(Subdiv *subdiv,
-                             const ForeachContext *context,
-                             const MeshLayout &layout,
-                             const Mesh *coarse_mesh);
 
 }  // namespace bke::subdiv
 }  // namespace blender

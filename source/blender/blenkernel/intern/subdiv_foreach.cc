@@ -6,18 +6,12 @@
  * \ingroup bke
  */
 
-#include "BLI_bitmap.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_task.hh"
 
-#include "BKE_customdata.hh"
-#include "BKE_subdiv.hh"
 #include "BKE_subdiv_foreach.hh"
-#include "BKE_subdiv_mesh.hh"
 
 #include "DNA_mesh_types.h"
-#include "MEM_guardedalloc.h"
-
-#include "atomic_ops.h"
 
 namespace blender::bke::subdiv {
 
@@ -59,63 +53,16 @@ BLI_INLINE int ptex_face_resolution_get(const IndexRange face, int resolution)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Context which is passed to all threaded tasks
+/** \name Base mesh data used by the traversal of each base face
  * \{ */
 
-struct ForeachTaskContext {
-  const Mesh *coarse_mesh;
+struct TraversalContext {
   Span<int2> coarse_edges;
   OffsetIndices<int> coarse_faces;
   Span<int> coarse_corner_verts;
   Span<int> coarse_corner_edges;
-  /* Callbacks. */
-  const ForeachContext *foreach_context;
   const MeshLayout *layout;
-  /* Indexed by base face index, element indicates total number of ptex faces
-   * created for preceding base faces.
-   */
-  Span<int> face_ptex_offset;
-  /* Bitmap indicating whether vertex was used already or not.
-   * - During patch evaluation indicates whether coarse vertex was already
-   *   evaluated and its position on limit is already known.
-   */
-  BLI_bitmap *coarse_vertices_used_map;
-  /* Bitmap indicating whether edge was used already or not. This includes:
-   * - During context initialization it indicates whether subdivided vertices
-   *   for corresponding edge were already calculated or not.
-   * - During patch evaluation it indicates whether vertices along this edge
-   *   were already evaluated.
-   */
-  BLI_bitmap *coarse_edges_used_map;
 };
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Threading helpers
- * \{ */
-
-static void *subdiv_foreach_tls_alloc(ForeachTaskContext *ctx)
-{
-  const ForeachContext *foreach_context = ctx->foreach_context;
-  void *tls = nullptr;
-  if (foreach_context->user_data_tls_size != 0) {
-    tls = MEM_new_uninitialized(foreach_context->user_data_tls_size, "tls");
-    memcpy(tls, foreach_context->user_data_tls, foreach_context->user_data_tls_size);
-  }
-  return tls;
-}
-
-static void subdiv_foreach_tls_free(ForeachTaskContext *ctx, void *tls)
-{
-  if (tls == nullptr) {
-    return;
-  }
-  if (ctx->foreach_context != nullptr) {
-    ctx->foreach_context->user_data_tls_free(tls);
-  }
-  MEM_delete_void(tls);
-}
 
 /** \} */
 
@@ -180,10 +127,9 @@ MeshLayout build_mesh_layout(const Mesh &coarse_mesh, const int resolution)
   return layout;
 }
 
-static ForeachTaskContext task_context_from_mesh(const Mesh &coarse_mesh, const MeshLayout &layout)
+static TraversalContext context_from_mesh(const Mesh &coarse_mesh, const MeshLayout &layout)
 {
-  ForeachTaskContext ctx = {nullptr};
-  ctx.coarse_mesh = &coarse_mesh;
+  TraversalContext ctx;
   ctx.coarse_edges = coarse_mesh.edges();
   ctx.coarse_faces = coarse_mesh.faces();
   ctx.coarse_corner_verts = coarse_mesh.corner_verts();
@@ -192,332 +138,15 @@ static ForeachTaskContext task_context_from_mesh(const Mesh &coarse_mesh, const 
   return ctx;
 }
 
-static void subdiv_foreach_ctx_init(Subdiv *subdiv, ForeachTaskContext *ctx)
-{
-  const Mesh *coarse_mesh = ctx->coarse_mesh;
-  /* Allocate maps. */
-  ctx->coarse_vertices_used_map = BLI_BITMAP_NEW(coarse_mesh->verts_num, "vertices used map");
-  ctx->coarse_edges_used_map = BLI_BITMAP_NEW(coarse_mesh->edges_num, "edges used map");
-  ctx->face_ptex_offset = face_ptex_offset_get(subdiv);
-}
-
-static void subdiv_foreach_ctx_free(ForeachTaskContext *ctx)
-{
-  MEM_delete(ctx->coarse_vertices_used_map);
-  MEM_delete(ctx->coarse_edges_used_map);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Vertex traversal process
  * \{ */
 
-/* Traversal of corner vertices. They are coming from coarse vertices. */
-
-static void subdiv_foreach_corner_vertices_regular_do(ForeachTaskContext *ctx,
-                                                      void *tls,
-                                                      const int coarse_face_index,
-                                                      ForeachVertFromCornerCb vert_corner,
-                                                      bool check_usage)
-{
-  const float weights[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
-  const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
-  const int ptex_face_index = ctx->face_ptex_offset[coarse_face_index];
-  for (int corner = 0; corner < coarse_face.size(); corner++) {
-    const int coarse_vert = ctx->coarse_corner_verts[coarse_face[corner]];
-    if (check_usage && BLI_BITMAP_TEST_AND_SET_ATOMIC(ctx->coarse_vertices_used_map, coarse_vert))
-    {
-      continue;
-    }
-    const int coarse_vert_index = coarse_vert;
-    const int subdiv_vert_index = coarse_vert_index;
-    const float u = weights[corner][0];
-    const float v = weights[corner][1];
-    vert_corner(ctx->foreach_context,
-                tls,
-                ptex_face_index,
-                u,
-                v,
-                coarse_vert_index,
-                coarse_face_index,
-                0,
-                subdiv_vert_index);
-  }
-}
-
-static void subdiv_foreach_corner_vertices_regular(ForeachTaskContext *ctx,
-                                                   void *tls,
-                                                   const int coarse_face_index)
-{
-  subdiv_foreach_corner_vertices_regular_do(
-      ctx, tls, coarse_face_index, ctx->foreach_context->vert_corner, true);
-}
-
-static void subdiv_foreach_corner_vertices_special_do(ForeachTaskContext *ctx,
-                                                      void *tls,
-                                                      const int coarse_face_index,
-                                                      ForeachVertFromCornerCb vert_corner,
-                                                      bool check_usage)
-{
-  const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
-  int ptex_face_index = ctx->face_ptex_offset[coarse_face_index];
-  for (int corner = 0; corner < coarse_face.size(); corner++, ptex_face_index++) {
-    const int coarse_vert = ctx->coarse_corner_verts[coarse_face[corner]];
-    if (check_usage && BLI_BITMAP_TEST_AND_SET_ATOMIC(ctx->coarse_vertices_used_map, coarse_vert))
-    {
-      continue;
-    }
-    const int coarse_vert_index = coarse_vert;
-    const int subdiv_vert_index = coarse_vert_index;
-    vert_corner(ctx->foreach_context,
-                tls,
-                ptex_face_index,
-                0.0f,
-                0.0f,
-                coarse_vert_index,
-                coarse_face_index,
-                corner,
-                subdiv_vert_index);
-  }
-}
-
-static void subdiv_foreach_corner_vertices_special(ForeachTaskContext *ctx,
-                                                   void *tls,
-                                                   const int coarse_face_index)
-{
-  subdiv_foreach_corner_vertices_special_do(
-      ctx, tls, coarse_face_index, ctx->foreach_context->vert_corner, true);
-}
-
-static void subdiv_foreach_corner_vertices(ForeachTaskContext *ctx,
-                                           void *tls,
-                                           const int coarse_face_index)
-{
-  if (ctx->coarse_faces[coarse_face_index].size() == 4) {
-    subdiv_foreach_corner_vertices_regular(ctx, tls, coarse_face_index);
-  }
-  else {
-    subdiv_foreach_corner_vertices_special(ctx, tls, coarse_face_index);
-  }
-}
-
-static void subdiv_foreach_every_corner_vertices_regular(ForeachTaskContext *ctx,
-                                                         void *tls,
-                                                         const int coarse_face_index)
-{
-  subdiv_foreach_corner_vertices_regular_do(
-      ctx, tls, coarse_face_index, ctx->foreach_context->vert_every_corner, false);
-}
-
-static void subdiv_foreach_every_corner_vertices_special(ForeachTaskContext *ctx,
-                                                         void *tls,
-                                                         const int coarse_face_index)
-{
-  subdiv_foreach_corner_vertices_special_do(
-      ctx, tls, coarse_face_index, ctx->foreach_context->vert_every_corner, false);
-}
-
-static void subdiv_foreach_every_corner_vertices(ForeachTaskContext *ctx, void *tls)
-{
-  if (ctx->foreach_context->vert_every_corner == nullptr) {
-    return;
-  }
-  const Mesh *coarse_mesh = ctx->coarse_mesh;
-  for (int face_index = 0; face_index < coarse_mesh->faces_num; face_index++) {
-    if (ctx->coarse_faces[face_index].size() == 4) {
-      subdiv_foreach_every_corner_vertices_regular(ctx, tls, face_index);
-    }
-    else {
-      subdiv_foreach_every_corner_vertices_special(ctx, tls, face_index);
-    }
-  }
-}
-
-/* Traverse of edge vertices. They are coming from coarse edges. */
-
-static void subdiv_foreach_edge_vertices_regular_do(ForeachTaskContext *ctx,
-                                                    void *tls,
-                                                    const int coarse_face_index,
-                                                    ForeachVertFromEdgeCb vert_edge,
-                                                    bool check_usage)
-{
-  const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
-  const int resolution = ctx->layout->resolution;
-  const int resolution_1 = resolution - 1;
-  const float inv_resolution_1 = 1.0f / float(resolution_1);
-  const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
-  const int ptex_face_index = ctx->face_ptex_offset[coarse_face_index];
-  for (int corner = 0; corner < coarse_face.size(); corner++) {
-    const int coarse_vert = ctx->coarse_corner_verts[coarse_face[corner]];
-    const int coarse_edge_index = ctx->coarse_corner_edges[coarse_face[corner]];
-    if (check_usage &&
-        BLI_BITMAP_TEST_AND_SET_ATOMIC(ctx->coarse_edges_used_map, coarse_edge_index))
-    {
-      continue;
-    }
-    const int2 &coarse_edge = ctx->coarse_edges[coarse_edge_index];
-    const bool flip = (coarse_edge[1] == coarse_vert);
-    int subdiv_vert_index = ctx->layout->edge_verts_start +
-                            coarse_edge_index * num_subdiv_vertices_per_coarse_edge;
-    for (int vert_index = 0; vert_index < num_subdiv_vertices_per_coarse_edge;
-         vert_index++, subdiv_vert_index++)
-    {
-      float fac = (vert_index + 1) * inv_resolution_1;
-      if (flip) {
-        fac = 1.0f - fac;
-      }
-      if (corner >= 2) {
-        fac = 1.0f - fac;
-      }
-      float u, v;
-      if ((corner & 1) == 0) {
-        u = fac;
-        v = (corner == 2) ? 1.0f : 0.0f;
-      }
-      else {
-        u = (corner == 1) ? 1.0f : 0.0f;
-        v = fac;
-      }
-      vert_edge(ctx->foreach_context,
-                tls,
-                ptex_face_index,
-                u,
-                v,
-                coarse_edge_index,
-                coarse_face_index,
-                0,
-                subdiv_vert_index);
-    }
-  }
-}
-
-static void subdiv_foreach_edge_vertices_regular(ForeachTaskContext *ctx,
-                                                 void *tls,
-                                                 const int coarse_face_index)
-{
-  subdiv_foreach_edge_vertices_regular_do(
-      ctx, tls, coarse_face_index, ctx->foreach_context->vert_edge, true);
-}
-
-static void subdiv_foreach_edge_vertices_special_do(ForeachTaskContext *ctx,
-                                                    void *tls,
-                                                    const int coarse_face_index,
-                                                    ForeachVertFromEdgeCb vert_edge,
-                                                    bool check_usage)
-{
-  const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
-  const int resolution = ctx->layout->resolution;
-  const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
-  const int num_vertices_per_ptex_edge = ((resolution >> 1) + 1);
-  const float inv_ptex_resolution_1 = 1.0f / float(num_vertices_per_ptex_edge - 1);
-  const int ptex_face_start_index = ctx->face_ptex_offset[coarse_face_index];
-  int ptex_face_index = ptex_face_start_index;
-  for (int corner = 0; corner < coarse_face.size(); corner++, ptex_face_index++) {
-    const int coarse_vert = ctx->coarse_corner_verts[coarse_face[corner]];
-    const int coarse_edge_index = ctx->coarse_corner_edges[coarse_face[corner]];
-    if (check_usage &&
-        BLI_BITMAP_TEST_AND_SET_ATOMIC(ctx->coarse_edges_used_map, coarse_edge_index))
-    {
-      continue;
-    }
-    const int2 &coarse_edge = ctx->coarse_edges[coarse_edge_index];
-    const bool flip = (coarse_edge[1] == coarse_vert);
-    int subdiv_vert_index = ctx->layout->edge_verts_start +
-                            coarse_edge_index * num_subdiv_vertices_per_coarse_edge;
-    int vert_delta = 1;
-    if (flip) {
-      subdiv_vert_index += num_subdiv_vertices_per_coarse_edge - 1;
-      vert_delta = -1;
-    }
-    for (int vert_index = 1; vert_index < num_vertices_per_ptex_edge;
-         vert_index++, subdiv_vert_index += vert_delta)
-    {
-      const float u = vert_index * inv_ptex_resolution_1;
-      vert_edge(ctx->foreach_context,
-                tls,
-                ptex_face_index,
-                u,
-                0.0f,
-                coarse_edge_index,
-                coarse_face_index,
-                corner,
-                subdiv_vert_index);
-    }
-    const int next_corner = (corner + 1) % coarse_face.size();
-    const int next_ptex_face_index = ptex_face_start_index + next_corner;
-    for (int vert_index = 1; vert_index < num_vertices_per_ptex_edge - 1;
-         vert_index++, subdiv_vert_index += vert_delta)
-    {
-      const float v = 1.0f - vert_index * inv_ptex_resolution_1;
-      vert_edge(ctx->foreach_context,
-                tls,
-                next_ptex_face_index,
-                0.0f,
-                v,
-                coarse_edge_index,
-                coarse_face_index,
-                next_corner,
-                subdiv_vert_index);
-    }
-  }
-}
-
-static void subdiv_foreach_edge_vertices_special(ForeachTaskContext *ctx,
-                                                 void *tls,
-                                                 const int coarse_face_index)
-{
-  subdiv_foreach_edge_vertices_special_do(
-      ctx, tls, coarse_face_index, ctx->foreach_context->vert_edge, true);
-}
-
-static void subdiv_foreach_edge_vertices(ForeachTaskContext *ctx,
-                                         void *tls,
-                                         const int coarse_face_index)
-{
-  if (ctx->coarse_faces[coarse_face_index].size() == 4) {
-    subdiv_foreach_edge_vertices_regular(ctx, tls, coarse_face_index);
-  }
-  else {
-    subdiv_foreach_edge_vertices_special(ctx, tls, coarse_face_index);
-  }
-}
-
-static void subdiv_foreach_every_edge_vertices_regular(ForeachTaskContext *ctx,
-                                                       void *tls,
-                                                       const int coarse_face_index)
-{
-  subdiv_foreach_edge_vertices_regular_do(
-      ctx, tls, coarse_face_index, ctx->foreach_context->vert_every_edge, false);
-}
-
-static void subdiv_foreach_every_edge_vertices_special(ForeachTaskContext *ctx,
-                                                       void *tls,
-                                                       const int coarse_face_index)
-{
-  subdiv_foreach_edge_vertices_special_do(
-      ctx, tls, coarse_face_index, ctx->foreach_context->vert_every_edge, false);
-}
-
-static void subdiv_foreach_every_edge_vertices(ForeachTaskContext *ctx, void *tls)
-{
-  if (ctx->foreach_context->vert_every_edge == nullptr) {
-    return;
-  }
-  const Mesh *coarse_mesh = ctx->coarse_mesh;
-  for (int face_index = 0; face_index < coarse_mesh->faces_num; face_index++) {
-    if (ctx->coarse_faces[face_index].size() == 4) {
-      subdiv_foreach_every_edge_vertices_regular(ctx, tls, face_index);
-    }
-    else {
-      subdiv_foreach_every_edge_vertices_special(ctx, tls, face_index);
-    }
-  }
-}
-
 /* Traversal of inner vertices, they are coming from ptex patches. */
 
-static void subdiv_foreach_inner_vertices_regular(const ForeachTaskContext *ctx,
+static void subdiv_foreach_inner_vertices_regular(const TraversalContext *ctx,
                                                   const int ptex_face_index,
                                                   MutableSpan<PtexCoord> ptex_coords)
 {
@@ -533,7 +162,7 @@ static void subdiv_foreach_inner_vertices_regular(const ForeachTaskContext *ctx,
   }
 }
 
-static void subdiv_foreach_inner_vertices_special(const ForeachTaskContext *ctx,
+static void subdiv_foreach_inner_vertices_special(const TraversalContext *ctx,
                                                   const int coarse_face_index,
                                                   int ptex_face_index,
                                                   MutableSpan<PtexCoord> ptex_coords)
@@ -637,7 +266,7 @@ void fill_inner_vert_ptex_coords(const MeshLayout &layout,
                                  const IndexRange base_faces,
                                  MutableSpan<PtexCoord> vert_ptex_coords)
 {
-  const ForeachTaskContext ctx = task_context_from_mesh(base_mesh, layout);
+  const TraversalContext ctx = context_from_mesh(base_mesh, layout);
   const OffsetIndices<int> inner_verts_by_face = layout.inner_verts_by_face();
   const IndexRange chunk_verts = inner_verts_by_face[base_faces];
   BLI_assert(vert_ptex_coords.size() == chunk_verts.size());
@@ -711,7 +340,7 @@ static int subdiv_foreach_edges_column(MutableSpan<int2> edges,
  * This is illustrate which parts of geometry is created by code below.
  */
 
-static void subdiv_foreach_edges_all_patches_regular(const ForeachTaskContext *ctx,
+static void subdiv_foreach_edges_all_patches_regular(const TraversalContext *ctx,
                                                      const int coarse_face_index,
                                                      MutableSpan<int2> edges)
 {
@@ -779,7 +408,7 @@ static void subdiv_foreach_edges_all_patches_regular(const ForeachTaskContext *c
   }
 }
 
-static void subdiv_foreach_edges_all_patches_special(const ForeachTaskContext *ctx,
+static void subdiv_foreach_edges_all_patches_special(const TraversalContext *ctx,
                                                      const int coarse_face_index,
                                                      MutableSpan<int2> edges)
 {
@@ -911,7 +540,7 @@ void fill_base_edge_edges(const MeshLayout &layout,
 
 void fill_inner_edges(const MeshLayout &layout, const Mesh &base_mesh, MutableSpan<int2> edges)
 {
-  const ForeachTaskContext ctx = task_context_from_mesh(base_mesh, layout);
+  const TraversalContext ctx = context_from_mesh(base_mesh, layout);
   const OffsetIndices<int> inner_edges_by_face = layout.inner_edges_by_face();
   BLI_assert(edges.size() == inner_edges_by_face.total_size());
   threading::parallel_for(
@@ -1016,7 +645,7 @@ static int subdiv_foreach_loops_corner_index(const float u,
   return 3;
 }
 
-static void subdiv_foreach_loops_regular(const ForeachTaskContext *ctx,
+static void subdiv_foreach_loops_regular(const TraversalContext *ctx,
                                          const int coarse_face_index,
                                          const int ptex_face_index,
                                          const FaceCornerOutputs &out)
@@ -1203,7 +832,7 @@ static void subdiv_foreach_loops_regular(const ForeachTaskContext *ctx,
   }
 }
 
-static void subdiv_foreach_loops_special(const ForeachTaskContext *ctx,
+static void subdiv_foreach_loops_special(const TraversalContext *ctx,
                                          const int coarse_face_index,
                                          const int ptex_face_index,
                                          const FaceCornerOutputs &out)
@@ -1525,7 +1154,7 @@ static void subdiv_foreach_loops_special(const ForeachTaskContext *ctx,
   }
 }
 
-static void subdiv_foreach_loops(const ForeachTaskContext *ctx,
+static void subdiv_foreach_loops(const TraversalContext *ctx,
                                  const int face_index,
                                  const int ptex_face_index,
                                  const FaceCornerOutputs &out)
@@ -1544,7 +1173,7 @@ void fill_corner_verts_and_edges(const MeshLayout &layout,
                                  MutableSpan<int> corner_verts,
                                  MutableSpan<int> corner_edges)
 {
-  const ForeachTaskContext ctx = task_context_from_mesh(base_mesh, layout);
+  const TraversalContext ctx = context_from_mesh(base_mesh, layout);
   const IndexRange chunk_corners = layout.base_face_corners(base_faces);
   BLI_assert(corner_verts.is_empty() || corner_verts.size() == chunk_corners.size());
   BLI_assert(corner_edges.is_empty() || corner_edges.size() == chunk_corners.size());
@@ -1571,7 +1200,7 @@ void fill_corner_ptex_coords(const MeshLayout &layout,
                              MutableSpan<PtexCoord> corner_ptex_coords,
                              MutableSpan<int> face_base_corners)
 {
-  const ForeachTaskContext ctx = task_context_from_mesh(base_mesh, layout);
+  const TraversalContext ctx = context_from_mesh(base_mesh, layout);
   const OffsetIndices<int> faces_by_base_face = layout.faces_by_base_face();
   const IndexRange chunk_faces = faces_by_base_face[base_faces];
   const IndexRange chunk_corners = layout.base_face_corners(base_faces);
@@ -1591,57 +1220,6 @@ void fill_corner_ptex_coords(const MeshLayout &layout,
       subdiv_foreach_loops(&ctx, face, face_ptex_offset[face], out);
     }
   });
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Subdivision process entry points
- * \{ */
-
-static void subdiv_foreach_single_geometry_vertices(ForeachTaskContext *ctx, void *tls)
-{
-  if (ctx->foreach_context->vert_corner == nullptr) {
-    return;
-  }
-  const Mesh *coarse_mesh = ctx->coarse_mesh;
-  for (int face_index = 0; face_index < coarse_mesh->faces_num; face_index++) {
-    subdiv_foreach_corner_vertices(ctx, tls, face_index);
-    subdiv_foreach_edge_vertices(ctx, tls, face_index);
-  }
-}
-
-static void subdiv_foreach_single_thread_tasks(ForeachTaskContext *ctx)
-{
-  /* NOTE: In theory, we can try to skip allocation of TLS here, but in
-   * practice if the callbacks used here are not specified then TLS will not
-   * be requested anyway. */
-  void *tls = subdiv_foreach_tls_alloc(ctx);
-  /* Passes to average displacement on the corner vertices
-   * and boundary edges. */
-  subdiv_foreach_every_corner_vertices(ctx, tls);
-  subdiv_foreach_every_edge_vertices(ctx, tls);
-  /* Run callbacks which are supposed to be run once per shared geometry. */
-  subdiv_foreach_single_geometry_vertices(ctx, tls);
-  subdiv_foreach_tls_free(ctx, tls);
-}
-
-void foreach_subdiv_geometry(Subdiv *subdiv,
-                             const ForeachContext *context,
-                             const MeshLayout &layout,
-                             const Mesh *coarse_mesh)
-{
-  ForeachTaskContext ctx = task_context_from_mesh(*coarse_mesh, layout);
-  ctx.foreach_context = context;
-  subdiv_foreach_ctx_init(subdiv, &ctx);
-  /* Run all the code which is not supposed to be run from threads. */
-  subdiv_foreach_single_thread_tasks(&ctx);
-
-  if (context->faces) {
-    context->faces(context, OffsetIndices<int>(layout.face_offsets));
-  }
-
-  subdiv_foreach_ctx_free(&ctx);
 }
 
 /** \} */

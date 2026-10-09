@@ -760,7 +760,7 @@ BLI_INLINE const GridCoord *reshape_subdiv_refine_vert_grid_coord(const Vertex *
 {
   if (vert->grid_coords.is_empty()) {
     /* This is a loose vertex, the coordinate is not important. */
-    /* TODO(sergey): Once the subdiv_foreach() supports properly ignoring loose elements this
+    /* TODO(sergey): Once loose elements are excluded from the topology at the reshape level this
      * should become an assert instead. */
     return nullptr;
   }
