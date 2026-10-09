@@ -8,6 +8,12 @@ else()
   set(LLVM_TARGETS X86)
 endif()
 
+if (UNIX AND (NOT CMAKE_CROSSCOMPILING))
+  # When not cross-compiling, build for both x86 and arm64 to accomodate for any ISPC target architecture,
+  # which will then be used during cross-compilation (only supported on macOS/Linux at the moment).
+  set(LLVM_TARGETS AArch64$<SEMICOLON>ARM$<SEMICOLON>X86)
+endif()
+
 if(UNIX AND NOT APPLE)
   # Make llvm's pkgconfig pick up our static xml2 lib
   set(LLVM_XML2_ARGS

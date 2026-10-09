@@ -30,19 +30,17 @@ if(WIN32)
   else()
     list(APPEND ISPC_EXTRA_ARGS -DARM_ENABLED=OFF)
   endif()
-elseif("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
+elseif(APPLE)
   # Use bison and flex installed via Homebrew.
   # The ones that come with Xcode toolset are too old.
   list(APPEND ISPC_EXTRA_ARGS
     -DBISON_EXECUTABLE=/opt/homebrew/opt/bison/bin/bison
     -DFLEX_EXECUTABLE=/opt/homebrew/opt/flex/bin/flex
-    -DARM_ENABLED=ON
   )
 elseif(UNIX)
   list(APPEND ISPC_EXTRA_ARGS
     -DCMAKE_C_COMPILER=gcc
     -DCMAKE_CXX_COMPILER=g++
-    -DARM_ENABLED=${BLENDER_PLATFORM_ARM}
     -DFLEX_EXECUTABLE=${LIBDIR}/flex/bin/flex
   )
 endif()
@@ -64,6 +62,13 @@ if(UNIX)
     -DISPC_IOS_TARGET=OFF
     -DISPC_ANDROID_TARGET=OFF
     -DISPC_PS_TARGET=OFF
+  )
+
+  # No matter the host, always enable both arm64 and x86 arch target to support for building for
+  # any Android (or other target system) ABIs.
+  list(APPEND ISPC_EXTRA_ARGS
+    -DARM_ENABLED=ON
+    -DX86_ENABLED=ON
   )
 
   # The host target is always required, as it is used for regular non cross-compiled deps builds.
