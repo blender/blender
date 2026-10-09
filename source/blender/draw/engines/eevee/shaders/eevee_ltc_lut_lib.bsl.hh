@@ -11,25 +11,51 @@
 
 namespace eevee {
 
-namespace detail {
+namespace ltc {
+
+struct CoordParam {
+  float roughness;
+  float cos_theta;
+};
 
 /**
- * Given BxDF parameters, return UV coordinates for sampling of the isotropic LTC LUT.
+ * Given UV coordintes of an isotropic LTC LUT, return BxDF parameters.
  */
-float2 get_isotropic_coords(float cos_theta, float roughness)
+CoordParam from_isotropic_coords(const float2 coords)
 {
-  return float2(roughness, sqrt(saturate(1.0f - cos_theta)));
+  const float roughness = coords.x;
+  /* `sqrt(1 - cos(theta))` is very close to `theta`, this parametrization avoids computing
+   * `acos()` at runtime. */
+  const float cos_theta = 1.0f - square(coords.y);
+  return {.roughness = roughness, .cos_theta = cos_theta};
 }
 
 /**
- * Given 4 isotropic LTC LUT values, unpack a 3x3 matrix normalized by its central component.
+ * Given BxDF parameters, return UV coordinates for sampling of an isotropic LTC LUT.
  */
-float3x3 unpack_isotropic_matrix(float4 v)
+float2 to_isotropic_coords(const CoordParam param)
+{
+  return float2(param.roughness, sqrt(saturate(1.0f - param.cos_theta)));
+}
+
+/**
+ * Given the LTC transformation matrix of an isotropic BxDF, pack its components into a float4,
+ * normalized by its central component.
+ */
+float4 pack_isotropic_matrix(const float3x3 &m)
+{
+  return float4(m[0].x, m[0].z, m[2].x, m[2].z) / m[1].y;
+}
+
+/**
+ * Given the packed 4 components of an LTC transformation matrix, retrieve the original matrix.
+ */
+float3x3 unpack_isotropic_matrix(const float4 v)
 {
   return float3x3(float3(v.x, 0, v.y), float3(0, 1, 0), float3(v.z, 0, v.w));
 }
 
-}  // namespace detail
+}  // namespace ltc
 
 /**
  * Unpacked output and secondary data from the isotropic GGX LTC LUT.
@@ -96,12 +122,13 @@ struct LTCData {
                             const float roughness,
                             const int layer)
   {
-    /* Sample 4 components from isotropic LTC LUT. */
-    const float2 coords = detail::get_isotropic_coords(cos_theta, roughness);
+    /* Sample 4 components from an isotropic LTC LUT. */
+    const ltc::CoordParam param = {.roughness = roughness, .cos_theta = cos_theta};
+    const float2 coords = ltc::to_isotropic_coords(param);
     const float4 lut_packed = util_tx.sample_lut(coords, layer);
 
     /* Expand components to full inverse LTC matrix. */
-    float3x3 Minv = detail::unpack_isotropic_matrix(lut_packed);
+    float3x3 Minv = ltc::unpack_isotropic_matrix(lut_packed);
 
     /* Rotate into orthonormal basis around N. */
     const float3x3 T = from_incident_vector(N, V);
