@@ -342,7 +342,7 @@ void comp_main([[global_invocation_id]] const uint3 global_id, [[resource_table]
 
   /* Make sure missing cases are noticeable. */
   float4 result = float4(-1);
-  switch (uint(lut.type)) {
+  switch (PrecomputeType(lut.type)) {
     case LUT_GGX_BRDF_SPLIT_SUM:
       result = integrate(GGXBrdfClosure::from_coords(lut_normalized_coordinate));
       break;
