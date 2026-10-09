@@ -21,6 +21,33 @@ namespace blender::bke {
 
 using mf::DataType;
 
+void DataTypeConversions::add(mf::DataType from_type,
+                              mf::DataType to_type,
+                              const mf::MultiFunction &fn,
+                              void (*convert_single_to_initialized)(const void *src, void *dst),
+                              void (*convert_single_to_uninitialized)(const void *src, void *dst))
+{
+  /* Other data types are not used yet but might be supported in the future. */
+  BLI_assert(from_type.is_single());
+  BLI_assert(to_type.is_single());
+
+  conversions_storage_.append(std::make_unique<ConversionFunctions>(
+      ConversionFunctions{&fn, convert_single_to_initialized, convert_single_to_uninitialized}));
+  ConversionFunctions *fns = conversions_storage_.last().get();
+
+  const int from_index = from_type.single_type().type_index;
+  const int to_index = to_type.single_type().type_index;
+  if (from_index >= conversions_by_type_index_.size()) {
+    conversions_by_type_index_.resize(from_index + 1);
+  }
+  Vector<ConversionFunctions *> &to_fns = conversions_by_type_index_[from_index];
+  if (to_index >= to_fns.size()) {
+    to_fns.resize(to_index + 1, nullptr);
+  }
+  BLI_assert(to_fns[to_index] == nullptr);
+  to_fns[to_index] = fns;
+}
+
 template<typename From, typename To, To (*ConversionF)(const From &)>
 static void add_implicit_conversion(DataTypeConversions &conversions)
 {
