@@ -899,7 +899,8 @@ static void rna_uiTemplateFilePath(Layout *layout,
                                    const char *text,
                                    const char *text_ctxt,
                                    bool translate,
-                                   const char *placeholder)
+                                   const char *placeholder,
+                                   const bool split_name)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -918,8 +919,15 @@ static void rna_uiTemplateFilePath(Layout *layout,
     placeholder_final = rna_translate_ui_text(placeholder, text_ctxt, nullptr, prop, translate);
   }
 
-  template_filepath(
-      layout, C, ptr, propname, pathselect_op, filter_glob, text_final, placeholder_final);
+  template_filepath(layout,
+                    C,
+                    ptr,
+                    propname,
+                    pathselect_op,
+                    filter_glob,
+                    text_final,
+                    placeholder_final,
+                    split_name);
 }
 
 void rna_template_list(Layout *layout,
@@ -2201,6 +2209,12 @@ void RNA_api_ui_layout(StructRNA *srna)
                         "",
                         "Placeholder text to display in the text widget when no path is set");
   RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
+  RNA_def_boolean(func,
+                  "split_name",
+                  false,
+                  "",
+                  "Edit the parent directory and the file or directory name in separate text "
+                  "widgets");
 
   func = RNA_def_function(srna, "template_path_builder", "rna_uiTemplatePathBuilder");
   parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");
