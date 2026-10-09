@@ -736,25 +736,19 @@ static std::tuple<int, int, float> preview_image_scaled_dimensions_get(const int
 
 static void file_add_preview_drag_but(const SpaceFile *sfile,
                                       ui::Block *block,
-                                      FileLayout *layout,
                                       const FileDirEntry *file,
                                       const char *path,
                                       const rcti *tile_draw_rect,
                                       const int file_type_icon)
 {
   /* Invisible button for dragging. */
-  rcti drag_rect = *tile_draw_rect;
-  /* A bit smaller than the full tile, to increase the gap between items that users can drag from
-   * for box select. */
-  BLI_rcti_pad(&drag_rect, -layout->tile_border_x, -layout->tile_border_y);
-
   ui::Button *but = uiDefBut(block,
                              ui::ButtonType::Label,
                              "",
-                             drag_rect.xmin,
-                             drag_rect.ymin,
-                             BLI_rcti_size_x(&drag_rect),
-                             BLI_rcti_size_y(&drag_rect),
+                             tile_draw_rect->xmin,
+                             tile_draw_rect->ymin,
+                             BLI_rcti_size_x(tile_draw_rect),
+                             BLI_rcti_size_y(tile_draw_rect),
                              nullptr,
                              0.0,
                              0.0,
@@ -1589,8 +1583,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                                 file_selflag);
 
       if (do_drag) {
-        file_add_preview_drag_but(
-            sfile, block, layout, file, path, &tile_draw_rect, file_type_icon);
+        file_add_preview_drag_but(sfile, block, file, path, &tile_draw_rect, file_type_icon);
       }
 
       if (is_highlighted && file->asset && file->asset->needs_download()) {
