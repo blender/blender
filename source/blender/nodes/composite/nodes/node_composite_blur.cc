@@ -12,9 +12,9 @@
 
 #include "GPU_shader.hh"
 
+#include "COM_algorithm_downsampled_gaussian_blur.hh"
 #include "COM_algorithm_pad.hh"
 #include "COM_algorithm_parallel_reduction.hh"
-#include "COM_algorithm_recursive_gaussian_blur.hh"
 #include "COM_algorithm_symmetric_separable_blur.hh"
 #include "COM_node_operation.hh"
 #include "COM_symmetric_blur_weights.hh"
@@ -34,8 +34,7 @@ static const EnumPropertyItem type_items[] = {
      "FAST_GAUSS",
      0,
      N_("Fast Gaussian"),
-     N_("Applies a recursive Gaussian blur that can be faster and more accurate in some cases, "
-        "but less accurate in other cases")},
+     N_("Applies a Gaussian blur using downsampling for large radii")},
     {CMP_NODE_BLUR_TYPE_CATROM,
      "CATROM",
      0,
@@ -68,7 +67,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Menu>("Type"_ustr)
-      .default_value(CMP_NODE_BLUR_TYPE_GAUSS)
+      .default_value(CMP_NODE_BLUR_TYPE_FAST_GAUSS)
       .static_items(type_items)
       .optional_label();
   b.add_input<decl::Bool>("Extend Bounds"_ustr).default_value(false);
@@ -133,7 +132,7 @@ class BlurOperation : public NodeOperation {
     }
 
     if (this->get_type() == CMP_NODE_BLUR_TYPE_FAST_GAUSS) {
-      recursive_gaussian_blur(
+      downsampled_gaussian_blur(
           this->context(), input, output, this->get_blur_size(), this->get_extend_bounds());
     }
     else if (use_separable_filter()) {
