@@ -46,8 +46,8 @@ static void node_shader_init_vect_transform(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeShaderVectTransform *vect = MEM_new<NodeShaderVectTransform>("NodeShaderVectTransform");
 
-  /* Convert World into Object Space per default */
-  vect->convert_to = 1;
+  /* Convert World into Object Space per default. */
+  vect->convert_to = SHD_VECT_TRANSFORM_SPACE_OBJECT;
 
   node->storage = vect;
 }

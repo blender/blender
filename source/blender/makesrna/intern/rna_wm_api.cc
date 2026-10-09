@@ -881,9 +881,14 @@ static void rna_asset_library_status_ping_loaded_new_preview(bContext *C,
 }
 
 static void rna_asset_library_status_ping_asset_file_progress(const char *absolute_file_url,
-                                                              const int size_written)
+                                                              const int size_written_high,
+                                                              const int size_written_low)
 {
-  RemoteLibraryLoadingStatus::ping_asset_file_progress(absolute_file_url, size_written);
+  /* This splitting & merging of the size-in-bytes into 32-bit integers is just a temporary
+   * workaround for RNA's limitation on ints. Once that's been lifted, and the size in bytes can be
+   * passed directly as 64-bit int, this function should be updated for that. */
+  const int64_t size_in_bytes = (size_written_high << 31) + size_written_low;
+  RemoteLibraryLoadingStatus::ping_asset_file_progress(absolute_file_url, size_in_bytes);
 }
 
 static void rna_asset_library_status_ping_asset_file_succeeded(bContext *C,
@@ -1828,16 +1833,27 @@ void RNA_api_asset_library_loading_status(StructRNA *srna)
                         "URL",
                         "The absolute URL this file was downloaded from");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_int(
-      func,
-      "size_written",
-      0,
-      0,
-      INT_MAX,
-      "Size Written to Disk",
-      "The number of bytes written to disk after uncompressing the download data, if needed",
-      0,
-      0);
+  parm = RNA_def_int(func,
+                     "size_written_high",
+                     0,
+                     0,
+                     INT_MAX,
+                     "Size Written to Disk (high bits)",
+                     "The high 31 bits of the number of bytes written to disk (after "
+                     "uncompressing the download data, if needed)",
+                     0,
+                     0);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_int(func,
+                     "size_written_low",
+                     0,
+                     0,
+                     INT_MAX,
+                     "Size Written to Disk (low bits)",
+                     "The low 31 bits of the number of bytes written to disk (after "
+                     "uncompressing the download data, if needed)",
+                     0,
+                     0);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna,

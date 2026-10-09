@@ -208,7 +208,8 @@ static void node_rna(StructRNA *srna)
                     "Primary Axis",
                     "Axis that is aligned exactly to the provided primary direction",
                     axis_items,
-                    NOD_inline_enum_accessors(custom1));
+                    NOD_inline_enum_accessors(custom1),
+                    int(math::Axis::Z));
   RNA_def_node_enum(
       srna,
       "secondary_axis",

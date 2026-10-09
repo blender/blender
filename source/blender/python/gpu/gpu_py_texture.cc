@@ -18,9 +18,11 @@
 
 #include "DNA_image_types.h"
 
+#include "GPU_capabilities.hh"
 #include "GPU_context.hh"
 #include "GPU_texture.hh"
 
+#include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_image_gpu.hh"
 
@@ -177,6 +179,67 @@ static int pygpu_texture_valid_check(BPyGPUTexture *bpygpu_tex)
   "   :param extend_mode: the specified extent mode.\n" \
   "   :type extend_mode: Literal['EXTEND', 'REPEAT', 'MIRRORED_REPEAT', 'CLAMP_TO_BORDER']\n";
 
+/**
+ * Safe-guard against the reported 2D/3D texture size limits.
+ *
+ * Passing this check does not guarantee the texture can be created. Other limits and available
+ * memory also apply. Failing the check means the request is definitely out of range for this
+ * device.
+ *
+ * \return true when the requested size is within limits. Otherwise false, with a message
+ * written to \a err_out.
+ */
+static bool pygpu_texture_size_check(const int size[3],
+                                     const int len,
+                                     const bool is_cubemap,
+                                     char *err_out,
+                                     const size_t err_out_size)
+{
+  const bool is_3d = (len == 3);
+  const int limit = is_3d ? GPU_max_texture_3d_size() : GPU_max_texture_size();
+  /* Cubemaps are created from a single dimension (the face size). */
+  const int dims = is_cubemap ? 1 : len;
+
+  for (int i = 0; i < dims; i++) {
+    if (size[i] <= limit) {
+      continue;
+    }
+    if (is_3d) {
+      BLI_snprintf_utf8(err_out,
+                        err_out_size,
+                        "3D texture of size %dx%dx%d exceeds the GPU limit of %d per axis",
+                        size[0],
+                        size[1],
+                        size[2],
+                        limit);
+    }
+    else if (is_cubemap) {
+      BLI_snprintf_utf8(err_out,
+                        err_out_size,
+                        "Cubemap of face size %d exceeds the GPU limit of %d",
+                        size[0],
+                        limit);
+    }
+    else if (len == 2) {
+      BLI_snprintf_utf8(err_out,
+                        err_out_size,
+                        "2D texture of size %dx%d exceeds the GPU limit of %d",
+                        size[0],
+                        size[1],
+                        limit);
+    }
+    else {
+      BLI_snprintf_utf8(err_out,
+                        err_out_size,
+                        "1D texture of size %d exceeds the GPU limit of %d",
+                        size[0],
+                        limit);
+    }
+    return false;
+  }
+  return true;
+}
+
 static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -189,7 +252,11 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
                                         int(gpu::TextureFormat::UNORM_8_8_8_8)};
   BPyGPUBuffer *pybuffer_obj = nullptr;
   PyC_TypeOrNone pybuffer_or_none = PyC_TYPE_OR_NONE_INIT(&BPyGPU_BufferType, &pybuffer_obj);
-  char err_out[256] = "unknown error. See console";
+  char err_out[256];
+  STRNCPY_UTF8(err_out,
+               (G.debug & G_DEBUG_GPU) ?
+                   "the driver could not create this texture; see the console for details" :
+                   "the driver could not create this texture; run with --debug-gpu for details");
 
   static const char *_keywords[] = {"size", "layers", "is_cubemap", "format", "data", nullptr};
   static _PyArg_Parser _parser = {
@@ -276,18 +343,19 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
 
   gpu::Texture *tex = nullptr;
   if (is_cubemap && len != 1) {
-    STRNCPY_UTF8(
-        err_out,
-        "In cubemaps the same dimension represents height, width and depth. No tuple needed");
+    STRNCPY_UTF8(err_out, "Cubemaps use a single dimension, not a tuple");
   }
   else if (size[0] < 1 || size[1] < 1 || size[2] < 1) {
-    STRNCPY_UTF8(err_out, "Values less than 1 are not allowed in dimensions");
+    STRNCPY_UTF8(err_out, "Texture dimensions must be at least 1");
   }
   else if (layers && len == 3) {
-    STRNCPY_UTF8(err_out, "3D textures have no layers");
+    STRNCPY_UTF8(err_out, "3D textures do not support layers");
   }
   else if (!GPU_context_active_get()) {
     STRNCPY_UTF8(err_out, "No active GPU context found");
+  }
+  else if (!pygpu_texture_size_check(size, len, is_cubemap, err_out, sizeof(err_out))) {
+    /* Specific message written by pygpu_texture_size_check(). */
   }
   else {
     const char *name = "python_texture";

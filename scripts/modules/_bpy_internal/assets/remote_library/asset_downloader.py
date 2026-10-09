@@ -618,8 +618,14 @@ class AssetReporter:
         http_req_descr: http_dl.RequestDescription,
         progress: http_dl.DownloadProgress,
     ) -> None:
+        # Blender's RNA layer only supports signed 32-bit integers, so split up the
+        # size in bytes into two parameters. Without this, assets larger than 2 GB
+        # would raise a ValueError.
+        size_bytes_high = progress.disk_bytes_written >> 31
+        size_bytes_low = progress.disk_bytes_written & 0X7FFFFFFF
+
         bpy.types.WindowManager.asset_library_status_ping_asset_file_progress(
-            http_req_descr.url, progress.disk_bytes_written)
+            http_req_descr.url, size_bytes_high, size_bytes_low)
 
     def download_finished(
         self,

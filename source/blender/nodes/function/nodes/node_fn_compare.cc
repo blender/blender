@@ -1002,14 +1002,14 @@ static void node_rna(StructRNA *srna)
 
   PropertyRNA *prop;
 
-  prop = RNA_def_node_enum(
+  RNA_def_node_enum(
       srna,
       "operation",
       "Operation",
       "",
       rna_enum_node_compare_operation_items,
       NOD_storage_enum_accessors(operation),
-      NODE_COMPARE_EQUAL,
+      NODE_COMPARE_GREATER_THAN,
       [](bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free) {
         *r_free = true;
         bNode *node = static_cast<bNode *>(ptr->data);
@@ -1067,13 +1067,13 @@ static void node_rna(StructRNA *srna)
       });
   RNA_def_property_update_runtime(prop, data_type_update);
 
-  prop = RNA_def_node_enum(srna,
-                           "mode",
-                           "Mode",
-                           "",
-                           mode_items,
-                           NOD_storage_enum_accessors(mode),
-                           NODE_COMPARE_MODE_ELEMENT);
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode),
+                    NODE_COMPARE_MODE_ELEMENT);
 }
 
 static void node_register()

@@ -115,7 +115,8 @@ static void node_rna(StructRNA *srna)
                     "Domain",
                     "",
                     rna_enum_attribute_domain_edge_face_items,
-                    NOD_inline_enum_accessors(custom1));
+                    NOD_inline_enum_accessors(custom1),
+                    int(AttrDomain::Face));
 }
 
 static void node_register()

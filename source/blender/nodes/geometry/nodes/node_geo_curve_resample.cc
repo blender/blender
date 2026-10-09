@@ -199,7 +199,8 @@ static void node_rna(StructRNA *srna)
                        "Keep Last Segment",
                        "Do not collapse curves to single points if they are shorter than the "
                        "given length. The collapsing behavior exists for compatibility reasons.",
-                       NOD_storage_boolean_accessors(keep_last_segment, 1));
+                       NOD_storage_boolean_accessors(keep_last_segment, 1),
+                       true);
 }
 
 static void node_register()
