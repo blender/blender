@@ -9,6 +9,8 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_index_mask_fwd.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 #include "BLI_sys_types.hh"
@@ -61,6 +63,26 @@ struct MeshLayout {
     const int verts_num = this->resolution - 2;
     return IndexRange(this->edge_verts_start + base_edge * verts_num, verts_num);
   }
+
+  /** Edges created along a base mesh edge, ordered the edge's first vertex to its second. */
+  IndexRange base_edge_edges(const int base_edge) const
+  {
+    const int edges_num = this->resolution - 1;
+    return IndexRange(base_edge * edges_num, edges_num);
+  }
+
+  OffsetIndices<int> inner_verts_by_face() const
+  {
+    return this->inner_vert_offsets.as_span();
+  }
+  OffsetIndices<int> inner_edges_by_face() const
+  {
+    return this->inner_edge_offsets.as_span();
+  }
+  OffsetIndices<int> faces_by_base_face() const
+  {
+    return this->face_offsets.as_span();
+  }
 };
 
 /**
@@ -68,6 +90,21 @@ struct MeshLayout {
  * #ToMeshSettings::resolution.
  */
 MeshLayout build_mesh_layout(const Mesh &coarse_mesh, int resolution);
+
+/**
+ * Fill the vertex indices of the subdivided edges created along the selected base mesh edges, in
+ * the order of the selection. See #MeshLayout::base_edge_edges().
+ */
+void fill_base_edge_edges(const MeshLayout &layout,
+                          Span<int2> base_edges,
+                          const IndexMask &selection,
+                          MutableSpan<int2> edges);
+
+/**
+ * Fill the vertex indices of the subdivided edges inside of all base mesh faces.
+ * \param edges: The edges inside of base mesh faces, see #MeshLayout::inner_edges_by_face().
+ */
+void fill_inner_edges(const MeshLayout &layout, const Mesh &base_mesh, MutableSpan<int2> edges);
 
 using ForeachVertFromCornerCb = void (*)(const ForeachContext *context,
                                          void *tls,
@@ -97,13 +134,6 @@ using ForeachVertInnerCb = void (*)(const ForeachContext *context,
                                     int coarse_face_index,
                                     int coarse_corner,
                                     int subdiv_vert_index);
-
-using ForeachEdgeCb = void (*)(const ForeachContext *context,
-                               void *tls,
-                               int coarse_edge_index,
-                               int subdiv_edge_index,
-                               int subdiv_v1,
-                               int subdiv_v2);
 
 using ForeachLoopCb = void (*)(const ForeachContext *context,
                                void *tls,
@@ -141,11 +171,6 @@ struct ForeachContext {
   ForeachVertFromEdgeCb vert_edge = nullptr;
   /** Called exactly once, always corresponds to a single ptex face. */
   ForeachVertInnerCb vert_inner = nullptr;
-  /**
-   * \note If subdivided edge does not come from coarse edge, ORIGINDEX_NONE
-   * will be passed as coarse_edge_index.
-   */
-  ForeachEdgeCb edge = nullptr;
   /**
    * \note If subdivided loop does not come from coarse loop, ORIGINDEX_NONE
    * will be passed as coarse_loop_index.

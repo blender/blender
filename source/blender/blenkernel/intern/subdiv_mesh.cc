@@ -1130,44 +1130,51 @@ static void subdiv_mesh_vert_inner(const ForeachContext *foreach_context,
 /** \name Edge subdivision process
  * \{ */
 
-static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
-                                  const int subdiv_edge_index,
-                                  const int coarse_edge_index)
+/**
+ * Copy each source value to a group of `group_size` destination values.
+ */
+static void copy_to_constant_size_groups(const GSpan src, const int group_size, GMutableSpan dst)
 {
-  if (coarse_edge_index == ORIGINDEX_NONE) {
-    if (!ctx->coarse_edge_origindex.is_empty()) {
-      ctx->subdiv_edge_origindex[subdiv_edge_index] = ORIGINDEX_NONE;
+  const CPPType &type = src.type();
+  threading::parallel_for(IndexRange(src.size()), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      type.fill_construct_n(src[i], dst[i * group_size], group_size);
     }
-    for (const int attr : ctx->coarse_edge_attrs.index_range()) {
-      const CPPType &type = ctx->coarse_edge_attrs[attr].type();
-      type.copy_construct(type.default_value(),
-                          ctx->subdiv_edge_attr_spans[attr][subdiv_edge_index]);
-    }
-    return;
-  }
-  copy_attrs(ctx->coarse_edge_attr_spans,
-             coarse_edge_index,
-             subdiv_edge_index,
-             ctx->subdiv_edge_attr_spans);
-  if (!ctx->coarse_edge_origindex.is_empty()) {
-    ctx->subdiv_edge_origindex[subdiv_edge_index] = ctx->coarse_edge_origindex[coarse_edge_index];
-  }
-  if (ctx->settings->use_optimal_display) {
-    ctx->subdiv_display_edges[subdiv_edge_index] = true;
-  }
+  });
 }
 
-static void subdiv_mesh_edge(const ForeachContext *foreach_context,
-                             void * /*tls*/,
-                             const int coarse_edge_index,
-                             const int subdiv_edge_index,
-                             const int subdiv_v1,
-                             const int subdiv_v2)
+static void subdiv_mesh_edges(SubdivMeshContext *ctx, const MeshLayout &layout)
 {
-  SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
-  subdiv_copy_edge_data(ctx, subdiv_edge_index, coarse_edge_index);
-  ctx->subdiv_edges[subdiv_edge_index][0] = subdiv_v1;
-  ctx->subdiv_edges[subdiv_edge_index][1] = subdiv_v2;
+  const IndexRange base_edge_edges(layout.inner_edges_start);
+  const IndexRange inner_edges = IndexRange::from_begin_end(layout.inner_edges_start,
+                                                            layout.edges_num);
+  const int edges_per_base_edge = layout.resolution - 1;
+
+  fill_base_edge_edges(layout,
+                       ctx->coarse_edges,
+                       ctx->coarse_edges.index_range(),
+                       ctx->subdiv_edges.slice(base_edge_edges));
+  fill_inner_edges(layout, *ctx->coarse_mesh, ctx->subdiv_edges.slice(inner_edges));
+
+  /* Edges along base mesh edges copy the base edge's data, edges inside of base mesh faces don't
+   * correspond to a base mesh edge and get default values. */
+  for (const int attr : ctx->coarse_edge_attrs.index_range()) {
+    const GSpan src = ctx->coarse_edge_attr_spans[attr];
+    GMutableSpan dst = ctx->subdiv_edge_attr_spans[attr];
+    const CPPType &type = src.type();
+    copy_to_constant_size_groups(src, edges_per_base_edge, dst.slice(base_edge_edges));
+    const GMutableSpan dst_inner = dst.slice(inner_edges);
+    type.fill_construct_n(type.default_value(), dst_inner.data(), dst_inner.size());
+  }
+  if (!ctx->coarse_edge_origindex.is_empty()) {
+    copy_to_constant_size_groups(GSpan(ctx->coarse_edge_origindex),
+                                 edges_per_base_edge,
+                                 ctx->subdiv_edge_origindex.slice(base_edge_edges));
+    ctx->subdiv_edge_origindex.slice(inner_edges).fill(ORIGINDEX_NONE);
+  }
+  if (ctx->settings->use_optimal_display) {
+    ctx->subdiv_display_edges.as_mutable_span().slice(base_edge_edges).fill(true);
+  }
 }
 
 /** \} */
@@ -1456,7 +1463,6 @@ static void setup_foreach_callbacks(const SubdivMeshContext *subdiv_context,
   foreach_context->vert_corner = subdiv_mesh_vert_corner;
   foreach_context->vert_edge = subdiv_mesh_vert_edge;
   foreach_context->vert_inner = subdiv_mesh_vert_inner;
-  foreach_context->edge = subdiv_mesh_edge;
   foreach_context->loop = subdiv_mesh_loop;
   foreach_context->faces = subdiv_mesh_face;
   foreach_context->user_data_tls_free = subdiv_mesh_tls_free;
@@ -1515,6 +1521,7 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
   foreach_context.user_data_tls_size = sizeof(SubdivMeshTLS);
   foreach_context.user_data_tls = &tls;
   foreach_subdiv_geometry(subdiv, &foreach_context, layout, coarse_mesh);
+  subdiv_mesh_edges(&subdiv_context, layout);
   subdiv_mesh_loose_edges(&subdiv_context, layout);
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
   Mesh *result = subdiv_context.subdiv_mesh;
