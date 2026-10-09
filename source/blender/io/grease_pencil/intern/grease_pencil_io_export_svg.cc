@@ -42,10 +42,9 @@ constexpr const char *svg_exporter_version = "v2.1";
 
 static std::string rgb_to_hexstr(const float color[3])
 {
-  uint8_t r = color[0] * 255.0f;
-  uint8_t g = color[1] * 255.0f;
-  uint8_t b = color[2] * 255.0f;
-  return fmt::format("#{:02X}{:02X}{:02X}", r, g, b);
+  uchar rgb[3];
+  rgb_float_to_uchar(rgb, color);
+  return fmt::format("#{:02X}{:02X}{:02X}", rgb[0], rgb[1], rgb[2]);
 }
 
 static void write_stroke_color_attribute(pugi::xml_node node,
