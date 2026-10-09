@@ -47,17 +47,14 @@ struct ConverterStorage : NonMovable {
   Array<float> edge_sharpness;
   Array<float> vert_sharpness;
 
-  VectorSet<StringRefNull> uv_map_names;
+  /* Face-varying topology for each UV map, see #OpenSubdiv_Converter::uv_layers. */
+  Array<Array<int>> corner_uv_indices;
+  Array<OpenSubdiv_Converter::UVLayer> uv_layers;
 
   /* CustomData layer for vertex sharpnesses. */
   VArraySpan<float> cd_vertex_crease;
   /* CustomData layer for edge sharpness. */
   VArraySpan<float> cd_edge_crease;
-  /* Indexed by loop index, value denotes index of face-varying vertex
-   * which corresponds to the UV coordinate.
-   */
-  int *loop_uv_indices;
-  int num_uv_coordinates;
   /* Indexed by coarse mesh elements, gives index of corresponding element
    * with ignoring all non-manifold entities.
    *
@@ -113,69 +110,9 @@ static int manifold_to_original(const Array<int> &reverse_map, const int manifol
   return reverse_map.is_empty() ? manifold_index : reverse_map[manifold_index];
 }
 
-static int get_num_uv_layers(const OpenSubdiv_Converter *converter)
-{
-  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  return storage->uv_map_names.size();
-}
-
-static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int layer_index)
-{
-  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  const Mesh *mesh = storage->mesh;
-  const StringRef name = storage->uv_map_names[layer_index];
-  const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan uv_map = *attributes.lookup<float2>(name, bke::AttrDomain::Corner);
-  const int num_vert = storage->num_manifold_vertices;
-  /* Initialize memory required for the operations. */
-  if (storage->loop_uv_indices == nullptr) {
-    storage->loop_uv_indices = MEM_new_array_uninitialized<int>(size_t(mesh->corners_num),
-                                                                "loop uv vertex index");
-  }
-  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
-      storage->faces, storage->corner_verts, uv_map, num_vert, float2(STD_UV_CONNECT_LIMIT), true);
-  /* NOTE: First UV vertex is supposed to be always marked as separate. */
-  storage->num_uv_coordinates = -1;
-  for (int vertex_index = 0; vertex_index < num_vert; vertex_index++) {
-    const UvMapVert *uv_vert = BKE_mesh_uv_vert_map_get_vert(uv_vert_map, vertex_index);
-    while (uv_vert != nullptr) {
-      if (uv_vert->separate) {
-        storage->num_uv_coordinates++;
-      }
-      const IndexRange face = storage->faces[uv_vert->face_index];
-      const int global_loop_index = face.start() + uv_vert->loop_of_face_index;
-      storage->loop_uv_indices[global_loop_index] = storage->num_uv_coordinates;
-      uv_vert = uv_vert->next;
-    }
-  }
-  /* So far this value was used as a 0-based index, actual number of UV
-   * vertices is 1 more.
-   */
-  storage->num_uv_coordinates += 1;
-  BKE_mesh_uv_vert_map_free(uv_vert_map);
-}
-
-static void finish_uv_layer(const OpenSubdiv_Converter * /*converter*/) {}
-
-static int get_num_uvs(const OpenSubdiv_Converter *converter)
-{
-  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  return storage->num_uv_coordinates;
-}
-
-static int get_face_corner_uv_index(const OpenSubdiv_Converter *converter,
-                                    const int face_index,
-                                    const int corner)
-{
-  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  const IndexRange face = storage->faces[face_index];
-  return storage->loop_uv_indices[face.start() + corner];
-}
-
 static void free_user_data(const OpenSubdiv_Converter *converter)
 {
   ConverterStorage *user_data = static_cast<ConverterStorage *>(converter->user_data);
-  MEM_SAFE_DELETE(user_data->loop_uv_indices);
   MEM_delete(user_data);
 }
 
@@ -192,12 +129,6 @@ static void init_functions(OpenSubdiv_Converter *converter)
   converter->getVertexEdges = nullptr;
   converter->getNumVertexFaces = nullptr;
   converter->getVertexFaces = nullptr;
-
-  converter->getNumUVLayers = get_num_uv_layers;
-  converter->precalcUVLayer = precalc_uv_layer;
-  converter->finishUVLayer = finish_uv_layer;
-  converter->getNumUVCoordinates = get_num_uvs;
-  converter->getFaceCornerUVIndex = get_face_corner_uv_index;
 
   converter->freeUserData = free_user_data;
 }
@@ -381,6 +312,51 @@ static void initialize_vert_sharpness(ConverterStorage &storage)
   });
 }
 
+/**
+ * Fill `corner_uv_indices` with the index of the UV vertex for every face corner. Corners that use
+ * the same manifold vertex and have connected UVs share an index. Returns the number of UV
+ * vertices.
+ */
+static int calc_corner_uv_indices(const ConverterStorage &storage,
+                                  const Span<float2> uv_map,
+                                  const MutableSpan<int> corner_uv_indices)
+{
+  const int num_vert = storage.num_manifold_vertices;
+  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
+      storage.faces, storage.corner_verts, uv_map, num_vert, float2(STD_UV_CONNECT_LIMIT), true);
+  /* NOTE: First UV vertex is supposed to be always marked as separate. */
+  int uv_index = -1;
+  for (int vertex_index = 0; vertex_index < num_vert; vertex_index++) {
+    const UvMapVert *uv_vert = BKE_mesh_uv_vert_map_get_vert(uv_vert_map, vertex_index);
+    while (uv_vert != nullptr) {
+      if (uv_vert->separate) {
+        uv_index++;
+      }
+      const IndexRange face = storage.faces[uv_vert->face_index];
+      corner_uv_indices[face.start() + uv_vert->loop_of_face_index] = uv_index;
+      uv_vert = uv_vert->next;
+    }
+  }
+  BKE_mesh_uv_vert_map_free(uv_vert_map);
+  /* This value was used as a 0-based index, actual number of UV vertices is 1 more. */
+  return uv_index + 1;
+}
+
+static void initialize_uv_layers(ConverterStorage &storage)
+{
+  const Mesh *mesh = storage.mesh;
+  const AttributeAccessor attributes = mesh->attributes();
+  const VectorSet<StringRefNull> uv_map_names = mesh->uv_map_names();
+  storage.corner_uv_indices.reinitialize(uv_map_names.size());
+  storage.uv_layers.reinitialize(uv_map_names.size());
+  for (const int i : uv_map_names.index_range()) {
+    const VArraySpan uv_map = *attributes.lookup<float2>(uv_map_names[i], AttrDomain::Corner);
+    storage.corner_uv_indices[i].reinitialize(mesh->corners_num);
+    const int uvs_num = calc_corner_uv_indices(storage, uv_map, storage.corner_uv_indices[i]);
+    storage.uv_layers[i] = {uvs_num, storage.corner_uv_indices[i]};
+  }
+}
+
 static void init_user_data(OpenSubdiv_Converter *converter,
                            const Settings *settings,
                            const Mesh *mesh)
@@ -394,11 +370,10 @@ static void init_user_data(OpenSubdiv_Converter *converter,
     user_data->cd_vertex_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
     user_data->cd_edge_crease = *attributes.lookup<float>("crease_edge", AttrDomain::Edge);
   }
-  user_data->uv_map_names = mesh->uv_map_names();
-  user_data->loop_uv_indices = nullptr;
   initialize_manifold_indices(*user_data);
   initialize_edge_sharpness(*user_data);
   initialize_vert_sharpness(*user_data);
+  initialize_uv_layers(*user_data);
   converter->user_data = user_data;
 }
 
@@ -415,6 +390,7 @@ void converter_init_for_mesh(OpenSubdiv_Converter *converter,
   converter->corner_verts = storage.corner_verts;
   converter->edge_sharpness = storage.edge_sharpness;
   converter->vert_sharpness = storage.vert_sharpness;
+  converter->uv_layers = storage.uv_layers;
   converter->scheme_type = get_scheme_type(*settings);
   converter->vtx_boundary_interpolation = OpenSubdiv_VtxBoundaryInterpolation(
       converter_vtx_boundary_interpolation_from_settings(settings));

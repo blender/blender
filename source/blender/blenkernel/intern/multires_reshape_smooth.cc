@@ -816,12 +816,6 @@ static void converter_init(const MultiresReshapeSmoothContext *reshape_smooth_co
   converter->getNumVertexFaces = nullptr;
   converter->getVertexFaces = nullptr;
 
-  converter->getNumUVLayers = nullptr;
-  converter->precalcUVLayer = nullptr;
-  converter->finishUVLayer = nullptr;
-  converter->getNumUVCoordinates = nullptr;
-  converter->getFaceCornerUVIndex = nullptr;
-
   converter->freeUserData = nullptr;
 
   converter->user_data = (void *)reshape_smooth_context;

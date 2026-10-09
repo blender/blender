@@ -106,42 +106,34 @@ static bool checkBaseMeshTopologyMatches(const TopologyRefinerImpl *topology_ref
 // indexing and, possibly, move to mesh topology as well if winding affects
 // face-varyign as well.
 
-static bool checkSingleUVLayerMatch(const OpenSubdiv::Far::TopologyLevel &base_level,
-                                    const OpenSubdiv_Converter *converter,
-                                    const int layer_index)
-{
-  converter->precalcUVLayer(converter, layer_index);
-  const int num_faces = base_level.GetNumFaces();
-  // TODO(sergey): Need to check whether converter changed the winding of
-  // face to match OpenSubdiv's expectations.
-  for (int face_index = 0; face_index < num_faces; ++face_index) {
-    OpenSubdiv::Far::ConstIndexArray base_level_face_uvs = base_level.GetFaceFVarValues(
-        face_index, layer_index);
-    for (int corner = 0; corner < base_level_face_uvs.size(); ++corner) {
-      const int uv_index = converter->getFaceCornerUVIndex(converter, face_index, corner);
-      if (base_level_face_uvs[corner] != uv_index) {
-        converter->finishUVLayer(converter);
-        return false;
-      }
-    }
-  }
-  converter->finishUVLayer(converter);
-  return true;
-}
-
 static bool checkUVLayersMatch(const TopologyRefinerImpl *topology_refiner_impl,
                                const OpenSubdiv_Converter *converter)
 {
+  using OpenSubdiv::Far::ConstIndexArray;
   using OpenSubdiv::Far::TopologyLevel;
-  const int num_layers = converter->getNumUVLayers(converter);
+  const std::span<const OpenSubdiv_Converter::UVLayer> uv_layers = converter->uv_layers;
   const TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner_impl);
   // Number of UV layers should match.
-  if (base_level.GetNumFVarChannels() != num_layers) {
+  if (base_level.GetNumFVarChannels() != int(uv_layers.size())) {
     return false;
   }
-  for (int layer_index = 0; layer_index < num_layers; ++layer_index) {
-    if (!checkSingleUVLayerMatch(base_level, converter, layer_index)) {
+  const std::span<const int> face_offsets = converter->face_offsets;
+  const int num_faces = base_level.GetNumFaces();
+  for (int channel = 0; channel < int(uv_layers.size()); ++channel) {
+    const OpenSubdiv_Converter::UVLayer &uv_layer = uv_layers[channel];
+    if (base_level.GetNumFVarValues(channel) != uv_layer.uvs_num) {
       return false;
+    }
+    // TODO(sergey): Need to check whether converter changed the winding of
+    // face to match OpenSubdiv's expectations.
+    for (int face_index = 0; face_index < num_faces; ++face_index) {
+      const ConstIndexArray base_level_face_uvs = base_level.GetFaceFVarValues(face_index,
+                                                                               channel);
+      const std::span<const int> face_uvs = uv_layer.corner_uv_indices.subspan(
+          face_offsets[face_index], base_level_face_uvs.size());
+      if (!std::ranges::equal(base_level_face_uvs, face_uvs)) {
+        return false;
+      }
     }
   }
   return true;
