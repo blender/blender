@@ -362,23 +362,19 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
                                        const char *defgrp_name,
                                        const float fac,
                                        const Mesh *me_target,
-                                       const BMEditMesh *em_target)
+                                       const BMesh *bm_target)
 {
   LatticeDeformData *lattice_deform_data;
   const MDeformVert *dvert = nullptr;
   int defgrp_index = -1;
   int cd_dvert_offset = -1;
-  BMesh *bm = nullptr;
+  BMesh *bm = const_cast<BMesh *>(bm_target);
 
   if (ob_lattice->type != OB_LATTICE) {
     return;
   }
 
   lattice_deform_data = BKE_lattice_deform_data_create(ob_lattice, ob_target);
-
-  if (em_target != nullptr) {
-    bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(ob_target));
-  }
 
   /* Check whether to use vertex groups (only possible if ob_target is a Mesh or Lattice).
    * We want either a Mesh/Lattice with no derived data, or derived data with deformverts.
@@ -389,7 +385,7 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
 
     if (defgrp_index != -1) {
       /* if there's derived data without deformverts, don't use vgroups */
-      if (em_target) {
+      if (bm) {
         cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
       }
       else if (me_target) {
@@ -413,7 +409,7 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
   data.invert_vgroup = (flag & MOD_LATTICE_INVERT_VGROUP) != 0;
   data.bmesh.cd_dvert_offset = cd_dvert_offset;
 
-  if (em_target != nullptr) {
+  if (bm != nullptr) {
     /* While this could cause an extra loop over mesh data, in most cases this will
      * have already been properly set. */
     BM_mesh_elem_index_ensure(bm, BM_VERT);
@@ -484,7 +480,7 @@ void BKE_lattice_deform_coords_with_editmesh(const Object *ob_lattice,
                                              const short flag,
                                              const char *defgrp_name,
                                              const float fac,
-                                             const BMEditMesh *em_target)
+                                             const BMesh &bm_target)
 {
   lattice_deform_coords_impl(ob_lattice,
                              ob_target,
@@ -494,7 +490,7 @@ void BKE_lattice_deform_coords_with_editmesh(const Object *ob_lattice,
                              defgrp_name,
                              fac,
                              nullptr,
-                             em_target);
+                             &bm_target);
 }
 
 /** \} */

@@ -720,7 +720,6 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
                                             const CustomData_MeshMasks &dataMask)
 {
   const Mesh &mesh_input = *id_cast<const Mesh *>(ob.data);
-  const BMEditMesh &em_input = *mesh_input.runtime->edit_mesh;
   BMesh *bm = BKE_editmesh_bmesh_get_for_write(&ob);
 
   /* Mesh with constructive modifiers but no deformation applied. Tracked
@@ -804,7 +803,7 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
       if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
         if (mti->deform_verts_EM) {
           BKE_modifier_deform_vertsEM(
-              md, &mectx, &em_input, mesh, mesh_wrapper_vert_coords_ensure_for_write(mesh));
+              md, &mectx, mesh, mesh_wrapper_vert_coords_ensure_for_write(mesh));
           BKE_mesh_wrapper_tag_positions_changed(mesh);
         }
         else {
