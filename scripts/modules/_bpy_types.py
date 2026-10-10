@@ -1021,7 +1021,7 @@ class Gizmo(_StructRNA):
     # Convenience wrappers around private `_gpu` module.
     def draw_custom_shape(self, shape, *, matrix=None, select_id=None):
         """
-        Draw a shape created from :class:`Gizmo.draw_custom_shape`.
+        Draw a shape created from :class:`Gizmo.new_custom_shape`.
 
         :param shape: The cached shape to draw.
         :type shape: Any
