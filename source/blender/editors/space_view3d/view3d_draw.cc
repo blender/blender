@@ -1401,15 +1401,14 @@ static void draw_grid_unit_name(
 
 static float4 get_low_fps_color()
 {
-  float alert_rgb[4];
-  float alert_hsv[4];
-  ui::theme::get_color_4fv(TH_REDALERT, alert_rgb);
-  /* Brighten since we favor dark shadows to increase contrast.
-   * This gives similar results to the old hardcoded 225, 36, 36. */
-  rgb_to_hsv_v(alert_rgb, alert_hsv);
-  alert_hsv[2] = 1.0;
-  hsv_to_rgb_v(alert_hsv, alert_rgb);
-  return alert_rgb;
+  float col_alert[4];
+  ui::theme::get_color_4fv(TH_REDALERT, col_alert);
+
+  /* Tint the text color with red alert, using the red alert alpha as blend factor. */
+  ui::theme::get_color_blend_3f(TH_TEXT_HI, TH_REDALERT, col_alert[3], col_alert);
+  col_alert[3] = 1.0f;
+
+  return col_alert;
 }
 
 static void draw_performance_stats(Depsgraph *depsgraph,
