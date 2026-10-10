@@ -572,6 +572,7 @@ static void armature_deform_editmesh(const Object &ob_arm,
                                      const int deformflag,
                                      const std::optional<Span<float3>> vert_coords_prev,
                                      StringRefNull defgrp_name,
+                                     const BMesh &bm_target,
                                      const int cd_dvert_offset)
 {
   ArmatureDeformParams deform_params = get_armature_deform_params(ob_arm,
@@ -589,7 +590,7 @@ static void armature_deform_editmesh(const Object &ob_arm,
   data.cd_dvert_offset = cd_dvert_offset;
   data.deform_params = std::move(deform_params);
 
-  BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(&ob_target));
+  BMesh *bm = const_cast<BMesh *>(&bm_target);
 
   /* While this could cause an extra loop over mesh data, in most cases this will
    * have already been properly set. */
@@ -719,7 +720,8 @@ void BKE_armature_deform_coords_with_editmesh(
     std::optional<Span<float3>> vert_coords_prev,
     std::optional<MutableSpan<float3x3>> vert_deform_mats,
     int deformflag,
-    StringRefNull defgrp_name)
+    StringRefNull defgrp_name,
+    const BMesh &bm_target)
 {
   if (!bke::verify_armature_deform_valid(ob_arm)) {
     return;
@@ -727,8 +729,7 @@ void BKE_armature_deform_coords_with_editmesh(
 
   const ListBaseT<bDeformGroup> *defbase = BKE_id_defgroup_list_get(
       static_cast<const ID *>(ob_target.data));
-  const BMesh *bm = BKE_editmesh_bmesh_get(&ob_target);
-  const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
+  const int cd_dvert_offset = CustomData_get_offset(&bm_target.vdata, CD_MDEFORMVERT);
   bke::armature_deform_editmesh(ob_arm,
                                 ob_target,
                                 defbase,
@@ -737,6 +738,7 @@ void BKE_armature_deform_coords_with_editmesh(
                                 deformflag,
                                 vert_coords_prev,
                                 defgrp_name,
+                                bm_target,
                                 cd_dvert_offset);
 }
 

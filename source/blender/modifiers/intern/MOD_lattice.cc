@@ -15,6 +15,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_editmesh.hh"
 #include "BKE_lattice.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
@@ -104,7 +105,6 @@ static void deform_verts(ModifierData *md,
 
 static void deform_verts_EM(ModifierData *md,
                             const ModifierEvalContext *ctx,
-                            const BMEditMesh *em,
                             Mesh *mesh,
                             MutableSpan<float3> positions)
 {
@@ -125,7 +125,7 @@ static void deform_verts_EM(ModifierData *md,
                                           lmd->flag,
                                           lmd->name,
                                           lmd->strength,
-                                          em);
+                                          *BKE_editmesh_bmesh_get(mesh));
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
