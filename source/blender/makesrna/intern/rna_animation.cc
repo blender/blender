@@ -1434,6 +1434,7 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
                                  nullptr);
   RNA_def_property_ui_text(
       prop, "Active Keying Set", "Active Keying Set used to insert/delete keyframes");
+  RNA_def_property_update(prop, NC_SCENE | ND_KEYINGSET, nullptr);
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "active_path");
