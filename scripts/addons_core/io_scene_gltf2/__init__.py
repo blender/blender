@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 3, 37),
+    "version": (5, 3, 38),
     'blender': (5, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -662,10 +662,27 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
     )
 
     # Not starting with "export_", as this is a collection only option
-    at_collection_center: BoolProperty(
-        name="Export at Collection Center",
-        description="Export at Collection center of mass of root objects of the collection",
-        default=False,
+    collection_center_mode: EnumProperty(
+        name="Collection Center",
+        description="Scene origin of exported collection",
+        items=(
+            ('WORLD_ORIGIN', 'World Origin',
+             'Export at world origin as scene origin'),
+            ('CENTER_MASS', 'Center of Mass',
+             'Export at Collection center of mass of root objects of the collection'),
+            ('OBJECT_POSITION', 'Object Position',
+             'Export at object position as scene origin'),
+            ('INSTANCE_OFFSET', 'Instance Offset',
+             'Export at collection Instance Offset as scene origin'),
+        ),
+        default='WORLD_ORIGIN'
+    )
+
+    # TODO: implement it via bpy.types.Collection declaration instead of a StringProperty?
+    collection_center_object: StringProperty(
+        name="Center Object",
+        description="Object to use as exported scene origin",
+        default=""
     )
 
     export_extras: BoolProperty(
@@ -1229,7 +1246,9 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             export_settings['gltf_active_collection_with_nested'] = False
         export_settings['gltf_active_scene'] = self.use_active_scene
         export_settings['gltf_collection'] = self.collection
-        export_settings['gltf_at_collection_center'] = self.at_collection_center
+        export_settings['gltf_collection_center_mode'] = self.collection_center_mode
+        if self.collection_center_mode == 'OBJECT_POSITION':
+            export_settings['gltf_collection_center_object'] = context.scene.objects.get(self.collection_center_object)
 
         export_settings['gltf_selected'] = self.use_selection
         export_settings['gltf_layers'] = True  # self.export_layers
@@ -1432,7 +1451,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         is_file_browser = context.space_data.type == 'FILE_BROWSER'
 
         export_main(layout, operator, is_file_browser)
-        export_panel_collection(layout, operator, is_file_browser)
+        export_panel_collection(layout, operator, is_file_browser, context)
         export_panel_include(layout, operator, is_file_browser)
         export_panel_transform(layout, operator)
         export_panel_data(layout, operator)
@@ -1462,14 +1481,16 @@ def export_main(layout, operator, is_file_browser):
         layout.prop(operator, 'will_save_settings')
 
 
-def export_panel_collection(layout, operator, is_file_browser):
+def export_panel_collection(layout, operator, is_file_browser, context):
     if is_file_browser:
         return
 
     header, body = layout.panel("GLTF_export_collection", default_closed=True)
     header.label(text="Collection")
     if body:
-        body.prop(operator, 'at_collection_center')
+        body.prop(operator, 'collection_center_mode')
+        if operator.collection_center_mode == 'OBJECT_POSITION':
+            body.prop_search(operator, 'collection_center_object', context.scene, 'objects')
 
 
 def export_panel_include(layout, operator, is_file_browser):
