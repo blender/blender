@@ -127,14 +127,14 @@ static void extract_edit_data_mesh(const MeshRenderData &mr, MutableSpan<EditLoo
         mesh_render_data_face_flag(mr, bm_face, uv_offsets_none, face_value);
       }
       for (const int corner : faces[face]) {
-        EditLoopData &value = corners_data[corner];
-        value = face_value;
+        EditLoopData value = face_value;
         if (const BMVert *bm_vert = bm_original_vert_get(mr, corner_verts[corner])) {
           mesh_render_data_vert_flag(mr, bm_vert, value);
         }
         if (const BMEdge *bm_edge = bm_original_edge_get(mr, corner_edges[corner])) {
           mesh_render_data_edge_flag(mr, bm_edge, value);
         }
+        corners_data[corner] = value;
       }
     }
   });
@@ -142,16 +142,11 @@ static void extract_edit_data_mesh(const MeshRenderData &mr, MutableSpan<EditLoo
   const Span<int2> edges = mr.edges;
   mr.loose_edges.foreach_index(
       [&](const int edge_i, const int pos) {
-        EditLoopData &value_1 = loose_edge_data[pos * 2 + 0];
-        EditLoopData &value_2 = loose_edge_data[pos * 2 + 1];
+        EditLoopData value_1 = {};
         if (const BMEdge *bm_edge = bm_original_edge_get(mr, edge_i)) {
-          value_1 = {};
           mesh_render_data_edge_flag(mr, bm_edge, value_1);
-          value_2 = value_1;
         }
-        else {
-          value_2 = value_1 = {};
-        }
+        EditLoopData value_2 = value_1;
         const int2 edge = edges[edge_i];
         if (const BMVert *bm_vert = bm_original_vert_get(mr, edge[0])) {
           mesh_render_data_vert_flag(mr, bm_vert, value_1);
@@ -159,15 +154,18 @@ static void extract_edit_data_mesh(const MeshRenderData &mr, MutableSpan<EditLoo
         if (const BMVert *bm_vert = bm_original_vert_get(mr, edge[1])) {
           mesh_render_data_vert_flag(mr, bm_vert, value_2);
         }
+        loose_edge_data[pos * 2 + 0] = value_1;
+        loose_edge_data[pos * 2 + 1] = value_2;
       },
       exec_mode::grain_size(2048));
 
   mr.loose_verts.foreach_index(
       [&](const int vert, const int pos) {
-        loose_vert_data[pos] = {};
+        EditLoopData value = {};
         if (const BMVert *eve = bm_original_vert_get(mr, vert)) {
-          mesh_render_data_vert_flag(mr, eve, loose_vert_data[pos]);
+          mesh_render_data_vert_flag(mr, eve, value);
         }
+        loose_vert_data[pos] = value;
       },
       exec_mode::grain_size(2048));
 }
@@ -188,11 +186,10 @@ static void extract_edit_data_bm(const MeshRenderData &mr, MutableSpan<EditLoopD
       mesh_render_data_face_flag(mr, &face, uv_offsets_none, face_value);
       const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
       for ([[maybe_unused]] const int i : IndexRange(face.len)) {
-        const int index = BM_elem_index_get(loop);
-        EditLoopData &value = corners_data[index];
-        value = face_value;
+        EditLoopData value = face_value;
         mesh_render_data_edge_flag(mr, loop->e, value);
         mesh_render_data_vert_flag(mr, loop->v, value);
+        corners_data[BM_elem_index_get(loop)] = value;
         loop = loop->next;
       }
     }
@@ -200,22 +197,23 @@ static void extract_edit_data_bm(const MeshRenderData &mr, MutableSpan<EditLoopD
 
   mr.loose_edges.foreach_index(
       [&](const int edge_i, const int pos) {
-        EditLoopData &value_1 = loose_edge_data[pos * 2 + 0];
-        EditLoopData &value_2 = loose_edge_data[pos * 2 + 1];
         const BMEdge &edge = *BM_edge_at_index(&const_cast<BMesh &>(bm), edge_i);
-        value_1 = {};
+        EditLoopData value_1 = {};
         mesh_render_data_edge_flag(mr, &edge, value_1);
-        value_2 = value_1;
+        EditLoopData value_2 = value_1;
         mesh_render_data_vert_flag(mr, edge.v1, value_1);
         mesh_render_data_vert_flag(mr, edge.v2, value_2);
+        loose_edge_data[pos * 2 + 0] = value_1;
+        loose_edge_data[pos * 2 + 1] = value_2;
       },
       exec_mode::grain_size(2048));
 
   mr.loose_verts.foreach_index(
       [&](const int vert_i, const int pos) {
-        loose_vert_data[pos] = {};
         const BMVert &vert = *BM_vert_at_index(&const_cast<BMesh &>(bm), vert_i);
-        mesh_render_data_vert_flag(mr, &vert, loose_vert_data[pos]);
+        EditLoopData value = {};
+        mesh_render_data_vert_flag(mr, &vert, value);
+        loose_vert_data[pos] = value;
       },
       exec_mode::grain_size(2048));
 }

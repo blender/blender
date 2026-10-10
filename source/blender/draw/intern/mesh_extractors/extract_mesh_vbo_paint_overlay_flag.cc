@@ -22,46 +22,34 @@ static void extract_paint_overlay_flags(const MeshRenderData &mr, MutableSpan<in
   else if (mr.mesh->editflag & ME_EDIT_PAINT_VERT_SEL) {
     selection = mr.select_vert;
   }
-  if (selection.is_empty() && mr.hide_poly.is_empty() && (!mr.edit_bmesh || !mr.orig_index_vert)) {
+  const Span<bool> hide_poly = mr.hide_poly;
+  const Span<int> orig_indices = mr.edit_bmesh && mr.orig_index_vert ?
+                                     Span(mr.orig_index_vert, mr.verts_num) :
+                                     Span<int>();
+  if (selection.is_empty() && hide_poly.is_empty() && orig_indices.is_empty()) {
     flags.fill(0);
     return;
   }
+  /* Write every value once, the VBO data is only written to. Hidden faces and unmapped vertices
+   * take precedence over the selection. */
   const OffsetIndices faces = mr.faces;
+  const Span<int> corner_verts = mr.corner_verts;
   threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
-    if (selection.is_empty()) {
-      flags.fill(0);
-    }
-    else {
-      if (use_face_select) {
-        for (const int face : range) {
-          flags.slice(faces[face]).fill(selection[face] ? 1 : 0);
-        }
+    for (const int face : range) {
+      if (!hide_poly.is_empty() && hide_poly[face]) {
+        flags.slice(faces[face]).fill(-1);
+        continue;
       }
-      else {
-        const Span<int> corner_verts = mr.corner_verts;
-        for (const int face : range) {
-          for (const int corner : faces[face]) {
-            flags[corner] = selection[corner_verts[corner]] ? 1 : 0;
-          }
+      for (const int corner : faces[face]) {
+        const int vert = corner_verts[corner];
+        if (!orig_indices.is_empty() && orig_indices[vert] == ORIGINDEX_NONE) {
+          flags[corner] = -1;
         }
-      }
-    }
-    if (!mr.hide_poly.is_empty()) {
-      const Span<bool> hide_poly = mr.hide_poly;
-      for (const int face : range) {
-        if (hide_poly[face]) {
-          flags.slice(faces[face]).fill(-1);
+        else if (selection.is_empty()) {
+          flags[corner] = 0;
         }
-      }
-    }
-    if (mr.edit_bmesh && mr.orig_index_vert) {
-      const Span<int> corner_verts = mr.corner_verts;
-      const Span<int> orig_indices(mr.orig_index_vert, mr.verts_num);
-      for (const int face : range) {
-        for (const int corner : faces[face]) {
-          if (orig_indices[corner_verts[corner]] == ORIGINDEX_NONE) {
-            flags[corner] = -1;
-          }
+        else {
+          flags[corner] = selection[use_face_select ? face : vert] ? 1 : 0;
         }
       }
     }
@@ -70,15 +58,12 @@ static void extract_paint_overlay_flags(const MeshRenderData &mr, MutableSpan<in
 
 static void extract_edit_flags_bm(const MeshRenderData &mr, MutableSpan<int> flags)
 {
-  /* TODO: Return early if there are no hidden faces. */
   const BMesh &bm = *mr.bm;
   threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
     for (const int face_index : range) {
       const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-      if (BM_elem_flag_test(&face, BM_ELEM_HIDDEN)) {
-        const IndexRange face_range(BM_elem_index_get(BM_FACE_FIRST_LOOP(&face)), face.len);
-        flags.slice(face_range).fill(-1);
-      }
+      const IndexRange face_range(BM_elem_index_get(BM_FACE_FIRST_LOOP(&face)), face.len);
+      flags.slice(face_range).fill(BM_elem_flag_test(&face, BM_ELEM_HIDDEN) ? -1 : 0);
     }
   });
 }
