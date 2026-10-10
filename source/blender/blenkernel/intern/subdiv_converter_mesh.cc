@@ -12,6 +12,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_task.hh"
+#include "BLI_timeit.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
@@ -312,36 +313,6 @@ static void initialize_vert_sharpness(ConverterStorage &storage)
   });
 }
 
-/**
- * Fill `corner_uv_indices` with the index of the UV vertex for every face corner. Corners that use
- * the same manifold vertex and have connected UVs share an index. Returns the number of UV
- * vertices.
- */
-static int calc_corner_uv_indices(const ConverterStorage &storage,
-                                  const Span<float2> uv_map,
-                                  const MutableSpan<int> corner_uv_indices)
-{
-  const int num_vert = storage.num_manifold_vertices;
-  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
-      storage.faces, storage.corner_verts, uv_map, num_vert, float2(STD_UV_CONNECT_LIMIT), true);
-  /* NOTE: First UV vertex is supposed to be always marked as separate. */
-  int uv_index = -1;
-  for (int vertex_index = 0; vertex_index < num_vert; vertex_index++) {
-    const UvMapVert *uv_vert = BKE_mesh_uv_vert_map_get_vert(uv_vert_map, vertex_index);
-    while (uv_vert != nullptr) {
-      if (uv_vert->separate) {
-        uv_index++;
-      }
-      const IndexRange face = storage.faces[uv_vert->face_index];
-      corner_uv_indices[face.start() + uv_vert->loop_of_face_index] = uv_index;
-      uv_vert = uv_vert->next;
-    }
-  }
-  BKE_mesh_uv_vert_map_free(uv_vert_map);
-  /* This value was used as a 0-based index, actual number of UV vertices is 1 more. */
-  return uv_index + 1;
-}
-
 static void initialize_uv_layers(ConverterStorage &storage)
 {
   const Mesh *mesh = storage.mesh;
@@ -349,10 +320,18 @@ static void initialize_uv_layers(ConverterStorage &storage)
   const VectorSet<StringRefNull> uv_map_names = mesh->uv_map_names();
   storage.corner_uv_indices.reinitialize(uv_map_names.size());
   storage.uv_layers.reinitialize(uv_map_names.size());
+  if (uv_map_names.is_empty()) {
+    return;
+  }
+  /* Group corners with the original vertex indices rather than the manifold indices to use the
+   * cached topology map, which only affects the order of the UV vertices. */
+  const Span<int> corner_verts = mesh->corner_verts();
+  const GroupedSpan<int> vert_to_corner = mesh->vert_to_corner_map();
   for (const int i : uv_map_names.index_range()) {
     const VArraySpan uv_map = *attributes.lookup<float2>(uv_map_names[i], AttrDomain::Corner);
     storage.corner_uv_indices[i].reinitialize(mesh->corners_num);
-    const int uvs_num = calc_corner_uv_indices(storage, uv_map, storage.corner_uv_indices[i]);
+    const int uvs_num = bke::mesh::calc_uv_verts(
+        storage.faces, corner_verts, vert_to_corner, uv_map, true, storage.corner_uv_indices[i]);
     storage.uv_layers[i] = {uvs_num, storage.corner_uv_indices[i]};
   }
 }

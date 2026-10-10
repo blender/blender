@@ -34,121 +34,6 @@ namespace blender {
 /** \name Mesh Connectivity Mapping
  * \{ */
 
-UvVertMap *BKE_mesh_uv_vert_map_create(OffsetIndices<int> faces,
-                                       Span<int> corner_verts,
-                                       Span<float2> uv_map,
-                                       int verts_num,
-                                       const float2 &limit,
-                                       bool use_winding)
-{
-  /* NOTE: N-gon version WIP, based on #BM_uv_vert_map_create. */
-  if (faces.is_empty()) {
-    return nullptr;
-  }
-  const int corners_num = faces.total_size();
-
-  UvVertMap *vmap = MEM_new_zeroed<UvVertMap>("UvVertMap");
-  UvMapVert *buf = vmap->buf = MEM_new_array_zeroed<UvMapVert>(size_t(corners_num), "UvMapVert");
-  vmap->vert = MEM_new_array_zeroed<UvMapVert *>(size_t(verts_num), "UvMapVert*");
-
-  if (!vmap->vert || !vmap->buf) {
-    BKE_mesh_uv_vert_map_free(vmap);
-    return nullptr;
-  }
-
-  Array<bool> winding;
-  if (use_winding) {
-    winding = Array<bool>(faces.size(), false);
-    threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
-      for (const int64_t face : range) {
-        const Span<float2> face_uvs = uv_map.slice(faces[face]);
-        winding[face] = cross_poly_v2(reinterpret_cast<const float (*)[2]>(face_uvs.data()),
-                                      uint(faces[face].size())) < 0.0f;
-      }
-    });
-  }
-
-  for (const int64_t a : faces.index_range()) {
-    const IndexRange face = faces[a];
-    for (const int64_t i : face.index_range()) {
-      buf->loop_of_face_index = ushort(i);
-      buf->face_index = uint(a);
-      buf->separate = false;
-      buf->next = vmap->vert[corner_verts[face[i]]];
-      vmap->vert[corner_verts[face[i]]] = buf;
-      buf++;
-    }
-  }
-
-  /* sort individual uvs for each vert */
-  for (const int64_t vert : IndexRange(verts_num)) {
-    UvMapVert *newvlist = nullptr, *vlist = vmap->vert[vert];
-    UvMapVert *iterv, *v, *lastv, *next;
-    const float *uv, *uv2;
-    float uvdiff[2];
-
-    while (vlist) {
-      v = vlist;
-      vlist = vlist->next;
-      v->next = newvlist;
-      newvlist = v;
-
-      uv = uv_map[faces[v->face_index].start() + v->loop_of_face_index];
-      lastv = nullptr;
-      iterv = vlist;
-
-      while (iterv) {
-        next = iterv->next;
-
-        uv2 = uv_map[faces[iterv->face_index].start() + iterv->loop_of_face_index];
-        sub_v2_v2v2(uvdiff, uv2, uv);
-
-        if (fabsf(uv[0] - uv2[0]) < limit[0] && fabsf(uv[1] - uv2[1]) < limit[1] &&
-            (!use_winding || winding[iterv->face_index] == winding[v->face_index]))
-        {
-          if (lastv) {
-            lastv->next = next;
-          }
-          else {
-            vlist = next;
-          }
-          iterv->next = newvlist;
-          newvlist = iterv;
-        }
-        else {
-          lastv = iterv;
-        }
-
-        iterv = next;
-      }
-
-      newvlist->separate = true;
-    }
-
-    vmap->vert[vert] = newvlist;
-  }
-
-  return vmap;
-}
-
-UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, uint v)
-{
-  return vmap->vert[v];
-}
-
-void BKE_mesh_uv_vert_map_free(UvVertMap *vmap)
-{
-  if (vmap) {
-    if (vmap->vert) {
-      MEM_delete(vmap->vert);
-    }
-    if (vmap->buf) {
-      MEM_delete(vmap->buf);
-    }
-    MEM_delete(vmap);
-  }
-}
-
 void BKE_mesh_vert_corner_tri_map_create(MeshElemMap **r_map,
                                          int **r_mem,
                                          const int totvert,
@@ -260,6 +145,104 @@ void BKE_mesh_origindex_map_create_corner_tri(MeshElemMap **r_map,
 }
 
 namespace bke::mesh {
+
+/**
+ * Whether the UVs of each corner's face wind clockwise, stored per corner to avoid corner to face
+ * lookup.
+ */
+static Array<bool> calc_corner_uv_winding(const OffsetIndices<int> faces,
+                                          const Span<float2> uv_map)
+{
+  Array<bool> corner_winding(faces.total_size());
+  threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+    for (const int64_t face : range) {
+      const Span<float2> face_uvs = uv_map.slice(faces[face]);
+      const bool winding = cross_poly_v2(reinterpret_cast<const float (*)[2]>(face_uvs.data()),
+                                         uint(face_uvs.size())) < 0.0f;
+      corner_winding.as_mutable_span().slice(faces[face]).fill(winding);
+    }
+  });
+  return corner_winding;
+}
+
+static bool uvs_connected(const float2 &a, const float2 &b)
+{
+  return std::abs(a.x - b.x) < STD_UV_CONNECT_LIMIT && std::abs(a.y - b.y) < STD_UV_CONNECT_LIMIT;
+}
+
+/**
+ * Group the corners of a single vertex into UV vertices, with indices local to the vertex.
+ * \return The number of UV vertices for the vertex.
+ */
+static int group_vert_corners_by_uv(const Span<int> vert_corners,
+                                    const Span<float2> uv_map,
+                                    const Span<bool> corner_winding,
+                                    MutableSpan<int> corner_uv_verts)
+{
+  for (const int corner : vert_corners) {
+    corner_uv_verts[corner] = -1;
+  }
+  int uv_verts_num = 0;
+  for (const int64_t i : vert_corners.index_range()) {
+    const int first = vert_corners[i];
+    if (corner_uv_verts[first] != -1) {
+      continue;
+    }
+    const int uv_vert = uv_verts_num++;
+    corner_uv_verts[first] = uv_vert;
+    for (const int corner : vert_corners.drop_front(i + 1)) {
+      if (corner_uv_verts[corner] != -1) {
+        continue;
+      }
+      if (!uvs_connected(uv_map[first], uv_map[corner])) {
+        continue;
+      }
+      if (!corner_winding.is_empty() && corner_winding[first] != corner_winding[corner]) {
+        continue;
+      }
+      corner_uv_verts[corner] = uv_vert;
+    }
+  }
+  return uv_verts_num;
+}
+
+int calc_uv_verts(const OffsetIndices<int> faces,
+                  const Span<int> corner_verts,
+                  const GroupedSpan<int> vert_to_corner,
+                  const Span<float2> uv_map,
+                  const bool use_winding,
+                  MutableSpan<int> r_corner_uv_verts)
+{
+  BLI_assert(uv_map.size() == corner_verts.size());
+  BLI_assert(r_corner_uv_verts.size() == corner_verts.size());
+  BLI_assert(vert_to_corner.offsets.total_size() == corner_verts.size());
+  const Array<bool> corner_winding = use_winding ? calc_corner_uv_winding(faces, uv_map) :
+                                                   Array<bool>();
+
+  /* Group the corners of each vertex separately. */
+  Array<int> uv_vert_offsets(vert_to_corner.size() + 1);
+  threading::parallel_for(
+      vert_to_corner.index_range(),
+      1024,
+      [&](const IndexRange range) {
+        for (const int64_t vert : range) {
+          uv_vert_offsets[vert] = group_vert_corners_by_uv(
+              vert_to_corner[vert], uv_map, corner_winding, r_corner_uv_verts);
+        }
+      },
+      threading::accumulated_task_sizes(
+          [&](const IndexRange range) { return vert_to_corner.offsets[range].size(); }));
+  const OffsetIndices<int> uv_verts_by_vert = offset_indices::accumulate_counts_to_offsets(
+      uv_vert_offsets);
+
+  /* Turn the indices local to each vertex into indices for the whole mesh. */
+  threading::parallel_for(corner_verts.index_range(), 4096, [&](const IndexRange range) {
+    for (const int64_t corner : range) {
+      r_corner_uv_verts[corner] += int(uv_verts_by_vert[corner_verts[corner]].start());
+    }
+  });
+  return uv_verts_by_vert.total_size();
+}
 
 static Array<int> create_reverse_offsets(const Span<int> indices, const int items_num)
 {

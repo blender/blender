@@ -275,48 +275,24 @@ void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
                              "st" :
                              attr.name;
 
-  /* Construct the UvVertMap containing the connectivity data for the UVs. */
-  const OffsetIndices<int> faces = mesh->faces();
-  const Span<int> corner_verts = mesh->corner_verts();
+  /* Find the unique UVs and the index of the unique UV used by each face corner. */
   const VArraySpan<float2> uv_data(buffer);
-  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
-      faces, corner_verts, uv_data, mesh->verts_num, float2(STD_UV_CONNECT_LIMIT), false);
+  pxr::VtIntArray indices(uv_data.size());
+  const MutableSpan<int> corner_uv_indices(indices.data(), indices.size());
+  const int unique_uvs_num = bke::mesh::calc_uv_verts(mesh->faces(),
+                                                      mesh->corner_verts(),
+                                                      mesh->vert_to_corner_map(),
+                                                      uv_data,
+                                                      false,
+                                                      corner_uv_indices);
 
-  /* This will only be a nullptr if the `faces` are empty OR allocating space for
-   * the VertMap fails. */
-  if (!uv_vert_map) {
-    CLOG_WARN(&LOG,
-              "Couldn't resolve UV connectivity for mesh %s",
-              usd_export_context_.usd_path.GetAsString().c_str());
-    return;
-  }
-
-  /* From the connectivity data, extract the unique uvs and a mapping of corner index
-   * to the index of the corresponding unique uv for that corner. */
-  pxr::VtArray<pxr::GfVec2f> unique_uvs;
-  unique_uvs.reserve(mesh->verts_num);
-  Array<int> corner_to_uv_index(corner_verts.size(), -1);
-  for (int vertex_index = 0; vertex_index < mesh->verts_num; vertex_index++) {
-    const UvMapVert *uv_vert = BKE_mesh_uv_vert_map_get_vert(uv_vert_map, vertex_index);
-
-    /* Loop over all of the face vertices connected to this mesh vertex and accumulate the
-     * unique UVs. */
-    for (; uv_vert; uv_vert = uv_vert->next) {
-      const int corner_index = faces[uv_vert->face_index].start() + uv_vert->loop_of_face_index;
-      const float2 uv = uv_data[corner_index];
-      if (uv_vert->separate) {
-        unique_uvs.push_back(pxr::GfVec2f(uv.x, uv.y));
-      }
-      corner_to_uv_index[corner_index] = unique_uvs.size() - 1;
-    }
-  }
-  BKE_mesh_uv_vert_map_free(uv_vert_map);
-
-  /* Finally, build the USD indices array. */
-  pxr::VtIntArray indices;
-  indices.reserve(corner_verts.size());
-  for (const int corner_idx : corner_verts.index_range()) {
-    indices.push_back(corner_to_uv_index[corner_idx]);
+  /* Every corner writes its UV to its unique UV, so the last write wins. Iterate backwards so the
+   * last write comes from the group's first corner. */
+  pxr::VtArray<pxr::GfVec2f> unique_uvs(unique_uvs_num);
+  const MutableSpan<pxr::GfVec2f> unique_uvs_span(unique_uvs.data(), unique_uvs.size());
+  for (int corner = int(uv_data.size()) - 1; corner >= 0; corner--) {
+    const float2 uv = uv_data[corner];
+    unique_uvs_span[corner_uv_indices[corner]] = pxr::GfVec2f(uv.x, uv.y);
   }
 
   const pxr::UsdTimeCode time = get_export_time_code();

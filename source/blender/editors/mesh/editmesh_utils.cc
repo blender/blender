@@ -530,7 +530,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool re
   UvMapVert *buf = vmap->buf = MEM_new_array_zeroed<UvMapVert>(totuv, "UvMapVert");
 
   if (!vmap->vert || !vmap->buf) {
-    BKE_mesh_uv_vert_map_free(vmap);
+    BM_uv_vert_map_free(vmap);
     return nullptr;
   }
 
