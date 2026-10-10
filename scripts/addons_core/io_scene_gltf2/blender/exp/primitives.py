@@ -347,7 +347,9 @@ def __gather_extensions(blender_data,
     # Material idx is the slot idx. Retrieve associated variant, if any
     mapping = []
     variants_idx_in_use = []
-    for i in [v for v in blender_data.gltf2_variant_mesh_data if v.material_slot_index == material_idx]:
+    blender_element_reference = blender_data['gltf2_original_mesh'] \
+        if 'gltf2_original_mesh' in blender_data.keys() else blender_data
+    for i in [v for v in blender_element_reference.gltf2_variant_mesh_data if v.material_slot_index == material_idx]:
         variants = []
         for idx, v in enumerate(i.variants):
             if v.variant.variant_idx in [o.variant.variant_idx for o in i.variants[:idx]]:

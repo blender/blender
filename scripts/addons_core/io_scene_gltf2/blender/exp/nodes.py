@@ -333,21 +333,28 @@ def __gather_mesh(vnode, blender_object, export_settings):
                 depsgraph = bpy.context.evaluated_depsgraph_get()
                 blender_data_owner = blender_object.evaluated_get(depsgraph)
                 blender_data = blender_data_owner.to_mesh(preserve_all_data_layers=True, depsgraph=depsgraph)
-                # Seems now (from 4.2) the custom properties are Statically Typed
-                # so no need to copy them in that case, because overwriting them will crash
+                # We have different behavior depending if the file was created before 4.2 or after
+                # Before 4.2:
+                # - Custom properties are duplicated in Custom Props & Sys Prop, and are propagated to the evaluated mesh
+                # After 4.2:
+                # - Custom properties & system properties are not propagated to the evaluated mesh
                 if len(blender_data.keys()) == 0:
-                    # Copy custom properties
-                    for prop in [p for p in blender_object.data.keys() if (
-                            (p not in BLACK_LIST) or p.startswith("gltf"))]:
+                    # Data were created by a recent Blender version (4.2 or later)
+                    # So we need to copy custom properties to the evaluated mesh
+                    for prop in blender_object.data.keys():
                         blender_data[prop] = blender_object.data[prop]
+                    # We can not copy sys props into the new evaluated mesh, as some of them are read-only
+                    # So we will store the original mesh into a custom prop, and then access it when needed
                 else:
-                    # But we need to remove some properties that are not needed
-                    for prop in [p for p in blender_object.data.keys() if (
-                            p in BLACK_LIST and not p.startswith("gltf"))]:
-                        del blender_data[prop]
+                    # Data were created by an older Blender version (before 4.2)
+                    # So custom properties & sys props are already propagated to the evaluated mesh
+                    pass
                 # Store the fact that this evaluated data has been created by the
                 # exporter, and is not a GN instance data
                 blender_data['gltf2_mesh_applied'] = True
+
+                # Used with sys props (and internally for Variants)
+                blender_data['gltf2_original_mesh'] = blender_object.data
 
                 if export_settings['gltf_skins']:
                     # restore Armature modifiers
