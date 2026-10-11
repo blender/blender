@@ -45,8 +45,11 @@ ExternalProject_Add(external_opentimelineio
       -i ${PATCH_DIR}/opentimelineio.diff &&
     # shared support is broken and does not get CI'd upstream, small patch to fix all their issues
     ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/opentimelineio/src/external_opentimelineio
-      -i ${PATCH_DIR}/opentimelineio_shared.diff
-
+      -i ${PATCH_DIR}/opentimelineio_shared.diff &&
+    # With the new Imath version (3.2.3) we need the following patch that is based on a closed PR.
+    ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/opentimelineio/src/external_opentimelineio
+      -i ${PATCH_DIR}/opentimelineio_imath_2058.diff
+      
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opentimelineio
     ${DEFAULT_CMAKE_FLAGS}
