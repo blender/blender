@@ -673,6 +673,49 @@ ObjectRef::ObjectRef(Object &ob, Object *dupli_parent, const VectorList<DupliObj
 
 /* -------------------------------------------------------------------- */
 /** \name Scene Iteration
+ *
+ * Iterate the objects and duplis of the scene for drawing and selection,
+ * see #foreach_obref_in_scene and #draw_filter_from_viewport_object_impl.
+ *
+ * Viewport Selectability & Visibility Settings
+ * ============================================
+ *
+ * The per object type toggles in the 3D viewport header, see: #159219.
+ *
+ * Visibility applies to what users see, as if the instances were made real:
+ * a cube instanced by an empty is still a mesh.
+ * So instances are filtered by the type of the object they come from, not their instancer's.
+ *
+ * When an object evaluates to geometry of a different type than its own
+ * (a text object's mesh, geometry-nodes output), the geometry is drawn as an instance
+ * of the object (see #object_has_geometry_set_instances) and takes the object's type:
+ * a text object is "Text" to the user whatever it evaluates to,
+ * so hiding "Text" hides text objects and hiding "Mesh" doesn't.
+ *
+ * Selectability applies to the object that gets selected,
+ * since picking an instance selects its instancer, the instance's own type isn't checked.
+ *
+ * Viewport Drawing
+ * ----------------
+ *
+ * - Hiding a type hides the objects and instances of that type.
+ * - An instancer of a hidden type still shows its instances of other types.
+ *
+ * Viewport Selection
+ * ------------------
+ *
+ * - Anything hidden in the viewport can't be selected.
+ * - An instance of an unselectable type can still be picked, selecting its instancer,
+ *   so an empty can be selected through its mesh instances with mesh selection disabled.
+ * - An unselectable object (by type or the outliner toggle) isn't drawn for selection,
+ *   nor are its instances since picking them would select it.
+ *   So they never block clicks on objects behind them.
+ * - When an instancer's type is hidden its instances are still drawn for selection
+ *   but can't be picked (that would select it), so they block clicks on objects behind them.
+ *   They could be skipped like an unselectable instancer's, however to my knowledge
+ *   users haven't reported this as a problem, so leave as-is.
+ * - Objects in pose or edit mode ignore their type's selectability toggle and the outliner's,
+ *   see the element select note in #draw_filter_from_viewport_object_impl.
  * \{ */
 
 namespace draw {
@@ -789,12 +832,12 @@ enum class DrawFilter {
   Draw,
   /**
    * Skip drawing this object, but still generate and iterate its duplis (if any).
-   * A dupli may be individually selectable / visible even when its instancer is not.
+   * A dupli may be visible when its instancer is not.
    */
   Skip,
   /**
-   * Skip this object and its duplis. Used for instancers rejected by the caller's filter
-   * or the type exclusion, so #object_duplilist is never called for them.
+   * Skip this object and its duplis. Used for instancers that the caller's filter rejects
+   * or that can't be selected, so #object_duplilist is never called for them.
    *
    * Equivalent to #Skip when there are no duplis to cull (a dupli or an object without instances).
    */
@@ -839,62 +882,54 @@ DrawFilter draw_filter_from_viewport_object_impl(const DRWContext &draw_ctx,
 {
   const View3D &v3d = *draw_ctx.v3d;
 
-  /* When selecting elements (pose-bones, edit-mode bones & meta-ball elements),
-   * check for visibility not select-ability as the elements have their own selection
-   * restriction flags.
-   *
-   * NOTE: this also ignores the object type & outliner select-ability for the object
-   * (also when weight painting an object an armature in pose mode deforms).
-   * What should happen here isn't well defined, keep as-is. */
-  const bool use_element_select = check_select && (((draw_ctx.object_pose != nullptr) &&
-                                                    (ob.mode & OB_MODE_POSE)) ||
-                                                   (ob.mode & OB_MODE_EDIT));
+  /* The temporary object for a dupli takes its type from its data (a text's evaluated mesh is
+   * `OB_MESH`), use the type of the object it instances so generated geometry follows its
+   * object's toggles. For what else it copies from that object and the instancer,
+   * see #DEG_iterator_temp_object_from_dupli. */
+  const ObjectType ob_type = (dupli != nullptr) ? dupli->ob->type : ob.type;
 
-  /* Checks on top-level objects, for an instancer these also apply to its duplis.
-   * Duplis reach this predicate only to check draw-ability;
-   * these checks were already done on their instancer during the top-level iteration. */
-  if (dupli == nullptr) {
-    /* For an instancer these checks control instance generation,
-     * so run them before the visibility / selectable checks. */
+  /* NOTE: checks returning `SkipRecursive` must run before those returning `Skip`,
+   * an object rejected by both would otherwise walk its duplis.
+   * The element select branch can `Skip` first, an object hits either it or the select-ability
+   * check, never both. */
 
-    /* Take into account viewport settings for object type visibility on an instancer that may
-     * spawn duplis. The exclusion applies to its instances too, see: #159219.
-     *
-     * Duplis are skipped here on purpose: viewport exclusion is handled by
-     * #BKE_object_is_visible_in_viewport below, selection exclusion uses the instancer's
-     * type since selecting a dupli selects its instancer (they share a `select_id`). */
-    int object_type_exclude = v3d.object_type_exclude_viewport;
-
-    /* Selection also honors viewport exclusion so hidden instances can't occlude or be picked. */
-    if (check_select && !use_element_select) {
-      object_type_exclude |= v3d.object_type_exclude_select;
-    }
-    if ((object_type_exclude & (1 << ob.type)) != 0) {
+  /* Duplis skip the caller's filter, it already ran on their instancer. */
+  if ((dupli == nullptr) && (object_filter_fn != nullptr)) {
+    if (object_filter_fn(&ob, object_filter_user_data) == false) {
       return DrawFilter::SkipRecursive;
     }
-
-    if (object_filter_fn != nullptr) {
-      if (object_filter_fn(&ob, object_filter_user_data) == false) {
-        return DrawFilter::SkipRecursive;
-      }
-    }
-  }
-
-  /* Checks which only skip the object itself (never its duplis),
-   * a dupli may be visible & selectable when its instancer is not. */
-  if (!BKE_object_is_visible_in_viewport(&v3d, &ob)) {
-    return DrawFilter::Skip;
   }
 
   if (check_select) {
+    /* When selecting elements (pose-bones, edit-mode bones & meta-ball elements),
+     * check for visibility not select-ability as the elements have their own selection
+     * restriction flags.
+     *
+     * NOTE: this also ignores the object type & outliner select-ability for the object
+     * (also when weight painting an object an armature in pose mode deforms).
+     * What should happen here isn't well defined, keep as-is. */
+    const bool use_element_select = ((draw_ctx.object_pose != nullptr) &&
+                                     (ob.mode & OB_MODE_POSE)) ||
+                                    (ob.mode & OB_MODE_EDIT);
     if (use_element_select) {
       if ((ob.base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
         return DrawFilter::Skip;
       }
     }
-    else if ((ob.base_flag & BASE_SELECTABLE) == 0) {
-      return DrawFilter::Skip;
+    else if (((ob.base_flag & BASE_SELECTABLE) == 0) ||
+             ((dupli == nullptr) && ((v3d.object_type_exclude_select & (1 << ob_type)) != 0)))
+    {
+      /* Picking a dupli selects its instancer (they share a `select_id`),
+       * so the duplis of an unselectable instancer are skipped too,
+       * otherwise they block clicks on objects behind them.
+       * A dupli's own type isn't checked as it's the instancer that's selected. */
+      return DrawFilter::SkipRecursive;
     }
+  }
+
+  /* Only skips the object itself, a dupli may be visible when its instancer is not. */
+  if (!BKE_object_is_visible_in_viewport_ex(&v3d, &ob, ob_type)) {
+    return DrawFilter::Skip;
   }
 
   return DrawFilter::Draw;
@@ -2390,9 +2425,6 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
 
     if (RETOPOLOGY_ENABLED(v3d) && !XRAY_ENABLED(v3d)) {
       auto should_draw_object = [&](Object &ob, const DupliObject *dupli) -> DrawFilter {
-        /* Check visibility first so an excluded instancer skips its duplis,
-         * the type check below would otherwise reject a non-mesh instancer (an empty)
-         * before the exclusion could be applied to its duplis. */
         if (const DrawFilter filter = draw_filter_from_viewport_object_for_draw(
                 draw_ctx, ob, dupli);
             filter != DrawFilter::Draw)
