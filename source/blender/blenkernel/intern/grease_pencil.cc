@@ -1607,6 +1607,9 @@ Layer::Layer(const Layer &other) : Layer()
   /* Tag the frames map, so the frame storage is recreated once the DNA is saved. */
   this->tag_frames_map_changed();
 
+  /* Keep the mapping to the original layer when evaluated data is copied, e.g. by modifiers. */
+  this->runtime->orig_layer_index_ = other.runtime->orig_layer_index_;
+
   /* TODO: what about masks cache? */
 }
 
