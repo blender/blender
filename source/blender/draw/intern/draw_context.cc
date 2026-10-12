@@ -842,6 +842,17 @@ DrawFilter draw_filter_from_viewport_object_impl(const DRWContext &draw_ctx,
 {
   const View3D &v3d = *draw_ctx.v3d;
 
+  /* When selecting elements (pose-bones, edit-mode bones & metaball elements),
+   * check for visibility not select-ability as the elements have their own selection
+   * restriction flags.
+   *
+   * NOTE: this also ignores the object type & outliner select-ability for the object
+   * (also when weight painting an object an armature in pose mode deforms).
+   * What should happen here isn't well defined, keep as-is. */
+  const bool use_element_select = check_select && (((draw_ctx.object_pose != nullptr) &&
+                                                    (ob.mode & OB_MODE_POSE)) ||
+                                                   (ob.mode & OB_MODE_EDIT));
+
   /* Checks on top-level objects, for an instancer these also apply to its duplis.
    * Duplis reach this predicate only to check draw-ability;
    * these checks were already done on their instancer during the top-level iteration. */
@@ -861,7 +872,7 @@ DrawFilter draw_filter_from_viewport_object_impl(const DRWContext &draw_ctx,
     int object_type_exclude = v3d.object_type_exclude_viewport;
 
     /* Selection also honors viewport exclusion so hidden instances can't occlude or be picked. */
-    if (check_select) {
+    if (check_select && !use_element_select) {
       object_type_exclude |= v3d.object_type_exclude_select;
     }
     if ((object_type_exclude & (1 << ob.type)) != 0) {
@@ -882,9 +893,7 @@ DrawFilter draw_filter_from_viewport_object_impl(const DRWContext &draw_ctx,
   }
 
   if (check_select) {
-    /* When selecting pose-bones in pose mode, check for visibility not select-ability
-     * as pose-bones have their own selection restriction flag. */
-    if ((draw_ctx.object_pose != nullptr) && (ob.mode & OB_MODE_POSE)) {
+    if (use_element_select) {
       if ((ob.base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
         return DrawFilter::Skip;
       }
