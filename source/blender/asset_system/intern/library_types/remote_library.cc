@@ -114,6 +114,7 @@ PreferencesRemoteAssetLibrary::PreferencesRemoteAssetLibrary(
                          /*root_path=*/custom_library.dirpath),
       user_library_(custom_library)
 {
+  may_override_import_method_ = true;
   BLI_assert(custom_library.flag & ASSET_LIBRARY_USE_REMOTE_URL);
 }
 
@@ -146,6 +147,24 @@ bool PreferencesRemoteAssetLibrary::is_enabled() const
   }
 
   return (library_definition->flag & ASSET_LIBRARY_DISABLED) == 0;
+}
+
+std::optional<eAssetImportMethod> PreferencesRemoteAssetLibrary::import_method() const
+{
+  const bUserAssetLibrary *library_definition = user_library_.user_asset_library();
+  if (!library_definition) {
+    return {};
+  }
+  if (!ELEM(library_definition->import_method,
+            ASSET_IMPORT_APPEND,
+            ASSET_IMPORT_APPEND_REUSE,
+            ASSET_IMPORT_PACK))
+  {
+    BLI_assert_unreachable();
+    return ASSET_IMPORT_PACK;
+  }
+
+  return eAssetImportMethod(library_definition->import_method);
 }
 
 /** \} */

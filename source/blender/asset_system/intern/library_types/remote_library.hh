@@ -41,6 +41,7 @@ class PreferencesRemoteAssetLibrary : public RemoteAssetLibrary {
  public:
   PreferencesRemoteAssetLibrary(const bUserAssetLibrary &custom_library);
   std::optional<AssetLibraryReference> library_reference() const override;
+  std::optional<eAssetImportMethod> import_method() const override;
   bool is_enabled() const;
 };
 

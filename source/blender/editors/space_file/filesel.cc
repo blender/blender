@@ -65,6 +65,7 @@
 #include "UI_interface_icons.hh"
 #include "UI_view2d.hh"
 
+#include "AS_asset_library.hh"
 #include "AS_essentials_library.hh"
 
 #include "file_banner.hh"
@@ -541,13 +542,20 @@ int ED_fileselect_asset_import_method_get(const SpaceFile *sfile, const FileDirE
   }
 
   const FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
+  eFileAssetImportMethod import_method = eFileAssetImportMethod(params->import_method);
 
-  if (params->import_method == FILE_ASSET_IMPORT_FOLLOW_PREFS) {
-    std::optional import_method = file->asset->get_import_method();
-    return import_method ? *import_method : -1;
+  if (import_method == FILE_ASSET_IMPORT_LINK && file->asset->owner_asset_library().remote_url()) {
+    /* Remote library assets cannot be linked. Use #remote_url() here since All and
+     * Essentials libraries are already handled above. */
+    import_method = FILE_ASSET_IMPORT_FOLLOW_PREFS;
   }
 
-  switch (eFileAssetImportMethod(params->import_method)) {
+  if (import_method == FILE_ASSET_IMPORT_FOLLOW_PREFS) {
+    std::optional asset_import_method = file->asset->get_import_method();
+    return asset_import_method ? *asset_import_method : -1;
+  }
+
+  switch (import_method) {
     case FILE_ASSET_IMPORT_LINK:
       return ASSET_IMPORT_LINK;
     case FILE_ASSET_IMPORT_APPEND:
