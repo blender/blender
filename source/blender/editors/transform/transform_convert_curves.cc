@@ -264,17 +264,24 @@ bool update_handle_types_for_transform(const eTfmMode mode,
 }
 
 static MutableSpan<float3> append_positions_to_custom_data(const IndexMask selection,
-                                                           Span<float3> positions,
+                                                           std::optional<Span<float3>> positions,
                                                            TransCustomData &custom_data)
 {
   CurvesTransformData &transform_data = *static_cast<CurvesTransformData *>(custom_data.data);
   transform_data.selection_by_layer.append(selection);
   const int data_offset = transform_data.layer_offsets.last();
   transform_data.layer_offsets.append(data_offset + selection.size());
-  array_utils::gather(
-      positions,
-      selection,
-      transform_data.positions.as_mutable_span().slice(data_offset, selection.size()));
+  if (positions) {
+    array_utils::gather(
+        *positions,
+        selection,
+        transform_data.positions.as_mutable_span().slice(data_offset, selection.size()));
+  }
+  else {
+    transform_data.positions.as_mutable_span()
+        .slice(data_offset, selection.size())
+        .fill(float3(0.0f));
+  }
   return transform_data.positions.as_mutable_span().slice(transform_data.layer_offsets.last(1),
                                                           selection.size());
 }
@@ -544,10 +551,8 @@ void curve_populate_trans_data_structs(const TransInfo &t,
                                        const IndexMask &bezier_curves,
                                        void *extra)
 {
-  const std::array<Span<float3>, 3> src_positions_per_selection_attr = {
-      curves.positions(),
-      curves.handle_positions_left().value_or(Span<float3>()),
-      curves.handle_positions_right().value_or(Span<float3>())};
+  const std::array<std::optional<Span<float3>>, 3> src_positions_per_selection_attr = {
+      curves.positions(), curves.handle_positions_left(), curves.handle_positions_right()};
   const View3D *v3d = (t.spacetype == SPACE_VIEW3D) ? static_cast<const View3D *>(t.view) :
                                                       nullptr;
   const bool hide_handles = (v3d != nullptr) ? (v3d->overlay.handle_display == CURVE_HANDLE_NONE) :

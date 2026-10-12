@@ -1030,11 +1030,18 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     MutableSpan<float> radius_slice_left = edit_rad.slice(left_slice);
     MutableSpan<float> radius_slice_right = edit_rad.slice(right_slice);
 
-    const Span<float3> handles_left = *curves.handle_positions_left();
-    const Span<float3> handles_right = *curves.handle_positions_right();
-
-    array_utils::gather(handles_left, bezier_points, positions_slice_left);
-    array_utils::gather(handles_right, bezier_points, positions_slice_right);
+    if (const std::optional<Span<float3>> handles_left = curves.handle_positions_left()) {
+      array_utils::gather(*handles_left, bezier_points, positions_slice_left);
+    }
+    else {
+      positions_slice_left.fill(float3(0.0f));
+    }
+    if (const std::optional<Span<float3>> handles_right = curves.handle_positions_right()) {
+      array_utils::gather(*handles_right, bezier_points, positions_slice_right);
+    }
+    else {
+      positions_slice_right.fill(float3(0.0f));
+    }
 
     math::transform_points(layer_space_to_object_space, positions_slice_left);
     math::transform_points(layer_space_to_object_space, positions_slice_right);
