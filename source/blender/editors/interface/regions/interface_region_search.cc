@@ -585,7 +585,7 @@ void searchbox_update(bContext *C, ARegion *region, Button *but, const bool rese
   }
 
   /* Nothing active, check at mouse location. */
-  if (data->active == -1) {
+  if (data->active == -1 && data->search_but && data->search_but->editstr[0] == '\0') {
     wmWindow *win = CTX_wm_window(C);
     if (win && win->runtime && win->runtime->eventstate) {
       const int cursor_x = win->runtime->eventstate->xy[0];
