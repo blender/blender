@@ -7422,7 +7422,8 @@ static wmOperatorStatus project_settings_show_exec(bContext *C, wmOperator *op)
       RNA_property_string_get(op->ptr, prop, section_name);
       ARegion *region_props = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
       if (region_props) {
-        ui::panel_category_active_set_default(region_props, section_name);
+        ui::panel_category_active_set(region_props, section_name);
+        ED_area_tag_redraw(area);
       }
     }
 
