@@ -1114,7 +1114,8 @@ static void markers_selectkeys_between(bAnimContext *ac)
         ED_masklayer_frames_select_box(static_cast<MaskLayer *>(ale.data), min, max, SELECT_ADD);
         break;
 
-      case ANIMTYPE_FCURVE: {
+      case ANIMTYPE_FCURVE:
+      case ANIMTYPE_NLACURVE: {
         FCurve *fcurve = static_cast<FCurve *>(ale.key_data);
         ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, false, true);
         ANIM_fcurve_keyframes_loop(&ked, fcurve, ok_cb, select_cb, nullptr);
@@ -1562,7 +1563,8 @@ static void actkeys_select_leftright(bAnimContext *ac,
             static_cast<MaskLayer *>(ale.data), ked.f1, ked.f2, select_mode);
         break;
 
-      case ANIMTYPE_FCURVE: {
+      case ANIMTYPE_FCURVE:
+      case ANIMTYPE_NLACURVE: {
         FCurve *fcurve = static_cast<FCurve *>(ale.key_data);
         ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, false, true);
         ANIM_fcurve_keyframes_loop(&ked, fcurve, ok_cb, select_cb, nullptr);
