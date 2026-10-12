@@ -63,7 +63,7 @@ void blo_do_versions_504(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       if (mesh.radial_symmetry[0] > 1 || mesh.radial_symmetry[1] > 1 ||
           mesh.radial_symmetry[2] > 1)
       {
-        mesh.symmetry |= ME_RADIAL_SYMMETRY;
+        mesh.symmetry |= ME_SYMMETRY_RADIAL;
       }
     }
   }

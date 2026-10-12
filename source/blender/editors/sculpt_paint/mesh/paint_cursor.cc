@@ -421,7 +421,7 @@ static void point_with_symmetry_draw(const PaintMode paint_mode,
       }
 
       /* Radial Symmetry. */
-      if ((mesh->symmetry & ME_RADIAL_SYMMETRY) &&
+      if ((mesh->symmetry & ME_SYMMETRY_RADIAL) &&
           !(paint_mode == PaintMode::Weight && (mesh->editflag & ME_EDIT_MIRROR_VERTEX_GROUPS)))
       {
         for (char raxis = 0; raxis < 3; raxis++) {
