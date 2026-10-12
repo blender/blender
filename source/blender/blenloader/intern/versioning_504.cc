@@ -9,6 +9,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_ID.h"
+#include "DNA_mesh_types.h"
 
 #include "BLI_listbase.hh"
 #include "BLI_sys_types.hh"
@@ -57,6 +58,15 @@ void blo_do_versions_504(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 504, 2)) {
+    for (Mesh &mesh : bmain->meshes) {
+      if (mesh.radial_symmetry[0] > 1 || mesh.radial_symmetry[1] > 1 ||
+          mesh.radial_symmetry[2] > 1)
+      {
+        mesh.symmetry |= ME_RADIAL_SYMMETRY;
+      }
+    }
+  }
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
