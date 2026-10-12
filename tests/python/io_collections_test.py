@@ -407,6 +407,22 @@ class TestCollectionImport(CollectionIOTestBase):
 
         self.assertEqual(len(bpy.data.libraries), 0)
 
+    def test_make_local_empty(self):
+        # Validate make_local on an empty collection.
+        self.reset_blender()
+
+        coll_A = "CollectionA"
+        coll_main = bpy.context.scene.collection
+        self.create_collections(coll_main, (coll_A, ))
+
+        # Setup the importer but do not perform any import
+        self.add_collection_importer(coll_A, "IO_FH_usd")
+        coll = bpy.data.collections[coll_A]
+        coll.importer.filepath = str(self.testdir / "import-default.usda")
+
+        # Making local should remove the importer (validated as part of below call)
+        self.make_local_collection(coll_A)
+
 
 def main():
     global args

@@ -997,19 +997,16 @@ static wmOperatorStatus collection_importer_make_local_exec(bContext *C, wmOpera
   }
 
   Library *external_archive_lib = data->runtime->archive_library;
-  if (!external_archive_lib) {
-    /* Return early if nothing has been imported yet. */
-    return OPERATOR_FINISHED;
-  }
+  if (external_archive_lib) {
+    /* Make local every ID associated with the external archive library */
+    BKE_library_make_local(bmain, external_archive_lib, nullptr, false, false, false);
 
-  /* Make local every ID associated with the external archive library */
-  BKE_library_make_local(bmain, external_archive_lib, nullptr, false, false, false);
-
-  /* Remove external archive library and the main external library too if it's now empty. */
-  Library *external_library = external_archive_lib->archive_parent_library;
-  BKE_id_delete(bmain, &external_archive_lib->id);
-  if (external_library->runtime->archived_libraries.is_empty()) {
-    BKE_id_delete(bmain, &external_library->id);
+    /* Remove external archive library and the main external library too if it's now empty. */
+    Library *external_library = external_archive_lib->archive_parent_library;
+    BKE_id_delete(bmain, &external_archive_lib->id);
+    if (external_library->runtime->archived_libraries.is_empty()) {
+      BKE_id_delete(bmain, &external_library->id);
+    }
   }
 
   BKE_collection_importer_free_data(data);
