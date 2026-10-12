@@ -7042,14 +7042,14 @@ std::optional<PreScrubbingState> ED_screen_scrubbing_enable(bContext &C, bScreen
     return std::nullopt;
   }
 
-  /* Only continue if playback is running in this screen, so scrubbing in
-   * another screen does not interrupt playback. See #164040. */
-  if (play_screen != &screen) {
+  const ScreenAnimData *sad = static_cast<ScreenAnimData *>(play_screen->animtimer->customdata);
+  if (sad == nullptr) {
     return std::nullopt;
   }
 
-  const ScreenAnimData *sad = static_cast<ScreenAnimData *>(play_screen->animtimer->customdata);
-  if (sad == nullptr) {
+  /* Only pause playback of the scrubbed scene, so scrubbing another scene does
+   * not interrupt playback. */
+  if (sad->scene != bke::scene_or_sequencer_scene_from_context(C)) {
     return std::nullopt;
   }
 
