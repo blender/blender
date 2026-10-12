@@ -38,7 +38,6 @@ static void createTransParticleVerts(bContext * /*C*/, TransInfo *t)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
     TransData *td = nullptr;
-    TransDataExtension *tx;
     BKE_view_layer_synced_ensure(*t->bmain, t->scene, t->view_layer);
     Object *ob = BKE_view_layer_active_object_get(t->view_layer);
     ParticleEditSettings *pset = PE_settings(t->scene);
@@ -136,9 +135,6 @@ static void createTransParticleVerts(bContext * /*C*/, TransInfo *t)
         }
 
         td++;
-        if (tx) {
-          tx++;
-        }
         tail++;
       }
       if (is_prop_edit && head != tail) {

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
+"POT-Creation-Date: 2026-10-12 07:32+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8482,60 +8482,56 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Light"
+msgstr "Svetlost"
+
+
 msgid "Metaball"
 msgstr "Meta lopta"
 
 
-msgid "Snap"
-msgstr "Lepljenje"
+msgid "Align View"
+msgstr "Poravnaj pogled"
 
 
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
 
 
 msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
 
 
+msgid "Hooks"
+msgstr "Udice"
+
+
 msgid "Local View"
 msgstr "Lokalni pogled"
 
 
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
+msgid "Import"
+msgstr "Uvoz"
 
 
-msgid "Light"
-msgstr "Svetlost"
+msgid "Special Characters"
+msgstr "Specijalni znaci"
 
 
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "Apply"
-msgstr "Primeni"
-
-
-msgid "Merge"
-msgstr "Sjedini"
-
-
-msgid "Tracking"
-msgstr "Praćenje"
-
-
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "Names"
-msgstr "Imena"
+msgid "Linked"
+msgstr "Povezano"
 
 
 msgid "Mesh Select Mode"
 msgstr "Mod izbora mreže"
+
+
+msgid "Quick Effects"
+msgstr "Brzi efekti"
 
 
 msgid "Disable Bone Options"
@@ -8546,8 +8542,24 @@ msgid "Enable Bone Options"
 msgstr "Omogući opcije kostiju"
 
 
-msgid "Select Linked"
-msgstr "Izaberi povezano"
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Apply"
+msgstr "Primeni"
+
+
+msgid "Names"
+msgstr "Imena"
+
+
+msgid "Keying"
+msgstr "Zbirka tastera"
 
 
 msgid "Propagate"
@@ -8558,60 +8570,48 @@ msgid "In-Betweens"
 msgstr "U međuvremenu"
 
 
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
 msgid "Clear Transform"
 msgstr "Očisti transformacije"
 
 
-msgid "Hooks"
-msgstr "Udice"
+msgid "Snap"
+msgstr "Lepljenje"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Mirror"
+msgstr "Ogledalo"
 
 
-msgid "Math"
-msgstr "Matematika"
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
 
 
-msgid "Keying"
-msgstr "Zbirka tastera"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
-
-
-msgid "Special Characters"
-msgstr "Specijalni znaci"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Import"
-msgstr "Uvoz"
-
-
-msgid "Linked"
-msgstr "Povezano"
-
-
-msgid "Rigid Body"
-msgstr "Kruto telo"
+msgid "Select Linked"
+msgstr "Izaberi povezano"
 
 
 msgid "Track"
 msgstr "Staza"
 
 
-msgid "Quick Effects"
-msgstr "Brzi efekti"
-
-
 msgid "Relations"
 msgstr "Odnosi"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
+
+
+msgid "Rigid Body"
+msgstr "Kruto telo"
+
+
+msgid "Merge"
+msgstr "Sjedini"
 
 
 msgid "Basic"
@@ -12655,6 +12655,10 @@ msgstr "Vrednost uvećanja, 1.0 je 1:1, više je približeno, a manje udaljeno"
 msgctxt "Operator"
 msgid "Export"
 msgstr "Izvoz"
+
+
+msgid "Filepath"
+msgstr "Putanje datoteke"
 
 
 msgid "Clear text by type"
@@ -17762,10 +17766,6 @@ msgid "Line number to jump to"
 msgstr "Broj linije za prebacivanje"
 
 
-msgid "Filepath"
-msgstr "Putanje datoteke"
-
-
 msgctxt "Operator"
 msgid "Line Number"
 msgstr "Broj linije"
@@ -19016,12 +19016,12 @@ msgid "Restrict"
 msgstr "Ograniči"
 
 
-msgid "Motion Tracking"
-msgstr "Praćenje pokreta"
-
-
 msgid "Transform Orientations"
 msgstr "Transformacija orijentacija"
+
+
+msgid "Motion Tracking"
+msgstr "Praćenje pokreta"
 
 
 msgid "Bone Constraints"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
+"POT-Creation-Date: 2026-10-12 07:32+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21136,88 +21136,92 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Light"
+msgstr "Luz"
+
+
 msgid "Metaball"
 msgstr "Meta-esfera"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
 
 
 msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
 
-msgid "Select Loops"
-msgstr "Selecionar anéis"
+msgid "View Regions"
+msgstr "Visualizar Regiões"
 
 
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
 
 
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
+msgid "Align View"
+msgstr "Alinhar visualização"
 
 
 msgid "Clean Up"
 msgstr "Limpeza"
 
 
-msgid "Light Probe"
-msgstr "Sonda de Luz"
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
 
 
 msgid "Local View"
 msgstr "Visão local"
 
 
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
+msgid "Convert"
+msgstr "Converter"
 
 
-msgid "Light"
-msgstr "Luz"
+msgid "Face Data"
+msgstr "Dados das faces"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Make Single User"
+msgstr "Tornar usuário único"
 
 
-msgid "Apply"
-msgstr "Aplicar"
+msgid "Import"
+msgstr "Importar"
 
 
-msgid "Merge"
-msgstr "Fundir"
+msgid "Layout"
+msgstr "Organizar"
 
 
-msgid "Tracking"
-msgstr "Rastreamento"
+msgid "Special Characters"
+msgstr "Caracteres especiais"
 
 
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Names"
-msgstr "Nomes"
+msgid "Linked"
+msgstr "Vinculando"
 
 
 msgid "Mesh Select Mode"
 msgstr "Modo de seleção de malhas"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
 
 
 msgid "Disable Bone Options"
@@ -21228,100 +21232,88 @@ msgid "Enable Bone Options"
 msgstr "Habilitar opções de ossos"
 
 
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
 
 
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
+msgid "Instances"
+msgstr "Instâncias"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Convert"
-msgstr "Converter"
+msgid "Apply"
+msgstr "Aplicar"
 
 
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
+msgid "Names"
+msgstr "Nomes"
 
 
 msgid "Keying"
 msgstr "Inserção de chaves"
 
 
-msgid "Align View"
-msgstr "Alinhar visualização"
+msgid "Light Probe"
+msgstr "Sonda de Luz"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiais"
+msgid "Propagate"
+msgstr "Propagar"
 
 
-msgid "Navigation"
-msgstr "Navegação"
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
 
 
-msgid "Import"
-msgstr "Importar"
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
 
 
-msgid "Linked"
-msgstr "Vinculando"
+msgid "Clear Transform"
+msgstr "Limpar transformações"
 
 
-msgid "Rigid Body"
-msgstr "Corpo rígido"
+msgid "Snap"
+msgstr "Atrair"
 
 
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
 
 
 msgid "Track"
 msgstr "Rastrear"
 
 
-msgid "Face Data"
-msgstr "Dados das faces"
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
 
 
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
 
 
 msgid "Relations"
@@ -21332,12 +21324,20 @@ msgid "Add Image"
 msgstr "Adicionar Imagem"
 
 
-msgid "Instances"
-msgstr "Instâncias"
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
 
 
-msgid "Layout"
-msgstr "Organizar"
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Merge"
+msgstr "Fundir"
 
 
 msgid "Basic"
@@ -32055,6 +32055,10 @@ msgstr "Criar Nova Coleção"
 msgctxt "Operator"
 msgid "Export"
 msgstr "Exportar"
+
+
+msgid "Filepath"
+msgstr "Diretórios"
 
 
 msgctxt "Operator"
@@ -43688,6 +43692,10 @@ msgid "Allow Overlap"
 msgstr "Permitir sobreposições"
 
 
+msgid "Shuffle"
+msgstr "Embaralhar"
+
+
 msgid "Replace Selection"
 msgstr "Sobrepor seleção"
 
@@ -44550,10 +44558,6 @@ msgstr "Faz o cursor saltar para uma linha."
 
 msgid "Line number to jump to"
 msgstr "Número da linha para a qual saltar."
-
-
-msgid "Filepath"
-msgstr "Diretórios"
 
 
 msgctxt "Operator"
@@ -47846,24 +47850,24 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
+msgid "Quad View"
+msgstr "Exibição Quadrante"
 
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
 
 
-msgid "Quad View"
-msgstr "Exibição Quadrante"
-
-
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"
@@ -50600,6 +50604,10 @@ msgid "Display tool/property regions over the main region"
 msgstr "Desenha as regiões da estante de ferramentas e painéis de propriedade sobre a região principal"
 
 
+msgid "CUDA"
+msgstr "CUDA"
+
+
 msgid "Method of anti-aliasing in 3d viewport"
 msgstr "Método de anti serrilhado na janela de exibição 3D"
 
@@ -51090,10 +51098,6 @@ msgstr "Número de subdivisões usadas em intersecção de curvas cardinais (ele
 
 msgid "CPU"
 msgstr "CPU"
-
-
-msgid "CUDA"
-msgstr "CUDA"
 
 
 msgid "OptiX"
@@ -53458,10 +53462,6 @@ msgstr "Mostrar deslocamentos"
 
 msgid "Display strip in/out offsets"
 msgstr "Mostra os deslocamentos de entrada e saída das faixas."
-
-
-msgid "Shuffle"
-msgstr "Embaralhar"
 
 
 msgid "Bounding Box Center"
@@ -63374,10 +63374,6 @@ msgid "Reset operator defaults"
 msgstr "Redefine o operador a seus padrões."
 
 
-msgid "File Not Found"
-msgstr "Arquivo Não Encontrado"
-
-
 msgid "Yesterday"
 msgstr "Ontem"
 
@@ -65768,22 +65764,6 @@ msgid "Scale X: %s   Y: %s  Z: %s%s %s"
 msgstr "Escalonando X: %s  Y: %s  Z: %s%s %s"
 
 
-msgid "Time: +%s %s"
-msgstr "Tempo: +%s %s"
-
-
-msgid "Time: %s %s"
-msgstr "Tempo: %s %s"
-
-
-msgid "Time: +%.3f %s"
-msgstr "Tempo: +%.3f %s"
-
-
-msgid "Time: %.3f %s"
-msgstr "Tempo: %.3f %s"
-
-
 msgid "ScaleB: %s%s %s"
 msgstr "Escalonando ossos: %s%s %s"
 
@@ -67065,6 +67045,10 @@ msgstr "Faltando \"janela\" no contexto."
 
 msgid "Don't Save"
 msgstr "Não Salvar"
+
+
+msgid "File Not Found"
+msgstr "Arquivo Não Encontrado"
 
 
 msgid "Modified"

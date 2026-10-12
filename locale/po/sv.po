@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
+"POT-Creation-Date: 2026-10-12 07:32+0000\n"
 "PO-Revision-Date: 2026-09-28 12:14+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -1764,10 +1764,6 @@ msgid "Edit persistent configuration settings"
 msgstr "Redigera beständiga konfigurationsinställningar"
 
 
-msgid "Project Setup"
-msgstr "Projektkonfiguration"
-
-
 msgid "Manage the current Blender project"
 msgstr "Hantera det aktuella Blender-projektet"
 
@@ -1912,12 +1908,20 @@ msgid "Show assets from the asset libraries configured in the Preferences"
 msgstr "Visa resurser från de resursbibliotek som konfigurerats i Inställningar"
 
 
+msgid "User Library"
+msgstr "Användarbibliotek"
+
+
 msgid "User Asset Libraries"
 msgstr "Användarresursbibliotek"
 
 
 msgid "Collection of user asset libraries"
 msgstr "Samling av användarresursbibliotek"
+
+
+msgid "Active Asset Library"
+msgstr "Aktivt resursbibliotek"
 
 
 msgid "Asset Library Reference"
@@ -4252,14 +4256,6 @@ msgstr "Biblioteksreferens (blend-fil) i BlendImportContext-data. För närvaran
 
 msgid "Blender Project"
 msgstr "Blender-projekt"
-
-
-msgid "Active Asset Library"
-msgstr "Aktivt resursbibliotek"
-
-
-msgid "Index of the asset library being edited in the Project Setup UI"
-msgstr "Index för resursbiblioteket som redigeras i användargränssnittet för projektkonfiguration"
 
 
 msgid "Active Project Variable"
@@ -31020,6 +31016,10 @@ msgid "Only show add-ons"
 msgstr "Visa endast tillägg"
 
 
+msgid "Asset Libraries"
+msgstr "Resursbibliotek"
+
+
 msgid "Themes"
 msgstr "Teman"
 
@@ -36184,184 +36184,56 @@ msgid "Editor menu containing buttons"
 msgstr "Redigeringsmeny med knappar"
 
 
-msgid "Deprecated"
-msgstr "Föråldrad"
-
-
-msgid "Utilities"
-msgstr "Verktyg"
-
-
-msgid "Write"
-msgstr "Skriv"
-
-
-msgid "Read"
-msgstr "Läs"
+msgid "Light"
+msgstr "Ljus"
 
 
 msgid "Metaball"
 msgstr "Metaklot"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Avtoning för proportionell redigering"
-
-
-msgid "Snap"
-msgstr "Fäst"
-
-
-msgid "Pivot Point"
-msgstr "Pivotpunkt"
-
-
 msgid "Select More/Less"
 msgstr "Välj fler/färre"
 
 
-msgid "Select Loops"
-msgstr "Välj slingor"
+msgid "View Regions"
+msgstr "Vyregioner"
 
 
-msgid "Sample"
-msgstr "Prov"
+msgid "Align View to Active"
+msgstr "Justera vy efter aktiv"
 
 
-msgid "Bone Roll"
-msgstr "Benrullning"
+msgid "Align View"
+msgstr "Justera vy"
 
 
-msgid "Random Mask"
-msgstr "Slumpmässig mask"
-
-
-msgid "Face Sets Init"
-msgstr "Initiera ansiktsuppsättningar"
-
-
-msgid "Show/Hide"
-msgstr "Visa/Dölj"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Ställ in skulpteringsvridpunkt"
+msgid "Read"
+msgstr "Läs"
 
 
 msgid "Clean Up"
 msgstr "Rensa"
 
 
-msgid "Trim/Add"
-msgstr "Trimma/Lägg till"
+msgid "Math"
+msgstr "Matematik"
 
 
-msgid "Render Preview"
-msgstr "Renderingsförhandsgranskning"
+msgid "Navigation"
+msgstr "Navigering"
 
 
-msgid "Light Probe"
-msgstr "Ljussond"
+msgid "Show/Hide"
+msgstr "Visa/Dölj"
 
 
-msgid "Local View"
-msgstr "Lokal vy"
+msgid "Write"
+msgstr "Skriv"
 
 
-msgid "Primitives"
-msgstr "Primitiv"
-
-
-msgid "UV Mapping"
-msgstr "UV-mappning"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Vertex Group Locks"
-msgstr "Lås för vertexgrupper"
-
-
-msgid "Mirror"
-msgstr "Spegel"
-
-
-msgid "Apply"
-msgstr "Tillämpa"
-
-
-msgid "Face Sets Edit"
-msgstr "Redigera ansiktsuppsättningar"
-
-
-msgid "Merge"
-msgstr "Sammanfoga"
-
-
-msgid "Automasking"
-msgstr "Automatisk maskering"
-
-
-msgid "Mask Edit"
-msgstr "Maskredigering"
-
-
-msgid "Tracking"
-msgstr "Spårning"
-
-
-msgid "Toggle Bone Options"
-msgstr "Växla mellan benalternativ"
-
-
-msgid "Names"
-msgstr "Namn"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
-
-
-msgid "Mesh Select Mode"
-msgstr "Nätmarkeringsläge"
-
-
-msgid "Disable Bone Options"
-msgstr "Inaktivera benalternativ"
-
-
-msgid "Enable Bone Options"
-msgstr "Aktivera benalternativ"
-
-
-msgid "Bone Collections"
-msgstr "Bensamlingar"
-
-
-msgid "Select Linked"
-msgstr "Välj länkade"
-
-
-msgid "Propagate"
-msgstr "Sprid"
-
-
-msgid "Select All by Trait"
-msgstr "Välj alla efter egenskap"
-
-
-msgid "In-Betweens"
-msgstr "Mellanlägen"
-
-
-msgid "Select Similar"
-msgstr "Välj liknande"
-
-
-msgid "Clear Transform"
-msgstr "Rensa transformering"
+msgid "Viewpoint"
+msgstr "Synpunkt"
 
 
 msgid "Hooks"
@@ -36372,96 +36244,220 @@ msgid "Link/Transfer Data"
 msgstr "Länka/överför data"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Primitives"
+msgstr "Primitiv"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
+
+
+msgid "Utilities"
+msgstr "Verktyg"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
 
 
 msgid "Convert"
 msgstr "Konvertera"
 
 
-msgid "View Regions"
-msgstr "Vyregioner"
-
-
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Make Single User"
-msgstr "Gör till enskild användare"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy efter aktiv"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
 msgid "Set Face Strength"
 msgstr "Ställ in ansiktsstyrka"
-
-
-msgid "Asset"
-msgstr "Resurs"
-
-
-msgid "Keying"
-msgstr "Nyckelbildsättning"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Adjust"
-msgstr "Justera"
 
 
 msgid "Select by Face Strength"
 msgstr "Välj efter ansiktsstyrka"
 
 
-msgid "Navigation"
-msgstr "Navigering"
+msgid "Face Data"
+msgstr "Ansiktsdata"
+
+
+msgid "Make Single User"
+msgstr "Gör till enskild användare"
 
 
 msgid "Import"
 msgstr "Importera"
 
 
+msgid "Sample"
+msgstr "Prov"
+
+
+msgid "Asset"
+msgstr "Resurs"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Special Characters"
+msgstr "Specialtecken"
+
+
 msgid "Linked"
 msgstr "Länkad"
-
-
-msgid "Rigid Body"
-msgstr "Stel kropp"
-
-
-msgid "Viewpoint"
-msgstr "Synpunkt"
-
-
-msgid "Track"
-msgstr "Spår"
 
 
 msgid "Creative"
 msgstr "Kreativ"
 
 
-msgid "Face Data"
-msgstr "Ansiktsdata"
+msgid "Mesh Select Mode"
+msgstr "Nätmarkeringsläge"
 
 
 msgid "Quick Effects"
 msgstr "Snabba effekter"
+
+
+msgid "Disable Bone Options"
+msgstr "Inaktivera benalternativ"
+
+
+msgid "Enable Bone Options"
+msgstr "Aktivera benalternativ"
+
+
+msgid "Toggle Bone Options"
+msgstr "Växla mellan benalternativ"
+
+
+msgid "Instances"
+msgstr "Instanser"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Apply"
+msgstr "Tillämpa"
+
+
+msgid "Names"
+msgstr "Namn"
+
+
+msgid "Bone Collections"
+msgstr "Bensamlingar"
+
+
+msgid "Keying"
+msgstr "Nyckelbildsättning"
+
+
+msgid "Adjust"
+msgstr "Justera"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Propagate"
+msgstr "Sprid"
+
+
+msgid "In-Betweens"
+msgstr "Mellanlägen"
+
+
+msgid "UV Mapping"
+msgstr "UV-mappning"
+
+
+msgid "Clear Transform"
+msgstr "Rensa transformering"
+
+
+msgid "Snap"
+msgstr "Fäst"
+
+
+msgid "Mirror"
+msgstr "Spegel"
+
+
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
+msgid "Random Mask"
+msgstr "Slumpmässig mask"
+
+
+msgid "Face Sets Init"
+msgstr "Initiera ansiktsuppsättningar"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Ställ in skulpteringsvridpunkt"
+
+
+msgid "Mask Edit"
+msgstr "Maskredigering"
+
+
+msgid "Vertex Group Locks"
+msgstr "Lås för vertexgrupper"
+
+
+msgid "Trim/Add"
+msgstr "Trimma/Lägg till"
+
+
+msgid "Select Loops"
+msgstr "Välj slingor"
+
+
+msgid "Bone Roll"
+msgstr "Benrullning"
+
+
+msgid "Face Sets Edit"
+msgstr "Redigera ansiktsuppsättningar"
+
+
+msgid "Select Linked"
+msgstr "Välj länkade"
+
+
+msgid "Automasking"
+msgstr "Automatisk maskering"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Avtoning för proportionell redigering"
+
+
+msgid "Render Preview"
+msgstr "Renderingsförhandsgranskning"
+
+
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Select All by Trait"
+msgstr "Välj alla efter egenskap"
+
+
+msgid "Select Similar"
+msgstr "Välj liknande"
 
 
 msgid "Relations"
@@ -36472,16 +36468,20 @@ msgid "Add Image"
 msgstr "Lägg till bild"
 
 
-msgid "Instances"
-msgstr "Instanser"
+msgid "Pivot Point"
+msgstr "Pivotpunkt"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
+msgid "Tracking"
+msgstr "Spårning"
 
 
-msgid "Layout"
-msgstr "Layout"
+msgid "Rigid Body"
+msgstr "Stel kropp"
+
+
+msgid "Merge"
+msgstr "Sammanfoga"
 
 
 msgid "Keyframe Insert Pie"
@@ -62205,6 +62205,10 @@ msgid "Add Importer"
 msgstr "Lägg till importör"
 
 
+msgid "Filepath"
+msgstr "Filsökväg"
+
+
 msgctxt "Operator"
 msgid "Import"
 msgstr "Importera"
@@ -63247,10 +63251,6 @@ msgstr "Tidsförskjutning"
 
 msgid "Time Extend"
 msgstr "Förläng tid"
-
-
-msgid "Bake Time"
-msgstr "Baka tid"
 
 
 msgid "Edge Slide"
@@ -64408,8 +64408,8 @@ msgid "Export visible objects only"
 msgstr "Exportera endast synliga objekt"
 
 
-msgid "Export at Collection Center"
-msgstr "Exportera vid samlingens centrum"
+msgid "Center of Mass"
+msgstr "Tyngdpunkt"
 
 
 msgid "Export at Collection center of mass of root objects of the collection"
@@ -65348,6 +65348,14 @@ msgid "Store glTF export settings in the Blender project"
 msgstr "Spara glTF-exportinställningar i Blender-projektet"
 
 
+msgid "Package ID"
+msgstr "Paket-ID"
+
+
+msgid "Repo Index"
+msgstr "Arkivindex"
+
+
 msgid "Do Legacy Replace"
 msgstr "Ersätt äldre"
 
@@ -65360,16 +65368,8 @@ msgid "Enable after installing"
 msgstr "Aktivera efter installation"
 
 
-msgid "Package ID"
-msgstr "Paket-ID"
-
-
 msgid "Repo Directory"
 msgstr "Arkivkatalog"
-
-
-msgid "Repo Index"
-msgstr "Arkivindex"
 
 
 msgid "URL"
@@ -84247,21 +84247,12 @@ msgid "Add a new screen"
 msgstr "Lägg till en ny skärm"
 
 
-msgctxt "Operator"
-msgid "Open Project Setup..."
-msgstr "Öppna projektinställningar…"
-
-
 msgid "Create and manage projects"
 msgstr "Skapa och hantera projekt"
 
 
 msgid "Active Section"
 msgstr "Aktiv sektion"
-
-
-msgid "Section to activate in Project Setup"
-msgstr "Avsnitt som ska aktiveras i projektinställningar"
 
 
 msgctxt "Operator"
@@ -84477,10 +84468,6 @@ msgstr "Hantera tillägg som installerats via tillägg"
 
 msgid "Edit and save themes installed via Extensions"
 msgstr "Redigera och spara teman som installerats via tillägg"
-
-
-msgid "Asset Libraries"
-msgstr "Resursbibliotek"
 
 
 msgid "Keymap"
@@ -85841,10 +85828,6 @@ msgid "Start frame of the strip"
 msgstr "Startbildruta för remsan"
 
 
-msgid "Move Strips"
-msgstr "Flytta remsor"
-
-
 msgid "Automatically begin translating strips with the mouse after adding them to the timeline"
 msgstr "Börja automatiskt flytta remsor med musen efter att de har lagts till i tidslinjen"
 
@@ -85857,12 +85840,12 @@ msgid "Don't correct overlap on new strips"
 msgstr "Korrigera inte överlappning på nya remsor"
 
 
-msgid "Override Overlap Shuffle Behavior"
-msgstr "Åsidosätt beteende för omordning vid överlappning"
+msgid "Overlap Mode"
+msgstr "Överlappningsläge"
 
 
-msgid "Use the overlap_mode tool settings to determine how to shuffle overlapping strips"
-msgstr "Använd verktygsinställningen ”overlap_mode” för att bestämma hur överlappande remsor ska ordnas om"
+msgid "Shuffle"
+msgstr "Flytta om"
 
 
 msgid "Replace Selection"
@@ -85900,10 +85883,6 @@ msgstr "Sprid inte delningen till anslutna remsor"
 
 msgid "Ignore Selection"
 msgstr "Ignorera val"
-
-
-msgid "In box blade mode, make cuts to all strips, even if they are not selected"
-msgstr "I rutbladsläge ska du skära alla remsor, även om de inte är markerade"
 
 
 msgid "Remove Gaps"
@@ -86721,10 +86700,6 @@ msgid "Delete selected strips and close the gaps left behind"
 msgstr "Ta bort markerade remsor och stäng luckorna som blir kvar"
 
 
-msgid "Ripple strips on other channels too, else only strips on the same channels as the deleted strips"
-msgstr "Förskjut även remsor på andra kanaler, annars endast remsor på samma kanaler som de borttagna remsorna"
-
-
 msgid "Markers"
 msgstr "Markörer"
 
@@ -87113,24 +87088,12 @@ msgid "Split the selected strips in two"
 msgstr "Dela de valda remsorna i två delar"
 
 
-msgid "Channel in which strip will be cut"
-msgstr "Kanal där remsan skärs"
-
-
 msgid "Frame where selected strips will be split"
 msgstr "Bildruta där markerade remsor delas"
 
 
-msgid "Make cut even if strip is not selected preserving selection state after cut"
-msgstr "Gör snitt även om remsan inte är markerad och behåll markeringen efter snittet"
-
-
 msgid "The side that remains selected after splitting"
 msgstr "Den sida som förblir vald efter delningen"
-
-
-msgid "Split at position of the cursor instead of current frame"
-msgstr "Dela vid markörens position i stället för den aktuella bildrutan"
 
 
 msgid "Set a color tag for the selected strips"
@@ -87961,10 +87924,6 @@ msgid "Column to jump to"
 msgstr "Kolumn att hoppa till"
 
 
-msgid "Filepath"
-msgstr "Filsökväg"
-
-
 msgid "Line to jump to"
 msgstr "Rad att hoppa till"
 
@@ -88519,6 +88478,14 @@ msgstr "Välj transformeringsorientering"
 msgctxt "Operator"
 msgid "Sequence Slide"
 msgstr "Sekvensförskjutning"
+
+
+msgid "Insert"
+msgstr "Infoga"
+
+
+msgid "How to resolve overlap after transformation"
+msgstr "Hur överlappning löses efter transformering"
 
 
 msgid "Restore Handle Selection"
@@ -95325,64 +95292,28 @@ msgid "Panel containing UI elements"
 msgstr "Panel med gränssnittselement"
 
 
-msgid "Render Pass"
-msgstr "Renderingspass"
-
-
-msgid "Shadow Settings"
-msgstr "Skugginställningar"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Alternativ för att lägga till kurva i Curves Sculpt"
-
-
-msgid "Auto-Masking"
-msgstr "Automatisk maskering"
-
-
-msgid "View Lock"
-msgstr "Vylås"
-
-
-msgid "Active Tool"
-msgstr "Aktivt verktyg"
-
-
-msgid "Curve Edit Mode"
-msgstr "Kurvredigeringsläge"
-
-
 msgid "Grease Pencil Options"
 msgstr "Grease Pencil-alternativ"
-
-
-msgid "Measurement"
-msgstr "Mätning"
-
-
-msgid "glTF Variants"
-msgstr "glTF-varianter"
 
 
 msgid "glTF Material Variants"
 msgstr "glTF-materialvarianter"
 
 
-msgid "Guides"
-msgstr "Hjälplinjer"
+msgid "Quad View"
+msgstr "Fyrbildsvy"
+
+
+msgid "glTF Variants"
+msgstr "glTF-varianter"
+
+
+msgid "Measurement"
+msgstr "Mätning"
 
 
 msgid "Mesh Edit Mode"
 msgstr "Nätredigeringsläge"
-
-
-msgid "Motion Tracking"
-msgstr "Rörelsespårning"
-
-
-msgid "Viewer Node"
-msgstr "Visningsnod"
 
 
 msgid "VR"
@@ -95393,48 +95324,48 @@ msgid "VR Info"
 msgstr "VR-information"
 
 
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Parameterfalloff för Curves Sculpt"
+msgid "Selectability & Visibility"
+msgstr "Valbarhet och synlighet"
 
 
-msgid "Stereoscopy"
-msgstr "Stereoskopi"
+msgid "Auto-Masking"
+msgstr "Automatisk maskering"
 
 
-msgid "Onion Skin"
-msgstr "Lökhud"
-
-
-msgid "Quad View"
-msgstr "Fyrbildsvy"
+msgid "Active Tool"
+msgstr "Aktivt verktyg"
 
 
 msgid "Multi Frame"
 msgstr "Flera bildrutor"
 
 
-msgid "Drawing Plane"
-msgstr "Ritplan"
-
-
-msgid "Stroke Placement"
-msgstr "Streckplacering"
+msgid "Stereoscopy"
+msgstr "Stereoskopi"
 
 
 msgid "Transform Orientations"
 msgstr "Transformeringsorienteringar"
 
 
-msgid "Overlays"
-msgstr "Överlägg"
+msgid "Onion Skin"
+msgstr "Lökhud"
 
 
-msgid "glTF"
-msgstr "glTF"
+msgid "Motion Tracking"
+msgstr "Rörelsespårning"
 
 
-msgid "glTF Animations"
-msgstr "glTF-animationer"
+msgid "Viewer Node"
+msgstr "Visningsnod"
+
+
+msgid "Stroke Placement"
+msgstr "Streckplacering"
+
+
+msgid "Drawing Plane"
+msgstr "Ritplan"
 
 
 msgid "Cavity"
@@ -95445,20 +95376,56 @@ msgid "SSAO Settings"
 msgstr "SSAO-inställningar"
 
 
+msgid "Guides"
+msgstr "Hjälplinjer"
+
+
+msgid "Shadow Settings"
+msgstr "Skugginställningar"
+
+
 msgid "Curves Edit Mode"
 msgstr "Redigeringsläge för kurvor"
 
 
-msgid "Selectability & Visibility"
-msgstr "Valbarhet och synlighet"
+msgid "Curve Edit Mode"
+msgstr "Kurvredigeringsläge"
+
+
+msgid "View Lock"
+msgstr "Vylås"
 
 
 msgid "Viewport Debug"
 msgstr "Felsökning av visningsområde"
 
 
+msgid "Overlays"
+msgstr "Överlägg"
+
+
 msgid "Curves Grow/Shrink Scaling"
 msgstr "Skalning för att växa/krympa kurvor"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Parameterfalloff för Curves Sculpt"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF-animationer"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Alternativ för att lägga till kurva i Curves Sculpt"
+
+
+msgid "Render Pass"
+msgstr "Renderingspass"
 
 
 msgid "Import Settings"
@@ -99076,14 +99043,6 @@ msgid "Disable the asset indexer, to force every asset library refresh to comple
 msgstr "Inaktivera resursindexeraren för att tvinga varje uppdatering av resursbiblioteket att läsa in resurserna från disken på nytt"
 
 
-msgid "Collection Import"
-msgstr "Import av samling"
-
-
-msgid "Enables a file importer to be configured on a Collection"
-msgstr "Gör det möjligt att konfigurera en filimportör för en samling"
-
-
 msgid "Cycles Debug"
 msgstr "Cyklers felsökning"
 
@@ -100502,6 +100461,10 @@ msgid "Time since last access of a GL vertex buffer object in seconds after whic
 msgstr "Tid i sekunder sedan ett GL-hörnpunktsbuffertobjekt senast användes, varefter det frigörs (ställ in 0 för att behålla VBO:n allokerad)"
 
 
+msgid "CUDA"
+msgstr "CUDA"
+
+
 msgid "Viewport Anti-Aliasing"
 msgstr "Kantutjämning i visningsområde"
 
@@ -100846,16 +100809,8 @@ msgid "Catalan - Català"
 msgstr "Katalanska - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "Lokalkod: ca_AD. Översättningsförlopp: 100 %"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Kinesiska (förenklad) - 简体中文"
-
-
-msgid "Locale code: zh_HANS. Translation progress: 100%"
-msgstr "Lokalkod: zh_HANS. Översättningsförlopp: 100 %"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -100870,16 +100825,8 @@ msgid "Croatian - Hrvatski"
 msgstr "Kroatiska – Hrvatski"
 
 
-msgid "Locale code: hr. Translation progress: 1%"
-msgstr "Lokalkod: hr. Översättningsförlopp: 1 %"
-
-
 msgid "Czech - Čeština"
 msgstr "Tjeckiska - Čeština"
-
-
-msgid "Locale code: cs_CZ. Translation progress: 26%"
-msgstr "Lokalkod: cs_CZ. Översättningsförlopp: 26 %"
 
 
 msgid "Danish - Dansk"
@@ -100900,10 +100847,6 @@ msgstr "Lokalkod: nl_NL. Översättningsförlopp: 7 %"
 
 msgid "English (UK)"
 msgstr "Engelska (Storbritannien)"
-
-
-msgid "Locale code: en_GB. Translation progress: 93%"
-msgstr "Lokalkod: en_GB. Översättningsförlopp: 93 %"
 
 
 msgid "English (US)"
@@ -100934,16 +100877,8 @@ msgid "French - Français"
 msgstr "Franska - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Lokalkod: fr_FR. Översättningsförlopp: 99 %"
-
-
 msgid "Georgian - ქართული"
 msgstr "Georgiska - ქართული"
-
-
-msgid "Locale code: ka. Translation progress: 99%"
-msgstr "Lokalkod: ka. Översättningsförlopp: 99 %"
 
 
 msgid "German - Deutsch"
@@ -100998,10 +100933,6 @@ msgid "Italian - Italiano"
 msgstr "Italienska - Italiano"
 
 
-msgid "Locale code: it_IT. Translation progress: 42%"
-msgstr "Lokalkod: it_IT. Översättningsförlopp: 42 %"
-
-
 msgid "Japanese - 日本語"
 msgstr "Japanska - 日本語"
 
@@ -101012,10 +100943,6 @@ msgstr "Lokalkod: ja_JP. Översättningsförlopp: 98 %"
 
 msgid "Korean - 한국어"
 msgstr "Koreanska - 한국어"
-
-
-msgid "Locale code: ko_KR. Translation progress: 92%"
-msgstr "Lokalkod: ko_KR. Översättningsförlopp: 92 %"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -101062,24 +100989,12 @@ msgid "Polish - Polski"
 msgstr "Polska - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 100%"
-msgstr "Lokalkod: pl_PL. Översättningsförlopp: 100 %"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugisiska (Brasilien) - Português brasileiro"
 
 
-msgid "Locale code: pt_BR. Translation progress: 41%"
-msgstr "Lokalkod: pt_BR. Översättningsförlopp: 41 %"
-
-
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugisiska (Portugal) - Português europeu"
-
-
-msgid "Locale code: pt_PT. Translation progress: 82%"
-msgstr "Lokalkod: pt_PT. Översättningsförlopp: 82 %"
 
 
 msgid "Romanian - Român"
@@ -101092,10 +101007,6 @@ msgstr "Lokalkod: ro_RO. Översättningsförlopp: 2 %"
 
 msgid "Russian - Русский"
 msgstr "Ryska - Русский"
-
-
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "Lokalkod: ru_RU. Översättningsförlopp: 100 %"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -101118,24 +101029,12 @@ msgid "Slovak - Slovenčina"
 msgstr "Slovakiska - Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "Lokalkod: sk_SK. Översättningsförlopp: 100 %"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "Slovenska - Slovenščina"
 
 
-msgid "Locale code: sl. Translation progress: 53%"
-msgstr "Lokalkod: sl. Översättningsförlopp: 53 %"
-
-
 msgid "Spanish - Español"
 msgstr "Spanska - Español"
-
-
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "Lokalkod: es. Översättningsförlopp: 100 %"
 
 
 msgid "Swahili - Kiswahili"
@@ -101154,10 +101053,6 @@ msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
 
 
-msgid "Locale code: ta. Translation progress: 94%"
-msgstr "Lokalkod: ta. Översättningsförlopp: 94 %"
-
-
 msgid "Thai - ภาษาไทย"
 msgstr "Thailändska - ภาษาไทย"
 
@@ -101170,24 +101065,12 @@ msgid "Turkish - Türkçe"
 msgstr "Turkiska - Türkçe"
 
 
-msgid "Locale code: tr_TR. Translation progress: 74%"
-msgstr "Lokalkod: tr_TR. Översättningsförlopp: 74 %"
-
-
 msgid "Ukrainian - Українська"
 msgstr "Ukrainska - Українська"
 
 
-msgid "Locale code: uk_UA. Translation progress: 54%"
-msgstr "Lokalkod: uk_UA. Översättningsförlopp: 54 %"
-
-
 msgid "Urdu - وُدرُا"
 msgstr "Urdu - وُدرُا"
-
-
-msgid "Locale code: ur. Translation progress: 81%"
-msgstr "Lokalkod: ur. Översättningsförlopp: 81 %"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -102573,10 +102456,6 @@ msgstr "Enhetens namn"
 
 msgid "CPU"
 msgstr "CPU"
-
-
-msgid "CUDA"
-msgstr "CUDA"
 
 
 msgid "OptiX"
@@ -108581,30 +108460,6 @@ msgid "Scale fit method"
 msgstr "Skalanpassningsmetod"
 
 
-msgid "Overlap Mode"
-msgstr "Överlappningsläge"
-
-
-msgid "How to resolve overlap after transformation"
-msgstr "Hur överlappning löses efter transformering"
-
-
-msgid "Move strips so transformed strips fit"
-msgstr "Flytta remsor så att transformerade remsor ryms"
-
-
-msgid "Trim or split strips to resolve overlap"
-msgstr "Klipp eller dela remsorna för att lösa överlappningen"
-
-
-msgid "Shuffle"
-msgstr "Flytta om"
-
-
-msgid "Move transformed strips to nearest free space to resolve overlap"
-msgstr "Flytta transformerade remsor till närmaste lediga utrymme för att lösa överlappning"
-
-
 msgid "Rotation or scaling pivot point"
 msgstr "Vridpunkt för rotation eller skalning"
 
@@ -109268,10 +109123,6 @@ msgstr "Gravitation"
 
 msgid "Apply gravitation to point movement"
 msgstr "Tillämpa gravitation på punkters rörelse"
-
-
-msgid "Center of Mass"
-msgstr "Tyngdpunkt"
 
 
 msgid "Location of center of mass"
@@ -111318,14 +111169,6 @@ msgstr "Visa skrubbningsområde"
 
 msgid "Region with full playback range for scrubbing in the sequencer"
 msgstr "Område med fullt uppspelningsintervall för skrubbning i sekvenseraren"
-
-
-msgid "Transform Preview"
-msgstr "Transformera förhandsgranskning"
-
-
-msgid "Show a preview of the start or end frame of a strip while transforming its respective handle"
-msgstr "Visa en förhandsgranskning av en remsas start- eller slutbildruta när motsvarande handtag transformeras"
 
 
 msgid "Limit View to Contents"
@@ -124301,10 +124144,6 @@ msgid "Unable to install from disk, no paths were defined"
 msgstr "Det går inte att installera från disk eftersom inga sökvägar har definierats"
 
 
-msgid "Theme \"{:s}\" is already installed!"
-msgstr "Temat \"{:s}\" är redan installerat!"
-
-
 msgid "Name: {:s}"
 msgstr "Namn: {:s}"
 
@@ -124335,6 +124174,10 @@ msgstr "Arkiv: {:s}"
 
 msgid "Size: {:s}"
 msgstr "Storlek: {:s}"
+
+
+msgid "Theme \"{:s}\" is already installed!"
+msgstr "Temat \"{:s}\" är redan installerat!"
 
 
 msgid "Age: {:s}"
@@ -132152,10 +131995,6 @@ msgid "Render Sequencer Image"
 msgstr "Rendera sekvenserbild"
 
 
-msgid "Preview During Transform"
-msgstr "Förhandsgranska under transformering"
-
-
 msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Anpassa förhandsgranskningen till fönstret"
@@ -132349,6 +132188,11 @@ msgid "Rename Active Strip..."
 msgstr "Byt namn på aktiv remsa…"
 
 
+msgctxt "Sequence"
+msgid "Split"
+msgstr "Dela"
+
+
 msgctxt "Operator"
 msgid "Set Render Range to Selected"
 msgstr "Ställ in renderingsintervall till markerat"
@@ -132396,16 +132240,6 @@ msgstr "Flytta/förläng från aktuell bildruta"
 msgctxt "Operator"
 msgid "Remove Gaps (All)"
 msgstr "Ta bort luckor (alla)"
-
-
-msgctxt "Sequence"
-msgid "Split"
-msgstr "Dela"
-
-
-msgctxt "Sequence"
-msgid "Hold Split"
-msgstr "Behåll delning"
 
 
 msgctxt "Operator"
@@ -136087,10 +135921,6 @@ msgid "Named Layer node"
 msgstr "Namngiven lager-nod"
 
 
-msgid "User Library"
-msgstr "Användarbibliotek"
-
-
 msgid "actions"
 msgstr "åtgärder"
 
@@ -137525,12 +137355,12 @@ msgid "Library '%s' ('%s') is an archive storage for packed data, but has no rea
 msgstr "Bibliotek '%s' ('%s') är ett arkiv för packade data, men har ingen verklig biblioteksparent."
 
 
-msgid "LIB: .blend file %s seems corrupted, no owner 'Library' data found for the linked data-block '%s'. Try saving the file again."
-msgstr "LIB: .blend-filen %s verkar vara skadad, ingen ägarinformation för \"Bibliotek\" hittades för den länkade datablocken \"%s\". Försök spara filen igen."
-
-
 msgid "LIB: Data refers to main .blend file: '%s' from %s"
 msgstr "LIB: Data hänvisar till huvudfilen .blend: '%s' från %s"
+
+
+msgid "LIB: .blend file %s seems corrupted, no owner 'Library' data found for the linked data-block '%s'. Try saving the file again."
+msgstr "LIB: .blend-filen %s verkar vara skadad, ingen ägarinformation för \"Bibliotek\" hittades för den länkade datablocken \"%s\". Försök spara filen igen."
 
 
 msgid "LIB: .blend file %s seems corrupted, no owner 'Library' data found for the packed linked data-block %s. Try saving the file again."
@@ -137865,6 +137695,10 @@ msgstr "color_index är ogiltigt"
 
 msgid "Anisotropic"
 msgstr "Anisotropisk"
+
+
+msgid "Stack limit reached. Group node is ignored."
+msgstr "Stackgränsen nåddes. Gruppnoden ignoreras."
 
 
 msgid "Error: Too many AOVs"
@@ -139337,10 +139171,6 @@ msgstr "Ingen kontrollpunkt vald"
 
 msgid "Control point belongs to another spline"
 msgstr "Kontrollpunkten tillhör en annan spline"
-
-
-msgid "Insert"
-msgstr "Infoga"
 
 
 msgid "Unicode codepoint hex value"
@@ -141267,8 +141097,8 @@ msgid "Operator cannot redo"
 msgstr "Operatören kan inte göras om"
 
 
-msgid "File Not Found"
-msgstr "Filen hittades inte"
+msgid "Size: {}"
+msgstr "Storlek: {}"
 
 
 msgid "Today"
@@ -141281,10 +141111,6 @@ msgstr "Igår"
 
 msgid "Modified: {}"
 msgstr "Ändrad: {}"
-
-
-msgid "Size: {}"
-msgstr "Storlek: {}"
 
 
 msgid "Anim Player"
@@ -142535,6 +142361,10 @@ msgid "No file handlers available"
 msgstr "Inga filhanterare tillgängliga"
 
 
+msgid "Collection needs to be empty"
+msgstr "Samlingen måste vara tom"
+
+
 msgid "Add Exporter"
 msgstr "Lägg till exportör"
 
@@ -142597,10 +142427,6 @@ msgstr "Det går inte att lägga till objekt i samlingen. %s"
 
 msgid "Cannot remove an object from the collection. %s"
 msgstr "Det går inte att ta bort ett objekt från samlingen. %s"
-
-
-msgid "Collection needs to be empty"
-msgstr "Samlingen måste vara tom"
 
 
 msgid "Filepath needs to be set first"
@@ -145369,10 +145195,6 @@ msgid "Catalog is already placed inside this catalog"
 msgstr "Katalogen finns redan i denna katalog"
 
 
-msgid "Only assets from this current file can be moved between catalogs"
-msgstr "Endast resurser från den aktuella filen kan flyttas mellan kataloger"
-
-
 msgid "Catalogs cannot be edited in this asset library"
 msgstr "Kataloger kan inte redigeras i detta resursbibliotek"
 
@@ -147100,10 +146922,6 @@ msgstr ""
 " • Skift för att ange i samlingar och på objekt"
 
 
-msgid "Number of users"
-msgstr "Antal användare"
-
-
 msgid "Item is protected from deletion"
 msgstr "Objektet är skyddat från radering"
 
@@ -147130,6 +146948,10 @@ msgid ""
 msgstr ""
 "Objektet har inga användare och kommer att tas bort.\n"
 "Klicka för att skydda mot borttagning"
+
+
+msgid "Number of users"
+msgstr "Antal användare"
 
 
 msgid "Another object has this shared data in edit mode"
@@ -148231,10 +148053,6 @@ msgid "Remote Asset Library"
 msgstr "Fjärrresursbibliotek"
 
 
-msgid "Settings of project asset libraries can be edited in Project Setup."
-msgstr "Inställningar för projektets resursbibliotek kan redigeras i projektkonfigurationen."
-
-
 msgid "Add Asset Library"
 msgstr "Lägg till resursbibliotek"
 
@@ -148960,22 +148778,6 @@ msgid "Scale X: %s   Y: %s  Z: %s%s %s"
 msgstr "Skala X: %s Y: %s Z: %s%s %s"
 
 
-msgid "Time: +%s %s"
-msgstr "Tid: +%s %s"
-
-
-msgid "Time: %s %s"
-msgstr "Tid: %s %s"
-
-
-msgid "Time: +%.3f %s"
-msgstr "Tid: +%.3f %s"
-
-
-msgid "Time: %.3f %s"
-msgstr "Tid: %.3f %s"
-
-
 msgid "ScaleB: %s%s %s"
 msgstr "SkalaB: %s%s %s"
 
@@ -149022,10 +148824,6 @@ msgstr "Krymp/förstora: %3f"
 
 msgid "'Rotate Normals' is only supported in mesh edit mode"
 msgstr "”Rotera normaler” stöds endast i meshredigeringsläge"
-
-
-msgid "Sequence Slide: %s%s"
-msgstr "Sekvensförskjutning: %s%s"
 
 
 msgid "Snap Invert"
@@ -154997,14 +154795,6 @@ msgid "Bone \"{}\" not found"
 msgstr "Benet ”{}” hittades inte"
 
 
-msgid "Armature object to retrieve the bone information from"
-msgstr "Armatur som beninformationen ska hämtas från"
-
-
-msgid "Name of the bone to retrieve"
-msgstr "Namnet på benet som ska hämtas"
-
-
 msgid "Evaluated final transform of the bone in armature space"
 msgstr "Utvärderad slutlig transformering av benet i armaturutrymmet"
 
@@ -155027,6 +154817,14 @@ msgstr "Benets ursprungliga längd"
 
 msgid "Whether the bone exists in the armature"
 msgstr "Om benet finns i armaturen"
+
+
+msgid "Armature object to retrieve the bone information from"
+msgstr "Armatur som beninformationen ska hämtas från"
+
+
+msgid "Name of the bone to retrieve"
+msgstr "Namnet på benet som ska hämtas"
 
 
 msgid "Input {} was not manifold"
@@ -155913,6 +155711,18 @@ msgstr "Index för ytgruppen i varje område med gränskanter"
 
 msgid "Invalid Output Link"
 msgstr "Ogiltig utgångslänk"
+
+
+msgid "Stack limit reached. Closure becomes pass-through."
+msgstr "Stackgränsen nåddes. Closure blir genomsläpp."
+
+
+msgid "Conversion not supported when evaluating closure"
+msgstr "Konvertering stöds inte vid utvärdering av Closure"
+
+
+msgid "Implicit type conversion when evaluating closure"
+msgstr "Implicit typkonvertering vid utvärdering av Closure"
 
 
 msgid "Offset Scale"
@@ -158676,18 +158486,6 @@ msgid "No named attributes used"
 msgstr "Inga namngivna attribut används"
 
 
-msgid "Stack limit reached. Closure becomes pass-through."
-msgstr "Stackgränsen nåddes. Closure blir genomsläpp."
-
-
-msgid "Conversion not supported when evaluating closure"
-msgstr "Konvertering stöds inte vid utvärdering av Closure"
-
-
-msgid "Implicit type conversion when evaluating closure"
-msgstr "Implicit typkonvertering vid utvärdering av Closure"
-
-
 msgid "Closure does not have input: \"{}\""
 msgstr "Closure har ingen indata: ”{}”"
 
@@ -158702,10 +158500,6 @@ msgstr "Ingångsgeometrin har inga element i iterationsdomänen."
 
 msgid "\"{}\" from {}"
 msgstr "\"{}\" från {}"
-
-
-msgid "Stack limit reached. Group node is ignored."
-msgstr "Stackgränsen nåddes. Gruppnoden ignoreras."
 
 
 msgid "Group '{}' ({})"
@@ -160462,6 +160256,10 @@ msgstr "Spara som…"
 
 msgid "Don't Save"
 msgstr "Spara inte"
+
+
+msgid "File Not Found"
+msgstr "Filen hittades inte"
 
 
 msgid "Modified"
