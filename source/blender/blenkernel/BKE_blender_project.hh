@@ -154,6 +154,11 @@ class BlenderProject {
    */
   std::string ocio_config_path_;
 
+  /**
+   * Path of the splash screen image for this project.
+   */
+  std::string splash_image_path_;
+
  public:
   Vector<std::unique_ptr<ProjectVariable>> variables;
   int active_variable_index = 0;
@@ -196,9 +201,15 @@ class BlenderProject {
    */
   void set_ocio_config_path(StringRef ocio_config_path);
 
+  /**
+   * Set the splash screen image path and mark the project dirty.
+   */
+  void set_splash_image_path(StringRef splash_image_path);
+
   StringRefNull get_name() const;
   StringRefNull get_root_path() const;
   StringRefNull get_ocio_config_path() const;
+  StringRefNull get_splash_image_path() const;
 
   /**
    * Get the array index of the given variable.
@@ -432,6 +443,13 @@ void BKE_blender_project_clear();
 std::string BKE_blender_project_path_make_relative(StringRef path,
                                                    bool path_is_template,
                                                    const bke::BlenderProject &project);
+
+/**
+ * Resolve path templates like {project_root} in a project setting file path.
+ *
+ * \return The absolute file path, or an empty string if the path is invalid or not absolute.
+ */
+std::string BKE_blender_project_path_resolve(StringRef path, const bke::BlenderProject &project);
 
 bool BKE_blender_project_config_file_write(Main *bmain);
 bool BKE_blender_project_init_from_root_path(Main *bmain, std::string project_root_path);

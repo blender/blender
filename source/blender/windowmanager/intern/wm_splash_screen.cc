@@ -135,14 +135,116 @@ static void wm_block_splash_image_roundcorners_add(ImBuf *ibuf)
     }
   }
 }
+
+/* Composite the Blender logo over a project splash image. */
+static void wm_project_splash_logo_add(ImBuf *ibuf)
+{
+  /* Magic numbers match logo positioning and size in default splash image. */
+  ImBuf *logo = ui::svg_icon_bitmap(ICON_BLENDER_LOGO_LARGE, ibuf->x * 0.127f, false);
+  if (logo == nullptr) {
+    return;
+  }
+
+  /* The monochrome logo has alpha in all channels, unpremultiply to get white with alpha. */
+  IMB_unpremultiply_alpha(logo);
+
+  /* Rows are stored bottom to top. */
+  const int x = ibuf->x * 0.025f;
+  const int y = ibuf->y - int(ibuf->x * 0.02f) - logo->y;
+  IMB_rectblend(ibuf,
+                ibuf->byte_data_for_write(),
+                nullptr,
+                ibuf,
+                logo,
+                nullptr,
+                nullptr,
+                nullptr,
+                0.0f,
+                x,
+                y,
+                x,
+                y,
+                0,
+                0,
+                logo->x,
+                logo->y,
+                IMB_BLEND_MIX,
+                false);
+
+  IMB_freeImBuf(logo);
+}
 #endif /* !WITH_HEADLESS */
 
-static ImBuf *wm_block_splash_image(int width, int *r_height)
+std::string WM_project_splash_image_filepath(const Main *bmain)
+{
+  return BKE_blender_project_read_callback(
+      bmain, [](const bke::BlenderProject *project) -> std::string {
+        if (project == nullptr || project->get_splash_image_path().is_empty()) {
+          return "";
+        }
+        return BKE_blender_project_path_resolve(project->get_splash_image_path(), *project);
+      });
+}
+
+ImBuf *WM_project_splash_image_load(const StringRefNull filepath,
+                                    const int width,
+                                    const bool add_logo)
+{
+  if (filepath.is_empty() || width <= 0) {
+    return nullptr;
+  }
+
+  ImBuf *ibuf = IMB_load_image_from_filepath(filepath.c_str(), ImBufFlags::ByteData);
+  if (ibuf == nullptr) {
+    return nullptr;
+  }
+
+  /* Convert float to byte image buffer. */
+  if (ibuf->byte_data() == nullptr) {
+    IMB_byte_from_float(ibuf);
+    IMB_free_float_pixels(ibuf);
+  }
+  if (ibuf->byte_data() == nullptr || ibuf->x <= 0 || ibuf->y <= 0) {
+    IMB_freeImBuf(ibuf);
+    return nullptr;
+  }
+
+  /* Add an alpha channel if missing. */
+  ibuf->color_mode = ImColorMode::RGBA;
+  ibuf->channels = 4;
+
+  /* Crop to 2:1 around the center. */
+  const int2 size(ibuf->x, ibuf->y);
+  const int2 crop_size(std::min(size.x, size.y * 2), std::max(std::min(size.y, size.x / 2), 1));
+  if (crop_size != size) {
+    IMB_crop(ibuf, (size - crop_size) / 2, crop_size);
+  }
+
+  /* Scale to fit specified width. */
+  const int height = std::max(width / 2, 1);
+  if (width != ibuf->x || height != ibuf->y) {
+    IMB_scale(ibuf, width, height, IMBScaleFilter::Box, false);
+  }
+
+#ifndef WITH_HEADLESS
+  if (add_logo) {
+    wm_project_splash_logo_add(ibuf);
+  }
+#else
+  UNUSED_VARS(add_logo);
+#endif
+
+  return ibuf;
+}
+
+static ImBuf *wm_block_splash_image(const Main *bmain, int width, int *r_height)
 {
   ImBuf *ibuf = nullptr;
   int height = 0;
 #ifndef WITH_HEADLESS
-  if (U.app_template[0] != '\0') {
+  ibuf = WM_project_splash_image_load(WM_project_splash_image_filepath(bmain), width, true);
+
+  if (ibuf == nullptr && U.app_template[0] != '\0') {
     char splash_filepath[FILE_MAX];
     char template_directory[FILE_MAX];
     if (BKE_appdir_app_template_id_search(
@@ -306,7 +408,7 @@ static ui::Block *wm_block_splash_create(bContext *C, ARegion *region, void * /*
 
   /* Would be nice to support caching this, so it only has to be re-read (and likely resized) on
    * first draw or if the image changed. */
-  ImBuf *ibuf = wm_block_splash_image(splash_width, &splash_height);
+  ImBuf *ibuf = wm_block_splash_image(CTX_data_main(C), splash_width, &splash_height);
   /* This should never happen, if it does - don't crash. */
   if (ibuf) [[likely]] {
     ui::Button *but = uiDefButImage(

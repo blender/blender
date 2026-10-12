@@ -2697,6 +2697,11 @@ void RNA_api_ui_layout(StructRNA *srna)
   parm = RNA_def_int(func, "found", 0, 0, INT_MAX, "", "Number of items drawn", 0, INT_MAX);
   RNA_def_function_return(func, parm);
 
+  func = RNA_def_function(srna, "template_project_splash", "template_project_splash");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  RNA_def_function_ui_description(
+      func, "Show the splash artwork of the active project, with buttons to set and clear it");
+
   func = RNA_def_function(srna, "template_file_select_path", "template_file_select_path");
   RNA_def_function_ui_description(func,
                                   "Item. A text button to set the active file browser path.");

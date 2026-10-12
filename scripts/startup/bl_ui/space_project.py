@@ -164,6 +164,23 @@ class PROJECT_PT_main(Panel, CenterAlignMixIn):
         col.prop(project, "root_path")
 
 
+class PROJECT_PT_splash_screen(Panel, CenterAlignMixIn):
+    bl_label = "Splash Screen"
+    bl_space_type = 'PROJECT'
+    bl_region_type = 'WINDOW'
+    bl_category = MAIN_SECTION_NAME
+    bl_parent_id = "PROJECT_PT_main"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_centered(self, context, layout):
+        split = layout.split(factor=layout.property_split_factor)
+        row = split.row()
+        row.alignment = 'RIGHT'
+        row.label(text="Artwork")
+        col = split.column()
+        col.template_project_splash()
+
+
 class PROJECT_PT_color_management(Panel, CenterAlignMixIn):
     bl_label = "Color Management"
     bl_space_type = 'PROJECT'
@@ -352,6 +369,7 @@ classes = (
     PROJECT_PT_save_project,
     PROJECT_PT_main_unset,
     PROJECT_PT_main,
+    PROJECT_PT_splash_screen,
     PROJECT_PT_color_management,
     PROJECT_PT_variables,
     PROJECT_UL_variables,

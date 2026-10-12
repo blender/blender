@@ -17,6 +17,7 @@ set(INC_SYS
 set(SRC
   project_asset_panel.cc
   project_ops.cc
+  project_splash_ops.cc
   space_project.cc
 
   project_intern.hh
@@ -28,6 +29,7 @@ set(LIB
   PRIVATE bf::blenloader
   PRIVATE bf::blentranslation
   PRIVATE bf::dna
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )

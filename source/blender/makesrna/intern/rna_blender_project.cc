@@ -584,6 +584,38 @@ static std::optional<std::string> rna_BlenderProject_ocio_config_path_filter(
   return "*.ocio";
 }
 
+static void rna_BlenderProject_splash_image_path_get(PointerRNA *ptr, char *value)
+{
+  bke::with_blender_project_read_lock([&] {
+    const bke::BlenderProject *project = ptr->data_as<bke::BlenderProject>();
+    strcpy(value, project->get_splash_image_path().c_str());
+  });
+}
+
+static int rna_BlenderProject_splash_image_path_length(PointerRNA *ptr)
+{
+  int splash_image_path_length;
+  bke::with_blender_project_read_lock([&] {
+    const bke::BlenderProject *project = ptr->data_as<bke::BlenderProject>();
+    splash_image_path_length = project->get_splash_image_path().size();
+  });
+  return splash_image_path_length;
+}
+
+static void rna_BlenderProject_splash_image_path_set(PointerRNA *ptr, const char *value)
+{
+  bke::with_blender_project_write_lock([&] {
+    bke::BlenderProject *project = ptr->data_as<bke::BlenderProject>();
+    project->set_splash_image_path(value);
+  });
+}
+
+static std::optional<std::string> rna_BlenderProject_splash_image_path_filter(
+    const bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/)
+{
+  return "*.png;*.jpg;*.jpeg;*.webp";
+}
+
 static bool rna_BlenderProject_is_dirty_get(PointerRNA *ptr)
 {
   bool is_dirty;
@@ -971,6 +1003,22 @@ static void rna_def_blender_project(BlenderRNA *brna)
       "Path to the OpenColorIO configuration to use for this project. May be an absolute file "
       "path, project relative path with {project_root}, or an ocio:// built-in OpenColorIO "
       "config");
+  RNA_def_property_update(prop, 0, "rna_BlenderProject_update");
+
+  prop = RNA_def_property(srna, "splash_image_path", PROP_STRING, PROP_FILEPATH);
+  RNA_def_property_string_maxlength(prop, FILE_MAX);
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_TEMPLATES);
+  RNA_def_property_path_template_type(prop, PROP_VARIABLES_PROJECT);
+  RNA_def_property_string_funcs(prop,
+                                "rna_BlenderProject_splash_image_path_get",
+                                "rna_BlenderProject_splash_image_path_length",
+                                "rna_BlenderProject_splash_image_path_set");
+  RNA_def_property_string_filepath_filter_func(prop,
+                                               "rna_BlenderProject_splash_image_path_filter");
+  RNA_def_property_ui_text(
+      prop,
+      "Splash Artwork",
+      "Image to show in the splash screen for this project. Expected size is 1000x500 pixels");
   RNA_def_property_update(prop, 0, "rna_BlenderProject_update");
 
   prop = RNA_def_property(srna, "active_variable_index", PROP_INT, PROP_NONE);

@@ -96,6 +96,8 @@ static void project_operatortypes()
   WM_operatortype_append(PROJECT_OT_new);
   WM_operatortype_append(PROJECT_OT_open);
   WM_operatortype_append(PROJECT_OT_close);
+  WM_operatortype_append(PROJECT_OT_splash_image_create);
+  WM_operatortype_append(PROJECT_OT_splash_image_clear);
 }
 
 static void project_keymap(wmKeyConfig * /*keyconf*/) {}
