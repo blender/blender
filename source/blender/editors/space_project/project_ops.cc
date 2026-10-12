@@ -9,13 +9,19 @@
 #include "BKE_blender_project.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_main.hh"
+#include "BKE_report.hh"
 
+#include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
+
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 
 #include "RNA_define.hh"
 #include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "project_intern.hh"
 #include "wm_files.hh"
@@ -35,17 +41,72 @@ static void project_auto_save(Main *bmain)
   }
 }
 
-static wmOperatorStatus project_new_exec(bContext * /*C*/, wmOperator *op)
+static wmOperatorStatus project_new_exec(bContext *C, wmOperator *op)
 {
-  BKE_reportf(op->reports,
-              RPT_ERROR,
-              "The 'New Project' operator is currently not implemented. Will get added soon.");
-  return OPERATOR_CANCELLED;
+  Main *bmain = CTX_data_main(C);
+
+  char root_path[FILE_MAX];
+  RNA_string_get(op->ptr, "directory", root_path);
+  BLI_path_abs(root_path, BKE_main_blendfile_path(bmain));
+  if (!BLI_path_is_abs_from_cwd(root_path)) {
+    BKE_report(op->reports, RPT_ERROR, "Invalid project root folder");
+    return OPERATOR_CANCELLED;
+  }
+  BLI_path_normalize(root_path);
+  BLI_path_slash_rstrip(root_path);
+
+  /* Propose the folder name as project name. */
+  const char *name = BLI_path_basename(root_path);
+  if (name[0] == '\0') {
+    name = DATA_("Untitled Project");
+  }
+
+  /* Nesting inside another project is allowed, but not replacing it. */
+  if (BLI_is_dir((std::string(root_path) + SEP_STR + ".blender_project").c_str())) {
+    BKE_report(op->reports, RPT_ERROR, "Folder already contains a project");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!BLI_dir_create_recursive(root_path)) {
+    BKE_reportf(op->reports, RPT_ERROR, "Failed to create folder \"%s\"", root_path);
+    return OPERATOR_CANCELLED;
+  }
+
+  project_auto_save(bmain);
+
+  BKE_blender_project_init(name, root_path);
+  if (!BKE_blender_project_config_file_write(bmain)) {
+    BKE_blender_project_clear();
+    BKE_reportf(op->reports, RPT_ERROR, "Failed to write project config in \"%s\"", root_path);
+    return OPERATOR_CANCELLED;
+  }
+  WM_main_add_notifier(NC_WINDOW, nullptr);
+
+  if (!G.background) {
+    BKE_blender_project_recent_update(bmain);
+  }
+
+  /* Show the project settings when used from the user interface. */
+  if (op->flag & OP_IS_INVOKE) {
+    WM_operator_name_call(
+        C, "SCREEN_OT_project_settings_show", wm::OpCallContext::ExecDefault, nullptr, nullptr);
+  }
+
+  return OPERATOR_FINISHED;
 }
 
 static wmOperatorStatus project_new_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  return project_new_exec(C, op);
+  /* Start in the folder of the current blend file. */
+  const char *blendfile_path = BKE_main_blendfile_path(CTX_data_main(C));
+  if (RNA_string_length(op->ptr, "directory") == 0 && blendfile_path[0] != '\0') {
+    char directory[FILE_MAX];
+    BLI_path_split_dir_part(blendfile_path, directory, sizeof(directory));
+    RNA_string_set(op->ptr, "directory", directory);
+  }
+
+  WM_event_add_fileselect(C, op);
+  return OPERATOR_RUNNING_MODAL;
 }
 
 void PROJECT_OT_new(wmOperatorType *ot)
@@ -58,12 +119,12 @@ void PROJECT_OT_new(wmOperatorType *ot)
   ot->exec = project_new_exec;
 
   WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_BLENDER,
+                                 FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_OPENFILE,
-                                 WM_FILESEL_FILEPATH,
-                                 FILE_VERTICALDISPLAY,
-                                 FILE_SORT_TIME);
+                                 WM_FILESEL_DIRECTORY,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
 }
 
 static wmOperatorStatus project_open_exec(bContext *C, wmOperator *op)
