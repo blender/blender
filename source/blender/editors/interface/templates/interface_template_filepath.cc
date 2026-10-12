@@ -35,6 +35,14 @@ static void template_filepath_buttons(const bContext * /* C */,
 {
   Layout &row = layout.row(true);
 
+  Layout *decorate_column = nullptr;
+  if (layout.use_property_split()) {
+    PropertySplitWrapper split = uiItemPropertySplitWrapperCreate(&row);
+    split.label_column->label(text ? *text : RNA_property_ui_name(path_data.path_prop), ICON_NONE);
+    decorate_column = split.decorate_column;
+    text = "";
+  }
+
   row.prop(&path_data.ptr,
            path_data.path_prop,
            RNA_NO_INDEX,
@@ -76,6 +84,10 @@ static void template_filepath_buttons(const bContext * /* C */,
     if (path_data.filter_glob) {
       RNA_string_set(&op_ptr, "filter_glob", path_data.filter_glob->c_str());
     }
+  }
+
+  if (decorate_column) {
+    decorate_column->decorator(&path_data.ptr, path_data.path_prop, RNA_NO_INDEX);
   }
 }
 
