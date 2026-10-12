@@ -84,7 +84,7 @@ class Background : Overlay {
 
     if ((state.clipping_plane_count != 0) && (state.rv3d) && (state.rv3d->clipbb)) {
       for (int i : IndexRange(8)) {
-        bbox_[i] = state.rv3d->clipbb->vec[i];
+        bbox_[i] = float4(float3(state.rv3d->clipbb->vec[i]), 1.0f);
       }
       bbox_.push_update();
 

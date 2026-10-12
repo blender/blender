@@ -101,7 +101,7 @@ static void checkmat(const float *m)
 {
   const int n = 16;
   for (int i = 0; i < n; i++) {
-#  if _MSC_VER
+#  ifdef _MSC_VER
     BLI_assert(_finite(m[i]));
 #  else
     BLI_assert(!isinf(m[i]));
@@ -148,21 +148,21 @@ void GPU_matrix_pop_projection()
 void GPU_matrix_set(const float m[4][4])
 {
   copy_m4_m4(ModelView, m);
-  CHECKMAT(ModelView3D);
+  CHECKMAT(ModelView);
   gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_identity_projection_set()
 {
   unit_m4(Projection);
-  CHECKMAT(Projection3D);
+  CHECKMAT(Projection);
   gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_projection_set(const float m[4][4])
 {
   copy_m4_m4(Projection, m);
-  CHECKMAT(Projection3D);
+  CHECKMAT(Projection);
   gpu_matrix_state_active_set_dirty(true);
 }
 
@@ -416,7 +416,7 @@ void GPU_matrix_ortho_2d_set(float left, float right, float bottom, float top)
 {
   Mat4 m;
   mat4_ortho_set(m, left, right, bottom, top, -1.0f, 1.0f);
-  CHECKMAT(Projection2D);
+  CHECKMAT(m);
   gpu_matrix_state_active_set_dirty(true);
 }
 

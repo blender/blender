@@ -2285,22 +2285,17 @@ static wmOperatorStatus grease_pencil_erase_lasso_exec(bContext *C, wmOperator *
                                                       {float2(0.0f), float2(0.0f)});
       editable_strokes.foreach_index(
           [&](const int curve) {
-            screen_space_curve_bounds[curve] = *bounds::min_max(
+            Bounds<float2> bounds = *bounds::min_max(
                 screen_space_positions.as_span().slice(points_by_curve[curve]));
+            /* Pad to avoid empty bounds from horizontal, vertical and single-point strokes, as
+             * such bounds would otherwise always fail the intersection test. */
+            bounds.pad(1);
+            screen_space_curve_bounds[curve] = bounds;
           },
           exec_mode::grain_size(512));
 
       const IndexMask curve_selection = IndexMask::from_predicate(
           editable_strokes, memory, [&](const int64_t index) {
-            /* For a single point curve, its screen_space_curve_bounds Bounds will be empty (by
-             * definition), so intersecting will fail. Check if the single point is in the bounds
-             * instead. */
-            const IndexRange points = points_by_curve[index];
-            if (points.size() == 1) {
-              return is_point_inside_bounds(lasso_bounds_int,
-                                            int2(screen_space_positions[points.first()]));
-            }
-
             return bounds::intersect(lasso_bounds, screen_space_curve_bounds[index]).has_value();
           });
 

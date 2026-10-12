@@ -30,6 +30,7 @@
 
 /* MSL forbids `intersection_query` as a struct field, so alias the GLSL query type to it. */
 using rayQuery = intersection_query<instancing, triangle_data>;
+using accelerationStructure = instance_acceleration_structure;
 
 inline void rayQueryInitialize(thread rayQuery &rq,
                                instance_acceleration_structure topLevel,

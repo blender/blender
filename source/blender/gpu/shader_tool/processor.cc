@@ -873,16 +873,16 @@ void SourceProcessor::lower_namesless_parameters(Parser &parser)
     }
     int i = 0;
     tok.scope().foreach_scope(ScopeType::FunctionArg, [&](Scope arg) {
-      if (arg.token_count() == 1 || arg.back().prev() == TokenType::Const || arg.back() == '&' ||
-          arg.back() == '>')
-      {
-        Token back = arg.back();
-        if (back == ']') {
-          back = back.scope().front().prev();
-        }
+      /* Skip array declarator, e.g. `float[4]`. */
+      Token back = arg.back();
+      while (back == ']') {
+        back = back.scope().front().prev();
+      }
+      const bool is_single_token = back.str_index_start() == arg.front().str_index_start();
+      if (is_single_token || back.prev() == TokenType::Const || back == '&' || back == '>') {
         /* Append a name for nameless argument. */
-        parser.replace(arg.back().str_index_last_no_whitespace() + 1,
-                       arg.back().str_index_last(),
+        parser.replace(back.str_index_last_no_whitespace() + 1,
+                       back.str_index_last(),
                        " _" + std::to_string(i++));
       }
     });
