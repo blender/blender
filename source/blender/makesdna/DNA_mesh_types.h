@@ -141,6 +141,7 @@ enum eMeshSymmetryType : char {
   ME_SYMMETRY_X = 1 << 0,
   ME_SYMMETRY_Y = 1 << 1,
   ME_SYMMETRY_Z = 1 << 2,
+  ME_SYMMETRY_XYZ = ME_SYMMETRY_X | ME_SYMMETRY_Y | ME_SYMMETRY_Z,
   ME_RADIAL_SYMMETRY = 1 << 3,
 };
 ENUM_OPERATORS(eMeshSymmetryType)
