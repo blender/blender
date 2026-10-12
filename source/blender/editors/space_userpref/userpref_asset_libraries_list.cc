@@ -311,11 +311,12 @@ void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
     label_row.label(IFACE_("Edit Project asset libraries in Project Settings."), ICON_NONE);
     ui::Layout &operator_row = label_row.row(false);
     operator_row.alignment_set(ui::LayoutAlign::Right);
-    operator_row.op("SCREEN_OT_project_settings_show",
-                    "Open Project Settings",
-                    ICON_PROJECT,
-                    wm::OpCallContext::InvokeDefault,
-                    UI_ITEM_NONE);
+    PointerRNA op_ptr = operator_row.op("SCREEN_OT_project_settings_show",
+                                        "Open Project Settings",
+                                        ICON_PROJECT,
+                                        wm::OpCallContext::InvokeDefault,
+                                        UI_ITEM_NONE);
+    RNA_string_set(&op_ptr, "section", "Asset Libraries");
   }
   else {
     layout.separator();
