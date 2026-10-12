@@ -356,7 +356,7 @@ TEST_F(VirtualArrayTest, FunctionRangeSpans)
   EXPECT_EQ_SPAN(span3, {5});
 }
 
-TEST(generic_virtual_array, FromFunc)
+TEST_F(VirtualArrayTest, FromFunc)
 {
   GVArray gvarray = GVArray::from_func(
       CPPType::get<std::string>(), 10, [](const int64_t i, void *r_value) {

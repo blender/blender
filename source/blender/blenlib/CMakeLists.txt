@@ -603,6 +603,7 @@ if(WITH_GTESTS)
     tests/BLI_vector_list_test.cc
     tests/BLI_vector_set_test.cc
     tests/BLI_vector_test.cc
+    tests/BLI_virtual_array_exec_test.cc
     tests/BLI_virtual_array_test.cc
 
     tests/BLI_exception_safety_test_utils.hh

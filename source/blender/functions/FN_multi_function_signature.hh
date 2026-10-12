@@ -84,8 +84,6 @@ class SignatureBuilder {
   void vector_mutable(const char *name, const CPPType &base_type);
   void mutable_(const char *name, DataType data_type);
 
-  template<ParamCategory Category, typename T>
-  void add(ParamTag<Category, T> /*tag*/, const char *name);
   void add(const char *name, const ParamType &param_type);
 };
 
@@ -193,32 +191,6 @@ inline void SignatureBuilder::add(const char *name, const ParamType &param_type)
       this->output(name, param_type.data_type());
       break;
   }
-}
-
-template<ParamCategory Category, typename T>
-inline void SignatureBuilder::add(ParamTag<Category, T> /*tag*/, const char *name)
-{
-  switch (Category) {
-    case ParamCategory::SingleInput:
-      this->single_input<T>(name);
-      return;
-    case ParamCategory::VectorInput:
-      this->vector_input<T>(name);
-      return;
-    case ParamCategory::SingleOutput:
-      this->single_output<T>(name);
-      return;
-    case ParamCategory::VectorOutput:
-      this->vector_output<T>(name);
-      return;
-    case ParamCategory::SingleMutable:
-      this->single_mutable<T>(name);
-      return;
-    case ParamCategory::VectorMutable:
-      this->vector_mutable<T>(name);
-      return;
-  }
-  BLI_assert_unreachable();
 }
 
 /** \} */
