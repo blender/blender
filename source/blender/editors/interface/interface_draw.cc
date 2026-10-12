@@ -333,9 +333,9 @@ void draw_but_IMAGE(ARegion * /*region*/,
   (void)rect;
   (void)but;
 #else
-  ImBuf *ibuf = reinterpret_cast<ImBuf *>(but->poin);
+  const ImBuf *ibuf = reinterpret_cast<const ImBuf *>(but->poin);
 
-  if (!ibuf) {
+  if (!ibuf || ibuf->x <= 0 || ibuf->y <= 0) {
     return;
   }
 
@@ -353,10 +353,9 @@ void draw_but_IMAGE(ARegion * /*region*/,
   /* Combine with premultiplied alpha. */
   GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
-  if (w != ibuf->x || h != ibuf->y) {
-    /* We scale the bitmap, rather than have OGL do a worse job. */
-    IMB_scale(ibuf, w, h, IMBScaleFilter::Box, false);
-  }
+  /* Scale while drawing, using filtering and mipmaps. Without scaling,
+   * draw unfiltered for exact pixels. */
+  const bool use_filter = (w != ibuf->x || h != ibuf->y);
 
   float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   if (but->col[3] != 0) {
@@ -370,10 +369,10 @@ void draw_but_IMAGE(ARegion * /*region*/,
               ibuf->x,
               ibuf->y,
               gpu::TextureFormat::UNORM_8_8_8_8,
-              false,
+              use_filter,
               ibuf->byte_data(),
-              1.0f,
-              1.0f,
+              float(w) / ibuf->x,
+              float(h) / ibuf->y,
               col);
 
   GPU_blend(GPU_BLEND_NONE);
