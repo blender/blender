@@ -421,18 +421,22 @@ static void point_with_symmetry_draw(const PaintMode paint_mode,
       }
 
       /* Radial Symmetry. */
-      for (char raxis = 0; raxis < 3; raxis++) {
-        for (int r = 1; r < mesh->radial_symmetry[raxis]; r++) {
-          float angle = 2 * M_PI * r / mesh->radial_symmetry[int(raxis)];
-          location = symmetry_flip(true_location, ePaintSymmetryFlags(i));
-          unit_m4(symm_rot_mat);
-          rotate_m4(symm_rot_mat, raxis + 'X', angle);
-          mul_m4_v3(symm_rot_mat, location);
+      if ((mesh->symmetry & ME_RADIAL_SYMMETRY) &&
+          !(paint_mode == PaintMode::Weight && (mesh->editflag & ME_EDIT_MIRROR_VERTEX_GROUPS)))
+      {
+        for (char raxis = 0; raxis < 3; raxis++) {
+          for (int r = 1; r < mesh->radial_symmetry[raxis]; r++) {
+            float angle = 2 * M_PI * r / mesh->radial_symmetry[int(raxis)];
+            location = symmetry_flip(true_location, ePaintSymmetryFlags(i));
+            unit_m4(symm_rot_mat);
+            rotate_m4(symm_rot_mat, raxis + 'X', angle);
+            mul_m4_v3(symm_rot_mat, location);
 
-          if (bke::paint::supports_symmetry_tiling(paint_mode, brush)) {
-            tiling_preview_draw(gpuattr, region, location, paint, ob, radius);
+            if (bke::paint::supports_symmetry_tiling(paint_mode, brush)) {
+              tiling_preview_draw(gpuattr, region, location, paint, ob, radius);
+            }
+            screen_space_point_draw(gpuattr, region, location, ob.object_to_world().ptr(), 3);
           }
-          screen_space_point_draw(gpuattr, region, location, ob.object_to_world().ptr(), 3);
         }
       }
     }
