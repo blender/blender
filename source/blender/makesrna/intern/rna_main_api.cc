@@ -209,6 +209,29 @@ static void rna_Main_blender_project_init(struct BlendData * /* blenddata */,
   WM_main_add_notifier(NC_WINDOW, nullptr);
 }
 
+static void rna_Main_blender_project_init_from_root_path(struct BlendData *blenddata,
+                                                         ReportList *reports,
+                                                         const char *project_root)
+{
+  Main *bmain = reinterpret_cast<Main *>(blenddata);
+  if (!BKE_blender_project_init_from_root_path(bmain, project_root)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Failed to initialize project. Ensure that project_root path is correct.");
+  }
+
+  /* Force full redraw of all windows. */
+  WM_main_add_notifier(NC_WINDOW, nullptr);
+}
+
+static void rna_Main_blender_project_save(struct BlendData *blenddata, ReportList *reports)
+{
+  Main *bmain = reinterpret_cast<Main *>(blenddata);
+  if (!BKE_blender_project_config_file_write(bmain)) {
+    BKE_reportf(reports, RPT_ERROR, "Failed to save project config.");
+  }
+}
+
 static void rna_Main_blender_project_clear(struct BlendData * /* blenddata */,
                                            ReportList * /* reports */)
 {
@@ -956,6 +979,18 @@ void RNA_api_main(StructRNA *srna)
   parm = RNA_def_string_dir_path(
       func, "project_root", nullptr, 0, nullptr, "The filepath of the project's root folder");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(
+      srna, "project_init_from_root_path", "rna_Main_blender_project_init_from_root_path");
+  RNA_def_function_ui_description(func, "Initialize a new active project from the provided path");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_string_dir_path(
+      func, "project_root", nullptr, 0, nullptr, "The filepath of the project's root folder");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "project_save", "rna_Main_blender_project_save");
+  RNA_def_function_ui_description(func, "Save the current project config to disk");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
   func = RNA_def_function(srna, "project_clear", "rna_Main_blender_project_clear");
   RNA_def_function_ui_description(func, "Clear the currently active project");

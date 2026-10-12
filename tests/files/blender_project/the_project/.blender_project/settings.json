@@ -1,9 +1,0 @@
-{
-    "project": {
-        "name": "Ružena"
-    },
-    "asset_libraries": [
-        {"name": "Lorem Ipsum", "path": "assets"},
-        {"name": "Материалы", "path": "новый\\assets"}
-    ]
-}

@@ -251,7 +251,7 @@ class PROJECT_PT_main_unset(Panel, CenterAlignMixIn):
             row = col.row()
             row.alignment = 'CENTER'
             row.operator("wm.save_as_mainfile", text="Save File...", icon='FILE_TICK')
-            row.operator("project.open_blend_in_project", icon='FILE_FOLDER')
+            row.operator("project.open", icon='FILE_FOLDER')
         else:
             row = col.row()
             row.alignment = 'CENTER'
@@ -273,8 +273,8 @@ class PROJECT_PT_main_unset(Panel, CenterAlignMixIn):
             col.separator()
             row = col.row()
             row.alignment = 'CENTER'
-            row.operator("project.new_project", text="New Project...", icon='ADD')
-            row.operator("project.open_blend_in_project", icon='FILE_FOLDER')
+            row.operator("project.new", text="New Project...", icon='ADD')
+            row.operator("project.open", icon='FILE_FOLDER')
 
 
 class PROJECT_UL_variables(bpy.types.UIList):

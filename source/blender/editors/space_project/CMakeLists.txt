@@ -16,6 +16,7 @@ set(INC_SYS
 
 set(SRC
   project_asset_panel.cc
+  project_ops.cc
   space_project.cc
 
   project_intern.hh
