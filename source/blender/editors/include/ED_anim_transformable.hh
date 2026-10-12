@@ -69,6 +69,10 @@ struct Rotation {
    * to be* of type euler too.
    */
   Rotation converted_to_mode(eRotationModes mode, const Rotation *reference_euler = nullptr) const;
+  /**
+   * Mirrors the rotation on the y-z plane. Modifies the values in place.
+   */
+  void mirror();
 };
 
 /**
