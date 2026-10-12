@@ -177,9 +177,9 @@ static wmOperatorStatus wm_set_working_color_space_invoke(bContext *C,
       std::nullopt,
       IFACE_("Apply"),
       false,
-      IFACE_("To match renders with the previous working space as closely as possible,\n"
+      IFACE_("To match renders with the previous working space as closely as possible, "
              "colors in all materials, lights and geometry must be converted.\n\n"
-             "Some nodes graphs cannot be converted accurately and may need manual fix-ups."));
+             "Some node graphs cannot be converted accurately and may need manual fix-ups."));
 }
 
 void WM_OT_set_working_color_space(wmOperatorType *ot)

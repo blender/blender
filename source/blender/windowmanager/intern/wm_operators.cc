@@ -1553,15 +1553,15 @@ static ui::Block *wm_block_dialog_create(bContext *C, ARegion *region, void *use
       120 * UI_SCALE_FAC,
       BLF_width(style->widget.uifont_id, data->title.c_str(), BLF_DRAW_STR_DUMMY_MAX));
 
-  /* Break Message into multiple lines. */
-  Vector<std::string> message_lines;
-  StringRef messaged_trimmed = StringRef(data->message).trim();
-  std::istringstream message_stream(messaged_trimmed);
+  /* Widen the dialog to fit message lines, wrapping lines that are longer than the maximum. */
+  const std::string message = StringRef(data->message).trim();
+  const int message_width_max = std::max(data->width, 30 * UI_UNIT_X);
+  std::istringstream message_stream(message);
   std::string line;
   while (std::getline(message_stream, line)) {
-    message_lines.append(line);
-    text_width = std::max(
-        text_width, int(BLF_width(style->widget.uifont_id, line.c_str(), BLF_DRAW_STR_DUMMY_MAX)));
+    const int line_width = BLF_width(
+        style->widget.uifont_id, line.c_str(), BLF_DRAW_STR_DUMMY_MAX);
+    text_width = std::max(text_width, std::min(line_width, message_width_max));
   }
 
   int dialog_width = std::max(text_width + int(style->columnspace * 2.5), data->width);
@@ -1592,19 +1592,14 @@ static ui::Block *wm_block_dialog_create(bContext *C, ARegion *region, void *use
     uiItemL_ex(&layout, data->title, ICON_NONE, true, false);
 
     /* Line under the title if there are properties but no message body. */
-    if (data->include_properties && message_lines.size() == 0) {
+    if (data->include_properties && message.empty()) {
       layout.separator(0.2f, ui::LayoutSeparatorType::Line);
     };
   }
 
-  /* Message lines. */
-  if (message_lines.size() > 0) {
-    ui::Layout &lines = layout.column(false);
-    lines.scale_y_set(0.65f);
-    lines.separator(0.1f);
-    for (auto &st : message_lines) {
-      lines.label(st, ICON_NONE);
-    }
+  if (!message.empty()) {
+    layout.separator(0.1f);
+    layout.label_multiline(message, ICON_NONE);
   }
 
   if (data->include_properties) {
@@ -1632,7 +1627,18 @@ static ui::Block *wm_block_dialog_create(bContext *C, ARegion *region, void *use
     ui::Button *confirm_but;
     ui::Button *cancel_but;
 
-    ui::Layout &split = col.split(0.0f, true);
+    /* Right align buttons in wide dialogs, instead of stretching them. Same width as the
+     * buttons in the unsaved changes dialog. */
+    const int buttons_width_max = std::max(18 * UI_UNIT_X, 3 * longest_button_text);
+    ui::Layout *buttons_layout = &col;
+    if (dialog_width > buttons_width_max) {
+      ui::Layout &buttons_split = col.split(1.0f - float(buttons_width_max) / float(dialog_width),
+                                            false);
+      buttons_split.column(false);
+      buttons_layout = &buttons_split.column(false);
+    }
+
+    ui::Layout &split = buttons_layout->split(0.0f, true);
     split.scale_y_set(small ? 1.0f : 1.2f);
 
     if (windows_layout) {
@@ -1895,7 +1901,7 @@ wmOperatorStatus WM_operator_props_dialog_popup(bContext *C,
   data->confirm_text = confirm_text ? std::move(*confirm_text) : IFACE_("OK");
   data->message = message ? std::move(*message) : std::string();
   data->icon = show_icon ? ui::AlertIcon::Info : ui::AlertIcon::None;
-  data->size = show_icon ? WM_POPUP_SIZE_LARGE : WM_POPUP_SIZE_SMALL;
+  data->size = (show_icon || message) ? WM_POPUP_SIZE_LARGE : WM_POPUP_SIZE_SMALL;
   data->position = (message) ? WM_POPUP_POSITION_CENTER : WM_POPUP_POSITION_MOUSE;
   data->cancel_default = cancel_default;
   data->mouse_move_quit = false;
