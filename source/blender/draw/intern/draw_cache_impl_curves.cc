@@ -368,8 +368,8 @@ static void create_edit_points_radius(const bke::CurvesGeometry &curves,
         for (const int i : points.index_range()) {
           const int point = points[i];
           const int bezier_point = bezier_range[i];
-          data_left[bezier_point] = data[point];
-          data_right[bezier_point] = data[point];
+          data_left[bezier_point] = radii[point];
+          data_right[bezier_point] = radii[point];
         }
       },
       exec_mode::grain_size(256));
