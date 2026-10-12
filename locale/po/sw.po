@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
+"POT-Creation-Date: 2026-10-12 07:32+0000\n"
 "PO-Revision-Date: 2026-09-15 16:12+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -1478,12 +1478,20 @@ msgid "Show assets from the asset libraries configured in the Preferences"
 msgstr "Onyesha vipengee kutoka kwa maktaba ya vipengee vilivyosanidiwa katika Mapendeleo"
 
 
+msgid "User Library"
+msgstr "Maktaba ya Mtumiaji"
+
+
 msgid "User Asset Libraries"
 msgstr "Maktaba za Mali ya Mtumiaji"
 
 
 msgid "Collection of user asset libraries"
 msgstr "Mkusanyiko wa maktaba ya mali ya watumiaji"
+
+
+msgid "Active Asset Library"
+msgstr "Maktaba ya Mali Inayotumika"
 
 
 msgid "Asset Library Reference"
@@ -3242,10 +3250,6 @@ msgstr "Linear AP1 yenye nukta nyeupe ya ACES"
 msgctxt "ID"
 msgid "ID Type"
 msgstr "Aina ya Kitambulisho"
-
-
-msgid "Active Asset Library"
-msgstr "Maktaba ya Mali Inayotumika"
 
 
 msgid "Dirty"
@@ -28206,6 +28210,42 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Light"
+msgstr "Mwanga"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
+msgid "Read"
+msgstr "Soma"
+
+
+msgid "Clean Up"
+msgstr "Safisha"
+
+
+msgid "Math"
+msgstr "Hisabati"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
+msgid "Write"
+msgstr "Andika"
+
+
+msgid "Primitives"
+msgstr "Watu wa kwanza"
+
+
 msgid "Deprecated"
 msgstr "Imeacha kutumika"
 
@@ -28214,96 +28254,20 @@ msgid "Utilities"
 msgstr "Huduma"
 
 
-msgid "Write"
-msgstr "Andika"
-
-
-msgid "Read"
-msgstr "Soma"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
-msgid "Snap"
-msgstr "Picha"
-
-
-msgid "Pivot Point"
-msgstr "Egemeo"
+msgid "Import"
+msgstr "Ingiza"
 
 
 msgid "Sample"
 msgstr "Mfano"
 
 
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
-msgid "Clean Up"
-msgstr "Safisha"
-
-
-msgid "Light Probe"
-msgstr "Uchunguzi wa Mwanga"
-
-
-msgid "Primitives"
-msgstr "Watu wa kwanza"
-
-
-msgid "Light"
-msgstr "Mwanga"
-
-
-msgid "Mirror"
-msgstr "Kioo"
-
-
-msgid "Apply"
-msgstr "Tumia"
-
-
-msgid "Merge"
-msgstr "Unganisha"
-
-
-msgid "Tracking"
-msgstr "Kufuatilia"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
-
-
-msgid "Math"
-msgstr "Hisabati"
-
-
 msgid "Asset"
 msgstr "Mali"
 
 
-msgid "Keying"
-msgstr "Kuweka"
-
-
-msgid "Adjust"
-msgstr "Rekebisha"
-
-
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
-msgid "Import"
-msgstr "Ingiza"
+msgid "Layout"
+msgstr "Mpangilio"
 
 
 msgid "Linked"
@@ -28314,8 +28278,48 @@ msgid "Instances"
 msgstr "Matukio"
 
 
-msgid "Layout"
-msgstr "Mpangilio"
+msgid "Apply"
+msgstr "Tumia"
+
+
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
+
+
+msgid "Keying"
+msgstr "Kuweka"
+
+
+msgid "Adjust"
+msgstr "Rekebisha"
+
+
+msgid "Light Probe"
+msgstr "Uchunguzi wa Mwanga"
+
+
+msgid "Snap"
+msgstr "Picha"
+
+
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
+
+
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
+msgid "Tracking"
+msgstr "Kufuatilia"
+
+
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Keyframe Insert Pie"
@@ -47324,6 +47328,10 @@ msgid "Export"
 msgstr "Hamisha"
 
 
+msgid "Filepath"
+msgstr "Njia ya faili"
+
+
 msgid "The collection to add other selected objects to"
 msgstr "Mkusanyiko wa kuongeza vitu vingine vilivyochaguliwa kwa"
 
@@ -48252,10 +48260,6 @@ msgstr "Slaidi ya Wakati"
 
 msgid "Time Extend"
 msgstr "Kuongeza Muda"
-
-
-msgid "Bake Time"
-msgstr "Wakati wa Kuoka"
 
 
 msgid "Edge Slide"
@@ -49285,6 +49289,10 @@ msgstr "Vitu Vinavyoonekana"
 
 msgid "Export visible objects only"
 msgstr "Hamisha vitu vinavyoonekana pekee"
+
+
+msgid "Center of Mass"
+msgstr "Kituo cha Misa"
 
 
 msgid "Filter Actions"
@@ -65825,12 +65833,12 @@ msgid "Allow Overlap"
 msgstr "Ruhusu Kuingiliana"
 
 
-msgid "Override Overlap Shuffle Behavior"
-msgstr "Batilisha Tabia ya Kuchanganya Mwingiliano"
+msgid "Overlap Mode"
+msgstr "Hali ya Muingiliano"
 
 
-msgid "Use the overlap_mode tool settings to determine how to shuffle overlapping strips"
-msgstr "Tumia mipangilio ya zana_ya_muingiliano ili kubainisha jinsi ya kuchanganya vipande vinavyopishana"
+msgid "Shuffle"
+msgstr "Changanya"
 
 
 msgid "Replace Selection"
@@ -66628,24 +66636,12 @@ msgid "Split the selected strips in two"
 msgstr "Gawanya vipande vilivyochaguliwa viwili"
 
 
-msgid "Channel in which strip will be cut"
-msgstr "Chaneli ambayo ukanda utakatwa"
-
-
 msgid "Frame where selected strips will be split"
 msgstr "Fremu ambapo vipande vilivyochaguliwa vitagawanywa"
 
 
-msgid "Make cut even if strip is not selected preserving selection state after cut"
-msgstr "Fanya kata hata kama strip haijachaguliwa kuhifadhi hali ya uteuzi baada ya kukatwa"
-
-
 msgid "The side that remains selected after splitting"
 msgstr "Upande unaobaki kuchaguliwa baada ya kugawanyika"
-
-
-msgid "Split at position of the cursor instead of current frame"
-msgstr "Gawanya katika nafasi ya kishale badala ya fremu ya sasa"
 
 
 msgid "Set a color tag for the selected strips"
@@ -67200,10 +67196,6 @@ msgid "Find & Set Selection"
 msgstr "Tafuta"
 
 
-msgid "Filepath"
-msgstr "Njia ya faili"
-
-
 msgctxt "Operator"
 msgid "Replace"
 msgstr "Badilisha"
@@ -67602,6 +67594,10 @@ msgstr "Chagua mwelekeo wa mabadiliko"
 msgctxt "Operator"
 msgid "Sequence Slide"
 msgstr "Slaidi ya Mfuatano"
+
+
+msgid "How to resolve overlap after transformation"
+msgstr "Jinsi ya kutatua mwingiliano baada ya mabadiliko"
 
 
 msgid "Edge Pan"
@@ -72404,24 +72400,8 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
-msgid "Shadow Settings"
-msgstr "Mipangilio ya Kivuli"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
-
-
-msgid "Auto-Masking"
-msgstr "Kufunika Masking Kiotomatiki"
-
-
-msgid "View Lock"
-msgstr "Kufuli ya Tazama"
-
-
-msgid "Curve Edit Mode"
-msgstr "Njia ya Kuhariri Curve"
+msgid "Quad View"
+msgstr "Mtazamo wa Quad"
 
 
 msgid "Measurement"
@@ -72432,6 +72412,22 @@ msgid "Mesh Edit Mode"
 msgstr "Njia ya Kuhariri Mesh"
 
 
+msgid "Selectability & Visibility"
+msgstr "Uteuzi"
+
+
+msgid "Auto-Masking"
+msgstr "Kufunika Masking Kiotomatiki"
+
+
+msgid "Multi Frame"
+msgstr "Fremu nyingi"
+
+
+msgid "Transform Orientations"
+msgstr "Badilisha Mielekeo"
+
+
 msgid "Motion Tracking"
 msgstr "Kufuatilia Mwendo"
 
@@ -72440,40 +72436,40 @@ msgid "Viewer Node"
 msgstr "Njia ya Mtazamaji"
 
 
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameta Falloff"
-
-
-msgid "Quad View"
-msgstr "Mtazamo wa Quad"
-
-
-msgid "Multi Frame"
-msgstr "Fremu nyingi"
+msgid "Stroke Placement"
+msgstr "Uwekaji wa Kiharusi"
 
 
 msgid "Drawing Plane"
 msgstr "Ndege ya Kuchora"
 
 
-msgid "Stroke Placement"
-msgstr "Uwekaji wa Kiharusi"
-
-
-msgid "Transform Orientations"
-msgstr "Badilisha Mielekeo"
-
-
 msgid "SSAO Settings"
 msgstr "Mipangilio ya SSAO"
 
 
-msgid "Selectability & Visibility"
-msgstr "Uteuzi"
+msgid "Shadow Settings"
+msgstr "Mipangilio ya Kivuli"
+
+
+msgid "Curve Edit Mode"
+msgstr "Njia ya Kuhariri Curve"
+
+
+msgid "View Lock"
+msgstr "Kufuli ya Tazama"
 
 
 msgid "Viewport Debug"
 msgstr "Utatuzi wa kituo cha kutazama"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameta Falloff"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
 
 
 msgid "Motion Blur"
@@ -80447,30 +80443,6 @@ msgid "Scale fit method"
 msgstr "Mbinu ya kufaa"
 
 
-msgid "Overlap Mode"
-msgstr "Hali ya Muingiliano"
-
-
-msgid "How to resolve overlap after transformation"
-msgstr "Jinsi ya kutatua mwingiliano baada ya mabadiliko"
-
-
-msgid "Move strips so transformed strips fit"
-msgstr "Sogeza vipande ili vipande vilivyobadilishwa vitoshee"
-
-
-msgid "Trim or split strips to resolve overlap"
-msgstr "Punguza au gawanya vipande ili kutatua mwingiliano"
-
-
-msgid "Shuffle"
-msgstr "Changanya"
-
-
-msgid "Move transformed strips to nearest free space to resolve overlap"
-msgstr "Sogeza vipande vilivyobadilishwa hadi kwenye nafasi iliyo karibu zaidi ili kutatua mwingiliano"
-
-
 msgid "Rotation or scaling pivot point"
 msgstr "Mzunguko au sehemu ya egemeo la kuongeza"
 
@@ -81042,10 +81014,6 @@ msgstr "Mvuto"
 
 msgid "Apply gravitation to point movement"
 msgstr "Tumia nguvu ya uvutano kwenye harakati za uhakika"
-
-
-msgid "Center of Mass"
-msgstr "Kituo cha Misa"
 
 
 msgid "Location of center of mass"
@@ -82591,10 +82559,6 @@ msgstr "Onyesha maeneo yaliyo wazi zaidi na mistari ya pundamilia"
 
 msgid "Show Overlays"
 msgstr "Onyesha Viwekeleo"
-
-
-msgid "Transform Preview"
-msgstr "Muhtasari wa Kubadilisha"
 
 
 msgid "Limit View to Contents"
@@ -96079,10 +96043,6 @@ msgid "Set Preview Range to Strips"
 msgstr "Weka Msururu wa Onyesho la Kuchungulia hadi Vijisehemu"
 
 
-msgid "Preview During Transform"
-msgstr "Hakiki Wakati wa Kubadilisha"
-
-
 msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Onyesho la Kuchungulia la Fit kwenye Dirisha"
@@ -98560,10 +98520,6 @@ msgstr "Imeshindwa kuingiza vitufe kwenye F-Curve yenye njia ya '%s[%d]', hakiki
 
 msgid "Named Layer node"
 msgstr "Njia ya Tabaka iliyopewa jina"
-
-
-msgid "User Library"
-msgstr "Maktaba ya Mtumiaji"
 
 
 msgid ", cannot have single-frame paths"
@@ -101274,10 +101230,6 @@ msgid "Operator cannot redo"
 msgstr "Opereta haiwezi kufanya upya"
 
 
-msgid "File Not Found"
-msgstr "Faili Haikupatikana"
-
-
 msgid "Today"
 msgstr "Leo"
 
@@ -103813,10 +103765,6 @@ msgid "Catalog is already placed inside this catalog"
 msgstr "Orodha tayari imewekwa ndani ya katalogi hii"
 
 
-msgid "Only assets from this current file can be moved between catalogs"
-msgstr "Vipengee pekee kutoka kwa faili hii ya sasa vinaweza kuhamishwa kati ya katalogi"
-
-
 msgid "Catalogs cannot be edited in this asset library"
 msgstr "Katalogi haziwezi kuhaririwa katika maktaba hii ya mali"
 
@@ -105722,22 +105670,6 @@ msgid "Scale X: %s   Y: %s  Z: %s%s %s"
 msgstr "Kipimo cha X: %s Y: %s Z: %s%s %s"
 
 
-msgid "Time: +%s %s"
-msgstr "Muda: %s %s"
-
-
-msgid "Time: %s %s"
-msgstr "Muda: %s %s"
-
-
-msgid "Time: +%.3f %s"
-msgstr "Muda: %.3f %s"
-
-
-msgid "Time: %.3f %s"
-msgstr "Muda: %.3f %s"
-
-
 msgid "ScaleB: %s%s %s"
 msgstr "MizaniB: %s%s %s"
 
@@ -105780,10 +105712,6 @@ msgstr "Nyinya/Nenepesha: %s"
 
 msgid "Shrink/Fatten: %3f"
 msgstr "Nyinya/Nenepesha: %3f"
-
-
-msgid "Sequence Slide: %s%s"
-msgstr "Mfuatano wa Slaidi: %s%s"
 
 
 msgid "Edge Slide: "
@@ -110752,6 +110680,10 @@ msgstr "Hifadhi Kama..."
 
 msgid "Don't Save"
 msgstr "Usihifadhi"
+
+
+msgid "File Not Found"
+msgstr "Faili Haikupatikana"
 
 
 msgid "Modified"

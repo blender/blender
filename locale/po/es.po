@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
-"PO-Revision-Date: 2026-10-04 17:12+0000\n"
+"POT-Creation-Date: 2026-10-12 07:32+0000\n"
+"PO-Revision-Date: 2026-10-12 07:22+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -1764,10 +1764,6 @@ msgid "Edit persistent configuration settings"
 msgstr "Permite editar las opciones generales de configuración"
 
 
-msgid "Project Setup"
-msgstr "Configuración del proyecto"
-
-
 msgid "Manage the current Blender project"
 msgstr "Permite administrar el proyecto actual de Blender"
 
@@ -1912,12 +1908,20 @@ msgid "Show assets from the asset libraries configured in the Preferences"
 msgstr "Muestra recursos de las bibliotecas de recursos configuradas en las Preferencias"
 
 
+msgid "User Library"
+msgstr "Biblioteca de usuario"
+
+
 msgid "User Asset Libraries"
 msgstr "Bibliotecas de recursos del usuario"
 
 
 msgid "Collection of user asset libraries"
 msgstr "Colección de bibliotecas de recursos del usuario"
+
+
+msgid "Active Asset Library"
+msgstr "Biblioteca de recursos activa"
 
 
 msgid "Asset Library Reference"
@@ -3981,6 +3985,14 @@ msgid "Blend-File Color Space"
 msgstr "Espacio de color del .blend"
 
 
+msgid "Failed OpenColorIO Configuration"
+msgstr "Error en configuración de OpenColorIO"
+
+
+msgid "The requested OpenColorIO config failed to load"
+msgstr "La configuración solicitada de OpenColorIO no pudo ser cargada"
+
+
 msgid "Missing OpenColorIO Configuration"
 msgstr "Configuración de OpenColorIO faltante"
 
@@ -3989,16 +4001,60 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "No se encontró un espacio de color, vista o pantalla, lo que probablemente signifique que la configuración de OpenColorIO usada para crear este archivo .blend no se encontró"
 
 
+msgid "OpenColorIO Configuration"
+msgstr "Configuración de OpenColorIO"
+
+
+msgid "File path or URI of the OpenColorIO configuration currently in use"
+msgstr "Ruta o URI del archivo de configuración de OpenColorIO actualmente en uso"
+
+
+msgid "OpenColorIO Configuration Source"
+msgstr "Origen de configuración de OpenColorIO"
+
+
+msgid "Where the OpenColorIO configuration came from"
+msgstr "De dónde provino la configuración de OpenColorIO"
+
+
+msgid "BLENDER_OCIO environment variable"
+msgstr "Variable de entorno BLENDER_OCIO"
+
+
+msgid "The BLENDER_OCIO environment variable"
+msgstr "La variable de entorno BLENDER_OCIO"
+
+
+msgid "OCIO environment variable"
+msgstr "Variable de entorno OCIO"
+
+
+msgid "The OCIO environment variable"
+msgstr "La variable de entorno OCIO"
+
+
 msgid "Project"
 msgstr "Proyectar"
+
+
+msgid "The active project's OpenColorIO configuration setting"
+msgstr "La configuración de OpenColorIO del proyecto activo"
 
 
 msgid "Blender"
 msgstr "Blender"
 
 
+msgid "The OpenColorIO configuration bundled with Blender"
+msgstr "La configuración de OpenColorIO incluida con Blender"
+
+
 msgid "Fallback"
 msgstr "Alternativo"
+
+
+msgid "The built-in fallback configuration, if loading other configurations failed"
+msgstr "La configuración alternativa predefinida, en caso de que exista un error al cargar otras configuraciones"
 
 
 msgctxt "Color Management"
@@ -4254,14 +4310,6 @@ msgid "Blender Project"
 msgstr "Proyecto de Blender"
 
 
-msgid "Active Asset Library"
-msgstr "Biblioteca de recursos activa"
-
-
-msgid "Index of the asset library being edited in the Project Setup UI"
-msgstr "Identificador de la biblioteca de recursos que está siendo editada en la interfaz de Configuración del proyecto"
-
-
 msgid "Active Project Variable"
 msgstr "Variable activa del proyecto"
 
@@ -4286,8 +4334,44 @@ msgid "The project's name"
 msgstr "El nombre del proyecto"
 
 
+msgid "OpenColorIO configuration to use for this project"
+msgstr "Configuración de OpenColorIO a ser usada en este proyecto"
+
+
+msgid "The default Blender OpenColorIO configuration. Works with both ACES workflows and Blender specific views and color spaces"
+msgstr "La configuración predefinida de OpenColorIO de Blender. Funciona tanto con flujos de trabajo ACES como con vistas y espacios de color específicos de Blender"
+
+
+msgid "ACES 2.0 Studio"
+msgstr "ACES 2.0 Studio"
+
+
+msgid "Academy Color Encoding System 2.0, Studio Config v4.0.0. Less compatible with existing assets and add-ons, but more consistent with other applications using the same configuration"
+msgstr "Academy Color Encoding System 2.0, Studio Config v4.0.0. No tan compatible con recursos y complementos existentes, pero más consistente con otras aplicaciones que usen la misma configuración"
+
+
+msgid "ACES 1.3 Studio"
+msgstr "ACES 1.3 Studio"
+
+
+msgid "Academy Color Encoding System 1.3, Studio Config v2.2.0. Less compatible with existing assets and add-ons, but more consistent with other applications using the same configuration"
+msgstr "Academy Color Encoding System 1.3, Studio Config v2.2.0. No tan compatible con recursos y complementos existentes, pero más consistente con otras aplicaciones que usen la misma configuración"
+
+
 msgid "Path"
 msgstr "Trayectoria"
+
+
+msgid "OpenColorIO configuration from a file path or ocio:// URI"
+msgstr "Configuración de OpenColorIO desde una ruta u ocio:// URI de archivo"
+
+
+msgid "OpenColorIO Configuration Path"
+msgstr "Ruta de configuración de OpenColorIO"
+
+
+msgid "Path to the OpenColorIO configuration to use for this project. May be an absolute file path, project relative path with {project_root}, or an ocio:// built-in OpenColorIO config"
+msgstr "Ruta hasta la configuración de OpenColorIO a usar en este proyecto. Puede ser una ruta de archivo absoluta, una ruta relativa al proyecto con {project_root} o una configuración ocio:// predefinida de OpenColorIO"
 
 
 msgid "Root Folder"
@@ -6416,6 +6500,10 @@ msgid "Cyclic"
 msgstr "Cíclica"
 
 
+msgid "Create a cyclic stroke"
+msgstr "Crear un trazo cíclico"
+
+
 msgid "Affect Position"
 msgstr "Afectar posición"
 
@@ -6529,7 +6617,7 @@ msgstr "Usar estabilizador"
 
 
 msgid "Draw lines with a delay to allow smooth strokes (press Shift key to override while drawing)"
-msgstr "Al dibujar líneas, aplica un retraso que permite lograr trazos suaves (presionar la tecla Mayúsculas para redefinir esto mientras se dibuja)"
+msgstr "Al dibujar líneas, aplica un retraso que permite lograr trazos suaves (pulsar la tecla Mayúsculas para redefinir esto mientras se dibuja)"
 
 
 msgid "Use Pressure Strength"
@@ -7676,6 +7764,10 @@ msgid "Sort Index"
 msgstr "Identificador de ordenamiento"
 
 
+msgid "Custom sort index of the collection in the parent collection"
+msgstr "Identificador de ordenamiento personalizado de la colección en la colección superior"
+
+
 msgid "Collection Children"
 msgstr "Subordinados a colección"
 
@@ -7766,6 +7858,18 @@ msgstr "Objeto de una colección, con sus opciones relacionadas con la colecció
 
 msgid "Light linking settings of the collection"
 msgstr "Opciones de vinculación de iluminación de la colección"
+
+
+msgid "Sort Index Child"
+msgstr "Identificador de ordenamiento (subordinado)"
+
+
+msgid "Custom sort index when the object is shown under a parent of another object"
+msgstr "Identificador de ordenamiento personalizado cuando el objeto es mostrado bajo un superior de otro objeto"
+
+
+msgid "Custom sort index of the object in the collection"
+msgstr "Identificador de ordenamiento personalizado del objeto en la colección"
 
 
 msgid "Collection Objects"
@@ -7936,6 +8040,246 @@ msgstr "Mostrar las imágenes de una forma consistente con la mayoría de aplica
 
 msgid "Input color space settings"
 msgstr "Opciones de espacio de color original"
+
+
+msgid "Interop ID"
+msgstr "ID interop"
+
+
+msgid "Identifier of the color space that works across OpenColorIO configurations, as defined by the ASWF Color Interop Forum"
+msgstr "Identificador del espacio de color que funciona a través de varias configuraciones OpenColorIO, tal como es definido por el ASWF Color Interop Forum (Foro de Interoperabilidad de Color de ASWF)"
+
+
+msgid "The color space has no interop ID"
+msgstr "El espacio de color no tiene un ID de iteroperabilidad"
+
+
+msgid "AgX Log"
+msgstr "AgX logarítmica"
+
+
+msgid "Filmic Log"
+msgstr "Fílmica logarítmica"
+
+
+msgid "Rec.709-A"
+msgstr "Rec.709-A"
+
+
+msgid "Rec.2020"
+msgstr "Rec.2020"
+
+
+msgid "Linear CIE-XYZ E"
+msgstr "CIE-XYZ E lineal"
+
+
+msgid "Linear FilmLight E-Gamut"
+msgstr "FilmLight lineal gama-E"
+
+
+msgid "Non-Color"
+msgstr "Datos"
+
+
+msgid "Gamma 1.8 Encoded Rec.709"
+msgstr "Rec.709 con gama 1.8"
+
+
+msgid "Gamma 2.2 Encoded AdobeRGB"
+msgstr "AdobeRGB con gama 2.2"
+
+
+msgid "Gamma 2.2 Encoded AP1"
+msgstr "AP1 con gama 2.2"
+
+
+msgid "Gamma 2.2 Encoded Rec.709"
+msgstr "Rec.709 con gama 2.2"
+
+
+msgid "Rec.1886"
+msgstr "Rec.1886"
+
+
+msgid "Gamma 2.4 Encoded Rec.709"
+msgstr "Rec.709 con gama 2.4"
+
+
+msgid "Rec.2100-HLG"
+msgstr "Rec.2100-HLG"
+
+
+msgid "Linear Adobe RGB"
+msgstr "Adobe RGB lineal"
+
+
+msgid "ACES2065-1"
+msgstr "ACES2065-1"
+
+
+msgid "ACEScg"
+msgstr "ACEScg"
+
+
+msgid "Linear CIE-XYZ D65"
+msgstr "CIE-XYZ D65 lineal"
+
+
+msgid "Linear DCI-P3 D65"
+msgstr "DCI-P3 D65 lineal"
+
+
+msgid "Linear Rec.2020"
+msgstr "Rec.2020 lineal"
+
+
+msgid "Linear Rec.709"
+msgstr "Rec.709 lineal"
+
+
+msgid "ACEScc"
+msgstr "ACEScc"
+
+
+msgid "ACEScct"
+msgstr "ACEScct"
+
+
+msgid "ADX10"
+msgstr "ADX10"
+
+
+msgid "ADX16"
+msgstr "ADX16"
+
+
+msgid "Apple Log 2"
+msgstr "Apple Log 2"
+
+
+msgid "Apple Log"
+msgstr "Apple Log"
+
+
+msgid "ARRI LogC3 (EI800)"
+msgstr "ARRI LogC3 (EI800)"
+
+
+msgid "ARRI LogC4"
+msgstr "ARRI LogC4"
+
+
+msgid "BMDFilm WideGamut Gen5"
+msgstr "BMDFilm Gen5 gama amplia"
+
+
+msgid "CanonLog2 CinemaGamut D55"
+msgstr "CanonLog2 D55 gama de cine"
+
+
+msgid "CanonLog3 CinemaGamut D55"
+msgstr "CanonLog3 D55 gama de cine"
+
+
+msgid "DaVinci Intermediate WideGamut"
+msgstr "DaVinci intermedio gama amplia"
+
+
+msgid "D-Log D-Gamut"
+msgstr "D-Log gama-D"
+
+
+msgid "Linear ARRI Wide Gamut 3"
+msgstr "ARRI lineal gama amplia 3"
+
+
+msgid "Linear ARRI Wide Gamut 4"
+msgstr "ARRI lineal gama amplia 4"
+
+
+msgid "Linear BMD WideGamut Gen5"
+msgstr "BMD lineal gama amplia Gen5"
+
+
+msgid "Linear CinemaGamut D55"
+msgstr "Gama de cine D55 lineal"
+
+
+msgid "Linear D-Gamut"
+msgstr "Gama-D lineal"
+
+
+msgid "Linear DaVinci WideGamut"
+msgstr "DaVinci lineal gama amplia"
+
+
+msgid "Linear REDWideGamutRGB"
+msgstr "RED RGB lineal gama amplia"
+
+
+msgid "Linear S-Gamut3"
+msgstr "Gama-S3 lineal"
+
+
+msgid "Linear S-Gamut3.Cine"
+msgstr "Gama-S3.cine lineal"
+
+
+msgid "Linear Venice S-Gamut3.Cine"
+msgstr "Gama-S3.cine Venice lineal"
+
+
+msgid "Linear Venice S-Gamut3"
+msgstr "Gama-S3 Venice lineal"
+
+
+msgid "Linear V-Gamut"
+msgstr "Gama-V lineal"
+
+
+msgid "Linear Apple Wide Gamut"
+msgstr "Apple lineal gama amplia"
+
+
+msgid "Log3G10 REDWideGamutRGB"
+msgstr "Log3G10 RED RGB gama amplia"
+
+
+msgid "S-Log3 S-Gamut3"
+msgstr "Gama-S3 S-Log3"
+
+
+msgid "S-Log3 S-Gamut3.Cine"
+msgstr "Gama-S3.cine S-Log3"
+
+
+msgid "S-Log3 Venice S-Gamut3.Cine"
+msgstr "Gama-S3.cine S-Log3 Venice"
+
+
+msgid "S-Log3 Venice S-Gamut3"
+msgstr "Gama-S3 S-Log3 Venice"
+
+
+msgid "V-Log V-Gamut"
+msgstr "Gama-V V-log"
+
+
+msgid "Rec.2100-PQ"
+msgstr "Rec.2100-PQ"
+
+
+msgid "sRGB Encoded AP1"
+msgstr "AP1 sRGB"
+
+
+msgid "Display P3"
+msgstr "Display P3"
+
+
+msgid "sRGB Encoded P3-D65"
+msgstr "P3-D65 sRGB"
 
 
 msgid "sRGB"
@@ -8416,6 +8760,15 @@ msgstr "Rec.2100-PQ"
 
 msgid "Rec.2100-PQ 10000 nits peak display with reference white at 100 nits"
 msgstr "Rec.2100-PQ, dispositivo con un pico de 10000 candelas por metro cuadrado y punto de blanco de referencia de 100 cd/m²"
+
+
+msgctxt "Color Management"
+msgid "Rec.709-A"
+msgstr "Rec.709-A"
+
+
+msgid "Rec.709 1.961 Exponent EOTF Display, matching the interpretation of Rec.709 video on Apple devices. Use to match display of video files in e.g. QuickTime exactly. Not recommended to be used for any other purpose."
+msgstr "Transformación de visualización Rec.709 1.961 EOTF exponencial, que coincide con una interpretación de video Rec.709 para dispositivos Apple. Usar para hacer coincidir la visualización de archivos de video exactamente en, por ejemplo, QuickTime. No recomendado su uso para otros propósitos."
 
 
 msgctxt "Color Management"
@@ -24847,6 +25200,10 @@ msgid "Source library from which this archive of packed IDs was generated"
 msgstr "Biblioteca de origen desde la cual este archivo de ID empacadas fue generado"
 
 
+msgid "Path to the library .blend file. WARNING: Typically, this value should be considered read-only, changing this path without proper processing afterwards can leave Blender data in an invalid state"
+msgstr "Ruta hasta el archivo .blend de la biblioteca. ADVERTENCIA: Normalmente este valor debería ser considerado como de sólo lectura; la modificación de esta ruta sin un tratamiento posterior apropiado podría provocar que los datos de Blender quedaran en un estado de invalidez"
+
+
 msgid "Is Archive"
 msgstr "Es de archivo"
 
@@ -26035,6 +26392,10 @@ msgstr "Bloque de datos de malla que define la superficie de la geometría"
 
 msgid "Corner Normals"
 msgstr "Normales de esquina"
+
+
+msgid "The \"split\" normal direction of each face corner, influenced by vertex normals, sharp faces, sharp edges, and custom normals. May be empty."
+msgstr "La dirección de las normales \"divididas\" de cada esquina de una cara. Será influenciada por las normales de los vértices, la definición de las caras y bordes, así como las normales personalizadas. Es posible que se encuentre vacía."
 
 
 msgid "Edges"
@@ -27732,6 +28093,10 @@ msgid "Raycast Visibility"
 msgstr "Visibilidad a los rayos"
 
 
+msgid "Object visibility to raycast rays. Implicitly false for Blended materials in EEVEE."
+msgstr "Visibilidad del objeto a los rayos proyectados. Inactivo de forma implícita para materiales que usen el método \"Fundido\" en EEVEE."
+
+
 msgid "Shadow Visibility"
 msgstr "Visibilidad sombras"
 
@@ -28919,6 +29284,22 @@ msgstr "Cantidad relativa de principales virtuales"
 
 msgid "Point cloud data-block"
 msgstr "Bloque de datos de nube de puntos"
+
+
+msgid "Representation type of the pointcloud"
+msgstr "Tipo de representación de la nube de puntos"
+
+
+msgid "Simple point cloud represented by points with position and radius"
+msgstr "Nube de puntos simple, representada por puntos con posición y radio"
+
+
+msgid "3D Gaussian Splat"
+msgstr "Salpicaduras gaussianas 3D"
+
+
+msgid "A point cloud that represents the original 3D Gaussian Splats technique"
+msgstr "Nube de puntos que representa la técnica original de Salpicaduras gaussianas 3D"
 
 
 msgid "Scene data-block, consisting in objects and defining time and render related settings"
@@ -31018,6 +31399,10 @@ msgstr "Complementos"
 
 msgid "Only show add-ons"
 msgstr "Sólo mostrar complementos"
+
+
+msgid "Asset Libraries"
+msgstr "Bibliotecas de recursos"
 
 
 msgid "Themes"
@@ -33888,6 +34273,46 @@ msgid "Type of event"
 msgstr "Tipo de evento"
 
 
+msgctxt "UI_Events_KeyMaps"
+msgid "Value"
+msgstr "Valor"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Any"
+msgstr "Cualquiera"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Press"
+msgstr "Pulsar"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Release"
+msgstr "Soltar"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Click"
+msgstr "Clic"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Double Click"
+msgstr "Doble clic"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Drag"
+msgstr "Arrastrar"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Nothing"
+msgstr "Nada"
+
+
 msgid "KeyMap Items"
 msgstr "Elementos del mapa de teclado"
 
@@ -36184,184 +36609,56 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
-msgid "Deprecated"
-msgstr "Obsoleto"
-
-
-msgid "Utilities"
-msgstr "Utilitarios"
-
-
-msgid "Write"
-msgstr "Escritura"
-
-
-msgid "Read"
-msgstr "Lectura"
+msgid "Light"
+msgstr "Luz"
 
 
 msgid "Metaball"
 msgstr "Metabola"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Decaimiento de edición proporcional"
-
-
-msgid "Snap"
-msgstr "Adherir"
-
-
-msgid "Pivot Point"
-msgstr "Punto de pivote"
-
-
 msgid "Select More/Less"
 msgstr "Seleccionar más / menos"
 
 
-msgid "Select Loops"
-msgstr "Seleccionar bucles"
+msgid "View Regions"
+msgstr "Regiones de la vista"
 
 
-msgid "Sample"
-msgstr "Muestreo"
+msgid "Align View to Active"
+msgstr "Alinear vista al activo"
 
 
-msgid "Bone Roll"
-msgstr "Giro de huesos"
+msgid "Align View"
+msgstr "Alinear vista"
 
 
-msgid "Random Mask"
-msgstr "Máscara aleatoria"
-
-
-msgid "Face Sets Init"
-msgstr "Inicialización de conjuntos de caras"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar / Ocultar"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Esculpido definir pivote"
+msgid "Read"
+msgstr "Lectura"
 
 
 msgid "Clean Up"
 msgstr "Limpiar"
 
 
-msgid "Trim/Add"
-msgstr "Recortar / Agregar"
+msgid "Math"
+msgstr "Operar"
 
 
-msgid "Render Preview"
-msgstr "Procesar previsualización"
+msgid "Navigation"
+msgstr "Navegación"
 
 
-msgid "Light Probe"
-msgstr "Sonda de luz"
+msgid "Show/Hide"
+msgstr "Mostrar / Ocultar"
 
 
-msgid "Local View"
-msgstr "Vista local"
+msgid "Write"
+msgstr "Escritura"
 
 
-msgid "Primitives"
-msgstr "Primitivas"
-
-
-msgid "UV Mapping"
-msgstr "Mapeo UV"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Vertex Group Locks"
-msgstr "Bloqueos de grupo de vértices"
-
-
-msgid "Mirror"
-msgstr "Simetrizar"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Face Sets Edit"
-msgstr "Edición de conjuntos de caras"
-
-
-msgid "Merge"
-msgstr "Fusionar"
-
-
-msgid "Automasking"
-msgstr "Autoenmascarar"
-
-
-msgid "Mask Edit"
-msgstr "Edición de máscara"
-
-
-msgid "Tracking"
-msgstr "Rastreo"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opciones de huesos"
-
-
-msgid "Names"
-msgstr "Nombres"
-
-
-msgid "Assign Material"
-msgstr "Asignar material"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de selección de mallas"
-
-
-msgid "Disable Bone Options"
-msgstr "Deshabilitar opciones huesos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opciones huesos"
-
-
-msgid "Bone Collections"
-msgstr "Colecciones de huesos"
-
-
-msgid "Select Linked"
-msgstr "Seleccionar vinculado"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Select All by Trait"
-msgstr "Seleccionar por condición"
-
-
-msgid "In-Betweens"
-msgstr "Intermedios"
-
-
-msgid "Select Similar"
-msgstr "Seleccionar similar"
-
-
-msgid "Clear Transform"
-msgstr "Restablecer transformación"
+msgid "Viewpoint"
+msgstr "Punto de vista"
 
 
 msgid "Hooks"
@@ -36372,96 +36669,220 @@ msgid "Link/Transfer Data"
 msgstr "Vincular / Transferir datos"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Primitives"
+msgstr "Primitivas"
+
+
+msgid "Deprecated"
+msgstr "Obsoleto"
+
+
+msgid "Utilities"
+msgstr "Utilitarios"
+
+
+msgid "Local View"
+msgstr "Vista local"
 
 
 msgid "Convert"
 msgstr "Convertir"
 
 
-msgid "View Regions"
-msgstr "Regiones de la vista"
-
-
-msgid "Math"
-msgstr "Operar"
-
-
-msgid "Make Single User"
-msgstr "Hacer de único usuario"
-
-
-msgid "Align View to Active"
-msgstr "Alinear vista al activo"
-
-
-msgid "Kerning"
-msgstr "Espaciado"
-
-
 msgid "Set Face Strength"
 msgstr "Definir intensidad de caras"
-
-
-msgid "Asset"
-msgstr "Recurso"
-
-
-msgid "Keying"
-msgstr "Recortar"
-
-
-msgid "Align View"
-msgstr "Alinear vista"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Adjust"
-msgstr "Ajustar"
 
 
 msgid "Select by Face Strength"
 msgstr "Seleccionar por intensidad de caras"
 
 
-msgid "Navigation"
-msgstr "Navegación"
+msgid "Face Data"
+msgstr "Datos de caras"
+
+
+msgid "Make Single User"
+msgstr "Hacer de único usuario"
 
 
 msgid "Import"
 msgstr "Importar"
 
 
+msgid "Sample"
+msgstr "Muestreo"
+
+
+msgid "Asset"
+msgstr "Recurso"
+
+
+msgid "Kerning"
+msgstr "Espaciado"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiales"
+
+
 msgid "Linked"
 msgstr "Vinculado"
-
-
-msgid "Rigid Body"
-msgstr "Cuerpo rígido"
-
-
-msgid "Viewpoint"
-msgstr "Punto de vista"
-
-
-msgid "Track"
-msgstr "Rastrear"
 
 
 msgid "Creative"
 msgstr "Creatividad"
 
 
-msgid "Face Data"
-msgstr "Datos de caras"
+msgid "Mesh Select Mode"
+msgstr "Modo de selección de mallas"
 
 
 msgid "Quick Effects"
 msgstr "Efectos rápidos"
+
+
+msgid "Disable Bone Options"
+msgstr "Deshabilitar opciones huesos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opciones huesos"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opciones de huesos"
+
+
+msgid "Instances"
+msgstr "Instancias"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Gizmo"
+msgstr "Manipulador"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Names"
+msgstr "Nombres"
+
+
+msgid "Bone Collections"
+msgstr "Colecciones de huesos"
+
+
+msgid "Keying"
+msgstr "Recortar"
+
+
+msgid "Adjust"
+msgstr "Ajustar"
+
+
+msgid "Light Probe"
+msgstr "Sonda de luz"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "In-Betweens"
+msgstr "Intermedios"
+
+
+msgid "UV Mapping"
+msgstr "Mapeo UV"
+
+
+msgid "Clear Transform"
+msgstr "Restablecer transformación"
+
+
+msgid "Snap"
+msgstr "Adherir"
+
+
+msgid "Mirror"
+msgstr "Simetrizar"
+
+
+msgid "Assign Material"
+msgstr "Asignar material"
+
+
+msgid "Random Mask"
+msgstr "Máscara aleatoria"
+
+
+msgid "Face Sets Init"
+msgstr "Inicialización de conjuntos de caras"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Esculpido definir pivote"
+
+
+msgid "Mask Edit"
+msgstr "Edición de máscara"
+
+
+msgid "Vertex Group Locks"
+msgstr "Bloqueos de grupo de vértices"
+
+
+msgid "Trim/Add"
+msgstr "Recortar / Agregar"
+
+
+msgid "Select Loops"
+msgstr "Seleccionar bucles"
+
+
+msgid "Bone Roll"
+msgstr "Giro de huesos"
+
+
+msgid "Face Sets Edit"
+msgstr "Edición de conjuntos de caras"
+
+
+msgid "Select Linked"
+msgstr "Seleccionar vinculado"
+
+
+msgid "Automasking"
+msgstr "Autoenmascarar"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decaimiento de edición proporcional"
+
+
+msgid "Render Preview"
+msgstr "Procesar previsualización"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Select All by Trait"
+msgstr "Seleccionar por condición"
+
+
+msgid "Select Similar"
+msgstr "Seleccionar similar"
 
 
 msgid "Relations"
@@ -36472,16 +36893,20 @@ msgid "Add Image"
 msgstr "Agregar imagen"
 
 
-msgid "Instances"
-msgstr "Instancias"
+msgid "Pivot Point"
+msgstr "Punto de pivote"
 
 
-msgid "Gizmo"
-msgstr "Manipulador"
+msgid "Tracking"
+msgstr "Rastreo"
 
 
-msgid "Layout"
-msgstr "Organizar"
+msgid "Rigid Body"
+msgstr "Cuerpo rígido"
+
+
+msgid "Merge"
+msgstr "Fusionar"
 
 
 msgid "Keyframe Insert Pie"
@@ -45503,24 +45928,54 @@ msgid "Refine tangential coefficients of distortion model during camera solving"
 msgstr "Refinar los coeficientes tangenciales del modelo de distorsión durante la resolución de la cámara"
 
 
+msgctxt "MovieClip"
+msgid "Speed"
+msgstr "Velocidad"
+
+
 msgid "Limit speed of tracking to make visual feedback easier (this does not affect the tracking quality)"
 msgstr "Limitar la velocidad del rastreo para una respuesta visual más rápida (no afecta a la calidad del rastreo)"
+
+
+msgctxt "MovieClip"
+msgid "Fastest"
+msgstr "La más rápida"
 
 
 msgid "Track as fast as possible"
 msgstr "Rastrear tan rápido como sea posible"
 
 
+msgctxt "MovieClip"
+msgid "Double"
+msgstr "Doble"
+
+
 msgid "Track with double speed"
 msgstr "Rastrear al doble de la velocidad"
+
+
+msgctxt "MovieClip"
+msgid "Realtime"
+msgstr "En tiempo real"
 
 
 msgid "Track with realtime speed"
 msgstr "Rastrear a velocidad en tiempo real"
 
 
+msgctxt "MovieClip"
+msgid "Half"
+msgstr "Media"
+
+
 msgid "Track with half of realtime speed"
 msgstr "Rastrear a la mitad de la velocidad"
+
+
+msgctxt "MovieClip"
+msgid "Quarter"
+msgstr "Un cuarto"
 
 
 msgid "Track with quarter of realtime speed"
@@ -46610,6 +47065,14 @@ msgid "Color space of the input image"
 msgstr "Espacio de color de la imagen de entrada"
 
 
+msgid "From Interop ID"
+msgstr "ID interop origen"
+
+
+msgid "Interop ID of the input color space"
+msgstr "ID de interoperabilidad del espacio de color de entrada"
+
+
 msgctxt "Color Management"
 msgid "To"
 msgstr "Destino"
@@ -46617,6 +47080,14 @@ msgstr "Destino"
 
 msgid "Color space of the output image"
 msgstr "Espacio de color de la imagen de salida"
+
+
+msgid "To Interop ID"
+msgstr "ID interop destino"
+
+
+msgid "Interop ID of the output color space"
+msgstr "ID de interoperabilidad del espacio de color de salida"
 
 
 msgid "Convert to Display"
@@ -49383,6 +49854,14 @@ msgid "Make the storage of a volume grid more efficient by collapsing data into 
 msgstr "Permite lograr que el almacenamiento de una cuadrícula volumétrica sea más eficiente, colapsando sus datos en celdas o nodos interiores"
 
 
+msgid "Grid Solve Poisson"
+msgstr "Resolver Poisson de cuadrícula"
+
+
+msgid "Solve the Poisson equation for a scalar field. Computes a grid whose Laplacian equals the input scalar grid."
+msgstr "Resuelve la ecuación de Poisson para un campo escalar. Calcula una cuadrícula cuyo laplaciano es igual a la cuadrícula escalar de entrada."
+
+
 msgid "Grid to Mesh"
 msgstr "Cuadrícula a malla"
 
@@ -49470,6 +49949,14 @@ msgstr "Importar PLY"
 
 msgid "Import a point cloud from a PLY file"
 msgstr "Importar nube de puntos desde un archivo PLY"
+
+
+msgid "Import SPZ"
+msgstr "Importar SPZ"
+
+
+msgid "Import a point cloud object that is rendered as gaussian splat from an SPZ file"
+msgstr "Importar nube de puntos que será procesada como salpicaduras gaussianas 3D, a partir de un archivo SPZ"
 
 
 msgid "Import STL"
@@ -50136,6 +50623,14 @@ msgid "Retrieve a point index within a curve"
 msgstr "Proporciona un identificador de punto en una curva"
 
 
+msgid "Set Point Cloud Type"
+msgstr "Definir tipo de nube de puntos"
+
+
+msgid "Change the type of point cloud"
+msgstr "Cambia el tipo de nube de puntos"
+
+
 msgid "Points to Curves"
 msgstr "Puntos a curvas"
 
@@ -50566,6 +51061,10 @@ msgstr "Establece el color y opacidad para los puntos del trazo"
 
 msgid "Set the color and opacity for the stroke fills"
 msgstr "Establece el color y opacidad para los rellenos del trazo"
+
+
+msgid "Set the color and opacity for stroke points and fills together"
+msgstr "Establece el color y opacidad para los puntos del trazo y el relleno a la vez"
 
 
 msgid "Set Grease Pencil Depth"
@@ -51178,6 +51677,14 @@ msgstr "Este nodo define una firma de paquete que debería ser usada por otros n
 
 msgid "Comment"
 msgstr "Comentar"
+
+
+msgid "Add explanations to the node group"
+msgstr "Permite agregar explicaciones al grupo de nodos"
+
+
+msgid "Text to show in the node"
+msgstr "Texto a mostrar en el nodo"
 
 
 msgid "Enable Output"
@@ -59683,6 +60190,64 @@ msgstr "Oculta todas las curvas-f salvo las que estén en foco"
 
 
 msgctxt "Operator"
+msgid "Copy World Space Range"
+msgstr "Copiar rango en espacio global"
+
+
+msgid "Copy animation from selected elements to the clipboard"
+msgstr "Copia la animación desde los elementos seleccionados al portapapeles"
+
+
+msgid "End frame to copy from"
+msgstr "Fotograma final desde donde copiar"
+
+
+msgid "Range Mode"
+msgstr "Modo del rango"
+
+
+msgid "Determines which range should be copied"
+msgstr "Determina qué rango deberá ser copiado"
+
+
+msgid "Use the range provided in the operator properties"
+msgstr "Usar el rango proporcionado en las propiedades del operador"
+
+
+msgid "Playback Range"
+msgstr "Rango de reproducción"
+
+
+msgid "Use the playback range of the scene"
+msgstr "Usar el rango de reproducción de la escena"
+
+
+msgid "Start frame to copy from"
+msgstr "Fotograma inicial desde donde copiar"
+
+
+msgctxt "Operator"
+msgid "Paste World Space"
+msgstr "Pegar en espacio global"
+
+
+msgid "Paste the animation from the clipboard to selected elements"
+msgstr "Pega la animación desde el portapapeles a los elementos seleccionados"
+
+
+msgid "Paste data to the same frames they were copied from"
+msgstr "Pega los datos en los mismos fotogramas desde los cuales fueron copiados"
+
+
+msgid "Start at Current Frame"
+msgstr "Iniciar en fotograma actual"
+
+
+msgid "Paste data starting at current frame"
+msgstr "Pega los datos a partir del fotograma actual"
+
+
+msgctxt "Operator"
 msgid "Align Bones"
 msgstr "Alinear huesos"
 
@@ -62205,6 +62770,10 @@ msgid "Add Importer"
 msgstr "Agrega un importador"
 
 
+msgid "Filepath"
+msgstr "Ruta del archivo"
+
+
 msgctxt "Operator"
 msgid "Import"
 msgstr "Importar"
@@ -63249,10 +63818,6 @@ msgid "Time Extend"
 msgstr "Extender tiempo"
 
 
-msgid "Bake Time"
-msgstr "Capturar tiempo"
-
-
 msgid "Edge Slide"
 msgstr "Deslizar borde"
 
@@ -63330,7 +63895,7 @@ msgstr "La condición para que la curva sea cerrada"
 
 
 msgid "On Press"
-msgstr "Al presionar"
+msgstr "Al pulsar"
 
 
 msgid "Move handles after closing the spline"
@@ -64408,8 +64973,8 @@ msgid "Export visible objects only"
 msgstr "Sólo exportar los objetos visibles"
 
 
-msgid "Export at Collection Center"
-msgstr "Exportar en centro de colección"
+msgid "Center of Mass"
+msgstr "Centro de masa"
 
 
 msgid "Export at Collection center of mass of root objects of the collection"
@@ -65348,6 +65913,14 @@ msgid "Store glTF export settings in the Blender project"
 msgstr "Almacenar opciones de exportación de glTF en el proyecto de Blender"
 
 
+msgid "Package ID"
+msgstr "ID de paquete"
+
+
+msgid "Repo Index"
+msgstr "Identificador del repositorio"
+
+
 msgid "Do Legacy Replace"
 msgstr "Reemplazar antiguo"
 
@@ -65360,16 +65933,8 @@ msgid "Enable after installing"
 msgstr "Habilitar luego de la instalación"
 
 
-msgid "Package ID"
-msgstr "ID de paquete"
-
-
 msgid "Repo Directory"
 msgstr "Carpeta del repositorio"
-
-
-msgid "Repo Index"
-msgstr "Identificador del repositorio"
 
 
 msgid "URL"
@@ -66603,7 +67168,7 @@ msgstr "Estabilizar trazo Radio"
 
 
 msgid "Helper to draw smooth and clean lines. Press Shift for an invert effect (even if this option is not active)"
-msgstr "Ayuda a dibujar trazos limpios y suaves. Presionar Mayúsculas para invertir el efecto (aunque esta opción no se encuentre activa)"
+msgstr "Ayuda a dibujar trazos limpios y suaves. Pulsar Mayúsculas para invertir el efecto (aunque esta opción no se encuentre activa)"
 
 
 msgid "Wait for first click instead of painting immediately"
@@ -69004,6 +69569,15 @@ msgstr "Adherir selección a cuadrícula"
 
 msgid "Snap selected points to the nearest grid points"
 msgstr "Permite adherir los puntos seleccionados a la intersección más cercana de la cuadrícula"
+
+
+msgctxt "Operator"
+msgid "Grease Pencil Carver"
+msgstr "Tallador de Grease Pencil"
+
+
+msgid "Cuts stroke point in the intersect lasso"
+msgstr "Corta el punto del trazo en la intersección del lazo"
 
 
 msgctxt "Operator"
@@ -71596,12 +72170,69 @@ msgid "Compare Color Attributes"
 msgstr "Comparar atributos de color"
 
 
+msgctxt "Operator"
+msgid "Curve Edge Loops Between Selected"
+msgstr "Curvar bucles de bordes entre seleccionados"
+
+
+msgid "Fits the unselected edge loops to a curve defined by the selected vertices"
+msgstr "Ajusta los bucles de bordes no seleccionados a una curva definida por los vértices seleccionados"
+
+
+msgid "Clamp Elevation"
+msgstr "Limitar elevación"
+
+
+msgid "Restrictions on how the vertices can be moved (wire edges are not supported)"
+msgstr "Restringe la forma en que los vértices pueden ser desplazados (bordes de estructura no soportados)"
+
+
+msgid "No restrictions on vertex movement"
+msgstr "Sin restricción al desplazamiento de los vértices"
+
+
+msgid "Only Raise"
+msgstr "Sólo elevar"
+
+
+msgid "Only allow extrusions"
+msgstr "Sólo se permitirán deformaciones hacia afuera"
+
+
+msgid "Only Lower"
+msgstr "Sólo hundir"
+
+
+msgid "Only allow indentation"
+msgstr "Sólo se permitirán deformaciones hacia adentro"
+
+
+msgid "Extend Loop"
+msgstr "Extender bucles"
+
+
+msgid "Extends the tool to work beyond the boundaries of the selected vertices"
+msgstr "Extiende el ámbito de operación de la herramienta para que funcione más allá de los límites de los vértices seleccionados"
+
+
+msgid "Curving factor"
+msgstr "Factor de curvatura"
+
+
 msgid "Algorithm used for interpolation"
 msgstr "Algoritmo usado para la interpolación"
 
 
 msgid "Natural cubic spline, smooth results"
 msgstr "Curva cúbica natural, resultados suaves"
+
+
+msgid "Simple and fast linear algorithm"
+msgstr "Algoritmo simple y rápido"
+
+
+msgid "Distribute vertices at constant distances along the curve"
+msgstr "Distribuye los vértices a distancias constantes a lo largo de la curva"
 
 
 msgctxt "Operator"
@@ -75116,8 +75747,21 @@ msgid "Index to remove"
 msgstr "Identificador a eliminar"
 
 
+msgctxt "Operator"
+msgid "Edit Comment"
+msgstr "Editar comentario"
+
+
+msgid "Enter edit mode for the comment node under the cursor"
+msgstr "Permite ingresar al modo de edición del nodo Comentar bajo el puntero"
+
+
 msgid "Use Active"
 msgstr "Usar activo"
+
+
+msgid "Edit the active comment node, rather than the one under the cursor"
+msgstr "Edita el nodo Comentar activo, en vez del que se encuentre bajo el puntero"
 
 
 msgid "Connect active node to the active output node of the node tree"
@@ -75779,6 +76423,10 @@ msgid "Dissolve all muted nodes with reconnect"
 msgstr "Disuelve todos los nodos deshabilitados con reconexión"
 
 
+msgid "Change factor inputs of selected nodes"
+msgstr "Cambia las entradas de factor de los nodos seleccionados"
+
+
 msgid "Merge selected nodes"
 msgstr "Mezcla los nodos seleccionados"
 
@@ -75926,6 +76574,15 @@ msgstr "Unir geometría"
 
 msgid "Join Geometry Mode"
 msgstr "Modo de unión de geometría"
+
+
+msgctxt "NodeTree"
+msgid "Geometry to Instance"
+msgstr "Geometría a instancia"
+
+
+msgid "Geometry to Instance Mode"
+msgstr "Modo geometría a instancia"
 
 
 msgctxt "NodeTree"
@@ -82324,6 +82981,10 @@ msgid "Paste the stored pose on to the current pose"
 msgstr "Pega la pose almacenada a la pose actual"
 
 
+msgid "Blends the current pose to the pose to paste. At 1, the pasted pose completely overwrites the current pose"
+msgstr "Permite fundir la pose actual hacia la pose a ser pegada. En 1, la pose pegada reemplazará completamente a la actual"
+
+
 msgid "Flipped on X-Axis"
 msgstr "Invertida en el eje X"
 
@@ -84247,21 +84908,12 @@ msgid "Add a new screen"
 msgstr "Permite agregar una nueva organización de pantalla"
 
 
-msgctxt "Operator"
-msgid "Open Project Setup..."
-msgstr "Abrir configuración del proyecto..."
-
-
 msgid "Create and manage projects"
 msgstr "Permite crear y administrar proyectos"
 
 
 msgid "Active Section"
 msgstr "Sección activa"
-
-
-msgid "Section to activate in Project Setup"
-msgstr "Sección a activar en Configuración del proyecto"
 
 
 msgctxt "Operator"
@@ -84477,10 +85129,6 @@ msgstr "Permite administrar los complementos ya instalados"
 
 msgid "Edit and save themes installed via Extensions"
 msgstr "Permite editar y guardar los temas ya instalados"
-
-
-msgid "Asset Libraries"
-msgstr "Bibliotecas de recursos"
 
 
 msgid "Keymap"
@@ -85841,10 +86489,6 @@ msgid "Start frame of the strip"
 msgstr "Fotograma inicial del clip"
 
 
-msgid "Move Strips"
-msgstr "Mover clips"
-
-
 msgid "Automatically begin translating strips with the mouse after adding them to the timeline"
 msgstr "Comenzar a desplazar los clips automáticamente, enseguida de ser agregados a la línea de tiempo"
 
@@ -85857,12 +86501,12 @@ msgid "Don't correct overlap on new strips"
 msgstr "No corregir superposición de nuevos clips"
 
 
-msgid "Override Overlap Shuffle Behavior"
-msgstr "Redefinir comportamiento de reacomodo de superpuestos"
+msgid "Overlap Mode"
+msgstr "Modo de solapamiento"
 
 
-msgid "Use the overlap_mode tool settings to determine how to shuffle overlapping strips"
-msgstr "Usar las opciones de la herramienta modo_superposición para determinar cómo reacomodar clips superpuestos"
+msgid "Shuffle"
+msgstr "Reacomodar"
 
 
 msgid "Replace Selection"
@@ -85900,10 +86544,6 @@ msgstr "No propagar el corte hacia los clips conectados"
 
 msgid "Ignore Selection"
 msgstr "Ignorar selección"
-
-
-msgid "In box blade mode, make cuts to all strips, even if they are not selected"
-msgstr "En modo Dividir (marco), cortar todos los clips, aun aquellos que no estén seleccionados"
 
 
 msgid "Remove Gaps"
@@ -86721,10 +87361,6 @@ msgid "Delete selected strips and close the gaps left behind"
 msgstr "Borra los clips seleccionados eliminando los huecos dejados al borrar"
 
 
-msgid "Ripple strips on other channels too, else only strips on the same channels as the deleted strips"
-msgstr "Encadena también los clips en otros canales, en caso contrario sólo se hará en el mismo canal que los clips borrados"
-
-
 msgid "Markers"
 msgstr "Marcadores"
 
@@ -87113,24 +87749,12 @@ msgid "Split the selected strips in two"
 msgstr "Divide los clips seleccionados en dos"
 
 
-msgid "Channel in which strip will be cut"
-msgstr "Canal en el cual se encuentra el clip que será cortado"
-
-
 msgid "Frame where selected strips will be split"
 msgstr "Fotograma en el cual serán cortados los clips seleccionados"
 
 
-msgid "Make cut even if strip is not selected preserving selection state after cut"
-msgstr "Realiza el corte aunque el clip no estuviera seleccionado, preservando la selección"
-
-
 msgid "The side that remains selected after splitting"
 msgstr "El lado que permanecerá seleccionado luego del corte"
-
-
-msgid "Split at position of the cursor instead of current frame"
-msgstr "Dividir en la posición del puntero, en vez de en el fotograma actual"
 
 
 msgid "Set a color tag for the selected strips"
@@ -87226,8 +87850,18 @@ msgid "Redefine equalizer graphs"
 msgstr "Redefine las gráficas de ecualización"
 
 
+msgctxt "Sequence"
+msgid "Graphs"
+msgstr "Gráficas"
+
+
 msgid "Number of graphs"
 msgstr "Cantidad de gráficas"
+
+
+msgctxt "Sequence"
+msgid "Unique"
+msgstr "Única"
 
 
 msgid "One unique graphical definition"
@@ -87241,6 +87875,11 @@ msgstr "Doble"
 
 msgid "Graphical definition in 2 sections"
 msgstr "Definición gráfica en 2 secciones"
+
+
+msgctxt "Sequence"
+msgid "Triplet"
+msgstr "Triplete"
 
 
 msgid "Graphical definition in 3 sections"
@@ -87961,10 +88600,6 @@ msgid "Column to jump to"
 msgstr "Columna a la cual saltar"
 
 
-msgid "Filepath"
-msgstr "Ruta del archivo"
-
-
 msgid "Line to jump to"
 msgstr "Línea a la cual saltar"
 
@@ -88521,6 +89156,14 @@ msgid "Sequence Slide"
 msgstr "Deslizar secuencia"
 
 
+msgid "Insert"
+msgstr "Insertar"
+
+
+msgid "How to resolve overlap after transformation"
+msgstr "Cómo resolver el solapamiento después de una transformación"
+
+
 msgid "Restore Handle Selection"
 msgstr "Restablecer selección de asas"
 
@@ -88715,7 +89358,7 @@ msgstr "Define el valor actual de esta propiedad como el nuevo predefinido"
 
 msgctxt "Operator"
 msgid "Press Button"
-msgstr "Presionar botón"
+msgstr "Pulsar botón"
 
 
 msgid "Presses active button"
@@ -93529,6 +94172,15 @@ msgstr "Abre una ventana con información acerca de Blender"
 
 
 msgctxt "Operator"
+msgid "Import SPZ"
+msgstr "Importar SPZ"
+
+
+msgid "Import an SPZ file as a gaussian splat point cloud object"
+msgstr "Importar un archivo SPZ como una nube de puntos de salpicaduras gaussianas"
+
+
+msgctxt "Operator"
 msgid "Export STL"
 msgstr "Exportar STL"
 
@@ -95325,64 +95977,28 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
-msgid "Render Pass"
-msgstr "Pasada de procesamiento"
-
-
-msgid "Shadow Settings"
-msgstr "Opciones de sombras"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Opciones adición de curvas (esculpido de curvas)"
-
-
-msgid "Auto-Masking"
-msgstr "Autoenmascarar"
-
-
-msgid "View Lock"
-msgstr "Fijar vista"
-
-
-msgid "Active Tool"
-msgstr "Herramienta activa"
-
-
-msgid "Curve Edit Mode"
-msgstr "Modo edición de curvas"
-
-
 msgid "Grease Pencil Options"
 msgstr "Opciones de Grease Pencil"
-
-
-msgid "Measurement"
-msgstr "Medición"
-
-
-msgid "glTF Variants"
-msgstr "Variantes glTF"
 
 
 msgid "glTF Material Variants"
 msgstr "Variantes de material glTF"
 
 
-msgid "Guides"
-msgstr "Guías"
+msgid "Quad View"
+msgstr "Vista cuádruple"
+
+
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "Measurement"
+msgstr "Medición"
 
 
 msgid "Mesh Edit Mode"
 msgstr "Modo edición de mallas"
-
-
-msgid "Motion Tracking"
-msgstr "Rastreo de movimiento"
-
-
-msgid "Viewer Node"
-msgstr "Nodo Visor"
 
 
 msgid "VR"
@@ -95393,48 +96009,48 @@ msgid "VR Info"
 msgstr "Info de RV"
 
 
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Decaimiento parámetro esculpido de curvas"
+msgid "Selectability & Visibility"
+msgstr "Seleccionabilidad y visibilidad"
 
 
-msgid "Stereoscopy"
-msgstr "Estereoscopía"
+msgid "Auto-Masking"
+msgstr "Autoenmascarar"
 
 
-msgid "Onion Skin"
-msgstr "Piel de cebolla"
-
-
-msgid "Quad View"
-msgstr "Vista cuádruple"
+msgid "Active Tool"
+msgstr "Herramienta activa"
 
 
 msgid "Multi Frame"
 msgstr "Multifotograma"
 
 
-msgid "Drawing Plane"
-msgstr "Plano de dibujo"
-
-
-msgid "Stroke Placement"
-msgstr "Ubicación del trazo"
+msgid "Stereoscopy"
+msgstr "Estereoscopía"
 
 
 msgid "Transform Orientations"
 msgstr "Orientación de transformación"
 
 
-msgid "Overlays"
-msgstr "Sobreimpresos"
+msgid "Onion Skin"
+msgstr "Piel de cebolla"
 
 
-msgid "glTF"
-msgstr "glTF"
+msgid "Motion Tracking"
+msgstr "Rastreo de movimiento"
 
 
-msgid "glTF Animations"
-msgstr "Animaciones glTF"
+msgid "Viewer Node"
+msgstr "Nodo Visor"
+
+
+msgid "Stroke Placement"
+msgstr "Ubicación del trazo"
+
+
+msgid "Drawing Plane"
+msgstr "Plano de dibujo"
 
 
 msgid "Cavity"
@@ -95445,20 +96061,56 @@ msgid "SSAO Settings"
 msgstr "Opciones OAEP"
 
 
+msgid "Guides"
+msgstr "Guías"
+
+
+msgid "Shadow Settings"
+msgstr "Opciones de sombras"
+
+
 msgid "Curves Edit Mode"
 msgstr "Modo edición de curvas"
 
 
-msgid "Selectability & Visibility"
-msgstr "Seleccionabilidad y visibilidad"
+msgid "Curve Edit Mode"
+msgstr "Modo edición de curvas"
+
+
+msgid "View Lock"
+msgstr "Fijar vista"
 
 
 msgid "Viewport Debug"
 msgstr "Depurar Vista 3D"
 
 
+msgid "Overlays"
+msgstr "Sobreimpresos"
+
+
 msgid "Curves Grow/Shrink Scaling"
 msgstr "Escala expandir/contraer curvas"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Decaimiento parámetro esculpido de curvas"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animaciones glTF"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Opciones adición de curvas (esculpido de curvas)"
+
+
+msgid "Render Pass"
+msgstr "Pasada de procesamiento"
 
 
 msgid "Import Settings"
@@ -96782,8 +97434,16 @@ msgid "VR Navigation"
 msgstr "Navegación RV"
 
 
+msgid "World Space Transform"
+msgstr "Transformación en espacio global"
+
+
 msgid "Fix to Camera"
 msgstr "Fijar a cámara"
+
+
+msgid "World Space Animation"
+msgstr "Animación en espacio global"
 
 
 msgid "Brush Presets"
@@ -97126,6 +97786,11 @@ msgstr "Curva"
 msgctxt "Operator"
 msgid "Trim"
 msgstr "Recortar"
+
+
+msgctxt "Operator"
+msgid "Carver"
+msgstr "Tallador"
 
 
 msgctxt "Operator"
@@ -99076,14 +99741,6 @@ msgid "Disable the asset indexer, to force every asset library refresh to comple
 msgstr "Deshabilitar el indexador de recursos para forzar a que con cada refresco de la biblioteca de recursos, éstos tengan que volver a ser leídos completamente desde el disco"
 
 
-msgid "Collection Import"
-msgstr "Importación de colección"
-
-
-msgid "Enables a file importer to be configured on a Collection"
-msgstr "Habilita la configuración de un importador de archivos en una colección"
-
-
 msgid "Cycles Debug"
 msgstr "Depurar Cycles"
 
@@ -100502,6 +101159,10 @@ msgid "Time since last access of a GL vertex buffer object in seconds after whic
 msgstr "Tiempo (en segundos) desde el último acceso de un objeto al buffer de vértices GL, luego del cual será descartado. (0 para mantenerlo en memoria)"
 
 
+msgid "CUDA"
+msgstr "CUDA"
+
+
 msgid "Viewport Anti-Aliasing"
 msgstr "Suavizado de bordes"
 
@@ -100846,16 +101507,8 @@ msgid "Catalan - Català"
 msgstr "Catalán - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "Código de localización: ca_AD. Progreso de la traducción: 100%"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chino (simplificado) - 简体中文"
-
-
-msgid "Locale code: zh_HANS. Translation progress: 100%"
-msgstr "Código de localización: zh_HANS. Progreso de la traducción: 100%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -100870,16 +101523,8 @@ msgid "Croatian - Hrvatski"
 msgstr "Croata - Hrvatski"
 
 
-msgid "Locale code: hr. Translation progress: 1%"
-msgstr "Código de localización: hr. Progreso de la traducción: 1%"
-
-
 msgid "Czech - Čeština"
 msgstr "Checo - Čeština"
-
-
-msgid "Locale code: cs_CZ. Translation progress: 26%"
-msgstr "Código de localización: cs_CZ. Progreso de la traducción: 27%"
 
 
 msgid "Danish - Dansk"
@@ -100900,10 +101545,6 @@ msgstr "Código de localización: nl_NL. Progreso de la traducción: 8%"
 
 msgid "English (UK)"
 msgstr "Inglés (Reino Unido) - English (UK)"
-
-
-msgid "Locale code: en_GB. Translation progress: 93%"
-msgstr "Código de localización: en_GB. Progreso de la traducción: 94%"
 
 
 msgid "English (US)"
@@ -100934,16 +101575,8 @@ msgid "French - Français"
 msgstr "Francés - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Código de localización: fr_FR. Progreso de la traducción: 100%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Georgiano - ქართული"
-
-
-msgid "Locale code: ka. Translation progress: 99%"
-msgstr "Código de localización: ka. Progreso de la traducción: 99%"
 
 
 msgid "German - Deutsch"
@@ -100998,10 +101631,6 @@ msgid "Italian - Italiano"
 msgstr "Italiano - Italiano"
 
 
-msgid "Locale code: it_IT. Translation progress: 42%"
-msgstr "Código de localización: it_IT. Progreso de la traducción: 42%"
-
-
 msgid "Japanese - 日本語"
 msgstr "Japonés - 日本語"
 
@@ -101012,10 +101641,6 @@ msgstr "Código de localización: ja_JP. Progreso de la traducción: 100%"
 
 msgid "Korean - 한국어"
 msgstr "Coreano - 한국어"
-
-
-msgid "Locale code: ko_KR. Translation progress: 92%"
-msgstr "Código de localización: ko_KR. Progreso de la traducción: 93%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -101062,24 +101687,12 @@ msgid "Polish - Polski"
 msgstr "Polaco - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 100%"
-msgstr "Código de localización: pl_PL. Progreso de la traducción: 100%"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugués (Brasil) - Português (Brazil)"
 
 
-msgid "Locale code: pt_BR. Translation progress: 41%"
-msgstr "Código de localización: pt_BR. Progreso de la traducción: 43%"
-
-
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugués (Portugal) - Português (Portugal)"
-
-
-msgid "Locale code: pt_PT. Translation progress: 82%"
-msgstr "Código de localización: pt_PT. Progreso de la traducción: 83%"
 
 
 msgid "Romanian - Român"
@@ -101092,10 +101705,6 @@ msgstr "Código de localización: ro_RO. Progreso de la traducción: 2%"
 
 msgid "Russian - Русский"
 msgstr "Ruso - Русский"
-
-
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "Código de localización: ru_RU. Progreso de la traducción: 100%"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -101118,24 +101727,12 @@ msgid "Slovak - Slovenčina"
 msgstr "Eslovaco - Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "Código de localización: sk_SK. Progreso de la traducción: 100%"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "Esloveno - Slovenščina"
 
 
-msgid "Locale code: sl. Translation progress: 53%"
-msgstr "Código de localización: sl. Progreso de la traducción: 53%"
-
-
 msgid "Spanish - Español"
 msgstr "Español"
-
-
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "Código de localización: es. Progreso de la traducción: 100%"
 
 
 msgid "Swahili - Kiswahili"
@@ -101154,10 +101751,6 @@ msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
 
 
-msgid "Locale code: ta. Translation progress: 94%"
-msgstr "Código de localización: ta. Progreso de la traducción: 95%"
-
-
 msgid "Thai - ภาษาไทย"
 msgstr "Tailandés - ภาษาไทย"
 
@@ -101170,24 +101763,12 @@ msgid "Turkish - Türkçe"
 msgstr "Turco - Türkçe"
 
 
-msgid "Locale code: tr_TR. Translation progress: 74%"
-msgstr "Código de localización: tr_TR. Progreso de la traducción: 74%"
-
-
 msgid "Ukrainian - Українська"
 msgstr "Ucraniano - Українська"
 
 
-msgid "Locale code: uk_UA. Translation progress: 54%"
-msgstr "Código de localización: uk_UA. Progreso de la traducción: 54%"
-
-
 msgid "Urdu - وُدرُا"
 msgstr "Urdu - وُدرُا"
-
-
-msgid "Locale code: ur. Translation progress: 81%"
-msgstr "Código de localización: ur. Progreso de la traducción: 82%"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -102575,10 +103156,6 @@ msgid "CPU"
 msgstr "CPU"
 
 
-msgid "CUDA"
-msgstr "CUDA"
-
-
 msgid "OptiX"
 msgstr "OptiX"
 
@@ -102715,6 +103292,10 @@ msgstr "Usar muestreo equiangular, mejor para volúmenes con baja densidad ilumi
 
 msgid "Multiple Importance"
 msgstr "Importancia múltiple"
+
+
+msgid "Combine distance and equiangular sampling for volumes where neither method is ideal"
+msgstr "Combinar el muestreo por distancia y el equiangular, para volúmenes donde ninguno de los dos es el ideal"
 
 
 msgid "Step Rate"
@@ -108581,30 +109162,6 @@ msgid "Scale fit method"
 msgstr "Método de ajuste de escala"
 
 
-msgid "Overlap Mode"
-msgstr "Modo de solapamiento"
-
-
-msgid "How to resolve overlap after transformation"
-msgstr "Cómo resolver el solapamiento después de una transformación"
-
-
-msgid "Move strips so transformed strips fit"
-msgstr "Mueve los clips para que los clips transformados queden ajustados"
-
-
-msgid "Trim or split strips to resolve overlap"
-msgstr "Recorta o divide los clips para resolver el solapamiento"
-
-
-msgid "Shuffle"
-msgstr "Reacomodar"
-
-
-msgid "Move transformed strips to nearest free space to resolve overlap"
-msgstr "Mueve los clips transformados al espacio libre más cercano para resolver el solapamiento"
-
-
 msgid "Rotation or scaling pivot point"
 msgstr "Punto de pivote de rotación o escala"
 
@@ -109268,10 +109825,6 @@ msgstr "Gravitación"
 
 msgid "Apply gravitation to point movement"
 msgstr "Aplicar gravitación al movimiento de puntos"
-
-
-msgid "Center of Mass"
-msgstr "Centro de masa"
 
 
 msgid "Location of center of mass"
@@ -110676,6 +111229,10 @@ msgid "Expand on Focus"
 msgstr "Expandir en foco"
 
 
+msgid "Uncollapse the active item when scrolling it into view"
+msgstr "Expandir el elemento activo al desplazarlo a la vista"
+
+
 msgctxt "ID"
 msgid "Filter by Type"
 msgstr "Filtrar por tipo"
@@ -110737,6 +111294,10 @@ msgid "Scroll to Active"
 msgstr "Desplazar hasta activo"
 
 
+msgid "Scroll the active item into view when it changes outside of the outliner"
+msgstr "Desplazar la lista hasta el nuevo elemento activo, cuando este cambie fuera del Listado"
+
+
 msgid "Show Mode Column"
 msgstr "Mostrar columna Modo"
 
@@ -110747,6 +111308,42 @@ msgstr "Muestra la columna Modo para la activación/desactivación de modos"
 
 msgid "Indirect only"
 msgstr "Sólo indirecta"
+
+
+msgid "Show Users Column"
+msgstr "Mostrar columna Usuarios"
+
+
+msgid "Display a column showing the number of users for each data-block"
+msgstr "Muestra una columna con la cantidad de usuarios de cada bloque de datos"
+
+
+msgid "Sort Method"
+msgstr "Método de ordenamiento"
+
+
+msgid "Sorting method for Outliner elements"
+msgstr "Método de ordenamiento para los elementos del Listado"
+
+
+msgid "Alphabetical"
+msgstr "Alfabético"
+
+
+msgid "Order items alphabetically"
+msgstr "Ordena los elementos alfabéticamente"
+
+
+msgid "Order items manually"
+msgstr "Permite ordenar los elementos manualmente"
+
+
+msgid "No Sorting"
+msgstr "Sin orden"
+
+
+msgid "Order items according to the actual internal data (matches the order in which operators will typically process them when working on collections/objects hierarchies)"
+msgstr "Ordena los elementos de acuerdo a los datos internos (coincidiendo con el orden natural en que los operadores los procesarán al trabajar con colecciones o jerarquías de objetos)"
 
 
 msgid "Show Bone Collections"
@@ -111318,14 +111915,6 @@ msgstr "Mostrar región de arrastre"
 
 msgid "Region with full playback range for scrubbing in the sequencer"
 msgstr "Región de arrastre, con el rango completo de reproducción, en el editor de video"
-
-
-msgid "Transform Preview"
-msgstr "Previsualizar transformaciones"
-
-
-msgid "Show a preview of the start or end frame of a strip while transforming its respective handle"
-msgstr "Muestra una previsualización del fotograma inicial o final de un clip, mientras se transforma su asa respectiva"
 
 
 msgid "Limit View to Contents"
@@ -117881,6 +118470,14 @@ msgid "The unique identifier for the asset library"
 msgstr "El identificador único para la biblioteca de recursos"
 
 
+msgid "Preferences Asset Library"
+msgstr "Biblioteca de recursos de Preferencias"
+
+
+msgid "An asset library defined in the Preferences, available whatever project or blend file is open"
+msgstr "Una biblioteca de recursos definida en las Preferencias y que estará disponible cualquiera sea el proyecto o archivo .blend que se encuentre abierto"
+
+
 msgid "Path to a directory with .blend files to use as an asset library"
 msgstr "Ruta hasta una carpeta que contenga archivos .blend para ser usados como bibliotecas de recursos"
 
@@ -119963,11 +120560,11 @@ msgstr "Modo de aplicación de háptica"
 
 
 msgid "Press"
-msgstr "Presionar"
+msgstr "Pulsar"
 
 
 msgid "Apply haptics on button press"
-msgstr "Aplicar acción háptica al presionar el botón"
+msgstr "Aplicar acción háptica al pulsar el botón"
 
 
 msgid "Release"
@@ -119979,11 +120576,11 @@ msgstr "Aplicar acción háptica al soltar el botón"
 
 
 msgid "Press Release"
-msgstr "Presionar y soltar"
+msgstr "Pulsar y soltar"
 
 
 msgid "Apply haptics on button press and release"
-msgstr "Aplicar acción háptica al presionar y soltar el botón"
+msgstr "Aplicar acción háptica al pulsar y soltar el botón"
 
 
 msgid "Apply haptics repeatedly for the duration of the button press"
@@ -120015,7 +120612,7 @@ msgstr "Modo de ejecución del operador"
 
 
 msgid "Execute operator on button press (non-modal operators only)"
-msgstr "Ejecutar operador al presionar el botón (sólo para operadores no modales)"
+msgstr "Ejecutar operador al pulsar el botón (sólo para operadores no modales)"
 
 
 msgid "Execute operator on button release (non-modal operators only)"
@@ -120734,7 +121331,7 @@ msgstr "Evento de activación de manipuladores que soportan movimiento mediante 
 
 msgctxt "View3D"
 msgid "Press"
-msgstr "Presionar"
+msgstr "Pulsar"
 
 
 msgid "Press causes immediate activation, preventing click being passed to the tool"
@@ -120806,7 +121403,7 @@ msgid ""
 msgstr ""
 "Al abrir el menú emergente de barra de herramientas o de pinceles\n"
 "Cuando la 'barra espaciadora' se mantenga pulsada:\n"
-"• Al presionar el atajo de una herramienta, ésta se activará inmediatamente.\n"
+"• Al pulsar el atajo de una herramienta, ésta se activará inmediatamente.\n"
 "• Al posar el puntero sobre una herramienta y soltarla, ésta se activará (como en un menú circular).\n"
 "Para reproducir usar 'Mayús-Epacio'"
 
@@ -120840,7 +121437,7 @@ msgstr "Alt para solicitar herramienta"
 
 
 msgid "Tapping Alt (without pressing any other keys) shows a prompt in the status-bar, prompting a second keystroke to activate the tool"
-msgstr "Al pulsar Alt (sin presionar ninguna otra tecla) se mostrará una solicitud en la barra de estado, esperando que una segunda tecla sea pulsada para activar una herramienta"
+msgstr "Al pulsar Alt (sin pulsar ninguna otra tecla) se mostrará una solicitud en la barra de estado, esperando que una segunda tecla sea pulsada para activar una herramienta"
 
 
 msgid "Alt Cursor Access"
@@ -120851,7 +121448,7 @@ msgid ""
 "Hold Alt-LMB to place the Cursor (instead of LMB), allows tools to activate on press instead of drag.\n"
 "Incompatible with the input preference \"Emulate 3 Button Mouse\" when the \"Alt\" key is used"
 msgstr ""
-"Mantener presionado Alt + botón Izquierdo para posicionar el cursor (en vez de sólo el botón Izquierdo), permite que las herramientas sean activadas al presionar, en vez de al arrastrar.\n"
+"Mantener pulsada Alt + botón Izquierdo para posicionar el cursor (en vez de sólo el botón Izquierdo), permite que las herramientas sean activadas al pulsar, en vez de al arrastrar.\n"
 "Es incompatible con la preferencia de entrada \"Emular ratón de 3 botones\" cuando se usa la tecla \"Alt\""
 
 
@@ -120908,7 +121505,7 @@ msgstr "Menú de regiones"
 
 
 msgid "N-key opens a pie menu to toggle regions"
-msgstr "Abre un menú circular al presionar la tecla N, que permite alternar las regiones en el editor activo"
+msgstr "Abre un menú circular al pulsar la tecla N, que permite alternar las regiones en el editor activo"
 
 
 msgid "Select All Toggles"
@@ -123452,6 +124049,16 @@ msgstr "Vista 3D - Herramienta: Grease Pencil - Pintar, Recortar (alternativa)"
 
 
 msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Carver"
+msgstr "Vista 3D - Herramienta: Grease Pencil - Pintar, Tallador"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Carver (fallback)"
+msgstr "Vista 3D - Herramienta: Grease Pencil - Pintar, Tallador (alternativa)"
+
+
+msgctxt "WindowManager"
 msgid "3D View Tool: Paint Grease Pencil, Eyedropper"
 msgstr "Vista 3D - Herramienta: Grease Pencil - Cuentagotas"
 
@@ -124301,10 +124908,6 @@ msgid "Unable to install from disk, no paths were defined"
 msgstr "No es posible instalar desde el disco, las rutas no han sido definidas"
 
 
-msgid "Theme \"{:s}\" is already installed!"
-msgstr "¡El tema \"{:s}\" ya se encuentra instalado!"
-
-
 msgid "Name: {:s}"
 msgstr "Nombre: {:s}"
 
@@ -124335,6 +124938,10 @@ msgstr "Repositorio: {:s}"
 
 msgid "Size: {:s}"
 msgstr "Tamaño: {:s}"
+
+
+msgid "Theme \"{:s}\" is already installed!"
+msgstr "¡El tema \"{:s}\" ya se encuentra instalado!"
 
 
 msgid "Age: {:s}"
@@ -125157,12 +125764,31 @@ msgid "Invalid target %r (must be 'ARMATURE' or 'OBJECT')"
 msgstr "Objetivo inválido %r (debe ser 'ARMATURE' u 'OBJECT')"
 
 
+msgctxt "Operator"
+msgid "IO_FH_svg_as_curves"
+msgstr "IO_FH_svg_as_curves"
+
+
 msgid "Unable to parse XML, %s:%s for file %r"
 msgstr "No fue posible analizar el XML, %s:%s para el archivo %r"
 
 
+msgctxt "Operator"
+msgid "IO_FH_fbx (Legacy)"
+msgstr "IO_FH_fbx (antiguo)"
+
+
+msgctxt "Operator"
+msgid "IO_FH_fbx"
+msgstr "IO_FH_fbx"
+
+
 msgid "Limit to"
 msgstr "Limitar a"
+
+
+msgid "(Legacy)"
+msgstr "(antiguo)"
 
 
 msgid "%s could not be set out of Edit Mode, so cannot be exported"
@@ -125247,6 +125873,11 @@ msgstr "Animaciones adicionales"
 
 msgid "gltfpack"
 msgstr "gltfpack"
+
+
+msgctxt "Operator"
+msgid "IO_FH_gltf2"
+msgstr "IO_FH_gltf2"
 
 
 msgid "Bones & Skin"
@@ -125540,6 +126171,10 @@ msgstr "No hay entradas libres para el nodo {}"
 
 msgid "No nodes to arrange in selection."
 msgstr "Ningún nodo que reordenar en la selección."
+
+
+msgid "No factor values were modified."
+msgstr "No se modificaron valores de factor."
 
 
 msgid "Selected nodes are not of the same type as {}"
@@ -128155,6 +128790,10 @@ msgid "Stanford PLY (.ply)"
 msgstr "PLY de Stanford (.ply)"
 
 
+msgid "SPZ (.spz)"
+msgstr "SPZ (.spz)"
+
+
 msgid "STL (.stl)"
 msgstr "STL (.stl)"
 
@@ -130056,6 +130695,10 @@ msgid "Auto-Step"
 msgstr "Intervalo automático"
 
 
+msgid "OpenColorIO Config"
+msgstr "Config de OpenColorIO"
+
+
 msgid "Max Depth"
 msgstr "Profundidad máx"
 
@@ -130728,6 +131371,11 @@ msgstr "Agrupar canales..."
 msgctxt "Operator"
 msgid "Extrapolation Mode"
 msgstr "Modo de extrapolación"
+
+
+msgctxt "Operator"
+msgid "Replace Action..."
+msgstr "Reemplazar acción..."
 
 
 msgctxt "Operator"
@@ -131923,6 +132571,15 @@ msgid "Float"
 msgstr "Decimal"
 
 
+msgid "Overridden by the  environment variable"
+msgstr "Redefinido por la variable de entorno"
+
+
+msgctxt "Operator"
+msgid "Reload to Apply Changes"
+msgstr "Recargar para aplicar cambios"
+
+
 msgid "No active project."
 msgstr "Ningún objeto activo."
 
@@ -132152,10 +132809,6 @@ msgid "Render Sequencer Image"
 msgstr "Procesar imagen del editor de video"
 
 
-msgid "Preview During Transform"
-msgstr "Previsualizar durante transformaciones"
-
-
 msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Ajustar previsualización a ventana"
@@ -132349,6 +133002,11 @@ msgid "Rename Active Strip..."
 msgstr "Renombrar clip activo..."
 
 
+msgctxt "Sequence"
+msgid "Split"
+msgstr "Dividir"
+
+
 msgctxt "Operator"
 msgid "Set Render Range to Selected"
 msgstr "Rango de previsualización a seleccionados"
@@ -132396,16 +133054,6 @@ msgstr "Mover/Extender desde el fotograma actual"
 msgctxt "Operator"
 msgid "Remove Gaps (All)"
 msgstr "Eliminar huecos (todo)"
-
-
-msgctxt "Sequence"
-msgid "Split"
-msgstr "Dividir"
-
-
-msgctxt "Sequence"
-msgid "Hold Split"
-msgstr "Dividir y congelar"
 
 
 msgctxt "Operator"
@@ -132826,6 +133474,11 @@ msgstr "Preferencias..."
 
 
 msgctxt "Operator"
+msgid "Settings..."
+msgstr "Opciones..."
+
+
+msgctxt "Operator"
 msgid "Save Screenshot..."
 msgstr "Guardar captura de pantalla..."
 
@@ -132871,6 +133524,41 @@ msgstr "Más..."
 msgctxt "Operator"
 msgid "Load Factory Blender Settings"
 msgstr "Cargar configuración de fábrica"
+
+
+msgctxt "Operator"
+msgid "IO_FH_alembic"
+msgstr "IO_FH_alembic"
+
+
+msgctxt "Operator"
+msgid "IO_FH_usd"
+msgstr "IO_FH_usd"
+
+
+msgctxt "Operator"
+msgid "IO_FH_grease_pencil_svg"
+msgstr "IO_FH_grease_pencil_svg"
+
+
+msgctxt "Operator"
+msgid "IO_FH_obj"
+msgstr "IO_FH_obj"
+
+
+msgctxt "Operator"
+msgid "IO_FH_ply"
+msgstr "IO_FH_ply"
+
+
+msgctxt "Operator"
+msgid "IO_FH_spz"
+msgstr "IO_FH_spz"
+
+
+msgctxt "Operator"
+msgid "IO_FH_stl"
+msgstr "IO_FH_stl"
 
 
 msgctxt "Operator"
@@ -133345,6 +134033,10 @@ msgid "Player"
 msgstr "Reproductor"
 
 
+msgid "Opening blend files from the internet and other untrusted sources is unsafe with Auto-Run. Use with caution."
+msgstr "Abrir archivos .blend desde Internet y otras fuentes no confiables es inseguro cuando \"Ejecutar automáticamente\" está activa. Usar con precaución."
+
+
 msgid "Wheel"
 msgstr "Rueda"
 
@@ -133428,6 +134120,14 @@ msgstr "Deshabilitar al inicio, redefiniendo las preferencias."
 
 msgid "Subprocesses"
 msgstr "Subprocesos"
+
+
+msgid "enabled on startup, overriding the preference"
+msgstr "habilitar al inicio, redefiniendo las preferencias"
+
+
+msgid "disabled on startup, overriding the preference"
+msgstr "deshabilitar al inicio, redefiniendo las preferencias"
 
 
 msgid "Invert Rotate"
@@ -135713,6 +136413,16 @@ msgid "Fix"
 msgstr "Fijar"
 
 
+msgctxt "Operator"
+msgid "Copy Playback Range"
+msgstr "Copiar rango de reproducción"
+
+
+msgctxt "Operator"
+msgid "At Playhead"
+msgstr "En cursor de tiempo"
+
+
 msgid "These require auto-key:"
 msgstr "Estos requieren claves automáticos:"
 
@@ -135794,6 +136504,11 @@ msgstr "Bloquear relativos"
 
 msgid "Multi-Paint"
 msgstr "Pintura múltiple"
+
+
+msgctxt "Operator"
+msgid "Quick Edit..."
+msgstr "Edición rápida..."
 
 
 msgctxt "Operator"
@@ -136085,10 +136800,6 @@ msgstr "No se pudo encontrar la URL de la biblioteca de recursos para el recurso
 
 msgid "Named Layer node"
 msgstr "Nodo Seleccionar capa por nombre"
-
-
-msgid "User Library"
-msgstr "Biblioteca de usuario"
 
 
 msgid "actions"
@@ -137525,12 +138236,12 @@ msgid "Library '%s' ('%s') is an archive storage for packed data, but has no rea
 msgstr "La biblioteca '%s' ('%s') es un almacén para datos empacados, pero no contiene un superior real de la biblioteca."
 
 
-msgid "LIB: .blend file %s seems corrupted, no owner 'Library' data found for the linked data-block '%s'. Try saving the file again."
-msgstr "LIB: El archivo .blend %s parece corrupto, no se encontraron datos de 'Biblioteca' del propietario para el bloque de datos vinculado '%s'. Intentar guardar el archivo nuevamente."
-
-
 msgid "LIB: Data refers to main .blend file: '%s' from %s"
 msgstr "BIBL: Los datos se refieren al archivo principal .blend: '%s' desde %s"
+
+
+msgid "LIB: .blend file %s seems corrupted, no owner 'Library' data found for the linked data-block '%s'. Try saving the file again."
+msgstr "LIB: El archivo .blend %s parece corrupto, no se encontraron datos de 'Biblioteca' del propietario para el bloque de datos vinculado '%s'. Intentar guardar el archivo nuevamente."
 
 
 msgid "LIB: .blend file %s seems corrupted, no owner 'Library' data found for the packed linked data-block %s. Try saving the file again."
@@ -137865,6 +138576,10 @@ msgstr "color_index es inválido"
 
 msgid "Anisotropic"
 msgstr "Anisotropía"
+
+
+msgid "Stack limit reached. Group node is ignored."
+msgstr "Se alcanzó el límite de la pila. El grupo de nodos será ignorado."
 
 
 msgid "Error: Too many AOVs"
@@ -138244,6 +138959,10 @@ msgid "Invalid old/new Action pair ('%s' / '%s')"
 msgstr "Par inválido de ID de acción antigua/nueva ('%s' / '%s')"
 
 
+msgid "Cannot replace Action with itself ('%s')"
+msgstr "No es posible reemplazar una acción consigo misma ('%s')"
+
+
 msgid "Multiple users of an action and not all were selected: %s"
 msgstr "Múltiples usuarios de una acción y no todos ellos seleccionados: %s"
 
@@ -138507,6 +139226,62 @@ msgstr "Propiedad eliminada del conjunto de claves"
 
 msgid "Property added to Keying Set: '%s'"
 msgstr "Propiedad agregada al conjunto de claves: '%s'"
+
+
+msgid "Found duplicate names in selection. Not all selected were saved into clipboard."
+msgstr "Se encontraron nombres duplicados en la selección. No todos los seleccionados fueron guardados en el portapapeles."
+
+
+msgid "Clipboard data has no animation"
+msgstr "Los datos del portapapeles no contienen animación"
+
+
+msgid "Clipboard contains incomplete animation data"
+msgstr "El portapapeles contiene datos de animación incompletos"
+
+
+msgid "Cannot match selection to clipboard data"
+msgstr "No es posible hacer coincidir la selección con los datos del portapapeles"
+
+
+msgid "Failed to figure out pasting order. Potential dependency cycle"
+msgstr "Error al decidir el orden de pegado. Existe un potencial ciclo de dependencias"
+
+
+msgid "Nothing selected to copy"
+msgstr "Nada seleccionado para copiar"
+
+
+msgid "Nothing selected to paste to"
+msgstr "Nada seleccionado adonde pegar"
+
+
+msgid "Selection contains constraints. Perfect world space match cannot be guaranteed"
+msgstr "La selección contiene restricciones. No es posible garantizar una coincidencia perfecta con el espacio global"
+
+
+msgid "No clipboard to read from"
+msgstr "Ningún portapapeles que leer"
+
+
+msgid "Copied %d %s across %d frames to the clipboard"
+msgstr "Se copiaron %d %s a lo largo de %d fotogramas al portapapeles"
+
+
+msgid "Pasted all %d %s over %d frames"
+msgstr "Se pegaron todos los %d %s a lo largo de %d fotogramas"
+
+
+msgid "Pasted the same animation to %d %s over %d frames"
+msgstr "Se pegó la misma animación en %d %s a lo largo de %d fotogramas"
+
+
+msgid "Pasted %d/%d %s over %d frames"
+msgstr "Se pegó %d/%d %s a lo largo de %d fotogramas"
+
+
+msgid "Invalid frame range %d-%d"
+msgstr "Rango de fotogramas inválido %d-%d"
 
 
 msgid "No search term defined"
@@ -139130,6 +139905,30 @@ msgid "Enable catalog, making contained assets visible in the asset shelf"
 msgstr "Habilita el catálogo, haciendo que los recursos allí contenidos sean visibles en el Banco de recursos"
 
 
+msgid "No assets in this catalog."
+msgstr "Ningún recurso en este catálogo."
+
+
+msgid "No assets found."
+msgstr "Ningún recurso encontrado."
+
+
+msgid "No search results in this catalog."
+msgstr "Ningún resultado de búsqueda en este catálogo."
+
+
+msgid "No results found."
+msgstr "Ningún resultado encontrado."
+
+
+msgid "\"Online Only\" filter is enabled."
+msgstr "Filtro \"Sólo en línea\" activo."
+
+
+msgid "\"Offline Only\" filter is enabled."
+msgstr "Filtro \"Sólo locales\" activo."
+
+
 msgid "Toggle catalog visibility in the asset shelf"
 msgstr "Alterna la visibilidad del catálogo en el banco de recursos"
 
@@ -139337,10 +140136,6 @@ msgstr "No se ha seleccionado ningún punto de control"
 
 msgid "Control point belongs to another spline"
 msgstr "El punto de control pertenece a otra curva"
-
-
-msgid "Insert"
-msgstr "Insertar"
 
 
 msgid "Unicode codepoint hex value"
@@ -139561,6 +140356,10 @@ msgstr "Ojos"
 
 msgid "Bake Object Transform to Grease Pencil"
 msgstr "Capturar transformación de objeto a Grease Pencil"
+
+
+msgid "Some curves were converted to Poly"
+msgstr "Algunas curvas fueron convertidas a Poligonal"
 
 
 msgid "Remove Loose Points"
@@ -139945,7 +140744,7 @@ msgstr "Agregar material de Grease Pencil"
 
 
 msgid "Press a key"
-msgstr "Presionar una tecla"
+msgstr "Pulsar una tecla"
 
 
 msgid "Error evaluating number, see Info editor for details"
@@ -140750,6 +141549,21 @@ msgid "C"
 msgstr "C"
 
 
+msgctxt "Color"
+msgid "H"
+msgstr "T"
+
+
+msgctxt "Color"
+msgid "S"
+msgstr "S"
+
+
+msgctxt "Color"
+msgid "V"
+msgstr "V"
+
+
 msgctxt "Operator"
 msgid "CurveMap tools"
 msgstr "Herramientas de curva de mapeo"
@@ -141267,8 +142081,8 @@ msgid "Operator cannot redo"
 msgstr "No es posible rehacer el operador"
 
 
-msgid "File Not Found"
-msgstr "Archivo no encontrado"
+msgid "Size: {}"
+msgstr "Tamaño: {}"
 
 
 msgid "Today"
@@ -141281,10 +142095,6 @@ msgstr "Ayer"
 
 msgid "Modified: {}"
 msgstr "Modificado: {}"
-
-
-msgid "Size: {}"
-msgstr "Tamaño: {}"
 
 
 msgid "Anim Player"
@@ -141373,6 +142183,10 @@ msgstr ""
 
 msgid "This file is managed by the Blender asset system and cannot be overridden"
 msgstr "Este archivo es administrado por el sistema de recursos de Blender y no podrá ser sobrescrito"
+
+
+msgid "OpenColorIO configuration failed to load"
+msgstr "Error al cargar configuración de OpenColorIO"
 
 
 msgid "Displays, views or color spaces in this file were missing and have been changed"
@@ -141636,6 +142450,10 @@ msgstr "Se requieren bordes o caras seleccionadas"
 
 msgid "No edge loops found containing 2 or more edges"
 msgstr "No se encontraron bucles que contuvieran 2 o más bordes"
+
+
+msgid "No vertices selected"
+msgstr "No hay vértices seleccionados"
 
 
 msgid "Not a valid selection for extrude"
@@ -142535,6 +143353,10 @@ msgid "No file handlers available"
 msgstr "Ningún manipulador de archivos disponible"
 
 
+msgid "Collection needs to be empty"
+msgstr "La colección debe estar vacía"
+
+
 msgid "Add Exporter"
 msgstr "Agrega un exportador"
 
@@ -142597,10 +143419,6 @@ msgstr "No es posible agregar objetos a la colección. %s"
 
 msgid "Cannot remove an object from the collection. %s"
 msgstr "No es posible eliminar un objeto de la colección. %s"
-
-
-msgid "Collection needs to be empty"
-msgstr "La colección debe estar vacía"
 
 
 msgid "Filepath needs to be set first"
@@ -142741,6 +143559,14 @@ msgstr "Mover a nueva colección"
 
 msgid "Link to New Collection"
 msgstr "Vincular a nueva colección"
+
+
+msgid "Move Inside"
+msgstr "Mover adentro"
+
+
+msgid "Link Inside"
+msgstr "Vincular adentro"
 
 
 msgid "Clear motion paths of selected objects"
@@ -145369,10 +146195,6 @@ msgid "Catalog is already placed inside this catalog"
 msgstr "El catálogo ya se encuentra ubicado dentro de este catálogo"
 
 
-msgid "Only assets from this current file can be moved between catalogs"
-msgstr "Sólo los recursos de este archivo actual pueden ser movidos entre catálogos"
-
-
 msgid "Catalogs cannot be edited in this asset library"
 msgstr "No es posible editar catálogos en esta biblioteca de recursos"
 
@@ -146615,6 +147437,10 @@ msgid "3D Float Vector"
 msgstr "Vector 3D decimal"
 
 
+msgid "4D Float Vector"
+msgstr "Vector 4D decimal"
+
+
 msgid "Float Color"
 msgstr "Color decimal"
 
@@ -146639,8 +147465,16 @@ msgid "Float Field"
 msgstr "Campo decimal"
 
 
+msgid "2D Float Vector Field"
+msgstr "Campo vectorial 2D decimal"
+
+
 msgid "3D Float Vector Field"
 msgstr "Campo vectorial 3D decimal"
+
+
+msgid "4D Float Vector Field"
+msgstr "Campo vectorial 4D decimal"
 
 
 msgid "Boolean Field"
@@ -146936,44 +147770,68 @@ msgid "Link all to object"
 msgstr "Vincular todo a objeto"
 
 
+msgid "Link before object"
+msgstr "Vincular antes de objeto"
+
+
 msgid "Link before collection"
-msgstr "Vincular antes de una colección"
+msgstr "Vincular antes de colección"
+
+
+msgid "Move before object"
+msgstr "Mover antes de objeto"
 
 
 msgid "Move before collection"
-msgstr "Mover antes de una colección"
+msgstr "Mover antes de colección"
+
+
+msgid "Link between objects"
+msgstr "Vincular en medio de objetos"
 
 
 msgid "Link between collections"
-msgstr "Vincular en medio de dos colecciones"
+msgstr "Vincular en medio de colecciones"
+
+
+msgid "Move between objects"
+msgstr "Mover en medio de objetos"
 
 
 msgid "Move between collections"
-msgstr "Mover en medio de dos colecciones"
+msgstr "Mover en medio de colecciones"
+
+
+msgid "Link after object"
+msgstr "Vincular después de objeto"
 
 
 msgid "Link after collection"
-msgstr "Vincular después de una colección"
+msgstr "Vincular después de colección"
+
+
+msgid "Move after object"
+msgstr "Mover después de objeto"
 
 
 msgid "Move after collection"
-msgstr "Mover después de una colección"
+msgstr "Mover después de colección"
 
 
 msgid "Link inside collection"
-msgstr "Vincular dentro de una colección"
+msgstr "Vincular dentro de colección"
 
 
 msgid "Move parent object inside collection"
-msgstr "Mover objeto superior adentro de una colección"
+msgstr "Mover objeto superior adentro de colección"
 
 
 msgid "Move inside collection (Ctrl to link, Shift to parent, Ctrl + Shift to move only parent)"
-msgstr "Mover dentro de una colección (Ctrl para vincular, Mayúsculas para subordinar), Ctrl + Mayús para mover sólo el superior)"
+msgstr "Mover dentro de colección (Ctrl para vincular, Mayús para subordinar), Ctrl + Mayús para mover sólo el superior)"
 
 
 msgid "Move inside collection (Ctrl to link)"
-msgstr "Mover dentro de una colección (Ctrl para vincular)"
+msgstr "Mover dentro de colección (Ctrl para vincular)"
 
 
 msgid "Cannot edit library linked or non-editable override object(s)"
@@ -146989,7 +147847,7 @@ msgid ""
 " • Shift to set children"
 msgstr ""
 "Ocultar temporalmente en las vistas\n"
-" • Mayúsculas para aplicar a subordinados"
+" • Mayús para aplicar a subordinados"
 
 
 msgid ""
@@ -146997,7 +147855,7 @@ msgid ""
 " • Shift to set children"
 msgstr ""
 "Deshabilitar selección en las vistas\n"
-" • Mayúsculas para aplicar a subordinados"
+" • Mayús para aplicar a subordinados"
 
 
 msgid ""
@@ -147005,7 +147863,7 @@ msgid ""
 " • Shift to set children"
 msgstr ""
 "Deshabilitar globalmente en las vistas\n"
-" • Mayúsculas para aplicar a subordinados"
+" • Mayús para aplicar a subordinados"
 
 
 msgid ""
@@ -147013,7 +147871,23 @@ msgid ""
 " • Shift to set children"
 msgstr ""
 "Deshabilitar globalmente en procesamiento\n"
-" • Mayúsculas para aplicar a subordinados"
+" • Mayús para aplicar a subordinados"
+
+
+msgid ""
+"Render object as holdout\n"
+" • Shift to set children"
+msgstr ""
+"Procesar objeto como hueco\n"
+" • Mayús para aplicar a subordinados"
+
+
+msgid ""
+"Object will contribute indirectly as shadows\n"
+" • Shift to set children"
+msgstr ""
+"El objeto contribuirá indirectamente proyectando sombras\n"
+" • Mayús para aplicar a subordinados"
 
 
 msgid ""
@@ -147021,7 +147895,7 @@ msgid ""
 " • Shift to set children"
 msgstr ""
 "Restringir la visibilidad en la Vista 3D\n"
-" • Mayúsculas para aplicar a subordinados"
+" • Mayús para aplicar a subordinados"
 
 
 msgid ""
@@ -147029,7 +147903,7 @@ msgid ""
 " • Shift to set children"
 msgstr ""
 "Restringir la selección en la Vista 3D\n"
-" • Mayúsculas para aplicar a subordinados"
+" • Mayús para aplicar a subordinados"
 
 
 msgid "Restrict visibility in the 3D View"
@@ -147047,7 +147921,7 @@ msgid ""
 msgstr ""
 "Ocultar temporalmente en las vistas\n"
 " • Ctrl para aislar la colección\n"
-" • Mayúsculas para hacerlo con el contenido de la colección y objetos"
+" • Mayús para hacerlo con el contenido de la colección y objetos"
 
 
 msgid ""
@@ -147057,7 +147931,7 @@ msgid ""
 msgstr ""
 "Enmascarar objetos de la colección fuera de esta capa de visualización\n"
 " • Ctrl para aislar la colección\n"
-" • Mayúsculas para hacerlo con el contenido de la colección"
+" • Mayús para hacerlo con el contenido de la colección"
 
 
 msgid ""
@@ -147067,7 +147941,7 @@ msgid ""
 msgstr ""
 "Los objetos de la colección sólo contribuirán de forma indirecta (por medio de sombras y reflexiones) a la capa de visualización\n"
 " • Ctrl para aislar la colección\n"
-" • Mayúsculas para hacerlo con el contenido de la colección"
+" • Mayús para hacerlo con el contenido de la colección"
 
 
 msgid ""
@@ -147077,7 +147951,7 @@ msgid ""
 msgstr ""
 "Deshabilitar globalmente en las vistas\n"
 " • Ctrl para aislar la colección\n"
-" • Mayúsculas para hacerlo con el contenido de la colección y objetos"
+" • Mayús para hacerlo con el contenido de la colección y objetos"
 
 
 msgid ""
@@ -147087,7 +147961,7 @@ msgid ""
 msgstr ""
 "Deshabilitar globalmente en procesamiento\n"
 " • Ctrl para aislar la colección\n"
-" • Mayúsculas para hacerlo con el contenido de la colección y objetos"
+" • Mayús para hacerlo con el contenido de la colección y objetos"
 
 
 msgid ""
@@ -147097,11 +147971,7 @@ msgid ""
 msgstr ""
 "Deshabilitar la selección en las vistas\n"
 " • Ctrl para aislar la colección\n"
-" • Mayúsculas para hacerlo con el contenido de la colección y objetos"
-
-
-msgid "Number of users"
-msgstr "Cantidad de usuarios"
+" • Mayús para hacerlo con el contenido de la colección y objetos"
 
 
 msgid "Item is protected from deletion"
@@ -147130,6 +148000,10 @@ msgid ""
 msgstr ""
 "El elemento no tiene usuarios y será eliminado.\n"
 "Hacer clic para proteger contra borrado"
+
+
+msgid "Number of users"
+msgstr "Cantidad de usuarios"
 
 
 msgid "Another object has this shared data in edit mode"
@@ -148231,10 +149105,6 @@ msgid "Remote Asset Library"
 msgstr "Biblioteca de recursos remota"
 
 
-msgid "Settings of project asset libraries can be edited in Project Setup."
-msgstr "Las opciones de bibliotecas de recursos del proyecto pueden ser editadas en la Configuración del proyecto."
-
-
 msgid "Add Asset Library"
 msgstr "Agregar biblioteca de recursos"
 
@@ -148441,6 +149311,10 @@ msgstr "Modo de nodos"
 
 msgid "U Scale"
 msgstr "Escala U"
+
+
+msgid "Size of the selection, editing scales it about the transform pivot point"
+msgstr "Tamaño de la selección, al editarla se escalará con respecto al pivote de transformación"
 
 
 msgid "Displays global values"
@@ -148960,22 +149834,6 @@ msgid "Scale X: %s   Y: %s  Z: %s%s %s"
 msgstr "Escalar X: %s   Y: %s  Z: %s%s %s"
 
 
-msgid "Time: +%s %s"
-msgstr "Tiempo: +%s %s"
-
-
-msgid "Time: %s %s"
-msgstr "Tiempo: %s %s"
-
-
-msgid "Time: +%.3f %s"
-msgstr "Tiempo: +%.3f %s"
-
-
-msgid "Time: %.3f %s"
-msgstr "Tiempo: %.3f %s"
-
-
 msgid "ScaleB: %s%s %s"
 msgstr "EscalarH: %s%s %s"
 
@@ -149022,10 +149880,6 @@ msgstr "Contraer / Expandir: %3f"
 
 msgid "'Rotate Normals' is only supported in mesh edit mode"
 msgstr "'Rotar normales' sólo se encuentra soportado en el modo Edición de mallas"
-
-
-msgid "Sequence Slide: %s%s"
-msgstr "Deslizar secuencia: %s%s"
 
 
 msgid "Snap Invert"
@@ -149446,7 +150300,7 @@ msgstr "Minimizar estiramiento. Fundido %.2f"
 
 
 msgid "Press + and -, or scroll wheel to set blending"
-msgstr "Presionar + y -, o la rueda del ratón para definir el fundido"
+msgstr "Pulsar + y -, o la rueda del ratón para definir el fundido"
 
 
 msgid "Lock Method"
@@ -149752,6 +150606,126 @@ msgstr "Importador de PLY: importación fallida, no hay vértices"
 
 msgid "PLY Importer: %s: %s"
 msgstr "Importador de PLY: %s: %s"
+
+
+msgid "PLY Importer: Spherical harmonics degree above the supported %d, spherical harmonics are not imported"
+msgstr "Importador de PLY: Grado de armónicos esféricos por encima de los %d soportados, los armónicos esféricos no serán importados"
+
+
+msgid "PLY Importer: Unexpected number of f_rest properties %d, spherical harmonics are not imported"
+msgstr "Importador de PLY: Cantidad inesperada de f_rest properties %d, no se importarán los armónicos esféricos"
+
+
+msgid "PLY Importer: Incomplete spherical harmonics band, importing %d of %d coefficients"
+msgstr "Importador de PLY: Banda incompleta de armónicos esféricos, se importarán %d de %d coeficientes"
+
+
+msgid "Unexpected SPZ header magic 0x{:X}"
+msgstr "Número mágico del encabezado de SPZ 0x{:X} inesperado"
+
+
+msgid "Unsupported SPZ version {}"
+msgstr "Versión de SPZ {} no soportada"
+
+
+msgid "Too many points"
+msgstr "Demasiados puntos"
+
+
+msgid "Unsupported SH degree {}"
+msgstr "Grado no soportado de AE {}"
+
+
+msgid "Unsupported number of position fractional bits {}"
+msgstr "Cantidad no soportada de bits fraccionarios de posición {}"
+
+
+msgid "TOC byte offset is less than the size of the header"
+msgstr "El desplazamiento de bytes de la tabla de contenidos es menor que el tamaño del encabezado"
+
+
+msgid "Unexpected number of Zstd streams"
+msgstr "Cantidad inesperada de flujos Zstd"
+
+
+msgid "SPZ Read: Big endian machines are not supported"
+msgstr "Lectura de SPZ: No se soportan equipos de tipo \"Big Endian\""
+
+
+msgid "SPZ Read: Error opening file for read"
+msgstr "Lectura de SPZ: Error al abrir archivo para lectura"
+
+
+msgid "SPZ Read: Error reading magic value from file"
+msgstr "Lectura de SPZ: Error al leer valor mágico desde archivo"
+
+
+msgid "SPZ Read: Unrecognized file format"
+msgstr "Lectura de SPZ: Formato de archivo no reconocido"
+
+
+msgid "SPZ Read: Error initializing Zlib decompression"
+msgstr "Lectura de SPZ: Error al inicializar descompresión Zlib"
+
+
+msgid "SPZ Read: Error reading header from GZip stream"
+msgstr "Lectura de SPZ: Error al leer encabezado desde flujo GZip"
+
+
+msgid "SPZ Read: %s"
+msgstr "Lectura de SPZ: %s"
+
+
+msgid "SPZ Read: Error initializing positions reader"
+msgstr "Lectura de SPZ: Error al inicializar lector de posiciones"
+
+
+msgid "SPZ Read: Error reading positions"
+msgstr "Lectura de SPZ: Error al leer posiciones"
+
+
+msgid "SPZ Read: Error initializing alphas reader"
+msgstr "Lectura de SPZ: Error al inicializar lector de alfas"
+
+
+msgid "SPZ Read: Error reading alphas"
+msgstr "Lectura de SPZ: Error al leer alfas"
+
+
+msgid "SPZ Read: Error initializing colors reader"
+msgstr "Lectura de SPZ: Error al inicializar lector de colores"
+
+
+msgid "SPZ Read: Error reading colors"
+msgstr "Lectura de SPZ: Error al leer colores"
+
+
+msgid "SPZ Read: Error initializing scales reader"
+msgstr "Lectura de SPZ: Error al inicializar lector de escalas"
+
+
+msgid "SPZ Read: Error reading scales"
+msgstr "Lectura de SPZ: Error al leer escalas"
+
+
+msgid "SPZ Read: Error initializing rotations reader"
+msgstr "Lectura de SPZ: Error al inicializar lector de rotaciones"
+
+
+msgid "SPZ Read: Error reading rotations"
+msgstr "Lectura de SPZ: Error al leer rotaciones"
+
+
+msgid "SPZ Read: Error initializing SH reader"
+msgstr "Lectura de SPZ: Error al inicializar lector de AE"
+
+
+msgid "SPZ Read: Error reading spherical harmonics"
+msgstr "Lectura de SPZ: Error al leer armónicos esféricos"
+
+
+msgid "SPZ Read: Error reading NGSP header"
+msgstr "Lectura de SPZ: Error al leer encabezado NGSP"
 
 
 msgid "STL Export: Cannot open file '%s'"
@@ -152093,11 +153067,11 @@ msgstr "No se está ejecutando con la opción '--enable-event-simulate' habilita
 
 
 msgid "Value: only 'PRESS/RELEASE/NOTHING' are supported"
-msgstr "Valor: sólo se soportan 'PRESIONAR/SOLTAR/NINGUNO'"
+msgstr "Valor: sólo se soportan 'PULSAR/SOLTAR/NINGUNO'"
 
 
 msgid "Value: must be 'PRESS/RELEASE' for keyboard/buttons"
-msgstr "Valor: debe ser 'PRESIONAR/SOLTAR' para teclas/botones"
+msgstr "Valor: debe ser 'PULSAR/SOLTAR' para teclas/botones"
 
 
 msgid "Value: must be 'NOTHING' for motion"
@@ -152105,7 +153079,7 @@ msgstr "Valor: debe ser 'NINGUNO' para movimientos"
 
 
 msgid "Value: must be 'PRESS' when unicode is set"
-msgstr "Valor: debe ser 'PRESIONAR' si Unicode está definido"
+msgstr "Valor: debe ser 'PULSAR' si Unicode está definido"
 
 
 msgid "Only a single character supported"
@@ -154997,14 +155971,6 @@ msgid "Bone \"{}\" not found"
 msgstr "Hueso \"{}\" no encontrado"
 
 
-msgid "Armature object to retrieve the bone information from"
-msgstr "Esqueleto de donde obtener la información del hueso"
-
-
-msgid "Name of the bone to retrieve"
-msgstr "Nombre del hueso del cual obtener información"
-
-
 msgid "Evaluated final transform of the bone in armature space"
 msgstr "Transformación evaluada final del hueso, en espacio del esqueleto"
 
@@ -155027,6 +155993,14 @@ msgstr "Longitud original del hueso"
 
 msgid "Whether the bone exists in the armature"
 msgstr "Si el hueso existe en el esqueleto"
+
+
+msgid "Armature object to retrieve the bone information from"
+msgstr "Esqueleto de donde obtener la información del hueso"
+
+
+msgid "Name of the bone to retrieve"
+msgstr "Nombre del hueso del cual obtener información"
 
 
 msgid "Input {} was not manifold"
@@ -155911,8 +156885,24 @@ msgid "Index of the face group inside each boundary edge region"
 msgstr "Identificador del grupo de caras dentro de cada región de bordes limítrofes"
 
 
+msgid "This node should be linked to the group output node, optionally through switch nodes."
+msgstr "El nodo debería estar conectado al nodo Salidas de grupo, opcionalmente mediante nodos Intercambiar."
+
+
 msgid "Invalid Output Link"
 msgstr "Conexión de salida inválida"
+
+
+msgid "Stack limit reached. Closure becomes pass-through."
+msgstr "Se alcanzó el límite de la pila. La clausura simplemente dejará pasar los datos."
+
+
+msgid "Conversion not supported when evaluating closure"
+msgstr "Conversión no soportada al evaluar la clausura"
+
+
+msgid "Implicit type conversion when evaluating closure"
+msgstr "Tipo de conversión implícita al evaluar la clausura"
 
 
 msgid "Offset Scale"
@@ -156357,8 +157347,96 @@ msgid "Replace inactive tiles with inactive nodes. Faster than tolerance-based p
 msgstr "Reemplaza las celdas inactivas con nodos inactivos. Más rápido que el trozado basado en tolerancia, útil en casos como el de cuadrículas SDF de banda angosta en donde únicamente existan valores de fondo interiores o exteriores."
 
 
+msgid "Max Iterations"
+msgstr "Iteraciones máximas"
+
+
 msgid "Error Threshold"
 msgstr "Umbral de error"
+
+
+msgid "Threshold Mode"
+msgstr "Modo del umbral"
+
+
+msgid "Boundary Value"
+msgstr "Valor límite"
+
+
+msgid "Boundary Gradient"
+msgstr "Gradiente límite"
+
+
+msgid "Boundary Factor"
+msgstr "Factor límite"
+
+
+msgid "Solution"
+msgstr "Solución"
+
+
+msgid "Absolute Error"
+msgstr "Error absoluto"
+
+
+msgid "Relative Error"
+msgstr "Error relativo"
+
+
+msgid "Debug Boundary Value"
+msgstr "Valor límite de depuración"
+
+
+msgid "Debug Boundary Gradient"
+msgstr "Gradiente límite de depuración"
+
+
+msgid "Debug Boundary Factor"
+msgstr "Factor límite de depuración"
+
+
+msgid "Solution to the Poisson equation"
+msgstr "Solución de la ecuación de Poisson"
+
+
+msgid "If the solver converged successfully"
+msgstr "Indica si el método de resolución convergió exitosamente"
+
+
+msgid "Number of iterations performed"
+msgstr "Cantidad de iteraciones realizadas"
+
+
+msgid "Final absolute error of the solution"
+msgstr "Error absoluto final de la solución"
+
+
+msgid "Final relative error of the solution"
+msgstr "Error relativo final de la solución"
+
+
+msgid "Right-hand side of the Poisson equation"
+msgstr "Mano derecha de la ecuación de Poisson"
+
+
+msgid "Maximum number of solver iterations"
+msgstr "Cantidad máxima de iteraciones del método de resolución"
+
+
+msgid "Error threshold below which a solution is considered valid"
+msgstr "Umbral de error, por debajo del cual se considerará válida a una solución"
+
+
+msgid "Mode that defines how the error threshold is interpreted"
+msgstr "Modo de que determina cómo se interpretará el umbral de error"
+
+
+msgid "Boundary conditions for the solution between active and inactive voxels"
+msgstr "Condiciones limítrofes para la solución entre los vóxeles activos e inactivos"
+
+
+msgid "Mix factor between boundary conditions (0=value, 1=gradient)"
+msgstr "Factor de mezcla entre las condiciones limítrofes (0=valor, 1=gradiente)"
 
 
 msgid "Values larger than the threshold are inside the generated mesh"
@@ -156467,6 +157545,14 @@ msgstr "Deshabilitado, Blender fue compilado sin soporte para entrada/salida de 
 
 msgid "Path to a PLY file"
 msgstr "Ruta hacia un archivo PLY"
+
+
+msgid "Disabled, Blender was compiled without SPZ I/O"
+msgstr "Deshabilitado, Blender fue compilado sin soporte para entrada/salida de SPZ"
+
+
+msgid "Path to a SPZ file"
+msgstr "Ruta hacia un archivo SPZ"
 
 
 msgid "Disabled, Blender was compiled without STL I/O"
@@ -156730,6 +157816,11 @@ msgstr "Cantidad de vóxeles en la dirección Y de la celda, o 1 cuando el campo
 
 msgid "Number of voxels in the Z direction of the tile, or 1 if the field is evaluated on a voxel"
 msgstr "Cantidad de vóxeles en la dirección Z de la celda, o 1 cuando el campo sea evaluado en un vóxel"
+
+
+msgctxt "Volume"
+msgid "Tile"
+msgstr "Celda"
 
 
 msgid "Realized geometry is not used when pick instances is true"
@@ -158048,6 +159139,10 @@ msgid "Points to set the radius of"
 msgstr "Puntos a los cuales definir su radio"
 
 
+msgid "Point cloud to change the type of"
+msgstr "Nube de puntos a la cual cambiar su tipo"
+
+
 msgid "Points to modify the positions of"
 msgstr "Puntos a los cuales modificar su posición"
 
@@ -158676,18 +159771,6 @@ msgid "No named attributes used"
 msgstr "Ningún atributo con nombre usado"
 
 
-msgid "Stack limit reached. Closure becomes pass-through."
-msgstr "Se alcanzó el límite de la pila. La clausura simplemente dejará pasar los datos."
-
-
-msgid "Conversion not supported when evaluating closure"
-msgstr "Conversión no soportada al evaluar la clausura"
-
-
-msgid "Implicit type conversion when evaluating closure"
-msgstr "Tipo de conversión implícita al evaluar la clausura"
-
-
 msgid "Closure does not have input: \"{}\""
 msgstr "La clausura no tiene una entrada: \"{}\""
 
@@ -158702,10 +159785,6 @@ msgstr "La geometría de entrada no contiene elementos en el dominio de iteraci�
 
 msgid "\"{}\" from {}"
 msgstr "\"{}\" de {}"
-
-
-msgid "Stack limit reached. Group node is ignored."
-msgstr "Se alcanzó el límite de la pila. El grupo de nodos será ignorado."
 
 
 msgid "Group '{}' ({})"
@@ -158819,6 +159898,14 @@ msgstr "El identificador debe ser un valor constante para este tipo de datos"
 
 msgid "Switch must be a constant value for this data type"
 msgstr "El interruptor debe ser un valor constante para este tipo de datos"
+
+
+msgid "Warnings only work when inputs are constant values"
+msgstr "Las advertencias sólo funcionan cuando las entradas son valores constantes"
+
+
+msgid "Enable input must be a constant value for this data type"
+msgstr "La entrada habilitada debe ser un valor constante para este tipo de datos"
 
 
 msgid "Node requires constant input values"
@@ -160456,12 +161543,20 @@ msgid "Allow Execution"
 msgstr "Permitir ejecución"
 
 
+msgid "Continue Safely"
+msgstr "Continuar de forma segura"
+
+
 msgid "Save As..."
 msgstr "Guardar como..."
 
 
 msgid "Don't Save"
 msgstr "No guardar"
+
+
+msgid "File Not Found"
+msgstr "Archivo no encontrado"
 
 
 msgid "Modified"
@@ -160474,6 +161569,10 @@ msgstr "Guarda el archivo actual en la ubicación deseada, pero no lo convierte 
 
 msgid "Reload file with execution of Python scripts enabled"
 msgstr "Recargar el archivo con la ejecución de scripts Python habilitada"
+
+
+msgid "Run potentially unsafe scripts in this blend file"
+msgstr "Ejecutar scripts potencialmente inseguros en este archivo .blend"
 
 
 msgid "Continue using file without Python scripts"
@@ -160494,6 +161593,10 @@ msgstr "Guardar {} imágenes modificadas"
 
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
 msgstr "Por razones de seguridad, la ejecución automática de scripts Python en este archivo ha sido deshabilitada:"
+
+
+msgid "This may lead to unexpected behavior. Allow at your own risk."
+msgstr "Esto podría derivar en un comportamiento inesperado. Permitir a riesgo propio."
 
 
 msgid "Unable to Load File"
@@ -160518,6 +161621,10 @@ msgstr "Este archivo es administrado por el sistema de recursos de Blender. Sól
 
 msgid "saved as a new, regular file."
 msgstr "guardado como un archivo nuevo, regular."
+
+
+msgid "OpenColorIO configuration failed to load."
+msgstr "Error al cargar la configuración de OpenColorIO."
 
 
 msgid "Displays, views or color spaces in this file were missing and have been changed."
@@ -161382,6 +162489,22 @@ msgstr "HDV NTSC 1080p"
 
 msgid "HDV PAL 1080p"
 msgstr "HDV PAL 1080p"
+
+
+msgid "SQUARED 2K"
+msgstr "2K cuadrado"
+
+
+msgid "SQUARED 3K"
+msgstr "3K cuadrado"
+
+
+msgid "SQUARED 4K"
+msgstr "4K cuadrado"
+
+
+msgid "SQUARED 8K"
+msgstr "8K cuadrado"
 
 
 msgid "TV NTSC 16:9"

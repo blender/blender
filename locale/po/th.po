@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
+"POT-Creation-Date: 2026-10-12 07:32+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -4893,104 +4893,104 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
-
-
-msgid "Snap"
-msgstr "ยึดติด"
-
-
-msgid "Pivot Point"
-msgstr "จุดหมุน"
-
-
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
-
-
 msgid "Light"
 msgstr "แสง"
 
 
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
-msgid "Merge"
-msgstr "ผสาน"
-
-
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "เมตาบอล"
 
 
 msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
 msgid "Align View to Active"
 msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "Keying"
-msgstr "คีย์"
 
 
 msgid "Align View"
 msgstr "จัดมุมมอง"
 
 
+msgid "Math"
+msgstr "คณิตศาสตร์"
+
+
 msgid "Navigation"
 msgstr "การนำทาง"
-
-
-msgid "Import"
-msgstr "นำเข้า"
 
 
 msgid "Viewpoint"
 msgstr "จุดของมุมมอง"
 
 
-msgid "Track"
-msgstr "แทร็ค"
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
 
 
 msgid "Face Data"
 msgstr "ข้อมูลด้าน"
 
 
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
+msgid "Import"
+msgstr "นำเข้า"
 
 
 msgid "Layout"
 msgstr "เค้าโครง"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Keying"
+msgstr "คีย์"
+
+
+msgid "Snap"
+msgstr "ยึดติด"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
+
+
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
+
+
+msgid "Pivot Point"
+msgstr "จุดหมุน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
 
 
 msgid "Zoom"

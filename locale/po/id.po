@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
-"PO-Revision-Date: 2026-06-02 05:12+0000\n"
-"Last-Translator: Fadli Birdie Zeinda <justbirdie00@gmail.com>\n"
+"POT-Creation-Date: 2026-10-12 07:32+0000\n"
+"PO-Revision-Date: 2026-10-11 15:12+0000\n"
+"Last-Translator: Karunia Sentosa <hiungsin789@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
-"X-Generator: Weblate 5.16.2\n"
+"X-Generator: Weblate 2026.6.1\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Bookmarks: -1,-1,-1,-1,-1,-1,-1,-1,-1,4"
 
@@ -1327,7 +1327,7 @@ msgstr "Lapisan Anotasi"
 
 
 msgid "Collection of related sketches"
-msgstr "Koleksi yang berkaitan dengan sketsa"
+msgstr "Kumpulan sketsa terkait"
 
 
 msgid "Active Frame"
@@ -1395,15 +1395,15 @@ msgstr "Opasitas Lapisan Anotasi"
 
 
 msgid "Color for all strokes in this layer"
-msgstr "Warna untuk semua sapuan di lapisan ini"
+msgstr "Warna untuk semua garis/coretan di lapisan ini"
 
 
 msgid "Frames"
-msgstr "Frame"
+msgstr "Bingkai"
 
 
 msgid "Sketches for this layer on different frames"
-msgstr "Sketsa untuk layer ini pada berbagai frame"
+msgstr "Sketsa untuk layer ini pada berbagai bingkai"
 
 
 msgid "Info"
@@ -1427,11 +1427,11 @@ msgstr "Terkunci"
 
 
 msgid "Protect layer from further editing and/or frame changes"
-msgstr "Melindungi layer dari pengeditan lebih lanjut dan/atau perubahan frame"
+msgstr "Melindungi layer dari pengeditan lebih lanjut dan/atau perubahan bingkai"
 
 
 msgid "Frame Locked"
-msgstr "Frame Terkunci"
+msgstr "Bingkai Terkunci"
 
 
 msgid "Lock current frame displayed by layer"
@@ -1439,7 +1439,7 @@ msgstr "Kunci bingkai sekarang yang ditampilkan oleh lapisan"
 
 
 msgid "Layer is selected for editing in the Dope Sheet"
-msgstr "Lapusan ini diseleksi untuk mengeditan di Lembar Dope"
+msgstr "Lapisan dipilih untuk disunting pada Dope Sheet"
 
 
 msgid "In Front"
@@ -1447,7 +1447,7 @@ msgstr "Di Depan"
 
 
 msgid "Make the layer display in front of objects"
-msgstr "Membuat lapisan ditampilkan di depan benda-benda"
+msgstr "Buat lapisan ditampilkan di depan objek"
 
 
 msgid "Thickness"
@@ -1494,8 +1494,40 @@ msgid "Annotation Stroke"
 msgstr "Anotasi Guratan"
 
 
+msgid "Freehand curve defining part of a sketch"
+msgstr "Kurva Freehand menentukan bagian dari sketsa"
+
+
 msgid "Display Mode"
 msgstr "Mode Layar"
+
+
+msgid "Coordinate space that stroke is in"
+msgstr "Ruang koordinat tempat coretan berada"
+
+
+msgid "3D Space"
+msgstr "Ruang 3D"
+
+
+msgid "Stroke is in 3D space"
+msgstr "Coretan berada di Ruang 3D"
+
+
+msgid "2D Space"
+msgstr "Ruang 2D"
+
+
+msgid "Stroke is in 2D space, locked to the camera view"
+msgstr "Coretan berada di Ruang 2D, terkunci pada tampilan kamera"
+
+
+msgid "2D Image"
+msgstr "Gambar 2D"
+
+
+msgid "Stroke is in 2D image/UV space"
+msgstr "Coretan berada di Gambar 2D/Ruang UV"
 
 
 msgid "Stroke Points"
@@ -1512,6 +1544,22 @@ msgstr "Anotasi Titik Guratan"
 
 msgid "Coordinates"
 msgstr "Koordinat"
+
+
+msgid "Annotation Stroke Points"
+msgstr "Anotasi Titik Coretan"
+
+
+msgid "Collection of annotation stroke points"
+msgstr "Kumpulan titik anotasi coretan"
+
+
+msgid "Annotation Strokes"
+msgstr "Anotasi Coretan"
+
+
+msgid "Collection of annotation strokes"
+msgstr "Koleksi anotasi coretan"
 
 
 msgid "Any Type"
@@ -1596,6 +1644,10 @@ msgstr "Editor untuk bayangan berbasis node dan mengomposisi alat"
 
 msgid "Video Sequencer"
 msgstr "Pengurutan Video"
+
+
+msgid "Non-linear editor for arranging and mixing scenes, video, audio, and effects"
+msgstr "Editor non-linear untuk menyusun dan mencampur adegan, video, audio, dan efek"
 
 
 msgid "Movie Clip Editor"
@@ -1706,6 +1758,10 @@ msgid "Edit persistent configuration settings"
 msgstr "Edit pengaturan konfigurasi yang persisten"
 
 
+msgid "Manage the current Blender project"
+msgstr "Kelola proyek blender saat ini"
+
+
 msgid "Width"
 msgstr "Lebar"
 
@@ -1790,8 +1846,20 @@ msgid "Asset Library"
 msgstr "Perpustakaan Aset"
 
 
+msgid "Container for asset catalogs and assets"
+msgstr "Wadah untuk katalog aset dan aset"
+
+
 msgid "Is Editable"
 msgstr "Dapat Mengedit"
+
+
+msgid "Assets and catalogs in this library can be edited from the current Blender instance"
+msgstr "Aset dan katalog di pustaka ini dapat disunting dari instansi Blender yang sedang berjalan"
+
+
+msgid "Library Type"
+msgstr "Tipe Pustaka"
 
 
 msgid "All Libraries"
@@ -13108,6 +13176,10 @@ msgid "Vertices"
 msgstr "Titik"
 
 
+msgid "Vertices of the mesh"
+msgstr "Titik-titik simpul jaring"
+
+
 msgid "Render Size"
 msgstr "Ukurang"
 
@@ -15664,48 +15736,80 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Utilities"
-msgstr "Utilitas"
+msgid "Light"
+msgstr "Cahaya"
 
 
 msgid "Metaball"
 msgstr "Metabola"
 
 
-msgid "Snap"
-msgstr "Jepret"
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "Utilities"
+msgstr "Utilitas"
+
+
+msgid "Import"
+msgstr "Impor"
 
 
 msgid "Sample"
 msgstr "Sampel"
 
 
-msgid "Light Probe"
-msgstr "Probe Cahaya"
+msgid "Asset"
+msgstr "Aset"
 
 
-msgid "Light"
-msgstr "Cahaya"
+msgid "Layout"
+msgstr "Tata Letak"
 
 
-msgid "Mirror"
-msgstr "Cermin"
+msgid "Linked"
+msgstr "Terkoleksi"
+
+
+msgid "Instances"
+msgstr "Contoh-contoh"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
 
 
 msgid "Apply"
 msgstr "Tetapkan"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
-msgid "Tracking"
-msgstr "Pelacakan"
-
-
 msgid "Names"
 msgstr "Nama"
+
+
+msgid "Light Probe"
+msgstr "Probe Cahaya"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Mirror"
+msgstr "Cermin"
 
 
 msgid "Assign Material"
@@ -15716,34 +15820,6 @@ msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
 
-msgid "Hooks"
-msgstr "Kait"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "Import"
-msgstr "Impor"
-
-
-msgid "Linked"
-msgstr "Terkoleksi"
-
-
 msgid "Track"
 msgstr "Lacak"
 
@@ -15752,16 +15828,12 @@ msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
-msgid "Instances"
-msgstr "Contoh-contoh"
+msgid "Tracking"
+msgstr "Pelacakan"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Layout"
-msgstr "Tata Letak"
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
 msgid "Animals"
@@ -19981,6 +20053,10 @@ msgstr "Ekspor Semua"
 msgctxt "Operator"
 msgid "Export"
 msgstr "Ekspor"
+
+
+msgid "Filepath"
+msgstr "Jalurdokumen"
 
 
 msgctxt "Operator"
@@ -24219,10 +24295,6 @@ msgid "Line number to jump to"
 msgstr "Angka garis melompat ke"
 
 
-msgid "Filepath"
-msgstr "Jalurdokumen"
-
-
 msgctxt "Operator"
 msgid "Line Number"
 msgstr "Angka Garis"
@@ -24480,6 +24552,10 @@ msgstr "Pilih Semua"
 msgctxt "Operator"
 msgid "Reload Translation"
 msgstr "Orientasi Transformasi"
+
+
+msgid "Delete selected list item"
+msgstr "Hapus file yang terseleksi"
 
 
 msgid "Aligns selected UV vertices on a line"
@@ -27380,6 +27456,10 @@ msgid "Second input for the effect strip"
 msgstr "Input kedua untuk strip efek"
 
 
+msgid "Animation End Offset"
+msgstr "Offset Animasi Akhir"
+
+
 msgid "Sequence strip creating a gaussian blur"
 msgstr "Strip pengurut membuat buram gaussian"
 
@@ -28372,6 +28452,10 @@ msgid " (Unoptimized Performance)"
 msgstr " (Perfoma Kurang Optimal)"
 
 
+msgid " (Disabled)"
+msgstr " (Dinonaktifkan)"
+
+
 msgid "and AMD Adrenalin driver %s or newer"
 msgstr "dan driver Adrenalin AMD %s atau lebih baru"
 
@@ -28499,6 +28583,14 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
+msgid "Feature Sets:"
+msgstr "Kumpulan Fitur:"
+
+
+msgid "Error:"
+msgstr "Error:"
+
+
 msgid "Author:"
 msgstr "Pembuat:"
 
@@ -28522,6 +28614,26 @@ msgstr " (tidak terpasang)"
 
 msgid "File:"
 msgstr "Berkas:"
+
+
+msgid "Status:"
+msgstr "Status:"
+
+
+msgid "Use Scale:"
+msgstr "Gunakan Skala:"
+
+
+msgid "Sharpen:"
+msgstr "Pertajam:"
+
+
+msgid "Falloff:"
+msgstr "Jatuh:"
+
+
+msgid "Overwrite Existing:"
+msgstr "Mengubah file yang sudah ada:"
 
 
 msgid "Incorrect armature..."
@@ -28617,6 +28729,10 @@ msgid "No selected bones to copy to"
 msgstr "Tidak ada tulang terseleksi untuk disalin"
 
 
+msgid "(Viewer)"
+msgstr "(Penampil)"
+
+
 msgid "Could not make new image"
 msgstr "Tidak dapat membuat gambar baru"
 
@@ -28659,6 +28775,10 @@ msgstr "Gagal membuat jalur preset"
 
 msgid "Unable to remove default presets"
 msgstr "Tidak dapat menghapus preset default"
+
+
+msgid "Failed to execute the preset: {:s}"
+msgstr "Gagal mengeksekusi preset: {:s}"
 
 
 msgid "No other objects selected"
@@ -31279,6 +31399,10 @@ msgid "%d curve(s) could not be separated"
 msgstr "%d kurva(-kurva) tidak dapat dipisahkan"
 
 
+msgid "%d curves could not make segments"
+msgstr "%d kurva tidak dapat dibagi menjadi segmen"
+
+
 msgctxt "Curve"
 msgid "Surface"
 msgstr "Permukaan"
@@ -31322,6 +31446,10 @@ msgstr "Layer aktif terkunci atau tersembunyi"
 
 msgid "Active Material is locked or hidden"
 msgstr "Bahan Aktif terkunci atau tersembunyi"
+
+
+msgid "Current: "
+msgstr "Setelah Ini: "
 
 
 msgid "%s: %s"
@@ -31442,12 +31570,25 @@ msgid "Alpha:"
 msgstr "Alpha:"
 
 
+msgid "Color Space: "
+msgstr "Ruang Warna: "
+
+
+msgctxt "Color"
+msgid "Lightness"
+msgstr "Kebercahayaan"
+
+
 msgid "OK"
 msgstr "OK"
 
 
 msgid "Value: {}"
 msgstr "Nilai: {}"
+
+
+msgid "Frames: {}"
+msgstr "Bingkai: {}"
 
 
 msgid "File not found"
@@ -31638,10 +31779,6 @@ msgstr "Baru"
 msgctxt "World"
 msgid "New"
 msgstr "Baru"
-
-
-msgid "File Not Found"
-msgstr "Berkas Tidak Ditemukan"
 
 
 msgid "Anim Player"
@@ -32108,6 +32245,10 @@ msgid "Scene has no camera"
 msgstr "Hapus"
 
 
+msgid "Clear Texture Cache?"
+msgstr "Hapus Cache Tekstur?"
+
+
 msgid "Blender Render"
 msgstr "Render Blender"
 
@@ -32244,6 +32385,10 @@ msgid "No active track to join to"
 msgstr "Tidak ada jejak aktif untuk bergabung dengan"
 
 
+msgid "Create new directory?"
+msgstr "Buat direktori baru?"
+
+
 msgid "Delete selected files?"
 msgstr "Hapus file yang terseleksi?"
 
@@ -32344,6 +32489,14 @@ msgid " Named Attributes"
 msgstr " Atribut Bernama"
 
 
+msgid " (Self Object)"
+msgstr " (Objek Sama)"
+
+
+msgid " (Scene Frame)"
+msgstr " (Frame Adegan)"
+
+
 msgid "3D Float Vector"
 msgstr "Vektor Float 3D"
 
@@ -32360,6 +32513,30 @@ msgid "no gizmos"
 msgstr "tidak ada gizmo-gizmo"
 
 
+msgid "Inputs:"
+msgstr "Masukan:"
+
+
+msgid "Outputs:"
+msgstr "Hasil:"
+
+
+msgid "Transformation:"
+msgstr "Transformasi:"
+
+
+msgid "Sampling:"
+msgstr "Gerakan:"
+
+
+msgid "Bundle Types:"
+msgstr "Jenis Paket:"
+
+
+msgid "Bundle Type:"
+msgstr "Jenis Paket:"
+
+
 msgid "Operation requires an active keying set"
 msgstr "Tekstur"
 
@@ -32370,6 +32547,10 @@ msgstr "Penyunting Logika"
 
 msgid "Mask not found"
 msgstr "Gambar Latar"
+
+
+msgid "No active strip in context"
+msgstr "Tidak ada jendela aktif dalam konteks"
 
 
 msgid "Columns:"
@@ -32952,6 +33133,24 @@ msgid "Bokeh"
 msgstr "Bokeh"
 
 
+msgid "YUV Key Channel"
+msgstr "Saluran Kunci YUV"
+
+
+msgid "YCbCr Key Channel"
+msgstr "Saluran Kunci YCbCr"
+
+
+msgctxt "Color"
+msgid "RGB Key Channel"
+msgstr "Saluran Kunci RGB"
+
+
+msgctxt "Color"
+msgid "HSV Key Channel"
+msgstr "Saluran Kunci HSV"
+
+
 msgid "Correction for shadows"
 msgstr "Koreksi untuk bayangan"
 
@@ -32970,6 +33169,11 @@ msgstr "Mulai Nada Tengah"
 
 msgid "Midtones End"
 msgstr "Berakhir Nada Tengah"
+
+
+msgctxt "Color"
+msgid "Spill Channel"
+msgstr "Saluran Despill"
 
 
 msgid "Node Unsupported"
@@ -33034,6 +33238,11 @@ msgstr "Bingkai Absolut"
 
 msgid "Instance Count"
 msgstr "Hitungan Contoh"
+
+
+msgctxt "NodeTree"
+msgid "Median"
+msgstr "Median"
 
 
 msgid "{} ({} on disk)"
@@ -33511,6 +33720,10 @@ msgstr "Memperbolehkan Eksekusi"
 
 msgid "Don't Save"
 msgstr "Jangan Disimpan"
+
+
+msgid "File Not Found"
+msgstr "Berkas Tidak Ditemukan"
 
 
 msgid "unable to open the file"
