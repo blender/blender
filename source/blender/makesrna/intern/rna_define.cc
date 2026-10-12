@@ -423,26 +423,40 @@ static RnaDnaTypeInfo rna_dnatype_primitive_info(const StringRef dnatype)
 
 #endif /* !RNA_RUNTIME */
 
+/**
+ * List is from:
+ * \code{.py}
+ * ", ".join([
+ *     '"%s"' % kw for kw in __import__("keyword").kwlist
+ *     if kw not in {"False", "None", "True"}
+ * ])
+ * \endcode
+ *
+ * See also: http://docs.python.org/py3k/reference/lexical_analysis.html#keywords.
+ */
+constexpr const char *PYTHON_KEYWORDS[] = {
+    /* "False", "None", "True", */
+    "and",    "as",   "assert", "async",  "await",    "break", "class", "continue", "def",
+    "del",    "elif", "else",   "except", "finally",  "for",   "from",  "global",   "if",
+    "import", "in",   "is",     "lambda", "nonlocal", "not",   "or",    "pass",     "raise",
+    "return", "try",  "while",  "with",   "yield",    nullptr,
+};
+
+/**
+ * Not keywords, but reserved all the same because they are standard python property/accessor
+ * names.
+ */
+constexpr const char *PYTHON_KEYWORDS_PROPERTIES[] = {
+    "keys",
+    "values",
+    "items",
+    "get",
+    nullptr,
+};
+
 bool RNA_validate_identifier(const char *identifier, bool is_property, const char **r_error)
 {
   int a = 0;
-
-  /**
-   * List is from:
-   * \code{.py}
-   * ", ".join([
-   *     '"%s"' % kw for kw in __import__("keyword").kwlist
-   *     if kw not in {"False", "None", "True"}
-   * ])
-   * \endcode
-   */
-  static const char *kwlist[] = {
-      /* "False", "None", "True", */
-      "and",    "as",   "assert", "async",  "await",    "break", "class", "continue", "def",
-      "del",    "elif", "else",   "except", "finally",  "for",   "from",  "global",   "if",
-      "import", "in",   "is",     "lambda", "nonlocal", "not",   "or",    "pass",     "raise",
-      "return", "try",  "while",  "with",   "yield",    nullptr,
-  };
 
   if (!isalpha(identifier[0]) && identifier[0] != '_') {
     if (r_error) {
@@ -482,8 +496,8 @@ bool RNA_validate_identifier(const char *identifier, bool is_property, const cha
     }
   }
 
-  for (a = 0; kwlist[a]; a++) {
-    if (STREQ(identifier, kwlist[a])) {
+  for (a = 0; PYTHON_KEYWORDS[a]; a++) {
+    if (STREQ(identifier, PYTHON_KEYWORDS[a])) {
       if (r_error) {
         *r_error = "this keyword is reserved by Python";
       }
@@ -492,17 +506,8 @@ bool RNA_validate_identifier(const char *identifier, bool is_property, const cha
   }
 
   if (is_property) {
-    static const char *kwlist_prop[] = {
-        /* not keywords but reserved all the same because py uses */
-        "keys",
-        "values",
-        "items",
-        "get",
-        nullptr,
-    };
-
-    for (a = 0; kwlist_prop[a]; a++) {
-      if (STREQ(identifier, kwlist_prop[a])) {
+    for (a = 0; PYTHON_KEYWORDS_PROPERTIES[a]; a++) {
+      if (STREQ(identifier, PYTHON_KEYWORDS_PROPERTIES[a])) {
         if (r_error) {
           *r_error = "this keyword is reserved by Python";
         }
@@ -517,15 +522,6 @@ bool RNA_validate_identifier(const char *identifier, bool is_property, const cha
 void RNA_identifier_sanitize(char *identifier, bool is_property)
 {
   int a = 0;
-
-  /* List from: http://docs.python.org/py3k/reference/lexical_analysis.html#keywords */
-  static const char *kwlist[] = {
-      /* "False", "None", "True", */
-      "and",    "as",     "assert", "break",   "class",    "continue", "def",    "del",
-      "elif",   "else",   "except", "finally", "for",      "from",     "global", "if",
-      "import", "in",     "is",     "lambda",  "nonlocal", "not",      "or",     "pass",
-      "raise",  "return", "try",    "while",   "with",     "yield",    nullptr,
-  };
 
   if (!isalpha(identifier[0]) && identifier[0] != '_') {
     /* first character failed isalpha() check */
@@ -557,31 +553,20 @@ void RNA_identifier_sanitize(char *identifier, bool is_property)
     }
   }
 
-  for (a = 0; kwlist[a]; a++) {
-    if (STREQ(identifier, kwlist[a])) {
-      /* this keyword is reserved by python.
-       * just replace the last character by '_' to keep it readable.
-       */
+  for (a = 0; PYTHON_KEYWORDS[a]; a++) {
+    if (STREQ(identifier, PYTHON_KEYWORDS[a])) {
+      /* This keyword is reserved by python.
+       * Just replace the last character by '_' to keep it readable. */
       identifier[strlen(identifier) - 1] = '_';
       break;
     }
   }
 
   if (is_property) {
-    static const char *kwlist_prop[] = {
-        /* not keywords but reserved all the same because py uses */
-        "keys",
-        "values",
-        "items",
-        "get",
-        nullptr,
-    };
-
-    for (a = 0; kwlist_prop[a]; a++) {
-      if (STREQ(identifier, kwlist_prop[a])) {
-        /* this keyword is reserved by python.
-         * just replace the last character by '_' to keep it readable.
-         */
+    for (a = 0; PYTHON_KEYWORDS_PROPERTIES[a]; a++) {
+      if (STREQ(identifier, PYTHON_KEYWORDS_PROPERTIES[a])) {
+        /* This keyword is reserved by python.
+         * Just replace the last character by '_' to keep it readable. */
         identifier[strlen(identifier) - 1] = '_';
         break;
       }
