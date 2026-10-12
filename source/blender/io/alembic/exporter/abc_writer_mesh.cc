@@ -146,13 +146,15 @@ void ABCGenericMeshWriter::create_alembic_objects(const HierarchyContext *contex
   if (context->object->data->id_type() == ID_ME) {
     Mesh *mesh = id_cast<Mesh *>(context->object->data);
     if (mesh->active_color_attribute && mesh->default_color_attribute) {
+      /* We need to the get the valid versions of the names as the attributes are exported with
+       * validated names. */
       OStringProperty active_color_attribute(abc_custom_data_container_,
                                              ABC_ACTIVE_COLOR_ATTRIBUTE_PROPNAME);
-      active_color_attribute.set(mesh->active_color_attribute);
+      active_color_attribute.set(get_valid_abc_name(mesh->active_color_attribute));
 
       OStringProperty default_color_attribute(abc_custom_data_container_,
                                               ABC_DEFAULT_COLOR_ATTRIBUTE_PROPNAME);
-      default_color_attribute.set(mesh->default_color_attribute);
+      default_color_attribute.set(get_valid_abc_name(mesh->default_color_attribute));
     }
   }
 }
