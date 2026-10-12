@@ -30,7 +30,7 @@
 
 namespace blender {
 
-static CLG_LogRef LOG = {"project.config"};
+static CLG_LogRef LOG = {"project"};
 
 namespace bke {
 constexpr toml::spec toml_version = toml::spec::v(1, 0, 0);
@@ -502,7 +502,7 @@ bool BKE_blender_project_init_from_root_path(Main *bmain, std::string project_ro
     BKE_blender_project_clear();
     return false;
   }
-  CLOG_INFO_NOCHECK(&LOG, "Opened project with root path: %s", project_root_path.c_str());
+  CLOG_INFO_NOCHECK(&LOG, "Open project: \"%s\"", project_root_path.c_str());
   return true;
 }
 
