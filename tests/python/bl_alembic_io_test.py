@@ -270,6 +270,36 @@ class VertexColourImportExportTest(AbstractAlembicTest):
         self.assertEqual(mesh.color_attributes.active_color_name, 'Active')
         self.assertEqual(mesh.color_attributes.default_color_name, 'Default')
 
+    def test_export_import_invalid_name(self):
+        """Test export and import of the default and active color attribute with invalid names"""
+
+        abc_path = str(self.tempdir / "vertex-colours-default-active.abc")
+
+        # Export
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "vertex-colours-default-active.blend"))
+
+        ob = bpy.context.active_object
+        mesh = ob.data
+        mesh.color_attributes['Active'].name = 'Active/001'
+        mesh.color_attributes['Default'].name = 'Default/001'
+        self.assertEqual(mesh.color_attributes.active_color_name, 'Active/001')
+        self.assertEqual(mesh.color_attributes.default_color_name, 'Default/001')
+
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_export(
+            filepath=abc_path,
+            vcolors=True
+        ))
+
+        # Import back
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "empty.blend"))
+        res = bpy.ops.wm.alembic_import(filepath=abc_path, as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        ob = bpy.context.active_object
+        mesh = ob.data
+        self.assertEqual(mesh.color_attributes.active_color_name, 'Active_001')
+        self.assertEqual(mesh.color_attributes.default_color_name, 'Default_001')
+
 
 class CameraExportImportTest(unittest.TestCase):
     names = [
