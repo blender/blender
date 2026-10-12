@@ -26,6 +26,7 @@
 #include "BLI_utildefines.hh"
 
 #include "BKE_appdir.hh"
+#include "BKE_blender_project.hh"
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
 #include "BKE_preferences.h"
@@ -331,6 +332,33 @@ static ui::Block *wm_block_splash_create(bContext *C, ARegion *region, void * /*
         block, bannerbuf, 0, 0.5f * U.widget_unit, banner_width, banner_height, nullptr);
 
     button_func_set(banner_but, [block](bContext &C) { wm_block_splash_close(&C, block); });
+  }
+
+  /* Floating project menu over the bottom right of the splash image, if a project is active or
+   * there are recent projects. */
+  const std::optional<std::string> project_name = BKE_blender_project_read_callback(
+      CTX_data_main(C), [](const bke::BlenderProject *project) -> std::optional<std::string> {
+        if (project == nullptr) {
+          return std::nullopt;
+        }
+        return project->get_name();
+      });
+  if (project_name || !BKE_blender_project_recent_get().is_empty()) {
+    const int project_margin = UI_UNIT_X / 2;
+    const int project_width = UI_UNIT_X * 8;
+    ui::Layout &project_layout = ui::block_layout(block,
+                                                  ui::LayoutDirection::Vertical,
+                                                  ui::LayoutType::Panel,
+                                                  splash_width - project_width - project_margin,
+                                                  0.5f * U.widget_unit + project_margin +
+                                                      UI_UNIT_Y,
+                                                  project_width,
+                                                  0,
+                                                  0,
+                                                  style);
+    project_layout.menu("WM_MT_splash_project",
+                        project_name ? StringRef(*project_name) : IFACE_("Project"),
+                        ICON_PROJECT);
   }
 
   const int layout_margin_x = UI_SCALE_FAC * 26;

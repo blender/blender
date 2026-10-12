@@ -21,6 +21,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_fileops.hh"
 #include "BLI_listbase.hh"
 #include "BLI_memory_cache.hh"
 #include "BLI_path_utils.hh"
@@ -34,6 +35,7 @@
 #include "BLO_writefile.hh"
 
 #include "BKE_blender.hh"
+#include "BKE_blender_project.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
@@ -48,6 +50,7 @@
 #include "BKE_preferences.h"
 #include "BKE_preview_image.hh"
 #include "BKE_recents.hh"
+#include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.hh"
@@ -443,6 +446,37 @@ void WM_init_splash_on_startup(bContext *C)
   WM_init_splash(C);
 }
 
+void WM_init_project_on_startup(bContext *C)
+{
+  if (!(U.pref_flag & USER_PREF_FLAG_PROJECT_REMEMBER)) {
+    return;
+  }
+  if (BKE_main_blendfile_path_from_global()[0] != '\0' || BKE_blender_project_get(G_MAIN)) {
+    return;
+  }
+
+  const std::string root_path = recents::Section("project").get<std::string>("last");
+  if (root_path.empty() || !BLI_is_dir(root_path.c_str())) {
+    return;
+  }
+
+  ReportList reports;
+  BKE_reports_init(&reports, RPT_PRINT | RPT_STORE);
+  BKE_report_print_level_set(&reports, RPT_WARNING);
+  WM_file_read_project(C, root_path.c_str(), &reports);
+  WM_reports_from_reports_move(CTX_wm_manager(C), &reports);
+  BKE_reports_free(&reports);
+}
+
+static void wm_exit_last_project_store(const Main *bmain)
+{
+  const std::string root_path = BKE_blender_project_read_callback(
+      bmain, [](const bke::BlenderProject *project) {
+        return project ? std::string(project->get_root_path()) : std::string();
+      });
+  recents::Section("project").set("last", root_path);
+}
+
 void WM_init_splash(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -540,6 +574,8 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   /* NOTE: same code copied in `wm_files.cc`. */
   if (C && wm) {
     if (do_user_exit_actions) {
+      wm_exit_last_project_store(CTX_data_main(C));
+
       /* Save quit.blend. */
       Main *bmain = CTX_data_main(C);
       char filepath[FILE_MAX];

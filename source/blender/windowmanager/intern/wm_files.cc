@@ -40,6 +40,7 @@
 #include "BLI_math_base_c.hh"
 #include "BLI_math_time.hh"
 #include "BLI_memory_cache.hh"
+#include "BLI_path_utils.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_system.hh"
@@ -1104,6 +1105,7 @@ bool WM_file_read(bContext *C,
 
       if (do_history_file_update) {
         wm_history_file_update();
+        BKE_blender_project_recent_update(CTX_data_main(C));
       }
 
       wmFileReadPost_Params read_file_post_params{};
@@ -1182,6 +1184,10 @@ bool WM_file_read_project(bContext *C, const char *filepath, ReportList *reports
   read_homefile_params.use_factory_settings = G.factory_startup;
   read_homefile_params.app_template_override = WM_init_state_app_template_get();
   wm_homefile_read(C, &read_homefile_params, reports);
+
+  if (!G.background) {
+    BKE_blender_project_recent_update(CTX_data_main(C));
+  }
 
   return true;
 }
@@ -1748,6 +1754,45 @@ static void wm_history_file_update()
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Recent Project Files
+ * \{ */
+
+static std::optional<std::string> wm_project_root_path_get(const Main *bmain)
+{
+  return BKE_blender_project_read_callback(
+      bmain, [](const bke::BlenderProject *project) -> std::optional<std::string> {
+        if (project == nullptr) {
+          return std::nullopt;
+        }
+        return project->get_root_path();
+      });
+}
+
+/** Most recently used blend file, to initialize file browsers. */
+static std::string wm_recent_filepath_get(const Main *bmain)
+{
+  const std::optional<std::string> root_path = wm_project_root_path_get(bmain);
+  if (!root_path) {
+    const RecentFile *recent = G.recent_files.first();
+    return recent ? recent->filepath : "";
+  }
+
+  /* In a project, use a file from the project, or the project directory. */
+  for (const RecentFile &recent : G.recent_files) {
+    if (BLI_path_contains(root_path->c_str(), recent.filepath)) {
+      return recent.filepath;
+    }
+  }
+
+  char dirpath[FILE_MAX];
+  STRNCPY(dirpath, root_path->c_str());
+  BLI_path_slash_ensure(dirpath, sizeof(dirpath));
+  return dirpath;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Thumbnail Generation: Screen-Shot / Camera View
  *
  * Thumbnail Sizes
@@ -2249,19 +2294,11 @@ static bool wm_file_write(bContext *C,
   const bool success = BLO_write_file(bmain, filepath, fileflags, &blend_write_params, reports);
 
   if (success) {
-    const bool do_history_file_update = (G.background == false) &&
-                                        (CTX_wm_manager(C)->op_undo_depth == 0);
-
     if (use_save_as_copy == false) {
       STRNCPY(bmain->filepath, filepath); /* Is guaranteed current file. */
     }
 
     SET_FLAG_FROM_TEST(G.fileflags, fileflags & G_FILE_COMPRESS, G_FILE_COMPRESS);
-
-    /* Prevent background mode scripts from clobbering history. */
-    if (do_history_file_update) {
-      wm_history_file_update();
-    }
 
     /* Run this function after because the file can't be written before the blend is. */
     if (ibuf_thumb) {
@@ -2278,6 +2315,15 @@ static bool wm_file_write(bContext *C,
 
   BKE_callback_exec_string(
       bmain, filepath, success ? BKE_CB_EVT_SAVE_POST : BKE_CB_EVT_SAVE_POST_FAIL);
+
+  /* Prevent background mode scripts from clobbering history.
+   * After SAVE_POST which activates the project. */
+  const bool do_history_file_update = (G.background == false) &&
+                                      (CTX_wm_manager(C)->op_undo_depth == 0);
+  if (success && do_history_file_update) {
+    wm_history_file_update();
+    BKE_blender_project_recent_update(bmain);
+  }
 
   if (ibuf_thumb) {
     IMB_freeImBuf(ibuf_thumb);
@@ -3293,9 +3339,9 @@ static wmOperatorStatus wm_open_mainfile__select_file_path_exec(bContext *C, wmO
   }
 
   /* If possible, get the name of the most recently used `.blend` file. */
-  if (G.recent_files.first()) {
-    RecentFile *recent = G.recent_files.first();
-    blendfile_path = recent->filepath;
+  const std::string recent_filepath = wm_recent_filepath_get(bmain);
+  if (!recent_filepath.empty()) {
+    blendfile_path = recent_filepath.c_str();
   }
 
   RNA_string_set(op->ptr, "filepath", blendfile_path);
@@ -3980,9 +4026,8 @@ static void save_set_filepath(bContext *C, wmOperator *op)
   if (!RNA_property_is_set(op->ptr, prop)) {
     const char *blendfile_path = BKE_main_blendfile_path(bmain);
     /* If not saved before, get the name of the most recently used `.blend` file. */
-    if ((blendfile_path[0] == '\0') && G.recent_files.first()) {
-      RecentFile *recent = G.recent_files.first();
-      STRNCPY(filepath, recent->filepath);
+    if (blendfile_path[0] == '\0') {
+      STRNCPY(filepath, wm_recent_filepath_get(bmain).c_str());
     }
     else {
       STRNCPY(filepath, blendfile_path);
@@ -4370,7 +4415,7 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Clear Recent Files List Operator
+/** \name Clear Recent Files/Projects List Operators
  * \{ */
 
 enum ClearRecentInclude { CLEAR_RECENT_ALL, CLEAR_RECENT_MISSING };
@@ -4428,6 +4473,39 @@ void WM_OT_clear_recent_files(wmOperatorType *ot)
 
   ot->invoke = wm_clear_recent_files_invoke;
   ot->exec = wm_clear_recent_files_exec;
+  ot->ui = wm_clear_recent_files_ui;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
+
+  /* props */
+  ot->prop = RNA_def_enum(
+      ot->srna, "remove", prop_clear_recent_types, CLEAR_RECENT_ALL, "Remove", "");
+}
+
+static wmOperatorStatus wm_clear_recent_projects_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent *event)
+{
+  return WM_operator_props_popup_confirm_ex(
+      C, op, event, IFACE_("Clear Recent Projects List"), IFACE_("Remove"));
+}
+
+static wmOperatorStatus wm_clear_recent_projects_exec(bContext * /*C*/, wmOperator *op)
+{
+  const ClearRecentInclude include = ClearRecentInclude(RNA_enum_get(op->ptr, "remove"));
+  BKE_blender_project_recent_clear(include == CLEAR_RECENT_MISSING);
+  return OPERATOR_FINISHED;
+}
+
+void WM_OT_clear_recent_projects(wmOperatorType *ot)
+{
+  ot->name = "Clear Recent Projects List";
+  ot->idname = "WM_OT_clear_recent_projects";
+  ot->description = "Clear the recent projects list";
+
+  ot->invoke = wm_clear_recent_projects_invoke;
+  ot->exec = wm_clear_recent_projects_exec;
   ot->ui = wm_clear_recent_files_ui;
 
   /* flags */

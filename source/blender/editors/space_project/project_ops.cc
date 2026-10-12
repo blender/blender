@@ -92,6 +92,14 @@ static wmOperatorStatus project_open_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (!G.background) {
+    BKE_blender_project_recent_update(CTX_data_main(C));
+  }
+
+  if (op->flag & OP_IS_INVOKE) {
+    WM_init_splash(C);
+  }
+
   return OPERATOR_FINISHED;
 }
 
@@ -148,12 +156,17 @@ void PROJECT_OT_open(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-static wmOperatorStatus project_close_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus project_close_exec(bContext *C, wmOperator *op)
 {
   project_auto_save(CTX_data_main(C));
   BKE_blender_project_clear();
   WM_operator_name_call(
       C, "WM_OT_read_homefile", wm::OpCallContext::ExecDefault, nullptr, nullptr);
+
+  if (op->flag & OP_IS_INVOKE) {
+    WM_init_splash(C);
+  }
+
   return OPERATOR_FINISHED;
 }
 
@@ -161,7 +174,7 @@ static void project_close_after_dialog_callback(bContext *C, void *user_data)
 {
   WM_operator_name_call_with_properties(C,
                                         "PROJECT_OT_close",
-                                        wm::OpCallContext::ExecDefault,
+                                        wm::OpCallContext::InvokeDefault,
                                         static_cast<IDProperty *>(user_data),
                                         nullptr);
 }
@@ -170,8 +183,11 @@ static wmOperatorStatus project_close_invoke(bContext *C,
                                              wmOperator *op,
                                              const wmEvent * /*event*/)
 {
-  if (wm_operator_close_file_dialog_if_needed(C, op, project_close_after_dialog_callback)) {
-    return OPERATOR_INTERFACE;
+  if (!RNA_boolean_get(op->ptr, "skip_save_check")) {
+    RNA_boolean_set(op->ptr, "skip_save_check", true);
+    if (wm_operator_close_file_dialog_if_needed(C, op, project_close_after_dialog_callback)) {
+      return OPERATOR_INTERFACE;
+    }
   }
   return project_close_exec(C, op);
 }
@@ -191,5 +207,13 @@ void PROJECT_OT_close(wmOperatorType *ot)
   ot->invoke = project_close_invoke;
   ot->exec = project_close_exec;
   ot->poll = project_close_poll;
+
+  PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                      "skip_save_check",
+                                      false,
+                                      "Skip check to prevent unsaved changes from being lost",
+                                      "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 }  // namespace blender

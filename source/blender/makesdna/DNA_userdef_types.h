@@ -94,6 +94,7 @@ enum eUserpref_Save_Modified_Images : char {
 enum eUserPref_PrefFlag : char {
   USER_PREF_FLAG_SAVE = (1 << 0),
   USER_PREF_FLAG_PROJECT_SAVE = (1 << 1),
+  USER_PREF_FLAG_PROJECT_REMEMBER = (1 << 2),
 };
 ENUM_OPERATORS(eUserPref_PrefFlag)
 

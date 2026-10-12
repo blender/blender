@@ -347,8 +347,14 @@ class TOPBAR_MT_file_project(Menu):
 
         layout.operator("project.new", text="New Project...", icon='ADD')
         layout.operator("project.open", icon='FILE_FOLDER')
-        if bpy.data.project is not None:
-            layout.operator("project.close")
+        layout.operator("project.close")
+
+        layout.separator()
+
+        if layout.template_recent_projects(rows=10):
+            layout.separator()
+
+        layout.operator("wm.clear_recent_projects", text="Clear Recent Projects List...", icon='TRASH')
 
 
 # Include technical operators here which would otherwise have no way for users to access.
