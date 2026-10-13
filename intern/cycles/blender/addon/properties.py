@@ -1634,6 +1634,12 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         default=False,
         update=update_render_passes,
     )
+    denoising_store_motion_passes: BoolProperty(
+        name="Store Denoising Motion Passes",
+        description="Store the denoising motion passes, for temporal denoisers",
+        default=False,
+        update=update_render_passes,
+    )
     denoising_pass_follow_reflections: BoolProperty(
         name="Denoising Pass Reflections",
         description="Follow reflections for the denoising feature passes",

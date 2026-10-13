@@ -346,6 +346,9 @@ struct Main : NonCopyable, NonMovable {
    */
   bool need_preview_render_restart = false;
 
+  /** Protect from recursive node tree updates, see #BKE_ntree_update. */
+  bool is_updating_node_trees = false;
+
   /**
    * The blend-file thumbnail. If set, it will show as image preview of the blend-file in the
    * system's file-browser.
