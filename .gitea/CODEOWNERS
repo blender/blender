@@ -224,8 +224,8 @@ source/blender/editors/space_node/.*      @LukasTonne
 
 # --------------------------------------------------
 # VSE.
-source/blender/sequencer/.*                  @eliphaz
-source/blender/editors/space_sequencer/.*    @eliphaz
+source/blender/sequencer/.*                  @johnkiril
+source/blender/editors/space_sequencer/.*    @johnkiril
 
 # --------------------------------------------------
 # Compositor.
