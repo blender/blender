@@ -441,7 +441,7 @@ void BKE_defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int 
       if (flip_map[dw->def_nr] >= 0) {
         /* error checkers complain of this but we'll never get nullptr return */
         dw_cpy = BKE_defvert_ensure_index(dvert, flip_map[dw->def_nr]);
-        dw = &dvert->dw[i]; /* in case array got realloced */
+        dw = &dvert->dw[i]; /* in case array got reallocated */
 
         /* distribute weights: if only one of the vertex groups was
          * assigned this will halve the weights, otherwise it gets

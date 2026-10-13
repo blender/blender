@@ -104,7 +104,7 @@ class GeometryComponent : public ImplicitSharingMixin {
   virtual void count_memory(MemoryCounter &memory) const;
 
   /**
-   * Copies the component. The returned component only has a single user and is therefor mutable.
+   * Copies the component. The returned component only has a single user and is therefore mutable.
    */
   virtual GeometryComponentPtr copy() const = 0;
 
