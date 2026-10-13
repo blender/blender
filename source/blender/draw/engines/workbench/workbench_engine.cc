@@ -490,10 +490,10 @@ class Instance : public DrawEngine {
       return;
     }
 
+    anti_aliasing_ps_.setup_view(view_, scene_state_);
+
     /* Hand off gsplat compute workload before draws. */
     DRW_gsplat_ensure_radiance(manager, view_);
-
-    anti_aliasing_ps_.setup_view(view_, scene_state_);
 
     GPUAttachment id_attachment = GPU_ATTACHMENT_NONE;
     if (scene_state_.draw_object_id) {
