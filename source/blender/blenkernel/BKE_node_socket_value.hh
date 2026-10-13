@@ -12,15 +12,13 @@
 #include "BLI_generic_pointer.hh"
 #include "BLI_memory_counter_fwd.hh"
 
+#include "BKE_list_fwd.hh"
 #include "BKE_node_socket_value_fwd.hh"
 
 namespace blender {
 
 namespace fn {
 class GField;
-}
-namespace nodes {
-class GListPtr;
 }
 namespace bke::volume_grid {
 class GVolumeGrid;
@@ -41,8 +39,8 @@ enum class SocketValueStorageKind : uint8_t {
 
 template<typename T>
 inline constexpr SocketValueStorageKind socket_value_storage_kind =
-    std::is_same_v<T, fn::GField>      ? SocketValueStorageKind::Field :
-    std::is_same_v<T, nodes::GListPtr> ? SocketValueStorageKind::List :
+    std::is_same_v<T, fn::GField> ? SocketValueStorageKind::Field :
+    std::is_same_v<T, GListPtr>   ? SocketValueStorageKind::List :
 #ifdef WITH_OPENVDB
     std::is_same_v<T, volume_grid::GVolumeGrid> ? SocketValueStorageKind::Grid :
 #endif
