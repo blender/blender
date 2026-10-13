@@ -52,54 +52,6 @@ struct OpenSubdiv_Converter {
   OpenSubdiv_VtxBoundaryInterpolation vtx_boundary_interpolation;
   OpenSubdiv_FVarLinearInterpolation fvar_linear_interpolation;
 
-  // Denotes whether this converter specifies full topology, which includes
-  // vertices, edges, faces, vertices+edges of a face and edges/faces of a
-  // vertex.
-  // Otherwise this converter will only provide number of vertices and faces,
-  // and vertices of faces. The rest of topology will be created by OpenSubdiv.
-  //
-  // NOTE: Even if converter does not provide full topology, it still needs
-  // to provide number of edges and vertices-of-edge. Those are used to assign
-  // topology tags.
-  bool (*specifiesFullTopology)(const OpenSubdiv_Converter *converter);
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Face relationships.
-
-  // Array of edge indices the face consists of.
-  // Aligned with the vertex indices array, edge i connects face vertex i
-  // with face index i+1.
-  void (*getFaceEdges)(const OpenSubdiv_Converter *converter,
-                       const int face_index,
-                       int *face_edges);
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Edge relationships.
-
-  // Number of faces which are sharing the given edge.
-  int (*getNumEdgeFaces)(const OpenSubdiv_Converter *converter, const int edge_index);
-  // Array of face indices which are sharing the given edge.
-  void (*getEdgeFaces)(const OpenSubdiv_Converter *converter, const int edge, int *edge_faces);
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Vertex relationships.
-
-  // Number of edges which are adjacent to the given vertex.
-  int (*getNumVertexEdges)(const OpenSubdiv_Converter *converter, const int vertex_index);
-  // Array for edge indices which are adjacent to the given vertex.
-  void (*getVertexEdges)(const OpenSubdiv_Converter *converter,
-                         const int vertex_index,
-                         int *vertex_edges);
-  // Number of faces which are adjacent to the given vertex.
-  int (*getNumVertexFaces)(const OpenSubdiv_Converter *converter, const int vertex_index);
-  // Array for face indices which are adjacent to the given vertex.
-  void (*getVertexFaces)(const OpenSubdiv_Converter *converter,
-                         const int vertex_index,
-                         int *vertex_faces);
-
-  //////////////////////////////////////////////////////////////////////////////
-  // User data associated with this converter.
-
   void (*freeUserData)(const OpenSubdiv_Converter *converter);
   void *user_data;
 };
