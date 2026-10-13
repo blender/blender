@@ -584,7 +584,7 @@ static void write_sdna_blob(FILE *file,
              info.size_native);
       for (const dna::ParsedMember &pm : ps.members) {
         const TypeInfo &member_type = table.lookup(pm.type_name);
-        printf("   %s %s allign32:%d, allign64:%d\n",
+        printf("   %s %s align32:%d, align64:%d\n",
                member_type.name.c_str(),
                pm.member_name.c_str(),
                member_type.align_32,

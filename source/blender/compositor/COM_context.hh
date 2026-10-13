@@ -138,7 +138,7 @@ class Context {
 
   /* Get the OIDN denoiser quality which should be used if the user doesn't explicitly set
    * denoising quality on a node. */
-  eCompositorDenoiseQaulity get_denoise_quality() const;
+  eCompositorDenoiseQuality get_denoise_quality() const;
 
   /* Get a GPU shader with the given info name and precision. */
   gpu::Shader *get_shader(const char *info_name, ResultPrecision precision);
