@@ -3644,7 +3644,7 @@ static BHead *read_libblock(FileData *fd,
     }
     process_packed_id(*id_target);
     if (fd->file_stat) {
-      id->runtime->src_blend_modifification_time = fd->file_stat->st_mtime;
+      id->runtime->src_blend_modification_time = fd->file_stat->st_mtime;
     }
   }
 

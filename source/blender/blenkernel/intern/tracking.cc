@@ -2272,7 +2272,7 @@ MovieDistortion *BKE_tracking_distortion_new(MovieTracking *tracking,
   MovieDistortion *distortion;
   libmv_CameraIntrinsicsOptions camera_intrinsics_options;
 
-  tracking_cameraIntrinscisOptionsFromTracking(
+  tracking_cameraIntrinsicsOptionsFromTracking(
       tracking, calibration_width, calibration_height, &camera_intrinsics_options);
 
   distortion = MEM_new_zeroed<MovieDistortion>("BKE_tracking_distortion_create");
@@ -2296,7 +2296,7 @@ void BKE_tracking_distortion_update(MovieDistortion *distortion,
 {
   libmv_CameraIntrinsicsOptions camera_intrinsics_options;
 
-  tracking_cameraIntrinscisOptionsFromTracking(
+  tracking_cameraIntrinsicsOptionsFromTracking(
       tracking, calibration_width, calibration_height, &camera_intrinsics_options);
 
   const MovieTrackingCamera *camera = &tracking->camera;
@@ -2425,7 +2425,7 @@ void BKE_tracking_distort_v2(
   const float aspy = 1.0f / tracking->camera.pixel_aspect;
 
   libmv_CameraIntrinsicsOptions camera_intrinsics_options;
-  tracking_cameraIntrinscisOptionsFromTracking(
+  tracking_cameraIntrinsicsOptionsFromTracking(
       tracking, image_width, image_height, &camera_intrinsics_options);
   libmv_CameraIntrinsics *intrinsics = libmv_cameraIntrinsicsNew(&camera_intrinsics_options);
 
@@ -2452,7 +2452,7 @@ void BKE_tracking_undistort_v2(
   const float aspy = 1.0f / tracking->camera.pixel_aspect;
 
   libmv_CameraIntrinsicsOptions camera_intrinsics_options;
-  tracking_cameraIntrinscisOptionsFromTracking(
+  tracking_cameraIntrinsicsOptionsFromTracking(
       tracking, image_width, image_height, &camera_intrinsics_options);
   libmv_CameraIntrinsics *intrinsics = libmv_cameraIntrinsicsNew(&camera_intrinsics_options);
 

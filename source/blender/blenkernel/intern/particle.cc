@@ -105,36 +105,36 @@ static void particle_settings_copy_data(Main * /*bmain*/,
                                         const int /*flag*/)
 {
   ParticleSettings *particle_settings_dst = id_cast<ParticleSettings *>(id_dst);
-  const ParticleSettings *partticle_settings_src = id_cast<const ParticleSettings *>(id_src);
+  const ParticleSettings *particle_settings_src = id_cast<const ParticleSettings *>(id_src);
 
-  particle_settings_dst->pd = BKE_partdeflect_copy(partticle_settings_src->pd);
-  particle_settings_dst->pd2 = BKE_partdeflect_copy(partticle_settings_src->pd2);
+  particle_settings_dst->pd = BKE_partdeflect_copy(particle_settings_src->pd);
+  particle_settings_dst->pd2 = BKE_partdeflect_copy(particle_settings_src->pd2);
   particle_settings_dst->effector_weights = static_cast<EffectorWeights *>(
-      MEM_dupalloc(partticle_settings_src->effector_weights));
+      MEM_dupalloc(particle_settings_src->effector_weights));
   particle_settings_dst->fluid = static_cast<SPHFluidSettings *>(
-      MEM_dupalloc(partticle_settings_src->fluid));
+      MEM_dupalloc(particle_settings_src->fluid));
 
-  if (partticle_settings_src->clumpcurve) {
-    particle_settings_dst->clumpcurve = BKE_curvemapping_copy(partticle_settings_src->clumpcurve);
+  if (particle_settings_src->clumpcurve) {
+    particle_settings_dst->clumpcurve = BKE_curvemapping_copy(particle_settings_src->clumpcurve);
   }
-  if (partticle_settings_src->roughcurve) {
-    particle_settings_dst->roughcurve = BKE_curvemapping_copy(partticle_settings_src->roughcurve);
+  if (particle_settings_src->roughcurve) {
+    particle_settings_dst->roughcurve = BKE_curvemapping_copy(particle_settings_src->roughcurve);
   }
-  if (partticle_settings_src->twistcurve) {
-    particle_settings_dst->twistcurve = BKE_curvemapping_copy(partticle_settings_src->twistcurve);
+  if (particle_settings_src->twistcurve) {
+    particle_settings_dst->twistcurve = BKE_curvemapping_copy(particle_settings_src->twistcurve);
   }
 
-  particle_settings_dst->boids = boid_copy_settings(partticle_settings_src->boids);
+  particle_settings_dst->boids = boid_copy_settings(particle_settings_src->boids);
 
   for (int a = 0; a < MAX_MTEX; a++) {
-    if (partticle_settings_src->mtex[a]) {
+    if (particle_settings_src->mtex[a]) {
       particle_settings_dst->mtex[a] = static_cast<MTex *>(
-          MEM_dupalloc(partticle_settings_src->mtex[a]));
+          MEM_dupalloc(particle_settings_src->mtex[a]));
     }
   }
 
   BLI_duplicatelist(&particle_settings_dst->instance_weights,
-                    &partticle_settings_src->instance_weights);
+                    &particle_settings_src->instance_weights);
 }
 
 static void particle_settings_free_data(ID *id)

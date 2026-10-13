@@ -74,9 +74,9 @@ struct ID_Runtime_Remap {
 
 struct ID_Runtime {
   /**
-   * The last modifification time of the source .blend file where this ID was loaded from.
+   * The last modification time of the source .blend file where this ID was loaded from.
    */
-  int64_t src_blend_modifification_time;
+  int64_t src_blend_modification_time;
 
   ID_Runtime_Remap remap = {};
   /**

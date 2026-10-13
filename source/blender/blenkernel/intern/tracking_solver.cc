@@ -116,7 +116,7 @@ static void reconstruct_retrieve_libmv_intrinsics(MovieReconstructContext *conte
   libmv_CameraIntrinsicsOptions camera_intrinsics_options;
   libmv_cameraIntrinsicsExtractOptions(libmv_intrinsics, &camera_intrinsics_options);
 
-  tracking_trackingCameraFromIntrinscisOptions(tracking, &camera_intrinsics_options);
+  tracking_trackingCameraFromIntrinsicsOptions(tracking, &camera_intrinsics_options);
 }
 
 /* Retrieve reconstructed tracks from libmv to blender.
@@ -344,7 +344,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(
   context->select_keyframes = (tracking->settings.reconstruction_flag &
                                TRACKING_USE_KEYFRAME_SELECTION) != 0;
 
-  tracking_cameraIntrinscisOptionsFromTracking(
+  tracking_cameraIntrinsicsOptionsFromTracking(
       tracking, width, height, &context->camera_intrinsics_options);
 
   context->tracks_map = tracks_map_new(context->object_name, num_tracks);

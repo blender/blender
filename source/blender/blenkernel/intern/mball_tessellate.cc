@@ -1074,7 +1074,7 @@ static void prev_lattice(int r[3], const float pos[3], const float size)
   r[1]--;
   r[2]--;
 }
-static void closest_latice(int r[3], const float pos[3], const float size)
+static void closest_lattice(int r[3], const float pos[3], const float size)
 {
   r[0] = int(floorf(pos[0] / size + 1.0f));
   r[1] = int(floorf(pos[1] / size + 1.0f));
@@ -1093,7 +1093,7 @@ static void find_first_points(PROCESS *process, const uint em)
   ml = process->mainb[em];
 
   mid_v3_v3v3(tmp, ml->bb->vec[0], ml->bb->vec[6]);
-  closest_latice(center, tmp, process->size);
+  closest_lattice(center, tmp, process->size);
   prev_lattice(lbn, ml->bb->vec[0], process->size);
   next_lattice(rtf, ml->bb->vec[6], process->size);
 

@@ -1131,7 +1131,7 @@ static void subdiv_foreach_loops_regular(ForeachTaskContext *ctx,
   for (int corner = 0; corner < coarse_face.size(); corner++) {
     const int coarse_vert = ctx->coarse_corner_verts[coarse_face[corner]];
     const int coarse_edge_i = ctx->coarse_corner_edges[coarse_face[corner]];
-    const int coase_prev_vert = ctx->coarse_corner_verts[coarse_face[prev_corner_index]];
+    const int coarse_prev_vert = ctx->coarse_corner_verts[coarse_face[prev_corner_index]];
     const int coarse_prev_edge = ctx->coarse_corner_edges[coarse_face[prev_corner_index]];
 
     const int2 &coarse_edge = ctx->coarse_edges[coarse_edge_i];
@@ -1145,7 +1145,7 @@ static void subdiv_foreach_loops_regular(ForeachTaskContext *ctx,
     int v3, e3;
     int e2_offset, e2_stride;
     float u, v, delta_u, delta_v;
-    if (coase_prev_vert == prev_coarse_edge[0]) {
+    if (coarse_prev_vert == prev_coarse_edge[0]) {
       v3 = ctx->vertices_edge_offset + coarse_prev_edge * num_subdiv_vertices_per_coarse_edge +
            num_subdiv_vertices_per_coarse_edge - 1;
       e3 = ctx->edge_boundary_offset + coarse_prev_edge * num_subdiv_edges_per_coarse_edge +
@@ -1435,7 +1435,7 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
   {
     const int coarse_vert = ctx->coarse_corner_verts[coarse_face[corner]];
     const int coarse_edge_i = ctx->coarse_corner_edges[coarse_face[corner]];
-    const int coase_prev_vert = ctx->coarse_corner_verts[coarse_face[prev_corner]];
+    const int coarse_prev_vert = ctx->coarse_corner_verts[coarse_face[prev_corner]];
     const int coarse_prev_edge = ctx->coarse_corner_edges[coarse_face[prev_corner]];
 
     const int2 &coarse_edge = ctx->coarse_edges[coarse_edge_i];
@@ -1448,7 +1448,7 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
     /* Create loops for polygons along U axis. */
     int v0 = ctx->vertices_corner_offset + coarse_vert;
     int v3, e3;
-    if (coase_prev_vert == prev_coarse_edge[0]) {
+    if (coarse_prev_vert == prev_coarse_edge[0]) {
       v3 = ctx->vertices_edge_offset + coarse_prev_edge * num_subdiv_vertices_per_coarse_edge +
            num_subdiv_vertices_per_coarse_edge - 1;
       e3 = ctx->edge_boundary_offset + coarse_prev_edge * num_subdiv_edges_per_coarse_edge +
@@ -1528,7 +1528,7 @@ static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
     /* Create loops for polygons along V axis. */
     const bool flip_prev = (prev_coarse_edge[1] == coarse_vert);
     v0 = corner_vert_index;
-    if (coase_prev_vert == prev_coarse_edge[0]) {
+    if (coarse_prev_vert == prev_coarse_edge[0]) {
       v3 = ctx->vertices_edge_offset + coarse_prev_edge * num_subdiv_vertices_per_coarse_edge +
            num_subdiv_vertices_per_coarse_edge - 1;
     }
