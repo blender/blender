@@ -62,7 +62,7 @@ void point_map_to_tube(float3 vin, float3 &vout)
 
 [[node]]
 void node_tex_image_linear(
-    float3 co, sampler2D ima, [[resource_table]] KernelGlobals &kg, float4 &color, float &alpha)
+    float3 co, sampler2D ima, KernelGlobals &kg, float4 &color, float &alpha)
 {
 #if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
   float2 dx = gpu_dfdx(co.xy) * texture_lod_bias_get(kg);
@@ -77,11 +77,8 @@ void node_tex_image_linear(
 }
 
 [[node]]
-void node_tex_image_cubic(float3 co,
-                          sampler2D ima,
-                          [[resource_table]] KernelGlobals & /*kg*/,
-                          float4 &color,
-                          float &alpha)
+void node_tex_image_cubic(
+    float3 co, sampler2D ima, KernelGlobals & /*kg*/, float4 &color, float &alpha)
 {
   color = texture_bicubic(ima, co.xy);
   alpha = color.a;
@@ -91,7 +88,7 @@ void node_tex_image_cubic(float3 co,
 void tex_box_sample_linear(float3 texco,
                            float3 N,
                            sampler2D ima,
-                           [[resource_table]] KernelGlobals & /*kg*/,
+                           KernelGlobals & /*kg*/,
                            float4 &color1,
                            float4 &color2,
                            float4 &color3)
@@ -120,7 +117,7 @@ void tex_box_sample_linear(float3 texco,
 void tex_box_sample_cubic(float3 texco,
                           float3 N,
                           sampler2D ima,
-                          [[resource_table]] KernelGlobals &kg,
+                          KernelGlobals &kg,
                           float4 &color1,
                           float4 &color2,
                           float4 &color3)

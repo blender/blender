@@ -96,6 +96,7 @@ set(SRC
   algorithms/intern/compute_preview.cc
   algorithms/intern/convolve.cc
   algorithms/intern/deriche_gaussian_blur.cc
+  algorithms/intern/downsampled_gaussian_blur.cc
   algorithms/intern/extract_alpha.cc
   algorithms/intern/jump_flooding.cc
   algorithms/intern/morphological_blur.cc
@@ -114,6 +115,7 @@ set(SRC
   algorithms/COM_algorithm_compute_preview.hh
   algorithms/COM_algorithm_convolve.hh
   algorithms/COM_algorithm_deriche_gaussian_blur.hh
+  algorithms/COM_algorithm_downsampled_gaussian_blur.hh
   algorithms/COM_algorithm_extract_alpha.hh
   algorithms/COM_algorithm_jump_flooding.hh
   algorithms/COM_algorithm_morphological_blur.hh
@@ -284,6 +286,9 @@ set(GLSL_SRC
   shaders/compositor_displace_anisotropic.glsl
   shaders/compositor_double_edge_mask_compute_boundary.glsl
   shaders/compositor_double_edge_mask_compute_gradient.glsl
+  shaders/compositor_downsampled_gaussian_downsample.bsl.hh
+  shaders/compositor_downsampled_gaussian_filter.bsl.hh
+  shaders/compositor_downsampled_gaussian_reconstruct.bsl.hh
   shaders/compositor_edge_filter.glsl
   shaders/compositor_ellipse_mask.glsl
   shaders/compositor_filter.glsl

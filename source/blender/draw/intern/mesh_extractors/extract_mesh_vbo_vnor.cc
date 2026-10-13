@@ -18,13 +18,19 @@ static void extract_vert_normals_mesh(const MeshRenderData &mr,
                                       MutableSpan<int1010102_norm> vert_data,
                                       MutableSpan<int1010102_norm> loose_data)
 {
-  MutableSpan loose_edge_data = loose_data.take_front(mr.loose_edges.size() * 2);
-  MutableSpan loose_vert_data = loose_data.take_back(mr.loose_verts.size());
-  gpu::convert_normals(mr.mesh->vert_normals(), vert_data);
-  extract_mesh_loose_edge_data(vert_data.as_span(), mr.edges, mr.loose_edges, loose_edge_data);
-  static_assert(sizeof(int1010102_norm) == sizeof(int32_t));
-  array_utils::gather(
-      vert_data.as_span().cast<int32_t>(), mr.loose_verts, loose_vert_data.cast<int32_t>());
+  const Span<float3> vert_normals = mr.mesh->vert_normals();
+  gpu::convert_normals(vert_normals, vert_data);
+
+  /* Use the original normals rather than the converted values, since #vert_data is only written
+   * to. */
+  Array<float3> loose_normals(loose_data.size());
+  MutableSpan loose_edge_normals = loose_normals.as_mutable_span().take_front(
+      mr.loose_edges.size() * 2);
+  MutableSpan loose_vert_normals = loose_normals.as_mutable_span().take_back(
+      mr.loose_verts.size());
+  extract_mesh_loose_edge_data(vert_normals, mr.edges, mr.loose_edges, loose_edge_normals);
+  array_utils::gather(vert_normals, mr.loose_verts, loose_vert_normals);
+  gpu::convert_normals(loose_normals.as_span(), loose_data);
 }
 
 static void extract_vert_normals_bm(const MeshRenderData &mr,
@@ -45,13 +51,18 @@ static void extract_vert_normals_bm(const MeshRenderData &mr,
   mr.loose_edges.foreach_index(
       [&](const int i, const int pos) {
         const BMEdge &edge = *BM_edge_at_index(&const_cast<BMesh &>(bm), i);
-        loose_edge_data[pos * 2 + 0] = vert_data[BM_elem_index_get(edge.v1)];
-        loose_edge_data[pos * 2 + 1] = vert_data[BM_elem_index_get(edge.v2)];
+        loose_edge_data[pos * 2 + 0] = gpu::convert_normal<int1010102_norm>(
+            bm_vert_no_get(mr, edge.v1));
+        loose_edge_data[pos * 2 + 1] = gpu::convert_normal<int1010102_norm>(
+            bm_vert_no_get(mr, edge.v2));
       },
       exec_mode::grain_size(2048));
 
   mr.loose_verts.foreach_index(
-      [&](const int i, const int pos) { loose_vert_data[pos] = vert_data[i]; },
+      [&](const int i, const int pos) {
+        const BMVert *vert = BM_vert_at_index(&const_cast<BMesh &>(bm), i);
+        loose_vert_data[pos] = gpu::convert_normal<int1010102_norm>(bm_vert_no_get(mr, vert));
+      },
       exec_mode::grain_size(2048));
 }
 

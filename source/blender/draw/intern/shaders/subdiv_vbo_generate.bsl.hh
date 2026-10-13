@@ -269,12 +269,15 @@ void edituv_stretch_angle_main([[resource_table]] const SubdivResources &srt,
     float2 norm_uv_edge1 = normalize(cur_uv - next_uv);
 
     /* Compute 3d edge vectors from positions. */
-    float3 cur_pos = load_data(edit.positions[cur_loop_index]);
-    float3 next_pos = load_data(edit.positions[next_loop_index]);
-    float3 prev_pos = load_data(edit.positions[prev_loop_index]);
+    StoredFloat3 curr_data = edit.positions[cur_loop_index];
+    StoredFloat3 next_data = edit.positions[next_loop_index];
+    StoredFloat3 prev_data = edit.positions[prev_loop_index];
+    float3 curr_pos = load_data(curr_data);
+    float3 next_pos = load_data(next_data);
+    float3 prev_pos = load_data(prev_data);
 
-    float3 norm_pos_edge0 = normalize(prev_pos - cur_pos);
-    float3 norm_pos_edge1 = normalize(cur_pos - next_pos);
+    float3 norm_pos_edge0 = normalize(prev_pos - curr_pos);
+    float3 norm_pos_edge1 = normalize(curr_pos - next_pos);
 
     /* Compute stretches, this logic is adapted from #edituv_get_edituv_stretch_angle.
      * Keep in sync! */
@@ -463,6 +466,7 @@ void sculpt_data_main([[resource_table]] const SubdivResources &srt,
 /** \} */
 
 PipelineCompute edge_fac(edge_fac_main);
+PipelineCompute edituv_stretch_angle(edituv_stretch_angle_main);
 PipelineCompute edituv_stretch_area(edituv_stretch_area_main);
 PipelineCompute normals_accumulate(normals_accumulate_main);
 PipelineCompute loop_normals(loop_normals_main);

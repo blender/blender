@@ -269,9 +269,11 @@ int group_ids_to_indices(const Span<int> ids,
 void invert_booleans(MutableSpan<bool> span)
 {
   PRF_scope_with_name("array_utils::invert_booleans", ProfileCategory::Default);
-  threading::parallel_for(span.index_range(), 4096, [&](IndexRange range) {
-    for (const int i : range) {
-      span[i] = !span[i];
+  threading::parallel_for(span.index_range(), 4096, [&](const IndexRange range) {
+    /* Use a local char pointer to allow auto-vectorization. */
+    char *data = span.cast<char>().data();
+    for (const int64_t i : range) {
+      data[i] = !data[i];
     }
   });
 }
@@ -279,7 +281,12 @@ void invert_booleans(MutableSpan<bool> span)
 void invert_booleans(MutableSpan<bool> span, const IndexMask &mask)
 {
   PRF_scope_with_name("array_utils::invert_booleans", ProfileCategory::Default);
-  mask.foreach_index_optimized<int64_t>([&](const int64_t i) { span[i] = !span[i]; });
+  mask.foreach_segment_optimized([&](const auto segment) {
+    char *data = span.cast<char>().data();
+    for (const int64_t i : segment) {
+      data[i] = !data[i];
+    }
+  });
 }
 
 static bool all_equal(const Span<bool> span, const bool test)

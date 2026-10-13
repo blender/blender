@@ -431,8 +431,7 @@ Scene::MotionType Scene::need_motion() const
   if (integrator->get_motion_blur()) {
     return MOTION_BLUR;
   }
-  const DenoiserPassMask denoiser_motion_passes = DENOISER_PASS_MOTION |
-                                                  DENOISER_PASS_BACKWARD_MOTION |
+  const DenoiserPassMask denoiser_motion_passes = DENOISER_PASS_BACKWARD_MOTION |
                                                   DENOISER_PASS_SPECULAR_MOTION;
   const bool denoiser_motion = (integrator->get_use_denoise()) &&
                                (integrator->get_denoiser_passes() & denoiser_motion_passes) != 0;

@@ -214,9 +214,9 @@ class QuickFur(ObjectModeOperator, Operator):
 
             curves_object.modifiers.move(0, len(curves_object.modifiers) - 1)
 
-        for modifier in curves_object.modifiers:
-            if hasattr(modifier, "show_group_selector"):
-                modifier.show_group_selector = False
+            for modifier in curves_object.modifiers:
+                if hasattr(modifier, "show_group_selector"):
+                    modifier.show_group_selector = False
 
         if mesh_with_zero_area:
             self.report({'WARNING'}, "Mesh has no face area")

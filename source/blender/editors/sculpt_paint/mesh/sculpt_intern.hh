@@ -635,8 +635,8 @@ void fake_neighbors_free(Object &ob);
  * \param tip_normal: Tip normal is the sculpt normal under spherical falloff, but when under
  * projected falloff, it is the view normal.
  */
-void calc_brush_local_mat(const float rotation,
-                          const float special_rotation,
+void calc_brush_local_mat(const float texture_rotation,
+                          const float tip_rotation,
                           const ViewContext &vc,
                           const Object &ob,
                           const float3 &tip_normal,

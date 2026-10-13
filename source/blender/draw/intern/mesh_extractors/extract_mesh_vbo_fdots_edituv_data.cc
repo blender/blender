@@ -29,8 +29,9 @@ gpu::VertBufPtr extract_face_dots_edituv_data(const MeshRenderData &mr)
     threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
       for (const int face_index : range) {
         const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-        vbo_data[face_index] = {};
-        mesh_render_data_face_flag(mr, &face, offsets, vbo_data[face_index]);
+        EditLoopData value = {};
+        mesh_render_data_face_flag(mr, &face, offsets, value);
+        vbo_data[face_index] = value;
       }
     });
   }
@@ -39,12 +40,12 @@ gpu::VertBufPtr extract_face_dots_edituv_data(const MeshRenderData &mr)
       const Span<int> orig_index_face(mr.orig_index_face, mr.faces_num);
       threading::parallel_for(IndexRange(mr.faces_num), 4096, [&](const IndexRange range) {
         for (const int face : range) {
-          vbo_data[face] = {};
-          if (orig_index_face[face] == ORIGINDEX_NONE) {
-            continue;
+          EditLoopData value = {};
+          if (orig_index_face[face] != ORIGINDEX_NONE) {
+            const BMFace *orig_face = bm_original_face_get(mr, face);
+            mesh_render_data_face_flag(mr, orig_face, offsets, value);
           }
-          const BMFace *orig_face = bm_original_face_get(mr, face);
-          mesh_render_data_face_flag(mr, orig_face, offsets, vbo_data[face]);
+          vbo_data[face] = value;
         }
       });
     }

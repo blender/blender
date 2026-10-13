@@ -80,6 +80,7 @@ set(SRC
   intern/draw_hair.cc
   intern/draw_manager.cc
   intern/draw_manager_text.cc
+  intern/draw_meshlet.cc
   intern/draw_pbvh.cc
   intern/draw_pointcloud.cc
   intern/draw_resource.cc

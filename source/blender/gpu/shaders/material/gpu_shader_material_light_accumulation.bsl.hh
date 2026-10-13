@@ -15,7 +15,7 @@ void node_light_accumulation(const float light_index,
                              float4 transmission_light,
                              float4 transmission_color,
                              float weight,
-                             [[resource_table]] KernelGlobals &kg,
+                             KernelGlobals &kg,
                              ShadingData &sd,
                              Closure &result)
 {

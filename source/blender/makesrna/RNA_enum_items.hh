@@ -275,6 +275,9 @@ DEF_ENUM(rna_enum_asset_import_method_items)
 
 DEF_ENUM(rna_enum_pointcloud_type_items)
 
+DEF_ENUM(rna_enum_project_variable_type_items)
+DEF_ENUM(rna_enum_project_variable_string_subtype_items)
+
 /* Not available to RNA pre-processing (`makesrna`).
  * Defined in editors for example. */
 #ifndef RNA_MAKESRNA

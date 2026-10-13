@@ -26,7 +26,7 @@ struct UvMapVert {
   bool separate;
 };
 
-/** Map from UV vertex to face. Used by select linked, UV subdivision-surface and obj exporter. */
+/** Map from UV vertex to face. Used by UV select linked. */
 struct UvVertMap {
   UvMapVert **vert;
   UvMapVert *buf;
@@ -100,16 +100,6 @@ struct MeshElemMap {
 };
 
 /* mapping */
-
-UvVertMap *BKE_mesh_uv_vert_map_create(OffsetIndices<int> faces,
-                                       Span<int> corner_verts,
-                                       Span<float2> uv_map,
-                                       int verts_num,
-                                       const float2 &limit,
-                                       bool use_winding);
-
-UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, unsigned int v);
-void BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
 
 /**
  * Generates a map where the key is the edge and the value
@@ -275,6 +265,24 @@ int *BKE_mesh_calc_smoothgroups_bitflags(int edges_num,
                         -1))
 
 namespace bke::mesh {
+
+/**
+ * Find the "vertices" of UV map by grouping face corners that share a vertex and have connected
+ * UVs. Each group is made of the first remaining corner of the vertex, and every later corner
+ * whose UV differs from it by less than #STD_UV_CONNECT_LIMIT.
+ *
+ * UV vertices are ordered by their mesh vertex, then by the first corner in each group.
+ *
+ * \param use_winding: Faces of the corners must have the same UV winding to be connected.
+ * \param r_corner_uv_verts: The UV vertex index of every face corner.
+ * \return The number of UV vertices.
+ */
+int calc_uv_verts(OffsetIndices<int> faces,
+                  Span<int> corner_verts,
+                  GroupedSpan<int> vert_to_corner,
+                  Span<float2> uv_map,
+                  bool use_winding,
+                  MutableSpan<int> r_corner_uv_verts);
 
 Array<int> build_corner_to_face_map(OffsetIndices<int> faces);
 

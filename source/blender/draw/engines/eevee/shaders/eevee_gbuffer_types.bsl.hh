@@ -100,14 +100,15 @@ GBufferMode closure_type_to_mode(ClosureType type, bool is_grayscale)
       return is_grayscale ? GBUF_THIN_REFRACTION_COLORLESS : GBUF_THIN_REFRACTION;
     case CLOSURE_BSSRDF_BURLEY_ID:
       return GBUF_SUBSURFACE;
-    default:
+    case CLOSURE_NONE_ID:
       return GBUF_NONE;
   }
+  return GBUF_NONE;
 }
 
 ClosureType mode_to_closure_type(uint mode)
 {
-  switch (mode) {
+  switch (GBufferMode(mode)) {
     case GBUF_DIFFUSE:
       return ClosureType(CLOSURE_BSDF_DIFFUSE_ID);
     case GBUF_TRANSLUCENT:
@@ -123,9 +124,11 @@ ClosureType mode_to_closure_type(uint mode)
     case GBUF_THIN_REFRACTION_COLORLESS:
     case GBUF_THIN_REFRACTION:
       return ClosureType(CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID);
-    default:
+    case GBUF_NONE:
+    case GBUF_UNLIT:
       return ClosureType(CLOSURE_NONE_ID);
   }
+  return ClosureType(CLOSURE_NONE_ID);
 }
 
 bool color_is_grayscale(float3 color)

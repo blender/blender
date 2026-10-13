@@ -54,17 +54,6 @@ struct LocalData {
   Vector<float3> translations;
 };
 
-static void calc_local_positions(const float4x4 &mat,
-                                 const Span<int> verts,
-                                 const Span<float3> positions,
-                                 const MutableSpan<float3> local_positions)
-{
-  PRF_scope(ProfileCategory::Editor);
-  for (const int i : verts.index_range()) {
-    local_positions[i] = math::transform_point(mat, positions[verts[i]]);
-  }
-}
-
 /**
  * Computes the local distances. For vertices above the plane,
  * the z-distances are divided by `height`, effectively scaling the
@@ -77,19 +66,41 @@ static void calc_local_positions(const float4x4 &mat,
  *
  * The effect of `depth` on vertices below the plane is analogous.
  */
-static void calc_local_distances(const float height,
+static void calc_local_distances(const float roundness,
+                                 const float height,
                                  const float depth,
                                  const MutableSpan<float3> local_positions,
                                  const MutableSpan<float> distances)
 {
   PRF_scope(ProfileCategory::Editor);
+  const float roundness_rcp = math::safe_rcp(roundness);
+  const float hardness = 1.0f - roundness;
+  const float2 hardness_vec(hardness);
+  const float2 zero(0.0f);
+
   if (height != 0.0f) {
     const float height_rcp = math::rcp(height);
 
     for (const int i : local_positions.index_range()) {
       const float3 &position = local_positions[i];
       if (position.z >= 0.0f) {
-        distances[i] = math::length(float3(position.x, position.y, position.z * height_rcp));
+        if (roundness == 1.0f) {
+          distances[i] = math::length(float3(position.x, position.y, position.z * height_rcp));
+        }
+        else {
+          float2 xy_position = math::abs(float2(position.x, position.y));
+
+          /* Position is outside brush radius on the XY plane. */
+          if (math::reduce_max(xy_position) > 1.0f) {
+            distances[i] = 1.0f;
+            continue;
+          }
+
+          const float2 excess = math::max(xy_position - hardness_vec, zero);
+
+          distances[i] = math::length(
+              float3(excess.x * roundness_rcp, excess.y * roundness_rcp, position.z * height_rcp));
+        }
       }
     }
   }
@@ -107,7 +118,23 @@ static void calc_local_distances(const float height,
     for (const int i : local_positions.index_range()) {
       const float3 &position = local_positions[i];
       if (position.z < 0.0f) {
-        distances[i] = math::length(float3(position.x, position.y, position.z * depth_rcp));
+        if (roundness == 1.0f) {
+          distances[i] = math::length(float3(position.x, position.y, position.z * depth_rcp));
+        }
+        else {
+          float2 xy_position = math::abs(float2(position.x, position.y));
+
+          /* Position is outside brush radius on the XY plane. */
+          if (math::reduce_max(xy_position) > 1.0f) {
+            distances[i] = 1.0f;
+            continue;
+          }
+
+          const float2 excess = math::max(xy_position - hardness_vec, zero);
+
+          distances[i] = math::length(
+              float3(excess.x * roundness_rcp, excess.y * roundness_rcp, position.z * depth_rcp));
+        }
       }
     }
   }
@@ -222,11 +249,17 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   tls.positions.resize(verts.size());
   const MutableSpan<float3> local_positions = tls.positions;
-  calc_local_positions(mat, verts, position_data.eval, local_positions);
+  calc_local_positions(position_data.eval,
+                       verts,
+                       mat,
+                       cache.location_symm,
+                       cache.view_normal_symm,
+                       eBrushFalloffShape(brush.falloff_shape),
+                       local_positions);
 
   tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
-  calc_local_distances(height, depth, local_positions, distances);
+  calc_local_distances(brush.tip_roundness, height, depth, local_positions, distances);
   filter_distances_with_radius(1.0f, distances, factors);
 
   apply_hardness_to_distances(1.0f, cache.hardness, distances);
@@ -279,11 +312,16 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   tls.local_positions.resize(positions.size());
   const MutableSpan<float3> local_positions = tls.local_positions;
-  math::transform_points(positions, mat, local_positions, false);
+  calc_local_positions(positions,
+                       mat,
+                       cache.location_symm,
+                       cache.view_normal_symm,
+                       eBrushFalloffShape(brush.falloff_shape),
+                       local_positions);
 
   tls.distances.resize(positions.size());
   const MutableSpan<float> distances = tls.distances;
-  calc_local_distances(height, depth, local_positions, distances);
+  calc_local_distances(brush.tip_roundness, height, depth, local_positions, distances);
   filter_distances_with_radius(1.0f, distances, factors);
 
   apply_hardness_to_distances(1.0f, cache.hardness, distances);
@@ -334,11 +372,16 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
   tls.local_positions.resize(positions.size());
   const MutableSpan<float3> local_positions = tls.local_positions;
-  math::transform_points(positions, mat, local_positions, false);
+  calc_local_positions(positions,
+                       mat,
+                       cache.location_symm,
+                       cache.view_normal_symm,
+                       eBrushFalloffShape(brush.falloff_shape),
+                       local_positions);
 
   tls.distances.resize(positions.size());
   const MutableSpan<float> distances = tls.distances;
-  calc_local_distances(height, depth, local_positions, distances);
+  calc_local_distances(brush.tip_roundness, height, depth, local_positions, distances);
   filter_distances_with_radius(1.0f, distances, factors);
 
   apply_hardness_to_distances(1.0f, cache.hardness, distances);
@@ -389,17 +432,18 @@ void do_plane_brush(const Depsgraph &depsgraph,
   const float displace = ss.cache->radius * offset * (flip ? -1.0f : 1.0f);
   center += normal * ss.cache->scale * displace;
 
-  float4x4 mat = float4x4::identity();
-  mat.x_axis() = math::cross(normal, ss.cache->grab_delta_symm);
-  mat.y_axis() = math::cross(normal, mat.x_axis());
-  mat.z_axis() = normal;
-  mat.location() = center;
-  mat = math::normalize(mat);
-
-  const float4x4 scale = math::from_scale<float4x4>(float3(ss.cache->radius));
-  float4x4 tmat = mat * scale;
-
-  mat = math::invert(tmat);
+  float4x4 mat;
+  float4x4 mat_inv;
+  const float tip_rotation = bke::brush::tip_rotation_get(sd.paint, brush);
+  calc_brush_local_mat(0,
+                       tip_rotation,
+                       *ss.cache->vc,
+                       object,
+                       normal,
+                       center,
+                       ss.cache->radius,
+                       mat.ptr(),
+                       mat_inv.ptr());
 
   float strength = ss.cache->bstrength;
   float height = brush.plane_height;
@@ -481,6 +525,7 @@ void do_plane_brush(const Depsgraph &depsgraph,
 
 namespace plane {
 CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
+                                  const Paint &paint,
                                   Object &ob,
                                   const Brush &brush,
                                   IndexMaskMemory &memory)
@@ -501,6 +546,30 @@ CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
   float3 plane_normal;
   calc_brush_plane(depsgraph, brush, ob, initial_node_mask, plane_normal, plane_center);
 
+  if (math::is_zero(ss.cache->grab_delta_symm) || math::is_zero(plane_normal)) {
+    /* The brush local matrix is degenerate: return an empty index mask. */
+    return {IndexMask(), plane_center, plane_normal};
+  }
+
+  /* The tip normal is the plane normal under spherical falloff, but when under projected
+   * falloff, it is the view normal. */
+  const float3 tip_normal = brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE ?
+                                ss.cache->view_normal_symm :
+                                plane_normal;
+  const float tip_rotation = bke::brush::tip_rotation_get(paint, brush);
+
+  float4x4 brush_local_mat;
+  float4x4 brush_local_mat_inv;
+  calc_brush_local_mat(0,
+                       tip_rotation,
+                       *ss.cache->vc,
+                       ob,
+                       tip_normal,
+                       plane_center,
+                       ss.cache->radius,
+                       brush_local_mat.ptr(),
+                       brush_local_mat_inv.ptr());
+
   /* Recompute the node mask using the center of the brush plane as the center.
    *
    * The indices of the nodes in `cursor_node_mask` have been calculated based on the cursor
@@ -512,7 +581,12 @@ CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
         if (node_fully_masked_or_hidden(node)) {
           return false;
         }
-        return node_in_sphere(node, plane_center, ss.cache->radius_squared, use_original);
+        const Bounds<float3> &bounds = use_original ? node.bounds_orig() : node.bounds();
+        if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+          return node_in_box(
+              brush_local_mat, bounds, float3(0.0f), float3(1.0f, 1.0f, 1.0f), false);
+        }
+        return node_in_box(brush_local_mat, node.bounds());
       });
 
   return {plane_mask, plane_center, plane_normal};

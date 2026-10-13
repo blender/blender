@@ -2366,7 +2366,7 @@ static bool lib_override_library_resync(Main *bmain,
 
     if ((id_resync_root->tag & ID_TAG_NO_MAIN) != 0) {
       CLOG_ERROR(&LOG_RESYNC,
-                 "While dealing with root '%s', resync root ID '%s' (%p) found to be alreaady "
+                 "While dealing with root '%s', resync root ID '%s' (%p) found to be already "
                  "resynced.\n",
                  id_root->name,
                  id_resync_root->name,
@@ -2375,7 +2375,7 @@ static bool lib_override_library_resync(Main *bmain,
     //    if (no_main_ids_list && BLI_findindex(no_main_ids_list, id_resync_root) != -1) {
     //      CLOG_ERROR(
     //          &LOG,
-    //          "While dealing with root '%s', resync root ID '%s' found to be alreaady
+    //          "While dealing with root '%s', resync root ID '%s' found to be already
     //          resynced.\n", id_root->name, id_resync_root->name);
     //    }
 

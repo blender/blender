@@ -510,7 +510,7 @@ static bool id_name_final_build(UniqueName_TypeMap &type_map,
    * reached. */
   CLOG_ERROR(&LOG,
              "Impossible to find an available name for '%s' base name, even by editing that base "
-             "name. This should never happen in real-life scenarii. Now trying to brute-force "
+             "name. This should never happen in real-life scenarios. Now trying to brute-force "
              "generate random names until a free one is found.",
              base_name.c_str());
   BLI_assert(new_base_name.size() <= 8);

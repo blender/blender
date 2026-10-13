@@ -366,11 +366,9 @@ static void speed_label_draw(const TimelineDrawContext &ctx,
     return; /* Not enough space to draw the label. */
   }
 
-  uchar col[4] = {255, 255, 255, 255};
-  if ((strip->flag & SEQ_SELECT) == 0) {
-    memset(col, 0, sizeof(col));
-    col[3] = 255;
-  }
+  /* Keep speed percentage text black regardless of selection state to maintain
+   * legibility over bright waveforms and strip colors (#164310). */
+  constexpr uchar col[4] = {0, 0, 0, 255};
 
   ui::view2d_text_cache_add(ctx.v2d, pos->x, pos->y, label_str, label_len, col);
 }

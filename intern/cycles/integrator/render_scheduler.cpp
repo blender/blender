@@ -696,8 +696,11 @@ string RenderScheduler::full_report() const
     if (denoiser_params_.passes & DENOISER_PASS_DEPTH) {
       passes += ", Depth";
     }
-    if (denoiser_params_.passes & DENOISER_PASS_MOTION) {
-      passes += ", Motion";
+    if (denoiser_params_.passes & DENOISER_PASS_BACKWARD_MOTION) {
+      passes += ", Backward Motion";
+    }
+    if (denoiser_params_.passes & DENOISER_PASS_SPECULAR_MOTION) {
+      passes += ", Specular Motion";
     }
 
     result += "  Passes: " + passes + "\n";

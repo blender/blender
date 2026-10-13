@@ -46,10 +46,10 @@ namespace blender::draw {
 
 struct PointCloudEvalCache {
   /* Dot primitive types. */
-  gpu::Batch *dots;
+  Batch *dots;
   /* Triangle primitive types. */
-  gpu::Batch *surface;
-  gpu::Batch **surface_per_mat;
+  Batch *surface;
+  Batch **surface_per_mat;
 
   /* Position and radius. */
   gpu::VertBuf *pos_rad;
@@ -80,7 +80,7 @@ struct PointCloudBatchCache {
   PointCloudEvalCache eval_cache;
 
   gpu::IndexBuf *edit_selection_indices = nullptr;
-  gpu::Batch *edit_selection = nullptr;
+  Batch *edit_selection = nullptr;
 
   /* settings to determine if cache is invalid */
   bool is_dirty;
@@ -119,8 +119,8 @@ static void pointcloud_batch_cache_init(PointCloud &pointcloud)
   }
 
   cache->eval_cache.mat_len = BKE_id_material_used_with_fallback_eval(pointcloud.id);
-  cache->eval_cache.surface_per_mat = MEM_new_array_zeroed<gpu::Batch *>(cache->eval_cache.mat_len,
-                                                                         __func__);
+  cache->eval_cache.surface_per_mat = MEM_new_array_zeroed<Batch *>(cache->eval_cache.mat_len,
+                                                                    __func__);
 
   cache->is_dirty = false;
 }
@@ -156,17 +156,17 @@ static void pointcloud_batch_cache_clear(PointCloud &pointcloud)
     return;
   }
 
-  GPU_BATCH_DISCARD_SAFE(cache->eval_cache.dots);
-  GPU_BATCH_DISCARD_SAFE(cache->eval_cache.surface);
+  MEM_SAFE_DELETE(cache->eval_cache.dots);
+  MEM_SAFE_DELETE(cache->eval_cache.surface);
   GPU_VERTBUF_DISCARD_SAFE(cache->eval_cache.pos_rad);
   GPU_VERTBUF_DISCARD_SAFE(cache->eval_cache.attr_viewer);
 
   GPU_INDEXBUF_DISCARD_SAFE(cache->edit_selection_indices);
-  GPU_BATCH_DISCARD_SAFE(cache->edit_selection);
+  MEM_SAFE_DELETE(cache->edit_selection);
 
   if (cache->eval_cache.surface_per_mat) {
     for (int i = 0; i < cache->eval_cache.mat_len; i++) {
-      GPU_BATCH_DISCARD_SAFE(cache->eval_cache.surface_per_mat[i]);
+      MEM_SAFE_DELETE(cache->eval_cache.surface_per_mat[i]);
     }
   }
   MEM_SAFE_DELETE(cache->eval_cache.surface_per_mat);
@@ -303,9 +303,9 @@ gpu::VertBuf *pointcloud_position_and_radius_get(PointCloud *pointcloud)
   return cache->eval_cache.pos_rad;
 }
 
-gpu::Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
-                                           GPUMaterial **gpu_materials,
-                                           int mat_len)
+Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
+                                      GPUMaterial **gpu_materials,
+                                      int mat_len)
 {
   const bke::AttributeAccessor attributes = pointcloud->attributes();
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(*pointcloud);
@@ -335,15 +335,17 @@ gpu::Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
   return cache->eval_cache.surface_per_mat;
 }
 
-gpu::Batch *pointcloud_surface_get(PointCloud *pointcloud)
+Batch *pointcloud_surface_get(PointCloud *pointcloud)
 {
   PointCloudBatchCache &cache = *pointcloud_batch_cache_get(*pointcloud);
   if (cache.eval_cache.surface != nullptr) {
     return cache.eval_cache.surface;
   }
 
-  cache.eval_cache.surface = GPU_batch_create_procedural(
-      GPU_PRIM_TRI_STRIP, DRW_POINTCLOUD_STRIP_TILE_SIZE * pointcloud->totpoint);
+  cache.eval_cache.surface = MEM_new<Batch>(
+      __func__,
+      GPU_batch_create_procedural(GPU_PRIM_TRI_STRIP,
+                                  DRW_POINTCLOUD_STRIP_TILE_SIZE * pointcloud->totpoint));
   DRW_vbo_request(nullptr, &cache.eval_cache.pos_rad);
   return cache.eval_cache.surface;
 }
@@ -354,7 +356,7 @@ gpu::Batch *pointcloud_surface_get(PointCloud *pointcloud)
 /** \name API
  * \{ */
 
-gpu::Batch *DRW_pointcloud_batch_cache_get_dots(Object *ob)
+Batch *DRW_pointcloud_batch_cache_get_dots(Object *ob)
 {
   PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
   if (pointcloud.type == PointCloudType::Points) {
@@ -424,17 +426,23 @@ void DRW_pointcloud_batch_cache_create_requested(Object *ob)
   PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
   PointCloudBatchCache &cache = *pointcloud_batch_cache_get(pointcloud);
 
-  if (DRW_batch_requested(cache.eval_cache.dots, GPU_PRIM_POINTS)) {
-    DRW_vbo_request(cache.eval_cache.dots, &cache.eval_cache.pos_rad);
+  if (cache.eval_cache.dots &&
+      DRW_batch_requested(cache.eval_cache.dots->gpu_batch(), GPU_PRIM_POINTS))
+  {
+    DRW_vbo_request(cache.eval_cache.dots->gpu_batch(), &cache.eval_cache.pos_rad);
   }
 
-  if (DRW_batch_requested(cache.edit_selection, GPU_PRIM_POINTS)) {
-    DRW_ibo_request(cache.edit_selection, &cache.edit_selection_indices);
-    DRW_vbo_request(cache.edit_selection, &cache.eval_cache.pos_rad);
+  if (cache.edit_selection &&
+      DRW_batch_requested(cache.edit_selection->gpu_batch(), GPU_PRIM_POINTS))
+  {
+    DRW_ibo_request(cache.edit_selection->gpu_batch(), &cache.edit_selection_indices);
+    DRW_vbo_request(cache.edit_selection->gpu_batch(), &cache.eval_cache.pos_rad);
   }
 
   for (int i = 0; i < cache.eval_cache.mat_len; i++) {
-    if (DRW_batch_requested(cache.eval_cache.surface_per_mat[i], GPU_PRIM_TRIS)) {
+    if (cache.eval_cache.surface_per_mat[i] &&
+        DRW_batch_requested(cache.eval_cache.surface_per_mat[i]->gpu_batch(), GPU_PRIM_TRIS))
+    {
       /* TODO(fclem): Per material ranges. */
     }
   }
@@ -455,7 +463,7 @@ void DRW_pointcloud_batch_cache_create_requested(Object *ob)
   }
 }
 
-gpu::Batch *DRW_pointcloud_batch_cache_get_edit_dots(Object *ob)
+Batch *DRW_pointcloud_batch_cache_get_edit_dots(Object *ob)
 {
   PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
   if (pointcloud.type == PointCloudType::Points) {

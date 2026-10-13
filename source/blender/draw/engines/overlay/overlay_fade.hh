@@ -46,6 +46,7 @@ class Fade : Overlay {
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA,
                   state.clipping_plane_count);
     ps_.shader_set(res.shaders->uniform_color.get());
+    ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     {
       PassMain::Sub &sub = ps_.sub("edit_mesh.fade");
       float4 color = res.background_color_get(state);
@@ -104,7 +105,7 @@ class Fade : Overlay {
             }
           }
           else {
-            gpu::Batch *geom = DRW_cache_object_surface_get(const_cast<Object *>(ob_ref.object));
+            Batch *geom = DRW_cache_object_surface_get(const_cast<Object *>(ob_ref.object));
             if (geom) {
               sub.draw(geom, manager.unique_handle(ob_ref));
             }

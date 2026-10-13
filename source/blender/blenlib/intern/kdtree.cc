@@ -131,7 +131,7 @@ template<typename T> class TreeBuilder {
     Node *allocate(const int num)
     {
       if (used + num > batch.size()) {
-        this->batch = this->allocator->allocate_array<Node>(batch_size);
+        this->batch = this->allocator->template allocate_array<Node>(batch_size);
         this->used = 0;
         /* Only the first batch is sized for the tree, the rest are full size. */
         this->batch_size = BATCH_SIZE_MAX;

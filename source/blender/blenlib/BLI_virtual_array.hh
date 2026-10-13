@@ -509,6 +509,9 @@ inline constexpr bool
  *   allowed and could result in hard to find bugs.
  */
 template<typename T> class VArrayCommon {
+ public:
+  using value_type = T;
+
  protected:
   AnyDerived<const VArrayImpl<T>> impl_;
 
@@ -899,7 +902,15 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   {
     BLI_assert(index >= 0);
     BLI_assert(index < this->size());
+/* Quiet false-positive warning in GCC. */
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
     this->get_impl()->set(index, std::move(value));
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic pop
+#endif
   }
 
   /**
@@ -1152,20 +1163,32 @@ template<typename T> class VArrayRef {
 
 /** To be used with #call_with_devirtualized_parameters. */
 template<typename T, bool UseSingle, bool UseSpan> struct VArrayDevirtualizer {
-  const VArray<T> &varray;
+ private:
+  CommonVArrayInfo info_;
+  int64_t size_;
+
+ public:
+  template<typename VArrayT>
+  VArrayDevirtualizer(const VArrayT &varray) : info_(varray.common_info()), size_(varray.size())
+  {
+    assert_value_type<T>(varray);
+  }
+
+  VArrayDevirtualizer(CommonVArrayInfo info, const int64_t size)
+      : info_(std::move(info)), size_(size)
+  {
+  }
 
   template<typename Fn> bool devirtualize(const Fn &fn) const
   {
-    const CommonVArrayInfo info = this->varray.common_info();
-    const int64_t size = this->varray.size();
     if constexpr (UseSingle) {
-      if (info.type == CommonVArrayInfo::Type::Single) {
-        return fn(SingleAsSpan<T>(*static_cast<const T *>(info.data), size));
+      if (info_.type == CommonVArrayInfo::Type::Single) {
+        return fn(SingleAsSpan<T>(*static_cast<const T *>(info_.data), size_));
       }
     }
     if constexpr (UseSpan) {
-      if (info.type == CommonVArrayInfo::Type::Span) {
-        return fn(Span<T>(static_cast<const T *>(info.data), size));
+      if (info_.type == CommonVArrayInfo::Type::Span) {
+        return fn(Span<T>(static_cast<const T *>(info_.data), size_));
       }
     }
     return false;

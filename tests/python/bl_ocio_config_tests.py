@@ -53,7 +53,7 @@ class OCIOConfigProjectTest(unittest.TestCase):
         root = self.tempdir / name
         (root / ".blender_project").mkdir(parents=True)
 
-        config_lines = [f'name = "{name}"\n']
+        config_lines = ["schema_version = 1\n", f'name = "{name}"\n']
         if ocio_config is not None:
             config_lines.append(f"ocio_config = '{ocio_config}'\n")
         (root / ".blender_project" / "project.toml").write_text("".join(config_lines))

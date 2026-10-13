@@ -800,13 +800,16 @@ void set_tile_values(openvdb::GridBase &grid_base,
 
 void set_leaf_values_off(openvdb::GridBase &grid_base,
                          const openvdb::Coord &probe_coord,
-                         const Span<bool> selection)
+                         const Span<bool> selection,
+                         const bool set_background)
 {
   to_typed_grid(grid_base, [&](auto &grid) {
     using GridType = std::decay_t<decltype(grid)>;
     using TreeType = typename GridType::TreeType;
+    using ValueType = typename TreeType::ValueType;
     using LeafNodeType = typename TreeType::LeafNodeType;
     using NodeMaskType = typename LeafNodeType::NodeMaskType;
+    using Buffer = typename LeafNodeType::Buffer;
 
     BLI_assert(selection.size() <= LeafNodeType::SIZE);
 
@@ -820,35 +823,67 @@ void set_leaf_values_off(openvdb::GridBase &grid_base,
         mask.setOff(i);
       }
     }
-  });
-}
+    if (set_background) {
+      Buffer &buffer = leaf_node->buffer();
+      const ValueType &background = grid.background();
 
-void set_grid_values_off(openvdb::GridBase &grid_base,
-                         const Span<bool> selection,
-                         const Span<openvdb::Coord> voxels)
-{
-  to_typed_grid(grid_base, [&](auto &grid) {
-    auto accessor = grid.getUnsafeAccessor();
-    for (const int i : selection.index_range()) {
-      if (selection[i]) {
-        accessor.setValueOff(voxels[i]);
+      for (const int i : selection.index_range()) {
+        if (selection[i]) {
+          buffer.setValue(i, background);
+        }
       }
     }
   });
 }
 
+void set_grid_values_off(openvdb::GridBase &grid_base,
+                         const Span<bool> selection,
+                         const Span<openvdb::Coord> voxels,
+                         const bool set_background)
+{
+  to_typed_grid(grid_base, [&](auto &grid) {
+    using GridType = std::decay_t<decltype(grid)>;
+    using ValueType = typename GridType::ValueType;
+
+    auto accessor = grid.getUnsafeAccessor();
+    if (set_background) {
+      const ValueType &background = grid.background();
+      for (const int i : selection.index_range()) {
+        if (selection[i]) {
+          accessor.setValueOff(voxels[i], background);
+        }
+      }
+    }
+    else {
+      for (const int i : selection.index_range()) {
+        if (selection[i]) {
+          accessor.setValueOff(voxels[i]);
+        }
+      }
+    }
+  });
+}
+
+template<bool set_background>
 void set_tile_values_off(openvdb::GridBase &grid_base,
                          const Span<bool> selection,
                          const Span<openvdb::CoordBBox> tiles)
 {
   to_typed_grid(grid_base, [&](auto &grid) {
-    using GridT = typename std::decay_t<decltype(grid)>;
-    using TreeT = typename GridT::TreeType;
-    auto &tree = grid.tree();
+    using GridType = typename std::decay_t<decltype(grid)>;
+    using TreeType = typename GridType::TreeType;
+    using ValueType = typename GridType::ValueType;
 
+    auto &tree = grid.tree();
+    const ValueType &background = grid.background();
     const auto set_tile_value_off = [&](auto &node, const openvdb::Coord &coord_in_tile) {
       const openvdb::Index n = node.coordToOffset(coord_in_tile);
-      node.setValueOffUnsafe(n);
+      if constexpr (set_background) {
+        node.setValueOffUnsafe(n, background);
+      }
+      else {
+        node.setValueOffUnsafe(n);
+      }
     };
 
     for (const int i : selection.index_range()) {
@@ -858,7 +893,7 @@ void set_tile_values_off(openvdb::GridBase &grid_base,
 
       const openvdb::CoordBBox tile = tiles[i];
       const openvdb::Coord coord_in_tile = tile.min();
-      using InternalNode1 = typename TreeT::RootNodeType::ChildNodeType;
+      using InternalNode1 = typename TreeType::RootNodeType::ChildNodeType;
       using InternalNode2 = typename InternalNode1::ChildNodeType;
       /* Find the internal node that contains the tile and update the value in there. */
       if (auto *node = tree.template probeNode<InternalNode2>(coord_in_tile)) {
@@ -872,6 +907,19 @@ void set_tile_values_off(openvdb::GridBase &grid_base,
       }
     }
   });
+}
+
+void set_tile_values_off(openvdb::GridBase &grid_base,
+                         const Span<bool> selection,
+                         const Span<openvdb::CoordBBox> tiles,
+                         bool set_background)
+{
+  if (set_background) {
+    set_tile_values_off<true>(grid_base, selection, tiles);
+  }
+  else {
+    set_tile_values_off<false>(grid_base, selection, tiles);
+  }
 }
 
 void set_mask_leaf_buffer_from_bools(openvdb::BoolGrid &grid,

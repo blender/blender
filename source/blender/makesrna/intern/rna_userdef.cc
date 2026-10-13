@@ -8098,11 +8098,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Remote Asset Libraries", "Enable asset libraries served over HTTP/HTTPS");
 
-  prop = RNA_def_property(srna, "use_collection_importer", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_ui_text(
-      prop, "Collection Import", "Enables a file importer to be configured on a Collection");
-  RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
-
   prop = RNA_def_property(srna, "use_extensions_debug", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop,
@@ -8352,6 +8347,14 @@ void RNA_def_userdef(BlenderRNA *brna)
       prop,
       "Auto-save Project",
       "Save projects automatically on exit and when saving or switching blend files");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "use_project_remember", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "pref_flag", USER_PREF_FLAG_PROJECT_REMEMBER);
+  RNA_def_property_ui_text(
+      prop,
+      "Remember Last Project",
+      "On startup, automatically re-open the project that was last open when Blender was closed");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);

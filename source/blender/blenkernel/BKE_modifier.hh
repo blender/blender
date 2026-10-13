@@ -249,18 +249,16 @@ struct ModifierTypeInfo {
                           MutableSpan<float3x3> matrices);
   /**
    * Like deform_verts but called during edit-mode if supported. The \a mesh argument might be a
-   * wrapper around edit BMesh data.
+   * wrapper around edit BMesh data (#ME_WRAPPER_TYPE_BMESH).
    */
   void (*deform_verts_EM)(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          const BMEditMesh *em,
                           Mesh *mesh,
                           MutableSpan<float3> positions);
 
   /** Set deform matrix per vertex for crazy-space correction. */
   void (*deform_matrices_EM)(ModifierData *md,
                              const ModifierEvalContext *ctx,
-                             const BMEditMesh *em,
                              Mesh *mesh,
                              MutableSpan<float3> positions,
                              MutableSpan<float3x3> matrices);
@@ -629,7 +627,6 @@ bool BKE_modifier_deform_verts(ModifierData *md,
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  const ModifierEvalContext *ctx,
-                                 const BMEditMesh *em,
                                  Mesh *mesh,
                                  MutableSpan<float3> positions);
 

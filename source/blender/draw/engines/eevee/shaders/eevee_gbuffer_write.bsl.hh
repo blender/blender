@@ -109,7 +109,10 @@ ClosurePacking pack_closure(const PackParameters &srt, ClosureUndetermined cl)
         gbuffer::Subsurface::pack_additional(cl_packed, cl);
       }
       break;
-    default:
+    case GBUF_DIFFUSE:
+    case GBUF_UNLIT:
+    case GBUF_TRANSLUCENT:
+    case GBUF_NONE:
       break;
   }
   return cl_packed;

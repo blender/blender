@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
+"POT-Creation-Date: 2026-10-12 07:32+0000\n"
 "PO-Revision-Date: 2026-07-08 11:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -1538,6 +1538,10 @@ msgstr "Aangepast"
 
 msgid "Show assets from the asset libraries configured in the Preferences"
 msgstr "Toon assets van de asset-bibliotheek ingesteld in Voorkeuren"
+
+
+msgid "User Library"
+msgstr "Gebruikersbibliotheek"
 
 
 msgid "User Asset Libraries"
@@ -5764,24 +5768,56 @@ msgid "Dots"
 msgstr "Stippen"
 
 
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
+
+
 msgid "Show/Hide"
 msgstr "Toon/Verberg"
+
+
+msgid "Hooks"
+msgstr "Haken"
 
 
 msgid "Local View"
 msgstr "Lokale Scherm"
 
 
-msgid "Light"
-msgstr "Licht"
+msgid "Convert"
+msgstr "Converteer"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
+msgid "Import"
+msgstr "Importeren"
+
+
+msgid "Layout"
+msgstr "Indeling"
+
+
+msgid "Linked"
+msgstr "Gekoppeld"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
 
 
 msgid "Names"
 msgstr "Namen"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
+
+
+msgid "Mirror"
+msgstr "Spiegel"
 
 
 msgid "Select Linked"
@@ -5792,38 +5828,6 @@ msgid "Select Similar"
 msgstr "Selecteer Vergelijkbaar"
 
 
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Import"
-msgstr "Importeren"
-
-
-msgid "Linked"
-msgstr "Gekoppeld"
-
-
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
 msgid "Relations"
 msgstr "Relaties"
 
@@ -5832,8 +5836,8 @@ msgid "Add Image"
 msgstr "Voeg Afbeelding Toe"
 
 
-msgid "Layout"
-msgstr "Indeling"
+msgid "Rigid Body"
+msgstr "Star Lichaam"
 
 
 msgctxt "MovieClip"
@@ -6918,6 +6922,10 @@ msgstr "Zoom Uit"
 msgctxt "Operator"
 msgid "Export"
 msgstr "Exporteren"
+
+
+msgid "Filepath"
+msgstr "Bestandspad"
 
 
 msgctxt "Operator"
@@ -8946,10 +8954,6 @@ msgstr "Vind Volgende"
 msgctxt "Operator"
 msgid "Jump"
 msgstr "Spring"
-
-
-msgid "Filepath"
-msgstr "Bestandspad"
 
 
 msgctxt "Operator"
@@ -11723,10 +11727,6 @@ msgid "Apply"
 msgstr "Toevoegen"
 
 
-msgid "User Library"
-msgstr "Gebruikersbibliotheek"
-
-
 msgid "Documents"
 msgstr "Documenten"
 
@@ -12053,10 +12053,6 @@ msgstr "Nieuw"
 msgctxt "World"
 msgid "New"
 msgstr "Nieuw"
-
-
-msgid "File Not Found"
-msgstr "Bestand Niet Gevonden"
 
 
 msgid "Today"
@@ -12460,6 +12456,10 @@ msgstr "Opslaan Als..."
 
 msgid "Don't Save"
 msgstr "Niet Opslaan"
+
+
+msgid "File Not Found"
+msgstr "Bestand Niet Gevonden"
 
 
 msgid "unable to open the file"

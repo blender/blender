@@ -46,6 +46,21 @@ static const EnumPropertyItem popup_draw_direction_items[] = {
      "Draw popup panel to the side of the button"},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+static const EnumPropertyItem recent_files_filter_items[] = {
+    {int(ui::RecentFilesFilter::All), "ALL", 0, "All", "All recent files"},
+    {int(ui::RecentFilesFilter::Project),
+     "PROJECT",
+     0,
+     "Project",
+     "Recent files in the active project"},
+    {int(ui::RecentFilesFilter::Other),
+     "OTHER",
+     0,
+     "Other",
+     "Recent files not in the active project"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 }  // namespace blender
 
 enum class TextAlignAnchor : int {
@@ -1318,6 +1333,14 @@ PointerRNA rna_uiTemplatePopupConfirm(Layout *layout,
         layout, ot, text_str, cancel_text_str, icon, cancel_default, &opptr);
   }
   return opptr;
+}
+
+static int rna_uiTemplateRecentFiles(ui::Layout *layout,
+                                     const int rows,
+                                     const int filter,
+                                     const float project_ratio)
+{
+  return ui::template_recent_files(layout, rows, ui::RecentFilesFilter(filter), project_ratio);
 }
 
 }  // namespace blender
@@ -2646,11 +2669,38 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   api_ui_item_rna_common(func);
 
-  func = RNA_def_function(srna, "template_recent_files", "template_recent_files");
-  RNA_def_function_ui_description(func, "Show list of recently saved .blend files");
+  func = RNA_def_function(srna, "template_recent_files", "rna_uiTemplateRecentFiles");
+  RNA_def_function_ui_description(
+      func, "Show list of recently saved .blend files, with active project files first");
+  RNA_def_int(func, "rows", 6, 1, INT_MAX, "", "Maximum number of items to show", 1, INT_MAX);
+  RNA_def_enum(func,
+               "filter",
+               recent_files_filter_items,
+               int(ui::RecentFilesFilter::All),
+               "",
+               "Files to show, with rows distributed as if showing all files");
+  RNA_def_float_factor(func,
+                       "project_ratio",
+                       0.5f,
+                       0.0f,
+                       1.0f,
+                       "",
+                       "Ratio of rows reserved for project files, relative to other recent files",
+                       0.0f,
+                       1.0f);
+  parm = RNA_def_int(func, "found", 0, 0, INT_MAX, "", "Number of items drawn", 0, INT_MAX);
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "template_recent_projects", "template_recent_projects");
+  RNA_def_function_ui_description(func, "Show list of recently opened projects");
   RNA_def_int(func, "rows", 6, 1, INT_MAX, "", "Maximum number of items to show", 1, INT_MAX);
   parm = RNA_def_int(func, "found", 0, 0, INT_MAX, "", "Number of items drawn", 0, INT_MAX);
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "template_project_splash", "template_project_splash");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  RNA_def_function_ui_description(
+      func, "Show the splash artwork of the active project, with buttons to set and clear it");
 
   func = RNA_def_function(srna, "template_file_select_path", "template_file_select_path");
   RNA_def_function_ui_description(func,

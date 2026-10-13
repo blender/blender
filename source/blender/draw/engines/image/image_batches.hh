@@ -33,16 +33,16 @@ class BatchUpdater {
  private:
   void ensure_clear_batch()
   {
-    GPU_BATCH_CLEAR_SAFE(info.batch);
+    draw::Batch::clear(info.batch.get());
     if (info.batch == nullptr) {
-      info.batch = GPU_batch_calloc();
+      info.batch = make_batch(GPU_batch_calloc());
     }
   }
 
   void init_batch()
   {
     gpu::VertBuf *vbo = create_vbo();
-    GPU_batch_init_ex(info.batch, GPU_PRIM_TRI_FAN, vbo, nullptr, GPU_BATCH_OWNS_VBO);
+    GPU_batch_init_ex(info.batch->gpu_batch(), GPU_PRIM_TRI_FAN, vbo, nullptr, GPU_BATCH_OWNS_VBO);
   }
 
   template<typename DataType, typename RectType>

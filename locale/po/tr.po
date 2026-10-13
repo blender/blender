@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
+"POT-Creation-Date: 2026-10-12 07:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -1594,12 +1594,20 @@ msgid "Show assets from the asset libraries configured in the Preferences"
 msgstr "Tercihler'de yapılandırılan varlık kitaplıklarından varlıkları göster"
 
 
+msgid "User Library"
+msgstr "Kullanıcı Kütüphanesi"
+
+
 msgid "User Asset Libraries"
 msgstr "Kullanıcı Varlık Kütüphaneleri"
 
 
 msgid "Collection of user asset libraries"
 msgstr "Kullanıcı varlık kütüphanelerinin koleksiyonu"
+
+
+msgid "Active Asset Library"
+msgstr "Aktif Varlık Kütüphanesi"
 
 
 msgid "Asset Library Reference"
@@ -3541,10 +3549,6 @@ msgstr "Blendfile İçe Aktarma Bağlam Kitaplıkları"
 
 msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Kaynak kitaplıkların koleksiyonu, i.n. blend dosya yolları"
-
-
-msgid "Active Asset Library"
-msgstr "Aktif Varlık Kütüphanesi"
 
 
 msgid "Dirty"
@@ -24255,6 +24259,10 @@ msgid "Only show add-ons"
 msgstr "Sadece eklentileri göster"
 
 
+msgid "Asset Libraries"
+msgstr "Varlık Kütüphaneleri"
+
+
 msgid "Themes"
 msgstr "Temalar"
 
@@ -28699,180 +28707,56 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
-
-
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
-
-
-msgid "Write"
-msgstr "Yazmak"
-
-
-msgid "Read"
-msgstr "Okumak"
+msgid "Light"
+msgstr "Işık"
 
 
 msgid "Metaball"
 msgstr "Metabol"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Orantılı Düzenleme Düşüşü"
-
-
-msgid "Snap"
-msgstr "Yakala"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
-
-
 msgid "Select More/Less"
 msgstr "Daha Fazla/Daha Az Seç"
 
 
-msgid "Select Loops"
-msgstr "Döngüleri Seç"
+msgid "View Regions"
+msgstr "Bölgeleri Görüntüle"
 
 
-msgid "Sample"
-msgstr "Örnek"
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
 
 
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
+msgid "Align View"
+msgstr "Görünümü hizala"
 
 
-msgid "Random Mask"
-msgstr "Rastgele Maske"
-
-
-msgid "Face Sets Init"
-msgstr "Yüz Setleri Başlatma"
-
-
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Heykel Seti Pivot"
+msgid "Read"
+msgstr "Okumak"
 
 
 msgid "Clean Up"
 msgstr "Temizle"
 
 
-msgid "Trim/Add"
-msgstr "Kırp/Ekle"
+msgid "Math"
+msgstr "Matematik"
 
 
-msgid "Light Probe"
-msgstr "Işık Sondası"
+msgid "Navigation"
+msgstr "Navigasyon"
 
 
-msgid "Local View"
-msgstr "Yerel Görünüm"
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
 
 
-msgid "Primitives"
-msgstr "İlkel"
+msgid "Write"
+msgstr "Yazmak"
 
 
-msgid "UV Mapping"
-msgstr "UV Haritalama"
-
-
-msgid "Light"
-msgstr "Işık"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Grup Kilitleri"
-
-
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
-msgid "Apply"
-msgstr "Uygula"
-
-
-msgid "Face Sets Edit"
-msgstr "Yüz Setleri Düzenle"
-
-
-msgid "Merge"
-msgstr "Birleştir"
-
-
-msgid "Automasking"
-msgstr "Otomatik maskeleme"
-
-
-msgid "Mask Edit"
-msgstr "Maske Düzenleme"
-
-
-msgid "Tracking"
-msgstr "Takip"
-
-
-msgid "Toggle Bone Options"
-msgstr "Kemik Seçeneklerini Değiştir"
-
-
-msgid "Names"
-msgstr "Adlar"
-
-
-msgid "Assign Material"
-msgstr "Malzeme Atamak"
-
-
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
-
-
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
-
-
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
-
-
-msgid "Bone Collections"
-msgstr "Kemik Koleksiyonları"
-
-
-msgid "Select Linked"
-msgstr "Bağlantılıyı Seç"
-
-
-msgid "Propagate"
-msgstr "Yaymak"
-
-
-msgid "Select All by Trait"
-msgstr "Özelliğe Göre Tümünü Seç"
-
-
-msgid "In-Betweens"
-msgstr "Arada Kalanlar"
-
-
-msgid "Select Similar"
-msgstr "Benzerini Seç"
-
-
-msgid "Clear Transform"
-msgstr "Temizle Dönüşüm"
+msgid "Viewpoint"
+msgstr "Bakış açısı"
 
 
 msgid "Hooks"
@@ -28883,92 +28767,208 @@ msgid "Link/Transfer Data"
 msgstr "Veriyi Bağlantıla/Aktar"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Primitives"
+msgstr "İlkel"
+
+
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
+
+
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
+
+
+msgid "Local View"
+msgstr "Yerel Görünüm"
 
 
 msgid "Convert"
 msgstr "Çevir"
 
 
-msgid "View Regions"
-msgstr "Bölgeleri Görüntüle"
-
-
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Make Single User"
-msgstr "Tek Kullanıcı Yap"
-
-
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
 msgid "Set Face Strength"
 msgstr "Yüz Gücünü Ayarla"
-
-
-msgid "Asset"
-msgstr "Varlık"
-
-
-msgid "Keying"
-msgstr "Anahtarlama"
-
-
-msgid "Align View"
-msgstr "Görünümü hizala"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Adjust"
-msgstr "Ayarlamak"
 
 
 msgid "Select by Face Strength"
 msgstr "Yüz Gücüne Göre Seç"
 
 
-msgid "Navigation"
-msgstr "Navigasyon"
+msgid "Face Data"
+msgstr "Yüz Verileri"
+
+
+msgid "Make Single User"
+msgstr "Tek Kullanıcı Yap"
 
 
 msgid "Import"
 msgstr "İçe Aktar"
 
 
+msgid "Sample"
+msgstr "Örnek"
+
+
+msgid "Asset"
+msgstr "Varlık"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Layout"
+msgstr "Yerleşim"
+
+
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
 msgid "Linked"
 msgstr "Bağlantılı"
 
 
-msgid "Rigid Body"
-msgstr "Sert Gövde"
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
 
 
-msgid "Viewpoint"
-msgstr "Bakış açısı"
+msgid "Quick Effects"
+msgstr "Hızlı Etkiler"
+
+
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
+
+
+msgid "Toggle Bone Options"
+msgstr "Kemik Seçeneklerini Değiştir"
+
+
+msgid "Instances"
+msgstr "Örnekler"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Apply"
+msgstr "Uygula"
+
+
+msgid "Names"
+msgstr "Adlar"
+
+
+msgid "Bone Collections"
+msgstr "Kemik Koleksiyonları"
+
+
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
+msgid "Adjust"
+msgstr "Ayarlamak"
+
+
+msgid "Light Probe"
+msgstr "Işık Sondası"
+
+
+msgid "Propagate"
+msgstr "Yaymak"
+
+
+msgid "In-Betweens"
+msgstr "Arada Kalanlar"
+
+
+msgid "UV Mapping"
+msgstr "UV Haritalama"
+
+
+msgid "Clear Transform"
+msgstr "Temizle Dönüşüm"
+
+
+msgid "Snap"
+msgstr "Yakala"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
+msgid "Assign Material"
+msgstr "Malzeme Atamak"
+
+
+msgid "Random Mask"
+msgstr "Rastgele Maske"
+
+
+msgid "Face Sets Init"
+msgstr "Yüz Setleri Başlatma"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Heykel Seti Pivot"
+
+
+msgid "Mask Edit"
+msgstr "Maske Düzenleme"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Grup Kilitleri"
+
+
+msgid "Trim/Add"
+msgstr "Kırp/Ekle"
+
+
+msgid "Select Loops"
+msgstr "Döngüleri Seç"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
+
+
+msgid "Face Sets Edit"
+msgstr "Yüz Setleri Düzenle"
+
+
+msgid "Select Linked"
+msgstr "Bağlantılıyı Seç"
+
+
+msgid "Automasking"
+msgstr "Otomatik maskeleme"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Orantılı Düzenleme Düşüşü"
 
 
 msgid "Track"
 msgstr "İzlemek"
 
 
-msgid "Face Data"
-msgstr "Yüz Verileri"
+msgid "Select All by Trait"
+msgstr "Özelliğe Göre Tümünü Seç"
 
 
-msgid "Quick Effects"
-msgstr "Hızlı Etkiler"
+msgid "Select Similar"
+msgstr "Benzerini Seç"
 
 
 msgid "Relations"
@@ -28979,12 +28979,20 @@ msgid "Add Image"
 msgstr "Resim Ekle"
 
 
-msgid "Instances"
-msgstr "Örnekler"
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
 
 
-msgid "Layout"
-msgstr "Yerleşim"
+msgid "Tracking"
+msgstr "Takip"
+
+
+msgid "Rigid Body"
+msgstr "Sert Gövde"
+
+
+msgid "Merge"
+msgstr "Birleştir"
 
 
 msgid "Keyframe Insert Pie"
@@ -48975,6 +48983,10 @@ msgid "Remove Exporter"
 msgstr "İhracatçıyı Kaldır"
 
 
+msgid "Filepath"
+msgstr "Dosya yolu"
+
+
 msgid "The collection to add other selected objects to"
 msgstr "Diğer seçili nesneleri eklemek için koleksiyon"
 
@@ -49901,10 +49913,6 @@ msgstr "Zaman Kaydırağı"
 
 msgid "Time Extend"
 msgstr "Zaman Uzatma"
-
-
-msgid "Bake Time"
-msgstr "Pişirme Süresi"
 
 
 msgid "Edge Slide"
@@ -50886,8 +50894,8 @@ msgid "Export visible objects only"
 msgstr "Yalnızca görünür nesneleri dışa aktar"
 
 
-msgid "Export at Collection Center"
-msgstr "Toplama Merkezinde İhracat"
+msgid "Center of Mass"
+msgstr "Kütle Merkezi"
 
 
 msgid "Filter Actions to be exported"
@@ -51474,6 +51482,14 @@ msgid "Store glTF export settings in the Blender project"
 msgstr "glTF dışa aktarma ayarlarını Blender projesinde saklayın"
 
 
+msgid "Package ID"
+msgstr "Paket Kimliği"
+
+
+msgid "Repo Index"
+msgstr "Repo Endeksi"
+
+
 msgid "Do Legacy Replace"
 msgstr "Miras Yerine Geçer mi"
 
@@ -51484,14 +51500,6 @@ msgstr "Kurulumda Etkinleştir"
 
 msgid "Enable after installing"
 msgstr "Kurulumdan sonra etkinleştir"
-
-
-msgid "Package ID"
-msgstr "Paket Kimliği"
-
-
-msgid "Repo Index"
-msgstr "Repo Endeksi"
 
 
 msgid "URL"
@@ -67093,10 +67101,6 @@ msgid "Edit and save themes installed via Extensions"
 msgstr "Eklentiler aracılığıyla yüklenen temaları düzenleyin ve kaydedin"
 
 
-msgid "Asset Libraries"
-msgstr "Varlık Kütüphaneleri"
-
-
 msgid "Keymap"
 msgstr "Tuş Haritası"
 
@@ -68199,12 +68203,12 @@ msgid "Allow Overlap"
 msgstr "Çakışmaya İzin Ver"
 
 
-msgid "Override Overlap Shuffle Behavior"
-msgstr "Üst üste binme karıştırma davranışını geçersiz kıl"
+msgid "Overlap Mode"
+msgstr "Üst üste binme modu"
 
 
-msgid "Use the overlap_mode tool settings to determine how to shuffle overlapping strips"
-msgstr "Çakışan şeritlerin nasıl karıştırılacağını belirlemek için overlap_mode aracı ayarlarını kullanın"
+msgid "Shuffle"
+msgstr "Karıştır"
 
 
 msgid "Replace Selection"
@@ -69010,20 +69014,12 @@ msgid "Split the selected strips in two"
 msgstr "Seçilen şeritleri ikiye bölün"
 
 
-msgid "Channel in which strip will be cut"
-msgstr "Şeridin kesileceği kanal"
-
-
 msgid "Frame where selected strips will be split"
 msgstr "Seçilen şeritlerin bölüneceği çerçeve"
 
 
 msgid "The side that remains selected after splitting"
 msgstr "Bölünmeden sonra seçili kalan taraf"
-
-
-msgid "Split at position of the cursor instead of current frame"
-msgstr "Geçerli çerçeve yerine imlecin konumundan bölün"
 
 
 msgid "Set a color tag for the selected strips"
@@ -69660,10 +69656,6 @@ msgid "Column to jump to"
 msgstr "Atlamak için sütun"
 
 
-msgid "Filepath"
-msgstr "Dosya yolu"
-
-
 msgid "Line to jump to"
 msgstr "Atlamak için satır"
 
@@ -70193,6 +70185,10 @@ msgstr "Dönüşüm yönünü seçin"
 msgctxt "Operator"
 msgid "Sequence Slide"
 msgstr "Sıra Slaytı"
+
+
+msgid "How to resolve overlap after transformation"
+msgstr "Dönüşümden sonra örtüşme nasıl çözülür"
 
 
 msgid "Restore Handle Selection"
@@ -75368,60 +75364,24 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
-msgid "Render Pass"
-msgstr "Render Geçişi"
+msgid "glTF Material Variants"
+msgstr "glTF Malzeme Varyantları"
 
 
-msgid "Shadow Settings"
-msgstr "Gölge Ayarları"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
-
-
-msgid "Auto-Masking"
-msgstr "Otomatik Maskeleme"
-
-
-msgid "View Lock"
-msgstr "Görünüm Kilidi"
-
-
-msgid "Active Tool"
-msgstr "Etkin Araç"
-
-
-msgid "Curve Edit Mode"
-msgstr "Eğri Düzenleme Modu"
-
-
-msgid "Measurement"
-msgstr "Ölçüm"
+msgid "Quad View"
+msgstr "Dörtlü Görünüm"
 
 
 msgid "glTF Variants"
 msgstr "glTF Çeşitleri"
 
 
-msgid "glTF Material Variants"
-msgstr "glTF Malzeme Varyantları"
-
-
-msgid "Guides"
-msgstr "Rehberler"
+msgid "Measurement"
+msgstr "Ölçüm"
 
 
 msgid "Mesh Edit Mode"
 msgstr "Mesh Düzenleme Modu"
-
-
-msgid "Motion Tracking"
-msgstr "Hareket İzleme"
-
-
-msgid "Viewer Node"
-msgstr "Görüntüleyici Düğümü"
 
 
 msgid "VR"
@@ -75432,40 +75392,48 @@ msgid "VR Info"
 msgstr "VR Bilgisi"
 
 
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Eğriler Şekil Parametresi Düşüşü"
+msgid "Selectability & Visibility"
+msgstr "Seçilebilirlik ve Görünürlük"
 
 
-msgid "Stereoscopy"
-msgstr "Stereoskopi"
+msgid "Auto-Masking"
+msgstr "Otomatik Maskeleme"
 
 
-msgid "Onion Skin"
-msgstr "Soğan Kabuğu"
-
-
-msgid "Quad View"
-msgstr "Dörtlü Görünüm"
+msgid "Active Tool"
+msgstr "Etkin Araç"
 
 
 msgid "Multi Frame"
 msgstr "Çoklu Çerçeve"
 
 
-msgid "Drawing Plane"
-msgstr "Çizim düzlemi"
-
-
-msgid "Stroke Placement"
-msgstr "İnme Yerleşimi"
+msgid "Stereoscopy"
+msgstr "Stereoskopi"
 
 
 msgid "Transform Orientations"
 msgstr "Dönüştürme Yönlendirmeleri"
 
 
-msgid "Overlays"
-msgstr "Kaplamalar"
+msgid "Onion Skin"
+msgstr "Soğan Kabuğu"
+
+
+msgid "Motion Tracking"
+msgstr "Hareket İzleme"
+
+
+msgid "Viewer Node"
+msgstr "Görüntüleyici Düğümü"
+
+
+msgid "Stroke Placement"
+msgstr "İnme Yerleşimi"
+
+
+msgid "Drawing Plane"
+msgstr "Çizim düzlemi"
 
 
 msgid "Cavity"
@@ -75476,16 +75444,44 @@ msgid "SSAO Settings"
 msgstr "SSAO Ayarları"
 
 
-msgid "Selectability & Visibility"
-msgstr "Seçilebilirlik ve Görünürlük"
+msgid "Guides"
+msgstr "Rehberler"
+
+
+msgid "Shadow Settings"
+msgstr "Gölge Ayarları"
+
+
+msgid "Curve Edit Mode"
+msgstr "Eğri Düzenleme Modu"
+
+
+msgid "View Lock"
+msgstr "Görünüm Kilidi"
 
 
 msgid "Viewport Debug"
 msgstr "Görüş Alanı Hata Ayıklaması"
 
 
+msgid "Overlays"
+msgstr "Kaplamalar"
+
+
 msgid "Curves Grow/Shrink Scaling"
 msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Eğriler Şekil Parametresi Düşüşü"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
+
+
+msgid "Render Pass"
+msgstr "Render Geçişi"
 
 
 msgid "Chain Scaling"
@@ -79586,6 +79582,10 @@ msgid "VBO Time Out"
 msgstr "VBO Zaman Aşımı"
 
 
+msgid "CUDA"
+msgstr "CUDA"
+
+
 msgid "Viewport Anti-Aliasing"
 msgstr "Görünüm Alanı Kenar Yumuşatma"
 
@@ -80572,10 +80572,6 @@ msgstr "Kardinal eğri kesişiminde kullanılan alt bölüm sayısı (2'nin kuvv
 
 msgid "CPU"
 msgstr "İşlemci"
-
-
-msgid "CUDA"
-msgstr "CUDA"
 
 
 msgid "OptiX"
@@ -84979,30 +84975,6 @@ msgid "Scale fit method"
 msgstr "Ölçek uyum yöntemi"
 
 
-msgid "Overlap Mode"
-msgstr "Üst üste binme modu"
-
-
-msgid "How to resolve overlap after transformation"
-msgstr "Dönüşümden sonra örtüşme nasıl çözülür"
-
-
-msgid "Move strips so transformed strips fit"
-msgstr "Dönüştürülen şeritlerin uyması için şeritleri hareket ettirin"
-
-
-msgid "Trim or split strips to resolve overlap"
-msgstr "Çakışmayı gidermek için şeritleri kesin veya bölün"
-
-
-msgid "Shuffle"
-msgstr "Karıştır"
-
-
-msgid "Move transformed strips to nearest free space to resolve overlap"
-msgstr "Çakışmayı çözmek için dönüştürülen şeritleri en yakın boş alana taşıyın"
-
-
 msgid "Rotation or scaling pivot point"
 msgstr "Döndürme veya ölçekleme pivot noktası"
 
@@ -85606,10 +85578,6 @@ msgstr "Yerçekimi"
 
 msgid "Apply gravitation to point movement"
 msgstr "Nokta hareketine yer çekimini uygulayın"
-
-
-msgid "Center of Mass"
-msgstr "Kütle Merkezi"
 
 
 msgid "Location of center of mass"
@@ -87352,10 +87320,6 @@ msgstr "Zebra çizgileriyle aşırı pozlanmış alanları gösterin"
 
 msgid "Show Overlays"
 msgstr "Kaplamaları Göster"
-
-
-msgid "Transform Preview"
-msgstr "Dönüştürme Önizlemesi"
 
 
 msgid "Limit View to Contents"
@@ -97244,10 +97208,6 @@ msgid "Enable online access in System preferences"
 msgstr "Sistem tercihlerinde çevrimiçi erişimi etkinleştirin"
 
 
-msgid "Theme \"{:s}\" is already installed!"
-msgstr "\"{:s}\" teması zaten kurulu!"
-
-
 msgid "Name: {:s}"
 msgstr "İsim: {:s}"
 
@@ -97278,6 +97238,10 @@ msgstr "Depo: {:s}"
 
 msgid "Size: {:s}"
 msgstr "Boyut: {:s}"
+
+
+msgid "Theme \"{:s}\" is already installed!"
+msgstr "\"{:s}\" teması zaten kurulu!"
 
 
 msgid "Age: {:s}"
@@ -103111,10 +103075,6 @@ msgid "Set Preview Range to Strips"
 msgstr "Önizleme Aralığını Şeritlere Ayarla"
 
 
-msgid "Preview During Transform"
-msgstr "Dönüşüm Sırasında Önizleme"
-
-
 msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Pencerede Önizleme Sığdır"
@@ -106309,10 +106269,6 @@ msgid "Named Layer node"
 msgstr "Adlandırılmış Katman düğümü"
 
 
-msgid "User Library"
-msgstr "Kullanıcı Kütüphanesi"
-
-
 msgid "Attempt to set action on non-animatable ID"
 msgstr "Canlandırılamayan kimlik üzerinde eylem ayarlama girişimi"
 
@@ -109294,10 +109250,6 @@ msgid "Operator cannot redo"
 msgstr "Operatör yeniden yapamıyor"
 
 
-msgid "File Not Found"
-msgstr "Dosya Bulunamadı"
-
-
 msgid "Today"
 msgstr "Bugün"
 
@@ -112009,10 +111961,6 @@ msgid "Catalog is already placed inside this catalog"
 msgstr "Katalog zaten bu kataloğun içine yerleştirilmiş"
 
 
-msgid "Only assets from this current file can be moved between catalogs"
-msgstr "Yalnızca bu geçerli dosyadaki varlıklar kataloglar arasında taşınabilir"
-
-
 msgid "Catalogs cannot be edited in this asset library"
 msgstr "Bu varlık kütüphanesinde kataloglar düzenlenemez"
 
@@ -112958,10 +112906,6 @@ msgid "Restrict editing of strokes and keyframes in this layer"
 msgstr "Bu katmandaki vuruşların ve anahtar karelerin düzenlenmesini kısıtla"
 
 
-msgid "Number of users"
-msgstr "Kullanıcı sayısı"
-
-
 msgid "Item is protected from deletion"
 msgstr "Öğe silinmeye karşı korunuyor"
 
@@ -112980,6 +112924,10 @@ msgstr "Silinmeye karşı koruma eklemek için tıklayın"
 
 msgid "Item has no users and will be removed"
 msgstr "Öğenin kullanıcısı yok ve kaldırılacak"
+
+
+msgid "Number of users"
+msgstr "Kullanıcı sayısı"
 
 
 msgid "Another object has this shared data in edit mode"
@@ -113970,22 +113918,6 @@ msgid "Scale X: %s   Y: %s  Z: %s%s %s"
 msgstr "Ölçek X: %s Y: %s Z: %s%s %s"
 
 
-msgid "Time: +%s %s"
-msgstr "Zaman: +%s %s"
-
-
-msgid "Time: %s %s"
-msgstr "Zaman: %s %s"
-
-
-msgid "Time: +%.3f %s"
-msgstr "Zaman: +%.3f %s"
-
-
-msgid "Time: %.3f %s"
-msgstr "Zaman: %.3f %s"
-
-
 msgid "ScaleB: %s%s %s"
 msgstr "ÖlçekB: %s%s %s"
 
@@ -114020,10 +113952,6 @@ msgstr "Küçült/Şişmanlat: %s"
 
 msgid "Shrink/Fatten: %3f"
 msgstr "Küçülme/Şişmanlama: %3f"
-
-
-msgid "Sequence Slide: %s%s"
-msgstr "Sıra Slayt: %s%s"
 
 
 msgid "Snap Invert"
@@ -119766,6 +119694,10 @@ msgstr "Farklı Kaydet..."
 
 msgid "Don't Save"
 msgstr "Kaydetme"
+
+
+msgid "File Not Found"
+msgstr "Dosya Bulunamadı"
 
 
 msgid "Modified"

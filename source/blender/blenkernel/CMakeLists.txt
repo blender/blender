@@ -65,6 +65,7 @@ set(SRC
   intern/blender_cli_command.cc
   intern/blender_copybuffer.cc
   intern/blender_project.cc
+  intern/blender_project_config.cc
   intern/blender_undo.cc
   intern/blender_user_menu.cc
   intern/blendfile.cc

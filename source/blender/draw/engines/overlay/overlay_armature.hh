@@ -102,28 +102,28 @@ class Armatures : Overlay {
 
     LinePrimitiveBuf relations_buf = {SelectionType::DISABLED, "relations_buf"};
 
-    Map<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_fill;
-    Map<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_outline;
-    Map<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_wire;
-    Map<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_wire_strip;
+    Map<Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_fill;
+    Map<Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_outline;
+    Map<Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_wire;
+    Map<Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_wire_strip;
 
-    BoneInstanceBuf &custom_shape_fill_get_buffer(gpu::Batch *geom)
+    BoneInstanceBuf &custom_shape_fill_get_buffer(Batch *geom)
     {
       return *custom_shape_fill.lookup_or_add_cb(geom, [this]() {
         return std::make_unique<BoneInstanceBuf>(this->selection_type_, "CustomBoneSolid");
       });
     }
 
-    BoneInstanceBuf &custom_shape_outline_get_buffer(gpu::Batch *geom)
+    BoneInstanceBuf &custom_shape_outline_get_buffer(Batch *geom)
     {
       return *custom_shape_outline.lookup_or_add_cb(geom, [this]() {
         return std::make_unique<BoneInstanceBuf>(this->selection_type_, "CustomBoneOutline");
       });
     }
 
-    BoneInstanceBuf &custom_shape_wire_get_buffer(gpu::Batch *geom)
+    BoneInstanceBuf &custom_shape_wire_get_buffer(Batch *geom)
     {
-      if (geom->prim_type == GPU_PRIM_LINE_STRIP) {
+      if (geom->gpu_batch()->prim_type == GPU_PRIM_LINE_STRIP) {
         return *custom_shape_wire_strip.lookup_or_add_cb(geom, [this]() {
           return std::make_unique<BoneInstanceBuf>(this->selection_type_, "CustomBoneWireStrip");
         });
@@ -604,9 +604,9 @@ class Armatures : Overlay {
 
       bb.relations_buf.end_sync(*bb.relations);
 
-      using CustomShapeBuf = MutableMapItem<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>>;
+      using CustomShapeBuf = MutableMapItem<Batch *, std::unique_ptr<BoneInstanceBuf>>;
 
-      gpu::Batch *arrow_batch = res.shapes.arrows.get();
+      Batch *arrow_batch = res.shapes.arrows.get();
       for (CustomShapeBuf item : bb.custom_shape_fill.items()) {
         item.value->end_sync(*bb.shape_fill, item.key);
       }

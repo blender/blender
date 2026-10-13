@@ -240,7 +240,7 @@ float evaluate_quad(sampler2DArray util_tx, LightShape shape, LightVector lv, LT
       form_factor *= detail::form_factor_attenuation(shape, ltc_data, lv.L);
       form_factor *= detail::diffuse_sphere_integral(util_tx, avg_dir_z, form_factor);
       break;
-    default: /* LTCFormFactorType::TwoSidedCosineSphere */
+    case LTCFormFactorType::TwoSidedCosineSphere:
       form_factor *= M_1_PI;
       break;
   }
@@ -358,7 +358,7 @@ float evaluate_disk(sampler2DArray util_tx, LightShape shape, LightVector lv, LT
       form_factor *= detail::form_factor_attenuation(shape, ltc_data, lv.L);
       form_factor *= detail::diffuse_sphere_integral(util_tx, avg_dir.z, form_factor);
       break;
-    default: /* LTCFormFactorType::TwoSidedCosineSphere */
+    case LTCFormFactorType::TwoSidedCosineSphere:
       form_factor *= M_1_PI;
       break;
   }

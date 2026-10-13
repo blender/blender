@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
+"POT-Creation-Date: 2026-10-12 07:32+0000\n"
 "PO-Revision-Date: 2026-09-06 05:02+0000\n"
 "Last-Translator: Benjamin Anshin <benanshin@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -1740,10 +1740,6 @@ msgid "Edit persistent configuration settings"
 msgstr "영구 구성 설정을 편집"
 
 
-msgid "Project Setup"
-msgstr "프로젝트 설정"
-
-
 msgid "Width"
 msgstr "폭"
 
@@ -1868,12 +1864,20 @@ msgid "Show assets from the asset libraries configured in the Preferences"
 msgstr "환경설정에서 구성된 어셋 라이브러리의 어셋 표시"
 
 
+msgid "User Library"
+msgstr "사용자 라이브러리"
+
+
 msgid "User Asset Libraries"
 msgstr "사용자 어셋 라이브러리"
 
 
 msgid "Collection of user asset libraries"
 msgstr "사용자 어셋 라이브러리 컬렉션"
+
+
+msgid "Active Asset Library"
+msgstr "활성 어셋 라이브러리"
 
 
 msgid "Asset Library Reference"
@@ -4162,10 +4166,6 @@ msgstr "Blend 파일 컨텍스트 라이브러리 가져오기"
 
 msgid "Blender Project"
 msgstr "Blender 프로젝트"
-
-
-msgid "Active Asset Library"
-msgstr "활성 어셋 라이브러리"
 
 
 msgid "Project Asset Libraries"
@@ -29984,6 +29984,10 @@ msgid "Only show add-ons"
 msgstr "애드온만 표시"
 
 
+msgid "Asset Libraries"
+msgstr "어셋 라이브러리"
+
+
 msgid "Themes"
 msgstr "테마"
 
@@ -35007,184 +35011,56 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
-msgid "Deprecated"
-msgstr "사용 중단"
-
-
-msgid "Utilities"
-msgstr "유틸리티"
-
-
-msgid "Write"
-msgstr "쓰기"
-
-
-msgid "Read"
-msgstr "읽기"
+msgid "Light"
+msgstr "라이트"
 
 
 msgid "Metaball"
 msgstr "메타볼"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
-
-
-msgid "Snap"
-msgstr "스냅"
-
-
-msgid "Pivot Point"
-msgstr "피벗 포인트"
-
-
 msgid "Select More/Less"
 msgstr "선택 증가/감소"
 
 
-msgid "Select Loops"
-msgstr "루프를 선택"
+msgid "View Regions"
+msgstr "뷰 지역"
 
 
-msgid "Sample"
-msgstr "샘플"
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
 
 
-msgid "Bone Roll"
-msgstr "뼈대 롤"
+msgid "Align View"
+msgstr "뷰를 정렬"
 
 
-msgid "Random Mask"
-msgstr "랜덤 마스크"
-
-
-msgid "Face Sets Init"
-msgstr "페이스 세트 초기화"
-
-
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "스컬프트 설정 피벗"
+msgid "Read"
+msgstr "읽기"
 
 
 msgid "Clean Up"
 msgstr "정리"
 
 
-msgid "Trim/Add"
-msgstr "트림/추가"
+msgid "Math"
+msgstr "수학"
 
 
-msgid "Render Preview"
-msgstr "렌더링 미리보기"
+msgid "Navigation"
+msgstr "네비게이션"
 
 
-msgid "Light Probe"
-msgstr "라이트 프로브"
+msgid "Show/Hide"
+msgstr "표시/숨기기"
 
 
-msgid "Local View"
-msgstr "로컬 뷰"
+msgid "Write"
+msgstr "쓰기"
 
 
-msgid "Primitives"
-msgstr "프리미티브"
-
-
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Vertex Group Locks"
-msgstr "버텍스 그룹 잠금"
-
-
-msgid "Mirror"
-msgstr "미러"
-
-
-msgid "Apply"
-msgstr "적용"
-
-
-msgid "Face Sets Edit"
-msgstr "페이스 세트 편집"
-
-
-msgid "Merge"
-msgstr "병합"
-
-
-msgid "Automasking"
-msgstr "오토마스킹"
-
-
-msgid "Mask Edit"
-msgstr "마스크 편집"
-
-
-msgid "Tracking"
-msgstr "트래킹"
-
-
-msgid "Toggle Bone Options"
-msgstr "뼈대 옵션을 토글"
-
-
-msgid "Names"
-msgstr "이름"
-
-
-msgid "Assign Material"
-msgstr "머티리얼을 할당"
-
-
-msgid "Mesh Select Mode"
-msgstr "메시 선택 모드"
-
-
-msgid "Disable Bone Options"
-msgstr "뼈대 옵션을 사용 중지"
-
-
-msgid "Enable Bone Options"
-msgstr "뼈대 옵션을 사용"
-
-
-msgid "Bone Collections"
-msgstr "뼈대 컬렉션"
-
-
-msgid "Select Linked"
-msgstr "연결된 선택"
-
-
-msgid "Propagate"
-msgstr "전파"
-
-
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
-
-
-msgid "In-Betweens"
-msgstr "사이에서"
-
-
-msgid "Select Similar"
-msgstr "유사한 선택"
-
-
-msgid "Clear Transform"
-msgstr "변환을 지우기"
+msgid "Viewpoint"
+msgstr "뷰포트"
 
 
 msgid "Hooks"
@@ -35195,96 +35071,220 @@ msgid "Link/Transfer Data"
 msgstr "데이터 연결/전송"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Primitives"
+msgstr "프리미티브"
+
+
+msgid "Deprecated"
+msgstr "사용 중단"
+
+
+msgid "Utilities"
+msgstr "유틸리티"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
 
 
 msgid "Convert"
 msgstr "변환"
 
 
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Math"
-msgstr "수학"
-
-
-msgid "Make Single User"
-msgstr "싱글 유저를 만들기"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
 msgid "Set Face Strength"
 msgstr "페이스 강도를 설정"
-
-
-msgid "Asset"
-msgstr "에셋"
-
-
-msgid "Keying"
-msgstr "키잉"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Adjust"
-msgstr "조정"
 
 
 msgid "Select by Face Strength"
 msgstr "페이스 강도로 선택"
 
 
-msgid "Navigation"
-msgstr "네비게이션"
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Make Single User"
+msgstr "싱글 유저를 만들기"
 
 
 msgid "Import"
 msgstr "가져오기"
 
 
+msgid "Sample"
+msgstr "샘플"
+
+
+msgid "Asset"
+msgstr "에셋"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Layout"
+msgstr "레이아웃"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
 msgid "Linked"
 msgstr "연결됨"
-
-
-msgid "Rigid Body"
-msgstr "리지드 바디"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
-msgid "Track"
-msgstr "트랙"
 
 
 msgid "Creative"
 msgstr "크리에이티브"
 
 
-msgid "Face Data"
-msgstr "페이스 데이터"
+msgid "Mesh Select Mode"
+msgstr "메시 선택 모드"
 
 
 msgid "Quick Effects"
 msgstr "빠른 이펙트"
+
+
+msgid "Disable Bone Options"
+msgstr "뼈대 옵션을 사용 중지"
+
+
+msgid "Enable Bone Options"
+msgstr "뼈대 옵션을 사용"
+
+
+msgid "Toggle Bone Options"
+msgstr "뼈대 옵션을 토글"
+
+
+msgid "Instances"
+msgstr "인스턴스"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Gizmo"
+msgstr "기즈모"
+
+
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Names"
+msgstr "이름"
+
+
+msgid "Bone Collections"
+msgstr "뼈대 컬렉션"
+
+
+msgid "Keying"
+msgstr "키잉"
+
+
+msgid "Adjust"
+msgstr "조정"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "Propagate"
+msgstr "전파"
+
+
+msgid "In-Betweens"
+msgstr "사이에서"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Clear Transform"
+msgstr "변환을 지우기"
+
+
+msgid "Snap"
+msgstr "스냅"
+
+
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "Assign Material"
+msgstr "머티리얼을 할당"
+
+
+msgid "Random Mask"
+msgstr "랜덤 마스크"
+
+
+msgid "Face Sets Init"
+msgstr "페이스 세트 초기화"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "스컬프트 설정 피벗"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
+
+
+msgid "Vertex Group Locks"
+msgstr "버텍스 그룹 잠금"
+
+
+msgid "Trim/Add"
+msgstr "트림/추가"
+
+
+msgid "Select Loops"
+msgstr "루프를 선택"
+
+
+msgid "Bone Roll"
+msgstr "뼈대 롤"
+
+
+msgid "Face Sets Edit"
+msgstr "페이스 세트 편집"
+
+
+msgid "Select Linked"
+msgstr "연결된 선택"
+
+
+msgid "Automasking"
+msgstr "오토마스킹"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Render Preview"
+msgstr "렌더링 미리보기"
+
+
+msgid "Track"
+msgstr "트랙"
+
+
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
+
+
+msgid "Select Similar"
+msgstr "유사한 선택"
 
 
 msgid "Relations"
@@ -35295,16 +35295,20 @@ msgid "Add Image"
 msgstr "이미지를 추가"
 
 
-msgid "Instances"
-msgstr "인스턴스"
+msgid "Pivot Point"
+msgstr "피벗 포인트"
 
 
-msgid "Gizmo"
-msgstr "기즈모"
+msgid "Tracking"
+msgstr "트래킹"
 
 
-msgid "Layout"
-msgstr "레이아웃"
+msgid "Rigid Body"
+msgstr "리지드 바디"
+
+
+msgid "Merge"
+msgstr "병합"
 
 
 msgid "Keyframe Insert Pie"
@@ -59492,6 +59496,10 @@ msgid "Remove exporter from the exporter list"
 msgstr "내보내기 목록에서 내보내기를 제거함"
 
 
+msgid "Filepath"
+msgstr "파일 경로"
+
+
 msgctxt "Operator"
 msgid "Add Selected to Active Object's Collection"
 msgstr "활성 오브젝트의 컬렉션에 선택 항목 추가하기"
@@ -60500,10 +60508,6 @@ msgstr "타임 슬라이드"
 
 msgid "Time Extend"
 msgstr "타임 연장"
-
-
-msgid "Bake Time"
-msgstr "베이크 타임"
 
 
 msgid "Edge Slide"
@@ -61645,8 +61649,8 @@ msgid "Export visible objects only"
 msgstr "내보내기 보이는 개체만"
 
 
-msgid "Export at Collection Center"
-msgstr "컬렉션 센터에서 내보내기"
+msgid "Center of Mass"
+msgstr "질량의 중심"
 
 
 msgid "Export at Collection center of mass of root objects of the collection"
@@ -62549,6 +62553,14 @@ msgid "Store glTF export settings in the Blender project"
 msgstr "Blender 프로젝트에 glTF 내보내기 설정을 저장"
 
 
+msgid "Package ID"
+msgstr "패키지 ID"
+
+
+msgid "Repo Index"
+msgstr "리포지토리 인덱스"
+
+
 msgid "Do Legacy Replace"
 msgstr "레거시 교체 수행"
 
@@ -62561,16 +62573,8 @@ msgid "Enable after installing"
 msgstr "설치 후 사용"
 
 
-msgid "Package ID"
-msgstr "패키지 ID"
-
-
 msgid "Repo Directory"
 msgstr "리포지토리 디렉토리"
-
-
-msgid "Repo Index"
-msgstr "리포지토리 인덱스"
 
 
 msgid "URL"
@@ -80518,10 +80522,6 @@ msgid "Edit and save themes installed via Extensions"
 msgstr "확장 프로그램을 통해 설치된 테마 편집 및 저장"
 
 
-msgid "Asset Libraries"
-msgstr "어셋 라이브러리"
-
-
 msgid "Keymap"
 msgstr "키맵"
 
@@ -81740,10 +81740,6 @@ msgid "Start frame of the strip"
 msgstr "스트립의 시작 프레임"
 
 
-msgid "Move Strips"
-msgstr "스트립 이동"
-
-
 msgid "Automatically begin translating strips with the mouse after adding them to the timeline"
 msgstr "타임라인에 스트립을 추가한 후 마우스로 스트립 번역을 자동으로 시작함"
 
@@ -81756,12 +81752,12 @@ msgid "Don't correct overlap on new strips"
 msgstr "새 스트립에서 오버랩 수정하지 않기"
 
 
-msgid "Override Overlap Shuffle Behavior"
-msgstr "오버라이드 오버랩 셔플 동작"
+msgid "Overlap Mode"
+msgstr "오버랩 모드"
 
 
-msgid "Use the overlap_mode tool settings to determine how to shuffle overlapping strips"
-msgstr "오버랩 모드 도구 설정을 사용하여 겹치는 스트립을 섞는 방법을 결정함"
+msgid "Shuffle"
+msgstr "셔플"
 
 
 msgid "Replace Selection"
@@ -82814,24 +82810,12 @@ msgid "Split the selected strips in two"
 msgstr "선택한 스트립을 둘로 나눔"
 
 
-msgid "Channel in which strip will be cut"
-msgstr "스트립이 절단될 채널"
-
-
 msgid "Frame where selected strips will be split"
 msgstr "선택한 스트립이 분할될 프레임"
 
 
-msgid "Make cut even if strip is not selected preserving selection state after cut"
-msgstr "스트립을 선택하지 않은 경우에도 절단 후 선택 상태를 유지하면서 절단"
-
-
 msgid "The side that remains selected after splitting"
 msgstr "분할 후 선택된 상태로 유지되는 쪽"
-
-
-msgid "Split at position of the cursor instead of current frame"
-msgstr "현재 프레임이 아닌 커서 위치에서 분할"
 
 
 msgid "Set a color tag for the selected strips"
@@ -83583,10 +83567,6 @@ msgid "Column to jump to"
 msgstr "이동하려는 열"
 
 
-msgid "Filepath"
-msgstr "파일 경로"
-
-
 msgid "Line to jump to"
 msgstr "건너뛸 선"
 
@@ -84133,6 +84113,14 @@ msgstr "변환 오리엔테이션을 선택"
 msgctxt "Operator"
 msgid "Sequence Slide"
 msgstr "시퀀스 슬라이드"
+
+
+msgid "Insert"
+msgstr "인서트"
+
+
+msgid "How to resolve overlap after transformation"
+msgstr "변환 후 오버랩을 해결하는 방법"
 
 
 msgid "Restore Handle Selection"
@@ -90544,64 +90532,28 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Render Pass"
-msgstr "렌더 패스"
-
-
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "커브 스컬프트 커브 옵션 추가"
-
-
-msgid "Auto-Masking"
-msgstr "자동 마스킹"
-
-
-msgid "View Lock"
-msgstr "뷰 잠금"
-
-
-msgid "Active Tool"
-msgstr "활성 도구"
-
-
-msgid "Curve Edit Mode"
-msgstr "커브 에디트 모드"
-
-
 msgid "Grease Pencil Options"
 msgstr "그리스 펜슬 옵션"
-
-
-msgid "Measurement"
-msgstr "측정"
-
-
-msgid "glTF Variants"
-msgstr "glTF 변형"
 
 
 msgid "glTF Material Variants"
 msgstr "glTF 머티리얼 배리언트"
 
 
-msgid "Guides"
-msgstr "가이드"
+msgid "Quad View"
+msgstr "쿼드 뷰"
+
+
+msgid "glTF Variants"
+msgstr "glTF 변형"
+
+
+msgid "Measurement"
+msgstr "측정"
 
 
 msgid "Mesh Edit Mode"
 msgstr "메시 에디트 모드"
-
-
-msgid "Motion Tracking"
-msgstr "모션 트래킹"
-
-
-msgid "Viewer Node"
-msgstr "뷰어 노드"
 
 
 msgid "VR"
@@ -90612,48 +90564,48 @@ msgid "VR Info"
 msgstr "VR 정보"
 
 
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "커브 스컬프트 매개변수 폴오프"
+msgid "Selectability & Visibility"
+msgstr "선택성 및 가시성"
 
 
-msgid "Stereoscopy"
-msgstr "입체 영상"
+msgid "Auto-Masking"
+msgstr "자동 마스킹"
 
 
-msgid "Onion Skin"
-msgstr "어니언 스킨"
-
-
-msgid "Quad View"
-msgstr "쿼드 뷰"
+msgid "Active Tool"
+msgstr "활성 도구"
 
 
 msgid "Multi Frame"
 msgstr "다중 프레임"
 
 
-msgid "Drawing Plane"
-msgstr "드로잉 평면"
-
-
-msgid "Stroke Placement"
-msgstr "스트로크 배치"
+msgid "Stereoscopy"
+msgstr "입체 영상"
 
 
 msgid "Transform Orientations"
 msgstr "변환 오리엔테이션"
 
 
-msgid "Overlays"
-msgstr "오버레이"
+msgid "Onion Skin"
+msgstr "어니언 스킨"
 
 
-msgid "glTF"
-msgstr "glTF"
+msgid "Motion Tracking"
+msgstr "모션 트래킹"
 
 
-msgid "glTF Animations"
-msgstr "glTF 애니메이션"
+msgid "Viewer Node"
+msgstr "뷰어 노드"
+
+
+msgid "Stroke Placement"
+msgstr "스트로크 배치"
+
+
+msgid "Drawing Plane"
+msgstr "드로잉 평면"
 
 
 msgid "Cavity"
@@ -90664,20 +90616,56 @@ msgid "SSAO Settings"
 msgstr "SSAO 설정"
 
 
+msgid "Guides"
+msgstr "가이드"
+
+
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
+
+
 msgid "Curves Edit Mode"
 msgstr "커브 편집 모드"
 
 
-msgid "Selectability & Visibility"
-msgstr "선택성 및 가시성"
+msgid "Curve Edit Mode"
+msgstr "커브 에디트 모드"
+
+
+msgid "View Lock"
+msgstr "뷰 잠금"
 
 
 msgid "Viewport Debug"
 msgstr "뷰포트 디버그"
 
 
+msgid "Overlays"
+msgstr "오버레이"
+
+
 msgid "Curves Grow/Shrink Scaling"
 msgstr "커브 성장/축소 스케일링"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "커브 스컬프트 매개변수 폴오프"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 애니메이션"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "커브 스컬프트 커브 옵션 추가"
+
+
+msgid "Render Pass"
+msgstr "렌더 패스"
 
 
 msgid "Import Settings"
@@ -95488,6 +95476,10 @@ msgid "Time since last access of a GL vertex buffer object in seconds after whic
 msgstr "GL 버텍스 버퍼 오브젝트의 마지막 액세스 이후 해제된 시간(초) (VBO가 할당된 상태를 유지하려면 0으로 설정)"
 
 
+msgid "CUDA"
+msgstr "CUDA"
+
+
 msgid "Viewport Anti-Aliasing"
 msgstr "뷰포트 안티-앨리어싱"
 
@@ -97219,10 +97211,6 @@ msgstr "장치 이름"
 
 msgid "CPU"
 msgstr "CPU"
-
-
-msgid "CUDA"
-msgstr "CUDA"
 
 
 msgid "OptiX"
@@ -102639,30 +102627,6 @@ msgid "Scale fit method"
 msgstr "스케일 맞춤 메서드"
 
 
-msgid "Overlap Mode"
-msgstr "오버랩 모드"
-
-
-msgid "How to resolve overlap after transformation"
-msgstr "변환 후 오버랩을 해결하는 방법"
-
-
-msgid "Move strips so transformed strips fit"
-msgstr "변형된 스트립이 맞도록 스트립 이동"
-
-
-msgid "Trim or split strips to resolve overlap"
-msgstr "오버랩을 해결하기 위한 트림 또는 분할 스트립"
-
-
-msgid "Shuffle"
-msgstr "셔플"
-
-
-msgid "Move transformed strips to nearest free space to resolve overlap"
-msgstr "변형된 스트립을 가장 가까운 여유 공간으로 이동하여 오버랩을 해결함"
-
-
 msgid "Rotation or scaling pivot point"
 msgstr "로테이션 또는 회전 또는 스케일링 피벗 포인트"
 
@@ -103298,10 +103262,6 @@ msgstr "중력"
 
 msgid "Apply gravitation to point movement"
 msgstr "포인트 움직임에 중력을 적용"
-
-
-msgid "Center of Mass"
-msgstr "질량의 중심"
 
 
 msgid "Location of center of mass"
@@ -105227,14 +105187,6 @@ msgstr "얼룩말 줄무늬 과다 노출 영역을 표시"
 
 msgid "Show Overlays"
 msgstr "오버레이를 표시"
-
-
-msgid "Transform Preview"
-msgstr "트랜스폼 미리보기"
-
-
-msgid "Show a preview of the start or end frame of a strip while transforming its respective handle"
-msgstr "각 핸들을 변형하면서 스트립의 시작 또는 종료 프레임의 미리 보기 표시"
 
 
 msgid "Limit View to Contents"
@@ -116965,10 +116917,6 @@ msgid "Unable to install from disk, no paths were defined"
 msgstr "디스크에서 설치할 수 없음, 경로가 정의되지 않음"
 
 
-msgid "Theme \"{:s}\" is already installed!"
-msgstr "테마 \"{:s}\"가 이미 설치되어 있음!"
-
-
 msgid "Name: {:s}"
 msgstr "Name: {:s}"
 
@@ -116999,6 +116947,10 @@ msgstr "리포지토리: {:s}"
 
 msgid "Size: {:s}"
 msgstr "크기: {:s}"
+
+
+msgid "Theme \"{:s}\" is already installed!"
+msgstr "테마 \"{:s}\"가 이미 설치되어 있음!"
 
 
 msgid "Age: {:s}"
@@ -124063,10 +124015,6 @@ msgid "Render Sequencer Image"
 msgstr "렌더 시퀀서 이미지"
 
 
-msgid "Preview During Transform"
-msgstr "트랜스폼 중 미리보기"
-
-
 msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "창에서 미리보기를 맞추기"
@@ -124240,6 +124188,11 @@ msgid "Stretch To Fill"
 msgstr "스트레칭에서 필로"
 
 
+msgctxt "Sequence"
+msgid "Split"
+msgstr "분할"
+
+
 msgctxt "Operator"
 msgid "Clear Fade"
 msgstr "페이드를 제거"
@@ -124278,16 +124231,6 @@ msgstr "현재 프레임에서 이동/연장"
 msgctxt "Operator"
 msgid "Remove Gaps (All)"
 msgstr "간격 제거(모두)"
-
-
-msgctxt "Sequence"
-msgid "Split"
-msgstr "분할"
-
-
-msgctxt "Sequence"
-msgid "Hold Split"
-msgstr "보류 분할"
 
 
 msgctxt "Operator"
@@ -127667,10 +127610,6 @@ msgid "Named Layer node"
 msgstr "네임드 레이어 노드"
 
 
-msgid "User Library"
-msgstr "사용자 라이브러리"
-
-
 msgid "Attempt to set action on non-animatable ID"
 msgstr "애니메이션이 불가능한 ID에 액션을 설정하려고 시도"
 
@@ -129019,12 +128958,12 @@ msgid "Library '%s', '%s' had multiple instances, save and reload!"
 msgstr "라이브러리 '%s', '%s'은 여러 인스턴스를 저장하고 다시 불러왔습니다!"
 
 
-msgid "LIB: .blend file %s seems corrupted, no owner 'Library' data found for the linked data-block '%s'. Try saving the file again."
-msgstr "LIB: .블렌딩 파일 %s이 손상된 것 같습니다. 연결된 데이터 블록 '%s'에 대한 소유자 '라이브러리' 데이터를 찾을 수 없습니다. 파일을 다시 저장해 보세요"
-
-
 msgid "LIB: Data refers to main .blend file: '%s' from %s"
 msgstr "LIB: 메인 .blend 파일에서 데이터 참조: '%s' 는 %s에서"
+
+
+msgid "LIB: .blend file %s seems corrupted, no owner 'Library' data found for the linked data-block '%s'. Try saving the file again."
+msgstr "LIB: .블렌딩 파일 %s이 손상된 것 같습니다. 연결된 데이터 블록 '%s'에 대한 소유자 '라이브러리' 데이터를 찾을 수 없습니다. 파일을 다시 저장해 보세요"
 
 
 msgid "LIB: .blend file %s seems corrupted, no owner 'Library' data found for the packed linked data-block %s. Try saving the file again."
@@ -130448,10 +130387,6 @@ msgstr "컨트롤 포인트를 선택하지 않음"
 
 msgid "Control point belongs to another spline"
 msgstr "다른 스플라인에 속하는 컨트롤 포인트"
-
-
-msgid "Insert"
-msgstr "인서트"
 
 
 msgid "Unicode codepoint hex value"
@@ -132021,10 +131956,6 @@ msgstr "작업자 기본 값을 재설정"
 
 msgid "Operator cannot redo"
 msgstr "운영자가 다시 실행할 수 없음"
-
-
-msgid "File Not Found"
-msgstr "파일을 찾을 수 없음"
 
 
 msgid "Today"
@@ -135616,10 +135547,6 @@ msgid "Catalog is already placed inside this catalog"
 msgstr "카탈로그가 이미 이 카탈로그 안에 배치되어 있음"
 
 
-msgid "Only assets from this current file can be moved between catalogs"
-msgstr "이 현재 파일의 자산만 카탈로그 간에 이동할 수 있음"
-
-
 msgid "Catalogs cannot be edited in this asset library"
 msgstr "이 어셋 라이브러리에서는 카탈로그를 편집할 수 없음"
 
@@ -137168,10 +137095,6 @@ msgstr ""
 " • Shift 키를 눌러 컬렉션 및 개체 내부 설정"
 
 
-msgid "Number of users"
-msgstr "사용자 수"
-
-
 msgid "Item is protected from deletion"
 msgstr "항목이 삭제되지 않도록 보호됨"
 
@@ -137198,6 +137121,10 @@ msgid ""
 msgstr ""
 "항목에 사용자가 없으며 삭제됩니다.\n"
 "삭제되지 않도록 보호하려면 클릭함"
+
+
+msgid "Number of users"
+msgstr "사용자 수"
 
 
 msgid "Another object has this shared data in edit mode"
@@ -138787,22 +138714,6 @@ msgid "Scale X: %s   Y: %s  Z: %s%s %s"
 msgstr "스케일 X: %s Y: %s Z: %s%s %s"
 
 
-msgid "Time: +%s %s"
-msgstr "시간: +%s %s"
-
-
-msgid "Time: %s %s"
-msgstr "시간: %s %s"
-
-
-msgid "Time: +%.3f %s"
-msgstr "시간: +%.3f %s"
-
-
-msgid "Time: %.3f %s"
-msgstr "시간: %.3f %s"
-
-
 msgid "ScaleB: %s%s %s"
 msgstr "스케일B: %s%s %s"
 
@@ -138845,10 +138756,6 @@ msgstr "수축/팽창: %s"
 
 msgid "Shrink/Fatten: %3f"
 msgstr "수축/팽창: %3f"
-
-
-msgid "Sequence Slide: %s%s"
-msgstr "시퀀스 슬라이드: %s%s"
 
 
 msgid "Snap Invert"
@@ -145097,6 +145004,14 @@ msgid "Invalid Output Link"
 msgstr "잘못된 출력 연결함"
 
 
+msgid "Conversion not supported when evaluating closure"
+msgstr "폐쇄 평가 시 변환 지원되지 않음"
+
+
+msgid "Implicit type conversion when evaluating closure"
+msgstr "폐쇄 평가 시 암시적 타입 변환 발생"
+
+
 msgid "Offset Scale"
 msgstr "오프셋 스케일함"
 
@@ -147132,14 +147047,6 @@ msgid "No named attributes used"
 msgstr "이름 지정된 속성 미사용"
 
 
-msgid "Conversion not supported when evaluating closure"
-msgstr "폐쇄 평가 시 변환 지원되지 않음"
-
-
-msgid "Implicit type conversion when evaluating closure"
-msgstr "폐쇄 평가 시 암시적 타입 변환 발생"
-
-
 msgid "Closure does not have input: \"{}\""
 msgstr "입력: \"{}\"에서 폐쇄 입력 없음"
 
@@ -148691,6 +148598,10 @@ msgstr "저장함"
 
 msgid "Don't Save"
 msgstr "저장하지 않음"
+
+
+msgid "File Not Found"
+msgstr "파일을 찾을 수 없음"
 
 
 msgid "Modified"

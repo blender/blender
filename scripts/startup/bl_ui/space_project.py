@@ -164,6 +164,23 @@ class PROJECT_PT_main(Panel, CenterAlignMixIn):
         col.prop(project, "root_path")
 
 
+class PROJECT_PT_splash_screen(Panel, CenterAlignMixIn):
+    bl_label = "Splash Screen"
+    bl_space_type = 'PROJECT'
+    bl_region_type = 'WINDOW'
+    bl_category = MAIN_SECTION_NAME
+    bl_parent_id = "PROJECT_PT_main"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_centered(self, context, layout):
+        split = layout.split(factor=layout.property_split_factor)
+        row = split.row()
+        row.alignment = 'RIGHT'
+        row.label(text="Artwork")
+        col = split.column()
+        col.template_project_splash()
+
+
 class PROJECT_PT_color_management(Panel, CenterAlignMixIn):
     bl_label = "Color Management"
     bl_space_type = 'PROJECT'
@@ -251,7 +268,7 @@ class PROJECT_PT_main_unset(Panel, CenterAlignMixIn):
             row = col.row()
             row.alignment = 'CENTER'
             row.operator("wm.save_as_mainfile", text="Save File...", icon='FILE_TICK')
-            row.operator("project.open_blend_in_project", icon='FILE_FOLDER')
+            row.operator("project.open", icon='FILE_FOLDER')
         else:
             row = col.row()
             row.alignment = 'CENTER'
@@ -273,8 +290,8 @@ class PROJECT_PT_main_unset(Panel, CenterAlignMixIn):
             col.separator()
             row = col.row()
             row.alignment = 'CENTER'
-            row.operator("project.new_project", text="New Project...", icon='ADD')
-            row.operator("project.open_blend_in_project", icon='FILE_FOLDER')
+            row.operator("project.new", text="New Project...", icon='ADD')
+            row.operator("project.open", icon='FILE_FOLDER')
 
 
 class PROJECT_UL_variables(bpy.types.UIList):
@@ -352,6 +369,7 @@ classes = (
     PROJECT_PT_save_project,
     PROJECT_PT_main_unset,
     PROJECT_PT_main,
+    PROJECT_PT_splash_screen,
     PROJECT_PT_color_management,
     PROJECT_PT_variables,
     PROJECT_UL_variables,

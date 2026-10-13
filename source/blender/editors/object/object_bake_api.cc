@@ -1176,7 +1176,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
   Mesh *mesh = id_cast<Mesh *>(ob->data);
   const StringRef attr_name = mesh->active_color_attribute;
   const bke::AttrDomain domain = [&]() {
-    if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    if (const BMesh *bm = BKE_editmesh_bmesh_get(mesh)) {
       return BM_data_layer_lookup(*bm, attr_name).domain;
     }
     bke::AttributeAccessor attributes = mesh->attributes();

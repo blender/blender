@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -18,6 +19,8 @@ namespace blender::bke::tests {
 using namespace blender::recents;
 using testing::ElementsAre;
 using testing::FloatEq;
+
+using TableArray = std::vector<std::map<std::string, std::string>>;
 
 /* Runs with `G.background = true` so the module never touches the real
  * on-disk user config while the test suite is running. */
@@ -78,6 +81,40 @@ TEST_F(RecentsTest, RootSectionStoresAtTopLevel)
 
   root.remove("unit_test_root_key");
   EXPECT_EQ(root.get<int32_t>("unit_test_root_key"), 0);
+}
+
+TEST_F(RecentsTest, SetInSectionThatIsNotATable)
+{
+  /* A section name used as a plain value, for example in an edited file, is replaced. */
+  Section root("");
+  root.set<int32_t>("unit_test.not_a_table", 1);
+
+  Section section("unit_test.not_a_table");
+  section.set<int32_t>("value", 2);
+  EXPECT_EQ(section.get<int32_t>("value"), 2);
+
+  section.remove_section();
+}
+
+TEST_F(RecentsTest, GetWrongTypeReturnsTypeDefault)
+{
+  Section section("unit_test.wrong_type");
+  section.set<std::string>("value", "text");
+  EXPECT_EQ(section.get<int32_t>("value"), 0);
+  EXPECT_TRUE(section.get<TableArray>("value").empty());
+
+  section.remove_section();
+}
+
+TEST_F(RecentsTest, ArrayOfTablesRoundTrip)
+{
+  Section section("unit_test.array_of_tables");
+
+  const TableArray items = {{{"a", "1"}, {"b", "2"}}, {{"a", "3"}}};
+  section.set<TableArray>("items", items);
+  EXPECT_EQ(section.get<TableArray>("items"), items);
+
+  section.remove_section();
 }
 
 TEST_F(RecentsTest, BuiltinRootDefaultsAreReadable)

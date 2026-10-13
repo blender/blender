@@ -1234,9 +1234,7 @@ void node_shadow_raycast_impl(KernelGlobals &kg,
   }
 }
 
-float4 node_attribute_light_impl([[resource_table]] KernelGlobals &kg,
-                                 const int light_index,
-                                 uint attr_hash)
+float4 node_attribute_light_impl(KernelGlobals &kg, const int light_index, uint attr_hash)
 {
   if (kg.pipe.use_lighting_nodes) [[static_branch]] {
     LightData light = kg.lrd.light_buf[light_index];

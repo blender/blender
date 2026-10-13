@@ -30,7 +30,7 @@ void node_bump(float strength,
                float3 N,
                float2 height_xy,
                float invert,
-               [[resource_table]] KernelGlobals &kg,
+               KernelGlobals &kg,
                const ShadingData &sd,
                float3 &result)
 {

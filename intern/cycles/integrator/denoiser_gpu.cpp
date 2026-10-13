@@ -228,7 +228,7 @@ DenoiserGPU::DenoiseContext::DenoiseContext(Device *device,
         guiding_params.pass_normal = guiding_params.pass_stride;
         guiding_params.pass_stride += 3;
       }
-      if (params.passes & DENOISER_PASS_MOTION) {
+      if (pass_motion != PASS_UNUSED) {
         guiding_params.pass_flow = guiding_params.pass_stride;
         guiding_params.pass_stride += 2;
       }

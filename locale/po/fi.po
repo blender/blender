@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
+"POT-Creation-Date: 2026-10-12 07:32+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -920,6 +920,10 @@ msgstr "Välttämättömät"
 
 msgid "Custom"
 msgstr "Mukautettu"
+
+
+msgid "User Library"
+msgstr "Käyttäjäkirjasto"
 
 
 msgid "Collection of user asset libraries"
@@ -7128,16 +7132,8 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Utilities"
-msgstr "Työkalut"
-
-
-msgid "Write"
-msgstr "Kirjoita"
-
-
-msgid "Read"
-msgstr "Lue"
+msgid "Light"
+msgstr "Valo"
 
 
 msgid "Metaball"
@@ -7148,56 +7144,28 @@ msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
 
 
-msgid "Select Loops"
-msgstr "Valitse silmukat"
+msgid "Read"
+msgstr "Lue"
 
 
-msgid "Random Mask"
-msgstr "Satunnainen maski"
+msgid "Math"
+msgstr "Matematiikka"
 
 
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
-msgid "Light"
-msgstr "Valo"
-
-
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
+msgid "Write"
+msgstr "Kirjoita"
 
 
 msgid "Hooks"
 msgstr "Koukut"
 
 
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Math"
-msgstr "Matematiikka"
+msgid "Utilities"
+msgstr "Työkalut"
 
 
 msgid "Import"
@@ -7208,16 +7176,52 @@ msgid "Linked"
 msgstr "Linkitetyt"
 
 
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "Instances"
 msgstr "Instanssit"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Names"
+msgstr "Nimet"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
 
 
 msgid "Basic"
@@ -13487,10 +13491,6 @@ msgid "No Textures"
 msgstr "Ei tekstuureja"
 
 
-msgid "User Library"
-msgstr "Käyttäjäkirjasto"
-
-
 msgid "Saved \"%s\""
 msgstr "Tallennettu \"%s\""
 
@@ -13949,10 +13949,6 @@ msgstr "Uusi"
 
 msgid "No Properties"
 msgstr "Ei ominaisuuksia"
-
-
-msgid "File Not Found"
-msgstr "Tiedostoa ei löydy"
 
 
 msgid "Today"
@@ -16464,6 +16460,10 @@ msgstr "Tallenna..."
 
 msgid "Don't Save"
 msgstr "Älä tallenna"
+
+
+msgid "File Not Found"
+msgstr "Tiedostoa ei löydy"
 
 
 msgid "unable to open the file"

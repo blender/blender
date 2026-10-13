@@ -19,10 +19,7 @@ void node_wireframe(float size, const ShadingData &sd, float &fac)
 }
 
 [[node]]
-void node_wireframe_screenspace(float size,
-                                [[resource_table]] KernelGlobals &kg,
-                                const ShadingData &sd,
-                                float &fac)
+void node_wireframe_screenspace(float size, KernelGlobals &kg, const ShadingData &sd, float &fac)
 {
   float3 barys = sd.barycentric_coords.xyy;
   barys.z = 1.0f - barys.x - barys.y;

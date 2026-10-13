@@ -300,7 +300,7 @@ static void build_bvh_spatial(
 #define MB_BIT(i, bit) (((i) >> (bit)) & 1)
 // #define FLIP(i, bit) ((i) ^ 1 << (bit)) /* flip the given bit of i */
 
-/* ******************** DENSITY COPMPUTATION ********************* */
+/* ******************** DENSITY COMPUTATION ********************* */
 
 /**
  * Computes density from given metaball at given position.

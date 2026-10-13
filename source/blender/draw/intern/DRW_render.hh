@@ -18,7 +18,10 @@
 #include "DNA_object_enums.h"
 #include "DNA_object_types.h"
 
+#include "GPU_batch.hh"
 #include "GPU_material.hh"
+
+#include "draw_meshlet.hh"
 
 namespace blender {
 

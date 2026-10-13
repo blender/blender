@@ -258,6 +258,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
   TransDataMasking *tdm = nullptr;
   int count = 0, countsel = 0;
   const bool is_prop_edit = (t->flag & T_PROP_EDIT);
+  const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
   float asp[2];
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -332,7 +333,8 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 
     for (MaskSpline &spline : masklay.splines) {
       int i;
-
+      TransData *head, *tail;
+      head = tail = td;
       for (i = 0; i < spline.tot_point; i++) {
         MaskSplinePoint *point = &spline.points[i];
 
@@ -341,12 +343,14 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 
           if (is_prop_edit || BKE_mask_point_selected_knot(point)) {
             td += 3;
+            tail += 3;
             td2d += 3;
             tdm += 3;
           }
           else {
             if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
               td++;
+              tail++;
               td2d++;
               tdm++;
             }
@@ -354,15 +358,30 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
               BezTriple *bezt = &point->bezt;
               if (bezt->f1 & SELECT) {
                 td++;
+                tail++;
                 td2d++;
                 tdm++;
               }
               if (bezt->f3 & SELECT) {
                 td++;
+                tail++;
                 td2d++;
                 tdm++;
               }
             }
+          }
+        }
+      }
+
+      if (is_prop_edit && head != tail) {
+        tail -= 1;
+        if (is_prop_connected) {
+          const bool cyclic = (spline.flag & MASK_SPLINE_CYCLIC) != 0;
+          calc_distanceCurveVerts(head, tail, cyclic);
+        }
+        else {
+          for (td = head; td <= tail; td++) {
+            td->dist = FLT_MAX;
           }
         }
       }

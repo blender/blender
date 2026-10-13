@@ -1252,7 +1252,7 @@ DenoiseParams BlenderSync::get_denoise_params(blender::Scene &b_scene,
 
       denoising.passes = DENOISER_PASS_ALBEDO | DENOISER_PASS_SPECULAR_ALBEDO |
                          DENOISER_PASS_NORMAL | DENOISER_PASS_ROUGHNESS | DENOISER_PASS_DEPTH |
-                         DENOISER_PASS_MOTION | DENOISER_PASS_SPECULAR_MOTION;
+                         DENOISER_PASS_BACKWARD_MOTION | DENOISER_PASS_SPECULAR_MOTION;
       return denoising;
     }
   }

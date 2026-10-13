@@ -63,27 +63,47 @@ class CollectionIOTestBase(unittest.TestCase):
 
         bpy.context.view_layer.active_layer_collection = lc_target
 
-    def add_collection_importer(self, collection_name, importer_type, expect_error=False):
+    def add_collection_importer(self, collection_name, importer_type, expected_result={'FINISHED'}):
         self.set_active_collection(collection_name)
 
-        try:
-            bpy.ops.collection.importer_add(name=importer_type)
-            self.assertIsNotNone(
-                bpy.data.collections[collection_name].importer,
-                f"Failed to add {importer_type} importer on collection {collection_name}")
-        except RuntimeError as e:
-            self.assertTrue(expect_error, f"Unexpected error occurred: {e}")
+        res = bpy.ops.collection.importer_add(name=importer_type)
+        self.assertEqual(res, expected_result)
+        self.assertIsNotNone(
+            bpy.data.collections[collection_name].importer,
+            f"Failed to add {importer_type} importer on collection {collection_name}")
 
-    def remove_collection_importer(self, collection_name, expect_error=False):
+    def remove_collection_importer(self, collection_name, expected_result={'FINISHED'}):
         self.set_active_collection(collection_name)
 
-        try:
-            bpy.ops.collection.importer_remove()
-            self.assertIsNone(
-                bpy.data.collections[collection_name].importer,
-                f"Failed to remove importer on collection {collection_name}")
-        except RuntimeError as e:
-            self.assertTrue(expect_error, f"Unexpected error occurred: {e}")
+        res = bpy.ops.collection.importer_remove()
+        self.assertEqual(res, expected_result)
+        self.assertIsNone(
+            bpy.data.collections[collection_name].importer,
+            f"Failed to remove importer on collection {collection_name}")
+
+    def reload_collection_importer(self, collection_name):
+        self.set_active_collection(collection_name)
+
+        bpy.ops.collection.importer_reload()
+        self.assertIsNotNone(
+            bpy.data.collections[collection_name].importer,
+            f"Reload incorrectly removed importer on collection {collection_name}")
+
+    def clear_collection_importer(self, collection_name):
+        self.set_active_collection(collection_name)
+
+        bpy.ops.collection.importer_clear()
+        self.assertIsNotNone(
+            bpy.data.collections[collection_name].importer,
+            f"Clear incorrectly removed importer on collection {collection_name}")
+
+    def make_local_collection(self, collection_name):
+        self.set_active_collection(collection_name)
+
+        bpy.ops.collection.importer_make_local()
+        self.assertIsNone(
+            bpy.data.collections[collection_name].importer,
+            f"Make local failed to remove importer on collection {collection_name}")
 
     def do_collection_import(self, collection_name):
         self.set_active_collection(collection_name)
@@ -107,11 +127,13 @@ class TestCollectionImport(CollectionIOTestBase):
 
         self.add_collection_importer(coll_A, "IO_FH_usd")
         self.add_collection_importer(coll_B, "IO_FH_usd")
-        self.add_collection_importer(coll_B, "IO_FH_usd", expect_error=True)
+        with self.assertRaises(RuntimeError, msg=f"Adding a second importer to {coll_B} should fail"):
+            self.add_collection_importer(coll_B, "IO_FH_usd")
 
         self.remove_collection_importer(coll_A)
         self.remove_collection_importer(coll_B)
-        self.remove_collection_importer(coll_B, expect_error=True)
+        with self.assertRaises(RuntimeError, msg=f"Removing a non-existant importer from {coll_B} should fail"):
+            self.remove_collection_importer(coll_B, "IO_FH_usd")
 
     def test_import(self):
         # Validate basic import functionality.
@@ -156,6 +178,16 @@ class TestCollectionImport(CollectionIOTestBase):
         self.assertEqual(len(bpy.data.libraries), 4)
         self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive == False]), 2)
         self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive]), 2)
+
+        # Ensure remove works here as well
+        self.remove_collection_importer(coll_A)
+        self.assertEqual(len(bpy.data.libraries), 2)
+        self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive == False]), 1)
+        self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive]), 1)
+
+        self.remove_collection_importer(coll_B)
+        self.remove_collection_importer(coll_C)
+        self.assertEqual(len(bpy.data.libraries), 0)
 
     def test_import_multi(self):
         # Validate multiple importers all using the same external file.
@@ -229,6 +261,151 @@ class TestCollectionImport(CollectionIOTestBase):
         self.assertIsNotNone(bpy.data.collections.get(coll_A))
         # Note: There should be 4 objects but linking is currently disabled
         self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 0)
+
+    def test_reload(self):
+        # Validate reload operator.
+        self.reset_blender()
+
+        coll_A = "CollectionA"
+        coll_B = "CollectionB"
+        coll_main = bpy.context.scene.collection
+        self.create_collections(coll_main, (coll_A, coll_B))
+
+        self.add_collection_importer(coll_A, "IO_FH_usd")
+        self.add_collection_importer(coll_B, "IO_FH_usd")
+
+        # Setup each importer using a unique external file
+        self.copy_file(self.testdir / "import-default.usda", self.tempdir / "file1.usda")
+        self.copy_file(self.testdir / "import-default.usda", self.tempdir / "file2.usda")
+
+        coll = bpy.data.collections[coll_A]
+        coll.importer.filepath = str(self.tempdir / "file1.usda")
+
+        coll = bpy.data.collections[coll_B]
+        coll.importer.filepath = str(self.tempdir / "file2.usda")
+        coll.importer.import_properties.prim_path_mask = "/root/Cube"
+
+        # Initial state where both collections have imported data
+        self.do_collection_import(coll_A)
+        self.do_collection_import(coll_B)
+        self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 4)
+        self.assertEqual(len(bpy.data.collections[coll_B].all_objects), 1)
+
+        # Reload one
+        self.reload_collection_importer(coll_A)
+        self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 4)
+        self.assertEqual(len(bpy.data.collections[coll_B].all_objects), 1)
+
+        # Clear one and reload the other
+        self.clear_collection_importer(coll_A)
+        self.reload_collection_importer(coll_B)
+        self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 0)
+        self.assertEqual(len(bpy.data.collections[coll_B].all_objects), 1)
+
+        # Calling reload on an empty collection should still perform an import
+        self.reload_collection_importer(coll_A)
+        self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 4)
+        self.assertEqual(len(bpy.data.collections[coll_B].all_objects), 1)
+
+    def test_clear(self):
+        # Validate clear operator.
+        self.reset_blender()
+
+        coll_A = "CollectionA"
+        coll_B = "CollectionB"
+        coll_main = bpy.context.scene.collection
+        self.create_collections(coll_main, (coll_A, coll_B))
+
+        self.add_collection_importer(coll_A, "IO_FH_usd")
+        self.add_collection_importer(coll_B, "IO_FH_usd")
+
+        # Setup each importer using a unique external file
+        self.copy_file(self.testdir / "import-default.usda", self.tempdir / "file1.usda")
+        self.copy_file(self.testdir / "import-default.usda", self.tempdir / "file2.usda")
+
+        coll = bpy.data.collections[coll_A]
+        coll.importer.filepath = str(self.tempdir / "file1.usda")
+
+        coll = bpy.data.collections[coll_B]
+        coll.importer.filepath = str(self.tempdir / "file2.usda")
+        coll.importer.import_properties.prim_path_mask = "/root/Cube"
+
+        # Import and clear (twice to ensure state is correctly cleaned up each iteration)
+        for _ in range(0, 2):
+            self.do_collection_import(coll_A)
+            self.do_collection_import(coll_B)
+            self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 4)
+            self.assertEqual(len(bpy.data.collections[coll_B].all_objects), 1)
+
+            self.assertEqual(len(bpy.data.libraries), 4)
+            self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive == False]), 2)
+            self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive]), 2)
+
+            self.clear_collection_importer(coll_A)
+            self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 0)
+            self.assertEqual(len(bpy.data.collections[coll_B].all_objects), 1)
+
+            self.assertEqual(len(bpy.data.libraries), 2)
+            self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive == False]), 1)
+            self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive]), 1)
+
+            self.clear_collection_importer(coll_B)
+            self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 0)
+            self.assertEqual(len(bpy.data.collections[coll_B].all_objects), 0)
+
+            self.assertEqual(len(bpy.data.libraries), 0)
+            self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive == False]), 0)
+            self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive]), 0)
+
+        # No errors should happen when clearing an already empty collection
+        self.clear_collection_importer(coll_A)
+        self.clear_collection_importer(coll_B)
+
+    def test_make_local(self):
+        # Validate make_local operator.
+        self.reset_blender()
+
+        coll_A = "CollectionA"
+        coll_B = "CollectionB"
+        coll_main = bpy.context.scene.collection
+        self.create_collections(coll_main, (coll_A, coll_B))
+
+        self.add_collection_importer(coll_A, "IO_FH_usd")
+        self.add_collection_importer(coll_B, "IO_FH_usd")
+
+        # Setup each importer using the same external file
+        coll = bpy.data.collections[coll_A]
+        coll.importer.filepath = str(self.testdir / "import-default.usda")
+
+        coll = bpy.data.collections[coll_B]
+        coll.importer.filepath = str(self.testdir / "import-default.usda")
+        coll.importer.import_properties.prim_path_mask = "/root/Cube"
+
+        # Import and make local each individually
+        self.do_collection_import(coll_A)
+        self.do_collection_import(coll_B)
+        self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 4)
+        self.assertEqual(len(bpy.data.collections[coll_B].all_objects), 1)
+
+        self.assertEqual(len(bpy.data.libraries), 3)
+        self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive == False]), 1)
+        self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive]), 2)
+
+        # Make the first collection local
+        self.make_local_collection(coll_A)
+        self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 4)
+        self.assertEqual(len(bpy.data.collections[coll_B].all_objects), 1)
+
+        self.assertEqual(len(bpy.data.libraries), 2)
+        self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive == False]), 1)
+        self.assertEqual(len([l for l in bpy.data.libraries if l.is_archive]), 1)
+
+        # Make the second collection local
+        self.make_local_collection(coll_B)
+        self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 4)
+        self.assertEqual(len(bpy.data.collections[coll_B].all_objects), 1)
+
+        self.assertEqual(len(bpy.data.libraries), 0)
 
 
 def main():

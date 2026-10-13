@@ -1086,7 +1086,17 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
         row.prop(sculpt, "tile_z", text="Z", toggle=True)
 
         layout.prop(sculpt, "use_symmetry_feather", text="Feather")
-        layout.prop(mesh, "radial_symmetry", text="Radial")
+
+        header, panel = layout.panel("radial_symmetry_panel", default_closed=True)
+        header.use_property_split = False
+        header.prop(mesh, "use_radial_symmetry", text="Radial Symmetry")
+        if panel:
+            panel.use_property_split = True
+            panel.use_property_decorate = False
+            col = panel.column()
+            col.enabled = mesh.use_radial_symmetry
+            col.prop(mesh, "radial_symmetry", text="Count")
+
         layout.prop(sculpt, "tile_offset", text="Tile Offset")
 
         layout.separator()
@@ -1167,13 +1177,20 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
         row.prop(ob, "use_mesh_mirror_y", text="Y", toggle=True)
         row.prop(ob, "use_mesh_mirror_z", text="Z", toggle=True)
 
-        col = layout.column()
-        col.active = not mesh.use_mirror_vertex_groups
-        col.prop(mesh, "radial_symmetry", text="Radial")
-
         row = layout.row()
         row.active = mesh.use_mirror_vertex_groups
         row.prop(mesh, "use_mirror_topology")
+
+        header, panel = layout.panel("radial_symmetry_panel", default_closed=True)
+        header.use_property_split = False
+        header.active = not mesh.use_mirror_vertex_groups
+        header.prop(mesh, "use_radial_symmetry", text="Radial Symmetry")
+        if panel:
+            panel.use_property_split = True
+            panel.use_property_decorate = False
+            col = panel.column()
+            col.enabled = mesh.use_radial_symmetry and not mesh.use_mirror_vertex_groups
+            col.prop(mesh, "radial_symmetry", text="Count")
 
 
 class VIEW3D_PT_tools_weightpaint_symmetry_for_topbar(Panel):
@@ -1250,8 +1267,15 @@ class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
         row.prop(ob, "use_mesh_mirror_y", text="Y", toggle=True)
         row.prop(ob, "use_mesh_mirror_z", text="Z", toggle=True)
 
-        col = layout.column()
-        col.prop(mesh, "radial_symmetry", text="Radial")
+        header, panel = layout.panel("radial_symmetry_panel", default_closed=True)
+        header.use_property_split = False
+        header.prop(mesh, "use_radial_symmetry", text="Radial Symmetry")
+        if panel:
+            panel.use_property_split = True
+            panel.use_property_decorate = False
+            col = panel.column()
+            col.enabled = mesh.use_radial_symmetry
+            col.prop(mesh, "radial_symmetry", text="Count")
 
 
 class VIEW3D_PT_tools_vertexpaint_symmetry_for_topbar(Panel):
@@ -1323,7 +1347,17 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
             row.prop(image_paint, "tile_z", text="Z", toggle=True)
 
             layout.prop(image_paint, "use_symmetry_feather", text="Feather")
-            layout.prop(mesh, "radial_symmetry", text="Radial")
+
+            header, panel = layout.panel("radial_symmetry_panel", default_closed=True)
+            header.use_property_split = False
+            header.prop(mesh, "use_radial_symmetry", text="Radial Symmetry")
+            if panel:
+                panel.use_property_split = True
+                panel.use_property_decorate = False
+                col = panel.column()
+                col.enabled = mesh.use_radial_symmetry
+                col.prop(mesh, "radial_symmetry", text="Count")
+
             layout.prop(image_paint, "tile_offset", text="Tile Offset")
 
 

@@ -360,12 +360,12 @@ void GSplatEvalCache::ensure_compute_buffers(PointCloud &pointcloud)
 
 void GSplatEvalCache::ensure_requested(PointCloud &pointcloud)
 {
-  if (DRW_batch_requested(dots, GPU_PRIM_POINTS)) {
-    DRW_vbo_request(dots, &shape_data_buf);
+  if (dots && DRW_batch_requested(dots->gpu_batch(), GPU_PRIM_POINTS)) {
+    DRW_vbo_request(dots->gpu_batch(), &shape_data_buf);
   }
-  if (DRW_batch_requested(edit_dots, GPU_PRIM_POINTS)) {
-    DRW_ibo_request(edit_dots, &edit_dots_indices);
-    DRW_vbo_request(edit_dots, &shape_data_buf);
+  if (edit_dots && DRW_batch_requested(edit_dots->gpu_batch(), GPU_PRIM_POINTS)) {
+    DRW_ibo_request(edit_dots->gpu_batch(), &edit_dots_indices);
+    DRW_vbo_request(edit_dots->gpu_batch(), &shape_data_buf);
   }
   if (DRW_ibo_requested(edit_dots_indices)) {
     ensure_edit_dots_indices(pointcloud);
@@ -386,9 +386,9 @@ void GSplatEvalCache::ensure_requested(PointCloud &pointcloud)
 
 void GSplatEvalCache::discard_buffers()
 {
-  GPU_BATCH_DISCARD_SAFE(surface);
-  GPU_BATCH_DISCARD_SAFE(dots);
-  GPU_BATCH_DISCARD_SAFE(edit_dots);
+  MEM_SAFE_DELETE(surface);
+  MEM_SAFE_DELETE(dots);
+  MEM_SAFE_DELETE(edit_dots);
 
   GPU_VERTBUF_DISCARD_SAFE(shape_data_buf);
   GPU_VERTBUF_DISCARD_SAFE(radiance_data_buf);
@@ -401,7 +401,7 @@ void GSplatEvalCache::discard_buffers()
 
   if (surface_per_mat) {
     for (int i = 0; i < mat_len; ++i) {
-      GPU_BATCH_DISCARD_SAFE(surface_per_mat[i]);
+      MEM_SAFE_DELETE(surface_per_mat[i]);
     }
   }
   MEM_SAFE_DELETE(surface_per_mat);
@@ -454,21 +454,23 @@ gpu::UniformBuf *GSplatEvalCache::infos_buf_get()
   return infos_buf;
 }
 
-gpu::Batch *GSplatEvalCache::dots_get()
+Batch *GSplatEvalCache::dots_get()
 {
   return DRW_batch_request(&dots);
 }
 
-gpu::Batch *GSplatEvalCache::edit_dots_get()
+Batch *GSplatEvalCache::edit_dots_get()
 {
   return DRW_batch_request(&edit_dots);
 }
 
-gpu::Batch *GSplatEvalCache::surface_get(const PointCloud &pointcloud)
+Batch *GSplatEvalCache::surface_get(const PointCloud &pointcloud)
 {
   if (surface == nullptr) {
-    surface = GPU_batch_create_procedural(GPU_PRIM_TRI_STRIP,
-                                          DRW_GSPLAT_STRIP_TILE_SIZE * pointcloud.totpoint);
+    surface = MEM_new<Batch>(
+        __func__,
+        GPU_batch_create_procedural(GPU_PRIM_TRI_STRIP,
+                                    DRW_GSPLAT_STRIP_TILE_SIZE * pointcloud.totpoint));
 
     DRW_vbo_request(nullptr, &shape_data_buf);
     DRW_vbo_request(nullptr, &radiance_data_buf);
@@ -527,8 +529,8 @@ struct GSplatBatchCache {
     }
 
     ptr->eval_cache.mat_len = BKE_id_material_used_with_fallback_eval(pointcloud.id);
-    ptr->eval_cache.surface_per_mat = MEM_new_array_zeroed<gpu::Batch *>(ptr->eval_cache.mat_len,
-                                                                         __func__);
+    ptr->eval_cache.surface_per_mat = MEM_new_array_zeroed<Batch *>(ptr->eval_cache.mat_len,
+                                                                    __func__);
     ptr->is_dirty = false;
   }
 
@@ -579,14 +581,14 @@ gpu::VertBuf **DRW_gsplat_evaluated_attribute(PointCloud *pointcloud, const Stri
   return nullptr;
 }
 
-gpu::Batch *DRW_gsplat_batch_cache_get_dots(Object *ob)
+Batch *DRW_gsplat_batch_cache_get_dots(Object *ob)
 {
   PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
   return pointcloud.type == PointCloudType::GSplat ? GSplatEvalCache::get(pointcloud).dots_get() :
                                                      nullptr;
 }
 
-gpu::Batch *DRW_gsplat_batch_cache_get_edit_dots(Object *ob)
+Batch *DRW_gsplat_batch_cache_get_edit_dots(Object *ob)
 {
   PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
   return pointcloud.type == PointCloudType::GSplat ?

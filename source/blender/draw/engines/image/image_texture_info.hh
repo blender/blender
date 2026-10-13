@@ -44,7 +44,7 @@ struct TextureInfo : NonCopyable {
    * `pos` (2xI32) is relative to the origin of the space.
    * `uv` (2xF32) reflect the uv bounds.
    */
-  gpu::Batch *batch = nullptr;
+  BatchPtr batch;
 
   /**
    * \brief GPU Texture for a partial region of the image editor.
@@ -55,14 +55,6 @@ struct TextureInfo : NonCopyable {
 
   TextureInfo() = default;
   TextureInfo(TextureInfo &&other) = default;
-
-  ~TextureInfo()
-  {
-    if (batch != nullptr) {
-      GPU_batch_discard(batch);
-      batch = nullptr;
-    }
-  }
 
   /**
    * \brief return the offset of the texture with the area.

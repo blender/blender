@@ -16,7 +16,7 @@ void node_bsdf_glossy(float4 color,
                       float3 /*T*/, /* Unsupported. */
                       float weight,
                       const float do_multiscatter,
-                      [[resource_table]] KernelGlobals &kg,
+                      KernelGlobals &kg,
                       ShadingData &sd,
                       Closure &result)
 {

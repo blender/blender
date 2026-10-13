@@ -67,10 +67,10 @@ void DRW_pointcloud_module_free(PointCloudModule *pointcloud_module)
 }
 
 template<typename PassT>
-gpu::Batch *pointcloud_sub_pass_setup_implementation(PassT &sub_ps,
-                                                     const ObjectRef &ob_ref,
-                                                     const ResourceHandleRange &res_handle,
-                                                     GPUMaterial *gpu_material)
+Batch *pointcloud_sub_pass_setup_implementation(PassT &sub_ps,
+                                                const ObjectRef &ob_ref,
+                                                const ResourceHandleRange &res_handle,
+                                                GPUMaterial *gpu_material)
 {
   const Object *object = ob_ref.object;
   BLI_assert(object->type == OB_POINTCLOUD);
@@ -112,22 +112,21 @@ gpu::Batch *pointcloud_sub_pass_setup_implementation(PassT &sub_ps,
     }
   }
 
-  gpu::Batch *geom = pointcloud_surface_get(&pointcloud);
-  return geom;
+  return pointcloud_surface_get(&pointcloud);
 }
 
-gpu::Batch *pointcloud_sub_pass_setup(PassMain::Sub &sub_ps,
-                                      const ObjectRef &ob_ref,
-                                      const ResourceHandleRange &res_handle,
-                                      GPUMaterial *gpu_material)
+Batch *pointcloud_sub_pass_setup(PassMain::Sub &sub_ps,
+                                 const ObjectRef &ob_ref,
+                                 const ResourceHandleRange &res_handle,
+                                 GPUMaterial *gpu_material)
 {
   return pointcloud_sub_pass_setup_implementation(sub_ps, ob_ref, res_handle, gpu_material);
 }
 
-gpu::Batch *pointcloud_sub_pass_setup(PassSimple::Sub &sub_ps,
-                                      const ObjectRef &ob_ref,
-                                      const ResourceHandleRange &res_handle,
-                                      GPUMaterial *gpu_material)
+Batch *pointcloud_sub_pass_setup(PassSimple::Sub &sub_ps,
+                                 const ObjectRef &ob_ref,
+                                 const ResourceHandleRange &res_handle,
+                                 GPUMaterial *gpu_material)
 {
   return pointcloud_sub_pass_setup_implementation(sub_ps, ob_ref, res_handle, gpu_material);
 }

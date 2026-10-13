@@ -74,6 +74,14 @@ endfunction()
 
 if(WITH_UI_TESTS)
   set(_blender_headless_env_vars "BLENDER_BIN=${TEST_BLENDER_EXE}")
+  if(UNIX AND NOT APPLE)
+    if(WITH_GHOST_DBUS)
+      # Don't use the desktop session bus, system preferences shouldn't influence test behavior.
+      list(APPEND _blender_headless_env_vars
+        "DBUS_SESSION_BUS_ADDRESS=/dev/null"
+      )
+    endif()
+  endif()
   if(WITH_UI_TESTS_HEADLESS)
 
     # Currently only WAYLAND is supported, support for others may be added later.
@@ -1878,6 +1886,8 @@ if(WITH_UI_TESTS)
     test_info_reports.test_info_report_selection_modes
     test_info_reports.test_info_report_delete
     test_info_reports.test_info_report_operator_poll
+    test_object_type_visibility.pose_bone_select_with_armature_unselectable
+    test_object_type_visibility.edit_mode_element_select_with_type_unselectable
     test_blend_autoexec.pref_enabled_drop_blend_file_untrusted
     test_blend_autoexec.pref_enabled_drop_blend_file_trusted
     test_blend_autoexec.pref_enabled_open_file_selector_trusted

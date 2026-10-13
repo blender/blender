@@ -720,7 +720,7 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
         do_undo_restore,
         scene_foreach_paint(data, paint, do_undo_restore, reader, paint_old));
 
-    /* WARNING: Handling this object pointer is fairly intricated, to support both 'regular'
+    /* WARNING: Handling this object pointer is fairly intricate, to support both 'regular'
      * foreach_id processing (in which case both sets of data, current and old, are the same), and
      * the restore-after-undo cases. It does not have a helper, because so far it is the only case
      * of having to deal with non-'paint' data in a sub-toolsett struct. */

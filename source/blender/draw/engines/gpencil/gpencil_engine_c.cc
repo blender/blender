@@ -367,7 +367,7 @@ tObject *Instance::object_sync_do(Object *ob, ResourceHandleRange res_handle)
   gpu::Texture *tex_fill = this->dummy_tx;
   gpu::Texture *tex_stroke = this->dummy_tx;
 
-  gpu::Batch *iter_geom = nullptr;
+  Batch *iter_geom = nullptr;
   PassSimple *last_pass = nullptr;
   int vfirst = 0;
   int vcount = 0;
@@ -384,7 +384,7 @@ tObject *Instance::object_sync_do(Object *ob, ResourceHandleRange res_handle)
   };
 
   const auto drawcall_add =
-      [&](PassSimple &pass, gpu::Batch *draw_geom, const int v_first, const int v_count) {
+      [&](PassSimple &pass, Batch *draw_geom, const int v_first, const int v_count) {
 #if DISABLE_BATCHING
         pass.draw(iter_geom, 1, vcount, vfirst, res_handle);
         return;
@@ -591,7 +591,7 @@ tObject *Instance::object_sync_do(Object *ob, ResourceHandleRange res_handle)
         }
       }
 
-      gpu::Batch *geom = DRW_cache_grease_pencil_get(this->scene, ob);
+      Batch *geom = DRW_cache_grease_pencil_get(this->scene, ob);
       if (iter_geom != geom) {
         drawcall_flush(pass);
 

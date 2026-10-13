@@ -816,7 +816,7 @@ static void loose_data_gather_instanciated_objects(
   /* Linked/appended objects only need to be instantiated if they are not already in the current
    * view layer, either:
    * - Directly instantiated there (i.e. in one of the view layer instantiated collections).
-   * - Indirectly instanciated (i.e. being in a collection that is object-instanciated).
+   * - Indirectly instantiated (i.e. being in a collection that is object-instantiated).
    */
   loose_data_gather_instanciated_objects_for_viewlayer(
       instantiate_context, *scene, *view_layer, instanciated_objects);

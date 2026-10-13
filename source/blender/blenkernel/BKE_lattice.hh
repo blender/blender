@@ -19,7 +19,7 @@
 
 namespace blender {
 
-struct BMEditMesh;
+struct BMesh;
 struct BPoint;
 struct Depsgraph;
 struct Lattice;
@@ -111,7 +111,7 @@ void BKE_lattice_deform_coords_with_editmesh(const Object *ob_lattice,
                                              short flag,
                                              const char *defgrp_name,
                                              float fac,
-                                             const BMEditMesh *em_target);
+                                             const BMesh &bm_target);
 
 /** \} */
 

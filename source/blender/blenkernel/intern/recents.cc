@@ -12,6 +12,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <map>
 #include <optional>
 #include <thread>
 #include <vector>
@@ -27,7 +28,7 @@
 
 namespace blender::recents {
 
-constexpr toml::spec version = toml::spec::v(1, 1, 0);
+constexpr toml::spec version = toml::spec::v(1, 0, 0);
 
 /* TOML storage. Protected by recents_mutex. */
 static Mutex recents_mutex;      /* protects TOML values */
@@ -259,18 +260,46 @@ template<typename T> T Section::get(const std::string &item_key) const
   return T{};
 }
 
+/**
+ * Write arrays of tables as one inline table per line, instead of `[[section.key]]` blocks:
+ * `key = [\n  { a = 1, b = 2 },\n]`.
+ */
+static void recents_format_inline_tables(toml::value &value)
+{
+  if (!value.is_array()) {
+    return;
+  }
+
+  bool has_tables = false;
+  for (toml::value &item : value.as_array()) {
+    if (item.is_table()) {
+      item.as_table_fmt().fmt = toml::table_format::oneline;
+      has_tables = true;
+    }
+  }
+  if (has_tables) {
+    value.as_array_fmt().fmt = toml::array_format::multiline;
+  }
+}
+
 template<typename T> void Section::set(const std::string &item_key, const T &value)
 {
   ensure_init();
   toml::value &current = current_get();
 
   std::lock_guard lock(recents_mutex);
-  if (section_.empty()) {
-    current[item_key] = value;
+  toml::value *table = &current;
+  if (!section_.empty()) {
+    table = &current[section_];
+    /* Replace with empty table if it's a different data type, to avoid exception. */
+    if (!table->is_table()) {
+      *table = toml::table{};
+    }
   }
-  else {
-    current[section_][item_key] = value;
-  }
+
+  toml::value &item = (*table)[item_key];
+  item = value;
+  recents_format_inline_tables(item);
 }
 
 void Section::remove(const std::string &item_key)
@@ -353,5 +382,10 @@ template void Section::set<std::vector<double>>(const std::string &item_key,
 template std::vector<float> Section::get<std::vector<float>>(const std::string &item_key) const;
 template void Section::set<std::vector<float>>(const std::string &item_key,
                                                const std::vector<float> &value);
+
+template std::vector<std::map<std::string, std::string>> Section::get<
+    std::vector<std::map<std::string, std::string>>>(const std::string &item_key) const;
+template void Section::set<std::vector<std::map<std::string, std::string>>>(
+    const std::string &item_key, const std::vector<std::map<std::string, std::string>> &value);
 
 }  // namespace blender::recents

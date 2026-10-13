@@ -97,6 +97,11 @@ void draw_active_library_settings(const bContext *C,
 
       if (ui::Layout *panel = layout.panel(C, "advanced", true, IFACE_("Advanced"))) {
         panel->use_property_split_set(true);
+        {
+          ui::Layout &row = panel->row(false);
+          row.alignment_set(ui::LayoutAlign::Center);
+          row.label(IFACE_("Defined by the extension repository"), ICON_STATUS_INFO);
+        }
         ui::Layout &col = panel->column(true, IFACE_("Authentication"));
 
         bUserExtensionRepo *repo = BKE_preferences_extension_asset_library_repo_get(
@@ -116,9 +121,6 @@ void draw_active_library_settings(const bContext *C,
                      repo->access_token ? ICON_LOCKED : ICON_UNLOCKED,
                      std::nullopt);
           }
-          ui::Layout &row = panel->row(false);
-          row.active_set(false);
-          row.label(IFACE_("Defined by the extension repository"), ICON_INFO);
         }
         else {
           col.prop(&library_ptr, "use_auth_token", UI_ITEM_NONE, std::nullopt, ICON_NONE);

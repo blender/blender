@@ -65,12 +65,15 @@ static void extract_face_dot_positions_bm(const MeshRenderData &mr, MutableSpan<
   threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
     for (const int face_index : range) {
       const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+      /* Accumulate in a local variable, the VBO data is only written to. */
+      float3 center;
       if (mr.bm_vert_coords.is_empty()) {
-        BM_face_calc_center_median(&face, vbo_data[face_index]);
+        BM_face_calc_center_median(&face, center);
       }
       else {
-        BM_face_calc_center_median_vcos(&bm, &face, vbo_data[face_index], mr.bm_vert_coords);
+        BM_face_calc_center_median_vcos(&bm, &face, center, mr.bm_vert_coords);
       }
+      vbo_data[face_index] = center;
     }
   });
 }

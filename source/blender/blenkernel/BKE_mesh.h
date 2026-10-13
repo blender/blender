@@ -274,7 +274,7 @@ struct MLoopNorSpace {
   float ref_beta;
   /**
    * All loops using this lnor space (i.e. smooth fan of loops),
-   * as (depending on owning MLoopNorSpaceArrary.data_type):
+   * as (depending on owning MLoopNorSpaceArray.data_type):
    * - Indices (uint_in_ptr), or
    * - BMLoop pointers.
    */

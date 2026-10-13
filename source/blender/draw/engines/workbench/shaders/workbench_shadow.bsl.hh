@@ -199,10 +199,13 @@ struct GeometryShaderEmulator {
     float3 n2 = cross(v13, v12);
 
 #if 1 /* DEGENERATE_TRIS_WORKAROUND */
-    constexpr float DEGENERATE_TRIS_AREA_THRESHOLD = 4e-15f;
-    /* Check if area is null */
+    /* Check if area is null, relative to the edge lengths so it does not depend on object scale.
+     * Use less or equal to include overlapping vertices, where both are zero. */
+    constexpr float DEGENERATE_TRIS_EPSILON = 1e-10f;
     float2 faces_area = float2(length_squared(n1), length_squared(n2));
-    bool2 degen_faces = lessThan(abs(faces_area), float2(DEGENERATE_TRIS_AREA_THRESHOLD));
+    float2 edges_area = float2(length_squared(v12) * length_squared(v10),
+                               length_squared(v13) * length_squared(v12));
+    bool2 degen_faces = lessThanEqual(faces_area, DEGENERATE_TRIS_EPSILON * edges_area);
 
     /* Both triangles are degenerate, abort. */
     if (all(degen_faces)) {

@@ -84,8 +84,8 @@ class GreasePencilExporter {
   Vector<ObjectInfo> retrieve_objects() const;
 
   using WriteShapeFn = FunctionRef<void(const Span<float3> positions,
-                                        const Span<float3> positions_left,
-                                        const Span<float3> positions_right,
+                                        const std::optional<Span<float3>> positions_left,
+                                        const std::optional<Span<float3>> positions_right,
                                         const OffsetIndices<int> points_by_curve,
                                         const Span<int> shape,
                                         const VArray<bool> &cyclic,

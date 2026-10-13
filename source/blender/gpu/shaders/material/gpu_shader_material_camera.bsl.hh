@@ -7,11 +7,8 @@
 #include "gpu_shader_material_transform_utils.bsl.hh"
 
 [[node]]
-void camera([[resource_table]] KernelGlobals &kg,
-            const ShadingData &sd,
-            float3 &outview,
-            float &outdepth,
-            float &outdist)
+void camera(
+    KernelGlobals &kg, const ShadingData &sd, float3 &outview, float &outdepth, float &outdist)
 {
   float3 vP;
   point_transform_world_to_view(sd.P, kg, sd, vP);

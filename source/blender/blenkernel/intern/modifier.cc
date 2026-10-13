@@ -1025,7 +1025,6 @@ bool BKE_modifier_deform_verts(ModifierData *md,
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  const ModifierEvalContext *ctx,
-                                 const BMEditMesh *em,
                                  Mesh *mesh,
                                  MutableSpan<float3> positions)
 {
@@ -1033,7 +1032,7 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
   if (mesh && mti->depends_on_normals && mti->depends_on_normals(md)) {
     ensure_non_lazy_normals(mesh);
   }
-  mti->deform_verts_EM(md, ctx, em, mesh, positions);
+  mti->deform_verts_EM(md, ctx, mesh, positions);
 }
 
 /* end modifier callback wrappers */

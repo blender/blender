@@ -205,6 +205,7 @@ void SceneCompositorEffectsOperation::execute()
 
     /* Set the reference count for the outputs, only the first color output is actually needed,
      * while the rest are ignored. */
+    bool effect_has_output = false;
     node_group.ensure_interface_cache();
     for (const bNodeTreeInterfaceSocket *output_socket : node_group.interface_outputs()) {
       const bool is_first_output = output_socket == node_group.interface_outputs().first();
@@ -212,6 +213,7 @@ void SceneCompositorEffectsOperation::execute()
       const bool is_color = output_result.type() == ResultType::Color;
       const bool is_needed = is_effect_output_needed && is_first_output && is_color;
       output_result.set_reference_count(is_needed ? 1 : 0);
+      effect_has_output = effect_has_output || is_needed;
     }
 
     PointerRNA effect_ptr = RNA_pointer_create_discrete(
@@ -260,8 +262,8 @@ void SceneCompositorEffectsOperation::execute()
 
     last_operation.reset(effect_operation);
 
-    /* If the effect output is not needed, then we needn't compute later effects. */
-    if (!is_effect_output_needed) {
+    /* If the effect does not have an output, then we needn't compute later effects. */
+    if (!effect_has_output) {
       break;
     }
   }

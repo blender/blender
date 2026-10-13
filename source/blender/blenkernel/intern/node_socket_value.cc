@@ -261,11 +261,9 @@ bool SocketValueVariantTypeInfo::try_convert_fn(const CPPType &dst_type,
     if (!fns || !fns->convert_single_to_uninitialized) {
       return false;
     }
-    BUFFER_FOR_CPP_TYPE_VALUE(dst_type, tmp_buffer);
-    fns->convert_single_to_uninitialized(value.get(), tmp_buffer);
+    CurrentT src = std::move(value.get<CurrentT>());
     void *dst_value = SocketValueVariant::allocate(dst_type, value);
-    dst_type.move_construct(tmp_buffer, dst_value);
-    dst_type.destruct(tmp_buffer);
+    fns->convert_single_to_uninitialized(&src, dst_value);
     return true;
   }
 }
@@ -469,66 +467,51 @@ void *SocketValueVariant::init_default(const CPPType &type, detail::SocketValueV
   return nullptr;
 }
 
+template<typename T> static void *allocate_typed(detail::SocketValueVariantAny &value)
+{
+  return value.allocate<T>();
+}
+
 void *SocketValueVariant::allocate(const CPPType &type, detail::SocketValueVariantAny &value)
 {
-#define X(TYPE) \
-  if (type.is<TYPE>()) { \
-    return value.allocate<TYPE>(); \
-  }
-  SOCKET_VALUE_SINGLE_TYPES
-#undef X
+  using AllocateFn = void *(*)(detail::SocketValueVariantAny &);
+  /* Use an array indexed by #CPPType::type_index instead of a #Map for faster lookup. */
+  static const Vector<AllocateFn, 0> allocate_fns = []() {
+    Vector<AllocateFn, 0> vec;
+    auto add_allocate_fn = [&]<typename T>() {
+      const int type_index = CPPType::get<T>().type_index;
+      if (type_index >= vec.size()) {
+        vec.resize(type_index + 1, nullptr);
+      }
+      vec[type_index] = allocate_typed<T>;
+    };
 
-  if (type.is<GField>()) {
-    return value.allocate<GField>();
-  }
-  if (type.is<GListPtr>()) {
-    return value.allocate<GListPtr>();
-  }
+#define X(TYPE) add_allocate_fn.template operator()<TYPE>();
+    SOCKET_VALUE_SINGLE_TYPES
+#undef X
+    add_allocate_fn.template operator()<GField>();
+    add_allocate_fn.template operator()<GListPtr>();
 #ifdef WITH_OPENVDB
-  if (type.is<GVolumeGrid>()) {
-    return value.allocate<GVolumeGrid>();
-  }
+    add_allocate_fn.template operator()<GVolumeGrid>();
 #endif
-  BLI_assert_unreachable();
-  return nullptr;
+    return vec;
+  }();
+
+  if (type.type_index >= allocate_fns.size()) {
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+  const AllocateFn fn = allocate_fns[type.type_index];
+  if (!fn) {
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+  return fn(value);
 }
 
 void *SocketValueVariant::allocate_single(const CPPType &type)
 {
   return SocketValueVariant::allocate(type, value_);
-}
-
-bool SocketValueVariant::is_single() const
-{
-  const CPPType *type = this->get().type();
-  if (!type) {
-    return false;
-  }
-#define X(TYPE) \
-  if (type->is<TYPE>()) { \
-    return true; \
-  }
-  SOCKET_VALUE_SINGLE_TYPES
-#undef X
-  return false;
-}
-
-bool SocketValueVariant::is_field() const
-{
-  return this->get().type()->is<fn::GField>();
-}
-
-bool SocketValueVariant::is_list() const
-{
-  return this->get().type()->is<nodes::GListPtr>();
-}
-bool SocketValueVariant::is_volume_grid() const
-{
-#ifdef WITH_OPENVDB
-  return this->get().type()->is<bke::GVolumeGrid>();
-#else
-  return false;
-#endif
 }
 
 bool SocketValueVariant::is_context_dependent_field() const

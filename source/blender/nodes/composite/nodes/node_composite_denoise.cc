@@ -311,7 +311,7 @@ class DenoiseOperation : public NodeOperation {
     const CMPNodeDenoiseQuality node_quality = this->get_quality_mode();
 
     if (node_quality == CMP_NODE_DENOISE_QUALITY_SCENE) {
-      const eCompositorDenoiseQaulity scene_quality = context().get_denoise_quality();
+      const eCompositorDenoiseQuality scene_quality = context().get_denoise_quality();
       switch (scene_quality) {
 #    if OIDN_VERSION >= 20300
         case SCE_COMPOSITOR_DENOISE_FAST:

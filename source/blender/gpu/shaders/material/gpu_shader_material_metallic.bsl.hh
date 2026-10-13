@@ -37,7 +37,7 @@ void node_bsdf_metallic(float4 base_color,
                         float /*thin_film_ior*/,
                         const float do_multiscatter,
                         const float use_complex_ior,
-                        [[resource_table]] KernelGlobals &kg,
+                        KernelGlobals &kg,
                         ShadingData &sd,
                         Closure &result)
 {

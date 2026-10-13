@@ -214,7 +214,7 @@ void SceneResources::init(const SceneState &scene_state, const DRWContext *ctx)
                                      float4(0.0f, 0.0f, 0.0f, 0.0f));
 
   if (volume_cube_batch == nullptr) {
-    volume_cube_batch = GPU_batch_unit_cube();
+    volume_cube_batch = make_batch(GPU_batch_unit_cube());
   }
 }
 

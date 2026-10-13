@@ -497,11 +497,11 @@ void curves_bind_resources(PassSimple::Sub &sub_ps,
 }
 
 template<typename PassT>
-gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
-                                                 const Scene *scene,
-                                                 Object *ob,
-                                                 const char *&r_error,
-                                                 GPUMaterial *gpu_material = nullptr)
+Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
+                                            const Scene *scene,
+                                            Object *ob,
+                                            const char *&r_error,
+                                            GPUMaterial *gpu_material = nullptr)
 {
   BLI_assert(ob->type == OB_CURVES);
   Curves &curves_id = DRW_object_get_data_for_drawing<Curves>(*ob);
@@ -534,11 +534,11 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
       sub_ps, module, curves_cache, face_per_segment, gpu_material, indirection_buf, uv_name);
 
   bool error = false;
-  gpu::Batch *batch = curves_cache.batch_get(curves.evaluated_points_num(),
-                                             curves.curves_num(),
-                                             face_per_segment,
-                                             curves.has_cyclic_curve(),
-                                             error);
+  Batch *batch = curves_cache.batch_get(curves.evaluated_points_num(),
+                                        curves.curves_num(),
+                                        face_per_segment,
+                                        curves.has_cyclic_curve(),
+                                        error);
   if (error) {
     r_error = RPT_(
         "Error: Curves object contains too many points. "
@@ -547,20 +547,20 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
   return batch;
 }
 
-gpu::Batch *curves_sub_pass_setup(PassMain::Sub &ps,
-                                  const Scene *scene,
-                                  Object *ob,
-                                  const char *&r_error,
-                                  GPUMaterial *gpu_material)
+Batch *curves_sub_pass_setup(PassMain::Sub &ps,
+                             const Scene *scene,
+                             Object *ob,
+                             const char *&r_error,
+                             GPUMaterial *gpu_material)
 {
   return curves_sub_pass_setup_implementation(ps, scene, ob, r_error, gpu_material);
 }
 
-gpu::Batch *curves_sub_pass_setup(PassSimple::Sub &ps,
-                                  const Scene *scene,
-                                  Object *ob,
-                                  const char *&r_error,
-                                  GPUMaterial *gpu_material)
+Batch *curves_sub_pass_setup(PassSimple::Sub &ps,
+                             const Scene *scene,
+                             Object *ob,
+                             const char *&r_error,
+                             GPUMaterial *gpu_material)
 {
   return curves_sub_pass_setup_implementation(ps, scene, ob, r_error, gpu_material);
 }

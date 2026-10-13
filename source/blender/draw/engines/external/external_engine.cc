@@ -124,7 +124,7 @@ class Prepass {
           handle = manager.resource_handle_for_psys(ob_ref, ob_ref.particles_matrix());
         }
 
-        gpu::Batch *geom = DRW_cache_particles_get_hair(ob, &psys, nullptr);
+        Batch *geom = DRW_cache_particles_get_hair(ob, &psys, nullptr);
         mesh_ps_->draw(geom, handle);
         break;
       }
@@ -158,8 +158,8 @@ class Prepass {
       return;
     }
 
-    gpu::Batch *geom_single = nullptr;
-    Span<gpu::Batch *> geom_list(&geom_single, 1);
+    Batch *geom_single = nullptr;
+    Span<Batch *> geom_list(&geom_single, 1);
 
     ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
 

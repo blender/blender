@@ -233,7 +233,8 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
   Mesh *me_input = id_cast<Mesh *>(ob->data);
   Mesh *mesh = nullptr;
   int i, modifiers_left_num = 0;
-  const BMesh *bm = BKE_editmesh_bmesh_get(ob);
+  /* The evaluated mesh may not have an edit-mesh, use the original. */
+  const BMesh *bm = BKE_editmesh_bmesh_get(DEG_get_original(ob));
   const int verts_num = bm->totvert;
   int cageIndex = BKE_modifiers_get_cage_index(scene, ob, nullptr, true);
   VirtualModifierData virtual_modifier_data;
@@ -269,7 +270,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
         deformmats.reinitialize(verts_num);
         deformmats.fill(float3x3::identity());
       }
-      mti->deform_matrices_EM(md, &mectx, em, mesh, deformcos, deformmats);
+      mti->deform_matrices_EM(md, &mectx, mesh, deformcos, deformmats);
     }
     else {
       break;

@@ -53,12 +53,12 @@ static void extract_face_dots_uv_bm(const MeshRenderData &mr, MutableSpan<float2
     for (const int face_index : range) {
       const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
       const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
-      vbo_data[face_index] = float2(0);
+      float2 sum(0);
       for ([[maybe_unused]] const int i : IndexRange(face.len)) {
-        vbo_data[face_index] += *BM_ELEM_CD_GET_FLOAT2_P(loop, offset);
+        sum += *BM_ELEM_CD_GET_FLOAT2_P(loop, offset);
         loop = loop->next;
       }
-      vbo_data[face_index] /= face.len;
+      vbo_data[face_index] = sum / float(face.len);
     }
   });
 }

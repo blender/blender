@@ -33,11 +33,6 @@ enum class ParamCategory {
   VectorMutable,
 };
 
-template<ParamCategory Category, typename T> struct ParamTag {
-  static constexpr ParamCategory category = Category;
-  using base_type = T;
-};
-
 class ParamType {
  public:
   enum InterfaceType {

@@ -11,6 +11,7 @@
 #  include "GHOST_SystemDBusUnix.hh"
 
 #  include "GHOST_Debug.hh"
+#  include "GHOST_utildefines.hh"
 
 #  ifdef WITH_GHOST_DBUS_DYNLOAD
 #    include "dbus_dynload.h"
@@ -24,6 +25,7 @@
 #  include <chrono>
 #  include <condition_variable>
 #  include <cstdlib>
+#  include <cstring>
 #  include <mutex>
 #  include <utility>
 #  include <vector>
@@ -200,6 +202,11 @@ static bool session_bus_is_available()
 {
   const char *session_bus_address = getenv("DBUS_SESSION_BUS_ADDRESS");
   if (session_bus_address && session_bus_address[0] != '\0') {
+    /* A common convention for disabling the session bus,
+     * support it to avoid a redundant connection attempt. */
+    if (STREQ(session_bus_address, "/dev/null")) {
+      return false;
+    }
     return true;
   }
   /* `libdbus` checks this well known location before resorting to auto-launch. */

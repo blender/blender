@@ -1284,6 +1284,17 @@ bool transform_mode_is_axis_pointing_to_screen(const TransInfo *t, const float3 
   return dot_v3v3(axis, view_vector) > 0.0f;
 }
 
+TransDataContainer *transform_mode_container_first_ok(TransInfo *t)
+{
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    if (tc->custom.mode.data) {
+      return tc;
+    }
+  }
+  BLI_assert_msg(0, "Should never happen, at least one container must have valid data");
+  return nullptr;
+}
+
 /** \} */
 
 }  // namespace blender::ed::transform
