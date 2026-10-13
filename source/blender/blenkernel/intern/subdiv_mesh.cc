@@ -31,8 +31,6 @@
 #include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"
 
-#include "MEM_guardedalloc.h"
-
 namespace blender::bke::subdiv {
 
 /* -------------------------------------------------------------------- */
@@ -105,8 +103,6 @@ struct SubdivMeshContext {
   Span<float2> coarse_CD_ORIGSPACE_MLOOP;
   MutableSpan<float2> subdiv_CD_ORIGSPACE_MLOOP;
 
-  /* Per-subdivided vertex counter of averaged values. */
-  int *accumulated_counters;
   bool have_displacement;
 
   /* Write optimal display edge tags into a boolean array rather than the final bit vector
@@ -210,22 +206,6 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
     ctx->cloth_orco = static_cast<float (*)[3]>(CustomData_add_layer(
         &subdiv_mesh->vert_data, CD_CLOTH_ORCO, CD_CONSTRUCT, subdiv_mesh->verts_num));
   }
-}
-
-static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vertices)
-{
-  if (!ctx->have_displacement) {
-    return;
-  }
-  /* #subdiv_accumulate_vert_displacement requires zero initialization of positions so the
-   * displacements can be accumulated into the array from a per-vertex-per-corner/edge callback. */
-  ctx->subdiv_positions.fill(float3(0));
-  ctx->accumulated_counters = MEM_new_array_zeroed<int>(num_vertices, __func__);
-}
-
-static void subdiv_mesh_context_free(SubdivMeshContext *ctx)
-{
-  MEM_SAFE_DELETE(ctx->accumulated_counters);
 }
 
 /** \} */
@@ -684,25 +664,6 @@ static void loop_interpolation_from_corner(const SubdivMeshContext *ctx,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name TLS
- * \{ */
-
-struct SubdivMeshTLS {
-  VerticesForInterpolation *vert_interpolation = nullptr;
-  int vert_interpolation_coarse_face_index = -1;
-  int vert_interpolation_coarse_corner = -1;
-};
-
-static void subdiv_mesh_tls_free(void *tls_v)
-{
-  SubdivMeshTLS *tls = static_cast<SubdivMeshTLS *>(tls_v);
-  delete tls->vert_interpolation;
-  tls->vert_interpolation = nullptr;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Evaluation helper functions
  * \{ */
 
@@ -731,29 +692,20 @@ static void subdiv_vert_orco_evaluate(const SubdivMeshContext *ctx,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Accumulation helpers
+/** \name Displacement helpers
  * \{ */
 
-static void subdiv_accumulate_vert_displacement(SubdivMeshContext *ctx,
-                                                const int ptex_face_index,
-                                                const float u,
-                                                const float v,
-                                                const int subdiv_vert_index)
+static float3 eval_displacement_at_ptex_coord(Subdiv *subdiv, const PtexCoord &coord)
 {
-  /* Accumulate displacement. */
-  Subdiv *subdiv = ctx->subdiv;
   float3 dummy_P;
   float3 dPdu;
   float3 dPdv;
   float3 D;
-  eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, dummy_P, dPdu, dPdv);
-
-  eval_displacement(subdiv, ptex_face_index, u, v, dPdu, dPdv, D);
-  ctx->subdiv_positions[subdiv_vert_index] += D;
-
-  if (ctx->accumulated_counters) {
-    ++ctx->accumulated_counters[subdiv_vert_index];
-  }
+  const float u = coord.uv.x;
+  const float v = coord.uv.y;
+  eval_limit_point_and_derivatives(subdiv, coord.ptex_face_index, u, v, dummy_P, dPdu, dPdv);
+  eval_displacement(subdiv, coord.ptex_face_index, u, v, dPdu, dPdv, D);
+  return D;
 }
 
 /** \} */
@@ -875,7 +827,6 @@ static void subdiv_mesh_create(SubdivMeshContext *subdiv_context, const MeshLayo
                                          subdiv_context->subdiv_corner_attr_spans);
 
   subdiv_mesh_ctx_cache_custom_data_layers(subdiv_context);
-  subdiv_mesh_prepare_accumulator(subdiv_context, layout.verts_num);
   subdiv_context->subdiv_face_dot_tags = Array<bool>(layout.verts_num, false);
   if (subdiv_context->settings->use_optimal_display) {
     subdiv_context->subdiv_display_edges = Array<bool>(layout.edges_num, false);
@@ -929,147 +880,139 @@ static void subdiv_vert_data_interpolate(const SubdivMeshContext *ctx,
 }
 
 static void evaluate_vert_and_apply_displacement_copy(const SubdivMeshContext *ctx,
-                                                      const int ptex_face_index,
-                                                      const float u,
-                                                      const float v,
+                                                      const PtexCoord &coord,
+                                                      const float3 &D,
                                                       const int coarse_vert_index,
                                                       const int subdiv_vert_index)
 {
   float3 &subdiv_position = ctx->subdiv_positions[subdiv_vert_index];
-  /* Displacement is accumulated in subdiv vertex position.
-   * Needs to be backed up before copying data from original vertex. */
-  float D[3] = {0.0f, 0.0f, 0.0f};
-  if (ctx->have_displacement) {
-    const float inv_num_accumulated = 1.0f / ctx->accumulated_counters[subdiv_vert_index];
-    copy_v3_v3(D, subdiv_position);
-    mul_v3_fl(D, inv_num_accumulated);
-  }
+  const float u = coord.uv.x;
+  const float v = coord.uv.y;
   /* Copy custom data and evaluate position. */
   subdiv_vert_data_copy(ctx, coarse_vert_index, subdiv_vert_index);
-  subdiv_position = eval_limit_point(ctx->subdiv, ptex_face_index, u, v);
+  subdiv_position = eval_limit_point(ctx->subdiv, coord.ptex_face_index, u, v);
   /* Apply displacement. */
   subdiv_position += D;
   /* Evaluate undeformed texture coordinate. */
-  subdiv_vert_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vert_index);
+  subdiv_vert_orco_evaluate(ctx, coord.ptex_face_index, u, v, subdiv_vert_index);
 }
 
 static void evaluate_vert_and_apply_displacement_interpolate(
     const SubdivMeshContext *ctx,
-    const int ptex_face_index,
-    const float u,
-    const float v,
+    const PtexCoord &coord,
+    const float3 &D,
     VerticesForInterpolation *vert_interpolation,
     const int subdiv_vert_index)
 {
   float3 &subdiv_position = ctx->subdiv_positions[subdiv_vert_index];
-  /* Displacement is accumulated in subdiv vertex position.
-   * Needs to be backed up before copying data from original vertex. */
-  float D[3] = {0.0f, 0.0f, 0.0f};
-  if (ctx->have_displacement) {
-    const float inv_num_accumulated = 1.0f / ctx->accumulated_counters[subdiv_vert_index];
-    copy_v3_v3(D, subdiv_position);
-    mul_v3_fl(D, inv_num_accumulated);
-  }
+  const float u = coord.uv.x;
+  const float v = coord.uv.y;
   /* Interpolate custom data and evaluate position. */
   subdiv_vert_data_interpolate(ctx, subdiv_vert_index, vert_interpolation, u, v);
-  subdiv_position = eval_limit_point(ctx->subdiv, ptex_face_index, u, v);
+  subdiv_position = eval_limit_point(ctx->subdiv, coord.ptex_face_index, u, v);
   /* Apply displacement. */
-  add_v3_v3(subdiv_position, D);
+  subdiv_position += D;
   /* Evaluate undeformed texture coordinate. */
-  subdiv_vert_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vert_index);
+  subdiv_vert_orco_evaluate(ctx, coord.ptex_face_index, u, v, subdiv_vert_index);
 }
 
-static void subdiv_mesh_vert_displacement_every_corner_or_edge(
-    const ForeachContext *foreach_context,
-    void * /*tls*/,
-    const int ptex_face_index,
-    const float u,
-    const float v,
-    const int subdiv_vert_index)
+/**
+ * Evaluate subdivided vertices corresponding to base mesh vertices and inside of base mesh
+ * edges used by faces. These vertices are shared by multiple base faces and are evaluated from
+ * the first face that uses them, and the displacement is averaged from all faces.
+ */
+static void subdiv_mesh_boundary_verts(SubdivMeshContext *ctx, const MeshLayout &layout)
 {
-  SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
-  subdiv_accumulate_vert_displacement(ctx, ptex_face_index, u, v, subdiv_vert_index);
-}
+  const Mesh &coarse_mesh = *ctx->coarse_mesh;
+  const OffsetIndices<int> faces = ctx->coarse_faces;
+  const Span<int2> edges = ctx->coarse_edges;
+  const Span<int> corner_verts = ctx->coarse_corner_verts;
+  const Span<int> corner_edges = coarse_mesh.corner_edges();
+  const Span<int> corner_to_face = coarse_mesh.corner_to_face_map();
+  const GroupedSpan<int> vert_to_corner = coarse_mesh.vert_to_corner_map();
+  const GroupedSpan<int> edge_to_corner = coarse_mesh.edge_to_corner_map();
+  const Span<int> face_ptex_offset = face_ptex_offset_get(ctx->subdiv);
+  const int edge_verts_num = layout.resolution - 2;
 
-static void subdiv_mesh_vert_displacement_every_corner(const ForeachContext *foreach_context,
-                                                       void *tls,
-                                                       const int ptex_face_index,
-                                                       const float u,
-                                                       const float v,
-                                                       const int /*coarse_vert_index*/,
-                                                       const int /*coarse_face_index*/,
-                                                       const int /*coarse_corner*/,
-                                                       const int subdiv_vert_index)
-{
-  subdiv_mesh_vert_displacement_every_corner_or_edge(
-      foreach_context, tls, ptex_face_index, u, v, subdiv_vert_index);
-}
+  const auto corner_edge_ptex_coords = [&](const int corner,
+                                           const int edge,
+                                           MutableSpan<PtexCoord> coords) {
+    const int face = corner_to_face[corner];
+    const bool flip = edges[edge][1] == corner_verts[corner];
+    fill_face_corner_edge_ptex_coords(
+        layout, faces[face], face_ptex_offset[face], corner - faces[face].start(), flip, coords);
+  };
 
-static void subdiv_mesh_vert_displacement_every_edge(const ForeachContext *foreach_context,
-                                                     void *tls,
-                                                     const int ptex_face_index,
-                                                     const float u,
-                                                     const float v,
-                                                     const int /*coarse_edge_index*/,
-                                                     const int /*coarse_face_index*/,
-                                                     const int /*coarse_corner*/,
-                                                     const int subdiv_vert_index)
-{
-  subdiv_mesh_vert_displacement_every_corner_or_edge(
-      foreach_context, tls, ptex_face_index, u, v, subdiv_vert_index);
-}
+  threading::parallel_for(faces.index_range(), 256, [&](const IndexRange range) {
+    VerticesForInterpolation vert_interpolation(*ctx);
+    Array<PtexCoord> edge_coords(edge_verts_num);
+    Array<float3> edge_displacement(edge_verts_num);
+    for (const int face_index : range) {
+      const IndexRange face = faces[face_index];
+      bool interpolation_initialized = false;
+      int interpolation_corner = -1;
+      for (const int corner : face) {
+        /* Process every vertex and edge only from the first face corner using it. */
+        const int vert = corner_verts[corner];
+        const Span<int> vert_corners = vert_to_corner[vert];
+        if (vert_corners.first() == corner) {
+          float3 D(0.0f);
+          if (ctx->have_displacement) {
+            for (const int other_corner : vert_corners) {
+              const int other_face = corner_to_face[other_corner];
+              D += eval_displacement_at_ptex_coord(
+                  ctx->subdiv,
+                  face_corner_ptex_coord(faces[other_face],
+                                         face_ptex_offset[other_face],
+                                         other_corner - faces[other_face].start()));
+            }
+            D *= 1.0f / float(vert_corners.size());
+          }
+          const PtexCoord coord = face_corner_ptex_coord(
+              face, face_ptex_offset[face_index], corner - face.start());
+          /* Subdivided vertices corresponding to base mesh vertices have the same indices. */
+          evaluate_vert_and_apply_displacement_copy(ctx, coord, D, vert, vert);
+        }
 
-static void subdiv_mesh_vert_corner(const ForeachContext *foreach_context,
-                                    void * /*tls*/,
-                                    const int ptex_face_index,
-                                    const float u,
-                                    const float v,
-                                    const int coarse_vert_index,
-                                    const int /*coarse_face_index*/,
-                                    const int /*coarse_corner*/,
-                                    const int subdiv_vert_index)
-{
-  BLI_assert(coarse_vert_index != ORIGINDEX_NONE);
-  SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
-  evaluate_vert_and_apply_displacement_copy(
-      ctx, ptex_face_index, u, v, coarse_vert_index, subdiv_vert_index);
-}
-
-static void subdiv_mesh_ensure_vert_interpolation(SubdivMeshContext *ctx,
-                                                  SubdivMeshTLS *tls,
-                                                  const int coarse_face_index,
-                                                  const int coarse_corner)
-{
-  const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
-  if (!tls->vert_interpolation) {
-    tls->vert_interpolation = new VerticesForInterpolation(*ctx);
-  }
-  if (tls->vert_interpolation_coarse_face_index != coarse_face_index) {
-    vert_interpolation_from_face(ctx, tls->vert_interpolation, coarse_face);
-    vert_interpolation_from_corner(ctx, tls->vert_interpolation, coarse_face, coarse_corner);
-  }
-  else if (tls->vert_interpolation_coarse_corner != coarse_corner) {
-    vert_interpolation_from_corner(ctx, tls->vert_interpolation, coarse_face, coarse_corner);
-  }
-  tls->vert_interpolation_coarse_face_index = coarse_face_index;
-  tls->vert_interpolation_coarse_corner = coarse_corner;
-}
-
-static void subdiv_mesh_vert_edge(const ForeachContext *foreach_context,
-                                  void *tls_v,
-                                  const int ptex_face_index,
-                                  const float u,
-                                  const float v,
-                                  const int /*coarse_edge_index*/,
-                                  const int coarse_face_index,
-                                  const int coarse_corner,
-                                  const int subdiv_vert_index)
-{
-  SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
-  SubdivMeshTLS *tls = static_cast<SubdivMeshTLS *>(tls_v);
-  subdiv_mesh_ensure_vert_interpolation(ctx, tls, coarse_face_index, coarse_corner);
-  evaluate_vert_and_apply_displacement_interpolate(
-      ctx, ptex_face_index, u, v, tls->vert_interpolation, subdiv_vert_index);
+        const int edge = corner_edges[corner];
+        const Span<int> edge_corners = edge_to_corner[edge];
+        if (edge_corners.first() != corner) {
+          continue;
+        }
+        edge_displacement.fill(float3(0.0f));
+        if (ctx->have_displacement) {
+          for (const int other_corner : edge_corners) {
+            corner_edge_ptex_coords(other_corner, edge, edge_coords);
+            for (const int i : edge_coords.index_range()) {
+              edge_displacement[i] += eval_displacement_at_ptex_coord(ctx->subdiv, edge_coords[i]);
+            }
+          }
+          for (float3 &D : edge_displacement) {
+            D *= 1.0f / float(edge_corners.size());
+          }
+        }
+        if (!interpolation_initialized) {
+          vert_interpolation_from_face(ctx, &vert_interpolation, face);
+          interpolation_initialized = true;
+        }
+        corner_edge_ptex_coords(corner, edge, edge_coords);
+        const IndexRange edge_verts = layout.base_edge_verts(edge);
+        for (const int i : edge_verts.index_range()) {
+          const PtexCoord &coord = edge_coords[i];
+          /* Quads have a single ptex face, other faces have a ptex face for every corner. */
+          const int coarse_corner = face.size() == 4 ?
+                                        0 :
+                                        coord.ptex_face_index - face_ptex_offset[face_index];
+          if (coarse_corner != interpolation_corner) {
+            vert_interpolation_from_corner(ctx, &vert_interpolation, face, coarse_corner);
+            interpolation_corner = coarse_corner;
+          }
+          evaluate_vert_and_apply_displacement_interpolate(
+              ctx, coord, edge_displacement[i], &vert_interpolation, edge_verts[i]);
+        }
+      }
+    }
+  });
 }
 
 static bool subdiv_mesh_is_center_vert(const IndexRange coarse_face, const float u, const float v)
@@ -1269,10 +1212,9 @@ static void subdiv_mesh_corner_data(SubdivMeshContext *ctx, const MeshLayout &la
 /** \name Polygons subdivision process
  * \{ */
 
-static void subdiv_mesh_face(const ForeachContext *foreach_context,
-                             OffsetIndices<int> subdiv_faces_by_base_face)
+static void subdiv_mesh_faces(SubdivMeshContext *ctx, const MeshLayout &layout)
 {
-  SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
+  const OffsetIndices<int> subdiv_faces_by_base_face = layout.faces_by_base_face();
   threading::memory_bandwidth_bound_task(int64_t(ctx->subdiv_mesh->faces_num) * 4, [&]() {
     for (const int i : ctx->coarse_face_attrs.index_range()) {
       array_utils::gather_to_groups(subdiv_faces_by_base_face,
@@ -1449,27 +1391,6 @@ static void subdiv_mesh_loose_edges(SubdivMeshContext *ctx, const MeshLayout &la
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Initialization
- * \{ */
-
-static void setup_foreach_callbacks(const SubdivMeshContext *subdiv_context,
-                                    ForeachContext *foreach_context)
-{
-  *foreach_context = {};
-  /* Every boundary geometry. Used for displacement averaging. */
-  if (subdiv_context->have_displacement) {
-    foreach_context->vert_every_corner = subdiv_mesh_vert_displacement_every_corner;
-    foreach_context->vert_every_edge = subdiv_mesh_vert_displacement_every_edge;
-  }
-  foreach_context->vert_corner = subdiv_mesh_vert_corner;
-  foreach_context->vert_edge = subdiv_mesh_vert_edge;
-  foreach_context->faces = subdiv_mesh_face;
-  foreach_context->user_data_tls_free = subdiv_mesh_tls_free;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Public entry point
  * \{ */
 
@@ -1513,13 +1434,7 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
   const MeshLayout layout = build_mesh_layout(*coarse_mesh, settings->resolution);
   subdiv_mesh_create(&subdiv_context, layout);
   subdiv_mesh_verts_no_face(&subdiv_context);
-  ForeachContext foreach_context;
-  setup_foreach_callbacks(&subdiv_context, &foreach_context);
-  SubdivMeshTLS tls{};
-  foreach_context.user_data = &subdiv_context;
-  foreach_context.user_data_tls_size = sizeof(SubdivMeshTLS);
-  foreach_context.user_data_tls = &tls;
-  foreach_subdiv_geometry(subdiv, &foreach_context, layout, coarse_mesh);
+  subdiv_mesh_boundary_verts(&subdiv_context, layout);
   subdiv_mesh_edges(&subdiv_context, layout);
   fill_corner_verts_and_edges(layout,
                               *coarse_mesh,
@@ -1528,6 +1443,7 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
                               subdiv_context.subdiv_corner_edges);
   subdiv_mesh_inner_verts(&subdiv_context, layout);
   subdiv_mesh_corner_data(&subdiv_context, layout);
+  subdiv_mesh_faces(&subdiv_context, layout);
   subdiv_mesh_loose_edges(&subdiv_context, layout);
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
   Mesh *result = subdiv_context.subdiv_mesh;
@@ -1575,7 +1491,6 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
   }
 
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
-  subdiv_mesh_context_free(&subdiv_context);
   return result;
 }
 
