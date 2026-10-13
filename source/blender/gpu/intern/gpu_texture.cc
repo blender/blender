@@ -604,11 +604,6 @@ void GPU_texture_clear(gpu::Texture *tex, eGPUDataFormat data_format, const void
         clear_data[i] = static_cast<const uint *>(data)[i];
       }
       break;
-    case GPU_DATA_UBYTE:
-      for (int i : IndexRange(comp_len)) {
-        clear_data[i] = static_cast<const uint *>(data)[i];
-      }
-      break;
     default:
       BLI_assert_msg(0, "Unhandled data format");
       return;
