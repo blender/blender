@@ -49,12 +49,21 @@ class CompositorTest(api.Test):
     def use_device(self):
         return True
 
+    def supported_device_types(self):
+        return [
+            "CPU", "METAL", "VULKAN", "OPENGL",
+        ]
+
     def run(self, env, device_id, gpu_backend):
-        tokens = device_id.split('_')
-        device_type = tokens[0]
+        device_type = device_id.split('_')[0]
+
+        blender_args = [self.filepath]
+        if device_type != 'CPU':
+            blender_args = api.test.Test.blender_gpu_arguments(device_id, gpu_backend) + blender_args
+
         args = {'device_type': device_type}
 
-        result, _ = env.run_in_blender(_run, args, [self.filepath])
+        result, _ = env.run_in_blender(_run, args, blender_args)
         return result
 
 
