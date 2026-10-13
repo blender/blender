@@ -577,7 +577,9 @@ struct SymbolParser : NodeErrorHandler {
 
     scope.scopes.emplace(cls->identifier, cls);
 
-    if (cls->is_anonymous && anonymous_scope_prefix(cls).non_anonymous_parent == nullptr) {
+    if (!cls->is_enum && cls->is_anonymous &&
+        anonymous_scope_prefix(cls).non_anonymous_parent == nullptr)
+    {
       error(decl, Diag::AnonymousUnionNotSupportedAtNamespaceScope);
       return table.err_cls;
     }
@@ -613,18 +615,18 @@ struct SymbolParser : NodeErrorHandler {
     }
     else {
       cls->ensure_size_and_align();
-    }
 
-    if (cls->is_anonymous) {
-      /* Instantiate into parent class as member. */
-      SymbolVariable *var = table.var_arena.alloc(
-          &scope, cls, decl.front(), cls->original + ns_sep);
-      if (scope.variable_emplace(cls->original, var)) {
-        error(var->loc.tok, Diag::Redefinition, cls->original);
+      if (cls->is_anonymous) {
+        /* Instantiate into parent class as member. */
+        SymbolVariable *var = table.var_arena.alloc(
+            &scope, cls, decl.front(), cls->original + ns_sep);
+        if (scope.variable_emplace(cls->original, var)) {
+          error(var->loc.tok, Diag::Redefinition, cls->original);
+        }
+
+        var->type = cls;
+        var->set_offset(parent_class.is_union(), offset);
       }
-
-      var->type = cls;
-      var->set_offset(parent_class.is_union(), offset);
     }
     return cls;
   }
