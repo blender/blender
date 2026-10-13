@@ -780,7 +780,8 @@ static void init_proportional_edit(TransInfo *t)
     {
       BLI_assert(t->obedit_type == OB_CURVES || t->obedit_type == OB_GREASE_PENCIL);
       if (t->flag & T_PROP_CONNECTED) {
-        /* Already calculated by #calculate_curve_point_distances_for_proportional_editing. */
+        /* Already calculated by #curve_connected_point_distances /
+         * #cyclic_curve_connected_point_distances. */
       }
       else {
         set_prop_dist(t, false);
