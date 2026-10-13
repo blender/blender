@@ -444,6 +444,8 @@ void do_plane_brush(const Depsgraph &depsgraph,
                        ss.cache->radius,
                        mat.ptr(),
                        mat_inv.ptr());
+  mat_inv.y_axis() *= brush.tip_scale_x;
+  mat = math::invert(mat_inv);
 
   float strength = ss.cache->bstrength;
   float height = brush.plane_height;
@@ -569,6 +571,8 @@ CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
                        ss.cache->radius,
                        brush_local_mat.ptr(),
                        brush_local_mat_inv.ptr());
+  brush_local_mat_inv.y_axis() *= brush.tip_scale_x;
+  brush_local_mat = math::invert(brush_local_mat_inv);
 
   /* Recompute the node mask using the center of the brush plane as the center.
    *
