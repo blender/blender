@@ -2755,10 +2755,11 @@ volume_integrate_event(KernelGlobals kg,
 #  if defined(__PATH_GUIDING__)
     if (kernel_data.integrator.use_guiding) {
 #    if PATH_GUIDING_LEVEL >= 1
-      if (result.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
-        /* If the direct scatter event is generated using VOLUME_SAMPLE_DISTANCE the direct event
-         * will happen at the same position as the indirect event and the direct light contribution
-         * will contribute to the position of the next path segment. */
+      if (result.direct_sample_method == VOLUME_SAMPLE_DISTANCE && result.indirect_scatter) {
+        /* If the direct scatter event is generated using VOLUME_SAMPLE_DISTANCE together with an
+         * indirect event the direct event will happen at the same position as the indirect event
+         * and the direct light contribution will contribute to the position of the next path
+         * segment. */
         const float3 transmittance_weight = spectrum_to_rgb(
             safe_divide_color(result.indirect_throughput, initial_throughput));
         guiding_record_volume_transmission(kg, state, transmittance_weight);
@@ -2767,11 +2768,16 @@ volume_integrate_event(KernelGlobals kg,
         unlit_throughput = result.indirect_throughput / continuation_probability;
         rand_phase_guiding = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
       }
-      else if (result.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) {
-        /* If the direct scatter event is generated using VOLUME_SAMPLE_EQUIANGULAR the direct
-         * event will happen at a separate position as the indirect event and the direct light
-         * contribution will contribute to the position of the current/previous path segment. The
-         * unlit_throughput has to be adjusted to include the scattering at the previous segment.
+      else if (result.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR ||
+               !result.indirect_scatter)
+      {
+        /* If the direct scatter event is generated using VOLUME_SAMPLE_EQUIANGULAR or no indirect
+         * scattering event is generated the direct event will happen at a separate position as the
+         * indirect event or no additional volume scattering event will be generated (e.g., if we
+         * reached the maximum volume bounce or max volume bounce is set to 0). In this case the
+         * direct light contribution will contribute to the position of the current/previous path
+         * segment. The unlit_throughput has to be adjusted to include the scattering at the
+         * previous segment.
          */
         float3 scatterEval = one_float3();
         if (INTEGRATOR_STATE(state, guiding, path_segment)) {
