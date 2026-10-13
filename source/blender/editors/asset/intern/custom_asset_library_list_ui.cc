@@ -97,16 +97,19 @@ void draw_active_library_settings(const bContext *C,
 
       if (ui::Layout *panel = layout.panel(C, "advanced", true, IFACE_("Advanced"))) {
         panel->use_property_split_set(true);
-        {
-          ui::Layout &row = panel->row(false);
-          row.alignment_set(ui::LayoutAlign::Center);
-          row.label(IFACE_("Defined by the extension repository"), ICON_STATUS_INFO);
-        }
-        ui::Layout &col = panel->column(true, IFACE_("Authentication"));
 
         bUserExtensionRepo *repo = BKE_preferences_extension_asset_library_repo_get(
             &U, library.user_library);
         if (repo && (repo->flag & USER_EXTENSION_REPO_FLAG_USE_ACCESS_TOKEN_ASSET_LIBRARIES)) {
+
+          {
+            ui::Layout &row = panel->row(false);
+            row.alignment_set(ui::LayoutAlign::Center);
+            row.label(IFACE_("Defined by the extension repository"), ICON_STATUS_INFO);
+          }
+
+          ui::Layout &col = panel->column(true, IFACE_("Authentication"));
+
           /* The repository defines the token for its libraries, show it read-only. */
           PointerRNA repo_ptr = RNA_pointer_create_discrete(nullptr, RNA_UserExtensionRepo, repo);
           col.enabled_set(false);
@@ -123,6 +126,8 @@ void draw_active_library_settings(const bContext *C,
           }
         }
         else {
+          ui::Layout &col = panel->column(true, IFACE_("Authentication"));
+
           col.prop(&library_ptr, "use_auth_token", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
           if (library.user_library->flag & ASSET_LIBRARY_USE_AUTH_TOKEN) {
