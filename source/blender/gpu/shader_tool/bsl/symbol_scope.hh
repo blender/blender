@@ -129,6 +129,7 @@ struct SymbolScope : Symbol {
                                      ast::Id last,
                                      optional<SourceLocation> loc = nullopt) const;
 
+  /* Returns nullptr if not found. */
   SymbolVariable *lookup_variable(string id) const;
   SymbolFunction *lookup_function(string id) const;
   SymbolClass *lookup_class(string id) const;
