@@ -420,7 +420,7 @@ void ShadowPass::object_sync(SceneState &scene_state,
   }
 
   bool is_manifold;
-  gpu::Batch *geom_shadow = DRW_cache_object_edge_detection_get(ob, &is_manifold);
+  draw::Batch *geom_shadow = DRW_cache_object_edge_detection_get(ob, &is_manifold);
   if (geom_shadow == nullptr) {
     return;
   }
@@ -450,7 +450,7 @@ void ShadowPass::object_sync(SceneState &scene_state,
     ps.draw_expand(geom_shadow, prim, tri_len, 1, handle);
   }
 
-  gpu::Batch *geom_faces = DRW_cache_object_surface_get(ob);
+  draw::Batch *geom_faces = DRW_cache_object_surface_get(ob);
   /* Caps. */
   get_pass_ptr(fail_type, is_manifold, true)->draw_expand(geom_faces, prim, 2, 1, handle);
   /* Sides extrusion. */

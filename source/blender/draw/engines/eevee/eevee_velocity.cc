@@ -156,7 +156,7 @@ bool VelocityModule::step_object_sync(const ObjectHandle &ob_handle,
           data.pos_buf = DRW_pointcloud_position_and_radius_buffer_get(ob_handle.object);
           break;
         case OB_MESH:
-          data.pos_buf = DRW_cache_mesh_surface_get(ob_handle.object);
+          data.pos_buf = DRW_cache_mesh_surface_get(ob_handle.object)->gpu_batch();
           break;
         default:
           break;

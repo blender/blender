@@ -105,7 +105,7 @@ class Fade : Overlay {
             }
           }
           else {
-            gpu::Batch *geom = DRW_cache_object_surface_get(const_cast<Object *>(ob_ref.object));
+            Batch *geom = DRW_cache_object_surface_get(const_cast<Object *>(ob_ref.object));
             if (geom) {
               sub.draw(geom, manager.unique_handle(ob_ref));
             }

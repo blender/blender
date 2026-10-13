@@ -48,7 +48,7 @@ class PointClouds : Overlay {
 
     ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
     {
-      gpu::Batch *geom = DRW_cache_pointcloud_vert_overlay_get(ob_ref.object);
+      Batch *geom = DRW_cache_pointcloud_vert_overlay_get(ob_ref.object);
       ps_.draw(geom, res_handle, res.select_id(ob_ref).get());
     }
   }

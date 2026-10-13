@@ -320,59 +320,59 @@ class Meshes : Overlay {
     const bool has_edit_cage = mesh_has_edit_cage(ob);
 
     if (show_retopology_) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_triangles(mesh);
+      Batch *geom = DRW_mesh_batch_cache_get_edit_triangles(mesh);
       edit_mesh_prepass_ps_.draw(geom, res_handle);
     }
     if (draw_as_solid && !state.is_render_depth_available) {
-      gpu::Batch *geom = DRW_cache_mesh_surface_get(ob);
+      Batch *geom = DRW_cache_mesh_surface_get(ob);
       edit_mesh_prepass_ps_.draw(geom, res_handle);
     }
 
     if (show_mesh_analysis_) {
-      gpu::Batch *geom = DRW_cache_mesh_surface_mesh_analysis_get(ob);
+      Batch *geom = DRW_cache_mesh_surface_mesh_analysis_get(ob);
       edit_mesh_analysis_ps_.draw(geom, res_handle);
     }
 
     if (show_weight_) {
-      gpu::Batch *geom = DRW_cache_mesh_surface_weights_get(ob);
+      Batch *geom = DRW_cache_mesh_surface_weights_get(ob);
       edit_mesh_weight_ps_.draw(geom, res_handle);
     }
 
     if (face_normals_) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_facedots(mesh);
+      Batch *geom = DRW_mesh_batch_cache_get_edit_facedots(mesh);
       (use_gpu_subdiv && !has_edit_cage ? face_normals_subdiv_ : face_normals_)
           ->draw_expand(geom, GPU_PRIM_LINES, 1, 1, res_handle);
     }
     if (loop_normals_) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_loop_normals(mesh);
+      Batch *geom = DRW_mesh_batch_cache_get_edit_loop_normals(mesh);
       (use_gpu_subdiv && !has_edit_cage ? loop_normals_subdiv_ : loop_normals_)
           ->draw_expand(geom, GPU_PRIM_LINES, 1, 1, res_handle);
     }
     if (vert_normals_) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_vert_normals(mesh);
+      Batch *geom = DRW_mesh_batch_cache_get_edit_vert_normals(mesh);
       ((use_gpu_subdiv && !has_edit_cage) ? vert_normals_subdiv_ : vert_normals_)
           ->draw_expand(geom, GPU_PRIM_LINES, 1, 1, res_handle);
     }
 
     {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_edges(mesh);
+      Batch *geom = DRW_mesh_batch_cache_get_edit_edges(mesh);
       edit_mesh_edges_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
     }
     {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_triangles(mesh);
+      Batch *geom = DRW_mesh_batch_cache_get_edit_triangles(mesh);
       (has_edit_cage ? &edit_mesh_cages_ps_ : &edit_mesh_faces_ps_)->draw(geom, res_handle);
     }
     if (select_vert_) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_vertices(mesh);
+      Batch *geom = DRW_mesh_batch_cache_get_edit_vertices(mesh);
       edit_mesh_verts_ps_.draw(geom, res_handle);
     }
     if (select_face_dots_) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_facedots(mesh);
+      Batch *geom = DRW_mesh_batch_cache_get_edit_facedots(mesh);
       edit_mesh_facedots_ps_.draw(geom, res_handle);
     }
 
     if (mesh_has_skin_roots(ob)) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_skin_roots(mesh);
+      Batch *geom = DRW_mesh_batch_cache_get_edit_skin_roots(mesh);
       edit_mesh_skin_roots_ps_.draw_expand(geom, GPU_PRIM_LINES, 15, 1, res_handle);
     }
     if (state.show_text && (state.overlay.edit_flag & overlay_edit_text)) {
@@ -801,11 +801,11 @@ class MeshUVs : Overlay {
     ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
 
     if (show_wireframe_ && has_active_object_uvmap) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_all_uv_wireframe(*ob, mesh);
+      Batch *geom = DRW_mesh_batch_cache_get_all_uv_wireframe(*ob, mesh);
       wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
     }
     if (show_face_overlay_ && has_active_object_uvmap && space_image->uv_face_opacity > 0.0f) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_faces(*ob, mesh);
+      Batch *geom = DRW_mesh_batch_cache_get_uv_faces(*ob, mesh);
       faces_ps_.draw(geom, res_handle);
     }
   }
@@ -849,23 +849,23 @@ class MeshUVs : Overlay {
     /* Fully editable UVs in the UV Editor. */
     if (has_active_edit_uvmap && is_uv_editable) {
       if (show_uv_edit_) {
-        gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_edges(ob, mesh);
+        Batch *geom = DRW_mesh_batch_cache_get_edituv_edges(ob, mesh);
         edges_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
       }
       if (select_vert_) {
-        gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_verts(ob, mesh);
+        Batch *geom = DRW_mesh_batch_cache_get_edituv_verts(ob, mesh);
         verts_ps_.draw(geom, res_handle);
       }
       if (select_face_dots_) {
-        gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_facedots(ob, mesh);
+        Batch *geom = DRW_mesh_batch_cache_get_edituv_facedots(ob, mesh);
         facedots_ps_.draw(geom, res_handle);
       }
       if (show_face_overlay_ || select_face_) {
-        gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_faces(ob, mesh);
+        Batch *geom = DRW_mesh_batch_cache_get_edituv_faces(ob, mesh);
         faces_ps_.draw(geom, res_handle);
       }
       if (show_wireframe_) {
-        gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_wireframe(ob, mesh);
+        Batch *geom = DRW_mesh_batch_cache_get_edituv_wireframe(ob, mesh);
         wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
       }
 
@@ -876,7 +876,7 @@ class MeshUVs : Overlay {
           index_2d = per_mesh_area_2d_.append_and_get_index(nullptr);
         }
 
-        gpu::Batch *geom =
+        Batch *geom =
             mesh_analysis_type_ == SI_UVDT_STRETCH_ANGLE ?
                 DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(ob, mesh) :
                 DRW_mesh_batch_cache_get_edituv_faces_stretch_area(
@@ -890,11 +890,11 @@ class MeshUVs : Overlay {
     /* Selectable faces in 3D viewport that sync with image editor paint mode. */
     if ((has_active_object_uvmap || has_active_edit_uvmap) && is_face_selectable) {
       if (show_wireframe_) {
-        gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_wireframe(ob, mesh);
+        Batch *geom = DRW_mesh_batch_cache_get_uv_wireframe(ob, mesh);
         wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
       }
       if ((show_face_overlay_ && space_image->uv_face_opacity > 0.0f) || select_face_) {
-        gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_faces(ob, mesh);
+        Batch *geom = DRW_mesh_batch_cache_get_uv_faces(ob, mesh);
         faces_ps_.draw(geom, res_handle);
       }
       return;
@@ -905,11 +905,11 @@ class MeshUVs : Overlay {
         !is_face_selectable)
     {
       if (show_wireframe_) {
-        gpu::Batch *geom = DRW_mesh_batch_cache_get_all_uv_wireframe(ob, mesh);
+        Batch *geom = DRW_mesh_batch_cache_get_all_uv_wireframe(ob, mesh);
         wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
       }
       if (show_face_overlay_ && space_image->uv_face_opacity > 0.0f) {
-        gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_faces(ob, mesh);
+        Batch *geom = DRW_mesh_batch_cache_get_uv_faces(ob, mesh);
         faces_ps_.draw(geom, res_handle);
       }
     }

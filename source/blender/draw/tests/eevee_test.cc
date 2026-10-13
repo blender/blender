@@ -264,10 +264,12 @@ static void test_eevee_shadow_tag_update()
   pass.bind_ssbo("tiles_buf", tiles_data);
   pass.bind_ssbo("bounds_buf", &manager.bounds_buf.previous());
   pass.bind_ssbo("resource_ids_buf", past_casters_updated);
-  pass.draw(box_batch, past_casters_updated.size() * tilemaps_data.size());
+  /* The test owns the batch; wrap it without ownership for command recording. */
+  Batch batch(box_batch, false);
+  pass.draw(&batch, past_casters_updated.size() * tilemaps_data.size());
   pass.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
   pass.bind_ssbo("resource_ids_buf", curr_casters_updated);
-  pass.draw(box_batch, curr_casters_updated.size() * tilemaps_data.size());
+  pass.draw(&batch, curr_casters_updated.size() * tilemaps_data.size());
   pass.barrier(GPU_BARRIER_SHADER_STORAGE);
 
   pass.shader_set(sh_propagate);

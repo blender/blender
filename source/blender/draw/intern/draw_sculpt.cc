@@ -108,7 +108,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
   const IndexMask nodes_to_update = update_only_visible ? visible_nodes :
                                                           bke::pbvh::all_leaf_nodes(*pbvh, memory);
 
-  Span<gpu::Batch *> batches;
+  Span<Batch *> batches;
   if (use_wire) {
     batches = draw_data.ensure_lines_batches(*ob, {{}, fast_mode}, nodes_to_update);
   }

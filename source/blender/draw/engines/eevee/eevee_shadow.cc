@@ -676,7 +676,7 @@ void ShadowModule::begin_sync()
   update_casters_ = true;
 
   if (box_batch_ == nullptr) {
-    box_batch_ = GPU_batch_unit_cube();
+    box_batch_ = make_batch(GPU_batch_unit_cube());
   }
 
   {
@@ -752,7 +752,7 @@ void ShadowModule::sync_object(const ObjectHandle &ob_handle,
                                bool has_offset_shadows)
 {
   if ((is_alpha_blend && !inst_.is_baking()) || has_offset_shadows) {
-    tilemap_usage_transparent_ps_->draw(box_batch_, ob_handle.res_handle);
+    tilemap_usage_transparent_ps_->draw(box_batch_.get(), ob_handle.res_handle);
   }
 
   bool is_shadow_caster = !(ob_handle.object->visibility_flag & OB_HIDE_SHADOW);
@@ -944,13 +944,15 @@ void ShadowModule::end_sync()
       if (past_casters_updated_.size() > 0) {
         pass.bind_ssbo("bounds_buf", &manager.bounds_buf.previous());
         pass.bind_ssbo("resource_ids_buf", past_casters_updated_);
-        pass.draw(box_batch_, past_casters_updated_.size() * tilemap_pool.tilemaps_data.size());
+        pass.draw(box_batch_.get(),
+                  past_casters_updated_.size() * tilemap_pool.tilemaps_data.size());
       }
       /* Current caster transforms. */
       if (curr_casters_updated_.size() > 0) {
         pass.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
         pass.bind_ssbo("resource_ids_buf", curr_casters_updated_);
-        pass.draw(box_batch_, curr_casters_updated_.size() * tilemap_pool.tilemaps_data.size());
+        pass.draw(box_batch_.get(),
+                  curr_casters_updated_.size() * tilemap_pool.tilemaps_data.size());
       }
       pass.barrier(GPU_BARRIER_SHADER_STORAGE);
     }
@@ -968,7 +970,7 @@ void ShadowModule::end_sync()
         pass.bind_ssbo("tiles_buf", tilemap_pool.tiles_data);
         pass.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
         pass.bind_ssbo("resource_ids_buf", jittered_transparent_casters_);
-        pass.draw(box_batch_,
+        pass.draw(box_batch_.get(),
                   jittered_transparent_casters_.size() * tilemap_pool.tilemaps_data.size());
         pass.barrier(GPU_BARRIER_SHADER_STORAGE);
       }

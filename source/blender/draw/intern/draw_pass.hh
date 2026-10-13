@@ -59,6 +59,7 @@
 #include "draw_command.hh"
 #include "draw_handle.hh"
 #include "draw_manager.hh"
+#include "draw_meshlet.hh"
 #include "draw_shader_shared.hh"
 #include "draw_state.hh"
 
@@ -258,7 +259,7 @@ class PassBase {
    * \note Setting the count or first to -1 will use the values from the batch.
    * \note An instance or vertex count of 0 will discard the draw call. It will not be recorded.
    */
-  void draw(gpu::Batch *batch,
+  void draw(Batch *batch,
             uint instance_len = -1,
             uint vertex_len = -1,
             uint vertex_first = -1,
@@ -269,7 +270,7 @@ class PassBase {
    * Shorter version for the common case.
    * \note Implemented in derived class. Not a virtual function to avoid indirection.
    */
-  void draw(gpu::Batch *batch, ResourceIDRange res_id, uint custom_id = 0);
+  void draw(Batch *batch, ResourceIDRange res_id, uint custom_id = 0);
 
   /**
    * Record a procedural draw call. Geometry is **NOT** source from a gpu::Batch.
@@ -295,7 +296,7 @@ class PassBase {
    * \note Only works for GPU_PRIM_POINTS, GPU_PRIM_LINES, GPU_PRIM_TRIS, GPU_PRIM_LINES_ADJ and
    * GPU_PRIM_TRIS_ADJ original primitive types.
    */
-  void draw_expand(gpu::Batch *batch,
+  void draw_expand(Batch *batch,
                    GPUPrimType primitive_type,
                    uint primitive_len,
                    uint instance_len,
@@ -308,7 +309,7 @@ class PassBase {
    * Shorter version for the common case.
    * \note Implemented in derived class. Not a virtual function to avoid indirection.
    */
-  void draw_expand(gpu::Batch *batch,
+  void draw_expand(Batch *batch,
                    GPUPrimType primitive_type,
                    uint primitive_len,
                    uint instance_len,
@@ -319,7 +320,7 @@ class PassBase {
    * Indirect variants.
    * \note If needed, the resource id need to also be set accordingly in the DrawCommand.
    */
-  void draw_indirect(gpu::Batch *batch,
+  void draw_indirect(Batch *batch,
                      StorageBuffer<DrawCommand, true> &indirect_buffer,
                      ResourceID res_id = {0});
   void draw_procedural_indirect(GPUPrimType primitive,
@@ -479,8 +480,6 @@ class PassBase {
   int push_constant_offset(const char *name);
 
   void clear(GPUFrameBufferBits planes, float4 color, float depth, uint8_t stencil);
-
-  gpu::Batch *procedural_batch_get(GPUPrimType primitive);
 
   /**
    * Return a new command recorded with the given type.
@@ -678,24 +677,6 @@ template<class T> inline void PassBase<T>::clear_multi(Span<double4> colors)
 {
   create_command(command::Type::ClearMulti).clear_multi = {colors.data(),
                                                            static_cast<int>(colors.size())};
-}
-
-template<class T> inline gpu::Batch *PassBase<T>::procedural_batch_get(GPUPrimType primitive)
-{
-  switch (primitive) {
-    case GPU_PRIM_POINTS:
-      return GPU_batch_procedural_points_get();
-    case GPU_PRIM_LINES:
-      return GPU_batch_procedural_lines_get();
-    case GPU_PRIM_TRIS:
-      return GPU_batch_procedural_triangles_get();
-    case GPU_PRIM_TRI_STRIP:
-      return GPU_batch_procedural_triangle_strips_get();
-    default:
-      /* Add new one as needed. */
-      BLI_assert_unreachable();
-      return nullptr;
-  }
 }
 
 template<class T> inline PassBase<T> &PassBase<T>::sub(const char *name)
@@ -903,7 +884,7 @@ template<class T> std::string PassBase<T>::serialize(std::string line_prefix) co
  * \{ */
 
 template<class T>
-inline void PassBase<T>::draw(gpu::Batch *batch,
+inline void PassBase<T>::draw(Batch *batch,
                               uint instance_len,
                               uint vertex_len,
                               uint vertex_first,
@@ -929,13 +910,13 @@ inline void PassBase<T>::draw(gpu::Batch *batch,
 }
 
 template<class T>
-inline void PassBase<T>::draw(gpu::Batch *batch, ResourceIDRange res_id, uint custom_id)
+inline void PassBase<T>::draw(Batch *batch, ResourceIDRange res_id, uint custom_id)
 {
   this->draw(batch, -1, -1, -1, res_id, custom_id);
 }
 
 template<class T>
-inline void PassBase<T>::draw_expand(gpu::Batch *batch,
+inline void PassBase<T>::draw_expand(Batch *batch,
                                      GPUPrimType primitive_type,
                                      uint primitive_len,
                                      uint instance_len,
@@ -962,7 +943,7 @@ inline void PassBase<T>::draw_expand(gpu::Batch *batch,
 }
 
 template<class T>
-inline void PassBase<T>::draw_expand(gpu::Batch *batch,
+inline void PassBase<T>::draw_expand(Batch *batch,
                                      GPUPrimType primitive_type,
                                      uint primitive_len,
                                      uint instance_len,
@@ -980,8 +961,14 @@ inline void PassBase<T>::draw_procedural(GPUPrimType primitive,
                                          ResourceIDRange res_id,
                                          uint custom_id)
 {
-  this->draw(
-      procedural_batch_get(primitive), instance_len, vertex_len, vertex_first, res_id, custom_id);
+  /* Geometry is not sourced from a #gpu::Batch. The procedural batches are GPU module singletons
+   * owned by the active context, wrapped into persistent #Batch that resolve them on access. */
+  this->draw(command::procedural_batch_get(primitive),
+             instance_len,
+             vertex_len,
+             vertex_first,
+             res_id,
+             custom_id);
 }
 
 /** \} */
@@ -991,7 +978,7 @@ inline void PassBase<T>::draw_procedural(GPUPrimType primitive,
  * \{ */
 
 template<class T>
-inline void PassBase<T>::draw_indirect(gpu::Batch *batch,
+inline void PassBase<T>::draw_indirect(Batch *batch,
                                        StorageBuffer<DrawCommand, true> &indirect_buffer,
                                        ResourceID res_id)
 {
@@ -1003,7 +990,7 @@ template<class T>
 inline void PassBase<T>::draw_procedural_indirect(
     GPUPrimType primitive, StorageBuffer<DrawCommand, true> &indirect_buffer, ResourceID res_id)
 {
-  this->draw_indirect(procedural_batch_get(primitive), indirect_buffer, res_id);
+  this->draw_indirect(command::procedural_batch_get(primitive), indirect_buffer, res_id);
 }
 
 /** \} */

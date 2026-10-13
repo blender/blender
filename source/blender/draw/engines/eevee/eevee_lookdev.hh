@@ -25,6 +25,7 @@
 #include "eevee_lightprobe.hh"
 #include "eevee_lightprobe_shared.hh"
 
+#include "draw_meshlet.hh"
 #include "draw_pass.hh"
 
 namespace blender {
@@ -152,7 +153,7 @@ class LookdevModule {
     MAX, /* Max number of level of detail */
   };
 
-  std::array<gpu::Batch *, MAX> sphere_lod_ = {};
+  std::array<BatchPtr, MAX> sphere_lod_ = {};
 
   /* Size and position of the look-dev spheres in world space. */
   float sphere_radius_;
@@ -186,7 +187,6 @@ class LookdevModule {
 
  public:
   LookdevModule(Instance &inst);
-  ~LookdevModule();
 
   void init(const rcti *visible_rect);
   void sync();
@@ -210,14 +210,14 @@ class LookdevModule {
 
  private:
   void sync_pass(PassSimple &pass,
-                 gpu::Batch *geom,
+                 draw::Batch *geom,
                  blender::Material *mat,
                  ResourceHandleRange res_handle);
   void sync_display();
 
   float calc_viewport_scale();
   SphereLOD calc_level_of_detail(const float viewport_scale);
-  gpu::Batch *sphere_get(const SphereLOD level_of_detail);
+  draw::Batch *sphere_get(const SphereLOD level_of_detail);
 
   friend class LookdevView;
 };

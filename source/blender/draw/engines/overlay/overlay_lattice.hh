@@ -67,11 +67,11 @@ class Lattices : Overlay {
 
     ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
     {
-      gpu::Batch *geom = DRW_cache_lattice_wire_get(ob_ref.object, true);
+      Batch *geom = DRW_cache_lattice_wire_get(ob_ref.object, true);
       edit_lattice_wire_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
     }
     {
-      gpu::Batch *geom = DRW_cache_lattice_vert_overlay_get(ob_ref.object);
+      Batch *geom = DRW_cache_lattice_vert_overlay_get(ob_ref.object);
       edit_lattice_point_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
     }
   }
@@ -89,7 +89,7 @@ class Lattices : Overlay {
       return;
     }
 
-    gpu::Batch *geom = DRW_cache_lattice_wire_get(ob_ref.object, false);
+    Batch *geom = DRW_cache_lattice_wire_get(ob_ref.object, false);
     if (geom) {
       const float4 &color = res.object_wire_color(ob_ref, state);
       float4x4 draw_mat(ob_ref.object->object_to_world().ptr());

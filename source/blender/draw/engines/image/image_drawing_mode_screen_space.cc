@@ -38,7 +38,7 @@ void ScreenSpaceDrawingMode::add_shgroups() const
     PassSimple::Sub &sub = pass.sub("Texture");
     sub.push_constant("offset", info.offset());
     sub.bind_texture("image_tx", info.texture);
-    sub.draw(info.batch, handle);
+    sub.draw(info.batch.get(), handle);
   }
 }
 
@@ -72,7 +72,7 @@ void ScreenSpaceDrawingMode::add_depth_shgroups(blender::Image *image, ImageUser
         PassSimple::Sub &sub = pass.sub("Tile");
         float4 min_max_uv(tile_x, tile_y, tile_x + 1, tile_y + 1);
         sub.push_constant("min_max_uv", min_max_uv);
-        sub.draw(info.batch, handle);
+        sub.draw(info.batch.get(), handle);
       }
       BKE_image_release_ibuf(image, tile_buffer, lock);
     }

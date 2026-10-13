@@ -138,8 +138,7 @@ class Sculpts : Overlay {
         const char *error = nullptr;
         /* The error string will always have been printed by the engine already.
          * No need to display it twice. */
-        gpu::Batch *geometry = curves_sub_pass_setup(
-            *curves_ps_, state.scene, ob_ref.object, error);
+        Batch *geometry = curves_sub_pass_setup(*curves_ps_, state.scene, ob_ref.object, error);
         if (select_attr_buf.get()) {
           ResourceHandleRange handle = manager.unique_handle(ob_ref);
 
@@ -153,7 +152,7 @@ class Sculpts : Overlay {
     if (show_curves_cage_) {
       ResourceHandleRange handle = manager.unique_handle(ob_ref);
 
-      gpu::Batch *geometry = DRW_curves_batch_cache_get_sculpt_curves_cage(&curves);
+      Batch *geometry = DRW_curves_batch_cache_get_sculpt_curves_cage(&curves);
       sculpt_curve_cage_.draw(geometry, handle);
     }
   }
@@ -232,7 +231,7 @@ class Sculpts : Overlay {
       ResourceHandleRange handle = manager.unique_handle(ob_ref);
 
       Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob_ref.object);
-      gpu::Batch *sculpt_overlays = DRW_mesh_batch_cache_get_sculpt_overlays(mesh);
+      Batch *sculpt_overlays = DRW_mesh_batch_cache_get_sculpt_overlays(mesh);
       mesh_ps_->draw(sculpt_overlays, handle);
     }
   }
