@@ -113,34 +113,14 @@ class ChannelTagStack {
   Vector<ChannelTag> tags_;
 
  public:
-  void push(const ChannelTag &tag)
-  {
-    tags_.append(tag);
-  }
-  void pop()
-  {
-    tags_.pop_last();
-  };
+  void push(const ChannelTag &tag);
+  void pop();
+  bool is_empty() const;
+  /** \return the number of tags in the set. */
+  int64_t size() const;
 
-  bool is_empty() const
-  {
-    return tags_.is_empty();
-  }
-
-  const ChannelTag *find_type(const ChannelTagType t) const
-  {
-    for (const ChannelTag &tag : this->tags_) {
-      if (tag.tag_type() == t) {
-        return &tag;
-      }
-    }
-    return nullptr;
-  }
-
-  Span<ChannelTag> snapshot() const
-  {
-    return {tags_};
-  };
+  const ChannelTag *find_type(const ChannelTagType t) const;
+  Span<ChannelTag> snapshot() const;
 };
 
 /* See eBezTriple_Interpolation. */

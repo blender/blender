@@ -819,6 +819,42 @@ void GreasePencilChannel::set_selected(const bool is_selected)
   layer.set_selected(is_selected);
 }
 
+/* ===== ChannelTagStack ======= */
+
+void ChannelTagStack::push(const ChannelTag &tag)
+{
+  tags_.append(tag);
+}
+void ChannelTagStack::pop()
+{
+  tags_.pop_last();
+};
+
+bool ChannelTagStack::is_empty() const
+{
+  return tags_.is_empty();
+}
+/** \return the number of tags in the set. */
+int64_t ChannelTagStack::size() const
+{
+  return tags_.size();
+}
+
+const ChannelTag *ChannelTagStack::find_type(const ChannelTagType t) const
+{
+  for (const ChannelTag &tag : this->tags_) {
+    if (tag.tag_type() == t) {
+      return &tag;
+    }
+  }
+  return nullptr;
+}
+
+Span<ChannelTag> ChannelTagStack::snapshot() const
+{
+  return {tags_};
+}
+
 /* ===== ChannelTagSet ======= */
 
 void ChannelTagSet::set(const Span<ChannelTag> tags)

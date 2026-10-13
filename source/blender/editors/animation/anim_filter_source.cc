@@ -39,10 +39,39 @@
 
 namespace blender::ed::animfilter {
 
+#ifndef NDEBUG
+/**
+ * Debug tool that asserts the number of tags at construction is the same as at destruction.
+ *
+ * This helps to ensure that functions that receive a ChannelTagSet reference don't forget to pop
+ * the tags they push on the stack.
+ */
+class AssertScopedTagCount final {
+  const ChannelTagStack &tags_;
+  const int64_t initial_tag_count_;
+
+ public:
+  AssertScopedTagCount() = delete;
+  explicit AssertScopedTagCount(const ChannelTagStack &tags)
+      : tags_(tags), initial_tag_count_(tags.size())
+  {
+  }
+  ~AssertScopedTagCount()
+  {
+    BLI_assert(tags_.size() == initial_tag_count_);
+  }
+};
+#  define assert_tag_count(tags) AssertScopedTagCount _scoped_tag_counter((tags))
+#else
+#  define assert_tag_count(tags) ((void)0)
+#endif
+
 /* Find the bPoseChannel that this FCurve references. If it does not reference a pose bone, nullptr
  * is returned. The `tags` have to contain a tag of type ID that is an Object. */
 static PointerRNA pose_bone_for_fcurve(const FCurve &fcurve, const ChannelTagStack &tags)
 {
+  assert_tag_count(tags);
+
   std::optional<std::string> bone_name = animrig::pose_bone_name_from_rna_path(
       fcurve.rna_path_parsed());
   if (!bone_name) {
@@ -69,6 +98,8 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
                                     ChannelArena &arena,
                                     const CollectionFilters &collection_filters)
 {
+  assert_tag_count(tags);
+
   BLI_assert(channelbag_ptr.type == RNA_ActionChannelbag);
   animrig::Channelbag &channelbag = *channelbag_ptr.data_as<animrig::Channelbag>();
   BLI_assert(channelbag.slot_handle != animrig::Slot::unassigned);
@@ -147,6 +178,7 @@ static void channels_for_action_slot(animrig::Action &action,
                                      const CollectionFilters &collection_filters)
 {
   using namespace animrig;
+  assert_tag_count(tags);
 
   /* Start building the RNA path from the Action. */
   Vector<rna_path::Item> rna_path_items;
@@ -269,6 +301,8 @@ static void collect_channels_for_id(ID *animated_id,
   }
 
   ChannelTagStack tags;
+  assert_tag_count(tags);
+
   PointerRNA animated_id_ptr = RNA_pointer_create_discrete(
       animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
   tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr, ParsedRNAPathRef()});
@@ -289,6 +323,8 @@ struct GreasePencilCollector {
 
   void visit(bke::greasepencil::TreeNode &node)
   {
+    assert_tag_count(tags);
+
     if (node.is_layer()) {
       GreasePencilLayer &gp_layer = node.as_layer();
       PointerRNA gp_layer_ptr = RNA_pointer_create_with_parent(
@@ -329,6 +365,8 @@ struct GreasePencilCollector {
 static void collect_channels_for_grease_pencil(GreasePencil &gp, ChannelArena &arena)
 {
   ChannelTagStack tags;
+  assert_tag_count(tags);
+
   const PointerRNA gp_id_ptr = RNA_id_pointer_create(&gp.id);
   tags.push({ChannelTagType::ID, gp.id.name + 2, gp_id_ptr, ParsedRNAPathRef()});
 
@@ -427,6 +465,8 @@ void collect_action_channels(animrig::Action &action,
   PRF_scope_with_name("ed::animfilter::collect_action_channels", ProfileCategory::Editor);
 
   ChannelTagStack tags;
+  assert_tag_count(tags);
+
   ChannelSourcingContext ctx(arena);
 
   /* Start building the RNA path from the Action. */
