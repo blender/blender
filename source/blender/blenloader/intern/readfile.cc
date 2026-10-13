@@ -809,7 +809,10 @@ static const char *blo_bhead_string_at(const BHead *bhead, const int offset, con
 const char *blo_bhead_id_name(FileData *fd, const BHead *bhead)
 {
   BLI_assert(blo_bhead_is_id(bhead));
-  if (const char *id_name = blo_bhead_string_at(bhead, fd->id_name_offset, MAX_ID_NAME)) {
+  const char *id_name = blo_bhead_string_at(bhead, fd->id_name_offset, MAX_ID_NAME);
+  /* Names must at least contain the two character ID code, so code using `id_name + 2`
+   * always gets a null terminated string. */
+  if (id_name && id_name[0] != '\0' && id_name[1] != '\0') {
     return id_name;
   }
 
