@@ -1878,6 +1878,8 @@ if(WITH_UI_TESTS)
     test_info_reports.test_info_report_selection_modes
     test_info_reports.test_info_report_delete
     test_info_reports.test_info_report_operator_poll
+    test_object_type_visibility.pose_bone_select_with_armature_unselectable
+    test_object_type_visibility.edit_mode_element_select_with_type_unselectable
     test_blend_autoexec.pref_enabled_drop_blend_file_untrusted
     test_blend_autoexec.pref_enabled_drop_blend_file_trusted
     test_blend_autoexec.pref_enabled_open_file_selector_trusted
