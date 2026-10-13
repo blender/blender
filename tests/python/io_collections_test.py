@@ -407,6 +407,60 @@ class TestCollectionImport(CollectionIOTestBase):
 
         self.assertEqual(len(bpy.data.libraries), 0)
 
+    def test_make_local_empty(self):
+        # Validate make_local on an empty collection.
+        self.reset_blender()
+
+        coll_A = "CollectionA"
+        coll_main = bpy.context.scene.collection
+        self.create_collections(coll_main, (coll_A, ))
+
+        # Setup the importer but do not perform any import
+        self.add_collection_importer(coll_A, "IO_FH_usd")
+        coll = bpy.data.collections[coll_A]
+        coll.importer.filepath = str(self.testdir / "import-default.usda")
+
+        # Making local should remove the importer (validated as part of below call)
+        self.make_local_collection(coll_A)
+
+    def test_library_delete(self):
+        # Validate that deleting external libraries, behind the importer's back, is handled correctly.
+        self.reset_blender()
+
+        coll_A = "CollectionA"
+        coll_main = bpy.context.scene.collection
+        self.create_collections(coll_main, (coll_A, ))
+
+        # Add a new importer and perform the import
+        self.add_collection_importer(coll_A, "IO_FH_usd")
+
+        coll = bpy.data.collections[coll_A]
+        coll.importer.filepath = str(self.testdir / "import-default.usda")
+
+        self.do_collection_import(coll_A)
+        self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 4)
+        self.assertEqual(len(bpy.data.libraries), 2)
+
+        # Destroy the main external library manually, then try reloading which should succeed.
+        external_lib = next((lib for lib in bpy.data.libraries if lib.is_archive == False), None)
+        self.assertIsNotNone(external_lib)
+        bpy.data.libraries.remove(external_lib)
+        self.assertEqual(len(bpy.data.libraries), 0)
+
+        self.reload_collection_importer(coll_A)
+        self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 4)
+        self.assertEqual(len(bpy.data.libraries), 2)
+
+        # Destroy the external archive library manually, then try reloading which should succeed.
+        external_archive_lib = next((lib for lib in bpy.data.libraries if lib.is_archive), None)
+        self.assertIsNotNone(external_archive_lib)
+        bpy.data.libraries.remove(external_archive_lib)
+        self.assertEqual(len(bpy.data.libraries), 1)
+
+        self.reload_collection_importer(coll_A)
+        self.assertEqual(len(bpy.data.collections[coll_A].all_objects), 4)
+        self.assertEqual(len(bpy.data.libraries), 2)
+
 
 def main():
     global args
