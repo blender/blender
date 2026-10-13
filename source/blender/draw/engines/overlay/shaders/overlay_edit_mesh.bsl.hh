@@ -781,16 +781,28 @@ PipelineGraphic facedot_clipped(face_dot::vert_main,
 /** \name Depth Pass
  * \{ */
 
+namespace depth_pass {
+
+struct Resources {
+  [[resource_table]] Uniform uni;
+  [[resource_table]] Clipping clip;
+  [[resource_table]] draw::View views;
+  [[resource_table]] draw::Model models;
+  [[resource_table]] draw::Resource resources;
+
+  [[push_constant]] float retopology_offset;
+};
+
 struct VertIn {
   [[attribute(0)]] float3 pos;
 };
 
 [[vertex]]
-void depth_pass_vert([[resource_table]] const Resources &srt,
-                     [[instance_index]] const int inst_index,
-                     [[in]] const VertIn &v_in,
-                     [[clip_distance, condition(use_clipping)]] float (&clip_distances)[6],
-                     [[position]] float4 &out_pos)
+void vert_main([[resource_table]] const Resources &srt,
+               [[instance_index]] const int inst_index,
+               [[in]] const VertIn &v_in,
+               [[clip_distance, condition(use_clipping)]] float (&clip_distances)[6],
+               [[position]] float4 &out_pos)
 {
   uint id = srt.resources.get(inst_index).resource_id<1>();
   ObjectMatrices model = srt.models.get(id);
@@ -814,14 +826,18 @@ void depth_pass_vert([[resource_table]] const Resources &srt,
 }
 
 [[fragment]]
-void depth_pass_frag()
+void frag_main()
 {
   /* NOOP. */
 }
 
-PipelineGraphic depth(depth_pass_vert, depth_pass_frag, ClippingConstant{.use_clipping = false});
-PipelineGraphic depth_clipped(depth_pass_vert,
-                              depth_pass_frag,
+}  // namespace depth_pass
+
+PipelineGraphic depth(depth_pass::vert_main,
+                      depth_pass::frag_main,
+                      ClippingConstant{.use_clipping = false});
+PipelineGraphic depth_clipped(depth_pass::vert_main,
+                              depth_pass::frag_main,
                               ClippingConstant{.use_clipping = true});
 
 /** \} */
