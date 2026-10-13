@@ -9,6 +9,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
 #include "GPU_material.hh"
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
@@ -44,6 +45,21 @@ void DRW_gsplat_module_free(GSplatModule *gsplat_module)
 
 namespace detail {
 
+/** Perform batched compute dispatches to stay below GPU_max_work_group_count.  */
+void batched_dispatch(const int invocs_count, PassSimple::Sub &pass)
+{
+  const int64_t max_invocs_per_dispatch = int64_t(GPU_max_work_group_count(0)) *
+                                          DRW_GSPLAT_GROUP_SIZE;
+  int invocs_start = 0;
+  while (invocs_start < invocs_count) {
+    int num_invocs = std::min(int64_t(invocs_count - invocs_start), max_invocs_per_dispatch);
+    pass.push_constant("invocs_start", invocs_start);
+    pass.push_constant("invocs_count", invocs_count);
+    pass.dispatch(divide_ceil_u(num_invocs, DRW_GSPLAT_GROUP_SIZE));
+    invocs_start += num_invocs;
+  }
+}
+
 template<typename PassT>
 void compute_pass_setup(PassT &ps, const ObjectRef &ob_ref, const ResourceHandleRange &res_handle)
 {
@@ -64,10 +80,9 @@ void compute_pass_setup(PassT &ps, const ObjectRef &ob_ref, const ResourceHandle
   sub_ps.bind_ssbo("radiance_comp", cache.radiance_comp_buf_get());
 
   sub_ps.push_constant("viewport_size", viewport_size);
-  sub_ps.push_constant("num_points", pointcloud.totpoint);
   sub_ps.push_constant("resource_id", resource_id);
 
-  sub_ps.dispatch(divide_ceil_u(pointcloud.totpoint, DRW_GSPLAT_GROUP_SIZE));
+  batched_dispatch(pointcloud.totpoint, sub_ps);
 }
 
 template<typename PassT>
@@ -107,9 +122,9 @@ Batch *draw_subpass_setup(PassT &sub_ps,
   sub_ps.bind_ubo("infos", is_empty ? module.dummy_ubo : cache.infos_buf_get());
   sub_ps.bind_texture("shape_data_tx", is_empty ? module.dummy_vbo : cache.shape_data_buf_get());
   sub_ps.bind_texture("ellipses_comp_tx",
-                      is_empty ? module.dummy_vbo : cache.ellipses_comp_buf_get());
+                      is_empty ? &module.dummy_vbo : cache.ellipses_comp_buf_get());
   sub_ps.bind_texture("radiance_comp_tx",
-                      is_empty ? module.dummy_vbo : cache.radiance_comp_buf_get());
+                      is_empty ? &module.dummy_vbo : cache.radiance_comp_buf_get());
 
   float2 viewport_size = DRW_context_get()->viewport_size_get();
   sub_ps.push_constant("viewport_size", viewport_size);
@@ -121,13 +136,16 @@ Batch *draw_subpass_setup(PassT &sub_ps,
       char sampler_name[32];
       drw_curves_get_attribute_sampler_name(gpu_attr.name, sampler_name);
 
+      gpu::VertBuf **attribute_buf = DRW_gsplat_evaluated_attribute(&pointcloud, gpu_attr.name);
       if (STREQ(gpu_attr.name, "radiance")) {
-        /* Radiance attribute is specifically for gsplat spherical harmonics output. */
+        /* If the "radiance" attribute is provided, we do not use spherical harmonics output,
+         * but instead use the provided attribute as a color directly. */
         sub_ps.bind_texture(sampler_name,
-                            is_empty ? module.dummy_vbo : cache.radiance_comp_buf_get());
+                            is_empty ?
+                                &module.dummy_vbo :
+                                (attribute_buf ? attribute_buf : cache.radiance_comp_buf_get()));
       }
       else {
-        gpu::VertBuf **attribute_buf = DRW_gsplat_evaluated_attribute(&pointcloud, gpu_attr.name);
         sub_ps.bind_texture(sampler_name,
                             (attribute_buf && !is_empty) ? attribute_buf : &module.dummy_vbo);
       }
@@ -145,16 +163,10 @@ void GSplatModule::begin_sync()
 
   compute_ellipses_ps_.init();
   compute_ellipses_ps_.state_set(DRW_STATE_NO_DRAW);
-  compute_ellipses_ps_.shader_set(DRW_shader_gsplat_compute_get(GSplatEvalShader::Ellipses));
-
   compute_radiance_ps_.init();
   compute_radiance_ps_.state_set(DRW_STATE_NO_DRAW);
-  compute_radiance_ps_.shader_set(DRW_shader_gsplat_compute_get(GSplatEvalShader::Radiance));
-
   compute_ellipses_radiance_ps_.init();
   compute_ellipses_radiance_ps_.state_set(DRW_STATE_NO_DRAW);
-  compute_ellipses_radiance_ps_.shader_set(
-      DRW_shader_gsplat_compute_get(GSplatEvalShader::EllipsesRadiance));
 }
 
 void GSplatModule::sync_object(const ObjectRef &ob_ref, const ResourceHandleRange &res_handle)
@@ -165,6 +177,14 @@ void GSplatModule::sync_object(const ObjectRef &ob_ref, const ResourceHandleRang
   ObjectKey ob_key = ob_ref.is_range() ? ObjectKey(ob_ref, 0) : ObjectKey(ob_ref);
   if (compute_objects_.contains(ob_key)) {
     return;
+  }
+  if (compute_objects_.is_empty()) {
+    /* First `sync_object` that adds a gsplat. Get shaders now, to avoid
+     * unnecessarily compiling in scenes without splats. */
+    compute_ellipses_ps_.shader_set(DRW_shader_gsplat_compute_get(GSplatEvalShader::Ellipses));
+    compute_radiance_ps_.shader_set(DRW_shader_gsplat_compute_get(GSplatEvalShader::Radiance));
+    compute_ellipses_radiance_ps_.shader_set(
+        DRW_shader_gsplat_compute_get(GSplatEvalShader::EllipsesRadiance));
   }
   compute_objects_.add(ob_key);
 

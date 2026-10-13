@@ -374,6 +374,11 @@ gpu::VertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob)
 
 gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const StringRef name)
 {
+  if (pointcloud->type == PointCloudType::GSplat) {
+    /* GSplats are a subtype of point-clouds, so we forward to their implementation. */
+    return DRW_gsplat_evaluated_attribute(pointcloud, name);
+  }
+
   const bke::AttributeAccessor attributes = pointcloud->attributes();
   PointCloudBatchCache &cache = *pointcloud_batch_cache_get(*pointcloud);
 

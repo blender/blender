@@ -126,8 +126,8 @@ struct GSplatEvalCache {
   /* Request pointers to buffers that may not be filled yet, see `ensure_requested()`. */
   gpu::VertBuf *shape_data_buf_get();
   gpu::VertBuf *radiance_data_buf_get();
-  gpu::VertBuf *ellipses_comp_buf_get();
-  gpu::VertBuf *radiance_comp_buf_get();
+  gpu::VertBuf **ellipses_comp_buf_get();
+  gpu::VertBuf **radiance_comp_buf_get();
   gpu::UniformBuf *infos_buf_get();
   gpu::VertBuf **attributes_get(uint request_i);
 

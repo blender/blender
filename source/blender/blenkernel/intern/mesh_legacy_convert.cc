@@ -2588,7 +2588,7 @@ void mesh_skin_to_legacy(AttributeStorage::BlendWriteData &attr_write_data,
       attrs_to_remove.add("skin_modifier_loose");
     }
   }
-  if (radius_array == nullptr) {
+  if (radius_array == nullptr && radius_single == nullptr) {
     return;
   }
 
