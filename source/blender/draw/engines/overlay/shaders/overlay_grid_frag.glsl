@@ -70,7 +70,7 @@ void main()
   }
   else {
     /* Fade at edge of grid level in orthographic, in case of rather small units. */
-    if (!flag_test(grid_flag, GRID_SIMA)) {
+    if (!flag_test(grid_flag, GRID_SIMA | GRID_ALIGNED)) {
       float length_fade = 1.0f - min(1.0f, dot(vertex_out.coord, vertex_out.coord));
       out_color.a *= pow2f(length_fade);
     }

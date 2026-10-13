@@ -21,28 +21,24 @@ struct LineData {
 LineData decode_grid_data(uint vertex_id)
 {
   LineData line;
-
   /* Every pair of consecutive verts forms a line, indicated by bit 0.
    * Every pair of consecutive lines flips x/y, indicated by bit 1. */
   uint side = vertex_id & 0x1u;
   vertex_id = vertex_id >> 1u;
   line.axis = vertex_id & 0x1u;
   vertex_id = vertex_id >> 1u;
-
   /* The index/level of a line are encoded by the remaining bits. We order
    * levels from "large" to "small", drawing the larger levels first. */
   line.level = OVERLAY_GRID_STEPS_DRAW - 1 - int(vertex_id / grid_buf.num_lines);
   vertex_id = vertex_id % grid_buf.num_lines;
-
-  /* From the index, generate N+1 points equidistantly spaced on [-N/2, N/2]. */
-  line.P.x = max(float(grid_buf.num_lines >> 1u), 1.0f);
-  line.P.y = (float(vertex_id) - float(grid_buf.num_lines >> 1u));
-
-  /* If this isn't the line start, flip the x-component to the end. Likewise,
-   * if this isn't the x-direction, flip components to define the y-direction. */
-  line.P.x = side != 0 ? line.P.x : -line.P.x;
-  line.P.xy = line.axis != 0 ? line.P.yx : line.P.xy;
-
+  /* Scale vertex index to [-1, 1]. */
+  const float lines_half = max(float(grid_buf.num_lines >> 1u), 1.0f);
+  const float line_index = (float(vertex_id) - lines_half) / lines_half;
+  /* From the index, generate N+1 points equidistantly spaced on [-1, 1]. */
+  line.P.x = line_index;
+  line.P.y = side != 0 ? 1.0f : -1.0f;
+  /* Flip X-, Y-components dependent on axis. */
+  line.P.xy = (line.axis == 0) ? line.P.xy : line.P.yx;
   return line;
 }
 
@@ -50,17 +46,15 @@ LineData decode_grid_data(uint vertex_id)
 LineData decode_axis_data(uint vertex_id)
 {
   LineData line;
-
   /* Every pair of consecutive verts forms a line, indicated by bit 0.
    * They then alternate x/y/z, indicated by the remaining bits. */
   uint side = vertex_id & 0x1u;
   line.axis = vertex_id >> 1u;
   /* For an axis line, the level is fixed, and the direction is simply the vertex index. */
   line.level = OVERLAY_GRID_STEPS_DRAW - 1;
-  /* Output a vertex as [-N/2, N/2], [0, 0]. */
-  line.P.x = max(float(grid_buf.num_lines >> 1u), 1.0f) * select(1.0f, -1.0f, side);
+  /* Output a vertex as [-1, 1], [0, 0]. */
+  line.P.x = side != 0 ? 1.0f : -1.0f;
   line.P.y = 0.0f;
-
   return line;
 }
 
@@ -103,27 +97,28 @@ void main()
 
   /* Compute per-level size, camera offset for lines. Offset is rounded to the nearest
    * level-dependent line position for grid, while axes simply move with the camera. */
-  uint step_axis = flag_test(grid_flag, GRID_SIMA) ? 1u - line.axis : line.axis;
-  float step_size = grid_buf.steps[level][step_axis];
-
-  float2 step_offs = grid_buf.offset;
+  float step_size = grid_buf.steps[level][line.axis];
+  if (step_size == 0.0f) {
+    return; /* Discard line. */
+  }
   /* TODO(not_mark): remove all this horrible axis-swapping BS in BSL port. */
-  if (flag_test(grid_flag, SHOW_GRID) && !flag_test(grid_flag, GRID_SIMA)) {
+  float2 step_offs = grid_buf.offset;
+  if (flag_test(grid_flag, SHOW_GRID)) {
     /* Line moves with offset along its axis, but snaps to the rounded offset on the other axis. */
-    if (line.axis == 0) {
-      step_offs.y = round(grid_buf.offset.y / step_size) * step_size;
+    if (line.axis != 0) {
+      step_offs.y = round(step_offs.y / step_size) * step_size;
     }
     else {
-      step_offs.x = round(grid_buf.offset.x / step_size) * step_size;
+      step_offs.x = round(step_offs.x / step_size) * step_size;
     }
   }
   else if (flag_test(grid_flag, SHOW_AXES)) {
     /* Store axis value on X-axis for now, it is swapped later. */
     step_offs = float2(drw_view_position()[line.axis], 0.0f);
-  } /* else: GRID_SIMA, do nothing. */
+  }
 
   /* Output vertex position in [-1,1], which we use to fade level boundaries. */
-  vertex_out.coord = line.P / max(float(grid_buf.num_lines >> 1), 1.0f);
+  vertex_out.coord = line.P;
   /* Output an interpolant between `grid` and `grid_emphasis` for the second grid level. */
   vertex_out_flat.emphasis = saturate(float(line.level) - fract(grid_buf.level));
   /* Output alpha that smoothly transitions the lowest grid level in/out. */
@@ -134,7 +129,9 @@ void main()
         step_size * 0.25f, step_size * pow3f(0.25f), uniform_buf.pixel_fac);
   }
 
-  /* Apply per-level size, camera offset. */
+  /* Scale grid lines to [-N, N] so they step 1m intervals. */
+  line.P *= max(float(grid_buf.num_lines >> 1), 1.0f);
+  /* Scale and offset grid lines so they follow the camera in level-appropriate steps. */
   line.P = step_offs + step_size * line.P;
 
   /* Compute clipping rectangle. */
@@ -142,8 +139,8 @@ void main()
   float2 clip_min = float2(-FLT_MAX), clip_max = float2(FLT_MAX);
   if (flag_test(grid_flag, GRID_SIMA)) {
     /* SpaceImage view has user-specified clipping rectangle */
-    clip_min = float2(-1.0f);
-    clip_max = grid_buf.clip_rect * 2.0f - 1.0f;
+    clip_min = float2(0.0f);
+    clip_max = grid_buf.clip_rect;
   }
   else if (flag_test(grid_flag, SHOW_GRID)) {
     clip_min = step_offs - grid_buf.clip_rect;
@@ -187,7 +184,7 @@ void main()
       /* Set z to place the grid in front of/behind images/UDIMS, and always behind the UV mesh.
        * See `overlay_edit_uv_edges_vert.glsl` for the full z-order. */
       float z = flag_test(grid_flag, GRID_OVER_IMAGE) ? 0.45f : 0.76f;
-      vertex_out.pos = float3(line.P * 0.5f + 0.5f, z);
+      vertex_out.pos = float3(line.P, z);
     }
   }
   else { /* SHOW_AXES */
