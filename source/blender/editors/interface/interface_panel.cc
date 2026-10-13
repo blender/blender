@@ -2630,6 +2630,7 @@ static int handle_panel_category_cycling(const wmEvent *event,
 
 void panel_region_width_set(ARegion *region, const float aspect, int unscaled_size)
 {
+  BLI_assert(BKE_regiontype_uses_category_tabs(region->runtime->type));
   const float size_new = unscaled_size / aspect;
   if (region->alignment & RGN_ALIGN_RIGHT) {
     region->winrct.xmin = region->winrct.xmax - (size_new * UI_SCALE_FAC);
@@ -3015,6 +3016,19 @@ void region_panels_sort_for_search_filter_visibility_change(bContext *C, const A
   }
   std::stable_sort(panel_sort.begin(), panel_sort.end(), find_highest_panel);
   panel_activate_state(C, panel_sort.first().panel, PANEL_STATE_ANIMATION);
+}
+
+bool panel_region_visible_width_ensure(ARegion *region)
+{
+  BLI_assert(BKE_regiontype_uses_category_tabs(region->runtime->type));
+  if (!region_panels_fits_only_categories(region)) {
+    return false;
+  }
+  const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
+                       (BLI_rcti_size_y(&region->v2d.mask) + 1);
+  const int new_width = region->runtime->type->prefsizex ? region->runtime->type->prefsizex : 250;
+  panel_region_width_set(region, aspect, new_width);
+  return true;
 }
 
 /** \} */

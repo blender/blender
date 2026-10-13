@@ -3303,13 +3303,7 @@ static wmOperatorStatus region_start_filter_exec(bContext *C, wmOperator * /*op*
     region->flag |= RGN_FLAG_SEARCH_FILTER_SHOW;
     region_panels_sort_for_search_filter_visibility_change(C, region);
   }
-  if (region_panels_fits_only_categories(region)) {
-    /* Enlarge region to show content to filter. */
-    const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
-                         (BLI_rcti_size_y(&region->v2d.mask) + 1);
-    const int new_width = region->runtime->type->prefsizex ? region->runtime->type->prefsizex :
-                                                             250;
-    panel_region_width_set(region, aspect, new_width);
+  if (ui::panel_region_visible_width_ensure(region)) {
     WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
   }
   ED_region_activate_rna_prop(C, region, region, "search_filter");
