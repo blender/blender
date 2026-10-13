@@ -1143,7 +1143,7 @@ void ShadowModule::debug_end_sync()
   /* Init but not filled if no active object. */
   debug_draw_ps_.init();
 
-  int tilemap_index = 0;
+  int tilemap_index = -1;
   Object *object_active = inst_.draw_ctx->obact;
   if (object_active != nullptr) {
     ObjectKey object_key(ObjectRef(DEG_get_original(object_active)));
@@ -1155,7 +1155,7 @@ void ShadowModule::debug_end_sync()
     }
   }
 
-  if (tilemap_index == 0 && inst_.debug_mode != eDebugMode::DEBUG_SHADOW_ATOMIC_COST) {
+  if (tilemap_index == -1 && inst_.debug_mode != eDebugMode::DEBUG_SHADOW_ATOMIC_COST) {
     return;
   }
 
