@@ -36,13 +36,13 @@ namespace blender {
 #  define PRINT(format, ...)
 #endif
 
-static MEM_CacheLimiterC *limitor = nullptr;
+static MEM_CacheLimiterC *limiter = nullptr;
 
 /* Image buffers managed by a ImBufCache might be using their own caches (used by color
  * management). In practice this means that, for example, freeing ImBufCache used by MovieClip
  * will request freeing ImBufCache owned by ImBuf. Freeing ImBufCache needs to be thread-safe,
  * so regular mutex will not work here, hence the recursive lock. */
-static std::recursive_mutex limitor_lock;
+static std::recursive_mutex limiter_lock;
 
 struct ImBufCache {
   char name[64];
@@ -114,9 +114,9 @@ static void imbufcache_valfree(void *val)
   PRINT("%s: cache '%s' free item %p buffer %p\n", __func__, cache->name, item, item->ibuf);
 
   if (item->c_handle) {
-    limitor_lock.lock();
+    limiter_lock.lock();
     MEM_CacheLimiter_unmanage(item->c_handle);
-    limitor_lock.unlock();
+    limiter_lock.unlock();
   }
 
   if (item->ibuf) {
@@ -253,17 +253,17 @@ static bool get_item_destroyable(void *item_v)
 
 void IMB_cache_init()
 {
-  limitor = new_MEM_CacheLimiter(imbufcache_destructor, get_item_size);
+  limiter = new_MEM_CacheLimiter(imbufcache_destructor, get_item_size);
 
-  MEM_CacheLimiter_ItemPriority_Func_set(limitor, get_item_priority);
-  MEM_CacheLimiter_ItemDestroyable_Func_set(limitor, get_item_destroyable);
+  MEM_CacheLimiter_ItemPriority_Func_set(limiter, get_item_priority);
+  MEM_CacheLimiter_ItemDestroyable_Func_set(limiter, get_item_destroyable);
 }
 
 void IMB_cache_destruct()
 {
-  if (limitor) {
-    delete_MEM_CacheLimiter(limitor);
-    limitor = nullptr;
+  if (limiter) {
+    delete_MEM_CacheLimiter(limiter);
+    limiter = nullptr;
   }
 }
 
@@ -313,7 +313,7 @@ static void do_imbufcache_put(ImBufCache *cache, void *userkey, ImBuf *ibuf, boo
   ImBufCacheKey *key;
   ImBufCacheItem *item;
 
-  if (!limitor) {
+  if (!limiter) {
     IMB_cache_init();
   }
 
@@ -347,17 +347,17 @@ static void do_imbufcache_put(ImBufCache *cache, void *userkey, ImBuf *ibuf, boo
   }
 
   if (need_lock) {
-    limitor_lock.lock();
+    limiter_lock.lock();
   }
 
-  item->c_handle = MEM_CacheLimiter_insert(limitor, item);
+  item->c_handle = MEM_CacheLimiter_insert(limiter, item);
 
   MEM_CacheLimiter_ref(item->c_handle);
-  MEM_CacheLimiter_enforce_limits(limitor);
+  MEM_CacheLimiter_enforce_limits(limiter);
   MEM_CacheLimiter_unref(item->c_handle);
 
   if (need_lock) {
-    limitor_lock.unlock();
+    limiter_lock.unlock();
   }
 
   /* cache limiter can't remove unused keys which points to destroyed values */
@@ -379,15 +379,15 @@ bool IMB_cache_put_if_possible(ImBufCache *cache, void *userkey, ImBuf *ibuf)
   elem_size = (ibuf == nullptr) ? 0 : get_size_in_memory(ibuf);
   mem_limit = MEM_CacheLimiter_get_maximum();
 
-  limitor_lock.lock();
-  mem_in_use = MEM_CacheLimiter_get_memory_in_use(limitor);
+  limiter_lock.lock();
+  mem_in_use = MEM_CacheLimiter_get_memory_in_use(limiter);
 
   if (mem_in_use + elem_size <= mem_limit) {
     do_imbufcache_put(cache, userkey, ibuf, false);
     result = true;
   }
 
-  limitor_lock.unlock();
+  limiter_lock.unlock();
 
   return result;
 }
@@ -415,7 +415,7 @@ ImBuf *IMB_cache_get(ImBufCache *cache, void *userkey, bool *r_is_cached_empty)
 
   if (item) {
     if (item->ibuf) {
-      std::lock_guard lock(limitor_lock);
+      std::lock_guard lock(limiter_lock);
       /* Check again, the condition might have changed before we acquired the lock. */
       if (item->ibuf) {
         MEM_CacheLimiter_touch(item->c_handle);
