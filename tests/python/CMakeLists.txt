@@ -74,6 +74,14 @@ endfunction()
 
 if(WITH_UI_TESTS)
   set(_blender_headless_env_vars "BLENDER_BIN=${TEST_BLENDER_EXE}")
+  if(UNIX AND NOT APPLE)
+    if(WITH_GHOST_DBUS)
+      # Don't use the desktop session bus, system preferences shouldn't influence test behavior.
+      list(APPEND _blender_headless_env_vars
+        "DBUS_SESSION_BUS_ADDRESS=/dev/null"
+      )
+    endif()
+  endif()
   if(WITH_UI_TESTS_HEADLESS)
 
     # Currently only WAYLAND is supported, support for others may be added later.
