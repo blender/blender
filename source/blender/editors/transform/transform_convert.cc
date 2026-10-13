@@ -786,6 +786,14 @@ static void init_proportional_edit(TransInfo *t)
         set_prop_dist(t, false);
       }
     }
+    else if (t->data_type == &TransConvertType_Mask) {
+      if (t->flag & T_PROP_CONNECTED) {
+        /* Already calculated by #calc_distanceCurveVerts in #createTransMaskingData. */
+      }
+      else {
+        set_prop_dist(t, false);
+      }
+    }
     else {
       set_prop_dist(t, true);
     }
