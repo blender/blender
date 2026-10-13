@@ -10,6 +10,7 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_main.hh"
@@ -127,16 +128,18 @@ static wmOperatorStatus multires_subdivide_exec(bContext *C, wmOperator *op)
       RNA_enum_get(op->ptr, "mode"));
   multiresModifier_subdivide(object, mmd, subdivide_mode);
 
+  Mesh *mesh = id_cast<Mesh *>(object->data);
+  if (mesh->attributes().contains(".sculpt_mask") &&
+      !CustomData_has_layer(&mesh->corner_data, CD_GRID_PAINT_MASK))
+  {
+    BKE_sculpt_mask_layers_ensure(
+        CTX_data_ensure_evaluated_depsgraph(C), CTX_data_main(C), object, mmd);
+  }
+
   iter_other(CTX_data_main(C), object, true, multires_update_totlevels, &mmd->totlvl);
 
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
-
-  if (object->mode & OB_MODE_SCULPT) {
-    /* ensure that grid paint mask layer is created */
-    BKE_sculpt_mask_layers_ensure(
-        CTX_data_ensure_evaluated_depsgraph(C), CTX_data_main(C), object, mmd);
-  }
 
   return OPERATOR_FINISHED;
 }
