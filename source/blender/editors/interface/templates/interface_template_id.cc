@@ -1072,7 +1072,11 @@ static void template_ID(const bContext *C,
   /* Allow operators to take the ID from context. */
   layout.context_ptr_set("id", &idptr);
   layout.context_ptr_set("template_id_ptr", &template_ui.ptr);
-  layout.context_string_set("template_id_prop", RNA_property_identifier(template_ui.prop));
+  std::string prop_identifier = RNA_property_identifier(template_ui.prop);
+  if (RNA_property_is_idprop(template_ui.prop)) {
+    prop_identifier = RNA_path_name_to_infix(prop_identifier);
+  }
+  layout.context_string_set("template_id_prop", prop_identifier);
 
   Block *block = layout.block();
   block_align_begin(block);
