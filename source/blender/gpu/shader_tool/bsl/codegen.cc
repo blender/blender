@@ -349,9 +349,9 @@ struct CodegenContext : NodeErrorHandler {
       SymbolFunction *sym = ctx.id_func_resolved_lookup(
           id, call.parameters(), symbol_scope, scope, loc);
 
-      if (sym->is_error) {
+      if (sym == nullptr || sym->is_error) {
         ctx.error(call, Diag::UnknownFunction, string(id.str()));
-        return {"", sym->return_type};
+        return {"", ctx.table.err_cls};
       }
 
       if (sym->is_inline) {
