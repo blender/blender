@@ -221,6 +221,11 @@ class CameraInfoOperation : public NodeOperation {
       orthographic_scale_result.set_single_value(camera_parameters.ortho_scale);
     }
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

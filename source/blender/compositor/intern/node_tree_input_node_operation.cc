@@ -42,6 +42,11 @@ class NodeTreeInputNodeOperation : public NodeOperation {
       }
     }
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 NodeOperation *get_node_tree_input_node_operation(Context &context,

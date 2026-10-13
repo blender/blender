@@ -137,6 +137,11 @@ class StoreBundleItemOperation : public NodeOperation {
     output_bundle.allocate_single_value();
     output_bundle.set_single_value(bundle_ptr);
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

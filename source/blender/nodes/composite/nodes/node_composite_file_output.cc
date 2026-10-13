@@ -822,6 +822,11 @@ class FileOutputOperation : public NodeOperation {
     }
     return this->context().render_context()->is_animation_render;
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

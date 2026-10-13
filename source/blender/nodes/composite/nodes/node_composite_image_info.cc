@@ -86,6 +86,11 @@ class ImageInfoOperation : public NodeOperation {
       scale_result.set_single_value(scale);
     }
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

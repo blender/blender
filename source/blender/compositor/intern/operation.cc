@@ -38,7 +38,6 @@ void Operation::evaluate()
   this->execute();
   this->log_data();
   this->release_inputs();
-  this->context().evaluate_operation_post();
 }
 
 Result &Operation::get_input(StringRef identifier) const
@@ -47,6 +46,11 @@ Result &Operation::get_input(StringRef identifier) const
 }
 
 Result &Operation::get_result(StringRef identifier)
+{
+  return results_.lookup(identifier);
+}
+
+const Result &Operation::get_result(StringRef identifier) const
 {
   return results_.lookup(identifier);
 }

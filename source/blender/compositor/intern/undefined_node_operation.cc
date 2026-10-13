@@ -23,6 +23,11 @@ class UndefinedNodeOperation : public NodeOperation {
   {
     this->allocate_default_remaining_outputs();
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 NodeOperation *get_undefined_node_operation(Context &context, const bNode &node)

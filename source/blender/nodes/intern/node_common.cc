@@ -928,6 +928,11 @@ class ImplicitConversionOperation : public compositor::NodeOperation {
     Result &output = this->get_result("Value");
     output.share_data(input);
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static compositor::NodeOperation *node_implicit_conversion_compositor_operation(

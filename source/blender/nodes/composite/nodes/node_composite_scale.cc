@@ -361,7 +361,7 @@ class ScaleOperation : public NodeOperation {
     return float2(math::max(scale.x, scale.y));
   }
 
-  bool is_variable_size()
+  bool is_variable_size() const
   {
     /* Only relative scaling can be variable. */
     if (get_type() != CMP_NODE_SCALE_RELATIVE) {
@@ -371,7 +371,7 @@ class ScaleOperation : public NodeOperation {
     return !get_input("X").is_single_value() || !get_input("Y").is_single_value();
   }
 
-  CMPNodeScaleMethod get_type()
+  CMPNodeScaleMethod get_type() const
   {
     return CMPNodeScaleMethod(this->get_input("Type").get_single_value_default<MenuValue>().value);
   }
@@ -380,6 +380,11 @@ class ScaleOperation : public NodeOperation {
   {
     return CMPNodeScaleRenderSizeMethod(
         this->get_input("Frame Type").get_single_value_default<MenuValue>().value);
+  }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return this->is_variable_size();
   }
 };
 
