@@ -8,6 +8,7 @@
 
 #include <cctype>
 #include <cstdint>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -467,8 +468,9 @@ void SourceProcessor::scan_external_symbols(SourceManager &sources,
   for (const auto &dep : metadata_.dependencies) {
     string file;
     for (const auto &filename : file_list_) {
-      if (filename.find(dep) != string::npos) {
+      if (std::filesystem::path(filename).filename() == dep) {
         file = filename;
+        break;
       }
     }
 
