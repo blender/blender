@@ -89,21 +89,11 @@ class QuickFur(ObjectModeOperator, Operator):
         default=True,
     )
 
-    @classmethod
-    def poll(cls, context):
-        if not super().poll(context):
-            return False
-
-        if context.active_object is None or context.active_object.type != 'MESH':
-            cls.poll_message_set("No active mesh object.")
-            return False
-
-        return True
-
     def execute(self, context):
         import os
         from collections import namedtuple
 
+        # Note that `poll` doesn't check for selected meshes because this breaks redo, see: #163934.
         mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
         if not mesh_objects:
             self.report({'ERROR'}, "Select at least one mesh object")
