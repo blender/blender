@@ -222,7 +222,7 @@ static inline bool is_ubo_supported_type(const GPUType type)
  * Make sure we respect the expected alignment of UBOs.
  * mat4, vec4, int4, pad vec3 and int3 as vec4 and int4, vec2, int2, float, int, bool.
  */
-static void buffer_from_list_inputs_sort(ListBaseT<LinkData> *inputs)
+void GPU_uniformbuf_inputs_sort(ListBaseT<LinkData> *inputs)
 {
   /* Order them as mat4, vec4, int4, vec3, int3, vec2, int2, float, int, bool. */
   BLI_listbase_sort(inputs, inputs_cmp);
@@ -322,7 +322,7 @@ gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBaseT<LinkData> *inputs, co
     return nullptr;
   }
 
-  buffer_from_list_inputs_sort(inputs);
+  GPU_uniformbuf_inputs_sort(inputs);
   size_t buffer_size = buffer_size_from_list(inputs);
   void *data = MEM_new_uninitialized(buffer_size, __func__);
   buffer_fill_from_list(data, inputs);
