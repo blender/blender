@@ -137,7 +137,9 @@ struct ShaderGlobals {
   int backfacing;
 
   /* This part is Cycles-specific and ignored by OSL itself. */
-#ifndef __KERNEL_GPU__
+#ifdef __KERNEL_GPU__
+  ccl_private uint8_t *closure_pool_end;
+#else
   const struct IntegratorStateCPU *path_state;
   const struct IntegratorShadowStateCPU *shadow_path_state;
 #endif
