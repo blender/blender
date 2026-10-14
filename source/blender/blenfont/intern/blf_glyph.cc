@@ -1329,7 +1329,10 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   /* Fallback glyph transforms, but only if required and not yet done. */
 
   if (weight != weight_target) {
-    blf_glyph_transform_weight(glyph, weight_target - weight, FT_IS_FIXED_WIDTH(glyph_font));
+    /* Check the settings font as fallback glyphs are also given a fixed advance,
+     * see #blf_glyph_transform_monospace. */
+    blf_glyph_transform_weight(
+        glyph, weight_target - weight, (settings_font->flags & BLF_MONOSPACED) != 0);
   }
   if (slant != slant_target) {
     blf_glyph_transform_slant(glyph, slant_target - slant);
