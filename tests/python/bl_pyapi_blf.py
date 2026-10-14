@@ -3791,13 +3791,16 @@ def main() -> None:
             else contextlib.nullcontext(None)
         )
         with vfont_render_ctx as VFONT_RENDER_CTX:
-            unittest.main(argv=remaining, exit=False)
+            test_result = unittest.main(argv=remaining, exit=False).result
     if FONTS_VFONT is not None:
         for font in FONTS_VFONT:
             bpy.data.fonts.remove(font)
         FONTS_VFONT = None
     if SHOW_HTML:
         write_html_report(SHOW_HTML)
+
+    if not test_result.wasSuccessful():
+        sys.exit(1)
 
 
 if __name__ == "__main__":
