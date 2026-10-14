@@ -29,8 +29,6 @@ ENUM_OPERATORS(eSAction_Runtime_Flag);
 struct SpaceAction_Runtime {
   eSAction_Runtime_Flag flag = {};
 
-  /* TODO: the identifiers contain ID pointers, which should be reported to Blender for handling ID
-   * remapping. */
   ed::animfilter::ChannelUIStateMap channel_states;
 
   /** A counter that is incremented every time the channel states above are used. */
