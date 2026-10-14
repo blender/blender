@@ -99,7 +99,7 @@ Quaternion normalized_to_quat_fast(float3x3 mat)
 Quaternion normalized_to_quat_with_checks(float3x3 mat)
 {
   float det = determinant(mat);
-  if (isinf(det) && isnan(det)) {
+  if (isinf(det) || isnan(det)) {
     return Quaternion::identity();
   }
   if (det < 0.0f) {
