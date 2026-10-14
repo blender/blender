@@ -13,6 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.hh"
 #include "BLI_utildefines.hh"
@@ -1396,14 +1397,12 @@ static void select_moreless_action_keys(bAnimContext *ac, short mode)
     }
 
     /* build up map of whether F-Curve's keyframes should be selected or not */
-    ked.data = MEM_new_zeroed(fcu->totvert, "selmap actEdit more");
+    Array<char> selmap(fcu->totvert, 0);
+    ked.data = selmap.data();
     ANIM_fcurve_keyframes_loop(&ked, fcu, nullptr, build_cb, nullptr);
 
     /* based on this map, adjust the selection status of the keyframes */
     ANIM_fcurve_keyframes_loop(&ked, fcu, nullptr, bezt_selmap_flush, nullptr);
-
-    /* free the selmap used here */
-    MEM_delete_void(ked.data);
     ked.data = nullptr;
   }
 
