@@ -34,7 +34,7 @@ struct SpaceAction_Runtime {
   ed::animfilter::ChannelUIStateMap channel_states;
 
   /** A counter that is incremented every time the channel states above are used. */
-  uint32_t last_used = 0;
+  int32_t last_used = 0;
 
   std::optional<ed::animfilter::ChannelArena> channel_arena;
 

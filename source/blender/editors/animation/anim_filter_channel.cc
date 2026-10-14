@@ -16,6 +16,7 @@
 #include "RNA_prototypes.hh"
 
 #include "BKE_fcurve.hh"
+#include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
 
@@ -140,14 +141,29 @@ std::ostream &operator<<(std::ostream &stream, const ParsedSourcePath &rna_path)
 
 std::ostream &operator<<(std::ostream &stream, const ChannelIdentifier &chan_ident)
 {
-  stream << "[" << (chan_ident.owner_id ? chan_ident.owner_id->name : "-no owner-") << " ";
+  Main *bmain = G_MAIN;
 
-  if (chan_ident.source_rna_path.has_value()) {
-    stream << *chan_ident.source_rna_path;
+  if (chan_ident.owner_id_type == ID_Type(0) ||
+      chan_ident.owner_session_uid == MAIN_ID_SESSION_UID_UNSET)
+  {
+    stream << "-no-owner-";
   }
   else {
-    stream << "-no-value-";
+    const ID *owner_id = BKE_libblock_find_session_uid(
+        bmain, chan_ident.owner_id_type, chan_ident.owner_session_uid);
+    stream << "[";
+    if (owner_id) {
+      stream << owner_id->name;
+    }
+    else {
+      const char *id_type = reinterpret_cast<const char *>(&chan_ident.owner_id_type);
+      stream << "-stale-" << id_type[0] << id_type[1] << "-";
+    }
   }
+
+  stream << " ";
+  stream << chan_ident.source_rna_path;
+  stream << "]";
   return stream;
 }
 
@@ -407,6 +423,7 @@ void SummaryChannel::ui_state_ensure()
       this->identifier());
   if (!ui_state) {
     /* No UI state stored, so just use the defaults. */
+    this->is_collapsed_.reset();
     return;
   }
 

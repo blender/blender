@@ -215,38 +215,41 @@ class ChannelTagSet {
  * Identifier for an AnimationChannel.
  *
  * Data is copied into the identifier, because these identifiers are designed to out-live the
- * channels they identify. This copying should be fast, as it just consists of a pointer an a
+ * channels they identify. This copying should be fast, as it just consists of some numbers and a
  * bunch of UString instances.
  */
 class ChannelIdentifier {
  public:
   /** Owner ID of the channel source. */
-  ID *owner_id;
+  ID_Type owner_id_type = ID_Type(0);
+  unsigned int owner_session_uid = 0;
   /** Path from the ID to the channel source data. */
-  std::optional<ParsedSourcePath> source_rna_path;
+  ParsedSourcePath source_rna_path = {};
 
   bool operator==(const ChannelIdentifier &other) const
   {
-    if (other.owner_id != this->owner_id) {
+    if (other.owner_id_type != this->owner_id_type) {
       return false;
     }
-    if (!this->source_rna_path.has_value()) {
-      return !other.source_rna_path.has_value();
+    if (other.owner_session_uid != this->owner_session_uid) {
+      return false;
     }
-    return this->source_rna_path->items == other.source_rna_path->items;
+    return this->source_rna_path.items == other.source_rna_path.items;
   }
 
   int64_t hash() const
   {
-    Span<rna_path::Item> path_items = {};
-    if (this->source_rna_path.has_value()) {
-      path_items = this->source_rna_path->items;
-    }
-    return get_default_hash(this->owner_id, this->source_rna_path.has_value(), path_items);
+    return get_default_hash(
+        this->owner_id_type, this->owner_session_uid, this->source_rna_path.items);
   }
 };
 
-/** SpaceAction runtime data containing animation channel UI state. */
+/**
+ * SpaceAction runtime data containing animation channel UI state.
+ *
+ * Fields that need persisting to the blend file need to be mirrored in #SpaceActionChannelUIState
+ * in source/blender/makesdna/DNA_action_types.h.
+ */
 struct SAction_AnimationChannelState {
   /** Whether the channel should be collapsed or not.
    *
@@ -258,7 +261,7 @@ struct SAction_AnimationChannelState {
    * A 'timestamp' that's set from #SpaceAction_Runtime::last_used, used to detect the
    * least-recently-used ones for culling the remembered states.
    */
-  uint32_t last_used = 0;
+  int32_t last_used = 0;
 };
 
 /* Stream operators for debugging. */
@@ -267,6 +270,7 @@ std::ostream &operator<<(std::ostream &stream, const ChannelTag &tag);
 std::ostream &operator<<(std::ostream &stream, const ChannelTagSet &tagset);
 std::ostream &operator<<(std::ostream &stream, const ChannelTagStack &tagstack);
 std::ostream &operator<<(std::ostream &stream, const ParsedSourcePath &rna_path);
+std::ostream &operator<<(std::ostream &stream, const ChannelIdentifier &chan_ident);
 
 enum class SelectionMode {
   ADD = 0,
@@ -317,7 +321,13 @@ class AnimationChannel {
     if (!source_.has_owner_id() || !source_.has_data()) {
       return {};
     }
-    return {source_.owner_id, source_rna_path_};
+    return {
+        source_.owner_id->id_type(),
+        source_.owner_id->session_uid,
+        /* The identifier makes no distinction between 'no path' or 'empty path'. */
+        /* TODO: maybe this class should also remove this distinction? */
+        source_rna_path_.value_or({}),
+    };
   }
 
   AnimationChannelType type() const

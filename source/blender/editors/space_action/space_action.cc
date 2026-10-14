@@ -16,6 +16,7 @@
 #include "DNA_screen_types.h"
 #include "MEM_guardedalloc.h"
 
+#include "BKE_lib_id.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base_c.hh"
 #include "BLI_string_utf8.hh"
@@ -24,6 +25,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_screen.hh"
@@ -192,7 +194,7 @@ static SpaceLink *action_duplicate(SpaceLink *sl)
 
   saction->runtime = MEM_new<SpaceAction_Runtime>(__func__);
 
-  /* clear or remove stuff from old */
+  /* TODO: copy the UI state. */
 
   return reinterpret_cast<SpaceLink *>(saction);
 }
@@ -958,10 +960,46 @@ static void action_id_remap(ScrArea * /*area*/,
                             SpaceLink *slink,
                             const bke::id::IDRemapper &mappings)
 {
+  using namespace ed::animfilter;
+
   SpaceAction *sact = reinterpret_cast<SpaceAction *>(slink);
 
   mappings.apply(reinterpret_cast<ID **>(&sact->ads.filter_grp), ID_REMAP_APPLY_DEFAULT);
   mappings.apply(&sact->ads.source, ID_REMAP_APPLY_DEFAULT);
+
+  if (sact->runtime->channel_states.is_empty()) {
+    return;
+  }
+
+  // /* Remap the ID pointers in the UI state map. */
+  // printf("\033[95maction_id_remap: remapping %ld channel states\033[0m\n",
+  //        sact->runtime->channel_states.size());
+  // ChannelUIStateMap remapped_ui_state;
+  // for (const auto &ui_state_item : sact->runtime->channel_states.items()) {
+  //   /* Create a copy of the key, because map keys shouldn't be remapped. Instead, they should be
+  //    * removed & re-inserted. */
+  //   ChannelIdentifier new_ident = ui_state_item.key;
+  //   switch (mappings.apply(&new_ident.owner_id, ID_REMAP_APPLY_DEFAULT)) {
+  //     case IDRemapperApplyResult::ID_REMAP_RESULT_SOURCE_UNAVAILABLE:
+  //       /* No remapping for this owner_id, so keep the item as-is. */
+  //       printf("    kept %p\n", ui_state_item.key.owner_id);
+  //       remapped_ui_state.add_new(ui_state_item.key, ui_state_item.value);
+  //       break;
+  //     case IDRemapperApplyResult::ID_REMAP_RESULT_SOURCE_REMAPPED:
+  //       /* Owner ID got remapped, so add under the new key. */
+  //       printf("    remapped %p -> %p\n", ui_state_item.key.owner_id, new_ident.owner_id);
+  //       remapped_ui_state.add_new(new_ident, ui_state_item.value);
+  //       break;
+  //     case IDRemapperApplyResult::ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE:
+  //     case IDRemapperApplyResult::ID_REMAP_RESULT_SOURCE_UNASSIGNED:
+  //       /* Don't add this to the new UI state map. */
+  //       printf("    dropped %p\n", ui_state_item.key.owner_id);
+  //       break;
+  //   }
+  // }
+  // sact->runtime->channel_states = std::move(remapped_ui_state);
+  // printf("\033[95maction_id_remap: done remapping, left with %ld channel states\033[0m\n",
+  //        sact->runtime->channel_states.size());
 }
 
 static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
@@ -978,6 +1016,12 @@ static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
     /* Force recalc of list of channels, potentially updating the active action while we're
      * at it (as it can only be updated that way) #28962. */
     sact->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+  }
+
+  if (!BLI_listbase_is_empty(&sact->channel_ui_states)) {
+    for (const SpaceActionChannelUIState &state : sact->channel_ui_states) {
+      BKE_LIB_FOREACHID_PROCESS_ID(data, state.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
+    }
   }
 }
 
@@ -1029,16 +1073,113 @@ static int action_space_icon_get(const ScrArea *area)
   return item.icon;
 }
 
-static void action_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
+static void action_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
   saction->runtime = MEM_new<SpaceAction_Runtime>(__func__);
+
+  /* Read the UI state. This will be converted to runtime data in
+   * #action_space_blend_read_after_liblink() below. */
+  BLO_read_struct_list(reader, SpaceActionChannelUIState, &saction->channel_ui_states);
+  for (SpaceActionChannelUIState &state : saction->channel_ui_states) {
+    BLO_read_string(reader, &state.source_rna_path);
+  }
+}
+
+static void action_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
+                                                  ID * /*parent_id*/,
+                                                  SpaceLink *sl)
+{
+  using namespace ed::animfilter;
+  SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
+
+  for (SpaceActionChannelUIState &state : saction->channel_ui_states) {
+    /* Create the UI state map key. */
+    ChannelIdentifier chan_ident;
+    if (state.channel_owner_id) {
+      BKE_lib_libblock_session_uid_ensure(state.channel_owner_id);
+      chan_ident.owner_id_type = state.channel_owner_id->id_type();
+      chan_ident.owner_session_uid = state.channel_owner_id->session_uid;
+    }
+    if (state.source_rna_path) {
+      chan_ident.source_rna_path =
+          ParsedSourcePath::from_string(state.source_rna_path).value_or({});
+    }
+
+    /* Create the UI state map value. */
+    const SAction_AnimationChannelState ui_state{
+        bool(state.is_collapsed),
+        state.last_used,
+    };
+
+    /* The original map ensured uniqueness, but the ListBase written to DNA does not. So better to
+     * use add() rather than add_new(). Also newer Blenders may write more information than what is
+     * loaded here, and that missing data may cause channel identifier collissions, so better
+     * handle those without crashing. */
+    saction->runtime->channel_states.add(chan_ident, ui_state);
+
+    /* Discard the RNA path, as BLI_freelistN() below won't do that. */
+    MEM_delete(state.source_rna_path);
+    state.source_rna_path = nullptr;
+  }
+
+  BLI_freelistN(&saction->channel_ui_states);
 }
 
 static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  writer->write_struct_cast<SpaceAction>(sl, [](BlendStructWriter<SpaceAction> &struct_writer) {
-    struct_writer.shallow_data.runtime = {};
+  /* TODO: trim the array down to whatever many items we want to keep. */
+
+  /* Allocate memory for the UI state info in DNA. */
+  const SpaceAction &space_action = *reinterpret_cast<SpaceAction *>(sl);
+  const int64_t num_channel_states = space_action.runtime->channel_states.size();
+  Array<SpaceActionChannelUIState> ui_state_array(num_channel_states);
+  Array<std::string> rna_paths(num_channel_states);
+
+  writer->write_struct_cast<SpaceAction>(sl, [&](BlendStructWriter<SpaceAction> &struct_writer) {
+    SpaceAction &for_writing = struct_writer.shallow_data;
+    BLI_assert_msg(for_writing.channel_ui_states.is_empty(),
+                   "Previous writes should have cleaned up after themselves");
+
+    int64_t array_index = 0;
+    for (const auto key_value : for_writing.runtime->channel_states.items()) {
+      SpaceActionChannelUIState *state = &ui_state_array[array_index];
+
+      ID *owner_id = BKE_libblock_find_session_uid(
+          G_MAIN, key_value.key.owner_id_type, key_value.key.owner_session_uid);
+      if (!owner_id) {
+        /* Stale entry, skip it. */
+        continue;
+      }
+
+      /* Store the UI state map key. */
+      state->channel_owner_id = owner_id;
+      if (!key_value.key.source_rna_path.items.is_empty()) {
+        rna_paths[array_index] = key_value.key.source_rna_path.to_string();
+        state->source_rna_path = rna_paths[array_index].c_str();
+      }
+      else {
+        state->source_rna_path = nullptr;
+      }
+
+      /* Store the UI state map value. */
+      state->is_collapsed = key_value.value.is_collapsed;
+      state->last_used = key_value.value.last_used;
+
+      BLI_addtail(&for_writing.channel_ui_states, state);
+      array_index++;
+    }
+
+    /* Actually write the structs in the listbase. */
+    for (SpaceActionChannelUIState &state : for_writing.channel_ui_states) {
+      writer->write_struct(&state);
+      if (state.source_rna_path) {
+        writer->write_string(state.source_rna_path);
+      }
+    }
+
+    /* Prevent writing runtime data to the blend file. */
+    for_writing.runtime = {};
   });
 }
 
@@ -1076,7 +1217,7 @@ void ED_spacetype_action()
   st->space_name_get = action_space_name_get;
   st->space_icon_get = action_space_icon_get;
   st->blend_read_data = action_space_blend_read_data;
-  st->blend_read_after_liblink = nullptr;
+  st->blend_read_after_liblink = action_space_blend_read_after_liblink;
   st->blend_write = action_space_blend_write;
 
   /* regions: main window */
