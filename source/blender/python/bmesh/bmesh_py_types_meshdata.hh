@@ -15,6 +15,7 @@
 namespace blender {
 
 extern PyTypeObject BPy_BMLoopUV_Type;
+extern PyTypeObject BPy_BMVertSkin_Type;
 extern PyTypeObject BPy_BMDeformVert_Type;
 
 #define BPy_BMLoopUV_Check(v) (Py_TYPE(v) == &BPy_BMLoopUV_Type)
