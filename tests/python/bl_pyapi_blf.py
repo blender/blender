@@ -74,7 +74,6 @@ import itertools
 import math
 import os
 import random
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -126,7 +125,8 @@ SOURCE_DIR: str = os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(
 TEST_DIR: str = os.path.join(SOURCE_DIR, "tests", "files", "blenfont")
 RENDER_DIR_BUFFER: str = os.path.join(TEST_DIR, "buffer_renders")
 RENDER_DIR_VFONT: str = os.path.join(TEST_DIR, "vfont_renders")
-IDIFF_BIN: str = os.environ.get("IDIFF_BIN") or shutil.which("idiff") or ""
+# Set from the `--oiiotool` argument.
+OIIOTOOL_BIN: str = ""
 
 FONT_PATH_REGULAR: str = os.path.join(TEST_DIR, "noto_fonts", "NotoSans-Regular.otf")
 FONT_PATH_ITALIC: str = os.path.join(TEST_DIR, "noto_fonts", "NotoSans-Italic.otf")
@@ -161,8 +161,8 @@ USE_PREPARE_FORCE: bool = False
 USE_VFONT_RENDER: bool = False
 VFONT_RENDER_DIR: str = ""
 
-IDIFF_FAIL: float = 0.004
-IDIFF_FAIL_PERCENT: float = 0.0
+DIFF_FAIL_THRESHOLD: float = 0.004
+DIFF_FAIL_PERCENT: float = 0.0
 
 SHOW_HTML: str = ""
 COMPARE_IMAGES: list["ComparedImage"] = []
@@ -356,11 +356,11 @@ class ComparedImage(NamedTuple):
     ref_path: str
     # The generated output to test against.
     test_path: str
-    # Difference image from idiff (empty string if not generated).
+    # Difference image from `oiiotool` (empty string if not generated).
     diff_path: str
     passed: bool
-    # Text output from `idiff`.
-    idiff_output: str
+    # Text output from `oiiotool`.
+    diff_output: str
 
 
 # Data needed for a render test.
@@ -642,7 +642,7 @@ def imbuf_rgb_new(size: tuple[int, int]) -> imbuf.types.ImBuf:
     Allocate a fresh RGB-only PNG imbuf with a BYTE pixel buffer.
 
     ``planes=24`` makes the saved PNG RGB-only (no alpha channel), which keeps
-    the reference images as straight RGB and lets idiff produce visible diffs.
+    the reference images as straight RGB and lets oiiotool produce visible diffs.
     """
     ibuf = imbuf.new(size, planes=24)
     ibuf.file_type = "PNG"
@@ -1109,7 +1109,7 @@ def render_text_vfont_camera(
 
 def write_html_report(html_path: str) -> None:
     """
-    Write an HTML report showing all compared images with idiff results.
+    Write an HTML report showing all compared images with oiiotool results.
 
     With --mode=ALL the report contains one top-level section per kind
     (BUFFER / GPU / VFONT), each visually separated as if they were independent
@@ -1188,10 +1188,10 @@ def write_html_report(html_path: str) -> None:
                 else:
                     status = "<b><font color='green'>PASS</font></b>"
 
-                # Strip redundant lines from idiff output, keep only the stats.
-                idiff_stats = "\n".join(
-                    line for line in entry.idiff_output.splitlines()
-                    if not (line in {"PASS", "FAILURE"} or line.startswith("Comparing "))
+                # Strip redundant lines from oiiotool output, keep only the stats.
+                diff_stats = "\n".join(
+                    line for line in entry.diff_output.splitlines()
+                    if not (line in {"PASS", "FAILURE"} or line.startswith("Computing diff of "))
                 )
                 text_escaped = html_escape(entry.text).replace("\n", "<br>")
                 diff_uri = img_uri(entry.diff_path) if entry.diff_path else ""
@@ -1211,7 +1211,7 @@ def write_html_report(html_path: str) -> None:
                         name=html_escape(entry.name),
                         status=status,
                         text=text_escaped,
-                        output=html_escape(idiff_stats),
+                        output=html_escape(diff_stats),
                         ref=img_uri(entry.ref_path),
                         test=img_uri(entry.test_path),
                         diff=diff_cell,
@@ -1325,8 +1325,8 @@ class TestImageComparison_MixIn:
             case.text,
             ibuf,
             kind,
-            idiff_fail=IDIFF_FAIL,
-            idiff_fail_percent=IDIFF_FAIL_PERCENT,
+            fail_threshold=DIFF_FAIL_THRESHOLD,
+            fail_percent=DIFF_FAIL_PERCENT,
         )
 
     def _compute_prepare_buffer(
@@ -1509,11 +1509,11 @@ class TestImageComparison_MixIn:
         # Camera render uses a slightly looser threshold: Cycles rasterizes glyph
         # boundaries differently from the GPU uniform_color shader, leaving O(1-5) pixels
         # per image just above 0.01. Allow up to 0.1 % of pixels to exceed the threshold.
-        idiff_fail = 0.01 if USE_VFONT_RENDER else 0.004
-        idiff_fail_percent = 0.11 if USE_VFONT_RENDER else 0.0
+        fail_threshold = 0.01 if USE_VFONT_RENDER else 0.004
+        fail_percent = 0.11 if USE_VFONT_RENDER else 0.0
         self._compare_image(
             case.name, text_display, ibuf, "vfont",
-            idiff_fail=idiff_fail, idiff_fail_percent=idiff_fail_percent,
+            fail_threshold=fail_threshold, fail_percent=fail_percent,
         )
 
     @staticmethod
@@ -1557,18 +1557,18 @@ class TestImageComparison_MixIn:
 
     def _compare_image(
             self, name: str, text: str, ibuf: imbuf.types.ImBuf, kind: str, *,
-            idiff_fail: float,
-            idiff_fail_percent: float,
+            fail_threshold: float,
+            fail_percent: float,
     ) -> None:
         """
-        Compare rendered image against a reference using idiff, or generate if --generate.
+        Compare rendered image against a reference using oiiotool, or generate if --generate.
 
         ``kind`` is the rendering pipeline name ("buffer", "gpu", or "vfont"); it
         tags the ComparedImage entry for HTML grouping and disambiguates the on-disk
         ``_test.png`` filename so the two pipelines don't overwrite each other.
         The reference image has no kind suffix (one golden file per case).
-        ``idiff_fail`` sets the per-channel failure threshold passed to idiff.
-        ``idiff_fail_percent`` sets the allowable fraction of pixels (percent) that may
+        ``fail_threshold`` sets the per-channel failure threshold passed to oiiotool.
+        ``fail_percent`` sets the allowable fraction of pixels (percent) that may
         exceed the threshold before the comparison fails.
         """
         assert isinstance(self, unittest.TestCase)
@@ -1585,25 +1585,38 @@ class TestImageComparison_MixIn:
             passed = True
             test_path = ref_path
             diff_path = ""
-            idiff_output = "generated"
+            diff_output = "generated"
         else:
             self.assertTrue(os.path.exists(ref_path), "Reference image missing: {:s}".format(ref_path))
             imbuf.write(ibuf, filepath=out_path)
-            self.assertTrue(IDIFF_BIN, "idiff not found, set IDIFF_BIN or install OpenImageIO")
-            diff_path = os.path.join(OUTPUT_DIR, "{:s}_{:s}_diff.png".format(name_full, kind))
             result = subprocess.run(
-                [IDIFF_BIN,
-                 "-fail", "{:.4f}".format(idiff_fail),
-                 "-failpercent", "{:.4f}".format(idiff_fail_percent),
-                 "-o", diff_path, "-abs", "-scale", "10",
-                 ref_path, out_path],
+                [
+                    OIIOTOOL_BIN,
+                    ref_path, out_path,
+                    "--fail", "{:.4f}".format(fail_threshold),
+                    "--failpercent", "{:.4f}".format(fail_percent),
+                    "--diff",
+                ],
                 capture_output=True,
                 text=True,
             )
-            # 0 = identical, 1 = within warn/failpercent tolerance, 2 = fail, 3+ = error.
-            passed = result.returncode in {0, 1}
+            passed = result.returncode == 0
             test_path = out_path
-            idiff_output = result.stdout.rstrip()
+            diff_output = result.stdout.rstrip()
+
+            # The difference image is only used by the HTML report.
+            diff_path = ""
+            if SHOW_HTML:
+                diff_path = os.path.join(OUTPUT_DIR, "{:s}_{:s}_diff.png".format(name_full, kind))
+                subprocess.run(
+                    [
+                        OIIOTOOL_BIN,
+                        ref_path, out_path,
+                        "--sub", "--abs", "--mulc", "10",
+                        "-o", diff_path,
+                    ],
+                    capture_output=True,
+                )
 
         COMPARE_IMAGES.append(ComparedImage(
             kind=kind,
@@ -1614,13 +1627,13 @@ class TestImageComparison_MixIn:
             test_path=test_path,
             diff_path=diff_path,
             passed=passed,
-            idiff_output=idiff_output,
+            diff_output=diff_output,
         ))
 
         if not passed:
             self.fail(
                 "Image {:s}_{:s} differs from reference:\n{:s}".format(
-                    name_full, kind, idiff_output,
+                    name_full, kind, diff_output,
                 )
             )
 
@@ -1939,7 +1952,7 @@ class TestCombiningWordWrap(TestImageComparison_MixIn, unittest.TestCase):
             name="font_size_1",
             text=generate_lorem_combining(640, seed=7),
             size=(81, 61),
-            expected_dimensions=(61, 42),
+            expected_dimensions=(62, 39),
             font_size=1,
             wrap_width=62,
             position_offset=(10, -12),
@@ -2011,7 +2024,7 @@ class TestCombiningPosition(TestImageComparison_MixIn, unittest.TestCase):
     """
     Test that combining marks are visually positioned over their base character.
 
-    Renders text into an image and compares against reference PNGs using idiff.
+    Renders text into an image and compares against reference PNGs using oiiotool.
     Failed comparisons leave ``*_test.png`` files in the render directory.
     """
 
@@ -2737,7 +2750,7 @@ class TestStressEdgeParams(TestImageComparison_MixIn, unittest.TestCase):
             name="font_size_1",
             text="Hello",
             size=(23, 21),
-            expected_dimensions=(3, 4),
+            expected_dimensions=(3, 2),
             font_size=1,
             position_offset=(10, -10),
         ),
@@ -3664,6 +3677,13 @@ def argparse_create() -> argparse.ArgumentParser:
         help="Filter tests by name pattern (passed as -k to unittest)",
     )
     parser.add_argument(
+        "--oiiotool",
+        type=str,
+        default="oiiotool",
+        metavar="PATH",
+        help="Path to OpenImageIO's oiiotool, used to compare images (defaults to the one in PATH)",
+    )
+    parser.add_argument(
         "--use-vfont-render",
         action="store_true",
         help="Render VFont tests via an orthographic Cycles camera instead of the GPU triangle path",
@@ -3685,6 +3705,7 @@ def argparse_create() -> argparse.ArgumentParser:
 
 def main() -> None:
     global USE_GENERATE_TEST_DATA, USE_VFONT_RENDER, VFONT_RENDER_DIR, SHOW_HTML, OUTPUT_DIR, FONTS_VFONT
+    global OIIOTOOL_BIN
     global VFONT_RENDER_CTX, gpu
 
     if "--" in sys.argv:
@@ -3712,6 +3733,7 @@ def main() -> None:
     if args.use_vfont_render:
         USE_VFONT_RENDER = True
     SHOW_HTML = args.show_html or ""
+    OIIOTOOL_BIN = args.oiiotool
 
     # GPU is needed for the GPU and VFont pipelines (off-screen rendering).
     gpu_needed = False
@@ -3769,13 +3791,16 @@ def main() -> None:
             else contextlib.nullcontext(None)
         )
         with vfont_render_ctx as VFONT_RENDER_CTX:
-            unittest.main(argv=remaining, exit=False)
+            test_result = unittest.main(argv=remaining, exit=False).result
     if FONTS_VFONT is not None:
         for font in FONTS_VFONT:
             bpy.data.fonts.remove(font)
         FONTS_VFONT = None
     if SHOW_HTML:
         write_html_report(SHOW_HTML)
+
+    if not test_result.wasSuccessful():
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -232,6 +232,17 @@ static GlyphBLF *blf_glyph_cache_add_glyph(GlyphCacheBLF *gc,
   g->idx = glyph_index;
   g->advance_x = ft_pix(glyph->advance.x);
   g->subpixel = subpixel;
+  g->flags = GlyphFlagBLF::None;
+
+  /* Use the un-hinted advance as `advance.x` is rounded to whole pixels when hinting,
+   * so narrow glyphs at small sizes have a zero advance (an "l" at size 1 for e.g.).
+   * The weight transform also gives combining characters an advance.
+   *
+   * Check the code-point as well since some fonts use zero-width glyphs for spacing characters
+   * (the "." in LCD style digit fonts for e.g.), see #162036. */
+  if ((glyph->linearHoriAdvance == 0) && (BLI_wcwidth_or_error(char32_t(charcode)) == 0)) {
+    g->flags |= GlyphFlagBLF::Combining;
+  }
 
   FT_BBox bbox;
   FT_Outline_Get_CBox(&(glyph->outline), &bbox);
@@ -403,6 +414,7 @@ static GlyphBLF *blf_glyph_cache_add_svg(GlyphCacheBLF *gc,
   g->idx = 0;
   g->advance_x = dest_w * 64;
   g->subpixel = 0;
+  g->flags = GlyphFlagBLF::None;
   g->box_xmin = 0;
   g->box_xmax = dest_w * 64;
   g->box_ymin = 0;
