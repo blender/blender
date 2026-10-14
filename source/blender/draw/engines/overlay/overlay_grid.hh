@@ -403,7 +403,7 @@ class Grid : Overlay {
 
     /* This suffices for most cases, and in others we fade to hide it. */
     if (rv3d->is_persp) {
-      /* In perspective views, we draw a fixed nr. of lines, but draw them N times
+      /* In perspective views, we draw a fixed number of lines, but draw them N times
        * at different Z to mitigate flickering. */
       grid_ubo_.num_lines = 151u;
       num_iters_ = OVERLAY_GRID_ITER_LEN;
@@ -422,7 +422,7 @@ class Grid : Overlay {
       num_iters_ = 1u;
     }
     else {
-      /* In other orthographic views, we draw a fixed nr. of lines. */
+      /* In other orthographic views, we draw a fixed number of lines. */
       grid_ubo_.num_lines = 301u;
       num_iters_ = 1;
     }
