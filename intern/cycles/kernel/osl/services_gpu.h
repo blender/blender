@@ -21,20 +21,25 @@ CCL_NAMESPACE_BEGIN
 
 /* Closure */
 
-#if OSL_LIBRARY_VERSION_CODE >= 11500
-
-ccl_device_extern void *rs_allocate_closure(ccl_private ShaderGlobals *sg,
-                                            const size_t size,
-                                            const size_t alignment)
+ccl_device_extern ccl_private void *rs_allocate_closure(ccl_private ShaderGlobals *sg,
+                                                        const size_t size,
+                                                        const size_t alignment)
 {
   ccl_private uint8_t *closure_pool = sg->closure_pool;
+  /* Align pointer to closure struct requirement. */
   closure_pool = reinterpret_cast<ccl_private uint8_t *>(
       (reinterpret_cast<size_t>(closure_pool) + alignment - 1) & (-alignment));
+
+  if (closure_pool > sg->closure_pool_end || size > sg->closure_pool_end - closure_pool) {
+    return nullptr;
+  }
+
   sg->closure_pool = closure_pool + size;
+
   return closure_pool;
 }
 
-#else
+#if OSL_LIBRARY_VERSION_CODE < 11500
 
 ccl_device_extern ccl_private OSLClosure *osl_mul_closure_color(ccl_private ShaderGlobals *sg,
                                                                 ccl_private OSLClosure *a,
@@ -47,19 +52,13 @@ ccl_device_extern ccl_private OSLClosure *osl_mul_closure_color(ccl_private Shad
     return a;
   }
 
-  ccl_private uint8_t *closure_pool = sg->closure_pool;
-  /* Align pointer to closure struct requirement */
-  closure_pool = reinterpret_cast<uint8_t *>(
-      (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureMul) - 1) &
-      (-alignof(OSLClosureMul)));
-  sg->closure_pool = closure_pool + sizeof(OSLClosureMul);
-
   ccl_private OSLClosureMul *const closure = reinterpret_cast<ccl_private OSLClosureMul *>(
-      closure_pool);
-  closure->id = OSL_CLOSURE_MUL_ID;
-  closure->weight = *weight;
-  closure->closure = a;
-
+      rs_allocate_closure(sg, sizeof(OSLClosureMul), alignof(OSLClosureMul)));
+  if (closure != nullptr) {
+    closure->id = OSL_CLOSURE_MUL_ID;
+    closure->weight = *weight;
+    closure->closure = a;
+  }
   return closure;
 }
 
@@ -74,19 +73,13 @@ ccl_device_extern ccl_private OSLClosure *osl_mul_closure_float(ccl_private Shad
     return a;
   }
 
-  ccl_private uint8_t *closure_pool = sg->closure_pool;
-  /* Align pointer to closure struct requirement */
-  closure_pool = reinterpret_cast<uint8_t *>(
-      (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureMul) - 1) &
-      (-alignof(OSLClosureMul)));
-  sg->closure_pool = closure_pool + sizeof(OSLClosureMul);
-
   ccl_private OSLClosureMul *const closure = reinterpret_cast<ccl_private OSLClosureMul *>(
-      closure_pool);
-  closure->id = OSL_CLOSURE_MUL_ID;
-  closure->weight = make_float3(weight, weight, weight);
-  closure->closure = a;
-
+      rs_allocate_closure(sg, sizeof(OSLClosureMul), alignof(OSLClosureMul)));
+  if (closure != nullptr) {
+    closure->id = OSL_CLOSURE_MUL_ID;
+    closure->weight = make_float3(weight, weight, weight);
+    closure->closure = a;
+  }
   return closure;
 }
 
@@ -101,55 +94,39 @@ ccl_device_extern ccl_private OSLClosure *osl_add_closure_closure(ccl_private Sh
     return a;
   }
 
-  ccl_private uint8_t *closure_pool = sg->closure_pool;
-  /* Align pointer to closure struct requirement */
-  closure_pool = reinterpret_cast<uint8_t *>(
-      (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureAdd) - 1) &
-      (-alignof(OSLClosureAdd)));
-  sg->closure_pool = closure_pool + sizeof(OSLClosureAdd);
-
   ccl_private OSLClosureAdd *const closure = reinterpret_cast<ccl_private OSLClosureAdd *>(
-      closure_pool);
-  closure->id = OSL_CLOSURE_ADD_ID;
-  closure->closureA = a;
-  closure->closureB = b;
-
+      rs_allocate_closure(sg, sizeof(OSLClosureAdd), alignof(OSLClosureAdd)));
+  if (closure != nullptr) {
+    closure->id = OSL_CLOSURE_ADD_ID;
+    closure->closureA = a;
+    closure->closureB = b;
+  }
   return closure;
 }
 
 ccl_device_extern ccl_private OSLClosure *osl_allocate_closure_component(
     ccl_private ShaderGlobals *sg, const int id, const int size)
 {
-  ccl_private uint8_t *closure_pool = sg->closure_pool;
-  /* Align pointer to closure struct requirement */
-  closure_pool = reinterpret_cast<uint8_t *>(
-      (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureComponent) - 1) &
-      (-alignof(OSLClosureComponent)));
-  sg->closure_pool = closure_pool + sizeof(OSLClosureComponent) + size;
-
   ccl_private OSLClosureComponent *const closure =
-      reinterpret_cast<ccl_private OSLClosureComponent *>(closure_pool);
-  closure->id = static_cast<OSLClosureType>(id);
-  closure->weight = one_float3();
-
+      reinterpret_cast<ccl_private OSLClosureComponent *>(rs_allocate_closure(
+          sg, sizeof(OSLClosureComponent) + size, alignof(OSLClosureComponent)));
+  if (closure != nullptr) {
+    closure->id = static_cast<OSLClosureType>(id);
+    closure->weight = one_float3();
+  }
   return closure;
 }
 
 ccl_device_extern ccl_private OSLClosure *osl_allocate_weighted_closure_component(
     ccl_private ShaderGlobals *sg, const int id, const int size, const ccl_private float3 *weight)
 {
-  ccl_private uint8_t *closure_pool = sg->closure_pool;
-  /* Align pointer to closure struct requirement */
-  closure_pool = reinterpret_cast<uint8_t *>(
-      (reinterpret_cast<size_t>(closure_pool) + alignof(OSLClosureComponent) - 1) &
-      (-alignof(OSLClosureComponent)));
-  sg->closure_pool = closure_pool + sizeof(OSLClosureComponent) + size;
-
   ccl_private OSLClosureComponent *const closure =
-      reinterpret_cast<ccl_private OSLClosureComponent *>(closure_pool);
-  closure->id = static_cast<OSLClosureType>(id);
-  closure->weight = *weight;
-
+      reinterpret_cast<ccl_private OSLClosureComponent *>(rs_allocate_closure(
+          sg, sizeof(OSLClosureComponent) + size, alignof(OSLClosureComponent)));
+  if (closure != nullptr) {
+    closure->id = static_cast<OSLClosureType>(id);
+    closure->weight = *weight;
+  }
   return closure;
 }
 
