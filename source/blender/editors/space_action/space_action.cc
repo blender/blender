@@ -1130,6 +1130,15 @@ static void action_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
 static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
   BlendWriter *writer = screen_writer.writer;
+  if (writer->is_undo()) {
+    /* Undo steps don't need the conversion of the runtime UI state to DNA. The screen/space data
+     * is not included in the memfile undo, so even when it would be written here, it would never
+     * be read anyway. */
+    writer->write_struct_cast<SpaceAction>(sl, [&](BlendStructWriter<SpaceAction> &struct_writer) {
+      struct_writer.shallow_data.runtime = {};
+    });
+    return;
+  }
 
   /* TODO: trim the array down to whatever many items we want to keep. */
 
