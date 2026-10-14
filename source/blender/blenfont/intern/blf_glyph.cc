@@ -1430,7 +1430,7 @@ GlyphBLF *blf_glyph_ensure_subpixel(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *
     return g;
   }
 
-  if (font->size > 35.0f || g->dims[0] == 0 || g->advance_x < 0) {
+  if (font->size > 35.0f || g->dims[0] == 0 || flag_is_set(g->flags, GlyphFlagBLF::Combining)) {
     /* Single position for large sizes, spaces, and combining characters. */
     return g;
   }
