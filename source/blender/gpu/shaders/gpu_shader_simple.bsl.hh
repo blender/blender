@@ -238,21 +238,22 @@ struct VertOutPoint {
 }
 
 struct SimpleClip {
-  [[push_constant]] const float4x4 ModelViewProjectionMatrix;
   [[push_constant]] const float4x4 ModelMatrix;
   [[push_constant]] const float4 ClipPlane;
-  [[push_constant]] const float4 color;
 };
 
-[[vertex]] void simple_clip([[resource_table]] const SimpleClip &srt,
+[[vertex]] void simple_clip([[resource_table]] const Simple &srt,
+                            [[resource_table]] const SimpleClip &clip,
                             [[in]] const VertIn &v_in,
                             [[position]] float4 &out_pos,
                             [[out]] VertOutFlat &flat_out,
                             [[clip_distance]] float (&clip_distance)[1])
 {
   out_pos = srt.ModelViewProjectionMatrix * float4(v_in.pos, 1.0f);
-  clip_distance[0] = dot(srt.ModelMatrix * float4(v_in.pos, 1.0f), srt.ClipPlane);
-  flat_out.color = srt.color;
+  clip_distance[0] = dot(clip.ModelMatrix * float4(v_in.pos, 1.0f), clip.ClipPlane);
+  if (srt.use_uniform_color) [[static_branch]] {
+    flat_out.color = srt.color;
+  }
 }
 
 struct Checker {
@@ -389,10 +390,10 @@ PipelineGraphic gpu_shader_3D_line_dashed_uniform_color_clipped(builtin::simple_
   .use_lighting = false});
 
 /* Confusing naming convention. But this is a version with only one local clip plane. */
-PipelineGraphic gpu_shader_3D_clipped_uniform_color(builtin::simple_vert, builtin::simple_frag, builtin::Simple{
+PipelineGraphic gpu_shader_3D_clipped_uniform_color(builtin::simple_clip, builtin::simple_frag, builtin::Simple{
   .use_uniform_color = true,
   .use_smooth_color = false,
-  .use_clipping = false,
+  .use_clipping = true,
   .use_dashed = false,
   .use_lighting = false});
 
