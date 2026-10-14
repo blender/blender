@@ -3327,8 +3327,8 @@ void region_views_clear_search_highlight(const ARegion *region);
 
 bool region_panels_fits_only_categories(const ARegion *region);
 /**
- * Ensures the region is wide enough to draw panels' content. Returns true if the region widht
- * changed.
+ * Ensures the region is wide enough to draw panels' content.
+ * \return true if the region width changed.
  */
 bool panel_region_visible_width_ensure(ARegion *region);
 
