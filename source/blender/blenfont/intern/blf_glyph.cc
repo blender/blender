@@ -236,7 +236,6 @@ static GlyphBLF *blf_glyph_cache_add_glyph(GlyphCacheBLF *gc,
 
   /* Use the un-hinted advance as `advance.x` is rounded to whole pixels when hinting,
    * so narrow glyphs at small sizes have a zero advance (an "l" at size 1 for e.g.).
-   * The weight transform also gives combining characters an advance.
    *
    * Check the code-point as well since some fonts use zero-width glyphs for spacing characters
    * (the "." in LCD style digit fonts for e.g.), see #162036. */
@@ -1159,8 +1158,10 @@ static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float width, bool mon
       /* Widened fixed-pitch font needs a nudge left. */
       FT_Outline_Translate(&glyph->outline, change / -2, 0);
     }
-    else {
-      /* Need to increase horizontal advance. */
+    else if (glyph->linearHoriAdvance != 0) {
+      /* Need to increase horizontal advance.
+       * Zero advance glyphs (combining characters for e.g.) must not be given an advance.
+       * Check the un-hinted advance since narrow glyphs at small sizes round down to zero. */
       glyph->advance.x += change / 2;
     }
     return true;
