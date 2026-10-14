@@ -177,6 +177,7 @@ set(SRC
   intern/light_linking.cc
   intern/lightprobe.cc
   intern/linestyle.cc
+  intern/list.cc
   intern/main.cc
   intern/main_idmap.cc
   intern/main_invariants.cc
@@ -450,6 +451,8 @@ set(SRC
   BKE_light_linking.h
   BKE_lightprobe.h
   BKE_linestyle.h
+  BKE_list.hh
+  BKE_list_fwd.hh
   BKE_main.hh
   BKE_main_idmap.hh
   BKE_main_invariants.hh

@@ -184,6 +184,12 @@ class ConvertToDisplayOperation : public NodeOperation {
     output_image.allocate_single_value();
     output_image.set_single_value(color);
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    const Result &input_image = this->get_input("Image");
+    return !input_image.is_single_value();
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

@@ -36,10 +36,10 @@ GAttributeWriter attribute_to_writer(void *owner,
                                      const int64_t domain_size,
                                      Attribute &attribute);
 
-Attribute::DataVariant attribute_init_to_data(const bke::AttrType data_type,
-                                              const int64_t domain_size,
-                                              const AttributeInit &initializer,
-                                              bool require_array_data);
+GList attribute_init_to_list(const bke::AttrType data_type,
+                             const int64_t domain_size,
+                             const AttributeInit &initializer,
+                             bool require_array_data);
 
 GVArray get_varray_attribute(const AttributeStorage &storage,
                              AttrDomain domain,

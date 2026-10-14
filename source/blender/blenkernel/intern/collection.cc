@@ -262,6 +262,14 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(
         data, parent.collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
   }
+
+  /* Clear the archive library pointer when the library is deleted. */
+  if (collection->importer && collection->importer->runtime) {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data,
+                                      collection->importer->runtime->archive_library,
+                                      IDWALK_CB_NEVER_SELF | IDWALK_CB_READFILE_IGNORE |
+                                          IDWALK_CB_WRITEFILE_IGNORE);
+  }
 }
 
 static ID **collection_owner_pointer_get(ID *id, const bool debug_relationship_assert)

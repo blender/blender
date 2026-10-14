@@ -58,7 +58,7 @@ struct ContextPathItem {
   int icon_indicator_number;
 
   std::function<void(bContext &)> handle_func;
-  /* Optional dropdown menu opened by the arrow button. */
+  /* Optional drop-down menu opened by the arrow button. */
   MenuCreateFunc menu_func;
   void *menu_arg;
 };

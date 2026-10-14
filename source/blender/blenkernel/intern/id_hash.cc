@@ -121,8 +121,8 @@ static std::optional<XXH128_hash_t> get_source_file_hash(const ID &id, DeepHashE
 
   /* The modification time may not be set if the data-block is added as linked data as part of
    * versioning (e.g. in #do_versions_after_setup). */
-  if (id.runtime->src_blend_modifification_time != 0) {
-    if (stat.st_mtime != id.runtime->src_blend_modifification_time) {
+  if (id.runtime->src_blend_modification_time != 0) {
+    if (stat.st_mtime != id.runtime->src_blend_modification_time) {
       r_errors.updated_files.add_as(path);
       return std::nullopt;
     }

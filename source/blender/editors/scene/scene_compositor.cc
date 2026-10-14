@@ -382,16 +382,22 @@ static wmOperatorStatus new_compositor_effect_node_group_exec(bContext *C, wmOpe
   bke::node_update_asset_metadata(*node_group);
 
   Scene *scene = CTX_data_scene(C);
-  SceneCompositorEffect *active_effect = bke::compositor::get_active_effect(*scene);
-  if (!active_effect) {
-    SceneCompositorEffect &effect = bke::compositor::new_effect(*scene, "Scene Effect");
-    active_effect = &effect;
+
+  SceneCompositorEffect *effect = nullptr;
+  if (PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "effect", RNA_SceneCompositorEffect)) {
+    effect = static_cast<SceneCompositorEffect *>(ctx_ptr.data);
+  }
+  else {
+    effect = bke::compositor::get_active_effect(*scene);
+  }
+  if (!effect) {
+    effect = &bke::compositor::new_effect(*scene, "Scene Effect");
   }
 
-  if (active_effect->node_group) {
-    id_us_min(&active_effect->node_group->id);
+  if (effect->node_group) {
+    id_us_min(&effect->node_group->id);
   }
-  active_effect->node_group = node_group;
+  effect->node_group = node_group;
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);

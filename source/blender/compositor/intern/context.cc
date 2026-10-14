@@ -60,7 +60,10 @@ nodes::eval_log::NodesEvalLog *Context::nodes_evaluation_log() const
   return nullptr;
 }
 
-void Context::evaluate_operation_post() const {}
+bool Context::supports_canceling() const
+{
+  return false;
+}
 
 bool Context::is_canceled() const
 {

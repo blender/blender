@@ -64,7 +64,7 @@ bool GPUTextures::initialize_common()
 /** \name GPUTextures
  * \{ */
 
-GPUCurveMappping::~GPUCurveMappping()
+GPUCurveMapping::~GPUCurveMapping()
 {
   if (lut) {
     MEM_delete(lut);
@@ -78,7 +78,7 @@ GPUCurveMappping::~GPUCurveMappping()
   }
 }
 
-void GPUCurveMappping::rasterize(CurveMapping &curve_mapping)
+void GPUCurveMapping::rasterize(CurveMapping &curve_mapping)
 {
   if (lut) {
     MEM_delete(lut);
@@ -89,7 +89,7 @@ void GPUCurveMappping::rasterize(CurveMapping &curve_mapping)
   BKE_curvemapping_table_RGBA(&curve_mapping, &lut, &lut_size);
 }
 
-bool GPUCurveMappping::initialize_common(const bool use_curve_mapping)
+bool GPUCurveMapping::initialize_common(const bool use_curve_mapping)
 {
   if (!use_curve_mapping) {
     return true;
@@ -247,7 +247,7 @@ static std::string process_source(std::string source, gpu::shader::ShaderCreateI
   return source;
 }
 
-static void gpu_curve_mapping_update(internal::GPUCurveMappping &gpu_curve_mapping,
+static void gpu_curve_mapping_update(internal::GPUCurveMapping &gpu_curve_mapping,
                                      CurveMapping &curve_mapping)
 {
   /* Test if we need to update. */

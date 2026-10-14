@@ -19,6 +19,7 @@
 
 #include "ED_screen.hh"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
@@ -87,7 +88,9 @@ static wmOperatorStatus text_text_search_exec(bContext *C, wmOperator * /*op*/)
     if (active_category && !STREQ(active_category, "Text")) {
       ui::panel_category_active_set(region, "Text");
     }
-
+    if (ui::panel_region_visible_width_ensure(region)) {
+      WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
+    }
     ED_region_activate_rna_prop(C, region, st, "find_text");
   }
   return OPERATOR_FINISHED;

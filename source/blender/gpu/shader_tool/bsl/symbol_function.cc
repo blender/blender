@@ -64,13 +64,12 @@ optional<vector<MatchRank>> SymbolFunction::get_match_ranks(
     ranks.push_back(rank);
   }
 
-  /* Check if remaining parameters are optional. */
+  /* Check if remaining parameters are optional. Defaulted parameters are not ranked, so that
+   * every viable candidate returns one rank per supplied argument and stays comparable. */
   for (size_t i = param_types.size(); i < arg_types.size(); ++i) {
     if (!arg_defaults[i].is_valid()) {
       return {}; /* Missing required argument. */
     }
-    /* Default arguments are generally treated as an exact match for scoring purposes. */
-    ranks.push_back(MatchRank::Exact);
   }
 
   return ranks;

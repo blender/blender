@@ -466,7 +466,7 @@ void BKE_modifier_copydata_ex(const ModifierData *md, ModifierData *target, int 
 bool BKE_modifier_depends_ontime(Scene *scene, ModifierData *md);
 bool BKE_modifier_supports_mapping(ModifierData *md);
 bool BKE_modifier_supports_cage(Scene *scene, ModifierData *md);
-bool BKE_modifier_couldbe_cage(Scene *scene, ModifierData *md);
+bool BKE_modifier_could_be_cage(Scene *scene, ModifierData *md);
 bool BKE_modifier_is_correctable_deformed(ModifierData *md);
 bool BKE_modifier_is_same_topology(ModifierData *md);
 bool BKE_modifier_is_non_geometrical(ModifierData *md);

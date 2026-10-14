@@ -536,6 +536,11 @@ class EvaluateClosureOperation : public NodeOperation {
           fmt::format(fmt::runtime(TIP_("Closure not have input: \"{}\"")), input->name));
     }
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

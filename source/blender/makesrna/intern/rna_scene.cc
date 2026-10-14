@@ -944,7 +944,7 @@ static void rna_Scene_objects_next(CollectionPropertyIterator *iter)
 static void rna_Scene_objects_end(CollectionPropertyIterator *iter)
 {
   BKE_scene_objects_iterator_end(static_cast<BLI_Iterator *>(iter->internal.custom));
-  MEM_delete_void(iter->internal.custom);
+  MEM_delete(static_cast<BLI_Iterator *>(iter->internal.custom));
 }
 
 static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)

@@ -167,7 +167,7 @@ class ConvertColorSpaceOperation : public NodeOperation {
     }
   }
 
-  bool is_identity()
+  bool is_identity() const
   {
     const char *source = node_storage(node()).from_color_space;
     const char *target = node_storage(node()).to_color_space;
@@ -182,6 +182,12 @@ class ConvertColorSpaceOperation : public NodeOperation {
     }
 
     return false;
+  }
+
+  bool uses_asynchronous_execution() const override
+  {
+    const Result &input_image = this->get_input("Image");
+    return !this->is_identity() && !input_image.is_single_value();
   }
 };
 

@@ -709,7 +709,36 @@ PyDoc_STRVAR(
     "\n"
     "   Update the RNA information of the IDProperty used for interaction and\n"
     "   display in the user interface. The required types for many of the keyword\n"
-    "   arguments depend on the type of the property.\n");
+    "   arguments depend on the type of the property.\n"
+    "\n"
+    "   :param subtype: Enumerator in :ref:`rna_enum_property_subtype_items`.\n"
+    "   :type subtype: str | None\n"
+    "   :param min: Minimum value (int & float properties).\n"
+    "   :type min: int | float | None\n"
+    "   :param max: Maximum value (int & float properties).\n"
+    "   :type max: int | float | None\n"
+    "   :param soft_min: Soft minimum value (int & float properties).\n"
+    "   :type soft_min: int | float | None\n"
+    "   :param soft_max: Soft maximum value (int & float properties).\n"
+    "   :type soft_max: int | float | None\n"
+    "   :param precision: Number of digits to display after the decimal point\n"
+    "      (float properties).\n"
+    "   :type precision: int | None\n"
+    "   :param step: Step used when dragging the value (int & float properties).\n"
+    "   :type step: int | float | None\n"
+    "   :param default: Default value, may be a sequence for array properties.\n"
+    "   :type default: Any\n"
+    "   :param id_type: Enumerator in :ref:`rna_enum_id_type_items` (ID properties).\n"
+    "   :type id_type: str | None\n"
+    "   :param items: Enum items (int properties),\n"
+    "      see :func:`bpy.props.EnumProperty` for the item format.\n"
+    "   :type items: Iterable["
+    "tuple[str, str, str] | "
+    "tuple[str, str, str, int] | "
+    "tuple[str, str, str, str | int, int] | "
+    "None] | None\n"
+    "   :param description: Tooltip text.\n"
+    "   :type description: str | None\n");
 static PyObject *BPy_IDPropertyUIManager_update(BPy_IDPropertyUIManager *self,
                                                 PyObject *args,
                                                 PyObject *kwargs)
@@ -904,7 +933,10 @@ PyDoc_STRVAR(
     ".. method:: as_dict()\n"
     "\n"
     "   Return a dictionary of the property's RNA UI data. The fields in the\n"
-    "   returned dictionary and their types will depend on the property's type.\n");
+    "   returned dictionary and their types will depend on the property's type.\n"
+    "\n"
+    "   :return: The property's UI data.\n"
+    "   :rtype: dict[str, Any]\n");
 static PyObject *BPy_IDIDPropertyUIManager_as_dict(BPy_IDPropertyUIManager *self)
 {
   IDProperty *property = self->property;
@@ -994,11 +1026,13 @@ static PyObject *BPy_IDPropertyUIManager_clear(BPy_IDPropertyUIManager *self)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_IDPropertyUIManager_update_from_doc,
-    ".. method:: update_from(ui_manager_source)\n"
+    ".. method:: update_from(ui_manager_source, /)\n"
     "\n"
-    "   Copy UI data from an IDProperty in the source group to a property in this group.\n "
+    "   Copy UI data from an IDProperty in the source group to a property in this group.\n"
     "   If the source property has no UI data, the target UI data will be reset if it exists.\n"
     "\n"
+    "   :param ui_manager_source: The UI manager to copy from.\n"
+    "   :type ui_manager_source: :class:`IDPropertyUIManager`\n"
     "   :raises TypeError: If the types of the two properties don't match.\n");
 static PyObject *BPy_IDPropertyUIManager_update_from(BPy_IDPropertyUIManager *self, PyObject *args)
 {
@@ -1087,6 +1121,12 @@ static Py_hash_t BPy_IDPropertyUIManager_hash(BPy_IDPropertyUIManager *self)
   return Py_HashPointer(self->property);
 }
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    BPy_IDPropertyUIManager_Type_doc,
+    "Manages the UI data of an ID property, "
+    "see :meth:`bpy.types.bpy_struct.id_properties_ui`.");
+
 PyTypeObject BPy_IDPropertyUIManager_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /* For printing, in format `<module>.<name>`. */
@@ -1109,7 +1149,7 @@ PyTypeObject BPy_IDPropertyUIManager_Type = {
     /*tp_setattro*/ nullptr,
     /*tp_as_buffer*/ nullptr,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT,
-    /*tp_doc*/ nullptr,
+    /*tp_doc*/ BPy_IDPropertyUIManager_Type_doc,
     /*tp_traverse*/ nullptr,
     /*tp_clear*/ nullptr,
     /*tp_richcompare*/ nullptr,

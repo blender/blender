@@ -3707,10 +3707,10 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
     }
 
     const bool need_resync = (id->tag & ID_TAG_LIBOVERRIDE_NEED_RESYNC) != 0;
-    const bool need_reseync_original = (id->override_library->runtime != nullptr &&
-                                        (id->override_library->runtime->tag &
-                                         IDOverrideLibraryTag::TAG_NEED_RESYNC_ORIGINAL) !=
-                                            IDOverrideLibraryTag(0));
+    const bool need_resync_original = (id->override_library->runtime != nullptr &&
+                                       (id->override_library->runtime->tag &
+                                        IDOverrideLibraryTag::TAG_NEED_RESYNC_ORIGINAL) !=
+                                           IDOverrideLibraryTag(0));
     const bool is_isolated_from_root = (id->override_library->runtime != nullptr &&
                                         (id->override_library->runtime->tag &
                                          IDOverrideLibraryTag::TAG_RESYNC_ISOLATED_FROM_ROOT) !=
@@ -3742,7 +3742,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
       }
     }
     else if (need_resync) {
-      if (need_reseync_original) {
+      if (need_resync_original) {
         CLOG_DEBUG(&LOG_RESYNC,
                    "ID override %s from library level %d still found as needing resync after "
                    "tackling library level %d. Since it was originally tagged as such by "
@@ -3769,7 +3769,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
         id->tag &= ~ID_TAG_LIBOVERRIDE_NEED_RESYNC;
       }
     }
-    else if (need_reseync_original) {
+    else if (need_resync_original) {
       /* Just cleanup of temporary tag, the ID has been resynced successfully. */
       id->override_library->runtime->tag &= ~IDOverrideLibraryTag::TAG_NEED_RESYNC_ORIGINAL;
     }

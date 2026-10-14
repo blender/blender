@@ -8,11 +8,8 @@
 
 #include "subdiv_converter.hh"
 
-#include <cstring>
-
 #include "BLI_array_utils.hh"
 #include "BLI_task.hh"
-#include "BLI_timeit.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
@@ -91,11 +88,6 @@ static OpenSubdiv_SchemeType get_scheme_type(const Settings &settings)
 #endif
 }
 
-static bool specifies_full_topology(const OpenSubdiv_Converter * /*converter*/)
-{
-  return false;
-}
-
 /* Both `original_to_manifold()` and `manifold_to_original()` treat an empty map as the identity
  * mapping. This is the case whenever the elements not passed to OpenSubdiv (loose vertices or
  * edges) are already a contiguous run at the end of the array, see
@@ -119,18 +111,6 @@ static void free_user_data(const OpenSubdiv_Converter *converter)
 
 static void init_functions(OpenSubdiv_Converter *converter)
 {
-  converter->specifiesFullTopology = specifies_full_topology;
-
-  converter->getFaceEdges = nullptr;
-
-  converter->getNumEdgeFaces = nullptr;
-  converter->getEdgeFaces = nullptr;
-
-  converter->getNumVertexEdges = nullptr;
-  converter->getVertexEdges = nullptr;
-  converter->getNumVertexFaces = nullptr;
-  converter->getVertexFaces = nullptr;
-
   converter->freeUserData = free_user_data;
 }
 

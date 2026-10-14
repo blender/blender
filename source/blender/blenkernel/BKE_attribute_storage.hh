@@ -10,6 +10,7 @@
 
 #include <variant>
 
+#include "BLI_function_ref.hh"
 #include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_map.hh"
 #include "BLI_memory_counter_fwd.hh"
@@ -18,7 +19,9 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector_set.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_attribute_enums.hh"
+#include "BKE_list.hh"
 
 #include "DNA_attribute_types.h"
 
@@ -40,34 +43,6 @@ enum class AttrStorageType : int8_t;
 
 /** Data and metadata for a single geometry attribute. */
 class Attribute {
- public:
-  /**
-   * Data for an attribute stored as a full contiguous array with a data type exactly matching the
-   * attribute's type. The array referenced must match the size of the domain and the data type.
-   */
-  struct ArrayData {
-    /* NOTE: Since the shared data pointed to by `sharing_info` knows how to free itself, it often
-     * stores the size and type itself. It may be possible to make use of that fact to avoid
-     * storing it here, or even vice versa. */
-    void *data;
-    /** The number of elements in the array. */
-    int64_t size;
-    ImplicitSharingPtr<> sharing_info;
-    static ArrayData from_value(const GPointer &value, int64_t domain_size);
-    static ArrayData from_default_value(const CPPType &type, int64_t domain_size);
-    static ArrayData from_uninitialized(const CPPType &type, int64_t domain_size);
-    static ArrayData from_constructed(const CPPType &type, int64_t domain_size);
-  };
-  /** Data for an attribute stored as a single value for the entire domain. */
-  struct SingleData {
-    /* NOTE: For simplicity and to avoid a bit of redundancy, the domain size isn't stored here.
-     * It's not necessary to manage a single value. */
-    void *value;
-    ImplicitSharingPtr<> sharing_info;
-    static SingleData from_value(const GPointer &value);
-    static SingleData from_default_value(const CPPType &type);
-  };
-  using DataVariant = std::variant<ArrayData, SingleData>;
   friend AttributeStorage;
 
  private:
@@ -77,11 +52,19 @@ class Attribute {
    */
   std::string name_;
   AttrDomain domain_;
-  AttrType type_;
 
-  DataVariant data_;
+  /**
+   * The attribute's values. The list type must be one of the attribute types and its size must
+   * match the size of the domain.
+   */
+  GList data_;
 
  public:
+  Attribute(std::string name, AttrDomain domain, GList data);
+
+  /** Create array data filled with the default value used for new attributes of the type. */
+  static GList default_array_data(const CPPType &type, int64_t domain_size);
+
   /**
    * Unique name across all domains.
    * \note Compared to #CustomData, which doesn't enforce uniqueness, across domains on its own,
@@ -93,10 +76,7 @@ class Attribute {
   /** Which part of a geometry the attribute corresponds to. */
   AttrDomain domain() const;
 
-  /**
-   * The data type exposed to the user. Depending on the storage type, the actual internal values
-   * may not be the same type.
-   */
+  /** The data type exposed to the user, corresponding to the type of the stored list. */
   AttrType data_type() const;
 
   /**
@@ -105,20 +85,12 @@ class Attribute {
    */
   AttrStorageType storage_type() const;
 
-  /**
-   * Low level access to the data stored for the attribute. The variant's type will correspond to
-   * the storage type.
-   */
-  const DataVariant &data() const;
-
-  /**
-   * The same as #data(), but if the attribute data is shared initially, it will be unshared and
-   * made mutable.
-   */
-  DataVariant &data_for_write();
+  /** Low level access to the data stored for the attribute. */
+  const GList &data() const;
+  GList &data();
 
   /** Replace the attribute's data without first making the existing data mutable. */
-  void assign_data(DataVariant &&data);
+  void assign_data(GList &&data);
 };
 
 class AttributeStorageRuntime {
@@ -175,10 +147,7 @@ class AttributeStorage : public blender::AttributeStorage {
    * Add an attribute with the given name, which must not already be used by an existing attribute
    * or this will invoke undefined behavior.
    */
-  Attribute &add(std::string name,
-                 bke::AttrDomain domain,
-                 bke::AttrType data_type,
-                 Attribute::DataVariant data);
+  Attribute &add(std::string name, bke::AttrDomain domain, GList data);
 
   /** Return a possibly changed version of the input name that is unique within existing names. */
   std::string unique_name_calc(StringRef name) const;
@@ -198,7 +167,7 @@ class AttributeStorage : public blender::AttributeStorage {
    * Read data owned by the #AttributeStorage struct. This works by converting the DNA-specific
    * types stored in the files to the runtime data structures.
    */
-  void blend_read(BlendDataReader &reader);
+  void blend_read(BlendDataReader &reader, FunctionRef<int(AttrDomain)> get_domain_size);
   /**
    * Temporary data used to write a #AttributeStorage struct embedded in another struct. See
    * #attribute_storage_blend_write_prepare for more information.
@@ -290,27 +259,39 @@ inline AttrDomain Attribute::domain() const
 
 inline AttrType Attribute::data_type() const
 {
-  return type_;
+  return cpp_type_to_attribute_type(data_.cpp_type());
 }
 
-inline const Attribute::DataVariant &Attribute::data() const
+inline const GList &Attribute::data() const
+{
+  return data_;
+}
+
+inline GList &Attribute::data()
 {
   return data_;
 }
 
 inline AttrStorageType Attribute::storage_type() const
 {
-  static_assert(std::is_same_v<
-                std::variant_alternative_t<int(AttrStorageType::Array), Attribute::DataVariant>,
-                Attribute::ArrayData>);
-  static_assert(std::is_same_v<
-                std::variant_alternative_t<int(AttrStorageType::Single), Attribute::DataVariant>,
-                Attribute::SingleData>);
-  return AttrStorageType(data_.index());
+  return std::visit(
+      []<typename T>(const T & /*data*/) {
+        if constexpr (std::is_same_v<T, GList::ArrayData>) {
+          return AttrStorageType::Array;
+        }
+        else if constexpr (std::is_same_v<T, GList::SingleData>) {
+          return AttrStorageType::Single;
+        }
+        else {
+          BLI_assert_unreachable_static_t(T);
+        }
+      },
+      data_.data());
 }
 
-inline void Attribute::assign_data(DataVariant &&data)
+inline void Attribute::assign_data(GList &&data)
 {
+  BLI_assert(&data.cpp_type() == &data_.cpp_type());
   data_ = std::move(data);
 }
 

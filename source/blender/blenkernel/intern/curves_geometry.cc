@@ -250,13 +250,12 @@ void CurvesGeometry::fill_curve_types(const CurveType type)
   }
   else {
     const GPointer value(CPPType::get<int8_t>(), &type);
-    Attribute::SingleData data = Attribute::SingleData::from_value(value);
+    GList data(*value.type(), GList::SingleData::ForValue(value), this->curves_num());
     if (Attribute *attr = this->attribute_storage.wrap().lookup("curve_type")) {
       attr->assign_data(std::move(data));
     }
     else {
-      this->attribute_storage.wrap().add(
-          "curve_type", AttrDomain::Curve, AttrType::Int8, std::move(data));
+      this->attribute_storage.wrap().add("curve_type", AttrDomain::Curve, std::move(data));
     }
   }
   this->runtime->type_counts.fill(0);
@@ -1918,7 +1917,6 @@ void CurvesGeometry::blend_read(BlendDataReader &reader)
 
   CustomData_blend_read(&reader, &this->point_data, this->point_num);
   CustomData_blend_read(&reader, &this->curve_data_legacy, this->curve_num);
-  this->attribute_storage.wrap().blend_read(reader);
 
   if (this->curve_offsets) {
     this->runtime->curve_offsets_sharing_info = BLO_read_shared(
@@ -1930,6 +1928,9 @@ void CurvesGeometry::blend_read(BlendDataReader &reader)
                                        nullptr;
         });
   }
+
+  this->attribute_storage.wrap().blend_read(
+      reader, [&](const AttrDomain domain) { return this->attributes().domain_size(domain); });
 
   BLO_read_struct_list(&reader, bDeformGroup, &this->vertex_group_names);
 

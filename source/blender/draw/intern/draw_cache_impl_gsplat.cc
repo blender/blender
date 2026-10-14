@@ -228,17 +228,29 @@ void GSplatEvalCache::ensure_builtin_buffers(PointCloud &pointcloud)
    * as the scale data comes directly from the fitting process. We strip this function for packing
    * and re-apply it when unpacking shader-side. Note that 0 is a valid input through attributes,
    * but as ln(0) is undefined we instead pack an epsilon. */
+  static constexpr float zero_log_scale = -1e6f;
   Array<float3> scale(exp_scale.size());
   threading::parallel_for(exp_scale.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
-      scale[i] = math::is_any_zero(exp_scale[i]) ? float3(-1e6f) :
+      scale[i] = math::is_any_zero(exp_scale[i]) ? float3(zero_log_scale) :
                                                    math::log(math::abs(exp_scale[i]));
     }
   });
+  /* Determine scale data boundaries; exclude zero scales as their packed epsilon would stretch
+   * quantization to an extreme. */
+  std::optional<Bounds<float3>> splat_scale_bounds_opt;
+  for (const float3 &value : scale) {
+    if (value.x == zero_log_scale) {
+      continue;
+    }
+    splat_scale_bounds_opt = splat_scale_bounds_opt ?
+                                 bounds::merge(*splat_scale_bounds_opt, Bounds<float3>(value)) :
+                                 Bounds<float3>(value);
+  }
 
   /* Obtain data boundaries; we quantize uploaded data such that it lies within [0, 1]. */
   Bounds<float3> splat_mean_bounds = pointcloud.bounds_min_max(false).value_or(Bounds<float3>());
-  Bounds<float3> splat_scale_bounds = bounds::min_max(scale.as_span()).value_or(Bounds<float3>());
+  Bounds<float3> splat_scale_bounds = splat_scale_bounds_opt.value_or(Bounds<float3>());
   auto radiance_rgba_bounds = bounds::min_max(radiance_base).value_or(Bounds<float4>());
   /* Omit opacity, which is packed with Gaussian data and clamped to lie in [0, 1]. */
   Bounds<float3> radiance_base_bounds = Bounds(radiance_rgba_bounds.min.xyz(),
@@ -434,16 +446,16 @@ gpu::VertBuf *GSplatEvalCache::radiance_data_buf_get()
   return radiance_data_buf;
 }
 
-gpu::VertBuf *GSplatEvalCache::ellipses_comp_buf_get()
+gpu::VertBuf **GSplatEvalCache::ellipses_comp_buf_get()
 {
   DRW_vbo_request(nullptr, &ellipses_comp_buf);
-  return ellipses_comp_buf;
+  return &ellipses_comp_buf;
 }
 
-gpu::VertBuf *GSplatEvalCache::radiance_comp_buf_get()
+gpu::VertBuf **GSplatEvalCache::radiance_comp_buf_get()
 {
   DRW_vbo_request(nullptr, &radiance_comp_buf);
-  return radiance_comp_buf;
+  return &radiance_comp_buf;
 }
 
 gpu::UniformBuf *GSplatEvalCache::infos_buf_get()

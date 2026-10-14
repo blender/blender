@@ -140,7 +140,7 @@ struct TomlProjectVariable {
           "Project Variable type and value mismatch",
           value,
           "Actual and declared type of project variable \"value\" do not match. Got \"" +
-              toml_type_name(value) + "\", expected an interger");
+              toml_type_name(value) + "\", expected an integer");
 
       throw toml::type_error(err, value.location());
     }
@@ -311,7 +311,7 @@ static void create_blender_project_from_toml(Main *bmain,
   auto project_name = toml::find<std::string>(config_values, "name");
   if (!BKE_blender_project_init(project_name, project_root_path)) {
     throw std::invalid_argument(
-        "Couldn't initalize the project because the project name was empty");
+        "Couldn't initialize the project because the project name was empty");
   }
   BlenderProject *project = BKE_blender_project_get(bmain);
 
@@ -509,7 +509,7 @@ bool BKE_blender_project_init_from_root_path(Main *bmain, std::string project_ro
   }
   catch (const std::exception &e) {
     CLOG_ERROR(&LOG, "Failed loading project from toml: \n%s", e.what());
-    /* Delete any project and its data if managed to create one before erroring out. */
+    /* Delete any project and its data if managed to create one before failing with an error. */
     BKE_blender_project_clear();
     return false;
   }

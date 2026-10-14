@@ -22,23 +22,12 @@ GAttributeReader attribute_to_reader(const Attribute &attribute,
                                      const AttrDomain domain,
                                      const int64_t domain_size)
 {
-  const CPPType &cpp_type = attribute_type_to_cpp_type(attribute.data_type());
-  switch (attribute.storage_type()) {
-    case AttrStorageType::Array: {
-      const auto &data = std::get<Attribute::ArrayData>(attribute.data());
-      return GAttributeReader{GVArray::from_span(GSpan(cpp_type, data.data, data.size)),
-                              domain,
-                              data.sharing_info.get()};
-    }
-    case AttrStorageType::Single: {
-      const auto &data = std::get<Attribute::SingleData>(attribute.data());
-      return GAttributeReader{GVArray::from_single_ref(cpp_type, domain_size, data.value),
-                              domain,
-                              data.sharing_info.get()};
-    }
-  }
-  BLI_assert_unreachable();
-  return {};
+  const GList &data = attribute.data();
+  BLI_assert(data.size() == domain_size);
+  UNUSED_VARS_NDEBUG(domain_size);
+  const ImplicitSharingInfo *sharing_info = std::visit(
+      [](const auto &storage) { return storage.sharing_info.get(); }, data.data());
+  return GAttributeReader{data.varray(), domain, sharing_info};
 }
 
 GAttributeWriter attribute_to_writer(void *owner,
@@ -46,58 +35,45 @@ GAttributeWriter attribute_to_writer(void *owner,
                                      const int64_t domain_size,
                                      Attribute &attribute)
 {
-  const CPPType &cpp_type = attribute_type_to_cpp_type(attribute.data_type());
-  switch (attribute.storage_type()) {
-    case AttrStorageType::Array: {
-      auto &data = std::get<Attribute::ArrayData>(attribute.data_for_write());
-      BLI_assert(data.size == domain_size);
+  GList &data = attribute.data();
+  BLI_assert(data.size() == domain_size);
+  UNUSED_VARS_NDEBUG(domain_size);
+  /* Just convert the stored type to an array for modification. It might not make sense to
+   * implement editing of single values at this level. */
+  data.ensure_array_storage();
 
-      std::function<void()> tag_modified_fn;
-      if (const AttrUpdateOnChange update_fn = changed_tags.lookup_default(attribute.name(),
-                                                                           nullptr))
-      {
-        tag_modified_fn = [owner, update_fn]() { update_fn(owner); };
-      };
+  std::function<void()> tag_modified_fn;
+  if (const AttrUpdateOnChange update_fn = changed_tags.lookup_default(attribute.name(), nullptr))
+  {
+    tag_modified_fn = [owner, update_fn]() { update_fn(owner); };
+  };
 
-      return GAttributeWriter{
-          GVMutableArray::from_span(GMutableSpan(cpp_type, data.data, domain_size)),
-          attribute.domain(),
-          std::move(tag_modified_fn)};
-    }
-    case AttrStorageType::Single: {
-      /* Just convert the stored type to an array for modification. It might not make sense to
-       * implement editing of single values at this level. */
-      const auto &data = std::get<Attribute::SingleData>(attribute.data());
-      const GPointer value(cpp_type, data.value);
-      attribute.assign_data(Attribute::ArrayData::from_value(value, domain_size));
-      return attribute_to_writer(owner, changed_tags, domain_size, attribute);
-    }
-  }
-  BLI_assert_unreachable();
-  return {};
+  return GAttributeWriter{
+      GVMutableArray::from_span(std::get<GMutableSpan>(data.values_for_write())),
+      attribute.domain(),
+      std::move(tag_modified_fn)};
 }
 
-Attribute::DataVariant attribute_init_to_data(const bke::AttrType data_type,
-                                              const int64_t domain_size,
-                                              const AttributeInit &initializer,
-                                              const bool require_array_data)
+GList attribute_init_to_list(const bke::AttrType data_type,
+                             const int64_t domain_size,
+                             const AttributeInit &initializer,
+                             const bool require_array_data)
 {
+  const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
   switch (initializer.type) {
     case AttributeInit::Type::Construct: {
-      const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
-      return Attribute::ArrayData::from_constructed(type, domain_size);
+      return GList(type, GList::ArrayData::ForConstructed(type, domain_size), domain_size);
     }
     case AttributeInit::Type::Value: {
       const auto &init = static_cast<const AttributeInitValue &>(initializer);
-      BLI_assert(*init.value.type() == bke::attribute_type_to_cpp_type(data_type));
+      BLI_assert(*init.value.type() == type);
       if (require_array_data) {
-        return Attribute::ArrayData::from_value(init.value, domain_size);
+        return GList(type, GList::ArrayData::ForValue(init.value, domain_size), domain_size);
       }
-      return Attribute::SingleData::from_value(init.value);
+      return GList(type, GList::SingleData::ForValue(init.value), domain_size);
     }
     case AttributeInit::Type::DefaultValue: {
-      const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
-      return Attribute::ArrayData::from_default_value(type, domain_size);
+      return Attribute::default_array_data(type, domain_size);
     }
     case AttributeInit::Type::VArray: {
       const auto &init = static_cast<const AttributeInitVArray &>(initializer);
@@ -106,26 +82,25 @@ Attribute::DataVariant attribute_init_to_data(const bke::AttrType data_type,
       if (!require_array_data) {
         const CommonVArrayInfo &info = varray.common_info();
         if (info.type == CommonVArrayInfo::Type::Single) {
-          return Attribute::SingleData::from_value(GPointer(varray.type(), info.data));
+          return GList(
+              type, GList::SingleData::ForValue(GPointer(varray.type(), info.data)), domain_size);
         }
       }
-      const CPPType &type = varray.type();
-      Attribute::ArrayData data = Attribute::ArrayData::from_uninitialized(type, domain_size);
-      varray.materialize_to_uninitialized(varray.index_range(), data.data);
-      return data;
+      GArray<> data(varray.type(), domain_size, NoInitialization());
+      varray.materialize_to_uninitialized(varray.index_range(), data.data());
+      return GList(std::move(data));
     }
     case AttributeInit::Type::Shared: {
       const auto &init = static_cast<const AttributeInitShared &>(initializer);
-      Attribute::ArrayData data;
-      data.data = const_cast<void *>(init.data);
-      data.size = domain_size;
+      GList::ArrayData data;
+      data.data = init.data;
       data.sharing_info = ImplicitSharingPtr<>(init.sharing_info);
       data.sharing_info->add_user();
-      return data;
+      return GList(type, std::move(data), domain_size);
     }
   }
   BLI_assert_unreachable();
-  return {};
+  return GList(type);
 }
 
 GVArray get_varray_attribute(const AttributeStorage &storage,
@@ -150,18 +125,8 @@ GVArray get_varray_attribute(const AttributeStorage &storage,
   if (attr->data_type() != cpp_type_to_attribute_type(cpp_type)) {
     return return_default();
   }
-  switch (attr->storage_type()) {
-    case bke::AttrStorageType::Array: {
-      const auto &data = std::get<bke::Attribute::ArrayData>(attr->data());
-      const GSpan span(cpp_type, data.data, data.size);
-      return GVArray::from_span(span);
-    }
-    case bke::AttrStorageType::Single: {
-      const auto &data = std::get<bke::Attribute::SingleData>(attr->data());
-      return GVArray::from_single(cpp_type, domain_size, data.value);
-    }
-  }
-  return return_default();
+  BLI_assert(attr->data().size() == domain_size);
+  return attr->data().varray();
 }
 
 std::optional<GSpan> get_span_attribute(const AttributeStorage &storage,
@@ -177,10 +142,11 @@ std::optional<GSpan> get_span_attribute(const AttributeStorage &storage,
   if (attr->domain() != domain) {
     return {};
   }
-  if (const auto *array_data = std::get_if<bke::Attribute::ArrayData>(&attr->data())) {
-    BLI_assert(array_data->size == domain_size);
+  const std::variant<GSpan, GPointer> values = attr->data().values();
+  if (const auto *span = std::get_if<GSpan>(&values)) {
+    BLI_assert(span->size() == domain_size);
     UNUSED_VARS_NDEBUG(domain_size);
-    return GSpan(cpp_type, array_data->data, array_data->size);
+    return GSpan(cpp_type, span->data(), span->size());
   }
   return {};
 }
@@ -198,13 +164,10 @@ GMutableSpan get_mutable_attribute(AttributeStorage &storage,
   const bke::AttrType type = bke::cpp_type_to_attribute_type(cpp_type);
   if (bke::Attribute *attr = storage.wrap().lookup(name)) {
     if (attr->data_type() == type) {
-      if (const auto *single_data = std::get_if<bke::Attribute::SingleData>(&attr->data())) {
-        /* Convert single value storage to array storage. */
-        const GPointer g_value(cpp_type, single_data->value);
-        attr->assign_data(bke::Attribute::ArrayData::from_value(g_value, domain_size));
-      }
-      auto &array_data = std::get<bke::Attribute::ArrayData>(attr->data_for_write());
-      return GMutableSpan(cpp_type, array_data.data, domain_size);
+      GList &data = attr->data();
+      BLI_assert(data.size() == domain_size);
+      data.ensure_array_storage();
+      return std::get<GMutableSpan>(data.values_for_write());
     }
     /* The attribute has the wrong type. This shouldn't happen for builtin attributes, but just
      * in case, remove it. */
@@ -215,11 +178,10 @@ GMutableSpan get_mutable_attribute(AttributeStorage &storage,
   bke::Attribute &attr = storage.wrap().add(
       name,
       domain,
-      type,
-      bke::Attribute::ArrayData::from_value({cpp_type, default_value}, domain_size));
-  auto &array_data = std::get<bke::Attribute::ArrayData>(attr.data_for_write());
-  BLI_assert(array_data.size == domain_size);
-  return GMutableSpan(cpp_type, array_data.data, domain_size);
+      GList(cpp_type,
+            GList::ArrayData::ForValue({cpp_type, default_value}, domain_size),
+            domain_size));
+  return std::get<GMutableSpan>(attr.data().values_for_write());
 }
 
 bool try_delete_vertex_group(ListBaseT<bDeformGroup> &vertex_groups,
@@ -250,21 +212,6 @@ static bDeformGroup *find_vertex_group(ListBaseT<bDeformGroup> &vertex_groups,
     }
   }
   return nullptr;
-}
-
-static void ensure_array_storage(Attribute &attr,
-                                 const FunctionRef<int(AttrDomain)> domain_size_fn)
-{
-  switch (attr.storage_type()) {
-    case AttrStorageType::Single: {
-      const auto &data = std::get<Attribute::SingleData>(attr.data());
-      const GPointer value(attribute_type_to_cpp_type(attr.data_type()), data.value);
-      attr.assign_data(Attribute::ArrayData::from_value(value, domain_size_fn(attr.domain())));
-      break;
-    }
-    case AttrStorageType::Array:
-      break;
-  }
 }
 
 static std::variant<std::monostate, Attribute *, bDeformGroup *> find_attr_or_group(
@@ -329,7 +276,10 @@ Set<StringRef> rename_attributes(AttributeStorage &storage,
     }
     if (array_storage_required.contains(new_name)) {
       if (std::holds_alternative<Attribute *>(old_attr)) {
-        ensure_array_storage(*std::get<Attribute *>(old_attr), domain_size_fn);
+        Attribute &attr = *std::get<Attribute *>(old_attr);
+        BLI_assert(attr.data().size() == domain_size_fn(attr.domain()));
+        UNUSED_VARS_NDEBUG(domain_size_fn);
+        attr.data().ensure_array_storage();
       }
       else {
         /* Converting vertex groups to real attributes remains unsupported here. */

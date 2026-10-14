@@ -35,6 +35,11 @@ class ActiveCameraOperation : public NodeOperation {
     output.allocate_single_value();
     output.set_single_value(this->context().get_scene().camera);
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

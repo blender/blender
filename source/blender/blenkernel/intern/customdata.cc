@@ -3158,14 +3158,14 @@ void CustomData_copy_layer_type_data(const CustomData *source,
   if (source_layer_index == -1) {
     return;
   }
-  const int destinaiton_layer_index = CustomData_get_layer_index(destination, type);
-  if (destinaiton_layer_index == -1) {
+  const int destination_layer_index = CustomData_get_layer_index(destination, type);
+  if (destination_layer_index == -1) {
     return;
   }
   CustomData_copy_data_layer(source,
                              destination,
                              source_layer_index,
-                             destinaiton_layer_index,
+                             destination_layer_index,
                              source_index,
                              destination_index,
                              count);

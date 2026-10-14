@@ -434,7 +434,7 @@ def run_blender(args: Sequence[str]) -> tuple[int, str, str]:
         "HOME": TEMP_DIRS.local_home,
         "XDG_CACHE_HOME": TEMP_DIRS.local_home_cache,
         # Needed for ASAN builds.
-        # NOTE: leaks are not checked, the result is ignored anyway (see "exitcode=0")
+        # NOTE: leaks are not checked, the result is ignored anyway (see `exitcode=0`)
         # and the check adds over a second to every command.
         "ASAN_OPTIONS": "log_path={:s}:exitcode=0:leak_check_at_exit=0:{:s}".format(
             # Needed so the `stdout` & `stderr` aren't mixed in with ASAN messages.

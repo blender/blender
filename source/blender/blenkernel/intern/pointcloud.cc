@@ -155,7 +155,8 @@ static void pointcloud_blend_read_data(BlendDataReader *reader, ID *id)
 
   /* Geometry */
   CustomData_blend_read(reader, &pointcloud->pdata_legacy, pointcloud->totpoint);
-  pointcloud->attribute_storage.wrap().blend_read(*reader);
+  pointcloud->attribute_storage.wrap().blend_read(
+      *reader, [&](const bke::AttrDomain /*domain*/) { return pointcloud->totpoint; });
 
   /* Materials */
   BLO_read_pointer_array_and_validate_size(reader, &pointcloud->mat, &pointcloud->totcol);

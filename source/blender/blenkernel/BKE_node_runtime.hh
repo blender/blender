@@ -144,6 +144,9 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    */
   uint8_t runtime_flag = 0;
 
+  /** Protect from recursive updates of node trees, see #BKE_ntree_update_without_main. */
+  bool is_updating = false;
+
   /**
    * Contains a number increased for each node-tree update.
    * Store a state variable in the #NestedTreePreviews structure to compare if they differ.

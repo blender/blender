@@ -184,6 +184,11 @@ class MaskOperation : public NodeOperation {
   {
     return reinterpret_cast<Mask *>(this->node().id);
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

@@ -117,6 +117,11 @@ class ImportTextOperation : public compositor::NodeOperation {
     result.set_single_value(cached_value->text);
   }
 
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
+
  private:
   std::optional<std::string> ensure_absolute_path(const StringRefNull path) const
   {

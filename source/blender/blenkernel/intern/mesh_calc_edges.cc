@@ -244,6 +244,7 @@ void mesh_calc_edges(Mesh &mesh,
 
   if (mesh.corners_num == 0 && !keep_existing_edges) {
     CustomData_free(&mesh.edge_data);
+    mesh.attribute_storage.wrap().resize(AttrDomain::Edge, 0);
     mesh.edges_num = 0;
     mesh.tag_loose_edges_none();
     /* BLI_assert(mesh_is_valid(mesh)); */
@@ -506,19 +507,19 @@ void mesh_calc_edges(Mesh &mesh,
     }
     switch (attr.storage_type()) {
       case AttrStorageType::Single: {
+        attr.data().resize(result_edges_num);
         break;
       }
       case AttrStorageType::Array: {
         const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
-        const auto &src_data = std::get<bke::Attribute::ArrayData>(attr.data());
-        auto dst_data = bke::Attribute::ArrayData::from_uninitialized(type, result_edges_num);
-        const GSpan src(type, src_data.data, mesh.edges_num);
-        GMutableSpan dst(type, dst_data.data, result_edges_num);
+        const GSpan src = std::get<GSpan>(attr.data().values());
+        GArray<> dst_data(type, result_edges_num, NoInitialization());
+        GMutableSpan dst = dst_data.as_mutable_span();
         array_utils::gather(src, src_to_dst_mask, dst.take_front(src_to_dst_mask.size()));
         type.fill_construct_n(type.default_value(),
                               dst.slice(back_range_of_new_edges).data(),
                               dst.slice(back_range_of_new_edges).size());
-        attr.assign_data(std::move(dst_data));
+        attr.assign_data(bke::GList(std::move(dst_data)));
         break;
       }
     }

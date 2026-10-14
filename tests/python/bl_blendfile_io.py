@@ -174,7 +174,7 @@ class TestIdRuntimeTag(TestHelper):
         obj.material_slots[0].link = 'OBJECT'
         obj.material_slots[0].material = linked_material
 
-        # Now these data are direclty linked by the (local, even though runtime) object ID.
+        # Now these data are directly linked by the (local, even though runtime) object ID.
         self.assertFalse(linked_material.is_library_indirect)
         self.assertFalse(linked_mesh.is_library_indirect)
 

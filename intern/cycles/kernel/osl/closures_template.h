@@ -48,6 +48,7 @@ OSL_CLOSURE_STRUCT_END(TranslucentBSDF, translucent_bsdf)
 
 OSL_CLOSURE_STRUCT_BEGIN(Reflection, reflection)
   OSL_CLOSURE_STRUCT_MEMBER(Reflection, VECTOR, packed_float3, N, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(Reflection, FLOAT, float, eta, nullptr)
 OSL_CLOSURE_STRUCT_END(Reflection, reflection)
 
 OSL_CLOSURE_STRUCT_BEGIN(Refraction, refraction)
@@ -249,8 +250,8 @@ OSL_CLOSURE_STRUCT_BEGIN(HairTransmission, hair_transmission)
   OSL_CLOSURE_STRUCT_MEMBER(HairTransmission, VECTOR, packed_float3, N, nullptr)
   OSL_CLOSURE_STRUCT_MEMBER(HairTransmission, FLOAT, float, roughness1, nullptr)
   OSL_CLOSURE_STRUCT_MEMBER(HairTransmission, FLOAT, float, roughness2, nullptr)
-  OSL_CLOSURE_STRUCT_MEMBER(HairReflection, VECTOR, packed_float3, T, nullptr)
-  OSL_CLOSURE_STRUCT_MEMBER(HairReflection, FLOAT, float, offset, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(HairTransmission, VECTOR, packed_float3, T, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(HairTransmission, FLOAT, float, offset, nullptr)
 OSL_CLOSURE_STRUCT_END(HairTransmission, hair_transmission)
 
 OSL_CLOSURE_STRUCT_BEGIN(ChiangHair, hair_chiang)

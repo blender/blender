@@ -91,6 +91,11 @@ class WarningOperation : public NodeOperation {
     const std::string message = this->get_input("Message").get_single_value_default<std::string>();
     this->add_warning(NodeWarningType(this->node().custom1), message);
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

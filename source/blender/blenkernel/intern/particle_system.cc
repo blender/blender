@@ -2565,7 +2565,7 @@ static void collision_point_on_surface(
   }
 }
 /* find first root in range [0-1] starting from 0 */
-static float collision_newton_rhapson(ParticleCollision *col,
+static float collision_newton_raphson(ParticleCollision *col,
                                       float radius,
                                       ParticleCollisionElement *pce,
                                       NRDistanceFunc distance_func)
@@ -2671,7 +2671,7 @@ static int collision_sphere_to_tri(ParticleCollision *col,
   pce->inv_nor = -1;
   pce->inside = 0;
 
-  ct = collision_newton_rhapson(col, radius, pce, nr_signed_distance_to_plane);
+  ct = collision_newton_raphson(col, radius, pce, nr_signed_distance_to_plane);
 
   if (ct >= 0.0f && ct < *t && (result->inside == 0 || pce->inside == 1)) {
     float e1[3], e2[3], p0[3];
@@ -2726,7 +2726,7 @@ static int collision_sphere_to_edges(ParticleCollision *col,
     cur->tot = 2;
     cur->inside = 0;
 
-    ct = collision_newton_rhapson(col, radius, cur, nr_distance_to_edge);
+    ct = collision_newton_raphson(col, radius, cur, nr_distance_to_edge);
 
     if (ct >= 0.0f && ct < *t) {
       float u, e[3], vec[3];
@@ -2771,7 +2771,7 @@ static int collision_sphere_to_verts(ParticleCollision *col,
     cur->tot = 1;
     cur->inside = 0;
 
-    ct = collision_newton_rhapson(col, radius, cur, nr_distance_to_vert);
+    ct = collision_newton_raphson(col, radius, cur, nr_distance_to_vert);
 
     if (ct >= 0.0f && ct < *t) {
       *result = *cur;

@@ -484,7 +484,13 @@ static bool collection_importer_add_poll(bContext *C)
 static bool collection_importer_remove_poll(bContext *C)
 {
   const Collection *collection = CTX_data_collection(C);
-  return collection && collection->importer != nullptr;
+  if (!collection || !collection->importer || ID_IS_LINKED(&collection->id) ||
+      ID_IS_OVERRIDE_LIBRARY(&collection->id))
+  {
+    return false;
+  }
+
+  return true;
 }
 
 static bool collection_importer_import_poll(bContext *C)
@@ -734,9 +740,7 @@ static void COLLECTION_OT_importer_remove(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove Importer";
-  ot->description =
-      "Remove Collection Importer (does not delete any of the imported data in the collection, if "
-      "any)";
+  ot->description = "Remove Collection Importer and delete its imported data";
   ot->idname = "COLLECTION_OT_importer_remove";
 
   /* api callbacks */
@@ -952,7 +956,8 @@ static wmOperatorStatus collection_importer_clear_exec(bContext *C, wmOperator *
 
   Library *external_archive_lib = data->runtime->archive_library;
   if (!external_archive_lib) {
-    /* It is ok to clear a collection which hasn't been imported yet. */
+    /* It is ok to clear a collection which hasn't been imported yet (e.g. if executing the Reload
+     * operator on an empty collection). */
     return OPERATOR_FINISHED;
   }
 
@@ -992,20 +997,16 @@ static wmOperatorStatus collection_importer_make_local_exec(bContext *C, wmOpera
   }
 
   Library *external_archive_lib = data->runtime->archive_library;
-  if (!external_archive_lib) {
-    /* It is ok to clear a collection which hasn't been imported yet (e.g. if executing the Reload
-     * operator on an empty collection). */
-    return OPERATOR_FINISHED;
-  }
+  if (external_archive_lib) {
+    /* Make local every ID associated with the external archive library */
+    BKE_library_make_local(bmain, external_archive_lib, nullptr, false, false, false);
 
-  /* Make local every ID associated with the external archive library */
-  BKE_library_make_local(bmain, external_archive_lib, nullptr, false, false, false);
-
-  /* Remove external archive library and the main external library too if it's now empty. */
-  Library *external_library = external_archive_lib->archive_parent_library;
-  BKE_id_delete(bmain, &external_archive_lib->id);
-  if (external_library->runtime->archived_libraries.is_empty()) {
-    BKE_id_delete(bmain, &external_library->id);
+    /* Remove external archive library and the main external library too if it's now empty. */
+    Library *external_library = external_archive_lib->archive_parent_library;
+    BKE_id_delete(bmain, &external_archive_lib->id);
+    if (external_library->runtime->archived_libraries.is_empty()) {
+      BKE_id_delete(bmain, &external_library->id);
+    }
   }
 
   BKE_collection_importer_free_data(data);
@@ -1443,10 +1444,10 @@ static void collection_importer_menu_draw(const bContext * /*C*/, Menu *menu)
 static void collection_importer_control_menu_draw(const bContext * /*C*/, Menu *menu)
 {
   ui::Layout &layout = *menu->layout;
-  layout.op("COLLECTION_OT_importer_make_local", "Apply and Make Local", ICON_CHECKMARK);
-  layout.op("COLLECTION_OT_importer_clear", "Delete Collection Content", ICON_NONE);
+  layout.op("COLLECTION_OT_importer_make_local", IFACE_("Apply and Make Local"), ICON_CHECKMARK);
+  layout.op("COLLECTION_OT_importer_clear", IFACE_("Delete Collection Content"), ICON_NONE);
   layout.separator();
-  layout.op("COLLECTION_OT_importer_remove", "Remove Importer", ICON_TRASH);
+  layout.op("COLLECTION_OT_importer_remove", IFACE_("Remove Importer"), ICON_TRASH);
 }
 
 static void collection_exporter_menu_draw(const bContext * /*C*/, Menu *menu)

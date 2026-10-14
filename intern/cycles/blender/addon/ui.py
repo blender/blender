@@ -1097,6 +1097,7 @@ class CYCLES_RENDER_PT_passes_data(CyclesButtonsPanel, Panel):
             col.prop(cycles_view_layer, "denoising_store_passes", text="Data Passes")
             sub = col.column()
             sub.active = cycles_view_layer.denoising_store_passes
+            sub.prop(cycles_view_layer, "denoising_store_motion_passes", text="Motion")
             sub.prop(cycles_view_layer, "denoising_pass_follow_reflections", text="Follow Reflections")
             sub.prop(
                 cycles_view_layer,

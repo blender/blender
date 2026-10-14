@@ -1720,7 +1720,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(self.round_vector(xf.GetTranslateOp().Get()), [10, 20, 30])
 
     def test_export_native_instancing_true(self):
-        """Test exporting instanced objects to native (scne graph) instances."""
+        """Test exporting instanced objects to native (scene graph) instances."""
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "nested_instancing_test.blend"))
 
         export_path = self.tempdir / "usd_export_nested_instancing_true.usda"
@@ -1758,7 +1758,7 @@ class USDExportTest(AbstractUSDTest):
         assert prim
         assert prim.IsInstance()
 
-        # Ensure all the prototype paths are under the pototypes root.
+        # Ensure all the prototype paths are under the prototypes root.
         for prim in stage.Traverse():
             if prim.IsInstance():
                 arcs = Usd.PrimCompositionQuery.GetDirectReferences(prim).GetCompositionArcs()
@@ -1818,7 +1818,7 @@ class USDExportTest(AbstractUSDTest):
             prim = stage.GetPrimAtPath(prim_path)
             self.assertEqual(prim.IsInstance(), expected, f"Unexpected result for {prim_path}")
 
-        # Ensure all the prototype paths are under the pototypes root.
+        # Ensure all the prototype paths are under the prototypes root.
         protos_root_path = Sdf.Path("/root/prototypes")
         for prim in stage.Traverse():
             if prim.IsInstance():
@@ -2440,7 +2440,7 @@ class ExportTextureUSDHook(bpy.types.USDHook):
     def on_material_export(export_context, bl_material, usd_material):
         """
         If a texture image node exists in the given material's
-        node tree, call exprt_texture() on the image and cache
+        node tree, call export_texture() on the image and cache
         the returned path.
         """
         tex_image_node = None

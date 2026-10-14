@@ -1021,7 +1021,7 @@ class Gizmo(_StructRNA):
     # Convenience wrappers around private `_gpu` module.
     def draw_custom_shape(self, shape, *, matrix=None, select_id=None):
         """
-        Draw a shape created form :class:`Gizmo.draw_custom_shape`.
+        Draw a shape created from :class:`Gizmo.new_custom_shape`.
 
         :param shape: The cached shape to draw.
         :type shape: Any
@@ -1246,8 +1246,11 @@ class _GenericUI:
     @classmethod
     def append(cls, draw_func):
         """
-        Append a draw function to this menu,
-        takes the same arguments as the menus draw function
+        Append a draw function to this UI element.
+
+        The function is called after the :meth:`draw` of the element.
+        It must have two arguments: the element instance
+        and the current context.
 
         :param draw_func: Draw function to append.
         :type draw_func: Callable[[Self, :class:`Context`], None]
@@ -1259,8 +1262,11 @@ class _GenericUI:
     @classmethod
     def prepend(cls, draw_func):
         """
-        Prepend a draw function to this menu, takes the same arguments as
-        the menus draw function
+        Prepend a draw function to this UI element.
+
+        The function is called before the :meth:`draw` of the element.
+        It must have two arguments: the element instance
+        and the current context.
 
         :param draw_func: Draw function to prepend.
         :type draw_func: Callable[[Self, :class:`Context`], None]
@@ -1272,7 +1278,7 @@ class _GenericUI:
     @classmethod
     def remove(cls, draw_func):
         """
-        Remove a draw function that has been added to this menu.
+        Remove a draw function that has been added to this UI element.
 
         :param draw_func: Draw function previously registered via :meth:`append` or :meth:`prepend`.
         :type draw_func: Callable[[Self, :class:`Context`], None]

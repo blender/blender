@@ -74,6 +74,11 @@ class ImageCoordinatesOperation : public NodeOperation {
       pixel_coordinates_result.domain().transformation = domain.transformation;
     }
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

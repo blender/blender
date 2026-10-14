@@ -15,13 +15,13 @@ using namespace blender::gpu::shader::parser::ast;
 SymbolClass::SymbolClass(SymbolScope *parent, ClassDecl decl, const string &suffix)
     : SymbolScope(parent,
                   decl.front(),
-                  decl.identifier().str().empty() ?
+                  !decl.identifier().is_valid() ?
                       string("a") + std::to_string(parent->classes.size()) :
                       string(decl.identifier().name().str()) + suffix,
                   CLASS)
 
 {
-  this->is_anonymous = decl.identifier().str().empty();
+  this->is_anonymous = !decl.identifier().is_valid();
   this->is_union = decl.front() == Union;
   this->is_enum = decl.front() == Enum;
 }

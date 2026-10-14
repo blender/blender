@@ -4132,18 +4132,18 @@ static float calc_voxel_transp(
   return *t_ray;
 }
 
-static void bresenham_linie_3D(int x1,
-                               int y1,
-                               int z1,
-                               int x2,
-                               int y2,
-                               int z2,
-                               float *t_ray,
-                               BKE_Fluid_BresenhamFn cb,
-                               float *result,
-                               float *input,
-                               int res[3],
-                               float correct)
+static void bresenham_line_3D(int x1,
+                              int y1,
+                              int z1,
+                              int x2,
+                              int y2,
+                              int z2,
+                              float *t_ray,
+                              BKE_Fluid_BresenhamFn cb,
+                              float *result,
+                              float *input,
+                              int res[3],
+                              float correct)
 {
   int dx, dy, dz, i, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
   int pixel[3];
@@ -4292,18 +4292,18 @@ static void manta_smoke_calc_transparency(const Main &bmain,
         CLAMP(cell[1], 0, fds->res[1] - 1);
         CLAMP(cell[2], 0, fds->res[2] - 1);
 
-        bresenham_linie_3D(cell[0],
-                           cell[1],
-                           cell[2],
-                           x,
-                           y,
-                           z,
-                           &t_ray,
-                           calc_voxel_transp,
-                           shadow,
-                           density,
-                           fds->res,
-                           correct);
+        bresenham_line_3D(cell[0],
+                          cell[1],
+                          cell[2],
+                          x,
+                          y,
+                          z,
+                          &t_ray,
+                          calc_voxel_transp,
+                          shadow,
+                          density,
+                          fds->res,
+                          correct);
 
         /* Convention -> from a RGBA float array, use G value for t_ray. */
         shadow[index] = t_ray;

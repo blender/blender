@@ -328,6 +328,16 @@ class RenderLayerOperation : public NodeOperation {
   {
     return reinterpret_cast<const Scene *>(this->node().id);
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    const bNodeSocket *alpha_output = this->node().output_by_identifier("Alpha"_ustr);
+    if (!alpha_output || !is_socket_available(alpha_output)) {
+      return false;
+    }
+    const Result &result = this->get_result(alpha_output->identifier);
+    return result.should_compute();
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

@@ -1003,7 +1003,7 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
     case OB_CAMERA:
       retval = snapCamera(sctx, ob_eval, obmat);
       break;
-    /* TODO: Add remaining specific handling of objects (grease pencil, metaball, ...) */
+    /* TODO: Add remaining specific handling of objects (grease pencil, meta-ball, ...). */
     default:
       break;
   }

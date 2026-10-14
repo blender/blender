@@ -349,9 +349,9 @@ struct CodegenContext : NodeErrorHandler {
       SymbolFunction *sym = ctx.id_func_resolved_lookup(
           id, call.parameters(), symbol_scope, scope, loc);
 
-      if (sym->is_error) {
+      if (sym == nullptr || sym->is_error) {
         ctx.error(call, Diag::UnknownFunction, string(id.str()));
-        return {"", sym->return_type};
+        return {"", ctx.table.err_cls};
       }
 
       if (sym->is_inline) {
@@ -1070,13 +1070,23 @@ struct CodegenContext : NodeErrorHandler {
 
   void enum_decl(ClassDecl decl, SymbolScope &scope)
   {
-    SymbolScope &body_scope = *scope.scopes[string(decl.identifier().str())];
-    SymbolClass *enum_cls = body_scope.as_class();
+    /* Default to parent scope for anonymous enums. */
+    SymbolScope *body_scope = &scope;
+    const IdQualified id = decl.identifier();
+    if (id.is_valid()) {
+      auto it = scope.scopes.find(string(id.str()));
+      if (it == scope.scopes.end()) {
+        error(decl, Diag::CompilerErrorChildScopeNotFound);
+        return;
+      }
+      body_scope = it->second;
+    }
+    SymbolClass *enum_cls = id.is_valid() ? body_scope->as_class() : nullptr;
     LocalScope body = decl.body();
 
     IdQualified type = decl.parent_class();
 
-    if (enum_cls) {
+    if (enum_cls && id.is_valid()) {
       /* TODO(fclem): Remove. Compatibility with previous BSL version. */
       builder.ss << "\n#define " << enum_cls->identifier << " " << type.str() << "\n";
     }
@@ -1092,7 +1102,7 @@ struct CodegenContext : NodeErrorHandler {
       builder.ss << string(
           max(int64_t(1), int64_t(val.front().char_number()) - int64_t(type_str.size())), ' ');
 
-      SymbolVariable *var = id_var_decl_resolved(val.identifier(), body_scope);
+      SymbolVariable *var = id_var_decl_resolved(val.identifier(), *body_scope);
       builder << " = " + var->value_str();
       builder << string(";");
     }

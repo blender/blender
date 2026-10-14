@@ -4802,7 +4802,7 @@ PyDoc_STRVAR(
     "   :param key: String name of the property.\n"
     "   :type key: str\n"
     "   :return: An object used to manage an IDProperty's UI data.\n"
-    "   :rtype: :class:`bpy.types.IDPropertyUIManager`\n");
+    "   :rtype: :class:`idprop.types.IDPropertyUIManager` | None\n");
 static PyObject *pyrna_struct_id_properties_ui(BPy_StructRNA *self, PyObject *args)
 {
   PYRNA_STRUCT_CHECK_OBJ(self);
@@ -5820,7 +5820,10 @@ PyDoc_STRVAR(
     "   (matches Python's dictionary function of the same name).\n"
     "\n"
     "   :param key: The identifier for the collection member.\n"
-    "   :type key: str\n"
+    "\n"
+    "      For ``bpy.data`` collections a ``(name, library)`` tuple can also be used.\n"
+    "      *library* is the library filepath or ``None`` for data in the current file.\n"
+    "   :type key: str | tuple[str, str | None]\n"
     "   :param default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
     "   :type default: Any\n"

@@ -59,6 +59,11 @@ wmKeyConfigPref *BKE_keyconfig_pref_ensure(UserDef *userdef, const char *kc_idna
 
 static GHash *global_keyconfigpreftype_hash = nullptr;
 
+static void keyconfigpreftype_free(void *kpt_rt)
+{
+  MEM_delete(static_cast<wmKeyConfigPrefType_Runtime *>(kpt_rt));
+}
+
 wmKeyConfigPrefType_Runtime *BKE_keyconfig_pref_type_find(const char *idname, bool quiet)
 {
   if (idname[0]) {
@@ -90,7 +95,7 @@ void BKE_keyconfig_pref_type_add(wmKeyConfigPrefType_Runtime *kpt_rt)
 
 void BKE_keyconfig_pref_type_remove(const wmKeyConfigPrefType_Runtime *kpt_rt)
 {
-  BLI_ghash_remove(global_keyconfigpreftype_hash, kpt_rt->idname, nullptr, MEM_delete_void);
+  BLI_ghash_remove(global_keyconfigpreftype_hash, kpt_rt->idname, nullptr, keyconfigpreftype_free);
 }
 
 void BKE_keyconfig_pref_type_init()
@@ -101,7 +106,7 @@ void BKE_keyconfig_pref_type_init()
 
 void BKE_keyconfig_pref_type_free()
 {
-  BLI_ghash_free(global_keyconfigpreftype_hash, nullptr, MEM_delete_void);
+  BLI_ghash_free(global_keyconfigpreftype_hash, nullptr, keyconfigpreftype_free);
   global_keyconfigpreftype_hash = nullptr;
 }
 

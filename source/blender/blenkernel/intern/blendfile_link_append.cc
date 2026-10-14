@@ -764,11 +764,11 @@ static void loose_data_instantiate_collection_process(
   }
 }
 
-static void loose_data_gather_instanciated_objects_for_viewlayer(
+static void loose_data_gather_instantiated_objects_for_viewlayer(
     LooseDataInstantiateContext &instantiate_context,
     const Scene &scene,
     ViewLayer &view_layer,
-    Set<Object *> &r_instanciated_objects)
+    Set<Object *> &r_instantiated_objects)
 {
   BKE_view_layer_synced_ensure(
       *instantiate_context.lapp_context->params->bmain, &scene, &view_layer);
@@ -779,7 +779,7 @@ static void loose_data_gather_instanciated_objects_for_viewlayer(
   FOREACH_OBJECT_BEGIN (
       instantiate_context.lapp_context->params->bmain, &scene, &view_layer, ob_iter)
   {
-    r_instanciated_objects.add(ob_iter);
+    r_instantiated_objects.add(ob_iter);
     Collection *instance_collection = ob_iter->instance_collection;
     if (instance_collection && !known_instance_collections.contains(instance_collection)) {
       instance_collections.push_as(instance_collection);
@@ -794,7 +794,7 @@ static void loose_data_gather_instanciated_objects_for_viewlayer(
     Collection *instance_collection = instance_collections.pop();
     BLI_assert(known_instance_collections.contains(instance_collection));
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (instance_collection, ob_coll_iter) {
-      r_instanciated_objects.add(ob_coll_iter);
+      r_instantiated_objects.add(ob_coll_iter);
       if (ob_coll_iter->instance_collection &&
           !known_instance_collections.contains(ob_coll_iter->instance_collection))
       {
@@ -806,8 +806,8 @@ static void loose_data_gather_instanciated_objects_for_viewlayer(
   }
 }
 
-static void loose_data_gather_instanciated_objects(
-    LooseDataInstantiateContext &instantiate_context, Set<Object *> &instanciated_objects)
+static void loose_data_gather_instantiated_objects(
+    LooseDataInstantiateContext &instantiate_context, Set<Object *> &instantiated_objects)
 {
   BlendfileLinkAppendContext *lapp_context = instantiate_context.lapp_context;
   const Scene *scene = lapp_context->params->context.scene;
@@ -818,8 +818,8 @@ static void loose_data_gather_instanciated_objects(
    * - Directly instantiated there (i.e. in one of the view layer instantiated collections).
    * - Indirectly instantiated (i.e. being in a collection that is object-instantiated).
    */
-  loose_data_gather_instanciated_objects_for_viewlayer(
-      instantiate_context, *scene, *view_layer, instanciated_objects);
+  loose_data_gather_instantiated_objects_for_viewlayer(
+      instantiate_context, *scene, *view_layer, instantiated_objects);
 
   /* When linking or appending a whole Scene, typically its objects are already instantiated there,
    * so no need to instantiate them in the active Scene.
@@ -834,8 +834,8 @@ static void loose_data_gather_instanciated_objects(
     }
     Scene &scene_iter = *id_cast<Scene *>(item.new_id);
     for (ViewLayer &view_layer_iter : scene_iter.view_layers) {
-      loose_data_gather_instanciated_objects_for_viewlayer(
-          instantiate_context, scene_iter, view_layer_iter, instanciated_objects);
+      loose_data_gather_instantiated_objects_for_viewlayer(
+          instantiate_context, scene_iter, view_layer_iter, instantiated_objects);
     }
   }
 }
@@ -857,8 +857,8 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
 
   const bool is_linking = (lapp_context->params->flag & FILE_LINK) != 0;
 
-  Set<Object *> instanciated_objects;
-  loose_data_gather_instanciated_objects(*instantiate_context, instanciated_objects);
+  Set<Object *> instantiated_objects;
+  loose_data_gather_instantiated_objects(*instantiate_context, instantiated_objects);
 
   /* NOTE: For objects we only view_layer-instantiate duplicated objects that are not yet used
    * anywhere. */
@@ -881,7 +881,7 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
 
     Object *ob = id_cast<Object *>(id);
 
-    if (instanciated_objects.contains(ob)) {
+    if (instantiated_objects.contains(ob)) {
       continue;
     }
 
@@ -904,7 +904,7 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
 
     /* Instancing an object may also instance implicitly others, so we need to update the set
      * every time. */
-    loose_data_gather_instanciated_objects(*instantiate_context, instanciated_objects);
+    loose_data_gather_instantiated_objects(*instantiate_context, instantiated_objects);
   }
 }
 
@@ -1892,11 +1892,11 @@ void BKE_blendfile_override(BlendfileLinkAppendContext *lapp_context,
   BLI_assert((lapp_context->params->flag & FILE_LINK) != 0);
 
   const bool set_runtime = (flags & BKE_LIBLINK_OVERRIDE_CREATE_RUNTIME) != 0;
-  const bool do_use_exisiting_liboverrides = (flags &
-                                              BKE_LIBLINK_OVERRIDE_USE_EXISTING_LIBOVERRIDES) != 0;
+  const bool do_use_existing_liboverrides = (flags &
+                                             BKE_LIBLINK_OVERRIDE_USE_EXISTING_LIBOVERRIDES) != 0;
 
   Map<ID *, ID *> linked_ids_to_local_liboverrides;
-  if (do_use_exisiting_liboverrides) {
+  if (do_use_existing_liboverrides) {
     ID *id_iter;
     FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
       if (ID_IS_LINKED(id_iter)) {
@@ -1926,7 +1926,7 @@ void BKE_blendfile_override(BlendfileLinkAppendContext *lapp_context,
     }
     BLI_assert(item.userdata == nullptr);
 
-    if (do_use_exisiting_liboverrides) {
+    if (do_use_existing_liboverrides) {
       item.liboverride_id = linked_ids_to_local_liboverrides.lookup_default(id, nullptr);
     }
     if (item.liboverride_id == nullptr) {

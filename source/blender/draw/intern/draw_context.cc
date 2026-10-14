@@ -842,7 +842,7 @@ DrawFilter draw_filter_from_viewport_object_impl(const DRWContext &draw_ctx,
 {
   const View3D &v3d = *draw_ctx.v3d;
 
-  /* When selecting elements (pose-bones, edit-mode bones & metaball elements),
+  /* When selecting elements (pose-bones, edit-mode bones & meta-ball elements),
    * check for visibility not select-ability as the elements have their own selection
    * restriction flags.
    *

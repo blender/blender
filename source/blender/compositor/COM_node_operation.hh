@@ -62,6 +62,13 @@ class NodeOperation : public Operation {
   /* Log the values for the inputs and outputs of the node as well as its image preview. */
   void log_data() override;
 
+  /* Returns true if the node operation executes asynchronously, this is typically the case for GPU
+   * execution, since dispatched shaders are only submitted to the GPU for later execution and are
+   * typically not yet done by the time the execute function returns. So in general, any node that
+   * dispatches a shader should set this to true. This is only meant as a heuristic, so identity
+   * cases and implicit operations can be ignored. */
+  virtual bool uses_asynchronous_execution() const;
+
   /* Returns a reference to the node that this operation represents. */
   const bNode &node() const;
 

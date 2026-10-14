@@ -69,7 +69,7 @@ void template_breadcrumbs(Layout &layout, Span<ContextPathItem> context_path)
     int icon = context_path[i].icon;
     std::string name = context_path[i].name;
     if (context_path[i].handle_func) {
-      /* Pulldown adds more left padding to icons, making them misalign with label icons. */
+      /* Pull-down adds more left padding to icons, making them misaligned with label icons. */
       sub_row.emboss_set(EmbossType::Pulldown);
       but = sub_row.button(name.c_str(), icon, context_path[i].handle_func);
     }

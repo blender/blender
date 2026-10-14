@@ -232,6 +232,16 @@ static GlyphBLF *blf_glyph_cache_add_glyph(GlyphCacheBLF *gc,
   g->idx = glyph_index;
   g->advance_x = ft_pix(glyph->advance.x);
   g->subpixel = subpixel;
+  g->flags = GlyphFlagBLF::None;
+
+  /* Use the un-hinted advance as `advance.x` is rounded to whole pixels when hinting,
+   * so narrow glyphs at small sizes have a zero advance (an "l" at size 1 for e.g.).
+   *
+   * Check the code-point as well since some fonts use zero-width glyphs for spacing characters
+   * (the "." in LCD style digit fonts for e.g.), see #162036. */
+  if ((glyph->linearHoriAdvance == 0) && (BLI_wcwidth_or_error(char32_t(charcode)) == 0)) {
+    g->flags |= GlyphFlagBLF::Combining;
+  }
 
   FT_BBox bbox;
   FT_Outline_Get_CBox(&(glyph->outline), &bbox);
@@ -403,6 +413,7 @@ static GlyphBLF *blf_glyph_cache_add_svg(GlyphCacheBLF *gc,
   g->idx = 0;
   g->advance_x = dest_w * 64;
   g->subpixel = 0;
+  g->flags = GlyphFlagBLF::None;
   g->box_xmin = 0;
   g->box_xmax = dest_w * 64;
   g->box_ymin = 0;
@@ -1147,8 +1158,10 @@ static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float width, bool mon
       /* Widened fixed-pitch font needs a nudge left. */
       FT_Outline_Translate(&glyph->outline, change / -2, 0);
     }
-    else {
-      /* Need to increase horizontal advance. */
+    else if (glyph->linearHoriAdvance != 0) {
+      /* Need to increase horizontal advance.
+       * Zero advance glyphs (combining characters for e.g.) must not be given an advance.
+       * Check the un-hinted advance since narrow glyphs at small sizes round down to zero. */
       glyph->advance.x += change / 2;
     }
     return true;
@@ -1316,7 +1329,10 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   /* Fallback glyph transforms, but only if required and not yet done. */
 
   if (weight != weight_target) {
-    blf_glyph_transform_weight(glyph, weight_target - weight, FT_IS_FIXED_WIDTH(glyph_font));
+    /* Check the settings font as fallback glyphs are also given a fixed advance,
+     * see #blf_glyph_transform_monospace. */
+    blf_glyph_transform_weight(
+        glyph, weight_target - weight, (settings_font->flags & BLF_MONOSPACED) != 0);
   }
   if (slant != slant_target) {
     blf_glyph_transform_slant(glyph, slant_target - slant);
@@ -1417,7 +1433,7 @@ GlyphBLF *blf_glyph_ensure_subpixel(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *
     return g;
   }
 
-  if (font->size > 35.0f || g->dims[0] == 0 || g->advance_x < 0) {
+  if (font->size > 35.0f || g->dims[0] == 0 || flag_is_set(g->flags, GlyphFlagBLF::Combining)) {
     /* Single position for large sizes, spaces, and combining characters. */
     return g;
   }

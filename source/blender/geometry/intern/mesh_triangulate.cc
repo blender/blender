@@ -631,7 +631,7 @@ std::optional<Mesh *> mesh_triangulate(const Mesh &src_mesh,
     if (!ELEM(attr.domain(), bke::AttrDomain::Point, bke::AttrDomain::Edge)) {
       continue;
     }
-    mesh->attribute_storage.wrap().add(attr.name(), attr.domain(), attr.data_type(), attr.data());
+    mesh->attribute_storage.wrap().add(attr.name(), attr.domain(), attr.data());
   }
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();

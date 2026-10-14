@@ -392,7 +392,7 @@ bool BKE_modifier_supports_cage(Scene *scene, ModifierData *md)
           (mti->flags & eModifierTypeFlag_SupportsEditmode) && BKE_modifier_supports_mapping(md));
 }
 
-bool BKE_modifier_couldbe_cage(Scene *scene, ModifierData *md)
+bool BKE_modifier_could_be_cage(Scene *scene, ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 

@@ -1354,7 +1354,7 @@ void lineart_main_free_adjacent_data(LineartData *ld)
   while (
       LinkData *link = static_cast<LinkData *>(BLI_pophead(&ld->geom.triangle_adjacent_pointers)))
   {
-    MEM_delete_void(link->data);
+    MEM_delete(static_cast<LineartTriangleAdjacent *>(link->data));
   }
   for (LineartElementLinkNode &eln : ld->geom.triangle_buffer_pointers) {
     LineartTriangle *tri = static_cast<LineartTriangle *>(eln.pointer);
