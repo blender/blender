@@ -80,6 +80,7 @@ bool transform_is_locked(ListBase *channels, const Strip *strip);
 /* Image transformation. */
 
 blender::float2 image_transform_mirror_factor_get(const Strip *strip);
+blender::float2 strip_raw_image_size_get(const Scene *scene, const Strip *strip);
 /**
  * Get strip transform origin offset from image center
  * NOTE: This function does not apply axis mirror.

@@ -24,6 +24,7 @@
 #include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"
+#include "SEQ_render.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
@@ -589,11 +590,24 @@ float2 image_transform_mirror_factor_get(const Strip *strip)
   return mirror;
 }
 
-static float2 strip_raw_image_size_get(const Scene *scene, const Strip *strip)
+float2 strip_raw_image_size_get(const Scene *scene, const Strip *strip)
 {
-  if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
+  if (strip->type == STRIP_TYPE_IMAGE) {
+    const StripElem *selem = render_give_stripelem(scene, strip, scene->r.cfra);
+    if (selem != nullptr) {
+      return {float(selem->orig_width), float(selem->orig_height)};
+    }
+  }
+
+  if (strip->type == STRIP_TYPE_MOVIE) {
     const StripElem *selem = strip->data->stripdata;
     return {float(selem->orig_width), float(selem->orig_height)};
+  }
+
+  if (strip->type == STRIP_TYPE_SCENE && strip->scene != nullptr &&
+      (strip->flag & SEQ_SCENE_STRIPS) == 0)
+  {
+    return {float(strip->scene->r.xsch), float(strip->scene->r.ysch)};
   }
 
   if (strip->type == STRIP_TYPE_MOVIECLIP) {
