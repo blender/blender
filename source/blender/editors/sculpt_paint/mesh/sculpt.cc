@@ -192,7 +192,7 @@ Span<float3> vert_positions_for_grab_active_get(const Depsgraph &depsgraph, cons
 ePaintSymmetryFlags mesh_symmetry_xyz_get(const Object &object)
 {
   const Mesh *mesh = id_cast<const Mesh *>(object.data);
-  return ePaintSymmetryFlags(mesh->symmetry);
+  return ePaintSymmetryFlags(mesh->symmetry & ME_SYMMETRY_XYZ);
 }
 
 /* Sculpt Face Sets and Visibility. */
