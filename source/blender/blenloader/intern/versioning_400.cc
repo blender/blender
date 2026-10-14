@@ -12,7 +12,7 @@
 #include "ANIM_bone_collections.hh"
 
 /* Define macros in `DNA_genfile.h`. */
-#define DNA_GENFILE_VERSIONING_MACROS
+#define DNA_GENFILE_VERSIONING_MACROS_LEGACY
 
 #include "DNA_camera_types.h"
 #include "DNA_genfile.h"
@@ -25,7 +25,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
 
-#undef DNA_GENFILE_VERSIONING_MACROS
+#undef DNA_GENFILE_VERSIONING_MACROS_LEGACY
 
 #include "RNA_path.hh"
 

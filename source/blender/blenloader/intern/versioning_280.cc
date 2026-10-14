@@ -21,7 +21,7 @@
 #include "BLI_string_utf8.hh"
 
 /* Define macros in `DNA_genfile.h`. */
-#define DNA_GENFILE_VERSIONING_MACROS
+#define DNA_GENFILE_VERSIONING_MACROS_LEGACY
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -60,7 +60,7 @@
 #include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
-#undef DNA_GENFILE_VERSIONING_MACROS
+#undef DNA_GENFILE_VERSIONING_MACROS_LEGACY
 
 #include "BKE_anim_data.hh"
 #include "BKE_annotations_geom.h"

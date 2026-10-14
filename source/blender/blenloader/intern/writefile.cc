@@ -450,6 +450,7 @@ static WriteData *writedata_new(WriteWrap *ww)
   wd->timestamp_init = BLI_time_now_seconds();
 
   wd->sdna = DNA_sdna_current_get();
+  wd->sdna_structs_to_write = Array<bool>(wd->sdna->structs.size(), false);
   wd->stable_address_ids.sdna_pointers = std::make_unique<dna::pointers::PointersInDNA>(*wd->sdna);
 
   wd->ww = ww;
@@ -906,6 +907,8 @@ static void writestruct_at_address_nr(WriteData *wd,
     return;
   }
 
+  wd->sdna_structs_to_write[struct_nr] = true;
+
   const int64_t len_in_bytes = nr * DNA_struct_size(wd->sdna, struct_nr);
   if (!SYSTEM_SUPPORTS_WRITING_FILE_VERSION_1 ||
       USER_DEVELOPER_TOOL_TEST(&U, write_legacy_blend_file_format))
@@ -1080,7 +1083,16 @@ static void writedata(
   bh.len = int64_t(len);
 
   if (wd->debug_dst) {
-    write_raw_data_in_debug_file(wd, len, address_id, data);
+    if (filecode == BLO_CODE_DNA1) {
+      const char *error_message = nullptr;
+      const std::unique_ptr<SDNA> sdna = DNA_sdna_from_data(
+          data, int(len), false, false, &error_message);
+      BLI_assert_msg(sdna, error_message ? error_message : "Failed to parse encoded SDNA");
+      DNA_sdna_print(*sdna, *wd->debug_dst);
+    }
+    else {
+      write_raw_data_in_debug_file(wd, len, address_id, data);
+    }
   }
 
   write_bhead(wd, bh);
@@ -1862,11 +1874,19 @@ static bool write_file_handle(Main *mainvar,
     write_userdef(&writer, &U);
   }
 
-  /* Write DNA last, because (to be implemented) test for which structs are written.
+  /* Write SDNA last so that we know which structs are actually used and only write those.
    *
-   * Note that we *borrow* the pointer to 'DNAstr',
-   * so writing each time uses the same address and doesn't cause unnecessary undo overhead. */
-  writedata(wd, BLO_CODE_DNA1, size_t(wd->sdna->data_size), wd->sdna->data);
+   * Writing SDNA last has the downside that when opening the file one has to traverse the entire
+   * file once first to find the SDNA. In the future one could also use a heuristic to decide
+   * whether it's worth writing a partial SDNA to save space. For larger files, one could also just
+   * write the entire SDNA at the start.*/
+  if (wd->use_memfile) {
+    writedata(wd, BLO_CODE_DNA1, size_t(wd->sdna->data_size), wd->sdna->data);
+  }
+  else {
+    const Vector<uint8_t> dna_data = DNA_sdna_encode_subset(*wd->sdna, wd->sdna_structs_to_write);
+    writedata(wd, BLO_CODE_DNA1, dna_data.size(), dna_data.data());
+  }
 
   /* End of file. */
   BHead bhead{};

@@ -54,4 +54,7 @@ void print_struct_by_id(int struct_id, const void *data);
 #define DNA_print_struct(struct_name, data_ptr) \
   dna::print_struct_by_id(dna::sdna_struct_id_get<struct_name>(), data_ptr)
 
+/** Write the types and structs of \a sdna as text. */
+void DNA_sdna_print(const SDNA &sdna, std::ostream &stream);
+
 }  // namespace blender
