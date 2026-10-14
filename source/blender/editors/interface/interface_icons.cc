@@ -200,7 +200,7 @@ static void def_internal_vicon(int icon_id, VectorDrawFunc drawFunc)
   di->type = ICON_TYPE_VECTOR;
   di->data.vector.func = drawFunc;
 
-  new_icon->drawinfo_free = nullptr;
+  new_icon->drawinfo_free = icons_free_drawinfo;
   new_icon->drawinfo = di;
 
   BKE_icon_set(icon_id, new_icon);
