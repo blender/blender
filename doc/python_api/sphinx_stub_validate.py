@@ -29,6 +29,7 @@ import importlib.abc
 import importlib.machinery
 import importlib.util
 import sys
+import traceback
 import types
 
 from collections.abc import (
@@ -221,7 +222,7 @@ def stub_import_context(stubs_dir: Path, module_names: list[str]) -> Iterator[No
     ``sys.meta_path``, ``sys.modules`` & ``sys.dont_write_bytecode`` are restored on exit.
     """
     with (
-            sys_meta_path_insert_context(PyiFinder(stubs_dir.resolve())),
+            sys_meta_path_insert_context(PyiFinder(stubs_dir)),
             # Drop any pre-existing entries (real Blender modules) so the finder is consulted.
             sys_modules_remove_context(module_names),
             # Don't write byte-code (`__pycache__`) into the stubs directory.
@@ -247,8 +248,12 @@ def validate_stubs_semantically(
             try:
                 importlib.import_module(name)
             except Exception as ex:
-                errors.append("{:s}: {:s}: {:s}".format(name, type(ex).__name__, str(ex)))
-    return errors
+                # Locate the error in the innermost stub frame, e.g. the class with an invalid base.
+                frames = [frame for frame in traceback.extract_tb(ex.__traceback__) if frame.filename.endswith(".pyi")]
+                location = "{:s}:{:d}".format(frames[-1].filename, frames[-1].lineno or 0) if frames else name
+                errors.append("{:s}: {:s}: {:s}".format(location, type(ex).__name__, str(ex)))
+    # Stubs importing a failing stub report the same error.
+    return list(dict.fromkeys(errors))
 
 
 def report_errors(title: str, errors: list[str]) -> bool:
