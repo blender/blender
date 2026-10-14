@@ -32,11 +32,24 @@ ConcurrentStatesParams OneapiDeviceQueue::concurrent_states_params() const
    * Arc Pro B70.  */
   ConcurrentStatesParams params;
   params.baseline = 32768 * oneapi_device_->get_num_multiprocessors();
+#  ifdef __linux__
+  /* Intel Arc A770 and older on Linux use i915 drivers that don't accurately
+   * report free memory in default configuration, we need to be more careful
+   * with the number of states on these platforms, so we use the original lower
+   * baseline. */
+  if (oneapi_device_->get_max_num_threads_per_multiprocessor() < 128) {
+    const int max_num_threads = oneapi_device_->get_num_multiprocessors() *
+                                oneapi_device_->get_max_num_threads_per_multiprocessor();
+    params.baseline = 16 * max(8 * max_num_threads, 65536);
+  }
+#  endif
+
   /* Only shrink to fit within available memory, growing did not show clear
    * benefit compared to the baseline. */
   params.min = params.baseline / 8;
   params.max = params.baseline;
   params.reserve_percent = 2;
+
   return params;
 }
 
