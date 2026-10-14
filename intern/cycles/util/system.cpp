@@ -150,71 +150,72 @@ struct CPUCapabilities {
   bool f16c;
 };
 
-static CPUCapabilities &system_cpu_capabilities()
+static CPUCapabilities system_cpu_capabilities_init()
 {
-  static CPUCapabilities caps = {};
-  static bool caps_init = false;
+  CPUCapabilities caps = {};
 
-  if (!caps_init) {
-    int result[4], num;
+  int result[4], num;
 
-    __cpuid(result, 0);
-    num = result[0];
+  __cpuid(result, 0);
+  num = result[0];
 
-    if (num >= 1) {
-      __cpuid(result, 0x00000001);
-      const bool sse = (result[3] & ((int)1 << 25)) != 0;
-      const bool sse2 = (result[3] & ((int)1 << 26)) != 0;
-      const bool sse3 = (result[2] & ((int)1 << 0)) != 0;
+  if (num >= 1) {
+    __cpuid(result, 0x00000001);
+    const bool sse = (result[3] & ((int)1 << 25)) != 0;
+    const bool sse2 = (result[3] & ((int)1 << 26)) != 0;
+    const bool sse3 = (result[2] & ((int)1 << 0)) != 0;
 
-      const bool ssse3 = (result[2] & ((int)1 << 9)) != 0;
-      const bool sse41 = (result[2] & ((int)1 << 19)) != 0;
-      const bool sse42 = (result[2] & ((int)1 << 20)) != 0;
+    const bool ssse3 = (result[2] & ((int)1 << 9)) != 0;
+    const bool sse41 = (result[2] & ((int)1 << 19)) != 0;
+    const bool sse42 = (result[2] & ((int)1 << 20)) != 0;
 
-      const bool fma3 = (result[2] & ((int)1 << 12)) != 0;
-      const bool os_uses_xsave_xrestore = (result[2] & ((int)1 << 27)) != 0;
-      const bool cpu_avx_support = (result[2] & ((int)1 << 28)) != 0;
+    const bool fma3 = (result[2] & ((int)1 << 12)) != 0;
+    const bool os_uses_xsave_xrestore = (result[2] & ((int)1 << 27)) != 0;
+    const bool cpu_avx_support = (result[2] & ((int)1 << 28)) != 0;
 
-      /* Simplify to combined capabilities for which we specialize kernels. */
-      caps.sse42 = sse && sse2 && sse3 && ssse3 && sse41 && sse42;
+    /* Simplify to combined capabilities for which we specialize kernels. */
+    caps.sse42 = sse && sse2 && sse3 && ssse3 && sse41 && sse42;
 
-      if (os_uses_xsave_xrestore && cpu_avx_support) {
-        // Check if the OS will save the YMM registers
-        uint32_t xcr_feature_mask;
+    if (os_uses_xsave_xrestore && cpu_avx_support) {
+      // Check if the OS will save the YMM registers
+      uint32_t xcr_feature_mask;
 #  if defined(__GNUC__)
-        int edx; /* not used */
-        /* actual opcode for xgetbv */
-        __asm__(".byte 0x0f, 0x01, 0xd0" : "=a"(xcr_feature_mask), "=d"(edx) : "c"(0));
+      int edx; /* not used */
+      /* actual opcode for xgetbv */
+      __asm__(".byte 0x0f, 0x01, 0xd0" : "=a"(xcr_feature_mask), "=d"(edx) : "c"(0));
 #  elif defined(_MSC_VER) && defined(_XCR_XFEATURE_ENABLED_MASK)
-        /* Minimum VS2010 SP1 compiler is required. */
-        xcr_feature_mask = (uint32_t)_xgetbv(_XCR_XFEATURE_ENABLED_MASK);
+      /* Minimum VS2010 SP1 compiler is required. */
+      xcr_feature_mask = (uint32_t)_xgetbv(_XCR_XFEATURE_ENABLED_MASK);
 #  else
-        xcr_feature_mask = 0;
+      xcr_feature_mask = 0;
 #  endif
-        const bool avx = (xcr_feature_mask & 0x6) == 0x6;
-        const bool f16c = (result[2] & ((int)1 << 29)) != 0;
+      const bool avx = (xcr_feature_mask & 0x6) == 0x6;
+      const bool f16c = (result[2] & ((int)1 << 29)) != 0;
 
-        caps.f16c = avx && f16c;
+      caps.f16c = avx && f16c;
 
-        __cpuid(result, 0x00000007);
-        bool bmi1 = (result[1] & ((int)1 << 3)) != 0;
-        bool bmi2 = (result[1] & ((int)1 << 8)) != 0;
-        bool avx2 = (result[1] & ((int)1 << 5)) != 0;
+      __cpuid(result, 0x00000007);
+      bool bmi1 = (result[1] & ((int)1 << 3)) != 0;
+      bool bmi2 = (result[1] & ((int)1 << 8)) != 0;
+      bool avx2 = (result[1] & ((int)1 << 5)) != 0;
 
-        caps.avx2 = sse && sse2 && sse3 && ssse3 && sse41 && sse42 && avx && f16c && avx2 &&
-                    fma3 && bmi1 && bmi2;
-      }
+      caps.avx2 = sse && sse2 && sse3 && ssse3 && sse41 && sse42 && avx && f16c && avx2 && fma3 &&
+                  bmi1 && bmi2;
     }
-
-    caps_init = true;
   }
 
   return caps;
 }
 
+static const CPUCapabilities &system_cpu_capabilities()
+{
+  static const CPUCapabilities caps = system_cpu_capabilities_init();
+  return caps;
+}
+
 bool system_cpu_support_sse42()
 {
-  CPUCapabilities &caps = system_cpu_capabilities();
+  const CPUCapabilities &caps = system_cpu_capabilities();
   return caps.sse42;
 }
 
@@ -225,7 +226,7 @@ bool system_cpu_support_avx2()
    *
    * Some cases where it might be missing is Rosetta or virtual machines, so we
    * check for it just to be safe. */
-  CPUCapabilities &caps = system_cpu_capabilities();
+  const CPUCapabilities &caps = system_cpu_capabilities();
   return caps.avx2 && caps.f16c;
 }
 

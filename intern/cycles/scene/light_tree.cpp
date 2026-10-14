@@ -116,8 +116,8 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
     measure.energy = area * average(fabs(shader->emission_estimate));
 
     /* NOTE: the original implementation used the bounding box centroid, but triangle centroid
-     * seems to work fine */
-    centroid = (vertices[0] + vertices[1] + vertices[2]) / 3.0f;
+     * seems to work fine. */
+    centroid = (vertices[0] + vertices[1] + vertices[2]) * (1.0f / 3.0f);
 
     const bool is_front_only = (shader->emission_sampling == EMISSION_SAMPLING_FRONT);
     const bool is_back_only = (shader->emission_sampling == EMISSION_SAMPLING_BACK);
