@@ -78,6 +78,12 @@ struct WriteDataStableAddressIDs {
 
 struct WriteData {
   const SDNA *sdna;
+
+  /* This bmain should only be used for getting pointers, for example to translate session_uid to
+   * an ID* for writing a pointer value to a blend file. Do not actually use ID pointers obtained
+   * this way for accessing actual data. */
+  Main *bmain;
+
   std::ostream *debug_dst = nullptr;
 
   struct {

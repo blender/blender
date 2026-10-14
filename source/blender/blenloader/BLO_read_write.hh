@@ -49,6 +49,7 @@ class ImplicitSharingInfo;
 struct BlendFileReadReport;
 struct BlendLibReader;
 struct ID;
+struct IDNameLib_Map;
 struct ListBase;
 struct Main;
 struct WriteData;
@@ -130,7 +131,14 @@ using BlendStructWriterTypedFn =
           nullptr)
 
 struct BlendWriter {
+ private:
+  IDNameLib_Map *idmap_ = nullptr;
+
+ public:
   WriteData *wd = nullptr;
+
+  explicit BlendWriter(WriteData *wd);
+  ~BlendWriter();
 
   /**
    * Sometimes different data is written depending on whether the file is saved to disk or used for
@@ -232,6 +240,15 @@ struct BlendWriter {
    * AttributeStorage::dna_attributes.
    */
   void generated_pointer_tag(const void *data);
+
+  /**
+   * Return an IDNameLib_Map for the bmain that's written by this writer. It is constructed the
+   * first time this function is called. The map can be used to translate session_uid to an ID* for
+   * writing a pointer value to a blend file. Do not actually use ID pointers obtained this way for
+   * accessing actual data.
+   *
+   * \return the map, or nullptr if it could not be constructed (there may not be a bmain). */
+  IDNameLib_Map *idmap();
 
   template<typename T> void write_struct(const T *data, BlendStructWriterTypedFn<T> fn = nullptr)
   {

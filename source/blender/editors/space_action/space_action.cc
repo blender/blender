@@ -25,9 +25,9 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_main_idmap.hh"
 #include "BKE_screen.hh"
 
 #include "RNA_access.hh"
@@ -1136,6 +1136,9 @@ static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   Array<SpaceActionChannelUIState> ui_state_array(num_channel_states);
   Array<std::string> rna_paths(num_channel_states);
 
+  IDNameLib_Map *id_map = writer->idmap();
+  BLI_assert_msg(id_map, "Write without bmain, writing UI state will not be possible");
+
   writer->write_struct_cast<SpaceAction>(sl, [&](BlendStructWriter<SpaceAction> &struct_writer) {
     SpaceAction &for_writing = struct_writer.shallow_data;
     BLI_assert_msg(for_writing.channel_ui_states.is_empty(),
@@ -1145,8 +1148,7 @@ static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
     for (const auto key_value : for_writing.runtime->channel_states.items()) {
       SpaceActionChannelUIState *state = &ui_state_array[array_index];
 
-      ID *owner_id = BKE_libblock_find_session_uid(
-          G_MAIN, key_value.key.owner_id_type, key_value.key.owner_session_uid);
+      ID *owner_id = BKE_main_idmap_lookup_uid(id_map, key_value.key.owner_session_uid);
       if (!owner_id) {
         /* Stale entry, skip it. */
         continue;
