@@ -821,7 +821,7 @@ class AlembicAnimatedMaterialsImportTests(AbstractAlembicTest):
         self._tempdir = tempfile.TemporaryDirectory()
         self.tempdir = pathlib.Path(self._tempdir.name)
 
-    def do_import_test(self, file_name):
+    def do_export_and_import(self, file_name):
         blend_file_name = file_name + '.blend'
         abc_file_name = file_name + '.abc'
 
@@ -839,6 +839,9 @@ class AlembicAnimatedMaterialsImportTests(AbstractAlembicTest):
             filepath=str(abc_path),
             as_background_job=False)
         self.assertEqual({'FINISHED'}, res)
+
+    def do_import_test(self, file_name):
+        self.do_export_and_import(file_name)
 
         # Verify that all materials are present
         ob = bpy.context.active_object
@@ -884,6 +887,22 @@ class AlembicAnimatedMaterialsImportTests(AbstractAlembicTest):
 
     def test_materials_dynamic_mesh(self):
         self.do_import_test("animated-materials-dynamic-mesh")
+
+    def test_stale_material_index(self):
+        self.do_export_and_import('stale-material-index')
+
+        ob = bpy.context.active_object
+        material_indices = [[0, 1], [0, 0]]
+
+        # Verify that we have the right materials on each frame
+        for frame_index, frame in enumerate(range(1, 3)):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            ob_eval = ob.evaluated_get(depsgraph)
+            mesh_eval = ob_eval.data
+
+            for polygon_index, polygon in enumerate(mesh_eval.polygons):
+                self.assertEqual(polygon.material_index, material_indices[frame_index][polygon_index])
 
 
 class AlembicImportComparisonTests(unittest.TestCase):

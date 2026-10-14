@@ -946,6 +946,9 @@ void AbcMeshReader::assign_facesets_to_material_indices(const ISampleSelector &s
 
   int current_mat = 0;
 
+  /* Avoid preserving old assignments. */
+  material_indices.fill(0);
+
   for (const std::string &grp_name : face_sets) {
     if (!r_mat_map.contains(grp_name)) {
       r_mat_map[grp_name] = ++current_mat;
