@@ -83,6 +83,11 @@ void BKE_addon_free(bAddon *addon)
 
 static GHash *global_addonpreftype_hash = nullptr;
 
+static void addonpreftype_free(void *apt)
+{
+  MEM_delete(static_cast<bAddonPrefType *>(apt));
+}
+
 bAddonPrefType *BKE_addon_pref_type_find(const char *idname, bool quiet)
 {
   if (idname[0]) {
@@ -113,7 +118,7 @@ void BKE_addon_pref_type_add(bAddonPrefType *apt)
 
 void BKE_addon_pref_type_remove(const bAddonPrefType *apt)
 {
-  BLI_ghash_remove(global_addonpreftype_hash, apt->idname, nullptr, MEM_delete_void);
+  BLI_ghash_remove(global_addonpreftype_hash, apt->idname, nullptr, addonpreftype_free);
 }
 
 void BKE_addon_pref_type_init()
@@ -124,7 +129,7 @@ void BKE_addon_pref_type_init()
 
 void BKE_addon_pref_type_free()
 {
-  BLI_ghash_free(global_addonpreftype_hash, nullptr, MEM_delete_void);
+  BLI_ghash_free(global_addonpreftype_hash, nullptr, addonpreftype_free);
   global_addonpreftype_hash = nullptr;
 }
 
