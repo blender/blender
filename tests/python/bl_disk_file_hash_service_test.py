@@ -222,7 +222,7 @@ class DiskFileHashServiceTest(unittest.TestCase):
         self.assertEqual("49a02e79cb4c68a5f1626d34a05a021b60cbd0b22f9485dcd4026ab3e9201b5a", updated_hash)
 
     def test_store_hash_callback(self) -> None:
-        # Construct another file, that mimicks a just-downloaded file that was
+        # Construct another file, that mimics a just-downloaded file that was
         # saved to a temp location and about to be moved to its final location
         # (self.filepath).
         other_path = self.filepath.with_stem("temp-download-file")

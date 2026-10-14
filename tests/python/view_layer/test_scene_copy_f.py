@@ -66,7 +66,7 @@ class UnitTesting(ViewLayerTesting):
         new_scene = bpy.context.scene
         self.assertNotEqual(scene, new_scene)
 
-        # update depsgrah
+        # update depsgraph
         for view_layer in scene.view_layers:
             view_layer.update()  # update depsgraph
 

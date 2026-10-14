@@ -72,7 +72,7 @@ class VideoOutputReport(render_report.Report):
 
         # Blender's render pipeline always appends frame suffix unless # is present in the file path.
         # Here we need the file name to match exactly, so we trick Blender by going 0001 -> #### mask
-        # allowing render piepline to expand it back to 0001.
+        # allowing render pipeline to expand it back to 0001.
         out_filename = test.tmp_out_img.name.replace("0001", "####")
         out_filepath = test.tmp_out_img.with_name(out_filename)
 

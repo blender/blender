@@ -184,7 +184,7 @@ class VFontRenderContext:
     """
     Persistent Cycles render environment for ``USE_VFONT_RENDER``.
 
-    Amortises the per-render overhead that is constant across all tests:
+    Amortizes the per-render overhead that is constant across all tests:
     scene-property saves/restores, camera creation/destruction, and hiding the
     pre-existing scene objects.  Created once before ``unittest.main()`` runs
     (alongside ``FONTS_VFONT``) and torn down in the same ``finally`` block.
@@ -1067,7 +1067,7 @@ def render_text_vfont_camera(
        pixel_y = vertex_y * VFONT_PPU + position_offset[1]
     """
     ctx = VFONT_RENDER_CTX
-    assert ctx is not None, "VFONT_RENDER_CTX must be initialised before rendering"
+    assert ctx is not None, "VFONT_RENDER_CTX must be initialized before rendering"
 
     w, h = image_size
     s = globals_vfont.scale_oversample

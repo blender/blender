@@ -786,7 +786,7 @@ class Clay:
 
     def _update(self):
         """
-        Force depsgrpah evaluation
+        Force depsgraph evaluation
         and update pointers to IDProperty collections
         """
         ENGINE = 'BLENDER_CLAY'

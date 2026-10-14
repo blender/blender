@@ -46,7 +46,7 @@ BLOCKLIST = [
     "ray_offset.blend",
     # Blocked due to difference in border texel handling between platforms (to be fixed).
     "render_passes_thinfilm_color.blend",
-    # Blocked due to a significant amount of transparency that have a different nosie pattern between devices.
+    # Blocked due to a significant amount of transparency that have a different noise pattern between devices.
     "light_path_is_shadow_ray.blend",
     # Blocked as the test seems to alternate between two different states
     "light_path_is_diffuse_ray.blend",

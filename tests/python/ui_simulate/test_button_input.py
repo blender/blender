@@ -243,7 +243,7 @@ def test_string_buttons_interactions():
     yield e.ctrl.v()
     t.assertEqual(data.string_search_prop, "a1a1a1a1a1a1a1a1a1")
 
-    # Open search button after pasting, search filter whill be already active,
+    # Open search button after pasting, search filter will already be active,
     # Since there are no matching items, it will not select any value with arrow keys events
     yield e.cursor_position_set(*xy, move=False)
     yield e.leftmouse().down_arrow().ret()

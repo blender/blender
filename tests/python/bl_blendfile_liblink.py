@@ -181,7 +181,7 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         self.assertEqual(material.users, 1)
         self.assertTrue(material.is_library_indirect)
         self.assertEqual(mesh.users, 1)
-        # Now the linked ID is used by a local ID, and is therefore direclty linked.
+        # Now the linked ID is used by a local ID, and is therefore directly linked.
         self.assertFalse(mesh.is_library_indirect)
 
         ob.material_slots[0].link = 'OBJECT'
@@ -197,7 +197,7 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         self.assertEqual(image.users, 1)
         self.assertTrue(image.is_library_indirect)
         self.assertEqual(material.users, 1)
-        # This is not properly updated whene removing a local user of linked data.
+        # This is not properly updated when removing a local user of linked data.
         self.assertFalse(material.is_library_indirect)
 
         output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
@@ -694,7 +694,7 @@ class TestBlendLibPackedLinkedID(TestBlendLibLinkHelper):
         bpy.data.scenes[0].collection.objects.link(ob_packed)
 
         self.assertEqual(len(bpy.data.libraries), 4)
-        # Due to ID name sorting, the newly ceratedt archive library should be second now, after its parent one.
+        # Due to ID name sorting, the newly created archive library should be second now, after its parent one.
         archive_library = bpy.data.libraries[1]
 
         def check_valid():
