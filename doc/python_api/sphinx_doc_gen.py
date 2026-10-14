@@ -109,6 +109,7 @@ class stub:
         enum_pointer: int | None
         deprecated: "stub.RnaDeprecated | None"
         is_required: bool
+        is_readonly: bool
 
         def get_arg_default(self, force: bool = ...) -> str: ...
 
@@ -2240,6 +2241,40 @@ def pyrna_enum2sphinx(prop: stub.InfoPropertyRNA, use_empty_descriptions: bool =
     return ""
 
 
+def pyrna_prop_body2sphinx(ident: str, fw: WriteFn, prop: stub.InfoPropertyRNA) -> None:
+    """
+    Write the body of a property: its description, enum items & type.
+    The first line (e.g. ``.. attribute:: name``) is the responsibility of the caller.
+    """
+    enum_descr_override = None
+    if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
+        enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
+
+    type_descr, type_info = prop.get_type_description(
+        class_fmt=":class:`{:s}`",
+        mathutils_fmt=":class:`mathutils.{:s}`",
+        literal_fmt="``{!r}``",  # String with quotes.
+        collection_id=_BPY_PROP_COLLECTION_ID,
+        enum_descr_override=enum_descr_override,
+    )
+
+    prop_description = format_description_and_type_info(prop.description, type_info)
+    if prop_description:
+        write_indented_lines(ident, fw, prop_description, False)
+        fw("\n")
+    if (deprecated := prop.deprecated) is not None:
+        fw(pyrna_deprecated_directive(ident, deprecated))
+        fw("\n")
+
+    # If the link has been written, no need to inline the enum items.
+    enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
+    if enum_text:
+        write_indented_lines(ident, fw, enum_text)
+        fw("\n")
+
+    fw("{:s}:type: {:s}\n\n".format(ident, type_descr))
+
+
 def pyrna_deprecated_directive(ident: str, deprecated: stub.RnaDeprecated) -> str:
     note, version, removal_version = deprecated
 
@@ -2471,19 +2506,8 @@ def pyrna2sphinx(basepath: Path) -> None:
             if identifier in struct_exclude:
                 continue
 
-            enum_descr_override = None
-            if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
-                enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
-
-            type_descr, type_info = prop.get_type_description(
-                class_fmt=":class:`{:s}`",
-                mathutils_fmt=":class:`mathutils.{:s}`",
-                literal_fmt="``{!r}``",  # String with quotes.
-                collection_id=_BPY_PROP_COLLECTION_ID,
-                enum_descr_override=enum_descr_override,
-            )
             # Read-only properties use "data" directive, variables properties use "attribute" directive.
-            if "readonly" in type_info:
+            if prop.is_readonly:
                 fw("   .. data:: {:s}\n".format(identifier))
             else:
                 fw("   .. attribute:: {:s}\n".format(identifier))
@@ -2492,25 +2516,7 @@ def pyrna2sphinx(basepath: Path) -> None:
                 fw("      :noindex:\n")
             fw("\n")
 
-            prop_description = format_description_and_type_info(prop.description, type_info)
-            if prop_description:
-                write_indented_lines("      ", fw, prop_description, False)
-                fw("\n")
-            if (deprecated := prop.deprecated) is not None:
-                fw(pyrna_deprecated_directive("      ", deprecated))
-                fw("\n")
-
-            # Special exception, can't use generic code here for enums.
-            if prop.type == "enum":
-                # If the link has been written, no need to inline the enum items.
-                enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
-                if enum_text:
-                    write_indented_lines("      ", fw, enum_text)
-                    fw("\n")
-                del enum_text
-            # End enum exception.
-
-            fw("      :type: {:s}\n\n".format(type_descr))
+            pyrna_prop_body2sphinx("      ", fw, prop)
 
         # Screen context members (only for Context struct).
         if struct_id == "Context":
