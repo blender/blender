@@ -39,10 +39,7 @@ namespace blender {
 
 /* own include */
 
-void paintface_flush_flags(bContext *C,
-                           Object *ob,
-                           const bool flush_selection,
-                           const bool flush_hidden)
+void paintface_flush_flags(Object *ob, const bool flush_selection, const bool flush_hidden)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
   const int *index_array = nullptr;
@@ -61,21 +58,18 @@ void paintface_flush_flags(bContext *C,
     bke::mesh_select_face_flush(*mesh);
   }
 
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
-
-  if (ob_eval == nullptr) {
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  Mesh *mesh_orig = BKE_object_get_original_mesh(ob);
+  if (mesh_eval == nullptr || mesh_orig == nullptr) {
     return;
   }
 
   bke::AttributeAccessor attributes_me = mesh->attributes();
-  Mesh *me_orig = id_cast<Mesh *>(ob_eval->runtime->data_orig);
-  bke::MutableAttributeAccessor attributes_orig = me_orig->attributes_for_write();
-  Mesh *mesh_eval = id_cast<Mesh *>(ob_eval->runtime->data_eval);
+  bke::MutableAttributeAccessor attributes_orig = mesh_eval->attributes_for_write();
   bke::MutableAttributeAccessor attributes_eval = mesh_eval->attributes_for_write();
   bool updated = false;
 
-  if (me_orig != nullptr && mesh_eval != nullptr && me_orig->faces_num == mesh->faces_num) {
+  if (mesh_orig->faces_num == mesh->faces_num) {
     /* Update the evaluated copy of the mesh. */
     if (flush_hidden) {
       const VArray<bool> hide_poly_me = *attributes_me.lookup_or_default<bool>(
@@ -147,10 +141,10 @@ void paintface_flush_flags(bContext *C,
     DEG_id_tag_update(ob->data, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
   }
 
-  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+  WM_main_add_notifier(NC_GEOM | ND_SELECT, ob->data);
 }
 
-void paintface_hide(bContext *C, Object *ob, const bool unselected)
+void paintface_hide(Object *ob, const bool unselected)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
   if (mesh == nullptr || mesh->faces_num == 0) {
@@ -180,10 +174,10 @@ void paintface_hide(bContext *C, Object *ob, const bool unselected)
 
   bke::mesh_hide_face_flush(*mesh);
 
-  paintface_flush_flags(C, ob, true, true);
+  paintface_flush_flags(ob, true, true);
 }
 
-void paintface_reveal(bContext *C, Object *ob, const bool select)
+void paintface_reveal(Object *ob, const bool select)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
   if (mesh == nullptr || mesh->faces_num == 0) {
@@ -209,7 +203,7 @@ void paintface_reveal(bContext *C, Object *ob, const bool select)
 
   bke::mesh_hide_face_flush(*mesh);
 
-  paintface_flush_flags(C, ob, true, true);
+  paintface_flush_flags(ob, true, true);
 }
 
 /**
@@ -341,7 +335,7 @@ void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const b
   select_poly.finish();
 
   paintface_select_linked_faces(*mesh, indices, select);
-  paintface_flush_flags(C, ob, true, false);
+  paintface_flush_flags(ob, true, false);
 }
 
 static int get_opposing_edge_index(const IndexRange face,
@@ -489,7 +483,7 @@ void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const boo
   select_poly.span.fill_indices(faces_to_select.as_span(), select_toggle);
 
   select_poly.finish();
-  paintface_flush_flags(C, ob, true, false);
+  paintface_flush_flags(ob, true, false);
 }
 
 static bool poly_has_selected_neighbor(Span<int> face_edges,
@@ -610,7 +604,7 @@ void paintface_select_less(Mesh *mesh, const bool face_step)
   select_poly.finish();
 }
 
-bool paintface_deselect_all_visible(bContext *C, Object *ob, int action, bool flush_flags)
+bool paintface_deselect_all_visible(Object *ob, int action, bool flush_flags)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
   if (mesh == nullptr) {
@@ -662,7 +656,7 @@ bool paintface_deselect_all_visible(bContext *C, Object *ob, int action, bool fl
 
   if (changed) {
     if (flush_flags) {
-      paintface_flush_flags(C, ob, true, false);
+      paintface_flush_flags(ob, true, false);
     }
   }
   return changed;
@@ -738,7 +732,7 @@ bool paintface_mouse_select(bContext *C,
     }
     else if (found || params.deselect_all) {
       /* Deselect everything. */
-      changed |= paintface_deselect_all_visible(C, ob, SEL_DESELECT, false);
+      changed |= paintface_deselect_all_visible(ob, SEL_DESELECT, false);
     }
   }
 
@@ -763,7 +757,7 @@ bool paintface_mouse_select(bContext *C,
 
     /* image window redraw */
 
-    paintface_flush_flags(C, ob, true, false);
+    paintface_flush_flags(ob, true, false);
     ED_region_tag_redraw(CTX_wm_region(C)); /* XXX: should redraw all 3D views. */
     changed = true;
   }
@@ -830,8 +824,7 @@ void paintvert_flush_flags(Object *ob)
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
 }
 
-static void paintvert_select_linked_vertices(bContext *C,
-                                             Object *ob,
+static void paintvert_select_linked_vertices(Object *ob,
                                              const Span<int> vertex_indices,
                                              const bool select)
 {
@@ -875,7 +868,7 @@ static void paintvert_select_linked_vertices(bContext *C,
   select_vert.finish();
 
   paintvert_flush_flags(ob);
-  paintvert_tag_select_update(C, ob);
+  paintvert_tag_select_update(ob);
 }
 
 void paintvert_select_linked_pick(bContext *C,
@@ -889,10 +882,10 @@ void paintvert_select_linked_pick(bContext *C,
     return;
   }
 
-  paintvert_select_linked_vertices(C, ob, {int(index)}, select);
+  paintvert_select_linked_vertices(ob, {int(index)}, select);
 }
 
-void paintvert_select_linked(bContext *C, Object *ob)
+void paintvert_select_linked(Object *ob)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
   if (mesh == nullptr || mesh->faces_num == 0) {
@@ -911,7 +904,7 @@ void paintvert_select_linked(bContext *C, Object *ob)
     indices.append(i);
   }
   select_vert.finish();
-  paintvert_select_linked_vertices(C, ob, indices, true);
+  paintvert_select_linked_vertices(ob, indices, true);
 }
 
 void paintvert_select_more(Mesh *mesh, const bool face_step)
@@ -1023,10 +1016,10 @@ void paintvert_select_less(Mesh *mesh, const bool face_step)
   select_vert.finish();
 }
 
-void paintvert_tag_select_update(bContext *C, Object *ob)
+void paintvert_tag_select_update(Object *ob)
 {
   DEG_id_tag_update(ob->data, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
-  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+  WM_main_add_notifier(NC_GEOM | ND_SELECT, ob->data);
 }
 
 bool paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
@@ -1133,7 +1126,7 @@ void paintvert_select_ungrouped(Object *ob, bool extend, bool flush_flags)
   }
 }
 
-void paintvert_hide(bContext *C, Object *ob, const bool unselected)
+void paintvert_hide(Object *ob, const bool unselected)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
   if (mesh == nullptr || mesh->verts_num == 0) {
@@ -1163,10 +1156,10 @@ void paintvert_hide(bContext *C, Object *ob, const bool unselected)
   bke::mesh_hide_vert_flush(*mesh);
 
   paintvert_flush_flags(ob);
-  paintvert_tag_select_update(C, ob);
+  paintvert_tag_select_update(ob);
 }
 
-void paintvert_reveal(bContext *C, Object *ob, const bool select)
+void paintvert_reveal(Object *ob, const bool select)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
   if (mesh == nullptr || mesh->verts_num == 0) {
@@ -1193,7 +1186,7 @@ void paintvert_reveal(bContext *C, Object *ob, const bool select)
   bke::mesh_hide_vert_flush(*mesh);
 
   paintvert_flush_flags(ob);
-  paintvert_tag_select_update(C, ob);
+  paintvert_tag_select_update(ob);
 }
 
 /* Walk along an edge loop (Vertex based).
@@ -1344,7 +1337,7 @@ void paintvert_select_loop(bContext *C, Object *ob, const int mval[2], const boo
   select_vert.finish();
 
   paintvert_flush_flags(ob);
-  paintvert_tag_select_update(C, ob);
+  paintvert_tag_select_update(ob);
 }
 
 }  // namespace blender
