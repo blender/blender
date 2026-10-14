@@ -86,27 +86,70 @@ class PyiFinder(importlib.abc.MetaPathFinder):
 
 
 @contextlib.contextmanager
-def stub_import_context(stubs_dir: Path, module_names: list[str]) -> Iterator[None]:
-    """
-    Temporarily install a ``.pyi`` finder and clear *module_names* from ``sys.modules``.
-
-    Restores both on exit so that ``sys.meta_path`` and ``sys.modules`` are not
-    permanently mutated. Safe to nest and re-enter.
-    """
-    finder = PyiFinder(stubs_dir.resolve())
+def sys_meta_path_insert_context(finder: importlib.abc.MetaPathFinder) -> Iterator[None]:
+    """Temporarily insert *finder* at the start of ``sys.meta_path``."""
     sys.meta_path.insert(0, finder)
-    # Drop any pre-existing entries (real Blender modules) so the finder is consulted.
-    for name in module_names:
-        sys.modules.pop(name, None)
     try:
         yield
     finally:
-        try:
+        with contextlib.suppress(ValueError):
             sys.meta_path.remove(finder)
-        except ValueError:
-            pass  # Already removed by something else; nothing to undo.
+
+
+@contextlib.contextmanager
+def sys_modules_remove_context(module_names: list[str]) -> Iterator[None]:
+    """
+    Temporarily remove *module_names* from ``sys.modules``.
+
+    On exit, modules imported with these names are removed & the original modules restored.
+    """
+    modules_orig = {name: sys.modules.pop(name) for name in module_names if name in sys.modules}
+    try:
+        yield
+    finally:
         for name in module_names:
             sys.modules.pop(name, None)
+        sys.modules.update(modules_orig)
+
+
+@contextlib.contextmanager
+def backup_attrs_and_assign_multi(
+        *obj_attrs: tuple[object, dict[str, object]],
+) -> Iterator[None]:
+    """
+    Context manager that saves and assigns attributes on multiple objects,
+    restoring all originals on exit.
+
+    Each argument is a ``(obj, {attr: value, ...})`` pair.
+    """
+    saved: list[tuple[object, dict[str, object]]] = []
+    try:
+        for obj, attrs in obj_attrs:
+            saved.append((obj, {attr: getattr(obj, attr) for attr in attrs}))
+            for attr, value in attrs.items():
+                setattr(obj, attr, value)
+        yield
+    finally:
+        for obj, attrs in saved:
+            for attr, value in attrs.items():
+                setattr(obj, attr, value)
+
+
+@contextlib.contextmanager
+def stub_import_context(stubs_dir: Path, module_names: list[str]) -> Iterator[None]:
+    """
+    Temporarily import *module_names* from the ``.pyi`` stubs under *stubs_dir*.
+
+    ``sys.meta_path``, ``sys.modules`` & ``sys.dont_write_bytecode`` are restored on exit.
+    """
+    with (
+            sys_meta_path_insert_context(PyiFinder(stubs_dir.resolve())),
+            # Drop any pre-existing entries (real Blender modules) so the finder is consulted.
+            sys_modules_remove_context(module_names),
+            # Don't write byte-code (`__pycache__`) into the stubs directory.
+            backup_attrs_and_assign_multi((sys, {"dont_write_bytecode": True})),
+    ):
+        yield
 
 
 def validate_stubs_semantically(
