@@ -579,6 +579,7 @@ MODULE_GROUPING: dict[str, tuple[str | tuple[str, str], ...]] = {
         "BMLayerItem",
         ("Custom-Data Layer Types", "-"),
         "BMLoopUV",
+        "BMVertSkin",
         "BMDeformVert",
     )
 }
