@@ -429,14 +429,12 @@ BLI_INLINE GlyphBLF *blf_glyph_from_utf8_and_step(FontBLF *font,
 /**
  * A combining character, drawn over the previous base glyph.
  *
- * Check the code-point as well as the advance since some fonts use
- * zero-width glyphs for spacing characters (the "." in LCD style digit fonts for e.g.)
- * which must not be drawn over the previous character, see #162036.
+ * Detected when the glyph is added to the cache, see #GlyphFlagBLF::Combining.
  * See also: `vfont_char_is_combining` which also uses this logic.
  */
 BLI_INLINE bool blf_glyph_is_combining(const GlyphBLF *g)
 {
-  return (g->advance_x == 0) && (BLI_wcwidth_or_error(char32_t(g->c)) == 0);
+  return flag_is_set(g->flags, GlyphFlagBLF::Combining);
 }
 
 /**
