@@ -46,7 +46,7 @@ void DRW_gsplat_module_free(GSplatModule *gsplat_module)
 namespace detail {
 
 /** Perform batched compute dispatches to stay below GPU_max_work_group_count.  */
-void batched_dispatch(const int invocs_count, PassSimple::Sub &pass)
+static void batched_dispatch(const int invocs_count, PassSimple::Sub &pass)
 {
   const int64_t max_invocs_per_dispatch = int64_t(GPU_max_work_group_count(0)) *
                                           DRW_GSPLAT_GROUP_SIZE;
