@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <limits>
+#include <optional>
 #include <type_traits>
 
 #include "BLI_bounds.hh"
@@ -326,7 +327,7 @@ class AnimationChannel {
         source_.owner_id->session_uid,
         /* The identifier makes no distinction between 'no path' or 'empty path'. */
         /* TODO: maybe this class should also remove this distinction? */
-        source_rna_path_.value_or({}),
+        source_rna_path_.value_or(ParsedSourcePath()),
     };
   }
 
