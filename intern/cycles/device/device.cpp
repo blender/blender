@@ -611,22 +611,29 @@ bool GPUDevice::load_image_info(DeviceQueue *queue)
 {
   /* Note image_info is never host mapped, and load_image_info() should only
    * be called right before kernel enqueue when all memory operations have completed. */
-  if (need_image_info) {
-    /* If the host buffer was grown with host_only_resize() while a kernel was reading the old
-     * device buffer, we now free and reallocate it. */
-    if (image_info.device_size < image_info.memory_size()) {
-      generic_free(image_info);
-    }
-    if (queue) {
-      queue->copy_to_device(image_info);
-    }
-    else {
-      image_info.copy_to_device();
+
+  {
+    /* Clear the flag before copying and under a lock, multiple GPU host threads
+     * may call this function in parallel. */
+    const thread_scoped_lock lock(image_info_mutex);
+    if (!need_image_info) {
+      return false;
     }
     need_image_info = false;
-    return true;
   }
-  return false;
+
+  /* If the host buffer was grown with host_only_resize() while a kernel was reading the old
+   * device buffer, we now free and reallocate it. */
+  if (image_info.device_size < image_info.memory_size()) {
+    generic_free(image_info);
+  }
+  if (queue) {
+    queue->copy_to_device(image_info);
+  }
+  else {
+    image_info.copy_to_device();
+  }
+  return true;
 }
 
 void GPUDevice::init_host_memory(const size_t preferred_texture_headroom,
