@@ -95,21 +95,17 @@ uint64_t time_fast_tick(uint32_t *last_cpu)
 }
 uint64_t time_fast_frequency()
 {
-  static bool initialized = false;
-  static uint64_t frequency;
-
   /* Unfortunately TSC does not provide a easily accessible frequency value, so roughly calibrate
    * by sleeping a millisecond. Not ideal, but good enough for our purposes. */
-  if (!initialized) {
+  static const uint64_t frequency = []() {
     uint32_t cpu;
     uint64_t start_tick = time_fast_tick(&cpu);
     double start_precise = time_dt();
     time_sleep(0.001);
     uint64_t end_tick = time_fast_tick(&cpu);
     double end_precise = time_dt();
-    frequency = uint64_t(double(end_tick - start_tick) / (end_precise - start_precise));
-    initialized = true;
-  }
+    return uint64_t(double(end_tick - start_tick) / (end_precise - start_precise));
+  }();
 
   return frequency;
 }

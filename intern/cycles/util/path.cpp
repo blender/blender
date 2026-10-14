@@ -60,7 +60,6 @@ using path_stat_t = struct stat;
 
 static string cached_path;
 static string cached_user_path;
-static string cached_xdg_cache_path;
 
 namespace {
 
@@ -307,15 +306,10 @@ string std_filesystem_path_to_string(const std::filesystem::path &p)
 
 static char *path_specials(const string &sub)
 {
-  static bool env_init = false;
-  static char *env_shader_path;
-  static char *env_source_path;
-  if (!env_init) {
-    env_shader_path = getenv("CYCLES_SHADER_PATH");
-    /* NOTE: It is KERNEL in env variable for compatibility reasons. */
-    env_source_path = getenv("CYCLES_KERNEL_PATH");
-    env_init = true;
-  }
+  static char *const env_shader_path = getenv("CYCLES_SHADER_PATH");
+  /* NOTE: It is KERNEL in env variable for compatibility reasons. */
+  static char *const env_source_path = getenv("CYCLES_KERNEL_PATH");
+
   if (env_shader_path != nullptr && sub == "shader") {
     return env_shader_path;
   }
@@ -340,6 +334,13 @@ static string path_xdg_cache_get()
 }
 #endif
 
+/* Fallback for when #path_init was not called to initialize #cached_path. */
+static const string &path_program_dir()
+{
+  static const string program_dir = path_dirname(OIIO::Sysutil::this_program_path());
+  return program_dir;
+}
+
 void path_init(const string &path, const string &user_path)
 {
   cached_path = path;
@@ -360,29 +361,19 @@ string path_get(const string &sub)
     return special;
   }
 
-  if (cached_path.empty()) {
-    cached_path = path_dirname(OIIO::Sysutil::this_program_path());
-  }
-
-  return path_join(cached_path, sub);
+  return path_join(cached_path.empty() ? path_program_dir() : cached_path, sub);
 }
 
 string path_user_get(const string &sub)
 {
-  if (cached_user_path.empty()) {
-    cached_user_path = path_dirname(OIIO::Sysutil::this_program_path());
-  }
-
-  return path_join(cached_user_path, sub);
+  return path_join(cached_user_path.empty() ? path_program_dir() : cached_user_path, sub);
 }
 
 string path_cache_get(const string &sub)
 {
 #if defined(__linux__) || defined(__APPLE__)
-  if (cached_xdg_cache_path.empty()) {
-    cached_xdg_cache_path = path_xdg_cache_get();
-  }
-  const string result = path_join(cached_xdg_cache_path, "cycles");
+  static const string xdg_cache_path = path_xdg_cache_get();
+  const string result = path_join(xdg_cache_path, "cycles");
   return path_join(result, sub);
 #else
   /* TODO(sergey): What that should be on Windows? */
