@@ -1851,13 +1851,7 @@ def main() -> int:
 
     # In-process validation via the standalone validator module.
     from sphinx_stub_validate import validate_stubs
-    semantic_module_names = sorted(modules.keys())
-    if enum_alias_map:
-        semantic_module_names.append(ENUM_ALIASES_MODULE)
-    if validate_stubs(
-            output_dir, stub_paths, semantic_module_names,
-            verbose=GLOBAL.verbose,
-    ) != 0:
+    if validate_stubs(output_dir, stub_paths, verbose=GLOBAL.verbose) != 0:
         return 1
 
     if State.parse_errors:

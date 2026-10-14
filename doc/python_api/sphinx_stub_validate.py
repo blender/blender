@@ -33,22 +33,13 @@ from collections.abc import Iterator, Sequence
 from pathlib import Path
 
 
-def discover_stubs(stubs_dir: Path) -> tuple[list[Path], list[str]]:
-    """
-    Walk *stubs_dir* once and return ``(stub_paths, module_names)``, both sorted.
-
-    *stub_paths* lists every ``.pyi`` file. *module_names* contains the dotted
-    module name for each ``__init__.pyi`` (top-level ``__init__.pyi`` excluded).
-    """
-    stub_paths: list[Path] = []
-    module_names: list[str] = []
-    for pyi in sorted(stubs_dir.rglob("*.pyi")):
-        stub_paths.append(pyi)
-        if pyi.name == "__init__.pyi":
-            rel = pyi.parent.relative_to(stubs_dir)
-            if rel.parts:
-                module_names.append(".".join(rel.parts))
-    return stub_paths, module_names
+def stub_module_names(stubs_dir: Path, stub_paths: list[Path]) -> list[str]:
+    """Return the dotted module name for each ``__init__.pyi`` (top-level ``__init__.pyi`` excluded)."""
+    return [
+        ".".join(pyi.parent.relative_to(stubs_dir).parts)
+        for pyi in stub_paths
+        if pyi.name == "__init__.pyi" and pyi.parent != stubs_dir
+    ]
 
 
 def validate_stubs_syntactically(stub_paths: list[Path]) -> list[str]:
@@ -83,15 +74,15 @@ class PyiFinder(importlib.abc.MetaPathFinder):
         /,
     ) -> importlib.machinery.ModuleSpec | None:
         del path, target
-        parts = fullname.split(".")
-        pkg_init = self.base.joinpath(*parts, "__init__.pyi")
-        if pkg_init.is_file():
-            loader = importlib.machinery.SourceFileLoader(fullname, str(pkg_init))
-            spec = importlib.util.spec_from_loader(fullname, loader)
-            if spec is not None:
-                spec.submodule_search_locations = [str(pkg_init.parent)]
-            return spec
-        return None
+        pkg_init = self.base.joinpath(*fullname.split("."), "__init__.pyi")
+        if not pkg_init.is_file():
+            return None
+        return importlib.util.spec_from_file_location(
+            fullname,
+            pkg_init,
+            loader=importlib.machinery.SourceFileLoader(fullname, str(pkg_init)),
+            submodule_search_locations=[str(pkg_init.parent)],
+        )
 
 
 @contextlib.contextmanager
@@ -125,13 +116,9 @@ def validate_stubs_semantically(
     """
     Import each stub module from *stubs_dir*; return error messages.
 
-    Uses :func:`stub_import_context` so ``sys.meta_path`` and ``sys.modules``
-    are restored after the call. ``typing.TYPE_CHECKING`` is intentionally left
-    ``False`` so that cross-stub imports under ``if TYPE_CHECKING:`` blocks do
-    not execute - this is what allows cycles to break at runtime. The check
-    therefore validates "every stub is importable in isolation", which catches
-    base-class and module-level evaluation errors (the bugs runtime-importing
-    actually surfaces).
+    ``typing.TYPE_CHECKING`` is intentionally left ``False`` so that cross-stub imports
+    under ``if TYPE_CHECKING:`` blocks do not execute - this is what allows cycles to break at runtime.
+    The check therefore validates "every stub is importable in isolation".
     """
     errors: list[str] = []
     with stub_import_context(stubs_dir, module_names):
@@ -143,20 +130,24 @@ def validate_stubs_semantically(
     return errors
 
 
+def report_errors(title: str, errors: list[str]) -> bool:
+    """Write *errors* under *title* to ``stderr``, return True when there are errors."""
+    if not errors:
+        return False
+    print("\n{:s}:".format(title), file=sys.stderr)
+    for err in errors:
+        print("  {:s}".format(err), file=sys.stderr)
+    return True
+
+
 def validate_stubs(
     stubs_dir: Path,
     stub_paths: list[Path],
-    module_names: list[str],
     *,
     verbose: bool = False,
 ) -> int:
     """
-    Run syntax and semantic validation against the given stubs.
-
-    Steps:
-
-    - Syntax: each path in *stub_paths* is compiled via :func:`compile`.
-    - Semantic: each name in *module_names* is imported via a temporary ``.pyi`` finder rooted at *stubs_dir*.
+    Run the checks (see module docstring) against *stub_paths* under *stubs_dir*.
 
     On any error, details are written to ``stderr`` and the function returns ``1``.
     On success, returns ``0``. The semantic step is skipped if syntax errors are present.
@@ -164,18 +155,10 @@ def validate_stubs(
     if verbose:
         print("Checking {:d} stub(s) under {:s}".format(len(stub_paths), str(stubs_dir)))
 
-    syntax_errors = validate_stubs_syntactically(stub_paths)
-    if syntax_errors:
-        print("\nStub syntax errors:", file=sys.stderr)
-        for err in syntax_errors:
-            print("  {:s}".format(err), file=sys.stderr)
+    if report_errors("Stub syntax errors", validate_stubs_syntactically(stub_paths)):
         return 1
-
-    semantic_errors = validate_stubs_semantically(stubs_dir, module_names)
-    if semantic_errors:
-        print("\nStub semantic errors:", file=sys.stderr)
-        for err in semantic_errors:
-            print("  {:s}".format(err), file=sys.stderr)
+    module_names = stub_module_names(stubs_dir, stub_paths)
+    if report_errors("Stub semantic errors", validate_stubs_semantically(stubs_dir, module_names)):
         return 1
 
     if verbose:
@@ -193,7 +176,7 @@ def main() -> int:
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true",
-        help="Show per-stub progress.",
+        help="Report the number of stubs checked.",
     )
     args = parser.parse_args()
 
@@ -202,12 +185,12 @@ def main() -> int:
         print("Error: stubs directory not found: {:s}".format(str(stubs_dir)), file=sys.stderr)
         return 1
 
-    stub_paths, module_names = discover_stubs(stubs_dir)
+    stub_paths = sorted(stubs_dir.rglob("*.pyi"))
     if not stub_paths:
         print("Error: no .pyi files found under {:s}".format(str(stubs_dir)), file=sys.stderr)
         return 1
 
-    return validate_stubs(stubs_dir, stub_paths, module_names, verbose=args.verbose)
+    return validate_stubs(stubs_dir, stub_paths, verbose=args.verbose)
 
 
 if __name__ == "__main__":
