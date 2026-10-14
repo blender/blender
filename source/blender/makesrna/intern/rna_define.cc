@@ -521,6 +521,10 @@ bool RNA_validate_identifier(const char *identifier, bool is_property, const cha
 
 void RNA_identifier_sanitize(char *identifier, bool is_property)
 {
+  if (identifier[0] == '\0') {
+    return;
+  }
+
   int a = 0;
 
   if (!isalpha(identifier[0]) && identifier[0] != '_') {
