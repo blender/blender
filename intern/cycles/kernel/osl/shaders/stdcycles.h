@@ -26,7 +26,6 @@ closure color phong_ramp(normal N, float exponent, color colors[8]) BUILTIN;
 closure color diffuse_toon(normal N, float size, float smooth) BUILTIN;
 closure color glossy_toon(normal N, float size, float smooth) BUILTIN;
 closure color ashikhmin_velvet(normal N, float sigma) BUILTIN;
-closure color ambient_occlusion() BUILTIN;
 
 closure color microfacet_f82_tint(
     string distribution, vector N, vector T, float ax, float ay, color f0, color f82) BUILTIN;
