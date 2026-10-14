@@ -6,6 +6,7 @@
  * \ingroup spaction
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 
@@ -1074,6 +1075,60 @@ static int action_space_icon_get(const ScrArea *area)
   return item.icon;
 }
 
+static void action_space_runtime_channel_state_trim(const SpaceAction &saction)
+{
+  /* It may be tempting to use some dynamic limit, like "3x the number of channels shown", but this
+   * has to cover historical use as well. When Only Show Selected is enabled, and an animator is
+   * animating bone-by-bone, it means the number of channels visible at any one time is limited,
+   * while the history of channels should be kept for significantly longer.
+   *
+   * This value should be tweaked based on animator experience (probably larger is better, but
+   * auto-expand/collapse can make explicit storage less important) vs. performance (smaller is
+   * better). */
+  constexpr int N = 1000;
+  using namespace ed::animfilter;
+
+  SpaceAction_Runtime &runtime = *saction.runtime;
+  if (runtime.channel_states.is_empty()) {
+    return;
+  }
+
+  // const int64_t size_before = runtime.channel_states.size();
+
+  Vector<std::pair<ChannelIdentifier, int>> key_last_used;
+  key_last_used.reserve(runtime.channel_states.size());
+  for (const ChannelUIStateMap::Item item : runtime.channel_states.items()) {
+    key_last_used.append({item.key, item.value.last_used});
+  }
+
+  /* Sort by last_used. */
+  std::ranges::sort(
+      key_last_used,
+      [&](const std::pair<ChannelIdentifier, int> &a, const std::pair<ChannelIdentifier, int> &b) {
+        return a.second < b.second;
+      });
+
+  /* Erase the oldest items (those beyond the first N). */
+  if (static_cast<int>(key_last_used.size()) > N) {
+    for (int i = N; i < static_cast<int>(key_last_used.size()); i++) {
+      // std::cout << "channel_state_trim: removing " << key_last_used[i].first
+      //           << " at last_used=" << key_last_used[i].second << "\n";
+      runtime.channel_states.remove(key_last_used[i].first);
+    }
+  }
+
+  // const int64_t size_after = runtime.channel_states.size();
+  // if (size_before != size_after) {
+  //   std::cout << "channel_state_trim: reduced channel state count from " << size_before
+  //             << " to "
+  //             << size_after << " channels.\n";
+  // }
+  // else {
+  //   std::cout << "\033[90mchannel_state_trim: channel state count at " << size_before
+  //             << " channels.\033[0m\n";
+  // }
+}
+
 static void action_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
@@ -1140,10 +1195,10 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
     return;
   }
 
-  /* TODO: trim the array down to whatever many items we want to keep. */
+  const SpaceAction &space_action = *reinterpret_cast<SpaceAction *>(sl);
+  action_space_runtime_channel_state_trim(space_action);
 
   /* Allocate memory for the UI state info in DNA. */
-  const SpaceAction &space_action = *reinterpret_cast<SpaceAction *>(sl);
   const int64_t num_channel_states = space_action.runtime->channel_states.size();
   ResourceScope &scope = screen_writer.scope;
   auto &ui_state_array = scope.construct<Array<SpaceActionChannelUIState>>(num_channel_states);
