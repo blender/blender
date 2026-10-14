@@ -183,6 +183,7 @@ struct VertOutPoint {
 }
 
 [[fragment]] void simple_point_frag([[resource_table]] const SimplePoint &srt,
+                                    [[resource_table]] const ColorSpace &colorspace,
                                     [[point_coord]] const float2 pt_coord,
                                     [[in]] const VertOutPoint &v_out,
                                     [[out]] FragOut &frag_out)
@@ -218,6 +219,8 @@ struct VertOutPoint {
       gpu_discard_fragment();
     }
   }
+
+  frag_out.color = colorspace.rec709_srgb_to_output_space(frag_out.color);
 }
 
 [[fragment]] void simple_frag(
