@@ -1367,20 +1367,20 @@ def write_class(
     if cls.name == "bpy_prop_array":
         imports.add(("typing", "overload"))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: int) -> _T: ...\n")
+        fw("    def __getitem__(self, key: int, /) -> _T: ...\n")
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: slice) -> tuple[_T, ...]: ...\n")
+        fw("    def __getitem__(self, key: slice, /) -> tuple[_T, ...]: ...\n")
         fw("    def __iter__(self) -> Iterator[_T]: ...\n")
         has_members = True
 
     if cls.name == "bpy_prop_collection":
         imports.add(("typing", "overload"))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: int) -> _T: ...\n")
+        fw("    def __getitem__(self, key: int, /) -> _T: ...\n")
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: str) -> _T: ...\n")
+        fw("    def __getitem__(self, key: str, /) -> _T: ...\n")
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: slice) -> list[_T]: ...\n")
+        fw("    def __getitem__(self, key: slice, /) -> list[_T]: ...\n")
         fw("    def __iter__(self) -> Iterator[_T]: ...\n")
         has_members = True
 
@@ -1395,11 +1395,11 @@ def write_class(
         imports.add(("typing", "overload"))
         imports.add(("collections.abc", "Iterator"))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: int) -> {:s}: ...\n".format(elem_type))
+        fw("    def __getitem__(self, key: int, /) -> {:s}: ...\n".format(elem_type))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: str) -> {:s}: ...\n".format(elem_type))
+        fw("    def __getitem__(self, key: str, /) -> {:s}: ...\n".format(elem_type))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: slice) -> list[{:s}]: ...\n".format(elem_type))
+        fw("    def __getitem__(self, key: slice, /) -> list[{:s}]: ...\n".format(elem_type))
         fw("    def __iter__(self) -> Iterator[{:s}]: ...\n".format(elem_type))
         has_members = True
 
@@ -1414,9 +1414,9 @@ def write_class(
         imports.add(("typing", "overload"))
         imports.add(("collections.abc", "Iterator"))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: int) -> {:s}: ...\n".format(sequence_elem_type))
+        fw("    def __getitem__(self, key: int, /) -> {:s}: ...\n".format(sequence_elem_type))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: slice) -> tuple[{:s}, ...]: ...\n".format(sequence_elem_type))
+        fw("    def __getitem__(self, key: slice, /) -> tuple[{:s}, ...]: ...\n".format(sequence_elem_type))
         fw("    def __iter__(self) -> Iterator[{:s}]: ...\n".format(sequence_elem_type))
         has_members = True
 
@@ -1476,12 +1476,12 @@ def write_method(
     ):
         imports.add(("typing", "overload"))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: int) -> {:s}: ...\n".format(ret_type))
+        fw("    def __getitem__(self, key: int, /) -> {:s}: ...\n".format(ret_type))
         if has_items_method:
             fw("    @overload\n")
-            fw("    def __getitem__(self, key: str) -> {:s}: ...\n".format(ret_type))
+            fw("    def __getitem__(self, key: str, /) -> {:s}: ...\n".format(ret_type))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: slice) -> list[{:s}]: ...\n".format(ret_type))
+        fw("    def __getitem__(self, key: slice, /) -> list[{:s}]: ...\n".format(ret_type))
         return
 
     inner = strip_outer_parens(params)
@@ -1497,6 +1497,13 @@ def write_method(
     else:
         if not params_startswith(inner, "self"):
             inner = "self, " + inner if inner else "self"
+        # Protocol methods take positional-only parameters, as CPython's slots do.
+        if (
+                name.startswith("__") and name.endswith("__") and
+                name not in {"__init__", "__new__", "__call__"} and
+                "," in inner and not any(c in inner for c in "*/")
+        ):
+            inner += ", /"
     fw("    def {:s}({:s}) -> {:s}: ...\n".format(name, inner, ret_type))
 
 
