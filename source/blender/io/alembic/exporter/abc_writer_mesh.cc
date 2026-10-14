@@ -561,7 +561,7 @@ void ABCGenericMeshWriter::get_geo_groups(Object *object,
 
     std::vector<int32_t> faceArray;
 
-    for (int i = 0, e = mesh->totface_legacy; i < e; i++) {
+    for (int i = 0, e = mesh->faces().size(); i < e; i++) {
       faceArray.push_back(i);
     }
 
