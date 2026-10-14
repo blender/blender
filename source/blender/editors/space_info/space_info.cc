@@ -246,9 +246,9 @@ static void info_header_region_message_subscribe(const wmRegionMessageSubscribeP
   WM_msg_subscribe_rna_anon_prop(mbus, ViewLayer, name, &msg_sub_value_region_tag_redraw);
 }
 
-static void info_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void info_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
-  writer->write_struct_cast<SpaceInfo>(sl);
+  screen_writer.writer->write_struct_cast<SpaceInfo>(sl);
 }
 
 void ED_spacetype_info()

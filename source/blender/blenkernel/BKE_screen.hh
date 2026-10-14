@@ -42,6 +42,7 @@ struct Layout;
 struct Block;
 }  // namespace ui
 
+class ResourceScope;
 struct ARegion;
 struct ARegionType;
 struct AssetShelfType;
@@ -96,6 +97,15 @@ struct wmSpaceTypeListenerParams {
   const wmNotifier *notifier;
   const Scene *scene;
   const Main *bmain;
+};
+
+struct ScreenBlendWriteData {
+  BlendWriter *writer;
+  /**
+   * Any allocation of data that's written to DNA has to happen via #scope. This ensures that the
+   * pointers are unique within the scope of the owning ID (the bScreen).
+   */
+  ResourceScope &scope;
 };
 
 struct SpaceType {
@@ -181,7 +191,7 @@ struct SpaceType {
   /**
    * Write all structs that should be saved in a .blend file.
    */
-  void (*blend_write)(BlendWriter *writer, SpaceLink *space_link);
+  void (*blend_write)(ScreenBlendWriteData &screen_writer, SpaceLink *space_link);
 
   /** Region type definitions. */
   ListBaseT<ARegionType> regiontypes;

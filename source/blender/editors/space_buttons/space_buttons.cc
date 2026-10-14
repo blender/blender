@@ -1085,9 +1085,9 @@ static void buttons_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
   }
 }
 
-static void buttons_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void buttons_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
-  writer->write_struct_cast<SpaceProperties>(
+  screen_writer.writer->write_struct_cast<SpaceProperties>(
       sl, [](BlendStructWriter<SpaceProperties> &struct_writer) {
         SpaceProperties &shallow_sbuts = struct_writer.shallow_data;
         shallow_sbuts.path = nullptr;

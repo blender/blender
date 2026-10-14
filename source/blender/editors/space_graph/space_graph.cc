@@ -953,8 +953,9 @@ static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   sipo->runtime = SpaceGraph_Runtime{};
 }
 
-static void graph_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void graph_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
+  BlendWriter *writer = screen_writer.writer;
   SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(sl);
   writer->write_struct_cast<SpaceGraph>(sl, [](BlendStructWriter<SpaceGraph> &struct_writer) {
     struct_writer.shallow_data.runtime = {};

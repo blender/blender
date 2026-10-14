@@ -32,6 +32,7 @@
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_rect.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_utildefines.hh"
@@ -1466,8 +1467,10 @@ static void write_panel_list(BlendWriter *writer, ListBaseT<Panel> *lb)
   }
 }
 
-static void write_area(BlendWriter *writer, ScrArea *area)
+static void write_area(ScreenBlendWriteData &screen_writer, ScrArea *area)
 {
+  BlendWriter *writer = screen_writer.writer;
+
   for (ARegion &region : area->regionbase) {
     write_region(writer, &region, area->spacetype);
     write_panel_list(writer, &region.panels);
@@ -1503,13 +1506,18 @@ static void write_area(BlendWriter *writer, ScrArea *area)
 
     SpaceType *space_type = BKE_spacetype_from_id(sl.spacetype);
     if (space_type && space_type->blend_write) {
-      space_type->blend_write(writer, &sl);
+      space_type->blend_write(screen_writer, &sl);
     }
   }
 }
 
 void BKE_screen_area_map_blend_write(BlendWriter *writer, ScrAreaMap *area_map)
 {
+  /* Track the resources allocated by the sub-ID-data writers, so that their pointers are never
+   * reused within the scope of this bScreen ID. */
+  ResourceScope scope;
+  ScreenBlendWriteData screen_writer{writer, scope};
+
   writer->write_struct_list(&area_map->vertbase);
   writer->write_struct_list(&area_map->edgebase);
   for (ScrArea &area : area_map->areabase) {
@@ -1529,7 +1537,7 @@ void BKE_screen_area_map_blend_write(BlendWriter *writer, ScrAreaMap *area_map)
 
     writer->write_struct(area.global);
 
-    write_area(writer, &area);
+    write_area(screen_writer, &area);
 
     area.butspacetype = SPACE_EMPTY; /* Unset again, was changed above. */
   }

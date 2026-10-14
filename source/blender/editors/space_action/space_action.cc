@@ -19,6 +19,7 @@
 #include "BKE_lib_id.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base_c.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_utildefines.hh"
 
@@ -1126,15 +1127,18 @@ static void action_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
   BLI_freelistN(&saction->channel_ui_states);
 }
 
-static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
+  BlendWriter *writer = screen_writer.writer;
+
   /* TODO: trim the array down to whatever many items we want to keep. */
 
   /* Allocate memory for the UI state info in DNA. */
   const SpaceAction &space_action = *reinterpret_cast<SpaceAction *>(sl);
   const int64_t num_channel_states = space_action.runtime->channel_states.size();
-  Array<SpaceActionChannelUIState> ui_state_array(num_channel_states);
-  Array<std::string> rna_paths(num_channel_states);
+  ResourceScope &scope = screen_writer.scope;
+  auto &ui_state_array = scope.construct<Array<SpaceActionChannelUIState>>(num_channel_states);
+  auto &rna_paths = scope.construct<Array<std::string>>(num_channel_states);
 
   IDNameLib_Map *id_map = writer->idmap();
   BLI_assert_msg(id_map, "Write without bmain, writing UI state will not be possible");
@@ -1174,9 +1178,9 @@ static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
     /* Actually write the structs in the listbase. */
     for (SpaceActionChannelUIState &state : for_writing.channel_ui_states) {
-      writer->write_struct(&state);
+      screen_writer.writer->write_struct(&state);
       if (state.source_rna_path) {
-        writer->write_string(state.source_rna_path);
+        screen_writer.writer->write_string(state.source_rna_path);
       }
     }
 

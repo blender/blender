@@ -477,11 +477,12 @@ static void text_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *
   st->runtime = MEM_new<ed::text::SpaceText_Runtime>(__func__);
 }
 
-static void text_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void text_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
-  writer->write_struct_cast<SpaceText>(sl, [](BlendStructWriter<SpaceText> &struct_writer) {
-    struct_writer.shallow_data.runtime = nullptr;
-  });
+  screen_writer.writer->write_struct_cast<SpaceText>(
+      sl, [](BlendStructWriter<SpaceText> &struct_writer) {
+        struct_writer.shallow_data.runtime = nullptr;
+      });
 }
 
 /** \} */

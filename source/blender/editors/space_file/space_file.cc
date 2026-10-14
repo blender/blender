@@ -1006,8 +1006,9 @@ static void file_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
   sfile->tags |= FILE_TAG_REBUILD_MAIN_FILES;
 }
 
-static void file_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void file_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
+  BlendWriter *writer = screen_writer.writer;
   SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
 
   writer->write_struct_cast<SpaceFile>(sl, [](BlendStructWriter<SpaceFile> &struct_writer) {

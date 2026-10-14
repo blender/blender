@@ -655,10 +655,10 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
   }
 }
 
-static void outliner_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void outliner_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
-  write_space_outliner(writer, space_outliner);
+  write_space_outliner(screen_writer.writer, space_outliner);
 }
 
 }  // namespace ed::outliner

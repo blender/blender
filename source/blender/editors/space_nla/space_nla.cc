@@ -644,8 +644,9 @@ static void nla_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   BLO_read_struct(reader, bDopeSheet, &snla->ads);
 }
 
-static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void nla_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
+  BlendWriter *writer = screen_writer.writer;
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
 
   writer->write_struct_cast<SpaceNla>(snla);

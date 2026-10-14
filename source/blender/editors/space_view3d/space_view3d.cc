@@ -1650,8 +1650,9 @@ static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   BKE_viewer_path_blend_read_data(reader, &v3d->viewer_path);
 }
 
-static void view3d_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void view3d_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
+  BlendWriter *writer = screen_writer.writer;
   View3D *v3d = reinterpret_cast<View3D *>(sl);
   writer->write_struct(v3d, [](BlendStructWriter<View3D> &struct_writer) {
     struct_writer.shallow_data.runtime = {};

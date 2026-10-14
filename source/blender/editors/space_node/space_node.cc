@@ -1751,8 +1751,9 @@ static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   snode->runtime = MEM_new<SpaceNode_Runtime>(__func__);
 }
 
-static void node_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void node_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
+  BlendWriter *writer = screen_writer.writer;
   SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
   writer->write_struct_cast<SpaceNode>(snode, [](BlendStructWriter<SpaceNode> &struct_writer) {
     struct_writer.shallow_data.runtime = nullptr;

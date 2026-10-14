@@ -742,8 +742,9 @@ static void spreadsheet_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   spreadsheet_table_id_blend_read(reader, &sspreadsheet->geometry_id.base);
 }
 
-static void spreadsheet_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void spreadsheet_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
+  BlendWriter *writer = screen_writer.writer;
   writer->write_struct_cast<SpaceSpreadsheet>(
       sl, [](BlendStructWriter<SpaceSpreadsheet> &struct_writer) {
         struct_writer.shallow_data.runtime = nullptr;

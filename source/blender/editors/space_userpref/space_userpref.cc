@@ -511,12 +511,12 @@ static void userpref_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl
   spref->runtime = MEM_new<SpaceUserPref_Runtime>(__func__);
 }
 
-static void userpref_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void userpref_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
-  writer->write_struct_cast<SpaceUserPref>(sl,
-                                           [](BlendStructWriter<SpaceUserPref> &struct_writer) {
-                                             struct_writer.shallow_data.runtime = nullptr;
-                                           });
+  screen_writer.writer->write_struct_cast<SpaceUserPref>(
+      sl, [](BlendStructWriter<SpaceUserPref> &struct_writer) {
+        struct_writer.shallow_data.runtime = nullptr;
+      });
 }
 
 void ED_spacetype_userpref()
