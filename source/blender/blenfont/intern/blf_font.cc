@@ -1480,7 +1480,6 @@ static void blf_font_wrap_apply(FontBLF *font,
      * like `\n` still drive wrapping. `step.i` is always advanced by `blf_glyph_step`. */
     blf_glyph_step(font, gc, step, str, str_len);
 
-    const ft_pix advance_x = step.g ? step.g->advance_x : 0;
     const uint codepoint = BLI_str_utf8_as_unicode_safe(&str[i_curr]);
     const uint codepoint_prev = g_prev ? g_prev->c : 0;
 
@@ -1500,7 +1499,9 @@ static void blf_font_wrap_apply(FontBLF *font,
     if (overflows && (wrap.start != wrap.last[0])) [[unlikely]] {
       do_draw = true;
     }
-    else if (bool(mode & BLFWrapMode::HardLimit) && overflows && (advance_x != 0)) [[unlikely]] {
+    else if (bool(mode & BLFWrapMode::HardLimit) && overflows && !blf_glyph_is_combining(step.g))
+        [[unlikely]]
+    {
       wrap.last[0] = i_curr;
       wrap.last[1] = i_curr;
       do_draw = true;
