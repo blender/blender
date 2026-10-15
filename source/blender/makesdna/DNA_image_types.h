@@ -77,6 +77,8 @@ ENUM_OPERATORS(eImage_Flag)
 enum eImage_GPUFlag : int {
   /** All mipmap levels in OpenGL texture set? */
   IMA_GPU_MIPMAP_COMPLETE = (1 << 0),
+  /** Mipmap chain updates are suspended (texture paint mode). */
+  IMA_GPU_MIPMAP_UPDATE_DISABLED = (1 << 1),
 };
 ENUM_OPERATORS(eImage_GPUFlag)
 

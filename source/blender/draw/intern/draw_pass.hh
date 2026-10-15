@@ -1166,6 +1166,9 @@ inline void PassBase<T>::material_set(Manager &manager,
         sampler_state.disable_filtering_flag(GPU_SAMPLER_FILTERING_ANISOTROPIC_MASK);
         sampler_state.enable_filtering_flag(anisotropic_filtering);
       }
+      if (tex->ima->runtime->gpuflag & IMA_GPU_MIPMAP_UPDATE_DISABLED) {
+        sampler_state.disable_filtering_flag(GPU_SAMPLER_FILTERING_MIPMAP);
+      }
 
       if (*gputex.texture == nullptr) {
         /* Texture not yet loaded. Register a reference inside the draw pass.
