@@ -12,7 +12,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 /* Define macros in `DNA_genfile.h`. */
-#define DNA_GENFILE_VERSIONING_MACROS
+#define DNA_GENFILE_VERSIONING_MACROS_LEGACY
 
 #include "BKE_idprop.hh"
 #include "BLI_listbase.hh"
@@ -41,7 +41,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#undef DNA_GENFILE_VERSIONING_MACROS
+#undef DNA_GENFILE_VERSIONING_MACROS_LEGACY
 
 #include "MEM_guardedalloc.h"
 

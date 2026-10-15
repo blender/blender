@@ -505,6 +505,17 @@ if(TARGET meshoptimizer::meshoptimizer)
 endif()
 
 # -----------------------------------------------------------------------------
+# Configure KTX
+
+add_library(bf_deps_optional_ktx INTERFACE)
+add_library(bf::dependencies::optional::ktx ALIAS bf_deps_optional_ktx)
+
+if(TARGET KTX::ktx)
+  target_compile_definitions(bf_deps_optional_ktx INTERFACE WITH_KTX)
+  target_link_libraries(bf_deps_optional_ktx INTERFACE KTX::ktx)
+endif()
+
+# -----------------------------------------------------------------------------
 # Configure TracyClient
 
 add_library(bf_deps_optional_tracy_client INTERFACE)

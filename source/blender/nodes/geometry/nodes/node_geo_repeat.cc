@@ -92,7 +92,8 @@ static void node_declare(NodeDeclarationBuilder &b)
         auto &input_decl = b.add_input(socket_type, name, identifier)
                                .socket_name_ptr(
                                    &tree->id, *RepeatItemsAccessor::item_srna, &item, "name")
-                               .structure_type(StructureType::Dynamic);
+                               .structure_type(StructureType::Dynamic)
+                               .compositor_realization_mode(CompositorInputRealizationMode::None);
         b.add_output(socket_type, name, identifier)
             .align_with_previous()
             .propagate_all({input_decl.index()})
@@ -148,7 +149,7 @@ static int node_shader_fn(GPUMaterial *mat,
 static void node_register()
 {
   static bke::bNodeType ntype;
-  sh_geo_node_type_base(&ntype, "GeometryNodeRepeatInput"_ustr, GEO_NODE_REPEAT_INPUT);
+  common_node_type_base(&ntype, "GeometryNodeRepeatInput"_ustr, GEO_NODE_REPEAT_INPUT);
   ntype.ui_name = "Repeat Input";
   ntype.enum_name_legacy = "REPEAT_INPUT";
   ntype.nclass = NODE_CLASS_INTERFACE;
@@ -188,7 +189,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       auto &input_decl = b.add_input(socket_type, name, identifier)
                              .socket_name_ptr(
                                  &tree->id, *RepeatItemsAccessor::item_srna, &item, "name")
-                             .structure_type(StructureType::Dynamic);
+                             .structure_type(StructureType::Dynamic)
+                             .compositor_realization_mode(CompositorInputRealizationMode::None);
       b.add_output(socket_type, name, identifier)
           .align_with_previous()
           .propagate_all({input_decl.index()})
@@ -317,7 +319,7 @@ static int node_shader_fn(GPUMaterial *mat,
 static void node_register()
 {
   static bke::bNodeType ntype;
-  sh_geo_node_type_base(&ntype, "GeometryNodeRepeatOutput"_ustr, GEO_NODE_REPEAT_OUTPUT);
+  common_node_type_base(&ntype, "GeometryNodeRepeatOutput"_ustr, GEO_NODE_REPEAT_OUTPUT);
   ntype.ui_name = "Repeat Output";
   ntype.enum_name_legacy = "REPEAT_OUTPUT";
   ntype.nclass = NODE_CLASS_INTERFACE;

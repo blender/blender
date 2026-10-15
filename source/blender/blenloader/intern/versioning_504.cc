@@ -9,6 +9,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_ID.h"
+#include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 
 #include "BLI_listbase.hh"
@@ -64,6 +65,36 @@ void blo_do_versions_504(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
           mesh.radial_symmetry[2] > 1)
       {
         mesh.symmetry |= ME_SYMMETRY_RADIAL;
+      }
+    }
+  }
+
+  /* Tip roundness was added to many brush types in 5.4. Some brushes of these types
+   * saved before this change stored a meaningless tip_roundness.*/
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 504, 3)) {
+    for (Brush &brush : bmain->brushes) {
+      if (!(brush.ob_mode & OB_MODE_SCULPT)) {
+        continue;
+      }
+      if (ELEM(brush.sculpt_brush_type,
+               SCULPT_BRUSH_TYPE_BLOB,
+               SCULPT_BRUSH_TYPE_CLAY,
+               SCULPT_BRUSH_TYPE_CREASE,
+               SCULPT_BRUSH_TYPE_DRAW,
+               SCULPT_BRUSH_TYPE_DRAW_SHARP,
+               SCULPT_BRUSH_TYPE_GRAB,
+               SCULPT_BRUSH_TYPE_INFLATE,
+               SCULPT_BRUSH_TYPE_LAYER,
+               SCULPT_BRUSH_TYPE_NUDGE,
+               SCULPT_BRUSH_TYPE_PINCH,
+               SCULPT_BRUSH_TYPE_PLANE,
+               SCULPT_BRUSH_TYPE_SCENE_PROJECT,
+               SCULPT_BRUSH_TYPE_SLIDE_RELAX,
+               SCULPT_BRUSH_TYPE_SMOOTH,
+               SCULPT_BRUSH_TYPE_THUMB))
+      {
+        brush.tip_roundness = 1.0f;
+        brush.tip_scale_x = 1.0f;
       }
     }
   }

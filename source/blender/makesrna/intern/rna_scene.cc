@@ -2557,7 +2557,7 @@ static void rna_TimeLine_clear(Scene *scene)
   WM_main_add_notifier(NC_ANIMATION | ND_MARKERS, nullptr);
 }
 
-static std::optional<std::string> rna_Scene_KeyingsSetsAll_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_Scene_KeyingSetsAll_path(const PointerRNA * /*ptr*/)
 {
   return "keying_sets_all";
 }
@@ -8222,7 +8222,7 @@ static void rna_def_scene_keying_sets_all(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_srna(cprop, "KeyingSetsAll");
   srna = RNA_def_struct(brna, "KeyingSetsAll", nullptr);
   RNA_def_struct_sdna(srna, "Scene");
-  RNA_def_struct_path_func(srna, "rna_Scene_KeyingsSetsAll_path");
+  RNA_def_struct_path_func(srna, "rna_Scene_KeyingSetsAll_path");
   RNA_def_struct_ui_text(srna, "Keying Sets All", "All available keying sets");
 
   /* NOTE: no add/remove available here, without screwing up this amalgamated list... */

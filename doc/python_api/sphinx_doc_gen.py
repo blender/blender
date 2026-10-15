@@ -109,6 +109,7 @@ class stub:
         enum_pointer: int | None
         deprecated: "stub.RnaDeprecated | None"
         is_required: bool
+        is_readonly: bool
 
         def get_arg_default(self, force: bool = ...) -> str: ...
 
@@ -2240,6 +2241,65 @@ def pyrna_enum2sphinx(prop: stub.InfoPropertyRNA, use_empty_descriptions: bool =
     return ""
 
 
+def pyrna_struct_keys2sphinx(ident: str, fw: WriteFn, struct: stub.InfoStructRNA) -> None:
+    """
+    Write the properties of ``struct`` as a definition list of ``dict`` keys.
+    """
+    # Include inherited properties (e.g. `PropertyGroup.name`) since they're also valid keys.
+    props: dict[str, stub.InfoPropertyRNA] = {}
+    for struct_iter in (struct, *struct.get_bases()):
+        for prop in struct_iter.properties:
+            props.setdefault(prop.identifier, prop)
+
+    # NOTE: nested `PropertyGroup` keys aren't typed as a `dict`, this isn't needed as none currently exist.
+    fw("{:s}**Keys**\n\n".format(ident))
+    for identifier, prop in sorted(props.items()):
+        fw("{:s}``{:s}``\n".format(ident, identifier))
+        # Qualify class references as the current module is an operator module, not `bpy.types`.
+        # Except for `_BPY_PROP_COLLECTION_ID`, only used by nested `PropertyGroup` keys (see note above).
+        pyrna_prop_body2sphinx(ident + "   ", fw, prop, class_fmt=":class:`bpy.types.{:s}`")
+
+
+def pyrna_prop_body2sphinx(
+        ident: str,
+        fw: WriteFn,
+        prop: stub.InfoPropertyRNA,
+        *,
+        class_fmt: str = ":class:`{:s}`",
+) -> None:
+    """
+    Write the body of a property: its description, enum items & type.
+    The first line (e.g. ``.. attribute:: name``) is the responsibility of the caller.
+    """
+    enum_descr_override = None
+    if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
+        enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
+
+    type_descr, type_info = prop.get_type_description(
+        class_fmt=class_fmt,
+        mathutils_fmt=":class:`mathutils.{:s}`",
+        literal_fmt="``{!r}``",  # String with quotes.
+        collection_id=_BPY_PROP_COLLECTION_ID,
+        enum_descr_override=enum_descr_override,
+    )
+
+    prop_description = format_description_and_type_info(prop.description, type_info)
+    if prop_description:
+        write_indented_lines(ident, fw, prop_description, False)
+        fw("\n")
+    if (deprecated := prop.deprecated) is not None:
+        fw(pyrna_deprecated_directive(ident, deprecated))
+        fw("\n")
+
+    # If the link has been written, no need to inline the enum items.
+    enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
+    if enum_text:
+        write_indented_lines(ident, fw, enum_text)
+        fw("\n")
+
+    fw("{:s}:type: {:s}\n\n".format(ident, type_descr))
+
+
 def pyrna_deprecated_directive(ident: str, deprecated: stub.RnaDeprecated) -> str:
     note, version, removal_version = deprecated
 
@@ -2305,7 +2365,18 @@ def pyrna2sphinx(basepath: Path) -> None:
             if _prop.type == "collection" and _prop.srna is not None:
                 _collection_wrapper_ids.add(_prop.srna.identifier)
 
-    def write_param(ident: str, fw: WriteFn, prop: stub.InfoPropertyRNA, is_return: bool = False) -> None:
+    def is_struct_documented(struct: stub.InfoStructRNA) -> bool:
+        # Structs defined in Python (not `bpy.types`) aren't documented, see `USE_ONLY_BUILTIN_RNA_TYPES`.
+        return not USE_ONLY_BUILTIN_RNA_TYPES or struct.module_name == "bpy.types"
+
+    def write_param(
+            ident: str,
+            fw: WriteFn,
+            prop: stub.InfoPropertyRNA,
+            is_return: bool = False,
+            *,
+            is_operator_arg: bool = False,
+    ) -> None:
         if is_return:
             id_name = "return"
             id_type = "rtype"
@@ -2328,6 +2399,9 @@ def pyrna2sphinx(basepath: Path) -> None:
             collection_id=_BPY_PROP_COLLECTION_ID,
             enum_descr_override=enum_descr_override,
         )
+        # When true, list the properties of `prop.fixed_type` under the argument as the `dict` keys.
+        # Needed because the type isn't documented, so it can't be linked to.
+        use_inline_keys_from_type = False
 
         # Only for `bpy.ops.*` parameters.
         if prop.fixed_type is not None and prop.fixed_type.is_operator_properties():
@@ -2340,16 +2414,31 @@ def pyrna2sphinx(basepath: Path) -> None:
                 ":func:`bpy.ops.{:s}` keyword arguments".format(format_operator_as_module(prop.identifier)),
             )
             type_descr = "dict[str, Any]"
+        elif is_operator_arg and prop.type in {"pointer", "collection"} and prop.fixed_type is not None:
+            # Operator pointers & collections of a `PropertyGroup` are coerced from a `dict`
+            # (or a sequence of them), the keys are the property names of the `PropertyGroup`,
+            # e.g. `bpy.ops.wm.append(files=[{"name": "Cube"}])`.
+            # The `PropertyGroup` itself (or None) isn't accepted.
+            type_descr = "dict[str, Any]" if prop.type == "pointer" else "Sequence[dict[str, Any]]"
+            # Link to the `PropertyGroup` to find the supported keys,
+            # when it's not documented, list the keys instead.
+            if is_struct_documented(prop.fixed_type):
+                type_info.append(
+                    ":class:`{:s}.{:s}` properties".format(prop.fixed_type.module_name, prop.fixed_type.identifier),
+                )
+            else:
+                use_inline_keys_from_type = True
 
         prop_name = prop.name
         prop_description = format_description_and_type_info(prop.description, type_info)
 
         # If the link has been written, no need to inline the enum items.
         enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
+        fixed_type = prop.fixed_type
         # Don't accidentally use this again (some value have been manipulated).
         del prop
 
-        if prop_name or prop_description or enum_text:
+        if prop_name or prop_description or enum_text or use_inline_keys_from_type:
             fw(ident + ":{:s}{:s}: ".format(id_name, identifier))
 
             if prop_name or prop_description:
@@ -2361,6 +2450,11 @@ def pyrna2sphinx(basepath: Path) -> None:
                 write_indented_lines(ident + "   ", fw, enum_text)
             del enum_text
             # End enum exception.
+
+            if use_inline_keys_from_type:
+                assert fixed_type is not None
+                fw("\n")
+                pyrna_struct_keys2sphinx(ident + "   ", fw, fixed_type)
 
         fw(ident + ":{:s}{:s}: {:s}\n".format(id_type, identifier, type_descr))
 
@@ -2471,19 +2565,8 @@ def pyrna2sphinx(basepath: Path) -> None:
             if identifier in struct_exclude:
                 continue
 
-            enum_descr_override = None
-            if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
-                enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
-
-            type_descr, type_info = prop.get_type_description(
-                class_fmt=":class:`{:s}`",
-                mathutils_fmt=":class:`mathutils.{:s}`",
-                literal_fmt="``{!r}``",  # String with quotes.
-                collection_id=_BPY_PROP_COLLECTION_ID,
-                enum_descr_override=enum_descr_override,
-            )
             # Read-only properties use "data" directive, variables properties use "attribute" directive.
-            if "readonly" in type_info:
+            if prop.is_readonly:
                 fw("   .. data:: {:s}\n".format(identifier))
             else:
                 fw("   .. attribute:: {:s}\n".format(identifier))
@@ -2492,25 +2575,7 @@ def pyrna2sphinx(basepath: Path) -> None:
                 fw("      :noindex:\n")
             fw("\n")
 
-            prop_description = format_description_and_type_info(prop.description, type_info)
-            if prop_description:
-                write_indented_lines("      ", fw, prop_description, False)
-                fw("\n")
-            if (deprecated := prop.deprecated) is not None:
-                fw(pyrna_deprecated_directive("      ", deprecated))
-                fw("\n")
-
-            # Special exception, can't use generic code here for enums.
-            if prop.type == "enum":
-                # If the link has been written, no need to inline the enum items.
-                enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
-                if enum_text:
-                    write_indented_lines("      ", fw, enum_text)
-                    fw("\n")
-                del enum_text
-            # End enum exception.
-
-            fw("      :type: {:s}\n\n".format(type_descr))
+            pyrna_prop_body2sphinx("      ", fw, prop)
 
         # Screen context members (only for Context struct).
         if struct_id == "Context":
@@ -2832,6 +2897,10 @@ def pyrna2sphinx(basepath: Path) -> None:
                     if prop.fixed_type and prop.fixed_type.is_operator_properties():
                         if arg_default.endswith("=None"):
                             arg_default = arg_default.removesuffix("None") + "{}"
+                    elif prop.type in {"pointer", "collection"}:
+                        # Passing `None` raises a `TypeError`, use an empty `dict` or sequence instead.
+                        if arg_default.endswith("=None"):
+                            arg_default = arg_default.removesuffix("None") + ("{}" if prop.type == "pointer" else "()")
                     args.append(arg_default)
                 args_str = ", ".join(args)
                 # All operator arguments are keyword only (denoted by the leading `*`).
@@ -2848,7 +2917,7 @@ def pyrna2sphinx(basepath: Path) -> None:
                 write_indented_lines("   ", fw, operator_description, strip=False)
                 fw("\n")
                 for prop in op.args:
-                    write_param("   ", fw, prop)
+                    write_param("   ", fw, prop, is_operator_arg=True)
 
                 fw("   :return: Result of the operator call.\n")
                 fw("   :rtype: set[Literal[:ref:`rna_enum_operator_return_items`]]\n")

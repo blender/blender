@@ -57,7 +57,10 @@ Result<SymbolFunction *> SymbolScope::lookup_function(const SymbolTable &table,
     /* Try to resolve type constructors (only for builtins for now). */
     if (auto [cls, err_cls] = lookup_class(table, id); !cls->is_error && cls && cls->is_builtin())
     {
-      return {table.root->lookup_function(cls->identifier), {}};
+      /* Some builtin types have no constructor (e.g. `bool32_t`). */
+      if (SymbolFunction *ctor = table.root->lookup_function(cls->identifier)) {
+        return {ctor, {}};
+      }
     }
     return {func, err ? err : AstNodeException{id, Diag::UnknownFunction, string(id.str())}};
   }

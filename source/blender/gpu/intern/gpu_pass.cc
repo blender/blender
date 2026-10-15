@@ -245,7 +245,7 @@ class GPUPassCache {
         std::make_unique<GPUPass>(codegen.create_info,
                                   deferred_compilation,
                                   is_optimization_pass,
-                                  codegen.should_optimize_heuristic()));
+                                  !is_optimization_pass && codegen.should_optimize_heuristic()));
   };
 
   GPUPass *get(eGPUMaterialEngine engine,
@@ -358,6 +358,20 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
 {
   gpu_node_graph_prune_unused(graph);
 
+  GPUCodegen codegen(material, graph, debug_name);
+  codegen.generate_material_props();
+  codegen.extract_uniform_list();
+
+  if (optimize_graph) {
+    /* The optimized version of the shader should not re-generate a UBO.
+     * For the builtin uniforms (i.e. cryptomatte), the non-optimized-pass UBO will be reused.
+     * Ensure that inputs are sorted the same way so that the UBO declaration still match.  */
+    codegen.sort_uniform_inputs();
+  }
+  else {
+    codegen.generate_uniform_buffer();
+  }
+
   /* If Optimize flag is passed in, we are generating an optimized
    * variant of the GPUMaterial's GPUPass. */
   if (optimize_graph) {
@@ -368,17 +382,9 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
    * shader. */
   gpu_node_graph_finalize_uniform_attrs(graph);
 
-  GPUCodegen codegen(material, graph, debug_name);
   codegen.generate_graphs();
-  codegen.generate_material_props();
 
   GPUPass *pass = nullptr;
-
-  if (!optimize_graph) {
-    /* The optimized version of the shader should not re-generate a UBO.
-     * The UBO will not be used for this variant. */
-    codegen.generate_uniform_buffer();
-  }
 
   /* Cache lookup: Reuse shaders already compiled. */
   pass = g_cache->get(engine, codegen.hash_get(), deferred_compilation, optimize_graph);

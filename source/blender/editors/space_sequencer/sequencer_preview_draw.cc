@@ -975,7 +975,8 @@ static void update_gpu_scopes(const ImBuf *input_ibuf,
   const ColorSpace *input_colorspace = input_ibuf->float_data() ?
                                            input_ibuf->float_buffer.colorspace :
                                            input_ibuf->byte_buffer.colorspace;
-  const bool predivide = input_ibuf->float_data() != nullptr;
+  const bool predivide = input_ibuf->float_data() != nullptr && input_ibuf->can_contain_alpha() &&
+                         IMB_alpha_affects_rgb(input_ibuf);
   if (IMB_colormanagement_setup_glsl_draw_from_space(&view_settings,
                                                      &display_settings,
                                                      input_colorspace,
@@ -1605,7 +1606,9 @@ static void sequencer_preview_draw_color_render(const SpaceSeq &space_sequencer,
     const rctf position = preview_get_full_position(region);
     const rctf texture_coord = preview_get_full_texture_coord();
     const char *texture_colorspace = get_texture_colorspace_name(*current_ibuf);
-    const bool predivide = (current_ibuf->float_data() != nullptr);
+    const bool predivide = current_ibuf->float_data() != nullptr &&
+                           current_ibuf->can_contain_alpha() &&
+                           IMB_alpha_affects_rgb(current_ibuf);
     preview_draw_texture_to_linear(
         *current_texture, texture_colorspace, predivide, position, texture_coord);
   }
@@ -1615,7 +1618,9 @@ static void sequencer_preview_draw_color_render(const SpaceSeq &space_sequencer,
     const rctf position = preview_get_reference_position(space_sequencer, editing, region);
     const rctf texture_coord = preview_get_reference_texture_coord(space_sequencer, editing);
     const char *texture_colorspace = get_texture_colorspace_name(*reference_ibuf);
-    const bool predivide = (reference_ibuf->float_data() != nullptr);
+    const bool predivide = reference_ibuf->float_data() != nullptr &&
+                           reference_ibuf->can_contain_alpha() &&
+                           IMB_alpha_affects_rgb(reference_ibuf);
     preview_draw_texture_to_linear(
         *reference_texture, texture_colorspace, predivide, position, texture_coord);
   }

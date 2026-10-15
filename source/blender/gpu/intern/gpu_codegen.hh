@@ -80,6 +80,11 @@ class GPUCodegen {
   void generate_attribs();
   void generate_resources();
 
+  /* Populates `ubo_inputs_`. */
+  void extract_uniform_list();
+  /* Sorts `ubo_inputs_` but does not create a UBO. */
+  void sort_uniform_inputs();
+
   uint32_t hash_get() const
   {
     return hash_;

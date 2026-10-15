@@ -626,7 +626,7 @@ int view3d_gpu_select_ex(const ViewContext *vc,
                          const bool do_material_slot_selection)
 {
   ui::theme::bThemeState theme_state;
-  const wmWindowManager *wm = CTX_wm_manager(vc->C);
+  const wmWindowManager *wm = vc->wm;
   Depsgraph *depsgraph = vc->depsgraph;
   Scene *scene = vc->scene;
   View3D *v3d = vc->v3d;

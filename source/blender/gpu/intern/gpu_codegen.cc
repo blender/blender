@@ -574,7 +574,7 @@ void GPUCodegen::generate_material_props()
   }
 }
 
-void GPUCodegen::generate_uniform_buffer()
+void GPUCodegen::extract_uniform_list()
 {
   /* Extract uniform inputs. */
   for (GPUNode &node : graph.nodes) {
@@ -586,9 +586,21 @@ void GPUCodegen::generate_uniform_buffer()
       }
     }
   }
+}
+
+void GPUCodegen::generate_uniform_buffer()
+{
   if (!ubo_inputs_.is_empty()) {
     /* This sorts the inputs based on size. */
     GPU_material_uniform_buffer_create(&mat, &ubo_inputs_);
+  }
+}
+
+void GPUCodegen::sort_uniform_inputs()
+{
+  if (!ubo_inputs_.is_empty()) {
+    /* This sorts the inputs based on size. */
+    GPU_uniformbuf_inputs_sort(&ubo_inputs_);
   }
 }
 

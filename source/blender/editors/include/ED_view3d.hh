@@ -67,9 +67,14 @@ namespace gpu {
 class Texture;
 }
 
-/** For mesh drawing callbacks, for viewport selection, etc. */
+/**
+ * For mesh drawing callbacks, for viewport selection, etc.
+ *
+ * \note #bContext is intentionally excluded from this struct to ensure the context's state doesn't
+ * leak into the functions intended to use these struct members. If the context is needed, it must
+ * be passed in separately.
+ */
 struct ViewContext {
-  bContext *C;
   Main *bmain;
   /* Dependency graph is uses for depth drawing, viewport camera matrix access, and also some areas
    * are re-using this to access evaluated entities.
@@ -83,6 +88,7 @@ struct ViewContext {
   ARegion *region;
   View3D *v3d;
   wmWindow *win;
+  wmWindowManager *wm;
   RegionView3D *rv3d;
   BMEditMesh *em;
   int mval[2];

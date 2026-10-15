@@ -14,6 +14,7 @@
 #include "DNA_sdna_pointers.hh"
 #include "DNA_sdna_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 
@@ -78,6 +79,9 @@ struct WriteDataStableAddressIDs {
 
 struct WriteData {
   const SDNA *sdna;
+  /** A boolean for each struct to write. Indexed by #sdna_struct_id_get. */
+  Array<bool> sdna_structs_to_write;
+
 
   /* This bmain should only be used for getting pointers, for example to translate session_uid to
    * an ID* for writing a pointer value to a blend file. Do not actually use ID pointers obtained

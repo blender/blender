@@ -514,6 +514,7 @@ endif()
 # Compression
 option(WITH_DRACO "Enable Draco mesh compression Python module (used for glTF)" ON)
 option(WITH_MESHOPTIMIZER "Enable meshoptimizer compression Python module (used for glTF)" ON)
+option(WITH_KTX "Enable KTX texture support (used for glTF)" ON)
 
 # Camera/motion tracking
 option(WITH_LIBMV "Enable Libmv structure from motion library" ON)
@@ -1349,6 +1350,7 @@ endif()
 set_and_warn_dependency(WITH_PYTHON WITH_CYCLES        OFF)
 set_and_warn_dependency(WITH_PYTHON WITH_DRACO         OFF)
 set_and_warn_dependency(WITH_PYTHON WITH_MESHOPTIMIZER OFF)
+set_and_warn_dependency(WITH_PYTHON WITH_KTX           OFF)
 set_and_warn_dependency(WITH_PYTHON WITH_MOD_FLUID     OFF)
 
 if(WITH_CYCLES)

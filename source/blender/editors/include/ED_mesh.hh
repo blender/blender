@@ -453,7 +453,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf);
  * Copy the face flags, most importantly selection from the mesh to the final evaluated mesh,
  * use in object mode when selecting faces (while painting).
  */
-void paintface_flush_flags(bContext *C, Object *ob, bool flush_selection, bool flush_hidden);
+void paintface_flush_flags(Object *ob, bool flush_selection, bool flush_hidden);
 /**
  * \return True when pick finds an element or the selection changed.
  */
@@ -461,7 +461,7 @@ bool paintface_mouse_select(bContext *C,
                             const int mval[2],
                             const SelectPick_Params &params,
                             Object *ob);
-bool paintface_deselect_all_visible(bContext *C, Object *ob, int action, bool flush_flags);
+bool paintface_deselect_all_visible(Object *ob, int action, bool flush_flags);
 void paintface_select_linked(bContext *C, Object *ob, const int mval[2], bool select);
 
 void paintface_select_loop(bContext *C, Object *ob, const int mval[2], bool select);
@@ -473,8 +473,8 @@ void paintface_select_more(Mesh *mesh, bool face_step);
 void paintface_select_less(Mesh *mesh, bool face_step);
 bool paintface_minmax(Object *ob, float r_min[3], float r_max[3]);
 
-void paintface_hide(bContext *C, Object *ob, bool unselected);
-void paintface_reveal(bContext *C, Object *ob, bool select);
+void paintface_hide(Object *ob, bool unselected);
+void paintface_reveal(Object *ob, bool select);
 
 /**
  * \note if the caller passes false to flush_flags,
@@ -488,11 +488,11 @@ void paintvert_select_ungrouped(Object *ob, bool extend, bool flush_flags);
  * use in object mode when selecting vertices (while painting).
  */
 void paintvert_flush_flags(Object *ob);
-void paintvert_tag_select_update(bContext *C, Object *ob);
+void paintvert_tag_select_update(Object *ob);
 void paintvert_select_loop(bContext *C, Object *ob, const int mval[2], const bool select);
 
 /* Select vertices that are connected to already selected vertices. */
-void paintvert_select_linked(bContext *C, Object *ob);
+void paintvert_select_linked(Object *ob);
 /* Select vertices that are linked to the vertex under the given region space coordinates. */
 void paintvert_select_linked_pick(bContext *C,
                                   Object *ob,
@@ -500,8 +500,8 @@ void paintvert_select_linked_pick(bContext *C,
                                   bool select);
 void paintvert_select_more(Mesh *mesh, bool face_step);
 void paintvert_select_less(Mesh *mesh, bool face_step);
-void paintvert_hide(bContext *C, Object *ob, bool unselected);
-void paintvert_reveal(bContext *C, Object *ob, bool select);
+void paintvert_hide(Object *ob, bool unselected);
+void paintvert_reveal(Object *ob, bool select);
 
 /* mirrtopo */
 struct MirrTopoStore_t {

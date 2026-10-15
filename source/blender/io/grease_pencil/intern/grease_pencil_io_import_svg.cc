@@ -390,7 +390,7 @@ bool SVGImporter::read(StringRefNull filepath)
                                      context_.scene->unit.scale_length :
                                      1.0f;
   /* Overall scale for SVG coordinates in millimeters. */
-  const float svg_scale = 0.001f * scene_unit_scale * params_.scale;
+  const float svg_scale = 0.001f / scene_unit_scale * params_.scale;
   /* Grease pencil is rotated 90 degrees in X axis by default. */
   const float4x4 transform = math::scale(
       math::from_rotation<float4x4>(math::EulerXYZ(DEG2RAD(-90), 0, 0)), float3(svg_scale));

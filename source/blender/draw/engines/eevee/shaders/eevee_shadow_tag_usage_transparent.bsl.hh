@@ -118,7 +118,7 @@ struct TagUsageTransparent {
     inflate_scale *= 0.5f;
 
     float3 ws_inflate_vector = obj.normal_object_to_world(sign(lP - ls_center));
-    float3 vs_inflate_vector = view.normal_view_to_world(ws_inflate_vector);
+    float3 vs_inflate_vector = view.normal_world_to_view(ws_inflate_vector);
     vs_inflate_vector.z = 0;
     /* Scale the vector so the largest axis length is 1 */
     vs_inflate_vector /= reduce_max(abs(vs_inflate_vector.xy));

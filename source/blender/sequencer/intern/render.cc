@@ -155,13 +155,17 @@ static void ensure_ibuf_is_color_space(ImBuf *ibuf, bool make_float, const char 
     if (ibuf->byte_data() != nullptr) {
       IMB_free_byte_pixels(ibuf);
     }
+    /* Already in the needed colorspace: nothing to do. */
+    if (STREQ(from_colorspace, to_colorspace)) {
+      return;
+    }
     IMB_colormanagement_transform_float(ibuf->float_data_for_write(),
                                         ibuf->x,
                                         ibuf->y,
                                         ibuf->channels,
                                         from_colorspace,
                                         to_colorspace,
-                                        true);
+                                        ibuf->can_contain_alpha() && IMB_alpha_affects_rgb(ibuf));
     IMB_colormanagement_assign_float_colorspace(ibuf, to_colorspace);
   }
 }
