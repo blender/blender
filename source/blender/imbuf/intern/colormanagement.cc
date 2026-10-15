@@ -1756,297 +1756,116 @@ bool IMB_colormanagement_set_whitepoint(const float whitepoint[3], float &temper
 /** \name Display Buffer Transform Routines
  * \{ */
 
-struct DisplayBufferThread {
-  ColormanageProcessor *cm_processor;
-
-  const float *buffer;
-  uchar *byte_buffer;
-
-  float *display_buffer;
-  uchar *display_buffer_byte;
-
-  int width;
-  int start_line;
-  int tot_line;
-
-  int channels;
-  float dither;
-  bool is_data;
-  bool predivide;
-
-  const char *byte_colorspace;
-  const char *float_colorspace;
-};
-
-struct DisplayBufferInitData {
-  ImBuf *ibuf;
-  ColormanageProcessor *cm_processor;
-  const float *buffer;
-  uchar *byte_buffer;
-
-  float *display_buffer;
-  uchar *display_buffer_byte;
-
-  const char *byte_colorspace;
-  const char *float_colorspace;
-};
-
-static void display_buffer_init_handle(DisplayBufferThread *handle,
-                                       int start_line,
-                                       int tot_line,
-                                       DisplayBufferInitData *init_data)
+static void display_buffer_apply_threaded(ImBuf *ibuf,
+                                          const float *source_buffer,
+                                          float *buffer,
+                                          uchar *byte_buffer,
+                                          ColormanageProcessor *cm_processor,
+                                          const bool predivide,
+                                          const bool flatten_alpha)
 {
-  ImBuf *ibuf = init_data->ibuf;
+  const int width = ibuf->x;
+  const int channels = ibuf->channels;
+  const float dither = ibuf->dither;
+  const bool is_data = ibuf->colorspace_is_data();
+  const bool is_data_display = cm_processor && cm_processor->is_data_result();
+  /* Viewer images may not have a colorspace assigned. */
+  const char *byte_colorspace = ibuf->byte_buffer.colorspace ?
+                                    ibuf->byte_buffer.colorspace->name().c_str() :
+                                    global_role_default_byte;
+  /* Sequencer float buffers may be in a non-linear colorspace. */
+  const char *float_colorspace = ibuf->float_buffer.colorspace ?
+                                     ibuf->float_buffer.colorspace->name().c_str() :
+                                     nullptr;
 
-  int channels = ibuf->channels;
-  float dither = ibuf->dither;
-  bool is_data = ibuf->colorspace_is_data();
+  threading::parallel_for(IndexRange(ibuf->y), 64, [&](const IndexRange y_range) {
+    const int height = y_range.size();
+    const size_t pixel_count = size_t(width) * height;
+    const size_t offset = size_t(channels) * y_range.first() * width;
+    const size_t byte_offset = size_t(DISPLAY_BUFFER_CHANNELS) * y_range.first() * width;
+    const float *source = source_buffer ? source_buffer + offset : nullptr;
+    float *display_buffer = buffer ? buffer + offset : nullptr;
+    uchar *display_buffer_byte = byte_buffer ? byte_buffer + byte_offset : nullptr;
 
-  size_t offset = size_t(channels) * start_line * ibuf->x;
-  size_t display_buffer_byte_offset = size_t(DISPLAY_BUFFER_CHANNELS) * start_line * ibuf->x;
-
-  memset(handle, 0, sizeof(DisplayBufferThread));
-
-  handle->cm_processor = init_data->cm_processor;
-
-  if (init_data->buffer) {
-    handle->buffer = init_data->buffer + offset;
-  }
-
-  if (init_data->byte_buffer) {
-    handle->byte_buffer = init_data->byte_buffer + offset;
-  }
-
-  if (init_data->display_buffer) {
-    handle->display_buffer = init_data->display_buffer + offset;
-  }
-
-  if (init_data->display_buffer_byte) {
-    handle->display_buffer_byte = init_data->display_buffer_byte + display_buffer_byte_offset;
-  }
-
-  handle->width = ibuf->x;
-
-  handle->start_line = start_line;
-  handle->tot_line = tot_line;
-
-  handle->channels = channels;
-  handle->dither = dither;
-  handle->is_data = is_data;
-  handle->predivide = IMB_alpha_affects_rgb(ibuf);
-
-  handle->byte_colorspace = init_data->byte_colorspace;
-  handle->float_colorspace = init_data->float_colorspace;
-}
-
-static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle,
-                                                   int height,
-                                                   float *linear_buffer,
-                                                   bool *is_straight_alpha)
-{
-  int channels = handle->channels;
-  int width = handle->width;
-
-  size_t buffer_size = size_t(channels) * width * height;
-
-  bool is_data = handle->is_data;
-  bool is_data_display = handle->cm_processor->is_data_result();
-  bool predivide = handle->predivide;
-
-  if (!handle->buffer) {
-    uchar *byte_buffer = handle->byte_buffer;
-
-    const char *from_colorspace = handle->byte_colorspace;
-    const char *to_colorspace = global_role_scene_linear;
-
-    float *fp;
-    uchar *cp;
-    const size_t i_last = size_t(width) * height;
-    size_t i;
-
-    /* first convert byte buffer to float, keep in image space */
-    for (i = 0, fp = linear_buffer, cp = byte_buffer; i != i_last;
-         i++, fp += channels, cp += channels)
-    {
-      if (channels == 3) {
-        rgb_uchar_to_float(fp, cp);
+    /* Initialize new output storage and flatten alpha while the pixels are local to this task. */
+    if (flatten_alpha) {
+      /* Same result as IMB_alpha_under_color_float with black: just copy RGB
+       * and set alpha to one. */
+      for (size_t i = 0; i < pixel_count; i++) {
+        float *dst = display_buffer + i * 4;
+        const float *src = source + i * 4;
+        copy_v3_v3(dst, src);
+        dst[3] = 1.0f;
       }
-      else if (channels == 4) {
-        rgba_uchar_to_float(fp, cp);
-      }
-      else {
-        BLI_assert_msg(0, "Buffers of 3 or 4 channels are only supported here");
+    }
+    else if (source != display_buffer) {
+      memcpy(display_buffer, source, pixel_count * channels * sizeof(float));
+    }
+
+    if (cm_processor == nullptr) {
+      /* No conversion is needed. */
+      return;
+    }
+
+    /* Process float images in place. Only byte images need a temporary float buffer. */
+    const bool use_display_buffer = display_buffer != nullptr;
+    float *linear_buffer = use_display_buffer ?
+                               display_buffer :
+                               MEM_new_array_uninitialized<float>(
+                                   pixel_count * channels, "color conversion linear buffer");
+
+    if (!use_display_buffer) {
+      /* Convert byte pixels to float while keeping their input colorspace. */
+      for (size_t i = 0; i < pixel_count; i++) {
+        const uchar *src = display_buffer_byte + i * channels;
+        float *dst = linear_buffer + i * channels;
+        if (channels == 3) {
+          rgb_uchar_to_float(dst, src);
+        }
+        else if (channels == 4) {
+          rgba_uchar_to_float(dst, src);
+        }
+        else {
+          BLI_assert_msg(0, "Buffers of 3 or 4 channels are only supported here");
+        }
       }
     }
 
-    if (!is_data && !is_data_display) {
-      /* convert float buffer to scene linear space */
-      IMB_colormanagement_transform_float(
-          linear_buffer, width, height, channels, from_colorspace, to_colorspace, false);
+    /* Byte input has straight alpha; float input may need predivision. */
+    const bool output_predivide = predivide && use_display_buffer;
+    const char *from_colorspace = use_display_buffer ? float_colorspace : byte_colorspace;
+    if (from_colorspace && !is_data && !is_data_display) {
+      /* Sequencer float buffers may also need conversion to scene linear. */
+      IMB_colormanagement_transform_float(linear_buffer,
+                                          width,
+                                          height,
+                                          channels,
+                                          from_colorspace,
+                                          global_role_scene_linear,
+                                          output_predivide);
     }
 
-    *is_straight_alpha = true;
-  }
-  else if (handle->float_colorspace) {
-    /* currently float is non-linear only in sequencer, which is working
-     * in its own color space even to handle float buffers.
-     * This color space is the same for byte and float images.
-     * Need to convert float buffer to linear space before applying display transform
-     */
-
-    const char *from_colorspace = handle->float_colorspace;
-    const char *to_colorspace = global_role_scene_linear;
-
-    memcpy(linear_buffer, handle->buffer, buffer_size * sizeof(float));
-
-    if (!is_data && !is_data_display) {
-      IMB_colormanagement_transform_float(
-          linear_buffer, width, height, channels, from_colorspace, to_colorspace, predivide);
+    /* Apply processor (note: data buffers never get color space conversions). */
+    if (!is_data) {
+      cm_processor->apply(linear_buffer, width, height, channels, output_predivide);
     }
 
-    *is_straight_alpha = false;
-  }
-  else {
-    /* some processors would want to modify float original buffer
-     * before converting it into display byte buffer, so we need to
-     * make sure original's ImBuf buffers wouldn't be modified by
-     * using duplicated buffer here
-     */
-
-    memcpy(linear_buffer, handle->buffer, buffer_size * sizeof(float));
-
-    *is_straight_alpha = false;
-  }
-}
-
-static void do_display_buffer_apply_no_processor(DisplayBufferThread *handle)
-{
-  const int width = handle->width;
-  const int height = handle->tot_line;
-  if (handle->display_buffer_byte && handle->display_buffer_byte != handle->byte_buffer) {
-    if (handle->byte_buffer) {
-      memcpy(handle->display_buffer_byte, handle->byte_buffer, size_t(width) * height * 4);
-    }
-    else if (handle->buffer) {
-      IMB_buffer_byte_from_float(handle->display_buffer_byte,
-                                 handle->buffer,
-                                 handle->channels,
-                                 handle->dither,
-                                 handle->predivide,
+    /* Convert to output byte buffer if needed. */
+    if (display_buffer_byte) {
+      IMB_buffer_byte_from_float(display_buffer_byte,
+                                 linear_buffer,
+                                 channels,
+                                 dither,
+                                 output_predivide,
                                  width,
                                  height,
                                  width,
-                                 handle->start_line);
+                                 y_range.first());
     }
-  }
 
-  if (handle->display_buffer) {
-    if (handle->byte_buffer) {
-      IMB_buffer_float_from_byte(
-          handle->display_buffer, handle->byte_buffer, width, height, width, width);
+    if (!use_display_buffer) {
+      MEM_delete(linear_buffer);
     }
-    else if (handle->buffer && handle->display_buffer != handle->buffer) {
-      IMB_buffer_float_rgba_from_float(
-          handle->display_buffer, handle->buffer, handle->channels, width, height);
-    }
-  }
-}
-
-static void do_display_buffer_apply_thread(DisplayBufferThread *handle)
-{
-  ColormanageProcessor *cm_processor = handle->cm_processor;
-  if (cm_processor == nullptr) {
-    do_display_buffer_apply_no_processor(handle);
-    return;
-  }
-
-  float *display_buffer = handle->display_buffer;
-  uchar *display_buffer_byte = handle->display_buffer_byte;
-  int channels = handle->channels;
-  int width = handle->width;
-  int height = handle->tot_line;
-  float *linear_buffer = MEM_new_array_uninitialized<float>(
-      size_t(channels) * size_t(width) * size_t(height), "color conversion linear buffer");
-
-  bool is_straight_alpha;
-  display_buffer_apply_get_linear_buffer(handle, height, linear_buffer, &is_straight_alpha);
-
-  bool predivide = handle->predivide && (is_straight_alpha == false);
-
-  /* Apply processor (note: data buffers never get color space conversions). */
-  if (!handle->is_data) {
-    cm_processor->apply(linear_buffer, width, height, channels, predivide);
-  }
-
-  /* copy result to output buffers */
-  if (display_buffer_byte) {
-    /* do conversion */
-    IMB_buffer_byte_from_float(display_buffer_byte,
-                               linear_buffer,
-                               channels,
-                               handle->dither,
-                               predivide,
-                               width,
-                               height,
-                               width,
-                               handle->start_line);
-  }
-
-  if (display_buffer) {
-    memcpy(display_buffer, linear_buffer, size_t(width) * height * channels * sizeof(float));
-
-    if (is_straight_alpha && channels == 4) {
-      const size_t i_last = size_t(width) * height;
-      size_t i;
-      float *fp;
-
-      for (i = 0, fp = display_buffer; i != i_last; i++, fp += channels) {
-        straight_to_premul_v4(fp);
-      }
-    }
-  }
-
-  MEM_delete(linear_buffer);
-}
-
-static void display_buffer_apply_threaded(ImBuf *ibuf,
-                                          const float *buffer,
-                                          uchar *byte_buffer,
-                                          float *display_buffer,
-                                          uchar *display_buffer_byte,
-                                          ColormanageProcessor *cm_processor)
-{
-  DisplayBufferInitData init_data;
-
-  init_data.ibuf = ibuf;
-  init_data.cm_processor = cm_processor;
-  init_data.buffer = buffer;
-  init_data.byte_buffer = byte_buffer;
-  init_data.display_buffer = display_buffer;
-  init_data.display_buffer_byte = display_buffer_byte;
-
-  if (ibuf->byte_buffer.colorspace != nullptr) {
-    init_data.byte_colorspace = ibuf->byte_buffer.colorspace->name().c_str();
-  }
-  else {
-    /* happens for viewer images, which are not so simple to determine where to
-     * set image buffer's color spaces
-     */
-    init_data.byte_colorspace = global_role_default_byte;
-  }
-
-  if (ibuf->float_buffer.colorspace != nullptr) {
-    /* sequencer stores float buffers in non-linear space */
-    init_data.float_colorspace = ibuf->float_buffer.colorspace->name().c_str();
-  }
-  else {
-    init_data.float_colorspace = nullptr;
-  }
-
-  threading::parallel_for(IndexRange(ibuf->y), 64, [&](const IndexRange y_range) {
-    DisplayBufferThread handle;
-    display_buffer_init_handle(&handle, y_range.first(), y_range.size(), &init_data);
-    do_display_buffer_apply_thread(&handle);
   });
 }
 
@@ -2115,11 +1934,11 @@ static bool imb_colormanagement_display_processor_needed(
 }
 
 static void colormanage_display_buffer_process(ImBuf *ibuf,
-                                               float *display_buffer,
-                                               uchar *display_buffer_byte,
                                                const ColorManagedViewSettings *view_settings,
                                                const ColorManagedDisplaySettings *display_settings,
-                                               const ColorManagedDisplaySpace display_space)
+                                               const ColorManagedDisplaySpace display_space,
+                                               const bool predivide,
+                                               const bool flatten_alpha)
 {
   std::optional<ColormanageProcessor> cm_processor;
   if (imb_colormanagement_display_processor_needed(
@@ -2131,12 +1950,27 @@ static void colormanage_display_buffer_process(ImBuf *ibuf,
 
   ColormanageProcessor *processor = cm_processor ? &*cm_processor : nullptr;
 
+  /* Keep shared source storage alive until we are done with conversion.
+   * Avoids full image copy done by float_data_for_write(). */
+  ImBufFloatBuffer source_buffer;
+  if (ibuf->float_data() && !ibuf->float_buffer.sharing_info->is_mutable() &&
+      (processor || flatten_alpha))
+  {
+    source_buffer = ibuf->float_buffer;
+    float *output = MEM_new_array_uninitialized<float>(size_t(ibuf->x) * ibuf->y * ibuf->channels,
+                                                       __func__);
+    ibuf->assign_float_data(output);
+    ibuf->float_buffer.colorspace = source_buffer.colorspace;
+  }
+  float *display_buffer = ibuf->float_data_for_write();
+  uchar *display_buffer_byte = ibuf->byte_data_for_write();
   display_buffer_apply_threaded(ibuf,
-                                ibuf->float_data(),
-                                ibuf->byte_data_for_write(),
+                                source_buffer.data ? source_buffer.data : display_buffer,
                                 display_buffer,
                                 display_buffer_byte,
-                                processor);
+                                processor,
+                                predivide,
+                                flatten_alpha);
 }
 
 /** \} */
@@ -2730,6 +2564,9 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
    * with color management conversions applied. This may be for either applying the
    * display transform for renders, or a user specified color space for the file. */
   const bool byte_output = BKE_image_format_is_byte(image_format);
+  const bool display_output = save_as_render && !linear_float_output;
+  const bool flatten_float_alpha = display_output && ibuf->float_data() && ibuf->channels == 4 &&
+                                   image_format->color_mode != ImColorMode::RGBA;
 
   /* Create temporary byte image buffer if we are saving byte as float. */
   if (byte_output && ibuf->float_data() && ibuf->byte_data()) {
@@ -2753,7 +2590,9 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
 
     colormanaged_ibuf = imbuf_ensure_editable(ibuf, colormanaged_ibuf, allocate_result);
 
-    if (colormanaged_ibuf->float_data() && colormanaged_ibuf->channels == 4) {
+    if (colormanaged_ibuf->float_data() && colormanaged_ibuf->channels == 4 &&
+        !flatten_float_alpha)
+    {
       IMB_alpha_under_color_float(colormanaged_ibuf->float_data_for_write(),
                                   colormanaged_ibuf->x,
                                   colormanaged_ibuf->y,
@@ -2768,22 +2607,24 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
     }
   }
 
-  if (save_as_render && !linear_float_output) {
+  if (display_output) {
     /* Render output: perform conversion to display space using view transform. */
     colormanaged_ibuf = imbuf_ensure_editable(ibuf, colormanaged_ibuf, allocate_result);
 
     if (!colormanaged_ibuf->byte_data() && byte_output) {
-      IMB_alloc_byte_pixels(colormanaged_ibuf);
+      /* The display conversion below overwrites every byte pixel. */
+      IMB_alloc_byte_pixels(colormanaged_ibuf, false);
     }
 
-    colormanage_display_buffer_process(colormanaged_ibuf,
-                                       colormanaged_ibuf->float_data_for_write(),
-                                       colormanaged_ibuf->byte_data_for_write(),
-                                       &image_format->view_settings,
-                                       &image_format->display_settings,
-                                       image_format->media_type == MEDIA_TYPE_VIDEO ?
-                                           DISPLAY_SPACE_VIDEO_OUTPUT :
-                                           DISPLAY_SPACE_IMAGE_OUTPUT);
+    colormanage_display_buffer_process(
+        colormanaged_ibuf,
+        &image_format->view_settings,
+        &image_format->display_settings,
+        image_format->media_type == MEDIA_TYPE_VIDEO ? DISPLAY_SPACE_VIDEO_OUTPUT :
+                                                       DISPLAY_SPACE_IMAGE_OUTPUT,
+        /* RGB output is flattened to opaque before conversion. */
+        image_format->color_mode == ImColorMode::RGBA && IMB_alpha_affects_rgb(colormanaged_ibuf),
+        flatten_float_alpha);
 
     if (colormanaged_ibuf->float_data()) {
       /* Float buffer isn't linear anymore.
