@@ -53,10 +53,10 @@ USE_ADDON_IGNORE_EXTENSION_MANIFEST_HACK = True
 def size_as_fmt_string(num: float, *, precision: int = 1) -> str:
     for unit in ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB"):
         if abs(num) < 1024.0:
-            return "{:3.{:d}f}{:s}".format(num, precision, unit)
+            return "{:3.{:d}f} {:s}".format(num, precision, unit)
         num /= 1024.0
     unit = "YB"
-    return "{:.{:d}f}{:s}".format(num, precision, unit)
+    return "{:.{:d}f} {:s}".format(num, precision, unit)
 
 
 def sizes_as_percentage_string(size_partial: int, size_final: int) -> str:
