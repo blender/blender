@@ -2482,12 +2482,12 @@ static void rna_def_color_balance(BlenderRNA *brna)
   prop = RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Exposure", "");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_ColorBabalnce_update");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripColorBalance_update");
 
   prop = RNA_def_property(srna, "saturation", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Saturation", "");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_ColorBabalnce_update");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripColorBalance_update");
 #  endif
 
   RNA_def_struct_path_func(srna, "rna_StripColorBalance_path");

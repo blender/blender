@@ -771,7 +771,7 @@ static void rna_PartSettings_end_set(PointerRNA *ptr, float value)
   settings->end = value;
 }
 
-static void rna_PartSetings_timestep_set(PointerRNA *ptr, float value)
+static void rna_PartSettings_timestep_set(PointerRNA *ptr, float value)
 {
   ParticleSettings *settings = static_cast<ParticleSettings *>(ptr->data);
 
@@ -2707,7 +2707,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "timestep", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_funcs(
-      prop, "rna_PartSettings_timestep_get", "rna_PartSetings_timestep_set", nullptr);
+      prop, "rna_PartSettings_timestep_get", "rna_PartSettings_timestep_set", nullptr);
   RNA_def_property_range(prop, 0.0001, 100.0);
   RNA_def_property_ui_range(prop, 0.01, 10, 1, 3);
   RNA_def_property_ui_text(
