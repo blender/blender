@@ -1354,7 +1354,7 @@ static void add_weights_for_tri(const Span<int3> tri_adjacency,
   }
 }
 
-static meshintersect::CDT_input<double> get_input_from_drawings(
+static std::optional<meshintersect::CDT_input<double>> get_input_from_drawings(
     const Span<DrawingInfo> src_drawings,
     const Object &object,
     const VArray<bool> &boundary_layers,
@@ -1496,6 +1496,10 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
       drawing_vert_offset_data);
   const OffsetIndices<int> drawing_edge_offsets = offset_indices::accumulate_counts_to_offsets(
       drawing_edge_offset_data);
+
+  if (drawing_vert_offsets.total_size() == 0) {
+    return std::nullopt;
+  }
 
   /* Four points are added for the bounding box. */
   r_cdt_verts = Array<double2>(drawing_vert_offsets.total_size() + 4);
@@ -1646,11 +1650,14 @@ std::optional<bke::CurvesGeometry> delaunay_fill_strokes(
 
   Array<double2> cdt_verts;
   Array<int2> cdt_edges;
-  const meshintersect::CDT_input<double> input = get_input_from_drawings(
+  const std::optional<meshintersect::CDT_input<double>> input = get_input_from_drawings(
       src_drawings, object, boundary_layers, region, opacity_threshold, cdt_verts, cdt_edges);
-  meshintersect::CDT_result<double> result = delaunay_2d_calc(input, CDT_FULL);
+  if (!input) {
+    return std::nullopt;
+  }
+  meshintersect::CDT_result<double> result = delaunay_2d_calc(*input, CDT_FULL);
 
-  const IndexRange src_boundary_points = input.vert.index_range().take_back(4);
+  const IndexRange src_boundary_points = input->vert.index_range().take_back(4);
 
   Array<bool> is_source_edge(result.edge.size(), false);
 

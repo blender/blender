@@ -42,7 +42,6 @@ void eval_light([[resource_table]] EvalLight & /*srt*/,
   eevee::light::EvalCtx<false> ctx;
   ctx.P = P;
   ctx.Ng = Ng;
-  ctx.V = V;
   /* Note: This shader disables light culling and shadow jitter. */
   ctx.texel = float2(0.0);
   ctx.thickness = Thickness::zero();
@@ -69,7 +68,6 @@ void eval_light([[resource_table]] EvalLight & /*srt*/,
   ctx.stack.cl[0] = closure_light_new(util_tx, cl_transmit, -V);
 
   ctx.Ng = -Ng;
-  ctx.V = -V;
   lights.eval_reflection(ctx, 1.0f);
 
   if (surfels.capture_info_buf.capture_indirect) {

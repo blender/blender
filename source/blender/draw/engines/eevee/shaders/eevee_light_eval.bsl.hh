@@ -46,7 +46,6 @@ void eval_single_closure(sampler2DArray util_tx,
                          LightVector lv,
                          LightShape shape,
                          ClosureLight &cl,
-                         float3 V,
                          float attenuation,
                          float shadow)
 {
@@ -55,11 +54,7 @@ void eval_single_closure(sampler2DArray util_tx,
     return;
   }
 
-  /* TODO(not_mark): remove, and update tests as this causes precision change. */
-  /* Load LTC matrix and rotate into orthonormal basis around N. */
   LTCData ltc_data = LTCData::unpack_from(cl);
-  float3x3 T = from_incident_vector(cl.N, V);
-  ltc_data.Minv = ltc_data.Minv * transpose(T);
   float ltc_result = ltc::evaluate(util_tx, light, shape, lv, ltc_data);
 
   float3 out_radiance = light.color * ltc_result;
@@ -73,7 +68,6 @@ template<bool is_transmission> struct EvalCtx {
 
   float3 P;
   float3 Ng;
-  float3 V;
   float2 texel;
   Thickness thickness;
   uchar receiver_light_set;
@@ -126,12 +120,12 @@ template<bool is_transmission> struct EvalCtx {
     for (uint i = 0u; i < 3; i++) [[unroll]] {
       if constexpr (is_transmission) {
         if (srt.constants.light_closure_eval_count_transmit > i) [[static_branch]] {
-          eval_single_closure(util_tx, light, lv, shape, stack.cl[i], V, attenuation, shadow);
+          eval_single_closure(util_tx, light, lv, shape, stack.cl[i], attenuation, shadow);
         }
       }
       else {
         if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
-          eval_single_closure(util_tx, light, lv, shape, stack.cl[i], V, attenuation, shadow);
+          eval_single_closure(util_tx, light, lv, shape, stack.cl[i], attenuation, shadow);
         }
       }
     }
@@ -162,7 +156,6 @@ EvalCtx<true> init_from_reflect_ctx(EvalCtx<false> ctx)
   EvalCtx<true> ctx_tr;
   ctx_tr.P = ctx.P;
   ctx_tr.Ng = ctx.Ng;
-  ctx_tr.V = ctx.V;
   ctx_tr.texel = ctx.texel;
   ctx_tr.thickness = ctx.thickness;
   ctx_tr.receiver_light_set = ctx.receiver_light_set;

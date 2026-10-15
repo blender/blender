@@ -54,7 +54,6 @@ void forward_lighting_eval(KernelGlobals &kg,
 
     ctx.P = sd.P;
     ctx.Ng = sd.Ng;
-    ctx.V = V;
     ctx.texel = frag_co;
     ctx.thickness = thickness;
 

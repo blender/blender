@@ -1166,7 +1166,6 @@ void node_light_evaluation_impl(KernelGlobals &kg,
     const float3 V = view.world_incident_vector(position);
 
     /* TODO(not_mark): remove, and update tests as this causes precision change. */
-    /* Load LTC matrix and rotate into orthonormal basis around N. */
     eevee::LTCData ltc_data;
     if constexpr (use_diffuse) {
       ltc_data = eevee::LTCData::identity(normal, V);
@@ -1174,8 +1173,6 @@ void node_light_evaluation_impl(KernelGlobals &kg,
     else {
       ltc_data = eevee::LTCData::sample_ltc_lut(util_tx, normal, V, dot(normal, V), roughness);
     }
-    float3x3 T = from_incident_vector(normal, V);
-    ltc_data.Minv = ltc_data.Minv * transpose(T);
     factor = eevee::ltc::evaluate(util_tx.utility_tx, light, light_shape_vertices, lv, ltc_data);
 
     factor *= light.shape_power;
