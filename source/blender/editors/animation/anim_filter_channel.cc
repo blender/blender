@@ -167,9 +167,9 @@ std::ostream &operator<<(std::ostream &stream, const ChannelIdentifier &chan_ide
   return stream;
 }
 
-void debug_stream_hierarchy(std::ostream &stream,
-                            const AnimationChannel &channel,
-                            const StringRef indent)
+static void debug_stream_hierarchy(std::ostream &stream,
+                                   const AnimationChannel &channel,
+                                   const StringRef indent)
 {
   /* Show the channel itself. */
   stream << indent << "\033[90m" << channel.type() << "\033[0m "

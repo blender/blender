@@ -457,9 +457,9 @@ void collection_channels_for_object(Object &obj,
   }
 }
 
-void collect_action_channels(animrig::Action &action,
-                             const CollectionFilters &collection_filters,
-                             ChannelArena &arena)
+static void collect_action_channels(animrig::Action &action,
+                                    const CollectionFilters &collection_filters,
+                                    ChannelArena &arena)
 {
   using namespace animrig;
   PRF_scope_with_name("ed::animfilter::collect_action_channels", ProfileCategory::Editor);
