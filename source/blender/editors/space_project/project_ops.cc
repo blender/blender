@@ -81,6 +81,7 @@ static wmOperatorStatus project_new_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   WM_main_add_notifier(NC_WINDOW, nullptr);
+  WM_main_add_notifier(NC_WM | ND_PROJECT_CHANGED, nullptr);
 
   if (!G.background) {
     BKE_blender_project_recent_update(bmain);
