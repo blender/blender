@@ -761,6 +761,7 @@ STDLIB_TYPE_MODULES: dict[str, str] = {
     "Generator": "collections.abc",
     "Iterable": "collections.abc",
     "Iterator": "collections.abc",
+    "MutableSequence": "collections.abc",
     "Sequence": "collections.abc",
 
     "ModuleType": "types",

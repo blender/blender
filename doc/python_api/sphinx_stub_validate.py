@@ -6,9 +6,9 @@
 """
 Validate Python type stubs (.pyi) produced by ``sphinx_stub_gen.py``.
 
-Two checks are performed:
+The following checks are performed:
 
-- Syntactic: each ``.pyi`` is fed through :func:`compile`.
+- Static: each ``.pyi`` is parsed & compiled, each name it references must be defined, imported or a builtin.
 - Semantic: each module is loaded via a custom ``.pyi`` finder, surfacing
   base-class and module-level evaluation errors (e.g. references to undefined
   names from class bases or non-trivial defaults).
@@ -21,6 +21,8 @@ __all__ = (
 )
 
 import argparse
+import ast
+import builtins
 import contextlib
 import importlib
 import importlib.abc
@@ -29,7 +31,11 @@ import importlib.util
 import sys
 import types
 
-from collections.abc import Iterator, Sequence
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Sequence,
+)
 from pathlib import Path
 
 
@@ -42,21 +48,93 @@ def stub_module_names(stubs_dir: Path, stub_paths: list[Path]) -> list[str]:
     ]
 
 
-def validate_stubs_syntactically(stub_paths: list[Path]) -> list[str]:
-    """Run :func:`compile` on each path; return error messages (empty on success).
+# Generated stubs don't use `lambda`, so it's not treated as a scope.
+FunctionNode = ast.FunctionDef | ast.AsyncFunctionDef
+ScopeNode = ast.ClassDef | FunctionNode
 
-    Catches read errors (``OSError``), decoding errors (``UnicodeDecodeError``,
-    ``ValueError`` for null bytes), and parse errors (``SyntaxError``) - each
-    is recorded rather than propagated.
+
+def scope_args(args: ast.arguments) -> list[ast.arg]:
+    """Return all arguments of a function."""
+    return [
+        *args.posonlyargs, *args.args, *args.kwonlyargs,
+        *(arg for arg in (args.vararg, args.kwarg) if arg is not None),
+    ]
+
+
+def scope_outer_nodes(node: ScopeNode) -> list[ast.AST]:
+    """Return nodes of *node* evaluated in the enclosing scope (decorators, bases, annotations & defaults)."""
+    if isinstance(node, ast.ClassDef):
+        return [*node.decorator_list, *node.bases, *node.keywords]
+    args = node.args
+    nodes: list[ast.AST] = [*node.decorator_list, *args.defaults, *(v for v in args.kw_defaults if v is not None)]
+    nodes += (arg.annotation for arg in scope_args(args) if arg.annotation is not None)
+    if node.returns is not None:
+        nodes.append(node.returns)
+    return nodes
+
+
+def iter_scope_nodes(nodes: Iterable[ast.AST]) -> Iterator[ast.AST]:
+    """Walk *nodes* and their children, without descending into the bodies of nested scopes."""
+    for node in nodes:
+        yield node
+        if isinstance(node, ScopeNode):
+            yield from iter_scope_nodes(scope_outer_nodes(node))
+        else:
+            yield from iter_scope_nodes(ast.iter_child_nodes(node))
+
+
+def find_undefined_names(nodes: Iterable[ast.AST], visible: set[str]) -> Iterator[ast.Name]:
+    """
+    Yield names loaded in the scope containing *nodes* that aren't defined there or in *visible*.
+    Names an enclosing scope defines are visible to nested scopes (as with annotations in a class body).
+    """
+    scope_nodes = list(iter_scope_nodes(nodes))
+    defined = set(visible)
+    for node in scope_nodes:
+        if isinstance(node, ScopeNode):
+            defined.add(node.name)
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            for alias in node.names:
+                defined.add((alias.asname or alias.name).partition(".")[0])
+        elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+            defined.add(node.id)
+    for node in scope_nodes:
+        if isinstance(node, ast.Name):
+            if isinstance(node.ctx, ast.Load) and node.id not in defined:
+                yield node
+        elif isinstance(node, ast.ClassDef):
+            yield from find_undefined_names(node.body, defined)
+        elif isinstance(node, FunctionNode):
+            yield from find_undefined_names(node.body, defined | {arg.arg for arg in scope_args(node.args)})
+
+
+def validate_stubs_statically(stub_paths: list[Path]) -> list[str]:
+    """
+    Parse & compile each path once, return error messages (empty on success).
+
+    Catches read errors (``OSError``), decoding errors (``UnicodeDecodeError``, a ``ValueError``)
+    and parse errors (``SyntaxError``, including null bytes) - each is recorded rather than propagated.
+
+    Names referenced but not defined in their stub are also reported,
+    since the semantic check can't detect these as annotations aren't evaluated at runtime.
     """
     errors: list[str] = []
+    builtin_names = set(dir(builtins))
     for pyi_path in stub_paths:
         try:
-            compile(pyi_path.read_text(encoding="utf-8"), str(pyi_path), "exec")
+            tree = ast.parse(pyi_path.read_text(encoding="utf-8"), str(pyi_path))
+            # Reports errors `ast.parse` doesn't, e.g. duplicate argument names.
+            compile(tree, str(pyi_path), "exec")
         except SyntaxError as ex:
             errors.append("{:s}:{:d}: {:s}".format(str(pyi_path), ex.lineno or 0, str(ex.msg)))
+            continue
         except (OSError, ValueError) as ex:
             errors.append("{:s}: {:s}: {:s}".format(str(pyi_path), type(ex).__name__, str(ex)))
+            continue
+        # Report each name once per line.
+        undefined = sorted({(node.lineno, node.id) for node in find_undefined_names(tree.body, builtin_names)})
+        for lineno, name in undefined:
+            errors.append("{:s}:{:d}: name not defined: {:s}".format(str(pyi_path), lineno, name))
     return errors
 
 
@@ -193,12 +271,12 @@ def validate_stubs(
     Run the checks (see module docstring) against *stub_paths* under *stubs_dir*.
 
     On any error, details are written to ``stderr`` and the function returns ``1``.
-    On success, returns ``0``. The semantic step is skipped if syntax errors are present.
+    On success, returns ``0``. The semantic step is skipped if static errors are present.
     """
     if verbose:
         print("Checking {:d} stub(s) under {:s}".format(len(stub_paths), str(stubs_dir)))
 
-    if report_errors("Stub syntax errors", validate_stubs_syntactically(stub_paths)):
+    if report_errors("Stub static errors", validate_stubs_statically(stub_paths)):
         return 1
     module_names = stub_module_names(stubs_dir, stub_paths)
     if report_errors("Stub semantic errors", validate_stubs_semantically(stubs_dir, module_names)):
