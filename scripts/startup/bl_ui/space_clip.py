@@ -257,6 +257,9 @@ class CLIP_PT_proportional_edit(Panel):
         col = layout.column()
         col.active = tool_settings.use_proportional_edit_mask
 
+        col.prop(tool_settings, "use_proportional_connected")
+        col.separator()
+
         col.prop(tool_settings, "proportional_edit_falloff", expand=True)
         col.prop(tool_settings, "proportional_size")
 
