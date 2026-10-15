@@ -1480,7 +1480,7 @@ void collection_importer_register()
 
   mt = MEM_new_zeroed<MenuType>(__func__);
   STRNCPY_UTF8(mt->idname, "COLLECTION_MT_importer_control");
-  STRNCPY_UTF8(mt->label, N_("Add Control"));
+  STRNCPY_UTF8(mt->label, N_("Importer Control"));
   mt->draw = collection_importer_control_menu_draw;
   WM_menutype_add(mt);
 
