@@ -1480,7 +1480,7 @@ def extension_draw_item(
         else:
             col_b.label(text=item.version, translate=False)
 
-        if has_remote and (item_remote is not None):
+        if item.type == "add-on" and has_remote and (item_remote is not None):
             col_a.label(text="Size")
             col_b.label(text=size_as_fmt_string(item_remote.archive_size), translate=False)
 
