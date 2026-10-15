@@ -1354,6 +1354,11 @@ bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_st
     return true;
   }
 
+  /* Viewports and scissors are part of the pipeline and only known when drawing. */
+  if (device.workarounds_get().static_viewport_scissor) {
+    return true;
+  }
+
   for (const shader::PipelineState &pipeline_state : pipeline_states) {
     const VkPrimitiveTopology vk_topology = to_vk_primitive_topology(pipeline_state.primitive_);
 
@@ -1472,9 +1477,13 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(
   graphics_info.shaders.color_attachment_count = uint32_t(
       graphics_info.fragment_out.color_attachment_formats.size());
 
+  /* Pipelines with baked in viewports and scissors are unlikely to be reused, don't store them
+   * in the static pipeline cache that is written to disk. */
+  const bool use_static_cache = is_static_shader_ &&
+                                !device.workarounds_get().static_viewport_scissor;
   bool pipeline_created = false;
   VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(
-      graphics_info, is_static_shader_, vk_pipeline_base_, name_get(), pipeline_created);
+      graphics_info, use_static_cache, vk_pipeline_base_, name_get(), pipeline_created);
 
   UNUSED_VARS_NDEBUG(pipeline_created);
 #ifndef NDEBUG
