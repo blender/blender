@@ -1159,7 +1159,7 @@ static void action_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
     }
     if (state.source_rna_path) {
       chan_ident.source_rna_path =
-          ParsedSourcePath::from_string(state.source_rna_path).value_or({});
+          ParsedSourcePath::from_string(state.source_rna_path).value_or(ParsedSourcePath());
     }
 
     /* Create the UI state map value. */
