@@ -552,7 +552,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  sh_geo_node_type_base(&ntype, "NodeEvaluateClosure"_ustr, NODE_EVALUATE_CLOSURE);
+  common_node_type_base(&ntype, "NodeEvaluateClosure"_ustr, NODE_EVALUATE_CLOSURE);
   ntype.ui_name = "Evaluate Closure";
   ntype.ui_description = "Execute a given closure";
   ntype.nclass = NODE_CLASS_CONVERTER;
