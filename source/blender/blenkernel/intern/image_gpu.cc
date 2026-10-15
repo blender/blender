@@ -649,8 +649,8 @@ void BKE_image_free_old_gputextures(Main *bmain)
         BKE_image_free_gputextures(&ima);
         ima.runtime->lastused = ctime;
       }
-      /* Otherwise, just kill the buffers */
-      else {
+      /* Otherwise, just kill the buffers, unless they have unsaved changes. */
+      else if (!BKE_image_is_dirty(&ima)) {
         BKE_image_free_buffers(&ima);
       }
     }
