@@ -265,8 +265,19 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
     case NC_ANIMATION:
       switch (wmn->data) {
         case ND_NLA_ACTCHANGE:
-        case ND_KEYFRAME:
           ED_region_tag_redraw(region);
+          break;
+        case ND_KEYFRAME:
+          if (!ELEM(space_outliner->outlinevis, SO_ID_ORPHANS, SO_LIBRARIES)) {
+            if ((space_outliner->outlinevis == SO_DATA_API) ||
+                ELEM(wmn->action, NA_ADDED, NA_REMOVED))
+            {
+              ED_region_tag_redraw(region);
+            }
+            else {
+              ED_region_tag_redraw_no_rebuild(region);
+            }
+          }
           break;
         case ND_ANIMCHAN:
           if (ELEM(wmn->action, NA_SELECTED, NA_RENAME)) {
