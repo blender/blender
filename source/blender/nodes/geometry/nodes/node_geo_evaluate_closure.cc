@@ -515,7 +515,7 @@ class EvaluateClosureOperation : public NodeOperation {
       }
       this->add_warning(
           NodeWarningType::Error,
-          fmt::format(fmt::runtime(TIP_("Closure not have output: \"{}\"")), output->name));
+          fmt::format(fmt::runtime(TIP_("Closure does not have output: \"{}\"")), output->name));
     }
     for (const bNodeSocket *input : this->node().input_sockets()) {
       if (!is_socket_available(input)) {
@@ -533,7 +533,7 @@ class EvaluateClosureOperation : public NodeOperation {
       }
       this->add_warning(
           NodeWarningType::Error,
-          fmt::format(fmt::runtime(TIP_("Closure not have input: \"{}\"")), input->name));
+          fmt::format(fmt::runtime(TIP_("Closure does not have input: \"{}\"")), input->name));
     }
   }
 
@@ -552,7 +552,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  sh_geo_node_type_base(&ntype, "NodeEvaluateClosure"_ustr, NODE_EVALUATE_CLOSURE);
+  common_node_type_base(&ntype, "NodeEvaluateClosure"_ustr, NODE_EVALUATE_CLOSURE);
   ntype.ui_name = "Evaluate Closure";
   ntype.ui_description = "Execute a given closure";
   ntype.nclass = NODE_CLASS_CONVERTER;
