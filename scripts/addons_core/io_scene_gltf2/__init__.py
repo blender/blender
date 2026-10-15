@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 4, 4),
+    "version": (5, 4, 5),
     'blender': (5, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1126,10 +1126,10 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             'use_active_scene',
             'collection',
         ]
-        all_props = self.properties
+        all_props = dir(self.properties)
         export_props = {
-            x: getattr(self, x) for x in dir(all_props)
-            if (x.startswith("export_") or x in exceptional) and all_props.get(x) is not None
+            x: getattr(self, x) for x in all_props
+            if (x.startswith("export_") or x in exceptional) and getattr(self, x, None) is not None
         }
         context.scene[self.scene_key] = export_props
 
