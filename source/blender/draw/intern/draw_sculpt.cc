@@ -105,6 +105,9 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
                bke::pbvh::node_frustum_contain_aabb(node, draw_frustum_planes);
       });
 
+  /* In the future we expect that update_only_visible nodes will be removed to support GPU driven
+   * pipelines better. Only visible nodes is an CPU based optimization but does not provide the GPU
+   * with the actual data it needs. */
   const IndexMask nodes_to_update = update_only_visible ? visible_nodes :
                                                           bke::pbvh::all_leaf_nodes(*pbvh, memory);
 

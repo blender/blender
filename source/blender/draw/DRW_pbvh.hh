@@ -59,6 +59,7 @@ class DrawCache : public bke::pbvh::DrawCache {
   /**
    * Recalculate and copy data as necessary to prepare batches for drawing triangles for a
    * specific combination of attributes.
+   * \note Calls within the drawing of a single viewport must use the same nodes_to_update mask.
    */
   virtual Span<Batch *> ensure_tris_batches(const Object &object,
                                             const ViewportRequest &request,
@@ -66,6 +67,7 @@ class DrawCache : public bke::pbvh::DrawCache {
   /**
    * Recalculate and copy data as necessary to prepare batches for drawing wireframe geometry for a
    * specific combination of attributes.
+   * \note Calls within the drawing of a single viewport must use the same nodes_to_update mask.
    */
   virtual Span<Batch *> ensure_lines_batches(const Object &object,
                                              const ViewportRequest &request,
