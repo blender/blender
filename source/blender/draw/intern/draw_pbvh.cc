@@ -3624,7 +3624,8 @@ Span<Batch *> DrawCacheImpl::ensure_tris_batches(const Object &object,
       [&](const int node_index) {
         const bool has_ibo = !ibos.is_empty() && ibos[node_index] != nullptr;
         if (!batches[node_index] || batch_cache.dirty[node_index] ||
-            batches[node_index]->gpu_batch()->elem_() != (has_ibo ? ibos[node_index].get() : nullptr))
+            batches[node_index]->gpu_batch()->elem_() !=
+                (has_ibo ? ibos[node_index].get() : nullptr))
         {
           if (!has_ibo) {
             /* No geometry for this node. */
@@ -3634,7 +3635,8 @@ Span<Batch *> DrawCacheImpl::ensure_tris_batches(const Object &object,
             batches[node_index] = MEM_new<Batch>(__func__, GPU_batch_calloc());
           }
           Batch::clear(batches[node_index]);
-          GPU_batch_init(batches[node_index]->gpu_batch(), GPU_PRIM_TRIS, nullptr, ibos[node_index].get());
+          GPU_batch_init(
+              batches[node_index]->gpu_batch(), GPU_PRIM_TRIS, nullptr, ibos[node_index].get());
           for (gpu::VertBuf *vbo : attr_vbos) {
             GPU_batch_vertbuf_add(batches[node_index]->gpu_batch(), vbo, false);
           }
@@ -3695,7 +3697,8 @@ Span<Batch *> DrawCacheImpl::ensure_lines_batches(const Object &object,
             batches[node_index] = MEM_new<Batch>(__func__, GPU_batch_calloc());
           }
           Batch::clear(batches[node_index]);
-          GPU_batch_init(batches[node_index]->gpu_batch(), GPU_PRIM_LINES, nullptr, lines[node_index].get());
+          GPU_batch_init(
+              batches[node_index]->gpu_batch(), GPU_PRIM_LINES, nullptr, lines[node_index].get());
           GPU_batch_vertbuf_add(batches[node_index]->gpu_batch(), position.vbo.get(), false);
         }
       },
