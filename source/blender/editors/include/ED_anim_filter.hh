@@ -69,7 +69,7 @@ class ChannelTag {
              StringRef label,
              const PointerRNA &source_data,
              std::optional<ParsedSourcePath> source_rna_path,
-             int sort_priority_ = 0);
+             int sort_priority_ = 0 /*AnimationChannel::DEFAULT_SORTING*/);
   bool operator==(const ChannelTag &other) const
   {
     return other.tag_type_ == this->tag_type_ &&
@@ -282,6 +282,17 @@ enum class SelectionMode {
 };
 
 class AnimationChannel {
+ public:
+  /**
+   * Sentinel value for #sorting_priority_, indicating that this channel should not be sorted.
+   *
+   * This intentionally has the lowest possible value, so that all sortable channels are sorted
+   * above unsortable channels.
+   */
+  constexpr static int NO_SORTING = std::numeric_limits<int>::lowest();
+  constexpr static int DEFAULT_SORTING = 0;
+  constexpr static ID_Type IDTYPE_UNKNOWN = ID_Type(0);
+
  protected:
   AnimationChannelType type_ = AnimationChannelType::UNKNOWN;
   AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY;
@@ -293,11 +304,13 @@ class AnimationChannel {
   PointerRNA source_;
   /* The RNA path that identifies the source of this channel, relative to source_.owner_id. */
   std::optional<ParsedSourcePath> source_rna_path_;
+  mutable ID_Type source_id_type_ = IDTYPE_UNKNOWN;
 
   Vector<KeyPoint> datapoints_;
-  /* Higher numbers will be sorted before lower numbers. In case the values are equal a fallback
-   * is used. */
-  int sorting_priority_ = 0;
+  /* Higher numbers will be sorted before lower numbers. In case the values are equal a fallback is
+   * used. A special value #NO_SORTING indicates that the channel should not be sorted relative to
+   * other NO_SORTING channels. */
+  int sorting_priority_ = DEFAULT_SORTING;
 
   /**
    * The tags of a DataChannel are defined by its source.
@@ -343,6 +356,8 @@ class AnimationChannel {
   {
     return this->source_;
   }
+  bool source_is_id() const;
+  ID_Type source_id_type() const;
 
   AnimationChannelFlags *flags_ptr()
   {
@@ -418,6 +433,7 @@ class SummaryChannel final : public AnimationChannel {
    */
   Span<AnimationChannel *> children() const;
   void add_child(AnimationChannel &child);
+  void insert_child(int insert_index, AnimationChannel &child);
   void remove_child(AnimationChannel &child);
   /**
    * Sort the children of this summary channel.
@@ -508,7 +524,9 @@ class FCurveChannel : public DataChannel {
 
 class GreasePencilChannel : public DataChannel {
  public:
-  GreasePencilChannel(const PointerRNA &gp_layer_ptr, ParsedSourcePath source_rna_path);
+  GreasePencilChannel(const PointerRNA &gp_layer_ptr,
+                      ParsedSourcePath source_rna_path,
+                      int sorting_priority);
 
   bool is_selected() const override;
   void set_selected(bool is_selected) override;

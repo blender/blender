@@ -321,9 +321,18 @@ struct GreasePencilCollector {
   Vector<rna_path::Item> &layer_rna_path_items;
   Vector<rna_path::Item> &group_rna_path_items;
 
-  void visit(bke::greasepencil::TreeNode &node)
+  void visit(bke::greasepencil::TreeNode &node, int &visit_order, const std::string indent)
   {
     assert_tag_count(tags);
+
+    /* The visit order counts downwards, which is linked to the meaning of
+     * AnimationChannel::sorting_priority_, which sorts the highest numbers first. Since these
+     * channels should be sorted in visit order, the numbers have ot go from high to low, and thus
+     * descend. */
+    visit_order--;
+
+    std::cout << indent << " - " << visit_order << " " << (node.is_layer() ? "L" : "G") << " "
+              << node.name() << "\n";
 
     if (node.is_layer()) {
       GreasePencilLayer &gp_layer = node.as_layer();
@@ -332,7 +341,7 @@ struct GreasePencilCollector {
       layer_rna_path_items[1] = rna_path::LookupKey{UString(node.name())};
 
       GreasePencilChannel *gp_channel = arena.allocate_data_channel<GreasePencilChannel>(
-          gp_layer_ptr, ParsedRNAPathRef(layer_rna_path_items));
+          gp_layer_ptr, ParsedRNAPathRef(layer_rna_path_items), visit_order);
       gp_channel->tags().set(tags.snapshot());
       return;
     }
@@ -350,11 +359,12 @@ struct GreasePencilCollector {
     tags.push({ChannelTagType::GREASEPENCIL_GROUP,
                gp_group.name(),
                gp_group_ptr,
-               ParsedRNAPathRef(group_rna_path_items)});
+               ParsedRNAPathRef(group_rna_path_items),
+               visit_order});
 
     /* Visit children. */
     for (GreasePencilLayerTreeNode &child : gp_group.children.items_reversed()) {
-      this->visit(child.wrap());
+      this->visit(child.wrap(), visit_order, "  " + indent);
     }
 
     /* Pop the GP group. */
@@ -380,8 +390,10 @@ static void collect_channels_for_grease_pencil(GreasePencil &gp, ChannelArena &a
 
   /* The root node of the tree doesn't represent any animatable data, so don't visit it, just use
    * it to get to its children. */
+  std::cout << "Collecting channels for GP " << gp.id.name + 2 << "\n";
+  int visit_order = 0;
   for (GreasePencilLayerTreeNode &child : gp.root_group().children.items_reversed()) {
-    collector.visit(child.wrap());
+    collector.visit(child.wrap(), visit_order, "  ");
   }
 
   /* Pop the GP ID. */

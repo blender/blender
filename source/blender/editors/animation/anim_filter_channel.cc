@@ -8,6 +8,7 @@
 
 #include "BLI_assert.hh"
 
+#include "DNA_ID_enums.h"
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 
@@ -143,6 +144,7 @@ std::ostream &operator<<(std::ostream &stream, const ChannelIdentifier &chan_ide
 {
   Main *bmain = G_MAIN;
 
+  stream << "[";
   if (chan_ident.owner_id_type == ID_Type(0) ||
       chan_ident.owner_session_uid == MAIN_ID_SESSION_UID_UNSET)
   {
@@ -151,7 +153,6 @@ std::ostream &operator<<(std::ostream &stream, const ChannelIdentifier &chan_ide
   else {
     const ID *owner_id = BKE_libblock_find_session_uid(
         bmain, chan_ident.owner_id_type, chan_ident.owner_session_uid);
-    stream << "[";
     if (owner_id) {
       stream << owner_id->name;
     }
@@ -335,6 +336,19 @@ int64_t AnimationChannel::hash() const
       this->type_, this->source_.type, this->source_.owner_id, this->source_.data);
 }
 
+bool AnimationChannel::source_is_id() const
+{
+  return source_.has_owner_id() && source_.owner_id == source_.data;
+}
+
+ID_Type AnimationChannel::source_id_type() const
+{
+  if (this->source_id_type_ == IDTYPE_UNKNOWN) {
+    this->source_id_type_ = ID_Type(RNA_type_to_ID_code(source_.type));
+  }
+  return this->source_id_type_;
+}
+
 Span<KeyPoint> AnimationChannel::datapoints()
 {
   if (this->flags_ & ANIM_CHANNEL_DIRTY) {
@@ -359,6 +373,7 @@ SummaryChannel::SummaryChannel(const StringRef label,
 {
   this->source_ = source_ptr;
   this->source_rna_path_ = source_rna_path;
+
   sorting_priority_ = sorting_priority;
 }
 
@@ -517,6 +532,27 @@ void SummaryChannel::add_child(AnimationChannel &child)
   this->children_.append(&child);
 }
 
+void SummaryChannel::insert_child(const int insert_index, AnimationChannel &child)
+{
+  BLI_assert(&child != this);
+  BLI_assert(insert_index >= 0);
+  if (insert_index >= this->children_.size()) {
+    std::cout << "\033[91mError: cannot add child at index " << insert_index << "\033[0m, I am "
+              << this->identifier() << "; my children are:\n";
+    for (const int index : this->children_.index_range()) {
+      const AnimationChannel *child = this->children_[index];
+      std::cout << "  - " << index << " " << child->identifier() << "\n";
+    }
+    std::cout.flush();
+    BLI_assert_unreachable();
+  }
+
+  std::cout << "\033[92mOK: adding child at index " << insert_index << "\033[0m, I am "
+            << this->identifier() << "\n";
+
+  this->children_.insert(insert_index, &child);
+}
+
 void SummaryChannel::remove_child(AnimationChannel &child)
 {
   BLI_assert(&child != this);
@@ -531,11 +567,64 @@ void SummaryChannel::remove_child(AnimationChannel &child)
 static bool animation_channel_compare_function(const AnimationChannel *channel_a,
                                                const AnimationChannel *channel_b)
 {
-  if (channel_a->sorting_priority() != channel_b->sorting_priority()) {
-    return channel_a->sorting_priority() > channel_b->sorting_priority();
+  static const Array<ID_Type> id_type_order = {
+      ID_AC, /* Actions are always at the top.  */
+      ID_OB,
+      /* Then object data. */
+      ID_ME,        /* Mesh */
+      ID_KE,        /* Shape Keys go directly under meshes. */
+      ID_CU_LEGACY, /* Curve. ID_CV should be used in the future (see #95355). */
+      ID_MB,        /* MetaBall */
+      ID_LT,        /* Lattice */
+      ID_LA,        /* Light */
+      ID_CA,        /* Camera */
+      ID_SPK,       /* Speaker */
+      ID_TE,        /* Tex (Texture) */
+      ID_AR,        /* bArmature */
+      ID_GP,        /* Grease Pencil */
+      ID_GD_LEGACY, /* bGPdata, (legacy Grease Pencil) */
+      ID_LP,        /* LightProbe */
+      ID_CV,        /* Curves */
+      ID_PT,        /* PointCloud */
+      ID_VO,        /* Volume */
+
+      /* Then things we want to see underneath object data. */
+      ID_MA, /* Material */
+      ID_IM, /* Image */
+
+      /* Then the rest is unlisted, which will just be sorted after the above, by their numerical
+       * ID type. */
+  };
+
+  const int sorting_prio_a = channel_a->sorting_priority();
+  const int sorting_prio_b = channel_b->sorting_priority();
+
+  if (sorting_prio_a != sorting_prio_b) {
+    return sorting_prio_a > sorting_prio_b;
   }
 
-  return false;
+  if (sorting_prio_a == AnimationChannel::NO_SORTING) {
+    return false;
+  }
+
+  /* Ugly-ish: sort datablocks by type first, before sorting by their label. */
+  /* TODO: make this work when only one of A and B is an ID. */
+  if (channel_a->source_is_id() && channel_b->source_is_id()) {
+    const ID_Type id_type_a = channel_a->source_id_type();
+    const ID_Type id_type_b = channel_b->source_id_type();
+    if (id_type_a != id_type_b) {
+      const int order_a = id_type_order.as_span().first_index_try(id_type_a);
+      const int order_b = id_type_order.as_span().first_index_try(id_type_b);
+      if (order_a != order_b) {
+        if (order_b < 0) {
+          return true;
+        }
+        return order_a < order_b;
+      }
+    }
+  }
+
+  return channel_a->label() < channel_b->label();
 }
 
 void SummaryChannel::sort_children()
@@ -757,12 +846,14 @@ const ID *FCurveChannel::find_animated_id_from_tags() const
 /* ===== GreasePencil Channel ===== */
 
 GreasePencilChannel::GreasePencilChannel(const PointerRNA &gp_layer_ptr,
-                                         const ParsedSourcePath source_rna_path)
+                                         const ParsedSourcePath source_rna_path,
+                                         const int sorting_priority)
     : DataChannel(gp_layer_ptr.data_as<GreasePencilLayer>()->wrap().name(),
                   DataChannelType::GREASE_PENCIL,
                   source_rna_path)
 {
   this->source_ = gp_layer_ptr;
+  this->sorting_priority_ = sorting_priority;
 }
 
 void GreasePencilChannel::gather_channeldata()

@@ -4230,8 +4230,10 @@ void group_channels(ChannelArena &arena,
       for (SummaryChannel *summary : potentially_splittable_summaries) {
         int data_channel_count = 0;
 
-        Map<ChannelTag, Vector<DataChannel *>> potential_tags;
-        for (AnimationChannel *child : summary->children()) {
+        Map<ChannelTag, std::pair<int, Vector<DataChannel *>>> potential_tags;
+        const Span<AnimationChannel *> children = summary->children();
+        for (const int child_index : children.index_range()) {
+          AnimationChannel *child = children[child_index];
           if (child->type() != AnimationChannelType::DATA) {
             continue;
           }
@@ -4241,9 +4243,12 @@ void group_channels(ChannelArena &arena,
           const auto [tag,
                       should_visit_again] = data_channel->tags().by_type_for_grouping(tag_type);
           has_more_tags_of_this_type |= should_visit_again;
-          if (tag) {
-            potential_tags.lookup_or_add_default(*tag).append(data_channel);
+          if (!tag) {
+            continue;
           }
+
+          potential_tags.lookup_or_add(*tag, std::make_pair(child_index, Vector<DataChannel *>()))
+              .second.append(data_channel);
         }
 
         if (data_channel_count == 0) {
@@ -4261,14 +4266,19 @@ void group_channels(ChannelArena &arena,
           continue;
         }
 
-        for (const auto &[tag, tag_channels] : potential_tags.items()) {
+        for (const auto &[tag, tag_datachannels] : potential_tags.items()) {
           SummaryChannel *new_summary = arena.allocate_summary_channel(
               tag.label(), tag.source_data(), tag.source_rna_path(), tag.sort_priority());
-          for (DataChannel *child : tag_channels) {
-            summary->remove_child(*child);
-            new_summary->add_child(*child);
-          }
+
+          // const int insertion_index = tag_datachannels.first;
+          // summary->insert_child(insertion_index, *new_summary);
           summary->add_child(*new_summary);
+
+          for (DataChannel *data_channel : tag_datachannels.second) {
+            summary->remove_child(*data_channel);
+            new_summary->add_child(*data_channel);
+          }
+
           new_summaries.append(new_summary);
         }
       }
