@@ -949,7 +949,10 @@ static PyObject *BPy_IDIDPropertyUIManager_as_dict(BPy_IDPropertyUIManager *self
   /* RNA subtype. */
   {
     const char *subtype_id = nullptr;
-    RNA_enum_identifier(rna_enum_property_subtype_items, ui_data->rna_subtype, &subtype_id);
+    if (!RNA_enum_identifier(rna_enum_property_subtype_items, ui_data->rna_subtype, &subtype_id)) {
+      /* An unknown subtype (from a future version of Blender e.g.). */
+      RNA_enum_identifier(rna_enum_property_subtype_items, PROP_NONE, &subtype_id);
+    }
     PyObject *item = PyUnicode_FromString(subtype_id);
     PyDict_SetItemString(dict, "subtype", item);
     Py_DECREF(item);

@@ -17,6 +17,7 @@ __all__ = (
 
 import argparse
 import ast
+import builtins
 import fnmatch
 import re
 import sys
@@ -53,6 +54,9 @@ class State:
     parse_errors: int = 0
     structure_errors: int = 0
     undocumented_errors: int = 0
+    type_ref_errors: int = 0
+    # References in plain text (not ``:class:`` roles) found while rendering, see ``resolve_dotted_refs``.
+    dotted_ref_errors: set[TypeRefError] = set()
 
 
 # ----------------------------------------------------------------------------
@@ -105,6 +109,14 @@ class DataInfo:
     type_str: str | None = None
 
 
+class TypeRefError(NamedTuple):
+    """A class reference that doesn't resolve to a single class."""
+    ref: str  # As written, optionally module qualified.
+    module: str  # The module containing the reference.
+    defined_in: tuple[str, ...]  # Modules defining a class with the referenced name.
+    is_ambiguous: bool
+
+
 @dataclass
 class ModuleInfo:
     """A module's collected classes, functions, and data."""
@@ -112,6 +124,45 @@ class ModuleInfo:
     classes: list[ClassInfo] = field(default_factory=list)
     functions: list[FunctionInfo] = field(default_factory=list)
     data: list[DataInfo] = field(default_factory=list)
+
+
+class ClassLocations:
+    """The modules defining each class, looked up by qualified or unqualified name."""
+
+    __slots__ = (
+        "module_names",
+        "module_from_class_name",
+    )
+
+    def __init__(self, modules: dict[str, ModuleInfo]) -> None:
+        module_from_class_name: dict[str, list[str]] = {}
+        for mod_name, mod in modules.items():
+            for cls in mod.classes:
+                mod_names = module_from_class_name.setdefault(cls.name, [])
+                if mod_name not in mod_names:
+                    mod_names.append(mod_name)
+        self.module_from_class_name: dict[str, tuple[str, ...]] = {
+            name: tuple(mod_names) for name, mod_names in module_from_class_name.items()
+        }
+        self.module_names = frozenset(modules)
+
+    def modules_defining(self, name: str) -> tuple[str, ...]:
+        """Return the modules defining a class named *name*."""
+        return self.module_from_class_name.get(name, ())
+
+    def module_of(self, ref: str, current_module: str) -> str | None:
+        """
+        Return the module defining the class *ref* (optionally module qualified).
+        An unqualified name defined in *current_module* takes precedence over other modules,
+        otherwise it must be defined by a single module (ambiguous names return None).
+        """
+        module, _, name = ref.rpartition(".")
+        mod_names = self.modules_defining(name)
+        if module:
+            return module if module in mod_names else None
+        if current_module in mod_names:
+            return current_module
+        return mod_names[0] if len(mod_names) == 1 else None
 
 
 # ----------------------------------------------------------------------------
@@ -245,7 +296,7 @@ def inline_node_text(node: nodes.Node) -> str:
     """
     Convert an inline node to its text representation for type strings.
 
-    ``:class:`` roles are preserved as ``:class:`ShortName``` so downstream consumers
+    ``:class:`` roles are preserved as ``:class:`module.Name``` so downstream consumers
     (``convert_rst_type``, ``collect_class_refs``) can identify class references structurally
     rather than relying on naming heuristics.
     """
@@ -257,8 +308,7 @@ def inline_node_text(node: nodes.Node) -> str:
         if role == "ref":
             return text
         if role == "class":
-            short = text.split(".")[-1]
-            return ":class:`{}`".format(short)
+            return ":class:`{}`".format(text)
         return text
     if isinstance(node, nodes.literal):
         return text
@@ -692,48 +742,70 @@ def write_enum_aliases_module(output_dir: Path) -> Path | None:
 # ----------------------------------------------------------------------------
 # Type Conversion
 
+# Names type annotations may use which aren't classes in the generated stubs,
+# mapped to the module they're imported from (names from `builtins` aren't imported).
+STDLIB_TYPE_MODULES: dict[str, str] = {
+    # Builtin classes, e.g. `object` & `bytearray`.
+    **{
+        name: "builtins" for name, value in vars(builtins).items()
+        if isinstance(value, type) and not name.startswith("_")
+    },
+
+    "Any": "typing",
+    "BinaryIO": "typing",
+    "Literal": "typing",
+    "Self": "typing",
+
+    "Buffer": "collections.abc",
+    "Callable": "collections.abc",
+    "Generator": "collections.abc",
+    "Iterable": "collections.abc",
+    "Iterator": "collections.abc",
+    "MutableSequence": "collections.abc",
+    "Sequence": "collections.abc",
+
+    "ModuleType": "types",
+}
+
+
 def resolve_class_ref(
     fqn: str,
     imports: set[tuple[str, str]],
     current_module: str,
-    class_locations: dict[str, str],
+    class_locations: ClassLocations,
 ) -> str:
     """Resolve a fully-qualified class name to its short form, tracking imports."""
-    parts = fqn.split(".")
-    short = parts[-1]
-    actual_module = class_locations.get(short, ".".join(parts[:-1]))
+    module, _, short = fqn.rpartition(".")
+    actual_module = class_locations.module_of(fqn, current_module)
+    if actual_module is None:
+        actual_module = module
+        # Standard library names, unqualified or qualified with their own module, e.g. `BinaryIO`.
+        stdlib_module = STDLIB_TYPE_MODULES.get(short)
+        if stdlib_module is not None and module in {"", stdlib_module}:
+            actual_module = "" if stdlib_module == "builtins" else stdlib_module
     if actual_module and actual_module != current_module:
         imports.add((actual_module, short))
     return short
+
+
+def track_stdlib_imports(text: str, imports: set[tuple[str, str]]) -> None:
+    """
+    Scan *text* (as written) for standard library names and track the necessary imports.
+    ``:class:`` references are excluded, e.g. ``:class:`gpu.types.Buffer``` isn't ``collections.abc.Buffer``.
+    """
+    text = replace_class_roles(text, lambda ref: "")
+    for name, module in STDLIB_TYPE_MODULES.items():
+        if module != "builtins" and contains_word(text, name):
+            imports.add((module, name))
 
 
 def track_imports(
     text: str,
     imports: set[tuple[str, str]],
     current_module: str,
-    class_locations: dict[str, str],
+    class_locations: ClassLocations,
 ) -> None:
     """Scan *text* for type names and track the necessary imports."""
-    for typing_name in (
-        "Any",
-        "BinaryIO",
-        "Literal",
-        "Self",
-    ):
-        if contains_word(text, typing_name):
-            imports.add(("typing", typing_name))
-    for abc_name in (
-        "Callable",
-        "Generator",
-        "Iterable",
-        "Iterator",
-        "Sequence",
-    ):
-        if contains_word(text, abc_name):
-            imports.add(("collections.abc", abc_name))
-    if contains_word(text, "ModuleType"):
-        imports.add(("types", "ModuleType"))
-
     # Track imports for enum aliases (prefix-based search + set lookup).
     if "rna_enum_" in text:
         for word in find_rna_enum_words(text):
@@ -742,11 +814,13 @@ def track_imports(
 
     # Track imports for lowercase class names (bpy_prop_collection, bpy_prop_array, bpy_struct).
     for name in ("bpy_prop_collection", "bpy_prop_array", "bpy_struct"):
-        if name in text and name in class_locations and class_locations[name] != current_module:
-            imports.add((class_locations[name], name))
+        if name in text:
+            loc = class_locations.module_of(name, current_module)
+            if loc and loc != current_module:
+                imports.add((loc, name))
 
     # Track module-qualified references (e.g. `datetime.timedelta`, `mathutils.Vector()`).
-    for mod_name in ("contextlib", "datetime", "mathutils", "sys", "bpy"):
+    for mod_name in ("collections.abc", "contextlib", "datetime", "mathutils", "sys", "bpy"):
         if mod_name + "." in text:
             imports.add(("__bare__", mod_name))
 
@@ -755,7 +829,7 @@ def convert_rst_type(
     type_str: str,
     imports: set[tuple[str, str]],
     current_module: str,
-    class_locations: dict[str, str],
+    class_locations: ClassLocations,
 ) -> str:
     """
     Convert RST type string to Python type annotation, tracking imports.
@@ -767,6 +841,8 @@ def convert_rst_type(
     if not type_str:
         imports.add(("typing", "Any"))
         return "Any"
+
+    track_stdlib_imports(type_str, imports)
 
     result = type_str
 
@@ -822,7 +898,10 @@ def params_startswith(params: str, name: str) -> bool:
 
 
 def contains_word(text: str, word: str) -> bool:
-    """Check if *word* appears in *text* as a whole word (not a substring of a larger identifier)."""
+    """
+    Check if *word* appears in *text* as a whole word,
+    not a substring of a larger identifier or qualified by a module (e.g. ``collections.abc.Buffer``).
+    """
     pos = 0
     word_len = len(word)
     while True:
@@ -830,7 +909,7 @@ def contains_word(text: str, word: str) -> bool:
         if idx == -1:
             return False
         if (
-                (idx == 0 or not is_word_char(text[idx - 1])) and
+                (idx == 0 or not (is_word_char(text[idx - 1]) or text[idx - 1] == ".")) and
                 (idx + word_len >= len(text) or not is_word_char(text[idx + word_len]))
         ):
             return True
@@ -886,7 +965,7 @@ def iter_class_roles(text: str) -> list[str]:
 
 def resolve_dotted_refs(
     text: str,
-    class_locations: dict[str, str],
+    class_locations: ClassLocations,
     current_module: str,
     imports: set[tuple[str, str]],
 ) -> str:
@@ -916,14 +995,21 @@ def resolve_dotted_refs(
             dot_idx = fqn.rfind(".")
             if dot_idx != -1:
                 final = fqn[dot_idx + 1:]
-                if len(final) >= 2 and final[0].isupper() and final in class_locations:
-                    module = class_locations[final]
+                if (
+                        len(final) >= 2 and final[0].isupper() and
+                        (module := class_locations.module_of(fqn, current_module)) is not None
+                ):
                     if module != current_module:
                         imports.add((module, final))
                     parts.append(text[span_start:start])
                     parts.append(final)
                     span_start = pos
                     continue
+                elif len(final) >= 2 and final[0].isupper() and fqn[:dot_idx] in class_locations.module_names:
+                    # Qualified with a module which doesn't define it, e.g. `bpy.types.Vector`.
+                    State.dotted_ref_errors.add(
+                        TypeRefError(fqn, current_module, class_locations.modules_defining(final), is_ambiguous=False),
+                    )
             # No resolution, the span continues through this identifier.
         else:
             pos += 1
@@ -1008,7 +1094,7 @@ def augment_params(
     body_types: dict[str, str],
     imports: set[tuple[str, str]],
     current_module: str,
-    class_locations: dict[str, str],
+    class_locations: ClassLocations,
 ) -> str:
     """Add type annotations to params from :type: directives using ``ast``."""
     if not body_types:
@@ -1115,14 +1201,12 @@ def sort_classes_by_hierarchy(classes: list[ClassInfo]) -> list[ClassInfo]:
     return result
 
 
-def write_stub(
+def render_stub(
     module: ModuleInfo,
-    output_dir: Path,
-    class_locations: dict[str, str],
+    class_locations: ClassLocations,
     all_modules: dict[str, ModuleInfo],
-    missing_types: frozenset[str] = frozenset(),
-) -> Path:
-    """Generate a .pyi stub file for a module."""
+) -> str:
+    """Return the contents of the .pyi stub file for a module."""
     imports: set[tuple[str, str]] = set()
     body_chunks: list[str] = []
     fw = body_chunks.append
@@ -1155,15 +1239,6 @@ def write_stub(
     fw("from __future__ import annotations\n")
     fw("\n")
 
-    # Check which missing types are actually used in the body, so we can
-    # write `X = Any` aliases and ensure `Any` is imported.
-    used_missing: list[str] = []
-    if missing_types:
-        body_text = "".join(body_chunks)
-        used_missing = sorted(name for name in missing_types if contains_word(body_text, name))
-        if used_missing:
-            imports.add(("typing", "Any"))
-
     # Cross-stub imports go under `if TYPE_CHECKING:` to break import cycles.
     # With `from __future__ import annotations` the names only appear in annotation strings,
     # never executed at runtime - so deferring is safe.
@@ -1186,7 +1261,7 @@ def write_stub(
     # these are bare identifiers like `IntegrationType` in `=IntegrationType.MEAN`,
     # which the type-scanning pass doesn't pick up since they aren't `:class:` references.
     for name in runtime_default_names:
-        loc = class_locations.get(name)
+        loc = class_locations.module_of(name, current_module)
         if loc and loc != current_module:
             imports.add((loc, name))
 
@@ -1204,6 +1279,24 @@ def write_stub(
             name not in runtime_default_names
         )
     )
+
+    # Report classes that would share a name in this stub, since only one can be bound,
+    # e.g. a reference to `bpy.types.Material` from `freestyle.types` which defines `Material`,
+    # or to `gpu.types.Buffer` along with `Buffer` from `collections.abc`.
+    name_modules: dict[str, set[str]] = {}
+    for mod, name in imports:
+        if mod not in {"__bare__", current_module}:
+            name_modules.setdefault(name, set()).add(mod)
+    for name, mods in sorted(name_modules.items()):
+        if name in local_classes:
+            # A class defined in this module takes precedence over standard library names.
+            mods = {mod for mod in mods if mod in stub_module_names}
+            mods.add(current_module)
+        if len(mods) > 1:
+            print("Error: referenced types clash: {:s} in {:s} (defined in {:s})".format(
+                name, current_module, ", ".join(sorted(mods)),
+            ), file=sys.stderr)
+            State.type_ref_errors += 1
 
     stdlib_groups: dict[str, set[str]] = {}
     stub_groups: dict[str, set[str]] = {}
@@ -1251,22 +1344,15 @@ def write_stub(
         fw("_T = TypeVar('_T')\n")
         fw("\n")
 
-    # Write `Any` aliases for types referenced but not defined in any module.
-    if used_missing:
-        for name in used_missing:
-            fw("{:s} = Any\n".format(name))
-        fw("\n")
+    return "".join(header_chunks) + "".join(body_chunks)
 
-    parts = current_module.split(".")
-    stub_dir = output_dir
-    for part in parts:
-        stub_dir = stub_dir / part
+
+def write_stub(output_dir: Path, module_name: str, content: str) -> Path:
+    """Write the .pyi stub file *content* for the module *module_name*, return its path."""
+    stub_dir = output_dir.joinpath(*module_name.split("."))
     stub_dir.mkdir(parents=True, exist_ok=True)
     stub_path = stub_dir / "__init__.pyi"
-
-    with open(stub_path, "w", encoding="utf-8") as fh:
-        fh.write("".join(header_chunks))
-        fh.write("".join(body_chunks))
+    stub_path.write_text(content, encoding="utf-8")
     return stub_path
 
 
@@ -1275,7 +1361,7 @@ def write_class(
     cls: ClassInfo,
     imports: set[tuple[str, str]],
     current_module: str,
-    class_locations: dict[str, str],
+    class_locations: ClassLocations,
 ) -> None:
     """Write a class definition."""
     # Merge explicit CLASS_BASES overrides with RST-parsed base classes.
@@ -1299,7 +1385,7 @@ def write_class(
     resolved: list[str] = []
     for b in bases:
         # Resolve base class to its import location.
-        loc = class_locations.get(b)
+        loc = class_locations.module_of(b, current_module)
         if loc and loc != current_module:
             imports.add((loc, b))
         resolved.append(b)
@@ -1320,14 +1406,14 @@ def write_class(
     init_params = cls.init_params
     if init_params:
         params = init_params
+        # Convert types in params if they contain RST references.
+        params = convert_params_types(params, imports, current_module, class_locations)
         # Apply constructor param types from :type param: fields.
         if cls.init_param_types:
             params = augment_params(
                 params, cls.init_param_types, imports,
                 current_module, class_locations,
             )
-        # Convert types in params if they contain RST references.
-        params = convert_params_types(params, imports, current_module, class_locations)
         fw("    def __init__(self, {:s}) -> None: ...\n".format(
             strip_outer_parens(params)
         ))
@@ -1367,20 +1453,20 @@ def write_class(
     if cls.name == "bpy_prop_array":
         imports.add(("typing", "overload"))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: int) -> _T: ...\n")
+        fw("    def __getitem__(self, key: int, /) -> _T: ...\n")
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: slice) -> tuple[_T, ...]: ...\n")
+        fw("    def __getitem__(self, key: slice, /) -> tuple[_T, ...]: ...\n")
         fw("    def __iter__(self) -> Iterator[_T]: ...\n")
         has_members = True
 
     if cls.name == "bpy_prop_collection":
         imports.add(("typing", "overload"))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: int) -> _T: ...\n")
+        fw("    def __getitem__(self, key: int, /) -> _T: ...\n")
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: str) -> _T: ...\n")
+        fw("    def __getitem__(self, key: str, /) -> _T: ...\n")
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: slice) -> list[_T]: ...\n")
+        fw("    def __getitem__(self, key: slice, /) -> list[_T]: ...\n")
         fw("    def __iter__(self) -> Iterator[_T]: ...\n")
         has_members = True
 
@@ -1389,17 +1475,17 @@ def write_class(
     elem_type = collection_element_map.get(cls.name)
     if elem_type:
         # Track import for the element type.
-        loc = class_locations.get(elem_type)
+        loc = class_locations.module_of(elem_type, current_module)
         if loc and loc != current_module:
             imports.add((loc, elem_type))
         imports.add(("typing", "overload"))
         imports.add(("collections.abc", "Iterator"))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: int) -> {:s}: ...\n".format(elem_type))
+        fw("    def __getitem__(self, key: int, /) -> {:s}: ...\n".format(elem_type))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: str) -> {:s}: ...\n".format(elem_type))
+        fw("    def __getitem__(self, key: str, /) -> {:s}: ...\n".format(elem_type))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: slice) -> list[{:s}]: ...\n".format(elem_type))
+        fw("    def __getitem__(self, key: slice, /) -> list[{:s}]: ...\n".format(elem_type))
         fw("    def __iter__(self) -> Iterator[{:s}]: ...\n".format(elem_type))
         has_members = True
 
@@ -1408,15 +1494,15 @@ def write_class(
     # iterator yields the element type rather than the container type.
     if sequence_elem_type is not None:
         # Track import for the element type if it names a known class.
-        loc = class_locations.get(sequence_elem_type)
+        loc = class_locations.module_of(sequence_elem_type, current_module)
         if loc and loc != current_module:
             imports.add((loc, sequence_elem_type))
         imports.add(("typing", "overload"))
         imports.add(("collections.abc", "Iterator"))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: int) -> {:s}: ...\n".format(sequence_elem_type))
+        fw("    def __getitem__(self, key: int, /) -> {:s}: ...\n".format(sequence_elem_type))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: slice) -> tuple[{:s}, ...]: ...\n".format(sequence_elem_type))
+        fw("    def __getitem__(self, key: slice, /) -> tuple[{:s}, ...]: ...\n".format(sequence_elem_type))
         fw("    def __iter__(self) -> Iterator[{:s}]: ...\n".format(sequence_elem_type))
         has_members = True
 
@@ -1428,6 +1514,7 @@ def write_class(
     if extra_members is not None:
         # Track imports for any type names referenced in the fragment, then
         # write each non-empty line indented one level into the class body.
+        track_stdlib_imports(extra_members, imports)
         track_imports(extra_members, imports, current_module, class_locations)
         if "@overload" in extra_members:
             imports.add(("typing", "overload"))
@@ -1447,7 +1534,7 @@ def write_method(
     method: MethodInfo,
     imports: set[tuple[str, str]],
     current_module: str,
-    class_locations: dict[str, str],
+    class_locations: ClassLocations,
     *,
     has_items_method: bool = False,
 ) -> None:
@@ -1455,11 +1542,11 @@ def write_method(
     name = method.name
 
     params = method.params
-    if method.body_param_types:
-        params = augment_params(params, method.body_param_types, imports, current_module, class_locations)
-
     # Convert any RST type references in the params.
     params = convert_params_types(params, imports, current_module, class_locations)
+
+    if method.body_param_types:
+        params = augment_params(params, method.body_param_types, imports, current_module, class_locations)
 
     ret_type = "None"
     if method.return_type:
@@ -1476,12 +1563,12 @@ def write_method(
     ):
         imports.add(("typing", "overload"))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: int) -> {:s}: ...\n".format(ret_type))
+        fw("    def __getitem__(self, key: int, /) -> {:s}: ...\n".format(ret_type))
         if has_items_method:
             fw("    @overload\n")
-            fw("    def __getitem__(self, key: str) -> {:s}: ...\n".format(ret_type))
+            fw("    def __getitem__(self, key: str, /) -> {:s}: ...\n".format(ret_type))
         fw("    @overload\n")
-        fw("    def __getitem__(self, key: slice) -> list[{:s}]: ...\n".format(ret_type))
+        fw("    def __getitem__(self, key: slice, /) -> list[{:s}]: ...\n".format(ret_type))
         return
 
     inner = strip_outer_parens(params)
@@ -1497,6 +1584,13 @@ def write_method(
     else:
         if not params_startswith(inner, "self"):
             inner = "self, " + inner if inner else "self"
+        # Protocol methods take positional-only parameters, as CPython's slots do.
+        if (
+                name.startswith("__") and name.endswith("__") and
+                name not in {"__init__", "__new__", "__call__"} and
+                "," in inner and not any(c in inner for c in "*/")
+        ):
+            inner += ", /"
     fw("    def {:s}({:s}) -> {:s}: ...\n".format(name, inner, ret_type))
 
 
@@ -1505,7 +1599,7 @@ def write_attribute(
     attr: AttrInfo,
     imports: set[tuple[str, str]],
     current_module: str,
-    class_locations: dict[str, str],
+    class_locations: ClassLocations,
 ) -> bool:
     """Write an attribute declaration. Returns True if written."""
     name = attr.name
@@ -1531,14 +1625,14 @@ def write_function(
     func: FunctionInfo,
     imports: set[tuple[str, str]],
     current_module: str,
-    class_locations: dict[str, str],
+    class_locations: ClassLocations,
 ) -> None:
     """Write a module-level function."""
     params = func.params
+    params = convert_params_types(params, imports, current_module, class_locations)
+
     if func.body_param_types:
         params = augment_params(params, func.body_param_types, imports, current_module, class_locations)
-
-    params = convert_params_types(params, imports, current_module, class_locations)
 
     ret_type = "None"
     if func.return_type:
@@ -1553,7 +1647,7 @@ def write_data(
     data: DataInfo,
     imports: set[tuple[str, str]],
     current_module: str,
-    class_locations: dict[str, str],
+    class_locations: ClassLocations,
 ) -> None:
     """Write a module-level data declaration."""
     if data.type_str:
@@ -1568,9 +1662,11 @@ def convert_params_types(
     params: str,
     imports: set[tuple[str, str]],
     current_module: str,
-    class_locations: dict[str, str],
+    class_locations: ClassLocations,
 ) -> str:
     """Convert ``:class:`` markup in a params string to plain names and track imports."""
+    track_stdlib_imports(params, imports)
+
     result = params
 
     if ":class:" in result:
@@ -1616,15 +1712,6 @@ def is_module_excluded(name: str) -> bool:
 # ----------------------------------------------------------------------------
 # Main
 
-def build_class_locations(modules: dict[str, ModuleInfo]) -> dict[str, str]:
-    """Build a mapping from class name to the module where it's defined."""
-    locations: dict[str, str] = {}
-    for mod_name, mod in modules.items():
-        for cls in mod.classes:
-            locations.setdefault(cls.name, mod_name)
-    return locations
-
-
 def build_collection_element_map(modules: dict[str, ModuleInfo]) -> None:
     """
     Scan attribute types for ``Wrapper[Element]`` patterns to populate
@@ -1663,24 +1750,27 @@ def build_collection_element_map(modules: dict[str, ModuleInfo]) -> None:
 
 def collect_class_refs(type_str: str | None, out: set[str]) -> None:
     """
-    Add short class names referenced in *type_str* to *out*.
+    Add class references in *type_str* to *out*, as written (optionally module qualified).
 
     Class references are identified via ``:class:`` RST roles which are
     preserved through the pipeline by ``inline_node_text``.
     """
     if type_str:
-        for ref in iter_class_roles(type_str):
-            out.add(ref.split(".")[-1])
+        out.update(iter_class_roles(type_str))
 
 
-def find_missing_types(
+def find_type_ref_errors(
     modules: dict[str, ModuleInfo],
-    class_locations: dict[str, str],
-) -> frozenset[str]:
-    """Find types referenced in annotations but not defined in any module."""
-    referenced: set[str] = set()
-
-    for mod in modules.values():
+    class_locations: ClassLocations,
+) -> list[TypeRefError]:
+    """
+    Find types referenced in annotations but not defined in any module,
+    qualified with a module other than the one defining them,
+    or unqualified when multiple other modules define them.
+    """
+    errors: list[TypeRefError] = []
+    for mod_name, mod in modules.items():
+        referenced: set[str] = set()
         for cls in mod.classes:
             for attr in cls.attributes:
                 collect_class_refs(attr.type_str, referenced)
@@ -1697,39 +1787,17 @@ def find_missing_types(
         for data in mod.data:
             collect_class_refs(data.type_str, referenced)
 
-    defined = set(class_locations.keys())
-    # Exclude builtins, typing names, stdlib types, and common non-class identifiers.
-    builtin_and_typing = {
-        "AbstractContextManager",
-        "Any",
-        "BaseException",
-        "BinaryIO",
-        "Callable",
-        "False",
-        "Generator",
-        "Generic",
-        "Iterable",
-        "Iterator",
-        "Literal",
-        "ModuleType",
-        "MutableSequence",
-        "None",
-        "Self",
-        "Sequence",
-        "True",
-        "TypeVar",
-        "bool",
-        "bytes",
-        "dict",
-        "float",
-        "int",
-        "list",
-        "set",
-        "str",
-        "tuple",
-        "type",
-    }
-    return frozenset(referenced - defined - builtin_and_typing)
+        for ref in referenced:
+            module, _, name = ref.rpartition(".")
+            # Standard library names, unqualified or qualified with their own module.
+            stdlib_module = STDLIB_TYPE_MODULES.get(name)
+            if stdlib_module is not None and module in {"", stdlib_module}:
+                continue
+            locations = class_locations.modules_defining(name)
+            if class_locations.module_of(ref, mod_name) is None:
+                is_ambiguous = "." not in ref and len(locations) > 1
+                errors.append(TypeRefError(ref, mod_name, locations, is_ambiguous))
+    return errors
 
 
 def main() -> int:
@@ -1825,14 +1893,30 @@ def main() -> int:
         modules["bpy"].data.append(DataInfo(name="data", type_str=":class:`bpy.types.BlendData`"))
 
     build_collection_element_map(modules)
-    class_locations = build_class_locations(modules)
+    class_locations = ClassLocations(modules)
 
-    # Undefined referenced types are written as `Foo = Any` aliases by `write_stub`
-    # so stubs remain importable; the warning flags ones that should be defined.
-    missing = find_missing_types(modules, class_locations)
-    if missing and GLOBAL.verbose:
-        for name in sorted(missing):
-            print("Warning: referenced type not defined: {:s}".format(name), file=sys.stderr)
+    # Render all stubs before writing, so no stubs are written when there are invalid type references
+    # (rendering reports references that clash by name within a stub & finds plain text references).
+    stub_contents = [
+        (module.name, render_stub(module, class_locations, modules))
+        for _, module in sorted(modules.items())
+    ]
+
+    # Typically a mistyped cross-reference, report it as an error so it isn't left unchecked.
+    # NOTE: this fails for RST generated with `sphinx_doc_gen.py --partial`,
+    # since types from modules that were not generated are undefined.
+    for error in sorted([*find_type_ref_errors(modules, class_locations), *State.dotted_ref_errors]):
+        print("Error: referenced type {:s}: {:s} in {:s}{:s}".format(
+            "is ambiguous" if error.is_ambiguous else "not defined",
+            error.ref,
+            error.module,
+            " (defined in {:s})".format(", ".join(error.defined_in)) if error.defined_in else "",
+        ), file=sys.stderr)
+        State.type_ref_errors += 1
+
+    if State.type_ref_errors:
+        print("\n{:d} invalid type reference(s)".format(State.type_ref_errors), file=sys.stderr)
+        return 1
 
     stub_paths: list[Path] = []
     if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
@@ -1840,8 +1924,8 @@ def main() -> int:
         if enum_stub is not None:
             stub_paths.append(enum_stub)
 
-    for _, module in sorted(modules.items()):
-        stub_path = write_stub(module, output_dir, class_locations, modules, missing)
+    for module_name, content in stub_contents:
+        stub_path = write_stub(output_dir, module_name, content)
         stub_paths.append(stub_path)
         if GLOBAL.verbose:
             print("Generated: {:s}".format(str(stub_path)))
@@ -1851,13 +1935,7 @@ def main() -> int:
 
     # In-process validation via the standalone validator module.
     from sphinx_stub_validate import validate_stubs
-    semantic_module_names = sorted(modules.keys())
-    if enum_alias_map:
-        semantic_module_names.append(ENUM_ALIASES_MODULE)
-    if validate_stubs(
-            output_dir, stub_paths, semantic_module_names,
-            verbose=GLOBAL.verbose,
-    ) != 0:
+    if validate_stubs(output_dir, stub_paths, verbose=GLOBAL.verbose) != 0:
         return 1
 
     if State.parse_errors:
