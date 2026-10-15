@@ -1620,14 +1620,23 @@ void outliner_scroll_to_active(const bContext *C,
   TreeElement *active_te = outliner_show_active_get_element(
       C, space_outliner, tvc->scene, tvc->view_layer);
 
-  if (active_te) {
-    if (!BLI_rctf_isect_y(&v2d->cur, active_te->ys)) {
-      outliner_show_active(space_outliner, region, active_te, TREESTORE(active_te)->id);
-      const int size_y = BLI_rcti_size_y(&v2d->mask) + 1;
-      const int ytop = (active_te->ys + (size_y / 2));
-      const int delta_y = ytop - v2d->cur.ymax;
-      outliner_scroll_view(space_outliner, region, delta_y);
-    }
+  if (!active_te) {
+    return;
+  }
+
+  TreeElement *scroll_to_te = active_te;
+  TreeElement *iter = active_te->parent;
+  while (iter && !TSELEM_OPEN(iter->store_elem, space_outliner)) {
+    scroll_to_te = iter;
+    iter = iter->parent;
+  }
+
+  if (!BLI_rctf_isect_y(&v2d->cur, scroll_to_te->ys)) {
+    outliner_show_active(space_outliner, region, scroll_to_te, TREESTORE(scroll_to_te)->id);
+    const int size_y = BLI_rcti_size_y(&v2d->mask) + 1;
+    const int ytop = (scroll_to_te->ys + (size_y / 2));
+    const int delta_y = ytop - v2d->cur.ymax;
+    outliner_scroll_view(space_outliner, region, delta_y);
   }
 }
 
