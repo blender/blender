@@ -112,6 +112,13 @@ void VKDevice::deinit()
   samplers_.free();
   GPU_SHADER_FREE_SAFE(vk_backbuffer_blit_sh_);
 
+  /* Destroy resources that reached a zero ref count but were never consumed by a submission,
+   * as no further submissions will drain them. */
+  {
+    Vector<render_graph::VKResourceStateTracker::DiscardableResource> discardable =
+        resources.pop_discardable_resources();
+    orphaned_data.discard_resources(discardable, UINT64_MAX);
+  }
   orphaned_data_render.deinit(*this);
   orphaned_data.deinit(*this);
   {

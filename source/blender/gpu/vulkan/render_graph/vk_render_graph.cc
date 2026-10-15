@@ -25,6 +25,8 @@ void VKRenderGraph::reset()
   memstats();
 #endif
 
+  deref_resources();
+
   links_.clear();
   for (VKRenderGraphNode &node : nodes_) {
     node.free_data();

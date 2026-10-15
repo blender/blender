@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "BLI_bit_vector.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_map.hh"
 #include "BLI_mutex.hh"
@@ -34,6 +35,7 @@ namespace blender::gpu::render_graph {
 class VKCommandBuilder;
 struct VKRenderGraphLink;
 class VKScheduler;
+class VKRenderGraph;
 
 /**
  * ModificationStamp is used to track resource modifications.
@@ -93,6 +95,7 @@ class VKResourceStateTracker {
   friend class VKCommandBuilder;
   friend struct VKRenderGraphLink;
   friend class VKScheduler;
+  friend class VKRenderGraph;
 
   /**
    * A render resource can be a buffer or an image that needs to be tracked during rendering.
@@ -118,6 +121,7 @@ class VKResourceStateTracker {
       } image;
     };
 
+    int ref_count = 0;
     /** Current modification stamp of the resource. */
     ModificationStamp stamp = 0;
 
@@ -125,6 +129,11 @@ class VKResourceStateTracker {
      * State tracking to ensure correct pipeline barriers and command creation.
      */
     VKResourceBarrierState barrier_state = {};
+
+    /**
+     * Views registered on this resource (image views for images, buffer views for buffers).
+     */
+    Vector<std::variant<VkImageView, VkBufferView>> views;
 
 #ifndef NDEBUG
     std::string name;
@@ -150,8 +159,19 @@ class VKResourceStateTracker {
   };
 
   Vector<Resource> resources_;
+  /**
+   * VMA allocation of each tracked resource, indexed like `resources_`.
+   *
+   * `VK_NULL_HANDLE` when the allocation is owned elsewhere (aliased memory, swapchain) or
+   * never set.
+   */
+  Vector<VmaAllocation> allocations_;
   Vector<ResourceHandle> unused_handles_;
   Map<VkImage, ResourceHandle> image_resources_;
+  /**
+   * \brief Resource handles with a zero ref count, not yet discarded.
+   */
+  Vector<ResourceHandle> discardable_handles_;
 
  public:
   /**
@@ -170,7 +190,9 @@ class VKResourceStateTracker {
    * When a buffer is created in VKBuffer, it needs to be registered in the device resources so the
    * resource state can be tracked during its lifetime.
    */
-  ResourceHandle add_buffer(VkBuffer vk_buffer, const char *name = nullptr);
+  ResourceHandle add_buffer(VkBuffer vk_buffer,
+                            VmaAllocation allocation = VK_NULL_HANDLE,
+                            const char *name = nullptr);
 
   /**
    * Register an image resource.
@@ -178,7 +200,10 @@ class VKResourceStateTracker {
    * When an image is created in VKTexture, it needs to be registered in the device resources so
    * the resource state can be tracked during its lifetime.
    */
-  void add_image(VkImage vk_image, bool use_subresource_tracking, const char *name = nullptr);
+  ResourceHandle add_image(VkImage vk_image,
+                           bool use_subresource_tracking,
+                           VmaAllocation allocation = VK_NULL_HANDLE,
+                           const char *name = nullptr);
 
   /**
    * \brief Register an image resource that can have aliased memory.
@@ -186,10 +211,21 @@ class VKResourceStateTracker {
    * The aliased memory can still be in use and requires the image to wait for all commands to be
    * completed, before it can start writing to the aliased memory.
    */
-  void add_aliased_image(VkImage vk_image,
-                         bool use_subresource_tracking,
-                         const char *name = nullptr);
-  void add_swapchain_image(VkImage vk_image, const char *name = nullptr);
+  ResourceHandle add_aliased_image(VkImage vk_image,
+                                   bool use_subresource_tracking,
+                                   VmaAllocation allocation = VK_NULL_HANDLE,
+                                   const char *name = nullptr);
+  ResourceHandle add_swapchain_image(VkImage vk_image, const char *name = nullptr);
+
+  /**
+   * Register an image or buffer view on a resource; the view is destroyed together with it.
+   */
+  template<typename VkView> void register_view(ResourceHandle resource_handle, VkView vk_view)
+  {
+    std::scoped_lock lock(mutex);
+    Resource &resource = get_resource(resource_handle);
+    resource.views.append(vk_view);
+  }
 
   /**
    * \brief Update the layout of an image that has been externally modified.
@@ -197,27 +233,74 @@ class VKResourceStateTracker {
    * 'vkTransitionImageLayout' changes the image layout. When used the image layout needs to be
    * updated to match the current layout, ensuring correct generation of pipeline barriers.
    *
-   * \name vk_image:        VkImage handle to update the image layout for.
+   * \name image_handle: ResourceHandle of the Image to update the layout for.
    * \name vk_image_layout: The layout the resource state tracker should now be using, matching the
    *                        current layout of the image.
    */
-  void update_image_layout(VkImage vk_image, VkImageLayout vk_image_layout);
+  void update_image_layout(ResourceHandle image_handle, VkImageLayout vk_image_layout);
 
   /**
-   * Remove an registered image.
-   *
-   * When a image is destroyed by calling `vmaDestroyImage`, a call to `remove_image` is needed to
-   * unregister the resource from state tracking.
+   * A resource that reached zero ref count, including its registered views. The caller owns
+   * destruction (e.g. via a discard pool); the resource stays registered until then.
    */
-  void remove_image(VkImage vk_image);
+  struct DiscardableResource {
+    ResourceHandle handle = 0;
+    VKResourceType type = VKResourceType::NONE;
+    VmaAllocation allocation = VK_NULL_HANDLE;
+    union {
+      VkBuffer vk_buffer = VK_NULL_HANDLE;
+      VkImage vk_image;
+    };
+    /** Views to destroy together with the resource. */
+    Vector<std::variant<VkImageView, VkBufferView>> views;
+  };
 
   /**
-   * Remove an registered buffer.
+   * Release one reference of a resource.
    *
-   * When a buffer is destroyed by calling `vmaDestroyBuffer`, a call to `remove_buffer` is needed
-   * to unregister the resource from state tracking.
+   * When the ref count reaches zero the resource is marked discardable, to be collected with
+   * `pop_discardable_resources`.
+   */
+  void deref_resource(ResourceHandle resource_handle);
+
+  /**
+   * Pop all zero-ref resources.
+   *
+   * Entries that received a new reference are skipped; popped resources stay registered until
+   * `remove_image` or `remove_buffer`.
+   */
+  Vector<DiscardableResource> pop_discardable_resources();
+
+  /**
+   * Unregister an image that has been destroyed externally (e.g. via `vmaDestroyImage`).
+   */
+  void remove_image(ResourceHandle image_handle);
+
+  /**
+   * Unregister a buffer that has been destroyed externally (e.g. via `vmaDestroyBuffer`).
    */
   VkBuffer remove_buffer(ResourceHandle buffer_handle);
+
+  inline const VkImage get_vk_image(ResourceHandle image_handle)
+  {
+    std::scoped_lock lock(mutex);
+    return get_image_resource(image_handle).image.vk_image;
+  }
+
+  /**
+   * Unregister a swapchain image that has been destroyed externally.
+   */
+  void remove_swapchain_image(ResourceHandle image_handle);
+
+  /**
+   * Take ownership of the views registered on a resource; the caller must destroy them.
+   * Only valid while the resource is still registered.
+   */
+  Vector<std::variant<VkImageView, VkBufferView>> take_views(ResourceHandle resource_handle)
+  {
+    std::scoped_lock lock(mutex);
+    return std::move(get_resource(resource_handle).views);
+  }
 
   /**
    * Return the current stamp of the resource, and increase the stamp.
@@ -282,12 +365,35 @@ class VKResourceStateTracker {
   void debug_print() const;
 
  private:
-  void add_image(VkImage vk_image,
-                 bool use_subresource_tracking,
-                 VKResourceBarrierState barrier_state,
-                 const char *name = nullptr);
+  ResourceHandle add_image(VkImage vk_image,
+                           bool use_subresource_tracking,
+                           VKResourceBarrierState barrier_state,
+                           VmaAllocation allocation,
+                           const char *name = nullptr);
 
   ResourceHandle create_resource_slot();
+
+  /**
+   * Release one reference of each resource with a usage bit set in `resource_usages`.
+   *
+   * The mutex is taken once for the whole operation. The usage bits index resources by
+   * `ResourceHandle`, as in `VKRenderGraph::resource_usages_`.
+   */
+  void deref_resources(const BitVector<> &resource_usages);
+
+  /**
+   * Release one reference of a resource, without locking.
+   *
+   * NOTE: Can only be called when the mutex has been locked in the same thread.
+   */
+  void deref_resource_impl(ResourceHandle resource_handle);
+
+  /**
+   * Take one reference of a resource, without locking.
+   *
+   * NOTE: Can only be called when the mutex has been locked in the same thread.
+   */
+  void ref_resource_impl(ResourceHandle resource_handle);
 
   /**
    * Get the ref to an image resource state.
@@ -304,8 +410,14 @@ class VKResourceStateTracker {
     BLI_assert(resources_[resource_handle].type == VKResourceType::IMAGE);
     return resources_[resource_handle];
   }
+  inline Resource &get_resource(ResourceHandle resource_handle)
+  {
+    BLI_assert(resources_[resource_handle].type == VKResourceType::IMAGE ||
+               resources_[resource_handle].type == VKResourceType::BUFFER);
+    return resources_[resource_handle];
+  }
   /**
-   * Get the ref to an image resource state.
+   * Get the ref to a resource state.
    *
    * NOTE: Can only be called when the mutex has been locked in the same thread.
    */

@@ -44,22 +44,10 @@ void VKDiscardPool::move_data(VKDiscardPool &src_pool, TimelineValue timeline)
   acceleration_structures_.extend(std::move(src_pool.acceleration_structures_));
 }
 
-void VKDiscardPool::discard_swapchain_image(VkImage vk_image)
+void VKDiscardPool::discard_swapchain_image(ResourceHandle image_handle)
 {
   std::scoped_lock mutex(mutex_);
-  swapchain_images_.append_timeline(timeline_, vk_image);
-}
-
-void VKDiscardPool::discard_image(VkImage vk_image, VmaAllocation vma_allocation)
-{
-  std::scoped_lock mutex(mutex_);
-  images_.append_timeline(timeline_, std::pair(vk_image, vma_allocation));
-}
-
-void VKDiscardPool::discard_allocation(VmaAllocation vma_allocation)
-{
-  std::scoped_lock mutex(mutex_);
-  allocations_.append_timeline(timeline_, vma_allocation);
+  swapchain_images_.append_timeline(timeline_, image_handle);
 }
 
 void VKDiscardPool::discard_image_view(VkImageView vk_image_view)
@@ -67,17 +55,51 @@ void VKDiscardPool::discard_image_view(VkImageView vk_image_view)
   std::scoped_lock mutex(mutex_);
   image_views_.append_timeline(timeline_, vk_image_view);
 }
-
-void VKDiscardPool::discard_buffer(ResourceHandle buffer_handle, VmaAllocation vma_allocation)
+void VKDiscardPool::discard_resources(
+    Span<render_graph::VKResourceStateTracker::DiscardableResource> discardable,
+    TimelineValue timeline)
 {
   std::scoped_lock mutex(mutex_);
-  buffers_.append_timeline(timeline_, std::pair(buffer_handle, vma_allocation));
+  for (const render_graph::VKResourceStateTracker::DiscardableResource &discardable_resource :
+       discardable)
+  {
+    if (discardable_resource.type == render_graph::VKResourceType::IMAGE) {
+      /* Scheduling the same resource twice is a bug; the tracker pops each resource only once. */
+      BLI_assert(
+          std::find_if(images_.begin(),
+                       images_.end(),
+                       [&](const std::pair<TimelineValue, std::pair<ResourceHandle, VmaAllocation>>
+                               &entry) {
+                         return entry.second.first == discardable_resource.handle;
+                       }) == images_.end());
+      for (const std::variant<VkImageView, VkBufferView> &view : discardable_resource.views) {
+        image_views_.append_timeline(timeline, std::get<VkImageView>(view));
+      }
+      images_.append_timeline(
+          timeline, std::pair(discardable_resource.handle, discardable_resource.allocation));
+    }
+    else if (discardable_resource.type == render_graph::VKResourceType::BUFFER) {
+      /* Scheduling the same resource twice is a bug; the tracker pops each resource only once. */
+      BLI_assert(
+          std::find_if(buffers_.begin(),
+                       buffers_.end(),
+                       [&](const std::pair<TimelineValue, std::pair<ResourceHandle, VmaAllocation>>
+                               &entry) {
+                         return entry.second.first == discardable_resource.handle;
+                       }) == buffers_.end());
+      for (const std::variant<VkImageView, VkBufferView> &view : discardable_resource.views) {
+        buffer_views_.append_timeline(timeline, std::get<VkBufferView>(view));
+      }
+      buffers_.append_timeline(
+          timeline, std::pair(discardable_resource.handle, discardable_resource.allocation));
+    }
+  }
 }
 
-void VKDiscardPool::discard_buffer_view(VkBufferView vk_buffer_view)
+void VKDiscardPool::discard_allocation(VmaAllocation vma_allocation)
 {
   std::scoped_lock mutex(mutex_);
-  buffer_views_.append_timeline(timeline_, vk_buffer_view);
+  allocations_.append_timeline(timeline_, vma_allocation);
 }
 
 void VKDiscardPool::discard_shader_module(VkShaderModule vk_shader_module)
@@ -114,8 +136,16 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device, TimelineValue 
 {
   std::scoped_lock mutex(mutex_);
 
-  swapchain_images_.remove_old(current_timeline,
-                               [&](VkImage vk_image) { device.resources.remove_image(vk_image); });
+  swapchain_images_.remove_old(current_timeline, [&](ResourceHandle image_handle) {
+    /* Destroy the image's registered views before unregistering it. */
+    for (const std::variant<VkImageView, VkBufferView> &view :
+         device.resources.take_views(image_handle))
+    {
+      device.functions.vkDestroyImageView(
+          device.vk_handle(), std::get<VkImageView>(view), nullptr);
+    }
+    device.resources.remove_swapchain_image(image_handle);
+  });
   image_views_.remove_old(current_timeline, [&](VkImageView vk_image_view) {
     device.functions.vkDestroyImageView(device.vk_handle(), vk_image_view, nullptr);
   });
@@ -123,10 +153,12 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device, TimelineValue 
   allocations_.remove_old(current_timeline, [&](VmaAllocation vma_allocation) {
     vmaFreeMemory(device.mem_allocator_get(), vma_allocation);
   });
-  images_.remove_old(current_timeline, [&](std::pair<VkImage, VmaAllocation> image_allocation) {
-    device.resources.remove_image(image_allocation.first);
-    vmaDestroyImage(device.mem_allocator_get(), image_allocation.first, image_allocation.second);
-  });
+  images_.remove_old(
+      current_timeline, [&](std::pair<ResourceHandle, VmaAllocation> image_allocation) {
+        VkImage vk_image = device.resources.get_vk_image(image_allocation.first);
+        device.resources.remove_image(image_allocation.first);
+        vmaDestroyImage(device.mem_allocator_get(), vk_image, image_allocation.second);
+      });
   buffer_views_.remove_old(current_timeline, [&](VkBufferView vk_buffer_view) {
     device.functions.vkDestroyBufferView(device.vk_handle(), vk_buffer_view, nullptr);
   });
