@@ -82,3 +82,7 @@ endif()
 if(WITH_MESHOPTIMIZER)
   add_subdirectory(meshoptimizer_bridge)
 endif()
+
+if(WITH_KTX)
+  add_subdirectory(ktx_bridge)
+endif()

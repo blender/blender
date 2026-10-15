@@ -422,6 +422,10 @@ if(WITH_MESHOPTIMIZER)
   find_package(meshoptimizer REQUIRED CONFIG)
 endif()
 
+if(WITH_KTX)
+  find_package(Ktx REQUIRED CONFIG)
+endif()
+
 windows_find_package(ZLIB) # We want to find before finding things that depend on it like PNG.
 windows_find_package(PNG)
 if(NOT PNG_FOUND)
