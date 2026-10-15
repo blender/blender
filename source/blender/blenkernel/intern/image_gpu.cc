@@ -320,6 +320,15 @@ static void image_gpu_texture_partial_update_changes_available(
                                BLI_rcti_size_x(&clipped_update_region),
                                BLI_rcti_size_y(&clipped_update_region));
   }
+
+  const int eye = 0;
+  if (gpu::Texture *tex = image->runtime->gputexture[TEXTARGET_2D][eye]) {
+    GPU_texture_update_mipmap_chain(tex);
+  }
+  if (gpu::Texture *tex = image->runtime->gputexture[TEXTARGET_2D_ARRAY][eye]) {
+    GPU_texture_update_mipmap_chain(tex);
+  }
+  image->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
 }
 
 static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
@@ -892,9 +901,6 @@ static void gpu_texture_update_from_ibuf(
   if (rect_float && rect_float != ibuf->float_data()) {
     MEM_delete(rect_float);
   }
-
-  GPU_texture_update_mipmap_chain(tex);
-  ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
 
   GPU_texture_unbind(tex);
 }
