@@ -245,17 +245,32 @@ void VKDevice::submission_runner(VKDevice *device)
         device->functions.vkQueueSubmit(
             device->vk_queue_, 1, &vk_submit_info, submit_task->signal_fence);
       }
-      if (submit_task->wait_for_submission != nullptr) {
-        std::unique_lock<Mutex> lock(submit_task->wait_for_submission->is_submitted_mutex);
-        submit_task->wait_for_submission->is_submitted = true;
-        submit_task->wait_for_submission->is_submitted_condition.notify_one();
-      }
       command_buffers_in_use.append_timeline(submit_task->timeline, vk_command_buffer);
       vk_command_buffer = VK_NULL_HANDLE;
       command_buffer.reset();
     }
 
+    /* Release the graph's references; zero-ref resources become discardable and are flushed
+     * below. */
+    render_graph.deref_resources();
+
+    /* Discard zero-ref resources, stamped with this submission's timeline: their last use is
+     * in this task's commands. */
+    {
+      Vector<render_graph::VKResourceStateTracker::DiscardableResource> discardable =
+          device->resources.pop_discardable_resources();
+      device->orphaned_data.discard_resources(discardable, submit_task->timeline);
+    }
+
     render_graph.reset();
+    /* Signal only after the graph's resource references are released. Otherwise swapchain images
+     * aren't dereffed in correct order. */
+    if (submit_task->wait_for_submission != nullptr) {
+      std::unique_lock<Mutex> lock(submit_task->wait_for_submission->is_submitted_mutex);
+      submit_task->wait_for_submission->is_submitted = true;
+      submit_task->wait_for_submission->is_submitted_condition.notify_one();
+    }
+
     BLI_thread_queue_push(device->unused_render_graphs_,
                           std::move(submit_task->render_graph),
                           BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);

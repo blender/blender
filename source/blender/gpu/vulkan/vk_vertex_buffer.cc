@@ -62,10 +62,13 @@ void VKVertexBuffer::ensure_buffer_view()
   buffer_view_info.format = to_vk_format();
   buffer_view_info.range = buffer_.size_in_bytes();
 
-  const VKDevice &device = VKBackend::get().device;
+  VKDevice &device = VKBackend::get().device;
   device.functions.vkCreateBufferView(
       device.vk_handle(), &buffer_view_info, nullptr, &vk_buffer_view_);
   debug::object_label(vk_buffer_view_, "VertexBufferView");
+
+  BLI_assert(buffer_.resource().resource_handle != 0);
+  device.resources.register_view(buffer_.resource().resource_handle, vk_buffer_view_);
 }
 
 void VKVertexBuffer::wrap_handle(uint64_t /*handle*/)
@@ -166,11 +169,6 @@ void VKVertexBuffer::resize_data()
 
 void VKVertexBuffer::release_data()
 {
-  if (vk_buffer_view_ != VK_NULL_HANDLE) {
-    VKDiscardPool::discard_pool_get().discard_buffer_view(vk_buffer_view_);
-    vk_buffer_view_ = VK_NULL_HANDLE;
-  }
-
   MEM_SAFE_DELETE(data_);
 }
 
