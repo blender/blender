@@ -253,6 +253,9 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
   wmWindowManager *wm = bmain->wm.first();
   ED_screen_animation_stop(bmain, wm, is_using_view_layer);
 
+  /* Kill the compositor job since it might be referencing the viewer layer to be removed. */
+  WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_COMPOSITE);
+
   BLI_remlink(&scene->view_layers, layer);
   BLI_assert(scene->view_layers.is_empty() == false);
 
