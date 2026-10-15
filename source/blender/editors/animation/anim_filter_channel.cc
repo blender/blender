@@ -1000,7 +1000,7 @@ const ChannelTagSet &ChannelTagSet::const_this() const
 
 const ChannelTag *ChannelTagSet::first_by_type(const ChannelTagType tag_type) const
 {
-  /* TODO store in map so we don't have to search here. */
+  /* TODO store in map so we don't have to search here. !! Measure performance before doing so.*/
   for (const ChannelTag &tag : this->tags_) {
     if (tag.tag_type() == tag_type) {
       return &tag;
@@ -1013,6 +1013,32 @@ ChannelTag *ChannelTagSet::first_by_type(const ChannelTagType tag_type)
 {
   /* Defer to the const version, then cast the constness away. */
   return const_cast<ChannelTag *>(const_this().first_by_type(tag_type));
+}
+
+const ChannelTag *ChannelTagSet::nth_by_type(const ChannelTagType tag_type, const int n) const
+{
+  int counter = 0;
+  for (const ChannelTag &tag : this->tags_) {
+    if (tag.tag_type() == tag_type) {
+      if (counter == n) {
+        return &tag;
+      }
+      counter++;
+    }
+  }
+  return nullptr;
+}
+
+bool ChannelTagSet::has_another_of_type(const ChannelTag *tag) const
+{
+  const int next_index = std::distance(tags_.begin(), tag) + 1;
+  if (next_index >= tags_.size()) {
+    return false;
+  }
+  /* TODO this assumes that tags are ordered by type which is currently not enforced. See also
+   * `ChannelTagSet::by_type`. */
+  const ChannelTag &next_tag = tags_[next_index];
+  return tag->tag_type() == next_tag.tag_type();
 }
 
 Span<const ChannelTag> ChannelTagSet::by_type(const ChannelTagType tag_type) const
@@ -1046,6 +1072,9 @@ Span<const ChannelTag> ChannelTagSet::by_type(const ChannelTagType tag_type) con
     }
   }
 
+  /* TODO: This assumes that the tags are sorted by type. This happens to be the case right now due
+   * to how collecing channels works but should be enforced later. Alternatively we could rewrite
+   * code to maintain insertion order here but not assume tag order. */
   return Span<const ChannelTag>(found_tag, this->tags_.size() - found_tag_index);
 }
 

@@ -4204,6 +4204,158 @@ static void gather_tags(SummaryChannel &channel)
   }
 }
 
+/*
+ * A summary channel and the data channels it owns. Used as a performance improvement during
+ * grouping.
+ */
+struct SummaryContainer {
+  SummaryChannel *summary = nullptr;
+  /* The datachannels belonging to this summary. References a section of the sorted datachannels
+   * array. */
+  MutableSpan<DataChannel *> datachannels = {};
+
+  bool operator==(const SummaryContainer &other) const
+  {
+    return other.summary == summary;
+  }
+};
+
+struct NewGroupInfo {
+  const ChannelTag *tag;
+  MutableSpan<DataChannel *> channels;
+  bool can_be_split;
+};
+
+/**
+ * Split the given group into subgroups for the given tag type.
+ * This changes the order of `datachannels` in summary_data. Any groups created will reduce the
+ * length of `datachannels` in `summary_data`.
+ *
+ * This will run recursively in the case of multiple tags of the same type.
+ *
+ * \note This assumes that a datachannel will only ever exist under a single group. This is a hard
+ * limitation of this algorithm as it cannot change the length of the DataChannel Vector.
+ *
+ * \returns groups with datachannels that can be split further using another tag.
+ */
+static Vector<SummaryContainer> split_group_for_tag(ChannelArena &arena,
+                                                    SummaryContainer &summary_data,
+                                                    const ChannelTagType tag_type,
+                                                    const int tag_index,
+                                                    const bool use_minimal_grouping)
+{
+  MutableSpan<DataChannel *> data_channels = summary_data.datachannels;
+  if (summary_data.datachannels.size() == 0) {
+    /* Can happen on empty files. */
+    return {};
+  }
+
+  /* Grouping really is a data sorting problem. We need to get the DataChannels that belong
+   * to the same group in sequence. Using a lambda here is the simplest solution since it
+   * knows which tag we are searching for.
+   *
+   * Doing alphabetical sorting is not ideal since it could result in many sorting operations. This
+   * could be improved with a custom sorting algorithm that uses the existing order of
+   * `DataChannel`s and tries to modify it as little as possible for the given tag. Given how we
+   * collect the channels they should be pretty sorted already. With that we could also figure out
+   * the group borders in one go. */
+  std::sort(
+      data_channels.begin(), data_channels.end(), [&](const DataChannel *a, const DataChannel *b) {
+        const ChannelTag *tag_a = a->tags().nth_by_type(tag_type, tag_index);
+        const ChannelTag *tag_b = b->tags().nth_by_type(tag_type, tag_index);
+        if (!tag_a && !tag_b) {
+          /* Neither have the tag, no need to sort. */
+          return false;
+        }
+        if (!tag_a) {
+          return false;
+        }
+        if (!tag_b) {
+          /* `tag_a` exists but not `tag_b`. So `a` should be before `b`. */
+          return true;
+        }
+        if (*tag_a == *tag_b) {
+          /* The tags are equal, no need to sort. */
+          return false;
+        }
+        /* Sort by name if tags are not equal. */
+        return tag_a->label() < tag_b->label();
+      });
+
+  /* After sorting, step through the `DataChannel`s and find the group borders. */
+  const ChannelTag *current_tag = data_channels[0]->tags().nth_by_type(tag_type, tag_index);
+  if (!current_tag) {
+    /* This summary cannot be split with the given tag. */
+    return {};
+  }
+
+  int group_start = 0;
+  int group_length = 0;
+  /* Set to true if any channel has more tags of the same type. */
+  bool has_more_tags = false;
+  Vector<NewGroupInfo> new_groups;
+  for (const DataChannel *data_channel : data_channels) {
+    const ChannelTag *tag = data_channel->tags().nth_by_type(tag_type, tag_index);
+    if (!tag) {
+      /* Channels without that tag are sorted to be at the end. They should not be grouped. */
+      break;
+    }
+    has_more_tags |= data_channel->tags().has_another_of_type(tag);
+    /* Check if tags are equal, which is also true if the tag doesn't exist on both channels. */
+    if (*tag == *current_tag) {
+      group_length++;
+      continue;
+    }
+    BLI_assert(group_length > 0);
+    new_groups.append(
+        {current_tag, summary_data.datachannels.slice(group_start, group_length), has_more_tags});
+    group_start += group_length;
+    has_more_tags = false;
+    group_length = 1;
+    current_tag = tag;
+  }
+
+  if (group_length > 0) {
+    new_groups.append(
+        {current_tag, summary_data.datachannels.slice(group_start, group_length), has_more_tags});
+    group_start += group_length;
+  }
+
+  if (use_minimal_grouping && new_groups.size() == 1) {
+    if (has_more_tags) {
+      Vector<SummaryContainer> sub_splits = split_group_for_tag(
+          arena, summary_data, tag_type, tag_index + 1, use_minimal_grouping);
+      return sub_splits;
+    }
+    return {};
+  }
+
+  /* Shrink the span to only those data channels that did not get a new group. Those can be split
+   * with another tag.*/
+  summary_data.datachannels = summary_data.datachannels.drop_front(group_start);
+
+  Vector<SummaryContainer> splitable_summaries;
+  for (const NewGroupInfo &group_data : new_groups) {
+    const ChannelTag *tag = group_data.tag;
+    SummaryChannel *summary = arena.allocate_summary_channel(
+        tag->label(), tag->source_data(), tag->source_rna_path(), tag->sort_priority());
+    summary_data.summary->add_child(*summary);
+    SummaryContainer summary_container = {summary, group_data.channels};
+    if (group_data.can_be_split) {
+      /* Recursive call in case the group can be split further using the same tag. */
+      Vector<SummaryContainer> sub_splits = split_group_for_tag(
+          arena, summary_container, tag_type, tag_index + 1, use_minimal_grouping);
+      splitable_summaries.extend(sub_splits);
+    }
+    if (summary_container.datachannels.size() > 0) {
+      /* Given the recursive call above, the summary container may already be completely split. */
+      splitable_summaries.append(summary_container);
+    }
+  }
+
+  return splitable_summaries;
+}
+
 void group_channels(ChannelArena &arena,
                     Span<ChannelTagType> tag_order,
                     const bool use_minimal_grouping)
@@ -4212,84 +4364,38 @@ void group_channels(ChannelArena &arena,
 
   SummaryChannel *root = arena.allocate_summary_channel("Summary");
 
-  for (DataChannel *channel : arena.data_channels) {
-    root->add_child(*channel);
+  /* All Summary Channels with at least 1 data channel. */
+  Vector<SummaryContainer> splitable_summaries = {{root, arena.data_channels}};
+  Vector<SummaryContainer *> completely_split;
+  Vector<SummaryContainer> new_summaries;
+
+  for (const ChannelTagType tag_type : tag_order) {
+    completely_split.clear();
+    new_summaries.clear();
+
+    for (SummaryContainer &split : splitable_summaries) {
+      Vector<SummaryContainer> foo = split_group_for_tag(
+          arena, split, tag_type, /* tag_index= */ 0, use_minimal_grouping);
+      new_summaries.extend(foo);
+      if (split.datachannels.size() == 0) {
+        completely_split.append(&split);
+      }
+    }
+
+    for (SummaryContainer *split : completely_split) {
+      /* We don't care in which order the summaries are processed since they don't influence each
+       * other. */
+      splitable_summaries.remove_first_occurrence_and_reorder(*split);
+    }
+
+    splitable_summaries.extend(new_summaries);
   }
 
-  /* Store the indices of all summary channels that can potentially be broken down with child
-   * summaries. */
-  Vector<SummaryChannel *> potentially_splittable_summaries = {root};
-  for (const ChannelTagType tag_type : tag_order) {
-    bool has_more_tags_of_this_type = false;
-    do {
-      has_more_tags_of_this_type = false;
-
-      Vector<SummaryChannel *> completely_split;
-      Vector<SummaryChannel *> new_summaries;
-
-      for (SummaryChannel *summary : potentially_splittable_summaries) {
-        int data_channel_count = 0;
-
-        Map<ChannelTag, std::pair<int, Vector<DataChannel *>>> potential_tags;
-        const Span<AnimationChannel *> children = summary->children();
-        for (const int child_index : children.index_range()) {
-          AnimationChannel *child = children[child_index];
-          if (child->type() != AnimationChannelType::DATA) {
-            continue;
-          }
-          data_channel_count++;
-          DataChannel *data_channel = reinterpret_cast<DataChannel *>(child);
-
-          const auto [tag,
-                      should_visit_again] = data_channel->tags().by_type_for_grouping(tag_type);
-          has_more_tags_of_this_type |= should_visit_again;
-          if (!tag) {
-            continue;
-          }
-
-          potential_tags.lookup_or_add(*tag, std::make_pair(child_index, Vector<DataChannel *>()))
-              .second.append(data_channel);
-        }
-
-        if (data_channel_count == 0) {
-          completely_split.append(summary);
-          continue;
-        }
-
-        if (potential_tags.is_empty()) {
-          /* No child channel contains the current tag. */
-          continue;
-        }
-
-        if (use_minimal_grouping && potential_tags.size() == 1) {
-          /* Cannot split group further with this group type. */
-          continue;
-        }
-
-        for (const auto &[tag, tag_datachannels] : potential_tags.items()) {
-          SummaryChannel *new_summary = arena.allocate_summary_channel(
-              tag.label(), tag.source_data(), tag.source_rna_path(), tag.sort_priority());
-
-          // const int insertion_index = tag_datachannels.first;
-          // summary->insert_child(insertion_index, *new_summary);
-          summary->add_child(*new_summary);
-
-          for (DataChannel *data_channel : tag_datachannels.second) {
-            summary->remove_child(*data_channel);
-            new_summary->add_child(*data_channel);
-          }
-
-          new_summaries.append(new_summary);
-        }
-      }
-
-      potentially_splittable_summaries.extend(new_summaries);
-      for (SummaryChannel *summary : completely_split) {
-        /* We don't care in which order the summaries are processed since they don't influence each
-         * other. */
-        potentially_splittable_summaries.remove_first_occurrence_and_reorder(summary);
-      }
-    } while (has_more_tags_of_this_type);
+  /* The summaries that remain will get their datachannels as children. */
+  for (SummaryContainer &split : splitable_summaries) {
+    for (DataChannel *channel : split.datachannels) {
+      split.summary->add_child(*channel);
+    }
   }
 
   for (SummaryChannel *channel : arena.summary_channels) {

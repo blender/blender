@@ -70,6 +70,7 @@ class ChannelTag {
              const PointerRNA &source_data,
              std::optional<ParsedSourcePath> source_rna_path,
              int sort_priority_ = 0 /*AnimationChannel::DEFAULT_SORTING*/);
+
   bool operator==(const ChannelTag &other) const
   {
     return other.tag_type_ == this->tag_type_ &&
@@ -187,7 +188,11 @@ class ChannelTagSet {
 
   const ChannelTag *first_by_type(const ChannelTagType tag_type) const;
   ChannelTag *first_by_type(const ChannelTagType tag_type);
+  const ChannelTag *nth_by_type(ChannelTagType tag_type, int n) const;
+  /* Returns true if there is another tag in this set after the given tag of the same type. */
+  bool has_another_of_type(const ChannelTag *tag) const;
   Span<const ChannelTag> by_type(const ChannelTagType tag_type) const;
+  /* Returns all `ChannelTag`s of the given type. */
   Span<ChannelTag> by_type(const ChannelTagType tag_type);
 
   /**
@@ -548,6 +553,7 @@ class ChannelArena {
   LinearAllocator<> allocator_;
 
  public:
+  /* Heap allocated data channels. */
   Vector<DataChannel *> data_channels;
   Vector<SummaryChannel *> summary_channels;
 
@@ -649,6 +655,8 @@ void collect_animation_channels(const bContext &C,
  * Group the arena's data channels by setting parent child relationships.
  *
  * The summary channels are stored in `arena.summary_channels`.
+ *
+ * \note that this can change the order of datachannels in `arena`.
  *
  * \param tag_order: determines in which order the groups should be created. Items early in
  * the list are parents to items later in the list.
