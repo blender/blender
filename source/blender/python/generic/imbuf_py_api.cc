@@ -1657,7 +1657,7 @@ PyDoc_STRVAR(
     "   :param buffer: A buffer containing image data.\n"
     "   :type buffer: collections.abc.Buffer\n"
     "   :return: The detected file type, or None if unrecognized.\n"
-    "   :rtype: :class:`ImBufFileType` or None\n");
+    "   :rtype: :class:`ImBufFileType` | None\n");
 static PyObject *M_imbuf_file_type_from_buffer(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   PyObject *buffer_py_ob;

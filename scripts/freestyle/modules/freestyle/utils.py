@@ -145,7 +145,7 @@ def material_from_fedge(fe):
 
     :param fe: An FEdge.
     :type fe: :class:`FEdge`
-    :rtype: :class:`Material` | None
+    :rtype: :class:`freestyle.types.Material` | None
     """
     if fe is None:
         return None
@@ -546,7 +546,7 @@ def iter_material_value(stroke, func, attribute):
     :param stroke: A stroke.
     :type stroke: :class:`Stroke`
     :param func: A function returning a material for the iterator's current vertex.
-    :type func: Callable[[:class:`Interface0DIterator`], :class:`Material`]
+    :type func: Callable[[:class:`Interface0DIterator`], :class:`freestyle.types.Material`]
     :param attribute: The material attribute name (e.g. ``LINE``, ``DIFF``, ``ALPHA``).
     :type attribute: str
     """
