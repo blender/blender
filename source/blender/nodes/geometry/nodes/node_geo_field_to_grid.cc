@@ -146,7 +146,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Span<GeometryNodeFieldToGridItem> items(storage.items, storage.items_num);
   bke::GVolumeGrid topology_grid = params.extract_input<bke::GVolumeGrid>("Topology"_ustr);
   if (!topology_grid) {
-    params.error_message_add(NodeWarningType::Error, "The topology grid input is required");
     params.set_default_remaining_outputs();
     return;
   }
