@@ -114,6 +114,14 @@ static void rna_BlenderProject_update(Main * /*bmain*/, Scene * /*scene*/, Point
   WM_main_add_notifier(NC_WINDOW, nullptr);
 }
 
+/* The project name is displayed in the window title. */
+static void rna_BlenderProject_name_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  rna_BlenderProject_update(bmain, scene, ptr);
+
+  WM_main_add_notifier(NC_WM | ND_PROJECT_CHANGED, nullptr);
+}
+
 static void rna_ProjectVariable_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   BlenderProject *project = ptr->parent().data_as<BlenderProject>();
@@ -971,7 +979,7 @@ static void rna_def_blender_project(BlenderRNA *brna)
                                 "rna_BlenderProject_name_set");
   RNA_def_property_ui_text(prop, "Name", "The project's name");
   RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_update(prop, 0, "rna_BlenderProject_update");
+  RNA_def_property_update(prop, 0, "rna_BlenderProject_name_update");
 
   prop = RNA_def_property(srna, "root_path", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_maxlength(prop, FILE_MAX);

@@ -205,8 +205,9 @@ static void rna_Main_blender_project_init(struct BlendData * /* blenddata */,
                 "parameters are non-empty.");
   }
 
-  /* Force full redraw of all windows. */
+  /* Force full redraw of all windows, and refresh their title. */
   WM_main_add_notifier(NC_WINDOW, nullptr);
+  WM_main_add_notifier(NC_WM | ND_PROJECT_CHANGED, nullptr);
 }
 
 static void rna_Main_blender_project_init_from_root_path(struct BlendData *blenddata,
@@ -220,8 +221,9 @@ static void rna_Main_blender_project_init_from_root_path(struct BlendData *blend
                 "Failed to initialize project. Ensure that project_root path is correct.");
   }
 
-  /* Force full redraw of all windows. */
+  /* Force full redraw of all windows, and refresh their title. */
   WM_main_add_notifier(NC_WINDOW, nullptr);
+  WM_main_add_notifier(NC_WM | ND_PROJECT_CHANGED, nullptr);
 }
 
 static void rna_Main_blender_project_save(struct BlendData *blenddata, ReportList *reports)
@@ -237,8 +239,9 @@ static void rna_Main_blender_project_clear(struct BlendData * /* blenddata */,
 {
   BKE_blender_project_clear();
 
-  /* Force full redraw of all windows. */
+  /* Force full redraw of all windows, and refresh their title. */
   WM_main_add_notifier(NC_WINDOW, nullptr);
+  WM_main_add_notifier(NC_WM | ND_PROJECT_CHANGED, nullptr);
 }
 
 static Camera *rna_Main_cameras_new(Main *bmain, const char *name)

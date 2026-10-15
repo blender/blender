@@ -635,7 +635,7 @@ void wm_event_do_notifiers(bContext *C)
           wm->file_saved = 1;
           WM_window_title_refresh(wm, &win);
         }
-        else if (note->data == ND_DATACHANGED) {
+        else if (ELEM(note->data, ND_DATACHANGED, ND_PROJECT_CHANGED)) {
           WM_window_title_refresh(wm, &win);
         }
         else if (note->data == ND_UNDO) {
