@@ -36,6 +36,9 @@ gpu::UniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const c
  */
 gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBaseT<LinkData> *inputs, const char *name);
 
+/* Sort input list in order to ensure minimum padding. */
+void GPU_uniformbuf_inputs_sort(ListBaseT<LinkData> *inputs);
+
 #define GPU_uniformbuf_create(size) GPU_uniformbuf_create_ex(size, nullptr, __func__);
 
 void GPU_uniformbuf_free(gpu::UniformBuf *ubo);

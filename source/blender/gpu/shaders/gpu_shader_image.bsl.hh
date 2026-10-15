@@ -91,8 +91,8 @@ struct FragOut {
   }
 
   if (srt.use_shuffle) [[static_branch]] {
-    col *= float4(col.r * srt.shuffle.r + col.g * srt.shuffle.g + col.b * srt.shuffle.b +
-                  col.a * srt.shuffle.a);
+    col = float4(col.r * srt.shuffle.r + col.g * srt.shuffle.g + col.b * srt.shuffle.b +
+                 col.a * srt.shuffle.a);
   }
 
   if (srt.use_color) [[static_branch]] {

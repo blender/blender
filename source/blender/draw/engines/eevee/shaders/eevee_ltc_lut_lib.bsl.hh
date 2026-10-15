@@ -62,8 +62,9 @@ struct LTCData {
     ltc_data.Minv[2].z = v4.y;
 
     /* Unpack associated values from 16 lsb of [4]. */
-    ltc_data.attenuation_factor = float(0xFFu & cl.ltc_data_packed[4]) / 255.0f;
-    ltc_data.form_factor_type = LTCFormFactorType(0xFFu & (cl.ltc_data_packed[4] >> 8u));
+    float4 pack = unpackUnorm4x8(cl.ltc_data_packed[4]);
+    ltc_data.attenuation_factor = pack.x;
+    ltc_data.form_factor_type = LTCFormFactorType(pack.y);
 
     return ltc_data;
   }
@@ -74,8 +75,8 @@ struct LTCData {
   void pack_to(ClosureLight &cl) const
   {
     /* Pack associated values in 16 lsb . */
-    uint values_lsb = (0xFFu & uint(attenuation_factor * 255.0f)) |
-                      ((0xFFu & uint(form_factor_type)) << 8u);
+    uint values_lsb = packUnorm4x8(
+        float4(attenuation_factor, float(form_factor_type), 0.0f, 0.0f));
 
     /* Pack matrix values as 9 x fp16, plus associated values in 16 lsb of [4]. */
     cl.ltc_data_packed[0] = packHalf2x16(Minv[0].xy);
