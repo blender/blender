@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <sstream>
 
 #include "DNA_action_types.h"
 #include "DNA_collection_types.h"
@@ -56,7 +57,11 @@
 
 #include "GPU_matrix.hh"
 
+#include "CLG_log.h"
+
 #include "action_intern.hh" /* own include */
+
+static CLG_LogRef LOG = {"anim.space_action"};
 
 namespace blender {
 
@@ -1148,6 +1153,7 @@ static void action_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
 {
   using namespace ed::animfilter;
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
+  bool has_shown_warning_header = false;
 
   for (SpaceActionChannelUIState &state : saction->channel_ui_states) {
     /* Create the UI state map key. */
@@ -1172,7 +1178,15 @@ static void action_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
      * use add() rather than add_new(). Also newer Blenders may write more information than what is
      * loaded here, and that missing data may cause channel identifier collissions, so better
      * handle those without crashing. */
-    saction->runtime->channel_states.add(chan_ident, ui_state);
+    if (!saction->runtime->channel_states.add(chan_ident, ui_state)) {
+      if (!has_shown_warning_header) {
+        CLOG_WARN(&LOG, "reading animation channel UI state:");
+        has_shown_warning_header = true;
+      }
+      std::stringstream ss;
+      ss << chan_ident;
+      CLOG_WARN(&LOG, "  - duplicate channel %s found", ss.str().c_str());
+    }
 
     /* Discard the RNA path, as BLI_freelistN() below won't do that. */
     MEM_delete(state.source_rna_path);
