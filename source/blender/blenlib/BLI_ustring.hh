@@ -44,7 +44,7 @@ class UString {
    */
   StringRefNull ref() const
   {
-    return StringRefNull(ustr_.c_str(), ustr_.length());
+    return StringRefNull(this->c_str(), this->size());
   }
 
   const std::string &string() const
@@ -53,6 +53,14 @@ class UString {
   }
 
   const char *c_str() const
+  {
+    if (ustr_.empty()) {
+      return "";
+    }
+    return ustr_.c_str();
+  }
+
+  const char *c_str_or_null() const
   {
     return ustr_.c_str();
   }
@@ -137,7 +145,7 @@ template<FixedString FStr> inline UString operator""_ustr()
   /* This is initialized to null by default. */
   static std::atomic<UString> static_ustr;
   UString ustr = static_ustr.load(std::memory_order_relaxed);
-  if (ustr.c_str() == nullptr) [[unlikely]] {
+  if (ustr.c_str_or_null() == nullptr) [[unlikely]] {
     ustr = UString::from_ptr_noinline(FStr.data);
     static_ustr.store(ustr, std::memory_order_relaxed);
   }
