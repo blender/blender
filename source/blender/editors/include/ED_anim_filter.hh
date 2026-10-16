@@ -110,13 +110,31 @@ class ChannelTag {
   }
 };
 
-/* Not using BLI_set because that can't be iterated thus not turned into a set. */
 class ChannelTagStack final {
-  Vector<ChannelTag> tags_;
+  /* In typical blend files, the stack grows to 7 tags:
+   *   1. ACTION 'Mikassa_on2s_wiggle_SHRDS'
+   *   2. ACTION_LAYER 'Legacy Layer'
+   *   3. ACTION_STRIP 'strip_name_placeholder'
+   *   4. ACTION_SLOT 'Legacy Slot'
+   *   5. ID 'RIG-mikassa'
+   *   6. FCURVE_GROUP 'Shard_321352'
+   *   7. BONE 'Shard_321352'
+   *
+   * Tests with an example file (Mikasa with lots of small objects (shards) animated by one bone
+   * each). Times are in milliseconds, counting only the collection of data channels. 'avg' is
+   * average, and 'med' is the median.
+   *
+   * Without reserving : 188, 134, 135, 132, 127; avg 143 med 134
+   * With reserving    : 147, 184, 143, 135, 141; avg 150 med 143
+   * With 8 inline     : 139, 140, 127, 127, 125, 127; avg 131 med 127
+   *
+   * So actively reserving 7 items in the vector doesn't actually seem to help performance.
+   * Increasing the vector's inline buffer to 8 items (which is needed with the normal allocation
+   * strategy of doubling the buffer) there is a slight performance increase of 5%.
+   */
+  Vector<ChannelTag, 8> tags_;
 
  public:
-  ChannelTagStack();
-
   void push(const ChannelTag &tag);
   void pop();
   bool is_empty() const;
