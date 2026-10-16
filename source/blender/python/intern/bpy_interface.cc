@@ -44,6 +44,9 @@
 
 #include "bpy_app_translations.hh"
 
+#include "DNA_freestyle_types.h"
+#include "DNA_layer_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_text_types.h"
 
 #include "BKE_appdir.hh"
@@ -826,6 +829,23 @@ void BPY_modules_load_user(bContext *C)
 
   bpy_context_set(C, &gilstate);
 
+  if (!(G.f & (G_FLAG_SCRIPT_AUTOEXEC | G_FLAG_SCRIPT_AUTOEXEC_FAIL |
+               G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)))
+  {
+    for (Scene &scene : bmain->scenes) {
+      for (ViewLayer &view_layer : scene.view_layers) {
+        for (const FreestyleModuleConfig &module_conf : view_layer.freestyle_config.modules) {
+          if (module_conf.script) {
+            G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
+            SNPRINTF_UTF8(G.autoexec_fail,
+                          RPT_("Freestyle style module '%s'"),
+                          module_conf.script->id.name + 2);
+          }
+        }
+      }
+    }
+  }
+
   for (text = static_cast<Text *>(bmain->texts.first); text;
        text = static_cast<Text *>(text->id.next))
   {
@@ -850,6 +870,7 @@ void BPY_modules_load_user(bContext *C)
       }
     }
   }
+
   bpy_context_clear(C, &gilstate);
 }
 
