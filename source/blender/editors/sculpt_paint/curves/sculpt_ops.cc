@@ -676,7 +676,9 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
         curve_op_data.distances_to_selected.reinitialize(curve_op_data.unselected_points.size());
         curve_op_data.unselected_points.foreach_index(
             [&](const int point, const int pos) {
-              kdtree.find_nearest(positions[point], &curve_op_data.distances_to_selected[pos]);
+              float distance_sq = FLT_MAX;
+              kdtree.find_nearest(positions[point], &distance_sq);
+              curve_op_data.distances_to_selected[pos] = std::sqrt(distance_sq);
             },
             exec_mode::grain_size(256));
       },
@@ -686,7 +688,9 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
         curve_op_data.distances_to_unselected.reinitialize(curve_op_data.selected_points.size());
         curve_op_data.selected_points.foreach_index(
             [&](const int point, const int pos) {
-              kdtree.find_nearest(positions[point], &curve_op_data.distances_to_unselected[pos]);
+              float distance_sq = FLT_MAX;
+              kdtree.find_nearest(positions[point], &distance_sq);
+              curve_op_data.distances_to_unselected[pos] = std::sqrt(distance_sq);
             },
             exec_mode::grain_size(256));
       });
