@@ -43,6 +43,10 @@ PAGE_WIDTH_HALF = PAGE_WIDTH / 2.0
 # RESOLUTION_SCALE = 0.25  # For quick test renders.
 RESOLUTION_SCALE = 1.0
 RESOLUTION_X = 3200
+# Renders larger than the GPU's maximum texture size are black,
+# reduce the resolution when the page is too tall to fit.
+# 16384 is a common maximum texture size.
+RESOLUTION_MAX = 16384
 
 OUTPUT_IMAGE_FILE = True
 OUTPUT_BLEND_FILE = False
@@ -118,6 +122,7 @@ SECTIONS = (
             ("space_nla", "Animation non-linear-action editor."),
             ("space_node", "Node editor for compositor, geometry and other nodes."),
             ("space_outliner", "Outliner editor."),
+            ("space_project", "Project settings."),
             ("space_script", "Unused script space (historic)."),
             ("space_sequencer", "Video sequence editor."),
             ("space_spreadsheet", "Spreadsheet data editor."),
@@ -186,10 +191,10 @@ SECTIONS = (
         source_code_call_sibling_modules=True,
         source_code_base="source/blender/",
         source_code_dirs=[
+            ("animrig", "Animation & rigging functionality including key-framing, drivers NLA & actions."),
             ("asset_system", "Asset system back-end (asset representations, asset libraries, catalogs, etc.)."),
             ("blendthumb", "Thumbnail extraction for the BLEND file-format."),
             ("blenfont", "Font loading and rendering. Used by the user-interface and stamping text into images."),
-            ("animrig", "Animation & rigging functionality including key-framing, drivers NLA & actions."),
             ("blenkernel",
              "Kernel functions "
              "(data structure manipulation, allocation, free. No interactive tools or UI logic, very low level)."),
@@ -233,28 +238,32 @@ SECTIONS = (
         source_code_base="intern/",
         source_code_dirs=[
             ("atomic", "Low level operations lockless concurrent programming."),
-            ("audaspace", "Wrapper (see extern)."),
             ("clog", "C-logging library."),
-            ("uriconvert", "Support encoding strings (typically paths) as URI's."),
             ("cycles", "Cycles rendering engine."),
+            ("dbus_dynload", "Dynamic loader for D-Bus (Unix only)."),
+            ("draco_bridge", "Wrapper for Draco mesh compression (see libraries). Used by the glTF add-on."),
             ("dualcon", "Re-meshing "),
-            ("eigen", "Wrapper (see extern/Eigen3/)"),
+            ("eigen", "Wrapper (see libraries)."),
             ("ghost", "Platform abstraction for windowing and user (mouse, keyboard) input."),
             ("guardedalloc", "Memory allocator used across most of Blender's internal code."),
             ("iksolver", "An IK-solver (useful for character animation)"),
             ("itasc", "An IK-solver (useful for robotics)."),
+            ("ktx_bridge", "Wrapper for KTX texture compression (see libraries). Used by the glTF add-on."),
             ("libc_compat", "C-library compatibility (Linux only)."),
             ("libmv", "Movie clip motion tracking solver."),
             ("mantaflow", "Wrapper (see extern)."),
             ("memutil", "Memory allocation utilities."),
+            ("meshoptimizer_bridge", "Wrapper for mesh optimizer (see libraries). Used by the glTF add-on."),
             ("mikktspace", "Calculation for mesh tangents from normals & UV's."),
             ("opensubdiv", "Wrapper (see libraries)."),
             ("openvdb", "OpenVDB wrapper for volumetric data support."),
+            ("profile", "Wrapper for the Tracy profiler (see libraries)."),
             ("quadriflow", "Wrapper for quadriflow re-meshing."),
             ("renderdoc_dynload", "Dynamic loader (see libraries)."),
             ("rigidbody", "Wrapper for bullet physics (see extern)."),
             ("sky", "Calculate skylight & solar radiance models."),
             ("slim", "Calculate UV unwrapping, used for the \"Minimum Stretch\" method."),
+            ("uriconvert", "Support encoding strings (typically paths) as URI's."),
             ("utfconv", "Unicode text conversion."),
             ("wayland_dynload", "Dynamic loader for wayland (Unix only)."),
         ],
@@ -267,13 +276,9 @@ SECTIONS = (
             ("audaspace", "A high level audio library for portable audio output."),
             ("binreloc", "Support access binary locations (Linux only)."),
             ("bullet2", "Physics solver with rigid-body support."),
-            ("ceres", "A library for modeling and solving large, complicated optimization problems."),
             ("cuew", "Extension wrangler for CUDA."),
             ("curve_fit_nd", "Fit bezier-splines to sampled points. Used for free-hand drawing."),
-            ("draco", "Compressed 3D file format support."),
-            ("Eigen3", "A C++ template library for linear algebra."),
             ("fast_float", "Fast floating point number parsing."),
-            ("fmtlib", "A modern C++ string formatting library."),
             ("gflags", "A library to parse command-line flags. Used by glog."),
             ("glew-es", "Extension wrangler for GLEW-ES."),
             ("glog", "Google C++ logging library. Used by gtest & ceres."),
@@ -281,19 +286,21 @@ SECTIONS = (
             ("gtest", "Google C++ testing framework. Used for C & C++ tests."),
             ("hipew", "Wrapper for the HIP C++ library, portability library for AMD & NVIDIA GPUs."),
             ("json", "JSON file format support."),
-            ("lzma", "High quality but slower (de)compression library."),
-            ("lzo", "Fast (de)compression library."),
             ("mantaflow", "Fluid simulation."),
+            ("md4c", "Markdown parser. Used for displaying markdown text in the user-interface."),
             ("nanosvg", "Salable vector graphics support."),
             ("quadriflow", "Remeshing that rebuilds the geometry with a more uniform topology."),
             ("rangetree", "Efficient range storage."),
             ("renderdoc", "Graphical GPU debugger."),
             ("tinygltf", "GLTF 3D file format support."),
+            ("toml11", "TOML file format support."),
+            ("tracy_profiler", "Build support for the Tracy profiler server & graphical front-end."),
             ("ufbx", "FBX 3D file format loading support, used by the C++ FBX importer."),
+            ("volk", "Meta-loader for Vulkan, loads the Vulkan API at run-time."),
             ("vulkan_memory_allocator", "Memory allocation utilities for Vulkan GPU back-end."),
             ("wcwidth", "Unicode character width."),
-            ("xdnd", "Drag & drop support for the X11 graphical environment."),
             ("wintab", "Tablet input device support for MS-Windows."),
+            ("xdnd", "Drag & drop support for the X11 graphical environment."),
             ("xxhash", "Fast non-cryptographic hashing functions."),
         ],
     ),
@@ -302,13 +309,18 @@ SECTIONS = (
         source_code_call_sibling_modules=False,
         source_code_base="lib/{platform}/",
         source_code_dirs=[
+            ("abseil", "C++ common libraries. Used by Ceres."),
             ("alembic", "An interchangeable computer graphics file format for baked mesh data."),
             ("brotli", "Compression library used to decompress WOFF2 fonts."),
+            ("ceres", "A library for modeling and solving large, complicated optimization problems."),
             ("dpcpp", "OneAPI DPC++/C++ Compiler. Used by Cycles oneAPI."),
+            ("draco", "Compressed 3D mesh data. Used by the glTF add-on."),
+            ("eigen", "A C++ template library for linear algebra."),
             ("embree", "A collection of high-performance ray tracing kernels. Used by Cycles."),
             ("epoxy", "Extension wrangler for OpenGL."),
             ("ffmpeg", "Movie encoding/decoding library."),
             ("fftw3", "Fast fourier transformation library."),
+            ("fmt", "A modern C++ string formatting library."),
             ("freetype", "Font reading & rendering library."),
             ("fribidi",
              "Bi-directional text support (right-to-left) for Arabic & Hebrew script. "
@@ -318,43 +330,48 @@ SECTIONS = (
             ("haru", "PDF generation library."),
             ("hiprt", "Ray-tracing for AMD GPU's. Used by Cycles."),
             ("imath", "Library used by OpenEXR image-format."),
+            ("jolt", "Jolt physics library."),
             ("jpeg", "JPEG image-format support."),
             ("level-zero", "OneAPI loader & validation. Used by Cycles oneAPI."),
             ("llvm", "Low level virtual machine. Used by OSL."),
             ("manifold", "A library for operating on manifold meshes. Used as a boolean solver."),
             ("materialx", "A standard for representing materials. Used by USD, Hydra & Blender's shader nodes."),
-            ("mesa", "Used for it's software OpenGL implementation."),
+            ("meshoptimizer", "Mesh optimization library. Used by the glTF add-on."),
             ("openal", "Cross platform audio output."),
             ("opencolorio", "A solution for highly precise, performant, and consistent color management."),
             ("openexr", "EXR image-format support."),
             ("openimagedenoise", "Denoising filters for images rendered with ray tracing. Used by Cycles."),
             ("openimageio", "A library for reading, writing, and processing images in a wide variety of file formats."),
             ("openjpeg", "JPEG image-format support."),
+            ("openjph", "High-throughput JPEG 2000 (HTJ2K) compression. Used by OpenEXR."),
             ("openpgl", "Intel open path guiding library. Used by Cycles."),
             ("opensubdiv", "Subdivision surface support for meshes."),
+            ("opentimelineio", "Interchange format for editorial timelines. Used by the video sequencer."),
             ("openvdb", "Volumetric file-format support."),
             ("osl", "Open Shading Language. Used by Cycles."),
             ("png", "PNG image-format support."),
             ("potrace", "Trace bitmap images to vectors."),
             ("pugixml", "Light-weight C++ XML processing library."),
             ("python", "Python scripting language."),
+            ("rubberband", "Audio time-stretching & pitch-scaling. Used by audaspace."),
             ("sdl", "Simple DirectMedia Layer to abstract platform specific code."),
             ("shaderc", "Shader compilation utilities. Used for GLSL shaders to be used with Vulkan."),
             ("sndfile", "Sound encoding/decoding library."),
             ("spnav", "3D mouse support, also known as NDOF. (Unix only)."),
             ("tbb", "Threading Building Blocks (C++ library)."),
+            ("thorvg", "Light-weight vector graphics rendering library."),
             ("tiff", "TIFF image-format support."),
+            ("tracy", "Tracy frame profiler. Used for profiling Blender's performance."),
             ("usd", "Universal Scene Description for describing, composing, simulating, & collaborating 3D worlds."),
+            ("vulkan", "The Vulkan graphics API. Used by the Vulkan GPU back-end."),
             ("wayland", "Wayland scanner (Unix only)."),
             ("wayland-protocols", "Wayland protocol definitions (Unix only)."),
-            ("wayland_libdecor", "Wayland windowing (Unix only)."),
             ("wayland_weston", "Wayland compositor, used for running headless UI tests (Unix only)."),
             ("webp", "Support for the WEBP image format."),
             ("xml2", "XML encoding / decoding library."),
             ("xr_openxr_sdk", "Virtual reality library."),
             ("zlib", "ZLIB (GZIP) compression library."),
             ("zstd", "Z-standard compression library."),
-            ("vulkan", "The Vulkan graphics API. Used by the Vulkan GPU back-end.")
         ],
     ),
     SectionData(
@@ -379,8 +396,8 @@ SECTIONS = (
             ("doc", "Scripts for building Blender's Python's API docs, man-page and DOXYGEN documentation."),
             ("locale", "Translations for Blender's interface."),
             ("release", "Files bundled with Blender including fonts, icons, desktop files."),
-            ("tests", "Files to run tests & the GIT-LFS test data."),
             ("scripts", "Bundled Python scripts for UI layout, key-map & some operators."),
+            ("tests", "Files to run tests & the GIT-LFS test data."),
             ("tools", "Utilities to help with Blender development."),
         ],
     ),
@@ -936,7 +953,7 @@ def render_output(scene, bounds, filepath):
     world.node_tree.nodes.clear()
     output = world.node_tree.nodes.new("ShaderNodeOutputWorld")
     background = world.node_tree.nodes.new("ShaderNodeBackground")
-    world.node_tree.links.new(output.outputs["Surface"], background.outputs["Surface"])
+    world.node_tree.links.new(background.outputs["Background"], output.inputs["Surface"])
     background.inputs["Color"].default_value = 1.0, 1.0, 1.0, 1.0
     scene.world = world
 
@@ -961,8 +978,9 @@ def render_output(scene, bounds, filepath):
     render.image_settings.color_mode = 'RGB'
     render.image_settings.quality = 75
     render.use_file_extension = False
-    render.resolution_x = RESOLUTION_X
-    render.resolution_y = int(RESOLUTION_X * (bounds_size[1] / bounds_size[0]))
+    resolution_x = min(RESOLUTION_X, int(RESOLUTION_MAX * (bounds_size[0] / bounds_size[1])))
+    render.resolution_x = resolution_x
+    render.resolution_y = int(resolution_x * (bounds_size[1] / bounds_size[0]))
     render.resolution_percentage = int(100 * RESOLUTION_SCALE)
 
     bpy.context.view_layer.update()
@@ -1000,11 +1018,12 @@ def validate_sections():
             dirs_parent_documented.add(dirpath)
 
     this_platform = ""
-    for e in os.scandir(os.path.join(ROOT_DIR, "lib")):
-        dirpath_full = os.path.join(ROOT_DIR, "lib", e.name)
-        if os.path.isdir(os.path.join(dirpath_full, "jpeg")):
-            this_platform = e.name
-            break
+    with os.scandir(os.path.join(ROOT_DIR, "lib")) as it:
+        for e in it:
+            dirpath_full = os.path.join(ROOT_DIR, "lib", e.name)
+            if os.path.isdir(os.path.join(dirpath_full, "jpeg")):
+                this_platform = e.name
+                break
 
     dirs_fs_ignore = {
         ".git",
