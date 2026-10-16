@@ -16,10 +16,6 @@
 
 namespace blender {
 
-template<typename CoordT> struct KDTree;
-template<typename T, int Size> struct VecBase;
-using KDTree3d = KDTree<VecBase<float, 3>>;
-
 struct AnimData;
 
 namespace bke {

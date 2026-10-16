@@ -13,7 +13,7 @@
 
 #include "DNA_boid_types.h" /* for #BoidData */
 #include "DNA_listBase.h"
-#include "DNA_particle_types.h"   /* for KDTree3d */
+#include "DNA_particle_types.h"
 #include "DNA_pointcache_types.h" /* for #BPHYS_TOT_DATA */
 
 #include <stdio.h> /* for #FILE */
@@ -224,7 +224,6 @@ struct PTCacheUndo {
 
   /* particles stuff */
   struct ParticleData *particles;
-  KDTree3d *emitter_field;
   float *emitter_cosnos;
   eParticleSystem_Flag psys_flag;
 
