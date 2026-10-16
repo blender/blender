@@ -410,7 +410,7 @@ static void SCENE_OT_new_compositor_effect_node_group(wmOperatorType *ot)
 {
   ot->name = "New Scene Effect Node Group";
   ot->idname = "SCENE_OT_new_compositor_effect_node_group";
-  ot->description = "Create a new compositor node group and assign it to the active scene effect";
+  ot->description = "Create a new compositor node group and assign it to the scene effect";
 
   ot->exec = new_compositor_effect_node_group_exec;
 
