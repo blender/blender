@@ -607,56 +607,56 @@ BLI_INLINE float perlin_noise(float4 position)
   return r;
 }
 
+/* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
+ * representation issues. This causes discontinuities every 100000.0f, however at such scales
+ * this usually shouldn't be noticeable. */
+static float precision_correction(const float x)
+{
+  const float correction = 0.5f * float(math::abs(x) >= 1000000.0f);
+  return math::mod(x, 100000.0f) + correction;
+}
+static float2 precision_correction(const float2 &p)
+{
+  return float2(precision_correction(p[0]), precision_correction(p[1]));
+}
+static float3 precision_correction(const float3 &p)
+{
+  return float3(
+      precision_correction(p[0]), precision_correction(p[1]), precision_correction(p[2]));
+}
+static float4 precision_correction(const float4 &p)
+{
+  return float4(precision_correction(p[0]),
+                precision_correction(p[1]),
+                precision_correction(p[2]),
+                precision_correction(p[3]));
+}
+
 /* Signed versions of perlin noise in the range [-1, 1]. The scale values were computed
  * experimentally by the OSL developers to remap the noise output to the correct range. */
+constexpr float PERLIN_SCALE_1D = 0.2500f;
+constexpr float PERLIN_SCALE_2D = 0.6616f;
+constexpr float PERLIN_SCALE_3D = 0.9820f;
+constexpr float PERLIN_SCALE_4D = 0.8344f;
 
 float perlin_signed(float position)
 {
-  float precision_correction = 0.5f * float(math::abs(position) >= 1000000.0f);
-  /* Repeat Perlin noise texture every 100000.0 on each axis to prevent floating point
-   * representation issues. */
-  position = math::mod(position, 100000.0f) + precision_correction;
-
-  return perlin_noise(position) * 0.2500f;
+  return perlin_noise(precision_correction(position)) * PERLIN_SCALE_1D;
 }
 
 float perlin_signed(float2 position)
 {
-  float2 precision_correction = 0.5f * float2(float(math::abs(position.x) >= 1000000.0f),
-                                              float(math::abs(position.y) >= 1000000.0f));
-  /* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
-   * representation issues. This causes discontinuities every 100000.0f, however at such scales
-   * this usually shouldn't be noticeable. */
-  position = math::mod(position, 100000.0f) + precision_correction;
-
-  return perlin_noise(position) * 0.6616f;
+  return perlin_noise(precision_correction(position)) * PERLIN_SCALE_2D;
 }
 
 float perlin_signed(float3 position)
 {
-  float3 precision_correction = 0.5f * float3(float(math::abs(position.x) >= 1000000.0f),
-                                              float(math::abs(position.y) >= 1000000.0f),
-                                              float(math::abs(position.z) >= 1000000.0f));
-  /* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
-   * representation issues. This causes discontinuities every 100000.0f, however at such scales
-   * this usually shouldn't be noticeable. */
-  position = math::mod(position, 100000.0f) + precision_correction;
-
-  return perlin_noise(position) * 0.9820f;
+  return perlin_noise(precision_correction(position)) * PERLIN_SCALE_3D;
 }
 
 float perlin_signed(float4 position)
 {
-  float4 precision_correction = 0.5f * float4(float(math::abs(position.x) >= 1000000.0f),
-                                              float(math::abs(position.y) >= 1000000.0f),
-                                              float(math::abs(position.z) >= 1000000.0f),
-                                              float(math::abs(position.w) >= 1000000.0f));
-  /* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
-   * representation issues. This causes discontinuities every 100000.0f, however at such scales
-   * this usually shouldn't be noticeable. */
-  position = math::mod(position, 100000.0f) + precision_correction;
-
-  return perlin_noise(position) * 0.8344f;
+  return perlin_noise(precision_correction(position)) * PERLIN_SCALE_4D;
 }
 
 /* Positive versions of perlin noise in the range [0, 1]. */
