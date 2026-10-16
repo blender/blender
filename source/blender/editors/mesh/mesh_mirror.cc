@@ -8,6 +8,8 @@
  * Mirror calculation for edit-mode and object mode.
  */
 
+#include <optional>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
@@ -16,7 +18,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_types.hh"
 
-#include "BLI_kdtree.hh"
+#include "BLI_array.hh"
+#include "BLI_kdtree_new.hh"
 
 #include "ED_mesh.hh"
 
@@ -28,9 +31,21 @@ namespace blender {
 
 #define KD_THRESH 0.00002f
 
-static struct {
-  KDTree<float3> *tree;
-} MirrKdStore = {nullptr};
+struct MirrorSpatialTable {
+  Array<float3> positions;
+  KDTreeNew<float3> tree;
+
+  explicit MirrorSpatialTable(Array<float3> positions_)
+      : positions(std::move(positions_)), tree(positions)
+  {
+  }
+};
+
+static std::optional<MirrorSpatialTable> &mirror_spatial_table()
+{
+  static std::optional<MirrorSpatialTable> table;
+  return table;
+}
 
 void ED_mesh_mirror_spatial_table_begin(Object *ob, Mesh *mesh_eval)
 {
@@ -40,11 +55,11 @@ void ED_mesh_mirror_spatial_table_begin(Object *ob, Mesh *mesh_eval)
   BMesh *bm = use_em ? BKE_editmesh_bmesh_get_for_write(ob) : nullptr;
   const int totvert = use_em ? bm->totvert : mesh_eval ? mesh_eval->verts_num : mesh->verts_num;
 
-  if (MirrKdStore.tree) { /* happens when entering this call without ending it */
+  if (mirror_spatial_table()) { /* happens when entering this call without ending it */
     ED_mesh_mirror_spatial_table_end(ob);
   }
 
-  MirrKdStore.tree = kdtree_new<float3>(totvert);
+  Array<float3> positions(totvert);
 
   if (use_em) {
     BMVert *eve;
@@ -55,32 +70,29 @@ void ED_mesh_mirror_spatial_table_begin(Object *ob, Mesh *mesh_eval)
     BM_mesh_elem_table_ensure(bm, BM_VERT);
 
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-      kdtree_insert<float3>(MirrKdStore.tree, i, eve->co);
+      positions[i] = eve->co;
     }
   }
   else {
-    const Span<float3> positions = mesh_eval ? mesh_eval->vert_positions() :
-                                               mesh->vert_positions();
-    for (int i = 0; i < totvert; i++) {
-      kdtree_insert<float3>(MirrKdStore.tree, i, positions[i]);
-    }
+    positions.as_mutable_span().copy_from(mesh_eval ? mesh_eval->vert_positions() :
+                                                      mesh->vert_positions());
   }
 
-  kdtree_balance<float3>(MirrKdStore.tree);
+  mirror_spatial_table().emplace(std::move(positions));
 }
 
 int ED_mesh_mirror_spatial_table_lookup(Object *ob, Mesh *mesh_eval, const float co[3])
 {
-  if (MirrKdStore.tree == nullptr) {
+  if (!mirror_spatial_table()) {
     ED_mesh_mirror_spatial_table_begin(ob, mesh_eval);
   }
 
-  if (MirrKdStore.tree) {
-    KDTreeNearest<float3> nearest;
-    const int i = kdtree_find_nearest<float3>(MirrKdStore.tree, co, &nearest);
+  if (const std::optional<MirrorSpatialTable> &table = mirror_spatial_table()) {
+    float distance_sq;
+    const int i = table->tree.find_nearest(co, &distance_sq);
 
     if (i != -1) {
-      if (nearest.dist < KD_THRESH) {
+      if (distance_sq < math::square(KD_THRESH)) {
         return i;
       }
     }
@@ -91,10 +103,7 @@ int ED_mesh_mirror_spatial_table_lookup(Object *ob, Mesh *mesh_eval, const float
 void ED_mesh_mirror_spatial_table_end(Object * /*ob*/)
 {
   /* TODO: store this in object/object-data (keep unused argument for now). */
-  if (MirrKdStore.tree) {
-    kdtree_free<float3>(MirrKdStore.tree);
-    MirrKdStore.tree = nullptr;
-  }
+  mirror_spatial_table().reset();
 }
 
 /** \} */
