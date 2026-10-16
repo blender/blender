@@ -46,6 +46,8 @@ struct Resources {
 };
 struct VertOut {
   [[smooth]] float4 final_color;
+  [[flat]] float alpha;
+  [[smooth]] float2 P;
 };
 struct FragOut {
   [[frag_color(0)]] float4 color;
@@ -63,7 +65,6 @@ struct FragOut {
                      [[vertex_id]] const int vert_id,
                      [[instance_index]] const int inst_index,
                      [[position]] float4 &out_position,
-                     [[point_size]] float &out_pointsize,
                      [[clip_distance, condition(use_clipping)]] float (&clip_distances)[6],
                      [[out]] VertOut &v_out)
 {
@@ -74,14 +75,17 @@ struct FragOut {
   const ViewMatrices view = views.get(view_id);
   const ObjectMatrices obj = models.get(resource_id);
 
-  const draw::gsplat::PointShape gs = shape.get_point(uint(vert_id), obj, view);
+  const draw::gsplat::SplatShape gs = shape.get_splat(uint(vert_id), obj, view);
   if (gs.is_culled()) {
     out_position = float4(NAN_FLT);
     return;
   }
 
+  /* Output splat billboard as position. */
   out_position = gs.hP;
-  out_pointsize = srt.uniform_buf.sizes.vert * 2.0f;
+
+  v_out.P = gs.shape_offset;
+  v_out.alpha = shape.get_opacity(gs.id);
   v_out.final_color = draw::pointcloud::get_customdata_vec4(int(gs.id), srt.attribute_tx);
 
   if (clip.constants.use_clipping) [[static_branch]] {
@@ -99,6 +103,12 @@ struct FragOut {
                        [[in]] const VertOut &v_in,
                        [[out]] FragOut &f_out)
 {
+  /* Discard outline parts below a threshold. Otherwise, the gsplat outline shows billboards. */
+  float alpha = draw::gsplat::evaluate_gaussian(v_in.P, v_in.alpha);
+  if (alpha < 0.1f) {
+    gpu_discard_fragment();
+  }
+
   f_out.color = v_in.final_color * srt.opacity;
   f_out.line = float4(0.0f);
 }
@@ -378,6 +388,8 @@ struct Resources {
 };
 struct VertOut {
   [[flat]] uint select_id;
+  [[flat]] float alpha;
+  [[smooth]] float2 P;
 };
 
 [[vertex]] void vert([[resource_table]] const PipelineResources &pipe,
@@ -418,6 +430,8 @@ struct VertOut {
   }
 
   /* Output splat billboard as position. */
+  v_out.P = gs.shape_offset;
+  v_out.alpha = shape.get_opacity(gs.id);
   out_position = gs.hP;
 
   if (clip.constants.use_clipping) [[static_branch]] {
@@ -438,6 +452,12 @@ struct VertOut {
                        [[front_facing]] const bool in_frontfacing,
                        [[in]] const VertOut &v_in)
 {
+  /* Discard outline parts below a threshold. Otherwise, the gsplat outline shows billboards. */
+  float alpha = draw::gsplat::evaluate_gaussian(v_in.P, v_in.alpha);
+  if (alpha < 0.1f) {
+    gpu_discard_fragment();
+  }
+
   if (pipe.selectable) [[static_branch]] {
     if (srt.uniform_buf.backface_culling && !in_frontfacing) {
       /* Return early since we are not using early depth testing. */
