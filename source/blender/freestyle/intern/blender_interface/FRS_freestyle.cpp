@@ -19,6 +19,8 @@ using namespace Freestyle;
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "DNA_collection_types.h"
 #include "DNA_freestyle_types.h"
 #include "DNA_material_types.h"
@@ -39,6 +41,7 @@ using namespace Freestyle;
 #include "BLI_math_color_blend.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
+#include "BLI_string.h"
 
 #include "BPY_extern.hh"
 
@@ -51,6 +54,8 @@ using namespace Freestyle;
 #include "FRS_freestyle.h"
 
 FreestyleGlobals g_freestyle;
+
+static CLG_LogRef LOG = {"render.freestyle"};
 
 // Freestyle configuration
 static bool freestyle_is_initialized = false;
@@ -164,7 +169,8 @@ static char *escape_quotes(char *name)
   char *s = MEM_malloc_arrayN<char>(strlen(name) * 2 + 1, "escape_quotes");
   char *p = s;
   while (*name) {
-    if (*name == '\'') {
+    /* Escape backslashes too, a trailing one would otherwise end the string literal. */
+    if (ELEM(*name, '\'', '\\')) {
       *(p++) = '\\';
     }
     *(p++) = *(name++);
@@ -300,6 +306,17 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
       LISTBASE_FOREACH (FreestyleModuleConfig *, module_conf, &config->modules) {
         if (module_conf->script && module_conf->is_displayed) {
           const char *id_name = module_conf->script->id.name + 2;
+
+          /* Style modules are Python scripts, skip them if auto-run is disabled. */
+          if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
+            if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
+              G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
+              SNPRINTF(G.autoexec_fail, RPT_("Freestyle style module '%s'"), id_name);
+            }
+            CLOG_WARN(&LOG, "Scripts disabled, skipping style module '%s'", id_name);
+            continue;
+          }
+
           if (G.debug & G_DEBUG_FREESTYLE) {
             cout << "  " << layer_count + 1 << ": " << id_name;
             if (module_conf->script->filepath) {
