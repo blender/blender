@@ -607,7 +607,8 @@ bool button_is_cursor_warp(const Button *but)
              ButtonType::HsvCube,
              ButtonType::HsvCircle,
              ButtonType::Curve,
-             ButtonType::CurveProfile))
+             ButtonType::CurveProfile,
+             ButtonType::ColorBand))
     {
       return true;
     }
