@@ -440,7 +440,8 @@ class DrawCacheImpl : public DrawCache {
 
 void DrawCacheImpl::AttributeData::tag_dirty(const IndexMask &node_mask)
 {
-  this->dirty_nodes.resize(std::max(this->dirty_nodes.size(), node_mask.min_array_size()), false);
+  /* Nodes past the end have never been extracted, so they are dirty by definition. */
+  this->dirty_nodes.resize(std::max(this->dirty_nodes.size(), node_mask.min_array_size()), true);
   node_mask.set_bits(this->dirty_nodes);
 }
 
@@ -1097,7 +1098,10 @@ static void calc_tris_index_counts(const Object &object,
 
 void DrawCacheImpl::AttributeData::ensure_nodes_capacity(const int64_t nodes_num)
 {
-  this->dirty_nodes.resize(nodes_num, true);
+  /* Only grow, to keep the state of nodes outside the current mask. */
+  if (this->dirty_nodes.size() < nodes_num) {
+    this->dirty_nodes.resize(nodes_num, true);
+  }
 }
 void DrawCacheImpl::AttributeData::ensure_buffer_capacity(const uint64_t needed_vertex_len)
 {
