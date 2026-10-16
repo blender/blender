@@ -10,7 +10,7 @@
 #include <cmath>
 #include <cstring>
 
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 
 #include "BLT_translation.hh"
 
@@ -90,7 +90,7 @@ bool ED_select_similar_compare_float(const float delta,
   }
 }
 
-bool ED_select_similar_compare_float_tree(const KDTree<float> *tree,
+bool ED_select_similar_compare_float_tree(const KDTreeNew<float> &tree,
                                           const float length,
                                           const float thresh,
                                           const eSimilarCmp compare)
@@ -121,10 +121,11 @@ bool ED_select_similar_compare_float_tree(const KDTree<float> *tree,
       return false;
   }
 
-  KDTreeNearest<float> nearest;
-  if (kdtree_find_nearest<float>(tree, nearest_edge_length, &nearest) != -1) {
-    BLI_assert(compare == SIM_CMP_EQ || nearest.co >= 0.0f); /* See precision note above. */
-    float delta = length - nearest.co;
+  const int nearest = tree.find_nearest(nearest_edge_length);
+  if (nearest != -1) {
+    const float nearest_length = tree.points()[nearest];
+    BLI_assert(compare == SIM_CMP_EQ || nearest_length >= 0.0f); /* See precision note above. */
+    float delta = length - nearest_length;
     return ED_select_similar_compare_float(delta, thresh, compare);
   }
 

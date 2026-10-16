@@ -16,7 +16,6 @@
 #include "BLI_bitmap.hh"
 #include "BLI_ghash.hh"
 #include "BLI_heap_simple.hh"
-#include "BLI_kdtree.hh"
 #include "BLI_kdtree_new.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_matrix_c.hh"
@@ -1624,7 +1623,7 @@ static void curve_nurb_selected_type_get(
 static bool curve_nurb_select_similar_type(Object *ob,
                                            Nurb *nu,
                                            const int type,
-                                           const KDTree<float> *tree_1d,
+                                           const KDTreeNew<float> *tree_1d,
                                            const KDTreeNew<float3> *tree_3d,
                                            const float thresh,
                                            const int compare)
@@ -1644,7 +1643,7 @@ static bool curve_nurb_select_similar_type(Object *ob,
           case SIMCURHAND_RADIUS: {
             float radius_ref = bezt->radius;
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, radius_ref, thresh, eSimilarCmp(compare)))
+                    *tree_1d, radius_ref, thresh, eSimilarCmp(compare)))
             {
               select = true;
             }
@@ -1653,7 +1652,7 @@ static bool curve_nurb_select_similar_type(Object *ob,
           case SIMCURHAND_WEIGHT: {
             float weight_ref = bezt->weight;
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, weight_ref, thresh, eSimilarCmp(compare)))
+                    *tree_1d, weight_ref, thresh, eSimilarCmp(compare)))
             {
               select = true;
             }
@@ -1693,7 +1692,7 @@ static bool curve_nurb_select_similar_type(Object *ob,
           case SIMCURHAND_RADIUS: {
             float radius_ref = bp->radius;
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, radius_ref, thresh, eSimilarCmp(compare)))
+                    *tree_1d, radius_ref, thresh, eSimilarCmp(compare)))
             {
               select = true;
             }
@@ -1702,7 +1701,7 @@ static bool curve_nurb_select_similar_type(Object *ob,
           case SIMCURHAND_WEIGHT: {
             float weight_ref = bp->weight;
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, weight_ref, thresh, eSimilarCmp(compare)))
+                    *tree_1d, weight_ref, thresh, eSimilarCmp(compare)))
             {
               select = true;
             }
@@ -1790,18 +1789,16 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
     }
   }
 
-  KDTree<float> *tree_1d = nullptr;
+  Vector<float> values_1d;
+  std::optional<KDTreeNew<float>> tree_1d;
   Vector<float3> dirs;
   std::optional<KDTreeNew<float3>> tree_3d;
 
   switch (optype) {
     case SIMCURHAND_RADIUS:
     case SIMCURHAND_WEIGHT: {
-      tree_1d = kdtree_new<float>(points_1d.size());
-      for (const auto &[pos, index] : points_1d.items()) {
-        kdtree_insert(tree_1d, index, pos);
-      }
-      kdtree_balance<float>(tree_1d);
+      values_1d = Vector<float>(points_1d.keys().begin(), points_1d.keys().end());
+      tree_1d.emplace(values_1d);
       break;
     }
     case SIMCURHAND_DIRECTION: {
@@ -1828,8 +1825,13 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
         case SIMCURHAND_RADIUS:
         case SIMCURHAND_WEIGHT:
         case SIMCURHAND_DIRECTION:
-          changed = curve_nurb_select_similar_type(
-              obedit, &nu, optype, tree_1d, tree_3d ? &*tree_3d : nullptr, thresh, compare);
+          changed = curve_nurb_select_similar_type(obedit,
+                                                   &nu,
+                                                   optype,
+                                                   tree_1d ? &*tree_1d : nullptr,
+                                                   tree_3d ? &*tree_3d : nullptr,
+                                                   thresh,
+                                                   compare);
           break;
       }
     }
@@ -1840,9 +1842,6 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (tree_1d != nullptr) {
-    kdtree_free<float>(tree_1d);
-  }
   return OPERATOR_FINISHED;
 }
 

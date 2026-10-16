@@ -11,7 +11,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.hh"
-#include "BLI_kdtree.hh"
 #include "BLI_kdtree_new.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_geom_c.hh"
@@ -186,7 +185,8 @@ static wmOperatorStatus similar_face_select_exec(bContext *C, wmOperator *op)
   Map<float3, int> points_3d;
   Map<float4, int> points_4d;
 
-  KDTree<float> *tree_1d = nullptr;
+  Vector<float> tree_1d_points;
+  std::optional<KDTreeNew<float>> tree_1d;
   Vector<float3> tree_3d_points;
   std::optional<KDTreeNew<float3>> tree_3d;
   Vector<float4> tree_4d_points;
@@ -297,11 +297,8 @@ static wmOperatorStatus similar_face_select_exec(bContext *C, wmOperator *op)
   switch (type) {
     case SIMFACE_AREA:
     case SIMFACE_PERIMETER: {
-      tree_1d = kdtree_new<float>(points_1d.size());
-      for (const auto &[pos, index] : points_1d.items()) {
-        kdtree_insert(tree_1d, index, pos);
-      }
-      kdtree_balance<float>(tree_1d);
+      tree_1d_points = Vector<float>(points_1d.keys().begin(), points_1d.keys().end());
+      tree_1d.emplace(tree_1d_points);
       break;
     }
     case SIMFACE_NORMAL: {
@@ -377,7 +374,7 @@ static wmOperatorStatus similar_face_select_exec(bContext *C, wmOperator *op)
           }
           case SIMFACE_AREA: {
             float area = BM_face_calc_area_with_mat3(face, ob_m3);
-            if (ED_select_similar_compare_float_tree(tree_1d, area, thresh, eSimilarCmp(compare)))
+            if (ED_select_similar_compare_float_tree(*tree_1d, area, thresh, eSimilarCmp(compare)))
             {
               select = true;
             }
@@ -386,7 +383,7 @@ static wmOperatorStatus similar_face_select_exec(bContext *C, wmOperator *op)
           case SIMFACE_PERIMETER: {
             float perimeter = BM_face_calc_perimeter_with_mat3(face, ob_m3);
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, perimeter, thresh, eSimilarCmp(compare)))
+                    *tree_1d, perimeter, thresh, eSimilarCmp(compare)))
             {
               select = true;
             }
@@ -495,8 +492,6 @@ static wmOperatorStatus similar_face_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  kdtree_free<float>(tree_1d);
-
   return OPERATOR_FINISHED;
 }
 
@@ -588,7 +583,8 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
   Map<float, int> points_1d;
   Map<float3, int> points_3d;
 
-  KDTree<float> *tree_1d = nullptr;
+  Vector<float> tree_1d_points;
+  std::optional<KDTreeNew<float>> tree_1d;
   Vector<float3> tree_3d_points;
   std::optional<KDTreeNew<float3>> tree_3d;
   Set<int> face_count_set;
@@ -716,11 +712,8 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
     case SIMEDGE_BEVEL:
     case SIMEDGE_FACE_ANGLE:
     case SIMEDGE_LENGTH: {
-      tree_1d = kdtree_new<float>(points_1d.size());
-      for (const auto &[pos, index] : points_1d.items()) {
-        kdtree_insert(tree_1d, index, pos);
-      }
-      kdtree_balance<float>(tree_1d);
+      tree_1d_points = Vector<float>(points_1d.keys().begin(), points_1d.keys().end());
+      tree_1d.emplace(tree_1d_points);
       break;
     }
     case SIMEDGE_DIR: {
@@ -754,7 +747,8 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
           /* Proceed only if we have to select all the edges that have custom data value of 0.0f.
            * In this case we will just select all the edges.
            * Otherwise continue the for loop. */
-          if (!ED_select_similar_compare_float_tree(tree_1d, 0.0f, thresh, eSimilarCmp(compare))) {
+          if (!ED_select_similar_compare_float_tree(*tree_1d, 0.0f, thresh, eSimilarCmp(compare)))
+          {
             continue;
           }
         }
@@ -767,7 +761,8 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
           /* Proceed only if we have to select all the edges that have custom data value of 0.0f.
            * In this case we will just select all the edges.
            * Otherwise continue the for loop. */
-          if (!ED_select_similar_compare_float_tree(tree_1d, 0.0f, thresh, eSimilarCmp(compare))) {
+          if (!ED_select_similar_compare_float_tree(*tree_1d, 0.0f, thresh, eSimilarCmp(compare)))
+          {
             continue;
           }
         }
@@ -829,7 +824,7 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
           case SIMEDGE_LENGTH: {
             float length = edge_length_squared_worldspace_get(ob, edge);
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, length, thresh, eSimilarCmp(compare)))
+                    *tree_1d, length, thresh, eSimilarCmp(compare)))
             {
               select = true;
             }
@@ -838,7 +833,7 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
           case SIMEDGE_FACE_ANGLE: {
             if (BM_edge_face_count_at_most(edge, 2) == 2) {
               float angle = BM_edge_calc_face_angle_with_imat3(edge, ob_m3_inv);
-              if (ED_select_similar_compare_float_tree(tree_1d, angle, thresh, SIM_CMP_EQ)) {
+              if (ED_select_similar_compare_float_tree(*tree_1d, angle, thresh, SIM_CMP_EQ)) {
                 select = true;
               }
             }
@@ -880,7 +875,7 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
 
             const float *value = BM_ELEM_CD_GET_FLOAT_P(edge, custom_data_offset);
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, *value, thresh, eSimilarCmp(compare)))
+                    *tree_1d, *value, thresh, eSimilarCmp(compare)))
             {
               select = true;
             }
@@ -934,8 +929,6 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  kdtree_free<float>(tree_1d);
-
   return OPERATOR_FINISHED;
 }
 
@@ -980,7 +973,8 @@ static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
 
   Vector<float3> tree_3d_points;
   std::optional<KDTreeNew<float3>> tree_3d;
-  KDTree<float> *tree_1d = nullptr;
+  Vector<float> tree_1d_points;
+  std::optional<KDTreeNew<float>> tree_1d;
   Set<StringRef> selected_vertex_groups;
   Set<int> connected_elems_num_set;
 
@@ -1092,11 +1086,8 @@ static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
       break;
     }
     case SIMVERT_CREASE: {
-      tree_1d = kdtree_new<float>(points_1d.size());
-      for (const auto &[pos, index] : points_1d.items()) {
-        kdtree_insert(tree_1d, index, pos);
-      }
-      kdtree_balance<float>(tree_1d);
+      tree_1d_points = Vector<float>(points_1d.keys().begin(), points_1d.keys().end());
+      tree_1d.emplace(tree_1d_points);
       break;
     }
     case SIMVERT_EDGE:
@@ -1151,7 +1142,7 @@ static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
         /* Proceed only if we have to select all the vertices that have custom data value of 0.0f.
          * In this case we will just select all the vertices.
          * Otherwise continue the for loop. */
-        if (!ED_select_similar_compare_float_tree(tree_1d, 0.0f, thresh, eSimilarCmp(compare))) {
+        if (!ED_select_similar_compare_float_tree(*tree_1d, 0.0f, thresh, eSimilarCmp(compare))) {
           continue;
         }
       }
@@ -1226,7 +1217,7 @@ static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
             }
             const float *value = BM_ELEM_CD_GET_FLOAT_P(vert, cd_crease_offset);
             if (ED_select_similar_compare_float_tree(
-                    tree_1d, *value, thresh, eSimilarCmp(compare)))
+                    *tree_1d, *value, thresh, eSimilarCmp(compare)))
             {
               select = true;
             }
@@ -1254,8 +1245,6 @@ static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
       EDBM_update(id_cast<Mesh *>(ob->data), &params);
     }
   }
-
-  kdtree_free<float>(tree_1d);
 
   return OPERATOR_FINISHED;
 }

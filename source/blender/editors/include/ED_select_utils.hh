@@ -17,7 +17,7 @@ namespace blender {
 struct PointerRNA;
 struct wmOperatorType;
 
-template<typename CoordT> struct KDTree;
+template<typename T> class KDTreeNew;
 template<typename T, int Size> struct VecBase;
 
 enum {
@@ -68,7 +68,7 @@ int ED_select_op_action(eSelectOp sel_op, bool is_select, bool is_inside);
 int ED_select_op_action_deselected(eSelectOp sel_op, bool is_select, bool is_inside);
 
 bool ED_select_similar_compare_float(float delta, float thresh, eSimilarCmp compare);
-bool ED_select_similar_compare_float_tree(const KDTree<float> *tree,
+bool ED_select_similar_compare_float_tree(const KDTreeNew<float> &tree,
                                           float length,
                                           float thresh,
                                           eSimilarCmp compare);

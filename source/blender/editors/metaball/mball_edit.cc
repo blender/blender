@@ -13,7 +13,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.hh"
-#include "BLI_kdtree.hh"
 #include "BLI_kdtree_new.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_matrix_c.hh"
@@ -275,7 +274,7 @@ static void mball_select_similar_type_get(Object *obedit,
 static bool mball_select_similar_type(Object *obedit,
                                       MetaBall *mb,
                                       int type,
-                                      const KDTree<float> *tree_1d,
+                                      const KDTreeNew<float> *tree_1d,
                                       const KDTreeNew<float3> *tree_3d,
                                       const float thresh)
 {
@@ -293,14 +292,14 @@ static bool mball_select_similar_type(Object *obedit,
         mul_m3_v3(smat, radius_vec);
         radius = (radius_vec[0] + radius_vec[1] + radius_vec[2]) / 3;
 
-        if (ED_select_similar_compare_float_tree(tree_1d, radius, thresh, SIM_CMP_EQ)) {
+        if (ED_select_similar_compare_float_tree(*tree_1d, radius, thresh, SIM_CMP_EQ)) {
           select = true;
         }
         break;
       }
       case SIMMBALL_STIFFNESS: {
         float s = ml.s;
-        if (ED_select_similar_compare_float_tree(tree_1d, s, thresh, SIM_CMP_EQ)) {
+        if (ED_select_similar_compare_float_tree(*tree_1d, s, thresh, SIM_CMP_EQ)) {
           select = true;
         }
         break;
@@ -377,18 +376,16 @@ static wmOperatorStatus mball_select_similar_exec(bContext *C, wmOperator *op)
     }
   }
 
-  KDTree<float> *tree_1d = nullptr;
+  Vector<float> values_1d;
+  std::optional<KDTreeNew<float>> tree_1d;
   Vector<float3> dirs;
   std::optional<KDTreeNew<float3>> tree_3d;
 
   switch (type) {
     case SIMMBALL_RADIUS:
     case SIMMBALL_STIFFNESS: {
-      tree_1d = kdtree_new<float>(points_1d.size());
-      for (const auto &[pos, index] : points_1d.items()) {
-        kdtree_insert(tree_1d, index, pos);
-      }
-      kdtree_balance<float>(tree_1d);
+      values_1d = Vector<float>(points_1d.keys().begin(), points_1d.keys().end());
+      tree_1d.emplace(values_1d);
       break;
     }
     case SIMMBALL_ROTATION: {
@@ -418,8 +415,12 @@ static wmOperatorStatus mball_select_similar_exec(bContext *C, wmOperator *op)
       case SIMMBALL_RADIUS:
       case SIMMBALL_STIFFNESS:
       case SIMMBALL_ROTATION:
-        changed = mball_select_similar_type(
-            obedit, mb, type, tree_1d, tree_3d ? &*tree_3d : nullptr, thresh);
+        changed = mball_select_similar_type(obedit,
+                                            mb,
+                                            type,
+                                            tree_1d ? &*tree_1d : nullptr,
+                                            tree_3d ? &*tree_3d : nullptr,
+                                            thresh);
         break;
       default:
         BLI_assert(0);
@@ -432,9 +433,6 @@ static wmOperatorStatus mball_select_similar_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (tree_1d != nullptr) {
-    kdtree_free<float>(tree_1d);
-  }
   return OPERATOR_FINISHED;
 }
 
