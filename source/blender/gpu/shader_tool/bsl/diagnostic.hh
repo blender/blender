@@ -197,6 +197,7 @@ enum class Diag {
   OperatorCalledIsNotFunction,
   OperatorTokenInvalid,
   OperatorInvalidTernary,
+  OperatorBitfieldInvalid,
 
   OverloadAmbiguous,
   OverloadNotFound,
@@ -472,6 +473,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Called object type '{}' is not a function";
     case Diag::OperatorInvalidTernary:
       return "Incompatible operand types ('{}' and '{}')";
+    case Diag::OperatorBitfieldInvalid:
+      return "Increment and decrement operators are not supported on bitfield";
     case Diag::OperatorTokenInvalid:
       return "Invalid operator token '{}'";
     case Diag::OverloadAmbiguous:
