@@ -3628,7 +3628,9 @@ Span<Batch *> DrawCacheImpl::ensure_tris_batches(const Object &object,
                 (has_ibo ? ibos[node_index].get() : nullptr))
         {
           if (!has_ibo) {
-            /* No geometry for this node. */
+            /* No geometry for this node. Clear the batch so it doesn't reference a freed index
+             * buffer, without freeing it as passes may still reference it. */
+            Batch::clear(batches[node_index]);
             return;
           }
           if (!batches[node_index]) {
@@ -3688,6 +3690,8 @@ Span<Batch *> DrawCacheImpl::ensure_lines_batches(const Object &object,
   nodes_to_update.foreach_index(
       [&](const int node_index) {
         if (lines[node_index] == nullptr) {
+          /* See the same case in #ensure_tris_batches. */
+          Batch::clear(batches[node_index]);
           return;
         }
         if (!batches[node_index] || batch_cache.dirty[node_index] ||
