@@ -12,6 +12,7 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_kdopbvh.hh"
 #include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_rect.hh"
@@ -353,12 +354,10 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
   const Span<float3> src_positions = src_curves.positions();
   const float merge_distance_squared = merge_distance * merge_distance;
 
-  Array<float2> screen_start_points(src_curves.curves_num());
-  Array<float2> screen_end_points(src_curves.curves_num());
+  /* Screen space start and end points of each curve, interleaved. */
+  Array<float2> screen_points(2 * src_curves.curves_num());
   const VArray<bool> cyclic = *src_curves.attributes().lookup_or_default<bool>(
       "cyclic", bke::AttrDomain::Curve, false);
-  /* For comparing screen space positions use a 2D KDTree. Each curve adds 2 points. */
-  KDTree<float2> *tree = kdtree_new<float2>(2 * src_curves.curves_num());
 
   threading::parallel_for(src_curves.curves_range(), 1024, [&](const IndexRange range) {
     for (const int src_i : range) {
@@ -369,66 +368,53 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
       const float3 end_world = math::transform_point(layer_to_world, end_pos);
 
       ED_view3d_project_float_global(
-          &region, start_world, screen_start_points[src_i], V3D_PROJ_TEST_NOP);
+          &region, start_world, screen_points[src_i * 2], V3D_PROJ_TEST_NOP);
       ED_view3d_project_float_global(
-          &region, end_world, screen_end_points[src_i], V3D_PROJ_TEST_NOP);
+          &region, end_world, screen_points[src_i * 2 + 1], V3D_PROJ_TEST_NOP);
     }
   });
-  /* Note: KDTree insertion is not thread-safe, don't parallelize this. */
+  /* For comparing screen space positions use a 2D KDTree. Each non-cyclic curve adds 2 points. */
+  Vector<int> tree_indices;
   for (const int src_i : src_curves.curves_range()) {
     if (cyclic[src_i] == true) {
       continue;
     }
-    kdtree_insert<float2>(tree, src_i * 2, screen_start_points[src_i]);
-    kdtree_insert<float2>(tree, src_i * 2 + 1, screen_end_points[src_i]);
+    tree_indices.append(src_i * 2);
+    tree_indices.append(src_i * 2 + 1);
   }
-  kdtree_balance<float2>(tree);
+  const KDTreeNew<float2> tree(screen_points, tree_indices.as_span());
 
   Array<int> connect_to_curve(src_curves.curves_num(), -1);
   Array<bool> flip_direction(src_curves.curves_num(), false);
   selection.foreach_index(
       [&](const int src_i) {
-        const float2 &start_co = screen_start_points[src_i];
-        const float2 &end_co = screen_end_points[src_i];
         /* Index of KDTree points so they can be ignored. */
         const int start_index = src_i * 2;
         const int end_index = src_i * 2 + 1;
+        const float2 &start_co = screen_points[start_index];
+        const float2 &end_co = screen_points[end_index];
 
-        KDTreeNearest<float2> nearest_start, nearest_end;
-        const bool is_start_ok =
-            (kdtree_find_nearest_cb<float2>(
-                 tree,
-                 start_co,
-                 &nearest_start,
-                 [&](const int other, const float2 & /*co*/, const float dist_sq) {
-                   if (start_index == other || dist_sq > merge_distance_squared) {
-                     return 0;
-                   }
-                   return 1;
-                 }) != -1);
-        const bool is_end_ok =
-            (kdtree_find_nearest_cb<float2>(
-                 tree,
-                 end_co,
-                 &nearest_end,
-                 [&](const int other, const float2 & /*co*/, const float dist_sq) {
-                   if (end_index == other || dist_sq > merge_distance_squared) {
-                     return 0;
-                   }
-                   return 1;
-                 }) != -1);
+        float start_dist_sq;
+        const int nearest_start = tree.find_nearest_filtered(
+            start_co, [&](const int other) { return other != start_index; }, &start_dist_sq);
+        const bool is_start_ok = nearest_start != -1 && start_dist_sq <= merge_distance_squared;
+
+        float end_dist_sq;
+        const int nearest_end = tree.find_nearest_filtered(
+            end_co, [&](const int other) { return other != end_index; }, &end_dist_sq);
+        const bool is_end_ok = nearest_end != -1 && end_dist_sq <= merge_distance_squared;
 
         if (is_start_ok) {
-          const int curve_index = nearest_start.index / 2;
-          const bool is_end_point = bool(nearest_start.index % 2);
+          const int curve_index = nearest_start / 2;
+          const bool is_end_point = bool(nearest_start % 2);
           if (connect_to_curve[curve_index] < 0) {
             connect_to_curve[curve_index] = src_i;
             flip_direction[curve_index] = !is_end_point;
           }
         }
         if (is_end_ok) {
-          const int curve_index = nearest_end.index / 2;
-          const bool is_end_point = bool(nearest_end.index % 2);
+          const int curve_index = nearest_end / 2;
+          const bool is_end_point = bool(nearest_end % 2);
           if (connect_to_curve[src_i] < 0) {
             connect_to_curve[src_i] = curve_index;
             flip_direction[curve_index] = is_end_point;
@@ -436,7 +422,6 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
         }
       },
       exec_mode::grain_size(512));
-  kdtree_free<float2>(tree);
 
   return geometry::curves_merge_endpoints(
       src_curves, connect_to_curve, flip_direction, attribute_filter);
