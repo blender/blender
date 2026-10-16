@@ -105,15 +105,15 @@ template<typename T, int Sz> struct VecOp {
   friend VecT operator/(T, VecT) STD_OP RET;
   friend VecT operator*(T, VecT) STD_OP RET;
 
-  friend VecT operator+=(VecT, VecT) STD_OP RET;
-  friend VecT operator-=(VecT, VecT) STD_OP RET;
-  friend VecT operator/=(VecT, VecT) STD_OP RET;
-  friend VecT operator*=(VecT, VecT) STD_OP RET;
+  friend VecT operator+=(VecOp &, VecT) STD_OP RET;
+  friend VecT operator-=(VecOp &, VecT) STD_OP RET;
+  friend VecT operator/=(VecOp &, VecT) STD_OP RET;
+  friend VecT operator*=(VecOp &, VecT) STD_OP RET;
 
-  friend VecT operator+=(VecT, T) STD_OP RET;
-  friend VecT operator-=(VecT, T) STD_OP RET;
-  friend VecT operator/=(VecT, T) STD_OP RET;
-  friend VecT operator*=(VecT, T) STD_OP RET;
+  friend VecT operator+=(VecOp &, T) STD_OP RET;
+  friend VecT operator-=(VecOp &, T) STD_OP RET;
+  friend VecT operator/=(VecOp &, T) STD_OP RET;
+  friend VecT operator*=(VecOp &, T) STD_OP RET;
 
 #undef STD_OP
 
@@ -136,30 +136,30 @@ template<typename T, int Sz> struct VecOp {
   friend VecT operator|(T, VecT) INT_OP RET;
   friend VecT operator^(T, VecT) INT_OP RET;
 
-  friend VecT operator%=(VecT, VecT) INT_OP RET;
-  friend VecT operator&=(VecT, VecT) INT_OP RET;
-  friend VecT operator|=(VecT, VecT) INT_OP RET;
-  friend VecT operator^=(VecT, VecT) INT_OP RET;
+  friend VecT operator%=(VecOp &, VecT) INT_OP RET;
+  friend VecT operator&=(VecOp &, VecT) INT_OP RET;
+  friend VecT operator|=(VecOp &, VecT) INT_OP RET;
+  friend VecT operator^=(VecOp &, VecT) INT_OP RET;
 
-  friend VecT operator%=(VecT, T) INT_OP RET;
-  friend VecT operator&=(VecT, T) INT_OP RET;
-  friend VecT operator|=(VecT, T) INT_OP RET;
-  friend VecT operator^=(VecT, T) INT_OP RET;
+  friend VecT operator%=(VecOp &, T) INT_OP RET;
+  friend VecT operator&=(VecOp &, T) INT_OP RET;
+  friend VecT operator|=(VecOp &, T) INT_OP RET;
+  friend VecT operator^=(VecOp &, T) INT_OP RET;
 
   friend VecT operator<<(VecT, VecT) INT_OP RET;
   friend VecT operator>>(VecT, VecT) INT_OP RET;
-  friend VecT operator<<=(VecT, VecT) INT_OP RET;
-  friend VecT operator>>=(VecT, VecT) INT_OP RET;
+  friend VecT operator<<=(VecOp &, VecT) INT_OP RET;
+  friend VecT operator>>=(VecOp &, VecT) INT_OP RET;
 
   friend VecT operator<<(T, VecT) INT_OP RET;
   friend VecT operator>>(T, VecT) INT_OP RET;
-  friend VecT operator<<=(T, VecT) INT_OP RET;
-  friend VecT operator>>=(T, VecT) INT_OP RET;
+  friend VecT operator<<=(T &, VecT) INT_OP RET;
+  friend VecT operator>>=(T &, VecT) INT_OP RET;
 
   friend VecT operator<<(VecT, T) INT_OP RET;
   friend VecT operator>>(VecT, T) INT_OP RET;
-  friend VecT operator<<=(VecT, T) INT_OP RET;
-  friend VecT operator>>=(VecT, T) INT_OP RET;
+  friend VecT operator<<=(VecOp &, T) INT_OP RET;
+  friend VecT operator>>=(VecOp &, T) INT_OP RET;
 
 #undef INT_OP
 };
@@ -172,6 +172,7 @@ template<typename T, int Sz> struct SwizzleBase : VecOp<T, Sz> {
 
   constexpr VecT operator=(const VecT &) RET;
   operator VecT() const RET;
+  operator VecT() RET;
   VecT operator()() const RET;
 };
 
