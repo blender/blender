@@ -11,7 +11,6 @@
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_kdopbvh.hh"
-#include "BLI_kdtree.hh"
 #include "BLI_kdtree_new.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
@@ -185,18 +184,17 @@ int curve_merge_by_distance(const IndexRange points,
                             const float merge_distance,
                             MutableSpan<int> r_merge_indices)
 {
-  /* We use a KDTree<float> here, because we can only merge neighboring points in the curves. */
-  KDTree<float> *tree = kdtree_new<float>(selection.size());
+  /* We use a 1D KDTree here, because we can only merge neighboring points in the curves. */
+  Array<float> selected_distances(selection.size());
   /* The selection is an IndexMask of the points just in this curve. */
   selection.foreach_index([&](const int64_t i, const int64_t pos) {
-    kdtree_insert<float>(tree, pos, distances[i - points.first()]);
+    selected_distances[pos] = distances[i - points.first()];
   });
-  kdtree_balance<float>(tree);
+  const KDTreeNew<float> tree(selected_distances);
 
   Array<int> selection_merge_indices(selection.size(), -1);
-  const int duplicate_count = kdtree_calc_duplicates_fast<float>(
-      tree, merge_distance, false, selection_merge_indices.data());
-  kdtree_free<float>(tree);
+  const int duplicate_count = kdtree::calc_duplicates(
+      tree, merge_distance, selection_merge_indices);
 
   array_utils::fill_index_range<int>(r_merge_indices);
 
