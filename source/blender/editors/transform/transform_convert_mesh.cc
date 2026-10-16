@@ -1483,7 +1483,11 @@ static void VertsToTransData(TransInfo *t,
   td->val = nullptr;
   td->extra = eve;
   if (t->mode == TFM_SHRINKFATTEN) {
-    tx->iscale[0] = BM_vert_calc_shell_factor_ex(eve, no, BM_ELEM_SELECT);
+    /* Extruded vertices from an edge are connected to faces with zero area
+     * at the initial point of extrusion so derive the shell factor from the coincident
+     * original vertices instead. See #119253. */
+    tx->iscale[0] = BM_vert_calc_shell_factor_with_coincident_neighbors_ex(
+        eve, no, BM_ELEM_SELECT);
   }
 }
 
