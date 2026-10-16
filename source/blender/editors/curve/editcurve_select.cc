@@ -6,6 +6,8 @@
  * \ingroup edcurve
  */
 
+#include <optional>
+
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -15,6 +17,7 @@
 #include "BLI_ghash.hh"
 #include "BLI_heap_simple.hh"
 #include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_c.hh"
@@ -1622,7 +1625,7 @@ static bool curve_nurb_select_similar_type(Object *ob,
                                            Nurb *nu,
                                            const int type,
                                            const KDTree<float> *tree_1d,
-                                           const KDTree<float3> *tree_3d,
+                                           const KDTreeNew<float3> *tree_3d,
                                            const float thresh,
                                            const int compare)
 {
@@ -1659,9 +1662,9 @@ static bool curve_nurb_select_similar_type(Object *ob,
           case SIMCURHAND_DIRECTION: {
             float dir[3];
             nurb_bezt_direction_worldspace_get(ob, nu, bezt, dir);
-            KDTreeNearest<float3> nearest;
-            if (kdtree_find_nearest<float3>(tree_3d, dir, &nearest) != -1) {
-              float orient = angle_normalized_v3v3(dir, nearest.co);
+            const int nearest = tree_3d->find_nearest(dir);
+            if (nearest != -1) {
+              float orient = angle_normalized_v3v3(dir, tree_3d->points()[nearest]);
               float delta = thresh_cos - fabsf(cosf(orient));
               if (ED_select_similar_compare_float(delta, thresh, eSimilarCmp(compare))) {
                 select = true;
@@ -1708,9 +1711,9 @@ static bool curve_nurb_select_similar_type(Object *ob,
           case SIMCURHAND_DIRECTION: {
             float dir[3];
             nurb_bpoint_direction_worldspace_get(ob, nu, bp, dir);
-            KDTreeNearest<float3> nearest;
-            if (kdtree_find_nearest<float3>(tree_3d, dir, &nearest) != -1) {
-              float orient = angle_normalized_v3v3(dir, nearest.co);
+            const int nearest = tree_3d->find_nearest(dir);
+            if (nearest != -1) {
+              float orient = angle_normalized_v3v3(dir, tree_3d->points()[nearest]);
               float delta = fabsf(cosf(orient)) - thresh_cos;
               if (ED_select_similar_compare_float(delta, thresh, eSimilarCmp(compare))) {
                 select = true;
@@ -1788,7 +1791,8 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
   }
 
   KDTree<float> *tree_1d = nullptr;
-  KDTree<float3> *tree_3d = nullptr;
+  Vector<float3> dirs;
+  std::optional<KDTreeNew<float3>> tree_3d;
 
   switch (optype) {
     case SIMCURHAND_RADIUS:
@@ -1801,11 +1805,8 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
       break;
     }
     case SIMCURHAND_DIRECTION: {
-      tree_3d = kdtree_new<float3>(points_3d.size());
-      for (const auto &[pos, index] : points_3d.items()) {
-        kdtree_insert(tree_3d, index, pos);
-      }
-      kdtree_balance<float3>(tree_3d);
+      dirs = Vector<float3>(points_3d.keys().begin(), points_3d.keys().end());
+      tree_3d.emplace(dirs);
       break;
     }
   }
@@ -1828,7 +1829,7 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
         case SIMCURHAND_WEIGHT:
         case SIMCURHAND_DIRECTION:
           changed = curve_nurb_select_similar_type(
-              obedit, &nu, optype, tree_1d, tree_3d, thresh, compare);
+              obedit, &nu, optype, tree_1d, tree_3d ? &*tree_3d : nullptr, thresh, compare);
           break;
       }
     }
@@ -1841,9 +1842,6 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
 
   if (tree_1d != nullptr) {
     kdtree_free<float>(tree_1d);
-  }
-  if (tree_3d != nullptr) {
-    kdtree_free<float3>(tree_3d);
   }
   return OPERATOR_FINISHED;
 }
