@@ -111,10 +111,12 @@ class ChannelTag {
 };
 
 /* Not using BLI_set because that can't be iterated thus not turned into a set. */
-class ChannelTagStack {
+class ChannelTagStack final {
   Vector<ChannelTag> tags_;
 
  public:
+  ChannelTagStack();
+
   void push(const ChannelTag &tag);
   void pop();
   bool is_empty() const;
