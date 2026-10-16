@@ -331,9 +331,6 @@ struct GreasePencilCollector {
      * descend. */
     visit_order--;
 
-    std::cout << indent << " - " << visit_order << " " << (node.is_layer() ? "L" : "G") << " "
-              << node.name() << "\n";
-
     if (node.is_layer()) {
       GreasePencilLayer &gp_layer = node.as_layer();
       PointerRNA gp_layer_ptr = RNA_pointer_create_with_parent(
@@ -390,7 +387,6 @@ static void collect_channels_for_grease_pencil(GreasePencil &gp, ChannelArena &a
 
   /* The root node of the tree doesn't represent any animatable data, so don't visit it, just use
    * it to get to its children. */
-  std::cout << "Collecting channels for GP " << gp.id.name + 2 << "\n";
   int visit_order = 0;
   for (GreasePencilLayerTreeNode &child : gp.root_group().children.items_reversed()) {
     collector.visit(child.wrap(), visit_order, "  ");
