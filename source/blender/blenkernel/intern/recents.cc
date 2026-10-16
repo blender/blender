@@ -228,36 +228,37 @@ template<typename T> T Section::get(const std::string &item_key) const
 
   std::lock_guard lock(recents_mutex);
 
+  const T default_value{};
   const toml::value &current = current_get();
 
   /* Try user value first. */
   if (const toml::value *v = recents_find_in(current, section_, item_key)) {
-    return toml::get_or(*v, T{});
+    return toml::get_or(*v, default_value);
   }
 
   const toml::value &defaults = defaults_get();
 
   /* Per-key default value. */
   if (const toml::value *v = recents_find_in(defaults, section_, item_key)) {
-    return toml::get_or(*v, T{});
+    return toml::get_or(*v, default_value);
   }
 
   /* User's section-level "_default" (user override of section default). */
   if (!section_.empty()) {
     if (const toml::value *v = recents_find_in(current, section_, "_default")) {
-      return toml::get_or(*v, T{});
+      return toml::get_or(*v, default_value);
     }
   }
 
   /* Builtin section-level "_default". */
   if (!section_.empty()) {
     if (const toml::value *v = recents_find_in(defaults, section_, "_default")) {
-      return toml::get_or(*v, T{});
+      return toml::get_or(*v, default_value);
     }
   }
 
   /* Final fallback. False, 0, 0,0f, {}, etc. */
-  return T{};
+  return default_value;
 }
 
 /**
