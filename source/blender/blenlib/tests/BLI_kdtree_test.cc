@@ -221,7 +221,7 @@ TEST(kdtree, Radius)
 
 TEST(kdtree, RadiusIsInclusive)
 {
-  /* A point exactly the radius away is inside it, matching #blender::kdtree_range_search_cb. */
+  /* A point exactly the radius away is inside it. */
   const Array<float3> positions = grid_points(3);
   const KDTreeNew<float3> tree(positions);
   const float3 center(1.0f, 1.0f, 1.0f);

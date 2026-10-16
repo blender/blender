@@ -270,9 +270,7 @@ set(SRC
   BLI_iterator.hh
   BLI_jitter_2d.hh
   BLI_kdopbvh.hh
-  BLI_kdtree.hh
   BLI_kdtree_new.hh
-  BLI_kdtree_types.hh
   BLI_lasso_2d.hh
   BLI_lazy_threading.hh
   BLI_length_parameterize.hh

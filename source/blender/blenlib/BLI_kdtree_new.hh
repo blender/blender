@@ -79,14 +79,6 @@ concept QueryType = requires(Query &query, const ValueT distance_sq, const int i
  * indices into that span, so data attached to the points can be referenced sparsely with this
  * level of indirection.
  *
- * Differences from #blender::KDTree in `BLI_kdtree.hh`:
- * - The tree references the caller's coordinate array instead of storing a copy of it. The array
- *   must stay alive and unchanged for as long as the tree is used.
- * - Points are added when the tree is built, there is no separate insert and balance step.
- * - Distances are squared, since that's what the searches compute anyway.
- * - Results don't include coordinates which are instead found in #points with the returned index.
- * - Performance and memory usage are much better.
- *
  * T can be `float2`, `float3` or `float4`, or `float` for a 1D tree.
  */
 template<typename T> class KDTreeNew : NonMovable, NonCopyable {
@@ -406,7 +398,7 @@ template<typename NearestT, typename ValueT> class NearestNQuery {
 
 /**
  * Passes every point in the radius to a callback.
- * \note The radius is inclusive, matching #blender::kdtree_range_search_cb.
+ * \note The radius is inclusive.
  */
 template<typename ValueT, typename Fn> class RadiusQuery {
  private:
