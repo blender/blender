@@ -198,7 +198,7 @@ intended for use by file-managers to extract PNG images from `.blend` files."
   )
 elseif(APPLE)
   option(WITH_BLENDER_THUMBNAILER "\
-Build \"blender-thumbnailer.appex\" extension for Finder/ QuickLook thumbnail \
+Build \"blender-thumbnailer.appex\" extension for Finder/QuickLook thumbnail \
 support for blend files."
     ON
   )
@@ -207,7 +207,7 @@ endif()
 option(WITH_INTERNATIONAL "Enable I18N (UI translation)" ON)
 
 option(WITH_PYTHON "Enable Embedded Python API (only disable for development)" ON)
-option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default" ON)
+option(WITH_PYTHON_SECURITY "Disable execution of scripts within blend files by default" ON)
 # Don't want people disabling this unless they really know what they are doing.
 mark_as_advanced(WITH_PYTHON)
 # Some distributions see this as a security issue, rather than have them patch it,
@@ -215,7 +215,7 @@ mark_as_advanced(WITH_PYTHON)
 mark_as_advanced(WITH_PYTHON_SECURITY)
 
 option(WITH_PYTHON_SAFETY "\
-Enable internal API error checking to track invalid data to prevent crash on access \
+Enable internal API error checking to track invalid data to prevent a crash on access \
 (at the expense of some efficiency, only enable for development)."
   OFF
 )
@@ -249,7 +249,7 @@ mark_as_advanced(BUILDINFO_OVERRIDE_TIME)
 if(NOT ${CMAKE_VERSION} VERSION_EQUAL "3.28.2")
   option(WITH_UNITY_BUILD "\
 Enable unity build for modules that support it to improve compile times.\n\
-WARNING: this option allows files to be built without all necessary headers!\n
+WARNING: this option allows files to be built without all necessary headers!\n\
 This option should be disabled before manipulating or removing headers."
     ON
   )
@@ -318,7 +318,7 @@ option(WITH_OPENSUBDIV "Enable OpenSubdiv for surface subdivision" ON)
 option(WITH_POTRACE "Enable features relying on Potrace" ON)
 option(WITH_OPENVDB "Enable features relying on OpenVDB" ON)
 option(WITH_OPENVDB_BLOSC "\
-Enable blosc compression for OpenVDB, only enable if OpenVDB was built with blosc support"
+Enable blosc compression for OpenVDB (only enable if OpenVDB was built with blosc support)"
   ON
 )
 option(WITH_OPENVDB_3_ABI_COMPATIBLE "\
@@ -365,12 +365,12 @@ Enable runtime dynamic loading of `libdbus` (avoids a link time dependency)"
     option(WITH_GHOST_CSD "Enable client side decorations with Wayland" ON)
     mark_as_advanced(WITH_GHOST_CSD)
 
-    option(WITH_GHOST_WAYLAND_DYNLOAD "Enable runtime dynamic WAYLAND libraries loading" ON)
+    option(WITH_GHOST_WAYLAND_DYNLOAD "Enable runtime dynamic loading of WAYLAND libraries" ON)
     mark_as_advanced(WITH_GHOST_WAYLAND_DYNLOAD)
 
     set(WITH_GHOST_WAYLAND_APP_ID "" CACHE STRING "\
-The application ID used for Blender (use default when an empty string), \
-this can be used to differentiate Blender instances by version or branch for example."
+The application ID used for Blender (the default is used when empty). \
+This can be used to differentiate Blender instances by version or branch for example."
     )
     mark_as_advanced(WITH_GHOST_WAYLAND_APP_ID)
   endif()
@@ -435,7 +435,7 @@ option(WITH_MOD_REMESH "Enable Remesh Modifier" ON)
 option(WITH_MOD_OCEANSIM "Enable Ocean Modifier" ON)
 
 # UV solvers.
-option(WITH_UV_SLIM "SLIM UV unwrapping solver" ON)
+option(WITH_UV_SLIM "Enable the SLIM UV unwrapping solver" ON)
 
 # Image format support
 option(WITH_IMAGE_OPENJPEG "Enable OpenJpeg Support (http://www.openjpeg.org)" ON)
@@ -492,15 +492,15 @@ if(NOT WIN32)
   endif()
   option(WITH_JACK "Enable JACK Support (http://www.jackaudio.org)" ${_option_default})
   unset(_option_default)
-  option(WITH_JACK_DYNLOAD "Enable runtime dynamic JACK libraries loading" OFF)
+  option(WITH_JACK_DYNLOAD "Enable runtime dynamic loading of JACK libraries" OFF)
 else()
   set(WITH_JACK OFF)
 endif()
 if(UNIX AND NOT APPLE)
   option(WITH_PULSEAUDIO "Enable PulseAudio for audio support on Linux/Unix" ON)
-  option(WITH_PULSEAUDIO_DYNLOAD "Enable runtime dynamic PulseAudio libraries loading" OFF)
+  option(WITH_PULSEAUDIO_DYNLOAD "Enable runtime dynamic loading of PulseAudio libraries" OFF)
   option(WITH_PIPEWIRE "Enable PipeWire for audio support on Linux/Unix" ON)
-  option(WITH_PIPEWIRE_DYNLOAD "Enable runtime dynamic PipeWire libraries loading" OFF)
+  option(WITH_PIPEWIRE_DYNLOAD "Enable runtime dynamic loading of PipeWire libraries" OFF)
 else()
   set(WITH_PULSEAUDIO OFF)
   set(WITH_PIPEWIRE OFF)
@@ -647,7 +647,7 @@ Build Cycles with additional asserts for detecting NaNs and invalid values"
   OFF
 )
 option(WITH_CYCLES_NATIVE_ONLY "\
-Build Cycles with native kernel only (which fits current CPU, use for development only)"
+Build Cycles with native kernel only (which fits the current CPU, use for development only)"
   OFF
 )
 option(WITH_CYCLES_KERNEL_ASAN "\
@@ -659,7 +659,7 @@ Run regression tests on the specified device types \
 (CPU CUDA OPTIX HIP HIP-RT METAL METAL-RT ONEAPI ONEAPI-RT)"
 )
 option(WITH_CYCLES_TEST_OSL "\
-Run additional Cycles test with OSL enabled"
+Run additional Cycles tests with OSL enabled"
   OFF
 )
 mark_as_advanced(WITH_CYCLES_KERNEL_ASAN)
@@ -826,7 +826,7 @@ mark_as_advanced(WITH_GPU_RENDER_TESTS_VULKAN)
 option(WITH_GPU_RENDER_TESTS_HEADED "\
 Enable GPU render related unit testing that doesn't work in background mode. \
 These tests require an environment with a display server to run. \
-Requires WITH_GPU_RENDER_TESTS "
+Requires WITH_GPU_RENDER_TESTS."
   OFF
 )
 mark_as_advanced(WITH_GPU_RENDER_TESTS_HEADED)
@@ -865,8 +865,8 @@ Currently this depends on WITH_GHOST_WAYLAND and the weston compositor \
 
   option(WITH_LINUX_OFFICIAL_RELEASE_TESTS "\
 Enable sanity check tests for the linux official release. \
-These test are only relevant for checking that our official Linux releases are portable and \
-packaged properly. For example that we don't link to any unexpected system libraries."
+These tests are only relevant for checking that our official Linux releases are portable and \
+packaged properly. For example, that we don't link to any unexpected system libraries."
     OFF
   )
 else()
