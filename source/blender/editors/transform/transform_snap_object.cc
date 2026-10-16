@@ -1100,7 +1100,14 @@ void snap_object_context_destroy(SnapObjectContext *sctx)
 void snap_object_context_set_editmesh_target(SnapObjectContext *sctx,
                                              const SnapEditMeshTarget target)
 {
+  if (sctx->editmesh_target == target) {
+    return;
+  }
   sctx->editmesh_target = target;
+
+  /* Rebuild the meshes too, as they are not checked for updates during transform. When snapping
+   * to the base, the selection is restored to its original positions. */
+  sctx->editmesh_caches.clear();
 }
 
 static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
