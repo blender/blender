@@ -9,6 +9,7 @@
  */
 
 #include "BLI_function_ref.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "DNA_boid_types.h" /* for #BoidData */
 #include "DNA_listBase.h"
@@ -18,6 +19,8 @@
 #include <stdio.h> /* for #FILE */
 
 namespace blender {
+
+template<typename T> class KDTreeNew;
 
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
  * and after are non-inclusive (they won't remove the cfra) */
@@ -252,9 +255,12 @@ struct PTCacheEdit {
   struct ParticleSystem *psys_eval;
   struct ParticleSystemModifierData *psmd;
   struct ParticleSystemModifierData *psmd_eval;
-  KDTree3d *emitter_field;
-  /** Local-space face centers and normals (average of its verts), from the derived mesh. */
-  float *emitter_cosnos;
+  /** Tree of the #emitter_cos, which it references. */
+  KDTreeNew<float3> *emitter_field;
+  /** Local-space face centers (average of its verts), from the derived mesh. */
+  float3 *emitter_cos;
+  /** Local-space face normals (average of its verts), from the derived mesh. */
+  float3 *emitter_nos;
   int *mirror_cache;
 
   struct ParticleCacheKey **pathcache; /* path cache (runtime) */

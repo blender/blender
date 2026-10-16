@@ -7,9 +7,11 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -20,7 +22,8 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BLI_kdtree.hh"
+#include "BLI_array.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_geom_c.hh"
@@ -158,15 +161,12 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
     MEM_delete(edit->mirror_cache);
   }
 
-  if (edit->emitter_cosnos) {
-    MEM_delete(edit->emitter_cosnos);
-    edit->emitter_cosnos = nullptr;
-  }
-
-  if (edit->emitter_field) {
-    kdtree_free<float3>(edit->emitter_field);
-    edit->emitter_field = nullptr;
-  }
+  MEM_delete(edit->emitter_field);
+  edit->emitter_field = nullptr;
+  MEM_delete(edit->emitter_cos);
+  edit->emitter_cos = nullptr;
+  MEM_delete(edit->emitter_nos);
+  edit->emitter_nos = nullptr;
 
   psys_free_path_cache(edit->psys, edit);
 
@@ -982,11 +982,9 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 {
   PTCacheEdit *edit;
   ParticleSystemModifierData *psmd_eval;
-  KDTree<float3> *tree;
-  KDTreeNearest<float3> nearest;
   HairKey *key;
   PARTICLE_P;
-  float mat[4][4], co[3];
+  float mat[4][4];
   int index, totpart;
 
   edit = psys->edit;
@@ -997,19 +995,15 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
     return;
   }
 
-  tree = kdtree_new<float3>(totpart);
-
-  /* Insert particles into KD-tree. */
+  Array<float3> positions(totpart);
   LOOP_PARTICLES
   {
     key = pa->hair;
     psys_mat_hair_to_orco(ob, psmd_eval->mesh_final, psys->part->from, pa, mat);
-    copy_v3_v3(co, key->co);
-    mul_m4_v3(mat, co);
-    kdtree_insert<float3>(tree, p, co);
+    mul_v3_m4v3(positions[p], mat, key->co);
   }
 
-  kdtree_balance<float3>(tree);
+  const KDTreeNew<float3> tree(positions);
 
   /* lookup particles and set in mirror cache */
   if (!edit->mirror_cache) {
@@ -1018,16 +1012,14 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 
   LOOP_PARTICLES
   {
-    key = pa->hair;
-    psys_mat_hair_to_orco(ob, psmd_eval->mesh_final, psys->part->from, pa, mat);
-    copy_v3_v3(co, key->co);
-    mul_m4_v3(mat, co);
+    float3 co = positions[p];
     co[0] = -co[0];
 
-    index = kdtree_find_nearest<float3>(tree, co, &nearest);
+    float distance_sq;
+    index = tree.find_nearest(co, &distance_sq);
 
     /* this needs a custom threshold still, duplicated for editmode mirror */
-    if (index != -1 && index != p && (nearest.dist <= 0.0002f)) {
+    if (index != -1 && index != p && (distance_sq <= math::square(0.0002f))) {
       edit->mirror_cache[p] = index;
     }
     else {
@@ -1045,8 +1037,6 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
       }
     }
   }
-
-  kdtree_free<float3>(tree);
 }
 
 static void PE_mirror_particle(
@@ -1215,7 +1205,8 @@ static void deflect_emitter_iter(void *__restrict iter_data_v,
   int k;
   float hairimat[4][4], hairmat[4][4];
   int index;
-  float *vec, *nor, dvec[3], dot, dist_1st = 0.0f;
+  const float *vec, *nor;
+  float dvec[3], dot, dist_1st = 0.0f;
   const float dist = iter_data->dist;
   const float emitterdist = iter_data->emitterdist;
   psys_mat_hair_to_object(
@@ -1231,10 +1222,10 @@ static void deflect_emitter_iter(void *__restrict iter_data_v,
       dist_1st *= dist * emitterdist;
     }
     else {
-      index = kdtree_find_nearest<float3>(edit->emitter_field, key->co, nullptr);
+      index = edit->emitter_field->find_nearest(key->co);
 
-      vec = edit->emitter_cosnos + index * 6;
-      nor = vec + 3;
+      vec = edit->emitter_cos[index];
+      nor = edit->emitter_nos[index];
 
       sub_v3_v3v3(dvec, key->co, vec);
 
@@ -1440,35 +1431,30 @@ void recalc_emitter_field(Depsgraph * /*depsgraph*/, Object * /*ob*/, ParticleSy
 {
   PTCacheEdit *edit = psys->edit;
   Mesh *mesh = edit->psmd_eval->mesh_final;
-  float *vec, *nor;
   int i, totface;
 
   if (!mesh) {
     return;
   }
 
-  if (edit->emitter_cosnos) {
-    MEM_delete(edit->emitter_cosnos);
-  }
-
-  kdtree_free<float3>(edit->emitter_field);
+  MEM_delete(edit->emitter_field);
+  MEM_delete(edit->emitter_cos);
+  MEM_delete(edit->emitter_nos);
 
   totface = mesh->totface_legacy;
   // int totvert = dm->getNumVerts(dm); /* UNUSED */
 
-  edit->emitter_cosnos = MEM_new_array_zeroed<float>(6 * totface, "emitter cosnos");
-
-  edit->emitter_field = kdtree_new<float3>(totface);
-
-  vec = edit->emitter_cosnos;
-  nor = vec + 3;
+  edit->emitter_cos = MEM_new_array_uninitialized<float3>(totface, "emitter cos");
+  edit->emitter_nos = MEM_new_array_uninitialized<float3>(totface, "emitter nos");
 
   const Span<float3> positions = mesh->vert_positions();
   const Span<float3> vert_normals = mesh->vert_normals();
   const MFace *mfaces = static_cast<const MFace *>(
       CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE));
-  for (i = 0; i < totface; i++, vec += 6, nor += 6) {
+  for (i = 0; i < totface; i++) {
     const MFace *mface = &mfaces[i];
+    float *vec = edit->emitter_cos[i];
+    float *nor = edit->emitter_nos[i];
 
     copy_v3_v3(vec, positions[mface->v1]);
     copy_v3_v3(nor, vert_normals[mface->v1]);
@@ -1490,11 +1476,9 @@ void recalc_emitter_field(Depsgraph * /*depsgraph*/, Object * /*ob*/, ParticleSy
     }
 
     normalize_v3(nor);
-
-    kdtree_insert<float3>(edit->emitter_field, i, vec);
   }
 
-  kdtree_balance<float3>(edit->emitter_field);
+  edit->emitter_field = MEM_new<KDTreeNew<float3>>(__func__, Span(edit->emitter_cos, totface));
 }
 
 static void PE_update_selection(Depsgraph *depsgraph, Scene *scene, Object *ob, int useflag)
@@ -3230,10 +3214,9 @@ static wmOperatorStatus remove_doubles_exec(bContext *C, wmOperator *op)
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ParticleSystem *psys = edit->psys;
   ParticleSystemModifierData *psmd_eval;
-  KDTree<float3> *tree;
-  KDTreeNearest<float3> nearest[10];
+  std::array<KDTreeNew<float3>::Nearest, 10> nearest;
   POINT_P;
-  float mat[4][4], co[3], threshold = RNA_float_get(op->ptr, "threshold");
+  float mat[4][4], threshold = RNA_float_get(op->ptr, "threshold");
   int n, totn, removed, totremoved;
 
   if (psys->flag & PSYS_GLOBAL_HAIR) {
@@ -3247,31 +3230,24 @@ static wmOperatorStatus remove_doubles_exec(bContext *C, wmOperator *op)
   do {
     removed = 0;
 
-    tree = kdtree_new<float3>(psys->totpart);
-
-    /* Insert particles into KD-tree. */
+    Array<float3> positions(edit->totpoint);
+    Vector<int> selected;
     LOOP_SELECTED_POINTS {
       psys_mat_hair_to_object(
           ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
-      copy_v3_v3(co, point->keys->co);
-      mul_m4_v3(mat, co);
-      kdtree_insert<float3>(tree, p, co);
+      mul_v3_m4v3(positions[p], mat, point->keys->co);
+      selected.append(p);
     }
 
-    kdtree_balance<float3>(tree);
+    const KDTreeNew<float3> tree(positions, selected.as_span());
 
     /* tag particles to be removed */
     LOOP_SELECTED_POINTS {
-      psys_mat_hair_to_object(
-          ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
-      copy_v3_v3(co, point->keys->co);
-      mul_m4_v3(mat, co);
-
-      totn = kdtree_find_nearest_n<float3>(tree, co, nearest, 10);
+      totn = tree.find_nearest_n(positions[p], nearest);
 
       for (n = 0; n < totn; n++) {
         /* this needs a custom threshold still */
-        if (nearest[n].index > p && nearest[n].dist < threshold) {
+        if (nearest[n].index > p && nearest[n].distance_sq < math::square(threshold)) {
           if (!(point->flag & PEP_TAG)) {
             point->flag |= PEP_TAG;
             removed++;
@@ -3279,8 +3255,6 @@ static wmOperatorStatus remove_doubles_exec(bContext *C, wmOperator *op)
         }
       }
     }
-
-    kdtree_free<float3>(tree);
 
     /* remove tagged particles - don't do mirror here! */
     remove_tagged_particles(ob, psys, 0);
@@ -3941,13 +3915,13 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
        * `ob->world_to_object` is set before calling. */
       mul_v3_m4v3(kco, data->ob->world_to_object().ptr(), co);
 
-      point_index = kdtree_find_nearest<float3>(edit->emitter_field, kco, nullptr);
+      point_index = edit->emitter_field->find_nearest(kco);
       if (point_index == -1) {
         return;
       }
 
       copy_v3_v3(co_root, co);
-      copy_v3_v3(no_root, &edit->emitter_cosnos[point_index * 6 + 3]);
+      copy_v3_v3(no_root, edit->emitter_nos[point_index]);
       mul_mat3_m4_v3(data->ob->object_to_world().ptr(), no_root); /* normal into global-space */
       normalize_v3(no_root);
 
@@ -4031,9 +4005,9 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
              * `ob->world_to_object` is set before calling. */
             mul_v3_m4v3(kco, data->ob->world_to_object().ptr(), oco);
 
-            point_index = kdtree_find_nearest<float3>(edit->emitter_field, kco, nullptr);
+            point_index = edit->emitter_field->find_nearest(kco);
             if (point_index != -1) {
-              copy_v3_v3(onor, &edit->emitter_cosnos[point_index * 6 + 3]);
+              copy_v3_v3(onor, edit->emitter_nos[point_index]);
               mul_mat3_m4_v3(data->ob->object_to_world().ptr(),
                              onor);       /* Normal into world-space. */
               mul_mat3_m4_v3(imat, onor); /* World-space into particle-space. */
@@ -4502,8 +4476,9 @@ static int brush_add(const bContext *C, PEData *data, short number)
   /* TODO(sergey): Consider multi-threading this part as well. */
   if (n) {
     int newtotpart = totpart + n;
-    float hairmat[4][4], cur_co[3];
-    KDTree<float3> *tree = nullptr;
+    float hairmat[4][4];
+    Array<float3> tree_positions;
+    std::optional<KDTreeNew<float3>> tree;
     ParticleData *pa, *new_pars = MEM_new_array<ParticleData>(newtotpart, "ParticleData new");
     PTCacheEditPoint *point, *new_points = MEM_new_array_zeroed<PTCacheEditPoint>(
                                  newtotpart, "PTCacheEditPoint array new");
@@ -4529,7 +4504,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
 
     /* create tree for interpolation */
     if (pset->flag & PE_INTERPOLATE_ADDED && psys->totpart) {
-      tree = kdtree_new<float3>(psys->totpart);
+      tree_positions.reinitialize(totpart);
 
       for (i = 0, pa = psys->particles; i < totpart; i++, pa++) {
         psys_particle_on_dm(psmd_eval->mesh_final,
@@ -4538,15 +4513,14 @@ static int brush_add(const bContext *C, PEData *data, short number)
                             pa->num_dmcache,
                             pa->fuv,
                             pa->foffset,
-                            cur_co,
+                            tree_positions[i],
                             nullptr,
                             nullptr,
                             nullptr,
                             nullptr);
-        kdtree_insert<float3>(tree, i, cur_co);
       }
 
-      kdtree_balance<float3>(tree);
+      tree.emplace(tree_positions);
     }
 
     edit->totpoint = psys->totpart = newtotpart;
@@ -4585,7 +4559,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
         ParticleData *ppa;
         HairKey *thkey;
         ParticleKey key3[3];
-        KDTreeNearest<float3> ptn[3];
+        std::array<KDTreeNew<float3>::Nearest, 3> ptn;
         int w, maxw;
         float maxd, totw = 0.0, weight[3];
 
@@ -4600,12 +4574,12 @@ static int brush_add(const bContext *C, PEData *data, short number)
                             nullptr,
                             nullptr,
                             nullptr);
-        maxw = kdtree_find_nearest_n<float3>(tree, co1, ptn, 3);
+        maxw = tree->find_nearest_n(co1, ptn);
 
-        maxd = ptn[maxw - 1].dist;
+        maxd = std::sqrt(ptn[maxw - 1].distance_sq);
 
         for (w = 0; w < maxw; w++) {
-          weight[w] = float(pow(2.0, double(-6.0f * ptn[w].dist / maxd)));
+          weight[w] = float(pow(2.0, double(-6.0f * std::sqrt(ptn[w].distance_sq) / maxd)));
           totw += weight[w];
         }
         for (; w < 3; w++) {
@@ -4671,10 +4645,6 @@ static int brush_add(const bContext *C, PEData *data, short number)
         invert_m4_m4(imat, hairmat);
         mul_m4_v3(imat, hkey->co);
       }
-    }
-
-    if (tree) {
-      kdtree_free<float3>(tree);
     }
   }
 
