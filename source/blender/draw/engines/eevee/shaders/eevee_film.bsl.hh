@@ -252,7 +252,10 @@ struct Film {
                                  float2(0.0f),
                                  float2(0.999999f));
 
-    const float overscan = max(uniforms.uniform_buf.camera.panoramic_view_overscan, 1.0f);
+    float overscan = max(uniforms.uniform_buf.camera.panoramic_view_overscan, 1.0f);
+    if (view_id == PANORAMIC_FACE_NEG_Z) {
+      overscan *= uniforms.uniform_buf.camera.panoramic_front_face_extent;
+    }
     const float2 render_uv = (face_uv - 0.5f) / overscan + 0.5f;
     return render_uv;
   }
