@@ -204,7 +204,7 @@ support for blend files."
   )
 endif()
 
-option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
+option(WITH_INTERNATIONAL "Enable I18N (UI translation)" ON)
 
 option(WITH_PYTHON "Enable Embedded Python API (only disable for development)" ON)
 option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default" ON)
@@ -222,8 +222,8 @@ Enable internal API error checking to track invalid data to prevent crash on acc
 mark_as_advanced(WITH_PYTHON_SAFETY)
 option(WITH_PYTHON_MODULE "\
 Enable building as a Python module which runs without a user interface, \
-like running regular Blender in background mode (only enable for development), \
-installs to PYTHON_SITE_PACKAGES (or CMAKE_INSTALL_PREFIX if WITH_INSTALL_PORTABLE is enabled)."
+like running regular Blender in background mode. \
+This installs to PYTHON_SITE_PACKAGES (or CMAKE_INSTALL_PREFIX if WITH_INSTALL_PORTABLE is enabled)."
   OFF
 )
 
@@ -295,7 +295,7 @@ option(WITH_IK_SOLVER "\
 Enable Legacy IK solver (only disable for development)"
   ON
 )
-option(WITH_FFTW3 "Enable FFTW3 support (Used for smoke, ocean sim, glare, and audio effects)" ON)
+option(WITH_FFTW3 "Enable FFTW3 support (Used for ocean sim, compositor glare & convolve, and audio effects)" ON)
 option(WITH_PUGIXML "Enable PugiXML support (Used for OpenImageIO, Grease Pencil SVG export)" ON)
 option(WITH_BULLET "Enable Bullet (Physics Engine)" ON)
 option(WITH_SYSTEM_BULLET "\
@@ -309,7 +309,7 @@ option(WITH_XR_OPENXR "Enable VR features through the OpenXR specification" ON)
 option(WITH_GMP "Enable features depending on GMP (Exact Boolean)" ON)
 option(WITH_MANIFOLD "Enable features depending on Manifold (Fast Robust Boolean)" ON)
 
-option(WITH_OPENIMAGEDENOISE "Enable the OpenImageDenoise compositing node" ON)
+option(WITH_OPENIMAGEDENOISE "Enable OpenImageDenoise (Cycles denoiser and the compositor Denoise node)" ON)
 
 option(WITH_DLSS "Enable NVIDIA DLSS Ray Reconstruction support" OFF)
 
@@ -497,24 +497,24 @@ else()
   set(WITH_JACK OFF)
 endif()
 if(UNIX AND NOT APPLE)
-  option(WITH_PULSEAUDIO "Enable PulseAudio for audio support on Linux" ON)
+  option(WITH_PULSEAUDIO "Enable PulseAudio for audio support on Linux/Unix" ON)
   option(WITH_PULSEAUDIO_DYNLOAD "Enable runtime dynamic PulseAudio libraries loading" OFF)
-  option(WITH_PIPEWIRE "Enable PipeWire for audio support on Linux" ON)
+  option(WITH_PIPEWIRE "Enable PipeWire for audio support on Linux/Unix" ON)
   option(WITH_PIPEWIRE_DYNLOAD "Enable runtime dynamic PipeWire libraries loading" OFF)
 else()
   set(WITH_PULSEAUDIO OFF)
   set(WITH_PIPEWIRE OFF)
 endif()
 if(WIN32)
-  option(WITH_WASAPI "Enable Windows Audio Sessions API for audio support on Windows" ON)
+  option(WITH_WASAPI "Enable Windows Audio Session API for audio support on Windows" ON)
 else()
   set(WITH_WASAPI OFF)
 endif()
 
 # Compression
-option(WITH_DRACO "Enable Draco mesh compression Python module (used for glTF)" ON)
-option(WITH_MESHOPTIMIZER "Enable meshoptimizer compression Python module (used for glTF)" ON)
-option(WITH_KTX "Enable KTX texture support (used for glTF)" ON)
+option(WITH_DRACO "Enable Draco mesh compression library (used by the glTF add-on)" ON)
+option(WITH_MESHOPTIMIZER "Enable meshoptimizer compression library (used by the glTF add-on)" ON)
+option(WITH_KTX "Enable KTX texture support (used by the glTF add-on)" ON)
 
 # Camera/motion tracking
 option(WITH_LIBMV "Enable Libmv structure from motion library" ON)
@@ -540,7 +540,7 @@ if(UNIX AND NOT APPLE)
   # NOTE: this could be supported on all platforms however in practice UNIX is the only platform
   # that has good support for detecting installed libraries.
   option(WITH_LIBS_PRECOMPILED "\
-Detect and link against pre-compiled libraries (typically found under \"../lib/\"). \
+Detect and link against pre-compiled libraries (typically found under \"lib/<platform>/\"). \
 Disabling this option will use the system libraries although cached paths \
 that point to pre-compiled libraries will be left as-is."
     ON
@@ -565,14 +565,15 @@ option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" 
 # is the only supported installation type, so there is no option.
 if(UNIX AND (NOT APPLE OR WITH_PYTHON_MODULE))
   option(WITH_INSTALL_PORTABLE "\
-Install redistributable runtime, otherwise install into CMAKE_INSTALL_PREFIX"
+Install redistributable runtime (otherwise install into CMAKE_INSTALL_PREFIX, \
+or into PYTHON_SITE_PACKAGES for WITH_PYTHON_MODULE)"
     ON
   )
 else()
   set(WITH_INSTALL_PORTABLE ON)
 endif()
 
-option(WITH_PYTHON_INSTALL "Copy system Python into the Blender install directory" ON)
+option(WITH_PYTHON_INSTALL "Copy Python into the Blender install directory" ON)
 
 option(WITH_INSTALL_COPYRIGHT "\
 Copy the official Blender Authors copyright.txt into the Blender install directory"
@@ -608,7 +609,7 @@ Path to python site-packages or dist-packages containing 'requests' module"
     mark_as_advanced(PYTHON_REQUESTS_PATH)
   endif()
 
-  option(WITH_PYTHON_INSTALL_ZSTANDARD "Copy Zstandard into the Blender install directory" ON)
+  option(WITH_PYTHON_INSTALL_ZSTANDARD "Copy Zstandard Python module into the Blender install directory" ON)
   set(PYTHON_ZSTANDARD_PATH "" CACHE PATH "\
 Path to python site-packages or dist-packages containing 'zstandard' module"
   )
@@ -781,7 +782,7 @@ mark_as_advanced(WITH_ASSERT_RELEASE)
 if(UNIX OR (CMAKE_GENERATOR MATCHES "^Visual Studio.+"))
   option(WITH_CLANG_TIDY "\
 Use Clang Tidy to analyze the source code \
-(only enable for development on Linux using Clang, or Windows using the Visual Studio IDE)"
+(only enable for development on Linux/macOS, or Windows using the Visual Studio IDE)"
     OFF
   )
   mark_as_advanced(WITH_CLANG_TIDY)
@@ -799,7 +800,10 @@ if((WIN32 AND NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64") OR (UNIX AND NOT APPL
   option(WITH_TBB_MALLOC_PROXY "Enable the TBB malloc replacement" ON)
 endif()
 
-option(WITH_EXPERIMENTAL_FEATURES "Enable experimental features" ON)
+option(WITH_EXPERIMENTAL_FEATURES "\
+Enable experimental features (alpha builds only, forced OFF for beta/rc/release)"
+  ON
+)
 
 # This should be turned off when Blender enter beta/rc/release
 if("${BLENDER_VERSION_CYCLE}" STREQUAL "alpha" AND WITH_EXPERIMENTAL_FEATURES)
@@ -811,7 +815,7 @@ endif()
 # Unit testing
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
 option(WITH_GPU_RENDER_TESTS "\
-Enable GPU render related unit testing (EEVEE, Workbench and Grease Pencil)"
+Enable GPU render related unit testing (EEVEE, Workbench, Hydra Storm and Grease Pencil)"
   OFF
 )
 option(WITH_GPU_RENDER_TESTS_VULKAN "\
