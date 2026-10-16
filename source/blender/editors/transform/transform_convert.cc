@@ -12,9 +12,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_array_utils.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_linklist_stack.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_matrix_c.hh"
@@ -239,11 +240,11 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
   }
 
   /* Pointers to selected's #TransData.
-   * Used to find #TransData from the index returned by #blender::kdtree_find_nearest. */
+   * Used to find #TransData from the index returned by #KDTreeNew::find_nearest. */
   TransData **td_table = MEM_new_array_uninitialized<TransData *>(td_table_len, __func__);
 
-  /* Create and fill KD-tree of selected's positions - in global or proj_vec space. */
-  KDTree<float3> *td_tree = kdtree_new<float3>(td_table_len);
+  /* Selected's positions - in global or proj_vec space. */
+  Array<float3> td_positions(td_table_len);
 
   int td_table_index = 0;
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -254,13 +255,13 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 
       const float3 vec = prop_dist_loc_get(tc, td, use_island, proj_vec);
 
-      kdtree_insert<float3>(td_tree, td_table_index, vec);
+      td_positions[td_table_index] = vec;
       td_table[td_table_index++] = td;
     });
   }
   BLI_assert(td_table_index == td_table_len);
 
-  kdtree_balance<float3>(td_tree);
+  const KDTreeNew<float3> td_tree(td_positions);
 
   /* For each non-selected vertex, find distance to the nearest selected vertex. */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -272,12 +273,12 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 
       const float3 vec = prop_dist_loc_get(tc, td, use_island, proj_vec);
 
-      KDTreeNearest<float3> nearest;
-      const int td_index = kdtree_find_nearest<float3>(td_tree, vec, &nearest);
+      float distance_sq;
+      const int td_index = td_tree.find_nearest(vec, &distance_sq);
 
       td->rdist = -1.0f;
       if (td_index != -1) {
-        td->rdist = nearest.dist;
+        td->rdist = std::sqrt(distance_sq);
         if (use_island) {
           /* Use center and axismtx of closest point found. */
           copy_v3_v3(td->center, td_table[td_index]->center);
@@ -292,7 +293,6 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
     });
   }
 
-  kdtree_free<float3>(td_tree);
   MEM_delete(td_table);
 }
 
