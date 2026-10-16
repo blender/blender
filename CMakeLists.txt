@@ -518,8 +518,6 @@ option(WITH_KTX "Enable KTX texture support (used for glTF)" ON)
 
 # Camera/motion tracking
 option(WITH_LIBMV "Enable Libmv structure from motion library" ON)
-option(WITH_LIBMV_SCHUR_SPECIALIZATIONS "Enable fixed-size Schur specializations." ON)
-mark_as_advanced(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
 
 # Logging/unit test libraries.
 option(WITH_SYSTEM_GFLAGS "Use system-wide Gflags instead of a bundled one" OFF)
