@@ -35,6 +35,7 @@ class PointClouds : Overlay {
                   state.clipping_plane_count);
     ps_.shader_set(res.shaders->pointcloud_points.get());
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+    ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
   }
 
   void edit_object_sync(Manager &manager,
