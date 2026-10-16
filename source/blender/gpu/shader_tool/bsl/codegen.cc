@@ -2576,11 +2576,9 @@ struct CodegenContext : NodeErrorHandler {
     SymbolVariable *var = scope.lookup_variable(table, decl.identifier());
 
     if (var->is_bitfield && var->bit_offset != 0) {
-      if (decl.prev().type() != NodeType::Declarator || decl.next().type() != NodeType::Declarator)
-      {
-        /* Omitting a declarator in a declarator sequence will create invalid codegen. */
-        error(decl, Diag::BitFieldNotSingleDeclarator);
-      }
+      /* Single declarators are skipped by #var_decl. Reaching this point means the declarator is
+       * part of a sequence, where omitting it would create invalid codegen. */
+      error(decl, Diag::BitFieldNotSingleDeclarator);
     }
 
     const bool par = match_if('(');

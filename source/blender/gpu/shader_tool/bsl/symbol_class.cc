@@ -96,6 +96,11 @@ void SymbolClass::ensure_size_and_align(NodeErrorHandler *err_handler, bool chec
   is_std140_compatible = true;
   is_std430_compatible = true;
   for (SymbolVariable *var : non_static_variables_in_declaration_order()) {
+    if (var->bit_offset != 0) {
+      /* Aliased to the first member of the bitfield, which is the only one taking storage. */
+      continue;
+    }
+
     SymbolClass &cls = *var->type;
 
     if (err_handler && !cls.is_enum) {
