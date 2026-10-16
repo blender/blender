@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <concepts>
 #include <limits>
+#include <type_traits>
 
 #include "BLI_bounds_types.hh"
 #include "BLI_index_mask_fwd.hh"
@@ -85,11 +86,20 @@ concept QueryType = requires(Query &query, const ValueT distance_sq, const int i
  * - Distances are squared, since that's what the searches compute anyway.
  * - Results don't include coordinates which are instead found in #points with the returned index.
  * - Performance and memory usage are much better.
+ *
+ * T can be `float2`, `float3` or `float4`, or `float` for a 1D tree.
  */
 template<typename T> class KDTreeNew : NonMovable, NonCopyable {
+  /**
+   * #T as a vector type, which is what the build and the searches work with. Plain floats are
+   * treated as 1D vectors, which have the same layout.
+   */
+  using VecT = std::conditional_t<std::is_same_v<T, float>, VecBase<float, 1>, T>;
+  static_assert(sizeof(VecT) == sizeof(T));
+
  public:
-  using value_type = typename T::base_type;
-  static constexpr int dimensions = T::type_length;
+  using value_type = typename VecT::base_type;
+  static constexpr int dimensions = VecT::type_length;
 
   /** A single search result. */
   struct Nearest {
@@ -117,14 +127,14 @@ template<typename T> class KDTreeNew : NonMovable, NonCopyable {
    * tree never looks past the indices it built, and #build checks in a debug build that they are
    * all in range.
    */
-  const T *points_ = nullptr;
+  const VecT *points_ = nullptr;
   /**
    * Indices into #points_, in the order the tree visits them. Written by the build, read by
    * every search afterwards, and owned by whichever allocator the build used.
    */
   const int *tree_indices_ = nullptr;
   /** Bounds of every point in the tree, which a search starts from. */
-  Bounds<T> bounds_ = Bounds<T>(T(0));
+  Bounds<VecT> bounds_ = Bounds<VecT>(VecT(value_type(0)));
   Node *root_ = nullptr;
   /**
    * The buffer the allocator the tree made for itself lives at the start of, which is all the
@@ -271,10 +281,10 @@ template<typename T> class KDTreeNew : NonMovable, NonCopyable {
    */
   template<typename Query>
   bool search_node(Query &query,
-                   const T &position,
+                   const VecT &position,
                    const Node *node,
                    const value_type distance_sq,
-                   T &offsets) const
+                   VecT &offsets) const
     requires kdtree::QueryType<Query, value_type>;
 };
 
@@ -464,12 +474,12 @@ inline bool keep_distance(const ValueT distance_sq, const ValueT max_distance_sq
  */
 template<typename T>
 int calc_duplicates(const KDTreeNew<T> &tree,
-                    typename T::base_type range,
+                    typename KDTreeNew<T>::value_type range,
                     Span<int> visit_order,
                     MutableSpan<int> duplicates);
 template<typename T>
 int calc_duplicates(const KDTreeNew<T> &tree,
-                    typename T::base_type range,
+                    typename KDTreeNew<T>::value_type range,
                     const IndexMask &visit_order,
                     MutableSpan<int> duplicates);
 
@@ -482,7 +492,7 @@ int calc_duplicates(const KDTreeNew<T> &tree,
  */
 template<typename T>
 inline int calc_duplicates(const KDTreeNew<T> &tree,
-                           const typename T::base_type range,
+                           const typename KDTreeNew<T>::value_type range,
                            const MutableSpan<int> duplicates)
 {
   return calc_duplicates(tree, range, tree.tree_indices(), duplicates);
@@ -502,7 +512,7 @@ template<typename T> bool KDTreeNew<T>::is_empty() const
 
 template<typename T> const T *KDTreeNew<T>::points() const
 {
-  return points_;
+  return reinterpret_cast<const T *>(points_);
 }
 
 template<typename T> Span<int> KDTreeNew<T>::tree_indices() const
@@ -593,13 +603,14 @@ int KDTreeNew<T>::count_in_radius(const T &position, const value_type radius) co
 
 template<typename T>
 template<typename Query>
-void KDTreeNew<T>::search(Query &query, const T &position) const
+void KDTreeNew<T>::search(Query &query, const T &position_in) const
   requires kdtree::QueryType<Query, value_type>
 {
   BLI_assert(!this->is_empty());
+  const VecT &position = reinterpret_cast<const VecT &>(position_in);
   /* Squared distance to the bounds of the tree, per dimension, which the walk below replaces
    * one dimension at a time rather than recomputing. */
-  T offsets(value_type(0));
+  VecT offsets(value_type(0));
   value_type distance_sq = 0;
   for (const int dim : IndexRange(dimensions)) {
     if (position[dim] < bounds_.min[dim]) {
@@ -616,15 +627,15 @@ void KDTreeNew<T>::search(Query &query, const T &position) const
 template<typename T>
 template<typename Query>
 bool KDTreeNew<T>::search_node(Query &query,
-                               const T &position,
+                               const VecT &position,
                                const Node *node,
                                const value_type distance_sq,
-                               T &offsets) const
+                               VecT &offsets) const
   requires kdtree::QueryType<Query, value_type>
 {
   if (node->children == nullptr) {
     const int *indices = tree_indices_;
-    const T *points = points_;
+    const VecT *points = points_;
     for (int i = node->leaf.start; i < node->leaf.end; i++) {
       const int index = indices[i];
       const value_type point_distance_sq = math::distance_squared(position, points[index]);

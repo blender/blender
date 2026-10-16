@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include <algorithm>
+#include <array>
 #include <string>
 
 #include "testing/testing.h"
@@ -20,6 +21,7 @@
 namespace blender::tests {
 
 using Nearest = KDTreeNew<float3>::Nearest;
+using Nearest4 = KDTreeNew<float4>::Nearest;
 
 static Array<float3> random_points(const int points_num, const int seed = 0)
 {
@@ -651,6 +653,43 @@ TEST(kdtree, Float2)
   const KDTreeNew<float2> tree(positions);
   EXPECT_EQ(tree.find_nearest(float2(0.9f, 0.1f)), 1);
   EXPECT_EQ(tree.count_in_radius(float2(0.0f, 0.0f), 1.5f), 2);
+}
+
+TEST(kdtree, Float)
+{
+  /* More points than fit in a leaf, so that the tree has interior nodes. */
+  Array<float> positions(100);
+  for (const int i : positions.index_range()) {
+    positions[i] = float(i) * 0.5f;
+  }
+  const KDTreeNew<float> tree(positions);
+  float distance_sq;
+  EXPECT_EQ(tree.find_nearest(10.1f, &distance_sq), 20);
+  EXPECT_NEAR(distance_sq, 0.01f, 1e-5f);
+  EXPECT_EQ(tree.find_nearest(-3.0f), 0);
+  EXPECT_EQ(tree.find_nearest(1000.0f), 99);
+  EXPECT_EQ(tree.count_in_radius(10.0f, 1.0f), 5);
+  EXPECT_EQ(*tree.points(), 0.0f);
+
+  Array<int> duplicates(positions.size(), -1);
+  EXPECT_EQ(kdtree::calc_duplicates(tree, 0.5f, positions.index_range(), duplicates), 50);
+}
+
+TEST(kdtree, Float4)
+{
+  const Array<float4> positions = {float4(0.0f, 0.0f, 0.0f, 0.0f),
+                                   float4(0.0f, 0.0f, 0.0f, 1.0f),
+                                   float4(0.0f, 0.0f, 5.0f, 0.0f),
+                                   float4(4.0f, 4.0f, 0.0f, 3.0f)};
+  const KDTreeNew<float4> tree(positions);
+  EXPECT_EQ(tree.find_nearest(float4(0.0f, 0.1f, 0.0f, 0.9f)), 1);
+  EXPECT_EQ(tree.find_nearest(float4(3.0f, 4.0f, 0.0f, 3.0f)), 3);
+  EXPECT_EQ(tree.count_in_radius(float4(0.0f), 1.5f), 2);
+
+  std::array<Nearest4, 2> nearest;
+  EXPECT_EQ(tree.find_nearest_n(float4(0.0f, 0.0f, 4.0f, 0.0f), nearest), 2);
+  EXPECT_EQ(nearest[0].index, 2);
+  EXPECT_EQ(nearest[1].index, 0);
 }
 
 }  // namespace blender::tests
