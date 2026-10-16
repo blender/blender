@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstring>
 
@@ -14,7 +16,7 @@
 #include "DNA_object_force_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base_safe.hh"
 #include "BLI_math_rotation_c.hh"
@@ -38,22 +40,86 @@
 #include "RNA_enum_types.hh"
 
 namespace blender {
-static auto len_squared_v3v3_with_normal_bias_fn(const float3 &normal)
+using Nearest = KDTreeNew<float3>::Nearest;
+
+static float len_squared_v3v3_with_normal_bias(const float3 &co_search,
+                                               const float3 &co_test,
+                                               const float3 &normal)
 {
-  return [=](const float3 &co_search, const float3 &co_test) -> float {
-    float d[3], dist;
+  float d[3], dist;
 
-    sub_v3_v3v3(d, co_test, co_search);
+  sub_v3_v3v3(d, co_test, co_search);
 
-    dist = len_squared_v3(d);
+  dist = len_squared_v3(d);
 
-    /* Avoid head-on collisions. */
-    if (dot_v3v3(d, normal) < 0.0f) {
-      dist *= 10.0f;
-    }
-    return dist;
-  };
+  /* Avoid head-on collisions. */
+  if (dot_v3v3(d, normal) < 0.0f) {
+    dist *= 10.0f;
+  }
+  return dist;
 }
+
+static void find_in_radius_with_normal_bias(const bke::ParticleKDTree &tree,
+                                            const float3 &position,
+                                            const float radius,
+                                            const float3 &normal,
+                                            Vector<Nearest> &r_nearest)
+{
+  r_nearest.clear();
+  const float radius_sq = radius * radius;
+  tree.tree.foreach_in_radius(position, radius, [&](const int index, const float /*dist_sq*/) {
+    const float dist_sq = len_squared_v3v3_with_normal_bias(
+        position, tree.positions[index], normal);
+    if (dist_sq <= radius_sq) {
+      r_nearest.append({index, dist_sq});
+    }
+  });
+  std::ranges::sort(r_nearest, [](const Nearest &a, const Nearest &b) {
+    return a.distance_sq < b.distance_sq || (a.distance_sq == b.distance_sq && a.index < b.index);
+  });
+}
+
+/**
+ * #KDTreeNew::search for the points closest by #len_squared_v3v3_with_normal_bias. Since that
+ * is never smaller than the plain distance used for skipping points and nodes, the furthest
+ * result so far is still a valid bound for it.
+ */
+class NearestNWithNormalBiasQuery {
+  kdtree::NearestNQuery<Nearest, float> nearest_;
+  Span<float3> positions_;
+  float3 position_;
+  float3 normal_;
+
+ public:
+  static constexpr bool inclusive = false;
+
+  NearestNWithNormalBiasQuery(const MutableSpan<Nearest> nearest,
+                              const Span<float3> positions,
+                              const float3 &position,
+                              const float3 &normal)
+      : nearest_(nearest), positions_(positions), position_(position), normal_(normal)
+  {
+  }
+
+  int count() const
+  {
+    return nearest_.count();
+  }
+
+  bool add_point(const float /*dist_sq*/, const int index)
+  {
+    const float dist_sq = len_squared_v3v3_with_normal_bias(position_, positions_[index], normal_);
+    if (dist_sq < nearest_.max_distance_sq()) {
+      nearest_.add_point(dist_sq, index);
+    }
+    return true;
+  }
+
+  float max_distance_sq() const
+  {
+    return nearest_.max_distance_sq();
+  }
+};
 
 struct BoidValues {
   float max_speed, max_acc;
@@ -215,12 +281,12 @@ static bool rule_avoid_collision(BoidRule *rule,
 {
   const int raycast_flag = BVH_RAYCAST_DEFAULT & ~BVH_RAYCAST_WATERTIGHT;
   BoidRuleAvoidCollision *acbr = reinterpret_cast<BoidRuleAvoidCollision *>(rule);
-  KDTreeNearest<float3> *ptn = nullptr;
+  Vector<Nearest> ptn;
   BoidParticle *bpa = pa->boid;
   float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
   float co1[3], vel1[3], co2[3], vel2[3];
   float len, t, inp, t_min = 2.0f;
-  int n, neighbors = 0, nearest = 0;
+  int n, neighbors = 0;
   bool ret = false;
 
   /* Check deflector objects first. */
@@ -287,12 +353,12 @@ static bool rule_avoid_collision(BoidRule *rule,
 
   /* Check boids in their own system. */
   if (acbr->options & BRULE_ACOLL_WITH_BOIDS) {
-    neighbors = kdtree_range_search_with_len_squared_cb<float3>(
-        bbd->sim->psys->tree,
-        pa->prev_state.co,
-        &ptn,
-        acbr->look_ahead * len_v3(pa->prev_state.vel),
-        len_squared_v3v3_with_normal_bias_fn(float3(pa->prev_state.ave)));
+    find_in_radius_with_normal_bias(*bbd->sim->psys->tree,
+                                    pa->prev_state.co,
+                                    acbr->look_ahead * len_v3(pa->prev_state.vel),
+                                    pa->prev_state.ave,
+                                    ptn);
+    neighbors = int(ptn.size());
     if (neighbors > 1) {
       for (n = 1; n < neighbors; n++) {
         copy_v3_v3(co1, pa->prev_state.co);
@@ -333,7 +399,6 @@ static bool rule_avoid_collision(BoidRule *rule,
       }
     }
   }
-  MEM_SAFE_DELETE(ptn);
 
   /* check boids in other systems */
   for (ParticleTarget &pt : bbd->sim->psys->targets) {
@@ -341,12 +406,12 @@ static bool rule_avoid_collision(BoidRule *rule,
 
     if (epsys) {
       BLI_assert(epsys->tree != nullptr);
-      neighbors = kdtree_range_search_with_len_squared_cb<float3>(
-          epsys->tree,
-          pa->prev_state.co,
-          &ptn,
-          acbr->look_ahead * len_v3(pa->prev_state.vel),
-          len_squared_v3v3_with_normal_bias_fn(float3(pa->prev_state.ave)));
+      find_in_radius_with_normal_bias(*epsys->tree,
+                                      pa->prev_state.co,
+                                      acbr->look_ahead * len_v3(pa->prev_state.vel),
+                                      pa->prev_state.ave,
+                                      ptn);
+      neighbors = int(ptn.size());
 
       if (neighbors > 0) {
         for (n = 0; n < neighbors; n++) {
@@ -387,13 +452,7 @@ static bool rule_avoid_collision(BoidRule *rule,
           }
         }
       }
-
-      MEM_SAFE_DELETE(ptn);
     }
-  }
-
-  if (ptn && nearest == 0) {
-    MEM_delete(ptn);
   }
 
   return ret;
@@ -403,41 +462,40 @@ static bool rule_separate(BoidRule * /*rule*/,
                           BoidValues *val,
                           ParticleData *pa)
 {
-  KDTreeNearest<float3> *ptn = nullptr;
+  Vector<Nearest> ptn;
   float len = 2.0f * val->personal_space * pa->size + 1.0f;
   float vec[3] = {0.0f, 0.0f, 0.0f};
-  int neighbors = kdtree_range_search<float3>(
-      bbd->sim->psys->tree, pa->prev_state.co, &ptn, 2.0f * val->personal_space * pa->size);
+  int neighbors = bbd->sim->psys->tree->tree.find_in_radius(
+      pa->prev_state.co, 2.0f * val->personal_space * pa->size, ptn);
   bool ret = false;
 
-  if (neighbors > 1 && ptn[1].dist != 0.0f) {
+  if (neighbors > 1 && ptn[1].distance_sq != 0.0f) {
+    const float dist = std::sqrt(ptn[1].distance_sq);
     sub_v3_v3v3(vec, pa->prev_state.co, bbd->sim->psys->particles[ptn[1].index].state.co);
-    mul_v3_fl(vec, (2.0f * val->personal_space * pa->size - ptn[1].dist) / ptn[1].dist);
+    mul_v3_fl(vec, (2.0f * val->personal_space * pa->size - dist) / dist);
     add_v3_v3(bbd->wanted_co, vec);
     bbd->wanted_speed = val->max_speed;
-    len = ptn[1].dist;
+    len = dist;
     ret = true;
   }
-  MEM_SAFE_DELETE(ptn);
 
   /* check other boid systems */
   for (ParticleTarget &pt : bbd->sim->psys->targets) {
     ParticleSystem *epsys = psys_get_target_system(bbd->sim->ob, &pt);
 
     if (epsys) {
-      neighbors = kdtree_range_search<float3>(
-          epsys->tree, pa->prev_state.co, &ptn, 2.0f * val->personal_space * pa->size);
+      neighbors = epsys->tree->tree.find_in_radius(
+          pa->prev_state.co, 2.0f * val->personal_space * pa->size, ptn);
+      const float dist = neighbors > 0 ? std::sqrt(ptn[0].distance_sq) : 0.0f;
 
-      if (neighbors > 0 && ptn[0].dist < len) {
-        sub_v3_v3v3(vec, pa->prev_state.co, ptn[0].co);
-        mul_v3_fl(vec, (2.0f * val->personal_space * pa->size - ptn[0].dist) / ptn[1].dist);
+      if (neighbors > 0 && dist != 0.0f && dist < len) {
+        sub_v3_v3v3(vec, pa->prev_state.co, epsys->tree->positions[ptn[0].index]);
+        mul_v3_fl(vec, (2.0f * val->personal_space * pa->size - dist) / dist);
         add_v3_v3(bbd->wanted_co, vec);
         bbd->wanted_speed = val->max_speed;
-        len = ptn[0].dist;
+        len = dist;
         ret = true;
       }
-
-      MEM_SAFE_DELETE(ptn);
     }
   }
   return ret;
@@ -447,14 +505,14 @@ static bool rule_flock(BoidRule * /*rule*/,
                        BoidValues * /*val*/,
                        ParticleData *pa)
 {
-  KDTreeNearest<float3> ptn[11];
+  const bke::ParticleKDTree &tree = *bbd->sim->psys->tree;
+  std::array<Nearest, 11> ptn;
   float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
-  int neighbors = kdtree_find_nearest_n_with_len_squared_cb<float3>(
-      bbd->sim->psys->tree,
-      pa->state.co,
-      ptn,
-      ARRAY_SIZE(ptn),
-      len_squared_v3v3_with_normal_bias_fn(float3(pa->prev_state.ave)));
+  NearestNWithNormalBiasQuery query(ptn, tree.positions, pa->state.co, pa->prev_state.ave);
+  if (!tree.tree.is_empty()) {
+    tree.tree.search(query, float3(pa->state.co));
+  }
+  const int neighbors = query.count();
   int n;
   bool ret = false;
 
@@ -678,7 +736,7 @@ static bool rule_average_speed(BoidRule *rule,
 static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, ParticleData *pa)
 {
   BoidRuleFight *fbr = reinterpret_cast<BoidRuleFight *>(rule);
-  KDTreeNearest<float3> *ptn = nullptr;
+  Vector<Nearest> ptn;
   ParticleData *epars;
   ParticleData *enemy_pa = nullptr;
   BoidParticle *bpa;
@@ -691,8 +749,7 @@ static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Part
   bool ret = false;
 
   /* calculate its own group strength */
-  int neighbors = kdtree_range_search<float3>(
-      bbd->sim->psys->tree, pa->prev_state.co, &ptn, fbr->distance);
+  int neighbors = bbd->sim->psys->tree->tree.find_in_radius(pa->prev_state.co, fbr->distance, ptn);
   for (n = 0; n < neighbors; n++) {
     bpa = bbd->sim->psys->particles[ptn[n].index].boid;
     health += bpa->data.health;
@@ -700,15 +757,13 @@ static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Part
 
   f_strength += bbd->part->boids->strength * health;
 
-  MEM_SAFE_DELETE(ptn);
-
   /* add other friendlies and calculate enemy strength and find closest enemy */
   for (ParticleTarget &pt : bbd->sim->psys->targets) {
     ParticleSystem *epsys = psys_get_target_system(bbd->sim->ob, &pt);
     if (epsys && epsys->part->boids) {
       epars = epsys->particles;
 
-      neighbors = kdtree_range_search<float3>(epsys->tree, pa->prev_state.co, &ptn, fbr->distance);
+      neighbors = epsys->tree->tree.find_in_radius(pa->prev_state.co, fbr->distance, ptn);
 
       health = 0.0f;
 
@@ -716,9 +771,10 @@ static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Part
         bpa = epars[ptn[n].index].boid;
         health += bpa->data.health;
 
-        if (n == 0 && pt.mode == PTARGET_MODE_ENEMY && ptn[n].dist < closest_dist) {
-          copy_v3_v3(closest_enemy, ptn[n].co);
-          closest_dist = ptn[n].dist;
+        const float dist = std::sqrt(ptn[n].distance_sq);
+        if (n == 0 && pt.mode == PTARGET_MODE_ENEMY && dist < closest_dist) {
+          copy_v3_v3(closest_enemy, epsys->tree->positions[ptn[n].index]);
+          closest_dist = dist;
           enemy_pa = epars + ptn[n].index;
         }
       }
@@ -728,8 +784,6 @@ static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Part
       else if (pt.mode == PTARGET_MODE_FRIEND) {
         f_strength += epsys->part->boids->strength * health;
       }
-
-      MEM_SAFE_DELETE(ptn);
     }
   }
   /* decide action if enemy presence found */

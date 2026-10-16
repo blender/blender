@@ -11,7 +11,9 @@
 
 #include <optional>
 
+#include "BLI_array.hh"
 #include "BLI_compiler_attrs.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_ordered_edge.hh"
@@ -23,7 +25,6 @@
 
 namespace blender {
 
-template<typename T> class KDTreeNew;
 struct ParticleKey;
 struct ParticleSettings;
 struct ParticleSystem;
@@ -132,6 +133,21 @@ struct ParticleCacheKey {
   float time;
   int segments;
 };
+
+namespace bke {
+
+struct ParticleKDTree {
+  /** Indexed by particle. Only the positions of the particles in the tree are set. */
+  Array<float3> positions;
+  KDTreeNew<float3> tree;
+
+  ParticleKDTree(Array<float3> positions_, const Span<int> indices)
+      : positions(std::move(positions_)), tree(positions, indices)
+  {
+  }
+};
+
+}  // namespace bke
 
 struct ParticleThreadContext {
   /* shared */

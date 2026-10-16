@@ -34,7 +34,6 @@
 
 #include "BLI_array.hh"
 #include "BLI_kdopbvh.hh"
-#include "BLI_kdtree.hh"
 #include "BLI_kdtree_new.hh"
 #include "BLI_linklist.hh"
 #include "BLI_listbase.hh"
@@ -1034,7 +1033,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
     psys->targets.free_no_destruct();
 
     BLI_bvhtree_free(psys->bvhtree);
-    kdtree_free<float3>(psys->tree);
+    MEM_delete(psys->tree);
 
     if (psys->fluid_springs) {
       MEM_delete(psys->fluid_springs);

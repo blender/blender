@@ -28,7 +28,6 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_kdopbvh.hh"
-#include "BLI_kdtree.hh"
 #include "BLI_kdtree_new.hh"
 #include "BLI_linklist.hh"
 #include "BLI_listbase.hh"
@@ -1373,25 +1372,18 @@ void psys_update_particle_tree(ParticleSystem *psys, float cfra)
     PARTICLE_P;
 
     if (!psys->tree || psys->tree_frame != cfra) {
-      int totpart = 0;
+      Array<float3> positions(psys->totpart);
+      Vector<int> alive_particles;
       LOOP_SHOWN_PARTICLES
       {
         if (pa->alive == PARS_ALIVE) {
-          totpart++;
+          positions[p] = (pa->state.time == cfra) ? pa->prev_state.co : pa->state.co;
+          alive_particles.append(p);
         }
       }
 
-      kdtree_free<float3>(psys->tree);
-      psys->tree = kdtree_new<float3>(totpart);
-
-      LOOP_SHOWN_PARTICLES
-      {
-        if (pa->alive == PARS_ALIVE) {
-          const float *co = (pa->state.time == cfra) ? pa->prev_state.co : pa->state.co;
-          kdtree_insert<float3>(psys->tree, p, co);
-        }
-      }
-      kdtree_balance<float3>(psys->tree);
+      MEM_delete(psys->tree);
+      psys->tree = MEM_new<bke::ParticleKDTree>(__func__, std::move(positions), alive_particles);
 
       psys->tree_frame = cfra;
     }

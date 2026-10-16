@@ -22,6 +22,10 @@ using KDTree3d = KDTree<VecBase<float, 3>>;
 
 struct AnimData;
 
+namespace bke {
+struct ParticleKDTree;
+}
+
 namespace draw {
 struct ParticleBatchCache;
 };
@@ -766,7 +770,7 @@ struct ParticleSystem {
   int tot_fluidsprings = 0, alloc_fluidsprings = 0;
 
   /** Used for interactions with self and other systems. */
-  KDTree3d *tree = nullptr;
+  bke::ParticleKDTree *tree = nullptr;
   /** Used for interactions with self and other systems. */
   struct BVHTree *bvhtree = nullptr;
 
