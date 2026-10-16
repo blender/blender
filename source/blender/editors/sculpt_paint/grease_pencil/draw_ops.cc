@@ -26,7 +26,7 @@
 #include "BLI_color_types.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_kdopbvh.hh"
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
@@ -966,8 +966,6 @@ static void grease_pencil_fill_extension_lines_from_circles(
   Array<float2> view_centers(max_kd_entries);
   Array<float> view_radii(max_kd_entries);
 
-  KDTree<float2> *kdtree = kdtree_new<float2>(max_kd_entries);
-
   /* Insert points for overlap tests. */
   for (const int point_i : circles_range.index_range()) {
     const float2 center =
@@ -978,14 +976,12 @@ static void grease_pencil_fill_extension_lines_from_circles(
     const int kd_index = circles_range[point_i];
     view_centers[kd_index] = center;
     view_radii[kd_index] = radius;
-
-    kdtree_insert<float2>(kdtree, kd_index, center);
   }
   for (const int i_point : feature_points_range.index_range()) {
     /* TODO Insert feature points into the KDTree. */
     UNUSED_VARS(i_point);
   }
-  kdtree_balance<float2>(kdtree);
+  const KDTreeNew<float2> kdtree(view_centers.as_span().slice(circles_range));
 
   struct {
     Vector<float3> starts;
@@ -1001,36 +997,29 @@ static void grease_pencil_fill_extension_lines_from_circles(
     const float radius = view_radii[kd_index];
 
     bool found = false;
-    kdtree_range_search_cb<float2>(
-        kdtree,
-        center,
-        radius,
-        [&](const int other_point_i, const float2 & /*co*/, float /*dist_sq*/) {
-          if (other_point_i == kd_index) {
-            return true;
-          }
+    kdtree.foreach_in_radius(center, radius, [&](const int other_point_i, float /*dist_sq*/) {
+      if (other_point_i == kd_index) {
+        return;
+      }
 
-          found = true;
-          connection_lines.starts.append(extension_data.circles.centers[point_i]);
-          if (circles_range.contains(other_point_i)) {
-            connection_lines.ends.append(extension_data.circles.centers[other_point_i]);
-          }
-          else if (feature_points_range.contains(other_point_i)) {
-            /* TODO copy feature point to connection_lines (beware of start index!). */
-            connection_lines.ends.append(float3(0));
-          }
-          else {
-            BLI_assert_unreachable();
-          }
-          return true;
-        });
+      found = true;
+      connection_lines.starts.append(extension_data.circles.centers[point_i]);
+      if (circles_range.contains(other_point_i)) {
+        connection_lines.ends.append(extension_data.circles.centers[other_point_i]);
+      }
+      else if (feature_points_range.contains(other_point_i)) {
+        /* TODO copy feature point to connection_lines (beware of start index!). */
+        connection_lines.ends.append(float3(0));
+      }
+      else {
+        BLI_assert_unreachable();
+      }
+    });
     /* Keep the circle if no extension line was found. */
     if (!found) {
       keep_circle_indices.append(point_i);
     }
   }
-
-  kdtree_free<float2>(kdtree);
 
   /* Add new extension lines. */
   extension_data.lines.starts.extend(connection_lines.starts);
