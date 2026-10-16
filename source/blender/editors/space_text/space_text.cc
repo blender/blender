@@ -430,6 +430,10 @@ static void text_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *
 {
   SpaceText *st = reinterpret_cast<SpaceText *>(sl);
   st->runtime = MEM_new<ed::text::SpaceText_Runtime>(__func__);
+
+  /* Live edit runs scripts, don't keep this setting on file load since it's
+   * not obvious editing the text has this consequence. */
+  st->live_edit = false;
 }
 
 static void text_space_blend_write(BlendWriter *writer, SpaceLink *sl)
