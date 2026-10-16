@@ -29,6 +29,52 @@ static string to_uppercase(string str)
   return str;
 }
 
+static TokenType strip_assignment(TokenType tok)
+{
+  switch (tok) {
+    case AssignAdd:
+      return Plus;
+    case AssignSub:
+      return Minus;
+    case AssignMul:
+      return Multiply;
+    case AssignDiv:
+      return Divide;
+    case AssignLShift:
+      return LShift;
+    case AssignRShift:
+      return RShift;
+    default:
+      return Invalid;
+  }
+}
+
+static const char *to_token_string(TokenType tok)
+{
+  switch (tok) {
+    case Increment:
+      return "+1";
+    case Decrement:
+      return "-1";
+    case Plus:
+      return "+";
+    case Minus:
+      return "-";
+    case Multiply:
+      return "*";
+    case Divide:
+      return "/";
+    case LShift:
+      /* Add spaces to avoid parsing it as template. */
+      return " << ";
+    case RShift:
+      /* Add spaces to avoid parsing it as template. */
+      return " >> ";
+    default:
+      return "";
+  }
+}
+
 struct CodegenContext : NodeErrorHandler {
   SymbolTable &table;
   metadata::Source &metadata;
@@ -39,11 +85,13 @@ struct CodegenContext : NodeErrorHandler {
     SymbolClass *type;
     /* Array dimension of the current temporary. */
     int8_t array_dim = 0;
+    bool is_bitfield = false;
 
     CodegenResult(SymbolVariable *var, const string &trivia)
         : str((var->is_constexpr ? var->value_str() : var->identifier) + trivia),
           type(var->type),
-          array_dim(var->array_dimensions)
+          array_dim(var->array_dimensions),
+          is_bitfield(var->is_bitfield)
     {
     }
 
@@ -52,8 +100,11 @@ struct CodegenContext : NodeErrorHandler {
     {
     }
 
-    CodegenResult(const string &str, SymbolClass *cls, int8_t array_dim = 0)
-        : str(str), type(cls), array_dim(array_dim)
+    CodegenResult(const string &str,
+                  SymbolClass *cls,
+                  int8_t array_dim = 0,
+                  bool is_bitfield = false)
+        : str(str), type(cls), array_dim(array_dim), is_bitfield(is_bitfield)
     {
     }
   };
@@ -141,9 +192,13 @@ struct CodegenContext : NodeErrorHandler {
           CodegenResult rhs = variable(LocalVar(right).identifier(), *left.type);
           if (left.type->is_srt()) {
             /* Remove access to SRT type (makes the resource global). */
-            return {left.str + as_whitespace(t.str_full()) + rhs.str, rhs.type, rhs.array_dim};
+            return {left.str + as_whitespace(t.str_full()) + rhs.str,
+                    rhs.type,
+                    rhs.array_dim,
+                    rhs.is_bitfield};
           }
-          return {left.str + string(t.str_full()) + rhs.str, rhs.type, rhs.array_dim};
+          return {
+              left.str + string(t.str_full()) + rhs.str, rhs.type, rhs.array_dim, rhs.is_bitfield};
         }
         default:
           return {t, ctx.table.err_cls};
@@ -190,19 +245,31 @@ struct CodegenContext : NodeErrorHandler {
     {
       using namespace builtin;
       TokenType op_type = t.front().type();
-      CodegenResult right = expr(p);
+      CodegenResult rhs = expr(p);
 
-      ClassId type = unary_prefix_operator_return_type(op_type, right.type);
-      return {string(t.str_full()) + right.str, ctx.table.to_class(type)};
+      ClassId type = unary_prefix_operator_return_type(op_type, rhs.type);
+
+      if (rhs.is_bitfield) {
+        if (op_type == Increment || op_type == Decrement) {
+          ctx.error(t, Diag::OperatorBitfieldInvalid);
+        }
+      }
+      return {string(t.str_full()) + rhs.str, ctx.table.to_class(type)};
     }
 
-    CodegenResult suffix(CodegenResult left, const ast::Node &t)
+    CodegenResult suffix(CodegenResult lhs, const ast::Node &t)
     {
       using namespace builtin;
       TokenType op_type = t.front().type();
 
-      ClassId type = unary_suffix_operator_return_type(left.type, op_type);
-      return {left.str + string(t.str_full()), ctx.table.to_class(type)};
+      ClassId type = unary_suffix_operator_return_type(lhs.type, op_type);
+
+      if (lhs.is_bitfield) {
+        if (op_type == Increment || op_type == Decrement) {
+          ctx.error(t, Diag::OperatorBitfieldInvalid);
+        }
+      }
+      return {lhs.str + string(t.str_full()), ctx.table.to_class(type)};
     }
 
     CodegenResult comma(CodegenResult lhs, const ast::Node &t, BindingPower p)
@@ -220,6 +287,15 @@ struct CodegenContext : NodeErrorHandler {
       CodegenResult rhs = expr(p);
 
       ClassId type = binary_operator_return_type(lhs.type, op_type, rhs.type);
+
+      if (lhs.is_bitfield) {
+        if (TokenType sub_op = strip_assignment(op_type); sub_op != TokenType::Invalid) {
+          /* Bitfield need to be manually read and write. */
+          return {lhs.str + "=" + lhs.str + to_token_string(sub_op) + trivia(t) + rhs.str,
+                  ctx.table.to_class(type)};
+        }
+      }
+
 #if 0 /* Future operator overloading */
       if (true) {
         const string op_name = ctx.table.binary_type_to_id.find(op_type)->second;
@@ -2576,11 +2652,9 @@ struct CodegenContext : NodeErrorHandler {
     SymbolVariable *var = scope.lookup_variable(table, decl.identifier());
 
     if (var->is_bitfield && var->bit_offset != 0) {
-      if (decl.prev().type() != NodeType::Declarator || decl.next().type() != NodeType::Declarator)
-      {
-        /* Omitting a declarator in a declarator sequence will create invalid codegen. */
-        error(decl, Diag::BitFieldNotSingleDeclarator);
-      }
+      /* Single declarators are skipped by #var_decl. Reaching this point means the declarator is
+       * part of a sequence, where omitting it would create invalid codegen. */
+      error(decl, Diag::BitFieldNotSingleDeclarator);
     }
 
     const bool par = match_if('(');

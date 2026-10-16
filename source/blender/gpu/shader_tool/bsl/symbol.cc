@@ -1114,8 +1114,12 @@ struct SymbolParser : NodeErrorHandler {
           {
             error(decl, Diag::BitFieldNotIntegral, sym->type->original);
           }
-          ExpressionResult result =
-              table.expr_type_analysis(scope, bitfield.expr().child_first()).unwrap(this);
+          const Node width = bitfield.expr().child_first();
+          if (!width.is_valid()) {
+            error(decl, Diag::ExprNotIntegralConstant);
+            continue;
+          }
+          ExpressionResult result = table.expr_type_analysis(scope, width).unwrap(this);
           if (!result.is_constexpr()) {
             error(decl, Diag::ExprNotIntegralConstant);
           }
@@ -1166,9 +1170,9 @@ struct SymbolParser : NodeErrorHandler {
         }
 
         if (bitfield_base) {
-          /* Note: we mutate assignments into bitfieldInsert in a second pass. */
-          sym->identifier = bitfield_base->original + ".bitfieldExtract(" +
-                            to_string(sym->bit_offset) + ", " + to_string(sym->bit_length) + ")";
+          /* Alias to the first member of the bitfield, so that it gets the same accessor
+           * decoration below. */
+          sym->identifier = bitfield_base->original;
         }
 
         if (cls->is_anonymous || cls->is_union) {
@@ -1185,6 +1189,12 @@ struct SymbolParser : NodeErrorHandler {
                   (cls->is_anonymous ? "anonymous" : "local"),
                   (cls->is_union ? "union" : "struct"));
           }
+        }
+
+        if (bitfield_base) {
+          /* Note: we mutate assignments into bitfieldInsert in a second pass. */
+          sym->identifier += ".bitfieldExtract(" + to_string(sym->bit_offset) + ", " +
+                             to_string(sym->bit_length) + ")";
         }
       }
 

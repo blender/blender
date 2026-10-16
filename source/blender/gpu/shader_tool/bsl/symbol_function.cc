@@ -142,8 +142,8 @@ Result<SymbolFunction *> SymbolFunction::lookup_overload(IdQualified id,
           is_ambiguous = false;
         }
         else if (current_is_template && !best_is_template) {
-          /* Best is non-template, current is template. Best maintains its win. */
-          is_ambiguous = false;
+          /* Best is non-template, current is template. Best maintains its win, but keep any
+           * ambiguity with an earlier non-template candidate. */
         }
         else {
           /* Both are templates, or both are non-templates. It is truly ambiguous. */

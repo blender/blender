@@ -396,7 +396,8 @@ struct BSLParser {
     }
     NODE(BitField);
     match_if(Colon);
-    expression(true);
+    /* Stop at a default member initializer, it is not part of the bit width. */
+    expression(true, true);
   }
 
   bool func_decl(bool expect_template_params = false, bool expect_body = true)

@@ -335,7 +335,7 @@ struct ExpressionTypeParser
                         ConstexprValue(std::bit_cast<int32_t>(res.value.comp_cast<float>(0)))};
               }
               if (fn->identifier == "uintBitsToFloat") {
-                return {table->uint_cls,
+                return {table->float_cls,
                         ConstexprValue(std::bit_cast<float>(res.value.comp_cast<uint32_t>(0)))};
               }
               if (fn->identifier == "intBitsToFloat") {

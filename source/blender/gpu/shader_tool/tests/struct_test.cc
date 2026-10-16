@@ -1273,6 +1273,57 @@ void f(A t)
     auto [output, _, error] = process_test_string(input, Language::BSL);
     EXPECT_EQ(error, "Bitfields must have single declarator");
   }
+  {
+    string input = R"(
+struct A {
+  int a : 2;
+};
+
+void f(A t)
+{
+  t.a += 1;
+  t.a *= 1;
+  t.a /= 1;
+  t.a -= 1;
+  t.a <<= 1;
+  t.a >>= 1;
+}
+)";
+    string expect = R"(
+struct A {
+  int a    ;
+};
+#line 2
+A A_ctor_() {A r;r.a=0;return r;}
+#line 6
+void f(A t)
+{
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) + 1, 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) * 1, 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) / 1, 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) - 1, 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2)  <<  1, 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2)  >>  1, 0, 2) ;
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+struct A {
+  int a : 2;
+};
+
+void f(A t)
+{
+  t.a++;
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Increment and decrement operators are not supported on bitfield");
+  }
 }
 
 /* Process a test string inside a wrapper function. */
