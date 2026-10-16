@@ -32,8 +32,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_kdopbvh.hh"
 #include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_linklist.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base_safe.hh"
@@ -2615,7 +2617,6 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
 {
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = sim->psys->part;
-  KDTree<float3> *tree;
   ChildParticle *cpa;
   ParticleTexture ptex;
   int p, totparent, totchild = sim->psys->totchild;
@@ -2630,7 +2631,8 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
   /* hard limit, workaround for it being ignored above */
   totparent = std::min(sim->psys->totpart, totparent);
 
-  tree = kdtree_new<float3>(totparent);
+  Array<float3> parent_orcos(totparent);
+  Vector<int> parents;
 
   for (p = 0, cpa = sim->psys->child; p < totparent; p++, cpa++) {
     psys_particle_on_emitter(sim->psmd,
@@ -2660,11 +2662,12 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
                     psys->cfra);
 
     if (ptex.exist >= psys_frand(psys, p + 24)) {
-      kdtree_insert<float3>(tree, p, orco);
+      parent_orcos[p] = orco;
+      parents.append(p);
     }
   }
 
-  kdtree_balance<float3>(tree);
+  const KDTreeNew<float3> tree(parent_orcos, parents);
 
   for (; p < totchild; p++, cpa++) {
     psys_particle_on_emitter(sim->psmd,
@@ -2678,10 +2681,8 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
                              nullptr,
                              nullptr,
                              orco);
-    cpa->parent = kdtree_find_nearest<float3>(tree, orco, nullptr);
+    cpa->parent = tree.find_nearest(orco);
   }
-
-  kdtree_free<float3>(tree);
 }
 
 static bool psys_thread_context_init_path(ParticleThreadContext *ctx,

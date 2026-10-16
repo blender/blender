@@ -13,6 +13,7 @@
 
 #include "BLI_compiler_attrs.hh"
 #include "BLI_map.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_vector.hh"
 
@@ -22,6 +23,7 @@
 
 namespace blender {
 
+template<typename T> class KDTreeNew;
 struct ParticleKey;
 struct ParticleSettings;
 struct ParticleSystem;
@@ -138,7 +140,9 @@ struct ParticleThreadContext {
   struct Material *ma;
 
   /* distribution */
-  KDTree3d *tree;
+  KDTreeNew<float3> *tree;
+  /** The coordinates referenced by #tree. */
+  float3 *tree_positions;
 
   struct ParticleSeam *seams;
   int totseam;
