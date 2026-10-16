@@ -626,6 +626,7 @@ static inline void submit(std::unique_ptr<VKRenderGraph> &render_graph,
   command_builder.record_commands(*render_graph, *command_buffer, node_handles);
   command_buffer->end_recording();
 
+  render_graph->deref_resources();
   render_graph->reset();
 }
 }  // namespace blender::gpu::render_graph

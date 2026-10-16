@@ -346,6 +346,7 @@ class UnifiedPaintPanel:
             pressure_name,
             curve_visibility_name,
             custom_curve_name,
+            prop_owner=None,
     ):
         paint = UnifiedPaintPanel.paint_settings_from_active_tool(context)
 
@@ -360,7 +361,10 @@ class UnifiedPaintPanel:
         if is_active:
             subcol = layout.column()
             subcol.active = getattr(brush, pressure_name)
-            subcol.template_curve_mapping(brush, custom_curve_name, brush=True, show_presets=True)
+            if prop_owner is None:
+                subcol.template_curve_mapping(brush, custom_curve_name, brush=True, show_presets=True)
+            else:
+                subcol.template_curve_mapping(prop_owner, custom_curve_name, brush=True, show_presets=True)
 
     @staticmethod
     def prop_unified_color(parent, context, brush, prop_name, *, text=None):
@@ -1874,7 +1878,8 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
                 brush,
                 pressure_name="use_pressure_size",
                 curve_visibility_name="show_size_curve",
-                custom_curve_name="curve_size",
+                custom_curve_name="curve_sensitivity",
+                prop_owner=gp_settings,
             )
 
         unified_row = UnifiedPaintPanel.prop_unified(
@@ -1896,6 +1901,7 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
                 pressure_name="use_pressure_strength",
                 curve_visibility_name="show_strength_curve",
                 custom_curve_name="curve_strength",
+                prop_owner=gp_settings,
             )
 
     if props:
@@ -1997,6 +2003,7 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
 
 
 def brush_basic_grease_pencil_sculpt_settings(layout, context, brush, *, compact=False):
+    gp_settings = brush.gpencil_settings
     unified_row = UnifiedPaintPanel.prop_unified(
         layout,
         context,
@@ -2016,7 +2023,8 @@ def brush_basic_grease_pencil_sculpt_settings(layout, context, brush, *, compact
             brush,
             pressure_name="use_pressure_size",
             curve_visibility_name="show_size_curve",
-            custom_curve_name="curve_size",
+            custom_curve_name="curve_sensitivity",
+            prop_owner=gp_settings,
         )
 
     unified_row = UnifiedPaintPanel.prop_unified(
@@ -2038,6 +2046,7 @@ def brush_basic_grease_pencil_sculpt_settings(layout, context, brush, *, compact
             pressure_name="use_pressure_strength",
             curve_visibility_name="show_strength_curve",
             custom_curve_name="curve_strength",
+            prop_owner=gp_settings,
         )
 
 
@@ -2100,6 +2109,7 @@ def brush_basic_grease_pencil_weight_settings(layout, context, brush, *, compact
 
 
 def brush_basic_grease_pencil_vertex_settings(layout, context, brush, *, compact=False):
+    gp_settings = brush.gpencil_settings
     if brush.gpencil_vertex_brush_type == 'DRAW':
         layout.prop(brush, "blend", text="Blend")
         layout.separator()
@@ -2123,7 +2133,8 @@ def brush_basic_grease_pencil_vertex_settings(layout, context, brush, *, compact
             brush,
             pressure_name="use_pressure_size",
             curve_visibility_name="show_size_curve",
-            custom_curve_name="curve_size",
+            custom_curve_name="curve_sensitivity",
+            prop_owner=gp_settings,
         )
 
     if brush.gpencil_vertex_brush_type in {'DRAW', 'BLUR', 'SMEAR'}:
@@ -2146,9 +2157,9 @@ def brush_basic_grease_pencil_vertex_settings(layout, context, brush, *, compact
                 pressure_name="use_pressure_strength",
                 curve_visibility_name="show_strength_curve",
                 custom_curve_name="curve_strength",
+                prop_owner=gp_settings,
             )
 
-    gp_settings = brush.gpencil_settings
     if brush.gpencil_vertex_brush_type in {'DRAW', 'REPLACE'}:
         if context.region.type == 'TOOL_HEADER':
             row = layout.row(align=True)

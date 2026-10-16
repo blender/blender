@@ -518,7 +518,7 @@ def main():
     parser.add_argument('--testdir', required=True, type=pathlib.Path)
     args, remaining = parser.parse_known_args(argv)
 
-    unittest.main(argv=remaining, exit=False)
+    unittest.main(argv=remaining)
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_mutex.hh"
+#include "BLI_span.hh"
 
 #include "vk_common.hh"
 
@@ -80,8 +81,8 @@ class VKDiscardPool {
   friend class VKBackend;
 
  private:
-  TimelineResources<VkImage> swapchain_images_;
-  TimelineResources<std::pair<VkImage, VmaAllocation>> images_;
+  TimelineResources<ResourceHandle> swapchain_images_;
+  TimelineResources<std::pair<ResourceHandle, VmaAllocation>> images_;
   TimelineResources<std::pair<ResourceHandle, VmaAllocation>> buffers_;
   TimelineResources<VmaAllocation> allocations_;
   TimelineResources<VkImageView> image_views_;
@@ -99,12 +100,21 @@ class VKDiscardPool {
  public:
   void deinit(VKDevice &device);
 
-  void discard_swapchain_image(VkImage vk_image);
-  void discard_image(VkImage vk_image, VmaAllocation vma_allocation);
-  void discard_allocation(VmaAllocation vma_allocation);
+  void discard_swapchain_image(ResourceHandle image_handle);
+  /**
+   * Discard an image view that belongs to a resource removed outside the discard flow (e.g. a
+   * swapchain image).
+   */
   void discard_image_view(VkImageView vk_image_view);
-  void discard_buffer(ResourceHandle buffer_handle, VmaAllocation vma_allocation);
-  void discard_buffer_view(VkBufferView vk_buffer_view);
+  /**
+   * Discard a batch of resources (and their registered views).
+   *
+   * Scheduling a resource that is already scheduled for destruction is an error (asserted).
+   */
+  void discard_resources(
+      Span<render_graph::VKResourceStateTracker::DiscardableResource> discardable,
+      TimelineValue timeline);
+  void discard_allocation(VmaAllocation vma_allocation);
   void discard_shader_module(VkShaderModule vk_shader_module);
   void discard_pipeline(VkPipeline vk_pipeline);
   void discard_pipeline_layout(VkPipelineLayout vk_pipeline_layout);

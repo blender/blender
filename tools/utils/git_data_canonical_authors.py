@@ -319,6 +319,9 @@ def canonical_author_map() -> dict[str, str]:
             "ZanQdo <zanqdo@gmail.com>",
             "zanqdo <zanqdo@gmail.com>",
         ),
+        "Danylo Dubinin <danylo.dubinin@gmail.com>": (
+            "Dan Oak <danylo.dubinin@gmail.com>",
+        ),
         "Dave Pagurek <davepagurek>": (
             "Dave Pagurek <dave-pagurek@noreply.localhost>",
         ),
@@ -650,6 +653,10 @@ def canonical_author_map() -> dict[str, str]:
             "Kevin Dietrich <kevin.dietrich@mailoo.org>",
             "K\u00e9vin Dietrich <kevindietrich>",
             "K\u00e9vin Dietrich <kevindietrich@noreply.localhost>",
+        ),
+        "Lars Helge Scheel <lars-helge-scheel@noreply.localhost>": (
+            "Lars Helge Scheel <79901+lars-helge-scheel@noreply.localhost>",
+            "Lars-Helge-Scheel <lars-helge-scheel@noreply.localhost>",
         ),
         "Laurynas Duburas <laduem@gmail.com>": (
             "Laurynas Duburas <laurynas>",

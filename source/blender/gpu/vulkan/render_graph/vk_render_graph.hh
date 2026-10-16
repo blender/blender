@@ -43,6 +43,7 @@
 
 #include "BKE_global.hh"
 
+#include "BLI_bit_vector.hh"
 #include "BLI_color_types.hh"
 #include "BLI_map.hh"
 #include "BLI_utility_mixins.hh"
@@ -99,6 +100,10 @@ class VKRenderGraph : public NonCopyable {
    * device could
    */
   VKResourceStateTracker &resources_;
+  /**
+   * One bit per tracked resource. Set when this render graph holds a reference to the resource
+   */
+  BitVector<> resource_usages_;
 
   struct DebugGroup {
     std::string name;
@@ -186,6 +191,7 @@ class VKRenderGraph : public NonCopyable {
     }
 
     node.template finalize_node<NodeInfo>(storage_, resources_, links_, create_info);
+    ref_resources(node);
   }
 
  private:
@@ -209,6 +215,7 @@ class VKRenderGraph : public NonCopyable {
     VKRenderGraphNode &node = nodes_[node_handle];
     node.set_node_data<NodeInfo>(storage_, create_info);
     node.build_links<NodeInfo>(resources_, links_, create_info);
+    ref_resources(node);
 
     if (G.debug & G_DEBUG_GPU) {
       if (!debug_.group_used) {
@@ -221,6 +228,33 @@ class VKRenderGraph : public NonCopyable {
       debug_.node_group_map[node_handle] = debug_.used_groups.size() - 1;
     }
     return node_handle;
+  }
+
+  /**
+   * Add a graph reference to each resource of the node that is not yet referenced by this
+   * render graph.
+   */
+  void ref_resources(const VKRenderGraphNode &node)
+  {
+    BLI_assert_msg(resource_usages_.size() <= resources_.resources_.size(),
+                   "State tracker resources can only grow.");
+    resource_usages_.resize(resources_.resources_.size());
+    for (const VKRenderGraphBuffer &buffer : links_.buffers.as_span().slice(node.links.buffers)) {
+      ResourceHandle handle = buffer.resource.handle;
+      if (resource_usages_[handle]) {
+        continue;
+      }
+      resource_usages_[handle].set();
+      resources_.ref_resource_impl(handle);
+    }
+    for (const VKRenderGraphImage &image : links_.images.as_span().slice(node.links.images)) {
+      ResourceHandle handle = image.resource.handle;
+      if (resource_usages_[handle]) {
+        continue;
+      }
+      resource_usages_[handle].set();
+      resources_.ref_resource_impl(handle);
+    }
   }
 
  public:
@@ -318,8 +352,21 @@ class VKRenderGraph : public NonCopyable {
 
   /**
    * Reset the render graph.
+   *
+   * Clears the nodes, links and storage, and releases the graph's resource references.
    */
   void reset();
+
+  /**
+   * Release the graph's reference to each in-use resource.
+   *
+   * Call once after the graph's work has been submitted; zero-ref resources become discardable.
+   */
+  void deref_resources()
+  {
+    resources_.deref_resources(resource_usages_);
+    resource_usages_.fill(false);
+  }
 
   void memstats() const;
 

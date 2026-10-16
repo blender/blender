@@ -48,7 +48,7 @@ ConcurrentStatesParams OneapiDeviceQueue::concurrent_states_params() const
    * benefit compared to the baseline. */
   params.min = params.baseline / 8;
   params.max = params.baseline;
-  params.reserve_percent = 2;
+  params.reserve_percent = 5;
 
   return params;
 }

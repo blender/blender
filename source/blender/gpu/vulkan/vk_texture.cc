@@ -43,11 +43,13 @@ static VkImageAspectFlags to_vk_image_aspect_single_bit(const VkImageAspectFlags
 
 VKTexture::~VKTexture()
 {
-  if (vk_image_ != VK_NULL_HANDLE && allocation_ != VK_NULL_HANDLE) {
-    VKDiscardPool::discard_pool_get().discard_image(vk_image_, allocation_);
-    vk_image_ = VK_NULL_HANDLE;
-    allocation_ = VK_NULL_HANDLE;
+  if (resource_.vk_handle != VK_NULL_HANDLE && allocation_ != VK_NULL_HANDLE) {
+    /* Release the owner reference; at zero ref count the image becomes discardable. */
+    VKDevice &device = VKBackend::get().device;
+    device.resources.deref_resource(resource_.resource_handle);
   }
+  resource_.resource_handle = 0;
+  allocation_ = VK_NULL_HANDLE;
 }
 
 void VKTexture::generate_mipmap()
@@ -438,7 +440,7 @@ void VKTexture::update_sub(int mip,
         {vk_image_aspects, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS},
     };
     device.functions.vkTransitionImageLayout(device.vk_handle(), 1, &image_layout_transition);
-    device.resources.update_image_layout(vk_image_handle(),
+    device.resources.update_image_layout(resource_.resource_handle,
                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     /* TODO: Add support for VK_HOST_IMAGE_COPY_MEMCPY_EXT flag. It would theoretically allow
      * faster uploading, but requires sub resource to match our CPU layout. */
@@ -661,11 +663,14 @@ bool VKTexture::init_internal(gpu::Texture *src, bool use_stencil)
   return true;
 }
 
-void VKTexture::init_swapchain(VkImage vk_image, TextureFormat format)
+void VKTexture::init_swapchain(VkImage vk_image,
+                               ResourceHandle resource_handle,
+                               TextureFormat format)
 {
   device_format_ = format_ = format;
   format_flag_ = to_format_flag(format);
-  vk_image_ = vk_image;
+  resource_.resource_handle = resource_handle;
+  resource_.vk_handle = vk_image;
   type_ = GPU_TEXTURE_2D;
   usage_set(GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_WRITE);
 }
@@ -683,7 +688,7 @@ static float memory_priority(const eGPUTextureUsage texture_usage)
 
 bool VKTexture::allocate()
 {
-  BLI_assert(vk_image_ == VK_NULL_HANDLE);
+  BLI_assert(resource_.vk_handle == VK_NULL_HANDLE);
   BLI_assert(!is_texture_view());
 
   VkExtent3D vk_extent = vk_extent_3d(0);
@@ -766,16 +771,17 @@ bool VKTexture::allocate()
   result = vmaCreateImage(device.mem_allocator_get(),
                           &image_info,
                           &allocCreateInfo,
-                          &vk_image_,
+                          &resource_.vk_handle,
                           &allocation_,
                           &allocation_info_);
   if (result != VK_SUCCESS) {
     return false;
   }
-  debug::object_label(vk_image_, name_.c_str());
+  debug::object_label(resource_.vk_handle, name_.c_str());
 
   const bool use_subresource_tracking = image_info.arrayLayers > 1 || image_info.mipLevels > 1;
-  device.resources.add_image(vk_image_, use_subresource_tracking, name_.c_str());
+  resource_.resource_handle = device.resources.add_image(
+      resource_.vk_handle, use_subresource_tracking, allocation_, name_.c_str());
 
   return result == VK_SUCCESS;
 }

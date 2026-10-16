@@ -91,11 +91,6 @@ class VKBuffer : public NonCopyable {
    */
   bool free();
 
-  /**
-   * Destroy the buffer immediately.
-   */
-  void free_immediately(VKDevice &device);
-
   int64_t size_in_bytes() const
   {
     return size_in_bytes_;

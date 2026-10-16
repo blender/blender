@@ -31,7 +31,7 @@ void gpu_parallel_active_index_array_impl(const uint num_states,
 
   sycl::multi_ptr<int[GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE + 1],
                   sycl::access::address_space::local_space>
-      ptr = sycl::ext::oneapi::group_local_memory<
+      ptr = sycl::ext::oneapi::group_local_memory_for_overwrite<
           int[GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE + 1]>(item_id.get_group());
   int *warp_offset = *ptr;
 

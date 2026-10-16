@@ -454,12 +454,14 @@ void VKContext::swap_buffer_draw_handler(const GHOST_VulkanSwapChainData &swap_c
   VKFrameBuffer &framebuffer = *unwrap(active_fb);
   framebuffer.rendering_end(*this);
   VKTexture *color_attachment = unwrap(unwrap(framebuffer.color_tex(0)));
-  device.resources.add_swapchain_image(swap_chain_data.image, "SwapchainImage");
+  ResourceHandle resource_handle = device.resources.add_swapchain_image(swap_chain_data.image,
+                                                                        "SwapchainImage");
 
   GPU_debug_group_begin("BackBuffer.Blit");
   if (use_shader) {
     VKTexture swap_chain_texture("swap_chain_texture");
     swap_chain_texture.init_swapchain(swap_chain_data.image,
+                                      resource_handle,
                                       to_gpu_format(swap_chain_data.surface_format.format));
     Shader *shader = device.vk_backbuffer_blit_sh_get();
     GPU_shader_bind(shader);
@@ -516,10 +518,17 @@ void VKContext::swap_buffer_draw_handler(const GHOST_VulkanSwapChainData &swap_c
    * Placing these images in the discard pool results in incorrect state, best to remove them
    * directly. */
   if (wait_for_submission) {
-    device.resources.remove_image(swap_chain_data.image);
+    /* The image is removed directly, but its views are still referenced by the submitted
+     * commands; discard them timeline-safely. */
+    for (const std::variant<VkImageView, VkBufferView> &view :
+         device.resources.take_views(resource_handle))
+    {
+      discard_pool.discard_image_view(std::get<VkImageView>(view));
+    }
+    device.resources.remove_swapchain_image(resource_handle);
   }
   else {
-    discard_pool.discard_swapchain_image(swap_chain_data.image);
+    discard_pool.discard_swapchain_image(resource_handle);
   }
 #if 0
   device.debug_print();

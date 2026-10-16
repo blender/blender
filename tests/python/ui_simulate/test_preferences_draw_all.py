@@ -57,6 +57,9 @@ def test_preferences_draw_all():
 
     try:
         for item in prefs.bl_rna.properties["active_section"].enum_items:
+            # 'EXPERIMENTAL' is enabled only in alpa cycles.
+            if item.identifier == 'EXPERIMENTAL' and bpy.app.version_cycle != 'alpha':
+                continue
             with bpy.context.temp_override(window=prefs_window, area=prefs_area):
                 prefs.active_section = item.identifier
             yield
