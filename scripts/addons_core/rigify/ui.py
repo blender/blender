@@ -1321,8 +1321,8 @@ def fk_to_ik(rig: ArmatureObject, window='ALL'):
     id_store = bpy.context.window_manager
 
     rig_id = rig.data['rig_id']
-    leg_ik2fk = eval('bpy.ops.pose.rigify_leg_ik2fk_' + rig_id)
-    arm_ik2fk = eval('bpy.ops.pose.rigify_arm_ik2fk_' + rig_id)
+    leg_ik2fk = getattr(bpy.ops.pose, 'rigify_leg_ik2fk_' + rig_id)
+    arm_ik2fk = getattr(bpy.ops.pose, 'rigify_arm_ik2fk_' + rig_id)
     limb_generated_names = get_limb_generated_names(rig)
 
     if window == 'ALL':
@@ -1400,8 +1400,8 @@ def ik_to_fk(rig: ArmatureObject, window='ALL'):
     id_store = bpy.context.window_manager
 
     rig_id = rig.data['rig_id']
-    leg_fk2ik = eval('bpy.ops.pose.rigify_leg_fk2ik_' + rig_id)
-    arm_fk2ik = eval('bpy.ops.pose.rigify_arm_fk2ik_' + rig_id)
+    leg_fk2ik = getattr(bpy.ops.pose, 'rigify_leg_fk2ik_' + rig_id)
+    arm_fk2ik = getattr(bpy.ops.pose, 'rigify_arm_fk2ik_' + rig_id)
     limb_generated_names = get_limb_generated_names(rig)
 
     if window == 'ALL':
@@ -1510,10 +1510,10 @@ def rot_pole_toggle(rig: ArmatureObject, window='ALL', value=False, toggle=False
     id_store = bpy.context.window_manager
 
     rig_id = rig.data['rig_id']
-    leg_fk2ik = eval('bpy.ops.pose.rigify_leg_fk2ik_' + rig_id)
-    arm_fk2ik = eval('bpy.ops.pose.rigify_arm_fk2ik_' + rig_id)
-    leg_ik2fk = eval('bpy.ops.pose.rigify_leg_ik2fk_' + rig_id)
-    arm_ik2fk = eval('bpy.ops.pose.rigify_arm_ik2fk_' + rig_id)
+    leg_fk2ik = getattr(bpy.ops.pose, 'rigify_leg_fk2ik_' + rig_id)
+    arm_fk2ik = getattr(bpy.ops.pose, 'rigify_arm_fk2ik_' + rig_id)
+    leg_ik2fk = getattr(bpy.ops.pose, 'rigify_leg_ik2fk_' + rig_id)
+    arm_ik2fk = getattr(bpy.ops.pose, 'rigify_arm_ik2fk_' + rig_id)
     limb_generated_names = get_limb_generated_names(rig)
 
     if window == 'ALL':

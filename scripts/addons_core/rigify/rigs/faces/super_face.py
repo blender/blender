@@ -32,8 +32,8 @@ from ..widgets import (
 
 script = """
 all_controls   = [%s]
-jaw_ctrl_name  = '%s'
-eyes_ctrl_name = '%s'
+jaw_ctrl_name  = %r
+eyes_ctrl_name = %r
 
 if is_selected(all_controls):
     layout.prop(pose_bones[jaw_ctrl_name],  '["%s"]', slider=True)
@@ -1027,7 +1027,7 @@ class Rig:
             for bone in group:
                 all_ctrls.append(bone)
 
-        controls_string = ", ".join(["'" + x + "'" for x in all_ctrls])
+        controls_string = ", ".join([repr(x) for x in all_ctrls])
         return [script % (
             controls_string,
             all_bones['ctrls']['jaw'][0],
