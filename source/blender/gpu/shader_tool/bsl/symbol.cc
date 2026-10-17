@@ -204,12 +204,13 @@ struct SymbolParser : NodeErrorHandler {
         error(
             arg.type().identifier(), Diag::UnknownTypeNameWithArg, arg.type().identifier().str());
       }
-      SymbolVariable *var = table.var_arena.alloc(&scope, type, arg.declarator(), table);
+      Declarator decl = arg.declarator();
+      SymbolVariable *var = table.var_arena.alloc(&scope, type, decl, table);
       if (scope.variable_emplace(var)) {
         error(var->loc.tok, Diag::Redefinition, var->identifier);
       }
       /* Register argument type for argument resolution. */
-      fn_sym->add_argument(arg.type().is_const(), type, arg.declarator().initial_value().expr());
+      fn_sym->add_argument(arg.type().is_const(), type, decl.initial_value().expr());
 
       switch (attr.res_type) {
         case ResourceType::BASE_INSTANCE:
@@ -366,7 +367,12 @@ struct SymbolParser : NodeErrorHandler {
         SymbolFunction *fn = it->second.second;
         if (fn->fn_type == SymbolFunction::MEMBER) {
           SymbolVariable *var = table.var_arena.alloc(
-              &scope, fn->parent_class(), arg_list.front(), "this_");
+              &scope, fn->parent_class(), arg_list.front(), "this");
+          scope.variable_emplace(var);
+          /* Mangle the emitted token to avoid conflict with MSL. */
+          var->identifier = "this_";
+          /* Some syntax might have already been lowered and need access to "this_". Add alias. */
+          /* TODO(fclem): Do not preprocess this. */
           scope.variable_emplace(var);
         }
       }
@@ -724,6 +730,7 @@ struct SymbolParser : NodeErrorHandler {
     SymbolFunction *fn = table.fun_arena.alloc(&scope, table.err_cls, decl);
     /* Mark as forward declared so it doesn't conflict with or replace the actual definition. */
     fn->is_defined = false;
+    fn->fwd = decl;
 
     if (scope.poi) {
       /* Functions inherit the point of instantiation of their class. */
@@ -741,16 +748,28 @@ struct SymbolParser : NodeErrorHandler {
     scope.function_prototypes.emplace_back(decl, fn);
   }
 
-  SymbolFunction *parse_func_decl(SymbolScope &scope,
+  SymbolFunction *parse_func_decl(SymbolScope &def_scope,
                                   FuncDecl func,
                                   const std::string &prefix,
                                   const std::string &suffix = "",
                                   optional<SourceLocation> poi = nullopt,
                                   TemplateParamList temp_params = {})
   {
-    /* Set return type to error type since we need to parse it after template argument
-     * instantiation. */
     SymbolFunction *fn = nullptr;
+
+    IdQualified id = func.identifier();
+    SymbolClass *cls = nullptr;
+    if (id.has_namespace()) {
+      /* Definition of a member function. Find the class. */
+      Id start = id.namespace_start();
+      Id last = id.child_last(NodeType::Id).prev(NodeType::Id);
+      cls = def_scope.lookup_class(table, start, last).unwrap(this);
+      if (cls->is_error) {
+        error(last, Diag::UnknownTypeName);
+      }
+    }
+
+    SymbolScope &scope = cls ? *cls : def_scope;
     if (auto [fdecl, fn_ptr] = scope.lookup_function_forward_decl(func); fdecl.is_valid()) {
       fn = fn_ptr;
       /* Modify symbol location if it is forward declared. */
@@ -766,7 +785,15 @@ struct SymbolParser : NodeErrorHandler {
       fn->arg_types.clear();
       fn->arg_defaults.clear();
     }
+    else if (cls) {
+      error(id.name(), Diag::FunctionOutOfClassDefinition, id.name().str(), cls->original);
+      /* Still return a valid function to avoid crash. */
+      fn = table.fun_arena.alloc(&scope, table.err_cls, func, suffix);
+      return fn;
+    }
     else {
+      /* Set return type to error type since we need to parse it after template argument
+       * instantiation. */
       fn = table.fun_arena.alloc(&scope, table.err_cls, func, suffix);
 
       bool is_overload = scope.function_emplace(fn);

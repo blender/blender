@@ -112,6 +112,9 @@ Result<SymbolClass *> SymbolScope::lookup_class(const SymbolTable &table,
 {
   LOOKUP_LOG("\n")
   SymbolClass *cls = lookup_generic_nested<SymbolClass>(table, id, last, loc.value_or(id.front()));
+  if (cls == nullptr) {
+    return {table.err_cls, std::nullopt};
+  }
   return resolve_template_instantiation(table, cls, last, *this);
 }
 
@@ -140,7 +143,7 @@ std::pair<ast::FuncForwardDecl, SymbolFunction *> SymbolScope::lookup_function_f
    * functions. */
   for (const auto &fwd : function_prototypes) {
     /* Check identifier. */
-    if (fwd.first.identifier().str() != decl.identifier().str()) {
+    if (fwd.first.identifier().name().str() != decl.identifier().name().str()) {
       continue;
     }
     /* Check return type. */
@@ -162,7 +165,7 @@ std::pair<ast::FuncForwardDecl, SymbolFunction *> SymbolScope::lookup_function_f
       decl_par = decl_par.next();
     }
     /* Arg count or value doesn't match. */
-    if (decl_par.is_valid() != fwd_arg.is_valid()) {
+    if (decl_par.is_valid() || fwd_arg.is_valid()) {
       continue;
     }
     /* Match! */
@@ -254,19 +257,13 @@ T *SymbolScope::lookup_generic(const SymbolTable &table,
   LOOKUP_LOG("[Lookup] FAILED at root scope.\n")
 
   if constexpr (is_same_v<T, SymbolFunction>) {
-    if (auto it = functions.find(SymbolTable::err_symbol); it != functions.end()) {
-      return it->second.second;
-    }
+    return table.err_func;
   }
   else if constexpr (is_same_v<T, SymbolClass>) {
-    if (auto it = classes.find(SymbolTable::err_symbol); it != classes.end()) {
-      return it->second.second;
-    }
+    return table.err_cls;
   }
   else if constexpr (is_same_v<T, SymbolVariable>) {
-    if (auto it = variables.find(SymbolTable::err_symbol); it != variables.end()) {
-      return it->second.second;
-    }
+    return table.err_var;
   }
   else {
     static_assert(false);
@@ -487,6 +484,22 @@ vector<SymbolVariable *> SymbolScope::non_static_variables_in_declaration_order(
 
   /* Sort elements to guarantee deterministic order. */
   sort(members.begin(), members.end(), [](const SymbolVariable *a, const SymbolVariable *b) {
+    return a->loc < b->loc;
+  });
+
+  return members;
+}
+
+vector<SymbolFunction *> SymbolScope::functions_in_declaration_order() const
+{
+  assert(this->type == CLASS);
+  vector<SymbolFunction *> members;
+  for (const auto &[k, v] : functions) {
+    members.emplace_back(v.second);
+  }
+
+  /* Sort elements to guarantee deterministic order. */
+  sort(members.begin(), members.end(), [](const SymbolFunction *a, const SymbolFunction *b) {
     return a->loc < b->loc;
   });
 

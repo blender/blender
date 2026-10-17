@@ -74,6 +74,7 @@ struct SymbolFunction : SymbolScope {
   SymbolFunctionTemplate *template_data = nullptr;
   SymbolClass *return_type = nullptr;
 
+  ast::FuncForwardDecl fwd = {};
   ast::FuncDecl decl = {};
 
   vector<bool> arg_const;

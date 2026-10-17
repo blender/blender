@@ -176,6 +176,7 @@ enum class Diag {
   FieldDesignatorOutOfOrder,
 
   FunctionCallNotAllowedInReferenceDefinition,
+  FunctionOutOfClassDefinition,
 
   ImplicitPadding12BytesArrayElement,
   ImplicitPaddingArrayElementStd140,
@@ -409,6 +410,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Field designator '{}' needs to be specified in declaration order";
     case Diag::FunctionCallNotAllowedInReferenceDefinition:
       return "Function calls are not allowed in reference definition";
+    case Diag::FunctionOutOfClassDefinition:
+      return "Out-of-line definition of '{}' does not match any declaration in '{}'";
     case Diag::ImplicitPadding12BytesArrayElement:
       return "Implicit padding of 4 bytes per array element, do not use 12 bytes types in arrays";
     case Diag::ImplicitPaddingArrayElementStd140:

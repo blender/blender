@@ -190,6 +190,7 @@ struct SymbolScope : Symbol {
   bool variable_override(SymbolVariable *var);
 
   vector<SymbolVariable *> non_static_variables_in_declaration_order() const;
+  vector<SymbolFunction *> functions_in_declaration_order() const;
 
   /* Return the N'th anonymous child scope or nullptr if not existing. */
   SymbolScope *child_scope(int n);
