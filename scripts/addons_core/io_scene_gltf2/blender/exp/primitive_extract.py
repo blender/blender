@@ -814,6 +814,23 @@ class PrimitiveCreator:
                     get_new_material_texture_shared(base_material, new_material)
 
                     for tex in material_info['udim_info'].keys():
+
+                        kind = 'DATA' if tex in [
+                            'normalTexture',
+                            'metallicRoughnessTexture',
+                            'occlusionTexture',
+                            'clearcoatTexture',
+                            'clearcoatRoughnessTexture',
+                            'clearcoatNormalTexture',
+                            'sheenRoughnessTexture',
+                            'specularTexture',
+                            'transmissionTexture',
+                            'thicknessTexture',
+                            'anisotropyTexture',
+                            'iridescenceTexture',
+                            'iridescenceThicknessTexture',
+                            'volumeTexture'] else 'DEFAULT'
+
                         new_tex = gather_udim_texture_info(
                             material_info['udim_info'][tex]['sockets'][0],
                             material_info['udim_info'][tex]['sockets'],
@@ -822,7 +839,8 @@ class PrimitiveCreator:
                                 'image': material_info['udim_info'][tex]['image']
                             },
                             tex,
-                            self.export_settings)
+                            self.export_settings,
+                            kind=kind)
 
                         if tex == "baseColorTexture":
                             new_material.pbr_metallic_roughness.base_color_texture = new_tex

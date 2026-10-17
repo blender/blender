@@ -9,6 +9,7 @@ from os.path import dirname, join, basename
 from ...io.com.path import uri_to_path
 from ...io.imp.gltf2_io_binary import BinaryData
 from ...io.imp.user_extensions import import_user_extensions
+from ...io.imp.gltf2_io_ktx import KtxDecoder
 
 
 # Note that Image is not a glTF2.0 object
@@ -18,7 +19,7 @@ class BlenderImage():
         raise RuntimeError("%s should not be instantiated" % cls)
 
     @staticmethod
-    def create(gltf, img_idx):
+    def create(gltf, img_idx, use_ktx_loader):
         """Image creation."""
         img = gltf.data.images[img_idx]
 
@@ -29,7 +30,7 @@ class BlenderImage():
         import_user_extensions('gather_import_image_before_hook', gltf, img)
 
         if img.uri is not None and not img.uri.startswith('data:'):
-            blender_image = create_from_file(gltf, img_idx)
+            blender_image = create_from_file(gltf, img_idx, use_ktx_loader)
         else:
             blender_image = create_from_data(gltf, img_idx)
 
@@ -40,7 +41,7 @@ class BlenderImage():
         import_user_extensions('gather_import_image_after_hook', gltf, img, blender_image)
 
 
-def create_from_file(gltf, img_idx):
+def create_from_file(gltf, img_idx, use_ktx_loader):
     # Image stored in a file
 
     num_images = len(bpy.data.images)
@@ -49,7 +50,7 @@ def create_from_file(gltf, img_idx):
 
     path = join(dirname(gltf.filename), uri_to_path(img.uri))
     path = os.path.abspath(path)
-    if bpy.data.is_saved and bpy.context.preferences.filepaths.use_relative_paths:
+    if bpy.data.is_saved and bpy.context.preferences.filepaths.use_relative_paths and use_ktx_loader is False:
         try:
             path = bpy.path.relpath(path)
         except Exception as _e:
@@ -59,16 +60,22 @@ def create_from_file(gltf, img_idx):
     img_name = img.name or basename(path)
 
     try:
-        blender_image = bpy.data.images.load(
-            path,
-            check_existing=True,
-        )
+
+        if not use_ktx_loader:
+
+            blender_image = bpy.data.images.load(
+                path,
+                check_existing=True,
+            )
+
+        else:
+            blender_image = _read_ktx_image(gltf, path)
 
         needs_pack = gltf.import_settings['import_pack_images']
         if needs_pack:
             blender_image.pack()
 
-    except RuntimeError:
+    except Exception as _e:
         gltf.log.error("Missing image file (index %d): %s" % (img_idx, path))
         blender_image = _placeholder_image(img_name, os.path.abspath(path))
 
@@ -100,3 +107,7 @@ def _placeholder_image(name, path):
     image.filepath = path
     image.source = 'FILE'
     return image
+
+
+def _read_ktx_image(gltf, path):
+    return KtxDecoder.read_file(gltf, path)

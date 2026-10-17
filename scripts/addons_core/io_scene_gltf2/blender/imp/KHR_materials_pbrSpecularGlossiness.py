@@ -127,13 +127,13 @@ def make_roughness_image(mh, glossiness_factor, tex_info):
     roughness is in the alpha channel.
     """
     pytexture = mh.gltf.data.textures[tex_info.index]
-    source = get_source(mh, pytexture)
+    source, use_ktx_loader = get_source(mh, pytexture)
 
     if source is None:
         return None
 
     pyimg = mh.gltf.data.images[source]
-    BlenderImage.create(mh.gltf, source)
+    BlenderImage.create(mh.gltf, source, use_ktx_loader)
 
     # See if cached roughness texture already exists
     if hasattr(pyimg, 'blender_roughness_image_name'):

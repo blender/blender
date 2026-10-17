@@ -220,6 +220,7 @@ def __gather_metallic_roughness_texture(bmat, orm_texture, export_settings):
         texture_input[0],
         orm_texture or texture_input,
         export_settings,
+        kind='DATA',
     )
 
     if len(export_settings['current_texture_transform']) != 0:

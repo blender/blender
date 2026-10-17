@@ -116,7 +116,7 @@ def export_sheen(bmat, export_settings):
         # Texture
         if has_image_node_from_socket(sheenRoughness_socket, export_settings):
             original_sheenRoughness_texture, uvmap_info, udim_info, _ = gltf2_blender_gather_texture_info.gather_texture_info(
-                sheenRoughness_socket, (sheenRoughness_socket,), export_settings, )
+                sheenRoughness_socket, (sheenRoughness_socket,), export_settings, kind='DATA')
             sheen_extension['sheenRoughnessTexture'] = original_sheenRoughness_texture
             uvmap_infos.update({'sheenRoughnessTexture': uvmap_info})
             udim_infos.update({'sheenRoughnessTexture': udim_info} if len(udim_info) > 0 else {})

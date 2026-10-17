@@ -1,0 +1,6 @@
+{
+    "export_image_add_compressed_images": true,
+    "export_compressed_images_type": "KTX2",
+    "export_use_ktx_compression": true,
+    "export_ktx_zstd_level": 22
+}

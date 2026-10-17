@@ -87,7 +87,8 @@ def export_iridescence(bmat, export_settings):
         texture_info, uvmap_info, udim_info, _ = gltf2_blender_gather_texture_info.gather_texture_info(
             iridescence_factor_socket,
             (iridescence_factor_socket,),
-            export_settings
+            export_settings,
+            kind='DATA'
         )
 
         if texture_info is not None:
@@ -163,6 +164,7 @@ def export_iridescence(bmat, export_settings):
                     iridescence_data['tex_socket'],
                     (iridescence_data['tex_socket'],),
                     export_settings,
+                    kind='DATA'
                 )
 
                 if texture_info is not None:
