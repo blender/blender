@@ -43,6 +43,8 @@ class ImageData:
             return ".jpg"
         elif self._mime_type == "image/webp":
             return ".webp"
+        elif self._mime_type == "image/ktx2":
+            return ".ktx2"
         return ".png"
 
     @property

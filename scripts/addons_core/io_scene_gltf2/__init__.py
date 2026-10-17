@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 4, 5),
+    "version": (5, 4, 6),
     'blender': (5, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -368,21 +368,45 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         default='AUTO'
     )
 
-    export_image_add_webp: BoolProperty(
-        name='Create WebP',
+    export_image_add_compressed_images: BoolProperty(
+        name='Create Compressed Images',
         description=(
-            "Creates WebP textures for every texture. "
-            "For already WebP textures, nothing happens"
+            "Creates compressed textures (WebP or KTX2)for every texture. "
+            "For already compressed textures, nothing happens"
         ),
         default=False
     )
 
-    export_image_webp_fallback: BoolProperty(
-        name='WebP Fallback',
+    export_compressed_images_fallback: BoolProperty(
+        name='Compressed Images Fallback',
         description=(
-            "For all WebP textures, create a PNG fallback texture"
+            "For all compressed textures (WebP or KTX2), create a PNG fallback texture"
         ),
         default=False
+    )
+
+    export_compressed_images_type: EnumProperty(
+        name='Compressed Images Type',
+        items=(('WEBP', 'WebP', 'Use WebP format for compressed textures'),
+               ('KTX2', 'KTX2', 'Use KTX2 format with BasisU supercompression for compressed textures')),
+        description=(
+            "Choose the format for compressed textures fallback (WebP or KTX2 with BasisU supercompression)"
+        ),
+        default='WEBP'
+    )
+
+    export_use_ktx_compression: BoolProperty(
+        name='Zstandard Compression',
+        description='Enable Zstandard compression for (UASTC) non-color KTX2 textures',
+        default=False
+    )
+
+    export_ktx_zstd_level: IntProperty(
+        name='Zstandard Compression Level',
+        description='Set the Zstandard compression level for (UASTC) non-color KTX2 textures (1 is fastest/lowest ratio, 22 is slowest/highest ratio)',
+        default=1,
+        min=1,
+        max=22
     )
 
     export_texture_dir: StringProperty(
@@ -1182,8 +1206,11 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
 
         export_settings['gltf_format'] = self.export_format
         export_settings['gltf_image_format'] = self.export_image_format
-        export_settings['gltf_add_webp'] = self.export_image_add_webp
-        export_settings['gltf_webp_fallback'] = self.export_image_webp_fallback
+        export_settings['gltf_add_compressed_images'] = self.export_image_add_compressed_images
+        export_settings['gltf_compressed_images_fallback'] = self.export_compressed_images_fallback
+        export_settings['gltf_compressed_images_type'] = self.export_compressed_images_type
+        export_settings['gltf_use_zstd'] = self.export_use_ktx_compression
+        export_settings['gltf_ktx_zstd_level'] = self.export_ktx_zstd_level
         export_settings['gltf_image_quality'] = self.export_image_quality
         export_settings['gltf_copyright'] = self.export_copyright
         export_settings['gltf_texcoords'] = self.export_texcoords
@@ -1611,13 +1638,20 @@ def export_panel_data_material(layout, operator):
         if operator.export_image_format in ["AUTO", "JPEG", "WEBP"]:
             col.prop(operator, 'export_image_quality')
         col = body.column()
-        col.active = operator.export_image_format != "WEBP" and operator.export_materials not in [
+        col.active = operator.export_image_format not in ["WEBP", "KTX2"] and operator.export_materials not in [
             'PLACEHOLDER', 'NONE', 'VIEWPORT']
-        col.prop(operator, "export_image_add_webp")
+        col.prop(operator, "export_image_add_compressed_images")
         col = body.column()
-        col.active = operator.export_image_format != "WEBP" and operator.export_materials not in [
+        col.active = operator.export_image_add_compressed_images
+        col.prop(operator, "export_compressed_images_type")
+        if operator.export_compressed_images_type == "KTX2":
+            col.prop(operator, "export_use_ktx_compression")
+            if operator.export_use_ktx_compression:
+                col.prop(operator, "export_ktx_zstd_level")
+        col = body.column()
+        col.active = operator.export_image_format not in ["WEBP", "KTX2"] and operator.export_materials not in [
             'PLACEHOLDER', 'NONE', 'VIEWPORT']
-        col.prop(operator, "export_image_webp_fallback")
+        col.prop(operator, "export_compressed_images_fallback")
 
         header, sub_body = body.panel("GLTF_export_data_material_unused", default_closed=True)
         header.label(text="Unused Textures & Images")
@@ -2032,6 +2066,15 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         default=False,
     )
 
+    import_ktx_texture: BoolProperty(
+        name='Import KTX Textures',
+        description=(
+            "If a texture exists in KTX format, "
+            "loads the KTX texture instead of the fallback PNG/JPEG one"
+        ),
+        default=False,
+    )
+
     import_unused_materials: BoolProperty(
         name='Import Unused Materials & Images',
         description='Import materials & Images not assigned to any mesh',
@@ -2204,6 +2247,7 @@ def import_texture_panel(layout, operator):
     if body:
         body.prop(operator, 'import_pack_images')
         body.prop(operator, 'import_webp_texture')
+        body.prop(operator, 'import_ktx_texture')
         body.prop(operator, 'import_unused_materials')
 
 

@@ -94,6 +94,7 @@ def export_volume(bmat, export_settings):
             thickness_socket,
             thickness_slots,
             export_settings,
+            kind='DATA',
         )
         if has_thickness_texture:
             volume_extension['thicknessTexture'] = combined_texture

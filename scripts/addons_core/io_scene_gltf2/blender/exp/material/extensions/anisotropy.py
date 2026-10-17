@@ -126,6 +126,7 @@ def export_anisotropy(bmat, export_settings):
         anisotropy_data['tex_socket'],
         (anisotropy_data['tex_socket'],),
         export_settings,
+        kind='DATA'
     )
     anisotropy_extension['anisotropyTexture'] = anisotropy_texture
     uvmap_infos.update({'anisotropyTexture': uvmap_info})
@@ -169,7 +170,9 @@ def export_anisotropy_from_grayscale_textures(bmat, export_settings):
         primary_socket,
         sockets,
         export_settings,
-        filter_type='ANY')
+        filter_type='ANY',
+        kind='DATA'
+    )
 
     if anisotropyTexture is None:
         return None, {}
@@ -204,9 +207,9 @@ def grayscale_anisotropy_calculation(stored, export_settings):
                 images.append(fill.image)
 
     if not images:
-        # No ImageFills; use a 1x1 white pixel
-        pixels = np.array([1.0, 1.0, 1.0, 1.0], np.float32)
-        return pixels, 1, 1
+        # No ImageFills; use a 4x4 white pixel
+        pixels = np.array([1.0, 1.0, 1.0, 1.0] * 16, np.float32)
+        return pixels, 4, 4
 
     width = max(image.size[0] for image in images)
     height = max(image.size[1] for image in images)

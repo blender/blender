@@ -71,6 +71,7 @@ def export_specular(bmat, export_settings):
                 specular_socket,
                 (specular_socket,),
                 export_settings,
+                kind='DATA'
             )
             specular_extension['specularTexture'] = specular_texture
             uvmap_infos.update({'specularTexture': uvmap_info})

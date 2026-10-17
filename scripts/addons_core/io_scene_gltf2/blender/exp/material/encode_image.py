@@ -8,6 +8,7 @@ from typing import Optional, Tuple
 import numpy as np
 import tempfile
 import enum
+from ....io.exp.ktx import KtxEncoder
 
 
 class Channel(enum.IntEnum):
@@ -112,8 +113,14 @@ class ExportImage:
         self.original = original  # In case of keeping original texture images
         self.numpy_calc = None
 
+        # Used for KTX export
+        self.is_data = False
+
     def set_calc(self, numpy_calc):
         self.numpy_calc = numpy_calc  # In case of numpy calculation (no direct channel mapping)
+
+    def set_is_data(self, is_data: bool):
+        self.is_data = is_data
 
     @staticmethod
     def from_blender_image(image: bpy.types.Image):
@@ -219,7 +226,8 @@ class ExportImage:
         self.file_format = {
             "image/jpeg": "JPEG",
             "image/png": "PNG",
-            "image/webp": "WEBP"
+            "image/webp": "WEBP",
+            "image/ktx2": "KTX2",
         }.get(mime_type, "PNG")
 
         # Happy path = we can just use an existing Blender image
@@ -266,9 +274,9 @@ class ExportImage:
                     export_settings['exported_images'][fill.image.name] = 2  # 2 = partially used
 
         if not images:
-            # No ImageFills; use a 1x1 white pixel
-            pixels = np.array([1.0, 1.0, 1.0, 1.0], np.float32)
-            return self.__encode_from_numpy_array(pixels, (1, 1), export_settings)
+            # No ImageFills; use a 4x4 white pixel
+            pixels = np.array([1.0, 1.0, 1.0, 1.0] * 16, np.float32)
+            return self.__encode_from_numpy_array(pixels, (4, 4), export_settings)
 
         # We need to open the original UDIM image tile to get size & pixel data
         original_image_sizes = []
@@ -331,9 +339,9 @@ class ExportImage:
                     export_settings['exported_images'][fill.image.name] = 2  # 2 = partially used
 
         if not images:
-            # No ImageFills; use a 1x1 white pixel
-            pixels = np.array([1.0, 1.0, 1.0, 1.0], np.float32)
-            return self.__encode_from_numpy_array(pixels, (1, 1), export_settings)
+            # No ImageFills; use a 4x4 white pixel
+            pixels = np.array([1.0, 1.0, 1.0, 1.0] * 16, np.float32)
+            return self.__encode_from_numpy_array(pixels, (4, 4), export_settings)
 
         width = max(image.size[0] for image in images)
         height = max(image.size[1] for image in images)
@@ -379,7 +387,7 @@ class ExportImage:
 
             tmp_image.pixels.foreach_set(pixels)
 
-            return _encode_temp_image(tmp_image, self.file_format, export_settings)
+            return _encode_temp_image(tmp_image, self.file_format, self.is_data, export_settings)
 
     def __encode_from_image(self, image: bpy.types.Image, export_settings) -> bytes:
         # See if there is an existing file we can use.
@@ -405,12 +413,15 @@ class ExportImage:
             elif self.file_format == 'WEBP':
                 if data[8:12] == b'WEBP':
                     return data
+            elif self.file_format == 'KTX2':
+                if data[0:12] == b'\xABKTX 20\xBB\r\n\x1A\n':
+                    return data
 
         # Copy to a temp image and save.
         with TmpImageGuard() as guard:
             make_temp_image_copy(guard, src_image=image)
             tmp_image = guard.image
-            return _encode_temp_image(tmp_image, self.file_format, export_settings)
+            return _encode_temp_image(tmp_image, self.file_format, self.is_data, export_settings)
 
     def __encode_from_image_tile(self, udim_image, tile, export_settings):
         data = None
@@ -430,7 +441,9 @@ class ExportImage:
             elif self.file_format == 'WEBP':
                 if data[8:12] == b'WEBP':
                     return data
-
+            elif self.file_format == 'KTX2':
+                if data[0:12] == b'\xABKTX 20\xBB\r\n\x1A\n':
+                    return data
         # We don't manage UDIM packed image, so this could not happen to be here
         # Lets display an error
         export_settings['log'].error(
@@ -438,25 +451,60 @@ class ExportImage:
         return b''
 
 
-def _encode_temp_image(tmp_image: bpy.types.Image, file_format: str, export_settings) -> bytes:
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        tmpfilename = tmpdirname + '/img'
-        tmp_image.filepath_raw = tmpfilename
+def _encode_temp_image(tmp_image: bpy.types.Image, file_format: str, is_data: bool, export_settings) -> bytes:
 
-        tmp_image.file_format = file_format
+    if file_format != "KTX2":
 
-        try:
-            # if image is jpeg, use quality export settings
-            if file_format in ["JPEG", "WEBP"]:
-                tmp_image.save(quality=export_settings['gltf_image_quality'])
-            else:
-                tmp_image.save()
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            tmpfilename = tmpdirname + '/img'
+            tmp_image.filepath_raw = tmpfilename
 
-            with open(tmpfilename, "rb") as f:
-                return f.read()
-        except Exception as e:
-            export_settings['log'].error("Error while saving image: %s" % e)
-            return b''
+            tmp_image.file_format = file_format
+
+            try:
+                # if image is jpeg, use quality export settings
+                if file_format in ["JPEG", "WEBP"]:
+                    tmp_image.save(quality=export_settings['gltf_image_quality'])
+                else:
+                    tmp_image.save()
+
+                with open(tmpfilename, "rb") as f:
+                    return f.read()
+            except Exception as e:
+                export_settings['log'].error("Error while saving image: %s" % e)
+                return b''
+
+    else:
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            tmpfilename = tmpdirname + '/img'
+
+            quality = export_settings['gltf_image_quality']
+            compress_level = 0
+            if export_settings['gltf_use_zstd']:
+                compress_level = export_settings['gltf_ktx_zstd_level']
+
+            try:
+                res = KtxEncoder.encode_file(
+                    export_settings,
+                    tmpfilename,
+                    tmp_image.pixels[:],
+                    tmp_image.size[0],
+                    tmp_image.size[1],
+                    4,
+                    quality=quality,
+                    is_data=is_data,
+                    use_uastc=None,  # Keep default behavior based on is_data
+                    compress=compress_level)
+
+                if res != 0:
+                    export_settings['log'].error("Error while encoding KTX2 image: %s" % res)
+                    return b''
+
+                with open(tmpfilename, "rb") as f:
+                    return f.read()
+            except Exception as e:
+                export_settings['log'].error("Error while encoding KTX2 image: %s" % e)
+                return b''
 
 
 class TmpImageGuard:

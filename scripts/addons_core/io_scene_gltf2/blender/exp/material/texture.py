@@ -20,6 +20,7 @@ from . import image
 def gather_texture(
         blender_shader_sockets: typing.Tuple[bpy.types.NodeSocket],
         use_tile: bool,
+        is_data: bool,
         export_settings):
     """
     Gather texture sampling information and image channels from a blender shader texture attached to a shader socket.
@@ -32,10 +33,11 @@ def gather_texture(
     if not __filter_texture(blender_shader_sockets, export_settings):
         return None, None, None
 
-    source, webp_image, image_data, factor, udim_image = __gather_source(
-        blender_shader_sockets, use_tile, export_settings)
+    source, webp_image, ktx2_image, image_data, factor, udim_image = __gather_source(
+        blender_shader_sockets, use_tile, is_data, export_settings)
 
-    exts, remove_source = __gather_extensions(blender_shader_sockets, source, webp_image, image_data, export_settings)
+    exts, remove_source = __gather_extensions(blender_shader_sockets, source,
+                                              webp_image, ktx2_image, image_data, export_settings)
 
     texture = gltf2_io.Texture(
         extensions=exts,
@@ -62,14 +64,16 @@ def __filter_texture(blender_shader_sockets, export_settings):
     return True
 
 
-def __gather_extensions(blender_shader_sockets, source, webp_image, image_data, export_settings):
+def __gather_extensions(blender_shader_sockets, source, webp_image, ktx2_image, image_data, export_settings):
 
     extensions = {}
 
     remove_source = False
-    required = False
+    required_webp = False
+    required_ktx2 = False
 
     ext_webp = {}
+    ext_ktx2 = {}
 
     # If user want to keep original textures, and these textures are WebP, we need to remove source from
     # gltf2_io.Texture, and populate extension
@@ -78,18 +82,35 @@ def __gather_extensions(blender_shader_sockets, source, webp_image, image_data, 
             and source.mime_type == "image/webp":
         ext_webp["source"] = source
         remove_source = True
-        required = True
+        required_webp = True
+
+    # If user want to keep original textures, and these textures are KTX2, we need to remove source from
+    # gltf2_io.Texture, and populate extension
+    if export_settings['gltf_keep_original_textures'] is True \
+            and source is not None \
+            and source.mime_type == "image/ktx2":
+        ext_ktx2["source"] = source
+        remove_source = True
+        required_ktx2 = True
 
 # If user want to export in WebP format (so without fallback in png/jpg)
     if export_settings['gltf_image_format'] == "WEBP":
         # We create all image without fallback
         ext_webp["source"] = source
         remove_source = True
-        required = True
+        required_webp = True
+
+# If user want to export in KTX2 format (so without fallback in png/jpg)
+    if export_settings['gltf_image_format'] == "KTX2":
+        # We create all image without fallback
+        ext_ktx2["source"] = source
+        remove_source = True
+        required_ktx2 = True
 
 # If user doesn't want to export in WebP format, but want WebP too. Texture is not WebP
     if export_settings['gltf_image_format'] != "WEBP" \
-            and export_settings['gltf_add_webp'] \
+            and export_settings['gltf_add_compressed_images'] is True \
+            and export_settings['gltf_compressed_images_type'] == "WEBP" \
             and source is not None \
             and source.mime_type != "image/webp":
         # We need here to create some WebP textures
@@ -120,31 +141,95 @@ def __gather_extensions(blender_shader_sockets, source, webp_image, image_data, 
 
         ext_webp["source"] = webp_image
 
+# If user doesn't want to export in KTX2 format, but want KTX2 too. Texture is not KTX2
+    if export_settings['gltf_image_format'] != "KTX2" \
+            and export_settings['gltf_add_compressed_images'] is True \
+            and export_settings['gltf_compressed_images_type'] == "KTX2" \
+            and source is not None \
+            and source.mime_type != "image/ktx2":
+        # We need here to create some KTX2 textures
 
-# If user doesn't want to export in WebP format, but want WebP too. Texture is WebP
+        new_mime_type = "image/ktx2"
+        new_data, _ = image_data.encode(new_mime_type, export_settings)
+        if len(new_data) == 0:
+            export_settings['log'].warning("Image data is empty, not exporting image")
+            return None, False
+
+        if export_settings['gltf_format'] == 'GLTF_SEPARATE':
+
+            uri = ImageData(
+                data=new_data,
+                mime_type=new_mime_type,
+                name=source.uri.name
+            )
+            buffer_view = None
+            name = source.uri.name
+            image.set_real_uri(uri, export_settings)  # Note: image, here, is the imported image python file
+
+        else:
+            buffer_view = BinaryData(data=new_data)
+            uri = None
+            name = source.name
+
+        ktx2_image = __make_ktx2_image(buffer_view, None, None, new_mime_type, name, uri, export_settings)
+
+        ext_ktx2["source"] = ktx2_image
+
+# If user doesn't want to export in WebP format, but want WebP too.
+# Texture is WebP => Need to make webp required, an remove original
     if export_settings['gltf_image_format'] != "WEBP" \
             and source is not None \
             and source.mime_type == "image/webp":
 
         # User does not want fallback
-        if export_settings['gltf_webp_fallback'] is False:
+        if export_settings['gltf_compressed_images_fallback'] is False:
             ext_webp["source"] = source
             remove_source = True
-            required = True
+            required_webp = True
+
+# Is user doesn't want to export in KTX2 format, but want KTX2 too.
+# Texture is KTX2 => Need to make KTX2 required, an remove original
+    if export_settings['gltf_image_format'] != "KTX2" \
+            and source is not None \
+            and source.mime_type == "image/ktx2":
+
+        # User does not want fallback
+        if export_settings['gltf_compressed_images_fallback'] is False:
+            ext_ktx2["source"] = source
+            remove_source = True
+            required_ktx2 = True
 
 # If user doesn't want to export in webp format, but want WebP too as fallback. Texture is WebP
     if export_settings['gltf_image_format'] != "WEBP" \
             and webp_image is not None \
-            and export_settings['gltf_webp_fallback'] is True:
+            and export_settings['gltf_compressed_images_fallback'] is True:
         # Already managed in __gather_source, we only have to assign
         ext_webp["source"] = webp_image
 
         # Not needed in code, for for documentation:
         # remove_source = False
-        # required = False
+        # required_webp = False
 
+
+# If user doesn't want to export in KTX2 format, but want KTX2 too as fallback. Texture is KTX2
+    if export_settings['gltf_image_format'] != "KTX2" \
+            and ktx2_image is not None \
+            and export_settings['gltf_compressed_images_fallback'] is True:
+        # Already managed in __gather_source, we only have to assign
+        ext_ktx2["source"] = ktx2_image
+
+        # Not needed in code, for for documentation:
+        # remove_source = False
+        # required_ktx2 = False
+
+    some_extension_added = len(ext_webp) > 0 or len(ext_ktx2) > 0
     if len(ext_webp) > 0:
-        extensions["EXT_texture_webp"] = Extension('EXT_texture_webp', ext_webp, required)
+        extensions["EXT_texture_webp"] = Extension('EXT_texture_webp', ext_webp, required_webp)
+
+    if len(ext_ktx2) > 0:
+        extensions["KHR_texture_basisu"] = Extension('KHR_texture_basisu', ext_ktx2, required_ktx2)
+
+    if some_extension_added:
         return extensions, remove_source
     else:
         return None, False
@@ -152,6 +237,18 @@ def __gather_extensions(blender_shader_sockets, source, webp_image, image_data, 
 
 @cached
 def __make_webp_image(buffer_view, extensions, extras, mime_type, name, uri, export_settings):
+    return gltf2_io.Image(
+        buffer_view=buffer_view,
+        extensions=extensions,
+        extras=extras,
+        mime_type=mime_type,
+        name=name,
+        uri=uri
+    )
+
+
+@cached
+def __make_ktx2_image(buffer_view, extensions, extras, mime_type, name, uri, export_settings):
     return gltf2_io.Image(
         buffer_view=buffer_view,
         extensions=extensions,
@@ -214,17 +311,53 @@ def __gather_sampler(blender_shader_sockets, export_settings):
         export_settings)
 
 
-def __gather_source(blender_shader_sockets, use_tile, export_settings):
-    source, image_data, factor, udim_image = image.gather_image(blender_shader_sockets, use_tile, export_settings)
+def __gather_source(blender_shader_sockets, use_tile, is_data, export_settings):
+    source, image_data, factor, udim_image = image.gather_image(
+        blender_shader_sockets, use_tile, is_data, export_settings)
+
+    if export_settings['gltf_keep_original_textures'] is False \
+            and export_settings['gltf_image_format'] != "KTX2" \
+            and source is not None \
+            and source.mime_type == "image/ktx2":
+        if export_settings['gltf_compressed_images_fallback'] is False:
+            # Already managed in __gather_extensions
+            return source, None, None, image_data, factor, udim_image
+        else:
+            # Need to create a PNG texture
+
+            new_mime_type = "image/png"
+            new_data, _ = image_data.encode(new_mime_type, export_settings)
+            # We should not have empty data here, as we are calculating fallback, so the real image should be ok already
+
+            if export_settings['gltf_format'] == 'GLTF_SEPARATE':
+                buffer_view = None
+                uri = ImageData(
+                    data=new_data,
+                    mime_type=new_mime_type,
+                    name=source.uri.name
+                )
+                name = source.uri.name
+
+                image.set_real_uri(uri, export_settings)  # Note: image, here, is the imported image python file
+
+            else:
+                uri = None
+                buffer_view = BinaryData(data=new_data)
+                name = source.name
+
+            png_image = __make_ktx2_image(buffer_view, None, None, new_mime_type, name, uri, export_settings)
+
+        # We inverted the png & KTX2 image, to have the png as main source
+        return png_image, None, source, image_data, factor, udim_image
 
     if export_settings['gltf_keep_original_textures'] is False \
             and export_settings['gltf_image_format'] != "WEBP" \
             and source is not None \
             and source.mime_type == "image/webp":
 
-        if export_settings['gltf_webp_fallback'] is False:
+        if export_settings['gltf_compressed_images_fallback'] is False:
             # Already managed in __gather_extensions
-            return source, None, image_data, factor, udim_image
+            return source, None, None, image_data, factor, udim_image
         else:
             # Need to create a PNG texture
 
@@ -251,5 +384,5 @@ def __gather_source(blender_shader_sockets, use_tile, export_settings):
             png_image = __make_webp_image(buffer_view, None, None, new_mime_type, name, uri, export_settings)
 
         # We inverted the png & WebP image, to have the png as main source
-        return png_image, source, image_data, factor, udim_image
-    return source, None, image_data, factor, udim_image
+        return png_image, source, None, image_data, factor, udim_image
+    return source, None, None, image_data, factor, udim_image

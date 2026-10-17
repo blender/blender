@@ -94,6 +94,7 @@ def export_clearcoat(bmat, export_settings):
                 clearcoat_socket,
                 clearcoat_roughness_slots,
                 export_settings,
+                kind='DATA',
             )
             clearcoat_extension['clearcoatTexture'] = clearcoat_texture
             uvmap_infos.update({'clearcoatTexture': uvmap_info})
@@ -118,7 +119,7 @@ def export_clearcoat(bmat, export_settings):
 
         if has_clearcoat_roughness_texture:
             clearcoat_roughness_texture, uvmap_info, udim_info, _ = gltf2_blender_gather_texture_info.gather_texture_info(
-                clearcoat_roughness_socket, clearcoat_roughness_slots, export_settings, )
+                clearcoat_roughness_socket, clearcoat_roughness_slots, export_settings, kind='DATA',)
             clearcoat_extension['clearcoatRoughnessTexture'] = clearcoat_roughness_texture
             uvmap_infos.update({'clearcoatRoughnessTexture': uvmap_info})
             udim_infos.update({'clearcoatRoughnessTexture': udim_info} if len(udim_info.keys()) > 0 else {})
