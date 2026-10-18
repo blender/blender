@@ -487,7 +487,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       0,
-                      "Type of left handle");
+                      TIP_("Type of left handle"));
       button_func_set(but, graphedit_activekey_handle_left_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
@@ -542,7 +542,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       0,
-                      "Type of right handle");
+                      TIP_("Type of right handle"));
       button_func_set(but, graphedit_activekey_handle_right_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);

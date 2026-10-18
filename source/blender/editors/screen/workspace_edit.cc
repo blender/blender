@@ -588,7 +588,7 @@ static void workspace_add_menu_draw(ui::Layout &layout)
 {
   {
     PointerRNA props = layout.op("WM_OT_search_single_menu",
-                                 "Search...",
+                                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Search..."),
                                  ICON_VIEWZOOM,
                                  wm::OpCallContext::InvokeDefault,
                                  UI_ITEM_NONE);
