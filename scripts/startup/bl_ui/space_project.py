@@ -7,6 +7,7 @@ from bpy.types import Header, Menu, Panel
 
 from bpy.app.translations import (
     pgettext_iface as iface_,
+    pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
 
@@ -215,8 +216,9 @@ class PROJECT_PT_color_management(Panel, CenterAlignMixIn):
             row = layout.split(factor=0.4)
             row.label()
             row.label(
-                text=f"Overridden by the {config_source} environment variable",
+                text=rpt_("Overridden by the {} environment variable").format(config_source),
                 icon='STATUS_INFO',
+                translate=False,
             )
 
         if needs_reload:
