@@ -147,39 +147,39 @@ static int corner_on_edge_connected_to_vert(const Span<int> corner_verts,
   return other;
 }
 
-using CornerGroup = Vector<int>;
-
 /**
- * Collect groups of corners connected by edges bordered by boundary edges or split edges. We store
- * corner indices instead of edge indices because later on in the algorithm we only relink the
+ * Group the corners connected to a vertex by contiguous fans of faces, bordered by boundary edges
+ * or split edges. Each corner gets the index of its group, with the order of `connected_corners`.
+ * We use corners instead of edges because later on in the algorithm we only relink the
  * `corner_vert` array to each group's new vertex.
  *
- * The corners are not ordered in winding order, since we only need to group connected faces into
- * each group.
+ * \return The number of groups.
  */
-static Vector<CornerGroup> calc_corner_groups_for_vertex(const OffsetIndices<int> faces,
-                                                         const Span<int> corner_verts,
-                                                         const Span<int> corner_edges,
-                                                         const GroupedSpan<int> edge_to_corner_map,
-                                                         const Span<int> corner_to_face_map,
-                                                         const BitSpan split_edges,
-                                                         const Span<int> connected_corners,
-                                                         const int vert)
+static int calc_corner_groups_for_vertex(const OffsetIndices<int> faces,
+                                         const Span<int> corner_verts,
+                                         const Span<int> corner_edges,
+                                         const GroupedSpan<int> edge_to_corner_map,
+                                         const Span<int> corner_to_face_map,
+                                         const BitSpan split_edges,
+                                         const Span<int> connected_corners,
+                                         const int vert,
+                                         MutableSpan<int> r_corner_groups)
 {
-  Vector<CornerGroup> groups;
-  /* Each corner should only be added to a single group. */
-  BitVector<> used_corners(connected_corners.size());
-  for (const int start_corner : connected_corners) {
-    CornerGroup group;
-    Vector<int> corner_stack({start_corner});
+  r_corner_groups.fill(-1);
+  int groups_num = 0;
+  Vector<int> corner_stack;
+  for (const int start : connected_corners.index_range()) {
+    if (r_corner_groups[start] != -1) {
+      continue;
+    }
+    corner_stack.append(connected_corners[start]);
     while (!corner_stack.is_empty()) {
       const int corner = corner_stack.pop_last();
       const int i = connected_corners.first_index(corner);
-      if (used_corners[i]) {
+      if (r_corner_groups[i] != -1) {
         continue;
       }
-      used_corners[i].set();
-      group.append(corner);
+      r_corner_groups[i] = groups_num;
       const int face = corner_to_face_map[corner];
       const int prev_corner = bke::mesh::face_corner_prev(faces[face], corner);
       /* Travel across the two edges neighboring this vertex, if they aren't split. */
@@ -199,43 +199,44 @@ static Vector<CornerGroup> calc_corner_groups_for_vertex(const OffsetIndices<int
         }
       }
     }
-    if (!group.is_empty()) {
-      groups.append(std::move(group));
-    }
+    groups_num++;
   }
-
-  return groups;
+  return groups_num;
 }
 
-/* Calculate groups of corners that are contiguously connected to each input vertex.
+/**
+ * Calculate groups of corners that are contiguously connected to each input vertex. The group
+ * indices are stored in the same order as #vert_to_corner_map.
+ *
  * BLI_NOINLINE because MSVC 17.7 has a codegen bug here, given there is only a single call to this
  * function, not inlining it for all platforms won't affect performance. See
- * https://developercommunity.visualstudio.com/t/10448291 for details. */
-BLI_NOINLINE static Array<Vector<CornerGroup>> calc_all_corner_groups(
-    const OffsetIndices<int> faces,
-    const Span<int> corner_verts,
-    const Span<int> corner_edges,
-    const GroupedSpan<int> vert_to_corner_map,
-    const GroupedSpan<int> edge_to_corner_map,
-    const Span<int> corner_to_face_map,
-    const BitSpan split_edges,
-    const IndexMask &affected_verts)
+ * https://developercommunity.visualstudio.com/t/10448291 for details.
+ */
+BLI_NOINLINE static void calc_all_corner_groups(const OffsetIndices<int> faces,
+                                                const Span<int> corner_verts,
+                                                const Span<int> corner_edges,
+                                                const GroupedSpan<int> vert_to_corner_map,
+                                                const GroupedSpan<int> edge_to_corner_map,
+                                                const Span<int> corner_to_face_map,
+                                                const BitSpan split_edges,
+                                                const IndexMask &affected_verts,
+                                                MutableSpan<int> r_corner_groups,
+                                                MutableSpan<int> r_groups_num)
 {
-  Array<Vector<CornerGroup>> corner_groups(affected_verts.size(), NoInitialization());
   affected_verts.foreach_index(
       [&](const int vert, const int mask) {
-        new (&corner_groups[mask])
-            Vector<CornerGroup>(calc_corner_groups_for_vertex(faces,
-                                                              corner_verts,
-                                                              corner_edges,
-                                                              edge_to_corner_map,
-                                                              corner_to_face_map,
-                                                              split_edges,
-                                                              vert_to_corner_map[vert],
-                                                              vert));
+        r_groups_num[mask] = calc_corner_groups_for_vertex(
+            faces,
+            corner_verts,
+            corner_edges,
+            edge_to_corner_map,
+            corner_to_face_map,
+            split_edges,
+            vert_to_corner_map[vert],
+            vert,
+            r_corner_groups.slice(vert_to_corner_map.offsets[vert]));
       },
       exec_mode::grain_size(512));
-  return corner_groups;
 }
 
 /** Selected and unselected loose edges attached to a vertex. */
@@ -275,13 +276,12 @@ static VertLooseEdges calc_vert_loose_edges(const GroupedSpan<int> vert_to_edge_
  * Using this order prioritizes the simplicity of the no-loose-edge case, which we assume is
  * more common.
  */
-static OffsetIndices<int> calc_vert_ranges_per_old_vert(
-    const IndexMask &affected_verts,
-    const Span<Vector<CornerGroup>> corner_groups,
-    const GroupedSpan<int> vert_to_edge_map,
-    const BitSpan loose_edges,
-    const BitSpan split_edges,
-    Array<int> &offset_data)
+static OffsetIndices<int> calc_vert_ranges_per_old_vert(const IndexMask &affected_verts,
+                                                        const Span<int> corner_groups_num,
+                                                        const GroupedSpan<int> vert_to_edge_map,
+                                                        const BitSpan loose_edges,
+                                                        const BitSpan split_edges,
+                                                        Array<int> &offset_data)
 {
   offset_data.reinitialize(affected_verts.size() + 1);
   MutableSpan<int> new_verts_nums = offset_data;
@@ -289,7 +289,7 @@ static OffsetIndices<int> calc_vert_ranges_per_old_vert(
     /* Start with -1 for the reused vertex. None of the final sizes should be negative. */
     new_verts_nums.slice(range).fill(-1);
     for (const int i : range) {
-      new_verts_nums[i] += corner_groups[i].size();
+      new_verts_nums[i] += corner_groups_num[i];
     }
   });
   if (!loose_edges.is_empty()) {
@@ -298,7 +298,7 @@ static OffsetIndices<int> calc_vert_ranges_per_old_vert(
           const VertLooseEdges info = calc_vert_loose_edges(
               vert_to_edge_map, loose_edges, split_edges, vert);
           new_verts_nums[mask] += info.selected.size();
-          if (corner_groups[mask].is_empty()) {
+          if (corner_groups_num[mask] == 0) {
             /* Loose edges share their vertex with a corner group if possible. */
             new_verts_nums[mask] += info.unselected.size() > 0;
           }
@@ -314,20 +314,26 @@ static OffsetIndices<int> calc_vert_ranges_per_old_vert(
  * edge case will have to deal with this later.
  */
 static void update_corner_verts(const int orig_verts_num,
-                                const Span<Vector<CornerGroup>> corner_groups,
+                                const IndexMask &affected_verts,
+                                const GroupedSpan<int> vert_to_corner_map,
+                                const Span<int> corner_groups,
+                                const Span<int> corner_groups_num,
                                 const OffsetIndices<int> new_verts_by_affected_vert,
                                 MutableSpan<int> new_corner_verts)
 {
-  threading::parallel_for(corner_groups.index_range(), 512, [&](const IndexRange range) {
-    for (const int new_vert : range) {
-      const Span<CornerGroup> groups = corner_groups[new_vert];
-      const IndexRange new_verts = new_verts_by_affected_vert[new_vert];
-      for (const int group : groups.index_range().drop_back(1)) {
-        const int new_vert = orig_verts_num + new_verts[group];
-        new_corner_verts.fill_indices(groups[group].as_span(), new_vert);
-      }
-    }
-  });
+  affected_verts.foreach_index(
+      [&](const int vert, const int mask) {
+        const Span<int> corners = vert_to_corner_map[vert];
+        const Span<int> groups = corner_groups.slice(vert_to_corner_map.offsets[vert]);
+        const int reused_group = corner_groups_num[mask] - 1;
+        const IndexRange new_verts = new_verts_by_affected_vert[mask];
+        for (const int i : corners.index_range()) {
+          if (groups[i] != reused_group) {
+            new_corner_verts[corners[i]] = orig_verts_num + new_verts[groups[i]];
+          }
+        }
+      },
+      exec_mode::grain_size(512));
 }
 
 static OrderedEdge edge_from_corner(const OffsetIndices<int> faces,
@@ -491,7 +497,7 @@ static void reassign_loose_edge_verts(const int orig_verts_num,
                                       const GroupedSpan<int> vert_to_edge_map,
                                       const BitSpan loose_edges,
                                       const BitSpan split_edges,
-                                      const Span<Vector<CornerGroup>> corner_groups,
+                                      const Span<int> corner_groups_num,
                                       const OffsetIndices<int> new_verts_by_affected_vert,
                                       MutableSpan<int2> edges)
 {
@@ -502,7 +508,7 @@ static void reassign_loose_edge_verts(const int orig_verts_num,
          * this means using the new vertices for each split loose edge until we run out of new
          * vertices. We then expect the count to match up with the number of new vertices reserved
          * by #calc_vert_ranges_per_old_vert. */
-        int new_vert_i = std::max<int>(corner_groups[mask].size() - 1, 0);
+        int new_vert_i = std::max<int>(corner_groups_num[mask] - 1, 0);
         if (new_vert_i == new_verts.size()) {
           return;
         }
@@ -574,26 +580,36 @@ void split_edges(Mesh &mesh,
 
   const Array<int> corner_to_face_map = mesh.corner_to_face_map();
 
-  const Array<Vector<CornerGroup>> corner_groups = calc_all_corner_groups(faces,
-                                                                          mesh.corner_verts(),
-                                                                          mesh.corner_edges(),
-                                                                          vert_to_corner_map,
-                                                                          edge_to_corner_map,
-                                                                          corner_to_face_map,
-                                                                          selection_bits,
-                                                                          affected_verts);
+  Array<int> corner_groups(vert_to_corner_map.data.size());
+  Array<int> corner_groups_num(affected_verts.size());
+  calc_all_corner_groups(faces,
+                         mesh.corner_verts(),
+                         mesh.corner_edges(),
+                         vert_to_corner_map,
+                         edge_to_corner_map,
+                         corner_to_face_map,
+                         selection_bits,
+                         affected_verts,
+                         corner_groups,
+                         corner_groups_num);
 
   Array<int> vert_new_vert_offset_data;
   const OffsetIndices new_verts_by_affected_vert = calc_vert_ranges_per_old_vert(
       affected_verts,
-      corner_groups,
+      corner_groups_num,
       vert_to_edge_map,
       loose_edge_bits,
       selection_bits,
       vert_new_vert_offset_data);
 
   MutableSpan<int> corner_verts = mesh.corner_verts_for_write();
-  update_corner_verts(orig_verts_num, corner_groups, new_verts_by_affected_vert, corner_verts);
+  update_corner_verts(orig_verts_num,
+                      affected_verts,
+                      vert_to_corner_map,
+                      corner_groups,
+                      corner_groups_num,
+                      new_verts_by_affected_vert,
+                      corner_verts);
 
   Array<int> new_edge_offsets(selected_edges.size() + 1);
   Array<int2> new_edges = calc_new_edges(faces,
@@ -618,7 +634,7 @@ void split_edges(Mesh &mesh,
                               vert_to_edge_map,
                               loose_edge_bits,
                               selection_bits,
-                              corner_groups,
+                              corner_groups_num,
                               new_verts_by_affected_vert,
                               mesh.edges_for_write());
   }
