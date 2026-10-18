@@ -322,3 +322,11 @@ class NWBaseMenu:
         return (space.type == 'NODE_EDITOR'
                 and space.node_tree is not None
                 and space.node_tree.library is None)
+
+
+def get_node_description(node_type):
+    bl_rna = bpy.types.Node.bl_rna_get_subclass(node_type)
+    if bl_rna is not None:
+        return tip_(bl_rna.description)
+    else:
+        return ""
