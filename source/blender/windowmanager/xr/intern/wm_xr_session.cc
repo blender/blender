@@ -429,7 +429,8 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
 
   /* Apply base pose and navigation. */
   wm_xr_pose_scale_to_mat(&draw_data->base_pose, draw_data->base_scale, base_mat);
-  wm_xr_pose_scale_to_mat(&state->nav_pose_last_actions_sync, state->viewer_scale, nav_mat);
+  wm_xr_pose_scale_to_mat(
+      &state->nav_pose_last_actions_sync, state->viewer_scale_last_actions_sync, nav_mat);
   mul_m4_m4m4(state->viewer_mat_base, base_mat, viewer_mat);
   mul_m4_m4m4(viewer_mat, nav_mat, state->viewer_mat_base);
 
