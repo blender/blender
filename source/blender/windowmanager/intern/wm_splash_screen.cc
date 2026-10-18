@@ -459,7 +459,8 @@ static ui::Block *wm_block_splash_create(bContext *C, ARegion *region, void * /*
                                                   0,
                                                   style);
     project_layout.menu("WM_MT_splash_project",
-                        project_name ? StringRef(*project_name) : IFACE_("Project"),
+                        project_name ? StringRef(*project_name) :
+                                       CTX_IFACE_(BLT_I18NCONTEXT_EDITOR_PREFERENCES, "Project"),
                         ICON_PROJECT);
   }
 

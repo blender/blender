@@ -403,6 +403,7 @@ static void rna_def_main_colorspace(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop, "rna_MainColorspace_ocio_config_source_get", nullptr, nullptr);
   RNA_def_property_ui_text(
       prop, "OpenColorIO Configuration Source", "Where the OpenColorIO configuration came from");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_PREFERENCES);
 }
 
 void RNA_def_main(BlenderRNA *brna)
