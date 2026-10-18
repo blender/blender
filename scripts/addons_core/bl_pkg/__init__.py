@@ -974,7 +974,7 @@ def register():
         ),
         name="Filter by Type",
         description="Show extensions by type",
-        default='ADDON',
+        default='ALL',
     )
     WindowManager.extension_use_filter = BoolProperty(
         name="Filter Extensions",
