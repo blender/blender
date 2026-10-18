@@ -816,6 +816,95 @@ class AlembicEmptyGeometrySamplesTests(AbstractAlembicTest):
                 self.assertEqual(len(points.points), 0)
 
 
+class AlembicAnimatedMaterialsImportTests(AbstractAlembicTest):
+    def setUp(self):
+        self._tempdir = tempfile.TemporaryDirectory()
+        self.tempdir = pathlib.Path(self._tempdir.name)
+
+    def do_export_and_import(self, file_name):
+        blend_file_name = file_name + '.blend'
+        abc_file_name = file_name + '.abc'
+
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / blend_file_name))
+
+        abc_path = self.tempdir / abc_file_name
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_export(
+            filepath=str(abc_path),
+            face_sets=True,
+        ))
+
+        # Re-import what we just exported into an empty file.
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "empty.blend"))
+        res = bpy.ops.wm.alembic_import(
+            filepath=str(abc_path),
+            as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+    def do_import_test(self, file_name):
+        self.do_export_and_import(file_name)
+
+        # Verify that all materials are present
+        ob = bpy.context.active_object
+        mesh = ob.data
+
+        material_names = ['White', 'Red', 'Green', 'Blue', 'default']
+
+        for material_name in material_names:
+            self.assertIn(material_name, mesh.materials)
+
+        # Verify that we have a MeshSequenceCache modifier
+        self.assertEqual(len(ob.modifiers), 1)
+
+        modifier = ob.modifiers[0]
+        self.assertEqual(modifier.type, 'MESH_SEQUENCE_CACHE')
+
+        # Verify that we have the right materials on each frame
+        for frame in range(1, 13):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            ob_eval = ob.evaluated_get(depsgraph)
+            mesh_eval = ob_eval.data
+
+            if frame > 4 and frame < 9:
+                for polygon_index, polygon in enumerate(mesh_eval.polygons):
+                    self.assertEqual(polygon.material_index, 4)
+                    self.assertEqual(ob_eval.material_slots[polygon.material_index].name, material_names[4])
+            else:
+                frame_index = (frame - 1) % 4
+
+                for polygon_index, polygon in enumerate(mesh_eval.polygons):
+                    expected_index = polygon_index if frame_index >= polygon_index else 0
+                    # NOTE: in the blend file, the materials are written in the same order as in the material names array above.
+                    # However, due to the export process, the names are sorted, which in this case happens to be the reverse order of the array
+                    # so we can simply subtract the expected index from the largest index to get the corrected/sorted value.
+                    # We use 3 - expected_index as the last material (index 4) is not part of the original blend file (so does not count).
+                    corrected_index = 3 - expected_index
+                    self.assertEqual(polygon.material_index, corrected_index)
+                    self.assertEqual(ob_eval.material_slots[corrected_index].name, material_names[expected_index])
+
+    def test_materials_static_mesh(self):
+        self.do_import_test("animated-materials-static-mesh")
+
+    def test_materials_dynamic_mesh(self):
+        self.do_import_test("animated-materials-dynamic-mesh")
+
+    def test_stale_material_index(self):
+        self.do_export_and_import('stale-material-index')
+
+        ob = bpy.context.active_object
+        material_indices = [[0, 1], [0, 0]]
+
+        # Verify that we have the right materials on each frame
+        for frame_index, frame in enumerate(range(1, 3)):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            ob_eval = ob.evaluated_get(depsgraph)
+            mesh_eval = ob_eval.data
+
+            for polygon_index, polygon in enumerate(mesh_eval.polygons):
+                self.assertEqual(polygon.material_index, material_indices[frame_index][polygon_index])
+
+
 class AlembicImportComparisonTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
