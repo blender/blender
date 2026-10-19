@@ -2321,13 +2321,17 @@ static void adaptive_domain_adjust(
   }
 
   if (res_changed || shift_changed) {
+    int o_res[3];
+    copy_v3_v3_int(o_res, fds->res);
+    /* The new fluid object sizes its guiding grid from the domain resolution. */
+    copy_v3_v3_int(fds->res, res);
+
     BKE_fluid_reallocate_copy_fluid(
-        fds, fds->res, res, fds->res_min, min, fds->res_max, temp_shift, total_shift);
+        fds, o_res, res, fds->res_min, min, fds->res_max, temp_shift, total_shift);
 
     /* set new domain dimensions */
     copy_v3_v3_int(fds->res_min, min);
     copy_v3_v3_int(fds->res_max, max);
-    copy_v3_v3_int(fds->res, res);
     fds->total_cells = total_cells;
 
     /* Redo adapt time step in manta to refresh solver state (ie time variables) */

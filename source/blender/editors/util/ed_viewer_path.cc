@@ -460,6 +460,9 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
         if (viewer_node == nullptr) {
           continue;
         }
+        if (viewer_node->type_legacy != GEO_NODE_VIEWER) {
+          continue;
+        }
         if (!(viewer_node->flag & NODE_DO_OUTPUT)) {
           continue;
         }
