@@ -198,7 +198,7 @@ static int count_indices_with_table(const Span<int> ids,
                                     MutableSpan<int> r_group_indices,
                                     Vector<int> *r_first_indices)
 {
-  const int id_min = id_bounds.min;
+  const int64_t id_min = id_bounds.min;
   const int64_t ids_range = int64_t(id_bounds.max) - int64_t(id_bounds.min) + 1;
 
   /* Find the first element with each ID. */
@@ -245,7 +245,8 @@ int group_ids_to_indices(const Span<int> ids,
     return 0;
   }
 
-  if (id_bounds->size() < mask.size() * 4) {
+  const int64_t ids_range = int64_t(id_bounds->max) - int64_t(id_bounds->min) + 1;
+  if (ids_range < mask.size() * 4) {
     return count_indices_with_table(ids, mask, *id_bounds, r_group_indices, r_first_indices);
   }
 
