@@ -196,6 +196,14 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, unexpected data size"
             ),
+            "invalid_struct_size_grease_pencil_drawing.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
+            "invalid_struct_size_grease_pencil_layer.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
             "invalid_struct_size_modifier.blend": (
                 (OSError, RuntimeError),
                 "Corrupt .blend file, unexpected data size"
