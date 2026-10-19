@@ -37,6 +37,26 @@ template void f<A>(A);
     EXPECT_EQ(error, "");
   }
   {
+    /* Templated array size. */
+    string input = R"(
+template<int DIM> void mov(float r[DIM])
+{
+  float a[DIM][DIM];
+}
+template void mov<5>(float[]);
+)";
+    string expect = R"(
+                  void movT5(float r[5])
+{
+  float a[5][5];
+}
+
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
     string input = R"(
 template<typename T>
 void func() { T a; }

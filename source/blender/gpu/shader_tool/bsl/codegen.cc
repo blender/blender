@@ -2726,17 +2726,24 @@ struct CodegenContext : NodeErrorHandler {
     for (Subscript sub : array.children_of_type<Subscript>()) {
       if (sub.is_empty()) {
         error(decl, Diag::ArrayMultidimensionalImplicitSize);
+        continue;
       }
-      else {
-        auto [result, err] = table.expr_type_analysis(scope, sub.expr().child_first());
-        /* Note: Do not report error. The size might be defined by compilation constant. */
-        if (!err && result.is_constexpr()) {
-          if (result.value.comp_as<int>(0) <= 0) {
-            error(decl, Diag::ArraySizeMustBeGreaterThanZero);
-          }
+
+      auto [result, err] = table.expr_type_analysis(scope, sub.expr().child_first());
+      /* Note: Do not report error. The size might be defined by compilation constant. */
+      if (!err && result.is_constexpr()) {
+        int size = result.value.comp_as<int>(0);
+        if (size <= 0) {
+          error(decl, Diag::ArraySizeMustBeGreaterThanZero);
+        }
+        else {
+          builder.curr = sub.back();
+          builder << "[" + to_string(size) + "]" + trivia(sub);
         }
       }
-      builder << sub;
+      else {
+        builder << sub;
+      }
     }
   }
 
