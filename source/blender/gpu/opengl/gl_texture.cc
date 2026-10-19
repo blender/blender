@@ -46,8 +46,8 @@ GLTexture::~GLTexture()
     GPU_framebuffer_free(framebuffer_);
   }
   GLContext *ctx = GLContext::get();
-  if (ctx != nullptr && is_bound_) {
-    /* This avoid errors when the texture is still inside the bound texture array. */
+  if (ctx != nullptr && (is_bound_ || is_bound_image_)) {
+    /* This avoid errors when the texture is still inside the bound texture/image array. */
     ctx->state_manager->texture_unbind(this);
     ctx->state_manager->image_unbind(this);
   }
