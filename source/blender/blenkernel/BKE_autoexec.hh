@@ -12,3 +12,9 @@
  * \return Success
  */
 bool BKE_autoexec_match(const char *path);
+
+/**
+ * \return True when scripts in the blend-file at `filepath` are trusted to run automatically
+ * by default, used for "Trusted Source" when opening the file.
+ */
+bool BKE_autoexec_default_trust_source(const char *filepath);

@@ -16,12 +16,10 @@
 
 #include "BLI_fnmatch.h"
 #include "BLI_path_utils.hh"
-
-#ifdef WIN32
-#  include "BLI_string.h"
-#endif
+#include "BLI_string.h"
 
 #include "BKE_autoexec.hh" /* own include */
+#include "BKE_global.hh"
 
 bool BKE_autoexec_match(const char *path)
 {
@@ -52,4 +50,24 @@ bool BKE_autoexec_match(const char *path)
   }
 
   return false;
+}
+
+bool BKE_autoexec_default_trust_source(const char *filepath)
+{
+  if (G.autoexec_override.has_value()) {
+    /* The command line forced auto-execution on or off, excluded paths don't apply. */
+    return *G.autoexec_override;
+  }
+  if (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) {
+    /* Nothing is trusted by default, the user may still opt-in. */
+    return false;
+  }
+
+  char dirpath[FILE_MAX];
+  STRNCPY(dirpath, filepath);
+  BLI_path_canonicalize_native(dirpath, sizeof(dirpath));
+  /* Truncating at the file name leaves the trailing slash. */
+  *const_cast<char *>(BLI_path_basename(dirpath)) = '\0';
+
+  return !BKE_autoexec_match(dirpath);
 }

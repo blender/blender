@@ -17,6 +17,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_autoexec.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
@@ -144,6 +145,7 @@ int uiTemplateRecentFiles(uiLayout *layout, int rows)
                                 UI_ITEM_NONE);
     RNA_string_set(&ptr, "filepath", recent->filepath);
     RNA_boolean_set(&ptr, "display_file_selector", false);
+    RNA_boolean_set(&ptr, "use_scripts", BKE_autoexec_default_trust_source(recent->filepath));
 
     uiBlock *block = uiLayoutGetBlock(layout);
     uiBut *but = ui_but_last(block);

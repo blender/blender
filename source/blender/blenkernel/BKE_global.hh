@@ -11,6 +11,8 @@
  *   for every fresh Blender run.
  */
 
+#include <optional>
+
 #include "DNA_listBase.h"
 
 struct Main;
@@ -126,6 +128,15 @@ struct Global {
    */
   int f;
 
+  /**
+   * Command line override for the #USER_SCRIPT_AUTOEXEC_DISABLE preference,
+   * set for the whole session.
+   *
+   * The user may opt in or out when opening a file interactively,
+   * files opened afterwards still default to this value.
+   */
+  std::optional<bool> autoexec_override;
+
   struct {
     /**
      * Logging vars (different loggers may use).
@@ -220,8 +231,6 @@ enum {
   G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE = (1 << 12),
 
   G_FLAG_SCRIPT_AUTOEXEC = (1 << 13),
-  /** When this flag is set ignore the preferences #USER_SCRIPT_AUTOEXEC_DISABLE. */
-  G_FLAG_SCRIPT_OVERRIDE_PREF = (1 << 14),
   G_FLAG_SCRIPT_AUTOEXEC_FAIL = (1 << 15),
   G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET = (1 << 16),
 
@@ -236,9 +245,9 @@ enum {
 
 /** Don't overwrite these flags when reading a file. */
 #define G_FLAG_ALL_RUNTIME \
-  (G_FLAG_SCRIPT_AUTOEXEC | G_FLAG_SCRIPT_OVERRIDE_PREF | G_FLAG_INTERNET_ALLOW | \
-   G_FLAG_INTERNET_OVERRIDE_PREF_ONLINE | G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE | \
-   G_FLAG_EVENT_SIMULATE | G_FLAG_USERPREF_NO_SAVE_ON_EXIT | G_FLAG_GPU_BACKEND_FALLBACK | \
+  (G_FLAG_SCRIPT_AUTOEXEC | G_FLAG_INTERNET_ALLOW | G_FLAG_INTERNET_OVERRIDE_PREF_ONLINE | \
+   G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE | G_FLAG_EVENT_SIMULATE | \
+   G_FLAG_USERPREF_NO_SAVE_ON_EXIT | G_FLAG_GPU_BACKEND_FALLBACK | \
    G_FLAG_GPU_BACKEND_FALLBACK_QUIET | \
 \
    /* #BPY_python_reset is responsible for resetting these flags on file load. */ \

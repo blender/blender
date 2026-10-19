@@ -41,6 +41,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_autoexec.hh"
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -1724,6 +1725,8 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
         WM_operator_properties_create_ptr(&props_ptr, ot);
         RNA_string_set(&props_ptr, "filepath", path);
         RNA_boolean_set(&props_ptr, "display_file_selector", false);
+        /* There is no file selector to show the "Trusted Source" option, use its default. */
+        RNA_boolean_set(&props_ptr, "use_scripts", BKE_autoexec_default_trust_source(path));
         WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);
         WM_operator_properties_free(&props_ptr);
 

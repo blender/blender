@@ -3634,7 +3634,7 @@ class WM_OT_drop_blend_file(Operator):
         context.window_manager.popup_menu(self.draw_menu, title=bpy.path.basename(self.filepath), icon='QUESTION')
         return {'FINISHED'}
 
-    def draw_menu(self, menu, _context):
+    def draw_menu(self, menu, context):
         layout = menu.layout
 
         col = layout.column()
@@ -3642,6 +3642,12 @@ class WM_OT_drop_blend_file(Operator):
         props = col.operator("wm.open_mainfile", text="Open", icon='FILE_FOLDER')
         props.filepath = self.filepath
         props.display_file_selector = False
+        # Use the default trust for this file, not the trust of the file already open.
+        if (autoexec_override := bpy.app.autoexec_override) is not None:
+            props.use_scripts = autoexec_override
+        elif not context.preferences.filepaths.use_scripts_auto_execute:
+            props.use_scripts = False
+        # Otherwise leave it unset, so excluded paths are checked on load.
 
         layout.separator()
         col = layout.column()
