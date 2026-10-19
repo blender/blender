@@ -1408,7 +1408,11 @@ void modifier_blend_write(BlendWriter *writer, ListBase *modbase)
 
 void modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
 {
-  BLO_read_struct_list(reader, StripModifierData, lb);
+  BLO_read_struct_list_with_type_size<StripModifierData>(
+      reader, lb, [](const StripModifierData &smd) {
+        const StripModifierTypeInfo *smti = modifier_type_info_get(smd.type);
+        return smti ? size_t(smti->struct_size) : sizeof(StripModifierData);
+      });
 
   LISTBASE_FOREACH (StripModifierData *, smd, lb) {
     if (smd->mask_strip) {
