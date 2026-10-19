@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-12 07:32+0000\n"
+"POT-Creation-Date: 2026-10-19 07:32+0000\n"
 "PO-Revision-Date: 2026-10-06 23:12+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -36723,300 +36723,300 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Light"
-msgstr "ライト"
-
-
-msgid "Metaball"
-msgstr "メタボール"
-
-
-msgid "Select More/Less"
-msgstr "選択の拡大縮小"
-
-
-msgid "View Regions"
-msgstr "ビュー領域設定"
-
-
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
-
-
-msgid "Align View"
-msgstr "視点を揃える"
-
-
-msgid "Read"
-msgstr "読込"
-
-
-msgid "Clean Up"
-msgstr "クリーンアップ"
-
-
-msgid "Math"
-msgstr "数式"
-
-
-msgid "Navigation"
-msgstr "視点の操作"
-
-
 msgid "Show/Hide"
 msgstr "表示/隠す"
-
-
-msgid "Write"
-msgstr "書込"
-
-
-msgid "Viewpoint"
-msgstr "視点"
-
-
-msgid "Hooks"
-msgstr "フック"
-
-
-msgid "Link/Transfer Data"
-msgstr "データのリンク/転送"
-
-
-msgid "Primitives"
-msgstr "プリミティブ"
-
-
-msgid "Deprecated"
-msgstr "廃止予定"
-
-
-msgid "Utilities"
-msgstr "ユーティリティ"
-
-
-msgid "Local View"
-msgstr "ローカルビュー"
-
-
-msgid "Convert"
-msgstr "変換"
-
-
-msgid "Set Face Strength"
-msgstr "面の強さを設定"
-
-
-msgid "Select by Face Strength"
-msgstr "面の強さで選択"
-
-
-msgid "Face Data"
-msgstr "面データ"
-
-
-msgid "Make Single User"
-msgstr "シングルユーザー化"
-
-
-msgid "Import"
-msgstr "インポート"
-
-
-msgid "Sample"
-msgstr "サンプル"
-
-
-msgid "Asset"
-msgstr "アセット"
-
-
-msgid "Kerning"
-msgstr "カーニング"
-
-
-msgid "Layout"
-msgstr "レイアウト"
-
-
-msgid "Special Characters"
-msgstr "特殊文字"
-
-
-msgid "Linked"
-msgstr "リンク"
 
 
 msgid "Creative"
 msgstr "クリエイティブ"
 
 
-msgid "Mesh Select Mode"
-msgstr "メッシュ選択モード"
+msgid "Clean Up"
+msgstr "クリーンアップ"
 
 
-msgid "Quick Effects"
-msgstr "クイックエフェクト"
+msgid "Special Characters"
+msgstr "特殊文字"
 
 
-msgid "Disable Bone Options"
-msgstr "ボーンオプションを無効化"
+msgid "Kerning"
+msgstr "カーニング"
 
 
-msgid "Enable Bone Options"
-msgstr "ボーンオプションを有効化"
-
-
-msgid "Toggle Bone Options"
-msgstr "ボーンオプションを切り替え"
-
-
-msgid "Instances"
-msgstr "インスタンス"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Gizmo"
-msgstr "ギズモ"
-
-
-msgid "Apply"
-msgstr "適用"
+msgid "Metaball"
+msgstr "メタボール"
 
 
 msgid "Names"
 msgstr "名前"
 
 
-msgid "Bone Collections"
-msgstr "ボーンコレクション"
-
-
-msgid "Keying"
-msgstr "キーイング"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Light Probe"
-msgstr "ライトプローブ"
-
-
-msgid "Propagate"
-msgstr "伝播"
-
-
-msgid "In-Betweens"
-msgstr "中間ポーズ"
-
-
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
-msgid "Clear Transform"
-msgstr "トランスフォームをクリア"
-
-
-msgid "Snap"
-msgstr "スナップ"
-
-
-msgid "Mirror"
-msgstr "ミラー"
-
-
-msgid "Assign Material"
-msgstr "マテリアルを割り当て"
-
-
-msgid "Random Mask"
-msgstr "ランダムマスク"
-
-
-msgid "Face Sets Init"
-msgstr "面セットを初期化"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "スカルプトピボット設定"
-
-
-msgid "Mask Edit"
-msgstr "マスク編集"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂点グループのロック"
-
-
-msgid "Trim/Add"
-msgstr "トリム/追加"
-
-
-msgid "Select Loops"
-msgstr "ループ選択"
-
-
 msgid "Bone Roll"
 msgstr "ボーンロール"
-
-
-msgid "Face Sets Edit"
-msgstr "面セット編集"
-
-
-msgid "Select Linked"
-msgstr "リンク選択"
-
-
-msgid "Automasking"
-msgstr "自動マスク"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "プロポーショナル編集の減衰タイプ"
-
-
-msgid "Render Preview"
-msgstr "レンダープレビュー"
-
-
-msgid "Track"
-msgstr "トラック"
-
-
-msgid "Select All by Trait"
-msgstr "特徴で全選択"
-
-
-msgid "Select Similar"
-msgstr "類似選択"
-
-
-msgid "Relations"
-msgstr "関係"
-
-
-msgid "Add Image"
-msgstr "画像を追加"
 
 
 msgid "Pivot Point"
 msgstr "ピボットポイント"
 
 
-msgid "Tracking"
-msgstr "トラッキング"
+msgid "Snap"
+msgstr "スナップ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "プロポーショナル編集の減衰タイプ"
+
+
+msgid "Mask Edit"
+msgstr "マスク編集"
+
+
+msgid "Automasking"
+msgstr "自動マスク"
+
+
+msgid "Face Sets Edit"
+msgstr "面セット編集"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂点グループのロック"
+
+
+msgid "Math"
+msgstr "数式"
+
+
+msgid "Utilities"
+msgstr "ユーティリティ"
+
+
+msgid "Read"
+msgstr "読込"
+
+
+msgid "Sample"
+msgstr "サンプル"
+
+
+msgid "Mirror"
+msgstr "ミラー"
+
+
+msgid "Write"
+msgstr "書込"
+
+
+msgid "UV Mapping"
+msgstr "UVマッピング"
+
+
+msgid "Primitives"
+msgstr "プリミティブ"
+
+
+msgid "Local View"
+msgstr "ローカルビュー"
+
+
+msgid "Viewpoint"
+msgstr "視点"
+
+
+msgid "Navigation"
+msgstr "視点の操作"
+
+
+msgid "Align View"
+msgstr "視点を揃える"
+
+
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
+
+
+msgid "View Regions"
+msgstr "ビュー領域設定"
+
+
+msgid "Select More/Less"
+msgstr "選択の拡大縮小"
+
+
+msgid "Select Similar"
+msgstr "類似選択"
+
+
+msgid "Select All by Trait"
+msgstr "特徴で全選択"
+
+
+msgid "Gizmo"
+msgstr "ギズモ"
+
+
+msgid "Instances"
+msgstr "インスタンス"
+
+
+msgid "Select Linked"
+msgstr "リンク選択"
+
+
+msgid "Select Loops"
+msgstr "ループ選択"
+
+
+msgid "Import"
+msgstr "インポート"
+
+
+msgid "Assign Material"
+msgstr "マテリアルを割り当て"
+
+
+msgid "Deprecated"
+msgstr "廃止予定"
+
+
+msgid "Render Preview"
+msgstr "レンダープレビュー"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "ライト"
+
+
+msgid "Light Probe"
+msgstr "ライトプローブ"
+
+
+msgid "Add Image"
+msgstr "画像を追加"
+
+
+msgid "Relations"
+msgstr "関係"
 
 
 msgid "Rigid Body"
 msgstr "リジッドボディ"
+
+
+msgid "Apply"
+msgstr "適用"
+
+
+msgid "Track"
+msgstr "トラック"
+
+
+msgid "Quick Effects"
+msgstr "クイックエフェクト"
+
+
+msgid "Asset"
+msgstr "アセット"
+
+
+msgid "Make Single User"
+msgstr "シングルユーザー化"
+
+
+msgid "Convert"
+msgstr "変換"
+
+
+msgid "Link/Transfer Data"
+msgstr "データのリンク/転送"
+
+
+msgid "Hooks"
+msgstr "フック"
+
+
+msgid "Trim/Add"
+msgstr "トリム/追加"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "スカルプトピボット設定"
+
+
+msgid "Face Sets Init"
+msgstr "面セットを初期化"
+
+
+msgid "Random Mask"
+msgstr "ランダムマスク"
+
+
+msgid "Clear Transform"
+msgstr "トランスフォームをクリア"
+
+
+msgid "Linked"
+msgstr "リンク"
+
+
+msgid "In-Betweens"
+msgstr "中間ポーズ"
+
+
+msgid "Layout"
+msgstr "レイアウト"
+
+
+msgid "Propagate"
+msgstr "伝播"
+
+
+msgid "Bone Collections"
+msgstr "ボーンコレクション"
+
+
+msgid "Toggle Bone Options"
+msgstr "ボーンオプションを切り替え"
+
+
+msgid "Enable Bone Options"
+msgstr "ボーンオプションを有効化"
+
+
+msgid "Disable Bone Options"
+msgstr "ボーンオプションを無効化"
+
+
+msgid "Mesh Select Mode"
+msgstr "メッシュ選択モード"
+
+
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Face Data"
+msgstr "面データ"
+
+
+msgid "Keying"
+msgstr "キーイング"
+
+
+msgid "Select by Face Strength"
+msgstr "面の強さで選択"
+
+
+msgid "Set Face Strength"
+msgstr "面の強さを設定"
+
+
+msgid "Tracking"
+msgstr "トラッキング"
 
 
 msgid "Merge"
@@ -57803,20 +57803,6 @@ msgid "Move Variable"
 msgstr "変数を移動"
 
 
-msgid "Create a new project"
-msgstr "新しいプロジェクトを作成します"
-
-
-msgctxt "Operator"
-msgid "New Project"
-msgstr "新規プロジェクト"
-
-
-msgctxt "Operator"
-msgid "Open File..."
-msgstr "ファイルを開く..."
-
-
 msgid "Remove the active variable from the current project"
 msgstr "現在のプロジェクトからアクティブ変数を削除します"
 
@@ -65628,14 +65614,6 @@ msgid "Export full hierarchy, including intermediate collections"
 msgstr "中間コレクションを含む，完全な階層をエクスポートします"
 
 
-msgid "Create WebP"
-msgstr "WebPを作成"
-
-
-msgid "Creates WebP textures for every texture. For already WebP textures, nothing happens"
-msgstr "テクスチャ毎に WebP テクスチャを作成します．既存の WebP テクスチャには何もしません"
-
-
 msgid "Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web applications due to the smaller file size. Alternatively they can be omitted if they are not needed"
 msgstr ""
 "画像用の出力フォーマット．PNG はロスレスで汎用，\n"
@@ -65677,14 +65655,6 @@ msgstr "画質"
 
 msgid "Quality of image export"
 msgstr "エクスポートする画像の品質"
-
-
-msgid "WebP Fallback"
-msgstr "WebPの代替"
-
-
-msgid "For all WebP textures, create a PNG fallback texture"
-msgstr "すべての WebP テクスチャにフォールバックの PNG テクスチャを作成します"
 
 
 msgid "Lighting Mode"
@@ -83976,12 +83946,13 @@ msgid "Move Down"
 msgstr "下に移動"
 
 
-msgid "Blend file path"
-msgstr "Blend ファイルパス"
+msgctxt "Operator"
+msgid "New Project"
+msgstr "新規プロジェクト"
 
 
-msgid "Filter blend files"
-msgstr "blend ファイルを絞り込みます"
+msgid "Create a new project"
+msgstr "新しいプロジェクトを作成します"
 
 
 msgctxt "Operator"
@@ -96273,72 +96244,76 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "Grease Pencil Options"
-msgstr "グリースペンシルオプション"
+msgid "Active Tool"
+msgstr "アクティブツール"
 
 
-msgid "glTF Material Variants"
-msgstr "glTFマテリアルバリアント"
-
-
-msgid "Quad View"
-msgstr "四分割表示"
-
-
-msgid "glTF Variants"
-msgstr "glTFバリアント"
-
-
-msgid "Measurement"
-msgstr "計測"
-
-
-msgid "Mesh Edit Mode"
-msgstr "メッシュ編集モード"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR情報"
+msgid "View Lock"
+msgstr "ビューのロック"
 
 
 msgid "Selectability & Visibility"
 msgstr "選択可否と可視性"
 
 
-msgid "Auto-Masking"
-msgstr "自動マスク"
+msgid "Shadow Settings"
+msgstr "影の設定"
 
 
-msgid "Active Tool"
-msgstr "アクティブツール"
+msgid "SSAO Settings"
+msgstr "SSAO設定"
 
 
-msgid "Multi Frame"
-msgstr "マルチフレーム"
+msgid "Cavity"
+msgstr "キャビティ"
 
 
-msgid "Stereoscopy"
-msgstr "立体視"
+msgid "Render Pass"
+msgstr "レンダーパス"
 
 
-msgid "Transform Orientations"
-msgstr "トランスフォーム座標系"
+msgid "Overlays"
+msgstr "オーバーレイ"
 
 
-msgid "Onion Skin"
-msgstr "オニオンスキン"
+msgid "Guides"
+msgstr "ガイド"
+
+
+msgid "Viewer Node"
+msgstr "ビューアーノード"
 
 
 msgid "Motion Tracking"
 msgstr "モーショントラッキング"
 
 
-msgid "Viewer Node"
-msgstr "ビューアーノード"
+msgid "Mesh Edit Mode"
+msgstr "メッシュ編集モード"
+
+
+msgid "Measurement"
+msgstr "計測"
+
+
+msgid "Curve Edit Mode"
+msgstr "カーブ編集モード"
+
+
+msgid "Curves Edit Mode"
+msgstr "ヘアーカーブ編集モード"
+
+
+msgid "glTF Variants"
+msgstr "glTFバリアント"
+
+
+msgid "glTF Material Variants"
+msgstr "glTFマテリアルバリアント"
+
+
+msgid "Transform Orientations"
+msgstr "トランスフォーム座標系"
 
 
 msgid "Stroke Placement"
@@ -96349,48 +96324,24 @@ msgid "Drawing Plane"
 msgstr "ドロー平面"
 
 
-msgid "Cavity"
-msgstr "キャビティ"
+msgid "Grease Pencil Options"
+msgstr "グリースペンシルオプション"
 
 
-msgid "SSAO Settings"
-msgstr "SSAO設定"
+msgid "Quad View"
+msgstr "四分割表示"
 
 
-msgid "Guides"
-msgstr "ガイド"
+msgid "Onion Skin"
+msgstr "オニオンスキン"
 
 
-msgid "Shadow Settings"
-msgstr "影の設定"
+msgid "Stereoscopy"
+msgstr "立体視"
 
 
-msgid "Curves Edit Mode"
-msgstr "ヘアーカーブ編集モード"
-
-
-msgid "Curve Edit Mode"
-msgstr "カーブ編集モード"
-
-
-msgid "View Lock"
-msgstr "ビューのロック"
-
-
-msgid "Viewport Debug"
-msgstr "ビューポートデバッグ"
-
-
-msgid "Overlays"
-msgstr "オーバーレイ"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "カーブスケールを拡大/収縮"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "カーブスカルプトパラメーター減衰"
+msgid "Multi Frame"
+msgstr "マルチフレーム"
 
 
 msgid "glTF"
@@ -96401,12 +96352,32 @@ msgid "glTF Animations"
 msgstr "glTFアニメーション"
 
 
+msgid "Auto-Masking"
+msgstr "自動マスク"
+
+
 msgid "Curves Sculpt Add Curve Options"
 msgstr "カーブスカルプトカーブ追加オプション"
 
 
-msgid "Render Pass"
-msgstr "レンダーパス"
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "カーブスカルプトパラメーター減衰"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "カーブスケールを拡大/収縮"
+
+
+msgid "Viewport Debug"
+msgstr "ビューポートデバッグ"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR情報"
 
 
 msgid "Import Settings"
@@ -97216,6 +97187,10 @@ msgstr "ヘルパー"
 
 msgid "High Viscosity Solver"
 msgstr "高粘度ソルバー"
+
+
+msgid "Splash Screen"
+msgstr "スプラッシュ画面"
 
 
 msgid "Show options for the properties editor"
@@ -126018,6 +125993,10 @@ msgid "Data Passes"
 msgstr "データパス"
 
 
+msgid "Motion"
+msgstr "モーション"
+
+
 msgid "Follow Reflections"
 msgstr "反射の追跡"
 
@@ -128309,10 +128288,6 @@ msgid "Liquid Domain"
 msgstr "液体ドメイン"
 
 
-msgid "No active mesh object."
-msgstr "アクティブメッシュオブジェクトがありません."
-
-
 msgid "Select at least one mesh object"
 msgstr "メッシュオブジェクトを選択してください"
 
@@ -128425,52 +128400,8 @@ msgid "Failed to execute the preset: {:s}"
 msgstr "プリセットの実行に失敗しました：{:s}"
 
 
-msgid "Cannot save project because there is no project to save."
-msgstr "プロジェクトが保存できません．保存するプロジェクトがありません."
-
-
-msgid "Cannot create a project with an empty directory path."
-msgstr "ディレクトリパスが空のプロジェクトは作成できません."
-
-
-msgid "New project directory must be a parent of the currently open blend file."
-msgstr "新規プロジェクトディレクトリは現在開いている blend ファイルの親にしてください."
-
-
-msgid "Selected blend file is not part of a project."
-msgstr "選択中の blend ファイルはプロジェクトの一部ではありません."
-
-
 msgid "Cannot create an asset library with an empty directory path."
 msgstr "ディレクトリパスが空のアセットライブラリは作成できません."
-
-
-msgid "Cannot write project to non-absolute path."
-msgstr "非絶対パスへのプロジェクト書き込みはできません."
-
-
-msgid "Cannot save project: root directory does not exist."
-msgstr "プロジェクトが保存不可：ルートディレクトリがありません."
-
-
-msgid "Cannot access '{:s}' due to file-system permissions."
-msgstr "「{:s}」がファイルシステムの権限の所為でアクセスできません."
-
-
-msgid "Cannot create '{:s}' directory due to file-system permissions."
-msgstr "「{:s}」ディレクトリがファイルシステムの権限により作成できません."
-
-
-msgid "Cannot write to '{:s}' due to file-system permissions."
-msgstr "「{:s}」がファイルシステムの権限により作成できません."
-
-
-msgid "Project has no {:s} file."
-msgstr "プロジェクトに {:s} ファイルがありません."
-
-
-msgid "Cannot access {:s} file due to file-system permissions."
-msgstr "{:s} ファイルがファイルシステムの権限によりアクセスできません."
 
 
 msgid "No other objects selected"
@@ -128654,6 +128585,11 @@ msgstr "{:d} 個（{:d} 個中）の{:s}をリネームしました"
 
 
 msgctxt "Operator"
+msgid "New Project..."
+msgstr "新規プロジェクト..."
+
+
+msgctxt "Operator"
 msgid "Open..."
 msgstr "開く..."
 
@@ -128730,6 +128666,11 @@ msgstr "新規プリファレンスを保存"
 msgctxt "Operator"
 msgid "Continue"
 msgstr "続ける"
+
+
+msgctxt "Operator"
+msgid "Close"
+msgstr "閉じる"
 
 
 msgctxt "Operator"
@@ -132866,11 +132807,6 @@ msgid "Save File..."
 msgstr "ファイルを保存..."
 
 
-msgctxt "Operator"
-msgid "New Project..."
-msgstr "新規プロジェクト..."
-
-
 msgid "{:.3f}"
 msgstr "{:.3f}"
 
@@ -133862,10 +133798,6 @@ msgstr "プリファレンスを自動保存"
 msgctxt "Operator"
 msgid "Revert to Saved Preferences"
 msgstr "保存したプリファレンスに戻す"
-
-
-msgid "Splash Screen"
-msgstr "スプラッシュ画面"
 
 
 msgid "User Tooltips"
@@ -136147,11 +136079,6 @@ msgstr "アクティブレイヤーを隠す"
 msgctxt "Operator"
 msgid "Hide Inactive Layers"
 msgstr "非アクティブレイヤーを隠す"
-
-
-msgctxt "Operator"
-msgid "Close"
-msgstr "閉じる"
 
 
 msgid "To 3D Cursor"
@@ -153677,10 +153604,6 @@ msgstr "グリッド「%s」がありません"
 
 msgid "Could not generate mesh from grid"
 msgstr "グリッドからメッシュを生成できませんでした"
-
-
-msgid "Motion"
-msgstr "モーション"
 
 
 msgid "Along Normals"
