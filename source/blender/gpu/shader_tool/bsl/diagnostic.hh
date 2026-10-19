@@ -95,6 +95,7 @@ template<typename... Args> std::string format(const std::string &fmt, Args &&...
 
 enum class Diag {
   CompilerErrorADLOnTypesNotAllowed,
+  CompilerErrorInvalidFunctionLookup,
   CompilerErrorMemberFuncNoClass,
   CompilerErrorChildScopeNotFound,
 
@@ -334,6 +335,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Runtime capacity requires the array to be sized to its maximum size";
     case Diag::CompilerErrorADLOnTypesNotAllowed:
       return "Cannot use ADL on types";
+    case Diag::CompilerErrorInvalidFunctionLookup:
+      return "Compiler error: invalid function lookup";
     case Diag::CompilerErrorMemberFuncNoClass:
       return "Compiler error: member function has no class";
     case Diag::CompilerErrorChildScopeNotFound:

@@ -47,6 +47,26 @@ struct SymbolMap : unordered_map<string, pair<SourceLocation, SymbolT *>> {
     return pair<SymbolT *, bool>(it->second.second, success);
   }
 
+  pair<SymbolT *, bool> insert_override(SymbolT *sym)
+  {
+    auto [it, success] = this->insert_or_assign(sym->identifier,
+                                                pair<SourceLocation, SymbolT *>(sym->loc, sym));
+    return pair<SymbolT *, bool>(it->second.second, success);
+  }
+
+  pair<SymbolT *, bool> insert_override(const string &id, SymbolT *sym)
+  {
+    auto [it, success] = this->insert_or_assign(id,
+                                                pair<SourceLocation, SymbolT *>(sym->loc, sym));
+    return pair<SymbolT *, bool>(it->second.second, success);
+  }
+
+  pair<SymbolT *, bool> insert_override(const string &id, SymbolT *sym, SourceLocation loc)
+  {
+    auto [it, success] = this->insert_or_assign(id, pair<SourceLocation, SymbolT *>(loc, sym));
+    return pair<SymbolT *, bool>(it->second.second, success);
+  }
+
   SymbolT *operator[](const string &k)
   {
 
@@ -148,6 +168,7 @@ struct SymbolScope : Symbol {
 
   /* Can be null if this is not a class. */
   SymbolClass *as_class();
+  const SymbolClass *as_class() const;
   /* Can be null if this is not a function. */
   SymbolFunction *as_function();
   const SymbolFunction *as_function() const;
@@ -163,6 +184,10 @@ struct SymbolScope : Symbol {
   bool variable_emplace(string id, SymbolVariable *var);
   /* Returns true if redefined symbol. */
   bool variable_emplace(SymbolVariable *var);
+  /* Returns true if redefined symbol. Replace existing symbol. */
+  bool variable_override(string id, SymbolVariable *var);
+  /* Returns true if redefined symbol. Replace existing symbol. */
+  bool variable_override(SymbolVariable *var);
 
   vector<SymbolVariable *> non_static_variables_in_declaration_order() const;
 

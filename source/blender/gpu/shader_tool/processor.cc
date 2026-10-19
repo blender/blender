@@ -1839,6 +1839,7 @@ void SourceProcessor::lower_noop_keywords(Parser &parser)
       report_error(tok, "Expecting colon ':' after access specifier");
     }
   };
+  parser().foreach_token(Protected, process_access);
   parser().foreach_token(Private, process_access);
   parser().foreach_token(Public, process_access);
 

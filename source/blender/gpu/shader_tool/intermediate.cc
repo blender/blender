@@ -311,6 +311,8 @@ static always_inline TokenType type_lookup(std::string_view s)
       return (s == "constexpr") ? Constexpr : Word;
     case perfect_hash("namespace"):
       return (s == "namespace") ? Namespace : Word;
+    case perfect_hash("protected"):
+      return (s == "protected") ? Protected : Word;
     default:
       return Word;
   }

@@ -201,6 +201,13 @@ struct BSLParser {
         /* Supported because of explicit host shared struct members and C++ shared code. */
         return next().is_valid();
       }
+      if (match_if(':')) {
+        /* Inheritance. */
+        do {
+          match_if(Public, Private, Protected);
+          qualified_id();
+        } while (match_if(','));
+      }
     }
     {
       NODE(LocalScope);
@@ -218,6 +225,7 @@ struct BSLParser {
         case Hash:
           preprocessor_directive();
           break;
+        case Protected:
         case Private:
         case Public: {
           NODE(AccessSpecifier);

@@ -33,6 +33,35 @@ Result<vector<SymbolClass::MemberNode>, TokenException> SymbolClass::get_all_mem
   return {flat_buffer, err};
 }
 
+std::string SymbolClass::get_path_to_base_class(const SymbolClass *base) const
+{
+  for (auto [_, cls] : base_classes) {
+    if (cls == base) {
+      return "._" + cls->identifier;
+    }
+    std::string path = cls->get_path_to_base_class(base);
+    if (!path.empty()) {
+      return "._" + cls->identifier + path;
+    }
+  }
+  return "";
+}
+
+int SymbolClass::get_conversion_index(const SymbolClass *base) const
+{
+  int conversion_index = 1;
+  for (auto [_, cls] : base_classes) {
+    if (cls == base) {
+      return conversion_index;
+    }
+    int base_index = cls->get_conversion_index(base);
+    if (base_index) {
+      return conversion_index + base_index;
+    }
+  }
+  return 0;
+}
+
 /* Recursive helper to accumulate path and offsets */
 optional<TokenException> SymbolClass::get_flat_members_recursive(const SymbolClass *cls,
                                                                  const string &current_path,
@@ -93,8 +122,8 @@ void SymbolClass::ensure_size_and_align(NodeErrorHandler *err_handler, bool chec
   }
   size = 0;
   align = 1;
-  is_std140_compatible = true;
-  is_std430_compatible = true;
+  is_std140_compatible = !this->has_inheritance();
+  is_std430_compatible = !this->has_inheritance();
   for (SymbolVariable *var : non_static_variables_in_declaration_order()) {
     if (var->bit_offset != 0) {
       /* Aliased to the first member of the bitfield, which is the only one taking storage. */

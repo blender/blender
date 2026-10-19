@@ -669,6 +669,13 @@ MatchRank SymbolTable::get_conversion_rank(const SymbolClass *from,
   }
 
   if (!from->is_builtin()) {
+    /* Check if convertible through inheritance. */
+    if (!to->is_builtin() && from->has_inheritance()) {
+      int conversion_index = from->get_conversion_index(to);
+      if (conversion_index > 0) {
+        return {MatchRank::Conversion, uint8_t(conversion_index)};
+      }
+    }
     return MatchRank::None;
   }
 
