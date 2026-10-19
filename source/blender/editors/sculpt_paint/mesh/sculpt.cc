@@ -2473,30 +2473,6 @@ void apply_brush_texture(const PaintMode paint_mode,
   }
 }
 
-void calc_vertex_displacement(const SculptSession &ss, const Brush &brush, float translation[3])
-{
-  mul_v3_fl(translation, ss.cache->bstrength);
-  /* Handle brush inversion */
-  if (ss.cache->bstrength < 0) {
-    translation[0] *= -1;
-    translation[1] *= -1;
-  }
-
-  /* Apply texture size */
-  for (int i = 0; i < 3; ++i) {
-    translation[i] *= math::safe_divide(1.0f, pow2f(brush.mtex.size[i]));
-  }
-
-  /* Transform vector to object space */
-  mul_mat3_m4_v3(ss.cache->brush_local_mat_inv.ptr(), translation);
-
-  /* Handle symmetry */
-  if (ss.cache->radial_symmetry_pass) {
-    mul_m4_v3(ss.cache->symm_rot_mat.ptr(), translation);
-  }
-  copy_v3_v3(translation, symmetry_flip(translation, ss.cache->mirror_symmetry_pass));
-}
-
 bool node_fully_masked_or_hidden(const bke::pbvh::Node &node)
 {
   if (BKE_pbvh_node_fully_hidden_get(node)) {
@@ -2940,6 +2916,7 @@ static void update_brush_local_mat(const Sculpt &sd, Object &ob)
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0) {
     const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
     const MTex *mask_tex = BKE_brush_mask_texture_get(brush, PaintMode::Sculpt);
+    float4x4 unused;
     calc_brush_local_mat(mask_tex->rot,
                          cache->special_rotation,
                          ob,
@@ -2947,7 +2924,7 @@ static void update_brush_local_mat(const Sculpt &sd, Object &ob)
                              cache->sculpt_normal_symm :
                              cache->view_normal_symm,
                          cache->brush_local_mat.ptr(),
-                         cache->brush_local_mat_inv.ptr());
+                         unused.ptr());
   }
 }
 

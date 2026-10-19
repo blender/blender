@@ -319,11 +319,6 @@ struct StrokeCache {
    * Transforms from model-space coords to local area coords.
    */
   float4x4 brush_local_mat = float4x4::zero();
-  /**
-   * The matrix from local area coords to model-space coords is used to calculate the vector
-   * displacement in area plane mode.
-   */
-  float4x4 brush_local_mat_inv = float4x4::zero();
 
   /* used to shift the plane around when doing tiled strokes */
   float3 plane_offset = float3(0);
@@ -808,12 +803,6 @@ void apply_brush_texture(PaintMode paint_mode,
                          int thread_id,
                          float *r_value,
                          float4 &r_rgba);
-
-/**
- * Calculates the vertex offset for a single vertex depending on the brush setting rgb as vector
- * displacement.
- */
-void calc_vertex_displacement(const SculptSession &ss, const Brush &brush, float translation[3]);
 
 /**
  * Tilts a normal by the x and y tilt values using the view axis.
