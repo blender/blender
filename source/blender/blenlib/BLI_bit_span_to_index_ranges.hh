@@ -105,21 +105,36 @@ inline void bits_to_index_ranges(const BitSpan bits, IndexRangesBuilder<IntT> &b
     const int64_t ints_to_check = ranges.aligned.size() / BitsPerInt;
     int64_t int_i = 0;
 
-/* Checking for chunks of 0 bits can be speedup using intrinsics quite significantly. */
+/* Checking for chunks of 0 or 1 bits can be speed up using intrinsics quite significantly. */
 #if BLI_HAVE_SSE4
-    for (; int_i + 1 < ints_to_check; int_i += 2) {
+    while (int_i + 1 < ints_to_check) {
       /* Loads the next 128 bit. */
       const __m128i group = _mm_loadu_si128(reinterpret_cast<const __m128i *>(start + int_i));
       /* Checks if all the 128 bits are zero. */
       const bool group_is_zero = _mm_testz_si128(group, group);
       if (group_is_zero) {
+        int_i += 2;
         continue;
       }
-      /* If at least one of them is not zero, process the two integers separately. */
+      if (_mm_test_all_ones(group)) {
+        /* Add all subsequent integers with all bits set as a single range. */
+        const int64_t range_start_int_i = int_i;
+        int_i += 2;
+        while (int_i < ints_to_check && start[int_i] == ~BitInt(0)) {
+          int_i++;
+        }
+        const IndexRange range = IndexRange::from_begin_end(
+            ranges.prefix.size() + range_start_int_i * BitsPerInt,
+            ranges.prefix.size() + int_i * BitsPerInt);
+        append_range(range);
+        continue;
+      }
+      /* If the integers have a mix of 0 and 1 bits, process them separately. */
       for (int j = 0; j < 2; j++) {
         process_bit_int(
             start[int_i + j], 0, BitsPerInt, ranges.prefix.size() + (int_i + j) * BitsPerInt);
       }
+      int_i += 2;
     }
 #endif
 
