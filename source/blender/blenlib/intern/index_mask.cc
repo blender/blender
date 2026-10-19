@@ -791,11 +791,22 @@ void IndexMask::set_bits(MutableBitSpan r_bits, const int64_t offset) const
       r_bits.slice(shifted_range).set_all();
     }
     else {
+      /* Accumulate bits of each integer in a register to avoid read-modify-write operations. */
       const IndexMaskSegment indices = segment;
-      const IndexMaskSegment shifted_indices = indices.shift(offset);
+      const IndexMaskSegment shifted_indices = indices.shift(offset + r_bits.bit_range().start());
+      bits::BitInt *data = r_bits.data();
+      int64_t int_i = shifted_indices[0] >> bits::BitToIntIndexShift;
+      bits::BitInt value = 0;
       for (const int64_t i : shifted_indices) {
-        r_bits[i].set();
+        const int64_t new_int_i = i >> bits::BitToIntIndexShift;
+        if (new_int_i != int_i) {
+          data[int_i] |= value;
+          int_i = new_int_i;
+          value = 0;
+        }
+        value |= bits::mask_single_bit(i & int64_t(bits::BitIndexMask));
       }
+      data[int_i] |= value;
     }
   });
 }
