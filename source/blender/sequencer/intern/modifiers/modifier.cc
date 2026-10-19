@@ -708,7 +708,11 @@ void modifier_blend_write(BlendWriter *writer, ListBaseT<StripModifierData> *mod
 
 void modifier_blend_read_data(BlendDataReader *reader, ListBaseT<StripModifierData> *lb)
 {
-  BLO_read_struct_list(reader, StripModifierData, lb);
+  BLO_read_struct_list_with_type_size<StripModifierData>(
+      reader, lb, [](const StripModifierData &smd) {
+        const StripModifierTypeInfo *smti = modifier_type_info_get(smd.type);
+        return smti ? size_t(smti->struct_size) : sizeof(StripModifierData);
+      });
 
   for (StripModifierData &smd : *lb) {
     BLO_read_struct(reader, IDProperty, &smd.system_properties);
