@@ -502,7 +502,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 
 #if ONLY_WORKING_WITH_PA_VERTS
   if (ctx->tree) {
-    std::array<KDTreeNew<float3>::Nearest, 3> ptn;
+    std::array<KDTree<float3>::Nearest, 3> ptn;
     int w, maxw;
 
     psys_particle_on_dm(
@@ -724,7 +724,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
   cpa->num = ctx->index[p];
 
   if (ctx->tree) {
-    std::array<KDTreeNew<float3>::Nearest, 3> ptn;
+    std::array<KDTree<float3>::Nearest, 3> ptn;
     int w, maxw;  //, do_seams;
     float maxd /* , mind, dd */, totw = 0.0f;
     int parent[10];
@@ -901,7 +901,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   ParticleSettings *part;
   ParticleSeam *seams = nullptr;
   float3 *tree_positions = nullptr;
-  KDTreeNew<float3> *tree = nullptr;
+  KDTree<float3> *tree = nullptr;
   Mesh *mesh = nullptr;
   float *jit = nullptr;
   int i, p = 0;
@@ -1003,7 +1003,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       tree_positions[p] = orco;
     }
 
-    tree = MEM_new<KDTreeNew<float3>>(__func__, Span(tree_positions, totpart));
+    tree = MEM_new<KDTree<float3>>(__func__, Span(tree_positions, totpart));
 
     totpart = psys_get_tot_child(scene, psys, use_render_params);
     cfrom = from = PART_FROM_FACE;
@@ -1045,7 +1045,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
         tree_positions[p] = co;
       }
 
-      tree = MEM_new<KDTreeNew<float3>>(__func__, Span(tree_positions, totvert));
+      tree = MEM_new<KDTree<float3>>(__func__, Span(tree_positions, totvert));
     }
   }
 

@@ -23,14 +23,14 @@ namespace blender {
 
 namespace kdtree {
 
-/** A node of a #KDTreeNew. */
+/** A node of a #KDTree. */
 template<typename ValueT> struct Node {
   /**
    * Two children, allocated next to each other for better cache utilization. Null for a leaf node.
    */
   Node *children;
   union {
-    /** Leaf: the range of the tree's indices the node covers in #KDTreeNew::indices_. */
+    /** Leaf: the range of the tree's indices the node covers in #KDTree::indices_. */
     struct {
       int start;
       int end;
@@ -48,12 +48,12 @@ template<typename ValueT> struct Node {
   int dim;
 };
 
-/** A callable usable as the predicate for #KDTreeNew::find_nearest_filtered. */
+/** A callable usable as the predicate for #KDTree::find_nearest_filtered. */
 template<typename Filter>
 concept FilterFn = std::predicate<Filter, int>;
 
 /**
- * A type usable as the \a Query for #KDTreeNew::search, responsible for storing results and
+ * A type usable as the \a Query for #KDTree::search, responsible for storing results and
  * telling the search when to continue. See #NearestResult and the others beside it.
  */
 template<typename Query, typename ValueT>
@@ -81,7 +81,7 @@ concept QueryType = requires(Query &query, const ValueT distance_sq, const int i
  *
  * T can be `float2`, `float3` or `float4`, or `float` for a 1D tree.
  */
-template<typename T> class KDTreeNew : NonMovable, NonCopyable {
+template<typename T> class KDTree : NonMovable, NonCopyable {
   /**
    * #T as a vector type, which is what the build and the searches work with. Plain floats are
    * treated as 1D vectors, which have the same layout.
@@ -149,38 +149,38 @@ template<typename T> class KDTreeNew : NonMovable, NonCopyable {
    * Build a tree containing every point in \a points.
    * \note \a points must outlive the tree.
    */
-  explicit KDTreeNew(Span<T> points, int leaf_size = LEAF_SIZE_DEFAULT);
+  explicit KDTree(Span<T> points, int leaf_size = LEAF_SIZE_DEFAULT);
 
   /**
    * Build a tree containing the points selected by \a mask. Results are still indices into
    * \a points rather than positions in the mask.
    * \note \a points must outlive the tree, \a mask does not have to.
    */
-  KDTreeNew(Span<T> points, const IndexMask &mask, int leaf_size = LEAF_SIZE_DEFAULT);
+  KDTree(Span<T> points, const IndexMask &mask, int leaf_size = LEAF_SIZE_DEFAULT);
 
   /**
    * Build a tree containing the points at \a indices. Results are indices into \a points, not
    * positions in \a indices.
    * \note \a points must outlive the tree, \a indices does not have to.
    */
-  KDTreeNew(Span<T> points, Span<int> indices, int leaf_size = LEAF_SIZE_DEFAULT);
+  KDTree(Span<T> points, Span<int> indices, int leaf_size = LEAF_SIZE_DEFAULT);
 
   /**
    * The same constructors reusing an existing #LinearAllocator rather. This can be used to avoid
    * heap allocations when building a tree for a small number of points.
    * \note \a allocator must outlive the tree.
    */
-  KDTreeNew(Span<T> points, LinearAllocator<> &allocator, int leaf_size = LEAF_SIZE_DEFAULT);
-  KDTreeNew(Span<T> points,
-            const IndexMask &mask,
-            LinearAllocator<> &allocator,
-            int leaf_size = LEAF_SIZE_DEFAULT);
-  KDTreeNew(Span<T> points,
-            Span<int> indices,
-            LinearAllocator<> &allocator,
-            int leaf_size = LEAF_SIZE_DEFAULT);
+  KDTree(Span<T> points, LinearAllocator<> &allocator, int leaf_size = LEAF_SIZE_DEFAULT);
+  KDTree(Span<T> points,
+         const IndexMask &mask,
+         LinearAllocator<> &allocator,
+         int leaf_size = LEAF_SIZE_DEFAULT);
+  KDTree(Span<T> points,
+         Span<int> indices,
+         LinearAllocator<> &allocator,
+         int leaf_size = LEAF_SIZE_DEFAULT);
 
-  ~KDTreeNew();
+  ~KDTree();
 
   /** The number of points, which may be less than the size of #points for a masked tree. */
   int size() const;
@@ -465,13 +465,13 @@ inline bool keep_distance(const ValueT distance_sq, const ValueT max_distance_sq
  * a third point.
  */
 template<typename T>
-int calc_duplicates(const KDTreeNew<T> &tree,
-                    typename KDTreeNew<T>::value_type range,
+int calc_duplicates(const KDTree<T> &tree,
+                    typename KDTree<T>::value_type range,
                     Span<int> visit_order,
                     MutableSpan<int> duplicates);
 template<typename T>
-int calc_duplicates(const KDTreeNew<T> &tree,
-                    typename KDTreeNew<T>::value_type range,
+int calc_duplicates(const KDTree<T> &tree,
+                    typename KDTree<T>::value_type range,
                     const IndexMask &visit_order,
                     MutableSpan<int> duplicates);
 
@@ -480,11 +480,11 @@ int calc_duplicates(const KDTreeNew<T> &tree,
  * roughly 1.1x to 1.8x faster than providing a separate visit order as the point count increases
  * to ~ 1 million, though that depends on the spatial contiguity of the original point order. The
  * downside is that this ties the result to the internal layout, so it is only meant for callers
- * that don't care which point of a cluster the others merge into. See #KDTreeNew::indices.
+ * that don't care which point of a cluster the others merge into. See #KDTree::indices.
  */
 template<typename T>
-inline int calc_duplicates(const KDTreeNew<T> &tree,
-                           const typename KDTreeNew<T>::value_type range,
+inline int calc_duplicates(const KDTree<T> &tree,
+                           const typename KDTree<T>::value_type range,
                            const MutableSpan<int> duplicates)
 {
   return calc_duplicates(tree, range, tree.tree_indices(), duplicates);
@@ -492,28 +492,28 @@ inline int calc_duplicates(const KDTreeNew<T> &tree,
 
 }  // namespace kdtree
 
-template<typename T> int KDTreeNew<T>::size() const
+template<typename T> int KDTree<T>::size() const
 {
   return size_;
 }
 
-template<typename T> bool KDTreeNew<T>::is_empty() const
+template<typename T> bool KDTree<T>::is_empty() const
 {
   return size_ == 0;
 }
 
-template<typename T> const T *KDTreeNew<T>::points() const
+template<typename T> const T *KDTree<T>::points() const
 {
   return reinterpret_cast<const T *>(points_);
 }
 
-template<typename T> Span<int> KDTreeNew<T>::tree_indices() const
+template<typename T> Span<int> KDTree<T>::tree_indices() const
 {
   return Span<int>(tree_indices_, size_);
 }
 
 template<typename T>
-int KDTreeNew<T>::find_nearest(const T &position, value_type *r_distance_sq) const
+int KDTree<T>::find_nearest(const T &position, value_type *r_distance_sq) const
 {
   if (this->is_empty()) {
     return -1;
@@ -528,9 +528,9 @@ int KDTreeNew<T>::find_nearest(const T &position, value_type *r_distance_sq) con
 
 template<typename T>
 template<typename Filter>
-int KDTreeNew<T>::find_nearest_filtered(const T &position,
-                                        Filter &&filter,
-                                        value_type *r_distance_sq) const
+int KDTree<T>::find_nearest_filtered(const T &position,
+                                     Filter &&filter,
+                                     value_type *r_distance_sq) const
   requires kdtree::FilterFn<Filter>
 {
   if (this->is_empty()) {
@@ -546,7 +546,7 @@ int KDTreeNew<T>::find_nearest_filtered(const T &position,
 }
 
 template<typename T>
-int KDTreeNew<T>::find_nearest_n(const T &position, MutableSpan<Nearest> r_nearest) const
+int KDTree<T>::find_nearest_n(const T &position, MutableSpan<Nearest> r_nearest) const
 {
   if (this->is_empty() || r_nearest.is_empty()) {
     return 0;
@@ -558,7 +558,7 @@ int KDTreeNew<T>::find_nearest_n(const T &position, MutableSpan<Nearest> r_neare
 
 template<typename T>
 template<typename Fn>
-void KDTreeNew<T>::foreach_in_radius(const T &position, const value_type radius, Fn &&fn) const
+void KDTree<T>::foreach_in_radius(const T &position, const value_type radius, Fn &&fn) const
 {
   if (this->is_empty()) {
     return;
@@ -568,9 +568,9 @@ void KDTreeNew<T>::foreach_in_radius(const T &position, const value_type radius,
 }
 
 template<typename T>
-int KDTreeNew<T>::find_in_radius(const T &position,
-                                 const value_type radius,
-                                 Vector<Nearest> &r_nearest) const
+int KDTree<T>::find_in_radius(const T &position,
+                              const value_type radius,
+                              Vector<Nearest> &r_nearest) const
 {
   r_nearest.clear();
   this->foreach_in_radius(position, radius, [&](const int index, const value_type distance_sq) {
@@ -583,7 +583,7 @@ int KDTreeNew<T>::find_in_radius(const T &position,
 }
 
 template<typename T>
-int KDTreeNew<T>::count_in_radius(const T &position, const value_type radius) const
+int KDTree<T>::count_in_radius(const T &position, const value_type radius) const
 {
   if (this->is_empty()) {
     return 0;
@@ -595,7 +595,7 @@ int KDTreeNew<T>::count_in_radius(const T &position, const value_type radius) co
 
 template<typename T>
 template<typename Query>
-void KDTreeNew<T>::search(Query &query, const T &position_in) const
+void KDTree<T>::search(Query &query, const T &position_in) const
   requires kdtree::QueryType<Query, value_type>
 {
   BLI_assert(!this->is_empty());
@@ -618,11 +618,11 @@ void KDTreeNew<T>::search(Query &query, const T &position_in) const
 
 template<typename T>
 template<typename Query>
-bool KDTreeNew<T>::search_node(Query &query,
-                               const VecT &position,
-                               const Node *node,
-                               const value_type distance_sq,
-                               VecT &offsets) const
+bool KDTree<T>::search_node(Query &query,
+                            const VecT &position,
+                            const Node *node,
+                            const value_type distance_sq,
+                            VecT &offsets) const
   requires kdtree::QueryType<Query, value_type>
 {
   if (node->children == nullptr) {

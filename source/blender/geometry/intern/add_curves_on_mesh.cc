@@ -62,7 +62,7 @@ static void calc_straight_curve_positions(const float3 &a,
 }
 
 static void find_curve_neighbors(const Span<float3> root_positions,
-                                 const KDTreeNew<float3> &old_roots_kdtree,
+                                 const KDTree<float3> &old_roots_kdtree,
                                  Vector<int> &offset_data,
                                  Vector<int> &index_data,
                                  Vector<float> &weight_data)
@@ -73,11 +73,11 @@ static void find_curve_neighbors(const Span<float3> root_positions,
   threading::parallel_for(IndexRange(tot_added_curves), 128, [&](const IndexRange range) {
     for (const int i : range) {
       const float3 root = root_positions[i];
-      std::array<KDTreeNew<float3>::Nearest, max_neighbors> nearest_n;
+      std::array<KDTree<float3>::Nearest, max_neighbors> nearest_n;
       const int found_neighbors = old_roots_kdtree.find_nearest_n(root, nearest_n);
       float tot_weight = 0.0f;
       for (const int neighbor_i : IndexRange(found_neighbors)) {
-        const KDTreeNew<float3>::Nearest &nearest = nearest_n[neighbor_i];
+        const KDTree<float3>::Nearest &nearest = nearest_n[neighbor_i];
         const float weight = 1.0f / std::max(std::sqrt(nearest.distance_sq), 0.00001f);
         tot_weight += weight;
         neighbors_per_curve[i].append({nearest.index, weight});

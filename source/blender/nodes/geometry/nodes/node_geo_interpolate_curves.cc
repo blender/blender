@@ -86,17 +86,17 @@ static Array<int> compute_points_per_curve_by_group(const GroupedSpan<int> guide
 /**
  * Build a kdtree for every guide group.
  */
-static Array<std::unique_ptr<KDTreeNew<float3>>> build_kdtrees_for_root_positions(
+static Array<std::unique_ptr<KDTree<float3>>> build_kdtrees_for_root_positions(
     const GroupedSpan<int> guides_by_group, const Span<float3> root_positions)
 {
-  Array<std::unique_ptr<KDTreeNew<float3>>> kdtrees(guides_by_group.size());
+  Array<std::unique_ptr<KDTree<float3>>> kdtrees(guides_by_group.size());
   threading::parallel_for(
       guides_by_group.index_range(),
       1024,
       [&](const IndexRange range) {
         for (const int group : range) {
-          kdtrees[group] = std::make_unique<KDTreeNew<float3>>(root_positions,
-                                                               guides_by_group[group]);
+          kdtrees[group] = std::make_unique<KDTree<float3>>(root_positions,
+                                                            guides_by_group[group]);
         }
       },
       threading::accumulated_task_sizes(
@@ -111,7 +111,7 @@ static Array<std::unique_ptr<KDTreeNew<float3>>> build_kdtrees_for_root_position
  */
 static void find_neighbor_guides(const Span<float3> positions,
                                  const Span<int> point_group_indices,
-                                 const Span<std::unique_ptr<KDTreeNew<float3>>> kdtrees,
+                                 const Span<std::unique_ptr<KDTree<float3>>> kdtrees,
                                  const GroupedSpan<int> guides_by_group,
                                  const int max_neighbor_count,
                                  MutableSpan<int> r_all_neighbor_indices,
@@ -126,7 +126,7 @@ static void find_neighbor_guides(const Span<float3> positions,
         r_all_neighbor_counts[child_curve_i] = 0;
         continue;
       }
-      const KDTreeNew<float3> &kdtree = *kdtrees[group];
+      const KDTree<float3> &kdtree = *kdtrees[group];
 
       const int num_guides_in_group = guides_by_group[group].size();
       /* Finding an additional neighbor that currently has weight zero is necessary to ensure that
@@ -135,7 +135,7 @@ static void find_neighbor_guides(const Span<float3> positions,
       const bool use_extra_neighbor = num_guides_in_group > max_neighbor_count;
       const int neighbors_to_find = max_neighbor_count + use_extra_neighbor;
 
-      Vector<KDTreeNew<float3>::Nearest, 16> nearest_n(neighbors_to_find);
+      Vector<KDTree<float3>::Nearest, 16> nearest_n(neighbors_to_find);
       const int num_neighbors = kdtree.find_nearest_n(position, nearest_n);
       if (num_neighbors == 0) {
         r_all_neighbor_counts[child_curve_i] = 0;
@@ -155,7 +155,7 @@ static void find_neighbor_guides(const Span<float3> positions,
             std::max_element(
                 nearest_n.begin(),
                 nearest_n.begin() + num_neighbors,
-                [](const KDTreeNew<float3>::Nearest &a, const KDTreeNew<float3>::Nearest &b) {
+                [](const KDTree<float3>::Nearest &a, const KDTree<float3>::Nearest &b) {
                   return a.distance_sq < b.distance_sq;
                 })
                 ->distance_sq);
@@ -168,7 +168,7 @@ static void find_neighbor_guides(const Span<float3> positions,
 
         int neighbor_counter = 0;
         for (const int neighbor_i : IndexRange(num_neighbors)) {
-          const KDTreeNew<float3>::Nearest &nearest = nearest_n[neighbor_i];
+          const KDTree<float3>::Nearest &nearest = nearest_n[neighbor_i];
           const float dist = math::sqrt(nearest.distance_sq);
           /* Goal for this weight calculation:
            * - As distance gets closer to zero, it should become very large.
@@ -186,7 +186,7 @@ static void find_neighbor_guides(const Span<float3> positions,
       else {
         int neighbor_counter = 0;
         for (const int neighbor_i : IndexRange(num_neighbors)) {
-          const KDTreeNew<float3>::Nearest &nearest = nearest_n[neighbor_i];
+          const KDTree<float3>::Nearest &nearest = nearest_n[neighbor_i];
           const float dist = math::sqrt(nearest.distance_sq);
           /* Goal for this weight calculation:
            * - As the distance gets closer to zero, it should become very large.
@@ -702,7 +702,7 @@ static GeometrySet generate_interpolated_curves(
                       guide_curves.offsets().take_front(guide_curves.curves_num()),
                       root_positions.as_mutable_span());
 
-  Array<std::unique_ptr<KDTreeNew<float3>>> kdtrees = build_kdtrees_for_root_positions(
+  Array<std::unique_ptr<KDTree<float3>>> kdtrees = build_kdtrees_for_root_positions(
       guides_by_group, root_positions);
 
   const VArraySpan point_positions = *point_attributes.lookup<float3>("position");

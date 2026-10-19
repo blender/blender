@@ -40,7 +40,7 @@
 #include "RNA_enum_types.hh"
 
 namespace blender {
-using Nearest = KDTreeNew<float3>::Nearest;
+using Nearest = KDTree<float3>::Nearest;
 
 static float len_squared_v3v3_with_normal_bias(const float3 &co_search,
                                                const float3 &co_test,
@@ -80,7 +80,7 @@ static void find_in_radius_with_normal_bias(const bke::ParticleKDTree &tree,
 }
 
 /**
- * #KDTreeNew::search for the points closest by #len_squared_v3v3_with_normal_bias. Since that
+ * #KDTree::search for the points closest by #len_squared_v3v3_with_normal_bias. Since that
  * is never smaller than the plain distance used for skipping points and nodes, the furthest
  * result so far is still a valid bound for it.
  */

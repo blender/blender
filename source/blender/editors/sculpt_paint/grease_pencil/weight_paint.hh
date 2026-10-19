@@ -70,7 +70,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
   struct PointsTouchedByBrush : NonCopyable, NonMovable {
     Array<float2> positions;
     Array<float> weights;
-    KDTreeNew<float2> kdtree;
+    KDTree<float2> kdtree;
 
     PointsTouchedByBrush(Array<float2> positions_, Array<float> weights_)
         : positions(std::move(positions_)), weights(std::move(weights_)), kdtree(positions)

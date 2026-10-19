@@ -90,7 +90,7 @@ bool ED_select_similar_compare_float(const float delta,
   }
 }
 
-bool ED_select_similar_compare_float_tree(const KDTreeNew<float> &tree,
+bool ED_select_similar_compare_float_tree(const KDTree<float> &tree,
                                           const float length,
                                           const float thresh,
                                           const eSimilarCmp compare)

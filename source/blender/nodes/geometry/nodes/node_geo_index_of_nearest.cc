@@ -30,14 +30,14 @@ static void node_declare(NodeDeclarationBuilder &b)
       .propagate_references();
 }
 
-static int find_nearest_non_self(const KDTreeNew<float3> &tree,
+static int find_nearest_non_self(const KDTree<float3> &tree,
                                  const float3 &position,
                                  const int index)
 {
   return tree.find_nearest_filtered(position, [index](const int other) { return other != index; });
 }
 
-static void find_neighbors(const KDTreeNew<float3> &tree,
+static void find_neighbors(const KDTree<float3> &tree,
                            const Span<float3> positions,
                            const IndexMask &mask,
                            MutableSpan<int> r_indices)
@@ -49,7 +49,7 @@ static void find_neighbors(const KDTreeNew<float3> &tree,
       exec_mode::grain_size(1024));
 }
 
-static void find_neighbors(const KDTreeNew<float3> &tree,
+static void find_neighbors(const KDTree<float3> &tree,
                            const Span<float3> positions,
                            const Span<int> indices,
                            MutableSpan<int> r_indices)
@@ -98,7 +98,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
 
     if (group_ids.is_single()) {
       result.reinitialize(mask.min_array_size());
-      const KDTreeNew<float3> tree(positions);
+      const KDTree<float3> tree(positions);
       if (query_all) {
         find_neighbors(tree, positions, tree.tree_indices(), result);
       }
@@ -141,7 +141,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
       for (const int group_index : range) {
         LinearAllocator<> tree_memory;
         tree_memory.provide_buffer(tree_buffer);
-        const KDTreeNew<float3> tree(positions, tree_indices_by_group[group_index], tree_memory);
+        const KDTree<float3> tree(positions, tree_indices_by_group[group_index], tree_memory);
         find_neighbors(tree,
                        positions,
                        query_all ? tree.tree_indices() : lookup_indices_by_group[group_index],

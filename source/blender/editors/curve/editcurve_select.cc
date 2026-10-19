@@ -1623,8 +1623,8 @@ static void curve_nurb_selected_type_get(
 static bool curve_nurb_select_similar_type(Object *ob,
                                            Nurb *nu,
                                            const int type,
-                                           const KDTreeNew<float> *tree_1d,
-                                           const KDTreeNew<float3> *tree_3d,
+                                           const KDTree<float> *tree_1d,
+                                           const KDTree<float3> *tree_3d,
                                            const float thresh,
                                            const int compare)
 {
@@ -1790,9 +1790,9 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
   }
 
   Vector<float> values_1d;
-  std::optional<KDTreeNew<float>> tree_1d;
+  std::optional<KDTree<float>> tree_1d;
   Vector<float3> dirs;
-  std::optional<KDTreeNew<float3>> tree_3d;
+  std::optional<KDTree<float3>> tree_3d;
 
   switch (optype) {
     case SIMCURHAND_RADIUS:

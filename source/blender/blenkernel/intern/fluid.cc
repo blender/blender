@@ -1475,7 +1475,7 @@ static void update_obstacles(Depsgraph *depsgraph,
 
 struct EmitFromParticlesData {
   FluidFlowSettings *ffs;
-  const KDTreeNew<float3> *tree;
+  const KDTree<float3> *tree;
 
   FluidObjectBB *bb;
   float *particle_vel;
@@ -1653,7 +1653,7 @@ static void emit_from_particles(Object *flow_ob,
         res[i] = bb->res[i];
       }
 
-      const KDTreeNew<float3> tree(
+      const KDTree<float3> tree(
           Span(reinterpret_cast<const float3 *>(particle_pos), valid_particles));
 
       EmitFromParticlesData data{};

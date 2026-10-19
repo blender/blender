@@ -304,9 +304,9 @@ static void run_table(const char *title,
 TEST(kdtree_performance, Build)
 {
   run_table("Building the tree",
-            "`kdtree_insert` and `kdtree_balance` vs. the `KDTreeNew` constructor",
+            "`kdtree_insert` and `kdtree_balance` vs. the `KDTree` constructor",
             [](const Impl /*impl*/, const Span<float3> positions, const int64_t points_num) {
-              return run_iterations(points_num, [&]() { KDTreeNew<float3> tree(positions); });
+              return run_iterations(points_num, [&]() { KDTree<float3> tree(positions); });
             });
 }
 
@@ -318,7 +318,7 @@ TEST(kdtree_performance, FindNearest)
               const Array<float3> queries = make_query_points(positions);
               int64_t index_sum = 0;
               double time;
-              const KDTreeNew<float3> tree(positions);
+              const KDTree<float3> tree(positions);
               time = run_queries(
                   queries, [&](const float3 &query) { index_sum += tree.find_nearest(query); });
               EXPECT_GT(index_sum, 0);
@@ -344,7 +344,7 @@ TEST(kdtree_performance, FindNearestSkipSelf)
               const auto query_index = [&](const float3 &query) {
                 return int(&query - queries.data());
               };
-              const KDTreeNew<float3> tree(positions);
+              const KDTree<float3> tree(positions);
               time = run_queries(queries, [&](const float3 &query) {
                 const int i = query_index(query);
                 index_sum += tree.find_nearest_filtered(
@@ -363,8 +363,8 @@ TEST(kdtree_performance, FindNearestN)
               const Array<float3> queries = make_query_points(positions);
               int64_t found_sum = 0;
               double time;
-              const KDTreeNew<float3> tree(positions);
-              Array<KDTreeNew<float3>::Nearest> nearest(NEAREST_N);
+              const KDTree<float3> tree(positions);
+              Array<KDTree<float3>::Nearest> nearest(NEAREST_N);
               time = run_queries(queries, [&](const float3 &query) {
                 found_sum += tree.find_nearest_n(query, nearest);
               });
@@ -382,7 +382,7 @@ TEST(kdtree_performance, RangeSearch)
               const float radius = radius_for_neighbor_count(points_num);
               int64_t found_sum = 0;
               double time;
-              const KDTreeNew<float3> tree(positions);
+              const KDTree<float3> tree(positions);
               time = run_queries(queries, [&](const float3 &query) {
                 tree.foreach_in_radius(
                     query, radius, [&](const int /*index*/, const float /*distance_sq*/) {
@@ -402,7 +402,7 @@ TEST(kdtree_performance, CalcDuplicates)
             [](const Impl /*impl*/, const Span<float3> positions, const int64_t points_num) {
               const float radius = radius_for_neighbor_count(points_num);
               Array<int> duplicates(points_num);
-              const KDTreeNew<float3> tree(positions);
+              const KDTree<float3> tree(positions);
               const IndexMask visit_order(points_num);
               return run_iterations(points_num, [&]() {
                 duplicates.as_mutable_span().fill(-1);
@@ -423,7 +423,7 @@ TEST(kdtree_performance, ThreadedBuild)
   static const int64_t point_counts[] = {1000, 10000, 100000, 1000000};
 
   printf(
-      "\n#### Threaded build\n\n(`KDTreeNew` build time by thread count, random. The\n"
+      "\n#### Threaded build\n\n(`KDTree` build time by thread count, random. The\n"
       "tree limits its own thread count by size as well, so the larger counts give the same\n"
       "time once that limit is the lower of the two.)\n\n");
   printf("| points |");
@@ -449,7 +449,7 @@ TEST(kdtree_performance, ThreadedBuild)
       /* Processor time as well as elapsed time, to show how much of the machine the build
        * occupies. Threads spent here are not available for other work. */
       const std::clock_t cpu_before = std::clock();
-      const double time = run_iterations(points_num, [&]() { KDTreeNew<float3> tree(positions); });
+      const double time = run_iterations(points_num, [&]() { KDTree<float3> tree(positions); });
       const std::clock_t cpu_after = std::clock();
       cpu_times.append(double(cpu_after - cpu_before) / double(CLOCKS_PER_SEC));
 
@@ -511,7 +511,7 @@ TEST(kdtree_performance, TinyTreesBuild)
         time = run_batched(points_num, [&]() {
           LinearAllocator<> memory;
           memory.provide_buffer(buffer);
-          const KDTreeNew<float3> tree(positions, memory);
+          const KDTree<float3> tree(positions, memory);
           sum += tree.size();
         });
         EXPECT_GT(sum, 0);
@@ -532,7 +532,7 @@ TEST(kdtree_performance, TinyTreesFindNearestOther)
         time = run_batched(points_num, [&]() {
           LinearAllocator<> memory;
           memory.provide_buffer(buffer);
-          const KDTreeNew<float3> tree(positions, memory);
+          const KDTree<float3> tree(positions, memory);
           for (const int64_t i : IndexRange(points_num)) {
             sum += tree.find_nearest_filtered(positions[i],
                                               [i](const int other) { return other != int(i); });
@@ -557,7 +557,7 @@ TEST(kdtree_performance, TinyTreesCalcDuplicates)
         return run_batched(points_num, [&]() {
           LinearAllocator<> memory;
           memory.provide_buffer(buffer);
-          const KDTreeNew<float3> tree(positions, memory);
+          const KDTree<float3> tree(positions, memory);
           duplicates.as_mutable_span().fill(-1);
           kdtree::calc_duplicates(tree, radius, visit_order, duplicates);
         });
@@ -579,7 +579,7 @@ TEST(kdtree_performance, KDTreeNewLeafSize)
   static const int64_t point_counts[] = {10000, 1000000};
 
   for (const int64_t points_num : point_counts) {
-    printf("\n#### KDTreeNew leaf size\n\n(%" PRId64 " points)\n\n", points_num);
+    printf("\n#### KDTree leaf size\n\n(%" PRId64 " points)\n\n", points_num);
     printf("| distribution | leaf size | build | find nearest | 8 nearest | radius |\n");
     printf("|---:|---:|---:|---:|---:|---:|\n");
 
@@ -590,14 +590,14 @@ TEST(kdtree_performance, KDTreeNewLeafSize)
       for (const int leaf_size : leaf_sizes) {
         printf("| %s | %d |", distribution.name, leaf_size);
         print_time(
-            run_iterations(points_num, [&]() { KDTreeNew<float3> tree(positions, leaf_size); }));
+            run_iterations(points_num, [&]() { KDTree<float3> tree(positions, leaf_size); }));
 
-        const KDTreeNew<float3> tree(positions, leaf_size);
+        const KDTree<float3> tree(positions, leaf_size);
         int64_t sum = 0;
         print_time(
             run_queries(queries, [&](const float3 &query) { sum += tree.find_nearest(query); }));
 
-        Array<KDTreeNew<float3>::Nearest> nearest(NEAREST_N);
+        Array<KDTree<float3>::Nearest> nearest(NEAREST_N);
         print_time(run_queries(
             queries, [&](const float3 &query) { sum += tree.find_nearest_n(query, nearest); }));
 

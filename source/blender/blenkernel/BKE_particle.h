@@ -139,7 +139,7 @@ namespace bke {
 struct ParticleKDTree {
   /** Indexed by particle. Only the positions of the particles in the tree are set. */
   Array<float3> positions;
-  KDTreeNew<float3> tree;
+  KDTree<float3> tree;
 
   ParticleKDTree(Array<float3> positions_, const Span<int> indices)
       : positions(std::move(positions_)), tree(positions, indices)
@@ -156,7 +156,7 @@ struct ParticleThreadContext {
   struct Material *ma;
 
   /* distribution */
-  KDTreeNew<float3> *tree;
+  KDTree<float3> *tree;
   /** The coordinates referenced by #tree. */
   float3 *tree_positions;
 

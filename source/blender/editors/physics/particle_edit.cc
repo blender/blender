@@ -1003,7 +1003,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
     mul_v3_m4v3(positions[p], mat, key->co);
   }
 
-  const KDTreeNew<float3> tree(positions);
+  const KDTree<float3> tree(positions);
 
   /* lookup particles and set in mirror cache */
   if (!edit->mirror_cache) {
@@ -1478,7 +1478,7 @@ void recalc_emitter_field(Depsgraph * /*depsgraph*/, Object * /*ob*/, ParticleSy
     normalize_v3(nor);
   }
 
-  edit->emitter_field = MEM_new<KDTreeNew<float3>>(__func__, Span(edit->emitter_cos, totface));
+  edit->emitter_field = MEM_new<KDTree<float3>>(__func__, Span(edit->emitter_cos, totface));
 }
 
 static void PE_update_selection(Depsgraph *depsgraph, Scene *scene, Object *ob, int useflag)
@@ -3214,7 +3214,7 @@ static wmOperatorStatus remove_doubles_exec(bContext *C, wmOperator *op)
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ParticleSystem *psys = edit->psys;
   ParticleSystemModifierData *psmd_eval;
-  std::array<KDTreeNew<float3>::Nearest, 10> nearest;
+  std::array<KDTree<float3>::Nearest, 10> nearest;
   POINT_P;
   float mat[4][4], threshold = RNA_float_get(op->ptr, "threshold");
   int n, totn, removed, totremoved;
@@ -3239,7 +3239,7 @@ static wmOperatorStatus remove_doubles_exec(bContext *C, wmOperator *op)
       selected.append(p);
     }
 
-    const KDTreeNew<float3> tree(positions, selected.as_span());
+    const KDTree<float3> tree(positions, selected.as_span());
 
     /* tag particles to be removed */
     LOOP_SELECTED_POINTS {
@@ -4478,7 +4478,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
     int newtotpart = totpart + n;
     float hairmat[4][4];
     Array<float3> tree_positions;
-    std::optional<KDTreeNew<float3>> tree;
+    std::optional<KDTree<float3>> tree;
     ParticleData *pa, *new_pars = MEM_new_array<ParticleData>(newtotpart, "ParticleData new");
     PTCacheEditPoint *point, *new_points = MEM_new_array_zeroed<PTCacheEditPoint>(
                                  newtotpart, "PTCacheEditPoint array new");
@@ -4559,7 +4559,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
         ParticleData *ppa;
         HairKey *thkey;
         ParticleKey key3[3];
-        std::array<KDTreeNew<float3>::Nearest, 3> ptn;
+        std::array<KDTree<float3>::Nearest, 3> ptn;
         int w, maxw;
         float maxd, totw = 0.0, weight[3];
 

@@ -186,11 +186,11 @@ static wmOperatorStatus similar_face_select_exec(bContext *C, wmOperator *op)
   Map<float4, int> points_4d;
 
   Vector<float> tree_1d_points;
-  std::optional<KDTreeNew<float>> tree_1d;
+  std::optional<KDTree<float>> tree_1d;
   Vector<float3> tree_3d_points;
-  std::optional<KDTreeNew<float3>> tree_3d;
+  std::optional<KDTree<float3>> tree_3d;
   Vector<float4> tree_4d_points;
-  std::optional<KDTreeNew<float4>> tree_4d;
+  std::optional<KDTree<float4>> tree_4d;
 
   Set<int> sides_set;
   Set<const Material *> materials_set;
@@ -584,9 +584,9 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
   Map<float3, int> points_3d;
 
   Vector<float> tree_1d_points;
-  std::optional<KDTreeNew<float>> tree_1d;
+  std::optional<KDTree<float>> tree_1d;
   Vector<float3> tree_3d_points;
-  std::optional<KDTreeNew<float3>> tree_3d;
+  std::optional<KDTree<float3>> tree_3d;
   Set<int> face_count_set;
   int edge_data_value = SIMEDGE_DATA_NONE;
 
@@ -972,9 +972,9 @@ static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
   Map<float3, int> points_3d;
 
   Vector<float3> tree_3d_points;
-  std::optional<KDTreeNew<float3>> tree_3d;
+  std::optional<KDTree<float3>> tree_3d;
   Vector<float> tree_1d_points;
-  std::optional<KDTreeNew<float>> tree_1d;
+  std::optional<KDTree<float>> tree_1d;
   Set<StringRef> selected_vertex_groups;
   Set<int> connected_elems_num_set;
 

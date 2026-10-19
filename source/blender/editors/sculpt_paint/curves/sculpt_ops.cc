@@ -672,7 +672,7 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
       1024 < curve_op_data.selected_points.size() + curve_op_data.unselected_points.size(),
       [&]() {
         /* For each unselected point, compute the distance to the closest selected point. */
-        KDTreeNew<float3> kdtree(positions, curve_op_data.selected_points);
+        KDTree<float3> kdtree(positions, curve_op_data.selected_points);
         curve_op_data.distances_to_selected.reinitialize(curve_op_data.unselected_points.size());
         curve_op_data.unselected_points.foreach_index(
             [&](const int point, const int pos) {
@@ -684,7 +684,7 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
       },
       [&]() {
         /* For each selected point, compute the distance to the closest unselected point. */
-        KDTreeNew<float3> kdtree(positions, curve_op_data.unselected_points);
+        KDTree<float3> kdtree(positions, curve_op_data.unselected_points);
         curve_op_data.distances_to_unselected.reinitialize(curve_op_data.selected_points.size());
         curve_op_data.selected_points.foreach_index(
             [&](const int point, const int pos) {

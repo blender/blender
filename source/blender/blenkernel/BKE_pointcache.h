@@ -20,7 +20,7 @@
 
 namespace blender {
 
-template<typename T> class KDTreeNew;
+template<typename T> class KDTree;
 
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
  * and after are non-inclusive (they won't remove the cfra) */
@@ -255,7 +255,7 @@ struct PTCacheEdit {
   struct ParticleSystemModifierData *psmd;
   struct ParticleSystemModifierData *psmd_eval;
   /** Tree of the #emitter_cos, which it references. */
-  KDTreeNew<float3> *emitter_field;
+  KDTree<float3> *emitter_field;
   /** Local-space face centers (average of its verts), from the derived mesh. */
   float3 *emitter_cos;
   /** Local-space face normals (average of its verts), from the derived mesh. */

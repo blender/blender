@@ -33,7 +33,7 @@ namespace blender {
 
 struct MirrorSpatialTable {
   Array<float3> positions;
-  KDTreeNew<float3> tree;
+  KDTree<float3> tree;
 
   explicit MirrorSpatialTable(Array<float3> positions_)
       : positions(std::move(positions_)), tree(positions)

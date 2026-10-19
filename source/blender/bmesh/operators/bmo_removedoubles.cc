@@ -695,7 +695,7 @@ void bmo_collapse_uvs_exec(BMesh *bm, BMOperator *op)
  * \note Points are visited in index order, so that the result doesn't depend on the tree layout.
  */
 template<typename TargetFn>
-static int calc_duplicates_with_target(const KDTreeNew<float3> &tree,
+static int calc_duplicates_with_target(const KDTree<float3> &tree,
                                        const Span<float3> positions,
                                        const float range,
                                        const bool has_self_index,
@@ -793,7 +793,7 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
     }
   }
 
-  const KDTreeNew<float3> tree(positions);
+  const KDTree<float3> tree(positions);
 
   /* Given a cluster of duplicates, pick the index to keep. */
   auto deduplicate_target_calc_fn = [&](const Span<int> cluster) -> int {

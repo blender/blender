@@ -37,7 +37,7 @@ class SmearWeightPaintOperation : public WeightPaintOperation {
                         PointsTouchedByBrush &touched_points)
   {
     /* Find the nearest neighbors of the to-be-smeared point. */
-    std::array<KDTreeNew<float2>::Nearest, SMEAR_NEIGHBOUR_NUM> nearest_points;
+    std::array<KDTree<float2>::Nearest, SMEAR_NEIGHBOUR_NUM> nearest_points;
     const int point_num = touched_points.kdtree.find_nearest_n(
         drawing_weight.point_positions[point.drawing_point_index], nearest_points);
     std::array<float, SMEAR_NEIGHBOUR_NUM> distances;
