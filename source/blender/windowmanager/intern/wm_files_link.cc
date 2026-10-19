@@ -521,12 +521,12 @@ void WM_OT_append(wmOperatorType *ot)
                   false,
                   "Fake User",
                   "Set \"Fake User\" for appended items (except objects and collections)");
-  RNA_def_boolean(
-      ot->srna,
-      "use_recursive",
-      true,
-      "Localize All",
-      "Localize all appended data, including those indirectly linked from other libraries");
+  RNA_def_boolean(ot->srna,
+                  "use_recursive",
+                  true,
+                  "Make Linked Local",
+                  "Localize all appended data, including those indirectly linked from other "
+                  "libraries, but excluding the packed linked data");
 }
 
 static wmOperatorStatus wm_id_linked_relocate_exec(bContext *C, wmOperator *op)
