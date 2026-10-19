@@ -401,6 +401,10 @@ static bool sdna_struct_size_check(const SDNA *sdna,
     const int64_t array_num = sdna->members_array_num[member.member_index];
     const int64_t member_size = ispointer(member_name) ? sdna->pointer_size :
                                                          sdna->types_size[member.type_index];
+    if (member_size < 0) [[unlikely]] {
+      *r_error_message = "Invalid struct member size in SDNA file";
+      return false;
+    }
     members_size += member_size * array_num;
   }
   if (members_size != sdna->types_size[struct_info->type_index]) [[unlikely]] {
@@ -733,10 +737,15 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
   /* Cache name size. */
   {
     short *members_array_num = MEM_malloc_arrayN<short>(size_t(sdna->members_num), __func__);
-    for (int member_index = 0; member_index < sdna->members_num; member_index++) {
-      members_array_num[member_index] = DNA_member_array_num(sdna->members[member_index]);
-    }
     sdna->members_array_num = members_array_num;
+    for (int member_index = 0; member_index < sdna->members_num; member_index++) {
+      const int array_num = DNA_member_array_num(sdna->members[member_index]);
+      if (array_num < 0 || array_num > SHRT_MAX) [[unlikely]] {
+        *r_error_message = "Invalid struct member array size in SDNA file";
+        return false;
+      }
+      members_array_num[member_index] = short(array_num);
+    }
   }
 
   /* Reject internally inconsistent DNA before it reaches struct reconstruction. */
