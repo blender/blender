@@ -316,6 +316,29 @@ void BKE_particle_partdeflect_blend_read_data(BlendDataReader * /*reader*/, Part
 {
 }
 
+/** Struct size for the rule type, or zero for unknown types. */
+static size_t boid_rule_struct_size(const eBoidRuleType type)
+{
+  switch (type) {
+    case eBoidRuleType_None:
+    case eBoidRuleType_Separate:
+    case eBoidRuleType_Flock:
+      return sizeof(BoidRule);
+    case eBoidRuleType_Goal:
+    case eBoidRuleType_Avoid:
+      return sizeof(BoidRuleGoalAvoid);
+    case eBoidRuleType_AvoidCollision:
+      return sizeof(BoidRuleAvoidCollision);
+    case eBoidRuleType_FollowLeader:
+      return sizeof(BoidRuleFollowLeader);
+    case eBoidRuleType_AverageSpeed:
+      return sizeof(BoidRuleAverageSpeed);
+    case eBoidRuleType_Fight:
+      return sizeof(BoidRuleFight);
+  }
+  return 0;
+}
+
 static void particle_settings_blend_read_data(BlendDataReader *reader, ID *id)
 {
   ParticleSettings *part = id_cast<ParticleSettings *>(id);
@@ -352,7 +375,17 @@ static void particle_settings_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct_list(reader, BoidState, &part->boids->states);
 
     for (BoidState &state : part->boids->states) {
-      BLO_read_struct_list(reader, BoidRule, &state.rules);
+      BLO_read_struct_list_with_type_size<BoidRule>(
+          reader, &state.rules, [](const BoidRule &rule) {
+            return std::max(boid_rule_struct_size(rule.type), sizeof(BoidRule));
+          });
+
+      /* Disable rules of unknown type, for upward compatibility. */
+      for (BoidRule &rule : state.rules) {
+        if (boid_rule_struct_size(rule.type) == 0) {
+          rule.type = eBoidRuleType_None;
+        }
+      }
 #if 0
       /* Not implemented yet. */
       BLO_read_struct_list(reader, BoidCondition, &state->conditions);

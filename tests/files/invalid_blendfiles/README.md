@@ -206,3 +206,16 @@ as full IDs, due to the library flag marking it as archive library (crash).
 An object preview's pixel block is truncated to 4 bytes.
 Loading the preview from the file browser read past the end (buffer overflow).
 Opening it leaked the rejected pixel block.
+
+`invalid_boid_rule_type.blend`
+------------------------------
+
+A boid rule with an out-of-range type, saved at a frame after its memory point cache so opening
+it simulates a step (crash).
+
+`invalid_struct_size_*.blend`
+-----------------------------
+
+A block of a struct with a type member, retyped and truncated to its base struct
+(e.g. `SubsurfModifierData` to `ModifierData`), while its type member still indicates the
+larger struct (crash).
