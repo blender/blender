@@ -109,6 +109,7 @@ class Particles : Overlay {
         sub.bind_texture("weight_tx", res.weight_ramp_tx);
         sub.push_constant("use_weight", show_weight_);
         sub.push_constant("use_grease_pencil", false);
+        sub.push_constant("skip_unselected", false);
         edit_edge_ps_ = &sub;
       }
     }

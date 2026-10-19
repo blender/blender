@@ -76,6 +76,7 @@ class Curves : Overlay {
         sub.bind_texture("weight_tx", &res.weight_ramp_tx);
         sub.push_constant("use_weight", false);
         sub.push_constant("use_grease_pencil", false);
+        sub.push_constant("skip_unselected", false);
         edit_curves_lines_ = &sub;
       }
     }
