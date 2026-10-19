@@ -356,7 +356,8 @@ bke::CurvesGeometry trim_curve_segment_ends(const bke::CurvesGeometry &src,
   }
 
   const OffsetIndices<int> src_points_by_curve = src.points_by_curve();
-  const VArray<bool> is_cyclic = src.cyclic();
+  /* Consider all curves to be non-cyclical when trimming curve ends. */
+  const VArray<bool> is_cyclic = VArray<bool>::from_single(false, src_points_by_curve.size());
 
   Array<Bounds<float2>> screen_space_bbox(src.curves_num());
   compute_bounding_boxes(src_points_by_curve, screen_space_positions, screen_space_bbox);
