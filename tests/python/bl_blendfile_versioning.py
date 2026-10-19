@@ -67,9 +67,11 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
         # Some files are known broken currently for linking and appending only.
         self.excluded_link_append_paths = {
             # invalid_blendfiles/invalid_struct_size_boid_rule.blend
+            # invalid_blendfiles/invalid_struct_size_modifier.blend
             # Linking from a library that fails to read leaves data-blocks with unresolved pointers
             # in the main database (crash).
             "invalid_struct_size_boid_rule.blend",
+            "invalid_struct_size_modifier.blend",
         }
 
         # Some files are known broken currently on re-saving & re-opening.
@@ -428,6 +430,10 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
             # invalid_blendfiles/invalid_struct_size_*.blend
             # A block with a type member is too small for the struct of its type.
             "invalid_struct_size_boid_rule.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
+            "invalid_struct_size_modifier.blend": (
                 (OSError, RuntimeError),
                 "Corrupt .blend file, unexpected data size"
             ),
