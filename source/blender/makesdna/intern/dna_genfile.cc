@@ -381,12 +381,16 @@ static const char *sdna_data_pointer_read_string(const char *&data,
  *
  * NOTE: must run after `members_array_num`, `types_size` & `pointer_size` are set up.
  * #SDNA_StructMember::member_index must already be initialized & validated too.
+ *
+ * \param voided_members_size: Size of members changed to `void` on load, which are still
+ * included in the declared struct size.
  */
 static bool sdna_struct_size_check(const SDNA *sdna,
                                    const SDNA_Struct *struct_info,
+                                   const int64_t voided_members_size,
                                    const char **r_error_message)
 {
-  int64_t members_size = 0;
+  int64_t members_size = voided_members_size;
   for (const SDNA_StructMember &member : Span(struct_info->members, struct_info->members_num)) {
     const char *member_name = sdna->members[member.member_index];
     const int64_t array_num = sdna->members_array_num[member.member_index];
@@ -411,6 +415,7 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
   const void *const data_pointer_end = sdna->data + sdna->data_size;
 
   int member_index_gravity_fix = -1;
+  const SDNA_Struct *gravity_fix_struct = nullptr;
 
   const int *int_buf = reinterpret_cast<const int *>(sdna->data);
   const int *int_data;
@@ -633,6 +638,7 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
           return false;
         }
         struct_info->members[gravity_member_index].type_index = void_type_index;
+        gravity_fix_struct = struct_info;
       }
     }
   }
@@ -697,7 +703,9 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
 
   /* Reject internally inconsistent DNA before it reaches struct reconstruction. */
   for (const SDNA_Struct *struct_info : Span(sdna->structs, sdna->structs_num)) {
-    if (!sdna_struct_size_check(sdna, struct_info, r_error_message)) {
+    /* The old makesdna counted the wrongly parsed "gravity" float in the struct size. */
+    const int64_t voided_members_size = (struct_info == gravity_fix_struct) ? sizeof(float) : 0;
+    if (!sdna_struct_size_check(sdna, struct_info, voided_members_size, r_error_message)) {
       return false;
     }
   }
