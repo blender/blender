@@ -59,7 +59,7 @@ string(REPLACE "." "_" USD_NAMESPACE "pxrBlender_v${USD_VERSION}")
 
 set(USD_EXTRA_ARGS
   ${USD_PLATFORM_FLAGS}
-  -DOPENSUBDIV_ROOT_DIR=${LIBDIR}/opensubdiv
+  -DOpenSubdiv_DIR=${LIBDIR}/opensubdiv/lib/cmake/OpenSubdiv
   -DOpenImageIO_ROOT=${LIBDIR}/openimageio
   -DMaterialX_ROOT=${LIBDIR}/materialx
   -DOPENEXR_LIBRARIES=${LIBDIR}/imath/lib/${LIBPREFIX}Imath${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}
@@ -106,7 +106,7 @@ set(USD_EXTRA_ARGS
   -DTBB_LIBRARIES_RELEASE=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
   -DVulkanHeaders_ROOT=${LIBDIR}/vulkan_headers
   -DVulkanLoader_ROOT=${LIBDIR}/vulkan_loader
-  -DVulkanUtilityLibraries_ROOT=${LIBDIR}/vulkan_headers
+  -DVulkanUtilityLibraries_ROOT=${LIBDIR}/vulkan_utility_libraries
   -DVulkanMemoryAllocator_ROOT=${LIBDIR}/vulkan_memory_allocator
   -DShaderC_ROOT=${LIBDIR}/shaderc
   -DSpirvReflect_ROOT=${LIBDIR}/spirv_reflect
@@ -141,6 +141,9 @@ ExternalProject_Add(external_usd
       ${PATCH_DIR}/usd_portable_2608.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_postfix.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
       ${PATCH_DIR}/usd_core_profile.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
@@ -159,7 +162,7 @@ ExternalProject_Add(external_usd
       ${PATCH_DIR}/usd_storm_vulkan.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
-      ${PATCH_DIR}/usd_vulkan_headless_3931.diff
+      ${PATCH_DIR}/usd_vulkan_headless_3931.diff 
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/usd
@@ -198,16 +201,38 @@ if(NOT WIN32)
 endif()
 
 if(WIN32)
-    ExternalProject_Add_Step(external_usd after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/usd
-        ${HARVEST_TARGET}/usd
+    if(BUILD_MODE STREQUAL Release)
+      ExternalProject_Add_Step(external_usd after_install
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+          ${LIBDIR}/usd
+          ${HARVEST_TARGET}/usd
 
-      COMMAND ${CMAKE_COMMAND}
-        -DCLEAN_DIR=${HARVEST_TARGET}/usd
-        -P ${CMAKE_CURRENT_LIST_DIR}/win_clean_pdb.cmake
-      DEPENDEES install
-    )
+        COMMAND ${CMAKE_COMMAND}
+          -DCLEAN_DIR=${HARVEST_TARGET}/usd
+          -P ${CMAKE_CURRENT_LIST_DIR}/win_clean_pdb.cmake
+        DEPENDEES install
+      )
+    else()
+      ExternalProject_Add_Step(external_usd after_install
+        COMMAND ${CMAKE_COMMAND} -E rename
+          ${LIBDIR}/usd/lib/usd
+          ${LIBDIR}/usd/lib/debug/usd
+        COMMAND ${CMAKE_COMMAND} -E rename
+          ${LIBDIR}/usd/lib/site-packages
+          ${LIBDIR}/usd/lib/debug/site-packages
+        COMMAND ${CMAKE_COMMAND} -E rename
+          ${LIBDIR}/usd/plugin
+          ${LIBDIR}/usd/debug/plugin
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+          ${LIBDIR}/usd
+          ${HARVEST_TARGET}/usd
+        COMMAND ${CMAKE_COMMAND}
+          -DCLEAN_DIR=${HARVEST_TARGET}/usd
+          -P ${CMAKE_CURRENT_LIST_DIR}/win_clean_pdb.cmake
+        DEPENDEES install
+      )
+    
+    endif()
 else()
   harvest(external_usd usd/include usd/include "*.h")
   harvest(external_usd usd/include usd/include "*.hpp")

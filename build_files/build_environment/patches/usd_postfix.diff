@@ -1,0 +1,126 @@
+diff --git a/cmake/macros/Private.cmake b/cmake/macros/Private.cmake
+index cddb4e095..320555cad 100644
+--- a/cmake/macros/Private.cmake
++++ b/cmake/macros/Private.cmake
+@@ -446,6 +446,72 @@ function(_get_library_prefix output)
+     endif()
+ endfunction() # _get_library_prefix
+ 
++# Returns the postfix CMake will insert between a library's base name and its
++# file suffix for the configuration we are generating resource files for.
++#
++# CMake initializes the per-target <CONFIG>_POSTFIX property from the
++# CMAKE_<CONFIG>_POSTFIX variable, so a Debug build configured with
++# -DCMAKE_DEBUG_POSTFIX=_d writes usd_sdf_d.dll to disk rather than
++# usd_sdf.dll.  Anything that needs the real on-disk name of a library, such
++# as the LibraryPath recorded in plugInfo.json, must include this postfix or
++# Plug will fail to load the library at runtime.
++function(_get_library_config_postfix target output)
++    set(postfix "")
++
++    # Single-config generators build the configuration named by
++    # CMAKE_BUILD_TYPE.  Multi-config generators build every configuration in
++    # CMAKE_CONFIGURATION_TYPES out of the same build tree, so there is no
++    # single correct answer at generate time; fall back to the first
++    # configuration and warn, since generated resource files can only be
++    # correct for one of them.
++    if(CMAKE_BUILD_TYPE)
++        set(config "${CMAKE_BUILD_TYPE}")
++    elseif(CMAKE_CONFIGURATION_TYPES)
++        list(GET CMAKE_CONFIGURATION_TYPES 0 config)
++        message(WARNING
++            "Building with a multi-config generator while "
++            "CMAKE_<CONFIG>_POSTFIX is set: generated resource files such as "
++            "plugInfo.json will only reference the '${config}' library names.")
++    else()
++        set(config "")
++    endif()
++
++    if(config)
++        string(TOUPPER "${config}" configUpper)
++        get_target_property(targetPostfix ${target} ${configUpper}_POSTFIX)
++        if(NOT DEFINED targetPostfix OR
++           targetPostfix STREQUAL "targetPostfix-NOTFOUND")
++            # The property carries no value of its own; fall back to the
++            # variable CMake initializes it from.
++            if(DEFINED CMAKE_${configUpper}_POSTFIX)
++                set(targetPostfix "${CMAKE_${configUpper}_POSTFIX}")
++            else()
++                set(targetPostfix "")
++            endif()
++        endif()
++        set(postfix "${targetPostfix}")
++    endif()
++
++    set(${output} "${postfix}" PARENT_SCOPE)
++endfunction() # _get_library_config_postfix
++
++# Sets the <CONFIG>_POSTFIX property of TARGET to POSTFIX for every
++# configuration that can be built from this build tree.  Used to override the
++# global CMAKE_<CONFIG>_POSTFIX for targets whose filename is fully determined
++# by something other than the build configuration, e.g. Python extension
++# modules, which must be named _<module>.pyd or _<module>_d.pyd.
++function(_pxr_set_config_postfix target postfix)
++    foreach(config ${CMAKE_CONFIGURATION_TYPES} ${CMAKE_BUILD_TYPE})
++        if(config)
++            string(TOUPPER "${config}" configUpper)
++            set_target_properties(${target}
++                PROPERTIES
++                    ${configUpper}_POSTFIX "${postfix}"
++            )
++        endif()
++    endforeach()
++endfunction() # _pxr_set_config_postfix
++
+ function(_get_install_dir path out)
+     if (PXR_INSTALL_SUBDIR)
+         set(${out} ${PXR_INSTALL_SUBDIR}/${path} PARENT_SCOPE)
+@@ -1046,6 +1112,13 @@ function(_pxr_python_module NAME)
+             PREFIX ""
+             FOLDER "${folder}"
+     )
++
++    # The module filename is dictated by Python's import machinery and is
++    # already complete above, including the _d suffix required when building
++    # against a debug Python.  Suppress any per-configuration postfix CMake
++    # would otherwise insert before the suffix, which would produce names
++    # like _tf_d_d.pyd.
++    _pxr_set_config_postfix(${LIBRARY_NAME} "")
+     if(WIN32)
+         # Python modules must be suffixed with .pyd on Windows.
+         set_target_properties(${LIBRARY_NAME}
+@@ -1315,7 +1388,15 @@ function(_pxr_library NAME)
+     endif()
+ 
+     # Final name.
+-    set(libraryFilename "${args_PREFIX}${NAME}${args_SUFFIX}")
++    #
++    # CMake inserts the per-configuration postfix (see CMAKE_<CONFIG>_POSTFIX)
++    # between the base name and the suffix, so it has to be part of the
++    # filename we record in resource files such as plugInfo.json.  Otherwise a
++    # Debug build configured with -DCMAKE_DEBUG_POSTFIX=_d would produce
++    # usd_sdf_d.dll while plugInfo.json asks Plug to load usd_sdf.dll.
++    _get_library_config_postfix(${NAME} libraryConfigPostfix)
++    set(libraryFilename
++        "${args_PREFIX}${NAME}${libraryConfigPostfix}${args_SUFFIX}")
+     set(pluginToLibraryPath "")
+ 
+     # Figure out the relative path from this library's plugin location
+diff --git a/cmake/macros/Public.cmake b/cmake/macros/Public.cmake
+index 5f6a5456b..a409b3993 100644
+--- a/cmake/macros/Public.cmake
++++ b/cmake/macros/Public.cmake
+@@ -589,7 +589,12 @@ function(pxr_build_test_shared_lib LIBRARY_NAME)
+     if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${testPlugInfoSrcPath}")
+         set(TEST_PLUG_INFO_RESOURCE_PATH "Resources")
+         set(TEST_PLUG_INFO_ROOT "..")
+-        set(LIBRARY_FILE "${CMAKE_SHARED_LIBRARY_PREFIX}${LIBRARY_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}")
++        # CMake inserts the per-configuration postfix (see
++        # CMAKE_<CONFIG>_POSTFIX) between the base name and the suffix, so it
++        # has to be part of the library name recorded in plugInfo.json.
++        _get_library_config_postfix(${LIBRARY_NAME} testLibraryConfigPostfix)
++        set(LIBRARY_FILE
++            "${CMAKE_SHARED_LIBRARY_PREFIX}${LIBRARY_NAME}${testLibraryConfigPostfix}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+ 
+         set(testPlugInfoLibDir "tests/${bt_INSTALL_PREFIX}/lib/${LIBRARY_NAME}")
+         set(testPlugInfoResourceDir "${testPlugInfoLibDir}/${TEST_PLUG_INFO_RESOURCE_PATH}")

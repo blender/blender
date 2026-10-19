@@ -16,7 +16,7 @@ index 4afac0537..68d5a1b3d 100644
  option(PXR_ENABLE_OSL_SUPPORT "Enable OSL (OpenShadingLanguage) based components" OFF)
  option(PXR_ENABLE_PTEX_SUPPORT "Enable Ptex support" OFF)
 diff --git a/cmake/defaults/Packages.cmake b/cmake/defaults/Packages.cmake
-index 7f3d1a2ae..027e900b1 100644
+index 7f3d1a2ae..53911cab7 100644
 --- a/cmake/defaults/Packages.cmake
 +++ b/cmake/defaults/Packages.cmake
 @@ -20,18 +20,6 @@ set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
@@ -38,6 +38,21 @@ index 7f3d1a2ae..027e900b1 100644
  if(PXR_ENABLE_PYTHON_SUPPORT)
      # 1--Python.
      macro(setup_python_package package)
+@@ -263,6 +251,14 @@ if (PXR_BUILD_IMAGING)
+         find_package(OpenSubdiv 3 REQUIRED)
+         set(PXR_FIND_OPENSUBDIV_IN_CONFIG OFF)
+     endif()
++
++    # OpenSubdiv's package config file exports either the plain or the
++    # "_static" flavoured imported target names depending on how it was built.
++    # Normalise onto the plain names, which is what USD's exported targets
++    # reference, so that the choice of shared vs. static OpenSubdiv does not
++    # leak into pxrTargets.cmake.
++    include(PxrOpenSubdivTargets)
++
+     # --Ptex
+     if (PXR_ENABLE_PTEX_SUPPORT)
+         find_package(PTex REQUIRED)
 diff --git a/cmake/macros/Private.cmake b/cmake/macros/Private.cmake
 index cddb4e095..d03df3279 100644
 --- a/cmake/macros/Private.cmake
@@ -203,8 +218,45 @@ index 791982729..c46e456b0 100644
 +        INTERFACE_INCLUDE_DIRECTORIES "${OPENVDB_INCLUDE_DIR}"
 +    )
 +endif()
+diff --git a/cmake/modules/PxrOpenSubdivTargets.cmake b/cmake/modules/PxrOpenSubdivTargets.cmake
+new file mode 100644
+index 000000000..f0f7df72f
+--- /dev/null
++++ b/cmake/modules/PxrOpenSubdivTargets.cmake
+@@ -0,0 +1,31 @@
++# Normalise the OpenSubdiv imported target names.
++#
++# OpenSubdiv's package config file exports OpenSubdiv::osdCPU / osdGPU when it
++# was built as a shared library, but OpenSubdiv::osdCPU_static / osdGPU_static
++# when it was built statically. Which one is available is a property of the
++# OpenSubdiv installation, not of the USD build, so a Debug tree and a Release
++# tree can easily disagree here.
++#
++# USD's exported targets always refer to the plain names, so alias them onto
++# whichever variant is present. This keeps the names baked into
++# pxrTargets.cmake independent of how OpenSubdiv happened to be built, and it
++# keeps the installed package relocatable: the alias carries no absolute path,
++# it just forwards to the imported target that the find step created.
++#
++# OpenSubdiv must already have been found before including this module. It is
++# included from cmake/defaults/Packages.cmake when USD itself is configured and
++# from pxrConfig.cmake.in when a consumer loads the installed package, in both
++# cases before pxrTargets.cmake is included.
++#
++# Note that add_library(ALIAS) over a non-GLOBAL imported target requires
++# CMake 3.11 or newer; USD requires 3.27.
++
++foreach(_osd_component osdCPU osdGPU)
++    if (NOT TARGET OpenSubdiv::${_osd_component} AND
++        TARGET OpenSubdiv::${_osd_component}_static)
++        add_library(OpenSubdiv::${_osd_component}
++            ALIAS OpenSubdiv::${_osd_component}_static)
++    endif()
++endforeach()
++
++unset(_osd_component)
 diff --git a/pxr/CMakeLists.txt b/pxr/CMakeLists.txt
-index a02287dda..96bf0ebf6 100644
+index a02287dda..dc1f85cba 100644
 --- a/pxr/CMakeLists.txt
 +++ b/pxr/CMakeLists.txt
 @@ -63,6 +63,92 @@ foreach(property IN ITEMS
@@ -300,17 +352,19 @@ index a02287dda..96bf0ebf6 100644
  configure_file(pxrConfig.cmake.in
    "${PROJECT_BINARY_DIR}/pxrConfig.cmake" @ONLY)
  install(FILES
-@@ -70,4 +156,14 @@ install(FILES
+@@ -70,4 +156,16 @@ install(FILES
    DESTINATION "${CMAKE_INSTALL_PREFIX}"
  )
  
 +# Install the find modules that the config file above re-runs, so that
 +# consumers resolve the same third-party dependencies without having to
-+# supply their own copies.
++# supply their own copies. PxrOpenSubdivTargets.cmake is included by the
++# config file itself, so it has to travel with it.
 +install(FILES
 +  "${PROJECT_SOURCE_DIR}/cmake/modules/FindOpenVDB.cmake"
 +  "${PROJECT_SOURCE_DIR}/cmake/modules/FindOpenSubdiv.cmake"
 +  "${PROJECT_SOURCE_DIR}/cmake/modules/FindOpenImageIO.cmake"
++  "${PROJECT_SOURCE_DIR}/cmake/modules/PxrOpenSubdivTargets.cmake"
 +  DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake/modules"
 +)
 +
@@ -402,7 +456,7 @@ index 923686004..cd6785ab1 100644
          api.h
  
 diff --git a/pxr/pxrConfig.cmake.in b/pxr/pxrConfig.cmake.in
-index 1a28e14d6..9da8363a4 100644
+index 1a28e14d6..d00a0090d 100644
 --- a/pxr/pxrConfig.cmake.in
 +++ b/pxr/pxrConfig.cmake.in
 @@ -11,6 +11,12 @@
@@ -476,7 +530,7 @@ index 1a28e14d6..9da8363a4 100644
  endif()
  
  if (NOT DEFINED PXR_FIND_OPENSUBDIV_IN_CONFIG)
-@@ -75,6 +90,39 @@ if (NOT DEFINED PXR_FIND_OPENSUBDIV_IN_CONFIG)
+@@ -75,6 +90,46 @@ if (NOT DEFINED PXR_FIND_OPENSUBDIV_IN_CONFIG)
  endif()
  if (PXR_FIND_OPENSUBDIV_IN_CONFIG)
      find_dependency(OpenSubdiv @OpenSubdiv_VERSION@ CONFIG)
@@ -500,6 +554,13 @@ index 1a28e14d6..9da8363a4 100644
 +    find_dependency(OpenSubdiv)
 +endif()
 +
++# Whichever way OpenSubdiv was found above, normalise the imported target names
++# onto the plain OpenSubdiv::osdCPU / osdGPU spelling that pxrTargets.cmake
++# references. A statically built OpenSubdiv only exports the "_static"
++# flavoured names, and which flavour is present is a property of the
++# OpenSubdiv installation rather than of this USD build.
++include(PxrOpenSubdivTargets)
++
 +# If OpenImageIO support was enabled for this USD build, re-run the find module
 +# that was used for that build so the OpenImageIO::OpenImageIO imported target
 +# exists before pxrTargets.cmake is included. The module is installed alongside
@@ -516,7 +577,7 @@ index 1a28e14d6..9da8363a4 100644
  endif()
  
  # If MaterialX support was enabled for this USD build, try to find the
-@@ -82,9 +130,11 @@ endif()
+@@ -82,9 +137,11 @@ endif()
  # module that was used for that build. This can be overridden by
  # specifying a different MaterialX_DIR when running cmake.
  if(@PXR_ENABLE_MATERIALX_SUPPORT@)
@@ -531,7 +592,7 @@ index 1a28e14d6..9da8363a4 100644
          endif()
      endif()
      find_dependency(MaterialX)
-@@ -92,18 +142,36 @@ endif()
+@@ -92,18 +149,36 @@ endif()
  
  # Similar to MaterialX above, we are using Imath's cmake package config, so set
  # the Imath_DIR accordingly to find the associated import targets which were
