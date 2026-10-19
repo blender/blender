@@ -20,6 +20,7 @@
 #include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_main_idmap.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_anim_filter.hh"
@@ -29,6 +30,10 @@
 #include "ANIM_rna.hh"
 
 namespace blender::ed::animfilter {
+
+void debug_stream_hierarchy(std::ostream &stream,
+                            const AnimationChannel &channel,
+                            StringRef indent);
 
 std::ostream &operator<<(std::ostream &stream, const DataChannelType type)
 {
@@ -140,37 +145,73 @@ std::ostream &operator<<(std::ostream &stream, const ParsedSourcePath &rna_path)
   return stream;
 }
 
-std::ostream &operator<<(std::ostream &stream, const ChannelIdentifier &chan_ident)
-{
-  Main *bmain = G_MAIN;
+/* --------- ChannelIdentifier ----------- */
 
+bool ChannelIdentifier::operator==(const ChannelIdentifier &other) const
+{
+  if (other.owner_id_type != this->owner_id_type) {
+    return false;
+  }
+  if (other.owner_session_uid != this->owner_session_uid) {
+    return false;
+  }
+  return this->source_rna_path.items == other.source_rna_path.items;
+}
+
+int64_t ChannelIdentifier::hash() const
+{
+  return get_default_hash(
+      this->owner_id_type, this->owner_session_uid, this->source_rna_path.items);
+}
+
+void ChannelIdentifier::stream_to(std::ostream &stream, Main *bmain) const
+{
   stream << "[";
-  if (chan_ident.owner_id_type == ID_Type(0) ||
-      chan_ident.owner_session_uid == MAIN_ID_SESSION_UID_UNSET)
-  {
+  if (this->owner_id_type == ID_Type(0) || this->owner_session_uid == MAIN_ID_SESSION_UID_UNSET) {
     stream << "-no-owner-";
   }
   else {
     const ID *owner_id = BKE_libblock_find_session_uid(
-        bmain, chan_ident.owner_id_type, chan_ident.owner_session_uid);
+        bmain, this->owner_id_type, this->owner_session_uid);
     if (owner_id) {
       stream << owner_id->name;
     }
     else {
-      const char *id_type = reinterpret_cast<const char *>(&chan_ident.owner_id_type);
-      stream << "-stale-" << id_type[0] << id_type[1] << "-";
+      const char *id_type = reinterpret_cast<const char *>(&this->owner_id_type);
+      stream << "-stale-" << id_type[0] << id_type[1] << "-" << this->owner_session_uid << "-";
     }
   }
 
   stream << " ";
-  stream << chan_ident.source_rna_path;
+  stream << this->source_rna_path;
   stream << "]";
-  return stream;
 }
 
-static void debug_stream_hierarchy(std::ostream &stream,
-                                   const AnimationChannel &channel,
-                                   const StringRef indent)
+void ChannelIdentifier::stream_to(std::ostream &stream, IDNameLib_Map *idmap) const
+{
+  stream << "[";
+  if (this->owner_id_type == ID_Type(0) || this->owner_session_uid == MAIN_ID_SESSION_UID_UNSET) {
+    stream << "-no-owner-";
+  }
+  else {
+    const ID *owner_id = BKE_main_idmap_lookup_uid(idmap, this->owner_session_uid);
+    if (owner_id) {
+      stream << owner_id->name;
+    }
+    else {
+      const char *id_type = reinterpret_cast<const char *>(&this->owner_id_type);
+      stream << "-stale-" << id_type[0] << id_type[1] << "-" << this->owner_session_uid << "-";
+    }
+  }
+
+  stream << " ";
+  stream << this->source_rna_path;
+  stream << "]";
+}
+
+void debug_stream_hierarchy(std::ostream &stream,
+                            const AnimationChannel &channel,
+                            const StringRef indent)
 {
   /* Show the channel itself. */
   stream << indent << "\033[90m" << channel.type() << "\033[0m "
@@ -299,7 +340,17 @@ ChannelTag::ChannelTag(const ChannelTagType type,
       source_rna_path_(source_rna_path),
       priority_(sort_priority)
 {
-  assert_same_rna_path(*source_rna_path_, source_data_);
+#ifndef NDEBUG
+  /* This assert no longer works, because embedded IDs are handled by setting the
+   * source_data.owner_id to the owning ID, and adding the property necessary to reach the embedded
+   * ID to source_rna_path.
+   *
+   * assert_same_rna_path(*source_rna_path_, source_data_);
+   */
+  BLI_assert_msg(!source_data.has_owner_id() ||
+                     !(source_data.owner_id->flag & ID_FLAG_EMBEDDED_DATA),
+                 "ed::animfilter::ChannelTag can only source from real IDs, not embedded ones");
+#endif
 }
 
 /* ===== AnimationChannel ===== */
@@ -322,8 +373,8 @@ AnimationChannel::AnimationChannel(AnimationChannel &&other)
     : type_(other.type_),
       flags_(other.flags_),
       label_(std::move(other.label_)),
-      source_(std::move(other.source_)),
-      datapoints_(std::move(other.datapoints_))
+      datapoints_(std::move(other.datapoints_)),
+      source_(std::move(other.source_))
 {
   /* Reset the non-std::move'd fields. */
   other.type_ = AnimationChannelType::UNKNOWN;
@@ -349,6 +400,26 @@ ID_Type AnimationChannel::source_id_type() const
   return this->source_id_type_;
 }
 
+void AnimationChannel::source_set(PointerRNA &&source_ptr)
+{
+  BLI_assert_msg(
+      !source_ptr.has_owner_id() || !(source_ptr.owner_id->flag & ID_FLAG_EMBEDDED_DATA),
+      "ed::animfilter::AnimationChannel can only source from real IDs, not embedded ones");
+
+  this->source_id_type_ = source_ptr.has_owner_id() ? source_ptr.owner_id->id_type() : ID_Type(0);
+  this->source_ = std::move(source_ptr);
+}
+
+void AnimationChannel::source_set(const PointerRNA &source_ptr)
+{
+  BLI_assert_msg(
+      !source_ptr.has_owner_id() || !(source_ptr.owner_id->flag & ID_FLAG_EMBEDDED_DATA),
+      "ed::animfilter::AnimationChannel can only source from real IDs, not embedded ones");
+
+  this->source_id_type_ = source_ptr.has_owner_id() ? source_ptr.owner_id->id_type() : ID_Type(0);
+  this->source_ = source_ptr;
+}
+
 Span<KeyPoint> AnimationChannel::datapoints()
 {
   if (this->flags_ & ANIM_CHANNEL_DIRTY) {
@@ -371,7 +442,7 @@ SummaryChannel::SummaryChannel(const StringRef label,
                                int sorting_priority)
     : AnimationChannel(AnimationChannelType::SUMMARY, label)
 {
-  this->source_ = source_ptr;
+  this->source_set(source_ptr);
   this->source_rna_path_ = source_rna_path;
 
   sorting_priority_ = sorting_priority;
@@ -537,18 +608,23 @@ void SummaryChannel::insert_child(const int insert_index, AnimationChannel &chil
   BLI_assert(&child != this);
   BLI_assert(insert_index >= 0);
   if (insert_index >= this->children_.size()) {
-    std::cout << "\033[91mError: cannot add child at index " << insert_index << "\033[0m, I am "
-              << this->identifier() << "; my children are:\n";
+    std::cout << "\033[91mError: cannot add child at index " << insert_index << "\033[0m, I am ";
+    this->identifier().stream_to(std::cout, G_MAIN);
+    std::cout << "; my children are:\n";
+
     for (const int index : this->children_.index_range()) {
       const AnimationChannel *child = this->children_[index];
-      std::cout << "  - " << index << " " << child->identifier() << "\n";
+      std::cout << "  - " << index << " ";
+      child->identifier().stream_to(std::cout, G_MAIN);
+      std::cout << "\n";
     }
     std::cout.flush();
     BLI_assert_unreachable();
   }
 
-  std::cout << "\033[92mOK: adding child at index " << insert_index << "\033[0m, I am "
-            << this->identifier() << "\n";
+  std::cout << "\033[92mOK: adding child at index " << insert_index << "\033[0m, I am ";
+  this->identifier().stream_to(std::cout, G_MAIN);
+  std::cout << "\n";
 
   this->children_.insert(insert_index, &child);
 }
@@ -634,14 +710,14 @@ void SummaryChannel::sort_children()
 
 bool SummaryChannel::is_selected() const
 {
-  if (!this->source_.has_data()) {
+  if (!this->source().has_data()) {
     return false;
   }
 
   /* TODO: do we need sub-types for the various source types, or is this enough? */
   /* TODO: sigh, if only C++ supported switch statements here. */
-  if (this->source_.type == RNA_Action) {
-    animrig::Action *action = this->source_.data_as<animrig::Action>();
+  if (this->source().type == RNA_Action) {
+    animrig::Action *action = this->source().data_as<animrig::Action>();
     return flag_is_set(action->flag, ACT_SELECTED);
   }
 
@@ -650,12 +726,12 @@ bool SummaryChannel::is_selected() const
 
 void SummaryChannel::set_selected(const bool is_selected)
 {
-  if (!this->source_.has_data()) {
+  if (!this->source().has_data()) {
     return;
   }
 
-  if (this->source_.type == RNA_Action) {
-    animrig::Action *action = this->source_.data_as<animrig::Action>();
+  if (this->source().type == RNA_Action) {
+    animrig::Action *action = this->source().data_as<animrig::Action>();
     flag_update(action->flag, ACT_SELECTED, is_selected);
     return;
   }
@@ -693,7 +769,7 @@ FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr, const ParsedSourcePat
 {
   assert_same_rna_path(*source_rna_path_, fcurve_ptr);
 
-  this->source_ = fcurve_ptr;
+  this->source_set(fcurve_ptr);
 
   FCurve &fcurve = *fcurve_ptr.data_as<FCurve>();
   const ParsedRNAPathRef rna_path = fcurve.rna_path_parsed();
@@ -719,13 +795,13 @@ FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr, const ParsedSourcePat
 template<> FCurve *DataChannel::get_source<FCurve>() const
 {
   BLI_assert(this->source_type_ == DataChannelType::FCURVE);
-  return static_cast<FCurve *>(this->source_.data);
+  return static_cast<FCurve *>(this->source().data);
 }
 
 template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer>() const
 {
   BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
-  return static_cast<GreasePencilLayer *>(this->source_.data);
+  return static_cast<GreasePencilLayer *>(this->source().data);
 }
 
 /* ===== F-Curve Channel ===== */
@@ -852,7 +928,7 @@ GreasePencilChannel::GreasePencilChannel(const PointerRNA &gp_layer_ptr,
                   DataChannelType::GREASE_PENCIL,
                   source_rna_path)
 {
-  this->source_ = gp_layer_ptr;
+  this->source_set(gp_layer_ptr);
   this->sorting_priority_ = sorting_priority;
 }
 

@@ -30,6 +30,7 @@ struct bContext;
 struct FCurve;
 struct GreasePencil;
 struct GreasePencilLayer;
+struct IDNameLib_Map;
 struct Panel;
 
 namespace ed::animfilter {
@@ -248,26 +249,20 @@ class ChannelIdentifier {
  public:
   /** Owner ID of the channel source. */
   ID_Type owner_id_type = ID_Type(0);
+  /* It would be tempting to use an ID* here directly. However, such pointers _must_ be remappable,
+   * for example to set to nullptr when the ID is deleted. This means that any struct using an ID*
+   * is inherently mutable, but this struct is meant to serve as a mapping key and thus MUST be
+   * immutable. */
   unsigned int owner_session_uid = 0;
   /** Path from the ID to the channel source data. */
   ParsedSourcePath source_rna_path = {};
 
-  bool operator==(const ChannelIdentifier &other) const
-  {
-    if (other.owner_id_type != this->owner_id_type) {
-      return false;
-    }
-    if (other.owner_session_uid != this->owner_session_uid) {
-      return false;
-    }
-    return this->source_rna_path.items == other.source_rna_path.items;
-  }
+  bool operator==(const ChannelIdentifier &other) const;
+  int64_t hash() const;
 
-  int64_t hash() const
-  {
-    return get_default_hash(
-        this->owner_id_type, this->owner_session_uid, this->source_rna_path.items);
-  }
+  /** Stream operator, which needs a bmain for looking up the session UID. */
+  void stream_to(std::ostream &stream, Main *bmain) const;
+  void stream_to(std::ostream &stream, IDNameLib_Map *idmap) const;
 };
 
 /**
@@ -296,7 +291,6 @@ std::ostream &operator<<(std::ostream &stream, const ChannelTag &tag);
 std::ostream &operator<<(std::ostream &stream, const ChannelTagSet &tagset);
 std::ostream &operator<<(std::ostream &stream, const ChannelTagStack &tagstack);
 std::ostream &operator<<(std::ostream &stream, const ParsedSourcePath &rna_path);
-std::ostream &operator<<(std::ostream &stream, const ChannelIdentifier &chan_ident);
 
 enum class SelectionMode {
   ADD = 0,
@@ -325,11 +319,8 @@ class AnimationChannel {
    * identifier/key for AnimationChannel instances. */
   mutable std::string label_;
 
-  /* The source of this channel. */
-  PointerRNA source_;
   /* The RNA path that identifies the source of this channel, relative to source_.owner_id. */
   std::optional<ParsedSourcePath> source_rna_path_;
-  mutable ID_Type source_id_type_ = IDTYPE_UNKNOWN;
 
   Vector<KeyPoint> datapoints_;
   /* Higher numbers will be sorted before lower numbers. In case the values are equal a fallback is
@@ -342,6 +333,11 @@ class AnimationChannel {
    * The tags of a SummaryChannel are the intersection of its child channels.
    */
   ChannelTagSet tags_;
+
+ private:
+  /* The source of this channel. */
+  PointerRNA source_;
+  mutable ID_Type source_id_type_ = IDTYPE_UNKNOWN;
 
  public:
   AnimationChannel(AnimationChannelType type, StringRef label);
@@ -426,6 +422,10 @@ class AnimationChannel {
 
  protected:
   virtual void gather_channeldata() = 0;
+
+  /* Set source_ and source_id_type_ from this RNA pointer. */
+  void source_set(const PointerRNA &source_ptr);
+  void source_set(PointerRNA &&source_ptr);
 };
 
 using ChannelUIStateMap =

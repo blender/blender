@@ -278,11 +278,26 @@ static void channels_for_action_slot(animrig::Action &action,
 
 static void collect_channels_for_id(ID *animated_id,
                                     const CollectionFilters &collection_filters,
-                                    ChannelSourcingContext &ctx)
+                                    ChannelSourcingContext &ctx,
+                                    ID *owner_id = nullptr,
+                                    std::optional<ParsedSourcePath> embedded_property = {})
 {
   if (!animated_id) {
     return;
   }
+
+#ifndef NDEBUG
+  if (owner_id) {
+    BLI_assert_msg(animated_id->flag & ID_FLAG_EMBEDDED_DATA,
+                   "Animated IDs with an owner_id MUST be marked as embedded");
+    BLI_assert(embedded_property.has_value());
+  }
+  else {
+    BLI_assert_msg(!(animated_id->flag & ID_FLAG_EMBEDDED_DATA),
+                   "Animated embedded IDs MUST have an owner_id");
+    BLI_assert(!embedded_property.has_value());
+  }
+#endif
 
   if (!ctx.visited_ids.add(animated_id)) {
     /* This ID was already visited. */
@@ -304,8 +319,9 @@ static void collect_channels_for_id(ID *animated_id,
   assert_tag_count(tags);
 
   PointerRNA animated_id_ptr = RNA_pointer_create_discrete(
-      animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
-  tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr, ParsedRNAPathRef()});
+      owner_id ? owner_id : animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
+  tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr, embedded_property});
+
   channels_for_action_slot(*action_and_slot->first,
                            action_and_slot->second->handle,
                            tags,
@@ -435,7 +451,11 @@ void collection_channels_for_object(Object &obj,
 
     if (mat) {
       collect_channels_for_id(&mat->id, collection_filters, ctx);
-      collect_channels_for_id(&mat->nodetree->id, collection_filters, ctx);
+
+      ParsedSourcePath path_to_embedded_id;
+      path_to_embedded_id.items.append(rna_path::Member{UString("nodetree")});
+      collect_channels_for_id(
+          &mat->nodetree->id, collection_filters, ctx, &mat->id, path_to_embedded_id);
     }
   }
   if (obj.data) {

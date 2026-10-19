@@ -1147,7 +1147,7 @@ static void action_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   }
 }
 
-static void action_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
+static void action_space_blend_read_after_liblink(BlendLibReader *reader,
                                                   ID * /*parent_id*/,
                                                   SpaceLink *sl)
 {
@@ -1155,10 +1155,19 @@ static void action_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
   bool has_shown_warning_header = false;
 
+  if (BLI_listbase_is_empty(&saction->channel_ui_states)) {
+    /* Just to avoid the debug prints below. */
+    return;
+  }
+
+  /* Convert animation channel UI states. */
   for (SpaceActionChannelUIState &state : saction->channel_ui_states) {
     /* Create the UI state map key. */
     ChannelIdentifier chan_ident;
     if (state.channel_owner_id) {
+      BLI_assert_msg(
+          !(state.channel_owner_id->flag & ID_FLAG_EMBEDDED_DATA),
+          "ed::animfilter::ChannelIdentifier can only work on real IDs, not embedded ones");
       BKE_lib_libblock_session_uid_ensure(state.channel_owner_id);
       chan_ident.owner_id_type = state.channel_owner_id->id_type();
       chan_ident.owner_session_uid = state.channel_owner_id->session_uid;
@@ -1184,13 +1193,12 @@ static void action_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
         has_shown_warning_header = true;
       }
       std::stringstream ss;
-      ss << chan_ident;
+      chan_ident.stream_to(ss, reader->main);
       CLOG_WARN(&LOG, "  - duplicate channel %s found", ss.str().c_str());
     }
 
     /* Discard the RNA path, as BLI_freelistN() below won't do that. */
-    MEM_delete(state.source_rna_path);
-    state.source_rna_path = nullptr;
+    MEM_SAFE_DELETE(state.source_rna_path);
   }
 
   BLI_freelistN(&saction->channel_ui_states);
@@ -1226,6 +1234,7 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
     BLI_assert_msg(for_writing.channel_ui_states.is_empty(),
                    "Previous writes should have cleaned up after themselves");
 
+    /* Construct the SpaceAction::channel_ui_states listbase. */
     int64_t array_index = 0;
     for (const auto key_value : for_writing.runtime->channel_states.items()) {
       SpaceActionChannelUIState *state = &ui_state_array[array_index];
@@ -1254,7 +1263,7 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
       array_index++;
     }
 
-    /* Actually write the structs in the listbase. */
+    /* Write the structs in the listbase. */
     for (SpaceActionChannelUIState &state : for_writing.channel_ui_states) {
       screen_writer.writer->write_struct(&state);
       if (state.source_rna_path) {
