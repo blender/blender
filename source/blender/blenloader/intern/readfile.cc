@@ -3309,16 +3309,23 @@ static BHead *read_libblock(FileData *fd,
 
   /* Read datablock contents.
    * Use convenient malloc name for debugging and better memory link prints. */
+  const void *id_address_old = bhead->old;
   bhead = read_data_into_datamap(fd, bhead, blockname, id_type_index);
   const bool success = direct_link_id(fd, main, id_tag, id_read_tags, id, id_old);
   oldnewmap_clear(fd->datamap);
 
   if (!success) {
-    /* XXX This is probably working OK currently given the very limited scope of that flag.
-     * However, it is absolutely **not** handled correctly: it is freeing an ID pointer that has
-     * been added to the fd->libmap mapping, which in theory could lead to nice crashes...
-     * This should be properly solved at some point. */
+    /* Only happens with corrupt files. Remove the ID from the library mapping,
+     * so pointers to it resolve to null instead of the freed ID. */
+    const NewAddress *entry = fd->libmap->map.lookup_ptr(id_address_old);
+    if (entry && entry->newp == id) {
+      fd->libmap->map.remove(id_address_old);
+    }
     BKE_id_free(main, id);
+    fd->flags &= ~FD_FLAGS_FILE_OK;
+    if (Main *bmain = filedata_main(fd)) {
+      blo_readfile_invalidate(fd, bmain, "Corrupt .blend file, failed to read a data-block");
+    }
     if (r_id != nullptr) {
       *r_id = nullptr;
     }
