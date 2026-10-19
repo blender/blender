@@ -587,6 +587,17 @@ void item_write_struct(BlendWriter *writer, bNodeTreeInterfaceItem &item)
   item_write_data(writer, item);
 }
 
+static size_t item_struct_size(const bNodeTreeInterfaceItem &item)
+{
+  switch (NodeTreeInterfaceItemType(item.item_type)) {
+    case NODE_INTERFACE_SOCKET:
+      return sizeof(bNodeTreeInterfaceSocket);
+    case NODE_INTERFACE_PANEL:
+      return sizeof(bNodeTreeInterfacePanel);
+  }
+  return sizeof(bNodeTreeInterfaceItem);
+}
+
 static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item)
 {
   switch (NodeTreeInterfaceItemType(item.item_type)) {
@@ -619,9 +630,10 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
           reader, panel.items_num, reinterpret_cast<void **>(&panel.items_array));
 
       /* Read the direct-data for each interface item if possible. The pointer becomes null if the
-       * struct type is not known. */
+       * struct type is not known, or the data is too small for its type. */
       for (const int i : blender::IndexRange(panel.items_num)) {
-        BLO_read_struct(reader, bNodeTreeInterfaceItem, &panel.items_array[i]);
+        BLO_read_struct_with_type_size<bNodeTreeInterfaceItem>(
+            reader, &panel.items_array[i], item_struct_size);
       }
       /* Forward compatibility: Discard unknown tree interface item types that may be introduced in
        * the future. Their pointer is set to null above. */
