@@ -57,8 +57,8 @@ static const EnumPropertyItem prop_handle_types[] = {
 };
 
 /* Used to scale the default select distance. */
-constexpr float selection_distance_factor = 0.9f;
-constexpr float selection_distance_factor_edge = 0.5f;
+constexpr float selection_distance_factor = 0.3f;
+constexpr float selection_distance_factor_edge = 0.2f;
 
 /* Used when creating a single curve from nothing. */
 constexpr float default_handle_px_distance = 16.0f;
@@ -982,6 +982,9 @@ static void invoke_curves(PenToolOperation &ptd, bContext *C, wmOperator *op, co
   std::atomic<bool> point_added = false;
   std::atomic<bool> point_removed = false;
 
+  const bool extrude_only = !ptd.select_point && !ptd.move_seg && !ptd.move_point &&
+                            ptd.extrude_point;
+
   threading::parallel_for(ptd.curves_range(), 1, [&](const IndexRange curves_range) {
     for (const int curves_index : curves_range) {
       bke::CurvesGeometry &curves = ptd.get_curves(curves_index);
@@ -991,16 +994,18 @@ static void invoke_curves(PenToolOperation &ptd, bContext *C, wmOperator *op, co
       }
 
       if (ptd.closest_element.element_mode == ElementMode::Edge) {
-        add_single.store(false, std::memory_order_relaxed);
-        if (ptd.insert_point && ptd.closest_element.drawing_index == curves_index) {
-          insert_point_to_curve(ptd, curves);
-          ptd.tag_curve_changed(curves_index);
-          changed.store(true, std::memory_order_relaxed);
+        if (ptd.move_seg || ptd.insert_point) {
+          add_single.store(false, std::memory_order_relaxed);
+          if (ptd.insert_point && ptd.closest_element.drawing_index == curves_index) {
+            insert_point_to_curve(ptd, curves);
+            ptd.tag_curve_changed(curves_index);
+            changed.store(true, std::memory_order_relaxed);
+          }
+          continue;
         }
-        continue;
       }
 
-      if (ptd.closest_element.element_mode == ElementMode::None) {
+      if (ptd.closest_element.element_mode == ElementMode::None || extrude_only) {
         if (ptd.extrude_point) {
           IndexMaskMemory memory;
           const IndexMask editable_curves = ptd.editable_curves(curves_index, memory);
