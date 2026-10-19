@@ -1161,6 +1161,9 @@ static void action_space_blend_read_after_liblink(BlendLibReader *reader,
   }
 
   /* Convert animation channel UI states. */
+  // std::cout << "\033[95m" << __func__ << ": reading "
+  //           << BLI_listbase_count(&saction->channel_ui_states) << " UI channel states\033[0m\n";
+  // int state_index = 0;
   for (SpaceActionChannelUIState &state : saction->channel_ui_states) {
     /* Create the UI state map key. */
     ChannelIdentifier chan_ident;
@@ -1176,6 +1179,11 @@ static void action_space_blend_read_after_liblink(BlendLibReader *reader,
       chan_ident.source_rna_path =
           ParsedSourcePath::from_string(state.source_rna_path).value_or(ParsedSourcePath());
     }
+
+    // std::cout << "  - " << state_index << " ";
+    // chan_ident.stream_to(std::cout, reader->main);
+    // std::cout << " - " << (state.is_collapsed ? "collapsed" : "expanded") << "\n";
+    // state_index++;
 
     /* Create the UI state map value. */
     const SAction_AnimationChannelState ui_state{
@@ -1229,6 +1237,11 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
   IDNameLib_Map *id_map = writer->idmap();
   BLI_assert_msg(id_map, "Write without bmain, writing UI state will not be possible");
 
+  // if (num_channel_states > 0) {
+  //   std::cout << "\033[96m" << __func__ << " writing " << num_channel_states
+  //             << " UI channel states\033[0m\n";
+  // }
+
   writer->write_struct_cast<SpaceAction>(sl, [&](BlendStructWriter<SpaceAction> &struct_writer) {
     SpaceAction &for_writing = struct_writer.shallow_data;
     BLI_assert_msg(for_writing.channel_ui_states.is_empty(),
@@ -1240,6 +1253,15 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
       SpaceActionChannelUIState *state = &ui_state_array[array_index];
 
       ID *owner_id = BKE_main_idmap_lookup_uid(id_map, key_value.key.owner_session_uid);
+      // if (!owner_id) {
+      //   std::cout << "\033[90m";
+      // }
+
+      // std::cout << "  - " << array_index << " ";
+      // key_value.key.stream_to(std::cout, id_map);
+      // std::cout << " - " << (key_value.value.is_collapsed ? "collapsed" : "expanded")
+      //           << "\033[0m\n";
+
       if (!owner_id) {
         /* Stale entry, skip it. */
         continue;
