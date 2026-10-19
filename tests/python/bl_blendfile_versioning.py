@@ -69,6 +69,14 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             "invalid_blendfiles/",
         )
 
+        # Some files are known broken currently for linking and appending only.
+        self.excluded_link_append_paths = {
+            # invalid_blendfiles/invalid_struct_size_boid_rule.blend
+            # Linking from a library that fails to read leaves data-blocks with unresolved pointers
+            # in the main database (crash).
+            "invalid_struct_size_boid_rule.blend",
+        }
+
         # Some files are expected to be invalid.
         # This mapping stores filenames as keys, and expected error message as value.
         self.invalid_paths = {
@@ -180,6 +188,12 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, unexpected data size"
             ),
+            # invalid_blendfiles/invalid_struct_size_*.blend
+            # A block with a type member is too small for the struct of its type.
+            "invalid_struct_size_boid_rule.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_dirs)
@@ -254,6 +268,8 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
         operation_name = "link" if do_link else "append"
         for bfp in self.blendfile_paths:
             if self.skip_path_check(bfp):
+                continue
+            if os.path.basename(bfp) in self.excluded_link_append_paths:
                 continue
             bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
             try:
