@@ -616,6 +616,8 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         "text": ((("text_ctxt",), _ctxt_to_ctxt),
                  (("operator",), _op_to_ctxt),
                  ),
+        "cancel_text": ((("text_ctxt",), _ctxt_to_ctxt),
+                        ),
         "msgid": ((("msgctxt",), _ctxt_to_ctxt),
                   ),
         "message": (),
