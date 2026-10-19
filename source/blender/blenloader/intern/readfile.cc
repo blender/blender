@@ -6494,6 +6494,88 @@ void BLO_read_struct_list_with_size(BlendDataReader *reader,
   list->last_ = prev;
 }
 
+/**
+ * Check data already verified for its base struct size against the struct size of its type.
+ * Data too small is freed and removed from the data map, so later reads resolve to null.
+ */
+static bool blo_read_verify_type_size(FileData *fd,
+                                      NewAddress &entry,
+                                      const void *old_address,
+                                      FunctionRef<size_t(const void *data)> type_size_fn)
+{
+  const size_t type_size = type_size_fn(entry.newp);
+  if (blo_verify_data_address(fd, entry.newp, old_address, entry.alloc_len, type_size)) {
+    return true;
+  }
+  if (entry.nr == 0) {
+    MEM_delete_void(entry.newp);
+  }
+  fd->datamap->map.remove(old_address);
+  return false;
+}
+
+void BLO_read_struct_list_with_type_size(BlendDataReader *reader,
+                                         const size_t base_size,
+                                         ListBase *list,
+                                         FunctionRef<size_t(const void *data)> type_size_fn)
+{
+  FileData *fd = reader->fd;
+  const void *old_address = list->first_;
+  Link *prev = nullptr;
+  list->first_ = nullptr;
+
+  while (old_address) {
+    NewAddress *entry = newdataadr_entry(fd, old_address);
+    if (entry == nullptr) {
+      break;
+    }
+    Link *ln = static_cast<Link *>(
+        blo_verify_data_address(fd, entry->newp, old_address, entry->alloc_len, base_size));
+    if (ln == nullptr) {
+      break;
+    }
+
+    /* Skip items too small for their type, continuing with the next one. */
+    const void *old_address_item = old_address;
+    old_address = ln->next;
+    if (!blo_read_verify_type_size(fd, *entry, old_address_item, type_size_fn)) {
+      continue;
+    }
+
+    entry->nr++;
+    ln->next = nullptr;
+    ln->prev = prev;
+    if (prev) {
+      prev->next = ln;
+    }
+    else {
+      list->first_ = ln;
+    }
+    prev = ln;
+  }
+  list->last_ = prev;
+}
+
+void *blo_read_struct_with_type_size_impl(BlendDataReader *reader,
+                                          const void *old_address,
+                                          const size_t base_size,
+                                          FunctionRef<size_t(const void *data)> type_size_fn)
+{
+  FileData *fd = reader->fd;
+  NewAddress *entry = newdataadr_entry(fd, old_address);
+  if (entry == nullptr) {
+    return nullptr;
+  }
+  void *new_address = blo_verify_data_address(
+      fd, entry->newp, old_address, entry->alloc_len, base_size);
+  if (new_address == nullptr || !blo_read_verify_type_size(fd, *entry, old_address, type_size_fn))
+  {
+    return nullptr;
+  }
+  entry->nr++;
+  return new_address;
+}
+
 void BLO_read_string(BlendDataReader *reader, char **ptr_p)
 {
 #ifndef NDEBUG
@@ -6678,6 +6760,15 @@ void BLO_read_glob_list(BlendDataReader *reader, ListBase *list)
 BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader)
 {
   return reader->fd->reports;
+}
+
+void BLO_read_data_invalidate(BlendDataReader *reader, const char *message)
+{
+  FileData *fd = reader->fd;
+  if (fd->bmain) {
+    blo_readfile_invalidate(
+        fd, (*fd->bmain->split_mains)[fd->bmain->split_mains->size() - 1], message);
+  }
 }
 
 bool BLO_read_lib_is_undo(BlendLibReader *reader)
