@@ -1623,7 +1623,7 @@ bool BKE_screen_area_map_blend_read_data(BlendDataReader *reader, ScrAreaMap *ar
     BKE_screen_sort_scrvert(&se.v1, &se.v2);
 
     if (se.v1 == nullptr) {
-      BLI_remlink(&area_map->edgebase, &se);
+      BLI_freelinkN(&area_map->edgebase, &se);
 
       return false;
     }
