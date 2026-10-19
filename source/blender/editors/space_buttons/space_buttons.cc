@@ -1086,6 +1086,7 @@ void ED_spacetype_buttons()
 
   st->spaceid = SPACE_PROPERTIES;
   STRNCPY_UTF8(st->name, "Buttons");
+  st->struct_size = sizeof(SpaceProperties);
 
   st->create = buttons_create;
   st->free = buttons_free;

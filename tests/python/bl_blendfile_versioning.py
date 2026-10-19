@@ -457,9 +457,19 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, unexpected data size"
             ),
+            "invalid_struct_size_space.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
             "invalid_struct_size_strip_modifier.blend": (
                 (OSError, RuntimeError),
                 "Corrupt .blend file, unexpected data size"
+            ),
+            # invalid_blendfiles/invalid_area_space_type.blend
+            # An area space type that does not match its active space data.
+            "invalid_area_space_type.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, mismatched area space type"
             ),
         }
 

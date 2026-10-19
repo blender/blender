@@ -181,6 +181,7 @@ void ED_spacetype_script()
 
   st->spaceid = SPACE_SCRIPT;
   STRNCPY_UTF8(st->name, "Script");
+  st->struct_size = sizeof(SpaceScript);
 
   st->create = script_create;
   st->free = script_free;

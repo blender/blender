@@ -659,6 +659,7 @@ void ED_spacetype_outliner()
 
   st->spaceid = SPACE_OUTLINER;
   STRNCPY_UTF8(st->name, "Outliner");
+  st->struct_size = sizeof(SpaceOutliner);
 
   st->create = outliner_create;
   st->free = outliner_free;

@@ -355,6 +355,7 @@ void ED_spacetype_console()
 
   st->spaceid = SPACE_CONSOLE;
   STRNCPY_UTF8(st->name, "Console");
+  st->struct_size = sizeof(SpaceConsole);
 
   st->create = console_create;
   st->free = console_free;

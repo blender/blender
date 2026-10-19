@@ -293,6 +293,7 @@ void ED_spacetype_topbar()
 
   st->spaceid = SPACE_TOPBAR;
   STRNCPY_UTF8(st->name, "Top Bar");
+  st->struct_size = sizeof(SpaceTopBar);
 
   st->create = topbar_create;
   st->free = topbar_free;
