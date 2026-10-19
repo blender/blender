@@ -171,7 +171,10 @@ struct SymbolFunction : SymbolScope {
   /* Only used for sorting purpose. Return a unique location. */
   SourceLocation decl_loc() const
   {
-    return poi.value_or(SourceLocation(fwd.is_valid() ? fwd.front() : decl.front()));
+    if (poi.has_value() && this->template_data) {
+      return poi.value();
+    }
+    return SourceLocation(fwd.is_valid() ? fwd.front() : decl.front());
   }
 
   /* To be called on the first registered overload. */

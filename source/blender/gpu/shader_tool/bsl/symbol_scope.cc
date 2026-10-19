@@ -502,7 +502,7 @@ vector<SymbolFunction *> SymbolScope::functions_in_declaration_order() const
   sort(members.begin(), members.end(), [](const SymbolFunction *a, const SymbolFunction *b) {
     SourceLocation loc_a(a->decl_loc());
     SourceLocation loc_b(b->decl_loc());
-    // assert(loc_a != loc_b); /* FIXME(fclem): Not unique for templated methods. */
+    assert(loc_a != loc_b);
     return loc_a < loc_b;
   });
 
