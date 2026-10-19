@@ -442,6 +442,10 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, unexpected data size"
             ),
+            "invalid_struct_size_linestyle_modifier.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
             "invalid_struct_size_modifier.blend": (
                 (OSError, RuntimeError),
                 "Corrupt .blend file, unexpected data size"
