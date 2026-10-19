@@ -219,3 +219,8 @@ it simulates a step (crash).
 A block of a struct with a type member, retyped and truncated to its base struct
 (e.g. `SubsurfModifierData` to `ModifierData`), while its type member still indicates the
 larger struct (crash).
+
+`invalid_area_space_type.blend`
+-------------------------------
+
+An area with 3D viewport space data, but its space type changed to Info.

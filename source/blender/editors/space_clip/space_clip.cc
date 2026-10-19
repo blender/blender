@@ -1237,6 +1237,7 @@ void ED_spacetype_clip()
 
   st->spaceid = SPACE_CLIP;
   STRNCPY_UTF8(st->name, "Clip");
+  st->struct_size = sizeof(SpaceClip);
 
   st->create = clip_create;
   st->free = clip_free;

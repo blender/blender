@@ -192,6 +192,7 @@ void ED_spacetype_project()
 
   st->spaceid = SPACE_PROJECT;
   STRNCPY(st->name, "Project Settings");
+  st->struct_size = sizeof(SpaceProject);
 
   st->create = project_create;
   st->free = project_free;
