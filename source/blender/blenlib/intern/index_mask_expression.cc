@@ -1139,6 +1139,21 @@ static ExactEvalMode determine_exact_eval_mode(const Expr &root_expression,
   return ExactEvalMode::Bits;
 }
 
+/**
+ * Estimates the cost of the exact evaluation to decide how to distribute it across threads.
+ * Ranges are cheap to process in bits mode, so mostly the other indices matter.
+ */
+static int64_t estimate_exact_eval_work(const Span<IndexMask> atomic_masks)
+{
+  int64_t work = 0;
+  for (const IndexMask &mask : atomic_masks) {
+    if (!mask.to_range()) {
+      work += mask.size();
+    }
+  }
+  return work;
+}
+
 static void evaluate_coarse_and_split_until_segments_are_short(
     const Expr &root_expression,
     const Span<const Expr *> eval_order,
@@ -1207,8 +1222,11 @@ static void evaluate_short_unknown_segments_exactly(
     LinearAllocator<> &memory,
     Vector<EvaluatedSegment, 16> &r_evaluated_segments)
 {
-  /* Determine how to evaluate each segment. */
+  /* Determine how to evaluate each segment before the evaluation to know how much work there is
+   * in total. */
   Array<ExactEvalMode, 32> modes(short_unknown_segments.size());
+  Array<int64_t, 16> work(short_unknown_segments.size());
+  int64_t total_work = 0;
   /* The sliced atomic masks are stored to be reused for the evaluation. */
   const int64_t atomic_num = std::ranges::count_if(
       eval_order, [](const Expr *expr) { return expr->type == Expr::Type::Atomic; });
@@ -1228,6 +1246,8 @@ static void evaluate_short_unknown_segments_exactly(
     modes[unknown_i] = forced_exact_eval_mode ?
                            *forced_exact_eval_mode :
                            determine_exact_eval_mode(root_expression, atomic_masks, bounds);
+    work[unknown_i] = estimate_exact_eval_work(atomic_masks);
+    total_work += work[unknown_i];
   }
 
   /* Evaluate a segment exactly. */
@@ -1289,8 +1309,8 @@ static void evaluate_short_unknown_segments_exactly(
 
   /* Decide whether multi-threading should be used or not. There is some extra overhead even when
    * just attempting to use multi-threading. */
-  const int64_t unknown_segment_eval_grain_size = 8;
-  if (short_unknown_segments.size() < unknown_segment_eval_grain_size) {
+  const int64_t work_grain_size = 2048;
+  if (total_work <= work_grain_size) {
     for (const int64_t unknown_i : short_unknown_segments.index_range()) {
       evaluate_unknown_segment(unknown_i, memory, r_evaluated_segments);
     }
@@ -1303,15 +1323,17 @@ static void evaluate_short_unknown_segments_exactly(
       Vector<EvaluatedSegment, 16> evaluated_segments;
     };
     threading::EnumerableThreadSpecific<LocalData> data_by_thread;
-    threading::parallel_for(short_unknown_segments.index_range(),
-                            unknown_segment_eval_grain_size,
-                            [&](const IndexRange range) {
-                              LocalData &data = data_by_thread.local();
-                              for (const int64_t unknown_i : range) {
-                                evaluate_unknown_segment(
-                                    unknown_i, data.allocator, data.evaluated_segments);
-                              }
-                            });
+    threading::parallel_for(
+        short_unknown_segments.index_range(),
+        work_grain_size,
+        [&](const IndexRange range) {
+          LocalData &data = data_by_thread.local();
+          for (const int64_t unknown_i : range) {
+            evaluate_unknown_segment(unknown_i, data.allocator, data.evaluated_segments);
+          }
+        },
+        threading::individual_task_sizes([&](const int64_t unknown_i) { return work[unknown_i]; },
+                                         total_work));
     for (LocalData &data : data_by_thread) {
       if (!data.evaluated_segments.is_empty()) {
         r_evaluated_segments.extend(data.evaluated_segments);
