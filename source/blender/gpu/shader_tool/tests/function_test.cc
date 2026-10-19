@@ -457,15 +457,15 @@ struct A {
 A A_ctor_() {A r;r._pad=0;return r;}
 
 #ifndef GPU_METAL
-void _f(_ref(A ,this_), int _0);
-void _f(_ref(A ,this_), float _0);
+void _f(A this_, int _0);
+void _f(A this_, float _0);
 #endif
 #line 4
-  void _f(_ref(A ,this_), float _0) {
+  void _f(A this_, float _0) {
 #line 4
                     }
 
-void _f(_ref(A ,this_), int _0) {
+void _f(A this_, int _0) {
 #line 6
                    }
 )";
