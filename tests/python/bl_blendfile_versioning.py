@@ -446,6 +446,10 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, unexpected data size"
             ),
+            "invalid_struct_size_shader_fx.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_open_link_dirs)
