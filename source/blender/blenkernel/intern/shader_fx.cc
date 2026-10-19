@@ -277,19 +277,24 @@ void BKE_shaderfx_blend_write(BlendWriter *writer, ListBaseT<ShaderFxData> *fxba
 
 void BKE_shaderfx_blend_read_data(BlendDataReader *reader, ListBaseT<ShaderFxData> *lb, Object *ob)
 {
-  BLO_read_struct_list(reader, ShaderFxData, lb);
+  BLO_read_struct_list_with_type_size<ShaderFxData>(reader, lb, [](const ShaderFxData &fx) {
+    const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx.type));
+    return fxi ? size_t(fxi->struct_size) : sizeof(ShaderFxData);
+  });
 
-  for (ShaderFxData &fx : *lb) {
+  for (ShaderFxData &fx : lb->items_mutable()) {
     fx.error = nullptr;
+
+    /* Remove if shader disappeared, for upward compatibility. There is no type info for the None
+     * type, so this can't be used. */
+    if (BKE_shaderfx_get_info(ShaderFxType(fx.type)) == nullptr) {
+      BLI_freelinkN(lb, &fx);
+      continue;
+    }
 
     /* If linking from a library, clear 'local' library override flag. */
     if (ID_IS_LINKED(ob)) {
       fx.flag &= ~eShaderFxFlag_OverrideLibrary_Local;
-    }
-
-    /* if shader disappear, or for upward compatibility */
-    if (nullptr == BKE_shaderfx_get_info(ShaderFxType(fx.type))) {
-      fx.type = eShaderFxType_None;
     }
   }
 }
