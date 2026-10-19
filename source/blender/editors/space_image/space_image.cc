@@ -1207,6 +1207,7 @@ void ED_spacetype_image()
 
   st->spaceid = SPACE_IMAGE;
   STRNCPY(st->name, "Image");
+  st->struct_size = sizeof(SpaceImage);
 
   st->create = image_create;
   st->free = image_free;

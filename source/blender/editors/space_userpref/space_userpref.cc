@@ -189,6 +189,7 @@ void ED_spacetype_userpref()
 
   st->spaceid = SPACE_USERPREF;
   STRNCPY(st->name, "Userpref");
+  st->struct_size = sizeof(SpaceUserPref);
 
   st->create = userpref_create;
   st->free = userpref_free;

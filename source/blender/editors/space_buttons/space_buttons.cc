@@ -1071,6 +1071,7 @@ void ED_spacetype_buttons()
 
   st->spaceid = SPACE_PROPERTIES;
   STRNCPY(st->name, "Buttons");
+  st->struct_size = sizeof(SpaceProperties);
 
   st->create = buttons_create;
   st->free = buttons_free;

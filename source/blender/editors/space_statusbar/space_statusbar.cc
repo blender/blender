@@ -134,6 +134,7 @@ void ED_spacetype_statusbar()
 
   st->spaceid = SPACE_STATUSBAR;
   STRNCPY(st->name, "Status Bar");
+  st->struct_size = sizeof(SpaceStatusBar);
 
   st->create = statusbar_create;
   st->free = statusbar_free;

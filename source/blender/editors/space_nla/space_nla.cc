@@ -627,6 +627,7 @@ void ED_spacetype_nla()
 
   st->spaceid = SPACE_NLA;
   STRNCPY(st->name, "NLA");
+  st->struct_size = sizeof(SpaceNla);
 
   st->create = nla_create;
   st->free = nla_free;

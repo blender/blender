@@ -775,6 +775,7 @@ void register_spacetype()
 
   st->spaceid = SPACE_SPREADSHEET;
   STRNCPY(st->name, "Spreadsheet");
+  st->struct_size = sizeof(SpaceSpreadsheet);
 
   st->create = spreadsheet_create;
   st->free = spreadsheet_free;

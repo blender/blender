@@ -945,6 +945,7 @@ void ED_spacetype_file()
 
   st->spaceid = SPACE_FILE;
   STRNCPY(st->name, "File");
+  st->struct_size = sizeof(SpaceFile);
 
   st->create = file_create;
   st->free = file_free;

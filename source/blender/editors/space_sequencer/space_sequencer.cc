@@ -1115,6 +1115,7 @@ void ED_spacetype_sequencer()
 
   st->spaceid = SPACE_SEQ;
   STRNCPY(st->name, "Sequencer");
+  st->struct_size = sizeof(SpaceSeq);
 
   st->create = sequencer_create;
   st->free = sequencer_free;

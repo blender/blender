@@ -176,6 +176,7 @@ void ED_spacetype_script()
 
   st->spaceid = SPACE_SCRIPT;
   STRNCPY(st->name, "Script");
+  st->struct_size = sizeof(SpaceScript);
 
   st->create = script_create;
   st->free = script_free;

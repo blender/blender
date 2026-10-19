@@ -431,6 +431,7 @@ void ED_spacetype_text()
 
   st->spaceid = SPACE_TEXT;
   STRNCPY(st->name, "Text");
+  st->struct_size = sizeof(SpaceText);
 
   st->create = text_create;
   st->free = text_free;

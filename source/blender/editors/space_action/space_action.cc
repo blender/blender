@@ -934,6 +934,7 @@ void ED_spacetype_action()
 
   st->spaceid = SPACE_ACTION;
   STRNCPY(st->name, "Action");
+  st->struct_size = sizeof(SpaceAction);
 
   st->create = action_create;
   st->free = action_free;

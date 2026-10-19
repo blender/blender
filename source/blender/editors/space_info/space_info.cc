@@ -256,6 +256,7 @@ void ED_spacetype_info()
 
   st->spaceid = SPACE_INFO;
   STRNCPY(st->name, "Info");
+  st->struct_size = sizeof(SpaceInfo);
 
   st->create = info_create;
   st->free = info_free;
