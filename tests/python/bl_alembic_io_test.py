@@ -877,7 +877,8 @@ class AlembicAnimatedMaterialsImportTests(AbstractAlembicTest):
                     # NOTE: in the blend file, the materials are written in the same order as in the material names array above.
                     # However, due to the export process, the names are sorted, which in this case happens to be the reverse order of the array
                     # so we can simply subtract the expected index from the largest index to get the corrected/sorted value.
-                    # We use 3 - expected_index as the last material (index 4) is not part of the original blend file (so does not count).
+                    # We use 3 - expected_index as the last material (index 4) is not part of
+                    # the original blend file (so does not count).
                     corrected_index = 3 - expected_index
                     self.assertEqual(polygon.material_index, corrected_index)
                     self.assertEqual(ob_eval.material_slots[corrected_index].name, material_names[expected_index])
