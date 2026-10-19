@@ -500,7 +500,10 @@ vector<SymbolFunction *> SymbolScope::functions_in_declaration_order() const
 
   /* Sort elements to guarantee deterministic order. */
   sort(members.begin(), members.end(), [](const SymbolFunction *a, const SymbolFunction *b) {
-    return a->loc < b->loc;
+    SourceLocation loc_a(a->decl_loc());
+    SourceLocation loc_b(b->decl_loc());
+    // assert(loc_a != loc_b); /* FIXME(fclem): Not unique for templated methods. */
+    return loc_a < loc_b;
   });
 
   return members;

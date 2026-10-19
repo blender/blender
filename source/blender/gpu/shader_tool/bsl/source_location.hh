@@ -34,6 +34,16 @@ struct SourceLocation {
            to_string(tok.char_number() + 1);
   }
 
+  friend bool operator==(const SourceLocation &a, const SourceLocation &b)
+  {
+    return (a.include_id() == b.include_id()) && (a.tok.index_ == b.tok.index_);
+  }
+
+  friend bool operator!=(const SourceLocation &a, const SourceLocation &b)
+  {
+    return !(a == b);
+  }
+
   friend bool operator<=(const SourceLocation &a, const SourceLocation &b)
   {
     return (a.include_id() != b.include_id()) ? (a.include_id() <= b.include_id()) :

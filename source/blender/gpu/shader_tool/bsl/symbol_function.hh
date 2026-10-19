@@ -168,6 +168,12 @@ struct SymbolFunction : SymbolScope {
     return is_builtin && allow_vector_promotion;
   }
 
+  /* Only used for sorting purpose. Return a unique location. */
+  SourceLocation decl_loc() const
+  {
+    return poi.value_or(SourceLocation(fwd.is_valid() ? fwd.front() : decl.front()));
+  }
+
   /* To be called on the first registered overload. */
   Result<SymbolFunction *> lookup_overload(ast::IdQualified id,
                                            const SymbolTable &table,

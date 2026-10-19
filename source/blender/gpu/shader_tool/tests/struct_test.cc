@@ -1744,8 +1744,8 @@ struct A {
 A A_ctor_() {A r;r.a=0;return r;}
 
 #ifndef GPU_METAL
-       void A_s();
 void _m(_ref(A ,this_));
+       void A_s();
 #endif
 #line 5
   void _m(_ref(A ,this_)) {
@@ -1816,8 +1816,8 @@ struct A {
 A A_ctor_() {A r;r.a=0;return r;}
 
 #ifndef GPU_METAL
-       void A_s();
 void _m(_ref(A ,this_));
+       void A_s();
 #endif
 #line 5
   void _m(_ref(A ,this_)) {
