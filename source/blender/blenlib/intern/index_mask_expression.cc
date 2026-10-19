@@ -19,6 +19,7 @@
 #include "BLI_bit_group_vector.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_hash_tables.hh"
 #include "BLI_index_mask_expression.hh"
 #include "BLI_stack.hh"
 #include "BLI_task.hh"

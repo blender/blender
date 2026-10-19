@@ -21,6 +21,8 @@
 
 #include "FN_lazy_function.hh"
 
+#include <optional>
+
 namespace blender {
 
 namespace dot_export {

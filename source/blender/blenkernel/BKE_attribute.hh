@@ -15,6 +15,7 @@
 #include "BLI_generic_pointer.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_set.hh"

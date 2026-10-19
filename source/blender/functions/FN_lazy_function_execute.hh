@@ -14,6 +14,8 @@
 
 #include "FN_lazy_function.hh"
 
+#include <optional>
+
 namespace blender::fn::lazy_function {
 
 /**
