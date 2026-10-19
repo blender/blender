@@ -389,6 +389,10 @@ SymbolClass *SymbolScope::as_class()
 {
   return type == CLASS ? static_cast<SymbolClass *>(this) : nullptr;
 }
+const SymbolClass *SymbolScope::as_class() const
+{
+  return type == CLASS ? static_cast<const SymbolClass *>(this) : nullptr;
+}
 
 SymbolFunction *SymbolScope::as_function()
 {
@@ -427,6 +431,10 @@ bool SymbolScope::function_emplace(SymbolFunction *fn, bool builtin)
       functions.erase(functions.find(fn->identifier));
       functions.emplace(fn);
     }
+    /* Check if redefinition is simply hiding a base class method. */
+    else if (it.first->is_method() && this->as_class() != it.first->parent_class()) {
+      functions.insert_override(fn);
+    }
     else {
       it.first->add_overload(fn);
       if (!builtin) {
@@ -457,6 +465,16 @@ bool SymbolScope::variable_emplace(string id, SymbolVariable *var)
 bool SymbolScope::variable_emplace(SymbolVariable *var)
 {
   return !variables.emplace(var->identifier, var).second;
+}
+
+bool SymbolScope::variable_override(string id, SymbolVariable *var)
+{
+  return !variables.insert_override(id, var).second;
+}
+
+bool SymbolScope::variable_override(SymbolVariable *var)
+{
+  return !variables.insert_override(var->identifier, var).second;
 }
 
 vector<SymbolVariable *> SymbolScope::non_static_variables_in_declaration_order() const

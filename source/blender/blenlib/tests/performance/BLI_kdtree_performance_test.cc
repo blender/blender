@@ -13,7 +13,6 @@
 #include "BLI_array.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_kdtree.hh"
 #include "BLI_kdtree_new.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rand.hh"
@@ -139,15 +138,14 @@ static const Distribution DISTRIBUTIONS[] = {
 
 /** The two implementations that are compared. */
 enum class Impl {
-  BLI,
   New,
 };
 
-static const std::array<Impl, 2> IMPLEMENTATIONS = {Impl::BLI, Impl::New};
+static const std::array<Impl, 1> IMPLEMENTATIONS = {Impl::New};
 
 static const char *impl_name(const Impl impl)
 {
-  return impl == Impl::BLI ? "BLI_kdtree" : "New";
+  return impl == Impl::New ? "New" : "";
 }
 
 /**
@@ -166,16 +164,6 @@ static Array<float3> make_query_points(const Span<float3> positions)
     queries[i] = positions[i * stride] + (offset - 0.5f) * 0.01f;
   }
   return queries;
-}
-
-static KDTree<float3> *build_bli_tree(const Span<float3> positions)
-{
-  KDTree<float3> *tree = kdtree_new<float3>(positions.size());
-  for (const int64_t i : positions.index_range()) {
-    kdtree_insert(tree, int(i), positions[i]);
-  }
-  kdtree_balance(tree);
-  return tree;
 }
 
 /**
@@ -317,13 +305,7 @@ TEST(kdtree_performance, Build)
 {
   run_table("Building the tree",
             "`kdtree_insert` and `kdtree_balance` vs. the `KDTreeNew` constructor",
-            [](const Impl impl, const Span<float3> positions, const int64_t points_num) {
-              if (impl == Impl::BLI) {
-                return run_iterations(points_num, [&]() {
-                  KDTree<float3> *tree = build_bli_tree(positions);
-                  kdtree_free(tree);
-                });
-              }
+            [](const Impl /*impl*/, const Span<float3> positions, const int64_t points_num) {
               return run_iterations(points_num, [&]() { KDTreeNew<float3> tree(positions); });
             });
 }
@@ -332,23 +314,13 @@ TEST(kdtree_performance, FindNearest)
 {
   run_table("Find the nearest point",
             "time per query",
-            [](const Impl impl, const Span<float3> positions, const int64_t /*points_num*/) {
+            [](const Impl /*impl*/, const Span<float3> positions, const int64_t /*points_num*/) {
               const Array<float3> queries = make_query_points(positions);
               int64_t index_sum = 0;
               double time;
-              if (impl == Impl::BLI) {
-                KDTree<float3> *tree = build_bli_tree(positions);
-                time = run_queries(queries, [&](const float3 &query) {
-                  KDTreeNearest<float3> nearest;
-                  index_sum += kdtree_find_nearest(tree, query, &nearest);
-                });
-                kdtree_free(tree);
-              }
-              else {
-                const KDTreeNew<float3> tree(positions);
-                time = run_queries(
-                    queries, [&](const float3 &query) { index_sum += tree.find_nearest(query); });
-              }
+              const KDTreeNew<float3> tree(positions);
+              time = run_queries(
+                  queries, [&](const float3 &query) { index_sum += tree.find_nearest(query); });
               EXPECT_GT(index_sum, 0);
               return time;
             });
@@ -358,7 +330,7 @@ TEST(kdtree_performance, FindNearestSkipSelf)
 {
   run_table("Find the nearest point, skipping the search point itself",
             "time per query, this is what the Index of Nearest node does",
-            [](const Impl impl, const Span<float3> positions, const int64_t /*points_num*/) {
+            [](const Impl /*impl*/, const Span<float3> positions, const int64_t /*points_num*/) {
               /* Search from the points themselves, since that's the only case where skipping
                * the search point matters. */
               const Span<float3> queries = positions.take_front(
@@ -372,28 +344,12 @@ TEST(kdtree_performance, FindNearestSkipSelf)
               const auto query_index = [&](const float3 &query) {
                 return int(&query - queries.data());
               };
-              if (impl == Impl::BLI) {
-                KDTree<float3> *tree = build_bli_tree(positions);
-                time = run_queries(queries, [&](const float3 &query) {
-                  const int i = query_index(query);
-                  index_sum += kdtree_find_nearest_cb<float3>(
-                      tree,
-                      query,
-                      nullptr,
-                      [i](const int other, const float3 & /*co*/, const float /*dist_sq*/) {
-                        return other == i ? 0 : 1;
-                      });
-                });
-                kdtree_free(tree);
-              }
-              else {
-                const KDTreeNew<float3> tree(positions);
-                time = run_queries(queries, [&](const float3 &query) {
-                  const int i = query_index(query);
-                  index_sum += tree.find_nearest_filtered(
-                      query, [i](const int other) { return other != i; });
-                });
-              }
+              const KDTreeNew<float3> tree(positions);
+              time = run_queries(queries, [&](const float3 &query) {
+                const int i = query_index(query);
+                index_sum += tree.find_nearest_filtered(
+                    query, [i](const int other) { return other != i; });
+              });
               EXPECT_GT(index_sum, 0);
               return time;
             });
@@ -403,25 +359,15 @@ TEST(kdtree_performance, FindNearestN)
 {
   run_table("Find the 8 nearest points",
             "time per query",
-            [](const Impl impl, const Span<float3> positions, const int64_t /*points_num*/) {
+            [](const Impl /*impl*/, const Span<float3> positions, const int64_t /*points_num*/) {
               const Array<float3> queries = make_query_points(positions);
               int64_t found_sum = 0;
               double time;
-              if (impl == Impl::BLI) {
-                KDTree<float3> *tree = build_bli_tree(positions);
-                Array<KDTreeNearest<float3>> nearest(NEAREST_N);
-                time = run_queries(queries, [&](const float3 &query) {
-                  found_sum += kdtree_find_nearest_n(tree, query, nearest.data(), NEAREST_N);
-                });
-                kdtree_free(tree);
-              }
-              else {
-                const KDTreeNew<float3> tree(positions);
-                Array<KDTreeNew<float3>::Nearest> nearest(NEAREST_N);
-                time = run_queries(queries, [&](const float3 &query) {
-                  found_sum += tree.find_nearest_n(query, nearest);
-                });
-              }
+              const KDTreeNew<float3> tree(positions);
+              Array<KDTreeNew<float3>::Nearest> nearest(NEAREST_N);
+              time = run_queries(queries, [&](const float3 &query) {
+                found_sum += tree.find_nearest_n(query, nearest);
+              });
               EXPECT_GT(found_sum, 0);
               return time;
             });
@@ -431,34 +377,18 @@ TEST(kdtree_performance, RangeSearch)
 {
   run_table("Visit every point in a radius",
             "time per query, radius scaled for ~8 points in range",
-            [](const Impl impl, const Span<float3> positions, const int64_t points_num) {
+            [](const Impl /*impl*/, const Span<float3> positions, const int64_t points_num) {
               const Array<float3> queries = make_query_points(positions);
               const float radius = radius_for_neighbor_count(points_num);
               int64_t found_sum = 0;
               double time;
-              if (impl == Impl::BLI) {
-                KDTree<float3> *tree = build_bli_tree(positions);
-                time = run_queries(queries, [&](const float3 &query) {
-                  kdtree_range_search_cb(
-                      tree,
-                      query,
-                      radius,
-                      [&](const int /*index*/, const float3 & /*co*/, const float /*dist_sq*/) {
-                        found_sum++;
-                        return true;
-                      });
-                });
-                kdtree_free(tree);
-              }
-              else {
-                const KDTreeNew<float3> tree(positions);
-                time = run_queries(queries, [&](const float3 &query) {
-                  tree.foreach_in_radius(
-                      query, radius, [&](const int /*index*/, const float /*distance_sq*/) {
-                        found_sum++;
-                      });
-                });
-              }
+              const KDTreeNew<float3> tree(positions);
+              time = run_queries(queries, [&](const float3 &query) {
+                tree.foreach_in_radius(
+                    query, radius, [&](const int /*index*/, const float /*distance_sq*/) {
+                      found_sum++;
+                    });
+              });
               EXPECT_GT(found_sum, 0);
               return time;
             });
@@ -469,18 +399,9 @@ TEST(kdtree_performance, CalcDuplicates)
   run_table("Merging points by distance",
             "time for the whole tree, radius scaled for ~8 points in range, this is what the "
             "Cluster by Distance node does",
-            [](const Impl impl, const Span<float3> positions, const int64_t points_num) {
+            [](const Impl /*impl*/, const Span<float3> positions, const int64_t points_num) {
               const float radius = radius_for_neighbor_count(points_num);
               Array<int> duplicates(points_num);
-              if (impl == Impl::BLI) {
-                KDTree<float3> *tree = build_bli_tree(positions);
-                const double time = run_iterations(points_num, [&]() {
-                  duplicates.as_mutable_span().fill(-1);
-                  kdtree_calc_duplicates_fast(tree, radius, true, duplicates.data());
-                });
-                kdtree_free(tree);
-                return time;
-              }
               const KDTreeNew<float3> tree(positions);
               const IndexMask visit_order(points_num);
               return run_iterations(points_num, [&]() {
@@ -583,25 +504,16 @@ TEST(kdtree_performance, TinyTreesBuild)
   run_table(
       "Building a tiny tree",
       "time to build and free one tree",
-      [](const Impl impl, const Span<float3> positions, const int64_t points_num) {
+      [](const Impl /*impl*/, const Span<float3> positions, const int64_t points_num) {
         int64_t sum = 0;
         double time;
-        if (impl == Impl::BLI) {
-          time = run_batched(points_num, [&]() {
-            KDTree<float3> *tree = build_bli_tree(positions);
-            sum += tree->nodes_len;
-            kdtree_free(tree);
-          });
-        }
-        else {
-          AlignedBuffer<8192, 8> buffer;
-          time = run_batched(points_num, [&]() {
-            LinearAllocator<> memory;
-            memory.provide_buffer(buffer);
-            const KDTreeNew<float3> tree(positions, memory);
-            sum += tree.size();
-          });
-        }
+        AlignedBuffer<8192, 8> buffer;
+        time = run_batched(points_num, [&]() {
+          LinearAllocator<> memory;
+          memory.provide_buffer(buffer);
+          const KDTreeNew<float3> tree(positions, memory);
+          sum += tree.size();
+        });
         EXPECT_GT(sum, 0);
         return time;
       },
@@ -613,36 +525,19 @@ TEST(kdtree_performance, TinyTreesFindNearestOther)
   run_table(
       "Building a tiny tree and finding the nearest other point for every point",
       "time for the whole group, this is what the Index of Nearest node does per group",
-      [](const Impl impl, const Span<float3> positions, const int64_t points_num) {
+      [](const Impl /*impl*/, const Span<float3> positions, const int64_t points_num) {
         int64_t sum = 0;
         double time;
-        if (impl == Impl::BLI) {
-          time = run_batched(points_num, [&]() {
-            KDTree<float3> *tree = build_bli_tree(positions);
-            for (const int64_t i : IndexRange(points_num)) {
-              sum += kdtree_find_nearest_cb<float3>(
-                  tree,
-                  positions[i],
-                  nullptr,
-                  [i](const int other, const float3 & /*co*/, const float /*dist_sq*/) {
-                    return other == int(i) ? 0 : 1;
-                  });
-            }
-            kdtree_free(tree);
-          });
-        }
-        else {
-          AlignedBuffer<8192, 8> buffer;
-          time = run_batched(points_num, [&]() {
-            LinearAllocator<> memory;
-            memory.provide_buffer(buffer);
-            const KDTreeNew<float3> tree(positions, memory);
-            for (const int64_t i : IndexRange(points_num)) {
-              sum += tree.find_nearest_filtered(positions[i],
-                                                [i](const int other) { return other != int(i); });
-            }
-          });
-        }
+        AlignedBuffer<8192, 8> buffer;
+        time = run_batched(points_num, [&]() {
+          LinearAllocator<> memory;
+          memory.provide_buffer(buffer);
+          const KDTreeNew<float3> tree(positions, memory);
+          for (const int64_t i : IndexRange(points_num)) {
+            sum += tree.find_nearest_filtered(positions[i],
+                                              [i](const int other) { return other != int(i); });
+          }
+        });
         EXPECT_GT(sum, 0);
         return time;
       },
@@ -654,17 +549,9 @@ TEST(kdtree_performance, TinyTreesCalcDuplicates)
   run_table(
       "Building a tiny tree and merging its points by distance",
       "time for the whole group, this is what the Cluster by Distance node does per group",
-      [](const Impl impl, const Span<float3> positions, const int64_t points_num) {
+      [](const Impl /*impl*/, const Span<float3> positions, const int64_t points_num) {
         const float radius = radius_for_neighbor_count(points_num);
         Array<int> duplicates(points_num);
-        if (impl == Impl::BLI) {
-          return run_batched(points_num, [&]() {
-            KDTree<float3> *tree = build_bli_tree(positions);
-            duplicates.as_mutable_span().fill(-1);
-            kdtree_calc_duplicates_fast(tree, radius, true, duplicates.data());
-            kdtree_free(tree);
-          });
-        }
         AlignedBuffer<8192, 8> buffer;
         const IndexMask visit_order(points_num);
         return run_batched(points_num, [&]() {

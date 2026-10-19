@@ -163,6 +163,17 @@ struct ScopeParser {
     else {
       /* Note we allow `struct A::B` syntax because it is used during namespace lowering. */
       qualified_id();
+      if (peek() == ':') {
+        /* Base class. Allowed because of BSL. */
+        /* TODO(fclem): Make BSL not execute this path. */
+        match(':');
+        do {
+          match_if(Public);
+          match_if(Private);
+          match_if(Protected);
+          qualified_id();
+        } while (match_if(','));
+      }
       if (peek() == ';') {
         /* Allowed because of shared C++ files which have C++ code not yet rejected. */
         //  error("Forward declaration of classes is not supported");
@@ -204,6 +215,7 @@ struct ScopeParser {
           attribute_or_subscript();
           break;
         case Private:
+        case Protected:
         case Public:
           next();
           match(':');
@@ -992,7 +1004,7 @@ struct ScopeParser {
   void qualified_id()
   {
     match(Word);
-    while (peek() == ':') {
+    while (peek() == ':' && curr.next() == ':') {
       match(':');
       match(':');
       match(Word);

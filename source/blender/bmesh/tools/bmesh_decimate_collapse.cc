@@ -33,7 +33,8 @@
 
 #define USE_SYMMETRY
 #ifdef USE_SYMMETRY
-#  include "BLI_kdtree.hh"
+#  include "BLI_array.hh"
+#  include "BLI_kdtree_new.hh"
 #endif
 
 namespace blender {
@@ -371,12 +372,8 @@ struct KD_Symmetry_Data {
   float limit_sq;
 };
 
-static bool bm_edge_symmetry_check_cb(void *user_data,
-                                      int index,
-                                      const float3 & /*co*/,
-                                      float /*dist_sq*/)
+static void bm_edge_symmetry_check_cb(KD_Symmetry_Data *sym_data, int index)
 {
-  KD_Symmetry_Data *sym_data = static_cast<KD_Symmetry_Data *>(user_data);
   BMEdge *e_other = sym_data->etable[index];
   float e_other_dir[3];
 
@@ -386,20 +383,22 @@ static bool bm_edge_symmetry_check_cb(void *user_data,
     if ((len_squared_v3v3(sym_data->e_v1_co, e_other->v1->co) > sym_data->limit_sq) ||
         (len_squared_v3v3(sym_data->e_v2_co, e_other->v2->co) > sym_data->limit_sq))
     {
-      return true;
+      return;
     }
   }
   else {
     if ((len_squared_v3v3(sym_data->e_v1_co, e_other->v2->co) > sym_data->limit_sq) ||
         (len_squared_v3v3(sym_data->e_v2_co, e_other->v1->co) > sym_data->limit_sq))
     {
-      return true;
+      return;
     }
   }
 
-  /* exit on first-hit, this is OK since the search range is very small */
-  sym_data->e_found_index = index;
-  return false;
+  /* Any match is OK since the search range is very small, but use the lowest index so the result
+   * doesn't depend on the order the tree finds the matches in. */
+  if (sym_data->e_found_index == -1 || index < sym_data->e_found_index) {
+    sym_data->e_found_index = index;
+  }
 }
 
 static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
@@ -410,30 +409,25 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
   uint i;
   int *edge_symmetry_map;
   const float limit_sq = square_f(limit);
-  KDTree<float3> *tree;
-
-  tree = kdtree_new<float3>(bm->totedge);
 
   etable = MEM_new_array_uninitialized<BMEdge *>(bm->totedge, __func__);
   edge_symmetry_map = MEM_new_array_uninitialized<int>(bm->totedge, __func__);
 
+  Array<float3> edge_centers(bm->totedge);
   BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
-    float co[3];
-    mid_v3_v3v3(co, e->v1->co, e->v2->co);
-    kdtree_insert<float3>(tree, i, co);
+    mid_v3_v3v3(edge_centers[i], e->v1->co, e->v2->co);
     etable[i] = e;
     edge_symmetry_map[i] = -1;
   }
 
-  kdtree_balance<float3>(tree);
+  const KDTreeNew<float3> tree(edge_centers);
 
   sym_data.etable = etable;
   sym_data.limit_sq = limit_sq;
 
   BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
     if (edge_symmetry_map[i] == -1) {
-      float co[3];
-      mid_v3_v3v3(co, e->v1->co, e->v2->co);
+      float3 co = edge_centers[i];
       co[symmetry_axis] *= -1.0f;
 
       copy_v3_v3(sym_data.e_v1_co, e->v1->co);
@@ -443,10 +437,9 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
       sub_v3_v3v3(sym_data.e_dir, sym_data.e_v2_co, sym_data.e_v1_co);
       sym_data.e_found_index = -1;
 
-      kdtree_range_search_cb<float3>(
-          tree, co, limit, [&](int index, const float3 &co, float dist_sq) {
-            return bm_edge_symmetry_check_cb(&sym_data, index, co, dist_sq);
-          });
+      tree.foreach_in_radius(co, limit, [&](const int index, const float /*dist_sq*/) {
+        bm_edge_symmetry_check_cb(&sym_data, index);
+      });
 
       if (sym_data.e_found_index != -1) {
         const int i_other = sym_data.e_found_index;
@@ -457,7 +450,6 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
   }
 
   MEM_delete(etable);
-  kdtree_free<float3>(tree);
 
   return edge_symmetry_map;
 }

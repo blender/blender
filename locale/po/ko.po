@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-12 07:32+0000\n"
+"POT-Creation-Date: 2026-10-19 07:32+0000\n"
 "PO-Revision-Date: 2026-09-06 05:02+0000\n"
 "Last-Translator: Benjamin Anshin <benanshin@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -35011,300 +35011,300 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Metaball"
-msgstr "메타볼"
-
-
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
-msgid "Read"
-msgstr "읽기"
-
-
-msgid "Clean Up"
-msgstr "정리"
-
-
-msgid "Math"
-msgstr "수학"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
-
-
 msgid "Show/Hide"
 msgstr "표시/숨기기"
-
-
-msgid "Write"
-msgstr "쓰기"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
-msgid "Hooks"
-msgstr "후크"
-
-
-msgid "Link/Transfer Data"
-msgstr "데이터 연결/전송"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
-
-
-msgid "Deprecated"
-msgstr "사용 중단"
-
-
-msgid "Utilities"
-msgstr "유틸리티"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
-
-
-msgid "Convert"
-msgstr "변환"
-
-
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
-
-
-msgid "Select by Face Strength"
-msgstr "페이스 강도로 선택"
-
-
-msgid "Face Data"
-msgstr "페이스 데이터"
-
-
-msgid "Make Single User"
-msgstr "싱글 유저를 만들기"
-
-
-msgid "Import"
-msgstr "가져오기"
-
-
-msgid "Sample"
-msgstr "샘플"
-
-
-msgid "Asset"
-msgstr "에셋"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Layout"
-msgstr "레이아웃"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Linked"
-msgstr "연결됨"
 
 
 msgid "Creative"
 msgstr "크리에이티브"
 
 
-msgid "Mesh Select Mode"
-msgstr "메시 선택 모드"
+msgid "Clean Up"
+msgstr "정리"
 
 
-msgid "Quick Effects"
-msgstr "빠른 이펙트"
+msgid "Special Characters"
+msgstr "특수 문자"
 
 
-msgid "Disable Bone Options"
-msgstr "뼈대 옵션을 사용 중지"
+msgid "Kerning"
+msgstr "자간"
 
 
-msgid "Enable Bone Options"
-msgstr "뼈대 옵션을 사용"
-
-
-msgid "Toggle Bone Options"
-msgstr "뼈대 옵션을 토글"
-
-
-msgid "Instances"
-msgstr "인스턴스"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Gizmo"
-msgstr "기즈모"
-
-
-msgid "Apply"
-msgstr "적용"
+msgid "Metaball"
+msgstr "메타볼"
 
 
 msgid "Names"
 msgstr "이름"
 
 
-msgid "Bone Collections"
-msgstr "뼈대 컬렉션"
-
-
-msgid "Keying"
-msgstr "키잉"
-
-
-msgid "Adjust"
-msgstr "조정"
-
-
-msgid "Light Probe"
-msgstr "라이트 프로브"
-
-
-msgid "Propagate"
-msgstr "전파"
-
-
-msgid "In-Betweens"
-msgstr "사이에서"
-
-
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
-msgid "Clear Transform"
-msgstr "변환을 지우기"
-
-
-msgid "Snap"
-msgstr "스냅"
-
-
-msgid "Mirror"
-msgstr "미러"
-
-
-msgid "Assign Material"
-msgstr "머티리얼을 할당"
-
-
-msgid "Random Mask"
-msgstr "랜덤 마스크"
-
-
-msgid "Face Sets Init"
-msgstr "페이스 세트 초기화"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "스컬프트 설정 피벗"
-
-
-msgid "Mask Edit"
-msgstr "마스크 편집"
-
-
-msgid "Vertex Group Locks"
-msgstr "버텍스 그룹 잠금"
-
-
-msgid "Trim/Add"
-msgstr "트림/추가"
-
-
-msgid "Select Loops"
-msgstr "루프를 선택"
-
-
 msgid "Bone Roll"
 msgstr "뼈대 롤"
-
-
-msgid "Face Sets Edit"
-msgstr "페이스 세트 편집"
-
-
-msgid "Select Linked"
-msgstr "연결된 선택"
-
-
-msgid "Automasking"
-msgstr "오토마스킹"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
-
-
-msgid "Render Preview"
-msgstr "렌더링 미리보기"
-
-
-msgid "Track"
-msgstr "트랙"
-
-
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
-
-
-msgid "Select Similar"
-msgstr "유사한 선택"
-
-
-msgid "Relations"
-msgstr "관계"
-
-
-msgid "Add Image"
-msgstr "이미지를 추가"
 
 
 msgid "Pivot Point"
 msgstr "피벗 포인트"
 
 
-msgid "Tracking"
-msgstr "트래킹"
+msgid "Snap"
+msgstr "스냅"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
+
+
+msgid "Automasking"
+msgstr "오토마스킹"
+
+
+msgid "Face Sets Edit"
+msgstr "페이스 세트 편집"
+
+
+msgid "Vertex Group Locks"
+msgstr "버텍스 그룹 잠금"
+
+
+msgid "Math"
+msgstr "수학"
+
+
+msgid "Utilities"
+msgstr "유틸리티"
+
+
+msgid "Read"
+msgstr "읽기"
+
+
+msgid "Sample"
+msgstr "샘플"
+
+
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "Write"
+msgstr "쓰기"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
+
+
+msgid "Viewpoint"
+msgstr "뷰포트"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
+
+
+msgid "Align View"
+msgstr "뷰를 정렬"
+
+
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
+
+
+msgid "View Regions"
+msgstr "뷰 지역"
+
+
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
+msgid "Select Similar"
+msgstr "유사한 선택"
+
+
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
+
+
+msgid "Gizmo"
+msgstr "기즈모"
+
+
+msgid "Instances"
+msgstr "인스턴스"
+
+
+msgid "Select Linked"
+msgstr "연결된 선택"
+
+
+msgid "Select Loops"
+msgstr "루프를 선택"
+
+
+msgid "Import"
+msgstr "가져오기"
+
+
+msgid "Assign Material"
+msgstr "머티리얼을 할당"
+
+
+msgid "Deprecated"
+msgstr "사용 중단"
+
+
+msgid "Render Preview"
+msgstr "렌더링 미리보기"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "Add Image"
+msgstr "이미지를 추가"
+
+
+msgid "Relations"
+msgstr "관계"
 
 
 msgid "Rigid Body"
 msgstr "리지드 바디"
+
+
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Track"
+msgstr "트랙"
+
+
+msgid "Quick Effects"
+msgstr "빠른 이펙트"
+
+
+msgid "Asset"
+msgstr "에셋"
+
+
+msgid "Make Single User"
+msgstr "싱글 유저를 만들기"
+
+
+msgid "Convert"
+msgstr "변환"
+
+
+msgid "Link/Transfer Data"
+msgstr "데이터 연결/전송"
+
+
+msgid "Hooks"
+msgstr "후크"
+
+
+msgid "Trim/Add"
+msgstr "트림/추가"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "스컬프트 설정 피벗"
+
+
+msgid "Face Sets Init"
+msgstr "페이스 세트 초기화"
+
+
+msgid "Random Mask"
+msgstr "랜덤 마스크"
+
+
+msgid "Clear Transform"
+msgstr "변환을 지우기"
+
+
+msgid "Linked"
+msgstr "연결됨"
+
+
+msgid "In-Betweens"
+msgstr "사이에서"
+
+
+msgid "Layout"
+msgstr "레이아웃"
+
+
+msgid "Propagate"
+msgstr "전파"
+
+
+msgid "Bone Collections"
+msgstr "뼈대 컬렉션"
+
+
+msgid "Toggle Bone Options"
+msgstr "뼈대 옵션을 토글"
+
+
+msgid "Enable Bone Options"
+msgstr "뼈대 옵션을 사용"
+
+
+msgid "Disable Bone Options"
+msgstr "뼈대 옵션을 사용 중지"
+
+
+msgid "Mesh Select Mode"
+msgstr "메시 선택 모드"
+
+
+msgid "Adjust"
+msgstr "조정"
+
+
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Keying"
+msgstr "키잉"
+
+
+msgid "Select by Face Strength"
+msgstr "페이스 강도로 선택"
+
+
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
+
+
+msgid "Tracking"
+msgstr "트래킹"
 
 
 msgid "Merge"
@@ -62049,14 +62049,6 @@ msgid "Export full hierarchy, including intermediate collections"
 msgstr "중간 컬렉션을 포함한 전체 계층 구조 내보내기"
 
 
-msgid "Create WebP"
-msgstr "WebP 만들기"
-
-
-msgid "Creates WebP textures for every texture. For already WebP textures, nothing happens"
-msgstr "모든 텍스처에 대해 WebP 텍스처를 생성합니다. 이미 WebP 텍스처의 경우 아무 일도 일어나지 없음"
-
-
 msgid "Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web applications due to the smaller file size. Alternatively they can be omitted if they are not needed"
 msgstr "이미지 출력 포맷. PNG는 손실이 없고 일반적으로 선호되지만 파일 크기가 더 작기 때문에 웹 애플리케이션에는 JPEG가 더 적합할 수 있습니다. 또는 필요하지 않은 경우 생략할 수 있음"
 
@@ -62091,14 +62083,6 @@ msgstr "이미지 품질"
 
 msgid "Quality of image export"
 msgstr "이미지 품질 내보내기"
-
-
-msgid "WebP Fallback"
-msgstr "WebP 폴백"
-
-
-msgid "For all WebP textures, create a PNG fallback texture"
-msgstr "모든 WebP 텍스처의 경우 PNG 폴백 텍스처를 만듦"
 
 
 msgid "Lighting Mode"
@@ -79241,10 +79225,6 @@ msgid "Remove this installation's associations with .blend files"
 msgstr "이 설치와 .blend 파일의 연결 제거"
 
 
-msgid "Blend file path"
-msgstr "Blend 파일 경로"
-
-
 msgctxt "Operator"
 msgid "Add New Cache"
 msgstr "새로운 캐시를 추가"
@@ -90532,72 +90512,76 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Grease Pencil Options"
-msgstr "그리스 펜슬 옵션"
+msgid "Active Tool"
+msgstr "활성 도구"
 
 
-msgid "glTF Material Variants"
-msgstr "glTF 머티리얼 배리언트"
-
-
-msgid "Quad View"
-msgstr "쿼드 뷰"
-
-
-msgid "glTF Variants"
-msgstr "glTF 변형"
-
-
-msgid "Measurement"
-msgstr "측정"
-
-
-msgid "Mesh Edit Mode"
-msgstr "메시 에디트 모드"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 정보"
+msgid "View Lock"
+msgstr "뷰 잠금"
 
 
 msgid "Selectability & Visibility"
 msgstr "선택성 및 가시성"
 
 
-msgid "Auto-Masking"
-msgstr "자동 마스킹"
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
 
 
-msgid "Active Tool"
-msgstr "활성 도구"
+msgid "SSAO Settings"
+msgstr "SSAO 설정"
 
 
-msgid "Multi Frame"
-msgstr "다중 프레임"
+msgid "Cavity"
+msgstr "캐비티"
 
 
-msgid "Stereoscopy"
-msgstr "입체 영상"
+msgid "Render Pass"
+msgstr "렌더 패스"
 
 
-msgid "Transform Orientations"
-msgstr "변환 오리엔테이션"
+msgid "Overlays"
+msgstr "오버레이"
 
 
-msgid "Onion Skin"
-msgstr "어니언 스킨"
+msgid "Guides"
+msgstr "가이드"
+
+
+msgid "Viewer Node"
+msgstr "뷰어 노드"
 
 
 msgid "Motion Tracking"
 msgstr "모션 트래킹"
 
 
-msgid "Viewer Node"
-msgstr "뷰어 노드"
+msgid "Mesh Edit Mode"
+msgstr "메시 에디트 모드"
+
+
+msgid "Measurement"
+msgstr "측정"
+
+
+msgid "Curve Edit Mode"
+msgstr "커브 에디트 모드"
+
+
+msgid "Curves Edit Mode"
+msgstr "커브 편집 모드"
+
+
+msgid "glTF Variants"
+msgstr "glTF 변형"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 머티리얼 배리언트"
+
+
+msgid "Transform Orientations"
+msgstr "변환 오리엔테이션"
 
 
 msgid "Stroke Placement"
@@ -90608,48 +90592,24 @@ msgid "Drawing Plane"
 msgstr "드로잉 평면"
 
 
-msgid "Cavity"
-msgstr "캐비티"
+msgid "Grease Pencil Options"
+msgstr "그리스 펜슬 옵션"
 
 
-msgid "SSAO Settings"
-msgstr "SSAO 설정"
+msgid "Quad View"
+msgstr "쿼드 뷰"
 
 
-msgid "Guides"
-msgstr "가이드"
+msgid "Onion Skin"
+msgstr "어니언 스킨"
 
 
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
+msgid "Stereoscopy"
+msgstr "입체 영상"
 
 
-msgid "Curves Edit Mode"
-msgstr "커브 편집 모드"
-
-
-msgid "Curve Edit Mode"
-msgstr "커브 에디트 모드"
-
-
-msgid "View Lock"
-msgstr "뷰 잠금"
-
-
-msgid "Viewport Debug"
-msgstr "뷰포트 디버그"
-
-
-msgid "Overlays"
-msgstr "오버레이"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "커브 성장/축소 스케일링"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "커브 스컬프트 매개변수 폴오프"
+msgid "Multi Frame"
+msgstr "다중 프레임"
 
 
 msgid "glTF"
@@ -90660,12 +90620,32 @@ msgid "glTF Animations"
 msgstr "glTF 애니메이션"
 
 
+msgid "Auto-Masking"
+msgstr "자동 마스킹"
+
+
 msgid "Curves Sculpt Add Curve Options"
 msgstr "커브 스컬프트 커브 옵션 추가"
 
 
-msgid "Render Pass"
-msgstr "렌더 패스"
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "커브 스컬프트 매개변수 폴오프"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "커브 성장/축소 스케일링"
+
+
+msgid "Viewport Debug"
+msgstr "뷰포트 디버그"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 정보"
 
 
 msgid "Import Settings"
@@ -91467,6 +91447,10 @@ msgstr "도우미"
 
 msgid "High Viscosity Solver"
 msgstr "고점도 솔버"
+
+
+msgid "Splash Screen"
+msgstr "스플래쉬 화면"
 
 
 msgid "Show options for the properties editor"
@@ -117517,6 +117501,10 @@ msgid "Render Bounces"
 msgstr "렌더 바운스"
 
 
+msgid "Motion"
+msgstr "움직임"
+
+
 msgid "Scatter"
 msgstr "분산"
 
@@ -119874,6 +119862,11 @@ msgstr "새로운 환경설정 저장"
 msgctxt "Operator"
 msgid "Continue"
 msgstr "계속하기"
+
+
+msgctxt "Operator"
+msgid "Close"
+msgstr "닫기"
 
 
 msgctxt "Operator"
@@ -124738,10 +124731,6 @@ msgid "Revert to Saved Preferences"
 msgstr "저장된 환경 설정으로 되돌리기"
 
 
-msgid "Splash Screen"
-msgstr "스플래쉬 화면"
-
-
 msgid "User Tooltips"
 msgstr "사용자 도구 설명"
 
@@ -126908,11 +126897,6 @@ msgstr "활성 레이어를 숨기기"
 msgctxt "Operator"
 msgid "Hide Inactive Layers"
 msgstr "비활성 레이어를 숨기기"
-
-
-msgctxt "Operator"
-msgid "Close"
-msgstr "닫기"
 
 
 msgid "To 3D Cursor"
@@ -142456,10 +142440,6 @@ msgstr "그리드 '%s'을(를) 찾을 수 없습니다."
 
 msgid "Could not generate mesh from grid"
 msgstr "그리드에서 메시를 생성할 수 없음"
-
-
-msgid "Motion"
-msgstr "움직임"
 
 
 msgid "Along Normals"

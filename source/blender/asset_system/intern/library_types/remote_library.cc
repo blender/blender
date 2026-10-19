@@ -484,10 +484,9 @@ static void ping_asset_file_done_impl(const bContext &C,
   ed::asset::list::on_remote_assets_downloaded(*wm, library_url, local_file_abspath);
   ProgressTracker::file_finished(absolute_file_url, outcome);
 
-  /* Redraw drags, they may show some "asset being downloaded" info. */
-  if (!wm->runtime->drags.is_empty()) {
-    WM_event_add_mousemove(CTX_wm_window(&C));
-  }
+  /* In case this download was triggered by a `Download` overlay button drawn over an asset button,
+   * add a mousemove event so the asset button becomes active and can be dragged right away. */
+  WM_event_add_mousemove(CTX_wm_window(&C));
 }
 
 void RemoteLibraryLoadingStatus::ping_asset_file_download_succeeded(

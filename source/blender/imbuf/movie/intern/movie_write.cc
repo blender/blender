@@ -33,6 +33,7 @@
 #  include "BLI_path_utils.hh"
 #  include "BLI_string.hh"
 #  include "BLI_string_utf8.hh"
+#  include "BLI_task.hh"
 #  include "BLI_utildefines.hh"
 
 #  include "BKE_blender_project.hh"
@@ -335,8 +336,12 @@ static void add_spherical_mapping_metadata(AVCodecParameters *codecpar, const Sc
 /* Write a frame to the output file */
 static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *reports)
 {
-  int ret, success = 1;
+  bool success = true;
   AVPacket *packet = av_packet_alloc();
+  if (packet == nullptr) {
+    BKE_report(reports, RPT_ERROR, "Could not allocate video packet");
+    return false;
+  }
 
   AVCodecContext *c = context->video_codec;
 
@@ -344,12 +349,12 @@ static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *
   context->video_time++;
 
   char error_str[AV_ERROR_MAX_STRING_SIZE];
-  ret = avcodec_send_frame(c, frame);
+  int ret = avcodec_send_frame(c, frame);
   if (ret < 0) {
     /* Can't send frame to encoder. This shouldn't happen. */
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
     CLOG_ERROR(&LOG, "Can't send video frame: %s", error_str);
-    success = -1;
+    success = false;
   }
 
   while (ret >= 0) {
@@ -362,6 +367,7 @@ static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *
     if (ret < 0) {
       av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
       CLOG_ERROR(&LOG, "Error encoding frame: %s", error_str);
+      success = false;
       break;
     }
 
@@ -371,15 +377,16 @@ static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *
     my_guess_pkt_duration(context->outfile, context->video_stream, packet);
 #  endif
 
-    if (av_interleaved_write_frame(context->outfile, packet) != 0) {
-      success = -1;
+    ret = av_interleaved_write_frame(context->outfile, packet);
+    if (ret < 0) {
+      success = false;
       break;
     }
   }
 
   if (!success) {
-    BKE_report(reports, RPT_ERROR, "Error writing frame");
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+    BKE_reportf(reports, RPT_ERROR, "Error writing video frame: %s", error_str);
     CLOG_INFO(&LOG, "ffmpeg: error writing video frame: %s", error_str);
   }
 
@@ -440,6 +447,48 @@ static ImBuf *alloc_imbuf_for_colorspace_transform(const ImBuf *input_ibuf)
   return result_ibuf;
 }
 
+/* Convert interleaved RGBA floats to planar GBRA/GBR and flip vertically, since swscale does not
+ * support packed RGBA float input. Only preserve and un-premultiply alpha when needed. */
+static void float_interleaved_to_planar(const ImBuf *image, AVFrame *frame)
+{
+  const bool use_alpha = frame->format == AV_PIX_FMT_GBRAPF32LE;
+  const size_t linesize = frame->linesize[0];
+  BLI_assert(ELEM(frame->format, AV_PIX_FMT_GBRPF32LE, AV_PIX_FMT_GBRAPF32LE));
+  BLI_assert(frame->linesize[1] == linesize && frame->linesize[2] == linesize &&
+             (!use_alpha || frame->linesize[3] == linesize));
+  const float *pixels = image->float_data();
+  threading::parallel_for(IndexRange(frame->height), 64, [&](const IndexRange y_range) {
+    for (const int64_t y : y_range) {
+      const size_t dst_offset = linesize * (frame->height - y - 1);
+      float *dst_g = reinterpret_cast<float *>(frame->data[0] + dst_offset);
+      float *dst_b = reinterpret_cast<float *>(frame->data[1] + dst_offset);
+      float *dst_r = reinterpret_cast<float *>(frame->data[2] + dst_offset);
+      const float *src = pixels + int64_t(image->x) * y * 4;
+
+      if (use_alpha) {
+        float *dst_a = reinterpret_cast<float *>(frame->data[3] + dst_offset);
+        for (int x = 0; x < frame->width; x++) {
+          float tmp[4];
+          premul_to_straight_v4_v4(tmp, src);
+          *dst_r++ = tmp[0];
+          *dst_g++ = tmp[1];
+          *dst_b++ = tmp[2];
+          *dst_a++ = tmp[3];
+          src += 4;
+        }
+      }
+      else {
+        for (int x = 0; x < frame->width; x++) {
+          *dst_r++ = src[0];
+          *dst_g++ = src[1];
+          *dst_b++ = src[2];
+          src += 4;
+        }
+      }
+    }
+  });
+}
+
 /* read and encode a frame of video from the buffer */
 static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *input_ibuf)
 {
@@ -476,53 +525,18 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *input_ib
     rgb_frame = context->current_frame;
   }
 
-  /* Ensure frame is writable. Some video codecs might have made previous frame
-   * shared (i.e. not writable). */
-  av_frame_make_writable(rgb_frame);
-
-  const size_t linesize_dst = rgb_frame->linesize[0];
-  if (use_float) {
-    /* Float image: need to split up the image into a planar format,
-     * because `libswscale` does not support RGBA->YUV conversions from
-     * packed float formats.
-     * Un-premultiply the image if the output format supports alpha, to
-     * match the format of the byte image. */
-    BLI_assert_msg(rgb_frame->linesize[1] == linesize_dst &&
-                       rgb_frame->linesize[2] == linesize_dst &&
-                       rgb_frame->linesize[3] == linesize_dst,
-                   "ffmpeg frame should be 4 same size planes for a floating point image case");
-    for (int y = 0; y < height; y++) {
-      size_t dst_offset = linesize_dst * (height - y - 1);
-      float *dst_g = reinterpret_cast<float *>(rgb_frame->data[0] + dst_offset);
-      float *dst_b = reinterpret_cast<float *>(rgb_frame->data[1] + dst_offset);
-      float *dst_r = reinterpret_cast<float *>(rgb_frame->data[2] + dst_offset);
-      float *dst_a = reinterpret_cast<float *>(rgb_frame->data[3] + dst_offset);
-      const float *src = pixels_fl + image->x * y * 4;
-
-      if (MOV_codec_supports_alpha(context->ffmpeg_codec, context->ffmpeg_profile)) {
-        for (int x = 0; x < image->x; x++) {
-          float tmp[4];
-          premul_to_straight_v4_v4(tmp, src);
-          *dst_r++ = tmp[0];
-          *dst_g++ = tmp[1];
-          *dst_b++ = tmp[2];
-          *dst_a++ = tmp[3];
-          src += 4;
-        }
-      }
-      else {
-        for (int x = 0; x < image->x; x++) {
-          *dst_r++ = src[0];
-          *dst_g++ = src[1];
-          *dst_b++ = src[2];
-          *dst_a++ = src[3];
-          src += 4;
-        }
-      }
-    }
+  /* Ensure frame is writable when filling it. Byte input for swscale is borrowed directly
+   * from the ImBuf below. */
+  if (use_float || context->img_convert_frame == nullptr) {
+    av_frame_make_writable(rgb_frame);
   }
-  else {
+
+  if (use_float) {
+    float_interleaved_to_planar(image, rgb_frame);
+  }
+  else if (context->img_convert_frame == nullptr) {
     /* Byte image: flip the image vertically. */
+    const size_t linesize_dst = rgb_frame->linesize[0];
     const size_t linesize_src = rgb_frame->width * 4;
     for (int y = 0; y < height; y++) {
       uint8_t *target = rgb_frame->data[0] + linesize_dst * (height - y - 1);
@@ -539,7 +553,19 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *input_ib
     BLI_assert(context->sws_ctx != nullptr);
     /* Ensure the frame we are scaling to is writable as well. */
     av_frame_make_writable(context->current_frame);
+
+    uint8_t *rgb_data = rgb_frame->data[0];
+    const int rgb_linesize = rgb_frame->linesize[0];
+    if (!use_float) {
+      /* Convert directly from the ImBuf, flipping vertically via negative source stride.
+       * The borrowed pixels are only used during this conversion. */
+      const int linesize_src = image->x * 4;
+      rgb_frame->data[0] = const_cast<uint8_t *>(pixels) + size_t(height - 1) * linesize_src;
+      rgb_frame->linesize[0] = -linesize_src;
+    }
     ffmpeg_sws_scale_frame(context->sws_ctx, context->current_frame, rgb_frame);
+    rgb_frame->data[0] = rgb_data;
+    rgb_frame->linesize[0] = rgb_linesize;
   }
 
   if (image != input_ibuf) {
@@ -1257,8 +1283,12 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   else {
     /* Output pixel format is different, allocate frame for conversion.
      * Setup RGB->YUV conversion with proper coefficients, depending on range and colorspace. */
-    const AVPixelFormat src_format = is_10_bpp || is_12_bpp || is_16_bpp ? AV_PIX_FMT_GBRAPF32LE :
-                                                                           AV_PIX_FMT_RGBA;
+    AVPixelFormat src_format = AV_PIX_FMT_RGBA;
+    if (is_10_bpp || is_12_bpp || is_16_bpp) {
+      src_format = MOV_codec_supports_alpha(context->ffmpeg_codec, context->ffmpeg_profile) ?
+                       AV_PIX_FMT_GBRAPF32LE :
+                       AV_PIX_FMT_GBRPF32LE;
+    }
     context->img_convert_frame = alloc_frame(src_format, c->width, c->height);
     context->sws_ctx = ffmpeg_sws_get_context(c->width,
                                               c->height,

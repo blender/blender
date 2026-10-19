@@ -7,6 +7,7 @@
  */
 
 #include <algorithm>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -15,7 +16,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_c.hh"
@@ -1346,7 +1347,8 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
   const float maxdist_sq = square_f(maxdist);
 
   /* one or the other is used depending if topo is enabled */
-  KDTree<float3> *tree = nullptr;
+  Array<float3> positions;
+  std::optional<KDTreeNew<float3>> tree;
   MirrTopoStore_t mesh_topo_store = {nullptr, -1, -1, false};
 
   BM_mesh_elem_table_ensure(bm, BM_VERT);
@@ -1373,15 +1375,17 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
     ED_mesh_mirrtopo_init(bm, nullptr, &mesh_topo_store, true);
   }
   else {
-    tree = kdtree_new<float3>(bm->totvert);
+    positions.reinitialize(bm->totvert);
+    Vector<int> indices;
     BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
       if (respecthide && BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
         continue;
       }
 
-      kdtree_insert<float3>(tree, i, v->co);
+      positions[i] = v->co;
+      indices.append(i);
     }
-    kdtree_balance<float3>(tree);
+    tree.emplace(positions, indices.as_span());
   }
 
 #define VERT_INTPTR(_v, _i) \
@@ -1415,7 +1419,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
       co[axis] *= -1.0f;
 
       v_mirr = nullptr;
-      i_mirr = kdtree_find_nearest<float3>(tree, co, nullptr);
+      i_mirr = tree->find_nearest(co);
       if (i_mirr != -1) {
         BMVert *v_test = BM_vert_at_index(bm, i_mirr);
         if (len_squared_v3v3(co, v_test->co) < maxdist_sq) {
@@ -1439,9 +1443,6 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
 
   if (use_topology) {
     ED_mesh_mirrtopo_free(&mesh_topo_store);
-  }
-  else {
-    kdtree_free<float3>(tree);
   }
 }
 

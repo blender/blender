@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-10-12 07:32+0000\n"
+"POT-Creation-Date: 2026-10-19 07:32+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21136,204 +21136,204 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
 
 
 msgid "Clean Up"
 msgstr "Limpeza"
 
 
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Special Characters"
 msgstr "Caracteres especiais"
 
 
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Apply"
-msgstr "Aplicar"
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
 msgid "Names"
 msgstr "Nomes"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
 
 
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
 
-msgid "Tracking"
-msgstr "Rastreamento"
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
 
 
 msgid "Rigid Body"
 msgstr "Corpo rígido"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
 
 
 msgid "Merge"
@@ -47850,24 +47850,24 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Quad View"
-msgstr "Exibição Quadrante"
-
-
-msgid "Stereoscopy"
-msgstr "Estereoscopia"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
+msgid "Render Pass"
+msgstr "Passo de renderização"
 
 
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
 
-msgid "Render Pass"
-msgstr "Passo de renderização"
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
+msgid "Quad View"
+msgstr "Exibição Quadrante"
+
+
+msgid "Stereoscopy"
+msgstr "Estereoscopia"
 
 
 msgid "Bone Constraints"
@@ -48283,6 +48283,10 @@ msgstr "Diagnósticos"
 
 msgid "Helpers"
 msgstr "Assistentes"
+
+
+msgid "Splash Screen"
+msgstr "Tela de abertura"
 
 
 msgid "White Balance"
@@ -58981,6 +58985,11 @@ msgstr "Blender é um software livre"
 
 
 msgctxt "Operator"
+msgid "Close"
+msgstr "Fechado"
+
+
+msgctxt "Operator"
 msgid "Credits"
 msgstr "Créditos"
 
@@ -60805,10 +60814,6 @@ msgid "Revert to Saved Preferences"
 msgstr "Reverter para Preferências Salvas"
 
 
-msgid "Splash Screen"
-msgstr "Tela de abertura"
-
-
 msgid "User Tooltips"
 msgstr "Dicas de Ferramentas do Usuário"
 
@@ -61712,11 +61717,6 @@ msgstr "Alternar versalete"
 msgctxt "Operator"
 msgid "Set Roll"
 msgstr "Definir rolagem"
-
-
-msgctxt "Operator"
-msgid "Close"
-msgstr "Fechado"
 
 
 msgid "To 3D Cursor"

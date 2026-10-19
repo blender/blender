@@ -3,7 +3,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from bpy.types import Panel
-from bpy.app.translations import contexts as i18n_contexts
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    contexts as i18n_contexts,
+)
 from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
 from bl_ui.space_view3d import (
     VIEW3D_PT_shading_lighting,
@@ -162,7 +165,7 @@ class RENDER_PT_color_management_advanced(RenderButtonsPanel, Panel):
         row.label(text="OpenColorIO Config")
         col = split.column()
         col.active = False
-        col.label(text=source.name)
+        col.label(text=iface_(source.name, i18n_contexts.editor_preferences), translate=False)
         if colorspace.ocio_config_source != 'BLENDER' and colorspace.ocio_config_path:
             col.label(text=colorspace.ocio_config_path, translate=False)
 

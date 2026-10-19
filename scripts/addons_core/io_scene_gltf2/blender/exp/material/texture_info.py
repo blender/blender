@@ -24,9 +24,9 @@ from .search_node_tree import \
 # blender_shader_sockets would be the (O,R,M) sockets.
 
 
-def gather_texture_info(primary_socket, blender_shader_sockets, export_settings, filter_type='ALL'):
+def gather_texture_info(primary_socket, blender_shader_sockets, export_settings, filter_type='ALL', kind='DEFAULT'):
     export_settings['current_texture_transform'] = {}  # For KHR_animation_pointer
-    return __gather_texture_info_helper(primary_socket, blender_shader_sockets, 'DEFAULT', filter_type, export_settings)
+    return __gather_texture_info_helper(primary_socket, blender_shader_sockets, kind, filter_type, export_settings)
 
 
 def gather_material_normal_texture_info_class(
@@ -66,7 +66,11 @@ def __gather_texture_info_helper(
 
     tex_transform, uvmap_info = __gather_texture_transform_and_tex_coord(primary_socket, export_settings)
 
-    index, factor, udim_image = __gather_index(blender_shader_sockets, None, export_settings)
+    is_data = False
+    if kind in ['NORMAL', 'OCCLUSION', 'DATA']:
+        is_data = True
+
+    index, factor, udim_image = __gather_index(blender_shader_sockets, None, is_data, export_settings)
     if udim_image is not None:
         udim_info = {'udim': udim_image is not None, 'image': udim_image, 'sockets': blender_shader_sockets}
     else:
@@ -89,6 +93,9 @@ def __gather_texture_info_helper(
     elif kind == 'OCCLUSION':
         fields['strength'] = __gather_occlusion_strength(primary_socket, export_settings)
         texture_info = gltf2_io.MaterialOcclusionTextureInfoClass(**fields)
+    # For any other kind that are defined (because of is_data)
+    else:
+        texture_info = gltf2_io.TextureInfo(**fields)
 
     if texture_info.index is None:
         return None, {} if udim_image is None else uvmap_info, udim_info, None
@@ -103,12 +110,18 @@ def gather_udim_texture_info(
         blender_shader_sockets: typing.Tuple[bpy.types.NodeSocket],
         udim_info,
         tex,
-        export_settings):
+        export_settings,
+        kind='DEFAULT'):
+
+    if kind == 'DATA':
+        is_data = True
+    else:
+        is_data = False
 
     tex_transform, _ = __gather_texture_transform_and_tex_coord(primary_socket, export_settings)
     export_settings['current_udim_info'] = udim_info
     index, _, _ = __gather_index(blender_shader_sockets,
-                                 udim_info['image'].name + str(udim_info['tile']), export_settings)
+                                 udim_info['image'].name + str(udim_info['tile']), is_data, export_settings)
     export_settings['current_udim_info'] = {}
 
     fields = {
@@ -221,9 +234,9 @@ def __gather_occlusion_strength(primary_socket, export_settings):
     return strength
 
 
-def __gather_index(blender_shader_sockets, use_tile, export_settings):
+def __gather_index(blender_shader_sockets, use_tile, is_data, export_settings):
     # We just put the actual shader into the 'index' member
-    return gltf2_blender_gather_texture.gather_texture(blender_shader_sockets, use_tile, export_settings)
+    return gltf2_blender_gather_texture.gather_texture(blender_shader_sockets, use_tile, is_data, export_settings)
 
 
 def __gather_texture_transform_and_tex_coord(primary_socket, export_settings):

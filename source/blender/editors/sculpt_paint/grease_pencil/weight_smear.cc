@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <array>
+
 #include "weight_paint.hh"
 
 namespace blender::ed::sculpt_paint::greasepencil {
@@ -35,12 +37,13 @@ class SmearWeightPaintOperation : public WeightPaintOperation {
                         PointsTouchedByBrush &touched_points)
   {
     /* Find the nearest neighbors of the to-be-smeared point. */
-    KDTreeNearest<float2> nearest_points[SMEAR_NEIGHBOUR_NUM];
-    const int point_num = kdtree_find_nearest_n<float2>(
-        touched_points.kdtree,
-        drawing_weight.point_positions[point.drawing_point_index],
-        nearest_points,
-        SMEAR_NEIGHBOUR_NUM);
+    std::array<KDTreeNew<float2>::Nearest, SMEAR_NEIGHBOUR_NUM> nearest_points;
+    const int point_num = touched_points.kdtree.find_nearest_n(
+        drawing_weight.point_positions[point.drawing_point_index], nearest_points);
+    std::array<float, SMEAR_NEIGHBOUR_NUM> distances;
+    for (const int i : IndexRange(point_num)) {
+      distances[i] = std::sqrt(nearest_points[i].distance_sq);
+    }
 
     /* For smearing a weight to point A, we look for a point B in the trail of the mouse
      * movement, matching the last known brush angle best and with the shortest distance to A. */
@@ -49,12 +52,12 @@ class SmearWeightPaintOperation : public WeightPaintOperation {
     int smear_point_num = 0;
     for (const int i : IndexRange(point_num)) {
       /* Skip the point we are about to smear. */
-      if (nearest_points[i].dist < FIND_NEAREST_POINT_EPSILON) {
+      if (distances[i] < FIND_NEAREST_POINT_EPSILON) {
         continue;
       }
       const float2 direction_nearest_to_point = math::normalize(
           drawing_weight.point_positions[point.drawing_point_index] -
-          float2(nearest_points[i].co));
+          touched_points.positions[nearest_points[i].index]);
 
       /* Match point direction with brush direction. */
       point_dot_product[i] = math::dot(direction_nearest_to_point, this->brush_direction);
@@ -62,8 +65,8 @@ class SmearWeightPaintOperation : public WeightPaintOperation {
         continue;
       }
       smear_point_num++;
-      min_distance = math::min(min_distance, nearest_points[i].dist);
-      max_distance = math::max(max_distance, nearest_points[i].dist);
+      min_distance = math::min(min_distance, distances[i]);
+      max_distance = math::max(max_distance, distances[i]);
     }
     if (smear_point_num == 0) {
       return;
@@ -80,7 +83,7 @@ class SmearWeightPaintOperation : public WeightPaintOperation {
         continue;
       }
       const float score = point_dot_product[i] *
-                          (1.0f - (nearest_points[i].dist - min_distance) * distance_normalizer);
+                          (1.0f - (distances[i] - min_distance) * distance_normalizer);
       if (score > max_score) {
         max_score = score;
         best_match = i;
@@ -181,8 +184,6 @@ class SmearWeightPaintOperation : public WeightPaintOperation {
             }
             drawing_weight.points_in_brush.clear();
           });
-
-          kdtree_free<float2>(touched_points.kdtree);
         });
 
     if (drawing_changed) {

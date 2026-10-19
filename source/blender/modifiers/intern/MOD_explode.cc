@@ -11,7 +11,7 @@
 #include "BLI_utildefines.hh"
 
 #include "BLI_array.hh"
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
@@ -97,9 +97,8 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   ParticleSystem *psys = psmd->psys;
   MFace *fa = nullptr, *mface = nullptr;
   ParticleData *pa;
-  KDTree<float3> *tree;
   RNG *rng;
-  float center[3], co[3];
+  float center[3];
   int *facepa = nullptr, *vertpa = nullptr, totvert = 0, totface = 0, totpart = 0;
   int i, p, v1, v2, v3, v4 = 0;
   const bool invert_vgroup = (emd->flag & eExplodeFlag_INVERT_VGROUP) != 0;
@@ -148,7 +147,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   }
 
   /* make tree of emitter locations */
-  tree = kdtree_new<float3>(totpart);
+  Array<float3> emitter_positions(totpart);
   for (p = 0, pa = psys->particles; p < totpart; p++, pa++) {
     psys_particle_on_emitter(psmd,
                              psys->part->from,
@@ -156,14 +155,13 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
                              pa->num_dmcache,
                              pa->fuv,
                              pa->foffset,
-                             co,
+                             emitter_positions[p],
                              nullptr,
                              nullptr,
                              nullptr,
                              nullptr);
-    kdtree_insert<float3>(tree, p, co);
   }
-  kdtree_balance<float3>(tree);
+  const KDTreeNew<float3> tree(emitter_positions);
 
   /* set face-particle-indexes to nearest particle to face center */
   for (i = 0, fa = mface; i < totface; i++, fa++) {
@@ -177,7 +175,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
       mul_v3_fl(center, 1.0f / 3.0f);
     }
 
-    p = kdtree_find_nearest<float3>(tree, center, nullptr);
+    p = tree.find_nearest(center);
 
     v1 = vertpa[fa->v1];
     v2 = vertpa[fa->v2];
@@ -207,7 +205,6 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   if (vertpa) {
     MEM_delete(vertpa);
   }
-  kdtree_free<float3>(tree);
 
   BLI_rng_free(rng);
 }

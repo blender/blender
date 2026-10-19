@@ -328,16 +328,12 @@ ccl_device_inline float light_sample_mis_weight_forward(KernelGlobals kg,
                                                         const float forward_pdf,
                                                         const float nee_pdf)
 {
-#ifdef WITH_CYCLES_DEBUG
   if (kernel_data.integrator.direct_light_sampling_type == DIRECT_LIGHT_SAMPLING_FORWARD) {
     return 1.0f;
   }
   if (kernel_data.integrator.direct_light_sampling_type == DIRECT_LIGHT_SAMPLING_NEE) {
     return 0.0f;
   }
-#else
-  (void)kg;
-#endif
   return power_heuristic(forward_pdf, nee_pdf);
 }
 
@@ -345,7 +341,6 @@ ccl_device_inline float light_sample_mis_weight_nee(KernelGlobals kg,
                                                     const float nee_pdf,
                                                     const float forward_pdf)
 {
-#ifdef WITH_CYCLES_DEBUG
   if (kernel_data.integrator.direct_light_sampling_type == DIRECT_LIGHT_SAMPLING_FORWARD) {
     /* Return 0.0f to only account for the contribution in forward path tracing, unless when the
      * light can not be forward sampled, in which case return 1.0f so it converges to the same
@@ -355,9 +350,6 @@ ccl_device_inline float light_sample_mis_weight_nee(KernelGlobals kg,
   if (kernel_data.integrator.direct_light_sampling_type == DIRECT_LIGHT_SAMPLING_NEE) {
     return 1.0f;
   }
-#else
-  (void)kg;
-#endif
   return power_heuristic(nee_pdf, forward_pdf);
 }
 

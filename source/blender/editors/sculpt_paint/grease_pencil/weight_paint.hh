@@ -18,7 +18,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_listbase.hh"
 #include "BLI_rect.hh"
 
@@ -67,9 +67,15 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
     Vector<BrushPoint> points_in_brush;
   };
 
-  struct PointsTouchedByBrush {
-    KDTree<float2> *kdtree;
+  struct PointsTouchedByBrush : NonCopyable, NonMovable {
+    Array<float2> positions;
     Array<float> weights;
+    KDTreeNew<float2> kdtree;
+
+    PointsTouchedByBrush(Array<float2> positions_, Array<float> weights_)
+        : positions(std::move(positions_)), weights(std::move(weights_)), kdtree(positions)
+    {
+    }
   };
 
   Object *object;
@@ -333,22 +339,21 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
     }
 
     /* Create KDTree of stroke points touched by the brush. */
-    KDTree<float2> *touched_points = kdtree_new<float2>(point_num);
+    Array<float2> touched_points_positions(point_num);
     Array<float> touched_points_weights(point_num);
     int kdtree_index = 0;
     for (const DrawingWeightData &drawing_weight : drawing_weights) {
       for (const int point_index : drawing_weight.point_positions.index_range()) {
         if (drawing_weight.points_touched_by_brush[point_index]) {
-          kdtree_insert<float2>(
-              touched_points, kdtree_index, drawing_weight.point_positions[point_index]);
+          touched_points_positions[kdtree_index] = drawing_weight.point_positions[point_index];
           touched_points_weights[kdtree_index] = drawing_weight.deform_weights[point_index];
           kdtree_index++;
         }
       }
     }
-    kdtree_balance<float2>(touched_points);
 
-    return {touched_points, touched_points_weights};
+    return PointsTouchedByBrush(std::move(touched_points_positions),
+                                std::move(touched_points_weights));
   }
 };
 

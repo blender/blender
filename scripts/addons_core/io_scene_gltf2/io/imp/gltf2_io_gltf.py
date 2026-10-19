@@ -58,6 +58,7 @@ class glTFImporter():
             'KHR_animation_pointer',
             'KHR_materials_volume',
             'EXT_texture_webp',
+            "KHR_texture_basisu",
             'KHR_materials_anisotropy',
             'KHR_materials_dispersion',
             'KHR_materials_iridescence',

@@ -694,7 +694,8 @@ void KDTreeNew<T>::build(const Span<T> points,
                          const int leaf_size,
                          LinearAllocator<> &allocator)
 {
-  points_ = points.data();
+  const Span<VecT> vectors(reinterpret_cast<const VecT *>(points.data()), points.size());
+  points_ = vectors.data();
   if (size == 0) {
     return;
   }
@@ -709,7 +710,7 @@ void KDTreeNew<T>::build(const Span<T> points,
     source = indices;
   }
 
-  TreeBuilder<T> builder(points, tree_indices, leaf_size, allocator);
+  TreeBuilder<VecT> builder(vectors, tree_indices, leaf_size, allocator);
   root_ = builder.build(source, bounds_);
   tree_indices_ = tree_indices.data();
   size_ = size;
@@ -730,7 +731,7 @@ LinearAllocator<> &KDTreeNew<T>::make_allocator(const int points_num,
 {
   /* Allocate enough for the allocator itself, the indices, and the first set of nodes. */
   const int64_t indices_size = int64_t(points_num) * sizeof(int);
-  const int64_t nodes_size = int64_t(TreeBuilder<T>::node_batch_size(points_num, leaf_size)) *
+  const int64_t nodes_size = int64_t(TreeBuilder<VecT>::node_batch_size(points_num, leaf_size)) *
                              sizeof(Node);
   /* Room for the allocator to align each of the two allocations it hands out of this. */
   const int64_t alignment_slack = 2 * alignof(std::max_align_t);
@@ -820,8 +821,10 @@ KDTreeNew<T>::KDTreeNew(const Span<T> points, const Span<int> indices, const int
               make_allocator(int(indices.size()), std::max(leaf_size, 1), owned_buffer_));
 }
 
+template class KDTreeNew<float>;
 template class KDTreeNew<float2>;
 template class KDTreeNew<float3>;
+template class KDTreeNew<float4>;
 
 /** \} */
 
@@ -833,11 +836,11 @@ namespace kdtree {
 
 template<typename T, typename ForeachFn>
 static int calc_duplicates_impl(const KDTreeNew<T> &tree,
-                                const typename T::base_type range,
+                                const typename KDTreeNew<T>::value_type range,
                                 const MutableSpan<int> duplicates,
                                 const ForeachFn foreach_index)
 {
-  using value_type = typename T::base_type;
+  using value_type = typename KDTreeNew<T>::value_type;
   const T *points = tree.points();
   int found = 0;
   foreach_index([&](const int index) {
@@ -865,7 +868,7 @@ static int calc_duplicates_impl(const KDTreeNew<T> &tree,
 
 template<typename T>
 int calc_duplicates(const KDTreeNew<T> &tree,
-                    const typename T::base_type range,
+                    const typename KDTreeNew<T>::value_type range,
                     const Span<int> visit_order,
                     const MutableSpan<int> duplicates)
 {
@@ -879,7 +882,7 @@ int calc_duplicates(const KDTreeNew<T> &tree,
 
 template<typename T>
 int calc_duplicates(const KDTreeNew<T> &tree,
-                    const typename T::base_type range,
+                    const typename KDTreeNew<T>::value_type range,
                     const IndexMask &visit_order,
                     const MutableSpan<int> duplicates)
 {
@@ -889,13 +892,20 @@ int calc_duplicates(const KDTreeNew<T> &tree,
   });
 }
 
+template int calc_duplicates(const KDTreeNew<float> &, float, Span<int>, MutableSpan<int>);
 template int calc_duplicates(const KDTreeNew<float2> &, float, Span<int>, MutableSpan<int>);
 template int calc_duplicates(const KDTreeNew<float3> &, float, Span<int>, MutableSpan<int>);
+template int calc_duplicates(const KDTreeNew<float4> &, float, Span<int>, MutableSpan<int>);
+template int calc_duplicates(const KDTreeNew<float> &, float, const IndexMask &, MutableSpan<int>);
 template int calc_duplicates(const KDTreeNew<float2> &,
                              float,
                              const IndexMask &,
                              MutableSpan<int>);
 template int calc_duplicates(const KDTreeNew<float3> &,
+                             float,
+                             const IndexMask &,
+                             MutableSpan<int>);
+template int calc_duplicates(const KDTreeNew<float4> &,
                              float,
                              const IndexMask &,
                              MutableSpan<int>);

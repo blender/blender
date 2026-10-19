@@ -20,9 +20,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_bounds.hh"
 #include "BLI_enum_flags.hh"
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_vector.hh"
@@ -1086,20 +1087,7 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
    * It helps find which UV in *uv_map_arr belongs to which object. */
   uint *ob_uv_map_max_idx = MEM_new_array_zeroed<uint>(objects.size(), __func__);
 
-  /* Calculate max possible number of kdtree nodes. */
-  int uv_maxlen = 0;
-  for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
-    if (bm->totvertsel == 0) {
-      continue;
-    }
-
-    uv_maxlen += bm->totloop;
-  }
-
-  KDTree<float2> *tree = kdtree_new<float2>(uv_maxlen);
-
-  Vector<int> duplicates;
+  Vector<float2> uv_positions;
   Vector<float *> uv_map_arr;
 
   int uv_map_count = 0; /* Also used for *duplicates count. */
@@ -1108,8 +1096,7 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
     Object *obedit = objects[ob_index];
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
     ED_uvedit_foreach_uv(scene, bm, true, true, [&](float luv[2]) {
-      kdtree_insert<float2>(tree, uv_map_count, luv);
-      duplicates.append(-1);
+      uv_positions.append(luv);
       uv_map_arr.append(luv);
       uv_map_count++;
     });
@@ -1117,9 +1104,9 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
     ob_uv_map_max_idx[ob_index] = uv_map_count - 1;
   }
 
-  kdtree_balance<float2>(tree);
-  int found_duplicates = kdtree_calc_duplicates_fast<float2>(
-      tree, threshold, false, duplicates.data());
+  const KDTreeNew<float2> tree(uv_positions);
+  Array<int> duplicates(uv_map_count, -1);
+  const int found_duplicates = kdtree::calc_duplicates(tree, threshold, duplicates);
 
   if (found_duplicates > 0) {
     /* Calculate average uv for duplicates. */
@@ -1175,7 +1162,6 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
     }
   }
 
-  kdtree_free<float2>(tree);
   MEM_delete(changed);
   MEM_delete(ob_uv_map_max_idx);
 
@@ -1193,38 +1179,23 @@ static wmOperatorStatus uv_remove_doubles_to_unselected(bContext *C, wmOperator 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       *bmain, scene, view_layer, nullptr);
 
-  /* Calculate max possible number of kdtree nodes. */
-  int uv_maxlen = 0;
-  for (Object *obedit : objects) {
-    const BMesh *bm = BKE_editmesh_bmesh_get(obedit);
-    uv_maxlen += bm->totloop;
-  }
-
-  KDTree<float2> *tree = kdtree_new<float2>(uv_maxlen);
-
-  Vector<float *> uv_map_arr;
-
-  int uv_map_count = 0;
-
   /* Add visible non-selected uvs to tree */
-  ED_uvedit_foreach_uv_multi(scene, objects, true, false, [&](float luv[2]) {
-    kdtree_insert<float2>(tree, uv_map_count, luv);
-    uv_map_arr.append(luv);
-    uv_map_count++;
-  });
+  Vector<float2> uv_positions;
+  ED_uvedit_foreach_uv_multi(
+      scene, objects, true, false, [&](float luv[2]) { uv_positions.append(luv); });
 
-  kdtree_balance<float2>(tree);
+  const KDTreeNew<float2> tree(uv_positions);
 
   /* For each selected uv, find duplicate non selected uv. */
   for (Object *obedit : objects) {
     bool changed = false;
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
     ED_uvedit_foreach_uv(scene, bm, true, true, [&](float luv[2]) {
-      KDTreeNearest<float2> nearest;
-      const int i = kdtree_find_nearest<float2>(tree, luv, &nearest);
+      float distance_sq;
+      const int i = tree.find_nearest(luv, &distance_sq);
 
-      if (i != -1 && nearest.dist < threshold) {
-        copy_v2_v2(luv, uv_map_arr[i]);
+      if (i != -1 && distance_sq < math::square(threshold)) {
+        copy_v2_v2(luv, uv_positions[i]);
         changed = true;
       }
     });
@@ -1235,8 +1206,6 @@ static wmOperatorStatus uv_remove_doubles_to_unselected(bContext *C, wmOperator 
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     }
   }
-
-  kdtree_free<float2>(tree);
 
   return OPERATOR_FINISHED;
 }

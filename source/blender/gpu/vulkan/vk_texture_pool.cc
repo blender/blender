@@ -152,6 +152,18 @@ VKResourceWithHandle<VkImage> VKImageCache::get_or_create(const VKImageInfo &inf
   return resource;
 }
 
+Vector<VKImageView> VKImageCache::take_image_views(const VKImageInfo &info)
+{
+  VKImageHandle &image_handle = cache_.lookup(info);
+  return std::move(image_handle.image_views);
+}
+
+void VKImageCache::store_image_views(const VKImageInfo &info, Vector<VKImageView> image_views)
+{
+  VKImageHandle &image_handle = cache_.lookup(info);
+  image_handle.image_views = std::move(image_views);
+}
+
 void VKImageCache::reset_unused_cycles_count(const VKImageInfo &info)
 {
   VKImageHandle *image_handle = cache_.lookup_ptr(info);
@@ -443,6 +455,8 @@ Texture *VKTexturePool::acquire_texture_impl(int3 extent,
   /* Get or create a VkImage handle and assign it to the texture. */
   if (image_cache_) {
     texture->resource_ = image_cache_->get_or_create(image_info);
+    /* Reuse views of the cached image, as they are only destroyed together with the image. */
+    texture->image_views_ = image_cache_->take_image_views(image_info);
   }
   else {
     texture->resource_ = create_and_bind_vk_image(image_info, name_str);
@@ -494,7 +508,10 @@ void VKTexturePool::release_texture(Texture *texture)
   allocations_.add_overwrite(allocation_handle);
 
   /* Release the pool's reference to the VkImage (the cache owns it when in use). */
-  if (!image_cache_) {
+  if (image_cache_) {
+    image_cache_->store_image_views(image_info, std::move(texture_handle.texture->image_views_));
+  }
+  else {
     VKDevice &device = VKBackend::get().device;
     device.resources.deref_resource(texture_handle.texture->resource_.resource_handle);
   }

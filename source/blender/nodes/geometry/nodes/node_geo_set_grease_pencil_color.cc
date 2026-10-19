@@ -34,6 +34,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .evaluated_geometry_field();
   b.add_input<decl::Menu>("Mode"_ustr)
       .static_items(rna_enum_node_grease_pencil_stroke_type_items)
+      .translation_context(BLT_I18NCONTEXT_ID_GPENCIL)
       .optional_label();
   b.add_input<decl::Color>("Color"_ustr)
       .default_value(ColorGeometry4f(1.0f, 1.0f, 1.0f, 1.0f))

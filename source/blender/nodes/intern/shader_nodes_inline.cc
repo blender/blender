@@ -463,7 +463,8 @@ class ShaderNodesInliner {
 
   bool should_use_link(const bNodeLink &link) const
   {
-    return link.is_used() && (link.flag & NODE_LINK_VALID);
+    return link.is_used() && (link.flag & NODE_LINK_VALID) &&
+           !this->socket_is_ignored(*link.fromsock);
   }
 
   void handle_input_socket(const SocketInContext &socket)

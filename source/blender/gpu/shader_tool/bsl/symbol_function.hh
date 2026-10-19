@@ -13,7 +13,54 @@
 
 namespace bsl {
 
-enum class MatchRank { None = 0, Conversion = 1, Promotion = 2, Exact = 3 };
+struct MatchRank {
+  enum Rank : uint8_t { None = 0, Conversion = 1, Promotion = 2, Exact = 3 } rank = None;
+  /* For class conversion to one of their base class, distance to the base class.
+   * 0 means no conversion. */
+  uint8_t conversion_depth = 0;
+
+  MatchRank() = default;
+  MatchRank(Rank rank) : rank(rank) {}
+  MatchRank(Rank rank, uint8_t conversion_depth) : rank(rank), conversion_depth(conversion_depth)
+  {
+  }
+
+  bool operator==(Rank other_rank) const
+  {
+    return rank == other_rank;
+  }
+  bool operator>=(Rank other_rank) const
+  {
+    return rank >= other_rank;
+  }
+  bool operator<=(Rank other_rank) const
+  {
+    return rank <= other_rank;
+  }
+
+  bool operator==(const MatchRank &other) const
+  {
+    return rank == other.rank && conversion_depth == other.conversion_depth;
+  }
+
+  bool operator<(const MatchRank &other) const
+  {
+    if (rank == other.rank && rank == Conversion) {
+      /* A greater depth is worse. Inverse the comparison. */
+      return conversion_depth > other.conversion_depth;
+    }
+    return rank < other.rank;
+  }
+
+  bool operator>(const MatchRank &other) const
+  {
+    if (rank == other.rank && rank == Conversion) {
+      /* A greater depth is worse. Inverse the comparison. */
+      return conversion_depth < other.conversion_depth;
+    }
+    return rank > other.rank;
+  }
+};
 
 /**
  * Container for a function symbol.
@@ -100,10 +147,24 @@ struct SymbolFunction : SymbolScope {
   {
     return this->parent->as_class();
   }
+  const SymbolClass *parent_class() const
+  {
+    return this->parent->as_class();
+  }
 
   bool is_entry_point() const
   {
     return entry_point_type != SymbolFunction::EntryPointType::NONE;
+  }
+
+  bool is_method() const
+  {
+    return fn_type != GLOBAL;
+  }
+
+  bool is_builtin_ctor() const
+  {
+    return is_builtin && allow_vector_promotion;
   }
 
   /* To be called on the first registered overload. */

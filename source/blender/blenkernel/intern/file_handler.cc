@@ -198,7 +198,8 @@ std::string FileHandlerType::label_with_extensions() const
     group_start += group_size;
   }
 
-  return std::string(label) + " (" + extensions + ")";
+  return std::string(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, label)) + " (" + extensions +
+         ")";
 }
 
 std::optional<std::string> FileHandlerType::filter_glob_from_extensions() const

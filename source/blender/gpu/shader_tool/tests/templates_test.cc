@@ -96,10 +96,10 @@ struct U {
 U U_ctor_() {U r;r._pad=0;return r;}
 
 #ifndef GPU_METAL
-void _f(_ref(U ,this_));
+void _f(U this_);
 #endif
 #line 10
-  void _f(_ref(U ,this_)) {
+  void _f(U this_) {
 #line 10
             }
 #line 2
@@ -111,10 +111,10 @@ void _f(_ref(U ,this_));
 ATU ATU_ctor_() {ATU r;r._pad=0;return r;}
 
 #ifndef GPU_METAL
-void _f(_ref(ATU ,this_), U _0);
+void _f(ATU this_, U _0);
 #endif
 #line 3
-  void _f(_ref(ATU ,this_), U t)
+  void _f(ATU this_, U t)
   {
     _f(t);
   }

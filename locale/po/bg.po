@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-12 07:32+0000\n"
+"POT-Creation-Date: 2026-10-19 07:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1140,36 +1140,36 @@ msgid "ID Type"
 msgstr "ID тип"
 
 
-msgid "Light"
-msgstr "Светлина"
-
-
-msgid "Hooks"
-msgstr "Куки"
-
-
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
+msgid "UV Mapping"
+msgstr "UV Картиране"
 
 
 msgid "Import"
 msgstr "Внеси"
 
 
-msgid "Apply"
-msgstr "Прилагане"
-
-
-msgid "In-Betweens"
-msgstr "Междинни Кадри"
-
-
-msgid "UV Mapping"
-msgstr "UV Картиране"
+msgid "Light"
+msgstr "Светлина"
 
 
 msgid "Rigid Body"
 msgstr "Твърдо тяло"
+
+
+msgid "Apply"
+msgstr "Прилагане"
+
+
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Hooks"
+msgstr "Куки"
+
+
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
 
 
 msgid "Merge"

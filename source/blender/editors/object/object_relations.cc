@@ -6,6 +6,7 @@
  * \ingroup edobj
  */
 
+#include <array>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -27,7 +28,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_linklist.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_matrix_c.hh"
@@ -814,26 +815,32 @@ bool parent_set(ReportList *reports,
                                    vert_par);
 }
 
-static void parent_set_vert_find(KDTree<float3> *tree, Object *child, int vert_par[3], bool is_tri)
+static void parent_set_vert_find(const KDTreeNew<float3> &tree,
+                                 const Span<int> orig_indices,
+                                 Object *child,
+                                 int vert_par[3],
+                                 bool is_tri)
 {
-  const float *co_find = child->object_to_world().location();
+  const auto to_orig_index = [&](const int index) {
+    return orig_indices.is_empty() ? index : orig_indices[index];
+  };
+  const float3 co_find = child->object_to_world().location();
   if (is_tri) {
-    KDTreeNearest<float3> nearest[3];
-    int tot;
-
-    tot = kdtree_find_nearest_n<float3>(tree, co_find, nearest, 3);
+    std::array<KDTreeNew<float3>::Nearest, 3> nearest;
+    const int tot = tree.find_nearest_n(co_find, nearest);
     BLI_assert(tot == 3);
-    UNUSED_VARS(tot);
+    UNUSED_VARS_NDEBUG(tot);
 
-    vert_par[0] = nearest[0].index;
-    vert_par[1] = nearest[1].index;
-    vert_par[2] = nearest[2].index;
+    vert_par[0] = to_orig_index(nearest[0].index);
+    vert_par[1] = to_orig_index(nearest[1].index);
+    vert_par[2] = to_orig_index(nearest[2].index);
 
     BLI_assert(std::min({UNPACK3(vert_par)}) >= 0);
   }
   else {
-    vert_par[0] = kdtree_find_nearest<float3>(tree, co_find, nullptr);
-    BLI_assert(vert_par[0] >= 0);
+    const int nearest = tree.find_nearest(co_find);
+    BLI_assert(nearest >= 0);
+    vert_par[0] = to_orig_index(nearest);
     vert_par[1] = 0;
     vert_par[2] = 0;
   }
@@ -883,7 +890,8 @@ static bool parent_set_nonvertex_parent(bContext *C, ParentingContext *parenting
 
 static bool parent_set_vertex_parent_with_kdtree(bContext *C,
                                                  ParentingContext *parenting_context,
-                                                 KDTree<float3> *tree)
+                                                 const KDTreeNew<float3> &tree,
+                                                 const Span<int> orig_indices)
 {
   int vert_par[3] = {0, 0, 0};
 
@@ -894,7 +902,7 @@ static bool parent_set_vertex_parent_with_kdtree(bContext *C,
       continue;
     }
 
-    parent_set_vert_find(tree, ob, vert_par, parenting_context->is_vertex_tri);
+    parent_set_vert_find(tree, orig_indices, ob, vert_par, parenting_context->is_vertex_tri);
     if (!parent_set(parenting_context->reports,
                     C,
                     parenting_context->scene,
@@ -914,25 +922,20 @@ static bool parent_set_vertex_parent_with_kdtree(bContext *C,
 
 static bool parent_set_vertex_parent(bContext *C, ParentingContext *parenting_context)
 {
-  KDTree<float3> *tree = nullptr;
-  int tree_tot;
-
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *par_eval = DEG_get_evaluated(depsgraph, parenting_context->par);
 
-  tree = BKE_object_as_kdtree(par_eval, &tree_tot);
-  /* Zero & null for unsupported object types. */
-  BLI_assert((tree != nullptr) || (tree_tot == 0));
+  Vector<int> orig_indices;
+  /* Empty for unsupported object types. */
+  const Vector<float3> positions = BKE_object_positions_for_kdtree(par_eval, orig_indices);
 
-  if (tree_tot < (parenting_context->is_vertex_tri ? 3 : 1)) {
+  if (positions.size() < (parenting_context->is_vertex_tri ? 3 : 1)) {
     BKE_report(parenting_context->reports, RPT_ERROR, "Not enough vertices for vertex-parent");
-    kdtree_free<float3>(tree);
     return false;
   }
 
-  const bool ok = parent_set_vertex_parent_with_kdtree(C, parenting_context, tree);
-  kdtree_free<float3>(tree);
-  return ok;
+  const KDTreeNew<float3> tree(positions);
+  return parent_set_vertex_parent_with_kdtree(C, parenting_context, tree, orig_indices);
 }
 
 static wmOperatorStatus parent_set_exec(bContext *C, wmOperator *op)

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <array>
+
 #include "weight_paint.hh"
 
 namespace blender::ed::sculpt_paint::greasepencil {
@@ -13,15 +15,16 @@ class BlurWeightPaintOperation : public WeightPaintOperation {
                         PointsTouchedByBrush &touched_points)
   {
     /* Find the nearest neighbors of the to-be-blurred point. The point itself is included. */
-    KDTreeNearest<float2> nearest_points[BLUR_NEIGHBOUR_NUM];
-    const int point_num = kdtree_find_nearest_n<float2>(
-        touched_points.kdtree,
-        drawing_weight.point_positions[point.drawing_point_index],
-        nearest_points,
-        BLUR_NEIGHBOUR_NUM);
+    std::array<KDTreeNew<float2>::Nearest, BLUR_NEIGHBOUR_NUM> nearest_points;
+    const int point_num = touched_points.kdtree.find_nearest_n(
+        drawing_weight.point_positions[point.drawing_point_index], nearest_points);
 
     if (point_num <= 1) {
       return;
+    }
+    std::array<float, BLUR_NEIGHBOUR_NUM> distances;
+    for (const int i : IndexRange(point_num)) {
+      distances[i] = std::sqrt(nearest_points[i].distance_sq);
     }
 
     /* Calculate the blurred weight for the point (A). For this we use a weighted average of the
@@ -29,14 +32,14 @@ class BlurWeightPaintOperation : public WeightPaintOperation {
      * contribute more to the average than points farther away from A. */
     float distance_sum = 0.0f;
     for (const int i : IndexRange(point_num)) {
-      distance_sum += nearest_points[i].dist;
+      distance_sum += distances[i];
     }
     if (distance_sum == 0.0f) {
       return;
     }
     float blur_weight_sum = 0.0f;
     for (const int i : IndexRange(point_num)) {
-      blur_weight_sum += (1.0f - nearest_points[i].dist / distance_sum) *
+      blur_weight_sum += (1.0f - distances[i] / distance_sum) *
                          touched_points.weights[nearest_points[i].index];
     }
     const float blur_weight = blur_weight_sum / (point_num - 1);
@@ -124,8 +127,6 @@ class BlurWeightPaintOperation : public WeightPaintOperation {
             }
             drawing_weight.points_in_brush.clear();
           });
-
-          kdtree_free<float2>(touched_points.kdtree);
         });
 
     if (drawing_changed) {

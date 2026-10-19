@@ -1397,7 +1397,7 @@ int popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
 
   if (BKE_regiontype_uses_panel_categories_search(region->runtime->type)) {
     layout.op("UI_OT_region_start_filter",
-              IFACE_("Search..."),
+              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Search..."),
               ICON_VIEWZOOM,
               wm::OpCallContext::ExecDefault,
               UI_ITEM_NONE);

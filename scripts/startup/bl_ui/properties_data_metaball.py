@@ -93,10 +93,10 @@ class DATA_PT_metaball_element(DataButtonsPanel, Panel):
 
         col.separator()
 
-        col.prop(metaelem, "stiffness", text="Stiffness")
-        col.prop(metaelem, "radius", text="Radius")
-        col.prop(metaelem, "use_negative", text="Negative")
-        col.prop(metaelem, "hide", text="Hide")
+        col.prop(metaelem, "stiffness")
+        col.prop(metaelem, "radius")
+        col.prop(metaelem, "use_negative")
+        col.prop(metaelem, "hide")
 
         sub = col.column(align=True)
 

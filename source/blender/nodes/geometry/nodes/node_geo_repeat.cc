@@ -151,6 +151,7 @@ static void node_register()
   static bke::bNodeType ntype;
   common_node_type_base(&ntype, "GeometryNodeRepeatInput"_ustr, GEO_NODE_REPEAT_INPUT);
   ntype.ui_name = "Repeat Input";
+  ntype.ui_description = "Input data for the repeat zone";
   ntype.enum_name_legacy = "REPEAT_INPUT";
   ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.initfunc = node_init;
@@ -321,6 +322,7 @@ static void node_register()
   static bke::bNodeType ntype;
   common_node_type_base(&ntype, "GeometryNodeRepeatOutput"_ustr, GEO_NODE_REPEAT_OUTPUT);
   ntype.ui_name = "Repeat Output";
+  ntype.ui_description = "Output data from the repeat zone";
   ntype.enum_name_legacy = "REPEAT_OUTPUT";
   ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.initfunc = node_init;

@@ -440,7 +440,8 @@ class DrawCacheImpl : public DrawCache {
 
 void DrawCacheImpl::AttributeData::tag_dirty(const IndexMask &node_mask)
 {
-  this->dirty_nodes.resize(std::max(this->dirty_nodes.size(), node_mask.min_array_size()), false);
+  /* Nodes past the end have never been extracted, so they are dirty by definition. */
+  this->dirty_nodes.resize(std::max(this->dirty_nodes.size(), node_mask.min_array_size()), true);
   node_mask.set_bits(this->dirty_nodes);
 }
 
@@ -1097,7 +1098,10 @@ static void calc_tris_index_counts(const Object &object,
 
 void DrawCacheImpl::AttributeData::ensure_nodes_capacity(const int64_t nodes_num)
 {
-  this->dirty_nodes.resize(nodes_num, true);
+  /* Only grow, to keep the state of nodes outside the current mask. */
+  if (this->dirty_nodes.size() < nodes_num) {
+    this->dirty_nodes.resize(nodes_num, true);
+  }
 }
 void DrawCacheImpl::AttributeData::ensure_buffer_capacity(const uint64_t needed_vertex_len)
 {
@@ -3574,6 +3578,22 @@ void DrawCacheImpl::IBOFamily::ensure_capacity()
   ibo.swap(new_ibo);
 }
 
+/**
+ * Nodes split by dynamic topology are no longer leaves, but still have space assigned in the
+ * shared buffers. Include them in range updates, where their size of zero releases that space.
+ */
+static IndexMask add_split_bmesh_nodes(const bke::pbvh::Tree &pbvh,
+                                       const IndexMask &node_mask,
+                                       IndexMaskMemory &memory)
+{
+  if (pbvh.type() != bke::pbvh::Type::BMesh) {
+    return node_mask;
+  }
+  const IndexMask internal_nodes =
+      bke::pbvh::all_leaf_nodes(pbvh, memory).complement(IndexRange(pbvh.nodes_num()), memory);
+  return IndexMask::from_union(node_mask, internal_nodes, memory);
+}
+
 Span<Batch *> DrawCacheImpl::ensure_tris_batches(const Object &object,
                                                  const ViewportRequest &request,
                                                  const IndexMask &nodes_to_update)
@@ -3584,10 +3604,12 @@ Span<Batch *> DrawCacheImpl::ensure_tris_batches(const Object &object,
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const bool coarse = use_coarse_buffers(pbvh, request);
 
+  IndexMaskMemory memory;
+  const IndexMask range_mask = add_split_bmesh_nodes(pbvh, nodes_to_update, memory);
   IBOFamily &ibo_family = coarse ? ibo_tris_coarse_ : ibo_tris_;
-  bool grown = this->ensure_vert_ranges(object, orig_mesh_data, nodes_to_update);
+  bool grown = this->ensure_vert_ranges(object, orig_mesh_data, range_mask);
   grown |= ibo_family.ensure_ranges(
-      pbvh.nodes_num(), nodes_to_update, [&](const IndexMask &mask, MutableSpan<int> sizes) {
+      pbvh.nodes_num(), range_mask, [&](const IndexMask &mask, MutableSpan<int> sizes) {
         calc_tris_index_counts(object, orig_mesh_data, coarse, mask, sizes);
       });
   if (grown) {
@@ -3628,7 +3650,9 @@ Span<Batch *> DrawCacheImpl::ensure_tris_batches(const Object &object,
                 (has_ibo ? ibos[node_index].get() : nullptr))
         {
           if (!has_ibo) {
-            /* No geometry for this node. */
+            /* No geometry for this node. Clear the batch so it doesn't reference a freed index
+             * buffer, without freeing it as passes may still reference it. */
+            Batch::clear(batches[node_index]);
             return;
           }
           if (!batches[node_index]) {
@@ -3663,10 +3687,12 @@ Span<Batch *> DrawCacheImpl::ensure_lines_batches(const Object &object,
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const bool coarse = use_coarse_buffers(pbvh, request);
 
+  IndexMaskMemory memory;
+  const IndexMask range_mask = add_split_bmesh_nodes(pbvh, nodes_to_update, memory);
   IBOFamily &ibo_family = coarse ? ibo_lines_coarse_ : ibo_lines_;
-  bool grown = this->ensure_vert_ranges(object, orig_mesh_data, nodes_to_update);
+  bool grown = this->ensure_vert_ranges(object, orig_mesh_data, range_mask);
   grown |= ibo_family.ensure_ranges(
-      pbvh.nodes_num(), nodes_to_update, [&](const IndexMask &mask, MutableSpan<int> sizes) {
+      pbvh.nodes_num(), range_mask, [&](const IndexMask &mask, MutableSpan<int> sizes) {
         calc_lines_index_counts(object, orig_mesh_data, coarse, mask, sizes);
       });
   if (grown) {
@@ -3688,6 +3714,8 @@ Span<Batch *> DrawCacheImpl::ensure_lines_batches(const Object &object,
   nodes_to_update.foreach_index(
       [&](const int node_index) {
         if (lines[node_index] == nullptr) {
+          /* See the same case in #ensure_tris_batches. */
+          Batch::clear(batches[node_index]);
           return;
         }
         if (!batches[node_index] || batch_cache.dirty[node_index] ||

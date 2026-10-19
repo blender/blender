@@ -19,11 +19,12 @@ from .search_node_tree import get_texture_node_from_socket, detect_anisotropy_no
 def gather_image(
         blender_shader_sockets: typing.Tuple[bpy.types.NodeSocket],
         use_tile: bool,
+        is_data: bool,
         export_settings):
     if not __filter_image(blender_shader_sockets, export_settings):
         return None, None, None, None
 
-    export_image, udim_image = __get_image_data(blender_shader_sockets, use_tile, export_settings)
+    export_image, udim_image = __get_image_data(blender_shader_sockets, use_tile, is_data, export_settings)
 
     if udim_image is not None:
         # We are in a UDIM case, so we return no image data
@@ -145,11 +146,15 @@ def __gather_mime_type(sockets, export_image, export_settings):
         if socket.socket.identifier == "Alpha":
             if export_settings["gltf_image_format"] == "WEBP":
                 return "image/webp"
+            elif export_settings["gltf_image_format"] == "KTX2":
+                return "image/ktx2"
             else:
                 # If we keep image as is (no channel composition), we need to keep original format (for WebP)
                 image = export_image.blender_image(export_settings)
                 if image is not None and __is_blender_image_a_webp(image):
                     return "image/webp"
+                elif image is not None and __is_blender_image_a_ktx2(image):
+                    return "image/ktx2"
                 return "image/png"
 
     if export_settings["gltf_image_format"] == "AUTO":
@@ -163,12 +168,16 @@ def __gather_mime_type(sockets, export_image, export_settings):
             return "image/jpeg"
         elif image is not None and __is_blender_image_a_webp(image):
             return "image/webp"
+        elif image is not None and __is_blender_image_a_ktx2(image):
+            return "image/ktx2"
         return "image/png"
 
     elif export_settings["gltf_image_format"] == "WEBP":
         return "image/webp"
     elif export_settings["gltf_image_format"] == "JPEG":
         return "image/jpeg"
+    elif export_settings["gltf_image_format"] == "KTX2":
+        return "image/ktx2"
 
 
 def __gather_name(export_image, use_tile, export_settings):
@@ -203,7 +212,7 @@ def __gather_name(export_image, use_tile, export_settings):
             # img.name is a datablock name, not a filename, so only strip a
             # genuine image extension. Otherwise names like "Image.001" lose
             # their suffix and collide with "Image" (#2691).
-            if extension.lower() not in ['.png', '.jpg', '.jpeg', '.webp']:
+            if extension.lower() not in ['.png', '.jpg', '.jpeg', '.webp', '.ktx2']:
                 name = img.name
             names.append(name)
         name = '-'.join(names)
@@ -254,7 +263,7 @@ def set_real_uri(image, export_settings):
     image.uri = uri
 
 
-def __get_image_data(sockets, use_tile, export_settings) -> ExportImage:
+def __get_image_data(sockets, use_tile, is_data, export_settings) -> ExportImage:
     # For shared resources, such as images, we just store the portion of data that is needed in the glTF property
     # in a helper class. During generation of the glTF in the exporter these will then be combined to actual binary
     # resources.
@@ -265,7 +274,9 @@ def __get_image_data(sockets, use_tile, export_settings) -> ExportImage:
         # In that case, we return no texture data for now, and only get that this texture is UDIM
         # This will be used later
         if any([r.shader_node.image.source == "TILED" for r in results if r is not None and r.shader_node.image is not None]):
-            return ExportImage(), [
+            export_image = ExportImage()
+            export_image.set_is_data(is_data)
+            return export_image, [
                 r.shader_node.image for r in results if r is not None and r.shader_node.image is not None and r.shader_node.image.source == "TILED"][0]
 
     # If we are here, we are in UDIM split process
@@ -297,15 +308,16 @@ def __get_image_data(sockets, use_tile, export_settings) -> ExportImage:
         # We are not in complex node setup, so we can try to get the image data from grayscale textures
         return __get_image_data_grayscale_anisotropy(sockets, results, export_settings), None
 
-    return __get_image_data_mapping(sockets, results, use_tile, export_settings), None
+    return __get_image_data_mapping(sockets, results, use_tile, is_data, export_settings), None
 
 
-def __get_image_data_mapping(sockets, results, use_tile, export_settings) -> ExportImage:
+def __get_image_data_mapping(sockets, results, use_tile, is_data, export_settings) -> ExportImage:
     """
     Simple mapping
     Will fit for most of exported textures : RoughnessMetallic, Basecolor, normal, ...
     """
     composed_image = ExportImage()
+    composed_image.set_is_data(is_data)
 
     for result, socket in zip(results, sockets):
         # Assume that user know what he does, and that channels/images are already combined correctly for pbr
@@ -315,6 +327,7 @@ def __get_image_data_mapping(sockets, results, use_tile, export_settings) -> Exp
         # This Warning is displayed in UI of this option
         if export_settings['gltf_keep_original_textures']:
             composed_image = ExportImage.from_original(result.shader_node.image)
+            composed_image.set_is_data(is_data)
 
         else:
             # rudimentarily try follow the node tree to find the correct image data.
@@ -422,8 +435,10 @@ def __get_image_data_mapping(sockets, results, use_tile, export_settings) -> Exp
                 # copy full image...eventually following sockets might overwrite things
                 if use_tile is None:
                     composed_image = ExportImage.from_blender_image(result.shader_node.image)
+                    composed_image.set_is_data(is_data)
                 else:
                     composed_image = ExportImage.from_blender_image_tile(export_settings)
+                    composed_image.set_is_data(is_data)
 
     # Check that we don't have some empty channels (based on weird images without any size for example)
     keys = list(composed_image.fills.keys())  # do not loop on dict, we may have to delete an element
@@ -447,6 +462,7 @@ def __get_image_data_grayscale_anisotropy(sockets, results, export_settings) -> 
     """
     from .extensions.anisotropy import grayscale_anisotropy_calculation
     composed_image = ExportImage()
+    composed_image.set_is_data(False)
     composed_image.set_calc(grayscale_anisotropy_calculation)
 
     results = [get_texture_node_from_socket(socket, export_settings)
@@ -486,6 +502,17 @@ def __is_blender_image_a_webp(image: bpy.types.Image) -> bool:
         return path.endswith('.webp')
 
 
+def __is_blender_image_a_ktx2(image: bpy.types.Image) -> bool:
+    if image.source not in ['FILE', 'TILED']:
+        return False
+    if image.filepath_raw == '' and image.packed_file:
+        # Magic of ktx2
+        return image.packed_file.data[:12] == b'\xABKTX 22\xBB\r\n\x1A\n'
+    else:
+        path = image.filepath_raw.lower()
+        return path.endswith('.ktx2')
+
+
 def get_gltf_image_from_blender_image(blender_image_name, export_settings):
     export_image = ExportImage.from_blender_image(bpy.data.images[blender_image_name])
 
@@ -518,7 +545,15 @@ def __get_mime_type_of_image(blender_image_name, export_settings):
             return "image/jpeg"
         elif __is_blender_image_a_webp(image):
             return "image/webp"
+        elif __is_blender_image_a_ktx2(image):
+            return "image/ktx2"
         return "image/png"
 
     elif export_settings["gltf_image_format"] == "JPEG":
         return "image/jpeg"
+    elif export_settings["gltf_image_format"] == "WEBP":
+        return "image/webp"
+    elif export_settings["gltf_image_format"] == "KTX2":
+        return "image/ktx2"
+    else:
+        return "image/png"

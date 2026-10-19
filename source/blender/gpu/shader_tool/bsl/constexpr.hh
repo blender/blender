@@ -72,11 +72,20 @@ struct ConstexprValue {
 
   static uint32_t cast_value(CompType from, CompType to, uint32_t value)
   {
-    if (to == FLOAT && from != FLOAT) {
-      return std::bit_cast<uint32_t>(float(value));
+    if (from == to) {
+      return value;
     }
-    if (to != FLOAT && from == FLOAT) {
-      return static_cast<int>(std::bit_cast<float>(value));
+    if (to == BOOL) {
+      return (from == FLOAT) ? uint32_t(std::bit_cast<float>(value) != 0.0f) :
+                               uint32_t(value != 0);
+    }
+    if (to == FLOAT) {
+      return std::bit_cast<uint32_t>((from == INT) ? float(std::bit_cast<int32_t>(value)) :
+                                                     float(value));
+    }
+    if (from == FLOAT) {
+      const float f = std::bit_cast<float>(value);
+      return (to == UINT) ? uint32_t(int64_t(f)) : std::bit_cast<uint32_t>(int32_t(f));
     }
     return value;
   }
@@ -547,8 +556,8 @@ inline bool contains_zero(const ConstexprValue &v)
 
 inline bool anyLessThan(const ConstexprValue &lhs, int rhs)
 {
-  for (auto val : lhs.values) {
-    if (val < rhs) {
+  for (int i = 0; i < int(lhs.values.size()); i++) {
+    if (lhs.comp_cast<int64_t>(i) < rhs) {
       return true;
     }
   }
@@ -557,8 +566,8 @@ inline bool anyLessThan(const ConstexprValue &lhs, int rhs)
 
 inline bool anyGreaterThanEqual(const ConstexprValue &lhs, int rhs)
 {
-  for (auto val : lhs.values) {
-    if (val >= rhs) {
+  for (int i = 0; i < int(lhs.values.size()); i++) {
+    if (lhs.comp_cast<int64_t>(i) >= rhs) {
       return true;
     }
   }

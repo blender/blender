@@ -8,10 +8,12 @@
  * Welding and merging functionality.
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_math_base.hh"
@@ -680,6 +682,89 @@ void bmo_collapse_uvs_exec(BMesh *bm, BMOperator *op)
 }
 
 /**
+ * Group points that are within \a range of each other, letting \a target_fn choose the point of
+ * each group the others are merged into.
+ *
+ * \param duplicates: Points with a value of -1 are candidates to be merged. Points set to their
+ * own index are kept, and are used as targets before the remaining points are grouped with each
+ * other. When the function returns, a merged point holds the index of the point it was merged
+ * into, and every point of a group holds the index of its target.
+ * \param target_fn: Receives the points of a group, the one the search started from last, and
+ * returns the position of the target in that span.
+ *
+ * \note Points are visited in index order, so that the result doesn't depend on the tree layout.
+ */
+template<typename TargetFn>
+static int calc_duplicates_with_target(const KDTreeNew<float3> &tree,
+                                       const Span<float3> positions,
+                                       const float range,
+                                       const bool has_self_index,
+                                       MutableSpan<int> duplicates,
+                                       const TargetFn &target_fn)
+{
+  int found = 0;
+
+  /* First pass, handle merging into self-index (if any exist). */
+  if (has_self_index) {
+    Array<float> duplicates_dist_sq(positions.size());
+    for (const int index : positions.index_range()) {
+      if (duplicates[index] != index) {
+        continue;
+      }
+      tree.foreach_in_radius(
+          positions[index], range, [&](const int neighbor_index, const float dist_sq) {
+            const int target_index = duplicates[neighbor_index];
+            if (target_index == -1) {
+              duplicates[neighbor_index] = index;
+              duplicates_dist_sq[neighbor_index] = dist_sq;
+              found += 1;
+            }
+            /* Don't steal from self references. */
+            else if (target_index != neighbor_index) {
+              float &dist_sq_best = duplicates_dist_sq[neighbor_index];
+              /* Steal the target if it's closer. */
+              if ((dist_sq < dist_sq_best) ||
+                  /* Pick the lowest index as a tie breaker for a deterministic result. */
+                  ((dist_sq == dist_sq_best) && (index < target_index)))
+              {
+                dist_sq_best = dist_sq;
+                duplicates[neighbor_index] = index;
+              }
+            }
+          });
+    }
+  }
+
+  /* Second pass, de-duplicate clusters that weren't handled in the first pass. */
+  Vector<int> cluster;
+  for (const int index : positions.index_range()) {
+    if (duplicates[index] != -1) {
+      continue;
+    }
+    tree.foreach_in_radius(positions[index], range, [&](const int neighbor_index, float) {
+      if (neighbor_index != index && duplicates[neighbor_index] == -1) {
+        cluster.append(neighbor_index);
+      }
+    });
+    if (cluster.is_empty()) {
+      continue;
+    }
+    found += int(cluster.size());
+    /* The search finds the neighbors in an order that depends on the tree layout. */
+    std::ranges::sort(cluster);
+    cluster.append(index);
+
+    const int target_index = cluster[target_fn(cluster.as_span())];
+    for (const int cluster_index : cluster) {
+      duplicates[cluster_index] = target_index;
+    }
+    cluster.clear();
+  }
+
+  return found;
+}
+
+/**
  * \return a `verts_len` aligned array of indices.
  * Index values:
  * - `-1`: Not a duplicate, others may use as a target.
@@ -696,9 +781,9 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
   bool found_duplicates = false;
   bool has_self_index = false;
 
-  KDTree<float3> *tree = kdtree_new<float3>(verts_len);
+  Array<float3> positions(verts_len);
   for (int i = 0; i < verts_len; i++) {
-    kdtree_insert<float3>(tree, i, verts[i]->co);
+    positions[i] = verts[i]->co;
     if (has_keep_vert && BMO_vert_flag_test(bm, verts[i], VERT_KEEP)) {
       duplicates[i] = i;
       has_self_index = true;
@@ -708,31 +793,31 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
     }
   }
 
-  kdtree_balance<float3>(tree);
+  const KDTreeNew<float3> tree(positions);
 
   /* Given a cluster of duplicates, pick the index to keep. */
-  auto deduplicate_target_calc_fn = [&verts](const int *cluster, const int cluster_num) -> int {
-    if (cluster_num == 2) {
+  auto deduplicate_target_calc_fn = [&](const Span<int> cluster) -> int {
+    if (cluster.size() == 2) {
       /* Special case, no use in calculating centroid.
        * Use the lowest index for stability. */
       return (cluster[0] < cluster[1]) ? 0 : 1;
     }
-    BLI_assert(cluster_num > 2);
+    BLI_assert(cluster.size() > 2);
 
     float3 centroid{0.0f};
-    for (int i = 0; i < cluster_num; i++) {
-      centroid += float3(verts[cluster[i]]->co);
+    for (const int i : cluster) {
+      centroid += positions[i];
     }
-    centroid /= float(cluster_num);
+    centroid /= float(cluster.size());
 
     /* Now pick the most "central" index (with lowest index as a tie breaker). */
-    const int cluster_end = cluster_num - 1;
+    const int cluster_end = int(cluster.size()) - 1;
     /* Assign `i_best` from the last index as this is the index where the search originated
      * so it's most likely to be the best. */
     int i_best = cluster_end;
-    float dist_sq_best = len_squared_v3v3(centroid, verts[cluster[i_best]]->co);
+    float dist_sq_best = math::distance_squared(centroid, positions[cluster[i_best]]);
     for (int i = 0; i < cluster_end; i++) {
-      const float dist_sq_test = len_squared_v3v3(centroid, verts[cluster[i]]->co);
+      const float dist_sq_test = math::distance_squared(centroid, positions[cluster[i]]);
 
       if (dist_sq_test > dist_sq_best) {
         continue;
@@ -748,10 +833,12 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
     return i_best;
   };
 
-  found_duplicates = kdtree_calc_duplicates_cb<float3>(
-                         tree, dist, duplicates, has_self_index, deduplicate_target_calc_fn) != 0;
-
-  kdtree_free<float3>(tree);
+  found_duplicates = calc_duplicates_with_target(tree,
+                                                 positions,
+                                                 dist,
+                                                 has_self_index,
+                                                 MutableSpan(duplicates, verts_len),
+                                                 deduplicate_target_calc_fn) != 0;
 
   if (!found_duplicates) {
     MEM_delete(duplicates);

@@ -137,6 +137,7 @@ static void node_register()
   static bke::bNodeType ntype;
   common_node_type_base(&ntype, "NodeClosureInput"_ustr, NODE_CLOSURE_INPUT);
   ntype.ui_name = "Closure Input";
+  ntype.ui_description = "Input data for the closure zone";
   ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = nullptr;
@@ -273,6 +274,7 @@ static void node_register()
   static bke::bNodeType ntype;
   common_node_type_base(&ntype, "NodeClosureOutput"_ustr, NODE_CLOSURE_OUTPUT);
   ntype.ui_name = "Closure Output";
+  ntype.ui_description = "Output data from the closure zone";
   ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;

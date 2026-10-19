@@ -732,6 +732,17 @@ template<> bool has_animations(Alembic::AbcGeom::IPolyMeshSchema &schema, Import
     return true;
   }
 
+  std::vector<std::string> face_set_names;
+  schema.getFaceSetNames(face_set_names);
+
+  for (const std::string &face_set_name : face_set_names) {
+    const IFaceSet face_set = schema.getFaceSet(face_set_name);
+    const IFaceSetSchema &face_set_schema = face_set.getSchema();
+    if (!face_set_schema.isConstant()) {
+      return true;
+    }
+  }
+
   IV2fGeomParam uvsParam = schema.getUVsParam();
   if (uvsParam.valid() && !uvsParam.isConstant()) {
     return true;
@@ -902,20 +913,20 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
                                     r_err_str,
                                     m_is_reading_a_file_sequence);
 
-  if (new_mesh != existing_mesh) {
-    /* Here we assume that the number of materials doesn't change, i.e. that
-     * the material slots that were created when the object was loaded from
-     * Alembic are still valid now. */
-    size_t num_faces = new_mesh->faces_num;
-    if (num_faces > 0) {
-      std::map<std::string, int> mat_map;
-      bke::MutableAttributeAccessor attributes = new_mesh->attributes_for_write();
-      bke::SpanAttributeWriter<int> material_indices =
-          attributes.lookup_or_add_for_write_span<int>("material_index", bke::AttrDomain::Face);
-      assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
-      material_indices.finish();
-    }
+  /* Here we assume that the number of materials doesn't change, i.e. that
+   * the material slots that were created when the object was loaded from
+   * Alembic are still valid now. */
+  size_t num_faces = new_mesh->faces_num;
+  if (num_faces > 0) {
+    std::map<std::string, int> mat_map;
+    bke::MutableAttributeAccessor attributes = new_mesh->attributes_for_write();
+    bke::SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
+        "material_index", bke::AttrDomain::Face);
+    assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
+    material_indices.finish();
+  }
 
+  if (new_mesh != existing_mesh) {
     return new_mesh;
   }
 
@@ -934,6 +945,9 @@ void AbcMeshReader::assign_facesets_to_material_indices(const ISampleSelector &s
   }
 
   int current_mat = 0;
+
+  /* Avoid preserving old assignments. */
+  material_indices.fill(0);
 
   for (const std::string &grp_name : face_sets) {
     if (!r_mat_map.contains(grp_name)) {

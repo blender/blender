@@ -252,23 +252,26 @@ static wmOperatorStatus gpencil_layer_remove_exec(bContext *C, wmOperator *op)
     ED_view3d_gizmo_ruler_remove_by_gpencil_layer(C, gpl);
   }
 
-  /* delete the layer now... */
+  /* Delete the layer now. */
   BKE_annotations_layer_delete(gpd, gpl);
 
-  /* notifiers */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
-  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, nullptr);
-
   /* Free Grease Pencil data block when last annotation layer is removed, see: #112683. */
-  if (gpd->layers.first_ == nullptr) {
-    BKE_annotations_free_data(gpd, true);
-
+  if (gpd->layers.is_empty()) {
     bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, nullptr);
-    *gpd_ptr = nullptr;
+    if (gpd_ptr != nullptr) {
+      *gpd_ptr = nullptr;
+    }
 
     Main *bmain = CTX_data_main(C);
-    BKE_id_free_us(bmain, gpd);
+
+    /* Safely delete the ID block and unlink all references. */
+    BKE_id_delete(bmain, gpd);
+  }
+  else {
+    /* Notifiers only when gpd is still alive. */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, nullptr);
   }
 
   return OPERATOR_FINISHED;
