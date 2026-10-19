@@ -274,6 +274,10 @@ PYGETTEXT_KEYWORDS = (() +
                            context_override='BLT_I18NCONTEXT_OPERATOR_DEFAULT')
           for it in ("ED_undo_push", "ED_undo_grouped_push")) +
 
+    # File handler labels
+    (PyGettextKeyword(r"STRNCPY_UTF8\(fh->label,\s*" + _msg_re + r"\s*\)",
+                      context_override='BLT_I18NCONTEXT_OPERATOR_DEFAULT'),) +
+
     # bmesh operator errors
     tuple(PyGettextKeyword(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*\)").format(it))
           for it in ("BMO_error_raise",)) +
