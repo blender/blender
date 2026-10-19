@@ -449,6 +449,10 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, unexpected data size"
             ),
+            "invalid_struct_size_node_interface_socket.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
             "invalid_struct_size_shader_fx.blend": (
                 (OSError, RuntimeError),
                 "Corrupt .blend file, unexpected data size"
