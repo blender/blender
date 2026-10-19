@@ -379,6 +379,42 @@ void BLO_read_struct_list_with_size(BlendDataReader *reader,
   BLO_read_struct_list_with_size(reader, sizeof(struct_name), list)
 
 /**
+ * Read functions for base structs with a type member indicating a derived struct, like
+ * modifiers. `type_size_fn` returns the size of the derived struct for data read as base
+ * struct. Data too small for its type is freed and the blend file is marked as invalid.
+ */
+void BLO_read_struct_list_with_type_size(BlendDataReader *reader,
+                                         size_t base_size,
+                                         ListBase *list,
+                                         FunctionRef<size_t(const void *data)> type_size_fn);
+void *blo_read_struct_with_type_size_impl(BlendDataReader *reader,
+                                          const void *old_address,
+                                          size_t base_size,
+                                          FunctionRef<size_t(const void *data)> type_size_fn);
+
+template<typename T>
+void BLO_read_struct_list_with_type_size(BlendDataReader *reader,
+                                         ListBaseT<T> *list,
+                                         FunctionRef<size_t(const T &data)> type_size_fn)
+{
+  BLO_read_struct_list_with_type_size(
+      reader, sizeof(T), reinterpret_cast<ListBase *>(list), [&](const void *data) {
+        return type_size_fn(*static_cast<const T *>(data));
+      });
+}
+
+template<typename T>
+void BLO_read_struct_with_type_size(BlendDataReader *reader,
+                                    T **ptr_p,
+                                    FunctionRef<size_t(const T &data)> type_size_fn)
+{
+  *ptr_p = static_cast<T *>(
+      blo_read_struct_with_type_size_impl(reader, *ptr_p, sizeof(T), [&](const void *data) {
+        return type_size_fn(*static_cast<const T *>(data));
+      }));
+}
+
+/**
  * Read an array of typed elements (struct or primitive type) from the file.
  *
  * With corrupt blend files the size may not match the array memory allocation.
@@ -481,6 +517,7 @@ bool BLO_read_data_is_undo(BlendDataReader *reader);
 void BLO_read_data_globmap_add(BlendDataReader *reader, void *oldaddr, void *newaddr);
 void BLO_read_glob_list(BlendDataReader *reader, ListBase *list);
 BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader);
+void BLO_read_data_invalidate(BlendDataReader *reader, const char *message);
 struct Library *BLO_read_data_current_library(BlendDataReader *reader);
 void BLO_read_data_set_need_preview_render_restart(BlendDataReader *reader);
 
