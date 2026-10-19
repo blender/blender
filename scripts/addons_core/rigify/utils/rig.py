@@ -517,7 +517,7 @@ def write_metarig(obj: ArmatureObject, layers=False, func_name="create",
             normal = rigify_colors[i].normal
             select = rigify_colors[i].select
             standard_colors_lock = rigify_colors[i].standard_colors_lock
-            code.append('    arm.rigify_colors[' + str(i) + '].name = "' + name + '"')
+            code.append('    arm.rigify_colors[' + str(i) + '].name = ' + repr(name))
             code.append('    arm.rigify_colors[' + str(i)
                         + '].active = Color((%.4f, %.4f, %.4f))' % tuple(active[:]))
             code.append('    arm.rigify_colors[' + str(i)
@@ -627,7 +627,7 @@ def write_metarig(obj: ArmatureObject, layers=False, func_name="create",
         code.append("    pbone.lock_scale = %s" % str(tuple(pbone.lock_scale)))
         code.append("    pbone.rotation_mode = %r" % pbone.rotation_mode)
         if layers and len(pbone.bone.collections):
-            args = ', '.join(f"'{bcoll.name}'" for bcoll in pbone.bone.collections)
+            args = ', '.join(repr(bcoll.name) for bcoll in pbone.bone.collections)
             code.append(f"    assign_bone_collections(pbone, {args})")
 
         # Rig type parameters
@@ -639,7 +639,7 @@ def write_metarig(obj: ArmatureObject, layers=False, func_name="create",
                     bcoll_set = [item.find_collection() for item in param]
                     bcoll_set = [bcoll for bcoll in bcoll_set if bcoll is not None]
                     if len(bcoll_set) > 0:
-                        args = ', '.join(f"'{bcoll.name}'" for bcoll in bcoll_set)
+                        args = ', '.join(repr(bcoll.name) for bcoll in bcoll_set)
                         code.append(f"    assign_bone_collection_refs("
                                     f"pbone.rigify_parameters, '{param_name[:-10]}', {args})")
                 continue

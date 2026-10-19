@@ -1494,7 +1494,7 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
         while (BMFace *f = *(faces++)) {
           BM_face_select_set(bm, f, true);
         }
-        MEM_delete_void(link->data);
+        MEM_delete(static_cast<BMFace **>(link->data));
         MEM_delete(link);
 
         changed = true;

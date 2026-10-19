@@ -166,6 +166,8 @@ def run(empty_user_dir):
     env.update({
         "LSAN_OPTIONS": "exitcode=0",
         "BLENDER_USER_RESOURCES": empty_user_dir,
+        # Don't use the desktop session bus, system preferences shouldn't influence test behavior.
+        "DBUS_SESSION_BUS_ADDRESS": "/dev/null",
     })
 
     # We could support multiple tests per Blender session.

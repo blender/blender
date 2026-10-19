@@ -74,6 +74,14 @@ endfunction()
 
 if(WITH_UI_TESTS)
   set(_blender_headless_env_vars "BLENDER_BIN=${TEST_BLENDER_EXE}")
+  if(UNIX AND NOT APPLE)
+    if(WITH_GHOST_DBUS)
+      # Don't use the desktop session bus, system preferences shouldn't influence test behavior.
+      list(APPEND _blender_headless_env_vars
+        "DBUS_SESSION_BUS_ADDRESS=/dev/null"
+      )
+    endif()
+  endif()
   if(WITH_UI_TESTS_HEADLESS)
 
     # Currently only WAYLAND is supported, support for others may be added later.
@@ -388,34 +396,39 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_annotations.py
 )
 
-add_blender_test(
-  script_pyapi_blf_buffer
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_blf.py
-  --
-  --mode=BUFFER
-)
-
-# TODO: investigate if this can be supported, as the GPU can be used for rendering.
-# Requires `gpu.init()`, not available for the build-bots for the default environment.
-if(FALSE)
+if(TEST_OPENIMAGEIO_TOOL_EXISTS)
   add_blender_test(
-    script_pyapi_blf_gpu
+    script_pyapi_blf_buffer
     --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_blf.py
     --
-    --mode=GPU
+    --mode=BUFFER
+    --oiiotool "${OPENIMAGEIO_TOOL}"
+  )
+
+  # TODO: investigate if this can be supported, as the GPU can be used for rendering.
+  # Requires `gpu.init()`, not available for the build-bots for the default environment.
+  if(FALSE)
+    add_blender_test(
+      script_pyapi_blf_gpu
+      --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_blf.py
+      --
+      --mode=GPU
+      --oiiotool "${OPENIMAGEIO_TOOL}"
+    )
+  endif()
+
+  add_blender_test(
+    script_pyapi_blf_vfont
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_blf.py
+    --
+    --mode=VFONT
+    --oiiotool "${OPENIMAGEIO_TOOL}"
+    # Use Workbench render instead of simple GPU rasterization.
+    # Most build-bots systems fail with `gpu.init()` otherwise this could be avoided.
+    # Ideally it could be removed eventually as it's slower.
+    --use-vfont-render
   )
 endif()
-
-add_blender_test(
-  script_pyapi_blf_vfont
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_blf.py
-  --
-  --mode=VFONT
-  # Use Workbench render instead of simple GPU rasterization.
-  # Most build-bots systems fail with `gpu.init()` otherwise this could be avoided.
-  # Ideally it could be removed eventually as it's slower.
-  --use-vfont-render
-)
 
 
 # Build RST documentation & PYI stubs (without building the full HTML docs).
@@ -1496,6 +1509,16 @@ if(WITH_IO_STL AND TEST_SRC_DIR_EXISTS)
   )
 endif()
 
+if(WITH_IO_GREASE_PENCIL AND TEST_SRC_DIR_EXISTS)
+  add_blender_test(
+    io_grease_pencil_svg_import
+    --python ${CMAKE_CURRENT_LIST_DIR}/io_grease_pencil_svg_import_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/io_tests/svg"
+    --outdir "${TEST_OUT_DIR}/io_grease_pencil_svg"
+  )
+endif()
+
 if(WITH_CODEC_FFMPEG AND TEST_SRC_DIR_EXISTS)
   add_python_test(
     ffmpeg
@@ -1878,6 +1901,13 @@ if(WITH_UI_TESTS)
     test_info_reports.test_info_report_selection_modes
     test_info_reports.test_info_report_delete
     test_info_reports.test_info_report_operator_poll
+    test_object_type_visibility.visibility_by_own_type
+    test_object_type_visibility.selectability_by_instancer_type
+    test_object_type_visibility.pose_bone_select_with_armature_unselectable
+    test_object_type_visibility.edit_mode_element_select_with_type_unselectable
+    test_object_type_visibility.generated_geometry_by_object_type
+    test_object_type_visibility.instanced_light_by_own_type
+    test_object_type_visibility.nested_instances_by_own_type
     test_blend_autoexec.pref_enabled_drop_blend_file_untrusted
     test_blend_autoexec.pref_enabled_drop_blend_file_trusted
     test_blend_autoexec.pref_enabled_open_file_selector_trusted

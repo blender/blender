@@ -153,8 +153,8 @@ IdQualified ClassDecl::identifier() const
 
 IdQualified ClassDecl::parent_class() const
 {
-  Node node = body().prev();
-  return IdQualified(node.front().prev() == Colon ? node : Node{});
+  Node node = child_first(NodeType::IdQualified);
+  return IdQualified(node.front().prev() == Colon ? node : node.next());
 }
 
 bool UsingStmt::is_namespace() const

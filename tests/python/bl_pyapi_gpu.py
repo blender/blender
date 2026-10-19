@@ -39,13 +39,16 @@ class TestGpuFrameBuffer(unittest.TestCase):
 
 
 class TestGpuStorageBuf(unittest.TestCase):
-    def test_create_update_read(self):
-        import struct
+    def setUp(self):
+        gpu.init()
 
         # Metal requires a GPU context with a render boundary in order to perform synchronization
         # inside ssbo.read(). Since we can't guarantee that here we bypass the test.
         if gpu.platform.backend_type_get() == "METAL":
-            return
+            self.skipTest("SSBO read requires a render boundary on Metal")
+
+    def test_create_update_read(self):
+        import struct
 
         gpu.init()
 
@@ -63,11 +66,6 @@ class TestGpuStorageBuf(unittest.TestCase):
 
     def test_compute_shader_binding(self):
         import struct
-
-        # Metal requires a GPU context with a render boundary in order to perform synchronization
-        # inside ssbo.read(). Since we can't guarantee that here we bypass the test.
-        if gpu.platform.backend_type_get() == "METAL":
-            return
 
         gpu.init()
 
@@ -95,11 +93,6 @@ class TestGpuStorageBuf(unittest.TestCase):
 
     def test_typedef_source_struct_array(self):
         import struct
-
-        # Metal requires a GPU context with a render boundary in order to perform synchronization
-        # inside ssbo.read(). Since we can't guarantee that here we bypass the test.
-        if gpu.platform.backend_type_get() == "METAL":
-            return
 
         gpu.init()
 

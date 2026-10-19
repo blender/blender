@@ -9,7 +9,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 /* Define macros in `DNA_genfile.h`. */
-#define DNA_GENFILE_VERSIONING_MACROS
+#define DNA_GENFILE_VERSIONING_MACROS_LEGACY
 
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
@@ -22,7 +22,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
-#undef DNA_GENFILE_VERSIONING_MACROS
+#undef DNA_GENFILE_VERSIONING_MACROS_LEGACY
 
 #include "BLI_listbase.hh"
 #include "BLI_math_vector_c.hh"

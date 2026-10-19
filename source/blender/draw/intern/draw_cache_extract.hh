@@ -38,6 +38,7 @@ namespace draw {
 
 struct MeshRenderData;
 struct DRWSubdivCache;
+struct Batch;
 
 /* Vertex Group Selection and display options */
 struct DRW_MeshWeightState {
@@ -151,46 +152,46 @@ struct MeshBufferList {
 
 struct MeshBatchList {
   /* Surfaces / Render */
-  gpu::Batch *surface;
-  gpu::Batch *surface_weights;
+  Batch *surface;
+  Batch *surface_weights;
   /* Edit mode */
-  gpu::Batch *edit_triangles;
-  gpu::Batch *edit_vertices;
-  gpu::Batch *edit_edges;
-  gpu::Batch *edit_vnor;
-  gpu::Batch *edit_lnor;
-  gpu::Batch *edit_fdots;
-  gpu::Batch *edit_mesh_analysis;
-  gpu::Batch *edit_skin_roots;
+  Batch *edit_triangles;
+  Batch *edit_vertices;
+  Batch *edit_edges;
+  Batch *edit_vnor;
+  Batch *edit_lnor;
+  Batch *edit_fdots;
+  Batch *edit_mesh_analysis;
+  Batch *edit_skin_roots;
   /* Edit UVs */
-  gpu::Batch *edituv_faces_stretch_area;
-  gpu::Batch *edituv_faces_stretch_angle;
-  gpu::Batch *edituv_faces;
-  gpu::Batch *edituv_edges;
-  gpu::Batch *edituv_verts;
-  gpu::Batch *edituv_fdots;
+  Batch *edituv_faces_stretch_area;
+  Batch *edituv_faces_stretch_angle;
+  Batch *edituv_faces;
+  Batch *edituv_edges;
+  Batch *edituv_verts;
+  Batch *edituv_fdots;
   /* Edit selection */
-  gpu::Batch *edit_selection_verts;
-  gpu::Batch *edit_selection_edges;
-  gpu::Batch *edit_selection_faces;
-  gpu::Batch *edit_selection_fdots;
+  Batch *edit_selection_verts;
+  Batch *edit_selection_edges;
+  Batch *edit_selection_faces;
+  Batch *edit_selection_fdots;
   /* Common display / Other */
-  gpu::Batch *uv_faces;
-  gpu::Batch *all_verts;
-  gpu::Batch *all_edges;
-  gpu::Batch *loose_edges;
-  gpu::Batch *edge_detection;
+  Batch *uv_faces;
+  Batch *all_verts;
+  Batch *all_edges;
+  Batch *loose_edges;
+  Batch *edge_detection;
   /* Individual edges with face normals. */
-  gpu::Batch *wire_edges;
+  Batch *wire_edges;
   /* Loops around faces. no edges between selected faces */
-  gpu::Batch *paint_overlay_wire_loops;
-  gpu::Batch *wire_loops_all_uvs;
-  gpu::Batch *wire_loops_uvs;
-  gpu::Batch *wire_loops_edituvs;
-  gpu::Batch *sculpt_overlays;
-  gpu::Batch *surface_viewer_attribute;
-  gpu::Batch *paint_overlay_verts;
-  gpu::Batch *paint_overlay_surface;
+  Batch *paint_overlay_wire_loops;
+  Batch *wire_loops_all_uvs;
+  Batch *wire_loops_uvs;
+  Batch *wire_loops_edituvs;
+  Batch *sculpt_overlays;
+  Batch *surface_viewer_attribute;
+  Batch *paint_overlay_verts;
+  Batch *paint_overlay_surface;
 };
 
 #define MBC_BATCH_LEN (sizeof(MeshBatchList) / sizeof(void *))
@@ -294,7 +295,7 @@ struct MeshBatchCache {
 
   /* Index buffer per material. These are sub-ranges of `ibo.tris`. */
   Array<gpu::IndexBufPtr> tris_per_mat;
-  Array<gpu::Batch *> surface_per_mat;
+  Array<Batch *> surface_per_mat;
   gpu::BottomLevelAS *surface_blas;
 
   DRWSubdivCache *subdiv_cache;

@@ -132,6 +132,7 @@ PreferencesRemoteAssetLibrary::PreferencesRemoteAssetLibrary(
                          /*root_path=*/custom_library.dirpath),
       user_library_(custom_library)
 {
+  may_override_import_method_ = true;
   BLI_assert(custom_library.flag & ASSET_LIBRARY_USE_REMOTE_URL);
 }
 
@@ -189,6 +190,24 @@ std::optional<StringRefNull> PreferencesRemoteAssetLibrary::auth_token() const
 
   BLI_assert(library_definition->flag & ASSET_LIBRARY_USE_AUTH_TOKEN);
   return token;
+}
+
+std::optional<eAssetImportMethod> PreferencesRemoteAssetLibrary::import_method() const
+{
+  const bUserAssetLibrary *library_definition = user_library_.user_asset_library();
+  if (!library_definition) {
+    return {};
+  }
+  if (!ELEM(library_definition->import_method,
+            ASSET_IMPORT_APPEND,
+            ASSET_IMPORT_APPEND_REUSE,
+            ASSET_IMPORT_PACK))
+  {
+    BLI_assert_unreachable();
+    return ASSET_IMPORT_PACK;
+  }
+
+  return eAssetImportMethod(library_definition->import_method);
 }
 
 /** \} */
@@ -465,10 +484,9 @@ static void ping_asset_file_done_impl(const bContext &C,
   ed::asset::list::on_remote_assets_downloaded(*wm, library_url, local_file_abspath);
   ProgressTracker::file_finished(absolute_file_url, outcome);
 
-  /* Redraw drags, they may show some "asset being downloaded" info. */
-  if (!wm->runtime->drags.is_empty()) {
-    WM_event_add_mousemove(CTX_wm_window(&C));
-  }
+  /* In case this download was triggered by a `Download` overlay button drawn over an asset button,
+   * add a mousemove event so the asset button becomes active and can be dragged right away. */
+  WM_event_add_mousemove(CTX_wm_window(&C));
 }
 
 void RemoteLibraryLoadingStatus::ping_asset_file_download_succeeded(

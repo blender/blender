@@ -1698,6 +1698,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "vertex_mode");
   RNA_def_property_enum_items(prop, gppaint_mode_types_items);
   RNA_def_property_ui_text(prop, "Mode Type", "Defines how vertex color affect to the strokes");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_BrushGpencilSettings_update");
 

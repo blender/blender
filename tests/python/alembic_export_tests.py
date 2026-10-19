@@ -626,7 +626,7 @@ class AttributesExportTest(AbstractAlembicTest):
 
     @with_tempdir
     def test_export_geometry_nodes_attributes_constant(self, tempdir: pathlib.Path):
-        """Test attributes which can be created with geomety nodes where values are constant"""
+        """Test attributes which can be created with geometry nodes where values are constant"""
 
         abc = tempdir / 'attributes-export-constant-test.abc'
         script = (
@@ -681,7 +681,7 @@ class AttributesExportTest(AbstractAlembicTest):
 
     @with_tempdir
     def test_export_geometry_nodes_attributes_random(self, tempdir: pathlib.Path):
-        """Test attributes which can be created with geomety nodes where values are random"""
+        """Test attributes which can be created with geometry nodes where values are random"""
 
         abc = tempdir / 'attributes-export-random-test.abc'
         script = (
@@ -737,7 +737,7 @@ class AttributesExportTest(AbstractAlembicTest):
 
     @with_tempdir
     def test_export_extra_attributes(self, tempdir: pathlib.Path):
-        """Test attributes which cannot be created with geomety nodes, but can via the Python API"""
+        """Test attributes which cannot be created with geometry nodes, but can via the Python API"""
 
         abc = tempdir / 'attributes-extra-export-test.abc'
         script = (

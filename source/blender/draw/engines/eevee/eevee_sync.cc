@@ -43,7 +43,7 @@ ObjectHandle SyncModule::sync_object(const ObjectRef &ob_ref,
  * \{ */
 
 static inline void geometry_call(PassMain::Sub *sub_pass,
-                                 gpu::Batch *geom,
+                                 draw::Batch *geom,
                                  ResourceHandleRange resource_handle)
 {
   if (sub_pass != nullptr) {
@@ -55,7 +55,7 @@ static inline void geometry_volume_call(PassMain::Sub *pass,
                                         GPUMaterial *gpumat,
                                         Scene *scene,
                                         Object *ob,
-                                        gpu::Batch *geom,
+                                        draw::Batch *geom,
                                         ResourceHandle res_handle)
 {
   BLI_assert(ob->type != OB_VOLUME);
@@ -228,7 +228,7 @@ void SyncModule::sync_mesh(const ObjectRef &ob_ref)
 
   MaterialArray &material_array = inst_.materials.material_array_get(ob_handle, has_motion);
 
-  Span<gpu::Batch *> mat_geom = DRW_cache_object_surface_material_get(
+  Span<draw::Batch *> mat_geom = DRW_cache_object_surface_material_get(
       ob_handle.object, material_array.gpu_materials);
   if (mat_geom.is_empty()) {
     return;
@@ -237,10 +237,10 @@ void SyncModule::sync_mesh(const ObjectRef &ob_ref)
   Vector<Material *, 8> synced_materials;
 
   for (auto i : material_array.gpu_materials.index_range()) {
-    gpu::Batch *geom = mat_geom[i];
-    if (geom == nullptr) {
+    if (mat_geom[i] == nullptr) {
       continue;
     }
+    draw::Batch *geom = mat_geom[i];
 
     Material &material = material_array.materials[i];
     synced_materials.append(&material);
@@ -296,10 +296,11 @@ bool SyncModule::sync_sculpt(const ObjectRef &ob_ref)
   for (SculptBatch &batch :
        sculpt_batches_per_material_get(ob_ref.object, material_array.gpu_materials))
   {
-    gpu::Batch *geom = batch.batch;
-    if (geom == nullptr) {
+    if (batch.batch == nullptr) {
       continue;
     }
+
+    draw::Batch *geom = batch.batch;
 
     Material &material = material_array.materials[batch.material_slot];
     synced_materials.append(&material);
@@ -359,7 +360,7 @@ void SyncModule::sync_pointcloud(const ObjectRef &ob_ref)
     }
 
     PassMain::Sub &object_pass = matpass.sub_pass->sub("Point Cloud Sub Pass");
-    gpu::Batch *geometry = pointcloud_sub_pass_setup(
+    draw::Batch *geometry = pointcloud_sub_pass_setup(
         object_pass, ob_ref, ob_handle.res_handle, matpass.gpumat);
 
     if (dual_sided) {
@@ -431,7 +432,7 @@ void SyncModule::sync_volume(const ObjectRef &ob_ref)
   }
 
   /* Use bounding box tag empty spaces. */
-  gpu::Batch *geom = inst_.volume.unit_cube_batch_get();
+  draw::Batch *geom = inst_.volume.unit_cube_batch_get();
   bool is_rendered = false;
 
   sync_volume_passes(ob_handle, material, [&](const MaterialPass &pass, int /*instance*/) {
@@ -493,14 +494,14 @@ void SyncModule::sync_curves(const ObjectRef &ob_ref, HairParticleInfo const *ha
     }
     if (hair_particle != nullptr) {
       PassMain::Sub &sub_pass = matpass.sub_pass->sub("Hair SubPass");
-      gpu::Batch *geometry = hair_sub_pass_setup(
+      draw::Batch *geometry = hair_sub_pass_setup(
           sub_pass, inst_.scene, ob_ref, &hair_particle->psys, &hair_particle->md, matpass.gpumat);
       sub_pass.draw(geometry, ob_handle.res_handle);
     }
     else {
       PassMain::Sub &sub_pass = matpass.sub_pass->sub("Curves SubPass");
       const char *error = nullptr;
-      gpu::Batch *geometry = curves_sub_pass_setup(
+      draw::Batch *geometry = curves_sub_pass_setup(
           sub_pass, inst_.scene, ob_ref.object, error, matpass.gpumat);
       if (error) {
         inst_.info_append(error);

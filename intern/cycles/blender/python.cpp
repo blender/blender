@@ -463,6 +463,29 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
   Py_RETURN_NONE;
 }
 
+static PyStructSequence_Field device_info_fields[] = {
+    {"name", "Device name"},
+    {"type", "Device type"},
+    {"id", "Persistent device identifier"},
+    {"has_peer_memory", "Supports sharing memory with other devices"},
+    {"use_hardware_raytracing", "Uses hardware ray-tracing"},
+    {"has_openimagedenoise", "Supports OpenImageDenoise denoising"},
+    {"has_optix_denoiser", "Supports OptiX denoising"},
+    {"has_execution_optimization", "Supports kernel optimization"},
+    {"meets_driver_requirement", "Driver is recent enough to use the device"},
+    {"has_dlss", "Supports DLSS denoising"},
+    {nullptr, nullptr},
+};
+
+static PyStructSequence_Desc device_info_desc = {
+    /*name*/ "_cycles.DeviceInfo",
+    /*doc*/ "Render device information",
+    /*fields*/ device_info_fields,
+    /*n_in_sequence*/ int(std::size(device_info_fields) - 1),
+};
+
+static PyTypeObject DeviceInfoType;
+
 static PyObject *available_devices_func(PyObject * /*self*/, PyObject *args)
 {
   const char *type_name;
@@ -486,19 +509,26 @@ static PyObject *available_devices_func(PyObject * /*self*/, PyObject *args)
   for (size_t i = 0; i < devices.size(); i++) {
     const DeviceInfo &device = devices[i];
     const string type_name = Device::string_from_type(device.type);
-    PyObject *device_tuple = PyTuple_New(10);
-    PyTuple_SET_ITEM(device_tuple, 0, pyunicode_from_string(device.description.c_str()));
-    PyTuple_SET_ITEM(device_tuple, 1, pyunicode_from_string(type_name.c_str()));
-    PyTuple_SET_ITEM(device_tuple, 2, pyunicode_from_string(device.id.c_str()));
-    PyTuple_SET_ITEM(device_tuple, 3, PyBool_FromLong(device.has_peer_memory));
-    PyTuple_SET_ITEM(device_tuple, 4, PyBool_FromLong(device.use_hardware_raytracing));
-    PyTuple_SET_ITEM(
-        device_tuple, 5, PyBool_FromLong(device.denoisers & DENOISER_OPENIMAGEDENOISE));
-    PyTuple_SET_ITEM(device_tuple, 6, PyBool_FromLong(device.denoisers & DENOISER_OPTIX));
-    PyTuple_SET_ITEM(device_tuple, 7, PyBool_FromLong(device.has_execution_optimization));
-    PyTuple_SET_ITEM(device_tuple, 8, PyBool_FromLong(device.meets_driver_requirement));
-    PyTuple_SET_ITEM(device_tuple, 9, PyBool_FromLong(device.denoisers & DENOISER_DLSS));
-    PyTuple_SET_ITEM(ret, i, device_tuple);
+    PyObject *device_info = PyStructSequence_New(&DeviceInfoType);
+    int j = 0;
+
+    /* Same order as #device_info_fields. */
+    PyStructSequence_SET_ITEM(device_info, j++, pyunicode_from_string(device.description.c_str()));
+    PyStructSequence_SET_ITEM(device_info, j++, pyunicode_from_string(type_name.c_str()));
+    PyStructSequence_SET_ITEM(device_info, j++, pyunicode_from_string(device.id.c_str()));
+    PyStructSequence_SET_ITEM(device_info, j++, PyBool_FromLong(device.has_peer_memory));
+    PyStructSequence_SET_ITEM(device_info, j++, PyBool_FromLong(device.use_hardware_raytracing));
+    PyStructSequence_SET_ITEM(
+        device_info, j++, PyBool_FromLong(device.denoisers & DENOISER_OPENIMAGEDENOISE));
+    PyStructSequence_SET_ITEM(
+        device_info, j++, PyBool_FromLong(device.denoisers & DENOISER_OPTIX));
+    PyStructSequence_SET_ITEM(
+        device_info, j++, PyBool_FromLong(device.has_execution_optimization));
+    PyStructSequence_SET_ITEM(device_info, j++, PyBool_FromLong(device.meets_driver_requirement));
+    PyStructSequence_SET_ITEM(device_info, j++, PyBool_FromLong(device.denoisers & DENOISER_DLSS));
+    assert(j == device_info_desc.n_in_sequence);
+
+    PyTuple_SET_ITEM(ret, i, device_info);
   }
 
   return ret;
@@ -958,6 +988,8 @@ CCL_NAMESPACE_END
 void *blender::CCL_python_module_init()
 {
   PyObject *mod = PyModule_Create(&ccl::module);
+
+  PyStructSequence_InitType(&ccl::DeviceInfoType, &ccl::device_info_desc);
 
 #ifdef WITH_OSL
   /* TODO(sergey): This gives us library we've been linking against.

@@ -117,6 +117,9 @@ builtin::ClassId unary_suffix_operator_return_type(SymbolClass *lhs, TokenType o
 struct SymbolClass : SymbolScope {
   ResourceTableType srt_type = ResourceTableType::NONE;
 
+  /* Definition node, associated class. */
+  std::vector<std::pair<ast::IdQualified, SymbolClass *>> base_classes;
+
   SymbolClassTemplate *template_data = nullptr;
 
   SymbolFunction *operator_subscript = nullptr;
@@ -137,6 +140,7 @@ struct SymbolClass : SymbolScope {
   bool is_error = false;
   /* e.g. image2D, sampler2d, string_t ... */
   bool is_opaque = false;
+  bool is_crtp = false;
 
   SymbolClass(SymbolScope *parent, ast::ClassDecl decl, const string &suffix = "");
 
@@ -154,6 +158,11 @@ struct SymbolClass : SymbolScope {
   }
 
   void ensure_size_and_align(NodeErrorHandler *err_handler = nullptr, bool check_st430 = false);
+
+  bool has_inheritance() const
+  {
+    return !base_classes.empty();
+  }
 
   bool is_srt() const
   {
@@ -173,6 +182,15 @@ struct SymbolClass : SymbolScope {
   };
 
   Result<vector<MemberNode>, TokenException> get_all_members_flat() const;
+  /* Visit all base classes and construct the access path to the first occurrence of \a base.
+   * WARNING: Recursive. */
+  std::string get_path_to_base_class(const SymbolClass *base) const;
+  /* Visit all base classes and try to find the first path in the hierarchy DAG to \a base.
+   * Note that this is only fine because ambiguous conversions are detected by
+   * the C++ linting compilation stage.
+   * Returns 0 if \a base is not a base class.
+   * WARNING: Recursive. */
+  int get_conversion_index(const SymbolClass *base) const;
 
  private:
   static optional<TokenException> get_flat_members_recursive(const SymbolClass *cls,

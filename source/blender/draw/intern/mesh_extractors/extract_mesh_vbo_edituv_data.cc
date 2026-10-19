@@ -43,11 +43,10 @@ static void extract_edituv_data_bm(const MeshRenderData &mr, MutableSpan<EditLoo
       mesh_render_data_face_flag(mr, &face, offsets, face_value);
       const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
       for ([[maybe_unused]] const int i : IndexRange(face.len)) {
-        const int index = BM_elem_index_get(loop);
-        EditLoopData &value = vbo_data[index];
-        value = face_value;
+        EditLoopData value = face_value;
         mesh_render_data_loop_flag(mr, loop, offsets, value);
         mesh_render_data_loop_edge_flag(mr, loop, offsets, value);
+        vbo_data[BM_elem_index_get(loop)] = value;
         loop = loop->next;
       }
     }
@@ -70,8 +69,7 @@ static void extract_edituv_data_mesh(const MeshRenderData &mr, MutableSpan<EditL
         continue;
       }
       for (const int corner : face) {
-        EditLoopData &value = vbo_data[corner];
-        value = {};
+        EditLoopData value = {};
         BMVert *vert = bm_original_vert_get(mr, corner_verts[corner]);
         BMEdge *edge = bm_original_edge_get(mr, corner_edges[corner]);
         if (edge && vert) {
@@ -93,6 +91,7 @@ static void extract_edituv_data_mesh(const MeshRenderData &mr, MutableSpan<EditL
             mesh_render_data_loop_edge_flag(mr, l, offsets, value);
           }
         }
+        vbo_data[corner] = value;
       }
     }
   });

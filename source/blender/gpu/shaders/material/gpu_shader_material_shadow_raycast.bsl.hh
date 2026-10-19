@@ -10,7 +10,7 @@
 void node_shadow_raycast(const float light_index,
                          float3 position,
                          float softness,
-                         [[resource_table]] KernelGlobals &kg,
+                         KernelGlobals &kg,
                          const ShadingData &sd,
                          float4 &color)
 {

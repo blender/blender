@@ -28,7 +28,7 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_kdopbvh.hh"
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_linklist.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base_safe.hh"
@@ -530,7 +530,8 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
     MEM_delete(ctx->seams);
   }
   // if (ctx->vertpart) MEM_delete(ctx->vertpart);
-  kdtree_free<float3>(ctx->tree);
+  MEM_delete(ctx->tree);
+  MEM_delete(ctx->tree_positions);
 
   if (ctx->clumpcurve != nullptr) {
     BKE_curvemapping_free(ctx->clumpcurve);
@@ -1371,25 +1372,18 @@ void psys_update_particle_tree(ParticleSystem *psys, float cfra)
     PARTICLE_P;
 
     if (!psys->tree || psys->tree_frame != cfra) {
-      int totpart = 0;
+      Array<float3> positions(psys->totpart);
+      Vector<int> alive_particles;
       LOOP_SHOWN_PARTICLES
       {
         if (pa->alive == PARS_ALIVE) {
-          totpart++;
+          positions[p] = (pa->state.time == cfra) ? pa->prev_state.co : pa->state.co;
+          alive_particles.append(p);
         }
       }
 
-      kdtree_free<float3>(psys->tree);
-      psys->tree = kdtree_new<float3>(totpart);
-
-      LOOP_SHOWN_PARTICLES
-      {
-        if (pa->alive == PARS_ALIVE) {
-          const float *co = (pa->state.time == cfra) ? pa->prev_state.co : pa->state.co;
-          kdtree_insert<float3>(psys->tree, p, co);
-        }
-      }
-      kdtree_balance<float3>(psys->tree);
+      MEM_delete(psys->tree);
+      psys->tree = MEM_new<bke::ParticleKDTree>(__func__, std::move(positions), alive_particles);
 
       psys->tree_frame = cfra;
     }
@@ -2565,7 +2559,7 @@ static void collision_point_on_surface(
   }
 }
 /* find first root in range [0-1] starting from 0 */
-static float collision_newton_rhapson(ParticleCollision *col,
+static float collision_newton_raphson(ParticleCollision *col,
                                       float radius,
                                       ParticleCollisionElement *pce,
                                       NRDistanceFunc distance_func)
@@ -2671,7 +2665,7 @@ static int collision_sphere_to_tri(ParticleCollision *col,
   pce->inv_nor = -1;
   pce->inside = 0;
 
-  ct = collision_newton_rhapson(col, radius, pce, nr_signed_distance_to_plane);
+  ct = collision_newton_raphson(col, radius, pce, nr_signed_distance_to_plane);
 
   if (ct >= 0.0f && ct < *t && (result->inside == 0 || pce->inside == 1)) {
     float e1[3], e2[3], p0[3];
@@ -2726,7 +2720,7 @@ static int collision_sphere_to_edges(ParticleCollision *col,
     cur->tot = 2;
     cur->inside = 0;
 
-    ct = collision_newton_rhapson(col, radius, cur, nr_distance_to_edge);
+    ct = collision_newton_raphson(col, radius, cur, nr_distance_to_edge);
 
     if (ct >= 0.0f && ct < *t) {
       float u, e[3], vec[3];
@@ -2771,7 +2765,7 @@ static int collision_sphere_to_verts(ParticleCollision *col,
     cur->tot = 1;
     cur->inside = 0;
 
-    ct = collision_newton_rhapson(col, radius, cur, nr_distance_to_vert);
+    ct = collision_newton_raphson(col, radius, cur, nr_distance_to_vert);
 
     if (ct >= 0.0f && ct < *t) {
       *result = *cur;

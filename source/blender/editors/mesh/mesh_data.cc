@@ -1031,23 +1031,27 @@ void ED_mesh_geometry_clear(Mesh *mesh)
 
 void ED_mesh_report_mirror_ex(ReportList &reports, int totmirr, int totfail, char selectmode)
 {
-  const char *elem_type;
-
-  if (selectmode & SCE_SELECT_VERTEX) {
-    elem_type = "vertices";
-  }
-  else if (selectmode & SCE_SELECT_EDGE) {
-    elem_type = "edges";
-  }
-  else {
-    elem_type = "faces";
-  }
-
   if (totfail) {
-    BKE_reportf(&reports, RPT_WARNING, "%d %s mirrored, %d failed", totmirr, elem_type, totfail);
+    if (selectmode & SCE_SELECT_VERTEX) {
+      BKE_reportf(&reports, RPT_WARNING, "%d vertices mirrored, %d failed", totmirr, totfail);
+    }
+    else if (selectmode & SCE_SELECT_EDGE) {
+      BKE_reportf(&reports, RPT_WARNING, "%d edges mirrored, %d failed", totmirr, totfail);
+    }
+    else {
+      BKE_reportf(&reports, RPT_WARNING, "%d faces mirrored, %d failed", totmirr, totfail);
+    }
   }
   else {
-    BKE_reportf(&reports, RPT_INFO, "%d %s mirrored", totmirr, elem_type);
+    if (selectmode & SCE_SELECT_VERTEX) {
+      BKE_reportf(&reports, RPT_INFO, "%d vertices mirrored", totmirr);
+    }
+    else if (selectmode & SCE_SELECT_EDGE) {
+      BKE_reportf(&reports, RPT_INFO, "%d edges mirrored", totmirr);
+    }
+    else {
+      BKE_reportf(&reports, RPT_INFO, "%d faces mirrored", totmirr);
+    }
   }
 }
 

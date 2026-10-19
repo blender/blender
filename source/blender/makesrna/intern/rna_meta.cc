@@ -10,6 +10,8 @@
 
 #include "DNA_meta_types.h"
 
+#include "BLT_translation.hh"
+
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -246,6 +248,7 @@ static void rna_def_metaelement(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "s");
   RNA_def_property_range(prop, 0.0f, 10.0f);
   RNA_def_property_ui_text(prop, "Stiffness", "Stiffness defines how much of the element to fill");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_METABALL);
   RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 
   /* flags */

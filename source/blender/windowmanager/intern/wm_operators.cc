@@ -4369,6 +4369,7 @@ void wm_operatortypes_register()
   WM_operatortype_append(WM_OT_save_as_mainfile);
   WM_operatortype_append(WM_OT_save_mainfile);
   WM_operatortype_append(WM_OT_clear_recent_files);
+  WM_operatortype_append(WM_OT_clear_recent_projects);
   WM_operatortype_append(WM_OT_redraw_timer);
   WM_operatortype_append(WM_OT_memory_statistics);
   WM_operatortype_append(WM_OT_debug_menu);

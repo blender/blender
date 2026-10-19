@@ -119,13 +119,13 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
   BKE_viewer_path_init(&r_dst);
 
   bke::ComputeContextCache compute_context_cache;
-  const ComputeContext *socket_context = space_node::compute_context_for_edittree_socket(
-      snode, compute_context_cache, node.input_socket(0));
-  if (!socket_context) {
+  const ComputeContext *node_context = space_node::compute_context_for_edittree_node(
+      snode, compute_context_cache, node);
+  if (!node_context) {
     return;
   }
 
-  for (const ComputeContext *context = socket_context; context; context = context->parent()) {
+  for (const ComputeContext *context = node_context; context; context = context->parent()) {
     ViewerPathElem *elem = viewer_path_elem_for_compute_context(*context);
     if (!elem) {
       BKE_viewer_path_clear(&r_dst);

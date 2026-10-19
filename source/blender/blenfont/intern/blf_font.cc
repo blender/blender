@@ -429,14 +429,12 @@ BLI_INLINE GlyphBLF *blf_glyph_from_utf8_and_step(FontBLF *font,
 /**
  * A combining character, drawn over the previous base glyph.
  *
- * Check the code-point as well as the advance since some fonts use
- * zero-width glyphs for spacing characters (the "." in LCD style digit fonts for e.g.)
- * which must not be drawn over the previous character, see #162036.
+ * Detected when the glyph is added to the cache, see #GlyphFlagBLF::Combining.
  * See also: `vfont_char_is_combining` which also uses this logic.
  */
 BLI_INLINE bool blf_glyph_is_combining(const GlyphBLF *g)
 {
-  return (g->advance_x == 0) && (BLI_wcwidth_or_error(char32_t(g->c)) == 0);
+  return flag_is_set(g->flags, GlyphFlagBLF::Combining);
 }
 
 /**
@@ -1482,7 +1480,6 @@ static void blf_font_wrap_apply(FontBLF *font,
      * like `\n` still drive wrapping. `step.i` is always advanced by `blf_glyph_step`. */
     blf_glyph_step(font, gc, step, str, str_len);
 
-    const ft_pix advance_x = step.g ? step.g->advance_x : 0;
     const uint codepoint = BLI_str_utf8_as_unicode_safe(&str[i_curr]);
     const uint codepoint_prev = g_prev ? g_prev->c : 0;
 
@@ -1502,7 +1499,9 @@ static void blf_font_wrap_apply(FontBLF *font,
     if (overflows && (wrap.start != wrap.last[0])) [[unlikely]] {
       do_draw = true;
     }
-    else if (bool(mode & BLFWrapMode::HardLimit) && overflows && (advance_x != 0)) [[unlikely]] {
+    else if (bool(mode & BLFWrapMode::HardLimit) && overflows && !blf_glyph_is_combining(step.g))
+        [[unlikely]]
+    {
       wrap.last[0] = i_curr;
       wrap.last[1] = i_curr;
       do_draw = true;

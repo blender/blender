@@ -62,8 +62,9 @@ struct LTCData {
     ltc_data.Minv[2].z = v4.y;
 
     /* Unpack associated values from 16 lsb of [4]. */
-    ltc_data.attenuation_factor = float(0xFFu & cl.ltc_data_packed[4]) / 255.0f;
-    ltc_data.form_factor_type = LTCFormFactorType(0xFFu & (cl.ltc_data_packed[4] >> 8u));
+    float4 pack = unpackUnorm4x8(cl.ltc_data_packed[4]);
+    ltc_data.attenuation_factor = pack.x;
+    ltc_data.form_factor_type = LTCFormFactorType(pack.y);
 
     return ltc_data;
   }
@@ -74,8 +75,8 @@ struct LTCData {
   void pack_to(ClosureLight &cl) const
   {
     /* Pack associated values in 16 lsb . */
-    uint values_lsb = (0xFFu & uint(attenuation_factor * 255.0f)) |
-                      ((0xFFu & uint(form_factor_type)) << 8u);
+    uint values_lsb = packUnorm4x8(
+        float4(attenuation_factor, float(form_factor_type), 0.0f, 0.0f));
 
     /* Pack matrix values as 9 x fp16, plus associated values in 16 lsb of [4]. */
     cl.ltc_data_packed[0] = packHalf2x16(Minv[0].xy);
@@ -88,11 +89,8 @@ struct LTCData {
   /**
    * Sample matrix data from the isotropic LTC LUT.
    */
-  static LTCData sample_ltc_lut(const UtilityTexture &util_tx,
-                                float3 /* N */,
-                                float3 /* V */,
-                                float cos_theta,
-                                float roughness)
+  static LTCData sample_ltc_lut(
+      const UtilityTexture &util_tx, float3 N, float3 V, float cos_theta, float roughness)
   {
     /* Sample 4 components from isotropic LTC LUT. */
     const float2 coords = detail::get_isotropic_coords(cos_theta, roughness);
@@ -102,9 +100,8 @@ struct LTCData {
     float3x3 Minv = detail::unpack_isotropic_matrix(lut_pack);
 
     /* Rotate into orthonormal basis around N. */
-    /* TODO(not_mark): re-enable, and update tests as this causes precision change. */
-    // float3x3 T = from_incident_vector(N, V);
-    // Minv = Minv * transpose(T);
+    float3x3 T = from_incident_vector(N, V);
+    Minv = Minv * transpose(T);
 
     LTCData ltc_data;
     ltc_data.Minv = Minv;
@@ -117,13 +114,11 @@ struct LTCData {
   /**
    * Return matrix data producing a cosine distribution.
    */
-  static LTCData identity(float3 /* N */, float3 /* V */)
+  static LTCData identity(float3 N, float3 V)
   {
-    /* Rotate into orthonormal basis around N. */
-    /* TODO(not_mark): re-enable, and update tests as this causes precision change. */
-    // float3x3 T = from_incident_vector(N, V);
-    // float3x3 Minv = transpose(T);
-    float3x3 Minv = mat3x3_identity();
+    /* Rotate into orthonormal basis around N. LTC matrix is simply the identity matrix. */
+    float3x3 T = from_incident_vector(N, V);
+    float3x3 Minv = transpose(T);
 
     LTCData ltc_data;
     ltc_data.Minv = Minv;

@@ -506,11 +506,29 @@ float BM_vert_calc_edge_angle_ex(const BMVert *v, float fallback) ATTR_WARN_UNUS
  * see 'solidify_add_thickness' for a function which runs on an array.
  */
 float BM_vert_calc_shell_factor(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+/**
+ * Alternate version of #BM_vert_calc_shell_factor that falls back to calculating the shell factor
+ * from the coincident vertices when the vertex is connected to a degenerate face.
+ */
+float BM_vert_calc_shell_factor_with_coincident_neighbors(const BMVert *v) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
 /* alternate version of #BM_vert_calc_shell_factor which only
  * uses 'hflag' faces, but falls back to all if none found. */
 float BM_vert_calc_shell_factor_ex(const BMVert *v,
                                    const float no[3],
                                    char hflag) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+
+/**
+ * Alternate version of #BM_vert_calc_shell_factor_ex that falls back to calculating the shell
+ * factor from the coincident vertices when the vertex is connected to a degenerate face.
+ *
+ * This is needed because after extrusion, newly created vertices are initially connected to
+ * their original vertices with a degenerate face.
+ */
+float BM_vert_calc_shell_factor_with_coincident_neighbors_ex(const BMVert *v,
+                                                             const float no[3],
+                                                             char hflag) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
 /**
  * \note quite an obscure function.
  * used in bmesh operators that have a relative scale options,

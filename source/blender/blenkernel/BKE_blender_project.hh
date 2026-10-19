@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "intern/blender_project_config.h"
+
 #include <concepts>
 #include <cstdint>
 #include <memory>
@@ -152,6 +154,11 @@ class BlenderProject {
    */
   std::string ocio_config_path_;
 
+  /**
+   * Path of the splash screen image for this project.
+   */
+  std::string splash_image_path_;
+
  public:
   Vector<std::unique_ptr<ProjectVariable>> variables;
   int active_variable_index = 0;
@@ -194,9 +201,15 @@ class BlenderProject {
    */
   void set_ocio_config_path(StringRef ocio_config_path);
 
+  /**
+   * Set the splash screen image path and mark the project dirty.
+   */
+  void set_splash_image_path(StringRef splash_image_path);
+
   StringRefNull get_name() const;
   StringRefNull get_root_path() const;
   StringRefNull get_ocio_config_path() const;
+  StringRefNull get_splash_image_path() const;
 
   /**
    * Get the array index of the given variable.
@@ -292,6 +305,18 @@ bool is_valid_project_variable_name(StringRef name);
 std::string ensure_is_valid_project_variable_name(StringRef name);
 
 }  // namespace bke
+
+/**
+ * Checks if the provided path is inside of a blender project.
+ *
+ * Note that this function will not check if the project has a valid config.
+ *
+ * \param path: The file or folder to check if it belongs to a project or not.
+ *
+ * \returns The project root path as a string. If no project was found, it
+ * will return an empty string.
+ */
+std::string BKE_is_path_inside_blender_project(const char *path);
 
 /**
  * Fetch the current active Blender Project, if any.
@@ -418,5 +443,28 @@ void BKE_blender_project_clear();
 std::string BKE_blender_project_path_make_relative(StringRef path,
                                                    bool path_is_template,
                                                    const bke::BlenderProject &project);
+
+/**
+ * Resolve path templates like {project_root} in a project setting file path.
+ *
+ * \return The absolute file path, or an empty string if the path is invalid or not absolute.
+ */
+std::string BKE_blender_project_path_resolve(StringRef path, const bke::BlenderProject &project);
+
+bool BKE_blender_project_config_file_write(Main *bmain);
+bool BKE_blender_project_init_from_root_path(Main *bmain, std::string project_root_path);
+
+/** Recent projects list item. */
+struct RecentProject {
+  std::string path;
+  std::string name;
+};
+
+/** Recently opened projects, most recent first. */
+Vector<RecentProject> BKE_blender_project_recent_get();
+/** Move the active project to the top of the recent projects. */
+void BKE_blender_project_recent_update(const Main *bmain);
+/** Clear the recent projects, or only the ones not found on disk. */
+void BKE_blender_project_recent_clear(bool only_missing);
 
 }  // namespace blender

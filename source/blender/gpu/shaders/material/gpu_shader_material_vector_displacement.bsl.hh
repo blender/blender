@@ -12,7 +12,7 @@ void node_vector_displacement_tangent(float4 vector,
                                       float midlevel,
                                       float scale,
                                       float4 T,
-                                      [[resource_table]] KernelGlobals &kg,
+                                      KernelGlobals &kg,
                                       const ShadingData &sd,
                                       float3 &result)
 {
@@ -32,7 +32,7 @@ void node_vector_displacement_tangent(float4 vector,
 void node_vector_displacement_object(float4 vector,
                                      float midlevel,
                                      float scale,
-                                     [[resource_table]] KernelGlobals &kg,
+                                     KernelGlobals &kg,
                                      const ShadingData &sd,
                                      float3 &result)
 {

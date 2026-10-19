@@ -183,15 +183,15 @@ enum eViewerNodeShortcut {
   NODE_VIEWER_SHORTCUT_NONE = 0,
   /* Users can set custom keys to shortcuts,
    * but shortcuts should always be referred to as enums. */
-  NODE_VIEWER_SHORCTUT_SLOT_1 = 1,
-  NODE_VIEWER_SHORCTUT_SLOT_2 = 2,
-  NODE_VIEWER_SHORCTUT_SLOT_3 = 3,
-  NODE_VIEWER_SHORCTUT_SLOT_4 = 4,
-  NODE_VIEWER_SHORCTUT_SLOT_5 = 5,
-  NODE_VIEWER_SHORCTUT_SLOT_6 = 6,
-  NODE_VIEWER_SHORCTUT_SLOT_7 = 7,
-  NODE_VIEWER_SHORCTUT_SLOT_8 = 8,
-  NODE_VIEWER_SHORCTUT_SLOT_9 = 9
+  NODE_VIEWER_SHORTCUT_SLOT_1 = 1,
+  NODE_VIEWER_SHORTCUT_SLOT_2 = 2,
+  NODE_VIEWER_SHORTCUT_SLOT_3 = 3,
+  NODE_VIEWER_SHORTCUT_SLOT_4 = 4,
+  NODE_VIEWER_SHORTCUT_SLOT_5 = 5,
+  NODE_VIEWER_SHORTCUT_SLOT_6 = 6,
+  NODE_VIEWER_SHORTCUT_SLOT_7 = 7,
+  NODE_VIEWER_SHORTCUT_SLOT_8 = 8,
+  NODE_VIEWER_SHORTCUT_SLOT_9 = 9
 };
 
 enum NodeWarningPropagation : int8_t {
@@ -466,7 +466,7 @@ enum eNodeProxy_Flag : char {
 };
 
 /* Conductive fresnel types */
-enum eNodeConducetiveFresnel_Type : short {
+enum eNodeConductiveFresnel_Type : short {
   SHD_PHYSICAL_CONDUCTOR = 0,
   SHD_CONDUCTOR_F82 = 1,
 };

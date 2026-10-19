@@ -5,6 +5,7 @@
 
 import bpy
 from .json_util import is_json_convertible
+from .gltf2_blender_utils import find_unused_name
 
 
 # Custom properties, which are in most cases present and should not be imported/exported.
@@ -12,12 +13,7 @@ BLACK_LIST = [
     'cycles',
     'cycles_visibility',
     'cycles_curves',
-    'glTF2ExportSettings',
-    'gltf2_mesh_applied',
-    'gltf2_KHR_materials_variants_variants',
-    'gltf2_active_variant',
-    'gltf2_variant_default_materials',
-    'gltf2_variant_mesh_data']
+    'glTF2ExportSettings']
 
 
 def generate_extras(blender_element, blender_data_type, export_settings):
@@ -44,7 +40,7 @@ def generate_extras(blender_element, blender_data_type, export_settings):
 
     # Custom properties
     for custom_property in blender_element.keys():
-        if custom_property in BLACK_LIST:
+        if custom_property in BLACK_LIST or custom_property.startswith("gltf"):
             continue
 
         value = __to_json_compatible(blender_element[custom_property])
@@ -66,15 +62,23 @@ def generate_extras(blender_element, blender_data_type, export_settings):
                     blender_element)]['paths']["[\"" + custom_property + "\"]"] = path_
 
     # System Custom Properties (ID properties)
-    properties = blender_element.bl_system_properties_get() or {}
-    for custom_property in properties.keys():
-        if custom_property in BLACK_LIST:
+    blender_element_reference = blender_element['gltf2_original_mesh'] \
+        if 'gltf2_original_mesh' in blender_element.keys() else blender_element
+    properties = blender_element_reference.bl_system_properties_get() or {}
+    for sys_property in properties.keys():
+        if sys_property in BLACK_LIST or sys_property.startswith("gltf"):
             continue
 
-        value = __to_json_compatible(properties[custom_property])
+        value = __to_json_compatible(properties[sys_property])
 
         if value is not None:
-            extras[custom_property] = value
+            if sys_property in extras.keys():
+                # If already present in extras, it means a custom property with the same name exists
+                # We are going to make the name unique
+                unique_name = find_unused_name(extras, sys_property)
+            else:
+                unique_name = sys_property
+            extras[unique_name] = value
 
     if not extras:
         return None

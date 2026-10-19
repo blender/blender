@@ -685,7 +685,7 @@ enum eCompositorDenoiseDevice : int {
 
 /** #RenderData::compositor_denoise_preview_quality */
 /** #RenderData::compositor_denoise_final_quality */
-enum eCompositorDenoiseQaulity : int {
+enum eCompositorDenoiseQuality : int {
   SCE_COMPOSITOR_DENOISE_HIGH = 0,
   SCE_COMPOSITOR_DENOISE_BALANCED = 1,
   SCE_COMPOSITOR_DENOISE_FAST = 2,
@@ -1059,8 +1059,8 @@ struct RenderData {
   eCompositorDenoiseDevice compositor_denoise_device = SCE_COMPOSITOR_DENOISE_DEVICE_AUTO;
 
   /** Global configuration for denoise compositor nodes. */
-  eCompositorDenoiseQaulity compositor_denoise_preview_quality = SCE_COMPOSITOR_DENOISE_BALANCED;
-  eCompositorDenoiseQaulity compositor_denoise_final_quality = SCE_COMPOSITOR_DENOISE_HIGH;
+  eCompositorDenoiseQuality compositor_denoise_preview_quality = SCE_COMPOSITOR_DENOISE_BALANCED;
+  eCompositorDenoiseQuality compositor_denoise_final_quality = SCE_COMPOSITOR_DENOISE_HIGH;
 
   /** Frames to jump manually. */
   float time_jump_delta = 1.0;

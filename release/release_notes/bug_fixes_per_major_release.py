@@ -585,7 +585,7 @@ def version_extraction(report_body: str) -> tuple[list[str], list[str]]:
                 working_lines += f'{line}\n'
 
     if not broken_lines and not working_lines:
-        # Broken and working lines is most comonly empty as a result of someone filling out the
+        # Broken and working lines is most commonly empty as a result of someone filling out the
         # Blender version field with something like "Blender 5.2" instead of "Broken: Blender 5.2".
         # This tries to handle the case automatically.
         version_info = re.search(r"### Blender Version\s*"
@@ -599,7 +599,7 @@ def version_extraction(report_body: str) -> tuple[list[str], list[str]]:
                 # If a user lists multiple version numbers, it could be in this format:
                 # "Blender 5.2, but it used to work in 5.1"
                 # So only use the first extracted version number to avoid the wrong version
-                # numbers ending up in the wrong catagory.
+                # numbers ending up in the wrong category.
                 version_number = broken_version_numbers[0]
                 if version_number in LIST_OF_OFFICIAL_BLENDER_VERSIONS:
                     return [version_number], []

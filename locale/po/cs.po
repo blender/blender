@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
+"POT-Creation-Date: 2026-10-19 07:32+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13795,30 +13795,6 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Utilities"
-msgstr "Nástroje"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Způsob útlumu"
-
-
-msgid "Snap"
-msgstr "Přichytit"
-
-
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
-
-
 msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
 
@@ -13827,120 +13803,144 @@ msgid "Clean Up"
 msgstr "Vyčistit"
 
 
-msgid "Local View"
-msgstr "Lokální pohled"
+msgid "Special Characters"
+msgstr "Speciální Znaky"
 
 
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "Apply"
-msgstr "Použít"
-
-
-msgid "Merge"
-msgstr "Sloučit"
-
-
-msgid "Tracking"
-msgstr "Sledování"
+msgid "Metaball"
+msgstr "Meta objekt"
 
 
 msgid "Names"
 msgstr "Názvy"
 
 
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
+msgid "Bone Roll"
+msgstr "Kost"
 
 
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
 
 
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
+msgid "Snap"
+msgstr "Přichytit"
 
 
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Hooks"
-msgstr "Háky"
+msgid "Proportional Editing Falloff"
+msgstr "Způsob útlumu"
 
 
 msgid "Math"
 msgstr "Matematika"
 
 
-msgid "Make Single User"
-msgstr "Přivlastnit"
+msgid "Utilities"
+msgstr "Nástroje"
 
 
-msgid "Keying"
-msgstr "Klíčovací sestava"
+msgid "Mirror"
+msgstr "Zrcadlit"
 
 
-msgid "Align View"
-msgstr "Zarovnat pohled"
+msgid "UV Mapping"
+msgstr "UV mapování"
 
 
-msgid "Special Characters"
-msgstr "Speciální Znaky"
+msgid "Local View"
+msgstr "Lokální pohled"
 
 
 msgid "Navigation"
 msgstr "Navigace"
 
 
-msgid "Import"
-msgstr "Importovat"
-
-
-msgid "Linked"
-msgstr "Propojené"
-
-
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Relations"
-msgstr "Vztahy"
+msgid "Align View"
+msgstr "Zarovnat pohled"
 
 
 msgid "Instances"
 msgstr "Instance"
 
 
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
+
+
+msgid "Import"
+msgstr "Importovat"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Hooks"
+msgstr "Háky"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Linked"
+msgstr "Propojené"
+
+
 msgid "Layout"
 msgstr "Rozložení"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Keying"
+msgstr "Klíčovací sestava"
+
+
+msgid "Tracking"
+msgstr "Sledování"
+
+
+msgid "Merge"
+msgstr "Sloučit"
 
 
 msgid "Basic"
@@ -20237,6 +20237,10 @@ msgid "Export"
 msgstr "Exportovat"
 
 
+msgid "Filepath"
+msgstr "Důležité cesty"
+
+
 msgctxt "Operator"
 msgid "Remove from Collection"
 msgstr "Odstranit z Kolekce"
@@ -20685,10 +20689,6 @@ msgstr "Trackball"
 
 msgid "Push/Pull"
 msgstr "Tlačit/tahat"
-
-
-msgid "Bake Time"
-msgstr "Čas Bake"
 
 
 msgid "Edge Slide"
@@ -21165,6 +21165,10 @@ msgstr "Převede vybrané čtyřúhleníky na trojúhelníky"
 
 msgid "Visible Objects"
 msgstr "Viditelné objekty"
+
+
+msgid "Center of Mass"
+msgstr "Těžiště"
 
 
 msgid "Apply sampling to all animations"
@@ -28188,10 +28192,6 @@ msgid "Line number to jump to"
 msgstr "Poslední frame"
 
 
-msgid "Filepath"
-msgstr "Důležité cesty"
-
-
 msgctxt "Operator"
 msgid "Line Number"
 msgstr "Číslo Řádku"
@@ -30244,60 +30244,60 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Shadow Settings"
-msgstr "Nastavení Stínů"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
+msgid "Active Tool"
+msgstr "Aktivní nástroj"
 
 
 msgid "View Lock"
 msgstr "Zámek zobrazení"
 
 
-msgid "Active Tool"
-msgstr "Aktivní nástroj"
+msgid "Shadow Settings"
+msgstr "Nastavení Stínů"
 
 
-msgid "Curve Edit Mode"
-msgstr "Editační Režim Křivky"
-
-
-msgid "Measurement"
-msgstr "Měření"
-
-
-msgid "Guides"
-msgstr "Vodítka"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Editační Režim Sítě"
-
-
-msgid "Motion Tracking"
-msgstr "Sledování Pohybu"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Transform Orientations"
-msgstr "Orientace transformací"
-
-
-msgid "Overlays"
-msgstr "Překrytí"
+msgid "SSAO Settings"
+msgstr "Nastavení SSAO"
 
 
 msgid "Cavity"
 msgstr "Dutina"
 
 
-msgid "SSAO Settings"
-msgstr "Nastavení SSAO"
+msgid "Overlays"
+msgstr "Překrytí"
+
+
+msgid "Guides"
+msgstr "Vodítka"
+
+
+msgid "Motion Tracking"
+msgstr "Sledování Pohybu"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Editační Režim Sítě"
+
+
+msgid "Measurement"
+msgstr "Měření"
+
+
+msgid "Curve Edit Mode"
+msgstr "Editační Režim Křivky"
+
+
+msgid "Transform Orientations"
+msgstr "Orientace transformací"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
 
 
 msgid "Chain Scaling"
@@ -30781,6 +30781,10 @@ msgstr "Diagnostika"
 
 msgid "Helpers"
 msgstr "Pomocníci"
+
+
+msgid "Splash Screen"
+msgstr "Uvítací okno"
 
 
 msgid "Denoising"
@@ -33901,10 +33905,6 @@ msgstr "Limit Chyb"
 
 msgid "Gravitation"
 msgstr "Gravitace"
-
-
-msgid "Center of Mass"
-msgstr "Těžiště"
 
 
 msgid "Permanent deform"
@@ -38953,10 +38953,6 @@ msgid "Auto-Save Preferences"
 msgstr "Auto-Ukládat Předvolby"
 
 
-msgid "Splash Screen"
-msgstr "Uvítací okno"
-
-
 msgid "User Tooltips"
 msgstr "Uživatelská Nápověda"
 
@@ -40855,10 +40851,6 @@ msgid "Reset operator defaults"
 msgstr "Defaultní nastavení"
 
 
-msgid "File Not Found"
-msgstr "Soubor nebyl nalezen"
-
-
 msgid "Today"
 msgstr "Dnes"
 
@@ -42170,22 +42162,6 @@ msgid "Scale X: %s   Y: %s  Z: %s%s %s"
 msgstr "Měřítko X: %s   Y: %s  Z: %s%s %s"
 
 
-msgid "Time: +%s %s"
-msgstr "Čas: +%s %s"
-
-
-msgid "Time: %s %s"
-msgstr "Čas: %s %s"
-
-
-msgid "Time: +%.3f %s"
-msgstr "Čas: +%.3f %s"
-
-
-msgid "Time: %.3f %s"
-msgstr "Čas: %.3f %s"
-
-
 msgid "Shrink/Fatten: "
 msgstr "Smrštit/Roztáhnout: "
 
@@ -42628,6 +42604,10 @@ msgstr "Nahoře"
 
 msgid "Don't Save"
 msgstr "Neukládat"
+
+
+msgid "File Not Found"
+msgstr "Soubor nebyl nalezen"
 
 
 msgid "Modified"

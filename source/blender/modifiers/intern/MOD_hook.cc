@@ -430,7 +430,6 @@ static void deform_verts(ModifierData *md,
 
 static void deform_verts_EM(ModifierData *md,
                             const ModifierEvalContext *ctx,
-                            const BMEditMesh * /*em*/,
                             Mesh *mesh,
                             MutableSpan<float3> positions)
 {

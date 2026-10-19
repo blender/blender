@@ -8080,7 +8080,7 @@ static int do_but_HSVCIRCLE(
   return WM_UI_HANDLER_CONTINUE;
 }
 
-static bool numedit_but_COLORBAND(Button *but, HandleButtonData *data, int mx)
+static bool numedit_but_COLORBAND(Button *but, HandleButtonData *data, int mx, bool shift)
 {
   bool changed = false;
 
@@ -8093,11 +8093,19 @@ static bool numedit_but_COLORBAND(Button *but, HandleButtonData *data, int mx)
   }
 
   const float dx = float(mx - data->draglastx) / BLI_rctf_size_x(&but->rect);
-  data->dragcbd->pos += dx;
+  data->dragcbd->pos += dx * mouse_scale_warp_factor(shift);
   CLAMP(data->dragcbd->pos, 0.0f, 1.0f);
 
   BKE_colorband_update_sort(data->coba);
   data->dragcbd = data->coba->data + data->coba->cur; /* because qsort */
+
+#ifdef USE_CONT_MOUSE_CORRECT
+  if (button_is_cursor_warp(but)) {
+    data->ungrab_mval[0] = but->rect.xmin + data->dragcbd->pos * BLI_rctf_size_x(&but->rect);
+    data->ungrab_mval[1] = data->dragstarty;
+    BLI_rctf_clamp_pt_v(&but->rect, data->ungrab_mval);
+  }
+#endif
 
   data->draglastx = mx;
   changed = true;
@@ -8158,7 +8166,7 @@ static int do_but_COLORBAND(
   else if (data->state == BUTTON_STATE_NUM_EDITING) {
     if (event->type == MOUSEMOVE) {
       if (mx != data->draglastx || my != data->draglasty) {
-        if (numedit_but_COLORBAND(but, data, mx)) {
+        if (numedit_but_COLORBAND(but, data, mx, (event->modifier & KM_SHIFT))) {
           numedit_apply(C, block, but, data);
         }
       }
@@ -12800,7 +12808,9 @@ static int handle_menus_recursive(bContext *C,
       }
       else if (event->type == LEFTMOUSE || event->val != KM_DBL_CLICK) {
         bool handled = false;
-        const bool is_actbut_in_modal_state = but && button_modal_state(but->active->state);
+        const Button *active_but = region_find_active_but(menu->region);
+        const bool is_actbut_in_modal_state = active_but &&
+                                              button_modal_state(active_but->active->state);
         /* Handle uilist events if there not an active button in modal state. */
         if (Button *listbox = listbox_find_mouse_over(menu->region, event);
             listbox && !is_actbut_in_modal_state)

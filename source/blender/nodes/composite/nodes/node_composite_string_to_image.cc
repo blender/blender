@@ -188,6 +188,11 @@ class StringToImageOperation : public NodeOperation {
 
     return math::max(0, this->get_input("Wrap Width").get_single_value_default<int>());
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

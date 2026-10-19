@@ -426,6 +426,11 @@ class IndexSwitchOperation : public NodeOperation {
     const Result &input = this->get_input(identifier);
     output.share_data(input);
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

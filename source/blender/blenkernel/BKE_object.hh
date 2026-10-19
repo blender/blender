@@ -50,8 +50,6 @@ struct ViewLayer;
 
 enum ObjectType : short;
 
-template<typename CoordT> struct KDTree;
-
 void BKE_object_workob_clear(Object *workob);
 /**
  * For calculation of the inverse parent transform, only used for editor.
@@ -658,15 +656,15 @@ LinkNode *BKE_object_groups(Main *bmain, Scene *scene, Object *ob);
 void BKE_object_groups_clear(Main *bmain, Scene *scene, Object *object);
 
 /**
- * Return a KDTree<float3> from the deformed object (in world-space).
+ * Return the world-space positions of the object's points, to build a KD-tree from.
  *
  * \note Only mesh objects currently support deforming, others are TODO.
  *
- * \param ob:
- * \param r_tot:
- * \return The KD-tree or nullptr if it can't be created.
+ * \param r_orig_indices: Filled with the index of each returned position in the original data,
+ * or left empty when that's the same as the index in the returned array.
+ * \return The positions, empty for unsupported object types.
  */
-KDTree<float3> *BKE_object_as_kdtree(Object *ob, int *r_tot);
+Vector<float3> BKE_object_positions_for_kdtree(Object *ob, Vector<int> &r_orig_indices);
 
 /**
  * The number of times to recurse parents for evaluation.

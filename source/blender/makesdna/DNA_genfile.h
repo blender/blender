@@ -9,6 +9,11 @@
 
 #pragma once
 
+#include <array>
+
+#include "BLI_span.hh"
+#include "BLI_vector.hh"
+
 #include "intern/dna_utils.h"
 
 /**
@@ -55,6 +60,35 @@ enum eSDNA_Type {
   SDNA_TYPE_RAW_DATA = 13,
 };
 
+struct SdnaBuiltinType {
+  StringRefNull name;
+  short size;
+  int type_index;
+};
+
+/* All built-in types.
+ *
+ * \warning Order of members calls here must be aligned with #eSDNA_Type.
+ * \warning uint is not allowed! Use in structs an unsigned int.
+ * \warning Sizes must match #DNA_elem_type_size().
+ */
+inline constexpr std::array<SdnaBuiltinType, SDNA_TYPE_RAW_DATA> builtin_sdna_types = {{
+    {"char", 1, SDNA_TYPE_CHAR},
+    {"uchar", 1, SDNA_TYPE_UCHAR},
+    {"short", 2, SDNA_TYPE_SHORT},
+    {"ushort", 2, SDNA_TYPE_USHORT},
+    {"int", 4, SDNA_TYPE_INT},
+    /* `long`/`ulong` are place-holders to keep indices aligned with #eSDNA_Type. */
+    {"long", 4, 5 /* SDNA_TYPE_LONG */},
+    {"ulong", 4, 6 /* SDNA_TYPE_ULONG */},
+    {"float", 4, SDNA_TYPE_FLOAT},
+    {"double", 8, SDNA_TYPE_DOUBLE},
+    {"int64_t", 8, SDNA_TYPE_INT64},
+    {"uint64_t", 8, SDNA_TYPE_UINT64},
+    {"void", 0, SDNA_TYPE_VOID},
+    {"int8_t", 1, SDNA_TYPE_INT8},
+}};
+
 /**
  * For use with #DNA_struct_reconstruct & #DNA_struct_get_compareflags
  */
@@ -80,6 +114,13 @@ std::unique_ptr<SDNA> DNA_sdna_from_data(
 /* Access for current Blender versions SDNA. */
 const SDNA *DNA_sdna_current_get();
 
+/**
+ * Encode a compact SDNA blob containing only the structs for which #structs_to_write is true.
+ * #structs_to_write might be modified if some more structs have to be written so that the SDNA is
+ * valid. E.g. some structs always need to be written like ListBase and inlined structs.
+ */
+Vector<uint8_t> DNA_sdna_encode_subset(const SDNA &sdna, MutableSpan<bool> structs_to_write);
+
 struct DNA_ReconstructInfo;
 /**
  * Pre-process information about how structs in \a newsdna can be reconstructed from structs in
@@ -104,30 +145,13 @@ int DNA_struct_find_index_without_alias_ex(const struct SDNA *sdna,
                                            StringRef str,
                                            unsigned int *struct_index_last);
 /**
- * \return the index of the struct or -1 on failure.
+ * \return The index of the struct or -1 on failure.
+ * \note Note that the type may have no struct members in the SDNA because they were not written to
+ * the .blend file since they were unused.
  */
 int DNA_struct_find_with_alias(const struct SDNA *sdna, StringRef str);
 /** \note prefer #DNA_struct_find_with_alias unless there is a good reason not to. */
 int DNA_struct_find_index_without_alias(const struct SDNA *sdna, StringRef str);
-
-/**
- * A convenience function, the equivalent of: `DNA_struct_find_with_alias(..) != -1`
- */
-bool DNA_struct_exists_with_alias(const struct SDNA *sdna, StringRef str);
-/** \note prefer #DNA_struct_exists_with_alias unless there is a good reason not to. */
-bool DNA_struct_exists_without_alias(const struct SDNA *sdna, StringRef stype);
-/**
- * A convenience function, the equivalent of: `DNA_struct_member_find_with_alias(..) != -1`
- */
-bool DNA_struct_member_exists_with_alias(const struct SDNA *sdna,
-                                         StringRef stype,
-                                         StringRef vartype,
-                                         StringRef name);
-/** \note prefer #DNA_struct_exists_with_alias unless there is a good reason not to. */
-bool DNA_struct_member_exists_without_alias(const struct SDNA *sdna,
-                                            StringRef stype,
-                                            StringRef vartype,
-                                            StringRef name);
 
 /**
  * Constructs and returns an array of byte flags with one element for each struct in oldsdna,
@@ -230,8 +254,30 @@ void DNA_sdna_alias_data_ensure(struct SDNA *sdna);
  */
 void DNA_sdna_alias_data_ensure_structs_map(struct SDNA *sdna);
 
-/* For versioning, avoid verbosity selecting between with/without alias versions of functions. */
-#ifdef DNA_GENFILE_VERSIONING_MACROS
+/* Legacy macros with less verbosity for versioning. Note: this can't be used reliably in newer
+ * Blender versions because it checks the SDNA written to .blend files but that may only contain
+ * partial SDNA to save space. */
+#ifdef DNA_GENFILE_VERSIONING_MACROS_LEGACY
+/**
+ * A convenience function, the equivalent of: `DNA_struct_find_with_alias(..) != -1`
+ */
+bool DNA_struct_exists_with_alias(const struct SDNA *sdna, StringRef str);
+/** \note prefer #DNA_struct_exists_with_alias unless there is a good reason not to. */
+bool DNA_struct_exists_without_alias(const struct SDNA *sdna, StringRef stype);
+/**
+ * A convenience function, the equivalent of: `DNA_struct_member_find_with_alias(..) != -1`
+ */
+bool DNA_struct_member_exists_with_alias(const struct SDNA *sdna,
+                                         StringRef stype,
+                                         StringRef vartype,
+                                         StringRef name);
+/** \note prefer #DNA_struct_exists_with_alias unless there is a good reason not to. */
+bool DNA_struct_member_exists_without_alias(const struct SDNA *sdna,
+                                            StringRef stype,
+                                            StringRef vartype,
+                                            StringRef name);
+
+/* Don't use in new code, see comment above. */
 #  define DNA_struct_exists(sdna, str) DNA_struct_exists_with_alias(sdna.get(), str)
 #  define DNA_struct_member_exists(sdna, stype, vartype, name) \
     DNA_struct_member_exists_with_alias(sdna.get(), stype, vartype, name)

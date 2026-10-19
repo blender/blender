@@ -331,6 +331,11 @@ class BoneInfoOperation : public compositor::NodeOperation {
       radius_tail_result.set_single_value(values.radius_tail);
     }
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static compositor::NodeOperation *get_compositor_operation(compositor::Context &context,

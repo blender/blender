@@ -12,6 +12,7 @@
 #include <optional>
 
 #include "BLI_enum_flags.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
@@ -25,6 +26,7 @@ struct bContext;
 struct bContextStore;
 struct EnumPropertyItem;
 struct IDProperty;
+struct ImBuf;
 struct uiList;
 struct uiStyle;
 struct MenuType;
@@ -424,6 +426,17 @@ struct Layout : public Item, NonCopyable, NonMovable {
    * Bold, italic, code, links, lists, headers, quotes, horizontal rules.
    */
   void label_markdown(StringRef text);
+
+  /**
+   * Adds an image filling the layout width, with the height following the image aspect ratio.
+   *
+   * To avoid recreating the image on every redraw, the image of the previous redraw is reused if
+   * it has the same #key. Otherwise #create_fn is called, and the button takes ownership of the
+   * returned image buffer.
+   *
+   * \return False if no image could be created.
+   */
+  bool image(StringRef key, FunctionRef<ImBuf *()> create_fn);
 
   /**
    * Adds link item, displays a url that can be clicked in the layout.

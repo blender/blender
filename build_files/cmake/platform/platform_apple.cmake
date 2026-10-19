@@ -375,6 +375,11 @@ if(WITH_MESHOPTIMIZER)
 endif()
 add_bundled_libraries(meshoptimizer/lib)
 
+if(WITH_KTX)
+  find_package(Ktx REQUIRED CONFIG)
+endif()
+add_bundled_libraries(ktx/lib)
+
 if(WITH_TRACY)
   find_package(Tracy REQUIRED CONFIG)
 endif()

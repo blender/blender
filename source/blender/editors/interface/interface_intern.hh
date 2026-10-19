@@ -526,6 +526,12 @@ struct ButtonLabel : public Button {
   FontStyleAlign text_align = UI_STYLE_TEXT_LEFT;
 };
 
+/** Derived struct for #ButtonType::Image. */
+struct ButtonImage : public Button {
+  /** Uniquely identifies the image, to reuse it from the previous redraw. */
+  std::string key;
+};
+
 /** Derived struct for #ButtonType::Scroll. */
 struct ButtonScrollBar : public Button {
   /** Actual visual height of UI list (in rows). */

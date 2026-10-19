@@ -570,7 +570,7 @@ class AnimDataConvertor {
         /* Create a new action. */
         animrig::Action &action = animrig::action_add(
             this->conversion_data.bmain,
-            this->animdata_src->action ? this->animdata_src->action->id.name + 2 : nullptr);
+            this->animdata_src->action ? this->animdata_src->action->id.name + 2 : "");
         action.slot_add_for_id(this->id_dst);
 
         const bool ok = animrig::assign_action(&action, {this->id_dst, *this->animdata_dst});
@@ -588,7 +588,7 @@ class AnimDataConvertor {
         /* Create a new tmpact. */
         animrig::Action &tmpact = animrig::action_add(
             this->conversion_data.bmain,
-            this->animdata_src->tmpact ? this->animdata_src->tmpact->id.name + 2 : nullptr);
+            this->animdata_src->tmpact ? this->animdata_src->tmpact->id.name + 2 : "");
         tmpact.slot_add_for_id(this->id_dst);
 
         const bool ok = animrig::assign_tmpaction(&tmpact, {this->id_dst, *this->animdata_dst});

@@ -83,6 +83,47 @@ BLI_INLINE void bm_vert_calc_normals_accum_loop(const BMLoop *l_iter,
   madd_v3_v3fl(v_no, f_no, fac);
 }
 
+BLI_INLINE void bm_vert_calc_normals_accum(const BMVert *v, float v_no[3])
+{
+  BMEdge *e_first = v->e;
+  if (e_first != nullptr) {
+    float e1diff[3], e2diff[3];
+    BMEdge *e_iter = e_first;
+    do {
+      BMLoop *l_first = e_iter->l;
+      if (l_first != nullptr) {
+        sub_v3_v3v3(e2diff, e_iter->v1->co, e_iter->v2->co);
+        normalize_v3(e2diff);
+
+        BMLoop *l_iter = l_first;
+        do {
+          if (l_iter->v == v) {
+            BMEdge *e_prev = l_iter->prev->e;
+            sub_v3_v3v3(e1diff, e_prev->v1->co, e_prev->v2->co);
+            normalize_v3(e1diff);
+
+            bm_vert_calc_normals_accum_loop(l_iter, e1diff, e2diff, l_iter->f->no, v_no);
+          }
+        } while ((l_iter = l_iter->radial_next) != l_first);
+      }
+    } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != e_first);
+  }
+}
+
+static bool bm_vert_calc_normals_from_coincident_verts(BMVert *v, float v_no[3])
+{
+  BMIter iter;
+  BMEdge *e_iter;
+
+  BM_ITER_ELEM (e_iter, &iter, v, BM_EDGES_OF_VERT) {
+    const BMVert *v_other = BM_edge_other_vert(e_iter, v);
+    if (equals_v3v3(v->co, v_other->co)) {
+      bm_vert_calc_normals_accum(v_other, v_no);
+    }
+  }
+  return normalize_v3(v_no) != 0.0f;
+}
+
 static void bm_vert_calc_normals_impl(BMVert *v)
 {
   /* NOTE(@ideasman42): Regarding redundant unit-length edge-vector calculation:
@@ -115,32 +156,13 @@ static void bm_vert_calc_normals_impl(BMVert *v)
   float *v_no = v->no;
   zero_v3(v_no);
 
-  BMEdge *e_first = v->e;
-  if (e_first != nullptr) {
-    float e1diff[3], e2diff[3];
-    BMEdge *e_iter = e_first;
-    do {
-      BMLoop *l_first = e_iter->l;
-      if (l_first != nullptr) {
-        sub_v3_v3v3(e2diff, e_iter->v1->co, e_iter->v2->co);
-        normalize_v3(e2diff);
+  bm_vert_calc_normals_accum(v, v_no);
+  if (normalize_v3(v_no) != 0.0f) [[likely]] {
+    return;
+  }
 
-        BMLoop *l_iter = l_first;
-        do {
-          if (l_iter->v == v) {
-            BMEdge *e_prev = l_iter->prev->e;
-            sub_v3_v3v3(e1diff, e_prev->v1->co, e_prev->v2->co);
-            normalize_v3(e1diff);
-
-            bm_vert_calc_normals_accum_loop(l_iter, e1diff, e2diff, l_iter->f->no, v_no);
-          }
-        } while ((l_iter = l_iter->radial_next) != l_first);
-      }
-    } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != e_first);
-
-    if (normalize_v3(v_no) != 0.0f) [[likely]] {
-      return;
-    }
+  if (bm_vert_calc_normals_from_coincident_verts(v, v_no)) {
+    return;
   }
   /* Fallback normal. */
   normalize_v3_v3(v_no, v->co);

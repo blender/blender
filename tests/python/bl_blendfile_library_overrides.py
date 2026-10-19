@@ -537,7 +537,7 @@ class TestLibraryOverridesComplex(TestHelper):
             collection_container.objects.unlink(obj_ctrl1)
             collection_subcontainer_2.objects.link(obj_ctrl1)
 
-            # Now obj_ctrl2 is both in its (original) sub-container conllection, and in collection_subcontainer_1.
+            # Now obj_ctrl2 is both in its (original) sub-container collection, and in collection_subcontainer_1.
             obj_ctrl2 = bpy.data.objects[self.__class__.DATA_NAME_CONTROLLER_2]
             collection_subcontainer_1.objects.link(obj_ctrl2)
 

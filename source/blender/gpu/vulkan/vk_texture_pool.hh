@@ -41,7 +41,9 @@ class VKImageCache {
   static constexpr int max_unused_cycles_ = 8;
 
   struct VKImageHandle {
-    VkImage image = VK_NULL_HANDLE;
+    VKResourceWithHandle<VkImage> resource;
+    /* Views of the image, kept between textures using it. They are destroyed with the image. */
+    Vector<VKImageView> image_views;
     int unused_cycles_count = 0;
   };
 
@@ -49,7 +51,13 @@ class VKImageCache {
 
  public:
   /* Given key information identifying a particular VkImage, get or create it. */
-  VkImage get_or_create(const VKImageInfo &info);
+  VKResourceWithHandle<VkImage> get_or_create(const VKImageInfo &info);
+
+  /* Move the image views of a cached image out of the cache, for reuse by a texture. */
+  Vector<VKImageView> take_image_views(const VKImageInfo &info);
+
+  /* Move the image views of a released texture back into the cache. */
+  void store_image_views(const VKImageInfo &info, Vector<VKImageView> image_views);
 
   /* Remove unused images  and send them to the discard pool.
    * If `force_free` is true, removes all images in the cache. */

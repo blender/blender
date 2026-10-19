@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from collections import namedtuple
-from bpy.types import ShaderNodeMath, ShaderNodeMix
+from bpy.types import ShaderNodeMath, ShaderNodeMix, GeometryNodeMeshBoolean
+from .nodes import get_node_description
 
 
 #################
@@ -52,13 +53,14 @@ blend_types = [(enum.identifier, enum.name, enum.description)
 operations = [(enum.identifier, enum.name, enum.description)
               for enum in ShaderNodeMath.bl_rna.properties['operation'].enum_items_static]
 
+boolean_operations = [(enum.identifier, enum.name, enum.description)
+                      for enum in GeometryNodeMeshBoolean.bl_rna.properties['operation'].enum_items_static]
+
 # Operations used by the geometry boolean node and join geometry node
 geo_combine_operations = [
-    ('JOIN', 'Join Geometry', 'Join Geometry Mode'),
-    ('INSTANCES', 'Geometry to Instance', 'Geometry to Instance Mode'),
-    ('INTERSECT', 'Intersect', 'Intersect Mode'),
-    ('UNION', 'Union', 'Union Mode'),
-    ('DIFFERENCE', 'Difference', 'Difference Mode'),
+    ('JOIN', 'Join Geometry', get_node_description("GeometryNodeJoinGeometry")),
+    ('INSTANCES', 'Geometry to Instance', get_node_description("GeometryNodeGeometryToInstance")),
+    *boolean_operations,
 ]
 
 # in NWBatchChangeNodes additional types/operations. Can be used as 'items' for EnumProperty.

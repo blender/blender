@@ -201,6 +201,25 @@ Rotation Rotation::converted_to_mode(const eRotationModes mode,
   return converted;
 }
 
+void Rotation::mirror()
+{
+  switch (mode) {
+    /* Both Axis-Angle and Quaternion have their x-y-z values on array index 1, 2 and 3. Since we
+     * are mirroring on the y-z plane we need to invert those two axes. */
+    case ROT_MODE_AXISANGLE:
+    case ROT_MODE_QUAT:
+      values[2] *= -1;
+      values[3] *= -1;
+      break;
+
+    default:
+      BLI_assert(mode <= ROT_MODE_ZYX);
+      values[1] *= -1;
+      values[2] *= -1;
+      break;
+  }
+}
+
 Rotation identity_rotation(const eRotationModes mode)
 {
   switch (mode) {

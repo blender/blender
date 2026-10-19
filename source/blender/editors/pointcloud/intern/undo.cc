@@ -113,8 +113,8 @@ static void step_decode(
       if (!attr_a || !attr_b) {
         return true;
       }
-      return std::get<bke::Attribute::ArrayData>(attr_a->data()).data !=
-             std::get<bke::Attribute::ArrayData>(attr_b->data()).data;
+      return std::get<GSpan>(attr_a->data().values()).data() !=
+             std::get<GSpan>(attr_b->data().values()).data();
     }();
 
     pointcloud.attribute_storage.wrap() = object.attribute_storage.wrap();

@@ -36,7 +36,11 @@ CCL_NAMESPACE_BEGIN
  *                  "PGSR: Planar-based Gaussian Splatting for Efficient and High-Fidelity Surface
  *                  Reconstruction" (2024)
  *                  https://zju3dv.github.io/pgsr/
- */
+ *
+ *  [ptir-gs]  Junke Zhu et. al.
+ *             "Path-Traced Inverse Rendering with Global Illumination in 3D Gaussian Fields"
+ *             (2026)
+ *             https://junkzhu.github.io/project_pages/PTIR/ */
 
 #ifdef __POINTCLOUD__
 
@@ -104,24 +108,11 @@ ccl_device_forceinline bool gsplat_intersect_test(KernelGlobals kg,
   const GSplatIsectParams params = gsplat_intersect_get_params(
       kg, object, prim, time, primitive_type);
 
-  /* Clamp the scale to avoid division near zero when calculating the inverse covariance matrix.
-   *
-   * Without this clamping the floaters in bicycle and garden scenes from Inria models set are
-   * rendered as large almost opaque spheres (instead of being almost transparent disks). The
-   * reason for this seems to be a precision issue of some sort when evaluating the particle
-   * response.
-   *
-   * The actual clamping value is a bit tricky: as values that work well for those scenes do not
-   * work well for the Le Mont Saint Michel scene where all splats are very small, making it so
-   * clamping makes the scene much more blurry than it should be. */
-  /* TODO(sergey): Look into more reliable solutions. */
-  const float max_scale = reduce_max(params.scale);
-  const float3 scale_clamped = max(params.scale, make_float3(max_scale * 1e-3f));
-
   const float3 mu = make_float3(point);
 
-  /* [3dgrt2024] Eq. (8). */
-  const float3x3 S_inv = float3x3_scale(1.0f / scale_clamped);
+  /* [3dgrt2024] Eq. (8).
+   * The division by scale could return NaN. Account for this in the distance check. */
+  const float3x3 S_inv = float3x3_scale(1.0f / params.scale);
   const float3x3 R = quaternion_to_rotation(params.rotation);
   const float3x3 R_T = transposed(R);
   const float3x3 S_inv_x_R_T = S_inv * R_T;
@@ -133,15 +124,19 @@ ccl_device_forceinline bool gsplat_intersect_test(KernelGlobals kg,
    * The previous checks are based on the bounding sphere distance.
    *
    * The t might be lower than the ray_tmin when the ray origin is within the bounding sphere but
-   * is "past" the density extrema. */
-  if (t < ray_tmin || t > ray_tmax) {
+   * is "past" the density extrema.
+   *
+   * Gracefully reject NaN distance (which could happen if the scale is 0 along any axis). */
+  if (!(t >= ray_tmin && t <= ray_tmax)) {
     return false;
   }
 
   /* Calculate intersection point. */
   const float3 x = ray_P + t * ray_D;
+  const float3 x_minus_mu = x - mu;
 
-  /* Covariance matrix. [3dgrt2024] Eq. (2).
+#    if 0
+  /* Naive implementation calculating covariance matrix. [3dgrt2024] Eq. (2).
    * Note that for the particle response evaluation we actually need an inverse of the covariance
    * matrix.
    *
@@ -151,14 +146,26 @@ ccl_device_forceinline bool gsplat_intersect_test(KernelGlobals kg,
    *
    *     \Sigma^{-1} = (RS^2R^T)^{-1} = (R^T)^{-1}(S^2)^{-1}R^{-1} = (R^{-1})^T(S^2)^{-1}R^{-1}
    *
-   * Since R is an orthonormal rotation matrix: R^{-1} \equiv R^T */
-  const float3x3 Sigma_inv = R * float3x3_scale(1.0f / (scale_clamped * scale_clamped)) * R_T;
+   * Since R is an orthonormal rotation matrix: R^{-1} \equiv R^T
+   *
+   * There seems to be precision issues with the naive implementation resulting in the floaters in
+   * bicycle and garden scenes from Inria models set are rendered as large almost opaque spheres
+   * (instead of being almost transparent disks). A possible workaround for it is to clamp the
+   * scale, but it results in other issues (choosing clamping size, difference in the render
+   * results from the ground truth, etc.). */
+  const float3x3 Sigma_inv = R * float3x3_scale(1.0f / (params.scale * params.scale)) * R_T;
+  const float e = dot(x_minus_mu, Sigma_inv * x_minus_mu);
+#    else
+  /* Combination of [3dgrt2024] Eq. (8). and [ptir-gs] Eq. (1), applied to the (x-mu) instead
+   * of the (0 - mu). it might be obvious, but it was [ptir-gs] that inspired to look into this
+   * equation. */
+  const float3 e_o_g = S_inv_x_R_T * x_minus_mu;
+  const float e = dot(e_o_g, e_o_g);
+#    endif
 
   /* Particle response.
    * [sun2025] Algorithm 1 (line 12). */
-  const float3 x_minus_mu = x - mu;
-  const float particle_opacity = params.opacity *
-                                 fast_expf(-1.0f / 2.0f * dot(x_minus_mu, Sigma_inv * x_minus_mu));
+  const float particle_opacity = params.opacity * fast_expf(-1.0f / 2.0f * e);
 
   /* Approach similar to [sun2025] who uses stateless trigonometric hash function as a source of
    * RNG: hash the intersection point to a [0 .. 1] floating point. */

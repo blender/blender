@@ -42,9 +42,9 @@ namespace blender::ed::sculpt_paint {
 class DensityAddOperation : public CurvesSculptStrokeOperation {
  private:
   /** Used when some data should be interpolated from existing curves. */
-  std::unique_ptr<KDTreeNew<float3>> original_curve_roots_kdtree_;
+  std::unique_ptr<KDTree<float3>> original_curve_roots_kdtree_;
   /** Contains curve roots of all curves that existed before the brush started. */
-  std::unique_ptr<KDTreeNew<float3>> deformed_curve_roots_kdtree_;
+  std::unique_ptr<KDTree<float3>> deformed_curve_roots_kdtree_;
   /** Root positions the two kdtrees above reference. */
   Array<float3> original_curve_root_positions_;
   Array<float3> deformed_curve_root_positions_;
@@ -177,7 +177,7 @@ struct DensityAddOperationExecutor {
      * curves. */
     Array<bool> new_curve_skipped(new_positions_cu.size(), false);
 
-    const KDTreeNew<float3> added_this_stroke_kdtree(self_->new_deformed_root_positions_);
+    const KDTree<float3> added_this_stroke_kdtree(self_->new_deformed_root_positions_);
 
     /* Check which new root points are close to roots that existed before the current stroke
      * started, or to roots added earlier in the current stroke. */
@@ -200,7 +200,7 @@ struct DensityAddOperationExecutor {
     });
 
     /* Find new points that are too close to other new points. */
-    const KDTreeNew<float3> new_positions_kdtree(new_positions_cu);
+    const KDTree<float3> new_positions_kdtree(new_positions_cu);
     Array<int> duplicates(new_positions_cu.size(), -1);
     kdtree::calc_duplicates(new_positions_kdtree,
                             brush_settings_->minimum_distance,
@@ -297,12 +297,12 @@ struct DensityAddOperationExecutor {
         1024 < original_positions.size() + deformed_positions.size(),
         [&]() {
           self_->original_curve_root_positions_ = gather_root_positions(original_positions);
-          self_->original_curve_roots_kdtree_ = std::make_unique<KDTreeNew<float3>>(
+          self_->original_curve_roots_kdtree_ = std::make_unique<KDTree<float3>>(
               self_->original_curve_root_positions_.as_span());
         },
         [&]() {
           self_->deformed_curve_root_positions_ = gather_root_positions(deformed_positions);
-          self_->deformed_curve_roots_kdtree_ = std::make_unique<KDTreeNew<float3>>(
+          self_->deformed_curve_roots_kdtree_ = std::make_unique<KDTree<float3>>(
               self_->deformed_curve_root_positions_.as_span());
         });
   }
@@ -499,7 +499,7 @@ struct DensitySubtractOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  std::unique_ptr<KDTreeNew<float3>> root_points_kdtree_;
+  std::unique_ptr<KDTree<float3>> root_points_kdtree_;
 
   DensitySubtractOperationExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
@@ -552,7 +552,7 @@ struct DensitySubtractOperationExecutor {
       }
     }
 
-    root_points_kdtree_ = std::make_unique<KDTreeNew<float3>>(
+    root_points_kdtree_ = std::make_unique<KDTree<float3>>(
         self_->deformed_root_positions_.as_span(), curve_selection_);
 
     /* Find all curves that should be deleted. */

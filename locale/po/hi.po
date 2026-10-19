@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'c02032f9693d')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 07:25+0000\n"
+"POT-Creation-Date: 2026-10-19 07:32+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2578,72 +2578,48 @@ msgid "Placement"
 msgstr "नियोजन"
 
 
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Merge"
-msgstr "विलय करें"
-
-
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
 
 
 msgid "Names"
 msgstr "नाम"
 
 
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
 
 
-msgid "Hooks"
-msgstr "खूँटी"
-
-
-msgid "UV"
-msgstr "यूवी"
+msgid "Snap"
+msgstr "स्नैप"
 
 
 msgid "Math"
 msgstr "गणित"
 
 
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Keying"
-msgstr "कुंजीयन"
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Import"
 msgstr "आयात करें"
 
 
+msgid "UV"
+msgstr "यूवी"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
 msgid "Rigid Body"
 msgstr "कठोर-पदार्थ"
+
+
+msgid "Apply"
+msgstr "लागू करें"
 
 
 msgid "Track"
@@ -2652,6 +2628,30 @@ msgstr "ट्रैक"
 
 msgid "Quick Effects"
 msgstr "त्वरित प्रभाव"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
+
+
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Merge"
+msgstr "विलय करें"
 
 
 msgid "Basic"
@@ -6332,22 +6332,6 @@ msgstr "प्रमाण: %s : %s%s %s"
 
 msgid "Scale: %s : %s : %s%s %s"
 msgstr "प्रमाण: %s : %s : %s%s %s"
-
-
-msgid "Time: +%s %s"
-msgstr "समय: +%s %s"
-
-
-msgid "Time: %s %s"
-msgstr "समय: %s %s"
-
-
-msgid "Time: +%.3f %s"
-msgstr "समय: +%.3f %s"
-
-
-msgid "Time: %.3f %s"
-msgstr "समय: %.3f %s"
 
 
 msgid "Roll: %s"

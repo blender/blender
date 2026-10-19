@@ -14,6 +14,9 @@
 namespace blender::gpu {
 class Batch;
 }
+namespace blender::draw {
+struct Batch;
+}
 namespace blender::draw::command {
 #endif
 
@@ -42,7 +45,7 @@ struct [[host_shared]] DrawGroup {
   /** Number of non inverted scaling instances in this Group. */
   uint front_facing_len;
 
-  /** #gpu::Batch values (or subrange of) copied to #DrawCommand after sorting. */
+  /** #Batch values (or a subrange of) copied to #DrawCommand after sorting. */
   int vertex_len;
   int vertex_first;
   /* Set to -1 if not an indexed draw. */
@@ -60,7 +63,7 @@ struct [[host_shared]] DrawGroup {
    * Can be used by GPU but needs to be initialized by GPU before usage. */
 #ifndef GPU_SHADER
   struct {
-    /* Specific range of vertex to draw from the #gpu::Batch. */
+    /* Specific range of vertex to draw from the #Batch. */
     uint32_t vertex_first;
     /* Ugly packing to support expanded draws without inflating the struct.
      * Makes vertex range restricted to smaller range for expanded draw. */
@@ -69,7 +72,7 @@ struct [[host_shared]] DrawGroup {
     uint32_t vertex_len : 25;
 
     /** Needed to create the correct draw call. */
-    gpu::Batch *gpu_batch;
+    Batch *batch;
     uint64_t _cpu_pad0;
   } desc;
 #else
@@ -92,7 +95,7 @@ BLI_STATIC_ASSERT_ALIGN(DrawGroup, 16)
  * #DrawPrototype might get merged into the same final #DrawCommand.
  */
 struct [[host_shared]] DrawPrototype {
-  /* Reference to parent DrawGroup to get the gpu::Batch vertex / instance count. */
+  /* Reference to parent DrawGroup to get the #Batch vertex / instance count. */
   uint group_id;
   /* Resource handle associated with this call. Also reference visibility. */
   uint res_id;

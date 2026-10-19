@@ -12,6 +12,7 @@
 #include "BKE_node_runtime.hh"
 
 #include "GPU_debug.hh"
+#include "GPU_state.hh"
 
 #include "NOD_compositor_gizmos.hh"
 #include "NOD_eval_log.hh"
@@ -85,8 +86,19 @@ void NodeOperation::evaluate()
   if (this->context().use_gpu()) {
     GPU_debug_group_begin(this->node().typeinfo->idname.c_str());
   }
+  const bool uses_asynchronous_execution = this->uses_asynchronous_execution();
   Operation::evaluate();
   if (this->context().use_gpu()) {
+    /* If the compositor supports canceling, we are using GPU evaluation, and the operation
+     * executes asynchronously, we block through a GPU_finish call until the node operation
+     * finishes executing on the GPU. This is done for two reasons:
+     * - The scoped node timer above will not capture the correct time if the node executes on the
+     *   GPU asynchronously, so we need to force synchronization.
+     * - Allow the user to cancel evaluation after the node executes, otherwise, the entire node
+     *   tree will be submitted to the GPU for execution even before the first shader is done. */
+    if (this->context().supports_canceling() && uses_asynchronous_execution) {
+      GPU_finish();
+    }
     GPU_debug_group_end();
   }
 }
@@ -173,6 +185,11 @@ void NodeOperation::log_data()
       tree_logger.node_image_previews.append(*tree_logger.allocator, {node_.identifier, preview});
     }
   }
+}
+
+bool NodeOperation::uses_asynchronous_execution() const
+{
+  return this->context().use_gpu();
 }
 
 const bNode &NodeOperation::node() const

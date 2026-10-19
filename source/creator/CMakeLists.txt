@@ -549,6 +549,19 @@ if(WITH_PYTHON)
     )
   endif()
 
+  if(WITH_KTX)
+    if(GLTF_BRIDGE_RPATH)
+      set_target_properties(bf_intern_ktx_bridge PROPERTIES
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "${GLTF_BRIDGE_RPATH}"
+      )
+    endif()
+    install(
+      PROGRAMS $<TARGET_FILE:bf_intern_ktx_bridge>
+      DESTINATION ${GLTF_BRIDGE_INSTALL_DIR}
+    )
+  endif()
+
   unset(GLTF_BRIDGE_INSTALL_DIR)
   unset(GLTF_BRIDGE_RPATH)
 
@@ -1711,6 +1724,11 @@ elseif(WIN32)
   windows_install_shared_manifest(
     FILES ${LIBDIR}/draco/bin/draco_d.dll
     DEBUG
+  )
+
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/ktx/bin/ktx.dll
+    ALL
   )
 
   windows_install_shared_manifest(

@@ -11,7 +11,7 @@ void node_displacement_object(float height,
                               float midlevel,
                               float scale,
                               float3 N,
-                              [[resource_table]] KernelGlobals &kg,
+                              KernelGlobals &kg,
                               ShadingData &sd,
                               float3 &result)
 {

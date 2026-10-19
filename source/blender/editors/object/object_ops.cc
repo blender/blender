@@ -324,6 +324,8 @@ void operatormacros_object()
     otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
     RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
   }
+
+  collection_importer_macros_register();
 }
 
 static bool object_mode_poll(bContext *C)

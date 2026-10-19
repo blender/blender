@@ -35,6 +35,7 @@ class GSplats : Overlay {
                   state.clipping_plane_count);
     ps_.shader_set(res.shaders->gsplat_points.get());
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+    ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
   }
 
   void edit_object_sync(Manager &manager,
@@ -49,7 +50,7 @@ class GSplats : Overlay {
     ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
     {
       draw::gsplat_sub_pass_setup(ps_, ob_ref, res_handle, nullptr);
-      gpu::Batch *geom = DRW_cache_gsplat_vert_overlay_get(ob_ref.object);
+      Batch *geom = DRW_cache_gsplat_vert_overlay_get(ob_ref.object);
       ps_.draw(geom, res_handle, res.select_id(ob_ref).get());
     }
   }

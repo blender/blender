@@ -343,7 +343,8 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
 
   CustomData_blend_read(
       reader, &grease_pencil->layers_data_legacy, grease_pencil->layers().size());
-  grease_pencil->attribute_storage.wrap().blend_read(*reader);
+  grease_pencil->attribute_storage.wrap().blend_read(
+      *reader, [&](const bke::AttrDomain /*domain*/) { return grease_pencil->layers().size(); });
 
   /* Read materials. */
   BLO_read_pointer_array_and_validate_size(
@@ -1606,6 +1607,9 @@ Layer::Layer(const Layer &other) : Layer()
   this->runtime->sorted_keys_cache_ = other.runtime->sorted_keys_cache_;
   /* Tag the frames map, so the frame storage is recreated once the DNA is saved. */
   this->tag_frames_map_changed();
+
+  /* Keep the mapping to the original layer when evaluated data is copied, e.g. by modifiers. */
+  this->runtime->orig_layer_index_ = other.runtime->orig_layer_index_;
 
   /* TODO: what about masks cache? */
 }
@@ -4295,12 +4299,10 @@ static void reorder_attribute_domain(bke::AttributeStorage &data,
     const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
       case bke::AttrStorageType::Array: {
-        const auto &data = std::get<bke::Attribute::ArrayData>(attr.data());
-        auto new_data = bke::Attribute::ArrayData::from_constructed(type, new_by_old_map.size());
-        bke::attribute_math::gather(GSpan(type, data.data, data.size),
-                                    new_by_old_map,
-                                    GMutableSpan(type, new_data.data, new_data.size));
-        attr.assign_data(std::move(new_data));
+        GArray<> new_data(type, new_by_old_map.size());
+        bke::attribute_math::gather(
+            std::get<GSpan>(attr.data().values()), new_by_old_map, new_data.as_mutable_span());
+        attr.assign_data(bke::GList(std::move(new_data)));
         break;
       }
       case bke::AttrStorageType::Single: {
@@ -4629,18 +4631,19 @@ static void shrink_attribute_storage(bke::AttributeStorage &storage,
     const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
       case bke::AttrStorageType::Array: {
-        const auto &data = std::get<bke::Attribute::ArrayData>(attr.data());
+        const GSpan data = std::get<GSpan>(attr.data().values());
 
-        auto new_data = bke::Attribute::ArrayData::from_uninitialized(type, size - 1);
-        type.copy_construct_n(data.data, new_data.data, range_before.size());
-        type.copy_construct_n(POINTER_OFFSET(data.data, type.size * range_after.start()),
-                              POINTER_OFFSET(new_data.data, type.size * index_to_remove),
+        GArray<> new_data(type, size - 1, NoInitialization());
+        type.copy_construct_n(data.data(), new_data.data(), range_before.size());
+        type.copy_construct_n(POINTER_OFFSET(data.data(), type.size * range_after.start()),
+                              POINTER_OFFSET(new_data.data(), type.size * index_to_remove),
                               range_after.size());
 
-        attr.assign_data(std::move(new_data));
+        attr.assign_data(bke::GList(std::move(new_data)));
         break;
       }
       case bke::AttrStorageType::Single: {
+        attr.data().resize(size - 1);
         break;
       }
     }

@@ -20,6 +20,7 @@ namespace blender {
 
 struct GPUMaterial;
 namespace draw {
+struct Batch;
 struct MeshBatchCache;
 class View;
 };  // namespace draw
@@ -122,11 +123,11 @@ void DRW_vertbuf_create_wiredata(gpu::VertBuf *vbo, int vert_len);
 
 void DRW_curve_batch_cache_create_requested(Object *ob, const Scene *scene);
 
-gpu::Batch *DRW_curve_batch_cache_get_wire_edge(Curve *cu);
-gpu::Batch *DRW_curve_batch_cache_get_wire_edge_viewer_attribute(Curve *cu);
-gpu::Batch *DRW_curve_batch_cache_get_normal_edge(Curve *cu);
-gpu::Batch *DRW_curve_batch_cache_get_edit_edges(Curve *cu);
-gpu::Batch *DRW_curve_batch_cache_get_edit_verts(Curve *cu);
+Batch *DRW_curve_batch_cache_get_wire_edge(Curve *cu);
+Batch *DRW_curve_batch_cache_get_wire_edge_viewer_attribute(Curve *cu);
+Batch *DRW_curve_batch_cache_get_normal_edge(Curve *cu);
+Batch *DRW_curve_batch_cache_get_edit_edges(Curve *cu);
+Batch *DRW_curve_batch_cache_get_edit_verts(Curve *cu);
 
 /** \} */
 
@@ -134,9 +135,9 @@ gpu::Batch *DRW_curve_batch_cache_get_edit_verts(Curve *cu);
 /** \name Lattice
  * \{ */
 
-gpu::Batch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, int actdef);
-gpu::Batch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt);
-gpu::Batch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt);
+Batch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, int actdef);
+Batch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt);
+Batch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt);
 
 /** \} */
 
@@ -155,10 +156,10 @@ gpu::VertBufPtr &DRW_curves_texture_for_evaluated_attribute(Curves *curves,
                                                             bool &r_is_point_domain,
                                                             bool &r_valid_attribute);
 
-gpu::Batch *DRW_curves_batch_cache_get_edit_points(Curves *curves);
-gpu::Batch *DRW_curves_batch_cache_get_sculpt_curves_cage(Curves *curves);
-gpu::Batch *DRW_curves_batch_cache_get_edit_curves_handles(Curves *curves);
-gpu::Batch *DRW_curves_batch_cache_get_edit_curves_lines(Curves *curves);
+Batch *DRW_curves_batch_cache_get_edit_points(Curves *curves);
+Batch *DRW_curves_batch_cache_get_sculpt_curves_cage(Curves *curves);
+Batch *DRW_curves_batch_cache_get_edit_curves_handles(Curves *curves);
+Batch *DRW_curves_batch_cache_get_edit_curves_lines(Curves *curves);
 
 void DRW_curves_batch_cache_create_requested(Object *ob);
 
@@ -171,8 +172,8 @@ void DRW_curves_batch_cache_create_requested(Object *ob);
 gpu::VertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob);
 
 gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, StringRef name);
-gpu::Batch *DRW_pointcloud_batch_cache_get_dots(Object *ob);
-gpu::Batch *DRW_pointcloud_batch_cache_get_edit_dots(Object *ob);
+Batch *DRW_pointcloud_batch_cache_get_dots(Object *ob);
+Batch *DRW_pointcloud_batch_cache_get_edit_dots(Object *ob);
 
 void DRW_pointcloud_batch_cache_create_requested(Object *ob);
 
@@ -183,8 +184,8 @@ void DRW_pointcloud_batch_cache_create_requested(Object *ob);
  * \{ */
 
 gpu::VertBuf **DRW_gsplat_evaluated_attribute(PointCloud *pointcloud, StringRef name);
-gpu::Batch *DRW_gsplat_batch_cache_get_dots(Object *ob);
-gpu::Batch *DRW_gsplat_batch_cache_get_edit_dots(Object *ob);
+Batch *DRW_gsplat_batch_cache_get_dots(Object *ob);
+Batch *DRW_gsplat_batch_cache_get_edit_dots(Object *ob);
 
 void DRW_gsplat_batch_cache_create_requested(Object *ob);
 
@@ -194,8 +195,8 @@ void DRW_gsplat_batch_cache_create_requested(Object *ob);
 /** \name Volume
  * \{ */
 
-gpu::Batch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume);
-gpu::Batch *DRW_volume_batch_cache_get_selection_surface(Volume *volume);
+Batch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume);
+Batch *DRW_volume_batch_cache_get_selection_surface(Volume *volume);
 
 /** \} */
 
@@ -204,7 +205,7 @@ gpu::Batch *DRW_volume_batch_cache_get_selection_surface(Volume *volume);
  * \{ */
 
 /**
- * Can be called for any surface type. Mesh *mesh is the final mesh.
+ * Can be called for any surface type. Batch *mesh is the final mesh.
  */
 void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
                                            Object &ob,
@@ -213,25 +214,25 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
                                            bool is_paint_mode,
                                            bool use_hide);
 
-gpu::Batch *DRW_mesh_batch_cache_get_all_verts(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_paint_overlay_verts(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_all_edges(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_loose_edges(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edge_detection(Mesh &mesh, bool *r_is_manifold);
-gpu::Batch *DRW_mesh_batch_cache_get_surface(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_paint_overlay_surface(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_paint_overlay_edges(Mesh &mesh);
-Span<gpu::Batch *> DRW_mesh_batch_cache_get_surface_shaded(Object &object,
-                                                           Mesh &mesh,
-                                                           Span<const GPUMaterial *> materials);
+Batch *DRW_mesh_batch_cache_get_all_verts(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_paint_overlay_verts(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_all_edges(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_loose_edges(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edge_detection(Mesh &mesh, bool *r_is_manifold);
+Batch *DRW_mesh_batch_cache_get_surface(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_paint_overlay_surface(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_paint_overlay_edges(Mesh &mesh);
+Span<Batch *> DRW_mesh_batch_cache_get_surface_shaded(Object &object,
+                                                      Mesh &mesh,
+                                                      Span<const GPUMaterial *> materials);
 
-Span<gpu::Batch *> DRW_mesh_batch_cache_get_surface_texpaint(Object &object, Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_surface_texpaint_single(Object &object, Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_surface_vertpaint(Object &object, Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_surface_sculpt(Object &object, Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_surface_weights(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_sculpt_overlays(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_surface_viewer_attribute(Mesh &mesh);
+Span<Batch *> DRW_mesh_batch_cache_get_surface_texpaint(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_surface_texpaint_single(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_surface_vertpaint(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_surface_sculpt(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_surface_weights(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_sculpt_overlays(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_surface_viewer_attribute(Mesh &mesh);
 
 gpu::BottomLevelAS *DRW_mesh_batch_cache_get_surface_blas(Mesh &mesh);
 
@@ -241,13 +242,13 @@ gpu::BottomLevelAS *DRW_mesh_batch_cache_get_surface_blas(Mesh &mesh);
 /** \name Edit-Mesh Drawing
  * \{ */
 
-gpu::Batch *DRW_mesh_batch_cache_get_edit_triangles(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edit_vertices(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edit_edges(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edit_vert_normals(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edit_loop_normals(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edit_facedots(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edit_skin_roots(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edit_triangles(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edit_vertices(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edit_edges(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edit_vert_normals(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edit_loop_normals(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edit_facedots(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edit_skin_roots(Mesh &mesh);
 
 /** \} */
 
@@ -255,10 +256,10 @@ gpu::Batch *DRW_mesh_batch_cache_get_edit_skin_roots(Mesh &mesh);
 /** \name Edit-mesh Selection
  * \{ */
 
-gpu::Batch *DRW_mesh_batch_cache_get_triangles_with_select_id(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_facedots_with_select_id(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edges_with_select_id(Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_triangles_with_select_id(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_facedots_with_select_id(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edges_with_select_id(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh &mesh);
 
 /** \} */
 
@@ -266,7 +267,7 @@ gpu::Batch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh &mesh);
 /** \name Object Mode Wireframe Overlays
  * \{ */
 
-gpu::Batch *DRW_mesh_batch_cache_get_wireframes_face(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_wireframes_face(Mesh &mesh);
 
 /** \} */
 
@@ -275,22 +276,22 @@ gpu::Batch *DRW_mesh_batch_cache_get_wireframes_face(Mesh &mesh);
  * \{ */
 
 /**
- * Creates the #gpu::Batch for drawing the UV Stretching Area Overlay.
+ * Creates the #Mesh for drawing the UV Stretching Area Overlay.
  * Optional retrieves the total area or total uv area of the mesh.
  *
  * The `cache->tot_area` and `cache->tot_uv_area` update are calculation are
  * only valid after calling `DRW_mesh_batch_cache_create_requested`.
  */
-gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces_stretch_area(Object &object,
-                                                               Mesh &mesh,
-                                                               float **tot_area,
-                                                               float **tot_uv_area);
-gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(Object &object, Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces(Object &object, Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edituv_wireframe(Object &object, Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edituv_edges(Object &object, Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edituv_verts(Object &object, Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edituv_facedots(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edituv_faces_stretch_area(Object &object,
+                                                          Mesh &mesh,
+                                                          float **tot_area,
+                                                          float **tot_uv_area);
+Batch *DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edituv_faces(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edituv_wireframe(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edituv_edges(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edituv_verts(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edituv_facedots(Object &object, Mesh &mesh);
 
 /** \} */
 
@@ -298,10 +299,10 @@ gpu::Batch *DRW_mesh_batch_cache_get_edituv_facedots(Object &object, Mesh &mesh)
 /** \name For Image UV Editor
  * \{ */
 
-gpu::Batch *DRW_mesh_batch_cache_get_uv_faces(Object &object, Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_all_uv_wireframe(Object &object, Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_uv_wireframe(Object &object, Mesh &mesh);
-gpu::Batch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_uv_faces(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_all_uv_wireframe(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_uv_wireframe(Object &object, Mesh &mesh);
+Batch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh &mesh);
 
 /** \} */
 
@@ -342,20 +343,18 @@ enum {
 /** \name Particles
  * \{ */
 
-gpu::Batch *DRW_particles_batch_cache_get_hair(Object *object,
-                                               ParticleSystem *psys,
-                                               ModifierData *md);
-gpu::Batch *DRW_particles_batch_cache_get_dots(Object *object, ParticleSystem *psys);
-gpu::Batch *DRW_particles_batch_cache_get_edit_strands(Object *object,
+Batch *DRW_particles_batch_cache_get_hair(Object *object, ParticleSystem *psys, ModifierData *md);
+Batch *DRW_particles_batch_cache_get_dots(Object *object, ParticleSystem *psys);
+Batch *DRW_particles_batch_cache_get_edit_strands(Object *object,
+                                                  ParticleSystem *psys,
+                                                  PTCacheEdit *edit,
+                                                  bool use_weight);
+Batch *DRW_particles_batch_cache_get_edit_inner_points(Object *object,
                                                        ParticleSystem *psys,
-                                                       PTCacheEdit *edit,
-                                                       bool use_weight);
-gpu::Batch *DRW_particles_batch_cache_get_edit_inner_points(Object *object,
-                                                            ParticleSystem *psys,
-                                                            PTCacheEdit *edit);
-gpu::Batch *DRW_particles_batch_cache_get_edit_tip_points(Object *object,
-                                                          ParticleSystem *psys,
-                                                          PTCacheEdit *edit);
+                                                       PTCacheEdit *edit);
+Batch *DRW_particles_batch_cache_get_edit_tip_points(Object *object,
+                                                     ParticleSystem *psys,
+                                                     PTCacheEdit *edit);
 
 /** \} */
 

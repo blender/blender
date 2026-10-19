@@ -129,6 +129,7 @@ if(WITH_GTESTS)
   # Actual `blenloader` tests.
   set(TEST_SRC
     tests/blendfile_load_test.cc
+    tests/sdna_encode_subset_test.cc
   )
   set(TEST_LIB
     ${LIB}

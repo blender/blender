@@ -173,7 +173,7 @@ void encoderSetIndices(Encoder *encoder,
   }
 }
 
-draco::GeometryAttribute::Type getAttributeSemantics(char *attribute)
+static draco::GeometryAttribute::Type getAttributeSemantics(char *attribute)
 {
   if (!strcmp(attribute, "POSITION")) {
     return draco::GeometryAttribute::POSITION;
@@ -191,7 +191,7 @@ draco::GeometryAttribute::Type getAttributeSemantics(char *attribute)
   return draco::GeometryAttribute::GENERIC;
 }
 
-draco::DataType getDataType(size_t componentType)
+static draco::DataType getDataType(size_t componentType)
 {
   switch (componentType) {
     case ComponentType::Byte:

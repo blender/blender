@@ -900,7 +900,7 @@ PyMODINIT_FUNC PyInit_mathutils()
   PyModule_AddObject(mod, "bvhtree", (submodule = PyInit_mathutils_bvhtree()));
   PyC_Module_AddToSysModules(sys_modules, submodule);
 
-  /* KDTree<float3> submodule */
+  /* KDTree submodule */
   PyModule_AddObject(mod, "kdtree", (submodule = PyInit_mathutils_kdtree()));
   PyC_Module_AddToSysModules(sys_modules, submodule);
 #endif

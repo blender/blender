@@ -198,7 +198,6 @@ static void node_geo_exec(GeoNodeExecParams params)
 #ifdef WITH_OPENVDB
   bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid"_ustr);
   if (!grid) {
-    params.error_message_add(NodeWarningType::Error, "The grid input is required");
     params.set_default_remaining_outputs();
     return;
   }

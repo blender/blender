@@ -1064,7 +1064,7 @@ class VExportTree:
                     "We can't remove armature object because some armatures have multiple root bones.")
                 break
 
-    def calculate_collection_center(self):
+    def calculate_collection_center_barycenter(self):
         # Because we already filtered the tree, we can use all objects
         # to calculate the center of the scene
         # Are taken into account all objects that are direct root in the exported collection

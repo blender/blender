@@ -85,6 +85,7 @@ class Operation {
 
   /* Get a reference to the output result identified by the given identifier. */
   Result &get_result(StringRef identifier);
+  const Result &get_result(StringRef identifier) const;
 
   /* Map the input identified by the given identifier to the result providing its data. See
    * results_mapped_to_inputs_ for more details. This should be called by the evaluator to

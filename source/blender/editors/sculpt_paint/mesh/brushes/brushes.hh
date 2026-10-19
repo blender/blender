@@ -18,6 +18,7 @@ namespace blender {
 
 struct Brush;
 struct Depsgraph;
+struct Paint;
 struct Scene;
 struct Sculpt;
 namespace ed::sculpt_paint {
@@ -131,11 +132,14 @@ void do_plane_brush(const Depsgraph &depsgraph,
                     const float3 &plane_center);
 
 namespace plane {
+/* TODO: This is similar to the generic calc_brush_node_mask, just with the explicit calculation of
+ * the brush plane. This could be simplified. */
 CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
+                                  const Paint &paint,
                                   Object &ob,
                                   const Brush &brush,
                                   IndexMaskMemory &memory);
-}
+}  // namespace plane
 
 void do_grab_brush(const Depsgraph &depsgraph,
                    const Sculpt &sd,

@@ -117,13 +117,13 @@ void Instance::init()
               scene, depsgraph, v3d, rv3d, size[0], size[1], &border, nullptr))
       {
         BLI_rcti_rctf_copy_floor(&rect, &border);
-        /* Clamp it to the viewport area. */
-        rect.xmin = max(rect.xmin, 0);
-        rect.ymin = max(rect.ymin, 0);
-        rect.xmax = min(rect.xmax, size.x);
-        rect.ymax = min(rect.ymax, size.y);
       }
     }
+    /* Clamp it to the viewport area. */
+    rect.xmin = max(rect.xmin, 0);
+    rect.ymin = max(rect.ymin, 0);
+    rect.xmax = min(rect.xmax, size.x);
+    rect.ymax = min(rect.ymax, size.y);
 
     if (draw_ctx->is_viewport_image_render() || draw_ctx->is_viewport_xr()) {
       const float2 vp_size = draw_ctx->viewport_size_get();

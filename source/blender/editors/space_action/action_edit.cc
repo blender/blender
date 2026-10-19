@@ -1767,6 +1767,7 @@ static void setkeytype_action_keys(bAnimContext *ac, eBezTriple_KeyframeType mod
         break;
 
       case ANIMTYPE_FCURVE:
+      case ANIMTYPE_NLACURVE:
         ANIM_fcurve_keyframes_loop(
             nullptr, static_cast<FCurve *>(ale.key_data), nullptr, set_cb, nullptr);
         ale.update |= ANIM_UPDATE_DEPS | ANIM_UPDATE_HANDLES;

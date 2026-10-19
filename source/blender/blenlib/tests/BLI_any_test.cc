@@ -89,6 +89,23 @@ TEST(any, AssignAny)
   EXPECT_EQ(z.get<Any<>>().get<int>(), 5);
 }
 
+TEST(any, Emplace)
+{
+  Any<> a;
+  int &value = a.emplace<int>(5);
+  EXPECT_EQ(value, 5);
+  EXPECT_EQ(a.get<int>(), 5);
+
+  int &value2 = a.emplace<int>(10);
+  EXPECT_EQ(&value, &value2);
+  EXPECT_EQ(value2, 10);
+
+  std::string &str = a.emplace<std::string>("hello");
+  EXPECT_EQ(str, "hello");
+  a.emplace<std::string>("world");
+  EXPECT_EQ(a.get<std::string>(), "world");
+}
+
 TEST(any, Allocate)
 {
   Any<> a;

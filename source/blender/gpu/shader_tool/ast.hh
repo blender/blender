@@ -1309,6 +1309,7 @@ struct ClassDecl : Node {
     return child_first();
   }
 
+  /* In case of multiple inheritance, returns the first parent class. */
   IdQualified parent_class() const;
 
   LocalScope body() const

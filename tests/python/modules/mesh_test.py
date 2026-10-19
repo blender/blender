@@ -117,7 +117,7 @@ class OperatorSpecEditMode:
             select_history: bool = False,
     ):
         """
-        Constructs an OperatorSpecEditMode. Raises ValueError if selec_mode is invalid.
+        Constructs an OperatorSpecEditMode. Raises ValueError if select_mode is invalid.
 
         :param operator_name: str - name of mesh operator from bpy.ops.mesh, e.g. "bevel" or "fill"
         :param operator_parameters: dict - {name : val} dictionary containing operator parameters.
@@ -366,7 +366,7 @@ class MeshTest(ABC):
         :arg: selection: sequence - indices of selection.
         :arg: select_history: bool - load selection into bmesh selection history
 
-        Example: select_mode='VERT' and selection={1,2,3} selects veritces 1, 2 and 3 of input mesh
+        Example: select_mode='VERT' and selection={1,2,3} selects vertices 1, 2 and 3 of input mesh
         """
         if select_history and isinstance(selection, set):
             raise Exception("'selection' must be an ordered sequence, not a 'set' type when 'select_history=True'")

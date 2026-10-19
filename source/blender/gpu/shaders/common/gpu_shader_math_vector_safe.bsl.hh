@@ -130,8 +130,9 @@ template<typename VecT> VecT safe_normalize_and_get_length(VecT vector, float &o
   float length_squared = dot(vector, vector);
   constexpr float threshold = 1e-35f;
   if (length_squared > threshold) {
-    out_length = sqrt(length_squared);
-    return vector / out_length;
+    float length_inv = inversesqrt(length_squared);
+    out_length = 1.0f / length_inv;
+    return vector * length_inv;
   }
   /* Either the vector is small or one of its values contained `nan`. */
   out_length = 0.0f;

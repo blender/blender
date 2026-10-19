@@ -382,16 +382,22 @@ static wmOperatorStatus new_compositor_effect_node_group_exec(bContext *C, wmOpe
   bke::node_update_asset_metadata(*node_group);
 
   Scene *scene = CTX_data_scene(C);
-  SceneCompositorEffect *active_effect = bke::compositor::get_active_effect(*scene);
-  if (!active_effect) {
-    SceneCompositorEffect &effect = bke::compositor::new_effect(*scene, "Scene Effect");
-    active_effect = &effect;
+
+  SceneCompositorEffect *effect = nullptr;
+  if (PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "effect", RNA_SceneCompositorEffect)) {
+    effect = static_cast<SceneCompositorEffect *>(ctx_ptr.data);
+  }
+  else {
+    effect = bke::compositor::get_active_effect(*scene);
+  }
+  if (!effect) {
+    effect = &bke::compositor::new_effect(*scene, "Scene Effect");
   }
 
-  if (active_effect->node_group) {
-    id_us_min(&active_effect->node_group->id);
+  if (effect->node_group) {
+    id_us_min(&effect->node_group->id);
   }
-  active_effect->node_group = node_group;
+  effect->node_group = node_group;
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
@@ -404,7 +410,7 @@ static void SCENE_OT_new_compositor_effect_node_group(wmOperatorType *ot)
 {
   ot->name = "New Scene Effect Node Group";
   ot->idname = "SCENE_OT_new_compositor_effect_node_group";
-  ot->description = "Create a new compositor node group and assign it to the active scene effect";
+  ot->description = "Create a new compositor node group and assign it to the scene effect";
 
   ot->exec = new_compositor_effect_node_group_exec;
 
@@ -420,7 +426,13 @@ static void SCENE_OT_new_compositor_effect_node_group(wmOperatorType *ot)
 static wmOperatorStatus duplicate_compositor_effect_node_group_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  SceneCompositorEffect *effect = bke::compositor::get_active_effect(*scene);
+  SceneCompositorEffect *effect = nullptr;
+  if (PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "effect", RNA_SceneCompositorEffect)) {
+    effect = static_cast<SceneCompositorEffect *>(ctx_ptr.data);
+  }
+  else {
+    effect = bke::compositor::get_active_effect(*scene);
+  }
   if (!effect) {
     BKE_report(op->reports, RPT_ERROR, "No active effect to duplicate");
     return OPERATOR_CANCELLED;
@@ -454,7 +466,7 @@ static void SCENE_OT_duplicate_compositor_effect_node_group(wmOperatorType *ot)
   ot->name = "Duplicate Scene Effect Node Group";
   ot->idname = "SCENE_OT_duplicate_compositor_effect_node_group";
   ot->description =
-      "Duplicate the active scene effect node group and assign the new node group to the effect";
+      "Duplicate the scene effect node group and assign the new node group to the effect";
 
   ot->exec = duplicate_compositor_effect_node_group_exec;
 

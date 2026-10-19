@@ -3295,6 +3295,13 @@ static void rna_def_mesh(BlenderRNA *brna)
                            "is determined by the symmetry settings.");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
+  prop = RNA_def_property(srna, "use_radial_symmetry", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "symmetry", ME_SYMMETRY_RADIAL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(
+      prop, "Radial Symmetry", "Mirror brush strokes radially around a central axis.");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
   prop = RNA_def_property(srna, "radial_symmetry", PROP_INT, PROP_XYZ);
   RNA_def_property_int_sdna(prop, nullptr, "radial_symmetry");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

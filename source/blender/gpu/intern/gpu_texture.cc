@@ -540,12 +540,6 @@ void *GPU_texture_read(Texture *texture, eGPUDataFormat data_format, int mip_lev
   BLI_assert(texture);
   size_t size = texture->read_size_get(mip_level, data_format);
 
-  /* AMD Pro OpenGL drivers have a bug that write 8 bytes past buffer size
-   * if the texture is big. Note, this seemingly only affects cube map arrays. (see #66573) */
-  if (texture->type_get() == GPU_TEXTURE_CUBE_ARRAY) {
-    size += 8;
-  }
-
   void *data = MEM_new_uninitialized(size, __func__);
   GPU_texture_read(texture, data_format, mip_level, data);
   return data;
@@ -571,7 +565,15 @@ size_t Texture::read_size_get(int mip, eGPUDataFormat format) const
 
   size_t sample_len = extent[0] * std::max(1, extent[1]) * std::max(1, extent[2]);
   size_t sample_size = to_bytesize(format_, format);
-  return sample_len * sample_size;
+  size_t size = sample_len * sample_size;
+
+  /* AMD Pro OpenGL drivers have a bug that write 8 bytes past buffer size
+   * if the texture is big. Note, this seemingly only affects cube map arrays. (see #66573) */
+  if (type_ == GPU_TEXTURE_CUBE_ARRAY) {
+    size += 8;
+  }
+
+  return size;
 }
 
 size_t GPU_texture_read_size_get(const Texture *texture, eGPUDataFormat data_format, int mip_level)
@@ -600,11 +602,6 @@ void GPU_texture_clear(gpu::Texture *tex, eGPUDataFormat data_format, const void
       }
       break;
     case GPU_DATA_UINT:
-      for (int i : IndexRange(comp_len)) {
-        clear_data[i] = static_cast<const uint *>(data)[i];
-      }
-      break;
-    case GPU_DATA_UBYTE:
       for (int i : IndexRange(comp_len)) {
         clear_data[i] = static_cast<const uint *>(data)[i];
       }

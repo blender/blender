@@ -1035,7 +1035,8 @@ static void copy_particle_edit(Depsgraph *depsgraph,
   edit->pathcachebufs.clear_no_delete();
 
   edit->emitter_field = nullptr;
-  edit->emitter_cosnos = nullptr;
+  edit->emitter_cos = nullptr;
+  edit->emitter_nos = nullptr;
 
   edit->points = MEM_dupalloc(edit_from->points);
   pa = psys->particles;

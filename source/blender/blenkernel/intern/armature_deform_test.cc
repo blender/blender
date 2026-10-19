@@ -341,7 +341,7 @@ class ArmatureDeformTestBase {
                                                 float3(1.5f, 0, 1.5f),
                                                 float3(3.5f, 0, 1.5f)};
 
-    /* Curves data type does not support vertext groups. */
+    /* Curves data type does not support vertex groups. */
     const bool vgroups_supported = ELEM(
         target_type, TargetDataType::Mesh, TargetDataType::EditMesh, TargetDataType::GreasePencil);
     /* Might be a bug: Mesh and GreasePencil allows masking even in envelope mode, but EditMesh
@@ -522,7 +522,8 @@ class ArmatureDeformTestBase {
                                              std::nullopt,
                                              deform_mats_opt,
                                              deform_flag,
-                                             defgrp_name);
+                                             defgrp_name,
+                                             *bm);
 
     EXPECT_EQ_SPAN(expected_positions(TargetDataType::EditMesh, weighting, masking),
                    bm_verts_wrapper.as_span());

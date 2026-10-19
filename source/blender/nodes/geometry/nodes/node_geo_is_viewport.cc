@@ -38,6 +38,11 @@ class IsViewportOperation : public NodeOperation {
     result.allocate_single_value();
     result.set_single_value(is_viewport);
   }
+
+  bool uses_asynchronous_execution() const override
+  {
+    return false;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, const bNode &node)

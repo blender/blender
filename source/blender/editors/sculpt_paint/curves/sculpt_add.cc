@@ -58,7 +58,7 @@ using bke::CurvesGeometry;
 class AddOperation : public CurvesSculptStrokeOperation {
  private:
   /** Used when some data should be interpolated from existing curves. */
-  std::unique_ptr<KDTreeNew<float3>> curve_roots_kdtree_;
+  std::unique_ptr<KDTree<float3>> curve_roots_kdtree_;
   /** Root positions #curve_roots_kdtree_ references, which must outlive it. */
   Array<float3> curve_root_positions_;
 
@@ -485,7 +485,7 @@ struct AddOperationExecutor {
       array_utils::gather(positions,
                           offsets.take_front(curves_orig_->curves_num()),
                           self_->curve_root_positions_.as_mutable_span());
-      self_->curve_roots_kdtree_ = std::make_unique<KDTreeNew<float3>>(
+      self_->curve_roots_kdtree_ = std::make_unique<KDTree<float3>>(
           self_->curve_root_positions_.as_span());
     }
   }

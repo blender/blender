@@ -8,14 +8,10 @@
 
 #include "multires_reshape.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_mesh_types.h"
 
 #include "BLI_function_ref.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_matrix_c.hh"
-#include "BLI_math_vector_c.hh"
 #include "BLI_task.hh"
 #include "BLI_utildefines.hh"
 
@@ -775,11 +771,6 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
 /** \name Generation of OpenSubdiv evaluator for topology created form reshape level
  * \{ */
 
-static bool specifies_full_topology(const OpenSubdiv_Converter * /*converter*/)
-{
-  return false;
-}
-
 static void converter_init(const MultiresReshapeSmoothContext *reshape_smooth_context,
                            OpenSubdiv_Converter *converter)
 {
@@ -791,7 +782,6 @@ static void converter_init(const MultiresReshapeSmoothContext *reshape_smooth_co
       bke::subdiv::converter_vtx_boundary_interpolation_from_settings(&settings));
   converter->fvar_linear_interpolation = OpenSubdiv_FVarLinearInterpolation(
       bke::subdiv::converter_fvar_linear_from_settings(&settings));
-  converter->specifiesFullTopology = specifies_full_topology;
 
   converter->verts_num = reshape_smooth_context->geometry.vertices.size();
 
@@ -805,16 +795,6 @@ static void converter_init(const MultiresReshapeSmoothContext *reshape_smooth_co
   converter->edge_sharpness = reshape_smooth_context->geometry.edge_sharpness.as_span().take_front(
       edges_num);
   converter->vert_sharpness = reshape_smooth_context->geometry.vert_sharpness;
-
-  converter->getFaceEdges = nullptr;
-
-  converter->getNumEdgeFaces = nullptr;
-  converter->getEdgeFaces = nullptr;
-
-  converter->getNumVertexEdges = nullptr;
-  converter->getVertexEdges = nullptr;
-  converter->getNumVertexFaces = nullptr;
-  converter->getVertexFaces = nullptr;
 
   converter->freeUserData = nullptr;
 

@@ -211,7 +211,7 @@ BLI_NOINLINE static void update_elimination_mask_for_close_points(
     return;
   }
 
-  const KDTreeNew<float3> tree(positions);
+  const KDTree<float3> tree(positions);
 
   for (const int i : positions.index_range()) {
     if (elimination_mask[i]) {

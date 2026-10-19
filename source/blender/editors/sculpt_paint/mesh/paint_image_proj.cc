@@ -6285,7 +6285,7 @@ void *paint_proj_new_stroke(bContext *C,
   ps_handle->orig_brush_size = BKE_brush_size_get(ps_handle->paint, ps_handle->brush);
 
   Mesh *mesh = BKE_mesh_from_object(ob);
-  ps_handle->symmetry_flags = mesh->symmetry;
+  ps_handle->symmetry_flags = mesh->symmetry & ME_SYMMETRY_XYZ;
   ps_handle->ps_views_tot = 1 + (pow_i(2, count_bits_i(ps_handle->symmetry_flags)) - 1);
   const bool is_multi_view = (ps_handle->ps_views_tot != 1);
 

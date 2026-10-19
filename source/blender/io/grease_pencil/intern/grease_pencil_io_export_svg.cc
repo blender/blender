@@ -138,8 +138,8 @@ class SVGExporter : public GreasePencilExporter {
   pugi::xml_node write_path(pugi::xml_node node,
                             const float4x4 &transform,
                             const Span<float3> positions,
-                            const Span<float3> positions_left,
-                            const Span<float3> positions_right,
+                            const std::optional<Span<float3>> positions_left,
+                            const std::optional<Span<float3>> positions_right,
                             const OffsetIndices<int> points_by_curve,
                             const Span<int> shape,
                             const VArray<bool> &cyclic,
@@ -331,8 +331,8 @@ void SVGExporter::export_grease_pencil_layer(pugi::xml_node layer_node,
   const float4x4 layer_to_world = layer.to_world_space(object);
 
   auto write_shape = [&](const Span<float3> positions,
-                         const Span<float3> positions_left,
-                         const Span<float3> positions_right,
+                         const std::optional<Span<float3>> positions_left,
+                         const std::optional<Span<float3>> positions_right,
                          const OffsetIndices<int> points_by_curve,
                          const Span<int> shape,
                          const VArray<bool> &cyclic,
@@ -452,8 +452,8 @@ pugi::xml_node SVGExporter::write_animation_node(pugi::xml_node parent_node,
 pugi::xml_node SVGExporter::write_path(pugi::xml_node node,
                                        const float4x4 &transform,
                                        const Span<float3> positions,
-                                       const Span<float3> positions_left,
-                                       const Span<float3> positions_right,
+                                       const std::optional<Span<float3>> positions_left,
+                                       const std::optional<Span<float3>> positions_right,
                                        const OffsetIndices<int> points_by_curve,
                                        const Span<int> shape,
                                        const VArray<bool> &cyclic,
@@ -473,7 +473,7 @@ pugi::xml_node SVGExporter::write_path(pugi::xml_node node,
 
     const Span<float3> curve_pos = positions.slice(points);
 
-    if (types[curve_i] != CURVE_TYPE_BEZIER) {
+    if (types[curve_i] != CURVE_TYPE_BEZIER || !positions_left || !positions_right) {
       for (const int i : curve_pos.index_range()) {
         const float2 screen_co = this->project_to_screen(transform, curve_pos[i]);
 
@@ -489,8 +489,8 @@ pugi::xml_node SVGExporter::write_path(pugi::xml_node node,
       }
     }
     else {
-      const Span<float3> curve_pos_right = positions_right.slice(points);
-      const Span<float3> curve_pos_left = positions_left.slice(points);
+      const Span<float3> curve_pos_right = positions_right->slice(points);
+      const Span<float3> curve_pos_left = positions_left->slice(points);
 
       for (const int i : curve_pos.index_range().drop_back(1)) {
         const float2 screen_co = this->project_to_screen(transform, curve_pos[i]);

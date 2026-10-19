@@ -84,7 +84,7 @@ struct Projector {
   Object *ob;          /* object this projector is derived from */
   float projmat[4][4]; /* projection matrix */
   float normal[3];     /* projector normal in world space */
-  void *uci;           /* optional uv-project info (panorama projection) */
+  ProjCameraInfo *uci; /* optional uv-project info (panorama projection) */
 };
 
 static bke::SpanAttributeWriter<float2> get_uv_attribute(Mesh &mesh, const StringRef md_name)
@@ -146,8 +146,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       const Camera *cam = id_cast<const Camera *>(projectors[i].ob->data);
       if (cam->type == CAM_PANO) {
         projectors[i].uci = BKE_uvproject_camera_info(projectors[i].ob, nullptr, aspx, aspy);
-        BKE_uvproject_camera_info_scale(
-            static_cast<ProjCameraInfo *>(projectors[i].uci), scax, scay);
+        BKE_uvproject_camera_info_scale(projectors[i].uci, scax, scay);
         free_uci = true;
       }
       else {
@@ -212,8 +211,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       if (projectors[0].uci) {
         for (const int corner : face) {
           const int vert = corner_verts[corner];
-          BKE_uvproject_from_camera(
-              mloop_uv[corner], coords[vert], static_cast<ProjCameraInfo *>(projectors[0].uci));
+          BKE_uvproject_from_camera(mloop_uv[corner], coords[vert], projectors[0].uci);
         }
       }
       else {
@@ -250,8 +248,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       if (best_projector->uci) {
         for (const int corner : face) {
           const int vert = corner_verts[corner];
-          BKE_uvproject_from_camera(
-              mloop_uv[corner], coords[vert], static_cast<ProjCameraInfo *>(best_projector->uci));
+          BKE_uvproject_from_camera(mloop_uv[corner], coords[vert], best_projector->uci);
         }
       }
       else {
@@ -267,7 +264,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     int j;
     for (j = 0; j < projectors_num; j++) {
       if (projectors[j].uci) {
-        MEM_delete_void(projectors[j].uci);
+        BKE_uvproject_camera_info_free(projectors[j].uci);
       }
     }
   }

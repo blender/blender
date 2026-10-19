@@ -137,7 +137,7 @@ static void init_complex(fftw_complex cmpl, float real, float image)
   cmpl[1] = image;
 }
 
-static void add_comlex_c(fftw_complex res, const fftw_complex cmpl1, const fftw_complex cmpl2)
+static void add_complex_c(fftw_complex res, const fftw_complex cmpl1, const fftw_complex cmpl2)
 {
   res[0] = cmpl1[0] + cmpl2[0];
   res[1] = cmpl1[1] + cmpl2[1];
@@ -435,7 +435,7 @@ static void ocean_compute_htilda(void *__restrict userdata,
     mul_complex_c(exp_param1, o->_h0[i * o->_N + j], exp_param1);
     mul_complex_c(exp_param2, conj_param, exp_param2);
 
-    add_comlex_c(o->_htilda[i * (1 + o->_N / 2) + j], exp_param1, exp_param2);
+    add_complex_c(o->_htilda[i * (1 + o->_N / 2) + j], exp_param1, exp_param2);
     mul_complex_f(o->_fft_in[i * (1 + o->_N / 2) + j], o->_htilda[i * (1 + o->_N / 2) + j], scale);
   }
 }

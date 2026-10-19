@@ -60,7 +60,10 @@ nodes::eval_log::NodesEvalLog *Context::nodes_evaluation_log() const
   return nullptr;
 }
 
-void Context::evaluate_operation_post() const {}
+bool Context::supports_canceling() const
+{
+  return false;
+}
 
 bool Context::is_canceled() const
 {
@@ -85,14 +88,14 @@ float Context::get_time() const
   return frame_number / frame_rate;
 }
 
-eCompositorDenoiseQaulity Context::get_denoise_quality() const
+eCompositorDenoiseQuality Context::get_denoise_quality() const
 {
   if (this->render_context()) {
-    return static_cast<eCompositorDenoiseQaulity>(
+    return static_cast<eCompositorDenoiseQuality>(
         this->get_render_data().compositor_denoise_final_quality);
   }
 
-  return static_cast<eCompositorDenoiseQaulity>(
+  return static_cast<eCompositorDenoiseQuality>(
       this->get_render_data().compositor_denoise_preview_quality);
 }
 

@@ -32,8 +32,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_kdopbvh.hh"
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_linklist.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base_safe.hh"
@@ -105,36 +106,36 @@ static void particle_settings_copy_data(Main * /*bmain*/,
                                         const int /*flag*/)
 {
   ParticleSettings *particle_settings_dst = id_cast<ParticleSettings *>(id_dst);
-  const ParticleSettings *partticle_settings_src = id_cast<const ParticleSettings *>(id_src);
+  const ParticleSettings *particle_settings_src = id_cast<const ParticleSettings *>(id_src);
 
-  particle_settings_dst->pd = BKE_partdeflect_copy(partticle_settings_src->pd);
-  particle_settings_dst->pd2 = BKE_partdeflect_copy(partticle_settings_src->pd2);
+  particle_settings_dst->pd = BKE_partdeflect_copy(particle_settings_src->pd);
+  particle_settings_dst->pd2 = BKE_partdeflect_copy(particle_settings_src->pd2);
   particle_settings_dst->effector_weights = static_cast<EffectorWeights *>(
-      MEM_dupalloc(partticle_settings_src->effector_weights));
+      MEM_dupalloc(particle_settings_src->effector_weights));
   particle_settings_dst->fluid = static_cast<SPHFluidSettings *>(
-      MEM_dupalloc(partticle_settings_src->fluid));
+      MEM_dupalloc(particle_settings_src->fluid));
 
-  if (partticle_settings_src->clumpcurve) {
-    particle_settings_dst->clumpcurve = BKE_curvemapping_copy(partticle_settings_src->clumpcurve);
+  if (particle_settings_src->clumpcurve) {
+    particle_settings_dst->clumpcurve = BKE_curvemapping_copy(particle_settings_src->clumpcurve);
   }
-  if (partticle_settings_src->roughcurve) {
-    particle_settings_dst->roughcurve = BKE_curvemapping_copy(partticle_settings_src->roughcurve);
+  if (particle_settings_src->roughcurve) {
+    particle_settings_dst->roughcurve = BKE_curvemapping_copy(particle_settings_src->roughcurve);
   }
-  if (partticle_settings_src->twistcurve) {
-    particle_settings_dst->twistcurve = BKE_curvemapping_copy(partticle_settings_src->twistcurve);
+  if (particle_settings_src->twistcurve) {
+    particle_settings_dst->twistcurve = BKE_curvemapping_copy(particle_settings_src->twistcurve);
   }
 
-  particle_settings_dst->boids = boid_copy_settings(partticle_settings_src->boids);
+  particle_settings_dst->boids = boid_copy_settings(particle_settings_src->boids);
 
   for (int a = 0; a < MAX_MTEX; a++) {
-    if (partticle_settings_src->mtex[a]) {
+    if (particle_settings_src->mtex[a]) {
       particle_settings_dst->mtex[a] = static_cast<MTex *>(
-          MEM_dupalloc(partticle_settings_src->mtex[a]));
+          MEM_dupalloc(particle_settings_src->mtex[a]));
     }
   }
 
   BLI_duplicatelist(&particle_settings_dst->instance_weights,
-                    &partticle_settings_src->instance_weights);
+                    &particle_settings_src->instance_weights);
 }
 
 static void particle_settings_free_data(ID *id)
@@ -1032,7 +1033,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
     psys->targets.free_no_destruct();
 
     BLI_bvhtree_free(psys->bvhtree);
-    kdtree_free<float3>(psys->tree);
+    MEM_delete(psys->tree);
 
     if (psys->fluid_springs) {
       MEM_delete(psys->fluid_springs);
@@ -2615,7 +2616,6 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
 {
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = sim->psys->part;
-  KDTree<float3> *tree;
   ChildParticle *cpa;
   ParticleTexture ptex;
   int p, totparent, totchild = sim->psys->totchild;
@@ -2630,7 +2630,8 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
   /* hard limit, workaround for it being ignored above */
   totparent = std::min(sim->psys->totpart, totparent);
 
-  tree = kdtree_new<float3>(totparent);
+  Array<float3> parent_orcos(totparent);
+  Vector<int> parents;
 
   for (p = 0, cpa = sim->psys->child; p < totparent; p++, cpa++) {
     psys_particle_on_emitter(sim->psmd,
@@ -2660,11 +2661,12 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
                     psys->cfra);
 
     if (ptex.exist >= psys_frand(psys, p + 24)) {
-      kdtree_insert<float3>(tree, p, orco);
+      parent_orcos[p] = orco;
+      parents.append(p);
     }
   }
 
-  kdtree_balance<float3>(tree);
+  const KDTree<float3> tree(parent_orcos, parents);
 
   for (; p < totchild; p++, cpa++) {
     psys_particle_on_emitter(sim->psmd,
@@ -2678,10 +2680,8 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
                              nullptr,
                              nullptr,
                              orco);
-    cpa->parent = kdtree_find_nearest<float3>(tree, orco, nullptr);
+    cpa->parent = tree.find_nearest(orco);
   }
-
-  kdtree_free<float3>(tree);
 }
 
 static bool psys_thread_context_init_path(ParticleThreadContext *ctx,

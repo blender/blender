@@ -633,18 +633,9 @@ class Context : public compositor::Context {
     return this->get_scene().runtime->compositor.nodes_evaluation_log.get();
   }
 
-  void evaluate_operation_post() const override
+  bool supports_canceling() const override
   {
-    /* If the compositor is executing due to a user edit the node tree, we wait until the operation
-     * finishes executing on the GPU before we continue to improve interactivity. The improvement
-     * comes from the fact that the user might be rapidly changing values, so we need to cancel
-     * previous evaluations to make editing faster, but we can't do that if all operations are
-     * submitted to the GPU all at once, and we can't cancel work that was already submitted to the
-     * GPU. This does have a performance penalty, but in practice, the improved interactivity is
-     * worth it according to user feedback. */
-    if (this->use_gpu() && input_data_.triggered_by_user) {
-      GPU_finish();
-    }
+    return input_data_.triggered_by_user;
   }
 
   bool is_canceled() const override

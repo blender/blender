@@ -19,7 +19,7 @@ void node_bsdf_glass(float4 color,
                      float /*thin_film_thickness*/,
                      float /*thin_film_ior*/,
                      const float do_multiscatter,
-                     [[resource_table]] KernelGlobals &kg,
+                     KernelGlobals &kg,
                      ShadingData &sd,
                      Closure &result)
 {

@@ -345,8 +345,17 @@ class TOPBAR_MT_file_project(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("project.new_project", text="New Project...", icon='ADD')
-        layout.operator("project.open_blend_in_project", icon='FILE_FOLDER')
+        layout.operator("project.new", text="New...", icon='ADD')
+        layout.operator("project.open", text="Open...", icon='FILE_FOLDER')
+        layout.operator("project.close", text="Close")
+
+        layout.separator()
+
+        if layout.template_recent_projects(rows=10):
+            layout.separator()
+            layout.operator("wm.clear_recent_projects", text="Clear Recent Projects List...", icon='TRASH')
+        else:
+            layout.label(text="No Recent Projects")
 
 
 # Include technical operators here which would otherwise have no way for users to access.
@@ -386,34 +395,62 @@ class TOPBAR_MT_file_import(Menu):
         FileHandler = bpy.types.FileHandler
         if bpy.app.build_options.alembic:
             self.layout.operator(
-                "wm.alembic_import", text=FileHandler.label_with_extensions("IO_FH_alembic"))
+                "wm.alembic_import",
+                text=FileHandler.label_with_extensions("IO_FH_alembic"),
+                translate=False,
+            )
         if bpy.app.build_options.usd:
             self.layout.operator(
-                "wm.usd_import", text=FileHandler.label_with_extensions("IO_FH_usd"))
+                "wm.usd_import",
+                text=FileHandler.label_with_extensions("IO_FH_usd"),
+                translate=False,
+            )
 
         if bpy.app.build_options.io_gpencil:
             self.layout.operator(
                 "wm.grease_pencil_import_svg",
-                text=FileHandler.label_with_extensions("IO_FH_grease_pencil_svg"))
+                text=FileHandler.label_with_extensions("IO_FH_grease_pencil_svg"),
+                translate=False,
+            )
 
         if bpy.app.build_options.io_wavefront_obj:
             self.layout.operator(
-                "wm.obj_import", text=FileHandler.label_with_extensions("IO_FH_obj"))
+                "wm.obj_import",
+                text=FileHandler.label_with_extensions("IO_FH_obj"),
+                translate=False,
+            )
         if bpy.app.build_options.io_ply:
             self.layout.operator(
-                "wm.ply_import", text=FileHandler.label_with_extensions("IO_FH_ply"))
+                "wm.ply_import",
+                text=FileHandler.label_with_extensions("IO_FH_ply"),
+                translate=False,
+            )
         if bpy.app.build_options.io_spz:
-            self.layout.operator("wm.spz_import", text=FileHandler.label_with_extensions("IO_FH_spz"))
+            self.layout.operator(
+                "wm.spz_import",
+                text=FileHandler.label_with_extensions("IO_FH_spz"),
+                translate=False,
+            )
         if bpy.app.build_options.io_stl:
             self.layout.operator(
-                "wm.stl_import", text=FileHandler.label_with_extensions("IO_FH_stl"))
+                "wm.stl_import",
+                text=FileHandler.label_with_extensions("IO_FH_stl"),
+                translate=False,
+            )
 
         if bpy.app.build_options.io_fbx:
             self.layout.operator(
-                "wm.fbx_import", text=FileHandler.label_with_extensions("IO_FH_fbx"))
+                "wm.fbx_import",
+                text=FileHandler.label_with_extensions("IO_FH_fbx"),
+                translate=False,
+            )
 
         if bpy.app.build_options.opentimelineio:
-            self.layout.operator("wm.otio_import", text="OpenTimelineIO (.otio)")
+            self.layout.operator(
+                "wm.otio_import",
+                text=FileHandler.label_with_extensions("IO_FH_otio"),
+                translate=False,
+            )
 
 
 class TOPBAR_MT_file_export(Menu):
@@ -432,10 +469,16 @@ class TOPBAR_MT_file_export(Menu):
 
         if bpy.app.build_options.alembic:
             self.layout.operator(
-                "wm.alembic_export", text=FileHandler.label_with_extensions("IO_FH_alembic"))
+                "wm.alembic_export",
+                text=FileHandler.label_with_extensions("IO_FH_alembic"),
+                translate=False,
+            )
         if bpy.app.build_options.usd:
             self.layout.operator(
-                "wm.usd_export", text=FileHandler.label_with_extensions("IO_FH_usd"))
+                "wm.usd_export",
+                text=FileHandler.label_with_extensions("IO_FH_usd"),
+                translate=False,
+            )
 
         if bpy.app.build_options.io_gpencil:
             # PUGIXML library dependency.
@@ -447,15 +490,28 @@ class TOPBAR_MT_file_export(Menu):
 
         if bpy.app.build_options.io_wavefront_obj:
             self.layout.operator(
-                "wm.obj_export", text=FileHandler.label_with_extensions("IO_FH_obj"))
+                "wm.obj_export",
+                text=FileHandler.label_with_extensions("IO_FH_obj"),
+                translate=False,
+            )
         if bpy.app.build_options.io_ply:
             self.layout.operator(
-                "wm.ply_export", text=FileHandler.label_with_extensions("IO_FH_ply"))
+                "wm.ply_export",
+                text=FileHandler.label_with_extensions("IO_FH_ply"),
+                translate=False,
+            )
         if bpy.app.build_options.io_stl:
             self.layout.operator(
-                "wm.stl_export", text=FileHandler.label_with_extensions("IO_FH_stl"))
+                "wm.stl_export",
+                text=FileHandler.label_with_extensions("IO_FH_stl"),
+                translate=False,
+            )
         if bpy.app.build_options.opentimelineio:
-            self.layout.operator("wm.otio_export", text="OpenTimelineIO (.otio)")
+            self.layout.operator(
+                "wm.otio_export",
+                text=FileHandler.label_with_extensions("IO_FH_otio"),
+                translate=False,
+            )
 
 
 class TOPBAR_MT_file_external_data(Menu):
@@ -596,6 +652,7 @@ class TOPBAR_MT_edit(Menu):
 
 class TOPBAR_MT_project(Menu):
     bl_label = "Project"
+    bl_translation_context = i18n_contexts.editor_preferences
 
     def draw(self, _context):
         layout = self.layout
@@ -721,6 +778,11 @@ class TOPBAR_MT_workspace_menu(Menu):
         layout.separator()
 
         layout.operator("workspace.reorder_to_front", text="Reorder to Front", icon='TRIA_LEFT_BAR')
+        layout.operator("workspace.reorder_to_left_right", text="Reorder to Left", icon='TRIA_LEFT').direction = 'LEFT'
+        layout.operator(
+            "workspace.reorder_to_left_right",
+            text="Reorder to Right",
+            icon='TRIA_RIGHT').direction = 'RIGHT'
         layout.operator("workspace.reorder_to_back", text="Reorder to Back", icon='TRIA_RIGHT_BAR')
 
         layout.separator()

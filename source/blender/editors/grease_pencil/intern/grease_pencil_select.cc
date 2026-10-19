@@ -304,7 +304,7 @@ bool selection_update(const ViewContext *vc,
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
      * generic attribute for now. */
     DEG_id_tag_update(object->data, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(vc->C, NC_GEOM | ND_DATA, object->data);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, object->data);
   }
 
   return changed;

@@ -230,14 +230,12 @@ static Vector<MeshToBMeshLayerInfo> mesh_to_bm_copy_info_calc(const Mesh &mesh,
     if (attr && attr->domain() == domain) {
       switch (attr->storage_type()) {
         case bke::AttrStorageType::Array: {
-          const auto &array_data = std::get<bke::Attribute::ArrayData>(attr->data());
-          info.mesh_data = array_data.data;
+          info.mesh_data = std::get<GSpan>(attr->data().values()).data();
           info.mesh_stride = bke::attribute_type_to_cpp_type(attr->data_type()).size;
           break;
         }
         case bke::AttrStorageType::Single: {
-          const auto &single_data = std::get<bke::Attribute::SingleData>(attr->data());
-          info.mesh_data = single_data.value;
+          info.mesh_data = std::get<GPointer>(attr->data().values()).get();
           info.mesh_stride = 0;
           break;
         }
@@ -1245,7 +1243,7 @@ static Vector<BMeshToMeshLayerInfo> bm_to_mesh_copy_info_calc(const CustomData &
     BMeshToMeshLayerInfo info{};
     info.type = cd_type;
     info.bmesh_offset = bm_layer.offset;
-    info.mesh_data = std::get<bke::Attribute::ArrayData>(attr.data_for_write()).data;
+    info.mesh_data = std::get<GMutableSpan>(attr.data().values_for_write()).data();
     info.elem_size = bke::attribute_type_to_cpp_type(attr.data_type()).size;
     infos.append(info);
   }
@@ -1395,9 +1393,7 @@ class AttrSingleValueChecker {
     can_be_single_.reinitialize(attrs_.size());
     for (const int attr_i : attrs_.index_range()) {
       BLI_assert(attrs_[attr_i]->storage_type() == bke::AttrStorageType::Array);
-      const auto &data = std::get<bke::Attribute::ArrayData>(attrs_[attr_i]->data());
-      const CPPType &type = bke::attribute_type_to_cpp_type(attrs_[attr_i]->data_type());
-      spans_[attr_i] = GSpan(type, data.data, data.size);
+      spans_[attr_i] = std::get<GSpan>(attrs_[attr_i]->data().values());
       can_be_single_[attr_i] = attrs_[attr_i]->data_type() != bke::AttrType::String;
     }
   }
@@ -1432,7 +1428,8 @@ class AttrSingleValueChecker {
       }
       if (can_be_single_[attr_i]) {
         const GPointer value(spans_[attr_i].type(), spans_[attr_i][0]);
-        attrs_[attr_i]->assign_data(bke::Attribute::SingleData::from_value(value));
+        attrs_[attr_i]->assign_data(bke::GList(
+            *value.type(), bke::GList::SingleData::ForValue(value), spans_[attr_i].size()));
       }
     }
   }

@@ -53,10 +53,10 @@ USE_ADDON_IGNORE_EXTENSION_MANIFEST_HACK = True
 def size_as_fmt_string(num: float, *, precision: int = 1) -> str:
     for unit in ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB"):
         if abs(num) < 1024.0:
-            return "{:3.{:d}f}{:s}".format(num, precision, unit)
+            return "{:3.{:d}f} {:s}".format(num, precision, unit)
         num /= 1024.0
     unit = "YB"
-    return "{:.{:d}f}{:s}".format(num, precision, unit)
+    return "{:.{:d}f} {:s}".format(num, precision, unit)
 
 
 def sizes_as_percentage_string(size_partial: int, size_final: int) -> str:
@@ -1480,7 +1480,7 @@ def extension_draw_item(
         else:
             col_b.label(text=item.version, translate=False)
 
-        if has_remote and (item_remote is not None):
+        if item.type == "add-on" and has_remote and (item_remote is not None):
             col_a.label(text="Size")
             col_b.label(text=size_as_fmt_string(item_remote.archive_size), translate=False)
 

@@ -8,7 +8,7 @@
 
 [[node]]
 void node_object_info(float mat_index,
-                      [[resource_table]] KernelGlobals &kg,
+                      KernelGlobals &kg,
                       ShadingData &sd,
                       float3 &location,
                       float4 &color,

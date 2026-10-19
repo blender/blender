@@ -14,6 +14,12 @@ ExternalProject_Add(external_thorvg
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/thorvg
 
+  # Remove ThorVG's replacement of the global `operator new` and `operator delete`, which would
+  # otherwise apply to all C++ code linked into Blender.
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -N -d
+    ${BUILD_DIR}/thorvg/src/external_thorvg <
+    ${PATCH_DIR}/thorvg.diff
+
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     ${MESON} setup
       --prefix ${LIBDIR}/thorvg

@@ -13,7 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 /* Define macros in `DNA_genfile.h`. */
-#define DNA_GENFILE_VERSIONING_MACROS
+#define DNA_GENFILE_VERSIONING_MACROS_LEGACY
 
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"

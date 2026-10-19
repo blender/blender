@@ -10,7 +10,7 @@
 void node_output_aov(float4 color,
                      float value,
                      float hash,
-                     [[resource_table]] KernelGlobals &kg,
+                     KernelGlobals &kg,
                      const ShadingData &sd,
                      Closure & /*dummy*/)
 {

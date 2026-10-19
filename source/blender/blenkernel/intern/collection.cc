@@ -262,6 +262,14 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(
         data, parent.collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
   }
+
+  /* Clear the archive library pointer when the library is deleted. */
+  if (collection->importer && collection->importer->runtime) {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data,
+                                      collection->importer->runtime->archive_library,
+                                      IDWALK_CB_NEVER_SELF | IDWALK_CB_READFILE_IGNORE |
+                                          IDWALK_CB_WRITEFILE_IGNORE);
+  }
 }
 
 static ID **collection_owner_pointer_get(ID *id, const bool debug_relationship_assert)
@@ -430,7 +438,7 @@ static void collection_blend_read_after_liblink(BlendLibReader * /*reader*/, ID 
 IDTypeInfo IDType_ID_GR = {
     .id_code = Collection::id_type,
     .id_filter = FILTER_ID_GR,
-    .dependencies_id_types = FILTER_ID_OB | FILTER_ID_GR,
+    .dependencies_id_types = FILTER_ID_OB | FILTER_ID_GR | FILTER_ID_LI,
     .main_listbase_index = INDEX_ID_GR,
     .struct_size = sizeof(Collection),
     .name = "Collection",

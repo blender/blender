@@ -19,7 +19,7 @@
 
 namespace blender {
 
-struct BMEditMesh;
+struct BMesh;
 struct BPoint;
 struct Depsgraph;
 struct Lattice;
@@ -38,11 +38,11 @@ void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du);
 void outside_lattice(Lattice *lt);
 
 Array<float3> BKE_lattice_vert_coords_alloc(const Lattice *lt);
-void BKE_lattice_vert_coords_get(const Lattice *lt, MutableSpan<float3> vert_coordss);
+void BKE_lattice_vert_coords_get(const Lattice *lt, MutableSpan<float3> vert_coords);
 void BKE_lattice_vert_coords_apply_with_mat4(Lattice *lt,
-                                             Span<float3> vert_coordss,
+                                             Span<float3> vert_coords,
                                              const float4x4 &transform);
-void BKE_lattice_vert_coords_apply(Lattice *lt, Span<float3> vert_coordss);
+void BKE_lattice_vert_coords_apply(Lattice *lt, Span<float3> vert_coords);
 void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob);
 
 MDeformVert *BKE_lattice_deform_verts_get(const Object *oblatt);
@@ -111,7 +111,7 @@ void BKE_lattice_deform_coords_with_editmesh(const Object *ob_lattice,
                                              short flag,
                                              const char *defgrp_name,
                                              float fac,
-                                             const BMEditMesh *em_target);
+                                             const BMesh &bm_target);
 
 /** \} */
 

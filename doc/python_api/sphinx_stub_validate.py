@@ -6,9 +6,9 @@
 """
 Validate Python type stubs (.pyi) produced by ``sphinx_stub_gen.py``.
 
-Two checks are performed:
+The following checks are performed:
 
-- Syntactic: each ``.pyi`` is fed through :func:`compile`.
+- Static: each ``.pyi`` is parsed & compiled, each name it references must be defined, imported or a builtin.
 - Semantic: each module is loaded via a custom ``.pyi`` finder, surfacing
   base-class and module-level evaluation errors (e.g. references to undefined
   names from class bases or non-trivial defaults).
@@ -21,51 +21,121 @@ __all__ = (
 )
 
 import argparse
+import ast
+import builtins
 import contextlib
 import importlib
 import importlib.abc
 import importlib.machinery
 import importlib.util
 import sys
+import traceback
 import types
 
-from collections.abc import Iterator, Sequence
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Sequence,
+)
 from pathlib import Path
 
 
-def discover_stubs(stubs_dir: Path) -> tuple[list[Path], list[str]]:
+def stub_module_names(stubs_dir: Path, stub_paths: list[Path]) -> list[str]:
+    """Return the dotted module name for each ``__init__.pyi`` (top-level ``__init__.pyi`` excluded)."""
+    return [
+        ".".join(pyi.parent.relative_to(stubs_dir).parts)
+        for pyi in stub_paths
+        if pyi.name == "__init__.pyi" and pyi.parent != stubs_dir
+    ]
+
+
+# Generated stubs don't use `lambda`, so it's not treated as a scope.
+FunctionNode = ast.FunctionDef | ast.AsyncFunctionDef
+ScopeNode = ast.ClassDef | FunctionNode
+
+
+def scope_args(args: ast.arguments) -> list[ast.arg]:
+    """Return all arguments of a function."""
+    return [
+        *args.posonlyargs, *args.args, *args.kwonlyargs,
+        *(arg for arg in (args.vararg, args.kwarg) if arg is not None),
+    ]
+
+
+def scope_outer_nodes(node: ScopeNode) -> list[ast.AST]:
+    """Return nodes of *node* evaluated in the enclosing scope (decorators, bases, annotations & defaults)."""
+    if isinstance(node, ast.ClassDef):
+        return [*node.decorator_list, *node.bases, *node.keywords]
+    args = node.args
+    nodes: list[ast.AST] = [*node.decorator_list, *args.defaults, *(v for v in args.kw_defaults if v is not None)]
+    nodes += (arg.annotation for arg in scope_args(args) if arg.annotation is not None)
+    if node.returns is not None:
+        nodes.append(node.returns)
+    return nodes
+
+
+def iter_scope_nodes(nodes: Iterable[ast.AST]) -> Iterator[ast.AST]:
+    """Walk *nodes* and their children, without descending into the bodies of nested scopes."""
+    for node in nodes:
+        yield node
+        if isinstance(node, ScopeNode):
+            yield from iter_scope_nodes(scope_outer_nodes(node))
+        else:
+            yield from iter_scope_nodes(ast.iter_child_nodes(node))
+
+
+def find_undefined_names(nodes: Iterable[ast.AST], visible: set[str]) -> Iterator[ast.Name]:
     """
-    Walk *stubs_dir* once and return ``(stub_paths, module_names)``, both sorted.
-
-    *stub_paths* lists every ``.pyi`` file. *module_names* contains the dotted
-    module name for each ``__init__.pyi`` (top-level ``__init__.pyi`` excluded).
+    Yield names loaded in the scope containing *nodes* that aren't defined there or in *visible*.
+    Names an enclosing scope defines are visible to nested scopes (as with annotations in a class body).
     """
-    stub_paths: list[Path] = []
-    module_names: list[str] = []
-    for pyi in sorted(stubs_dir.rglob("*.pyi")):
-        stub_paths.append(pyi)
-        if pyi.name == "__init__.pyi":
-            rel = pyi.parent.relative_to(stubs_dir)
-            if rel.parts:
-                module_names.append(".".join(rel.parts))
-    return stub_paths, module_names
+    scope_nodes = list(iter_scope_nodes(nodes))
+    defined = set(visible)
+    for node in scope_nodes:
+        if isinstance(node, ScopeNode):
+            defined.add(node.name)
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            for alias in node.names:
+                defined.add((alias.asname or alias.name).partition(".")[0])
+        elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+            defined.add(node.id)
+    for node in scope_nodes:
+        if isinstance(node, ast.Name):
+            if isinstance(node.ctx, ast.Load) and node.id not in defined:
+                yield node
+        elif isinstance(node, ast.ClassDef):
+            yield from find_undefined_names(node.body, defined)
+        elif isinstance(node, FunctionNode):
+            yield from find_undefined_names(node.body, defined | {arg.arg for arg in scope_args(node.args)})
 
 
-def validate_stubs_syntactically(stub_paths: list[Path]) -> list[str]:
-    """Run :func:`compile` on each path; return error messages (empty on success).
+def validate_stubs_statically(stub_paths: list[Path]) -> list[str]:
+    """
+    Parse & compile each path once, return error messages (empty on success).
 
-    Catches read errors (``OSError``), decoding errors (``UnicodeDecodeError``,
-    ``ValueError`` for null bytes), and parse errors (``SyntaxError``) - each
-    is recorded rather than propagated.
+    Catches read errors (``OSError``), decoding errors (``UnicodeDecodeError``, a ``ValueError``)
+    and parse errors (``SyntaxError``, including null bytes) - each is recorded rather than propagated.
+
+    Names referenced but not defined in their stub are also reported,
+    since the semantic check can't detect these as annotations aren't evaluated at runtime.
     """
     errors: list[str] = []
+    builtin_names = set(dir(builtins))
     for pyi_path in stub_paths:
         try:
-            compile(pyi_path.read_text(encoding="utf-8"), str(pyi_path), "exec")
+            tree = ast.parse(pyi_path.read_text(encoding="utf-8"), str(pyi_path))
+            # Reports errors `ast.parse` doesn't, e.g. duplicate argument names.
+            compile(tree, str(pyi_path), "exec")
         except SyntaxError as ex:
             errors.append("{:s}:{:d}: {:s}".format(str(pyi_path), ex.lineno or 0, str(ex.msg)))
+            continue
         except (OSError, ValueError) as ex:
             errors.append("{:s}: {:s}: {:s}".format(str(pyi_path), type(ex).__name__, str(ex)))
+            continue
+        # Report each name once per line.
+        undefined = sorted({(node.lineno, node.id) for node in find_undefined_names(tree.body, builtin_names)})
+        for lineno, name in undefined:
+            errors.append("{:s}:{:d}: name not defined: {:s}".format(str(pyi_path), lineno, name))
     return errors
 
 
@@ -83,39 +153,82 @@ class PyiFinder(importlib.abc.MetaPathFinder):
         /,
     ) -> importlib.machinery.ModuleSpec | None:
         del path, target
-        parts = fullname.split(".")
-        pkg_init = self.base.joinpath(*parts, "__init__.pyi")
-        if pkg_init.is_file():
-            loader = importlib.machinery.SourceFileLoader(fullname, str(pkg_init))
-            spec = importlib.util.spec_from_loader(fullname, loader)
-            if spec is not None:
-                spec.submodule_search_locations = [str(pkg_init.parent)]
-            return spec
-        return None
+        pkg_init = self.base.joinpath(*fullname.split("."), "__init__.pyi")
+        if not pkg_init.is_file():
+            return None
+        return importlib.util.spec_from_file_location(
+            fullname,
+            pkg_init,
+            loader=importlib.machinery.SourceFileLoader(fullname, str(pkg_init)),
+            submodule_search_locations=[str(pkg_init.parent)],
+        )
+
+
+@contextlib.contextmanager
+def sys_meta_path_insert_context(finder: importlib.abc.MetaPathFinder) -> Iterator[None]:
+    """Temporarily insert *finder* at the start of ``sys.meta_path``."""
+    sys.meta_path.insert(0, finder)
+    try:
+        yield
+    finally:
+        with contextlib.suppress(ValueError):
+            sys.meta_path.remove(finder)
+
+
+@contextlib.contextmanager
+def sys_modules_remove_context(module_names: list[str]) -> Iterator[None]:
+    """
+    Temporarily remove *module_names* from ``sys.modules``.
+
+    On exit, modules imported with these names are removed & the original modules restored.
+    """
+    modules_orig = {name: sys.modules.pop(name) for name in module_names if name in sys.modules}
+    try:
+        yield
+    finally:
+        for name in module_names:
+            sys.modules.pop(name, None)
+        sys.modules.update(modules_orig)
+
+
+@contextlib.contextmanager
+def backup_attrs_and_assign_multi(
+        *obj_attrs: tuple[object, dict[str, object]],
+) -> Iterator[None]:
+    """
+    Context manager that saves and assigns attributes on multiple objects,
+    restoring all originals on exit.
+
+    Each argument is a ``(obj, {attr: value, ...})`` pair.
+    """
+    saved: list[tuple[object, dict[str, object]]] = []
+    try:
+        for obj, attrs in obj_attrs:
+            saved.append((obj, {attr: getattr(obj, attr) for attr in attrs}))
+            for attr, value in attrs.items():
+                setattr(obj, attr, value)
+        yield
+    finally:
+        for obj, attrs in saved:
+            for attr, value in attrs.items():
+                setattr(obj, attr, value)
 
 
 @contextlib.contextmanager
 def stub_import_context(stubs_dir: Path, module_names: list[str]) -> Iterator[None]:
     """
-    Temporarily install a ``.pyi`` finder and clear *module_names* from ``sys.modules``.
+    Temporarily import *module_names* from the ``.pyi`` stubs under *stubs_dir*.
 
-    Restores both on exit so that ``sys.meta_path`` and ``sys.modules`` are not
-    permanently mutated. Safe to nest and re-enter.
+    ``sys.meta_path``, ``sys.modules`` & ``sys.dont_write_bytecode`` are restored on exit.
     """
-    finder = PyiFinder(stubs_dir.resolve())
-    sys.meta_path.insert(0, finder)
-    # Drop any pre-existing entries (real Blender modules) so the finder is consulted.
-    for name in module_names:
-        sys.modules.pop(name, None)
-    try:
+    with (
+            sys_meta_path_insert_context(PyiFinder(stubs_dir)),
+            # Drop any pre-existing entries (real Blender modules) so the finder is consulted.
+            sys_modules_remove_context(module_names),
+            # Don't write byte-code (`__pycache__`) into the stubs directory.
+            backup_attrs_and_assign_multi((sys, {"dont_write_bytecode": True})),
+    ):
         yield
-    finally:
-        try:
-            sys.meta_path.remove(finder)
-        except ValueError:
-            pass  # Already removed by something else; nothing to undo.
-        for name in module_names:
-            sys.modules.pop(name, None)
 
 
 def validate_stubs_semantically(
@@ -125,13 +238,9 @@ def validate_stubs_semantically(
     """
     Import each stub module from *stubs_dir*; return error messages.
 
-    Uses :func:`stub_import_context` so ``sys.meta_path`` and ``sys.modules``
-    are restored after the call. ``typing.TYPE_CHECKING`` is intentionally left
-    ``False`` so that cross-stub imports under ``if TYPE_CHECKING:`` blocks do
-    not execute - this is what allows cycles to break at runtime. The check
-    therefore validates "every stub is importable in isolation", which catches
-    base-class and module-level evaluation errors (the bugs runtime-importing
-    actually surfaces).
+    ``typing.TYPE_CHECKING`` is intentionally left ``False`` so that cross-stub imports
+    under ``if TYPE_CHECKING:`` blocks do not execute - this is what allows cycles to break at runtime.
+    The check therefore validates "every stub is importable in isolation".
     """
     errors: list[str] = []
     with stub_import_context(stubs_dir, module_names):
@@ -139,43 +248,43 @@ def validate_stubs_semantically(
             try:
                 importlib.import_module(name)
             except Exception as ex:
-                errors.append("{:s}: {:s}: {:s}".format(name, type(ex).__name__, str(ex)))
-    return errors
+                # Locate the error in the innermost stub frame, e.g. the class with an invalid base.
+                frames = [frame for frame in traceback.extract_tb(ex.__traceback__) if frame.filename.endswith(".pyi")]
+                location = "{:s}:{:d}".format(frames[-1].filename, frames[-1].lineno or 0) if frames else name
+                errors.append("{:s}: {:s}: {:s}".format(location, type(ex).__name__, str(ex)))
+    # Stubs importing a failing stub report the same error.
+    return list(dict.fromkeys(errors))
+
+
+def report_errors(title: str, errors: list[str]) -> bool:
+    """Write *errors* under *title* to ``stderr``, return True when there are errors."""
+    if not errors:
+        return False
+    print("\n{:s}:".format(title), file=sys.stderr)
+    for err in errors:
+        print("  {:s}".format(err), file=sys.stderr)
+    return True
 
 
 def validate_stubs(
     stubs_dir: Path,
     stub_paths: list[Path],
-    module_names: list[str],
     *,
     verbose: bool = False,
 ) -> int:
     """
-    Run syntax and semantic validation against the given stubs.
-
-    Steps:
-
-    - Syntax: each path in *stub_paths* is compiled via :func:`compile`.
-    - Semantic: each name in *module_names* is imported via a temporary ``.pyi`` finder rooted at *stubs_dir*.
+    Run the checks (see module docstring) against *stub_paths* under *stubs_dir*.
 
     On any error, details are written to ``stderr`` and the function returns ``1``.
-    On success, returns ``0``. The semantic step is skipped if syntax errors are present.
+    On success, returns ``0``. The semantic step is skipped if static errors are present.
     """
     if verbose:
         print("Checking {:d} stub(s) under {:s}".format(len(stub_paths), str(stubs_dir)))
 
-    syntax_errors = validate_stubs_syntactically(stub_paths)
-    if syntax_errors:
-        print("\nStub syntax errors:", file=sys.stderr)
-        for err in syntax_errors:
-            print("  {:s}".format(err), file=sys.stderr)
+    if report_errors("Stub static errors", validate_stubs_statically(stub_paths)):
         return 1
-
-    semantic_errors = validate_stubs_semantically(stubs_dir, module_names)
-    if semantic_errors:
-        print("\nStub semantic errors:", file=sys.stderr)
-        for err in semantic_errors:
-            print("  {:s}".format(err), file=sys.stderr)
+    module_names = stub_module_names(stubs_dir, stub_paths)
+    if report_errors("Stub semantic errors", validate_stubs_semantically(stubs_dir, module_names)):
         return 1
 
     if verbose:
@@ -193,7 +302,7 @@ def main() -> int:
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true",
-        help="Show per-stub progress.",
+        help="Report the number of stubs checked.",
     )
     args = parser.parse_args()
 
@@ -202,12 +311,12 @@ def main() -> int:
         print("Error: stubs directory not found: {:s}".format(str(stubs_dir)), file=sys.stderr)
         return 1
 
-    stub_paths, module_names = discover_stubs(stubs_dir)
+    stub_paths = sorted(stubs_dir.rglob("*.pyi"))
     if not stub_paths:
         print("Error: no .pyi files found under {:s}".format(str(stubs_dir)), file=sys.stderr)
         return 1
 
-    return validate_stubs(stubs_dir, stub_paths, module_names, verbose=args.verbose)
+    return validate_stubs(stubs_dir, stub_paths, verbose=args.verbose)
 
 
 if __name__ == "__main__":

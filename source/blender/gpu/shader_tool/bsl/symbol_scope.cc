@@ -57,7 +57,10 @@ Result<SymbolFunction *> SymbolScope::lookup_function(const SymbolTable &table,
     /* Try to resolve type constructors (only for builtins for now). */
     if (auto [cls, err_cls] = lookup_class(table, id); !cls->is_error && cls && cls->is_builtin())
     {
-      return {table.root->lookup_function(cls->identifier), {}};
+      /* Some builtin types have no constructor (e.g. `bool32_t`). */
+      if (SymbolFunction *ctor = table.root->lookup_function(cls->identifier)) {
+        return {ctor, {}};
+      }
     }
     return {func, err ? err : AstNodeException{id, Diag::UnknownFunction, string(id.str())}};
   }
@@ -109,6 +112,9 @@ Result<SymbolClass *> SymbolScope::lookup_class(const SymbolTable &table,
 {
   LOOKUP_LOG("\n")
   SymbolClass *cls = lookup_generic_nested<SymbolClass>(table, id, last, loc.value_or(id.front()));
+  if (cls == nullptr) {
+    return {table.err_cls, std::nullopt};
+  }
   return resolve_template_instantiation(table, cls, last, *this);
 }
 
@@ -137,7 +143,7 @@ std::pair<ast::FuncForwardDecl, SymbolFunction *> SymbolScope::lookup_function_f
    * functions. */
   for (const auto &fwd : function_prototypes) {
     /* Check identifier. */
-    if (fwd.first.identifier().str() != decl.identifier().str()) {
+    if (fwd.first.identifier().name().str() != decl.identifier().name().str()) {
       continue;
     }
     /* Check return type. */
@@ -159,7 +165,7 @@ std::pair<ast::FuncForwardDecl, SymbolFunction *> SymbolScope::lookup_function_f
       decl_par = decl_par.next();
     }
     /* Arg count or value doesn't match. */
-    if (decl_par.is_valid() != fwd_arg.is_valid()) {
+    if (decl_par.is_valid() || fwd_arg.is_valid()) {
       continue;
     }
     /* Match! */
@@ -235,7 +241,7 @@ T *SymbolScope::lookup_generic(const SymbolTable &table,
     /* Resolve class pointer/type from `this_` symbol */
     const SymbolClass *cls = this_var->type;
     const SymbolScope *this_scope = static_cast<const SymbolScope *>(cls);
-    if (auto v = this_scope->lookup_generic<T>(table, id, loc)) {
+    if (auto v = this_scope->lookup_generic<T>(table, id, loc); v && !v->is_error) {
       LOOKUP_LOG("[Lookup] Symbol found in class scope '" << cls->identifier << "'.\n")
       return v;
     }
@@ -251,19 +257,13 @@ T *SymbolScope::lookup_generic(const SymbolTable &table,
   LOOKUP_LOG("[Lookup] FAILED at root scope.\n")
 
   if constexpr (is_same_v<T, SymbolFunction>) {
-    if (auto it = functions.find(SymbolTable::err_symbol); it != functions.end()) {
-      return it->second.second;
-    }
+    return table.err_func;
   }
   else if constexpr (is_same_v<T, SymbolClass>) {
-    if (auto it = classes.find(SymbolTable::err_symbol); it != classes.end()) {
-      return it->second.second;
-    }
+    return table.err_cls;
   }
   else if constexpr (is_same_v<T, SymbolVariable>) {
-    if (auto it = variables.find(SymbolTable::err_symbol); it != variables.end()) {
-      return it->second.second;
-    }
+    return table.err_var;
   }
   else {
     static_assert(false);
@@ -366,22 +366,29 @@ T *SymbolScope::lookup_generic_nested(const SymbolTable &table,
 
 SymbolClass *SymbolScope::lookup_class(string id) const
 {
-  return classes.find(id)->second.second;
+  auto it = classes.find(id);
+  return it != classes.end() ? it->second.second : nullptr;
 }
 
 SymbolFunction *SymbolScope::lookup_function(string id) const
 {
-  return functions.find(id)->second.second;
+  auto it = functions.find(id);
+  return it != functions.end() ? it->second.second : nullptr;
 }
 
 SymbolVariable *SymbolScope::lookup_variable(string id) const
 {
-  return variables.find(id)->second.second;
+  auto it = variables.find(id);
+  return it != variables.end() ? it->second.second : nullptr;
 }
 
 SymbolClass *SymbolScope::as_class()
 {
   return type == CLASS ? static_cast<SymbolClass *>(this) : nullptr;
+}
+const SymbolClass *SymbolScope::as_class() const
+{
+  return type == CLASS ? static_cast<const SymbolClass *>(this) : nullptr;
 }
 
 SymbolFunction *SymbolScope::as_function()
@@ -421,6 +428,10 @@ bool SymbolScope::function_emplace(SymbolFunction *fn, bool builtin)
       functions.erase(functions.find(fn->identifier));
       functions.emplace(fn);
     }
+    /* Check if redefinition is simply hiding a base class method. */
+    else if (it.first->is_method() && this->as_class() != it.first->parent_class()) {
+      functions.insert_override(fn);
+    }
     else {
       it.first->add_overload(fn);
       if (!builtin) {
@@ -453,6 +464,16 @@ bool SymbolScope::variable_emplace(SymbolVariable *var)
   return !variables.emplace(var->identifier, var).second;
 }
 
+bool SymbolScope::variable_override(string id, SymbolVariable *var)
+{
+  return !variables.insert_override(id, var).second;
+}
+
+bool SymbolScope::variable_override(SymbolVariable *var)
+{
+  return !variables.insert_override(var->identifier, var).second;
+}
+
 vector<SymbolVariable *> SymbolScope::non_static_variables_in_declaration_order() const
 {
   assert(this->type == CLASS);
@@ -463,6 +484,22 @@ vector<SymbolVariable *> SymbolScope::non_static_variables_in_declaration_order(
 
   /* Sort elements to guarantee deterministic order. */
   sort(members.begin(), members.end(), [](const SymbolVariable *a, const SymbolVariable *b) {
+    return a->loc < b->loc;
+  });
+
+  return members;
+}
+
+vector<SymbolFunction *> SymbolScope::functions_in_declaration_order() const
+{
+  assert(this->type == CLASS);
+  vector<SymbolFunction *> members;
+  for (const auto &[k, v] : functions) {
+    members.emplace_back(v.second);
+  }
+
+  /* Sort elements to guarantee deterministic order. */
+  sort(members.begin(), members.end(), [](const SymbolFunction *a, const SymbolFunction *b) {
     return a->loc < b->loc;
   });
 

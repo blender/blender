@@ -10,7 +10,7 @@
  *
  * References:
  *
- *  [evas2002]  Matthias Zwicker et al.
+ *  [ewas2002]  Matthias Zwicker et al.
  *              EWA Splatting
  *              IEEE TVCG 2002
  *              https://www.cs.umd.edu/~zwicker/publications/EWASplatting-TVCG02.pdf
@@ -46,6 +46,7 @@
 #include "gpu_shader_math_matrix_transform.bsl.hh"
 #include "gpu_shader_math_quaternion.bsl.hh"
 #include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_math_vector_compare.bsl.hh"
 #include "gpu_shader_math_vector_reduce.bsl.hh"
 
 namespace draw::gsplat {
@@ -295,7 +296,7 @@ float3x3 get_covmat(Quaternion rotation, float3 scale)
  * Compute perspective-projected 2D covariance matrix for a Gaussian ellipse, from the
  * covariance matrix of the 3D ellipsoid.
  *
- * \note Reproduces eq. 29 and eq. 31 in [evas2002], with aspect/scaling tweaks from the
+ * \note Reproduces eq. 29 and eq. 31 in [ewas2002], with aspect/scaling tweaks from the
  *       code of [3dgs2023], and a slightly modified Jacobian for orthographic cameras.
  * \note The 2d covmatrix is of form [[x, y], [y, z]], and returned as [x, y, z].
  */
@@ -315,7 +316,7 @@ float3 project_covmat(float3 lP,
   float lim_x = 1.3f * tan_fov_x;
   float lim_y = 1.3f * tan_fov_y;
 
-  /* Parameter `t` in [ewas2023], effectively projected point. */
+  /* Parameter `t` in [ewas2002], effectively projected point. */
   float3 vP = transform_point(viewmat, lP);
   vP.x = clamp(vP.x / vP.z, -lim_x, lim_x) * vP.z;
   vP.y = clamp(vP.y / vP.z, -lim_y, lim_y) * vP.z;
@@ -506,30 +507,63 @@ struct ShapeResource {
   }
 
   SplatShape get_splat_implementation(uint vert_id,
-                                      float3 lP,
-                                      float3 wN,
                                       ObjectMatrices object,
                                       ViewMatrices view,
-                                      AxisTuple axes) const
+                                      float2 viewport_size) const
   {
     float2 shape_offset = detail::get_shape_offset(vert_id);
     if (any(isnan(shape_offset))) {
       return SplatShape::culled();
     }
 
-    SplatShape shape;
-    shape.id = detail::get_shape_id(vert_id);
-    shape.wN = wN;
-    shape.mean = lP;
-    shape.shape_offset = 2.0f * shape_offset;
+    SplatShape shape = {.id = detail::get_shape_id(vert_id), .shape_offset = 2.0f * shape_offset};
+    AxisTuple axes;
+
+    /* TODO(not_mark): Load of precomputed data is disabled until we can address
+     * incompatibility of a compute prepass with instancing and other factors. For now,
+     * resolve splat billboard data on the fly. */
+    if constexpr (false) {
+      const uint2 prepass_data = texelFetch(ellipses_comp_tx, int(shape.id)).xy;
+      if (prepass_data.x == 0u) {
+        return SplatShape::culled();
+      }
+
+      /* Unpack ellipse axes, centroid, normal. */
+      axes = AxisTuple::unpack(prepass_data.x);
+      const uint4 shape_data = texelFetch(shape_data_tx, int(shape.id));
+      shape.mean = detail::unpack_gaussian_mean(shape_data, infos.splat_mean_range);
+      shape.wP = object.point_object_to_world(shape.mean);
+      shape.wN = detail::unpack_normal_octahedral(unpackSnorm2x16(prepass_data.y));
+    }
+    else {
+      const Gaussian gs = get_gaussian(shape.id);
+
+      /* Project Gaussian to screen-space, recovering 2D axes for a splatted ellipse. */
+      float4x4 viewmat = view.viewmat * object.model;
+      float3x3 covmat = get_covmat(gs.rotation, gs.scale);
+      float3 covmat_proj = project_covmat(
+          gs.mean, viewmat, view.winmat, covmat, viewport_size, view.is_perspective());
+      axes = covmat_to_axes(covmat_proj);
+
+      /* Compute world normal. Normal is oriented towards view, never back-facing. */
+      float3 wP = object.point_object_to_world(gs.mean);
+      float3 lN = normalize(get_planar_normal(gs.rotation, gs.scale));
+      float3 wN = object.normal_object_to_world(lN);
+      if (dot(wN, view.world_incident_vector(wP)) < 0.0f) {
+        wN = -wN;
+      }
+
+      shape.mean = gs.mean;
+      shape.wP = wP;
+      shape.wN = wN;
+    }
 
     /* Screen-space offset determined by ellipse axis tuple. */
     float2 ss_delta = (shape.shape_offset.x * axes.axis_0 + shape.shape_offset.y * axes.axis_1) *
                       2.0f / viewport_size;
 
     /* Add screen-space offset to homogeneous position. */
-    float3 wP = object.point_object_to_world(lP);
-    shape.hP = view.point_world_to_homogenous(wP);
+    shape.hP = view.point_world_to_homogenous(shape.wP);
     shape.hP.xy += ss_delta * shape.hP.w;
     shape.wP = view.point_homogeneous_to_world(shape.hP);
 
@@ -576,63 +610,22 @@ struct ShapeResource {
 
   /**
    * Recover billboard splat draw data for a specific vertex.
-   *
-   * \note Available when a compute prepass has run.
    */
   SplatShape get_splat(uint vert_id, ObjectMatrices object, ViewMatrices view) const
   {
-    /* TODO(not_mark): Load of precompute data is disabled until we can address incompatibility
-     * of a compute prepass with instancing and other factors. For now, compute splat data on
-     * the fly using `get_splat_fallback`. */
-    return get_splat_fallback(vert_id, object, view);
-
-    // const uint gs_id = detail::get_shape_id(vert_id);
-
-    // const uint2 prepass_data = texelFetch(ellipses_comp_tx, int(gs_id)).xy;
-    // if (prepass_data.x == 0u) {
-    //   return SplatShape::culled();
-    // }
-
-    // /* Unpack ellipse axes, normal from compute prepass data. */
-    // AxisTuple axes = AxisTuple::unpack(prepass_data.x);
-    // float3 wN = detail::unpack_normal_octahedral(unpackSnorm2x16(prepass_data.y));
-
-    // /* Unpack ellipse centroid as Gaussian mean. */
-    // const uint4 shape_data = texelFetch(shape_data_tx, int(gs_id));
-    // float3 lP = detail::unpack_gaussian_mean(shape_data, infos.splat_mean_range);
-
-    // return get_splat_implementation(vert_id, lP, wN, object, view, axes);
+    return get_splat_implementation(vert_id, object, view, viewport_size);
   }
 
   /**
-   * Recover billboard splat draw data for a specific vertex.
-   *
-   * \note Available when a compute prepass has not run. More expensive. Used for e.g. shadows.
+   * Recover billboard splat draw data for a specific vertex. Override viewport size
+   * for e.g. probes and shadow pipelines.
    */
-  SplatShape get_splat_fallback(uint vert_id, ObjectMatrices object, ViewMatrices view) const
+  SplatShape get_splat(uint vert_id,
+                       ObjectMatrices object,
+                       ViewMatrices view,
+                       float2 viewport_size) const
   {
-    const uint gs_id = detail::get_shape_id(vert_id);
-    const Gaussian gs = get_gaussian(gs_id);
-
-    /* Project Gaussian to screen-space, recovering 2D axes for a splatted ellipse. */
-    float4x4 viewmat = view.viewmat * object.model;
-    float3x3 covmat = get_covmat(gs.rotation, gs.scale);
-    float3 covmat_proj = project_covmat(
-        gs.mean, viewmat, view.winmat, covmat, viewport_size, view.is_perspective());
-    AxisTuple axes = covmat_to_axes(covmat_proj);
-
-    float3 lP = gs.mean;
-    float3 wP = object.point_object_to_world(gs.mean);
-
-    /* Compute world normal. Normal is oriented towards view, never back-facing. */
-    float3 lN = normalize(get_planar_normal(gs.rotation, gs.scale));
-    float3 wN = object.normal_object_to_world(lN);
-    float3 wV = view.world_incident_vector(wP);
-    if (dot(wN, wV) < 0.0f) {
-      wN = -wN;
-    }
-
-    return get_splat_implementation(vert_id, lP, wN, object, view, axes);
+    return get_splat_implementation(vert_id, object, view, viewport_size);
   }
 };
 

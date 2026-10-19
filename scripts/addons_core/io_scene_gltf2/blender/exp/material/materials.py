@@ -652,7 +652,8 @@ def __gather_orm_texture(bmat, export_settings):
         return None
 
     # Double-check this will past the filter in texture_info
-    info, _, _, _ = gltf2_blender_gather_texture_info.gather_texture_info(result[0], result, export_settings)
+    info, _, _, _ = gltf2_blender_gather_texture_info.gather_texture_info(
+        result[0], result, export_settings, kind='DATA')
     if info is None:
         return None
 

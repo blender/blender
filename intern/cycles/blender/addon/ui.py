@@ -546,6 +546,10 @@ class CYCLES_RENDER_PT_sampling_lights(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "light_sampling_threshold", text="Light Threshold")
         sub.active = not cscene.use_light_tree
 
+        prefs = context.preferences
+        if prefs.experimental.use_cycles_debug and prefs.view.show_developer_ui:
+            col.prop(cscene, "direct_light_sampling_type")
+
 
 class CYCLES_RENDER_PT_subdivision(CyclesButtonsPanel, Panel):
     bl_label = "Subdivision"
@@ -1097,6 +1101,7 @@ class CYCLES_RENDER_PT_passes_data(CyclesButtonsPanel, Panel):
             col.prop(cycles_view_layer, "denoising_store_passes", text="Data Passes")
             sub = col.column()
             sub.active = cycles_view_layer.denoising_store_passes
+            sub.prop(cycles_view_layer, "denoising_store_motion_passes", text="Motion")
             sub.prop(cycles_view_layer, "denoising_pass_follow_reflections", text="Follow Reflections")
             sub.prop(
                 cycles_view_layer,
@@ -2334,10 +2339,6 @@ class CYCLES_RENDER_PT_debug(CyclesDebugButtonsPanel, Panel):
         col.prop(cscene, "debug_bvh_type", text="Viewport BVH")
 
         col.separator()
-
-        import _cycles
-        if _cycles.with_debug:
-            col.prop(cscene, "direct_light_sampling_type")
 
 
 class CYCLES_RENDER_PT_simplify(CyclesButtonsPanel, Panel):

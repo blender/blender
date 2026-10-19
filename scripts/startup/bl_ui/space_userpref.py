@@ -1907,6 +1907,9 @@ class USERPREF_PT_saveload_blend(SaveLoadPanel, CenterAlignMixIn, Panel):
         col.prop(paths, "use_file_compression")
         col.prop(paths, "use_load_ui")
 
+        col = layout.column(heading="Startup")
+        col.prop(prefs, "use_project_remember")
+
         col = layout.column(heading="Text Files")
         col.prop(paths, "use_tabs_as_spaces")
 
@@ -3062,7 +3065,6 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_extended_asset_browser"},
                  ("blender/blender/projects/10", "Pipeline, Assets & IO Project Page")),
                 ({"property": "use_shader_node_previews"}, ("blender/blender/issues/110353", "#110353")),
-                ({"property": "use_collection_importer"}, ("blender/blender/issues/132171", "#132171")),
             ),
         )
 

@@ -119,9 +119,8 @@ class Context {
    * that does not support logging. */
   virtual nodes::eval_log::NodesEvalLog *nodes_evaluation_log() const;
 
-  /* Gets called after the evaluation of each compositor operation. See overrides for possible
-   * uses. */
-  virtual void evaluate_operation_post() const;
+  /* Returns true if the context supports canceling during evaluation. */
+  virtual bool supports_canceling() const;
 
   /* Returns true if the compositor evaluation is canceled and that the evaluator should stop
    * executing as soon as possible. */
@@ -138,7 +137,7 @@ class Context {
 
   /* Get the OIDN denoiser quality which should be used if the user doesn't explicitly set
    * denoising quality on a node. */
-  eCompositorDenoiseQaulity get_denoise_quality() const;
+  eCompositorDenoiseQuality get_denoise_quality() const;
 
   /* Get a GPU shader with the given info name and precision. */
   gpu::Shader *get_shader(const char *info_name, ResultPrecision precision);

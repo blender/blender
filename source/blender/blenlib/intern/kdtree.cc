@@ -131,7 +131,7 @@ template<typename T> class TreeBuilder {
     Node *allocate(const int num)
     {
       if (used + num > batch.size()) {
-        this->batch = this->allocator->allocate_array<Node>(batch_size);
+        this->batch = this->allocator->template allocate_array<Node>(batch_size);
         this->used = 0;
         /* Only the first batch is sized for the tree, the rest are full size. */
         this->batch_size = BATCH_SIZE_MAX;
@@ -683,18 +683,19 @@ template<typename T> class TreeBuilder {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #KDTreeNew
+/** \name #KDTree
  * \{ */
 
 template<typename T>
-void KDTreeNew<T>::build(const Span<T> points,
-                         const Span<int> indices,
-                         const IndexMask *mask,
-                         const int size,
-                         const int leaf_size,
-                         LinearAllocator<> &allocator)
+void KDTree<T>::build(const Span<T> points,
+                      const Span<int> indices,
+                      const IndexMask *mask,
+                      const int size,
+                      const int leaf_size,
+                      LinearAllocator<> &allocator)
 {
-  points_ = points.data();
+  const Span<VecT> vectors(reinterpret_cast<const VecT *>(points.data()), points.size());
+  points_ = vectors.data();
   if (size == 0) {
     return;
   }
@@ -709,7 +710,7 @@ void KDTreeNew<T>::build(const Span<T> points,
     source = indices;
   }
 
-  TreeBuilder<T> builder(points, tree_indices, leaf_size, allocator);
+  TreeBuilder<VecT> builder(vectors, tree_indices, leaf_size, allocator);
   root_ = builder.build(source, bounds_);
   tree_indices_ = tree_indices.data();
   size_ = size;
@@ -724,13 +725,13 @@ void KDTreeNew<T>::build(const Span<T> points,
 }
 
 template<typename T>
-LinearAllocator<> &KDTreeNew<T>::make_allocator(const int points_num,
-                                                const int leaf_size,
-                                                void *&r_owned)
+LinearAllocator<> &KDTree<T>::make_allocator(const int points_num,
+                                             const int leaf_size,
+                                             void *&r_owned)
 {
   /* Allocate enough for the allocator itself, the indices, and the first set of nodes. */
   const int64_t indices_size = int64_t(points_num) * sizeof(int);
-  const int64_t nodes_size = int64_t(TreeBuilder<T>::node_batch_size(points_num, leaf_size)) *
+  const int64_t nodes_size = int64_t(TreeBuilder<VecT>::node_batch_size(points_num, leaf_size)) *
                              sizeof(Node);
   /* Room for the allocator to align each of the two allocations it hands out of this. */
   const int64_t alignment_slack = 2 * alignof(std::max_align_t);
@@ -744,7 +745,7 @@ LinearAllocator<> &KDTreeNew<T>::make_allocator(const int points_num,
   return *allocator;
 }
 
-template<typename T> KDTreeNew<T>::~KDTreeNew()
+template<typename T> KDTree<T>::~KDTree()
 {
   /* An allocator the caller passed is only borrowed, and outlives the tree. The tree's own sits
    * at the start of the buffer it was built in. */
@@ -755,16 +756,16 @@ template<typename T> KDTreeNew<T>::~KDTreeNew()
 }
 
 template<typename T>
-KDTreeNew<T>::KDTreeNew(const Span<T> points, LinearAllocator<> &allocator, const int leaf_size)
+KDTree<T>::KDTree(const Span<T> points, LinearAllocator<> &allocator, const int leaf_size)
 {
   this->build(points, Span<int>(), nullptr, int(points.size()), std::max(leaf_size, 1), allocator);
 }
 
 template<typename T>
-KDTreeNew<T>::KDTreeNew(const Span<T> points,
-                        const IndexMask &mask,
-                        LinearAllocator<> &allocator,
-                        const int leaf_size)
+KDTree<T>::KDTree(const Span<T> points,
+                  const IndexMask &mask,
+                  LinearAllocator<> &allocator,
+                  const int leaf_size)
 {
   const std::optional<IndexRange> range = mask.to_range();
   const bool every_point = range && *range == points.index_range();
@@ -778,15 +779,15 @@ KDTreeNew<T>::KDTreeNew(const Span<T> points,
 }
 
 template<typename T>
-KDTreeNew<T>::KDTreeNew(const Span<T> points,
-                        const Span<int> indices,
-                        LinearAllocator<> &allocator,
-                        const int leaf_size)
+KDTree<T>::KDTree(const Span<T> points,
+                  const Span<int> indices,
+                  LinearAllocator<> &allocator,
+                  const int leaf_size)
 {
   this->build(points, indices, nullptr, int(indices.size()), std::max(leaf_size, 1), allocator);
 }
 
-template<typename T> KDTreeNew<T>::KDTreeNew(const Span<T> points, const int leaf_size)
+template<typename T> KDTree<T>::KDTree(const Span<T> points, const int leaf_size)
 {
   this->build(points,
               Span<int>(),
@@ -797,7 +798,7 @@ template<typename T> KDTreeNew<T>::KDTreeNew(const Span<T> points, const int lea
 }
 
 template<typename T>
-KDTreeNew<T>::KDTreeNew(const Span<T> points, const IndexMask &mask, const int leaf_size)
+KDTree<T>::KDTree(const Span<T> points, const IndexMask &mask, const int leaf_size)
 {
   const std::optional<IndexRange> range = mask.to_range();
   const bool every_point = range && *range == points.index_range();
@@ -810,7 +811,7 @@ KDTreeNew<T>::KDTreeNew(const Span<T> points, const IndexMask &mask, const int l
 }
 
 template<typename T>
-KDTreeNew<T>::KDTreeNew(const Span<T> points, const Span<int> indices, const int leaf_size)
+KDTree<T>::KDTree(const Span<T> points, const Span<int> indices, const int leaf_size)
 {
   this->build(points,
               indices,
@@ -820,8 +821,10 @@ KDTreeNew<T>::KDTreeNew(const Span<T> points, const Span<int> indices, const int
               make_allocator(int(indices.size()), std::max(leaf_size, 1), owned_buffer_));
 }
 
-template class KDTreeNew<float2>;
-template class KDTreeNew<float3>;
+template class KDTree<float>;
+template class KDTree<float2>;
+template class KDTree<float3>;
+template class KDTree<float4>;
 
 /** \} */
 
@@ -832,12 +835,12 @@ template class KDTreeNew<float3>;
 namespace kdtree {
 
 template<typename T, typename ForeachFn>
-static int calc_duplicates_impl(const KDTreeNew<T> &tree,
-                                const typename T::base_type range,
+static int calc_duplicates_impl(const KDTree<T> &tree,
+                                const typename KDTree<T>::value_type range,
                                 const MutableSpan<int> duplicates,
                                 const ForeachFn foreach_index)
 {
-  using value_type = typename T::base_type;
+  using value_type = typename KDTree<T>::value_type;
   const T *points = tree.points();
   int found = 0;
   foreach_index([&](const int index) {
@@ -864,8 +867,8 @@ static int calc_duplicates_impl(const KDTreeNew<T> &tree,
 }
 
 template<typename T>
-int calc_duplicates(const KDTreeNew<T> &tree,
-                    const typename T::base_type range,
+int calc_duplicates(const KDTree<T> &tree,
+                    const typename KDTree<T>::value_type range,
                     const Span<int> visit_order,
                     const MutableSpan<int> duplicates)
 {
@@ -878,8 +881,8 @@ int calc_duplicates(const KDTreeNew<T> &tree,
 }
 
 template<typename T>
-int calc_duplicates(const KDTreeNew<T> &tree,
-                    const typename T::base_type range,
+int calc_duplicates(const KDTree<T> &tree,
+                    const typename KDTree<T>::value_type range,
                     const IndexMask &visit_order,
                     const MutableSpan<int> duplicates)
 {
@@ -889,16 +892,14 @@ int calc_duplicates(const KDTreeNew<T> &tree,
   });
 }
 
-template int calc_duplicates(const KDTreeNew<float2> &, float, Span<int>, MutableSpan<int>);
-template int calc_duplicates(const KDTreeNew<float3> &, float, Span<int>, MutableSpan<int>);
-template int calc_duplicates(const KDTreeNew<float2> &,
-                             float,
-                             const IndexMask &,
-                             MutableSpan<int>);
-template int calc_duplicates(const KDTreeNew<float3> &,
-                             float,
-                             const IndexMask &,
-                             MutableSpan<int>);
+template int calc_duplicates(const KDTree<float> &, float, Span<int>, MutableSpan<int>);
+template int calc_duplicates(const KDTree<float2> &, float, Span<int>, MutableSpan<int>);
+template int calc_duplicates(const KDTree<float3> &, float, Span<int>, MutableSpan<int>);
+template int calc_duplicates(const KDTree<float4> &, float, Span<int>, MutableSpan<int>);
+template int calc_duplicates(const KDTree<float> &, float, const IndexMask &, MutableSpan<int>);
+template int calc_duplicates(const KDTree<float2> &, float, const IndexMask &, MutableSpan<int>);
+template int calc_duplicates(const KDTree<float3> &, float, const IndexMask &, MutableSpan<int>);
+template int calc_duplicates(const KDTree<float4> &, float, const IndexMask &, MutableSpan<int>);
 
 }  // namespace kdtree
 

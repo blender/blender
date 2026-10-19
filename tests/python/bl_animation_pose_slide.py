@@ -182,7 +182,7 @@ class PushRelaxPoseBone(AbstractPoseSlideTest):
 
     def test_push_all_properties(self):
         # Push moves all properties away from the linear breakdown between the given frames.
-        # The distance moved at factor 1 depends on the inital distance from the breakdown pose.
+        # The distance moved at factor 1 depends on the initial distance from the breakdown pose.
         self._set_up_keys()
 
         with bpy.context.temp_override(**_get_view3d_context()):

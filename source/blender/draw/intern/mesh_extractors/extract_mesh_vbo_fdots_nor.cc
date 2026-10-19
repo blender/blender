@@ -20,18 +20,23 @@ namespace blender::draw {
 template<typename GPUType>
 static void extract_face_dot_normals_mesh(const MeshRenderData &mr, MutableSpan<GPUType> normals)
 {
-  gpu::convert_normals(mr.face_normals, normals);
+  const Span<float3> face_normals = mr.face_normals;
   const GPUType invalid_normal = gpu::convert_normal<GPUType>(float3(0));
   threading::parallel_for(IndexRange(mr.faces_num), 4096, [&](const IndexRange range) {
     for (const int i : range) {
       const BMFace *face = bm_original_face_get(mr, i);
+      GPUType value;
       if (!face || BM_elem_flag_test(face, BM_ELEM_HIDDEN)) {
-        normals[i] = invalid_normal;
-        normals[i].w = NOR_AND_FLAG_HIDDEN;
+        value = invalid_normal;
+        value.w = NOR_AND_FLAG_HIDDEN;
       }
-      else if (BM_elem_flag_test(face, BM_ELEM_SELECT)) {
-        normals[i].w = (face == mr.efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT;
+      else {
+        value = gpu::convert_normal<GPUType>(face_normals[i]);
+        if (BM_elem_flag_test(face, BM_ELEM_SELECT)) {
+          value.w = (face == mr.efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT;
+        }
       }
+      normals[i] = value;
     }
   });
 }
@@ -43,16 +48,18 @@ void extract_face_dot_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> 
   threading::parallel_for(IndexRange(mr.faces_num), 4096, [&](const IndexRange range) {
     for (const int i : range) {
       BMFace *face = BM_face_at_index(mr.bm, i);
+      GPUType value;
       if (BM_elem_flag_test(face, BM_ELEM_HIDDEN)) {
-        normals[i] = invalid_normal;
-        normals[i].w = NOR_AND_FLAG_HIDDEN;
+        value = invalid_normal;
+        value.w = NOR_AND_FLAG_HIDDEN;
       }
       else {
-        normals[i] = gpu::convert_normal<GPUType>(bm_face_no_get(mr, face));
-        normals[i].w = (BM_elem_flag_test(face, BM_ELEM_SELECT) ?
-                            ((face == mr.efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT) :
-                            NOR_AND_FLAG_DEFAULT);
+        value = gpu::convert_normal<GPUType>(bm_face_no_get(mr, face));
+        value.w = (BM_elem_flag_test(face, BM_ELEM_SELECT) ?
+                       ((face == mr.efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT) :
+                       NOR_AND_FLAG_DEFAULT);
       }
+      normals[i] = value;
     }
   });
 }

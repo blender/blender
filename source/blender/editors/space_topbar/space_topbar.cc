@@ -8,6 +8,8 @@
 
 #include <cstring>
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.hh"
@@ -16,6 +18,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_blender_project.hh"
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 #include "BKE_undo_system.hh"
@@ -188,6 +191,51 @@ static void topbar_header_region_message_subscribe(const wmRegionMessageSubscrib
       mbus, &workspace->id, workspace, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
 }
 
+static void recent_files_menu_label(ui::Layout &layout, const StringRef text)
+{
+  /* Label without icon space, fully aligned to the left. */
+  ui::Block *block = layout.block();
+  ui::block_layout_set_current(block, &layout);
+  ui::Button *but = ui::uiDefBut(
+      block, ui::ButtonType::Label, text, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+  ui::button_drawflag_enable(but, ui::BUT_TEXT_LEFT);
+}
+
+static int recent_files_menu_list(const bContext *C, ui::Layout &layout, const int rows)
+{
+  const std::optional<std::string> project_name = BKE_blender_project_read_callback(
+      CTX_data_main(C), [](const bke::BlenderProject *project) -> std::optional<std::string> {
+        if (project == nullptr) {
+          return std::nullopt;
+        }
+        return std::string(project->get_name());
+      });
+  if (!project_name) {
+    return template_recent_files(&layout, rows);
+  }
+
+  /* Project and other recent files separately. Project and other labels
+   * are added afterwards, so we can hide them if they are empty. */
+  ui::Layout &project_title = layout.column(false);
+  const int found_project = template_recent_files(&layout, rows, ui::RecentFilesFilter::Project);
+  ui::Layout &other_title = layout.column(false);
+  const int found_other = template_recent_files(&layout, rows, ui::RecentFilesFilter::Other);
+
+  if (found_project) {
+    recent_files_menu_label(project_title,
+                            fmt::format(fmt::runtime(IFACE_("Project: {}")), *project_name));
+  }
+  if (found_other) {
+    if (found_project) {
+      other_title.separator();
+    }
+    recent_files_menu_label(other_title,
+                            found_project ? IFACE_("Other Recent Files") : IFACE_("Recent Files"));
+  }
+
+  return found_project + found_other;
+}
+
 static void recent_files_menu_draw(const bContext *C, Menu *menu)
 {
   ui::Layout &layout = *menu->layout;
@@ -198,7 +246,7 @@ static void recent_files_menu_draw(const bContext *C, Menu *menu)
   }
   else {
     const int limit = std::min<int>(U.recent_files, 20);
-    if (template_recent_files(&layout, limit) != 0) {
+    if (recent_files_menu_list(C, layout, limit) != 0) {
       layout.separator();
       PointerRNA search_props = layout.op(
           "WM_OT_search_single_menu", IFACE_("More..."), ICON_VIEWZOOM);

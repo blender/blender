@@ -57,6 +57,12 @@ def _toggle_xray_operator(layout, context, text=None):
     )
 
 
+def _has_selected_object_type(context, types):
+    # WARNING: this loops over all selected objects, *never* call from a poll function
+    # as it's too slow, only use when drawing menus.
+    return any(ob.type in types for ob in context.selected_objects)
+
+
 class VIEW3D_HT_tool_header(Header):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOL_HEADER'
@@ -2601,7 +2607,11 @@ class VIEW3D_MT_curve_add(Menu):
         layout.separator()
 
         layout.operator("object.curves_empty_hair_add", text="Empty Hair", icon='CURVES_DATA')
-        layout.operator("object.quick_fur", text="Fur", icon='CURVES_DATA')
+        # Greyed out here instead of the operator's poll function, see: #163934.
+        col = layout.column()
+        col.enabled = _has_selected_object_type(context, {'MESH'})
+        col.operator("object.quick_fur", text="Fur", icon='CURVES_DATA')
+        del col
 
         experimental = context.preferences.experimental
         if experimental.use_new_curves_tools:
@@ -3509,10 +3519,16 @@ class VIEW3D_MT_object_modifiers(Menu):
 class VIEW3D_MT_object_quick_effects(Menu):
     bl_label = "Quick Effects"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.quick_fur")
+        # NOTE: greying out the menu item would be better handled by the operator's poll function,
+        # however `execute` changes the active object & selection (adding curves objects),
+        # so a poll that checks for mesh objects fails on redo, see: #163934.
+        col = layout.column()
+        col.enabled = _has_selected_object_type(context, {'MESH'})
+        col.operator("object.quick_fur")
+        del col
         layout.operator("object.quick_explode")
         layout.operator("object.quick_smoke")
         layout.operator("object.quick_liquid")

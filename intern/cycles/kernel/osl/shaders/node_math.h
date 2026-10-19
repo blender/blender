@@ -44,10 +44,14 @@ float sqr(float a)
  * result may not change monotonically when a and b have different signs and t increases
  * monotonically, which however isn't noticeable in most cases as long as monotony isn't explicitly
  * required. In general, "endvalue_preserving_mix" should be preferred over "mix" when it is
- * important that result == b when t == 1 or when a and b may have vastly different magnitudes.*/
+ * important that result == b when t == 1 or when a and b may have vastly different magnitudes.
+ *
+ * The mix formula needs to be (1 - t) * a + t * b for consistency with SVM and EEVEE. However
+ * the OSL optimizer specifically optimizes mix() to skip evaluating one side when the factor is
+ * 0 or 1. Luckily it implements the same formula, so we can just use it. */
 float endvalue_preserving_mix(float a, float b, float t)
 {
-  return (1.0 - t) * a + t * b;
+  return mix(a, b, t);
 }
 
 vector2 endvalue_preserving_mix(vector2 a, vector2 b, float t)
@@ -62,12 +66,12 @@ vector2 endvalue_preserving_mix(vector2 a, vector2 b, vector2 t)
 
 vector3 endvalue_preserving_mix(vector3 a, vector3 b, float t)
 {
-  return (1.0 - t) * a + t * b;
+  return mix(a, b, t);
 }
 
 vector3 endvalue_preserving_mix(vector3 a, vector3 b, vector3 t)
 {
-  return (vector3(1.0, 1.0, 1.0) - t) * a + t * b;
+  return mix(a, b, t);
 }
 
 vector4 endvalue_preserving_mix(vector4 a, vector4 b, float t)

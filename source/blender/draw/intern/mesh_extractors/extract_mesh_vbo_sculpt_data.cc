@@ -61,15 +61,14 @@ gpu::VertBufPtr extract_sculpt_data(const MeshRenderData &mr)
             BKE_paint_face_set_overlay_color_get(face_set_id, face_set_seed, face_set_color);
           }
         }
-        vbo_data.slice(face_range).fill(gpuSculptData{face_set_color, 0.0f});
-
-        if (mask_offset != -1) {
-          const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
-          for ([[maybe_unused]] const int i : IndexRange(face.len)) {
-            const int index = BM_elem_index_get(loop);
-            vbo_data[index].mask = BM_ELEM_CD_GET_FLOAT(loop->v, mask_offset);
-            loop = loop->next;
-          }
+        if (mask_offset == -1) {
+          vbo_data.slice(face_range).fill(gpuSculptData{face_set_color, 0.0f});
+          continue;
+        }
+        const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
+        for (const int corner : face_range) {
+          vbo_data[corner] = {face_set_color, BM_ELEM_CD_GET_FLOAT(loop->v, mask_offset)};
+          loop = loop->next;
         }
       }
     });
@@ -90,12 +89,12 @@ gpu::VertBufPtr extract_sculpt_data(const MeshRenderData &mr)
             BKE_paint_face_set_overlay_color_get(face_set_id, face_set_seed, face_set_color);
           }
         }
-        vbo_data.slice(face).fill(gpuSculptData{face_set_color, 0.0f});
-
-        if (!mask.is_empty()) {
-          for (const int corner : face) {
-            vbo_data[corner].mask = mask[corner_verts[corner]];
-          }
+        if (mask.is_empty()) {
+          vbo_data.slice(face).fill(gpuSculptData{face_set_color, 0.0f});
+          continue;
+        }
+        for (const int corner : face) {
+          vbo_data[corner] = {face_set_color, mask[corner_verts[corner]]};
         }
       }
     });

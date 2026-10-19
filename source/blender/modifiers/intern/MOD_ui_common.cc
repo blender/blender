@@ -350,7 +350,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
     int cage_index = BKE_modifiers_get_cage_index(scene, ob, &last_cage_index, false);
     if (BKE_modifier_supports_cage(scene, md) && (index <= last_cage_index)) {
       sub = &row.row(true);
-      if (index < cage_index || !BKE_modifier_couldbe_cage(scene, md)) {
+      if (index < cage_index || !BKE_modifier_could_be_cage(scene, md)) {
         sub->active_set(false);
       }
       sub->prop(ptr, "show_on_cage", UI_ITEM_NONE, "", ICON_NONE);

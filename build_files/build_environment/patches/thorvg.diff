@@ -1,0 +1,43 @@
+--- a/src/common/tvgCommon.h
++++ b/src/common/tvgCommon.h
+@@ -67,9 +67,6 @@
+     #define strncpy strncpy_s
+ #endif
+ 
+-void* operator new(std::size_t size);
+-void operator delete(void* ptr) noexcept;
+-
+ namespace tvg {
+ 
+     enum class FileType { Png = 0, Jpg, Webp, Svg, Lot, Ttf, Raw, Gif, Unknown };
+--- a/src/renderer/tvgInitializer.cpp
++++ b/src/renderer/tvgInitializer.cpp
+@@ -131,27 +131,3 @@
+ {
+     return _version;
+ }
+-
+-
+-void* operator new(std::size_t size)
+-{
+-    return tvg::malloc(size);
+-}
+-
+-
+-void operator delete(void* ptr) noexcept
+-{
+-    tvg::free(ptr);
+-}
+-
+-
+-void* operator new[](std::size_t size)
+-{
+-    return tvg::malloc(size);
+-}
+-
+-
+-void operator delete[](void* ptr) noexcept
+-{
+-    tvg::free(ptr);
+-}
+\ No newline at end of file

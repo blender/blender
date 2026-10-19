@@ -94,6 +94,7 @@ enum eUserpref_Save_Modified_Images : char {
 enum eUserPref_PrefFlag : char {
   USER_PREF_FLAG_SAVE = (1 << 0),
   USER_PREF_FLAG_PROJECT_SAVE = (1 << 1),
+  USER_PREF_FLAG_PROJECT_REMEMBER = (1 << 2),
 };
 ENUM_OPERATORS(eUserPref_PrefFlag)
 
@@ -917,8 +918,7 @@ struct UserDef_Experimental {
    * actually remove this flag is tracked in #158903.
    */
   char use_remote_asset_libraries = 1;
-  char use_collection_importer = 0;
-  char _pad[3] = {};
+  char _pad[4] = {};
 };
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) (((userdef)->experimental).member)

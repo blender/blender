@@ -97,12 +97,10 @@ static void reorder_attribute_domain(bke::AttributeStorage &data,
     const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
       case bke::AttrStorageType::Array: {
-        const auto &data = std::get<bke::Attribute::ArrayData>(attr.data());
-        auto new_data = bke::Attribute::ArrayData::from_constructed(type, new_by_old_map.size());
-        bke::attribute_math::gather(GSpan(type, data.data, data.size),
-                                    new_by_old_map,
-                                    GMutableSpan(type, new_data.data, new_data.size));
-        attr.assign_data(std::move(new_data));
+        GArray<> new_data(type, new_by_old_map.size());
+        bke::attribute_math::gather(
+            std::get<GSpan>(attr.data().values()), new_by_old_map, new_data.as_mutable_span());
+        attr.assign_data(bke::GList(std::move(new_data)));
         break;
       }
       case bke::AttrStorageType::Single: {
@@ -200,23 +198,22 @@ static void reorder_attribute_groups(bke::AttributeStorage &storage,
     const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
       case bke::AttrStorageType::Array: {
-        const auto &data = std::get<bke::Attribute::ArrayData>(attr.data());
+        const GSpan data = std::get<GSpan>(attr.data().values());
 
-        auto new_data = bke::Attribute::ArrayData::from_uninitialized(type,
-                                                                      new_offsets.total_size());
+        GArray<> new_data(type, new_offsets.total_size(), NoInitialization());
         threading::parallel_for(IndexRange(groups_num), 1024, [&](const IndexRange range) {
           for (const int old_i : range) {
             const int new_i = new_by_old_map[old_i];
             const IndexRange old_range = old_offsets[old_i];
             const IndexRange new_range = new_offsets[new_i];
             BLI_assert(old_range.size() == new_range.size());
-            type.copy_construct_n(POINTER_OFFSET(data.data, old_range.start() * type.size),
-                                  POINTER_OFFSET(new_data.data, new_range.start() * type.size),
+            type.copy_construct_n(POINTER_OFFSET(data.data(), old_range.start() * type.size),
+                                  POINTER_OFFSET(new_data.data(), new_range.start() * type.size),
                                   old_range.size());
           }
         });
 
-        attr.assign_data(std::move(new_data));
+        attr.assign_data(bke::GList(std::move(new_data)));
         break;
       }
       case bke::AttrStorageType::Single: {

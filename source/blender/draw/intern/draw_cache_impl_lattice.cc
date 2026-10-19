@@ -21,6 +21,8 @@
 
 #include "GPU_batch.hh"
 
+#include "DRW_render.hh"
+
 #include "draw_cache_impl.hh" /* own include */
 
 #define SELECT 1
@@ -195,10 +197,10 @@ struct LatticeBatchCache {
   gpu::VertBuf *pos;
   gpu::IndexBuf *edges;
 
-  gpu::Batch *all_verts;
-  gpu::Batch *all_edges;
+  Batch *all_verts;
+  Batch *all_edges;
 
-  gpu::Batch *overlay_verts;
+  Batch *overlay_verts;
 
   /* settings to determine if cache is invalid */
   bool is_dirty;
@@ -285,7 +287,7 @@ void DRW_lattice_batch_cache_dirty_tag(Lattice *lt, int mode)
       break;
     case BKE_LATTICE_BATCH_DIRTY_SELECT:
       /* TODO: Separate Flag VBO. */
-      GPU_BATCH_DISCARD_SAFE(cache->overlay_verts);
+      MEM_SAFE_DELETE(cache->overlay_verts);
       break;
     default:
       BLI_assert(0);
@@ -299,9 +301,9 @@ static void lattice_batch_cache_clear(Lattice *lt)
     return;
   }
 
-  GPU_BATCH_DISCARD_SAFE(cache->all_verts);
-  GPU_BATCH_DISCARD_SAFE(cache->all_edges);
-  GPU_BATCH_DISCARD_SAFE(cache->overlay_verts);
+  MEM_SAFE_DELETE(cache->all_verts);
+  MEM_SAFE_DELETE(cache->all_edges);
+  MEM_SAFE_DELETE(cache->overlay_verts);
 
   GPU_VERTBUF_DISCARD_SAFE(cache->pos);
   GPU_INDEXBUF_DISCARD_SAFE(cache->edges);
@@ -447,13 +449,14 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
       GPU_vertbuf_attr_set(vbo, attr_id.data, i, &vflag);
     }
 
-    cache->overlay_verts = GPU_batch_create_ex(GPU_PRIM_POINTS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
+    cache->overlay_verts = MEM_new<Batch>(
+        __func__, GPU_batch_create_ex(GPU_PRIM_POINTS, vbo, nullptr, GPU_BATCH_OWNS_VBO));
   }
 
   lattice_render_data_free(rdata);
 }
 
-gpu::Batch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, const int actdef)
+Batch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, const int actdef)
 {
   LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 
@@ -461,10 +464,11 @@ gpu::Batch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, 
     /* create batch from Lattice */
     LatticeRenderData *rdata = lattice_render_data_create(lt, LR_DATATYPE_VERT | LR_DATATYPE_EDGE);
 
-    cache->all_edges = GPU_batch_create(
-        GPU_PRIM_LINES,
-        lattice_batch_cache_get_pos(rdata, cache, use_weight, actdef),
-        lattice_batch_cache_get_edges(rdata, cache));
+    cache->all_edges = MEM_new<Batch>(
+        __func__,
+        GPU_batch_create(GPU_PRIM_LINES,
+                         lattice_batch_cache_get_pos(rdata, cache, use_weight, actdef),
+                         lattice_batch_cache_get_edges(rdata, cache)));
 
     lattice_render_data_free(rdata);
   }
@@ -472,15 +476,17 @@ gpu::Batch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, 
   return cache->all_edges;
 }
 
-gpu::Batch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt)
+Batch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt)
 {
   LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 
   if (cache->all_verts == nullptr) {
     LatticeRenderData *rdata = lattice_render_data_create(lt, LR_DATATYPE_VERT);
 
-    cache->all_verts = GPU_batch_create(
-        GPU_PRIM_POINTS, lattice_batch_cache_get_pos(rdata, cache, false, -1), nullptr);
+    cache->all_verts = MEM_new<Batch>(
+        __func__,
+        GPU_batch_create(
+            GPU_PRIM_POINTS, lattice_batch_cache_get_pos(rdata, cache, false, -1), nullptr));
 
     lattice_render_data_free(rdata);
   }
@@ -488,7 +494,7 @@ gpu::Batch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt)
   return cache->all_verts;
 }
 
-gpu::Batch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt)
+Batch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt)
 {
   LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 

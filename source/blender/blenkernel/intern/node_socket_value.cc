@@ -261,11 +261,9 @@ bool SocketValueVariantTypeInfo::try_convert_fn(const CPPType &dst_type,
     if (!fns || !fns->convert_single_to_uninitialized) {
       return false;
     }
-    BUFFER_FOR_CPP_TYPE_VALUE(dst_type, tmp_buffer);
-    fns->convert_single_to_uninitialized(value.get(), tmp_buffer);
+    CurrentT src = std::move(value.get<CurrentT>());
     void *dst_value = SocketValueVariant::allocate(dst_type, value);
-    dst_type.move_construct(tmp_buffer, dst_value);
-    dst_type.destruct(tmp_buffer);
+    fns->convert_single_to_uninitialized(&src, dst_value);
     return true;
   }
 }
@@ -469,66 +467,51 @@ void *SocketValueVariant::init_default(const CPPType &type, detail::SocketValueV
   return nullptr;
 }
 
+template<typename T> static void *allocate_typed(detail::SocketValueVariantAny &value)
+{
+  return value.allocate<T>();
+}
+
 void *SocketValueVariant::allocate(const CPPType &type, detail::SocketValueVariantAny &value)
 {
-#define X(TYPE) \
-  if (type.is<TYPE>()) { \
-    return value.allocate<TYPE>(); \
-  }
-  SOCKET_VALUE_SINGLE_TYPES
-#undef X
+  using AllocateFn = void *(*)(detail::SocketValueVariantAny &);
+  /* Use an array indexed by #CPPType::type_index instead of a #Map for faster lookup. */
+  static const Vector<AllocateFn, 0> allocate_fns = []() {
+    Vector<AllocateFn, 0> vec;
+    auto add_allocate_fn = [&]<typename T>() {
+      const int type_index = CPPType::get<T>().type_index;
+      if (type_index >= vec.size()) {
+        vec.resize(type_index + 1, nullptr);
+      }
+      vec[type_index] = allocate_typed<T>;
+    };
 
-  if (type.is<GField>()) {
-    return value.allocate<GField>();
-  }
-  if (type.is<GListPtr>()) {
-    return value.allocate<GListPtr>();
-  }
+#define X(TYPE) add_allocate_fn.template operator()<TYPE>();
+    SOCKET_VALUE_SINGLE_TYPES
+#undef X
+    add_allocate_fn.template operator()<GField>();
+    add_allocate_fn.template operator()<GListPtr>();
 #ifdef WITH_OPENVDB
-  if (type.is<GVolumeGrid>()) {
-    return value.allocate<GVolumeGrid>();
-  }
+    add_allocate_fn.template operator()<GVolumeGrid>();
 #endif
-  BLI_assert_unreachable();
-  return nullptr;
+    return vec;
+  }();
+
+  if (type.type_index >= allocate_fns.size()) {
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+  const AllocateFn fn = allocate_fns[type.type_index];
+  if (!fn) {
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+  return fn(value);
 }
 
 void *SocketValueVariant::allocate_single(const CPPType &type)
 {
   return SocketValueVariant::allocate(type, value_);
-}
-
-bool SocketValueVariant::is_single() const
-{
-  const CPPType *type = this->get().type();
-  if (!type) {
-    return false;
-  }
-#define X(TYPE) \
-  if (type->is<TYPE>()) { \
-    return true; \
-  }
-  SOCKET_VALUE_SINGLE_TYPES
-#undef X
-  return false;
-}
-
-bool SocketValueVariant::is_field() const
-{
-  return this->get().type()->is<fn::GField>();
-}
-
-bool SocketValueVariant::is_list() const
-{
-  return this->get().type()->is<nodes::GListPtr>();
-}
-bool SocketValueVariant::is_volume_grid() const
-{
-#ifdef WITH_OPENVDB
-  return this->get().type()->is<bke::GVolumeGrid>();
-#else
-  return false;
-#endif
 }
 
 bool SocketValueVariant::is_context_dependent_field() const
@@ -538,6 +521,95 @@ bool SocketValueVariant::is_context_dependent_field() const
     return false;
   }
   return field->depends_on_input();
+}
+
+static void ensure_list_owns_direct_data(GList &list)
+{
+  if (list.cpp_type().is<BundlePtr>()) {
+    list.typed<BundlePtr>().foreach_for_write([](BundlePtr &bundle_ptr) {
+      if (!bundle_ptr) {
+        return;
+      }
+      bundle_ptr.ensure_mutable_inplace();
+      const_cast<nodes::Bundle &>(*bundle_ptr).ensure_owns_direct_data();
+    });
+  }
+  else if (list.cpp_type().is<SocketValueVariant>()) {
+    list.typed<SocketValueVariant>().foreach_for_write(
+        [](SocketValueVariant &value) { value.ensure_owns_direct_data(); });
+  }
+  else if (list.cpp_type().is<GeometrySet>()) {
+    list.typed<GeometrySet>().foreach_for_write(
+        [](GeometrySet &geometry) { geometry.ensure_owns_direct_data(); });
+  }
+}
+
+static bool list_owns_direct_data(const GList &list)
+{
+  const std::variant<GSpan, GPointer> &values = list.values();
+  if (list.cpp_type().is<BundlePtr>()) {
+    /* Null bundles don't reference any data, so they are trivially owned. */
+    return std::visit(
+        []<typename T>(const T &value) {
+          if constexpr (std::is_same_v<T, GSpan>) {
+            const Span span = value.template typed<BundlePtr>();
+            return std::all_of(span.begin(), span.end(), [](const BundlePtr &bundle_ptr) {
+              if (!bundle_ptr) {
+                return true;
+              }
+              return bundle_ptr->owns_direct_data();
+            });
+          }
+          else if constexpr (std::is_same_v<T, GPointer>) {
+            const BundlePtr *value_ptr = value.template get<BundlePtr>();
+            if (!value_ptr || !*value_ptr) {
+              return true;
+            }
+            return (*value_ptr)->owns_direct_data();
+          }
+          else {
+            BLI_assert_unreachable_static_t(T);
+          }
+        },
+        values);
+  }
+  if (list.cpp_type().is<SocketValueVariant>()) {
+    return std::visit(
+        []<typename T>(const T &value) {
+          if constexpr (std::is_same_v<T, GSpan>) {
+            const Span span = value.template typed<SocketValueVariant>();
+            return std::all_of(span.begin(), span.end(), [](const SocketValueVariant &value) {
+              return value.owns_direct_data();
+            });
+          }
+          else if constexpr (std::is_same_v<T, GPointer>) {
+            return value.template get<SocketValueVariant>()->owns_direct_data();
+          }
+          else {
+            BLI_assert_unreachable_static_t(T);
+          }
+        },
+        values);
+  }
+  if (list.cpp_type().is<GeometrySet>()) {
+    return std::visit(
+        []<typename T>(const T &value) {
+          if constexpr (std::is_same_v<T, GSpan>) {
+            const Span span = value.template typed<GeometrySet>();
+            return std::all_of(span.begin(), span.end(), [](const GeometrySet &value) {
+              return value.owns_direct_data();
+            });
+          }
+          else if constexpr (std::is_same_v<T, GPointer>) {
+            return value.template get<GeometrySet>()->owns_direct_data();
+          }
+          else {
+            BLI_assert_unreachable_static_t(T);
+          }
+        },
+        values);
+  }
+  return true;
 }
 
 void SocketValueVariant::ensure_owns_direct_data()
@@ -555,7 +627,7 @@ void SocketValueVariant::ensure_owns_direct_data()
   if (this->is_list()) {
     if (nodes::GListPtr &list_ptr = value_.get<nodes::GListPtr>()) {
       auto &list = list_ptr.get_for_write();
-      list.ensure_owns_direct_data();
+      ensure_list_owns_direct_data(list);
     }
   }
   if (this->get().is_type<GeometrySet>()) {
@@ -574,7 +646,7 @@ bool SocketValueVariant::owns_direct_data() const
   }
   if (this->is_list()) {
     if (const nodes::GListPtr &list_ptr = value_.get<nodes::GListPtr>()) {
-      return list_ptr->owns_direct_data();
+      return list_owns_direct_data(*list_ptr);
     }
   }
   if (this->get().is_type<GeometrySet>()) {

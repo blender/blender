@@ -12,6 +12,8 @@
  * SDNA and the SDNA of the current (running) version of Blender.
  */
 
+#define DNA_GENFILE_VERSIONING_MACROS_LEGACY
+
 #include <algorithm>
 #include <climits>
 #include <cstdio>
@@ -24,9 +26,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_index_range.hh"
+#include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_set.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.hh"
+#include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "DNA_genfile.h"
 #include "DNA_print.hh"
@@ -78,9 +84,8 @@ namespace blender {
  * to be found with: `type = DNA_struct_find_with_alias(SDNA *, StringRef)`
  * The value of `type` corresponds with the index within the structs array
  *
- * For the moment: the complete DNA file is included in a .blend file. For
- * the future we can think of smarter methods, like only included the used
- * structs. Only needed to keep a file short though...
+ * When writing .blend files, #DNA_sdna_encode_subset can emit only the structs that were
+ * actually used, which makes .blend files smaller.
  *
  * ALLOWED AND TESTED CHANGES IN STRUCTS:
  *  - Type change (a char to float will be divided by 255).
@@ -702,6 +707,199 @@ const SDNA *DNA_sdna_current_get()
    * and reuse. */
   static std::unique_ptr<SDNA> g_sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, true, nullptr);
   return g_sdna.get();
+}
+
+static void expand_sdna_structs_to_write(const SDNA &sdna,
+                                         MutableSpan<bool> sdna_structs_to_write,
+                                         MutableSpan<bool> sdna_type_names_to_write)
+{
+  BLI_assert(sdna_structs_to_write.size() == sdna.structs.size());
+
+  sdna_structs_to_write[SDNA_RAW_DATA_STRUCT_INDEX] = true;
+
+  /* These structs are always expected to exist. They are parsed to determine e.g. the pointer size
+   * or offsets into ID. */
+  for (const StringRefNull required_name : {"ListBase", "ID", "Library"}) {
+    const int struct_index = DNA_struct_find_index_without_alias(&sdna, required_name);
+    BLI_assert(struct_index > 0);
+    sdna_structs_to_write[struct_index] = true;
+  }
+
+  /* Recursively handle all inlined structs. For example, #ARegion contains a #View2D, so the
+   * members of that struct have to be written too. */
+  Vector<int> structs_to_check;
+  for (const int64_t i : sdna_structs_to_write.index_range()) {
+    if (sdna_structs_to_write[i]) {
+      structs_to_check.append(int(i));
+    }
+  }
+
+  while (!structs_to_check.is_empty()) {
+    const int struct_i = structs_to_check.pop_last();
+    const SDNA_Struct &sdna_struct = *sdna.structs[struct_i];
+    sdna_type_names_to_write[sdna_struct.type_index] = true;
+    for (const int member_i : IndexRange(sdna_struct.members_num)) {
+      const SDNA_StructMember &member = sdna_struct.members[member_i];
+      if (ispointer(sdna.members[member.member_index])) {
+        sdna_type_names_to_write[member.type_index] = true;
+        continue;
+      }
+      const int substruct_i = DNA_struct_find_index_without_alias(&sdna,
+                                                                  sdna.types[member.type_index]);
+      /* The member may not be a struct but a primitive type such as int or float. */
+      if (substruct_i == -1) {
+        continue;
+      }
+      if (sdna_structs_to_write[substruct_i]) {
+        continue;
+      }
+      sdna_structs_to_write[substruct_i] = true;
+      structs_to_check.append(substruct_i);
+    }
+  }
+}
+
+Vector<uint8_t> DNA_sdna_encode_subset(const SDNA &sdna, MutableSpan<bool> structs_to_write)
+{
+  Array<bool> type_names_to_write(sdna.types_num, false);
+  for (const SdnaBuiltinType &builtin : builtin_sdna_types) {
+    type_names_to_write[builtin.type_index] = true;
+  }
+  expand_sdna_structs_to_write(sdna, structs_to_write, type_names_to_write);
+
+  const int64_t structs_num = sdna.structs.size();
+  BLI_assert(structs_num == structs_to_write.size());
+
+  LinearAllocator<> allocator;
+  Array<StringRef> type_names(sdna.types_num);
+  Array<short> type_sizes(sdna.types_num, 0);
+  for (const int type_i : IndexRange(sdna.types_num)) {
+    type_names[type_i] = DNA_struct_rename_legacy_hack_alias_from_static(sdna.types[type_i]);
+    if (type_names_to_write[type_i]) {
+      type_sizes[type_i] = sdna.types_size[type_i];
+    }
+  }
+  for (const int64_t struct_i : IndexRange(structs_num)) {
+    const int type_i = sdna.structs[struct_i]->type_index;
+    if (!structs_to_write[struct_i]) {
+      /* Members of this struct are not written, so the size must be zero. */
+      type_sizes[type_i] = 0;
+      if (!type_names_to_write[type_i]) {
+        /* Completely unused structs get dummy type names to make the file smaller. */
+        type_names[type_i] = allocator.copy_string(fmt::format("#{}", struct_i));
+      }
+    }
+  }
+
+  VectorSet<StringRef> used_member_names;
+  for (const int64_t struct_i : IndexRange(structs_num)) {
+    if (!structs_to_write[struct_i]) {
+      continue;
+    }
+    const SDNA_Struct &sdna_struct = *sdna.structs[struct_i];
+    for (const int member_i : IndexRange(sdna_struct.members_num)) {
+      used_member_names.add(sdna.members[sdna_struct.members[member_i].member_index]);
+    }
+  }
+
+  Vector<uint8_t> dst;
+  dst.reserve(32 * 1024);
+
+  auto write = [&](const void *data, const int64_t size) {
+    dst.extend(static_cast<const uint8_t *>(data), size);
+  };
+  auto write_str = [&](const StringRef str) {
+    write(str.data(), str.size());
+    write("", 1);
+  };
+  auto pad_to_4 = [&]() {
+    const int64_t pad = (4 - (dst.size() & 3)) & 3;
+    dst.append_n_times(0, pad);
+  };
+
+  /* Write magic 'SDNA' followed by the individual sections encoding the partial sdna. */
+  write("SDNA", 4);
+  {
+    write("NAME", 4);
+    const int names_num = int(used_member_names.size());
+    write(&names_num, 4);
+    for (const StringRef name : used_member_names) {
+      write_str(name);
+    }
+    pad_to_4();
+  }
+  {
+    write("TYPE", 4);
+    const int types_num = int(type_names.size());
+    write(&types_num, 4);
+    for (const StringRef type_name : type_names) {
+      write_str(type_name);
+    }
+    pad_to_4();
+  }
+  {
+    write("TLEN", 4);
+    write(type_sizes.data(), sizeof(short) * type_sizes.size());
+    pad_to_4();
+  }
+  {
+    write("STRC", 4);
+    const int structs_num_i = int(structs_num);
+    write(&structs_num_i, 4);
+
+    for (const int64_t struct_i : IndexRange(structs_num)) {
+      const SDNA_Struct &sdna_struct = *sdna.structs[struct_i];
+      const short struct_type_i = sdna_struct.type_index;
+      if (structs_to_write[struct_i]) {
+        /* Write the struct with all its members. */
+        const short members_num = sdna_struct.members_num;
+        write(&struct_type_i, sizeof(struct_type_i));
+        write(&members_num, sizeof(members_num));
+        for (const int member_i : IndexRange(sdna_struct.members_num)) {
+          const SDNA_StructMember &member = sdna_struct.members[member_i];
+          const short member_type_i = member.type_index;
+          const short member_name_i = used_member_names.index_of_as(
+              sdna.members[member.member_index]);
+          write(&member_type_i, sizeof(member_type_i));
+          write(&member_name_i, sizeof(member_name_i));
+        }
+      }
+      else {
+        /* Write the struct without any members. */
+        const short members_num = 0;
+        write(&struct_type_i, sizeof(struct_type_i));
+        write(&members_num, sizeof(members_num));
+      }
+    }
+  }
+
+  return dst;
+}
+
+void DNA_sdna_print(const SDNA &sdna, std::ostream &stream)
+{
+  fmt::memory_buffer buf;
+  fmt::appender dst{buf};
+
+  fmt::format_to(dst, "<DNA>\n");
+  fmt::format_to(dst, "Types ({}):\n", sdna.types_num);
+  for (const int type_i : IndexRange(sdna.types_num)) {
+    fmt::format_to(dst, "  [{}] {} ({})\n", type_i, sdna.types[type_i], sdna.types_size[type_i]);
+  }
+
+  fmt::format_to(dst, "Structs ({}):\n", sdna.structs.size());
+  for (const int64_t struct_i : sdna.structs.index_range()) {
+    const SDNA_Struct &sdna_struct = *sdna.structs[struct_i];
+    fmt::format_to(dst, "  struct {} {{\n", sdna.types[sdna_struct.type_index]);
+    for (const int member_i : IndexRange(sdna_struct.members_num)) {
+      const SDNA_StructMember &member = sdna_struct.members[member_i];
+      fmt::format_to(
+          dst, "    {} {}\n", sdna.types[member.type_index], sdna.members[member.member_index]);
+    }
+    fmt::format_to(dst, "  }}\n");
+  }
+
+  stream << fmt::to_string(buf);
 }
 
 /* ******************** END READ DNA ********************** */

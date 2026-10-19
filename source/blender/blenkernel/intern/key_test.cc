@@ -223,7 +223,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute)
  * element count of the source data (unequal vertex count in the case of meshes). This is not
  * supported in relative evaluation, so that should ignore the shape key, regardless of its weight.
  */
-TEST_F(ShapekeyTest, mesh_key_evaluation_relative_uneqal_element_count)
+TEST_F(ShapekeyTest, mesh_key_evaluation_relative_unequal_element_count)
 {
   Key *key = BKE_key_add(bmain, &mesh->id);
   mesh->key = key;
@@ -257,9 +257,9 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_relative_uneqal_element_count)
   MEM_delete(ob_eval);
 }
 
-/* Same as mesh_key_evaluation_relative_uneqal_element_count but with absolute shapekeys. This is
+/* Same as mesh_key_evaluation_relative_unequal_element_count but with absolute shapekeys. This is
  * somewhat supported but there is no known way to get Blender into such a state. */
-TEST_F(ShapekeyTest, mesh_key_evaluation_absolute_uneqal_element_count)
+TEST_F(ShapekeyTest, mesh_key_evaluation_absolute_unequal_element_count)
 {
   Key *key = BKE_key_add(bmain, &mesh->id);
   mesh->key = key;

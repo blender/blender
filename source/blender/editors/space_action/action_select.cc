@@ -13,6 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.hh"
 #include "BLI_utildefines.hh"
@@ -1114,7 +1115,8 @@ static void markers_selectkeys_between(bAnimContext *ac)
         ED_masklayer_frames_select_box(static_cast<MaskLayer *>(ale.data), min, max, SELECT_ADD);
         break;
 
-      case ANIMTYPE_FCURVE: {
+      case ANIMTYPE_FCURVE:
+      case ANIMTYPE_NLACURVE: {
         FCurve *fcurve = static_cast<FCurve *>(ale.key_data);
         ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, false, true);
         ANIM_fcurve_keyframes_loop(&ked, fcurve, ok_cb, select_cb, nullptr);
@@ -1395,14 +1397,12 @@ static void select_moreless_action_keys(bAnimContext *ac, short mode)
     }
 
     /* build up map of whether F-Curve's keyframes should be selected or not */
-    ked.data = MEM_new_zeroed(fcu->totvert, "selmap actEdit more");
+    Array<char> selmap(fcu->totvert, 0);
+    ked.data = selmap.data();
     ANIM_fcurve_keyframes_loop(&ked, fcu, nullptr, build_cb, nullptr);
 
     /* based on this map, adjust the selection status of the keyframes */
     ANIM_fcurve_keyframes_loop(&ked, fcu, nullptr, bezt_selmap_flush, nullptr);
-
-    /* free the selmap used here */
-    MEM_delete_void(ked.data);
     ked.data = nullptr;
   }
 
@@ -1562,7 +1562,8 @@ static void actkeys_select_leftright(bAnimContext *ac,
             static_cast<MaskLayer *>(ale.data), ked.f1, ked.f2, select_mode);
         break;
 
-      case ANIMTYPE_FCURVE: {
+      case ANIMTYPE_FCURVE:
+      case ANIMTYPE_NLACURVE: {
         FCurve *fcurve = static_cast<FCurve *>(ale.key_data);
         ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcurve, false, true);
         ANIM_fcurve_keyframes_loop(&ked, fcurve, ok_cb, select_cb, nullptr);

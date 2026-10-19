@@ -64,13 +64,12 @@ optional<vector<MatchRank>> SymbolFunction::get_match_ranks(
     ranks.push_back(rank);
   }
 
-  /* Check if remaining parameters are optional. */
+  /* Check if remaining parameters are optional. Defaulted parameters are not ranked, so that
+   * every viable candidate returns one rank per supplied argument and stays comparable. */
   for (size_t i = param_types.size(); i < arg_types.size(); ++i) {
     if (!arg_defaults[i].is_valid()) {
       return {}; /* Missing required argument. */
     }
-    /* Default arguments are generally treated as an exact match for scoring purposes. */
-    ranks.push_back(MatchRank::Exact);
   }
 
   return ranks;
@@ -143,8 +142,8 @@ Result<SymbolFunction *> SymbolFunction::lookup_overload(IdQualified id,
           is_ambiguous = false;
         }
         else if (current_is_template && !best_is_template) {
-          /* Best is non-template, current is template. Best maintains its win. */
-          is_ambiguous = false;
+          /* Best is non-template, current is template. Best maintains its win, but keep any
+           * ambiguity with an earlier non-template candidate. */
         }
         else {
           /* Both are templates, or both are non-templates. It is truly ambiguous. */

@@ -397,7 +397,7 @@ class RelativeToPixelOperation : public NodeOperation {
     return float2(1.0f);
   }
 
-  CMPNodeRelativeToPixelDataType get_data_type()
+  CMPNodeRelativeToPixelDataType get_data_type() const
   {
     return CMPNodeRelativeToPixelDataType(this->node().custom1);
   }
@@ -405,6 +405,17 @@ class RelativeToPixelOperation : public NodeOperation {
   CMPNodeRelativeToPixelReferenceDimension get_reference_dimension()
   {
     return CMPNodeRelativeToPixelReferenceDimension(this->node().custom2);
+  }
+
+  bool uses_asynchronous_execution() const override
+  {
+    if (this->get_data_type() == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT) {
+      const Result &input = this->get_input("Float Value");
+      return !input.is_single_value();
+    }
+
+    const Result &input = this->get_input("Vector Value");
+    return !input.is_single_value();
   }
 };
 

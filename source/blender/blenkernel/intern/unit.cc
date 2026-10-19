@@ -494,7 +494,7 @@ static bUnitDef buMetricAreaDef[] = {
     },
     {
         /*name*/ "square decimeter",
-        /*name_plural*/ "square decimetees",
+        /*name_plural*/ "square decimeters",
         /*name_short*/ "dm" BLI_STR_UTF8_SUPERSCRIPT_2,
         /*name_alt*/ "dm2",
         /*name_display*/ "Square Decimeters",

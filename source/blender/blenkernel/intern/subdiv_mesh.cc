@@ -113,6 +113,10 @@ struct SubdivMeshContext {
    * to avoid race conditions when setting bits. */
   Array<bool> subdiv_display_edges;
 
+  /* Write face dot tags into a boolean array rather than the final bit vector to avoid race
+   * conditions when setting bits. */
+  Array<bool> subdiv_face_dot_tags;
+
   /* Lazily initialize a map from vertices to connected edges. */
   Array<int> vert_to_edge_offsets;
   Array<int> vert_to_edge_indices;
@@ -884,8 +888,7 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
 
   subdiv_mesh_ctx_cache_custom_data_layers(subdiv_context);
   subdiv_mesh_prepare_accumulator(subdiv_context, num_vertices);
-  subdiv_mesh.runtime->subsurf_face_dot_tags.clear();
-  subdiv_mesh.runtime->subsurf_face_dot_tags.resize(num_vertices);
+  subdiv_context->subdiv_face_dot_tags = Array<bool>(num_vertices, false);
   if (subdiv_context->settings->use_optimal_display) {
     subdiv_context->subdiv_display_edges = Array<bool>(num_edges, false);
   }
@@ -961,8 +964,6 @@ static void evaluate_vert_and_apply_displacement_copy(const SubdivMeshContext *c
   subdiv_position += D;
   /* Evaluate undeformed texture coordinate. */
   subdiv_vert_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vert_index);
-  /* Remove face-dot flag. This can happen if there is more than one subsurf modifier. */
-  ctx->subdiv_mesh->runtime->subsurf_face_dot_tags[subdiv_vert_index].reset();
 }
 
 static void evaluate_vert_and_apply_displacement_interpolate(
@@ -1103,10 +1104,10 @@ static void subdiv_mesh_tag_center_vert(const IndexRange coarse_face,
                                         const int subdiv_vert_index,
                                         const float u,
                                         const float v,
-                                        Mesh *subdiv_mesh)
+                                        SubdivMeshContext *ctx)
 {
   if (subdiv_mesh_is_center_vert(coarse_face, u, v)) {
-    subdiv_mesh->runtime->subsurf_face_dot_tags[subdiv_vert_index].set();
+    ctx->subdiv_face_dot_tags[subdiv_vert_index] = true;
   }
 }
 
@@ -1123,11 +1124,10 @@ static void subdiv_mesh_vert_inner(const ForeachContext *foreach_context,
   SubdivMeshTLS *tls = static_cast<SubdivMeshTLS *>(tls_v);
   Subdiv *subdiv = ctx->subdiv;
   const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
-  Mesh *subdiv_mesh = ctx->subdiv_mesh;
   subdiv_mesh_ensure_vert_interpolation(ctx, tls, coarse_face_index, coarse_corner);
   subdiv_vert_data_interpolate(ctx, subdiv_vert_index, tls->vert_interpolation, u, v);
   ctx->subdiv_positions[subdiv_vert_index] = eval_final_point(subdiv, ptex_face_index, u, v);
-  subdiv_mesh_tag_center_vert(coarse_face, subdiv_vert_index, u, v, subdiv_mesh);
+  subdiv_mesh_tag_center_vert(coarse_face, subdiv_vert_index, u, v, ctx);
   subdiv_vert_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vert_index);
 }
 
@@ -1506,6 +1506,8 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
    * normal calculation. Since vertex normals are supposed to be a consistent cache, don't bother
    * calculating them here. The work may have been pointless anyway if the mesh is deformed or
    * changed afterwards. */
+
+  result->runtime->subsurf_face_dot_tags = BitVector<>(subdiv_context.subdiv_face_dot_tags);
 
   /* Move the optimal display edge array to the final bit vector. */
   if (!subdiv_context.subdiv_display_edges.is_empty()) {

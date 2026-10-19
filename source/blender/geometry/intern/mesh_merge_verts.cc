@@ -1288,7 +1288,7 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
                                                  const bke::AttributeFilter &attribute_filter)
 {
   Array<int> vert_src_to_target(mesh.verts_num, OUT_OF_CONTEXT);
-  KDTreeNew<float3> tree(mesh.vert_positions(), selection);
+  KDTree<float3> tree(mesh.vert_positions(), selection);
   const int removed_verts_num = kdtree::calc_duplicates(
       tree, merge_distance, selection, vert_src_to_target);
   if (removed_verts_num == 0) {

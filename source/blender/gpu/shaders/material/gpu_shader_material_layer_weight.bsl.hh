@@ -8,12 +8,8 @@
 #include "gpu_shader_material_interface.bsl.hh"
 
 [[node]]
-void node_layer_weight(float blend,
-                       float3 N,
-                       [[resource_table]] KernelGlobals &kg,
-                       ShadingData &sd,
-                       float &fresnel,
-                       float &facing)
+void node_layer_weight(
+    float blend, float3 N, KernelGlobals &kg, ShadingData &sd, float &fresnel, float &facing)
 {
   N = normalize(N);
 

@@ -105,10 +105,13 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
                bke::pbvh::node_frustum_contain_aabb(node, draw_frustum_planes);
       });
 
+  /* In the future we expect that update_only_visible nodes will be removed to support GPU driven
+   * pipelines better. Only visible nodes is an CPU based optimization but does not provide the GPU
+   * with the actual data it needs. */
   const IndexMask nodes_to_update = update_only_visible ? visible_nodes :
                                                           bke::pbvh::all_leaf_nodes(*pbvh, memory);
 
-  Span<gpu::Batch *> batches;
+  Span<Batch *> batches;
   if (use_wire) {
     batches = draw_data.ensure_lines_batches(*ob, {{}, fast_mode}, nodes_to_update);
   }
@@ -119,14 +122,21 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
   const Span<int> material_indices = draw_data.ensure_material_indices(*ob);
 
   const int max_material = std::max(0, BKE_object_material_count_eval(ob) - 1);
-  Vector<SculptBatch> result_batches(visible_nodes.size());
+  Vector<SculptBatch> result_batches;
+  result_batches.reserve(visible_nodes.size());
   visible_nodes.foreach_index([&](const int i, const int pos) {
-    result_batches[pos] = {};
-    result_batches[pos].batch = batches[i];
-    result_batches[pos].material_slot = material_indices.is_empty() ?
-                                            0 :
-                                            std::clamp(material_indices[i], 0, max_material);
-    result_batches[pos].debug_index = pos;
+    /* Skip nodes without any visible geometry, for example when all faces are hidden but some
+     * vertices are not. */
+    if (batches[i] == nullptr || batches[i]->gpu_batch()->elem_() == nullptr) {
+      return;
+    }
+    SculptBatch batch = {};
+    batch.batch = batches[i];
+    batch.material_slot = material_indices.is_empty() ?
+                              0 :
+                              std::clamp(material_indices[i], 0, max_material);
+    batch.debug_index = pos;
+    result_batches.append(batch);
   });
 
   return result_batches;

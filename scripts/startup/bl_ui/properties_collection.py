@@ -65,11 +65,6 @@ class COLLECTION_PT_viewlayer_flags(CollectionButtonsPanel, Panel):
 class COLLECTION_PT_importer(CollectionButtonsPanel, Panel):
     bl_label = "Importer"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return prefs.experimental.use_collection_importer
-
     def draw(self, context):
         del context
         layout = self.layout

@@ -137,8 +137,13 @@ set(SRC_GLSL_LIB
   library/gpu_shader_compositor_texture_utilities.glsl
 )
 
+set(SRC_BSL
+  bsl_shader_linting.cc
+)
+
 # Compile shaders with shader code.
 if(WITH_GPU_SHADER_CPP_COMPILATION)
+  compile_sources_as_cpp(compositor_cpp_shaders_bsl "${SRC_BSL}" "")
   compile_sources_as_cpp(compositor_cpp_shaders_comp "${SRC_GLSL_COMP}" "GPU_COMPUTE_SHADER")
   # Only enable to make sure they compile on their own.
   # Otherwise it creates a warning about `pragma once`.

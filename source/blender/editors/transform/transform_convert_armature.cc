@@ -577,7 +577,7 @@ static void free_pose_transdata(TransInfo *t, TransDataContainer *tc, TransCusto
 {
   /* Free any data in custom_data->data. */
   if (custom_data->data != nullptr) {
-    MEM_delete_void(custom_data->data);
+    MEM_delete(static_cast<PoseInitData_Mirror *>(custom_data->data));
     custom_data->data = nullptr;
   }
 

@@ -8,6 +8,7 @@
  * \ingroup bke
  */
 
+#include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"

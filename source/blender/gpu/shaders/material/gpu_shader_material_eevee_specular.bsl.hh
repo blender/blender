@@ -19,7 +19,7 @@ void node_eevee_specular(float4 diffuse,
                          float3 CN,
                          float weight,
                          const float use_clearcoat,
-                         [[resource_table]] KernelGlobals &kg,
+                         KernelGlobals &kg,
                          ShadingData &sd,
                          Closure &result)
 {

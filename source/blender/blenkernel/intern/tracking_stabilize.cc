@@ -418,7 +418,7 @@ static void translation_contribution(TrackStabilizationBase *track_ref,
  *   To turn this into a _contribution_, the likewise corrected angle at the
  *   reference frame has to be subtracted, to get only the pure angle difference
  *   this tracking point has captured.
- * - To get from vectors to angles, we have to go through an arcus tangens,
+ * - To get from vectors to angles, we have to go through an arctangent,
  *   which involves the issue of the definition range: the resulting angles will
  *   flip by 360deg when the measured vector passes from the 2nd to the third
  *   quadrant, thus messing up the average calculation. Since _any_ tracking
@@ -426,7 +426,7 @@ static void translation_contribution(TrackStabilizationBase *track_ref,
  * - Thus we perform the subtraction of the reference and the addition of the
  *   baseline contribution in polar coordinates as simple addition of angles;
  *   since these parts are fixed, we can bake them into a rotation matrix.
- *   With this approach, the border of the arcus tangens definition range will
+ *   With this approach, the border of the arctangent definition range will
  *   be reached only, when the _whole_ contribution approaches +- 180deg,
  *   meaning we've already tilted the frame upside down. This situation is way
  *   less common and can be tolerated.
@@ -793,7 +793,7 @@ static int establish_track_initialization_order(StabContext *ctx, TrackInitOrder
  * to compensate for the already determined translation and measure the pure
  * rotation, simply because this is how we model the offset: shift plus rotation
  * around the shifted rotation center. To circumvent problems with the
- * definition range of the arcus tangens function, we perform this baseline
+ * definition range of the arctangent function, we perform this baseline
  * addition and reference angle subtraction in polar coordinates and bake this
  * operation into a precomputed rotation matrix.
  *

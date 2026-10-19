@@ -178,7 +178,7 @@ class glTFDataExtractor:
                     )
 
                     # TODO manage sparse accessors
-                    # (currently not used in Blender roudntrip tests)
+                    # (currently not used in Blender roundtrip tests)
             else:
                 # Need to init data with zeros
                 dtype = ComponentType.to_numpy_dtype(accessor.get('componentType'))
@@ -186,7 +186,7 @@ class glTFDataExtractor:
                 array = np.zeros((accessor.get('count'), component_nb), dtype=dtype)
 
                 # TODO manage sparse accessors
-                # (currently not used in Blender roudntrip tests)
+                # (currently not used in Blender roundtrip tests)
 
             # Normalization
             if accessor.get('normalized'):

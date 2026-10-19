@@ -112,7 +112,7 @@ class UnitTesting(ViewLayerTesting):
     def test_scene_read_collections(self):
         """
         See if read is working for scene collections
-        (run ``test_scene_write_colections`` first).
+        (run ``test_scene_write_collections`` first).
         """
         import os
 

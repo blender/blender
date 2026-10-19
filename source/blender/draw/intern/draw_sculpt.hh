@@ -16,14 +16,13 @@ namespace blender {
 
 struct GPUMaterial;
 struct Object;
-namespace gpu {
-class Batch;
-}
 
 namespace draw {
 
+struct Batch;
+
 struct SculptBatch {
-  gpu::Batch *batch;
+  Batch *batch;
   int material_slot;
   int debug_index;
   float3 debug_color();

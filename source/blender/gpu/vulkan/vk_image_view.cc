@@ -47,10 +47,13 @@ VKImageView::VKImageView(VKTexture &texture, const VKImageViewInfo &info, String
     image_view_info.pNext = &view_usage_info;
   }
 
-  const VKDevice &device = VKBackend::get().device;
+  VKDevice &device = VKBackend::get().device;
   device.functions.vkCreateImageView(
       device.vk_handle(), &image_view_info, nullptr, &vk_image_view_);
   debug::object_label(vk_image_view_, name.c_str());
+
+  BLI_assert(texture.resource_handle() != 0);
+  device.resources.register_view(texture.resource_handle(), vk_image_view_);
 }
 
 VKImageView::VKImageView(VKImageView &&other) : info(other.info)
@@ -59,15 +62,6 @@ VKImageView::VKImageView(VKImageView &&other) : info(other.info)
   other.vk_image_view_ = VK_NULL_HANDLE;
   vk_format_ = other.vk_format_;
   other.vk_format_ = VK_FORMAT_UNDEFINED;
-}
-
-VKImageView::~VKImageView()
-{
-  if (vk_image_view_ != VK_NULL_HANDLE) {
-    VKDiscardPool::discard_pool_get().discard_image_view(vk_image_view_);
-    vk_image_view_ = VK_NULL_HANDLE;
-  }
-  vk_format_ = VK_FORMAT_UNDEFINED;
 }
 
 }  // namespace blender::gpu

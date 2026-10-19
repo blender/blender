@@ -24,6 +24,7 @@
 #include "DRW_render.hh"
 #include "UI_resources.hh"
 #include "draw_manager.hh"
+#include "draw_meshlet.hh"
 #include "draw_pass.hh"
 #include "draw_view_data.hh"
 #include "gpu_shader_create_info.hh"
@@ -329,15 +330,6 @@ struct VertexTriple {
  * Contains all overlay generic geometry batches.
  */
 class ShapeCache {
- private:
-  struct BatchDeleter {
-    void operator()(gpu::Batch *shader)
-    {
-      GPU_BATCH_DISCARD_SAFE(shader);
-    }
-  };
-  using BatchPtr = std::unique_ptr<gpu::Batch, BatchDeleter>;
-
  public:
   BatchPtr bone_box;
   BatchPtr bone_box_wire;
@@ -1000,7 +992,7 @@ struct Resources : public select::SelectMap {
 /* Reference to a flat object.
  * Allow deferred rendering condition of flat object for special purpose. */
 struct FlatObjectRef {
-  gpu::Batch *geom;
+  Batch *geom;
   ResourceHandleRange handle;
   int flattened_axis_id;
 
@@ -1047,7 +1039,7 @@ struct FlatObjectRef {
     return -1;
   }
 
-  using Callback = FunctionRef<void(gpu::Batch *geom, ResourceID handle)>;
+  using Callback = FunctionRef<void(Batch *geom, ResourceID handle)>;
 
   /* Execute callback for every handles that is orthogonal to the view.
    * Note: Only works in orthogonal view. */
@@ -1093,7 +1085,7 @@ template<typename InstanceDataT> struct ShapeInstanceBuf : private select::Selec
     data_buf.append(data);
   }
 
-  void end_sync(PassSimple::Sub &pass, gpu::Batch *shape)
+  void end_sync(PassSimple::Sub &pass, Batch *shape)
   {
     if (data_buf.is_empty()) {
       return;
@@ -1105,7 +1097,7 @@ template<typename InstanceDataT> struct ShapeInstanceBuf : private select::Selec
   }
 
   void end_sync(PassSimple::Sub &pass,
-                gpu::Batch *shape,
+                Batch *shape,
                 GPUPrimType primitive_type,
                 uint primitive_len)
   {

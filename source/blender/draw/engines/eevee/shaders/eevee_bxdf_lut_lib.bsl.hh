@@ -118,7 +118,7 @@ struct GGXBtdfGt1Data {
 
   static GGXBtdfGt1Data unpack(float4 data)
   {
-    return {.transmission_factor = data.w};
+    return {.transmission_factor = data.x};
   }
 
   static float3 lut_coords_get(float cos_theta, float roughness, float f0)
@@ -133,7 +133,8 @@ struct GGXBtdfGt1Data {
   {
     const float3 coords = lut_coords_get(cos_theta, roughness, f0);
     const float4 data = util_tx.sample_bsdf_lut(coords.xy, coords.z);
-    return unpack(data);
+    /* Shuffle to expect the same layout as the output of `pack`. */
+    return unpack(data.wxyz);
   }
 };
 

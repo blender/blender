@@ -28,7 +28,7 @@
 #include "BLI_utildefines.hh"
 
 /* Define macros in `DNA_genfile.h`. */
-#define DNA_GENFILE_VERSIONING_MACROS
+#define DNA_GENFILE_VERSIONING_MACROS_LEGACY
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -55,7 +55,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
-#undef DNA_GENFILE_VERSIONING_MACROS
+#undef DNA_GENFILE_VERSIONING_MACROS_LEGACY
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"

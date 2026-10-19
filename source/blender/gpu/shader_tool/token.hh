@@ -292,6 +292,8 @@ static inline std::string to_str(TokenType type)
       return "undef";
     case Private:
       return "private";
+    case Protected:
+      return "protected";
     case Public:
       return "public";
     case Invalid:

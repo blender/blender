@@ -261,7 +261,7 @@ static void graph_slider_exit(bContext *C, wmOperator *op)
   for (link = gso->bezt_arr_list.first(); link != nullptr; link = link->next) {
     tBeztCopyData *copy = static_cast<tBeztCopyData *>(link->data);
     MEM_delete(copy->bezt);
-    MEM_delete_void(link->data);
+    MEM_delete(copy);
   }
 
   gso->bezt_arr_list.free_no_destruct();
