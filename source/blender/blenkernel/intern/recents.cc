@@ -26,6 +26,8 @@
 #include "BLI_mutex.hh"
 #include "BLI_path_utils.hh"
 
+#include "MEM_guardedalloc.h"
+
 namespace blender::recents {
 
 constexpr toml::spec version = toml::spec::v(1, 0, 0);
@@ -37,9 +39,12 @@ static std::atomic<bool> recents_ready{false};
 static std::condition_variable_any recents_init_cv;
 static std::once_flag recents_init_once;
 
-static std::string recents_file_path()
+static std::string recents_file_path(const bool create_folder = false)
 {
-  std::optional<std::string> datafiles_path = BKE_appdir_folder_id(BLENDER_USER_CONFIG, "");
+  std::optional<std::string> datafiles_path = create_folder ?
+                                                  BKE_appdir_folder_id_create(BLENDER_USER_CONFIG,
+                                                                              nullptr) :
+                                                  BKE_appdir_folder_id(BLENDER_USER_CONFIG, "");
   if (!datafiles_path.has_value()) {
     return {};
   }
@@ -71,6 +76,7 @@ IMAGE_EDITOR = [50.0, 1360.0, 50.0, 830.0]
 GRAPH_EDITOR = [50.0, 950.0, 200.0, 780.0]
 INFO = [100.0, 1000.0, 300.0, 880.0]
 OUTLINER = [100.0, 550.0, 350.0, 800.0]
+PROJECT = [100.0, 800.0, 500.0, 850.0]
 
 ["panel.sortorder"]
 _default = -1
@@ -105,7 +111,12 @@ static void recents_init_impl()
   if (!G.background) {
     const std::string path = recents_file_path();
     if (!path.empty() && BLI_exists(path.c_str())) {
-      toml::result file_result = toml::try_parse(path, version);
+      /* Read with Blender file API for UTF-8 path support on Windows. */
+      size_t size = 0;
+      char *data = BLI_file_read_text_as_mem(path.c_str(), 0, &size);
+      std::string content = data ? std::string(data, size) : std::string();
+      MEM_delete(data);
+      toml::result file_result = toml::try_parse_str(std::move(content), version);
       if (file_result.is_ok()) {
         std::lock_guard lock(recents_mutex);
         current_get() = file_result.unwrap();
@@ -116,8 +127,12 @@ static void recents_init_impl()
     }
   }
 
-  /* Mark ready and wake any waiters. */
-  recents_ready.store(true, std::memory_order_release);
+  /* Mark ready and wake any waiters. Set while holding the mutex, so a waiter can't
+   * miss the notification between checking the flag and starting to wait. */
+  {
+    std::lock_guard lock(recents_init_mutex);
+    recents_ready.store(true, std::memory_order_release);
+  }
   recents_init_cv.notify_all();
 }
 
@@ -171,7 +186,11 @@ bool save()
   }
 
   std::string toml_as_string = toml::format(current, version);
-  FILE *file_handle = BLI_fopen(recents_file_path().c_str(), "w");
+  const std::string path = recents_file_path(true);
+  if (path.empty()) {
+    return false;
+  }
+  FILE *file_handle = BLI_fopen(path.c_str(), "w");
   if (file_handle == nullptr) {
     return false;
   }
