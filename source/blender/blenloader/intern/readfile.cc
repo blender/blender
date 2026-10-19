@@ -4063,6 +4063,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     }
 
     if (bfd->main->is_read_invalid) {
+      BKE_layer_collection_resync_allow();
       return bfd;
     }
   }
@@ -4122,6 +4123,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   }
 
   if (bfd->main->is_read_invalid) {
+    BKE_layer_collection_resync_allow();
     return bfd;
   }
 
@@ -4137,6 +4139,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   }
 
   if (bfd->main->is_read_invalid) {
+    BKE_layer_collection_resync_allow();
     return bfd;
   }
 
@@ -4144,6 +4147,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     fd->reports->duration.libraries = BLI_time_now_seconds();
     read_libraries(fd, &mainlist);
     if (bfd->main->is_read_invalid) {
+      BKE_layer_collection_resync_allow();
       return bfd;
     }
 
@@ -4151,6 +4155,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
     lib_link_all(fd, bfd->main);
     if (bfd->main->is_read_invalid) {
+      BKE_layer_collection_resync_allow();
       return bfd;
     }
 
@@ -4232,6 +4237,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     }
 
     if (bfd->main->is_read_invalid) {
+      BKE_layer_collection_resync_allow();
       return bfd;
     }
 
