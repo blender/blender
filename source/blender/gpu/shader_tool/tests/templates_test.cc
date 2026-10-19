@@ -131,7 +131,7 @@ void _f(U this_);
 ATU ATU_ctor_() {ATU r;r._pad=0;return r;}
 
 #ifndef GPU_METAL
-void _f(ATU this_, U _0);
+void _f(ATU this_, U t);
 #endif
 #line 3
   void _f(ATU this_, U t)
@@ -632,7 +632,7 @@ template struct A<float>;
 ATfloat ATfloat_ctor_() {ATfloat r;r.a=0.0f;return r;}
 
 #ifndef GPU_METAL
-ATfloat _method(ATfloat this_, float _0);
+ATfloat _method(ATfloat this_, float b);
 #endif
 #line 4
   ATfloat _method(ATfloat this_, float b)

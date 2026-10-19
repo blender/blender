@@ -1744,8 +1744,8 @@ struct A {
 A A_ctor_() {A r;r.a=0;return r;}
 
 #ifndef GPU_METAL
-void _m(_ref(A ,this_));
        void A_s();
+void _m(_ref(A ,this_));
 #endif
 #line 5
   void _m(_ref(A ,this_)) {
@@ -1816,8 +1816,8 @@ struct A {
 A A_ctor_() {A r;r.a=0;return r;}
 
 #ifndef GPU_METAL
-void _m(_ref(A ,this_));
        void A_s();
+void _m(_ref(A ,this_));
 #endif
 #line 5
   void _m(_ref(A ,this_)) {
@@ -1918,11 +1918,11 @@ struct D1 {
 D1 D1_ctor_() {D1 r;r._pad=0;return r;}
 
 #ifndef GPU_METAL
-       A BTD1_samp(D1 _0, float _1);
+       A BTD1_samp(D1 d, float p);
 #endif
 
 #ifndef GPU_METAL
-A _samp(D1 this_, float _0);
+A _samp(D1 this_, float p);
 #endif
 #line 5
          A BTD1_samp(D1 d, float p)

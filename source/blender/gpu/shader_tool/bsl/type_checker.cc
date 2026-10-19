@@ -495,6 +495,11 @@ struct ExpressionTypeParser
     }
 
     TokenType op_type = t.front().type();
+    if (op_type == '*') {
+      /* Dereference operator is only used/allowed on this.
+       * Make it a noop since `this` is converted to a reference in codegen. */
+      return right;
+    }
 
     ClassId type_id = unary_prefix_operator_return_type(op_type, right.type);
     if (type_id == builtin::Invalid) {
