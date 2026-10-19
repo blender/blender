@@ -18,9 +18,12 @@
 #include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
 #include "BLI_bit_span_ops.hh"
+#include "BLI_bit_span_to_index_ranges.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_hash_tables.hh"
 #include "BLI_index_mask_expression.hh"
+#include "BLI_index_ranges_builder.hh"
+#include "BLI_math_bits.hh"
 #include "BLI_stack.hh"
 #include "BLI_task.hh"
 
@@ -104,7 +107,7 @@ struct EvaluatedSegment {
  * There are different ways to do the exact evaluation. Depending on the expression or data, one
  * or the other is more efficient.
  */
-enum class ExactEvalMode {
+enum class ExactEvalMode : int8_t {
   /**
    * Does the evaluation by working directly with arrays of sorted indices. This is usually best
    * when the expression does not have intermediate results, i.e. it is very simple.
@@ -565,15 +568,56 @@ static CoarseResult evaluate_coarse(const Expr &root_expression,
   return std::move(final_result);
 }
 
-static Span<int16_t> bits_to_indices(const BoundedBitSpan bits, LinearAllocator<> &allocator)
+static void convert_bits_to_segments(const BoundedBitSpan bits,
+                                     const IndexRange bounds,
+                                     LinearAllocator<> &allocator,
+                                     Vector<EvaluatedSegment, 16> &r_evaluated_segments)
 {
-  /* TODO: Could first count the number of set bits. */
-  Vector<int16_t, max_segment_size> indices_vec;
-  bits::foreach_1_index(bits, [&](const int64_t i) {
-    BLI_assert(i < max_segment_size);
-    indices_vec.append_unchecked(int16_t(i));
-  });
-  return allocator.construct_array_copy<int16_t>(indices_vec);
+  const int64_t bounds_min = bounds.start();
+  /* Bits are processed one integer at a time below. */
+  BLI_assert(bits.offset() == 0);
+  BLI_assert(bits.size() % bits::BitsPerInt == 0);
+
+  /* Count set bits and the number of ranges they form. */
+  int64_t set_bits_num = 0;
+  int64_t ranges_num = 0;
+  bits::BitInt prev_int = 0;
+  for (const bits::BitInt value : Span(bits.data(), bits.size() / bits::BitsPerInt)) {
+    /* A range starts at every set bit whose previous bit is not set. */
+    const bits::BitInt prev_bits = (value << 1) | (prev_int >> (bits::BitsPerInt - 1));
+    set_bits_num += count_bits_uint64(value);
+    ranges_num += count_bits_uint64(value & ~prev_bits);
+    prev_int = value;
+  }
+  if (set_bits_num == 0) {
+    return;
+  }
+
+  constexpr int64_t min_average_range_size = 16;
+  if (set_bits_num < ranges_num * min_average_range_size) {
+    /* The set bits are scattered, so it's cheapest to write every index separately. */
+    MutableSpan<int16_t> indices = allocator.allocate_array<int16_t>(set_bits_num);
+    int64_t count = 0;
+    bits::foreach_1_index(bits, [&](const int64_t i) { indices[count++] = int16_t(i); });
+    r_evaluated_segments.append(
+        {EvaluatedSegment::Type::Indices, bounds, nullptr, {bounds_min, indices}});
+    return;
+  }
+
+  /* Longer ranges can reference the static indices array, so they don't have to be written. */
+  IndexRangesBuilderBuffer<int16_t, max_segment_size> builder_buffer;
+  IndexRangesBuilder<int16_t> builder{builder_buffer};
+  bits::bits_to_index_ranges<int16_t>(bits, builder);
+  Vector<IndexMaskSegment, 16> segments;
+  index_ranges_to_mask_segments(builder, bounds_min, allocator, segments);
+  r_evaluated_segments.reserve(r_evaluated_segments.size() + segments.size());
+  for (const IndexMaskSegment &segment : segments) {
+    r_evaluated_segments.append_unchecked(
+        {EvaluatedSegment::Type::Indices,
+         IndexRange::from_begin_end_inclusive(segment[0], segment.last()),
+         nullptr,
+         segment});
+  }
 }
 
 /**
@@ -581,16 +625,22 @@ static Span<int16_t> bits_to_indices(const BoundedBitSpan bits, LinearAllocator<
  * works in three steps:
  * 1. Convert input indices into bit spans.
  * 2. Use bit operations to evaluate the expression.
- * 3. Convert resulting bit span back to indices.
+ * 3. Convert resulting bit span back to indices. Longer ranges of set bits become segments that
+ *    reference the static indices array, so they don't have to be written.
  *
  * The trade-off here is that the actual expression evaluation is much faster but the conversions
  * take some extra time. Therefore, this approach is best when the evaluation would otherwise take
  * longer than the conversions which is usually the case for non-trivial expressions.
+ *
+ * \param atomic_masks: The masks of the atomic expressions in evaluation order, sliced to the
+ * bounds.
  */
-static IndexMaskSegment evaluate_exact_with_bits(const Expr &root_expression,
-                                                 LinearAllocator<> &allocator,
-                                                 const IndexRange bounds,
-                                                 const Span<const Expr *> eval_order)
+static void evaluate_exact_with_bits(const Expr &root_expression,
+                                     LinearAllocator<> &allocator,
+                                     const IndexRange bounds,
+                                     const Span<const Expr *> eval_order,
+                                     const Span<IndexMask> atomic_masks,
+                                     Vector<EvaluatedSegment, 16> &r_evaluated_segments)
 {
   BLI_assert(bounds.size() <= max_segment_size);
   const int64_t bounds_min = bounds.start();
@@ -602,13 +652,12 @@ static IndexMaskSegment evaluate_exact_with_bits(const Expr &root_expression,
   BitGroupVector<16 * 1024> expression_results(
       expr_array_size, ints_in_bounds * bits::BitsPerInt, false);
 
+  int64_t atomic_i = 0;
   for (const Expr *expression : eval_order) {
     MutableBoundedBitSpan expr_result = expression_results[expression->index];
     switch (expression->type) {
       case Expr::Type::Atomic: {
-        const AtomicExpr &expr = expression->as_atomic();
-        const IndexMask mask = expr.mask->slice_content(bounds);
-        mask.to_bits(expr_result, -bounds_min);
+        atomic_masks[atomic_i++].to_bits(expr_result, -bounds_min);
         break;
       }
       case Expr::Type::Union: {
@@ -636,9 +685,8 @@ static IndexMaskSegment evaluate_exact_with_bits(const Expr &root_expression,
       }
     }
   }
-  const BoundedBitSpan final_bits = expression_results[root_expression.index];
-  const Span<int16_t> indices = bits_to_indices(final_bits, allocator);
-  return IndexMaskSegment(bounds_min, indices);
+  convert_bits_to_segments(
+      expression_results[root_expression.index], bounds, allocator, r_evaluated_segments);
 }
 
 /** Compute a new set of indices that is the union of the given segments. */
@@ -846,21 +894,25 @@ static IndexMaskSegment difference_index_mask_segments(
  * Does an exact evaluation of the expression with in the given bounds. The evaluation builds on
  * top of algorithms like `std::set_union`. This approach is especially useful if the expression is
  * simple and doesn't have many intermediate values.
+ *
+ * \param atomic_masks: The masks of the atomic expressions in evaluation order, sliced to bounds
+ * that contain the given bounds.
  */
 static IndexMaskSegment evaluate_exact_with_indices(const Expr &root_expression,
                                                     LinearAllocator<> &allocator,
                                                     const IndexRange bounds,
-                                                    const Span<const Expr *> eval_order)
+                                                    const Span<const Expr *> eval_order,
+                                                    const Span<IndexMask> atomic_masks)
 {
   BLI_assert(bounds.size() <= max_segment_size);
   const int64_t bounds_min = bounds.start();
   const int expr_array_size = root_expression.expression_array_size();
   Array<IndexMaskSegment, inline_expr_array_size> results(expr_array_size);
+  int64_t atomic_i = 0;
   for (const Expr *expression : eval_order) {
     switch (expression->type) {
       case Expr::Type::Atomic: {
-        const AtomicExpr &expr = expression->as_atomic();
-        const IndexMask mask = expr.mask->slice_content(bounds);
+        const IndexMask mask = atomic_masks[atomic_i++].slice_content(bounds);
         /* The caller should make sure that the bounds are aligned to segment bounds. */
         BLI_assert(mask.segments_num() <= 1);
         if (mask.segments_num() == 1) {
@@ -1046,8 +1098,13 @@ static Vector<const Expr *, inline_expr_array_size> compute_eval_order(const Exp
   return eval_order;
 }
 
-/** Uses a heuristic to decide which exact evaluation mode probably works best. */
-static ExactEvalMode determine_exact_eval_mode(const Expr &root_expression)
+/**
+ * Uses a heuristic to decide which exact evaluation mode probably works best within the bounds.
+ * \param atomic_masks: The masks of all atomic expressions sliced to the bounds.
+ */
+static ExactEvalMode determine_exact_eval_mode(const Expr &root_expression,
+                                               const Span<IndexMask> atomic_masks,
+                                               const IndexRange bounds)
 {
   for (const Expr *term : root_expression.terms) {
     if (!term->terms.is_empty()) {
@@ -1055,7 +1112,31 @@ static ExactEvalMode determine_exact_eval_mode(const Expr &root_expression)
       return ExactEvalMode::Bits;
     }
   }
-  return ExactEvalMode::Indices;
+  int64_t total_size = 0;
+  int64_t largest_size = 0;
+  bool largest_is_range = false;
+  for (const IndexMask &mask : atomic_masks) {
+    total_size += mask.size();
+    if (mask.size() > largest_size) {
+      largest_size = mask.size();
+      largest_is_range = mask.to_range().has_value();
+    }
+  }
+  if (largest_is_range) {
+    /* Ranges are more efficient to process as bits. This is the common case for
+     * #IndexMask::complement. The result likely contains long ranges as well. */
+    return ExactEvalMode::Bits;
+  }
+  if (total_size < bounds.size() / bits::BitsPerInt) {
+    /* With few indices, processing all bits in the bounds is not worth it. */
+    return ExactEvalMode::Indices;
+  }
+  if ((total_size - largest_size) * 8 < largest_size) {
+    /* Most indices come from one input, so the comparisons are predictable. */
+    return ExactEvalMode::Indices;
+  }
+  /* The inputs are likely interleaved so that comparing indices is unpredictable. */
+  return ExactEvalMode::Bits;
 }
 
 static void evaluate_coarse_and_split_until_segments_are_short(
@@ -1120,25 +1201,50 @@ static void evaluate_coarse_and_split_until_segments_are_short(
 
 static void evaluate_short_unknown_segments_exactly(
     const Expr &root_expression,
-    const ExactEvalMode exact_eval_mode,
+    const std::optional<ExactEvalMode> forced_exact_eval_mode,
     const Span<const Expr *> eval_order,
     const Span<IndexRange> short_unknown_segments,
     LinearAllocator<> &memory,
     Vector<EvaluatedSegment, 16> &r_evaluated_segments)
 {
+  /* Determine how to evaluate each segment. */
+  Array<ExactEvalMode, 32> modes(short_unknown_segments.size());
+  /* The sliced atomic masks are stored to be reused for the evaluation. */
+  const int64_t atomic_num = std::ranges::count_if(
+      eval_order, [](const Expr *expr) { return expr->type == Expr::Type::Atomic; });
+  Array<IndexMask> all_atomic_masks(short_unknown_segments.size() * atomic_num);
+  auto get_atomic_masks = [&](const int64_t unknown_i) {
+    return all_atomic_masks.as_mutable_span().slice(unknown_i * atomic_num, atomic_num);
+  };
+  for (const int64_t unknown_i : short_unknown_segments.index_range()) {
+    const IndexRange bounds = short_unknown_segments[unknown_i];
+    const MutableSpan<IndexMask> atomic_masks = get_atomic_masks(unknown_i);
+    int64_t atomic_i = 0;
+    for (const Expr *expr : eval_order) {
+      if (expr->type == Expr::Type::Atomic) {
+        atomic_masks[atomic_i++] = expr->as_atomic().mask->slice_content(bounds);
+      }
+    }
+    modes[unknown_i] = forced_exact_eval_mode ?
+                           *forced_exact_eval_mode :
+                           determine_exact_eval_mode(root_expression, atomic_masks, bounds);
+  }
+
   /* Evaluate a segment exactly. */
-  auto evaluate_unknown_segment = [&](const IndexRange bounds,
+  auto evaluate_unknown_segment = [&](const int64_t unknown_i,
                                       LinearAllocator<> &allocator,
                                       Vector<EvaluatedSegment, 16> &r_local_evaluated_segments) {
     /* Use the predetermined evaluation mode. */
-    switch (exact_eval_mode) {
+    const IndexRange bounds = short_unknown_segments[unknown_i];
+    const Span<IndexMask> atomic_masks = get_atomic_masks(unknown_i);
+    switch (modes[unknown_i]) {
       case ExactEvalMode::Bits: {
-        const IndexMaskSegment indices = evaluate_exact_with_bits(
-            root_expression, allocator, bounds, eval_order);
-        if (!indices.is_empty()) {
-          r_local_evaluated_segments.append(
-              {EvaluatedSegment::Type::Indices, bounds, nullptr, indices});
-        }
+        evaluate_exact_with_bits(root_expression,
+                                 allocator,
+                                 bounds,
+                                 eval_order,
+                                 atomic_masks,
+                                 r_local_evaluated_segments);
         break;
       }
       case ExactEvalMode::Indices: {
@@ -1147,13 +1253,7 @@ static void evaluate_short_unknown_segments_exactly(
         Vector<int64_t, 16> split_indices;
         /* Always adding the beginning and end of the bounds simplifies the code below. */
         split_indices.extend({bounds.first(), bounds.one_after_last()});
-        for (const int64_t eval_order_i : eval_order.index_range()) {
-          const Expr &expr = *eval_order[eval_order_i];
-          if (expr.type != Expr::Type::Atomic) {
-            continue;
-          }
-          const AtomicExpr &atomic_expr = expr.as_atomic();
-          const IndexMask mask = atomic_expr.mask->slice_content(bounds);
+        for (const IndexMask &mask : atomic_masks) {
           const int64_t segments_num = mask.segments_num();
           if (segments_num <= 1) {
             /* This mask only has a single segment in the bounds anyway, so no extra split-position
@@ -1176,7 +1276,7 @@ static void evaluate_short_unknown_segments_exactly(
             continue;
           }
           const IndexMaskSegment indices = evaluate_exact_with_indices(
-              root_expression, allocator, sub_bounds, eval_order);
+              root_expression, allocator, sub_bounds, eval_order, atomic_masks);
           if (!indices.is_empty()) {
             r_local_evaluated_segments.append(
                 {EvaluatedSegment::Type::Indices, sub_bounds, nullptr, indices});
@@ -1191,8 +1291,8 @@ static void evaluate_short_unknown_segments_exactly(
    * just attempting to use multi-threading. */
   const int64_t unknown_segment_eval_grain_size = 8;
   if (short_unknown_segments.size() < unknown_segment_eval_grain_size) {
-    for (const IndexRange &bounds : short_unknown_segments) {
-      evaluate_unknown_segment(bounds, memory, r_evaluated_segments);
+    for (const int64_t unknown_i : short_unknown_segments.index_range()) {
+      evaluate_unknown_segment(unknown_i, memory, r_evaluated_segments);
     }
   }
   else {
@@ -1203,15 +1303,15 @@ static void evaluate_short_unknown_segments_exactly(
       Vector<EvaluatedSegment, 16> evaluated_segments;
     };
     threading::EnumerableThreadSpecific<LocalData> data_by_thread;
-    threading::parallel_for(
-        short_unknown_segments.index_range(),
-        unknown_segment_eval_grain_size,
-        [&](const IndexRange range) {
-          LocalData &data = data_by_thread.local();
-          for (const IndexRange &bounds : short_unknown_segments.slice(range)) {
-            evaluate_unknown_segment(bounds, data.allocator, data.evaluated_segments);
-          }
-        });
+    threading::parallel_for(short_unknown_segments.index_range(),
+                            unknown_segment_eval_grain_size,
+                            [&](const IndexRange range) {
+                              LocalData &data = data_by_thread.local();
+                              for (const int64_t unknown_i : range) {
+                                evaluate_unknown_segment(
+                                    unknown_i, data.allocator, data.evaluated_segments);
+                              }
+                            });
     for (LocalData &data : data_by_thread) {
       if (!data.evaluated_segments.is_empty()) {
         r_evaluated_segments.extend(data.evaluated_segments);
@@ -1250,9 +1350,14 @@ static IndexMask evaluated_segments_to_index_mask(MutableSpan<EvaluatedSegment> 
   return IndexMask::from_segments(result_segments, memory);
 }
 
-static IndexMask evaluate_expression_impl(const Expr &root_expression,
-                                          LinearAllocator<> &memory,
-                                          const ExactEvalMode exact_eval_mode)
+/**
+ * \param forced_exact_eval_mode: Use this exact evaluation mode for all segments instead of
+ * choosing one for each segment.
+ */
+static IndexMask evaluate_expression_impl(
+    const Expr &root_expression,
+    LinearAllocator<> &memory,
+    const std::optional<ExactEvalMode> forced_exact_eval_mode = std::nullopt)
 {
   /* Precompute the evaluation order here, because it's used potentially many times throughout the
    * algorithm. */
@@ -1267,7 +1372,7 @@ static IndexMask evaluate_expression_impl(const Expr &root_expression,
   evaluate_coarse_and_split_until_segments_are_short(
       root_expression, eval_order, evaluated_segments, short_unknown_segments);
   evaluate_short_unknown_segments_exactly(root_expression,
-                                          exact_eval_mode,
+                                          forced_exact_eval_mode,
                                           eval_order,
                                           short_unknown_segments,
                                           memory,
@@ -1277,16 +1382,15 @@ static IndexMask evaluate_expression_impl(const Expr &root_expression,
 
 IndexMask evaluate_expression(const Expr &expression, LinearAllocator<> &memory)
 {
-  const ExactEvalMode exact_eval_mode = determine_exact_eval_mode(expression);
-  IndexMask mask = evaluate_expression_impl(expression, memory, exact_eval_mode);
+  IndexMask mask = evaluate_expression_impl(expression, memory);
 #ifndef NDEBUG
   {
     /* Check that both exact eval modes have the same result. */
-    const ExactEvalMode other_exact_eval_mode = (exact_eval_mode == ExactEvalMode::Bits) ?
-                                                    ExactEvalMode::Indices :
-                                                    ExactEvalMode::Bits;
-    IndexMask other_mask = evaluate_expression_impl(expression, memory, other_exact_eval_mode);
-    BLI_assert(mask == other_mask);
+    const IndexMask bits_mask = evaluate_expression_impl(expression, memory, ExactEvalMode::Bits);
+    const IndexMask indices_mask = evaluate_expression_impl(
+        expression, memory, ExactEvalMode::Indices);
+    BLI_assert(mask == bits_mask);
+    BLI_assert(mask == indices_mask);
   }
 #endif
   return mask;

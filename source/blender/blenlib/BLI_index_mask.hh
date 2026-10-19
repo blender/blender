@@ -646,6 +646,17 @@ int64_t consolidate_index_mask_segments(MutableSpan<IndexMaskSegment> segments,
                                         LinearAllocator<> &memory);
 
 /**
+ * Build index mask segments from sorted ranges in the same way as #IndexMask::from_bits. Long
+ * ranges reference the static indices array, shorter ones are joined into new segments.
+ *
+ * \param offset: Is added to all indices in the ranges.
+ */
+void index_ranges_to_mask_segments(const IndexRangesBuilder<int16_t> &builder,
+                                   int64_t offset,
+                                   LinearAllocator<> &allocator,
+                                   Vector<IndexMaskSegment, 16> &r_segments);
+
+/**
  * Adds index mask segments to the vector for the given range. Ranges shorter than
  * #max_segment_size fit into a single segment. Larger ranges are split into multiple segments.
  */

@@ -499,16 +499,11 @@ IndexMask IndexMask::from_bits(const IndexMask &universe,
       exec_mode::grain_size(max_segment_size));
 }
 
-static void segments_from_batch_predicate(
-    const IndexMaskSegment universe_segment,
-    LinearAllocator<> &allocator,
-    const FunctionRef<int64_t(const IndexMaskSegment &universe_segment,
-                              IndexRangesBuilder<int16_t> &builder)> batch_predicate,
-    Vector<IndexMaskSegment, 16> &r_segments)
+void index_ranges_to_mask_segments(const IndexRangesBuilder<int16_t> &builder,
+                                   const int64_t offset,
+                                   LinearAllocator<> &allocator,
+                                   Vector<IndexMaskSegment, 16> &r_segments)
 {
-  IndexRangesBuilderBuffer<int16_t, max_segment_size> builder_buffer;
-  IndexRangesBuilder<int16_t> builder{builder_buffer};
-  const int64_t segment_shift = batch_predicate(universe_segment, builder);
   if (builder.is_empty()) {
     return;
   }
@@ -535,14 +530,14 @@ static void segments_from_batch_predicate(
       array_utils::fill_index_range(indices.slice(counter, range.size()), int16_t(range.first()));
       counter += range.size();
     }
-    r_segments.append(IndexMaskSegment{segment_shift, indices});
+    r_segments.append(IndexMaskSegment{offset, indices});
   };
 
   for (const int64_t i : builder.index_range()) {
     const IndexRange range = builder[i];
     if (range.size() > threshold || builder.size() == 1) {
       consolidate_skipped_ranges(i);
-      r_segments.append(IndexMaskSegment{segment_shift, static_indices.slice(range)});
+      r_segments.append(IndexMaskSegment{offset, static_indices.slice(range)});
       next_range_to_process = i + 1;
       skipped_indices_num = 0;
     }
@@ -551,6 +546,19 @@ static void segments_from_batch_predicate(
     }
   }
   consolidate_skipped_ranges(builder.size());
+}
+
+static void segments_from_batch_predicate(
+    const IndexMaskSegment universe_segment,
+    LinearAllocator<> &allocator,
+    const FunctionRef<int64_t(const IndexMaskSegment &universe_segment,
+                              IndexRangesBuilder<int16_t> &builder)> batch_predicate,
+    Vector<IndexMaskSegment, 16> &r_segments)
+{
+  IndexRangesBuilderBuffer<int16_t, max_segment_size> builder_buffer;
+  IndexRangesBuilder<int16_t> builder{builder_buffer};
+  const int64_t segment_shift = batch_predicate(universe_segment, builder);
+  index_ranges_to_mask_segments(builder, segment_shift, allocator, r_segments);
 }
 
 IndexMask IndexMask::from_batch_predicate(
