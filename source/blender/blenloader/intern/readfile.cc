@@ -4193,6 +4193,21 @@ static void direct_link_keymapitem(BlendDataReader *reader, wmKeyMapItem *kmi)
   kmi->flag &= ~KMI_UPDATE;
 }
 
+static size_t user_menu_item_struct_size(const eUserMenu_Type type)
+{
+  switch (type) {
+    case USER_MENU_TYPE_SEP:
+      return sizeof(bUserMenuItem);
+    case USER_MENU_TYPE_OPERATOR:
+      return sizeof(bUserMenuItem_Op);
+    case USER_MENU_TYPE_MENU:
+      return sizeof(bUserMenuItem_Menu);
+    case USER_MENU_TYPE_PROP:
+      return sizeof(bUserMenuItem_Prop);
+  }
+  return sizeof(bUserMenuItem);
+}
+
 /**
  * Read the user-preferences (#UserDef) block.
  *
@@ -4261,7 +4276,10 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   }
 
   for (bUserMenu &um : user->user_menus) {
-    BLO_read_struct_list(reader, bUserMenuItem, &um.items);
+    BLO_read_struct_list_with_type_size<bUserMenuItem>(
+        reader, &um.items, [](const bUserMenuItem &umi) {
+          return user_menu_item_struct_size(umi.type);
+        });
     for (bUserMenuItem &umi : um.items) {
       if (umi.type == USER_MENU_TYPE_OPERATOR) {
         bUserMenuItem_Op *umi_op = reinterpret_cast<bUserMenuItem_Op *>(&umi);
