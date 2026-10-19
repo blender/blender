@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-12 07:32+0000\n"
-"PO-Revision-Date: 2026-09-28 19:12+0000\n"
-"Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
+"POT-Creation-Date: 2026-10-19 07:32+0000\n"
+"PO-Revision-Date: 2026-10-18 21:12+0000\n"
+"Last-Translator: 游博凱 <augustus85918@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -26356,296 +26356,296 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Math"
-msgstr "數學公式"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
 msgid "Show/Hide"
 msgstr "顯示/隱藏"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Hooks"
-msgstr "鉤"
-
-
-msgid "Link/Transfer Data"
-msgstr "連結/傳輸資料"
-
-
-msgid "Primitives"
-msgstr "原形"
-
-
-msgid "Deprecated"
-msgstr "已棄用"
-
-
-msgid "Utilities"
-msgstr "效用"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Convert"
-msgstr "轉換"
-
-
-msgid "Set Face Strength"
-msgstr "設定面強度"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Make Single User"
-msgstr "製作單一使用者"
-
-
-msgid "Import"
-msgstr "匯入"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Asset"
-msgstr "素材"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Layout"
-msgstr "配置"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Linked"
-msgstr "已連結"
 
 
 msgid "Creative"
 msgstr "創意"
 
 
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
+msgid "Clean Up"
+msgstr "清理"
 
 
-msgid "Quick Effects"
-msgstr "快速效果"
+msgid "Special Characters"
+msgstr "特殊字元"
 
 
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
+msgid "Kerning"
+msgstr "字間微調"
 
 
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Apply"
-msgstr "套用"
+msgid "Metaball"
+msgstr "變幻球"
 
 
 msgid "Names"
 msgstr "名稱"
 
 
-msgid "Bone Collections"
-msgstr "骨骼集盒"
-
-
-msgid "Keying"
-msgstr "鍵處理"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Light Probe"
-msgstr "燈光採樣器"
-
-
-msgid "Propagate"
-msgstr "增生"
-
-
-msgid "In-Betweens"
-msgstr "內部之間"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Clear Transform"
-msgstr "清除變換"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "Assign Material"
-msgstr "指派材質"
-
-
-msgid "Random Mask"
-msgstr "隨機遮罩"
-
-
-msgid "Face Sets Init"
-msgstr "面集初始化"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "雕刻設定樞紐"
-
-
-msgid "Mask Edit"
-msgstr "遮罩編輯"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂點群組鎖定"
-
-
-msgid "Trim/Add"
-msgstr "修剪/增加"
-
-
-msgid "Select Loops"
-msgstr "選取迴圈"
-
-
 msgid "Bone Roll"
 msgstr "骨骼滾動"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
-msgid "Track"
-msgstr "追蹤"
-
-
-msgid "Select All by Trait"
-msgstr "依特徵全選"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Relations"
-msgstr "關係"
-
-
-msgid "Add Image"
-msgstr "新增影像"
 
 
 msgid "Pivot Point"
 msgstr "樞紐點"
 
 
-msgid "Tracking"
-msgstr "跟蹤"
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Mask Edit"
+msgstr "遮罩編輯"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂點群組鎖定"
+
+
+msgid "Math"
+msgstr "數學公式"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select All by Trait"
+msgstr "依特徵全選"
+
+
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
+
+
+msgid "Select Loops"
+msgstr "選取迴圈"
+
+
+msgid "Import"
+msgstr "匯入"
+
+
+msgid "Assign Material"
+msgstr "指派材質"
+
+
+msgid "Deprecated"
+msgstr "已棄用"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Light Probe"
+msgstr "燈光採樣器"
+
+
+msgid "Add Image"
+msgstr "新增影像"
+
+
+msgid "Relations"
+msgstr "關係"
 
 
 msgid "Rigid Body"
 msgstr "剛體"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Track"
+msgstr "追蹤"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Asset"
+msgstr "素材"
+
+
+msgid "Make Single User"
+msgstr "製作單一使用者"
+
+
+msgid "Convert"
+msgstr "轉換"
+
+
+msgid "Link/Transfer Data"
+msgstr "連結/傳輸資料"
+
+
+msgid "Hooks"
+msgstr "鉤"
+
+
+msgid "Trim/Add"
+msgstr "修剪/增加"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "雕刻設定樞紐"
+
+
+msgid "Face Sets Init"
+msgstr "面集初始化"
+
+
+msgid "Random Mask"
+msgstr "隨機遮罩"
+
+
+msgid "Clear Transform"
+msgstr "清除變換"
+
+
+msgid "Linked"
+msgstr "已連結"
+
+
+msgid "In-Betweens"
+msgstr "內部之間"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
+msgid "Propagate"
+msgstr "增生"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集盒"
+
+
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Keying"
+msgstr "鍵處理"
+
+
+msgid "Set Face Strength"
+msgstr "設定面強度"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
 
 
 msgid "Merge"
@@ -43130,10 +43130,6 @@ msgid "GPU Instances"
 msgstr "GPU 實例"
 
 
-msgid "Create WebP"
-msgstr "建立 WebP"
-
-
 msgid "JPEG Format (.jpg)"
 msgstr "JPEG 格式 (.jpg)"
 
@@ -43148,10 +43144,6 @@ msgstr "不匯出影像"
 
 msgid "Image Quality"
 msgstr "影像品質"
-
-
-msgid "WebP Fallback"
-msgstr "WebP 後備"
 
 
 msgid "Lighting Mode"
@@ -49250,6 +49242,10 @@ msgid "Add Item"
 msgstr "新增項目"
 
 
+msgid "Item Name"
+msgstr "項目名稱"
+
+
 msgid "Node Identifier"
 msgstr "節點識別碼"
 
@@ -52975,6 +52971,10 @@ msgstr "可見性過濾器"
 
 msgid "Grow Visibility"
 msgstr "擴展可見性"
+
+
+msgid "Shrink Visibility"
+msgstr "收縮可見性"
 
 
 msgctxt "Operator"
@@ -61177,68 +61177,72 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
-msgid "Grease Pencil Options"
-msgstr "蠟筆選項"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材質變體"
-
-
-msgid "Quad View"
-msgstr "四格檢視"
-
-
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
-msgid "Measurement"
-msgstr "測量"
-
-
-msgid "Mesh Edit Mode"
-msgstr "網格編輯模式"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 資訊"
-
-
-msgid "Auto-Masking"
-msgstr "自動遮罩"
-
-
 msgid "Active Tool"
 msgstr "作用中工具"
 
 
-msgid "Multi Frame"
-msgstr "多重畫框"
+msgid "View Lock"
+msgstr "視圖鎖定"
 
 
-msgid "Stereoscopy"
-msgstr "立體視覺"
+msgid "Shadow Settings"
+msgstr "陰影設定"
 
 
-msgid "Transform Orientations"
-msgstr "變換方向"
+msgid "SSAO Settings"
+msgstr "SSAO 設定"
 
 
-msgid "Onion Skin"
-msgstr "洋蔥皮"
+msgid "Cavity"
+msgstr "坑腔"
+
+
+msgid "Render Pass"
+msgstr "算繪通道"
+
+
+msgid "Overlays"
+msgstr "疊層"
+
+
+msgid "Guides"
+msgstr "引導"
+
+
+msgid "Viewer Node"
+msgstr "檢視器節點"
 
 
 msgid "Motion Tracking"
 msgstr "運動跟蹤"
 
 
-msgid "Viewer Node"
-msgstr "檢視器節點"
+msgid "Mesh Edit Mode"
+msgstr "網格編輯模式"
+
+
+msgid "Measurement"
+msgstr "測量"
+
+
+msgid "Curve Edit Mode"
+msgstr "曲線編輯模式"
+
+
+msgid "Curves Edit Mode"
+msgstr "曲線編輯模式"
+
+
+msgid "glTF Variants"
+msgstr "glTF 變體"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材質變體"
+
+
+msgid "Transform Orientations"
+msgstr "變換方向"
 
 
 msgid "Stroke Placement"
@@ -61249,40 +61253,24 @@ msgid "Drawing Plane"
 msgstr "描繪平面"
 
 
-msgid "Cavity"
-msgstr "坑腔"
+msgid "Grease Pencil Options"
+msgstr "蠟筆選項"
 
 
-msgid "SSAO Settings"
-msgstr "SSAO 設定"
+msgid "Quad View"
+msgstr "四格檢視"
 
 
-msgid "Guides"
-msgstr "引導"
+msgid "Onion Skin"
+msgstr "洋蔥皮"
 
 
-msgid "Shadow Settings"
-msgstr "陰影設定"
+msgid "Stereoscopy"
+msgstr "立體視覺"
 
 
-msgid "Curves Edit Mode"
-msgstr "曲線編輯模式"
-
-
-msgid "Curve Edit Mode"
-msgstr "曲線編輯模式"
-
-
-msgid "View Lock"
-msgstr "視圖鎖定"
-
-
-msgid "Viewport Debug"
-msgstr "視圖除錯"
-
-
-msgid "Overlays"
-msgstr "疊層"
+msgid "Multi Frame"
+msgstr "多重畫框"
 
 
 msgid "glTF"
@@ -61293,8 +61281,20 @@ msgid "glTF Animations"
 msgstr "glTF 動畫"
 
 
-msgid "Render Pass"
-msgstr "算繪通道"
+msgid "Auto-Masking"
+msgstr "自動遮罩"
+
+
+msgid "Viewport Debug"
+msgstr "視圖除錯"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 資訊"
 
 
 msgid "Import Settings"
@@ -62051,6 +62051,10 @@ msgstr "診斷"
 
 msgid "Helpers"
 msgstr "輔助器"
+
+
+msgid "Splash Screen"
+msgstr "啟動畫面"
 
 
 msgid "White Balance"
@@ -78800,6 +78804,10 @@ msgid "Volume Resolution"
 msgstr "體積解析度"
 
 
+msgid "Texture Size Limit"
+msgstr "紋理尺寸限制"
+
+
 msgid "Camera Culling"
 msgstr "攝影機淘選"
 
@@ -78846,6 +78854,10 @@ msgstr "視圖區彈跳次數"
 
 msgid "Render Bounces"
 msgstr "算繪彈跳次數"
+
+
+msgid "Motion"
+msgstr "運動"
 
 
 msgid "Scatter"
@@ -79778,6 +79790,10 @@ msgid "Fur Material"
 msgstr "毛皮材質"
 
 
+msgid "Mesh has no face area"
+msgstr "網格的面積為零"
+
+
 msgid "Active object is not a mesh"
 msgstr "作用中物體非網格"
 
@@ -79926,6 +79942,11 @@ msgstr "儲存新的偏好設定"
 msgctxt "Operator"
 msgid "Continue"
 msgstr "繼續"
+
+
+msgctxt "Operator"
+msgid "Close"
+msgstr "閉合"
 
 
 msgctxt "Operator"
@@ -81895,6 +81916,10 @@ msgstr "2D 穩定剪輯"
 
 msgid "Undistorted Clip"
 msgstr "無扭曲剪輯"
+
+
+msgid "Node group must have an output."
+msgstr "節點組必須有輸出。"
 
 
 msgid "Effect Fader"
@@ -84004,10 +84029,6 @@ msgid "Revert to Saved Preferences"
 msgstr "回復成已儲存的設定"
 
 
-msgid "Splash Screen"
-msgstr "啟動畫面"
-
-
 msgid "User Tooltips"
 msgstr "使用者提示框"
 
@@ -85856,11 +85877,6 @@ msgstr "隱藏作用中分層"
 msgctxt "Operator"
 msgid "Hide Inactive Layers"
 msgstr "隱藏非作用中分層"
-
-
-msgctxt "Operator"
-msgid "Close"
-msgstr "閉合"
 
 
 msgid "To 3D Cursor"
@@ -91351,6 +91367,10 @@ msgid "Geometry Set"
 msgstr "幾何集"
 
 
+msgid "Geometry components:"
+msgstr "幾何組件："
+
+
 msgid "Instances: {}"
 msgstr "實例： {}"
 
@@ -92988,6 +93008,11 @@ msgstr "平滑表面"
 
 
 msgctxt "Brush"
+msgid "Deflate"
+msgstr "收縮"
+
+
+msgctxt "Brush"
 msgid "Sharpen"
 msgstr "銳利化"
 
@@ -94199,10 +94224,6 @@ msgstr "採樣半徑"
 
 msgid "Mid Level"
 msgstr "中間等級"
-
-
-msgid "Motion"
-msgstr "運動"
 
 
 msgid "Along Normals"

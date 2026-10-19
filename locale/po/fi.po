@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-12 07:32+0000\n"
+"POT-Creation-Date: 2026-10-19 07:32+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7132,44 +7132,88 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Light"
-msgstr "Valo"
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
 
 
 msgid "Metaball"
 msgstr "Metapallo"
 
 
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
-msgid "Read"
-msgstr "Lue"
+msgid "Names"
+msgstr "Nimet"
 
 
 msgid "Math"
 msgstr "Matematiikka"
 
 
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
+msgid "Utilities"
+msgstr "Työkalut"
+
+
+msgid "Read"
+msgstr "Lue"
 
 
 msgid "Write"
 msgstr "Kirjoita"
 
 
-msgid "Hooks"
-msgstr "Koukut"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
-msgid "Utilities"
-msgstr "Työkalut"
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Instances"
+msgstr "Instanssit"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
 
 
 msgid "Import"
 msgstr "Tuo"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Valo"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
 
 
 msgid "Linked"
@@ -7178,50 +7222,6 @@ msgstr "Linkitetyt"
 
 msgid "Mesh Select Mode"
 msgstr "Muodon valintatila"
-
-
-msgid "Instances"
-msgstr "Instanssit"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
 
 
 msgid "Basic"
@@ -12039,6 +12039,10 @@ msgid "Viewports"
 msgstr "Näkymät"
 
 
+msgid "Motion"
+msgstr "Liike"
+
+
 msgid "Clear Image"
 msgstr "Siivoa kuva"
 
@@ -12289,6 +12293,11 @@ msgstr "Noodilla ei ole attribuuttia {:s}"
 
 msgid "No camera found"
 msgstr "Kameraa ei löydetty"
+
+
+msgctxt "Operator"
+msgid "Close"
+msgstr "Sulje"
 
 
 msgctxt "Operator"
@@ -13458,11 +13467,6 @@ msgstr "Piilota aktiivinen taso"
 msgctxt "Operator"
 msgid "Hide Inactive Layers"
 msgstr "Piilota epäaktiiviset tasot"
-
-
-msgctxt "Operator"
-msgid "Close"
-msgstr "Sulje"
 
 
 msgid "To 3D Cursor"
@@ -15319,10 +15323,6 @@ msgstr "U-akselit"
 
 msgid "UVWarp"
 msgstr "UV-vääristymä"
-
-
-msgid "Motion"
-msgstr "Liike"
 
 
 msgid "Along Normals"

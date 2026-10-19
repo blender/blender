@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'8f7aae950179')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-12 07:32+0000\n"
+"POT-Creation-Date: 2026-10-19 07:32+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -4893,100 +4893,100 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Light"
-msgstr "แสง"
-
-
 msgid "Metaball"
 msgstr "เมตาบอล"
-
-
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
-
-
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
-msgid "Navigation"
-msgstr "การนำทาง"
-
-
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
-
-
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Import"
-msgstr "นำเข้า"
-
-
-msgid "Layout"
-msgstr "เค้าโครง"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Apply"
-msgstr "นำไปใช้"
 
 
 msgid "Names"
 msgstr "ชื่อ"
 
 
-msgid "Keying"
-msgstr "คีย์"
+msgid "Pivot Point"
+msgstr "จุดหมุน"
 
 
 msgid "Snap"
 msgstr "ยึดติด"
 
 
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
 
 
 msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
+msgid "Math"
+msgstr "คณิตศาสตร์"
 
 
-msgid "Track"
-msgstr "แทร็ค"
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
+
+
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
+
+
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
+
+
+msgid "Navigation"
+msgstr "การนำทาง"
+
+
+msgid "Align View"
+msgstr "จัดมุมมอง"
+
+
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
+
+
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
+
+
+msgid "Import"
+msgstr "นำเข้า"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "แสง"
 
 
 msgid "Add Image"
 msgstr "เพิ่มภาพ"
 
 
-msgid "Pivot Point"
-msgstr "จุดหมุน"
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "Layout"
+msgstr "เค้าโครง"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Keying"
+msgstr "คีย์"
 
 
 msgid "Merge"
@@ -6279,6 +6279,10 @@ msgid "Movement"
 msgstr "การเคลื่อนไหว"
 
 
+msgid "Splash Screen"
+msgstr "หน้าเริ่มต้น"
+
+
 msgid "Working Space"
 msgstr "พื้นที่ทำงาน"
 
@@ -6898,6 +6902,11 @@ msgstr "เปิด..."
 
 
 msgctxt "Operator"
+msgid "Close"
+msgstr "ปิด"
+
+
+msgctxt "Operator"
 msgid "Link..."
 msgstr "เชื่อมโยง..."
 
@@ -7381,10 +7390,6 @@ msgid "Python API Reference"
 msgstr "อ้างอิง API Python"
 
 
-msgid "Splash Screen"
-msgstr "หน้าเริ่มต้น"
-
-
 msgid "Hinting"
 msgstr "การปรับความคมชัดระหว่างพิกเซลของข้อความ"
 
@@ -7670,11 +7675,6 @@ msgstr "สะท้อนจุดยอด"
 
 msgid "Snap Vertices"
 msgstr "ยึดจุดยอด"
-
-
-msgctxt "Operator"
-msgid "Close"
-msgstr "ปิด"
 
 
 msgctxt "Operator"
