@@ -540,7 +540,7 @@ CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
                                                    eBrushFalloffShape(brush.falloff_shape),
                                                    use_original,
                                                    ss.cache->location_symm,
-                                                   ss.cache->radius_squared,
+                                                   ss.cache->radius,
                                                    ss.cache->view_normal_symm,
                                                    memory);
 

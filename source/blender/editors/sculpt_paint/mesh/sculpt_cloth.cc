@@ -198,18 +198,17 @@ IndexMask brush_affected_nodes_gather(const Object &object,
 
   switch (brush.cloth_simulation_area_type) {
     case BRUSH_CLOTH_SIMULATION_AREA_LOCAL: {
-      const float radius_squared = math::square(ss.cache->initial_radius *
-                                                (1.0 + brush.cloth_sim_limit));
+      const float radius = ss.cache->initial_radius * (1.0 + brush.cloth_sim_limit);
       return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
-        return node_in_sphere(node, ss.cache->initial_location_symm, radius_squared, false);
+        return node_in_sphere(node, ss.cache->initial_location_symm, radius, false);
       });
     }
     case BRUSH_CLOTH_SIMULATION_AREA_GLOBAL:
       return bke::pbvh::all_leaf_nodes(pbvh, memory);
     case BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC: {
-      const float radius_squared = math::square(ss.cache->radius * (1.0 + brush.cloth_sim_limit));
+      const float radius = ss.cache->radius * (1.0 + brush.cloth_sim_limit);
       return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
-        return node_in_sphere(node, ss.cache->location_symm, radius_squared, false);
+        return node_in_sphere(node, ss.cache->location_symm, radius, false);
       });
     }
   }

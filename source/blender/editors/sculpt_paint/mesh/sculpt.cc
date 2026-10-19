@@ -734,11 +734,10 @@ std::optional<int> nearest_vert_calc_mesh(const bke::pbvh::Tree &pbvh,
                                           const float max_distance,
                                           const bool use_original)
 {
-  const float max_distance_sq = max_distance * max_distance;
   IndexMaskMemory memory;
   const IndexMask nodes_in_sphere = bke::pbvh::search_nodes(
       pbvh, memory, [&](const bke::pbvh::Node &node) {
-        return node_in_sphere(node, location, max_distance_sq, use_original);
+        return node_in_sphere(node, location, max_distance, use_original);
       });
   if (nodes_in_sphere.is_empty()) {
     return std::nullopt;
@@ -780,11 +779,10 @@ std::optional<SubdivCCGCoord> nearest_vert_calc_grids(const bke::pbvh::Tree &pbv
                                                       const float max_distance,
                                                       const bool use_original)
 {
-  const float max_distance_sq = max_distance * max_distance;
   IndexMaskMemory memory;
   const IndexMask nodes_in_sphere = bke::pbvh::search_nodes(
       pbvh, memory, [&](const bke::pbvh::Node &node) {
-        return node_in_sphere(node, location, max_distance_sq, use_original);
+        return node_in_sphere(node, location, max_distance, use_original);
       });
   if (nodes_in_sphere.is_empty()) {
     return std::nullopt;
@@ -833,11 +831,10 @@ std::optional<BMVert *> nearest_vert_calc_bmesh(const bke::pbvh::Tree &pbvh,
                                                 const float max_distance,
                                                 const bool use_original)
 {
-  const float max_distance_sq = max_distance * max_distance;
   IndexMaskMemory memory;
   const IndexMask nodes_in_sphere = bke::pbvh::search_nodes(
       pbvh, memory, [&](const bke::pbvh::Node &node) {
-        return node_in_sphere(node, location, max_distance_sq, use_original);
+        return node_in_sphere(node, location, max_distance, use_original);
       });
   if (nodes_in_sphere.is_empty()) {
     return std::nullopt;
@@ -2486,17 +2483,17 @@ bool node_fully_masked_or_hidden(const bke::pbvh::Node &node)
 
 bool node_in_sphere(const bke::pbvh::Node &node,
                     const float3 &location,
-                    const float radius_sq,
+                    const float radius,
                     const bool original)
 {
   const Bounds<float3> &bounds = original ? node.bounds_orig() : node.bounds();
   const float3 nearest = math::clamp(location, bounds.min, bounds.max);
-  return math::distance_squared(location, nearest) < radius_sq;
+  return math::distance_squared(location, nearest) < math::square(radius);
 }
 
 bool node_in_cylinder(const DistRayAABB_Precalc &ray_dist_precalc,
                       const bke::pbvh::Node &node,
-                      const float radius_sq,
+                      const float radius,
                       const bool original)
 {
   const Bounds<float3> &bounds = original ? node.bounds_orig() : node.bounds();
@@ -2506,7 +2503,7 @@ bool node_in_cylinder(const DistRayAABB_Precalc &ray_dist_precalc,
       &ray_dist_precalc, bounds.min, bounds.max, dummy_co, &dummy_depth);
 
   /* TODO: Solve issues and enable distance check. */
-  return dist_sq < radius_sq || true;
+  return dist_sq < math::square(radius) || true;
 }
 
 bool node_in_box(const float4x4 &mat,
@@ -2605,7 +2602,7 @@ static IndexMask pbvh_gather_generic(Object &ob,
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
   const float3 center = ss.cache->location_symm;
-  const float radius_sq = math::square(ss.cache->radius * radius_scale);
+  const float radius = ss.cache->radius * radius_scale;
   const bool ignore_ineffective = brush.sculpt_brush_type != SCULPT_BRUSH_TYPE_MASK;
   switch (brush.falloff_shape) {
     case PAINT_FALLOFF_SHAPE_SPHERE: {
@@ -2613,7 +2610,7 @@ static IndexMask pbvh_gather_generic(Object &ob,
         if (ignore_ineffective && node_fully_masked_or_hidden(node)) {
           return false;
         }
-        return node_in_sphere(node, center, radius_sq, use_original);
+        return node_in_sphere(node, center, radius, use_original);
       });
     }
 
@@ -2624,7 +2621,7 @@ static IndexMask pbvh_gather_generic(Object &ob,
         if (ignore_ineffective && node_fully_masked_or_hidden(node)) {
           return false;
         }
-        return node_in_cylinder(ray_dist_precalc, node, radius_sq, use_original);
+        return node_in_cylinder(ray_dist_precalc, node, radius, use_original);
       });
     }
   }
@@ -2673,7 +2670,7 @@ IndexMask gather_nodes(const bke::pbvh::Tree &pbvh,
                        const eBrushFalloffShape falloff_shape,
                        const bool use_original,
                        const float3 &location,
-                       const float radius_sq,
+                       const float radius,
                        const std::optional<float3> &ray_direction,
                        IndexMaskMemory &memory)
 {
@@ -2684,7 +2681,7 @@ IndexMask gather_nodes(const bke::pbvh::Tree &pbvh,
         if (node_fully_masked_or_hidden(node)) {
           return false;
         }
-        return node_in_sphere(node, location, radius_sq, use_original);
+        return node_in_sphere(node, location, radius, use_original);
       });
     }
 
@@ -2696,7 +2693,7 @@ IndexMask gather_nodes(const bke::pbvh::Tree &pbvh,
         if (node_fully_masked_or_hidden(node)) {
           return false;
         }
-        return node_in_cylinder(ray_dist_precalc, node, radius_sq, use_original);
+        return node_in_cylinder(ray_dist_precalc, node, radius, use_original);
       });
     }
   }
@@ -3310,7 +3307,7 @@ static brushes::CursorSampleResult calc_brush_node_mask(const Depsgraph &depsgra
     if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
       /* Calculate sculpt normal from a estimate of the surface normal. */
 
-      const float initial_radius = math::square(ss.cache->radius * std::numbers::sqrt3);
+      const float initial_radius = ss.cache->radius * std::numbers::sqrt3;
       const IndexMask initial_node_mask = gather_nodes(pbvh,
                                                        eBrushFalloffShape(brush.falloff_shape),
                                                        use_original,
@@ -6073,7 +6070,7 @@ static void fake_neighbor_search_bmesh(const SculptSession &ss,
 
 static void fake_neighbor_search(const Depsgraph &depsgraph,
                                  const Object &ob,
-                                 const float max_distance_sq,
+                                 const float max_distance,
                                  MutableSpan<int> fake_neighbors)
 {
   PRF_scope(ProfileCategory::Editor);
@@ -6081,6 +6078,7 @@ static void fake_neighbor_search(const Depsgraph &depsgraph,
    * like the "closest pair of points" problem which should have far better solutions. */
   SculptSession &ss = *ob.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+  const float max_distance_sq = math::square(max_distance);
 
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -6099,7 +6097,7 @@ static void fake_neighbor_search(const Depsgraph &depsgraph,
         IndexMaskMemory memory;
         const IndexMask nodes_in_sphere = bke::pbvh::search_nodes(
             pbvh, memory, [&](const bke::pbvh::Node &node) {
-              return node_in_sphere(node, location, max_distance_sq, false);
+              return node_in_sphere(node, location, max_distance, false);
             });
         if (nodes_in_sphere.is_empty()) {
           continue;
@@ -6145,7 +6143,7 @@ static void fake_neighbor_search(const Depsgraph &depsgraph,
         IndexMaskMemory memory;
         const IndexMask nodes_in_sphere = bke::pbvh::search_nodes(
             pbvh, memory, [&](const bke::pbvh::Node &node) {
-              return node_in_sphere(node, location, max_distance_sq, false);
+              return node_in_sphere(node, location, max_distance, false);
             });
         if (nodes_in_sphere.is_empty()) {
           continue;
@@ -6189,7 +6187,7 @@ static void fake_neighbor_search(const Depsgraph &depsgraph,
         IndexMaskMemory memory;
         const IndexMask nodes_in_sphere = bke::pbvh::search_nodes(
             pbvh, memory, [&](const bke::pbvh::Node &node) {
-              return node_in_sphere(node, location, max_distance_sq, false);
+              return node_in_sphere(node, location, max_distance, false);
             });
         if (nodes_in_sphere.is_empty()) {
           continue;
@@ -6232,7 +6230,7 @@ Span<int> fake_neighbors_ensure(const Depsgraph &depsgraph, Object &ob, const fl
 
   islands::ensure_cache(ob);
   fake_neighbor_init(ob, max_dist);
-  fake_neighbor_search(depsgraph, ob, max_dist * max_dist, ss.fake_neighbors.fake_neighbor_index);
+  fake_neighbor_search(depsgraph, ob, max_dist, ss.fake_neighbors.fake_neighbor_index);
 
   return ss.fake_neighbors.fake_neighbor_index;
 }
