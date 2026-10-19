@@ -59,6 +59,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_memarena.hh"
+#include "BLI_memory_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.hh"
 #include "BLI_string_ref.hh"
@@ -196,6 +197,7 @@ static CLG_LogRef LOG_UNDO = {"undo"};
 
 /* local prototypes */
 static void read_libraries(FileData *basefd);
+static void read_libraries_free_placeholders(FileData *basefd);
 static void *read_struct(FileData *fd,
                          BHead *bh,
                          const char *blockname,
@@ -4428,6 +4430,12 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     STRNCPY(bfd->main->filepath, filepath);
   }
 
+  BLI_SCOPED_DEFER([&]() {
+    if (bfd->main->is_read_invalid && bfd->main->split_mains) {
+      read_libraries_free_placeholders(fd);
+    }
+  });
+
   if (G.background) {
     /* We only read & store .blend thumbnail in background mode
      * (because we cannot re-generate it, no OpenGL available).
@@ -6203,11 +6211,42 @@ static FileData *read_library_file_data(FileData *basefd, Main *bmain, Main *lib
   return fd;
 }
 
+/**
+ * Free link placeholders not replaced by real data-blocks, after reading
+ * libraries failed. They are only ID structs, which can't be freed like
+ * regular IDs.
+ */
+static void read_libraries_free_placeholders(FileData *basefd)
+{
+  for (Main *libmain : basefd->bmain->split_mains->as_span().drop_front(1)) {
+    for (ListBaseT<ID> *lb : BKE_main_lists_get(*libmain)) {
+      for (ID &id : lb->items_mutable()) {
+        if (!BLO_readfile_id_runtime_tags(id).is_link_placeholder) {
+          continue;
+        }
+        change_link_placeholder_to_real_ID_pointer(basefd, &id, nullptr);
+        BLI_remlink(lb, &id);
+        if (libmain->id_map != nullptr) {
+          BKE_main_idmap_remove_id(libmain->id_map, &id);
+        }
+        BKE_libblock_free_runtime_data(&id);
+        MEM_delete(&id);
+      }
+    }
+  }
+}
+
 static void read_libraries(FileData *basefd)
 {
   Main *bmain = basefd->bmain;
   BLI_assert(bmain->split_mains);
   bool do_it = true;
+
+  BLI_SCOPED_DEFER([&]() {
+    if (bmain->is_read_invalid) {
+      read_libraries_free_placeholders(basefd);
+    }
+  });
 
   /* At this point the base blend file has been read, and each library blend
    * encountered so far has a main with placeholders for linked data-blocks.
