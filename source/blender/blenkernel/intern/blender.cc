@@ -194,7 +194,7 @@ void BKE_blender_globals_init()
 {
   blender_version_init();
 
-  memset(&G, 0, sizeof(Global));
+  G = Global{};
 
   U.savetime = 1;
 

@@ -3688,6 +3688,7 @@ class WM_OT_drop_blend_file(Operator):
     )
     use_scripts: BoolProperty(
         name="Trusted Source",
+        description="Allow .blend file to execute scripts automatically, default available from system preferences",
         options={'SKIP_SAVE'},
     )
 
@@ -3714,7 +3715,13 @@ class WM_OT_drop_blend_file(Operator):
         props.use_scripts = self.use_scripts
 
         col = layout.column()
-        if not context.preferences.filepaths.use_scripts_auto_execute or self._is_autoexec(filepath):
+        # Excluded paths can't be trusted, unless the command line overrides the preference.
+        is_untrusted = (
+            context.preferences.filepaths.use_scripts_auto_execute and
+            bpy.app.autoexec_override is None and
+            not self._is_autoexec(filepath)
+        )
+        if not is_untrusted:
             col.prop(self, "use_scripts")
         else:
             col.enabled = False
@@ -3738,11 +3745,14 @@ class WM_OT_drop_blend_file(Operator):
         return {'CANCELLED'}
 
     def invoke(self, context, _event):
-        # Match the file selector, which defaults to the preferences.
-        self.use_scripts = (
-            context.preferences.filepaths.use_scripts_auto_execute and
-            self._is_autoexec(self.filepath)
-        )
+        # Match the file selector, which defaults to the command line override or the preferences.
+        if (autoexec_override := bpy.app.autoexec_override) is not None:
+            self.use_scripts = autoexec_override
+        else:
+            self.use_scripts = (
+                context.preferences.filepaths.use_scripts_auto_execute and
+                self._is_autoexec(self.filepath)
+            )
         # The popup shows this operators own UI, keeping it alive while it's open.
         return context.window_manager.invoke_popup(self, auto_keymap=True)
 

@@ -604,11 +604,14 @@ static void rna_userdef_script_autoexec_update(Main * /*bmain*/,
                                                PointerRNA *ptr)
 {
   UserDef *userdef = static_cast<UserDef *>(ptr->data);
-  if (userdef->flag & USER_SCRIPT_AUTOEXEC_DISABLE) {
-    G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
-  }
-  else {
-    G.f |= G_FLAG_SCRIPT_AUTOEXEC;
+  /* The command line takes precedence over the preference. */
+  if (!G.autoexec_override.has_value()) {
+    if (userdef->flag & USER_SCRIPT_AUTOEXEC_DISABLE) {
+      G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
+    }
+    else {
+      G.f |= G_FLAG_SCRIPT_AUTOEXEC;
+    }
   }
 
   USERDEF_TAG_DIRTY;

@@ -360,6 +360,13 @@ PyDoc_STRVAR(
 
 PyDoc_STRVAR(
     /* Wrap. */
+    bpy_app_autoexec_override_doc,
+    "The auto-execution set by the command line, None when the preference isn't overridden "
+    "(read-only).\n"
+    "\n"
+    ":type: bool | None\n");
+PyDoc_STRVAR(
+    /* Wrap. */
     bpy_app_autoexec_fail_doc,
     "Boolean, True when auto-execution of scripts failed (read-only).\n"
     "\n"
@@ -376,6 +383,14 @@ static PyObject *bpy_app_global_flag_get(PyObject * /*self*/, void *closure)
 {
   const int flag = POINTER_AS_INT(closure);
   return PyBool_FromLong(G.f & flag);
+}
+
+static PyObject *bpy_app_autoexec_override_get(PyObject * /*self*/, void * /*closure*/)
+{
+  if (!G.autoexec_override.has_value()) {
+    Py_RETURN_NONE;
+  }
+  return PyBool_FromLong(*G.autoexec_override);
 }
 
 static int bpy_app_global_flag_set(PyObject * /*self*/, PyObject *value, void *closure)
@@ -680,6 +695,11 @@ static PyGetSetDef bpy_app_getsets[] = {
      reinterpret_cast<void *> G_FLAG_INTERNET_OVERRIDE_PREF_ANY},
 
     /* security */
+    {"autoexec_override",
+     bpy_app_autoexec_override_get,
+     nullptr,
+     bpy_app_autoexec_override_doc,
+     nullptr},
     {"autoexec_fail",
      bpy_app_global_flag_get,
      nullptr,
