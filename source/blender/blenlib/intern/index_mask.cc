@@ -514,6 +514,20 @@ void index_ranges_to_mask_segments(const IndexRangesBuilder<int16_t> &builder,
    * be beneficial to have more ranges if that means that there are more ranges which can be
    * processed more efficiently. This could be exposed to the caller in the future. */
   constexpr int64_t threshold = 64;
+  auto use_static_indices = [&](const IndexRange range) {
+    return range.size() > threshold || builder.size() == 1;
+  };
+
+  /* Indices of shorter ranges are copied into a single new array. */
+  int64_t copied_indices_num = 0;
+  for (const int64_t i : builder.index_range()) {
+    const IndexRange range = builder[i];
+    if (!use_static_indices(range)) {
+      copied_indices_num += range.size();
+    }
+  }
+  MutableSpan<int16_t> copied_indices = allocator.allocate_array<int16_t>(copied_indices_num);
+
   int64_t next_range_to_process = 0;
   int64_t skipped_indices_num = 0;
 
@@ -523,7 +537,8 @@ void index_ranges_to_mask_segments(const IndexRangesBuilder<int16_t> &builder,
     if (skipped_indices_num == 0) {
       return;
     }
-    MutableSpan<int16_t> indices = allocator.allocate_array<int16_t>(skipped_indices_num);
+    MutableSpan<int16_t> indices = copied_indices.take_front(skipped_indices_num);
+    copied_indices = copied_indices.drop_front(skipped_indices_num);
     int64_t counter = 0;
     for (const int64_t i : IndexRange::from_begin_end(next_range_to_process, end_range_i)) {
       const IndexRange range = builder[i];
@@ -535,7 +550,7 @@ void index_ranges_to_mask_segments(const IndexRangesBuilder<int16_t> &builder,
 
   for (const int64_t i : builder.index_range()) {
     const IndexRange range = builder[i];
-    if (range.size() > threshold || builder.size() == 1) {
+    if (use_static_indices(range)) {
       consolidate_skipped_ranges(i);
       r_segments.append(IndexMaskSegment{offset, static_indices.slice(range)});
       next_range_to_process = i + 1;
