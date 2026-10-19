@@ -158,28 +158,38 @@ static Span<ed::animfilter::ChannelTagType> tag_order_for_dope_sheet_mode(
   switch (mode) {
     case SACTCONT_DOPESHEET:
     case SACTCONT_TIMELINE: {
-      static const Array<ChannelTagType> dopesheet_tag_order = {
+      static const Array<ChannelTagType> tag_order = {
           ChannelTagType::ACTION,
           ChannelTagType::ID,
           ChannelTagType::GREASEPENCIL_GROUP,
           ChannelTagType::FCURVE_GROUP,
           ChannelTagType::BONE,
       };
-      return dopesheet_tag_order;
+      return tag_order;
     }
 
     case SACTCONT_ACTION: {
-      static const Array<ChannelTagType> action_tag_order = {
+      static const Array<ChannelTagType> tag_order = {
           ChannelTagType::ACTION_SLOT,
           ChannelTagType::GREASEPENCIL_GROUP,
           ChannelTagType::FCURVE_GROUP,
           ChannelTagType::BONE,
       };
-      return action_tag_order;
+      return tag_order;
+    }
+
+    case SACTCONT_GPENCIL: {
+      static const Array<ChannelTagType> tag_order = {
+          ChannelTagType::ID,
+          ChannelTagType::GREASEPENCIL_GROUP,
+          ChannelTagType::ACTION,
+          ChannelTagType::FCURVE_GROUP,
+          ChannelTagType::BONE,
+      };
+      return tag_order;
     }
 
     case SACTCONT_SHAPEKEY:
-    case SACTCONT_GPENCIL:
     case SACTCONT_MASK:
     case SACTCONT_CACHEFILE:
       return default_tag_order;
