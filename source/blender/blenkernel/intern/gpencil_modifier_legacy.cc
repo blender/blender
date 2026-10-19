@@ -37,6 +37,69 @@ static bool gpencil_modifier_type_valid(const int type)
   return type > 0 && type < NUM_GREASEPENCIL_MODIFIER_TYPES;
 }
 
+static size_t gpencil_modifier_struct_size(const GpencilModifierType type)
+{
+  switch (type) {
+    case eGpencilModifierType_None:
+      return sizeof(GpencilModifierData);
+    case eGpencilModifierType_Noise:
+      return sizeof(NoiseGpencilModifierData);
+    case eGpencilModifierType_Subdiv:
+      return sizeof(SubdivGpencilModifierData);
+    case eGpencilModifierType_Thick:
+      return sizeof(ThickGpencilModifierData);
+    case eGpencilModifierType_Tint:
+      return sizeof(TintGpencilModifierData);
+    case eGpencilModifierType_Array:
+      return sizeof(ArrayGpencilModifierData);
+    case eGpencilModifierType_Build:
+      return sizeof(BuildGpencilModifierData);
+    case eGpencilModifierType_Opacity:
+      return sizeof(OpacityGpencilModifierData);
+    case eGpencilModifierType_Color:
+      return sizeof(ColorGpencilModifierData);
+    case eGpencilModifierType_Lattice:
+      return sizeof(LatticeGpencilModifierData);
+    case eGpencilModifierType_Simplify:
+      return sizeof(SimplifyGpencilModifierData);
+    case eGpencilModifierType_Smooth:
+      return sizeof(SmoothGpencilModifierData);
+    case eGpencilModifierType_Hook:
+      return sizeof(HookGpencilModifierData);
+    case eGpencilModifierType_Offset:
+      return sizeof(OffsetGpencilModifierData);
+    case eGpencilModifierType_Mirror:
+      return sizeof(MirrorGpencilModifierData);
+    case eGpencilModifierType_Armature:
+      return sizeof(ArmatureGpencilModifierData);
+    case eGpencilModifierType_Time:
+      return sizeof(TimeGpencilModifierData);
+    case eGpencilModifierType_Multiply:
+      return sizeof(MultiplyGpencilModifierData);
+    case eGpencilModifierType_Texture:
+      return sizeof(TextureGpencilModifierData);
+    case eGpencilModifierType_Lineart:
+      return sizeof(LineartGpencilModifierData);
+    case eGpencilModifierType_Length:
+      return sizeof(LengthGpencilModifierData);
+    case eGpencilModifierType_WeightProximity:
+      return sizeof(WeightProxGpencilModifierData);
+    case eGpencilModifierType_Dash:
+      return sizeof(DashGpencilModifierData);
+    case eGpencilModifierType_WeightAngle:
+      return sizeof(WeightAngleGpencilModifierData);
+    case eGpencilModifierType_Shrinkwrap:
+      return sizeof(ShrinkwrapGpencilModifierData);
+    case eGpencilModifierType_Envelope:
+      return sizeof(EnvelopeGpencilModifierData);
+    case eGpencilModifierType_Outline:
+      return sizeof(OutlineGpencilModifierData);
+    case NUM_GREASEPENCIL_MODIFIER_TYPES:
+      break;
+  }
+  return sizeof(GpencilModifierData);
+}
+
 /**
  * Free internal modifier data variables, this function should
  * not free the md variable itself.
@@ -396,7 +459,10 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader,
                                           ListBaseT<GpencilModifierData> *lb,
                                           Object *ob)
 {
-  BLO_read_struct_list(reader, GpencilModifierData, lb);
+  BLO_read_struct_list_with_type_size<GpencilModifierData>(
+      reader, lb, [](const GpencilModifierData &md) {
+        return gpencil_modifier_struct_size(md.type);
+      });
 
   for (GpencilModifierData &md : *lb) {
     md.error = nullptr;
