@@ -1454,8 +1454,8 @@ static const char arg_handle_debug_mode_generic_set_doc_gpu_device_no_fallback[]
     "Fail instead of falling back when '--gpu-device' does not match a usable Vulkan device.";
 static const char arg_handle_debug_mode_generic_set_doc_gpu_backend_no_fallback[] =
     "\n\t"
-    "Fail instead of falling back to another GPU backend when the selected one is not supported. "
-    "Skips the GPU backend support check.";
+    "Fail instead of falling back to another GPU backend when the selected one is not supported.\n"
+    "\tSkips the GPU backend support check.";
 static const char arg_handle_debug_mode_generic_set_doc_gpu_no_hw_raytracing_set_doc[] =
     "\n\t"
     "Force disable hardware raytracing support (Vulkan only).";
