@@ -234,3 +234,8 @@ A screen edge without second vertex (crash on mouse move).
 ---------------------------------------
 
 A window global area edge without second vertex (crash on mouse move).
+
+`invalid_node_tree_interface_root_panel.blend`
+----------------------------------------------
+
+A node group interface with its root panel changed to socket type (buffer overflow).

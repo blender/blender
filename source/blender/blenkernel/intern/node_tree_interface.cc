@@ -1239,6 +1239,11 @@ void bNodeTreeInterface::write(BlendWriter *writer)
 
 void bNodeTreeInterface::read_data(BlendDataReader *reader)
 {
+  /* Root item must be a panel, not checked elsewhere because it is embedded. */
+  if (this->root_panel.item.item_type != NODE_INTERFACE_PANEL) {
+    BLO_read_data_invalidate(reader, "Corrupt .blend file, invalid node tree interface.");
+    this->root_panel = bNodeTreeInterfacePanel();
+  }
   item_types::item_read_data(reader, this->root_panel.item);
 
   this->runtime = MEM_new<blender::bke::bNodeTreeInterfaceRuntime>(__func__);

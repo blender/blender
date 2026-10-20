@@ -246,6 +246,12 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, failed to read window areas"
             ),
+            # invalid_blendfiles/invalid_node_tree_interface_root_panel.blend
+            # A node tree interface root panel with socket type.
+            "invalid_node_tree_interface_root_panel.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid node tree interface"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_dirs)
