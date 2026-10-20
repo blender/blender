@@ -224,3 +224,13 @@ larger struct (crash).
 -------------------------------
 
 An area with 3D viewport space data, but its space type changed to Info.
+
+`invalid_screen_edge_vertex.blend`
+----------------------------------
+
+A screen edge without second vertex (crash on mouse move).
+
+`invalid_window_area_edge_vertex.blend`
+---------------------------------------
+
+A window global area edge without second vertex (crash on mouse move).
