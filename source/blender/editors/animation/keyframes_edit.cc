@@ -1130,9 +1130,18 @@ static short bezier_isfree(KeyframeEditData * /*ked*/, BezTriple *bezt)
 /* Sets selected bezier handles to type 'align' */
 static short set_bezier_align(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
-  if (BEZT_ISSEL_ANY(bezt)) {
-    /* Setting one handle to `HD_ALIGN` is not a valid state. Both need to be the same. */
+  if (bezt->f2 & SELECT) {
     bezt->h1 = bezt->h2 = HD_ALIGN;
+  }
+  else {
+    if (bezt->f1 & SELECT) {
+      bezt->h1 = HD_ALIGN;
+      BKE_fcurve_update_handle_flag_from_opposite(*bezt, HandleSide::LEFT);
+    }
+    if (bezt->f3 & SELECT) {
+      bezt->h2 = HD_ALIGN;
+      BKE_fcurve_update_handle_flag_from_opposite(*bezt, HandleSide::RIGHT);
+    }
   }
   return 0;
 }

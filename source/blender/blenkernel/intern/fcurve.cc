@@ -1276,19 +1276,37 @@ void BKE_fcurve_update_handle_flag_from_opposite(BezTriple &key, const HandleSid
     }
   }
 
+  /*
+   * Allowed combinations:
+   * - both handles are the same of any type.
+   * - Vector <> Align, Blender handles that correctly during transforms.
+   * - Vector <> Free, simply no conflicts.
+   *
+   * Explicitly not allowed:
+   * - Align <> Free, is not really meaningful, just use Free or Aligned on both.
+   */
+
   switch (source) {
-    /* Need to ensure that both sides are the same. */
     case HD_AUTO:
-    case HD_ALIGN:
     case HD_AUTO_ANIM:
     case HD_ALIGN_DOUBLESIDE:
       *target = source;
       break;
 
-    case HD_FREE:
+    case HD_ALIGN:
+      if (!ELEM(*target, HD_VECT)) {
+        *target = source;
+      }
+      break;
+
     case HD_VECT:
-      /* If the source was set to either of those, the handle has to be either free or vector. */
-      if (!ELEM(*target, HD_FREE, HD_VECT)) {
+      if (!ELEM(*target, HD_VECT, HD_ALIGN)) {
+        *target = HD_FREE;
+      }
+      break;
+
+    case HD_FREE:
+      if (!ELEM(*target, HD_VECT)) {
         *target = HD_FREE;
       }
       break;
