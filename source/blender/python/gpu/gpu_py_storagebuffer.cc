@@ -13,7 +13,9 @@
 
 #include <Python.h>
 
+#include "BLI_math_base_c.hh"
 #include "BLI_string_utf8.hh"
+#include "BLI_vector.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -56,6 +58,28 @@ static int pygpu_storagebuffer_valid_check(BPyGPUStorageBuf *bpygpu_ssbo)
   } \
   ((void)0)
 
+/** Padded to the size of a `vec4`. */
+static size_t pygpu_storagebuffer_padded_size(const Py_buffer &pybuffer)
+{
+  return ceil_to_multiple_ul(size_t(pybuffer.len), 16);
+}
+
+/**
+ * Return data of `pybuffer` or a copy of it padded with zeros stored in `r_padded_data`.
+ */
+static const void *pygpu_storagebuffer_data_padded(const Py_buffer &pybuffer,
+                                                   Vector<uchar> &r_padded_data)
+{
+  const size_t size = size_t(pybuffer.len);
+  const size_t padded_size = pygpu_storagebuffer_padded_size(pybuffer);
+  if (size == padded_size) {
+    return pybuffer.buf;
+  }
+  r_padded_data.resize(padded_size, 0);
+  memcpy(r_padded_data.data(), pybuffer.buf, size);
+  return r_padded_data.data();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -70,7 +94,6 @@ static PyObject *pygpu_storagebuffer__tp_new(PyTypeObject * /*self*/,
 
   gpu::StorageBuf *ssbo = nullptr;
   PyObject *pybuffer_obj;
-  Py_ssize_t size = 0;
   char err_out[256] = "unknown error. See console";
 
   static const char *_keywords[] = {"data", nullptr};
@@ -94,9 +117,12 @@ static PyObject *pygpu_storagebuffer__tp_new(PyTypeObject * /*self*/,
       return nullptr;
     }
 
-    size = pybuffer.len;
-    ssbo = GPU_storagebuf_create_ex(
-        pybuffer.len, pybuffer.buf, GPU_USAGE_DYNAMIC, "python_storagebuffer");
+    Vector<uchar> padded_data;
+    const void *data = pygpu_storagebuffer_data_padded(pybuffer, padded_data);
+    ssbo = GPU_storagebuf_create_ex(pygpu_storagebuffer_padded_size(pybuffer),
+                                    data,
+                                    GPU_USAGE_DYNAMIC,
+                                    "python_storagebuffer");
     PyBuffer_Release(&pybuffer);
   }
 
@@ -105,7 +131,7 @@ static PyObject *pygpu_storagebuffer__tp_new(PyTypeObject * /*self*/,
     return nullptr;
   }
 
-  return BPyGPUStorageBuf_CreatePyObject(ssbo, size_t(size));
+  return BPyGPUStorageBuf_CreatePyObject(ssbo);
 }
 
 PyDoc_STRVAR(
@@ -129,16 +155,19 @@ static PyObject *pygpu_storagebuffer_update(BPyGPUStorageBuf *self, PyObject *ob
 
   /* The backends copy exactly the size the buffer was created with, regardless of how much
    * data is actually passed in. Providing less would read past the end of `pybuffer`. */
-  if (size_t(pybuffer.len) != self->size) {
+  const size_t size = GPU_storagebuf_usage_size_get(self->ssbo);
+  if (pygpu_storagebuffer_padded_size(pybuffer) != size) {
     PyErr_Format(PyExc_ValueError,
-                 "GPUStorageBuf.update(): expected a buffer of size %zu, got %zu",
-                 self->size,
+                 "GPUStorageBuf.update(): expected a buffer of size %zu "
+                 "(once padded to a multiple of 16 bytes), got %zu",
+                 size,
                  size_t(pybuffer.len));
     PyBuffer_Release(&pybuffer);
     return nullptr;
   }
 
-  GPU_storagebuf_update(self->ssbo, pybuffer.buf);
+  Vector<uchar> padded_data;
+  GPU_storagebuf_update(self->ssbo, pygpu_storagebuffer_data_padded(pybuffer, padded_data));
   PyBuffer_Release(&pybuffer);
   Py_RETURN_NONE;
 }
@@ -172,10 +201,11 @@ static PyObject *pygpu_storagebuffer_read(BPyGPUStorageBuf *self)
 {
   BPYGPU_STORAGEBUF_CHECK_OBJ(self);
 
-  void *buf = MEM_new_uninitialized(self->size, "python_storagebuffer_read");
+  const size_t size = GPU_storagebuf_usage_size_get(self->ssbo);
+  void *buf = MEM_new_uninitialized(size, "python_storagebuffer_read");
   GPU_storagebuf_read(self->ssbo, buf);
 
-  const Py_ssize_t shape = Py_ssize_t(self->size);
+  const Py_ssize_t shape = Py_ssize_t(size);
   return reinterpret_cast<PyObject *>(
       BPyGPU_Buffer_CreatePyObject(GPU_DATA_UBYTE, &shape, 1, buf));
 }
@@ -298,13 +328,12 @@ PyTypeObject BPyGPUStorageBuf_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUStorageBuf_CreatePyObject(gpu::StorageBuf *ssbo, size_t size)
+PyObject *BPyGPUStorageBuf_CreatePyObject(gpu::StorageBuf *ssbo)
 {
   BPyGPUStorageBuf *self;
 
   self = PyObject_New(BPyGPUStorageBuf, &BPyGPUStorageBuf_Type);
   self->ssbo = ssbo;
-  self->size = size;
 
   return reinterpret_cast<PyObject *>(self);
 }
