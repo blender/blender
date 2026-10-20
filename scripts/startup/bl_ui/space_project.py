@@ -215,7 +215,7 @@ class PROJECT_PT_color_management(Panel, CenterAlignMixIn):
             row = layout.split(factor=0.4)
             row.label()
             row.label(
-                text=f"Overridden by the {config_source} environment variable",
+                text="Overridden by the {:s} environment variable".format(config_source),
                 icon='STATUS_INFO',
             )
 
