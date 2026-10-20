@@ -4978,7 +4978,7 @@ static bool bm_faces_select_to_tag_with_manifold_bounds_check(BMesh *bm)
  * replaced is the right data to use for the interpolation. This relies on the fact that the
  * "exterior" edge of an island is topologically the same as the "interior" edge around a hole.
  *
- * \param em: The edit-mesh to operate on.
+ * \param bm: The mesh to operate on.
  * \return the split join state.
  */
 static FillGridSplitJoin *edbm_fill_grid_split_join_init(BMesh *bm)
