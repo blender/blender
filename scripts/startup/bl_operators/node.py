@@ -1179,9 +1179,16 @@ class NodeInterfaceOperator():
         return True
 
     @staticmethod
-    def clear_interface_selection(interface):
+    def clear_interface_selection(interface, keep_active=False):
         for item in interface.items_tree:
             item.select = False
+
+        if keep_active:
+            if active := interface.active:
+                active.select = True
+        else:
+            # Have no active item if `keep_active` is False.
+            interface.active_index = -1
 
 
 class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
@@ -1244,7 +1251,7 @@ class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
             else:
                 interface.move_to_parent(item, active_item.parent, active_pos + 1)
 
-        self.clear_interface_selection(interface)
+        self.clear_interface_selection(interface, keep_active=True)
         interface.active = item
 
         return {'FINISHED'}
@@ -1299,7 +1306,7 @@ class NODE_OT_interface_item_new_panel_toggle(NodeInterfaceOperator, Operator):
         interface.move_to_parent(item, active_panel, 0)
         item.is_panel_toggle = True
 
-        self.clear_interface_selection(interface)
+        self.clear_interface_selection(interface, keep_active=True)
         return {'FINISHED'}
 
 
@@ -1329,7 +1336,7 @@ class NODE_OT_interface_item_duplicate(NodeInterfaceOperator, Operator):
             item_copy = interface.copy(item)
             interface.active = item_copy
 
-        self.clear_interface_selection(interface)
+        self.clear_interface_selection(interface, keep_active=True)
         return {'FINISHED'}
 
 
@@ -1419,7 +1426,7 @@ class NODE_OT_interface_item_make_panel_toggle(NodeInterfaceOperator, Operator):
         # Make the panel active.
         interface.active = parent_panel
 
-        self.clear_interface_selection(interface)
+        self.clear_interface_selection(interface, keep_active=True)
         return {'FINISHED'}
 
 
@@ -1468,7 +1475,7 @@ class NODE_OT_interface_item_unlink_panel_toggle(NodeInterfaceOperator, Operator
         # Make the socket active.
         interface.active = first_item
 
-        self.clear_interface_selection(interface)
+        self.clear_interface_selection(interface, keep_active=True)
         return {'FINISHED'}
 
 

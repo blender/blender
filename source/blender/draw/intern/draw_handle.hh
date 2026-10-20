@@ -47,6 +47,8 @@ struct DupliCacheManager;
 
 namespace draw {
 
+static constexpr uint64_t LIGHT_LINK_MASK_ALL = ~uint64_t(0);
+
 /**
  * Index for getting a specific resource from the Draw Manager resource arrays.
  * (e.g. object matrices)
@@ -333,9 +335,42 @@ class ObjectRef {
     return find_rgba_attribute(attr.name, attr.use_dupli, instance_index, r_value);
   }
 
-  LightLinking *light_linking() const
+  uint64_t get_light_set_membership() const
   {
-    return dupli_parent_ ? dupli_parent_->light_linking : object->light_linking;
+    const LightLinking *light_linking = object->light_linking;
+    return (light_linking) ? light_linking->runtime.light_set_membership : LIGHT_LINK_MASK_ALL;
+  }
+
+  uint8_t get_receiver_light_set() const
+  {
+    if (dupli_parent_) {
+      const LightLinking *parent_light_linking = dupli_parent_->light_linking;
+      if (parent_light_linking && parent_light_linking->runtime.receiver_light_set) {
+        return parent_light_linking->runtime.receiver_light_set;
+      }
+    }
+
+    const LightLinking *light_linking = object->light_linking;
+    return (light_linking) ? light_linking->runtime.receiver_light_set : 0;
+  }
+
+  uint64_t get_shadow_set_membership() const
+  {
+    const LightLinking *light_linking = object->light_linking;
+    return (light_linking) ? light_linking->runtime.shadow_set_membership : LIGHT_LINK_MASK_ALL;
+  }
+
+  uint8_t get_blocker_shadow_set() const
+  {
+    if (dupli_parent_) {
+      const LightLinking *parent_light_linking = dupli_parent_->light_linking;
+      if (parent_light_linking && parent_light_linking->runtime.blocker_shadow_set) {
+        return parent_light_linking->runtime.blocker_shadow_set;
+      }
+    }
+
+    const LightLinking *light_linking = object->light_linking;
+    return (light_linking) ? light_linking->runtime.blocker_shadow_set : 0;
   }
 
   uint recalc_flags(uint64_t last_update) const

@@ -95,12 +95,8 @@ inline void ObjectInfos::sync(const draw::ObjectRef ref,
   object_attrs_len = 0;
   object_attrs_offset = 0;
   light_and_shadow_set_membership = 0;
-
-  LightLinking *light_linking = ref.light_linking();
-  if (light_linking) {
-    light_and_shadow_set_membership |= light_linking->runtime.receiver_light_set;
-    light_and_shadow_set_membership |= light_linking->runtime.blocker_shadow_set << 8;
-  }
+  light_and_shadow_set_membership |= ref.get_receiver_light_set();
+  light_and_shadow_set_membership |= ref.get_blocker_shadow_set() << 8;
 
   bool is_holdout = (ref.object->base_flag & BASE_HOLDOUT) ||
                     (ref.object->visibility_flag & OB_HOLDOUT);
