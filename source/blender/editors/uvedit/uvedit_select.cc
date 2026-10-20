@@ -6484,7 +6484,7 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
   }
 
   const Vector<float> values_1d(points_1d.keys().begin(), points_1d.keys().end());
-  const KDTreeNew<float> tree_1d(values_1d);
+  const KDTree<float> tree_1d(values_1d);
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
@@ -6593,7 +6593,7 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
   }
 
   const Vector<float> values_1d(points_1d.keys().begin(), points_1d.keys().end());
-  const KDTreeNew<float> tree_1d(values_1d);
+  const KDTree<float> tree_1d(values_1d);
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
@@ -6720,7 +6720,7 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
   }
 
   const Vector<float> values_1d(points_1d.keys().begin(), points_1d.keys().end());
-  const KDTreeNew<float> tree_1d(values_1d);
+  const KDTree<float> tree_1d(values_1d);
 
   for (const int ob_index : objects.index_range()) {
     Object *ob = objects[ob_index];
@@ -6843,7 +6843,7 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
   }
 
   const Vector<float> values_1d(points_1d.keys().begin(), points_1d.keys().end());
-  const KDTreeNew<float> tree_1d(values_1d);
+  const KDTree<float> tree_1d(values_1d);
 
   int tot_island_index = 0;
   for (const int ob_index : objects.index_range()) {

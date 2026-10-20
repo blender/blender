@@ -29,13 +29,15 @@ struct ExpressionResult {
 
   ExprFlag flags = ExprFlag::IsNone;
   bool is_temporary = false;
+  bool is_ptr = false;
 
   ExpressionResult(SymbolVariable *var)
       : type(var->type),
         value(var->value),
         array_dim(var->array_dimensions),
         flags(ExprFlag((var->is_constexpr ? ExprFlag::IsConstexpr : ExprFlag::IsNone) |
-                       (var->is_const ? ExprFlag::IsConstant : ExprFlag::IsNone)))
+                       (var->is_const ? ExprFlag::IsConstant : ExprFlag::IsNone))),
+        is_ptr(var->is_ptr)
   {
   }
 

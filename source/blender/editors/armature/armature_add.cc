@@ -536,14 +536,15 @@ static void update_duplicate_action_constraint_settings(
     animrig::Action &action = act->wrap();
     animrig::Channelbag *cbag = animrig::channelbag_for_action_slot(action,
                                                                     act_con->action_slot_handle);
-    Span<FCurve *> fcurves = {};
+    Vector<const FCurve *> fcurves = {};
     if (cbag) {
-      fcurves = cbag->fcurves();
+      for (const FCurve *fcurve : cbag->fcurves()) {
+        if (animrig::fcurve_matches_collection_path(*fcurve, "pose.bones[", orig_bone->name)) {
+          fcurves.append(fcurve);
+        }
+      }
     }
     for (const FCurve *old_fcurve : fcurves) {
-      if (!animrig::fcurve_matches_collection_path(*old_fcurve, "pose.bones[", orig_bone->name)) {
-        continue;
-      }
       const char *new_path = BLI_string_replaceN(
           old_fcurve->rna_path().c_str(), orig_bone->name, dup_bone->name);
       FCurve &new_curve = cbag->fcurve_clone(

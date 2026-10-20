@@ -2666,7 +2666,7 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
     }
   }
 
-  const KDTreeNew<float3> tree(parent_orcos, parents);
+  const KDTree<float3> tree(parent_orcos, parents);
 
   for (; p < totchild; p++, cpa++) {
     psys_particle_on_emitter(sim->psmd,

@@ -182,13 +182,11 @@ void cache_init(bContext *C,
           vc, *hit_location, float(ups->size / 2.0f) * area_normal_radius);
     }
 
-    const float radius_sq = math::square(radius);
-
     IndexMaskMemory memory;
     const IndexMask node_mask = bke::pbvh::search_nodes(
         pbvh, memory, [&](const bke::pbvh::Node &node) {
           return !node_fully_masked_or_hidden(node) &&
-                 node_in_sphere(node, *hit_location, radius_sq, true);
+                 node_in_sphere(node, *hit_location, radius, true);
         });
 
     const std::optional<float3> area_normal = calc_area_normal(*depsgraph, *brush, ob, node_mask);

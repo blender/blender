@@ -84,7 +84,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
                                     const IndexMask &selection,
                                     const bke::AttributeFilter &attribute_filter)
 {
-  KDTreeNew<float3> tree(src_points.positions(), selection);
+  KDTree<float3> tree(src_points.positions(), selection);
   Array<int> root_indices(src_points.totpoint, -1);
   kdtree::calc_duplicates(tree, merge_distance, root_indices);
   threading::parallel_for(root_indices.index_range(), 1024, [&](const IndexRange range) {

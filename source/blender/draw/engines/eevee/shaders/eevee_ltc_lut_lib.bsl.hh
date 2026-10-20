@@ -11,25 +11,51 @@
 
 namespace eevee {
 
-namespace detail {
+namespace ltc {
+
+struct CoordParam {
+  float roughness;
+  float cos_theta;
+};
 
 /**
- * Given BxDF parameters, return UV coordinates for sampling of the isotropic LTC LUT.
+ * Given UV coordintes of an isotropic LTC LUT, return BxDF parameters.
  */
-float2 get_isotropic_coords(float cos_theta, float roughness)
+CoordParam from_isotropic_coords(const float2 coords)
 {
-  return float2(roughness, sqrt(saturate(1.0f - cos_theta)));
+  const float roughness = coords.x;
+  /* `sqrt(1 - cos(theta))` is very close to `theta`, this parametrization avoids computing
+   * `acos()` at runtime. */
+  const float cos_theta = 1.0f - square(coords.y);
+  return {.roughness = roughness, .cos_theta = cos_theta};
 }
 
 /**
- * Given 4 isotropic LTC LUT values, unpack a 3x3 matrix normalized by its central component.
+ * Given BxDF parameters, return UV coordinates for sampling of an isotropic LTC LUT.
  */
-float3x3 unpack_isotropic_matrix(float4 v)
+float2 to_isotropic_coords(const CoordParam param)
+{
+  return float2(param.roughness, sqrt(saturate(1.0f - param.cos_theta)));
+}
+
+/**
+ * Given the LTC transformation matrix of an isotropic BxDF, pack its components into a float4,
+ * normalized by its central component.
+ */
+float4 pack_isotropic_matrix(const float3x3 &m)
+{
+  return float4(m[0].x, m[0].z, m[2].x, m[2].z) / m[1].y;
+}
+
+/**
+ * Given the packed 4 components of an LTC transformation matrix, retrieve the original matrix.
+ */
+float3x3 unpack_isotropic_matrix(const float4 v)
 {
   return float3x3(float3(v.x, 0, v.y), float3(0, 1, 0), float3(v.z, 0, v.w));
 }
 
-}  // namespace detail
+}  // namespace ltc
 
 /**
  * Unpacked output and secondary data from the isotropic GGX LTC LUT.
@@ -87,64 +113,65 @@ struct LTCData {
   }
 
   /**
-   * Sample matrix data from the isotropic LTC LUT.
+   * Sample matrix data from an isotropic LTC LUT.
    */
-  static LTCData sample_ltc_lut(
-      const UtilityTexture &util_tx, float3 N, float3 V, float cos_theta, float roughness)
+  static LTCData sample_lut(const UtilityTexture &util_tx,
+                            const float3 N,
+                            const float3 V,
+                            const float cos_theta,
+                            const float roughness,
+                            const int layer)
   {
-    /* Sample 4 components from isotropic LTC LUT. */
-    const float2 coords = detail::get_isotropic_coords(cos_theta, roughness);
-    float4 lut_pack = util_tx.sample_lut(coords, UTIL_LTC_MAT_LAYER);
+    /* Sample 4 components from an isotropic LTC LUT. */
+    const ltc::CoordParam param = {.roughness = roughness, .cos_theta = cos_theta};
+    const float2 coords = ltc::to_isotropic_coords(param);
+    const float4 lut_packed = util_tx.sample_lut(coords, layer);
 
     /* Expand components to full inverse LTC matrix. */
-    float3x3 Minv = detail::unpack_isotropic_matrix(lut_pack);
+    float3x3 Minv = ltc::unpack_isotropic_matrix(lut_packed);
 
     /* Rotate into orthonormal basis around N. */
-    float3x3 T = from_incident_vector(N, V);
+    const float3x3 T = from_incident_vector(N, V);
     Minv = Minv * transpose(T);
 
-    LTCData ltc_data;
-    ltc_data.Minv = Minv;
-    ltc_data.form_factor_type = LTCFormFactorType::OneSidedCosineSphereClipped;
+    return {.Minv = Minv,
+            .attenuation_factor = 1.0f,
+            .form_factor_type = LTCFormFactorType::OneSidedCosineSphereClipped};
+  }
+
+  /**
+   * Return matrix data producing a cosine distribution.
+   */
+  static LTCData identity(const float3 N, const float3 V)
+  {
+    /* Rotate into orthonormal basis around N. LTC matrix is simply the identity matrix. */
+    const float3x3 T = from_incident_vector(N, V);
+
+    return {.Minv = transpose(T),
+            .attenuation_factor = 1.0f,
+            .form_factor_type = LTCFormFactorType::OneSidedCosineSphereClipped};
+  }
+
+  /**
+   * Sample matrix data from the isotropic GGX LTC LUT.
+   */
+  static LTCData sample_ggx_lut(const UtilityTexture &util_tx,
+                                const float3 N,
+                                const float3 V,
+                                const float cos_theta,
+                                const float roughness)
+  {
+    LTCData ltc_data = LTCData::sample_lut(
+        util_tx, N, V, cos_theta, roughness, UTIL_LTC_MAT_GGX_LAYER);
     /* LTC attenuation linearly disappears from roughness 0.15 to 0.375. */
     ltc_data.attenuation_factor = saturate((roughness - 0.15f) * 2.5f);
     return ltc_data;
   }
 
   /**
-   * Return matrix data producing a cosine distribution.
-   */
-  static LTCData identity(float3 N, float3 V)
-  {
-    /* Rotate into orthonormal basis around N. LTC matrix is simply the identity matrix. */
-    float3x3 T = from_incident_vector(N, V);
-    float3x3 Minv = transpose(T);
-
-    LTCData ltc_data;
-    ltc_data.Minv = Minv;
-    ltc_data.attenuation_factor = 1.0f;
-    ltc_data.form_factor_type = LTCFormFactorType::OneSidedCosineSphereClipped;
-    return ltc_data;
-  }
-
-  /**
-   * Sample matrix data from the isotropic LTC LUT and store to ClosureLight packing.
-   */
-  static void pack_ltc_lut(ClosureLight &cl,
-                           const UtilityTexture &util_tx,
-                           float3 N,
-                           float3 V,
-                           float cos_theta,
-                           float roughness)
-  {
-    LTCData ltc_data = LTCData::sample_ltc_lut(util_tx, N, V, cos_theta, roughness);
-    ltc_data.pack_to(cl);
-  }
-
-  /**
    * Define matrix data producing a cosine distribution and store to ClosureLight packing.
    */
-  static void pack_identity(ClosureLight &cl, float3 N, float3 V)
+  static void pack_identity(ClosureLight &cl, const float3 N, const float3 V)
   {
     LTCData ltc_data = LTCData::identity(N, V);
     ltc_data.pack_to(cl);

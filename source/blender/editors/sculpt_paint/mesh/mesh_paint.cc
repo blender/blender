@@ -491,7 +491,7 @@ IndexMask gather_brush_nodes(const Object &ob,
         if (node_ignore_fn(node)) {
           return false;
         }
-        return node_in_sphere(node, ss.cache->location_symm, ss.cache->radius_squared, true);
+        return node_in_sphere(node, ss.cache->location_symm, ss.cache->radius, true);
       });
     case PAINT_FALLOFF_SHAPE_TUBE:
       const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
@@ -500,7 +500,7 @@ IndexMask gather_brush_nodes(const Object &ob,
         if (node_ignore_fn(node)) {
           return false;
         }
-        return node_in_cylinder(ray_dist_precalc, node, ss.cache->radius_squared, true);
+        return node_in_cylinder(ray_dist_precalc, node, ss.cache->radius, true);
       });
   }
   BLI_assert_unreachable();

@@ -240,7 +240,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
   }
 
   /* Pointers to selected's #TransData.
-   * Used to find #TransData from the index returned by #KDTreeNew::find_nearest. */
+   * Used to find #TransData from the index returned by #KDTree::find_nearest. */
   TransData **td_table = MEM_new_array_uninitialized<TransData *>(td_table_len, __func__);
 
   /* Selected's positions - in global or proj_vec space. */
@@ -261,7 +261,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
   }
   BLI_assert(td_table_index == td_table_len);
 
-  const KDTreeNew<float3> td_tree(td_positions);
+  const KDTree<float3> td_tree(td_positions);
 
   /* For each non-selected vertex, find distance to the nearest selected vertex. */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {

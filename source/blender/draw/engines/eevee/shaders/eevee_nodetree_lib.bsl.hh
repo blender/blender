@@ -1171,7 +1171,7 @@ void node_light_evaluation_impl(KernelGlobals &kg,
       ltc_data = eevee::LTCData::identity(normal, V);
     }
     else {
-      ltc_data = eevee::LTCData::sample_ltc_lut(util_tx, normal, V, dot(normal, V), roughness);
+      ltc_data = eevee::LTCData::sample_ggx_lut(util_tx, normal, V, dot(normal, V), roughness);
     }
     factor = eevee::ltc::evaluate(util_tx.utility_tx, light, light_shape_vertices, lv, ltc_data);
 

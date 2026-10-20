@@ -737,6 +737,9 @@ enum {
 
   /** Clear any liboverride data as part of making this linked data local. */
   LIB_ID_MAKELOCAL_LIBOVERRIDE_CLEAR = 1 << 17,
+
+  /** Do not make linked packed data local. */
+  LIB_ID_MAKELOCAL_LINKEDPACKED_KEEP = 1 << 18,
 };
 
 /**

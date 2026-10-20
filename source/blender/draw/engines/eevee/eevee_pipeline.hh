@@ -792,7 +792,7 @@ class UtilityTexture : public Texture {
       BLI_assert(UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER == UTIL_DISK_INTEGRAL_LAYER);
     }
     {
-      Layer &layer = data[UTIL_LTC_MAT_LAYER];
+      Layer &layer = data[UTIL_LTC_MAT_GGX_LAYER];
       memcpy(layer.data, lut::ltc_mat_ggx, sizeof(layer));
     }
     {

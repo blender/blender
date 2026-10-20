@@ -365,7 +365,6 @@ source/blender/editors/sculpt_paint/curves/.*           @LukasTonne
 
 scripts/addons_core/pose_library/.*                         @dr.sybren
 scripts/addons_core/rigify/.*                               @dr.sybren
-scripts/modules/_animsys_refactor.py                        @dr.sybren
 scripts/modules/_keyingsets_utils.py                        @dr.sybren
 scripts/modules/bpy_extras/anim_utils.py                    @dr.sybren
 source/blender/animrig/.*                                   @dr.sybren

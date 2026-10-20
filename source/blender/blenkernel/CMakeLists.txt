@@ -805,6 +805,7 @@ if(WITH_GTESTS)
     intern/main_test.cc
     intern/nla_test.cc
     intern/node_socket_value_iter_test.cc
+    intern/node_socket_value_test.cc
     intern/path_templates_test.cc
     intern/recents_test.cc
     intern/scene_test.cc

@@ -1104,7 +1104,7 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
     ob_uv_map_max_idx[ob_index] = uv_map_count - 1;
   }
 
-  const KDTreeNew<float2> tree(uv_positions);
+  const KDTree<float2> tree(uv_positions);
   Array<int> duplicates(uv_map_count, -1);
   const int found_duplicates = kdtree::calc_duplicates(tree, threshold, duplicates);
 
@@ -1184,7 +1184,7 @@ static wmOperatorStatus uv_remove_doubles_to_unselected(bContext *C, wmOperator 
   ED_uvedit_foreach_uv_multi(
       scene, objects, true, false, [&](float luv[2]) { uv_positions.append(luv); });
 
-  const KDTreeNew<float2> tree(uv_positions);
+  const KDTree<float2> tree(uv_positions);
 
   /* For each selected uv, find duplicate non selected uv. */
   for (Object *obedit : objects) {

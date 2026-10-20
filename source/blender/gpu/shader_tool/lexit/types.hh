@@ -113,7 +113,7 @@ enum TokenType : uint8_t {
   Pragma = 'q',
   DoubleHash = 'Q',
   Return = 'r',
-  // Unused = 'R',
+  Deref = 'R',
   Struct = 's',
   Class = 'S',
   Template = 't',

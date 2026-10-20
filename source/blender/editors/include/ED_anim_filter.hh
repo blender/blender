@@ -15,6 +15,7 @@
 #include "BLI_bounds.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_linear_allocator.hh"
+#include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 

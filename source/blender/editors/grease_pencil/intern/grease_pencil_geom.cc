@@ -190,7 +190,7 @@ int curve_merge_by_distance(const IndexRange points,
   selection.foreach_index([&](const int64_t i, const int64_t pos) {
     selected_distances[pos] = distances[i - points.first()];
   });
-  const KDTreeNew<float> tree(selected_distances);
+  const KDTree<float> tree(selected_distances);
 
   Array<int> selection_merge_indices(selection.size(), -1);
   const int duplicate_count = kdtree::calc_duplicates(
@@ -380,7 +380,7 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
     tree_indices.append(src_i * 2);
     tree_indices.append(src_i * 2 + 1);
   }
-  const KDTreeNew<float2> tree(screen_points, tree_indices.as_span());
+  const KDTree<float2> tree(screen_points, tree_indices.as_span());
 
   Array<int> connect_to_curve(src_curves.curves_num(), -1);
   Array<bool> flip_direction(src_curves.curves_num(), false);

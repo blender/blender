@@ -24,6 +24,7 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
+#include "BKE_anim_visualization.h"
 #include "BKE_camera.h"
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
@@ -145,29 +146,21 @@ static float3 transform_mpath_point_to_camera(Depsgraph &depsgraph,
   return co_ndc_space;
 }
 
-/* Perform baking for the targets on the current frame. Returns true if data was modified. */
-static bool motionpaths_calc_bake_target(const MPathTarget &mpt,
-                                         const int cframe,
-                                         Depsgraph *depsgraph,
-                                         Object *camera)
+/**
+ * \returns the point for the motion path of the given evaluated depsgraph.
+ */
+static float3 get_evaluated_point_for_target(const MPathTarget &mpt,
+                                             Depsgraph &depsgraph,
+                                             Object *camera)
 {
-  /* For each target, check if it can be baked on the current frame. */
   bMotionPath *mpath = mpt.mpath;
+  Object *ob_eval = DEG_get_evaluated(&depsgraph, mpt.ob);
 
-  /* Current frame must be within the range the cache works for.
-   * - is inclusive of the first frame, but not the last otherwise we get buffer overruns.
-   */
-  if ((cframe < mpath->start_frame) || (cframe >= mpath->end_frame)) {
-    return false;
+  if (!ob_eval) {
+    /* The given Object should be in the depsgraph. */
+    BLI_assert_unreachable();
+    return {};
   }
-
-  /* Get the relevant cache vert to write to. */
-  bMotionPathVert &mpv = mpath->points[cframe - mpath->start_frame];
-  float3 calculated_point;
-  float3 previous_point;
-  copy_v3_v3(previous_point, mpv.co);
-
-  Object *ob_eval = DEG_get_evaluated(depsgraph, mpt.ob);
 
   /* Lookup evaluated pose channel, here because the depsgraph
    * evaluation can change them so they are not cached in mpt. */
@@ -175,6 +168,8 @@ static bool motionpaths_calc_bake_target(const MPathTarget &mpt,
   if (mpt.pchan) {
     pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, mpt.pchan->name);
   }
+
+  float3 calculated_point;
 
   /* Pose-channel or object path baking? */
   if (pchan_eval) {
@@ -195,9 +190,33 @@ static bool motionpaths_calc_bake_target(const MPathTarget &mpt,
   }
 
   if (mpath->flag & MOTIONPATH_FLAG_BAKE_CAMERA && camera) {
-    calculated_point = transform_mpath_point_to_camera(*depsgraph, *camera, calculated_point);
+    calculated_point = transform_mpath_point_to_camera(depsgraph, *camera, calculated_point);
   }
 
+  return calculated_point;
+}
+
+/* Perform baking for the targets on the current frame. Returns true if data was modified. */
+static bool motionpaths_calc_bake_target(const MPathTarget &mpt,
+                                         const int cframe,
+                                         Depsgraph *depsgraph,
+                                         Object *camera)
+{
+  /* For each target, check if it can be baked on the current frame. */
+  bMotionPath *mpath = mpt.mpath;
+
+  /* Current frame must be within the range the cache works for.
+   * - is inclusive of the first frame, but not the last otherwise we get buffer overruns.
+   */
+  if ((cframe < mpath->start_frame) || (cframe >= mpath->end_frame)) {
+    return false;
+  }
+
+  /* Get the relevant cache vert to write to. */
+  bMotionPathVert &mpv = mpath->points[cframe - mpath->start_frame];
+  float3 calculated_point = get_evaluated_point_for_target(mpt, *depsgraph, camera);
+  float3 previous_point;
+  copy_v3_v3(previous_point, mpv.co);
   copy_v3_v3(mpv.co, calculated_point);
 
   /* Tag if it's a keyframe. */
@@ -206,25 +225,6 @@ static bool motionpaths_calc_bake_target(const MPathTarget &mpt,
   }
   else {
     mpv.flag &= ~MOTIONPATH_VERT_KEY;
-  }
-
-  /* Incremental update on evaluated object if possible, for fast updating
-   * while dragging in transform. */
-  bMotionPath *mpath_eval = nullptr;
-  if (mpt.pchan) {
-    mpath_eval = (pchan_eval) ? pchan_eval->mpath : nullptr;
-  }
-  else {
-    mpath_eval = ob_eval->mpath;
-  }
-
-  if (mpath_eval && mpath_eval->length == mpath->length) {
-    bMotionPathVert &mpv_eval = mpath_eval->points[cframe - mpath_eval->start_frame];
-    mpv_eval = mpv;
-
-    GPU_VERTBUF_DISCARD_SAFE(mpath_eval->points_vbo);
-    GPU_BATCH_DISCARD_SAFE(mpath_eval->batch_line);
-    GPU_BATCH_DISCARD_SAFE(mpath_eval->batch_points);
   }
 
   const bool was_already_evaluated = mpv.flag & MOTIONPATH_VERT_EVALUATED;
@@ -318,6 +318,50 @@ static bool any_range_contains(const Span<Bounds<int>> ranges, const int frame)
     }
   }
   return false;
+}
+
+static bMotionPath *get_evaluated_motion_path(Depsgraph &depsgraph, const MPathTarget &mpt)
+{
+  Object *ob_eval = DEG_get_evaluated(&depsgraph, mpt.ob);
+
+  if (!ob_eval) {
+    return nullptr;
+  }
+
+  /* Lookup evaluated pose channel, here because the depsgraph
+   * evaluation can change them so they are not cached in mpt. */
+  bPoseChannel *pchan_eval = nullptr;
+  if (mpt.pchan) {
+    pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, mpt.pchan->name);
+  }
+  if (pchan_eval) {
+    return pchan_eval->mpath;
+  }
+  return ob_eval->mpath;
+}
+
+void animviz_update_motionpath_preview(Depsgraph &depsgraph, Span<MPathTarget> targets)
+{
+  for (const MPathTarget &mpt : targets) {
+    /* Since this is just a temporary visualization we always want the world space here. */
+    const float3 point = get_evaluated_point_for_target(mpt, depsgraph, /* camera= */ nullptr);
+    bke::motionpath::set_preview_location(*mpt.mpath, point);
+    /* Annoying but we have to write to the evaluated copy, otherwise the drawing would lag 1 frame
+     * behind. Since at the point of calling this function the depsgraph is already evaluated the
+     * motion path has already been copied (for CoW). It would only receive the new value after the
+     * next evaluation. */
+    bMotionPath *eval = get_evaluated_motion_path(depsgraph, mpt);
+    if (eval) {
+      bke::motionpath::set_preview_location(*eval, point);
+    }
+  }
+}
+
+void animviz_clear_motionpath_preview(Span<MPathTarget> targets)
+{
+  for (const MPathTarget &mpt : targets) {
+    bke::motionpath::clear_preview_location(*mpt.mpath);
+  }
 }
 
 void animviz_calc_motionpaths(Depsgraph *depsgraph,

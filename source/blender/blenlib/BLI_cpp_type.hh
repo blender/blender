@@ -72,13 +72,11 @@
  *    pointers to virtual member functions.
  */
 
-#include <atomic>
-
+#include "BLI_array.hh"
 #include "BLI_dynamic_stack_buffer.hh"  // IWYU pragma: keep
 #include "BLI_enum_flags.hh"
 #include "BLI_hash.hh"
 #include "BLI_index_mask_fwd.hh"
-#include "BLI_map.hh"
 #include "BLI_parameter_pack_utils.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"

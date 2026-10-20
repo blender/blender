@@ -74,6 +74,7 @@ struct SymbolFunction : SymbolScope {
   SymbolFunctionTemplate *template_data = nullptr;
   SymbolClass *return_type = nullptr;
 
+  ast::FuncForwardDecl fwd = {};
   ast::FuncDecl decl = {};
 
   vector<bool> arg_const;
@@ -165,6 +166,15 @@ struct SymbolFunction : SymbolScope {
   bool is_builtin_ctor() const
   {
     return is_builtin && allow_vector_promotion;
+  }
+
+  /* Only used for sorting purpose. Return a unique location. */
+  SourceLocation decl_loc() const
+  {
+    if (poi.has_value() && this->template_data) {
+      return poi.value();
+    }
+    return SourceLocation(fwd.is_valid() ? fwd.front() : decl.front());
   }
 
   /* To be called on the first registered overload. */

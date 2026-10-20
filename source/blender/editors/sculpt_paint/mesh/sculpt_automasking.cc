@@ -655,85 +655,99 @@ void calc_vert_factors(const Depsgraph &depsgraph,
     }
   }
 
-  for (const int i : verts.index_range()) {
-    const int vert = verts[i];
-    /* If the cache is initialized with valid info, use the cache. This is used when the
-     * automasking information can't be computed in real time per vertex and needs to be
-     * initialized for the whole mesh when the stroke starts. */
-    if (!automasking.factor.is_empty()) {
-      factors[i] *= automasking.factor[vert];
+  /* If the cache is initialized with valid info, use the cache. This is used when the
+   * automasking information can't be computed in real time per vertex and needs to be
+   * initialized for the whole mesh when the stroke starts. */
+  if (!automasking.factor.is_empty()) {
+    for (const int i : verts.index_range()) {
+      factors[i] *= automasking.factor[verts[i]];
     }
+  }
 
-    bool do_occlusion = flag_is_set(automasking.settings.flags,
-                                    BRUSH_AUTOMASKING_VIEW_OCCLUSION) &&
-                        flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_NORMAL);
-    if (do_occlusion) {
+  const bool do_occlusion = flag_is_set(automasking.settings.flags,
+                                        BRUSH_AUTOMASKING_VIEW_OCCLUSION) &&
+                            flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_NORMAL);
+
+  if (do_occlusion) {
+    for (const int i : verts.index_range()) {
       const bool occluded = calc_view_occlusion_factor(
-          depsgraph, const_cast<Cache &>(automasking), object, vert, vert_positions[vert]);
+          depsgraph, const_cast<Cache &>(automasking), object, verts[i], vert_positions[verts[i]]);
       if (occluded) {
         factors[i] = 0.0f;
-        continue;
       }
     }
+  }
 
-    /* The filter tools do not take symmetry into consideration, use the "generic" (i.e. 0)
-     * symmetry pass instead */
-    const int current_symmetry_pass = ss.cache ? ss.cache->mirror_symmetry_pass : 0;
-    if (!automasking.settings.topology_use_brush_limit &&
-        flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_TOPOLOGY) &&
-        islands::vert_id_get(ss, vert) !=
-            automasking.settings.initial_island_nr[current_symmetry_pass])
-    {
-      factors[i] = 0.0f;
-      continue;
-    }
-
-    if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_FACE_SETS)) {
-      if (automasking.settings.initial_face_set != face_set_none_id &&
-          !face_set::vert_has_face_set(
-              vert_to_face_map, face_sets, vert, automasking.settings.initial_face_set))
+  /* The filter tools do not take symmetry into consideration, use the "generic" (i.e. 0)
+   * symmetry pass instead */
+  const int current_symmetry_pass = ss.cache ? ss.cache->mirror_symmetry_pass : 0;
+  if (!automasking.settings.topology_use_brush_limit &&
+      flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_TOPOLOGY))
+  {
+    for (const int i : verts.index_range()) {
+      if (islands::vert_id_get(ss, verts[i]) !=
+          automasking.settings.initial_island_nr[current_symmetry_pass])
       {
         factors[i] = 0.0f;
-        continue;
       }
     }
+  }
 
-    if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
-      if (boundary::vert_is_boundary(vert_to_face_map, hide_poly, boundary_verts, vert)) {
+  if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_FACE_SETS)) {
+    for (const int i : verts.index_range()) {
+      if (automasking.settings.initial_face_set != face_set_none_id &&
+          !face_set::vert_has_face_set(
+              vert_to_face_map, face_sets, verts[i], automasking.settings.initial_face_set))
+      {
         factors[i] = 0.0f;
-        continue;
       }
     }
+  }
 
-    if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
+  if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
+    for (const int i : verts.index_range()) {
+      if (boundary::vert_is_boundary(vert_to_face_map, hide_poly, boundary_verts, verts[i])) {
+        factors[i] = 0.0f;
+      }
+    }
+  }
+
+  if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
+    for (const int i : verts.index_range()) {
       bool ignore = ss.cache && ss.cache->brush &&
                     ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
                     (automasking.settings.initial_face_set == face_set_none_id ||
-                     face_set::vert_face_set_max_get(vert_to_face_map, face_sets, vert) ==
+                     face_set::vert_face_set_max_get(vert_to_face_map, face_sets, verts[i]) ==
                          ss.cache->paint_face_set);
 
-      if (!ignore && !face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, vert)) {
+      if (!ignore && !face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, verts[i])) {
         factors[i] = 0.0f;
-        continue;
       }
     }
+  }
 
-    const float3 &normal = orig_normals.is_empty() ? vert_normals[vert] : orig_normals[i];
-    if ((ss.cache || ss.filter_cache) &&
-        flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BRUSH_NORMAL))
-    {
+  if ((ss.cache || ss.filter_cache) &&
+      flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BRUSH_NORMAL))
+  {
+    for (const int i : verts.index_range()) {
+      const float3 &normal = orig_normals.is_empty() ? vert_normals[verts[i]] : orig_normals[i];
       factors[i] *= calc_brush_normal_factor(automasking, object, normal);
     }
+  }
 
-    if ((ss.cache || ss.filter_cache) &&
-        flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_NORMAL))
-    {
+  if ((ss.cache || ss.filter_cache) &&
+      flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_NORMAL))
+  {
+    for (const int i : verts.index_range()) {
+      const float3 &normal = orig_normals.is_empty() ? vert_normals[verts[i]] : orig_normals[i];
       factors[i] *= calc_view_normal_factor(automasking, object, normal);
     }
+  }
 
-    if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_CAVITY_ALL)) {
-      BLI_assert(automasking.cavity_factor[vert] != -1.0f);
-      factors[i] *= process_cavity_factor(automasking, automasking.cavity_factor[vert]);
+  if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_CAVITY_ALL)) {
+    for (const int i : verts.index_range()) {
+      BLI_assert(automasking.cavity_factor[verts[i]] != -1.0f);
+      factors[i] *= process_cavity_factor(automasking, automasking.cavity_factor[verts[i]]);
     }
   }
 }
@@ -875,54 +889,82 @@ void calc_grids_factors(const Depsgraph &depsgraph,
     }
   }
 
-  for (const int i : grids.index_range()) {
-    const int grid_face_set = face_sets.is_empty() ?
-                                  face_set_none_id :
-                                  face_sets[subdiv_ccg.grid_to_face_map[grids[i]]];
-    const int node_start = i * key.grid_area;
-    const int grids_start = grids[i] * key.grid_area;
-    for (const int offset : IndexRange(key.grid_area)) {
-      const int node_vert = node_start + offset;
-      const int vert = grids_start + offset;
-      /* If the cache is initialized with valid info, use the cache. This is used when the
-       * automasking information can't be computed in real time per vertex and needs to be
-       * initialized for the whole mesh when the stroke starts. */
-      if (!automasking.factor.is_empty()) {
+  /* if the cache is initialized with valid info, use the cache. this is used when the
+   * automasking information can't be computed in real time per vertex and needs to be
+   * initialized for the whole mesh when the stroke starts. */
+  if (!automasking.factor.is_empty()) {
+    for (const int i : grids.index_range()) {
+      const int node_start = i * key.grid_area;
+      const int grids_start = grids[i] * key.grid_area;
+      for (const int offset : IndexRange(key.grid_area)) {
+        const int node_vert = node_start + offset;
+        const int vert = grids_start + offset;
         factors[node_vert] *= automasking.factor[vert];
       }
+    }
+  }
 
-      bool do_occlusion = flag_is_set(automasking.settings.flags,
-                                      BRUSH_AUTOMASKING_VIEW_OCCLUSION) &&
-                          flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_NORMAL);
-      if (do_occlusion) {
+  bool do_occlusion = flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_OCCLUSION) &&
+                      flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_NORMAL);
+  if (do_occlusion) {
+    for (const int i : grids.index_range()) {
+      const int node_start = i * key.grid_area;
+      const int grids_start = grids[i] * key.grid_area;
+      for (const int offset : IndexRange(key.grid_area)) {
+        const int node_vert = node_start + offset;
+        const int vert = grids_start + offset;
         const bool occluded = calc_view_occlusion_factor(
             depsgraph, const_cast<Cache &>(automasking), object, vert, subdiv_ccg.positions[vert]);
         if (occluded) {
           factors[node_vert] = 0.0f;
-          continue;
         }
       }
+    }
+  }
 
-      /* The filter tools do not take symmetry into consideration, use the "generic" (i.e. 0)
-       * symmetry pass instead */
-      const int current_symmetry_pass = ss.cache ? ss.cache->mirror_symmetry_pass : 0;
-      if (!automasking.settings.topology_use_brush_limit &&
-          flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_TOPOLOGY) &&
-          islands::vert_id_get(ss, vert) !=
-              automasking.settings.initial_island_nr[current_symmetry_pass])
-      {
-        factors[node_vert] = 0.0f;
-        continue;
+  /* The filter tools do not take symmetry into consideration, use the "generic" (i.e. 0)
+   * symmetry pass instead */
+  const int current_symmetry_pass = ss.cache ? ss.cache->mirror_symmetry_pass : 0;
+  if (!automasking.settings.topology_use_brush_limit &&
+      flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_TOPOLOGY))
+  {
+    for (const int i : grids.index_range()) {
+      const int node_start = i * key.grid_area;
+      const int grids_start = grids[i] * key.grid_area;
+      for (const int offset : IndexRange(key.grid_area)) {
+        const int node_vert = node_start + offset;
+        const int vert = grids_start + offset;
+        if (islands::vert_id_get(ss, vert) !=
+            automasking.settings.initial_island_nr[current_symmetry_pass])
+        {
+          factors[node_vert] = 0.0f;
+        }
       }
+    }
+  }
 
-      if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_FACE_SETS)) {
+  if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_FACE_SETS)) {
+    for (const int i : grids.index_range()) {
+      const int grid_face_set = face_sets.is_empty() ?
+                                    face_set_none_id :
+                                    face_sets[subdiv_ccg.grid_to_face_map[grids[i]]];
+      const int node_start = i * key.grid_area;
+      for (const int offset : IndexRange(key.grid_area)) {
+        const int node_vert = node_start + offset;
         if (!ELEM(automasking.settings.initial_face_set, face_set_none_id, grid_face_set)) {
           factors[node_vert] = 0.0f;
-          continue;
         }
       }
+    }
+  }
 
-      if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
+  if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
+    for (const int i : grids.index_range()) {
+      const int node_start = i * key.grid_area;
+      const int grids_start = grids[i] * key.grid_area;
+      for (const int offset : IndexRange(key.grid_area)) {
+        const int node_vert = node_start + offset;
+        const int vert = grids_start + offset;
         if (boundary::vert_is_boundary(faces,
                                        corner_verts,
                                        boundary_verts,
@@ -931,11 +973,21 @@ void calc_grids_factors(const Depsgraph &depsgraph,
                                        SubdivCCGCoord::from_index(key, vert)))
         {
           factors[node_vert] = 0.0f;
-          continue;
         }
       }
+    }
+  }
 
-      if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
+  if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
+    for (const int i : grids.index_range()) {
+      const int grid_face_set = face_sets.is_empty() ?
+                                    face_set_none_id :
+                                    face_sets[subdiv_ccg.grid_to_face_map[grids[i]]];
+      const int node_start = i * key.grid_area;
+      const int grids_start = grids[i] * key.grid_area;
+      for (const int offset : IndexRange(key.grid_area)) {
+        const int node_vert = node_start + offset;
+        const int vert = grids_start + offset;
         bool ignore = ss.cache && ss.cache->brush &&
                       ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
                       (automasking.settings.initial_face_set == face_set_none_id ||
@@ -949,26 +1001,50 @@ void calc_grids_factors(const Depsgraph &depsgraph,
                                                            SubdivCCGCoord::from_index(key, vert)))
         {
           factors[node_vert] = 0.0f;
-          continue;
         }
       }
+    }
+  }
 
-      const float3 &normal = orig_normals.is_empty() ? subdiv_ccg.normals[vert] :
-                                                       orig_normals[node_vert];
+  if ((ss.cache || ss.filter_cache) &&
+      flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BRUSH_NORMAL))
+  {
 
-      if ((ss.cache || ss.filter_cache) &&
-          flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BRUSH_NORMAL))
-      {
+    for (const int i : grids.index_range()) {
+      const int node_start = i * key.grid_area;
+      const int grids_start = grids[i] * key.grid_area;
+      for (const int offset : IndexRange(key.grid_area)) {
+        const int node_vert = node_start + offset;
+        const int vert = grids_start + offset;
+        const float3 &normal = orig_normals.is_empty() ? subdiv_ccg.normals[vert] :
+                                                         orig_normals[node_vert];
         factors[node_vert] *= calc_brush_normal_factor(automasking, object, normal);
       }
+    }
+  }
 
-      if ((ss.cache || ss.filter_cache) &&
-          flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_NORMAL))
-      {
+  if ((ss.cache || ss.filter_cache) &&
+      flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_NORMAL))
+  {
+    for (const int i : grids.index_range()) {
+      const int node_start = i * key.grid_area;
+      const int grids_start = grids[i] * key.grid_area;
+      for (const int offset : IndexRange(key.grid_area)) {
+        const int node_vert = node_start + offset;
+        const int vert = grids_start + offset;
+        const float3 &normal = orig_normals.is_empty() ? subdiv_ccg.normals[vert] :
+                                                         orig_normals[node_vert];
         factors[node_vert] *= calc_view_normal_factor(automasking, object, normal);
       }
-
-      if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_CAVITY_ALL)) {
+    }
+  }
+  if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_CAVITY_ALL)) {
+    for (const int i : grids.index_range()) {
+      const int node_start = i * key.grid_area;
+      const int grids_start = grids[i] * key.grid_area;
+      for (const int offset : IndexRange(key.grid_area)) {
+        const int node_vert = node_start + offset;
+        const int vert = grids_start + offset;
         BLI_assert(automasking.cavity_factor[vert] != -1.0f);
         factors[node_vert] *= process_cavity_factor(automasking, automasking.cavity_factor[vert]);
       }
@@ -996,59 +1072,74 @@ void calc_vert_factors(const Depsgraph &depsgraph,
     orig_position_data_gather_bmesh(*ss.bm_log, verts, {}, orig_normals);
   }
 
-  int i = 0;
-  for (BMVert *vert : verts) {
-    BLI_SCOPED_DEFER([&]() { i++; });
-    const int vert_i = BM_elem_index_get(vert);
-    /* If the cache is initialized with valid info, use the cache. This is used when the
-     * automasking information can't be computed in real time per vertex and needs to be
-     * initialized for the whole mesh when the stroke starts. */
-    if (!automasking.factor.is_empty()) {
-      factors[i] *= automasking.factor[vert_i];
+  /* If the cache is initialized with valid info, use the cache. This is used when the
+   * automasking information can't be computed in real time per vertex and needs to be
+   * initialized for the whole mesh when the stroke starts. */
+  if (!automasking.factor.is_empty()) {
+    int i = 0;
+    for (BMVert *vert : verts) {
+      factors[i] *= automasking.factor[BM_elem_index_get(vert)];
+      i++;
     }
+  }
 
-    bool do_occlusion = flag_is_set(automasking.settings.flags,
-                                    BRUSH_AUTOMASKING_VIEW_OCCLUSION) &&
-                        flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_NORMAL);
-    if (do_occlusion) {
+  bool do_occlusion = flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_OCCLUSION) &&
+                      flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_NORMAL);
+  if (do_occlusion) {
+    int i = 0;
+    for (BMVert *vert : verts) {
       const bool occluded = calc_view_occlusion_factor(
-          depsgraph, const_cast<Cache &>(automasking), object, vert_i, vert->co);
+          depsgraph, const_cast<Cache &>(automasking), object, BM_elem_index_get(vert), vert->co);
       if (occluded) {
         factors[i] = 0.0f;
-        continue;
       }
+      i++;
     }
+  }
 
-    /* The filter tools do not take symmetry into consideration, use the "generic" (i.e. 0)
-     * symmetry pass instead */
-    const int current_symmetry_pass = ss.cache ? ss.cache->mirror_symmetry_pass : 0;
-    if (!automasking.settings.topology_use_brush_limit &&
-        flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_TOPOLOGY) &&
-        islands::vert_id_get(ss, vert_i) !=
-            automasking.settings.initial_island_nr[current_symmetry_pass])
-    {
-      factors[i] = 0.0f;
-      continue;
+  /* The filter tools do not take symmetry into consideration, use the "generic" (i.e. 0)
+   * symmetry pass instead */
+  const int current_symmetry_pass = ss.cache ? ss.cache->mirror_symmetry_pass : 0;
+  if (!automasking.settings.topology_use_brush_limit &&
+      flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_TOPOLOGY))
+  {
+    int i = 0;
+    for (BMVert *vert : verts) {
+      if (islands::vert_id_get(ss, BM_elem_index_get(vert)) !=
+          automasking.settings.initial_island_nr[current_symmetry_pass])
+      {
+        factors[i] = 0.0f;
+      }
+      i++;
     }
+  }
 
-    if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_FACE_SETS)) {
+  if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_FACE_SETS)) {
+    int i = 0;
+    for (BMVert *vert : verts) {
       if (automasking.settings.initial_face_set != face_set_none_id &&
           !face_set::vert_has_face_set(
               face_set_offset, *vert, automasking.settings.initial_face_set))
       {
         factors[i] = 0.0f;
-        continue;
       }
+      i++;
     }
+  }
 
-    if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
+  if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
+    int i = 0;
+    for (BMVert *vert : verts) {
       if (boundary::vert_is_boundary(vert)) {
         factors[i] = 0.0f;
-        continue;
       }
+      i++;
     }
+  }
 
-    if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
+  if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
+    int i = 0;
+    for (BMVert *vert : verts) {
       bool ignore = ss.cache && ss.cache->brush &&
                     ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
                     (automasking.settings.initial_face_set == face_set_none_id ||
@@ -1057,26 +1148,41 @@ void calc_vert_factors(const Depsgraph &depsgraph,
 
       if (!ignore && !face_set::vert_has_unique_face_set(face_set_offset, *vert)) {
         factors[i] = 0.0f;
-        continue;
       }
+      i++;
     }
+  }
 
-    const float3 normal = orig_normals.is_empty() ? float3(vert->no) : orig_normals[i];
-    if ((ss.cache || ss.filter_cache) &&
-        flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BRUSH_NORMAL))
-    {
+  if ((ss.cache || ss.filter_cache) &&
+      flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_BRUSH_NORMAL))
+  {
+
+    int i = 0;
+    for (BMVert *vert : verts) {
+      const float3 normal = orig_normals.is_empty() ? float3(vert->no) : orig_normals[i];
       factors[i] *= calc_brush_normal_factor(automasking, object, normal);
+      i++;
     }
+  }
 
-    if ((ss.cache || ss.filter_cache) &&
-        flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_NORMAL))
-    {
+  if ((ss.cache || ss.filter_cache) &&
+      flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_VIEW_NORMAL))
+  {
+    int i = 0;
+    for (BMVert *vert : verts) {
+      const float3 normal = orig_normals.is_empty() ? float3(vert->no) : orig_normals[i];
       factors[i] *= calc_view_normal_factor(automasking, object, normal);
+      i++;
     }
+  }
 
-    if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_CAVITY_ALL)) {
+  if (flag_is_set(automasking.settings.flags, BRUSH_AUTOMASKING_CAVITY_ALL)) {
+    int i = 0;
+    for (BMVert *vert : verts) {
+      const int vert_i = BM_elem_index_get(vert);
       BLI_assert(automasking.cavity_factor[vert_i] != -1.0f);
       factors[i] *= process_cavity_factor(automasking, automasking.cavity_factor[vert_i]);
+      i++;
     }
   }
 }

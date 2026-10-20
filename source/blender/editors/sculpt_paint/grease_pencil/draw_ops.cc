@@ -981,7 +981,7 @@ static void grease_pencil_fill_extension_lines_from_circles(
     /* TODO Insert feature points into the KDTree. */
     UNUSED_VARS(i_point);
   }
-  const KDTreeNew<float2> kdtree(view_centers.as_span().slice(circles_range));
+  const KDTree<float2> kdtree(view_centers.as_span().slice(circles_range));
 
   struct {
     Vector<float3> starts;

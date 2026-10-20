@@ -161,7 +161,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
                              nullptr,
                              nullptr);
   }
-  const KDTreeNew<float3> tree(emitter_positions);
+  const KDTree<float3> tree(emitter_positions);
 
   /* set face-particle-indexes to nearest particle to face center */
   for (i = 0, fa = mface; i < totface; i++, fa++) {

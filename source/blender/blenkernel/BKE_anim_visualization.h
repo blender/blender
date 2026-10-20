@@ -37,6 +37,30 @@ void settings_init(struct bAnimVizSettings *avs);
 
 namespace motionpath {
 
+struct Runtime {
+  /* Stores a world space point. This is used during transforming to give the
+   * user a notion of their transform delta. It is important to keep this on the motionpath because
+   * for pose bones it is also shown when a parent bone is transformed.  */
+  float preview_location[3];
+  bool show_preview = false;
+  gpu::Batch *batch_preview = nullptr;
+  gpu::VertBuf *vbo_preview = nullptr;
+};
+
+/* The following functions have to use C-style float3 because the file is still a C header and the
+ * functions are added for fix. Once converted to C++ this can be updated. */
+
+/**
+ * Sets a world space location to which a line will be drawn from the current frames motion path
+ * point. See motionpath::Runtime::preview_location for more info.
+ */
+void set_preview_location(bMotionPath &mpath, const float location[3]);
+/**
+ * Remove the edit preview from the motionpath. See motionpath::Runtime::preview_location for more
+ * info.
+ */
+void clear_preview_location(bMotionPath &mpath);
+
 /**
  * Make a copy of motion-path data, so that viewing with copy on write works.
  */

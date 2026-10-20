@@ -1348,7 +1348,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
 
   /* one or the other is used depending if topo is enabled */
   Array<float3> positions;
-  std::optional<KDTreeNew<float3>> tree;
+  std::optional<KDTree<float3>> tree;
   MirrTopoStore_t mesh_topo_store = {nullptr, -1, -1, false};
 
   BM_mesh_elem_table_ensure(bm, BM_VERT);

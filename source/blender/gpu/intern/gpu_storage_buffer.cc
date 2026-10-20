@@ -86,6 +86,11 @@ void GPU_storagebuf_usage_size_set(gpu::StorageBuf *ssbo, size_t usage_size)
   ssbo->usage_size_set(usage_size);
 }
 
+size_t GPU_storagebuf_usage_size_get(const gpu::StorageBuf *ssbo)
+{
+  return ssbo->usage_size_get();
+}
+
 void GPU_storagebuf_update(gpu::StorageBuf *ssbo, const void *data)
 {
   ssbo->update(data);

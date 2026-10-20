@@ -15,6 +15,8 @@
 #include "DNA_curves_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_node_tree_interface_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
@@ -33,6 +35,7 @@
 #include "BKE_camera.h"
 #include "BKE_colorband.hh"
 #include "BKE_compositor.hh"
+#include "BKE_idprop.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.hh"
@@ -40,6 +43,8 @@
 #include "BKE_paint.hh"
 #include "BKE_paint_types.hh"
 #include "BKE_screen.hh"
+
+#include "NOD_geometry_nodes_srna.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
@@ -214,6 +219,39 @@ static void clear_deprecated_brush_flags(Brush &brush)
   brush.flag &= ~(BRUSH_UNUSED_7 | BRUSH_UNUSED_8);
 }
 
+/**
+ * Modifier inputs created for Layer Selection sockets used to get the Value type, even though the
+ * modifier only displayed the layer name.
+ */
+static void version_layer_selection_modifier_inputs(NodesModifierData &nmd)
+{
+  if (!nmd.node_group || !nmd.modifier.system_properties) {
+    return;
+  }
+  IDProperty *inputs = IDP_GetPropertyTypeFromGroup(
+      nmd.modifier.system_properties, "inputs", IDP_GROUP);
+  if (!inputs) {
+    return;
+  }
+  const bNodeTree &ntree = *nmd.node_group;
+  ntree.ensure_interface_cache();
+  for (const bNodeTreeInterfaceSocket *input : ntree.interface_inputs()) {
+    if (!(input->flag & NODE_INTERFACE_SOCKET_LAYER_SELECTION) ||
+        !STREQ(input->socket_type, "NodeSocketBool"))
+    {
+      continue;
+    }
+    IDProperty *group = IDP_GetPropertyTypeFromGroup(inputs, input->identifier, IDP_GROUP);
+    if (!group) {
+      continue;
+    }
+    IDProperty *type = IDP_GetPropertyTypeFromGroup(group, "type", IDP_INT);
+    if (type && IDP_int_get(type) == int(nodes::GeometryNodesInputType::Value)) {
+      IDP_int_set(type, int(nodes::GeometryNodesInputType::Layer));
+    }
+  }
+}
+
 void do_versions_after_linking_503(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 8)) {
@@ -306,6 +344,16 @@ void do_versions_after_linking_503(FileData * /*fd*/, Main *bmain)
             }
             space_outliner->flag &= ~SO_FLAG_UNUSED_4;
           }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 30)) {
+    for (Object &object : bmain->objects) {
+      for (ModifierData &md : object.modifiers) {
+        if (md.type == eModifierType_Nodes) {
+          version_layer_selection_modifier_inputs(reinterpret_cast<NodesModifierData &>(md));
         }
       }
     }

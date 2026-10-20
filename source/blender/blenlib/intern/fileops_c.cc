@@ -456,6 +456,17 @@ bool BLI_file_ensure_parent_dir_exists(const char *filepath)
   char di[FILE_MAX];
   BLI_path_split_dir_part(filepath, di, sizeof(di));
 
+  if (di[0] == '\0') {
+    /* This means the filepath did not have any directory component, and thus the current directory
+     * should be made to exist. However, if it doesn't exist, Blender fails (at least on Linux) to
+     * even get the CWD. */
+    BLI_path_abs_from_cwd(di, sizeof(di));
+    if (di[0] == '\0') {
+      /* Still empty, which means getting CWD failed. */
+      return false;
+    }
+  }
+
   /* Make if the dir doesn't exist. */
   return BLI_dir_create_recursive(di);
 }

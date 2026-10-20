@@ -20,6 +20,7 @@
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
 #include "BLI_task_c.hh"
 
@@ -39,6 +40,35 @@ struct LocalData {
   Vector<float> distances;
   Vector<float3> translations;
 };
+
+static float3x3 calc_vertex_displacement_matrix(const StrokeCache &cache, const Brush &brush)
+{
+  const float3 size = brush.mtex.size;
+  float3 scale = math::safe_divide(float3(1.0f), size * size) * cache.bstrength;
+
+  if (cache.bstrength < 0.0f) {
+    scale.xy() *= -1.0f;
+  }
+
+  const float3x3 brush_local_mat_inv = float3x3(math::invert(cache.brush_local_mat));
+
+  const float3x3 rotation = cache.radial_symmetry_pass ? float3x3(cache.symm_rot_mat) :
+                                                         float3x3::identity();
+
+  const float3 mirror_sign((cache.mirror_symmetry_pass & PAINT_SYMM_X) ? -1.0f : 1.0f,
+                           (cache.mirror_symmetry_pass & PAINT_SYMM_Y) ? -1.0f : 1.0f,
+                           (cache.mirror_symmetry_pass & PAINT_SYMM_Z) ? -1.0f : 1.0f);
+
+  return math::from_scale<float3x3>(mirror_sign) * rotation * brush_local_mat_inv *
+         math::from_scale<float3x3>(scale);
+}
+
+static void transform_directions(const float3x3 &mat, const MutableSpan<float3> translations)
+{
+  for (float3 &translation : translations) {
+    translation = math::transform_direction(mat, translation);
+  }
+}
 
 static void calc_brush_texture_colors(const PaintMode paint_mode,
                                       SculptSession &ss,
@@ -87,6 +117,7 @@ static void calc_brush_texture_colors(const PaintMode paint_mode,
 static void calc_faces(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        const Brush &brush,
+                       const float3x3 &mat,
                        const Span<float3> vert_normals,
                        const MeshAttributeData &attribute_data,
                        const bke::pbvh::MeshNode &node,
@@ -117,9 +148,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   Array<float3, bke::pbvh::MESH_LEAF_LIMIT> translations(verts.size());
   calc_brush_texture_colors(PaintMode::Sculpt, ss, brush, position_data.eval, verts, translations);
   scale_translations(translations, factors);
-  for (const int i : verts.index_range()) {
-    calc_vertex_displacement(ss, brush, translations[i]);
-  }
+  transform_directions(mat, translations);
 
   clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
   position_data.deform(translations, verts);
@@ -129,6 +158,7 @@ static void calc_grids(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        Object &object,
                        const Brush &brush,
+                       const float3x3 &mat,
                        bke::pbvh::GridsNode &node,
                        LocalData &tls)
 {
@@ -160,9 +190,7 @@ static void calc_grids(const Depsgraph &depsgraph,
   const MutableSpan<float3> translations = tls.translations;
   calc_brush_texture_colors(PaintMode::Sculpt, ss, brush, positions, translations);
   scale_translations(translations, factors);
-  for (const int i : positions.index_range()) {
-    calc_vertex_displacement(ss, brush, translations[i]);
-  }
+  transform_directions(mat, translations);
 
   clip_and_lock_translations(sd, ss, positions, translations);
   apply_translations(translations, grids, subdiv_ccg);
@@ -172,6 +200,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        Object &object,
                        const Brush &brush,
+                       const float3x3 &mat,
                        bke::pbvh::BMeshNode &node,
                        LocalData &tls)
 {
@@ -202,9 +231,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   const MutableSpan<float3> translations = tls.translations;
   calc_brush_texture_colors(PaintMode::Sculpt, ss, brush, positions, translations);
   scale_translations(translations, factors);
-  for (const int i : positions.index_range()) {
-    calc_vertex_displacement(ss, brush, translations[i]);
-  }
+  transform_directions(mat, translations);
 
   clip_and_lock_translations(sd, ss, positions, translations);
   apply_translations(translations, verts);
@@ -221,6 +248,9 @@ void do_draw_vector_displacement_brush(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
+  const SculptSession &ss = *object.runtime->sculpt_session;
+  const float3x3 mat = calc_vertex_displacement_matrix(*ss.cache, brush);
+
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -234,6 +264,7 @@ void do_draw_vector_displacement_brush(const Depsgraph &depsgraph,
             calc_faces(depsgraph,
                        sd,
                        brush,
+                       mat,
                        vert_normals,
                        attribute_data,
                        nodes[i],
@@ -251,7 +282,7 @@ void do_draw_vector_displacement_brush(const Depsgraph &depsgraph,
       node_mask.foreach_index(
           [&](const int i) {
             LocalData &tls = all_tls.local();
-            calc_grids(depsgraph, sd, object, brush, nodes[i], tls);
+            calc_grids(depsgraph, sd, object, brush, mat, nodes[i], tls);
             bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
           },
           exec_mode::grain_size(1));
@@ -262,7 +293,7 @@ void do_draw_vector_displacement_brush(const Depsgraph &depsgraph,
       node_mask.foreach_index(
           [&](const int i) {
             LocalData &tls = all_tls.local();
-            calc_bmesh(depsgraph, sd, object, brush, nodes[i], tls);
+            calc_bmesh(depsgraph, sd, object, brush, mat, nodes[i], tls);
             bke::pbvh::update_node_bounds_bmesh(nodes[i]);
           },
           exec_mode::grain_size(1));

@@ -1281,6 +1281,7 @@ static int foreach_libblock_append_finalize_action_callback(LibraryIDLinkCallbac
 }
 
 static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_context,
+                                            const int make_local_common_flags,
                                             ReportList *reports)
 {
   Main *bmain = lapp_context.params->bmain;
@@ -1288,6 +1289,8 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
   const bool do_recursive = (lapp_context.params->flag & BLO_LIBLINK_APPEND_RECURSIVE) != 0;
   const bool do_reuse_local_id = (lapp_context.params->flag & BLO_LIBLINK_APPEND_LOCAL_ID_REUSE) !=
                                  0;
+  const bool do_keep_linked_packed_id = (make_local_common_flags &
+                                         LIB_ID_MAKELOCAL_LINKEDPACKED_KEEP) != 0;
 
   /* In case of non-recursive appending, gather a set of all 'original' libraries (i.e. libraries
    * containing data that was explicitly selected by the user). */
@@ -1340,7 +1343,8 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
 
   /* At this point, linked IDs that should remain linked can already be defined as such:
    *  - In case of non-recursive appending, IDs from other libraries.
-   *  - IDs only used as liboverride references. */
+   *  - IDs only used as liboverride references.
+   *  - IDs that are linked packed. */
   for (BlendfileLinkAppendContextItem &item : lapp_context.items) {
     /* These tags should have been set in above loop, here they can be check for validity (they
      * are mutually exclusive). */
@@ -1352,6 +1356,11 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
     ID *id = item.new_id;
     if (id == nullptr) {
       continue;
+    }
+    if (do_keep_linked_packed_id && ID_IS_PACKED(id)) {
+      CLOG_DEBUG(&LOG, "Appended ID '%s' is linked packed data, keeping it as such.", id->name);
+      item.action = LINK_APPEND_ACT_KEEP_LINKED;
+      item.reusable_local_id = nullptr;
     }
     /* IDs exclusively used as liboverride reference should not be made local at all. */
     if ((item.tag & LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY) != 0) {
@@ -1517,7 +1526,7 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   const bool set_fakeuser = (lapp_context->params->flag & BLO_LIBLINK_APPEND_SET_FAKEUSER) != 0;
 
   const int make_local_common_flags =
-      LIB_ID_MAKELOCAL_FULL_LIBRARY |
+      LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_LINKEDPACKED_KEEP |
       ((lapp_context->params->flag & BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR) != 0 ?
            LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR :
            0) |
@@ -1532,7 +1541,7 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
 
   /* Add missing items (the indirectly linked ones), and carefully define which action should be
    * applied to each of them. */
-  blendfile_append_define_actions(*lapp_context, reports);
+  blendfile_append_define_actions(*lapp_context, make_local_common_flags, reports);
 
   /* Effectively perform required operation on every linked ID. */
   for (BlendfileLinkAppendContextItem &item : lapp_context->items) {

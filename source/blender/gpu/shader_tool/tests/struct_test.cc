@@ -1918,11 +1918,11 @@ struct D1 {
 D1 D1_ctor_() {D1 r;r._pad=0;return r;}
 
 #ifndef GPU_METAL
-       A BTD1_samp(D1 _0, float _1);
+       A BTD1_samp(D1 d, float p);
 #endif
 
 #ifndef GPU_METAL
-A _samp(D1 this_, float _0);
+A _samp(D1 this_, float p);
 #endif
 #line 5
          A BTD1_samp(D1 d, float p)

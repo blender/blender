@@ -420,7 +420,7 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
     edge_symmetry_map[i] = -1;
   }
 
-  const KDTreeNew<float3> tree(edge_centers);
+  const KDTree<float3> tree(edge_centers);
 
   sym_data.etable = etable;
   sym_data.limit_sq = limit_sq;

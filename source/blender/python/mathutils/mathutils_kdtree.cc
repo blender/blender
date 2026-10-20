@@ -38,7 +38,7 @@ template<typename CoordT> struct PyKDTreeData {
   /** The index given for each inserted point. */
   Vector<int> indices;
   /** Built by `balance()`, referencing #positions. */
-  std::optional<KDTreeNew<CoordT>> tree;
+  std::optional<KDTree<CoordT>> tree;
 };
 
 struct PyKDTree {
@@ -297,7 +297,7 @@ static PyObject *py_kdtree_balance(PyKDTree *self)
  * \{ */
 
 /**
- * A #KDTreeNew::search for the closest point accepted by a Python filter. The search stops as soon
+ * A #KDTree::search for the closest point accepted by a Python filter. The search stops as soon
  * as the filter raises an exception.
  */
 struct PyKDTree_FilteredNearestQuery {
@@ -423,7 +423,7 @@ template<typename CoordT>
 static PyObject *py_kdtree_find_n_impl(PyKDTree *self, const float *co, uint n)
 {
   const PyKDTreeData<CoordT> &data = *pykdtree_data_get<CoordT>(self);
-  Array<typename KDTreeNew<CoordT>::Nearest> nearest(std::min<int64_t>(n, data.tree->size()));
+  Array<typename KDTree<CoordT>::Nearest> nearest(std::min<int64_t>(n, data.tree->size()));
 
   const int found = data.tree->find_nearest_n(CoordT(co), nearest);
 
@@ -501,7 +501,7 @@ template<typename CoordT>
 static PyObject *py_kdtree_find_range_impl(PyKDTree *self, const float *co, float radius)
 {
   const PyKDTreeData<CoordT> &data = *pykdtree_data_get<CoordT>(self);
-  Vector<typename KDTreeNew<CoordT>::Nearest> nearest;
+  Vector<typename KDTree<CoordT>::Nearest> nearest;
   const int found = data.tree->find_in_radius(CoordT(co), radius, nearest);
 
   PyObject *py_list = PyList_New(found);

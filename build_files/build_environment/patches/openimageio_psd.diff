@@ -1,0 +1,90 @@
+diff --git a/src/psd.imageio/psdinput.cpp b/src/psd.imageio/psdinput.cpp
+index 764a70c49..4d4e7257d 100644
+--- a/src/psd.imageio/psdinput.cpp
++++ b/src/psd.imageio/psdinput.cpp
+@@ -147,6 +147,8 @@ private:
+         uint32_t width, height;
+         uint16_t channel_count;
+ 
++        bool empty() const { return width == 0 || height == 0; }
++
+         std::vector<ChannelInfo> channel_info;
+         std::map<int16_t, ChannelInfo*> channel_id_map;
+ 
+@@ -195,7 +197,7 @@ private:
+     std::string m_filename;
+     //Current subimage
+     int m_subimage;
+-    //Subimage count (1 + layer count)
++    //Subimage count (composite plus nonempty layers)
+     int m_subimage_count;
+     std::vector<ImageSpec> m_specs;
+     static const ResourceLoader resource_loaders[];
+@@ -626,8 +628,6 @@ PSDInput::open(const std::string& name, ImageSpec& newspec)
+         return false;
+     }
+ 
+-    // Layer count + 1 for merged composite (Image Data Section)
+-    m_subimage_count = m_layers.size() + 1;
+     // Set m_type_desc to the appropriate TypeDesc
+     set_type_desc();
+     // Setup ImageSpecs and m_channels
+@@ -1591,7 +1591,9 @@ PSDInput::load_layer(Layer& layer)
+     int64_t h    = int64_t(layer.bottom) - int64_t(layer.top);
+     layer.width  = uint32_t(w < 0 ? -w : w);
+     layer.height = uint32_t(h < 0 ? -h : h);
+-    if (!validate_resolution("Layer Record", layer.width, layer.height))
++    // Tolerate empty rectangles, but still enforce upper size limits.
++    if (!validate_resolution("Layer Record", std::max(layer.width, 1u),
++                             std::max(layer.height, 1u)))
+         return false;
+     layer.channel_info.resize(layer.channel_count);
+     for (uint16_t channel = 0; channel < layer.channel_count; channel++) {
+@@ -1715,6 +1717,22 @@ PSDInput::load_layer_channel(Layer& layer, ChannelInfo& channel_info)
+     if (channel_info.data_length <= 2)
+         return true;
+ 
++    // A channel's stored data, including the 2 byte compression tag already
++    // read, cannot extend past the end of the file. Compare unsigned: for PSB
++    // the length is 64 bits and a corrupt value would wrap negative if cast.
++    int64_t file_size = ioproxy() ? ioproxy()->size() : 0;
++    int64_t remaining = file_size - start_pos;
++    if (remaining < 0 || channel_info.data_length > uint64_t(remaining)) {
++        errorfmt("[Layer Channel] data length {} exceeds remaining file size",
++                 channel_info.data_length);
++        return false;
++    }
++
++    // Empty layers are not exposed as images, but their channels may still
++    // contain RLE row counts or ZIP data. Masks have independent dimensions.
++    if (layer.empty() && channel_info.channel_id != ChannelID_LayerMask)
++        return ioseek(start_pos + channel_info.data_length);
++
+     // Use mask_data size when channel_id is -2
+     uint32_t width, height;
+     if (channel_info.channel_id == ChannelID_LayerMask) {
+@@ -2095,13 +2113,15 @@ PSDInput::setup()
+             spec.attribute("oiio:UnassociatedAlpha", 1);
+ 
+     // Composite channels
+-    m_channels.reserve(m_subimage_count);
++    m_channels.reserve(m_layers.size() + 1);
+     m_channels.resize(1);
+     m_channels[0].reserve(raw_channel_count);
+     for (int i = 0; i < raw_channel_count; ++i)
+         m_channels[0].push_back(&m_image_data.channel_info[i]);
+ 
+     for (Layer& layer : m_layers) {
++        if (layer.empty())
++            continue;
+         spec_channel_count = m_WantRaw ? mode_channel_count[m_header.color_mode]
+                                        : 3;
+         raw_channel_count  = mode_channel_count[m_header.color_mode];
+@@ -2136,6 +2156,7 @@ PSDInput::setup()
+             spec.attribute("oiio:subimagename", layer.name);
+     }
+ 
++    m_subimage_count = int(m_specs.size());
+     return true;
+ }
+ 

@@ -815,7 +815,7 @@ bool parent_set(ReportList *reports,
                                    vert_par);
 }
 
-static void parent_set_vert_find(const KDTreeNew<float3> &tree,
+static void parent_set_vert_find(const KDTree<float3> &tree,
                                  const Span<int> orig_indices,
                                  Object *child,
                                  int vert_par[3],
@@ -826,7 +826,7 @@ static void parent_set_vert_find(const KDTreeNew<float3> &tree,
   };
   const float3 co_find = child->object_to_world().location();
   if (is_tri) {
-    std::array<KDTreeNew<float3>::Nearest, 3> nearest;
+    std::array<KDTree<float3>::Nearest, 3> nearest;
     const int tot = tree.find_nearest_n(co_find, nearest);
     BLI_assert(tot == 3);
     UNUSED_VARS_NDEBUG(tot);
@@ -890,7 +890,7 @@ static bool parent_set_nonvertex_parent(bContext *C, ParentingContext *parenting
 
 static bool parent_set_vertex_parent_with_kdtree(bContext *C,
                                                  ParentingContext *parenting_context,
-                                                 const KDTreeNew<float3> &tree,
+                                                 const KDTree<float3> &tree,
                                                  const Span<int> orig_indices)
 {
   int vert_par[3] = {0, 0, 0};
@@ -934,7 +934,7 @@ static bool parent_set_vertex_parent(bContext *C, ParentingContext *parenting_co
     return false;
   }
 
-  const KDTreeNew<float3> tree(positions);
+  const KDTree<float3> tree(positions);
   return parent_set_vertex_parent_with_kdtree(C, parenting_context, tree, orig_indices);
 }
 

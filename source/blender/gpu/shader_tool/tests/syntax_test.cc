@@ -586,4 +586,56 @@ TEST(shader_tool, AttributeCapacity)
   }
 }
 
+TEST(shader_tool, PointerDereference)
+{
+  {
+    string input = R"(
+struct A {
+  int a;
+  int f(A a){
+    this->a;
+  }
+};
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+struct A {
+  int a;
+  int f(A a){
+    return *this;
+  }
+};
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+struct A {
+  int a;
+  int f(A a){
+    return (*this)->a;
+  }
+};
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Member reference type 'A' is not a pointer; did you mean to use '.'?");
+  }
+  {
+    string input = R"(
+struct A {
+  int a;
+  int f(A a){
+    return *(*this);
+  }
+};
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Indirection requires pointer operand ('A' invalid)");
+  }
+}
+
 }  // namespace blender::gpu::tests

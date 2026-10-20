@@ -753,7 +753,10 @@ struct BSLParser {
           NODE(LocalVar);
           {
             NODE(IdQualified);
-            match(This);
+            {
+              NODE(Id);
+              match(This);
+            }
           }
           break;
         }

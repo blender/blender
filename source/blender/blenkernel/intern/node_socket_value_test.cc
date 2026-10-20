@@ -21,6 +21,7 @@
 namespace blender::bke::tests {
 
 using nodes::Bundle;
+using nodes::BundleKey;
 using nodes::BundlePtr;
 using nodes::GList;
 using nodes::GListPtr;
@@ -181,13 +182,13 @@ TEST_F(SocketValueVariantTest, SimpleBundle)
   s.ensure_type<BundlePtr>() = BundlePtr(Bundle::create());
   {
     Bundle &b = s.ensure_type<BundlePtr>().ensure_mutable_inplace();
-    b.add("A"_ustr, 42);
-    b.add("B"_ustr, 42.0f);
+    b.add(*BundleKey::from_str("A"), 42);
+    b.add(*BundleKey::from_str("B"), 42.0f);
   }
   {
     const BundlePtr &b = s.ensure_type<BundlePtr>();
-    EXPECT_EQ(b->lookup("A"_ustr)->as<int>(), 42);
-    EXPECT_EQ(b->lookup("B"_ustr)->as<float>(), 42.0f);
+    EXPECT_EQ(b->lookup(*BundleKey::from_str("A"))->as<int>(), 42);
+    EXPECT_EQ(b->lookup(*BundleKey::from_str("B"))->as<float>(), 42.0f);
   }
 }
 

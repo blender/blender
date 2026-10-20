@@ -39,6 +39,7 @@ void GPU_storagebuf_free(gpu::StorageBuf *ssbo);
  * Backends can optimize data transfers using the size that is actually used.
  */
 void GPU_storagebuf_usage_size_set(gpu::StorageBuf *ssbo, size_t size);
+size_t GPU_storagebuf_usage_size_get(const gpu::StorageBuf *ssbo);
 void GPU_storagebuf_update(gpu::StorageBuf *ssbo, const void *data);
 
 void GPU_storagebuf_bind(gpu::StorageBuf *ssbo, int slot);

@@ -556,11 +556,12 @@ class TestBlendLibAppendCollectionInstances(TestBlendLibLinkHelper):
 
 
 class TestBlendLibPackedLinkedID(TestBlendLibLinkHelper):
+    LIBMESH_PACKEDDATA_NAME = "LibMeshPackedOb"
 
     def __init__(self, args):
         super().__init__(args)
 
-    def test_link_pack_basic(self):
+    def gen_linked_pack_basic_(self):
         output_dir = self.args.output_dir
         output_lib_path = self.init_lib_data_basic()
 
@@ -568,7 +569,7 @@ class TestBlendLibPackedLinkedID(TestBlendLibLinkHelper):
         self.reset_blender()
 
         link_dir = os.path.join(output_lib_path, "Object")
-        bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_object_data=False)
+        bpy.ops.wm.link(directory=link_dir, filename="LibMesh")
 
         self.assertEqual(len(bpy.data.libraries), 1)
         library = bpy.data.libraries[0]
@@ -585,13 +586,18 @@ class TestBlendLibPackedLinkedID(TestBlendLibLinkHelper):
         ob_packed = bpy.data.pack_linked_ids_hierarchy(bpy.data.objects[0])
 
         # Need to ensure that the newly packed linked object is used, and kept in the scene.
-        bpy.data.scenes[0].collection.objects.link(ob_packed)
+        coll_for_linked_packed = bpy.data.collections.new(self.LIBMESH_PACKEDDATA_NAME)
+        coll_for_linked_packed.objects.link(ob_packed)
+        bpy.data.scenes[0].collection.children.link(coll_for_linked_packed)
 
-        self.assertEqual(len(bpy.data.libraries), 2)
-        library = bpy.data.libraries[0]
-        archive_library = bpy.data.libraries[1]
+    def test_link_pack_basic(self):
+        self.gen_linked_pack_basic_()
 
         def check_valid():
+            self.assertEqual(len(bpy.data.libraries), 2)
+            library = bpy.data.libraries[0]
+            archive_library = bpy.data.libraries[1]
+
             self.assertFalse(library.is_archive)
             self.assertEqual(len(library.archive_libraries), 1)
             self.assertEqual(library.archive_libraries[0], archive_library)
@@ -611,6 +617,8 @@ class TestBlendLibPackedLinkedID(TestBlendLibLinkHelper):
             self.assertEqual(bpy.data.objects[1].data, bpy.data.meshes[1])
 
         check_valid()
+
+        output_dir = self.args.output_dir
 
         output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
         bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
@@ -749,6 +757,117 @@ class TestBlendLibPackedLinkedID(TestBlendLibLinkHelper):
         library_indirect_archive = bpy.data.libraries[3]
 
         check_valid()
+
+    def test_link_linked_pack_basic(self):
+        self.gen_linked_pack_basic_()
+
+        output_dir = self.args.output_dir
+        output_lib_with_packed_path = os.path.join(output_dir, self.unique_blendfile_name("a_blenlib_with_packed"))
+        bpy.ops.wm.save_as_mainfile(filepath=output_lib_with_packed_path, check_existing=False, compress=True)
+
+        self.reset_blender()
+
+        link_dir = os.path.join(output_lib_with_packed_path, "Collection")
+        bpy.ops.wm.link(directory=link_dir, filename=self.LIBMESH_PACKEDDATA_NAME, instance_collections=False)
+
+        def check_valid():
+            self.assertEqual(len(bpy.data.libraries), 3)
+            library = bpy.data.libraries[0]
+            library_sub = bpy.data.libraries[1]
+            library_sub_archive = bpy.data.libraries[2]
+
+            self.assertFalse(library.is_archive)
+            self.assertEqual(len(library.archive_libraries), 0)
+            self.assertFalse(library_sub.is_archive)
+            self.assertEqual(len(library_sub.archive_libraries), 1)
+            self.assertEqual(library_sub.archive_libraries[0], library_sub_archive)
+            self.assertTrue(library_sub_archive.is_archive)
+            self.assertEqual(library_sub_archive.archive_parent_library, library_sub)
+
+            self.assertEqual(len(bpy.data.meshes), 1)
+            self.assertEqual(bpy.data.meshes[0].library, library_sub_archive)
+            self.assertEqual(bpy.data.meshes[0].users, 1)
+
+            self.assertEqual(len(bpy.data.objects), 1)
+            self.assertEqual(bpy.data.objects[0].library, library_sub_archive)
+            self.assertEqual(bpy.data.objects[0].data, bpy.data.meshes[0])
+
+            self.assertEqual(len(bpy.data.collections), 1)
+            self.assertEqual(bpy.data.collections[0].library, library)
+            self.assertEqual(len(bpy.data.collections[0].objects), 1)
+
+        check_valid()
+
+        # Relinking the same data should not add anything new.
+        bpy.ops.wm.link(directory=link_dir, filename=self.LIBMESH_PACKEDDATA_NAME, instance_collections=False)
+
+        check_valid()
+
+        output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile_linking_linked_packed"))
+        bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
+        self.reset_blender()
+        bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
+
+        check_valid()
+
+    def test_append_linked_pack_basic(self):
+        self.gen_linked_pack_basic_()
+
+        output_dir = self.args.output_dir
+        output_lib_with_packed_path = os.path.join(output_dir, self.unique_blendfile_name("a_blenlib_with_packed"))
+        bpy.ops.wm.save_as_mainfile(filepath=output_lib_with_packed_path, check_existing=False, compress=True)
+
+        self.reset_blender()
+
+        link_dir = os.path.join(output_lib_with_packed_path, "Collection")
+        bpy.ops.wm.append(directory=link_dir, filename=self.LIBMESH_PACKEDDATA_NAME, instance_collections=False)
+
+        def check_valid(is_empty_lib_removed, collections_num):
+            if not is_empty_lib_removed:
+                self.assertEqual(len(bpy.data.libraries), 3)
+                library = bpy.data.libraries[0]
+                library_sub = bpy.data.libraries[1]
+                library_sub_archive = bpy.data.libraries[2]
+            else:
+                self.assertEqual(len(bpy.data.libraries), 2)
+                library_sub = bpy.data.libraries[0]
+                library_sub_archive = bpy.data.libraries[1]
+
+            if not is_empty_lib_removed:
+                self.assertFalse(library.is_archive)
+                self.assertEqual(len(library.archive_libraries), 0)
+            self.assertFalse(library_sub.is_archive)
+            self.assertEqual(len(library_sub.archive_libraries), 1)
+            self.assertEqual(library_sub.archive_libraries[0], library_sub_archive)
+            self.assertTrue(library_sub_archive.is_archive)
+            self.assertEqual(library_sub_archive.archive_parent_library, library_sub)
+
+            self.assertEqual(len(bpy.data.meshes), 1)
+            self.assertEqual(bpy.data.meshes[0].library, library_sub_archive)
+            self.assertEqual(bpy.data.meshes[0].users, 1)
+
+            self.assertEqual(len(bpy.data.objects), 1)
+            self.assertEqual(bpy.data.objects[0].library, library_sub_archive)
+            self.assertEqual(bpy.data.objects[0].data, bpy.data.meshes[0])
+
+            self.assertEqual(len(bpy.data.collections), collections_num)
+            for coll in bpy.data.collections:
+                self.assertEqual(coll.library, None)
+                self.assertEqual(len(coll.objects), 1)
+
+        check_valid(is_empty_lib_removed=False, collections_num=1)
+
+        # Re-appending the same data should only add a new collection, instantiating the same linked packed object.
+        bpy.ops.wm.append(directory=link_dir, filename=self.LIBMESH_PACKEDDATA_NAME, instance_collections=False)
+
+        check_valid(is_empty_lib_removed=False, collections_num=2)
+
+        output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile_linking_linked_packed"))
+        bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
+        self.reset_blender()
+        bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
+
+        check_valid(is_empty_lib_removed=True, collections_num=2)
 
 
 class TestBlendLibPackedWithAnimation(TestBlendLibLinkHelper):
