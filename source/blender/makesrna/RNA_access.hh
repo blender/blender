@@ -67,14 +67,14 @@ BlenderRNA &RNA_blender_rna_get();
  * There is also a way to get a pointer with the information about all structs.
  */
 
-PointerRNA RNA_main_pointer_create(Main *main);
+[[nodiscard]] PointerRNA RNA_main_pointer_create(Main *main);
 /**
  * Create a PointerRNA for an ID.
  *
  * \note By definition, currently these are always 'discrete' (have no ancestors). See
  * #PointerRNA::ancestors for details.
  */
-PointerRNA RNA_id_pointer_create(ID *id);
+[[nodiscard]] PointerRNA RNA_id_pointer_create(ID *id);
 /**
  * Create a 'discrete', isolated PointerRNA of some data. It won't have any ancestor information
  * available.
@@ -82,14 +82,16 @@ PointerRNA RNA_id_pointer_create(ID *id);
  * \param id: The owner ID, may be null, in which case the PointerRNA won't have any ownership
  * information at all.
  */
-PointerRNA RNA_pointer_create_discrete(ID *id, StructRNA *type, void *data);
+[[nodiscard]] PointerRNA RNA_pointer_create_discrete(ID *id, StructRNA *type, void *data);
 /**
  * Create a PointerRNA of some data, using the given `parent` as immediate ancestor.
  *
  * This allows the PointerRNA to know to which data it belongs, all the way up to the root owner
  * ID.
  */
-PointerRNA RNA_pointer_create_with_parent(const PointerRNA &parent, StructRNA *type, void *data);
+[[nodiscard]] PointerRNA RNA_pointer_create_with_parent(const PointerRNA &parent,
+                                                        StructRNA *type,
+                                                        void *data);
 /**
  * Create a PointerRNA of some data, with the given `id` data-block as single ancestor.
  *
@@ -99,7 +101,7 @@ PointerRNA RNA_pointer_create_with_parent(const PointerRNA &parent, StructRNA *t
  *    PointerRNA id_ptr = RNA_id_pointer_create(id);
  *    PointerRNA ptr = RNA_pointer_create_with_parent(id_ptr, RNA_Type, data);
  */
-PointerRNA RNA_pointer_create_id_subdata(ID &id, StructRNA *type, void *data);
+[[nodiscard]] PointerRNA RNA_pointer_create_id_subdata(ID &id, StructRNA *type, void *data);
 
 /**
  * Create a PointerRNA representing the N'th ancestor of the given PointerRNA, where `0` is the
@@ -109,15 +111,16 @@ PointerRNA RNA_pointer_create_id_subdata(ID &id, StructRNA *type, void *data);
  * ancestors have been created, only part of the ancestor chain may be available, see
  * #PointerRNA::ancestors for details.
  */
-PointerRNA RNA_pointer_create_from_ancestor(const PointerRNA &ptr, const int ancestor_idx);
+[[nodiscard]] PointerRNA RNA_pointer_create_from_ancestor(const PointerRNA &ptr,
+                                                          const int ancestor_idx);
 
 bool RNA_path_resolved_create(PointerRNA *ptr,
                               PropertyRNA *prop,
                               int prop_index,
                               PathResolvedRNA *r_anim_rna);
 
-PointerRNA RNA_blender_rna_pointer_create();
-PointerRNA RNA_pointer_recast(PointerRNA *ptr);
+[[nodiscard]] PointerRNA RNA_blender_rna_pointer_create();
+[[nodiscard]] PointerRNA RNA_pointer_recast(PointerRNA *ptr);
 
 /* Structs */
 
