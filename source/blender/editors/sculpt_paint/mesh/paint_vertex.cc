@@ -191,7 +191,7 @@ void update_sculpt_normal(const Depsgraph &depsgraph,
   if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
     /* TODO: This is inefficient for symmetry */
     ss.cache->sculpt_normal_symm =
-        calc_area_normal(depsgraph, brush, ob, node_mask).value_or(float3(0));
+        sample_plane_normal(depsgraph, brush, ob, node_mask).value_or(float3(0));
     return;
   }
 

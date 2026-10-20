@@ -189,7 +189,8 @@ void cache_init(bContext *C,
                  node_in_sphere(node, *hit_location, radius, true);
         });
 
-    const std::optional<float3> area_normal = calc_area_normal(*depsgraph, *brush, ob, node_mask);
+    const std::optional<float3> area_normal = sample_plane_normal(
+        *depsgraph, *brush, ob, node_mask);
     if (BKE_paint_brush_for_read(&sd.paint) && area_normal) {
       ss.filter_cache->initial_normal = *area_normal;
       ss.last_normal = ss.filter_cache->initial_normal;
