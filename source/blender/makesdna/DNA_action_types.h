@@ -214,7 +214,12 @@ enum ePchan_Flag : short {
   /* IK/Pose solving */
   POSE_CHAIN = (1 << 9),
   POSE_DONE = (1 << 10),
-  /* POSE_KEY = (1 << 11) */     /* UNUSED */
+  /**
+   * Tracks the selection state of the bone the channel box of animation editors.
+   * This is separate from the normal selection state so a channel of an unselectable bone can
+   * still be selected.
+   */
+  POSE_CHANNEL_SELECTED = (1 << 11),
   /* POSE_STRIDE = (1 << 12), */ /* UNUSED */
   /* standard IK solving */
   POSE_IKTREE = (1 << 13),

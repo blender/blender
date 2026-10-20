@@ -61,6 +61,7 @@
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
+#include "ED_space_action.hh"
 
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
@@ -3533,6 +3534,38 @@ static void ANIM_OT_channels_select_filter(wmOperatorType *ot)
 /** \name Select All Operator
  * \{ */
 
+/**
+ * \returns all currently visible channels for the space of the given context or a std::nullopt if
+ * the space does not support animation channels.
+ */
+static std::optional<ed::animfilter::ChannelArena> get_channels_from_space(bContext &C)
+{
+  /* TODO this may not really be what we want, because we need the result after all filtering has
+   * been applied. The filtering by name may be applied by the tree view itself? */
+  ScrArea *area = CTX_wm_area(&C);
+  if (!area) {
+    return std::nullopt;
+  }
+  switch (area->spacetype) {
+    case SPACE_ACTION:
+      return ed::action::get_data_channels(C);
+  }
+  /* Space type not implemented for animation channels. */
+  BLI_assert_unreachable();
+  return std::nullopt;
+}
+
+static void select_all_channels(ed::animfilter::ChannelArena &channels, const bool select)
+{
+  using namespace ed::animfilter;
+  for (DataChannel *data_channel : channels.data_channels) {
+    data_channel->set_selected(select);
+  }
+  for (SummaryChannel *summary_channel : channels.summary_channels) {
+    summary_channel->set_selected(select);
+  }
+}
+
 static wmOperatorStatus animchannels_selectall_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
@@ -3542,24 +3575,75 @@ static wmOperatorStatus animchannels_selectall_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* 'standard' behavior - check if selected, then apply relevant selection */
-  const int action = RNA_enum_get(op->ptr, "action");
-  switch (action) {
-    case SEL_TOGGLE:
-      ANIM_anim_channels_select_toggle(&ac);
-      break;
-    case SEL_SELECT:
-      ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_ADD);
-      break;
-    case SEL_DESELECT:
-      ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_CLEAR);
-      break;
-    case SEL_INVERT:
-      ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_INVERT);
-      break;
-    default:
-      BLI_assert(0);
-      break;
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    using namespace ed::animfilter;
+    std::optional<ChannelArena> channels = get_channels_from_space(*C);
+    if (!channels) {
+      return OPERATOR_CANCELLED;
+    }
+    const int action = RNA_enum_get(op->ptr, "action");
+    switch (action) {
+      case SEL_TOGGLE: {
+        bool select = true;
+        for (DataChannel *data_channel : channels->data_channels) {
+          if (data_channel->is_selected()) {
+            select = false;
+            break;
+          }
+        }
+        if (select) {
+          for (SummaryChannel *summary_channel : channels->summary_channels) {
+            if (summary_channel->is_selected()) {
+              select = false;
+              break;
+            }
+          }
+        }
+        select_all_channels(*channels, select);
+        break;
+      }
+      case SEL_SELECT: {
+        select_all_channels(*channels, true);
+        break;
+      }
+      case SEL_DESELECT: {
+        select_all_channels(*channels, false);
+        break;
+      }
+      case SEL_INVERT: {
+        for (DataChannel *data_channel : channels->data_channels) {
+          data_channel->set_selected(!data_channel->is_selected());
+        }
+        for (SummaryChannel *summary_channel : channels->summary_channels) {
+          summary_channel->set_selected(!summary_channel->is_selected());
+        }
+        break;
+      }
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+  }
+  else {
+    /* 'standard' behavior - check if selected, then apply relevant selection */
+    const int action = RNA_enum_get(op->ptr, "action");
+    switch (action) {
+      case SEL_TOGGLE:
+        ANIM_anim_channels_select_toggle(&ac);
+        break;
+      case SEL_SELECT:
+        ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_ADD);
+        break;
+      case SEL_DESELECT:
+        ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_CLEAR);
+        break;
+      case SEL_INVERT:
+        ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_INVERT);
+        break;
+      default:
+        BLI_assert(0);
+        break;
+    }
   }
 
   /* send notifier that things have changed */

@@ -407,6 +407,10 @@ class AnimationChannel {
   }
 
   virtual bool is_selected() const = 0;
+  /**
+   * Selects the channel itself. If selection syncing is used this can also select the data if that
+   * is selectable.
+   */
   virtual void set_selected(bool is_selected) = 0;
   /**
    * Change the selection of datapoints in the given range.
@@ -687,6 +691,13 @@ void collect_animation_channels(const bContext &C,
 void group_channels(ChannelArena &arena,
                     Span<ChannelTagType> tag_order,
                     bool use_minimal_grouping);
+
+/**
+ * Set the channel selection state for this specific channel. In addition to the UI, the selection
+ * state of animation channels is stored on the data.
+ */
+void set_channel_selection(PointerRNA &ptr, bool is_selected);
+bool is_channel_selected(const PointerRNA &ptr);
 
 /**
  * Draw the whole tree starting at the root using the legacy UI code.

@@ -27,6 +27,7 @@
 #include "ED_grease_pencil.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_armature.hh"
 #include "ANIM_rna.hh"
 
 namespace blender::ed::animfilter {
@@ -708,33 +709,101 @@ void SummaryChannel::sort_children()
   std::ranges::sort(this->children_, animation_channel_compare_function);
 }
 
-bool SummaryChannel::is_selected() const
+void set_channel_selection(PointerRNA &ptr, const bool is_selected)
 {
-  if (!this->source().has_data()) {
-    return false;
+  if (ptr.type == RNA_Action) {
+    animrig::Action *action = ptr.data_as<animrig::Action>();
+    flag_update(action->flag, ACT_SELECTED, is_selected);
+    return;
   }
 
+  if (ptr.type == RNA_Scene) {
+    Scene *scene = ptr.data_as<Scene>();
+    /* Christoph: I *think* we don't need the line below. The scene will only show up if it has
+     * channels directly attached, thus it will always have animdata. It is just here for reference
+     * because the old system set that flag. */
+    // flag_update(scene, SCE_DS_SELECTED, is_selected);
+    if (scene->adt) {
+      flag_update(scene->adt->flag, ADT_UI_SELECTED, is_selected);
+    }
+    return;
+  }
+
+  if (ptr.type == RNA_PoseBone) {
+    bPoseChannel *pose_bone = ptr.data_as<bPoseChannel>();
+    flag_update(pose_bone->flag, POSE_CHANNEL_SELECTED, is_selected);
+
+    /* TODO this should maybe use ED_pose_bone_select so we check for bones that cannot be
+     * selected. However that should only be done when selection syncing. */
+    // animrig::bone_select(pose_bone);
+    return;
+  }
+
+  if (ptr.type == RNA_ActionGroup) {
+    bActionGroup *group = ptr.data_as<bActionGroup>();
+    flag_update(group->flag, AGRP_SELECTED, is_selected);
+    /* This no longer selects the pose bone. We have a dedicated summary for this now. */
+    return;
+  }
+
+    if (ptr.type == RNA_FCurve) {
+    FCurve *fcurve = ptr.data_as<FCurve>();
+    flag_update(fcurve->flag, FCURVE_SELECTED, is_selected);
+  }
+}
+
+bool is_channel_selected(const PointerRNA &ptr)
+{
   /* TODO: do we need sub-types for the various source types, or is this enough? */
   /* TODO: sigh, if only C++ supported switch statements here. */
-  if (this->source().type == RNA_Action) {
-    animrig::Action *action = this->source().data_as<animrig::Action>();
+  if (ptr.type == RNA_Action) {
+    animrig::Action *action = ptr.data_as<animrig::Action>();
     return flag_is_set(action->flag, ACT_SELECTED);
+  }
+
+  if (ptr.type == RNA_Scene) {
+    Scene *scene = ptr.data_as<Scene>();
+    if (scene->adt) {
+      return flag_is_set(scene->adt->flag, ADT_UI_SELECTED);
+    }
+  }
+
+  if (ptr.type == RNA_PoseBone) {
+    bPoseChannel *pose_bone = ptr.data_as<bPoseChannel>();
+    return flag_is_set(pose_bone->flag, POSE_CHANNEL_SELECTED);
+  }
+
+  if (ptr.type == RNA_ActionGroup) {
+    bActionGroup *group = ptr.data_as<bActionGroup>();
+    return flag_is_set(group->flag, AGRP_SELECTED);
+  }
+
+  if (ptr.type == RNA_FCurve) {
+    FCurve *fcurve = ptr.data_as<FCurve>();
+    return flag_is_set(fcurve->flag, FCURVE_SELECTED);
   }
 
   return false;
 }
 
+bool SummaryChannel::is_selected() const
+{
+  PointerRNA ptr = this->source();
+  if (!ptr.has_data()) {
+    return false;
+  }
+
+  return is_channel_selected(ptr);
+}
+
 void SummaryChannel::set_selected(const bool is_selected)
 {
-  if (!this->source().has_data()) {
+  PointerRNA ptr = this->source();
+  if (!ptr.has_data()) {
     return;
   }
 
-  if (this->source().type == RNA_Action) {
-    animrig::Action *action = this->source().data_as<animrig::Action>();
-    flag_update(action->flag, ACT_SELECTED, is_selected);
-    return;
-  }
+  set_channel_selection(ptr, is_selected);
 }
 
 /* ===== DataChannel ===== */

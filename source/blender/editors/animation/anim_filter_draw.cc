@@ -105,7 +105,7 @@ class ChannelItem : public ui::AbstractTreeViewItem {
  public:
   ChannelItem(AnimationChannel &channel) : channel_(channel), source_(channel.source())
   {
-    this->set_selected(channel.is_selected());
+    this->is_selected_ = channel.is_selected();
   }
 
   void build_row(ui::Layout &layout) override
@@ -150,7 +150,24 @@ class ChannelItem : public ui::AbstractTreeViewItem {
     return summary.is_collapsed();
   }
 
+  void set_selected(const bool select) override
+  {
+    /* Overriding the function so we can store the selection state on the data. */
+    is_selected_ = select;
+    /* This flushes the selection state to the data, which is then read in the constructor. */
+    set_channel_selection(this->source_, select);
+  }
+
  protected:
+  void update_from_old(const AbstractViewItem &old) override
+  {
+    /* Force the selection state to always come from the data which may change between draw
+     * calls. This is set in the constructor. */
+    const bool selected = this->is_selected_;
+    AbstractViewItem::update_from_old(old);
+    this->is_selected_ = selected;
+  }
+
   bool matches(const AbstractViewItem &other) const override
   {
     const ChannelItem &other_channel_item = dynamic_cast<const ChannelItem &>(other);
