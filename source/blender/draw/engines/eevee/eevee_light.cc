@@ -58,7 +58,8 @@ void Light::sync(ShadowModule &shadows,
                  float4x4 object_to_world,
                  char visibility_flag,
                  const blender::Light *la,
-                 const LightLinking *light_linking /* = nullptr */,
+                 uint64_t light_set_membership,
+                 uint64_t shadow_set_membership,
                  float threshold)
 {
   using namespace blender::math;
@@ -118,16 +119,8 @@ void Light::sync(ShadowModule &shadows,
     shadow_discard_safe(shadows);
   }
 
-  if (light_linking) {
-    this->light_set_membership = uint64_to_uint2(light_linking->runtime.light_set_membership);
-    this->shadow_set_membership = uint64_to_uint2(light_linking->runtime.shadow_set_membership);
-  }
-  else {
-    /* Set all bits if light linking is not used. */
-    this->light_set_membership = uint64_to_uint2(~uint64_t(0));
-    this->shadow_set_membership = uint64_to_uint2(~uint64_t(0));
-  }
-
+  this->light_set_membership = uint64_to_uint2(light_set_membership);
+  this->shadow_set_membership = uint64_to_uint2(shadow_set_membership);
   this->initialized = true;
 }
 
@@ -388,7 +381,13 @@ void LightModule::add_world_sun_light(const ObjectKey &key, bool use_diffuse, bo
   Light &light = light_map_.lookup_or_add_default(key);
   light.used = true;
   light.resource_id = 0;
-  light.sync(inst_.shadows, float4x4::identity(), visibility_flag, &la, nullptr, light_threshold_);
+  light.sync(inst_.shadows,
+             float4x4::identity(),
+             visibility_flag,
+             &la,
+             draw::LIGHT_LINK_MASK_ALL,
+             draw::LIGHT_LINK_MASK_ALL,
+             light_threshold_);
 
   sun_lights_len_ += 1;
 }
@@ -454,7 +453,8 @@ void LightModule::sync_light(const ObjectRef &ob_ref)
                ob_ref.object_to_world(),
                ob_ref.object->visibility_flag,
                &la,
-               ob_ref.light_linking(),
+               ob_ref.get_light_set_membership(),
+               ob_ref.get_shadow_set_membership(),
                light_threshold_);
   }
   sun_lights_len_ += int(is_sun_light(light.type));
