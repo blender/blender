@@ -311,7 +311,10 @@ void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collectio
     writer->write_struct(&child);
   }
 
-  writer->write_struct(collection->importer);
+  writer->write_struct(collection->importer,
+                       [](BlendStructWriter<CollectionImport> &struct_writer) {
+                         struct_writer.shallow_data.runtime = nullptr;
+                       });
   if (collection->importer && collection->importer->import_properties) {
     IDP_BlendWrite(writer, collection->importer->import_properties);
   }
