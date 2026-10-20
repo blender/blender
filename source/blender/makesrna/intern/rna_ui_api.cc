@@ -1851,7 +1851,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                     -FLT_MAX,
                     FLT_MAX,
                     "Search Weight",
-                    "Influences the sorting when using menu-seach",
+                    "Influences the sorting when using menu-search",
                     -FLT_MAX,
                     FLT_MAX);
     }
