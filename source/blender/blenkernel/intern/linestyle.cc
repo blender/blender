@@ -1079,6 +1079,9 @@ LineStyleModifier *BKE_linestyle_alpha_modifier_copy(FreestyleLineStyle *linesty
   LineStyleModifier *new_m;
 
   new_m = alloc_alpha_modifier(m->name, m->type);
+  if (new_m == nullptr) [[unlikely]] {
+    return nullptr;
+  }
   new_m->influence = m->influence;
   new_m->flags = m->flags;
   new_m->blend = m->blend;
@@ -1654,6 +1657,9 @@ LineStyleModifier *BKE_linestyle_geometry_modifier_copy(FreestyleLineStyle *line
   LineStyleModifier *new_m;
 
   new_m = alloc_geometry_modifier(m->name, m->type);
+  if (new_m == nullptr) [[unlikely]] {
+    return nullptr;
+  }
   new_m->flags = m->flags;
 
   switch (m->type) {
