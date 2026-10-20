@@ -263,7 +263,7 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *p_data_object)
 
 #ifdef WITH_GHOST_DEBUG
       if (tmp_string) {
-        ::printf("\n<converted droped unicode string>\n%s\n</droped converted unicode string>\n",
+        ::printf("\n<converted dropped unicode string>\n%s\n</dropped converted unicode string>\n",
                  tmp_string);
       }
 #endif /* WITH_GHOST_DEBUG */
