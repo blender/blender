@@ -711,21 +711,13 @@ void SummaryChannel::sort_children()
 
 void set_channel_selection(PointerRNA &ptr, const bool is_selected)
 {
-  if (ptr.type == RNA_Action) {
-    animrig::Action *action = ptr.data_as<animrig::Action>();
-    flag_update(action->flag, ACT_SELECTED, is_selected);
+  if (!ptr.has_data()) {
     return;
   }
 
-  if (ptr.type == RNA_Scene) {
-    Scene *scene = ptr.data_as<Scene>();
-    /* Christoph: I *think* we don't need the line below. The scene will only show up if it has
-     * channels directly attached, thus it will always have animdata. It is just here for reference
-     * because the old system set that flag. */
-    // flag_update(scene, SCE_DS_SELECTED, is_selected);
-    if (scene->adt) {
-      flag_update(scene->adt->flag, ADT_UI_SELECTED, is_selected);
-    }
+  if (ptr.type == RNA_Action) {
+    animrig::Action *action = ptr.data_as<animrig::Action>();
+    flag_update(action->flag, ACT_SELECTED, is_selected);
     return;
   }
 
@@ -746,14 +738,28 @@ void set_channel_selection(PointerRNA &ptr, const bool is_selected)
     return;
   }
 
-    if (ptr.type == RNA_FCurve) {
+  if (ptr.type == RNA_FCurve) {
     FCurve *fcurve = ptr.data_as<FCurve>();
     flag_update(fcurve->flag, FCURVE_SELECTED, is_selected);
+    return;
+  }
+
+  /* Most generic case. Leave last. */
+  if (RNA_struct_is_ID(ptr.type)) {
+    AnimData *adt = BKE_animdata_from_id(ptr.owner_id);
+    if (adt) {
+      flag_update(adt->flag, ADT_UI_SELECTED, is_selected);
+      return;
+    }
   }
 }
 
 bool is_channel_selected(const PointerRNA &ptr)
 {
+  if (!ptr.has_data()) {
+    return false;
+  }
+
   /* TODO: do we need sub-types for the various source types, or is this enough? */
   /* TODO: sigh, if only C++ supported switch statements here. */
   if (ptr.type == RNA_Action) {
@@ -781,6 +787,13 @@ bool is_channel_selected(const PointerRNA &ptr)
   if (ptr.type == RNA_FCurve) {
     FCurve *fcurve = ptr.data_as<FCurve>();
     return flag_is_set(fcurve->flag, FCURVE_SELECTED);
+  }
+
+  if (RNA_struct_is_ID(ptr.type)) {
+    AnimData *adt = BKE_animdata_from_id(ptr.owner_id);
+    if (adt) {
+      return flag_is_set(adt->flag, ADT_UI_SELECTED);
+    }
   }
 
   return false;
