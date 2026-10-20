@@ -111,6 +111,7 @@ template<typename Derived, typename ResultT, typename NodeT> class PrattParser {
     TokenType type = self.to_type(t);
 
     switch (type) {
+      case Deref:
       case Dot:
         return self.member(left, t);
       case SquareOpen:
@@ -172,6 +173,7 @@ template<typename Derived, typename ResultT, typename NodeT> class PrattParser {
       case Decrement:
       case SquareOpen:
       case Dot:
+      case Deref:
         return 130;
       case Multiply:
       case Divide:

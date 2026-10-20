@@ -297,7 +297,6 @@ SourceProcessor::Result SourceProcessor::convert_bsl()
     lower_noop_keywords_ast(parser);
     lower_trailing_comma_in_list_ast(parser);
     lower_assert_ast(parser, filename);
-    lower_this_keyword(parser);
     parser.apply_mutations();
 
     /* Lower string, assert, printf. */

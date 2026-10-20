@@ -405,6 +405,10 @@ struct ExpressionTypeParser
 
   ExpressionResult member(ExpressionResult left, const ast::Node &t)
   {
+    if (t.type() == ast::NodeType::OpDeref && !left.is_ptr) {
+      error(t, Diag::OperatorInvalidPointer, left.type->original);
+    }
+
     SymbolClass *l = left.type;
     ast::Node right = consume();
     switch (right.type()) {
@@ -496,9 +500,13 @@ struct ExpressionTypeParser
 
     TokenType op_type = t.front().type();
     if (op_type == '*') {
-      /* Dereference operator is only used/allowed on this.
-       * Make it a noop since `this` is converted to a reference in codegen. */
-      return right;
+      if (right.is_ptr) {
+        /* Dereference operator is only used/allowed on this.
+         * Make it a noop since `this` is converted to a reference in codegen. */
+        right.is_ptr = false;
+        return right;
+      }
+      error(t, Diag::OperatorInvalidIndirection, right.type->original);
     }
 
     ClassId type_id = unary_prefix_operator_return_type(op_type, right.type);
@@ -772,7 +780,7 @@ struct ExpressionTypeParser
 
   TokenType peek() const
   {
-    return node.is_valid() ? node.front().type() : Invalid;
+    return node.is_valid() ? to_type(node) : Invalid;
   }
 
   ast::Node consume()
@@ -785,11 +793,17 @@ struct ExpressionTypeParser
   TokenType to_type(const ast::Node &t) const
   {
     ast::NodeType type = t.type();
-    return type != ast::NodeType::Invalid ?
-               (type == ast::NodeType::IdQualified || type == ast::NodeType::FuncCall ?
-                    Word :
-                    t.front().type()) :
-               Invalid;
+    switch (type) {
+      case ast::NodeType::Invalid:
+        return Invalid;
+      case ast::NodeType::IdQualified:
+      case ast::NodeType::FuncCall:
+        return Word;
+      case ast::NodeType::OpDeref:
+        return Deref;
+      default:
+        return t.front().type();
+    }
   }
 
  private:

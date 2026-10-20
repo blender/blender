@@ -368,6 +368,7 @@ struct SymbolParser : NodeErrorHandler {
         if (fn->fn_type == SymbolFunction::MEMBER) {
           SymbolVariable *var = table.var_arena.alloc(
               &scope, fn->parent_class(), arg_list.front(), "this");
+          var->is_ptr = true;
           scope.variable_emplace(var);
           /* Mangle the emitted token to avoid conflict with MSL. */
           var->identifier = "this_";
@@ -593,10 +594,6 @@ struct SymbolParser : NodeErrorHandler {
       return table.err_cls;
     }
 
-    if (IdQualified parent_id = decl.parent_class(); parent_id.is_valid()) {
-      parse_inheritance(scope, cls, parent_id);
-    }
-
     if (cls_template) {
       /* Add the template definition early so it can be queried during instantiation. */
       cls_template->instances.emplace(suffix, cls);
@@ -605,10 +602,14 @@ struct SymbolParser : NodeErrorHandler {
       cls->classes.emplace(alias_name, cls);
     }
 
-    parse_scope(*cls, decl.body(), prefix + cls->identifier + ns_sep, temp_params);
-
     /* Set identifier to resolved symbol. */
     cls->identifier = prefix + cls->identifier;
+
+    if (IdQualified parent_id = decl.parent_class(); parent_id.is_valid()) {
+      parse_inheritance(scope, cls, parent_id);
+    }
+
+    parse_scope(*cls, decl.body(), cls->identifier + ns_sep, temp_params);
 
     if (cls->is_enum) {
       SymbolClass *underlying_type = scope.lookup_class(table, decl.parent_class()).unwrap(this);

@@ -86,12 +86,14 @@ struct CodegenContext : NodeErrorHandler {
     /* Array dimension of the current temporary. */
     int8_t array_dim = 0;
     bool is_bitfield = false;
+    bool is_ptr = false;
 
     CodegenResult(SymbolVariable *var, const string &trivia)
         : str((var->is_constexpr ? var->value_str() : var->identifier) + trivia),
           type(var->type),
           array_dim(var->array_dimensions),
-          is_bitfield(var->is_bitfield)
+          is_bitfield(var->is_bitfield),
+          is_ptr(var->is_ptr)
     {
     }
 
@@ -103,13 +105,18 @@ struct CodegenContext : NodeErrorHandler {
     CodegenResult(const string &str,
                   SymbolClass *cls,
                   int8_t array_dim = 0,
-                  bool is_bitfield = false)
-        : str(str), type(cls), array_dim(array_dim), is_bitfield(is_bitfield)
+                  bool is_bitfield = false,
+                  bool is_ptr = false)
+        : str(str), type(cls), array_dim(array_dim), is_bitfield(is_bitfield), is_ptr(is_ptr)
     {
     }
 
-    CodegenResult &cast(const SymbolClass *to)
+    CodegenResult &cast(const SymbolClass *to, ast::Node node, NodeErrorHandler &err)
     {
+      if (is_ptr && type && to) {
+        err.error(node, Diag::InvalidPointerCast, type->original, to->original);
+      }
+
       /* Base class implicit conversions.
        * Note that builtin conversions are handled at runtime by the final compiler. */
       if (to && type && !to->is_builtin() && !type->is_builtin() && type != to) {
@@ -193,28 +200,40 @@ struct CodegenContext : NodeErrorHandler {
       CodegenResult result = ctx.expr(ExprSub(t).expr(), scope);
       string front(t.front().str_with_whitespace());
       string back(t.back().str_with_whitespace());
-      return {front + result.str + back, result.type};
+      return {front + result.str + back,
+              result.type,
+              result.array_dim,
+              result.is_bitfield,
+              result.is_ptr};
     }
 
     CodegenResult member(CodegenResult left, const ast::Node &t)
     {
+      /* Replace `->` by `.` since `this` is converted into `self` semantic. */
+      string op_str = (t.type() == NodeType::OpDeref) ? "." + trivia(t) : string(t.str_full());
+
+      if (t.type() == ast::NodeType::OpDeref && !left.is_ptr) {
+        ctx.error(t, Diag::OperatorInvalidPointer, left.type->original);
+      }
+
       ast::Node right = consume();
       switch (right.type()) {
         case ast::NodeType::FuncCall: {
           CodegenResult rhs = function(right, *left.type);
-          return {left.str + string(t.str_full()) + rhs.str, rhs.type};
+          return {left.str + op_str + rhs.str, rhs.type};
         }
         case ast::NodeType::LocalVar: {
           CodegenResult rhs = variable(LocalVar(right).identifier(), *left.type);
           if (left.type->is_srt()) {
             /* Remove access to SRT type (makes the resource global). */
-            return {left.str + as_whitespace(t.str_full()) + rhs.str,
+            return {as_whitespace(left.str + op_str) + rhs.str,
                     rhs.type,
                     rhs.array_dim,
-                    rhs.is_bitfield};
+                    rhs.is_bitfield,
+                    rhs.is_ptr};
           }
           return {
-              left.str + string(t.str_full()) + rhs.str, rhs.type, rhs.array_dim, rhs.is_bitfield};
+              left.str + op_str + rhs.str, rhs.type, rhs.array_dim, rhs.is_bitfield, rhs.is_ptr};
         }
         default:
           return {t, ctx.table.err_cls};
@@ -264,8 +283,12 @@ struct CodegenContext : NodeErrorHandler {
       CodegenResult rhs = expr(p);
 
       if (op_type == '*') {
-        /* Dereference operator is only used/allowed on this.
-         * Make it a noop since `this` is converted to a reference in codegen. */
+        if (!rhs.is_ptr) {
+          /* Dereference operator is only used/allowed on this.
+           * Make it a noop since `this` is converted to a reference in codegen. */
+          ctx.error(t, Diag::OperatorInvalidIndirection, rhs.type->original);
+        }
+        rhs.is_ptr = false;
         return rhs;
       }
       if (rhs.is_bitfield) {
@@ -341,7 +364,7 @@ struct CodegenContext : NodeErrorHandler {
 
     TokenType peek() const
     {
-      return node.is_valid() ? node.front().type() : Invalid;
+      return node.is_valid() ? to_type(node) : Invalid;
     }
 
     ast::Node consume()
@@ -354,11 +377,17 @@ struct CodegenContext : NodeErrorHandler {
     TokenType to_type(const ast::Node &t) const
     {
       ast::NodeType type = t.type();
-      return type != ast::NodeType::Invalid ?
-                 (type == ast::NodeType::IdQualified || type == ast::NodeType::FuncCall ?
-                      Word :
-                      t.front().type()) :
-                 Invalid;
+      switch (type) {
+        case ast::NodeType::Invalid:
+          return Invalid;
+        case ast::NodeType::IdQualified:
+        case ast::NodeType::FuncCall:
+          return Word;
+        case ast::NodeType::OpDeref:
+          return Deref;
+        default:
+          return t.front().type();
+      }
     }
 
     CodegenResult error(ErrorType err, lexit::TokenType type)
@@ -415,17 +444,18 @@ struct CodegenContext : NodeErrorHandler {
         bool followed_by_member_call = id.parent().next().next() == NodeType::FuncCall;
         if (followed_by_dot && !followed_by_member_call) {
           /* Remove access to SRT type (makes the resource global). */
-          return {as_whitespace(id.str_full()), var->type};
+          return {as_whitespace(id.str_full()), var->type, 0, false, var->is_ptr};
         }
         /* SRT type is used in an expression (likely as function argument). Call the ctor. */
-        return {var->type->identifier + "_ctor_()" + whitespace, var->type};
+        return {var->type->identifier + "_ctor_()" + whitespace, var->type, 0, false, var->is_ptr};
       }
 
       if (var->reference_value.is_valid()) {
         return ctx.expr(var->reference_value, scope);
       }
 
-      bool preceded_by_dot = id.front().prev() == '.';
+      bool preceded_by_dot = id.front().prev() == '.' ||
+                             id.parent().prev().type() == NodeType::OpDeref;
       if (!var->is_static && !preceded_by_dot && var->parent->as_class() != nullptr) {
         return {"this_." + var->identifier + whitespace, var->type, var->array_dimensions};
       }
@@ -454,9 +484,10 @@ struct CodegenContext : NodeErrorHandler {
         ctx.error(call, Diag::InvalidInlinedFunctionLocation);
       }
 
+      bool preceded_by_dot = call.prev().back() == '.' || call.prev().type() == NodeType::OpDeref;
       FuncParamList list = call.parameters();
       std::string params_str;
-      if (sym->fn_type == SymbolFunction::MEMBER && list.parent().prev().back() != '.') {
+      if (sym->fn_type == SymbolFunction::MEMBER && !preceded_by_dot) {
         params_str += "this_";
 
         const SymbolFunction *method = sym->as_function();
@@ -488,7 +519,7 @@ struct CodegenContext : NodeErrorHandler {
             break;
           }
           const SymbolClass *arg_type = sym->arg_types[param_count];
-          params_str += ctx.expr(param, scope).cast(arg_type).str;
+          params_str += ctx.expr(param, scope).cast(arg_type, param, ctx).str;
         }
         else {
           params_str += ctx.expr(param, scope).str;
@@ -941,7 +972,20 @@ struct CodegenContext : NodeErrorHandler {
           if (!switch_case.is_default_case()) {
             Node val = switch_case.value();
             if (val.type() == NodeType::IdQualified) {
-              id_var_resolved(val, scope);
+              IdQualified id = val;
+
+              assert(id.is_valid());
+              SymbolVariable *var = scope.lookup_variable(table, id);
+              if (var->is_error) {
+                error(id, Diag::UnknownVariable, string(id.str()));
+                builder << id;
+              }
+              else if (var->is_constexpr) {
+                builder.ss << var->value_str() + trivia(id);
+              }
+              else {
+                error(id, Diag::ExprNotIntegralConstant);
+              }
             }
             else {
               builder << val;
@@ -2862,7 +2906,7 @@ struct CodegenContext : NodeErrorHandler {
       return initializer_list(node, scope, cls, array_dim);
     }
     if (node == NodeType::Expr) {
-      return expr(node, scope).cast(cls);
+      return expr(node, scope).cast(cls, node, *this);
     }
     assert(0);
     return {"", cls};
@@ -3006,49 +3050,6 @@ struct CodegenContext : NodeErrorHandler {
   {
     assert(id.is_valid());
     return scope.lookup_function(table, id, params, param_scope, loc).unwrap(this);
-  }
-
-  /* Resolve a variable in an expression. */
-  SymbolVariable *id_var_resolved(IdQualified id, const SymbolScope &scope)
-  {
-    assert(id.is_valid());
-    SymbolVariable *var = scope.lookup_variable(table, id);
-    if (var->is_error) {
-      error(id, Diag::UnknownVariable, string(id.str()));
-      builder << id;
-      return var;
-    }
-
-    if (var->is_constexpr) {
-      builder.ss << var->value_str() + trivia(id);
-      return var;
-    }
-
-    if (var->type->is_srt()) {
-      if (id.back().next() == TokenType::Dot && id.parent().next().next() != NodeType::FuncCall) {
-        /* Remove access to SRT type (makes the resource global). */
-        skip_node(id);
-      }
-      else {
-        /* SRT type is used in an expression (likely as function argument). Call the ctor. */
-        builder << var->type->identifier + "_ctor_()" + trivia(id);
-      }
-      return var;
-    }
-
-    if (var->reference_value.is_valid()) {
-      builder << string(var->reference_value.str()) + trivia(id);
-      return var;
-    }
-
-    bool preceded_by_dot = id.front().prev() == '.';
-    if (!var->is_static && !preceded_by_dot && var->parent->as_class() != nullptr) {
-      builder.ss << "this_.";
-    }
-
-    builder.curr = id.back();
-    builder << var->identifier + trivia(id);
-    return var;
   }
 
   /* Resolve a variable in a declaration. */

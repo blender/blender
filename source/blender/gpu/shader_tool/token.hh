@@ -298,6 +298,8 @@ static inline std::string to_str(TokenType type)
       return "public";
     case Invalid:
       return "EOF";
+    case Deref:
+      return "->";
     default:
       return std::string(1, char(type));
   }
