@@ -742,8 +742,9 @@ std::unique_ptr<PlyData> import_ply_data(PlyReadBuffer &file, PlyHeader &header)
 
   bool got_vertex = false, got_face = false, got_tristrips = false, got_edge = false;
   for (const PlyElement &element : header.elements) {
-    /* Binary rows can't be read with unknown property types, as their size is unknown. */
-    const bool has_unknown_type = header.type != PlyFormatType::ASCII &&
+    /* Binary rows can't be read with unknown property types, as their size is unknown.
+     * Elements without rows read nothing, so they don't matter. */
+    const bool has_unknown_type = header.type != PlyFormatType::ASCII && element.count > 0 &&
                                   std::any_of(element.properties.begin(),
                                               element.properties.end(),
                                               [](const PlyProperty &prop) {
