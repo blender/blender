@@ -8,7 +8,10 @@
 
 #pragma once
 
+#include "BLI_math_matrix.hh"
 #include "BLI_string.hh"
+
+#include "BKE_anim_visualization.h"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -30,6 +33,7 @@ class MotionPath : Overlay {
 
   PassSimple::Sub *line_ps_ = nullptr;
   PassSimple::Sub *vert_ps_ = nullptr;
+  PassSimple::Sub *preview_ps_ = nullptr;
 
   /**
    * Non-owning #Batch wrappers around the motion path batches.
@@ -63,6 +67,12 @@ class MotionPath : Overlay {
         PassSimple::Sub &sub = pass.sub("Points");
         sub.shader_set(res.shaders->motion_path_vert.get());
         vert_ps_ = &sub;
+      }
+      {
+        PassSimple::Sub &sub = pass.sub("Preview");
+        /* We use the same shader for line drawing here. */
+        sub.shader_set(res.shaders->motion_path_line.get());
+        preview_ps_ = &sub;
       }
     }
   }
@@ -172,6 +182,28 @@ class MotionPath : Overlay {
        * in NDC space, back into world space from the point of view of the current camera. See
        * `anim_motion_paths.cc/motionpaths_calc_bake_target`. */
       camera_matrix = math::invert(window_matrix * camera_eval->world_to_object());
+    }
+
+    /* Show a preview of where the motion path will end up during editing. */
+    if (mpath->runtime->show_preview && current_frame >= mpath->start_frame &&
+        current_frame < mpath->start_frame + mpath->length)
+    {
+      auto &sub = *preview_ps_;
+      /* The current frame has to be out of range for the custom colors to be used correctly. */
+      const int4 motion_path_settings(
+          /* current frame= */ -1, /* range start= */ 0, /* range end */ 1, /* start frame */ 0);
+
+      sub.push_constant("mpath_line_settings", motion_path_settings);
+      sub.push_constant("line_thickness", mpath->line_thickness);
+      sub.push_constant("selected", selected);
+      float3 preview_line_color;
+      ui::theme::get_color_3fv(TH_CFRAME, preview_line_color);
+      sub.push_constant("custom_color_pre", preview_line_color);
+      sub.push_constant("custom_color_post", preview_line_color);
+      sub.push_constant("camera_object_persinv", float4x4::identity());
+
+      gpu::Batch *geom = preview_batch_points_get(*mpath, current_frame, camera_matrix);
+      sub.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, /* vertex_len= */ 1, /* vertex_first= */ 0);
     }
 
     /* Draw curve-line of path. */
@@ -295,6 +327,48 @@ class MotionPath : Overlay {
       mpath->batch_points = GPU_batch_create(GPU_PRIM_POINTS, mpath_vbo_get(mpath), nullptr);
     }
     return mpath->batch_points;
+  }
+
+  gpu::VertBuf *preview_vbo_get(bMotionPath &mpath,
+                                const int current_frame,
+                                const float4x4 &camera_matrix)
+  {
+    if (mpath.runtime->vbo_preview) {
+      return mpath.runtime->vbo_preview;
+    }
+    GPUVertFormat format = {0};
+    GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
+    GPU_vertformat_attr_add(&format, "flag", gpu::VertAttrType::SINT_32);
+    mpath.runtime->vbo_preview = GPU_vertbuf_create_with_format(format);
+    GPU_vertbuf_data_alloc(*mpath.runtime->vbo_preview, 2);
+
+    bMotionPathVert zero_vert;
+    mpath.runtime->vbo_preview->data<bMotionPathVert>().fill(zero_vert);
+
+    const int mpath_index = current_frame - mpath.start_frame;
+    /* Only draw the preview if the current frame is within the range of the motion path.
+     * Otherwise there is no good point to draw the line towards.*/
+    if (mpath_index >= 0 && mpath_index < mpath.length) {
+      copy_v3_v3(mpath.runtime->vbo_preview->data<bMotionPathVert>()[0].co,
+                 mpath.runtime->preview_location);
+      /* The given matrix is expected to project the point into world space. If the point is
+       * already in world space, the matrix should be an identity matrix. */
+      const float3 mpath_point = float3(mpath.points[mpath_index].co);
+      const float3 projected_point = math::project_point(camera_matrix, mpath_point);
+      copy_v3_v3(mpath.runtime->vbo_preview->data<bMotionPathVert>()[1].co, projected_point);
+    }
+    return mpath.runtime->vbo_preview;
+  }
+
+  gpu::Batch *preview_batch_points_get(bMotionPath &mpath,
+                                       const int current_frame,
+                                       const float4x4 &camera_matrix)
+  {
+    if (!mpath.runtime->batch_preview) {
+      mpath.runtime->batch_preview = GPU_batch_create(
+          GPU_PRIM_POINTS, preview_vbo_get(mpath, current_frame, camera_matrix), nullptr);
+    }
+    return mpath.runtime->batch_preview;
   }
 };
 

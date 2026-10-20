@@ -5,6 +5,9 @@
 /** \file
  * \ingroup bke
  */
+
+#include "BLI_math_vector_c.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
@@ -51,6 +54,23 @@ void settings_init(bAnimVizSettings *avs)
 
 namespace motionpath {
 
+void set_preview_location(bMotionPath &mpath, const float location[3])
+{
+  copy_v3_v3(mpath.runtime->preview_location, location);
+  mpath.runtime->show_preview = true;
+  GPU_VERTBUF_DISCARD_SAFE(mpath.runtime->vbo_preview);
+  GPU_BATCH_DISCARD_SAFE(mpath.runtime->batch_preview);
+}
+
+void clear_preview_location(bMotionPath &mpath)
+{
+  mpath.runtime->show_preview = false;
+  GPU_VERTBUF_DISCARD_SAFE(mpath.runtime->vbo_preview);
+  GPU_BATCH_DISCARD_SAFE(mpath.runtime->batch_preview);
+}
+
+/* ------------------- */
+
 void free_cache(bMotionPath *mpath)
 {
   if (mpath == nullptr) {
@@ -65,6 +85,8 @@ void free_cache(bMotionPath *mpath)
   GPU_VERTBUF_DISCARD_SAFE(mpath->points_vbo);
   GPU_BATCH_DISCARD_SAFE(mpath->batch_line);
   GPU_BATCH_DISCARD_SAFE(mpath->batch_points);
+  GPU_VERTBUF_DISCARD_SAFE(mpath->runtime->vbo_preview);
+  GPU_BATCH_DISCARD_SAFE(mpath->runtime->batch_preview);
 
   /* Reset the relevant parameters. */
   mpath->points = nullptr;
@@ -78,6 +100,8 @@ void free(bMotionPath *mpath)
   }
 
   free_cache(mpath);
+
+  MEM_delete(mpath->runtime);
   MEM_delete(mpath);
 }
 
@@ -98,6 +122,12 @@ bMotionPath *copy(const bMotionPath *mpath_src)
   mpath_dst->points_vbo = nullptr;
   mpath_dst->batch_line = nullptr;
   mpath_dst->batch_points = nullptr;
+
+  /* Runtime is always created. */
+  BLI_assert(mpath_src->runtime != nullptr);
+  mpath_dst->runtime = MEM_new<bke::motionpath::Runtime>(__func__);
+  mpath_dst->runtime->show_preview = mpath_src->runtime->show_preview;
+  copy_v3_v3(mpath_dst->runtime->preview_location, mpath_src->runtime->preview_location);
 
   return mpath_dst;
 }
@@ -159,11 +189,13 @@ bMotionPath *ensure(ReportList *reports, Scene *scene, Object *ob, bPoseChannel 
       return mpath;
     }
 
-    /* Clear the existing cache, to allocate a new one below. */
+    /* The path exists, but the allocated buffers are the wrong size. Clear the existing cache, to
+     * allocate a new one below. */
     free_cache(mpath);
   }
   else {
     mpath = MEM_new<bMotionPath>("bMotionPath");
+    mpath->runtime = MEM_new<bke::motionpath::Runtime>(__func__);
     *dst = mpath;
   }
 
@@ -213,7 +245,9 @@ void blend_write(BlendWriter *writer, bMotionPath *mpath)
     return;
   }
 
-  writer->write_struct(mpath);
+  writer->write_struct(mpath, [](BlendStructWriter<bMotionPath> &struct_writer) {
+    struct_writer.shallow_data.runtime = {};
+  });
   writer->write_struct_array(mpath->length, mpath->points);
 }
 
@@ -229,6 +263,7 @@ void blend_read_data(BlendDataReader *reader, bMotionPath *mpath)
   mpath->points_vbo = nullptr;
   mpath->batch_line = nullptr;
   mpath->batch_points = nullptr;
+  mpath->runtime = MEM_new<bke::motionpath::Runtime>(__func__);
 }
 }  // namespace motionpath
 

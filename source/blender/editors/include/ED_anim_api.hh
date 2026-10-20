@@ -1283,6 +1283,7 @@ namespace ed::motionpath {
  */
 void tag_for_recalc(bMotionPath &motion_path);
 }  // namespace ed::motionpath
+
 /**
  * Build a partial depsgraph with only the IDs of the given `targets`.
  */
@@ -1290,6 +1291,17 @@ Depsgraph *animviz_depsgraph_build(Main *bmain,
                                    Scene *scene,
                                    ViewLayer *view_layer,
                                    Span<MPathTarget> targets);
+
+/**
+ * Sets the preview location to be the evaluated world space position on each target.
+ * See motionpath::Runtime::preview_location for more info on the preview location.
+ */
+void animviz_update_motionpath_preview(Depsgraph &depsgraph, Span<MPathTarget> targets);
+/**
+ * Clears the preview location on all targets.
+ * See motionpath::Runtime::preview_location for more info on the preview location.
+ */
+void animviz_clear_motionpath_preview(Span<MPathTarget> targets);
 
 /**
  * Evaluated the given `depsgraph` for all targets.

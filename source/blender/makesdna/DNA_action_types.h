@@ -43,6 +43,10 @@ namespace bke {
 struct bPoseRuntime;
 }  // namespace bke
 
+namespace bke::motionpath {
+struct Runtime;
+}
+
 /* Forward declarations so the actual declarations can happen top-down. */
 struct ActionLayer;
 struct ActionSlot;
@@ -626,7 +630,7 @@ struct bMotionPath {
   gpu::VertBuf *points_vbo = nullptr;
   gpu::Batch *batch_line = nullptr;
   gpu::Batch *batch_points = nullptr;
-  void *_pad = nullptr;
+  bke::motionpath::Runtime *runtime = nullptr;
 };
 
 /* Visualization General --------------------------- */

@@ -860,7 +860,7 @@ static void recalcData_objects(TransInfo *t)
   if (t->state != TRANS_CANCEL) {
     transform_snap_project_individual_apply(t);
   }
-
+  Set<Object *> motionpath_updates;
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
 
@@ -881,11 +881,23 @@ static void recalcData_objects(TransInfo *t)
         autokeyframe_object(t->context, t->scene, ob, t->mode, t->data_len_all > 1);
       }
 
-      motionpath_need_update_object(t->scene, ob);
+      if (motionpath_need_update_object(t->scene, ob)) {
+        motionpath_updates.add(ob);
+      }
 
       /* Sets recalc flags fully, instead of flushing existing ones
        * otherwise proxies don't function correctly. */
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+    }
+  }
+
+  if (!motionpath_updates.is_empty()) {
+    Depsgraph *evaluated_dg = CTX_data_ensure_evaluated_depsgraph(t->context);
+    for (Object *ob : motionpath_updates) {
+      MPathTarget mpt;
+      mpt.mpath = ob->mpath;
+      mpt.ob = ob;
+      animviz_update_motionpath_preview(*evaluated_dg, {mpt});
     }
   }
 
@@ -956,7 +968,13 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
       autokeyframe_object(C, t->scene, ob, t->mode, tc->data_len > 1);
     }
 
-    motionpath_update |= motionpath_need_update_object(t->scene, ob);
+    if (motionpath_need_update_object(t->scene, ob)) {
+      motionpath_update = true;
+      MPathTarget mpt;
+      mpt.mpath = ob->mpath;
+      mpt.ob = ob;
+      animviz_clear_motionpath_preview({mpt});
+    }
 
     /* Restore rigid body transform. */
     if (ob->rigidbody_object && canceled) {
