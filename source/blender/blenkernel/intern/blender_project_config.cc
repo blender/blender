@@ -190,10 +190,6 @@ struct TomlProjectVariable {
 static void project_variable_add(BlenderProject *project, TomlProjectVariable project_variable)
 {
   ProjectVariable *new_var = project->new_variable(project_variable.name, project_variable.type);
-  /* Setup RNA relation to the project so that the variable knows which project it belongs to. */
-  RNA_pointer_create_with_parent(RNA_pointer_create_discrete(nullptr, RNA_BlenderProject, project),
-                                 RNA_ProjectVariable,
-                                 new_var);
 
   toml::value value = project_variable.value;
 
