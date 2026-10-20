@@ -252,6 +252,12 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, invalid node tree interface"
             ),
+            # invalid_blendfiles/invalid_screen_failed_read_id_property.blend
+            # A screen failing to read, with an ID custom property.
+            "invalid_screen_failed_read_id_property.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, failed to read a data-block"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_dirs)
