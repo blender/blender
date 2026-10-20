@@ -387,16 +387,6 @@ static void scene_copy_data(Main *bmain,
   scene_dst->runtime = MEM_new<SceneRuntime>(__func__);
 }
 
-static void scene_free_markers(Scene *scene, bool do_id_user)
-{
-  for (TimeMarker &marker : scene->markers.items_mutable()) {
-    if (marker.prop != nullptr) {
-      IDP_FreeProperty_ex(marker.prop, do_id_user);
-    }
-    MEM_delete(&marker);
-  }
-}
-
 static void scene_free_data(ID *id)
 {
   Scene *scene = id_cast<Scene *>(id);
@@ -418,7 +408,7 @@ static void scene_free_data(ID *id)
     BKE_rigidbody_free_world(scene);
   }
 
-  scene_free_markers(scene, do_id_user);
+  BKE_free_time_markers(scene->markers, do_id_user);
   scene->transform_spaces.free_no_destruct();
   scene->r.views.free_no_destruct();
 

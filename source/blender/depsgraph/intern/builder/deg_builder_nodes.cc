@@ -1326,6 +1326,11 @@ void DepsgraphNodeBuilder::build_action(bAction *action)
 
   build_idproperties(action->id.properties);
   build_idproperties(action->id.system_properties);
+
+  for (TimeMarker &marker : action->markers) {
+    build_idproperties(marker.prop);
+  }
+
   add_operation_node(&action->id, NodeType::ANIMATION, OperationCode::ANIMATION_EVAL);
 }
 

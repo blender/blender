@@ -1864,6 +1864,10 @@ void DepsgraphRelationBuilder::build_action(bAction *dna_action)
   build_idproperties(dna_action->id.properties);
   build_idproperties(dna_action->id.system_properties);
 
+  for (TimeMarker &marker : dna_action->markers) {
+    build_idproperties(marker.prop);
+  }
+
   animrig::Action &action = dna_action->wrap();
   if (!action.is_empty()) {
     TimeSourceKey time_src_key;
