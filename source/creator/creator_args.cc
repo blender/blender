@@ -1456,10 +1456,13 @@ static const char arg_handle_debug_mode_generic_set_doc_gpu_backend_no_fallback[
     "\n\t"
     "Fail instead of falling back to another GPU backend when the selected one is not supported. "
     "Skips the GPU backend support check.";
+static const char arg_handle_debug_mode_generic_set_doc_gpu_no_hw_raytracing_set_doc[] =
+    "\n\t"
+    "Force disable hardware raytracing support (Vulkan only).";
 
 static int arg_handle_debug_mode_generic_set(int /*argc*/, const char ** /*argv*/, void *data)
 {
-  G.debug |= POINTER_AS_INT(data);
+  G.debug |= reinterpret_cast<uint64_t>(data);
   return 0;
 }
 
@@ -3130,12 +3133,12 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                nullptr,
                "--gpu-device-no-fallback",
                CB_EX(arg_handle_debug_mode_generic_set, gpu_device_no_fallback),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_GPU_DEVICE_NO_FALLBACK)));
+               reinterpret_cast<void *>(G_DEBUG_GPU_DEVICE_NO_FALLBACK));
   BLI_args_add(ba,
                nullptr,
                "--debug-gpu-backend-no-fallback",
                CB_EX(arg_handle_debug_mode_generic_set, gpu_backend_no_fallback),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_GPU_BACKEND_NO_FALLBACK)));
+               reinterpret_cast<void *>(G_DEBUG_GPU_BACKEND_NO_FALLBACK));
   BLI_args_add(ba, nullptr, "--gpu-vsync", CB(arg_handle_gpu_vsync_set), nullptr);
   if (defs.with_opengl_backend) {
     BLI_args_add(ba,
@@ -3162,23 +3165,23 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                "-y",
                "--enable-autoexec",
                CB_EX(arg_handle_python_set, enable),
-               reinterpret_cast<void *>(intptr_t(true)));
+               reinterpret_cast<void *>(true));
   BLI_args_add(ba,
                "-Y",
                "--disable-autoexec",
                CB_EX(arg_handle_python_set, disable),
-               reinterpret_cast<void *>(intptr_t(false)));
+               reinterpret_cast<void *>(false));
 
   BLI_args_add(ba,
                nullptr,
                "--offline-mode",
                CB_EX(arg_handle_internet_allow_set, offline),
-               reinterpret_cast<void *>(intptr_t(false)));
+               reinterpret_cast<void *>(false));
   BLI_args_add(ba,
                nullptr,
                "--online-mode",
                CB_EX(arg_handle_internet_allow_set, online),
-               reinterpret_cast<void *>(intptr_t(true)));
+               reinterpret_cast<void *>(true));
 
   BLI_args_add(
       ba, nullptr, "--console-crash-handler", CB(arg_handle_crash_handler_console), nullptr);
@@ -3219,50 +3222,50 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                  nullptr,
                  "--debug-freestyle",
                  CB_EX(arg_handle_debug_mode_generic_set, freestyle),
-                 reinterpret_cast<void *>(intptr_t(G_DEBUG_FREESTYLE)));
+                 reinterpret_cast<void *>(G_DEBUG_FREESTYLE));
   }
   BLI_args_add(ba,
                nullptr,
                "--debug-python",
                CB_EX(arg_handle_debug_mode_generic_set, python),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_PYTHON)));
+               reinterpret_cast<void *>(G_DEBUG_PYTHON));
   BLI_args_add(ba,
                nullptr,
                "--debug-events",
                CB_EX(arg_handle_debug_mode_generic_set, events),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_EVENTS)));
+               reinterpret_cast<void *>(G_DEBUG_EVENTS));
   BLI_args_add(ba,
                nullptr,
                "--debug-handlers",
                CB_EX(arg_handle_debug_mode_generic_set, handlers),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_HANDLERS)));
+               reinterpret_cast<void *>(G_DEBUG_HANDLERS));
   BLI_args_add(ba,
                nullptr,
                "--debug-wm",
                CB_EX(arg_handle_debug_mode_generic_set, wm),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_WM)));
+               reinterpret_cast<void *>(G_DEBUG_WM));
   if (defs.with_xr_openxr) {
     BLI_args_add(ba,
                  nullptr,
                  "--debug-xr",
                  CB_EX(arg_handle_debug_mode_generic_set, xr),
-                 reinterpret_cast<void *>(intptr_t(G_DEBUG_XR)));
+                 reinterpret_cast<void *>(G_DEBUG_XR));
     BLI_args_add(ba,
                  nullptr,
                  "--debug-xr-time",
                  CB_EX(arg_handle_debug_mode_generic_set, xr_time),
-                 reinterpret_cast<void *>(intptr_t(G_DEBUG_XR_TIME)));
+                 reinterpret_cast<void *>(G_DEBUG_XR_TIME));
   }
   BLI_args_add(ba,
                nullptr,
                "--debug-ghost",
                CB_EX(arg_handle_debug_mode_generic_set, ghost),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_GHOST)));
+               reinterpret_cast<void *>(G_DEBUG_GHOST));
   BLI_args_add(ba,
                nullptr,
                "--debug-wintab",
                CB_EX(arg_handle_debug_mode_generic_set, wintab),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_WINTAB)));
+               reinterpret_cast<void *>(G_DEBUG_WINTAB));
   BLI_args_add(ba, nullptr, "--debug-all", CB(arg_handle_debug_mode_all), nullptr);
 
   BLI_args_add(ba, nullptr, "--debug-io", CB(arg_handle_debug_mode_io), nullptr);
@@ -3282,7 +3285,7 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                nullptr,
                "--debug-jobs",
                CB_EX(arg_handle_debug_mode_generic_set, jobs),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_JOBS)));
+               reinterpret_cast<void *>(G_DEBUG_JOBS));
   BLI_args_add(ba, nullptr, "--debug-gpu", CB(arg_handle_debug_gpu_set), nullptr);
   BLI_args_add(ba,
                nullptr,
@@ -3322,55 +3325,60 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                nullptr,
                "--debug-depsgraph",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_DEPSGRAPH)));
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH));
   BLI_args_add(ba,
                nullptr,
                "--debug-depsgraph-build",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_build),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_DEPSGRAPH_BUILD)));
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_BUILD));
   BLI_args_add(ba,
                nullptr,
                "--debug-depsgraph-eval",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_eval),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_DEPSGRAPH_EVAL)));
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_EVAL));
   BLI_args_add(ba,
                nullptr,
                "--debug-depsgraph-tag",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_tag),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_DEPSGRAPH_TAG)));
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_TAG));
   BLI_args_add(ba,
                nullptr,
                "--debug-depsgraph-time",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_time),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_DEPSGRAPH_TIME)));
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_TIME));
   BLI_args_add(ba,
 
                nullptr,
                "--debug-depsgraph-no-threads",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_no_threads),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_DEPSGRAPH_NO_THREADS)));
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_NO_THREADS));
   BLI_args_add(ba,
                nullptr,
                "--debug-depsgraph-pretty",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_pretty),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_DEPSGRAPH_PRETTY)));
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_PRETTY));
   BLI_args_add(ba,
                nullptr,
                "--debug-depsgraph-uid",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_uid),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_DEPSGRAPH_UID)));
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_UID));
   BLI_args_add(ba,
                nullptr,
                "--debug-gpu-force-workarounds",
                CB_EX(arg_handle_debug_mode_generic_set, gpu_force_workarounds),
-               reinterpret_cast<void *>(intptr_t(G_DEBUG_GPU_FORCE_WORKAROUNDS)));
+               reinterpret_cast<void *>(G_DEBUG_GPU_FORCE_WORKAROUNDS));
   if (defs.with_vulkan_backend) {
     BLI_args_add(ba,
                  nullptr,
                  "--debug-gpu-vulkan-local-read",
                  CB_EX(arg_handle_debug_mode_generic_set, gpu_force_vulkan_local_read),
-                 reinterpret_cast<void *>(intptr_t(G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ)));
+                 reinterpret_cast<void *>(G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ));
   }
+  BLI_args_add(ba,
+               nullptr,
+               "--debug-gpu-no-hw-raytracing",
+               CB_EX(arg_handle_debug_mode_generic_set, gpu_no_hw_raytracing_set_doc),
+               reinterpret_cast<void *>(G_DEBUG_GPU_NO_HW_RAYTRACING));
   BLI_args_add(ba, nullptr, "--debug-exit-on-error", CB(arg_handle_debug_exit_on_error), nullptr);
 
   BLI_args_add(ba, nullptr, "--verbose", CB(arg_handle_verbosity_set), nullptr);

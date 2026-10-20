@@ -687,6 +687,9 @@ GPUSecondaryContextData GPU_create_secondary_context()
   if (G.debug & G_DEBUG_GPU) {
     gpu_settings.flags |= GHOST_gpuDebugContext;
   }
+  if (G.debug & G_DEBUG_GPU_NO_HW_RAYTRACING) {
+    gpu_settings.flags |= GHOST_gpuNoHWRaytracing;
+  }
   gpu_settings.preferred_device = GPU_backend_preferred_device_get();
 
   /* Grab the system handle. */
