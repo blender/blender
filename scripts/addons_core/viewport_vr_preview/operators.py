@@ -424,10 +424,9 @@ class VIEW3D_OT_vr_location_scouting_viewfinder_apply_action(Operator):
     @classmethod
     def poll(cls, context):
         session_is_running = bpy.types.XrSessionState.is_running(context)
-        has_scene_camera = context.scene.camera is not None
         viewfinder_enabled = context.window_manager.xr_session_settings.viewfinder_enabled
 
-        return session_is_running and has_scene_camera and viewfinder_enabled
+        return session_is_running and viewfinder_enabled
 
     def execute(self, context):
         wm = context.window_manager
