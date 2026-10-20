@@ -472,6 +472,18 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, mismatched area space type"
             ),
+            # invalid_blendfiles/invalid_screen_edge_vertex.blend
+            # A screen edge without second vertex.
+            "invalid_screen_edge_vertex.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, failed to read a data-block"
+            ),
+            # invalid_blendfiles/invalid_window_area_edge_vertex.blend
+            # A window global area edge without second vertex.
+            "invalid_window_area_edge_vertex.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, failed to read window areas"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_open_link_dirs)

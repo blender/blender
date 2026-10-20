@@ -189,7 +189,9 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
       win.workspace_hook->temp_layout_store = nullptr;
     }
 
-    BKE_screen_area_map_blend_read_data(reader, &win.global_areas);
+    if (!BKE_screen_area_map_blend_read_data(reader, &win.global_areas)) {
+      BLO_read_data_invalidate(reader, "Corrupt .blend file, failed to read window areas.");
+    }
 
     win.active = 0;
 

@@ -1777,7 +1777,7 @@ bool BKE_screen_area_map_blend_read_data(BlendDataReader *reader, ScrAreaMap *ar
     BLO_read_struct(reader, ScrVert, &se.v1);
     BLO_read_struct(reader, ScrVert, &se.v2);
 
-    if (se.v1 == nullptr) {
+    if (se.v1 == nullptr || se.v2 == nullptr) {
       BLI_freelinkN(&area_map->edgebase, &se);
 
       return false;
