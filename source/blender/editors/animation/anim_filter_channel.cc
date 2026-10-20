@@ -161,8 +161,10 @@ bool ChannelIdentifier::operator==(const ChannelIdentifier &other) const
 
 int64_t ChannelIdentifier::hash() const
 {
-  return get_default_hash(
-      this->owner_id_type, this->owner_session_uid, this->source_rna_path.items);
+  return get_default_hash(this->owner_id_type,
+                          this->owner_session_uid,
+                          this->source_rna_path.items,
+                          this->parent_hash);
 }
 
 void ChannelIdentifier::stream_to(std::ostream &stream, Main *bmain) const
@@ -384,8 +386,11 @@ AnimationChannel::AnimationChannel(AnimationChannel &&other)
 
 int64_t AnimationChannel::hash() const
 {
-  return get_default_hash(
-      this->type_, this->source_.type, this->source_.owner_id, this->source_.data);
+  return get_default_hash(this->parent_hash_,
+                          this->type_,
+                          this->source_.type,
+                          this->source_.owner_id,
+                          this->source_.data);
 }
 
 bool AnimationChannel::source_is_id() const
@@ -702,6 +707,18 @@ static bool animation_channel_compare_function(const AnimationChannel *channel_a
   }
 
   return channel_a->label() < channel_b->label();
+}
+
+void SummaryChannel::push_hash_to_children()
+{
+  const int64_t my_hash = this->hash();
+  for (AnimationChannel *child : this->children_) {
+    child->parent_hash_set(my_hash);
+    if (child->type() != AnimationChannelType::SUMMARY) {
+      continue;
+    }
+    reinterpret_cast<SummaryChannel *>(child)->push_hash_to_children();
+  }
 }
 
 void SummaryChannel::sort_children()

@@ -258,6 +258,12 @@ class ChannelIdentifier {
   /** Path from the ID to the channel source data. */
   ParsedSourcePath source_rna_path = {};
 
+  /**
+   * Hash of the channels' parent.
+   * This is only set when data channels have been grouped into a hierarchy.
+   */
+  int64_t parent_hash = 0;
+
   bool operator==(const ChannelIdentifier &other) const;
   int64_t hash() const;
 
@@ -340,6 +346,15 @@ class AnimationChannel {
   PointerRNA source_;
   mutable ID_Type source_id_type_ = IDTYPE_UNKNOWN;
 
+  /**
+   * For channels that have a parent channel, this is set to the hash of that parent.
+   *
+   * Since #parent_hash_ is also used to compute this channel's hash and its identifier, multiple
+   * channels for the same data can appear in different sub-hierarchies and still retain unique UI
+   * data. An example is an Action nested underneath each object in animates.
+   */
+  int64_t parent_hash_ = 0;
+
  public:
   AnimationChannel(AnimationChannelType type, StringRef label);
   AnimationChannel(const AnimationChannel &other);
@@ -363,7 +378,13 @@ class AnimationChannel {
         /* The identifier makes no distinction between 'no path' or 'empty path'. */
         /* TODO: maybe this class should also remove this distinction? */
         source_rna_path_.value_or(ParsedSourcePath()),
+        parent_hash_,
     };
+  }
+
+  void parent_hash_set(const int64_t hash)
+  {
+    this->parent_hash_ = hash;
   }
 
   AnimationChannelType type() const
@@ -465,6 +486,15 @@ class SummaryChannel final : public AnimationChannel {
   void add_child(AnimationChannel &child);
   void insert_child(int insert_index, AnimationChannel &child);
   void remove_child(AnimationChannel &child);
+
+  /**
+   * Recursively push this channel's hash to its children's #parent_hash_.
+   *
+   * This ensures that any channel identifiers built for these channels include a value that is
+   * unique to the chain of parents that leads to a channel.
+   */
+  void push_hash_to_children();
+
   /**
    * Sort the children of this summary channel.
    */

@@ -4401,6 +4401,9 @@ void group_channels(ChannelArena &arena,
   for (SummaryChannel *channel : arena.summary_channels) {
     channel->sort_children();
   }
+
+  root->push_hash_to_children();
+
   gather_tags(*root);
 }
 
