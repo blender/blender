@@ -103,10 +103,7 @@ class ChannelItem : public ui::AbstractTreeViewItem {
   PointerRNA source_;
 
  public:
-  ChannelItem(AnimationChannel &channel) : channel_(channel), source_(channel.source())
-  {
-    this->is_selected_ = channel.is_selected();
-  }
+  ChannelItem(AnimationChannel &channel) : channel_(channel), source_(channel.source()) {}
 
   void build_row(ui::Layout &layout) override
   {
@@ -150,6 +147,11 @@ class ChannelItem : public ui::AbstractTreeViewItem {
     return summary.is_collapsed();
   }
 
+  std::optional<bool> should_be_selected() const override
+  {
+    return is_channel_selected(this->source_);
+  }
+
   void set_selected(const bool select) override
   {
     /* Overriding the function so we can store the selection state on the data. */
@@ -159,15 +161,6 @@ class ChannelItem : public ui::AbstractTreeViewItem {
   }
 
  protected:
-  void update_from_old(const AbstractViewItem &old) override
-  {
-    /* Force the selection state to always come from the data which may change between draw
-     * calls. This is set in the constructor. */
-    const bool selected = this->is_selected_;
-    AbstractViewItem::update_from_old(old);
-    this->is_selected_ = selected;
-  }
-
   bool matches(const AbstractViewItem &other) const override
   {
     const ChannelItem &other_channel_item = dynamic_cast<const ChannelItem &>(other);
@@ -262,6 +255,7 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
   tree_view->set_row_scale_y(ANIM_UI_get_channel_scale_factor());
   tree_view->set_row_padding(ANIM_UI_get_channel_skip());
   tree_view->set_indent_scale(0.5);
+  tree_view->allow_multiselect_items();
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout, /*add_box=*/false);
 
   ui::block_layout_resolve(block);
