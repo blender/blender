@@ -202,8 +202,14 @@ class MotionPath : Overlay {
       sub.push_constant("custom_color_post", preview_line_color);
       sub.push_constant("camera_object_persinv", float4x4::identity());
 
-      gpu::Batch *geom = preview_batch_points_get(*mpath, current_frame, camera_matrix);
-      sub.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, /* vertex_len= */ 1, /* vertex_first= */ 0);
+      motion_path_batches_.append(
+          make_batch_borrowed(preview_batch_points_get(*mpath, current_frame, camera_matrix)));
+      sub.draw_expand(motion_path_batches_.last().get(),
+                      GPU_PRIM_TRIS,
+                      2,
+                      1,
+                      /* vertex_len= */ 1,
+                      /* vertex_first= */ 0);
     }
 
     /* Draw curve-line of path. */
