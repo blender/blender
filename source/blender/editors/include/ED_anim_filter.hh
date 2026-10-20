@@ -80,7 +80,28 @@ class ChannelTag {
            other.source_data_.owner_id == this->source_data_.owner_id &&
            other.source_data_.data == this->source_data_.data && other.label_ == this->label_;
   }
+  bool operator!=(const ChannelTag &other) const
+  {
+    return !(*this == other);
+  }
 
+  /* This operator has to be consistent with the above operator==, to ensure that the sorting by
+   * tags, and the equality comparison of tags in the channel grouping code, are consistent with
+   * each other. */
+  bool operator<(const ChannelTag &other) const
+  {
+    if (tag_type_ != other.tag_type_) {
+      return tag_type_ < other.tag_type_;
+    }
+    if (label_ != other.label_) {
+      return label_ < other.label_;
+    }
+    /* Order the RNA pointer. This is a bit arbitrary, as those are all pointers. The most
+     * important part is that it gives a total ordering where unequal (according to operator==)
+     * values are ordered consistently.*/
+    return std::tie(source_data_.type, source_data_.owner_id, source_data_.data) <
+           std::tie(other.source_data_.type, other.source_data_.owner_id, other.source_data_.data);
+  }
   ChannelTagType tag_type() const
   {
     return this->tag_type_;

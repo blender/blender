@@ -25,6 +25,7 @@
  * -- Joshua Leung, Dec 2008 (Last revision July 2009)
  */
 
+#include <algorithm>
 #include <cstring>
 #include <optional>
 
@@ -4259,28 +4260,22 @@ static Vector<SummaryContainer> split_group_for_tag(ChannelArena &arena,
    * `DataChannel`s and tries to modify it as little as possible for the given tag. Given how we
    * collect the channels they should be pretty sorted already. With that we could also figure out
    * the group borders in one go. */
-  std::sort(
-      data_channels.begin(), data_channels.end(), [&](const DataChannel *a, const DataChannel *b) {
-        const ChannelTag *tag_a = a->tags().nth_by_type(tag_type, tag_index);
-        const ChannelTag *tag_b = b->tags().nth_by_type(tag_type, tag_index);
-        if (!tag_a && !tag_b) {
-          /* Neither have the tag, no need to sort. */
-          return false;
-        }
-        if (!tag_a) {
-          return false;
-        }
-        if (!tag_b) {
-          /* `tag_a` exists but not `tag_b`. So `a` should be before `b`. */
-          return true;
-        }
-        if (*tag_a == *tag_b) {
-          /* The tags are equal, no need to sort. */
-          return false;
-        }
-        /* Sort by name if tags are not equal. */
-        return tag_a->label() < tag_b->label();
-      });
+  std::ranges::sort(data_channels, [&](const DataChannel *a, const DataChannel *b) {
+    const ChannelTag *tag_a = a->tags().nth_by_type(tag_type, tag_index);
+    const ChannelTag *tag_b = b->tags().nth_by_type(tag_type, tag_index);
+    if (!tag_a && !tag_b) {
+      /* Neither have the tag, no need to sort. */
+      return false;
+    }
+    if (!tag_a) {
+      return false;
+    }
+    if (!tag_b) {
+      /* `tag_a` exists but not `tag_b`. So `a` should be before `b`. */
+      return true;
+    }
+    return *tag_a < *tag_b;
+  });
 
   /* After sorting, step through the `DataChannel`s and find the group borders. */
   const ChannelTag *current_tag = data_channels[0]->tags().nth_by_type(tag_type, tag_index);
@@ -4300,19 +4295,22 @@ static Vector<SummaryContainer> split_group_for_tag(ChannelArena &arena,
       /* Channels without that tag are sorted to be at the end. They should not be grouped. */
       break;
     }
-    has_more_tags |= data_channel->tags().has_another_of_type(tag);
-    /* Check if tags are equal, which is also true if the tag doesn't exist on both channels. */
-    if (*tag == *current_tag) {
-      group_length++;
-      continue;
+    if (*tag != *current_tag) {
+      /* Move the already-visited channels into their group, and then start a new one for this
+       * channel. */
+      BLI_assert(group_length > 0);
+      new_groups.append({current_tag,
+                         summary_data.datachannels.slice(group_start, group_length),
+                         has_more_tags});
+      group_start += group_length;
+      has_more_tags = false;
+      group_length = 0;
+      current_tag = tag;
     }
-    BLI_assert(group_length > 0);
-    new_groups.append(
-        {current_tag, summary_data.datachannels.slice(group_start, group_length), has_more_tags});
-    group_start += group_length;
-    has_more_tags = false;
-    group_length = 1;
-    current_tag = tag;
+
+    /* Store this tag in the current group. */
+    group_length++;
+    has_more_tags |= data_channel->tags().has_another_of_type(tag);
   }
 
   if (group_length > 0) {
@@ -4370,15 +4368,12 @@ void group_channels(ChannelArena &arena,
   Vector<SummaryContainer> new_summaries;
 
   for (const ChannelTagType tag_type : tag_order) {
-    completely_split.clear();
-    new_summaries.clear();
-
-    for (SummaryContainer &split : splitable_summaries) {
+    for (SummaryContainer &to_split : splitable_summaries) {
       Vector<SummaryContainer> foo = split_group_for_tag(
-          arena, split, tag_type, /* tag_index= */ 0, use_minimal_grouping);
+          arena, to_split, tag_type, /* tag_index= */ 0, use_minimal_grouping);
       new_summaries.extend(foo);
-      if (split.datachannels.size() == 0) {
-        completely_split.append(&split);
+      if (to_split.datachannels.size() == 0) {
+        completely_split.append(&to_split);
       }
     }
 
@@ -4387,8 +4382,10 @@ void group_channels(ChannelArena &arena,
        * other. */
       splitable_summaries.remove_first_occurrence_and_reorder(*split);
     }
+    completely_split.clear();
 
     splitable_summaries.extend(new_summaries);
+    new_summaries.clear();
   }
 
   /* The summaries that remain will get their datachannels as children. */
