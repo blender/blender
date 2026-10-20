@@ -70,7 +70,9 @@ static uchar4 channel_color_from_rna_pointer(const PointerRNA &ptr)
   else if (ptr.type == RNA_ActionSlot || ptr.type == RNA_ActionLayer) {
     blender::ui::theme::get_color_4ubv(TH_DOPESHEET_CHANNELSUBOB, color);
   }
-  else if (ptr.type == RNA_PoseBone || ptr.type == RNA_ActionGroup) {
+  else if (ptr.type == RNA_PoseBone || ptr.type == RNA_ActionGroup ||
+           ptr.type == RNA_GreasePencilLayerGroup)
+  {
     blender::ui::theme::get_color_4ubv(TH_GROUP, color);
   }
   return color;

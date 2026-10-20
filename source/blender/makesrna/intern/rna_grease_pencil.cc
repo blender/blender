@@ -1318,6 +1318,7 @@ static void rna_def_grease_pencil_layer_group(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "GreasePencilLayerGroup", "GreasePencilTreeNode");
   RNA_def_struct_sdna(srna, "GreasePencilLayerTreeGroup");
   RNA_def_struct_ui_text(srna, "Grease Pencil Layer Group", "Group of Grease Pencil layers");
+  RNA_def_struct_ui_icon(srna, ICON_GREASEPENCIL_LAYER_GROUP);
   RNA_def_struct_path_func(srna, "rna_GreasePencilLayerGroup_path");
 
   /* Expanded */
