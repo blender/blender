@@ -38,7 +38,7 @@ bool device_cuda_init()
   if (cuew_result == CUEW_SUCCESS) {
     LOG_INFO << "CUEW initialization succeeded";
     if (CUDADevice::have_precompiled_kernels()) {
-      LOG_INFO << "Found precompiled kernels";
+      LOG_INFO << "CUDA: Found precompiled kernels";
       result = true;
     }
     else if (cuewCompilerPath() != nullptr) {

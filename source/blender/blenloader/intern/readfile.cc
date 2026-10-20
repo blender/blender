@@ -3728,7 +3728,14 @@ static BHead *read_libblock(FileData *fd,
     if (entry && entry->newp == id) {
       fd->libmap->map.remove(id_address_old);
     }
-    BKE_id_free(main, id);
+
+    /* Free without user refcounting, as ID pointers still have their old address. */
+    BLI_remlink(lb, id);
+    BKE_id_free_ex(nullptr,
+                   id,
+                   LIB_ID_FREE_NO_MAIN | LIB_ID_FREE_NO_USER_REFCOUNT | LIB_ID_FREE_NO_UI_USER |
+                       LIB_ID_FREE_NO_DEG_TAG,
+                   false);
     fd->flags &= ~FD_FLAGS_FILE_OK;
     if (fd->bmain) {
       blo_readfile_invalidate(fd, fd->bmain, "Corrupt .blend file, failed to read a data-block");

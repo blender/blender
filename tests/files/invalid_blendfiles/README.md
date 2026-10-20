@@ -224,3 +224,24 @@ larger struct (crash).
 -------------------------------
 
 An area with 3D viewport space data, but its space type changed to Info.
+
+`invalid_screen_edge_vertex.blend`
+----------------------------------
+
+A screen edge without second vertex (crash on mouse move).
+
+`invalid_window_area_edge_vertex.blend`
+---------------------------------------
+
+A window global area edge without second vertex (crash on mouse move).
+
+`invalid_node_tree_interface_root_panel.blend`
+----------------------------------------------
+
+A node group interface with its root panel changed to socket type (buffer overflow).
+
+`invalid_screen_failed_read_id_property.blend`
+----------------------------------------------
+
+A screen with a scene custom property, failing to read due to an edge without first vertex.
+Freeing the screen decremented users of the unresolved scene pointer (crash).
