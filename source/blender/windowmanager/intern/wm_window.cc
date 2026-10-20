@@ -1003,6 +1003,9 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
   if (G.debug & G_DEBUG_GPU) {
     gpu_settings.flags |= GHOST_gpuDebugContext;
   }
+  if (G.debug & G_DEBUG_GPU_NO_HW_RAYTRACING) {
+    gpu_settings.flags |= GHOST_gpuNoHWRaytracing;
+  }
 
   GPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpu_settings.context_type = wm_ghost_drawing_context_type(gpu_backend);
@@ -3683,6 +3686,9 @@ GHOST_IContext *WM_system_gpu_context_create()
   gpu_settings.context_type = wm_ghost_drawing_context_type(gpu_backend);
   if (G.debug & G_DEBUG_GPU) {
     gpu_settings.flags |= GHOST_gpuDebugContext;
+  }
+  if (G.debug & G_DEBUG_GPU_NO_HW_RAYTRACING) {
+    gpu_settings.flags |= GHOST_gpuNoHWRaytracing;
   }
   gpu_settings.preferred_device = GPU_backend_preferred_device_get();
   if (GPU_backend_vsync_is_overridden()) {

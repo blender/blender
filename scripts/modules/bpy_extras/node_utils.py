@@ -30,6 +30,8 @@ def find_base_socket_type(socket):
         return 'NodeSocketBool'
     if socket.type == 'RGBA':
         return 'NodeSocketColor'
+    if socket.type == 'INT_VECTOR':
+        return "NodeSocketIntVector3D"
     else:
         return "NodeSocket" + socket.type.title()
 

@@ -557,6 +557,7 @@ struct GHOST_InstanceVK {
 
   bool create_device(const bool use_vk_ext_swapchain_maintenance1,
                      const bool is_debug,
+                     const bool no_hw_rt,
                      blender::Span<const char *> required_device_extensions,
                      blender::Span<const char *> optional_device_extensions)
   {
@@ -584,6 +585,14 @@ struct GHOST_InstanceVK {
       device.extensions.disable(VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME);
       device.extensions.disable(VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME);
       device.extensions.disable(VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+    }
+
+    /* Disable ray query & acceleration structure extensions.
+     * Some driver have issue with capture replay in renderdoc with these specific extensions.
+     */
+    if (no_hw_rt) {
+      device.extensions.disable(VK_KHR_RAY_QUERY_EXTENSION_NAME);
+      device.extensions.disable(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
     }
 
 #ifdef _WIN32
@@ -1996,6 +2005,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
     if (!instance_vk.create_device(use_vk_ext_swapchain_colorspace,
                                    context_params_.is_debug,
+                                   context_params_.no_hw_rt,
                                    required_device_extensions,
                                    optional_device_extensions))
     {

@@ -879,6 +879,9 @@ void VKBackend::capabilities_init(VKDevice &device)
       device.physical_device_acceleration_structure_properties_get().maxGeometryCount > 0 &&
       device.physical_device_acceleration_structure_properties_get().maxPrimitiveCount > 0 &&
       device.physical_device_acceleration_structure_properties_get().maxInstanceCount > 0;
+  if (G.debug & G_DEBUG_GPU_NO_HW_RAYTRACING) {
+    GCaps.ray_query_support = false;
+  }
 
   GCaps.multi_viewport_support = device.physical_device_features_get().multiViewport &&
                                  limits.maxViewports >= GPU_MAX_VIEWPORTS;
