@@ -1,0 +1,1 @@
+Error during import: Error: PLY Importer: failed importing malformed_duplicate_vertex: Multiple vertex elements are not supported

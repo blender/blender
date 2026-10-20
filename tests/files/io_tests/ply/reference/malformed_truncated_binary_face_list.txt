@@ -1,0 +1,1 @@
+Error during import: Error: PLY Importer: failed importing malformed_truncated_binary_face_list: Could not read face property

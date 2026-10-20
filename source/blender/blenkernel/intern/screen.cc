@@ -378,6 +378,8 @@ Span<std::unique_ptr<SpaceType>> BKE_spacetypes_list()
 
 void BKE_spacetype_register(std::unique_ptr<SpaceType> st)
 {
+  BLI_assert(st->struct_size >= int(sizeof(SpaceLink)));
+
   /* sanity check */
   SpaceType *stype = BKE_spacetype_from_id(st->spaceid);
   if (stype) {
@@ -1672,8 +1674,28 @@ void BKE_screen_view3d_do_versions_250(View3D *v3d, ListBaseT<ARegion> *regions)
 
 static void direct_link_area(BlendDataReader *reader, ScrArea *area)
 {
-  BLO_read_struct_list(reader, SpaceLink, &(area->spacedata));
+  const bool has_spacedata = area->spacedata.first() != nullptr;
+  BLO_read_struct_list_with_type_size<SpaceLink>(
+      reader, &area->spacedata, [](const SpaceLink &sl) {
+        const SpaceType *space_type = BKE_spacetype_from_id(sl.spacetype);
+        return space_type ? size_t(space_type->struct_size) : sizeof(SpaceLink);
+      });
   BLO_read_struct_list(reader, ARegion, &(area->regionbase));
+
+  /* The first space data is the active one, its type must match the area space type. If it
+   * failed to read, leave the area empty. Files before 2.50 can have areas without space data
+   * of their own type (e.g. the info header), which versioning handles. */
+  const SpaceLink *sl_active = area->spacedata.first();
+  if (sl_active == nullptr) {
+    /* Space types removed from DNA (e.g. timeline and logic editors) are handled below. */
+    if (has_spacedata && BKE_spacetype_exists(area->spacetype)) {
+      area->spacetype = SPACE_EMPTY;
+    }
+  }
+  else if (sl_active->spacetype != area->spacetype && BLO_read_fileversion_get(reader) >= 250) {
+    BLO_read_data_invalidate(reader, "Corrupt .blend file, mismatched area space type.");
+    area->spacetype = SPACE_EMPTY;
+  }
 
   area->handlers.clear_no_delete();
   area->type = nullptr; /* spacetype callbacks */
@@ -1756,7 +1778,7 @@ bool BKE_screen_area_map_blend_read_data(BlendDataReader *reader, ScrAreaMap *ar
     BLO_read_struct(reader, ScrVert, &se.v2);
 
     if (se.v1 == nullptr) {
-      BLI_remlink(&area_map->edgebase, &se);
+      BLI_freelinkN(&area_map->edgebase, &se);
 
       return false;
     }

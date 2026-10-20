@@ -64,6 +64,16 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
         # Directories to exclude relative to `./tests/files/`.
         self.excluded_open_link_dirs = ()
 
+        # Some files are known broken currently for linking and appending only.
+        self.excluded_link_append_paths = {
+            # invalid_blendfiles/invalid_struct_size_boid_rule.blend
+            # invalid_blendfiles/invalid_struct_size_modifier.blend
+            # Linking from a library that fails to read leaves data-blocks with unresolved pointers
+            # in the main database (crash).
+            "invalid_struct_size_boid_rule.blend",
+            "invalid_struct_size_modifier.blend",
+        }
+
         # Some files are known broken currently on re-saving & re-opening.
         # Each file in this list should either be the source of a bug report,
         # or removed from tests repo.
@@ -418,6 +428,50 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, array size exceeds allocated size"
             ),
+            # invalid_blendfiles/invalid_struct_size_*.blend
+            # A block with a type member is too small for the struct of its type.
+            "invalid_struct_size_boid_rule.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
+            "invalid_struct_size_grease_pencil_drawing.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
+            "invalid_struct_size_grease_pencil_layer.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
+            "invalid_struct_size_linestyle_modifier.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
+            "invalid_struct_size_modifier.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
+            "invalid_struct_size_node_interface_socket.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
+            "invalid_struct_size_shader_fx.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
+            "invalid_struct_size_space.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
+            "invalid_struct_size_strip_modifier.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, unexpected data size"
+            ),
+            # invalid_blendfiles/invalid_area_space_type.blend
+            # An area space type that does not match its active space data.
+            "invalid_area_space_type.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, mismatched area space type"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_open_link_dirs)
@@ -521,6 +575,8 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
         operation_name = "link" if do_link else "append"
         for bfp in self.blendfile_paths:
             if self.skip_open_link_path_check(bfp):
+                continue
+            if os.path.basename(bfp) in self.excluded_link_append_paths:
                 continue
             bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
             try:

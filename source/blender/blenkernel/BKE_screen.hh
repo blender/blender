@@ -105,6 +105,8 @@ struct SpaceType {
   int spaceid;
   /** Icon lookup for menus. */
   int iconid;
+  /** Size of the #SpaceLink derived struct. */
+  int struct_size;
 
   /**
    * Initial allocation, after this WM will call init() too.

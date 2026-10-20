@@ -44,11 +44,22 @@ void PlyReadBuffer::after_header(bool is_binary)
 
 Span<char> PlyReadBuffer::read_line()
 {
+  return try_read_line().value_or(Span<char>());
+}
+
+std::optional<Span<char>> PlyReadBuffer::try_read_line()
+{
   if (is_binary_) {
     throw std::runtime_error("PLY read_line should not be used in binary mode");
   }
   if (pos_ >= last_newline_) {
     refill_buffer();
+  }
+  /* Refill again in case the file contained only newlines. */
+  while (pos_ >= buf_used_) {
+    if (!refill_buffer()) {
+      return std::nullopt;
+    }
   }
   BLI_assert(last_newline_ <= buffer_.size());
   int res_begin = pos_;
@@ -75,8 +86,7 @@ bool PlyReadBuffer::read_bytes(void *dst, size_t size)
         return false;
       }
     }
-    int to_copy = int(size);
-    to_copy = std::min(to_copy, buf_used_);
+    const size_t to_copy = std::min(size, size_t(buf_used_));
     memcpy(dst, buffer_.data() + pos_, to_copy);
     pos_ += to_copy;
     dst = static_cast<char *>(dst) + to_copy;
@@ -95,6 +105,9 @@ bool PlyReadBuffer::refill_buffer()
     return false; /* File is fully read. */
   }
 
+  /* The buffer is only empty before the first read, since reading nothing sets #at_eof_. */
+  const bool is_file_start = buf_used_ == 0;
+
   /* Move any leftover to start of buffer. */
   int keep = buf_used_ - pos_;
   if (keep > 0) {
@@ -106,10 +119,13 @@ bool PlyReadBuffer::refill_buffer()
   pos_ = 0;
   buf_used_ = int(read);
 
-  /* Skip past newlines at the front of the buffer and find last newline. */
+  /* Skip past newlines at the start of the file and find last newline. Newlines at the front of
+   * later chunks are kept, as empty lines are valid rows for elements without properties. */
   if (!is_binary_) {
-    while (pos_ < buf_used_ && is_newline(buffer_[pos_])) {
-      pos_++;
+    if (is_file_start) {
+      while (pos_ < buf_used_ && is_newline(buffer_[pos_])) {
+        pos_++;
+      }
     }
 
     int last_nl = buf_used_;

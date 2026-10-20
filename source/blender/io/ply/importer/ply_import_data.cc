@@ -10,6 +10,9 @@
 #include "ply_data.hh"
 #include "ply_import_buffer.hh"
 
+#include "BKE_anonymous_attribute_id.hh"
+#include "BKE_attribute.hh"
+
 #include "BLI_endian_switch.hh"
 #include "BLI_string_ref.hh"
 
@@ -50,17 +53,6 @@ static const char *drop_plus(const char *p, const char *end)
     ++p;
   }
   return p;
-}
-
-static const char *parse_float(const char *p, const char *end, float fallback, float &dst)
-{
-  p = drop_whitespace(p, end);
-  p = drop_plus(p, end);
-  fast_float::from_chars_result res = fast_float::from_chars(p, end, dst);
-  if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range)) {
-    dst = fallback;
-  }
-  return res.ptr;
 }
 
 static const char *parse_int(const char *p, const char *end, int fallback, int &dst)
@@ -133,23 +125,56 @@ static int get_index(const PlyElement &element, StringRef property)
   return -1;
 }
 
-static const char *parse_row_ascii(PlyReadBuffer &file, Vector<float> &r_values)
+/* Parse float or double, with 0 as fallback for invalid values. */
+template<typename T> static const char *parse_ascii_value(const char *p, const char *end, T &dst)
+{
+  p = drop_plus(drop_whitespace(p, end), end);
+  const fast_float::from_chars_result res = fast_float::from_chars(p, end, dst);
+  if (res.ec != std::errc()) {
+    dst = T(0);
+  }
+  return res.ptr;
+}
+
+template<typename T>
+static const char *parse_row_ascii(PlyReadBuffer &file,
+                                   const PlyElement &element,
+                                   Vector<T> &r_values)
 {
   Span<char> line = file.read_line();
   if (line.is_empty()) {
     return "Could not read row of ASCII property";
   }
 
-  /* Parse whole line as floats. */
-  const char *p = line.data();
-  const char *end = p + line.size();
-  int value_idx = 0;
-  while (p < end && value_idx < r_values.size()) {
-    float val;
-    p = parse_float(p, end, 0.0f, val);
-    r_values[value_idx++] = val;
+  const char *p = line.begin();
+  const char *end = line.end();
+  for (const int64_t i : element.properties.index_range()) {
+    if (element.properties[i].count_type == PlyDataTypes::NONE) {
+      p = parse_ascii_value(p, end, r_values[i]);
+      continue;
+    }
+
+    /* Skip list values, which are not supported for vertices and edges. */
+    int count = 0;
+    p = parse_int(p, end, 0, count);
+    for (int j = 0; j < count && p < end; j++) {
+      p = drop_non_whitespace(drop_whitespace(p, end), end);
+    }
+    r_values[i] = T(0);
   }
   return nullptr;
+}
+
+/* Convert floating point to T. Values that don't fit an integer type or that are
+ * NaN become the maximum value, so they fail later count and index checks. */
+template<typename T, typename F> static T float_to_value(const F value)
+{
+  if constexpr (std::is_integral_v<T>) {
+    if (!(value >= F(std::numeric_limits<T>::min()) && value < F(std::numeric_limits<T>::max()))) {
+      return std::numeric_limits<T>::max();
+    }
+  }
+  return T(value);
 }
 
 template<typename T> static T get_binary_value(PlyDataTypes type, const uint8_t *&r_ptr)
@@ -179,15 +204,15 @@ template<typename T> static T get_binary_value(PlyDataTypes type, const uint8_t 
       r_ptr += 4;
       break;
     case UINT:
-      val = *reinterpret_cast<int32_t *>(const_cast<uint8_t *>(r_ptr));
+      val = *reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(r_ptr));
       r_ptr += 4;
       break;
     case FLOAT:
-      val = *reinterpret_cast<float *>(const_cast<uint8_t *>(r_ptr));
+      val = float_to_value<T>(*reinterpret_cast<float *>(const_cast<uint8_t *>(r_ptr)));
       r_ptr += 4;
       break;
     case DOUBLE:
-      val = *reinterpret_cast<double *>(const_cast<uint8_t *>(r_ptr));
+      val = float_to_value<T>(*reinterpret_cast<double *>(const_cast<uint8_t *>(r_ptr)));
       r_ptr += 8;
       break;
     default:
@@ -196,11 +221,12 @@ template<typename T> static T get_binary_value(PlyDataTypes type, const uint8_t 
   return val;
 }
 
+template<typename T>
 static const char *parse_row_binary(PlyReadBuffer &file,
                                     const PlyHeader &header,
                                     const PlyElement &element,
                                     Vector<uint8_t> &r_scratch,
-                                    Vector<float> &r_values)
+                                    Vector<T> &r_values)
 {
   if (element.stride == 0) {
     return "Vertex/Edge element contains list properties, this is not supported";
@@ -216,7 +242,7 @@ static const char *parse_row_binary(PlyReadBuffer &file,
     /* Little endian: just read/convert the values. */
     for (int i = 0, n = int(element.properties.size()); i != n; i++) {
       const PlyProperty &prop = element.properties[i];
-      float val = get_binary_value<float>(prop.type, ptr);
+      T val = get_binary_value<T>(prop.type, ptr);
       r_values[i] = val;
     }
   }
@@ -225,7 +251,7 @@ static const char *parse_row_binary(PlyReadBuffer &file,
     for (int i = 0, n = int(element.properties.size()); i != n; i++) {
       const PlyProperty &prop = element.properties[i];
       endian_switch(const_cast<uint8_t *>(ptr), data_type_size[prop.type]);
-      float val = get_binary_value<float>(prop.type, ptr);
+      T val = get_binary_value<T>(prop.type, ptr);
       r_values[i] = val;
     }
   }
@@ -264,7 +290,13 @@ static const char *load_vertex_element(PlyReadBuffer &file,
     const PlyProperty &prop = element.properties[prop_idx];
     bool is_standard = ELEM(
         prop.name, "x", "y", "z", "nx", "ny", "nz", "red", "green", "blue", "alpha", "s", "t");
-    if (is_standard) {
+    if (is_standard || prop.count_type != PlyDataTypes::NONE) {
+      continue;
+    }
+    /* Skip names that are empty or reserved for internal attributes. */
+    if (prop.name.empty() || !bke::allow_procedural_attribute_access(prop.name) ||
+        bke::attribute_name_is_anonymous(prop.name))
+    {
       continue;
     }
 
@@ -304,7 +336,7 @@ static const char *load_vertex_element(PlyReadBuffer &file,
 
     const char *error = nullptr;
     if (header.type == PlyFormatType::ASCII) {
-      error = parse_row_ascii(file, value_vec);
+      error = parse_row_ascii(file, element, value_vec);
     }
     else {
       error = parse_row_binary(file, header, element, scratch, value_vec);
@@ -361,35 +393,48 @@ static const char *load_vertex_element(PlyReadBuffer &file,
   return nullptr;
 }
 
-static uint32_t read_list_count(PlyReadBuffer &file,
-                                const PlyProperty &prop,
-                                Vector<uint8_t> &scratch,
-                                bool big_endian)
+static bool read_list_count(PlyReadBuffer &file,
+                            const PlyProperty &prop,
+                            Vector<uint8_t> &scratch,
+                            bool big_endian,
+                            uint32_t &r_count)
 {
   scratch.resize(8);
-  file.read_bytes(scratch.data(), data_type_size[prop.count_type]);
+  if (!file.read_bytes(scratch.data(), data_type_size[prop.count_type])) {
+    return false;
+  }
   const uint8_t *ptr = scratch.data();
   if (big_endian) {
     endian_switch(const_cast<uint8_t *>(ptr), data_type_size[prop.count_type]);
   }
-  uint32_t count = get_binary_value<uint32_t>(prop.count_type, ptr);
-  return count;
+  r_count = get_binary_value<uint32_t>(prop.count_type, ptr);
+  return true;
 }
 
-static void skip_property(PlyReadBuffer &file,
+/* Read list values into scratch, returns false on unexpected end of file. */
+static bool read_list_values(PlyReadBuffer &file,
+                             const PlyProperty &prop,
+                             const uint32_t count,
+                             Vector<uint8_t> &scratch)
+{
+  scratch.resize(int64_t(count) * data_type_size[prop.type]);
+  return file.read_bytes(scratch.data(), scratch.size());
+}
+
+static bool skip_property(PlyReadBuffer &file,
                           const PlyProperty &prop,
                           Vector<uint8_t> &scratch,
                           bool big_endian)
 {
   if (prop.count_type == PlyDataTypes::NONE) {
     scratch.resize(8);
-    file.read_bytes(scratch.data(), data_type_size[prop.type]);
+    return file.read_bytes(scratch.data(), data_type_size[prop.type]);
   }
-  else {
-    uint32_t count = read_list_count(file, prop, scratch, big_endian);
-    scratch.resize(count * data_type_size[prop.type]);
-    file.read_bytes(scratch.data(), scratch.size());
+  uint32_t count;
+  if (!read_list_count(file, prop, scratch, big_endian, count)) {
+    return false;
   }
+  return read_list_values(file, prop, count, scratch);
 }
 
 static const char *load_face_element(PlyReadBuffer &file,
@@ -432,7 +477,7 @@ static const char *load_face_element(PlyReadBuffer &file,
         }
         else {
           p = parse_int(p, end, 0, count);
-          for (int k = 0; k < count; ++k) {
+          for (int k = 0; k < count && p < end; ++k) {
             p = drop_whitespace(p, end);
             p = drop_non_whitespace(p, end);
           }
@@ -451,10 +496,23 @@ static const char *load_face_element(PlyReadBuffer &file,
         continue;
       }
 
+      /* Skip faces with fewer indices than their size, instead of using index 0. */
+      const int64_t face_start = data->face_vertices.size();
+      bool is_complete = true;
       for (int j = 0; j < count; j++) {
+        p = drop_whitespace(p, end);
+        if (p == end) {
+          is_complete = false;
+          break;
+        }
         int index;
         p = parse_int(p, end, 0, index);
         data->face_vertices.append(index);
+      }
+      if (!is_complete) {
+        CLOG_WARN(&LOG, "PLY Importer: ignoring face %i (missing vertex indices)", i);
+        data->face_vertices.resize(face_start);
+        continue;
       }
       data->face_sizes.append(count);
     }
@@ -467,19 +525,25 @@ static const char *load_face_element(PlyReadBuffer &file,
 
       /* Skip any properties before vertex indices. */
       for (int j = 0; j < prop_index; j++) {
-        skip_property(
-            file, element.properties[j], scratch, header.type == PlyFormatType::BINARY_BE);
+        if (!skip_property(
+                file, element.properties[j], scratch, header.type == PlyFormatType::BINARY_BE))
+        {
+          return "Could not read face property";
+        }
       }
 
       /* Read vertex indices list. */
-      uint32_t count = read_list_count(
-          file, prop, scratch, header.type == PlyFormatType::BINARY_BE);
+      uint32_t count;
+      if (!read_list_count(file, prop, scratch, header.type == PlyFormatType::BINARY_BE, count)) {
+        return "Could not read face size";
+      }
       if (count < 1 || count > 255) {
         return "Invalid face size, must be between 1 and 255";
       }
 
-      scratch.resize(count * data_type_size[prop.type]);
-      file.read_bytes(scratch.data(), scratch.size());
+      if (!read_list_values(file, prop, count, scratch)) {
+        return "Could not read face vertex indices";
+      }
       /* Previous python based importer was accepting faces with fewer
        * than 3 vertices, and silently dropping them. */
       if (count < 3) {
@@ -499,8 +563,11 @@ static const char *load_face_element(PlyReadBuffer &file,
 
       /* Skip any properties after vertex indices. */
       for (int j = prop_index + 1; j < element.properties.size(); j++) {
-        skip_property(
-            file, element.properties[j], scratch, header.type == PlyFormatType::BINARY_BE);
+        if (!skip_property(
+                file, element.properties[j], scratch, header.type == PlyFormatType::BINARY_BE))
+        {
+          return "Could not read face property";
+        }
       }
     }
   }
@@ -532,12 +599,23 @@ static const char *load_tristrips_element(PlyReadBuffer &file,
     const char *end = p + line.size();
     int count = 0;
     p = parse_int(p, end, 0, count);
+    if (count < 0) {
+      return "Invalid tristrips size";
+    }
 
-    strip.resize(count);
     for (int j = 0; j < count; j++) {
+      p = drop_whitespace(p, end);
+      if (p == end) {
+        return "Could not read tristrips";
+      }
       int index;
-      p = parse_int(p, end, 0, index);
-      strip[j] = index;
+      const char *next = parse_int(p, end, 0, index);
+      if (next == p) {
+        /* Not a number, can't advance properly so stop. */
+        return "Could not read tristrips";
+      }
+      p = next;
+      strip.append(index);
     }
   }
   else {
@@ -545,11 +623,18 @@ static const char *load_tristrips_element(PlyReadBuffer &file,
 
     const uint8_t *ptr;
 
-    uint32_t count = read_list_count(file, prop, scratch, header.type == PlyFormatType::BINARY_BE);
+    uint32_t count;
+    if (!read_list_count(file, prop, scratch, header.type == PlyFormatType::BINARY_BE, count)) {
+      return "Could not read tristrips size";
+    }
+    if (count > INT_MAX) {
+      return "Invalid tristrips size";
+    }
+    if (!read_list_values(file, prop, count, scratch)) {
+      return "Could not read tristrips";
+    }
 
     strip.resize(count);
-    scratch.resize(count * data_type_size[prop.type]);
-    file.read_bytes(scratch.data(), scratch.size());
     ptr = scratch.data();
     if (header.type == PlyFormatType::BINARY_BE) {
       endian_switch_array(const_cast<uint8_t *>(ptr), data_type_size[prop.type], count);
@@ -599,7 +684,10 @@ static const char *load_edge_element(PlyReadBuffer &file,
 
   data->edges.reserve(element.count);
 
-  Vector<float> value_vec(element.properties.size());
+  /* Double to represent all int and uint indices exactly, float has only 24 bits.
+   * TODO: Ideally should parse as int directly, but would need to account for
+   * other edge data that may be float. */
+  Vector<double> value_vec(element.properties.size());
   Vector<uint8_t> scratch;
   if (header.type != PlyFormatType::ASCII) {
     scratch.resize(element.stride);
@@ -608,7 +696,7 @@ static const char *load_edge_element(PlyReadBuffer &file,
   for (int i = 0; i < element.count; i++) {
     const char *error = nullptr;
     if (header.type == PlyFormatType::ASCII) {
-      error = parse_row_ascii(file, value_vec);
+      error = parse_row_ascii(file, element, value_vec);
     }
     else {
       error = parse_row_binary(file, header, element, scratch, value_vec);
@@ -616,8 +704,8 @@ static const char *load_edge_element(PlyReadBuffer &file,
     if (error != nullptr) {
       return error;
     }
-    int index1 = value_vec[prop_vertex1];
-    int index2 = value_vec[prop_vertex2];
+    const int index1 = float_to_value<int>(value_vec[prop_vertex1]);
+    const int index2 = float_to_value<int>(value_vec[prop_vertex2]);
     data->edges.append(std::make_pair(index1, index2));
   }
   return nullptr;
@@ -629,15 +717,19 @@ static const char *skip_element(PlyReadBuffer &file,
 {
   if (header.type == PlyFormatType::ASCII) {
     for (int i = 0; i < element.count; i++) {
-      Span<char> line = file.read_line();
-      (void)line;
+      /* Empty lines are valid rows for elements without properties. */
+      if (!file.try_read_line()) {
+        return "Could not read element";
+      }
     }
   }
   else {
     Vector<uint8_t> scratch(64);
     for (int i = 0; i < element.count; i++) {
       for (const PlyProperty &prop : element.properties) {
-        skip_property(file, prop, scratch, header.type == PlyFormatType::BINARY_BE);
+        if (!skip_property(file, prop, scratch, header.type == PlyFormatType::BINARY_BE)) {
+          return "Could not read element";
+        }
       }
     }
   }
@@ -650,8 +742,40 @@ std::unique_ptr<PlyData> import_ply_data(PlyReadBuffer &file, PlyHeader &header)
 
   bool got_vertex = false, got_face = false, got_tristrips = false, got_edge = false;
   for (const PlyElement &element : header.elements) {
+    /* Binary rows can't be read with unknown property types, as their size is unknown. */
+    const bool has_unknown_type = header.type != PlyFormatType::ASCII &&
+                                  std::any_of(element.properties.begin(),
+                                              element.properties.end(),
+                                              [](const PlyProperty &prop) {
+                                                return prop.type == PlyDataTypes::NONE;
+                                              });
+    const bool is_known_element = ELEM(element.name, "vertex", "face", "tristrips", "edge");
+    if (has_unknown_type && is_known_element) {
+      data->error = "Unknown property type";
+      return data;
+    }
+
     const char *error = nullptr;
-    if (element.name == "vertex") {
+    if (!is_known_element) {
+      /* Elements that are skipped don't affect the geometry. When they can't be
+       * read, stop reading and keep the elements read so far. */
+      if (has_unknown_type) {
+        data->warning = "Unknown property type in element \"" + element.name +
+                        "\", skipping remaining elements";
+        break;
+      }
+      if (skip_element(file, header, element) != nullptr) {
+        data->warning = "Could not read element \"" + element.name +
+                        "\", skipping remaining elements";
+        break;
+      }
+    }
+    else if (element.name == "vertex") {
+      if (got_vertex) {
+        /* Vertex arrays are sized per element, so multiple vertex elements would mismatch. */
+        data->error = "Multiple vertex elements are not supported";
+        return data;
+      }
       error = load_vertex_element(file, header, element, data.get());
       got_vertex = true;
     }
@@ -666,9 +790,6 @@ std::unique_ptr<PlyData> import_ply_data(PlyReadBuffer &file, PlyHeader &header)
     else if (element.name == "edge") {
       error = load_edge_element(file, header, element, data.get());
       got_edge = true;
-    }
-    else {
-      error = skip_element(file, header, element);
     }
     if (error != nullptr) {
       data->error = error;

@@ -1785,6 +1785,7 @@ void ED_spacetype_node()
 
   st->spaceid = SPACE_NODE;
   STRNCPY_UTF8(st->name, "Node");
+  st->struct_size = sizeof(SpaceNode);
 
   st->create = node_create;
   st->free = node_free;

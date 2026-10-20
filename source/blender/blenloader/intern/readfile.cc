@@ -59,6 +59,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_memarena.hh"
+#include "BLI_memory_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.hh"
 #include "BLI_string_ref.hh"
@@ -196,6 +197,7 @@ static CLG_LogRef LOG_UNDO = {"undo"};
 
 /* local prototypes */
 static void read_libraries(FileData *basefd);
+static void read_libraries_free_placeholders(FileData *basefd);
 static void *read_struct(FileData *fd,
                          BHead *bh,
                          const char *blockname,
@@ -826,7 +828,10 @@ static const char *blo_bhead_string_at(const BHead *bhead, const int offset, con
 const char *blo_bhead_id_name(FileData *fd, const BHead *bhead)
 {
   BLI_assert(blo_bhead_is_id(bhead));
-  if (const char *id_name = blo_bhead_string_at(bhead, fd->id_name_offset, MAX_ID_NAME)) {
+  const char *id_name = blo_bhead_string_at(bhead, fd->id_name_offset, MAX_ID_NAME);
+  /* Names must at least contain the two character ID code, so code using `id_name + 2`
+   * always gets a null terminated string. */
+  if (id_name && id_name[0] != '\0' && id_name[1] != '\0') {
     return id_name;
   }
 
@@ -3711,16 +3716,23 @@ static BHead *read_libblock(FileData *fd,
 
   /* Read datablock contents.
    * Use convenient malloc name for debugging and better memory link prints. */
+  const void *id_address_old = bhead->old;
   bhead = read_data_into_datamap(fd, bhead, blockname, id_type_index);
   const bool success = direct_link_id(fd, main, id_tag, id_read_tags, id, id_old);
   oldnewmap_clear(fd->datamap);
 
   if (!success) {
-    /* XXX This is probably working OK currently given the very limited scope of that flag.
-     * However, it is absolutely **not** handled correctly: it is freeing an ID pointer that has
-     * been added to the fd->libmap mapping, which in theory could lead to nice crashes...
-     * This should be properly solved at some point. */
+    /* Only happens with corrupt files. Remove the ID from the library mapping,
+     * so pointers to it resolve to null instead of the freed ID. */
+    const NewAddress *entry = fd->libmap->map.lookup_ptr(id_address_old);
+    if (entry && entry->newp == id) {
+      fd->libmap->map.remove(id_address_old);
+    }
     BKE_id_free(main, id);
+    fd->flags &= ~FD_FLAGS_FILE_OK;
+    if (fd->bmain) {
+      blo_readfile_invalidate(fd, fd->bmain, "Corrupt .blend file, failed to read a data-block");
+    }
     if (r_id != nullptr) {
       *r_id = nullptr;
     }
@@ -4199,6 +4211,21 @@ static void direct_link_keymapitem(BlendDataReader *reader, wmKeyMapItem *kmi)
   kmi->flag &= ~KMI_UPDATE;
 }
 
+static size_t user_menu_item_struct_size(const eUserMenu_Type type)
+{
+  switch (type) {
+    case USER_MENU_TYPE_SEP:
+      return sizeof(bUserMenuItem);
+    case USER_MENU_TYPE_OPERATOR:
+      return sizeof(bUserMenuItem_Op);
+    case USER_MENU_TYPE_MENU:
+      return sizeof(bUserMenuItem_Menu);
+    case USER_MENU_TYPE_PROP:
+      return sizeof(bUserMenuItem_Prop);
+  }
+  return sizeof(bUserMenuItem);
+}
+
 /**
  * Read the user-preferences (#UserDef) block.
  *
@@ -4267,7 +4294,10 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   }
 
   for (bUserMenu &um : user->user_menus) {
-    BLO_read_struct_list(reader, bUserMenuItem, &um.items);
+    BLO_read_struct_list_with_type_size<bUserMenuItem>(
+        reader, &um.items, [](const bUserMenuItem &umi) {
+          return user_menu_item_struct_size(umi.type);
+        });
     for (bUserMenuItem &umi : um.items) {
       if (umi.type == USER_MENU_TYPE_OPERATOR) {
         bUserMenuItem_Op *umi_op = reinterpret_cast<bUserMenuItem_Op *>(&umi);
@@ -4415,6 +4445,12 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     blo_split_main(bfd->main);
     STRNCPY(bfd->main->filepath, filepath);
   }
+
+  BLI_SCOPED_DEFER([&]() {
+    if (bfd->main->is_read_invalid && bfd->main->split_mains) {
+      read_libraries_free_placeholders(fd);
+    }
+  });
 
   if (G.background) {
     /* We only read & store .blend thumbnail in background mode
@@ -6191,11 +6227,42 @@ static FileData *read_library_file_data(FileData *basefd, Main *bmain, Main *lib
   return fd;
 }
 
+/**
+ * Free link placeholders not replaced by real data-blocks, after reading
+ * libraries failed. They are only ID structs, which can't be freed like
+ * regular IDs.
+ */
+static void read_libraries_free_placeholders(FileData *basefd)
+{
+  for (Main *libmain : basefd->bmain->split_mains->as_span().drop_front(1)) {
+    for (ListBaseT<ID> *lb : BKE_main_lists_get(*libmain)) {
+      for (ID &id : lb->items_mutable()) {
+        if (!BLO_readfile_id_runtime_tags(id).is_link_placeholder) {
+          continue;
+        }
+        change_link_placeholder_to_real_ID_pointer(basefd, &id, nullptr);
+        BLI_remlink(lb, &id);
+        if (libmain->id_map != nullptr) {
+          BKE_main_idmap_remove_id(libmain->id_map, &id);
+        }
+        BKE_libblock_free_runtime_data(&id);
+        MEM_delete(&id);
+      }
+    }
+  }
+}
+
 static void read_libraries(FileData *basefd)
 {
   Main *bmain = basefd->bmain;
   BLI_assert(bmain->split_mains);
   bool do_it = true;
+
+  BLI_SCOPED_DEFER([&]() {
+    if (bmain->is_read_invalid) {
+      read_libraries_free_placeholders(basefd);
+    }
+  });
 
   /* At this point the base blend file has been read, and each library blend
    * encountered so far has a main with placeholders for linked data-blocks.
@@ -6500,6 +6567,88 @@ void BLO_read_struct_list_with_size(BlendDataReader *reader,
   list->last_ = prev;
 }
 
+/**
+ * Check data already verified for its base struct size against the struct size of its type.
+ * Data too small is freed and removed from the data map, so later reads resolve to null.
+ */
+static bool blo_read_verify_type_size(FileData *fd,
+                                      NewAddress &entry,
+                                      const void *old_address,
+                                      FunctionRef<size_t(const void *data)> type_size_fn)
+{
+  const size_t type_size = type_size_fn(entry.newp);
+  if (blo_verify_data_address(fd, entry.newp, old_address, entry.alloc_len, type_size)) {
+    return true;
+  }
+  if (entry.nr == 0) {
+    MEM_delete_void(entry.newp);
+  }
+  fd->datamap->map.remove(old_address);
+  return false;
+}
+
+void BLO_read_struct_list_with_type_size(BlendDataReader *reader,
+                                         const size_t base_size,
+                                         ListBase *list,
+                                         FunctionRef<size_t(const void *data)> type_size_fn)
+{
+  FileData *fd = reader->fd;
+  const void *old_address = list->first_;
+  Link *prev = nullptr;
+  list->first_ = nullptr;
+
+  while (old_address) {
+    NewAddress *entry = newdataadr_entry(fd, old_address);
+    if (entry == nullptr) {
+      break;
+    }
+    Link *ln = static_cast<Link *>(
+        blo_verify_data_address(fd, entry->newp, old_address, entry->alloc_len, base_size));
+    if (ln == nullptr) {
+      break;
+    }
+
+    /* Skip items too small for their type, continuing with the next one. */
+    const void *old_address_item = old_address;
+    old_address = ln->next;
+    if (!blo_read_verify_type_size(fd, *entry, old_address_item, type_size_fn)) {
+      continue;
+    }
+
+    entry->nr++;
+    ln->next = nullptr;
+    ln->prev = prev;
+    if (prev) {
+      prev->next = ln;
+    }
+    else {
+      list->first_ = ln;
+    }
+    prev = ln;
+  }
+  list->last_ = prev;
+}
+
+void *blo_read_struct_with_type_size_impl(BlendDataReader *reader,
+                                          const void *old_address,
+                                          const size_t base_size,
+                                          FunctionRef<size_t(const void *data)> type_size_fn)
+{
+  FileData *fd = reader->fd;
+  NewAddress *entry = newdataadr_entry(fd, old_address);
+  if (entry == nullptr) {
+    return nullptr;
+  }
+  void *new_address = blo_verify_data_address(
+      fd, entry->newp, old_address, entry->alloc_len, base_size);
+  if (new_address == nullptr || !blo_read_verify_type_size(fd, *entry, old_address, type_size_fn))
+  {
+    return nullptr;
+  }
+  entry->nr++;
+  return new_address;
+}
+
 void BLO_read_string(BlendDataReader *reader, char **ptr_p)
 {
 #ifndef NDEBUG
@@ -6684,6 +6833,15 @@ void BLO_read_glob_list(BlendDataReader *reader, ListBase *list)
 BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader)
 {
   return reader->fd->reports;
+}
+
+void BLO_read_data_invalidate(BlendDataReader *reader, const char *message)
+{
+  FileData *fd = reader->fd;
+  if (fd->bmain) {
+    blo_readfile_invalidate(
+        fd, (*fd->bmain->split_mains)[fd->bmain->split_mains->size() - 1], message);
+  }
 }
 
 bool BLO_read_lib_is_undo(BlendLibReader *reader)
