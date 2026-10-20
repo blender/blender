@@ -2057,7 +2057,8 @@ struct bNodeTree {
   Span<bNode *> group_input_nodes();
   Span<const bNode *> group_input_nodes() const;
 
-  /** Zones in the node tree. Currently there are only simulation zones in geometry nodes. */
+  /** Zones in the node tree. This is a valid but empty structure if no zones exist in the node
+   * tree. It is nullptr if the zones in the node tree are malformed. */
   const bke::bNodeTreeZones *zones() const;
 
   /**
