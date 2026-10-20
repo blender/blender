@@ -11,6 +11,7 @@
 
 #include "BKE_animsys.hh"
 #include "BKE_context.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 
@@ -437,6 +438,7 @@ int apply_keyingset(bContext *C,
     }
   }
 
+  Main *bmain = CTX_data_main(C);
   ReportList *reports = CTX_wm_reports(C);
   int keyed_channels = 0;
 
@@ -453,12 +455,14 @@ int apply_keyingset(bContext *C,
       continue;
     }
 
+    if (!BKE_id_is_editable(bmain, keyingset_path.id)) {
+      continue;
+    }
+
     keyed_channels += insert_key_to_keying_set_path(
         C, &keyingset_path, keyingset, kflag, mode, cfra);
   }
 
-  /* Return the number of channels successfully affected. */
-  BLI_assert(keyed_channels >= 0);
   return keyed_channels;
 }
 
