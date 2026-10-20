@@ -29,7 +29,7 @@ float3 slab_transmittance_at_angle(const float3 color, const float cos_theta_i, 
 float thin_glass_transmission_roughness(const float roughness, const float ior)
 {
   return saturate(roughness *
-                  sqrt(sqrt(3.4f * (ior - 1.0f) * square(ior - 0.5f) / (square(ior) * ior))));
+                  sqrt(3.4f * (ior - 1.0f) * square(ior - 0.5f) / (square(ior) * ior)));
 }
 
 float openpbr_fuzz(const float NV, const float rough)

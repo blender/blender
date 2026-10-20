@@ -530,9 +530,8 @@ ccl_device void osl_closure_thin_glass_setup(KernelGlobals kg,
   const bool has_reflection = !is_zero(closure->reflection_tint);
   const bool has_transmission = !is_zero(closure->transmission_tint);
 
-  int label = roughness_is_almost_specular(closure->roughness, closure->roughness) ?
-                  LABEL_SINGULAR :
-                  LABEL_GLOSSY;
+  int label = alpha_is_almost_specular(closure->alpha, closure->alpha) ? LABEL_SINGULAR :
+                                                                         LABEL_GLOSSY;
   if (has_transmission) {
     label |= LABEL_TRANSMIT;
   }
@@ -561,7 +560,7 @@ ccl_device void osl_closure_thin_glass_setup(KernelGlobals kg,
                                                      tint,
                                                      rgb_to_spectrum(weight),
                                                      valid_reflection_N,
-                                                     closure->roughness,
+                                                     closure->alpha,
                                                      closure->ior,
                                                      thinfilm,
                                                      path_visibility,
