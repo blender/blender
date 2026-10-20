@@ -134,15 +134,21 @@ static void node_geo_exec(GeoNodeExecParams params)
   fields.reserve(required_items.size());
   for (const int i : required_items.index_range()) {
     const int item_i = required_items[i];
+    const CPPType *expected_type = bke::socket_type_to_geo_nodes_base_cpp_type(
+        items[i].socket_type);
     const std::string identifier = ItemsAccessor::input_socket_identifier_for_item(items[item_i]);
-    fields.append(params.extract_input<fn::GField>(UString(identifier)));
+    fn::GField field = params.extract_input<fn::GField>(UString(identifier));
+    if (!expected_type || field.cpp_type() != *expected_type) {
+      params.error_message_add(NodeWarningType::Error, "Wrong input type");
+      params.set_default_remaining_outputs();
+      return;
+    }
+    fields.append(std::move(field));
   }
 
   Vector<GListPtr> lists(required_items.size());
   for (const int i : required_items.index_range()) {
-    const int item_i = required_items[i];
-    const eNodeSocketDatatype type = items[item_i].socket_type;
-    const CPPType &cpp_type = *bke::socket_type_to_geo_nodes_base_cpp_type(type);
+    const CPPType &cpp_type = fields[i].cpp_type();
     lists[i] = GList::create(cpp_type, GList::ArrayData::ForUninitialized(cpp_type, count), count);
   }
 
