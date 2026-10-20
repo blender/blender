@@ -39,7 +39,7 @@ closure color thin_glass(normal N,
                          color reflection,
                          color transmission,
                          float ior,
-                         float roughness,
+                         float alpha,
                          float thinfilm_thickness,
                          float thinfilm_ior) BUILTIN;
 closure color

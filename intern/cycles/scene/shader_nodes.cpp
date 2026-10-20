@@ -2808,9 +2808,8 @@ bool PrincipledBsdfNode::has_surface_transparent()
       return true;
     }
 
-    const float transmission_roughness = bsdf_thin_glass_transmission_roughness(sqr(roughness),
-                                                                                ior);
-    return roughness_is_almost_specular(transmission_roughness, transmission_roughness);
+    const float transmission_alpha = bsdf_thin_glass_transmission_alpha(sqr(roughness), ior);
+    return alpha_is_almost_specular(transmission_alpha, transmission_alpha);
   }
 
   return false;

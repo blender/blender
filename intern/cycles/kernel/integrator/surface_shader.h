@@ -213,7 +213,7 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
 
       /* NOTE: this is a sufficient condition. If `blur_roughness < THRESH < original_roughness`
        * then the flag was already set. */
-      if (!roughness_is_almost_specular(blur_roughness, blur_roughness)) {
+      if (!alpha_is_almost_specular(blur_roughness, blur_roughness)) {
         sd->runtime_flag |= SR_BSDF_HAS_EVAL;
       }
     }
