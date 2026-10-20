@@ -98,7 +98,7 @@ void copy_attribute_using_map(const GSpan src, const Span<int> out_to_in_map, GM
   IndexMaskMemory memory;
   const IndexMask valid_mask = array_utils::indices_non_negative(
       IndexRange(dst.size()), out_to_in_map, memory);
-  bke::attribute_math::gather(src, out_to_in_map, valid_mask, dst);
+  array_utils::gather(src, out_to_in_map, valid_mask, dst);
   type.value_initialize_indices(dst.data(), valid_mask.complement(IndexRange(dst.size()), memory));
 }
 
@@ -258,7 +258,7 @@ void interpolate_corner_attributes(bke::MutableAttributeAccessor output_attrs,
     bke::GSpanAttributeWriter dst = output_attrs.lookup_or_add_for_write_only_span(
         iter.name, iter.domain, iter.data_type);
     const GVArraySpan src(*reader);
-    bke::attribute_math::gather(src, out_to_in_corner_map, interp->copy_mask, dst.span);
+    array_utils::gather(src, out_to_in_corner_map, interp->copy_mask, dst.span);
     bke::attribute_math::mix_groups(src,
                                     OffsetIndices<int>(interp->group_offsets),
                                     interp->src_corners,

@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include "BLI_array_utils.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_math_quaternion.hh"
 #include "BLI_virtual_array.hh"
@@ -243,7 +244,7 @@ static GVArray adapt_mesh_domain_face_to_corner(const Mesh &mesh, const GVArray 
 {
   const OffsetIndices faces = mesh.faces();
   GArray<> values(varray.type(), mesh.corners_num);
-  attribute_math::gather_to_groups(faces, faces.index_range(), GVArraySpan(varray), values);
+  array_utils::gather_to_groups(faces, faces.index_range(), GVArraySpan(varray), values);
   return GVArray::from_garray(std::move(values));
 }
 

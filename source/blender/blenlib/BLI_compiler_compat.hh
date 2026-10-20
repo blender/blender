@@ -50,3 +50,15 @@ template<typename T> static inline T decltype_helper(T x)
 #else
 #  define BLI_NOINLINE
 #endif
+
+/**
+ * Same as #BLI_NOINLINE, but also prevents GCC from making specialized clones of the function,
+ * e.g. for constant arguments with `-fipa-cp-clone` at `-O3`. Because the clones are local to each
+ * translation unit, they prevent the linker from deduplicating implicit template instantiations.
+ * Use this for function templates in headers whose instantiations should exist only once.
+ */
+#if defined(__GNUC__) && !defined(__clang__)
+#  define BLI_NOINLINE_NOCLONE __attribute__((noinline, noclone))
+#else
+#  define BLI_NOINLINE_NOCLONE BLI_NOINLINE
+#endif

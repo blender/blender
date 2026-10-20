@@ -12,7 +12,6 @@
 #include "BLI_ordered_edge.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_attribute_storage.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
@@ -65,9 +64,9 @@ static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_ver
     if (!attribute) {
       return;
     }
-    bke::attribute_math::gather(attribute.span,
-                                new_to_old_verts_map,
-                                attribute.span.take_back(new_to_old_verts_map.size()));
+    array_utils::gather(attribute.span,
+                        new_to_old_verts_map,
+                        attribute.span.take_back(new_to_old_verts_map.size()));
     attribute.finish();
   });
   if (float3 *orco = static_cast<float3 *>(
@@ -112,7 +111,7 @@ static void propagate_edge_attributes(Mesh &mesh, const Span<int> new_to_old_edg
     if (!attribute) {
       return;
     }
-    bke::attribute_math::gather(
+    array_utils::gather(
         attribute.span, new_to_old_edge_map, attribute.span.take_back(new_to_old_edge_map.size()));
     attribute.finish();
   });

@@ -311,7 +311,7 @@ static void gather_attributes(MutableAttributeAccessor attributes,
 {
   for (const StringRef name : names) {
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
-    bke::attribute_math::gather(attribute.span, indices, attribute.span.slice(new_range));
+    array_utils::gather(attribute.span, indices, attribute.span.slice(new_range));
     attribute.finish();
   }
 }
@@ -347,7 +347,7 @@ static void gather_vert_attributes(Mesh &mesh,
   for (const StringRef name : names) {
     if (!vertex_group_names.contains(name)) {
       GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
-      bke::attribute_math::gather(attribute.span, indices, attribute.span.slice(new_range));
+      array_utils::gather(attribute.span, indices, attribute.span.slice(new_range));
       attribute.finish();
     }
   }
@@ -791,7 +791,7 @@ static void extrude_mesh_edges(Mesh &mesh,
       const CPPType &type = attribute.span.type();
       mix_groups_or_default(
           attribute.span, vert_group_corners_map, GPointer(type, type.default_value()), values);
-      bke::attribute_math::gather(
+      array_utils::gather(
           values.as_span(), new_corner_values, attribute.span.slice(new_loop_range));
       attribute.finish();
     }
@@ -1124,7 +1124,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
 
       /* Edges inside of face regions also just duplicate their source data. */
       GMutableSpan new_inner_data = attribute.span.slice(new_inner_edge_range);
-      bke::attribute_math::gather(attribute.span, new_inner_edge_indices, new_inner_data);
+      array_utils::gather(attribute.span, new_inner_edge_indices, new_inner_data);
 
       /* Edges connected to original vertices mix values of selected connected edges. */
       mix_groups_or_default(
@@ -1408,7 +1408,7 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
   /* Each side face gets the values from the corresponding new face. */
   for (const StringRef name : names_by_domain[int(AttrDomain::Face)]) {
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
-    bke::attribute_math::gather_to_groups(
+    array_utils::gather_to_groups(
         group_per_face, face_selection, attribute.span, attribute.span.slice(side_face_range));
     attribute.finish();
   }

@@ -10,6 +10,7 @@
 
 #include <numeric>
 
+#include "BLI_bytes_type.hh"
 #include "BLI_execution_mode.hh"
 #include "BLI_generic_span.hh"
 #include "BLI_generic_virtual_array.hh"
@@ -47,6 +48,131 @@ constexpr auto exec_mode_tag_for_copy(const Mode mode, const int64_t type_size)
   }
 }
 
+namespace detail {
+
+template<typename T, typename IndexT>
+BLI_NOINLINE_NOCLONE void scatter_to_indices(const T *__restrict src,
+                                             const IndexT *__restrict indices,
+                                             const int64_t size,
+                                             T *__restrict dst)
+{
+  for (const int64_t i : IndexRange(size)) {
+    dst[indices[i]] = src[i];
+  }
+}
+
+template<typename T>
+inline void copy_impl(const Span<T> src,
+                      const IndexMask &selection,
+                      MutableSpan<T> dst,
+                      const exec_mode::Mode mode)
+{
+  if (!mode.is_parallel) {
+    index_mask::copy_assign(src, selection, dst);
+    return;
+  }
+  threading::parallel_for(
+      selection.index_range(),
+      calc_copy_grain_size(mode, int64_t(sizeof(T))),
+      [&](const IndexRange range) { index_mask::copy_assign(src, selection.slice(range), dst); });
+}
+
+template<typename T, typename IndexT>
+inline void scatter_impl(const Span<T> src,
+                         const Span<IndexT> indices,
+                         MutableSpan<T> dst,
+                         const exec_mode::Mode mode)
+{
+  if (!mode.is_parallel) {
+    scatter_to_indices(src.data(), indices.data(), indices.size(), dst.data());
+    return;
+  }
+  threading::parallel_for(indices.index_range(),
+                          calc_copy_grain_size(mode, int64_t(sizeof(T))),
+                          [&](const IndexRange range) {
+                            scatter_to_indices(src.slice(range).data(),
+                                               indices.slice(range).data(),
+                                               range.size(),
+                                               dst.data());
+                          });
+}
+
+template<typename T>
+inline void scatter_impl(const Span<T> src,
+                         const IndexMask &indices,
+                         MutableSpan<T> dst,
+                         const exec_mode::Mode mode)
+{
+  if (!mode.is_parallel) {
+    index_mask::scatter_assign(src, indices, dst);
+    return;
+  }
+  threading::parallel_for(indices.index_range(),
+                          calc_copy_grain_size(mode, int64_t(sizeof(T))),
+                          [&](const IndexRange range) {
+                            index_mask::scatter_assign(
+                                src.slice(range), indices.slice(range), dst);
+                          });
+}
+
+template<typename T, typename IndexT>
+inline void gather_impl(const Span<T> src,
+                        const Span<IndexT> indices,
+                        const IndexMask &dst_mask,
+                        MutableSpan<T> dst,
+                        const exec_mode::Mode mode)
+{
+  PRF_scope(ProfileCategory::Default);
+  if (!mode.is_parallel) {
+    index_mask::gather_assign(src, indices, dst_mask, dst);
+    return;
+  }
+  threading::parallel_for(dst_mask.index_range(),
+                          calc_copy_grain_size(mode, int64_t(sizeof(T))),
+                          [&](const IndexRange range) {
+                            index_mask::gather_assign(src, indices, dst_mask.slice(range), dst);
+                          });
+}
+
+template<typename T>
+BLI_NOINLINE_NOCLONE void gather_to_groups_impl(const OffsetIndices<int> dst_offsets,
+                                                const IndexMask &src_selection,
+                                                const Span<T> src,
+                                                MutableSpan<T> dst)
+{
+  PRF_scope(ProfileCategory::Default);
+  src_selection.foreach_index(
+      [&](const int src_i, const int dst_i) { dst.slice(dst_offsets[dst_i]).fill(src[src_i]); },
+      exec_mode::grain_size(1024));
+}
+
+/**
+ * The trivial versions of functions that copy contiguous ranges of values can be even simpler by
+ * using memcpy.
+ */
+
+void copy_bytes(const void *src, void *dst, int64_t size, int64_t type_size, exec_mode::Mode mode);
+void gather_group_to_group_bytes(OffsetIndices<int> src_offsets,
+                                 OffsetIndices<int> dst_offsets,
+                                 const IndexMask &selection,
+                                 const void *src,
+                                 void *dst,
+                                 int64_t type_size);
+void gather_group_to_group_bytes(OffsetIndices<int> src_offsets,
+                                 OffsetIndices<int> dst_offsets,
+                                 Span<int> selection,
+                                 const void *src,
+                                 void *dst,
+                                 int64_t type_size);
+void copy_group_to_group_bytes(OffsetIndices<int> src_offsets,
+                               OffsetIndices<int> dst_offsets,
+                               const IndexMask &selection,
+                               const void *src,
+                               void *dst,
+                               int64_t type_size);
+
+}  // namespace detail
+
 /**
  * Fill the destination span by copying all values from the `src` array.
  */
@@ -73,13 +199,16 @@ template<typename T, exec_mode::Tag Mode = exec_mode::Parallel>
 inline void copy(const Span<T> src, MutableSpan<T> dst, const Mode mode = {})
 {
   BLI_assert(src.size() == dst.size());
-  if constexpr (!mode.is_parallel) {
+  if constexpr (std::is_trivially_copyable_v<T>) {
+    detail::copy_bytes(src.data(), dst.data(), src.size(), sizeof(T), mode);
+  }
+  else if constexpr (!mode.is_parallel) {
     dst.copy_from(src);
   }
   else {
     const int64_t grain_size = calc_copy_grain_size(mode, sizeof(T));
     threading::parallel_for(src.index_range(), grain_size, [&](const IndexRange range) {
-      copy(src.slice(range), dst.slice(range), exec_mode::serial);
+      dst.slice(range).copy_from(src.slice(range));
     });
   }
 }
@@ -102,8 +231,8 @@ inline void copy(const Span<T> src,
                  const Mode mode = {})
 {
   BLI_assert(src.size() == dst.size());
-  selection.foreach_index_optimized<int64_t>([&](const int64_t i) { dst[i] = src[i]; },
-                                             exec_mode_tag_for_copy(mode, sizeof(T)));
+  using U = bytes_type::to_copy_type<T>;
+  detail::copy_impl(src.template cast<U>(), selection, dst.template cast<U>(), mode);
 }
 
 /** Copy integers from a between two spans while adding an offset. */
@@ -145,17 +274,8 @@ inline void scatter(const Span<T> src,
                     const Mode mode = {})
 {
   BLI_assert(indices.size() == src.size());
-  if constexpr (!mode.is_parallel) {
-    for (const int64_t i : indices.index_range()) {
-      dst[indices[i]] = src[i];
-    }
-  }
-  else {
-    const int64_t grain_size = calc_copy_grain_size(mode, sizeof(T));
-    threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
-      scatter(src.slice(range), indices.slice(range), dst, exec_mode::serial);
-    });
-  }
+  using U = bytes_type::to_copy_type<T>;
+  detail::scatter_impl(src.template cast<U>(), indices, dst.template cast<U>(), mode);
 }
 
 template<typename T, exec_mode::Tag Mode = exec_mode::Parallel>
@@ -166,9 +286,8 @@ inline void scatter(const Span<T> src,
 {
   BLI_assert(indices.size() == src.size());
   BLI_assert(indices.min_array_size() <= dst.size());
-  indices.foreach_index_optimized<int64_t>(
-      [&](const int64_t index, const int64_t pos) { dst[index] = src[pos]; },
-      exec_mode_tag_for_copy(mode, sizeof(T)));
+  using U = bytes_type::to_copy_type<T>;
+  detail::scatter_impl(src.template cast<U>(), indices, dst.template cast<U>(), mode);
 }
 
 /**
@@ -219,10 +338,9 @@ inline void gather(const Span<T> src,
                    MutableSpan<T> dst,
                    const Mode mode = {})
 {
-  PRF_scope_with_name("array_utils::gather", ProfileCategory::Default);
   BLI_assert(indices.size() >= dst.size());
-  dst_mask.foreach_index_optimized<int64_t>([&](const int64_t i) { dst[i] = src[indices[i]]; },
-                                            exec_mode_tag_for_copy(mode, sizeof(T)));
+  using U = bytes_type::to_copy_type<T>;
+  detail::gather_impl(src.template cast<U>(), indices, dst_mask, dst.template cast<U>(), mode);
 }
 
 /**
@@ -287,11 +405,17 @@ inline void gather_group_to_group(const OffsetIndices<int> src_offsets,
                                   const Span<T> src,
                                   MutableSpan<T> dst)
 {
-  selection.foreach_index(
-      [&](const int64_t src_i, const int64_t dst_i) {
-        dst.slice(dst_offsets[dst_i]).copy_from(src.slice(src_offsets[src_i]));
-      },
-      exec_mode::grain_size(512));
+  if constexpr (std::is_trivially_copyable_v<T>) {
+    detail::gather_group_to_group_bytes(
+        src_offsets, dst_offsets, selection, src.data(), dst.data(), sizeof(T));
+  }
+  else {
+    selection.foreach_index(
+        [&](const int64_t src_i, const int64_t dst_i) {
+          dst.slice(dst_offsets[dst_i]).copy_from(src.slice(src_offsets[src_i]));
+        },
+        exec_mode::grain_size(512));
+  }
 }
 
 template<typename T>
@@ -301,11 +425,17 @@ inline void gather_group_to_group(const OffsetIndices<int> src_offsets,
                                   const Span<T> src,
                                   MutableSpan<T> dst)
 {
-  threading::parallel_for(selection.index_range(), 512, [&](const IndexRange range) {
-    for (const int dst_i : range) {
-      dst.slice(dst_offsets[dst_i]).copy_from(src.slice(src_offsets[selection[dst_i]]));
-    }
-  });
+  if constexpr (std::is_trivially_copyable_v<T>) {
+    detail::gather_group_to_group_bytes(
+        src_offsets, dst_offsets, selection, src.data(), dst.data(), sizeof(T));
+  }
+  else {
+    threading::parallel_for(selection.index_range(), 512, [&](const IndexRange range) {
+      for (const int dst_i : range) {
+        dst.slice(dst_offsets[dst_i]).copy_from(src.slice(src_offsets[selection[dst_i]]));
+      }
+    });
+  }
 }
 
 template<typename T>
@@ -328,10 +458,46 @@ inline void gather_to_groups(const OffsetIndices<int> dst_offsets,
                              const Span<T> src,
                              MutableSpan<T> dst)
 {
-  src_selection.foreach_index(
-      [&](const int src_i, const int dst_i) { dst.slice(dst_offsets[dst_i]).fill(src[src_i]); },
-      exec_mode::grain_size(1024));
+  using U = bytes_type::to_copy_type<T>;
+  detail::gather_to_groups_impl(
+      dst_offsets, src_selection, src.template cast<U>(), dst.template cast<U>());
 }
+
+void gather(GSpan src, Span<int> indices, const IndexMask &dst_mask, GMutableSpan dst);
+void gather(GSpan src, Span<int> indices, GMutableSpan dst);
+void gather(const GVArray &src, Span<int> indices, const IndexMask &dst_mask, GMutableSpan dst);
+void gather(const GVArray &src, Span<int> indices, GMutableSpan dst);
+
+/** Generic version of the #gather_group_to_group template above. */
+void gather_group_to_group(OffsetIndices<int> src_offsets,
+                           OffsetIndices<int> dst_offsets,
+                           const IndexMask &selection,
+                           GSpan src,
+                           GMutableSpan dst);
+
+/** Generic version of the #gather_to_groups template above. */
+void gather_to_groups(OffsetIndices<int> dst_offsets,
+                      const IndexMask &src_selection,
+                      GSpan src,
+                      GMutableSpan dst);
+
+/** Copy each range in \a src_ranges to the group in \a dst with the same index. */
+void gather_ranges_to_groups(Span<IndexRange> src_ranges,
+                             OffsetIndices<int> dst_offsets,
+                             GSpan src,
+                             GMutableSpan dst);
+
+/**
+ * Move elements from [src_begin, src_end) to a range starting at \a dst_begin.
+ * \a dst_begin must be <= \a src_begin.
+ */
+void shift_left(GMutableSpan data, int src_begin, int src_end, int dst_begin);
+
+/**
+ * Move elements from [src_begin, src_end) to a range ending at \a dst_end.
+ * \a dst_end must be >= \a src_end.
+ */
+void shift_right(GMutableSpan data, int src_begin, int src_end, int dst_end);
 
 /**
  * Copy the \a src data from the groups defined by \a src_offsets to the groups in \a dst defined
@@ -350,7 +516,13 @@ void copy_group_to_group(OffsetIndices<int> src_offsets,
                          Span<T> src,
                          MutableSpan<T> dst)
 {
-  copy_group_to_group(src_offsets, dst_offsets, selection, GSpan(src), GMutableSpan(dst));
+  if constexpr (std::is_trivially_copyable_v<T>) {
+    detail::copy_group_to_group_bytes(
+        src_offsets, dst_offsets, selection, src.data(), dst.data(), sizeof(T));
+  }
+  else {
+    copy_group_to_group(src_offsets, dst_offsets, selection, GSpan(src), GMutableSpan(dst));
+  }
 }
 
 /**

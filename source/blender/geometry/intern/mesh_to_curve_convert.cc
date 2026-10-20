@@ -12,7 +12,6 @@
 #include "BLI_set.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_mesh.hh"
 
@@ -97,7 +96,7 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
     if (!dst) {
       return;
     }
-    bke::attribute_math::gather(*src, vert_indices, dst.span);
+    array_utils::gather(*src, vert_indices, dst.span);
     dst.finish();
   });
 
@@ -334,7 +333,7 @@ bke::CurvesGeometry mesh_faces_to_curves_convert(const Mesh &mesh,
     if (!dst) {
       return;
     }
-    bke::attribute_math::gather(src, point_to_vert_map, dst.span);
+    array_utils::gather(src, point_to_vert_map, dst.span);
     dst.finish();
   });
 

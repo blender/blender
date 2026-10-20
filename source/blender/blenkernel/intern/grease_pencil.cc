@@ -4300,7 +4300,7 @@ static void reorder_attribute_domain(bke::AttributeStorage &data,
     switch (attr.storage_type()) {
       case bke::AttrStorageType::Array: {
         GArray<> new_data(type, new_by_old_map.size());
-        bke::attribute_math::gather(
+        array_utils::gather(
             std::get<GSpan>(attr.data().values()), new_by_old_map, new_data.as_mutable_span());
         attr.assign_data(bke::GList(std::move(new_data)));
         break;

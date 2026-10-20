@@ -18,6 +18,7 @@
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
 
+#include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
 #include "BLI_color_types.hh"
 #include "BLI_length_parameterize.hh"
@@ -1476,7 +1477,7 @@ static int trim_end_points(bke::greasepencil::Drawing &drawing,
     }
 
     bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
-    bke::attribute_math::shift_left(dst.span, current_points_num, dst.span.size(), new_points_num);
+    array_utils::shift_left(dst.span, current_points_num, dst.span.size(), new_points_num);
     dst.finish();
   });
 

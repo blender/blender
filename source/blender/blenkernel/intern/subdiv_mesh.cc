@@ -1275,10 +1275,10 @@ static void subdiv_mesh_face(const ForeachContext *foreach_context,
   SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
   threading::memory_bandwidth_bound_task(int64_t(ctx->subdiv_mesh->faces_num) * 4, [&]() {
     for (const int i : ctx->coarse_face_attrs.index_range()) {
-      bke::attribute_math::gather_to_groups(subdiv_faces_by_base_face,
-                                            ctx->coarse_faces.index_range(),
-                                            ctx->coarse_face_attr_spans[i],
-                                            ctx->subdiv_face_attr_spans[i]);
+      array_utils::gather_to_groups(subdiv_faces_by_base_face,
+                                    ctx->coarse_faces.index_range(),
+                                    ctx->coarse_face_attr_spans[i],
+                                    ctx->subdiv_face_attr_spans[i]);
     }
     if (!ctx->coarse_face_origindex.is_empty()) {
       array_utils::gather_to_groups(subdiv_faces_by_base_face,

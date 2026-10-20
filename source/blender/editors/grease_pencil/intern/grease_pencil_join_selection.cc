@@ -6,7 +6,10 @@
  * \ingroup edgreasepencil
  */
 
+#include "BLI_bytes_type_common.hh"
+
 #include "BKE_attribute.hh"
+#include "BKE_attribute_math.hh"
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_report.hh"
@@ -155,8 +158,8 @@ void reverse_points_of(bke::CurvesGeometry &dst_curves, const IndexRange points_
     }
 
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
-    bke::attribute_math::to_static_type(attribute.span.type(), [&]<typename T>() {
-      reverse_point_data<T>(points_to_reverse, attribute.span.typed<T>());
+    bke::attribute_math::to_static_bytes_type(attribute.span.type(), [&]<typename T>() {
+      reverse_point_data<T>(points_to_reverse, bytes_type::typed<T>(attribute.span));
     });
     attribute.finish();
   });

@@ -12,6 +12,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
+#include "BLI_bytes_type_common.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_listbase.hh"
@@ -1708,8 +1709,8 @@ void CurvesGeometry::reverse_curves(const IndexMask &curves_to_reverse)
     }
 
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
-    attribute_math::to_static_type(attribute.span.type(), [&]<typename T>() {
-      reverse_curve_point_data<T>(*this, curves_to_reverse, attribute.span.typed<T>());
+    attribute_math::to_static_bytes_type(attribute.span.type(), [&]<typename T>() {
+      reverse_curve_point_data<T>(*this, curves_to_reverse, bytes_type::typed<T>(attribute.span));
     });
     attribute.finish();
     return;
@@ -1860,7 +1861,7 @@ static GVArray adapt_curve_domain_curve_to_point(const CurvesGeometry &curves,
 {
   PRF_scope(ProfileCategory::Default);
   GArray<> values(varray.type(), curves.points_num());
-  attribute_math::gather_to_groups(
+  array_utils::gather_to_groups(
       curves.points_by_curve(), curves.curves_range(), GVArraySpan(varray), values);
   return GVArray::from_garray(std::move(values));
 }
