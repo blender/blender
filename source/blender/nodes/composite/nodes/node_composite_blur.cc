@@ -296,12 +296,15 @@ class BlurOperation : public NodeOperation {
 
   void execute_variable_size_gpu(const Result &input, const Result &size_input, Result &output)
   {
-    const float2 blur_radius = this->compute_maximum_blur_size();
+    const float2 pixel_size = input.domain().pixel_size;
+    const float2 blur_radius = this->compute_maximum_blur_size() * pixel_size;
     const Result &weights = context().cache_manager().symmetric_blur_weights.get(
         context(), blur_type_to_kernel(this->get_type()), blur_radius);
 
     gpu::Shader *shader = context().get_shader("compositor_symmetric_blur_variable_size");
     GPU_shader_bind(shader);
+
+    GPU_shader_uniform_2fv(shader, "pixel_size", pixel_size);
 
     input.bind_as_texture(shader, "input_tx");
     weights.bind_as_texture(shader, "weights_tx");
@@ -322,7 +325,8 @@ class BlurOperation : public NodeOperation {
 
   void execute_variable_size_cpu(const Result &input, const Result &size_input, Result &output)
   {
-    const float2 blur_radius = this->compute_maximum_blur_size();
+    const float2 pixel_size = input.domain().pixel_size;
+    const float2 blur_radius = this->compute_maximum_blur_size() * pixel_size;
     const Result &weights = this->context().cache_manager().symmetric_blur_weights.get(
         this->context(), blur_type_to_kernel(this->get_type()), blur_radius);
 
@@ -333,7 +337,8 @@ class BlurOperation : public NodeOperation {
       float4 accumulated_color = float4(0.0f);
       float4 accumulated_weight = float4(0.0f);
 
-      const float2 size = math::max(float2(0.0f), size_input.load_pixel_extended<float2>(texel));
+      const float2 loaded_size = size_input.load_pixel_extended<float2>(texel);
+      const float2 size = math::max(float2(0.0f), loaded_size * pixel_size);
       int2 radius = int2(math::ceil(size));
       float2 coordinates_scale = float2(1.0f) / (size + float2(1.0f));
 
@@ -444,7 +449,9 @@ class BlurOperation : public NodeOperation {
   float2 get_blur_size()
   {
     BLI_assert(this->get_input("Size").is_single_value());
-    return math::max(float2(0.0f), this->get_input("Size").get_single_value<float2>());
+    const float2 size = this->get_input("Size").get_single_value<float2>();
+    const float2 pixel_size = this->get_input("Image").domain().pixel_size;
+    return math::max(float2(0.0f), size * pixel_size);
   }
 
   bool get_separable()

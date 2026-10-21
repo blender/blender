@@ -160,7 +160,13 @@ class Context : public compositor::Context {
 
   compositor::Domain get_compositing_domain() const override
   {
-    return compositor::Domain(this->get_render_size());
+    compositor::Domain domain = compositor::Domain(this->get_render_size());
+    if (flag_is_set(this->get_render_data().compositor_proxy_flags,
+                    CompositorProxyFlags::AdaptToRenderScale))
+    {
+      domain.pixel_size = float2(this->get_render_data().size / 100.0f);
+    }
+    return domain;
   }
 
   void write_output_image(const compositor::Result &result)
@@ -556,6 +562,8 @@ class Context : public compositor::Context {
       pass.share_data(pass_data);
       pass_data.release();
     }
+
+    pass.domain() = this->get_compositing_domain();
 
     /* We assume the given pass is a Cryptomatte pass and retrieve its layer name. If it wasn't a
      * Cryptomatte pass, the checks below will fail anyway. */

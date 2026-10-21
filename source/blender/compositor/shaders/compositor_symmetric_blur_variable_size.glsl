@@ -17,7 +17,8 @@ void main()
   float4 accumulated_color = float4(0.0f);
   float4 accumulated_weight = float4(0.0f);
 
-  const float2 size = max(float2(0.0), texture_load(size_tx, texel).xy);
+  const float2 loaded_size = texture_load(size_tx, texel).xy;
+  const float2 size = max(float2(0.0), loaded_size * pixel_size);
   int2 radius = int2(ceil(size));
   float2 coordinates_scale = float2(1.0f) / (size + float2(1));
 

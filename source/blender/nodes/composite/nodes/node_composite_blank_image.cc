@@ -34,11 +34,13 @@ class BlankImageOperation : public NodeOperation {
 
   void execute() override
   {
+    const float2 pixel_size = this->context().get_compositing_domain().pixel_size;
     const int2 size = this->get_input("Size").get_single_value_default<int2>();
-    const int2 image_size = math::max(int2(1), size);
+    const int2 image_size = int2(math::max(float2(1), float2(size) * pixel_size));
 
     Result &output = this->get_result("Image");
     output.allocate_texture(Domain(image_size));
+    output.domain().pixel_size = pixel_size;
     const Color color = this->get_input("Color").get_single_value_default<Color>();
     if (this->context().use_gpu()) {
       GPU_texture_clear(output, GPU_DATA_FLOAT, color);

@@ -106,7 +106,9 @@ class PixelateOperation : public NodeOperation {
 
   int get_pixel_size()
   {
-    return math::max(1, this->get_input("Size").get_single_value_default<int>());
+    const float pixel_size = math::average(this->get_input("Color").domain().pixel_size);
+    const int size = this->get_input("Size").get_single_value_default<int>();
+    return math::max(1, int(size * pixel_size));
   }
 };
 

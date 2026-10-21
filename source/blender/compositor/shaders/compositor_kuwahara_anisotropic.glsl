@@ -76,9 +76,9 @@ void main()
   float anisotropy = eigenvalue_sum > 0.0f ? eigenvalue_difference / eigenvalue_sum : 0.0f;
 
 #if defined(VARIABLE_SIZE)
-  float radius = max(0.0f, texture_load(size_tx, texel).x);
+  float radius = max(0.0f, texture_load(size_tx, texel).x * pixel_size);
 #elif defined(CONSTANT_SIZE)
-  float radius = max(0.0f, size);
+  float radius = max(0.0f, size * pixel_size);
 #endif
   if (radius == 0) {
     imageStore(output_img, texel, texture_load(input_tx, texel));

@@ -14,9 +14,9 @@ void main()
   int2 texel = int2(gl_GlobalInvocationID.xy);
 
 #if defined(VARIABLE_SIZE)
-  int radius = max(0, int(texture_load(size_tx, texel).x));
+  const int radius = max(0, int(texture_load(size_tx, texel).x * pixel_size));
 #elif defined(CONSTANT_SIZE)
-  int radius = max(0, size);
+  const int radius = max(0, int(size * pixel_size));
 #endif
 
   float4 mean_of_squared_color_of_quadrants[4] = {
