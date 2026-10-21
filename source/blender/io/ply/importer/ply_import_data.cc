@@ -18,8 +18,6 @@
 
 #include "fast_float.h"
 
-#include <charconv>
-
 #include "CLG_log.h"
 
 namespace blender {
@@ -47,19 +45,14 @@ static const char *drop_non_whitespace(const char *p, const char *end)
   return p;
 }
 
-static const char *drop_plus(const char *p, const char *end)
-{
-  if (p < end && *p == '+') {
-    ++p;
-  }
-  return p;
-}
-
 static const char *parse_int(const char *p, const char *end, int fallback, int &dst)
 {
-  p = drop_whitespace(p, end);
-  p = drop_plus(p, end);
-  std::from_chars_result res = std::from_chars(p, end, dst);
+  fast_float::from_chars_result res = fast_float::from_chars_advanced(
+      p,
+      end,
+      dst,
+      fast_float::parse_options(fast_float::chars_format::skip_white_space |
+                                fast_float::chars_format::allow_leading_plus));
   if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range)) {
     dst = fallback;
   }
@@ -128,8 +121,12 @@ static int get_index(const PlyElement &element, StringRef property)
 /* Parse float or double, with 0 as fallback for invalid values. */
 template<typename T> static const char *parse_ascii_value(const char *p, const char *end, T &dst)
 {
-  p = drop_plus(drop_whitespace(p, end), end);
-  const fast_float::from_chars_result res = fast_float::from_chars(p, end, dst);
+  const fast_float::from_chars_result res = fast_float::from_chars(
+      p,
+      end,
+      dst,
+      fast_float::chars_format::general | fast_float::chars_format::skip_white_space |
+          fast_float::chars_format::allow_leading_plus);
   if (res.ec != std::errc()) {
     dst = T(0);
   }

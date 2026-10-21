@@ -96,12 +96,12 @@ class StringBuffer {
 
   void parse_float(float &out)
   {
-    drop_leading_control_chars();
-    /* Skip '+' */
-    if (start < end && *start == '+') {
-      start++;
-    }
-    fast_float::from_chars_result res = fast_float::from_chars(start, end, out);
+    fast_float::from_chars_result res = fast_float::from_chars(
+        start,
+        end,
+        out,
+        fast_float::chars_format::general | fast_float::chars_format::skip_white_space |
+            fast_float::chars_format::allow_leading_plus);
     if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range)) {
       out = 0.0f;
     }

@@ -11,7 +11,6 @@
  * and GCC/libstdc++ since 11.1. So until at least these are
  * the minimum spec, use an external library. */
 #include "fast_float.h"
-#include <charconv>
 
 namespace blender::io {
 
@@ -54,36 +53,20 @@ const char *drop_non_whitespace(const char *p, const char *end)
   return p;
 }
 
-static const char *drop_sign(const char *p, const char *end, int &sign)
-{
-  sign = 1;
-  if (p < end) {
-    if (*p == '+') {
-      ++p;
-    }
-    if (*p == '-') {
-      sign = -1;
-      ++p;
-    }
-  }
-  return p;
-}
-
 const char *try_parse_float(
     const char *p, const char *end, int fallback, bool &success, float &dst, bool skip_space)
 {
+  fast_float::chars_format format = fast_float::chars_format::general |
+                                    fast_float::chars_format::allow_leading_plus;
   if (skip_space) {
-    p = drop_whitespace(p, end);
+    format |= fast_float::chars_format::skip_white_space;
   }
-  int sign = 0;
-  p = drop_sign(p, end, sign);
-  fast_float::from_chars_result res = fast_float::from_chars(p, end, dst);
+  fast_float::from_chars_result res = fast_float::from_chars(p, end, dst, format);
   if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range) || res.ptr < end) {
     dst = fallback;
     success = false;
   }
   else {
-    dst *= sign;
     success = true;
   }
   return res.ptr;
@@ -92,18 +75,17 @@ const char *try_parse_float(
 const char *try_parse_int(
     const char *p, const char *end, int fallback, bool &success, int &dst, bool skip_space)
 {
+  fast_float::chars_format format = fast_float::chars_format::allow_leading_plus;
   if (skip_space) {
-    p = drop_whitespace(p, end);
+    format |= fast_float::chars_format::skip_white_space;
   }
-  int sign = 0;
-  p = drop_sign(p, end, sign);
-  std::from_chars_result res = std::from_chars(p, end, dst);
+  fast_float::from_chars_result res = fast_float::from_chars_advanced(
+      p, end, dst, fast_float::parse_options(format));
   if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range) || res.ptr < end) {
     dst = fallback;
     success = false;
   }
   else {
-    dst *= sign;
     success = true;
   }
   return res.ptr;
@@ -124,18 +106,19 @@ const char *parse_float(const char *p,
                         bool skip_space,
                         bool require_trailing_space)
 {
+  fast_float::chars_format format = fast_float::chars_format::general |
+                                    fast_float::chars_format::allow_leading_plus;
   if (skip_space) {
-    p = drop_whitespace(p, end);
+    format |= fast_float::chars_format::skip_white_space;
   }
-  p = drop_plus(p, end);
-  fast_float::from_chars_result res = fast_float::from_chars(p, end, dst);
+  fast_float::from_chars_result res = fast_float::from_chars(p, end, dst, format);
   if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range)) {
     dst = fallback;
   }
   else if (require_trailing_space && res.ptr < end && !is_whitespace(*res.ptr)) {
     /* If there are trailing non-space characters, do not eat up the number. */
     dst = fallback;
-    return p;
+    return drop_plus(skip_space ? drop_whitespace(p, end) : p, end);
   }
   return res.ptr;
 }
@@ -155,11 +138,12 @@ const char *parse_floats(const char *p,
 
 const char *parse_int(const char *p, const char *end, int fallback, int &dst, bool skip_space)
 {
+  fast_float::chars_format format = fast_float::chars_format::allow_leading_plus;
   if (skip_space) {
-    p = drop_whitespace(p, end);
+    format |= fast_float::chars_format::skip_white_space;
   }
-  p = drop_plus(p, end);
-  std::from_chars_result res = std::from_chars(p, end, dst);
+  fast_float::from_chars_result res = fast_float::from_chars_advanced(
+      p, end, dst, fast_float::parse_options(format));
   if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range)) {
     dst = fallback;
   }
