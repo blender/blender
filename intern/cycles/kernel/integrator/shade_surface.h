@@ -844,11 +844,11 @@ ccl_device int integrate_surface(KernelGlobals kg,
       /* Write render passes. */
 #ifdef __PASSES__
       PROFILING_EVENT(PROFILING_SHADE_SURFACE_PASSES);
-      film_write_data_passes(kg, state, &sd, render_buffer);
+      film_write_data_passes(kg, state, path_flag, &sd, render_buffer);
 #endif
 
 #ifdef __DENOISING_FEATURES__
-      film_write_denoising_features_surface(kg, state, &sd, render_buffer);
+      film_write_denoising_features_surface(kg, state, path_flag, &sd, render_buffer);
 #endif
     }
 

@@ -110,6 +110,11 @@ struct KernelGlobals {
     return {};
   }
 
+  ViewMatrices camera_matrices_get(const ShadingData & /*sd*/)
+  {
+    return {};
+  }
+
   ObjectMatrices object_matrices_get(const ShadingData & /*sd*/)
   {
     return {};
