@@ -975,7 +975,7 @@ void Film::display()
   draw::View &drw_view = draw::View::default_get();
 
   display_only_ = true;
-  DRW_manager_get()->submit(accumulate_ps_, drw_view);
+  DRW_manager_get()->submit(use_compute_ ? copy_ps_ : accumulate_ps_, drw_view);
 
   inst_.render_buffers.release();
 

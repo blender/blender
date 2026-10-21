@@ -208,6 +208,14 @@ struct KernelGlobals {
     return view.get(view_id_get(sd));
   }
 
+  ViewMatrices camera_matrices_get(const ShadingData & /*sd*/)
+  {
+    return {.viewmat = uniforms.uniform_buf.camera.shading_viewmat,
+            .viewinv = uniforms.uniform_buf.camera.shading_viewinv,
+            .winmat = uniforms.uniform_buf.camera.winmat,
+            .wininv = uniforms.uniform_buf.camera.wininv};
+  }
+
   ObjectMatrices light_matrices_get(int light_index)
   {
     if (pipe.use_lighting_nodes) [[static_branch]] {
@@ -935,24 +943,28 @@ Coordinates coordinate_impl(KernelGlobals &kg, const ShadingData &sd, float3 P, 
   }
   else {
     const eevee::Uniform &uni = kg.uniforms;
+    const CameraData cam = uni.uniform_buf.camera;
+    const ViewMatrices camera_matrices = kg.camera_matrices_get(sd);
     if (kg.pipe.is_world) [[static_branch]] {
-      coords.camera = view.normal_world_to_view(P);
-      coords.screen.xy = view.point_world_to_screen(P + view.position()).xy;
-      coords.screen.xy = coords.screen.xy * uni.uniform_buf.camera.uv_scale +
-                         uni.uniform_buf.camera.uv_bias;
+      coords.camera = camera_matrices.normal_world_to_view(P);
+      if (is_panoramic(cam.type)) {
+        coords.screen.xy = eevee::camera::uv_from_world(cam, P) * cam.uv_scale + cam.uv_bias;
+      }
+      else {
+        coords.screen.xy = view.point_world_to_screen(P + view.position()).xy;
+        coords.screen.xy = coords.screen.xy * cam.uv_scale + cam.uv_bias;
+      }
     }
     else {
-      const CameraData cam = uni.uniform_buf.camera;
+      coords.camera = camera_matrices.point_world_to_view(P);
       if (is_panoramic(cam.type)) {
         /* Panoramic camera render through per-face sub-views.
          * Can't use `view` here because that's only one sub-view, not the camera. */
-        coords.camera = transform_point(cam.viewmat, P);
         float3 dir = P - cam.viewinv[3].xyz;
-        coords.screen.xy = fract(eevee::camera::uv_from_world(cam, dir) + cam.uv_bias);
+        coords.screen.xy = eevee::camera::uv_from_world(cam, dir) * cam.uv_scale + cam.uv_bias;
       }
       else {
         const ViewMatrices view = kg.view_matrices_get(sd);
-        coords.camera = view.point_world_to_view(P);
         coords.screen.xy = view.point_world_to_screen(P).xy;
         coords.screen.xy = coords.screen.xy * cam.uv_scale + cam.uv_bias;
       }

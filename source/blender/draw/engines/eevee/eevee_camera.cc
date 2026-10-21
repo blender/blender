@@ -131,6 +131,23 @@ static PanoramicViewBits panoramic_view_mask_get(const CameraData &cam)
   }
 }
 
+/* Panoramic camera space of Cycles (see `blender_camera_matrix`). */
+static float4x4 panoramic_camera_from_view(const eCameraType type)
+{
+  if (type == CAMERA_PANO_MIRROR) {
+    /* X right, Y backward, Z up. */
+    return float4x4(float4(1.0f, 0.0f, 0.0f, 0.0f),
+                    float4(0.0f, 0.0f, -1.0f, 0.0f),
+                    float4(0.0f, 1.0f, 0.0f, 0.0f),
+                    float4(0.0f, 0.0f, 0.0f, 1.0f));
+  }
+  /* X forward, Y left, Z up. */
+  return float4x4(float4(0.0f, -1.0f, 0.0f, 0.0f),
+                  float4(0.0f, 0.0f, -1.0f, 0.0f),
+                  float4(-1.0f, 0.0f, 0.0f, 0.0f),
+                  float4(0.0f, 0.0f, 0.0f, 1.0f));
+}
+
 static float panoramic_front_face_extent_get(const CameraData &cam)
 {
   switch (cam.type) {
@@ -305,6 +322,11 @@ void Camera::sync()
   data.wininv = math::invert(data.winmat);
   data.persmat = data.winmat * data.viewmat;
   data.persinv = math::invert(data.persmat);
+
+  const float4x4 camera_from_view = this->is_panoramic() ? panoramic_camera_from_view(data.type) :
+                                                           float4x4::identity();
+  data.shading_viewmat = camera_from_view * data.viewmat;
+  data.shading_viewinv = data.viewinv * math::transpose(camera_from_view);
 
   is_camera_object_ = false;
   if (camera_eval && camera_eval->type == OB_CAMERA) {

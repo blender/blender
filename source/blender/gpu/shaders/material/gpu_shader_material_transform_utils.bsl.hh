@@ -25,7 +25,7 @@ void normal_transform_world_to_view(float3 vin,
                                     const ShadingData &sd,
                                     float3 &vout)
 {
-  const ViewMatrices view = kg.view_matrices_get(sd);
+  const ViewMatrices view = kg.camera_matrices_get(sd);
   vout = to_float3x3(view.viewmat) * vin;
 }
 
@@ -59,7 +59,7 @@ void normal_transform_object_to_view(float3 vin,
                                      float3 &vout)
 {
   const ObjectMatrices obj = kg.object_matrices_get(sd);
-  const ViewMatrices view = kg.view_matrices_get(sd);
+  const ViewMatrices view = kg.camera_matrices_get(sd);
   vout = vin * to_float3x3(obj.model_inverse);
   vout = to_float3x3(view.viewmat) * vout;
 }
@@ -81,7 +81,7 @@ void normal_transform_view_to_world(float3 vin,
                                     const ShadingData &sd,
                                     float3 &vout)
 {
-  const ViewMatrices view = kg.view_matrices_get(sd);
+  const ViewMatrices view = kg.camera_matrices_get(sd);
   vout = to_float3x3(view.viewinv) * vin;
 }
 
@@ -92,7 +92,7 @@ void normal_transform_view_to_object(float3 vin,
                                      float3 &vout)
 {
   const ObjectMatrices obj = kg.object_matrices_get(sd);
-  const ViewMatrices view = kg.view_matrices_get(sd);
+  const ViewMatrices view = kg.camera_matrices_get(sd);
   vout = to_float3x3(view.viewinv) * vin;
   vout = vout * to_float3x3(obj.model);
 }
@@ -158,7 +158,7 @@ void direction_transform_world_to_view(float3 vin,
                                        const ShadingData &sd,
                                        float3 &vout)
 {
-  const ViewMatrices view = kg.view_matrices_get(sd);
+  const ViewMatrices view = kg.camera_matrices_get(sd);
   vout = to_float3x3(view.viewmat) * vin;
 }
 
@@ -190,7 +190,7 @@ void direction_transform_object_to_view(float3 vin,
                                         float3 &vout)
 {
   const ObjectMatrices obj = kg.object_matrices_get(sd);
-  const ViewMatrices view = kg.view_matrices_get(sd);
+  const ViewMatrices view = kg.camera_matrices_get(sd);
   vout = to_float3x3(obj.model) * vin;
   vout = to_float3x3(view.viewmat) * vout;
 }
@@ -212,7 +212,7 @@ void direction_transform_view_to_world(float3 vin,
                                        const ShadingData &sd,
                                        float3 &vout)
 {
-  const ViewMatrices view = kg.view_matrices_get(sd);
+  const ViewMatrices view = kg.camera_matrices_get(sd);
   vout = to_float3x3(view.viewinv) * vin;
 }
 
@@ -223,7 +223,7 @@ void direction_transform_view_to_object(float3 vin,
                                         float3 &vout)
 {
   const ObjectMatrices obj = kg.object_matrices_get(sd);
-  const ViewMatrices view = kg.view_matrices_get(sd);
+  const ViewMatrices view = kg.camera_matrices_get(sd);
   vout = to_float3x3(view.viewinv) * vin;
   vout = to_float3x3(obj.model_inverse) * vout;
 }
@@ -288,7 +288,7 @@ void point_transform_world_to_view(float3 vin,
                                    const ShadingData &sd,
                                    float3 &vout)
 {
-  const ViewMatrices view = kg.view_matrices_get(sd);
+  const ViewMatrices view = kg.camera_matrices_get(sd);
   vout = (view.viewmat * float4(vin, 1.0f)).xyz;
 }
 
@@ -320,7 +320,7 @@ void point_transform_object_to_view(float3 vin,
                                     float3 &vout)
 {
   const ObjectMatrices obj = kg.object_matrices_get(sd);
-  const ViewMatrices view = kg.view_matrices_get(sd);
+  const ViewMatrices view = kg.camera_matrices_get(sd);
   vout = (view.viewmat * (obj.model * float4(vin, 1.0f))).xyz;
 }
 
@@ -341,7 +341,7 @@ void point_transform_view_to_world(float3 vin,
                                    const ShadingData &sd,
                                    float3 &vout)
 {
-  const ViewMatrices view = kg.view_matrices_get(sd);
+  const ViewMatrices view = kg.camera_matrices_get(sd);
   vout = (view.viewinv * float4(vin, 1.0f)).xyz;
 }
 
@@ -352,7 +352,7 @@ void point_transform_view_to_object(float3 vin,
                                     float3 &vout)
 {
   const ObjectMatrices obj = kg.object_matrices_get(sd);
-  const ViewMatrices view = kg.view_matrices_get(sd);
+  const ViewMatrices view = kg.camera_matrices_get(sd);
   vout = (obj.model_inverse * (view.viewinv * float4(vin, 1.0f))).xyz;
 }
 
