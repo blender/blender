@@ -179,15 +179,6 @@ Span<Strip *> lookup_strips_by_scene(Editing *ed, const Scene *key)
   return strips.as_span();
 }
 
-Map<const Scene *, VectorSet<Strip *>> &lookup_strips_by_scene_map_get(Editing *ed)
-{
-  BLI_assert(ed != nullptr);
-  std::lock_guard lock(lookup_lock);
-  strip_lookup_update_if_needed(ed, &ed->runtime->strip_lookup);
-  StripLookup *lookup = ed->runtime->strip_lookup;
-  return lookup->strips_by_scene;
-}
-
 Span<Strip *> lookup_strips_by_compositor_node_group(Editing *ed, const bNodeTree *key)
 {
   BLI_assert(ed != nullptr);

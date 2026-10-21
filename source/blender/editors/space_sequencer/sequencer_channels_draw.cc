@@ -50,13 +50,6 @@ static float channel_height_pixelspace_get(const View2D *timeline_region_v2d)
          ui::view2d_view_to_region_y(timeline_region_v2d, 0.0f);
 }
 
-static float frame_width_pixelspace_get(const View2D *timeline_region_v2d)
-{
-
-  return ui::view2d_view_to_region_x(timeline_region_v2d, 1.0f) -
-         ui::view2d_view_to_region_x(timeline_region_v2d, 0.0f);
-}
-
 static float icon_width_get(const SeqChannelDrawContext *context)
 {
   return (U.widget_unit * 0.8 * context->scale);
@@ -320,7 +313,6 @@ void channel_draw_context_init(const bContext *C,
   r_context->timeline_region_v2d = &r_context->timeline_region->v2d;
 
   r_context->channel_height = channel_height_pixelspace_get(r_context->timeline_region_v2d);
-  r_context->frame_width = frame_width_pixelspace_get(r_context->timeline_region_v2d);
   r_context->draw_offset = draw_offset_get(r_context->timeline_region_v2d);
 
   r_context->scale = min_ff(r_context->channel_height / (U.widget_unit * 0.6), 1);

@@ -216,11 +216,6 @@ Strip *lookup_strip_by_name(Editing *ed, const char *key);
 Span<Strip *> lookup_strips_by_scene(Editing *ed, const Scene *key);
 
 /**
- * Returns a map of scenes to the scene strips using them.
- */
-Map<const Scene *, VectorSet<Strip *>> &lookup_strips_by_scene_map_get(Editing *ed);
-
-/**
  * Find all strips using \a key as their compositor node tree.
  */
 Span<Strip *> lookup_strips_by_compositor_node_group(Editing *ed, const bNodeTree *key);

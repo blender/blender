@@ -132,7 +132,6 @@ void solid_color_effect_get_handle(EffectHandle &rval);
 void speed_effect_get_handle(EffectHandle &rval);
 void sub_effect_get_handle(EffectHandle &rval);
 void text_effect_get_handle(EffectHandle &rval);
-void transform_effect_get_handle(EffectHandle &rval);
 void wipe_effect_get_handle(EffectHandle &rval);
 
 /* Given `OpT` that implements an `apply` function:

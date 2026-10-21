@@ -36,8 +36,6 @@ struct RenderData {
   eSpaceSeq_Proxy_RenderSize preview_render_size = SEQ_RENDER_SIZE_SCENE;
   bool use_proxies = false;
   bool ignore_missing_media = false;
-  int motion_blur_samples = 0;
-  float motion_blur_shutter = 0.0f;
   bool skip_cache = false;
   bool is_prefetch_render = false;
   bool is_playing = false;

@@ -66,8 +66,6 @@ const SoundModifierWorkerInfo *sound_modifier_worker_info_get(int type);
 EQCurveMappingData *sound_equalizermodifier_add_graph(SoundEqualizerModifierData *semd,
                                                       float min_freq,
                                                       float max_freq);
-void sound_equalizermodifier_remove_graph(SoundEqualizerModifierData *semd,
-                                          EQCurveMappingData *eqcmd);
 
 AUD_Sound pitchmodifier_recreator(Strip * /*strip*/,
                                   StripModifierData *smd,
