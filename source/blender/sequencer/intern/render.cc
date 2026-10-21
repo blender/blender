@@ -211,8 +211,6 @@ void render_new_render_data(Main *bmain,
   r_context->preview_render_size = preview_render_size;
   r_context->ignore_missing_media = false;
   r_context->render = render;
-  r_context->motion_blur_samples = 0;
-  r_context->motion_blur_shutter = 0;
   r_context->skip_cache = false;
   r_context->view_id = 0;
   r_context->gpu_offscreen = nullptr;
@@ -1524,9 +1522,6 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
     camera = scene->camera;
   }
 
-#if 0 /* UNUSED */
-  bool have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;
-#endif
   const bool is_viewport_render = view3d_fn && is_preview && camera;
   const bke::compositor::ExecutionMode execution_mode =
       is_viewport_render ? bke::compositor::ExecutionMode::Preview :

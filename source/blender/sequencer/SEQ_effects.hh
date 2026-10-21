@@ -90,7 +90,6 @@ struct TextVarsRuntime {
   int font_descender;
   int character_count;
   int font;
-  bool editing_is_active; /* UI uses this to differentiate behavior. */
 };
 
 }  // namespace seq

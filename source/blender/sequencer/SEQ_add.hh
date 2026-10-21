@@ -70,7 +70,6 @@ struct LoadData {
   bool allow_invalid_file;   /* Used by RNA API to create placeholder strips. */
   double video_stream_start; /* For AV synchronization. Set by `seq::add_movie_strip`. */
   bool adjust_playback_rate;
-  bool allow_overlap;
 };
 
 /**

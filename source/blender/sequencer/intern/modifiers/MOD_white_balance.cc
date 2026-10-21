@@ -45,9 +45,6 @@ struct WhiteBalanceApplyOp {
 
         float4 result;
         result.w = input.w;
-#if 0
-        mul_v3_v3(result, multiplier);
-#else
         /* similar to division without the clipping */
         for (int i = 0; i < 3; i++) {
           /* Prevent pow argument from being negative. This whole math
@@ -56,7 +53,6 @@ struct WhiteBalanceApplyOp {
           float f = max_ff(1.0f - input[i], 0.0f);
           result[i] = 1.0f - powf(f, this->multiplier[i]);
         }
-#endif
 
         mask.apply_mask(input, result);
         store_pixel_premul(result, image);

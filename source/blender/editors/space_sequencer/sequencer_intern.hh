@@ -91,7 +91,6 @@ struct SeqChannelDrawContext {
 
   float draw_offset;
   float channel_height;
-  float frame_width;
   float scale;
 };
 

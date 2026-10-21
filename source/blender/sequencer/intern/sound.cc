@@ -239,13 +239,6 @@ EQCurveMappingData *sound_equalizermodifier_add_graph(SoundEqualizerModifierData
   return sound_equalizer_add(semd, min_freq, max_freq);
 }
 
-void sound_equalizermodifier_remove_graph(SoundEqualizerModifierData *semd,
-                                          EQCurveMappingData *eqcmd)
-{
-  BLI_remlink_safe(&semd->graphics, eqcmd);
-  MEM_delete(eqcmd);
-}
-
 void sound_equalizermodifier_init_data(StripModifierData *smd)
 {
   SoundEqualizerModifierData *semd = reinterpret_cast<SoundEqualizerModifierData *>(smd);
