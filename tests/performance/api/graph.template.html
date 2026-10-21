@@ -15,8 +15,8 @@
     .tab-content               { margin: 20px 20px; }
 
     /* Fixed width for header buttons to ensure groups match in size. */
-    .btn-time-range            { width: 100px; }
-    .btn-scale-mode            { width: 133.33px; /* (100 * 4) / 3 */ }
+    .btn-time-range,
+    .btn-scale-mode            { width: 130px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-error-bars@4.4.5/build/index.umd.min.js" integrity="sha384-pmEzimiQMD67BbR0zE+ss0ugx98UAGIaiNlaKtGz7BBQ3UaT69z1CN323+oCogy0" crossorigin="anonymous"></script>
@@ -64,11 +64,11 @@
         }
       }
 
-      const min_timestamp = get_min_timestamp(range);
-
       for (const chart of chart_instances) {
         if (chart.config._is_time_series) {
-          apply_time_range_to_chart(chart, min_timestamp);
+          rebuild_chart_data(chart);
+          update_chart_bounds(chart);
+          chart.update('none');
         }
       }
     }
@@ -82,37 +82,113 @@
       return 0;
     }
 
-    /* Filter a chart's data points based on the selected time range. */
-    function apply_time_range_to_chart(chart, min_timestamp) {
-      const full_data = chart.config._full_data;
+    /* Extract the numeric Y value from a data point. */
+    function get_point_y(point) {
+      return point != null ? point.y : null;
+    }
 
-      /* Find indices that match the time range. */
+    /* Scale a data point relative to a baseline so the baseline becomes 100%. */
+    function scale_point_to_percent(point, baseline) {
+      if (point == null || point.y == null) {
+        return point;
+      }
+      const factor = 100 / baseline;
+      return {
+        ...point,
+        y: point.y * factor,
+        yMin: point.yMin != null ? point.yMin * factor : null,
+        yMax: point.yMax != null ? point.yMax * factor : null,
+      };
+    }
+
+    /* Normalize a time-series dataset so the first non-null point in range is 100%. */
+    function normalize_dataset_data(data) {
+      let baseline = null;
+      for (const point of data) {
+        const y = get_point_y(point);
+        if (y !== null && y !== 0) {
+          baseline = y;
+          break;
+        }
+      }
+      if (baseline === null) {
+        return data;
+      }
+      return data.map(point => scale_point_to_percent(point, baseline));
+    }
+
+    /* Normalize comparison datasets so each label (test case) is independently scaled to 100%.
+     * The average across revisions is used as the baseline, since revision order is arbitrary. */
+    function normalize_comparison_datasets(datasets_data) {
+      if (datasets_data.length === 0) {
+        return datasets_data;
+      }
+      const label_count = datasets_data[0].length;
+      const baselines = [];
+      for (let label_index = 0; label_index < label_count; label_index++) {
+        let sum = 0;
+        let count = 0;
+        for (const data of datasets_data) {
+          const y = get_point_y(data[label_index]);
+          if (y !== null && y !== 0) {
+            sum += y;
+            count += 1;
+          }
+        }
+        baselines.push(count > 0 ? sum / count : null);
+      }
+      return datasets_data.map(data =>
+        data.map((point, label_index) => {
+          const baseline = baselines[label_index];
+          return baseline === null ? point : scale_point_to_percent(point, baseline);
+        })
+      );
+    }
+
+    /* Rebuild chart data from the stored full series, applying time filter and scale mode. */
+    function rebuild_chart_data(chart) {
+      const full_data = chart.config._full_data;
+      const min_timestamp = chart.config._is_time_series
+        ? get_min_timestamp(current_time_range)
+        : 0;
+
       const valid_indices = [];
-      for (let i = 0; i < full_data.labels_raw.length; i++) {
-        const timestamp = full_data.labels_raw[i];
-        if (min_timestamp === 0 || timestamp >= min_timestamp) {
+      for (let i = 0; i < full_data.labels.length; i++) {
+        if (!chart.config._is_time_series || min_timestamp === 0 ||
+            full_data.labels_raw[i] >= min_timestamp) {
           valid_indices.push(i);
         }
       }
 
-      /* Reconstruct labels and datasets based on valid indices. */
       chart.data.labels = valid_indices.map(i => full_data.labels[i]);
-      chart.data.datasets.forEach((ds, ds_index) => {
+
+      let datasets_data = chart.data.datasets.map((_, ds_index) => {
         const full_ds_data = full_data.datasets[ds_index].data;
-        ds.data = valid_indices.map(i => full_ds_data[i]);
+        return valid_indices.map(i => full_ds_data[i]);
+      });
+
+      if (current_scale_mode === 'normalized') {
+        if (chart.config._is_time_series) {
+          datasets_data = datasets_data.map(normalize_dataset_data);
+        } else {
+          datasets_data = normalize_comparison_datasets(datasets_data);
+        }
+      }
+
+      chart.data.datasets.forEach((ds, ds_index) => {
+        ds.data = datasets_data[ds_index];
       });
 
       /* Hide the entire section if there's no data in this range. */
-      const section = chart.canvas.closest('section');
-      if (section) {
-        section.style.display = valid_indices.length === 0 ? 'none' : 'block';
+      if (chart.config._is_time_series) {
+        const section = chart.canvas.closest('section');
+        if (section) {
+          section.style.display = valid_indices.length === 0 ? 'none' : 'block';
+        }
       }
-
-      update_chart_bounds(chart);
-      chart.update('none');
     }
 
-    /* Change the Y-axis scale (linear, log, etc.) for all visible charts. */
+    /* Change the Y-axis scale (linear, log, normalized, etc.) for all visible charts. */
     function set_scale_mode(mode, button) {
       current_scale_mode = mode;
       const scale_type = mode === 'logarithmic' ? 'logarithmic' : 'linear';
@@ -151,6 +227,7 @@
     /* Configure a specific chart instance with the selected scale settings. */
     function apply_scale_to_chart(chart, scale_type, clip_outliers, animate) {
       chart.options.scales.y.type = scale_type;
+      rebuild_chart_data(chart);
       update_chart_bounds(chart);
       chart.update(animate ? {
         duration: scale_type === 'logarithmic' ? 800 : 0,
@@ -191,8 +268,9 @@
         if (!chart.isDatasetVisible(i)) {
           return;
         }
-        /* Filter out null/undefined values. */
-        const ds_values = ds.data.filter(v => v !== null && v !== undefined);
+        const ds_values = ds.data
+          .map(get_point_y)
+          .filter(y => y !== null);
         const ds_stats = calculate_robust_max(ds_values);
 
         absolute_max = Math.max(absolute_max, ds_stats.absolute_max);
@@ -238,8 +316,11 @@
       }
     }
 
-    /* Format Y-axis tick labels for memory or large numeric values. */
+    /* Format Y-axis tick labels for memory, percentages, or large numeric values. */
     function chart_y_axis_tick_callback(value, index, values, is_memory) {
+      if (current_scale_mode === 'normalized') {
+        return (+value.toFixed(1)) + '%';
+      }
       if (is_memory) {
         return format_memory(value);
       }
@@ -286,7 +367,9 @@
         label += ': ';
       }
       if (context.parsed.y !== null) {
-        if (is_memory) {
+        if (current_scale_mode === 'normalized') {
+          label += context.parsed.y.toFixed(1) + '%';
+        } else if (is_memory) {
           label += format_memory(context.parsed.y);
         } else {
           label += context.parsed.y.toFixed(4);
@@ -510,11 +593,9 @@
           datasets: chart_data.datasets.map(ds => ({ ...ds, data: [...ds.data] }))
         };
 
-        if (is_time_series) {
-          apply_time_range_to_chart(chart, get_min_timestamp(current_time_range));
-        } else {
-          update_chart_bounds(chart);
-        }
+        rebuild_chart_data(chart);
+        update_chart_bounds(chart);
+        chart.update('none');
 
         chart_instances.push(chart);
       }
@@ -569,6 +650,7 @@
         <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-scale-mode" data-mode="linear">Linear</button>
         <button type="button" class="btn btn-secondary btn-sm shadow-sm btn-scale-mode active" id="linear-clipped" data-mode="linear-clipped">Linear (Clipped)</button>
         <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-scale-mode" data-mode="logarithmic">Logarithmic</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-scale-mode" data-mode="normalized">Normalized</button>
       </div>
     </div>
   </div>
