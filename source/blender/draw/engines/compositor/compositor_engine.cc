@@ -102,9 +102,21 @@ class Context : public compositor::Context {
   {
     const DRWContext *draw_ctx = DRW_context_get();
 
-    /* No camera region or is a viewport render, the domain is the entire viewport. */
-    if (draw_ctx->rv3d->persp != RV3D_CAMOB || draw_ctx->is_viewport_image_render()) {
+    /* No camera region, the domain is the entire viewport. */
+    if (draw_ctx->rv3d->persp != RV3D_CAMOB) {
       return compositor::Domain(int2(draw_ctx->viewport_size_get()));
+    }
+
+    /* A viewport render, the domain is the entire viewport, but we adapt the pixel size to the
+     * render size. */
+    if (draw_ctx->is_viewport_image_render()) {
+      compositor::Domain domain = compositor::Domain(int2(draw_ctx->viewport_size_get()));
+      if (flag_is_set(this->get_render_data().compositor_proxy_flags,
+                      CompositorProxyFlags::AdaptToRenderScale))
+      {
+        domain.pixel_size = float2(this->get_render_data().size / 100.0f);
+      }
+      return domain;
     }
 
     const rctf camera_border = BKE_camera_view_border(draw_ctx->scene,
@@ -126,6 +138,15 @@ class Context : public compositor::Context {
     compositor::Domain domain = compositor::Domain(camera_region.size());
     domain.data_size = border_region.size();
     domain.data_offset = border_region.min - camera_region.min;
+
+    if (flag_is_set(this->get_render_data().compositor_proxy_flags,
+                    CompositorProxyFlags::AdaptToRenderScale))
+    {
+      const int2 full_render_size = int2(this->get_render_data().xsch,
+                                         this->get_render_data().ysch);
+      domain.pixel_size = float2(domain.display_size) / float2(full_render_size);
+    }
+
     return domain;
   }
 

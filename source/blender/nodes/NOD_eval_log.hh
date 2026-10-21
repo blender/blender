@@ -266,6 +266,7 @@ class ImageInfoLog : public ValueLog {
   const int2 data_size;
   const int2 display_size;
   const int2 data_offset;
+  const float2 pixel_size;
   const float3x3 transformation;
 
   /* Stores compositor::RealizationOptions information in a textual representation. */
@@ -279,6 +280,7 @@ class ImageInfoLog : public ValueLog {
   ImageInfoLog(int2 data_size,
                int2 display_size,
                int2 data_offset,
+               float2 pixel_size,
                float3x3 transformation,
                StringRefNull interpolation,
                StringRefNull extension_x,

@@ -862,6 +862,12 @@ class SocketTooltipBuilder {
 
     this->add_space();
 
+    if (image_log.pixel_size != float2(1.0f)) {
+      this->add_text_field_mono(fmt::format(
+          "{}: {}x{}", TIP_("Pixel Size"), image_log.pixel_size.x, image_log.pixel_size.y));
+      this->add_space();
+    }
+
     float2 location;
     math::AngleRadian rotation;
     float2 scale;

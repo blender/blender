@@ -8098,6 +8098,16 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
                            "renders if the nodes' quality option is set to Follow Scene");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
 
+  prop = RNA_def_property(srna, "compositor_proxy_adapt_to_render_scale", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "compositor_proxy_flags", int(CompositorProxyFlags::AdaptToRenderScale));
+  RNA_def_property_ui_text(
+      prop,
+      "Compositor Proxy Adapt To Render Scale",
+      "Scale input media and pixel-unit values by the render resolution scale or viewport zoom, "
+      "such that results match across resolution scales and viewport zoom levels");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
+
   /* Nestled Data. */
   /* *** Non-Animated *** */
   RNA_define_animate_sdna(false);

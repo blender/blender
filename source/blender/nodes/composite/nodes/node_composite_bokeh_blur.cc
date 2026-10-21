@@ -201,6 +201,7 @@ class BokehBlurOperation : public NodeOperation {
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "search_radius", search_radius);
+    GPU_shader_uniform_1f(shader, "pixel_size", math::average(input.domain().pixel_size));
 
     input.bind_as_texture(shader, "input_tx");
 
@@ -231,6 +232,7 @@ class BokehBlurOperation : public NodeOperation {
                                  const Result &size_input,
                                  const Result &mask_image)
   {
+    const float pixel_size = math::average(input.domain().pixel_size);
     const int search_radius = this->compute_variable_size_search_radius();
 
     const Result &weights = this->get_input("Bokeh");
@@ -277,7 +279,7 @@ class BokehBlurOperation : public NodeOperation {
         return;
       }
 
-      float center_size = math::max(0.0f, size_input.load_pixel<float>(texel));
+      const float center_size = math::max(0.0f, size_input.load_pixel<float>(texel) * pixel_size);
 
       /* Go over the window of the given search radius and accumulate the colors multiplied by
        * their respective weights as well as the weights themselves, but only if both the size of
@@ -287,8 +289,8 @@ class BokehBlurOperation : public NodeOperation {
       float4 accumulated_weight = float4(0.0f);
       for (int y = -search_radius; y <= search_radius; y++) {
         for (int x = -search_radius; x <= search_radius; x++) {
-          float candidate_size = math::max(
-              0.0f, size_input.load_pixel_extended<float>(texel + int2(x, y)));
+          const float loaded_size = size_input.load_pixel_extended<float>(texel + int2(x, y));
+          const float candidate_size = math::max(0.0f, loaded_size * pixel_size);
 
           /* Skip accumulation if either the x or y distances of the candidate pixel are larger
            * than either the center or candidate pixel size. Note that the max and min functions
@@ -341,12 +343,16 @@ class BokehBlurOperation : public NodeOperation {
 
   int compute_variable_size_search_radius()
   {
-    return math::max(0, int(maximum_float(context(), this->get_input("Size"))));
+    const float pixel_size = math::average(this->get_input("Image").domain().pixel_size);
+    const float size = maximum_float(this->context(), this->get_input("Size"));
+    return math::max(0, int(size * pixel_size));
   }
 
   int get_blur_radius()
   {
-    return math::max(0, int(this->get_input("Size").get_single_value<float>()));
+    const float pixel_size = math::average(this->get_input("Image").domain().pixel_size);
+    const float size = this->get_input("Size").get_single_value_default<float>();
+    return math::max(0, int(size * pixel_size));
   }
 
   bool is_identity()

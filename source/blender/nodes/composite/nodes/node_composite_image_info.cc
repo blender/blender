@@ -26,6 +26,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::IntVector>("Resolution"_ustr)
       .dimensions(2)
       .description("The original resolution of the image in pixels before any transformations");
+  b.add_output<decl::Vector>("Pixel Size"_ustr)
+      .dimensions(2)
+      .description(
+          "The size of the pixel relative to its original size in case the image is a proxy or an "
+          "anamorphic image. For instance, a 50% proxy image would have a pixel size of 0.5, "
+          "while an anamorphic image could have a pixel size of (0.5,1)");
   b.add_output<decl::Vector>("Location"_ustr).dimensions(2);
   b.add_output<decl::Float>("Rotation"_ustr);
   b.add_output<decl::Vector>("Scale"_ustr).dimensions(2);
@@ -62,6 +68,12 @@ class ImageInfoOperation : public NodeOperation {
     if (resolution_result.should_compute()) {
       resolution_result.allocate_single_value();
       resolution_result.set_single_value(domain.data_size);
+    }
+
+    Result &pixel_size_result = this->get_result("Pixel Size");
+    if (pixel_size_result.should_compute()) {
+      pixel_size_result.allocate_single_value();
+      pixel_size_result.set_single_value(domain.pixel_size);
     }
 
     math::AngleRadian rotation;

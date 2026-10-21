@@ -24,6 +24,7 @@ static destruct_ptr<nodes::eval_log::ImageInfoLog> get_image_info_log(LinearAllo
       domain.data_size,
       domain.display_size,
       domain.data_offset,
+      domain.pixel_size,
       domain.transformation,
       to_string(domain.realization_options.interpolation),
       to_string(domain.realization_options.extension_x),

@@ -33,11 +33,13 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Int>("X"_ustr)
       .default_value(0)
+      .subtype(PROP_PIXEL)
       .min(0)
 
       .description("The X position of the lower left corner of the crop region");
   b.add_input<decl::Int>("Y"_ustr)
       .default_value(0)
+      .subtype(PROP_PIXEL)
       .min(0)
 
       .description("The Y position of the lower left corner of the crop region");
@@ -69,6 +71,11 @@ class CropOperation : public NodeOperation {
 
   void execute() override
   {
+    if (!this->compute_cropping_bounds().has_value()) {
+      this->allocate_default_remaining_outputs();
+      return;
+    }
+
     if (this->is_identity()) {
       const Result &input = this->get_input("Image");
       Result &output = this->get_result("Image");
@@ -101,7 +108,7 @@ class CropOperation : public NodeOperation {
     gpu::Shader *shader = this->context().get_shader("compositor_alpha_crop");
     GPU_shader_bind(shader);
 
-    const Bounds<int2> bounds = this->compute_cropping_bounds();
+    const Bounds<int2> bounds = this->compute_cropping_bounds().value();
     GPU_shader_uniform_2iv(shader, "lower_bound", bounds.min);
     GPU_shader_uniform_2iv(shader, "upper_bound", bounds.max);
 
@@ -123,7 +130,7 @@ class CropOperation : public NodeOperation {
 
   void execute_alpha_crop_cpu()
   {
-    const Bounds<int2> bounds = this->compute_cropping_bounds();
+    const Bounds<int2> bounds = this->compute_cropping_bounds().value();
 
     const Result &input = this->get_input("Image");
 
@@ -154,7 +161,7 @@ class CropOperation : public NodeOperation {
 
   void execute_image_crop_gpu()
   {
-    const Bounds<int2> bounds = this->compute_cropping_bounds();
+    const Bounds<int2> bounds = this->compute_cropping_bounds().value();
 
     gpu::Shader *shader = this->context().get_shader("compositor_image_crop_float4");
     GPU_shader_bind(shader);
@@ -179,7 +186,7 @@ class CropOperation : public NodeOperation {
 
   void execute_image_crop_cpu()
   {
-    const Bounds<int2> bounds = this->compute_cropping_bounds();
+    const Bounds<int2> bounds = this->compute_cropping_bounds().value();
 
     const Result &input = this->get_input("Image");
 
@@ -201,7 +208,7 @@ class CropOperation : public NodeOperation {
       return true;
     }
 
-    const Bounds<int2> bounds = this->compute_cropping_bounds();
+    const Bounds<int2> bounds = *this->compute_cropping_bounds();
     const int2 input_size = input.domain().data_size;
     /* The cropping bounds cover the whole image, so no cropping happens. */
     if (bounds.min == int2(0) && bounds.max == input_size) {
@@ -211,21 +218,22 @@ class CropOperation : public NodeOperation {
     return false;
   }
 
-  Bounds<int2> compute_cropping_bounds()
+  std::optional<Bounds<int2>> compute_cropping_bounds()
   {
-    const int2 input_size = this->get_input("Image").domain().data_size;
+    const Result &input = this->get_input("Image");
+    const int2 input_size = input.domain().data_size;
+    const float2 pixel_size = input.domain().pixel_size;
 
-    const int x = math::clamp(
-        this->get_input("X").get_single_value_default<int>(), 0, input_size.x - 1);
-    const int y = math::clamp(
-        this->get_input("Y").get_single_value_default<int>(), 0, input_size.y - 1);
+    const int x = this->get_input("X").get_single_value_default<int>();
+    const int y = this->get_input("Y").get_single_value_default<int>();
     const int width = math::max(1, this->get_input("Width").get_single_value_default<int>());
     const int height = math::max(1, this->get_input("Height").get_single_value_default<int>());
 
     const Bounds<int2> input_bounds = Bounds<int2>(int2(0), input_size);
 
-    const Bounds<int2> crop_bounds = Bounds<int2>(int2(x, y), int2(x + width, y + height));
-    return *bounds::intersect(crop_bounds, input_bounds);
+    const Bounds<int2> crop_bounds = Bounds<int2>(
+        int2(float2(x, y) * pixel_size), int2(float2(x + width, y + height) * pixel_size));
+    return bounds::intersect(crop_bounds, input_bounds);
   }
 
   /* If true, the region outside of the cropping bounds will be set to a zero alpha value instead

@@ -985,6 +985,9 @@ class NODE_PT_quality(Panel):
             col = layout.column(heading="Cache", align=True)
             col.prop(rd, "use_compositor_frames_cache", text="Frames")
 
+            col = layout.column(heading="Proxy", align=True)
+            col.prop(rd, "compositor_proxy_adapt_to_render_scale", text="Adapt To Render Scale")
+
 
 class NODE_PT_overlay(Panel):
     bl_space_type = 'NODE_EDITOR'

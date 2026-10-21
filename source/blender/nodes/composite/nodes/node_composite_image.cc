@@ -4,6 +4,8 @@
 
 #include "BLI_assert.hh"
 #include "BLI_listbase.hh"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.hh"
@@ -294,6 +296,10 @@ class ImageOperation : public NodeOperation {
     result.set_type(cached_image.type());
     result.set_precision(cached_image.precision());
     result.share_data(cached_image);
+    const float2 pixel_size = this->context().get_compositing_domain().pixel_size;
+    result.domain().transformation = math::from_scale<float3x3>(pixel_size) *
+                                     result.domain().transformation;
+    result.domain().pixel_size = pixel_size;
   }
 
   void compute_alpha()

@@ -663,12 +663,21 @@ enum eCompositorDevice : int {
   SCE_COMPOSITOR_DEVICE_GPU = 1,
 };
 
-/** #RenderData::cache_flags */
+/** #RenderData::compositor_cache_flags */
 enum eCompositorCacheFlags : uint8_t {
   SCE_COMPOSITOR_CACHE_NONE = 0,
   SCE_COMPOSITOR_CACHE_FRAMES = (1 << 0),
 };
 ENUM_OPERATORS(eCompositorCacheFlags);
+
+/** #RenderData::compositor_proxy_flags */
+enum class CompositorProxyFlags : uint8_t {
+  None = 0,
+  /* Scale input media and pixel-unit values by the render resolution scale or viewport zoom, such
+   * that results match across resolution scales and viewport zoom levels. */
+  AdaptToRenderScale = (1 << 1),
+};
+ENUM_OPERATORS(CompositorProxyFlags);
 
 /** #RenderData::compositor_precision */
 enum eCompositorPrecision : int {
@@ -1050,7 +1059,10 @@ struct RenderData {
   /** Cache options for the interactive compositor. */
   eCompositorCacheFlags compositor_cache_flags = SCE_COMPOSITOR_CACHE_FRAMES;
 
-  char _pad10[3] = {};
+  /** Proxy options for the interactive and viewport compositors. */
+  CompositorProxyFlags compositor_proxy_flags = CompositorProxyFlags::AdaptToRenderScale;
+
+  char _pad10[2] = {};
 
   /** Precision used by the GPU execution of the compositor tree. */
   eCompositorPrecision compositor_precision = SCE_COMPOSITOR_PRECISION_AUTO;

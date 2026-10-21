@@ -250,7 +250,9 @@ class KeyingOperation : public NodeOperation {
 
   int get_preprocess_blur_size()
   {
-    return math::max(0, this->get_input("Preprocess Blur Size").get_single_value_default<int>());
+    const float pixel_size = math::average(this->get_input("Image").domain().pixel_size);
+    const int size = this->get_input("Preprocess Blur Size").get_single_value_default<int>();
+    return math::max(0, int(size * pixel_size));
   }
 
   Result extract_input_chroma()
@@ -626,7 +628,9 @@ class KeyingOperation : public NodeOperation {
 
   int get_edge_search_size()
   {
-    return math::max(0, this->get_input("Edge Search Size").get_single_value_default<int>());
+    const float pixel_size = math::average(this->get_input("Image").domain().pixel_size);
+    const int size = this->get_input("Edge Search Size").get_single_value_default<int>();
+    return math::max(0, int(size * pixel_size));
   }
 
   float get_edge_tolerance()
@@ -668,7 +672,9 @@ class KeyingOperation : public NodeOperation {
 
   int get_postprocess_blur_size()
   {
-    return math::max(0, this->get_input("Postprocess Blur Size").get_single_value_default<int>());
+    const float pixel_size = math::average(this->get_input("Image").domain().pixel_size);
+    const int size = this->get_input("Postprocess Blur Size").get_single_value_default<int>();
+    return math::max(0, int(size * pixel_size));
   }
 
   Result compute_morphed_matte(Result &input_matte)
@@ -691,7 +697,9 @@ class KeyingOperation : public NodeOperation {
 
   int get_postprocess_dilate_size()
   {
-    return this->get_input("Postprocess Dilate Size").get_single_value_default<int>();
+    const float pixel_size = math::average(this->get_input("Image").domain().pixel_size);
+    const int size = this->get_input("Postprocess Dilate Size").get_single_value_default<int>();
+    return int(size * pixel_size);
   }
 
   Result compute_feathered_matte(Result &input_matte)
@@ -715,7 +723,9 @@ class KeyingOperation : public NodeOperation {
 
   int get_postprocess_feather_size()
   {
-    return this->get_input("Postprocess Feather Size").get_single_value_default<int>();
+    const float pixel_size = math::average(this->get_input("Image").domain().pixel_size);
+    const int size = this->get_input("Postprocess Feather Size").get_single_value_default<int>();
+    return int(size * pixel_size);
   }
 
   int get_feather_falloff()

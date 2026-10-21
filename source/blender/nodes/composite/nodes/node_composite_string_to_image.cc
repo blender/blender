@@ -122,7 +122,9 @@ class StringToImageOperation : public NodeOperation {
   {
     const std::string string = this->get_input("String").get_single_value_default<std::string>();
     const VFont *font = this->get_input("Font").get_single_value_default<VFont *>();
-    const float size = this->get_input("Size").get_single_value_default<float>();
+
+    const float pixel_size = math::average(this->context().get_compositing_domain().pixel_size);
+    const float size = this->get_input("Size").get_single_value_default<float>() * pixel_size;
 
     const Result &string_image = this->context().cache_manager().string_images.get(
         this->context(),
@@ -139,6 +141,7 @@ class StringToImageOperation : public NodeOperation {
 
     Result &output = this->get_result("Image");
     output.share_data(string_image);
+    output.domain().pixel_size = float2(pixel_size);
   }
 
   HorizontalAlignment get_horizontal_alignment()
@@ -186,7 +189,9 @@ class StringToImageOperation : public NodeOperation {
       return std::nullopt;
     }
 
-    return math::max(0, this->get_input("Wrap Width").get_single_value_default<int>());
+    const float pixel_size = math::average(this->context().get_compositing_domain().pixel_size);
+    const int width = this->get_input("Wrap Width").get_single_value_default<int>();
+    return math::max(0, int(width * pixel_size));
   }
 
   bool uses_asynchronous_execution() const override

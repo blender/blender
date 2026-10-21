@@ -15,6 +15,7 @@
 
 GPU_SHADER_CREATE_INFO(compositor_kuwahara_classic_shared)
 LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(float, pixel_size)
 IMAGE(0, SFLOAT_16_16_16_16, write, image2D, output_img)
 COMPUTE_SOURCE("compositor_kuwahara_classic.glsl")
 GPU_SHADER_CREATE_END()
@@ -69,6 +70,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_kuwahara_anisotropic_shared)
 LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(float, pixel_size)
 PUSH_CONSTANT(float, eccentricity)
 PUSH_CONSTANT(float, sharpness)
 SAMPLER(0, sampler2D, input_tx)

@@ -60,6 +60,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Int>("Uniformity"_ustr)
       .default_value(4)
+      .subtype(PROP_PIXEL)
       .min(0)
       .usage_by_single_menu(CMP_NODE_KUWAHARA_ANISOTROPIC)
       .description(
@@ -154,6 +155,9 @@ class ConvertKuwaharaOperation : public NodeOperation {
     const Result &input_image = get_input("Image");
     input_image.bind_as_texture(shader, "input_tx");
 
+    const float pixel_size = math::average(input_image.domain().pixel_size);
+    GPU_shader_uniform_1f(shader, "pixel_size", pixel_size);
+
     Result &size_input = get_input("Size");
     if (size_input.is_single_value()) {
       GPU_shader_uniform_1i(shader, "size", int(size_input.get_single_value<float>()));
@@ -223,6 +227,9 @@ class ConvertKuwaharaOperation : public NodeOperation {
     gpu::Shader *shader = context().get_shader(get_classic_summed_area_table_shader_name());
     GPU_shader_bind(shader);
 
+    const float pixel_size = math::average(this->get_input("Image").domain().pixel_size);
+    GPU_shader_uniform_1f(shader, "pixel_size", pixel_size);
+
     Result &size_input = get_input("Size");
     if (size_input.is_single_value()) {
       GPU_shader_uniform_1i(shader, "size", int(size_input.get_single_value<float>()));
@@ -276,8 +283,9 @@ class ConvertKuwaharaOperation : public NodeOperation {
                        Result &output,
                        const int2 size)
   {
+    const float pixel_size = math::average(this->get_input("Image").domain().pixel_size);
     parallel_for(size, [&](const int2 texel) {
-      int radius = math::max(0, int(size_input.load_pixel<float, true>(texel)));
+      const int radius = math::max(0, int(size_input.load_pixel<float, true>(texel) * pixel_size));
 
       float4 mean_of_squared_color_of_quadrants[4] = {
           float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
@@ -365,10 +373,13 @@ class ConvertKuwaharaOperation : public NodeOperation {
     gpu::Shader *shader = context().get_shader(get_anisotropic_shader_name());
     GPU_shader_bind(shader);
 
+    Result &input = this->get_input("Image");
+    const float pixel_size = math::average(input.domain().pixel_size);
+    GPU_shader_uniform_1f(shader, "pixel_size", pixel_size);
+
     GPU_shader_uniform_1f(shader, "eccentricity", this->compute_eccentricity());
     GPU_shader_uniform_1f(shader, "sharpness", this->compute_sharpness());
 
-    Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");
 
     Result &size_input = get_input("Size");
@@ -414,10 +425,11 @@ class ConvertKuwaharaOperation : public NodeOperation {
 
   void execute_anisotropic_cpu(const Result &structure_tensor)
   {
+    Result &input = this->get_input("Image");
+    const float pixel_size = math::average(input.domain().pixel_size);
     const float eccentricity = this->compute_eccentricity();
     const float sharpness = this->compute_sharpness();
 
-    Result &input = this->get_input("Image");
     Result &size = this->get_input("Size");
 
     const Domain domain = this->compute_domain();
@@ -472,7 +484,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
       float eigenvalue_difference = first_eigenvalue - second_eigenvalue;
       float anisotropy = eigenvalue_sum > 0.0f ? eigenvalue_difference / eigenvalue_sum : 0.0f;
 
-      float radius = math::max(0.0f, size.load_pixel<float, true>(texel));
+      float radius = math::max(0.0f, size.load_pixel<float, true>(texel) * pixel_size);
       if (radius == 0.0f) {
         output.store_pixel(texel, input.load_pixel<Color>(texel));
         return;
@@ -814,7 +826,9 @@ class ConvertKuwaharaOperation : public NodeOperation {
 
   int get_uniformity()
   {
-    return math::max(0, this->get_input("Uniformity").get_single_value_default<int>());
+    const float pixel_size = math::average(this->get_input("Image").domain().pixel_size);
+    const int size = this->get_input("Uniformity").get_single_value_default<int>();
+    return math::max(0, int(size * pixel_size));
   }
 
   float get_sharpness()

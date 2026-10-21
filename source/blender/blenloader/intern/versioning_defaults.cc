@@ -460,6 +460,8 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   scene->r.bake.im_format.exr_flag |= R_IMF_EXR_FLAG_MULTIPART;
 
   scene->r.compositor_device = SCE_COMPOSITOR_DEVICE_GPU;
+  scene->r.compositor_cache_flags = SCE_COMPOSITOR_CACHE_FRAMES;
+  scene->r.compositor_proxy_flags = CompositorProxyFlags::AdaptToRenderScale;
 
   /* Don't enable compositing nodes. */
   if (scene->nodetree) {

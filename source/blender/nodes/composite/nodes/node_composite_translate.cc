@@ -81,7 +81,7 @@ class TranslateOperation : public NodeOperation {
 
     float x = this->get_input("X").get_single_value_default<float>();
     float y = this->get_input("Y").get_single_value_default<float>();
-    const float2 translation = float2(x, y);
+    const float2 translation = float2(x, y) * input.domain().pixel_size;
 
     Result &output = this->get_result("Image");
     output.set_type(input.type());

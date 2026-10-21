@@ -120,7 +120,10 @@ class MaskOperation : public NodeOperation {
   Domain compute_domain() override
   {
     if (this->get_flags() & CMP_NODE_MASK_FLAG_SIZE_FIXED) {
-      return Domain(this->get_size());
+      const float2 pixel_size = this->context().get_compositing_domain().pixel_size;
+      Domain domain = Domain(int2(float2(this->get_size()) * pixel_size));
+      domain.pixel_size = pixel_size;
+      return domain;
     }
 
     if (this->get_flags() & CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE) {

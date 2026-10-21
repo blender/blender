@@ -94,6 +94,12 @@ struct RealizationOptions {
  * deviation from EXR is that we store the offset of the display window as the translation of the
  * transformation, which works better in practice.
  *
+ * Images additionally have a pixel_size property, which represents size of the pixel relative to
+ * its original size in case the image is a proxy or an anamorphic image. For instance, a 50% proxy
+ * image would have a pixel size of 0.5, while an anamorphic image could have a pixel size of
+ * (0.5,1). Operations will typically multiply inputs whose unit is in pixels by the pixel size to
+ * retain the effect of the operation regardless of its proxy size or anamorphic squeeze factor.
+ *
  * By default, results have domains of identity transformations, that is, they are centered in
  * space, but a transformation operation like the rotate, translate, or transform operations will
  * adjust the transformation to make the result reside somewhere different in space. The domain of
@@ -165,6 +171,10 @@ class Domain {
    * only covers a portion of the display, while a negative data offset means that the data extends
    * past the boundary of the display, that is, over-scan exists. */
   int2 data_offset;
+  /* The size of the pixel relative to its original size in case the image is a proxy or an
+   * anamorphic image. For instance, a 50% proxy image would have a pixel size of 0.5, while an
+   * anamorphic image could have a pixel size of (0.5,1). */
+  float2 pixel_size = float2(1.0f);
   /* The 2D transformation of the domain defining its translation in pixels, rotation, and scale in
    * the virtual compositing space. */
   float3x3 transformation;
