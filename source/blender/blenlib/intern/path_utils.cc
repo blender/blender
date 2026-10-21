@@ -1243,8 +1243,9 @@ bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
       BLI_strncpy(path, tmp, FILE_MAX);                        /* Return as result. */
     }
     else {
-      /* Base doesn't seem to be a directory, ignore it and just strip `//` prefix on path. */
-      BLI_strncpy(path, tmp + 2, FILE_MAX);
+      /* Base doesn't seem to be a directory, ignore it and just strip `//` prefix on path.
+       * Skip any extra slashes too, otherwise `///` would become an absolute path. */
+      BLI_strncpy(path, BLI_path_slash_skip(tmp + 2), FILE_MAX);
     }
   }
   else {

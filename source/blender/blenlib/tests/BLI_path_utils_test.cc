@@ -19,6 +19,12 @@ namespace blender {
 /** \name Local Utilities
  * \{ */
 
+#ifdef WIN32
+#  define ABS_PREFIX "C:"
+#else
+#  define ABS_PREFIX ""
+#endif
+
 static void str_replace_char_with_relative_exception(char *str, char src, char dst)
 {
   /* Always keep "//" or more leading slashes (special meaning). */
@@ -1584,12 +1590,6 @@ TEST(path_util, SlashNative)
   } \
   void(0)
 
-#ifdef WIN32
-#  define ABS_PREFIX "C:"
-#else
-#  define ABS_PREFIX ""
-#endif
-
 TEST(path_utils, RelPath_Simple)
 {
   PATH_REL(ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar/", "//blender.blend");
@@ -1654,7 +1654,117 @@ TEST(path_utils, RelPath_BufferOverflowSubdir)
 }
 
 #undef PATH_REL
-#undef ABS_PREFIX
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_abs
+ * \{ */
+
+#define PATH_ABS(rel_path, base_path, abs_path_expect, result_expect) \
+  { \
+    char path[FILE_MAX]; \
+    const char *base_path_test = base_path; \
+    STRNCPY(path, rel_path); \
+    if (SEP == '\\') { \
+      base_path_test = str_replace_char_strdup(base_path_test, '/', '\\'); \
+    } \
+    const bool result_test = BLI_path_abs(path, base_path_test); \
+    if (SEP == '\\') { \
+      BLI_string_replace_char(path, '\\', '/'); \
+      free((void *)base_path_test); \
+    } \
+    EXPECT_STREQ(path, abs_path_expect); \
+    EXPECT_EQ(result_test, result_expect); \
+  } \
+  void(0)
+
+TEST(path_utils, AbsPath_Simple)
+{
+  PATH_ABS("//a.png", ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar/a.png", true);
+  PATH_ABS("//a/b.png", ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar/a/b.png", true);
+}
+
+TEST(path_utils, AbsPath_BaseDir)
+{
+  /* The last component of the base is ignored. */
+  PATH_ABS("//a.png", ABS_PREFIX "/foo/bar/", ABS_PREFIX "/foo/bar/a.png", true);
+  PATH_ABS("//a.png", ABS_PREFIX "/foo/bar", ABS_PREFIX "/foo/a.png", true);
+  PATH_ABS("//a.png", ABS_PREFIX "/blender.blend", ABS_PREFIX "/a.png", true);
+}
+
+TEST(path_utils, AbsPath_PrefixOnly)
+{
+  PATH_ABS("//", ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar/", true);
+  PATH_ABS("///", ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar/", true);
+  PATH_ABS("//", "", "", true);
+}
+
+TEST(path_utils, AbsPath_ParentDir)
+{
+  PATH_ABS("//../a.png", ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/a.png", true);
+  PATH_ABS("//../../../a.png", ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/a.png", true);
+}
+
+TEST(path_utils, AbsPath_BackSlash)
+{
+  PATH_ABS("//a\\b.png", ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar/a/b.png", true);
+}
+
+TEST(path_utils, AbsPath_NotRelative)
+{
+  /* Absolute paths are returned unchanged. */
+  PATH_ABS(
+      ABS_PREFIX "/a/b.png", ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/a/b.png", false);
+}
+
+#ifndef WIN32
+TEST(path_utils, AbsPath_Win32DriveOnPosix)
+{
+  PATH_ABS("C:\\foo.JPG", "/foo/bar/blender.blend", "/c/foo.JPG", false);
+}
+#endif
+
+TEST(path_utils, AbsPath_ExtraSlashes)
+{
+  PATH_ABS("///a.png", ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar/a.png", true);
+  PATH_ABS("////a.png", ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar/a.png", true);
+}
+
+TEST(path_utils, AbsPath_NoBaseDir)
+{
+  PATH_ABS("//a.png", "", "a.png", true);
+  PATH_ABS("//a/b.png", "", "a/b.png", true);
+  PATH_ABS("//a.png", "blender.blend", "a.png", true);
+  PATH_ABS("//../a.png", "", "../a.png", true);
+}
+
+TEST(path_utils, AbsPath_NoBaseDirExtraSlashes)
+{
+  /* Must not become an absolute path. */
+  PATH_ABS("///a.png", "", "a.png", true);
+  PATH_ABS("////a.png", "", "a.png", true);
+  PATH_ABS("///a.png", "blender.blend", "a.png", true);
+  PATH_ABS("///", "", "", true);
+}
+
+TEST(path_utils, AbsPath_BufferOverflow)
+{
+  const char *base_dir = ABS_PREFIX "/foo/bar/";
+  char rel_path_in[FILE_MAX];
+  for (int i = STRNCPY_RLEN(rel_path_in, "//"); i < FILE_MAX - 1; i++) {
+    rel_path_in[i] = 'A';
+  }
+  rel_path_in[FILE_MAX - 1] = '\0';
+  char abs_path_out[FILE_MAX];
+  for (int i = STRNCPY_RLEN(abs_path_out, base_dir); i < FILE_MAX - 1; i++) {
+    abs_path_out[i] = 'A';
+  }
+  abs_path_out[FILE_MAX - 1] = '\0';
+  PATH_ABS(rel_path_in, ABS_PREFIX "/foo/bar/blender.blend", abs_path_out, true);
+}
+
+#undef PATH_ABS
 
 /** \} */
 
@@ -1937,5 +2047,7 @@ TEST(path_utils, HasHiddenComponents_Performance)
 #endif
 
 /** \} */
+
+#undef ABS_PREFIX
 
 }  // namespace blender
