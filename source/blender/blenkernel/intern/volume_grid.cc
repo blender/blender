@@ -75,7 +75,11 @@ VolumeGridData::VolumeGridData(std::function<LazyLoadedGrid()> lazy_load_grid,
   tree_access_token_ = std::make_shared<AccessToken>(*this);
 }
 
-VolumeGridData::~VolumeGridData() = default;
+VolumeGridData::~VolumeGridData()
+{
+  /* When destructed the grid data should not have any active access tokens. */
+  BLI_assert(tree_access_token_.use_count() == 1);
+}
 
 void VolumeGridData::delete_self()
 {
