@@ -469,6 +469,16 @@ static InterpolationSummary combine_interpolation(const InterpolationSummary a,
   return InterpolationSummary::MIXED;
 }
 
+static eBezTriple_KeyframeType combine_key_type(const eBezTriple_KeyframeType a,
+                                                const eBezTriple_KeyframeType b)
+{
+  if (a == b) {
+    return a;
+  }
+  /* If key types don't match, fall back to regular keys. */
+  return eBezTriple_KeyframeType::BEZT_KEYTYPE_KEYFRAME;
+}
+
 void KeyPoint::merge(const KeyPoint &other)
 {
   has_motion |= other.has_motion;
@@ -480,6 +490,7 @@ void KeyPoint::merge(const KeyPoint &other)
 
   if (other.frame == this->frame) {
     is_selected |= other.is_selected;
+    key_type = combine_key_type(key_type, other.key_type);
     return;
   }
 
@@ -487,6 +498,7 @@ void KeyPoint::merge(const KeyPoint &other)
   BLI_assert(other.frame < this->frame);
   frame = other.frame;
   is_selected = other.is_selected;
+  key_type = other.key_type;
 }
 
 ChannelTag::ChannelTag(const ChannelTagType type,
@@ -988,6 +1000,7 @@ void FCurveChannel::gather_channeldata()
         p.interpolation = InterpolationSummary::MIXED;
         break;
     }
+    p.key_type = BEZKEYTYPE(&key);
     this->datapoints_[i] = p;
 
     if (i > 0) {

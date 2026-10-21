@@ -184,6 +184,7 @@ struct KeyPoint {
   /* Records if there is motion to the *next* KeyPoint. */
   bool has_motion = false;
   InterpolationSummary interpolation = InterpolationSummary::NONE;
+  eBezTriple_KeyframeType key_type = BEZT_KEYTYPE_KEYFRAME;
 
   /** Construct default KeyPoint at infinity. */
   constexpr KeyPoint() = default;
@@ -207,7 +208,9 @@ struct KeyPoint {
   }
 
   /**
-   * Combine the values of the given point with the values of this point. */
+   * Combine the values of the given point with the values of this point. The points don't need to
+   * be on the same frame. In case `other` has a lower frame, that frame value is copied.
+   */
   void merge(const KeyPoint &other);
 };
 

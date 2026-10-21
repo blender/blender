@@ -349,7 +349,7 @@ static void draw_channel_keys(AnimationChannel &channel, const float y, const Vi
                         y,
                         key_size,
                         point->is_selected,
-                        BEZT_KEYTYPE_KEYFRAME,
+                        point->key_type,
                         KEYFRAME_SHAPE_BOTH,
                         1.0,
                         &sh_bindings,
