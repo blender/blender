@@ -203,7 +203,7 @@ class TestConfig:
 
     def _update_devices(self, env, device_filters: list) -> None:
         # Find devices matching the filters.
-        need_gpus = device_filters != ['CPU']
+        need_gpus = any(device not in {'CPU', 'CPU-OSL'} for device in device_filters)
         machine = env.get_machine(need_gpus)
 
         self.devices = []
