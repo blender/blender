@@ -46,6 +46,11 @@ MTLBottomLevelAS::~MTLBottomLevelAS()
 
 void MTLBottomLevelAS::add_geometry(IndexBuf &index_buffer, VertBuf &vertex_buffer)
 {
+  /* Skip empty geometry, e.g. a mesh without faces has no Metal index buffer. */
+  if (index_buffer.index_len_get() == 0) {
+    return;
+  }
+
   MTLVertBuf &mtl_vertex = static_cast<MTLVertBuf &>(vertex_buffer);
   MTLIndexBuf &mtl_index = static_cast<MTLIndexBuf &>(index_buffer);
 
@@ -82,6 +87,11 @@ void MTLBottomLevelAS::add_geometry(IndexBuf &index_buffer, VertBuf &vertex_buff
 
 void MTLBottomLevelAS::build()
 {
+  /* Leave the structure nil without geometry, top level structures skip it. */
+  if (geometry_ == nil) {
+    return;
+  }
+
   @autoreleasepool {
     MTLContext *ctx = MTLContext::get();
     id<MTLDevice> device = ctx->device;
@@ -184,7 +194,6 @@ void MTLTopLevelAS::build()
     MTLInstanceAccelerationStructureDescriptor *desc =
         [MTLInstanceAccelerationStructureDescriptor descriptor];
     desc.usage = MTLAccelerationStructureUsageRefit;
-    desc.instanceCount = instance_count;
     desc.instanceDescriptorBufferOffset = 0;
 
     /* userID is the Metal equivalent of the per-instance custom index. */
@@ -193,17 +202,25 @@ void MTLTopLevelAS::build()
         descriptor_count * sizeof(MTLAccelerationStructureUserIDInstanceDescriptor), true);
     MTLAccelerationStructureUserIDInstanceDescriptor *descs =
         (MTLAccelerationStructureUserIDInstanceDescriptor *)instance_buffer->get_host_ptr();
+    int64_t descs_count = 0;
     for (int64_t i = 0; i < instance_count; i++) {
       const Instance &inst = instances_[i];
-      descs[i].transformationMatrix = pack_transform(inst.transform);
-      descs[i].options = MTLAccelerationStructureInstanceOptionOpaque;
-      descs[i].mask = inst.mask;
-      descs[i].intersectionFunctionTableOffset = 0;
-      descs[i].accelerationStructureIndex = uint32_t(i);
+      id<MTLAccelerationStructure> blas = inst.blas->acceleration_structure();
+      if (blas == nil) {
+        /* Skip bottom level structures without geometry, they can't be added to the array. */
+        continue;
+      }
+      descs[descs_count].transformationMatrix = pack_transform(inst.transform);
+      descs[descs_count].options = MTLAccelerationStructureInstanceOptionOpaque;
+      descs[descs_count].mask = inst.mask;
+      descs[descs_count].intersectionFunctionTableOffset = 0;
+      descs[descs_count].accelerationStructureIndex = uint32_t(descs_count);
       /* Per-instance custom index; hardcoded 0 to match Vulkan until add_instance exposes it. */
-      descs[i].userID = 0;
-      [blas_array addObject:inst.blas->acceleration_structure()];
+      descs[descs_count].userID = 0;
+      [blas_array addObject:blas];
+      descs_count++;
     }
+    desc.instanceCount = descs_count;
     desc.instanceDescriptorType = MTLAccelerationStructureInstanceDescriptorTypeUserID;
     desc.instanceDescriptorStride = sizeof(MTLAccelerationStructureUserIDInstanceDescriptor);
 
