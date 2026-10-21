@@ -56,11 +56,11 @@ ccl_device_forceinline float denoising_depth_compute(KernelGlobals kg,
 
 ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals kg,
                                                                   IntegratorState state,
+                                                                  const uint32_t path_flag,
                                                                   const ccl_private ShaderData *sd,
                                                                   ccl_global float *ccl_restrict
                                                                       render_buffer)
 {
-  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   if (!(path_flag & PATH_RAY_DENOISING_FEATURES)) {
     return;
   }
@@ -200,7 +200,14 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
                                denoising_specular_albedo);
     }
 
-    if (kernel_data.film.pass_denoising_backward_motion != PASS_UNUSED) {
+    if (kernel_data.film.pass_denoising_backward_motion != PASS_UNUSED &&
+        /* Only write motion for a single hit, using the same logic as film_write_data_passes
+         * (which also sets PATH_RAY_SINGLE_PASS_DONE afterwards). */
+        !(path_flag & PATH_RAY_SINGLE_PASS_DONE) &&
+        (!(sd->runtime_flag & (SR_TRANSPARENT | SR_RAY_PORTAL)) ||
+         kernel_data.film.pass_alpha_threshold == 0.0f ||
+         average(surface_shader_alpha(sd)) >= kernel_data.film.pass_alpha_threshold))
+    {
       const float3 backward_motion = primitive_motion_vector_backward_depth_delta(kg, sd);
       film_write_pass_float3(buffer + kernel_data.film.pass_denoising_backward_motion,
                              backward_motion);
@@ -294,12 +301,14 @@ ccl_device_forceinline void film_write_denoising_features_volume(KernelGlobals k
   }
 }
 
-ccl_device_forceinline void film_write_denoising_features_background(
-    KernelGlobals kg, IntegratorState state, ccl_global float *ccl_restrict render_buffer)
+ccl_device_forceinline void film_write_denoising_features_background(KernelGlobals kg,
+                                                                     IntegratorState state,
+                                                                     const uint32_t path_flag,
+                                                                     ccl_global float *ccl_restrict
+                                                                         render_buffer)
 {
   /* Don't write denoising passes for paths that were split off for shadow catchers
    * to avoid double-counting. */
-  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   if (!(path_flag & PATH_RAY_DENOISING_FEATURES) || (path_flag & PATH_RAY_SHADOW_CATCHER_PASS)) {
     return;
   }
@@ -364,7 +373,9 @@ ccl_device_forceinline void film_write_denoising_features_background(
     }
   }
 
-  if (kernel_data.film.pass_denoising_backward_motion != PASS_UNUSED) {
+  if (kernel_data.film.pass_denoising_backward_motion != PASS_UNUSED &&
+      !(path_flag & PATH_RAY_SINGLE_PASS_DONE))
+  {
     const float4 speed = camera_motion_vector_direction(
         kg, INTEGRATOR_STATE(state, ray, P), INTEGRATOR_STATE(state, ray, D));
     const float3 backward_motion = make_float3(speed.x, speed.y, 0.0f);

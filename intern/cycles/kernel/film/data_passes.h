@@ -26,12 +26,11 @@ ccl_device_inline size_t film_write_cryptomatte_pass(ccl_global float *ccl_restr
 
 ccl_device_inline void film_write_data_passes(KernelGlobals kg,
                                               IntegratorState state,
+                                              const uint32_t path_flag,
                                               const ccl_private ShaderData *sd,
                                               ccl_global float *ccl_restrict render_buffer)
 {
 #ifdef __PASSES__
-  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-
   if (!(path_flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
     return;
   }
@@ -44,7 +43,7 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
 
   const int flag = kernel_data.film.pass_flag;
 
-  if (!(flag & PASS_ANY)) {
+  if (!(flag & PASS_ANY) && kernel_data.film.pass_denoising_backward_motion == PASS_UNUSED) {
     return;
   }
 
@@ -172,12 +171,13 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
 #endif
 }
 
-ccl_device_inline void film_write_data_passes_background(
-    KernelGlobals kg, IntegratorState state, ccl_global float *ccl_restrict render_buffer)
+ccl_device_inline void film_write_data_passes_background(KernelGlobals kg,
+                                                         IntegratorState state,
+                                                         const uint32_t path_flag,
+                                                         ccl_global float *ccl_restrict
+                                                             render_buffer)
 {
 #ifdef __PASSES__
-  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-
   if (!(path_flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
     return;
   }
