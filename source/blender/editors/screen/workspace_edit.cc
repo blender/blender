@@ -738,20 +738,31 @@ static wmOperatorStatus workspace_reorder_to_left_right_exec(bContext *C, wmOper
 
 static const EnumPropertyItem rna_enum_order_direction_items[] = {
     {ReorderDirection::LEFT, "LEFT", 0, "Left", ""},
-    {ReorderDirection::RIGHT, "RIGHT", 0, "Left", ""},
+    {ReorderDirection::RIGHT, "RIGHT", 0, "Right", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+static std::string workspace_reorder_to_left_right_description(bContext *C,
+                                                               wmOperatorType *ot,
+                                                               PointerRNA *ptr)
+{
+  if (ReorderDirection(RNA_enum_get(ptr, "direction")) == ReorderDirection::RIGHT) {
+    return TIP_("Reorder workspace to the right in the list");
+  }
+  return TIP_("Reorder workspace to the left in the list");
+}
 
 static void WORKSPACE_OT_reorder_to_left_right(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Workspace Reorder to Left";
-  ot->description = "Reorder workspace to be left in the list";
+  ot->name = "Workspace Reorder";
+  ot->description = "Reorder workspace to be left or right in the list";
   ot->idname = "WORKSPACE_OT_reorder_to_left_right";
 
   /* API callbacks. */
   ot->poll = workspace_context_poll;
   ot->exec = workspace_reorder_to_left_right_exec;
+  ot->get_description = workspace_reorder_to_left_right_description;
 
   ot->prop = RNA_def_enum(ot->srna,
                           "direction",
