@@ -476,7 +476,6 @@ RenderEngineType DRW_engine_viewport_external_type = {
     /*update_script_node*/ nullptr,
     /*update_render_passes*/ nullptr,
     /*update_custom_camera*/ nullptr,
-    /*draw_engine*/ nullptr,
     /*rna_ext*/
     {
         /*data*/ nullptr,
