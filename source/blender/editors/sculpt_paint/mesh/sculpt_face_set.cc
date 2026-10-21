@@ -1682,10 +1682,12 @@ void fill_factor_from_hide_and_mask(const BMesh &bm,
   for (BMFace *f : faces) {
     if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
       r_factors[i] = 0.0f;
+      i++;
       continue;
     }
     if (mask_offset == -1) {
       r_factors[i] = 1.0f;
+      i++;
       continue;
     }
 
