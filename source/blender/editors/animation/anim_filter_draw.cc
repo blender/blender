@@ -103,9 +103,18 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
   /* Cached locally just for convenience. */
   PointerRNA source_;
+  AbstractChannelAPI *channel_api_ = nullptr;
 
  public:
-  ChannelItem(AnimationChannel &channel) : channel_(channel), source_(channel.source()) {}
+  ChannelItem(AnimationChannel &channel) : channel_(channel), source_(channel.source())
+  {
+    this->channel_api_ = create_channel_api(this->source_);
+  }
+
+  ~ChannelItem()
+  {
+    MEM_delete(this->channel_api_);
+  }
 
   void build_row(ui::Layout &layout) override
   {
@@ -151,15 +160,14 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
   std::optional<bool> should_be_selected() const override
   {
-    return is_channel_selected(this->source_);
+    return this->channel_api_->is_selected();
   }
 
   void set_selected(const bool select) override
   {
-    /* Overriding the function so we can store the selection state on the data. */
-    is_selected_ = select;
+    AbstractTreeViewItem::set_selected(select);
     /* This flushes the selection state to the data, which is then read in the constructor. */
-    set_channel_selection(this->source_, select);
+    this->channel_api_->set_selected(select);
   }
 
  protected:

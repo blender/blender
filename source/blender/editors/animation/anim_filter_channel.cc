@@ -146,6 +146,104 @@ std::ostream &operator<<(std::ostream &stream, const ParsedSourcePath &rna_path)
   return stream;
 }
 
+/* --------- ChannelAPI ----------- */
+
+/* For channels without underlying data. */
+class NoOpChannelAPI : public AbstractChannelAPI {
+ public:
+  void set_selected(bool /* is_selected */) override {}
+  bool is_selected() const override
+  {
+    return false;
+  }
+};
+
+class FCurveChannelAPI : public AbstractChannelAPI {
+  FCurve *fcurve_;
+
+ public:
+  FCurveChannelAPI(FCurve *fcurve) : fcurve_(fcurve) {}
+
+  void set_selected(bool is_selected) override
+  {
+    flag_update(fcurve_->flag, FCURVE_SELECTED, is_selected);
+  }
+  bool is_selected() const override
+  {
+    return flag_is_set(fcurve_->flag, FCURVE_SELECTED);
+  }
+};
+
+class GreasePencilChannelAPI : public AbstractChannelAPI {
+  bke::greasepencil::Layer &layer_;
+
+ public:
+  GreasePencilChannelAPI(GreasePencilLayer *gp_layer) : layer_(gp_layer->wrap()) {}
+
+  void set_selected(bool is_selected) override
+  {
+    layer_.set_selected(is_selected);
+  }
+  bool is_selected() const override
+  {
+    return layer_.is_selected();
+  }
+};
+
+class ActionChannelAPI : public AbstractChannelAPI {
+  bAction *action_;
+
+ public:
+  ActionChannelAPI(bAction *action) : action_(action) {}
+  void set_selected(bool is_selected) override
+  {
+    flag_update(action_->flag, ACT_SELECTED, is_selected);
+  }
+  bool is_selected() const override
+  {
+    return flag_is_set(action_->flag, ACT_SELECTED);
+  }
+};
+
+class AnimDataChannelAPI : public AbstractChannelAPI {
+  AnimData *adt_;
+
+ public:
+  AnimDataChannelAPI(AnimData *adt) : adt_(adt) {}
+  void set_selected(bool is_selected) override
+  {
+    flag_update(adt_->flag, ADT_UI_SELECTED, is_selected);
+  }
+  bool is_selected() const override
+  {
+    return flag_is_set(adt_->flag, ADT_UI_SELECTED);
+  }
+};
+
+AbstractChannelAPI *create_channel_api(PointerRNA &ptr)
+{
+  if (!ptr.has_data()) {
+    return MEM_new<NoOpChannelAPI>("No Op Channel API");
+  }
+  if (ptr.type == RNA_FCurve) {
+    return MEM_new<FCurveChannelAPI>("FCurve Channel API", ptr.data_as<FCurve>());
+  }
+  if (ptr.type == RNA_GreasePencilLayer) {
+    return MEM_new<GreasePencilChannelAPI>("GP Channel API", ptr.data_as<GreasePencilLayer>());
+  }
+  if (ptr.type == RNA_Action) {
+    return MEM_new<ActionChannelAPI>("Action Channel API", ptr.data_as<bAction>());
+  }
+  if (RNA_struct_is_ID(ptr.type)) {
+    AnimData *adt = BKE_animdata_from_id(ptr.owner_id);
+    if (adt) {
+      return MEM_new<AnimDataChannelAPI>("Anim Data Channel API", adt);
+    }
+  }
+
+  return MEM_new<NoOpChannelAPI>("No Op Channel API");
+}
+
 /* --------- ChannelIdentifier ----------- */
 
 bool ChannelIdentifier::operator==(const ChannelIdentifier &other) const
@@ -414,6 +512,7 @@ void AnimationChannel::source_set(PointerRNA &&source_ptr)
 
   this->source_id_type_ = source_ptr.has_owner_id() ? source_ptr.owner_id->id_type() : ID_Type(0);
   this->source_ = std::move(source_ptr);
+  this->channel_api_ = create_channel_api(this->source_);
 }
 
 void AnimationChannel::source_set(const PointerRNA &source_ptr)
@@ -724,116 +823,6 @@ void SummaryChannel::sort_children()
   std::ranges::sort(this->children_, animation_channel_compare_function);
 }
 
-void set_channel_selection(PointerRNA &ptr, const bool is_selected)
-{
-  if (!ptr.has_data()) {
-    return;
-  }
-
-  if (ptr.type == RNA_Action) {
-    animrig::Action *action = ptr.data_as<animrig::Action>();
-    flag_update(action->flag, ACT_SELECTED, is_selected);
-    return;
-  }
-
-  if (ptr.type == RNA_PoseBone) {
-    bPoseChannel *pose_bone = ptr.data_as<bPoseChannel>();
-    flag_update(pose_bone->flag, POSE_CHANNEL_SELECTED, is_selected);
-
-    /* TODO this should maybe use ED_pose_bone_select so we check for bones that cannot be
-     * selected. However that should only be done when selection syncing. */
-    // animrig::bone_select(pose_bone);
-    return;
-  }
-
-  if (ptr.type == RNA_ActionGroup) {
-    bActionGroup *group = ptr.data_as<bActionGroup>();
-    flag_update(group->flag, AGRP_SELECTED, is_selected);
-    /* This no longer selects the pose bone. We have a dedicated summary for this now. */
-    return;
-  }
-
-  if (ptr.type == RNA_FCurve) {
-    FCurve *fcurve = ptr.data_as<FCurve>();
-    flag_update(fcurve->flag, FCURVE_SELECTED, is_selected);
-    return;
-  }
-
-  /* Most generic case. Leave last. */
-  if (RNA_struct_is_ID(ptr.type)) {
-    AnimData *adt = BKE_animdata_from_id(ptr.owner_id);
-    if (adt) {
-      flag_update(adt->flag, ADT_UI_SELECTED, is_selected);
-      return;
-    }
-  }
-}
-
-bool is_channel_selected(const PointerRNA &ptr)
-{
-  if (!ptr.has_data()) {
-    return false;
-  }
-
-  /* TODO: do we need sub-types for the various source types, or is this enough? */
-  /* TODO: sigh, if only C++ supported switch statements here. */
-  if (ptr.type == RNA_Action) {
-    animrig::Action *action = ptr.data_as<animrig::Action>();
-    return flag_is_set(action->flag, ACT_SELECTED);
-  }
-
-  if (ptr.type == RNA_Scene) {
-    Scene *scene = ptr.data_as<Scene>();
-    if (scene->adt) {
-      return flag_is_set(scene->adt->flag, ADT_UI_SELECTED);
-    }
-  }
-
-  if (ptr.type == RNA_PoseBone) {
-    bPoseChannel *pose_bone = ptr.data_as<bPoseChannel>();
-    return flag_is_set(pose_bone->flag, POSE_CHANNEL_SELECTED);
-  }
-
-  if (ptr.type == RNA_ActionGroup) {
-    bActionGroup *group = ptr.data_as<bActionGroup>();
-    return flag_is_set(group->flag, AGRP_SELECTED);
-  }
-
-  if (ptr.type == RNA_FCurve) {
-    FCurve *fcurve = ptr.data_as<FCurve>();
-    return flag_is_set(fcurve->flag, FCURVE_SELECTED);
-  }
-
-  if (RNA_struct_is_ID(ptr.type)) {
-    AnimData *adt = BKE_animdata_from_id(ptr.owner_id);
-    if (adt) {
-      return flag_is_set(adt->flag, ADT_UI_SELECTED);
-    }
-  }
-
-  return false;
-}
-
-bool SummaryChannel::is_selected() const
-{
-  PointerRNA ptr = this->source();
-  if (!ptr.has_data()) {
-    return false;
-  }
-
-  return is_channel_selected(ptr);
-}
-
-void SummaryChannel::set_selected(const bool is_selected)
-{
-  PointerRNA ptr = this->source();
-  if (!ptr.has_data()) {
-    return;
-  }
-
-  set_channel_selection(ptr, is_selected);
-}
-
 /* ===== DataChannel ===== */
 
 DataChannel::DataChannel(const StringRef label,
@@ -977,18 +966,6 @@ void FCurveChannel::change_selection(const SelectionMode mode, const Bounds<floa
   }
 }
 
-bool FCurveChannel::is_selected() const
-{
-  const FCurve *fcu = this->get_source<FCurve>();
-  return flag_is_set(fcu->flag, FCURVE_SELECTED);
-}
-
-void FCurveChannel::set_selected(const bool is_selected)
-{
-  FCurve *fcu = this->get_source<FCurve>();
-  flag_update(fcu->flag, FCURVE_SELECTED, is_selected);
-}
-
 StringRef FCurveChannel::label() const
 {
   this->hash();
@@ -1084,20 +1061,6 @@ void GreasePencilChannel::change_selection(const SelectionMode mode, const Bound
     }
     layer.tag_frames_map_changed();
   }
-}
-
-bool GreasePencilChannel::is_selected() const
-{
-  GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
-  bke::greasepencil::Layer &layer = gp_layer->wrap();
-  return layer.is_selected();
-}
-
-void GreasePencilChannel::set_selected(const bool is_selected)
-{
-  GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
-  bke::greasepencil::Layer &layer = gp_layer->wrap();
-  layer.set_selected(is_selected);
 }
 
 /* ===== ChannelTagStack ======= */

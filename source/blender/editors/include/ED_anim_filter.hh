@@ -328,6 +328,21 @@ enum class SelectionMode {
      relevant keys. This is also not particularly useful to do on a per channel basis. */
 };
 
+/* Abstracts data access to a struct type. This avoids checking the RNA type in various
+ * functions. To add a new channel type, implement a class inheriting `AbstractChannelAPI` and add
+ * a new return path in `create_channel_api`. */
+class AbstractChannelAPI {
+ public:
+  virtual void set_selected(bool is_selected) = 0;
+  virtual bool is_selected() const = 0;
+};
+
+/**
+ * Allocates a channel api for the given type.
+ * Memory has to be handled by the caller.
+ */
+AbstractChannelAPI *create_channel_api(PointerRNA &ptr);
+
 class AnimationChannel {
  public:
   /**
@@ -367,6 +382,9 @@ class AnimationChannel {
   PointerRNA source_;
   mutable ID_Type source_id_type_ = IDTYPE_UNKNOWN;
 
+  /* Provides a function interface for the `source_` data.*/
+  AbstractChannelAPI *channel_api_ = nullptr;
+
   /**
    * For channels that have a parent channel, this is set to the hash of that parent.
    *
@@ -380,7 +398,12 @@ class AnimationChannel {
   AnimationChannel(AnimationChannelType type, StringRef label);
   AnimationChannel(const AnimationChannel &other);
   AnimationChannel(AnimationChannel &&other);
-  virtual ~AnimationChannel() = default;
+  virtual ~AnimationChannel()
+  {
+    if (this->channel_api_) {
+      MEM_delete(this->channel_api_);
+    }
+  };
 
   /* Remove assignment operators. If we need them, they need to be implemented properly. */
   AnimationChannel &operator=(const AnimationChannel &) = delete;
@@ -448,12 +471,24 @@ class AnimationChannel {
     return this->source_rna_path_;
   }
 
-  virtual bool is_selected() const = 0;
+  bool is_selected() const
+  {
+    if (!this->channel_api_) {
+      return false;
+    }
+    return this->channel_api_->is_selected();
+  };
   /**
    * Selects the channel itself. If selection syncing is used this can also select the data if that
    * is selectable.
    */
-  virtual void set_selected(bool is_selected) = 0;
+  void set_selected(bool is_selected)
+  {
+    if (!this->channel_api_) {
+      return;
+    }
+    this->channel_api_->set_selected(is_selected);
+  };
   /**
    * Change the selection of datapoints in the given range.
    * Range is inclusive/inclusive.
@@ -521,9 +556,6 @@ class SummaryChannel final : public AnimationChannel {
    */
   void sort_children();
 
-  bool is_selected() const override;
-  void set_selected(bool is_selected) override;
-
   void change_selection(SelectionMode mode, Bounds<float> range = {-INFINITY, INFINITY}) override;
 
   /** Let the channel know where to find its UI state. */
@@ -533,6 +565,11 @@ class SummaryChannel final : public AnimationChannel {
    * \note this is not thread-safe, as it can lazily load the UI state.
    */
   bool is_collapsed() const;
+
+  std::optional<ChannelTagType> tag_type() const
+  {
+    return tag_type_;
+  }
 
  protected:
   void gather_channeldata() override;
@@ -591,9 +628,6 @@ class FCurveChannel : public DataChannel {
  public:
   FCurveChannel(const PointerRNA &fcurve_ptr, ParsedSourcePath source_rna_path);
 
-  bool is_selected() const override;
-  void set_selected(bool is_selected) override;
-
   /** Construct a label for the F-Curve, depending on its tags. */
   StringRef label() const override;
   void change_selection(SelectionMode mode, Bounds<float> range = {-INFINITY, INFINITY}) override;
@@ -609,8 +643,6 @@ class GreasePencilChannel : public DataChannel {
                       ParsedSourcePath source_rna_path,
                       int sorting_priority);
 
-  bool is_selected() const override;
-  void set_selected(bool is_selected) override;
   void change_selection(SelectionMode mode, Bounds<float> range = {-INFINITY, INFINITY}) override;
 
  protected:
@@ -742,13 +774,6 @@ void collect_animation_channels(const bContext &C,
 void group_channels(ChannelArena &arena,
                     Span<ChannelTagType> tag_order,
                     bool use_minimal_grouping);
-
-/**
- * Set the channel selection state for this specific channel. In addition to the UI, the selection
- * state of animation channels is stored on the data.
- */
-void set_channel_selection(PointerRNA &ptr, bool is_selected);
-bool is_channel_selected(const PointerRNA &ptr);
 
 /**
  * Draw the whole tree starting at the root using the legacy UI code.
