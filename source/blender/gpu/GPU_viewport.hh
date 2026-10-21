@@ -55,6 +55,7 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
                                  const ColorManagedViewSettings *view_settings,
                                  const ColorManagedDisplaySettings *display_settings,
                                  float dither);
+void GPU_viewport_colorspace_clear(GPUViewport *viewport);
 
 /**
  * Should be called from DRW after DRW_gpu_context_enable.
