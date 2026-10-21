@@ -221,6 +221,10 @@ bool SocketValueVariantTypeInfo::try_convert_fn(const CPPType &dst_type,
       using namespace volume_grid::multi_function_eval;
       EvalResult conversion_result = evaluate_multi_function_on_grid(
           *fns->multi_function, {&src_grid_base}, {true});
+      /* Release the tree token because the src_grid is reassigned below and may get destructed,
+       * while the tree_token still tries to access it on exiting the scope. */
+      tree_token.reset();
+
       if (std::holds_alternative<EvalResult::Failure>(conversion_result.result)) {
         return false;
       }
