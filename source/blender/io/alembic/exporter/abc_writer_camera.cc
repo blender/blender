@@ -76,16 +76,16 @@ void ABCCameraWriter::do_write(HierarchyContext &context)
   abc_stereo_distance_.set(cam->stereo.convergence_distance);
   abc_eye_separation_.set(cam->stereo.interocular_distance);
 
-  const double apperture_x = cam->sensor_x / 10.0;
-  const double apperture_y = cam->sensor_y / 10.0;
-  const double film_aspect = apperture_x / apperture_y;
+  const double aperture_x = cam->sensor_x / 10.0;
+  const double aperture_y = cam->sensor_y / 10.0;
+  const double film_aspect = aperture_x / aperture_y;
 
   CameraSample camera_sample;
   camera_sample.setFocalLength(cam->lens);
-  camera_sample.setHorizontalAperture(apperture_x);
-  camera_sample.setVerticalAperture(apperture_y);
-  camera_sample.setHorizontalFilmOffset(apperture_x * cam->shiftx);
-  camera_sample.setVerticalFilmOffset(apperture_y * cam->shifty * film_aspect);
+  camera_sample.setHorizontalAperture(aperture_x);
+  camera_sample.setVerticalAperture(aperture_y);
+  camera_sample.setHorizontalFilmOffset(aperture_x * cam->shiftx);
+  camera_sample.setVerticalFilmOffset(aperture_y * cam->shifty * film_aspect);
   camera_sample.setNearClippingPlane(cam->clip_start);
   camera_sample.setFarClippingPlane(cam->clip_end);
 
