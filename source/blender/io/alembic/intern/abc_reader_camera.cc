@@ -88,17 +88,17 @@ static void read_camera_sample(Camera *bcam,
   }
 
   const float lens = float(cam_sample.getFocalLength());
-  const float apperture_x = float(cam_sample.getHorizontalAperture());
-  const float apperture_y = float(cam_sample.getVerticalAperture());
+  const float aperture_x = float(cam_sample.getHorizontalAperture());
+  const float aperture_y = float(cam_sample.getVerticalAperture());
   const float h_film_offset = float(cam_sample.getHorizontalFilmOffset());
   const float v_film_offset = float(cam_sample.getVerticalFilmOffset());
-  const float film_aspect = apperture_x / apperture_y;
+  const float film_aspect = aperture_x / aperture_y;
 
   bcam->lens = lens;
-  bcam->sensor_x = apperture_x * 10;
-  bcam->sensor_y = apperture_y * 10;
-  bcam->shiftx = h_film_offset / apperture_x;
-  bcam->shifty = v_film_offset / apperture_y / film_aspect;
+  bcam->sensor_x = aperture_x * 10;
+  bcam->sensor_y = aperture_y * 10;
+  bcam->shiftx = h_film_offset / aperture_x;
+  bcam->shifty = v_film_offset / aperture_y / film_aspect;
   bcam->clip_start = max_ff(0.1f, float(cam_sample.getNearClippingPlane()));
   bcam->clip_end = float(cam_sample.getFarClippingPlane());
   bcam->dof.focus_distance = float(cam_sample.getFocusDistance());
