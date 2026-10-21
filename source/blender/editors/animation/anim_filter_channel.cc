@@ -442,16 +442,14 @@ SummaryChannel::SummaryChannel(const StringRef label)
 {
 }
 
-SummaryChannel::SummaryChannel(const StringRef label,
-                               const PointerRNA &source_ptr,
-                               std::optional<ParsedSourcePath> source_rna_path,
-                               int sorting_priority)
-    : AnimationChannel(AnimationChannelType::SUMMARY, label)
+SummaryChannel::SummaryChannel(const ChannelTag *tag)
+    : AnimationChannel(AnimationChannelType::SUMMARY, tag->label())
 {
-  this->source_set(source_ptr);
-  this->source_rna_path_ = source_rna_path;
+  this->source_set(tag->source_data());
+  this->source_rna_path_ = tag->source_rna_path();
+  this->tag_type_ = tag->tag_type();
 
-  sorting_priority_ = sorting_priority;
+  sorting_priority_ = tag->sort_priority();
 }
 
 void SummaryChannel::change_selection(const SelectionMode mode, const Bounds<float> range)

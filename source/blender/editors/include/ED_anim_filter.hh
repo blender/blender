@@ -488,16 +488,16 @@ class SummaryChannel final : public AnimationChannel {
    */
   ChannelUIStateMap *ui_state_map_ = nullptr;
   bool is_ui_state_map_used_ = false;
+  /* The tag type for which this channel was created. Not every summary channel is created for a
+   * tag so this is not always set. */
+  std::optional<ChannelTagType> tag_type_;
 
   /** Collapsed/expanded state, if known. */
   std::optional<bool> is_collapsed_ = {};
 
  public:
   SummaryChannel(StringRef label);
-  SummaryChannel(StringRef label,
-                 const PointerRNA &source_ptr,
-                 std::optional<ParsedSourcePath> source_rna_path,
-                 int sorting_priority);
+  SummaryChannel(const ChannelTag *tag);
   ~SummaryChannel() final = default;
 
   /**

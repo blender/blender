@@ -4335,8 +4335,7 @@ static Vector<SummaryContainer> split_group_for_tag(ChannelArena &arena,
   Vector<SummaryContainer> splitable_summaries;
   for (const NewGroupInfo &group_data : new_groups) {
     const ChannelTag *tag = group_data.tag;
-    SummaryChannel *summary = arena.allocate_summary_channel(
-        tag->label(), tag->source_data(), tag->source_rna_path(), tag->sort_priority());
+    SummaryChannel *summary = arena.allocate_summary_channel(tag);
     summary_data.summary->add_child(*summary);
     SummaryContainer summary_container = {summary, group_data.channels};
     if (group_data.can_be_split) {
