@@ -3548,7 +3548,7 @@ static std::optional<ed::animfilter::ChannelArena> get_channels_from_space(bCont
   }
   switch (area->spacetype) {
     case SPACE_ACTION:
-      return ed::action::get_data_channels(C);
+      return ed::action::get_summary_tree(C);
   }
   /* Space type not implemented for animation channels. */
   BLI_assert_unreachable();
