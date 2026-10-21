@@ -145,11 +145,6 @@ void PathTraceWorkGPU::alloc_integrator_soa()
      * with work without losing performance. The renderer will add more work (when
      * available) when the number of active paths falls below this value. */
     min_num_active_main_paths_ = max_num_paths_ / 4;
-
-    /* Limit number of active paths to the half of the overall state. This is due to the logic in
-     * the path compaction which relies on the fact that regeneration does not happen sooner than
-     * half of the states are available again. */
-    min_num_active_main_paths_ = min(min_num_active_main_paths_, max_num_paths_ / 2);
   }
 
   /* Allocate a device only memory buffer before for each struct member, and then
