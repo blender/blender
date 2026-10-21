@@ -65,6 +65,16 @@ struct CameraVelocity {
   [[uniform(VELOCITY_CAMERA_PREV_BUF)]] const CameraData &camera_prev;
   [[uniform(VELOCITY_CAMERA_CURR_BUF)]] const CameraData &camera_curr;
   [[uniform(VELOCITY_CAMERA_NEXT_BUF)]] const CameraData &camera_next;
+  /* U is periodic. */
+  float4 equirect_motion_wrap(float4 motion) const
+  {
+    if (camera_curr.type == CAMERA_PANO_EQUIRECT) {
+      const float period = abs(M_TAU * camera_curr.equirect_scale_inv.x);
+      motion.xz -= period * round(motion.xz / period);
+    }
+    return motion;
+  }
+
   /**
    * Given a triple of position, compute the previous and next motion vectors.
    * Returns uv space motion vectors in pairs (motion_prev.xy, motion_next.xy).
@@ -104,6 +114,9 @@ struct CameraVelocity {
        * directly for the panoramic case. */
       motion *= 0.5f;
     }
+    else {
+      motion = equirect_motion_wrap(motion);
+    }
 
     return motion;
   }
@@ -142,6 +155,9 @@ struct CameraVelocity {
       /* Convert NDC velocity to UV velocity. `uv_from_view` above already returns UV space
        * directly for the panoramic case. */
       motion *= 0.5f;
+    }
+    else {
+      motion = equirect_motion_wrap(motion);
     }
 
     return motion;

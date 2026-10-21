@@ -25,7 +25,8 @@ namespace eevee::camera {
 
 float2 equirectangular_from_direction(CameraData cam, float3 dir)
 {
-  float phi = atan(-dir.z, dir.x);
+  /* U wraps around behind the camera at the edges, like Cycles. */
+  float phi = atan(-dir.x, -dir.z) + M_PI_2;
   float theta = acos(dir.y / length(dir));
   return (float2(phi, theta) - cam.equirect_bias) * cam.equirect_scale_inv;
 }
