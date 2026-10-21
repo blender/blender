@@ -525,6 +525,7 @@ void AnimationChannel::source_set(const PointerRNA &source_ptr)
 
   this->source_id_type_ = source_ptr.has_owner_id() ? source_ptr.owner_id->id_type() : ID_Type(0);
   this->source_ = source_ptr;
+  this->channel_api_ = create_channel_api(this->source_);
 }
 
 Span<KeyPoint> AnimationChannel::datapoints()
