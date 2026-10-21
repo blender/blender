@@ -52,6 +52,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
+#include "UI_abstract_view.hh"
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
 
@@ -214,6 +215,52 @@ static bool get_channel_bounds(bAnimContext *ac,
       return false;
   }
   return found_bounds;
+}
+
+static bool point_larger_than(const ed::animfilter::KeyPoint &p, const float frame)
+{
+  return p.frame < frame;
+}
+
+static bool point_less_than(const float frame, const ed::animfilter::KeyPoint &p)
+{
+  return frame < p.frame;
+}
+
+/**
+ * Returns the 2D bounds of the given channel. The y axis is only set for FCurves.
+ */
+static std::optional<rctf> get_channel_bounds(ed::animfilter::AnimationChannel &channel,
+                                              std::optional<float2> range = {})
+{
+  rctf bounds;
+  using namespace ed::animfilter;
+  Span<KeyPoint> datapoints = channel.datapoints();
+  if (datapoints.size() == 0) {
+    return std::nullopt;
+  }
+  bounds.xmin = datapoints.first().frame;
+  bounds.xmax = datapoints.last().frame;
+
+  if (range.has_value()) {
+    /* Limit bounds to be datapoints in range. */
+    const KeyPoint *start = std::lower_bound(
+        datapoints.begin(), datapoints.end(), range->x, point_larger_than);
+    if (start == datapoints.end() || start->frame > range->y) {
+      return std::nullopt;
+    }
+    bounds.xmin = start->frame;
+    const KeyPoint *end = std::upper_bound(start, datapoints.end(), range->y, point_less_than);
+    if (end != datapoints.end()) {
+      bounds.xmax = end->frame;
+    }
+  }
+
+  if (channel.type() == AnimationChannelType::DATA) {
+    /* TODO FCurves have a y axis that needs to be calculated. */
+  }
+
+  return bounds;
 }
 
 /* Pad the given rctf with regions that could block the view.
@@ -3558,12 +3605,12 @@ static std::optional<ed::animfilter::ChannelArena> get_channels_from_space(bCont
 static void select_all_channels(ed::animfilter::ChannelArena &channels, const bool select)
 {
   using namespace ed::animfilter;
-  for (DataChannel *data_channel : channels.data_channels) {
-    data_channel->set_selected(select);
+  if (!channels.root()) {
+    return;
   }
-  for (SummaryChannel *summary_channel : channels.summary_channels) {
-    summary_channel->set_selected(select);
-  }
+  foreach_expanded(*channels.root(), [&](AnimationChannel &channel, int /* row_index */) {
+    channel.set_selected(select);
+  });
 }
 
 static wmOperatorStatus animchannels_selectall_exec(bContext *C, wmOperator *op)
@@ -3816,19 +3863,24 @@ static wmOperatorStatus animchannels_box_select_exec(bContext *C, wmOperator *op
   /* get settings from operator */
   WM_operator_properties_border_to_rcti(op, &rect);
 
-  if (!extend) {
-    ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_CLEAR);
-  }
-
-  if (select) {
-    selectmode = ACHANNEL_SETFLAG_ADD;
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    /* TODO In order for this to work correctly we need to tweak TreeView to only select on up. */
   }
   else {
-    selectmode = ACHANNEL_SETFLAG_CLEAR;
-  }
+    if (!extend) {
+      ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_CLEAR);
+    }
 
-  /* apply box_select animation channels */
-  box_select_anim_channels(&ac, rect, selectmode);
+    if (select) {
+      selectmode = ACHANNEL_SETFLAG_ADD;
+    }
+    else {
+      selectmode = ACHANNEL_SETFLAG_CLEAR;
+    }
+
+    /* apply box_select animation channels */
+    box_select_anim_channels(&ac, rect, selectmode);
+  }
 
   /* send notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, nullptr);
@@ -3996,6 +4048,10 @@ static wmOperatorStatus animchannels_rename_invoke(bContext *C,
                                                    wmOperator * /*op*/,
                                                    const wmEvent *event)
 {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    /* This is handled by the tree view. */
+    return OPERATOR_CANCELLED;
+  }
   bAnimContext ac;
   int channel_index;
 
@@ -4712,6 +4768,10 @@ static wmOperatorStatus animchannels_mouseclick_invoke(bContext *C,
                                                        wmOperator *op,
                                                        const wmEvent *event)
 {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    /* This is handled by the tree view. */
+    return OPERATOR_CANCELLED;
+  }
   bAnimContext ac;
   ARegion *region;
   View2D *v2d;
@@ -4914,11 +4974,15 @@ static wmOperatorStatus animchannels_channel_select_keys_invoke(bContext *C,
   }
 
   channel_index = animchannels_channel_get(&ac, event->mval);
-
-  /* handle click */
-  if (select_anim_channel_keys(&ac, channel_index, extend)) {
-    WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);
-    return OPERATOR_FINISHED;
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    /* TODO this is already handled for the dope sheet. Where is this used? */
+  }
+  else {
+    /* handle click */
+    if (select_anim_channel_keys(&ac, channel_index, extend)) {
+      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);
+      return OPERATOR_FINISHED;
+    }
   }
 
   /* allow event to be handled by selectall operator */
@@ -4976,17 +5040,6 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
     return OPERATOR_CANCELLED;
   }
 
-  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
-  const int filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS | ANIMFILTER_DATA_VISIBLE |
-                      ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
-  size_t anim_data_length = ANIM_animdata_filter(
-      &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
-
-  if (anim_data_length == 0) {
-    BKE_report(op->reports, RPT_WARNING, "No channels to operate on");
-    return OPERATOR_CANCELLED;
-  }
-
   float range[2];
   const bool use_preview_range = RNA_boolean_get(op->ptr, "use_preview_range");
   get_view_range(ac.scene, use_preview_range, range);
@@ -4998,20 +5051,51 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
   bounds.ymax = -FLT_MAX;
 
   const bool include_handles = RNA_boolean_get(op->ptr, "include_handles");
-
   bool valid_bounds = false;
-  for (bAnimListElem &ale : anim_data) {
-    rctf channel_bounds;
-    const bool found_bounds = get_channel_bounds(
-        &ac, &ale, range, include_handles, &channel_bounds);
-    if (found_bounds) {
-      BLI_rctf_union(&bounds, &channel_bounds);
-      valid_bounds = true;
+
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    using namespace ed::animfilter;
+    std::optional<ChannelArena> arena = get_channels_from_space(*C);
+    if (!arena || !arena->root()) {
+      return OPERATOR_CANCELLED;
     }
+    foreach_expanded(*arena->root(), [&](AnimationChannel &channel, int /* row_index */) {
+      if (!channel.is_selected()) {
+        return;
+      }
+      std::optional<rctf> channel_bounds = get_channel_bounds(channel);
+      if (channel_bounds) {
+        BLI_rctf_union(&bounds, &channel_bounds.value());
+        valid_bounds = true;
+      }
+    });
+  }
+  else {
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+    const eAnimFilter_Flags filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS |
+                                      ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                      ANIMFILTER_LIST_CHANNELS);
+    size_t anim_data_length = ANIM_animdata_filter(
+        &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+
+    if (anim_data_length == 0) {
+      BKE_report(op->reports, RPT_WARNING, "No channels to operate on");
+      return OPERATOR_CANCELLED;
+    }
+
+    for (bAnimListElem &ale : anim_data) {
+      rctf channel_bounds;
+      const bool found_bounds = get_channel_bounds(
+          &ac, &ale, range, include_handles, &channel_bounds);
+      if (found_bounds) {
+        BLI_rctf_union(&bounds, &channel_bounds);
+        valid_bounds = true;
+      }
+    }
+    ANIM_animdata_freelist(&anim_data);
   }
 
   if (!valid_bounds) {
-    ANIM_animdata_freelist(&anim_data);
     BKE_report(op->reports, RPT_WARNING, "No keyframes to focus on");
     return OPERATOR_CANCELLED;
   }
@@ -5025,8 +5109,6 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
   ui::view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
-
-  ANIM_animdata_freelist(&anim_data);
 
   return OPERATOR_FINISHED;
 }
@@ -5062,6 +5144,31 @@ static void ANIM_OT_channels_view_selected(wmOperatorType *ot)
                              "Ignore frames outside of the preview range");
 }
 
+/* Return the channel at the given y coordinates. This assumes that the channel height is known
+ * which at the time of writing this is guaranteed due to how the drawing code is set up. See
+ * `draw_dopesheet_key_area`. */
+static ed::animfilter::AnimationChannel *find_channel_at_y(ed::animfilter::ChannelArena &arena,
+                                                           ARegion &region,
+                                                           const float region_y)
+{
+  using namespace ed::animfilter;
+  if (!arena.root()) {
+    return nullptr;
+  }
+  const float channel_step = ANIM_UI_get_channel_step();
+  const float first_channel = ANIM_UI_get_first_channel_top(&region.v2d);
+
+  const float v2d_y = ui::view2d_region_to_view_y(&region.v2d, region_y);
+  AnimationChannel *channel_under_cursor = nullptr;
+  foreach_expanded(*arena.root(), [&](AnimationChannel &channel, int row_index) {
+    const float row_top = first_channel - row_index * channel_step;
+    if (v2d_y < row_top && v2d_y > row_top - channel_step) {
+      channel_under_cursor = &channel;
+    }
+  });
+  return channel_under_cursor;
+}
+
 static wmOperatorStatus graphkeys_channel_view_pick_invoke(bContext *C,
                                                            wmOperator *op,
                                                            const wmEvent *event)
@@ -5078,33 +5185,51 @@ static wmOperatorStatus graphkeys_channel_view_pick_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
-  const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
-                      ANIMFILTER_LIST_CHANNELS);
-  ANIM_animdata_filter(
-      &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
-
-  bAnimListElem *ale;
-  const int channel_index = animchannels_channel_get(&ac, event->mval);
-  ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, channel_index));
-  if (ale == nullptr) {
-    ANIM_animdata_freelist(&anim_data);
-    return OPERATOR_CANCELLED;
-  }
-
+  rctf bounds;
   float range[2];
   const bool use_preview_range = RNA_boolean_get(op->ptr, "use_preview_range");
-
   get_view_range(ac.scene, use_preview_range, range);
-
-  rctf bounds;
   const bool include_handles = RNA_boolean_get(op->ptr, "include_handles");
-  const bool found_bounds = get_channel_bounds(&ac, ale, range, include_handles, &bounds);
 
-  if (!found_bounds) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    using namespace ed::animfilter;
+    std::optional<ChannelArena> arena = get_channels_from_space(*C);
+    if (!arena || !arena->root()) {
+      return OPERATOR_CANCELLED;
+    }
+    ARegion *region = CTX_wm_region(C);
+    AnimationChannel *channel_under_cursor = find_channel_at_y(*arena, *region, event->mval[1]);
+    if (!channel_under_cursor) {
+      return OPERATOR_CANCELLED;
+    }
+    std::optional<rctf> channel_bounds = get_channel_bounds(*channel_under_cursor, range);
+    if (!channel_bounds) {
+      return OPERATOR_CANCELLED;
+    }
+    bounds = *channel_bounds;
+  }
+  else {
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+    const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
+                        ANIMFILTER_LIST_CHANNELS);
+    ANIM_animdata_filter(
+        &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
+
+    bAnimListElem *ale;
+    const int channel_index = animchannels_channel_get(&ac, event->mval);
+    ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, channel_index));
+    if (ale == nullptr) {
+      ANIM_animdata_freelist(&anim_data);
+      return OPERATOR_CANCELLED;
+    }
+
+    const bool found_bounds = get_channel_bounds(&ac, ale, range, include_handles, &bounds);
+
     ANIM_animdata_freelist(&anim_data);
-    BKE_report(op->reports, RPT_WARNING, "No keyframes to focus on");
-    return OPERATOR_CANCELLED;
+    if (!found_bounds) {
+      BKE_report(op->reports, RPT_WARNING, "No keyframes to focus on");
+      return OPERATOR_CANCELLED;
+    }
   }
 
   add_region_padding(C, window_region, &bounds);
@@ -5116,8 +5241,6 @@ static wmOperatorStatus graphkeys_channel_view_pick_invoke(bContext *C,
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
   ui::view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
-
-  ANIM_animdata_freelist(&anim_data);
 
   return OPERATOR_FINISHED;
 }
@@ -5161,24 +5284,70 @@ static const EnumPropertyItem channel_bake_key_options[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static void bake_fcurve(FCurve *fcu,
+                        const int2 fcurve_range,
+                        const float step,
+                        const bool bake_modifiers,
+                        const animrig::BakeCurveRemove remove_existing,
+                        const eBezTriple_Interpolation interpolation_type)
+{
+  if (!fcu->bezt) {
+    return;
+  }
+
+  /* Save current state of modifier flags so they can be reapplied after baking. */
+  Vector<eFModifier_Flags> modifier_flags;
+  if (!bake_modifiers) {
+    for (FModifier &modifier : fcu->modifiers) {
+      modifier_flags.append(modifier.flag);
+      modifier.flag |= FMODIFIER_FLAG_MUTED;
+    }
+  }
+
+  bool replace;
+  const int last_index = BKE_fcurve_bezt_binarysearch_index(
+      fcu->bezt, fcurve_range[1], fcu->totvert, &replace);
+
+  /* Since the interpolation of a key defines the curve following it, the last key in the baked
+   * segment needs to keep the interpolation mode that existed previously so the curve isn't
+   * changed. */
+  const eBezTriple_Interpolation segment_end_interpolation =
+      fcu->bezt[min_ii(last_index, fcu->totvert - 1)].ipo;
+
+  animrig::bake_fcurve(fcu, fcurve_range, step, remove_existing);
+
+  if (bake_modifiers) {
+    free_fmodifiers(&fcu->modifiers);
+  }
+  else {
+    int modifier_index = 0;
+    for (FModifier &modifier : fcu->modifiers) {
+      modifier.flag = modifier_flags[modifier_index];
+      modifier_index++;
+    }
+  }
+
+  for (int i = 0; i < fcu->totvert; i++) {
+    BezTriple *key = &fcu->bezt[i];
+    if (key->vec[1][0] < fcurve_range[0]) {
+      continue;
+    }
+    if (key->vec[1][0] > fcurve_range[1]) {
+      fcu->bezt[max_ii(i - 1, 0)].ipo = segment_end_interpolation;
+      break;
+    }
+    key->ipo = interpolation_type;
+  }
+}
+
 static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::animrig;
+
   bAnimContext ac;
 
   /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
-    return OPERATOR_CANCELLED;
-  }
-
-  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
-  const int filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS | ANIMFILTER_DATA_VISIBLE |
-                      ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FCURVESONLY);
-  size_t anim_data_length = ANIM_animdata_filter(
-      &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
-
-  if (anim_data_length == 0) {
-    BKE_report(op->reports, RPT_WARNING, "No channels to operate on");
     return OPERATOR_CANCELLED;
   }
 
@@ -5212,63 +5381,35 @@ static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
   const eBezTriple_Interpolation interpolation_type = eBezTriple_Interpolation(
       RNA_enum_get(op->ptr, "interpolation_type"));
   const bool bake_modifiers = RNA_boolean_get(op->ptr, "bake_modifiers");
+  const float step = RNA_float_get(op->ptr, "step");
 
-  for (bAnimListElem &ale : anim_data) {
-    FCurve *fcu = static_cast<FCurve *>(ale.data);
-    if (!fcu->bezt) {
-      continue;
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    /* TODO */
+  }
+  else {
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+    const int filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS | ANIMFILTER_DATA_VISIBLE |
+                        ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FCURVESONLY);
+    size_t anim_data_length = ANIM_animdata_filter(
+        &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
+
+    if (anim_data_length == 0) {
+      BKE_report(op->reports, RPT_WARNING, "No channels to operate on");
+      return OPERATOR_CANCELLED;
     }
-    int2 nla_mapped_range = {
-        int(ANIM_nla_tweakedit_remap(&ale, frame_range[0], NLATIME_CONVERT_UNMAP)),
-        int(ANIM_nla_tweakedit_remap(&ale, frame_range[1], NLATIME_CONVERT_UNMAP)),
-    };
-    /* Save current state of modifier flags so they can be reapplied after baking. */
-    Vector<eFModifier_Flags> modifier_flags;
-    if (!bake_modifiers) {
-      for (FModifier &modifier : fcu->modifiers) {
-        modifier_flags.append(modifier.flag);
-        modifier.flag |= FMODIFIER_FLAG_MUTED;
-      }
-    }
-
-    bool replace;
-    const int last_index = BKE_fcurve_bezt_binarysearch_index(
-        fcu->bezt, nla_mapped_range[1], fcu->totvert, &replace);
-
-    /* Since the interpolation of a key defines the curve following it, the last key in the baked
-     * segment needs to keep the interpolation mode that existed previously so the curve isn't
-     * changed. */
-    const eBezTriple_Interpolation segment_end_interpolation =
-        fcu->bezt[min_ii(last_index, fcu->totvert - 1)].ipo;
-
-    const float step = RNA_float_get(op->ptr, "step");
-    bake_fcurve(fcu, nla_mapped_range, step, remove_existing);
-
-    if (bake_modifiers) {
-      free_fmodifiers(&fcu->modifiers);
-    }
-    else {
-      int modifier_index = 0;
-      for (FModifier &modifier : fcu->modifiers) {
-        modifier.flag = modifier_flags[modifier_index];
-        modifier_index++;
-      }
+    for (bAnimListElem &ale : anim_data) {
+      FCurve *fcu = static_cast<FCurve *>(ale.data);
+      int2 nla_mapped_range = {
+          int(ANIM_nla_tweakedit_remap(&ale, frame_range[0], NLATIME_CONVERT_UNMAP)),
+          int(ANIM_nla_tweakedit_remap(&ale, frame_range[1], NLATIME_CONVERT_UNMAP)),
+      };
+      bake_fcurve(
+          fcu, nla_mapped_range, step, bake_modifiers, remove_existing, interpolation_type);
     }
 
-    for (int i = 0; i < fcu->totvert; i++) {
-      BezTriple *key = &fcu->bezt[i];
-      if (key->vec[1][0] < nla_mapped_range[0]) {
-        continue;
-      }
-      if (key->vec[1][0] > nla_mapped_range[1]) {
-        fcu->bezt[max_ii(i - 1, 0)].ipo = segment_end_interpolation;
-        break;
-      }
-      key->ipo = interpolation_type;
-    }
+    ANIM_animdata_freelist(&anim_data);
   }
 
-  ANIM_animdata_freelist(&anim_data);
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);
 
   return OPERATOR_FINISHED;

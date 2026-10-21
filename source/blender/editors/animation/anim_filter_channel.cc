@@ -527,6 +527,8 @@ AnimationChannel::AnimationChannel(const AnimationChannel &other)
       label_(other.label_),
       source_(other.source_)
 {
+  /* Copy constructor has to create a new api object because it's heap allocated and owned by the
+   * class. */
   channel_api_ = create_channel_api(source_);
 }
 
