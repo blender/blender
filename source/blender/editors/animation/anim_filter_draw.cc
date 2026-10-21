@@ -103,17 +103,12 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
   /* Cached locally just for convenience. */
   PointerRNA source_;
-  AbstractChannelAPI *channel_api_ = nullptr;
+  std::unique_ptr<AbstractChannelAPI> channel_api_;
 
  public:
   ChannelItem(AnimationChannel &channel) : channel_(channel), source_(channel.source())
   {
     this->channel_api_ = create_channel_api(this->source_);
-  }
-
-  ~ChannelItem()
-  {
-    MEM_delete(this->channel_api_);
   }
 
   void build_row(ui::Layout &layout) override

@@ -220,28 +220,28 @@ class AnimDataChannelAPI : public AbstractChannelAPI {
   }
 };
 
-AbstractChannelAPI *create_channel_api(PointerRNA &ptr)
+std::unique_ptr<AbstractChannelAPI> create_channel_api(PointerRNA &ptr)
 {
   if (!ptr.has_data()) {
-    return MEM_new<NoOpChannelAPI>("No Op Channel API");
+    return std::make_unique<NoOpChannelAPI>();
   }
   if (ptr.type == RNA_FCurve) {
-    return MEM_new<FCurveChannelAPI>("FCurve Channel API", ptr.data_as<FCurve>());
+    return std::make_unique<FCurveChannelAPI>(ptr.data_as<FCurve>());
   }
   if (ptr.type == RNA_GreasePencilLayer) {
-    return MEM_new<GreasePencilChannelAPI>("GP Channel API", ptr.data_as<GreasePencilLayer>());
+    return std::make_unique<GreasePencilChannelAPI>(ptr.data_as<GreasePencilLayer>());
   }
   if (ptr.type == RNA_Action) {
-    return MEM_new<ActionChannelAPI>("Action Channel API", ptr.data_as<bAction>());
+    return std::make_unique<ActionChannelAPI>(ptr.data_as<bAction>());
   }
   if (RNA_struct_is_ID(ptr.type)) {
     AnimData *adt = BKE_animdata_from_id(ptr.owner_id);
     if (adt) {
-      return MEM_new<AnimDataChannelAPI>("Anim Data Channel API", adt);
+      return std::make_unique<AnimDataChannelAPI>(adt);
     }
   }
 
-  return MEM_new<NoOpChannelAPI>("No Op Channel API");
+  return std::make_unique<NoOpChannelAPI>();
 }
 
 /* --------- ChannelIdentifier ----------- */
@@ -468,6 +468,7 @@ AnimationChannel::AnimationChannel(const AnimationChannel &other)
       label_(other.label_),
       source_(other.source_)
 {
+  channel_api_ = create_channel_api(source_);
 }
 
 AnimationChannel::AnimationChannel(AnimationChannel &&other)
@@ -475,7 +476,8 @@ AnimationChannel::AnimationChannel(AnimationChannel &&other)
       flags_(other.flags_),
       label_(std::move(other.label_)),
       datapoints_(std::move(other.datapoints_)),
-      source_(std::move(other.source_))
+      source_(std::move(other.source_)),
+      channel_api_(std::move(other.channel_api_))
 {
   /* Reset the non-std::move'd fields. */
   other.type_ = AnimationChannelType::UNKNOWN;

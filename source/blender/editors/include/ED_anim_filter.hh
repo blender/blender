@@ -333,6 +333,7 @@ enum class SelectionMode {
  * a new return path in `create_channel_api`. */
 class AbstractChannelAPI {
  public:
+  virtual ~AbstractChannelAPI() = default;
   virtual void set_selected(bool is_selected) = 0;
   virtual bool is_selected() const = 0;
 };
@@ -341,7 +342,7 @@ class AbstractChannelAPI {
  * Allocates a channel api for the given type.
  * Memory has to be handled by the caller.
  */
-AbstractChannelAPI *create_channel_api(PointerRNA &ptr);
+std::unique_ptr<AbstractChannelAPI> create_channel_api(PointerRNA &ptr);
 
 class AnimationChannel {
  public:
@@ -383,7 +384,7 @@ class AnimationChannel {
   mutable ID_Type source_id_type_ = IDTYPE_UNKNOWN;
 
   /* Provides a function interface for the `source_` data.*/
-  AbstractChannelAPI *channel_api_ = nullptr;
+  std::unique_ptr<AbstractChannelAPI> channel_api_;
 
   /**
    * For channels that have a parent channel, this is set to the hash of that parent.
@@ -398,12 +399,7 @@ class AnimationChannel {
   AnimationChannel(AnimationChannelType type, StringRef label);
   AnimationChannel(const AnimationChannel &other);
   AnimationChannel(AnimationChannel &&other);
-  virtual ~AnimationChannel()
-  {
-    if (this->channel_api_) {
-      MEM_delete(this->channel_api_);
-    }
-  };
+  virtual ~AnimationChannel() = default;
 
   /* Remove assignment operators. If we need them, they need to be implemented properly. */
   AnimationChannel &operator=(const AnimationChannel &) = delete;
