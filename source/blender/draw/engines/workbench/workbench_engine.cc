@@ -832,7 +832,6 @@ RenderEngineType DRW_engine_viewport_workbench_type = {
     /*update_script_node*/ nullptr,
     /*update_render_passes*/ &workbench_render_update_passes,
     /*update_custom_camera*/ nullptr,
-    /*draw_engine*/ nullptr,
     /*rna_ext*/
     {
         /*data*/ nullptr,
