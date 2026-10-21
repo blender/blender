@@ -157,10 +157,10 @@ ccl_device_inline ShaderEvalResult integrate_background(
 
   /* Write to render buffer. */
   film_write_background(kg, state, L, transparent, is_transparent_background_ray, render_buffer);
-  film_write_data_passes_background(kg, state, render_buffer);
+  film_write_data_passes_background(kg, state, path_flag, render_buffer);
 
 #ifdef __DENOISING_FEATURES__
-  film_write_denoising_features_background(kg, state, render_buffer);
+  film_write_denoising_features_background(kg, state, path_flag, render_buffer);
 #endif
 
   return SHADER_EVAL_OK;
