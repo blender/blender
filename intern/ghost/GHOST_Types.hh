@@ -104,6 +104,7 @@ enum GHOST_GPUFlags {
   GHOST_gpuStereoVisual = (1 << 0),
   GHOST_gpuDebugContext = (1 << 1),
   GHOST_gpuVSyncIsOverridden = (1 << 2),
+  GHOST_gpuNoHWRaytracing = (1 << 3),
 };
 
 enum GHOST_DialogOptions {
@@ -848,6 +849,7 @@ enum GHOST_TVSyncModes {
 struct GHOST_ContextParams {
   bool is_stereo_visual;
   bool is_debug;
+  bool no_hw_rt;
   /**
    * Request a frame-buffer with an alpha channel that the compositor blends against the
    * desktop, instead of presenting the surface as opaque. Only needed for client-side-decorations
@@ -864,6 +866,7 @@ struct GHOST_ContextParams {
   { \
       /*is_stereo_visual*/ false, \
       /*is_debug*/ false, \
+      /*no_hw_rt*/ false, \
       /*use_alpha*/ false, \
       /*vsync*/ GHOST_kVSyncModeUnset, \
   }
@@ -872,6 +875,7 @@ struct GHOST_ContextParams {
   { \
       /*is_stereo_visual*/ false, \
       /*is_debug*/ (((gpu_settings).flags & GHOST_gpuDebugContext) != 0), \
+      /*no_hw_rt*/ (((gpu_settings).flags & GHOST_gpuNoHWRaytracing) != 0), \
       /*use_alpha*/ false, \
       /*vsync*/ GHOST_kVSyncModeUnset, \
   }
@@ -880,6 +884,7 @@ struct GHOST_ContextParams {
   { \
       /*is_stereo_visual*/ (((gpu_settings).flags & GHOST_gpuStereoVisual) != 0), \
       /*is_debug*/ (((gpu_settings).flags & GHOST_gpuDebugContext) != 0), \
+      /*no_hw_rt*/ (((gpu_settings).flags & GHOST_gpuNoHWRaytracing) != 0), \
       /*use_alpha*/ false, /*vsync*/ \
       (((gpu_settings).flags & GHOST_gpuVSyncIsOverridden) ? (gpu_settings).vsync : \
                                                              GHOST_kVSyncModeUnset), \

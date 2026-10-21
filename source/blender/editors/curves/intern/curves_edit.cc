@@ -201,14 +201,13 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
           attribute.finish();
           return;
         }
-        bke::attribute_math::gather(
-            attribute.span,
-            dst_to_src_curve,
-            attribute.span.slice(IndexRange(old_curves_num, num_curves_to_add)));
+        array_utils::gather(attribute.span,
+                            dst_to_src_curve,
+                            attribute.span.slice(IndexRange(old_curves_num, num_curves_to_add)));
         break;
       }
       case bke::AttrDomain::Point: {
-        bke::attribute_math::gather_ranges_to_groups(
+        array_utils::gather_ranges_to_groups(
             src_ranges.as_span(),
             dst_offsets.as_span(),
             attribute.span,
@@ -283,11 +282,11 @@ void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
     switch (iter.domain) {
       case bke::AttrDomain::Point:
-        bke::attribute_math::gather_group_to_group(points_by_curve.slice(orig_curves_range),
-                                                   points_by_curve.slice(new_curves_range),
-                                                   mask,
-                                                   attribute.span,
-                                                   attribute.span);
+        array_utils::gather_group_to_group(points_by_curve.slice(orig_curves_range),
+                                           points_by_curve.slice(new_curves_range),
+                                           mask,
+                                           attribute.span,
+                                           attribute.span);
         break;
       case bke::AttrDomain::Curve:
         array_utils::gather(attribute.span, mask, attribute.span.take_back(mask.size()));
@@ -408,7 +407,7 @@ static bke::CurvesGeometry copy_data_to_geometry(const bke::CurvesGeometry &src_
            bke::attribute_filter_from_skip_ref(
                ed::curves::get_curves_selection_attribute_names(src_curves))))
   {
-    bke::attribute_math::gather_ranges_to_groups(
+    array_utils::gather_ranges_to_groups(
         src_ranges, dst_offsets, attribute.src, attribute.dst.span);
     attribute.dst.finish();
   };

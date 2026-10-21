@@ -4,9 +4,9 @@
 
 #include <algorithm>
 
+#include "BLI_array_utils.hh"
 #include "BLI_task.hh"
 
-#include "BKE_attribute_math.hh"
 #include "BKE_mesh.hh"
 
 #include "GEO_foreach_geometry.hh"
@@ -195,25 +195,25 @@ static void transfer_attributes(
     switch (src.domain) {
       case AttrDomain::Point:
         ensure_vert_map();
-        bke::attribute_math::gather(*src, new_face_to_old_vert, dst.span);
+        array_utils::gather(*src, new_face_to_old_vert, dst.span);
         break;
       case AttrDomain::Edge:
-        bke::attribute_math::gather(*src, new_to_old_edges_map, dst.span);
+        array_utils::gather(*src, new_to_old_edges_map, dst.span);
         break;
       case AttrDomain::Face: {
         const GVArraySpan src_span(*src);
         dst.span.take_front(src_span.size()).copy_from(src_span);
         if (keep_boundaries) {
           ensure_face_map();
-          bke::attribute_math::gather(src.varray,
-                                      boundary_vert_src_face,
-                                      boundary_vert_mask,
-                                      dst.span.take_front(boundary_vert_src_face.size()));
+          array_utils::gather(src.varray,
+                              boundary_vert_src_face,
+                              boundary_vert_mask,
+                              dst.span.take_front(boundary_vert_src_face.size()));
         }
         break;
       }
       case AttrDomain::Corner:
-        bke::attribute_math::gather(*src, new_to_old_face_corners_map, dst.span);
+        array_utils::gather(*src, new_to_old_face_corners_map, dst.span);
         break;
       default:
         BLI_assert_unreachable();

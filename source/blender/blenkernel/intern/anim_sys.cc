@@ -3962,4 +3962,14 @@ void BKE_copy_time_markers(ListBaseT<TimeMarker> &markers_dst,
   }
 }
 
+void BKE_free_time_markers(ListBaseT<blender::TimeMarker> &markers, bool do_id_user)
+{
+  for (TimeMarker &marker : markers.items_mutable()) {
+    if (marker.prop != nullptr) {
+      IDP_FreeProperty_ex(marker.prop, do_id_user);
+    }
+    MEM_delete(&marker);
+  }
+}
+
 }  // namespace blender

@@ -26,8 +26,9 @@ VKStreamingBuffer::~VKStreamingBuffer()
 VkDeviceSize VKStreamingBuffer::update(VKContext &context, const void *data, size_t data_size)
 {
   render_graph::VKRenderGraph &render_graph = context.render_graph();
+  /* `offset_` is aligned for the next write, so it can be past the end of the buffer. */
   const bool allocate_new_buffer = !(host_buffer_.has_value() &&
-                                     data_size < host_buffer_.value()->size_in_bytes() - offset_);
+                                     offset_ + data_size <= vk_buffer_size_);
   if (allocate_new_buffer) {
     host_buffer_.emplace(std::make_unique<VKBuffer>());
     VKBuffer &host_buffer = *host_buffer_.value();
@@ -60,10 +61,11 @@ VkDeviceSize VKStreamingBuffer::update(VKContext &context, const void *data, siz
       data,
       data_size);
 
-  /* Increase the region size to copy to include the min offset alignment. */
+  /* Copy only the written bytes; the alignment padding is uninitialized and may not fit in the
+   * buffer. */
   render_graph::VKCopyBufferNode::Data &copy_buffer_data = render_graph.get_node_data(
       copy_buffer_handle_);
-  copy_buffer_data.region.size += offset_ - start_offset;
+  copy_buffer_data.region.size = start_offset + data_size;
   return start_offset;
 }
 

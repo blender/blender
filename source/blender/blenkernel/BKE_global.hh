@@ -150,7 +150,7 @@ struct Global {
    * - Command line arguments: `--debug`, `--debug-memory` ... etc.
    * - Python API: `bpy.app.debug`, `bpy.app.debug_memory` ... etc.
    */
-  int debug = 0;
+  uint64_t debug = 0;
 
   /**
    * When true, various geometry processing algorithms randomize the order of elements (e.g.
@@ -334,73 +334,75 @@ enum {
 #define G_FLAG_ALL_READFILE 0
 
 /** #Global.debug */
-enum {
+enum : uint64_t {
   /** General debug flag, print more info in unexpected cases. */
-  G_DEBUG = (1 << 0),
+  G_DEBUG = (1ull << 0),
   /** Extra python info. */
-  G_DEBUG_PYTHON = (1 << 2),
+  G_DEBUG_PYTHON = (1ull << 2),
   /** Input/window/screen events. */
-  G_DEBUG_EVENTS = (1 << 3),
+  G_DEBUG_EVENTS = (1ull << 3),
   /** Events handling. */
-  G_DEBUG_HANDLERS = (1 << 4),
+  G_DEBUG_HANDLERS = (1ull << 4),
   /** Operator, undo. */
-  G_DEBUG_WM = (1 << 5),
+  G_DEBUG_WM = (1ull << 5),
   /** Jobs time profiling. */
-  G_DEBUG_JOBS = (1 << 6),
+  G_DEBUG_JOBS = (1ull << 6),
   /** Freestyle messages. */
-  G_DEBUG_FREESTYLE = (1 << 7),
+  G_DEBUG_FREESTYLE = (1ull << 7),
   /** Depsgraph construction messages. */
-  G_DEBUG_DEPSGRAPH_BUILD = (1 << 8),
+  G_DEBUG_DEPSGRAPH_BUILD = (1ull << 8),
   /** Depsgraph evaluation messages. */
-  G_DEBUG_DEPSGRAPH_EVAL = (1 << 9),
+  G_DEBUG_DEPSGRAPH_EVAL = (1ull << 9),
   /** Depsgraph tagging messages. */
-  G_DEBUG_DEPSGRAPH_TAG = (1 << 10),
+  G_DEBUG_DEPSGRAPH_TAG = (1ull << 10),
   /** Depsgraph timing statistics and messages. */
-  G_DEBUG_DEPSGRAPH_TIME = (1 << 11),
+  G_DEBUG_DEPSGRAPH_TIME = (1ull << 11),
   /** Single threaded depsgraph. */
-  G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 12),
+  G_DEBUG_DEPSGRAPH_NO_THREADS = (1ull << 12),
   /** Use pretty colors in depsgraph messages. */
-  G_DEBUG_DEPSGRAPH_PRETTY = (1 << 13),
+  G_DEBUG_DEPSGRAPH_PRETTY = (1ull << 13),
   /** Verify validness of session-wide identifiers assigned to ID data-blocks. */
-  G_DEBUG_DEPSGRAPH_UID = (1 << 14),
+  G_DEBUG_DEPSGRAPH_UID = (1ull << 14),
   G_DEBUG_DEPSGRAPH = (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_EVAL | G_DEBUG_DEPSGRAPH_TAG |
                        G_DEBUG_DEPSGRAPH_TIME | G_DEBUG_DEPSGRAPH_UID),
   /** Simulation debug data display. */
-  G_DEBUG_SIMDATA = (1 << 15),
+  G_DEBUG_SIMDATA = (1ull << 15),
   /** GPU debug. */
-  G_DEBUG_GPU = (1 << 16),
+  G_DEBUG_GPU = (1ull << 16),
   /** IO Debugging.. */
-  G_DEBUG_IO = (1 << 17),
+  G_DEBUG_IO = (1ull << 17),
   /** Force GPU workarounds bypassing detection. */
-  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18),
+  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1ull << 18),
   /** Force GPU dynamic rendering local read. */
-  G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ = (1 << 19),
+  G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ = (1ull << 19),
   /** Compile all statically defined shaders. . */
-  G_DEBUG_GPU_COMPILE_SHADERS = (1 << 20),
+  G_DEBUG_GPU_COMPILE_SHADERS = (1ull << 20),
   /** Enable RenderDoc integration. */
-  G_DEBUG_GPU_RENDERDOC = (1 << 21),
+  G_DEBUG_GPU_RENDERDOC = (1ull << 21),
   /** Enable the generation of shader debug info. */
-  G_DEBUG_GPU_SHADER_DEBUG_INFO = (1 << 22),
+  G_DEBUG_GPU_SHADER_DEBUG_INFO = (1ull << 22),
   /** Disable memory aliasing in the texture pool. */
-  G_DEBUG_GPU_NO_TEXTURE_POOL = (1 << 23),
+  G_DEBUG_GPU_NO_TEXTURE_POOL = (1ull << 23),
   /** XR/OpenXR messages */
-  G_DEBUG_XR = (1 << 24),
+  G_DEBUG_XR = (1ull << 24),
   /** XR/OpenXR timing messages */
-  G_DEBUG_XR_TIME = (1 << 25),
+  G_DEBUG_XR_TIME = (1ull << 25),
 
   /** Debug GHOST module. */
-  G_DEBUG_GHOST = (1 << 26),
+  G_DEBUG_GHOST = (1ull << 26),
   /** Debug WINTAB. */
-  G_DEBUG_WINTAB = (1 << 27),
+  G_DEBUG_WINTAB = (1ull << 27),
 
   /** Disable the preprocessor (implies NO_DCE). */
-  G_DEBUG_GPU_SHADER_NO_PREPROCESSOR = (1 << 28),
+  G_DEBUG_GPU_SHADER_NO_PREPROCESSOR = (1ull << 28),
   /** Disable Dead Code Elimination. */
-  G_DEBUG_GPU_SHADER_NO_DCE = (1 << 29),
+  G_DEBUG_GPU_SHADER_NO_DCE = (1ull << 29),
   /** Fail when the requested GPU device is invalid. */
-  G_DEBUG_GPU_DEVICE_NO_FALLBACK = (1 << 30),
+  G_DEBUG_GPU_DEVICE_NO_FALLBACK = (1ull << 30),
   /** Skip GPU backend support check and fail if the selected backend is not supported. */
-  G_DEBUG_GPU_BACKEND_NO_FALLBACK = (1 << 31),
+  G_DEBUG_GPU_BACKEND_NO_FALLBACK = (1ull << 31),
+  /** Disable hardware raytracing support at the GHOST level (Vulkan only). */
+  G_DEBUG_GPU_NO_HW_RAYTRACING = (1ull << 32),
 };
 
 #define G_DEBUG_ALL \

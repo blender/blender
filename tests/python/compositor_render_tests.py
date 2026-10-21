@@ -65,6 +65,12 @@ BLOCKLIST_OPENGL_LINUX = [
     "node_keying_matte.blend",
 ]
 
+BLOCKLIST_VULKAN_WINDOWS_QUALCOMM = [
+    # Driver miscompiles the Jacobi SVD shader loop, outputting degenerate euler
+    # rotations for a subset of pixels. See #165028.
+    "node_matrix_svd.blend",
+]
+
 
 def main():
     parser = create_argparse()
@@ -75,6 +81,12 @@ def main():
         blocklist += BLOCKLIST_OPENGL_LINUX
 
     from modules import render_report
+    gpu_vendor = ""
+    if args.gpu_backend:
+        gpu_vendor = render_report.get_gpu_device_vendor(args.blender, args.gpu_backend)
+    if (os.getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST") is None and
+            gpu_vendor == "QUALCOMM" and sys.platform == "win32" and args.gpu_backend == "vulkan"):
+        blocklist += BLOCKLIST_VULKAN_WINDOWS_QUALCOMM
     backend = args.gpu_backend if args.gpu_backend else "CPU"
     report_title = f"Compositor {backend.upper()}"
     report = render_report.Report(report_title, args.outdir, args.oiiotool, variation=None, blocklist=blocklist)

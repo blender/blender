@@ -18,6 +18,7 @@
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
 
+#include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
 #include "BLI_color_types.hh"
 #include "BLI_length_parameterize.hh"
@@ -180,6 +181,8 @@ class PaintOperation : public GreasePencilStrokeOperation {
   bke::greasepencil::Drawing *drawing_;
   int frame_number_;
   Vector<ed::greasepencil::MutableDrawingInfo> multi_frame_drawings_;
+  float fill_opacity_sum_ = 0.0f;
+  int fill_opacity_count_ = 0;
 
   /** Screen space coordinates from input samples. */
   Vector<float2> screen_space_coords_orig_;
@@ -233,9 +236,6 @@ class PaintOperation : public GreasePencilStrokeOperation {
 
   /** Set to true when the paint operation is used to draw fill guides. */
   bool do_fill_guides_;
-
-  /** Used when hiding the fill while drawing. (#GP_BRUSH_DISSABLE_LASSO). */
-  float start_opacity_;
 
   friend struct PaintOperationExecutor;
 
@@ -477,6 +477,9 @@ struct PaintOperationExecutor {
       end_caps.finish();
     }
 
+    self.fill_opacity_sum_ = use_fill ? start_opacity : 0.0f;
+    self.fill_opacity_count_ = use_fill ? 1 : 0;
+
     if (attributes.contains("fill_opacity") ||
         (use_fill && (start_opacity < 1.0f || hide_fill_while_drawing)))
     {
@@ -486,7 +489,6 @@ struct PaintOperationExecutor {
       if (use_fill) {
         /* Use 10% opacity when using the option to hide the fill while drawing
          * (#GP_BRUSH_DISSABLE_LASSO). */
-        self.start_opacity_ = start_opacity;
         fill_opacities.span[active_curve] = !hide_fill_while_drawing ? start_opacity : 0.1f;
       }
       else {
@@ -713,6 +715,24 @@ struct PaintOperationExecutor {
 
     const int active_curve = on_back ? curves.curves_range().first() :
                                        curves.curves_range().last();
+
+    const bool use_fill = (settings_->flag2 & GP_BRUSH_USE_FILL) != 0;
+    const bool hide_fill_while_drawing = (settings_->flag & GP_BRUSH_DISSABLE_LASSO) != 0;
+
+    if (use_fill) {
+      self.fill_opacity_sum_ += opacity;
+      self.fill_opacity_count_++;
+      if (!hide_fill_while_drawing) {
+        bke::SpanAttributeWriter<float> fill_opacities =
+            attributes.lookup_or_add_for_write_span<float>(
+                "fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f));
+        if (fill_opacities) {
+          fill_opacities.span[active_curve] = self.fill_opacity_sum_ / self.fill_opacity_count_;
+          fill_opacities.finish();
+        }
+      }
+    }
+
     const IndexRange curve_points = points_by_curve[active_curve];
     const int last_active_point = curve_points.last();
 
@@ -1476,7 +1496,7 @@ static int trim_end_points(bke::greasepencil::Drawing &drawing,
     }
 
     bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
-    bke::attribute_math::shift_left(dst.span, current_points_num, dst.span.size(), new_points_num);
+    array_utils::shift_left(dst.span, current_points_num, dst.span.size(), new_points_num);
     dst.finish();
   });
 
@@ -1718,7 +1738,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
     bke::SpanAttributeWriter<float> fill_opacities = attributes.lookup_for_write_span<float>(
         "fill_opacity");
     BLI_assert(fill_opacities);
-    fill_opacities.span[active_curve] = start_opacity_;
+    fill_opacities.span[active_curve] = fill_opacity_sum_ / fill_opacity_count_;
     fill_opacities.finish();
   }
 

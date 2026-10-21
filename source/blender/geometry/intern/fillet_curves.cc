@@ -6,10 +6,10 @@
  * \ingroup geo
  */
 
-#include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
 
+#include "BLI_array_utils.hh"
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_task.hh"
 
@@ -33,10 +33,10 @@ static void duplicate_fillet_point_data(const OffsetIndices<int> src_points_by_c
         const IndexRange dst_points = dst_points_by_curve[curve_i];
         const IndexRange offsets_range = bke::curves::per_curve_point_offsets_range(src_points,
                                                                                     curve_i);
-        bke::attribute_math::gather_to_groups(all_point_offsets.slice(offsets_range),
-                                              IndexRange(src_points.size()),
-                                              src.slice(src_points),
-                                              dst.slice(dst_points));
+        array_utils::gather_to_groups(all_point_offsets.slice(offsets_range),
+                                      IndexRange(src_points.size()),
+                                      src.slice(src_points),
+                                      dst.slice(dst_points));
       },
       exec_mode::grain_size(512));
 }

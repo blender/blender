@@ -10,6 +10,7 @@
 
 #include <sstream>
 
+#include "BLI_bytes_type.hh"
 #include "BLI_cpp_type.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_unique_hash.hh"
@@ -345,13 +346,18 @@ CPPType::CPPType(TypeTag<T> /*type*/,
   this->alignment = int64_t(alignof(T));
   this->is_trivial = std::is_trivial_v<T>;
   this->is_trivially_destructible = std::is_trivially_destructible_v<T>;
+  /* Callbacks that only deal with memory (construction, destruction, copying, etc.) are shared by
+   * all types with the same #bytes_type::BytesType, which reduces binary size. */
+  using MemT = bytes_type::to_copy_type<T>;
+  /* Default construction can only be shared if the default constructor is trivial too. */
+  using ConstructT = std::conditional_t<std::is_trivially_default_constructible_v<T>, MemT, T>;
   if constexpr (std::is_default_constructible_v<T>) {
-    default_construct_ = default_construct_cb<T>;
-    default_construct_n_ = default_construct_n_cb<T>;
-    default_construct_indices_ = default_construct_indices_cb<T>;
-    value_initialize_ = value_initialize_cb<T>;
-    value_initialize_n_ = value_initialize_n_cb<T>;
-    value_initialize_indices_ = value_initialize_indices_cb<T>;
+    default_construct_ = default_construct_cb<ConstructT>;
+    default_construct_n_ = default_construct_n_cb<ConstructT>;
+    default_construct_indices_ = default_construct_indices_cb<ConstructT>;
+    value_initialize_ = value_initialize_cb<ConstructT>;
+    value_initialize_n_ = value_initialize_n_cb<ConstructT>;
+    value_initialize_indices_ = value_initialize_indices_cb<ConstructT>;
     if constexpr (bool(Flags & CPPTypeFlags::IdentityDefaultValue)) {
       static const T default_value = T::identity();
       default_value_ = &default_value;
@@ -362,15 +368,15 @@ CPPType::CPPType(TypeTag<T> /*type*/,
     }
   }
   if constexpr (std::is_destructible_v<T>) {
-    destruct_ = destruct_cb<T>;
-    destruct_n_ = destruct_n_cb<T>;
-    destruct_indices_ = destruct_indices_cb<T>;
+    destruct_ = destruct_cb<MemT>;
+    destruct_n_ = destruct_n_cb<MemT>;
+    destruct_indices_ = destruct_indices_cb<MemT>;
   }
   if constexpr (std::is_copy_assignable_v<T>) {
-    copy_assign_ = copy_assign_cb<T>;
-    copy_assign_n_ = copy_assign_n_cb<T>;
-    copy_assign_indices_ = copy_assign_indices_cb<T>;
-    copy_assign_compressed_ = copy_assign_compressed_cb<T>;
+    copy_assign_ = copy_assign_cb<MemT>;
+    copy_assign_n_ = copy_assign_n_cb<MemT>;
+    copy_assign_indices_ = copy_assign_indices_cb<MemT>;
+    copy_assign_compressed_ = copy_assign_compressed_cb<MemT>;
   }
   if constexpr (std::is_copy_constructible_v<T>) {
     if constexpr (std::is_trivially_copy_constructible_v<T>) {
@@ -437,8 +443,8 @@ CPPType::CPPType(TypeTag<T> /*type*/,
     }
   }
   if constexpr (std::is_copy_assignable_v<T>) {
-    fill_assign_n_ = fill_assign_n_cb<T>;
-    fill_assign_indices_ = fill_assign_indices_cb<T>;
+    fill_assign_n_ = fill_assign_n_cb<MemT>;
+    fill_assign_indices_ = fill_assign_indices_cb<MemT>;
   }
   if constexpr (std::is_copy_constructible_v<T>) {
     if constexpr (std::is_trivially_constructible_v<T>) {

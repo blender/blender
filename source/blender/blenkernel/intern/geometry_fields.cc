@@ -657,7 +657,7 @@ GVArray EvaluateAtIndexInput::get_varray_for_context(const bke::GeometryFieldCon
   IndexMaskMemory memory;
   const IndexMask valid_mask = array_utils::indices_in_range(
       mask, indices, values.index_range(), memory);
-  bke::attribute_math::gather(values, indices, valid_mask, dst_array);
+  array_utils::gather(values, indices, valid_mask, dst_array);
   dst_array.type().value_initialize_indices(dst_array.data(), valid_mask.complement(mask, memory));
   return GVArray::from_garray(std::move(dst_array));
 }
@@ -749,7 +749,7 @@ void SampleIndexFunction::call(const IndexMask &mask,
   IndexMaskMemory memory;
   const IndexMask valid_mask = array_utils::indices_in_range(
       mask, indices, src_data_->index_range(), memory);
-  bke::attribute_math::gather(*src_data_, indices, valid_mask, dst);
+  array_utils::gather(*src_data_, indices, valid_mask, dst);
   dst.type().value_initialize_indices(dst.data(), valid_mask.complement(mask, memory));
 }
 

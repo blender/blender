@@ -23,7 +23,6 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_deform.hh"
 #include "BKE_mesh.hh"
@@ -451,7 +450,7 @@ static void gather_attributes(const Span<StringRef> names,
     const AttrType type = cpp_type_to_attribute_type(src.type());
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         name, domain, type);
-    attribute_math::gather(src, index_map, dst.span);
+    array_utils::gather(src, index_map, dst.span);
     dst.finish();
   }
 }

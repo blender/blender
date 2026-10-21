@@ -10,7 +10,6 @@
 
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute_legacy_convert.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
@@ -780,7 +779,7 @@ void gather_attributes(const AttributeAccessor src_attributes,
       if (!dst) {
         return;
       }
-      attribute_math::gather(src.varray, indices, dst.span);
+      array_utils::gather(src.varray, indices, dst.span);
       dst.finish();
     });
   }
@@ -825,7 +824,7 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
       return;
     }
     const GVArraySpan src_span = src;
-    attribute_math::gather_group_to_group(src_offsets, dst_offsets, selection, src_span, dst.span);
+    array_utils::gather_group_to_group(src_offsets, dst_offsets, selection, src_span, dst.span);
     dst.finish();
   });
 }
@@ -860,7 +859,7 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
       return;
     }
     const GVArraySpan src_span = src;
-    attribute_math::gather_to_groups(dst_offsets, src_selection, src_span, dst.span);
+    array_utils::gather_to_groups(dst_offsets, src_selection, src_span, dst.span);
     dst.finish();
   });
 }

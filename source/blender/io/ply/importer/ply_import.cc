@@ -7,10 +7,13 @@
  */
 
 #include <array>
+#include <charconv>
 #include <string>
+#include <utility>
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
@@ -22,6 +25,7 @@
 
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
+#include "BLI_memory_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string.hh"
@@ -130,6 +134,9 @@ const char *read_header(PlyReadBuffer &file, PlyHeader &r_header)
       else if (parse_keyword(line, "binary_little_endian")) {
         r_header.type = PlyFormatType::BINARY_LE;
       }
+      else {
+        return "Unknown format.";
+      }
     }
     else if (parse_keyword(line, "element")) {
       PlyElement element;
@@ -139,18 +146,32 @@ const char *read_header(PlyReadBuffer &file, PlyHeader &r_header)
       element.name = std::string(word.data(), word.size());
       skip_space(line);
       word = parse_word(line);
-      element.count = std::stoi(std::string(word.data(), word.size()));
+      const std::from_chars_result res = std::from_chars(word.begin(), word.end(), element.count);
+      if (res.ec != std::errc() || res.ptr != word.end() || element.count < 0) {
+        return "Invalid element count.";
+      }
       r_header.elements.append(element);
     }
     else if (parse_keyword(line, "property")) {
+      if (r_header.elements.is_empty()) {
+        return "Property without element.";
+      }
       PlyProperty property;
+      bool unknown_count_type = false;
       skip_space(line);
       if (parse_keyword(line, "list")) {
         skip_space(line);
         property.count_type = type_from_string(parse_word(line));
+        unknown_count_type = property.count_type == PlyDataTypes::NONE;
       }
       skip_space(line);
       property.type = type_from_string(parse_word(line));
+      if (unknown_count_type) {
+        /* Still a list, but of unknown type. So it can't be read from binary files,
+         * like other unknown types, while ASCII files don't need the type. */
+        property.count_type = PlyDataTypes::UINT;
+        property.type = PlyDataTypes::NONE;
+      }
       skip_space(line);
       word = parse_word(line);
       property.name = std::string(word.data(), word.size());
@@ -174,40 +195,69 @@ const char *read_header(PlyReadBuffer &file, PlyHeader &r_header)
   return nullptr;
 }
 
+static void report_exception(const PLYImportParams &import_params,
+                             const StringRefNull ob_name,
+                             const std::exception &ex)
+{
+  /* Read buffer errors for malformed files, or allocation failure for huge counts. */
+  CLOG_ERROR(&LOG, "PLY Importer: %s: %s", ob_name.c_str(), ex.what());
+  BKE_reportf(
+      import_params.reports, RPT_ERROR, "PLY Importer: %s: %s", ob_name.c_str(), ex.what());
+}
+
 static std::unique_ptr<PlyData> read_ply_to_data(const PLYImportParams &import_params,
                                                  const StringRefNull ob_name)
 {
-  /* Parse header. */
-  PlyReadBuffer file(import_params.filepath, 64 * 1024);
+  try {
+    /* Parse header. */
+    PlyReadBuffer file(import_params.filepath, 64 * 1024);
 
-  PlyHeader header;
-  const char *err = read_header(file, header);
-  if (err != nullptr) {
-    CLOG_ERROR(&LOG, "PLY Importer: %s: %s", ob_name.c_str(), err);
-    BKE_reportf(import_params.reports, RPT_ERROR, "PLY Importer: %s: %s", ob_name.c_str(), err);
-    return nullptr;
-  }
+    PlyHeader header;
+    const char *err = read_header(file, header);
+    if (err != nullptr) {
+      CLOG_ERROR(&LOG, "PLY Importer: %s: %s", ob_name.c_str(), err);
+      BKE_reportf(import_params.reports, RPT_ERROR, "PLY Importer: %s: %s", ob_name.c_str(), err);
+      return nullptr;
+    }
 
-  /* Parse actual file data. */
-  std::unique_ptr<PlyData> data = import_ply_data(file, header);
-  if (data == nullptr) {
-    CLOG_ERROR(&LOG, "PLY Importer: failed importing %s, unknown error", ob_name.c_str());
-    BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
-    return nullptr;
-  }
-  if (!data->error.empty()) {
-    CLOG_ERROR(
-        &LOG, "PLY Importer: failed importing %s: %s", ob_name.c_str(), data->error.c_str());
-    BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
-    return nullptr;
-  }
-  if (data->vertices.is_empty()) {
-    CLOG_ERROR(&LOG, "PLY Importer: file %s contains no vertices", ob_name.c_str());
-    BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, no vertices");
-    return nullptr;
-  }
+    /* Parse actual file data. */
+    std::unique_ptr<PlyData> data = import_ply_data(file, header);
+    if (data == nullptr) {
+      CLOG_ERROR(&LOG, "PLY Importer: failed importing %s, unknown error", ob_name.c_str());
+      BKE_report(
+          import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
+      return nullptr;
+    }
+    if (!data->error.empty()) {
+      CLOG_ERROR(
+          &LOG, "PLY Importer: failed importing %s: %s", ob_name.c_str(), data->error.c_str());
+      BKE_reportf(import_params.reports,
+                  RPT_ERROR,
+                  "PLY Importer: failed importing %s: %s",
+                  ob_name.c_str(),
+                  data->error.c_str());
+      return nullptr;
+    }
+    if (!data->warning.empty()) {
+      CLOG_WARN(&LOG, "PLY Importer: %s: %s", ob_name.c_str(), data->warning.c_str());
+      BKE_reportf(import_params.reports,
+                  RPT_WARNING,
+                  "PLY Importer: %s: %s",
+                  ob_name.c_str(),
+                  data->warning.c_str());
+    }
+    if (data->vertices.is_empty()) {
+      CLOG_ERROR(&LOG, "PLY Importer: file %s contains no vertices", ob_name.c_str());
+      BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, no vertices");
+      return nullptr;
+    }
 
-  return data;
+    return data;
+  }
+  catch (const std::exception &ex) {
+    report_exception(import_params, ob_name, ex);
+    return nullptr;
+  }
 }
 
 static bool is_data_gaussian_splat(const PlyData &data)
@@ -262,40 +312,75 @@ static std::string get_datablock_name(const StringRefNull filepath)
 
 Mesh *import_mesh(const PLYImportParams &import_params)
 {
-  std::unique_ptr<PlyData> data = read_ply_to_data(import_params,
-                                                   get_datablock_name(import_params.filepath));
-  if (!data) {
+  const std::string datablock_name = get_datablock_name(import_params.filepath);
+  try {
+    std::unique_ptr<PlyData> data = read_ply_to_data(import_params, datablock_name);
+    if (!data) {
+      return nullptr;
+    }
+    return convert_ply_to_mesh(*data, import_params);
+  }
+  catch (const std::exception &ex) {
+    report_exception(import_params, datablock_name, ex);
     return nullptr;
   }
-  return convert_ply_to_mesh(*data, import_params);
 }
 
 PointCloud *import_point_cloud(const PLYImportParams &import_params)
 {
-  std::unique_ptr<PlyData> data = read_ply_to_data(import_params,
-                                                   get_datablock_name(import_params.filepath));
-  if (!data) {
+  const std::string datablock_name = get_datablock_name(import_params.filepath);
+  try {
+    std::unique_ptr<PlyData> data = read_ply_to_data(import_params, datablock_name);
+    if (!data) {
+      return nullptr;
+    }
+    if (!is_data_gaussian_splat(*data)) {
+      return nullptr;
+    }
+    return convert_gsplat_ply_to_point_cloud(*data, import_params);
+  }
+  catch (const std::exception &ex) {
+    report_exception(import_params, datablock_name, ex);
     return nullptr;
   }
-  if (!is_data_gaussian_splat(*data)) {
-    return nullptr;
-  }
-  return convert_gsplat_ply_to_point_cloud(*data, import_params);
 }
 
 bke::GeometrySet import_geometry_set(const PLYImportParams &import_params)
 {
-  std::unique_ptr<PlyData> data = read_ply_to_data(import_params,
-                                                   get_datablock_name(import_params.filepath));
-  if (!data) {
+  const std::string datablock_name = get_datablock_name(import_params.filepath);
+  try {
+    std::unique_ptr<PlyData> data = read_ply_to_data(import_params, datablock_name);
+    if (!data) {
+      return bke::GeometrySet();
+    }
+
+    /* Free the geometry if an exception is thrown before the geometry set owns it. */
+    Mesh *mesh = nullptr;
+    PointCloud *point_cloud = nullptr;
+    BLI_SCOPED_DEFER([&]() {
+      if (mesh) {
+        BKE_id_free(nullptr, mesh);
+      }
+      if (point_cloud) {
+        BKE_id_free(nullptr, point_cloud);
+      }
+    });
+
+    if (is_data_gaussian_splat(*data)) {
+      point_cloud = convert_gsplat_ply_to_point_cloud(*data, import_params);
+      bke::GeometrySet geometry = bke::GeometrySet::from_pointcloud(point_cloud);
+      point_cloud = nullptr;
+      return geometry;
+    }
+    mesh = convert_ply_to_mesh(*data, import_params);
+    bke::GeometrySet geometry = bke::GeometrySet::from_mesh(mesh);
+    mesh = nullptr;
+    return geometry;
+  }
+  catch (const std::exception &ex) {
+    report_exception(import_params, datablock_name, ex);
     return bke::GeometrySet();
   }
-  if (is_data_gaussian_splat(*data)) {
-    PointCloud *point_cloud = convert_gsplat_ply_to_point_cloud(*data, import_params);
-    return bke::GeometrySet::from_pointcloud(point_cloud);
-  }
-  Mesh *mesh = convert_ply_to_mesh(*data, import_params);
-  return bke::GeometrySet::from_mesh(mesh);
 }
 
 void importer_main(bContext *C, const PLYImportParams &import_params)
@@ -306,13 +391,12 @@ void importer_main(bContext *C, const PLYImportParams &import_params)
   importer_main(bmain, scene, view_layer, import_params);
 }
 
-void importer_main(Main *bmain,
-                   Scene *scene,
-                   ViewLayer *view_layer,
-                   const PLYImportParams &import_params)
+static void importer_main_impl(Main *bmain,
+                               Scene *scene,
+                               ViewLayer *view_layer,
+                               const PLYImportParams &import_params,
+                               const std::string &datablock_name)
 {
-  const std::string datablock_name = get_datablock_name(import_params.filepath);
-
   std::unique_ptr<PlyData> data = read_ply_to_data(import_params, datablock_name);
   if (!data) {
     return;
@@ -322,15 +406,26 @@ void importer_main(Main *bmain,
   ID *ob_data = nullptr;
   Mesh *mesh = nullptr;
   Mesh *mesh_in_main = nullptr;
+  PointCloud *point_cloud = nullptr;
+  /* Free the geometry if an exception like std::bad_alloc is thrown before moving it to Main. */
+  BLI_SCOPED_DEFER([&]() {
+    if (mesh) {
+      BKE_id_free(nullptr, mesh);
+    }
+    if (point_cloud) {
+      BKE_id_free(nullptr, point_cloud);
+    }
+  });
+
   if (is_data_gaussian_splat(*data)) {
-    PointCloud *point_cloud = convert_gsplat_ply_to_point_cloud(*data, import_params);
+    point_cloud = convert_gsplat_ply_to_point_cloud(*data, import_params);
     if (!point_cloud) {
       return;
     }
     PointCloud *point_cloud_in_main = BKE_pointcloud_add(bmain, datablock_name.c_str());
     ob_type = OB_POINTCLOUD;
     ob_data = id_cast<ID *>(point_cloud_in_main);
-    BKE_pointcloud_nomain_to_pointcloud(point_cloud, point_cloud_in_main);
+    BKE_pointcloud_nomain_to_pointcloud(std::exchange(point_cloud, nullptr), point_cloud_in_main);
   }
   else {
     mesh = convert_ply_to_mesh(*data, import_params);
@@ -367,7 +462,7 @@ void importer_main(Main *bmain,
   if (ob_type == OB_MESH) {
     BLI_assert(mesh);
     BLI_assert(mesh_in_main);
-    BKE_mesh_nomain_to_mesh(mesh, mesh_in_main, obj);
+    BKE_mesh_nomain_to_mesh(std::exchange(mesh, nullptr), mesh_in_main, obj);
   }
 
   /* Object matrix and finishing up. */
@@ -396,6 +491,20 @@ void importer_main(Main *bmain,
   DEG_id_tag_update_ex(bmain, &obj->id, flags);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(bmain);
+}
+
+void importer_main(Main *bmain,
+                   Scene *scene,
+                   ViewLayer *view_layer,
+                   const PLYImportParams &import_params)
+{
+  const std::string datablock_name = get_datablock_name(import_params.filepath);
+  try {
+    importer_main_impl(bmain, scene, view_layer, import_params, datablock_name);
+  }
+  catch (const std::exception &ex) {
+    report_exception(import_params, datablock_name, ex);
+  }
 }
 
 }  // namespace io::ply

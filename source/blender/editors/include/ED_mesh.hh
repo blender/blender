@@ -453,18 +453,27 @@ void ED_keymap_mesh(wmKeyConfig *keyconf);
  * Copy the face flags, most importantly selection from the mesh to the final evaluated mesh,
  * use in object mode when selecting faces (while painting).
  */
-void paintface_flush_flags(Object *ob, bool flush_selection, bool flush_hidden);
+void paintface_flush_flags(Depsgraph &depsgraph,
+                           Object *ob_orig,
+                           bool flush_selection,
+                           bool flush_hidden);
 /**
  * \return True when pick finds an element or the selection changed.
  */
 bool paintface_mouse_select(bContext *C,
+                            Depsgraph &depsgraph,
                             const int mval[2],
                             const SelectPick_Params &params,
                             Object *ob);
-bool paintface_deselect_all_visible(Object *ob, int action, bool flush_flags);
-void paintface_select_linked(bContext *C, Object *ob, const int mval[2], bool select);
+bool paintface_deselect_all_visible(Depsgraph &depsgraph,
+                                    Object *ob,
+                                    int action,
+                                    bool flush_flags);
+void paintface_select_linked(
+    bContext *C, Depsgraph &depsgraph, Object *ob, const int mval[2], bool select);
 
-void paintface_select_loop(bContext *C, Object *ob, const int mval[2], bool select);
+void paintface_select_loop(
+    bContext *C, Depsgraph &depsgraph, Object *ob, const int mval[2], bool select);
 /**
  * Grow the selection of faces.
  * \param face_step: If true will also select faces that only touch on the corner.
@@ -473,8 +482,8 @@ void paintface_select_more(Mesh *mesh, bool face_step);
 void paintface_select_less(Mesh *mesh, bool face_step);
 bool paintface_minmax(Object *ob, float r_min[3], float r_max[3]);
 
-void paintface_hide(Object *ob, bool unselected);
-void paintface_reveal(Object *ob, bool select);
+void paintface_hide(Depsgraph &depsgraph, Object *ob, bool unselected);
+void paintface_reveal(Depsgraph &depsgraph, Object *ob, bool select);
 
 /**
  * \note if the caller passes false to flush_flags,

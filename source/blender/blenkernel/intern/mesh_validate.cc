@@ -10,7 +10,6 @@
 #include <fmt/format.h>
 
 #include "BKE_attribute_legacy_convert.hh"
-#include "BKE_attribute_math.hh"
 #include "CLG_log.h"
 
 #include "DNA_mesh_types.h"
@@ -441,11 +440,11 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
         switch (attr.storage_type()) {
           case AttrStorageType::Array: {
             GArray<> dst_data(type, new_faces.total_size(), NoInitialization());
-            bke::attribute_math::gather_group_to_group(old_faces,
-                                                       new_faces,
-                                                       valid_faces,
-                                                       std::get<GSpan>(attr.data().values()),
-                                                       dst_data.as_mutable_span());
+            array_utils::gather_group_to_group(old_faces,
+                                               new_faces,
+                                               valid_faces,
+                                               std::get<GSpan>(attr.data().values()),
+                                               dst_data.as_mutable_span());
             attr.assign_data(GList(std::move(dst_data)));
             break;
           }

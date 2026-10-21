@@ -33,4 +33,6 @@ def sha1_authors_map() -> dict[bytes, tuple[str, ...]]:
         b"a76e69f5f75c06dda6d35113d80b6b65dcc94ea0": ("John Cox <johnedwardcox@yahoo.com>", ),
         # Author was: `Henry Chang <ChengduLittleA>`.
         b"bd86e719ab917e455c728837b6de61d480d9b1df": ("Henry Chang <34479+henry-chang@noreply.localhost>", ),
+        # Author was: `Aditya Y Jeppu <quantimoney>`.
+        b"72b3a3952891e4cb035df26b3a50eb3ddd7163f4": ("Aditya Giri <74224708+adityagiri3600@users.noreply.github.com>", ),
     }

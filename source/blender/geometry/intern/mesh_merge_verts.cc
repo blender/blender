@@ -909,7 +909,7 @@ static void copy_and_mix_attributes(const bke::AttributeAccessor src_attributes,
     const GVArraySpan src_span(src_attr);
     bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, iter.domain, iter.data_type);
-    bke::attribute_math::gather(src_span, map.dst_to_src.as_span(), dst_attr.span);
+    array_utils::gather(src_span, map.dst_to_src.as_span(), dst_attr.span);
     const GroupedSpan<int> mixed_groups = map.mixed_groups();
     bke::attribute_math::mix_groups(
         src_span, mixed_groups.offsets, mixed_groups.data, std::nullopt, map.mixed, dst_attr.span);

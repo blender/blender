@@ -1187,10 +1187,10 @@ void calc_vert_factors(const Depsgraph &depsgraph,
   }
 }
 
-static void fill_topology_automasking_factors_mesh(const Depsgraph &depsgraph,
-                                                   Object &ob,
-                                                   const Span<float3> vert_positions,
-                                                   MutableSpan<float> factors)
+static void fill_constrained_topology_automasking_factors_mesh(const Depsgraph &depsgraph,
+                                                               Object &ob,
+                                                               const Span<float3> vert_positions,
+                                                               MutableSpan<float> factors)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
   const Mesh &mesh = *id_cast<const Mesh *>(ob.data);
@@ -1213,9 +1213,9 @@ static void fill_topology_automasking_factors_mesh(const Depsgraph &depsgraph,
   });
 }
 
-static void fill_topology_automasking_factors_grids(Object &ob,
-                                                    const SubdivCCG &subdiv_ccg,
-                                                    MutableSpan<float> factors)
+static void fill_constrained_topology_automasking_factors_grids(Object &ob,
+                                                                const SubdivCCG &subdiv_ccg,
+                                                                MutableSpan<float> factors)
 
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
@@ -1243,9 +1243,9 @@ static void fill_topology_automasking_factors_grids(Object &ob,
       });
 }
 
-static void fill_topology_automasking_factors_bmesh(Object &ob,
-                                                    BMesh &bm,
-                                                    MutableSpan<float> factors)
+static void fill_constrained_topology_automasking_factors_bmesh(Object &ob,
+                                                                BMesh &bm,
+                                                                MutableSpan<float> factors)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
 
@@ -1267,9 +1267,9 @@ static void fill_topology_automasking_factors_bmesh(Object &ob,
   });
 }
 
-static void fill_topology_automasking_factors(const Depsgraph &depsgraph,
-                                              Object &ob,
-                                              MutableSpan<float> factors)
+static void fill_constrained_topology_automasking_factors(const Depsgraph &depsgraph,
+                                                          Object &ob,
+                                                          MutableSpan<float> factors)
 {
   PRF_scope(ProfileCategory::Editor);
   /* TODO: This method is to be removed when more of the automasking code handles the different
@@ -1284,14 +1284,14 @@ static void fill_topology_automasking_factors(const Depsgraph &depsgraph,
 
   switch (bke::object::pbvh_get(ob)->type()) {
     case bke::pbvh::Type::Mesh:
-      fill_topology_automasking_factors_mesh(
+      fill_constrained_topology_automasking_factors_mesh(
           depsgraph, ob, bke::pbvh::vert_positions_eval(depsgraph, ob), factors);
       break;
     case bke::pbvh::Type::Grids:
-      fill_topology_automasking_factors_grids(ob, *ss.subdiv_ccg, factors);
+      fill_constrained_topology_automasking_factors_grids(ob, *ss.subdiv_ccg, factors);
       break;
     case bke::pbvh::Type::BMesh:
-      fill_topology_automasking_factors_bmesh(ob, *ss.bm, factors);
+      fill_constrained_topology_automasking_factors_bmesh(ob, *ss.bm, factors);
       break;
   }
 }
@@ -1630,18 +1630,21 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
 
   /* Topology builds up the mask from zero which other modes can subtract from.
    * If it isn't enabled, initialize to 1. */
-  const float initial_value = !flag_is_set(mode, BRUSH_AUTOMASKING_TOPOLOGY) ? 1.0f : 0.0f;
+  const bool use_constrained_topology_automasking = mode_enabled(paint,
+                                                                 brush,
+                                                                 BRUSH_AUTOMASKING_TOPOLOGY) &&
+                                                    brush && is_constrained_by_radius(brush) &&
+                                                    ss.cache;
+  const float initial_value = !use_constrained_topology_automasking ? 1.0f : 0.0f;
   automasking->factor = Array<float>(verts_num, initial_value);
   MutableSpan<float> factors = automasking->factor;
 
   /* Additive modes. */
-  if (mode_enabled(paint, brush, BRUSH_AUTOMASKING_TOPOLOGY) && brush &&
-      is_constrained_by_radius(brush) && ss.cache)
-  {
+  if (use_constrained_topology_automasking) {
     vert_random_access_ensure(ob);
 
     automasking->settings.topology_use_brush_limit = true;
-    fill_topology_automasking_factors(depsgraph, ob, factors);
+    fill_constrained_topology_automasking_factors(depsgraph, ob, factors);
   }
 
   const int steps = boundary_propagation_steps(paint, brush);

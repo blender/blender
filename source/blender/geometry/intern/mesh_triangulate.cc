@@ -13,6 +13,7 @@
 #include "BLI_index_ranges_builder.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_polyfill_2d.hh"
 #include "BLI_polyfill_2d_beautify.hh"
 #include "BLI_vector_set.hh"
@@ -21,7 +22,6 @@
 #include "BLI_memarena.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_attribute_storage.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
@@ -666,7 +666,7 @@ std::optional<Mesh *> mesh_triangulate(const Mesh &src_mesh,
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
            src_attributes, attributes, {bke::AttrDomain::Face}, attribute_filter))
   {
-    bke::attribute_math::gather(
+    array_utils::gather(
         attribute.src, dst_tri_to_src_face.as_span(), attribute.dst.span.slice(unique_tri_range));
     array_utils::gather(
         attribute.src, unique_src_faces, attribute.dst.span.slice(unique_src_faces_range));
@@ -703,15 +703,15 @@ std::optional<Mesh *> mesh_triangulate(const Mesh &src_mesh,
            bke::attribute_filter_with_skip_ref(attribute_filter,
                                                {".corner_vert", ".corner_edge"})))
   {
-    bke::attribute_math::gather_group_to_group(
+    array_utils::gather_group_to_group(
         src_faces,
         faces.slice(IndexRange(unique_tri_num, unique_src_faces.size())),
         unique_src_faces,
         attribute.src,
         attribute.dst.span);
-    bke::attribute_math::gather(attribute.src,
-                                unique_corner_tris.cast<int>(),
-                                attribute.dst.span.slice(0, unique_tri_num * 3));
+    array_utils::gather(attribute.src,
+                        unique_corner_tris.cast<int>(),
+                        attribute.dst.span.slice(0, unique_tri_num * 3));
     attribute.dst.finish();
   }
 

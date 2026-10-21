@@ -1075,7 +1075,7 @@ static void foreach_obref_in_scene(
           continue;
         }
 
-        tmp_object.light_linking = ob->light_linking;
+        tmp_object.light_linking = dupli.ob->light_linking;
         SET_FLAG_FROM_TEST(tmp_object.transflag, is_negative_m4(dupli.mat), OB_NEG_SCALE);
         tmp_object.runtime->object_to_world = float4x4(dupli.mat);
         tmp_object.runtime->world_to_object = invert(tmp_object.runtime->object_to_world);
@@ -1110,7 +1110,7 @@ static void foreach_obref_in_scene(
         continue;
       }
 
-      tmp_object.light_linking = ob->light_linking;
+      tmp_object.light_linking = first_dupli->ob->light_linking;
       SET_FLAG_FROM_TEST(tmp_object.transflag,
                          flag_is_set(key.flags, InstancesFlags::IsNegativeScale),
                          OB_NEG_SCALE);

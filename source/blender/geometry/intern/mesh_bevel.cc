@@ -7571,7 +7571,7 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
         GMutableSpan surv_values = dst.span.take_front(n_surv_verts);
         GMutableSpan new_values = dst.span.take_back(n_new_verts);
         array_utils::gather(src, src_survive_verts, surv_values);
-        bke::attribute_math::gather(src, vert_src_by_dst, verts_new_with_src, new_values);
+        array_utils::gather(src, vert_src_by_dst, verts_new_with_src, new_values);
         type.fill_assign_indices(type.default_value(), new_values.data(), verts_new_no_src);
         break;
       }
@@ -7579,7 +7579,7 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
         GMutableSpan surv_values = dst.span.take_front(n_surv_edges);
         GMutableSpan new_values = dst.span.take_back(n_new_edges);
         array_utils::gather(src, src_survive_edges, surv_values);
-        bke::attribute_math::gather(src, edge_src_by_dst, edges_new_with_src, new_values);
+        array_utils::gather(src, edge_src_by_dst, edges_new_with_src, new_values);
         type.fill_assign_indices(type.default_value(), new_values.data(), edges_new_no_src);
         break;
       }
@@ -7587,7 +7587,7 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
         GMutableSpan surv_values = dst.span.take_front(n_surv_faces);
         GMutableSpan new_values = dst.span.take_back(n_new_faces);
         array_utils::gather(src, src_survive_faces, surv_values);
-        bke::attribute_math::gather(src, face_src_by_dst, faces_new_with_src, new_values);
+        array_utils::gather(src, face_src_by_dst, faces_new_with_src, new_values);
         type.fill_assign_indices(type.default_value(), new_values.data(), face_new_no_src);
         break;
       }
@@ -7596,7 +7596,7 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
         GMutableSpan surv_values = dst.span.take_front(n_surv_corners);
         GMutableSpan new_values = dst.span.take_back(n_new_corners);
 
-        bke::attribute_math::gather_group_to_group(
+        array_utils::gather_group_to_group(
             src_faces, dst_faces, src_survive_faces, src_span, surv_values);
 
         interpolate_new_corner_attribute_from_faces(interp_weights, src_span, new_values);
@@ -7650,8 +7650,11 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
     if (!dst_uvs) {
       continue;
     }
-    bke::attribute_math::gather_group_to_group(
-        src_faces, dst_faces, src_survive_faces, src_uvs, dst_uvs.span.take_front(n_surv_corners));
+    array_utils::gather_group_to_group(src_faces,
+                                       dst_faces,
+                                       src_survive_faces,
+                                       GSpan(src_uvs),
+                                       GMutableSpan(dst_uvs.span.take_front(n_surv_corners)));
     array_utils::copy(emesh.new_corner_uvs(i), dst_uvs.span.take_back(n_new_corners));
     dst_uvs.finish();
   }

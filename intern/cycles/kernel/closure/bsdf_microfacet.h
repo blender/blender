@@ -821,7 +821,7 @@ ccl_device_inline float bsdf_aniso_D(const float alpha_x, const float alpha_y, f
 }
 
 /* Below certain roughness threshold we can treat closures as perfectly specular. */
-ccl_device_forceinline bool roughness_is_almost_specular(const float alpha_x, const float alpha_y)
+ccl_device_forceinline bool alpha_is_almost_specular(const float alpha_x, const float alpha_y)
 {
   return (alpha_x * alpha_y) <= 2e-10f;
 }
@@ -829,7 +829,7 @@ ccl_device_forceinline bool roughness_is_almost_specular(const float alpha_x, co
 /* A specular BSDF has no eval. */
 ccl_device_forceinline int bsdf_microfacet_eval_flag(const ccl_private MicrofacetBsdf *bsdf)
 {
-  return roughness_is_almost_specular(bsdf->alpha_x, bsdf->alpha_y) ? 0 : SR_BSDF_HAS_EVAL;
+  return alpha_is_almost_specular(bsdf->alpha_x, bsdf->alpha_y) ? 0 : SR_BSDF_HAS_EVAL;
 }
 
 template<MicrofacetType m_type>
@@ -947,7 +947,7 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
   const float m_inv_eta = safe_divide(1.0f, bsdf->ior);
   const float alpha_x = bsdf->alpha_x;
   const float alpha_y = bsdf->alpha_y;
-  bool m_singular = roughness_is_almost_specular(alpha_x, alpha_y);
+  bool m_singular = alpha_is_almost_specular(alpha_x, alpha_y);
 
   /* Half vector. */
   float3 H;
@@ -1420,14 +1420,14 @@ ccl_device_inline void bsdf_thin_glass_reflection_setup(KernelGlobals kg,
                                                         const Spectrum color,
                                                         const Spectrum weight,
                                                         const float3 N,
-                                                        const float roughness)
+                                                        const float alpha)
 {
   ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
       sd, sizeof(MicrofacetBsdf), weight);
   if (bsdf) {
     bsdf->N = N;
     bsdf->T = zero_float3();
-    bsdf->alpha_x = bsdf->alpha_y = roughness;
+    bsdf->alpha_x = bsdf->alpha_y = alpha;
     bsdf->ior = 1.0f;
     sd->runtime_flag |= bsdf_microfacet_ggx_setup(bsdf);
     bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd->wi, color);
@@ -1437,24 +1437,27 @@ ccl_device_inline void bsdf_thin_glass_reflection_setup(KernelGlobals kg,
 /* Roughen the transmission lobe since it undergoes two refraction events.
  * From "Revisiting Physically Based Shading at Imageworks" by Christopher Kulla and Alejandro
  * Conty, Page 40.
- * Note that the number 3.7 in the slides is a typo, it should be 1.7 * 2, which is 3.4. */
-ccl_device_inline float bsdf_thin_glass_transmission_roughness(const float alpha, const float eta)
+ * NOTE:
+ * 1. the number 3.7 in the slides is a typo, it should be 1.7 * 2, which is 3.4.
+ * 2. `sqrt()` is removed because the original mapping applies on roughness, but we apply on alpha.
+ */
+ccl_device_inline float bsdf_thin_glass_transmission_alpha(const float alpha, const float eta)
 {
-  return saturatef(alpha * sqrtf(3.4f * (eta - 1.0f) * sqr(eta - 0.5f) / (sqr(eta) * eta)));
+  return saturatef(alpha * 3.4f * (eta - 1.0f) * sqr(eta - 0.5f) / (sqr(eta) * eta));
 }
 
 ccl_device_inline void bsdf_thin_glass_transmission_setup(KernelGlobals kg,
                                                           ccl_private ShaderData *sd,
                                                           const Spectrum weight,
                                                           const float3 N,
-                                                          const float roughness,
+                                                          const float alpha,
                                                           const float ior,
                                                           const PathRayVisibility ray_visibility,
                                                           const uint32_t path_flag)
 {
-  const float transmission_roughness = bsdf_thin_glass_transmission_roughness(roughness, ior);
+  const float transmission_alpha = bsdf_thin_glass_transmission_alpha(alpha, ior);
   if (!(ray_visibility & PATH_RAY_VISIBILITY_CAMERA) &&
-      roughness_is_almost_specular(transmission_roughness, transmission_roughness))
+      alpha_is_almost_specular(transmission_alpha, transmission_alpha))
   {
     /* Smooth thin glass does not bend the ray and is effectively transparent, allocate transparent
      * closures for non-camera rays to improve sampling and keep render passes intact. */
@@ -1469,7 +1472,7 @@ ccl_device_inline void bsdf_thin_glass_transmission_setup(KernelGlobals kg,
   if (bsdf) {
     bsdf->N = -N;
     bsdf->T = zero_float3();
-    bsdf->alpha_x = bsdf->alpha_y = transmission_roughness;
+    bsdf->alpha_x = bsdf->alpha_y = transmission_alpha;
     bsdf->ior = 1.0f;
     bsdf->fresnel_type = MicrofacetFresnel::NONE;
     bsdf->energy_scale = 1.0f;
@@ -1500,7 +1503,7 @@ ccl_device int bsdf_thin_glass_transmission_sample(KernelGlobals kg,
                                                    ccl_private float *eta)
 {
   const ccl_private MicrofacetBsdf *bsdf = (const ccl_private MicrofacetBsdf *)sc;
-  if (roughness_is_almost_specular(bsdf->alpha_x, bsdf->alpha_y)) {
+  if (alpha_is_almost_specular(bsdf->alpha_x, bsdf->alpha_y)) {
     /* Effectively transparent. */
     *wo = -wi;
 
@@ -1530,7 +1533,7 @@ ccl_device FresnelCoeff bsdf_thin_glass_setup(KernelGlobals kg,
                                               const FresnelCoeff tint,
                                               const Spectrum weight,
                                               const float3 N,
-                                              const float roughness,
+                                              const float alpha,
                                               const float ior,
                                               const FresnelThinFilm thinfilm,
                                               const PathRayVisibility ray_visibility,
@@ -1541,9 +1544,9 @@ ccl_device FresnelCoeff bsdf_thin_glass_setup(KernelGlobals kg,
       kg, reflective, refractive, tint, thinfilm, ior, cos_theta_i);
 
   bsdf_thin_glass_reflection_setup(
-      kg, sd, tint.reflectance, fresnel.reflectance * weight, N, roughness);
+      kg, sd, tint.reflectance, fresnel.reflectance * weight, N, alpha);
   bsdf_thin_glass_transmission_setup(
-      kg, sd, fresnel.transmittance * weight, N, roughness, ior, ray_visibility, path_flag);
+      kg, sd, fresnel.transmittance * weight, N, alpha, ior, ray_visibility, path_flag);
 
   return fresnel;
 }

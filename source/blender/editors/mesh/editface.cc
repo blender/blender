@@ -39,16 +39,17 @@ namespace blender {
 
 /* own include */
 
-void paintface_flush_flags(Object *ob, const bool flush_selection, const bool flush_hidden)
+void paintface_flush_flags(Depsgraph &depsgraph,
+                           Object *ob_orig,
+                           const bool flush_selection,
+                           const bool flush_hidden)
 {
-  Mesh *mesh = BKE_mesh_from_object(ob);
+  Mesh *mesh = BKE_mesh_from_object(ob_orig);
   const int *index_array = nullptr;
 
   BLI_assert(flush_selection || flush_hidden);
 
-  if (mesh == nullptr) {
-    return;
-  }
+  Object *ob_eval = DEG_get_evaluated(&depsgraph, ob_orig);
 
   /* NOTE: call #BKE_mesh_flush_hidden_from_verts_ex first when changing hidden flags. */
 
@@ -58,14 +59,19 @@ void paintface_flush_flags(Object *ob, const bool flush_selection, const bool fl
     bke::mesh_select_face_flush(*mesh);
   }
 
-  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
-  Mesh *mesh_orig = BKE_object_get_original_mesh(ob);
-  if (mesh_eval == nullptr || mesh_orig == nullptr) {
+  if (ob_eval == nullptr) {
     return;
   }
 
   bke::AttributeAccessor attributes_me = mesh->attributes();
-  bke::MutableAttributeAccessor attributes_orig = mesh_eval->attributes_for_write();
+  /* TODO: Conceptually this access and the sync to the `mesh_orig` attributes do not make sense,
+   * as `mesh` and `mesh_orig` should both be the same data. This should be verified and
+   * reevaluated or further explained. */
+  Mesh *mesh_orig = id_cast<Mesh *>(ob_eval->runtime->data_orig);
+  bke::MutableAttributeAccessor attributes_orig = mesh_orig->attributes_for_write();
+
+  /* Note: Using `BKE_object_get_evaluated_mesh` here doesn't work with a subdiv surface */
+  Mesh *mesh_eval = id_cast<Mesh *>(ob_eval->runtime->data_eval);
   bke::MutableAttributeAccessor attributes_eval = mesh_eval->attributes_for_write();
   bool updated = false;
 
@@ -135,16 +141,16 @@ void paintface_flush_flags(Object *ob, const bool flush_selection, const bool fl
       BKE_mesh_batch_cache_dirty_tag(mesh_eval, BKE_MESH_BATCH_DIRTY_SELECT_PAINT);
     }
 
-    DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
+    DEG_id_tag_update(ob_orig->data, ID_RECALC_SELECT);
   }
   else {
-    DEG_id_tag_update(ob->data, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+    DEG_id_tag_update(ob_orig->data, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
   }
 
-  WM_main_add_notifier(NC_GEOM | ND_SELECT, ob->data);
+  WM_main_add_notifier(NC_GEOM | ND_SELECT, ob_orig->data);
 }
 
-void paintface_hide(Object *ob, const bool unselected)
+void paintface_hide(Depsgraph &depsgraph, Object *ob, const bool unselected)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
   if (mesh == nullptr || mesh->faces_num == 0) {
@@ -174,10 +180,10 @@ void paintface_hide(Object *ob, const bool unselected)
 
   bke::mesh_hide_face_flush(*mesh);
 
-  paintface_flush_flags(ob, true, true);
+  paintface_flush_flags(depsgraph, ob, true, true);
 }
 
-void paintface_reveal(Object *ob, const bool select)
+void paintface_reveal(Depsgraph &depsgraph, Object *ob, const bool select)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
   if (mesh == nullptr || mesh->faces_num == 0) {
@@ -203,7 +209,7 @@ void paintface_reveal(Object *ob, const bool select)
 
   bke::mesh_hide_face_flush(*mesh);
 
-  paintface_flush_flags(ob, true, true);
+  paintface_flush_flags(depsgraph, ob, true, true);
 }
 
 /**
@@ -299,7 +305,8 @@ static void paintface_select_linked_faces(Mesh &mesh,
   select_poly.finish();
 }
 
-void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const bool select)
+void paintface_select_linked(
+    bContext *C, Depsgraph &depsgraph, Object *ob, const int mval[2], const bool select)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
   if (mesh == nullptr || mesh->faces_num == 0) {
@@ -335,7 +342,7 @@ void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const b
   select_poly.finish();
 
   paintface_select_linked_faces(*mesh, indices, select);
-  paintface_flush_flags(ob, true, false);
+  paintface_flush_flags(depsgraph, ob, true, false);
 }
 
 static int get_opposing_edge_index(const IndexRange face,
@@ -405,13 +412,13 @@ static bool follow_face_loop(const int face_start_index,
   return false;
 }
 
-void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const bool select)
+void paintface_select_loop(
+    bContext *C, Depsgraph &depsgraph, Object *ob, const int mval[2], const bool select)
 {
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
+  ViewContext vc = ED_view3d_viewcontext_init(C, &depsgraph);
   ED_view3d_select_id_validate(&vc);
 
-  Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(&depsgraph, ob);
   if (!ob_eval) {
     return;
   }
@@ -483,7 +490,7 @@ void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const boo
   select_poly.span.fill_indices(faces_to_select.as_span(), select_toggle);
 
   select_poly.finish();
-  paintface_flush_flags(ob, true, false);
+  paintface_flush_flags(depsgraph, ob, true, false);
 }
 
 static bool poly_has_selected_neighbor(Span<int> face_edges,
@@ -604,7 +611,7 @@ void paintface_select_less(Mesh *mesh, const bool face_step)
   select_poly.finish();
 }
 
-bool paintface_deselect_all_visible(Object *ob, int action, bool flush_flags)
+bool paintface_deselect_all_visible(Depsgraph &depsgraph, Object *ob, int action, bool flush_flags)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
   if (mesh == nullptr) {
@@ -656,7 +663,7 @@ bool paintface_deselect_all_visible(Object *ob, int action, bool flush_flags)
 
   if (changed) {
     if (flush_flags) {
-      paintface_flush_flags(ob, true, false);
+      paintface_flush_flags(depsgraph, ob, true, false);
     }
   }
   return changed;
@@ -701,6 +708,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
 }
 
 bool paintface_mouse_select(bContext *C,
+                            Depsgraph &depsgraph,
                             const int mval[2],
                             const SelectPick_Params &params,
                             Object *ob)
@@ -732,7 +740,7 @@ bool paintface_mouse_select(bContext *C,
     }
     else if (found || params.deselect_all) {
       /* Deselect everything. */
-      changed |= paintface_deselect_all_visible(ob, SEL_DESELECT, false);
+      changed |= paintface_deselect_all_visible(depsgraph, ob, SEL_DESELECT, false);
     }
   }
 
@@ -757,7 +765,7 @@ bool paintface_mouse_select(bContext *C,
 
     /* image window redraw */
 
-    paintface_flush_flags(ob, true, false);
+    paintface_flush_flags(depsgraph, ob, true, false);
     ED_region_tag_redraw(CTX_wm_region(C)); /* XXX: should redraw all 3D views. */
     changed = true;
   }

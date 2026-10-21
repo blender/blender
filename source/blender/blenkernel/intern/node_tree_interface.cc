@@ -661,6 +661,17 @@ void item_write_struct(BlendWriter *writer, bNodeTreeInterfaceItem &item)
   }
 }
 
+static size_t item_struct_size(const bNodeTreeInterfaceItem &item)
+{
+  switch (item.item_type) {
+    case NodeTreeInterfaceItemType::Socket:
+      return sizeof(bNodeTreeInterfaceSocket);
+    case NodeTreeInterfaceItemType::Panel:
+      return sizeof(bNodeTreeInterfacePanel);
+  }
+  return sizeof(bNodeTreeInterfaceItem);
+}
+
 static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item)
 {
   switch (item.item_type) {
@@ -692,9 +703,10 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
       BLO_read_pointer_array_and_validate_size(reader, &panel.items_array, &panel.items_num);
 
       /* Read the direct-data for each interface item if possible. The pointer becomes null if the
-       * struct type is not known. */
+       * struct type is not known, or the data is too small for its type. */
       for (const int i : IndexRange(panel.items_num)) {
-        BLO_read_struct(reader, bNodeTreeInterfaceItem, &panel.items_array[i]);
+        BLO_read_struct_with_type_size<bNodeTreeInterfaceItem>(
+            reader, &panel.items_array[i], item_struct_size);
       }
       /* Forward compatibility: Discard unknown tree interface item types that may be introduced in
        * the future. Their pointer is set to null above. */
@@ -1755,6 +1767,11 @@ void bNodeTreeInterface::write(BlendWriter *writer)
 
 void bNodeTreeInterface::read_data(BlendDataReader *reader)
 {
+  /* Root item must be a panel, not checked elsewhere because it is embedded. */
+  if (this->root_panel.item.item_type != NodeTreeInterfaceItemType::Panel) {
+    BLO_read_data_invalidate(reader, "Corrupt .blend file, invalid node tree interface.");
+    this->root_panel = bNodeTreeInterfacePanel();
+  }
   item_types::item_read_data(reader, this->root_panel.item);
 
   this->runtime = MEM_new<bke::bNodeTreeInterfaceRuntime>(__func__);

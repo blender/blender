@@ -171,8 +171,19 @@ struct PruningStream {
       switch (types[i]) {
         case TokenType::ParOpen:
           /* Fill the needed history JIT. */
-          token_history.push(set_start_char(tok.next(i).prev(2), start_char));
-          token_history.push(set_start_char(tok.next(i).prev(1), start_char));
+          {
+            Token curr = tok.next(i);
+            Token prev_1 = curr.prev();
+            while (prev_1.type() == lexit::NewLine) {
+              prev_1 = prev_1.prev();
+            }
+            Token prev_2 = prev_1.prev();
+            while (prev_2.type() == lexit::NewLine) {
+              prev_2 = prev_2.prev();
+            }
+            token_history.push(set_start_char(prev_2, start_char));
+            token_history.push(set_start_char(prev_1, start_char));
+          }
           process_function();
           break;
         case TokenType::BracketOpen:
@@ -268,6 +279,8 @@ struct PruningStream {
   BLI_INLINE_METHOD void parse_token_impl(const Token tok)
   {
     switch (tok.type()) {
+      case TokenType::NewLine:
+        return;
       case TokenType::ParOpen:
         process_function();
         break;

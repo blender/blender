@@ -30,6 +30,7 @@
 
 #include "BLI_any_derived.hh"
 #include "BLI_array.hh"
+#include "BLI_bytes_type.hh"
 #include "BLI_devirtualize_parameters.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_span.hh"
@@ -232,7 +233,9 @@ template<typename T> class VArrayImpl_For_Span : public VMutableArrayImpl<T> {
   void materialize(const IndexMask &mask, T *dst, const bool dst_is_uninitialized) const override
   {
     if constexpr (std::is_trivially_copyable_v<T>) {
-      index_mask::detail::copy_assign(data_, mask, dst);
+      using U = bytes_type::BytesType<T>;
+      index_mask::detail::copy_assign(
+          reinterpret_cast<const U *>(data_), mask, reinterpret_cast<U *>(dst));
     }
     else {
       if (dst_is_uninitialized) {
@@ -249,7 +252,9 @@ template<typename T> class VArrayImpl_For_Span : public VMutableArrayImpl<T> {
                               const bool dst_is_uninitialized) const override
   {
     if constexpr (std::is_trivially_copyable_v<T>) {
-      index_mask::detail::gather_assign(data_, mask, dst);
+      using U = bytes_type::BytesType<T>;
+      index_mask::detail::gather_assign(
+          reinterpret_cast<const U *>(data_), mask, reinterpret_cast<U *>(dst));
     }
     else {
       if (dst_is_uninitialized) {
@@ -335,7 +340,9 @@ template<typename T> class VArrayImpl_For_Single final : public VArrayImpl<T> {
   void materialize(const IndexMask &mask, T *dst, const bool dst_is_uninitialized) const override
   {
     if constexpr (std::is_trivially_copyable_v<T>) {
-      index_mask::detail::fill(dst, value_, mask);
+      using U = bytes_type::BytesType<T>;
+      index_mask::detail::fill(
+          reinterpret_cast<U *>(dst), *reinterpret_cast<const U *>(&value_), mask);
     }
     else {
       if (dst_is_uninitialized) {

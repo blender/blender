@@ -156,7 +156,7 @@ void do_clay_thumb_brush(const Depsgraph &depsgraph,
   float3 area_normal = area_position;
   /* Ignore brush settings and recalculate the area normal. */
   if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA || (brush.flag & BRUSH_ORIGINAL_NORMAL)) {
-    area_normal = calc_area_normal(depsgraph, brush, object, node_mask).value_or(float3(0));
+    area_normal = sample_plane_normal(depsgraph, brush, object, node_mask).value_or(float3(0));
   }
 
   /* Delay the first daub because grab delta is not setup. */

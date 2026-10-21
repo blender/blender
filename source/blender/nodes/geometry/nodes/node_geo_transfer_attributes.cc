@@ -4,6 +4,7 @@
 
 #include <fmt/format.h>
 
+#include "BLI_array_utils.hh"
 #include "BLI_generic_array.hh"
 #include "BLI_implicit_sharing.hh"
 
@@ -334,14 +335,14 @@ static void transfer_attributes(
         bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
             item.name, item.domain, item.type);
         BLI_assert(dst_attr);
-        bke::attribute_math::gather(*src_attr, ids.src_by_dst_index, dst_attr.span);
+        array_utils::gather(*src_attr, ids.src_by_dst_index, dst_attr.span);
         dst_attr.finish();
         r_transferred_names.add(item.name);
         continue;
       }
       /* Create a new array for the attribute. */
       GArray<> dst_data(type, dst_size, NoInitialization());
-      bke::attribute_math::gather(*src_attr, ids.src_by_dst_index, dst_data.as_mutable_span());
+      array_utils::gather(*src_attr, ids.src_by_dst_index, dst_data.as_mutable_span());
       if (add_attribute_with_array(
               dst_attributes, item.name, item.domain, item.type, std::move(dst_data), true))
       {
@@ -355,14 +356,14 @@ static void transfer_attributes(
       bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_span(
           item.name, item.domain, item.type);
       BLI_assert(dst_attr);
-      bke::attribute_math::gather(*src_attr, ids.src_by_dst_index, ids.gather_mask, dst_attr.span);
+      array_utils::gather(*src_attr, ids.src_by_dst_index, ids.gather_mask, dst_attr.span);
       dst_attr.finish();
       r_transferred_names.add(item.name);
       continue;
     }
     if (!old_dst_meta) {
       GArray<> dst_data(type, dst_size, NoInitialization());
-      bke::attribute_math::gather(
+      array_utils::gather(
           *src_attr, ids.src_by_dst_index, ids.gather_mask, dst_data.as_mutable_span());
       type.fill_construct_indices(type.default_value(), dst_data.data(), ids.default_mask);
       if (add_attribute_with_array(
@@ -378,7 +379,7 @@ static void transfer_attributes(
       continue;
     }
     GArray<> dst_data(type, dst_size, NoInitialization());
-    bke::attribute_math::gather(
+    array_utils::gather(
         src_attr.varray, ids.src_by_dst_index, ids.gather_mask, dst_data.as_mutable_span());
     adapted_old_dst.varray.materialize_to_uninitialized(ids.default_mask, dst_data.data());
     if (add_attribute_with_array(

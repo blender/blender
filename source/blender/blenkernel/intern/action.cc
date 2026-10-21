@@ -233,7 +233,7 @@ static void action_free_data(ID *id)
   action.groups.free_no_destruct();
 
   /* Free markers & preview. */
-  action.markers.free_no_destruct();
+  BKE_free_time_markers(action.markers, false);
   BKE_previewimg_id_free(&action.id);
 
   BLI_assert(action.is_empty());
@@ -304,6 +304,10 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
 
   for (TimeMarker &marker : action.markers) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, marker.camera, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data, IDP_foreach_property(marker.prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+          BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+        }));
   }
 }
 

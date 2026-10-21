@@ -34,7 +34,8 @@ static void update_zone_depths(bNodeTreeZone &zone)
 static Vector<std::unique_ptr<bNodeTreeZone>> find_zone_nodes(
     const bNodeTree &tree,
     bNodeTreeZones &owner,
-    Map<const bNode *, bNodeTreeZone *> &r_zone_by_inout_node)
+    Map<const bNode *, bNodeTreeZone *> &r_zone_by_inout_node,
+    bool &r_has_incomplete_zones)
 {
   const Span<const bNodeZoneType *> zone_types = all_zone_types();
 
@@ -65,9 +66,12 @@ static Vector<std::unique_ptr<bNodeTreeZone>> find_zone_nodes(
   for (const std::unique_ptr<bNodeTreeZone> &zone : zones) {
     if (!zone->input_node_id || !zone->output_node_id) {
       r_zone_by_inout_node.clear();
+      r_has_incomplete_zones = true;
       return {};
     }
   }
+
+  r_has_incomplete_zones = false;
   return zones;
 }
 
@@ -238,7 +242,12 @@ static std::unique_ptr<bNodeTreeZones> discover_tree_zones(const bNodeTree &tree
 
   const Span<const bNode *> all_nodes = tree.all_nodes();
   Map<const bNode *, bNodeTreeZone *> zone_by_inout_node;
-  tree_zones->zones_ptrs = find_zone_nodes(tree, *tree_zones, zone_by_inout_node);
+  bool has_incomplete_zones = false;
+  tree_zones->zones_ptrs = find_zone_nodes(
+      tree, *tree_zones, zone_by_inout_node, has_incomplete_zones);
+  if (has_incomplete_zones) {
+    return {};
+  }
   for (const std::unique_ptr<bNodeTreeZone> &zone : tree_zones->zones_ptrs) {
     tree_zones->zones.append(zone.get());
   }

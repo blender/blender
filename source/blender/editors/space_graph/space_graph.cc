@@ -979,6 +979,7 @@ void ED_spacetype_ipo()
 
   st->spaceid = SPACE_GRAPH;
   STRNCPY_UTF8(st->name, "Graph");
+  st->struct_size = sizeof(SpaceGraph);
 
   st->create = graph_create;
   st->free = graph_free;

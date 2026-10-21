@@ -16,6 +16,7 @@
 #include "BLI_color_types.hh"
 #include "BLI_math_color_c.hh"
 #include "BLI_math_vector_c.hh"
+#include "BLI_memory_utils.hh"
 #include "BLI_span.hh"
 
 #include "IO_validate.hh"
@@ -44,6 +45,13 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
 
   Mesh *mesh = BKE_mesh_new_nomain(
       data.vertices.size(), data.edges.size(), data.face_sizes.size(), data.face_vertices.size());
+  /* Free the new mesh if an exception like std::bad_alloc is thrown. */
+  bool success = false;
+  BLI_SCOPED_DEFER([&]() {
+    if (!success) {
+      BKE_id_free(nullptr, mesh);
+    }
+  });
 
   mesh->vert_positions_for_write().copy_from(data.vertices);
 
@@ -181,6 +189,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
     }
   }
 
+  success = true;
   return mesh;
 }
 }  // namespace io::ply

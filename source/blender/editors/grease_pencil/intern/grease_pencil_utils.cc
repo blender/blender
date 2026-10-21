@@ -1880,7 +1880,7 @@ void add_single_curve(bke::greasepencil::Drawing &drawing, const bool at_end)
       return;
     }
     bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
-    bke::attribute_math::shift_right(dst.span, 0, dst.span.size() - 1, dst.span.size());
+    array_utils::shift_right(dst.span, 0, dst.span.size() - 1, dst.span.size());
     dst.finish();
   });
 }
@@ -1924,7 +1924,7 @@ void resize_single_curve(bke::CurvesGeometry &curves, const bool at_end, const i
       }
 
       bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
-      bke::attribute_math::shift_right(
+      array_utils::shift_right(
           dst.span, last_active_point, dst.span.size() - added_points_num, dst.span.size());
       dst.finish();
     });
@@ -1942,7 +1942,7 @@ void resize_single_curve(bke::CurvesGeometry &curves, const bool at_end, const i
       }
 
       bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
-      bke::attribute_math::shift_left(
+      array_utils::shift_left(
           dst.span, new_points_num + removed_points_num, dst.span.size(), new_points_num);
       dst.finish();
     });
@@ -2159,8 +2159,7 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
     if (!dst) {
       return;
     }
-    attribute_math::gather(
-        src.varray, eval_to_orig_layer_indices_map, mapped_orig_layers, dst.span);
+    array_utils::gather(src.varray, eval_to_orig_layer_indices_map, mapped_orig_layers, dst.span);
     dst.finish();
   });
 

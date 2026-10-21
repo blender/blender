@@ -335,7 +335,7 @@ struct GWL_WindowFrame {
    * by Hi-DPI/fractional scaling.
    */
   int32_t size[2] = {0, 0};
-  bool is_maximised = false;
+  bool is_maximized = false;
   bool is_fullscreen = false;
   bool is_active = false;
   /** Which window edges are tiled. Requires `xdg_shell` version 2. */
@@ -481,7 +481,7 @@ static GHOST_TWindowState gwl_window_state_get(const GWL_Window *win)
   if (win->frame.is_fullscreen) {
     return GHOST_kWindowStateFullScreen;
   }
-  if (win->frame.is_maximised) {
+  if (win->frame.is_maximized) {
     return GHOST_kWindowStateMaximized;
   }
   return GHOST_kWindowStateNormal;
@@ -1102,7 +1102,7 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
 
 #ifdef WITH_GHOST_CSD
   const bool state_changed = ((win->frame_pending.is_fullscreen != win->frame.is_fullscreen) ||
-                              (win->frame_pending.is_maximised != win->frame.is_maximised) ||
+                              (win->frame_pending.is_maximized != win->frame.is_maximized) ||
                               (win->frame_pending.tiled_edges != win->frame.tiled_edges));
 #endif
 
@@ -1382,7 +1382,7 @@ static void xdg_toplevel_handle_configure(void *data,
                                      (size[i] * win->frame.buffer_scale);
   }
 
-  win->frame_pending.is_maximised = false;
+  win->frame_pending.is_maximized = false;
   win->frame_pending.is_fullscreen = false;
   win->frame_pending.is_active = false;
 
@@ -1391,7 +1391,7 @@ static void xdg_toplevel_handle_configure(void *data,
   WL_ARRAY_FOR_EACH (state, states) {
     switch (*state) {
       case XDG_TOPLEVEL_STATE_MAXIMIZED:
-        win->frame_pending.is_maximised = true;
+        win->frame_pending.is_maximized = true;
         break;
       case XDG_TOPLEVEL_STATE_FULLSCREEN:
         win->frame_pending.is_fullscreen = true;

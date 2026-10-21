@@ -655,26 +655,10 @@ void calc_brush_plane(const Depsgraph &depsgraph,
                       float3 &r_area_no,
                       float3 &r_area_co);
 
-std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
-                                       const Brush &brush,
-                                       const Object &ob,
-                                       const IndexMask &node_mask);
-
-/**
- * This calculates flatten center and area normal together,
- * amortizing the memory bandwidth and loop overhead to calculate both at the same time.
- */
-void calc_area_normal_and_center(const Depsgraph &depsgraph,
-                                 const Brush &brush,
-                                 const Object &ob,
-                                 const IndexMask &node_mask,
-                                 float r_area_no[3],
-                                 float r_area_co[3]);
-void calc_area_center(const Depsgraph &depsgraph,
-                      const Brush &brush,
-                      const Object &ob,
-                      const IndexMask &node_mask,
-                      float r_area_co[3]);
+std::optional<float3> sample_plane_normal(const Depsgraph &depsgraph,
+                                          const Brush &brush,
+                                          const Object &ob,
+                                          const IndexMask &node_mask);
 
 std::optional<int> nearest_vert_calc_mesh(const bke::pbvh::Tree &pbvh,
                                           Span<float3> vert_positions,

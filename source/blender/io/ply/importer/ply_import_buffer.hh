@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cstdio>
+#include <optional>
 
 #include "BLI_array.hh"
 #include "BLI_span.hh"
@@ -31,6 +32,9 @@ class PlyReadBuffer {
    * Gets the next line from the file as a Span. The line does not include any newline characters.
    */
   Span<char> read_line();
+
+  /** Same as #read_line, but returns nothing at the end of the file. */
+  std::optional<Span<char>> try_read_line();
 
   /**
    * Reads a number of bytes into provided destination pointer. Returns false if this amount of

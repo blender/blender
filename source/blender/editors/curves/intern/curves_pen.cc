@@ -705,6 +705,7 @@ static void insert_point_to_curve(const PenToolOperation &ptd, bke::CurvesGeomet
 {
   const bke::AttributeAccessor src_attributes = src.attributes();
   const OffsetIndices<int> points_by_curve = src.points_by_curve();
+  const VArray<int8_t> src_curve_types = src.curve_types();
   const int old_points_num = src.points_num();
   const int src_point_index = ptd.closest_element.point_index;
   const int dst_point_index = src_point_index + 1;
@@ -757,31 +758,39 @@ static void insert_point_to_curve(const PenToolOperation &ptd, bke::CurvesGeomet
                          dst_to_src_points,
                          dst_attributes);
 
-  Span<float3> src_positions = src.positions();
+  const Span<float3> src_positions = src.positions();
   MutableSpan<float3> dst_positions = dst.positions_for_write();
-  MutableSpan<int8_t> handle_types_left = dst.handle_types_left_for_write();
-  MutableSpan<int8_t> handle_types_right = dst.handle_types_right_for_write();
-  const Span<float3> src_handles_left = *src.handle_positions_left();
-  const Span<float3> src_handles_right = *src.handle_positions_right();
-  MutableSpan<float3> dst_handles_left = dst.handle_positions_left_for_write();
-  MutableSpan<float3> dst_handles_right = dst.handle_positions_right_for_write();
-  handle_types_left[dst_point_index] = BEZIER_HANDLE_ALIGN;
-  handle_types_right[dst_point_index] = BEZIER_HANDLE_ALIGN;
 
-  const bke::curves::bezier::Insertion inserted_point = bke::curves::bezier::insert(
-      src_positions[src_point_index],
-      src_handles_right[src_point_index],
-      src_handles_left[src_point_index_2],
-      src_positions[src_point_index_2],
-      ptd.closest_element.edge_t);
+  if (src_curve_types[curve_index] == CURVE_TYPE_BEZIER) {
+    MutableSpan<int8_t> handle_types_left = dst.handle_types_left_for_write();
+    MutableSpan<int8_t> handle_types_right = dst.handle_types_right_for_write();
+    const Span<float3> src_handles_left = *src.handle_positions_left();
+    const Span<float3> src_handles_right = *src.handle_positions_right();
+    MutableSpan<float3> dst_handles_left = dst.handle_positions_left_for_write();
+    MutableSpan<float3> dst_handles_right = dst.handle_positions_right_for_write();
+    handle_types_left[dst_point_index] = BEZIER_HANDLE_ALIGN;
+    handle_types_right[dst_point_index] = BEZIER_HANDLE_ALIGN;
 
-  dst_positions[dst_point_index] = inserted_point.position;
-  dst_handles_left[dst_point_index] = inserted_point.left_handle;
-  dst_handles_right[dst_point_index] = inserted_point.right_handle;
-  dst_handles_right[dst_point_index - 1] = inserted_point.handle_prev;
-  dst_handles_left[dst_point_index_2] = inserted_point.handle_next;
-  handle_types_right[dst_point_index - 1] = BEZIER_HANDLE_FREE;
-  handle_types_left[dst_point_index_2] = BEZIER_HANDLE_FREE;
+    const bke::curves::bezier::Insertion inserted_point = bke::curves::bezier::insert(
+        src_positions[src_point_index],
+        src_handles_right[src_point_index],
+        src_handles_left[src_point_index_2],
+        src_positions[src_point_index_2],
+        ptd.closest_element.edge_t);
+
+    dst_positions[dst_point_index] = inserted_point.position;
+    dst_handles_left[dst_point_index] = inserted_point.left_handle;
+    dst_handles_right[dst_point_index] = inserted_point.right_handle;
+    dst_handles_right[dst_point_index - 1] = inserted_point.handle_prev;
+    dst_handles_left[dst_point_index_2] = inserted_point.handle_next;
+    handle_types_right[dst_point_index - 1] = BEZIER_HANDLE_FREE;
+    handle_types_left[dst_point_index_2] = BEZIER_HANDLE_FREE;
+  }
+  else {
+    dst_positions[dst_point_index] = math::interpolate(src_positions[src_point_index],
+                                                       src_positions[src_point_index_2],
+                                                       ptd.closest_element.edge_t);
+  }
 
   dst.update_curve_types();
   dst.calculate_bezier_auto_handles();

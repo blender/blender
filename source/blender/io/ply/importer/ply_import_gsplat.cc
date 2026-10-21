@@ -8,9 +8,11 @@
 
 #include "ply_import_gsplat.hh"
 
+#include "BLI_memory_utils.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
+#include "BKE_lib_id.hh"
 #include "BKE_pointcloud.hh"
 #include "BKE_report.hh"
 
@@ -118,6 +120,13 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data, const PLYImpo
 
   PointCloud *point_cloud = BKE_pointcloud_new_nomain(PointCloudType::GSplat,
                                                       data.vertices.size());
+  /* Free the new point cloud if an exception like std::bad_alloc is thrown. */
+  bool success = false;
+  BLI_SCOPED_DEFER([&]() {
+    if (!success) {
+      BKE_id_free(nullptr, point_cloud);
+    }
+  });
 
   point_cloud->positions_for_write().copy_from(data.vertices);
 
@@ -206,6 +215,7 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data, const PLYImpo
     }
   }
 
+  success = true;
   return point_cloud;
 }
 

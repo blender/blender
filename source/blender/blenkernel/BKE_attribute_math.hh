@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_bytes_type_common.hh"
 #include "BLI_color_types.hh"
 #include "BLI_cpp_type.hh"
 #include "BLI_generic_span.hh"
@@ -29,24 +30,42 @@ class GVArray;
 
 namespace bke::attribute_math {
 
+/** The C++ types of the attribute types that the static type utilities below support. */
+using AttributeTypes = TypeSequence<float,
+                                    float2,
+                                    float3,
+                                    float4,
+                                    int,
+                                    int2,
+                                    bool,
+                                    int8_t,
+                                    short2,
+                                    ColorGeometry4f,
+                                    ColorGeometry4b,
+                                    math::Quaternion,
+                                    float4x4>;
+
 /**
  * Utility function that simplifies calling a templated function based on a run-time data type.
  */
 template<typename Fn> inline void to_static_type(const CPPType &cpp_type, Fn &&fn)
 {
-  cpp_type.to_static_type<float,
-                          float2,
-                          float3,
-                          float4,
-                          int,
-                          int2,
-                          bool,
-                          int8_t,
-                          short2,
-                          ColorGeometry4f,
-                          ColorGeometry4b,
-                          math::Quaternion,
-                          float4x4>([&]<typename T>() { fn.template operator()<T>(); });
+  [&]<typename... Types>(TypeSequence<Types...> /*types*/) {
+    cpp_type.to_static_type<Types...>([&]<typename T>() { fn.template operator()<T>(); });
+  }(AttributeTypes());
+}
+
+/**
+ * Similar to #to_static_type, but for moving values around without interpreting them. The function
+ * is called with the type's #bytes_type::BytesType if it exists so that its code is shared
+ * between types with the same layout. If the bytes type doesn't exist, the type itself is used
+ * instead. Use #bytes_type::typed to retrieve spans.
+ */
+template<typename Fn> inline void to_static_bytes_type(const CPPType &cpp_type, Fn &&fn)
+{
+  [&]<typename... Types>(TypeSequence<Types...> /*types*/) {
+    bytes_type::to_common_bytes_type<Types...>(cpp_type, fn);
+  }(AttributeTypes());
 }
 
 template<typename Fn> inline void to_static_type(const bke::AttrType data_type, Fn &&fn)
@@ -913,46 +932,6 @@ inline void mix_groups(GSpan src, GroupedSpan<int> indices, GMutableSpan dst)
 {
   mix_groups(src, indices.offsets, indices.data, dst);
 }
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Generic Array Utils Implementations
- *
- * Extra implementations of functions from #BLI_array_utils.hh for all attribute types,
- * used to avoid templating the same logic for each type in many places.
- * \{ */
-
-/**
- * Move elements from [src_begin, src_end) to dest_begin.
- * dest_begin must be <= src_begin.
- */
-void shift_left(GMutableSpan data, int src_begin, int src_end, int dst_begin);
-
-/**
- * Move elements from [src_begin, src_end) to a range ending at dst_end.
- * dst_end must be >= src_end.
- */
-void shift_right(GMutableSpan data, int src_begin, int src_end, int dst_begin);
-
-void gather(GSpan src, Span<int> map, GMutableSpan dst);
-void gather(const GVArray &src, Span<int> map, GMutableSpan dst);
-void gather(GSpan src, Span<int> map, const IndexMask &dst_mask, GMutableSpan dst);
-void gather(const GVArray &src, Span<int> map, const IndexMask &dst_mask, GMutableSpan dst);
-void gather_group_to_group(OffsetIndices<int> src_offsets,
-                           OffsetIndices<int> dst_offsets,
-                           const IndexMask &selection,
-                           GSpan src,
-                           GMutableSpan dst);
-void gather_to_groups(OffsetIndices<int> dst_offsets,
-                      const IndexMask &src_selection,
-                      GSpan src,
-                      GMutableSpan dst);
-
-void gather_ranges_to_groups(Span<IndexRange> src_ranges,
-                             OffsetIndices<int> dst_offsets,
-                             GSpan src,
-                             GMutableSpan dst);
 
 /** \} */
 

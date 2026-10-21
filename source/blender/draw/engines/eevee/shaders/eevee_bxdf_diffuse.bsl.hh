@@ -20,8 +20,8 @@
 /**
  * Returns a tangent space diffuse direction following the Lambertian distribution.
  *
- * \param rand: random point on the unit cylinder (result of sample_cylinder).
- *              The Z component can be biased towards 1.
+ * \param rand_cylinder: random point on the unit cylinder (result of sample_cylinder).
+ * The Z component can be biased towards 1.
  * \return pdf: the pdf of sampling the reflected/refracted ray. 0 if ray is invalid.
  */
 BsdfSample bxdf_diffuse_sample(const float3 rand_cylinder)

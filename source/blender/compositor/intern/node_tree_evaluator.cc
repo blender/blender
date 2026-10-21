@@ -112,7 +112,8 @@ Result &NodeTreeEvaluator::get_result_from_output_socket(const bNodeSocket &outp
   }
 
   BLI_assert_unreachable();
-  return node_operation->get_result(output.identifier);
+  static Result unreachable_result = this->context().create_result(ResultType::Color);
+  return unreachable_result;
 }
 
 PixelCompileUnit &NodeTreeEvaluator::pixel_compile_unit()

@@ -119,8 +119,9 @@ void BKE_modifier_init()
 
 const ModifierTypeInfo *BKE_modifier_get_info(ModifierType type)
 {
-  /* type unsigned, no need to check < 0 */
-  if (type < NUM_MODIFIER_TYPES && modifier_types[type] && modifier_types[type]->name[0] != '\0') {
+  if (type >= 0 && type < NUM_MODIFIER_TYPES && modifier_types[type] &&
+      modifier_types[type]->name[0] != '\0')
+  {
     return modifier_types[type];
   }
 
@@ -1352,9 +1353,25 @@ static ModifierData *modifier_replace_with_fluid(BlendDataReader *reader,
   return new_modifier_data;
 }
 
+static size_t modifier_struct_size(const ModifierType type)
+{
+  switch (type) {
+    /* Deprecated modifier types without typeinfo, still needed for versioning. */
+    case eModifierType_Fluidsim:
+      return sizeof(FluidsimModifierData);
+    case eModifierType_Smoke:
+      return sizeof(SmokeModifierData);
+    default: {
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
+      return mti ? size_t(mti->struct_size) : sizeof(ModifierData);
+    }
+  }
+}
+
 void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBaseT<ModifierData> *lb, Object *ob)
 {
-  BLO_read_struct_list(reader, ModifierData, lb);
+  BLO_read_struct_list_with_type_size<ModifierData>(
+      reader, lb, [](const ModifierData &md) { return modifier_struct_size(md.type); });
 
   for (ModifierData &md_iter : lb->items_mutable()) {
     ModifierData *md = &md_iter;
