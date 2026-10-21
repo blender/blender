@@ -286,6 +286,11 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
       &viewport->display_settings, viewport->view_settings.view_transform);
 }
 
+void GPU_viewport_colorspace_clear(GPUViewport *viewport)
+{
+  viewport->do_color_management = false;
+}
+
 void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo_format)
 {
   if (!ELEM(stereo_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
