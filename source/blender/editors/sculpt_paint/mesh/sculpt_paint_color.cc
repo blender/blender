@@ -253,8 +253,8 @@ bke::GSpanAttributeWriter active_color_attribute_for_write(Mesh &mesh)
 }
 
 struct ColorPaintLocalData {
-  Vector<float> factors;
-  Vector<float> auto_mask;
+  Vector<float> opacity_factors;
+  Vector<float> flow_factors;
   Vector<float3> positions;
   Vector<float> distances;
   Vector<float4> colors;
@@ -282,8 +282,8 @@ static void do_color_smooth_task(const Depsgraph &depsgraph,
 
   const Span<int> verts = node.verts();
 
-  tls.factors.resize(verts.size());
-  const MutableSpan<float> factors = tls.factors;
+  tls.opacity_factors.resize(verts.size());
+  const MutableSpan<float> factors = tls.opacity_factors;
   fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   filter_region_clip_factors(ss, vert_positions, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
@@ -372,12 +372,17 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
 
   const Span<int> verts = node.verts();
 
-  tls.factors.resize(verts.size());
-  const MutableSpan<float> factors = tls.factors;
-  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
-  filter_region_clip_factors(ss, vert_positions, verts, factors);
+  tls.flow_factors.resize(verts.size());
+  const MutableSpan<float> flow_factors = tls.flow_factors;
+  flow_factors.fill(1.0f);
+
+  tls.opacity_factors.resize(verts.size());
+  const MutableSpan<float> opacity_factors = tls.opacity_factors;
+  fill_factor_from_hide_and_mask(
+      attribute_data.hide_vert, attribute_data.mask, verts, opacity_factors);
+  filter_region_clip_factors(ss, vert_positions, verts, opacity_factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, opacity_factors);
   }
 
   float radius;
@@ -401,25 +406,22 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
         ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
     radius = cache.radius;
   }
-  filter_distances_with_radius(radius, distances, factors);
+
+  filter_distances_with_radius(radius, distances, flow_factors);
   apply_hardness_to_distances(radius, cache.hardness, distances);
   BKE_brush_calc_curve_factors(eBrushCurvePreset(brush.curve_distance_falloff_preset),
                                brush.curve_distance_falloff,
                                distances,
                                radius,
-                               factors);
+                               flow_factors);
 
-  MutableSpan<float> auto_mask;
   if (cache.automasking) {
-    tls.auto_mask.resize(verts.size());
-    auto_mask = tls.auto_mask;
-    auto_mask.fill(1.0f);
-    auto_mask::calc_vert_factors(depsgraph, object, *cache.automasking, node, verts, auto_mask);
-    scale_factors(factors, auto_mask);
+    auto_mask::calc_vert_factors(
+        depsgraph, object, *cache.automasking, node, verts, opacity_factors);
   }
 
-  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, vert_positions, verts, factors);
-  scale_factors(factors, bstrength);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, vert_positions, verts, flow_factors);
+  scale_factors(opacity_factors, bstrength);
 
   const float density = ss.cache->paint_brush.density;
   if (density < 1.0f) {
@@ -429,7 +431,7 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
       const float hash_noise = BLI_hash_int_01(seed * 1000 * verts[i]);
       if (hash_noise > density) {
         const float noise = density * hash_noise;
-        factors[i] *= noise;
+        flow_factors[i] *= noise;
       }
     }
   }
@@ -485,22 +487,30 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
   }
 
   for (const int i : verts.index_range()) {
-    /* Brush paint color, brush test falloff and flow. */
-    float4 paint_color = brush_color * factors[i] * ss.cache->paint_brush.flow;
-    float4 wet_mix_color = wet_mix_sampled_color * factors[i] * ss.cache->paint_brush.flow;
-
-    /* Interpolate with the wet_mix color for wet paint mixing. */
+    float4 daub_color;
     blend_color_interpolate_float(
-        paint_color, paint_color, wet_mix_color, ss.cache->paint_brush.wet_mix);
-    blend_color_mix_float(color_buffer[i], color_buffer[i], paint_color);
+        daub_color, brush_color, wet_mix_sampled_color, ss.cache->paint_brush.wet_mix);
 
-    /* Final mix over the original color using brush alpha. We apply auto-making again
-     * at this point to avoid washing out non-binary masking modes like cavity masking. */
-    float automasking = auto_mask.is_empty() ? 1.0f : auto_mask[i];
-    const float4 buffer_color = float4(color_buffer[i]) * alpha * automasking;
+    /* Color buffer holds the total accumulated color for the vertex, incremented by the rate. */
+    daub_color = daub_color * flow_factors[i] * ss.cache->paint_brush.flow;
+    blend_color_mix_float(color_buffer[i], color_buffer[i], daub_color);
 
-    IMB_blend_color_float(new_colors[i], orig_colors[i], buffer_color, IMB_BlendMode(brush.blend));
-    new_colors[i] = math::clamp(new_colors[i], 0.0f, 1.0f);
+    /* The max (or min) value of the stroke, dependent on the brush opacity. */
+    const float4 buffer_color = color_buffer[i] * alpha;
+    float4 color_test;
+    IMB_blend_color_float(color_test, orig_colors[i], buffer_color, IMB_BlendMode(brush.blend));
+
+    /* The color we are attempting to actually paint. */
+    const float4 paint_color = color_buffer[i] * opacity_factors[i];
+    IMB_blend_color_float(new_colors[i], orig_colors[i], paint_color, IMB_BlendMode(brush.blend));
+
+    float4 min(std::numeric_limits<float>::max());
+    float4 max(std::numeric_limits<float>::lowest());
+    math::min_max(color_test, min, max);
+    math::min_max(orig_colors[i], min, max);
+
+    /* The final color is clamped by the original color and max value of the brush opacity */
+    new_colors[i] = math::clamp(new_colors[i], min, max);
   }
 
   scatter_data_mesh(color_buffer.as_span(), verts, mix_colors);
@@ -543,8 +553,8 @@ static void do_sample_wet_paint_task(const Depsgraph &depsgraph,
 
   const Span<int> verts = node.verts();
 
-  tls.factors.resize(verts.size());
-  const MutableSpan<float> factors = tls.factors;
+  tls.opacity_factors.resize(verts.size());
+  const MutableSpan<float> factors = tls.opacity_factors;
   fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
@@ -712,8 +722,8 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
 
   const Span<int> verts = node.verts();
 
-  tls.factors.resize(verts.size());
-  const MutableSpan<float> factors = tls.factors;
+  tls.opacity_factors.resize(verts.size());
+  const MutableSpan<float> factors = tls.opacity_factors;
   fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   filter_region_clip_factors(ss, vert_positions, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
