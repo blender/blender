@@ -35,6 +35,32 @@ class TestBpyPath(unittest.TestCase):
         self.assertEqual(ensure_ext('demoBlend', 'blend', case_sensitive=True), 'demoBlendblend')
         self.assertEqual(ensure_ext('demo', '', case_sensitive=True), 'demo')
 
+    def test_abspath(self):
+        import os
+        from bpy.path import abspath
+
+        def assert_equal_abspath(path, start, expect):
+            # Test both strings and bytes.
+            self.assertEqual(abspath(path, start=start), expect)
+            self.assertEqual(abspath(path.encode(), start=start.encode()), expect.encode())
+
+        start = os.path.join(os.sep, "foo", "bar")
+
+        assert_equal_abspath("//a.png", start, os.path.join(start, "a.png"))
+
+        # Non-relative paths are left unchanged.
+        assert_equal_abspath("a.png", start, "a.png")
+
+        # Without a start directory the result stays relative.
+        assert_equal_abspath("//a.png", "", "a.png")
+
+        # Extra slashes after the `//` prefix must not make the path absolute.
+        assert_equal_abspath("///a.png", start, os.path.join(start, "a.png"))
+        assert_equal_abspath("////a.png", start, os.path.join(start, "a.png"))
+        assert_equal_abspath("///a.png", "", "a.png")
+        assert_equal_abspath("////a.png", "", "a.png")
+        assert_equal_abspath("///", "", "")
+
     def test_is_autoexec(self):
         import bpy
         from bpy.path import is_autoexec
