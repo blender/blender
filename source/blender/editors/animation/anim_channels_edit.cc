@@ -3865,6 +3865,26 @@ static wmOperatorStatus animchannels_box_select_exec(bContext *C, wmOperator *op
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     /* TODO In order for this to work correctly we need to tweak TreeView to only select on up. */
+    using namespace ed::animfilter;
+    std::optional<ChannelArena> arena = get_channels_from_space(*C);
+    if (!arena || !arena->root()) {
+      return OPERATOR_CANCELLED;
+    }
+    if (!extend) {
+      select_all_channels(*arena, false);
+    }
+    ARegion *region = CTX_wm_region(C);
+    const float channel_step = ANIM_UI_get_channel_step();
+    const float first_channel = ANIM_UI_get_first_channel_top(&region->v2d);
+
+    const float v2d_y_start = ui::view2d_region_to_view_y(&region->v2d, rect.ymin);
+    const float v2d_y_end = ui::view2d_region_to_view_y(&region->v2d, rect.ymax);
+    foreach_expanded(*arena->root(), [&](AnimationChannel &channel, int row_index) {
+      const float row_top = first_channel - row_index * channel_step;
+      if (v2d_y_start < row_top && v2d_y_end > row_top - channel_step) {
+        channel.set_selected(true);
+      }
+    });
   }
   else {
     if (!extend) {
