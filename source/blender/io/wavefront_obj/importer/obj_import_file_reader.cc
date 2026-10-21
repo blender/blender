@@ -24,8 +24,9 @@
 #include "obj_export_mtl.hh"
 #include "obj_import_file_reader.hh"
 
+#include "fast_float.h"
+
 #include <algorithm>
-#include <charconv>
 
 #include <fcntl.h>
 #ifndef WIN32
@@ -117,7 +118,7 @@ static void geom_add_mrgb_colors(const char *p, const char *end, GlobalVertices 
   const int mrgb_length = 8;
   while (p + mrgb_length <= end) {
     uint32_t value = 0;
-    std::from_chars_result res = std::from_chars(p, p + mrgb_length, value, 16);
+    fast_float::from_chars_result res = fast_float::from_chars(p, p + mrgb_length, value, 16);
     if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range)) {
       return;
     }
