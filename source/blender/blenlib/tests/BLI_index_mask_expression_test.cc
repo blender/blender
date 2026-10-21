@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_array.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_index_mask_expression.hh"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
@@ -238,6 +239,76 @@ TEST(index_mask_expression, SubtractSelf)
   const IndexMask result = evaluate_expression(expr, memory);
 
   EXPECT_TRUE(result.is_empty());
+}
+
+/**
+ * Build bools made of chunks that are all true, all false, or random with some density. Such
+ * masks have range segments as well as scattered indices.
+ */
+static Array<bool> random_bools(RandomNumberGenerator &rng, const int64_t size)
+{
+  Array<bool> bools(size);
+  int64_t i = 0;
+  while (i < size) {
+    const int64_t chunk_size = std::min<int64_t>(size - i, rng.get_int32(5000) + 1);
+    const int chunk_type = rng.get_int32(4);
+    const float density = rng.get_float();
+    for (bool &value : bools.as_mutable_span().slice(i, chunk_size)) {
+      value = chunk_type == 0 ? true : chunk_type == 1 ? false : rng.get_float() < density;
+    }
+    i += chunk_size;
+  }
+  return bools;
+}
+
+TEST(index_mask_expression, Fuzzy)
+{
+  RandomNumberGenerator rng(0);
+  for ([[maybe_unused]] const int64_t iteration : IndexRange(50)) {
+    const int64_t size = rng.get_int32(200'000) + 1;
+    const Array<bool> a_bools = random_bools(rng, size);
+    const Array<bool> b_bools = random_bools(rng, size);
+    const Array<bool> c_bools = random_bools(rng, size);
+    IndexMaskMemory memory;
+    const IndexMask a = IndexMask::from_bools(a_bools, memory);
+    const IndexMask b = IndexMask::from_bools(b_bools, memory);
+    const IndexMask c = IndexMask::from_bools(c_bools, memory);
+    const IndexRange universe(size);
+
+    auto expected = [&](const FunctionRef<bool(int64_t)> fn) {
+      return IndexMask::from_predicate(universe, memory, [&](const int64_t i) { return fn(i); });
+    };
+
+    EXPECT_EQ(a.complement(universe, memory),
+              expected([&](const int64_t i) { return !a_bools[i]; }));
+    EXPECT_EQ(a.complement(b, memory),
+              expected([&](const int64_t i) { return b_bools[i] && !a_bools[i]; }));
+    {
+      ExprBuilder builder;
+      EXPECT_EQ(evaluate_expression(builder.merge({&a, &b, &c}), memory),
+                expected([&](const int64_t i) { return a_bools[i] || b_bools[i] || c_bools[i]; }));
+    }
+    {
+      ExprBuilder builder;
+      EXPECT_EQ(evaluate_expression(builder.intersect({&a, &b}), memory),
+                expected([&](const int64_t i) { return a_bools[i] && b_bools[i]; }));
+    }
+    {
+      ExprBuilder builder;
+      EXPECT_EQ(
+          evaluate_expression(builder.subtract(&a, {&b, &c}), memory),
+          expected([&](const int64_t i) { return a_bools[i] && !b_bools[i] && !c_bools[i]; }));
+    }
+    {
+      ExprBuilder builder;
+      EXPECT_EQ(
+          evaluate_expression(
+              builder.subtract(&builder.merge({&a, &b}), {&builder.intersect({&b, &c})}), memory),
+          expected([&](const int64_t i) {
+            return (a_bools[i] || b_bools[i]) && !(b_bools[i] && c_bools[i]);
+          }));
+    }
+  }
 }
 
 /* Disable benchmark by default. */
