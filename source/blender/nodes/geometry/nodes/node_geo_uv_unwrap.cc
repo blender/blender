@@ -52,6 +52,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Space between islands");
   b.add_input<decl::Bool>("Fill Holes"_ustr)
       .default_value(true)
+      .usage_by_menu("Method"_ustr,
+                     {GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED, GEO_NODE_UV_UNWRAP_METHOD_CONFORMAL})
       .description(
           "Virtually fill holes in mesh before unwrapping, to better avoid overlaps "
           "and preserve symmetry");
@@ -225,13 +227,17 @@ static void node_geo_exec(GeoNodeExecParams params)
   const auto method = params.get_input<GeometryNodeUVUnwrapMethod>("Method"_ustr);
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
   const Field<bool> seam_field = params.extract_input<Field<bool>>("Seam"_ustr);
-  const bool fill_holes = params.extract_input<bool>("Fill Holes"_ustr);
   const float margin = params.extract_input<float>("Margin"_ustr);
   int iterations = 0;
   bool no_flip = false;
+  /* SLIM requires hole filling. */
+  bool fill_holes = true;
   if ((GeometryNodeUVUnwrapMethod)method == GEO_NODE_UV_UNWRAP_METHOD_MINIMUM_STRETCH) {
     iterations = params.extract_input<int>("Iterations"_ustr);
     no_flip = params.extract_input<bool>("No Flip"_ustr);
+  }
+  else {
+    fill_holes = params.extract_input<bool>("Fill Holes"_ustr);
   }
   params.set_output(
       "UV"_ustr,
