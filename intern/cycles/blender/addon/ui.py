@@ -283,7 +283,7 @@ class CYCLES_RENDER_PT_sampling_viewport_denoise(CyclesButtonsPanel, Panel):
             else:
                 col.label_multiline(
                     text=rpt_("Requires NVIDIA GPU with compute capability %s and NVIDIA driver version %s or newer.") %
-                    ("7.5", "590"), icon='STATUS_INFO', translate=False)
+                    ("7.5", "620"), icon='STATUS_INFO', translate=False)
             return
 
         col.prop(cscene, "preview_denoising_input_passes", text="Passes")
