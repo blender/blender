@@ -151,7 +151,7 @@ std::ostream &operator<<(std::ostream &stream, const ParsedSourcePath &rna_path)
 /* For channels without underlying data. */
 class NoOpChannelAPI : public AbstractChannelAPI {
  public:
-  void set_selected(bool /* is_selected */) override {}
+  void set_selected(const bool /* is_selected */) override {}
   bool is_selected() const override
   {
     return false;
@@ -164,7 +164,7 @@ class FCurveChannelAPI : public AbstractChannelAPI {
  public:
   FCurveChannelAPI(FCurve *fcurve) : fcurve_(fcurve) {}
 
-  void set_selected(bool is_selected) override
+  void set_selected(const bool is_selected) override
   {
     flag_update(fcurve_->flag, FCURVE_SELECTED, is_selected);
   }
@@ -180,7 +180,7 @@ class GreasePencilChannelAPI : public AbstractChannelAPI {
  public:
   GreasePencilChannelAPI(GreasePencilLayer *gp_layer) : layer_(gp_layer->wrap()) {}
 
-  void set_selected(bool is_selected) override
+  void set_selected(const bool is_selected) override
   {
     layer_.set_selected(is_selected);
   }
@@ -195,13 +195,44 @@ class ActionChannelAPI : public AbstractChannelAPI {
 
  public:
   ActionChannelAPI(bAction *action) : action_(action) {}
-  void set_selected(bool is_selected) override
+  void set_selected(const bool is_selected) override
   {
     flag_update(action_->flag, ACT_SELECTED, is_selected);
   }
   bool is_selected() const override
   {
     return flag_is_set(action_->flag, ACT_SELECTED);
+  }
+};
+
+class ActionGroupChannelAPI : public AbstractChannelAPI {
+  bActionGroup *group_;
+
+ public:
+  ActionGroupChannelAPI(bActionGroup *group) : group_(group) {}
+
+  void set_selected(const bool is_selected) override
+  {
+    flag_update(group_->flag, AGRP_SELECTED, is_selected);
+  }
+  bool is_selected() const override
+  {
+    return flag_is_set(group_->flag, AGRP_SELECTED);
+  }
+};
+
+class ActionSlotChannelAPI : public AbstractChannelAPI {
+  animrig::Slot *slot_;
+
+ public:
+  ActionSlotChannelAPI(animrig::Slot *slot) : slot_(slot) {}
+  void set_selected(const bool is_selected) override
+  {
+    slot_->set_selected(is_selected);
+  }
+  bool is_selected() const override
+  {
+    return slot_->is_selected();
   }
 };
 
@@ -220,6 +251,21 @@ class AnimDataChannelAPI : public AbstractChannelAPI {
   }
 };
 
+class PoseBoneChannelAPI : public AbstractChannelAPI {
+  bPoseChannel *bone_;
+
+ public:
+  PoseBoneChannelAPI(bPoseChannel *bone) : bone_(bone) {}
+  void set_selected(const bool is_selected) override
+  {
+    flag_update(bone_->flag, POSE_CHANNEL_SELECTED, is_selected);
+  }
+  bool is_selected() const override
+  {
+    return flag_is_set(bone_->flag, POSE_CHANNEL_SELECTED);
+  }
+};
+
 std::unique_ptr<AbstractChannelAPI> create_channel_api(PointerRNA &ptr)
 {
   if (!ptr.has_data()) {
@@ -234,6 +280,17 @@ std::unique_ptr<AbstractChannelAPI> create_channel_api(PointerRNA &ptr)
   if (ptr.type == RNA_Action) {
     return std::make_unique<ActionChannelAPI>(ptr.data_as<bAction>());
   }
+  if (ptr.type == RNA_ActionGroup) {
+    return std::make_unique<ActionGroupChannelAPI>(ptr.data_as<bActionGroup>());
+  }
+  if (ptr.type == RNA_ActionSlot) {
+    return std::make_unique<ActionSlotChannelAPI>(ptr.data_as<animrig::Slot>());
+  }
+  if (ptr.type == RNA_PoseBone) {
+    return std::make_unique<PoseBoneChannelAPI>(ptr.data_as<bPoseChannel>());
+  }
+
+  /* Keep last. Most generic channel API. */
   if (RNA_struct_is_ID(ptr.type)) {
     AnimData *adt = BKE_animdata_from_id(ptr.owner_id);
     if (adt) {
@@ -241,6 +298,8 @@ std::unique_ptr<AbstractChannelAPI> create_channel_api(PointerRNA &ptr)
     }
   }
 
+  /* There are certain types that are not selectable that also never have been selectable.
+   * - Grease Pencil Group. */
   return std::make_unique<NoOpChannelAPI>();
 }
 
