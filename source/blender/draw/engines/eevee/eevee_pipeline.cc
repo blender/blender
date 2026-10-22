@@ -1115,8 +1115,9 @@ gpu::Texture *DeferredLayer::render(View &render_view,
   inst_.gbuffer.bind(gbuffer_fb);
   inst_.manager->submit(gbuffer_ps_, render_view);
 
+  /* Only three layers of closures are ever written,. */
   direct_radiance_txs_.acquire_2d_array(
-      extent, closure_count_, gpu::TextureFormat::DEFERRED_RADIANCE_FORMAT, usage_rw);
+      extent, min_ii(closure_count_, 3), gpu::TextureFormat::DEFERRED_RADIANCE_FORMAT, usage_rw);
   direct_radiance_txs_.ensure_layer_views();
 
   if (use_raytracing_) {
