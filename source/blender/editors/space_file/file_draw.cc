@@ -878,15 +878,17 @@ static void file_draw_special_image(const FileDirEntry *file,
                                     const int file_type_icon,
                                     const float icon_aspect,
                                     const FileLayout *layout,
-                                    const bool dimmed)
+                                    const bool dimmed,
+                                    eDirEntry_SelectFlag file_selflag)
 {
   float document_img_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  const bool selected = file_selflag & FILE_SEL_SELECTED;
   if (file->typeflag & FILE_TYPE_DIR) {
     ui::theme::get_color_4fv(TH_ICON_FOLDER, document_img_col);
   }
   else {
     const uiWidgetColors wcol = ui::theme::theme_get()->tui.wcol_list_item;
-    rgba_uchar_to_float(document_img_col, wcol.item);
+    rgba_uchar_to_float(document_img_col, !selected ? wcol.text : wcol.text_sel);
   }
 
   if (dimmed) {
@@ -978,14 +980,15 @@ static void file_draw_indicator_icons(const FileList *files,
                                       const float preview_icon_aspect,
                                       const int file_type_icon,
                                       const bool has_special_file_image,
-                                      const eDirEntry_SelectFlag /*selflag*/)
+                                      const eDirEntry_SelectFlag file_selflag)
 {
   const bool is_offline = (file->attributes & FILE_ATTR_OFFLINE);
   const bool is_link = (file->attributes & FILE_ATTR_ANY_LINK);
   const bool is_loading = filelist_file_is_preview_pending(files, file);
+  const bool selected = file_selflag & FILE_SEL_SELECTED;
 
   const uiWidgetColors wcol = ui::theme::theme_get()->tui.wcol_list_item;
-  const uchar *icon_color = wcol.item;
+  const uchar *icon_color = !selected ? wcol.text : wcol.text_sel;
   const uchar icon_color_lightness = srgb_to_grayscale_byte(icon_color);
   const bool show_icon_border = (icon_color_lightness > 96);
 
@@ -1566,8 +1569,13 @@ void file_draw_list(const bContext *C, ARegion *region)
       }
       else {
         /* Larger folder or document icon, with file/folder type icon in the middle (if any). */
-        file_draw_special_image(
-            file, &tile_draw_rect, file_type_icon, thumb_icon_aspect, layout, is_hidden);
+        file_draw_special_image(file,
+                                &tile_draw_rect,
+                                file_type_icon,
+                                thumb_icon_aspect,
+                                layout,
+                                is_hidden,
+                                file_selflag);
         has_special_file_image = true;
       }
 
