@@ -73,7 +73,7 @@ class AbstractView {
    * This fixed-size buffer is needed because that's what the rename button requires. In future we
    * may be able to bind the button to a `std::string` or similar.
    */
-  std::unique_ptr<std::array<char, MAX_NAME>> rename_buffer_;
+  std::unique_ptr<std::array<char, MAX_ID_NAME>> rename_buffer_;
   /* Search/filter string from the previous redraw, stored to detect changes. */
   std::string prev_filter_string_;
 
