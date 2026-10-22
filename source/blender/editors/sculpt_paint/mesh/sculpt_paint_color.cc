@@ -421,7 +421,11 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
   }
 
   calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, vert_positions, verts, flow_factors);
-  scale_factors(opacity_factors, bstrength);
+  /* TODO: This is technically not correct, the bstrength (strength pressure value) should affect
+   * the overall capped stroke opacity, however, doing so requires further changes to avoid odd
+   * behavior when going back over a painted stroke with less pressure. Keep the old behavior for
+   * now. */
+  scale_factors(flow_factors, bstrength);
 
   const float density = ss.cache->paint_brush.density;
   if (density < 1.0f) {
