@@ -243,10 +243,11 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
   tvs->transverts_tot = 0;
 
   if (obedit->type == OB_MESH) {
+    /* The evaluated mesh may not have an edit-mesh, use the original. */
     const Object *object_orig = DEG_get_original(obedit);
-    const Mesh &mesh = *id_cast<Mesh *>(object_orig->data);
+    Mesh &mesh = *id_cast<Mesh *>(object_orig->data);
     BMEditMesh *em = mesh.runtime->edit_mesh.get();
-    BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(obedit));
+    BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(&mesh));
     BMIter iter;
     void *userdata[2] = {bm, nullptr};
     // int proptrans = 0; /*UNUSED*/
