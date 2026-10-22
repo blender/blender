@@ -557,6 +557,58 @@ static void textbox_scale(TextBox *tb_dst, const TextBox *tb_src, float scale)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name VFont to Curve: Input Text
+ * \{ */
+
+struct VFontInputTextInfo {
+  const char32_t *str = nullptr;
+  int len = 0;
+  const CharInfo *strinfo = nullptr;
+  /** When true, `str` is owned & must be freed. */
+  bool str_free = false;
+};
+
+static bool vfont_input_text_info_init(VFontInputTextInfo &text_info, const Curve &cu)
+{
+  if (const EditFont *ef = cu.editfont) {
+    text_info.str = ef->textbuf;
+    text_info.len = ef->len;
+    text_info.strinfo = ef->textbufinfo;
+    text_info.str_free = false;
+    return true;
+  }
+
+  if (cu.str == nullptr) [[unlikely]] {
+    BLI_assert(0);
+    return false;
+  }
+
+  const int len = cu.len_char32;
+  /* Create unicode string. */
+  char32_t *str = MEM_new_array_uninitialized<char32_t>(size_t(len) + 1, "convertedmem");
+  if (!str) {
+    return false;
+  }
+  BLI_str_utf8_as_utf32(str, cu.str, len + 1);
+
+  text_info.str = str;
+  text_info.len = len;
+  text_info.strinfo = cu.strinfo;
+  text_info.str_free = true;
+  return true;
+}
+
+static void vfont_input_text_info_free(VFontInputTextInfo &text_info)
+{
+  if (text_info.str_free) {
+    MEM_delete(text_info.str);
+  }
+  text_info = {};
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name VFont to Curve: Scale Overflow
  *
  * Scale the font to fit inside #TextBox bounds.
@@ -688,6 +740,7 @@ struct TempLineInfo {
  */
 static bool vfont_to_curve(Object *ob,
                            const Curve &cu,
+                           const VFontInputTextInfo &text_info,
                            const eEditFontMode mode,
                            VFontToCurveIter &iter_data,
                            VFontCursor_Params *cursor_params,
@@ -700,20 +753,18 @@ static bool vfont_to_curve(Object *ob,
 {
   EditFont *ef = cu.editfont;
   EditFontSelBox *selboxes = nullptr;
-  const CharInfo *info = nullptr, *custrinfo;
+  const CharInfo *info = nullptr;
   TextBox tb_scale;
   VChar *che;
   CharTrans *chartransdata = nullptr, *ct;
   TempLineInfo *lineinfo;
   float linedist;
   float twidth = 0;
-  int i, slen, j;
+  int i, j;
   int curbox;
   /* These values are only set to the selection range when `selboxes` is non-null. */
   int selstart = 0, selend = 0;
   int cnr = 0, lnr = 0, wsnr = 0, wnr = 0;
-  const char32_t *mem = nullptr;
-  bool mem_alloc = false;
   const float font_size = cu.fsize * iter_data.scale_to_fit;
   /* Shift down vertically to be 25% below & 75% above baseline (before font scale is applied). */
   const float font_select_y_offset = 0.25;
@@ -766,27 +817,9 @@ static bool vfont_to_curve(Object *ob,
       /*metrics*/ metrics,
   };
 
-  if (ef) {
-    slen = ef->len;
-    mem = ef->textbuf;
-    custrinfo = ef->textbufinfo;
-  }
-  else {
-    char32_t *mem_tmp;
-    slen = cu.len_char32;
-
-    /* Create unicode string. */
-    mem_tmp = MEM_new_array_uninitialized<char32_t>(size_t(slen) + 1, "convertedmem");
-    if (!mem_tmp) {
-      return false;
-    }
-
-    BLI_str_utf8_as_utf32(mem_tmp, cu.str, slen + 1);
-
-    mem = mem_tmp;
-    mem_alloc = true;
-    custrinfo = cu.strinfo;
-  }
+  const int slen = text_info.len;
+  const char32_t *mem = text_info.str;
+  const CharInfo *custrinfo = text_info.strinfo;
 
   /* Only manipulate the edit-font if this object is in edit-mode, otherwise it's unnecessary
    * as well as crashing since manipulating the #EditFont here isn't thread-safe, see: #144970.
@@ -1927,22 +1960,13 @@ static bool vfont_to_curve(Object *ob,
     if (chartransdata != nullptr) {
       MEM_delete(chartransdata);
     }
-
-    if (mem_alloc) {
-      MEM_delete(mem);
-    }
     return true;
   }
 
   if (r_text) {
     *r_text = mem;
     *r_text_len = slen;
-    *r_text_free = mem_alloc;
-  }
-  else {
-    if (mem_alloc) {
-      MEM_delete(mem);
-    }
+    *r_text_free = text_info.str_free;
   }
 
   if (chartransdata) {
@@ -1993,9 +2017,15 @@ bool BKE_vfont_to_curve_ex(Object *ob,
   data.ok = true;
   data.status = VFONT_TO_CURVE_INIT;
 
+  VFontInputTextInfo text_info;
+  if (!vfont_input_text_info_init(text_info, cu)) {
+    return false;
+  }
+
   do {
     data.ok &= vfont_to_curve(ob,
                               cu,
+                              text_info,
                               mode,
                               data,
                               nullptr,
@@ -2006,6 +2036,12 @@ bool BKE_vfont_to_curve_ex(Object *ob,
                               r_chartransdata,
                               r_font_size_eval);
   } while (data.ok && ELEM(data.status, VFONT_TO_CURVE_SCALE_ONCE, VFONT_TO_CURVE_BISECT));
+
+  if (r_text && data.ok) {
+    /* Ownership is passed to the caller. */
+    text_info.str_free = false;
+  }
+  vfont_input_text_info_free(text_info);
 
   return data.ok;
 }
@@ -2027,9 +2063,15 @@ int BKE_vfont_cursor_to_text_index(Object *ob, const float2 &cursor_location)
   cursor_params.cursor_location = cursor_location;
   cursor_params.r_string_offset = -1;
 
+  VFontInputTextInfo text_info;
+  if (!vfont_input_text_info_init(text_info, cu)) {
+    return cursor_params.r_string_offset;
+  }
+
   do {
     data.ok &= vfont_to_curve(ob,
                               cu,
+                              text_info,
                               FO_CURS,
                               data,
                               &cursor_params,
@@ -2040,6 +2082,8 @@ int BKE_vfont_cursor_to_text_index(Object *ob, const float2 &cursor_location)
                               nullptr,
                               nullptr);
   } while (data.ok && ELEM(data.status, VFONT_TO_CURVE_SCALE_ONCE, VFONT_TO_CURVE_BISECT));
+
+  vfont_input_text_info_free(text_info);
 
   return cursor_params.r_string_offset;
 }
