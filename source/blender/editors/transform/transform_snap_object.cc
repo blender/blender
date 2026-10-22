@@ -984,7 +984,10 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
        * #SNAP_GEOM_FINAL. */
       retval = SCE_SNAP_TO_NONE;
     }
-    retval = snap_object_mesh(sctx, ob_eval, ob_data, obmat, sctx->runtime.snap_to_flag, use_hide);
+    else {
+      retval = snap_object_mesh(
+          sctx, ob_eval, ob_data, obmat, sctx->runtime.snap_to_flag, use_hide);
+    }
   }
 
   switch (ob_eval->type) {

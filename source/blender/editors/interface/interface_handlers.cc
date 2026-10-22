@@ -9557,8 +9557,8 @@ static void button_activate_state(bContext *C, Button *but, HandleButtonState st
         WM_cursor_grab_enable(CTX_wm_window(C), WM_CURSOR_WRAP_XY, nullptr, true);
       }
       WorkspaceStatus status(C);
+      status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
       if (but->type != ButtonType::ColorBand) {
-        status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
 #if defined(__APPLE__)
         status.item(IFACE_("Snap"), ICON_KEY_COMMAND);
 #else

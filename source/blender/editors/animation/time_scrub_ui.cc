@@ -275,9 +275,17 @@ static void draw_current_frame(const Scene *scene,
       scene, scrub_region_rect, current_frame, display_seconds, region_x);
 
   if (clamp_playhead) {
-    region_x = math::clamp(region_x,
-                           scrub_region_rect->xmin + dimensions.text_width / 2.0f,
-                           scrub_region_rect->xmax - dimensions.text_width / 2.0f);
+    const float bound_left = scrub_region_rect->xmin + dimensions.text_width / 2.0f;
+    const float bound_right = scrub_region_rect->xmax - dimensions.text_width / 2.0f;
+
+    if (bound_left > bound_right) {
+      /* When the available space is smaller than the width of the playhead,
+       * align the label so its right edge sits flush with the region's edge. */
+      region_x = bound_right;
+    }
+    else {
+      region_x = math::clamp(region_x, bound_left, bound_right);
+    }
 
     dimensions = get_playhead_dimensions(
         scene, scrub_region_rect, current_frame, display_seconds, region_x);

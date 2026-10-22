@@ -10,11 +10,13 @@
 #include <algorithm>
 #include <csetjmp>
 #include <cstdio>
+#include <limits>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.hh"
 #include "BLI_listbase.hh"
+#include "BLI_math_base.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_utildefines.hh"
@@ -735,6 +737,29 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
   MEM_delete(row_pointer[0]);
 }
 
+/**
+ * Round the pixels-per-meter density to the 16 bit integers JFIF stores.
+ *
+ * \return The relative error introduced by rounding or a dummy (maximum) value
+ * when the result is outside the range JFIF supports.
+ */
+static double jpeg_density_from_ppm(const double ppm[2],
+                                    const double unit_scale,
+                                    UINT16 r_density[2])
+{
+  double error = 0.0;
+  for (int i = 0; i < 2; i++) {
+    const double density = ppm[i] * unit_scale;
+    const double density_round = math::round(density);
+    if (!(density_round >= 1.0 && density_round <= double(std::numeric_limits<UINT16>::max()))) {
+      return std::numeric_limits<double>::max();
+    }
+    r_density[i] = UINT16(density_round);
+    error += math::abs(density_round - density) / density;
+  }
+  return error;
+}
+
 static int init_jpeg(FILE *outfile, jpeg_compress_struct *cinfo, ImBuf *ibuf)
 {
   int quality;
@@ -776,6 +801,31 @@ static int init_jpeg(FILE *outfile, jpeg_compress_struct *cinfo, ImBuf *ibuf)
 
   cinfo->dct_method = JDCT_FLOAT;
   jpeg_set_quality(cinfo, quality, true);
+
+  /* JFIF stores the density as integers in either dots per inch or centimeter.
+   * Use whichever unit rounds with the least error. */
+  if (ibuf->ppm[0] > 0.0 && ibuf->ppm[1] > 0.0) {
+    /* The JFIF unit code & the size of the unit in meters. */
+    struct Unit {
+      UINT8 code;
+      double scale;
+    };
+    const Unit units[] = {
+        {1, 0.0254}, /* Inches. */
+        {2, 0.01},   /* Centimeters. */
+    };
+    double error_best = std::numeric_limits<double>::max();
+    for (const Unit &unit : units) {
+      UINT16 density[2];
+      const double error_test = jpeg_density_from_ppm(ibuf->ppm, unit.scale, density);
+      if (error_test < error_best) {
+        error_best = error_test;
+        cinfo->density_unit = unit.code;
+        cinfo->X_density = density[0];
+        cinfo->Y_density = density[1];
+      }
+    }
+  }
 
   return 0;
 }
