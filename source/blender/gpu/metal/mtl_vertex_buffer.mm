@@ -381,7 +381,7 @@ void MTLVertBuf::read(void *data) const
              sourceOffset:0
                  toBuffer:dest_buffer
         destinationOffset:0
-                     size:min_ulul([dest_buffer length], [dest_buffer length])];
+                     size:min_ulul([source_buffer length], [dest_buffer length])];
 
     /* Flush newly copied data back to host-side buffer, if one exists.
      * Ensures data and cache coherency for managed MTLBuffers. */
