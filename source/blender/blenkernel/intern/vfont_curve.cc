@@ -1914,12 +1914,13 @@ static bool vfont_to_curve(Object *ob,
        * (using the character midpoint on the x-axis as a reference). */
       for (; i <= char_end && chartransdata[i].linenr == char_line; i++) {
         info = &custrinfo[i];
-        const char32_t charcode = vfont_char_apply_smallcaps(mem[i], info);
+        const bool is_smallcaps = chartransdata[i].is_smallcaps;
+        const char32_t charcode = vfont_char_apply_smallcaps(mem[i], is_smallcaps);
 
         vfont_info_context_update(&vfinfo_ctx, cu, info);
         che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, charcode, che_placeholder);
 
-        const float charwidth = vfont_char_width(cu, che, info);
+        const float charwidth = vfont_char_width(cu, che, is_smallcaps);
         if (vfont_char_is_combining(charcode, charwidth)) [[unlikely]] {
           /* Combining character, skip so the cursor won't be between combining characters. */
           continue;
