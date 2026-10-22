@@ -803,7 +803,15 @@ void group_channels(ChannelArena &arena,
  */
 void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d);
 
-void draw_dopesheet_key_area(SummaryChannel &root, View2D &v2d);
+struct KeyDrawSettings {
+  /* Modify the keyframe shape to indicate the key handle. */
+  bool draw_handle_types = false;
+  /* Draw extra indicators within keyframes to show if the key is a minimum or maximum. */
+  bool draw_extremes = false;
+};
+void draw_dopesheet_key_area(SummaryChannel &root,
+                             View2D &v2d,
+                             const KeyDrawSettings &key_draw_settings);
 
 /**
  * Iterate all expanded channels and their children.

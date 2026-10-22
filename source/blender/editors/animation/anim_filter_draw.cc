@@ -326,7 +326,10 @@ static eKeyframeExtremeDrawOpts extreme_summary_as_draw_type(KeyframeExtremeSumm
   return KEYFRAME_EXTREME_NONE;
 }
 
-static void draw_channel_keys(AnimationChannel &channel, const float y, const View2D &v2d)
+static void draw_channel_keys(AnimationChannel &channel,
+                              const float y,
+                              const View2D &v2d,
+                              const KeyDrawSettings &key_draw_settings)
 {
   Span<KeyPoint> datapoints = channel.datapoints();
   if (datapoints.is_empty()) {
@@ -365,16 +368,19 @@ static void draw_channel_keys(AnimationChannel &channel, const float y, const Vi
   immBegin(GPU_PRIM_POINTS, key_count);
 
   for (const KeyPoint *point = start; point != end; point++) {
-    draw_keyframe_shape(point->frame,
-                        y,
-                        key_size,
-                        point->is_selected,
-                        point->key_type,
-                        KEYFRAME_SHAPE_BOTH,
-                        1.0,
-                        &sh_bindings,
-                        handle_summary_as_draw_type(point->handle_type),
-                        extreme_summary_as_draw_type(point->extreme_type));
+    draw_keyframe_shape(
+        point->frame,
+        y,
+        key_size,
+        point->is_selected,
+        point->key_type,
+        KEYFRAME_SHAPE_BOTH,
+        1.0,
+        &sh_bindings,
+        key_draw_settings.draw_handle_types ? handle_summary_as_draw_type(point->handle_type) :
+                                              KEYFRAME_HANDLE_NONE,
+        key_draw_settings.draw_extremes ? extreme_summary_as_draw_type(point->extreme_type) :
+                                          KEYFRAME_EXTREME_NONE);
   }
 
   immEnd();
@@ -441,7 +447,9 @@ static bool is_channel_visible(const View2D &v2d, const float row_top, const flo
   return row_top > v2d.cur.ymin && row_top - channel_step < v2d.cur.ymax;
 }
 
-void draw_dopesheet_key_area(SummaryChannel &root, View2D &v2d)
+void draw_dopesheet_key_area(SummaryChannel &root,
+                             View2D &v2d,
+                             const KeyDrawSettings &key_draw_settings)
 {
   const float channel_step = ANIM_UI_get_channel_step();
   const float skip = ANIM_UI_get_channel_skip();
@@ -453,19 +461,20 @@ void draw_dopesheet_key_area(SummaryChannel &root, View2D &v2d)
   GPU_blend(GPU_BLEND_ALPHA);
   /* Draw backdrops first for each expanded channel. */
   foreach_expanded(root, [&](AnimationChannel &channel, const int row_index) {
+    const float row_top = first_channel - row_index * channel_step;
+    if (!is_channel_visible(v2d, row_top, channel_step)) {
+      return;
+    }
     uchar4 color = channel_color_from_rna_pointer(channel.source());
     if (channel.type() == AnimationChannelType::DATA) {
       blender::ui::theme::get_color_4ubv(TH_CHANNEL, color);
     }
     immUniformColor4ubv(color);
-    const float row_top = first_channel - row_index * channel_step;
-    if (is_channel_visible(v2d, row_top, channel_step)) {
-      immRectf(pos,
-               v2d.cur.xmin,
-               row_top - skip / 2.0f,
-               v2d.cur.xmax + 0,
-               row_top - channel_step + skip / 2.0);
-    }
+    immRectf(pos,
+             v2d.cur.xmin,
+             row_top - skip / 2.0f,
+             v2d.cur.xmax + 0,
+             row_top - channel_step + skip / 2.0);
   });
   immUnbindProgram();
   GPU_blend(GPU_BLEND_NONE);
@@ -476,7 +485,7 @@ void draw_dopesheet_key_area(SummaryChannel &root, View2D &v2d)
     if (is_channel_visible(v2d, row_top, channel_step)) {
       const float row_center = row_top - channel_step / 2.0;
       draw_channel_decorations(channel, row_center, settings, v2d);
-      draw_channel_keys(channel, row_center, v2d);
+      draw_channel_keys(channel, row_center, v2d, key_draw_settings);
     }
   });
 }

@@ -290,7 +290,10 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
       ANIM_draw_framerange(scene, v2d);
     }
 
-    ed::animfilter::draw_dopesheet_key_area(*channels.root(), *v2d);
+    ed::animfilter::KeyDrawSettings key_draw_settings;
+    key_draw_settings.draw_handle_types = saction->flag & SACTION_SHOW_INTERPOLATION;
+    key_draw_settings.draw_extremes = saction->flag & SACTION_SHOW_EXTREMES;
+    ed::animfilter::draw_dopesheet_key_area(*channels.root(), *v2d, key_draw_settings);
 
     /* TODO draw markers. */
     ANIM_draw_previewrange(scene, v2d, 0);
