@@ -25,6 +25,12 @@ class AbstractNlaStripTest(unittest.TestCase):
     action: bpy.types.Action = None
     """ Action with X Location keyed on frames 1 to 4 with the same value as the frame, with constant interpolation. """
 
+    speaker_object: bpy.types.Object = None
+    """ Speaker object to test 'SOUND' NLA strips. """
+
+    speaker_nla_tracks: bpy.types.NlaTracks = None
+    """ NLA tracks of the Speaker object. """
+
     def setUp(self):
         bpy.ops.wm.read_factory_settings(use_empty=True)
 
@@ -40,9 +46,22 @@ class AbstractNlaStripTest(unittest.TestCase):
         strip = layer.strips.new(type="KEYFRAME")
         channelbag = strip.channelbags.new(slot)
 
+        """ 'SOUND' NLA Strips related """
+        speaker_data = bpy.data.speakers.new(name="SpeakerData")
+        self.speaker_object = bpy.data.objects.new(name="SpeakerObject", object_data=speaker_data)
+        bpy.context.collection.objects.link(self.speaker_object)
+
+        self.speaker_object.animation_data_create()
+        self.speaker_nla_tracks = self.speaker_object.animation_data.nla_tracks
+
         x_location_fcurve = channelbag.fcurves.new(data_path="location", index=0, group_name="Object Transforms")
         for frame in range(1, 5):
             x_location_fcurve.keyframe_points.insert(frame, value=frame).interpolation = "CONSTANT"
+
+    def add_strip_sound(self, nla_track: bpy.types.NlaTrack, start: int) -> bpy.types.NlaStrip:
+        """ Places a new 'SOUND' strip with the Speaker data. """
+        strip = nla_track.strips.new_sound("ObjectClip", start)
+        return strip
 
     def add_strip_no_extrapolation(self, nla_track: bpy.types.NlaTrack, start: int) -> bpy.types.NlaStrip:
         """ Places a new strip with the test action on the given track, setting extrapolation to nothing. """
@@ -153,6 +172,15 @@ class NLAStripActionSlotSelectionTest(AbstractNlaStripTest):
         self.assertEqual(action2.slots[0], strip.action_slot)
         self.assertEqual('OBJECT', action2.slots[0].target_id_type,
                          "Slot of Action 2 should have been rooted to object")
+
+
+class NlaStripSoundTest(AbstractNlaStripTest):
+    """ Tests the ability to create functional 'SOUND' NLA strips. """
+
+    def test_sound_strip(self):
+        strip = self.add_strip_sound(self.speaker_nla_tracks.new(), 1)
+
+        self.assertEqual(strip.type, "SOUND")
 
 
 if __name__ == "__main__":
