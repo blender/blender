@@ -9,8 +9,11 @@
  */
 
 #include <atomic>
+#include <condition_variable>
 #include <cstdlib>
 #include <memory>
+#include <mutex>
+#include <thread>
 #include <utility>
 
 #include "MEM_guardedalloc.h"
@@ -19,6 +22,7 @@
 
 #include "BLI_assert.hh"
 #include "BLI_mempool.hh"
+#include "BLI_simd.hh"
 #include "BLI_task_c.hh"
 #include "BLI_threads.hh"
 #include "BLI_vector.hh"
@@ -172,8 +176,11 @@ struct TaskPool {
   Vector<Task> suspended_tasks;
 
   /* Background task pool. */
-  ListBaseT<ThreadSlot> background_threads;
+  std::thread background_thread;
   ThreadQueue *background_queue;
+  std::mutex background_task_mutex;
+  std::condition_variable all_background_tasks_done;
+  int number_of_background_tasks = 0;
 
   eTaskPriority priority;
 
@@ -207,7 +214,7 @@ struct TaskPool {
       case TASK_POOL_BACKGROUND:
       case TASK_POOL_BACKGROUND_SERIAL: {
         this->background_queue = BLI_thread_queue_init();
-        BLI_threadpool_init(&this->background_threads, this->background_task_run, 1);
+        this->background_thread = std::thread(&TaskPool::background_task_run, this);
         break;
       }
     }
@@ -223,8 +230,8 @@ struct TaskPool {
       case TASK_POOL_BACKGROUND:
       case TASK_POOL_BACKGROUND_SERIAL: {
         this->background_task_pool_work_and_wait();
-
-        BLI_threadpool_end(&this->background_threads);
+        BLI_thread_queue_nowait(this->background_queue);
+        this->background_thread.join();
         BLI_thread_queue_free(this->background_queue);
         break;
       }
@@ -303,7 +310,7 @@ struct TaskPool {
    * Fallback for running background tasks when building without TBB. */
   void background_task_pool_run(Task &&task);
   void background_task_pool_work_and_wait();
-  static void *background_task_run(void *userdata);
+  void background_task_run();
 };
 
 void TaskPool::tbb_task_pool_run(Task &&task)
@@ -367,36 +374,44 @@ void TaskPool::background_task_pool_run(Task &&task)
   BLI_assert(ELEM(this->type, TASK_POOL_BACKGROUND, TASK_POOL_BACKGROUND_SERIAL));
 
   Task *task_mem = MEM_new<Task>(__func__, std::move(task));
+
+  {
+    std::scoped_lock lock(this->background_task_mutex);
+    this->number_of_background_tasks++;
+  }
+
   BLI_thread_queue_push(this->background_queue,
                         task_mem,
                         this->priority == TASK_PRIORITY_HIGH ?
                             BLI_THREAD_QUEUE_WORK_PRIORITY_HIGH :
                             BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
-
-  if (BLI_available_threads(&this->background_threads)) {
-    BLI_threadpool_insert(&this->background_threads, this);
-  }
 }
 
 void TaskPool::background_task_pool_work_and_wait()
 {
   BLI_assert(ELEM(this->type, TASK_POOL_BACKGROUND, TASK_POOL_BACKGROUND_SERIAL));
 
-  /* Signal background thread to stop waiting for new tasks if none are
-   * left, and wait for tasks and thread to finish. */
-  BLI_thread_queue_nowait(this->background_queue);
-  BLI_thread_queue_wait_finish(this->background_queue);
-  BLI_threadpool_clear(&this->background_threads);
+  std::unique_lock lock(this->background_task_mutex);
+  this->all_background_tasks_done.wait(lock,
+                                       [&]() { return this->number_of_background_tasks == 0; });
 }
 
-void *TaskPool::background_task_run(void *userdata)
+void TaskPool::background_task_run()
 {
-  TaskPool *pool = static_cast<TaskPool *>(userdata);
-  while (Task *task = static_cast<Task *>(BLI_thread_queue_pop(pool->background_queue))) {
+  /* Match the denormal handling of the task scheduler threads, see #BLI_task_scheduler_init. */
+  SIMD_SET_FLUSH_TO_ZERO;
+
+  while (Task *task = static_cast<Task *>(BLI_thread_queue_pop(this->background_queue))) {
     (*task)();
     MEM_delete(task);
+    {
+      std::scoped_lock lock(this->background_task_mutex);
+      this->number_of_background_tasks--;
+      if (this->number_of_background_tasks == 0) {
+        this->all_background_tasks_done.notify_all();
+      }
+    }
   }
-  return nullptr;
 }
 
 /* Task Pool public API. */
