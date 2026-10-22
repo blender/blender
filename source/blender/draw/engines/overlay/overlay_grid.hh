@@ -216,8 +216,9 @@ class Grid : Overlay {
 
     /* We limit to 8192 lines per axis. This hits the current maximum framebuffer size on
      * the VK roadmap. In addition, lines are faded when they are 2-4 pixels apart. */
-    uint max_lines_x = 2u * uint(ceilf(viewport_size.x / lowest_step.x)) + 1u;
-    uint max_lines_y = 2u * uint(ceilf(viewport_size.y / lowest_step.y)) + 1u;
+    const float viewport_extent = math::reduce_max(viewport_size);
+    uint max_lines_x = 2u * uint(ceilf(viewport_extent / lowest_step.x)) + 1u;
+    uint max_lines_y = 2u * uint(ceilf(viewport_extent / lowest_step.y)) + 1u;
     grid_ubo_.num_lines = std::min(std::max(max_lines_x, max_lines_y), 8192u);
     num_iters_ = 1u;
 
