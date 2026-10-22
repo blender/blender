@@ -3655,14 +3655,17 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         }
         mat.metallic = mat.ray_mirror;
       }
+    }
 
-      for (bScreen &screen : bmain->screens) {
-        for (ScrArea &area : screen.areabase) {
-          for (SpaceLink &sl : area.spacedata) {
-            if (sl.spacetype == SPACE_VIEW3D) {
-              View3D *v3d = reinterpret_cast<View3D *>(&sl);
-              v3d->shading.flag |= V3D_SHADING_SPECULAR_HIGHLIGHT;
-            }
+    /* Specular highlight was instroduced in 2.4x, but its default changed in 2.80. During 2.80
+     * many viewport migrations were merged into a single subversion. Result: we always enable
+     * specular highlights. */
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          if (sl.spacetype == SPACE_VIEW3D) {
+            View3D *v3d = reinterpret_cast<View3D *>(&sl);
+            v3d->shading.flag |= V3D_SHADING_SPECULAR_HIGHLIGHT;
           }
         }
       }
