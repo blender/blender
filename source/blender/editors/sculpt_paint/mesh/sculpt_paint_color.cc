@@ -503,14 +503,14 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
     daub_color = daub_color * flow_factors[i] * ss.cache->paint_brush.flow;
     blend_color_mix_float(color_buffer[i], color_buffer[i], daub_color);
 
-    /* The max (or min) value of the stroke, dependent on the brush opacity. */
-    const float4 buffer_color = color_buffer[i] * alpha;
+    /* The color we are attempting to actually apply to the mesh, capped by the brush opacity. */
+    const float4 paint_color = color_buffer[i] * alpha;
+    IMB_blend_color_float(new_colors[i], orig_colors[i], paint_color, IMB_BlendMode(brush.blend));
+
+    /* The max (or min) value of the stroke, dependent on the brush opacity and mesh values. */
+    const float4 buffer_color = color_buffer[i] * opacity_factors[i] * alpha;
     float4 color_test;
     IMB_blend_color_float(color_test, orig_colors[i], buffer_color, IMB_BlendMode(brush.blend));
-
-    /* The color we are attempting to actually paint. */
-    const float4 paint_color = color_buffer[i] * opacity_factors[i];
-    IMB_blend_color_float(new_colors[i], orig_colors[i], paint_color, IMB_BlendMode(brush.blend));
 
     float4 min(std::numeric_limits<float>::max());
     float4 max(std::numeric_limits<float>::lowest());
