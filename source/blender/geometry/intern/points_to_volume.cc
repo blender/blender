@@ -10,6 +10,7 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_rotation.hh"
 #include "BLI_string_utils.hh"
+#include "BLI_task.hh"
 #include "BLI_vector_set.hh"
 
 #include "BKE_attribute_math.hh"
@@ -265,46 +266,52 @@ MappedPointDataGrid points_to_point_data_grid(const Span<float3> positions,
       openvdb::tools::createPointIndexGrid<openvdb::tools::PointIndexGrid>(
           positions_wrapper, vdb_transform_cell_centered);
 
-  /* Convert the main positions array.
-   * Note: Use the corner-centered transform here so that position data in the points array is in
-   * the regular 0..1 sampling space. */
-  openvdb::points::PointDataGrid::Ptr point_data_grid =
-      openvdb::points::createPointDataGrid<openvdb::points::NullCodec,
-                                           openvdb::points::PointDataGrid>(
-          *point_index_grid, positions_wrapper, vdb_transform);
-
+  openvdb::points::PointDataGrid::Ptr point_data_grid;
   VectorSet<std::string> used_names;
   Vector<std::pair<std::string, std::string>> attribute_map;
-  for (const PointDataGridAttributeInfo &info : attributes) {
-    const CPPType &cpp_type = info.data.type();
-    bke::attribute_math::to_static_type(cpp_type, [&]<typename ValueT>() {
-      using type_traits = typename bke::VolumeGridTraits<ValueT>;
+  /* OpenVDB holds a global attribute registry lock while running parallel tasks in
+   * #createPointDataGrid and #appendAttribute. Isolate to prevent a waiting thread from executing
+   * another point conversion that tries to acquire the same non-recursive lock. */
+  threading::isolate_task([&]() {
+    /* Convert the main positions array.
+     * Note: Use the corner-centered transform here so that position data in the points array is in
+     * the regular 0..1 sampling space. */
+    point_data_grid = openvdb::points::createPointDataGrid<openvdb::points::NullCodec,
+                                                           openvdb::points::PointDataGrid>(
+        *point_index_grid, positions_wrapper, vdb_transform);
 
-      if constexpr (!std::is_same_v<typename type_traits::PrimitiveType, void>) {
-        /* Note: some attributes could benefit from specialized codecs. The OpenVDB cookbook
-         * suggests to store e.g. radius attribute with a fixed-point codec. This is not supported
-         * here yet.
-         */
-        // openvdb::points::FixedPointCodec</*1-byte=*/false, openvdb::points::UnitRange>;
-        using Codec = openvdb::points::NullCodec;
-        using AttributeArray =
-            openvdb::points::TypedAttributeArray<typename type_traits::PrimitiveType, Codec>;
-        if (!AttributeArray::isRegistered()) {
-          AttributeArray::registerType();
+    for (const PointDataGridAttributeInfo &info : attributes) {
+      const CPPType &cpp_type = info.data.type();
+      bke::attribute_math::to_static_type(cpp_type, [&]<typename ValueT>() {
+        using type_traits = typename bke::VolumeGridTraits<ValueT>;
+
+        if constexpr (!std::is_same_v<typename type_traits::PrimitiveType, void>) {
+          /* Note: some attributes could benefit from specialized codecs. The OpenVDB cookbook
+           * suggests to store e.g. radius attribute with a fixed-point codec. This is not
+           * supported here yet.
+           */
+          // openvdb::points::FixedPointCodec</*1-byte=*/false, openvdb::points::UnitRange>;
+          using Codec = openvdb::points::NullCodec;
+          using AttributeArray =
+              openvdb::points::TypedAttributeArray<typename type_traits::PrimitiveType, Codec>;
+          if (!AttributeArray::isRegistered()) {
+            AttributeArray::registerType();
+          }
+
+          const std::string vdb_name = add_unique_vdb_attribute_name(info.name, used_names);
+          attribute_map.append_as(info.name, vdb_name);
+
+          openvdb::NamePair point_data_attribute = AttributeArray::attributeType();
+          openvdb::points::appendAttribute(
+              point_data_grid->tree(), vdb_name, point_data_attribute);
+
+          const PointAttributeSpan data_wrapper(info.data.typed<ValueT>());
+          openvdb::points::populateAttribute(
+              point_data_grid->tree(), point_index_grid->tree(), vdb_name, data_wrapper);
         }
-
-        const std::string vdb_name = add_unique_vdb_attribute_name(info.name, used_names);
-        attribute_map.append_as(info.name, vdb_name);
-
-        openvdb::NamePair point_data_attribute = AttributeArray::attributeType();
-        openvdb::points::appendAttribute(point_data_grid->tree(), vdb_name, point_data_attribute);
-
-        const PointAttributeSpan data_wrapper(info.data.typed<ValueT>());
-        openvdb::points::populateAttribute(
-            point_data_grid->tree(), point_index_grid->tree(), vdb_name, data_wrapper);
-      }
-    });
-  }
+      });
+    }
+  });
 
   return {bke::GVolumeGrid(std::move(point_data_grid)), std::move(attribute_map)};
 }
