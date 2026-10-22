@@ -295,27 +295,36 @@ class ChannelTagSet {
  */
 class ChannelIdentifier {
  public:
-  /** Owner ID of the channel source. */
-  ID_Type owner_id_type = ID_Type(0);
-  /* It would be tempting to use an ID* here directly. However, such pointers _must_ be remappable,
-   * for example to set to nullptr when the ID is deleted. This means that any struct using an ID*
-   * is inherently mutable, but this struct is meant to serve as a mapping key and thus MUST be
-   * immutable. */
+  /**
+   * Owner ID of the channel source. It would be tempting to use an ID* here directly. However,
+   * such pointers _must_ be remappable, for example to set to nullptr when the ID is deleted. This
+   * means that any struct using an ID* is inherently mutable, but this struct is meant to serve as
+   * a mapping key and thus MUST be immutable.
+   */
   unsigned int owner_session_uid = 0;
   /** Path from the ID to the channel source data. */
   ParsedSourcePath source_rna_path = {};
 
   /**
-   * Hash of the channels' parent.
-   * This is only set when data channels have been grouped into a hierarchy.
+   * Onwer ID of this channel's parent channel (so the summary channel directly above it).
+   *
+   * This is used as a weak measure to be able to distinguish a repeat of the same channel, for
+   * example an Action nested underneath each Object it identifies. Ideally the entire chain would
+   * be encoded here, but that would make channel identifiers more complex, and comparisons more
+   * costly. Also blend file reading/writing will be more complex, as each session_uid would have
+   * to be translated to an ID* for storage (and back when reading).
+   *
+   * It is assumed that these nestings are under different IDs, which is why the parent's
+   * source_rna_path is not included here.
    */
-  int64_t parent_hash = 0;
+  unsigned int parent_session_uid = 0;
 
   bool operator==(const ChannelIdentifier &other) const;
   int64_t hash() const;
 
   /** Stream operator, which needs a bmain for looking up the session UID. */
   void stream_to(std::ostream &stream, Main *bmain) const;
+  /** Stream operator, which needs an idmap for looking up the session UID. */
   void stream_to(std::ostream &stream, IDNameLib_Map *idmap) const;
 };
 
@@ -413,13 +422,11 @@ class AnimationChannel {
   std::unique_ptr<AbstractChannelAPI> channel_api_;
 
   /**
-   * For channels that have a parent channel, this is set to the hash of that parent.
+   * For channels that have a parent channel, this is set to that channel's source_.owner_id.
    *
-   * Since #parent_hash_ is also used to compute this channel's hash and its identifier, multiple
-   * channels for the same data can appear in different sub-hierarchies and still retain unique UI
-   * data. An example is an Action nested underneath each object in animates.
+   * This is used to construct the ChannelIdentifier for this channel.
    */
-  int64_t parent_hash_ = 0;
+  unsigned int parent_session_uid_ = 0; /* MAIN_ID_SESSION_UID_UNSET */
 
  public:
   AnimationChannel(AnimationChannelType type, StringRef label);
@@ -439,18 +446,17 @@ class AnimationChannel {
       return {};
     }
     return {
-        source_.owner_id->id_type(),
         source_.owner_id->session_uid,
         /* The identifier makes no distinction between 'no path' or 'empty path'. */
         /* TODO: maybe this class should also remove this distinction? */
         source_rna_path_.value_or(ParsedSourcePath()),
-        parent_hash_,
+        parent_session_uid_,
     };
   }
 
-  void parent_hash_set(const int64_t hash)
+  void parent_identifier_set(const ChannelIdentifier &ident)
   {
-    this->parent_hash_ = hash;
+    this->parent_session_uid_ = ident.owner_session_uid;
   }
 
   AnimationChannelType type() const
@@ -566,12 +572,14 @@ class SummaryChannel final : public AnimationChannel {
   void remove_child(AnimationChannel &child);
 
   /**
-   * Recursively push this channel's hash to its children's #parent_hash_.
+   * Recursively push this channel's identifier to its children.
    *
    * This ensures that any channel identifiers built for these channels include a value that is
-   * unique to the chain of parents that leads to a channel.
+   * unique at least some aspects of their parent channel.
+   *
+   * \see #ChannelIdentifier::parent_session_uid
    */
-  void push_hash_to_children();
+  void push_to_children();
 
   /**
    * Sort the children of this summary channel.

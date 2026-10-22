@@ -4398,7 +4398,7 @@ void group_channels(ChannelArena &arena,
     channel->sort_children();
   }
 
-  root->push_hash_to_children();
+  root->push_to_children();
 
   gather_tags(*root);
 }

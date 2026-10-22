@@ -308,9 +308,6 @@ std::unique_ptr<AbstractChannelAPI> create_channel_api(PointerRNA &ptr)
 
 bool ChannelIdentifier::operator==(const ChannelIdentifier &other) const
 {
-  if (other.owner_id_type != this->owner_id_type) {
-    return false;
-  }
   if (other.owner_session_uid != this->owner_session_uid) {
     return false;
   }
@@ -319,55 +316,40 @@ bool ChannelIdentifier::operator==(const ChannelIdentifier &other) const
 
 int64_t ChannelIdentifier::hash() const
 {
-  return get_default_hash(this->owner_id_type,
-                          this->owner_session_uid,
-                          this->source_rna_path.items,
-                          this->parent_hash);
+  return get_default_hash(
+      this->owner_session_uid, this->source_rna_path.items, this->parent_session_uid);
+}
+
+static void channel_ident_stream_to(std::ostream &stream,
+                                    const ChannelIdentifier &chan,
+                                    const ID *owner_id)
+{
+  stream << "[";
+  if (chan.owner_session_uid == MAIN_ID_SESSION_UID_UNSET) {
+    stream << "-no-owner-";
+  }
+  else if (owner_id) {
+    stream << owner_id->name;
+  }
+  else {
+    stream << "-stale-" << chan.owner_session_uid << "-";
+  }
+
+  stream << " ";
+  stream << chan.source_rna_path;
+  stream << "]";
 }
 
 void ChannelIdentifier::stream_to(std::ostream &stream, Main *bmain) const
 {
-  stream << "[";
-  if (this->owner_id_type == ID_Type(0) || this->owner_session_uid == MAIN_ID_SESSION_UID_UNSET) {
-    stream << "-no-owner-";
-  }
-  else {
-    const ID *owner_id = BKE_libblock_find_session_uid(
-        bmain, this->owner_id_type, this->owner_session_uid);
-    if (owner_id) {
-      stream << owner_id->name;
-    }
-    else {
-      const char *id_type = reinterpret_cast<const char *>(&this->owner_id_type);
-      stream << "-stale-" << id_type[0] << id_type[1] << "-" << this->owner_session_uid << "-";
-    }
-  }
-
-  stream << " ";
-  stream << this->source_rna_path;
-  stream << "]";
+  const ID *owner_id = BKE_libblock_find_session_uid(bmain, this->owner_session_uid);
+  channel_ident_stream_to(stream, *this, owner_id);
 }
 
 void ChannelIdentifier::stream_to(std::ostream &stream, IDNameLib_Map *idmap) const
 {
-  stream << "[";
-  if (this->owner_id_type == ID_Type(0) || this->owner_session_uid == MAIN_ID_SESSION_UID_UNSET) {
-    stream << "-no-owner-";
-  }
-  else {
-    const ID *owner_id = BKE_main_idmap_lookup_uid(idmap, this->owner_session_uid);
-    if (owner_id) {
-      stream << owner_id->name;
-    }
-    else {
-      const char *id_type = reinterpret_cast<const char *>(&this->owner_id_type);
-      stream << "-stale-" << id_type[0] << id_type[1] << "-" << this->owner_session_uid << "-";
-    }
-  }
-
-  stream << " ";
-  stream << this->source_rna_path;
-  stream << "]";
+  const ID *owner_id = BKE_main_idmap_lookup_uid(idmap, this->owner_session_uid);
+  channel_ident_stream_to(stream, *this, owner_id);
 }
 
 void debug_stream_hierarchy(std::ostream &stream,
@@ -582,11 +564,8 @@ AnimationChannel::AnimationChannel(AnimationChannel &&other)
 
 int64_t AnimationChannel::hash() const
 {
-  return get_default_hash(this->parent_hash_,
-                          this->type_,
-                          this->source_.type,
-                          this->source_.owner_id,
-                          this->source_.data);
+  return get_default_hash(
+      type_, source_.type, source_.owner_id, source_.data, parent_session_uid_);
 }
 
 bool AnimationChannel::source_is_id() const
@@ -905,15 +884,15 @@ static bool animation_channel_compare_function(const AnimationChannel *channel_a
   return channel_a->label() < channel_b->label();
 }
 
-void SummaryChannel::push_hash_to_children()
+void SummaryChannel::push_to_children()
 {
-  const int64_t my_hash = this->hash();
+  const ChannelIdentifier my_ident = this->identifier();
   for (AnimationChannel *child : this->children_) {
-    child->parent_hash_set(my_hash);
+    child->parent_identifier_set(my_ident);
     if (child->type() != AnimationChannelType::SUMMARY) {
       continue;
     }
-    reinterpret_cast<SummaryChannel *>(child)->push_hash_to_children();
+    reinterpret_cast<SummaryChannel *>(child)->push_to_children();
   }
 }
 

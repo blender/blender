@@ -1206,6 +1206,7 @@ struct SpaceActionChannelUIState {
 
   /* These fields store the ChannelIdentifier. */
   ID *channel_owner_id = nullptr;
+  ID *channel_parent_id = nullptr;
   const char *source_rna_path = nullptr;
 
   /* The remainder of the struct stores the actual UI state. */

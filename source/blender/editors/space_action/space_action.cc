@@ -1031,6 +1031,7 @@ static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   if (!BLI_listbase_is_empty(&sact->channel_ui_states)) {
     for (const SpaceActionChannelUIState &state : sact->channel_ui_states) {
       BKE_LIB_FOREACHID_PROCESS_ID(data, state.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
+      BKE_LIB_FOREACHID_PROCESS_ID(data, state.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
     }
   }
 }
@@ -1175,9 +1176,24 @@ static void action_space_blend_read_after_liblink(BlendLibReader *reader,
           !(state.channel_owner_id->flag & ID_FLAG_EMBEDDED_DATA),
           "ed::animfilter::ChannelIdentifier can only work on real IDs, not embedded ones");
       BKE_lib_libblock_session_uid_ensure(state.channel_owner_id);
-      chan_ident.owner_id_type = state.channel_owner_id->id_type();
       chan_ident.owner_session_uid = state.channel_owner_id->session_uid;
     }
+    if (state.channel_parent_id) {
+      if (state.channel_parent_id->flag & ID_FLAG_EMBEDDED_DATA) {
+        CLOG_WARN(
+            &LOG,
+            "ed::animfilter::ChannelIdentifier can only work on real IDs, not embedded ones (%s)",
+            state.channel_parent_id->name);
+      }
+      else {
+        // BLI_assert_msg(
+        //     !(state.channel_parent_id->flag & ID_FLAG_EMBEDDED_DATA),
+        //     "ed::animfilter::ChannelIdentifier can only work on real IDs, not embedded ones");
+        BKE_lib_libblock_session_uid_ensure(state.channel_parent_id);
+        chan_ident.parent_session_uid = state.channel_parent_id->session_uid;
+      }
+    }
+
     if (state.source_rna_path) {
       chan_ident.source_rna_path =
           ParsedSourcePath::from_string(state.source_rna_path).value_or(ParsedSourcePath());
@@ -1256,6 +1272,7 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
       SpaceActionChannelUIState *state = &ui_state_array[array_index];
 
       ID *owner_id = BKE_main_idmap_lookup_uid(id_map, key_value.key.owner_session_uid);
+      ID *parent_id = BKE_main_idmap_lookup_uid(id_map, key_value.key.parent_session_uid);
       // if (!owner_id) {
       //   std::cout << "\033[90m";
       // }
@@ -1272,6 +1289,7 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
 
       /* Store the UI state map key. */
       state->channel_owner_id = owner_id;
+      state->channel_parent_id = parent_id;
       if (!key_value.key.source_rna_path.items.is_empty()) {
         rna_paths[array_index] = key_value.key.source_rna_path.to_string();
         state->source_rna_path = rna_paths[array_index].c_str();
