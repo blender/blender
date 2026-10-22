@@ -1245,15 +1245,7 @@ static bool vfont_to_curve(Object *ob,
         }
       }
       for (i = 0; i <= slen; i++) {
-        for (j = i; !ELEM(mem[j], '\0', '\n') && (chartransdata[j].do_break == 0) && (j < slen);
-             j++)
-        {
-          /* Pass. */
-        }
-
-        // if ((mem[j] != '\n') && (mem[j])) {
         ct->offset.x += ct->charnr * lineinfo[ct->linenr].x_min;
-        // }
         ct++;
       }
     }
