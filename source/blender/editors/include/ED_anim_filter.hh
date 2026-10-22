@@ -169,7 +169,7 @@ class ChannelTagStack final {
 };
 
 /* See eBezTriple_Interpolation. */
-enum class InterpolationSummary {
+enum class InterpolationSummary : uint8_t {
   NONE,
   MIXED,
   LINEAR,
@@ -177,11 +177,11 @@ enum class InterpolationSummary {
   BEZIER,
 };
 
-enum class KeyframeHandleSummary {
+enum class KeyframeHandleSummary : uint8_t {
   /* Used when the data does not support handles or the KeyPoint is a mix of various
    * handle types. For legacy reasons this has to stay in the order it is in. `KeyList` assumes
-   * this to be sorted for draw priority.*/
-  UNSPECIFIED = 0,
+   * this to be sorted for draw priority. */
+  UNSPECIFIED,
   AUTO_CLAMP,
   AUTO,
   VECTOR,
@@ -189,8 +189,13 @@ enum class KeyframeHandleSummary {
   FREE,
 };
 
-/* Converts the KeyframeHandleSummary value to eKeyframeHandleDrawOpts for drawing. */
-uint8_t handle_summary_as_draw_type(KeyframeHandleSummary summary);
+/* See eKeyframeExtremeDrawOpts. Note that we use fewer values here. The old enum has many values
+ * that are not actually used anymore. */
+enum class KeyframeExtremeSummary : uint8_t {
+  MIXED,
+  MAXIMUM,
+  MINIMUM,
+};
 
 /* A point in time with various properties. */
 struct KeyPoint {
@@ -202,6 +207,7 @@ struct KeyPoint {
   eBezTriple_KeyframeType key_type = BEZT_KEYTYPE_KEYFRAME;
   /* Not using eBezTriple_Handle because that has no "None" case. */
   KeyframeHandleSummary handle_type = KeyframeHandleSummary::UNSPECIFIED;
+  KeyframeExtremeSummary extreme_type = KeyframeExtremeSummary::MIXED;
 
   /** Construct default KeyPoint at infinity. */
   constexpr KeyPoint() = default;

@@ -306,6 +306,26 @@ static bool point_larger_than(const float frame, const KeyPoint &p)
   return frame < p.frame;
 }
 
+static eKeyframeHandleDrawOpts handle_summary_as_draw_type(KeyframeHandleSummary summary)
+{
+  /* enum values match perfectly with eKeyframeHandleDrawOpts. */
+  return eKeyframeHandleDrawOpts(summary);
+}
+
+static eKeyframeExtremeDrawOpts extreme_summary_as_draw_type(KeyframeExtremeSummary summary)
+{
+  switch (summary) {
+    case KeyframeExtremeSummary::MIXED:
+      return KEYFRAME_EXTREME_NONE;
+    case KeyframeExtremeSummary::MAXIMUM:
+      return KEYFRAME_EXTREME_MAX;
+    case KeyframeExtremeSummary::MINIMUM:
+      return KEYFRAME_EXTREME_MIN;
+  }
+
+  return KEYFRAME_EXTREME_NONE;
+}
+
 static void draw_channel_keys(AnimationChannel &channel, const float y, const View2D &v2d)
 {
   Span<KeyPoint> datapoints = channel.datapoints();
@@ -354,7 +374,7 @@ static void draw_channel_keys(AnimationChannel &channel, const float y, const Vi
                         1.0,
                         &sh_bindings,
                         handle_summary_as_draw_type(point->handle_type),
-                        KEYFRAME_EXTREME_NONE);
+                        extreme_summary_as_draw_type(point->extreme_type));
   }
 
   immEnd();

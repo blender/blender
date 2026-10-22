@@ -25,6 +25,7 @@
 #include "ED_anim_api.hh"
 #include "ED_anim_filter.hh"
 #include "ED_grease_pencil.hh"
+#include "ED_keyframes_keylist.hh"
 
 #include "ANIM_action.hh"
 #include "ANIM_armature.hh"
@@ -488,10 +489,13 @@ static KeyframeHandleSummary combine_key_handles(const KeyframeHandleSummary a,
   return KeyframeHandleSummary::UNSPECIFIED;
 }
 
-uint8_t handle_summary_as_draw_type(KeyframeHandleSummary summary)
+static KeyframeExtremeSummary combine_extreme_types(const KeyframeExtremeSummary a,
+                                                    const KeyframeExtremeSummary b)
 {
-  /* enum values match perfectly with eKeyframeHandleDrawOpts. */
-  return uint8_t(summary);
+  if (a == b) {
+    return a;
+  }
+  return KeyframeExtremeSummary::MIXED;
 }
 
 void KeyPoint::merge(const KeyPoint &other)
@@ -507,6 +511,7 @@ void KeyPoint::merge(const KeyPoint &other)
     is_selected |= other.is_selected;
     key_type = combine_key_type(key_type, other.key_type);
     handle_type = combine_key_handles(handle_type, other.handle_type);
+    extreme_type = combine_extreme_types(extreme_type, other.extreme_type);
     return;
   }
 
@@ -516,6 +521,7 @@ void KeyPoint::merge(const KeyPoint &other)
   is_selected = other.is_selected;
   key_type = other.key_type;
   handle_type = other.handle_type;
+  extreme_type = other.extreme_type;
 }
 
 ChannelTag::ChannelTag(const ChannelTagType type,
@@ -1007,6 +1013,30 @@ static KeyframeHandleSummary handle_summary_from_key(const BezTriple &key)
   return KeyframeHandleSummary::UNSPECIFIED;
 }
 
+static KeyframeExtremeSummary key_extreme_type(const float key_y,
+                                               const float prev_y,
+                                               const float next_y)
+{
+  /* Flat, no extreme. */
+  if (key_y == prev_y && key_y == next_y) {
+    return KeyframeExtremeSummary::MIXED;
+  }
+
+  /* Middle of an incline, no extreme. */
+  if ((prev_y < key_y && key_y < next_y) || (prev_y > key_y && key_y > next_y)) {
+    return KeyframeExtremeSummary::MIXED;
+  }
+
+  /* Detect extremes. One of the neighbors is allowed to be equal to current. */
+  if (prev_y < key_y || next_y < key_y) {
+    return KeyframeExtremeSummary::MAXIMUM;
+  }
+  if (prev_y > key_y || next_y > key_y) {
+    return KeyframeExtremeSummary::MINIMUM;
+  }
+  return KeyframeExtremeSummary::MIXED;
+}
+
 void FCurveChannel::gather_channeldata()
 {
   PRF_scope_with_name("ed::animfilter::FCurveChannel::gather_channeldata",
@@ -1020,7 +1050,6 @@ void FCurveChannel::gather_channeldata()
   }
 
   this->datapoints_.resize(fcurve->totvert);
-  float prev_y;
   for (int i = 0; i < fcurve->totvert; i++) {
     BezTriple &key = fcurve->bezt[i];
     KeyPoint p(key.vec[1][0]);
@@ -1045,9 +1074,12 @@ void FCurveChannel::gather_channeldata()
     this->datapoints_[i] = p;
 
     if (i > 0) {
-      this->datapoints_[i - 1].has_motion = prev_y != key.vec[1][1];
+      this->datapoints_[i - 1].has_motion = fcurve->bezt[i - 1].vec[1][1] != key.vec[1][1];
     }
-    prev_y = key.vec[1][1];
+    if (i > 1) {
+      this->datapoints_[i - 1].extreme_type = key_extreme_type(
+          fcurve->bezt[i - 1].vec[1][1], fcurve->bezt[i - 2].vec[1][1], fcurve->bezt[i].vec[1][1]);
+    }
   }
 }
 
