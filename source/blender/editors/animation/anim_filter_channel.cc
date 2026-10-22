@@ -568,6 +568,25 @@ int64_t AnimationChannel::hash() const
       type_, source_.type, source_.owner_id, source_.data, parent_session_uid_);
 }
 
+ChannelIdentifier AnimationChannel::identifier() const
+{
+  unsigned int owner_session_uid = MAIN_ID_SESSION_UID_UNSET;
+  if (source_.has_owner_id()) {
+    BLI_assert_msg(!(source_.owner_id->flag & ID_FLAG_EMBEDDED_DATA),
+                   "A channel's source cannot be an embedded data-block");
+    BKE_lib_libblock_session_uid_ensure(source_.owner_id);
+    owner_session_uid = source_.owner_id->session_uid;
+  }
+
+  return {
+      owner_session_uid,
+      /* The identifier makes no distinction between 'no path' or 'empty path'. */
+      /* TODO: maybe this class should also remove this distinction? */
+      source_rna_path_.value_or(ParsedSourcePath()),
+      parent_session_uid_,
+  };
+}
+
 bool AnimationChannel::source_is_id() const
 {
   return source_.has_owner_id() && source_.owner_id == source_.data;

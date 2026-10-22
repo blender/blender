@@ -440,19 +440,7 @@ class AnimationChannel {
 
   virtual int64_t hash() const;
 
-  ChannelIdentifier identifier() const
-  {
-    if (!source_.has_owner_id() || !source_.has_data()) {
-      return {};
-    }
-    return {
-        source_.owner_id->session_uid,
-        /* The identifier makes no distinction between 'no path' or 'empty path'. */
-        /* TODO: maybe this class should also remove this distinction? */
-        source_rna_path_.value_or(ParsedSourcePath()),
-        parent_session_uid_,
-    };
-  }
+  ChannelIdentifier identifier() const;
 
   void parent_identifier_set(const ChannelIdentifier &ident)
   {
