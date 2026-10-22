@@ -519,6 +519,7 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
 
     /* The final color is clamped by the original color and max value of the brush opacity */
     new_colors[i] = math::clamp(new_colors[i], min, max);
+    new_colors[i] = math::clamp(new_colors[i], 0.0f, 1.0f);
   }
 
   scatter_data_mesh(color_buffer.as_span(), verts, mix_colors);
