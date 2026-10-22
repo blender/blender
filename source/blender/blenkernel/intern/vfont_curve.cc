@@ -82,7 +82,7 @@ static VFont *vfont_from_charinfo(const Curve &cu, const CharInfo *info)
   }
 }
 
-static VFontData *vfont_data_ensure_with_lock(VFont *vfont)
+static VFontData *vfont_data_ensure(VFont *vfont)
 {
   if (vfont == nullptr) {
     return nullptr;
@@ -109,7 +109,13 @@ static VFontData *vfont_data_ensure_with_lock(VFont *vfont)
   return vfont->data;
 }
 
-static bool vfont_char_find(const VFontData *vfd, char32_t charcode, VChar **r_che)
+/**
+ * The caller is responsible for locking.
+ *
+ * \note Even when characters are known to exist, locking is needed
+ * as the hash-table may be added to (and resized) by another thread.
+ */
+static bool vfont_char_find_no_lock(const VFontData *vfd, char32_t charcode, VChar **r_che)
 {
   if (VChar **che_p = vfd->characters->lookup_ptr(charcode)) {
     *r_che = *che_p;
@@ -119,20 +125,26 @@ static bool vfont_char_find(const VFontData *vfd, char32_t charcode, VChar **r_c
   return false;
 }
 
+static bool vfont_char_find(const VFontData *vfd, char32_t charcode, VChar **r_che)
+{
+  BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_READ);
+  bool che_found = vfont_char_find_no_lock(vfd, charcode, r_che);
+  BLI_rw_mutex_unlock(&vfont_rwlock);
+  return che_found;
+}
+
 /**
  * Find the character or lazily initialize it.
  *
  * The intended use-case for this function is that characters are initialized once.
  * Any future access can then use #vfont_char_find or #vfont_char_find_or_placeholder.
  */
-static VChar *vfont_char_ensure_with_lock(VFont *vfont, char32_t charcode)
+static VChar *vfont_char_ensure(VFont *vfont, char32_t charcode)
 {
   VChar *che;
   if (vfont && vfont->data) {
     VFontData *vfd = vfont->data;
-    BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_READ);
     bool che_found = vfont_char_find(vfd, charcode, &che);
-    BLI_rw_mutex_unlock(&vfont_rwlock);
 
     /* The character wasn't in the current curve base so load it. */
     if (che_found == false) {
@@ -142,7 +154,7 @@ static VChar *vfont_char_ensure_with_lock(VFont *vfont, char32_t charcode)
        *
        * Such a check should not be a bottleneck since it wouldn't
        * happen often once all the chars are load. */
-      che_found = vfont_char_find(vfd, charcode, &che);
+      che_found = vfont_char_find_no_lock(vfd, charcode, &che);
       if (che_found == false) {
         che = BKE_vfontdata_char_from_freetypefont(vfont, charcode);
       }
@@ -270,6 +282,8 @@ static VChar *vfont_placeholder_ensure(VCharPlaceHolder &che_placeholder, char32
 
 /**
  * A version of #vfont_char_find that returns a place-holder if the glyph cannot be found.
+ *
+ * This relies on a previous lookup having ensured the character has been loaded.
  */
 static VChar *vfont_char_find_or_placeholder(const VFontData *vfd,
                                              char32_t charcode,
@@ -277,6 +291,8 @@ static VChar *vfont_char_find_or_placeholder(const VFontData *vfd,
 {
   VChar *che = nullptr;
   if (vfd) {
+    /* While the characters are known to exist, locking is needed
+     * as the hash-table may be added to (and resized) by another thread. */
     vfont_char_find(vfd, charcode, &che);
   }
   if (che == nullptr) [[unlikely]] {
@@ -497,7 +513,7 @@ void BKE_vfont_char_build(const Curve &cu,
                           int charidx,
                           const float fsize)
 {
-  VFontData *vfd = vfont_data_ensure_with_lock(vfont_from_charinfo(cu, info));
+  VFontData *vfd = vfont_data_ensure(vfont_from_charinfo(cu, info));
   if (!vfd) {
     return;
   }
@@ -684,7 +700,7 @@ static void vfont_info_context_init(VFontInfoContext *vfinfo_ctx, const Curve &c
   BLI_assert(!vfinfo_ctx->vfd);
 
   vfinfo_ctx->vfont = cu.vfont;
-  vfinfo_ctx->vfd = vfont_data_ensure_with_lock(vfinfo_ctx->vfont);
+  vfinfo_ctx->vfd = vfont_data_ensure(vfinfo_ctx->vfont);
 }
 
 static void vfont_info_context_update(VFontInfoContext *vfinfo_ctx,
@@ -694,7 +710,7 @@ static void vfont_info_context_update(VFontInfoContext *vfinfo_ctx,
   VFont *vfont = vfont_from_charinfo(cu, info);
   if (vfinfo_ctx->vfont != vfont) {
     vfinfo_ctx->vfont = vfont;
-    vfinfo_ctx->vfd = vfont_data_ensure_with_lock(vfont);
+    vfinfo_ctx->vfd = vfont_data_ensure(vfont);
   }
 }
 
@@ -951,7 +967,7 @@ static bool vfont_to_curve(Object *ob,
     vfont_info_context_update(&vfinfo_ctx, cu, info);
 
     if (!ELEM(charcode, '\n', '\0')) {
-      che = vfont_char_ensure_with_lock(vfinfo_ctx.vfont, charcode);
+      che = vfont_char_ensure(vfinfo_ctx.vfont, charcode);
       if (che == nullptr) {
         che = vfont_placeholder_ensure(che_placeholder, charcode);
       }
@@ -1914,12 +1930,13 @@ static bool vfont_to_curve(Object *ob,
        * (using the character midpoint on the x-axis as a reference). */
       for (; i <= char_end && chartransdata[i].linenr == char_line; i++) {
         info = &custrinfo[i];
-        const char32_t charcode = vfont_char_apply_smallcaps(mem[i], info);
+        const bool is_smallcaps = chartransdata[i].is_smallcaps;
+        const char32_t charcode = vfont_char_apply_smallcaps(mem[i], is_smallcaps);
 
         vfont_info_context_update(&vfinfo_ctx, cu, info);
         che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, charcode, che_placeholder);
 
-        const float charwidth = vfont_char_width(cu, che, info);
+        const float charwidth = vfont_char_width(cu, che, is_smallcaps);
         if (vfont_char_is_combining(charcode, charwidth)) [[unlikely]] {
           /* Combining character, skip so the cursor won't be between combining characters. */
           continue;
