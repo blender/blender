@@ -24,7 +24,7 @@
 #ifdef WITH_OPENVDB
 #  include <openvdb/Grid.h>
 #  include <openvdb/tools/Prune.h>
-#  include <openvdb/tools/ValueTransformer.h>
+#  include <openvdb/tree/LeafManager.h>
 #endif
 
 namespace blender::bke::volume_grid {
@@ -961,9 +961,21 @@ void set_inactive_values(openvdb::GridBase &grid_base, const GPointer value)
     BLI_assert(value.type()->size == sizeof(ValueType));
     const ValueType &new_value = *static_cast<const ValueType *>(value.get());
 
-    openvdb::tools::foreach(tree.beginValueOff(), [&](const typename GridT::ValueOffIter &iter) {
-      iter.setValue(new_value);
+    using TreeT = typename GridT::TreeType;
+    /* Thread over whole leaf nodes: bool leaves store values as bits in shared words, so writing
+     * neighboring voxels from different threads would race. */
+    openvdb::tree::LeafManager<TreeT> leaf_manager(tree);
+    leaf_manager.foreach([&](typename TreeT::LeafNodeType &leaf, size_t /*index*/) {
+      for (auto iter = leaf.beginValueOff(); iter; ++iter) {
+        iter.setValue(new_value);
+      }
     });
+    /* Inactive tiles in internal and root nodes. */
+    auto tile_iter = tree.beginValueOff();
+    tile_iter.setMaxDepth(tile_iter.getLeafDepth() - 1);
+    for (; tile_iter; ++tile_iter) {
+      tile_iter.setValue(new_value);
+    }
   });
 }
 
