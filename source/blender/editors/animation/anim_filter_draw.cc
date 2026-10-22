@@ -343,7 +343,7 @@ static void draw_channel_keys(AnimationChannel &channel, const float y, const Vi
   immUniform1f("outline_scale", 1.0f);
   immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d.mask) + 1, BLI_rcti_size_y(&v2d.mask) + 1);
   immBegin(GPU_PRIM_POINTS, key_count);
-  /* TODO is there a modern way to iterate this? */
+
   for (const KeyPoint *point = start; point != end; point++) {
     draw_keyframe_shape(point->frame,
                         y,
@@ -353,7 +353,7 @@ static void draw_channel_keys(AnimationChannel &channel, const float y, const Vi
                         KEYFRAME_SHAPE_BOTH,
                         1.0,
                         &sh_bindings,
-                        KEYFRAME_HANDLE_AUTO_CLAMP,
+                        handle_summary_as_draw_type(point->handle_type),
                         KEYFRAME_EXTREME_NONE);
   }
 

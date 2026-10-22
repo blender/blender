@@ -170,12 +170,27 @@ class ChannelTagStack final {
 
 /* See eBezTriple_Interpolation. */
 enum class InterpolationSummary {
-  NONE = 0,
-  MIXED = 1,
-  LINEAR = 2,
-  CONSTANT = 3,
-  BEZIER = 4,
+  NONE,
+  MIXED,
+  LINEAR,
+  CONSTANT,
+  BEZIER,
 };
+
+enum class KeyframeHandleSummary {
+  /* Used when the data does not support handles or the KeyPoint is a mix of various
+   * handle types. For legacy reasons this has to stay in the order it is in. `KeyList` assumes
+   * this to be sorted for draw priority.*/
+  UNSPECIFIED = 0,
+  AUTO_CLAMP,
+  AUTO,
+  VECTOR,
+  ALIGNED,
+  FREE,
+};
+
+/* Converts the KeyframeHandleSummary value to eKeyframeHandleDrawOpts for drawing. */
+uint8_t handle_summary_as_draw_type(KeyframeHandleSummary summary);
 
 /* A point in time with various properties. */
 struct KeyPoint {
@@ -185,6 +200,8 @@ struct KeyPoint {
   bool has_motion = false;
   InterpolationSummary interpolation = InterpolationSummary::NONE;
   eBezTriple_KeyframeType key_type = BEZT_KEYTYPE_KEYFRAME;
+  /* Not using eBezTriple_Handle because that has no "None" case. */
+  KeyframeHandleSummary handle_type = KeyframeHandleSummary::UNSPECIFIED;
 
   /** Construct default KeyPoint at infinity. */
   constexpr KeyPoint() = default;

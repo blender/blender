@@ -479,6 +479,21 @@ static eBezTriple_KeyframeType combine_key_type(const eBezTriple_KeyframeType a,
   return eBezTriple_KeyframeType::BEZT_KEYTYPE_KEYFRAME;
 }
 
+static KeyframeHandleSummary combine_key_handles(const KeyframeHandleSummary a,
+                                                 const KeyframeHandleSummary b)
+{
+  if (a == b) {
+    return a;
+  }
+  return KeyframeHandleSummary::UNSPECIFIED;
+}
+
+uint8_t handle_summary_as_draw_type(KeyframeHandleSummary summary)
+{
+  /* enum values match perfectly with eKeyframeHandleDrawOpts. */
+  return uint8_t(summary);
+}
+
 void KeyPoint::merge(const KeyPoint &other)
 {
   has_motion |= other.has_motion;
@@ -491,6 +506,7 @@ void KeyPoint::merge(const KeyPoint &other)
   if (other.frame == this->frame) {
     is_selected |= other.is_selected;
     key_type = combine_key_type(key_type, other.key_type);
+    handle_type = combine_key_handles(handle_type, other.handle_type);
     return;
   }
 
@@ -499,6 +515,7 @@ void KeyPoint::merge(const KeyPoint &other)
   frame = other.frame;
   is_selected = other.is_selected;
   key_type = other.key_type;
+  handle_type = other.handle_type;
 }
 
 ChannelTag::ChannelTag(const ChannelTagType type,
@@ -968,6 +985,28 @@ template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer>() const
 
 /* ===== F-Curve Channel ===== */
 
+static KeyframeHandleSummary handle_summary_from_key(const BezTriple &key)
+{
+  if (key.h1 != key.h2) {
+    return KeyframeHandleSummary::UNSPECIFIED;
+  }
+
+  switch (key.h1) {
+    case HD_FREE:
+      return KeyframeHandleSummary::FREE;
+    case HD_AUTO:
+      return KeyframeHandleSummary::AUTO;
+    case HD_VECT:
+      return KeyframeHandleSummary::VECTOR;
+    case HD_ALIGN:
+    case HD_ALIGN_DOUBLESIDE:
+      return KeyframeHandleSummary::ALIGNED;
+    case HD_AUTO_ANIM:
+      return KeyframeHandleSummary::AUTO_CLAMP;
+  }
+  return KeyframeHandleSummary::UNSPECIFIED;
+}
+
 void FCurveChannel::gather_channeldata()
 {
   PRF_scope_with_name("ed::animfilter::FCurveChannel::gather_channeldata",
@@ -986,6 +1025,9 @@ void FCurveChannel::gather_channeldata()
     BezTriple &key = fcurve->bezt[i];
     KeyPoint p(key.vec[1][0]);
     p.is_selected = BEZT_ISSEL_ANY(&key);
+    p.key_type = BEZKEYTYPE(&key);
+    p.handle_type = handle_summary_from_key(key);
+
     switch (key.ipo) {
       case BEZT_IPO_CONST:
         p.interpolation = InterpolationSummary::CONSTANT;
@@ -1000,7 +1042,6 @@ void FCurveChannel::gather_channeldata()
         p.interpolation = InterpolationSummary::MIXED;
         break;
     }
-    p.key_type = BEZKEYTYPE(&key);
     this->datapoints_[i] = p;
 
     if (i > 0) {
