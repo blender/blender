@@ -58,6 +58,8 @@ def abspath(path, *, start=None, library=None):
     :return: The absolute path.
     :rtype: str
     """
+    # NOTE(@ideasman42): unlike C++ `BLI_path_abs`, the resulting path is not normalized.
+    # We may want to support it or use a shared code-path.
     if isinstance(path, bytes):
         if path.startswith(b"//"):
             if library:
@@ -66,7 +68,7 @@ def abspath(path, *, start=None, library=None):
             return _os.path.join(
                 _os.path.dirname(_getattr_bytes(_bpy.data, "filepath"))
                 if start is None else start,
-                path[2:],
+                path[2:].lstrip(b"/" if _os.sep == "/" else b"/\\"),
             )
     else:
         if path.startswith("//"):
@@ -76,7 +78,7 @@ def abspath(path, *, start=None, library=None):
             return _os.path.join(
                 _os.path.dirname(_bpy.data.filepath)
                 if start is None else start,
-                path[2:],
+                path[2:].lstrip("/" if _os.sep == "/" else "/\\"),
             )
 
     return path
