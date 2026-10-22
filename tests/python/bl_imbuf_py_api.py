@@ -419,6 +419,32 @@ class TestImBufIO(unittest.TestCase):
             self.assertEqual(ibuf_loaded.filepath, filepath)
             ibuf_loaded.free()
 
+    def test_ppm_roundtrip_jpeg(self):
+        # JFIF stores integer dots per inch or centimeter,
+        # each of these densities is exact in one of the two units.
+        ppm_values = (
+            # 300 DPI.
+            (300.0 / 0.0254, 300.0 / 0.0254),
+            # 3 dots/cm (7.62 DPI), only exact in centimeters.
+            (300.0, 300.0),
+            # Non-square, 50 & 25 dots/cm.
+            (5000.0, 2500.0),
+        )
+        with tempfile.TemporaryDirectory() as tempdir:
+            filepath = os.path.join(tempdir, "test.jpg")
+            for ppm in ppm_values:
+                with self.subTest(ppm=ppm):
+                    ibuf = imbuf.new(DEFAULT_SIZE)
+                    ibuf.file_type = 'JPEG'
+                    ibuf.ppm = ppm
+                    imbuf.write(ibuf, filepath=filepath)
+                    ibuf.free()
+
+                    ibuf_loaded = imbuf.load(filepath)
+                    for value_loaded, value_expected in zip(ibuf_loaded.ppm, ppm):
+                        self.assertAlmostEqual(value_loaded, value_expected, places=6)
+                    ibuf_loaded.free()
+
 
 class TestImBufPlanes(unittest.TestCase):
 
