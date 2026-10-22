@@ -101,12 +101,14 @@ class ChannelItem : public ui::AbstractTreeViewItem {
    * until the next redraw. */
   AnimationChannel &channel_;
 
-  /* Cached locally just for convenience. */
+  /* Cached locally for convenience and for access after the above channel has been freed. */
   PointerRNA source_;
+  ChannelIdentifier chan_ident_;
   std::unique_ptr<AbstractChannelAPI> channel_api_;
 
  public:
-  ChannelItem(AnimationChannel &channel) : channel_(channel), source_(channel.source())
+  ChannelItem(AnimationChannel &channel)
+      : channel_(channel), source_(channel.source()), chan_ident_(channel.identifier())
   {
     this->channel_api_ = create_channel_api(this->source_);
   }
@@ -169,11 +171,7 @@ class ChannelItem : public ui::AbstractTreeViewItem {
   bool matches(const AbstractViewItem &other) const override
   {
     const ChannelItem &other_channel_item = dynamic_cast<const ChannelItem &>(other);
-    /* TODO: this matches all AnimationChannels without a source to each other. For now it works,
-     * because the only channel without a source is the top-level summary, and there is only one of
-     * those. */
-    return this->source_.owner_id == other_channel_item.source_.owner_id &&
-           this->source_.data == other_channel_item.source_.data;
+    return this->chan_ident_ == other_channel_item.chan_ident_;
   }
 
   bool supports_renaming() const override
