@@ -742,8 +742,8 @@ static const EnumPropertyItem rna_enum_order_direction_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static std::string workspace_reorder_to_left_right_description(bContext *C,
-                                                               wmOperatorType *ot,
+static std::string workspace_reorder_to_left_right_description(bContext * /*C*/,
+                                                               wmOperatorType * /*ot*/,
                                                                PointerRNA *ptr)
 {
   if (ReorderDirection(RNA_enum_get(ptr, "direction")) == ReorderDirection::RIGHT) {
