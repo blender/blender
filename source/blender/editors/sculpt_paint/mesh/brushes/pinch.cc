@@ -240,10 +240,6 @@ void do_pinch_brush(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  float3 area_no;
-  float3 area_co;
-  calc_brush_plane(depsgraph, brush, object, node_mask, area_no, area_co);
-
   /* delay the first daub because grab delta is not setup */
   if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     return;
@@ -253,11 +249,13 @@ void do_pinch_brush(const Depsgraph &depsgraph,
     return;
   }
 
+  const float3 plane_normal = ss.cache->sculpt_normal_symm;
+
   /* Initialize `mat`. */
   float4x4 mat = float4x4::identity();
-  mat.x_axis() = math::cross(area_no, ss.cache->grab_delta_symm);
-  mat.y_axis() = math::cross(area_no, mat.x_axis());
-  mat.z_axis() = area_no;
+  mat.x_axis() = math::cross(plane_normal, ss.cache->grab_delta_symm);
+  mat.y_axis() = math::cross(plane_normal, mat.x_axis());
+  mat.z_axis() = plane_normal;
   mat.location() = ss.cache->location_symm;
   mat = math::normalize(mat);
 
