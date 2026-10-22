@@ -44,7 +44,7 @@ static PropertyRNA *name_prop_from_rna(PointerRNA &ptr)
     return nullptr;
   }
 
-  return RNA_struct_find_property(&ptr, "name");
+  return RNA_struct_name_property(ptr.type);
 }
 
 static uchar4 channel_color_from_rna_pointer(const PointerRNA &ptr)
@@ -178,12 +178,17 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
   bool supports_renaming() const override
   {
-    return name_prop_from_rna(const_cast<PointerRNA &>(this->source_)) != nullptr;
+    PropertyRNA *prop = name_prop_from_rna(const_cast<PointerRNA &>(this->source_));
+    if (!prop) {
+      return false;
+    }
+    /* TODO: call RNA_property_editable_info() and show the 'disabled' message somewhere. */
+    return RNA_property_editable(&this->source_, prop);
   }
 
   StringRef get_rename_string() const override
   {
-    return this->label_;
+    return this->channel_.label();
   }
 
   bool rename(const bContext &C, StringRefNull new_name) override
