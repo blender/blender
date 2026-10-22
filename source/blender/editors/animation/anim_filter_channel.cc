@@ -568,8 +568,12 @@ int64_t AnimationChannel::hash() const
       type_, source_.type, source_.owner_id, source_.data, parent_session_uid_);
 }
 
-ChannelIdentifier AnimationChannel::identifier() const
+const ChannelIdentifier &AnimationChannel::identifier() const
 {
+  if (this->identifier_) {
+    return *this->identifier_;
+  }
+
   unsigned int owner_session_uid = MAIN_ID_SESSION_UID_UNSET;
   if (source_.has_owner_id()) {
     BLI_assert_msg(!(source_.owner_id->flag & ID_FLAG_EMBEDDED_DATA),
@@ -578,13 +582,15 @@ ChannelIdentifier AnimationChannel::identifier() const
     owner_session_uid = source_.owner_id->session_uid;
   }
 
-  return {
+  this->identifier_.emplace(ChannelIdentifier{
       owner_session_uid,
       /* The identifier makes no distinction between 'no path' or 'empty path'. */
       /* TODO: maybe this class should also remove this distinction? */
       source_rna_path_.value_or(ParsedSourcePath()),
       parent_session_uid_,
-  };
+  });
+
+  return *this->identifier_;
 }
 
 bool AnimationChannel::source_is_id() const

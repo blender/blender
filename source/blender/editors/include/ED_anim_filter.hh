@@ -428,6 +428,9 @@ class AnimationChannel {
    */
   unsigned int parent_session_uid_ = 0; /* MAIN_ID_SESSION_UID_UNSET */
 
+  /* Cached identifier to avoid regenerating the same one over and over again. */
+  mutable std::optional<ChannelIdentifier> identifier_;
+
  public:
   AnimationChannel(AnimationChannelType type, StringRef label);
   AnimationChannel(const AnimationChannel &other);
@@ -440,7 +443,7 @@ class AnimationChannel {
 
   virtual int64_t hash() const;
 
-  ChannelIdentifier identifier() const;
+  const ChannelIdentifier &identifier() const;
 
   void parent_identifier_set(const ChannelIdentifier &ident)
   {
