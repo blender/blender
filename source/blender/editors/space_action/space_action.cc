@@ -440,6 +440,10 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
     set_v2d_height(v2d, channels.num_channels(), has_markers);
     ui::view2d_view_ortho(v2d);
     ed::animfilter::draw_channel_tree(*C, *channels.root(), *v2d);
+
+    SpaceAction *saction = CTX_wm_space_action(C);
+    ED_time_scrub_channel_search_draw(C, region, &saction->ads);
+
     ui::view2d_view_restore(C);
   }
   else {

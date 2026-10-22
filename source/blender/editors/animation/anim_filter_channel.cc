@@ -1120,9 +1120,8 @@ void FCurveChannel::change_selection(const SelectionMode mode, const Bounds<floa
   }
 }
 
-StringRef FCurveChannel::label() const
+StringRefNull FCurveChannel::label() const
 {
-  this->hash();
   const ID *animated_id = this->find_animated_id_from_tags();
   if (!animated_id) {
     // TODO: getname_anim_fcurve_for_slot() can come to the rescue here.

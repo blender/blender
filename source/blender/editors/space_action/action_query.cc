@@ -26,6 +26,9 @@ static ed::animfilter::CollectionFilters get_filters(SpaceAction &saction)
   filters.only_errors = saction.ads.filterflag & ADS_FILTER_ONLY_ERRORS;
   filters.ignore_modifier_ids = saction.ads.filterflag & ADS_FILTER_NOMODIFIERS;
 
+  filters.use_filter_text_invert = saction.ads.flag & ADS_FLAG_INVERT_FILTER;
+  filters.filter_text = saction.ads.searchstr;
+
   /* This is not nice but we have to keep for backwards compatibility. In the future it would be
    * good to store the ID type bit directly on the dopesheet. */
   if (saction.ads.filterflag & ADS_FILTER_NOSHAPEKEYS) {

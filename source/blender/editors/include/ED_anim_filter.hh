@@ -106,7 +106,7 @@ class ChannelTag {
   {
     return this->tag_type_;
   }
-  StringRef label() const
+  StringRefNull label() const
   {
     return this->label_;
   }
@@ -454,7 +454,7 @@ class AnimationChannel {
   {
     return this->type_;
   }
-  virtual StringRef label() const
+  virtual StringRefNull label() const
   {
     return this->label_;
   }
@@ -650,7 +650,7 @@ class FCurveChannel : public DataChannel {
   FCurveChannel(const PointerRNA &fcurve_ptr, ParsedSourcePath source_rna_path);
 
   /** Construct a label for the F-Curve, depending on its tags. */
-  StringRef label() const override;
+  StringRefNull label() const override;
   void change_selection(SelectionMode mode, Bounds<float> range = {-INFINITY, INFINITY}) override;
 
  protected:
@@ -715,6 +715,18 @@ class ChannelArena {
   }
 
   /**
+   * Discard the last data channel that was allocated wtih #allocate_data_channel().
+   *
+   * This does not free the memory, but it does call the channel's destructor. Once the
+   * ChannelArena itself is destructed, the memory will be freed.
+   */
+  void discard_last_data_channel()
+  {
+    DataChannel *last_channel = this->data_channels.pop_last();
+    last_channel->~DataChannel();
+  }
+
+  /**
    * Allocate a summary channel.
    *
    * It is returned, and also stored in #summary_channels. It is destructed & freed when this
@@ -760,11 +772,17 @@ struct CollectionFilters {
    * setting, but it is kept for backwards compatibility. */
   bool ignore_modifier_ids = false;
 
+  /* For searching by free text (channelbox header input). */
+  bool use_filter_text_invert = false;
+  StringRefNull filter_text = "";
+
   /* Limit the returned data to only channels of the given type.
    * If empty, all channel types are returned. */
   Set<AnimationChannelType> channel_type_allowlist;
   /* Any id types put here will be ignored in the channel collection process. */
   Set<ID_Type> id_type_blocklist;
+
+  bool text_matches_filter(StringRefNull text) const;
 };
 
 /**

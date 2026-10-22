@@ -7,6 +7,7 @@
 #include "BLI_assert.hh"
 #include "BLI_listbase.hh"
 #include "BLI_span.hh"
+#include "BLI_string.hh"
 
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
@@ -66,6 +67,16 @@ class AssertScopedTagCount final {
 #  define assert_tag_count(tags) ((void)0)
 #endif
 
+bool CollectionFilters::text_matches_filter(StringRefNull text) const
+{
+  if (this->filter_text.is_empty()) {
+    return !this->use_filter_text_invert;
+  }
+
+  const bool is_match = BLI_strcasestr(text.c_str(), this->filter_text.c_str()) != nullptr;
+  return is_match != this->use_filter_text_invert;
+}
+
 /* Find the bPoseChannel that this FCurve references. If it does not reference a pose bone, nullptr
  * is returned. The `tags` have to contain a tag of type ID that is an Object. */
 static PointerRNA pose_bone_for_fcurve(const FCurve &fcurve, const ChannelTagStack &tags)
@@ -108,6 +119,7 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
     FCurve *fcu = channelbag.fcurve(fcurve_index);
 
     if (fcu->grp) {
+      /* TODO: optimize this a bit for consecutive F-Curves in the same group. */
       PointerRNA group_pointer = RNA_pointer_create_with_parent(
           channelbag_ptr, RNA_ActionGroup, fcu->grp);
       rna_path_items.append(rna_path::Member{UString("groups")});
@@ -150,11 +162,21 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
                  pose_bone_pointer,
                  fcu->rna_path_parsed().slice(0, 3)});
     }
+
     if (!skip_fcurve) {
       PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(channelbag_ptr, RNA_FCurve, fcu);
       FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(
           fcurve_ptr, ParsedRNAPathRef(rna_path_items));
       channel->tags().set(tags.snapshot());
+
+      /* Because the text search has to apply to the label (and not just the F-Curve's RNA path),
+       * the DataChannel has to be constructed in order to find its label.
+       *
+       * TODO: see if we can shuffle code around to determine the label _before_ doing the entire
+       * tag dance. */
+      if (!collection_filters.text_matches_filter(channel->label())) {
+        arena.discard_last_data_channel();
+      }
     }
 
     /* Pop the FCurve off the RNA path. */
@@ -336,6 +358,7 @@ struct GreasePencilCollector {
   const PointerRNA gp_id_ptr;
   Vector<rna_path::Item> &layer_rna_path_items;
   Vector<rna_path::Item> &group_rna_path_items;
+  const CollectionFilters &collection_filters;
 
   void visit(bke::greasepencil::TreeNode &node, int &visit_order, const std::string indent)
   {
@@ -348,6 +371,10 @@ struct GreasePencilCollector {
     visit_order--;
 
     if (node.is_layer()) {
+      if (!collection_filters.text_matches_filter(node.name())) {
+        return;
+      }
+
       GreasePencilLayer &gp_layer = node.as_layer();
       PointerRNA gp_layer_ptr = RNA_pointer_create_with_parent(
           gp_id_ptr, RNA_GreasePencilLayer, &gp_layer);
@@ -385,7 +412,9 @@ struct GreasePencilCollector {
   }
 };
 
-static void collect_channels_for_grease_pencil(GreasePencil &gp, ChannelArena &arena)
+static void collect_channels_for_grease_pencil(GreasePencil &gp,
+                                               ChannelArena &arena,
+                                               const CollectionFilters &collection_filters)
 {
   ChannelTagStack tags;
   assert_tag_count(tags);
@@ -399,7 +428,7 @@ static void collect_channels_for_grease_pencil(GreasePencil &gp, ChannelArena &a
   group_rna_path_items.resize(2);
 
   GreasePencilCollector collector = {
-      tags, arena, gp_id_ptr, layer_rna_path_items, group_rna_path_items};
+      tags, arena, gp_id_ptr, layer_rna_path_items, group_rna_path_items, collection_filters};
 
   /* The root node of the tree doesn't represent any animatable data, so don't visit it, just use
    * it to get to its children. */
@@ -462,7 +491,8 @@ void collection_channels_for_object(Object &obj,
     switch (obj.type) {
       case OB_GREASE_PENCIL:
         if (!collection_filters.id_type_blocklist.contains(ID_GP)) {
-          collect_channels_for_grease_pencil(*id_cast<GreasePencil *>(obj.data), ctx.arena);
+          collect_channels_for_grease_pencil(
+              *id_cast<GreasePencil *>(obj.data), ctx.arena, collection_filters);
         }
         break;
 
