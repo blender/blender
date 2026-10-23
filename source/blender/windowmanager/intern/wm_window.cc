@@ -559,6 +559,15 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
   WM_main_add_notifier(NC_WINDOW | NA_REMOVED, nullptr);
 }
 
+/** If a project is active, append its name to `win_title`. */
+static void wm_window_title_project_append(fmt::memory_buffer &win_title)
+{
+  if (const bke::BlenderProject *project = BKE_blender_project_get(G_MAIN)) {
+    win_title.append(StringRef(" - "));
+    win_title.append(project->get_name());
+  }
+}
+
 /**
  * Construct the title text for `win`.
  * The window may *not* have been created, any calls depending on `win->runtime->ghostwin` are
@@ -581,6 +590,11 @@ static void wm_window_title_text(wmWindowManager *wm,
     ScrArea *area = (screen) ? screen->areabase.first() : nullptr;
     if (is_single && area && area->spacetype != SPACE_EMPTY) {
       win_title.append(StringRef(IFACE_(ED_area_name(area).c_str())));
+
+      /* Append the project name to the Project Settings editor. */
+      if (area->spacetype == SPACE_PROJECT) {
+        wm_window_title_project_append(win_title);
+      }
     }
     else {
       win_title.append(StringRef("Blender"));
@@ -675,10 +689,7 @@ static void wm_window_title_text(wmWindowManager *wm,
   }
 
   /* If a project is active, display its name. */
-  if (const bke::BlenderProject *project = BKE_blender_project_get(G_MAIN)) {
-    win_title.append(StringRef(" - "));
-    win_title.append(project->get_name());
-  }
+  wm_window_title_project_append(win_title);
 
   win_title.append(StringRef(" — Blender "));
   win_title.append(StringRef(BKE_blender_version_string()));
