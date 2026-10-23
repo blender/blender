@@ -47,6 +47,9 @@
 #include "dna_parse.h"
 #include "dna_utils.h"
 
+/* The naming prefix for generated, exported DNA symbols. Used to avoid naming collisions. */
+const char *dna_prefix = "";
+
 namespace blender {
 
 /* Include files that will be used to generate makesdna output.
@@ -923,7 +926,7 @@ static void make_bad_file(const StringRefNull filename, int line)
 static void print_usage(const char *argv0)
 {
   printf(
-      "Usage: %s [--include-file <file>, ...] "
+      "Usage: %s [--prefix <dna_prexix>] [--include-file <file>, ...] "
       "dna.cc dna_type_offsets.h dna_verify.cc dna_struct_ids.cc dna_defaults.cc "
       "[base directory]\n",
       argv0);
@@ -945,6 +948,16 @@ int main(int argc, char **argv)
   /* Parse optional arguments. */
   int arg_index = 1; /* Skip the argv0. */
   while (arg_index < argc) {
+    if (STREQ(argv[arg_index], "--prefix")) {
+      ++arg_index;
+      if (arg_index == argc) {
+        printf("Missing argument for --prefix\n");
+        print_usage(argv[0]);
+        return 1;
+      }
+      dna_prefix = argv[arg_index];
+      ++arg_index;
+    }
     if (STREQ(argv[arg_index], "--include-file")) {
       ++arg_index;
       if (arg_index == argc) {
@@ -1015,8 +1028,8 @@ int main(int argc, char **argv)
 #else
 #  define FORCE_ALIGN_4 " "
 #endif
-    fprintf(file_dna, "extern const unsigned char DNAstr[];\n");
-    fprintf(file_dna, "const unsigned char" FORCE_ALIGN_4 "DNAstr[] = {\n");
+    fprintf(file_dna, "extern const unsigned char %sDNAstr[];\n", dna_prefix);
+    fprintf(file_dna, "const unsigned char" FORCE_ALIGN_4 "%sDNAstr[] = {\n", dna_prefix);
 #undef FORCE_ALIGN_4
 
     if (!make_structDNA(base_directory,
@@ -1034,8 +1047,8 @@ int main(int argc, char **argv)
     }
     else {
       fprintf(file_dna, "};\n");
-      fprintf(file_dna, "extern const int DNAlen;\n");
-      fprintf(file_dna, "const int DNAlen = sizeof(DNAstr);\n");
+      fprintf(file_dna, "extern const int %sDNAlen;\n", dna_prefix);
+      fprintf(file_dna, "const int %sDNAlen = sizeof(%sDNAstr);\n", dna_prefix, dna_prefix);
     }
   }
 
