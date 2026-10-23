@@ -248,6 +248,23 @@ void GLBackend::platform_init()
         }
       }
     }
+    if (device & GPU_DEVICE_NVIDIA) {
+      if (BLI_windows_get_directx_driver_version(L"NVIDIA", &driverVersion)) {
+        /* The driver version is packed as four 16bit values, most significant first, matching the
+         * `x.x.x.x` versioning scheme used by Windows. */
+        constexpr long long last_unsupported_version = (23LL << 48) | (21LL << 32) | (13LL << 16) |
+                                                       9135LL;
+        /* Drivers 23.21.13.9135 (391.35) and older are the last of the 391 branch. They are known
+         * to be broken and are no longer updated, so they cannot run Blender. */
+        if (driverVersion <= last_unsupported_version) {
+          std::cout << "=====================================\n"
+                    << "NVIDIA drivers 23.21.13.9135 (391.35) and older are not supported.\n"
+                    << "Please update to a newer driver.\n"
+                    << "=====================================\n";
+          support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
+        }
+      }
+    }
 #endif
     if ((device & GPU_DEVICE_INTEL) && (os & GPU_OS_WIN)) {
       /* Old Intel drivers with known bugs that cause material properties to crash.
