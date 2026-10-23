@@ -29,6 +29,12 @@ class PROJECT_HT_header(Header):
         PROJECT_MT_editor_menus.draw_collapsible(context, layout)
         layout.separator_spacer()
 
+        project = bpy.data.project
+        if project:
+            row = layout.row()
+            row.label(text=project.name, translate=False)
+            row.active = False
+
 
 class PROJECT_MT_editor_menus(Menu):
     bl_idname = "PROJECT_MT_editor_menus"
