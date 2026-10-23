@@ -784,6 +784,7 @@ static void print_help(bArgs *ba, bool all)
   if (defs.with_vulkan_backend) {
     BLI_args_print_arg_doc(ba, "--debug-gpu-vulkan-local-read");
   }
+  BLI_args_print_arg_doc(ba, "--debug-gpu-no-hw-raytracing");
   BLI_args_print_arg_doc(ba, "--debug-wm");
   if (defs.with_xr_openxr) {
     BLI_args_print_arg_doc(ba, "--debug-xr");

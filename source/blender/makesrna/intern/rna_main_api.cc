@@ -129,19 +129,25 @@ static void rna_Main_ID_remove(Main *bmain,
     return;
   }
 
-  /* Volume light probes being baked cannot be removed. */
+  const LightProbe *light_probe = nullptr;
   if (GS(id->name) == ID_OB) {
-    Object *ob = reinterpret_cast<Object *>(id);
-    if (ob->type == OB_LIGHTPROBE &&
-        (reinterpret_cast<LightProbe *>(ob->data))->type == LIGHTPROBE_TYPE_VOLUME)
-    {
-      wmWindowManager *wm = bmain->wm.first();
-      if (wm && WM_jobs_has_running(wm, nullptr, WM_JOB_TYPE_LIGHT_BAKE)) {
-        BKE_reportf(reports,
-                    RPT_ERROR,
-                    "Cannot remove volume light probes while light probe baking is running");
-        return;
-      }
+    const Object *ob = reinterpret_cast<Object *>(id);
+    if (ob->type == OB_LIGHTPROBE) {
+      light_probe = reinterpret_cast<LightProbe *>(ob->data);
+    }
+  }
+  else if (GS(id->name) == ID_LP) {
+    light_probe = reinterpret_cast<LightProbe *>(id);
+  }
+
+  /* Volume light probes being baked cannot be removed. */
+  if (light_probe && light_probe->type == LIGHTPROBE_TYPE_VOLUME) {
+    wmWindowManager *wm = bmain->wm.first();
+    if (wm && WM_jobs_has_running(wm, nullptr, WM_JOB_TYPE_LIGHT_BAKE)) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "Cannot remove volume light probes while light probe baking is running");
+      return;
     }
   }
 

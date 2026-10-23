@@ -146,7 +146,9 @@ void remap_cubemap_to_octahedral([[resource_table]] Remap &srt,
   radiance = radiance_clamped;
 
   if (srt.do_remap_mip0 && !any(greaterThanEqual(local_texel, int2(write_coord.extent)))) {
-    float clamp_indirect = uni.uniform_buf.clamp.surface_indirect;
+    /* The atlas stores 16-bit floats, avoid storing inf for very bright values like a sun disc.
+     * Note that this can loose quite some energy, but we are fine with that. */
+    float clamp_indirect = min(65504.0f, uni.uniform_buf.clamp.surface_indirect);
     float3 out_radiance = colorspace::brightness_clamp_max(radiance, clamp_indirect);
 
     int3 texel = int3(local_texel + write_coord.offset, write_coord.layer);
