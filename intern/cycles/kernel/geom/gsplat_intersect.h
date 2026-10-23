@@ -156,8 +156,8 @@ ccl_device_forceinline bool gsplat_intersect_test(KernelGlobals kg,
   const float3x3 Sigma_inv = R * float3x3_scale(1.0f / (params.scale * params.scale)) * R_T;
   const float e = dot(x_minus_mu, Sigma_inv * x_minus_mu);
 #    else
-  /* Combination of [3dgrt2024] Eq. (8). and [ptir-gs] Eq. (1), applied to the (x-mu) instead
-   * of the (0 - mu). it might be obvious, but it was [ptir-gs] that inspired to look into this
+  /* Combination of [3dgrt2024] Eq. (8). and [ptir-gs] Eq. (1), applied to the (x - mu) instead
+   * of the (P - mu). it might be obvious, but it was [ptir-gs] that inspired to look into this
    * equation. */
   const float3 e_o_g = S_inv_x_R_T * x_minus_mu;
   const float e = dot(e_o_g, e_o_g);
