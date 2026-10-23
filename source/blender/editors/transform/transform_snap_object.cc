@@ -897,7 +897,7 @@ void cb_snap_face_midpoint(void *userdata,
 
 static eSnapMode snap_polygon(SnapObjectContext *sctx, eSnapMode snap_to_flag)
 {
-  if (sctx->ret.ob->type != OB_MESH || !sctx->ret.data || GS(sctx->ret.data->name) != ID_ME) {
+  if (!sctx->ret.data || GS(sctx->ret.data->name) != ID_ME) {
     return SCE_SNAP_TO_NONE;
   }
 
@@ -907,7 +907,7 @@ static eSnapMode snap_polygon(SnapObjectContext *sctx, eSnapMode snap_to_flag)
 
 static eSnapMode snap_edge_points(SnapObjectContext *sctx, const float dist_px_sq_orig)
 {
-  if (sctx->ret.ob->type != OB_MESH || !sctx->ret.data || GS(sctx->ret.data->name) != ID_ME) {
+  if (!sctx->ret.data || GS(sctx->ret.data->name) != ID_ME) {
     return SCE_SNAP_TO_EDGE;
   }
 
