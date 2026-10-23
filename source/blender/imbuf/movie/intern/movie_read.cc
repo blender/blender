@@ -874,7 +874,7 @@ static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
      * it does not support direct YUV->RGBA float interleaved conversion).
      * Do vertical flip and interleave into RGBA manually. */
     /* Decode, then do vertical flip into destination. */
-    ffmpeg_sws_scale_frame(anim->sws_ctx, anim->frame_rgb, input);
+    sws_scale_frame(anim->sws_ctx, anim->frame_rgb, input);
 
     float_planar_to_interleaved(anim->frame_rgb, anim->video_rotation, ibuf);
     already_rotated = true;
@@ -886,13 +886,7 @@ static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
      * to do a separate flip. */
     const int ibuf_linesize = ibuf->x * 4;
     const int rgb_linesize = anim->frame_rgb->linesize[0];
-    bool scale_to_ibuf = (rgb_linesize == ibuf_linesize);
-    /* swscale on arm64 before ffmpeg 6.0 (libswscale major version 7)
-     * could not handle negative line sizes. That has been fixed in all major
-     * ffmpeg releases in early 2023, but easier to just check for "below 7". */
-#  if (defined(__aarch64__) || defined(_M_ARM64)) && (LIBSWSCALE_VERSION_MAJOR < 7)
-    scale_to_ibuf = false;
-#  endif
+    const bool scale_to_ibuf = (rgb_linesize == ibuf_linesize);
     uint8_t *rgb_data = anim->frame_rgb->data[0];
 
     if (scale_to_ibuf) {
@@ -901,14 +895,14 @@ static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
       anim->frame_rgb->linesize[0] = -ibuf_linesize;
       anim->frame_rgb->data[0] = ibuf->byte_data_for_write() + (ibuf->y - 1) * ibuf_linesize;
 
-      ffmpeg_sws_scale_frame(anim->sws_ctx, anim->frame_rgb, input);
+      sws_scale_frame(anim->sws_ctx, anim->frame_rgb, input);
 
       anim->frame_rgb->linesize[0] = rgb_linesize;
       anim->frame_rgb->data[0] = rgb_data;
     }
     else {
       /* Decode, then do vertical flip into destination. */
-      ffmpeg_sws_scale_frame(anim->sws_ctx, anim->frame_rgb, input);
+      sws_scale_frame(anim->sws_ctx, anim->frame_rgb, input);
 
       /* Use negative line size to do vertical image flip. */
       const int src_linesize[4] = {-rgb_linesize, 0, 0, 0};
@@ -975,7 +969,7 @@ static AVFrame *ffmpeg_frame_by_pts_get(MovieReader *anim, int64_t target_pts)
 
   const bool backup_frame_ready = anim->frame_backup_complete;
   const int64_t recent_start = av_get_pts_from_frame(anim->frame);
-  const int64_t recent_end = recent_start + av_get_frame_duration_in_pts_units(anim->frame);
+  const int64_t recent_end = recent_start + anim->frame->duration;
   const int64_t backup_start = backup_frame_ready ? av_get_pts_from_frame(anim->frame_backup) : 0;
 
   AVFrame *best_frame = nullptr;
@@ -994,12 +988,7 @@ static void ffmpeg_decode_store_frame_pts(MovieReader *anim)
 {
   anim->cur_pts = av_get_pts_from_frame(anim->frame);
 
-#  ifdef FFMPEG_OLD_KEY_FRAME_QUERY_METHOD
-  if (anim->frame->key_frame)
-#  else
-  if (anim->frame->flags & AV_FRAME_FLAG_KEY)
-#  endif
-  {
+  if (anim->frame->flags & AV_FRAME_FLAG_KEY) {
     anim->cur_key_frame_pts = anim->cur_pts;
   }
 
@@ -1121,7 +1110,7 @@ static int64_t ffmpeg_frame_index_to_pts(MovieReader *anim, int frame_index)
 static void ffmpeg_scan_log(MovieReader *anim, int64_t target_pts)
 {
   int64_t frame_pts_start = av_get_pts_from_frame(anim->frame);
-  int64_t frame_pts_end = frame_pts_start + av_get_frame_duration_in_pts_units(anim->frame);
+  int64_t frame_pts_end = frame_pts_start + anim->frame->duration;
   av_log(anim->format_ctx,
          AV_LOG_DEBUG,
          "  SCAN WHILE: PTS range %" PRId64 " - %" PRId64 " in search of %" PRId64 "\n",

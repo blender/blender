@@ -254,7 +254,7 @@ static const uint8_t ff_compat_crop_tab[256 + 2 * MAX_NEG_CROP] = {
 #  undef times256
 
 /* filter parameters: [-1 4 2 4 -1] // 8 */
-FFMPEG_INLINE void deinterlace_line(uint8_t *dst,
+static inline void deinterlace_line(uint8_t *dst,
                                     const uint8_t *lum_m4,
                                     const uint8_t *lum_m3,
                                     const uint8_t *lum_m2,
@@ -281,7 +281,7 @@ FFMPEG_INLINE void deinterlace_line(uint8_t *dst,
   }
 }
 
-FFMPEG_INLINE void deinterlace_line_inplace(
+static inline void deinterlace_line_inplace(
     uint8_t *lum_m4, uint8_t *lum_m3, uint8_t *lum_m2, uint8_t *lum_m1, uint8_t *lum, int size)
 {
   const uint8_t *cm = ff_compat_crop_tab + MAX_NEG_CROP;
@@ -307,7 +307,7 @@ FFMPEG_INLINE void deinterlace_line_inplace(
  * De-interlacing: 2 temporal taps, 3 spatial taps linear filter.
  * The top field is copied as is, but the bottom field is de-interlaced against the top field.
  */
-FFMPEG_INLINE void deinterlace_bottom_field(
+static inline void deinterlace_bottom_field(
     uint8_t *dst, int dst_wrap, const uint8_t *src1, int src_wrap, int width, int height)
 {
   const uint8_t *src_m2, *src_m1, *src_0, *src_p1, *src_p2;
@@ -335,7 +335,7 @@ FFMPEG_INLINE void deinterlace_bottom_field(
   deinterlace_line(dst, src_m2, src_m1, src_0, src_0, src_0, width);
 }
 
-FFMPEG_INLINE int deinterlace_bottom_field_inplace(uint8_t *src1,
+static inline int deinterlace_bottom_field_inplace(uint8_t *src1,
                                                    int src_wrap,
                                                    int width,
                                                    int height)
