@@ -118,9 +118,6 @@ std::string ShaderCreateInfo::resource_guard_defines(Span<CompilationConstant> c
 {
   std::string defines;
   defines += "#define CREATE_INFO_" + name_ + "\n";
-  for (const StageInterfaceInfo *interface : this->vertex_out_interfaces_) {
-    defines += "#define IFACE_INFO_" + interface->name + "\n";
-  }
   for (const auto &additional_info : additional_infos_) {
     const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(
         gpu_shader_create_info_get(additional_info.name.c_str()));
@@ -128,6 +125,15 @@ std::string ShaderCreateInfo::resource_guard_defines(Span<CompilationConstant> c
     if (additional_info.conditions.evaluate(constants)) {
       defines += info.resource_guard_defines(constants);
     }
+  }
+  return defines;
+}
+
+std::string ShaderCreateInfo::iface_guard_defines() const
+{
+  std::string defines;
+  for (const StageInterfaceInfo *interface : this->vertex_out_interfaces_) {
+    defines += "#define IFACE_INFO_" + interface->name + "\n";
   }
   return defines;
 }
