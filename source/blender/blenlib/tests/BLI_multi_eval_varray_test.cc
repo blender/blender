@@ -7,8 +7,8 @@
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_virtual_array.hh"
 #include "BLI_multi_eval_varray.hh"
+#include "BLI_virtual_array.hh"
 
 #include "testing/testing.h"
 
