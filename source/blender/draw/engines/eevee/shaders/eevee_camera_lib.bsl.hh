@@ -129,11 +129,15 @@ float3 fisheye_equisolid_to_direction(CameraData cam, float2 uv)
 
 float2 fisheye_lens_polynomial_from_direction(CameraData cam, float3 dir)
 {
-  const float theta = -safe_acos(-dir.z);
+  const float theta = -atan(length(dir.xy), -dir.z);
 
   float r = (theta - cam.fisheye_polynomial_bias) / cam.fisheye_polynomial_coefficients.x;
   const float4 diff_coefficients = float4(1.0f, 2.0f, 3.0f, 4.0f) *
                                    cam.fisheye_polynomial_coefficients;
+  /* Clamp the search to the monotonic region of the polynomial to avoid diverging. */
+  const float side = (r < 0.0f) ? -1.0f : 1.0f;
+  float r_min = 0.0f;
+  float r_max = FLT_MAX;
 
   for (int i = 0; i < 20; i++) {
     const float old_r = r;
@@ -142,7 +146,18 @@ float2 fisheye_lens_polynomial_from_direction(CameraData cam, float3 dir)
     const float F_r = theta -
                       (cam.fisheye_polynomial_bias + dot(cam.fisheye_polynomial_coefficients, rr));
     const float dF_r = dot(diff_coefficients, float4(1.0f, r, r2, r2 * r));
-    r += F_r / dF_r;
+    const bool is_folded = dF_r * cam.fisheye_polynomial_coefficients.x <= 0.0f;
+    const float step = F_r / dF_r;
+    if (is_folded || step * side < 0.0f) {
+      r_max = min(r_max, r * side);
+    }
+    else {
+      r_min = max(r_min, r * side);
+    }
+    r += step;
+    if (is_folded || r * side <= r_min || r * side >= r_max) {
+      r = side * 0.5f * (r_min + r_max);
+    }
 
     if (abs(r - old_r) < 1.0e-6f) {
       break;
