@@ -1720,6 +1720,13 @@ struct CodegenContext : NodeErrorHandler {
         break;
       }
     }
+    /* Make functions writing to fragment outputs limited to the fragment shader. */
+    for (int i = 0; i < fn->arg_types.size(); ++i) {
+      if (fn->arg_types[i]->srt_type == ResourceTableType::FRAGMENT_OUT && !fn->arg_const[i]) {
+        str += " && defined(GPU_FRAGMENT_SHADER)";
+        break;
+      }
+    }
 
     if (fn->is_entry_point()) {
       str += " && defined(ENTRY_POINT_" + fn->identifier + ")";
