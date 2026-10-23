@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import os
 import pathlib
 import sys
 import tempfile
@@ -9,6 +10,8 @@ import unittest
 
 import bpy
 
+sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
+from modules.colored_print import (print_message, use_message_colors)
 
 args = None
 
@@ -17,6 +20,8 @@ class CollectionIOTestBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.testdir = args.testdir
+        if os.environ.get("BLENDER_TEST_COLOR") is not None:
+            use_message_colors()
 
     def setUp(self):
         self._tempdir = tempfile.TemporaryDirectory()
@@ -26,9 +31,17 @@ class CollectionIOTestBase(unittest.TestCase):
                         'Test dir {0} should exist'.format(self.testdir))
         self.assertTrue(self.tempdir.exists(),
                         'Temp dir {0} should exist'.format(self.tempdir))
+        print_message(self._testMethodName, 'SUCCESS', 'RUN')
 
     def tearDown(self):
         self._tempdir.cleanup()
+
+        result = self._outcome.result
+        ok = all(test != self for test, _ in result.errors + result.failures)
+        if not ok:
+            print_message(self._testMethodName, 'FAILURE', 'FAILED')
+        else:
+            print_message(self._testMethodName, 'SUCCESS', 'PASSED')
 
     @staticmethod
     def reset_blender():
