@@ -14,6 +14,7 @@
 
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_map.hh"
 #include "BLI_set.hh"
 
 namespace blender {
@@ -23,12 +24,15 @@ struct wmMsgBus;
 struct wmKeyConfig;
 struct wmEvent;
 struct wmWindow;
+struct TaskPool;
 struct wmIMEData;
 struct wmGesture;
 struct wmJob;
 struct wmDrag;
 struct wmPaintCursor;
 struct WindowDrawCB;
+
+enum eWM_JobType : uint8_t;
 
 namespace bke {
 
@@ -106,6 +110,11 @@ struct WindowManagerRuntime {
 
   /** Threaded jobs manager. */
   ListBaseT<wmJob> jobs = {nullptr, nullptr};
+
+  /** Task pools for each job type. */
+  Map<eWM_JobType, TaskPool *> job_task_pools;
+  /** The time in seconds when each job task pool was last used. */
+  Map<eWM_JobType, int64_t> job_task_pools_last_used_times;
 
   /** Active dragged items. */
   ListBaseT<wmDrag> drags = {nullptr, nullptr};

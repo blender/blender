@@ -17,6 +17,7 @@
 #include "BLI_build_config.hh"
 #include "BLI_listbase.hh"
 #include "BLI_string.hh"
+#include "BLI_task_c.hh"
 #include "BLI_threads.hh"
 #include "BLI_time.hh"
 #include "BLI_utildefines.hh"
@@ -144,9 +145,6 @@ struct wmJob {
   /** Once running, we store this separately. */
   void *run_customdata;
   void (*run_free)(void *);
-
-  /** We use BLI_threads api, but per job only 1 thread runs. */
-  ListBaseT<ThreadSlot> threads;
 
   double start_time;
 
@@ -298,7 +296,7 @@ static void wm_jobs_update_progress_bars(wmWindowManager *wm)
   float jobs_progress = 0;
 
   for (wmJob &wm_job : wm->runtime->jobs) {
-    if (wm_job.threads.first() && !wm_job.ready) {
+    if (wm_job.running && !wm_job.ready) {
       if (wm_job.flag & WM_JOB_PROGRESS) {
         /* Accumulate global progress for running jobs. */
         jobs_progress++;
@@ -434,14 +432,11 @@ static void wm_jobs_reports_update(wmWindowManager *wm, wmJob *wm_job)
   WM_reports_from_reports_move(wm, wm_job->worker_status.reports);
 }
 
-static void *do_job_thread(void *job_v)
+static void task_pool_run(TaskPool *__restrict /*task_pool*/, void *job_v)
 {
   wmJob *wm_job = static_cast<wmJob *>(job_v);
-
   wm_job->startjob(wm_job->run_customdata, &wm_job->worker_status);
   wm_job->ready = true;
-
-  return nullptr;
 }
 
 /* Don't allow same startjob to be executed twice. */
@@ -528,8 +523,12 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
 
         // printf("job started: %s\n", wm_job->name);
 
-        BLI_threadpool_init(&wm_job->threads, do_job_thread, 1);
-        BLI_threadpool_insert(&wm_job->threads, wm_job);
+        TaskPool *task_pool = wm->runtime->job_task_pools.lookup_or_add_cb(wm_job->job_type, []() {
+          return BLI_task_pool_create_background_serial(nullptr, TASK_PRIORITY_HIGH);
+        });
+        wm->runtime->job_task_pools_last_used_times.add_overwrite(wm_job->job_type,
+                                                                  BLI_time_now_seconds_i());
+        BLI_task_pool_push(task_pool, task_pool_run, wm_job, false, nullptr);
       }
 
       /* Restarted job has timer already. */
@@ -594,7 +593,10 @@ static void wm_jobs_kill_job(wmWindowManager *wm, wmJob *wm_job)
     wm_job->worker_status.stop = true;
 
     WM_job_main_thread_lock_release(wm_job);
-    BLI_threadpool_end(&wm_job->threads);
+    TaskPool *task_pool = wm->runtime->job_task_pools.lookup(wm_job->job_type);
+    wm->runtime->job_task_pools_last_used_times.add_overwrite(wm_job->job_type,
+                                                              BLI_time_now_seconds_i());
+    BLI_task_pool_work_and_wait(task_pool);
     WM_job_main_thread_lock_acquire(wm_job);
     wm_job_end(wm, wm_job);
   }
@@ -721,7 +723,7 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
 
   if (wm_job) {
     /* Running threads. */
-    if (wm_job->threads.first()) {
+    if (wm_job->running) {
       /* Let threads get temporary lock over main thread if needed. */
       wm_job_main_thread_yield(wm_job);
 
@@ -747,11 +749,37 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
   wm_jobs_update_progress_bars(wm);
 }
 
+/* Free job task pools that haven't been used for over a minute. */
+static void wm_jobs_free_unused_task_pools(wmWindowManager &window_manager)
+{
+  window_manager.runtime->job_task_pools.remove_if([&](const auto &item) {
+    const eWM_JobType job_type = item.key;
+    TaskPool *task_pool = item.value;
+
+    /* Pool is still in use. */
+    if (WM_jobs_has_running(&window_manager, nullptr, job_type)) {
+      return false;
+    }
+
+    /* Pool was still recently in use. */
+    const int64_t last_used_time = window_manager.runtime->job_task_pools_last_used_times.lookup(
+        job_type);
+    if (BLI_time_now_seconds_i() - last_used_time < 60) {
+      return false;
+    }
+
+    window_manager.runtime->job_task_pools_last_used_times.remove(job_type);
+    BLI_task_pool_work_and_wait(task_pool);
+    BLI_task_pool_free(task_pool);
+    return true;
+  });
+}
+
 void wm_jobs_handle_finished(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   for (wmJob &job : wm->runtime->jobs.items_reversed_mutable()) {
-    if (!job.threads.first()) {
+    if (!job.running) {
       continue;
     }
 
@@ -779,7 +807,10 @@ void wm_jobs_handle_finished(const bContext *C)
     job.running = false;
 
     WM_job_main_thread_lock_release(&job);
-    BLI_threadpool_end(&job.threads);
+    TaskPool *task_pool = wm->runtime->job_task_pools.lookup(job.job_type);
+    wm->runtime->job_task_pools_last_used_times.add_overwrite(job.job_type,
+                                                              BLI_time_now_seconds_i());
+    BLI_task_pool_work_and_wait(task_pool);
     WM_job_main_thread_lock_acquire(&job);
 
     if (job.endnote) {
@@ -804,6 +835,8 @@ void wm_jobs_handle_finished(const bContext *C)
 
   /* Update progress bars in windows. */
   wm_jobs_update_progress_bars(wm);
+
+  wm_jobs_free_unused_task_pools(*wm);
 }
 
 bool WM_jobs_has_running(const wmWindowManager *window_manager,
