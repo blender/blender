@@ -19,7 +19,7 @@
  * can be used which can offer close to the same performance in most cases without many of the
  * downsides.
  *
- * The main entry point in the API is the #varray_exec::execute function and its corresponding
+ * The main entry point in the API is the #multi_eval::execute function and its corresponding
  * utilities for specific parameter counts.
  */
 
@@ -27,7 +27,7 @@
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_parameter_pack_utils.hh"
 
-namespace blender::varray_exec {
+namespace blender::multi_eval {
 
 enum class ParamCategory {
   Input,
@@ -495,7 +495,7 @@ inline void execute_element_fn_with_params(ElementFn &&element_fn,
   if (!executed_devirtualized) {
     /* The materialized method is most common because it avoids most virtual function overhead but
      * still instantiates the function only once. */
-    if constexpr (ExecPreset::fallback_mode == varray_exec::FallbackMode::Materialized) {
+    if constexpr (ExecPreset::fallback_mode == multi_eval::FallbackMode::Materialized) {
       mask.foreach_segment([&](const IndexMaskSegment segment) {
         execute_materialized<64>(TypeSequence<ParamTags...>(),
                                  std::index_sequence<I...>(),
@@ -663,4 +663,4 @@ inline void execute_5in_1out_uninitialized(
       mask, exec_preset, in1, in2, in3, in4, in5, out1, std::forward<ElementFn>(element_fn));
 }
 
-}  // namespace blender::varray_exec
+}  // namespace blender::multi_eval
