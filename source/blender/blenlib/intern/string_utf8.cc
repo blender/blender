@@ -1297,7 +1297,7 @@ const char *BLI_str_find_prev_char_utf8(const char *p, const char *str_start)
 
   BLI_assert(p >= str_start);
   if (str_start < p) {
-    for (--p; p >= str_start; p--) {
+    for (--p; p > str_start; p--) {
       if ((*p & 0xc0) != 0x80) {
         return const_cast<char *>(p);
       }

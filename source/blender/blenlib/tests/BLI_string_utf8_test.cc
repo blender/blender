@@ -866,6 +866,31 @@ TEST(string, Utf8OffsetFromIndex_ClampedIndex)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_find_prev_char_utf8
+ * \{ */
+
+TEST(string, StrFindPrevCharUTF8)
+{
+  const char *str = STR_MB_ALPHA_1 STR_MB_ALPHA_2 STR_MB_ALPHA_3;
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 6, str), str + 3);
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 5, str), str + 3);
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 3, str), str + 1);
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 2, str), str + 1);
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 1, str), str);
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str, str), str);
+}
+
+TEST(string, StrFindPrevCharUTF8_ContinuationOnly)
+{
+  /* Invalid UTF8, starts with continuation bytes. */
+  const char str[] = {char(0x80), char(0x80), 'A', 0};
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 2, str), str);
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 1, str), str);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_utf8_as_unicode_step_safe
  * \{ */
 
