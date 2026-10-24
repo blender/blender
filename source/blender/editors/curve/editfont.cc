@@ -1638,7 +1638,7 @@ static wmOperatorStatus change_character_exec(bContext *C, wmOperator *op)
   character += delta;
   CLAMP(character, 0, 255);
 
-  if (character == ef->textbuf[ef->pos - 1]) {
+  if (ELEM(character, 0, ef->textbuf[ef->pos - 1])) {
     return OPERATOR_CANCELLED;
   }
 
