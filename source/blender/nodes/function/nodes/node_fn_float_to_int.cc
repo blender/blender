@@ -28,17 +28,14 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
   layout.prop(ptr, "rounding_mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 
-static void node_label(const bNodeTree * /*tree*/,
-                       const bNode *node,
-                       char *label,
-                       int label_maxncpy)
+static void node_label(const bNodeTree * /*tree*/, const bNode *node, MutableCStr label)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_float_to_int_items, node->custom1, &name);
   if (!enum_label) {
     name = CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "Unknown");
   }
-  BLI_strncpy_utf8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), label_maxncpy);
+  STRNCPY_UTF8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name));
 }
 
 static const mf::MultiFunction *get_multi_function(const bNode &bnode)

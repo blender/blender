@@ -161,8 +161,8 @@ static std::string get_image_filepath(const bNode *tex_node)
     char head[FILE_MAX], tail[FILE_MAX];
     ushort numlen;
     int framenr = static_cast<NodeTexImage *>(tex_node->storage)->iuser.framenr;
-    BLI_path_sequence_decode(filepath, head, sizeof(head), tail, sizeof(tail), &numlen);
-    BLI_path_sequence_encode(filepath, sizeof(filepath), head, tail, numlen, framenr);
+    BLI_path_sequence_decode(filepath, head, tail, &numlen);
+    BLI_path_sequence_encode(filepath, head, tail, numlen, framenr);
   }
 
   return filepath;

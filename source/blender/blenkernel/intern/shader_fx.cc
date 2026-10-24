@@ -150,7 +150,7 @@ bool BKE_shaderfx_is_nonlocal_in_liboverride(const Object *ob, const ShaderFxDat
 void BKE_shaderfxType_panel_id(ShaderFxType type, char *r_idname)
 {
   const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(type);
-  BLI_string_join(r_idname, BKE_ST_MAXNAME, SHADERFX_TYPE_PANEL_PREFIX, fxi->name);
+  BLI_string_join(MutableCStr(r_idname, BKE_ST_MAXNAME), SHADERFX_TYPE_PANEL_PREFIX, fxi->name);
 }
 
 void BKE_shaderfx_panel_expand(ShaderFxData *fx)

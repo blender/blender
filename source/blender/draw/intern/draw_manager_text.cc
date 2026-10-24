@@ -338,16 +338,10 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
             v2 = ob->object_to_world().view<3, 3>() * v2;
           }
 
-          const size_t numstr_len = unit.system ?
-                                        BKE_unit_value_as_string_scaled(numstr,
-                                                                        sizeof(numstr),
-                                                                        len_v3v3(v1, v2),
-                                                                        3,
-                                                                        B_UNIT_LENGTH,
-                                                                        unit,
-                                                                        false,
-                                                                        true) :
-                                        SNPRINTF_RLEN(numstr, conv_float, len_v3v3(v1, v2));
+          const size_t numstr_len =
+              unit.system ? BKE_unit_value_as_string_scaled(
+                                numstr, len_v3v3(v1, v2), 3, B_UNIT_LENGTH, unit, false, true) :
+                            SNPRINTF_RLEN(numstr, conv_float, len_v3v3(v1, v2));
 
           DRW_text_cache_add(dt, co, numstr, numstr_len, 0, edge_tex_sep, txt_flag, col);
         }
@@ -478,10 +472,10 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
         vmid *= 1.0f / float(n);
         vmid = math::transform_point(ob->object_to_world(), vmid);
 
-        const size_t numstr_len =
-            unit.system ? BKE_unit_value_as_string_scaled(
-                              numstr, sizeof(numstr), area, 3, B_UNIT_AREA, unit, false, true) :
-                          SNPRINTF_RLEN(numstr, conv_float, area);
+        const size_t numstr_len = unit.system ?
+                                      BKE_unit_value_as_string_scaled(
+                                          numstr, area, 3, B_UNIT_AREA, unit, false, true) :
+                                      SNPRINTF_RLEN(numstr, conv_float, area);
 
         DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, 0, txt_flag, col);
       }

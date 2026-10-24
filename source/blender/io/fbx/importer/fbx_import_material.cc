@@ -229,7 +229,7 @@ static Image *load_texture_image(Main *bmain, const std::string &file_dir, const
         break;
       }
       char path[FILE_MAX];
-      BLI_path_join(path, sizeof(path), file_dir.c_str(), parent_path);
+      BLI_path_join(path, file_dir.c_str(), parent_path);
       BLI_path_normalize(path);
       image = BKE_image_load_exists(bmain, path);
       pos = parent_path - tex.absolute_filename.data;

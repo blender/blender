@@ -86,22 +86,22 @@ static const char *bli_windows_get_exception_description(const DWORD exceptionco
   }
 }
 
-static void bli_windows_get_module_name(LPVOID address, PCHAR buffer, size_t size)
+static void bli_windows_get_module_name(LPVOID address, MutableCStr buffer)
 {
   HMODULE mod;
   buffer[0] = 0;
   if (GetModuleHandleEx(
           GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, static_cast<LPCSTR>(address), &mod))
   {
-    if (GetModuleFileName(mod, buffer, size)) {
-      PathStripPath(buffer);
+    if (GetModuleFileName(mod, buffer.data(), buffer.size())) {
+      PathStripPath(buffer.data());
     }
   }
 }
 
 /* Note: Because this code can run after main exits the MEM_* api is not available, and the stock
  * calloc/free *must* be used. */
-static void bli_windows_get_module_version(const char *file, char *buffer, size_t buffersize)
+static void bli_windows_get_module_version(const char *file, MutableCStr buffer)
 {
   buffer[0] = 0;
   DWORD verHandle = 0;
@@ -119,13 +119,12 @@ static void bli_windows_get_module_version(const char *file, char *buffer, size_
            * https://docs.microsoft.com/en-us/windows/win32/api/verrsrc/ns-verrsrc-vs_fixedfileinfo
            */
           if (verInfo->dwSignature == 0xfeef04bd) {
-            BLI_snprintf(buffer,
-                         buffersize,
-                         "%d.%d.%d.%d",
-                         (verInfo->dwFileVersionMS >> 16) & 0xffff,
-                         (verInfo->dwFileVersionMS >> 0) & 0xffff,
-                         (verInfo->dwFileVersionLS >> 16) & 0xffff,
-                         (verInfo->dwFileVersionLS >> 0) & 0xffff);
+            SNPRINTF(buffer,
+                     "%d.%d.%d.%d",
+                     (verInfo->dwFileVersionMS >> 16) & 0xffff,
+                     (verInfo->dwFileVersionMS >> 0) & 0xffff,
+                     (verInfo->dwFileVersionLS >> 16) & 0xffff,
+                     (verInfo->dwFileVersionLS >> 0) & 0xffff);
           }
         }
       }
@@ -143,7 +142,7 @@ static void bli_windows_system_backtrace_exception_record(FILE *fp, PEXCEPTION_R
           bli_windows_get_exception_description(record->ExceptionCode),
           record->ExceptionCode);
   fprintf(fp, "Exception Address     : 0x%p\n", record->ExceptionAddress);
-  bli_windows_get_module_name(record->ExceptionAddress, module, sizeof(module));
+  bli_windows_get_module_name(record->ExceptionAddress, module);
   fprintf(fp, "Exception Module      : %s\n", module);
   fprintf(fp, "Exception Flags       : 0x%.8lx\n", record->ExceptionFlags);
   fprintf(fp, "Exception Parameters  : 0x%lx\n", record->NumberParameters);
@@ -230,7 +229,7 @@ static bool BLI_windows_system_backtrace_run_trace(FILE *fp, HANDLE hThread, PCO
       if (frame.AddrPC.Offset) {
         char module[MAX_PATH];
 
-        bli_windows_get_module_name((LPVOID)frame.AddrPC.Offset, module, sizeof(module));
+        bli_windows_get_module_name((LPVOID)frame.AddrPC.Offset, module);
 
         if (SymFromAddr(GetCurrentProcess(), (DWORD64)(frame.AddrPC.Offset), 0, symbolinfo)) {
           fprintf(fp, "%-20s:0x%p  %s", module, (LPVOID)symbolinfo->Address, symbolinfo->Name);
@@ -308,7 +307,7 @@ static void bli_windows_system_backtrace_modules(FILE *fp)
   do {
     if (me32.th32ProcessID == GetCurrentProcessId()) {
       char version[MAX_PATH];
-      bli_windows_get_module_version(me32.szExePath, version, sizeof(version));
+      bli_windows_get_module_version(me32.szExePath, version);
 
       IMAGEHLP_MODULE64 m64;
       m64.SizeOfStruct = sizeof(m64);
@@ -456,7 +455,7 @@ void BLI_windows_exception_print_message(const void *os_info)
       exception->ExceptionRecord->ExceptionCode);
   LPVOID address = exception->ExceptionRecord->ExceptionAddress;
   CHAR modulename[MAX_PATH];
-  bli_windows_get_module_name(address, modulename, sizeof(modulename));
+  bli_windows_get_module_name(address, modulename);
   DWORD threadId = GetCurrentThreadId();
 
   char message[512];

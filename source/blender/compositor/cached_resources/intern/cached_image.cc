@@ -404,25 +404,25 @@ void CachedImage::populate_cryptomatte_meta_data(const RenderResult *render_resu
   BKE_stamp_info_callback(
       &callback_data,
       render_result->stamp_data,
-      [](void *user_data, const char *key, char *value, int /*value_length*/) {
+      [](void *user_data, const char *key, MutableCStr value) {
         StampCallbackData *data = static_cast<StampCallbackData *>(user_data);
 
         const std::string manifest_key = bke::cryptomatte::BKE_cryptomatte_meta_data_key(
             data->cryptomatte_layer_name, "manifest");
         if (key == manifest_key) {
-          data->meta_data->cryptomatte.manifest = value;
+          data->meta_data->cryptomatte.manifest = value.data();
         }
 
         const std::string hash_key = bke::cryptomatte::BKE_cryptomatte_meta_data_key(
             data->cryptomatte_layer_name, "hash");
         if (key == hash_key) {
-          data->meta_data->cryptomatte.hash = value;
+          data->meta_data->cryptomatte.hash = value.data();
         }
 
         const std::string conversion_key = bke::cryptomatte::BKE_cryptomatte_meta_data_key(
             data->cryptomatte_layer_name, "conversion");
         if (key == conversion_key) {
-          data->meta_data->cryptomatte.conversion = value;
+          data->meta_data->cryptomatte.conversion = value.data();
         }
       },
       false);

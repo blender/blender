@@ -670,7 +670,7 @@ TEST(string, StrUTF32AsUTF8_Truncate)
   { \
     char dst[dst_maxncpy + 1]; \
     dst[dst_maxncpy] = 0xff; \
-    size_t len = BLI_str_utf32_as_utf8(dst, src, dst_maxncpy); \
+    size_t len = BLI_str_utf32_as_utf8(MutableCStr(dst, dst_maxncpy), src); \
     EXPECT_EQ(len, strlen(dst)); \
     EXPECT_STREQ(dst, dst_expect); \
     EXPECT_EQ(dst[dst_maxncpy], 0xff); \
@@ -712,7 +712,7 @@ TEST(string, StrCopyWCharAsUTF8_Truncate)
   { \
     char dst[dst_maxncpy + 1]; \
     dst[dst_maxncpy] = 0xff; \
-    size_t len = BLI_strncpy_wchar_as_utf8(dst, src, dst_maxncpy); \
+    size_t len = BLI_strncpy_wchar_as_utf8(MutableCStr(dst, dst_maxncpy), src); \
     EXPECT_EQ(len, strlen(dst)); \
     EXPECT_STREQ(dst, dst_expect); \
     EXPECT_EQ(dst[dst_maxncpy], 0xff); \

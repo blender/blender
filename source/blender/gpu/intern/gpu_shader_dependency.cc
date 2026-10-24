@@ -332,7 +332,7 @@ struct GPUSource {
                     GPUFunctionDictionary *g_functions)
   {
     GPUFunction *func = MEM_new<GPUFunction>(__func__);
-    name.copy_utf8_truncated(func->name, sizeof(func->name));
+    name.copy_utf8_truncated(func->name);
     func->source = reinterpret_cast<void *>(this);
     func->totparam = 0;
     for (auto arg : arguments) {

@@ -64,10 +64,10 @@ static GHash *fsmenu_xdg_user_dirs_parse(const char *home)
     char filepath[FILE_MAX];
     const char *xdg_config_home = getenv("XDG_CONFIG_HOME");
     if (xdg_config_home != nullptr) {
-      BLI_path_join(filepath, sizeof(filepath), xdg_config_home, "user-dirs.dirs");
+      BLI_path_join(filepath, xdg_config_home, "user-dirs.dirs");
     }
     else {
-      BLI_path_join(filepath, sizeof(filepath), home, ".config", "user-dirs.dirs");
+      BLI_path_join(filepath, home, ".config", "user-dirs.dirs");
     }
     fp = BLI_fopen(filepath, "r");
     if (!fp) {
@@ -98,7 +98,7 @@ static GHash *fsmenu_xdg_user_dirs_parse(const char *home)
            * Based on the 'user-dirs.dirs' man page,
            * there is no need to resolve arbitrary environment variables. */
           if (STRPREFIX(l_value, "$HOME" SEP_STR)) {
-            BLI_path_join(l_value_expanded, sizeof(l_value_expanded), home, l_value + 6);
+            BLI_path_join(l_value_expanded, home, l_value + 6);
             l_value_final = l_value_expanded;
           }
 
@@ -138,7 +138,7 @@ static void fsmenu_xdg_insert_entry(GHash *xdg_map,
   const char *xdg_path = static_cast<const char *>(xdg_map ? BLI_ghash_lookup(xdg_map, key) :
                                                              nullptr);
   if (xdg_path == nullptr) {
-    BLI_path_join(xdg_path_buf, sizeof(xdg_path_buf), home, default_path);
+    BLI_path_join(xdg_path_buf, home, default_path);
     xdg_path = xdg_path_buf;
   }
   fsmenu_insert_entry(
@@ -236,7 +236,7 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
     if (xdg_runtime_dir != nullptr) {
       direntry *dirs;
       char filepath[FILE_MAX];
-      BLI_path_join(filepath, sizeof(filepath), xdg_runtime_dir, "gvfs/");
+      BLI_path_join(filepath, xdg_runtime_dir, "gvfs/");
       /* Avoid error message if the directory doesn't exist as this isn't a requirement. */
       if (BLI_is_dir(filepath)) {
         const uint dirs_num = BLI_filelist_dir_contents(filepath, &dirs);

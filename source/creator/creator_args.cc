@@ -2750,7 +2750,7 @@ static int arg_handle_python_file_run(int argc, const char **argv, void *data)
     /* Make the path absolute because its needed for relative linked blends to be found. */
     char filepath[FILE_MAX];
     STRNCPY(filepath, argv[1]);
-    BLI_path_canonicalize_native(filepath, sizeof(filepath));
+    BLI_path_canonicalize_native(filepath);
 
     bool ok;
     BPY_CTX_SETUP(ok = BPY_run_filepath(C, filepath, nullptr));
@@ -2959,7 +2959,7 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
   /* Make the path absolute because its needed for relative linked blends to be found. */
   char filepath[FILE_MAX];
   STRNCPY(filepath, filepath_arg);
-  BLI_path_canonicalize_native(filepath, sizeof(filepath));
+  BLI_path_canonicalize_native(filepath);
 
   const bool is_directory = BLI_is_dir(filepath);
 

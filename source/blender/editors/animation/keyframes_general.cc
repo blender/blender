@@ -1386,7 +1386,7 @@ static bool is_animating_bone(const bAnimListElem *ale)
   }
 
   char bone_name[sizeof(bPoseChannel::name)];
-  if (!BLI_str_quoted_substr(rna_path.c_str(), "pose.bones[", bone_name, sizeof(bone_name))) {
+  if (!BLI_str_quoted_substr(rna_path.c_str(), "pose.bones[", bone_name)) {
     return false;
   }
 
@@ -1587,7 +1587,7 @@ std::optional<std::string> flip_names(const StringRefNull rna_path)
   /* Take a copy so it's 0-terminated. */
   const std::string bone_name = rna_path.substr(ofs_start, ofs_end - ofs_start);
 
-  BLI_string_flip_side_name(bname_new, bone_name.c_str(), false, sizeof(bname_new));
+  BLI_string_flip_side_name(bname_new, bone_name.c_str(), false);
 
   return rna_path.substr(0, ofs_start) + bname_new + rna_path.substr(ofs_end);
 }

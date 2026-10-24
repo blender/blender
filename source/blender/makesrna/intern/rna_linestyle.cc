@@ -257,7 +257,7 @@ static std::optional<std::string> rna_LineStyle_color_modifier_path(const Pointe
 {
   const LineStyleModifier *m = static_cast<LineStyleModifier *>(ptr->data);
   char name_esc[sizeof(m->name) * 2];
-  BLI_str_escape(name_esc, m->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, m->name);
   return fmt::format("color_modifiers[\"{}\"]", name_esc);
 }
 
@@ -265,7 +265,7 @@ static std::optional<std::string> rna_LineStyle_alpha_modifier_path(const Pointe
 {
   const LineStyleModifier *m = static_cast<LineStyleModifier *>(ptr->data);
   char name_esc[sizeof(m->name) * 2];
-  BLI_str_escape(name_esc, m->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, m->name);
   return fmt::format("alpha_modifiers[\"{}\"]", name_esc);
 }
 
@@ -273,7 +273,7 @@ static std::optional<std::string> rna_LineStyle_thickness_modifier_path(const Po
 {
   const LineStyleModifier *m = static_cast<LineStyleModifier *>(ptr->data);
   char name_esc[sizeof(m->name) * 2];
-  BLI_str_escape(name_esc, m->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, m->name);
   return fmt::format("thickness_modifiers[\"{}\"]", name_esc);
 }
 
@@ -281,7 +281,7 @@ static std::optional<std::string> rna_LineStyle_geometry_modifier_path(const Poi
 {
   const LineStyleModifier *m = static_cast<LineStyleModifier *>(ptr->data);
   char name_esc[sizeof(m->name) * 2];
-  BLI_str_escape(name_esc, m->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, m->name);
   return fmt::format("geometry_modifiers[\"{}\"]", name_esc);
 }
 

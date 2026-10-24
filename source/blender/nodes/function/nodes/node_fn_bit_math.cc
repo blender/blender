@@ -124,17 +124,14 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void node_label(const bNodeTree * /*ntree*/,
-                       const bNode *node,
-                       char *label,
-                       int label_maxncpy)
+static void node_label(const bNodeTree * /*ntree*/, const bNode *node, MutableCStr label)
 {
   const char *operation_name = IFACE_("Unknown");
   /* NOTE: This assumes that the matching RNA enum property also uses the default i18n context, and
    * needs to be kept manually in sync. */
   RNA_enum_name_gettexted(
       bit_math_operation_items.data(), node->custom1, BLT_I18NCONTEXT_DEFAULT, &operation_name);
-  BLI_snprintf_utf8(label, label_maxncpy, IFACE_("Bitwise %s"), operation_name);
+  SNPRINTF_UTF8(label, IFACE_("Bitwise %s"), operation_name);
 }
 
 static const mf::MultiFunction *get_multi_function(const bNode &bnode)

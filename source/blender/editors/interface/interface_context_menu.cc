@@ -557,10 +557,10 @@ static bool but_menu_add_path_operators(Layout &layout, PointerRNA *ptr, Propert
   }
   else {
     /* This is a directory, so ensure it ends in a slash. */
-    BLI_path_slash_ensure(filepath, ARRAY_SIZE(filepath));
+    BLI_path_slash_ensure(filepath);
   }
 
-  BLI_path_split_dir_file(filepath, dir, sizeof(dir), file, sizeof(file));
+  BLI_path_split_dir_file(filepath, dir, file);
 
   props_ptr = layout.op(ot,
                         CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Location Externally"),
@@ -1035,7 +1035,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
         wmOperatorType *ot = WM_operatortype_find("WM_OT_path_open", true);
         PointerRNA props_ptr;
         char dir[FILE_MAXDIR];
-        BLI_path_split_dir_part(filepath, dir, sizeof(dir));
+        BLI_path_split_dir_part(filepath, dir);
         props_ptr = layout.op(ot,
                               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open File Location"),
                               ICON_NONE,

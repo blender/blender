@@ -38,37 +38,37 @@ TEST(BLI_string_utils, BLI_uniquename_cb)
 
     {
       char name[64] = "";
-      BLI_uniquename_cb(unique_check_func, "Default Name", '.', name, sizeof(name));
+      BLI_uniquename_cb(unique_check_func, "Default Name", '.', name);
       EXPECT_STREQ(name, "Default Name");
     }
 
     {
       char name[64] = "Baz";
-      BLI_uniquename_cb(unique_check_func, "Default Name", '.', name, sizeof(name));
+      BLI_uniquename_cb(unique_check_func, "Default Name", '.', name);
       EXPECT_STREQ(name, "Baz");
     }
 
     {
       char name[64] = "Foo";
-      BLI_uniquename_cb(unique_check_func, "Default Name", '.', name, sizeof(name));
+      BLI_uniquename_cb(unique_check_func, "Default Name", '.', name);
       EXPECT_STREQ(name, "Foo.001");
     }
 
     {
       char name[64] = "Baz.001";
-      BLI_uniquename_cb(unique_check_func, "Default Name", '.', name, sizeof(name));
+      BLI_uniquename_cb(unique_check_func, "Default Name", '.', name);
       EXPECT_STREQ(name, "Baz.002");
     }
 
     {
       char name[64] = "Bar.003";
-      BLI_uniquename_cb(unique_check_func, "Default Name", '.', name, sizeof(name));
+      BLI_uniquename_cb(unique_check_func, "Default Name", '.', name);
       EXPECT_STREQ(name, "Bar.004");
     }
 
     {
       char name[64] = "Big.999";
-      BLI_uniquename_cb(unique_check_func, "Default Name", '.', name, sizeof(name));
+      BLI_uniquename_cb(unique_check_func, "Default Name", '.', name);
       EXPECT_STREQ(name, "Big.1000");
     }
   }

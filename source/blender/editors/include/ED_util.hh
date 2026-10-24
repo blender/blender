@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_span.hh"
+
 #include "WM_types.hh"
 
 namespace blender {
@@ -103,9 +105,7 @@ void ED_slider_destroy(bContext *C, tSlider *slider);
 /**
  * Return string based on the current state of the slider.
  */
-void ED_slider_status_string_get(const tSlider *slider,
-                                 char *status_string,
-                                 size_t size_of_status_string);
+void ED_slider_status_string_get(const tSlider *slider, MutableCStr status_string);
 
 void ED_slider_status_get(const tSlider *slider, WorkspaceStatus &status);
 

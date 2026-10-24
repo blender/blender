@@ -1299,7 +1299,7 @@ void TreeViewBuilder::build_tree_view(const bContext &C,
   {
     /* Setup search string to filter out elements with matching characters. */
     char string[UI_MAX_NAME_STR];
-    BLI_strncpy_ensure_pad(string, tree_view.search_string_.get(), '*', sizeof(string));
+    BLI_strncpy_ensure_pad(string, tree_view.search_string_.get(), '*');
     tree_view.filter(tree_view.search_string_ ? std::optional{string} : std::nullopt);
   }
   ensure_min_rows_items(tree_view);

@@ -34,7 +34,6 @@ static std::string format_unit_value(float value, PropertySubType subtype, Layou
 
   char new_str[UI_MAX_DRAW_STR];
   BKE_unit_value_as_string(new_str,
-                           sizeof(new_str),
                            value_scaled,
                            RNA_TRANSLATION_PREC_DEFAULT,
                            RNA_SUBTYPE_UNIT_VALUE(unit_type),

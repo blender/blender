@@ -775,12 +775,8 @@ const char *ED_info_statusbar_string_ex(Main *bmain,
     const int relative_current_frame = (scene->r.cfra - scene->r.sfra) + 1;
     const int frame_count = (scene->r.efra - scene->r.sfra) + 1;
     char timecode[32];
-    BLI_timecode_string_from_time(timecode,
-                                  sizeof(timecode),
-                                  -2,
-                                  FRA2TIME(frame_count),
-                                  scene->frames_per_second(),
-                                  U.timecode_style);
+    BLI_timecode_string_from_time(
+        timecode, -2, FRA2TIME(frame_count), scene->frames_per_second(), U.timecode_style);
     const std::string scene_duration = fmt::format(
         fmt::runtime(IFACE_("Duration: {} (Frame {}/{})")),
         timecode,

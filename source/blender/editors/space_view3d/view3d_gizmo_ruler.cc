@@ -189,31 +189,31 @@ static void ruler_item_remove(bContext *C, wmGizmoGroup *gzgroup, RulerItem *rul
   WM_gizmo_unlink(&gzgroup->gizmos, gzgroup->parent_gzmap, &ruler_item->gz, C);
 }
 
-static void ruler_item_as_string(
-    RulerItem *ruler_item, const UnitSettings &unit, char *numstr, size_t numstr_maxncpy, int prec)
+static void ruler_item_as_string(RulerItem *ruler_item,
+                                 const UnitSettings &unit,
+                                 MutableCStr numstr,
+                                 int prec)
 {
   if (ruler_item->flag & RULERITEM_USE_ANGLE) {
     const float ruler_angle = angle_v3v3v3(
         ruler_item->co[0], ruler_item->co[1], ruler_item->co[2]);
 
     if (unit.system == USER_UNIT_NONE) {
-      BLI_snprintf_utf8(
-          numstr, numstr_maxncpy, "%.*f" BLI_STR_UTF8_DEGREE_SIGN, prec, RAD2DEGF(ruler_angle));
+      SNPRINTF_UTF8(numstr, "%.*f" BLI_STR_UTF8_DEGREE_SIGN, prec, RAD2DEGF(ruler_angle));
     }
     else {
       BKE_unit_value_as_string(
-          numstr, numstr_maxncpy, double(ruler_angle), prec, B_UNIT_ROTATION, unit, false, true);
+          numstr, double(ruler_angle), prec, B_UNIT_ROTATION, unit, false, true);
     }
   }
   else {
     const float ruler_len = len_v3v3(ruler_item->co[0], ruler_item->co[2]);
 
     if (unit.system == USER_UNIT_NONE) {
-      BLI_snprintf_utf8(numstr, numstr_maxncpy, "%.*f", prec, ruler_len);
+      SNPRINTF_UTF8(numstr, "%.*f", prec, ruler_len);
     }
     else {
-      BKE_unit_value_as_string_scaled(
-          numstr, numstr_maxncpy, ruler_len, prec, B_UNIT_LENGTH, unit, false, true);
+      BKE_unit_value_as_string_scaled(numstr, ruler_len, prec, B_UNIT_LENGTH, unit, false, true);
     }
   }
 }
@@ -910,7 +910,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     float posit[2];
     const int prec = 2; /* XXX, todo, make optional */
 
-    ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
+    ruler_item_as_string(ruler_item, unit, numstr, prec);
 
     BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
 
@@ -990,7 +990,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     const int prec = 6; /* XXX, todo, make optional */
     float2 posit;
 
-    ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
+    ruler_item_as_string(ruler_item, unit, numstr, prec);
 
     BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
 

@@ -285,14 +285,8 @@ void BKE_nurb_knot_calc_v(Nurb *nu);
 bool BKE_nurb_check_valid_u(const Nurb *nu);
 bool BKE_nurb_check_valid_v(const Nurb *nu);
 bool BKE_nurb_check_valid_uv(const Nurb *nu);
-bool BKE_nurb_valid_message(int pnts,
-                            short order,
-                            short flag,
-                            short type,
-                            bool is_surf,
-                            int dir,
-                            char *message_dst,
-                            size_t maxncpy);
+bool BKE_nurb_valid_message(
+    int pnts, short order, short flag, short type, bool is_surf, int dir, MutableCStr message_dst);
 
 bool BKE_nurb_order_clamp_u(Nurb *nu);
 bool BKE_nurb_order_clamp_v(Nurb *nu);

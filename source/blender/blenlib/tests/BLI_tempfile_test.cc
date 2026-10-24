@@ -14,7 +14,7 @@ namespace blender::tests {
 TEST(BLI_tempfile, BLI_temp_directory_path_get)
 {
   char temp_dir[FILE_MAX];
-  BLI_temp_directory_path_get(temp_dir, sizeof(temp_dir));
+  BLI_temp_directory_path_get(temp_dir);
 
   ASSERT_STRNE(temp_dir, "");
 

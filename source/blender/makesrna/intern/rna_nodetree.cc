@@ -1826,7 +1826,7 @@ static std::optional<std::string> rna_Node_path(const PointerRNA *ptr)
   const bNode *node = ptr->data_as<bNode>();
   char name_esc[sizeof(node->name) * 2];
 
-  BLI_str_escape(name_esc, node->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, node->name);
   return fmt::format("nodes[\"{}\"]", name_esc);
 }
 
@@ -1858,7 +1858,7 @@ std::optional<std::string> rna_Node_ImageUser_path(const PointerRNA *ptr)
     }
 
     char name_esc[sizeof(node->name) * 2];
-    BLI_str_escape(name_esc, node->name, sizeof(name_esc));
+    BLI_str_escape(name_esc, node->name);
     return fmt::format("nodes[\"{}\"].image_user", name_esc);
   }
 
@@ -2032,10 +2032,7 @@ static void rna_Node_draw_buttons_ext(ui::Layout &layout, bContext *C, PointerRN
   RNA_parameter_list_free(&list);
 }
 
-static void rna_Node_draw_label(const bNodeTree *ntree,
-                                const bNode *node,
-                                char *label,
-                                int label_maxncpy)
+static void rna_Node_draw_label(const bNodeTree *ntree, const bNode *node, MutableCStr label)
 {
   ParameterList list;
   FunctionRNA *func;
@@ -2051,7 +2048,7 @@ static void rna_Node_draw_label(const bNodeTree *ntree,
 
   RNA_parameter_get_lookup(&list, "label", &ret);
   rlabel = static_cast<char *>(ret);
-  BLI_strncpy(label, rlabel != nullptr ? rlabel : "", label_maxncpy);
+  STRNCPY(label, rlabel != nullptr ? rlabel : "");
 
   RNA_parameter_list_free(&list);
 }

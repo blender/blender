@@ -259,7 +259,7 @@ static bool wm_alembic_export_check(bContext * /*C*/, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", filepath);
 
   if (!BLI_path_extension_check(filepath, ".abc")) {
-    BLI_path_extension_ensure(filepath, FILE_MAX, ".abc");
+    BLI_path_extension_ensure(filepath, ".abc");
     RNA_string_set(op->ptr, "filepath", filepath);
     return true;
   }
@@ -494,11 +494,11 @@ static int get_sequence_len(const char *filepath, int *ofs)
   }
 
   char dirpath[FILE_MAX];
-  BLI_path_split_dir_part(filepath, dirpath, FILE_MAX);
+  BLI_path_split_dir_part(filepath, dirpath);
 
   if (dirpath[0] == '\0') {
     /* The `filepath` had no directory component, so just use the blend files directory. */
-    BLI_path_split_dir_part(BKE_main_blendfile_path_from_global(), dirpath, sizeof(dirpath));
+    BLI_path_split_dir_part(BKE_main_blendfile_path_from_global(), dirpath);
   }
   else {
     BLI_path_abs(dirpath, BKE_main_blendfile_path_from_global());

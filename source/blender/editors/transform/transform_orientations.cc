@@ -88,8 +88,7 @@ static void uniqueOrientationName(ListBaseT<TransformOrientation> *lb, char *nam
       },
       CTX_DATA_(BLT_I18NCONTEXT_ID_SCENE, "Space"),
       '.',
-      name,
-      sizeof(TransformOrientation::name));
+      MutableCStr(name, sizeof(TransformOrientation::name)));
 }
 
 static TransformOrientation *createViewSpace(bContext *C,

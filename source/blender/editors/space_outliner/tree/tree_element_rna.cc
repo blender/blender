@@ -95,7 +95,7 @@ TreeElementRNAStruct::TreeElementRNAStruct(TreeElement &legacy_te, PointerRNA &r
     return;
   }
 
-  legacy_te_.name = RNA_struct_name_get_alloc(&rna_ptr, nullptr, 0, nullptr);
+  legacy_te_.name = RNA_struct_name_get_alloc(&rna_ptr, std::nullopt, nullptr);
   if (legacy_te_.name) {
     legacy_te_.flag |= TE_FREE_NAME;
   }

@@ -7155,13 +7155,11 @@ static wmOperatorStatus texture_paint_add_texture_paint_slot_exec(bContext *C, w
 
 static void get_default_texture_layer_name_for_object(Object *ob,
                                                       int texture_type,
-                                                      char *dst,
-                                                      int dst_maxncpy)
+                                                      MutableCStr dst)
 {
   Material *ma = BKE_object_material_get(ob, ob->actcol);
   const char *base_name = ma ? &ma->id.name[2] : &ob->id.name[2];
-  BLI_snprintf_utf8(
-      dst, dst_maxncpy, "%s %s", base_name, DATA_(layer_type_items[texture_type].name));
+  SNPRINTF_UTF8(dst, "%s %s", base_name, DATA_(layer_type_items[texture_type].name));
 }
 
 static wmOperatorStatus texture_paint_add_texture_paint_slot_invoke(bContext *C,
@@ -7176,7 +7174,7 @@ static wmOperatorStatus texture_paint_add_texture_paint_slot_invoke(bContext *C,
   /* Set default name. */
   char imagename[MAX_ID_NAME - 2];
   get_default_texture_layer_name_for_object(
-      ob, type, reinterpret_cast<char *>(&imagename), sizeof(imagename));
+      ob, type, MutableCStr(reinterpret_cast<char *>(&imagename), sizeof(imagename)));
   RNA_string_set(op->ptr, "name", imagename);
 
   /* Set default color. Copy the color from nodes, so it matches the existing material.

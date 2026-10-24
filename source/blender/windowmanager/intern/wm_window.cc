@@ -616,8 +616,7 @@ static void wm_window_title_text(wmWindowManager *wm,
                              BLI_str_utf8_invalid_substitute_if_needed(filepath_as_bytes,
                                                                        strlen(filepath_as_bytes),
                                                                        '?',
-                                                                       _filepath_utf8_buf,
-                                                                       sizeof(_filepath_utf8_buf));
+                                                                       _filepath_utf8_buf);
 
   const char *filename = BLI_path_basename(filepath);
   const bool has_filepath = filepath[0] != '\0';

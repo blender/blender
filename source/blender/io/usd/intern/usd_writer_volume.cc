@@ -160,11 +160,7 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_file_path(const Volume
 
   char usd_directory_path[FILE_MAX];
   char usd_file_name[FILE_MAXFILE];
-  BLI_path_split_dir_file(usd_file_path.c_str(),
-                          usd_directory_path,
-                          sizeof(usd_directory_path),
-                          usd_file_name,
-                          sizeof(usd_file_name));
+  BLI_path_split_dir_file(usd_file_path.c_str(), usd_directory_path, usd_file_name);
 
   if (usd_directory_path[0] == '\0' || usd_file_name[0] == '\0') {
     return std::nullopt;
@@ -174,7 +170,7 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_file_path(const Volume
 
   char vdb_directory_path[FILE_MAX];
   STRNCPY(vdb_directory_path, usd_directory_path);
-  BLI_strncat(vdb_directory_path, vdb_directory_name, sizeof(vdb_directory_path));
+  BLI_strncat(vdb_directory_path, vdb_directory_name);
   BLI_dir_create_recursive(vdb_directory_path);
 
   const Scene *scene = DEG_get_input_scene(usd_export_context_.depsgraph);
@@ -185,12 +181,12 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_file_path(const Volume
   const pxr::UsdTimeCode time = get_export_time_code();
   if (!time.IsDefault()) {
     const int frame = int(time.GetValue());
-    BLI_path_frame(vdb_file_name, sizeof(vdb_file_name), frame, max_frame_digits);
+    BLI_path_frame(vdb_file_name, frame, max_frame_digits);
   }
-  BLI_strncat(vdb_file_name, ".vdb", sizeof(vdb_file_name));
+  BLI_strncat(vdb_file_name, ".vdb");
 
   char vdb_file_path[FILE_MAX];
-  BLI_path_join(vdb_file_path, sizeof(vdb_file_path), vdb_directory_path, vdb_file_name);
+  BLI_path_join(vdb_file_path, vdb_directory_path, vdb_file_name);
 
   return vdb_file_path;
 }

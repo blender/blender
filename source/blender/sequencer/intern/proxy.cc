@@ -96,7 +96,7 @@ static Vector<MovieReaderPtr> movie_readers_open(Scene &scene, Strip &strip, con
   Vector<MovieReaderPtr> readers;
   Editing &ed = *scene.ed;
   char filepath[FILE_MAX];
-  BLI_path_join(filepath, sizeof(filepath), strip.data->dirpath, strip.data->stripdata->filename);
+  BLI_path_join(filepath, strip.data->dirpath, strip.data->stripdata->filename);
   BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene.id));
 
   const bool use_multiview = (strip.flag & SEQ_USE_VIEWS) != 0 &&
@@ -106,9 +106,7 @@ static Vector<MovieReaderPtr> movie_readers_open(Scene &scene, Strip &strip, con
     for (int view_id = 0; view_id < files_num; view_id++) {
       char filepath_view[FILE_MAX];
       const char *suffix = nullptr;
-      if (!seq_multiview_view_filepath_get(
-              scene, filepath, view_id, filepath_view, sizeof(filepath_view), &suffix))
-      {
+      if (!seq_multiview_view_filepath_get(scene, filepath, view_id, filepath_view, &suffix)) {
         readers.clear();
         break;
       }
@@ -175,7 +173,7 @@ bool seq_proxy_get_custom_file_filepath(const Strip *strip, char *filepath, cons
     return false;
   }
 
-  BLI_path_join(filepath_temp, sizeof(filepath_temp), proxy->dirpath, proxy->filename);
+  BLI_path_join(filepath_temp, proxy->dirpath, proxy->filename);
   BLI_path_abs(filepath_temp, BKE_main_blendfile_path_from_global());
 
   if (view_id > 0) {
@@ -376,8 +374,7 @@ static bool seq_proxy_multiview_context_invalid(Strip *strip,
       prefix_vars->ext[0] = '\0';
 
       char filepath[FILE_MAX];
-      BLI_path_join(
-          filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
+      BLI_path_join(filepath, strip->data->dirpath, strip->data->stripdata->filename);
       BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
       const char *ext_ptr = nullptr;
       BKE_scene_multiview_view_prefix_get(scene, filepath, prefix_vars->prefix, &ext_ptr);
@@ -391,7 +388,7 @@ static bool seq_proxy_multiview_context_invalid(Strip *strip,
     }
 
     char filepath[FILE_MAX];
-    seq_multiview_name(scene, view_id, prefix_vars->prefix, prefix_vars->ext, filepath, FILE_MAX);
+    seq_multiview_name(scene, view_id, prefix_vars->prefix, prefix_vars->ext, filepath);
     if (BLI_access(filepath, R_OK) == 0) {
       return false;
     }
@@ -612,7 +609,7 @@ static ImBuf *render_image_strip_frame(const ProxyBuildContext &context,
   else {
     char filepath_view[FILE_MAX];
     if (!seq_multiview_view_filepath_get(
-            *context.scene, filepath, view_id, filepath_view, sizeof(filepath_view), nullptr))
+            *context.scene, filepath, view_id, filepath_view, nullptr))
     {
       return nullptr;
     }
@@ -660,7 +657,7 @@ static void image_proxy_builder_process(ProxyBuildContext &context,
 
     ImBuf *ibuf = nullptr;
 
-    BLI_path_join(filepath, sizeof(filepath), strip.data->dirpath, s_elem.filename);
+    BLI_path_join(filepath, strip.data->dirpath, s_elem.filename);
     BLI_path_abs(filepath, base_path);
 
     const bool do_multiview_render = seq_strip_do_multiview_render(
@@ -786,8 +783,8 @@ void seq_proxy_index_dir_set(MovieReader *anim, const char *base_dir)
   char dirname[FILE_MAX];
   char filename[FILE_MAXFILE];
 
-  MOV_get_filename(anim, filename, FILE_MAXFILE);
-  BLI_path_join(dirname, sizeof(dirname), base_dir, filename);
+  MOV_get_filename(anim, filename);
+  BLI_path_join(dirname, base_dir, filename);
   MOV_set_custom_proxy_dir(anim, dirname);
 }
 

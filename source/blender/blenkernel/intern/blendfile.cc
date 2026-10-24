@@ -173,13 +173,12 @@ bool BKE_blendfile_is_readable(const char *path, ReportList *reports)
  * \{ */
 
 static bool foreach_path_clean_cb(BPathForeachPathData * /*bpath_data*/,
-                                  char *path_dst,
-                                  size_t path_dst_maxncpy,
+                                  MutableCStr path_dst,
                                   const char *path_src)
 {
-  BLI_strncpy(path_dst, path_src, path_dst_maxncpy);
-  BLI_path_slash_native(path_dst);
-  return !STREQ(path_dst, path_src);
+  STRNCPY(path_dst, path_src);
+  BLI_path_slash_native(path_dst.data());
+  return !STREQ(path_dst.data(), path_src);
 }
 
 /* make sure path names are correct for OS */
@@ -1566,10 +1565,10 @@ UserDef *BKE_blendfile_userdef_from_defaults()
 
   /* System-specific fonts directory.
    * NOTE: when not found, leaves as-is (`//` for the blend-file directory). */
-  if (BKE_appdir_font_folder_default(userdef->fontdir, sizeof(userdef->fontdir))) {
+  if (BKE_appdir_font_folder_default(userdef->fontdir)) {
     /* Not actually needed, just a convention that directory selection
      * adds a trailing slash. */
-    BLI_path_slash_ensure(userdef->fontdir, sizeof(userdef->fontdir));
+    BLI_path_slash_ensure(userdef->fontdir);
   }
 
   userdef->memcachelimit = min_ii(BLI_system_memory_max_in_megabytes_int() / 2,
@@ -1692,7 +1691,7 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
 
   if (cfgdir) {
     bool ok_write;
-    BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_USERPREF_FILE);
+    BLI_path_join(filepath, cfgdir->c_str(), BLENDER_USERPREF_FILE);
     CLOG_INFO_NOCHECK(&LOG_BLEND, "Writing user preferences: \"%s\" ", filepath);
     if (use_template_userpref) {
       ok_write = BKE_blendfile_userdef_write_app_template(filepath, reports);
@@ -1718,7 +1717,7 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
     cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, U.app_template);
     if (cfgdir) {
       /* Also save app-template preferences. */
-      BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_USERPREF_FILE);
+      BLI_path_join(filepath, cfgdir->c_str(), BLENDER_USERPREF_FILE);
 
       CLOG_INFO_NOCHECK(&LOG_BLEND, "Writing user preferences app-template: \"%s\" ", filepath);
       if (BKE_blendfile_userdef_write(filepath, reports) != 0) {

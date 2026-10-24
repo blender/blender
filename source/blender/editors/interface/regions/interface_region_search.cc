@@ -139,7 +139,7 @@ bool search_item_add(SearchItems *items,
   }
 
   if (items->names) {
-    name.copy_utf8_truncated(items->names[items->totitem], items->maxstrlen);
+    name.copy_utf8_truncated(MutableCStr(items->names[items->totitem], items->maxstrlen));
   }
   if (items->pointers) {
     items->pointers[items->totitem] = poin;
@@ -1074,11 +1074,11 @@ ARegion *searchbox_create_generic(bContext *C, ARegion *butregion, ButtonSearch 
  * - we know words are upper case and ASCII only.
  * - `_` are replaced by spaces.
  */
-static void str_tolower_titlecaps_ascii(char *str, const size_t len)
+static void str_tolower_titlecaps_ascii(MutableCStr str)
 {
   bool prev_delim = true;
 
-  for (size_t i = 0; (i < len) && str[i]; i++) {
+  for (size_t i = 0; (i < str.size()) && str[i]; i++) {
     if (str[i] >= 'A' && str[i] <= 'Z') {
       if (prev_delim == false) {
         str[i] += 'a' - 'A';
@@ -1135,7 +1135,7 @@ static void searchbox_region_draw_cb__operator(const bContext * /*C*/, ARegion *
               text_pre, ot->idname, min_ii(sizeof(text_pre), text_pre_p - ot->idname));
           text_pre[text_pre_len] = ':';
           text_pre[text_pre_len + 1] = '\0';
-          str_tolower_titlecaps_ascii(text_pre, sizeof(text_pre));
+          str_tolower_titlecaps_ascii(text_pre);
         }
 
         draw_menu_item(&data->fstyle,

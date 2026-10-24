@@ -14,6 +14,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_set.hh"
+#include "BLI_span.hh"
 
 #include <string>
 
@@ -129,7 +130,7 @@ bool MOV_is_initialized_and_valid(const MovieReader *anim);
 /**
  * Gets filename (without the folder) part of the movie.
  */
-void MOV_get_filename(const MovieReader *anim, char *filename, int filename_maxncpy);
+void MOV_get_filename(const MovieReader *anim, MutableCStr filename);
 
 /**
  * Loads metadata of the movie.

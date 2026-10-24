@@ -1146,7 +1146,7 @@ static void cache_filepath(
       break;
   }
 
-  BLI_path_join(cachepath, sizeof(cachepath), dirname, filename);
+  BLI_path_join(cachepath, dirname, filename);
 
   const Vector<bke::path_templates::Error> errors = BKE_image_path_from_imtype(
       filepath, cachepath, relbase, nullptr, frame, R_IMF_IMTYPE_OPENEXR, true, true, "");

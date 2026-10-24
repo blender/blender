@@ -3358,13 +3358,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("World"_ustr, std::move(world_ptr));
 }
 
-static void node_label(const bNodeTree * /*ntree*/,
-                       const bNode * /*node*/,
-                       char *label,
-                       const int label_maxncpy)
+static void node_label(const bNodeTree * /*ntree*/, const bNode * /*node*/, MutableCStr label)
 {
-  BLI_strncpy_utf8(
-      label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, "XPBD Solver (Experimental)"), label_maxncpy);
+  STRNCPY_UTF8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, "XPBD Solver (Experimental)"));
 }
 
 static void node_register()

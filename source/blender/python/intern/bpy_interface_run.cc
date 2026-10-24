@@ -60,13 +60,9 @@ static void python_script_error_jump_text(Text *text, const char *filepath)
 /**
  * Generate a `filepath` from a text-block so we can tell what file a text block comes from.
  */
-static void bpy_text_filepath_get(char *filepath,
-                                  const size_t filepath_maxncpy,
-                                  const Main *bmain,
-                                  const Text *text)
+static void bpy_text_filepath_get(MutableCStr filepath, const Main *bmain, const Text *text)
 {
-  BLI_string_join_by_sep_char(
-      filepath, filepath_maxncpy, SEP, ID_BLEND_PATH(bmain, &text->id), text->id.name + 2);
+  BLI_string_join_by_sep_char(filepath, SEP, ID_BLEND_PATH(bmain, &text->id), text->id.name + 2);
 }
 
 /**
@@ -152,7 +148,7 @@ static bool python_script_exec(
   PyObject *main_mod = PyC_MainModule_Backup();
 
   if (text) {
-    bpy_text_filepath_get(filepath_dummy, sizeof(filepath_dummy), bmain_old, text);
+    bpy_text_filepath_get(filepath_dummy, bmain_old, text);
     filepath_namespace = filepath_dummy;
 
     if (text->compiled == nullptr) { /* if it wasn't already compiled, do it now */

@@ -315,14 +315,13 @@ static ThumbnailCache::SourceKey get_key_from_strip(const Scene *scene,
     case STRIP_TYPE_IMAGE: {
       const StripElem *s_elem = render_give_stripelem(scene, strip, timeline_frame);
       if (s_elem != nullptr) {
-        BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, s_elem->filename);
+        BLI_path_join(filepath, strip->data->dirpath, s_elem->filename);
         BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
         return ThumbnailCache::SourceKey(filepath);
       }
     } break;
     case STRIP_TYPE_MOVIE:
-      BLI_path_join(
-          filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
+      BLI_path_join(filepath, strip->data->dirpath, strip->data->stripdata->filename);
       BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
       return ThumbnailCache::SourceKey(filepath);
     case STRIP_TYPE_MOVIECLIP:
@@ -884,7 +883,7 @@ void thumbnail_cache_invalidate_strip(Scene *scene, const Strip *strip)
           char filepath[FILE_MAX];
           const char *basepath = ID_BLEND_PATH_FROM_GLOBAL(&scene->id);
           for (int i = 0; i < paths_count; i++, elem++) {
-            BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, elem->filename);
+            BLI_path_join(filepath, strip->data->dirpath, elem->filename);
             BLI_path_abs(filepath, basepath);
             invalidated |= cache->invalidate_entry(ThumbnailCache::SourceKey(filepath));
           }

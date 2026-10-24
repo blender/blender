@@ -869,7 +869,7 @@ static std::optional<std::string> rna_FluidDomainSettings_path(const PointerRNA 
   const ModifierData *md = reinterpret_cast<ModifierData *>(settings->fmd);
   char name_esc[sizeof(md->name) * 2];
 
-  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, md->name);
   return fmt::format("modifiers[\"{}\"].domain_settings", name_esc);
 }
 
@@ -879,7 +879,7 @@ static std::optional<std::string> rna_FluidFlowSettings_path(const PointerRNA *p
   const ModifierData *md = reinterpret_cast<ModifierData *>(settings->fmd);
   char name_esc[sizeof(md->name) * 2];
 
-  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, md->name);
   return fmt::format("modifiers[\"{}\"].flow_settings", name_esc);
 }
 
@@ -889,7 +889,7 @@ static std::optional<std::string> rna_FluidEffectorSettings_path(const PointerRN
   const ModifierData *md = reinterpret_cast<ModifierData *>(settings->fmd);
   char name_esc[sizeof(md->name) * 2];
 
-  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, md->name);
   return fmt::format("modifiers[\"{}\"].effector_settings", name_esc);
 }
 
@@ -1179,7 +1179,7 @@ static void rna_FluidFlow_density_vgroup_set(PointerRNA *ptr, const char *value)
 static void rna_FluidFlow_uvlayer_set(PointerRNA *ptr, const char *value)
 {
   FluidFlowSettings *flow = static_cast<FluidFlowSettings *>(ptr->data);
-  rna_object_uvlayer_name_set(ptr, value, flow->uvlayer_name, sizeof(flow->uvlayer_name));
+  rna_object_uvlayer_name_set(ptr, value, flow->uvlayer_name);
 }
 
 static void rna_Fluid_use_color_ramp_set(PointerRNA *ptr, bool value)

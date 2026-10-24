@@ -14,6 +14,7 @@
 #include "BLI_compiler_compat.hh"
 #include "BLI_math_vector_types.hh"    /* IWYU pragma: export */
 #include "BLI_normalized_int_types.hh" /* IWYU pragma: export */
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.hh"
 
@@ -416,6 +417,6 @@ void GPU_vertformat_attr_rename(GPUVertFormat *format, int attr, const char *new
  * \warning Always add a prefix to the result of this function as
  * the generated string can start with a number and not be a valid attribute name.
  */
-void GPU_vertformat_safe_attr_name(StringRef attr_name, char *r_safe_name, uint max_len);
+void GPU_vertformat_safe_attr_name(StringRef attr_name, MutableCStr r_safe_name);
 
 }  // namespace blender

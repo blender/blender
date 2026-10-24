@@ -131,8 +131,7 @@ static inline bool fluid_is_free_guiding(FluidJob *job)
   return STREQ(job->type, FLUID_JOB_FREE_GUIDES);
 }
 
-static bool fluid_job_init(
-    bContext *C, FluidJob *job, wmOperator *op, char *error_msg, int error_msg_maxncpy)
+static bool fluid_job_init(bContext *C, FluidJob *job, wmOperator *op, MutableCStr error_msg)
 {
   FluidModifierData *fmd = nullptr;
   FluidDomainSettings *fds;
@@ -140,12 +139,12 @@ static bool fluid_job_init(
 
   fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   if (!fmd) {
-    BLI_strncpy_utf8(error_msg, N_("No Fluid modifier found"), error_msg_maxncpy);
+    STRNCPY_UTF8(error_msg, N_("No Fluid modifier found"));
     return false;
   }
   fds = fmd->domain;
   if (!fds) {
-    BLI_strncpy_utf8(error_msg, N_("Invalid domain"), error_msg_maxncpy);
+    STRNCPY_UTF8(error_msg, N_("Invalid domain"));
     return false;
   }
   if (fds->cache_flag & (FLUID_DOMAIN_BAKING_DATA | FLUID_DOMAIN_BAKING_NOISE |
@@ -178,8 +177,8 @@ static bool fluid_validate_paths(FluidJob *job, ReportList *reports)
   /* We do not accept empty paths, they can end in random places silently, see #51176. */
   if (fds->cache_directory[0] == '\0') {
     char cache_name[64];
-    BKE_fluid_cache_new_name_for_current_session(sizeof(cache_name), cache_name);
-    BKE_modifier_path_init(fds->cache_directory, sizeof(fds->cache_directory), cache_name);
+    BKE_fluid_cache_new_name_for_current_session(cache_name);
+    BKE_modifier_path_init(fds->cache_directory, cache_name);
     BKE_reportf(reports,
                 RPT_WARNING,
                 "Fluid: Empty cache path, reset to default '%s'",
@@ -196,8 +195,8 @@ static bool fluid_validate_paths(FluidJob *job, ReportList *reports)
    * continue, this gives user chance to set manually another path. */
   if (!dir_exists) {
     char cache_name[64];
-    BKE_fluid_cache_new_name_for_current_session(sizeof(cache_name), cache_name);
-    BKE_modifier_path_init(fds->cache_directory, sizeof(fds->cache_directory), cache_name);
+    BKE_fluid_cache_new_name_for_current_session(cache_name);
+    BKE_modifier_path_init(fds->cache_directory, cache_name);
 
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -241,7 +240,7 @@ static FluidJob *fluid_job_create(bContext *C, wmOperator *op)
   FluidJob *job = MEM_new_uninitialized<FluidJob>("FluidJob");
   char error_msg[256] = "\0";
 
-  if (!fluid_job_init(C, job, op, error_msg, sizeof(error_msg))) {
+  if (!fluid_job_init(C, job, op, error_msg)) {
     if (error_msg[0]) {
       BKE_report(op->reports, RPT_ERROR, error_msg);
     }
@@ -405,7 +404,7 @@ static void fluid_bake_startjob(void *customdata, wmJobWorkerStatus *worker_stat
   BKE_spacedata_draw_locks(REGION_DRAW_LOCK_BAKING);
 
   if (fluid_is_bake_noise(job) || fluid_is_bake_all(job)) {
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_NOISE);
+    BLI_path_join(temp_dir, fds->cache_directory, FLUID_DOMAIN_DIR_NOISE);
     BLI_path_abs(temp_dir, relbase);
     BLI_dir_create_recursive(temp_dir); /* Create 'noise' subdir if it does not exist already */
     fds->cache_flag &= ~(FLUID_DOMAIN_BAKED_NOISE | FLUID_DOMAIN_OUTDATED_NOISE);
@@ -413,7 +412,7 @@ static void fluid_bake_startjob(void *customdata, wmJobWorkerStatus *worker_stat
     job->pause_frame = &fds->cache_frame_pause_noise;
   }
   if (fluid_is_bake_mesh(job) || fluid_is_bake_all(job)) {
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_MESH);
+    BLI_path_join(temp_dir, fds->cache_directory, FLUID_DOMAIN_DIR_MESH);
     BLI_path_abs(temp_dir, relbase);
     BLI_dir_create_recursive(temp_dir); /* Create 'mesh' subdir if it does not exist already */
     fds->cache_flag &= ~(FLUID_DOMAIN_BAKED_MESH | FLUID_DOMAIN_OUTDATED_MESH);
@@ -421,7 +420,7 @@ static void fluid_bake_startjob(void *customdata, wmJobWorkerStatus *worker_stat
     job->pause_frame = &fds->cache_frame_pause_mesh;
   }
   if (fluid_is_bake_particle(job) || fluid_is_bake_all(job)) {
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_PARTICLES);
+    BLI_path_join(temp_dir, fds->cache_directory, FLUID_DOMAIN_DIR_PARTICLES);
     BLI_path_abs(temp_dir, relbase);
 
     /* Create 'particles' subdir if it does not exist already */
@@ -432,7 +431,7 @@ static void fluid_bake_startjob(void *customdata, wmJobWorkerStatus *worker_stat
     job->pause_frame = &fds->cache_frame_pause_particles;
   }
   if (fluid_is_bake_guiding(job) || fluid_is_bake_all(job)) {
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_GUIDE);
+    BLI_path_join(temp_dir, fds->cache_directory, FLUID_DOMAIN_DIR_GUIDE);
     BLI_path_abs(temp_dir, relbase);
     BLI_dir_create_recursive(temp_dir); /* Create 'guiding' subdir if it does not exist already */
     fds->cache_flag &= ~(FLUID_DOMAIN_BAKED_GUIDE | FLUID_DOMAIN_OUTDATED_GUIDE);
@@ -440,11 +439,11 @@ static void fluid_bake_startjob(void *customdata, wmJobWorkerStatus *worker_stat
     job->pause_frame = &fds->cache_frame_pause_guide;
   }
   if (fluid_is_bake_data(job) || fluid_is_bake_all(job)) {
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_CONFIG);
+    BLI_path_join(temp_dir, fds->cache_directory, FLUID_DOMAIN_DIR_CONFIG);
     BLI_path_abs(temp_dir, relbase);
     BLI_dir_create_recursive(temp_dir); /* Create 'config' subdir if it does not exist already */
 
-    BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_DATA);
+    BLI_path_join(temp_dir, fds->cache_directory, FLUID_DOMAIN_DIR_DATA);
     BLI_path_abs(temp_dir, relbase);
     BLI_dir_create_recursive(temp_dir); /* Create 'data' subdir if it does not exist already */
     fds->cache_flag &= ~(FLUID_DOMAIN_BAKED_DATA | FLUID_DOMAIN_OUTDATED_DATA);
@@ -452,7 +451,7 @@ static void fluid_bake_startjob(void *customdata, wmJobWorkerStatus *worker_stat
     job->pause_frame = &fds->cache_frame_pause_data;
 
     if (fds->flags & FLUID_DOMAIN_EXPORT_MANTA_SCRIPT) {
-      BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT);
+      BLI_path_join(temp_dir, fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT);
       BLI_path_abs(temp_dir, relbase);
       BLI_dir_create_recursive(temp_dir); /* Create 'script' subdir if it does not exist already */
     }

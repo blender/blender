@@ -21,6 +21,7 @@
 #include "BLI_compiler_attrs.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_ustring.hh"
 
@@ -257,11 +258,12 @@ PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifi
 FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier);
 Span<std::unique_ptr<FunctionRNA>> RNA_struct_type_functions(StructRNA *srna);
 
-[[nodiscard]] char *RNA_struct_name_get_alloc_ex(
-    PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len, PropertyRNA **r_nameprop);
+[[nodiscard]] char *RNA_struct_name_get_alloc_ex(PointerRNA *ptr,
+                                                 std::optional<MutableCStr> fixedbuf,
+                                                 int *r_len,
+                                                 PropertyRNA **r_nameprop);
 [[nodiscard]] char *RNA_struct_name_get_alloc(PointerRNA *ptr,
-                                              char *fixedbuf,
-                                              int fixedlen,
+                                              std::optional<MutableCStr> fixedbuf,
                                               int *r_len);
 
 /**
@@ -564,8 +566,7 @@ std::string RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop, char *value);
 char *RNA_property_string_get_alloc(PointerRNA *ptr,
                                     PropertyRNA *prop,
-                                    char *fixedbuf,
-                                    int fixedlen,
+                                    std::optional<MutableCStr> fixedbuf,
                                     int *r_len) ATTR_WARN_UNUSED_RESULT;
 void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *value);
 void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const char *value, int len);
@@ -595,14 +596,10 @@ std::optional<std::string> RNA_property_string_path_filter(const bContext *C,
  * string, when a `get_transform` callback is defined).
  */
 int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop);
-void RNA_property_string_get_default(PointerRNA *ptr,
-                                     PropertyRNA *prop,
-                                     char *value,
-                                     int value_maxncpy);
+void RNA_property_string_get_default(PointerRNA *ptr, PropertyRNA *prop, MutableCStr value);
 char *RNA_property_string_get_default_alloc(PointerRNA *ptr,
                                             PropertyRNA *prop,
-                                            char *fixedbuf,
-                                            int fixedlen,
+                                            std::optional<MutableCStr> fixedbuf,
                                             int *r_len) ATTR_WARN_UNUSED_RESULT;
 /**
  * \return the length without `\0` terminator.
@@ -788,8 +785,7 @@ void RNA_string_get(PointerRNA *ptr, const char *name, char *value);
 std::string RNA_string_get(PointerRNA *ptr, const char *name);
 char *RNA_string_get_alloc(PointerRNA *ptr,
                            const char *name,
-                           char *fixedbuf,
-                           int fixedlen,
+                           std::optional<MutableCStr> fixedbuf,
                            int *r_len) ATTR_WARN_UNUSED_RESULT;
 int RNA_string_length(PointerRNA *ptr, const char *name);
 void RNA_string_set(PointerRNA *ptr, const char *name, const char *value);

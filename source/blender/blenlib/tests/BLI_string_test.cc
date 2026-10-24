@@ -35,7 +35,7 @@ TEST(string, StrCat)
   { \
     char dst[dst_size + 1] = dst_init; \
     dst[dst_size] = 0xff; \
-    BLI_strncat(dst, src, dst_size); \
+    BLI_strncat(MutableCStr(dst, dst_size), src); \
     EXPECT_STREQ(dst, result_expect); \
     EXPECT_EQ(dst[dst_size], 0xff); \
   }
@@ -63,7 +63,7 @@ TEST(string, StrCopyEnsurePad)
     char dst[dst_maxncpy + 5]; \
     memset(dst, 0xff, sizeof(dst)); \
     dst[sizeof(dst) - 1] = '\0'; \
-    BLI_strncpy_ensure_pad(dst, src, '*', dst_maxncpy); \
+    BLI_strncpy_ensure_pad(MutableCStr(dst, dst_maxncpy), src, '*'); \
     EXPECT_STREQ(dst, dst_expect); \
     EXPECT_STREQ(dst + dst_maxncpy, "\xff\xff\xff\xff"); \
   }
@@ -94,7 +94,7 @@ TEST(string, StrReplaceRange)
 #define STR_REPLACE_RANGE(src, size, beg, end, dst, result_expect) \
   { \
     char string[size] = src; \
-    BLI_string_replace_range(string, sizeof(string), beg, end, dst); \
+    BLI_string_replace_range(string, beg, end, dst); \
     EXPECT_STREQ(string, result_expect); \
   }
 
@@ -833,7 +833,8 @@ static void string_join_array_test_truncate(const char *strings[],
                                             int strings_num,
                                             char buffer[BUFFER_SIZE])
 {
-  const int buffer_len = BLI_string_join_array(buffer, BUFFER_SIZE, strings, strings_num);
+  const int buffer_len = BLI_string_join_array(
+      MutableCStr(buffer, BUFFER_SIZE), strings, strings_num);
 
   { /* Ensure the allocated version is the same. */
     char *buffer_alloc = BLI_string_join_arrayN(strings, strings_num);
@@ -843,7 +844,7 @@ static void string_join_array_test_truncate(const char *strings[],
 
   for (int dst_size = buffer_len + 1; dst_size > 0; dst_size--) {
     char dst_tmp[BUFFER_SIZE];
-    int dst_tmp_len = BLI_string_join_array(dst_tmp, dst_size, strings, strings_num);
+    int dst_tmp_len = BLI_string_join_array(MutableCStr(dst_tmp, dst_size), strings, strings_num);
     EXPECT_EQ(dst_tmp_len + 1, dst_size);
     EXPECT_EQ(strncmp(dst_tmp, buffer, dst_tmp_len), 0);
   }
@@ -854,7 +855,7 @@ static void string_join_array_with_sep_char_test_truncate(const char *strings[],
                                                           char buffer[BUFFER_SIZE])
 {
   const int buffer_len = BLI_string_join_array_by_sep_char(
-      buffer, BUFFER_SIZE, '|', strings, strings_num);
+      MutableCStr(buffer, BUFFER_SIZE), '|', strings, strings_num);
 
   { /* Ensure the allocated version is the same. */
     char *buffer_alloc = BLI_string_join_array_by_sep_charN('|', strings, strings_num);
@@ -865,7 +866,7 @@ static void string_join_array_with_sep_char_test_truncate(const char *strings[],
   for (int dst_size = buffer_len + 1; dst_size > 0; dst_size--) {
     char dst_tmp[BUFFER_SIZE];
     int dst_tmp_len = BLI_string_join_array_by_sep_char(
-        dst_tmp, dst_size, '|', strings, strings_num);
+        MutableCStr(dst_tmp, dst_size), '|', strings, strings_num);
     EXPECT_EQ(dst_tmp_len + 1, dst_size);
     EXPECT_EQ(strncmp(dst_tmp, buffer, dst_tmp_len), 0);
   }
@@ -1405,7 +1406,7 @@ class StringEscape : public testing::Test {
       /* Validate the static size is big enough (test the test itself). */
       EXPECT_LT((strlen(item[0]) * 2) + 1, sizeof(dst_test));
       /* Escape the string. */
-      dst_test_len = BLI_str_escape(dst_test, item[0], sizeof(dst_test));
+      dst_test_len = BLI_str_escape(dst_test, item[0]);
       EXPECT_STREQ(dst_test, item[1]);
       EXPECT_EQ(dst_test_len, strlen(dst_test));
       /* Escape back. */
@@ -1479,7 +1480,7 @@ TEST_F(StringEscape, Truncate)
   { \
     char dst[dst_maxncpy + 1]; \
     dst[dst_maxncpy] = 0xff; \
-    size_t len = BLI_str_escape(dst, src, dst_maxncpy); \
+    size_t len = BLI_str_escape(MutableCStr(dst, dst_maxncpy), src); \
     EXPECT_EQ(len, strlen(dst)); \
     EXPECT_STREQ(dst, dst_expect); \
     EXPECT_EQ(dst[dst_maxncpy], 0xff); \
@@ -1528,7 +1529,7 @@ TEST_F(StringEscape, UnescapeTrailingBackslash)
   EXPECT_EQ(dst_len, 2);
 
   bool is_complete;
-  dst_len = BLI_str_unescape_ex(dst, src, 2, sizeof(dst), &is_complete);
+  dst_len = BLI_str_unescape_ex(dst, src, 2, &is_complete);
   EXPECT_STREQ(dst, "A\\");
   EXPECT_EQ(dst_len, 2);
   EXPECT_TRUE(is_complete);
@@ -1556,7 +1557,7 @@ TEST_F(StringEscape, UnescapeLen)
 
   char dst[8];
   bool is_complete;
-  const size_t len = BLI_str_unescape_ex(dst, "AB", 1, sizeof(dst), &is_complete);
+  const size_t len = BLI_str_unescape_ex(dst, "AB", 1, &is_complete);
   EXPECT_STREQ(dst, "A");
   EXPECT_EQ(len, 1);
   EXPECT_TRUE(is_complete);

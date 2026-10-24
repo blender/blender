@@ -69,6 +69,7 @@
 
 #include "BLI_map.hh"
 #include "BLI_path_utils.hh"
+#include "BLI_span.hh"
 #include "BLI_string.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
@@ -433,15 +434,14 @@ Vector<bke::path_templates::Error> BKE_path_validate_template(
  * - Format specifications that don't apply to the type of variable they're
  *   paired with.
  *
- * \param path_maxncpy: The maximum length that template expansion is allowed
- * to make the template-expanded path (in bytes), including the null terminator.
- * In general, this should be the size of the underlying allocation of `path`.
+ * \param path: Template expansion is limited to `path.size()` bytes,
+ * including the null terminator.
  *
  * \return On success, an empty vector. If there are errors, a vector of all
  * errors encountered.
  */
 Vector<bke::path_templates::Error> BKE_path_apply_template(
-    char *path, int path_maxncpy, const bke::path_templates::VariableMap &template_variables);
+    MutableCStr path, const bke::path_templates::VariableMap &template_variables);
 
 /**
  * Like `BKE_path_apply_template()`, but takes a heap-allocated path and may

@@ -437,7 +437,7 @@ static Vector<ColorManagedConfigPath> colormanage_config_candidates_get(const Ma
                                                                     "colormanagement");
   if (configdir.has_value()) {
     char configfile[FILE_MAX];
-    BLI_path_join(configfile, sizeof(configfile), configdir->c_str(), BCM_CONFIG_FILE);
+    BLI_path_join(configfile, configdir->c_str(), BCM_CONFIG_FILE);
     candidates.append({configfile, configfile, ColorManagedConfigSource::Blender});
   }
 
@@ -1424,7 +1424,7 @@ Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace *colorspa
   BLI_path_make_safe_filename(icc_filename);
 
   char icc_filepath[FILE_MAX];
-  BLI_path_join(icc_filepath, sizeof(icc_filepath), dir->c_str(), "icc", icc_filename);
+  BLI_path_join(icc_filepath, dir->c_str(), "icc", icc_filename);
 
   icc_profile = imb_icc_profile_from_filepath(icc_filepath);
   if (icc_profile.is_empty()) {

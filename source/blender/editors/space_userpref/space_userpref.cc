@@ -215,7 +215,7 @@ bUserAssetLibrary *ED_userpref_asset_library_new(const bContext *C,
       STRNCPY(final_dirpath, dirpath);
       BLI_path_slash_rstrip(final_dirpath);
       if (!final_name[0]) {
-        BLI_path_split_file_part(final_dirpath, final_name, sizeof(final_name));
+        BLI_path_split_file_part(final_dirpath, final_name);
       }
       if (!final_name[0]) {
         STRNCPY(final_name, DATA_("Local Asset Library"));

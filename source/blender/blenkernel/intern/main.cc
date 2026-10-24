@@ -487,12 +487,12 @@ void BKE_main_merge(Main *bmain_dst,
    * absolute if destination bmain has no filepath. */
   if (bmain_src->filepath[0] != '\0') {
     char dir_src[FILE_MAXDIR];
-    BLI_path_split_dir_part(bmain_src->filepath, dir_src, sizeof(dir_src));
+    BLI_path_split_dir_part(bmain_src->filepath, dir_src);
     BLI_path_normalize_native(dir_src);
 
     if (bmain_dst->filepath[0] != '\0') {
       char dir_dst[FILE_MAXDIR];
-      BLI_path_split_dir_part(bmain_dst->filepath, dir_dst, sizeof(dir_dst));
+      BLI_path_split_dir_part(bmain_dst->filepath, dir_dst);
       BLI_path_normalize_native(dir_dst);
       BKE_bpath_relative_rebase(bmain_src, dir_src, dir_dst, reports.reports);
     }

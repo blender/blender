@@ -219,8 +219,7 @@ void add_image_init_alpha_mode(Main *bmain, Scene *scene, Strip *strip)
     char filepath[FILE_MAX];
     ImBuf *ibuf;
 
-    BLI_path_join(
-        filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
+    BLI_path_join(filepath, strip->data->dirpath, strip->data->stripdata->filename);
     BLI_path_abs(filepath, ID_BLEND_PATH(bmain, &scene->id));
 
     /* Initialize input color space. */
@@ -335,8 +334,7 @@ Strip *add_sound_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
   /* We only need 1 element to store the filename. */
   StripElem *se = data->stripdata = MEM_new<StripElem>("stripelem");
   data->stripdata_num = 1;
-  BLI_path_split_dir_file(
-      load_data->path, data->dirpath, sizeof(data->dirpath), se->filename, sizeof(se->filename));
+  BLI_path_split_dir_file(load_data->path, data->dirpath, se->filename);
 
   if (strip->sound != nullptr) {
     if (load_data->flags & SEQ_LOAD_SOUND_MONO) {
@@ -418,7 +416,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
       for (int i = 0; i < totfiles; i++) {
         char filepath_view[FILE_MAX];
 
-        seq_multiview_name(scene, i, prefix, ext, filepath_view, sizeof(filepath_view));
+        seq_multiview_name(scene, i, prefix, ext, filepath_view);
         /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
          * kept unchanged for the performance reasons. */
         anim_arr[j].reset(
@@ -511,8 +509,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
   data->stripdata->orig_width = orig_width;
   data->stripdata->orig_height = orig_height;
   data->stripdata->orig_fps = video_fps;
-  BLI_path_split_dir_file(
-      load_data->path, data->dirpath, sizeof(data->dirpath), se->filename, sizeof(se->filename));
+  BLI_path_split_dir_file(load_data->path, data->dirpath, se->filename);
 
   strip_add_set_view_transform(scene, strip, load_data);
   strip_add_set_name(scene, strip, load_data);

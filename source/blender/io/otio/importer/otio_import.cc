@@ -228,8 +228,7 @@ static Strip *clip_to_strip(StripImportContext &ctx,
       return seq::add_movie_strip(ctx.bmain, ctx.scene, &seqbase, &load_data);
     }
     char dirpath[FILE_MAX], filename[FILE_MAXFILE];
-    BLI_path_split_dir_file(
-        filepath.c_str(), dirpath, sizeof(dirpath), filename, sizeof(filename));
+    BLI_path_split_dir_file(filepath.c_str(), dirpath, filename);
     load_data.start_frame = start;
     return add_image_strip(ctx, seqbase, load_data, dirpath, {filename});
   }
@@ -239,7 +238,6 @@ static Strip *clip_to_strip(StripImportContext &ctx,
     for (const int i : IndexRange(sequence->number_of_images_in_sequence())) {
       char filename[FILE_MAX];
       BLI_path_sequence_encode(filename,
-                               sizeof(filename),
                                sequence->name_prefix().c_str(),
                                sequence->name_suffix().c_str(),
                                sequence->frame_zero_padding(),

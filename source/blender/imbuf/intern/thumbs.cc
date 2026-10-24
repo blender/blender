@@ -166,21 +166,20 @@ static const char hex[17] = "0123456789abcdef";
 /* NOTE: This escape function works on file: URIs, but if you want to
  * escape something else, please read RFC-2396 */
 static void escape_uri_string(const char *string,
-                              char *escaped_string,
-                              const int escaped_string_size,
+                              MutableCStr escaped_string,
                               const eUnsafeCharacterSet mask)
 {
 #define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a) - 32] & mask))
 
-  BLI_assert(escaped_string_size > 0);
+  BLI_assert(escaped_string.size() > 0);
   /* Remove space for \0. */
-  int escaped_string_len = escaped_string_size - 1;
+  int escaped_string_len = escaped_string.size() - 1;
 
   const char *p;
   char *q;
   int c;
 
-  for (q = escaped_string, p = string; (*p != '\0') && escaped_string_len; p++) {
+  for (q = escaped_string.data(), p = string; (*p != '\0') && escaped_string_len; p++) {
     c = uchar(*p);
 
     if (!ACCEPTABLE(c)) {
@@ -226,7 +225,7 @@ static bool uri_from_filepath(const char *path, char *uri)
   char path_unc_normalized[FILE_MAX];
   if (path_is_unc) {
     STRNCPY(path_unc_normalized, path);
-    BLI_path_normalize_unc(path_unc_normalized, sizeof(path_unc_normalized));
+    BLI_path_normalize_unc(path_unc_normalized);
     path = path_unc_normalized;
     /* Assign again because a normalized UNC path may resolve to a drive letter. */
     path_is_unc = BLI_path_is_unc(path);
@@ -250,23 +249,20 @@ static bool uri_from_filepath(const char *path, char *uri)
   SNPRINTF(orig_uri, "file://%s", path);
 #endif
 
-  escape_uri_string(orig_uri, uri, URI_MAX, UNSAFE_PATH);
+  escape_uri_string(orig_uri, MutableCStr(uri, URI_MAX), UNSAFE_PATH);
 
   return true;
 }
 
 static bool thumbpathname_from_uri(const char *uri,
-                                   char *r_path,
-                                   const int path_maxncpy,
-                                   char *r_name,
-                                   int name_maxncpy,
+                                   std::optional<MutableCStr> r_path,
+                                   std::optional<MutableCStr> r_name,
                                    ThumbSize size)
 {
   char name_buff[40];
 
   if (r_path && !r_name) {
     r_name = name_buff;
-    name_maxncpy = sizeof(name_buff);
   }
 
   if (r_name) {
@@ -274,7 +270,7 @@ static bool thumbpathname_from_uri(const char *uri,
     uchar digest[16];
     BLI_hash_md5_buffer(uri, strlen(uri), digest);
     hexdigest[0] = '\0';
-    BLI_snprintf(r_name, name_maxncpy, "%s.png", BLI_hash_md5_to_hexdigest(digest, hexdigest));
+    SNPRINTF(*r_name, "%s.png", BLI_hash_md5_to_hexdigest(digest, hexdigest));
     //      printf("%s: '%s' --> '%s'\n", __func__, uri, r_name);
   }
 
@@ -282,7 +278,7 @@ static bool thumbpathname_from_uri(const char *uri,
     char tmppath[FILE_MAX];
 
     if (get_thumb_dir(tmppath, size)) {
-      BLI_snprintf(r_path, path_maxncpy, "%s%s", tmppath, r_name);
+      SNPRINTF(*r_path, "%s%s", tmppath, r_name->data());
       //          printf("%s: '%s' --> '%s'\n", __func__, uri, r_path);
       return true;
     }
@@ -290,14 +286,14 @@ static bool thumbpathname_from_uri(const char *uri,
   return false;
 }
 
-static void thumbname_from_uri(const char *uri, char *thumb, const int thumb_maxncpy)
+static void thumbname_from_uri(const char *uri, MutableCStr thumb)
 {
-  thumbpathname_from_uri(uri, nullptr, 0, thumb, thumb_maxncpy, THB_FAIL);
+  thumbpathname_from_uri(uri, std::nullopt, thumb, THB_FAIL);
 }
 
-static bool thumbpath_from_uri(const char *uri, char *path, const int path_maxncpy, ThumbSize size)
+static bool thumbpath_from_uri(const char *uri, MutableCStr path, ThumbSize size)
 {
-  return thumbpathname_from_uri(uri, path, path_maxncpy, nullptr, 0, size);
+  return thumbpathname_from_uri(uri, path, std::nullopt, size);
 }
 
 void IMB_thumb_makedirs()
@@ -534,7 +530,7 @@ static bool skip_thumbnails_for_filepath(const char *filepath)
     return false;
   }
   char temp_dir[FILE_MAX];
-  BLI_temp_directory_path_get(temp_dir, sizeof(temp_dir));
+  BLI_temp_directory_path_get(temp_dir);
   return BLI_path_contains(temp_dir, filepath);
 }
 
@@ -558,7 +554,7 @@ ImBuf *IMB_thumb_create(const char *filepath, ThumbSize size, ThumbSource source
   if (!uri_from_filepath(filepath, uri)) {
     return nullptr;
   }
-  thumbname_from_uri(uri, thumb_name, sizeof(thumb_name));
+  thumbname_from_uri(uri, thumb_name);
 
   return thumb_create_ex(
       filepath, uri, thumb_name, false, THUMB_DEFAULT_HASH, nullptr, nullptr, size, source, img);
@@ -573,7 +569,7 @@ ImBuf *IMB_thumb_read(const char *file_or_lib_path, ThumbSize size)
   if (!uri_from_filepath(file_or_lib_path, uri)) {
     return nullptr;
   }
-  if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
+  if (thumbpath_from_uri(uri, thumb, size)) {
     img = IMB_load_image_from_filepath(thumb, ImBufFlags::ByteData | ImBufFlags::Metadata);
   }
 
@@ -588,7 +584,7 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size)
   if (!uri_from_filepath(file_or_lib_path, uri)) {
     return;
   }
-  if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
+  if (thumbpath_from_uri(uri, thumb, size)) {
     if (BLI_path_ncmp(file_or_lib_path, thumb, sizeof(thumb)) == 0) {
       return;
     }
@@ -663,14 +659,14 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
   const eFileAttributes file_attributes = BLI_file_attributes(file_path);
   if (file_attributes & FILE_ATTR_OFFLINE) {
     char thumb_path[FILE_MAX];
-    if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), size)) {
+    if (thumbpath_from_uri(uri, thumb_path, size)) {
       return IMB_load_image_from_filepath(thumb_path, ImBufFlags::ByteData | ImBufFlags::Metadata);
     }
     return nullptr;
   }
 
   char thumb_path[FILE_MAX];
-  if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), THB_FAIL)) {
+  if (thumbpath_from_uri(uri, thumb_path, THB_FAIL)) {
     /* failure thumb exists, don't try recreating */
     if (BLI_exists(thumb_path)) {
       /* clear out of date fail case (note for blen IDs we use blender file itself here) */
@@ -685,9 +681,7 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
 
   ImBuf *img = nullptr;
   char thumb_name[40];
-  if (thumbpathname_from_uri(
-          uri, thumb_path, sizeof(thumb_path), thumb_name, sizeof(thumb_name), size))
-  {
+  if (thumbpathname_from_uri(uri, thumb_path, thumb_name, size)) {
     /* The requested path points to a generated thumbnail already (path into the thumbnail cache
      * directory). Attempt to load that, there's nothing we can recreate. */
     if (BLI_path_ncmp(file_or_lib_path, thumb_path, sizeof(thumb_path)) == 0) {
@@ -704,7 +698,7 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
 
         const bool use_hash = thumbhash_from_path(file_path, source, thumb_hash);
 
-        if (IMB_metadata_get_field(img->metadata(), "Thumb::MTime", mtime, sizeof(mtime))) {
+        if (IMB_metadata_get_field(img->metadata(), "Thumb::MTime", mtime)) {
           regenerate = (st.st_mtime != atol(mtime));
         }
         else {
@@ -713,9 +707,7 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
         }
 
         if (use_hash && !regenerate) {
-          if (IMB_metadata_get_field(
-                  img->metadata(), "X-Blender::Hash", thumb_hash_curr, sizeof(thumb_hash_curr)))
-          {
+          if (IMB_metadata_get_field(img->metadata(), "X-Blender::Hash", thumb_hash_curr)) {
             regenerate = !STREQ(thumb_hash, thumb_hash_curr);
           }
           else {

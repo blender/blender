@@ -174,7 +174,7 @@ class OTIOTest : public BlendfileLoadingBaseTest {
   std::string asset_path(const char *relative_path)
   {
     char path[FILE_MAX];
-    BLI_path_join(path, sizeof(path), tests::flags_test_asset_dir().c_str(), relative_path);
+    BLI_path_join(path, tests::flags_test_asset_dir().c_str(), relative_path);
     return path;
   }
 

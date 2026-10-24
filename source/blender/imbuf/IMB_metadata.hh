@@ -10,6 +10,8 @@
 
 #include <cstddef>
 
+#include "BLI_span.hh"
+
 namespace blender {
 
 struct IDProperty;
@@ -39,13 +41,9 @@ void IMB_metadata_free(IDProperty *metadata);
  * \param key: the key of the field
  * \param value: the data in the field, first one found with key is returned,
  * memory has to be allocated by user.
- * \param value_maxncpy: length of value buffer allocated by user.
  * \return 1 (true) if metadata is present and value for the key found, 0 (false) otherwise.
  */
-bool IMB_metadata_get_field(const IDProperty *metadata,
-                            const char *key,
-                            char *value,
-                            size_t value_maxncpy);
+bool IMB_metadata_get_field(const IDProperty *metadata, const char *key, MutableCStr value);
 
 /**
  * Set user data in the metadata.

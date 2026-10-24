@@ -738,7 +738,7 @@ static bool can_delete_fcurve(FCurve *fcu, Object *ob)
     /* Get bone-name, and check if this bone is selected. */
     bPoseChannel *pchan = nullptr;
     char bone_name[sizeof(pchan->name)];
-    if (BLI_str_quoted_substr(rna_path.c_str(), "pose.bones[", bone_name, sizeof(bone_name))) {
+    if (BLI_str_quoted_substr(rna_path.c_str(), "pose.bones[", bone_name)) {
       pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
       /* Delete if bone is selected. */
       if ((pchan) && (pchan->bone_get(*ob))) {
@@ -986,9 +986,7 @@ static bool can_delete_key(FCurve *fcu, Object *ob, ReportList *reports)
 
     /* Get bone-name, and check if this bone is selected. */
     char bone_name[sizeof(pchan->name)];
-    if (!BLI_str_quoted_substr(
-            fcu->rna_path().c_str(), "pose.bones[", bone_name, sizeof(bone_name)))
-    {
+    if (!BLI_str_quoted_substr(fcu->rna_path().c_str(), "pose.bones[", bone_name)) {
       return false;
     }
     pchan = BKE_pose_channel_find_name(ob->pose, bone_name);

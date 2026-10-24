@@ -628,7 +628,7 @@ static bNodeTree *add_realize_node_tree(Main *bmain)
 static void strip_speed_factor_fix_rna_path(Strip *strip, ListBaseT<FCurve> *fcurves)
 {
   char name_esc[(sizeof(strip->name) - 2) * 2];
-  BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
+  BLI_str_escape(name_esc, strip->name + 2);
   char *path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].pitch", name_esc);
   FCurve *fcu = BKE_fcurve_find(fcurves, path, 0);
   if (fcu != nullptr) {
@@ -1268,7 +1268,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
     /* Ensure tiled image sources contain a UDIM token. */
     for (Image &ima : bmain->images) {
       if (ima.source == IMA_SRC_TILED) {
-        BKE_image_ensure_tile_token(ima.filepath, sizeof(ima.filepath));
+        BKE_image_ensure_tile_token(ima.filepath);
       }
     }
   }
@@ -1381,8 +1381,7 @@ static void version_switch_node_input_prefix(Main *bmain)
             /* Replace "A" and "B", but keep the unique number suffix at the end. */
             char number_suffix[8];
             STRNCPY_UTF8(number_suffix, socket.identifier + 1);
-            BLI_string_join(
-                socket.identifier, sizeof(socket.identifier), socket.name, number_suffix);
+            BLI_string_join(socket.identifier, socket.name, number_suffix);
           }
         }
       }
@@ -1886,7 +1885,7 @@ static void version_liboverride_rnacollections_insertion_object(Object *object)
     for (bPoseChannel &pchan : object->pose->chanbase) {
       char rna_path[26 + (sizeof(pchan.name) * 2) + 1];
       char name_esc[sizeof(pchan.name) * 2];
-      BLI_str_escape(name_esc, pchan.name, sizeof(name_esc));
+      BLI_str_escape(name_esc, pchan.name);
       SNPRINTF_UTF8(rna_path, "pose.bones[\"%s\"].constraints", name_esc);
       op = BKE_lib_override_library_property_find(liboverride, rna_path);
       if (op != nullptr) {
@@ -2061,7 +2060,7 @@ static void version_liboverride_nla_strip_frame_start_end(IDOverrideLibrary *lib
 
   /* Escape the strip name for inclusion in the RNA path. */
   char name_esc_strip[sizeof(strip->name) * 2];
-  BLI_str_escape(name_esc_strip, strip->name, sizeof(name_esc_strip));
+  BLI_str_escape(name_esc_strip, strip->name);
 
   const std::string rna_path_strip = std::string(parent_rna_path) + ".strips[\"" + name_esc_strip +
                                      "\"]";

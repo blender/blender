@@ -2037,8 +2037,7 @@ static bool jump_to_target_button(bContext *C, bool poll)
         auto *coll_search = static_cast<RNACollectionSearch *>(search_but->arg.get());
 
         char str_buf[MAXBONENAME];
-        char *str_ptr = RNA_property_string_get_alloc(
-            &ptr, prop, str_buf, sizeof(str_buf), nullptr);
+        char *str_ptr = RNA_property_string_get_alloc(&ptr, prop, str_buf, nullptr);
 
         bool found = false;
         /* Jump to target only works with search properties currently, not search callbacks yet.

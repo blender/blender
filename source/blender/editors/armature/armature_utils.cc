@@ -266,7 +266,7 @@ EditBone *ED_armature_ebone_get_mirrored(const ListBaseT<EditBone> *edbo, EditBo
     return nullptr;
   }
 
-  BLI_string_flip_side_name(name_flip, ebo->name, false, sizeof(name_flip));
+  BLI_string_flip_side_name(name_flip, ebo->name, false);
 
   if (!STREQ(name_flip, ebo->name)) {
     return ED_armature_ebone_find_name(edbo, name_flip);

@@ -35,7 +35,7 @@ std::string resolve_directory_path(StringRef directory)
   bke::BlenderProject *project = BKE_blender_project_get(G_MAIN);
   BKE_add_template_variables_general(template_variables, nullptr, project);
   const Vector<path_templates::Error> variable_errors = BKE_path_apply_template(
-      dir_resolved, sizeof(dir_resolved), template_variables);
+      dir_resolved, template_variables);
   if (!variable_errors.is_empty()) {
     /* Do nothing on errors as the "dir_normalized" variable should still contain the original
      * string. The reset of the code should still gracefully treat this as an invalid path.
@@ -43,7 +43,7 @@ std::string resolve_directory_path(StringRef directory)
      */
   }
   BLI_path_slash_native(dir_resolved);
-  BLI_path_normalize_dir(dir_resolved, sizeof(dir_resolved));
+  BLI_path_normalize_dir(dir_resolved);
   return std::string(dir_resolved);
 }
 
@@ -66,7 +66,7 @@ std::string resolve_path(StringRefNull path, int64_t max_len)
   bke::BlenderProject *project = BKE_blender_project_get(G_MAIN);
   BKE_add_template_variables_general(template_variables, nullptr, project);
   const Vector<path_templates::Error> variable_errors = BKE_path_apply_template(
-      buf, sizeof(buf), template_variables);
+      buf, template_variables);
   if (!variable_errors.is_empty()) {
     /* Do nothing on errors as the "dir_normalized" variable should still contain the original
      * string. The reset of the code should still gracefully treat this as an invalid path.

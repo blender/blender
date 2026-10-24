@@ -28,7 +28,7 @@ void PyC_ObSpit(const char *name, PyObject *var);
  * A version of #PyC_ObSpit that writes into a string (and doesn't take a name argument).
  * Use for logging.
  */
-void PyC_ObSpitStr(char *result, size_t result_maxncpy, PyObject *var);
+void PyC_ObSpitStr(MutableCStr result, PyObject *var);
 void PyC_LineSpit();
 void PyC_StackSpit();
 

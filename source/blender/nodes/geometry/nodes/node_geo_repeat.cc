@@ -118,12 +118,9 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = data;
 }
 
-static void node_label(const bNodeTree * /*ntree*/,
-                       const bNode * /*node*/,
-                       char *label,
-                       const int label_maxncpy)
+static void node_label(const bNodeTree * /*ntree*/, const bNode * /*node*/, MutableCStr label)
 {
-  BLI_strncpy_utf8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, "Repeat"), label_maxncpy);
+  STRNCPY_UTF8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, "Repeat"));
 }
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)

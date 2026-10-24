@@ -460,7 +460,8 @@ void RE_render_result_full_channel_name(char *fullname,
     strings[strings_len++] = token;
   }
 
-  BLI_string_join_array_by_sep_char(fullname, EXR_PASS_MAXNAME, '.', strings, strings_len);
+  BLI_string_join_array_by_sep_char(
+      MutableCStr(fullname, EXR_PASS_MAXNAME), '.', strings, strings_len);
 }
 
 static int passtype_from_name(const char *name)
@@ -921,9 +922,7 @@ bool render_result_exr_file_read_path(RenderResult *rr,
 
 #define FILE_CACHE_MAX (FILE_MAXDIR + FILE_MAXFILE + MAX_ID_NAME + 100)
 
-static void render_result_exr_file_cache_path(Scene *sce,
-                                              const char *root,
-                                              char r_path[FILE_CACHE_MAX])
+static void render_result_exr_file_cache_path(Scene *sce, const char *root, MutableCStr r_path)
 {
   char filename_full[FILE_MAXFILE + MAX_ID_NAME + 100];
   char filename[FILE_MAXFILE];
@@ -934,7 +933,7 @@ static void render_result_exr_file_cache_path(Scene *sce,
   /* If root is relative, use either current .blend file dir, or temp one if not saved. */
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   if (blendfile_path[0] != '\0') {
-    BLI_path_split_dir_file(blendfile_path, dirname, sizeof(dirname), filename, sizeof(filename));
+    BLI_path_split_dir_file(blendfile_path, dirname, filename);
     BLI_path_extension_strip(filename); /* Strip `.blend`. */
     BLI_hash_md5_buffer(blendfile_path, strlen(blendfile_path), path_digest);
   }
@@ -962,7 +961,7 @@ static void render_result_exr_file_cache_path(Scene *sce,
    */
   SNPRINTF(filename_full, "cached_RR_%s_%s_%s.exr", filename, sce->id.name + 2, path_hexdigest);
 
-  BLI_path_join(r_path, FILE_CACHE_MAX, root, filename_full);
+  BLI_path_join(r_path, root, filename_full);
 }
 
 void render_result_exr_file_cache_write(Render *re)

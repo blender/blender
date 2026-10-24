@@ -101,7 +101,7 @@ static void applyNormalRotation(TransInfo *t)
         tc->custom.mode.data);
     BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
 
-    headerRotation(t, str, sizeof(str), angle);
+    headerRotation(t, str, angle);
 
     for (int i = 0; i < lnors_ed_arr->totloop; i++, lnor_ed++) {
       mul_v3_m3v3(lnor_ed->nloc, mat, lnor_ed->niloc);

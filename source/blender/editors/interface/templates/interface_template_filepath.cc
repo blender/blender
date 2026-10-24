@@ -65,7 +65,7 @@ static bool path_split_get(PointerRNA &ptr,
                                   BLI_path_slash_is_native_compat(path[path_len - 1]);
 
   BLI_path_slash_rstrip(path);
-  BLI_path_split_dir_file(path, r_dir, sizeof(r_dir), r_name, sizeof(r_name));
+  BLI_path_split_dir_file(path, r_dir, r_name);
   return has_trailing_slash;
 }
 
@@ -86,15 +86,15 @@ static void path_split_edit_apply(bContext *C, void *argN, void * /*arg2*/)
 
   char new_path[FILE_MAX];
   if (edit->part == PathSplitEdit::Part::Name) {
-    BLI_path_join(new_path, sizeof(new_path), dir, edit->text);
+    BLI_path_join(new_path, dir, edit->text);
   }
   else {
-    BLI_path_join(new_path, sizeof(new_path), edit->text, name);
+    BLI_path_join(new_path, edit->text, name);
   }
 
   /* Preserve trailing slash, as used for directory paths. */
   if (has_trailing_slash) {
-    BLI_path_slash_ensure(new_path, sizeof(new_path));
+    BLI_path_slash_ensure(new_path);
   }
 
   RNA_property_string_set(&edit->ptr, edit->prop, new_path);

@@ -639,7 +639,7 @@ static void request_attribute(Curves &curves, const StringRef name)
 void drw_curves_get_attribute_sampler_name(const StringRef layer_name, char r_sampler_name[32])
 {
   char attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-  GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+  GPU_vertformat_safe_attr_name(layer_name, attr_safe_name);
   /* Attributes use auto-name. */
   BLI_snprintf_utf8(r_sampler_name, 32, "a%s", attr_safe_name);
 }

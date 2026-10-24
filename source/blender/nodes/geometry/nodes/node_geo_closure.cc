@@ -108,12 +108,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .custom_draw(socket_items::ui::draw_extend_socket_fn<ClosureInputItemsAccessor>());
 }
 
-static void node_label(const bNodeTree * /*ntree*/,
-                       const bNode * /*node*/,
-                       char *label,
-                       const int label_maxncpy)
+static void node_label(const bNodeTree * /*ntree*/, const bNode * /*node*/, MutableCStr label)
 {
-  BLI_strncpy_utf8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, "Closure"), label_maxncpy);
+  STRNCPY_UTF8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, "Closure"));
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

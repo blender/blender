@@ -298,8 +298,7 @@ class OBJExportRegressionTest : public OBJExportTest {
     STRNCPY(params.filepath, out_file_path.c_str());
     params.blen_filepath = bfile->main->filepath;
     std::string golden_file_path = tests::flags_test_asset_dir() + SEP_STR + golden_obj;
-    BLI_path_split_dir_part(
-        golden_file_path.c_str(), params.file_base_for_tests, sizeof(params.file_base_for_tests));
+    BLI_path_split_dir_part(golden_file_path.c_str(), params.file_base_for_tests);
     export_frame(depsgraph, params, out_file_path.c_str());
     std::string output_str = read_temp_file_in_string(out_file_path);
 

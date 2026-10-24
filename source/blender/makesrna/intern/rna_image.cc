@@ -427,7 +427,7 @@ static void rna_UDIMTile_label_get(PointerRNA *ptr, char *value)
 
   /* Pass in a fixed size buffer as the value may be allocated based on the callbacks length. */
   char value_buf[sizeof(tile->label)];
-  int len = BKE_image_get_tile_label(image, tile, value_buf, sizeof(tile->label));
+  int len = BKE_image_get_tile_label(image, tile, value_buf);
   memcpy(value, value_buf, len + 1);
 }
 
@@ -437,7 +437,7 @@ static int rna_UDIMTile_label_length(PointerRNA *ptr)
   const Image *image = id_cast<Image *>(ptr->owner_id);
 
   char label[sizeof(tile->label)];
-  return BKE_image_get_tile_label(image, tile, label, sizeof(label));
+  return BKE_image_get_tile_label(image, tile, label);
 }
 
 static void rna_UDIMTile_tile_number_set(PointerRNA *ptr, int value)

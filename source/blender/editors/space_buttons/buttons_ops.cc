@@ -236,7 +236,7 @@ static wmOperatorStatus file_browse_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  path = RNA_string_get_alloc(op->ptr, path_prop, nullptr, 0, nullptr);
+  path = RNA_string_get_alloc(op->ptr, path_prop, std::nullopt, nullptr);
 
   if (path[0]) {
     /* Check relative paths are supported here as this option will be hidden
@@ -261,7 +261,7 @@ static wmOperatorStatus file_browse_exec(bContext *C, wmOperator *op)
       }
 
       if (prop_subtype == PROP_DIRPATH) {
-        BLI_path_slash_ensure(path_buf, sizeof(path_buf));
+        BLI_path_slash_ensure(path_buf);
       }
 
       if (make_relative) {
@@ -332,7 +332,7 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
     return OPERATOR_CANCELLED;
   }
 
-  path = RNA_property_string_get_alloc(&ptr, prop, nullptr, 0, nullptr);
+  path = RNA_property_string_get_alloc(&ptr, prop, std::nullopt, nullptr);
 
   if ((RNA_property_flag(prop) & PROP_PATH_SUPPORTS_TEMPLATES) != 0) {
     const std::optional<bke::path_templates::VariableMap> variables =
@@ -426,10 +426,10 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
         STRNCPY(fonts_path, U.fontdir);
         /* The file selector will expand the blend-file relative prefix. */
       }
-      else if (!BKE_appdir_font_folder_default(fonts_path, ARRAY_SIZE(fonts_path))) {
+      else if (!BKE_appdir_font_folder_default(fonts_path)) {
         STRNCPY(fonts_path, BKE_appdir_folder_default_or_root());
       }
-      BLI_path_slash_ensure(fonts_path, ARRAY_SIZE(fonts_path));
+      BLI_path_slash_ensure(fonts_path);
       MEM_delete(path);
       path = BLI_strdup(fonts_path);
     }
@@ -439,7 +439,7 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
     /* Find a reasonable folder to start in if none found. */
     char default_path[FILE_MAX] = {0};
     STRNCPY(default_path, BKE_appdir_folder_default_or_root());
-    BLI_path_slash_ensure(default_path, ARRAY_SIZE(default_path));
+    BLI_path_slash_ensure(default_path);
     MEM_delete(path);
     path = BLI_strdup(default_path);
   }

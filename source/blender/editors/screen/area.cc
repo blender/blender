@@ -3243,7 +3243,7 @@ static void ed_panel_draw(const bContext *C,
   char block_name[BKE_ST_MAXNAME + INSTANCED_PANEL_UNIQUE_STR_SIZE];
   if (unique_panel_str) {
     /* Instanced panels should have already been added at this point. */
-    BLI_string_join(block_name, sizeof(block_name), pt->idname, unique_panel_str);
+    BLI_string_join(block_name, pt->idname, unique_panel_str);
   }
   else {
     STRNCPY_UTF8(block_name, pt->idname);

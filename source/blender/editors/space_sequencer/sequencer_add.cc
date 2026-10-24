@@ -568,8 +568,7 @@ static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, 
       RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
         std::string filename = RNA_string_get(&itemptr, "name");
         STRNCPY(load_data->name, filename.c_str());
-        BLI_path_join(
-            load_data->path, sizeof(load_data->path), directory.c_str(), filename.c_str());
+        BLI_path_join(load_data->path, directory.c_str(), filename.c_str());
         break;
       }
       RNA_PROP_END;
@@ -1420,7 +1419,7 @@ static VectorSet<Strip *> sequencer_add_movie_strips(bContext *C,
       char file_only[FILE_MAX];
       RNA_string_get(op->ptr, "directory", dir_only);
       RNA_string_get(&itemptr, "name", file_only);
-      BLI_path_join(load_data->path, sizeof(load_data->path), dir_only, file_only);
+      BLI_path_join(load_data->path, dir_only, file_only);
       STRNCPY(load_data->name, file_only);
       sequencer_add_movie_strips_single_file(C, op, load_data, strips_added, has_overlap);
     }
@@ -1585,7 +1584,7 @@ static void sequencer_add_sound_multiple_strips(bContext *C,
     char file_only[FILE_MAX];
     RNA_string_get(op->ptr, "directory", dir_only);
     RNA_string_get(&itemptr, "name", file_only);
-    BLI_path_join(load_data->path, sizeof(load_data->path), dir_only, file_only);
+    BLI_path_join(load_data->path, dir_only, file_only);
     STRNCPY(load_data->name, file_only);
     Strip *strip = seq::add_sound_strip(bmain, scene, ed->current_strips(), load_data);
     if (strip == nullptr) {
@@ -1717,16 +1716,15 @@ void SEQUENCER_OT_sound_strip_add(wmOperatorType *ot)
 /** \name Add Image Strip
  * \{ */
 
-void frame_filename_set(char *dst,
-                        size_t dst_maxncpy,
+void frame_filename_set(MutableCStr dst,
                         const char *filename_stripped,
                         const int frame,
                         const int numdigits,
                         const char *ext)
 {
-  BLI_strncpy(dst, filename_stripped, dst_maxncpy);
-  BLI_path_frame(dst, dst_maxncpy, frame, numdigits);
-  BLI_path_extension_ensure(dst, dst_maxncpy, ext);
+  STRNCPY(dst, filename_stripped);
+  BLI_path_frame(dst, frame, numdigits);
+  BLI_path_extension_ensure(dst, ext);
 }
 
 static void sequencer_add_image_strip_load_files(wmOperator *op,
@@ -1742,22 +1740,21 @@ static void sequencer_add_image_strip_load_files(wmOperator *op,
 
   char ext[FILE_MAX];
   char filename_stripped[FILE_MAX];
-  BLI_path_split_file_part(load_data->path, filename_stripped, sizeof(filename_stripped));
-  BLI_path_frame_strip(filename_stripped, ext, sizeof(ext));
+  BLI_path_split_file_part(load_data->path, filename_stripped);
+  BLI_path_frame_strip(filename_stripped, ext);
 
   StripElem *se = strip->data->stripdata;
   const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
   if (use_placeholders) {
     for (int i = range->offset; i < range->max_framenr + 1; i++, se++) {
-      frame_filename_set(se->filename, sizeof(se->filename), filename_stripped, i, numdigits, ext);
+      frame_filename_set(se->filename, filename_stripped, i, numdigits, ext);
     }
   }
   else {
     size_t strip_frame = 0;
     for (ImageFrame &frame : range->frames) {
       char filename[FILE_MAX];
-      frame_filename_set(
-          filename, sizeof(filename), filename_stripped, frame.framenr, numdigits, ext);
+      frame_filename_set(filename, filename_stripped, frame.framenr, numdigits, ext);
       seq::add_image_load_file(scene, strip, strip_frame, filename);
       strip_frame++;
     }
@@ -1788,7 +1785,7 @@ static bool sequencer_add_image_sequence_force(bContext *C,
 
   Strip *strip = seq::add_image_strip(bmain, scene, ed->current_strips(), &load_data);
   char dirpath[sizeof(strip->data->dirpath)];
-  BLI_path_split_dir_part(load_data.path, dirpath, sizeof(dirpath));
+  BLI_path_split_dir_part(load_data.path, dirpath);
   seq::add_image_set_directory(strip, dirpath);
 
   int i = 0;
@@ -1828,12 +1825,12 @@ static bool sequencer_add_images(bContext *C, wmOperator *op, seq::LoadData &loa
     load_data.image.count = use_placeholders ? range.max_framenr - range.offset + 1 :
                                                range.frames.count();
     STRNCPY(load_data.path, range.filepath);
-    BLI_path_split_file_part(load_data.path, load_data.name, sizeof(load_data.name));
+    BLI_path_split_file_part(load_data.path, load_data.name);
 
     Strip *strip = seq::add_image_strip(bmain, scene, ed->current_strips(), &load_data);
 
     char dirpath[sizeof(strip->data->dirpath)];
-    BLI_path_split_dir_part(load_data.path, dirpath, sizeof(dirpath));
+    BLI_path_split_dir_part(load_data.path, dirpath);
     seq::add_image_set_directory(strip, dirpath);
 
     /* Set `StripElem` filenames, one for each `ImageFrame` in this range, or if `use_placeholders`
@@ -2064,7 +2061,7 @@ static wmOperatorStatus sequencer_add_text_strip_exec(bContext *C, wmOperator *o
     RNA_BEGIN (op->ptr, itemptr, "files") {
       char filename[FILE_MAX];
       RNA_string_get(&itemptr, "name", filename);
-      BLI_path_join(load_data.path, sizeof(load_data.path), directory, filename);
+      BLI_path_join(load_data.path, directory, filename);
       STRNCPY(load_data.name, filename);
 
       const Strip *strip = sequencer_add_text_strip_from_file(C, op, &load_data);

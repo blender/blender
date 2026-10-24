@@ -70,9 +70,9 @@ Vector<MetaFile> find_sorted_meta_files(const StringRefNull meta_dir)
 BakePath BakePath::from_single_root(StringRefNull root_dir)
 {
   char meta_dir[FILE_MAX];
-  BLI_path_join(meta_dir, sizeof(meta_dir), root_dir.c_str(), "meta");
+  BLI_path_join(meta_dir, root_dir.c_str(), "meta");
   char blobs_dir[FILE_MAX];
-  BLI_path_join(blobs_dir, sizeof(blobs_dir), root_dir.c_str(), "blobs");
+  BLI_path_join(blobs_dir, root_dir.c_str(), "blobs");
 
   BakePath bake_path;
   bake_path.meta_dir = meta_dir;

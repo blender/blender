@@ -958,9 +958,7 @@ static void rna_ParticleSystem_active_particle_target_index_set(PointerRNA *ptr,
   }
 }
 
-static size_t rna_ParticleTarget_name_get_impl(PointerRNA *ptr,
-                                               char *value,
-                                               const size_t value_maxncpy)
+static size_t rna_ParticleTarget_name_get_impl(PointerRNA *ptr, MutableCStr value)
 {
   ParticleTarget *pt = static_cast<ParticleTarget *>(ptr->data);
 
@@ -978,30 +976,29 @@ static size_t rna_ParticleTarget_name_get_impl(PointerRNA *ptr,
     if (psys) {
       int value_len;
       if (pt->ob) {
-        value_len = BLI_snprintf_rlen(
-            value, value_maxncpy, "%s: %s", pt->ob->id.name + 2, psys->name);
+        value_len = SNPRINTF_RLEN(value, "%s: %s", pt->ob->id.name + 2, psys->name);
       }
       else {
-        value_len = BLI_strncpy_rlen(value, psys->name, value_maxncpy);
+        value_len = STRNCPY_RLEN(value, psys->name);
       }
       return value_len;
     }
   }
 
-  return BLI_strncpy_rlen(value, RPT_("Invalid target!"), value_maxncpy);
+  return STRNCPY_RLEN(value, RPT_("Invalid target!"));
 }
 
 static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *value)
 {
   char value_buf[MAX_ID_NAME + MAX_ID_NAME + 64];
-  const size_t value_buf_len = rna_ParticleTarget_name_get_impl(ptr, value_buf, sizeof(value_buf));
+  const size_t value_buf_len = rna_ParticleTarget_name_get_impl(ptr, value_buf);
   memcpy(value, value_buf, value_buf_len + 1);
 }
 
 static int rna_ParticleTarget_name_length(PointerRNA *ptr)
 {
   char value_buf[MAX_ID_NAME + MAX_ID_NAME + 64];
-  return rna_ParticleTarget_name_get_impl(ptr, value_buf, sizeof(value_buf));
+  return rna_ParticleTarget_name_get_impl(ptr, value_buf);
 }
 
 static int particle_id_check(const PointerRNA *ptr)
@@ -1099,9 +1096,7 @@ static void rna_ParticleDupliWeight_active_index_set(PointerRNA *ptr, int value)
   }
 }
 
-static size_t rna_ParticleDupliWeight_name_get_impl(PointerRNA *ptr,
-                                                    char *value,
-                                                    const size_t value_maxncpy)
+static size_t rna_ParticleDupliWeight_name_get_impl(PointerRNA *ptr, MutableCStr value)
 {
   ParticleSettings *part = id_cast<ParticleSettings *>(ptr->owner_id);
   psys_find_group_weights(part);
@@ -1109,24 +1104,23 @@ static size_t rna_ParticleDupliWeight_name_get_impl(PointerRNA *ptr,
   ParticleDupliWeight *dw = static_cast<ParticleDupliWeight *>(ptr->data);
 
   if (dw->ob) {
-    return BLI_snprintf_utf8_rlen(value, value_maxncpy, "%s: %i", dw->ob->id.name + 2, dw->count);
+    return SNPRINTF_UTF8_RLEN(value, "%s: %i", dw->ob->id.name + 2, dw->count);
   }
 
-  return BLI_strncpy_utf8_rlen(value, "No object", value_maxncpy);
+  return STRNCPY_UTF8_RLEN(value, "No object");
 }
 
 static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *value)
 {
   char value_buf[MAX_ID_NAME + 64];
-  const size_t value_buf_len = rna_ParticleDupliWeight_name_get_impl(
-      ptr, value_buf, sizeof(value_buf));
+  const size_t value_buf_len = rna_ParticleDupliWeight_name_get_impl(ptr, value_buf);
   memcpy(value, value_buf, value_buf_len + 1);
 }
 
 static int rna_ParticleDupliWeight_name_length(PointerRNA *ptr)
 {
   char value_buf[MAX_ID_NAME + 64];
-  return rna_ParticleDupliWeight_name_get_impl(ptr, value_buf, sizeof(value_buf));
+  return rna_ParticleDupliWeight_name_get_impl(ptr, value_buf);
 }
 
 static const EnumPropertyItem *rna_Particle_type_itemf(bContext * /*C*/,
@@ -1272,7 +1266,7 @@ static std::optional<std::string> rna_ParticleSystem_path(const PointerRNA *ptr)
   const ParticleSystem *psys = static_cast<ParticleSystem *>(ptr->data);
   char name_esc[sizeof(psys->name) * 2];
 
-  BLI_str_escape(name_esc, psys->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, psys->name);
   return fmt::format("particle_systems[\"{}\"]", name_esc);
 }
 

@@ -11,6 +11,7 @@
 #include <optional>
 
 #include "BLI_compiler_attrs.hh"
+#include "BLI_span.hh"
 #include "BLI_sys_types.hh"
 #include "BLI_uuid.hh"
 
@@ -205,16 +206,14 @@ void BKE_preferences_extension_repo_module_set(UserDef *userdef,
 
 void BKE_preferences_extension_repo_custom_dirpath_set(bUserExtensionRepo *repo, const char *path);
 size_t BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo,
-                                                  char *dirpath,
-                                                  int dirpath_maxncpy);
+                                                  MutableCStr dirpath);
 
 /**
  * Returns a user editable directory associated with this repository.
  * Needed so extensions may have local data.
  */
 size_t BKE_preferences_extension_repo_user_dirpath_get(const bUserExtensionRepo *repo,
-                                                       char *dirpath,
-                                                       const int dirpath_maxncpy);
+                                                       MutableCStr dirpath);
 
 /**
  * Check the module name is valid, while this should always be the case,

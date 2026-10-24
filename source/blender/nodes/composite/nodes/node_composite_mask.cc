@@ -80,12 +80,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Exposure for motion blur as a factor of FPS");
 }
 
-static void node_label(const bNodeTree * /*ntree*/,
-                       const bNode *node,
-                       char *label,
-                       int label_maxncpy)
+static void node_label(const bNodeTree * /*ntree*/, const bNode *node, MutableCStr label)
 {
-  BLI_strncpy_utf8(label, node->id ? node->id->name + 2 : IFACE_("Mask"), label_maxncpy);
+  STRNCPY_UTF8(label, node->id ? node->id->name + 2 : IFACE_("Mask"));
 }
 
 using namespace blender::compositor;

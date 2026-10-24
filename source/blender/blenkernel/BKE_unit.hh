@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "BLI_span.hh"
 #include "BLI_sys_types.hh"
 
 namespace blender {
@@ -29,8 +30,7 @@ struct UnitSettings;
  * especially with mono-spaced fonts. However, the values will take up more space,
  * so the default is good when there is little movement (e.g. numerical input or mesh overlays).
  */
-size_t BKE_unit_value_as_string(char *str,
-                                int str_maxncpy,
+size_t BKE_unit_value_as_string(MutableCStr str,
                                 double value,
                                 int prec,
                                 int type,
@@ -43,8 +43,7 @@ size_t BKE_unit_value_as_string(char *str,
  *
  * \copydoc #BKE_unit_value_as_string.
  */
-size_t BKE_unit_value_as_string_adaptive(char *str,
-                                         int str_maxncpy,
+size_t BKE_unit_value_as_string_adaptive(MutableCStr str,
                                          double value,
                                          int prec,
                                          int system,
@@ -58,8 +57,7 @@ size_t BKE_unit_value_as_string_adaptive(char *str,
  *
  * \copydoc #BKE_unit_value_as_string.
  */
-size_t BKE_unit_value_as_string_scaled(char *str,
-                                       int str_maxncpy,
+size_t BKE_unit_value_as_string_scaled(MutableCStr str,
                                        double value,
                                        int prec,
                                        int type,
@@ -85,7 +83,7 @@ size_t BKE_unit_value_as_string_scaled(char *str,
  * \return True of a change was made.
  */
 bool BKE_unit_replace_string(
-    char *str, int str_maxncpy, const char *str_prev, double scale_pref, int system, int type);
+    MutableCStr str, const char *str_prev, double scale_pref, int system, int type);
 
 /**
  * \return true if the string contains any valid unit for the given type.
@@ -100,7 +98,7 @@ double BKE_unit_apply_preferred_unit(const UnitSettings &settings, int type, dou
 /**
  * Make string keyboard-friendly, e.g: `10µm -> 10um`.
  */
-void BKE_unit_name_to_alt(char *str, int str_maxncpy, const char *orig_str, int system, int type);
+void BKE_unit_name_to_alt(MutableCStr str, const char *orig_str, int system, int type);
 
 /**
  * The size of the unit used for this value (used for calculating the click-step).

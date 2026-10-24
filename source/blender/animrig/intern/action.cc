@@ -385,7 +385,7 @@ static void slot_identifier_ensure_unique(Action &action, Slot &slot)
     return false;
   };
 
-  BLI_uniquename_cb(check_name_is_used, "", '.', slot.identifier, sizeof(slot.identifier));
+  BLI_uniquename_cb(check_name_is_used, "", '.', slot.identifier);
 }
 
 void Action::slot_display_name_set(Main &bmain, Slot &slot, StringRefNull new_display_name)
@@ -2625,8 +2625,9 @@ bool fcurve_matches_collection_path(const FCurve &fcurve,
     return false;
   }
   /* Skipping names longer than `quoted_name_size` is OK since we're after an exact match. */
-  if (!BLI_str_quoted_substr(
-          rna_path.c_str(), collection_rna_path.c_str(), quoted_name, quoted_name_size))
+  if (!BLI_str_quoted_substr(rna_path.c_str(),
+                             collection_rna_path.c_str(),
+                             MutableCStr(quoted_name, quoted_name_size)))
   {
     return false;
   }

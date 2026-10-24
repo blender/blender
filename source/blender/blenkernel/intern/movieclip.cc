@@ -159,8 +159,7 @@ static void movie_clip_foreach_cache(ID *id,
 static void movie_clip_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   MovieClip *movie_clip = id_cast<MovieClip *>(id);
-  BKE_bpath_foreach_path_fixed_process(
-      bpath_data, movie_clip->filepath, sizeof(movie_clip->filepath));
+  BKE_bpath_foreach_path_fixed_process(bpath_data, movie_clip->filepath);
 }
 
 static void write_movieTracks(BlendWriter *writer, ListBaseT<MovieTrackingTrack> *tracks)
@@ -391,15 +390,14 @@ static void get_sequence_filepath(const MovieClip *clip,
   int offset;
 
   BLI_strncpy(filepath, clip->filepath, sizeof(clip->filepath));
-  BLI_path_sequence_decode(filepath, head, sizeof(head), tail, sizeof(tail), &numlen);
+  BLI_path_sequence_decode(filepath, head, tail, &numlen);
 
   /* Movie-clips always points to first image from sequence, auto-guess offset for now.
    * Could be something smarter in the future. */
   offset = sequence_guess_offset(clip->filepath, strlen(head), numlen);
 
   if (numlen) {
-    BLI_path_sequence_encode(filepath,
-                             FILE_MAX,
+    BLI_path_sequence_encode(MutableCStr(filepath, FILE_MAX),
                              head,
                              tail,
                              numlen,
@@ -423,7 +421,7 @@ static void get_proxy_filepath(const MovieClip *clip,
   char dir[FILE_MAX], clipdir[FILE_MAX], clipfile[FILE_MAX];
   int proxynr = framenr - clip->start_frame + 1 + clip->frame_offset;
 
-  BLI_path_split_dir_file(clip->filepath, clipdir, FILE_MAX, clipfile, FILE_MAX);
+  BLI_path_split_dir_file(clip->filepath, clipdir, clipfile);
 
   if (clip->flag & MCLIP_USE_PROXY_CUSTOM_DIR) {
     STRNCPY(dir, clip->proxy.dir);
@@ -452,8 +450,8 @@ static void get_proxy_filepath(const MovieClip *clip,
   }
 
   BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
-  BLI_path_frame(filepath, FILE_MAX, 1, 0);
-  BLI_strncat(filepath, ".jpg", FILE_MAX);
+  BLI_path_frame(MutableCStr(filepath, FILE_MAX), 1, 0);
+  BLI_strncat(MutableCStr(filepath, FILE_MAX), ".jpg");
 }
 
 static ImBuf *movieclip_load_sequence_file(MovieClip *clip,
@@ -550,7 +548,7 @@ static void movieclip_calc_length(MovieClip *clip)
     ushort numlen;
     char filepath[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
 
-    BLI_path_sequence_decode(clip->filepath, head, sizeof(head), tail, sizeof(tail), &numlen);
+    BLI_path_sequence_decode(clip->filepath, head, tail, &numlen);
 
     if (numlen == 0) {
       /* there's no number group in file name, assume it's single framed sequence */
@@ -639,7 +637,7 @@ static int user_frame_to_cache_frame(MovieClip *clip, int framenr)
       ushort numlen;
       char head[FILE_MAX], tail[FILE_MAX];
 
-      BLI_path_sequence_decode(clip->filepath, head, sizeof(head), tail, sizeof(tail), &numlen);
+      BLI_path_sequence_decode(clip->filepath, head, tail, &numlen);
 
       /* see comment in get_sequence_filepath */
       clip->cache->sequence_offset = sequence_guess_offset(clip->filepath, strlen(head), numlen);
@@ -784,7 +782,7 @@ static bool put_imbuf_cache(
     clip->cache->sequence_offset = -1;
     if (clip->source == MCLIP_SRC_SEQUENCE) {
       ushort numlen;
-      BLI_path_sequence_decode(clip->filepath, nullptr, 0, nullptr, 0, &numlen);
+      BLI_path_sequence_decode(clip->filepath, std::nullopt, std::nullopt, &numlen);
       clip->cache->is_still_sequence = (numlen == 0);
     }
   }

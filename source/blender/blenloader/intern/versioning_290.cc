@@ -251,7 +251,7 @@ static void strip_convert_transform_crop(const Scene *scene,
   t->yofs = old_image_center_y - scene->r.ysch / 2;
 
   char name_esc[(sizeof(strip->name) - 2) * 2], *path;
-  BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
+  BLI_str_escape(name_esc, strip->name + 2);
 
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_x", name_esc);
   strip_convert_transform_animation(strip, scene, path, image_size_x, scene->r.xsch);
@@ -329,7 +329,7 @@ static void strip_convert_transform_crop_2(const Scene *scene,
   c->right /= scale_to_fit_factor;
 
   char name_esc[(sizeof(strip->name) - 2) * 2], *path;
-  BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
+  BLI_str_escape(name_esc, strip->name + 2);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.scale_x", name_esc);
   strip_convert_transform_animation_2(scene, path, scale_to_fit_factor);
   MEM_delete(path);

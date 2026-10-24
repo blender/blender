@@ -847,8 +847,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
                                     AVFormatContext *of,
                                     int rectx,
                                     int recty,
-                                    char *error,
-                                    int error_maxncpy)
+                                    MutableCStr error)
 {
   AVStream *st;
   const AVCodec *codec;
@@ -1149,7 +1148,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     char error_str[AV_ERROR_MAX_STRING_SIZE];
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
     CLOG_ERROR(&LOG, "Couldn't initialize video codec: %s\n", error_str);
-    BLI_strncpy(error, ffmpeg_last_error(), error_maxncpy);
+    STRNCPY(error, ffmpeg_last_error());
     av_dict_free(&opts);
     avcodec_free_context(&c);
     context->video_codec = nullptr;
@@ -1199,13 +1198,10 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   return st;
 }
 
-static void ffmpeg_add_metadata_callback(void *data,
-                                         const char *propname,
-                                         char *propvalue,
-                                         int /*propvalue_maxncpy*/)
+static void ffmpeg_add_metadata_callback(void *data, const char *propname, MutableCStr propvalue)
 {
   AVDictionary **metadata = (AVDictionary **)data;
-  av_dict_set(metadata, propname, propvalue, 0);
+  av_dict_set(metadata, propname, propvalue.data(), 0);
 }
 
 static bool start_ffmpeg_impl(MovieWriter *context,
@@ -1372,7 +1368,7 @@ static bool start_ffmpeg_impl(MovieWriter *context,
 
   if (video_codec != AV_CODEC_ID_NONE) {
     context->video_stream = alloc_video_stream(
-        context, *scene, imf, video_codec, of, rectx, recty, error, sizeof(error));
+        context, *scene, imf, video_codec, of, rectx, recty, error);
     CLOG_INFO(&LOG, "ffmpeg: alloc video stream %p", context->video_stream);
     if (!context->video_stream) {
       if (error[0]) {
@@ -1394,7 +1390,6 @@ static bool start_ffmpeg_impl(MovieWriter *context,
                                                audio_codec,
                                                of,
                                                error,
-                                               sizeof(error),
                                                reports);
     if (!context->audio_stream) {
       if (error[0]) {
@@ -1531,7 +1526,7 @@ static bool ffmpeg_filepath_get(MovieWriter *context,
   BKE_add_template_variables_for_render_path(template_variables, *scene);
 
   const Vector<bke::path_templates::Error> errors = BKE_path_apply_template(
-      filepath, FILE_MAX, template_variables);
+      MutableCStr(filepath, FILE_MAX), template_variables);
   if (!errors.is_empty()) {
     BKE_report_path_template_errors(reports, RPT_ERROR, filepath, errors);
     return false;
@@ -1561,26 +1556,26 @@ static bool ffmpeg_filepath_get(MovieWriter *context,
     }
 
     if (*fe == nullptr) {
-      BLI_strncat(filepath, autosplit, FILE_MAX);
+      BLI_strncat(MutableCStr(filepath, FILE_MAX), autosplit);
 
-      BLI_path_frame_range(filepath, FILE_MAX, sfra, efra, 4);
-      BLI_strncat(filepath, *exts, FILE_MAX);
+      BLI_path_frame_range(MutableCStr(filepath, FILE_MAX), sfra, efra, 4);
+      BLI_strncat(MutableCStr(filepath, FILE_MAX), *exts);
     }
     else {
       *(filepath + strlen(filepath) - strlen(*fe)) = '\0';
-      BLI_strncat(filepath, autosplit, FILE_MAX);
-      BLI_strncat(filepath, *fe, FILE_MAX);
+      BLI_strncat(MutableCStr(filepath, FILE_MAX), autosplit);
+      BLI_strncat(MutableCStr(filepath, FILE_MAX), *fe);
     }
   }
   else {
     if (BLI_path_frame_check_chars(filepath)) {
-      BLI_path_frame_range(filepath, FILE_MAX, sfra, efra, 4);
+      BLI_path_frame_range(MutableCStr(filepath, FILE_MAX), sfra, efra, 4);
     }
 
-    BLI_strncat(filepath, autosplit, FILE_MAX);
+    BLI_strncat(MutableCStr(filepath, FILE_MAX), autosplit);
   }
 
-  BLI_path_suffix(filepath, FILE_MAX, suffix, "");
+  BLI_path_suffix(MutableCStr(filepath, FILE_MAX), suffix, "");
 
   return true;
 }

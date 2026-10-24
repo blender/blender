@@ -90,7 +90,7 @@ bool unpack_bake_to_disk(const NodesModifierPackedBake &packed_bake,
 {
   auto unpack_file = [&](const StringRefNull directory, const NodesModifierBakeFile &bake_file) {
     char file_path[FILE_MAX];
-    BLI_path_join(file_path, sizeof(file_path), directory.c_str(), bake_file.name);
+    BLI_path_join(file_path, directory.c_str(), bake_file.name);
     if (!BLI_file_ensure_parent_dir_exists(file_path)) {
       BKE_reportf(reports, RPT_ERROR, "Cannot ensure directory: %s", directory.c_str());
       return false;

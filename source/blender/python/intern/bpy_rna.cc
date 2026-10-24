@@ -424,8 +424,7 @@ static PyObject *pyrna_struct_get_nameprop_as_pyobject(
   char fixedbuf[256];
   int name_len;
   PropertyRNA *nameprop;
-  char *name_ptr = RNA_struct_name_get_alloc_ex(
-      ptr, fixedbuf, sizeof(fixedbuf), &name_len, &nameprop);
+  char *name_ptr = RNA_struct_name_get_alloc_ex(ptr, fixedbuf, &name_len, &nameprop);
   if (name_ptr) [[likely]] {
     /* In most cases this only runs once. */
     if (nameprop != nameprop_cache.nameprop) [[unlikely]] {
@@ -1091,7 +1090,7 @@ static PyObject *pyrna_struct_str(BPy_StructRNA *self)
    *
    * Always include the pointer address since it can help identify unique data,
    * or when data is re-allocated internally. */
-  name = RNA_struct_name_get_alloc(&self->ptr.value(), nullptr, 0, nullptr);
+  name = RNA_struct_name_get_alloc(&self->ptr.value(), std::nullopt, nullptr);
   if (name) {
     ret = PyUnicode_FromFormat("<bpy_struct, %.200s(\"%.200s\") at %p%s>",
                                RNA_struct_identifier(self->ptr->type),
@@ -1206,7 +1205,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
   /* If a pointer, try to print name of pointer target too. */
   if (type == PROP_POINTER) {
     ptr = RNA_property_pointer_get(&self->ptr.value(), self->prop);
-    name = RNA_struct_name_get_alloc(&ptr, nullptr, 0, nullptr);
+    name = RNA_struct_name_get_alloc(&ptr, std::nullopt, nullptr);
 
     if (name) {
       ret = PyUnicode_FromFormat("<bpy_%.200s%.200s, %.200s.%.200s(\"%.200s\")>",
@@ -1489,7 +1488,7 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
       /* Do not print warning in case of #rna_enum_dummy_NULL_items,
        * this one will never match any value... */
       if (enum_item != rna_enum_dummy_NULL_items) {
-        const char *ptr_name = RNA_struct_name_get_alloc(ptr, nullptr, 0, nullptr);
+        const char *ptr_name = RNA_struct_name_get_alloc(ptr, std::nullopt, nullptr);
 
         /* Prefer not to fail silently in case of API errors, maybe disable it later. */
         CLOG_WARN(BPY_LOG_RNA,
@@ -1560,7 +1559,7 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
       int buf_len;
       char buf_fixed[32];
 
-      buf = RNA_property_string_get_alloc(ptr, prop, buf_fixed, sizeof(buf_fixed), &buf_len);
+      buf = RNA_property_string_get_alloc(ptr, prop, buf_fixed, &buf_len);
 #ifdef USE_STRING_COERCE
       /* Only file paths get special treatment, they may contain non UTF8 chars. */
       if (subtype == PROP_BYTESTRING) {
@@ -2603,8 +2602,7 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
        * Although it's technically possible a sub-type clears the name property,
        * this seems unlikely. */
       BLI_assert(nameprop != nullptr);
-      char *name_ptr = RNA_property_string_get_alloc(
-          &iter.ptr, nameprop, name, sizeof(name), &name_len);
+      char *name_ptr = RNA_property_string_get_alloc(&iter.ptr, nameprop, name, &name_len);
       if ((key_len == name_len) && STREQ(name_ptr, keyname)) {
         found = true;
       }
@@ -4432,8 +4430,7 @@ static PyObject *pyrna_prop_as_bytes(BPy_PropertyRNA *self)
   char buf_fixed[256], *buf;
   int buf_len;
 
-  buf = RNA_property_string_get_alloc(
-      &self->ptr.value(), self->prop, buf_fixed, sizeof(buf_fixed), &buf_len);
+  buf = RNA_property_string_get_alloc(&self->ptr.value(), self->prop, buf_fixed, &buf_len);
 
   ret = PyBytes_FromStringAndSize(buf, buf_len);
 
@@ -5903,7 +5900,7 @@ static PyObject *pyrna_prop_collection_find(BPy_PropertyRNA *self, PyObject *key
   PYRNA_PROP_CHECK_OBJ(self);
 
   RNA_PROP_BEGIN (&self->ptr.value(), itemptr, self->prop) {
-    name_ptr = RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &name_len);
+    name_ptr = RNA_struct_name_get_alloc(&itemptr, name, &name_len);
 
     if (name_ptr) {
       const bool found = (key_len == name_len) && (memcmp(name_ptr, key, key_len) == 0);
@@ -7065,27 +7062,24 @@ inline static PyObject *kwnames_get_item_string(PyObject *const *args,
 static void pyrna_func_error_prefix(BPy_FunctionRNA *self,
                                     PropertyRNA *parm,
                                     const int parm_index,
-                                    char *error,
-                                    const size_t error_maxncpy)
+                                    MutableCStr error)
 {
   PointerRNA *self_ptr = &self->ptr.value();
   FunctionRNA *self_func = self->func;
   if (parm_index == -1) {
-    BLI_snprintf_utf8(error,
-                      error_maxncpy,
-                      "%.200s.%.200s(): error with keyword argument \"%.200s\" - ",
-                      RNA_struct_identifier(self_ptr->type),
-                      RNA_function_identifier(self_func),
-                      RNA_property_identifier(parm));
+    SNPRINTF_UTF8(error,
+                  "%.200s.%.200s(): error with keyword argument \"%.200s\" - ",
+                  RNA_struct_identifier(self_ptr->type),
+                  RNA_function_identifier(self_func),
+                  RNA_property_identifier(parm));
   }
   else {
-    BLI_snprintf_utf8(error,
-                      error_maxncpy,
-                      "%.200s.%.200s(): error with argument %d, \"%.200s\" - ",
-                      RNA_struct_identifier(self_ptr->type),
-                      RNA_function_identifier(self_func),
-                      parm_index + 1,
-                      RNA_property_identifier(parm));
+    SNPRINTF_UTF8(error,
+                  "%.200s.%.200s(): error with argument %d, \"%.200s\" - ",
+                  RNA_struct_identifier(self_ptr->type),
+                  RNA_function_identifier(self_func),
+                  parm_index + 1,
+                  RNA_property_identifier(parm));
   }
 }
 
@@ -7269,7 +7263,7 @@ static PyObject *pyrna_func_vectorcall(PyObject *callable,
 
       if (err != 0) {
         PyErr_Clear(); /* Re-raise. */
-        pyrna_func_error_prefix(self, parm, kw_arg ? -1 : i, error_prefix, sizeof(error_prefix));
+        pyrna_func_error_prefix(self, parm, kw_arg ? -1 : i, error_prefix);
         pyrna_py_to_prop(&funcptr, parm, iter.data, item, error_prefix, nullptr);
 
         break;
@@ -8650,7 +8644,7 @@ static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
 
       if (base_compare != base) {
         char pyob_info[256];
-        PyC_ObSpitStr(pyob_info, sizeof(pyob_info), base_compare);
+        PyC_ObSpitStr(pyob_info, base_compare);
         CLOG_ERROR(BPY_LOG_RNA,
                    "incorrect subclassing of SRNA '%s', expected '%s', see _bpy_types.py",
                    idname,

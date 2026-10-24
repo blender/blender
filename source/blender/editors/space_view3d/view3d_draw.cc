@@ -1357,7 +1357,7 @@ static void draw_selected_name(const Main &bmain,
    * If not, increase it. */
   BLI_assert(BLI_string_len_array(info_array, i) < sizeof(info));
 
-  BLI_string_join_array(info, sizeof(info), info_array, i);
+  BLI_string_join_array(info, info_array, i);
 
   *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
   BLF_draw_default(xoffset, *yoffset, 0.0f, info, sizeof(info));
@@ -1375,7 +1375,7 @@ static float4 get_low_fps_color()
   return col_alert;
 }
 
-static void get_fps_string(const Scene *scene, char *printable, const size_t printable_size)
+static void get_fps_string(const Scene *scene, MutableCStr printable)
 {
   SceneFPS_State state;
   if (!ED_scene_fps_average_calc(scene, &state)) {
@@ -1395,10 +1395,10 @@ static void get_fps_string(const Scene *scene, char *printable, const size_t pri
   }
 
   if (show_fractional) {
-    BLI_snprintf_utf8(printable, printable_size, ("%.2f fps"), state.fps_average);
+    SNPRINTF_UTF8(printable, ("%.2f fps"), state.fps_average);
   }
   else {
-    BLI_snprintf_utf8(printable, printable_size, ("%i fps"), int(state.fps_average + 0.5f));
+    SNPRINTF_UTF8(printable, ("%i fps"), int(state.fps_average + 0.5f));
   }
 }
 
@@ -1423,7 +1423,7 @@ static void draw_frame_info(Scene *scene, int xoffset, int *yoffset)
   /* 8 4-bytes chars (complex writing systems like Devanagari in UTF8 encoding) */
   char printable[32];
   printable[0] = '\0';
-  get_fps_string(scene, printable, sizeof(printable));
+  get_fps_string(scene, printable);
 
   if (U.uiflag & USER_SHOW_FPS && printable[0] != '\0') {
     info += msg_sep;
@@ -2794,7 +2794,7 @@ void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
   /* 8 4-bytes chars (complex writing systems like Devanagari in UTF8 encoding) */
   char printable[32];
   printable[0] = '\0';
-  get_fps_string(scene, printable, sizeof(printable));
+  get_fps_string(scene, printable);
 
   BLF_draw_default(xoffset, *yoffset, 0.0f, printable, sizeof(printable));
 }

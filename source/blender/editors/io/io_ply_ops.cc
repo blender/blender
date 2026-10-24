@@ -165,7 +165,7 @@ static bool wm_ply_export_check(bContext * /*C*/, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", filepath);
 
   if (!BLI_path_extension_check(filepath, ".ply")) {
-    BLI_path_extension_ensure(filepath, FILE_MAX, ".ply");
+    BLI_path_extension_ensure(filepath, ".ply");
     RNA_string_set(op->ptr, "filepath", filepath);
     changed = true;
   }

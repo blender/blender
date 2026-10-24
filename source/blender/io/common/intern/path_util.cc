@@ -37,7 +37,7 @@ std::string path_reference(StringRefNull filepath,
   }
   else if (mode == PATH_REFERENCE_COPY) {
     char filepath_cpy[FILE_MAX];
-    BLI_path_join(filepath_cpy, FILE_MAX, base_dst.c_str(), BLI_path_basename(filepath_abs));
+    BLI_path_join(filepath_cpy, base_dst.c_str(), BLI_path_basename(filepath_abs));
     copy_set->add(std::make_pair(filepath_abs, filepath_cpy));
     STRNCPY(filepath_abs, filepath_cpy);
     mode = PATH_REFERENCE_RELATIVE;
@@ -51,8 +51,7 @@ std::string path_reference(StringRefNull filepath,
     const bool walk_up = true;
     char rel_path[FILE_MAX];
     /* Can't always find relative path (e.g. between different drives). */
-    if (!BLI_path_relative_to(filepath_abs, base_dst.c_str(), walk_up, rel_path, sizeof(rel_path)))
-    {
+    if (!BLI_path_relative_to(filepath_abs, base_dst.c_str(), walk_up, rel_path)) {
       return filepath_abs;
     }
     return rel_path;

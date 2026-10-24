@@ -142,7 +142,8 @@ static void movie_reader_source_filepath_get(const Scene &scene,
                                              const Strip &strip,
                                              char r_filepath[FILE_MAX])
 {
-  BLI_path_join(r_filepath, FILE_MAX, strip.data->dirpath, strip.data->stripdata->filename);
+  BLI_path_join(
+      MutableCStr(r_filepath, FILE_MAX), strip.data->dirpath, strip.data->stripdata->filename);
   BLI_path_abs(r_filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene.id));
 }
 
@@ -161,9 +162,7 @@ static MovieReaderKey movie_reader_key_get(const Scene &scene,
   if (use_multiview && strip.views_format == R_IMF_VIEWS_INDIVIDUAL) {
     char filepath_view[FILE_MAX];
     const char *suffix = nullptr;
-    if (seq_multiview_view_filepath_get(
-            scene, filepath, *view_id, filepath_view, sizeof(filepath_view), &suffix))
-    {
+    if (seq_multiview_view_filepath_get(scene, filepath, *view_id, filepath_view, &suffix)) {
       key.multiview_filepath = filepath_view;
       key.multiview_suffix = suffix;
     }

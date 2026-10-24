@@ -194,8 +194,7 @@ AVStream *alloc_audio_stream(MovieWriter *context,
                              int audio_channels,
                              AVCodecID codec_id,
                              AVFormatContext *of,
-                             char *error,
-                             int error_maxncpy,
+                             MutableCStr error,
                              ReportList *reports)
 {
   AVStream *st;
@@ -370,7 +369,7 @@ AVStream *alloc_audio_stream(MovieWriter *context,
     char error_str[AV_ERROR_MAX_STRING_SIZE];
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
     CLOG_ERROR(&LOG, "Couldn't initialize audio codec: %s", error_str);
-    BLI_strncpy(error, ffmpeg_last_error(), error_maxncpy);
+    STRNCPY(error, ffmpeg_last_error());
     avcodec_free_context(&c);
     context->audio_codec = nullptr;
     return nullptr;

@@ -776,63 +776,59 @@ static const char *draw_seq_text_get_name(const Strip *strip)
   return name;
 }
 
-static void draw_seq_text_get_source(const Strip *strip, char *r_source, size_t source_maxncpy)
+static void draw_seq_text_get_source(const Strip *strip, MutableCStr r_source)
 {
-  *r_source = '\0';
+  r_source[0] = '\0';
 
   /* Set source for the most common types. */
   switch (strip->type) {
     case STRIP_TYPE_IMAGE:
     case STRIP_TYPE_MOVIE: {
-      BLI_path_join(
-          r_source, source_maxncpy, strip->data->dirpath, strip->data->stripdata->filename);
+      BLI_path_join(r_source, strip->data->dirpath, strip->data->stripdata->filename);
       break;
     }
     case STRIP_TYPE_SOUND: {
       if (strip->sound != nullptr) {
         if (strip->sound->packedfile != nullptr) {
           /* The sound data has been packed, don't display the path. */
-          BLI_strncpy_utf8(r_source, "<Packed File>", source_maxncpy);
+          STRNCPY_UTF8(r_source, "<Packed File>");
         }
         else {
-          BLI_strncpy_utf8(r_source, strip->sound->filepath, source_maxncpy);
+          STRNCPY_UTF8(r_source, strip->sound->filepath);
         }
       }
       break;
     }
     case STRIP_TYPE_MULTICAM: {
-      BLI_snprintf_utf8(r_source, source_maxncpy, "Channel: %d", strip->multicam_source);
+      SNPRINTF_UTF8(r_source, "Channel: %d", strip->multicam_source);
       break;
     }
     case STRIP_TYPE_TEXT: {
       const TextVars *textdata = static_cast<TextVars *>(strip->effectdata);
-      BLI_strncpy_utf8(r_source, textdata->text_ptr, source_maxncpy);
+      STRNCPY_UTF8(r_source, textdata->text_ptr);
       break;
     }
     case STRIP_TYPE_SCENE: {
       if (strip->scene != nullptr) {
         if (strip->scene_camera != nullptr) {
-          BLI_snprintf_utf8(r_source,
-                            source_maxncpy,
-                            "%s (%s)",
-                            strip->scene->id.name + 2,
-                            strip->scene_camera->id.name + 2);
+          SNPRINTF_UTF8(
+              r_source, "%s (%s)", strip->scene->id.name + 2, strip->scene_camera->id.name + 2);
         }
         else {
-          BLI_strncpy_utf8(r_source, strip->scene->id.name + 2, source_maxncpy);
+          STRNCPY_UTF8(r_source, strip->scene->id.name + 2);
         }
       }
       break;
     }
     case STRIP_TYPE_MOVIECLIP: {
       if (strip->clip != nullptr) {
-        BLI_strncpy_utf8(r_source, strip->clip->id.name + 2, source_maxncpy);
+        STRNCPY_UTF8(r_source, strip->clip->id.name + 2);
       }
       break;
     }
     case STRIP_TYPE_MASK: {
       if (strip->mask != nullptr) {
-        BLI_strncpy_utf8(r_source, strip->mask->id.name + 2, source_maxncpy);
+        STRNCPY_UTF8(r_source, strip->mask->id.name + 2);
       }
       break;
     }
@@ -843,8 +839,7 @@ static void draw_seq_text_get_source(const Strip *strip, char *r_source, size_t 
 
 static size_t draw_seq_text_get_overlay_string(const TimelineDrawContext &ctx,
                                                const StripDrawContext &strip_ctx,
-                                               char *r_overlay_string,
-                                               size_t overlay_string_maxncpy)
+                                               MutableCStr r_overlay_string)
 {
   const Strip *strip = strip_ctx.strip;
 
@@ -858,7 +853,7 @@ static size_t draw_seq_text_get_overlay_string(const TimelineDrawContext &ctx,
 
   char source[FILE_MAX];
   if (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_SOURCE) {
-    draw_seq_text_get_source(strip, source, sizeof(source));
+    draw_seq_text_get_source(strip, source);
     if (source[0] != '\0') {
       if (i != 0) {
         text_array[i++] = text_sep;
@@ -888,7 +883,7 @@ static size_t draw_seq_text_get_overlay_string(const TimelineDrawContext &ctx,
 
   BLI_assert(i <= ARRAY_SIZE(text_array));
 
-  return BLI_string_join_array(r_overlay_string, overlay_string_maxncpy, text_array, i);
+  return BLI_string_join_array(r_overlay_string, text_array, i);
 }
 
 static void get_strip_text_color(const StripDrawContext &strip_ctx, uchar r_col[4])
@@ -1093,8 +1088,7 @@ static void draw_seq_text_overlay(const TimelineDrawContext &ctx,
   }
 
   char overlay_string[FILE_MAX];
-  size_t overlay_string_len = draw_seq_text_get_overlay_string(
-      ctx, strip_ctx, overlay_string, sizeof(overlay_string));
+  size_t overlay_string_len = draw_seq_text_get_overlay_string(ctx, strip_ctx, overlay_string);
 
   if (overlay_string_len == 0) {
     return;
@@ -2369,7 +2363,7 @@ void SEQUENCER_GGT_blade(wmGizmoGroupType *gzgt)
 static std::string blade_frame_str_get(const Scene *scene, const int frame, const bool timecode)
 {
   char str[64];
-  ED_time_scrub_frame_str_get(scene, timecode, frame, str, sizeof(str));
+  ED_time_scrub_frame_str_get(scene, timecode, frame, str);
   return str;
 }
 

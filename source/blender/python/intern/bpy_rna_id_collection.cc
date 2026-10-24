@@ -332,8 +332,7 @@ struct IDFilePathMapData {
 };
 
 static bool foreach_id_file_path_map_callback(BPathForeachPathData *bpath_data,
-                                              char * /*path_dst*/,
-                                              size_t /*path_dst_maxncpy*/,
+                                              MutableCStr /*path_dst*/,
                                               const char *path_src)
 {
   IDFilePathMapData &data = *static_cast<IDFilePathMapData *>(bpath_data->user_data);
@@ -738,8 +737,7 @@ static PyObject *bpy_file_path_meta_CreatePyObject(const BPathForeachPathData *b
 }
 
 static bool foreach_id_file_path_foreach_callback(BPathForeachPathData *bpath_data,
-                                                  char *path_dst,
-                                                  const size_t path_dst_maxncpy,
+                                                  MutableCStr path_dst,
                                                   const char *path_src)
 {
   IDFilePathForeachData &data = *static_cast<IDFilePathForeachData *>(bpath_data->user_data);
@@ -752,7 +750,7 @@ static bool foreach_id_file_path_foreach_callback(BPathForeachPathData *bpath_da
   if (!path_src || !path_src[0]) {
     return false;
   }
-  BLI_assert(path_dst);
+  BLI_assert(path_dst.data());
 
   /* Construct the callback function parameters. */
   PointerRNA id_ptr = RNA_id_pointer_create(bpath_data->owner_id);
@@ -821,8 +819,7 @@ static bool foreach_id_file_path_foreach_callback(BPathForeachPathData *bpath_da
   /* Copy the returned string back into the path.
    * BLI_strncpy wants buffer size, but PyC_UnicodeAsBytesAndSize reports string
    * length, hence the +1. */
-  BLI_strncpy(
-      path_dst, replacement_path, std::min(path_dst_maxncpy, size_t(replacement_path_length + 1)));
+  STRNCPY(path_dst.take_front(replacement_path_length + 1), replacement_path);
 
   Py_XDECREF(value_coerce);
   Py_DECREF(result);

@@ -244,7 +244,7 @@ static void version_principled_bsdf_update_animdata(Main *bmain, bNodeTree *ntre
     }
 
     char node_name_escaped[MAX_NAME * 2];
-    BLI_str_escape(node_name_escaped, node.name, sizeof(node_name_escaped));
+    BLI_str_escape(node_name_escaped, node.name);
     std::string prefix = "nodes[\"" + std::string(node_name_escaped) + "\"].inputs";
 
     /* Remove animdata for inputs 18 (Transmission Roughness) and 3 (Subsurface Color). */

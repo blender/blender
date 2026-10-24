@@ -45,8 +45,8 @@ static std::string fluid_cache_file_path(const std::string &directory, const int
   char file_path[FILE_MAX];
   char file_name[32];
   SNPRINTF_UTF8(file_name, "%s_####%s", FLUID_NAME_DATA, FLUID_DOMAIN_EXTENSION_OPENVDB);
-  BLI_path_frame(file_name, sizeof(file_name), frame, 0);
-  BLI_path_join(file_path, sizeof(file_path), directory.c_str(), FLUID_DOMAIN_DIR_DATA, file_name);
+  BLI_path_frame(file_name, frame, 0);
+  BLI_path_join(file_path, directory.c_str(), FLUID_DOMAIN_DIR_DATA, file_name);
   return file_path;
 }
 

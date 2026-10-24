@@ -130,55 +130,43 @@ void node_math_update(bNodeTree *ntree, bNode *node)
 /** \name Labels
  * \{ */
 
-void node_blend_label(const bNodeTree * /*ntree*/,
-                      const bNode *node,
-                      char *label,
-                      int label_maxncpy)
+void node_blend_label(const bNodeTree * /*ntree*/, const bNode *node, MutableCStr label)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_ramp_blend_items, node->custom1, &name);
   if (!enum_label) {
     name = CTX_N_(BLT_I18NCONTEXT_COLOR, "Unknown");
   }
-  BLI_strncpy_utf8(label, CTX_IFACE_(BLT_I18NCONTEXT_COLOR, name), label_maxncpy);
+  STRNCPY_UTF8(label, CTX_IFACE_(BLT_I18NCONTEXT_COLOR, name));
 }
 
-void node_image_label(const bNodeTree * /*ntree*/,
-                      const bNode *node,
-                      char *label,
-                      int label_maxncpy)
+void node_image_label(const bNodeTree * /*ntree*/, const bNode *node, MutableCStr label)
 {
   if (node->id == nullptr) {
-    BLI_strncpy(label, IFACE_(node->typeinfo->ui_name.c_str()), label_maxncpy);
+    STRNCPY(label, IFACE_(node->typeinfo->ui_name.c_str()));
     return;
   }
-  BLI_strncpy(label, node->id->name + 2, label_maxncpy);
+  STRNCPY(label, node->id->name + 2);
 }
 
-void node_math_label(const bNodeTree * /*ntree*/,
-                     const bNode *node,
-                     char *label,
-                     int label_maxncpy)
+void node_math_label(const bNodeTree * /*ntree*/, const bNode *node, MutableCStr label)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_math_items, node->custom1, &name);
   if (!enum_label) {
     name = CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "Unknown");
   }
-  BLI_strncpy_utf8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), label_maxncpy);
+  STRNCPY_UTF8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name));
 }
 
-void node_vector_math_label(const bNodeTree * /*ntree*/,
-                            const bNode *node,
-                            char *label,
-                            int label_maxncpy)
+void node_vector_math_label(const bNodeTree * /*ntree*/, const bNode *node, MutableCStr label)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_vec_math_items, node->custom1, &name);
   if (!enum_label) {
     name = CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "Unknown");
   }
-  BLI_strncpy_utf8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), label_maxncpy);
+  STRNCPY_UTF8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name));
 }
 
 void node_combsep_color_label(const ListBaseT<bNodeSocket> *sockets, NodeCombSepColorMode mode)

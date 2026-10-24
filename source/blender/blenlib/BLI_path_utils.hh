@@ -7,10 +7,12 @@
  * \ingroup bli
  */
 
+#include <optional>
+
 #include "BLI_compiler_attrs.hh"
 #include "BLI_compiler_compat.hh"
+#include "BLI_span.hh"
 #include "BLI_utildefines.hh"
-#include "BLI_utildefines_variadic.hh"
 
 namespace blender {
 
@@ -138,8 +140,7 @@ bool BLI_path_make_safe(char *path) ATTR_NONNULL(1);
  *
  * The resulting path is guaranteed to be valid UTF8, even if the input path is not.
  */
-void BLI_path_to_display_name(char *display_name, int display_name_maxncpy, const char *name)
-    ATTR_NONNULL(1, 3);
+void BLI_path_to_display_name(MutableCStr display_name, const char *name) ATTR_NONNULL(2);
 
 /** \} */
 
@@ -187,11 +188,11 @@ int BLI_path_normalize_native(char *path) ATTR_NONNULL(1);
  *
  * \return the length of `dir`.
  */
-int BLI_path_normalize_dir(char *dir, size_t dir_maxncpy) ATTR_NONNULL(1);
+int BLI_path_normalize_dir(MutableCStr dir);
 
 #if defined(WIN32)
 void BLI_path_normalize_unc_16(wchar_t *path_16);
-void BLI_path_normalize_unc(char *path, int path_maxncpy);
+void BLI_path_normalize_unc(MutableCStr path);
 #endif
 
 /** \} */
@@ -214,7 +215,7 @@ void BLI_path_normalize_unc(char *path, int path_maxncpy);
  * - Normalize redundant slashes.
  * - Strip trailing slashes.
  */
-int BLI_path_canonicalize_native(char *path, int path_maxncpy);
+int BLI_path_canonicalize_native(MutableCStr path);
 
 /** \} */
 
@@ -226,8 +227,7 @@ int BLI_path_canonicalize_native(char *path, int path_maxncpy);
  * Ensure `filepath` has a file component, adding `filename` when it's empty or ends with a slash.
  * \return true if the `filename` was appended to `filepath`.
  */
-bool BLI_path_filename_ensure(char *filepath, size_t filepath_maxncpy, const char *filename)
-    ATTR_NONNULL(1, 3);
+bool BLI_path_filename_ensure(MutableCStr filepath, const char *filename) ATTR_NONNULL(2);
 
 /**
  * Appends a suffix to the `path`, fitting it before the extension
@@ -236,13 +236,11 @@ bool BLI_path_filename_ensure(char *filepath, size_t filepath_maxncpy, const cha
  * `Foo.png` -> `Foo_123.png`.
  *
  * \param path: original (and final) string.
- * \param path_maxncpy: Maximum length of path.
  * \param suffix: String to append to the original path.
  * \param sep: Optional separator character.
  * \return true if succeeded.
  */
-bool BLI_path_suffix(char *path, size_t path_maxncpy, const char *suffix, const char *sep)
-    ATTR_NONNULL(1, 3, 4);
+bool BLI_path_suffix(MutableCStr path, const char *suffix, const char *sep) ATTR_NONNULL(2, 3);
 
 /** \} */
 
@@ -263,13 +261,12 @@ const char *BLI_path_slash_rfind(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNU
  * \param path_len: The length of `path`.
  * \return the new length of the path.
  */
-int BLI_path_slash_ensure_ex(char *path, size_t path_maxncpy, const size_t path_len)
-    ATTR_NONNULL(1);
+int BLI_path_slash_ensure_ex(MutableCStr path, size_t path_len);
 /**
  * Appends a slash to path if there isn't one there already.
  * \return the new length of the path.
  */
-int BLI_path_slash_ensure(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
+int BLI_path_slash_ensure(MutableCStr path);
 /**
  * Removes the last slash and everything after it to the end of path, if there is one.
  */
@@ -298,23 +295,18 @@ void BLI_path_slash_forward_from_native(char *path) ATTR_NONNULL(1);
  * Copies directory and file components from `filepath` into `dir` and `file`, e.g.
  * `/foo/bar.txt` to `/foo/` and `bar.txt`
  */
-void BLI_path_split_dir_file(const char *filepath,
-                             char *dir,
-                             size_t dir_maxncpy,
-                             char *file,
-                             size_t file_maxncpy) ATTR_NONNULL(1, 2, 4);
+void BLI_path_split_dir_file(const char *filepath, MutableCStr dir, MutableCStr file)
+    ATTR_NONNULL(1);
 /**
- * Copies the parent directory part of `filepath` into `dir`, max length `dir_maxncpy`.
+ * Copies the parent directory part of `filepath` into `dir`.
  */
-void BLI_path_split_dir_part(const char *filepath, char *dir, size_t dir_maxncpy)
-    ATTR_NONNULL(1, 2);
+void BLI_path_split_dir_part(const char *filepath, MutableCStr dir) ATTR_NONNULL(1);
 /**
- * Copies the leaf filename part of `filepath` into `file`, max length `file_maxncpy`.
+ * Copies the leaf filename part of `filepath` into `file`.
  *
  * \note If there is no need to make a copy the path, #BLI_path_basename can be used instead.
  */
-void BLI_path_split_file_part(const char *filepath, char *file, size_t file_maxncpy)
-    ATTR_NONNULL(1, 2);
+void BLI_path_split_file_part(const char *filepath, MutableCStr file) ATTR_NONNULL(1);
 
 /**
  * Like Python's `os.path.basename()`
@@ -345,14 +337,12 @@ bool BLI_path_has_hidden_component(const char *path) ATTR_NONNULL(1) ATTR_WARN_U
  * Append a filename to a dir, ensuring slash separates.
  * \return The new length of `dst`.
  */
-size_t BLI_path_append(char *__restrict dst, size_t dst_maxncpy, const char *__restrict file)
-    ATTR_NONNULL(1, 3);
+size_t BLI_path_append(MutableCStr dst, const char *file) ATTR_NONNULL(2);
 /**
  * A version of #BLI_path_append that ensures a trailing slash if there is space in `dst`.
  * \return The new length of `dst`.
  */
-size_t BLI_path_append_dir(char *__restrict dst, size_t dst_maxncpy, const char *__restrict dir)
-    ATTR_NONNULL(1, 3);
+size_t BLI_path_append_dir(MutableCStr dst, const char *dir) ATTR_NONNULL(2);
 
 /** \} */
 
@@ -363,10 +353,19 @@ size_t BLI_path_append_dir(char *__restrict dst, size_t dst_maxncpy, const char 
 /**
  * See #BLI_path_join docstring.
  */
-size_t BLI_path_join_array(char *__restrict dst,
-                           const size_t dst_maxncpy,
-                           const char *path_array[],
-                           const int path_array_num) ATTR_NONNULL(1, 3);
+size_t BLI_path_join_array(MutableCStr dst, const char *path_array[], int path_array_num)
+    ATTR_NONNULL(2);
+
+#define _BLI_PATH_JOIN_ARGS_1 MutableCStr dst, const char *a
+#define _BLI_PATH_JOIN_ARGS_2 _BLI_PATH_JOIN_ARGS_1, const char *b
+#define _BLI_PATH_JOIN_ARGS_3 _BLI_PATH_JOIN_ARGS_2, const char *c
+#define _BLI_PATH_JOIN_ARGS_4 _BLI_PATH_JOIN_ARGS_3, const char *d
+#define _BLI_PATH_JOIN_ARGS_5 _BLI_PATH_JOIN_ARGS_4, const char *e
+#define _BLI_PATH_JOIN_ARGS_6 _BLI_PATH_JOIN_ARGS_5, const char *f
+#define _BLI_PATH_JOIN_ARGS_7 _BLI_PATH_JOIN_ARGS_6, const char *g
+#define _BLI_PATH_JOIN_ARGS_8 _BLI_PATH_JOIN_ARGS_7, const char *h
+#define _BLI_PATH_JOIN_ARGS_9 _BLI_PATH_JOIN_ARGS_8, const char *i
+#define _BLI_PATH_JOIN_ARGS_10 _BLI_PATH_JOIN_ARGS_9, const char *j
 
 /**
  * Join multiple strings into a path, ensuring only a single path separator between each,
@@ -383,79 +382,66 @@ size_t BLI_path_join_array(char *__restrict dst,
  * \note If you want a trailing slash, add `SEP_STR` as the last path argument,
  * duplicate slashes will be cleaned up.
  */
-#define BLI_path_join(...) VA_NARGS_CALL_OVERLOAD(_BLI_path_join_, __VA_ARGS__)
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_1) ATTR_NONNULL();
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_2) ATTR_NONNULL();
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_3) ATTR_NONNULL();
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_4) ATTR_NONNULL();
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_5) ATTR_NONNULL();
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_6) ATTR_NONNULL();
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_7) ATTR_NONNULL();
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_8) ATTR_NONNULL();
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_9) ATTR_NONNULL();
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_10) ATTR_NONNULL();
 
-#define _BLI_PATH_JOIN_ARGS_1 char *__restrict dst, size_t dst_maxncpy, const char *a
-#define _BLI_PATH_JOIN_ARGS_2 _BLI_PATH_JOIN_ARGS_1, const char *b
-#define _BLI_PATH_JOIN_ARGS_3 _BLI_PATH_JOIN_ARGS_2, const char *c
-#define _BLI_PATH_JOIN_ARGS_4 _BLI_PATH_JOIN_ARGS_3, const char *d
-#define _BLI_PATH_JOIN_ARGS_5 _BLI_PATH_JOIN_ARGS_4, const char *e
-#define _BLI_PATH_JOIN_ARGS_6 _BLI_PATH_JOIN_ARGS_5, const char *f
-#define _BLI_PATH_JOIN_ARGS_7 _BLI_PATH_JOIN_ARGS_6, const char *g
-#define _BLI_PATH_JOIN_ARGS_8 _BLI_PATH_JOIN_ARGS_7, const char *h
-#define _BLI_PATH_JOIN_ARGS_9 _BLI_PATH_JOIN_ARGS_8, const char *i
-#define _BLI_PATH_JOIN_ARGS_10 _BLI_PATH_JOIN_ARGS_9, const char *j
-
-BLI_INLINE size_t _BLI_path_join_3(_BLI_PATH_JOIN_ARGS_1) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_path_join_4(_BLI_PATH_JOIN_ARGS_2) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_path_join_5(_BLI_PATH_JOIN_ARGS_3) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_path_join_6(_BLI_PATH_JOIN_ARGS_4) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_path_join_7(_BLI_PATH_JOIN_ARGS_5) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_path_join_8(_BLI_PATH_JOIN_ARGS_6) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_path_join_9(_BLI_PATH_JOIN_ARGS_7) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_path_join_10(_BLI_PATH_JOIN_ARGS_8) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_path_join_11(_BLI_PATH_JOIN_ARGS_9) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_path_join_12(_BLI_PATH_JOIN_ARGS_10) ATTR_NONNULL();
-
-BLI_INLINE size_t _BLI_path_join_3(_BLI_PATH_JOIN_ARGS_1)
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_1)
 {
   const char *path_array[] = {a};
-  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, path_array, ARRAY_SIZE(path_array));
 }
-BLI_INLINE size_t _BLI_path_join_4(_BLI_PATH_JOIN_ARGS_2)
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_2)
 {
   const char *path_array[] = {a, b};
-  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, path_array, ARRAY_SIZE(path_array));
 }
-BLI_INLINE size_t _BLI_path_join_5(_BLI_PATH_JOIN_ARGS_3)
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_3)
 {
   const char *path_array[] = {a, b, c};
-  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, path_array, ARRAY_SIZE(path_array));
 }
-BLI_INLINE size_t _BLI_path_join_6(_BLI_PATH_JOIN_ARGS_4)
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_4)
 {
   const char *path_array[] = {a, b, c, d};
-  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, path_array, ARRAY_SIZE(path_array));
 }
-BLI_INLINE size_t _BLI_path_join_7(_BLI_PATH_JOIN_ARGS_5)
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_5)
 {
   const char *path_array[] = {a, b, c, d, e};
-  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, path_array, ARRAY_SIZE(path_array));
 }
-BLI_INLINE size_t _BLI_path_join_8(_BLI_PATH_JOIN_ARGS_6)
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_6)
 {
   const char *path_array[] = {a, b, c, d, e, f};
-  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, path_array, ARRAY_SIZE(path_array));
 }
-BLI_INLINE size_t _BLI_path_join_9(_BLI_PATH_JOIN_ARGS_7)
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_7)
 {
   const char *path_array[] = {a, b, c, d, e, f, g};
-  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, path_array, ARRAY_SIZE(path_array));
 }
-BLI_INLINE size_t _BLI_path_join_10(_BLI_PATH_JOIN_ARGS_8)
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_8)
 {
   const char *path_array[] = {a, b, c, d, e, f, g, h};
-  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, path_array, ARRAY_SIZE(path_array));
 }
-BLI_INLINE size_t _BLI_path_join_11(_BLI_PATH_JOIN_ARGS_9)
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_9)
 {
   const char *path_array[] = {a, b, c, d, e, f, g, h, i};
-  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, path_array, ARRAY_SIZE(path_array));
 }
-BLI_INLINE size_t _BLI_path_join_12(_BLI_PATH_JOIN_ARGS_10)
+BLI_INLINE size_t BLI_path_join(_BLI_PATH_JOIN_ARGS_10)
 {
   const char *path_array[] = {a, b, c, d, e, f, g, h, i, j};
-  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, path_array, ARRAY_SIZE(path_array));
 }
 
 #undef _BLI_PATH_JOIN_ARGS_1
@@ -518,8 +504,7 @@ bool BLI_path_extension_glob_validate(char *ext_fnmatch) ATTR_NONNULL(1);
  * Removes any existing extension on the end of \a path and appends \a ext.
  * \return false if there was no room.
  */
-bool BLI_path_extension_replace(char *path, size_t path_maxncpy, const char *ext)
-    ATTR_NONNULL(1, 3);
+bool BLI_path_extension_replace(MutableCStr path, const char *ext) ATTR_NONNULL(2);
 /**
  * Remove the file extension.
  * \return true if a change was made to `path`.
@@ -528,8 +513,7 @@ bool BLI_path_extension_strip(char *path) ATTR_NONNULL(1);
 /**
  * Strip's trailing '.'s and adds the extension only when needed
  */
-bool BLI_path_extension_ensure(char *path, size_t path_maxncpy, const char *ext)
-    ATTR_NONNULL(1, 3);
+bool BLI_path_extension_ensure(MutableCStr path, const char *ext) ATTR_NONNULL(2);
 
 /** \} */
 
@@ -579,8 +563,7 @@ bool BLI_path_contains(const char *container_path, const char *containee_path)
 bool BLI_path_relative_to(const char *path,
                           const char *base_dir,
                           bool walk_up,
-                          char *r_path_relative,
-                          size_t r_path_relative_maxncpy) ATTR_NONNULL(1, 2);
+                          std::optional<MutableCStr> r_path_relative) ATTR_NONNULL(1, 2);
 
 /** \} */
 
@@ -589,14 +572,13 @@ bool BLI_path_relative_to(const char *path,
  * \{ */
 
 #ifdef _WIN32
-bool BLI_path_program_extensions_add_win32(char *program_name, size_t program_name_maxncpy);
+bool BLI_path_program_extensions_add_win32(MutableCStr program_name);
 #endif
 /**
  * Search for a binary (executable)
  */
-bool BLI_path_program_search(char *program_filepath,
-                             size_t program_filepath_maxncpy,
-                             const char *program_name) ATTR_NONNULL(1, 3);
+bool BLI_path_program_search(MutableCStr program_filepath, const char *program_name)
+    ATTR_NONNULL(2);
 
 /** \} */
 
@@ -608,12 +590,8 @@ bool BLI_path_program_search(char *program_filepath,
  * Returns in area pointed to by `path` a string of the form `<head><pic><tail>`,
  * where pic is formatted as `numlen` digits with leading zeroes.
  */
-void BLI_path_sequence_encode(char *path,
-                              size_t path_maxncpy,
-                              const char *head,
-                              const char *tail,
-                              unsigned short numlen,
-                              int pic);
+void BLI_path_sequence_encode(
+    MutableCStr path, const char *head, const char *tail, unsigned short numlen, int pic);
 
 /**
  * Looks for a sequence of decimal digits in `path`, preceding any filename extension,
@@ -627,10 +605,8 @@ void BLI_path_sequence_encode(char *path,
  * \param r_digits_len: Optional to return number of digits found.
  */
 int BLI_path_sequence_decode(const char *path,
-                             char *head,
-                             size_t head_maxncpy,
-                             char *tail,
-                             size_t tail_maxncpy,
+                             std::optional<MutableCStr> head,
+                             std::optional<MutableCStr> tail,
                              unsigned short *r_digits_len);
 
 /** \} */
@@ -643,14 +619,13 @@ int BLI_path_sequence_decode(const char *path,
  * Replaces "#" character sequence in last slash-separated component of `path`
  * with frame as decimal integer, with leading zeroes as necessary, to make digits.
  */
-bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits) ATTR_NONNULL(1);
+bool BLI_path_frame(MutableCStr path, int frame, int digits);
 /**
  * Replaces "#" character sequence in last slash-separated component of `path`
  * with sta and end as decimal integers, with leading zeroes as necessary, to make digits
  * digits each, with a hyphen in-between.
  */
-bool BLI_path_frame_range(char *path, size_t path_maxncpy, int sta, int end, int digits)
-    ATTR_NONNULL(1);
+bool BLI_path_frame_range(MutableCStr path, int sta, int end, int digits);
 /**
  * Get the frame from a filename formatted by blender's frame scheme.
  * \return true if a frame in the valid range was found.
@@ -664,7 +639,7 @@ bool BLI_path_frame_get(const char *path, int *r_frame, int *r_digits_len) ATTR_
  * Becomes: `/some/path_###` with `r_ext` set to `.jpeg`.
  * \note Only frames that can be represented in the integer range are considered.
  */
-void BLI_path_frame_strip(char *path, char *r_ext, size_t ext_maxncpy) ATTR_NONNULL(1, 2);
+void BLI_path_frame_strip(char *path, MutableCStr r_ext) ATTR_NONNULL(1);
 /**
  * Check if we have '#' chars, usable for #BLI_path_frame, #BLI_path_frame_range
  */
@@ -739,7 +714,7 @@ bool BLI_path_is_abs_from_cwd(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED
  * This is _not_ something Blender's internal paths support, instead they use the `//` prefix.
  * In most cases #BLI_path_abs should be used instead.
  */
-bool BLI_path_abs_from_cwd(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
+bool BLI_path_abs_from_cwd(MutableCStr path);
 
 /** \} */
 

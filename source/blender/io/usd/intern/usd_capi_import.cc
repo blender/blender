@@ -322,8 +322,7 @@ static void import_endjob(void *customdata)
       /* Create a new collection if required. */
       if (data->params.create_collection) {
         char display_name[MAX_ID_NAME - 2];
-        BLI_path_to_display_name(
-            display_name, sizeof(display_name), BLI_path_basename(data->filepath));
+        BLI_path_to_display_name(display_name, BLI_path_basename(data->filepath));
         Collection *import_collection = BKE_collection_add(
             data->bmain, data->scene->master_collection, display_name);
 

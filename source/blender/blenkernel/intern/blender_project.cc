@@ -348,11 +348,11 @@ void BlenderProject::rename_variable(int variable_index, StringRef name)
   };
 
   this->variables[variable_index]->prop().name[0] = '\0';
-  BLI_uniquename_cb(is_variable_name_used,
-                    new_name.c_str(),
-                    '_',
-                    this->variables[variable_index]->prop().name,
-                    sizeof(IDProperty::name));
+  BLI_uniquename_cb(
+      is_variable_name_used,
+      new_name.c_str(),
+      '_',
+      MutableCStr(this->variables[variable_index]->prop().name, sizeof(IDProperty::name)));
 }
 
 void with_blender_project_read_lock(FunctionRef<void()> lambda)
@@ -412,7 +412,7 @@ std::string BKE_is_path_inside_blender_project(const char *path)
 {
   char project_root_path[FILE_MAX];
   if (BLI_is_file(path)) {
-    BLI_path_split_dir_part(path, project_root_path, sizeof(project_root_path));
+    BLI_path_split_dir_part(path, project_root_path);
   }
   else {
     /* Note this function is used for paths that don't yet exist. We still
@@ -428,7 +428,7 @@ std::string BKE_is_path_inside_blender_project(const char *path)
    */
   do {
     STRNCPY(project_root_path_test, project_root_path);
-    BLI_path_append(project_root_path_test, FILE_MAX, BLENDER_PROJECT_CONFIG_DIR);
+    BLI_path_append(project_root_path_test, BLENDER_PROJECT_CONFIG_DIR);
     found_project = BLI_is_dir(project_root_path_test);
   } while (!found_project && BLI_path_parent_dir(project_root_path));
 
@@ -539,9 +539,7 @@ std::string BKE_blender_project_path_make_relative(const StringRef path,
 
   const bool walk_up = false;
   char path_relative[FILE_MAX];
-  if (!BLI_path_relative_to(
-          path_str.c_str(), root.c_str(), walk_up, path_relative, sizeof(path_relative)))
-  {
+  if (!BLI_path_relative_to(path_str.c_str(), root.c_str(), walk_up, path_relative)) {
     return path_escaped;
   }
   if (path_relative[0] == '\0') {
@@ -565,7 +563,7 @@ std::string BKE_blender_project_path_resolve(const StringRef path,
 
   bke::path_templates::VariableMap variables;
   BKE_add_template_variables_for_project(variables, project);
-  if (!BKE_path_apply_template(path_expanded, sizeof(path_expanded), variables).is_empty()) {
+  if (!BKE_path_apply_template(path_expanded, variables).is_empty()) {
     return "";
   }
 

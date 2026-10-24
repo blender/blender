@@ -205,10 +205,10 @@ static void applyResize(TransInfo *t)
         pvec[j++] = t->values_final[i];
       }
     }
-    headerResize(t, pvec, str, sizeof(str));
+    headerResize(t, pvec, str);
   }
   else {
-    headerResize(t, t->values_final, str, sizeof(str));
+    headerResize(t, t->values_final, str);
   }
 
   copy_m3_m3(t->mat, mat); /* Used in gizmo. */

@@ -53,7 +53,7 @@ static void filelist_readjob_remote_asset_library_index_read(
   char dirpath[FILE_MAX];
   StringRef(request.dirpath).copy_utf8_truncated(dirpath);
 
-  BLI_path_normalize_dir(dirpath, sizeof(dirpath));
+  BLI_path_normalize_dir(dirpath);
   if (!BLI_is_dir(dirpath)) {
     return;
   }
@@ -80,7 +80,6 @@ static void filelist_readjob_remote_asset_library_index_read(
       /* Matches #asset_system::AssetRepresentation.library_relative_identifier(). */
       char asset_identifier[FILE_MAX_LIBEXTRA];
       BLI_string_join(asset_identifier,
-                      sizeof(asset_identifier),
                       asset_file.c_str(),
                       SEP_STR,
                       group_name,

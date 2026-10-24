@@ -102,10 +102,10 @@ void export_frame(Depsgraph *depsgraph,
         *const_cast<char *>(basename) = '\0';
       }
 
-      BLI_path_suffix(filepath, FILE_MAX, object_name, "");
+      BLI_path_suffix(filepath, object_name, "");
       /* Make sure we have `.stl` extension (case insensitive). */
       if (!BLI_path_extension_check(filepath, ".stl")) {
-        BLI_path_extension_ensure(filepath, FILE_MAX, ".stl");
+        BLI_path_extension_ensure(filepath, ".stl");
       }
 
       try {

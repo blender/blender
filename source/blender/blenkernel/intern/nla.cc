@@ -1984,8 +1984,7 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
       [&](const StringRefNull check_name) { return BLI_ghash_haskey(gh, check_name.c_str()); },
       DATA_("NlaStrip"),
       '.',
-      strip->name,
-      sizeof(strip->name));
+      strip->name);
 
   /* free the hash... */
   BLI_ghash_free(gh, nullptr, nullptr);

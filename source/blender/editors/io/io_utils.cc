@@ -100,7 +100,7 @@ Vector<std::string> paths_from_operator_properties(PointerRNA *ptr)
     RNA_PROP_BEGIN (ptr, file_ptr, files_prop) {
       RNA_string_get(&file_ptr, "name", name);
       char path[FILE_MAX];
-      BLI_path_join(path, sizeof(path), directory, name);
+      BLI_path_join(path, directory, name);
       BLI_path_normalize(path);
       paths.append_non_duplicates(path);
     }
@@ -121,7 +121,7 @@ Vector<std::string> paths_from_operator_properties(PointerRNA *ptr)
 void paths_to_operator_properties(PointerRNA *ptr, const Span<std::string> paths)
 {
   char dir[FILE_MAX];
-  BLI_path_split_dir_part(paths[0].c_str(), dir, sizeof(dir));
+  BLI_path_split_dir_part(paths[0].c_str(), dir);
   RNA_string_set(ptr, "directory", dir);
 
   RNA_collection_clear(ptr, "files");

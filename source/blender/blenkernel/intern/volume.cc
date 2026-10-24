@@ -246,7 +246,7 @@ static void volume_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     return;
   }
 
-  BKE_bpath_foreach_path_fixed_process(bpath_data, volume->filepath, sizeof(volume->filepath));
+  BKE_bpath_foreach_path_fixed_process(bpath_data, volume->filepath);
 }
 
 static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -418,9 +418,9 @@ static void volume_filepath_get(const Main *bmain, const Volume *volume, char r_
   int path_frame, path_digits;
   if (volume->is_sequence && BLI_path_frame_get(r_filepath, &path_frame, &path_digits)) {
     char ext[32];
-    BLI_path_frame_strip(r_filepath, ext, sizeof(ext));
-    BLI_path_frame(r_filepath, FILE_MAX, volume->runtime->frame, path_digits);
-    BLI_path_extension_ensure(r_filepath, FILE_MAX, ext);
+    BLI_path_frame_strip(r_filepath, ext);
+    BLI_path_frame(MutableCStr(r_filepath, FILE_MAX), volume->runtime->frame, path_digits);
+    BLI_path_extension_ensure(MutableCStr(r_filepath, FILE_MAX), ext);
   }
 }
 #endif

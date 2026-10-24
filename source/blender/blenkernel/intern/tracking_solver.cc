@@ -295,8 +295,7 @@ static int reconstruct_count_tracks_on_both_keyframes(MovieTrackingObject *track
 
 bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
                                        MovieTrackingObject *tracking_object,
-                                       char *error_msg,
-                                       int error_msg_maxncpy)
+                                       MutableCStr error_msg)
 {
   if (tracking->settings.motion_flag & TRACKING_MOTION_MODAL) {
     /* TODO: check for number of tracks? */
@@ -305,18 +304,15 @@ bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
   if ((tracking->settings.reconstruction_flag & TRACKING_USE_KEYFRAME_SELECTION) == 0) {
     /* automatic keyframe selection does not require any pre-process checks */
     if (reconstruct_count_tracks_on_both_keyframes(tracking_object) < 8) {
-      BLI_strncpy_utf8(
-          error_msg,
-          N_("At least 8 common tracks on both keyframes are needed for reconstruction"),
-          error_msg_maxncpy);
+      STRNCPY_UTF8(error_msg,
+                   N_("At least 8 common tracks on both keyframes are needed for reconstruction"));
 
       return false;
     }
   }
 
 #ifndef WITH_LIBMV
-  BLI_strncpy_utf8(
-      error_msg, N_("Blender is compiled without motion tracking library"), error_msg_maxncpy);
+  STRNCPY_UTF8(error_msg, N_("Blender is compiled without motion tracking library"));
   return false;
 #endif
 
@@ -448,8 +444,7 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context,
                                        bool *stop,
                                        bool *do_update,
                                        float *progress,
-                                       char *stats_message,
-                                       int message_size)
+                                       MutableCStr stats_message)
 {
   float error;
 
@@ -460,8 +455,8 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context,
   progressdata.stop = stop;
   progressdata.do_update = do_update;
   progressdata.progress = progress;
-  progressdata.stats_message = stats_message;
-  progressdata.message_size = message_size;
+  progressdata.stats_message = stats_message.data();
+  progressdata.message_size = stats_message.size();
 
   reconstructionOptionsFromContext(&reconstruction_options, context);
 

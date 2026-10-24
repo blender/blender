@@ -86,8 +86,7 @@ static void cache_file_free_data(ID *id)
 static void cache_file_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   CacheFile *cache_file = id_cast<CacheFile *>(id);
-  BKE_bpath_foreach_path_fixed_process(
-      bpath_data, cache_file->filepath, sizeof(cache_file->filepath));
+  BKE_bpath_foreach_path_fixed_process(bpath_data, cache_file->filepath);
 }
 
 static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -385,9 +384,9 @@ bool BKE_cachefile_filepath_get(const Main *bmain,
     const int frame = int(BKE_cachefile_time_offset(cache_file, double(ctime), fps));
 
     char ext[32];
-    BLI_path_frame_strip(r_filepath, ext, sizeof(ext));
-    BLI_path_frame(r_filepath, FILE_MAX, frame, frame_len);
-    BLI_path_extension_ensure(r_filepath, FILE_MAX, ext);
+    BLI_path_frame_strip(r_filepath, ext);
+    BLI_path_frame(MutableCStr(r_filepath, FILE_MAX), frame, frame_len);
+    BLI_path_extension_ensure(MutableCStr(r_filepath, FILE_MAX), ext);
 
     /* TODO(kevin): store sequence range? */
     return BLI_exists(r_filepath);

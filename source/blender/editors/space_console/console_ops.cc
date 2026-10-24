@@ -512,7 +512,7 @@ static wmOperatorStatus console_insert_exec(bContext *C, wmOperator *op)
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   ConsoleLine *ci = console_history_verify(C);
-  char *str = RNA_string_get_alloc(op->ptr, "text", nullptr, 0, nullptr);
+  char *str = RNA_string_get_alloc(op->ptr, "text", std::nullopt, nullptr);
   int len = strlen(str);
 
   /* Allow trailing newlines (but strip them). */
@@ -1049,7 +1049,7 @@ static wmOperatorStatus console_history_append_exec(bContext *C, wmOperator *op)
 
   ConsoleLine *ci = console_history_verify(C);
   /* own this text in the new line, don't free */
-  char *str = RNA_string_get_alloc(op->ptr, "text", nullptr, 0, nullptr);
+  char *str = RNA_string_get_alloc(op->ptr, "text", std::nullopt, nullptr);
   int cursor = RNA_int_get(op->ptr, "current_character");
   const bool rem_dupes = RNA_boolean_get(op->ptr, "remove_duplicates");
   int prev_len = ci->len;
@@ -1118,7 +1118,7 @@ static wmOperatorStatus console_scrollback_append_exec(bContext *C, wmOperator *
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   /* own this text in the new line, don't free */
-  char *str = RNA_string_get_alloc(op->ptr, "text", nullptr, 0, nullptr);
+  char *str = RNA_string_get_alloc(op->ptr, "text", std::nullopt, nullptr);
   int type = RNA_enum_get(op->ptr, "type");
 
   console_history_verify(C);

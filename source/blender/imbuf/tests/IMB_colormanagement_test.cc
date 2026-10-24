@@ -35,7 +35,6 @@ static std::string blender_config_path()
 {
   char configfile[FILE_MAX];
   BLI_path_join(configfile,
-                sizeof(configfile),
                 blender::tests::flags_test_release_dir().c_str(),
                 "datafiles",
                 "colormanagement",
@@ -154,10 +153,7 @@ static std::string write_config_with_extra_colorspace(const std::string &config_
 
   /* Write modified config to temporary directory. */
   char extra_config_path[FILE_MAX];
-  BLI_path_join(extra_config_path,
-                sizeof(extra_config_path),
-                BKE_tempdir_session(),
-                "test_extra_config.ocio");
+  BLI_path_join(extra_config_path, BKE_tempdir_session(), "test_extra_config.ocio");
 
   fstream extra_config_stream(extra_config_path, std::ios::out | std::ios::trunc);
   if (!extra_config_stream.is_open()) {
@@ -319,10 +315,7 @@ class ColorManagementProjectConfigTest : public bke::BlenderGTestBase {
   {
     /* Point at the release datafiles, so startup finds the blender config. */
     char datafiles[FILE_MAX];
-    BLI_path_join(datafiles,
-                  sizeof(datafiles),
-                  blender::tests::flags_test_release_dir().c_str(),
-                  "datafiles");
+    BLI_path_join(datafiles, blender::tests::flags_test_release_dir().c_str(), "datafiles");
     BLI_setenv("BLENDER_SYSTEM_DATAFILES", datafiles);
     bke::BlenderGTestBase::SetUpTestSuite();
     BKE_tempdir_init(nullptr);
@@ -442,9 +435,9 @@ TEST_F(ColorManagementProjectConfigTest, project_config_through_project_root)
 {
   /* A config shipped inside the project. */
   char color_dir[FILE_MAX];
-  BLI_path_join(color_dir, sizeof(color_dir), BKE_tempdir_session(), "color");
+  BLI_path_join(color_dir, BKE_tempdir_session(), "color");
   char config_path[FILE_MAX];
-  BLI_path_join(config_path, sizeof(config_path), color_dir, BCM_CONFIG_FILE);
+  BLI_path_join(config_path, color_dir, BCM_CONFIG_FILE);
   ASSERT_TRUE(BLI_dir_create_recursive(color_dir));
   ASSERT_EQ(BLI_copy(blender_config_path().c_str(), config_path), 0);
 

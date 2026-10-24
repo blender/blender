@@ -938,7 +938,7 @@ static ImBuf *seq_render_image_strip_view(
   else {
     char filepath_view[FILE_MAX];
     if (!seq_multiview_view_filepath_get(
-            *context->scene, filepath, view_id, filepath_view, sizeof(filepath_view), nullptr))
+            *context->scene, filepath, view_id, filepath_view, nullptr))
     {
       return nullptr;
     }
@@ -1016,7 +1016,7 @@ static ImBuf *seq_render_image_strip(const RenderData *context,
     return nullptr;
   }
 
-  BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, s_elem->filename);
+  BLI_path_join(filepath, strip->data->dirpath, s_elem->filename);
   BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&context->scene->id));
 
   /* Try to get a proxy image. */

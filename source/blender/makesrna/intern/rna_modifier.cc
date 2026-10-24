@@ -948,7 +948,7 @@ static std::optional<std::string> rna_Modifier_path(const PointerRNA *ptr)
   const ModifierData *md = static_cast<const ModifierData *>(ptr->data);
   char name_esc[sizeof(md->name) * 2];
 
-  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, md->name);
   return fmt::format("modifiers[\"{}\"]", name_esc);
 }
 
@@ -1018,7 +1018,7 @@ static void rna_Modifier_use_pin_to_last_set(PointerRNA *ptr, bool value)
     static void rna_##_type##Modifier_##_prop##_set(PointerRNA *ptr, const char *value) \
     { \
       _type##ModifierData *tmd = (_type##ModifierData *)ptr->data; \
-      rna_object_vgroup_name_set(ptr, value, tmd->_prop, sizeof(tmd->_prop)); \
+      rna_object_vgroup_name_set(ptr, value, tmd->_prop); \
     }
 
 RNA_MOD_VGROUP_NAME_SET(Armature, defgrp_name);
@@ -1088,7 +1088,7 @@ static void rna_ExplodeModifier_vgroup_set(PointerRNA *ptr, const char *value)
     static void rna_##_type##Modifier_##_prop##_set(PointerRNA *ptr, const char *value) \
     { \
       _type##ModifierData *tmd = (_type##ModifierData *)ptr->data; \
-      rna_object_uvlayer_name_set(ptr, value, tmd->_prop, sizeof(tmd->_prop)); \
+      rna_object_uvlayer_name_set(ptr, value, tmd->_prop); \
     }
 
 RNA_MOD_UVLAYER_NAME_SET(MappingInfo, uvlayer_name);
@@ -2391,10 +2391,7 @@ static void rna_GreasePencilModifier_material_set(PointerRNA *ptr,
     static void rna_##_type##Modifier_vertex_group_name_set(PointerRNA *ptr, const char *value) \
     { \
       _type##ModifierData *tmd = static_cast<_type##ModifierData *>(ptr->data); \
-      rna_object_vgroup_name_set(ptr, \
-                                 value, \
-                                 tmd->influence.vertex_group_name, \
-                                 sizeof(tmd->influence.vertex_group_name)); \
+      rna_object_vgroup_name_set(ptr, value, tmd->influence.vertex_group_name); \
     }
 
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilColor);
@@ -2491,10 +2488,10 @@ static std::optional<std::string> rna_GreasePencilDashModifierSegment_path(const
   BLI_assert(dmd != nullptr);
 
   char name_esc[sizeof(dmd->modifier.name) * 2];
-  BLI_str_escape(name_esc, dmd->modifier.name, sizeof(name_esc));
+  BLI_str_escape(name_esc, dmd->modifier.name);
 
   char ds_name_esc[sizeof(dash_segment->name) * 2];
-  BLI_str_escape(ds_name_esc, dash_segment->name, sizeof(ds_name_esc));
+  BLI_str_escape(ds_name_esc, dash_segment->name);
 
   return fmt::format("modifiers[\"{}\"].segments[\"{}\"]", name_esc, ds_name_esc);
 }
@@ -2523,7 +2520,7 @@ static void rna_GreasePencilDashModifierSegment_name_set(PointerRNA *ptr, const 
 
   /* Fix all the animation data which may link to this. */
   char name_esc[sizeof(dmd->modifier.name) * 2];
-  BLI_str_escape(name_esc, dmd->modifier.name, sizeof(name_esc));
+  BLI_str_escape(name_esc, dmd->modifier.name);
   char rna_path_prefix[36 + sizeof(name_esc) + 1];
   SNPRINTF_UTF8(rna_path_prefix, "modifiers[\"%s\"].segments", name_esc);
   BKE_animdata_fix_paths(*ptr->owner_id,
@@ -2600,10 +2597,10 @@ static std::optional<std::string> rna_GreasePencilTimeModifierSegment_path(const
   BLI_assert(tmd != nullptr);
 
   char name_esc[sizeof(tmd->modifier.name) * 2];
-  BLI_str_escape(name_esc, tmd->modifier.name, sizeof(name_esc));
+  BLI_str_escape(name_esc, tmd->modifier.name);
 
   char ds_name_esc[sizeof(segment->name) * 2];
-  BLI_str_escape(ds_name_esc, segment->name, sizeof(ds_name_esc));
+  BLI_str_escape(ds_name_esc, segment->name);
 
   return fmt::format("modifiers[\"{}\"].segments[\"{}\"]", name_esc, ds_name_esc);
 }
@@ -2632,7 +2629,7 @@ static void rna_GreasePencilTimeModifierSegment_name_set(PointerRNA *ptr, const 
 
   /* Fix all the animation data which may link to this. */
   char name_esc[sizeof(tmd->modifier.name) * 2];
-  BLI_str_escape(name_esc, tmd->modifier.name, sizeof(name_esc));
+  BLI_str_escape(name_esc, tmd->modifier.name);
   char rna_path_prefix[36 + sizeof(name_esc) + 1];
   SNPRINTF_UTF8(rna_path_prefix, "modifiers[\"%s\"].segments", name_esc);
   BKE_animdata_fix_paths(*ptr->owner_id,

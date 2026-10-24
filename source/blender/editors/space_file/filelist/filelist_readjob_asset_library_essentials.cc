@@ -56,7 +56,7 @@ static void filelist_readjob_essentials_asset_library(FileListReadJob *job_param
       job_params->current_main, asset_system::online_essentials_library_reference());
 
   STRNCPY(filelist->filelist.root, asset_system::online_essentials_cache_directory_path().c_str());
-  BLI_path_slash_ensure(filelist->filelist.root, sizeof(filelist->filelist.root));
+  BLI_path_slash_ensure(filelist->filelist.root);
 
   if (job_params->remote_library_requests.is_empty()) {
     filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);

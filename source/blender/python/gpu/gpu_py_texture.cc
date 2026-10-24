@@ -192,8 +192,7 @@ static int pygpu_texture_valid_check(BPyGPUTexture *bpygpu_tex)
 static bool pygpu_texture_size_check(const int size[3],
                                      const int len,
                                      const bool is_cubemap,
-                                     char *err_out,
-                                     const size_t err_out_size)
+                                     MutableCStr err_out)
 {
   const bool is_3d = (len == 3);
   const int limit = is_3d ? GPU_max_texture_3d_size() : GPU_max_texture_size();
@@ -205,35 +204,26 @@ static bool pygpu_texture_size_check(const int size[3],
       continue;
     }
     if (is_3d) {
-      BLI_snprintf_utf8(err_out,
-                        err_out_size,
-                        "3D texture of size %dx%dx%d exceeds the GPU limit of %d per axis",
-                        size[0],
-                        size[1],
-                        size[2],
-                        limit);
+      SNPRINTF_UTF8(err_out,
+                    "3D texture of size %dx%dx%d exceeds the GPU limit of %d per axis",
+                    size[0],
+                    size[1],
+                    size[2],
+                    limit);
     }
     else if (is_cubemap) {
-      BLI_snprintf_utf8(err_out,
-                        err_out_size,
-                        "Cubemap of face size %d exceeds the GPU limit of %d",
-                        size[0],
-                        limit);
+      SNPRINTF_UTF8(
+          err_out, "Cubemap of face size %d exceeds the GPU limit of %d", size[0], limit);
     }
     else if (len == 2) {
-      BLI_snprintf_utf8(err_out,
-                        err_out_size,
-                        "2D texture of size %dx%d exceeds the GPU limit of %d",
-                        size[0],
-                        size[1],
-                        limit);
+      SNPRINTF_UTF8(err_out,
+                    "2D texture of size %dx%d exceeds the GPU limit of %d",
+                    size[0],
+                    size[1],
+                    limit);
     }
     else {
-      BLI_snprintf_utf8(err_out,
-                        err_out_size,
-                        "1D texture of size %d exceeds the GPU limit of %d",
-                        size[0],
-                        limit);
+      SNPRINTF_UTF8(err_out, "1D texture of size %d exceeds the GPU limit of %d", size[0], limit);
     }
     return false;
   }
@@ -354,7 +344,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
   else if (!GPU_context_active_get()) {
     STRNCPY_UTF8(err_out, "No active GPU context found");
   }
-  else if (!pygpu_texture_size_check(size, len, is_cubemap, err_out, sizeof(err_out))) {
+  else if (!pygpu_texture_size_check(size, len, is_cubemap, err_out)) {
     /* Specific message written by pygpu_texture_size_check(). */
   }
   else {

@@ -1160,7 +1160,7 @@ void ED_file_read_bookmarks()
   if (blendfile_path && blendfile_path[0]) {
     /* Folder containing the currently-loaded Blend file. */
     char dir[FILE_MAX];
-    BLI_path_split_dir_part(blendfile_path, dir, sizeof(dir));
+    BLI_path_split_dir_part(blendfile_path, dir);
     fsmenu_insert_entry(fsmenu,
                         FS_CATEGORY_SYSTEM_BOOKMARKS,
                         dir,
@@ -1174,7 +1174,7 @@ void ED_file_read_bookmarks()
 
   if (cfgdir.has_value()) {
     char filepath[FILE_MAX];
-    BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_BOOKMARK_FILE);
+    BLI_path_join(filepath, cfgdir->c_str(), BLENDER_BOOKMARK_FILE);
     fsmenu_read_bookmarks(fsmenu, filepath);
   }
 }

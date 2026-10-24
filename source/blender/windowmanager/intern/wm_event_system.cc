@@ -6324,7 +6324,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
          * Avoid regressions by adding this conversions, it should eventually be removed. */
         if ((event.utf8_buf[0] >= 0x80) && (event.utf8_buf[1] == '\0')) {
           const uint c = uint(event.utf8_buf[0]);
-          int utf8_buf_len = BLI_str_utf8_from_unicode(c, event.utf8_buf, sizeof(event.utf8_buf));
+          int utf8_buf_len = BLI_str_utf8_from_unicode(c, event.utf8_buf);
           CLOG_ERROR(WM_LOG_EVENTS,
                      "ghost detected non-ASCII single byte character '%u', converting to utf8 "
                      "('%.*s', length=%d)",

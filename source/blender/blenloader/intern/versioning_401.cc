@@ -627,7 +627,7 @@ void version_socket_identifier_suffixes_for_dynamic_types(const ListBaseT<bNodeS
     else {
       /* Rename existing identifiers so that they don't conflict with the renamed one. Those will
        * be removed after versioning code. */
-      BLI_strncat(socket.identifier, "_deprecated", sizeof(socket.identifier));
+      BLI_strncat(socket.identifier, "_deprecated");
       socket.runtime->identifier_ustr = UString(socket.identifier);
     }
   }

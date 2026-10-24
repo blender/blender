@@ -72,7 +72,7 @@ void asset_tooltip(const asset_system::AssetRepresentation &asset,
       const std::string full_blend_path = asset.full_library_path();
 
       char dir[FILE_MAX], file[FILE_MAX];
-      BLI_path_split_dir_file(full_blend_path.c_str(), dir, sizeof(dir), file, sizeof(file));
+      BLI_path_split_dir_file(full_blend_path.c_str(), dir, file);
 
       if (file[0]) {
         tooltip_text_field_add(tip, file, {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_VALUE);

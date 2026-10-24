@@ -2101,7 +2101,7 @@ std::optional<std::string> BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *
 
     if (found) {
       char name_esc[sizeof(m.name) * 2];
-      BLI_str_escape(name_esc, m.name, sizeof(name_esc));
+      BLI_str_escape(name_esc, m.name);
       return fmt::format("color_modifiers[\"{}\"].color_ramp", name_esc);
     }
   }

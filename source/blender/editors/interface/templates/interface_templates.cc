@@ -34,7 +34,7 @@ int template_search_textbut_width(PointerRNA *ptr, PropertyRNA *name_prop)
 
   BLI_assert(RNA_property_type(name_prop) == PROP_STRING);
 
-  const char *name = RNA_property_string_get_alloc(ptr, name_prop, str, sizeof(str), &buf_len);
+  const char *name = RNA_property_string_get_alloc(ptr, name_prop, str, &buf_len);
 
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   const int margin = UI_UNIT_X * 0.75f;

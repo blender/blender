@@ -304,8 +304,7 @@ static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
                       return CustomData_external_test(&data, eCustomDataType(layer.type));
                     }))
     {
-      BKE_bpath_foreach_path_fixed_process(
-          bpath_data, data.external->filepath, sizeof(data.external->filepath));
+      BKE_bpath_foreach_path_fixed_process(bpath_data, data.external->filepath);
     }
   }
 }

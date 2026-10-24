@@ -79,12 +79,10 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t
   return dst;
 }
 
-char *BLI_strncpy_ensure_pad(char *__restrict dst,
-                             const char *__restrict src,
-                             const char pad,
-                             size_t dst_maxncpy)
+char *BLI_strncpy_ensure_pad(MutableCStr dst, const char *__restrict src, const char pad)
 {
-  BLI_string_debug_size(dst, dst_maxncpy);
+  size_t dst_maxncpy = size_t(dst.size());
+  BLI_string_debug_size(dst);
   BLI_assert(dst_maxncpy != 0);
 
   if (src[0] == '\0') {
@@ -97,7 +95,7 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
 
     dst_maxncpy--; /* trailing '\0' */
     if ((dst_maxncpy != 0) && (src[idx] != pad)) {
-      dst[idx++] = pad;
+      dst.data()[idx++] = pad;
       dst_maxncpy--;
     }
 
@@ -106,16 +104,16 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
       srclen--;
     }
 
-    memcpy(&dst[idx], src, srclen);
+    memcpy(dst.data() + idx, src, srclen);
     idx += srclen;
 
-    if ((idx != 0) && (dst[idx - 1] != pad)) {
-      dst[idx++] = pad;
+    if ((idx != 0) && (dst.data()[idx - 1] != pad)) {
+      dst.data()[idx++] = pad;
     }
-    dst[idx] = '\0';
+    dst.data()[idx] = '\0';
   }
 
-  return dst;
+  return dst.data();
 }
 
 size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
@@ -136,15 +134,15 @@ size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const 
 /** \name String Append
  * \{ */
 
-char *BLI_strncat(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
+char *BLI_strncat(MutableCStr dst, const char *__restrict src)
 {
-  BLI_string_debug_size_after_nil(dst, dst_maxncpy);
+  BLI_string_debug_size_after_nil(dst);
 
-  size_t len = BLI_strnlen(dst, dst_maxncpy);
-  if (len < dst_maxncpy) {
-    BLI_strncpy(dst + len, src, dst_maxncpy - len);
+  size_t len = STRNLEN(dst);
+  if (len < size_t(dst.size())) {
+    STRNCPY(dst.drop_front(int64_t(len)), src);
   }
-  return dst;
+  return dst.data();
 }
 
 /** \} */
@@ -225,28 +223,27 @@ size_t BLI_snprintf_rlen(char *__restrict dst,
   return n;
 }
 
-char *BLI_sprintfN_with_buffer(char *fixed_buf,
-                               size_t fixed_buf_maxncpy,
+char *BLI_sprintfN_with_buffer(MutableCStr fixed_buf,
                                size_t *result_len,
                                const char *__restrict format,
                                ...)
 {
   va_list args;
   va_start(args, format);
-  int retval = vsnprintf(fixed_buf, fixed_buf_maxncpy, format, args);
+  int retval = vsnprintf(fixed_buf.data(), size_t(fixed_buf.size()), format, args);
   va_end(args);
   if (retval < 0) [[unlikely]] {
     /* Return an empty string as there was an error there is no valid output. */
     *result_len = 0;
-    if (fixed_buf_maxncpy == 0) [[unlikely]] {
+    if (fixed_buf.is_empty()) [[unlikely]] {
       return MEM_new_array_zeroed<char>(1, __func__);
     }
-    *fixed_buf = '\0';
-    return fixed_buf;
+    fixed_buf[0] = '\0';
+    return fixed_buf.data();
   }
   *result_len = size_t(retval);
-  if (size_t(retval) < fixed_buf_maxncpy) {
-    return fixed_buf;
+  if (size_t(retval) < size_t(fixed_buf.size())) {
+    return fixed_buf.data();
   }
 
   /* `retval` doesn't include null terminator. */
@@ -260,28 +257,27 @@ char *BLI_sprintfN_with_buffer(char *fixed_buf,
   return result;
 }
 
-char *BLI_vsprintfN_with_buffer(char *fixed_buf,
-                                size_t fixed_buf_maxncpy,
+char *BLI_vsprintfN_with_buffer(MutableCStr fixed_buf,
                                 size_t *result_len,
                                 const char *__restrict format,
                                 va_list args)
 {
   va_list args_copy;
   va_copy(args_copy, args);
-  int retval = vsnprintf(fixed_buf, fixed_buf_maxncpy, format, args_copy);
+  int retval = vsnprintf(fixed_buf.data(), size_t(fixed_buf.size()), format, args_copy);
   va_end(args_copy);
   if (retval < 0) [[unlikely]] {
     /* Return an empty string as there was an error there is no valid output. */
     *result_len = 0;
-    if (fixed_buf_maxncpy == 0) [[unlikely]] {
+    if (fixed_buf.is_empty()) [[unlikely]] {
       return MEM_new_array_zeroed<char>(1, __func__);
     }
-    *fixed_buf = '\0';
-    return fixed_buf;
+    fixed_buf[0] = '\0';
+    return fixed_buf.data();
   }
   *result_len = size_t(retval);
-  if (size_t(retval) < fixed_buf_maxncpy) {
-    return fixed_buf;
+  if (size_t(retval) < size_t(fixed_buf.size())) {
+    return fixed_buf.data();
   }
 
   /* `retval` doesn't include null terminator. */
@@ -299,8 +295,7 @@ char *BLI_sprintfN(const char *__restrict format, ...)
   size_t result_len;
   va_list args;
   va_start(args, format);
-  char *result = BLI_vsprintfN_with_buffer(
-      fixed_buf, sizeof(fixed_buf), &result_len, format, args);
+  char *result = BLI_vsprintfN_with_buffer(fixed_buf, &result_len, format, args);
   va_end(args);
   if (result != fixed_buf) {
     return result;
@@ -315,8 +310,7 @@ char *BLI_vsprintfN(const char *__restrict format, va_list args)
 {
   char fixed_buf[256];
   size_t result_len;
-  char *result = BLI_vsprintfN_with_buffer(
-      fixed_buf, sizeof(fixed_buf), &result_len, format, args);
+  char *result = BLI_vsprintfN_with_buffer(fixed_buf, &result_len, format, args);
   if (result != fixed_buf) {
     return result;
   }
@@ -332,15 +326,17 @@ char *BLI_vsprintfN(const char *__restrict format, va_list args)
 /** \name String Escape/Un-Escape
  * \{ */
 
-size_t BLI_str_escape(char *__restrict dst, StringRef src, const size_t dst_maxncpy)
+size_t BLI_str_escape(MutableCStr dst, StringRef src)
 {
+  const size_t dst_maxncpy = size_t(dst.size());
   BLI_assert(dst_maxncpy != 0);
-  BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_string_debug_size(dst);
 
+  char *dst_iter = dst.data();
   const size_t dst_len_max = dst_maxncpy - 1;
   size_t dst_len = 0;
   int64_t src_idx = 0;
-  for (; (dst_len < dst_len_max) && (src_idx < src.size()); src_idx++, dst++, dst_len++) {
+  for (; (dst_len < dst_len_max) && (src_idx < src.size()); src_idx++, dst_iter++, dst_len++) {
     char c = src[src_idx];
     if (ELEM(c, '\\', '"') ||                       /* Use as-is. */
         ((c == '\t') && ((void)(c = 't'), true)) || /* Tab. */
@@ -354,12 +350,12 @@ size_t BLI_str_escape(char *__restrict dst, StringRef src, const size_t dst_maxn
         /* Not enough space to escape. */
         break;
       }
-      *dst++ = '\\';
+      *dst_iter++ = '\\';
       dst_len++;
     }
-    *dst = c;
+    *dst_iter = c;
   }
-  *dst = '\0';
+  *dst_iter = '\0';
 
   return dst_len;
 }
@@ -372,7 +368,8 @@ std::string BLI_str_escape(StringRef str)
   const size_t max_result_size = size_t(str.size()) * 2 + 1;
   std::string result;
   result.resize(max_result_size);
-  const size_t result_size = BLI_str_escape(result.data(), str, max_result_size);
+  const size_t result_size = BLI_str_escape(MutableCStr(result.data(), int64_t(max_result_size)),
+                                            str);
   result.resize(result_size);
   return result;
 }
@@ -398,19 +395,18 @@ BLI_INLINE bool str_unescape_pair(char c_next, char *r_out)
   return false;
 }
 
-size_t BLI_str_unescape_ex(char *__restrict dst,
+size_t BLI_str_unescape_ex(MutableCStr dst,
                            const char *__restrict src,
                            const size_t src_len,
                            /* Additional arguments to #BLI_str_unescape */
-                           const size_t dst_maxncpy,
                            bool *r_is_complete)
 {
-  BLI_string_debug_size(dst, dst_maxncpy);
-  BLI_assert(dst_maxncpy != 0);
+  BLI_string_debug_size(dst);
+  BLI_assert(!dst.is_empty());
 
   size_t len = 0;
   bool is_complete = true;
-  const size_t max_strlen = dst_maxncpy - 1; /* Account for trailing zero byte. */
+  const size_t max_strlen = size_t(dst.size()) - 1; /* Account for trailing zero byte. */
   for (const char *src_end = src + src_len; (src < src_end) && *src; src++) {
     if (len == max_strlen) [[unlikely]] {
       is_complete = false;
@@ -420,9 +416,9 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
     if (UNLIKELY(c == '\\') && (src + 1 < src_end) && str_unescape_pair(*(src + 1), &c)) {
       src++;
     }
-    dst[len++] = c;
+    dst.data()[len++] = c;
   }
-  dst[len] = 0;
+  dst.data()[len] = 0;
   *r_is_complete = is_complete;
   return len;
 }
@@ -528,10 +524,9 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
 
 bool BLI_str_quoted_substr(const char *__restrict str,
                            const char *__restrict prefix,
-                           char *result,
-                           size_t result_maxncpy)
+                           MutableCStr result)
 {
-  BLI_string_debug_size(result, result_maxncpy);
+  BLI_string_debug_size(result);
 
   int start_match_ofs, end_match_ofs;
   if (!BLI_str_quoted_substr_range(str, prefix, &start_match_ofs, &end_match_ofs)) {
@@ -539,9 +534,9 @@ bool BLI_str_quoted_substr(const char *__restrict str,
   }
   const size_t escaped_len = size_t(end_match_ofs - start_match_ofs);
   bool is_complete;
-  BLI_str_unescape_ex(result, str + start_match_ofs, escaped_len, result_maxncpy, &is_complete);
+  BLI_str_unescape_ex(result, str + start_match_ofs, escaped_len, &is_complete);
   if (is_complete == false) {
-    *result = '\0';
+    result[0] = '\0';
   }
   return is_complete;
 }

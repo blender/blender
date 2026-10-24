@@ -205,11 +205,7 @@ void OBJWriter::write_mtllib_name(const StringRefNull mtl_filepath) const
   /* Split `.MTL` file path into parent directory and filename. */
   char mtl_file_name[FILE_MAXFILE];
   char mtl_dir_name[FILE_MAXDIR];
-  BLI_path_split_dir_file(mtl_filepath.data(),
-                          mtl_dir_name,
-                          sizeof(mtl_dir_name),
-                          mtl_file_name,
-                          sizeof(mtl_file_name));
+  BLI_path_split_dir_file(mtl_filepath.data(), mtl_dir_name, mtl_file_name);
   FormatHandler fh;
   fh.write_obj_mtllib(mtl_file_name);
   fh.write_to_file(outfile_);
@@ -591,7 +587,7 @@ MTLWriter::MTLWriter(const char *obj_filepath, bool write_file) noexcept(false)
   char mtl_path[FILE_MAX];
   STRNCPY(mtl_path, obj_filepath);
 
-  const bool ok = BLI_path_extension_replace(mtl_path, sizeof(mtl_path), ".mtl");
+  const bool ok = BLI_path_extension_replace(mtl_path, ".mtl");
   if (!ok) {
     throw std::system_error(ENAMETOOLONG, std::system_category(), "");
   }
@@ -739,7 +735,7 @@ void MTLWriter::write_materials(const char *blen_filepath,
   }
 
   char blen_filedir[FILE_MAX];
-  BLI_path_split_dir_part(blen_filepath, blen_filedir, sizeof(blen_filedir));
+  BLI_path_split_dir_part(blen_filepath, blen_filedir);
   BLI_path_slash_native(blen_filedir);
   BLI_path_normalize(blen_filedir);
 

@@ -10,6 +10,8 @@
 
 #include <cstddef>
 
+#include "BLI_span.hh"
+
 #include "BKE_path_templates.hh"
 
 namespace blender {
@@ -91,10 +93,9 @@ int BKE_image_path_ext_from_imformat(const ImageFormatData *im_format,
                                      const char *r_ext[BKE_IMAGE_PATH_EXT_MAX]);
 int BKE_image_path_ext_from_imtype(const char imtype, const char *r_ext[BKE_IMAGE_PATH_EXT_MAX]);
 
-int BKE_image_path_ext_from_imformat_ensure(char *filepath,
-                                            size_t filepath_maxncpy,
+int BKE_image_path_ext_from_imformat_ensure(MutableCStr filepath,
                                             const ImageFormatData *im_format);
-int BKE_image_path_ext_from_imtype_ensure(char *filepath, size_t filepath_maxncpy, char imtype);
+int BKE_image_path_ext_from_imtype_ensure(MutableCStr filepath, char imtype);
 
 /* File Types */
 

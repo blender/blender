@@ -527,9 +527,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
      * can launch new Python instances. */
     {
       char program_path[FILE_MAX];
-      if (BKE_appdir_program_python_search(
-              program_path, sizeof(program_path), PY_MAJOR_VERSION, PY_MINOR_VERSION))
-      {
+      if (BKE_appdir_program_python_search(program_path, PY_MAJOR_VERSION, PY_MINOR_VERSION)) {
         status = PyConfig_SetBytesString(&config, &config.executable, program_path);
         pystatus_exit_on_error(status);
         has_python_executable = true;
@@ -568,8 +566,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
         if (BLI_getenv(ssl_cert_file_env) == nullptr) {
           const char *ssl_cert_file_suffix = PYTHON_SSL_CERT_FILE;
           char ssl_cert_file[FILE_MAX];
-          BLI_path_join(
-              ssl_cert_file, sizeof(ssl_cert_file), py_path_bundle->c_str(), ssl_cert_file_suffix);
+          BLI_path_join(ssl_cert_file, py_path_bundle->c_str(), ssl_cert_file_suffix);
           BLI_setenv(ssl_cert_file_env, ssl_cert_file);
         }
 #  endif /* PYTHON_SSL_CERT_FILE */
@@ -1100,7 +1097,7 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
   char filepath_abs[1024];
 
   STRNCPY(filepath_abs, filepath_rel);
-  BLI_path_abs_from_cwd(filepath_abs, sizeof(filepath_abs));
+  BLI_path_abs_from_cwd(filepath_abs);
   Py_DECREF(filepath_obj);
 
   argv[0] = filepath_abs;

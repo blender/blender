@@ -630,7 +630,7 @@ void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
                                   bool is_active_layer)
 {
   char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-  GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+  GPU_vertformat_safe_attr_name(layer_name, attr_safe_name);
 
   /* Attribute layer name. */
   SNPRINTF(attr_name, "%s%s", base_name, attr_safe_name);

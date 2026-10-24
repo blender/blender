@@ -482,7 +482,7 @@ PyDoc_STRVAR(
 static PyObject *bpy_app_cachedir_get(PyObject * /*self*/, void * /*closure*/)
 {
   char cache_path[FILE_MAX];
-  BKE_appdir_folder_caches(cache_path, sizeof(cache_path));
+  BKE_appdir_folder_caches(cache_path);
   BLI_assert_msg(cache_path[0], "BKE_appdir_folder_caches must never return an empty path");
   return PyC_UnicodeFromBytes(cache_path);
 }

@@ -141,7 +141,7 @@ void ED_fsmenu_entry_set_path(FSMenuEntry *fsentry, const char *path)
         BLENDER_USER_CONFIG, nullptr);
 
     if (user_config_dir.has_value()) {
-      BLI_path_join(tmp_name, sizeof(tmp_name), user_config_dir->c_str(), BLENDER_BOOKMARK_FILE);
+      BLI_path_join(tmp_name, user_config_dir->c_str(), BLENDER_BOOKMARK_FILE);
       fsmenu_write_file(ED_fsmenu_get(), tmp_name);
     }
   }
@@ -157,17 +157,17 @@ void ED_fsmenu_entry_set_icon(FSMenuEntry *fsentry, const int icon)
   fsentry->icon = icon;
 }
 
-static void fsmenu_entry_generate_name(FSMenuEntry *fsentry, char *name, size_t name_size)
+static void fsmenu_entry_generate_name(FSMenuEntry *fsentry, MutableCStr name)
 {
   int offset = 0;
-  int len = name_size;
+  int len = name.size();
 
   if (BLI_path_name_at_index(fsentry->path, -1, &offset, &len)) {
     /* use as size */
     len += 1;
   }
 
-  BLI_strncpy(name, &fsentry->path[offset], std::min(size_t(len), name_size));
+  STRNCPY(name.take_front(len), &fsentry->path[offset]);
   if (!name[0]) {
     name[0] = '/';
     name[1] = '\0';
@@ -184,7 +184,7 @@ char *ED_fsmenu_entry_get_name(FSMenuEntry *fsentry)
   char *name = fsentry->name + 1;
   size_t name_size = sizeof(fsentry->name) - 1;
 
-  fsmenu_entry_generate_name(fsentry, name, name_size);
+  fsmenu_entry_generate_name(fsentry, MutableCStr(name, name_size));
   return name;
 }
 
@@ -192,9 +192,8 @@ void ED_fsmenu_entry_set_name(FSMenuEntry *fsentry, const char *name)
 {
   if (!STREQ(name, fsentry->name)) {
     char tmp_name[FILE_MAXFILE];
-    size_t tmp_name_size = sizeof(tmp_name);
 
-    fsmenu_entry_generate_name(fsentry, tmp_name, tmp_name_size);
+    fsmenu_entry_generate_name(fsentry, tmp_name);
     if (!name[0] || STREQ(tmp_name, name)) {
       /* reset name to default behavior. */
       fsentry->name[0] = '\0';
@@ -207,7 +206,7 @@ void ED_fsmenu_entry_set_name(FSMenuEntry *fsentry, const char *name)
         BLENDER_USER_CONFIG, nullptr);
 
     if (user_config_dir.has_value()) {
-      BLI_path_join(tmp_name, sizeof(tmp_name), user_config_dir->c_str(), BLENDER_BOOKMARK_FILE);
+      BLI_path_join(tmp_name, user_config_dir->c_str(), BLENDER_BOOKMARK_FILE);
       fsmenu_write_file(ED_fsmenu_get(), tmp_name);
     }
   }
@@ -401,7 +400,7 @@ bool fsmenu_write_file(FSMenu *fsmenu, const char *filepath)
        fsm_iter = fsm_iter->next)
   {
     if (fsm_iter->path && fsm_iter->save) {
-      fsmenu_entry_generate_name(fsm_iter, fsm_name, sizeof(fsm_name));
+      fsmenu_entry_generate_name(fsm_iter, fsm_name);
       if (fsm_iter->name[0] && !STREQ(fsm_iter->name, fsm_name)) {
         has_error |= (fprintf(fp, "!%s\n", fsm_iter->name) < 0);
       }
@@ -414,7 +413,7 @@ bool fsmenu_write_file(FSMenu *fsmenu, const char *filepath)
        fsm_iter = fsm_iter->next, nwritten++)
   {
     if (fsm_iter->path && fsm_iter->save) {
-      fsmenu_entry_generate_name(fsm_iter, fsm_name, sizeof(fsm_name));
+      fsmenu_entry_generate_name(fsm_iter, fsm_name);
       if (fsm_iter->name[0] && !STREQ(fsm_iter->name, fsm_name)) {
         has_error |= (fprintf(fp, "!%s\n", fsm_iter->name) < 0);
       }

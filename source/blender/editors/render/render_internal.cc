@@ -343,8 +343,7 @@ static void make_renderinfo_string(const RenderStats *rs,
 
   /* Previous and elapsed time. */
   const char *info_time = info_buffers.time_last;
-  BLI_timecode_string_from_time_simple(
-      info_buffers.time_last, sizeof(info_buffers.time_last), rs->lastframetime);
+  BLI_timecode_string_from_time_simple(info_buffers.time_last, rs->lastframetime);
 
   ret_array[i++] = info_sep;
   if (rs->infostr && rs->infostr[0]) {
@@ -356,7 +355,6 @@ static void make_renderinfo_string(const RenderStats *rs,
 
     info_time = info_buffers.time_elapsed;
     BLI_timecode_string_from_time_simple(info_buffers.time_elapsed,
-                                         sizeof(info_buffers.time_elapsed),
                                          BLI_time_now_seconds() - rs->starttime);
   }
 
@@ -417,7 +415,7 @@ static void make_renderinfo_string(const RenderStats *rs,
   }
 
   BLI_assert(i < int(BOUNDED_ARRAY_TYPE_SIZE<decltype(ret_array)>()));
-  BLI_string_join_array(ret, IMA_MAX_RENDER_TEXT_SIZE, ret_array, i);
+  BLI_string_join_array(MutableCStr(ret, IMA_MAX_RENDER_TEXT_SIZE), ret_array, i);
 }
 
 static void image_renderinfo_cb(void *rjv, RenderStats *rs)

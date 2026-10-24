@@ -430,7 +430,7 @@ static std::optional<std::string> rna_ClothSettings_path(const PointerRNA *ptr)
     const ClothModifierData *clmd = reinterpret_cast<const ClothModifierData *>(md);
     if (clmd->sim_parms == settings) {
       char name_esc[sizeof(md->name) * 2];
-      BLI_str_escape(name_esc, md->name, sizeof(name_esc));
+      BLI_str_escape(name_esc, md->name);
       return fmt::format("modifiers[\"{}\"].settings", name_esc);
     }
   }
@@ -441,7 +441,7 @@ static std::optional<std::string> rna_ClothSettings_path(const PointerRNA *ptr)
     }
     if (psys.clmd->sim_parms == settings) {
       char name_esc[sizeof(psys.name) * 2];
-      BLI_str_escape(name_esc, psys.name, sizeof(name_esc));
+      BLI_str_escape(name_esc, psys.name);
       return fmt::format("particle_systems[\"{}\"].cloth.settings", name_esc);
     }
   }
@@ -460,7 +460,7 @@ static std::optional<std::string> rna_ClothCollisionSettings_path(const PointerR
     const ClothModifierData *clmd = reinterpret_cast<const ClothModifierData *>(md);
     if (clmd->coll_parms == settings) {
       char name_esc[sizeof(md->name) * 2];
-      BLI_str_escape(name_esc, md->name, sizeof(name_esc));
+      BLI_str_escape(name_esc, md->name);
       return fmt::format("modifiers[\"{}\"].collision_settings", name_esc);
     }
   }
@@ -471,7 +471,7 @@ static std::optional<std::string> rna_ClothCollisionSettings_path(const PointerR
     }
     if (psys.clmd->coll_parms == settings) {
       char name_esc[sizeof(psys.name) * 2];
-      BLI_str_escape(name_esc, psys.name, sizeof(name_esc));
+      BLI_str_escape(name_esc, psys.name);
       return fmt::format("particle_systems[\"{}\"].cloth.collision_settings", name_esc);
     }
   }

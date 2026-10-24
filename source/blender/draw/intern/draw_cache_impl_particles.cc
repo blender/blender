@@ -801,7 +801,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
 
       char uuid[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
       const StringRef name = uv_map_names[i];
-      GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+      GPU_vertformat_safe_attr_name(name, attr_safe_name);
 
       SNPRINTF_UTF8(uuid, "a%s", attr_safe_name);
       uv_id[i] = GPU_vertformat_attr_add(&format, uuid, gpu::VertAttrType::SFLOAT_32_32);
@@ -814,7 +814,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     for (int i = 0; i < num_col_layers; i++) {
       const StringRef name = color_attribute_names[i];
       char uuid[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-      GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+      GPU_vertformat_safe_attr_name(name, attr_safe_name);
 
       SNPRINTF_UTF8(uuid, "a%s", attr_safe_name);
       col_id[i] = GPU_vertformat_attr_add(&format, uuid, gpu::VertAttrType::UNORM_16_16_16_16);

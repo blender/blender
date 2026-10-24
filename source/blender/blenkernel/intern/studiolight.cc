@@ -559,7 +559,7 @@ static void studiolight_lights_eval(StudioLight *sl, const float normal[3], floa
 static StudioLight *studiolight_add_file(const char *filepath, int flag)
 {
   char filename[FILE_MAXFILE];
-  BLI_path_split_file_part(filepath, filename, FILE_MAXFILE);
+  BLI_path_split_file_part(filepath, filename);
 
   if ((((flag & STUDIOLIGHT_TYPE_STUDIO) != 0) && BLI_path_extension_check(filename, ".sl")) ||
       BLI_path_extension_check_array(filename, imb_ext_image))
@@ -979,7 +979,7 @@ StudioLight *BKE_studiolight_create(const char *filepath,
                                        STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS);
 
   char filename[FILE_MAXFILE];
-  BLI_path_split_file_part(filepath, filename, FILE_MAXFILE);
+  BLI_path_split_file_part(filepath, filename);
   STRNCPY(sl->filepath, filepath);
   const size_t name_len = STRNCPY_RLEN(sl->name, filename);
   BLI_str_utf8_invalid_strip(sl->name, name_len);

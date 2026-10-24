@@ -95,10 +95,10 @@ static void outliner_show_active(SpaceOutliner *space_outliner,
 /** \name Local Utilities
  * \{ */
 
-static void outliner_copybuffer_filepath_get(char filepath[FILE_MAX], size_t filepath_maxncpy)
+static void outliner_copybuffer_filepath_get(MutableCStr filepath)
 {
   /* NOTE: this uses the same path as the 3D viewport. */
-  BLI_path_join(filepath, filepath_maxncpy, BKE_tempdir_base(), "copybuffer.blend");
+  BLI_path_join(filepath, BKE_tempdir_base(), "copybuffer.blend");
 }
 
 /** \} */
@@ -999,7 +999,7 @@ static wmOperatorStatus outliner_id_copy_exec(bContext *C, wmOperator *op)
   }
 
   char filepath[FILE_MAX];
-  outliner_copybuffer_filepath_get(filepath, sizeof(filepath));
+  outliner_copybuffer_filepath_get(filepath);
   copybuffer.write_as_copypaste_buffer(filepath, *op->reports);
 
   BKE_reportf(op->reports, RPT_INFO, "Copied %d selected data-block(s)", num_ids);
@@ -1033,7 +1033,7 @@ static wmOperatorStatus outliner_id_paste_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   const short flag = FILE_AUTOSELECT | FILE_ACTIVE_COLLECTION;
 
-  outliner_copybuffer_filepath_get(filepath, sizeof(filepath));
+  outliner_copybuffer_filepath_get(filepath);
 
   const int num_pasted = BKE_copybuffer_paste(C, filepath, flag, op->reports, 0);
   if (num_pasted == 0) {
@@ -1147,8 +1147,7 @@ static wmOperatorStatus lib_relocate(
     Library *lib = id_cast<Library *>(tselem->id);
     char dir[FILE_MAXDIR], filename[FILE_MAX];
 
-    BLI_path_split_dir_file(
-        lib->runtime->filepath_abs, dir, sizeof(dir), filename, sizeof(filename));
+    BLI_path_split_dir_file(lib->runtime->filepath_abs, dir, filename);
 
     printf("%s, %s\n", tselem->id->name, lib->runtime->filepath_abs);
 
@@ -2022,7 +2021,7 @@ static void tree_element_to_path(TreeElement *te,
 
           TreeElement *temnext = static_cast<TreeElement *>(ld->next->data);
           PointerRNA nextptr = tree_element_cast<TreeElementRNACommon>(temnext)->get_pointer_rna();
-          name = RNA_struct_name_get_alloc(&nextptr, buf, sizeof(buf), nullptr);
+          name = RNA_struct_name_get_alloc(&nextptr, buf, nullptr);
 
           if (name) {
             /* if possible, use name as a key in the path */

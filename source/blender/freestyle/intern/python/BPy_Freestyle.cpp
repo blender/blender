@@ -590,7 +590,7 @@ PyObject *Freestyle_Init()
                                                                "freestyle");
   if (path.has_value()) {
     char modpath[FILE_MAX];
-    blender::BLI_path_join(modpath, sizeof(modpath), path->c_str(), "modules");
+    blender::BLI_path_join(modpath, path->c_str(), "modules");
     PyObject *sys_path = PySys_GetObject("path"); /* borrow */
     PyObject *py_modpath = blender::PyC_UnicodeFromBytes(modpath);
     PyList_Append(sys_path, py_modpath);

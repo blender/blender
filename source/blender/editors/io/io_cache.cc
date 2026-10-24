@@ -58,7 +58,7 @@ static wmOperatorStatus cachefile_open_invoke(bContext *C,
     Main *bmain = CTX_data_main(C);
 
     /* Default to the same directory as the blend file. */
-    BLI_path_split_dir_part(BKE_main_blendfile_path(bmain), filepath, sizeof(filepath));
+    BLI_path_split_dir_part(BKE_main_blendfile_path(bmain), filepath);
     RNA_string_set(op->ptr, "filepath", filepath);
   }
 
@@ -174,7 +174,7 @@ static wmOperatorStatus cachefile_layer_open_invoke(bContext *C,
     Main *bmain = CTX_data_main(C);
 
     /* Default to the same directory as the blend file. */
-    BLI_path_split_dir_part(BKE_main_blendfile_path(bmain), filepath, sizeof(filepath));
+    BLI_path_split_dir_part(BKE_main_blendfile_path(bmain), filepath);
     RNA_string_set(op->ptr, "filepath", filepath);
   }
 

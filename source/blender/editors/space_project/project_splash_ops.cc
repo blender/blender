@@ -36,11 +36,8 @@ static bool project_poll(bContext *C)
 static std::string splash_image_default_filepath(const bke::BlenderProject &project)
 {
   char filepath[FILE_MAX];
-  BLI_path_join(filepath,
-                sizeof(filepath),
-                project.get_root_path().c_str(),
-                BLENDER_PROJECT_CONFIG_DIR,
-                "splash.jpg");
+  BLI_path_join(
+      filepath, project.get_root_path().c_str(), BLENDER_PROJECT_CONFIG_DIR, "splash.jpg");
   return filepath;
 }
 

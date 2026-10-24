@@ -1319,7 +1319,7 @@ static void do_version_convert_to_generic_nodes_after_linking(Main *bmain, bNode
   const DriverMap driver_map = BKE_animdata_build_driver_target_map(*bmain);
   for (bNode &node : node_tree->nodes.items_mutable()) {
     char escaped_node_name[sizeof(node.name) * 2 + 1];
-    BLI_str_escape(escaped_node_name, node.name, sizeof(escaped_node_name));
+    BLI_str_escape(escaped_node_name, node.name);
     const std::string rna_path_prefix = fmt::format("nodes[\"{}\"].inputs", escaped_node_name);
 
     switch (node.type_legacy) {
@@ -1626,7 +1626,7 @@ static void do_version_file_output_node(bNode &node)
   /* The directory previously stored both the directory and the file name. */
   char directory[FILE_MAX] = "";
   char file_name[FILE_MAX] = "";
-  BLI_path_split_dir_file(data->directory, directory, FILE_MAX, file_name, FILE_MAX);
+  BLI_path_split_dir_file(data->directory, directory, file_name);
   STRNCPY(data->directory, directory);
   data->file_name = BLI_strdup_null(file_name);
 

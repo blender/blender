@@ -1161,23 +1161,25 @@ void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type)
   srna->blender_type = blender_type;
 }
 
-char *RNA_struct_name_get_alloc_ex(
-    PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len, PropertyRNA **r_nameprop)
+char *RNA_struct_name_get_alloc_ex(PointerRNA *ptr,
+                                   std::optional<MutableCStr> fixedbuf,
+                                   int *r_len,
+                                   PropertyRNA **r_nameprop)
 {
   if (*ptr) {
     if (PropertyRNA *nameprop = RNA_struct_name_property(ptr->type)) {
       *r_nameprop = nameprop;
-      return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, fixedlen, r_len);
+      return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, r_len);
     }
   }
   return nullptr;
 }
 
-char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len)
+char *RNA_struct_name_get_alloc(PointerRNA *ptr, std::optional<MutableCStr> fixedbuf, int *r_len)
 {
   if (*ptr) {
     if (PropertyRNA *nameprop = RNA_struct_name_property(ptr->type)) {
-      return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, fixedlen, r_len);
+      return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, r_len);
     }
   }
   return nullptr;
@@ -4217,18 +4219,20 @@ void RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop, char *value)
   memcpy(value, string_ret.c_str(), string_ret.size() + 1);
 }
 
-char *RNA_property_string_get_alloc(
-    PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen, int *r_len)
+char *RNA_property_string_get_alloc(PointerRNA *ptr,
+                                    PropertyRNA *prop,
+                                    std::optional<MutableCStr> fixedbuf,
+                                    int *r_len)
 {
   if (fixedbuf) {
-    BLI_string_debug_size(fixedbuf, fixedlen);
+    BLI_string_debug_size(*fixedbuf);
   }
 
   const std::string string_ret = RNA_property_string_get(ptr, prop);
 
   char *buf;
-  if (string_ret.size() < fixedlen) {
-    buf = fixedbuf;
+  if (fixedbuf && string_ret.size() < fixedbuf->size()) {
+    buf = fixedbuf->data();
   }
   else {
     buf = MEM_new_array_uninitialized<char>(string_ret.size() + 1, __func__);
@@ -4349,10 +4353,7 @@ void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const cha
   }
 }
 
-void RNA_property_string_get_default(PointerRNA *ptr,
-                                     PropertyRNA *prop,
-                                     char *value,
-                                     const int value_maxncpy)
+void RNA_property_string_get_default(PointerRNA *ptr, PropertyRNA *prop, MutableCStr value)
 {
   StringPropertyRNA *sprop = reinterpret_cast<StringPropertyRNA *>(rna_ensure_property(prop));
 
@@ -4362,7 +4363,7 @@ void RNA_property_string_get_default(PointerRNA *ptr,
       BLI_assert(idprop->type == IDP_STRING);
       const IDPropertyUIDataString *ui_data = reinterpret_cast<const IDPropertyUIDataString *>(
           idprop->ui_data);
-      BLI_strncpy(value, ui_data->default_value, value_maxncpy);
+      STRNCPY(value, ui_data->default_value);
       return;
     }
 
@@ -4376,23 +4377,25 @@ void RNA_property_string_get_default(PointerRNA *ptr,
   if (sprop->get_default) {
     std::string default_value = sprop->get_default(ptr, prop);
     if (RNA_property_string_is_utf8(prop)) {
-      BLI_strncpy_utf8(value, default_value.c_str(), value_maxncpy);
+      STRNCPY_UTF8(value, default_value.c_str());
     }
     else {
-      BLI_strncpy(value, default_value.c_str(), value_maxncpy);
+      STRNCPY(value, default_value.c_str());
     }
     return;
   }
   if (RNA_property_string_is_utf8(prop)) {
-    BLI_strncpy_utf8(value, sprop->defaultvalue, value_maxncpy);
+    STRNCPY_UTF8(value, sprop->defaultvalue);
   }
   else {
-    BLI_strncpy(value, sprop->defaultvalue, value_maxncpy);
+    STRNCPY(value, sprop->defaultvalue);
   }
 }
 
-char *RNA_property_string_get_default_alloc(
-    PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen, int *r_len)
+char *RNA_property_string_get_default_alloc(PointerRNA *ptr,
+                                            PropertyRNA *prop,
+                                            std::optional<MutableCStr> fixedbuf,
+                                            int *r_len)
 {
   char *buf;
   int length;
@@ -4401,14 +4404,14 @@ char *RNA_property_string_get_default_alloc(
 
   length = RNA_property_string_default_length(ptr, prop);
 
-  if (length + 1 < fixedlen) {
-    buf = fixedbuf;
+  if (fixedbuf && length + 1 < fixedbuf->size()) {
+    buf = fixedbuf->data();
   }
   else {
     buf = MEM_new_array_zeroed<char>(size_t(length) + 1, __func__);
   }
 
-  RNA_property_string_get_default(ptr, prop, buf, length + 1);
+  RNA_property_string_get_default(ptr, prop, MutableCStr(buf, length + 1));
 
   if (r_len) {
     *r_len = length;
@@ -5387,8 +5390,7 @@ bool RNA_property_collection_lookup_string_index(
     if (iter.ptr && iter.ptr.type->nameproperty) {
       nameprop = iter.ptr.type->nameproperty;
 
-      name = RNA_property_string_get_alloc(
-          &iter.ptr, nameprop, name_buf, sizeof(name_buf), &namelen);
+      name = RNA_property_string_get_alloc(&iter.ptr, nameprop, name_buf, &namelen);
 
       if ((keylen == namelen) && STREQ(name, key)) {
         *r_ptr = iter.ptr;
@@ -6518,7 +6520,8 @@ static void sync_system_properties(Main &bmain,
           idprop->type = IDP_STRING;
           idprop->subtype = IDP_STRING_SUB_UTF8;
           int len;
-          char *string = RNA_property_string_get_default_alloc(&ptr, &rna_prop, nullptr, 0, &len);
+          char *string = RNA_property_string_get_default_alloc(
+              &ptr, &rna_prop, std::nullopt, &len);
           idprop->data.pointer = string;
           idprop->len = len + 1;
           idprop->totallen = len;
@@ -7004,13 +7007,15 @@ void RNA_string_get(PointerRNA *ptr, const char *name, char *value)
   }
 }
 
-char *RNA_string_get_alloc(
-    PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen, int *r_len)
+char *RNA_string_get_alloc(PointerRNA *ptr,
+                           const char *name,
+                           std::optional<MutableCStr> fixedbuf,
+                           int *r_len)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
   if (prop) {
-    return RNA_property_string_get_alloc(ptr, prop, fixedbuf, fixedlen, r_len);
+    return RNA_property_string_get_alloc(ptr, prop, fixedbuf, r_len);
   }
   printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier.c_str(), name);
   if (r_len != nullptr) {
@@ -8128,7 +8133,7 @@ bool RNA_property_reset(Main *bmain, PointerRNA *ptr, PropertyRNA *prop, int ind
     }
 
     case PROP_STRING: {
-      char *value = RNA_property_string_get_default_alloc(ptr, prop, nullptr, 0, nullptr);
+      char *value = RNA_property_string_get_default_alloc(ptr, prop, std::nullopt, nullptr);
       RNA_property_string_set(ptr, prop, value);
       MEM_delete(value);
       return true;

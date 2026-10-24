@@ -501,7 +501,7 @@ static void safe_bytes(char out[11], const char data[8])
   }
 }
 
-void GPU_vertformat_safe_attr_name(const StringRef attr_name, char *r_safe_name, uint /*max_len*/)
+void GPU_vertformat_safe_attr_name(const StringRef attr_name, MutableCStr r_safe_name)
 {
   char data[8] = {0};
   uint len = attr_name.size();
@@ -522,7 +522,7 @@ void GPU_vertformat_safe_attr_name(const StringRef attr_name, char *r_safe_name,
     memcpy(data, attr_name.data(), std::min<int>(8, len));
   }
   /* Convert to safe bytes characters. */
-  safe_bytes(r_safe_name, data);
+  safe_bytes(r_safe_name.data(), data);
   /* End the string */
   r_safe_name[11] = '\0';
 

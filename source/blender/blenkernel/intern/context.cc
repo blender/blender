@@ -316,8 +316,7 @@ static std::string ctx_result_brief_repr(const bContextDataResult &result)
           if (name_prop) {
             char name_buf[256];
             PointerRNA ptr_copy = result.ptr; /* Make a non-const copy. */
-            char *name = RNA_property_string_get_alloc(
-                &ptr_copy, name_prop, name_buf, sizeof(name_buf), nullptr);
+            char *name = RNA_property_string_get_alloc(&ptr_copy, name_prop, name_buf, nullptr);
             if (name && name[0] != '\0') {
               member_name = name;
               if (name != name_buf) {
@@ -803,7 +802,7 @@ ListBaseT<LinkData> CTX_data_dir_get_ex(const bContext *C,
     iterprop = RNA_struct_iterator_property(ctx_ptr.type);
 
     RNA_PROP_BEGIN (&ctx_ptr, itemptr, iterprop) {
-      name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), &namelen);
+      name = RNA_struct_name_get_alloc(&itemptr, name_buf, &namelen);
       data_dir_add(&lb, name, use_all);
       if (name != name_buf) {
         MEM_delete(name);

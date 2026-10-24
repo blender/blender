@@ -69,7 +69,7 @@ id<MTLCommandBuffer> MTLCommandBufferManager::ensure_begin()
       BLI_assert(context_.queue != nil);
       active_command_buffer_ = [context_.queue commandBufferWithDescriptor:desc];
 
-      std::string group_name = "CmdBuf: " + GPU_debug_get_groups_names({0, 1});
+      std::string group_name = "CmdBuf: " + GPU_debug_get_groups_names(IndexRange(0, 1));
       [active_command_buffer_ setLabel:@(group_name.c_str())];
       [desc release];
     }

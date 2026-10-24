@@ -37,11 +37,11 @@ USDSceneIndex::USDSceneIndex(pxr::HdRenderIndex *render_index,
   SNPRINTF(unique_name, "%p", this);
 
   char dir_path[FILE_MAX];
-  BLI_path_join(dir_path, sizeof(dir_path), BKE_tempdir_session(), "usd_scene_index", unique_name);
+  BLI_path_join(dir_path, BKE_tempdir_session(), "usd_scene_index", unique_name);
   BLI_dir_create_recursive(dir_path);
 
   char file_path[FILE_MAX];
-  BLI_path_join(file_path, sizeof(file_path), dir_path, "scene.usdc");
+  BLI_path_join(file_path, dir_path, "scene.usdc");
 
   temp_dir_ = dir_path;
   temp_file_ = file_path;

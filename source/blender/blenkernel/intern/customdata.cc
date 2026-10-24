@@ -4103,8 +4103,7 @@ void CustomData_set_layer_unique_name(CustomData *data, const int index)
       },
       defname,
       '.',
-      nlayer->name,
-      name_maxncpy);
+      MutableCStr(nlayer->name, name_maxncpy));
 }
 
 bool CustomData_verify_versions(CustomData *data, const int index)

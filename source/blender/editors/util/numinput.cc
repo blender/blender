@@ -139,15 +139,8 @@ void outputNumInput(NumInput *n, char *str, const UnitSettings &unit_settings)
           STRNCPY_UTF8(val, RPT_("Invalid"));
         }
         else {
-          BKE_unit_value_as_string_adaptive(val,
-                                            sizeof(val),
-                                            double(n->val[i] * fac),
-                                            prec,
-                                            n->unit_sys,
-                                            n->unit_type[i],
-                                            true,
-                                            false,
-                                            true);
+          BKE_unit_value_as_string_adaptive(
+              val, double(n->val[i] * fac), prec, n->unit_sys, n->unit_type[i], true, false, true);
         }
 
         /* +1 because of trailing '\0' */
@@ -169,8 +162,14 @@ void outputNumInput(NumInput *n, char *str, const UnitSettings &unit_settings)
         }
         else {
           char tstr[NUM_STR_REP_LEN];
-          BKE_unit_value_as_string_adaptive(
-              tstr, ln, double(n->val[i]), prec, n->unit_sys, n->unit_type[i], true, false, true);
+          BKE_unit_value_as_string_adaptive(MutableCStr(tstr, ln),
+                                            double(n->val[i]),
+                                            prec,
+                                            n->unit_sys,
+                                            n->unit_type[i],
+                                            true,
+                                            false,
+                                            true);
           BLI_snprintf_utf8(&str[j * ln], ln, "%s%s%s", cur, tstr, cur);
         }
       }
@@ -253,8 +252,7 @@ bool applyNumInput(NumInput *n, float *vec)
 static void value_to_editstr(NumInput *n, int idx)
 {
   const int prec = 6; /* editing, higher precision needed. */
-  n->str_cur = BKE_unit_value_as_string_adaptive(n->str,
-                                                 NUM_STR_REP_LEN,
+  n->str_cur = BKE_unit_value_as_string_adaptive(MutableCStr(n->str, NUM_STR_REP_LEN),
                                                  double(n->val[idx]),
                                                  prec,
                                                  n->unit_sys,
@@ -299,8 +297,7 @@ bool user_string_to_number(bContext *C,
   if (BKE_unit_string_contains_unit(str, type)) {
     char str_unit_convert[256];
     STRNCPY_UTF8(str_unit_convert, str);
-    BKE_unit_replace_string(
-        str_unit_convert, sizeof(str_unit_convert), str, unit_scale, unit.system, type);
+    BKE_unit_replace_string(str_unit_convert, str, unit_scale, unit.system, type);
 
     bool success = BPY_run_string_as_number(C, nullptr, str_unit_convert, &err_info, r_value);
     if (r_value_no_units) {

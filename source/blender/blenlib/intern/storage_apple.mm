@@ -182,16 +182,16 @@ eFileAttributes BLI_file_attributes(const char *path)
   return (eFileAttributes)ret;
 }
 
-char *BLI_current_working_dir(char *dir, const size_t maxncpy)
+char *BLI_current_working_dir(MutableCStr dir)
 {
   /* Can't just copy to the *dir pointer, as [path getCString gets grumpy. */
   char path_expanded[PATH_MAX];
   @autoreleasepool {
     NSString *path = [[NSFileManager defaultManager] currentDirectoryPath];
-    const size_t length = maxncpy > PATH_MAX ? PATH_MAX : maxncpy;
+    const size_t length = std::min<size_t>(dir.size(), PATH_MAX);
     [path getCString:path_expanded maxLength:length encoding:NSUTF8StringEncoding];
-    BLI_strncpy(dir, path_expanded, maxncpy);
-    return dir;
+    STRNCPY(dir, path_expanded);
+    return dir.data();
   }
 }
 

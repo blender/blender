@@ -465,12 +465,12 @@ static std::optional<std::string> rna_Constraint_do_compute_path(Object *ob, bCo
   if (pchan) {
     char name_esc_pchan[sizeof(pchan->name) * 2];
     char name_esc_const[sizeof(con->name) * 2];
-    BLI_str_escape(name_esc_pchan, pchan->name, sizeof(name_esc_pchan));
-    BLI_str_escape(name_esc_const, con->name, sizeof(name_esc_const));
+    BLI_str_escape(name_esc_pchan, pchan->name);
+    BLI_str_escape(name_esc_const, con->name);
     return fmt::format("pose.bones[\"{}\"].constraints[\"{}\"]", name_esc_pchan, name_esc_const);
   }
   char name_esc_const[sizeof(con->name) * 2];
-  BLI_str_escape(name_esc_const, con->name, sizeof(name_esc_const));
+  BLI_str_escape(name_esc_const, con->name);
   return fmt::format("constraints[\"{}\"]", name_esc_const);
 }
 

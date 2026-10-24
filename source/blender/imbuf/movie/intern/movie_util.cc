@@ -49,16 +49,13 @@ static char ffmpeg_last_error_buffer[1024];
 #    pragma GCC diagnostic ignored "-Wmissing-format-attribute"
 #  endif
 
-static size_t ffmpeg_log_to_buffer(char *buffer,
-                                   const size_t buffer_maxncpy,
-                                   const char *format,
-                                   va_list arg)
+static size_t ffmpeg_log_to_buffer(MutableCStr buffer, const char *format, va_list arg)
 {
   va_list args_cpy;
   size_t n;
 
   va_copy(args_cpy, arg);
-  n = BLI_vsnprintf(buffer, buffer_maxncpy, format, args_cpy);
+  n = VSNPRINTF(buffer, format, args_cpy);
   va_end(args_cpy);
 
   return n;
@@ -95,8 +92,7 @@ static void ffmpeg_log_callback(void * /*ptr*/, int level, const char *format, v
   std::scoped_lock lock(mutex);
 
   if (ELEM(level, AV_LOG_PANIC, AV_LOG_FATAL, AV_LOG_ERROR)) {
-    const size_t n = ffmpeg_log_to_buffer(
-        ffmpeg_last_error_buffer, sizeof(ffmpeg_last_error_buffer), format, arg);
+    const size_t n = ffmpeg_log_to_buffer(ffmpeg_last_error_buffer, format, arg);
     /* Strip trailing \n. */
     ffmpeg_last_error_buffer[n - 1] = '\0';
   }
@@ -109,7 +105,7 @@ static void ffmpeg_log_callback(void * /*ptr*/, int level, const char *format, v
     static int buffer_used = 0;
 
     buffer_used += ffmpeg_log_to_buffer(
-        buffer + buffer_used, sizeof(buffer) - buffer_used, format, arg);
+        MutableCStr(buffer + buffer_used, sizeof(buffer) - buffer_used), format, arg);
 
     if (buffer_used >= sizeof(buffer) || (buffer_used > 0 && buffer[buffer_used - 1] == '\n')) {
       if (buffer[buffer_used - 1] == '\n') {

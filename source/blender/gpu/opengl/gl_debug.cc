@@ -91,7 +91,7 @@ static void APIENTRY debug_callback(GLenum /*source*/,
   }
   else {
     char debug_groups[512] = "";
-    GPU_debug_get_groups_names(sizeof(debug_groups), debug_groups);
+    GPU_debug_get_groups_names(debug_groups);
     CLG_Level clog_level;
 
     if (GPU_debug_group_match(GPU_DEBUG_SHADER_COMPILATION_GROUP) ||

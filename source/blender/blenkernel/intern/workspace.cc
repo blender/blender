@@ -600,7 +600,7 @@ void BKE_workspace_tool_id_replace_table(WorkSpace *workspace,
       idname_suffix += idname_prefix_len;
     }
     BLI_string_replace_table_exact(
-        idname_suffix, idname_suffix_maxncpy, replace_table, replace_table_num);
+        MutableCStr(idname_suffix, idname_suffix_maxncpy), replace_table, replace_table_num);
   }
 }
 

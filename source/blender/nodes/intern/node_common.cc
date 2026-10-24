@@ -92,13 +92,9 @@ bNodeSocket *node_group_find_output_socket(bNode *groupnode, const StringRef ide
   return find_matching_socket(groupnode->outputs, identifier);
 }
 
-void node_group_label(const bNodeTree * /*ntree*/,
-                      const bNode *node,
-                      char *label,
-                      int label_maxncpy)
+void node_group_label(const bNodeTree * /*ntree*/, const bNode *node, MutableCStr label)
 {
-  BLI_strncpy(
-      label, (node->id) ? node->id->name + 2 : IFACE_("Missing Data-Block"), label_maxncpy);
+  STRNCPY(label, (node->id) ? node->id->name + 2 : IFACE_("Missing Data-Block"));
 }
 
 int node_group_ui_class(const bNode *node)
@@ -855,24 +851,23 @@ static void node_implicit_conversion_declare(nodes::NodeDeclarationBuilder &b)
 
 static void node_implicit_conversion_label(const bNodeTree * /*ntree*/,
                                            const bNode *node,
-                                           char *label,
-                                           int label_maxncpy)
+                                           MutableCStr label)
 {
   const auto &data = *static_cast<NodeImplicitConversion *>(node->storage);
   const bke::bNodeSocketType *socket_type = bke::node_socket_type_find(data.type_idname);
   if (!socket_type) {
-    BLI_strncpy(label, IFACE_(node->typeinfo->ui_name.c_str()), label_maxncpy);
+    STRNCPY(label, IFACE_(node->typeinfo->ui_name.c_str()));
     return;
   }
 
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_socket_data_type_items, socket_type->type, &name);
   if (!enum_label) {
-    BLI_strncpy(label, IFACE_(node->typeinfo->ui_name.c_str()), label_maxncpy);
+    STRNCPY(label, IFACE_(node->typeinfo->ui_name.c_str()));
     return;
   }
 
-  BLI_snprintf_utf8(label, label_maxncpy, IFACE_("To %s"), IFACE_(name));
+  SNPRINTF_UTF8(label, IFACE_("To %s"), IFACE_(name));
 }
 
 static void node_implicit_conversion_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)

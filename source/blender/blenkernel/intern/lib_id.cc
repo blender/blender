@@ -129,8 +129,7 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
  * absolute, in which case it is not altered.
  */
 static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data,
-                                                char *path_dst,
-                                                size_t path_dst_maxncpy,
+                                                MutableCStr path_dst,
                                                 const char *path_src)
 {
   const char **data = static_cast<const char **>(bpath_data->user_data);
@@ -153,7 +152,7 @@ static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data
      * because it won't work for paths that start with `//../` */
     BLI_path_normalize(filepath);
     BLI_path_rel(filepath, base_new);
-    BLI_strncpy(path_dst, filepath, path_dst_maxncpy);
+    STRNCPY(path_dst, filepath);
     return true;
   }
 

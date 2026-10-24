@@ -717,7 +717,7 @@ static std::optional<std::string> rna_ShapeKey_path(const PointerRNA *ptr)
   const ID *id = ptr->owner_id;
   char name_esc[sizeof(kb->name) * 2];
 
-  BLI_str_escape(name_esc, kb->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, kb->name);
 
   if ((id) && (GS(id->name) != ID_KE)) {
     return fmt::format("shape_keys.key_blocks[\"{}\"]", name_esc);
@@ -824,7 +824,7 @@ static std::optional<std::string> rna_ShapeKeyPoint_path(const PointerRNA *ptr)
       index = rna_ShapeKey_curve_find_index(key, index);
     }
 
-    BLI_str_escape(name_esc_kb, kb->name, sizeof(name_esc_kb));
+    BLI_str_escape(name_esc_kb, kb->name);
 
     if (GS(id->name) == ID_KE) {
       return fmt::format("key_blocks[\"{}\"].data[{}]", name_esc_kb, index);

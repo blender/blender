@@ -74,9 +74,9 @@ namespace blender {
 /** \name Local Utilities
  * \{ */
 
-static void pose_copybuffer_filepath_get(char filepath[FILE_MAX], size_t filepath_maxncpy)
+static void pose_copybuffer_filepath_get(MutableCStr filepath)
 {
-  BLI_path_join(filepath, filepath_maxncpy, BKE_tempdir_base(), "copybuffer_pose.blend");
+  BLI_path_join(filepath, BKE_tempdir_base(), "copybuffer_pose.blend");
 }
 
 /** \} */
@@ -752,7 +752,7 @@ static bPoseChannel *pose_bone_blend_to(Object &paste_ob,
 
   /* Get the name of the bone to paste to - if flipping, we must flip this first. */
   if (flip) {
-    BLI_string_flip_side_name(name, copy_transformable.name().c_str(), false, sizeof(name));
+    BLI_string_flip_side_name(name, copy_transformable.name().c_str(), false);
   }
   else {
     STRNCPY_UTF8(name, copy_transformable.name().c_str());
@@ -870,7 +870,7 @@ static wmOperatorStatus pose_copy_exec(bContext *C, wmOperator *op)
       });
 
   char filepath[FILE_MAX];
-  pose_copybuffer_filepath_get(filepath, sizeof(filepath));
+  pose_copybuffer_filepath_get(filepath);
   copybuffer.write_as_copypaste_buffer(filepath, *op->reports);
 
   /* We are all done! */
@@ -916,7 +916,7 @@ static wmOperatorStatus pose_paste_exec(bContext *C, wmOperator *op)
 
   /* Read copy buffer .blend file. */
   char filepath[FILE_MAX];
-  pose_copybuffer_filepath_get(filepath, sizeof(filepath));
+  pose_copybuffer_filepath_get(filepath);
 
   Main *bmain = CTX_data_main(C);
   Main *temp_bmain = BKE_copybuffer_read(*bmain, filepath, op->reports, FILTER_ID_OB);

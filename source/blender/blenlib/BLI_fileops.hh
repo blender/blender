@@ -23,6 +23,7 @@
 #include "BLI_compiler_attrs.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_fileops_types.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 
 namespace blender {
@@ -227,12 +228,11 @@ bool BLI_dir_create_recursive(const char *dirname) ATTR_NONNULL();
  */
 double BLI_dir_free_space(const char *dir) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /**
- * Copies the current working directory into *dir (max size maxncpy), and
- * returns a pointer to same.
+ * Copies the current working directory into `dir`, and returns a pointer to same.
  *
  * \note can return NULL when the size is not big enough
  */
-char *BLI_current_working_dir(char *dir, size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+char *BLI_current_working_dir(MutableCStr dir) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Get the user's home directory, i.e.

@@ -572,7 +572,7 @@ static char *font_select_to_buffer(Object *obedit)
 
   const size_t len_utf8 = BLI_str_utf32_as_utf8_len_ex(text_buf, text_buf_len + 1);
   char *buf = MEM_new_array_uninitialized<char>(len_utf8 + 1, __func__);
-  BLI_str_utf32_as_utf8(buf, text_buf, len_utf8 + 1);
+  BLI_str_utf32_as_utf8(MutableCStr(buf, len_utf8 + 1), text_buf);
   return buf;
 }
 
@@ -1124,7 +1124,7 @@ static void copy_selection(Object *obedit)
     /* system clipboard */
     buf = MEM_new_array_uninitialized<char>(len_utf8 + 1, __func__);
     if (buf) {
-      BLI_str_utf32_as_utf8(buf, text_buf, len_utf8 + 1);
+      BLI_str_utf32_as_utf8(MutableCStr(buf, len_utf8 + 1), text_buf);
       WM_clipboard_text_set(buf, false);
       MEM_delete(buf);
     }
@@ -1246,7 +1246,7 @@ static wmOperatorStatus paste_text_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
 
-    BLI_str_utf32_as_utf8(clipboard_vfont.buf, text_buf, len_utf8 + 1);
+    BLI_str_utf32_as_utf8(MutableCStr(clipboard_vfont.buf, len_utf8 + 1), text_buf);
   }
 
   if (clipboard_vfont.buf && STREQ(clipboard_vfont.buf, clipboard_system.buf)) {
@@ -1991,7 +1991,7 @@ static wmOperatorStatus insert_text_invoke(bContext *C, wmOperator *op, const wm
     /* Store as UTF8 in RNA string. */
     char inserted_utf8[8] = {0};
 
-    BLI_str_utf32_as_utf8(inserted_utf8, inserted_text, sizeof(inserted_utf8));
+    BLI_str_utf32_as_utf8(inserted_utf8, inserted_text);
     RNA_string_set(op->ptr, "text", inserted_utf8);
   }
 
@@ -2320,7 +2320,7 @@ void ED_curve_editfont_load(Object *obedit)
   cu->str = MEM_new_array_uninitialized<char>(cu->len + sizeof(char32_t), "str");
 
   /* Copy the wchar to UTF8. */
-  BLI_str_utf32_as_utf8(cu->str, ef->textbuf, cu->len + 1);
+  BLI_str_utf32_as_utf8(MutableCStr(cu->str, cu->len + 1), ef->textbuf);
 
   if (cu->strinfo) {
     MEM_delete(cu->strinfo);
@@ -2527,7 +2527,7 @@ static wmOperatorStatus open_invoke(bContext *C, wmOperator *op, const wmEvent *
   }
   else {
     STRNCPY(filepath, U.fontdir);
-    BLI_path_slash_ensure(filepath, sizeof(filepath));
+    BLI_path_slash_ensure(filepath);
     /* The file selector will expand the blend-file relative prefix. */
   }
   RNA_property_string_set(op->ptr, prop_filepath, filepath);

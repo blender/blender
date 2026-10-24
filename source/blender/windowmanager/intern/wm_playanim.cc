@@ -993,12 +993,8 @@ static void build_pict_list_from_image_sequence(ListBaseT<PlayAnimPict> &picsbas
 
   char filepath[FILE_MAX];
   STRNCPY(filepath, filepath_first);
-  fp_framenr = BLI_path_sequence_decode(filepath,
-                                        fp_decoded.head,
-                                        sizeof(fp_decoded.head),
-                                        fp_decoded.tail,
-                                        sizeof(fp_decoded.tail),
-                                        &fp_decoded.digits);
+  fp_framenr = BLI_path_sequence_decode(
+      filepath, fp_decoded.head, fp_decoded.tail, &fp_decoded.digits);
 
   pupdate_time();
   g_playanim.total_time = 1.0;
@@ -1066,12 +1062,8 @@ static void build_pict_list_from_image_sequence(ListBaseT<PlayAnimPict> &picsbas
 
     /* Create a new file-path each time. */
     fp_framenr += frame_step;
-    BLI_path_sequence_encode(filepath,
-                             sizeof(filepath),
-                             fp_decoded.head,
-                             fp_decoded.tail,
-                             fp_decoded.digits,
-                             fp_framenr);
+    BLI_path_sequence_encode(
+        filepath, fp_decoded.head, fp_decoded.tail, fp_decoded.digits, fp_framenr);
 
     while (ghost_data.system->processEvents(false)) {
       ghost_data.system->dispatchEvents();

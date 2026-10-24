@@ -2068,13 +2068,13 @@ static bool BLO_write_file_impl(Main *mainvar,
 
     /* Normalize the paths in case there is some subtle difference (so they can be compared). */
     if (relbase_valid) {
-      BLI_path_split_dir_part(mainvar->filepath, dir_src, sizeof(dir_src));
+      BLI_path_split_dir_part(mainvar->filepath, dir_src);
       BLI_path_normalize(dir_src);
     }
     else {
       dir_src[0] = '\0';
     }
-    BLI_path_split_dir_part(filepath, dir_dst, sizeof(dir_dst));
+    BLI_path_split_dir_part(filepath, dir_dst);
     BLI_path_normalize(dir_dst);
 
     /* Only for relative, not relative-all, as this means making existing paths relative. */

@@ -13,6 +13,7 @@
 
 #include "BLI_compiler_attrs.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.hh"
 
@@ -73,19 +74,17 @@ void BLI_string_replace_char(char *str, char src, char dst) ATTR_NONNULL(1);
  *
  * \note Larger tables should use a hash table.
  */
-bool BLI_string_replace_table_exact(char *string,
-                                    size_t string_maxncpy,
+bool BLI_string_replace_table_exact(MutableCStr string,
                                     const char *replace_table[][2],
                                     int replace_table_len);
 
 /**
  * Write `dst` into the range between `src_beg` & `src_end`,
- * resize within `string_maxncpy` limits, ensure null terminated.
+ * resize within `string.size()` limits, ensure null terminated.
  *
  * \return the length of `string`.
  */
-size_t BLI_string_replace_range(
-    char *string, size_t string_maxncpy, int src_beg, int src_end, const char *dst);
+size_t BLI_string_replace_range(MutableCStr string, int src_beg, int src_end, const char *dst);
 
 /** \} */
 
@@ -143,17 +142,14 @@ char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
  * Finds the best possible flipped (left/right) name.
  * For renaming; check for unique names afterwards.
  *
- * \param name_dst: flipped name,
- * assumed to be a pointer to a string of at least \a name_maxncpy size.
+ * \param name_dst: flipped name.
  * \param name_src: original name,
- * assumed to be a pointer to a string of at least \a name_maxncpy size.
+ * assumed to be a pointer to a string of at least `name_dst.size()` bytes.
  * \param strip_number: If set, remove number extensions.
  * \return The number of bytes written into \a name.
  */
-size_t BLI_string_flip_side_name(char *name_dst,
-                                 const char *name_src,
-                                 bool strip_number,
-                                 size_t name_dst_maxncpy) ATTR_NONNULL(1, 2);
+size_t BLI_string_flip_side_name(MutableCStr name_dst, const char *name_src, bool strip_number)
+    ATTR_NONNULL(2);
 
 /**
  * Ensures name is unique (according to criteria specified by caller in unique_check callback),
@@ -163,13 +159,11 @@ size_t BLI_string_flip_side_name(char *name_dst,
  * \param defname: To initialize name if latter is empty
  * \param delim: Delimits numeric suffix in name
  * \param name: Name to be ensured unique
- * \param name_maxncpy: Maximum length of name area
  */
 void BLI_uniquename_cb(FunctionRef<bool(StringRefNull)> unique_check,
                        const char *defname,
                        char delim,
-                       char *name,
-                       size_t name_maxncpy) ATTR_NONNULL(2, 4);
+                       MutableCStr name) ATTR_NONNULL(2);
 
 /**
  * Return a name that is unique (according to criteria specified by caller in
@@ -226,78 +220,74 @@ size_t BLI_string_len_array(const char *strings[], uint strings_num) ATTR_WARN_U
 /** \name Implement: `BLI_string_join(..)`
  * \{ */
 
-#define _BLI_STRING_ARGS_0 char *__restrict dst, const size_t dst_len,
+#define _BLI_STRING_ARGS_0 MutableCStr dst,
 
 /**
  * Join strings, return the length of the resulting string.
  */
-size_t BLI_string_join_array(char *result,
-                             size_t result_maxncpy,
-                             const char *strings[],
-                             uint strings_num) ATTR_NONNULL();
+size_t BLI_string_join_array(MutableCStr result, const char *strings[], uint strings_num)
+    ATTR_NONNULL();
 
-#define BLI_string_join(...) VA_NARGS_CALL_OVERLOAD(_BLI_string_join_, __VA_ARGS__)
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_1) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_2) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_3) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_4) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_5) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_6) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_7) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_8) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_9) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_10) ATTR_NONNULL();
 
-BLI_INLINE size_t _BLI_string_join_3(_BLI_STRING_ARGS_1) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_4(_BLI_STRING_ARGS_2) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_5(_BLI_STRING_ARGS_3) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_6(_BLI_STRING_ARGS_4) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_7(_BLI_STRING_ARGS_5) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_8(_BLI_STRING_ARGS_6) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_9(_BLI_STRING_ARGS_7) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_10(_BLI_STRING_ARGS_8) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_11(_BLI_STRING_ARGS_9) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_12(_BLI_STRING_ARGS_10) ATTR_NONNULL();
-
-BLI_INLINE size_t _BLI_string_join_3(_BLI_STRING_ARGS_1)
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_1)
 {
   const char *string_array[] = {a};
-  return BLI_string_join_array(dst, dst_len, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array(dst, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_4(_BLI_STRING_ARGS_2)
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_2)
 {
   const char *string_array[] = {a, b};
-  return BLI_string_join_array(dst, dst_len, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array(dst, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_5(_BLI_STRING_ARGS_3)
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_3)
 {
   const char *string_array[] = {a, b, c};
-  return BLI_string_join_array(dst, dst_len, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array(dst, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_6(_BLI_STRING_ARGS_4)
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_4)
 {
   const char *string_array[] = {a, b, c, d};
-  return BLI_string_join_array(dst, dst_len, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array(dst, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_7(_BLI_STRING_ARGS_5)
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_5)
 {
   const char *string_array[] = {a, b, c, d, e};
-  return BLI_string_join_array(dst, dst_len, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array(dst, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_8(_BLI_STRING_ARGS_6)
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_6)
 {
   const char *string_array[] = {a, b, c, d, e, f};
-  return BLI_string_join_array(dst, dst_len, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array(dst, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_9(_BLI_STRING_ARGS_7)
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_7)
 {
   const char *string_array[] = {a, b, c, d, e, f, g};
-  return BLI_string_join_array(dst, dst_len, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array(dst, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_10(_BLI_STRING_ARGS_8)
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_8)
 {
   const char *string_array[] = {a, b, c, d, e, f, g, h};
-  return BLI_string_join_array(dst, dst_len, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array(dst, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_11(_BLI_STRING_ARGS_9)
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_9)
 {
   const char *string_array[] = {a, b, c, d, e, f, g, h, i};
-  return BLI_string_join_array(dst, dst_len, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array(dst, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_12(_BLI_STRING_ARGS_10)
+BLI_INLINE size_t BLI_string_join(_BLI_STRING_ARGS_10)
 {
   const char *string_array[] = {a, b, c, d, e, f, g, h, i, j};
-  return BLI_string_join_array(dst, dst_len, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array(dst, string_array, ARRAY_SIZE(string_array));
 }
 
 #undef _BLI_STRING_ARGS_0
@@ -392,87 +382,73 @@ BLI_INLINE char *_BLI_string_joinN_10(_BLI_STRING_ARGS_10)
  * A version of #BLI_string_join_array that takes a separator which can be any character
  * including '\0'.
  */
-size_t BLI_string_join_array_by_sep_char(char *result,
-                                         size_t result_maxncpy,
+size_t BLI_string_join_array_by_sep_char(MutableCStr result,
                                          char sep,
                                          const char *strings[],
                                          uint strings_num) ATTR_NONNULL();
 
-#define BLI_string_join_by_sep_char(...) \
-  VA_NARGS_CALL_OVERLOAD(_BLI_string_join_by_sep_char_, __VA_ARGS__)
+#define _BLI_STRING_ARGS_0 MutableCStr dst, const char sep,
 
-#define _BLI_STRING_ARGS_0 char *__restrict dst, const size_t dst_len, const char sep,
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_1) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_2) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_3) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_4) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_5) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_6) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_7) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_8) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_9) ATTR_NONNULL();
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_10) ATTR_NONNULL();
 
-BLI_INLINE size_t _BLI_string_join_by_sep_char_4(_BLI_STRING_ARGS_1) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_by_sep_char_5(_BLI_STRING_ARGS_2) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_by_sep_char_6(_BLI_STRING_ARGS_3) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_by_sep_char_7(_BLI_STRING_ARGS_4) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_by_sep_char_8(_BLI_STRING_ARGS_5) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_by_sep_char_9(_BLI_STRING_ARGS_6) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_by_sep_char_10(_BLI_STRING_ARGS_7) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_by_sep_char_11(_BLI_STRING_ARGS_8) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_by_sep_char_12(_BLI_STRING_ARGS_9) ATTR_NONNULL();
-BLI_INLINE size_t _BLI_string_join_by_sep_char_13(_BLI_STRING_ARGS_10) ATTR_NONNULL();
-
-BLI_INLINE size_t _BLI_string_join_by_sep_char_4(_BLI_STRING_ARGS_1)
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_1)
 {
   const char *string_array[] = {a};
-  return BLI_string_join_array_by_sep_char(
-      dst, dst_len, sep, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array_by_sep_char(dst, sep, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_by_sep_char_5(_BLI_STRING_ARGS_2)
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_2)
 {
   const char *string_array[] = {a, b};
-  return BLI_string_join_array_by_sep_char(
-      dst, dst_len, sep, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array_by_sep_char(dst, sep, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_by_sep_char_6(_BLI_STRING_ARGS_3)
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_3)
 {
   const char *string_array[] = {a, b, c};
-  return BLI_string_join_array_by_sep_char(
-      dst, dst_len, sep, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array_by_sep_char(dst, sep, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_by_sep_char_7(_BLI_STRING_ARGS_4)
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_4)
 {
   const char *string_array[] = {a, b, c, d};
-  return BLI_string_join_array_by_sep_char(
-      dst, dst_len, sep, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array_by_sep_char(dst, sep, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_by_sep_char_8(_BLI_STRING_ARGS_5)
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_5)
 {
   const char *string_array[] = {a, b, c, d, e};
-  return BLI_string_join_array_by_sep_char(
-      dst, dst_len, sep, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array_by_sep_char(dst, sep, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_by_sep_char_9(_BLI_STRING_ARGS_6)
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_6)
 {
   const char *string_array[] = {a, b, c, d, e, f};
-  return BLI_string_join_array_by_sep_char(
-      dst, dst_len, sep, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array_by_sep_char(dst, sep, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_by_sep_char_10(_BLI_STRING_ARGS_7)
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_7)
 {
   const char *string_array[] = {a, b, c, d, e, f, g};
-  return BLI_string_join_array_by_sep_char(
-      dst, dst_len, sep, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array_by_sep_char(dst, sep, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_by_sep_char_11(_BLI_STRING_ARGS_8)
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_8)
 {
   const char *string_array[] = {a, b, c, d, e, f, g, h};
-  return BLI_string_join_array_by_sep_char(
-      dst, dst_len, sep, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array_by_sep_char(dst, sep, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_by_sep_char_12(_BLI_STRING_ARGS_9)
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_9)
 {
   const char *string_array[] = {a, b, c, d, e, f, g, h, i};
-  return BLI_string_join_array_by_sep_char(
-      dst, dst_len, sep, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array_by_sep_char(dst, sep, string_array, ARRAY_SIZE(string_array));
 }
-BLI_INLINE size_t _BLI_string_join_by_sep_char_13(_BLI_STRING_ARGS_10)
+BLI_INLINE size_t BLI_string_join_by_sep_char(_BLI_STRING_ARGS_10)
 {
   const char *string_array[] = {a, b, c, d, e, f, g, h, i, j};
-  return BLI_string_join_array_by_sep_char(
-      dst, dst_len, sep, string_array, ARRAY_SIZE(string_array));
+  return BLI_string_join_array_by_sep_char(dst, sep, string_array, ARRAY_SIZE(string_array));
 }
 
 #undef _BLI_STRING_ARGS_0

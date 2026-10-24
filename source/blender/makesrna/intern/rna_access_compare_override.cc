@@ -770,8 +770,7 @@ bool RNA_struct_override_matches(Main *bmain,
       }
       else {
         char prop_name_esc[MAX_IDPROP_NAME * 2];
-        const size_t prop_name_esc_len = BLI_str_escape(
-            prop_name_esc, prop_name, sizeof(prop_name_esc));
+        const size_t prop_name_esc_len = BLI_str_escape(prop_name_esc, prop_name);
 
         rna_path_len = root_path_len + 2 + prop_name_esc_len + 2;
         if (rna_path_len >= RNA_PATH_BUFFSIZE) {
@@ -1067,8 +1066,7 @@ static bool rna_property_override_collection_subitem_name_id_match(
   char *name;
   int namelen;
 
-  name = RNA_property_string_get_alloc(
-      ptr_item_name, nameprop, name_buf, sizeof(name_buf), &namelen);
+  name = RNA_property_string_get_alloc(ptr_item_name, nameprop, name_buf, &namelen);
 
   is_match = ((item_name_len == namelen) && STREQ(item_name, name));
 

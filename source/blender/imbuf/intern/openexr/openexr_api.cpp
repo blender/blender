@@ -1026,10 +1026,10 @@ static void openexr_header_metadata_multi(ExrWriteHandle *handle,
   BKE_stamp_info_callback(
       &header,
       const_cast<StampData *>(stamp),
-      [](void *data, const char *propname, char *prop, int /*len*/) {
+      [](void *data, const char *propname, MutableCStr prop) {
         if (!openexr_metadata_skip_write(propname, true)) {
           Header *header = (Header *)data;
-          header->insert(propname, StringAttribute(prop));
+          header->insert(propname, StringAttribute(prop.data()));
         }
       },
       false);

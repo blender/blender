@@ -35,6 +35,8 @@ extern "C" {
 #  include "ffmpeg_compat.h"
 }
 
+#  include "BLI_span.hh"
+
 #  ifdef WITH_AUDASPACE
 #    include "BKE_sound_types.hh"
 #  endif
@@ -102,8 +104,7 @@ AVStream *alloc_audio_stream(MovieWriter *context,
                              int audio_channels,
                              AVCodecID codec_id,
                              AVFormatContext *of,
-                             char *error,
-                             int error_maxncpy,
+                             MutableCStr error,
                              ReportList *reports);
 void write_audio_frames(MovieWriter *context, double to_pts);
 
