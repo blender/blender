@@ -138,7 +138,7 @@ size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const 
 
 char *BLI_strncat(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
 {
-  BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_string_debug_size_after_nil(dst, dst_maxncpy);
 
   size_t len = BLI_strnlen(dst, dst_maxncpy);
   if (len < dst_maxncpy) {
