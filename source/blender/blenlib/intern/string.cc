@@ -337,9 +337,10 @@ size_t BLI_str_escape(char *__restrict dst, StringRef src, const size_t dst_maxn
   BLI_assert(dst_maxncpy != 0);
   BLI_string_debug_size(dst, dst_maxncpy);
 
+  const size_t dst_len_max = dst_maxncpy - 1;
   size_t dst_len = 0;
   int64_t src_idx = 0;
-  for (; (dst_len < dst_maxncpy) && (src_idx < src.size()); src_idx++, dst++, dst_len++) {
+  for (; (dst_len < dst_len_max) && (src_idx < src.size()); src_idx++, dst++, dst_len++) {
     char c = src[src_idx];
     if (ELEM(c, '\\', '"') ||                       /* Use as-is. */
         ((c == '\t') && ((void)(c = 't'), true)) || /* Tab. */
@@ -349,7 +350,7 @@ size_t BLI_str_escape(char *__restrict dst, StringRef src, const size_t dst_maxn
         ((c == '\b') && ((void)(c = 'b'), true)) || /* Backspace. */
         ((c == '\f') && ((void)(c = 'f'), true)))   /* Form-feed. */
     {
-      if (dst_len + 1 >= dst_maxncpy) [[unlikely]] {
+      if (dst_len + 1 >= dst_len_max) [[unlikely]] {
         /* Not enough space to escape. */
         break;
       }
