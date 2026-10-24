@@ -888,7 +888,7 @@ const char *BLI_path_parent_dir_end(const char *path, size_t path_len)
     if (BLI_path_slash_is_native_compat(*(p - 1))) {
       p -= 1; /* Skip `/`. */
     }
-    else if ((p + 1 > path) && (*(p - 1) == '.') && BLI_path_slash_is_native_compat(*p - 2)) {
+    else if ((p - 1 > path) && (*(p - 1) == '.') && BLI_path_slash_is_native_compat(*(p - 2))) {
       p -= 2; /* Skip `/.` (actually `/./` but the last slash was already skipped) */
     }
     else {

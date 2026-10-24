@@ -262,6 +262,41 @@ TEST(path_utils, ParentDir_Complex)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_parent_dir_end
+ * \{ */
+
+#define PARENT_DIR_END(input, offset_expect) \
+  { \
+    const char *path = input; \
+    const char *path_end = BLI_path_parent_dir_end(path, strlen(path)); \
+    EXPECT_EQ(path_end ? int(path_end - path) : -1, offset_expect) << "path: " << path; \
+  } \
+  ((void)0)
+
+TEST(path_utils, ParentDirEnd_Simple)
+{
+  PARENT_DIR_END("/a/b", 2);
+  PARENT_DIR_END("/a/b/c", 4);
+  PARENT_DIR_END("/a", -1);
+  PARENT_DIR_END("a", -1);
+}
+
+TEST(path_utils, ParentDirEnd_Redundant)
+{
+  /* Examples from the doc-string. */
+  PARENT_DIR_END("/test///dir/./file", 11);
+  PARENT_DIR_END("/test/dir/subdir//file", 16);
+
+  PARENT_DIR_END("/a/./b", 2);
+  PARENT_DIR_END("a/./b", 1);
+  PARENT_DIR_END("./x", 1);
+}
+
+#undef PARENT_DIR_END
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Tests for: #BLI_path_name_at_index
  * \{ */
 
