@@ -1453,6 +1453,24 @@ TEST_F(StringEscape, Truncate)
 #undef STR_ESCAPE_TRUNC_EXPECT
 }
 
+TEST_F(StringEscape, UnescapeTrailingBackslash)
+{
+  /* The back-slash ends the range, the "n" after it must not be read. */
+  const char *src = "A\\n";
+  char dst[8];
+  size_t dst_len;
+
+  dst_len = BLI_str_unescape(dst, src, 2);
+  EXPECT_STREQ(dst, "A\\");
+  EXPECT_EQ(dst_len, 2);
+
+  bool is_complete;
+  dst_len = BLI_str_unescape_ex(dst, src, 2, sizeof(dst), &is_complete);
+  EXPECT_STREQ(dst, "A\\");
+  EXPECT_EQ(dst_len, 2);
+  EXPECT_TRUE(is_complete);
+}
+
 /** \} */
 
 TEST(BLI_string, bounded_strcpy)

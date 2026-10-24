@@ -416,7 +416,7 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
       break;
     }
     char c = *src;
-    if (UNLIKELY(c == '\\') && str_unescape_pair(*(src + 1), &c)) {
+    if (UNLIKELY(c == '\\') && (src + 1 < src_end) && str_unescape_pair(*(src + 1), &c)) {
       src++;
     }
     dst[len++] = c;
@@ -433,7 +433,7 @@ size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const 
   size_t len = 0;
   for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
     char c = *src;
-    if (UNLIKELY(c == '\\') && str_unescape_pair(*(src + 1), &c)) {
+    if (UNLIKELY(c == '\\') && (src + 1 < src_end) && str_unescape_pair(*(src + 1), &c)) {
       src++;
     }
     dst[len++] = c;
