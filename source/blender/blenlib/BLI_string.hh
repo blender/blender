@@ -663,7 +663,7 @@ bool BLI_string_elem_split_by_delim(const char *haystack,
 /** \name String Debugging
  * \{ */
 #ifdef WITH_STRSIZE_DEBUG
-#  define BLI_string_debug_size(str, str_maxncpy) memset(str, 0xff, sizeof(*(str)) * str_maxncpy)
+#  define BLI_string_debug_size(str, str_maxncpy) memset(str, 0xff, sizeof(*(str)) * (str_maxncpy))
 /**
  * Fill `str` with a non-nil value after the trailing nil character,
  * use to ensure buffer sizes passed to string functions are correct.
@@ -672,7 +672,7 @@ void BLI_string_debug_size_after_nil(char *str, size_t str_maxncpy);
 #else
 #  define BLI_string_debug_size(str, str_maxncpy) \
     if (0) { \
-      (void)str, (void)str_maxncpy; \
+      (void)(str), (void)(str_maxncpy); \
     } \
     ((void)0)
 #  define BLI_string_debug_size_after_nil(str, str_maxncpy) BLI_string_debug_size(str, str_maxncpy)
