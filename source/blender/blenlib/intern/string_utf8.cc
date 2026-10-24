@@ -445,9 +445,10 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
   BLI_assert(dst_maxncpy != 0);
   BLI_string_debug_size(dst, dst_maxncpy);
 
+  const size_t dst_len_max = dst_maxncpy - 1;
   size_t len = 0;
-  while (*src && len < dst_maxncpy) {
-    len += BLI_str_utf8_from_unicode(uint(*src++), dst + len, dst_maxncpy - len);
+  while (*src && len < dst_len_max) {
+    len += BLI_str_utf8_from_unicode(uint(*src++), dst + len, dst_len_max - len);
   }
   dst[len] = '\0';
   /* Return the correct length when part of the final byte did not fit into the string. */
@@ -1254,9 +1255,10 @@ size_t BLI_str_utf32_as_utf8(char *__restrict dst,
   BLI_assert(dst_maxncpy != 0);
   BLI_string_debug_size(dst, dst_maxncpy);
 
+  const size_t dst_len_max = dst_maxncpy - 1;
   size_t len = 0;
-  while (*src && len < dst_maxncpy) {
-    len += BLI_str_utf8_from_unicode(uint(*src++), dst + len, dst_maxncpy - len);
+  while (*src && len < dst_len_max) {
+    len += BLI_str_utf8_from_unicode(uint(*src++), dst + len, dst_len_max - len);
   }
   dst[len] = '\0';
   /* Return the correct length when part of the final byte did not fit into the string. */

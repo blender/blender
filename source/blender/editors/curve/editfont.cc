@@ -572,7 +572,7 @@ static char *font_select_to_buffer(Object *obedit)
 
   const size_t len_utf8 = BLI_str_utf32_as_utf8_len_ex(text_buf, text_buf_len + 1);
   char *buf = MEM_new_array_uninitialized<char>(len_utf8 + 1, __func__);
-  BLI_str_utf32_as_utf8(buf, text_buf, len_utf8);
+  BLI_str_utf32_as_utf8(buf, text_buf, len_utf8 + 1);
   return buf;
 }
 

@@ -652,6 +652,83 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_utf32_as_utf8
+ * \{ */
+
+TEST(string, StrUTF32AsUTF8_Truncate)
+{
+#define STR_UTF32_AS_UTF8_TRUNC_EXPECT(src, dst_expect, dst_maxncpy) \
+  { \
+    char dst[dst_maxncpy + 1]; \
+    dst[dst_maxncpy] = 0xff; \
+    size_t len = BLI_str_utf32_as_utf8(dst, src, dst_maxncpy); \
+    EXPECT_EQ(len, strlen(dst)); \
+    EXPECT_STREQ(dst, dst_expect); \
+    EXPECT_EQ(dst[dst_maxncpy], 0xff); \
+  }
+
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"A", STR_MB_ALPHA_1, 2);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"A", "", 1);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"AA", STR_MB_ALPHA_1, 2);
+
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\xaa", STR_MB_ALPHA_2, 3);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\xaa", "", 2);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\xaa", "", 1);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\xaa\xaa", STR_MB_ALPHA_2, 4);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\xaa\xaa", STR_MB_ALPHA_2, 3);
+
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x800", STR_MB_ALPHA_3, 4);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x800", "", 3);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x800\x800", STR_MB_ALPHA_3, 6);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x800\x800", STR_MB_ALPHA_3, 4);
+
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x10000", STR_MB_ALPHA_4, 5);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x10000", "", 4);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x10000\x10000", STR_MB_ALPHA_4, 8);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x10000\x10000", STR_MB_ALPHA_4, 5);
+
+#undef STR_UTF32_AS_UTF8_TRUNC_EXPECT
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_strncpy_wchar_as_utf8
+ * \{ */
+
+TEST(string, StrCopyWCharAsUTF8_Truncate)
+{
+  /* Characters above `U+FFFF` are not tested as `wchar_t` is 16-bit on WIN32. */
+#define STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(src, dst_expect, dst_maxncpy) \
+  { \
+    char dst[dst_maxncpy + 1]; \
+    dst[dst_maxncpy] = 0xff; \
+    size_t len = BLI_strncpy_wchar_as_utf8(dst, src, dst_maxncpy); \
+    EXPECT_EQ(len, strlen(dst)); \
+    EXPECT_STREQ(dst, dst_expect); \
+    EXPECT_EQ(dst[dst_maxncpy], 0xff); \
+  }
+
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"A", STR_MB_ALPHA_1, 2);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"A", "", 1);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"AA", STR_MB_ALPHA_1, 2);
+
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\xaa", STR_MB_ALPHA_2, 3);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\xaa", "", 2);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\xaa\xaa", STR_MB_ALPHA_2, 4);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\xaa\xaa", STR_MB_ALPHA_2, 3);
+
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\x800", STR_MB_ALPHA_3, 4);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\x800", "", 3);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\x800\x800", STR_MB_ALPHA_3, 6);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\x800\x800", STR_MB_ALPHA_3, 4);
+
+#undef STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Test #BLI_snprintf_utf8
  * \{ */
 
