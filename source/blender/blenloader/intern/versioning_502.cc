@@ -113,7 +113,8 @@ static void version_geometry_nodes_properties(FileData &fd,
   IDProperty *inputs = bke::idprop::create_group("inputs").release();
   IDP_AddToGroup(system_props, inputs);
 
-  const std::string inputs_path_prefix = fmt::format("modifiers[\"{}\"]", nmd.modifier.name);
+  const std::string inputs_path_prefix = fmt::format("modifiers[\"{}\"]",
+                                                     BLI_str_escape(nmd.modifier.name));
   const DriverMap driver_map = BKE_animdata_build_driver_target_map(bmain);
   for (const bNodeTreeInterfaceSocket *input : ntree.interface_inputs()) {
     const StringRefNull identifier = input->identifier;
