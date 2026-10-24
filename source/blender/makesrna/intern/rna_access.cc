@@ -2961,7 +2961,7 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bo
       }
     }
     else {
-      BLI_assert(idprop->type = IDP_ARRAY);
+      BLI_assert(idprop->type == IDP_ARRAY);
       BLI_assert(idprop->len == values_num);
       if (idprop->subtype == IDP_BOOLEAN) {
         memcpy(IDP_array_bool_get(idprop),
