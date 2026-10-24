@@ -148,23 +148,36 @@ BLOCKLIST_NVIDIA_GL = [
 def uses_any_lit_material(scene):
     import bpy
 
-    # Define what we consider a "lit" BSDF node type in Blender
+    # Node types that receive lighting, and so are affected by light probes.
     lit_node_types = {
-        "BSDF_PRINCIPLED",
         "BSDF_DIFFUSE",
-        "BSDF_GLOSSY",
         "BSDF_GLASS",
-        "BSDF_ANISOTROPIC",
-        "BSDF_VELVET",
+        "BSDF_GLOSSY",
         "BSDF_HAIR",
+        "BSDF_HAIR_PRINCIPLED",
+        "BSDF_METALLIC",
+        "BSDF_PRINCIPLED",
+        "BSDF_REFRACTION",
+        "BSDF_SHEEN",
         "BSDF_TOON",
         "BSDF_TRANSLUCENT",
-        "BSDF_HAIR_PRINCIPLED",
-        "SUBSURFACE_SCATTERING",
-        "BSDF_HAIR_PRINCIPLED",
-        "VOLUME_SCATTER",
+        "EEVEE_SPECULAR",
         "PRINCIPLED_VOLUME",
+        "SUBSURFACE_SCATTERING",
+        "VOLUME_COEFFICIENTS",
+        "VOLUME_SCATTER",
     }
+
+    def node_tree_is_lit(node_tree, visited):
+        if node_tree is None or node_tree in visited:
+            return False
+        visited.add(node_tree)
+        for node in node_tree.nodes:
+            if node.type in lit_node_types:
+                return True
+            if node.type == "GROUP" and node_tree_is_lit(node.node_tree, visited):
+                return True
+        return False
 
     scene_materials = set()
 
@@ -183,9 +196,8 @@ def uses_any_lit_material(scene):
     for mat in scene_materials:
         # Check if the material uses the node system
         if mat.node_tree:
-            for node in mat.node_tree.nodes:
-                if node.type in lit_node_types:
-                    return True  # We found one, no need to check the rest of the nodes
+            if node_tree_is_lit(mat.node_tree, set()):
+                return True
         else:
             return True  # If use_nodes is False, Blender defaults to a basic lit surface
 
