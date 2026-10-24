@@ -195,6 +195,16 @@ TEST(string, StrRPartition)
   }
 
   {
+    const char *str = ".material";
+
+    /* ".material" -> "", '.', "material", 0 */
+    pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
+    EXPECT_EQ(&str[0], sep);
+    EXPECT_STREQ("material", suf);
+  }
+
+  {
     const char *str = "";
 
     /* "" -> "", nullptr, nullptr, 0 */
@@ -341,6 +351,26 @@ TEST(string, StrRPartitionUtf8)
     EXPECT_EQ(pre_len, 10);
     EXPECT_EQ(&str[10], sep);
     EXPECT_STREQ("", suf);
+  }
+
+  {
+    const char *str = ".material";
+
+    /* ".material" -> "", '.', "material", 0 */
+    pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
+    EXPECT_EQ(&str[0], sep);
+    EXPECT_STREQ("material", suf);
+  }
+
+  {
+    const char *str = "\xc3\xb1material";
+
+    /* "\xc3\xb1material" -> "", '\xc3\xb1', "material", 0 */
+    pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
+    EXPECT_EQ(&str[0], sep);
+    EXPECT_STREQ("material", suf);
   }
 
   {

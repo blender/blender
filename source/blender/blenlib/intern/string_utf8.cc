@@ -1351,7 +1351,7 @@ size_t BLI_str_partition_ex_utf8(const char *str,
   char *suf = const_cast<char *>(str + str_len);
   size_t index = 0;
   for (char *sep = const_cast<char *>(from_right ? BLI_str_find_prev_char_utf8(end, str) : str);
-       from_right ? (sep > str) : ((sep < end) && (*sep != '\0'));
+       from_right ? ((sep != nullptr) && (sep < end)) : ((sep < end) && (*sep != '\0'));
        sep = const_cast<char *>(
            from_right ? (str != sep ? BLI_str_find_prev_char_utf8(sep, str) : nullptr) :
                         str + index))
