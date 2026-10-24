@@ -248,13 +248,13 @@ std::string BLI_str_escape(StringRef str);
  *
  * \param dst: The destination string, at least the size of `strlen(src) + 1`.
  * \param src: The escaped source string.
- * \param src_maxncpy: The maximum number of bytes allowable to copy from `src`.
+ * \param src_len: The maximum number of bytes to read from `src`.
  * \param dst_maxncpy: The maximum number of bytes allowable to copy into `dst`.
- * \param r_is_complete: Set to true when.
+ * \param r_is_complete: Set to false when the result doesn't fit into `dst`.
  */
 size_t BLI_str_unescape_ex(char *__restrict dst,
                            const char *__restrict src,
-                           size_t src_maxncpy,
+                           size_t src_len,
                            /* Additional arguments. */
                            size_t dst_maxncpy,
                            bool *r_is_complete) ATTR_NONNULL(1, 2, 5);
@@ -262,13 +262,13 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
  * See #BLI_str_unescape_ex docstring.
  *
  * This function makes the assumption that `dst` always has
- * at least `src_maxncpy` bytes available.
+ * at least `src_len + 1` bytes available.
  *
  * Use #BLI_str_unescape_ex if `dst` has a smaller fixed size.
  *
  * \note This is used for parsing animation paths in blend files (runs often).
  */
-size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, size_t src_maxncpy)
+size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, size_t src_len)
     ATTR_NONNULL(1, 2);
 
 /**

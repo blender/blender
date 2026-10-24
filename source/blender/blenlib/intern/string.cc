@@ -400,17 +400,18 @@ BLI_INLINE bool str_unescape_pair(char c_next, char *r_out)
 
 size_t BLI_str_unescape_ex(char *__restrict dst,
                            const char *__restrict src,
-                           const size_t src_maxncpy,
+                           const size_t src_len,
                            /* Additional arguments to #BLI_str_unescape */
                            const size_t dst_maxncpy,
                            bool *r_is_complete)
 {
   BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_assert(dst_maxncpy != 0);
 
   size_t len = 0;
   bool is_complete = true;
   const size_t max_strlen = dst_maxncpy - 1; /* Account for trailing zero byte. */
-  for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
+  for (const char *src_end = src + src_len; (src < src_end) && *src; src++) {
     if (len == max_strlen) [[unlikely]] {
       is_complete = false;
       break;
@@ -426,12 +427,12 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
   return len;
 }
 
-size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_maxncpy)
+size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_len)
 {
-  BLI_string_debug_size(dst, src_maxncpy); /* `dst` must be at least as big as `src`. */
+  BLI_string_debug_size(dst, src_len + 1); /* `dst` must be at least as big as `src`. */
 
   size_t len = 0;
-  for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
+  for (const char *src_end = src + src_len; (src < src_end) && *src; src++) {
     char c = *src;
     if (UNLIKELY(c == '\\') && (src + 1 < src_end) && str_unescape_pair(*(src + 1), &c)) {
       src++;

@@ -1471,6 +1471,34 @@ TEST_F(StringEscape, UnescapeTrailingBackslash)
   EXPECT_TRUE(is_complete);
 }
 
+TEST_F(StringEscape, UnescapeLen)
+{
+#define STR_UNESCAPE_EXPECT(src, dst_expect, src_len) \
+  { \
+    char dst[src_len + 2]; \
+    dst[src_len + 1] = 0xff; \
+    size_t len = BLI_str_unescape(dst, src, src_len); \
+    EXPECT_EQ(len, strlen(dst)); \
+    EXPECT_STREQ(dst, dst_expect); \
+    EXPECT_EQ(dst[src_len + 1], 0xff); \
+  }
+
+  STR_UNESCAPE_EXPECT("AB", "AB", 2);
+  STR_UNESCAPE_EXPECT("AB", "A", 1);
+  STR_UNESCAPE_EXPECT("AB", "", 0);
+  STR_UNESCAPE_EXPECT("A\\n", "A\n", 3);
+  STR_UNESCAPE_EXPECT("A\\n", "A\\", 2);
+
+#undef STR_UNESCAPE_EXPECT
+
+  char dst[8];
+  bool is_complete;
+  const size_t len = BLI_str_unescape_ex(dst, "AB", 1, sizeof(dst), &is_complete);
+  EXPECT_STREQ(dst, "A");
+  EXPECT_EQ(len, 1);
+  EXPECT_TRUE(is_complete);
+}
+
 /** \} */
 
 TEST(BLI_string, bounded_strcpy)
