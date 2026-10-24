@@ -320,7 +320,7 @@ struct CullingTile {
     angle_cosine = min(angle_cosine, dot(center, v10));
     angle_cosine = min(angle_cosine, dot(center, v11));
     /* Widen by moving to next representable float to account for float rounding. */
-    angle_cosine = uintBitsToFloat(floatBitsToUint(angle_cosine) - 1u);
+    angle_cosine = uintBitsToFloat(max(floatBitsToUint(angle_cosine), 1u) - 1u);
     return float4(center, angle_cosine);
   }
 

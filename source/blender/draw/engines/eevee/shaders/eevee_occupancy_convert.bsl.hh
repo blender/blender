@@ -69,7 +69,7 @@ void convert_frag([[resource_table]] Convert &srt,
 
 #if 0 /* Debug. Need to adjust the qualifier of the texture adjusted. */
   for (int i = 0; i < hit_count; i++) {
-    imageStore(hit_depth_img, int3(texel, i), float4(hit_ordered[i]));
+    imageStore(srt.hit_depth_img, int3(texel, i), float4(hit_ordered[i]));
   }
 #endif
 

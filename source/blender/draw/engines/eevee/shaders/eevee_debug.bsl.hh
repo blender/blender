@@ -486,10 +486,10 @@ void vert_main([[resource_table]] const Resources &srt,
 
 #if 0 /* Debug surfel lists. TODO allow in release build with a dedicated shader. */
   if (vert_id == 0 && surfel.next > -1) {
-    Surfel surfel_next = surfels_buf[surfel.next];
+    Surfel surfel_next = srt.surfels_buf[surfel.next];
     float4 line_color = (surfel.prev == -1)      ? float4(1.0f, 1.0f, 0.0f, 1.0f) :
-                      (surfel_next.next == -1) ? float4(0.0f, 1.0f, 1.0f, 1.0f) :
-                                                 float4(0.0f, 1.0f, 0.0f, 1.0f);
+                        (surfel_next.next == -1) ? float4(0.0f, 1.0f, 1.0f, 1.0f) :
+                                                   float4(0.0f, 1.0f, 0.0f, 1.0f);
     /* WORKAROUND: Avoid compilation error because this gets parsed before dead code removal. */
     drw_ debug_line(surfel_next.position, surfel.position, line_color);
   }
