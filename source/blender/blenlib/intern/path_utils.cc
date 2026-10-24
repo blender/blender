@@ -983,18 +983,24 @@ static bool path_frame_chars_find_range(const char *path, int *r_char_start, int
 /**
  * Ensure `path` contains at least one "#" character in its last slash-separated
  * component, appending one digits long if not.
+ *
+ * \return false when there isn't room to append the digits.
  */
-static void ensure_digits(char *path, int digits)
+static bool ensure_digits(char *path, const size_t path_maxncpy, int digits)
 {
   char *file = const_cast<char *>(BLI_path_basename(path));
   if (strrchr(file, '#') == nullptr) {
     int len = strlen(file);
+    if (size_t(file - path) + size_t(len + digits) >= path_maxncpy) {
+      return false;
+    }
 
     while (digits--) {
       file[len++] = '#';
     }
     file[len] = '\0';
   }
+  return true;
 }
 
 bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
@@ -1003,8 +1009,8 @@ bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
 
   int ch_sta, ch_end;
 
-  if (digits) {
-    ensure_digits(path, digits);
+  if (digits && !ensure_digits(path, path_maxncpy, digits)) {
+    return false;
   }
 
   if (path_frame_chars_find_range(path, &ch_sta, &ch_end)) {
@@ -1023,8 +1029,8 @@ bool BLI_path_frame_range(char *path, size_t path_maxncpy, int sta, int end, int
 
   int ch_sta, ch_end;
 
-  if (digits) {
-    ensure_digits(path, digits);
+  if (digits && !ensure_digits(path, path_maxncpy, digits)) {
+    return false;
   }
 
   if (path_frame_chars_find_range(path, &ch_sta, &ch_end)) {
