@@ -126,9 +126,6 @@ gpu::Batch *draw_subpass_setup(PassT &sub_ps,
   sub_ps.bind_texture("radiance_comp_tx",
                       is_empty ? &module.dummy_vbo : cache.radiance_comp_buf_get());
 
-  float2 viewport_size = DRW_context_get()->viewport_size_get();
-  sub_ps.push_constant("viewport_size", viewport_size);
-
   if (gpu_material != nullptr) {
     ListBaseT<GPUMaterialAttribute> gpu_attrs = GPU_material_attributes(gpu_material);
     for (GPUMaterialAttribute &gpu_attr : gpu_attrs) {

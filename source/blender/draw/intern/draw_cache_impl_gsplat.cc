@@ -30,9 +30,8 @@
 #include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
 #include "BLI_color_types.hh"
-#include "BLI_listbase.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
-#include "BLI_utildefines.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
@@ -64,7 +63,7 @@ constexpr uint32_t radiance_degs_max = 3;
 constexpr uint32_t radiance_coeffs_max = (radiance_degs_max + 1u) * (radiance_degs_max + 1u);
 
 /* Sane defaults for missing but non-zero attribute data. */
-constexpr float value_scale_default = 1e-3f;
+constexpr float value_scale_default = 1e-2f;
 constexpr float value_opacity_default = 0.5f;
 
 namespace detail {
@@ -114,13 +113,16 @@ BLI_INLINE float3 pack_quaternion_4_to_3(const float4 &q)
  */
 BLI_INLINE uint4 pack_gaussian(const float3 &bounded_mean,
                                const float3 &bounded_log_scale,
+                               bool log_scale_is_zero,
                                const math::Quaternion &rotation,
                                float opacity)
 {
   /* Quantize mean to `pu`: 3x22b. */
   uint3 pu = static_cast<uint3>(math::round(bounded_mean * ((1 << 22) - 1u)));
-  /* Quantize scaling to `su`: 3x9b. */
-  uint3 su = static_cast<uint3>(math::round(bounded_log_scale * 511.0f));
+  /* Quantize scaling to `su`: 3x9b. Note that 0 is reserved. */
+  uint3 su = log_scale_is_zero ?
+                 uint3(0u) :
+                 (static_cast<uint3>(math::round(bounded_log_scale * 510.0f)) + 1u);
   /* Quantize opacity to `au`, 1x8b. */
   uint au = static_cast<uint>(math::round(clamp(opacity, 0.0f, 1.0f) * 255.0f));
   /* Quantize rotation to `ru`: 3x9b.
@@ -291,10 +293,12 @@ void GSplatEvalCache::ensure_builtin_buffers(PointCloud &pointcloud)
   MutableSpan shape_span = shape_data_buf->data<uint4>();
   threading::parallel_for(shape_span.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
-      float3 value_mean = splat_mean_range.scale_to_unit(mean[i]);
-      float3 value_scale = splat_scale_range.scale_to_unit(scale[i]);
+      const float3 value_mean = splat_mean_range.scale_to_unit(mean[i]);
+      const float3 value_scale = splat_scale_range.scale_to_unit(scale[i]);
+      const bool log_scale_is_zero = math::is_equal(scale[i], float3(zero_log_scale));
+
       shape_span[i] = detail::pack_gaussian(
-          value_mean, value_scale, quaternion[i], radiance_base[i].w);
+          value_mean, value_scale, log_scale_is_zero, quaternion[i], radiance_base[i].w);
     }
   });
 
