@@ -191,7 +191,7 @@ void eevee_test_gbuffer_normal_main(
     EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(1, 1, 0))));
     EXPECT_EQ(header.closure_len(), uchar(1));
     EXPECT_EQ(header.tangent_space_id(0), uchar(0u));
-    EXPECT_NEAR(cl3.N, gbuffer::normal_unpack(data_out.normal[1]), 1e-5f);
+    EXPECT_NEAR(cl3.N, gbuffer::normal_unpack(data_out.normal[0]), 1e-5f);
   }
 }
 
