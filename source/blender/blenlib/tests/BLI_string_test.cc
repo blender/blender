@@ -53,6 +53,39 @@ TEST(string, StrCat)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name String Copy (Ensure Pad)
+ * \{ */
+
+TEST(string, StrCopyEnsurePad)
+{
+#define STRNCPY_ENSURE_PAD_EXPECT(src, dst_expect, dst_maxncpy) \
+  { \
+    char dst[dst_maxncpy + 5]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    dst[sizeof(dst) - 1] = '\0'; \
+    BLI_strncpy_ensure_pad(dst, src, '*', dst_maxncpy); \
+    EXPECT_STREQ(dst, dst_expect); \
+    EXPECT_STREQ(dst + dst_maxncpy, "\xff\xff\xff\xff"); \
+  }
+
+  STRNCPY_ENSURE_PAD_EXPECT("", "", 1);
+  STRNCPY_ENSURE_PAD_EXPECT("A", "*A*", 4);
+  STRNCPY_ENSURE_PAD_EXPECT("*A*", "*A*", 4);
+  STRNCPY_ENSURE_PAD_EXPECT("*ABC", "*A*", 4);
+  STRNCPY_ENSURE_PAD_EXPECT("ABC", "*ABC*", 6);
+  STRNCPY_ENSURE_PAD_EXPECT("ABC", "*AB*", 5);
+  STRNCPY_ENSURE_PAD_EXPECT("ABC", "*A*", 4);
+  STRNCPY_ENSURE_PAD_EXPECT("A", "*", 3);
+  STRNCPY_ENSURE_PAD_EXPECT("A", "*", 2);
+  STRNCPY_ENSURE_PAD_EXPECT("A", "", 1);
+  STRNCPY_ENSURE_PAD_EXPECT("*", "*", 2);
+  STRNCPY_ENSURE_PAD_EXPECT("*", "", 1);
+#undef STRNCPY_ENSURE_PAD_EXPECT
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name String Replace
  * \{ */
 

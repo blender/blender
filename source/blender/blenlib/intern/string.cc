@@ -95,21 +95,21 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
     size_t idx = 0;
     size_t srclen;
 
-    if (src[idx] != pad) {
+    dst_maxncpy--; /* trailing '\0' */
+    if ((dst_maxncpy != 0) && (src[idx] != pad)) {
       dst[idx++] = pad;
       dst_maxncpy--;
     }
-    dst_maxncpy--; /* trailing '\0' */
 
     srclen = BLI_strnlen(src, dst_maxncpy);
-    if ((src[srclen - 1] != pad) && (srclen == dst_maxncpy)) {
+    if ((srclen != 0) && (srclen == dst_maxncpy) && (src[srclen - 1] != pad)) {
       srclen--;
     }
 
     memcpy(&dst[idx], src, srclen);
     idx += srclen;
 
-    if (dst[idx - 1] != pad) {
+    if ((idx != 0) && (dst[idx - 1] != pad)) {
       dst[idx++] = pad;
     }
     dst[idx] = '\0';

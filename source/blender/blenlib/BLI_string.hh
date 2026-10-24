@@ -90,14 +90,19 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t dst_m
     ATTR_NONNULL(1, 2);
 
 /**
- * Like BLI_strncpy but ensures dst is always padded by given char,
- * on both sides (unless `src` is empty).
+ * Like #BLI_strncpy but ensures `dst` is padded by `pad` on both sides,
+ * `pad` is only added where `src` doesn't already start or end with it.
  *
- * \param dst: Destination for copy
- * \param src: Source string to copy
- * \param pad: the char to use for padding
- * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst).
- * \retval Returns dst
+ * When `src` is empty, `dst` is empty (no padding is added).
+ * When `src` doesn't fit, it's truncated to make room for the trailing `pad`.
+ * When `dst_maxncpy` is too small to fit a character between both pads,
+ * the result is only the leading `pad` (empty when `dst_maxncpy` is 1).
+ *
+ * \param dst: Destination for copy.
+ * \param src: Source string to copy.
+ * \param pad: The character to use for padding.
+ * \param dst_maxncpy: The size of `dst` (including the nil terminator).
+ * \retval Returns `dst`.
  */
 char *BLI_strncpy_ensure_pad(char *__restrict dst,
                              const char *__restrict src,
