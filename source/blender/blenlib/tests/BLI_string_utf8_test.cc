@@ -399,6 +399,15 @@ TEST(string, StringNLenUTF8)
   EXPECT_EQ(BLI_strnlen_utf8(STR_MB_ALPHA_6, 6), 1);
 }
 
+TEST(string, StringNLenUTF8_NoNil)
+{
+  /* Only fails with ASAN, reading past the end doesn't change the result. */
+  const char str[] = {'A', 'B', 'C'};
+  size_t len_bytes;
+  EXPECT_EQ(BLI_strnlen_utf8_ex(str, sizeof(str), &len_bytes), 3);
+  EXPECT_EQ(len_bytes, 3);
+}
+
 TEST(string, StringNLenUTF8_Incomplete)
 {
   const char *ref_str =

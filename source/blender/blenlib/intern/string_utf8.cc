@@ -506,7 +506,7 @@ size_t BLI_strnlen_utf8_ex(const char *strc, const size_t strc_maxlen, size_t *r
   const char *strc_orig = strc;
   const char *strc_end = strc + strc_maxlen;
 
-  while (*strc) {
+  while ((strc < strc_end) && *strc) {
     int step = BLI_str_utf8_size_safe(strc);
     if (strc + step > strc_end) {
       break;
