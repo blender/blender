@@ -1253,7 +1253,7 @@ void BLI_str_format_byte_unit_compact(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_CO
   float number_to_format_converted = float(bytes);
   int order = 0;
   const float base = base_10 ? 1000.0f : 1024.0f;
-  const char *units[] = {"B", "K", "M", "G", "T", "P"};
+  const char *units[] = {"B", "K", "M", "G", "T", "P", "E"};
   const int units_num = int(ARRAY_SIZE(units));
 
   while ((fabsf(number_to_format_converted) >= base) && ((order + 1) < units_num)) {

@@ -598,6 +598,41 @@ TEST(string, StrFormatByteUnits)
   EXPECT_EQ(sizeof(size_str), strlen(size_str) + 1);
 }
 
+/* BLI_str_format_byte_unit_compact */
+TEST(string, StrFormatByteUnitsCompact)
+{
+  char size_str[BLI_STR_FORMAT_INT64_BYTE_UNIT_COMPACT_SIZE];
+  long long int size;
+
+  /* Base 10 */
+  BLI_str_format_byte_unit_compact(size_str, size = 0, true);
+  EXPECT_STREQ("0B", size_str);
+  BLI_str_format_byte_unit_compact(size_str, size = 155, true);
+  EXPECT_STREQ("155B", size_str);
+  BLI_str_format_byte_unit_compact(size_str, size = 1'555, true);
+  EXPECT_STREQ("1K", size_str);
+  BLI_str_format_byte_unit_compact(size_str, size = 155'555, true);
+  EXPECT_STREQ(".1M", size_str);
+  BLI_str_format_byte_unit_compact(size_str, size = 1'000'000'000, true);
+  EXPECT_STREQ("1G", size_str);
+  BLI_str_format_byte_unit_compact(size_str, size = 550'000'000'000'000'000, true);
+  EXPECT_STREQ(".5E", size_str);
+
+  /* Largest possible value. */
+  BLI_str_format_byte_unit_compact(size_str, size = (1ULL << 63) - 1, true);
+  EXPECT_STREQ("9E", size_str);
+
+  /* Base 2 */
+  BLI_str_format_byte_unit_compact(size_str, size = 0, false);
+  EXPECT_STREQ("0B", size_str);
+  BLI_str_format_byte_unit_compact(size_str, size = 1024, false);
+  EXPECT_STREQ("1K", size_str);
+
+  /* Largest possible value. */
+  BLI_str_format_byte_unit_compact(size_str, size = (1ULL << 63) - 1, false);
+  EXPECT_STREQ("8E", size_str);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
