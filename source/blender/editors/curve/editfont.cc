@@ -1891,7 +1891,7 @@ static wmOperatorStatus insert_text_exec(bContext *C, wmOperator *op)
   len = BLI_strlen_utf8(inserted_utf8.c_str());
 
   inserted_text = MEM_new_array_zeroed<char32_t>((len + 1), "FONT_insert_text");
-  len = BLI_str_utf8_as_utf32(inserted_text, inserted_utf8.c_str(), MAXTEXT);
+  len = BLI_str_utf8_as_utf32(inserted_text, inserted_utf8.c_str(), len + 1);
 
   for (a = 0; a < len; a++) {
     insert_into_textbuf(obedit, inserted_text[a]);
