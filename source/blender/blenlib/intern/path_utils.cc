@@ -660,6 +660,7 @@ void BLI_path_normalize_unc(char *path, int path_maxncpy)
   wchar_t *tmp_16 = alloc_utf16_from_8(path, 1);
   BLI_path_normalize_unc_16(tmp_16);
   conv_utf_16_to_8(tmp_16, path, path_maxncpy);
+  free(tmp_16);
 }
 
 void BLI_path_normalize_unc_16(wchar_t *path_16)
