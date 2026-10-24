@@ -315,6 +315,12 @@ template<typename T> void Section::set(const std::string &item_key, const T &val
     if (!table->is_table()) {
       *table = toml::table{};
     }
+    /* Ensure there is an explicit header like `[project]` in case there
+     * was only implicit `[project.recent]`. Otheriwse adding other entries
+     * under `[project]` throws an exception. */
+    else if (table->as_table_fmt().fmt == toml::table_format::implicit) {
+      table->as_table_fmt().fmt = toml::table_format::multiline;
+    }
   }
 
   toml::value &item = (*table)[item_key];
