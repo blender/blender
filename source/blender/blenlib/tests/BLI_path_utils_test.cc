@@ -515,6 +515,40 @@ TEST(path_utils, IsUnc)
 
 /** \} */
 
+#ifdef WIN32
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_normalize_unc
+ * \{ */
+
+#  define PATH_NORMALIZE_UNC(input, output_expect) \
+    { \
+      char path[FILE_MAX]; \
+      STRNCPY(path, input); \
+      BLI_path_normalize_unc(path, sizeof(path)); \
+      EXPECT_STREQ(path, output_expect); \
+    } \
+    ((void)0)
+
+TEST(path_utils, NormalizeUNC)
+{
+  /* Long paths with a drive. */
+  PATH_NORMALIZE_UNC("\\\\?\\C:\\dir\\file", "C:\\dir\\file");
+  /* Long UNC paths. */
+  PATH_NORMALIZE_UNC("\\\\?\\UNC\\server\\share\\dir", "\\\\server\\share\\dir");
+  /* A slash is added after the share. */
+  PATH_NORMALIZE_UNC("\\\\?\\UNC\\server\\share", "\\\\server\\share\\");
+  /* Other paths are left as-is. */
+  PATH_NORMALIZE_UNC("C:\\dir\\file", "C:\\dir\\file");
+  PATH_NORMALIZE_UNC("\\\\server\\share\\dir", "\\\\server\\share\\dir");
+}
+
+#  undef PATH_NORMALIZE_UNC
+
+/** \} */
+
+#endif /* WIN32 */
+
 /* -------------------------------------------------------------------- */
 /** \name Tests for: #BLI_path_is_win32_drive
  * \{ */
