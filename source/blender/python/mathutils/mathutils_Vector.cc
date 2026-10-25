@@ -637,8 +637,11 @@ static PyObject *Vector_resized(VectorObject *self, PyObject *value)
     return nullptr;
   }
 
-  std::fill_n(vec, vec_num, 0.0f);
-  memcpy(vec, self->vec, self->vec_num * sizeof(float));
+  const int vec_num_copy = std::min(self->vec_num, vec_num);
+  memcpy(vec, self->vec, vec_num_copy * sizeof(float));
+  if (vec_num_copy != vec_num) {
+    std::fill_n(vec + vec_num_copy, vec_num - vec_num_copy, 0.0f);
+  }
 
   return Vector_CreatePyObject_alloc(vec, vec_num, nullptr);
 }
