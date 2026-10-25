@@ -713,6 +713,15 @@ class VectorTesting(unittest.TestCase):
         vec = Vector(range(2000))
         self.assertEqual(vec.resized(200), Vector(range(200)))
 
+    def test_vector_swizzle_set(self):
+        vec = Vector((1, 2, 3))
+        vec.zx = (10, 30)
+        self.assertEqual(vec, Vector((30, 2, 10)))
+        # Vectors with more than 4 dimensions.
+        vec = Vector(range(10))
+        vec.yx = (10, 20)
+        self.assertEqual(vec, Vector([20, 10] + list(range(2, 10))))
+
     def test_vector_freeze_is_read_only(self):
         vec = Vector((1, 3, 5))
 
