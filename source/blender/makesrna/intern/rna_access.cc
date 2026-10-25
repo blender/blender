@@ -4366,7 +4366,7 @@ void RNA_property_string_get_default(PointerRNA *ptr,
       return;
     }
 
-    strcpy(value, "");
+    value[0] = '\0';
     return;
   }
 
@@ -4383,7 +4383,12 @@ void RNA_property_string_get_default(PointerRNA *ptr,
     }
     return;
   }
-  strcpy(value, sprop->defaultvalue);
+  if (RNA_property_string_is_utf8(prop)) {
+    BLI_strncpy_utf8(value, sprop->defaultvalue, value_maxncpy);
+  }
+  else {
+    BLI_strncpy(value, sprop->defaultvalue, value_maxncpy);
+  }
 }
 
 char *RNA_property_string_get_default_alloc(
