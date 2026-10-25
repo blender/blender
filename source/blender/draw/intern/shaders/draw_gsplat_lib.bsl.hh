@@ -378,7 +378,7 @@ float3 project_gaussian(ObjectMatrices object, ViewMatrices view, Gaussian gs)
  */
 AxisTuple covmat_to_axes(float3 covmat_2d_v)
 {
-  static constexpr float std_dev = 3.0f;
+  constexpr float std_dev = 3.0f;
 
   const float mid = 0.5f * (covmat_2d_v.x + covmat_2d_v.z);
   const float radius = length(float2((covmat_2d_v.x - covmat_2d_v.z) * 0.5f, covmat_2d_v.y));
