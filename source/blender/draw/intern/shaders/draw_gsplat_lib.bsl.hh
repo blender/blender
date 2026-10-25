@@ -46,7 +46,6 @@
 #include "gpu_shader_math_matrix_transform.bsl.hh"
 #include "gpu_shader_math_quaternion.bsl.hh"
 #include "gpu_shader_math_vector.bsl.hh"
-#include "gpu_shader_math_vector_compare.bsl.hh"
 #include "gpu_shader_math_vector_reduce.bsl.hh"
 
 namespace draw::gsplat {
@@ -146,7 +145,11 @@ float3 unpack_gaussian_scale(uint4 pack, ScalingRange data_range)
          /* 6b */ ((pack.w & 0x00003Fu) << 3);
   su.y = /* 9b */ (pack.w >> 6) & 0x0001FFu;
   su.z = /* 9b */ (pack.w >> 15) & 0x0001FFu;
-  float3 s = float3(su) / 511.0f;
+  if (all(equal(su, uint3(0u)))) {
+    /* Value 0 is reserved for zero scale, and not the quantized minimum. */
+    return float3(0.0f);
+  }
+  float3 s = (float3(su) - 1.0f) / 510.0f;
   return exp(data_range.scale_from_unit(s));
 }
 
@@ -245,9 +248,8 @@ struct AxisTuple {
       return 0u;
     }
 
-    constexpr float max_axis_size = 1024.0f;
-    axis_0_len = clamp(axis_0_len / max_axis_size, 0.0f, 1.0f);
-    axis_1_len = clamp(axis_1_len / max_axis_size, 0.0f, 1.0f);
+    axis_0_len = clamp(axis_0_len, 0.0f, 1.0f);
+    axis_1_len = clamp(axis_1_len, 0.0f, 1.0f);
 
     /* NOTE(not_mark): do not reduce packing size further; already causes jittering on zoom. */
     uint data = /* 10 bits */ uint(clamp(axis_0_dir.x, 0.0f, 1.0f) * 1023.0f) |
@@ -263,12 +265,11 @@ struct AxisTuple {
     float axis_0_len = /* 11 bits */ float((data >> 10u) & 0x7FFu) / 2047.0f;
     float axis_1_len = /* 11 bits */ float((data >> 21u) & 0x7FFu) / 2047.0f;
 
-    constexpr float max_axis_size = 1024.0f;
     const float2 axis = normalize(float2(axis_0_dir, cos_from_sin(axis_0_dir)));
 
     AxisTuple tuple;
-    tuple.axis_0 = axis * axis_0_len * max_axis_size;
-    tuple.axis_1 = float2(-axis.y, axis.x) * axis_1_len * max_axis_size;
+    tuple.axis_0 = axis * axis_0_len;
+    tuple.axis_1 = float2(-axis.y, axis.x) * axis_1_len;
     return tuple;
   }
 };
@@ -293,82 +294,101 @@ float3x3 get_covmat(Quaternion rotation, float3 scale)
 }
 
 /**
- * Compute perspective-projected 2D covariance matrix for a Gaussian ellipse, from the
- * covariance matrix of the 3D ellipsoid.
+ * Helper struct for gsplat unprojected shape data.
+ */
+struct Gaussian {
+  /* Index stored for further attribute loading. */
+  uint id;
+  /* Gaussian local centroid and covariance data. */
+  float3 mean;
+  float3 scale;
+  Quaternion rotation;
+  /* Gaussian opacity, applied in alpha resolve. */
+  float opacity;
+
+  /** Unpack Gaussian from quantized data representation. */
+  static Gaussian unpack(uint gs_id, uint4 data, ScalingRange mean_range, ScalingRange scale_range)
+  {
+    Gaussian gs;
+    gs.id = gs_id;
+    gs.mean = detail::unpack_gaussian_mean(data, mean_range);
+    gs.rotation = detail::unpack_gaussian_rotation(data);
+    gs.scale = detail::unpack_gaussian_scale(data, scale_range);
+    gs.opacity = detail::unpack_gaussian_opacity(data);
+    return gs;
+  }
+};
+
+/**
+ * Compute 2D covariance matrix for a projected gaussian.
  *
  * \note Reproduces eq. 29 and eq. 31 in [ewas2002], with aspect/scaling tweaks from the
  *       code of [3dgs2023], and a slightly modified Jacobian for orthographic cameras.
- * \note The 2d covmatrix is of form [[x, y], [y, z]], and returned as [x, y, z].
  */
-float3 project_covmat(float3 lP,
-                      float4x4 viewmat,
-                      float4x4 winmat,
-                      float3x3 covmat_3d,
-                      float2 viewport_size,
-                      bool is_perspective)
+float3 project_gaussian(ObjectMatrices object, ViewMatrices view, Gaussian gs)
 {
   /* Compute viewport parameters. */
-  float aspect = winmat[0][0] / winmat[1][1];
-  float focal = viewport_size.x * winmat[0][0] * 0.5f;
-
-  float tan_fov_x = 1.0f / winmat[0][0];
-  float tan_fov_y = 1.0f / (winmat[1][1] * aspect);
-  float lim_x = 1.3f * tan_fov_x;
-  float lim_y = 1.3f * tan_fov_y;
+  const float tan_fov_x = 1.0f / view.winmat[0][0];
+  const float tan_fov_y = 1.0f / view.winmat[1][1];
+  const float lim_x = 1.3f * tan_fov_x;
+  const float lim_y = 1.3f * tan_fov_y;
+  const float focal_x = 0.5f * view.winmat[0][0];
+  const float focal_y = 0.5f * view.winmat[1][1];
+  const float4x4 model_to_view = view.viewmat * object.model;
 
   /* Parameter `t` in [ewas2002], effectively projected point. */
-  float3 vP = transform_point(viewmat, lP);
+  float3 vP = transform_point(model_to_view, gs.mean);
   vP.x = clamp(vP.x / vP.z, -lim_x, lim_x) * vP.z;
   vP.y = clamp(vP.y / vP.z, -lim_y, lim_y) * vP.z;
 
   /* Eq. 29: construct Jacobian matrix. */
   float3x3 J;
-  if (is_perspective) {
-    J = float3x3(float3(focal / vP.z, 0.0f, -(focal * vP.x) / (vP.z * vP.z)),
-                 float3(0.0f, focal / vP.z, -(focal * vP.y) / (vP.z * vP.z)),
-                 float3(0.0f, 0.0f, 0.0f));
+  if (view.is_perspective()) {
+    J = float3x3(float3(focal_x / vP.z, 0.0f, -(focal_x * vP.x) / (vP.z * vP.z)),
+                 float3(0.0f, focal_y / vP.z, -(focal_y * vP.y) / (vP.z * vP.z)),
+                 float3(0.0f));
   }
   else {
     /* For orthographic matrices, the Jacobian is slightly different. */
-    J = float3x3(float3(focal, 0.0f, 0.0f), float3(0.0f, focal, 0.0f), float3(0.0f));
+    J = float3x3(float3(focal_x, 0.0f, 0.0f), float3(0.0f, focal_y, 0.0f), float3(0.0f));
   }
 
   /* Eq. 31: construct covariance matrix in screen space. */
+  float3x3 covmat_3d = get_covmat(gs.rotation, gs.scale);
   float3x3 V = float3x3(float3(covmat_3d[0][0], covmat_3d[0][1], covmat_3d[0][2]),
                         float3(covmat_3d[0][1], covmat_3d[1][1], covmat_3d[1][2]),
                         float3(covmat_3d[0][2], covmat_3d[1][2], covmat_3d[2][2]));
-  float3x3 W = to_float3x3(viewmat); /* Rotational part of matrix. */
+  float3x3 W = to_float3x3(model_to_view); /* Extract rotational part of matrix. */
   float3x3 T = transpose(W) * J;
   float3x3 covmat_2d = transpose(T) * V * T;
 
-  /* Applied in [3dgs2023], either as a low-pass regularization, or to enforce some minimum pixel
-   * size. Reason unclear, but I guess we should match the reference here. */
-  /* NOTE(not_mark): disabled for now, better matches Cycles implementation. */
+  /* Low-pass filter applied in [3dgs2023] as 0.3, though I believe this is 1.0 in [ewas2002]. */
+  /* NOTE(not_mark): disabled for now, better matches Cycles results. */
   // covmat_2d[0][0] += 0.3f;
   // covmat_2d[1][1] += 0.3f;
 
-  return float3(covmat_2d[0][0], covmat_2d[0][1], covmat_2d[1][1]);
+  /* The 2d covariance matrix is of form [[x, y], [y, z]], and returned as [x, y, z]. */
+  float3 covmat_2d_v = float3(covmat_2d[0][0], covmat_2d[0][1], covmat_2d[1][1]);
+  return covmat_2d_v;
 }
 
 /**
  * Given the packed 2D covariance matrix, decompose into scaled eigenvectors, which we can use
  * to fit a billboard rectangle shape.
- *
- * \note Variant of a decomposition in [3dgs2023], though more like the version in [kwok2024].
  */
-AxisTuple covmat_to_axes(float3 covmat_2d)
+AxisTuple covmat_to_axes(float3 covmat_2d_v)
 {
-  float mid = 0.5f * (covmat_2d.x + covmat_2d.z);
-  float radius = length(float2((covmat_2d.x - covmat_2d.z) * 0.5f, covmat_2d.y));
-  float lambda_1 = mid + radius;
-  float lambda_2 = max(mid - radius, 0.001f);
+  static constexpr float std_dev = 3.0f;
 
-  float2 diag = normalize(float2(covmat_2d.y, lambda_1 - covmat_2d.x));
+  const float mid = 0.5f * (covmat_2d_v.x + covmat_2d_v.z);
+  const float radius = length(float2((covmat_2d_v.x - covmat_2d_v.z) * 0.5f, covmat_2d_v.y));
 
-  constexpr float max_axis_size = 1024.0f;
-  float2 axis_0 = min(sqrt(2.0f * lambda_1), max_axis_size) * diag;
-  float2 axis_1 = min(sqrt(2.0f * lambda_2), max_axis_size) * float2(diag.y, -diag.x);
+  const float lambda_1 = mid + radius;
+  const float lambda_2 = max(mid - radius, 1e-8f);
 
+  const float2 diag = normalize(float2(covmat_2d_v.y, lambda_1 - covmat_2d_v.x));
+  const float2 axis_0 = min(std_dev * sqrt(lambda_1), 1.0) * diag;
+  const float2 axis_1 = min(std_dev * sqrt(lambda_2), 1.0) * float2(diag.y, -diag.x);
   return AxisTuple::from(axis_0, axis_1);
 }
 
@@ -410,32 +430,6 @@ float3 get_planar_normal(Quaternion rotation, float3 scale)
          norm;
 #endif
 }
-
-/**
- * Helper struct for gsplat unprojected shape data.
- */
-struct Gaussian {
-  /* Index stored for further attribute loading. */
-  uint id;
-  /* Gaussian local centroid and covariance data. */
-  float3 mean;
-  float3 scale;
-  Quaternion rotation;
-  /* Gaussian opacity, applied in alpha resolve. */
-  float opacity;
-
-  /** Unpack Gaussian from quantized data representation. */
-  static Gaussian unpack(uint gs_id, uint4 data, ScalingRange mean_range, ScalingRange scale_range)
-  {
-    Gaussian gs;
-    gs.id = gs_id;
-    gs.mean = detail::unpack_gaussian_mean(data, mean_range);
-    gs.rotation = detail::unpack_gaussian_rotation(data);
-    gs.scale = detail::unpack_gaussian_scale(data, scale_range);
-    gs.opacity = detail::unpack_gaussian_opacity(data);
-    return gs;
-  }
-};
 
 /**
  * Helper struct for billboarded geometry output.
@@ -497,8 +491,6 @@ struct ShapeResource {
   [[sampler(DRW_GSPLAT_ELLIPSE_COMP_TEX_SLOT)]] const usamplerBuffer ellipses_comp_tx;
   [[sampler(DRW_GSPLAT_RADIANCE_COMP_TEX_SLOT)]] const samplerBuffer radiance_comp_tx;
 
-  [[push_constant]] const float2 viewport_size;
-
  private:
   Gaussian get_gaussian(uint gs_id) const
   {
@@ -506,10 +498,7 @@ struct ShapeResource {
     return Gaussian::unpack(gs_id, data, infos.splat_mean_range, infos.splat_scale_range);
   }
 
-  SplatShape get_splat_implementation(uint vert_id,
-                                      ObjectMatrices object,
-                                      ViewMatrices view,
-                                      float2 viewport_size) const
+  SplatShape get_splat_implementation(uint vert_id, ObjectMatrices object, ViewMatrices view) const
   {
     float2 shape_offset = detail::get_shape_offset(vert_id);
     if (any(isnan(shape_offset))) {
@@ -539,11 +528,8 @@ struct ShapeResource {
       const Gaussian gs = get_gaussian(shape.id);
 
       /* Project Gaussian to screen-space, recovering 2D axes for a splatted ellipse. */
-      float4x4 viewmat = view.viewmat * object.model;
-      float3x3 covmat = get_covmat(gs.rotation, gs.scale);
-      float3 covmat_proj = project_covmat(
-          gs.mean, viewmat, view.winmat, covmat, viewport_size, view.is_perspective());
-      axes = covmat_to_axes(covmat_proj);
+      float3 covmat_2d_v = project_gaussian(object, view, gs);
+      axes = covmat_to_axes(covmat_2d_v);
 
       /* Compute world normal. Normal is oriented towards view, never back-facing. */
       float3 wP = object.point_object_to_world(gs.mean);
@@ -559,8 +545,7 @@ struct ShapeResource {
     }
 
     /* Screen-space offset determined by ellipse axis tuple. */
-    float2 ss_delta = (shape.shape_offset.x * axes.axis_0 + shape.shape_offset.y * axes.axis_1) *
-                      2.0f / viewport_size;
+    float2 ss_delta = shape.shape_offset.x * axes.axis_0 + shape.shape_offset.y * axes.axis_1;
 
     /* Add screen-space offset to homogeneous position. */
     shape.hP = view.point_world_to_homogenous(shape.wP);
@@ -613,19 +598,7 @@ struct ShapeResource {
    */
   SplatShape get_splat(uint vert_id, ObjectMatrices object, ViewMatrices view) const
   {
-    return get_splat_implementation(vert_id, object, view, viewport_size);
-  }
-
-  /**
-   * Recover billboard splat draw data for a specific vertex. Override viewport size
-   * for e.g. probes and shadow pipelines.
-   */
-  SplatShape get_splat(uint vert_id,
-                       ObjectMatrices object,
-                       ViewMatrices view,
-                       float2 viewport_size) const
-  {
-    return get_splat_implementation(vert_id, object, view, viewport_size);
+    return get_splat_implementation(vert_id, object, view);
   }
 };
 

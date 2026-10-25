@@ -37,6 +37,7 @@
 #include "BLI_math_vector_c.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
+#include "BLI_string.hh"
 #include "BLI_vector.hh"
 
 #include "ED_armature.hh"
@@ -638,7 +639,8 @@ void import_blendshapes(Main *bmain,
     }
 
     /* Create the curve for this shape key. */
-    const std::string rna_path = "key_blocks[\"" + blendshape_name.GetString() + "\"].value";
+    const std::string rna_path = "key_blocks[\"" + BLI_str_escape(blendshape_name.GetString()) +
+                                 "\"].value";
     FCurve *fcu = create_fcurve(channelbag, {rna_path, 0}, times.size());
     curves.append(fcu);
   }

@@ -140,13 +140,9 @@ SplatData eval_splat(Gaussian gs,
     return SplatData::culled();
   }
 
-  float4x4 viewmat = view.viewmat * obj.model;
-  float3x3 covmat = get_covmat(gs.rotation, gs.scale);
-
   /* Project Gaussian to screen-space, recovering 2D axes for a splat billboard. */
-  float3 covmat_proj = project_covmat(
-      gs.mean, viewmat, view.winmat, covmat, srt.viewport_size, view.is_perspective());
-  AxisTuple axes = covmat_to_axes(covmat_proj);
+  float3 covmat_2d_v = project_gaussian(obj, view, gs);
+  AxisTuple axes = covmat_to_axes(covmat_2d_v);
 
   /* Discard splat if it is not partially/entirely inside/enclosing the viewport. */
   if (!detail::is_inside_viewport(axes, hP, srt.viewport_size)) {

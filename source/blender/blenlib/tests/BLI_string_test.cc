@@ -1410,6 +1410,67 @@ TEST_F(StringEscape, Control)
   testEscapeWords(escaped);
 }
 
+TEST_F(StringEscape, Truncate)
+{
+#define STR_ESCAPE_TRUNC_EXPECT(src, dst_expect, dst_maxncpy) \
+  { \
+    char dst[dst_maxncpy + 1]; \
+    dst[dst_maxncpy] = 0xff; \
+    size_t len = BLI_str_escape(dst, src, dst_maxncpy); \
+    EXPECT_EQ(len, strlen(dst)); \
+    EXPECT_STREQ(dst, dst_expect); \
+    EXPECT_EQ(dst[dst_maxncpy], 0xff); \
+  }
+
+  STR_ESCAPE_TRUNC_EXPECT("A", "", 1);
+  STR_ESCAPE_TRUNC_EXPECT("AB", "AB", 3);
+  STR_ESCAPE_TRUNC_EXPECT("AB", "A", 2);
+
+  STR_ESCAPE_TRUNC_EXPECT("\n", "\\n", 3);
+  STR_ESCAPE_TRUNC_EXPECT("\n", "", 2);
+  STR_ESCAPE_TRUNC_EXPECT("A\n", "A\\n", 4);
+  STR_ESCAPE_TRUNC_EXPECT("A\n", "A", 3);
+  STR_ESCAPE_TRUNC_EXPECT("\nA", "\\n", 3);
+
+  /* NOLINTNEXTLINE: modernize-raw-string-literal. */
+  STR_ESCAPE_TRUNC_EXPECT("\n\n\n", "\\n\\n\\n", 7);
+  /* NOLINTNEXTLINE: modernize-raw-string-literal. */
+  STR_ESCAPE_TRUNC_EXPECT("\n\n\n", "\\n\\n", 6);
+  /* NOLINTNEXTLINE: modernize-raw-string-literal. */
+  STR_ESCAPE_TRUNC_EXPECT("\n\n\n", "\\n\\n", 5);
+  STR_ESCAPE_TRUNC_EXPECT("\n\n\n", "\\n", 4);
+  STR_ESCAPE_TRUNC_EXPECT("\n\n\n", "\\n", 3);
+  STR_ESCAPE_TRUNC_EXPECT("\n\n\n", "", 2);
+  STR_ESCAPE_TRUNC_EXPECT("\n\n\n", "", 1);
+
+  /* NOLINTNEXTLINE: modernize-raw-string-literal. */
+  STR_ESCAPE_TRUNC_EXPECT("\"", "\\\"", 3);
+  STR_ESCAPE_TRUNC_EXPECT("\"", "", 2);
+  /* NOLINTNEXTLINE: modernize-raw-string-literal. */
+  STR_ESCAPE_TRUNC_EXPECT("A\"", "A\\\"", 4);
+  STR_ESCAPE_TRUNC_EXPECT("A\"", "A", 3);
+
+#undef STR_ESCAPE_TRUNC_EXPECT
+}
+
+TEST_F(StringEscape, UnescapeTrailingBackslash)
+{
+  /* The back-slash ends the range, the "n" after it must not be read. */
+  const char *src = "A\\n";
+  char dst[8];
+  size_t dst_len;
+
+  dst_len = BLI_str_unescape(dst, src, 2);
+  EXPECT_STREQ(dst, "A\\");
+  EXPECT_EQ(dst_len, 2);
+
+  bool is_complete;
+  dst_len = BLI_str_unescape_ex(dst, src, 2, sizeof(dst), &is_complete);
+  EXPECT_STREQ(dst, "A\\");
+  EXPECT_EQ(dst_len, 2);
+  EXPECT_TRUE(is_complete);
+}
+
 /** \} */
 
 TEST(BLI_string, bounded_strcpy)
