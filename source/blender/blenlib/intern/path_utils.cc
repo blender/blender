@@ -660,6 +660,7 @@ void BLI_path_normalize_unc(char *path, int path_maxncpy)
   wchar_t *tmp_16 = alloc_utf16_from_8(path, 1);
   BLI_path_normalize_unc_16(tmp_16);
   conv_utf_16_to_8(tmp_16, path, path_maxncpy);
+  free(tmp_16);
 }
 
 void BLI_path_normalize_unc_16(wchar_t *path_16)
@@ -887,7 +888,7 @@ const char *BLI_path_parent_dir_end(const char *path, size_t path_len)
     if (BLI_path_slash_is_native_compat(*(p - 1))) {
       p -= 1; /* Skip `/`. */
     }
-    else if ((p + 1 > path) && (*(p - 1) == '.') && BLI_path_slash_is_native_compat(*p - 2)) {
+    else if ((p - 1 > path) && (*(p - 1) == '.') && BLI_path_slash_is_native_compat(*(p - 2))) {
       p -= 2; /* Skip `/.` (actually `/./` but the last slash was already skipped) */
     }
     else {
