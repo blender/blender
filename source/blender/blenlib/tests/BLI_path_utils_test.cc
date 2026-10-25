@@ -515,6 +515,40 @@ TEST(path_utils, IsUnc)
 
 /** \} */
 
+#ifdef WIN32
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_normalize_unc
+ * \{ */
+
+#  define PATH_NORMALIZE_UNC(input, output_expect) \
+    { \
+      char path[FILE_MAX]; \
+      STRNCPY(path, input); \
+      BLI_path_normalize_unc(path, sizeof(path)); \
+      EXPECT_STREQ(path, output_expect); \
+    } \
+    ((void)0)
+
+TEST(path_utils, NormalizeUNC)
+{
+  /* Long paths with a drive. */
+  PATH_NORMALIZE_UNC("\\\\?\\C:\\dir\\file", "C:\\dir\\file");
+  /* Long UNC paths. */
+  PATH_NORMALIZE_UNC("\\\\?\\UNC\\server\\share\\dir", "\\\\server\\share\\dir");
+  /* A slash is added after the share. */
+  PATH_NORMALIZE_UNC("\\\\?\\UNC\\server\\share", "\\\\server\\share\\");
+  /* Other paths are left as-is. */
+  PATH_NORMALIZE_UNC("C:\\dir\\file", "C:\\dir\\file");
+  PATH_NORMALIZE_UNC("\\\\server\\share\\dir", "\\\\server\\share\\dir");
+}
+
+#  undef PATH_NORMALIZE_UNC
+
+/** \} */
+
+#endif /* WIN32 */
+
 /* -------------------------------------------------------------------- */
 /** \name Tests for: #BLI_path_is_win32_drive
  * \{ */
@@ -863,6 +897,18 @@ TEST(path_utils, Frame)
     path[sizeof(path) - 1] = '\0';
     ret = BLI_path_frame(path, sizeof(path), 123456789, 0);
     EXPECT_TRUE(BLI_str_endswith(path, "0123456789"));
+  }
+
+  /* No room to add the digits, the path is left unchanged. */
+  {
+    char path[8 + 5];
+    memset(path, 0xff, sizeof(path));
+    path[sizeof(path) - 1] = '\0';
+    BLI_strncpy(path, "test_ab", 8);
+    ret = BLI_path_frame(path, 8, 123, 4);
+    EXPECT_FALSE(ret);
+    EXPECT_STREQ(path, "test_ab");
+    EXPECT_STREQ(path + 8, "\xff\xff\xff\xff");
   }
 }
 
@@ -1240,6 +1286,17 @@ TEST(path_utils, FrameRange)
   PATH_FRAME_RANGE("", 100, 200, 1, "100-200");
   PATH_FRAME_RANGE("", 123, 321, 4, "0123-0321");
   PATH_FRAME_RANGE("", 1, 0, 20, "00000000000000000001-00000000000000000000");
+
+  /* No room to add the digits, the path is left unchanged. */
+  {
+    char path[8 + 5];
+    memset(path, 0xff, sizeof(path));
+    path[sizeof(path) - 1] = '\0';
+    BLI_strncpy(path, "test_ab", 8);
+    EXPECT_FALSE(BLI_path_frame_range(path, 8, 1, 2, 4));
+    EXPECT_STREQ(path, "test_ab");
+    EXPECT_STREQ(path + 8, "\xff\xff\xff\xff");
+  }
 }
 #undef PATH_FRAME_RANGE
 

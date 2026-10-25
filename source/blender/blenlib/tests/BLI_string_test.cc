@@ -53,6 +53,39 @@ TEST(string, StrCat)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name String Copy (Ensure Pad)
+ * \{ */
+
+TEST(string, StrCopyEnsurePad)
+{
+#define STRNCPY_ENSURE_PAD_EXPECT(src, dst_expect, dst_maxncpy) \
+  { \
+    char dst[dst_maxncpy + 5]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    dst[sizeof(dst) - 1] = '\0'; \
+    BLI_strncpy_ensure_pad(dst, src, '*', dst_maxncpy); \
+    EXPECT_STREQ(dst, dst_expect); \
+    EXPECT_STREQ(dst + dst_maxncpy, "\xff\xff\xff\xff"); \
+  }
+
+  STRNCPY_ENSURE_PAD_EXPECT("", "", 1);
+  STRNCPY_ENSURE_PAD_EXPECT("A", "*A*", 4);
+  STRNCPY_ENSURE_PAD_EXPECT("*A*", "*A*", 4);
+  STRNCPY_ENSURE_PAD_EXPECT("*ABC", "*A*", 4);
+  STRNCPY_ENSURE_PAD_EXPECT("ABC", "*ABC*", 6);
+  STRNCPY_ENSURE_PAD_EXPECT("ABC", "*AB*", 5);
+  STRNCPY_ENSURE_PAD_EXPECT("ABC", "*A*", 4);
+  STRNCPY_ENSURE_PAD_EXPECT("A", "*", 3);
+  STRNCPY_ENSURE_PAD_EXPECT("A", "*", 2);
+  STRNCPY_ENSURE_PAD_EXPECT("A", "", 1);
+  STRNCPY_ENSURE_PAD_EXPECT("*", "*", 2);
+  STRNCPY_ENSURE_PAD_EXPECT("*", "", 1);
+#undef STRNCPY_ENSURE_PAD_EXPECT
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name String Replace
  * \{ */
 
@@ -192,6 +225,16 @@ TEST(string, StrRPartition)
     EXPECT_EQ(pre_len, 6);
     EXPECT_EQ(&str[6], sep);
     EXPECT_STREQ("", suf);
+  }
+
+  {
+    const char *str = ".material";
+
+    /* ".material" -> "", '.', "material", 0 */
+    pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
+    EXPECT_EQ(&str[0], sep);
+    EXPECT_STREQ("material", suf);
   }
 
   {
@@ -341,6 +384,26 @@ TEST(string, StrRPartitionUtf8)
     EXPECT_EQ(pre_len, 10);
     EXPECT_EQ(&str[10], sep);
     EXPECT_STREQ("", suf);
+  }
+
+  {
+    const char *str = ".material";
+
+    /* ".material" -> "", '.', "material", 0 */
+    pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
+    EXPECT_EQ(&str[0], sep);
+    EXPECT_STREQ("material", suf);
+  }
+
+  {
+    const char *str = "\xc3\xb1material";
+
+    /* "\xc3\xb1material" -> "", '\xc3\xb1', "material", 0 */
+    pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
+    EXPECT_EQ(&str[0], sep);
+    EXPECT_STREQ("material", suf);
   }
 
   {
@@ -533,6 +596,41 @@ TEST(string, StrFormatByteUnits)
   EXPECT_STREQ("-8191.8472 PiB", size_str);
   /* Ensure the limit is correct. */
   EXPECT_EQ(sizeof(size_str), strlen(size_str) + 1);
+}
+
+/* BLI_str_format_byte_unit_compact */
+TEST(string, StrFormatByteUnitsCompact)
+{
+  char size_str[BLI_STR_FORMAT_INT64_BYTE_UNIT_COMPACT_SIZE];
+  long long int size;
+
+  /* Base 10 */
+  BLI_str_format_byte_unit_compact(size_str, size = 0, true);
+  EXPECT_STREQ("0B", size_str);
+  BLI_str_format_byte_unit_compact(size_str, size = 155, true);
+  EXPECT_STREQ("155B", size_str);
+  BLI_str_format_byte_unit_compact(size_str, size = 1'555, true);
+  EXPECT_STREQ("1K", size_str);
+  BLI_str_format_byte_unit_compact(size_str, size = 155'555, true);
+  EXPECT_STREQ(".1M", size_str);
+  BLI_str_format_byte_unit_compact(size_str, size = 1'000'000'000, true);
+  EXPECT_STREQ("1G", size_str);
+  BLI_str_format_byte_unit_compact(size_str, size = 550'000'000'000'000'000, true);
+  EXPECT_STREQ(".5E", size_str);
+
+  /* Largest possible value. */
+  BLI_str_format_byte_unit_compact(size_str, size = (1ULL << 63) - 1, true);
+  EXPECT_STREQ("9E", size_str);
+
+  /* Base 2 */
+  BLI_str_format_byte_unit_compact(size_str, size = 0, false);
+  EXPECT_STREQ("0B", size_str);
+  BLI_str_format_byte_unit_compact(size_str, size = 1024, false);
+  EXPECT_STREQ("1K", size_str);
+
+  /* Largest possible value. */
+  BLI_str_format_byte_unit_compact(size_str, size = (1ULL << 63) - 1, false);
+  EXPECT_STREQ("8E", size_str);
 }
 
 /** \} */
@@ -1468,6 +1566,34 @@ TEST_F(StringEscape, UnescapeTrailingBackslash)
   dst_len = BLI_str_unescape_ex(dst, src, 2, sizeof(dst), &is_complete);
   EXPECT_STREQ(dst, "A\\");
   EXPECT_EQ(dst_len, 2);
+  EXPECT_TRUE(is_complete);
+}
+
+TEST_F(StringEscape, UnescapeLen)
+{
+#define STR_UNESCAPE_EXPECT(src, dst_expect, src_len) \
+  { \
+    char dst[src_len + 2]; \
+    dst[src_len + 1] = 0xff; \
+    size_t len = BLI_str_unescape(dst, src, src_len); \
+    EXPECT_EQ(len, strlen(dst)); \
+    EXPECT_STREQ(dst, dst_expect); \
+    EXPECT_EQ(dst[src_len + 1], 0xff); \
+  }
+
+  STR_UNESCAPE_EXPECT("AB", "AB", 2);
+  STR_UNESCAPE_EXPECT("AB", "A", 1);
+  STR_UNESCAPE_EXPECT("AB", "", 0);
+  STR_UNESCAPE_EXPECT("A\\n", "A\n", 3);
+  STR_UNESCAPE_EXPECT("A\\n", "A\\", 2);
+
+#undef STR_UNESCAPE_EXPECT
+
+  char dst[8];
+  bool is_complete;
+  const size_t len = BLI_str_unescape_ex(dst, "AB", 1, sizeof(dst), &is_complete);
+  EXPECT_STREQ(dst, "A");
+  EXPECT_EQ(len, 1);
   EXPECT_TRUE(is_complete);
 }
 

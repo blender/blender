@@ -416,11 +416,12 @@ static void action_flip_pchan_rna_paths(bAction *act)
 
     char name[MAXBONENAME];
     const size_t name_esc_len = size_t(name_esc_end - name_esc);
-    const size_t name_len = BLI_str_unescape(name, name_esc, name_esc_len);
+    bool is_complete;
+    BLI_str_unescape_ex(name, name_esc, name_esc_len, sizeof(name), &is_complete);
 
     /* While unlikely, data paths could be constructed that have longer names than
      * are currently supported. */
-    if (name_len >= sizeof(name)) [[unlikely]] {
+    if (!is_complete) [[unlikely]] {
       continue;
     }
 

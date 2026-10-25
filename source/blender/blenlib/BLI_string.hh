@@ -90,14 +90,19 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t dst_m
     ATTR_NONNULL(1, 2);
 
 /**
- * Like BLI_strncpy but ensures dst is always padded by given char,
- * on both sides (unless `src` is empty).
+ * Like #BLI_strncpy but ensures `dst` is padded by `pad` on both sides,
+ * `pad` is only added where `src` doesn't already start or end with it.
  *
- * \param dst: Destination for copy
- * \param src: Source string to copy
- * \param pad: the char to use for padding
- * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst).
- * \retval Returns dst
+ * When `src` is empty, `dst` is empty (no padding is added).
+ * When `src` doesn't fit, it's truncated to make room for the trailing `pad`.
+ * When `dst_maxncpy` is too small to fit a character between both pads,
+ * the result is only the leading `pad` (empty when `dst_maxncpy` is 1).
+ *
+ * \param dst: Destination for copy.
+ * \param src: Source string to copy.
+ * \param pad: The character to use for padding.
+ * \param dst_maxncpy: The size of `dst` (including the nil terminator).
+ * \retval Returns `dst`.
  */
 char *BLI_strncpy_ensure_pad(char *__restrict dst,
                              const char *__restrict src,
@@ -248,13 +253,13 @@ std::string BLI_str_escape(StringRef str);
  *
  * \param dst: The destination string, at least the size of `strlen(src) + 1`.
  * \param src: The escaped source string.
- * \param src_maxncpy: The maximum number of bytes allowable to copy from `src`.
+ * \param src_len: The maximum number of bytes to read from `src`.
  * \param dst_maxncpy: The maximum number of bytes allowable to copy into `dst`.
- * \param r_is_complete: Set to true when.
+ * \param r_is_complete: Set to false when the result doesn't fit into `dst`.
  */
 size_t BLI_str_unescape_ex(char *__restrict dst,
                            const char *__restrict src,
-                           size_t src_maxncpy,
+                           size_t src_len,
                            /* Additional arguments. */
                            size_t dst_maxncpy,
                            bool *r_is_complete) ATTR_NONNULL(1, 2, 5);
@@ -262,13 +267,13 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
  * See #BLI_str_unescape_ex docstring.
  *
  * This function makes the assumption that `dst` always has
- * at least `src_maxncpy` bytes available.
+ * at least `src_len + 1` bytes available.
  *
  * Use #BLI_str_unescape_ex if `dst` has a smaller fixed size.
  *
  * \note This is used for parsing animation paths in blend files (runs often).
  */
-size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, size_t src_maxncpy)
+size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, size_t src_len)
     ATTR_NONNULL(1, 2);
 
 /**
@@ -663,7 +668,7 @@ bool BLI_string_elem_split_by_delim(const char *haystack,
 /** \name String Debugging
  * \{ */
 #ifdef WITH_STRSIZE_DEBUG
-#  define BLI_string_debug_size(str, str_maxncpy) memset(str, 0xff, sizeof(*(str)) * str_maxncpy)
+#  define BLI_string_debug_size(str, str_maxncpy) memset(str, 0xff, sizeof(*(str)) * (str_maxncpy))
 /**
  * Fill `str` with a non-nil value after the trailing nil character,
  * use to ensure buffer sizes passed to string functions are correct.
@@ -672,7 +677,7 @@ void BLI_string_debug_size_after_nil(char *str, size_t str_maxncpy);
 #else
 #  define BLI_string_debug_size(str, str_maxncpy) \
     if (0) { \
-      (void)str, (void)str_maxncpy; \
+      (void)(str), (void)(str_maxncpy); \
     } \
     ((void)0)
 #  define BLI_string_debug_size_after_nil(str, str_maxncpy) BLI_string_debug_size(str, str_maxncpy)

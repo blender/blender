@@ -492,7 +492,8 @@ static PyObject *bpy_unescape_identifier(PyObject * /*self*/, PyObject *value)
 
   const size_t size = value_str_len + 1;
   char *value_unescape_str = static_cast<char *>(PyMem_MALLOC(size));
-  const Py_ssize_t value_unescape_str_len = BLI_str_unescape(value_unescape_str, value_str, size);
+  const Py_ssize_t value_unescape_str_len = BLI_str_unescape(
+      value_unescape_str, value_str, value_str_len);
 
   PyObject *value_unescape;
   if (value_unescape_str_len == value_str_len) {

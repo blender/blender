@@ -629,8 +629,6 @@ static void BLI_path_add_slash_to_share(wchar_t *uncpath)
 
 static void BLI_path_unc_to_short(wchar_t *unc)
 {
-  wchar_t tmp[PATH_MAX];
-
   int len = wcslen(unc);
   /* Convert:
    * - `\\?\UNC\server\share\folder\...` to `\\server\share\folder\...`
@@ -640,17 +638,13 @@ static void BLI_path_unc_to_short(wchar_t *unc)
   if ((len > 3) && (unc[0] == L'\\') && (unc[1] == L'\\') && (unc[2] == L'?') &&
       ELEM(unc[3], L'\\', L'/'))
   {
+    /* The result is always shorter, shift the text in place (+1 for the terminator). */
     if ((len > 5) && (unc[5] == L':')) {
-      wcsncpy(tmp, unc + 4, len - 4);
-      tmp[len - 4] = L'\0';
-      wcscpy(unc, tmp);
+      memmove(unc, unc + 4, (len - 4 + 1) * sizeof(*unc));
     }
     else if ((len > 7) && (wcsncmp(&unc[4], L"UNC", 3) == 0) && ELEM(unc[7], L'\\', L'/')) {
-      tmp[0] = L'\\';
-      tmp[1] = L'\\';
-      wcsncpy(tmp + 2, unc + 8, len - 8);
-      tmp[len - 6] = L'\0';
-      wcscpy(unc, tmp);
+      /* Keep the leading `\\`. */
+      memmove(unc + 2, unc + 8, (len - 8 + 1) * sizeof(*unc));
     }
   }
 }
@@ -983,18 +977,24 @@ static bool path_frame_chars_find_range(const char *path, int *r_char_start, int
 /**
  * Ensure `path` contains at least one "#" character in its last slash-separated
  * component, appending one digits long if not.
+ *
+ * \return false when there isn't room to append the digits.
  */
-static void ensure_digits(char *path, int digits)
+static bool ensure_digits(char *path, const size_t path_maxncpy, int digits)
 {
   char *file = const_cast<char *>(BLI_path_basename(path));
   if (strrchr(file, '#') == nullptr) {
     int len = strlen(file);
+    if (size_t(file - path) + size_t(len + digits) >= path_maxncpy) {
+      return false;
+    }
 
     while (digits--) {
       file[len++] = '#';
     }
     file[len] = '\0';
   }
+  return true;
 }
 
 bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
@@ -1003,8 +1003,8 @@ bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
 
   int ch_sta, ch_end;
 
-  if (digits) {
-    ensure_digits(path, digits);
+  if (digits && !ensure_digits(path, path_maxncpy, digits)) {
+    return false;
   }
 
   if (path_frame_chars_find_range(path, &ch_sta, &ch_end)) {
@@ -1023,8 +1023,8 @@ bool BLI_path_frame_range(char *path, size_t path_maxncpy, int sta, int end, int
 
   int ch_sta, ch_end;
 
-  if (digits) {
-    ensure_digits(path, digits);
+  if (digits && !ensure_digits(path, path_maxncpy, digits)) {
+    return false;
   }
 
   if (path_frame_chars_find_range(path, &ch_sta, &ch_end)) {
