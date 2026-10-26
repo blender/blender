@@ -1179,8 +1179,6 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
           info.sampler(slots.get_next_sampler(), ImageType::Float3D, input.name, Frequency::BATCH);
         }
         vertex_inputs.clear();
-        /* Volume materials require these for loading the grid attributes from smoke sims. */
-        info.additional_info("draw_volume_infos");
       }
       break;
     case MAT_GEOM_POINTCLOUD:
