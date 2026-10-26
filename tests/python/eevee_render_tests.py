@@ -436,9 +436,6 @@ def main():
     elif test_dir_name.startswith('attributes') and gpu_vendor == "AMD":
         # attribute_pointcloud_color
         report.set_fail_percent(0.09)
-    elif test_dir_name.startswith('ray_portal') and gpu_vendor == "AMD":
-        # AMD PRO W7600
-        report.set_fail_percent(0.09)
     elif test_dir_name.startswith('camera'):
         # camera_stereo_panoramic have some platform specific small differences
         report.set_fail_percent(0.14)
