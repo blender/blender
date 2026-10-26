@@ -52,41 +52,25 @@ void main()
 
   float3 nor;
 #if defined(FACE_NORMAL)
-#  if defined(FLOAT_NORMAL)
-  /* Path for opensubdiv. To be phased out at some point. */
-  nor = norAndFlag[vert_i].xyz;
-#  else
   if (hq_normals) {
     nor = gpu_attr_load_short4_snorm(norAndFlag, gpu_attr_0, vert_i).xyz;
   }
   else {
     nor = gpu_attr_load_uint_1010102_snorm(norAndFlag, gpu_attr_0, vert_i).xyz;
   }
-#  endif
-
   final_color = theme.colors.normal;
 
 #elif defined(VERT_NORMAL)
-#  if defined(FLOAT_NORMAL)
-  /* Path for opensubdiv. To be phased out at some point. */
-  nor = gpu_attr_load_float3(vnor, gpu_attr_0, vert_i);
-#  else
   nor = gpu_attr_load_uint_1010102_snorm(vnor, gpu_attr_0, vert_i).xyz;
-#  endif
   final_color = theme.colors.vnormal;
 
 #elif defined(LOOP_NORMAL)
-#  if defined(FLOAT_NORMAL)
-  /* Path for opensubdiv. To be phased out at some point. */
-  nor = lnor[vert_i].xyz;
-#  else
   if (hq_normals) {
     nor = gpu_attr_load_short4_snorm(lnor, gpu_attr_0, vert_i).xyz;
   }
   else {
     nor = gpu_attr_load_uint_1010102_snorm(lnor, gpu_attr_0, vert_i).xyz;
   }
-#  endif
   final_color = theme.colors.lnormal;
 
 #else

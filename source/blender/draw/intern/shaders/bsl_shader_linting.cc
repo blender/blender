@@ -17,6 +17,7 @@
 #include "draw_gsplat.bsl.hh"                  /* IWYU pragma: export */
 #include "draw_gsplat_lib.bsl.hh"              /* IWYU pragma: export */
 #include "draw_math_geom.bsl.hh"               /* IWYU pragma: export */
+#include "draw_mesh_compress.bsl.hh"           /* IWYU pragma: export */
 #include "draw_mesh_to_corner.bsl.hh"          /* IWYU pragma: export */
 #include "draw_model.bsl.hh"                   /* IWYU pragma: export */
 #include "draw_resource_finalize.bsl.hh"       /* IWYU pragma: export */

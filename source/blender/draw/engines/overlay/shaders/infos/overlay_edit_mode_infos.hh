@@ -93,23 +93,6 @@ GPU_SHADER_CREATE_END()
 
 CREATE_INFO_VARIANT(overlay_mesh_face_normal_clipped, overlay_mesh_face_normal, drw_clipped)
 
-GPU_SHADER_CREATE_INFO(overlay_mesh_face_normal_subdiv)
-DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(overlay_edit_mesh_normal)
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat)
-ADDITIONAL_INFO(draw_globals)
-ADDITIONAL_INFO(gpu_index_buffer_load)
-STORAGE_BUF_FREQ(1, read, float, pos[], GEOMETRY)
-DEFINE("FACE_NORMAL")
-DEFINE("FLOAT_NORMAL")
-STORAGE_BUF_FREQ(0, read, float4, norAndFlag[], GEOMETRY)
-GPU_SHADER_CREATE_END()
-
-CREATE_INFO_VARIANT(overlay_mesh_face_normal_subdiv_clipped,
-                    overlay_mesh_face_normal_subdiv,
-                    drw_clipped)
-
 GPU_SHADER_CREATE_INFO(overlay_mesh_loop_normal)
 DO_STATIC_COMPILATION()
 ADDITIONAL_INFO(overlay_edit_mesh_normal)
@@ -125,23 +108,6 @@ GPU_SHADER_CREATE_END()
 
 CREATE_INFO_VARIANT(overlay_mesh_loop_normal_clipped, overlay_mesh_loop_normal, drw_clipped)
 
-GPU_SHADER_CREATE_INFO(overlay_mesh_loop_normal_subdiv)
-DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(overlay_edit_mesh_normal)
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat)
-ADDITIONAL_INFO(draw_globals)
-ADDITIONAL_INFO(gpu_index_buffer_load)
-STORAGE_BUF_FREQ(1, read, float, pos[], GEOMETRY)
-DEFINE("LOOP_NORMAL")
-DEFINE("FLOAT_NORMAL")
-STORAGE_BUF_FREQ(0, read, float4, lnor[], GEOMETRY)
-GPU_SHADER_CREATE_END()
-
-CREATE_INFO_VARIANT(overlay_mesh_loop_normal_subdiv_clipped,
-                    overlay_mesh_loop_normal_subdiv,
-                    drw_clipped)
-
 GPU_SHADER_CREATE_INFO(overlay_mesh_vert_normal)
 DO_STATIC_COMPILATION()
 ADDITIONAL_INFO(overlay_edit_mesh_normal)
@@ -155,23 +121,6 @@ STORAGE_BUF_FREQ(0, read, uint, vnor[], GEOMETRY)
 GPU_SHADER_CREATE_END()
 
 CREATE_INFO_VARIANT(overlay_mesh_vert_normal_clipped, overlay_mesh_vert_normal, drw_clipped)
-
-GPU_SHADER_CREATE_INFO(overlay_mesh_vert_normal_subdiv)
-DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(overlay_edit_mesh_normal)
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat)
-ADDITIONAL_INFO(draw_globals)
-ADDITIONAL_INFO(gpu_index_buffer_load)
-STORAGE_BUF_FREQ(1, read, float, pos[], GEOMETRY)
-DEFINE("VERT_NORMAL")
-DEFINE("FLOAT_NORMAL")
-STORAGE_BUF_FREQ(0, read, float, vnor[], GEOMETRY)
-GPU_SHADER_CREATE_END()
-
-CREATE_INFO_VARIANT(overlay_mesh_vert_normal_subdiv_clipped,
-                    overlay_mesh_vert_normal_subdiv,
-                    drw_clipped)
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_analysis_iface)
 SMOOTH(float4, weight_color)

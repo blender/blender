@@ -1141,7 +1141,8 @@ void draw_subdiv_interp_corner_normals(const DRWSubdivCache &cache,
     return;
   }
 
-  gpu::Shader *shader = DRW_shader_subdiv_interp_corner_normals_get();
+  const bool use_hq = (dst_data.format.stride == 8);
+  gpu::Shader *shader = DRW_shader_subdiv_interp_corner_normals_get(use_hq);
   GPU_shader_bind(shader);
 
   /* subdiv_face_offset is always at binding point 0 for each shader using it. */
@@ -1203,6 +1204,7 @@ void draw_subdiv_accumulate_normals(const DRWSubdivCache &cache,
   GPU_vertbuf_bind_as_ssbo(face_adjacency_lists, NORMALS_ACCUMULATE_FACE_ADJACENCY_LISTS_BUF_SLOT);
   GPU_vertbuf_bind_as_ssbo(vert_loop_map, NORMALS_ACCUMULATE_VERTEX_LOOP_MAP_BUF_SLOT);
   GPU_vertbuf_bind_as_ssbo(vert_normals, NORMALS_ACCUMULATE_NORMALS_BUF_SLOT);
+  GPU_shader_uniform_1b(shader, "use_hq", vert_normals->format.stride == 8);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache.num_subdiv_verts);
 
@@ -1289,6 +1291,7 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache &cache,
   /* F-dots normals may not be requested, still reserve the binding point. */
   if (fdots_nor) {
     GPU_vertbuf_bind_as_ssbo(fdots_nor, PATCH_EVALUATION_OUTPUT_NORMALS_BUF_SLOT);
+    GPU_shader_uniform_1b(shader, "use_hq", fdots_nor->format.stride == 8);
   }
   GPU_indexbuf_bind_as_ssbo(fdots_indices, PATCH_EVALUATION_OUTPUT_INDICES_BUF_SLOT);
   GPU_vertbuf_bind_as_ssbo(cache.extra_coarse_face_data,
@@ -1383,6 +1386,8 @@ void draw_subdiv_build_lnor_buffer(const DRWSubdivCache &cache,
     return;
   }
 
+  assert(lnor->format.stride == vert_normals->format.stride);
+
   gpu::Shader *shader = DRW_shader_subdiv_get(SubdivShaderType::BUFFER_LNOR);
   GPU_shader_bind(shader);
 
@@ -1396,6 +1401,7 @@ void draw_subdiv_build_lnor_buffer(const DRWSubdivCache &cache,
 
   /* Outputs */
   GPU_vertbuf_bind_as_ssbo(lnor, LOOP_NORMALS_OUTPUT_LNOR_BUF_SLOT);
+  GPU_shader_uniform_1b(shader, "use_hq", lnor->format.stride == 8);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache.num_subdiv_quads);
 
@@ -1595,6 +1601,7 @@ static Mutex g_subdiv_eval_mutex;
 
 static bool draw_subdiv_create_requested_buffers(Object &ob,
                                                  Mesh &mesh,
+                                                 const Scene &scene,
                                                  MeshBatchCache &batch_cache,
                                                  MeshBufferCache &mbc,
                                                  const Span<IBOType> ibo_requests,
@@ -1704,7 +1711,7 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
   draw_subdiv_cache_update_extra_coarse_face_data(draw_cache, mesh_eval, mr);
 
   mesh_buffer_cache_create_requested_subdiv(
-      batch_cache, mbc, ibo_requests, vbo_requests, draw_cache, mr);
+      batch_cache, mbc, scene, ibo_requests, vbo_requests, draw_cache, mr);
 
   maybe_increment_cache_ref(subdiv);
   return true;
@@ -1765,6 +1772,7 @@ static Mutex gpu_subdiv_queue_mutex;
 
 void DRW_create_subdivision(Object &ob,
                             Mesh &mesh,
+                            const Scene &scene,
                             MeshBatchCache &batch_cache,
                             MeshBufferCache &mbc,
                             const Span<IBOType> ibo_requests,
@@ -1786,6 +1794,7 @@ void DRW_create_subdivision(Object &ob,
 
   if (!draw_subdiv_create_requested_buffers(ob,
                                             mesh,
+                                            scene,
                                             batch_cache,
                                             mbc,
                                             ibo_requests,

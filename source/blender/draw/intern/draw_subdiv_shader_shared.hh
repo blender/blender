@@ -82,22 +82,6 @@ struct [[host_shared]] BlenderPatchCoord {
   uint encoded_uv;
 };
 
-/* Patch evaluation - F-dots. */
-/* float3 is padded to float4, but the format used for face-dots does not have any padding. */
-struct [[host_shared]] FDotVert {
-  float x;
-  float y;
-  float z;
-};
-
-/* Same here, do not use float3. */
-struct [[host_shared]] FDotNor {
-  float x;
-  float y;
-  float z;
-  float flag;
-};
-
 /* This structure is a carbon copy of OpenSubDiv's #PatchTable::PatchHandle. */
 struct [[host_shared]] PatchHandle {
   int array_index;

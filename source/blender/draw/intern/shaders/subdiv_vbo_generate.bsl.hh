@@ -46,7 +46,9 @@ struct NormalAccumulate {
   [[storage(NORMALS_ACCUMULATE_FACE_ADJACENCY_LISTS_BUF_SLOT,
             read)]] uint (&face_adjacency_lists)[];
   [[storage(NORMALS_ACCUMULATE_VERTEX_LOOP_MAP_BUF_SLOT, read)]] uint (&vert_loop_map)[];
-  [[storage(NORMALS_ACCUMULATE_NORMALS_BUF_SLOT, write)]] StoredFloat3 (&vert_normals)[];
+
+  [[push_constant]] const bool use_hq;
+  [[storage(NORMALS_ACCUMULATE_NORMALS_BUF_SLOT, write)]] uint (&vert_normals)[];
 
   void find_prev_and_next_vertex_on_face(
       uint face_index, uint vertex_index, uint &curr, uint &next, uint &prev)
@@ -120,7 +122,14 @@ void normals_accumulate_main([[resource_table]] const SubdivResources &srt,
     accumulated_normal += face_normal * fac;
   }
 
-  accum.vert_normals[vertex_index] = as_data(normalize(accumulated_normal));
+  accumulated_normal = normalize(accumulated_normal);
+  if (accum.use_hq) {
+    accum.vert_normals[vertex_index * 2 + 0] = packSnorm2x16(accumulated_normal.xy);
+    accum.vert_normals[vertex_index * 2 + 1] = packSnorm2x16(accumulated_normal.zz);
+  }
+  else {
+    accum.vert_normals[vertex_index] = packSnorm3x10_1x2(accumulated_normal.xyzz);
+  }
 }
 
 /** \} */
@@ -299,9 +308,22 @@ void edituv_stretch_angle_main([[resource_table]] const SubdivResources &srt,
 struct LoopNormalsResource {
   [[storage(LOOP_NORMALS_POS_SLOT, read)]] StoredFloat3 (&positions)[];
   [[storage(LOOP_NORMALS_EXTRA_COARSE_FACE_DATA_BUF_SLOT, read)]] uint (&extra_coarse_face_data)[];
-  [[storage(LOOP_NORMALS_VERT_NORMALS_BUF_SLOT, read)]] StoredFloat3 (&vert_normals)[];
+  [[storage(LOOP_NORMALS_VERT_NORMALS_BUF_SLOT, read)]] uint (&vert_normals)[];
   [[storage(LOOP_NORMALS_VERTEX_LOOP_MAP_BUF_SLOT, read)]] uint (&vert_loop_map)[];
-  [[storage(LOOP_NORMALS_OUTPUT_LNOR_BUF_SLOT, write)]] StoredFloat3 (&output_lnor)[];
+  /* Output is either SNORM_16_16_16_16 or SNORM_10_10_10_2. */
+  [[push_constant]] const bool use_hq;
+  [[storage(LOOP_NORMALS_OUTPUT_LNOR_BUF_SLOT, write)]] uint (&output_lnor)[];
+
+  void write_output(uint index, float3 nor)
+  {
+    if (use_hq) {
+      output_lnor[index * 2 + 0] = packSnorm2x16(nor.xy);
+      output_lnor[index * 2 + 1] = packSnorm2x16(nor.zz); /* Last component not used. */
+    }
+    else {
+      output_lnor[index] = packSnorm3x10_1x2(nor.xyzz); /* Last component not used. */
+    }
+  }
 };
 
 [[compute, local_size(SUBDIV_GROUP_SIZE)]]
@@ -328,8 +350,15 @@ void loop_normals_main([[resource_table]] const SubdivResources &srt,
   {
     /* Face is smooth, use vertex normals. */
     for (uint i = 0; i < 4u; i++) [[unroll]] {
-      const uint subdiv_vert_index = lnors.vert_loop_map[start_loop_index + i];
-      lnors.output_lnor[start_loop_index + i] = lnors.vert_normals[subdiv_vert_index];
+      const uint dst_index = start_loop_index + i;
+      const uint src_index = lnors.vert_loop_map[dst_index];
+      if (lnors.use_hq) {
+        lnors.output_lnor[dst_index * 2 + 0] = lnors.vert_normals[src_index * 2 + 0];
+        lnors.output_lnor[dst_index * 2 + 1] = lnors.vert_normals[src_index * 2 + 1];
+      }
+      else {
+        lnors.output_lnor[dst_index] = lnors.vert_normals[src_index];
+      }
     }
   }
   else {
@@ -348,10 +377,10 @@ void loop_normals_main([[resource_table]] const SubdivResources &srt,
     add_newell_cross_v3_v3v3(face_normal, v2, v3);
     add_newell_cross_v3_v3v3(face_normal, v3, v0);
 
-    StoredFloat3 normal = as_data(normalize(face_normal));
+    float3 normal = normalize(face_normal);
 
     for (uint i = 0; i < 4; i++) [[unroll]] {
-      lnors.output_lnor[start_loop_index + i] = normal;
+      lnors.write_output(start_loop_index + i, normal);
     }
   }
 }

@@ -128,10 +128,15 @@ class ShaderCache {
                                              {"draw_mesh_scatter_faces_12"},
                                              {"draw_mesh_scatter_faces_16"}};
 
+  gpu::StaticShader mesh_compress_normals_lq_sh = {"draw_mesh_compress_normal_lq"};
+  gpu::StaticShader mesh_compress_normals_hq_sh = {"draw_mesh_compress_normal_hq"};
+
   gpu::StaticShader subdiv_sh[SUBDIVISION_MAX_SHADERS];
   gpu::StaticShader subdiv_custom_data_sh[SHADER_CUSTOM_DATA_INTERP_MAX_DIMENSIONS][GPU_COMP_MAX];
-  gpu::StaticShader subdiv_interp_corner_normals_sh = {
-      "subdiv_custom_data_interp_3d_f32_normalize"};
+  gpu::StaticShader subdiv_interp_corner_normals_lq_sh = {
+      "subdiv_custom_data_interp_4d_i10_normalize"};
+  gpu::StaticShader subdiv_interp_corner_normals_hq_sh = {
+      "subdiv_custom_data_interp_4d_i16_normalize"};
 
   ShaderCache()
   {
@@ -248,6 +253,12 @@ gpu::Shader *DRW_shader_mesh_scatter_faces_get(const int element_size)
   return ShaderCache::get().mesh_scatter_faces[element_size / 4 - 1].get();
 }
 
+gpu::Shader *DRW_shader_mesh_compress_normals_get(const bool use_hq)
+{
+  return use_hq ? ShaderCache::get().mesh_compress_normals_hq_sh.get() :
+                  ShaderCache::get().mesh_compress_normals_lq_sh.get();
+}
+
 gpu::Shader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
 {
   BLI_assert(!ELEM(shader_type, SubdivShaderType::COMP_CUSTOM_DATA_INTERP));
@@ -265,9 +276,10 @@ gpu::Shader *DRW_shader_subdiv_custom_data_get(GPUVertCompType comp_type, int di
   return ShaderCache::get().subdiv_custom_data_sh[dimensions - 1][comp_type].get();
 }
 
-gpu::Shader *DRW_shader_subdiv_interp_corner_normals_get()
+gpu::Shader *DRW_shader_subdiv_interp_corner_normals_get(bool use_hq)
 {
-  return ShaderCache::get().subdiv_interp_corner_normals_sh.get();
+  return use_hq ? ShaderCache::get().subdiv_interp_corner_normals_hq_sh.get() :
+                  ShaderCache::get().subdiv_interp_corner_normals_lq_sh.get();
 }
 
 void DRW_shaders_free()

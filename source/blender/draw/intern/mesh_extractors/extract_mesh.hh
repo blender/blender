@@ -300,6 +300,16 @@ void loose_data_upload(const MeshRenderData &mr, const Span<T> loose_data, gpu::
 
 /** \} */
 
+/* ---------------------------------------------------------------------- */
+/** \name GPU side attribute compression
+ * \{ */
+
+void mesh_compress_normals(gpu::VertBuf &src, gpu::VertBuf &dst);
+
+/** \} */
+
+const GPUVertFormat &get_fdots_nor_format(bool use_hq);
+
 gpu::VertBufPtr extract_positions(const MeshRenderData &mr, MeshBufferCache &cache);
 gpu::VertBufPtr extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
                                          const MeshRenderData &mr,
@@ -309,13 +319,20 @@ gpu::VertBufPtr extract_face_dots_position(const MeshRenderData &mr);
 void extract_face_dots_subdiv(const DRWSubdivCache &subdiv_cache,
                               gpu::VertBufPtr &fdots_pos,
                               gpu::VertBufPtr *fdots_nor,
-                              gpu::IndexBufPtr &fdots);
+                              gpu::IndexBufPtr &fdots,
+                              bool use_hq);
 
+void update_loose_normals(const MeshRenderData &mr,
+                          const DRWSubdivCache &subdiv_cache,
+                          gpu::VertBuf &lnor);
 gpu::VertBufPtr extract_normals(const MeshRenderData &mr, MeshBufferCache &cache, bool use_hq);
 gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
                                        const DRWSubdivCache &subdiv_cache,
-                                       gpu::VertBuf &pos);
+                                       gpu::VertBuf &pos,
+                                       bool use_hq);
 gpu::VertBufPtr extract_vert_normals(const MeshRenderData &mr, MeshBufferCache &cache);
+gpu::VertBufPtr extract_vert_normals_subdiv(const MeshRenderData &mr,
+                                            const DRWSubdivCache &subdiv_cache);
 gpu::VertBufPtr extract_face_dot_normals(const MeshRenderData &mr, bool use_hq);
 gpu::VertBufPtr extract_edge_factor(const MeshRenderData &mr);
 gpu::VertBufPtr extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,

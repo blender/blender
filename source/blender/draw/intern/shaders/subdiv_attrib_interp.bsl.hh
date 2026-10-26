@@ -13,9 +13,11 @@
 namespace subdiv {
 
 enum ComponentType : int {
-  U16 = 0,
-  I32 = 1,
-  F32 = 2,
+  I10,
+  U16,
+  I16,
+  I32,
+  F32,
 };
 
 struct AttribInterp {
@@ -52,15 +54,29 @@ struct AttribInterp {
 template<typename T, int Dim, enum ComponentType Comp> T read(const AttribInterp &res, uint index)
 {
   T value;
-  if constexpr (Comp == U16) {
+  if constexpr (Comp == I10) {
+    const uint data = res.src_data[index];
+    value = unpackSnorm3x10_1x2(data);
+#ifdef GLSL_CPP_STUBS
+    /* Other cases unsupported for now. */
+    static_assert(Dim == 4);
+#endif
+  }
+  else if constexpr (Comp == U16) {
     const uint base_index = index * 2;
-    const uint xy = res.src_data[base_index];
-    const uint zw = res.src_data[base_index + 1];
-
-    value[0] = float((xy >> 16) & 0xFFFFu) / 65535.0f;
-    value[1] = float(xy & 0xFFFFu) / 65535.0f;
-    value[2] = float((zw >> 16) & 0xFFFFu) / 65535.0f;
-    value[3] = float(zw & 0xFFFFu) / 65535.0f;
+    const uint data_xy = res.src_data[base_index + 0];
+    const uint data_zw = res.src_data[base_index + 1];
+    value = T(unpackUnorm2x16(data_xy), unpackUnorm2x16(data_zw));
+#ifdef GLSL_CPP_STUBS
+    /* Other cases unsupported for now. */
+    static_assert(Dim == 4);
+#endif
+  }
+  else if constexpr (Comp == I16) {
+    const uint base_index = index * 2;
+    const uint data_xy = res.src_data[base_index + 0];
+    const uint data_zw = res.src_data[base_index + 1];
+    value = T(unpackSnorm2x16(data_xy), unpackSnorm2x16(data_zw));
 #ifdef GLSL_CPP_STUBS
     /* Other cases unsupported for now. */
     static_assert(Dim == 4);
@@ -100,19 +116,33 @@ template float read<float, 1, F32>(const AttribInterp &, uint);
 template float2 read<float2, 2, F32>(const AttribInterp &, uint);
 template float3 read<float3, 3, F32>(const AttribInterp &, uint);
 template float4 read<float4, 4, F32>(const AttribInterp &, uint);
+template float4 read<float4, 4, I10>(const AttribInterp &, uint);
+template float4 read<float4, 4, I16>(const AttribInterp &, uint);
 
 template<typename T, int Dim, enum ComponentType Comp>
 void write(AttribInterp &res, uint dst_offset, uint index, const T value)
 {
-  if constexpr (Comp == U16) {
+  if constexpr (Comp == I10) {
+    const uint base_index = dst_offset + index;
+    res.dst_data[base_index] = packSnorm3x10_1x2(value);
+#ifdef GLSL_CPP_STUBS
+    /* Other cases unsupported for now. */
+    static_assert(Dim == 4);
+#endif
+  }
+  else if constexpr (Comp == U16) {
     const uint base_index = dst_offset + index * 2;
-    uint x = uint(value[0] * 65535.0f);
-    uint y = uint(value[1] * 65535.0f);
-    uint z = uint(value[2] * 65535.0f);
-    uint w = uint(value[3] * 65535.0f);
-
-    res.dst_data[base_index + 0] = x << 16 | y;
-    res.dst_data[base_index + 1] = z << 16 | w;
+    res.dst_data[base_index + 0] = packUnorm2x16(value.xy);
+    res.dst_data[base_index + 1] = packUnorm2x16(value.zw);
+#ifdef GLSL_CPP_STUBS
+    /* Other cases unsupported for now. */
+    static_assert(Dim == 4);
+#endif
+  }
+  else if constexpr (Comp == I16) {
+    const uint base_index = dst_offset + index * 2;
+    res.dst_data[base_index + 0] = packSnorm2x16(value.xy);
+    res.dst_data[base_index + 1] = packSnorm2x16(value.zw);
 #ifdef GLSL_CPP_STUBS
     /* Other cases unsupported for now. */
     static_assert(Dim == 4);
@@ -151,6 +181,8 @@ template void write<float, 1, F32>(AttribInterp &, uint, uint, float);
 template void write<float2, 2, F32>(AttribInterp &, uint, uint, float2);
 template void write<float3, 3, F32>(AttribInterp &, uint, uint, float3);
 template void write<float4, 4, F32>(AttribInterp &, uint, uint, float4);
+template void write<float4, 4, I10>(AttribInterp &, uint, uint, float4);
+template void write<float4, 4, I16>(AttribInterp &, uint, uint, float4);
 
 template<typename T, int Dim, enum ComponentType Comp, bool Normalize>
 [[compute, local_size(SUBDIV_GROUP_SIZE)]] void attribute_interp(
@@ -231,7 +263,7 @@ template<typename T, int Dim, enum ComponentType Comp, bool Normalize>
     T result = mix(e, f, uv.y);
 
     if constexpr (Normalize) {
-      result = normalize(result);
+      result.xyz = normalize(result.xyz);
     }
 
     write<T, Dim, Comp>(res, srt.shader_data.dst_offset, loop_index, result);
@@ -248,7 +280,8 @@ template void attribute_interp<float,  1, F32, false>(const SubdivResources &, c
 template void attribute_interp<float2, 2, F32, false>(const SubdivResources &, const PolygonOffsetBase &, AttribInterp &, const uint3, const uint3);
 template void attribute_interp<float3, 3, F32, false>(const SubdivResources &, const PolygonOffsetBase &, AttribInterp &, const uint3, const uint3);
 template void attribute_interp<float4, 4, F32, false>(const SubdivResources &, const PolygonOffsetBase &, AttribInterp &, const uint3, const uint3);
-template void attribute_interp<float3, 3, F32, true>(const SubdivResources &, const PolygonOffsetBase &, AttribInterp &, const uint3, const uint3);
+template void attribute_interp<float4, 4, I16, true>(const SubdivResources &, const PolygonOffsetBase &, AttribInterp &, const uint3, const uint3);
+template void attribute_interp<float4, 4, I10, true>(const SubdivResources &, const PolygonOffsetBase &, AttribInterp &, const uint3, const uint3);
 /* clang-format on */
 
 PipelineCompute custom_data_interp_4d_u16(attribute_interp<float4, 4, U16, false>);
@@ -260,6 +293,7 @@ PipelineCompute custom_data_interp_1d_f32(attribute_interp<float, 1, F32, false>
 PipelineCompute custom_data_interp_2d_f32(attribute_interp<float2, 2, F32, false>);
 PipelineCompute custom_data_interp_3d_f32(attribute_interp<float3, 3, F32, false>);
 PipelineCompute custom_data_interp_4d_f32(attribute_interp<float4, 4, F32, false>);
-PipelineCompute custom_data_interp_3d_f32_normalize(attribute_interp<float3, 3, F32, true>);
+PipelineCompute custom_data_interp_4d_i16_normalize(attribute_interp<float4, 4, I16, true>);
+PipelineCompute custom_data_interp_4d_i10_normalize(attribute_interp<float4, 4, I10, true>);
 
 }  // namespace subdiv

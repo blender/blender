@@ -244,11 +244,13 @@ uint packUnorm2x16(float2) RET;
 uint packSnorm2x16(float2) RET;
 uint packUnorm4x8(float4) RET;
 uint packSnorm4x8(float4) RET;
+uint packSnorm3x10_1x2(float4) RET;
 float2 unpackHalf2x16(uint) RET;
 float2 unpackUnorm2x16(uint) RET;
 float2 unpackSnorm2x16(uint) RET;
 float4 unpackUnorm4x8(uint) RET;
 float4 unpackSnorm4x8(uint) RET;
+float4 unpackSnorm3x10_1x2(uint) RET;
 
 void barrier() {}
 void memoryBarrier() {}

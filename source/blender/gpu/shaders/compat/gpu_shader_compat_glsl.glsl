@@ -260,6 +260,23 @@ float4 texelFetchExtend(sampler2D samp, int2 texel, int lvl)
 #  define gpu_fwidth(x) x
 #endif
 
+uint packSnorm3x10_1x2(float4 v)
+{
+  int4 vi = int4(round(clamp(v, -1.0f, 1.0f) * float4(511.0f, 511.0f, 511.0f, 1.0f)));
+  return uint((vi.x & 0x3FF) << 0 | (vi.y & 0x3FF) << 10 | (vi.z & 0x3FF) << 20 |
+              (vi.w & 0x3) << 30);
+}
+
+float4 unpackSnorm3x10_1x2(uint data)
+{
+  uint4 v = uint4(
+      data & 0x3FFu, (data >> 10u) & 0x3FFu, (data >> 20u) & 0x3FFu, (data >> 30u) & 0x3u);
+  /* Sign-extension for 10-bit and 2-bit values. */
+  int4 iv = int4(
+      int(v.x << 22) >> 22, int(v.y << 22) >> 22, int(v.z << 22) >> 22, int(v.w << 30) >> 30);
+  return float4(v) / float4(0x1FF, 0x1FF, 0x1FF, 0x1);
+}
+
 #define FLT_MAX uintBitsToFloat(0x7F7FFFFFu)
 #define FLT_MIN uintBitsToFloat(0x00800000u)
 #define FLT_EPSILON 1.192092896e-07F

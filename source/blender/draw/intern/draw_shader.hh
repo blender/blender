@@ -35,6 +35,8 @@ gpu::Shader *DRW_shader_draw_command_generate_get();
 gpu::Shader *DRW_shader_mesh_gather_get(int element_size);
 gpu::Shader *DRW_shader_mesh_scatter_faces_get(int element_size);
 
+gpu::Shader *DRW_shader_mesh_compress_normals_get(bool use_hq);
+
 /* Subdivision */
 enum class SubdivShaderType {
   BUFFER_LINES = 0,
@@ -59,7 +61,7 @@ constexpr int SUBDIVISION_MAX_SHADERS = 17;
 
 gpu::Shader *DRW_shader_subdiv_get(SubdivShaderType shader_type);
 gpu::Shader *DRW_shader_subdiv_custom_data_get(GPUVertCompType comp_type, int dimensions);
-gpu::Shader *DRW_shader_subdiv_interp_corner_normals_get();
+gpu::Shader *DRW_shader_subdiv_interp_corner_normals_get(bool use_hq);
 
 void DRW_shaders_free();
 
