@@ -11,6 +11,8 @@
 #include "abc_writer_attribute.h"
 #include "intern/abc_customdata.h"
 
+#include "BLI_vector.hh"
+
 #include <Alembic/AbcGeom/OPolyMesh.h>
 #include <Alembic/AbcGeom/OSubD.h>
 
@@ -43,6 +45,9 @@ class ABCGenericMeshWriter : public ABCAbstractWriter {
 
   CDStreamConfig m_custom_data_config;
   std::unique_ptr<AttributeParamMaps> attribute_maps_ = nullptr;
+
+  /* Names of all face sets created so far, across frames. */
+  Vector<std::string> face_set_names_;
 
  public:
   explicit ABCGenericMeshWriter(const ABCWriterConstructorArgs &args);
