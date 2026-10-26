@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
-"PO-Revision-Date: 2026-10-04 17:12+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"PO-Revision-Date: 2026-10-24 11:12+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
 "Language: ro\n"
@@ -329,8 +329,18 @@ msgstr "Acțiune"
 
 
 msgctxt "ID"
+msgid "Camera"
+msgstr "Cameră"
+
+
+msgctxt "ID"
 msgid "Grease Pencil"
-msgstr "Creion de Grăsime"
+msgstr "Creion cerat"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Creion cerat v3"
 
 
 msgctxt "ID"
@@ -341,6 +351,11 @@ msgstr "Imagine"
 msgctxt "ID"
 msgid "Light"
 msgstr "Lumină"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Stilul liniei"
 
 
 msgctxt "ID"
@@ -359,13 +374,28 @@ msgstr "Scenă"
 
 
 msgctxt "ID"
+msgid "Speaker"
+msgstr "Difuzor"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Text"
+
+
+msgctxt "ID"
 msgid "Texture"
 msgstr "Textură"
 
 
 msgctxt "ID"
+msgid "Volume"
+msgstr "Volum"
+
+
+msgctxt "ID"
 msgid "Window Manager"
-msgstr "Manager Ferestre"
+msgstr "Manager de ferestre"
 
 
 msgctxt "ID"
@@ -376,6 +406,15 @@ msgstr "Spațiu de lucru"
 msgctxt "ID"
 msgid "World"
 msgstr "Lume"
+
+
+msgctxt "ID"
+msgid "Unspecified"
+msgstr "Nespecificat"
+
+
+msgid "Keyframe"
+msgstr "Cadru-cheie"
 
 
 msgid "Add-on"
@@ -2176,10 +2215,6 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Light"
 msgstr "Lumină"
 
@@ -2194,6 +2229,10 @@ msgstr "Aplicare"
 
 msgid "Convert"
 msgstr "Convertire"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Layout"
@@ -3824,4 +3863,28 @@ msgstr "Comutați Consola de sistem"
 msgctxt "Operator"
 msgid "Toggle System Console"
 msgstr "Comutați Consola de sistem"
+
+
+msgid "Trims or scales hair curves to a certain length"
+msgstr "Tunde sau uniformizează lungimea părului până la o anumită lungime"
+
+
+msgid "Target length for the operation"
+msgstr "Lungimea țintă pentru operație"
+
+
+msgid "Multiply the original length by a factor"
+msgstr "Înmulțiți lungimea inițială cu un factor"
+
+
+msgid "Mask to blend overall effect"
+msgstr "Mască pentru umestecarea efectului general"
+
+
+msgid "Trim hair curves randomly up to a certain amount"
+msgstr "Tunde curbele de păr în mod aleatoriu până la o anumită lungime"
+
+
+msgid "Replace Length"
+msgstr "Înlocuiește lungimea"
 

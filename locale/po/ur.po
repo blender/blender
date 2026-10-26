@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:12+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Urdu <https://translate.blender.org/projects/blender-ui/ui/ur/>\n"
@@ -32267,34 +32267,6 @@ msgid "Editor menu containing buttons"
 msgstr "ﻮﻨﯿﻣ ﺮﭩﯾﮉﯾﺍ ﻞﻤﺘﺸﻣ ﺮﭘ ﮞﻮﻨﭩﺑ"
 
 
-msgid "Show/Hide"
-msgstr "ﮟﯿﺋﺎﭙﮭﭼ/ﮟﯿﺋﺎﮭﮐﺩ"
-
-
-msgid "Clean Up"
-msgstr "ﯽﺋﺎﻔﺻ"
-
-
-msgid "Special Characters"
-msgstr "ﺭﺍﺩﺮﮐ ﯽﺻﻮﺼﺧ"
-
-
-msgid "Kerning"
-msgstr "ﮓﻨﻧﺮﮐ"
-
-
-msgid "Metaball"
-msgstr "ﻝﺎﺑ ﺎﭩﯿﻣ"
-
-
-msgid "Names"
-msgstr "ﻡﺎﻧ"
-
-
-msgid "Bone Roll"
-msgstr "ﻝﻭﺭ ﻥﻮﺑ"
-
-
 msgid "Pivot Point"
 msgstr "ﭧﻨﺋﺍﻮﭘ ﭦﻮﯿﭘ"
 
@@ -32323,36 +32295,12 @@ msgid "Vertex Group Locks"
 msgstr "ﮎﻻ﻿ ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
 
 
-msgid "Math"
-msgstr "ﯽﺿﺎﯾﺭ"
-
-
-msgid "Utilities"
-msgstr "ﺖﯾﺩﺎﻓﺍ"
-
-
-msgid "Read"
-msgstr "ﮟﯿﮬﮍﭘ"
-
-
-msgid "Sample"
-msgstr "ﮧﻧﻮﻤﻧ"
-
-
 msgid "Mirror"
 msgstr "ﮧﻨﯿﺋﺁ"
 
 
-msgid "Write"
-msgstr "ﮟﯿﮭﮑﻟ"
-
-
 msgid "UV Mapping"
 msgstr "ﮓﻨﭙﯿﻣ ﯼﻭﻮﯾ"
-
-
-msgid "Primitives"
-msgstr "ﻢﯾﺪﻗ"
 
 
 msgid "Local View"
@@ -32379,8 +32327,16 @@ msgid "View Regions"
 msgstr "ﮟﯿﮭﮑﯾﺩ ﻮﮐ ﮞﻮﻗﻼ﻿ﻋ"
 
 
+msgid "Math"
+msgstr "ﯽﺿﺎﯾﺭ"
+
+
 msgid "Select More/Less"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻢﮐ/ﮦﺩﺎﯾﺯ"
+
+
+msgid "Utilities"
+msgstr "ﺖﯾﺩﺎﻓﺍ"
 
 
 msgid "Select Similar"
@@ -32391,14 +32347,6 @@ msgid "Select All by Trait"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﯽﮭﺒﺳ ﮯﺳ ﻅﺎﺤﻟ ﮯﮐ ﺖﯿﺻﻮﺼﺧ"
 
 
-msgid "Gizmo"
-msgstr "ﻮﻣﺰﯿﮔ"
-
-
-msgid "Instances"
-msgstr "ﮟﯿﻟﺎﺜﻣ"
-
-
 msgid "Select Linked"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﮉﮑﻨﻟ"
 
@@ -32407,20 +32355,28 @@ msgid "Select Loops"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﺲﭘﻮﻟ"
 
 
-msgid "Import"
-msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
+msgid "Read"
+msgstr "ﮟﯿﮬﮍﭘ"
+
+
+msgid "Sample"
+msgstr "ﮧﻧﻮﻤﻧ"
 
 
 msgid "Assign Material"
 msgstr "ﮟﯾﺮﮐ ﺾﯾﻮﻔﺗ ﺩﺍﻮﻣ"
 
 
-msgid "Deprecated"
-msgstr "ﮦﺩﻮﺳﺮﻓ"
+msgid "Write"
+msgstr "ﮟﯿﮭﮑﻟ"
 
 
-msgid "UV"
-msgstr "ﯼﻭﻮﯾ"
+msgid "Primitives"
+msgstr "ﻢﯾﺪﻗ"
+
+
+msgid "Metaball"
+msgstr "ﻝﺎﺑ ﺎﭩﯿﻣ"
 
 
 msgid "Light"
@@ -32431,12 +32387,24 @@ msgid "Light Probe"
 msgstr "ﺏﻭﺮﭘ ﭧﺋﻻ﻿"
 
 
+msgid "Gizmo"
+msgstr "ﻮﻣﺰﯿﮔ"
+
+
+msgid "Instances"
+msgstr "ﮟﯿﻟﺎﺜﻣ"
+
+
 msgid "Add Image"
 msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﺮﯾﻮﺼﺗ"
 
 
 msgid "Relations"
 msgstr "ﮯﺘﺷﺭ"
+
+
+msgid "Import"
+msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
 
 
 msgid "Rigid Body"
@@ -32451,8 +32419,20 @@ msgid "Track"
 msgstr "ﮏﯾﺮﭨ"
 
 
+msgid "Deprecated"
+msgstr "ﮦﺩﻮﺳﺮﻓ"
+
+
 msgid "Quick Effects"
 msgstr "ﺕﺍﺮﺛﺍ ﯼﺭﻮﻓ"
+
+
+msgid "Show/Hide"
+msgstr "ﮟﯿﺋﺎﭙﮭﭼ/ﮟﯿﺋﺎﮭﮐﺩ"
+
+
+msgid "Clean Up"
+msgstr "ﯽﺋﺎﻔﺻ"
 
 
 msgid "Asset"
@@ -32465,6 +32445,10 @@ msgstr "ﮟﯿﺋﺎﻨﺑ ﻑﺭﺎﺻ ﻞﮕﻨﺳ"
 
 msgid "Convert"
 msgstr "ﮟﯾﺮﮐ ﻞﯾﺪﺒﺗ"
+
+
+msgid "UV"
+msgstr "ﯼﻭﻮﯾ"
 
 
 msgid "Link/Transfer Data"
@@ -32495,16 +32479,8 @@ msgid "Clear Transform"
 msgstr "ﻡﺭﺎﻔﺴﻧﺍﺮﭨ  ﺕﺮﭘ ﮎ"
 
 
-msgid "Linked"
-msgstr "ﮏﻠﺴﻨﻣ"
-
-
 msgid "In-Betweens"
 msgstr "ﮟﯿﻣ ﻥﺎﯿﻣﺭﺩ"
-
-
-msgid "Layout"
-msgstr "ﭦﺅﺁ ﮯﻟ"
 
 
 msgid "Propagate"
@@ -32513,6 +32489,10 @@ msgstr "ﺎﻧﺮﮐ ﻎﯿﻠﺒﺗ"
 
 msgid "Bone Collections"
 msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﮞﻮﯾﮉﮨ"
+
+
+msgid "Names"
+msgstr "ﻡﺎﻧ"
 
 
 msgid "Toggle Bone Options"
@@ -32531,16 +32511,8 @@ msgid "Mesh Select Mode"
 msgstr "ﮈﻮﻣ ﭧﮑﯿﻠﺳ ﺶﯿﻣ"
 
 
-msgid "Adjust"
-msgstr "ﮟﯾﺮﮐ ﭧﺴﺟﮉﯾﺍ"
-
-
 msgid "Face Data"
 msgstr "ﺎﭩﯾﮈ ﺎﮐ ﮮﺮﮩﭼ"
-
-
-msgid "Keying"
-msgstr "ﮓﻨﯿﻠﮐ"
 
 
 msgid "Select by Face Strength"
@@ -32551,12 +32523,40 @@ msgid "Set Face Strength"
 msgstr "ﮟﯾﺮﮐ ﻦﯿﻌﺗ ﺎﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
 
 
-msgid "Tracking"
-msgstr "ﮓﻨﮑﯾﺮﭨ"
-
-
 msgid "Merge"
 msgstr "ﺎﻧﺮﮐ ﻢﺿ"
+
+
+msgid "Linked"
+msgstr "ﮏﻠﺴﻨﻣ"
+
+
+msgid "Layout"
+msgstr "ﭦﺅﺁ ﮯﻟ"
+
+
+msgid "Special Characters"
+msgstr "ﺭﺍﺩﺮﮐ ﯽﺻﻮﺼﺧ"
+
+
+msgid "Kerning"
+msgstr "ﮓﻨﻧﺮﮐ"
+
+
+msgid "Adjust"
+msgstr "ﮟﯾﺮﮐ ﭧﺴﺟﮉﯾﺍ"
+
+
+msgid "Bone Roll"
+msgstr "ﻝﻭﺭ ﻥﻮﺑ"
+
+
+msgid "Keying"
+msgstr "ﮓﻨﯿﻠﮐ"
+
+
+msgid "Tracking"
+msgstr "ﮓﻨﮑﯾﺮﭨ"
 
 
 msgid "Keyframe Insert Pie"
@@ -48518,15 +48518,6 @@ msgid "Unassign Slot"
 msgstr "ﮟﯾﺮﮐ ﺾﯾﻮﻔﺗ ﺮﯿﻏ ﻮﮐ ﭦﻼ﻿ﺳ"
 
 
-msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-msgstr "(ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮫﺗﺎﺳ ﮯﮐ ﮞﻮﻠﺋﺎﻓ ﯽﮐ ﮯﻠﮩﭘ ﮯﺳ ﺱﺍ ﺭﻭﺍ 2.70 ﮯﺳﺍ) ﮟﯾﺮﮐ ﭧﯾﮈ ﭖﺍ ﻮﮐ ﺯﺭﻮﯿﺋﺍﺭﮈ/ﮟﯿﻤﺧ-ﻑ ﮯﻟﺍﻭ ﮯﻧﺮﮐ ﺮﺛﺎﺘﻣ ﻮﮐ ﮞﻮﭨﻭﺎﮐﺭ ﯽﮐ ﻡﺭﺎﻔﺴﻧﺍﺮﭨ"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "ﮟﯾﺮﮐ ﭧﯾﮈ ﭖﺍ ﻮﮐ ﮞﻮﭨﻭﺎﮐﺭ ﯽﮐ ﯽﻠﯾﺪﺒﺗ ﮎﺮﺤﺘﻣ"
-
-
 msgid "Remove all bone collections that have neither bones nor children. This is done recursively, so bone collections that only have unused children are also removed"
 msgstr "ﮯﮨ ﺎﺗﺎﺟ ﺎﯾﺩ ﺎﭩﮨ ﯽﮭﺑ ﻮﮐ ﮞﻮﭽﺑ ﮦﺪﺷ ﻝﺎﻤﻌﺘﺳﺍ ﺮﯿﻐںﯿﮨ ﮯﺗﻮﮨ ﻑﺮﺻ ﻮﺟ ﮯﻋﻮﻤﺠﻣ ﮯﮐ ﮞﻮﯾﮉﮨ ﺍﺬﮩﻟ ،ﮯﮨ ﺎﺗﺎﺟ ﺎﯿﮐ ﺭﺎﺑ ﺭﺎﺑ ﮧﯾﮯﭽﺑ ﯽﮨ ﮧﻧ ﺭﻭﺍ ﮟﯿﮨ ﮞﺎﯾﮉﮨ ﻮﺗ ﮧﻧ ﮟﯿﻣ ﻦﺟ ﮟﯾﺩ ﺎﭩﮨ ﻮﮐ ﮯﻋﻮﻤﺠﻣ ﮯﮐ ﮞﻮﯾﮉﮨ ﻡﺎﻤﺗ"
 
@@ -52385,16 +52376,6 @@ msgstr "ﮟﯾﺮﮐ ﭧﯿﺳ ﻢﯾﺮﻓ ﭦﺭﺎﭩﺳﺍ"
 
 msgid "Set the current frame as the preview or scene start frame"
 msgstr "ﮟﯾﺮﮐ ﭧﯿﺳ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﻢﯾﺮﻓ ﮯﮐ ﺯﺎﻏﺁ ﮯﮐﻮﯾﻭ ﺎﯾﻮﯾﻭ ﺶﯿﭘ ﻮﮐ ﻢﯾﺮﻓ ﮦﺩﻮﺟﻮﻣ"
-
-
-msgid "Convert to Radians"
-msgstr "ﮟﯾﺮﮐ ﻞﯾﺪﺒﺗ ﮟﯿﻣ ﺰﻨﯾﮉﯾﺭ"
-
-
-msgid ""
-"Convert f-curves/drivers affecting rotations to radians.\n"
-"Warning: Use this only once"
-msgstr "۔ﮟﯾﺮﮐ ﻞﯾﺪﺒﺗ ﮟﯿﻣ ﻦﯾﮉﯾﺭ ﻮﮐ ﺯﺭﻮﯿﺋﺍﺭﮈ/ﮟﯿﻤﺧ-ﻑ ﮯﻟﺍﻭ ﮯﻧﺮﮐ ﺮﺛﺎﺘﻣ ﻮﮐ ﺵﺩﺮﮔ"
 
 
 msgctxt "Operator"
@@ -83078,10 +83059,6 @@ msgid "Curve Edit Mode"
 msgstr "ﮈﻮﻣ ﺎﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﻢﺧ"
 
 
-msgid "glTF Material Variants"
-msgstr "glTF ﮟﯿﺘﻟﺎﺣ ﻒﻠﺘﺨﻣ ﯽﮐ ﺩﺍﻮﻣ"
-
-
 msgid "Transform Orientations"
 msgstr "ﮟﯾﺮﮐ ﻞﯾﺪﺒﺗ ﻮﮐ ﺖﯿﻔﻗﺍﻭ"
 
@@ -83110,10 +83087,6 @@ msgid "Multi Frame"
 msgstr "ﻢﯾﺮﻓ ﯽﭩﻠﻣ"
 
 
-msgid "glTF Animations"
-msgstr "glTF ﺮﯾﻭﺎﺼﺗ ﮎﺮﺤﺘﻣ"
-
-
 msgid "Auto-Masking"
 msgstr "ﮓﻨﮑﺳﺎﻣ ﻮﭨﺁ"
 
@@ -83134,12 +83107,20 @@ msgid "Viewport Debug"
 msgstr "ﮓﺒﯾﮈ ﭦﺭﻮﭘ ﻮﯾﻭ"
 
 
+msgid "glTF Material Variants"
+msgstr "glTF ﮟﯿﺘﻟﺎﺣ ﻒﻠﺘﺨﻣ ﯽﮐ ﺩﺍﻮﻣ"
+
+
 msgid "VR"
 msgstr "ﺭﺁ ﯼﻭ"
 
 
 msgid "VR Info"
 msgstr "VR ﺕﺎﻣﻮﻠﻌﻣ"
+
+
+msgid "glTF Animations"
+msgstr "glTF ﺮﯾﻭﺎﺼﺗ ﮎﺮﺤﺘﻣ"
 
 
 msgid "Chain Scaling"

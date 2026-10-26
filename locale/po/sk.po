@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
-"PO-Revision-Date: 2026-10-15 06:51+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"PO-Revision-Date: 2026-10-23 06:12+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -4396,6 +4396,14 @@ msgstr "Koreňový priečinok"
 
 msgid "The path to the root folder of the project"
 msgstr "Cesta ku koreňovému priečinku projektu"
+
+
+msgid "Splash Artwork"
+msgstr "Škvrnová grafika"
+
+
+msgid "Image to show in the splash screen for this project. Expected size is 1000x500 pixels"
+msgstr "Obrázok, ktorý sa má zobraziť na úvodnej obrazovke tohto projektu. Predpokladaná veľkosť je 1000×500 pixelov"
 
 
 msgid "Project Variables"
@@ -36637,36 +36645,8 @@ msgid "Editor menu containing buttons"
 msgstr "Ponuka editora obsahujúca tlačidlá"
 
 
-msgid "Show/Hide"
-msgstr "Ukázať/skryť"
-
-
 msgid "Creative"
 msgstr "Kreatívne"
-
-
-msgid "Clean Up"
-msgstr "Prečistiť"
-
-
-msgid "Special Characters"
-msgstr "Špeciálne znaky"
-
-
-msgid "Kerning"
-msgstr "Zhustenie znakov"
-
-
-msgid "Metaball"
-msgstr "Meta guľa"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Bone Roll"
-msgstr "Kývanie kosti"
 
 
 msgid "Pivot Point"
@@ -36697,36 +36677,12 @@ msgid "Vertex Group Locks"
 msgstr "Zámky skupiny vrcholov"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Utilities"
-msgstr "Obslužné programy"
-
-
-msgid "Read"
-msgstr "Čítanie"
-
-
-msgid "Sample"
-msgstr "Snímka"
-
-
 msgid "Mirror"
 msgstr "Zrkadlo"
 
 
-msgid "Write"
-msgstr "Zápis"
-
-
 msgid "UV Mapping"
 msgstr "UV mapovanie"
-
-
-msgid "Primitives"
-msgstr "Prvotné tvary"
 
 
 msgid "Local View"
@@ -36753,8 +36709,16 @@ msgid "View Regions"
 msgstr "Oblasti pohľadu"
 
 
+msgid "Math"
+msgstr "Matematika"
+
+
 msgid "Select More/Less"
 msgstr "Vybrať viac/menej"
+
+
+msgid "Utilities"
+msgstr "Obslužné programy"
 
 
 msgid "Select Similar"
@@ -36765,14 +36729,6 @@ msgid "Select All by Trait"
 msgstr "Vybrať všetko podľa črty"
 
 
-msgid "Gizmo"
-msgstr "Manipulačný prvok"
-
-
-msgid "Instances"
-msgstr "Inštancie"
-
-
 msgid "Select Linked"
 msgstr "Vybrať prepojené"
 
@@ -36781,24 +36737,28 @@ msgid "Select Loops"
 msgstr "Vybrať slučky"
 
 
-msgid "Import"
-msgstr "Import"
+msgid "Read"
+msgstr "Čítanie"
+
+
+msgid "Sample"
+msgstr "Snímka"
 
 
 msgid "Assign Material"
 msgstr "Priradiť materiál"
 
 
-msgid "Deprecated"
-msgstr "Zastarané"
+msgid "Write"
+msgstr "Zápis"
 
 
-msgid "Render Preview"
-msgstr "Náhľad prekreslenia"
+msgid "Primitives"
+msgstr "Prvotné tvary"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "Meta guľa"
 
 
 msgid "Light"
@@ -36809,12 +36769,24 @@ msgid "Light Probe"
 msgstr "Snímač svetla"
 
 
+msgid "Gizmo"
+msgstr "Manipulačný prvok"
+
+
+msgid "Instances"
+msgstr "Inštancie"
+
+
 msgid "Add Image"
 msgstr "Pridať obrázok"
 
 
 msgid "Relations"
 msgstr "Vzťahy"
+
+
+msgid "Import"
+msgstr "Import"
 
 
 msgid "Rigid Body"
@@ -36829,8 +36801,20 @@ msgid "Track"
 msgstr "Stopa"
 
 
+msgid "Deprecated"
+msgstr "Zastarané"
+
+
 msgid "Quick Effects"
 msgstr "Rýchle efekty"
+
+
+msgid "Show/Hide"
+msgstr "Ukázať/skryť"
+
+
+msgid "Clean Up"
+msgstr "Prečistiť"
 
 
 msgid "Asset"
@@ -36841,8 +36825,16 @@ msgid "Make Single User"
 msgstr "Vytvoriť jedného užívateľa"
 
 
+msgid "Render Preview"
+msgstr "Náhľad prekreslenia"
+
+
 msgid "Convert"
 msgstr "Konvertovať"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -36873,16 +36865,8 @@ msgid "Clear Transform"
 msgstr "Zmazať transformáciu"
 
 
-msgid "Linked"
-msgstr "Prepojené"
-
-
 msgid "In-Betweens"
 msgstr "Sprostredkovatelia"
-
-
-msgid "Layout"
-msgstr "Rozloženie"
 
 
 msgid "Propagate"
@@ -36891,6 +36875,10 @@ msgstr "Propagovať"
 
 msgid "Bone Collections"
 msgstr "Kolekcie kostí"
+
+
+msgid "Names"
+msgstr "Názvy"
 
 
 msgid "Toggle Bone Options"
@@ -36909,16 +36897,8 @@ msgid "Mesh Select Mode"
 msgstr "Režim výberu povrchovej siete"
 
 
-msgid "Adjust"
-msgstr "Prispôsobenie"
-
-
 msgid "Face Data"
 msgstr "Údaje plôšky"
-
-
-msgid "Keying"
-msgstr "Kľúčovanie"
 
 
 msgid "Select by Face Strength"
@@ -36929,12 +36909,40 @@ msgid "Set Face Strength"
 msgstr "Nastaviť vplyv plôšky"
 
 
-msgid "Tracking"
-msgstr "Snímanie"
-
-
 msgid "Merge"
 msgstr "Zlúčiť"
+
+
+msgid "Linked"
+msgstr "Prepojené"
+
+
+msgid "Layout"
+msgstr "Rozloženie"
+
+
+msgid "Special Characters"
+msgstr "Špeciálne znaky"
+
+
+msgid "Kerning"
+msgstr "Zhustenie znakov"
+
+
+msgid "Adjust"
+msgstr "Prispôsobenie"
+
+
+msgid "Bone Roll"
+msgstr "Kývanie kosti"
+
+
+msgid "Keying"
+msgstr "Kľúčovanie"
+
+
+msgid "Tracking"
+msgstr "Snímanie"
 
 
 msgid "Keyframe Insert Pie"
@@ -55749,15 +55757,6 @@ msgstr ""
 ">>> layout.context_pointer_set(„nla_strip“, nla_strip)"
 
 
-msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-msgstr "Aktualizuje F-krivky/ovládače ovplyvňujúce transformáciu vynútenia (používa ho so súbormi od 2.70 a staršími)"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "Obnoviť vynútenia animovanej transformácie"
-
-
 msgctxt "Operator"
 msgid "Version Bone Hide Property"
 msgstr "Verzia vlastnosti Skryť kosť"
@@ -60218,18 +60217,6 @@ msgid "Set the current frame as the preview or scene start frame"
 msgstr "Nastaví aktuálnu snímku ako ukážku alebo úvodnú snímku scény"
 
 
-msgid "Convert to Radians"
-msgstr "Konvertovať na radiány"
-
-
-msgid ""
-"Convert f-curves/drivers affecting rotations to radians.\n"
-"Warning: Use this only once"
-msgstr ""
-"Konvertuje F-krivky/ovládače ovplyvňujúce rotáciu na radiány.\n"
-"Varovanie: Použite to len raz"
-
-
 msgid "Moves any F-Curves for the `hide` property of selected armatures into the action of the object. This will only operate on the first layer and strip of the action"
 msgstr "Presunie všetky F-krivky pre `skrytie` vlastnosti vybraných armatúr do akcie objektu. Toto bude fungovať iba na prvej vrstve a páse akcie"
 
@@ -62914,6 +62901,10 @@ msgid "Remove Importer"
 msgstr "Odstrániť importér"
 
 
+msgid "Remove Collection Importer and delete its imported data"
+msgstr "Odstráni importéra kolekcií a vymaže jeho importované údaje"
+
+
 msgctxt "Operator"
 msgid "Add Selected to Active Object's Collection"
 msgstr "Pridá vybrané do kolekcie aktívneho objektu"
@@ -65267,6 +65258,34 @@ msgid "Export cameras"
 msgstr "Export kamier"
 
 
+msgid "Compressed Images Fallback"
+msgstr "Spätná väzba pre komprimované obrázky"
+
+
+msgid "For all compressed textures (WebP or KTX2), create a PNG fallback texture"
+msgstr "Pre všetky komprimované textúry (WebP alebo KTX2) vytvorí náhradnú textúru vo formáte PNG"
+
+
+msgid "Compressed Images Type"
+msgstr "Typ komprimovaných obrázkov"
+
+
+msgid "Choose the format for compressed textures fallback (WebP or KTX2 with BasisU supercompression)"
+msgstr "Vyberie formát pre náhradné riešenie v prípade komprimovaných textúr (WebP alebo KTX2 s superkompresiou BasisU)"
+
+
+msgid "WebP"
+msgstr "WebP"
+
+
+msgid "Use WebP format for compressed textures"
+msgstr "Na komprimované textúry použije formát WebP"
+
+
+msgid "Use KTX2 format with BasisU supercompression for compressed textures"
+msgstr "Na komprimované textúry použije formát KTX2 so superkompresiou BasisU"
+
+
 msgid "Convert TRS/Weights to Animation Pointer"
 msgstr "Konvertuje TRS/váhy na Ukazovateľ animácie"
 
@@ -65535,6 +65554,14 @@ msgid "Export full hierarchy, including intermediate collections"
 msgstr "Exportovať celú hierarchiu vrátane medziľahlých kolekcií"
 
 
+msgid "Create Compressed Images"
+msgstr "Vytvoriť komprimované obrázky"
+
+
+msgid "Creates compressed textures (WebP or KTX2)for every texture. For already compressed textures, nothing happens"
+msgstr "Vytvorí komprimované textúry (WebP alebo KTX2) pre každú textúru. V prípade už komprimovaných textúr sa nič nedeje"
+
+
 msgid "Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web applications due to the smaller file size. Alternatively they can be omitted if they are not needed"
 msgstr "Výstupný formát pre obrázky. PNG je bezstratový a všeobecne sa uprednostňuje, ale JPEG môže byť vhodnejší pre webové aplikácie kvôli menšej veľkosti súboru. Prípadne sa môžu vynechať, ak nie sú potrebné"
 
@@ -65621,6 +65648,14 @@ msgstr "Zachovať pôvodné"
 
 msgid "Keep original textures files if possible. WARNING: if you use more than one texture, where pbr standard requires only one, only one texture will be used. This can lead to unexpected results"
 msgstr "Ak je to možné, zachová pôvodné súbory textúr. VAROVANIE: ak použijete viac ako jednu textúru, pričom štandard pbr vyžaduje iba jednu, použije sa iba jedna textúra. To môže viesť k neočakávaným výsledkom"
+
+
+msgid "Zstandard Compression Level"
+msgstr "Úroveň kompresie Zstandard"
+
+
+msgid "Set the Zstandard compression level for (UASTC) non-color KTX2 textures (1 is fastest/lowest ratio, 22 is slowest/highest ratio)"
+msgstr "Nastaví úroveň kompresie Zstandard pre (UASTC) nefarebné textúry KTX2 (1 je najrýchlejšia/najnižšia miera kompresie, 22 je najpomalšia/najvyššia miera kompresie)"
 
 
 msgid "Punctual Lights"
@@ -65941,6 +65976,14 @@ msgstr "Použiť Gltfpack"
 
 msgid "Use gltfpack to simplify the mesh and/or compress its textures"
 msgstr "Použije gltfpack na zjednodušenie povrchovej siete a/alebo komprimovanie jej textúr"
+
+
+msgid "Zstandard Compression"
+msgstr "Kompresia Zstandard"
+
+
+msgid "Enable Zstandard compression for (UASTC) non-color KTX2 textures"
+msgstr "Povolí kompresiu Zstandard pre (UASTC) nefarebné textúry KTX2"
 
 
 msgid "Use Vertex Color"
@@ -71202,6 +71245,14 @@ msgid "Try to guess the original bind pose for skinned meshes from the inverse b
 msgstr "Pokúsi sa odhadnúť pôvodnú u pózy pre vytvorenie pokožky povrchovej siete z inverzných matríc y. Ak je vypnutá, použije ako u pózy predvolenú/pokojovú pózu"
 
 
+msgid "Import KTX Textures"
+msgstr "Import KTX textúr"
+
+
+msgid "If a texture exists in KTX format, loads the KTX texture instead of the fallback PNG/JPEG one"
+msgstr "Ak textúra existuje vo formáte KTX, načíta sa textúra KTX namiesto náhradnej textúry vo formáte PNG/JPEG"
+
+
 msgid "Merge Material Slot when possible"
 msgstr "Zlúči zásuvky materiálu, ak je to možné"
 
@@ -76091,6 +76142,10 @@ msgstr "Vytvára kópie aktuálne priradenej skupiny uzlov kompozície."
 
 msgid "Duplicate Scene Effect Node Group"
 msgstr "Vytvorí kópiu skupiny uzlov efektov scény"
+
+
+msgid "Duplicate the scene effect node group and assign the new node group to the effect"
+msgstr "Vytvorí kópiu skupiny uzlov efektu scény a priradí novú skupinu uzlov k efektu"
 
 
 msgid "Duplicate selected nodes and move them"
@@ -83875,6 +83930,19 @@ msgid "Asset Library Directory"
 msgstr "Priečinok knižnice aktív"
 
 
+msgctxt "Operator"
+msgid "Close Project"
+msgstr "Zatvoriť projekt"
+
+
+msgid "Close the active project, starting a new file"
+msgstr "Zatvorí aktívny projekt a otvorí nový súbor"
+
+
+msgid "Skip check to prevent unsaved changes from being lost"
+msgstr "Preskočí kontrolu, aby sa zabránilo strate neuložených zmien"
+
+
 msgid "Move Up"
 msgstr "Presunúť hore"
 
@@ -83890,6 +83958,43 @@ msgstr "Nový projekt"
 
 msgid "Create a new project"
 msgstr "Vytvorí nový projekt"
+
+
+msgctxt "Operator"
+msgid "Open Project..."
+msgstr "Otvoriť projekt..."
+
+
+msgid "Open a project, starting a new file in it"
+msgstr "Otvorí projekt a vytvorí v ňom nový súbor"
+
+
+msgctxt "Operator"
+msgid "Clear Splash Artwork"
+msgstr "Zmazať Škvrnovú grafiku"
+
+
+msgid ""
+"Clear the project custom splash artwork.\n"
+"The image file is not deleted from disk"
+msgstr ""
+"Zmaže vlastný projekt škvrnovej grafiky.\n"
+"Obrázkový súbor sa z disku neodstráni"
+
+
+msgctxt "Operator"
+msgid "Create Splash Artwork"
+msgstr "Vytvoriť škvrnovú grafiku"
+
+
+msgid ""
+"Set the project splash artwork from an image file.\n"
+"The image will be cropped, scaled and saved as \".blender_project/splash.jpg\".\n"
+"For optimal results use a 2:1 aspect ratio"
+msgstr ""
+"Nastaví projektu škvrnovej grafiky zo súboru obrázka.\n"
+"Obrázok bude orezaný, zmenšený a uložený ako „.blender_project/splash.jpg“.\n"
+"Pre dosiahnutie optimálnych výsledkov použije pomer strán 2:1"
 
 
 msgctxt "Operator"
@@ -84683,6 +84788,10 @@ msgstr "Vytvorí úplnú kópiu aktuálnej scény"
 msgctxt "Operator"
 msgid "New Scene Effect Node Group"
 msgstr "Nový efekt scény skupiny uzlov"
+
+
+msgid "Create a new compositor node group and assign it to the scene effect"
+msgstr "Vytvorí novú skupinu uzlov kompozítora a priradí ju k efektu scény"
 
 
 msgid "Add new scene by type in the sequence editor and assign to active strip"
@@ -93014,6 +93123,15 @@ msgstr "Položky nenájdené"
 
 
 msgctxt "Operator"
+msgid "Clear Recent Projects List"
+msgstr "Zmazať zoznam nedávnych projektov"
+
+
+msgid "Clear the recent projects list"
+msgstr "Zmaže zoznam nedávnych projektov"
+
+
+msgctxt "Operator"
 msgid "Export All Collections"
 msgstr "Exportovať všetky kolekcie"
 
@@ -96341,14 +96459,6 @@ msgid "Curves Edit Mode"
 msgstr "Režim editácie krivky"
 
 
-msgid "glTF Variants"
-msgstr "glTF varianty"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF varianty materiálu"
-
-
 msgid "Transform Orientations"
 msgstr "Orientácia transformácie"
 
@@ -96381,14 +96491,6 @@ msgid "Multi Frame"
 msgstr "Viacsnímkové"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF animácie"
-
-
 msgid "Auto-Masking"
 msgstr "Auto maskovanie"
 
@@ -96409,12 +96511,28 @@ msgid "Viewport Debug"
 msgstr "Ladenie záberu"
 
 
+msgid "glTF Variants"
+msgstr "glTF varianty"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF varianty materiálu"
+
+
 msgid "VR"
 msgstr "Virtuálna realita VR"
 
 
 msgid "VR Info"
 msgstr "VR Info"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF animácie"
 
 
 msgid "Import Settings"
@@ -99488,6 +99606,14 @@ msgid "Save projects automatically on exit and when saving or switching blend fi
 msgstr "Automaticky ukladá projekty pri ukončení programu a pri ukladaní alebo prepínaní blend-súborov"
 
 
+msgid "Remember Last Project"
+msgstr "Zapamätať si posledný projekt"
+
+
+msgid "On startup, automatically re-open the project that was last open when Blender was closed"
+msgstr "Pri spustení automaticky opäť otvorí projekt, ktorý bol naposledy otvorený v čase ukončenia Blenderu"
+
+
 msgid "Recent Searches"
 msgstr "Nedávne vyhľadávanie"
 
@@ -101851,16 +101977,20 @@ msgid "Catalan - Català"
 msgstr "Katalánsky - Català"
 
 
+msgid "Locale code: ca_AD. Translation progress: 100%"
+msgstr "Kód lokalizácie: ca_AD. Pokrok prekladu: 100%"
+
+
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Čínsky (zjednodušená) - 简体中文"
 
 
-msgid "Locale code: zh_HANS. Translation progress: 99%"
-msgstr "Kód lokalizácie: zh_HANS. Pokrok prekladu: 99%"
-
-
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Čínsky (tradičná) - 繁體中文"
+
+
+msgid "Locale code: zh_HANT. Translation progress: 58%"
+msgstr "Kód lokalizácie: zh_HANT. Pokrok prekladu: 58%"
 
 
 msgid "Croatian - Hrvatski"
@@ -101939,10 +102069,6 @@ msgid "Georgian - ქართული"
 msgstr "Gruzínsky - ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 98%"
-msgstr "Kód lokalizácie: ka. Pokrok prekladu: 99%"
-
-
 msgid "German - Deutsch"
 msgstr "Nemecky - Deutsch"
 
@@ -101985,10 +102111,6 @@ msgstr "Kód lokalizácie: hu_HU. Pokrok prekladu: 10 %"
 
 msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonézsky - Bahasa indonesia"
-
-
-msgid "Locale code: id_ID. Translation progress: 20%"
-msgstr "Kód lokalizácie: id_ID. Pokrok prekladu: 20%"
 
 
 msgid "Italian - Italiano"
@@ -102059,6 +102181,10 @@ msgid "Polish - Polski"
 msgstr "Poľsky - Polski"
 
 
+msgid "Locale code: pl_PL. Translation progress: 100%"
+msgstr "Kód lokalizácie: pl_PL. Pokrok prekladu: 100%"
+
+
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugalsky (Brazília) - Português brasileiro"
 
@@ -102069,10 +102195,6 @@ msgstr "Kód lokalizácie: pt_BR. Pokrok prekladu: 40%"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugalsky (Portugal) - Português europeu"
-
-
-msgid "Locale code: pt_PT. Translation progress: 81%"
-msgstr "Kód lokalizácie: pt_PT. Pokrok prekladu: 81%"
 
 
 msgid "Romanian - Român"
@@ -102111,6 +102233,10 @@ msgid "Slovak - Slovenčina"
 msgstr "Slovensky - slovenčina"
 
 
+msgid "Locale code: sk_SK. Translation progress: 100%"
+msgstr "Kód lokalizácie: sk_SK. Pokrok prekladu: 100%"
+
+
 msgid "Slovenian - Slovenščina"
 msgstr "Slovinsky - Slovenščina"
 
@@ -102123,24 +102249,24 @@ msgid "Spanish - Español"
 msgstr "Španielsky - Español"
 
 
+msgid "Locale code: es. Translation progress: 100%"
+msgstr "Kód lokalizácie: es. Pokrok prekladu: 100%"
+
+
 msgid "Swahili - Kiswahili"
 msgstr "Swahilsky - Kiswahili"
+
+
+msgid "Locale code: sw. Translation progress: 67%"
+msgstr "Kód lokalizácie: sw. Pokrok prekladu: 67%"
 
 
 msgid "Swedish - Svenska"
 msgstr "Švédsky - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 99%"
-msgstr "Kód lokalizácie: sv_SE. Pokrok prekladu: 99%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamilsky - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 93%"
-msgstr "Kód lokalizácie: ta. Pokrok prekladu: 93%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -103792,6 +103918,14 @@ msgstr "Odstráni šum prechodu váhy činiteľa odrazu drsnosti"
 
 msgid "Use roughness-based weighting of the albedo for the denoising feature passes"
 msgstr "Pri spracovaní odstránenie šumu prechodov použije váženie činiteľa odrazu na základe drsnosti"
+
+
+msgid "Store Denoising Motion Passes"
+msgstr "Uložiť prechody odstránenia šumu pohybu"
+
+
+msgid "Store the denoising motion passes, for temporal denoisers"
+msgstr "Uloží prechody odstraňovania šumu pre časové odstraňovače šumu"
 
 
 msgid "Store Denoising Passes"
@@ -126254,11 +126388,6 @@ msgstr "Nemožno analyzovať XML, %s:%s pre súbor %r"
 
 
 msgctxt "Operator"
-msgid "IO_FH_fbx (Legacy)"
-msgstr "IO_FH_fbx (zastaralé)"
-
-
-msgctxt "Operator"
 msgid "IO_FH_fbx"
 msgstr "IO_FH_fbx"
 
@@ -128001,10 +128130,6 @@ msgid "Nothing to bake"
 msgstr "Nič na zapečenie"
 
 
-msgid "Complete report available on '{:s}' text data-block"
-msgstr "Kompletný prehľad je k dispozícii v textovom bloku údajov '{:s}'"
-
-
 msgid "No active bone to copy from"
 msgstr "Žiadna aktívna kosť na kopírovanie"
 
@@ -128846,6 +128971,10 @@ msgid "Close"
 msgstr "Zavrieť"
 
 
+msgid "Project Files"
+msgstr "Súbory projektu"
+
+
 msgctxt "Operator"
 msgid "More..."
 msgstr "Viac..."
@@ -129026,6 +129155,10 @@ msgstr "Kamera(y)"
 
 msgid "Speaker(s)"
 msgstr "Reproduktor(y)"
+
+
+msgid "Other Recent Files"
+msgstr "Ďalšie nedávne súbory"
 
 
 msgctxt "Operator"
@@ -132983,6 +133116,10 @@ msgid "Auto-Save Project"
 msgstr "Automaticky uložiť projekt"
 
 
+msgid "Artwork"
+msgstr "Grafika"
+
+
 msgctxt "Operator"
 msgid "String"
 msgstr "Reťazec"
@@ -133001,10 +133138,6 @@ msgstr "Celé číslo"
 msgctxt "Operator"
 msgid "Float"
 msgstr "Hodnota na pohyblivej desatinnej čiarke"
-
-
-msgid "Overridden by the  environment variable"
-msgstr "Prepísané prostredníctvom premennej prostredia"
 
 
 msgctxt "Operator"
@@ -133850,6 +133983,11 @@ msgstr "Automaticky uložené..."
 
 
 msgctxt "Operator"
+msgid "New..."
+msgstr "Nový..."
+
+
+msgctxt "Operator"
 msgid "Find Missing Files..."
 msgstr "Nájsť chýbajúce súbory..."
 
@@ -133973,43 +134111,12 @@ msgstr "Načítať továrenské nastavenie Blenderu"
 
 
 msgctxt "Operator"
-msgid "IO_FH_alembic"
-msgstr "IO_FH_alembic"
+msgid "Clear Recent Projects List..."
+msgstr "Maže sa zoznam nedávnych projektov..."
 
 
-msgctxt "Operator"
-msgid "IO_FH_usd"
-msgstr "IO_FH_usd"
-
-
-msgctxt "Operator"
-msgid "IO_FH_grease_pencil_svg"
-msgstr "IO_FH_grease_pencil_svg"
-
-
-msgctxt "Operator"
-msgid "IO_FH_obj"
-msgstr "IO_FH_obj"
-
-
-msgctxt "Operator"
-msgid "IO_FH_ply"
-msgstr "IO_FH_ply"
-
-
-msgctxt "Operator"
-msgid "IO_FH_spz"
-msgstr "IO_FH_spz"
-
-
-msgctxt "Operator"
-msgid "IO_FH_stl"
-msgstr "IO_FH_stl"
-
-
-msgctxt "Operator"
-msgid "OpenTimelineIO (.otio)"
-msgstr "OpenTimelineIO (.otio)"
+msgid "No Recent Projects"
+msgstr "Žiadne nedávne projekty"
 
 
 msgctxt "Operator"
@@ -134393,6 +134500,10 @@ msgstr "Časovač (minúty)"
 
 msgid "Default To"
 msgstr "Predvolené na"
+
+
+msgid "Startup"
+msgstr "Spustenie"
 
 
 msgid "Show Locations"
@@ -142567,6 +142678,14 @@ msgid "Operator cannot redo"
 msgstr "Operátor nemožno vrátiť späť"
 
 
+msgid "Create from Image..."
+msgstr "Vytváranie z obrázku..."
+
+
+msgid "Failed to load splash image"
+msgstr "Zlyhanie pri načítaní škvrnového obrázku"
+
+
 msgid "Size: {}"
 msgstr "Veľkosť: {}"
 
@@ -142581,6 +142700,14 @@ msgstr "Včera"
 
 msgid "Modified: {}"
 msgstr "Upravené: {}"
+
+
+msgid "Project Not Found"
+msgstr "Projekt nenájdený"
+
+
+msgid "Project is already open"
+msgstr "Projekt je už otvorený"
 
 
 msgid "Anim Player"
@@ -143855,12 +143982,28 @@ msgid "No file handlers available"
 msgstr "Nedostupná žiadna obsluha"
 
 
+msgid "Apply and Make Local"
+msgstr "Použiť a vytvoriť lokálne"
+
+
+msgid "Delete Collection Content"
+msgstr "Odstrániť obsah kolekcie"
+
+
+msgid "Remove Importer"
+msgstr "Odstrániť importér"
+
+
 msgid "Could not find an active collection"
 msgstr "Nepodarilo sa nájsť aktívnu kolekciu"
 
 
 msgid "Collection needs to be empty"
 msgstr "Kolekcia musí byť prázdna"
+
+
+msgid "Importer Control"
+msgstr "Ovládač importéra"
 
 
 msgid "Add Exporter"
@@ -149099,6 +149242,42 @@ msgid "Built-In"
 msgstr "Vstavané"
 
 
+msgid "Untitled Project"
+msgstr "Nepomenovaný projekt"
+
+
+msgid "Invalid project root folder"
+msgstr "Neplatný koreňový priečinok projektu"
+
+
+msgid "Folder already contains a project"
+msgstr "Priečinok už obsahuje projekt"
+
+
+msgid "Failed to create folder \"%s\""
+msgstr "Zlyhanie pri vytváraní priečinka „%s“"
+
+
+msgid "Failed to write project config in \"%s\""
+msgstr "Zlyhanie pri zápise konfigurácie projektu do súboru „%s“"
+
+
+msgid "Folder '%s' does not belong to a project"
+msgstr "Priečinok „%s“ nepatrí žiadnemu projektu"
+
+
+msgid "Failed to load project from path: %s"
+msgstr "Zlyhanie pri načítaní projektu z cesty: %s"
+
+
+msgid "Failed to load image \"%s\""
+msgstr "Zlyhanie pri načítaní obrázka \"%s\""
+
+
+msgid "Failed to write \"%s\""
+msgstr "Zlyhanie pri zápise \"%s\""
+
+
 msgid "Cannot reload with running modal operators"
 msgstr "Nemožno znova načítať použitím modálnych operátorov"
 
@@ -149609,6 +149788,10 @@ msgstr "Súbor '%s' nemožno otvoriť"
 
 msgid "See '%s' in the text editor"
 msgstr "Pozri '%s' v textovom editore"
+
+
+msgid "Project: {}"
+msgstr "Projekt: {}"
 
 
 msgid "Clear Recent Files List..."
@@ -150819,6 +151002,10 @@ msgstr "Odtrhnutie nie je kompatibilné s výberom lepkavých vrcholov"
 
 msgid "Rip is only compatible with sync-select with vertex/edge selection"
 msgstr "Odtrhnutie je kompatibilné iba so synchronizáciou výberu s výberom vrcholov/hrán"
+
+
+msgid "No UVs to rip"
+msgstr "Žiadne UV na odtrhnutie"
 
 
 msgid "Pinned vertices can be selected in Vertex Mode only"
@@ -152657,6 +152844,14 @@ msgstr "Zbaliť sa môžu iba prepojené ID"
 
 msgid "Failed to initialize project. Ensure that both the name and project_root parameters are non-empty."
 msgstr "Inicializácia projektu sa nepodarila. Uistite sa, že parametre „name“ aj „project_root“ nie sú prázdne."
+
+
+msgid "Failed to initialize project. Ensure that project_root path is correct."
+msgstr "Zlyhanie pri inicializácii projektu. Uistite sa, že cesta project_root je správna."
+
+
+msgid "Failed to save project config."
+msgstr "Zlyhanie pri ukladaní konfigurácie projektu."
 
 
 msgid "Scene '%s' is the last local one, cannot be removed"
@@ -162173,6 +162368,10 @@ msgid "Clear Recent Files List"
 msgstr "Vymazať zoznam nedávnych súborov"
 
 
+msgid "Clear Recent Projects List"
+msgstr "Zmazať zoznam nedávnych projektov"
+
+
 msgid "Allow Execution"
 msgstr "Povoliť vykonanie"
 
@@ -162359,6 +162558,10 @@ msgstr "Cesta k súboru \"%s\" je neplatná"
 
 msgid "Unknown error loading \"%s\""
 msgstr "Neznáma chyba pri načítaní \"%s\""
+
+
+msgid "Could not find a project within the specified path: %s"
+msgstr "V zadanom priečinku sa nepodarilo nájsť projekt: %s"
 
 
 msgid "Application Template \"%s\" not found"

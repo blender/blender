@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
-"PO-Revision-Date: 2026-10-19 07:31+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"PO-Revision-Date: 2026-10-26 08:40+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
 "Language: sv\n"
@@ -64,7 +64,7 @@ msgstr "Animationskanalbehållare"
 
 
 msgid "Collection of animation channels, typically associated with an action slot"
-msgstr "Samling av animationskanaler, vanligen kopplade till en åtgärdsslot"
+msgstr "Samling av animationskanaler som vanligen är kopplad till en åtgärdsslot"
 
 
 msgid "F-Curves"
@@ -4396,6 +4396,14 @@ msgstr "Rotmapp"
 
 msgid "The path to the root folder of the project"
 msgstr "Sökvägen till projektets rotmapp"
+
+
+msgid "Splash Artwork"
+msgstr "Startbild"
+
+
+msgid "Image to show in the splash screen for this project. Expected size is 1000x500 pixels"
+msgstr "Bild som visas på programmets startskärm för detta projekt. Förväntad storlek är 1 000 × 500 pixlar"
 
 
 msgid "Project Variables"
@@ -36637,36 +36645,8 @@ msgid "Editor menu containing buttons"
 msgstr "Redigeringsmeny med knappar"
 
 
-msgid "Show/Hide"
-msgstr "Visa/Dölj"
-
-
 msgid "Creative"
 msgstr "Kreativ"
-
-
-msgid "Clean Up"
-msgstr "Rensa"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Metaball"
-msgstr "Metaklot"
-
-
-msgid "Names"
-msgstr "Namn"
-
-
-msgid "Bone Roll"
-msgstr "Benrullning"
 
 
 msgid "Pivot Point"
@@ -36697,36 +36677,12 @@ msgid "Vertex Group Locks"
 msgstr "Lås för hörnpunktsgrupper"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Utilities"
-msgstr "Verktyg"
-
-
-msgid "Read"
-msgstr "Läs"
-
-
-msgid "Sample"
-msgstr "Prov"
-
-
 msgid "Mirror"
 msgstr "Spegel"
 
 
-msgid "Write"
-msgstr "Skriv"
-
-
 msgid "UV Mapping"
 msgstr "UV-mappning"
-
-
-msgid "Primitives"
-msgstr "Primitiv"
 
 
 msgid "Local View"
@@ -36753,8 +36709,16 @@ msgid "View Regions"
 msgstr "Vyregioner"
 
 
+msgid "Math"
+msgstr "Matematik"
+
+
 msgid "Select More/Less"
 msgstr "Välj fler/färre"
+
+
+msgid "Utilities"
+msgstr "Verktyg"
 
 
 msgid "Select Similar"
@@ -36765,14 +36729,6 @@ msgid "Select All by Trait"
 msgstr "Välj alla efter egenskap"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instanser"
-
-
 msgid "Select Linked"
 msgstr "Välj länkade"
 
@@ -36781,24 +36737,28 @@ msgid "Select Loops"
 msgstr "Välj slingor"
 
 
-msgid "Import"
-msgstr "Importera"
+msgid "Read"
+msgstr "Läs"
+
+
+msgid "Sample"
+msgstr "Prov"
 
 
 msgid "Assign Material"
 msgstr "Tilldela material"
 
 
-msgid "Deprecated"
-msgstr "Föråldrad"
+msgid "Write"
+msgstr "Skriv"
 
 
-msgid "Render Preview"
-msgstr "Renderingsförhandsgranskning"
+msgid "Primitives"
+msgstr "Primitiv"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "Metaklot"
 
 
 msgid "Light"
@@ -36809,12 +36769,24 @@ msgid "Light Probe"
 msgstr "Ljussond"
 
 
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instanser"
+
+
 msgid "Add Image"
 msgstr "Lägg till bild"
 
 
 msgid "Relations"
 msgstr "Relationer"
+
+
+msgid "Import"
+msgstr "Importera"
 
 
 msgid "Rigid Body"
@@ -36829,8 +36801,20 @@ msgid "Track"
 msgstr "Spår"
 
 
+msgid "Deprecated"
+msgstr "Föråldrad"
+
+
 msgid "Quick Effects"
 msgstr "Snabba effekter"
+
+
+msgid "Show/Hide"
+msgstr "Visa/Dölj"
+
+
+msgid "Clean Up"
+msgstr "Rensa"
 
 
 msgid "Asset"
@@ -36841,8 +36825,16 @@ msgid "Make Single User"
 msgstr "Gör till enskild användare"
 
 
+msgid "Render Preview"
+msgstr "Renderingsförhandsgranskning"
+
+
 msgid "Convert"
 msgstr "Konvertera"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -36873,16 +36865,8 @@ msgid "Clear Transform"
 msgstr "Rensa transformering"
 
 
-msgid "Linked"
-msgstr "Länkad"
-
-
 msgid "In-Betweens"
 msgstr "Mellanlägen"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Propagate"
@@ -36891,6 +36875,10 @@ msgstr "Sprid"
 
 msgid "Bone Collections"
 msgstr "Bensamlingar"
+
+
+msgid "Names"
+msgstr "Namn"
 
 
 msgid "Toggle Bone Options"
@@ -36909,16 +36897,8 @@ msgid "Mesh Select Mode"
 msgstr "Nätmarkeringsläge"
 
 
-msgid "Adjust"
-msgstr "Justera"
-
-
 msgid "Face Data"
 msgstr "Ansiktsdata"
-
-
-msgid "Keying"
-msgstr "Nyckelbildsättning"
 
 
 msgid "Select by Face Strength"
@@ -36929,12 +36909,40 @@ msgid "Set Face Strength"
 msgstr "Ställ in ansiktsstyrka"
 
 
-msgid "Tracking"
-msgstr "Spårning"
-
-
 msgid "Merge"
 msgstr "Sammanfoga"
+
+
+msgid "Linked"
+msgstr "Länkad"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Special Characters"
+msgstr "Specialtecken"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Adjust"
+msgstr "Justera"
+
+
+msgid "Bone Roll"
+msgstr "Benrullning"
+
+
+msgid "Keying"
+msgstr "Nyckelbildsättning"
+
+
+msgid "Tracking"
+msgstr "Spårning"
 
 
 msgid "Keyframe Insert Pie"
@@ -37788,7 +37796,7 @@ msgstr "Färg i sRGB-färgrymd"
 
 
 msgid "Mesh Vertex Color Layer"
-msgstr "Nätvertexfärglager"
+msgstr "Nätets hörnpunktsfärglager"
 
 
 msgid "Layer of vertex colors in a Mesh data-block"
@@ -55749,15 +55757,6 @@ msgstr ""
 ">>> layout.context_pointer_set(\"nla_strip\", nla_strip)"
 
 
-msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-msgstr "Uppdatera F-kurvor/drivare som påverkar transformeringsbegränsningar (använd med filer från 2.70 och tidigare)"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "Uppdatera animerade transformationsbegränsningar"
-
-
 msgctxt "Operator"
 msgid "Version Bone Hide Property"
 msgstr "Versionshantering av egenskapen Dölj ben"
@@ -60218,18 +60217,6 @@ msgid "Set the current frame as the preview or scene start frame"
 msgstr "Ange den aktuella bildrutan som förhandsgransknings- eller scenens startbildruta"
 
 
-msgid "Convert to Radians"
-msgstr "Konvertera till radianer"
-
-
-msgid ""
-"Convert f-curves/drivers affecting rotations to radians.\n"
-"Warning: Use this only once"
-msgstr ""
-"Konvertera F-kurvor/drivare som påverkar rotationer till radianer.\n"
-"Varning: Använd detta endast en gång"
-
-
 msgid "Moves any F-Curves for the `hide` property of selected armatures into the action of the object. This will only operate on the first layer and strip of the action"
 msgstr "Flyttar alla F-kurvor för egenskapen `hide` för valda armaturer till objektets åtgärd. Detta fungerar endast på det första lagret och den första remsan i åtgärden"
 
@@ -62914,6 +62901,10 @@ msgid "Remove Importer"
 msgstr "Ta bort importör"
 
 
+msgid "Remove Collection Importer and delete its imported data"
+msgstr "Ta bort samlingsimportören och radera dess importerade data"
+
+
 msgctxt "Operator"
 msgid "Add Selected to Active Object's Collection"
 msgstr "Lägg till markerade i aktivt objekts samling"
@@ -65267,6 +65258,34 @@ msgid "Export cameras"
 msgstr "Exportera kameror"
 
 
+msgid "Compressed Images Fallback"
+msgstr "Fallback för komprimerade bilder"
+
+
+msgid "For all compressed textures (WebP or KTX2), create a PNG fallback texture"
+msgstr "Skapa en PNG-fallbacktextur för alla komprimerade texturer (WebP eller KTX2)"
+
+
+msgid "Compressed Images Type"
+msgstr "Typ av komprimerade bilder"
+
+
+msgid "Choose the format for compressed textures fallback (WebP or KTX2 with BasisU supercompression)"
+msgstr "Välj format för fallback för komprimerade texturer (WebP eller KTX2 med BasisU-superkomprimering)"
+
+
+msgid "WebP"
+msgstr "WebP"
+
+
+msgid "Use WebP format for compressed textures"
+msgstr "Använd WebP-format för komprimerade texturer"
+
+
+msgid "Use KTX2 format with BasisU supercompression for compressed textures"
+msgstr "Använd KTX2-format med BasisU-superkomprimering för komprimerade texturer"
+
+
 msgid "Convert TRS/Weights to Animation Pointer"
 msgstr "Konvertera TRS/vikter till animationspekare"
 
@@ -65535,6 +65554,14 @@ msgid "Export full hierarchy, including intermediate collections"
 msgstr "Exportera hela hierarkin, inklusive mellanliggande samlingar"
 
 
+msgid "Create Compressed Images"
+msgstr "Skapa komprimerade bilder"
+
+
+msgid "Creates compressed textures (WebP or KTX2)for every texture. For already compressed textures, nothing happens"
+msgstr "Skapar komprimerade texturer (WebP eller KTX2) för varje textur. För redan komprimerade texturer händer ingenting"
+
+
 msgid "Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web applications due to the smaller file size. Alternatively they can be omitted if they are not needed"
 msgstr "Utdataformat för bilder. PNG är förlustfritt och vanligen att föredra, men JPEG kan vara lämpligare för webbapplikationer på grund av den mindre filstorleken. Bilderna kan också utelämnas om de inte behövs"
 
@@ -65621,6 +65648,14 @@ msgstr "Behåll originalet"
 
 msgid "Keep original textures files if possible. WARNING: if you use more than one texture, where pbr standard requires only one, only one texture will be used. This can lead to unexpected results"
 msgstr "Behåll originaltexturfilerna om möjligt. VARNING: om du använder mer än en textur, där pbr-standarden endast kräver en, kommer endast en textur att användas. Detta kan leda till oväntade resultat"
+
+
+msgid "Zstandard Compression Level"
+msgstr "Zstandard-komprimeringsnivå"
+
+
+msgid "Set the Zstandard compression level for (UASTC) non-color KTX2 textures (1 is fastest/lowest ratio, 22 is slowest/highest ratio)"
+msgstr "Ange Zstandard-komprimeringsnivån för KTX2-texturer utan färg (UASTC) (1 är snabbast med lägst kompressionsförhållande, 22 är långsammast med högst kompressionsförhållande)"
 
 
 msgid "Punctual Lights"
@@ -65941,6 +65976,14 @@ msgstr "Använd gltfpack"
 
 msgid "Use gltfpack to simplify the mesh and/or compress its textures"
 msgstr "Använd gltfpack för att förenkla nätet och/eller komprimera dess texturer"
+
+
+msgid "Zstandard Compression"
+msgstr "Zstandard-komprimering"
+
+
+msgid "Enable Zstandard compression for (UASTC) non-color KTX2 textures"
+msgstr "Aktivera Zstandard-komprimering för KTX2-texturer utan färg (UASTC)"
 
 
 msgid "Use Vertex Color"
@@ -71202,6 +71245,14 @@ msgid "Try to guess the original bind pose for skinned meshes from the inverse b
 msgstr "Försök att gissa den ursprungliga bindningsställningen för skinnade nät utifrån inversa bindningsmatriser. När detta är avstängt används standard-/viloställningen som bindningsställning"
 
 
+msgid "Import KTX Textures"
+msgstr "Importera KTX-texturer"
+
+
+msgid "If a texture exists in KTX format, loads the KTX texture instead of the fallback PNG/JPEG one"
+msgstr "Om en textur finns i KTX-format läses KTX-texturen in i stället för fallbacktexturen i PNG-/JPEG-format"
+
+
 msgid "Merge Material Slot when possible"
 msgstr "Slå ihop materialplatser när det är möjligt"
 
@@ -76091,6 +76142,10 @@ msgstr "Duplicera den för närvarande tilldelade kompositornodgruppen."
 
 msgid "Duplicate Scene Effect Node Group"
 msgstr "Duplicera nodgruppen för sceneffekten"
+
+
+msgid "Duplicate the scene effect node group and assign the new node group to the effect"
+msgstr "Duplicera nodgruppen för sceneffekten och tilldela den nya nodgruppen till effekten"
 
 
 msgid "Duplicate selected nodes and move them"
@@ -83875,6 +83930,19 @@ msgid "Asset Library Directory"
 msgstr "Katalog för resursbibliotek"
 
 
+msgctxt "Operator"
+msgid "Close Project"
+msgstr "Stäng projekt"
+
+
+msgid "Close the active project, starting a new file"
+msgstr "Stäng det aktiva projektet och starta en ny fil"
+
+
+msgid "Skip check to prevent unsaved changes from being lost"
+msgstr "Hoppa över kontroll för att förhindra att osparade ändringar går förlorade"
+
+
 msgid "Move Up"
 msgstr "Flytta upp"
 
@@ -83890,6 +83958,43 @@ msgstr "Nytt projekt"
 
 msgid "Create a new project"
 msgstr "Skapa ett nytt projekt"
+
+
+msgctxt "Operator"
+msgid "Open Project..."
+msgstr "Öppna projekt…"
+
+
+msgid "Open a project, starting a new file in it"
+msgstr "Öppna ett projekt och starta en ny fil i det"
+
+
+msgctxt "Operator"
+msgid "Clear Splash Artwork"
+msgstr "Rensa startbild"
+
+
+msgid ""
+"Clear the project custom splash artwork.\n"
+"The image file is not deleted from disk"
+msgstr ""
+"Rensa projektets anpassade startbild.\n"
+"Bildfilen raderas inte från disken"
+
+
+msgctxt "Operator"
+msgid "Create Splash Artwork"
+msgstr "Skapa startbild"
+
+
+msgid ""
+"Set the project splash artwork from an image file.\n"
+"The image will be cropped, scaled and saved as \".blender_project/splash.jpg\".\n"
+"For optimal results use a 2:1 aspect ratio"
+msgstr ""
+"Ange projektets startbild från en bildfil.\n"
+"Bilden beskärs, skalas och sparas som ”.blender_project/splash.jpg”.\n"
+"Använd bildförhållandet 2:1 för bästa resultat"
 
 
 msgctxt "Operator"
@@ -84683,6 +84788,10 @@ msgstr "Gör en fullständig kopia av den aktuella scenen"
 msgctxt "Operator"
 msgid "New Scene Effect Node Group"
 msgstr "Ny nodgrupp för sceneffekt"
+
+
+msgid "Create a new compositor node group and assign it to the scene effect"
+msgstr "Skapa en ny kompositornodgrupp och tilldela den till sceneffekten"
 
 
 msgid "Add new scene by type in the sequence editor and assign to active strip"
@@ -93014,6 +93123,15 @@ msgstr "Objekt hittades inte"
 
 
 msgctxt "Operator"
+msgid "Clear Recent Projects List"
+msgstr "Rensa listan över senaste projekt"
+
+
+msgid "Clear the recent projects list"
+msgstr "Rensa listan över senaste projekt"
+
+
+msgctxt "Operator"
 msgid "Export All Collections"
 msgstr "Exportera alla samlingar"
 
@@ -96341,14 +96459,6 @@ msgid "Curves Edit Mode"
 msgstr "Redigeringsläge för kurvor"
 
 
-msgid "glTF Variants"
-msgstr "glTF-varianter"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF-materialvarianter"
-
-
 msgid "Transform Orientations"
 msgstr "Transformeringsorienteringar"
 
@@ -96381,14 +96491,6 @@ msgid "Multi Frame"
 msgstr "Flera bildrutor"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF-animationer"
-
-
 msgid "Auto-Masking"
 msgstr "Automatisk maskering"
 
@@ -96409,12 +96511,28 @@ msgid "Viewport Debug"
 msgstr "Felsökning av visningsområde"
 
 
+msgid "glTF Variants"
+msgstr "glTF-varianter"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF-materialvarianter"
+
+
 msgid "VR"
 msgstr "VR"
 
 
 msgid "VR Info"
 msgstr "VR-information"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF-animationer"
 
 
 msgid "Import Settings"
@@ -99488,6 +99606,14 @@ msgid "Save projects automatically on exit and when saving or switching blend fi
 msgstr "Spara projekt automatiskt vid avslut samt när blend-filer sparas eller växlas"
 
 
+msgid "Remember Last Project"
+msgstr "Kom ihåg senaste projektet"
+
+
+msgid "On startup, automatically re-open the project that was last open when Blender was closed"
+msgstr "Öppna automatiskt det projekt som var öppet senast när Blender stängdes"
+
+
 msgid "Recent Searches"
 msgstr "Senaste sökningar"
 
@@ -101851,16 +101977,20 @@ msgid "Catalan - Català"
 msgstr "Katalanska - Català"
 
 
+msgid "Locale code: ca_AD. Translation progress: 100%"
+msgstr "Lokalkod: ca_AD. Översättningsförlopp: 100 %"
+
+
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Kinesiska (förenklad) - 简体中文"
 
 
-msgid "Locale code: zh_HANS. Translation progress: 99%"
-msgstr "Lokalkod: zh_HANS. Översättningsförlopp: 99 %"
-
-
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Kinesiska (traditionell) - 繁體中文"
+
+
+msgid "Locale code: zh_HANT. Translation progress: 58%"
+msgstr "Lokalkod: zh_HANT. Översättningsförlopp: 58 %"
 
 
 msgid "Croatian - Hrvatski"
@@ -101939,10 +102069,6 @@ msgid "Georgian - ქართული"
 msgstr "Georgiska - ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 98%"
-msgstr "Lokalkod: ka. Översättningsförlopp: 98 %"
-
-
 msgid "German - Deutsch"
 msgstr "Tyska - Deutsch"
 
@@ -101985,10 +102111,6 @@ msgstr "Lokalkod: hu_HU. Översättningsförlopp: 10 %"
 
 msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonesiska - Bahasa indonesia"
-
-
-msgid "Locale code: id_ID. Translation progress: 20%"
-msgstr "Lokalkod: id_ID. Översättningsförlopp: 20 %"
 
 
 msgid "Italian - Italiano"
@@ -102059,6 +102181,10 @@ msgid "Polish - Polski"
 msgstr "Polska - Polski"
 
 
+msgid "Locale code: pl_PL. Translation progress: 100%"
+msgstr "Lokalkod: pl_PL. Översättningsförlopp: 100 %"
+
+
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugisiska (Brasilien) - Português brasileiro"
 
@@ -102069,10 +102195,6 @@ msgstr "Lokalkod: pt_BR. Översättningsförlopp: 40 %"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugisiska (Portugal) - Português europeu"
-
-
-msgid "Locale code: pt_PT. Translation progress: 81%"
-msgstr "Lokalkod: pt_PT. Översättningsförlopp: 81 %"
 
 
 msgid "Romanian - Român"
@@ -102111,6 +102233,10 @@ msgid "Slovak - Slovenčina"
 msgstr "Slovakiska - Slovenčina"
 
 
+msgid "Locale code: sk_SK. Translation progress: 100%"
+msgstr "Lokalkod: sk_SK. Översättningsförlopp: 100 %"
+
+
 msgid "Slovenian - Slovenščina"
 msgstr "Slovenska - Slovenščina"
 
@@ -102123,24 +102249,24 @@ msgid "Spanish - Español"
 msgstr "Spanska - Español"
 
 
+msgid "Locale code: es. Translation progress: 100%"
+msgstr "Lokalkod: es. Översättningsförlopp: 100 %"
+
+
 msgid "Swahili - Kiswahili"
 msgstr "Swahili – Kiswahili"
+
+
+msgid "Locale code: sw. Translation progress: 67%"
+msgstr "Lokalkod: sw. Översättningsförlopp: 67 %"
 
 
 msgid "Swedish - Svenska"
 msgstr "Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 99%"
-msgstr "Lokalkod: sv_SE. Översättningsförlopp: 99 %"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 93%"
-msgstr "Lokalkod: ta. Översättningsförlopp: 93 %"
 
 
 msgid "Thai - ภาษาไทย"
@@ -103792,6 +103918,14 @@ msgstr "Viktning av albedoråhet i brusreduceringspass"
 
 msgid "Use roughness-based weighting of the albedo for the denoising feature passes"
 msgstr "Använd råhetsbaserad viktning av albedo för funktionspass vid brusreducering"
+
+
+msgid "Store Denoising Motion Passes"
+msgstr "Lagra brusreduceringspass"
+
+
+msgid "Store the denoising motion passes, for temporal denoisers"
+msgstr "Spara rörelsepass för brusreducering, för temporala brusreducerare"
 
 
 msgid "Store Denoising Passes"
@@ -126254,11 +126388,6 @@ msgstr "Kan inte tolka XML, %s:%s för fil %r"
 
 
 msgctxt "Operator"
-msgid "IO_FH_fbx (Legacy)"
-msgstr "IO_FH_fbx (bakåtkompatibel)"
-
-
-msgctxt "Operator"
 msgid "IO_FH_fbx"
 msgstr "IO_FH_fbx"
 
@@ -128001,10 +128130,6 @@ msgid "Nothing to bake"
 msgstr "Inget att baka"
 
 
-msgid "Complete report available on '{:s}' text data-block"
-msgstr "Fullständig rapport finns i textdatablocket ”{:s}”"
-
-
 msgid "No active bone to copy from"
 msgstr "Inget aktivt ben att kopiera från"
 
@@ -128846,6 +128971,10 @@ msgid "Close"
 msgstr "Stäng"
 
 
+msgid "Project Files"
+msgstr "Projektfiler"
+
+
 msgctxt "Operator"
 msgid "More..."
 msgstr "Mer..."
@@ -129026,6 +129155,10 @@ msgstr "Kameror"
 
 msgid "Speaker(s)"
 msgstr "Högtalare"
+
+
+msgid "Other Recent Files"
+msgstr "Övriga senaste filer"
 
 
 msgctxt "Operator"
@@ -132983,6 +133116,10 @@ msgid "Auto-Save Project"
 msgstr "Spara projekt automatiskt"
 
 
+msgid "Artwork"
+msgstr "Bildmaterial"
+
+
 msgctxt "Operator"
 msgid "String"
 msgstr "Sträng"
@@ -133001,10 +133138,6 @@ msgstr "Heltal"
 msgctxt "Operator"
 msgid "Float"
 msgstr "Flyttal"
-
-
-msgid "Overridden by the  environment variable"
-msgstr "Åsidosätts av miljövariabeln"
 
 
 msgctxt "Operator"
@@ -133850,6 +133983,11 @@ msgstr "Automatisk sparning..."
 
 
 msgctxt "Operator"
+msgid "New..."
+msgstr "Ny..."
+
+
+msgctxt "Operator"
 msgid "Find Missing Files..."
 msgstr "Hitta saknade filer..."
 
@@ -133973,43 +134111,12 @@ msgstr "Ladda Blenders fabriksinställningar"
 
 
 msgctxt "Operator"
-msgid "IO_FH_alembic"
-msgstr "IO_FH_alembic"
+msgid "Clear Recent Projects List..."
+msgstr "Rensa listan över senaste projekt…"
 
 
-msgctxt "Operator"
-msgid "IO_FH_usd"
-msgstr "IO_FH_usd"
-
-
-msgctxt "Operator"
-msgid "IO_FH_grease_pencil_svg"
-msgstr "IO_FH_grease_pencil_svg"
-
-
-msgctxt "Operator"
-msgid "IO_FH_obj"
-msgstr "IO_FH_obj"
-
-
-msgctxt "Operator"
-msgid "IO_FH_ply"
-msgstr "IO_FH_ply"
-
-
-msgctxt "Operator"
-msgid "IO_FH_spz"
-msgstr "IO_FH_spz"
-
-
-msgctxt "Operator"
-msgid "IO_FH_stl"
-msgstr "IO_FH_stl"
-
-
-msgctxt "Operator"
-msgid "OpenTimelineIO (.otio)"
-msgstr "OpenTimelineIO (.otio)"
+msgid "No Recent Projects"
+msgstr "Inga senaste projekt"
 
 
 msgctxt "Operator"
@@ -134393,6 +134500,10 @@ msgstr "Intervall (minuter)"
 
 msgid "Default To"
 msgstr "Standardinställning"
+
+
+msgid "Startup"
+msgstr "Start"
 
 
 msgid "Show Locations"
@@ -142567,6 +142678,14 @@ msgid "Operator cannot redo"
 msgstr "Operatören kan inte göras om"
 
 
+msgid "Create from Image..."
+msgstr "Skapa från bild…"
+
+
+msgid "Failed to load splash image"
+msgstr "Kunde inte läsa in startbilden"
+
+
 msgid "Size: {}"
 msgstr "Storlek: {}"
 
@@ -142581,6 +142700,14 @@ msgstr "Igår"
 
 msgid "Modified: {}"
 msgstr "Ändrad: {}"
+
+
+msgid "Project Not Found"
+msgstr "Projektet hittades inte"
+
+
+msgid "Project is already open"
+msgstr "Projektet är redan öppet"
 
 
 msgid "Anim Player"
@@ -143855,12 +143982,28 @@ msgid "No file handlers available"
 msgstr "Inga filhanterare tillgängliga"
 
 
+msgid "Apply and Make Local"
+msgstr "Tillämpa och gör lokal"
+
+
+msgid "Delete Collection Content"
+msgstr "Ta bort urvalsuppsättning"
+
+
+msgid "Remove Importer"
+msgstr "Ta bort importör"
+
+
 msgid "Could not find an active collection"
 msgstr "Det gick inte att hitta en aktiv samling"
 
 
 msgid "Collection needs to be empty"
 msgstr "Samlingen måste vara tom"
+
+
+msgid "Importer Control"
+msgstr "Importörstyrning"
 
 
 msgid "Add Exporter"
@@ -149099,6 +149242,42 @@ msgid "Built-In"
 msgstr "Inbyggd"
 
 
+msgid "Untitled Project"
+msgstr "Knivprojektion"
+
+
+msgid "Invalid project root folder"
+msgstr "Ogiltig projektrotmapp"
+
+
+msgid "Folder already contains a project"
+msgstr "Mappen innehåller redan ett projekt"
+
+
+msgid "Failed to create folder \"%s\""
+msgstr "Det gick inte att skapa mappen ”%s”"
+
+
+msgid "Failed to write project config in \"%s\""
+msgstr "Det gick inte att skriva projektkonfigurationen i ”%s”"
+
+
+msgid "Folder '%s' does not belong to a project"
+msgstr "Mappen ”%s” tillhör inte ett projekt"
+
+
+msgid "Failed to load project from path: %s"
+msgstr "Det gick inte att läsa in projektet från sökvägen: %s"
+
+
+msgid "Failed to load image \"%s\""
+msgstr "Det gick inte att läsa in bildtexturen ”%s”"
+
+
+msgid "Failed to write \"%s\""
+msgstr "Det gick inte att skriva ”%s”"
+
+
 msgid "Cannot reload with running modal operators"
 msgstr "Det går inte att läsa in igen med aktiva modala operatorer"
 
@@ -152661,6 +152840,14 @@ msgstr "Endast länkade ID:n kan packas"
 
 msgid "Failed to initialize project. Ensure that both the name and project_root parameters are non-empty."
 msgstr "Det gick inte att initiera projektet. Kontrollera att varken parametern name eller project_root är tom."
+
+
+msgid "Failed to initialize project. Ensure that project_root path is correct."
+msgstr "Det gick inte att initiera projektet. Kontrollera att varken parametern name eller project_root är tom."
+
+
+msgid "Failed to save project config."
+msgstr "Det gick inte att spara projektkonfigurationen."
 
 
 msgid "Scene '%s' is the last local one, cannot be removed"
@@ -162177,6 +162364,10 @@ msgid "Clear Recent Files List"
 msgstr "Rensa listan över senaste filer"
 
 
+msgid "Clear Recent Projects List"
+msgstr "Rensa listan över senaste filer"
+
+
 msgid "Allow Execution"
 msgstr "Tillåt körning"
 
@@ -162363,6 +162554,10 @@ msgstr "Filsökvägen ”%s” är ogiltig"
 
 msgid "Unknown error loading \"%s\""
 msgstr "Okänt fel vid inläsning av ”%s”"
+
+
+msgid "Could not find a project within the specified path: %s"
+msgstr "Det gick inte att hitta ett projekt på den angivna sökvägen: %s"
 
 
 msgid "Application Template \"%s\" not found"

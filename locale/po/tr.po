@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28707,34 +28707,6 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Metaball"
-msgstr "Metabol"
-
-
-msgid "Names"
-msgstr "Adlar"
-
-
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
-
-
 msgid "Pivot Point"
 msgstr "Pivot Noktası"
 
@@ -28763,36 +28735,12 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
-
-
-msgid "Read"
-msgstr "Okumak"
-
-
-msgid "Sample"
-msgstr "Örnek"
-
-
 msgid "Mirror"
 msgstr "Yansıtma"
 
 
-msgid "Write"
-msgstr "Yazmak"
-
-
 msgid "UV Mapping"
 msgstr "UV Haritalama"
-
-
-msgid "Primitives"
-msgstr "İlkel"
 
 
 msgid "Local View"
@@ -28819,8 +28767,16 @@ msgid "View Regions"
 msgstr "Bölgeleri Görüntüle"
 
 
+msgid "Math"
+msgstr "Matematik"
+
+
 msgid "Select More/Less"
 msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
 
 
 msgid "Select Similar"
@@ -28831,10 +28787,6 @@ msgid "Select All by Trait"
 msgstr "Özelliğe Göre Tümünü Seç"
 
 
-msgid "Instances"
-msgstr "Örnekler"
-
-
 msgid "Select Linked"
 msgstr "Bağlantılıyı Seç"
 
@@ -28843,20 +28795,28 @@ msgid "Select Loops"
 msgstr "Döngüleri Seç"
 
 
-msgid "Import"
-msgstr "İçe Aktar"
+msgid "Read"
+msgstr "Okumak"
+
+
+msgid "Sample"
+msgstr "Örnek"
 
 
 msgid "Assign Material"
 msgstr "Malzeme Atamak"
 
 
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
+msgid "Write"
+msgstr "Yazmak"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Primitives"
+msgstr "İlkel"
+
+
+msgid "Metaball"
+msgstr "Metabol"
 
 
 msgid "Light"
@@ -28867,12 +28827,20 @@ msgid "Light Probe"
 msgstr "Işık Sondası"
 
 
+msgid "Instances"
+msgstr "Örnekler"
+
+
 msgid "Add Image"
 msgstr "Resim Ekle"
 
 
 msgid "Relations"
 msgstr "İlişkiler"
+
+
+msgid "Import"
+msgstr "İçe Aktar"
 
 
 msgid "Rigid Body"
@@ -28887,8 +28855,20 @@ msgid "Track"
 msgstr "İzlemek"
 
 
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
+
+
 msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
+
+
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
 
 
 msgid "Asset"
@@ -28901,6 +28881,10 @@ msgstr "Tek Kullanıcı Yap"
 
 msgid "Convert"
 msgstr "Çevir"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -28931,16 +28915,8 @@ msgid "Clear Transform"
 msgstr "Temizle Dönüşüm"
 
 
-msgid "Linked"
-msgstr "Bağlantılı"
-
-
 msgid "In-Betweens"
 msgstr "Arada Kalanlar"
-
-
-msgid "Layout"
-msgstr "Yerleşim"
 
 
 msgid "Propagate"
@@ -28949,6 +28925,10 @@ msgstr "Yaymak"
 
 msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
+
+
+msgid "Names"
+msgstr "Adlar"
 
 
 msgid "Toggle Bone Options"
@@ -28967,16 +28947,8 @@ msgid "Mesh Select Mode"
 msgstr "Örgü Seçim Kipi"
 
 
-msgid "Adjust"
-msgstr "Ayarlamak"
-
-
 msgid "Face Data"
 msgstr "Yüz Verileri"
-
-
-msgid "Keying"
-msgstr "Anahtarlama"
 
 
 msgid "Select by Face Strength"
@@ -28987,12 +28959,40 @@ msgid "Set Face Strength"
 msgstr "Yüz Gücünü Ayarla"
 
 
-msgid "Tracking"
-msgstr "Takip"
-
-
 msgid "Merge"
 msgstr "Birleştir"
+
+
+msgid "Linked"
+msgstr "Bağlantılı"
+
+
+msgid "Layout"
+msgstr "Yerleşim"
+
+
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Adjust"
+msgstr "Ayarlamak"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
+
+
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
+msgid "Tracking"
+msgstr "Takip"
 
 
 msgid "Keyframe Insert Pie"
@@ -43311,11 +43311,6 @@ msgid "Unassign Slot"
 msgstr "Yuvayı Atamayı Kaldır"
 
 
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "Animasyonlu Dönüşüm Kısıtlamalarını Güncelle"
-
-
 msgid "Show all bone collections"
 msgstr "Tüm kemik koleksiyonlarını göster"
 
@@ -46870,10 +46865,6 @@ msgstr "Başlangıç Karesi Ayarla"
 
 msgid "Set the current frame as the preview or scene start frame"
 msgstr "Geçerli kareyi önizleme veya sahne başlangıç karesi olarak ayarlayın"
-
-
-msgid "Convert to Radians"
-msgstr "Radyana Dönüştür"
 
 
 msgid "Frame the property under the cursor in the Graph Editor"
@@ -75412,14 +75403,6 @@ msgid "Curve Edit Mode"
 msgstr "Eğri Düzenleme Modu"
 
 
-msgid "glTF Variants"
-msgstr "glTF Çeşitleri"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Malzeme Varyantları"
-
-
 msgid "Transform Orientations"
 msgstr "Dönüştürme Yönlendirmeleri"
 
@@ -75466,6 +75449,14 @@ msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
 
 msgid "Viewport Debug"
 msgstr "Görüş Alanı Hata Ayıklaması"
+
+
+msgid "glTF Variants"
+msgstr "glTF Çeşitleri"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Malzeme Varyantları"
 
 
 msgid "VR"

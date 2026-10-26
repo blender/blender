@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
 "PO-Revision-Date: 2026-07-22 11:12+0000\n"
 "Last-Translator: Gamfid <gamfid@users.noreply.translate.blender.org>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26352,34 +26352,6 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Show/Hide"
-msgstr "Показати/приховати"
-
-
-msgid "Clean Up"
-msgstr "Вичищення"
-
-
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Metaball"
-msgstr "Метакуля"
-
-
-msgid "Names"
-msgstr "Назви"
-
-
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
-
-
 msgid "Pivot Point"
 msgstr "Точка Опертя"
 
@@ -26408,28 +26380,12 @@ msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
 
 
-msgid "Math"
-msgstr "Математика"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
-
-
-msgid "Sample"
-msgstr "Вибірка"
-
-
 msgid "Mirror"
 msgstr "Дзеркалення"
 
 
 msgid "UV Mapping"
 msgstr "Розкладання UV"
-
-
-msgid "Primitives"
-msgstr "Примітиви"
 
 
 msgid "Local View"
@@ -26456,8 +26412,16 @@ msgid "View Regions"
 msgstr "Регіони Огляду"
 
 
+msgid "Math"
+msgstr "Математика"
+
+
 msgid "Select More/Less"
 msgstr "Вибрати більше/менше"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
 
 
 msgid "Select Similar"
@@ -26476,16 +26440,20 @@ msgid "Select Loops"
 msgstr "Виділити петлі"
 
 
-msgid "Import"
-msgstr "Імпортувати"
+msgid "Sample"
+msgstr "Вибірка"
 
 
 msgid "Assign Material"
 msgstr "Призначити Матеріал"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Primitives"
+msgstr "Примітиви"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
 
 
 msgid "Light"
@@ -26504,6 +26472,10 @@ msgid "Relations"
 msgstr "Зв'язки"
 
 
+msgid "Import"
+msgstr "Імпортувати"
+
+
 msgid "Rigid Body"
 msgstr "Тверде тіло"
 
@@ -26520,6 +26492,14 @@ msgid "Quick Effects"
 msgstr "Швидкі ефекти"
 
 
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
 msgid "Asset"
 msgstr "Актив"
 
@@ -26530,6 +26510,10 @@ msgstr "Зробити однокористувацьким"
 
 msgid "Convert"
 msgstr "Конвертування"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -26552,20 +26536,16 @@ msgid "Clear Transform"
 msgstr "Зчистити трансформації"
 
 
-msgid "Linked"
-msgstr "Пов'язане"
-
-
 msgid "In-Betweens"
 msgstr "У проміжках"
 
 
-msgid "Layout"
-msgstr "Розстановка"
-
-
 msgid "Propagate"
 msgstr "Поширити"
+
+
+msgid "Names"
+msgstr "Назви"
 
 
 msgid "Toggle Bone Options"
@@ -26588,10 +26568,6 @@ msgid "Face Data"
 msgstr "Дані граней"
 
 
-msgid "Keying"
-msgstr "Ключування"
-
-
 msgid "Select by Face Strength"
 msgstr "Вибрати за Силою Грані"
 
@@ -26600,12 +26576,36 @@ msgid "Set Face Strength"
 msgstr "Задати Силу Грані"
 
 
-msgid "Tracking"
-msgstr "Стеження"
-
-
 msgid "Merge"
 msgstr "Об'єднання"
+
+
+msgid "Linked"
+msgstr "Пов'язане"
+
+
+msgid "Layout"
+msgstr "Розстановка"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
+
+
+msgid "Keying"
+msgstr "Ключування"
+
+
+msgid "Tracking"
+msgstr "Стеження"
 
 
 msgid "Basic"
@@ -36186,15 +36186,6 @@ msgid "Export Keying Set..."
 msgstr "Експорт набору ключів ..."
 
 
-msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-msgstr "Оновити Ф-криві/драйвери, що впливають на примуси Трансформ (використовуйте для файлів версії 2.70 і раніших версій)"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "Оновити примуси анімованих трансформацій"
-
-
 msgctxt "Operator"
 msgid "Show All"
 msgstr "Показати Все"
@@ -38732,10 +38723,6 @@ msgstr "Встановити початковий кадр"
 
 msgid "Set the current frame as the preview or scene start frame"
 msgstr "Задати поточний кадр як передогляд або кадр старту сцени"
-
-
-msgid "Convert to Radians"
-msgstr "Конвертувати в Радіани"
 
 
 msgctxt "Operator"
