@@ -18,6 +18,8 @@
 #include "util/math.h"
 #include "util/vector.h"
 
+#include "BKE_view3d_runtime.hh"
+
 CCL_NAMESPACE_BEGIN
 
 /* --------------------------------------------------------------------
@@ -757,7 +759,9 @@ void BlenderDisplayDriver::flush()
 
 void BlenderDisplayDriver::draw(const Params &params)
 {
-  if (b_rv3d_ && (b_rv3d_->rflag & (blender::RV3D_NAVIGATING | blender::RV3D_PAINTING))) {
+  if (b_rv3d_ && (b_rv3d_->runtime->tags &
+                  (blender::bke::RV3D_TAG_NAVIGATING | blender::bke::RV3D_TAG_PAINTING)))
+  {
     /* Before drawing, wait that an update to the texture has actually occurred, to synchronize
      * rendering of Cycles with Blender. Only do this after a reset, e.g. due to the camera
      * changing while navigating. Redraws that did not trigger a reset can reuse the current

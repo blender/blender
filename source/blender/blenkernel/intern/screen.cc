@@ -44,6 +44,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "BLO_read_write.hh"
 
@@ -1357,29 +1358,6 @@ void BKE_screen_view3d_shading_blend_read_data(BlendDataReader *reader, View3DSh
   }
 }
 
-static void zero_regionview3d_runtime_fields(RegionView3D &rv3d)
-{
-  /* Some values like winmat/viewmat/viewinv/persmat/persinv/is_persp/pixsize are derived but are
-   * not zeroed. They can be read before they are recomputed when a file is newly loaded,
-   * especially when running Blender in background mode. */
-  zero_v4(rv3d.viewcamtexcofac);
-  zero_m4(rv3d.viewmatob);
-  zero_m4(rv3d.persmatob);
-  memset(rv3d.clip_local, 0, sizeof(rv3d.clip_local));
-  zero_m4(rv3d.twmat);
-  zero_v3(rv3d.tw_axis_min);
-  zero_v3(rv3d.tw_axis_max);
-  zero_m3(rv3d.tw_axis_matrix);
-  rv3d.twdrawflag = 0;
-  rv3d.rflag &= ~(RV3D_NAVIGATING | RV3D_GPULIGHT_UPDATE | RV3D_PAINTING);
-  rv3d.runtime_viewlock = {};
-  rv3d.ndof_rot_angle = 0;
-  zero_v3(rv3d.ndof_rot_axis);
-  rv3d.view_render = nullptr;
-  rv3d.sms = nullptr;
-  rv3d.smooth_timer = nullptr;
-}
-
 static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
 {
   writer->write_struct(region, [](BlendStructWriter<ARegion> &struct_writer) {
@@ -1421,13 +1399,13 @@ static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
         if (region->regiontype == RGN_TYPE_WINDOW) {
           RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
           writer->write_struct(rv3d, [](BlendStructWriter<RegionView3D> &struct_writer) {
-            zero_regionview3d_runtime_fields(struct_writer.shallow_data);
+            struct_writer.shallow_data.runtime = nullptr;
           });
 
           if (rv3d->localvd) {
             writer->write_struct(rv3d->localvd,
                                  [](BlendStructWriter<RegionView3D> &struct_writer) {
-                                   zero_regionview3d_runtime_fields(struct_writer.shallow_data);
+                                   struct_writer.shallow_data.runtime = nullptr;
                                  });
           }
           if (rv3d->clipbb) {
@@ -1628,16 +1606,10 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
         }
 
         RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+        rv3d->runtime = MEM_new<bke::RegionView3DRuntime>(__func__);
 
         BLO_read_struct(reader, RegionView3D, &rv3d->localvd);
         BLO_read_struct(reader, BoundBox, &rv3d->clipbb);
-
-        rv3d->view_render = nullptr;
-        rv3d->sms = nullptr;
-        rv3d->smooth_timer = nullptr;
-
-        rv3d->rflag &= ~(RV3D_NAVIGATING | RV3D_PAINTING);
-        rv3d->runtime_viewlock = eRegionView3D_ViewLock{};
       }
     }
     if (region->regiontype == RGN_TYPE_ASSET_SHELF) {

@@ -40,6 +40,7 @@
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
 #include "BKE_scene_runtime.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -95,7 +96,9 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
     }
 
     RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
-    RenderEngine *engine = rv3d->view_render ? RE_view_engine_get(rv3d->view_render) : nullptr;
+    RenderEngine *engine = rv3d->runtime->view_render ?
+                               RE_view_engine_get(rv3d->runtime->view_render) :
+                               nullptr;
 
     if (engine && (updated || (engine->flag & RE_ENGINE_DO_UPDATE))) {
       bContext *C = render_view3d_context_create(
@@ -128,8 +131,8 @@ static void render_view3d_engines_foreach(
         }
 
         const RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
-        RenderEngine *engine = (rv3d && rv3d->view_render) ?
-                                   RE_view_engine_get(rv3d->view_render) :
+        RenderEngine *engine = (rv3d && rv3d->runtime->view_render) ?
+                                   RE_view_engine_get(rv3d->runtime->view_render) :
                                    nullptr;
         if (!engine) {
           continue;

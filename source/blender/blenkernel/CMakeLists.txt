@@ -309,6 +309,7 @@ set(SRC
   intern/vfont.cc
   intern/vfont_curve.cc
   intern/vfontdata_freetype.cc
+  intern/view3d_runtime.cc
   intern/viewer_path.cc
   intern/volume.cc
   intern/volume_grid.cc
@@ -544,6 +545,7 @@ set(SRC
   BKE_uvproject.h
   BKE_vfont.hh
   BKE_vfontdata.hh
+  BKE_view3d_runtime.hh
   BKE_viewer_path.hh
   BKE_volume.hh
   BKE_volume_enums.hh

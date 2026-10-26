@@ -12,6 +12,7 @@
 #include "ED_view3d.hh"
 
 #include "BKE_paint.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "draw_common_c.hh"
 #include "draw_debug.hh"
@@ -238,7 +239,7 @@ void Resources::update_clip_planes(const State &state)
     clip_planes_buf[i] = float4(0);
   }
 
-  int plane_len = (RV3D_LOCK_FLAGS(state.rv3d) & RV3D_BOXCLIP) ? 4 : 6;
+  int plane_len = (bke::region_view3d_lock_flags_get(state.rv3d) & RV3D_BOXCLIP) ? 4 : 6;
   for (int i : IndexRange(plane_len)) {
     clip_planes_buf[i] = float4(state.rv3d->clip[i]);
   }

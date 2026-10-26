@@ -35,6 +35,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "BLT_translation.hh"
 
@@ -395,7 +396,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
   fly->draw_handle_pixel = ED_region_draw_cb_activate(
       fly->region->runtime->type, drawFlyPixel, fly, REGION_DRAW_POST_PIXEL);
 
-  fly->rv3d->rflag |= RV3D_NAVIGATING;
+  fly->rv3d->runtime->tags |= bke::RV3D_TAG_NAVIGATING;
 
   /* Detect whether to start with Z locking. */
   copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
@@ -478,7 +479,7 @@ static wmOperatorStatus flyEnd(bContext *C, FlyInfo *fly)
 
   ED_view3d_cameracontrol_release(fly->v3d_camera_control, fly->state == FLY_CANCEL);
 
-  rv3d->rflag &= ~RV3D_NAVIGATING;
+  rv3d->runtime->tags &= ~bke::RV3D_TAG_NAVIGATING;
 
 #ifdef WITH_INPUT_NDOF
   if (fly->ndof) {
@@ -1132,7 +1133,7 @@ static wmOperatorStatus fly_invoke(bContext *C, wmOperator *op, const wmEvent *e
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
-  if (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) {
+  if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ANY_TRANSFORM) {
     return OPERATOR_CANCELLED;
   }
 

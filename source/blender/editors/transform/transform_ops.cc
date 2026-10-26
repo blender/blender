@@ -23,6 +23,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -436,7 +437,7 @@ static wmOperatorStatus transform_modal(bContext *C, wmOperator *op, const wmEve
   /* Allow navigation while transforming. */
   if (t->vod && (exit_code & OPERATOR_PASS_THROUGH)) {
     RegionView3D *rv3d = static_cast<RegionView3D *>(t->region->regiondata);
-    const bool is_navigating = (rv3d->rflag & RV3D_NAVIGATING) != 0;
+    const bool is_navigating = (rv3d->runtime->tags & bke::RV3D_TAG_NAVIGATING) != 0;
     if (ED_view3d_navigation_do(C, t->vod, event, t->center_global)) {
       if (!is_navigating) {
         /* Navigation has started. */
@@ -449,7 +450,7 @@ static wmOperatorStatus transform_modal(bContext *C, wmOperator *op, const wmEve
         }
       }
 
-      if (rv3d->rflag & RV3D_NAVIGATING) {
+      if (rv3d->runtime->tags & bke::RV3D_TAG_NAVIGATING) {
         /* Navigation is running. */
 
         /* Do not update transform while navigating. This can be distracting. */

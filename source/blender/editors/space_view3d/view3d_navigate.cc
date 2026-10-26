@@ -22,6 +22,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_vfont.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -138,7 +139,7 @@ void ViewOpsData::state_restore()
     }
     else {
       // copy_v3_v3(vod->rv3d->ofs, vod->init.ofs);
-      if (RV3D_LOCK_FLAGS(this->rv3d) & RV3D_BOXVIEW) {
+      if (bke::region_view3d_lock_flags_get(this->rv3d) & RV3D_BOXVIEW) {
         view3d_boxview_sync(this->area, this->region);
       }
     }
@@ -402,12 +403,12 @@ void ViewOpsData::init_navigation(bContext *C,
   /* Default. */
   this->use_dyn_ofs_ortho_correction = false;
 
-  rv3d->rflag |= RV3D_NAVIGATING;
+  rv3d->runtime->tags |= bke::RV3D_TAG_NAVIGATING;
 }
 
 void ViewOpsData::end_navigation(bContext *C)
 {
-  this->rv3d->rflag &= ~RV3D_NAVIGATING;
+  this->rv3d->runtime->tags &= ~bke::RV3D_TAG_NAVIGATING;
 
   if (this->timer) {
     WM_event_timer_remove(CTX_wm_manager(C), this->timer->win, this->timer);
@@ -418,8 +419,8 @@ void ViewOpsData::end_navigation(bContext *C)
     this->init.dial = nullptr;
   }
 
-  /* Need to redraw because drawing code uses RV3D_NAVIGATING to draw
-   * faster while navigation operator runs. */
+  /* Need to redraw because drawing code uses RV3D_TAG_NAVIGATING to draw faster while navigation
+   * operator runs. */
   ED_region_tag_redraw(this->region);
 }
 
@@ -518,7 +519,7 @@ static bool view3d_navigation_poll_impl(bContext *C, const eRegionView3D_ViewLoc
   }
 
   const RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  return !(RV3D_LOCK_FLAGS(rv3d) & viewlock);
+  return !(bke::region_view3d_lock_flags_get(rv3d) & viewlock);
 }
 
 static eV3D_OpEvent view3d_navigate_event(ViewOpsData *vod, const wmEvent *event)
@@ -985,7 +986,7 @@ void axis_set_view(bContext *C,
     ED_region_tag_redraw(region);
   }
 
-  if (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) {
+  if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ROTATION) {
     return;
   }
 
@@ -1075,7 +1076,7 @@ void viewmove_apply(ViewOpsData *vod, int x, int y)
 
     sub_v3_v3(vod->rv3d->ofs, dvec);
 
-    if (RV3D_LOCK_FLAGS(vod->rv3d) & RV3D_BOXVIEW) {
+    if (bke::region_view3d_lock_flags_get(vod->rv3d) & RV3D_BOXVIEW) {
       view3d_boxview_sync(vod->area, vod->region);
     }
   }
@@ -1291,7 +1292,7 @@ bool ED_view3d_navigation_do(bContext *C,
         vod->end_navigation(C);
         /* Postpone the navigation confirmation to the next call.
          * This avoids constant updating of the transform operation for example. */
-        vod->rv3d->rflag |= RV3D_NAVIGATING;
+        vod->rv3d->runtime->tags |= bke::RV3D_TAG_NAVIGATING;
       }
       break;
     }
@@ -1305,9 +1306,9 @@ bool ED_view3d_navigation_do(bContext *C,
 
     return true;
   }
-  if (vod->rv3d->rflag & RV3D_NAVIGATING) {
+  if (vod->rv3d->runtime->tags & bke::RV3D_TAG_NAVIGATING) {
     /* Add a fake confirmation. */
-    vod->rv3d->rflag &= ~RV3D_NAVIGATING;
+    vod->rv3d->runtime->tags &= ~bke::RV3D_TAG_NAVIGATING;
     return true;
   }
 

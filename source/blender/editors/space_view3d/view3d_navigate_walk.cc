@@ -35,6 +35,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "BLT_translation.hh"
 
@@ -661,7 +662,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
   walk->draw_handle_pixel = ED_region_draw_cb_activate(
       walk->region->runtime->type, drawWalkPixel, walk, REGION_DRAW_POST_PIXEL);
 
-  walk->rv3d->rflag |= RV3D_NAVIGATING;
+  walk->rv3d->runtime->tags |= bke::RV3D_TAG_NAVIGATING;
 
   walk->snap_context = ed::transform::snap_object_context_create();
 
@@ -714,7 +715,7 @@ static wmOperatorStatus walkEnd(bContext *C, WalkInfo *walk)
 
   ED_view3d_cameracontrol_release(walk->v3d_camera_control, walk->state == WALK_CANCEL);
 
-  rv3d->rflag &= ~RV3D_NAVIGATING;
+  rv3d->runtime->tags &= ~bke::RV3D_TAG_NAVIGATING;
 
 #ifdef WITH_INPUT_NDOF
   if (walk->ndof) {
@@ -1574,7 +1575,7 @@ static void walk_draw_status(bContext *C, wmOperator *op)
 static wmOperatorStatus walk_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  if (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) {
+  if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ANY_TRANSFORM) {
     return OPERATOR_CANCELLED;
   }
 

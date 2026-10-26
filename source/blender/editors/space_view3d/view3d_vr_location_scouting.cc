@@ -10,6 +10,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
@@ -174,7 +175,7 @@ static wmOperatorStatus vr_location_scouting_capture_review_invoke(bContext *C,
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   ScrArea *area = CTX_wm_area(C);
 
-  if (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) {
+  if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ANY_TRANSFORM) {
     return OPERATOR_CANCELLED;
   }
 

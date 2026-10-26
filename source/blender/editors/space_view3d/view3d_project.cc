@@ -18,6 +18,8 @@
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
 
+#include "BKE_view3d_runtime.hh"
+
 #include "GPU_matrix.hh"
 
 #include "ED_view3d.hh" /* own include */
@@ -230,7 +232,7 @@ eV3DProjStatus ED_view3d_project_short_object(const ARegion *region,
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   ED_view3d_check_mats_rv3d(rv3d);
-  return ED_view3d_project_short_ex(region, rv3d->persmatob, true, co, r_co, flag);
+  return ED_view3d_project_short_ex(region, rv3d->runtime->persmatob, true, co, r_co, flag);
 }
 
 eV3DProjStatus ED_view3d_project_int_global(const ARegion *region,
@@ -248,7 +250,7 @@ eV3DProjStatus ED_view3d_project_int_object(const ARegion *region,
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   ED_view3d_check_mats_rv3d(rv3d);
-  return ED_view3d_project_int_ex(region, rv3d->persmatob, true, co, r_co, flag);
+  return ED_view3d_project_int_ex(region, rv3d->runtime->persmatob, true, co, r_co, flag);
 }
 
 eV3DProjStatus ED_view3d_project_float_global(const ARegion *region,
@@ -266,7 +268,7 @@ eV3DProjStatus ED_view3d_project_float_object(const ARegion *region,
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   ED_view3d_check_mats_rv3d(rv3d);
-  return ED_view3d_project_float_ex(region, rv3d->persmatob, true, co, r_co, flag);
+  return ED_view3d_project_float_ex(region, rv3d->runtime->persmatob, true, co, r_co, flag);
 }
 
 /* More Generic Window/Ray/Vector projection functions

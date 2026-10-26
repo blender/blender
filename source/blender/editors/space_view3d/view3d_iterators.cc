@@ -29,6 +29,7 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -471,7 +472,9 @@ static void mesh_foreachScreenEdge_clip_bb_segment__mapFunc(void *user_data,
   BLI_assert(data->clip_flag & V3D_PROJ_TEST_CLIP_BB);
 
   float v_a_clip[3], v_b_clip[3];
-  if (!clip_segment_v3_plane_n(v_a, v_b, data->vc.rv3d->clip_local, 4, v_a_clip, v_b_clip)) {
+  if (!clip_segment_v3_plane_n(
+          v_a, v_b, data->vc.rv3d->runtime->clip_local, 4, v_a_clip, v_b_clip))
+  {
     return;
   }
 

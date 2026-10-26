@@ -8,6 +8,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -36,7 +37,7 @@ static wmOperatorStatus view_camera_exec(bContext *C, wmOperator *op)
 
   ED_view3d_smooth_view_force_finish(C, v3d, region);
 
-  if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0) {
+  if ((bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0) {
     const Main *bmain = CTX_data_main(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Scene *scene = CTX_data_scene(C);
@@ -45,7 +46,7 @@ static wmOperatorStatus view_camera_exec(bContext *C, wmOperator *op)
       BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
       Object *ob = BKE_view_layer_active_object_get(view_layer);
 
-      if (!rv3d->smooth_timer) {
+      if (!rv3d->runtime->smooth_timer) {
         /* store settings of current view before allowing overwriting with camera view
          * only if we're not currently in a view transition */
 

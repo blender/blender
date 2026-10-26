@@ -16,6 +16,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_shader_fx.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "BKE_camera.h"
 
@@ -284,7 +285,7 @@ void Instance::begin_sync()
     float sensor_scaled = scale_camera * sensor;
 
     if (draw_ctx->rv3d != nullptr) {
-      sensor_scaled *= draw_ctx->rv3d->viewcamtexcofac[0];
+      sensor_scaled *= draw_ctx->rv3d->runtime->viewcamtexcofac[0];
     }
 
     this->dof_params[1] = aperture * fabsf(focal_len_scaled / (focus_dist - focal_len_scaled));

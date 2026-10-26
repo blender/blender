@@ -15,6 +15,7 @@
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_paint.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -142,7 +143,7 @@ struct SelectionPaintOperationExecutor {
      * selection is handled as a generic attribute for now. */
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
-    ctx_.rv3d->rflag &= ~RV3D_PAINTING;
+    ctx_.rv3d->runtime->tags &= ~bke::RV3D_TAG_PAINTING;
     ED_region_tag_redraw(ctx_.region);
   }
 

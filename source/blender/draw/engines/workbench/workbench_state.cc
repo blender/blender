@@ -17,6 +17,7 @@
 #include "BKE_mesh_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -147,7 +148,7 @@ void SceneState::init(const DRWContext *context,
   }
   clip_planes.clear();
   if (new_clip_state & DRW_STATE_CLIP_PLANES) {
-    int plane_len = (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXCLIP) ? 4 : 6;
+    int plane_len = (bke::region_view3d_lock_flags_get(rv3d) & RV3D_BOXCLIP) ? 4 : 6;
     for (auto i : IndexRange(plane_len)) {
       clip_planes.append(rv3d->clip[i]);
     }
@@ -190,11 +191,11 @@ void SceneState::init(const DRWContext *context,
     }
   }
 
-  if (rv3d && rv3d->rflag & RV3D_GPULIGHT_UPDATE) {
+  if (rv3d && rv3d->runtime->tags & bke::RV3D_TAG_GPULIGHT_UPDATE) {
     reset_taa = true;
     /* FIXME: This reproduce old behavior when workbench was separated in 2 engines.
      * But this is a workaround for a missing update tagging. */
-    rv3d->rflag &= ~RV3D_GPULIGHT_UPDATE;
+    rv3d->runtime->tags &= ~bke::RV3D_TAG_GPULIGHT_UPDATE;
   }
 
   float4x4 matrix = View::default_get().persmat();

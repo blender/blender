@@ -54,6 +54,7 @@
 #include "BKE_scene_context.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.hh"
+#include "BKE_view3d_runtime.hh"
 #include "BKE_workspace.hh"
 
 #include "WM_api.hh"
@@ -5897,7 +5898,7 @@ static void region_quadview_init_rv3d(ScrArea *area,
   }
 
   rv3d->viewlock = viewlock;
-  rv3d->runtime_viewlock = eRegionView3D_ViewLock{};
+  rv3d->runtime->viewlock = eRegionView3D_ViewLock{};
   rv3d->view = view;
   rv3d->view_axis_roll = RV3D_VIEW_AXIS_ROLL_0;
   rv3d->persp = persp;
@@ -5947,7 +5948,7 @@ static wmOperatorStatus region_quadview_exec(bContext *C, wmOperator *op)
 
       /* FIXME: This fixes missing update to workbench TAA. (see #76216)
        * However, it would be nice if the tagging should be done in a more conventional way. */
-      rv3d->rflag |= RV3D_GPULIGHT_UPDATE;
+      rv3d->runtime->tags |= bke::RV3D_TAG_GPULIGHT_UPDATE;
 
       /* Accumulate locks, in case they're mixed. */
       for (ARegion &region_iter : area->regionbase) {

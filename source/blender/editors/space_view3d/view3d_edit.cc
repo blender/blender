@@ -32,6 +32,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -59,7 +60,9 @@ static bool view3d_camera_user_poll(bContext *C)
 
   if (ED_view3d_context_user_region(C, &v3d, &region)) {
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-    if ((rv3d->persp == RV3D_CAMOB) && !(RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM)) {
+    if ((rv3d->persp == RV3D_CAMOB) &&
+        !(bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ANY_TRANSFORM))
+    {
       return true;
     }
   }
@@ -641,7 +644,7 @@ static wmOperatorStatus viewpersportho_exec(bContext *C, wmOperator * /*op*/)
   rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   /* Could add a separate lock flag for locking persp. */
-  if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0) {
+  if ((bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0) {
     if (rv3d->persp != RV3D_ORTHO) {
       rv3d->persp = RV3D_ORTHO;
     }
@@ -920,7 +923,7 @@ static void calc_local_clipping(float clip_local[6][4],
 void ED_view3d_clipping_local(RegionView3D *rv3d, const float mat[4][4])
 {
   if ((rv3d->rflag & RV3D_CLIPPING) && (rv3d->clipbb != nullptr)) {
-    calc_local_clipping(rv3d->clip_local, rv3d->clipbb, mat);
+    calc_local_clipping(rv3d->runtime->clip_local, rv3d->clipbb, mat);
   }
 }
 

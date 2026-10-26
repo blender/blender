@@ -24,6 +24,7 @@
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
@@ -853,7 +854,7 @@ static bool v3d_cursor_snap_poll_fn(bContext *C)
   }
 
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  if (rv3d->rflag & RV3D_NAVIGATING) {
+  if (rv3d->runtime->tags & bke::RV3D_TAG_NAVIGATING) {
     /* Don't draw the cursor while navigating. It can be distracting. */
     return false;
   };

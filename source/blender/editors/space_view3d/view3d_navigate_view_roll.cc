@@ -12,6 +12,7 @@
 #include "BLI_rect.hh"
 
 #include "BKE_context.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "WM_api.hh"
 
@@ -87,7 +88,7 @@ static void viewroll_apply(ViewOpsData *vod, int x, int y)
         vod->rv3d->ofs, vod->init.ofs, vod->init.quat, vod->rv3d->viewquat, vod->dyn_ofs);
   }
 
-  if (RV3D_LOCK_FLAGS(vod->rv3d) & RV3D_BOXVIEW) {
+  if (bke::region_view3d_lock_flags_get(vod->rv3d) & RV3D_BOXVIEW) {
     view3d_boxview_sync(vod->area, vod->region);
   }
 

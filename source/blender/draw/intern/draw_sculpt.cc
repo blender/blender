@@ -21,6 +21,7 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "BLI_math_matrix.hh"
 
@@ -63,7 +64,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
   /* TODO(Miguel Pozo): Don't use global context. */
   const DRWContext *drwctx = DRW_context_get();
   RegionView3D *rv3d = drwctx->rv3d;
-  const bool navigating = rv3d && (rv3d->rflag & RV3D_NAVIGATING);
+  const bool navigating = rv3d && (rv3d->runtime->tags & bke::RV3D_TAG_NAVIGATING);
 
   Paint *paint = nullptr;
   if (drwctx->evil_C != nullptr) {
@@ -89,7 +90,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
 
   /* Update draw buffers only for visible nodes while painting.
    * But do update them otherwise so navigating stays smooth. */
-  bool update_only_visible = rv3d && !(rv3d->rflag & RV3D_PAINTING);
+  bool update_only_visible = rv3d && !(rv3d->runtime->tags & bke::RV3D_TAG_PAINTING);
   if (paint && (paint->flags & PAINT_SCULPT_DELAY_UPDATES)) {
     update_only_visible = true;
   }

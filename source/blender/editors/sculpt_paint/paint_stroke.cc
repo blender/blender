@@ -36,6 +36,7 @@
 #include "BKE_image.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_types.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -945,7 +946,7 @@ PaintStroke::PaintStroke(bContext *C,
   paint_runtime->stroke_active = true;
 
   if (rv3d) {
-    rv3d->rflag |= RV3D_PAINTING;
+    rv3d->runtime->tags |= bke::RV3D_TAG_PAINTING;
   }
 
   /* Preserve location from last stroke while applying and resetting
@@ -995,7 +996,7 @@ void PaintStroke::done(bContext *C, const bool is_cancel)
   this->done(is_cancel, stroke_started_);
 
   if (RegionView3D *rv3d = CTX_wm_region_view3d(C)) {
-    rv3d->rflag &= ~RV3D_PAINTING;
+    rv3d->runtime->tags &= ~bke::RV3D_TAG_PAINTING;
   }
 
   bke::paint::set_overlay_brush_override(*this->paint, eOverlayFlags(0));

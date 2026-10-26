@@ -9,6 +9,8 @@
 #include "BKE_camera.h"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
+
 #include "BLI_enum_flags.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix.hh"
@@ -251,8 +253,8 @@ void Camera::sync()
 
   Bounds<float2> uv_region = {float2(0.0f), float2(display_extent)};
   if (inst_.drw_view) {
-    float2 uv_scale = float4(inst_.rv3d->viewcamtexcofac).xy();
-    float2 uv_bias = float4(inst_.rv3d->viewcamtexcofac).zw();
+    float2 uv_scale = float4(inst_.rv3d->runtime->viewcamtexcofac).xy();
+    float2 uv_bias = float4(inst_.rv3d->runtime->viewcamtexcofac).zw();
     /* UV region inside the display extent reference frame. */
     uv_region.min = (-uv_bias * float2(display_extent)) / uv_scale;
     uv_region.max = uv_region.min + (float2(display_extent) / uv_scale);
