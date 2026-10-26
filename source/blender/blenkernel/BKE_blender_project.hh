@@ -427,6 +427,13 @@ inline auto BKE_blender_project_write_callback(const Main *bmain, Fn lambda)
  */
 bool BKE_blender_project_init(blender::StringRef name, blender::StringRef root_path);
 
+/** Refresh the current project if needed.
+ *
+ * Refreshes the current project if the provided filepath belongs to an
+ * other project (or no project at all).
+ */
+void BKE_blender_project_refresh(Main *bmain, const char *filepath);
+
 /**
  * Clears and unloads the current active project, if any.
  *
@@ -451,7 +458,11 @@ std::string BKE_blender_project_path_make_relative(StringRef path,
  */
 std::string BKE_blender_project_path_resolve(StringRef path, const bke::BlenderProject &project);
 
+/** Saves changes to the active project config if autosave is enabled. */
+void BKE_blender_project_config_autosave(Main *bmain);
+/** Saves the active project config to disk. */
 bool BKE_blender_project_config_file_write(Main *bmain);
+/** Try to initialize a project from the provided project root path. */
 bool BKE_blender_project_init_from_root_path(Main *bmain, std::string project_root_path);
 
 /** Recent projects list item. */

@@ -478,6 +478,31 @@ bool BKE_blender_project_init(StringRef name, StringRef root_path)
   return true;
 }
 
+void BKE_blender_project_refresh(Main *bmain, const char *filepath)
+{
+  if (!bmain || !filepath[0]) {
+    return;
+  }
+
+  const std::string new_root_path = BKE_is_path_inside_blender_project(filepath);
+  if (new_root_path.empty()) {
+    /* The current .blend file is not located in any project, clear the active project. */
+    BKE_blender_project_clear();
+    return;
+  }
+
+  bke::BlenderProject *project = BKE_blender_project_get(bmain);
+  if (project != nullptr && new_root_path == project->get_root_path()) {
+    /* Same project as before, do nothing. */
+    return;
+  }
+
+  BKE_blender_project_clear();
+
+  /* Load the new project. */
+  BKE_blender_project_init_from_root_path(bmain, new_root_path);
+}
+
 void BKE_blender_project_clear()
 {
   bke::with_blender_project_write_lock([&] {
