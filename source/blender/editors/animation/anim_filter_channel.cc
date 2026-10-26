@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <algorithm>
+#include <limits>
 #include <ostream>
 #include <string>
 
@@ -1096,18 +1097,22 @@ void FCurveChannel::gather_channeldata()
 void FCurveChannel::change_selection(const SelectionMode mode, const Bounds<float> range)
 {
   FCurve *fcurve = this->get_source<FCurve>();
-  if (!fcurve || !fcurve->bezt || fcurve->totvert == 0) {
+
+  /* Convert totvert to a signed integer, to be able to compare it to the value returned by
+   * BKE_fcurve_bezt_binarysearch_index(). */
+  BLI_assert(fcurve->totvert < std::numeric_limits<int64_t>::max());
+  const int64_t totvert = fcurve->totvert;
+
+  if (!fcurve || !fcurve->bezt || totvert == 0) {
     return;
   }
-  if (fcurve->bezt[0].vec[1][0] > range.max ||
-      fcurve->bezt[fcurve->totvert - 1].vec[1][0] < range.min)
-  {
+  if (fcurve->bezt[0].vec[1][0] > range.max || fcurve->bezt[totvert - 1].vec[1][0] < range.min) {
     return;
   }
   bool frame_on_key;
   const int start_index = BKE_fcurve_bezt_binarysearch_index(
-      fcurve->bezt, range.min, fcurve->totvert, &frame_on_key);
-  for (int i = start_index; i < fcurve->totvert; i++) {
+      fcurve->bezt, range.min, totvert, &frame_on_key);
+  for (int i = start_index; i < totvert; i++) {
     BezTriple &key = fcurve->bezt[i];
     if (key.vec[1][0] > range.max) {
       break;
