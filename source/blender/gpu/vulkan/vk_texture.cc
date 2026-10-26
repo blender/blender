@@ -211,9 +211,15 @@ void VKTexture::read_sub(
   TransferRegion full_transfer_region({offset, extent, layers});
   const VkDeviceSize sample_bytesize = to_bytesize(device_format_);
   const VkDeviceSize host_sample_bytesize = to_bytesize(format_, format);
-  /* For a texture view the raw bytes are reinterpretable with the base format but must be read
-   * back as the view (#format_) for them to be numerically correct. */
-  const TextureFormat data_storage_format = is_texture_view() ? format_ : device_format_;
+  /* A texture view that reinterprets the source format stores its raw bytes in the base format,
+   * so they must be read back as the view (#format_) to be numerically correct. A view that keeps
+   * the source format uses #device_format_, which differs from #format_ for emulated formats
+   * (RGB16F and RGB32F are stored as RGBA). Matches the format selection in #image_view_get. */
+  const bool reinterprets_format = is_texture_view() &&
+                                   (source_texture_->usage_get() &
+                                    GPU_TEXTURE_USAGE_FORMAT_VIEW) &&
+                                   format_ != static_cast<VKTexture *>(source_texture_)->format_;
+  const TextureFormat data_storage_format = reinterprets_format ? format_ : device_format_;
   const uint64_t x_bytesize = sample_bytesize * extent.x;
   const uint64_t xy_bytesize = x_bytesize * extent.y;
   const uint64_t xyz_bytesize = xy_bytesize * extent.z;
