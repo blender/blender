@@ -123,9 +123,11 @@ void OSLManager::device_update_pre(Device * /*device*/, Scene *scene)
   /* set texture system (only on CPU devices, since GPU devices cannot use OIIO) */
   if (scene->shader_manager->use_osl()) {
     /* add special builtin texture types */
-    foreach_render_services([](OSLRenderServices *services) {
-      services->textures.insert(OSLUStringHash("@ao"), OSLTextureHandle(OSLTextureHandleType::AO));
-      services->textures.insert(OSLUStringHash("@bevel"),
+    const ImageManager *image_manager = scene->image_manager.get();
+    foreach_render_services([image_manager](OSLRenderServices *services) {
+      services->textures.insert({OSLUStringHash("@ao"), image_manager},
+                                OSLTextureHandle(OSLTextureHandleType::AO));
+      services->textures.insert({OSLUStringHash("@bevel"), image_manager},
                                 OSLTextureHandle(OSLTextureHandleType::BEVEL));
     });
   }
@@ -284,7 +286,7 @@ void OSLManager::device_free(Device *device, DeviceScene * /*dscene*/, Scene *sc
    * the image manager may get destroyed next. */
   foreach_render_services([scene](OSLRenderServices *services) {
     for (auto it = services->textures.begin(); it != services->textures.end();) {
-      if (it->second.handle.get_manager() == scene->image_manager.get()) {
+      if (it->first.image_manager == scene->image_manager.get()) {
         /* Don't lock again, since the iterator already did so. */
         services->textures.erase(it->first, false);
         it.clear();
@@ -1565,7 +1567,8 @@ void OSLCompiler::parameter_texture(const char *name, const ImageHandle &handle)
    * to get handle again. Note that this name must be unique between multiple
    * render sessions as the render services are shared. */
   const ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
-  services->textures.insert(OSLUStringHash(filename), OSLTextureHandle(handle));
+  services->textures.insert({OSLUStringHash(filename), scene->image_manager.get()},
+                            OSLTextureHandle(handle));
   parameter(name, filename);
 }
 
@@ -1573,7 +1576,7 @@ void OSLCompiler::parameter_texture_ies(const char *name, const int svm_slot)
 {
   /* IES light textures stored in SVM. */
   const ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
-  services->textures.insert(OSLUStringHash(filename),
+  services->textures.insert({OSLUStringHash(filename), scene->image_manager.get()},
                             OSLTextureHandle(OSLTextureHandleType::IES, svm_slot));
   parameter(name, filename);
 }

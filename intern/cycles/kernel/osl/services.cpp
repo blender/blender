@@ -258,7 +258,7 @@ OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(
   /* Note the mutex lock in find_or_insert() is not so bad for performance because
    * this function only gets called once per texture handle to create it, not for
    * every texture access. */
-  auto [it, inserted] = textures.find_or_insert(filename,
+  auto [it, inserted] = textures.find_or_insert({filename, image_manager},
                                                 OSLTextureHandle(OSLTextureHandleType::IMAGE));
 
   if (inserted) {
