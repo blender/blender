@@ -87,26 +87,16 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
         const Span<int> verts = nodes[i].verts();
 
         const MutableSpan<float> factors = all_factors.as_mutable_span().slice(node_offsets[pos]);
-        fill_factor_from_hide_and_mask(
-            attribute_data.hide_vert, attribute_data.mask, verts, factors);
-        filter_region_clip_factors(ss, position_data.eval, verts, factors);
-        if (brush.flag & BRUSH_FRONTFACE) {
-          calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
-        }
-
         tls.distances.resize(verts.size());
-        const MutableSpan<float> distances = tls.distances;
-        calc_brush_distances(
-            ss, position_data.eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
-        filter_distances_with_radius(cache.radius, distances, factors);
-        apply_hardness_to_distances(cache, distances);
-        calc_brush_strength_factors(cache, brush, distances, factors);
-
-        auto_mask::calc_vert_factors(
-            depsgraph, object, cache.automasking.get(), nodes[i], verts, factors);
-
-        calc_brush_texture_factors(
-            PaintMode::Sculpt, ss, brush, position_data.eval, verts, factors);
+        calc_factors_common_mesh_indexed(depsgraph,
+                                         brush,
+                                         object,
+                                         attribute_data,
+                                         position_data.eval,
+                                         vert_normals,
+                                         nodes[i],
+                                         factors,
+                                         tls.distances);
 
         scale_factors(factors, cache.bstrength);
         clamp_factors(factors);
@@ -218,23 +208,9 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
         const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
         const MutableSpan<float> factors = all_factors.as_mutable_span().slice(node_offsets[pos]);
-        fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-        filter_region_clip_factors(ss, positions, factors);
-        if (brush.flag & BRUSH_FRONTFACE) {
-          calc_front_face(cache.view_normal_symm, subdiv_ccg, grids, factors);
-        }
-
         tls.distances.resize(positions.size());
-        const MutableSpan<float> distances = tls.distances;
-        calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
-        filter_distances_with_radius(cache.radius, distances, factors);
-        apply_hardness_to_distances(cache, distances);
-        calc_brush_strength_factors(cache, brush, distances, factors);
-
-        auto_mask::calc_grids_factors(
-            depsgraph, object, cache.automasking.get(), nodes[i], grids, factors);
-
-        calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
+        calc_factors_common_grids(
+            depsgraph, brush, object, positions, nodes[i], factors, tls.distances);
 
         scale_factors(factors, cache.bstrength);
         clamp_factors(factors);
@@ -330,23 +306,9 @@ BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
         const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
         const MutableSpan<float> factors = all_factors.as_mutable_span().slice(node_offsets[pos]);
-        fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
-        filter_region_clip_factors(ss, positions, factors);
-        if (brush.flag & BRUSH_FRONTFACE) {
-          calc_front_face(cache.view_normal_symm, verts, factors);
-        }
-
         tls.distances.resize(positions.size());
-        const MutableSpan<float> distances = tls.distances;
-        calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
-        filter_distances_with_radius(cache.radius, distances, factors);
-        apply_hardness_to_distances(cache, distances);
-        calc_brush_strength_factors(cache, brush, distances, factors);
-
-        auto_mask::calc_vert_factors(
-            depsgraph, object, cache.automasking.get(), nodes[i], verts, factors);
-
-        calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
+        calc_factors_common_bmesh(
+            depsgraph, brush, object, positions, nodes[i], factors, tls.distances);
 
         scale_factors(factors, cache.bstrength);
         clamp_factors(factors);

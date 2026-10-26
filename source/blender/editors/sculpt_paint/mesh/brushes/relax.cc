@@ -479,31 +479,20 @@ BLI_NOINLINE static void calc_topology_relax_factors_faces(const Depsgraph &deps
                                                            MeshLocalData &tls,
                                                            const MutableSpan<float> factors)
 {
-  SculptSession &ss = *object.runtime->sculpt_session;
-  const StrokeCache &cache = *ss.cache;
-
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
-  const Span<int> verts = node.verts();
 
-  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
-  filter_region_clip_factors(ss, orig_data.positions, factors);
-  if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal_symm, orig_data.normals, factors);
-  }
-
-  tls.distances.resize(verts.size());
-  const MutableSpan<float> distances = tls.distances;
-  calc_brush_distances(
-      ss, orig_data.positions, eBrushFalloffShape(brush.falloff_shape), distances);
-  filter_distances_with_radius(cache.radius, distances, factors);
-  apply_hardness_to_distances(cache, distances);
-  calc_brush_strength_factors(cache, brush, distances, factors);
-
-  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+  tls.distances.resize(orig_data.positions.size());
+  calc_factors_common_from_orig_data_mesh(depsgraph,
+                                          brush,
+                                          object,
+                                          attribute_data,
+                                          orig_data.positions,
+                                          orig_data.normals,
+                                          node,
+                                          factors,
+                                          tls.distances);
 
   scale_factors(factors, strength);
-
-  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, orig_data.positions, factors);
 }
 
 static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
@@ -589,7 +578,6 @@ BLI_NOINLINE static void calc_topology_relax_factors_grids(const Depsgraph &deps
                                                            const MutableSpan<float> factors)
 {
   const SculptSession &ss = *object.runtime->sculpt_session;
-  const StrokeCache &cache = *ss.cache;
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -599,25 +587,17 @@ BLI_NOINLINE static void calc_topology_relax_factors_grids(const Depsgraph &deps
   gather_data_grids(subdiv_ccg, subdiv_ccg.positions.as_span(), grids, positions);
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
-  fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-  filter_region_clip_factors(ss, orig_data.positions, factors);
-  if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal_symm, orig_data.normals, factors);
-  }
-
   tls.distances.resize(grid_verts_num);
-  const MutableSpan<float> distances = tls.distances;
-  calc_brush_distances(
-      ss, orig_data.positions, eBrushFalloffShape(brush.falloff_shape), distances);
-  filter_distances_with_radius(cache.radius, distances, factors);
-  apply_hardness_to_distances(cache, distances);
-  calc_brush_strength_factors(cache, brush, distances, factors);
-
-  auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
+  calc_factors_common_from_orig_data_grids(depsgraph,
+                                           brush,
+                                           object,
+                                           orig_data.positions,
+                                           orig_data.normals,
+                                           node,
+                                           factors,
+                                           tls.distances);
 
   scale_factors(factors, strength);
-
-  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, orig_data.positions, factors);
 }
 
 static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
@@ -707,7 +687,6 @@ static void calc_topology_relax_factors_bmesh(const Depsgraph &depsgraph,
                                               MutableSpan<float> factors)
 {
   SculptSession &ss = *object.runtime->sculpt_session;
-  const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
 
@@ -717,24 +696,11 @@ static void calc_topology_relax_factors_bmesh(const Depsgraph &depsgraph,
 
   gather_bmesh_positions(verts, positions);
 
-  fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
-  filter_region_clip_factors(ss, orig_positions, factors);
-  if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal_symm, orig_normals, factors);
-  }
-
   tls.distances.resize(verts.size());
-  const MutableSpan<float> distances = tls.distances;
-  calc_brush_distances(ss, orig_positions, eBrushFalloffShape(brush.falloff_shape), distances);
-  filter_distances_with_radius(cache.radius, distances, factors);
-  apply_hardness_to_distances(cache, distances);
-  calc_brush_strength_factors(cache, brush, distances, factors);
-
-  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
+  calc_factors_common_from_orig_data_bmesh(
+      depsgraph, brush, object, orig_positions, orig_normals, node, factors, tls.distances);
 
   scale_factors(factors, strength);
-
-  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, orig_positions, factors);
 }
 
 static void do_topology_relax_brush_bmesh(const Depsgraph &depsgraph,

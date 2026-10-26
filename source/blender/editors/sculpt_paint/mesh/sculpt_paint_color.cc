@@ -284,23 +284,16 @@ static void do_color_smooth_task(const Depsgraph &depsgraph,
 
   tls.opacity_factors.resize(verts.size());
   const MutableSpan<float> factors = tls.opacity_factors;
-  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
-  filter_region_clip_factors(ss, vert_positions, verts, factors);
-  if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
-  }
-
   tls.distances.resize(verts.size());
-  const MutableSpan<float> distances = tls.distances;
-  calc_brush_distances(
-      ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
-  filter_distances_with_radius(cache.radius, distances, factors);
-  apply_hardness_to_distances(cache, distances);
-  calc_brush_strength_factors(cache, brush, distances, factors);
-
-  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
-
-  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, vert_positions, verts, factors);
+  calc_factors_common_mesh_indexed(depsgraph,
+                                   brush,
+                                   object,
+                                   attribute_data,
+                                   vert_positions,
+                                   vert_normals,
+                                   node,
+                                   factors,
+                                   tls.distances);
   scale_factors(factors, cache.bstrength);
 
   tls.colors.resize(verts.size());
@@ -728,30 +721,22 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
                                 bke::GSpanAttributeWriter &color_attribute)
 {
   const SculptSession &ss = *object.runtime->sculpt_session;
-  const StrokeCache &cache = *ss.cache;
   const float strength = ss.cache->bstrength;
 
   const Span<int> verts = node.verts();
 
   tls.opacity_factors.resize(verts.size());
   const MutableSpan<float> factors = tls.opacity_factors;
-  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
-  filter_region_clip_factors(ss, vert_positions, verts, factors);
-  if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
-  }
-
   tls.distances.resize(verts.size());
-  const MutableSpan<float> distances = tls.distances;
-  calc_brush_distances(
-      ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
-  filter_distances_with_radius(cache.radius, distances, factors);
-  apply_hardness_to_distances(cache, distances);
-  calc_brush_strength_factors(cache, brush, distances, factors);
-
-  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
-
-  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, vert_positions, verts, factors);
+  calc_factors_common_mesh_indexed(depsgraph,
+                                   brush,
+                                   object,
+                                   attribute_data,
+                                   vert_positions,
+                                   vert_normals,
+                                   node,
+                                   factors,
+                                   tls.distances);
   scale_factors(factors, strength);
 
   float3 brush_delta;

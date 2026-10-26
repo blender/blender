@@ -113,6 +113,8 @@ static void calc_grids(const Depsgraph &depsgraph,
   const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
 
+  tls.factors.resize(grid_verts_num);
+  tls.distances.resize(grid_verts_num);
   calc_factors_common_from_orig_data_grids(depsgraph,
                                            brush,
                                            object,
@@ -153,6 +155,8 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   Array<float3> orig_normals(verts.size());
   orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
 
+  tls.factors.resize(verts.size());
+  tls.distances.resize(verts.size());
   calc_factors_common_from_orig_data_bmesh(
       depsgraph, brush, object, orig_positions, orig_normals, node, tls.factors, tls.distances);
 

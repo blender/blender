@@ -221,15 +221,15 @@ void calc_factors_common_grids(const Depsgraph &depsgraph,
                                const Object &object,
                                Span<float3> positions,
                                const bke::pbvh::GridsNode &node,
-                               Vector<float> &r_factors,
-                               Vector<float> &r_distances);
+                               MutableSpan<float> factors,
+                               MutableSpan<float> distances);
 void calc_factors_common_bmesh(const Depsgraph &depsgraph,
                                const Brush &brush,
                                const Object &object,
                                Span<float3> positions,
                                bke::pbvh::BMeshNode &node,
-                               Vector<float> &r_factors,
-                               Vector<float> &r_distances);
+                               MutableSpan<float> factors,
+                               MutableSpan<float> distances);
 void calc_cube_tip_factors_common_grids(const Depsgraph &depsgraph,
                                         const Brush &brush,
                                         const Object &object,
@@ -237,8 +237,8 @@ void calc_cube_tip_factors_common_grids(const Depsgraph &depsgraph,
                                         Span<float3> positions,
                                         const MutableSpan<float3> local_positions,
                                         const bke::pbvh::GridsNode &node,
-                                        Vector<float> &r_factors,
-                                        Vector<float> &r_distances);
+                                        MutableSpan<float> factors,
+                                        MutableSpan<float> distances);
 void calc_cube_tip_factors_common_bmesh(const Depsgraph &depsgraph,
                                         const Brush &brush,
                                         const Object &object,
@@ -246,8 +246,8 @@ void calc_cube_tip_factors_common_bmesh(const Depsgraph &depsgraph,
                                         Span<float3> positions,
                                         const MutableSpan<float3> local_positions,
                                         bke::pbvh::BMeshNode &node,
-                                        Vector<float> &r_factors,
-                                        Vector<float> &r_distances);
+                                        MutableSpan<float> factors,
+                                        MutableSpan<float> distances);
 void calc_factors_common_from_orig_data_mesh(const Depsgraph &depsgraph,
                                              const Brush &brush,
                                              const Object &object,
@@ -274,8 +274,8 @@ void calc_factors_common_from_orig_data_grids(const Depsgraph &depsgraph,
                                               Span<float3> positions,
                                               Span<float3> normals,
                                               const bke::pbvh::GridsNode &node,
-                                              Vector<float> &r_factors,
-                                              Vector<float> &r_distances);
+                                              MutableSpan<float> factors,
+                                              MutableSpan<float> distances);
 void calc_cube_tip_factors_common_from_orig_data_grids(const Depsgraph &depsgraph,
                                                        const Brush &brush,
                                                        const Object &object,
@@ -284,16 +284,16 @@ void calc_cube_tip_factors_common_from_orig_data_grids(const Depsgraph &depsgrap
                                                        Span<float3> normals,
                                                        const MutableSpan<float3> local_positions,
                                                        const bke::pbvh::GridsNode &node,
-                                                       Vector<float> &r_factors,
-                                                       Vector<float> &r_distances);
+                                                       MutableSpan<float> factors,
+                                                       MutableSpan<float> distances);
 void calc_factors_common_from_orig_data_bmesh(const Depsgraph &depsgraph,
                                               const Brush &brush,
                                               const Object &object,
                                               Span<float3> positions,
                                               Span<float3> normals,
                                               bke::pbvh::BMeshNode &node,
-                                              Vector<float> &r_factors,
-                                              Vector<float> &r_distances);
+                                              MutableSpan<float> factors,
+                                              MutableSpan<float> distances);
 void calc_cube_tip_factors_common_from_orig_data_bmesh(const Depsgraph &depsgraph,
                                                        const Brush &brush,
                                                        const Object &object,
@@ -302,8 +302,8 @@ void calc_cube_tip_factors_common_from_orig_data_bmesh(const Depsgraph &depsgrap
                                                        Span<float3> normals,
                                                        const MutableSpan<float3> local_positions,
                                                        bke::pbvh::BMeshNode &node,
-                                                       Vector<float> &r_factors,
-                                                       Vector<float> &r_distances);
+                                                       MutableSpan<float> factors,
+                                                       MutableSpan<float> distances);
 
 /**
  * Calculate initial influence factors based on vertex visibility.
