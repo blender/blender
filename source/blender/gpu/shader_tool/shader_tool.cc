@@ -49,8 +49,9 @@ static metadata::Source scan_external_symbols(const std::vector<std::string> &fi
   for (const auto &dep : include_data.dependencies) {
     std::string file;
     for (const auto &filename : file_list) {
-      if (filename.find(dep) != std::string::npos) {
+      if (std::filesystem::path(filename).filename() == dep) {
         file = filename;
+        break;
       }
     }
 
