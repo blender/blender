@@ -90,6 +90,7 @@ template<typename Derived, typename ResultT, typename NodeT> class PrattParser {
       case Minus:
       case Not:
       case BitwiseNot:
+      case Ampersand:
         /* Note that '!' token is of MultiTok class and can contain many unary '!'.
          * Implementation must take care of it. */
         return self.prefix(t, BindingPower::prefix);

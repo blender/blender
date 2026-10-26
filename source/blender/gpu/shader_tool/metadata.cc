@@ -57,6 +57,7 @@ std::string ParsedResource::serialize() const
     ss << ", \"" << var_type << "\"";
     ss << ", \"" << var_name << var_array << "\"";
     ss << ", Frequency::" << res_frequency;
+    ss << ", " << (contains_pointer ? "true" : "false");
     ss << res_condition_lambda << ")";
   }
   else if (res_type == "storage") {
@@ -65,6 +66,7 @@ std::string ParsedResource::serialize() const
     ss << ", \"" << var_type << "\"";
     ss << ", \"" << var_name << var_array << "\"";
     ss << ", Frequency::" << res_frequency;
+    ss << ", " << (contains_pointer ? "true" : "false");
     ss << res_condition_lambda << ")";
   }
   else if (res_type == "acceleration_structure") {
@@ -82,8 +84,11 @@ std::string ParsedResource::serialize() const
          << var_array.substr(1, var_array.size() - 2) << ")";
     }
     else {
-      ss << ".push_constant(Type::" << var_type << "_t, \"" << var_name << "\", 0"
-         << res_condition_lambda << ")";
+      ss << ".push_constant(Type::" << var_type << "_t";
+      ss << ", \"" << var_name << "\"";
+      ss << ", 0";
+      ss << ", " << (contains_pointer ? "true" : "false");
+      ss << res_condition_lambda << ")";
     }
   }
   else if (res_type == "compilation_constant") {

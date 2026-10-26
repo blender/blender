@@ -369,6 +369,7 @@ struct SymbolParser : NodeErrorHandler {
           SymbolVariable *var = table.var_arena.alloc(
               &scope, fn->parent_class(), arg_list.front(), "this");
           var->is_ptr = true;
+          var->is_this = true;
           scope.variable_emplace(var);
           /* Mangle the emitted token to avoid conflict with MSL. */
           var->identifier = "this_";
@@ -1120,6 +1121,10 @@ struct SymbolParser : NodeErrorHandler {
       type->ensure_size_and_align(this, true);
     }
 
+    if (first_decl.is_pointer() && first_decl.pointer().str().size() != 1) {
+      error(first_decl.pointer(), Diag::PointerMultiIndirection);
+    }
+
     if (cls) {
       if (cls->srt_type == ResourceTableType::NONE && attr.srt_type != ResourceTableType::NONE) {
         if (cls->is_anonymous) {
@@ -1168,8 +1173,15 @@ struct SymbolParser : NodeErrorHandler {
       named_parent = prefix.non_anonymous_parent;
     }
 
+    const bool is_ptr = var.is_pointer();
     const bool is_ref = var.is_reference();
     for (Declarator decl : var.children_of_type<Declarator>()) {
+      /* Since we bake the pointer in the type we require that all declarators must be pointers or
+       * none of them. */
+      if (is_ptr != decl.is_pointer()) {
+        error(decl, Diag::PointerMixedVarDecl);
+        continue;
+      }
       if (is_ref != decl.is_reference()) {
         error(decl, Diag::ReferenceMixedVarDecl);
         continue;
@@ -1191,6 +1203,21 @@ struct SymbolParser : NodeErrorHandler {
                Diag::NotePreviousDefinition,
                sym->identifier);
           error(sym->loc.tok, Diag::Redefinition, sym->identifier);
+        }
+      }
+
+      if (sym->is_ptr) {
+        /* We only support single indirection pointers. */
+        if (decl.pointer().str().size() != 1) {
+          error(decl.pointer(), Diag::PointerMultiIndirection);
+        }
+        /* When declared inside a class, pointers are only allowed to be declared in resource
+         * declarations. */
+        if (cls && (attr.res_type != ResourceType::PUSH_CONST &&
+                    attr.res_type != ResourceType::UNIFORM_BUF &&
+                    attr.res_type != ResourceType::STORAGE_BUF))
+        {
+          error(decl.pointer(), Diag::PointerNotResource);
         }
       }
 

@@ -453,6 +453,12 @@ struct ExpressionTypeParser
   {
     /* Subscript operator. */
     if (ast::Subscript sub = t; sub.is_valid()) {
+      if (left.is_ptr) {
+        /* TODO(fclem): Check for 'this' somehow. */
+        left.is_ptr = false;
+        return left;
+      }
+
       if (left.array_dim > 0) {
         ExpressionResult arg = subscript_parameter(sub);
 
@@ -509,6 +515,11 @@ struct ExpressionTypeParser
       error(t, Diag::OperatorInvalidIndirection, right.type->original);
     }
 
+    if (right.is_ptr) {
+      error(t, Diag::PointerArithmetic);
+      return table->err_cls;
+    }
+
     ClassId type_id = unary_prefix_operator_return_type(op_type, right.type);
     if (type_id == builtin::Invalid) {
       error(t, Diag::InvalidUnaryArgumentType, to_str(op_type), right.type->identifier);
@@ -562,6 +573,11 @@ struct ExpressionTypeParser
     using namespace builtin;
     if (left.array_dim > 0) {
       error(node, Diag::ArrayTypeOperand);
+      return table->err_cls;
+    }
+
+    if (left.is_ptr) {
+      error(t, Diag::PointerArithmetic);
       return table->err_cls;
     }
 
@@ -621,6 +637,11 @@ struct ExpressionTypeParser
 
     if (lhs.array_dim > 0 || rhs.array_dim > 0) {
       error(node, Diag::ArrayTypeOperand);
+      return table->err_cls;
+    }
+
+    if (lhs.is_ptr || rhs.is_ptr) {
+      error(t, Diag::PointerArithmetic);
       return table->err_cls;
     }
 

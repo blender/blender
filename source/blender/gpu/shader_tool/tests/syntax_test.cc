@@ -295,6 +295,144 @@ int b; int &a = ++b;)";
   }
 }
 
+TEST(shader_tool, Pointer)
+{
+  {
+    string input = R"(
+struct A { [[storage(0, read)]] const float3 *(&nor)[]; };
+
+void f(const A &srt)
+{
+  const float3 *&buf_ref = srt.nor[0];
+  const float3 *(&buf_ref2) = srt.nor[0];
+  const float3 *(&buf_ref3)[] = srt.nor;
+  const float3 *buf = srt.nor[0];
+  const float3 *b = buf, *c = buf;
+  const float3 &test = *buf;
+  float3 A = buf_ref[0];
+  float3 B = buf_ref2[1] + 1;
+  float3 C = buf_ref3[1][0] + 3;
+  float3 D = buf[1] + 4;
+  float3 E = test;
+  const float3 *F = srt.nor[0];
+  float3 G = srt.nor[0][0];
+  float H = srt.nor[0][0][0];
+  const float3 *I = *srt.nor;
+  float3 J = **srt.nor;
+  float K = (**srt.nor)[0];
+}
+)";
+    string expect = R"(
+
+#define access_A_nor() nor
+
+
+#ifdef CREATE_INFO_RES_PASS_A
+CREATE_INFO_RES_PASS_A
+#endif
+#ifdef CREATE_INFO_RES_BATCH_A
+CREATE_INFO_RES_BATCH_A
+#endif
+#ifdef CREATE_INFO_RES_GEOMETRY_A
+CREATE_INFO_RES_GEOMETRY_A
+#endif
+#ifdef CREATE_INFO_RES_SHARED_VARS_A
+CREATE_INFO_RES_SHARED_VARS_A
+#endif
+#line 2
+struct A {                                              int _pad;
+#line 2
+                                                        };
+#line 2
+A A_ctor_() {A r;r._pad=0;return r;}
+#if defined(CREATE_INFO_A)
+void f(const A  srt)
+{
+#line 9
+  const float3_ptr_ buf =     nor[0];
+  const float3_ptr_ b = buf, c = buf;
+
+  float3 A =     nor[0][0];
+  float3 B =     nor[0][1] + 1;
+  float3 C =     nor[1][0] + 3;
+  float3 D = buf[1] + 4;
+  float3 E = buf[0];
+  const float3_ptr_ F =     nor[0];
+  float3 G =     nor[0][0];
+  float H =     nor[0][0][0];
+  const float3_ptr_ I =     nor[0];
+  float3 J =     nor[0][0];
+  float K = (    nor[0][0])[0];
+}
+
+#endif
+#line 25
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+float a;
+float *b = &a;
+)";
+    auto [output, _, error] = process_test_local(input, Language::BSL);
+    EXPECT_EQ(error, "Unary operator address-of '&' is not supported");
+  }
+  {
+    string input = R"(
+struct A { [[storage(0, read)]] const float3 **(&nor)[]; };
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Syntax Error: Expected token \"Word\" but got \"const\"");
+  }
+  {
+    string input = R"(
+struct A { [[storage(0, read)]] const float3 *(&nor)[]; };
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(struct S { float3 *nor; };)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error,
+              "Pointer types are only allowed on 'storage', 'uniform' and 'push_constant' "
+              "resource declaration");
+  }
+  {
+    string input = R"(float *e, d = 0;)";
+    auto [output, _, error] = process_test_local(input, Language::BSL);
+    EXPECT_EQ(error, "Variable declaration must declare either no pointer or only pointer");
+  }
+  {
+    string input = R"(
+struct A { [[storage(0, read)]] const float3 *(&nor)[]; };
+
+void f(const A &srt)
+{
+  srt.nor + 1;
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Pointer arithmetic is not supported");
+  }
+  {
+    string input = R"(
+void f(const float *srt) {}
+)";
+    string expect = R"(
+void f(const float_ptr_ srt) {
+#line 2
+                          }
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+
 TEST(shader_tool, Constexpr)
 {
   {
