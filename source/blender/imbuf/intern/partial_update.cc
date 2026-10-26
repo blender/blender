@@ -398,10 +398,10 @@ imbuf::ChangesetID IMB_partial_update_changeset_id_current()
 
 void IMB_partial_update_mark_region(ImBuf *ibuf, const rcti &region)
 {
+  std::scoped_lock lock(ibuf->partial_update_mutex);
   if (!imb_track_updates(ibuf)) {
     return;
   }
-  std::scoped_lock lock(ibuf->partial_update_mutex);
   Tracker &tracker = tracker_ensure(ibuf);
   tracker.update_resolution(ibuf);
   tracker.mark_region(region);
@@ -411,10 +411,10 @@ void IMB_partial_update_mark_full(ImBuf *ibuf)
 {
   ibuf->full_update_changeset_id = IMB_partial_update_changeset_id_next();
 
+  std::scoped_lock lock(ibuf->partial_update_mutex);
   if (!imb_track_updates(ibuf)) {
     return;
   }
-  std::scoped_lock lock(ibuf->partial_update_mutex);
   Tracker &tracker = tracker_ensure(ibuf);
   tracker.mark_full_update();
 }
