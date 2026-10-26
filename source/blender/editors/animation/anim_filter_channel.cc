@@ -9,9 +9,11 @@
 
 #include "BLI_assert.hh"
 
+#include "DNA_ID.h"
 #include "DNA_ID_enums.h"
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_object_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
@@ -21,6 +23,7 @@
 #include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main_idmap.hh"
 
 #include "ED_anim_api.hh"
@@ -31,6 +34,8 @@
 #include "ANIM_action.hh"
 #include "ANIM_armature.hh"
 #include "ANIM_rna.hh"
+
+#include "DEG_depsgraph.hh"
 
 namespace blender::ed::animfilter {
 
@@ -153,7 +158,7 @@ std::ostream &operator<<(std::ostream &stream, const ParsedSourcePath &rna_path)
 /* For channels without underlying data. */
 class NoOpChannelAPI : public AbstractChannelAPI {
  public:
-  void set_selected(const bool /* is_selected */) override {}
+  void set_selected(bool /*is_selected*/, bool /*do_sync_to_secondary*/) override {}
   bool is_selected() const override
   {
     return false;
@@ -166,7 +171,7 @@ class FCurveChannelAPI : public AbstractChannelAPI {
  public:
   FCurveChannelAPI(FCurve *fcurve) : fcurve_(fcurve) {}
 
-  void set_selected(const bool is_selected) override
+  void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
   {
     flag_update(fcurve_->flag, FCURVE_SELECTED, is_selected);
   }
@@ -182,7 +187,7 @@ class GreasePencilChannelAPI : public AbstractChannelAPI {
  public:
   GreasePencilChannelAPI(GreasePencilLayer *gp_layer) : layer_(gp_layer->wrap()) {}
 
-  void set_selected(const bool is_selected) override
+  void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
   {
     layer_.set_selected(is_selected);
   }
@@ -197,7 +202,7 @@ class ActionChannelAPI : public AbstractChannelAPI {
 
  public:
   ActionChannelAPI(bAction *action) : action_(action) {}
-  void set_selected(const bool is_selected) override
+  void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
   {
     flag_update(action_->flag, ACT_SELECTED, is_selected);
   }
@@ -207,15 +212,70 @@ class ActionChannelAPI : public AbstractChannelAPI {
   }
 };
 
+/**
+ * Set/clear the pose bone's POSE_CHANNEL_SELECTED flag, and if do_sync_to_secondary is true, also
+ * set the actual bone selection state.
+ */
+static void select_pose_bone(const PointerRNA &pose_bone_ptr,
+                             const bool is_selected,
+                             const bool do_sync_to_secondary)
+{
+  bPoseChannel *pose_bone = pose_bone_ptr.data_as<bPoseChannel>();
+  flag_update(pose_bone->flag, POSE_CHANNEL_SELECTED, is_selected);
+
+  if (!do_sync_to_secondary) {
+    return;
+  }
+
+  const Object *pose_object = id_cast<Object *>(pose_bone_ptr.owner_id);
+  if (!ID_IS_EDITABLE(&pose_object->id)) {
+    return;
+  }
+
+  if (!animrig::bone_is_selectable(*pose_object, pose_bone)) {
+    return;
+  }
+
+  if (is_selected) {
+    animrig::bone_select(pose_bone);
+  }
+  else {
+    animrig::bone_deselect(pose_bone);
+  }
+
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, pose_bone_ptr.owner_id);
+  DEG_id_tag_update(pose_bone_ptr.owner_id, ID_RECALC_GEOMETRY);
+  /* TODO: call ED_outliner_select_sync_from_pose_bone_tag() as well. But that currently requires
+   * the bContext, which is unavailable here. */
+}
+
 class ActionGroupChannelAPI : public AbstractChannelAPI {
   bActionGroup *group_;
 
- public:
-  ActionGroupChannelAPI(bActionGroup *group) : group_(group) {}
+  /**
+   * The pose bone this ActionGroup represents.
+   * This is used for selection syncing.
+   */
+  PointerRNA pose_bone_ptr_ = {};
 
-  void set_selected(const bool is_selected) override
+ public:
+  ActionGroupChannelAPI(bActionGroup *group, const ChannelTag *pose_bone_tag) : group_(group)
+  {
+    if (pose_bone_tag) {
+      pose_bone_ptr_ = pose_bone_tag->source_data();
+      BLI_assert(pose_bone_ptr_.has_owner_id());
+      BLI_assert(pose_bone_ptr_.has_data());
+      BLI_assert(pose_bone_ptr_.type == RNA_PoseBone);
+    }
+  }
+
+  void set_selected(const bool is_selected, const bool do_sync_to_secondary) override
   {
     flag_update(group_->flag, AGRP_SELECTED, is_selected);
+
+    if (pose_bone_ptr_.has_data()) {
+      select_pose_bone(pose_bone_ptr_, is_selected, do_sync_to_secondary);
+    }
   }
   bool is_selected() const override
   {
@@ -228,7 +288,7 @@ class ActionSlotChannelAPI : public AbstractChannelAPI {
 
  public:
   ActionSlotChannelAPI(animrig::Slot *slot) : slot_(slot) {}
-  void set_selected(const bool is_selected) override
+  void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
   {
     slot_->set_selected(is_selected);
   }
@@ -243,7 +303,7 @@ class AnimDataChannelAPI : public AbstractChannelAPI {
 
  public:
   AnimDataChannelAPI(AnimData *adt) : adt_(adt) {}
-  void set_selected(bool is_selected) override
+  void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
   {
     flag_update(adt_->flag, ADT_UI_SELECTED, is_selected);
   }
@@ -254,22 +314,31 @@ class AnimDataChannelAPI : public AbstractChannelAPI {
 };
 
 class PoseBoneChannelAPI : public AbstractChannelAPI {
-  bPoseChannel *bone_;
+  PointerRNA pose_bone_ptr_;
 
  public:
-  PoseBoneChannelAPI(bPoseChannel *bone) : bone_(bone) {}
-  void set_selected(const bool is_selected) override
+  PoseBoneChannelAPI(const PointerRNA &pose_bone_ptr) : pose_bone_ptr_(pose_bone_ptr)
   {
-    flag_update(bone_->flag, POSE_CHANNEL_SELECTED, is_selected);
+    BLI_assert(pose_bone_ptr.has_owner_id());
+    BLI_assert(pose_bone_ptr.has_data());
+    BLI_assert(pose_bone_ptr.type == RNA_PoseBone);
+  }
+
+  void set_selected(const bool is_selected, const bool do_sync_to_secondary) override
+  {
+    select_pose_bone(pose_bone_ptr_, is_selected, do_sync_to_secondary);
   }
   bool is_selected() const override
   {
-    return flag_is_set(bone_->flag, POSE_CHANNEL_SELECTED);
+    const bPoseChannel *pose_bone = pose_bone_ptr_.data_as<bPoseChannel>();
+    return flag_is_set(pose_bone->flag, POSE_CHANNEL_SELECTED);
   }
 };
 
-std::unique_ptr<AbstractChannelAPI> create_channel_api(PointerRNA &ptr)
+std::unique_ptr<AbstractChannelAPI> create_channel_api(const AnimationChannel &channel)
 {
+  const PointerRNA &ptr = channel.source();
+
   if (!ptr.has_data()) {
     return std::make_unique<NoOpChannelAPI>();
   }
@@ -283,13 +352,19 @@ std::unique_ptr<AbstractChannelAPI> create_channel_api(PointerRNA &ptr)
     return std::make_unique<ActionChannelAPI>(ptr.data_as<bAction>());
   }
   if (ptr.type == RNA_ActionGroup) {
-    return std::make_unique<ActionGroupChannelAPI>(ptr.data_as<bActionGroup>());
+    /* Get the pose bone that's represented by this F-Curve Group (if any). */
+    BLI_assert(channel.type() == AnimationChannelType::SUMMARY);
+    const SummaryChannel &action_group_channel = dynamic_cast<const SummaryChannel &>(channel);
+    const ChannelTag *pose_bone_tag = action_group_channel.first_tag_of_child(
+        ChannelTagType::BONE);
+
+    return std::make_unique<ActionGroupChannelAPI>(ptr.data_as<bActionGroup>(), pose_bone_tag);
   }
   if (ptr.type == RNA_ActionSlot) {
     return std::make_unique<ActionSlotChannelAPI>(ptr.data_as<animrig::Slot>());
   }
   if (ptr.type == RNA_PoseBone) {
-    return std::make_unique<PoseBoneChannelAPI>(ptr.data_as<bPoseChannel>());
+    return std::make_unique<PoseBoneChannelAPI>(ptr);
   }
 
   /* Keep last. Most generic channel API. */
@@ -545,9 +620,6 @@ AnimationChannel::AnimationChannel(const AnimationChannel &other)
       label_(other.label_),
       source_(other.source_)
 {
-  /* Copy constructor has to create a new api object because it's heap allocated and owned by the
-   * class. */
-  channel_api_ = create_channel_api(source_);
 }
 
 AnimationChannel::AnimationChannel(AnimationChannel &&other)
@@ -615,7 +687,6 @@ void AnimationChannel::source_set(PointerRNA &&source_ptr)
 
   this->source_id_type_ = source_ptr.has_owner_id() ? source_ptr.owner_id->id_type() : ID_Type(0);
   this->source_ = std::move(source_ptr);
-  this->channel_api_ = create_channel_api(this->source_);
 }
 
 void AnimationChannel::source_set(const PointerRNA &source_ptr)
@@ -626,7 +697,6 @@ void AnimationChannel::source_set(const PointerRNA &source_ptr)
 
   this->source_id_type_ = source_ptr.has_owner_id() ? source_ptr.owner_id->id_type() : ID_Type(0);
   this->source_ = source_ptr;
-  this->channel_api_ = create_channel_api(this->source_);
 }
 
 Span<KeyPoint> AnimationChannel::datapoints()
@@ -734,6 +804,17 @@ bool SummaryChannel::is_collapsed() const
     return this->is_default_collapsed_;
   }
   return this->is_collapsed_.value();
+}
+
+const ChannelTag *SummaryChannel::first_tag_of_child(const ChannelTagType tag_type) const
+{
+  for (const AnimationChannel *child : this->children_) {
+    const ChannelTag *child_tag = child->tags().first_by_type(tag_type);
+    if (child_tag) {
+      return child_tag;
+    }
+  }
+  return nullptr;
 }
 
 void SummaryChannel::gather_channeldata()

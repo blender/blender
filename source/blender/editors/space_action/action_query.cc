@@ -19,15 +19,14 @@ namespace blender::ed::action {
 /* Get the data channels for the given dope sheet mode. */
 static void collect_data_channels(const bContext &C,
                                   const eAnimEdit_Context dopesheet_mode,
-                                  const ed::animfilter::CollectionFilters &collection_filters,
                                   ed::animfilter::ChannelArena &arena)
 {
   if (dopesheet_mode == SACTCONT_ACTION) {
     /* The Action editor has its own way to gather channels. */
-    collect_action_editor_channels(C, collection_filters, arena);
+    collect_action_editor_channels(C, arena);
   }
   else {
-    collect_animation_channels(C, collection_filters, arena);
+    collect_animation_channels(C, arena);
   }
 }
 
@@ -43,7 +42,8 @@ ed::animfilter::ChannelArena get_data_channels(const bContext &C)
   }
 
   ChannelArena arena;
-  collect_data_channels(C, saction->mode, get_filters(saction->ads), arena);
+  arena.filters = get_filters(saction->ads);
+  collect_data_channels(C, saction->mode, arena);
   return arena;
 }
 
@@ -57,7 +57,6 @@ static Span<ed::animfilter::ChannelTagType> tag_order_for_dope_sheet_mode(
       ChannelTagType::ID,
       ChannelTagType::GREASEPENCIL_GROUP,
       ChannelTagType::FCURVE_GROUP,
-      ChannelTagType::BONE,
   };
 
   switch (mode) {
@@ -68,7 +67,6 @@ static Span<ed::animfilter::ChannelTagType> tag_order_for_dope_sheet_mode(
           ChannelTagType::ID,
           ChannelTagType::GREASEPENCIL_GROUP,
           ChannelTagType::FCURVE_GROUP,
-          ChannelTagType::BONE,
       };
       return tag_order;
     }
@@ -78,7 +76,6 @@ static Span<ed::animfilter::ChannelTagType> tag_order_for_dope_sheet_mode(
           ChannelTagType::ACTION_SLOT,
           ChannelTagType::GREASEPENCIL_GROUP,
           ChannelTagType::FCURVE_GROUP,
-          ChannelTagType::BONE,
       };
       return tag_order;
     }
@@ -89,7 +86,6 @@ static Span<ed::animfilter::ChannelTagType> tag_order_for_dope_sheet_mode(
           ChannelTagType::GREASEPENCIL_GROUP,
           ChannelTagType::ACTION,
           ChannelTagType::FCURVE_GROUP,
-          ChannelTagType::BONE,
       };
       return tag_order;
     }
@@ -117,7 +113,8 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
   PRF_scope_with_name("ed::animfilter::get_summary_tree", ProfileCategory::Editor);
 
   ChannelArena arena;
-  collect_data_channels(C, saction->mode, get_filters(saction->ads), arena);
+  arena.filters = get_filters(saction->ads);
+  collect_data_channels(C, saction->mode, arena);
   group_channels(arena,
                  tag_order_for_dope_sheet_mode(saction->mode),
                  saction->ads.flag & ADS_FLAG_MINIMAL_GROUPING);

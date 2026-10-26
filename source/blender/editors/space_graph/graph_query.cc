@@ -55,7 +55,8 @@ animfilter::ChannelArena get_summary_tree(const bContext &C)
 
   ChannelArena arena;
   /* TODO pre-filter down to only FCurves. */
-  collect_animation_channels(C, get_filters(*space_graph->ads), arena);
+  arena.filters = get_filters(*space_graph->ads);
+  collect_animation_channels(C, arena);
   group_channels(arena, get_tag_order(), space_graph->ads->flag & ADS_FLAG_MINIMAL_GROUPING);
 
   {

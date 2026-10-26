@@ -14,9 +14,7 @@ struct ChannelSourcingContext {
   Set<ID *> visited_ids = {};
 };
 
-void collection_channels_for_object(Object &obj,
-                                    const CollectionFilters &collection_filters,
-                                    ChannelSourcingContext &ctx);
+void collection_channels_for_object(Object &obj, ChannelSourcingContext &ctx);
 
 void debug_stream_hierarchy(std::ostream &stream,
                             const AnimationChannel &channel,

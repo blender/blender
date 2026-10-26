@@ -106,8 +106,7 @@ static PointerRNA pose_bone_for_fcurve(const FCurve &fcurve, const ChannelTagSta
 static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
                                     ChannelTagStack &tags,
                                     Vector<rna_path::Item> rna_path_items,
-                                    ChannelArena &arena,
-                                    const CollectionFilters &collection_filters)
+                                    ChannelArena &arena)
 {
   assert_tag_count(tags);
 
@@ -147,12 +146,12 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
       bArmature *armature = id_cast<bArmature *>(object->data);
       /* We have to check for visibility here. This is not as nice as with objects where we can
        * just skip the object entirely since bones are not the owner of their animation. */
-      if (!collection_filters.show_hidden &&
+      if (!arena.filters.show_hidden &&
           !animrig::bone_is_visible(armature, {pose_bone, pose_bone->bone_get(*object)}))
       {
         skip_fcurve = true;
       }
-      if (collection_filters.only_selected &&
+      if (arena.filters.only_selected &&
           !animrig::bone_is_selected(armature, {pose_bone, pose_bone->bone_get(*object)}))
       {
         skip_fcurve = true;
@@ -174,7 +173,7 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
        *
        * TODO: see if we can shuffle code around to determine the label _before_ doing the entire
        * tag dance. */
-      if (!collection_filters.text_matches_filter(channel->label())) {
+      if (!arena.filters.text_matches_filter(channel->label())) {
         arena.discard_last_data_channel();
       }
     }
@@ -196,8 +195,7 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
 static void channels_for_action_slot(animrig::Action &action,
                                      animrig::Slot &slot,
                                      ChannelTagStack &tags,
-                                     ChannelArena &arena,
-                                     const CollectionFilters &collection_filters)
+                                     ChannelArena &arena)
 {
   using namespace animrig;
   assert_tag_count(tags);
@@ -263,7 +261,7 @@ static void channels_for_action_slot(animrig::Action &action,
 
       PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
           strip_ptr, RNA_ActionChannelbag, channelbag);
-      channels_for_channelbag(channelbag_ptr, tags, rna_path_items, arena, collection_filters);
+      channels_for_channelbag(channelbag_ptr, tags, rna_path_items, arena);
 
       /* Pop the channelbag off the RNA path. */
       rna_path_items.pop_last();
@@ -288,21 +286,19 @@ static void channels_for_action_slot(animrig::Action &action,
 static void channels_for_action_slot(animrig::Action &action,
                                      const animrig::slot_handle_t slot_handle,
                                      ChannelTagStack &tags,
-                                     ChannelArena &arena,
-                                     const CollectionFilters &collection_filters)
+                                     ChannelArena &arena)
 {
   animrig::Slot *slot = action.slot_for_handle(slot_handle);
   if (!slot) {
     return;
   }
-  channels_for_action_slot(action, *slot, tags, arena, collection_filters);
+  channels_for_action_slot(action, *slot, tags, arena);
 }
 
 /*
  * If animated_id is embedded, owner_id should be the ID that owns it.
  */
 static void collect_channels_for_id(ID *animated_id,
-                                    const CollectionFilters &collection_filters,
                                     ChannelSourcingContext &ctx,
                                     ID *owner_id = nullptr,
                                     std::optional<ParsedSourcePath> embedded_property = {})
@@ -337,7 +333,7 @@ static void collect_channels_for_id(ID *animated_id,
     return;
   }
 
-  if (collection_filters.id_type_blocklist.contains(animated_id->id_type())) {
+  if (ctx.arena.filters.id_type_blocklist.contains(animated_id->id_type())) {
     return;
   }
 
@@ -348,11 +344,8 @@ static void collect_channels_for_id(ID *animated_id,
       owner_id ? owner_id : animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
   tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr, embedded_property});
 
-  channels_for_action_slot(*action_and_slot->first,
-                           action_and_slot->second->handle,
-                           tags,
-                           ctx.arena,
-                           collection_filters);
+  channels_for_action_slot(
+      *action_and_slot->first, action_and_slot->second->handle, tags, ctx.arena);
   tags.pop();
 }
 
@@ -362,7 +355,6 @@ struct GreasePencilCollector {
   const PointerRNA gp_id_ptr;
   Vector<rna_path::Item> &layer_rna_path_items;
   Vector<rna_path::Item> &group_rna_path_items;
-  const CollectionFilters &collection_filters;
 
   void visit(bke::greasepencil::TreeNode &node, int &visit_order, const std::string indent)
   {
@@ -375,7 +367,7 @@ struct GreasePencilCollector {
     visit_order--;
 
     if (node.is_layer()) {
-      if (!collection_filters.text_matches_filter(node.name())) {
+      if (!arena.filters.text_matches_filter(node.name())) {
         return;
       }
 
@@ -416,9 +408,7 @@ struct GreasePencilCollector {
   }
 };
 
-static void collect_channels_for_grease_pencil(GreasePencil &gp,
-                                               ChannelArena &arena,
-                                               const CollectionFilters &collection_filters)
+static void collect_channels_for_grease_pencil(GreasePencil &gp, ChannelArena &arena)
 {
   ChannelTagStack tags;
   assert_tag_count(tags);
@@ -432,7 +422,7 @@ static void collect_channels_for_grease_pencil(GreasePencil &gp,
   group_rna_path_items.resize(2);
 
   GreasePencilCollector collector = {
-      tags, arena, gp_id_ptr, layer_rna_path_items, group_rna_path_items, collection_filters};
+      tags, arena, gp_id_ptr, layer_rna_path_items, group_rna_path_items};
 
   /* The root node of the tree doesn't represent any animatable data, so don't visit it, just use
    * it to get to its children. */
@@ -446,7 +436,6 @@ static void collect_channels_for_grease_pencil(GreasePencil &gp,
 }
 
 struct ModifierIDIterArgs {
-  const CollectionFilters &collection_filters;
   ChannelSourcingContext &ctx;
 };
 
@@ -464,46 +453,42 @@ static void foreach_modifier_ID_callback(void *user_data,
     case ID_NT:
     case ID_TE:
     case ID_CF:
-      collect_channels_for_id(id, args->collection_filters, args->ctx);
+      collect_channels_for_id(id, args->ctx);
       break;
     default:
       break;
   }
 }
 
-void collection_channels_for_object(Object &obj,
-                                    const CollectionFilters &collection_filters,
-                                    ChannelSourcingContext &ctx)
+void collection_channels_for_object(Object &obj, ChannelSourcingContext &ctx)
 {
-  collect_channels_for_id(&obj.id, collection_filters, ctx);
-  collect_channels_for_id(obj.data, collection_filters, ctx);
+  collect_channels_for_id(&obj.id, ctx);
+  collect_channels_for_id(obj.data, ctx);
 
   for (const int i : IndexRange(obj.totcol)) {
     /* The given number is expected to be 1 based... why........ */
     Material *mat = BKE_object_material_get(&obj, i + 1);
 
     if (mat) {
-      collect_channels_for_id(&mat->id, collection_filters, ctx);
+      collect_channels_for_id(&mat->id, ctx);
 
       ParsedSourcePath path_to_embedded_id;
       path_to_embedded_id.items.append(rna_path::Member{UString("nodetree")});
-      collect_channels_for_id(
-          &mat->nodetree->id, collection_filters, ctx, &mat->id, path_to_embedded_id);
+      collect_channels_for_id(&mat->nodetree->id, ctx, &mat->id, path_to_embedded_id);
     }
   }
   if (obj.data) {
     switch (obj.type) {
       case OB_GREASE_PENCIL:
-        if (!collection_filters.id_type_blocklist.contains(ID_GP)) {
-          collect_channels_for_grease_pencil(
-              *id_cast<GreasePencil *>(obj.data), ctx.arena, collection_filters);
+        if (!ctx.arena.filters.id_type_blocklist.contains(ID_GP)) {
+          collect_channels_for_grease_pencil(*id_cast<GreasePencil *>(obj.data), ctx.arena);
         }
         break;
 
       case OB_MESH: {
         Mesh *mesh = id_cast<Mesh *>(obj.data);
         if (mesh->key) {
-          collect_channels_for_id(&mesh->key->id, collection_filters, ctx);
+          collect_channels_for_id(&mesh->key->id, ctx);
         }
         break;
       }
@@ -513,15 +498,13 @@ void collection_channels_for_object(Object &obj,
     }
   }
 
-  if (!collection_filters.ignore_modifier_ids) {
-    ModifierIDIterArgs args(collection_filters, ctx);
+  if (!ctx.arena.filters.ignore_modifier_ids) {
+    ModifierIDIterArgs args(ctx);
     BKE_modifiers_foreach_ID_link(&obj, foreach_modifier_ID_callback, &args);
   }
 }
 
-static void collect_action_channels(animrig::Action &action,
-                                    const CollectionFilters &collection_filters,
-                                    ChannelArena &arena)
+static void collect_action_channels(animrig::Action &action, ChannelArena &arena)
 {
   using namespace animrig;
   PRF_scope_with_name("ed::animfilter::collect_action_channels", ProfileCategory::Editor);
@@ -606,7 +589,7 @@ static void collect_action_channels(animrig::Action &action,
 
         PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
             strip_ptr, RNA_ActionChannelbag, channelbag);
-        channels_for_channelbag(channelbag_ptr, tags, rna_path_items, arena, collection_filters);
+        channels_for_channelbag(channelbag_ptr, tags, rna_path_items, arena);
 
         /* Pop the slot & user tags. */
         if (did_push_slot_user_tag) {
@@ -637,9 +620,7 @@ static void collect_action_channels(animrig::Action &action,
   BLI_assert(rna_path_items.is_empty());
 }
 
-void collect_action_editor_channels(const bContext &C,
-                                    const CollectionFilters &collection_filters,
-                                    ChannelArena &arena)
+void collect_action_editor_channels(const bContext &C, ChannelArena &arena)
 {
   /* At this moment, the Action editor always shows the Action assigned to the active Object. */
   Object *active_object = CTX_data_active_object(&C);
@@ -648,21 +629,19 @@ void collect_action_editor_channels(const bContext &C,
   }
   animrig::Action &action = active_object->adt->action->wrap();
 
-  collect_action_channels(action, collection_filters, arena);
+  collect_action_channels(action, arena);
 }
 
-void collect_animation_channels(const bContext &C,
-                                const CollectionFilters &collection_filters,
-                                ChannelArena &arena)
+void collect_animation_channels(const bContext &C, ChannelArena &arena)
 {
   PRF_scope_with_name("ed::animfilter::collect_animation_channels", ProfileCategory::Editor);
 
   Vector<PointerRNA> objects;
-  if (collection_filters.only_selected) {
+  if (arena.filters.only_selected) {
     CTX_data_selected_objects(&C, &objects);
   }
   /* Show *all* objects. */
-  else if (collection_filters.show_hidden) {
+  else if (arena.filters.show_hidden) {
     /* We can check this after `only_selected` because selected objects have to be visible. */
     Main *bmain = CTX_data_main(&C);
     for (Object &obj : bmain->objects) {
@@ -677,7 +656,7 @@ void collect_animation_channels(const bContext &C,
   ChannelSourcingContext ctx(arena);
   for (PointerRNA &obj_ptr : objects) {
     Object *obj = static_cast<Object *>(obj_ptr.data);
-    collection_channels_for_object(*obj, collection_filters, ctx);
+    collection_channels_for_object(*obj, ctx);
   }
 
   /* TODO: also include non-object animation data, like Scene animation. */
@@ -778,6 +757,13 @@ CollectionFilters get_filters(const bDopeSheet &ads)
     filters.id_type_blocklist.add(ID_LP);
   }
   return filters;
+}
+
+bool do_sync_channel_selection_to_secondary(const CollectionFilters &filters)
+{
+  /* Selection syncing should only be on if the list of channels is independent of the bone/object
+   * selection. */
+  return !filters.only_selected;
 }
 
 }  // namespace blender::ed::animfilter

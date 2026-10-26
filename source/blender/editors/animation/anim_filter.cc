@@ -4159,7 +4159,8 @@ ChannelArena::~ChannelArena()
 
 ChannelArena::ChannelArena(ChannelArena &&other)
     : data_channels(std::move(other.data_channels)),
-      summary_channels(std::move(other.summary_channels))
+      summary_channels(std::move(other.summary_channels)),
+      filters(std::move(other.filters))
 {
   allocator_.transfer_ownership_from(other.allocator_);
 }
@@ -4175,6 +4176,7 @@ ChannelArena &ChannelArena::operator=(ChannelArena &&other)
   }
   this->data_channels = std::move(other.data_channels);
   this->summary_channels = std::move(other.summary_channels);
+  this->filters = std::move(other.filters);
   allocator_.transfer_ownership_from(other.allocator_);
   return *this;
 }

@@ -44,6 +44,7 @@
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
+#include "UI_tree_view.hh"
 #include "UI_view2d.hh"
 
 #include "ED_anim_api.hh"
@@ -433,6 +434,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     ed::animfilter::ChannelArena &channels = space_action_channel_arena(*C);
+
     /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
      * uses the View2D's `cur` rect which might be modified when setting the height. */
     /* TODO respect markers region. */
@@ -440,7 +442,9 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
     const bool has_markers = markers != nullptr && !markers->is_empty();
     set_v2d_height(v2d, channels.num_channels(), has_markers);
     ui::view2d_view_ortho(v2d);
-    ed::animfilter::draw_channel_tree(*C, *channels.root(), *v2d);
+
+    std::unique_ptr<ui::AbstractTreeView> tree_view = build_channel_tree_view(channels);
+    ed::animfilter::draw_channel_tree(*C, std::move(tree_view), *v2d);
 
     SpaceAction *saction = CTX_wm_space_action(C);
     ED_time_scrub_channel_search_draw(C, region, &saction->ads);

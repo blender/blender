@@ -6,6 +6,7 @@
 #include "BLI_string.hh"
 
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_library.hh"
 
 #include "BLT_translation.hh"
@@ -111,7 +112,7 @@ class ChannelItem : public ui::AbstractTreeViewItem {
   ChannelItem(AnimationChannel &channel)
       : channel_(channel), source_(channel.source()), chan_ident_(channel.identifier())
   {
-    this->channel_api_ = create_channel_api(this->source_);
+    this->channel_api_ = create_channel_api(channel);
   }
 
   void build_row(ui::Layout &layout) override
@@ -170,12 +171,7 @@ class ChannelItem : public ui::AbstractTreeViewItem {
     return this->channel_api_->is_selected();
   }
 
-  void set_selected(const bool select) override
-  {
-    AbstractTreeViewItem::set_selected(select);
-    /* This flushes the selection state to the data, which is then read in the constructor. */
-    this->channel_api_->set_selected(select);
-  }
+  void set_selected(const bool select) override;
 
  protected:
   bool matches(const AbstractViewItem &other) const override
@@ -214,6 +210,7 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
 class ChannelTreeView : public ui::AbstractTreeView {
   SummaryChannel &root_;
+  bool do_selection_syncing_;
 
   void add_channel_recursive(TreeViewItemContainer &container, AnimationChannel &channel)
   {
@@ -241,15 +238,47 @@ class ChannelTreeView : public ui::AbstractTreeView {
   }
 
  public:
-  ChannelTreeView(SummaryChannel &root) : root_(root) {}
+  ChannelTreeView(SummaryChannel &root, bool do_selection_syncing)
+      : root_(root), do_selection_syncing_(do_selection_syncing)
+  {
+  }
 
   void build_tree() override
   {
     this->add_channel_recursive(*this, root_);
   }
+
+  bool do_selection_syncing() const
+  {
+    return do_selection_syncing_;
+  }
 };
 
-void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d */)
+/* This function needs to be defined after the ChannelTreeView class. */
+void ChannelItem::set_selected(const bool select)
+{
+  AbstractTreeViewItem::set_selected(select);
+
+  if (this->channel_api_->is_selected() == select) {
+    /* No change to selection state. This can easily happen, as set_selected() is called on every
+     * tree item on rebuild of the tree (i.e. every redraw of the region). */
+    return;
+  }
+
+  /* This flushes the selection state to the data, which is then read in the constructor. */
+  const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
+  this->channel_api_->set_selected(select, tree_view.do_selection_syncing());
+}
+
+std::unique_ptr<ui::AbstractTreeView> build_channel_tree_view(ChannelArena &arena)
+{
+  const bool do_selection_syncing = do_sync_channel_selection_to_secondary(arena.filters);
+  return std::make_unique<ChannelTreeView>(*arena.root(), do_selection_syncing);
+}
+
+void draw_channel_tree(const bContext &C,
+                       std::unique_ptr<ui::AbstractTreeView> channel_tree_view,
+                       View2D & /* v2d */)
 {
   ARegion *region = CTX_wm_region(&C);
   ui::Block *block = ui::block_begin(&C, region, __func__, ui::EmbossType::None);
@@ -264,7 +293,8 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
                                         ui::style_get());
 
   ui::AbstractTreeView *tree_view = ui::block_add_view(
-      *block, "channel_tree", std::make_unique<ChannelTreeView>(root));
+      *block, "channel_tree", std::move(channel_tree_view));
+
   /* Just making it explicit that this is the row height we use as a base. */
   tree_view->set_row_height(UI_UNIT_Y);
   tree_view->set_row_scale_y(ANIM_UI_get_channel_scale_factor());

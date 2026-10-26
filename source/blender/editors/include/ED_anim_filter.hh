@@ -19,6 +19,8 @@
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
+#include "BKE_global.hh"
+
 #include "DNA_ID_enums.h"
 #include "DNA_action_types.h"
 
@@ -34,8 +36,13 @@ struct GreasePencilLayer;
 struct IDNameLib_Map;
 struct Panel;
 
+namespace ui {
+class AbstractTreeView;
+}
+
 namespace ed::animfilter {
 
+class AnimationChannel;
 struct SAction_AnimationChannelState;
 
 enum class ChannelTagType {
@@ -369,7 +376,15 @@ enum class SelectionMode {
 class AbstractChannelAPI {
  public:
   virtual ~AbstractChannelAPI() = default;
-  virtual void set_selected(bool is_selected) = 0;
+  /**
+   * Set the selection state of the data represented by this channel.
+   *
+   * \param is_selected: the selection state itself.
+   * \param do_select_secondary: write the selection state to the 'secondary data' represented by
+   * this channel. For example, an ActionGroup (aka FCurve-group) itself can be selected, and when
+   * it represents the animation data for a pose bone, that pose bone is the 'secondary data'.
+   */
+  virtual void set_selected(bool is_selected, bool do_sync_to_secondary) = 0;
   virtual bool is_selected() const = 0;
 };
 
@@ -377,7 +392,7 @@ class AbstractChannelAPI {
  * Allocates a channel api for the given type.
  * Memory has to be handled by the caller.
  */
-std::unique_ptr<AbstractChannelAPI> create_channel_api(PointerRNA &ptr);
+std::unique_ptr<AbstractChannelAPI> create_channel_api(const AnimationChannel &channel);
 
 class AnimationChannel {
  public:
@@ -418,8 +433,9 @@ class AnimationChannel {
   PointerRNA source_;
   mutable ID_Type source_id_type_ = IDTYPE_UNKNOWN;
 
-  /* Provides a function interface for the `source_` data.*/
-  std::unique_ptr<AbstractChannelAPI> channel_api_;
+  /* Provides a function interface for the `source_` data. It is created on the fly when necessary,
+   * as it may depend on this channel's children (see #SummaryChannel::first_tag_of_child). */
+  mutable std::unique_ptr<AbstractChannelAPI> channel_api_;
 
   /**
    * For channels that have a parent channel, this is set to that channel's source_.owner_id.
@@ -493,21 +509,25 @@ class AnimationChannel {
   bool is_selected() const
   {
     if (!this->channel_api_) {
-      return false;
+      this->channel_api_ = create_channel_api(*this);
     }
     return this->channel_api_->is_selected();
   };
   /**
-   * Selects the channel itself. If selection syncing is used this can also select the data if that
-   * is selectable.
+   * Selects the channel itself (in contrast to selecting its datapoints).
+   *
+   * If selection syncing is used (do_sync_to_secondary is on) this can also select the secondary
+   * data (if that is selectable). For example, an ActionGroup channel can have a Pose Bone as
+   * secondary data.
    */
-  void set_selected(bool is_selected)
+  void set_selected(const bool is_selected, const bool do_sync_to_secondary)
   {
     if (!this->channel_api_) {
-      return;
+      this->channel_api_ = create_channel_api(*this);
     }
-    this->channel_api_->set_selected(is_selected);
+    this->channel_api_->set_selected(is_selected, do_sync_to_secondary);
   };
+
   /**
    * Change the selection of datapoints in the given range.
    * Range is inclusive/inclusive.
@@ -602,6 +622,15 @@ class SummaryChannel final : public AnimationChannel {
     return tag_type_;
   }
 
+  /**
+   * Return the first tag of the given type, as used by this channel's datachannel children.
+   *
+   * \note Do not use this function. It is only here to support the F-Curve groups mapping to pose
+   * bones, which is temporary until we can get rid of explicit F-Curve groups and dynamically
+   * group them by the ChannelTagType::BONE tag.
+   */
+  const ChannelTag *first_tag_of_child(ChannelTagType tag_type) const;
+
  protected:
   void gather_channeldata() override;
 
@@ -682,8 +711,37 @@ class GreasePencilChannel : public DataChannel {
   void gather_channeldata() override;
 };
 
-/* The row_index is the depth first number of the row accounting for child channels. */
-using ForEachChannelCallback = FunctionRef<void(AnimationChannel &channel, int row_index)>;
+struct CollectionFilters {
+  bool only_selected = true;
+  /* Show keys of hidden objects/bones. This is only used if `only_selected` is false. */
+  bool show_hidden = false;
+  bool only_errors = false;
+  /**
+   * Skip any IDs that an object modifier points to.
+   * See the comment on ADS_FILTER_NOMODIFIERS. I (christoph) don't think this is a useful
+   * setting, but it is kept for backwards compatibility. */
+  bool ignore_modifier_ids = false;
+
+  /* For searching by free text (channelbox header input). */
+  bool use_filter_text_invert = false;
+  StringRefNull filter_text = "";
+
+  /* Limit the returned data to only channels of the given type.
+   * If empty, all channel types are returned. */
+  Set<AnimationChannelType> channel_type_allowlist;
+  /* Any id types put here will be ignored in the channel collection process. */
+  Set<ID_Type> id_type_blocklist;
+
+  bool text_matches_filter(StringRefNull text) const;
+};
+
+/**
+ * Based on the filter options, determine whether 'selection syncing' is on.
+ *
+ * This ensures that, for example, when an ActionGroup is selected that represents a pose bone,
+ * the pose bone itself is also selected.
+ */
+bool do_sync_channel_selection_to_secondary(const CollectionFilters &filters);
 
 /**
  * Arena Allocator for animation channels.
@@ -701,6 +759,8 @@ class ChannelArena {
    * To get it, call #root().
    */
   Vector<SummaryChannel *> summary_channels;
+
+  CollectionFilters filters = {};
 
   ChannelArena() = default;
   ChannelArena(const ChannelArena &) = delete;
@@ -777,48 +837,20 @@ class ChannelArena {
   }
 };
 
-struct CollectionFilters {
-  bool only_selected = true;
-  /* Show keys of hidden objects/bones. This is only used if `only_selected` is false. */
-  bool show_hidden = false;
-  bool only_errors = false;
-  /**
-   * Skip any IDs that an object modifier points to.
-   * See the comment on ADS_FILTER_NOMODIFIERS. I (christoph) don't think this is a useful
-   * setting, but it is kept for backwards compatibility. */
-  bool ignore_modifier_ids = false;
-
-  /* For searching by free text (channelbox header input). */
-  bool use_filter_text_invert = false;
-  StringRefNull filter_text = "";
-
-  /* Limit the returned data to only channels of the given type.
-   * If empty, all channel types are returned. */
-  Set<AnimationChannelType> channel_type_allowlist;
-  /* Any id types put here will be ignored in the channel collection process. */
-  Set<ID_Type> id_type_blocklist;
-
-  bool text_matches_filter(StringRefNull text) const;
-};
-
 /**
  * Collect all channels for the Action Editor.
  *
  * \param collection_filters determines which types of data channels are collected. See
  * `get_filters`.
  */
-void collect_action_editor_channels(const bContext &C,
-                                    const CollectionFilters &collection_filters,
-                                    ChannelArena &arena);
+void collect_action_editor_channels(const bContext &C, ChannelArena &arena);
 /**
  * Collect all channels in the given context, for Dope Sheet and Graph Editor.
  *
  * \param collection_filters determines which types of data channels are collected. See
  * `get_filters`.
  */
-void collect_animation_channels(const bContext &C,
-                                const CollectionFilters &collection_filters,
-                                ChannelArena &arena);
+void collect_animation_channels(const bContext &C, ChannelArena &arena);
 
 /**
  * Construct the filters from the given dopesheet settings.
@@ -841,11 +873,15 @@ void group_channels(ChannelArena &arena,
                     Span<ChannelTagType> tag_order,
                     bool use_minimal_grouping);
 
+std::unique_ptr<ui::AbstractTreeView> build_channel_tree_view(ChannelArena &arena);
+
 /**
  * Draw the whole tree starting at the root using the legacy UI code.
  * TODO maybe the drawing code should not be in this header?
  */
-void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d);
+void draw_channel_tree(const bContext &C,
+                       std::unique_ptr<ui::AbstractTreeView> channel_tree_view,
+                       View2D &v2d);
 
 struct KeyDrawSettings {
   /* Modify the keyframe shape to indicate the key handle. */
@@ -856,6 +892,9 @@ struct KeyDrawSettings {
 void draw_dopesheet_key_area(SummaryChannel &root,
                              View2D &v2d,
                              const KeyDrawSettings &key_draw_settings);
+
+/* The row_index is the depth first number of the row accounting for child channels. */
+using ForEachChannelCallback = FunctionRef<void(AnimationChannel &channel, int row_index)>;
 
 /**
  * Iterate all expanded channels and their children.

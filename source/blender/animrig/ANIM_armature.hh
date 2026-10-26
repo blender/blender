@@ -13,7 +13,10 @@
 #include "ANIM_bone_collections.hh"
 
 #include "BKE_pose.hh"
+
+#include "DNA_ID_enums.h"
 #include "DNA_armature_types.h"
+#include "DNA_object_types.h"
 
 namespace blender::animrig {
 
@@ -58,6 +61,12 @@ inline bool bone_is_selected(const bArmature *armature, const EditBone *ebone)
 {
   return (ebone->flag & BONE_SELECTED) && bone_is_visible(armature, ebone);
 }
+inline bool bone_is_selected(const Object &pose_object, const bPoseChannel *pchan)
+{
+  BLI_assert(pose_object.data->id_type() == ID_AR);
+  const bArmature *armature = id_cast<bArmature *>(pose_object.data);
+  return bone_is_selected(armature, {pchan, pchan->bone_get(pose_object)});
+}
 
 inline bool bone_is_selectable(const bArmature *armature, const bke::PChanBoneConst pchanbone)
 {
@@ -66,6 +75,12 @@ inline bool bone_is_selectable(const bArmature *armature, const bke::PChanBoneCo
 inline bool bone_is_selectable(const bArmature *armature, const bPoseChannel *pchan)
 {
   return bone_is_selectable(armature, {pchan, pchan->bone_get(*armature)});
+}
+inline bool bone_is_selectable(const Object &pose_object, const bPoseChannel *pchan)
+{
+  BLI_assert(pose_object.data->id_type() == ID_AR);
+  const bArmature *armature = id_cast<bArmature *>(pose_object.data);
+  return bone_is_selectable(armature, {pchan, pchan->bone_get(pose_object)});
 }
 
 inline bool bone_is_selectable(const bArmature *armature, const Bone *bone)

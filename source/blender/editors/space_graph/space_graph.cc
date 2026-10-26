@@ -51,6 +51,7 @@
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
+#include "UI_tree_view.hh"
 #include "UI_view2d.hh"
 
 #include "BLO_read_write.hh"
@@ -479,7 +480,9 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
     ed::animfilter::ChannelArena &channels = space_graph_channel_arena(*C);
     set_v2d_height(v2d, channels.num_channels());
     ui::view2d_view_ortho(v2d);
-    ed::animfilter::draw_channel_tree(*C, *channels.root(), *v2d);
+
+    std::unique_ptr<ui::AbstractTreeView> tree = ed::animfilter::build_channel_tree_view(channels);
+    ed::animfilter::draw_channel_tree(*C, std::move(tree), *v2d);
     SpaceGraph *sgraph = CTX_wm_space_graph(C);
     ED_time_scrub_channel_search_draw(C, region, sgraph->ads);
   }

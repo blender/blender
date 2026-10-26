@@ -56,6 +56,7 @@
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
 
+#include "ED_anim_filter.hh"
 #include "ED_armature.hh"
 #include "ED_keyframes_edit.hh" /* XXX move the select modes out of there! */
 #include "ED_markers.hh"
@@ -3608,8 +3609,10 @@ static void select_all_channels(ed::animfilter::ChannelArena &channels, const bo
   if (!channels.root()) {
     return;
   }
+
+  const bool do_sync_to_secondary = do_sync_channel_selection_to_secondary(channels.filters);
   foreach_expanded(*channels.root(), [&](AnimationChannel &channel, int /* row_index */) {
-    channel.set_selected(select);
+    channel.set_selected(select, do_sync_to_secondary);
   });
 }
 
@@ -3658,11 +3661,13 @@ static wmOperatorStatus animchannels_selectall_exec(bContext *C, wmOperator *op)
         break;
       }
       case SEL_INVERT: {
+        const bool do_selection_syncing = do_sync_channel_selection_to_secondary(
+            channels->filters);
         for (DataChannel *data_channel : channels->data_channels) {
-          data_channel->set_selected(!data_channel->is_selected());
+          data_channel->set_selected(!data_channel->is_selected(), do_selection_syncing);
         }
         for (SummaryChannel *summary_channel : channels->summary_channels) {
-          summary_channel->set_selected(!summary_channel->is_selected());
+          summary_channel->set_selected(!summary_channel->is_selected(), do_selection_syncing);
         }
         break;
       }
@@ -3879,10 +3884,12 @@ static wmOperatorStatus animchannels_box_select_exec(bContext *C, wmOperator *op
 
     const float v2d_y_start = ui::view2d_region_to_view_y(&region->v2d, rect.ymin);
     const float v2d_y_end = ui::view2d_region_to_view_y(&region->v2d, rect.ymax);
+
+    const bool do_selection_syncing = do_sync_channel_selection_to_secondary(arena->filters);
     foreach_expanded(*arena->root(), [&](AnimationChannel &channel, int row_index) {
       const float row_top = first_channel - row_index * channel_step;
       if (v2d_y_start < row_top && v2d_y_end > row_top - channel_step) {
-        channel.set_selected(true);
+        channel.set_selected(true, do_selection_syncing);
       }
     });
   }
