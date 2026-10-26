@@ -40,6 +40,9 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* The two file formats we save as .tx files, same as OpenImageIO. */
+enum class TxFileFormat { OpenEXR, TIFF };
+
 static std::string datestring(time_t t)
 {
   struct tm mytm;
@@ -462,7 +465,7 @@ bool resolve_tx(const string &filepath,
   return false;
 }
 
-static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
+static void write_stats_tx(OIIO::ImageBuf &buf, const TxFileFormat tx_file_format)
 {
   OIIO::ImageBufAlgo::PixelStats pixel_stats = OIIO::ImageBufAlgo::computePixelStats(buf);
 
@@ -532,7 +535,7 @@ static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
   std::string hash_digest = OIIO::ImageBufAlgo::computePixelHashSHA1(
       buf, extra_hash_data, OIIO::ROI::All(), sha1_blocksize);
   if (hash_digest.length()) {
-    if (use_openexr) {
+    if (tx_file_format == TxFileFormat::OpenEXR) {
       buf.specmod().attribute("oiio:SHA-1", hash_digest);
     }
     else {
@@ -548,7 +551,7 @@ static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
   /* Add constant color attribute. */
   if (is_constant_color) {
     std::string colstr = OIIO::Strutil::join(constant_color, ",", buf.spec().nchannels);
-    if (use_openexr) {
+    if (tx_file_format == TxFileFormat::OpenEXR) {
       buf.specmod().attribute("oiio:ConstantColor", colstr);
     }
     else {
@@ -559,7 +562,7 @@ static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
 
   /* Add average color attribute. */
   std::string avgstr = OIIO::Strutil::join(pixel_stats.avg, ",", buf.spec().nchannels);
-  if (use_openexr) {
+  if (tx_file_format == TxFileFormat::OpenEXR) {
     buf.specmod().attribute("oiio:AverageColor", avgstr);
   }
   else {
@@ -567,7 +570,7 @@ static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
   }
   LOG_DEBUG << "  AverageColor: " << avgstr;
 
-  if (!use_openexr) {
+  if (tx_file_format == TxFileFormat::TIFF) {
     buf.specmod().attribute("ImageDescription", desc);
   }
 }
@@ -799,7 +802,8 @@ static bool make_tx(const string &filepath,
                     const ImageSpec &in_spec,
                     const std::function<bool()> &cancel)
 {
-  const bool use_openexr = metadata.is_float();
+  const TxFileFormat tx_file_format = metadata.is_float() ? TxFileFormat::OpenEXR :
+                                                            TxFileFormat::TIFF;
   const TypeDesc out_format = metadata.typedesc();
 
   ImageSpec spec;
@@ -824,7 +828,7 @@ static bool make_tx(const string &filepath,
    * Otherwise always use zip since it is parallelized and smaller than LZW or RLE. */
   const bool is_openexr_source = strcmp(metadata.colorspace_file_format, "openexr") == 0;
   std::string in_compression = in_spec.get_string_attribute("compression", "none");
-  if (!use_openexr || !is_openexr_source || in_compression == "none") {
+  if (tx_file_format == TxFileFormat::TIFF || !is_openexr_source || in_compression == "none") {
     spec.attribute("compression", "zip");
   }
   spec.attribute("planarconfig", "contig");
@@ -850,7 +854,7 @@ static bool make_tx(const string &filepath,
   spec.attribute("oiio:UnassociatedAlpha", 0);
 
   /* Source image metadata. */
-  if (use_openexr) {
+  if (tx_file_format == TxFileFormat::OpenEXR) {
     spec.attribute("blender:SourceFile", filepath);
     spec.attribute("blender:SourceColorSpace", metadata.colorspace);
     spec.attribute("blender:SourceAlpha", alpha_type_string(alpha_type));
@@ -876,7 +880,7 @@ static bool make_tx(const string &filepath,
     case IMAGE_FORMAT_EQUIANGULAR:
       spec.attribute("textureformat", "LatLong Environment");
       spec.attribute("wrapmodes", "periodic,clamp");
-      if (use_openexr) {
+      if (tx_file_format == TxFileFormat::OpenEXR) {
         spec.attribute("oiio:updirection", "y");
         spec.attribute("oiio:sampleborder", 1);
       }
@@ -884,7 +888,7 @@ static bool make_tx(const string &filepath,
   }
 
   /* OpenEXR mipmap metadata. */
-  if (use_openexr) {
+  if (tx_file_format == TxFileFormat::OpenEXR) {
     spec.attribute("openexr:roundingmode", 0 /* ROUND_DOWN */);
     spec.erase_attribute("openexr:levelmode");
   }
@@ -925,7 +929,7 @@ static bool make_tx(const string &filepath,
   buf.specmod().attribute("DateTime", datestring(in_time));
 
   /* Write pixel statistics. */
-  write_stats_tx(buf, use_openexr);
+  write_stats_tx(buf, tx_file_format);
 
   /* Write to temporary file, next to the final filepath for atomic rename. */
   /* TODO: Can we protect against leaving files on crashes? Two possibilities:
@@ -933,7 +937,8 @@ static bool make_tx(const string &filepath,
    *   the probability but does not eliminate it.
    * - Add an atexit handles that removes any temporary files we are writing. This
    *   does not help with a power outage or maybe some types of process killing. */
-  const char *tmp_extension = (use_openexr) ? ".%%%%%%%%.temp.exr" : ".%%%%%%%%.temp.tif";
+  const char *tmp_extension = (tx_file_format == TxFileFormat::OpenEXR) ? ".%%%%%%%%.temp.exr" :
+                                                                          ".%%%%%%%%.temp.tif";
   string tmp_filepath = OIIO::Filesystem::unique_path(out_filepath + tmp_extension);
 
   std::unique_ptr<ImageOutput> out = ImageOutput::create(tmp_filepath);
