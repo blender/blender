@@ -564,6 +564,12 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, cons
     }
   }
 
+  /* Keys without a matching curve keep the center position. */
+  if (i < num_keys) {
+    std::copy_n(hair->get_position() + i, num_keys - i, mP + i);
+    std::copy_n(hair->get_radius() + i, num_keys - i, mR + i);
+  }
+
   /* In case of new attribute, we verify if there really was any motion. */
   if (new_attribute) {
     export_hair_motion_validate_attribute(hair, motion_step, i, have_motion);
@@ -1051,7 +1057,10 @@ static void export_hair_curves_motion(Hair *hair,
     num_motion_keys = num_keys;
   }
   else {
-    /* Slow path: topology has changed, copy with per-curve interpolation. */
+    /* Slow path: topology has changed, copy with per-curve interpolation.
+     * Keys without a matching curve keep the center position. */
+    hair->copy_center_to_motion_step(motion_step);
+
     const size_t num_curves = hair->num_curves();
     packed_float3 *mP = attr_P->data_for_write<packed_float3>(attr_step);
     float *mR = attr_R->data_for_write<float>(attr_step);
