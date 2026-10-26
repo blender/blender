@@ -219,85 +219,6 @@ class PROJECT_OT_MoveVariable(Operator):
         return {'FINISHED'}
 
 
-class PROJECT_OT_AssetLibraryAdd(Operator):
-    """
-    Register a directory to be used by the Asset Browser and other places showing assets,
-    as source of assets within the current project.
-    """
-    bl_idname = "project.asset_library_add"
-    bl_label = "Add Asset Library"
-    bl_options = {'INTERNAL'}
-
-    directory: bpy.props.StringProperty(
-        name="Asset Library Directory",
-        subtype='DIR_PATH',
-        default="",
-    )
-
-    filter_folder: bpy.props.BoolProperty(
-        name="Filter folders",
-        default=True,
-        options={'HIDDEN'},
-    )
-
-    @classmethod
-    def poll(cls, context):
-        return bpy.data.project is not None
-
-    def execute(self, context):
-        if self.directory == "":
-            self.report({'ERROR'}, "Cannot create an asset library with an empty directory path.")
-            return {'CANCELLED'}
-
-        # Create an initial name from the folder name
-        #
-        # If the folder name contains no valid unicode (resulting in an empty
-        # string after processing), we fallback to a default.
-        asset_library_path = os.path.normpath(self.directory)
-        asset_library_name = os.path.basename(asset_library_path).title() \
-            .encode('utf-8', 'surrogateescape') \
-            .decode('utf-8', 'ignore') \
-            or data_(ASSET_LIBRARY_DEFAULT_NAME)
-
-        bpy.data.project.asset_libraries.new(name=asset_library_name, directory=asset_library_path)
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
-
-class PROJECT_OT_AssetLibraryRemove(Operator):
-    """
-    Deregister an asset library so that its directory will no longer show up in
-    Asset Browsers and other places showing assets.
-    """
-    bl_idname = "project.asset_library_remove"
-    bl_label = "Remove Project Asset Library"
-    bl_options = {'INTERNAL'}
-
-    index: bpy.props.IntProperty(
-        name="Index",
-        default=0,
-    )
-
-    @classmethod
-    def poll(cls, context):
-        if bpy.data.project is None:
-            return False
-        return len(bpy.data.project.asset_libraries) != 0
-
-    def execute(self, context):
-        if self.index >= len(bpy.data.project.asset_libraries):
-            return {'CANCELLED'}
-
-        library = bpy.data.project.asset_libraries[self.index]
-        bpy.data.project.asset_libraries.remove(library)
-
-        return {'FINISHED'}
-
-
 # -------------------------------------------------------------
 # Handler Callbacks
 #
@@ -367,8 +288,6 @@ classes = (
     PROJECT_OT_AddVariable,
     PROJECT_OT_RemoveVariable,
     PROJECT_OT_MoveVariable,
-    PROJECT_OT_AssetLibraryAdd,
-    PROJECT_OT_AssetLibraryRemove,
 )
 
 

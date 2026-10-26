@@ -44,6 +44,23 @@
 
 namespace blender {
 
+/** Enums for asset library GUI panels. Shared between preferences and project setup UI. */
+const EnumPropertyItem custom_library_type_items[] = {
+    {int(bUserAssetLibraryAddType::Remote),
+     "REMOTE",
+     ICON_INTERNET,
+     "Add Remote Asset Library",
+     "Add an asset library referencing a remote repository "
+     "with support for listing and updating asset libraries"},
+    {int(bUserAssetLibraryAddType::Local),
+     "LOCAL",
+     ICON_DISK_DRIVE,
+     "Add Local Asset Library",
+     "Add an asset library managed via the file system without referencing an external "
+     "repository"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 /* -------------------------------------------------------------------- */
 /** \name Default Callbacks for User Preferences Space
  * \{ */
@@ -222,8 +239,8 @@ bUserAssetLibrary *ED_userpref_asset_library_new(const bContext *C,
       }
 
       if (is_project_defined) {
-        /* Not implemented yet for project asset libraries. */
-        BLI_assert_unreachable();
+        new_library = BKE_preferences_project_remote_asset_library_add(
+            &U, final_name, dirpath, auth_token.value_or(nullptr));
       }
       else {
         new_library = BKE_preferences_remote_asset_library_add(
