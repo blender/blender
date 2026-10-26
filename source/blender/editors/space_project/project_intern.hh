@@ -29,6 +29,9 @@ void PROJECT_OT_new(wmOperatorType *ot);
 void PROJECT_OT_open(wmOperatorType *ot);
 void PROJECT_OT_close(wmOperatorType *ot);
 
+void PROJECT_OT_asset_library_add(wmOperatorType *ot);
+void PROJECT_OT_asset_library_remove(wmOperatorType *ot);
+
 void PROJECT_OT_splash_image_create(wmOperatorType *ot);
 void PROJECT_OT_splash_image_clear(wmOperatorType *ot);
 

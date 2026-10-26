@@ -56,11 +56,16 @@ struct bUserAssetLibrary *BKE_preferences_project_asset_library_add(
     struct UserDef *userdef,
     const char *name,
     const char *dirpath,
-    std::optional<UUID> uuid = std::nullopt);
+    std::optional<UUID> uuid = std::nullopt) ATTR_NONNULL(1);
 struct bUserAssetLibrary *BKE_preferences_remote_asset_library_add(struct UserDef *userdef,
                                                                    const char *name,
                                                                    const char *remote_url,
                                                                    const char *auth_token)
+    ATTR_NONNULL(1, 3);
+bUserAssetLibrary *BKE_preferences_project_remote_asset_library_add(UserDef *userdef,
+                                                                    const char *name,
+                                                                    const char *remote_url,
+                                                                    const char *auth_token)
     ATTR_NONNULL(1, 3);
 
 /** Who defines the library. */

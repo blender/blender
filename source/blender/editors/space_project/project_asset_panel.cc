@@ -146,7 +146,7 @@ static void project_asset_panel_draw(const bContext *C, Panel *panel)
 
   ui::Layout &col = row.column(true);
   if (USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
-    PointerRNA props = col.op("project.asset_library_add", "", ICON_ADD);
+    col.op_menu_enum(C, "project.asset_library_add", "type", "", ICON_ADD);
   }
   else {
     PointerRNA props = col.op("project.asset_library_add", "", ICON_ADD);

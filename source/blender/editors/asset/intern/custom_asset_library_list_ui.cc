@@ -95,6 +95,12 @@ void draw_active_library_settings(const bContext *C,
       }
       layout.prop(&library_ptr, "import_method", UI_ITEM_NONE, IFACE_("Import Method"), ICON_NONE);
 
+      /* Disable auth token for project remote libraries until we have figured out what to do with
+       * them. */
+      if (library.user_library->flag & ASSET_LIBRARY_PROJECT_DEFINED) {
+        return;
+      }
+
       if (ui::Layout *panel = layout.panel(C, "advanced", true, IFACE_("Advanced"))) {
         panel->use_property_split_set(true);
 

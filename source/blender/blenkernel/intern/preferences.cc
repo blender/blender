@@ -277,6 +277,17 @@ bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,
   return library;
 }
 
+bUserAssetLibrary *BKE_preferences_project_remote_asset_library_add(UserDef *userdef,
+                                                                    const char *name,
+                                                                    const char *remote_url,
+                                                                    const char *auth_token)
+{
+  bUserAssetLibrary *library = BKE_preferences_remote_asset_library_add(
+      userdef, name, remote_url, auth_token);
+  library->flag |= ASSET_LIBRARY_PROJECT_DEFINED;
+  return library;
+}
+
 bUserAssetLibraryOwner BKE_preferences_asset_library_owner_get(const bUserAssetLibrary *library)
 {
   if (library->flag & ASSET_LIBRARY_PROJECT_DEFINED) {

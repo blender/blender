@@ -13,6 +13,10 @@
 #include "BLI_uuid.hh"
 #include "BLI_vector.hh"
 
+#include "RNA_types.hh"
+
+#include "UI_resources.hh"
+
 namespace blender {
 
 /* Structs */
@@ -30,6 +34,9 @@ enum class bUserAssetLibraryAddType {
   Remote = 0,
   Local = 1,
 };
+
+/** Enums for asset library GUI panels. Shared between preferences and project setup UI. */
+extern const EnumPropertyItem custom_library_type_items[];
 
 struct bUserAssetLibrary *ED_userpref_asset_library_new(const struct bContext *C,
                                                         const char *name,

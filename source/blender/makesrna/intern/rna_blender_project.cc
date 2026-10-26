@@ -675,13 +675,15 @@ static void rna_BlenderProject_active_asset_library_set(PointerRNA *ptr, int val
 static bUserAssetLibrary *rna_BlenderProject_asset_library_new(const bContext *C,
                                                                const char *name,
                                                                const char *directory,
-                                                               const char *uuid_str)
+                                                               const char *uuid_str,
+                                                               const char *remote_url)
 {
   /* Keep this function in sync with the logic in project_asset_library_add in
    * blender_project_config.cc. */
 
   bUserAssetLibrary *new_library;
   Main *bmain = CTX_data_main(C);
+  const bool is_remote = remote_url && remote_url[0];
 
   BKE_blender_project_write_callback(bmain, [&](bke::BlenderProject *project) {
     std::optional<UUID> uuid = {};
@@ -701,8 +703,9 @@ static bUserAssetLibrary *rna_BlenderProject_asset_library_new(const bContext *C
 
     new_library = ED_userpref_asset_library_new(C,
                                                 name ? name : "",
-                                                directory_str.c_str(),
-                                                bUserAssetLibraryAddType::Local,
+                                                is_remote ? remote_url : directory_str.c_str(),
+                                                is_remote ? bUserAssetLibraryAddType::Remote :
+                                                            bUserAssetLibraryAddType::Local,
                                                 true,
                                                 uuid,
                                                 {});
@@ -948,6 +951,12 @@ static void rna_def_project_asset_library_collection(BlenderRNA *brna, PropertyR
   RNA_def_string(func, "name", nullptr, sizeof(bUserAssetLibrary::name), "Name", "");
   RNA_def_string(func, "directory", nullptr, sizeof(bUserAssetLibrary::dirpath), "Directory", "");
   RNA_def_string(func, "uuid", nullptr, sizeof(bUserAssetLibrary::uuid), "UUID", "");
+  RNA_def_string(func,
+                 "remote_url",
+                 nullptr,
+                 sizeof(bUserAssetLibrary::remote_url),
+                 "Remote URL",
+                 "When set, add a remote asset library instead of a local directory");
   /* return type */
   parm = RNA_def_pointer(func, "library", "ProjectAssetLibrary", "", "Newly added asset library");
   RNA_def_function_return(func, parm);
