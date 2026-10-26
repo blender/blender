@@ -129,6 +129,8 @@ struct ParsedResource {
   std::string res_condition;
   /** For images, storage, uniforms and samplers. */
   std::string res_frequency = "PASS";
+  /** True if the resource contains BDA (Buffer Device Address). */
+  bool contains_pointer = false;
 
   std::string serialize() const;
 };

@@ -1001,12 +1001,14 @@ struct ShaderCreateInfo {
   };
 
   struct UniformBuf {
+    bool type_is_ptr;
     StringRefNull type_name;
     ResourceString name;
   };
 
   struct StorageBuf {
     Qualifier qualifiers;
+    bool type_is_ptr;
     StringRefNull type_name;
     ResourceString name;
   };
@@ -1049,11 +1051,13 @@ struct ShaderCreateInfo {
       TEST_EQUAL(*this, b, slot);
       switch (bind_type) {
         case UNIFORM_BUFFER:
+          TEST_EQUAL(*this, b, uniformbuf.type_is_ptr);
           TEST_EQUAL(*this, b, uniformbuf.type_name);
           TEST_EQUAL(*this, b, uniformbuf.name);
           break;
         case STORAGE_BUFFER:
           TEST_EQUAL(*this, b, storagebuf.qualifiers);
+          TEST_EQUAL(*this, b, storagebuf.type_is_ptr);
           TEST_EQUAL(*this, b, storagebuf.type_name);
           TEST_EQUAL(*this, b, storagebuf.name);
           break;
@@ -1127,6 +1131,7 @@ struct ShaderCreateInfo {
   Vector<StageInterfaceInfoHandle, 0> geometry_out_interfaces_;
 
   struct PushConst {
+    bool type_is_ptr;
     Type type;
     ResourceString name;
     int array_size;
@@ -1144,6 +1149,7 @@ struct ShaderCreateInfo {
 
     bool operator==(const PushConst &b) const
     {
+      TEST_EQUAL(*this, b, type_is_ptr);
       TEST_EQUAL(*this, b, type);
       TEST_EQUAL(*this, b, name);
       TEST_EQUAL(*this, b, array_size);
@@ -1408,10 +1414,12 @@ struct ShaderCreateInfo {
                     StringRefNull type_name,
                     StringRefNull name,
                     Frequency freq = Frequency::PASS,
+                    bool is_ptr = false,
                     ConditionFn cond = nullptr)
   {
     Resource res(*this, Resource::BindType::UNIFORM_BUFFER, slot, cond);
     res.uniformbuf.name = name;
+    res.uniformbuf.type_is_ptr = is_ptr;
     res.uniformbuf.type_name = type_name;
     resources_get_(freq).append(res);
     interface_names_size_ += name.size() + 1;
@@ -1423,10 +1431,12 @@ struct ShaderCreateInfo {
                     StringRefNull type_name,
                     StringRefNull name,
                     Frequency freq = Frequency::PASS,
+                    bool is_ptr = false,
                     ConditionFn cond = nullptr)
   {
     Resource res(*this, Resource::BindType::STORAGE_BUFFER, slot, cond);
     res.storagebuf.qualifiers = qualifiers;
+    res.storagebuf.type_is_ptr = is_ptr;
     res.storagebuf.type_name = type_name;
     res.storagebuf.name = name;
     resources_get_(freq).append(res);
@@ -1533,6 +1543,7 @@ struct ShaderCreateInfo {
   Self &push_constant(Type type,
                       StringRefNull name,
                       int array_size = 0,
+                      bool is_ptr = false,
                       ConditionFn cond = nullptr)
   {
     /* We don't have support for UINT push constants yet, use INT instead. */
@@ -1540,7 +1551,8 @@ struct ShaderCreateInfo {
     BLI_assert_msg(name.find("[") == -1,
                    "Array syntax is forbidden for push constants."
                    "Use the array_size parameter instead.");
-    push_constants_.append_as(type, name, array_size, cond ? Conditions(cond) : Conditions());
+    push_constants_.append_as(
+        is_ptr, type, name, array_size, cond ? Conditions(cond) : Conditions());
     interface_names_size_ += name.size() + 1;
     return *static_cast<Self *>(this);
   }

@@ -28,7 +28,8 @@ SymbolVariable::SymbolVariable(SymbolScope *parent,
       array_dimensions(decl.array().dimensions()),
       is_bitfield(decl.bitfield().is_valid()),
       is_static(decl.type().is_static()),
-      is_compilation_const(AttrList(decl.type().prev()).contains_attr("compilation_constant"))
+      is_compilation_const(AttrList(decl.type().prev()).contains_attr("compilation_constant")),
+      is_ptr(decl.is_pointer())
 {
   if (ast::Const constant = decl.type().constant(); constant.is_valid()) {
     is_constexpr = constant.front() == Constexpr;

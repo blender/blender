@@ -203,6 +203,9 @@ alignas(128) const std::array<CharClass, 128> LexerBase::bsl_char_class_table = 
    * That means >= and <= need to be manually handled. */
   table['<'] = CharClass::Separator;
   table['>'] = CharClass::Separator;
+  /* Make * separators in order to support pointers and references.
+   * That means *= need to be manually handled. */
+  table['*'] = CharClass::Separator;
   return table;
 }();
 

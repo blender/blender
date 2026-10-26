@@ -197,6 +197,7 @@ enum class Diag {
 
   MissingParameterForCall,
 
+  OperatorAddressOfUnsupported,
   OperatorCalledIsNotFunction,
   OperatorTokenInvalid,
   OperatorInvalidIndirection,
@@ -219,6 +220,13 @@ enum class Diag {
   NotePreviousDefinition,
 
   ParserTrailingInput,
+
+  PointerMultiIndirection,
+  PointerArithmetic,
+  PointerDeclIsInitializerList,
+  PointerNeedsInitialization,
+  PointerMixedVarDecl,
+  PointerNotResource,
 
   InliningRecursive,
 
@@ -445,7 +453,7 @@ static inline std::string_view diagnostic_message_get(Diag diag)
     case Diag::InvalidUnaryArgumentType:
       return "Invalid argument type '{0}' to unary expression ({0}'{1}')";
     case Diag::InvalidPointerCast:
-      return "Cannot cast '{} *' into '{}'";
+      return "Cannot cast '{}' into '{}'";
     case Diag::MissingParameterForCall:
       return "Missing parameter for call to '{}'";
     case Diag::ConditionAttributeDeclaredHere:
@@ -480,6 +488,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "In instantiation of function template specialization '{}' requested here";
     case Diag::NotePreviousDefinition:
       return "Previous definition of '{}' is here";
+    case Diag::OperatorAddressOfUnsupported:
+      return "Unary operator address-of '&' is not supported";
     case Diag::OperatorCalledIsNotFunction:
       return "Called object type '{}' is not a function";
     case Diag::OperatorInvalidIndirection:
@@ -498,6 +508,19 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "No matching function for call to '{}' for parameters {} with candidates: {}";
     case Diag::ParserTrailingInput:
       return "Trailing input";
+    case Diag::PointerMultiIndirection:
+      return "Multi-indirection pointers are not supported";
+    case Diag::PointerArithmetic:
+      return "Pointer arithmetic is not supported";
+    case Diag::PointerDeclIsInitializerList:
+      return "Pointer initialized using initializer list";
+    case Diag::PointerNeedsInitialization:
+      return "Pointer needs to be initialized";
+    case Diag::PointerMixedVarDecl:
+      return "Variable declaration must declare either no pointer or only pointer";
+    case Diag::PointerNotResource:
+      return "Pointer types are only allowed on 'storage', 'uniform' and 'push_constant' "
+             "resource declaration";
     case Diag::Redefinition:
       return "Redefinition of '{}'";
     case Diag::RedefinitionOfEntryPointFunction:

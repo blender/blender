@@ -371,6 +371,8 @@ static std::string to_string(ast::NodeType type)
       return "StructuredBinding";
     case ast::NodeType::ArrayDecl:
       return "ArrayDecl";
+    case ast::NodeType::Pointer:
+      return "Pointer";
   }
   return "Error";
 }
@@ -503,6 +505,8 @@ static bool display_type(ast::NodeType type)
     case ast::NodeType::StructuredBinding:
       return false;
     case ast::NodeType::ArrayDecl:
+      return false;
+    case ast::NodeType::Pointer:
       return false;
   }
   return false;
