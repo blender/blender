@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
-"PO-Revision-Date: 2026-04-13 10:12+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"PO-Revision-Date: 2026-10-20 16:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
 "Language: pt_BR\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.16.2\n"
+"X-Generator: Weblate 2026.6.1\n"
 "X-Poedit-SourceCharset: utf-8"
 
 
@@ -4390,7 +4390,7 @@ msgstr "Olhais para eixos"
 
 
 msgid "Off-axis frustums converging in a plane"
-msgstr "Usa olhais (ou passadores) para os eixos dos troncos de bases paralelas que convergem na direção de um plano."
+msgstr "Volumes de visão deslocados do eixo que convergem em um plano"
 
 
 msgid "Parallel"
@@ -21136,30 +21136,6 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
@@ -21170,10 +21146,6 @@ msgstr "Atrair"
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Math"
-msgstr "Matemática"
 
 
 msgid "Mirror"
@@ -21208,6 +21180,10 @@ msgid "View Regions"
 msgstr "Visualizar Regiões"
 
 
+msgid "Math"
+msgstr "Matemática"
+
+
 msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
@@ -21220,10 +21196,6 @@ msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
 
 
-msgid "Instances"
-msgstr "Instâncias"
-
-
 msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
 
@@ -21232,12 +21204,8 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
 msgid "Light"
@@ -21248,12 +21216,20 @@ msgid "Light Probe"
 msgstr "Sonda de Luz"
 
 
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Add Image"
 msgstr "Adicionar Imagem"
 
 
 msgid "Relations"
 msgstr "Relações"
+
+
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Rigid Body"
@@ -21272,12 +21248,24 @@ msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
 
 
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
 msgid "Make Single User"
 msgstr "Tornar usuário único"
 
 
 msgid "Convert"
 msgstr "Converter"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Hooks"
@@ -21292,20 +21280,16 @@ msgid "Clear Transform"
 msgstr "Limpar transformações"
 
 
-msgid "Linked"
-msgstr "Vinculando"
-
-
 msgid "In-Betweens"
 msgstr "Entre as continuidades"
 
 
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Propagate"
 msgstr "Propagar"
+
+
+msgid "Names"
+msgstr "Nomes"
 
 
 msgid "Toggle Bone Options"
@@ -21328,16 +21312,32 @@ msgid "Face Data"
 msgstr "Dados das faces"
 
 
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
 msgid "Keying"
 msgstr "Inserção de chaves"
 
 
 msgid "Tracking"
 msgstr "Rastreamento"
-
-
-msgid "Merge"
-msgstr "Fundir"
 
 
 msgid "Basic"
@@ -28231,11 +28231,6 @@ msgstr "Exportar conjunto de inserção de chaves..."
 
 
 msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "Atualizar as restrições de transformações de animação"
-
-
-msgctxt "Operator"
 msgid "Show All"
 msgstr "Mostrar tudo"
 
@@ -30422,18 +30417,6 @@ msgstr "Permite definir interativamente um intervalo de quadros usado para a rep
 msgctxt "Operator"
 msgid "Set Start Frame"
 msgstr "Definir quadro inicial"
-
-
-msgid "Convert to Radians"
-msgstr "Converter para radianos"
-
-
-msgid ""
-"Convert f-curves/drivers affecting rotations to radians.\n"
-"Warning: Use this only once"
-msgstr ""
-"Converte controladores ou curvas-f que afetam as rotações para radianos.\n"
-"AVISO: use somente uma vez"
 
 
 msgctxt "Operator"
@@ -51545,7 +51528,7 @@ msgstr "Permite usar valores diferentes de semeadura (e portanto, diferentes pad
 
 
 msgid "Allow objects to be culled based on the camera frustum"
-msgstr "Permite que os objetos sejam abatidos com base no frustrum da câmera."
+msgstr "Permite descartar objetos da renderização com base no volume de visão da câmera."
 
 
 msgid "Allow objects to be culled based on the distance from camera"
@@ -55152,6 +55135,10 @@ msgid "Show the left and right cameras"
 msgstr "Mostra as câmeras esquerda e direita."
 
 
+msgid "Show the stereo 3D frustum volume"
+msgstr "Mostrar o volume de visão estereoscópica 3D"
+
+
 msgid "3D"
 msgstr "3D"
 
@@ -55181,7 +55168,7 @@ msgstr "Alfa para o volume"
 
 
 msgid "Opacity (alpha) of the cameras' frustum volume"
-msgstr "Opacidade (alfa) do volume do tronco de bases paralelas da câmera (volume piramidal ou cônico)."
+msgstr "Opacidade (alfa) do volume de visão da câmera"
 
 
 msgid "Tracks Size"

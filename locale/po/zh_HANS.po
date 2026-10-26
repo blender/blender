@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
-"PO-Revision-Date: 2026-10-18 09:12+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"PO-Revision-Date: 2026-10-26 06:12+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -4400,6 +4400,14 @@ msgid "The path to the root folder of the project"
 msgstr "通往项目根文件夹的路径"
 
 
+msgid "Splash Artwork"
+msgstr "启动画面插图"
+
+
+msgid "Image to show in the splash screen for this project. Expected size is 1000x500 pixels"
+msgstr "该项目启动画面中显示的图像。预期尺寸为 1000×500 像素"
+
+
 msgid "Project Variables"
 msgstr "项目变量"
 
@@ -6659,7 +6667,7 @@ msgstr "修剪笔画末端"
 
 
 msgid "Trim intersecting stroke ends"
-msgstr "修剪笔画末端"
+msgstr "修剪相交笔画末端"
 
 
 msgid "UV Random"
@@ -6987,7 +6995,7 @@ msgstr "光圈"
 
 
 msgid "F-Stop ratio (lower numbers give more defocus, higher numbers give a sharper image)"
-msgstr "光圈级数比 (使用较低的值可得到更大程度的散焦效果, 使用较高的值可得到更锐利的图像效果)"
+msgstr "光圈级数比 (数值越小, 虚化效果越明显; 数值越大, 图像越锐利)"
 
 
 msgid "Ratio"
@@ -23982,11 +23990,11 @@ msgstr "底盖"
 
 
 msgid "Butt cap (flat)"
-msgstr "截头端点样式 (扁平式)"
+msgstr "截头端点 (扁平)"
 
 
 msgid "Round cap (half-circle)"
-msgstr "圆头端点样式 (半圆式)"
+msgstr "圆头端点 (半圆)"
 
 
 msgid "Square"
@@ -23994,7 +24002,7 @@ msgstr "正方形"
 
 
 msgid "Square cap (flat and extended)"
-msgstr "方块端点样式 (扁平延伸式)"
+msgstr "方块端点 (扁平延伸)"
 
 
 msgid "Chain Count"
@@ -24804,7 +24812,7 @@ msgstr "FFmpeg 视频"
 
 
 msgid "Image/Movie file name"
-msgstr "图像 / 影片的文件名称"
+msgstr "图像/影片的文件名称"
 
 
 msgid "Image/Movie file name (without data refreshing)"
@@ -29545,7 +29553,7 @@ msgstr "使用了子帧和时间重映射的当前帧"
 
 
 msgid "Final frame of the playback/rendering range"
-msgstr "回放 / 渲染区间的结束帧"
+msgstr "回放/渲染区间的结束帧"
 
 
 msgid "Current Subframe"
@@ -29569,7 +29577,7 @@ msgstr "用户界面中可选的回放起始帧"
 
 
 msgid "First frame of the playback/rendering range"
-msgstr "回放 / 渲染的区间起始帧"
+msgstr "回放/渲染区间的起始帧"
 
 
 msgid "Number of frames to skip forward while rendering/playing back each frame"
@@ -36639,36 +36647,8 @@ msgid "Editor menu containing buttons"
 msgstr "包含按钮的编辑器菜单"
 
 
-msgid "Show/Hide"
-msgstr "显示 / 隐藏"
-
-
 msgid "Creative"
 msgstr "创意"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Special Characters"
-msgstr "特殊字符"
-
-
-msgid "Kerning"
-msgstr "字距"
-
-
-msgid "Metaball"
-msgstr "融球"
-
-
-msgid "Names"
-msgstr "名称"
-
-
-msgid "Bone Roll"
-msgstr "骨骼扭转"
 
 
 msgid "Pivot Point"
@@ -36699,36 +36679,12 @@ msgid "Vertex Group Locks"
 msgstr "顶点组锁"
 
 
-msgid "Math"
-msgstr "运算"
-
-
-msgid "Utilities"
-msgstr "实用工具"
-
-
-msgid "Read"
-msgstr "读取"
-
-
-msgid "Sample"
-msgstr "采样"
-
-
 msgid "Mirror"
 msgstr "镜像"
 
 
-msgid "Write"
-msgstr "写入"
-
-
 msgid "UV Mapping"
 msgstr "UV 映射"
-
-
-msgid "Primitives"
-msgstr "基本体"
 
 
 msgid "Local View"
@@ -36755,8 +36711,16 @@ msgid "View Regions"
 msgstr "视图框"
 
 
+msgid "Math"
+msgstr "运算"
+
+
 msgid "Select More/Less"
 msgstr "扩展/缩减选择"
+
+
+msgid "Utilities"
+msgstr "实用工具"
 
 
 msgid "Select Similar"
@@ -36767,14 +36731,6 @@ msgid "Select All by Trait"
 msgstr "按特征全选"
 
 
-msgid "Gizmo"
-msgstr "操控器"
-
-
-msgid "Instances"
-msgstr "实例"
-
-
 msgid "Select Linked"
 msgstr "选择相连元素"
 
@@ -36783,24 +36739,28 @@ msgid "Select Loops"
 msgstr "选择循环"
 
 
-msgid "Import"
-msgstr "导入"
+msgid "Read"
+msgstr "读取"
+
+
+msgid "Sample"
+msgstr "采样"
 
 
 msgid "Assign Material"
 msgstr "指定材质"
 
 
-msgid "Deprecated"
-msgstr "已弃用"
+msgid "Write"
+msgstr "写入"
 
 
-msgid "Render Preview"
-msgstr "渲染预览"
+msgid "Primitives"
+msgstr "基本体"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "融球"
 
 
 msgid "Light"
@@ -36811,12 +36771,24 @@ msgid "Light Probe"
 msgstr "光照探头"
 
 
+msgid "Gizmo"
+msgstr "操控器"
+
+
+msgid "Instances"
+msgstr "实例"
+
+
 msgid "Add Image"
 msgstr "添加图像"
 
 
 msgid "Relations"
 msgstr "关系"
+
+
+msgid "Import"
+msgstr "导入"
 
 
 msgid "Rigid Body"
@@ -36831,8 +36803,20 @@ msgid "Track"
 msgstr "追踪"
 
 
+msgid "Deprecated"
+msgstr "已弃用"
+
+
 msgid "Quick Effects"
 msgstr "快速效果"
+
+
+msgid "Show/Hide"
+msgstr "显示 / 隐藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
 
 
 msgid "Asset"
@@ -36843,8 +36827,16 @@ msgid "Make Single User"
 msgstr "使其独立化"
 
 
+msgid "Render Preview"
+msgstr "渲染预览"
+
+
 msgid "Convert"
 msgstr "转换"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -36875,16 +36867,8 @@ msgid "Clear Transform"
 msgstr "清空变换"
 
 
-msgid "Linked"
-msgstr "关联"
-
-
 msgid "In-Betweens"
 msgstr "间帧调整"
-
-
-msgid "Layout"
-msgstr "布局"
 
 
 msgid "Propagate"
@@ -36893,6 +36877,10 @@ msgstr "传导"
 
 msgid "Bone Collections"
 msgstr "骨骼集合"
+
+
+msgid "Names"
+msgstr "名称"
 
 
 msgid "Toggle Bone Options"
@@ -36911,16 +36899,8 @@ msgid "Mesh Select Mode"
 msgstr "网格选择模式"
 
 
-msgid "Adjust"
-msgstr "校正"
-
-
 msgid "Face Data"
 msgstr "面数据"
-
-
-msgid "Keying"
-msgstr "抠像"
 
 
 msgid "Select by Face Strength"
@@ -36931,12 +36911,40 @@ msgid "Set Face Strength"
 msgstr "设置面强度"
 
 
-msgid "Tracking"
-msgstr "追踪"
-
-
 msgid "Merge"
 msgstr "合并"
+
+
+msgid "Linked"
+msgstr "关联"
+
+
+msgid "Layout"
+msgstr "布局"
+
+
+msgid "Special Characters"
+msgstr "特殊字符"
+
+
+msgid "Kerning"
+msgstr "字距"
+
+
+msgid "Adjust"
+msgstr "校正"
+
+
+msgid "Bone Roll"
+msgstr "骨骼扭转"
+
+
+msgid "Keying"
+msgstr "抠像"
+
+
+msgid "Tracking"
+msgstr "追踪"
 
 
 msgid "Keyframe Insert Pie"
@@ -55751,15 +55759,6 @@ msgstr ""
 ">>> layout.context_pointer_set(\"nla_strip\", nla_strip)"
 
 
-msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-msgstr "更新影响变换约束的函数曲线/驱动器 (用于 2.70 及更早版本的文件)"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "更新动画变换约束"
-
-
 msgctxt "Operator"
 msgid "Version Bone Hide Property"
 msgstr "骨骼隐藏属性版本迁移"
@@ -60220,18 +60219,6 @@ msgid "Set the current frame as the preview or scene start frame"
 msgstr "设定当前帧作为预览或场景起始帧"
 
 
-msgid "Convert to Radians"
-msgstr "转换为弧度制"
-
-
-msgid ""
-"Convert f-curves/drivers affecting rotations to radians.\n"
-"Warning: Use this only once"
-msgstr ""
-"将函数曲线/驱动器影响旋转转换为弧度制\n"
-"警告: 仅使用一次"
-
-
 msgid "Moves any F-Curves for the `hide` property of selected armatures into the action of the object. This will only operate on the first layer and strip of the action"
 msgstr "将所选骨架中 `hide` 属性的所有函数曲线移至物体对应的动作中。此操作仅作用于动作的第一个层和片段"
 
@@ -62563,7 +62550,7 @@ msgstr "解算摄像机"
 
 
 msgid "Solve camera motion from tracks"
-msgstr "根据轨迹信息对摄像机运动进行解算"
+msgstr "根据轨迹求解摄像机运动"
 
 
 msgctxt "Operator"
@@ -62914,6 +62901,10 @@ msgstr "清理导入器"
 msgctxt "Operator"
 msgid "Remove Importer"
 msgstr "移除导入器"
+
+
+msgid "Remove Collection Importer and delete its imported data"
+msgstr "移除集合导入器并删除其导入的数据"
 
 
 msgctxt "Operator"
@@ -64799,7 +64790,7 @@ msgstr "活动场景至文件"
 
 
 msgid "Each scene as a file"
-msgstr "每个场景单独导出为文件"
+msgstr "每个场景作为一个文件"
 
 
 msgid "Each collection (data-block ones) as a file, does not include content of children collections"
@@ -65269,6 +65260,34 @@ msgid "Export cameras"
 msgstr "导出摄像机"
 
 
+msgid "Compressed Images Fallback"
+msgstr "压缩图像后备"
+
+
+msgid "For all compressed textures (WebP or KTX2), create a PNG fallback texture"
+msgstr "为所有 WebP 或 KTX2 纹理创建一个 PNG 备用纹理"
+
+
+msgid "Compressed Images Type"
+msgstr "压缩图像类型"
+
+
+msgid "Choose the format for compressed textures fallback (WebP or KTX2 with BasisU supercompression)"
+msgstr "选择压缩纹理的备用格式（WebP 或采用 BasisU 超级压缩技术的 KTX2）"
+
+
+msgid "WebP"
+msgstr "WebP"
+
+
+msgid "Use WebP format for compressed textures"
+msgstr "对压缩纹理使用 WebP 格式"
+
+
+msgid "Use KTX2 format with BasisU supercompression for compressed textures"
+msgstr "对压缩纹理使用 KTX2 格式并启用 BasisU 超级压缩"
+
+
 msgid "Convert TRS/Weights to Animation Pointer"
 msgstr "TRS/权重转换为动画指针"
 
@@ -65537,6 +65556,14 @@ msgid "Export full hierarchy, including intermediate collections"
 msgstr "导出完整的层次结构，包括中间集合"
 
 
+msgid "Create Compressed Images"
+msgstr "创建压缩图像"
+
+
+msgid "Creates compressed textures (WebP or KTX2)for every texture. For already compressed textures, nothing happens"
+msgstr "为每张纹理创建 WebP 或 KTX2 压缩纹理。对于已经压缩的纹理，不作处理"
+
+
 msgid "Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web applications due to the smaller file size. Alternatively they can be omitted if they are not needed"
 msgstr "图像的输出格式. PNG是无损的, 通常是首选, 但由于文件较小, JPEG可能更适合Web应用. 另外, 如无需要可忽略该项"
 
@@ -65558,7 +65585,7 @@ msgstr "WebP格式"
 
 
 msgid "Save images as WebPs as main image (no fallback)"
-msgstr "将图像另存为WebP作为主图像（不可回退）"
+msgstr "将图像另存为WebP作为主图像（无后备格式）"
 
 
 msgid "Don't export images"
@@ -65623,6 +65650,14 @@ msgstr "保留原有"
 
 msgid "Keep original textures files if possible. WARNING: if you use more than one texture, where pbr standard requires only one, only one texture will be used. This can lead to unexpected results"
 msgstr "如果可能，保留原始纹理文件。警告：如果使用了多个纹理，而 pbr 标准仅需要一个，则只会使用其中一个纹理。这可能会导致意外的结果"
+
+
+msgid "Zstandard Compression Level"
+msgstr "Zstandard 压缩级别"
+
+
+msgid "Set the Zstandard compression level for (UASTC) non-color KTX2 textures (1 is fastest/lowest ratio, 22 is slowest/highest ratio)"
+msgstr "设置（UASTC）非彩色 KTX2 纹理的 Zstandard 压缩级别（1 表示最快/压缩率最低，22 表示最慢/压缩率最高）"
 
 
 msgid "Punctual Lights"
@@ -65858,11 +65893,11 @@ msgstr "使用静置位置作为静止关节姿态导出骨架。禁用时，当
 
 
 msgid "Sampling Interpolation Fallback"
-msgstr "采样插值回退"
+msgstr "采样插值后备"
 
 
 msgid "Interpolation fallback for sampled animations, when the property is not keyed"
-msgstr "当属性未设置关键帧时，采样动画的插值回退"
+msgstr "当属性未设置关键帧时，采样动画的插值备用方案"
 
 
 msgid "Linear interpolation between keyframes"
@@ -65943,6 +65978,14 @@ msgstr "使用 Gltfpack"
 
 msgid "Use gltfpack to simplify the mesh and/or compress its textures"
 msgstr "使用 gltfpack 来精简网格并压缩其纹理"
+
+
+msgid "Zstandard Compression"
+msgstr "Zstandard 压缩"
+
+
+msgid "Enable Zstandard compression for (UASTC) non-color KTX2 textures"
+msgstr "为（UASTC）非彩色 KTX2 纹理启用 Zstandard 压缩"
 
 
 msgid "Use Vertex Color"
@@ -71204,6 +71247,14 @@ msgid "Try to guess the original bind pose for skinned meshes from the inverse b
 msgstr "尝试从逆绑定矩阵中猜测蒙皮网格的原始绑定姿态。当关闭时，使用默认/静置姿态作为绑定姿态"
 
 
+msgid "Import KTX Textures"
+msgstr "导入KTX纹理"
+
+
+msgid "If a texture exists in KTX format, loads the KTX texture instead of the fallback PNG/JPEG one"
+msgstr "如果纹理以KTX格式存在，则加载KTX纹理，而不是后备的PNG/JPEG纹理"
+
+
 msgid "Merge Material Slot when possible"
 msgstr "尽可能合并材质槽"
 
@@ -71277,7 +71328,7 @@ msgstr "导入WebP纹理"
 
 
 msgid "If a texture exists in WebP format, loads the WebP texture instead of the fallback PNG/JPEG one"
-msgstr "如果纹理以WebP格式存在，则加载WebP纹理，而不是回退的PNG/JPEG纹理"
+msgstr "如果纹理以WebP格式存在，则加载WebP纹理，而不是后备的PNG/JPEG纹理"
 
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
@@ -73091,7 +73142,7 @@ msgstr "内插面边界"
 
 
 msgid "Edge Rail"
-msgstr "并排边"
+msgstr "边线轨道"
 
 
 msgid "Inset the region along existing edges"
@@ -74170,7 +74221,7 @@ msgstr "沿距离光标最近的边延伸顶点"
 
 
 msgid "World-space direction vector for extending vertices"
-msgstr "用于延伸顶点的世界空间方向向量"
+msgstr "用于延伸顶点的世界空间方向矢量"
 
 
 msgid "World-space ray origin for extending vertices"
@@ -74371,7 +74422,7 @@ msgstr "选择内侧面"
 
 
 msgid "Select faces where all edges have more than 2 face users"
-msgstr "选择满足指定条件的面, 在这类面中, 所有边线都被两个以上的面所共用"
+msgstr "选择所有边都有超过 2 个面用户的面"
 
 
 msgid "Deselect vertices, edges or faces at the boundary of each selection region"
@@ -76093,6 +76144,10 @@ msgstr "复制当前已分配的合成节点组。"
 
 msgid "Duplicate Scene Effect Node Group"
 msgstr "复制场景效果节点组"
+
+
+msgid "Duplicate the scene effect node group and assign the new node group to the effect"
+msgstr "复制场景效果节点组，并将新节点组分配给该效果"
 
 
 msgid "Duplicate selected nodes and move them"
@@ -81660,7 +81715,7 @@ msgstr "显示 / 隐藏一个层级"
 
 
 msgid "Expand/collapse all entries by one level"
-msgstr "展开 / 折叠一个层级的所有项目"
+msgstr "将所有条目展开/折叠一级"
 
 
 msgid "Expand all entries one level deep"
@@ -83780,7 +83835,7 @@ msgstr "要安装扩展的位置"
 
 
 msgid "All Keymaps"
-msgstr "全部键位映射表"
+msgstr "全部键位映射项"
 
 
 msgid "Write all keymaps (not just user modified)"
@@ -83877,6 +83932,19 @@ msgid "Asset Library Directory"
 msgstr "资产库目录"
 
 
+msgctxt "Operator"
+msgid "Close Project"
+msgstr "关闭项目"
+
+
+msgid "Close the active project, starting a new file"
+msgstr "关闭活动项目，新建一个文件"
+
+
+msgid "Skip check to prevent unsaved changes from being lost"
+msgstr "跳过检查，以防止未保存的更改丢失"
+
+
 msgid "Move Up"
 msgstr "上移"
 
@@ -83892,6 +83960,43 @@ msgstr "新建项目"
 
 msgid "Create a new project"
 msgstr "创建一个新项目"
+
+
+msgctxt "Operator"
+msgid "Open Project..."
+msgstr "打开项目..."
+
+
+msgid "Open a project, starting a new file in it"
+msgstr "打开一个项目，并在其中新建一个文件"
+
+
+msgctxt "Operator"
+msgid "Clear Splash Artwork"
+msgstr "清除启动画面插图"
+
+
+msgid ""
+"Clear the project custom splash artwork.\n"
+"The image file is not deleted from disk"
+msgstr ""
+"清除项目的自定义启动画面插图。\n"
+"该图像文件不会从磁盘中删除"
+
+
+msgctxt "Operator"
+msgid "Create Splash Artwork"
+msgstr "创建启动画面插图"
+
+
+msgid ""
+"Set the project splash artwork from an image file.\n"
+"The image will be cropped, scaled and saved as \".blender_project/splash.jpg\".\n"
+"For optimal results use a 2:1 aspect ratio"
+msgstr ""
+"从图像文件设置项目启动画面插图。\n"
+"该图像将被裁剪、缩放，并保存为 \".blender_project/splash.jpg\"。\n"
+"为获得最佳效果，请使用 2:1 的宽高比"
 
 
 msgctxt "Operator"
@@ -84687,6 +84792,10 @@ msgid "New Scene Effect Node Group"
 msgstr "新建场景效果节点组"
 
 
+msgid "Create a new compositor node group and assign it to the scene effect"
+msgstr "创建新的合成器节点组，并将其指定给场景效果"
+
+
 msgid "Add new scene by type in the sequence editor and assign to active strip"
 msgstr "在序列编辑器中按类型添加新场景并指定至活动片段"
 
@@ -84919,12 +85028,12 @@ msgstr "关闭区域"
 
 
 msgid "Close selected area"
-msgstr "闭合所选区域"
+msgstr "关闭所选区域"
 
 
 msgctxt "Operator"
 msgid "Duplicate Area into New Window"
-msgstr "将区域复制到新窗口"
+msgstr "复制区域到新窗口"
 
 
 msgid "Duplicate selected area into new window"
@@ -93016,6 +93125,15 @@ msgstr "未找到的项目"
 
 
 msgctxt "Operator"
+msgid "Clear Recent Projects List"
+msgstr "清空近期项目列表"
+
+
+msgid "Clear the recent projects list"
+msgstr "清空近期项目列表"
+
+
+msgctxt "Operator"
 msgid "Export All Collections"
 msgstr "导出所有集合"
 
@@ -93990,11 +94108,11 @@ msgstr "用于设置填充色的属性路径"
 
 
 msgid "Image ID"
-msgstr "图像识别符"
+msgstr "图像标识符"
 
 
 msgid "Path of ID that is used to generate an image for the control"
-msgstr "用于控制图像的识别符生成路径"
+msgstr "用于控制图像的标识符生成路径"
 
 
 msgid "Confirm On Release"
@@ -96343,14 +96461,6 @@ msgid "Curves Edit Mode"
 msgstr "曲线编辑模式"
 
 
-msgid "glTF Variants"
-msgstr "glTF 变体"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材质变体"
-
-
 msgid "Transform Orientations"
 msgstr "变换坐标系"
 
@@ -96383,14 +96493,6 @@ msgid "Multi Frame"
 msgstr "多帧"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 动画"
-
-
 msgid "Auto-Masking"
 msgstr "自动遮罩"
 
@@ -96411,12 +96513,28 @@ msgid "Viewport Debug"
 msgstr "视口调试"
 
 
+msgid "glTF Variants"
+msgstr "glTF 变体"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材质变体"
+
+
 msgid "VR"
 msgstr "VR"
 
 
 msgid "VR Info"
 msgstr "VR 信息"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 动画"
 
 
 msgid "Import Settings"
@@ -99490,6 +99608,14 @@ msgid "Save projects automatically on exit and when saving or switching blend fi
 msgstr "退出时以及保存或切换 blend 文件时自动保存项目"
 
 
+msgid "Remember Last Project"
+msgstr "记住上一个项目"
+
+
+msgid "On startup, automatically re-open the project that was last open when Blender was closed"
+msgstr "启动时，自动重新打开 Blender 关闭前最后打开的项目"
+
+
 msgid "Recent Searches"
 msgstr "最近搜索"
 
@@ -101726,7 +101852,7 @@ msgstr "文件编辑器将显示的默认位置"
 
 
 msgid "Maximized Area"
-msgstr "区域最大化"
+msgstr "最大化的区域"
 
 
 msgid "Open the temporary editor in a maximized screen"
@@ -101853,16 +101979,20 @@ msgid "Catalan - Català"
 msgstr "加泰罗尼亚语 - Català"
 
 
+msgid "Locale code: ca_AD. Translation progress: 100%"
+msgstr "区域代码: ca_AD. 翻译进度: 100%"
+
+
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "简体中文"
 
 
-msgid "Locale code: zh_HANS. Translation progress: 99%"
-msgstr "区域代码: zh_HANS. 翻译进度: 99%"
-
-
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "繁体中文 - 繁體中文"
+
+
+msgid "Locale code: zh_HANT. Translation progress: 58%"
+msgstr "区域代码: zh_HANT. 翻译进度: 58%"
 
 
 msgid "Croatian - Hrvatski"
@@ -101941,10 +102071,6 @@ msgid "Georgian - ქართული"
 msgstr "格鲁吉亚语 - ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 98%"
-msgstr "区域代码: ka. 翻译进度: 98%"
-
-
 msgid "German - Deutsch"
 msgstr "德语 - Deutsch"
 
@@ -101987,10 +102113,6 @@ msgstr "区域代码: hu_HU. 翻译进度: 10%"
 
 msgid "Indonesian - Bahasa indonesia"
 msgstr "印度尼西亚语 - Bahasa indonesia"
-
-
-msgid "Locale code: id_ID. Translation progress: 20%"
-msgstr "区域代码: id_ID. 翻译进度: 20%"
 
 
 msgid "Italian - Italiano"
@@ -102061,6 +102183,10 @@ msgid "Polish - Polski"
 msgstr "波兰语 - Polski"
 
 
+msgid "Locale code: pl_PL. Translation progress: 100%"
+msgstr "区域代码: pl_PL. 翻译进度: 100%"
+
+
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "葡萄牙语 (巴西) - Português brasileiro"
 
@@ -102071,10 +102197,6 @@ msgstr "区域代码: pt_BR. 翻译进度: 40%"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "葡萄牙语 (葡萄牙) - Português europeu"
-
-
-msgid "Locale code: pt_PT. Translation progress: 81%"
-msgstr "区域代码: pt_PT. 翻译进度: 81%"
 
 
 msgid "Romanian - Român"
@@ -102113,6 +102235,10 @@ msgid "Slovak - Slovenčina"
 msgstr "斯洛伐克语 - Slovenčina"
 
 
+msgid "Locale code: sk_SK. Translation progress: 100%"
+msgstr "区域代码: sk_SK. 翻译进度: 100%"
+
+
 msgid "Slovenian - Slovenščina"
 msgstr "斯洛文尼亚语 - Slovenščina"
 
@@ -102125,24 +102251,24 @@ msgid "Spanish - Español"
 msgstr "西班牙语 - Español"
 
 
+msgid "Locale code: es. Translation progress: 100%"
+msgstr "区域代码: es. 翻译进度: 100%"
+
+
 msgid "Swahili - Kiswahili"
 msgstr "斯瓦希里语 - Kiswahili"
+
+
+msgid "Locale code: sw. Translation progress: 67%"
+msgstr "区域代码: sw. 翻译进度: 67%"
 
 
 msgid "Swedish - Svenska"
 msgstr "瑞典语 - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 99%"
-msgstr "区域代码: sv_SE. 翻译进度: 99%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "泰米尔语 - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 93%"
-msgstr "区域代码: ta. 翻译进度: 93%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -103794,6 +103920,14 @@ msgstr "降噪通道反照率糙度加权"
 
 msgid "Use roughness-based weighting of the albedo for the denoising feature passes"
 msgstr "对降噪特征层采用基于糙度的反照率加权"
+
+
+msgid "Store Denoising Motion Passes"
+msgstr "存储运动降噪通道"
+
+
+msgid "Store the denoising motion passes, for temporal denoisers"
+msgstr "存储运动降噪通道，用于时间降噪器"
 
 
 msgid "Store Denoising Passes"
@@ -110102,7 +110236,7 @@ msgstr "空气动力"
 
 
 msgid "Make edges 'sail'"
-msgstr "使边 'sail'"
+msgstr "使边 '飘扬'"
 
 
 msgid "Aerodynamics Type"
@@ -121170,11 +121304,11 @@ msgstr "XR 动作名称"
 
 
 msgid "Action Set"
-msgstr "动作类型"
+msgstr "动作集"
 
 
 msgid "XR action set name"
-msgstr "XR 动作设置名称"
+msgstr "XR 动作集名称"
 
 
 msgid "Whether bimanual interaction is occurring"
@@ -126256,11 +126390,6 @@ msgstr "无法解析 XML, %s:%s 针对文件 %r"
 
 
 msgctxt "Operator"
-msgid "IO_FH_fbx (Legacy)"
-msgstr "IO_FH_fbx (Legacy)"
-
-
-msgctxt "Operator"
 msgid "IO_FH_fbx"
 msgstr "IO_FH_fbx"
 
@@ -128003,10 +128132,6 @@ msgid "Nothing to bake"
 msgstr "无可供烘焙"
 
 
-msgid "Complete report available on '{:s}' text data-block"
-msgstr "完整报告见 '{:s}' 文本数据块"
-
-
 msgid "No active bone to copy from"
 msgstr "没有可复制的活动骨骼"
 
@@ -128845,7 +128970,11 @@ msgstr "继续"
 
 msgctxt "Operator"
 msgid "Close"
-msgstr "闭合"
+msgstr "关闭"
+
+
+msgid "Project Files"
+msgstr "项目文件"
 
 
 msgctxt "Operator"
@@ -129028,6 +129157,10 @@ msgstr "摄像机"
 
 msgid "Speaker(s)"
 msgstr "扬声器"
+
+
+msgid "Other Recent Files"
+msgstr "其他近期文件"
 
 
 msgctxt "Operator"
@@ -132985,6 +133118,10 @@ msgid "Auto-Save Project"
 msgstr "自动保存项目"
 
 
+msgid "Artwork"
+msgstr "插图"
+
+
 msgctxt "Operator"
 msgid "String"
 msgstr "字符串"
@@ -133003,10 +133140,6 @@ msgstr "整数"
 msgctxt "Operator"
 msgid "Float"
 msgstr "浮点"
-
-
-msgid "Overridden by the  environment variable"
-msgstr "被  环境变量覆盖"
 
 
 msgctxt "Operator"
@@ -133852,6 +133985,11 @@ msgstr "自动保存..."
 
 
 msgctxt "Operator"
+msgid "New..."
+msgstr "新建..."
+
+
+msgctxt "Operator"
 msgid "Find Missing Files..."
 msgstr "查找缺失的文件..."
 
@@ -133975,43 +134113,12 @@ msgstr "加载Blender初始设置"
 
 
 msgctxt "Operator"
-msgid "IO_FH_alembic"
-msgstr "IO_FH_alembic"
+msgid "Clear Recent Projects List..."
+msgstr "清空近期项目列表..."
 
 
-msgctxt "Operator"
-msgid "IO_FH_usd"
-msgstr "IO_FH_usd"
-
-
-msgctxt "Operator"
-msgid "IO_FH_grease_pencil_svg"
-msgstr "IO_FH_grease_pencil_svg"
-
-
-msgctxt "Operator"
-msgid "IO_FH_obj"
-msgstr "IO_FH_obj"
-
-
-msgctxt "Operator"
-msgid "IO_FH_ply"
-msgstr "IO_FH_ply"
-
-
-msgctxt "Operator"
-msgid "IO_FH_spz"
-msgstr "IO_FH_spz"
-
-
-msgctxt "Operator"
-msgid "IO_FH_stl"
-msgstr "IO_FH_stl"
-
-
-msgctxt "Operator"
-msgid "OpenTimelineIO (.otio)"
-msgstr "OpenTimelineIO (.otio)"
+msgid "No Recent Projects"
+msgstr "无近期项目"
 
 
 msgctxt "Operator"
@@ -134395,6 +134502,10 @@ msgstr "间隔 (分钟)"
 
 msgid "Default To"
 msgstr "默认至"
+
+
+msgid "Startup"
+msgstr "启动时"
 
 
 msgid "Show Locations"
@@ -139003,7 +139114,7 @@ msgstr "无法连接顶点"
 
 
 msgid "Select two edge loops or a single closed edge loop from which two edge loops can be calculated"
-msgstr "选择两个循环边或可以从中计算出两个循环边的单个闭合循环边 (解决方法: 可能是点数量为奇数，试着改为偶数点)"
+msgstr "选择两个循环边或可以从中计算出两个循环边的单个闭合循环边 (解决方法: 可能是点数量为奇数，试着改为偶数)"
 
 
 msgid "Closed loops unsupported"
@@ -140018,7 +140129,7 @@ msgstr "插帧集不包含任何路径"
 
 
 msgid "Push Pose"
-msgstr "Push Pose 扩大姿态"
+msgstr "推移姿态"
 
 
 msgid "Relax Pose"
@@ -142569,6 +142680,14 @@ msgid "Operator cannot redo"
 msgstr "操作无法重做"
 
 
+msgid "Create from Image..."
+msgstr "从图像创建..."
+
+
+msgid "Failed to load splash image"
+msgstr "未能加载启动图像"
+
+
 msgid "Size: {}"
 msgstr "大小: {}"
 
@@ -142583,6 +142702,14 @@ msgstr "昨天"
 
 msgid "Modified: {}"
 msgstr "修改时间: {}"
+
+
+msgid "Project Not Found"
+msgstr "项目未找到"
+
+
+msgid "Project is already open"
+msgstr "项目早已打开"
 
 
 msgid "Anim Player"
@@ -143317,7 +143444,7 @@ msgstr "活动的物体不是被选中的网格物体"
 
 
 msgid "No mesh data to join"
-msgstr "没有可供合并的网格数据 (请检查要合并的物体是否都是网格，比如有一个物体是曲线。此功能仅能合并网格物体)"
+msgstr "没有可供合并的网格数据 (请检查要合并的物体是否都是网格，比如有一个是曲线。此功能仅能合并网格物体)"
 
 
 msgid "Joining results in %d vertices, limit is %ld"
@@ -143857,12 +143984,28 @@ msgid "No file handlers available"
 msgstr "没有可用的文件句柄"
 
 
+msgid "Apply and Make Local"
+msgstr "应用并本地化"
+
+
+msgid "Delete Collection Content"
+msgstr "删除集合内容"
+
+
+msgid "Remove Importer"
+msgstr "移除导入器"
+
+
 msgid "Could not find an active collection"
 msgstr "找不到活动集合"
 
 
 msgid "Collection needs to be empty"
 msgstr "集合必须为空"
+
+
+msgid "Importer Control"
+msgstr "导入器控制"
 
 
 msgid "Add Exporter"
@@ -145603,7 +145746,7 @@ msgstr "复原区域"
 
 
 msgid "Maximize Area"
-msgstr "区域最大化"
+msgstr "最大化区域"
 
 
 msgid "Focus Mode"
@@ -146256,7 +146399,7 @@ msgstr "构造修改器"
 
 
 msgid "Object has non-uniform scale, sculpting may be unpredictable"
-msgstr "物体的缩放比例不均匀, 雕刻可能有不可预知的问题 (请应用缩放 Ctrl + A)"
+msgstr "物体缩放不均匀, 雕刻效果可能难以预测 (请应用缩放 Ctrl + A)"
 
 
 msgid "Object has negative scale, sculpting may be unpredictable"
@@ -149101,6 +149244,42 @@ msgid "Built-In"
 msgstr "内置"
 
 
+msgid "Untitled Project"
+msgstr "未命名的项目"
+
+
+msgid "Invalid project root folder"
+msgstr "无效的项目根文件夹"
+
+
+msgid "Folder already contains a project"
+msgstr "文件夹早已包含一个项目"
+
+
+msgid "Failed to create folder \"%s\""
+msgstr "未能创建文件夹 \"%s\""
+
+
+msgid "Failed to write project config in \"%s\""
+msgstr "未能将项目配置写入 \"%s\""
+
+
+msgid "Folder '%s' does not belong to a project"
+msgstr "文件夹 '%s' 不属于任何项目"
+
+
+msgid "Failed to load project from path: %s"
+msgstr "未能从路径 %s 加载项目"
+
+
+msgid "Failed to load image \"%s\""
+msgstr "未能加载图像 \"%s\""
+
+
+msgid "Failed to write \"%s\""
+msgstr "未能写入 \"%s\""
+
+
 msgid "Cannot reload with running modal operators"
 msgstr "无法使用运行中模态操作重新加载"
 
@@ -149611,6 +149790,10 @@ msgstr "打不开文件 '%s'"
 
 msgid "See '%s' in the text editor"
 msgstr "参见文本编辑器中的 '%s'"
+
+
+msgid "Project: {}"
+msgstr "项目: {}"
 
 
 msgid "Clear Recent Files List..."
@@ -150872,7 +151055,7 @@ msgstr "不使用SLIM构建，回退到共形方式"
 
 
 msgid "Object has non-uniform scale, unwrap will operate on a non-scaled version of the mesh"
-msgstr "物体缩放比例不统一, 展开将会在一个未缩放的网格上进行"
+msgstr "物体缩放不均匀, 展开将会在一个未缩放的网格上进行"
 
 
 msgid "Object has negative scale, unwrap will operate on a non-flipped version of the mesh"
@@ -152663,6 +152846,14 @@ msgstr "仅关联的 ID 可打包"
 
 msgid "Failed to initialize project. Ensure that both the name and project_root parameters are non-empty."
 msgstr "无法初始化项目。请确保名称和项目源这两个参数均不为空。"
+
+
+msgid "Failed to initialize project. Ensure that project_root path is correct."
+msgstr "无法初始化项目。请确保项目根路径正确。"
+
+
+msgid "Failed to save project config."
+msgstr "未能保存项目配置。"
 
 
 msgid "Scene '%s' is the last local one, cannot be removed"
@@ -162179,6 +162370,10 @@ msgid "Clear Recent Files List"
 msgstr "清空近期文件列表"
 
 
+msgid "Clear Recent Projects List"
+msgstr "清空近期项目列表"
+
+
 msgid "Allow Execution"
 msgstr "允许执行"
 
@@ -162365,6 +162560,10 @@ msgstr "文件路径 \"%s\" 无效"
 
 msgid "Unknown error loading \"%s\""
 msgstr "加载 \"%s\" 时发生未知错误"
+
+
+msgid "Could not find a project within the specified path: %s"
+msgstr "无法在指定路径中找到项目：%s"
 
 
 msgid "Application Template \"%s\" not found"

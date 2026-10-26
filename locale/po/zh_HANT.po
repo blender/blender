@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
-"PO-Revision-Date: 2026-10-18 21:12+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"PO-Revision-Date: 2026-10-23 06:12+0000\n"
 "Last-Translator: 游博凱 <augustus85918@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
@@ -26356,36 +26356,8 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
 msgid "Creative"
 msgstr "創意"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
 
 
 msgid "Pivot Point"
@@ -26416,36 +26388,12 @@ msgid "Vertex Group Locks"
 msgstr "頂點群組鎖定"
 
 
-msgid "Math"
-msgstr "數學公式"
-
-
-msgid "Utilities"
-msgstr "效用"
-
-
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
 msgid "Mirror"
 msgstr "鏡像"
 
 
-msgid "Write"
-msgstr "寫入"
-
-
 msgid "UV Mapping"
 msgstr "UV 映射處理"
-
-
-msgid "Primitives"
-msgstr "原形"
 
 
 msgid "Local View"
@@ -26472,8 +26420,16 @@ msgid "View Regions"
 msgstr "檢視範圍"
 
 
+msgid "Math"
+msgstr "數學公式"
+
+
 msgid "Select More/Less"
 msgstr "選取更多/更少"
+
+
+msgid "Utilities"
+msgstr "效用"
 
 
 msgid "Select Similar"
@@ -26484,14 +26440,6 @@ msgid "Select All by Trait"
 msgstr "依特徵全選"
 
 
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
 msgid "Select Linked"
 msgstr "選取連結項"
 
@@ -26500,24 +26448,28 @@ msgid "Select Loops"
 msgstr "選取迴圈"
 
 
-msgid "Import"
-msgstr "匯入"
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
 
 
 msgid "Assign Material"
 msgstr "指派材質"
 
 
-msgid "Deprecated"
-msgstr "已棄用"
+msgid "Write"
+msgstr "寫入"
 
 
-msgid "Render Preview"
-msgstr "算繪預覽"
+msgid "Primitives"
+msgstr "原形"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "變幻球"
 
 
 msgid "Light"
@@ -26528,12 +26480,24 @@ msgid "Light Probe"
 msgstr "燈光採樣器"
 
 
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
 msgid "Add Image"
 msgstr "新增影像"
 
 
 msgid "Relations"
 msgstr "關係"
+
+
+msgid "Import"
+msgstr "匯入"
 
 
 msgid "Rigid Body"
@@ -26548,8 +26512,20 @@ msgid "Track"
 msgstr "追蹤"
 
 
+msgid "Deprecated"
+msgstr "已棄用"
+
+
 msgid "Quick Effects"
 msgstr "快速效果"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
 
 
 msgid "Asset"
@@ -26560,8 +26536,16 @@ msgid "Make Single User"
 msgstr "製作單一使用者"
 
 
+msgid "Render Preview"
+msgstr "算繪預覽"
+
+
 msgid "Convert"
 msgstr "轉換"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -26592,16 +26576,8 @@ msgid "Clear Transform"
 msgstr "清除變換"
 
 
-msgid "Linked"
-msgstr "已連結"
-
-
 msgid "In-Betweens"
 msgstr "內部之間"
-
-
-msgid "Layout"
-msgstr "配置"
 
 
 msgid "Propagate"
@@ -26610,6 +26586,10 @@ msgstr "增生"
 
 msgid "Bone Collections"
 msgstr "骨骼集盒"
+
+
+msgid "Names"
+msgstr "名稱"
 
 
 msgid "Toggle Bone Options"
@@ -26628,28 +26608,48 @@ msgid "Mesh Select Mode"
 msgstr "網格選取模式"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "Face Data"
 msgstr "面資料"
-
-
-msgid "Keying"
-msgstr "鍵處理"
 
 
 msgid "Set Face Strength"
 msgstr "設定面強度"
 
 
-msgid "Tracking"
-msgstr "跟蹤"
-
-
 msgid "Merge"
 msgstr "合併"
+
+
+msgid "Linked"
+msgstr "已連結"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Kerning"
+msgstr "字間微調"
+
+
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Keying"
+msgstr "鍵處理"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
 
 
 msgid "Keyframe Insert Pie"
@@ -37107,11 +37107,6 @@ msgstr "取消指派槽"
 
 
 msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "更新動畫化變換約束"
-
-
-msgctxt "Operator"
 msgid "Remove Unused Bone Collections"
 msgstr "移除未使用的骨骼集盒"
 
@@ -39811,10 +39806,6 @@ msgstr "分離槽"
 msgctxt "Operator"
 msgid "Set Start Frame"
 msgstr "設定起始影格"
-
-
-msgid "Convert to Radians"
-msgstr "轉換為弧度"
 
 
 msgid "Show All"
@@ -61233,14 +61224,6 @@ msgid "Curves Edit Mode"
 msgstr "曲線編輯模式"
 
 
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材質變體"
-
-
 msgid "Transform Orientations"
 msgstr "變換方向"
 
@@ -61273,14 +61256,6 @@ msgid "Multi Frame"
 msgstr "多重畫框"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 動畫"
-
-
 msgid "Auto-Masking"
 msgstr "自動遮罩"
 
@@ -61289,12 +61264,28 @@ msgid "Viewport Debug"
 msgstr "視圖除錯"
 
 
+msgid "glTF Variants"
+msgstr "glTF 變體"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材質變體"
+
+
 msgid "VR"
 msgstr "VR"
 
 
 msgid "VR Info"
 msgstr "VR 資訊"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 動畫"
 
 
 msgid "Import Settings"
@@ -95114,6 +95105,14 @@ msgstr "最後一個控制點的位置"
 
 msgid "Length of the arc"
 msgstr "圓弧長度"
+
+
+msgid "The center of the circle described by the three points"
+msgstr "由這三點所構成的圓的圓心"
+
+
+msgid "The radius of the circle described by the three points"
+msgstr "這三點所構成的圓的半徑"
 
 
 msgid "Position of the start control point of the curve"

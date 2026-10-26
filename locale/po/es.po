@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
-"PO-Revision-Date: 2026-10-17 11:12+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"PO-Revision-Date: 2026-10-20 01:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -4396,6 +4396,14 @@ msgstr "Carpeta principal"
 
 msgid "The path to the root folder of the project"
 msgstr "La ruta hasta la carpeta principal del proyecto"
+
+
+msgid "Splash Artwork"
+msgstr "Arte de bienvenida"
+
+
+msgid "Image to show in the splash screen for this project. Expected size is 1000x500 pixels"
+msgstr "Imagen a ser mostrada en la pantalla de bienvenida para este proyecto. Su tamaño esperado es de 1000×500 píxeles"
 
 
 msgid "Project Variables"
@@ -36637,36 +36645,8 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar / Ocultar"
-
-
 msgid "Creative"
 msgstr "Creatividad"
-
-
-msgid "Clean Up"
-msgstr "Limpiar"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Kerning"
-msgstr "Espaciado"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Names"
-msgstr "Nombres"
-
-
-msgid "Bone Roll"
-msgstr "Giro de huesos"
 
 
 msgid "Pivot Point"
@@ -36697,36 +36677,12 @@ msgid "Vertex Group Locks"
 msgstr "Bloqueos de grupo de vértices"
 
 
-msgid "Math"
-msgstr "Operar"
-
-
-msgid "Utilities"
-msgstr "Utilitarios"
-
-
-msgid "Read"
-msgstr "Lectura"
-
-
-msgid "Sample"
-msgstr "Muestreo"
-
-
 msgid "Mirror"
 msgstr "Simetrizar"
 
 
-msgid "Write"
-msgstr "Escritura"
-
-
 msgid "UV Mapping"
 msgstr "Mapeo UV"
-
-
-msgid "Primitives"
-msgstr "Primitivas"
 
 
 msgid "Local View"
@@ -36753,8 +36709,16 @@ msgid "View Regions"
 msgstr "Regiones de la vista"
 
 
+msgid "Math"
+msgstr "Operar"
+
+
 msgid "Select More/Less"
 msgstr "Seleccionar más / menos"
+
+
+msgid "Utilities"
+msgstr "Utilitarios"
 
 
 msgid "Select Similar"
@@ -36765,14 +36729,6 @@ msgid "Select All by Trait"
 msgstr "Seleccionar por condición"
 
 
-msgid "Gizmo"
-msgstr "Manipulador"
-
-
-msgid "Instances"
-msgstr "Instancias"
-
-
 msgid "Select Linked"
 msgstr "Seleccionar vinculado"
 
@@ -36781,24 +36737,28 @@ msgid "Select Loops"
 msgstr "Seleccionar bucles"
 
 
-msgid "Import"
-msgstr "Importar"
+msgid "Read"
+msgstr "Lectura"
+
+
+msgid "Sample"
+msgstr "Muestreo"
 
 
 msgid "Assign Material"
 msgstr "Asignar material"
 
 
-msgid "Deprecated"
-msgstr "Obsoleto"
+msgid "Write"
+msgstr "Escritura"
 
 
-msgid "Render Preview"
-msgstr "Procesar previsualización"
+msgid "Primitives"
+msgstr "Primitivas"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Light"
@@ -36809,12 +36769,24 @@ msgid "Light Probe"
 msgstr "Sonda de luz"
 
 
+msgid "Gizmo"
+msgstr "Manipulador"
+
+
+msgid "Instances"
+msgstr "Instancias"
+
+
 msgid "Add Image"
 msgstr "Agregar imagen"
 
 
 msgid "Relations"
 msgstr "Relaciones"
+
+
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Rigid Body"
@@ -36829,8 +36801,20 @@ msgid "Track"
 msgstr "Rastrear"
 
 
+msgid "Deprecated"
+msgstr "Obsoleto"
+
+
 msgid "Quick Effects"
 msgstr "Efectos rápidos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar / Ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpiar"
 
 
 msgid "Asset"
@@ -36841,8 +36825,16 @@ msgid "Make Single User"
 msgstr "Hacer de único usuario"
 
 
+msgid "Render Preview"
+msgstr "Procesar previsualización"
+
+
 msgid "Convert"
 msgstr "Convertir"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -36873,16 +36865,8 @@ msgid "Clear Transform"
 msgstr "Restablecer transformación"
 
 
-msgid "Linked"
-msgstr "Vinculado"
-
-
 msgid "In-Betweens"
 msgstr "Intermedios"
-
-
-msgid "Layout"
-msgstr "Organizar"
 
 
 msgid "Propagate"
@@ -36891,6 +36875,10 @@ msgstr "Propagar"
 
 msgid "Bone Collections"
 msgstr "Colecciones de huesos"
+
+
+msgid "Names"
+msgstr "Nombres"
 
 
 msgid "Toggle Bone Options"
@@ -36909,16 +36897,8 @@ msgid "Mesh Select Mode"
 msgstr "Modo de selección de mallas"
 
 
-msgid "Adjust"
-msgstr "Ajustar"
-
-
 msgid "Face Data"
 msgstr "Datos de caras"
-
-
-msgid "Keying"
-msgstr "Recortar"
 
 
 msgid "Select by Face Strength"
@@ -36929,12 +36909,40 @@ msgid "Set Face Strength"
 msgstr "Definir intensidad de caras"
 
 
-msgid "Tracking"
-msgstr "Rastreo"
-
-
 msgid "Merge"
 msgstr "Fusionar"
+
+
+msgid "Linked"
+msgstr "Vinculado"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiales"
+
+
+msgid "Kerning"
+msgstr "Espaciado"
+
+
+msgid "Adjust"
+msgstr "Ajustar"
+
+
+msgid "Bone Roll"
+msgstr "Giro de huesos"
+
+
+msgid "Keying"
+msgstr "Recortar"
+
+
+msgid "Tracking"
+msgstr "Rastreo"
 
 
 msgid "Keyframe Insert Pie"
@@ -50676,7 +50684,7 @@ msgstr "Definir tipo de nube de puntos"
 
 
 msgid "Change the type of point cloud"
-msgstr "Cambia el tipo de nube de puntos"
+msgstr "Permite cambiar el tipo de nube de puntos"
 
 
 msgid "Points to Curves"
@@ -55749,15 +55757,6 @@ msgstr ""
 ">>> layout.context_pointer_set(\"nla_strip\", nla_strip)"
 
 
-msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-msgstr "Actualiza las curvas-f y controladores que tienen efecto sobre restricciones de transformación (usar con archivos de las versiones 2.70 y anteriores)"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "Actualizar restricciones de transformación animadas"
-
-
 msgctxt "Operator"
 msgid "Version Bone Hide Property"
 msgstr "Versionar propiedad Ocultar del hueso"
@@ -60218,18 +60217,6 @@ msgid "Set the current frame as the preview or scene start frame"
 msgstr "Define el fotograma actual como el fotograma inicial de previsualización o de la escena"
 
 
-msgid "Convert to Radians"
-msgstr "Convertir a radianes"
-
-
-msgid ""
-"Convert f-curves/drivers affecting rotations to radians.\n"
-"Warning: Use this only once"
-msgstr ""
-"Convierte las curvas-f y controladores de rotación a radianes.\n"
-"Advertencia: Usar esto sólo una vez"
-
-
 msgid "Moves any F-Curves for the `hide` property of selected armatures into the action of the object. This will only operate on the first layer and strip of the action"
 msgstr "Mueve cualquier curva-f de la propiedad `ocultar` de los esqueletos seleccionados hacia la acción del objeto. Esto sólo operará sobre la primera capa y clip de la acción"
 
@@ -62914,6 +62901,10 @@ msgid "Remove Importer"
 msgstr "Eliminar importador"
 
 
+msgid "Remove Collection Importer and delete its imported data"
+msgstr "Eliminar importador de la colección y borrar los datos por él importados"
+
+
 msgctxt "Operator"
 msgid "Add Selected to Active Object's Collection"
 msgstr "Agregar seleccionados a colección del objeto activo"
@@ -65267,6 +65258,34 @@ msgid "Export cameras"
 msgstr "Exportar cámaras"
 
 
+msgid "Compressed Images Fallback"
+msgstr "Alternativa para imágenes comprimidas"
+
+
+msgid "For all compressed textures (WebP or KTX2), create a PNG fallback texture"
+msgstr "Para todas las texturas comprimidas (WebP o KTX2), crear una textura alternativa en PNG"
+
+
+msgid "Compressed Images Type"
+msgstr "Tipo de imagen comprimida"
+
+
+msgid "Choose the format for compressed textures fallback (WebP or KTX2 with BasisU supercompression)"
+msgstr "Escoger el formato de alternativa a las texturas comprimidas (WebP p KTX2 con súper compresión BasisU)"
+
+
+msgid "WebP"
+msgstr "WebP"
+
+
+msgid "Use WebP format for compressed textures"
+msgstr "Usar el formato WebP para texturas comprimidas"
+
+
+msgid "Use KTX2 format with BasisU supercompression for compressed textures"
+msgstr "Usar el formato KTX2 con súper compresión BasisU para texturas comprimidas"
+
+
 msgid "Convert TRS/Weights to Animation Pointer"
 msgstr "Convertir transformaciones/influencias a punteros de animación"
 
@@ -65535,6 +65554,14 @@ msgid "Export full hierarchy, including intermediate collections"
 msgstr "Exporta la jerarquía completa, incluyendo colecciones intermedias"
 
 
+msgid "Create Compressed Images"
+msgstr "Crear imágenes comprimidas"
+
+
+msgid "Creates compressed textures (WebP or KTX2)for every texture. For already compressed textures, nothing happens"
+msgstr "Crea texturas comprimidas (WebP o KTX2) para cada textura. Las texturas que ya se encuentren comprimidas no se verán alteradas"
+
+
 msgid "Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web applications due to the smaller file size. Alternatively they can be omitted if they are not needed"
 msgstr "Formato de salida de imágenes. PNG no produce pérdida y por lo general es el preferido, pero es posible que se prefiera JPEG para aplicaciones web debido a su menor tamaño de archivo. Alternativamente podrán ser omitidos si no fueran necesarios"
 
@@ -65621,6 +65648,14 @@ msgstr "Mantener original"
 
 msgid "Keep original textures files if possible. WARNING: if you use more than one texture, where pbr standard requires only one, only one texture will be used. This can lead to unexpected results"
 msgstr "Mantiene las texturas originales, si fuera posible. ADVERTENCIA: si se usa más de una textura, cuando el estándar PBR requiere sólo una, únicamente se usará una. Esto podrá llevar a resultados inesperados"
+
+
+msgid "Zstandard Compression Level"
+msgstr "Nivel de compresión Zstandard"
+
+
+msgid "Set the Zstandard compression level for (UASTC) non-color KTX2 textures (1 is fastest/lowest ratio, 22 is slowest/highest ratio)"
+msgstr "El nivel de compresión Zstandard para texturas KTX2 (UASTC) con datos (1 es la tasa más rápida/baja, 22 es la más lenta/alta)"
 
 
 msgid "Punctual Lights"
@@ -65941,6 +65976,14 @@ msgstr "Usar Gltfpack"
 
 msgid "Use gltfpack to simplify the mesh and/or compress its textures"
 msgstr "Usar gltfpack para simplificar la malla y/o comprimir sus texturas"
+
+
+msgid "Zstandard Compression"
+msgstr "Compresión Zstandard"
+
+
+msgid "Enable Zstandard compression for (UASTC) non-color KTX2 textures"
+msgstr "Activa la compresión Zstandard para texturas KTX2 (UASTC) que contengan datos"
 
 
 msgid "Use Vertex Color"
@@ -71198,6 +71241,14 @@ msgid "Try to guess the original bind pose for skinned meshes from the inverse b
 msgstr "Intenta obtener la pose de enlace original de mallas deformadas, a partir de las matrices inversas de enlace. Cuando se encuentre desactivado, usará la pose de reposo predefinida como pose de enlace"
 
 
+msgid "Import KTX Textures"
+msgstr "Importar texturas KTX"
+
+
+msgid "If a texture exists in KTX format, loads the KTX texture instead of the fallback PNG/JPEG one"
+msgstr "Cuando exista una textura en formato KTX, cargarla en vez de la textura alternativa en PNG/JPEG"
+
+
 msgid "Merge Material Slot when possible"
 msgstr "Fusionar contenedores de material cuando sea posible"
 
@@ -76087,6 +76138,10 @@ msgstr "Duplicar el grupo de nodos de composición actualmente asignado."
 
 msgid "Duplicate Scene Effect Node Group"
 msgstr "Duplicar grupo de nodos del efecto de composición de escena"
+
+
+msgid "Duplicate the scene effect node group and assign the new node group to the effect"
+msgstr "Duplica el grupo de nodos de efecto de composición de la escena y asigna el grupo duplicado al efecto"
 
 
 msgid "Duplicate selected nodes and move them"
@@ -83871,6 +83926,19 @@ msgid "Asset Library Directory"
 msgstr "Carpeta biblioteca recursos"
 
 
+msgctxt "Operator"
+msgid "Close Project"
+msgstr "Cerrar proyecto"
+
+
+msgid "Close the active project, starting a new file"
+msgstr "Cierra el proyecto activo, iniciando un nuevo archivo"
+
+
+msgid "Skip check to prevent unsaved changes from being lost"
+msgstr "Omitir comprobación para prevenir la pérdida de cambios no guardados"
+
+
 msgid "Move Up"
 msgstr "Mover arriba"
 
@@ -83886,6 +83954,43 @@ msgstr "Nuevo proyecto"
 
 msgid "Create a new project"
 msgstr "Crea un nuevo proyecto"
+
+
+msgctxt "Operator"
+msgid "Open Project..."
+msgstr "Abrir proyecto..."
+
+
+msgid "Open a project, starting a new file in it"
+msgstr "Abre un proyecto, iniciando un nuevo archivo en él"
+
+
+msgctxt "Operator"
+msgid "Clear Splash Artwork"
+msgstr "Limpiar arte de bienvenida"
+
+
+msgid ""
+"Clear the project custom splash artwork.\n"
+"The image file is not deleted from disk"
+msgstr ""
+"Limpia el arte de bienvenida personalizado del proyecto.\n"
+"El archivo de la imagen no será borrado del disco"
+
+
+msgctxt "Operator"
+msgid "Create Splash Artwork"
+msgstr "Crear arte de bienvenida"
+
+
+msgid ""
+"Set the project splash artwork from an image file.\n"
+"The image will be cropped, scaled and saved as \".blender_project/splash.jpg\".\n"
+"For optimal results use a 2:1 aspect ratio"
+msgstr ""
+"Establecer el arte de bienvenida del proyecto a partir de un archivo de imagen.\n"
+"La imagen será recortada, escalada y guardada como \".blender_project/splash.jpg\".\n"
+"Para un resultado óptimo usar una proporción de 2:1"
 
 
 msgctxt "Operator"
@@ -84679,6 +84784,10 @@ msgstr "Hacer una copia completa de la escena actual"
 msgctxt "Operator"
 msgid "New Scene Effect Node Group"
 msgstr "Nuevo grupo de nodos de efecto de escena"
+
+
+msgid "Create a new compositor node group and assign it to the scene effect"
+msgstr "Crea un nuevo grupo de nodos de composición y lo asigna al efecto de escena"
 
 
 msgid "Add new scene by type in the sequence editor and assign to active strip"
@@ -93010,6 +93119,15 @@ msgstr "Elementos no encontrados"
 
 
 msgctxt "Operator"
+msgid "Clear Recent Projects List"
+msgstr "Eliminar lista de proyectos recientes"
+
+
+msgid "Clear the recent projects list"
+msgstr "Elimina la lista de proyectos recientes"
+
+
+msgctxt "Operator"
 msgid "Export All Collections"
 msgstr "Exportar todas las colecciones"
 
@@ -96337,14 +96455,6 @@ msgid "Curves Edit Mode"
 msgstr "Modo edición de curvas"
 
 
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de material glTF"
-
-
 msgid "Transform Orientations"
 msgstr "Orientación de transformación"
 
@@ -96377,14 +96487,6 @@ msgid "Multi Frame"
 msgstr "Multifotograma"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animaciones glTF"
-
-
 msgid "Auto-Masking"
 msgstr "Autoenmascarar"
 
@@ -96405,12 +96507,28 @@ msgid "Viewport Debug"
 msgstr "Depurar Vista 3D"
 
 
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de material glTF"
+
+
 msgid "VR"
 msgstr "RV"
 
 
 msgid "VR Info"
 msgstr "Info de RV"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animaciones glTF"
 
 
 msgid "Import Settings"
@@ -99484,6 +99602,14 @@ msgid "Save projects automatically on exit and when saving or switching blend fi
 msgstr "Guarda automáticamente el proyecto al salir, al guardar o al cambiar de archivo .blend"
 
 
+msgid "Remember Last Project"
+msgstr "Recordar último proyecto"
+
+
+msgid "On startup, automatically re-open the project that was last open when Blender was closed"
+msgstr "Al iniciar, reabrir automáticamente el último proyecto en el que se había trabajado al cerrar Blender"
+
+
 msgid "Recent Searches"
 msgstr "Búsquedas recientes"
 
@@ -101847,16 +101973,20 @@ msgid "Catalan - Català"
 msgstr "Catalán - Català"
 
 
+msgid "Locale code: ca_AD. Translation progress: 100%"
+msgstr "Código de localización: ca_AD. Progreso de la traducción: 100%"
+
+
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chino (simplificado) - 简体中文"
 
 
-msgid "Locale code: zh_HANS. Translation progress: 99%"
-msgstr "Código de localización: zh_HANS. Progreso de la traducción: 99%"
-
-
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Chino (tradicional) - 繁體中文"
+
+
+msgid "Locale code: zh_HANT. Translation progress: 58%"
+msgstr "Código de localización: zh_HANT. Progreso de la traducción: 58%"
 
 
 msgid "Croatian - Hrvatski"
@@ -101935,10 +102065,6 @@ msgid "Georgian - ქართული"
 msgstr "Georgiano - ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 98%"
-msgstr "Código de localización: ka. Progreso de la traducción: 98%"
-
-
 msgid "German - Deutsch"
 msgstr "Alemán - Deutsch"
 
@@ -101981,10 +102107,6 @@ msgstr "Código de localización: hu_HU. Progreso de la traducción: 11%"
 
 msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonesio - Bahasa indonesia"
-
-
-msgid "Locale code: id_ID. Translation progress: 20%"
-msgstr "Código de localización: id_ID. Progreso de la traducción: 20%"
 
 
 msgid "Italian - Italiano"
@@ -102055,6 +102177,10 @@ msgid "Polish - Polski"
 msgstr "Polaco - Polski"
 
 
+msgid "Locale code: pl_PL. Translation progress: 100%"
+msgstr "Código de localización: pl_PL. Progreso de la traducción: 100%"
+
+
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugués (Brasil) - Português (Brazil)"
 
@@ -102065,10 +102191,6 @@ msgstr "Código de localización: pt_BR. Progreso de la traducción: 40%"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugués (Portugal) - Português (Portugal)"
-
-
-msgid "Locale code: pt_PT. Translation progress: 81%"
-msgstr "Código de localización: pt_PT. Progreso de la traducción: 81%"
 
 
 msgid "Romanian - Român"
@@ -102107,6 +102229,10 @@ msgid "Slovak - Slovenčina"
 msgstr "Eslovaco - Slovenčina"
 
 
+msgid "Locale code: sk_SK. Translation progress: 100%"
+msgstr "Código de localización: sk_SK. Progreso de la traducción: 100%"
+
+
 msgid "Slovenian - Slovenščina"
 msgstr "Esloveno - Slovenščina"
 
@@ -102119,24 +102245,24 @@ msgid "Spanish - Español"
 msgstr "Español"
 
 
+msgid "Locale code: es. Translation progress: 100%"
+msgstr "Código de localización: es. Progreso de la traducción: 100%"
+
+
 msgid "Swahili - Kiswahili"
 msgstr "Swahili - Kiswahili"
+
+
+msgid "Locale code: sw. Translation progress: 67%"
+msgstr "Código de localización: sw. Progreso de la traducción: 67%"
 
 
 msgid "Swedish - Svenska"
 msgstr "Sueco - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 99%"
-msgstr "Código de localización: sv_SE. Progreso de la traducción: 100%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 93%"
-msgstr "Código de localización: ta. Progreso de la traducción: 93%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -103788,6 +103914,14 @@ msgstr "Ponderar albedo según rugosidad en pasadas reducción"
 
 msgid "Use roughness-based weighting of the albedo for the denoising feature passes"
 msgstr "Usar una ponderación del albedo, basada en la rugosidad, para las pasadas de reducción de ruido"
+
+
+msgid "Store Denoising Motion Passes"
+msgstr "Almacenar pasadas de movimiento de reducción"
+
+
+msgid "Store the denoising motion passes, for temporal denoisers"
+msgstr "Almacenar las pasadas de movimiento de reducción de ruido, para tipos de reducción temporales"
 
 
 msgid "Store Denoising Passes"
@@ -126250,11 +126384,6 @@ msgstr "No fue posible analizar el XML, %s:%s para el archivo %r"
 
 
 msgctxt "Operator"
-msgid "IO_FH_fbx (Legacy)"
-msgstr "IO_FH_fbx (antiguo)"
-
-
-msgctxt "Operator"
 msgid "IO_FH_fbx"
 msgstr "IO_FH_fbx"
 
@@ -127997,10 +128126,6 @@ msgid "Nothing to bake"
 msgstr "Nada que capturar"
 
 
-msgid "Complete report available on '{:s}' text data-block"
-msgstr "Reporte completo disponible en el bloque de datos de texto '{:s}'"
-
-
 msgid "No active bone to copy from"
 msgstr "Ningún hueso activo desde el cual copiar"
 
@@ -128842,6 +128967,10 @@ msgid "Close"
 msgstr "Cerrar"
 
 
+msgid "Project Files"
+msgstr "Archivos del proyecto"
+
+
 msgctxt "Operator"
 msgid "More..."
 msgstr "Más..."
@@ -129022,6 +129151,10 @@ msgstr "Cámara(s)"
 
 msgid "Speaker(s)"
 msgstr "Altavoz(-ces)"
+
+
+msgid "Other Recent Files"
+msgstr "Otros archivos recientes"
 
 
 msgctxt "Operator"
@@ -132979,6 +133112,10 @@ msgid "Auto-Save Project"
 msgstr "Guardar proyecto autom."
 
 
+msgid "Artwork"
+msgstr "Arte"
+
+
 msgctxt "Operator"
 msgid "String"
 msgstr "Cadena"
@@ -132997,10 +133134,6 @@ msgstr "Entera"
 msgctxt "Operator"
 msgid "Float"
 msgstr "Decimal"
-
-
-msgid "Overridden by the  environment variable"
-msgstr "Redefinido por la variable de entorno"
 
 
 msgctxt "Operator"
@@ -133846,6 +133979,11 @@ msgstr "Auto guardado..."
 
 
 msgctxt "Operator"
+msgid "New..."
+msgstr "Nuevo..."
+
+
+msgctxt "Operator"
 msgid "Find Missing Files..."
 msgstr "Buscar archivos faltantes..."
 
@@ -133969,43 +134107,12 @@ msgstr "Cargar configuración de fábrica"
 
 
 msgctxt "Operator"
-msgid "IO_FH_alembic"
-msgstr "IO_FH_alembic"
+msgid "Clear Recent Projects List..."
+msgstr "Eliminar lista de proyectos recientes..."
 
 
-msgctxt "Operator"
-msgid "IO_FH_usd"
-msgstr "IO_FH_usd"
-
-
-msgctxt "Operator"
-msgid "IO_FH_grease_pencil_svg"
-msgstr "IO_FH_grease_pencil_svg"
-
-
-msgctxt "Operator"
-msgid "IO_FH_obj"
-msgstr "IO_FH_obj"
-
-
-msgctxt "Operator"
-msgid "IO_FH_ply"
-msgstr "IO_FH_ply"
-
-
-msgctxt "Operator"
-msgid "IO_FH_spz"
-msgstr "IO_FH_spz"
-
-
-msgctxt "Operator"
-msgid "IO_FH_stl"
-msgstr "IO_FH_stl"
-
-
-msgctxt "Operator"
-msgid "OpenTimelineIO (.otio)"
-msgstr "OpenTimelineIO (.otio)"
+msgid "No Recent Projects"
+msgstr "Ningún proyecto reciente"
 
 
 msgctxt "Operator"
@@ -134389,6 +134496,10 @@ msgstr "Temporizador (min.)"
 
 msgid "Default To"
 msgstr "De forma predefinida"
+
+
+msgid "Startup"
+msgstr "Inicio"
 
 
 msgid "Show Locations"
@@ -142563,6 +142674,14 @@ msgid "Operator cannot redo"
 msgstr "No es posible rehacer el operador"
 
 
+msgid "Create from Image..."
+msgstr "Crear a partir de imagen..."
+
+
+msgid "Failed to load splash image"
+msgstr "Error al cargar imagen de bienvenida"
+
+
 msgid "Size: {}"
 msgstr "Tamaño: {}"
 
@@ -142577,6 +142696,14 @@ msgstr "Ayer"
 
 msgid "Modified: {}"
 msgstr "Modificado: {}"
+
+
+msgid "Project Not Found"
+msgstr "Proyecto no encontrado"
+
+
+msgid "Project is already open"
+msgstr "El proyecto ya está abierto"
 
 
 msgid "Anim Player"
@@ -143851,12 +143978,28 @@ msgid "No file handlers available"
 msgstr "Ningún manipulador de archivos disponible"
 
 
+msgid "Apply and Make Local"
+msgstr "Aplicar y hacer local"
+
+
+msgid "Delete Collection Content"
+msgstr "Borrar contenido de colección"
+
+
+msgid "Remove Importer"
+msgstr "Eliminar importador"
+
+
 msgid "Could not find an active collection"
 msgstr "No fue posible encontrar una colección activa"
 
 
 msgid "Collection needs to be empty"
 msgstr "La colección debe estar vacía"
+
+
+msgid "Importer Control"
+msgstr "Control de importador"
 
 
 msgid "Add Exporter"
@@ -149095,6 +149238,42 @@ msgid "Built-In"
 msgstr "Integrados"
 
 
+msgid "Untitled Project"
+msgstr "Proyecto sin título"
+
+
+msgid "Invalid project root folder"
+msgstr "Carpeta principal del proyecto inválida"
+
+
+msgid "Folder already contains a project"
+msgstr "La carpeta ya contiene un proyecto"
+
+
+msgid "Failed to create folder \"%s\""
+msgstr "Error al crear la carpeta \"%s\""
+
+
+msgid "Failed to write project config in \"%s\""
+msgstr "Error al escribir configuración del proyecto en \"%s\""
+
+
+msgid "Folder '%s' does not belong to a project"
+msgstr "La carpeta '%s' no pertenece a un proyecto"
+
+
+msgid "Failed to load project from path: %s"
+msgstr "Error al cargar proyecto desde la ruta: %s"
+
+
+msgid "Failed to load image \"%s\""
+msgstr "Error al cargar la imagen \"%s\""
+
+
+msgid "Failed to write \"%s\""
+msgstr "Error al escribir \"%s\""
+
+
 msgid "Cannot reload with running modal operators"
 msgstr "No es posible la recarga con operadores modales en ejecución"
 
@@ -149605,6 +149784,10 @@ msgstr "No es posible abrir el archivo '%s'"
 
 msgid "See '%s' in the text editor"
 msgstr "Ver '%s' en el editor de texto"
+
+
+msgid "Project: {}"
+msgstr "Proyecto: {}"
 
 
 msgid "Clear Recent Files List..."
@@ -152657,6 +152840,14 @@ msgstr "Sólo los ID vinculados pueden seer empacados"
 
 msgid "Failed to initialize project. Ensure that both the name and project_root parameters are non-empty."
 msgstr "No fue posible inicializar el proyecto. Asegurarse de que sus parámetros de nombre y carpeta principal no se encuentren vacíos."
+
+
+msgid "Failed to initialize project. Ensure that project_root path is correct."
+msgstr "Error al inicializar el proyecto. Asegurarse de que la ruta project_root sea correcta."
+
+
+msgid "Failed to save project config."
+msgstr "Error al guardar configuración del proyecto."
 
 
 msgid "Scene '%s' is the last local one, cannot be removed"
@@ -162173,6 +162364,10 @@ msgid "Clear Recent Files List"
 msgstr "Borrar lista de archivos recientes"
 
 
+msgid "Clear Recent Projects List"
+msgstr "Eliminar lista de proyectos recientes"
+
+
 msgid "Allow Execution"
 msgstr "Permitir ejecución"
 
@@ -162359,6 +162554,10 @@ msgstr "Ruta \"%s\" del archivo inválida"
 
 msgid "Unknown error loading \"%s\""
 msgstr "Error desconocido cargando \"%s\""
+
+
+msgid "Could not find a project within the specified path: %s"
+msgstr "No fue posible encontrar un proyecto dentro de la ruta indicada: %s"
 
 
 msgid "Application Template \"%s\" not found"
