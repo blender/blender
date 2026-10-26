@@ -230,6 +230,16 @@ void MotionBlurModule::render(View &view, gpu::Texture **input_tx, gpu::Texture 
   /* Second motion vector is stored inverted. */
   data_.motion_scale.y = -data_.motion_scale.y;
   data_.target_size_inv = 1.0f / float2(extent);
+
+  if (inst_.camera.is_panoramic()) {
+    float overscan = inst_.camera.data_get().panoramic_view_overscan;
+    const float safety_factor = 0.7f;
+    data_.motion_max_offset_px = (1.0f - 1.0f / overscan) * 0.5f * float(extent.x) * safety_factor;
+  }
+  else {
+    data_.motion_max_offset_px = math::length(float2(extent));
+  }
+
   data_.push_update();
 
   input_color_tx_ = *input_tx;

@@ -113,9 +113,11 @@ void surf_depth([[resource_table]] KernelGlobals &kg,
 
   if constexpr (with_velocity) {
     if (pipe.use_velocity) [[static_branch]] {
-      frag_out.velocity = geo_vel.camera.surface_velocity(
-          interp.P + motion.prev, interp.P, interp.P + motion.next);
-      frag_out.velocity = velocity::pack(frag_out.velocity);
+      float3 P_prv = interp.P + motion.prev;
+      float3 P_nxt = interp.P + motion.next;
+      const ViewMatrices view = views.get(0);
+      frag_out.velocity = velocity::pack(
+          geo_vel.camera.surface_velocity_local(view, P_prv, interp.P, P_nxt));
     }
   }
 

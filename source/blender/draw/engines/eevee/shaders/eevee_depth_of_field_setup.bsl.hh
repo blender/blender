@@ -301,7 +301,7 @@ struct Resources {
     /* Convert to full resolution buffer pixel. */
     int2 velocity_texel = (texel_sample + nearest_texel) * 2;
     velocity_texel = clamp(velocity_texel, int2(0), textureSize(velocity_tx, 0).xy - 1);
-    float4 vector = camera.resolve(views, velocity_tx, velocity_texel, min_depth);
+    float4 vector = camera.resolve_local(views, velocity_tx, velocity_texel, min_depth);
     /* Transform to **half** pixel space. */
     return vector.xy * float2(textureSize(color_tx, 0));
   }
