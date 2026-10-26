@@ -15,6 +15,7 @@
 #include "BLI_math_vector_c.hh"
 
 #include "BKE_context.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -105,7 +106,7 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
     const RegionView3D *rv3d = static_cast<const RegionView3D *>(region.regiondata);
     if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
       region_camera = &region;
-      if (rv3d->sms) {
+      if (rv3d->runtime->sms) {
         is_interactive = true;
       }
     }
@@ -229,11 +230,11 @@ void ED_view3d_smooth_view_ex(
   view3d_smooth_view_state_backup(&sms.dst, v3d, rv3d);
   view3d_smooth_view_state_backup(&sms.src, v3d, rv3d);
   /* If smooth-view runs multiple times. */
-  if (rv3d->sms == nullptr) {
+  if (rv3d->runtime->sms == nullptr) {
     view3d_smooth_view_state_backup(&sms.org, v3d, rv3d);
   }
   else {
-    sms.org = rv3d->sms->org;
+    sms.org = rv3d->runtime->sms->org;
   }
   sms.org_view = rv3d->view;
   sms.org_view_axis_roll = rv3d->view_axis_roll;
@@ -300,7 +301,7 @@ void ED_view3d_smooth_view_ex(
   }
 
   /* Skip smooth viewing for external render engine draw. */
-  if (smooth_viewtx && !(v3d->shading.type == OB_RENDER && rv3d->view_render)) {
+  if (smooth_viewtx && !(v3d->shading.type == OB_RENDER && rv3d->runtime->view_render)) {
 
     /* Original values. */
     if (sview->camera_old) {
@@ -320,7 +321,7 @@ void ED_view3d_smooth_view_ex(
                             &sms.src.lens);
     }
     /* Grid draw as floor. */
-    if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {
+    if ((bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ROTATION) == 0) {
       /* Use existing if exists, means multiple calls to smooth view
        * won't lose the original 'view' setting. */
       rv3d->view = RV3D_VIEW_USER;
@@ -346,22 +347,22 @@ void ED_view3d_smooth_view_ex(
                         RV3D_PERSP;
     }
 
-    rv3d->rflag |= RV3D_NAVIGATING;
+    rv3d->runtime->tags |= bke::RV3D_TAG_NAVIGATING;
 
     /* Not essential but in some cases the caller will tag the area for redraw, and in that
      * case we can get a flicker of the 'org' user view but we want to see 'src'. */
     view3d_smooth_view_state_restore(&sms.src, v3d, rv3d);
 
     /* Keep track of running timer! */
-    if (rv3d->sms == nullptr) {
-      rv3d->sms = MEM_new_uninitialized<SmoothView3DStore>("smoothview v3d");
+    if (rv3d->runtime->sms == nullptr) {
+      rv3d->runtime->sms = MEM_new_uninitialized<SmoothView3DStore>("smoothview v3d");
     }
-    *rv3d->sms = sms;
-    if (rv3d->smooth_timer) {
-      WM_event_timer_remove(wm, win, rv3d->smooth_timer);
+    *rv3d->runtime->sms = sms;
+    if (rv3d->runtime->smooth_timer) {
+      WM_event_timer_remove(wm, win, rv3d->runtime->smooth_timer);
     }
     /* #TIMER1 is hard-coded in key-map. */
-    rv3d->smooth_timer = WM_event_timer_add(wm, win, TIMER1, 1.0 / 100.0);
+    rv3d->runtime->smooth_timer = WM_event_timer_add(wm, win, TIMER1, 1.0 / 100.0);
   }
   else {
     /* Animation is disabled, apply immediately. */
@@ -374,7 +375,7 @@ void ED_view3d_smooth_view_ex(
       ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
     }
 
-    if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
+    if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_BOXVIEW) {
       view3d_boxview_copy(area, region);
     }
 
@@ -425,7 +426,7 @@ void ED_view3d_smooth_view(bContext *C,
 static void view3d_smoothview_apply_with_interp(
     bContext *C, View3D *v3d, RegionView3D *rv3d, const bool use_autokey, const float factor)
 {
-  SmoothView3DStore *sms = rv3d->sms;
+  SmoothView3DStore *sms = rv3d->runtime->sms;
 
   interp_qt_qtqt(rv3d->viewquat, sms->src.quat, sms->dst.quat, factor);
 
@@ -457,7 +458,7 @@ static void view3d_smoothview_apply_and_finish_ex(wmWindowManager *wm,
                                                   RegionView3D *rv3d,
                                                   bContext *C_for_camera_lock)
 {
-  SmoothView3DStore *sms = rv3d->sms;
+  SmoothView3DStore *sms = rv3d->runtime->sms;
 
   /* If we went to camera, store the original. */
   if (sms->to_camera) {
@@ -475,17 +476,17 @@ static void view3d_smoothview_apply_and_finish_ex(wmWindowManager *wm,
     }
   }
 
-  if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {
+  if ((bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ROTATION) == 0) {
     rv3d->view = sms->org_view;
     rv3d->view_axis_roll = sms->org_view_axis_roll;
   }
 
-  MEM_delete(rv3d->sms);
-  rv3d->sms = nullptr;
+  MEM_delete(rv3d->runtime->sms);
+  rv3d->runtime->sms = nullptr;
 
-  WM_event_timer_remove(wm, win, rv3d->smooth_timer);
-  rv3d->smooth_timer = nullptr;
-  rv3d->rflag &= ~RV3D_NAVIGATING;
+  WM_event_timer_remove(wm, win, rv3d->runtime->smooth_timer);
+  rv3d->runtime->smooth_timer = nullptr;
+  rv3d->runtime->tags &= ~bke::RV3D_TAG_NAVIGATING;
 
   /* Event handling won't know if a UI item has been moved under the pointer. */
   WM_event_add_mousemove(win);
@@ -508,11 +509,11 @@ static void view3d_smoothview_apply_from_timer(bContext *C, View3D *v3d, ARegion
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  SmoothView3DStore *sms = rv3d->sms;
+  SmoothView3DStore *sms = rv3d->runtime->sms;
   float factor;
 
   if (sms->time_allowed != 0.0) {
-    factor = float(rv3d->smooth_timer->time_duration / sms->time_allowed);
+    factor = float(rv3d->runtime->smooth_timer->time_duration / sms->time_allowed);
   }
   else {
     factor = 1.0f;
@@ -527,7 +528,7 @@ static void view3d_smoothview_apply_from_timer(bContext *C, View3D *v3d, ARegion
     view3d_smoothview_apply_with_interp(C, v3d, rv3d, use_autokey, factor);
   }
 
-  if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
+  if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_BOXVIEW) {
     view3d_boxview_copy(CTX_wm_area(C), region);
   }
 
@@ -543,7 +544,7 @@ static wmOperatorStatus view3d_smoothview_invoke(bContext *C,
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   /* Escape if not our timer. */
-  if (rv3d->smooth_timer == nullptr || rv3d->smooth_timer != event->customdata) {
+  if (rv3d->runtime->smooth_timer == nullptr || rv3d->runtime->smooth_timer != event->customdata) {
     return OPERATOR_PASS_THROUGH;
   }
 
@@ -561,7 +562,7 @@ static void view3d_smooth_view_force_finish_ex(const Depsgraph *depsgraph,
                                                bContext *C_for_camera_lock)
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  BLI_assert(rv3d && rv3d->sms);
+  BLI_assert(rv3d && rv3d->runtime->sms);
 
   view3d_smoothview_apply_and_finish_ex(wm, win, v3d, rv3d, C_for_camera_lock);
 
@@ -575,7 +576,7 @@ static void view3d_smooth_view_force_finish_ex(const Depsgraph *depsgraph,
 void ED_view3d_smooth_view_force_finish(bContext *C, View3D *v3d, ARegion *region)
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  if (rv3d && rv3d->sms) {
+  if (rv3d && rv3d->runtime->sms) {
 
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     Scene *scene = CTX_data_scene(C);
@@ -608,7 +609,7 @@ void ED_view3d_smooth_view_force_finish_no_camera_lock(const Depsgraph *depsgrap
    * Even when it does occur, it simply misses completing & auto-keying the action. */
 
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  if (rv3d && rv3d->sms) {
+  if (rv3d && rv3d->runtime->sms) {
     view3d_smooth_view_force_finish_ex(depsgraph, wm, win, scene, v3d, region, nullptr);
   }
 }
@@ -629,7 +630,7 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 
 void view3d_smooth_free(RegionView3D *rv3d)
 {
-  MEM_SAFE_DELETE(rv3d->sms);
+  MEM_SAFE_DELETE(rv3d->runtime->sms);
 }
 
 /** \} */

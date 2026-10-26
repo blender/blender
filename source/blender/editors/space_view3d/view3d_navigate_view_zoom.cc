@@ -15,6 +15,7 @@
 #include "BKE_camera.h"
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "WM_api.hh"
 
@@ -352,7 +353,7 @@ static void viewzoom_apply_3d(ViewOpsData *vod,
   /* these limits were in old code too */
   CLAMP(vod->rv3d->dist, dist_range.min, dist_range.max);
 
-  if (RV3D_LOCK_FLAGS(vod->rv3d) & RV3D_BOXVIEW) {
+  if (bke::region_view3d_lock_flags_get(vod->rv3d) & RV3D_BOXVIEW) {
     view3d_boxview_sync(vod->area, vod->region);
   }
 
@@ -455,7 +456,7 @@ static void view_zoom_apply_step(bContext *C,
     }
   }
 
-  if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
+  if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_BOXVIEW) {
     view3d_boxview_sync(area, region);
   }
 

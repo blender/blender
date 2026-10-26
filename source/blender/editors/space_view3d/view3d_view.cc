@@ -28,6 +28,7 @@
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -99,7 +100,7 @@ static bool view3d_camera_to_view_poll(bContext *C)
   if (ED_view3d_context_user_region(C, &v3d, &region)) {
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
     if (v3d && v3d->camera && BKE_id_is_editable(CTX_data_main(C), &v3d->camera->id)) {
-      if (rv3d && (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0) {
+      if (rv3d && (bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0) {
         if (rv3d->persp != RV3D_CAMOB) {
           return true;
         }
@@ -422,7 +423,7 @@ void view3d_viewmatrix_set(const Depsgraph *depsgraph,
     bool use_lock_ofs = false;
 
     /* should be moved to better initialize later on XXX */
-    if (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) {
+    if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ROTATION) {
       ED_view3d_lock(rv3d);
     }
 
@@ -957,7 +958,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
   for (ARegion &region : area->regionbase) {
     if (region.regiontype == RGN_TYPE_WINDOW) {
       RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
-      if (rv3d->sms) {
+      if (rv3d->runtime->sms) {
         ED_view3d_smooth_view_force_finish_no_camera_lock(depsgraph, wm, win, scene, v3d, &region);
       }
     }
@@ -977,6 +978,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
       float dist_new, ofs_new[3];
 
       rv3d->localvd = MEM_new<RegionView3D>("localview region", dna::shallow_copy(*rv3d));
+      rv3d->localvd->runtime = nullptr;
 
       if (frame_selected) {
         float mid[3];
@@ -1058,7 +1060,7 @@ static bool view3d_localview_exit(const Depsgraph *depsgraph,
       if (rv3d->localvd == nullptr) {
         continue;
       }
-      if (rv3d->sms) {
+      if (rv3d->runtime->sms) {
         ED_view3d_smooth_view_force_finish_no_camera_lock(depsgraph, wm, win, scene, v3d, &region);
       }
     }
@@ -1421,14 +1423,14 @@ static void view3d_xr_mirror_begin(RegionView3D *rv3d)
   /* If there is no session yet, changes below should not be applied! */
   BLI_assert(WM_xr_session_exists(&((wmWindowManager *)G_MAIN->wm.first_)->xr));
 
-  rv3d->runtime_viewlock |= RV3D_LOCK_ANY_TRANSFORM;
+  rv3d->runtime->viewlock |= RV3D_LOCK_ANY_TRANSFORM;
   /* Force perspective view. This isn't reset but that's not really an issue. */
   rv3d->persp = RV3D_PERSP;
 }
 
 static void view3d_xr_mirror_end(RegionView3D *rv3d)
 {
-  rv3d->runtime_viewlock &= ~RV3D_LOCK_ANY_TRANSFORM;
+  rv3d->runtime->viewlock &= ~RV3D_LOCK_ANY_TRANSFORM;
 }
 
 void ED_view3d_xr_mirror_update(const ScrArea *area, const View3D *v3d, const bool enable)

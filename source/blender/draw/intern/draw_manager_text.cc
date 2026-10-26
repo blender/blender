@@ -26,6 +26,7 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
 #include "BKE_unit.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -183,7 +184,7 @@ void DRW_text_cache_draw(DRWTextStore *dt, const ARegion *region, const View3D *
     for (ViewCachedString &vos : dt->cache_strings) {
       if (ED_view3d_project_short_ex(
               region,
-              (vos.flag & DRW_TEXT_CACHE_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
+              (vos.flag & DRW_TEXT_CACHE_GLOBALSPACE) ? rv3d->persmat : rv3d->runtime->persmatob,
               (vos.flag & DRW_TEXT_CACHE_LOCALCLIP) != 0,
               vos.vec,
               vos.sco,

@@ -783,7 +783,7 @@ GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GPUSettings gpu_
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
       GHOST_Context *context = new GHOST_ContextVK(
-          context_params_offscreen, nullptr, 1, 2, gpu_settings.preferred_device);
+          context_params_offscreen, nullptr, 1, 1, gpu_settings.preferred_device);
       if (context->initializeDrawingContext()) {
         return context;
       }

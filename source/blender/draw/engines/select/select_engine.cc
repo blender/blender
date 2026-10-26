@@ -12,6 +12,8 @@
 
 #include "BKE_editmesh.hh"
 #include "BKE_mesh_types.hh"
+#include "BKE_view3d_runtime.hh"
+
 #include "BLI_math_matrix_c.hh"
 
 #include "BLT_translation.hh"
@@ -151,7 +153,7 @@ struct Instance : public DrawEngine {
     /* Note there might be less than 6 planes, but we always compute the 6 of them for simplicity.
      */
     int clipping_plane_count = RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d) ? 6 : 0;
-    int plane_len = min((RV3D_LOCK_FLAGS(draw_ctx->rv3d) & RV3D_BOXCLIP) ? 4 : 6,
+    int plane_len = min((bke::region_view3d_lock_flags_get(draw_ctx->rv3d) & RV3D_BOXCLIP) ? 4 : 6,
                         clipping_plane_count);
 
     for (auto i : IndexRange(plane_len)) {

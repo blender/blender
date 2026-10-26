@@ -16,6 +16,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_scene.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_gizmo_utils.hh"
@@ -150,8 +151,9 @@ static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzg
         wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
         const int i_ortho_a = (i + j + 1) % 3;
         const int i_ortho_b = (i + (1 - j) + 1) % 3;
-        WM_gizmo_set_matrix_rotation_from_yz_axis(gz, rv3d->twmat[i_ortho_a], rv3d->twmat[i]);
-        WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
+        WM_gizmo_set_matrix_rotation_from_yz_axis(
+            gz, rv3d->runtime->twmat[i_ortho_a], rv3d->runtime->twmat[i]);
+        WM_gizmo_set_matrix_location(gz, rv3d->runtime->twmat[3]);
 
         RNA_float_set_array(&gzop->ptr, "orient_matrix", &tbounds.axis[0][0]);
         RNA_enum_set(&gzop->ptr, "orient_type", orient_slot->type);
@@ -221,7 +223,7 @@ static void WIDGETGROUP_xform_shear_draw_prepare(const bContext *C, wmGizmoGroup
     mul_v3_fl(gz->matrix_basis[0], 0.0f);
     mul_v3_fl(gz->matrix_basis[1], 20.0f + ((1.0f / outer_thin) * 1.8f));
     mul_v3_fl(gz->matrix_basis[2], outer_thin);
-    WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
+    WM_gizmo_set_matrix_location(gz, rv3d->runtime->twmat[3]);
     gz->matrix_offset[3][2] = outer_offset;
   }
 

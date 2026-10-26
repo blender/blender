@@ -65,6 +65,7 @@
 #include "BKE_paint_types.hh"
 #include "BKE_report.hh"
 #include "BKE_subdiv_ccg.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "BLT_translation.hh"
 
@@ -3325,7 +3326,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
    *
    * TODO: See #141417
    */
-  const bool external_engine = ss.rv3d && ss.rv3d->view_render != nullptr;
+  const bool external_engine = ss.rv3d && ss.rv3d->runtime->view_render != nullptr;
   if (external_engine) {
     bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
     bke::pbvh::update_normals(depsgraph, ob, pbvh);
@@ -4918,7 +4919,7 @@ void flush_update_step(ViewContext &vc, Object &object, const UpdateType update_
   PRF_scope(ProfileCategory::Editor);
   if (vc.rv3d) {
     /* Mark for faster 3D viewport redraws. */
-    vc.rv3d->rflag |= RV3D_PAINTING;
+    vc.rv3d->runtime->tags |= bke::RV3D_TAG_PAINTING;
   }
 
   const SculptSession &ss = *object.runtime->sculpt_session;
@@ -4968,7 +4969,7 @@ void flush_update_done(ViewContext &vc,
   bool need_tag = ID_REAL_USERS(&mesh.id) > 1;
 
   if (vc.rv3d) {
-    vc.rv3d->rflag &= ~RV3D_PAINTING;
+    vc.rv3d->runtime->tags &= ~bke::RV3D_TAG_PAINTING;
   }
 
   /* TODO: this might be better in the `redraw` callback instead of here */

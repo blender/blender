@@ -370,12 +370,17 @@ static void rna_DriverVariable_update_data(Main *bmain, Scene *scene, PointerRNA
 void rna_DriverTarget_id_set(PointerRNA *ptr, PointerRNA value, struct ReportList * /*reports*/)
 {
   DriverTarget *data = ptr->data_as<DriverTarget>();
+
+  /* Note that value.owner_id may be nullptr, for example when called from #button_string_set() in
+   * interface.cc. This path is hit when a linked datablock is selected from a drop-down selector,
+   * for example in the Driver editor's variable defnition UI. This means that `value` should not
+   * be passed as-is to other code. */
   ID *id = value.data_as<ID>();
+
   if (!id) {
     data->id = nullptr;
     return;
   }
-  BLI_assert(id == value.owner_id);
   if (ptr->owner_id && !BKE_id_can_use_id(*ptr->owner_id, *id)) {
     return;
   }

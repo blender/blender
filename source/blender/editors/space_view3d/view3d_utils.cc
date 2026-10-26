@@ -44,6 +44,7 @@
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -392,7 +393,7 @@ bool ED_view3d_clipping_clamp_minmax(const RegionView3D *rv3d, float min[3], flo
 
   /* Copy planes from the viewport & flip. */
   int planes_len = 6;
-  int clip_len = (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXCLIP) ? 4 : 6;
+  int clip_len = (bke::region_view3d_lock_flags_get(rv3d) & RV3D_BOXCLIP) ? 4 : 6;
   for (int i = 0; i < clip_len; i++) {
     negate_v4_v4(planes[planes_len], rv3d->clip[i]);
     planes_len += 1;
@@ -481,7 +482,7 @@ bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const BoundBox *bb)
   if (bb == nullptr) {
     return true;
   }
-  return view3d_boundbox_clip_m4(bb, rv3d->persmatob);
+  return view3d_boundbox_clip_m4(bb, rv3d->runtime->persmatob);
 }
 
 /** \} */
@@ -542,7 +543,7 @@ bool ED_view3d_persp_ensure(const Depsgraph *depsgraph, View3D *v3d, ARegion *re
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   const bool autopersp = (U.uiflag & USER_AUTOPERSP) != 0;
 
-  BLI_assert((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0);
+  BLI_assert((bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0);
 
   if (ED_view3d_camera_lock_check(v3d, rv3d)) {
     return false;
@@ -851,7 +852,7 @@ static void view3d_boxview_clip(ScrArea *area)
     if (region.regiontype == RGN_TYPE_WINDOW) {
       RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
 
-      if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXCLIP) {
+      if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_BOXCLIP) {
         if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
           if (region.winx > region.winy) {
             x1 = rv3d->dist;
@@ -923,7 +924,7 @@ static void view3d_boxview_clip(ScrArea *area)
     if (region.regiontype == RGN_TYPE_WINDOW) {
       RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
 
-      if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXCLIP) {
+      if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_BOXCLIP) {
         rv3d->rflag |= RV3D_CLIPPING;
         memcpy(rv3d->clip, clip, sizeof(clip));
         if (rv3d->clipbb) {
@@ -995,10 +996,10 @@ void view3d_boxview_sync(ScrArea *area, ARegion *region)
     if (&region_test != region && region_test.regiontype == RGN_TYPE_WINDOW) {
       RegionView3D *rv3dtest = static_cast<RegionView3D *>(region_test.regiondata);
 
-      if (RV3D_LOCK_FLAGS(rv3dtest) & RV3D_LOCK_ROTATION) {
+      if (bke::region_view3d_lock_flags_get(rv3dtest) & RV3D_LOCK_ROTATION) {
         rv3dtest->dist = rv3d->dist;
         view3d_boxview_sync_axis(rv3dtest, rv3d);
-        clip |= RV3D_LOCK_FLAGS(rv3dtest) & RV3D_BOXCLIP;
+        clip |= bke::region_view3d_lock_flags_get(rv3dtest) & RV3D_BOXCLIP;
 
         ED_region_tag_redraw(&region_test);
       }
@@ -1019,12 +1020,12 @@ void view3d_boxview_copy(ScrArea *area, ARegion *region)
     if (&region_test != region && region_test.regiontype == RGN_TYPE_WINDOW) {
       RegionView3D *rv3dtest = static_cast<RegionView3D *>(region_test.regiondata);
 
-      if (RV3D_LOCK_FLAGS(rv3dtest)) {
+      if (bke::region_view3d_lock_flags_get(rv3dtest)) {
         rv3dtest->dist = rv3d->dist;
         copy_v3_v3(rv3dtest->ofs, rv3d->ofs);
         ED_region_tag_redraw(&region_test);
 
-        clip |= ((RV3D_LOCK_FLAGS(rv3dtest) & RV3D_BOXCLIP) != 0);
+        clip |= ((bke::region_view3d_lock_flags_get(rv3dtest) & RV3D_BOXCLIP) != 0);
       }
     }
   }
@@ -1068,7 +1069,7 @@ void ED_view3d_quadview_update(ScrArea *area, ARegion *region, bool do_clip)
     }
   }
 
-  if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
+  if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_BOXVIEW) {
     view3d_boxview_sync(area, region_sync ? region_sync : area->regionbase.last());
   }
 
@@ -1366,8 +1367,8 @@ float ED_view3d_radius_to_dist(const View3D *v3d,
 
     if (persp == RV3D_CAMOB) {
       /* camera frame x/y in pixels */
-      winx = region->winx / rv3d->viewcamtexcofac[0];
-      winy = region->winy / rv3d->viewcamtexcofac[1];
+      winx = region->winx / rv3d->runtime->viewcamtexcofac[0];
+      winy = region->winy / rv3d->runtime->viewcamtexcofac[1];
     }
     else {
       winx = region->winx;

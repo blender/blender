@@ -39,6 +39,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -279,49 +280,50 @@ static bool gizmo_is_axis_visible(const RegionView3D *rv3d,
 
   switch (axis_idx) {
     case MAN_AXIS_TRANS_X:
-      return (rv3d->twdrawflag & MAN_TRANS_X);
+      return (rv3d->runtime->twdrawflag & MAN_TRANS_X);
     case MAN_AXIS_TRANS_Y:
-      return (rv3d->twdrawflag & MAN_TRANS_Y);
+      return (rv3d->runtime->twdrawflag & MAN_TRANS_Y);
     case MAN_AXIS_TRANS_Z:
-      return (rv3d->twdrawflag & MAN_TRANS_Z);
+      return (rv3d->runtime->twdrawflag & MAN_TRANS_Z);
     case MAN_AXIS_TRANS_C:
-      return (rv3d->twdrawflag & MAN_TRANS_C);
+      return (rv3d->runtime->twdrawflag & MAN_TRANS_C);
     case MAN_AXIS_ROT_X:
-      return (rv3d->twdrawflag & MAN_ROT_X);
+      return (rv3d->runtime->twdrawflag & MAN_ROT_X);
     case MAN_AXIS_ROT_Y:
-      return (rv3d->twdrawflag & MAN_ROT_Y);
+      return (rv3d->runtime->twdrawflag & MAN_ROT_Y);
     case MAN_AXIS_ROT_Z:
-      return (rv3d->twdrawflag & MAN_ROT_Z);
+      return (rv3d->runtime->twdrawflag & MAN_ROT_Z);
     case MAN_AXIS_ROT_C:
     case MAN_AXIS_ROT_T:
-      return (rv3d->twdrawflag & MAN_ROT_C);
+      return (rv3d->runtime->twdrawflag & MAN_ROT_C);
     case MAN_AXIS_SCALE_X:
-      return (rv3d->twdrawflag & MAN_SCALE_X);
+      return (rv3d->runtime->twdrawflag & MAN_SCALE_X);
     case MAN_AXIS_SCALE_Y:
-      return (rv3d->twdrawflag & MAN_SCALE_Y);
+      return (rv3d->runtime->twdrawflag & MAN_SCALE_Y);
     case MAN_AXIS_SCALE_Z:
-      return (rv3d->twdrawflag & MAN_SCALE_Z);
+      return (rv3d->runtime->twdrawflag & MAN_SCALE_Z);
     case MAN_AXIS_SCALE_C:
-      return (rv3d->twdrawflag & MAN_SCALE_C && (twtype & V3D_GIZMO_SHOW_OBJECT_TRANSLATE) == 0);
+      return (rv3d->runtime->twdrawflag & MAN_SCALE_C &&
+              (twtype & V3D_GIZMO_SHOW_OBJECT_TRANSLATE) == 0);
     case MAN_AXIS_TRANS_XY:
-      return (rv3d->twdrawflag & MAN_TRANS_X && rv3d->twdrawflag & MAN_TRANS_Y &&
+      return (rv3d->runtime->twdrawflag & MAN_TRANS_X && rv3d->runtime->twdrawflag & MAN_TRANS_Y &&
               (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) == 0);
     case MAN_AXIS_TRANS_YZ:
-      return (rv3d->twdrawflag & MAN_TRANS_Y && rv3d->twdrawflag & MAN_TRANS_Z &&
+      return (rv3d->runtime->twdrawflag & MAN_TRANS_Y && rv3d->runtime->twdrawflag & MAN_TRANS_Z &&
               (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) == 0);
     case MAN_AXIS_TRANS_ZX:
-      return (rv3d->twdrawflag & MAN_TRANS_Z && rv3d->twdrawflag & MAN_TRANS_X &&
+      return (rv3d->runtime->twdrawflag & MAN_TRANS_Z && rv3d->runtime->twdrawflag & MAN_TRANS_X &&
               (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) == 0);
     case MAN_AXIS_SCALE_XY:
-      return (rv3d->twdrawflag & MAN_SCALE_X && rv3d->twdrawflag & MAN_SCALE_Y &&
+      return (rv3d->runtime->twdrawflag & MAN_SCALE_X && rv3d->runtime->twdrawflag & MAN_SCALE_Y &&
               (twtype & V3D_GIZMO_SHOW_OBJECT_TRANSLATE) == 0 &&
               (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) == 0);
     case MAN_AXIS_SCALE_YZ:
-      return (rv3d->twdrawflag & MAN_SCALE_Y && rv3d->twdrawflag & MAN_SCALE_Z &&
+      return (rv3d->runtime->twdrawflag & MAN_SCALE_Y && rv3d->runtime->twdrawflag & MAN_SCALE_Z &&
               (twtype & V3D_GIZMO_SHOW_OBJECT_TRANSLATE) == 0 &&
               (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) == 0);
     case MAN_AXIS_SCALE_ZX:
-      return (rv3d->twdrawflag & MAN_SCALE_Z && rv3d->twdrawflag & MAN_SCALE_X &&
+      return (rv3d->runtime->twdrawflag & MAN_SCALE_Z && rv3d->runtime->twdrawflag & MAN_SCALE_X &&
               (twtype & V3D_GIZMO_SHOW_OBJECT_TRANSLATE) == 0 &&
               (twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) == 0);
   }
@@ -1027,8 +1029,8 @@ int calc_gizmo_stats(const bContext *C,
 
   if (rv3d) {
     /* Transform widget centroid/center. */
-    copy_m4_m3(rv3d->twmat, tbounds->axis);
-    rv3d->twdrawflag = short(0xFFFF);
+    copy_m4_m3(rv3d->runtime->twmat, tbounds->axis);
+    rv3d->runtime->twdrawflag = short(0xFFFF);
   }
 
   if (params->use_local_axis && (ob && ob->mode & (OB_MODE_EDIT | OB_MODE_POSE))) {
@@ -1052,7 +1054,7 @@ int calc_gizmo_stats(const bContext *C,
                                      params->use_only_center,
                                      gizmo_3d_tbounds_calc_fn,
                                      nullptr,
-                                     rv3d ? &rv3d->twdrawflag : nullptr);
+                                     rv3d ? &rv3d->runtime->twdrawflag : nullptr);
 
   if (totsel) {
     mul_v3_fl(tbounds->center, 1.0f / float(totsel)); /* Centroid! */
@@ -1070,15 +1072,15 @@ int calc_gizmo_stats(const bContext *C,
 
   if (rv3d) {
     if (totsel == 0) {
-      unit_m4(rv3d->twmat);
-      unit_m3(rv3d->tw_axis_matrix);
-      zero_v3(rv3d->tw_axis_min);
-      zero_v3(rv3d->tw_axis_max);
+      unit_m4(rv3d->runtime->twmat);
+      unit_m3(rv3d->runtime->tw_axis_matrix);
+      zero_v3(rv3d->runtime->tw_axis_min);
+      zero_v3(rv3d->runtime->tw_axis_max);
     }
     else {
-      copy_m3_m3(rv3d->tw_axis_matrix, tbounds->axis);
-      copy_v3_v3(rv3d->tw_axis_min, tbounds->axis_min);
-      copy_v3_v3(rv3d->tw_axis_max, tbounds->axis_max);
+      copy_m3_m3(rv3d->runtime->tw_axis_matrix, tbounds->axis);
+      copy_v3_v3(rv3d->runtime->tw_axis_min, tbounds->axis_min);
+      copy_v3_v3(rv3d->runtime->tw_axis_max, tbounds->axis_max);
     }
   }
 
@@ -1094,9 +1096,9 @@ int calc_gizmo_stats(const bContext *C,
 static void gizmo_get_idot(const RegionView3D *rv3d, float r_idot[3])
 {
   float view_vec[3], axis_vec[3];
-  ED_view3d_global_to_vector(rv3d, rv3d->twmat[3], view_vec);
+  ED_view3d_global_to_vector(rv3d, rv3d->runtime->twmat[3], view_vec);
   for (int i = 0; i < 3; i++) {
-    normalize_v3_v3(axis_vec, rv3d->twmat[i]);
+    normalize_v3_v3(axis_vec, rv3d->runtime->twmat[i]);
     r_idot[i] = 1.0f - fabsf(dot_v3v3(view_vec, axis_vec));
   }
 }
@@ -1177,7 +1179,8 @@ static bool gizmo_3d_calc_pos(const bContext *C,
 void gizmo_prepare_mat(const bContext *C, RegionView3D *rv3d, const TransformBounds *tbounds)
 {
   Scene *scene = CTX_data_scene(C);
-  gizmo_3d_calc_pos(C, scene, tbounds, scene->toolsettings->transform_pivot_point, rv3d->twmat[3]);
+  gizmo_3d_calc_pos(
+      C, scene, tbounds, scene->toolsettings->transform_pivot_point, rv3d->runtime->twmat[3]);
 }
 
 /**
@@ -1745,7 +1748,7 @@ static wmOperatorStatus gizmo_modal(bContext *C,
     if (calc_gizmo_stats(C, &calc_params, &tbounds, rv3d)) {
       gizmo_prepare_mat(C, rv3d, &tbounds);
       for (wmGizmo &gz : gzgroup->gizmos) {
-        WM_gizmo_set_matrix_location(&gz, rv3d->twmat[3]);
+        WM_gizmo_set_matrix_location(&gz, rv3d->runtime->twmat[3]);
       }
     }
   }
@@ -1768,7 +1771,7 @@ static wmOperatorStatus gizmo_modal(bContext *C,
       float scale_buf[3];
       float *scale = nullptr;
       bool update = false;
-      copy_m4_m4(twmat, rv3d->twmat);
+      copy_m4_m4(twmat, rv3d->runtime->twmat);
 
       if (axis_type == MAN_AXES_SCALE) {
         scale = scale_buf;
@@ -2019,9 +2022,9 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   gizmo_3d_calc_pos(
-      C, scene, &tbounds, scene->toolsettings->transform_pivot_point, rv3d->twmat[3]);
+      C, scene, &tbounds, scene->toolsettings->transform_pivot_point, rv3d->runtime->twmat[3]);
 
-  gizmogroup_refresh_from_matrix(gzgroup, rv3d->twmat, nullptr, false);
+  gizmogroup_refresh_from_matrix(gzgroup, rv3d->runtime->twmat, nullptr, false);
 }
 
 static void WIDGETGROUP_gizmo_message_subscribe(const bContext *C,
@@ -2060,7 +2063,7 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 
   /* When looking through a selected camera, the gizmo can be at the
    * exact same position as the view, skip so we don't break selection. */
-  if (ggd->all_hidden || fabsf(ED_view3d_pixel_size(rv3d, rv3d->twmat[3])) < 5e-7f) {
+  if (ggd->all_hidden || fabsf(ED_view3d_pixel_size(rv3d, rv3d->runtime->twmat[3])) < 5e-7f) {
     if (!is_modal) {
       gizmogroup_hide_all(ggd);
     }
@@ -2136,7 +2139,8 @@ static void gizmo_3d_draw_invoke(wmGizmoGroup *gzgroup,
   /* Display only the active gizmo. */
   gizmogroup_hide_all(ggd);
   WM_gizmo_set_flag(axis_active, WM_GIZMO_HIDDEN, false);
-  gizmo_refresh_from_matrix(axis_active, axis_idx_active, ggd->twtype, rv3d->twmat, nullptr);
+  gizmo_refresh_from_matrix(
+      axis_active, axis_idx_active, ggd->twtype, rv3d->runtime->twmat, nullptr);
 
   if (ELEM(axis_idx_active, MAN_AXIS_TRANS_C, MAN_AXIS_SCALE_C, MAN_AXIS_ROT_C, MAN_AXIS_ROT_T)) {
     WM_gizmo_set_matrix_rotation_from_z_axis(axis_active, rv3d->viewinv[2]);
@@ -2152,7 +2156,7 @@ static void gizmo_3d_draw_invoke(wmGizmoGroup *gzgroup,
       }
       wmGizmo *axis = ggd->gizmos[axis_idx];
       WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, false);
-      gizmo_refresh_from_matrix(axis, axis_idx, ggd->twtype, rv3d->twmat, nullptr);
+      gizmo_refresh_from_matrix(axis, axis_idx, ggd->twtype, rv3d->runtime->twmat, nullptr);
       gizmo_3d_setup_draw_default(axis, axis_idx);
       gizmo_3d_setup_draw_from_twtype(axis, axis_idx, ggd->twtype);
       RNA_enum_set(axis->ptr, "draw_options", ED_GIZMO_ARROW_DRAW_FLAG_STEM);
@@ -2466,16 +2470,16 @@ void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t)
     RegionView3D *rv3d = static_cast<RegionView3D *>(t->region->regiondata);
     float (*mat_cmp)[3] = t->orient[t->orient_curr != O_DEFAULT ? t->orient_curr : O_SCENE].matrix;
 
-    bool update_orientation = !(equals_v3v3(rv3d->twmat[0], mat_cmp[0]) &&
-                                equals_v3v3(rv3d->twmat[1], mat_cmp[1]) &&
-                                equals_v3v3(rv3d->twmat[2], mat_cmp[2]));
+    bool update_orientation = !(equals_v3v3(rv3d->runtime->twmat[0], mat_cmp[0]) &&
+                                equals_v3v3(rv3d->runtime->twmat[1], mat_cmp[1]) &&
+                                equals_v3v3(rv3d->runtime->twmat[2], mat_cmp[2]));
 
     GizmoGroup *ggd = static_cast<GizmoGroup *>(gzgroup_xform->customdata);
     wmGizmo *gizmo_expected = ggd->gizmos[axis_idx];
     if (update_orientation || gizmo_modal_current != gizmo_expected) {
       if (update_orientation) {
-        copy_m4_m3(rv3d->twmat, mat_cmp);
-        copy_v3_v3(rv3d->twmat[3], t->center_global);
+        copy_m4_m3(rv3d->runtime->twmat, mat_cmp);
+        copy_v3_v3(rv3d->runtime->twmat[3], t->center_global);
       }
 
       wmEvent event = {nullptr};
@@ -2485,7 +2489,8 @@ void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t)
 
       /* We need to update the position of the gizmo before invoking otherwise
        * #wmGizmo::scale_final could be calculated wrong. */
-      gizmo_refresh_from_matrix(gizmo_expected, axis_idx, ggd->twtype, rv3d->twmat, nullptr);
+      gizmo_refresh_from_matrix(
+          gizmo_expected, axis_idx, ggd->twtype, rv3d->runtime->twmat, nullptr);
 
       BLI_assert_msg(!gizmo_modal_current || gizmo_modal_current->highlight_part == 0,
                      "Avoid changing the highlight part");

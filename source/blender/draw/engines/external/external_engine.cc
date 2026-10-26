@@ -21,6 +21,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_view3d_runtime.hh"
+
 #include "ED_image.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
@@ -268,13 +270,13 @@ class Instance : public DrawEngine {
 
     /* Create render engine. */
     RenderEngine *render_engine = nullptr;
-    if (!rv3d->view_render) {
+    if (!rv3d->runtime->view_render) {
       if (!(engine_type->view_update && engine_type->view_draw)) {
         return;
       }
 
-      rv3d->view_render = RE_NewViewRender(engine_type);
-      render_engine = RE_view_engine_get(rv3d->view_render);
+      rv3d->runtime->view_render = RE_NewViewRender(engine_type);
+      render_engine = RE_view_engine_get(rv3d->runtime->view_render);
 
       if (ScrArea *area = CTX_wm_area(draw_ctx->evil_C)) {
         ED_area_tag_redraw_regiontype(area, RGN_TYPE_HEADER);
@@ -283,7 +285,7 @@ class Instance : public DrawEngine {
       engine_type->view_update(render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
     }
     else {
-      render_engine = RE_view_engine_get(rv3d->view_render);
+      render_engine = RE_view_engine_get(rv3d->runtime->view_render);
     }
 
     /* Rendered draw. */
@@ -526,15 +528,15 @@ bool DRW_engine_external_acquire_for_image_editor(const DRWContext *draw_ctx)
 
 void DRW_engine_external_free(RegionView3D *rv3d)
 {
-  if (rv3d->view_render) {
+  if (rv3d->runtime->view_render) {
     /* Free engine with DRW context enabled, as this may clean up per-context
      * resources like VAOs. */
     bool swap_context = !DRW_gpu_context_is_enabled();
     if (swap_context) {
       DRW_gpu_context_enable_ex(true);
     }
-    RE_FreeViewRender(rv3d->view_render);
-    rv3d->view_render = nullptr;
+    RE_FreeViewRender(rv3d->runtime->view_render);
+    rv3d->runtime->view_render = nullptr;
     if (swap_context) {
       DRW_gpu_context_disable_ex(true);
     }

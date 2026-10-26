@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -4893,14 +4893,6 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
 msgid "Pivot Point"
 msgstr "จุดหมุน"
 
@@ -4915,10 +4907,6 @@ msgstr "แก้ไข"
 
 msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Math"
-msgstr "คณิตศาสตร์"
 
 
 msgid "Mirror"
@@ -4949,12 +4937,12 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
-msgid "Import"
-msgstr "นำเข้า"
+msgid "Math"
+msgstr "คณิตศาสตร์"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "เมตาบอล"
 
 
 msgid "Light"
@@ -4965,6 +4953,10 @@ msgid "Add Image"
 msgstr "เพิ่มภาพ"
 
 
+msgid "Import"
+msgstr "นำเข้า"
+
+
 msgid "Apply"
 msgstr "นำไปใช้"
 
@@ -4973,24 +4965,32 @@ msgid "Track"
 msgstr "แทร็ค"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Hooks"
 msgstr "ตะขอ"
 
 
-msgid "Layout"
-msgstr "เค้าโครง"
+msgid "Names"
+msgstr "ชื่อ"
 
 
 msgid "Face Data"
 msgstr "ข้อมูลด้าน"
 
 
-msgid "Keying"
-msgstr "คีย์"
-
-
 msgid "Merge"
 msgstr "ผสาน"
+
+
+msgid "Layout"
+msgstr "เค้าโครง"
+
+
+msgid "Keying"
+msgstr "คีย์"
 
 
 msgid "Zoom"

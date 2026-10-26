@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "draw_attribute_shader_shared.hh"
 #include "gpu_shader_compat.hh"
 
 #include "draw_subdiv_shader_shared.hh"
@@ -350,11 +351,14 @@ struct FdotsEval {
   [[storage(PATCH_EVALUATION_EXTRA_COARSE_FACE_DATA_BUF_SLOT,
             read)]] const uint (&extra_coarse_face_data)[];
 
-  [[storage(PATCH_EVALUATION_OUTPUT_FDOTS_VERTEX_BUFFER_BUF_SLOT, write)]] FDotVert (&verts_buf)[];
+  [[storage(PATCH_EVALUATION_OUTPUT_FDOTS_VERTEX_BUFFER_BUF_SLOT,
+            write)]] StoredFloat3 (&verts_buf)[];
   [[storage(PATCH_EVALUATION_OUTPUT_INDICES_BUF_SLOT, write)]] uint (&indices_buf)[];
 
   [[storage(PATCH_EVALUATION_OUTPUT_NORMALS_BUF_SLOT,
-            write)]] [[condition(do_normals)]] FDotNor (&nors_buf)[];
+            write)]] [[condition(do_normals)]] uint (&nors_buf)[];
+
+  [[push_constant]] [[condition(do_normals)]] const bool use_hq;
 
   bool is_face_selected(uint coarse_quad_index)
   {
@@ -410,20 +414,21 @@ void patch_eval_fdots([[resource_table]] const SubdivResources &srt,
   eval.evaluate_patches_limits(patch_co.patch_index, uv.x, uv.y, pos, du, dv);
   float3 nor = normalize(cross(du, dv));
 
-  FDotVert vert;
+  StoredFloat3 vert;
   vert.x = pos.x;
   vert.y = pos.y;
   vert.z = pos.z;
 
-  FDotNor fnor;
-  fnor.x = nor.x;
-  fnor.y = nor.y;
-  fnor.z = nor.z;
-  fnor.flag = res.get_face_flag(coarse_quad_index);
-
   res.verts_buf[coarse_quad_index] = vert;
   if (res.consts.do_normals) [[static_branch]] {
-    res.nors_buf[coarse_quad_index] = fnor;
+    float4 data = float4(nor, res.get_face_flag(coarse_quad_index));
+    if (res.use_hq) {
+      res.nors_buf[coarse_quad_index * 2 + 0] = packSnorm2x16(data.xy);
+      res.nors_buf[coarse_quad_index * 2 + 1] = packSnorm2x16(data.zw);
+    }
+    else {
+      res.nors_buf[coarse_quad_index] = packSnorm3x10_1x2(data);
+    }
   }
 
   if (srt.shader_data.use_hide && res.is_face_hidden(coarse_quad_index)) {

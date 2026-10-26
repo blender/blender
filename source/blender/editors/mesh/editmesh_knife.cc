@@ -42,6 +42,7 @@
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_unit.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
@@ -2663,8 +2664,12 @@ static bool point_is_visible(KnifeTool_OpData *kcd,
       copy_v3_v3(view_clip[0], p_ofs);
       madd_v3_v3v3fl(view_clip[1], p_ofs, view, dist);
 
-      if (clip_segment_v3_plane_n(
-              view_clip[0], view_clip[1], kcd->vc.rv3d->clip_local, 6, view_clip[0], view_clip[1]))
+      if (clip_segment_v3_plane_n(view_clip[0],
+                                  view_clip[1],
+                                  kcd->vc.rv3d->runtime->clip_local,
+                                  6,
+                                  view_clip[0],
+                                  view_clip[1]))
       {
         dist = len_v3v3(p_ofs, view_clip[1]);
       }
@@ -2730,7 +2735,7 @@ static void knife_linehit_set(KnifeTool_OpData *kcd,
   /* Find position along screen line, used for sorting. */
   r_hit->l = len_v2v2(sco, s1) / len_v2v2(s2, s1);
 
-  r_hit->m = dot_m4_v3_row_z(kcd->vc.rv3d->persmatob, cage);
+  r_hit->m = dot_m4_v3_row_z(kcd->vc.rv3d->runtime->persmatob, cage);
 
   r_hit->v = v;
 

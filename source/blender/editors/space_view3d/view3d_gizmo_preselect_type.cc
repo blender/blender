@@ -22,6 +22,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_c.hh"
@@ -68,7 +69,7 @@ static bool gizmo_preselect_poll_for_draw(const bContext *C, wmGizmo *gz)
 {
   if (G.moving == false) {
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
-    if (!(rv3d && (rv3d->rflag & RV3D_NAVIGATING))) {
+    if (!(rv3d && (rv3d->runtime->tags & bke::RV3D_TAG_NAVIGATING))) {
       return true;
     }
   }

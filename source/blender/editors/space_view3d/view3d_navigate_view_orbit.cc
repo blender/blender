@@ -13,6 +13,8 @@
 
 #include "WM_api.hh"
 
+#include "BKE_view3d_runtime.hh"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
@@ -63,7 +65,9 @@ static wmOperatorStatus vieworbit_exec(bContext *C, wmOperator *op)
                                          ED_view3d_axis_view_opposite(vod.rv3d->view) :
                                          RV3D_VIEW_USER;
 
-  if ((RV3D_LOCK_FLAGS(vod.rv3d) & RV3D_LOCK_ROTATION) && (view_opposite == RV3D_VIEW_USER)) {
+  if ((bke::region_view3d_lock_flags_get(vod.rv3d) & RV3D_LOCK_ROTATION) &&
+      (view_opposite == RV3D_VIEW_USER))
+  {
     /* no nullptr check is needed, poll checks */
     ED_view3d_context_user_region(C, &vod.v3d, &vod.region);
     vod.rv3d = static_cast<RegionView3D *>(vod.region->regiondata);
@@ -71,7 +75,9 @@ static wmOperatorStatus vieworbit_exec(bContext *C, wmOperator *op)
     ED_view3d_smooth_view_force_finish(C, vod.v3d, vod.region);
   }
 
-  if ((RV3D_LOCK_FLAGS(vod.rv3d) & RV3D_LOCK_ROTATION) && (view_opposite == RV3D_VIEW_USER)) {
+  if ((bke::region_view3d_lock_flags_get(vod.rv3d) & RV3D_LOCK_ROTATION) &&
+      (view_opposite == RV3D_VIEW_USER))
+  {
     return OPERATOR_CANCELLED;
   }
 

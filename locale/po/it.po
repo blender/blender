@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24470,34 +24470,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Kerning"
-msgstr "Crenatura"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Names"
-msgstr "Nomi"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
 msgid "Pivot Point"
 msgstr "Punto di Perno"
 
@@ -24526,36 +24498,12 @@ msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
 
 
-msgid "Math"
-msgstr "Matematica"
-
-
-msgid "Utilities"
-msgstr "Utilità"
-
-
-msgid "Read"
-msgstr "Lettura"
-
-
-msgid "Sample"
-msgstr "Campione"
-
-
 msgid "Mirror"
 msgstr "Specchia"
 
 
-msgid "Write"
-msgstr "Scrittura"
-
-
 msgid "UV Mapping"
 msgstr "Mappatura UV"
-
-
-msgid "Primitives"
-msgstr "Primitive"
 
 
 msgid "Local View"
@@ -24582,8 +24530,16 @@ msgid "View Regions"
 msgstr "Regione Vista"
 
 
+msgid "Math"
+msgstr "Matematica"
+
+
 msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
+
+
+msgid "Utilities"
+msgstr "Utilità"
 
 
 msgid "Select Similar"
@@ -24594,10 +24550,6 @@ msgid "Select All by Trait"
 msgstr "Seleziona Tutto per Caratteristica"
 
 
-msgid "Instances"
-msgstr "Istanze"
-
-
 msgid "Select Linked"
 msgstr "Seleziona Collegati"
 
@@ -24606,16 +24558,28 @@ msgid "Select Loops"
 msgstr "Seleziona Anelli"
 
 
-msgid "Import"
-msgstr "Importa"
+msgid "Read"
+msgstr "Lettura"
+
+
+msgid "Sample"
+msgstr "Campione"
 
 
 msgid "Assign Material"
 msgstr "Assegna Materiale"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Write"
+msgstr "Scrittura"
+
+
+msgid "Primitives"
+msgstr "Primitive"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Light"
@@ -24626,12 +24590,20 @@ msgid "Light Probe"
 msgstr "Sensore di Luce"
 
 
+msgid "Instances"
+msgstr "Istanze"
+
+
 msgid "Add Image"
 msgstr "Aggiungi Immagine"
 
 
 msgid "Relations"
 msgstr "Relazioni"
+
+
+msgid "Import"
+msgstr "Importa"
 
 
 msgid "Rigid Body"
@@ -24650,6 +24622,14 @@ msgid "Quick Effects"
 msgstr "Effetti Veloci"
 
 
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
 msgid "Asset"
 msgstr "Risorsa"
 
@@ -24660,6 +24640,10 @@ msgstr "Rendi Utilizzatore Singolo"
 
 msgid "Convert"
 msgstr "Converti"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -24682,16 +24666,8 @@ msgid "Clear Transform"
 msgstr "Cancella Trasformazione"
 
 
-msgid "Linked"
-msgstr "Collegato"
-
-
 msgid "In-Betweens"
 msgstr "Intermedio"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Propagate"
@@ -24700,6 +24676,10 @@ msgstr "Propaga"
 
 msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
+
+
+msgid "Names"
+msgstr "Nomi"
 
 
 msgid "Toggle Bone Options"
@@ -24718,16 +24698,8 @@ msgid "Mesh Select Mode"
 msgstr "Modalità Selezione Mesh"
 
 
-msgid "Adjust"
-msgstr "Regola"
-
-
 msgid "Face Data"
 msgstr "Dati Faccia"
-
-
-msgid "Keying"
-msgstr "Keying"
 
 
 msgid "Select by Face Strength"
@@ -24738,12 +24710,40 @@ msgid "Set Face Strength"
 msgstr "Imposta Intensità Faccia"
 
 
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
 msgid "Merge"
 msgstr "Unisci"
+
+
+msgid "Linked"
+msgstr "Collegato"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Kerning"
+msgstr "Crenatura"
+
+
+msgid "Adjust"
+msgstr "Regola"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracciamento"
 
 
 msgid "Keyframe Insert Pie"

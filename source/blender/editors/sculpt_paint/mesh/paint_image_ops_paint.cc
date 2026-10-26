@@ -26,6 +26,7 @@
 #include "BKE_paint.hh"
 #include "BKE_paint_types.hh"
 #include "BKE_undo_system.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "ED_image.hh"
 #include "ED_paint.hh"
@@ -712,7 +713,7 @@ void ExperimentalTexturePaintStroke::update_step(wmOperator * /*op*/, const Stro
 
   if (this->vc.rv3d) {
     /* Mark for faster 3D viewport redraws. */
-    this->vc.rv3d->rflag |= RV3D_PAINTING;
+    this->vc.rv3d->runtime->tags |= bke::RV3D_TAG_PAINTING;
   }
   ED_region_tag_redraw(this->vc.region);
 }
@@ -733,7 +734,7 @@ void ExperimentalTexturePaintStroke::done(bool is_cancel, bool stroke_started)
   }
 
   if (this->vc.rv3d) {
-    this->vc.rv3d->rflag &= ~RV3D_PAINTING;
+    this->vc.rv3d->runtime->tags &= ~bke::RV3D_TAG_PAINTING;
   }
 
   MEM_delete(ss.cache);

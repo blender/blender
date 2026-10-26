@@ -987,12 +987,14 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
   functions.push_back({uint_cls, "packUnorm4x8", {float4_cls}});
   functions.push_back({uint_cls, "packSnorm4x8", {float4_cls}});
   functions.push_back({uint_cls, "packHalf2x16", {float2_cls}});
+  functions.push_back({uint_cls, "packSnorm3x10_1x2", {float4_cls}});
 
   functions.push_back({float2_cls, "unpackUnorm2x16", {uint_cls}});
   functions.push_back({float2_cls, "unpackSnorm2x16", {uint_cls}});
   functions.push_back({float4_cls, "unpackUnorm4x8", {uint_cls}});
   functions.push_back({float4_cls, "unpackSnorm4x8", {uint_cls}});
   functions.push_back({float2_cls, "unpackHalf2x16", {uint_cls}});
+  functions.push_back({float4_cls, "unpackSnorm3x10_1x2", {uint_cls}});
 
   for (size_t i = 1; i < f_types.size(); ++i) {
     functions.push_back({float_cls, "length", {f_types[i]}});

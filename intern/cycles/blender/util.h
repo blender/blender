@@ -36,6 +36,7 @@
 #include "BKE_mesh_types.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
+#include "BKE_view3d_runtime.hh"
 
 CCL_NAMESPACE_BEGIN
 
@@ -782,7 +783,8 @@ static inline bool object_need_motion_attribute(BObjectInfo &b_ob_info, Scene *s
 
 static inline bool region_view3d_navigating_or_transforming(const blender::RegionView3D *b_rv3d)
 {
-  return b_rv3d && ((b_rv3d->rflag & (blender::RV3D_NAVIGATING | blender::RV3D_PAINTING)) ||
+  return b_rv3d && ((b_rv3d->runtime->tags &
+                     (blender::bke::RV3D_TAG_NAVIGATING | blender::bke::RV3D_TAG_PAINTING)) ||
                     (blender::G.moving & (blender::G_TRANSFORM_OBJ | blender::G_TRANSFORM_EDIT)));
 }
 

@@ -13,6 +13,7 @@
 #include "BLI_rect.hh"
 
 #include "BKE_layer.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -69,7 +70,8 @@ static bool ndof_has_translate_pan(const wmNDOFMotionData &ndof,
 
 static bool ndof_has_rotate(const wmNDOFMotionData &ndof, const RegionView3D *rv3d)
 {
-  return !is_zero_v3(ndof.rvec) && ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0);
+  return !is_zero_v3(ndof.rvec) &&
+         ((bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ROTATION) == 0);
 }
 
 /**
@@ -216,7 +218,7 @@ static void view3d_ndof_pan_zoom(const wmNDOFMotionData &ndof,
       sub_v3_v3(rv3d->ndof_ofs, pan_vec);
     }
 
-    if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
+    if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_BOXVIEW) {
       view3d_boxview_sync(area, region);
     }
   }
@@ -234,7 +236,7 @@ static void view3d_ndof_orbit(const wmNDOFMotionData &ndof,
 
   float view_inv[4];
 
-  BLI_assert((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0);
+  BLI_assert((bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ROTATION) == 0);
 
   ED_view3d_persp_ensure(vod->depsgraph, v3d, region);
 
@@ -275,10 +277,10 @@ static void view3d_ndof_orbit(const wmNDOFMotionData &ndof,
     }
 
     /* Update the onscreen axis-angle indicator. */
-    rv3d->ndof_rot_angle = angle;
-    rv3d->ndof_rot_axis[0] = 0;
-    rv3d->ndof_rot_axis[1] = 0;
-    rv3d->ndof_rot_axis[2] = 1;
+    rv3d->runtime->ndof_rot_angle = angle;
+    rv3d->runtime->ndof_rot_axis[0] = 0;
+    rv3d->runtime->ndof_rot_axis[1] = 0;
+    rv3d->runtime->ndof_rot_axis[2] = 1;
 
     axis_angle_to_quat_single(quat, 'Z', angle);
     mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, quat);
@@ -293,8 +295,8 @@ static void view3d_ndof_orbit(const wmNDOFMotionData &ndof,
     mul_qt_v3(view_inv, axis);
 
     /* Update the onscreen axis-angle indicator. */
-    rv3d->ndof_rot_angle = angle;
-    copy_v3_v3(rv3d->ndof_rot_axis, axis);
+    rv3d->runtime->ndof_rot_angle = angle;
+    copy_v3_v3(rv3d->runtime->ndof_rot_axis, axis);
 
     axis_angle_to_quat(quat, axis, angle);
 
@@ -333,7 +335,7 @@ void view3d_ndof_fly(const wmNDOFMotionData &ndof,
   float view_inv[4];
   invert_qt_qt_normalized(view_inv, rv3d->viewquat);
 
-  rv3d->ndof_rot_angle = 0.0f; /* Disable onscreen rotation indicator. */
+  rv3d->runtime->ndof_rot_angle = 0.0f; /* Disable onscreen rotation indicator. */
 
   if (has_translate) {
     /* ignore real 'dist' since fly has its own speed settings,
@@ -736,12 +738,12 @@ static wmOperatorStatus ndof_orbit_invoke_impl(bContext *C,
   const wmNDOFMotionData &ndof = *static_cast<const wmNDOFMotionData *>(event->customdata);
 
   /* off by default, until changed later this function */
-  rv3d->ndof_rot_angle = 0.0f;
+  rv3d->runtime->ndof_rot_angle = 0.0f;
 
   if (ndof.progress != P_FINISHING) {
     const bool has_rotation = ndof_has_rotate(ndof, rv3d);
     /* if we can't rotate, fall back to translate (locked axis views) */
-    const bool has_translate = (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) &&
+    const bool has_translate = (bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ROTATION) &&
                                ndof_has_translate(ndof, v3d, rv3d);
     const bool has_zoom = (rv3d->is_persp == false) && WM_event_ndof_translation_has_zoom(ndof);
 
@@ -820,7 +822,7 @@ static wmOperatorStatus ndof_orbit_zoom_invoke_impl(bContext *C,
   char xform_flag = 0;
 
   /* off by default, until changed later this function */
-  rv3d->ndof_rot_angle = 0.0f;
+  rv3d->runtime->ndof_rot_angle = 0.0f;
 
   if (ndof.progress == P_FINISHING) {
     /* pass */
@@ -963,7 +965,7 @@ static wmOperatorStatus ndof_pan_invoke_impl(bContext *C,
   const bool has_zoom = (rv3d->is_persp == false) && WM_event_ndof_translation_has_zoom(ndof);
 
   /* we're panning here! so erase any leftover rotation from other operators */
-  rv3d->ndof_rot_angle = 0.0f;
+  rv3d->runtime->ndof_rot_angle = 0.0f;
 
   if (!(has_translate || has_zoom)) {
     return OPERATOR_CANCELLED;

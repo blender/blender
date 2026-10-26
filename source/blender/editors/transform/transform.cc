@@ -18,6 +18,7 @@
 #include "BKE_layer.hh"
 #include "BKE_mask.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
 #include "BKE_workspace.hh"
 
 #include "GPU_state.hh"
@@ -1113,9 +1114,10 @@ static void tool_settings_update_snap_toggle(TransInfo *t)
 
 wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *event)
 {
-  bool is_navigating = t->vod ? ((static_cast<RegionView3D *>(t->region->regiondata))->rflag &
-                                 RV3D_NAVIGATING) != 0 :
-                                false;
+  bool is_navigating = t->vod ?
+                           ((static_cast<RegionView3D *>(t->region->regiondata))->runtime->tags &
+                            bke::RV3D_TAG_NAVIGATING) != 0 :
+                           false;
 
   /* Handle modal numinput events first, if already activated. */
   if (!is_navigating && ((event->val == KM_PRESS) || (event->type == EVT_MODAL_MAP)) &&

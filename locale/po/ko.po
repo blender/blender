@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
 "PO-Revision-Date: 2026-09-06 05:02+0000\n"
 "Last-Translator: Benjamin Anshin <benanshin@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -35011,36 +35011,8 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
 msgid "Creative"
 msgstr "크리에이티브"
-
-
-msgid "Clean Up"
-msgstr "정리"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Metaball"
-msgstr "메타볼"
-
-
-msgid "Names"
-msgstr "이름"
-
-
-msgid "Bone Roll"
-msgstr "뼈대 롤"
 
 
 msgid "Pivot Point"
@@ -35071,36 +35043,12 @@ msgid "Vertex Group Locks"
 msgstr "버텍스 그룹 잠금"
 
 
-msgid "Math"
-msgstr "수학"
-
-
-msgid "Utilities"
-msgstr "유틸리티"
-
-
-msgid "Read"
-msgstr "읽기"
-
-
-msgid "Sample"
-msgstr "샘플"
-
-
 msgid "Mirror"
 msgstr "미러"
 
 
-msgid "Write"
-msgstr "쓰기"
-
-
 msgid "UV Mapping"
 msgstr "UV 맵핑"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
 
 
 msgid "Local View"
@@ -35127,8 +35075,16 @@ msgid "View Regions"
 msgstr "뷰 지역"
 
 
+msgid "Math"
+msgstr "수학"
+
+
 msgid "Select More/Less"
 msgstr "선택 증가/감소"
+
+
+msgid "Utilities"
+msgstr "유틸리티"
 
 
 msgid "Select Similar"
@@ -35139,14 +35095,6 @@ msgid "Select All by Trait"
 msgstr "형질로 모두 선택"
 
 
-msgid "Gizmo"
-msgstr "기즈모"
-
-
-msgid "Instances"
-msgstr "인스턴스"
-
-
 msgid "Select Linked"
 msgstr "연결된 선택"
 
@@ -35155,24 +35103,28 @@ msgid "Select Loops"
 msgstr "루프를 선택"
 
 
-msgid "Import"
-msgstr "가져오기"
+msgid "Read"
+msgstr "읽기"
+
+
+msgid "Sample"
+msgstr "샘플"
 
 
 msgid "Assign Material"
 msgstr "머티리얼을 할당"
 
 
-msgid "Deprecated"
-msgstr "사용 중단"
+msgid "Write"
+msgstr "쓰기"
 
 
-msgid "Render Preview"
-msgstr "렌더링 미리보기"
+msgid "Primitives"
+msgstr "프리미티브"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "메타볼"
 
 
 msgid "Light"
@@ -35183,12 +35135,24 @@ msgid "Light Probe"
 msgstr "라이트 프로브"
 
 
+msgid "Gizmo"
+msgstr "기즈모"
+
+
+msgid "Instances"
+msgstr "인스턴스"
+
+
 msgid "Add Image"
 msgstr "이미지를 추가"
 
 
 msgid "Relations"
 msgstr "관계"
+
+
+msgid "Import"
+msgstr "가져오기"
 
 
 msgid "Rigid Body"
@@ -35203,8 +35167,20 @@ msgid "Track"
 msgstr "트랙"
 
 
+msgid "Deprecated"
+msgstr "사용 중단"
+
+
 msgid "Quick Effects"
 msgstr "빠른 이펙트"
+
+
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
+msgid "Clean Up"
+msgstr "정리"
 
 
 msgid "Asset"
@@ -35215,8 +35191,16 @@ msgid "Make Single User"
 msgstr "싱글 유저를 만들기"
 
 
+msgid "Render Preview"
+msgstr "렌더링 미리보기"
+
+
 msgid "Convert"
 msgstr "변환"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -35247,16 +35231,8 @@ msgid "Clear Transform"
 msgstr "변환을 지우기"
 
 
-msgid "Linked"
-msgstr "연결됨"
-
-
 msgid "In-Betweens"
 msgstr "사이에서"
-
-
-msgid "Layout"
-msgstr "레이아웃"
 
 
 msgid "Propagate"
@@ -35265,6 +35241,10 @@ msgstr "전파"
 
 msgid "Bone Collections"
 msgstr "뼈대 컬렉션"
+
+
+msgid "Names"
+msgstr "이름"
 
 
 msgid "Toggle Bone Options"
@@ -35283,16 +35263,8 @@ msgid "Mesh Select Mode"
 msgstr "메시 선택 모드"
 
 
-msgid "Adjust"
-msgstr "조정"
-
-
 msgid "Face Data"
 msgstr "페이스 데이터"
-
-
-msgid "Keying"
-msgstr "키잉"
 
 
 msgid "Select by Face Strength"
@@ -35303,12 +35275,40 @@ msgid "Set Face Strength"
 msgstr "페이스 강도를 설정"
 
 
-msgid "Tracking"
-msgstr "트래킹"
-
-
 msgid "Merge"
 msgstr "병합"
+
+
+msgid "Linked"
+msgstr "연결됨"
+
+
+msgid "Layout"
+msgstr "레이아웃"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Adjust"
+msgstr "조정"
+
+
+msgid "Bone Roll"
+msgstr "뼈대 롤"
+
+
+msgid "Keying"
+msgstr "키잉"
+
+
+msgid "Tracking"
+msgstr "트래킹"
 
 
 msgid "Keyframe Insert Pie"
@@ -53020,15 +53020,6 @@ msgid "Unassign Slot"
 msgstr "슬롯 할당 취소"
 
 
-msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-msgstr "트랜스폼 컨스트레인트에 영향을 미치는 F-커브/드라이버 업데이트(2.70 이전 파일에서 사용)"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "에니메이션화 변형 제약을 업데이트"
-
-
 msgctxt "Operator"
 msgid "Version Bone Hide Property"
 msgstr "버전 뼈대 속성 숨기기"
@@ -57105,18 +57096,6 @@ msgstr "시작 프레임을 설정"
 
 msgid "Set the current frame as the preview or scene start frame"
 msgstr "현재 프레임을 미리보기 또는 씬 시작 프레임으로 설정합니다"
-
-
-msgid "Convert to Radians"
-msgstr "라디안으로 변환"
-
-
-msgid ""
-"Convert f-curves/drivers affecting rotations to radians.\n"
-"Warning: Use this only once"
-msgstr ""
-"회전에 영향을 미치는 F-커브/드라이버를 라디안으로 변환합니다.\n"
-"경고: 한 번만 사용함"
 
 
 msgid "Moves any F-Curves for the `hide` property of selected armatures into the action of the object. This will only operate on the first layer and strip of the action"
@@ -90572,14 +90551,6 @@ msgid "Curves Edit Mode"
 msgstr "커브 편집 모드"
 
 
-msgid "glTF Variants"
-msgstr "glTF 변형"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 머티리얼 배리언트"
-
-
 msgid "Transform Orientations"
 msgstr "변환 오리엔테이션"
 
@@ -90612,14 +90583,6 @@ msgid "Multi Frame"
 msgstr "다중 프레임"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 애니메이션"
-
-
 msgid "Auto-Masking"
 msgstr "자동 마스킹"
 
@@ -90640,12 +90603,28 @@ msgid "Viewport Debug"
 msgstr "뷰포트 디버그"
 
 
+msgid "glTF Variants"
+msgstr "glTF 변형"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 머티리얼 배리언트"
+
+
 msgid "VR"
 msgstr "VR"
 
 
 msgid "VR Info"
 msgstr "VR 정보"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 애니메이션"
 
 
 msgid "Import Settings"
@@ -119079,10 +119058,6 @@ msgstr "비어 있거나 가짜 사용자 전용 {:d} 작업 제거"
 
 msgid "Nothing to bake"
 msgstr "베이킹할 것이 없음"
-
-
-msgid "Complete report available on '{:s}' text data-block"
-msgstr "'{:s}' 텍스트 데이터 블록에서 전체 보고서 사용 가능"
 
 
 msgid "No active bone to copy from"

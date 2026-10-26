@@ -45,6 +45,7 @@
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_vfont.hh"
+#include "BKE_view3d_runtime.hh"
 #include "BKE_viewer_path.hh"
 
 #include "ED_asset_shelf.hh"
@@ -128,8 +129,8 @@ bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion 
 void ED_view3d_init_mats_rv3d(const Object *ob, RegionView3D *rv3d)
 {
   /* local viewmat and persmat, to calculate projections */
-  mul_m4_m4m4(rv3d->viewmatob, rv3d->viewmat, ob->object_to_world().ptr());
-  mul_m4_m4m4(rv3d->persmatob, rv3d->persmat, ob->object_to_world().ptr());
+  mul_m4_m4m4(rv3d->runtime->viewmatob, rv3d->viewmat, ob->object_to_world().ptr());
+  mul_m4_m4m4(rv3d->runtime->persmatob, rv3d->persmat, ob->object_to_world().ptr());
 
   /* initializes object space clipping, speeds up clip tests */
   ED_view3d_clipping_local(rv3d, ob->object_to_world().ptr());
@@ -148,14 +149,14 @@ void ED_view3d_init_mats_rv3d_gl(const Object *ob, RegionView3D *rv3d)
 #ifndef NDEBUG
 void ED_view3d_clear_mats_rv3d(RegionView3D *rv3d)
 {
-  zero_m4(rv3d->viewmatob);
-  zero_m4(rv3d->persmatob);
+  zero_m4(rv3d->runtime->viewmatob);
+  zero_m4(rv3d->runtime->persmatob);
 }
 
 void ED_view3d_check_mats_rv3d(RegionView3D *rv3d)
 {
-  BLI_ASSERT_ZERO_M4(rv3d->viewmatob);
-  BLI_ASSERT_ZERO_M4(rv3d->persmatob);
+  BLI_ASSERT_ZERO_M4(rv3d->runtime->viewmatob);
+  BLI_ASSERT_ZERO_M4(rv3d->runtime->persmatob);
 }
 #endif
 
@@ -163,7 +164,7 @@ void ED_view3d_stop_render_preview(wmWindowManager *wm, ARegion *region)
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
-  if (rv3d->view_render) {
+  if (rv3d->runtime->view_render) {
 #ifdef WITH_PYTHON
     BPy_BEGIN_ALLOW_THREADS;
 #endif
@@ -260,6 +261,7 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   rv3d->persp = RV3D_PERSP;
   rv3d->view = RV3D_VIEW_USER;
   rv3d->dist = 10.0;
+  rv3d->runtime = MEM_new<bke::RegionView3DRuntime>(__func__);
   region->regiondata = rv3d;
 
   return reinterpret_cast<SpaceLink *>(v3d);
@@ -522,14 +524,15 @@ static void view3d_main_region_free(ARegion *region)
       MEM_delete(rv3d->clipbb);
     }
 
-    if (rv3d->view_render) {
+    if (rv3d->runtime->view_render) {
       DRW_engine_external_free(rv3d);
     }
 
-    if (rv3d->sms) {
+    if (rv3d->runtime->sms) {
       view3d_smooth_free(rv3d);
     }
 
+    MEM_delete(rv3d->runtime);
     MEM_delete(rv3d);
     region->regiondata = nullptr;
   }
@@ -550,9 +553,7 @@ static void *view3d_main_region_duplicate(void *poin)
       new_rv3d->clipbb = MEM_dupalloc(rv3d->clipbb);
     }
 
-    new_rv3d->view_render = nullptr;
-    new_rv3d->sms = nullptr;
-    new_rv3d->smooth_timer = nullptr;
+    new_rv3d->runtime = MEM_new<bke::RegionView3DRuntime>(__func__);
 
     return new_rv3d;
   }
@@ -565,7 +566,7 @@ static std::optional<ARegionIMECursorState> view3d_main_region_cursor_ime(
 {
   /* The position is pending during viewport navigation (orbit, pan, zoom, fly, walk). */
   const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  if (rv3d->rflag & RV3D_NAVIGATING) {
+  if (rv3d->runtime->tags & bke::RV3D_TAG_NAVIGATING) {
     return ARegionIMECursorState::PositionPending;
   }
 
@@ -855,7 +856,7 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
     case NC_SPACE:
       if (wmn->data == ND_SPACE_VIEW3D) {
         if (wmn->subtype == NS_VIEW3D_GPU) {
-          rv3d->rflag |= RV3D_GPULIGHT_UPDATE;
+          rv3d->runtime->tags |= bke::RV3D_TAG_GPULIGHT_UPDATE;
         }
         else if (wmn->subtype == NS_VIEW3D_SHADING) {
 #ifdef WITH_XR_OPENXR

@@ -20,6 +20,7 @@
 #include "workbench_private.hh"
 
 #include "BKE_camera.h"
+#include "BKE_view3d_runtime.hh"
 
 #include "GPU_debug.hh"
 
@@ -132,7 +133,7 @@ void DofPass::init(const SceneState &scene_state, const DRWContext *draw_ctx)
   float sensor_scaled = scale_camera * sensor;
 
   if (RegionView3D *rv3d = draw_ctx->rv3d) {
-    sensor_scaled *= rv3d->viewcamtexcofac[0];
+    sensor_scaled *= rv3d->runtime->viewcamtexcofac[0];
   }
 
   aperture_size_ = aperture * fabsf(focal_len_scaled / (focus_dist - focal_len_scaled));

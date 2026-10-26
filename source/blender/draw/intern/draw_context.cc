@@ -53,6 +53,7 @@
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_subdiv_modifier.hh"
+#include "BKE_view3d_runtime.hh"
 #include "BKE_volume.hh"
 
 #include "DNA_camera_types.h"
@@ -2481,12 +2482,12 @@ bool DRWContext::is_playback() const
 
 bool DRWContext::is_navigating() const
 {
-  return (rv3d) && (rv3d->rflag & (RV3D_NAVIGATING | RV3D_PAINTING));
+  return (rv3d) && (rv3d->runtime->tags & (bke::RV3D_TAG_NAVIGATING | bke::RV3D_TAG_PAINTING));
 }
 
 bool DRWContext::is_painting() const
 {
-  return (rv3d) && (rv3d->rflag & (RV3D_PAINTING));
+  return (rv3d) && (rv3d->runtime->tags & (bke::RV3D_TAG_PAINTING));
 }
 
 bool DRWContext::is_transforming() const

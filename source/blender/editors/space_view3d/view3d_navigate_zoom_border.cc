@@ -16,6 +16,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_report.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "WM_api.hh"
 
@@ -181,7 +182,7 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
   ED_view3d_smooth_view(C, v3d, region, smooth_viewtx, &sview_params);
 
-  if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
+  if (bke::region_view3d_lock_flags_get(rv3d) & RV3D_BOXVIEW) {
     view3d_boxview_sync(CTX_wm_area(C), region);
   }
 

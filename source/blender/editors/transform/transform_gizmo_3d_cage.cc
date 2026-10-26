@@ -16,6 +16,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_scene.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_gizmo_utils.hh"
@@ -117,7 +118,7 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgr
   calc_params.use_local_axis = true;
   calc_params.orientation_index = orient_index + 1;
   if ((calc_gizmo_stats(C, &calc_params, &tbounds, rv3d) == 0) ||
-      equals_v3v3(rv3d->tw_axis_min, rv3d->tw_axis_max))
+      equals_v3v3(rv3d->runtime->tw_axis_min, rv3d->runtime->tw_axis_max))
   {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
   }
@@ -135,13 +136,13 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgr
     WM_gizmo_set_flag(gz, WM_GIZMO_MOVE_CURSOR, true);
 
     float dims[3];
-    sub_v3_v3v3(dims, rv3d->tw_axis_max, rv3d->tw_axis_min);
+    sub_v3_v3v3(dims, rv3d->runtime->tw_axis_max, rv3d->runtime->tw_axis_min);
     RNA_float_set_array(gz->ptr, "dimensions", dims);
     mul_v3_fl(dims, 0.5f);
 
-    copy_m4_m3(gz->matrix_offset, rv3d->tw_axis_matrix);
-    mid_v3_v3v3(gz->matrix_offset[3], rv3d->tw_axis_max, rv3d->tw_axis_min);
-    mul_m3_v3(rv3d->tw_axis_matrix, gz->matrix_offset[3]);
+    copy_m4_m3(gz->matrix_offset, rv3d->runtime->tw_axis_matrix);
+    mid_v3_v3v3(gz->matrix_offset[3], rv3d->runtime->tw_axis_max, rv3d->runtime->tw_axis_min);
+    mul_m3_v3(rv3d->runtime->tw_axis_matrix, gz->matrix_offset[3]);
 
     float matrix_offset_global[4][4];
     mul_m4_m4m4(matrix_offset_global, gz->matrix_space, gz->matrix_offset);

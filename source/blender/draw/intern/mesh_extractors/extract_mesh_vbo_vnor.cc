@@ -10,6 +10,7 @@
 
 #include "GPU_attribute_convert.hh"
 
+#include "draw_subdivision.hh"
 #include "extract_mesh.hh"
 
 namespace blender::draw {
@@ -66,10 +67,16 @@ static void extract_vert_normals_bm(const MeshRenderData &mr,
       exec_mode::grain_size(2048));
 }
 
+static const GPUVertFormat &get_vert_normals_format()
+{
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "vnor", gpu::VertAttrType::SNORM_10_10_10_2);
+  return format;
+}
+
 gpu::VertBufPtr extract_vert_normals(const MeshRenderData &mr, MeshBufferCache &cache)
 {
-  static GPUVertFormat format = GPU_vertformat_from_attribute("vnor",
-                                                              gpu::VertAttrType::SNORM_10_10_10_2);
+  const GPUVertFormat &format = get_vert_normals_format();
 
   gpu::VertBufPtr vert_vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
   GPU_vertbuf_data_alloc(*vert_vbo, mr.verts_num);
@@ -86,6 +93,30 @@ gpu::VertBufPtr extract_vert_normals(const MeshRenderData &mr, MeshBufferCache &
   gather_vert_to_corner_gpu(mr, cache, *vert_vbo, *vbo);
   loose_data_upload(mr, loose_data.as_span(), *vbo);
   return vbo;
+}
+
+gpu::VertBufPtr extract_vert_normals_subdiv(const MeshRenderData &mr,
+                                            const DRWSubdivCache &subdiv_cache)
+{
+  const GPUVertFormat &format = get_vert_normals_format();
+
+  const int vbo_size = subdiv_full_vbo_size(mr, subdiv_cache);
+
+  gpu::VertBufPtr vnor = gpu::VertBufPtr(GPU_vertbuf_create_on_device(format, vbo_size));
+  if (subdiv_cache.num_subdiv_loops == 0) {
+    update_loose_normals(mr, subdiv_cache, *vnor);
+    return vnor;
+  }
+
+  const Mesh *coarse_mesh = subdiv_cache.mesh;
+  const uint corner_count = coarse_mesh->corner_normals().size();
+  gpu::VertBufPtr src = gpu::VertBuf::from_span(coarse_mesh->corner_normals());
+  gpu::VertBufPtr src_compressed = gpu::VertBuf::device_only<int1010102_norm>(corner_count);
+  mesh_compress_normals(*src, *src_compressed);
+  draw_subdiv_interp_corner_normals(subdiv_cache, *src_compressed, *vnor);
+
+  update_loose_normals(mr, subdiv_cache, *vnor);
+  return vnor;
 }
 
 }  // namespace blender::draw

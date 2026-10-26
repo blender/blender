@@ -338,10 +338,6 @@ struct EditEdge {
       float4 lN = gpu_attr_load_short4_snorm(vnor, gpu_attr_1, v_i);
       vert_in.lN = lN.xyz;
     }
-    else {
-      uint v = gpu_attr_load_index(v_i, gpu_attr_1);
-      vert_in.lN = uintBitsToFloat(uint3(vnor[v + 0], vnor[v + 1], vnor[v + 2]));
-    }
     {
       uint v = gpu_attr_load_index(v_i, gpu_attr_2);
       vert_in.data = gpu_attr_decode_uchar4_to_uint4(data[v]);

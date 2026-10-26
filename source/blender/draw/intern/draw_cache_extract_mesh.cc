@@ -18,6 +18,7 @@
 #include "BLI_task.hh"
 
 #include "GPU_capabilities.hh"
+#include "GPU_context.hh"
 #include "GPU_debug.hh"
 
 #include "draw_cache_extract.hh"
@@ -351,6 +352,7 @@ void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
 
 void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
                                                MeshBufferCache &mbc,
+                                               const Scene &scene,
                                                const Span<IBOType> ibo_requests,
                                                const Span<VBOType> vbo_requests,
                                                DRWSubdivCache &subdiv_cache,
@@ -360,6 +362,9 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
     return;
   }
   MeshBufferList &buffers = mbc.buff;
+
+  /* Allow printf. */
+  GPU_render_begin();
 
   mesh_render_data_update_corner_normals(mr);
   mesh_render_data_update_loose_geom(mr, mbc);
@@ -380,8 +385,12 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   }
 
   if (ibos_to_create.is_empty() && vbos_to_create.is_empty()) {
+    GPU_render_end();
     return;
   }
+
+  const bool do_hq_normals = (scene.r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
+                             GPU_use_hq_normals_workaround();
 
   static gpu::DebugScope subdiv_extract_scope = {"SubdivExtraction"};
   auto capture = subdiv_extract_scope.scoped_capture();
@@ -403,7 +412,11 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
     /* The corner normals calculation uses positions and normals stored in the `pos` VBO. */
     buffers.vbos.add_new(
         VBOType::CornerNormal,
-        extract_normals_subdiv(mr, subdiv_cache, *buffers.vbos.lookup(VBOType::Position)));
+        extract_normals_subdiv(
+            mr, subdiv_cache, *buffers.vbos.lookup(VBOType::Position), do_hq_normals));
+  }
+  if (vbos_to_create.contains(VBOType::VertexNormal)) {
+    buffers.vbos.add_new(VBOType::VertexNormal, extract_vert_normals_subdiv(mr, subdiv_cache));
   }
   if (vbos_to_create.contains(VBOType::EdgeFactor)) {
     buffers.vbos.add_new(
@@ -463,7 +476,8 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
         subdiv_cache,
         face_dot_position_vbo,
         vbos_to_create.contains(VBOType::FaceDotNormal) ? &face_dot_normal_vbo : nullptr,
-        face_dot_ibo);
+        face_dot_ibo,
+        do_hq_normals);
     if (vbos_to_create.contains(VBOType::FaceDotPosition)) {
       buffers.vbos.add_new(VBOType::FaceDotPosition, std::move(face_dot_position_vbo));
     }
@@ -531,6 +545,7 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
                            extract_attribute_subdiv(mr, mbc, subdiv_cache, cache.attr_used[i]));
     }
   }
+  GPU_render_end();
 }
 
 /** \} */

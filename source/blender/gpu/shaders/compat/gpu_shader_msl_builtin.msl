@@ -21,6 +21,28 @@ using namespace metal;
 #define unpackUnorm2x16 unpack_unorm2x16_to_float
 #define unpackSnorm2x16 unpack_snorm2x16_to_float
 
+/* TODO(fclem): This is never true because we do not emit this macro in our custom preprocessor. */
+#if __METAL_VERSION__ >= 400
+#  define packSnorm3x10_1x2 pack_float_to_snorm10a2
+#  define unpackSnorm3x10_1x2 unpack_snorm10a2_to_float
+#else
+uint packSnorm3x10_1x2(float4 v)
+{
+  int4 vi = int4(round(clamp(v, -1.0f, 1.0f) * float4(511.0f, 511.0f, 511.0f, 1.0f)));
+  return uint((vi.x & 0x3FF) << 0 | (vi.y & 0x3FF) << 10 | (vi.z & 0x3FF) << 20 |
+              (vi.w & 0x3) << 30);
+}
+float4 unpackSnorm3x10_1x2(uint data)
+{
+  uint4 v = uint4(
+      data & 0x3FFu, (data >> 10u) & 0x3FFu, (data >> 20u) & 0x3FFu, (data >> 30u) & 0x3u);
+  /* Sign-extension for 10-bit and 2-bit values. */
+  int4 iv = int4(
+      int(v.x << 22) >> 22, int(v.y << 22) >> 22, int(v.z << 22) >> 22, int(v.w << 30) >> 30);
+  return float4(iv) / float4(0x1FF, 0x1FF, 0x1FF, 0x1);
+}
+#endif
+
 #define barrier() \
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device | mem_flags::mem_texture)
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34674,36 +34674,8 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
 msgid "Creative"
 msgstr "Creative"
-
-
-msgid "Clean Up"
-msgstr "Clean Up"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
 
 
 msgid "Pivot Point"
@@ -34734,36 +34706,12 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Utilities"
-msgstr "Utilities"
-
-
-msgid "Read"
-msgstr "Read"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
 msgid "Mirror"
 msgstr "Mirror"
 
 
-msgid "Write"
-msgstr "Write"
-
-
 msgid "UV Mapping"
 msgstr "UV Mapping"
-
-
-msgid "Primitives"
-msgstr "Primitives"
 
 
 msgid "Local View"
@@ -34790,8 +34738,16 @@ msgid "View Regions"
 msgstr "View Regions"
 
 
+msgid "Math"
+msgstr "Maths"
+
+
 msgid "Select More/Less"
 msgstr "Select More/Less"
+
+
+msgid "Utilities"
+msgstr "Utilities"
 
 
 msgid "Select Similar"
@@ -34802,14 +34758,6 @@ msgid "Select All by Trait"
 msgstr "Select All by Trait"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
 msgid "Select Linked"
 msgstr "Select Linked"
 
@@ -34818,24 +34766,28 @@ msgid "Select Loops"
 msgstr "Select Loops"
 
 
-msgid "Import"
-msgstr "Import"
+msgid "Read"
+msgstr "Read"
+
+
+msgid "Sample"
+msgstr "Sample"
 
 
 msgid "Assign Material"
 msgstr "Assign Material"
 
 
-msgid "Deprecated"
-msgstr "Deprecated"
+msgid "Write"
+msgstr "Write"
 
 
-msgid "Render Preview"
-msgstr "Render Preview"
+msgid "Primitives"
+msgstr "Primitives"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Light"
@@ -34846,12 +34798,24 @@ msgid "Light Probe"
 msgstr "Light Probe"
 
 
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
 msgid "Add Image"
 msgstr "Add Image"
 
 
 msgid "Relations"
 msgstr "Relations"
+
+
+msgid "Import"
+msgstr "Import"
 
 
 msgid "Rigid Body"
@@ -34866,8 +34830,20 @@ msgid "Track"
 msgstr "Track"
 
 
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
 msgid "Quick Effects"
 msgstr "Quick Effects"
+
+
+msgid "Show/Hide"
+msgstr "Show/Hide"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
 
 
 msgid "Asset"
@@ -34878,8 +34854,16 @@ msgid "Make Single User"
 msgstr "Make Single User"
 
 
+msgid "Render Preview"
+msgstr "Render Preview"
+
+
 msgid "Convert"
 msgstr "Convert"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -34910,16 +34894,8 @@ msgid "Clear Transform"
 msgstr "Clear Transform"
 
 
-msgid "Linked"
-msgstr "Linked"
-
-
 msgid "In-Betweens"
 msgstr "In-Betweens"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Propagate"
@@ -34928,6 +34904,10 @@ msgstr "Propagate"
 
 msgid "Bone Collections"
 msgstr "Bone Collections"
+
+
+msgid "Names"
+msgstr "Names"
 
 
 msgid "Toggle Bone Options"
@@ -34946,16 +34926,8 @@ msgid "Mesh Select Mode"
 msgstr "Mesh Select Mode"
 
 
-msgid "Adjust"
-msgstr "Adjust"
-
-
 msgid "Face Data"
 msgstr "Face Data"
-
-
-msgid "Keying"
-msgstr "Keying"
 
 
 msgid "Select by Face Strength"
@@ -34966,12 +34938,40 @@ msgid "Set Face Strength"
 msgstr "Set Face Strength"
 
 
-msgid "Tracking"
-msgstr "Tracking"
-
-
 msgid "Merge"
 msgstr "Merge"
+
+
+msgid "Linked"
+msgstr "Linked"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Adjust"
+msgstr "Adjust"
+
+
+msgid "Bone Roll"
+msgstr "Bone Roll"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracking"
 
 
 msgid "Keyframe Insert Pie"
@@ -52790,15 +52790,6 @@ msgid "Unassign Slot"
 msgstr "Unassign Slot"
 
 
-msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-msgstr "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "Update Animated Transform Constraints"
-
-
 msgctxt "Operator"
 msgid "Version Bone Hide Property"
 msgstr "Version Bone Hide Property"
@@ -56961,18 +56952,6 @@ msgstr "Set Start Frame"
 
 msgid "Set the current frame as the preview or scene start frame"
 msgstr "Set the current frame as the preview or scene start frame"
-
-
-msgid "Convert to Radians"
-msgstr "Convert to Radians"
-
-
-msgid ""
-"Convert f-curves/drivers affecting rotations to radians.\n"
-"Warning: Use this only once"
-msgstr ""
-"Convert f-curves/drivers affecting rotations to radians.\n"
-"Warning: Use this only once"
 
 
 msgid "Moves any F-Curves for the `hide` property of selected armatures into the action of the object. This will only operate on the first layer and strip of the action"
@@ -90912,14 +90891,6 @@ msgid "Curves Edit Mode"
 msgstr "Curves Edit Mode"
 
 
-msgid "glTF Variants"
-msgstr "glTF Variants"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Material Variants"
-
-
 msgid "Transform Orientations"
 msgstr "Transform Orientations"
 
@@ -90952,14 +90923,6 @@ msgid "Multi Frame"
 msgstr "Multi Frame"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF Animations"
-
-
 msgid "Auto-Masking"
 msgstr "Auto-Masking"
 
@@ -90980,12 +90943,28 @@ msgid "Viewport Debug"
 msgstr "Viewport Debug"
 
 
+msgid "glTF Variants"
+msgstr "glTF Variants"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Material Variants"
+
+
 msgid "VR"
 msgstr "VR"
 
 
 msgid "VR Info"
 msgstr "VR Info"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF Animations"
 
 
 msgid "Import Settings"
@@ -120020,10 +119999,6 @@ msgstr "Removed {:d} of {:d} bone collections"
 
 msgid "Nothing to bake"
 msgstr "Nothing to bake"
-
-
-msgid "Complete report available on '{:s}' text data-block"
-msgstr "Complete report available on '{:s}' text data-block"
 
 
 msgid "No active bone to copy from"

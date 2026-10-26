@@ -21,6 +21,7 @@
 #include "BKE_material.hh"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -1488,7 +1489,7 @@ static wmOperatorStatus grease_pencil_primitive_modal(bContext *C,
 
   const float3 pos = ptd.control_points.first();
   if (ED_view3d_navigation_do(C, ptd.vod, event, pos)) {
-    if (ptd.vc.rv3d->rflag & RV3D_NAVIGATING) {
+    if (ptd.vc.rv3d->runtime->tags & bke::RV3D_TAG_NAVIGATING) {
       ptd.projection = ED_view3d_ob_project_mat_get(ptd.vc.rv3d, ptd.vc.obact);
 
       grease_pencil_primitive_update_curves(ptd);

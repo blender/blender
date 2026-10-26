@@ -11,6 +11,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
@@ -287,7 +288,7 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
       (navgroup->state.rv3d.is_persp == rv3d->is_persp) &&
       (navgroup->state.rv3d.is_camera == (rv3d->persp == RV3D_CAMOB)) &&
       (navgroup->state.rv3d.cameralock == (v3d->flag2 & V3D_LOCK_CAMERA)) &&
-      (navgroup->state.rv3d.viewlock == RV3D_LOCK_FLAGS(rv3d)))
+      (navgroup->state.rv3d.viewlock == bke::region_view3d_lock_flags_get(rv3d)))
   {
     return;
   }
@@ -295,7 +296,7 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
   navgroup->state.rect_visible = *rect_visible;
   navgroup->state.rv3d.is_persp = rv3d->is_persp;
   navgroup->state.rv3d.is_camera = (rv3d->persp == RV3D_CAMOB);
-  navgroup->state.rv3d.viewlock = RV3D_LOCK_FLAGS(rv3d);
+  navgroup->state.rv3d.viewlock = bke::region_view3d_lock_flags_get(rv3d);
   navgroup->state.rv3d.cameralock = v3d->flag2 & V3D_LOCK_CAMERA;
 
   const bool show_navigate = (U.uiflag & USER_SHOW_GIZMO_NAVIGATE) != 0;
@@ -349,21 +350,21 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
 
   if (show_navigate) {
     int icon_mini_slot = 0;
-    if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ZOOM_AND_DOLLY) == 0) {
+    if ((bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ZOOM_AND_DOLLY) == 0) {
       gz = navgroup->gz_array[GZ_INDEX_ZOOM];
       gz->matrix_basis[3][0] = roundf(co[0]);
       gz->matrix_basis[3][1] = roundf(co[1] - (icon_offset_mini * icon_mini_slot++));
       WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
     }
 
-    if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_LOCATION) == 0) {
+    if ((bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_LOCATION) == 0) {
       gz = navgroup->gz_array[GZ_INDEX_MOVE];
       gz->matrix_basis[3][0] = roundf(co[0]);
       gz->matrix_basis[3][1] = roundf(co[1] - (icon_offset_mini * icon_mini_slot++));
       WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
     }
 
-    if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {
+    if ((bke::region_view3d_lock_flags_get(rv3d) & RV3D_LOCK_ROTATION) == 0) {
       gz = navgroup
                ->gz_array[(rv3d->persp == RV3D_CAMOB) ? GZ_INDEX_CAMERA_ON : GZ_INDEX_CAMERA_OFF];
       gz->matrix_basis[3][0] = roundf(co[0]);

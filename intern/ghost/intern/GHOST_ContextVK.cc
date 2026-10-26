@@ -219,7 +219,6 @@ class GHOST_DeviceVK {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES,
   };
   VkPhysicalDeviceFeatures2 features = {};
-  VkPhysicalDeviceVulkan11Features features_11 = {};
   VkPhysicalDeviceTimelineSemaphoreFeatures features_timeline_semaphore = {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES};
   VkPhysicalDeviceBufferDeviceAddressFeatures features_buffer_device_address = {
@@ -246,9 +245,7 @@ class GHOST_DeviceVK {
     volk::vkGetPhysicalDeviceProperties2(vk_physical_device, &properties);
 
     features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    features_11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
-    features.pNext = &features_11;
-    features_11.pNext = &features_timeline_semaphore;
+    features.pNext = &features_timeline_semaphore;
     features_timeline_semaphore.pNext = &features_buffer_device_address;
     features_buffer_device_address.pNext = &features_robustness2;
     features_robustness2.pNext = &features_acceleration_structure;
@@ -667,6 +664,14 @@ struct GHOST_InstanceVK {
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
     buffer_device_address_features.bufferDeviceAddress = VK_TRUE;
     feature_struct_ptr.push_back(&buffer_device_address_features);
+
+    /* Enable separate depth stencil layouts. */
+    VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures separate_depth_stencil_layouts_features =
+        {};
+    separate_depth_stencil_layouts_features.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES;
+    separate_depth_stencil_layouts_features.separateDepthStencilLayouts = VK_TRUE;
+    feature_struct_ptr.push_back(&separate_depth_stencil_layouts_features);
 
     /* Enable provoking vertex if available. */
     VkPhysicalDeviceProvokingVertexFeaturesEXT provoking_vertex_features = {};

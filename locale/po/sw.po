@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'0b9ad9bc5836')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 07:32+0000\n"
+"POT-Creation-Date: 2026-10-26 10:44+0000\n"
 "PO-Revision-Date: 2026-09-15 16:12+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28210,24 +28210,20 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
-msgid "Clean Up"
-msgstr "Safisha"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
 msgid "Pivot Point"
 msgstr "Egemeo"
 
 
 msgid "Snap"
 msgstr "Picha"
+
+
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
 
 
 msgid "Math"
@@ -28238,16 +28234,16 @@ msgid "Utilities"
 msgstr "Huduma"
 
 
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
+
+
 msgid "Read"
 msgstr "Soma"
 
 
 msgid "Sample"
 msgstr "Mfano"
-
-
-msgid "Mirror"
-msgstr "Kioo"
 
 
 msgid "Write"
@@ -28258,24 +28254,8 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
-msgid "Instances"
-msgstr "Matukio"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
-
-
-msgid "Import"
-msgstr "Ingiza"
-
-
-msgid "Deprecated"
-msgstr "Imeacha kutumika"
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
 msgid "Light"
@@ -28286,12 +28266,40 @@ msgid "Light Probe"
 msgstr "Uchunguzi wa Mwanga"
 
 
+msgid "Instances"
+msgstr "Matukio"
+
+
+msgid "Import"
+msgstr "Ingiza"
+
+
 msgid "Apply"
 msgstr "Tumia"
 
 
+msgid "Deprecated"
+msgstr "Imeacha kutumika"
+
+
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
+msgid "Clean Up"
+msgstr "Safisha"
+
+
 msgid "Asset"
 msgstr "Mali"
+
+
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
+
+
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Linked"
@@ -28300,10 +28308,6 @@ msgstr "Imeunganishwa"
 
 msgid "Layout"
 msgstr "Mpangilio"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Adjust"
@@ -28316,10 +28320,6 @@ msgstr "Kuweka"
 
 msgid "Tracking"
 msgstr "Kufuatilia"
-
-
-msgid "Merge"
-msgstr "Unganisha"
 
 
 msgid "Keyframe Insert Pie"
@@ -42219,15 +42219,6 @@ msgid "Export Keying Set..."
 msgstr "Hamisha Ufunguo wa Seti..."
 
 
-msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-msgstr "Sasisha f-curves/viendeshi vinavyoathiri vizuizi vya Kubadilisha (itumie na faili kutoka 2.70 na mapema)"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "Sasisha Vizuizi vya Mabadiliko ya Uhuishaji"
-
-
 msgid "Remove all bone collections that have neither bones nor children. This is done recursively, so bone collections that only have unused children are also removed"
 msgstr "Ondoa mikusanyo yote ya mifupa ambayo haina mifupa wala watoto."
 
@@ -45187,18 +45178,6 @@ msgstr "Weka Fremu ya Kuanza"
 
 msgid "Set the current frame as the preview or scene start frame"
 msgstr "Weka fremu ya sasa kama hakikisho au fremu ya kuanza kwa tukio"
-
-
-msgid "Convert to Radians"
-msgstr "Geuza kuwa Radiani"
-
-
-msgid ""
-"Convert f-curves/drivers affecting rotations to radians.\n"
-"Warning: Use this only once"
-msgstr ""
-"Badilisha f-curves/viendeshi vinavyoathiri mizunguko kuwa radiani.\n"
-"Onyo: Tumia hii mara moja pekee"
 
 
 msgctxt "Operator"

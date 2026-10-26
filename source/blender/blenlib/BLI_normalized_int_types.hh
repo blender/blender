@@ -107,8 +107,8 @@ struct NormalizedIntVec<T, 4, SizeX, SizeY, SizeZ, SizeW> {
 
 template<typename T, int CompLen, int... CompBitCounts>
   requires(std::is_same_v<T, int32_t> || std::is_same_v<T, uint32_t>)
-struct NormalizedIntVecBase : detail::NormalizedIntVec<T, CompLen, CompBitCounts...> {
-  using IntPacked = detail::NormalizedIntVec<T, CompLen, CompBitCounts...>;
+struct NormalizedIntVecBase : blender::detail::NormalizedIntVec<T, CompLen, CompBitCounts...> {
+  using IntPacked = blender::detail::NormalizedIntVec<T, CompLen, CompBitCounts...>;
   using typename IntPacked::IntVecT;
   using typename IntPacked::VecT;
 

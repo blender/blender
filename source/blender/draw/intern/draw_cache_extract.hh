@@ -358,6 +358,7 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
 
 void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
                                                MeshBufferCache &mbc,
+                                               const Scene &scene,
                                                Span<IBOType> ibo_requests,
                                                Span<VBOType> vbo_requests,
                                                DRWSubdivCache &subdiv_cache,
