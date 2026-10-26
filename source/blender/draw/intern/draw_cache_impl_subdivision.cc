@@ -357,16 +357,10 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData &
   }
 }
 
-static void draw_subdiv_cache_extra_coarse_face_data_mapped(const Mesh *mesh,
-                                                            BMesh *bm,
-                                                            MeshRenderData &mr,
-                                                            MutableSpan<uint32_t> flags_data)
+static void draw_subdiv_cache_extra_coarse_face_data_mapped_bmesh(const MeshRenderData &mr,
+                                                                  const Mesh *mesh,
+                                                                  MutableSpan<uint32_t> flags_data)
 {
-  if (bm == nullptr) {
-    draw_subdiv_cache_extra_coarse_face_data_mesh(mr, mesh, flags_data);
-    return;
-  }
-
   const OffsetIndices faces = mesh->faces();
   for (const int i : faces.index_range()) {
     BMFace *f = bm_original_face_get(mr, i);
@@ -404,8 +398,8 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache &cach
   if (mr.extract_type == MeshExtractType::BMesh) {
     draw_subdiv_cache_extra_coarse_face_data_bmesh(cache.bm, mr.efa_act, flags_data);
   }
-  else if (mr.orig_index_face != nullptr) {
-    draw_subdiv_cache_extra_coarse_face_data_mapped(mesh, cache.bm, mr, flags_data);
+  else if (cache.bm && mr.orig_index_face != nullptr) {
+    draw_subdiv_cache_extra_coarse_face_data_mapped_bmesh(mr, mesh, flags_data);
   }
   else {
     draw_subdiv_cache_extra_coarse_face_data_mesh(mr, mesh, flags_data);

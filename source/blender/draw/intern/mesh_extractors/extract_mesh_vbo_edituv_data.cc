@@ -53,7 +53,8 @@ static void extract_edituv_data_bmesh(const MeshRenderData &mr, MutableSpan<Edit
   });
 }
 
-static void extract_edituv_data_mesh(const MeshRenderData &mr, MutableSpan<EditLoopData> vbo_data)
+static void extract_edituv_data_mapped_bmesh(const MeshRenderData &mr,
+                                             MutableSpan<EditLoopData> vbo_data)
 {
   const BMesh &bm = *mr.bm;
   const BMUVOffsets offsets = BM_uv_map_offsets_get(&bm);
@@ -107,7 +108,7 @@ gpu::VertBufPtr extract_edituv_data(const MeshRenderData &mr)
     extract_edituv_data_bmesh(mr, vbo_data);
   }
   else {
-    extract_edituv_data_mesh(mr, vbo_data);
+    extract_edituv_data_mapped_bmesh(mr, vbo_data);
   }
   return vbo;
 }
@@ -181,9 +182,9 @@ static void extract_edituv_subdiv_data_bmesh(const MeshRenderData &mr,
   });
 }
 
-static void extract_edituv_subdiv_data_mesh(const MeshRenderData &mr,
-                                            const DRWSubdivCache &subdiv_cache,
-                                            MutableSpan<EditLoopData> vbo_data)
+static void extract_edituv_subdiv_data_mapped_bmesh(const MeshRenderData &mr,
+                                                    const DRWSubdivCache &subdiv_cache,
+                                                    MutableSpan<EditLoopData> vbo_data)
 {
   const int corners_num = subdiv_cache.num_subdiv_loops;
   const Span<int> subdiv_loop_face_index(subdiv_cache.subdiv_loop_face_index, corners_num);
@@ -218,7 +219,7 @@ gpu::VertBufPtr extract_edituv_data_subdiv(const MeshRenderData &mr,
     extract_edituv_subdiv_data_bmesh(mr, subdiv_cache, vbo_data);
   }
   else {
-    extract_edituv_subdiv_data_mesh(mr, subdiv_cache, vbo_data);
+    extract_edituv_subdiv_data_mapped_bmesh(mr, subdiv_cache, vbo_data);
   }
   return vbo;
 }
