@@ -655,11 +655,12 @@ SummaryChannel::SummaryChannel(const ChannelTag *tag)
   sorting_priority_ = tag->sort_priority();
 }
 
-void SummaryChannel::change_selection(const SelectionMode mode, const Bounds<float> range)
+void SummaryChannel::change_datapoint_selection(const SelectionMode mode,
+                                                const Bounds<float> range)
 {
   /* Any modifications to the range would happen here. E.g. for time remapping. */
   for (AnimationChannel *child : children_) {
-    child->change_selection(mode, range);
+    child->change_datapoint_selection(mode, range);
   }
 }
 
@@ -1094,7 +1095,7 @@ void FCurveChannel::gather_channeldata()
   }
 }
 
-void FCurveChannel::change_selection(const SelectionMode mode, const Bounds<float> range)
+void FCurveChannel::change_datapoint_selection(const SelectionMode mode, const Bounds<float> range)
 {
   FCurve *fcurve = this->get_source<FCurve>();
 
@@ -1197,7 +1198,8 @@ void GreasePencilChannel::gather_channeldata()
   }
 }
 
-void GreasePencilChannel::change_selection(const SelectionMode mode, const Bounds<float> range)
+void GreasePencilChannel::change_datapoint_selection(const SelectionMode mode,
+                                                     const Bounds<float> range)
 {
   GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
   bke::greasepencil::Layer &layer = gp_layer->wrap();

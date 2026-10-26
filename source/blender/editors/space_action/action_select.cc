@@ -417,23 +417,23 @@ static void change_selection_on_all(ed::animfilter::ChannelArena &channels, cons
         }
       }
       for (ed::animfilter::DataChannel *channel : channels.data_channels) {
-        channel->change_selection(mode);
+        channel->change_datapoint_selection(mode);
       }
       break;
     }
     case SEL_SELECT:
       for (ed::animfilter::DataChannel *channel : channels.data_channels) {
-        channel->change_selection(ed::animfilter::SelectionMode::ADD);
+        channel->change_datapoint_selection(ed::animfilter::SelectionMode::ADD);
       }
       break;
     case SEL_DESELECT:
       for (ed::animfilter::DataChannel *channel : channels.data_channels) {
-        channel->change_selection(ed::animfilter::SelectionMode::SUBTRACT);
+        channel->change_datapoint_selection(ed::animfilter::SelectionMode::SUBTRACT);
       }
       break;
     case SEL_INVERT:
       for (ed::animfilter::DataChannel *channel : channels.data_channels) {
-        channel->change_selection(ed::animfilter::SelectionMode::INVERT);
+        channel->change_datapoint_selection(ed::animfilter::SelectionMode::INVERT);
       }
       break;
     default:
@@ -754,7 +754,7 @@ static wmOperatorStatus actkeys_box_select_exec(bContext *C, wmOperator *op)
       foreach_expanded(*root, [&](AnimationChannel &channel, const int row_index) {
         const float row_top = first_channel - row_index * channel_step;
         if (row_top > rectf.ymin && row_top - channel_step < rectf.ymax) {
-          channel.change_selection(mode, {rectf.xmin, rectf.xmax});
+          channel.change_datapoint_selection(mode, {rectf.xmin, rectf.xmax});
         }
       });
     }
@@ -2268,15 +2268,15 @@ static wmOperatorStatus handle_channel_click(ed::animfilter::ChannelArena &chann
 
   switch (range_mode) {
     case ClickSelectRange::SINGLE:
-      channel_under_cursor->change_selection(selection_mode,
+      channel_under_cursor->change_datapoint_selection(selection_mode,
                                              {closest_datapoint->frame, closest_datapoint->frame});
       break;
     case ClickSelectRange::ROW:
-      channel_under_cursor->change_selection(selection_mode);
+      channel_under_cursor->change_datapoint_selection(selection_mode);
       break;
     case ClickSelectRange::COLUMN:
       for (DataChannel *channel : channels.data_channels) {
-        channel->change_selection(selection_mode,
+        channel->change_datapoint_selection(selection_mode,
                                   {closest_datapoint->frame, closest_datapoint->frame});
       }
       break;

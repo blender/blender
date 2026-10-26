@@ -512,8 +512,8 @@ class AnimationChannel {
    * Change the selection of datapoints in the given range.
    * Range is inclusive/inclusive.
    */
-  virtual void change_selection(SelectionMode mode,
-                                Bounds<float> range = {-INFINITY, INFINITY}) = 0;
+  virtual void change_datapoint_selection(SelectionMode mode,
+                                          Bounds<float> range = {-INFINITY, INFINITY}) = 0;
 
   /**
    * Return the closest datapoint or a nullptr if no datapoint is in the given
@@ -586,7 +586,8 @@ class SummaryChannel final : public AnimationChannel {
    */
   void sort_children();
 
-  void change_selection(SelectionMode mode, Bounds<float> range = {-INFINITY, INFINITY}) override;
+  void change_datapoint_selection(SelectionMode mode,
+                                  Bounds<float> range = {-INFINITY, INFINITY}) override;
 
   /** Let the channel know where to find its UI state. */
   void ui_state_map_set(ChannelUIStateMap *ui_state_map);
@@ -660,7 +661,8 @@ class FCurveChannel : public DataChannel {
 
   /** Construct a label for the F-Curve, depending on its tags. */
   StringRefNull label() const override;
-  void change_selection(SelectionMode mode, Bounds<float> range = {-INFINITY, INFINITY}) override;
+  void change_datapoint_selection(SelectionMode mode,
+                                  Bounds<float> range = {-INFINITY, INFINITY}) override;
 
  protected:
   void gather_channeldata() override;
@@ -673,7 +675,8 @@ class GreasePencilChannel : public DataChannel {
                       ParsedSourcePath source_rna_path,
                       int sorting_priority);
 
-  void change_selection(SelectionMode mode, Bounds<float> range = {-INFINITY, INFINITY}) override;
+  void change_datapoint_selection(SelectionMode mode,
+                                  Bounds<float> range = {-INFINITY, INFINITY}) override;
 
  protected:
   void gather_channeldata() override;
