@@ -153,7 +153,7 @@ std::string ParsedFragInput::serialize() const
 {
   std::stringstream ss;
   ss << "SUBPASS_IN(" << slot << ", " << var_type << ", " << image_type << ", " << var_name << ", "
-     << raster_order_group << ")";
+     << (raster_order_group.empty() ? "-1" : raster_order_group) << ")";
   return ss.str();
 }
 
