@@ -133,11 +133,11 @@ inline void lines_adjacency_triangle(uint3 vert_tri,
   }
 }
 
-static void calc_adjacency_bm(const MeshRenderData &mr,
-                              MutableSpan<int> vert_to_corner,
-                              Map<OrderedEdge, int> &edge_hash,
-                              GPUIndexBufBuilder &elb,
-                              bool &is_manifold)
+static void calc_adjacency_bmesh(const MeshRenderData &mr,
+                                 MutableSpan<int> vert_to_corner,
+                                 Map<OrderedEdge, int> &edge_hash,
+                                 GPUIndexBufBuilder &elb,
+                                 bool &is_manifold)
 {
   const Span<std::array<BMLoop *, 3>> looptris = mr.edit_bmesh->looptris;
   for (const int i : looptris.index_range()) {
@@ -202,7 +202,7 @@ gpu::IndexBufPtr extract_lines_adjacency(const MeshRenderData &mr, bool &r_is_ma
     calc_adjacency_mesh(mr, vert_to_corner, edge_hash, builder, is_manifold);
   }
   else {
-    calc_adjacency_bm(mr, vert_to_corner, edge_hash, builder, is_manifold);
+    calc_adjacency_bmesh(mr, vert_to_corner, edge_hash, builder, is_manifold);
   }
 
   create_lines_for_remaining_edges(vert_to_corner, edge_hash, builder, is_manifold);

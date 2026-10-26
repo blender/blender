@@ -72,8 +72,8 @@ static void edituv_get_edituv_stretch_angle(float auv[2][2],
 #endif
 }
 
-static void extract_uv_stretch_angle_bm(const MeshRenderData &mr,
-                                        MutableSpan<UVStretchAngle> vbo_data)
+static void extract_uv_stretch_angle_bmesh(const MeshRenderData &mr,
+                                           MutableSpan<UVStretchAngle> vbo_data)
 {
   const BMesh &bm = *mr.bm;
   const StringRef active_name = mr.mesh->active_uv_map_name();
@@ -201,7 +201,7 @@ gpu::VertBufPtr extract_edituv_stretch_angle(const MeshRenderData &mr)
   MutableSpan vbo_data = vbo->data<UVStretchAngle>();
 
   if (mr.extract_type == MeshExtractType::BMesh) {
-    extract_uv_stretch_angle_bm(mr, vbo_data);
+    extract_uv_stretch_angle_bmesh(mr, vbo_data);
   }
   else {
     extract_uv_stretch_angle_mesh(mr, vbo_data);

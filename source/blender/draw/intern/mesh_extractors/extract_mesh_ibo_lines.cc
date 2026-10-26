@@ -171,10 +171,10 @@ static void extract_lines_mesh(const MeshRenderData &mr,
   }
 }
 
-static void extract_lines_bm(const MeshRenderData &mr,
-                             gpu::IndexBufPtr *lines,
-                             gpu::IndexBufPtr *lines_loose,
-                             bool &no_loose_wire)
+static void extract_lines_bmesh(const MeshRenderData &mr,
+                                gpu::IndexBufPtr *lines,
+                                gpu::IndexBufPtr *lines_loose,
+                                bool &no_loose_wire)
 {
   const BMesh &bm = *mr.bm;
   Array<int, 64> loose_edges(mr.loose_edges.size());
@@ -240,7 +240,7 @@ void extract_lines(const MeshRenderData &mr,
     extract_lines_mesh(mr, lines, lines_loose, no_loose_wire);
   }
   else {
-    extract_lines_bm(mr, lines, lines_loose, no_loose_wire);
+    extract_lines_bmesh(mr, lines, lines_loose, no_loose_wire);
   }
 }
 

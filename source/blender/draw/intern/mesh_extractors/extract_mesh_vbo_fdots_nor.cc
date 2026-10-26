@@ -51,7 +51,7 @@ static void extract_face_dot_normals_mesh(const MeshRenderData &mr, MutableSpan<
 }
 
 template<typename GPUType>
-void extract_face_dot_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
+void extract_face_dot_normals_bmesh(const MeshRenderData &mr, MutableSpan<GPUType> normals)
 {
   const GPUType invalid_normal = gpu::convert_normal<GPUType>(float3(0));
   threading::parallel_for(IndexRange(mr.faces_num), 4096, [&](const IndexRange range) {
@@ -84,7 +84,7 @@ gpu::VertBufPtr extract_face_dot_normals(const MeshRenderData &mr, const bool us
       extract_face_dot_normals_mesh(mr, vbo_data);
     }
     else {
-      extract_face_dot_normals_bm(mr, vbo_data);
+      extract_face_dot_normals_bmesh(mr, vbo_data);
     }
   }
   else {
@@ -93,7 +93,7 @@ gpu::VertBufPtr extract_face_dot_normals(const MeshRenderData &mr, const bool us
       extract_face_dot_normals_mesh(mr, vbo_data);
     }
     else {
-      extract_face_dot_normals_bm(mr, vbo_data);
+      extract_face_dot_normals_bmesh(mr, vbo_data);
     }
   }
   return vbo;

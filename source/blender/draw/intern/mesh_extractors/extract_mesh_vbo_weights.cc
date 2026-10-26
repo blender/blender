@@ -85,9 +85,9 @@ static void extract_weights_mesh(const MeshRenderData &mr,
   });
 }
 
-static void extract_weights_bm(const MeshRenderData &mr,
-                               const DRW_MeshWeightState &weight_state,
-                               MutableSpan<float> vbo_data)
+static void extract_weights_bmesh(const MeshRenderData &mr,
+                                  const DRW_MeshWeightState &weight_state,
+                                  MutableSpan<float> vbo_data)
 {
   const BMesh &bm = *mr.bm;
   const int offset = CustomData_get_offset(&bm.vdata, CD_MDEFORMVERT);
@@ -125,7 +125,7 @@ gpu::VertBufPtr extract_weights(const MeshRenderData &mr,
       extract_weights_mesh(mr, weight_state, vbo_data);
     }
     else {
-      extract_weights_bm(mr, weight_state, vbo_data);
+      extract_weights_bmesh(mr, weight_state, vbo_data);
     }
   }
 

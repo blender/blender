@@ -52,7 +52,8 @@ static void extract_face_dot_positions_mesh(const MeshRenderData &mr, MutableSpa
   }
 }
 
-static void extract_face_dot_positions_bm(const MeshRenderData &mr, MutableSpan<float3> vbo_data)
+static void extract_face_dot_positions_bmesh(const MeshRenderData &mr,
+                                             MutableSpan<float3> vbo_data)
 {
   const BMesh &bm = *mr.bm;
   threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
@@ -80,7 +81,7 @@ gpu::VertBufPtr extract_face_dots_position(const MeshRenderData &mr)
     extract_face_dot_positions_mesh(mr, vbo_data);
   }
   else {
-    extract_face_dot_positions_bm(mr, vbo_data);
+    extract_face_dot_positions_bmesh(mr, vbo_data);
   }
   return vbo;
 }

@@ -32,7 +32,7 @@ static const GPUVertFormat &edituv_data_format()
   return format;
 }
 
-static void extract_edituv_data_bm(const MeshRenderData &mr, MutableSpan<EditLoopData> vbo_data)
+static void extract_edituv_data_bmesh(const MeshRenderData &mr, MutableSpan<EditLoopData> vbo_data)
 {
   const BMesh &bm = *mr.bm;
   const BMUVOffsets offsets = BM_uv_map_offsets_get(&bm);
@@ -104,7 +104,7 @@ gpu::VertBufPtr extract_edituv_data(const MeshRenderData &mr)
   MutableSpan vbo_data = vbo->data<EditLoopData>();
 
   if (mr.extract_type == MeshExtractType::BMesh) {
-    extract_edituv_data_bm(mr, vbo_data);
+    extract_edituv_data_bmesh(mr, vbo_data);
   }
   else {
     extract_edituv_data_mesh(mr, vbo_data);
@@ -112,13 +112,13 @@ gpu::VertBufPtr extract_edituv_data(const MeshRenderData &mr)
   return vbo;
 }
 
-static void extract_edituv_data_iter_subdiv_bm(const MeshRenderData &mr,
-                                               const BMUVOffsets &offsets,
-                                               const Span<int> subdiv_loop_vert_index,
-                                               const Span<int> subdiv_loop_edge_index,
-                                               const int subdiv_quad_index,
-                                               const BMFace *coarse_quad,
-                                               MutableSpan<EditLoopData> vbo_data)
+static void extract_edituv_data_iter_subdiv_bmesh(const MeshRenderData &mr,
+                                                  const BMUVOffsets &offsets,
+                                                  const Span<int> subdiv_loop_vert_index,
+                                                  const Span<int> subdiv_loop_edge_index,
+                                                  const int subdiv_quad_index,
+                                                  const BMFace *coarse_quad,
+                                                  MutableSpan<EditLoopData> vbo_data)
 {
 
   uint start_loop_idx = subdiv_quad_index * 4;
@@ -156,9 +156,9 @@ static void extract_edituv_data_iter_subdiv_bm(const MeshRenderData &mr,
   }
 }
 
-static void extract_edituv_subdiv_data_bm(const MeshRenderData &mr,
-                                          const DRWSubdivCache &subdiv_cache,
-                                          MutableSpan<EditLoopData> vbo_data)
+static void extract_edituv_subdiv_data_bmesh(const MeshRenderData &mr,
+                                             const DRWSubdivCache &subdiv_cache,
+                                             MutableSpan<EditLoopData> vbo_data)
 {
   const int corners_num = subdiv_cache.num_subdiv_loops;
   const Span<int> subdiv_loop_face_index(subdiv_cache.subdiv_loop_face_index, corners_num);
@@ -170,13 +170,13 @@ static void extract_edituv_subdiv_data_bm(const MeshRenderData &mr,
   threading::parallel_for(IndexRange(subdiv_cache.num_subdiv_quads), 2048, [&](IndexRange range) {
     for (const int subdiv_quad : range) {
       const int coarse_face = subdiv_loop_face_index[subdiv_quad * 4];
-      extract_edituv_data_iter_subdiv_bm(mr,
-                                         offsets,
-                                         subdiv_loop_vert_index,
-                                         subdiv_loop_edge_index,
-                                         subdiv_quad,
-                                         BM_face_at_index(mr.bm, coarse_face),
-                                         vbo_data);
+      extract_edituv_data_iter_subdiv_bmesh(mr,
+                                            offsets,
+                                            subdiv_loop_vert_index,
+                                            subdiv_loop_edge_index,
+                                            subdiv_quad,
+                                            BM_face_at_index(mr.bm, coarse_face),
+                                            vbo_data);
     }
   });
 }
@@ -195,13 +195,13 @@ static void extract_edituv_subdiv_data_mesh(const MeshRenderData &mr,
   threading::parallel_for(IndexRange(subdiv_cache.num_subdiv_quads), 2048, [&](IndexRange range) {
     for (const int subdiv_quad : range) {
       const int coarse_face = subdiv_loop_face_index[subdiv_quad * 4];
-      extract_edituv_data_iter_subdiv_bm(mr,
-                                         offsets,
-                                         subdiv_loop_vert_index,
-                                         subdiv_loop_edge_index,
-                                         subdiv_quad,
-                                         bm_original_face_get(mr, coarse_face),
-                                         vbo_data);
+      extract_edituv_data_iter_subdiv_bmesh(mr,
+                                            offsets,
+                                            subdiv_loop_vert_index,
+                                            subdiv_loop_edge_index,
+                                            subdiv_quad,
+                                            bm_original_face_get(mr, coarse_face),
+                                            vbo_data);
     }
   });
 }
@@ -215,7 +215,7 @@ gpu::VertBufPtr extract_edituv_data_subdiv(const MeshRenderData &mr,
   MutableSpan vbo_data = vbo->data<EditLoopData>();
 
   if (mr.extract_type == MeshExtractType::BMesh) {
-    extract_edituv_subdiv_data_bm(mr, subdiv_cache, vbo_data);
+    extract_edituv_subdiv_data_bmesh(mr, subdiv_cache, vbo_data);
   }
   else {
     extract_edituv_subdiv_data_mesh(mr, subdiv_cache, vbo_data);

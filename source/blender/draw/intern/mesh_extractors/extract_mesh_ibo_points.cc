@@ -101,7 +101,7 @@ static gpu::IndexBufPtr extract_points_mesh(const MeshRenderData &mr)
 }
 
 template<typename Fn>
-static void process_ibo_verts_bm(const MeshRenderData &mr, const Fn &process_vert_fn)
+static void process_ibo_verts_bmesh(const MeshRenderData &mr, const Fn &process_vert_fn)
 {
   BMesh &bm = *mr.bm;
 
@@ -129,7 +129,7 @@ static void process_ibo_verts_bm(const MeshRenderData &mr, const Fn &process_ver
       exec_mode::grain_size(4096));
 }
 
-static gpu::IndexBufPtr extract_points_bm(const MeshRenderData &mr)
+static gpu::IndexBufPtr extract_points_bmesh(const MeshRenderData &mr)
 {
   BMesh &bm = *mr.bm;
 
@@ -157,7 +157,7 @@ static gpu::IndexBufPtr extract_points_bm(const MeshRenderData &mr)
   }
   else if (visible_verts.size() == bm.totvert) {
     Array<bool> used(mr.verts_num, false);
-    process_ibo_verts_bm(mr, [&](const int ibo_index, const int vert) {
+    process_ibo_verts_bmesh(mr, [&](const int ibo_index, const int vert) {
       if (!used[vert]) {
         used[vert] = true;
         data[vert] = ibo_index;
@@ -168,7 +168,7 @@ static gpu::IndexBufPtr extract_points_bm(const MeshRenderData &mr)
     /* Compress the vertex indices into the smaller range of visible vertices in the IBO. */
     Array<int> map(mr.verts_num, -1);
     index_mask::build_reverse_map(visible_verts, map.as_mutable_span());
-    process_ibo_verts_bm(mr, [&](const int ibo_index, const int vert) {
+    process_ibo_verts_bmesh(mr, [&](const int ibo_index, const int vert) {
       const int index = map[vert];
       if (index != -1) {
         map[vert] = -1;
@@ -185,7 +185,7 @@ gpu::IndexBufPtr extract_points(const MeshRenderData &mr)
   if (mr.extract_type == MeshExtractType::Mesh) {
     return extract_points_mesh(mr);
   }
-  return extract_points_bm(mr);
+  return extract_points_bmesh(mr);
 }
 
 static IndexMask calc_vert_visibility_mapped_mesh(const MeshRenderData &mr,
@@ -266,8 +266,8 @@ static gpu::IndexBufPtr extract_points_subdiv_mesh(const MeshRenderData &mr,
   return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, max_index, true));
 }
 
-static gpu::IndexBufPtr extract_points_subdiv_bm(const MeshRenderData &mr,
-                                                 const DRWSubdivCache &subdiv_cache)
+static gpu::IndexBufPtr extract_points_subdiv_bmesh(const MeshRenderData &mr,
+                                                    const DRWSubdivCache &subdiv_cache)
 {
   const Span<int2> coarse_edges = mr.edges;
   const IndexMask &loose_verts = mr.loose_verts;
@@ -277,7 +277,7 @@ static gpu::IndexBufPtr extract_points_subdiv_bm(const MeshRenderData &mr,
 
   const Span<int> corner_orig_verts = subdiv_cache.verts_orig_index->data<int>();
 
-  const auto show_vert_bm = [&](const int vert_index) {
+  const auto show_vert_bmesh = [&](const int vert_index) {
     const BMVert *vert = mr.orig_index_vert ? bm_original_vert_get(mr, vert_index) :
                                               BM_vert_at_index(mr.bm, vert_index);
     return !BM_elem_flag_test_bool(vert, BM_ELEM_HIDDEN);
@@ -286,11 +286,11 @@ static gpu::IndexBufPtr extract_points_subdiv_bm(const MeshRenderData &mr,
   IndexMaskMemory memory;
   const IndexMask visible_corners = IndexMask::from_predicate(
       corner_orig_verts.index_range(), memory, [&](const int i) {
-        return corner_orig_verts[i] != -1 && show_vert_bm(corner_orig_verts[i]);
+        return corner_orig_verts[i] != -1 && show_vert_bmesh(corner_orig_verts[i]);
       });
 
   const IndexMask visible_loose = IndexMask::from_predicate(
-      loose_verts.index_range(), memory, [&](const int vert) { return show_vert_bm(vert); });
+      loose_verts.index_range(), memory, [&](const int vert) { return show_vert_bmesh(vert); });
 
   const int max_index = subdiv_cache.num_subdiv_loops + loose_edge_verts_num + loose_verts.size();
   GPUIndexBufBuilder builder;
@@ -307,8 +307,9 @@ static gpu::IndexBufPtr extract_points_subdiv_bm(const MeshRenderData &mr,
   for (const int i : loose_edges.index_range()) {
     const int2 edge = coarse_edges[loose_edges[i]];
     const IndexRange edge_range(loose_geom_start + i * verts_per_edge, verts_per_edge);
-    loose_edge_data[i * 2 + 0] = show_vert_bm(edge[0]) ? edge_range.first() : gpu::RESTART_INDEX;
-    loose_edge_data[i * 2 + 1] = show_vert_bm(edge[1]) ? edge_range.last() : gpu::RESTART_INDEX;
+    loose_edge_data[i * 2 + 0] = show_vert_bmesh(edge[0]) ? edge_range.first() :
+                                                            gpu::RESTART_INDEX;
+    loose_edge_data[i * 2 + 1] = show_vert_bmesh(edge[1]) ? edge_range.last() : gpu::RESTART_INDEX;
   }
 
   MutableSpan loose_vert_data = data.take_back(visible_loose.size()).cast<int32_t>();
@@ -324,7 +325,7 @@ gpu::IndexBufPtr extract_points_subdiv(const MeshRenderData &mr,
   if (mr.extract_type == MeshExtractType::Mesh) {
     return extract_points_subdiv_mesh(mr, subdiv_cache);
   }
-  return extract_points_subdiv_bm(mr, subdiv_cache);
+  return extract_points_subdiv_bmesh(mr, subdiv_cache);
 }
 
 }  // namespace blender::draw

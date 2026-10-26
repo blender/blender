@@ -51,7 +51,7 @@ static void extract_vert_index_mesh(const MeshRenderData &mr, MutableSpan<int> v
   }
 }
 
-static void extract_vert_index_bm(const MeshRenderData &mr, MutableSpan<int> vbo_data)
+static void extract_vert_index_bmesh(const MeshRenderData &mr, MutableSpan<int> vbo_data)
 {
   MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
   MutableSpan loose_edge_data = vbo_data.slice(mr.corners_num, mr.loose_edges.size() * 2);
@@ -88,7 +88,7 @@ gpu::VertBufPtr extract_vert_index(const MeshRenderData &mr)
     extract_vert_index_mesh(mr, vbo->data<int>());
   }
   else {
-    extract_vert_index_bm(mr, vbo->data<int>());
+    extract_vert_index_bmesh(mr, vbo->data<int>());
   }
   return vbo;
 }
@@ -119,7 +119,7 @@ static void extract_edge_index_mesh(const MeshRenderData &mr, MutableSpan<int> v
   }
 }
 
-static void extract_edge_index_bm(const MeshRenderData &mr, MutableSpan<int> vbo_data)
+static void extract_edge_index_bmesh(const MeshRenderData &mr, MutableSpan<int> vbo_data)
 {
   MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
   MutableSpan loose_edge_data = vbo_data.slice(mr.corners_num, mr.loose_edges.size() * 2);
@@ -152,7 +152,7 @@ gpu::VertBufPtr extract_edge_index(const MeshRenderData &mr)
     extract_edge_index_mesh(mr, vbo->data<int>());
   }
   else {
-    extract_edge_index_bm(mr, vbo->data<int>());
+    extract_edge_index_bmesh(mr, vbo->data<int>());
   }
   return vbo;
 }
@@ -173,7 +173,7 @@ static void extract_face_index_mesh(const MeshRenderData &mr, MutableSpan<int> v
   }
 }
 
-static void extract_face_index_bm(const MeshRenderData &mr, MutableSpan<int> vbo_data)
+static void extract_face_index_bmesh(const MeshRenderData &mr, MutableSpan<int> vbo_data)
 {
   const BMesh &bm = *mr.bm;
   threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
@@ -192,7 +192,7 @@ gpu::VertBufPtr extract_face_index(const MeshRenderData &mr)
     extract_face_index_mesh(mr, vbo->data<int>());
   }
   else {
-    extract_face_index_bm(mr, vbo->data<int>());
+    extract_face_index_bmesh(mr, vbo->data<int>());
   }
   return vbo;
 }

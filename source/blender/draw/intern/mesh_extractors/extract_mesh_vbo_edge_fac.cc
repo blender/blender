@@ -93,7 +93,7 @@ static void extract_edge_factor_mesh(const MeshRenderData &mr, MutableSpan<float
   }
 }
 
-static void extract_edge_factor_bm(const MeshRenderData &mr, MutableSpan<float> vbo_data)
+static void extract_edge_factor_bmesh(const MeshRenderData &mr, MutableSpan<float> vbo_data)
 {
   BMesh &bm = *mr.bm;
   threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
@@ -127,7 +127,7 @@ gpu::VertBufPtr extract_edge_factor(const MeshRenderData &mr)
     extract_edge_factor_mesh(mr, vbo_data);
   }
   else {
-    extract_edge_factor_bm(mr, vbo_data);
+    extract_edge_factor_bmesh(mr, vbo_data);
   }
   vbo_data.take_back(mr.loose_indices_num).fill(0.0f);
   return vbo;
