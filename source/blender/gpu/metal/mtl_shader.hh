@@ -67,7 +67,8 @@ struct MTLRenderPipelineStateInstance {
   /**
    * Reflection Data.
    * This information can also be used to eliminate redundant/unused bindings.
-   * Does only contains SSBO, UBO, Argument and Push Constant buffers. VBO bindings are masked out.
+   * Does only contains SSBO, UBO, Acceleration Structure, Argument and Push Constant buffers.
+   * VBO bindings are masked out.
    */
   uint32_t used_buf_vert_mask = 0;
   uint32_t used_buf_frag_mask = 0;
