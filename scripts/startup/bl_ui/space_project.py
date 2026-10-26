@@ -253,53 +253,24 @@ class PROJECT_PT_main_unset(Panel, CenterAlignMixIn):
         col = layout.column()
         col.separator(factor=2.0)
 
-        if context.blend_data.filepath == "":
-            row = col.row()
-            row.alignment = 'CENTER'
-            row.label(
-                text="No active project.",
-                icon='STATUS_INFO',
-            )
-            col.separator()
+        row = col.row()
+        row.alignment = 'CENTER'
+        row.label(
+            text="No active project.",
+            icon='STATUS_INFO',
+        )
+        col.separator()
 
-            row = col.row()
-            row.label_multiline(
-                text="Save the current file, and make sure to place it in a folder that will be part of the project",
-                alignment='CENTER')
+        row = col.row()
+        row.label_multiline(
+            text="Create a new project, or open an existing project or a file inside of one.",
+            alignment='CENTER')
 
-            row = col.row()
-            row.label_multiline(
-                text="Alternatively, open a file inside of a project directory to see its settings.",
-                alignment='CENTER')
-
-            col.separator()
-            row = col.row()
-            row.alignment = 'CENTER'
-            row.operator("wm.save_as_mainfile", text="Save File...", icon='FILE_TICK')
-            row.operator("project.open", icon='FILE_FOLDER')
-        else:
-            row = col.row()
-            row.alignment = 'CENTER'
-            row.label(
-                text="No active project.",
-                icon='STATUS_INFO',
-            )
-            col.separator()
-
-            row = col.row()
-            row.label_multiline(
-                text="Set up a new project by choosing any parent directory of the current file.",
-                alignment='CENTER')
-            row = col.row()
-            row.label_multiline(
-                text="Alternatively, open a file inside of a project directory to see its settings.",
-                alignment='CENTER')
-
-            col.separator()
-            row = col.row()
-            row.alignment = 'CENTER'
-            row.operator("project.new", text="New Project...", icon='ADD')
-            row.operator("project.open", icon='FILE_FOLDER')
+        col.separator()
+        row = col.row()
+        row.alignment = 'CENTER'
+        row.operator("project.new", text="New Project...", icon='ADD')
+        row.operator("project.open", icon='FILE_FOLDER')
 
 
 class PROJECT_UL_variables(bpy.types.UIList):

@@ -125,8 +125,6 @@ struct RenderEngineType {
                                struct ViewLayer *view_layer);
   void (*update_custom_camera)(struct RenderEngine *engine, struct Camera *cam);
 
-  struct DrawEngineType *draw_engine;
-
   /* RNA integration */
   ExtensionRNA rna_ext;
 };

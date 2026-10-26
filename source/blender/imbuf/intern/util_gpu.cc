@@ -800,6 +800,9 @@ gpu::Texture *IMB_acquire_gpu_texture(const char *name,
     return nullptr;
   }
 
+  /* Ensure update tracking before reading pixels, so changes by other threads
+   * while the creating the texture are preserved. */
+  IMB_partial_update_flush(ibuf);
   const imbuf::ChangesetID changeset_id = IMB_partial_update_changeset_id_next();
 
   gpu::Texture *tex = IMB_create_gpu_texture(name, ibuf, texture_create_flags);

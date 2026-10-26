@@ -61,8 +61,17 @@ DeviceScene::DeviceScene(Device *device)
       volume_tree_root_ids(device, "volume_tree_root_ids", MEM_GLOBAL),
       volume_step_size(device, "volume_step_size", MEM_GLOBAL),
       image_textures(device, "image_textures", MEM_GLOBAL),
-      image_texture_tile_descriptors(device, "image_texture_tile_descriptors", MEM_GLOBAL),
-      image_texture_tile_access_state(device, "image_texture_tile_access_state", MEM_GLOBAL),
+      /* These are read-write for the texture cache, so need to be per device
+       * and without host fallback to avoid race conditions between devices
+       * sharing the same memory. */
+      image_texture_tile_descriptors(device,
+                                     "image_texture_tile_descriptors",
+                                     MEM_GLOBAL,
+                                     MEM_FLAG_PER_DEVICE | MEM_FLAG_NO_HOST_FALLBACK),
+      image_texture_tile_access_state(device,
+                                      "image_texture_tile_access_state",
+                                      MEM_GLOBAL,
+                                      MEM_FLAG_PER_DEVICE | MEM_FLAG_NO_HOST_FALLBACK),
       image_texture_udims(device, "image_texture_udims", MEM_GLOBAL)
 {
   memset((void *)&data, 0, sizeof(data));

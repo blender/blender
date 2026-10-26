@@ -463,6 +463,7 @@ void ABCGenericMeshWriter::write_face_sets(Object *object, Mesh *mesh, Schema &s
     }
     else {
       face_set = schema.createFaceSet(it->first);
+      face_set_names_.append(it->first);
     }
 
     write_empty_samples(face_set, schema.getNumSamples());
@@ -476,10 +477,7 @@ void ABCGenericMeshWriter::write_face_sets(Object *object, Mesh *mesh, Schema &s
   }
 
   /* Write empty samples for facesets which were not used in this frame. */
-  std::vector<std::string> exported_face_sets;
-  schema.getFaceSetNames(exported_face_sets);
-
-  for (const std::string &name : exported_face_sets) {
+  for (const std::string &name : face_set_names_) {
     OFaceSet face_set = schema.getFaceSet(name);
     /* +1 because we wrote a sample above. */
     write_empty_samples(face_set, schema.getNumSamples() + 1);

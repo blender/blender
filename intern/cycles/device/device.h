@@ -283,13 +283,6 @@ class Device {
     return false;
   }
 
-  /* Return true if any device has unified regular memory, where a host write is immediately
-   * visible to the device. */
-  virtual bool has_unified_memory_any() const
-  {
-    return false;
-  }
-
   /* Return true if all devices have unified image memory, where a host write to an image
    * is immediately visible to the device. */
   virtual bool has_unified_image_memory_all() const

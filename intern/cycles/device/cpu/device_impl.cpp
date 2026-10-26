@@ -255,8 +255,12 @@ void CPUDevice::image_alloc(device_image &mem)
     image_info->copy_to_device();
   }
 
-  (*image_info)[image_info_id] = mem.info;
-  (*image_info)[image_info_id].data = (uint64_t)mem.host_pointer;
+  /* Assign with the final host pointer in one go, as this is updating memory
+   * that is read by live rendering threads. It works because the smaller array
+   * with same contents for the first part is kept alive.  */
+  KernelImageInfo info = mem.info;
+  info.data = (uint64_t)mem.host_pointer;
+  (*image_info)[image_info_id] = info;
 }
 
 void CPUDevice::image_free(device_image &mem)
@@ -266,11 +270,6 @@ void CPUDevice::image_free(device_image &mem)
     stats.mem_free(mem.device_size);
     mem.device_size = 0;
   }
-}
-
-bool CPUDevice::has_unified_memory_any() const
-{
-  return true;
 }
 
 bool CPUDevice::has_unified_image_memory_all() const

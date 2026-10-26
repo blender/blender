@@ -104,7 +104,6 @@ class ImageCache {
   unordered_map<DeviceImageKey, size_t, DeviceImageKey::Hash> images_first_free;
 
   unordered_set<device_image *> deferred_updates;
-  unordered_set<device_image *> deferred_gpu_updates;
 
  public:
   ImageCache();
@@ -148,7 +147,6 @@ class ImageCache {
    * device whose queue is provided. */
   void copy_to_device(DeviceScene &dscene);
   void copy_to_device(DeviceScene &dscene, DeviceQueue &queue);
-  void copy_images_to_device(const bool for_cpu_cache_miss = false);
 
   /* Collect statistics about image cache. */
   void collect_statistics(DeviceScene &dscene,
@@ -200,19 +198,21 @@ class ImageCache {
                            InterpolationType interpolation,
                            const int tile_size_padded,
                            KernelTileDescriptor &r_tile_descriptor);
-  void free_tile(const KernelTileDescriptor tile);
+  void free_tile(const KernelTileDescriptor tile, const bool free_empty_image = true);
 
-  KernelTileDescriptor load_tile(Device &device,
-                                 DeviceScene &dscene,
-                                 ImageLoader &loader,
-                                 const ImageMetaData &metadata,
-                                 InterpolationType interpolation,
-                                 ExtensionType extension,
-                                 int miplevel,
-                                 int x,
-                                 int y,
-                                 const bool for_cpu_cache_miss,
-                                 const size_t bit_index);
+  void load_tile(Device &device,
+                 DeviceScene &dscene,
+                 ImageLoader &loader,
+                 const ImageMetaData &metadata,
+                 InterpolationType interpolation,
+                 ExtensionType extension,
+                 int miplevel,
+                 int x,
+                 int y,
+                 const size_t bit_index,
+                 KernelTileDescriptor &r_tile_descriptor);
+
+  void copy_images_to_device_no_lock();
 
   ImageCacheStats stats;
 };

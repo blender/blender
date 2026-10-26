@@ -22,6 +22,7 @@
 #include "BLI_math_vector_c.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_ordered_edge.hh"
+#include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
 
@@ -37,6 +38,8 @@
 
 #include "CLG_log.h"
 #include "IO_validate.hh"
+
+#include <algorithm>
 
 namespace blender {
 
@@ -725,6 +728,25 @@ static bool has_animated_geom_params(const ICompoundProperty arbGeomParams)
   return false;
 }
 
+/* Copy of #IPolyMeshSchema::getFaceSetNames(), to avoid ASAN false positive
+ * when the std::vector is passed from ASAN enabled Blender code to the
+ * Alembic library built without ASAN. */
+static Vector<std::string> get_face_set_names(const IPolyMeshSchema &schema)
+{
+  const IObject object = schema.getObject();
+
+  Vector<std::string> names;
+  for (size_t i = 0; i < object.getNumChildren(); i++) {
+    const Alembic::AbcCoreAbstract::ObjectHeader &header = object.getChildHeader(i);
+    if (IFaceSet::matches(header)) {
+      names.append(header.getName());
+    }
+  }
+
+  std::sort(names.begin(), names.end());
+  return names;
+}
+
 /* Specialization of #has_animations() as defined in abc_reader_object.h. */
 template<> bool has_animations(Alembic::AbcGeom::IPolyMeshSchema &schema, ImportSettings *settings)
 {
@@ -732,10 +754,7 @@ template<> bool has_animations(Alembic::AbcGeom::IPolyMeshSchema &schema, Import
     return true;
   }
 
-  std::vector<std::string> face_set_names;
-  schema.getFaceSetNames(face_set_names);
-
-  for (const std::string &face_set_name : face_set_names) {
+  for (const std::string &face_set_name : get_face_set_names(schema)) {
     const IFaceSet face_set = schema.getFaceSet(face_set_name);
     const IFaceSetSchema &face_set_schema = face_set.getSchema();
     if (!face_set_schema.isConstant()) {
@@ -937,10 +956,9 @@ void AbcMeshReader::assign_facesets_to_material_indices(const ISampleSelector &s
                                                         MutableSpan<int> material_indices,
                                                         std::map<std::string, int> &r_mat_map)
 {
-  std::vector<std::string> face_sets;
-  m_schema.getFaceSetNames(face_sets);
+  const Vector<std::string> face_sets = get_face_set_names(m_schema);
 
-  if (face_sets.empty()) {
+  if (face_sets.is_empty()) {
     return;
   }
 

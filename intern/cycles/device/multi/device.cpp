@@ -6,8 +6,11 @@
 #include "device/device.h"
 #include "device/queue.h"
 
+#include <atomic>
 #include <cstdlib>
 #include <functional>
+#include <shared_mutex>
+#include <span>
 
 #include "bvh/multi.h"
 
@@ -27,10 +30,40 @@ class MultiDevice : public Device {
     map<device_ptr, device_ptr> ptr_map;
     int peer_island_index = -1;
   };
+  using Island = std::span<SubDevice *const>;
 
   list<SubDevice> devices;
-  device_ptr unique_key = 1;
+  std::atomic<device_ptr> unique_key = 1;
   vector<vector<SubDevice *>> peer_islands;
+
+  /* Different memory might be allocated/freed in different threads across
+   * multiple devices, so the ptr_map needs to be mutex protected. */
+  mutable std::shared_mutex ptr_map_mutex;
+
+  device_ptr ptr_map_find(const SubDevice &sub, const device_ptr key) const
+  {
+    const std::shared_lock lock(ptr_map_mutex);
+    auto it = sub.ptr_map.find(key);
+    return (it != sub.ptr_map.end()) ? it->second : device_ptr(0);
+  }
+
+  bool ptr_map_contains(const SubDevice &sub, const device_ptr key) const
+  {
+    const std::shared_lock lock(ptr_map_mutex);
+    return sub.ptr_map.contains(key);
+  }
+
+  void ptr_map_set(SubDevice &sub, const device_ptr key, const device_ptr ptr)
+  {
+    const std::unique_lock lock(ptr_map_mutex);
+    sub.ptr_map[key] = ptr;
+  }
+
+  void ptr_map_erase(SubDevice &sub, const device_ptr key)
+  {
+    const std::unique_lock lock(ptr_map_mutex);
+    sub.ptr_map.erase(key);
+  }
 
   MultiDevice(const DeviceInfo &info_, Stats &stats, Profiler &profiler, bool headless)
       : Device(info_, stats, profiler, headless)
@@ -311,8 +344,7 @@ class MultiDevice : public Device {
       if (sub.device.get() == sub_device) {
         /* Memory may be owned by a peer device when distributing memory across devices. */
         SubDevice *owner_sub = find_matching_mem_device(key, sub);
-        auto it = owner_sub->ptr_map.find(key);
-        return (it != owner_sub->ptr_map.end()) ? it->second : device_ptr(0);
+        return ptr_map_find(*owner_sub, key);
       }
     }
 
@@ -340,13 +372,13 @@ class MultiDevice : public Device {
 
   SubDevice *find_matching_mem_device(device_ptr key, SubDevice &sub)
   {
-    assert(key != 0 && (sub.peer_island_index >= 0 || sub.ptr_map.find(key) != sub.ptr_map.end()));
+    assert(key != 0 && (sub.peer_island_index >= 0 || ptr_map_contains(sub, key)));
 
     /* Get the memory owner of this key (first try current device, then peer devices) */
     SubDevice *owner_sub = &sub;
-    if (!owner_sub->ptr_map.contains(key)) {
+    if (!ptr_map_contains(*owner_sub, key)) {
       for (SubDevice *island_sub : peer_islands[sub.peer_island_index]) {
-        if (island_sub != owner_sub && island_sub->ptr_map.contains(key)) {
+        if (island_sub != owner_sub && ptr_map_contains(*island_sub, key)) {
           owner_sub = island_sub;
         }
       }
@@ -354,14 +386,14 @@ class MultiDevice : public Device {
     return owner_sub;
   }
 
-  SubDevice *find_suitable_mem_device(device_ptr key, const vector<SubDevice *> &island)
+  SubDevice *find_suitable_mem_device(device_ptr key, const Island island)
   {
     assert(!island.empty());
 
     /* Get the memory owner of this key or the device with the lowest memory usage when new */
     SubDevice *owner_sub = island.front();
     for (SubDevice *island_sub : island) {
-      if (key ? (island_sub->ptr_map.contains(key)) :
+      if (key ? ptr_map_contains(*island_sub, key) :
                 (island_sub->device->stats.mem_used < owner_sub->device->stats.mem_used))
       {
         owner_sub = island_sub;
@@ -372,7 +404,24 @@ class MultiDevice : public Device {
 
   device_ptr find_matching_mem(device_ptr key, SubDevice &sub)
   {
-    return find_matching_mem_device(key, sub)->ptr_map[key];
+    return ptr_map_find(*find_matching_mem_device(key, sub), key);
+  }
+
+  /* Islands to allocate memory in, with one allocation per island. */
+  vector<Island> mem_islands(const device_memory &mem) const
+  {
+    vector<Island> islands;
+    for (const vector<SubDevice *> &peer_island : peer_islands) {
+      if (!(mem.flags & MEM_FLAG_PER_DEVICE)) {
+        islands.emplace_back(peer_island);
+        continue;
+      }
+
+      for (SubDevice *const &sub : peer_island) {
+        islands.emplace_back(&sub, 1);
+      }
+    }
+    return islands;
   }
 
   void *host_alloc(const MemoryType type, const size_t size) override
@@ -404,14 +453,14 @@ class MultiDevice : public Device {
 
     assert(mem.type == MEM_READ_ONLY || mem.type == MEM_READ_WRITE || mem.type == MEM_DEVICE_ONLY);
     /* The remaining memory types can be distributed across devices */
-    for (const vector<SubDevice *> &island : peer_islands) {
+    for (const Island island : mem_islands(mem)) {
       SubDevice *owner_sub = find_suitable_mem_device(key, island);
       mem.device = owner_sub->device.get();
       mem.device_pointer = 0;
       mem.device_size = 0;
 
       owner_sub->device->mem_alloc(mem);
-      owner_sub->ptr_map[key] = mem.device_pointer;
+      ptr_map_set(*owner_sub, key, mem.device_pointer);
     }
 
     mem.device = this;
@@ -425,14 +474,14 @@ class MultiDevice : public Device {
     device_ptr key = (existing_key) ? existing_key : unique_key++;
     size_t existing_size = mem.device_size;
 
-    for (const vector<SubDevice *> &island : peer_islands) {
+    for (const Island island : mem_islands(mem)) {
       SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
       mem.device = owner_sub->device.get();
-      mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
+      mem.device_pointer = (existing_key) ? ptr_map_find(*owner_sub, existing_key) : 0;
       mem.device_size = existing_size;
 
       owner_sub->device->mem_copy_to(mem);
-      owner_sub->ptr_map[key] = mem.device_pointer;
+      ptr_map_set(*owner_sub, key, mem.device_pointer);
 
       if (mem.type == MEM_GLOBAL || mem.type == MEM_IMAGE_TEXTURE) {
         /* Need to create texture objects and update pointer in kernel globals on all devices */
@@ -457,17 +506,17 @@ class MultiDevice : public Device {
     device_ptr key = (existing_key) ? existing_key : unique_key++;
     size_t existing_size = mem.device_size;
 
-    for (const vector<SubDevice *> &island : peer_islands) {
+    for (const Island island : mem_islands(mem)) {
       SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
       mem.device = owner_sub->device.get();
-      mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
+      mem.device_pointer = (existing_key) ? ptr_map_find(*owner_sub, existing_key) : 0;
       mem.device_size = existing_size;
 
       if (!owner_sub->device->is_shared(
               mem.shared_pointer, mem.device_pointer, owner_sub->device.get()))
       {
         owner_sub->device->mem_move_to_host(mem);
-        owner_sub->ptr_map[key] = mem.device_pointer;
+        ptr_map_set(*owner_sub, key, mem.device_pointer);
 
         /* Need to create texture objects and update pointer in kernel globals on all devices */
         for (SubDevice *island_sub : island) {
@@ -493,11 +542,11 @@ class MultiDevice : public Device {
       if (sub.device.get() == sub_device) {
         /* Memory may be owned by a peer device when distributing memory across devices. */
         SubDevice *owner_sub = find_matching_mem_device(key, sub);
-        auto it = owner_sub->ptr_map.find(key);
-        if (it == owner_sub->ptr_map.end()) {
+        const device_ptr ptr = ptr_map_find(*owner_sub, key);
+        if (ptr == 0) {
           return false;
         }
-        return owner_sub->device->is_shared(shared_pointer, it->second, owner_sub->device.get());
+        return owner_sub->device->is_shared(shared_pointer, ptr, owner_sub->device.get());
       }
     }
 
@@ -509,10 +558,10 @@ class MultiDevice : public Device {
   {
     device_ptr key = mem.device_pointer;
 
-    for (const vector<SubDevice *> &island : peer_islands) {
+    for (const Island island : mem_islands(mem)) {
       SubDevice *owner_sub = find_matching_mem_device(key, *island.front());
       mem.device = owner_sub->device.get();
-      mem.device_pointer = owner_sub->ptr_map[key];
+      mem.device_pointer = ptr_map_find(*owner_sub, key);
       owner_sub->device->mem_or_from_device(mem);
     }
 
@@ -533,7 +582,7 @@ class MultiDevice : public Device {
 
       SubDevice *owner_sub = find_matching_mem_device(key, sub);
       mem.device = owner_sub->device.get();
-      mem.device_pointer = owner_sub->ptr_map[key];
+      mem.device_pointer = ptr_map_find(*owner_sub, key);
 
       owner_sub->device->mem_copy_from(mem, sy, w, sh, elem);
       i++;
@@ -549,14 +598,14 @@ class MultiDevice : public Device {
     device_ptr key = (existing_key) ? existing_key : unique_key++;
     size_t existing_size = mem.device_size;
 
-    for (const vector<SubDevice *> &island : peer_islands) {
+    for (const Island island : mem_islands(mem)) {
       SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
       mem.device = owner_sub->device.get();
-      mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
+      mem.device_pointer = (existing_key) ? ptr_map_find(*owner_sub, existing_key) : 0;
       mem.device_size = existing_size;
 
       owner_sub->device->mem_zero(mem);
-      owner_sub->ptr_map[key] = mem.device_pointer;
+      ptr_map_set(*owner_sub, key, mem.device_pointer);
     }
 
     mem.device = this;
@@ -570,14 +619,14 @@ class MultiDevice : public Device {
     size_t existing_size = mem.device_size;
 
     /* Free memory that was allocated for all devices (see above) on each device */
-    for (const vector<SubDevice *> &island : peer_islands) {
+    for (const Island island : mem_islands(mem)) {
       SubDevice *owner_sub = find_matching_mem_device(key, *island.front());
       mem.device = owner_sub->device.get();
-      mem.device_pointer = owner_sub->ptr_map[key];
+      mem.device_pointer = ptr_map_find(*owner_sub, key);
       mem.device_size = existing_size;
 
       owner_sub->device->mem_free(mem);
-      owner_sub->ptr_map.erase(owner_sub->ptr_map.find(key));
+      ptr_map_erase(*owner_sub, key);
 
       if (mem.type == MEM_IMAGE_TEXTURE) {
         /* Free texture objects on all devices */
@@ -621,16 +670,6 @@ class MultiDevice : public Device {
     for (SubDevice &sub : devices) {
       sub.device->foreach_device(callback);
     }
-  }
-
-  bool has_unified_memory_any() const override
-  {
-    for (const SubDevice &sub : devices) {
-      if (sub.device->has_unified_memory_any()) {
-        return true;
-      }
-    }
-    return false;
   }
 
   bool has_unified_image_memory_all() const override
