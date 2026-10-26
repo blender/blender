@@ -484,7 +484,7 @@ void VKBackend::platform_init(const VKDevice &device)
   GPG.device_uuid = Array<uint8_t, 16>(Span<uint8_t>(id_properties.deviceUUID, VK_UUID_SIZE));
 
   if (id_properties.deviceLUIDValid) {
-    GPG.device_luid = Array<uint8_t, 8>(Span<uint8_t>(id_properties.deviceUUID, VK_LUID_SIZE));
+    GPG.device_luid = Array<uint8_t, 8>(Span<uint8_t>(id_properties.deviceLUID, VK_LUID_SIZE));
     GPG.device_luid_node_mask = id_properties.deviceNodeMask;
   }
   else {
