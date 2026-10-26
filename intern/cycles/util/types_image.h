@@ -56,6 +56,13 @@ ccl_device_inline bool is_nanovdb_type(int type)
   return (type >= IMAGE_DATA_TYPE_NANOVDB_FLOAT && type <= IMAGE_DATA_TYPE_NANOVDB_EMPTY);
 }
 
+ccl_device_forceinline int image_dimension_at_mip_level(int size, int miplevel)
+{
+  /* Shift to divide by power 2^miplevel. For the case where the other dimension
+   * is large, clamp so this dimension stays at 1 while the other keeps halving. */
+  return max(1, size >> miplevel);
+}
+
 /* Alpha types
  * How to treat alpha in images. */
 enum ImageAlphaType {

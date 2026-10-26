@@ -411,8 +411,8 @@ bool OIIOImageLoader::load_pixels_tile(const ImageMetaData &metadata,
     return false;
   }
 
-  const int64_t width = std::max(int64_t(1), metadata.width >> miplevel);
-  const int64_t height = std::max(int64_t(1), metadata.height >> miplevel);
+  const int width = image_dimension_at_mip_level(metadata.width, miplevel);
+  const int height = image_dimension_at_mip_level(metadata.height, miplevel);
 
   /* Load center pixels. */
   bool ok = oiio_load_pixels_tile(file_handle_user.get(),

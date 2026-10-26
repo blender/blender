@@ -113,8 +113,8 @@ kernel_image_tile_map(KernelGlobals kg,
   const int level = clamp(int(flevel), 0, tex.tile_levels - 1);
 
   /* Compute width of this mipmap level. */
-  const int width = max(1, tex.width >> level);
-  const int height = max(1, tex.height >> level);
+  const int width = image_dimension_at_mip_level(tex.width, level);
+  const int height = image_dimension_at_mip_level(tex.height, level);
 
   /* Convert coordinates to pixel space.
    * Flip Y convention for tiles to match tx files. */
