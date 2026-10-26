@@ -511,7 +511,8 @@ static void rna_ColorManagedDisplaySettings_display_device_set(PointerRNA *ptr, 
   ColorManagedDisplaySettings *display = static_cast<ColorManagedDisplaySettings *>(ptr->data);
   const char *name = IMB_colormanagement_display_get_indexed_name(value);
 
-  if (name) {
+  /* Keep the current display for invalid indices, that may come from animation. */
+  if (name && name[0]) {
     STRNCPY_UTF8(display->display_device, name);
   }
 }
