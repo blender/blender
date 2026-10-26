@@ -7,6 +7,7 @@
 #include "BKE_curves.hh"
 
 #include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
 #include "GPU_shader.hh"
 
 #include "draw_curves_defines.hh"
@@ -20,6 +21,10 @@ namespace blender::draw {
 
 static void test_draw_curves_lib()
 {
+  if (!GPU_vertex_pipeline_stores_and_atomics_support()) {
+    GTEST_SKIP() << "Storage buffer writes from the vertex shader are not supported";
+  }
+
   Manager manager;
 
   gpu::Shader *sh = GPU_shader_create_from_info_name("draw_curves_test");
