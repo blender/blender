@@ -514,7 +514,7 @@ static void gpu_material_ramp_texture_build(GPUMaterial *mat)
                                               CM_TABLE + 1,
                                               builder->current_layer,
                                               1,
-                                              gpu::TextureFormat::SFLOAT_16_16_16_16,
+                                              gpu::TextureFormat::SFLOAT_32_32_32_32,
                                               GPU_TEXTURE_USAGE_SHADER_READ,
                                               reinterpret_cast<float *>(builder->pixels));
 
