@@ -27,7 +27,8 @@ const GPUVertFormat &get_fdots_nor_format(bool use_hq)
 }
 
 template<typename GPUType>
-static void extract_face_dot_normals_mesh(const MeshRenderData &mr, MutableSpan<GPUType> normals)
+static void extract_face_dot_normals_mapped_bmesh(const MeshRenderData &mr,
+                                                  MutableSpan<GPUType> normals)
 {
   const Span<float3> face_normals = mr.face_normals;
   const GPUType invalid_normal = gpu::convert_normal<GPUType>(float3(0));
@@ -81,7 +82,7 @@ gpu::VertBufPtr extract_face_dot_normals(const MeshRenderData &mr, const bool us
   if (use_hq) {
     MutableSpan vbo_data = vbo->data<short4>();
     if (mr.extract_type == MeshExtractType::Mesh) {
-      extract_face_dot_normals_mesh(mr, vbo_data);
+      extract_face_dot_normals_mapped_bmesh(mr, vbo_data);
     }
     else {
       extract_face_dot_normals_bmesh(mr, vbo_data);
@@ -90,7 +91,7 @@ gpu::VertBufPtr extract_face_dot_normals(const MeshRenderData &mr, const bool us
   else {
     MutableSpan vbo_data = vbo->data<int1010102_norm>();
     if (mr.extract_type == MeshExtractType::Mesh) {
-      extract_face_dot_normals_mesh(mr, vbo_data);
+      extract_face_dot_normals_mapped_bmesh(mr, vbo_data);
     }
     else {
       extract_face_dot_normals_bmesh(mr, vbo_data);

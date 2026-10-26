@@ -244,6 +244,51 @@ void extract_lines(const MeshRenderData &mr,
   }
 }
 
+static void fill_loose_edge_hide_flags_subdiv_bmesh(const MeshRenderData &mr,
+                                                    const Span<int> loose_edges,
+                                                    const int edges_per_edge,
+                                                    MutableSpan<uint> flags_data)
+{
+  BMesh *bm = mr.bm;
+  for (const int i : loose_edges.index_range()) {
+    const BMEdge *bm_edge = BM_edge_at_index(bm, loose_edges[i]);
+    const bool value = BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN);
+    flags_data.slice(i * edges_per_edge, edges_per_edge).fill(value);
+  }
+}
+
+/** Visibility from the original #BMesh edges, where edges without an original are hidden. */
+static void fill_loose_edge_hide_flags_subdiv_mapped_bmesh(const MeshRenderData &mr,
+                                                           const Span<int> loose_edges,
+                                                           const int edges_per_edge,
+                                                           MutableSpan<uint> flags_data)
+{
+  for (const int i : loose_edges.index_range()) {
+    const BMEdge *bm_edge = bm_original_edge_get(mr, loose_edges[i]);
+    const int value = (bm_edge) ? BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) : true;
+    flags_data.slice(i * edges_per_edge, edges_per_edge).fill(value);
+  }
+}
+
+static void fill_loose_edge_hide_flags_subdiv_mesh(const MeshRenderData &mr,
+                                                   const Span<int> loose_edges,
+                                                   const int edges_per_edge,
+                                                   MutableSpan<uint> flags_data)
+{
+  const Span<bool> hide_edge = mr.hide_edge;
+  if (hide_edge.is_empty()) {
+    flags_data.fill(0);
+    return;
+  }
+  const int *orig_index_edge = (mr.hide_unmapped_edges) ? mr.orig_index_edge : nullptr;
+  for (const int i : loose_edges.index_range()) {
+    const bool value = (orig_index_edge && orig_index_edge[loose_edges[i]] == ORIGINDEX_NONE) ?
+                           false :
+                           hide_edge[loose_edges[i]];
+    flags_data.slice(i * edges_per_edge, edges_per_edge).fill(value);
+  }
+}
+
 static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
                                             const MeshRenderData &mr,
                                             const int edge_loose_offset,
@@ -268,55 +313,14 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
 
   MutableSpan<uint> flags_data = flags->data<uint>();
 
-  switch (mr.extract_type) {
-    case MeshExtractType::Mesh: {
-      const int *orig_index_edge = (mr.hide_unmapped_edges) ? mr.orig_index_edge : nullptr;
-      if (orig_index_edge == nullptr) {
-        const Span<bool> hide_edge = mr.hide_edge;
-        if (!hide_edge.is_empty()) {
-          for (const int i : loose_edges.index_range()) {
-            const bool value = hide_edge[loose_edges[i]];
-            flags_data.slice(i * edges_per_edge, edges_per_edge).fill(value);
-          }
-        }
-        else {
-          flags_data.fill(0);
-        }
-      }
-      else {
-        if (mr.bm) {
-          for (const int i : loose_edges.index_range()) {
-            const BMEdge *bm_edge = bm_original_edge_get(mr, loose_edges[i]);
-            const int value = (bm_edge) ? BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) : true;
-            flags_data.slice(i * edges_per_edge, edges_per_edge).fill(value);
-          }
-        }
-        else {
-          const Span<bool> hide_edge = mr.hide_edge;
-          if (!hide_edge.is_empty()) {
-            for (const int i : loose_edges.index_range()) {
-              const bool value = (orig_index_edge[loose_edges[i]] == ORIGINDEX_NONE) ?
-                                     false :
-                                     hide_edge[loose_edges[i]];
-              flags_data.slice(i * edges_per_edge, edges_per_edge).fill(value);
-            }
-          }
-          else {
-            flags_data.fill(0);
-          }
-        }
-      }
-      break;
-    }
-    case MeshExtractType::BMesh: {
-      BMesh *bm = mr.bm;
-      for (const int i : loose_edges.index_range()) {
-        const BMEdge *bm_edge = BM_edge_at_index(bm, loose_edges[i]);
-        const bool value = BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN);
-        flags_data.slice(i * edges_per_edge, edges_per_edge).fill(value);
-      }
-      break;
-    }
+  if (mr.extract_type == MeshExtractType::BMesh) {
+    fill_loose_edge_hide_flags_subdiv_bmesh(mr, loose_edges, edges_per_edge, flags_data);
+  }
+  else if (mr.bm && mr.hide_unmapped_edges && mr.orig_index_edge) {
+    fill_loose_edge_hide_flags_subdiv_mapped_bmesh(mr, loose_edges, edges_per_edge, flags_data);
+  }
+  else {
+    fill_loose_edge_hide_flags_subdiv_mesh(mr, loose_edges, edges_per_edge, flags_data);
   }
 
   draw_subdiv_build_lines_loose_buffer(
