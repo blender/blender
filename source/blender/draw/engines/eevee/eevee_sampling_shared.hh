@@ -50,6 +50,8 @@ enum [[host_shared]] eSamplingDimension : uint32_t {
   SAMPLING_GBUFFER_V = 30u,
   SAMPLING_GBUFFER_W = 31u,
   SAMPLING_FILM_U = 32u,
+  SAMPLING_PANORAMIC_U = 33u,
+  SAMPLING_PANORAMIC_V = 34u,
 };
 
 /**

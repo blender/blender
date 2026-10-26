@@ -520,6 +520,25 @@ TEST(index_mask, ToBits)
   }
 }
 
+TEST(index_mask, ToBitsUnaligned)
+{
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_initializers(
+      {3, 60, 61, 63, 64, 65, 127, 128, IndexRange(200, 150), 400, 470}, memory);
+  BitVector<> bits(600, true);
+  const IndexRange slice(7, 500);
+  const int64_t offset = 5;
+  mask.to_bits(MutableBitSpan(bits).slice(slice), offset);
+  for (const int64_t i : bits.index_range()) {
+    if (slice.contains(i)) {
+      EXPECT_EQ(bits[i].test(), mask.contains(i - slice.start() - offset));
+    }
+    else {
+      EXPECT_TRUE(bits[i].test());
+    }
+  }
+}
+
 TEST(index_mask, FromRange)
 {
   const auto test_range = [](const IndexRange range) {

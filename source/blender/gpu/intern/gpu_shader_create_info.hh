@@ -1671,6 +1671,7 @@ struct ShaderCreateInfo {
   void finalize(const bool recursive = false);
 
   std::string resource_guard_defines(Span<CompilationConstant> constants) const;
+  std::string iface_guard_defines() const;
 
   void extend_predicate(Vector<Resource, 0> &resource_vector,
                         ShaderCreateInfo::Resource res_copy,

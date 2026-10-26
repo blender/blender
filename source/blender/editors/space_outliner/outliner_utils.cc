@@ -212,7 +212,7 @@ TreeElement *outliner_find_id(SpaceOutliner *space_outliner,
 {
   for (TreeElement &te : *lb) {
     TreeStoreElem *tselem = TREESTORE(&te);
-    if (tselem->type == TSE_SOME_ID) {
+    if ((tselem->type == TSE_SOME_ID) || outliner_is_collection_tree_element(&te)) {
       if (tselem->id == id && !(te.flag & exclude_flags)) {
         return &te;
       }

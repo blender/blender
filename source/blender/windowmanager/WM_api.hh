@@ -2005,7 +2005,7 @@ ENUM_OPERATORS(eWM_JobFlag);
 /**
  * Identifying jobs by owner alone is unreliable, this isn't saved, order can change.
  */
-enum eWM_JobType {
+enum eWM_JobType : uint8_t {
   /** Not a real type, use for querying any type. */
   WM_JOB_TYPE_ANY = 0,
 

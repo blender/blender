@@ -428,6 +428,10 @@ void Film::init(const int2 &extent, const rcti *output_rect)
        * This results in a box blur instead of no filtering. */
       data_.filter_radius = math::max(data_.filter_radius, 0.0001f);
     }
+    if (inst_.camera.is_panoramic()) {
+      /* Avoid div by zero in the panoramic filter weights. */
+      data_.filter_radius = math::max(data_.filter_radius, 0.0001f);
+    }
 
     data_.cryptomatte_samples_len = inst_.view_layer->cryptomatte_levels;
 
@@ -815,12 +819,8 @@ void Film::update_sample_table()
 
   data_.samples_len = 0;
   if (inst_.camera.is_panoramic()) {
-    /* TODO(fclem): Proper filtering instead of a single nearest sample. A 3x3 or plus-shape
-     * 5-sample kernel would reduce aliasing quite a lot. */
-    data_.samples[0].texel = int2(0, 0);
-    data_.samples[0].weight = 1.0f;
-    data_.samples_weight_total = 1.0f;
-    data_.samples_len = 1;
+    /* Samples are jittered and weighted on the GPU (see `panoramic_sample_get`). */
+    data_.samples_len = FILM_PANORAMIC_SAMPLE_LEN;
   }
   else if (data_.scaling_factor > 1) {
     /* For this case there might be no valid samples for some pixels.

@@ -109,9 +109,11 @@ bool evict_caches_if_full(Scene *scene)
     /* Only remove source images if there's more of them than final ones. */
     if (count_source != 0 && (!final_active || count_source > count_final)) {
       evicted_source = source_image_cache_evict(scene);
-      /* Only try to enforce the ratio when the final cache is active. */
-      if (evicted_source && final_active) {
-        const size_t items = divide_ceil_ul(count_source, std::max<size_t>(count_final, 1));
+      /* Only try to enforce the ratio when the final cache is active and has images. With an
+       * empty final cache (e.g. the render pipeline clears it after every frame) there is no
+       * ratio to keep, and dividing by one would evict the entire source cache at once. */
+      if (evicted_source && final_active && count_final != 0) {
+        const size_t items = divide_ceil_ul(count_source, count_final);
         /* Start at "1" to make sure we only try to evict more frames if the ratio is above 1:1. */
         for (size_t i = 1; i < items; i++) {
           if (!source_image_cache_evict(scene)) {

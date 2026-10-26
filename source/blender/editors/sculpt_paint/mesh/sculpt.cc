@@ -944,12 +944,15 @@ static int sculpt_brush_needs_normal(const SculptSession &ss, const Brush &brush
            (bke::brush::normal_weight_get(brush, ss.cache->toggle_settings.invert) > 0.0f)) ||
           ELEM(brush.sculpt_brush_type,
                SCULPT_BRUSH_TYPE_BLOB,
+               SCULPT_BRUSH_TYPE_CLAY,
+               SCULPT_BRUSH_TYPE_CLAY_THUMB,
                SCULPT_BRUSH_TYPE_CREASE,
                SCULPT_BRUSH_TYPE_DRAW,
                SCULPT_BRUSH_TYPE_DRAW_SHARP,
                SCULPT_BRUSH_TYPE_CLOTH,
                SCULPT_BRUSH_TYPE_LAYER,
                SCULPT_BRUSH_TYPE_NUDGE,
+               SCULPT_BRUSH_TYPE_PINCH,
                SCULPT_BRUSH_TYPE_ROTATE,
                SCULPT_BRUSH_TYPE_ELASTIC_DEFORM,
                SCULPT_BRUSH_TYPE_THUMB) ||

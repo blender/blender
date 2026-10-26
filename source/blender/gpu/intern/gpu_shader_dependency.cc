@@ -268,25 +268,54 @@ struct GPUSource {
           /* Add the previous block without the newly found % character. */
           fmt.format_blocks.append({type, format.substr(start, end - start)});
         }
-        /* Format type of the next block. */
-        /* TODO(fclem): This doesn't support advance formats like `%3.2f`. */
-        switch (format[end + 1]) {
-          case 's':
-            type = shader::PrintfFormat::Block::ArgumentType::STRING;
-            break;
-          case 'x':
-          case 'u':
-            type = shader::PrintfFormat::Block::ArgumentType::UINT;
-            break;
-          case 'd':
-            type = shader::PrintfFormat::Block::ArgumentType::INT;
-            break;
-          case 'f':
-            type = shader::PrintfFormat::Block::ArgumentType::FLOAT;
-            break;
-          default:
-            BLI_assert_msg(0, "Printing format unsupported");
-            break;
+        /* Matches: %[flags][width][.precision][length]specifier */
+        static const std::regex fmt_regex(
+            "%([-+0 #]*)(\\d+|\\*)?(?:\\.(\\d+|\\*))?(hh|h|l|ll|L|j|z|t)?([diuoxXfFeEgGaAcsp])");
+        /* Find format type of the next block. */
+        std::smatch match;
+        if (std::regex_search(format.cbegin() + end,
+                              format.cend(),
+                              match,
+                              fmt_regex,
+                              std::regex_constants::match_continuous))
+        {
+          /* Group 5 captures the conversion specifier character. */
+          char specifier = match[5].str()[0];
+
+          switch (specifier) {
+            case 's':
+              type = shader::PrintfFormat::Block::ArgumentType::STRING;
+              break;
+            case 'x':
+            case 'X':
+            case 'u':
+            case 'o':
+            case 'p':
+              type = shader::PrintfFormat::Block::ArgumentType::UINT;
+              break;
+            case 'd':
+            case 'i':
+            case 'c':
+              type = shader::PrintfFormat::Block::ArgumentType::INT;
+              break;
+            case 'f':
+            case 'F':
+            case 'e':
+            case 'E':
+            case 'g':
+            case 'G':
+            case 'a':
+            case 'A':
+              type = shader::PrintfFormat::Block::ArgumentType::FLOAT;
+              break;
+            default:
+              BLI_assert_msg(0, "Printing format unsupported");
+              break;
+          }
+        }
+        else {
+          BLI_assert_msg(0, "Invalid print format specifier");
+          break;
         }
         /* Start of the next block. */
         start = end;

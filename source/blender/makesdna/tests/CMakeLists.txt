@@ -17,6 +17,7 @@ if(WITH_GTESTS)
     COMMAND
       ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
       "$<TARGET_FILE:makesdna>"
+      --prefix test_
       --include-file dna_test.h
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna.cc
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna_type_offsets.h

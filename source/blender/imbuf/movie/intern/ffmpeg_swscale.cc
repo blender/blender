@@ -57,7 +57,6 @@ static SwsContext *sws_create_context(int src_width,
                                       int av_dst_format,
                                       int sws_flags)
 {
-#  if defined(FFMPEG_SWSCALE_THREADING)
   /* sws_getContext does not allow passing flags that ask for multi-threaded
    * scaling context, so do it the hard way. */
   SwsContext *c = sws_alloc_context();
@@ -77,18 +76,6 @@ static SwsContext *sws_create_context(int src_width,
     sws_freeContext(c);
     return nullptr;
   }
-#  else
-  SwsContext *c = sws_getContext(src_width,
-                                 src_height,
-                                 AVPixelFormat(av_src_format),
-                                 dst_width,
-                                 dst_height,
-                                 AVPixelFormat(av_dst_format),
-                                 sws_flags,
-                                 nullptr,
-                                 nullptr,
-                                 nullptr);
-#  endif
 
   return c;
 }
@@ -255,15 +242,6 @@ void ffmpeg_sws_exit()
     delete swscale_cache;
     swscale_cache = nullptr;
   }
-}
-
-void ffmpeg_sws_scale_frame(SwsContext *ctx, AVFrame *dst, const AVFrame *src)
-{
-#  if defined(FFMPEG_SWSCALE_THREADING)
-  sws_scale_frame(ctx, dst, src);
-#  else
-  sws_scale(ctx, src->data, src->linesize, 0, src->height, dst->data, dst->linesize);
-#  endif
 }
 
 #endif /* WITH_FFMPEG */

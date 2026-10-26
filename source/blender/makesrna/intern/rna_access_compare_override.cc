@@ -23,6 +23,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_listbase.hh"
+#include "BLI_string.hh"
 #include "BLI_utildefines.hh"
 
 // #define DEBUG_OVERRIDE_TIMEIT
@@ -759,7 +760,7 @@ bool RNA_struct_override_matches(Main *bmain,
       if (!prop_local.is_idprop) {
         rna_path_len = root_path_len + 1 + prop_name_len;
         if (rna_path_len >= RNA_PATH_BUFFSIZE) {
-          rna_path = MEM_new_array_uninitialized<char>(rna_path_len + 1, __func__);
+          rna_path_c = MEM_new_array_uninitialized<char>(rna_path_len + 1, __func__);
         }
 
         memcpy(rna_path_c, root_path, root_path_len);
@@ -768,7 +769,11 @@ bool RNA_struct_override_matches(Main *bmain,
         rna_path_c[rna_path_len] = '\0';
       }
       else {
-        rna_path_len = root_path_len + 2 + prop_name_len + 2;
+        char prop_name_esc[MAX_IDPROP_NAME * 2];
+        const size_t prop_name_esc_len = BLI_str_escape(
+            prop_name_esc, prop_name, sizeof(prop_name_esc));
+
+        rna_path_len = root_path_len + 2 + prop_name_esc_len + 2;
         if (rna_path_len >= RNA_PATH_BUFFSIZE) {
           rna_path_c = MEM_new_array_uninitialized<char>(rna_path_len + 1, __func__);
         }
@@ -776,13 +781,16 @@ bool RNA_struct_override_matches(Main *bmain,
         memcpy(rna_path_c, root_path, root_path_len);
         rna_path_c[root_path_len] = '[';
         rna_path_c[root_path_len + 1] = '"';
-        memcpy(rna_path_c + root_path_len + 2, prop_name, prop_name_len);
-        rna_path_c[root_path_len + 2 + prop_name_len] = '"';
-        rna_path_c[root_path_len + 2 + prop_name_len + 1] = ']';
+        memcpy(rna_path_c + root_path_len + 2, prop_name_esc, prop_name_esc_len);
+        rna_path_c[root_path_len + 2 + prop_name_esc_len] = '"';
+        rna_path_c[root_path_len + 2 + prop_name_esc_len + 1] = ']';
         rna_path_c[rna_path_len] = '\0';
       }
 
       rna_path.emplace(rna_path_c);
+      if (rna_path_c != rna_path_buffer) {
+        MEM_delete(rna_path_c);
+      }
     }
     else {
       /* This is rather slow, but is not much called, so not really worth optimizing. */

@@ -68,6 +68,7 @@
 #include "ED_fileselect.hh"
 #include "ED_image.hh"
 #include "ED_keyframes_keylist.hh"
+#include "ED_markers.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_scene.hh"
@@ -4363,8 +4364,14 @@ static wmOperatorStatus marker_jump_exec(bContext *C, wmOperator *op)
   const bool next = RNA_boolean_get(op->ptr, "next");
   bool found = false;
 
+  ListBaseT<TimeMarker> *markers = ED_scene_markers_get(C, scene);
+  if (!markers) {
+    BKE_report(op->reports, RPT_INFO, "No markers to jump to");
+    return OPERATOR_CANCELLED;
+  }
+
   /* Find matching marker in the right direction. */
-  for (TimeMarker &marker : scene->markers) {
+  for (TimeMarker &marker : *markers) {
     /* Ignore markers outside of playback_range. */
     if (wrap_timeline_navigation && !playback_range.contains(marker.frame)) {
       continue;
@@ -4387,16 +4394,14 @@ static wmOperatorStatus marker_jump_exec(bContext *C, wmOperator *op)
   /* Wrap around playback range and try to look for markers again. */
   if (!found && wrap_timeline_navigation) {
     if (next) {
-      if (const std::optional<int> frame = get_first_marker_in_range(playback_range,
-                                                                     scene->markers))
-      {
+      if (const std::optional<int> frame = get_first_marker_in_range(playback_range, *markers)) {
         closest = *frame;
         found = true;
       }
     }
     else {
-      if (const std::optional<int> frame = get_first_marker_in_range(
-              playback_range, scene->markers.items_reversed()))
+      if (const std::optional<int> frame = get_first_marker_in_range(playback_range,
+                                                                     markers->items_reversed()))
       {
         closest = *frame;
         found = true;

@@ -819,8 +819,7 @@ void OneapiDevice::image_alloc(device_image &mem)
                 << string_human_readable_number(mem.memory_size()) << " bytes. ("
                 << string_human_readable_size(mem.memory_size()) << ")";
 
-      sycl::ext::oneapi::experimental::image_mem_handle memHandle =
-          sycl::ext::oneapi::experimental::alloc_image_mem(desc, *queue);
+      memHandle = sycl::ext::oneapi::experimental::alloc_image_mem(desc, *queue);
       if (!memHandle.raw_handle) {
         set_error("GPU image allocation failed: Raw handle is null");
         return;

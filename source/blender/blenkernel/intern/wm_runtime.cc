@@ -12,6 +12,7 @@
 
 #include "BLI_ghash.hh"
 #include "BLI_listbase.hh"
+#include "BLI_task_c.hh"
 
 #include "WM_api.hh"
 
@@ -56,6 +57,11 @@ WindowManagerRuntime::~WindowManagerRuntime()
 
   if (this->message_bus != nullptr) {
     WM_msgbus_destroy(this->message_bus);
+  }
+
+  for (TaskPool *task_pool : this->job_task_pools.values()) {
+    BLI_task_pool_work_and_wait(task_pool);
+    BLI_task_pool_free(task_pool);
   }
 }
 

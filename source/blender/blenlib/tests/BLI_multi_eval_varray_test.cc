@@ -7,14 +7,14 @@
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_multi_eval_varray.hh"
 #include "BLI_virtual_array.hh"
-#include "BLI_virtual_array_exec.hh"
 
 #include "testing/testing.h"
 
 #include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
-namespace blender::varray_exec::tests {
+namespace blender::multi_eval::tests {
 
 class VirtualArrayExecTest : public testing::Test {
  public:
@@ -534,4 +534,4 @@ TEST_F(VirtualArrayExecTest, ExecuteGVArrayNonTrivialFunc)
   EXPECT_EQ(lengths[2], 2);
 }
 
-}  // namespace blender::varray_exec::tests
+}  // namespace blender::multi_eval::tests

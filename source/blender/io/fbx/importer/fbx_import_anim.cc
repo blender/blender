@@ -222,7 +222,7 @@ static void create_transform_curve_desc(const FbxElementMapping &mapping,
   const bool is_bone = mapping.node_is_blender_bone.contains(fnode);
   if (is_bone) {
     group_name_str = mapping.node_to_name.lookup_default(fnode, "");
-    rna_prefix = std::string("pose.bones[\"") + group_name_str + "\"].";
+    rna_prefix = std::string("pose.bones[\"") + BLI_str_escape(group_name_str) + "\"].";
   }
 
   StringRefNull group_name = curve_name_alloc.copy_string(group_name_str);
@@ -496,8 +496,8 @@ static void create_blend_shape_curves(const ElementAnimations &anim,
 {
   const ufbx_blend_channel *fchan = ufbx_as_blend_channel(anim.prop_blend_shape->element);
   BLI_assert(fchan != nullptr);
-  std::string rna_path = std::string("key_blocks[\"") + fchan->target_shape->name.data +
-                         "\"].value";
+  std::string rna_path = std::string("key_blocks[\"") +
+                         BLI_str_escape(fchan->target_shape->name.data) + "\"].value";
   const ufbx_anim_curve *input_curve = anim.prop_blend_shape->anim_value->curves[0];
   FCurve *curve = create_fcurve(channelbag, {rna_path, 0}, input_curve->keyframes.count);
   for (int64_t i = 0; i < curve->totvert; i++) {

@@ -2825,6 +2825,8 @@ static void rna_def_object_lineart(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "ObjectLineArt");
   RNA_def_struct_path_func(srna, "rna_ObjectLineArt_path");
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "usage", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_feature_line_usage_items);
   RNA_def_property_ui_text(prop, "Usage", "How to use this object in Line Art calculation");
@@ -2857,6 +2859,8 @@ static void rna_def_object_lineart(BlenderRNA *brna)
                            "The intersection line will be included into the object with the "
                            "higher intersection priority value");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_object_lineart_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_object_visibility(StructRNA *srna)

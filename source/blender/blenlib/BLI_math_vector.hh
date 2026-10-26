@@ -432,7 +432,9 @@ template<typename T, int Size>
 [[nodiscard]] inline T dot(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
 {
   T result = a[0] * b[0];
-  unroll<Size - 1>([&](auto i) { result += a[i + 1] * b[i + 1]; });
+  if constexpr (Size > 1) {
+    unroll<Size - 1>([&](auto i) { result += a[i + 1] * b[i + 1]; });
+  }
   return result;
 }
 

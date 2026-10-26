@@ -11,13 +11,16 @@
 
 #include "dna/dna_test.h"
 
+extern const int test_DNAlen;
+extern const unsigned char test_DNAstr[];
+
 namespace blender::dna {
 namespace {
 
 class SDNATest : public ::testing::Test {
   void SetUp() override
   {
-    sdna_ptr = DNA_sdna_from_data(DNAstr, DNAlen, false, true, nullptr);
+    sdna_ptr = DNA_sdna_from_data(test_DNAstr, test_DNAlen, false, true, nullptr);
     sdna = sdna_ptr.get();
   }
 

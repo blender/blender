@@ -310,8 +310,16 @@ class TestPropByteString(unittest.TestCase):
             set=set_,
         )
 
+        # Doubles the value, so the stored value is longer than the one assigned.
+        id_type.test_byte_string_transform = StringProperty(
+            default=self.default_value.decode(),
+            subtype="BYTE_STRING",
+            set_transform=lambda s, n_v, c_v, isset: n_v * 2,
+        )
+
     def tearDown(self):
         del id_type.test_byte_string
+        del id_type.test_byte_string_transform
 
     def do_test_access(self, prop_name, py_type, expected_value):
         v = getattr(id_inst, prop_name)
@@ -325,6 +333,13 @@ class TestPropByteString(unittest.TestCase):
 
     def test_access_byte_string(self):
         self.do_test_access("test_byte_string", bytes, self.default_value)
+
+    def test_access_byte_string_transform(self):
+        # The first assignment creates the property, the second updates the existing one.
+        id_inst.test_byte_string_transform = b"ab"
+        self.assertEqual(id_inst.test_byte_string_transform, b"abab")
+        id_inst.test_byte_string_transform = b"cdef"
+        self.assertEqual(id_inst.test_byte_string_transform, b"cdefcdef")
 
     # TODO: get/set is known essentially broken (aka unsupported) with byte strings properties currently.
     # See #150755, and comments in `bpy_props.cc`:

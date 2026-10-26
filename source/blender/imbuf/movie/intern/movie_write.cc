@@ -246,7 +246,7 @@ static void add_stereo3d_metadata(AVCodecParameters *codecpar,
     return;
   }
   AVStereo3D *stereo_3d = reinterpret_cast<AVStereo3D *>(side_data->data);
-  AVStereo3DType interlace_type = AV_STEREO3D_UNSPEC;
+  AVStereo3DType interlace_type = AV_STEREO3D_LINES;
   switch (imf.stereo3d_format.interlace_type) {
     case S3D_INTERLACE_ROW:
       interlace_type = AV_STEREO3D_LINES;
@@ -373,9 +373,6 @@ static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *
 
     packet->stream_index = context->video_stream->index;
     av_packet_rescale_ts(packet, c->time_base, context->video_stream->time_base);
-#  ifdef FFMPEG_USE_DURATION_WORKAROUND
-    my_guess_pkt_duration(context->outfile, context->video_stream, packet);
-#  endif
 
     ret = av_interleaved_write_frame(context->outfile, packet);
     if (ret < 0) {
@@ -563,7 +560,7 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *input_ib
       rgb_frame->data[0] = const_cast<uint8_t *>(pixels) + size_t(height - 1) * linesize_src;
       rgb_frame->linesize[0] = -linesize_src;
     }
-    ffmpeg_sws_scale_frame(context->sws_ctx, context->current_frame, rgb_frame);
+    sws_scale_frame(context->sws_ctx, context->current_frame, rgb_frame);
     rgb_frame->data[0] = rgb_data;
     rgb_frame->linesize[0] = rgb_linesize;
   }
@@ -1342,12 +1339,7 @@ static bool start_ffmpeg_impl(MovieWriter *context,
 
   /* Returns after this must 'goto fail;' */
 
-#  if LIBAVFORMAT_VERSION_MAJOR >= 59
   of->oformat = fmt;
-#  else
-  /* *DEPRECATED* 2022/08/01 For FFMPEG (<5.0) remove this else branch and the `ifdef` above. */
-  of->oformat = (AVOutputFormat *)fmt;
-#  endif
 
   if (video_codec == AV_CODEC_ID_DVVIDEO) {
     if (rectx != 720) {
@@ -1485,9 +1477,6 @@ static void flush_delayed_frames(AVCodecContext *c, AVStream *stream, AVFormatCo
 
     packet->stream_index = stream->index;
     av_packet_rescale_ts(packet, c->time_base, stream->time_base);
-#  ifdef FFMPEG_USE_DURATION_WORKAROUND
-    my_guess_pkt_duration(outfile, stream, packet);
-#  endif
 
     int write_ret = av_interleaved_write_frame(outfile, packet);
     if (write_ret != 0) {

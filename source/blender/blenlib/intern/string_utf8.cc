@@ -445,9 +445,10 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
   BLI_assert(dst_maxncpy != 0);
   BLI_string_debug_size(dst, dst_maxncpy);
 
+  const size_t dst_len_max = dst_maxncpy - 1;
   size_t len = 0;
-  while (*src && len < dst_maxncpy) {
-    len += BLI_str_utf8_from_unicode(uint(*src++), dst + len, dst_maxncpy - len);
+  while (*src && len < dst_len_max) {
+    len += BLI_str_utf8_from_unicode(uint(*src++), dst + len, dst_len_max - len);
   }
   dst[len] = '\0';
   /* Return the correct length when part of the final byte did not fit into the string. */
@@ -505,7 +506,7 @@ size_t BLI_strnlen_utf8_ex(const char *strc, const size_t strc_maxlen, size_t *r
   const char *strc_orig = strc;
   const char *strc_end = strc + strc_maxlen;
 
-  while (*strc) {
+  while ((strc < strc_end) && *strc) {
     int step = BLI_str_utf8_size_safe(strc);
     if (strc + step > strc_end) {
       break;
@@ -1254,9 +1255,10 @@ size_t BLI_str_utf32_as_utf8(char *__restrict dst,
   BLI_assert(dst_maxncpy != 0);
   BLI_string_debug_size(dst, dst_maxncpy);
 
+  const size_t dst_len_max = dst_maxncpy - 1;
   size_t len = 0;
-  while (*src && len < dst_maxncpy) {
-    len += BLI_str_utf8_from_unicode(uint(*src++), dst + len, dst_maxncpy - len);
+  while (*src && len < dst_len_max) {
+    len += BLI_str_utf8_from_unicode(uint(*src++), dst + len, dst_len_max - len);
   }
   dst[len] = '\0';
   /* Return the correct length when part of the final byte did not fit into the string. */
@@ -1295,7 +1297,7 @@ const char *BLI_str_find_prev_char_utf8(const char *p, const char *str_start)
 
   BLI_assert(p >= str_start);
   if (str_start < p) {
-    for (--p; p >= str_start; p--) {
+    for (--p; p > str_start; p--) {
       if ((*p & 0xc0) != 0x80) {
         return const_cast<char *>(p);
       }
@@ -1351,7 +1353,7 @@ size_t BLI_str_partition_ex_utf8(const char *str,
   char *suf = const_cast<char *>(str + str_len);
   size_t index = 0;
   for (char *sep = const_cast<char *>(from_right ? BLI_str_find_prev_char_utf8(end, str) : str);
-       from_right ? (sep > str) : ((sep < end) && (*sep != '\0'));
+       from_right ? ((sep != nullptr) && (sep < end)) : ((sep < end) && (*sep != '\0'));
        sep = const_cast<char *>(
            from_right ? (str != sep ? BLI_str_find_prev_char_utf8(sep, str) : nullptr) :
                         str + index))

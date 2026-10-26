@@ -2310,7 +2310,7 @@ static void rna_GeometryNodeTree_node_tool_idname_get(PointerRNA *ptr, char *val
 {
   bNodeTree *ntree = ptr->data_as<bNodeTree>();
   if (!ntree->geometry_node_asset_traits) {
-    strcpy(value, "");
+    value[0] = '\0';
     return;
   }
   const char *idname = ntree->geometry_node_asset_traits->node_tool_idname;

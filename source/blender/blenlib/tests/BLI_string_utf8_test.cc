@@ -399,6 +399,15 @@ TEST(string, StringNLenUTF8)
   EXPECT_EQ(BLI_strnlen_utf8(STR_MB_ALPHA_6, 6), 1);
 }
 
+TEST(string, StringNLenUTF8_NoNil)
+{
+  /* Only fails with ASAN, reading past the end doesn't change the result. */
+  const char str[] = {'A', 'B', 'C'};
+  size_t len_bytes;
+  EXPECT_EQ(BLI_strnlen_utf8_ex(str, sizeof(str), &len_bytes), 3);
+  EXPECT_EQ(len_bytes, 3);
+}
+
 TEST(string, StringNLenUTF8_Incomplete)
 {
   const char *ref_str =
@@ -652,6 +661,83 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_utf32_as_utf8
+ * \{ */
+
+TEST(string, StrUTF32AsUTF8_Truncate)
+{
+#define STR_UTF32_AS_UTF8_TRUNC_EXPECT(src, dst_expect, dst_maxncpy) \
+  { \
+    char dst[dst_maxncpy + 1]; \
+    dst[dst_maxncpy] = 0xff; \
+    size_t len = BLI_str_utf32_as_utf8(dst, src, dst_maxncpy); \
+    EXPECT_EQ(len, strlen(dst)); \
+    EXPECT_STREQ(dst, dst_expect); \
+    EXPECT_EQ(dst[dst_maxncpy], 0xff); \
+  }
+
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"A", STR_MB_ALPHA_1, 2);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"A", "", 1);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"AA", STR_MB_ALPHA_1, 2);
+
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\xaa", STR_MB_ALPHA_2, 3);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\xaa", "", 2);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\xaa", "", 1);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\xaa\xaa", STR_MB_ALPHA_2, 4);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\xaa\xaa", STR_MB_ALPHA_2, 3);
+
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x800", STR_MB_ALPHA_3, 4);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x800", "", 3);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x800\x800", STR_MB_ALPHA_3, 6);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x800\x800", STR_MB_ALPHA_3, 4);
+
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x10000", STR_MB_ALPHA_4, 5);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x10000", "", 4);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x10000\x10000", STR_MB_ALPHA_4, 8);
+  STR_UTF32_AS_UTF8_TRUNC_EXPECT(U"\x10000\x10000", STR_MB_ALPHA_4, 5);
+
+#undef STR_UTF32_AS_UTF8_TRUNC_EXPECT
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_strncpy_wchar_as_utf8
+ * \{ */
+
+TEST(string, StrCopyWCharAsUTF8_Truncate)
+{
+  /* Characters above `U+FFFF` are not tested as `wchar_t` is 16-bit on WIN32. */
+#define STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(src, dst_expect, dst_maxncpy) \
+  { \
+    char dst[dst_maxncpy + 1]; \
+    dst[dst_maxncpy] = 0xff; \
+    size_t len = BLI_strncpy_wchar_as_utf8(dst, src, dst_maxncpy); \
+    EXPECT_EQ(len, strlen(dst)); \
+    EXPECT_STREQ(dst, dst_expect); \
+    EXPECT_EQ(dst[dst_maxncpy], 0xff); \
+  }
+
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"A", STR_MB_ALPHA_1, 2);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"A", "", 1);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"AA", STR_MB_ALPHA_1, 2);
+
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\xaa", STR_MB_ALPHA_2, 3);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\xaa", "", 2);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\xaa\xaa", STR_MB_ALPHA_2, 4);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\xaa\xaa", STR_MB_ALPHA_2, 3);
+
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\x800", STR_MB_ALPHA_3, 4);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\x800", "", 3);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\x800\x800", STR_MB_ALPHA_3, 6);
+  STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT(L"\x800\x800", STR_MB_ALPHA_3, 4);
+
+#undef STRNCPY_WCHAR_AS_UTF8_TRUNC_EXPECT
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Test #BLI_snprintf_utf8
  * \{ */
 
@@ -784,6 +870,31 @@ TEST(string, Utf8OffsetFromIndex_ClampedIndex)
     EXPECT_EQ(BLI_str_utf8_offset_from_index(str, str_len, str_len_utf8 + 1), str_offset);
     EXPECT_EQ(BLI_str_utf8_offset_from_index(str, str_len, str_len_utf8 + 10), str_offset);
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_find_prev_char_utf8
+ * \{ */
+
+TEST(string, StrFindPrevCharUTF8)
+{
+  const char *str = STR_MB_ALPHA_1 STR_MB_ALPHA_2 STR_MB_ALPHA_3;
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 6, str), str + 3);
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 5, str), str + 3);
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 3, str), str + 1);
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 2, str), str + 1);
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 1, str), str);
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str, str), str);
+}
+
+TEST(string, StrFindPrevCharUTF8_ContinuationOnly)
+{
+  /* Invalid UTF8, starts with continuation bytes. */
+  const char str[] = {char(0x80), char(0x80), 'A', 0};
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 2, str), str);
+  EXPECT_EQ(BLI_str_find_prev_char_utf8(str + 1, str), str);
 }
 
 /** \} */

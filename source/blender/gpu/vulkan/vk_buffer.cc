@@ -47,7 +47,7 @@ bool VKBuffer::create(size_t size_in_bytes,
    * Vulkan doesn't allow empty buffers but some areas (DrawManager Instance data, PyGPU) create
    * them.
    */
-  alloc_size_in_bytes_ = max_ulul(size_in_bytes_, 16);
+  alloc_size_in_bytes_ = ceil_to_multiple_ul(max_ulul(size_in_bytes_, 16), 16);
   VKDevice &device = VKBackend::get().device;
 
   /* Precheck max buffer size. */

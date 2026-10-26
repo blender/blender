@@ -151,7 +151,8 @@ inline void foreach_1_index_expr(ExprFn &&expr,
         else {
           handle(index_in_span);
         }
-        tmp &= ~mask_single_bit(index_in_int);
+        /* Clear the lowest set bit. */
+        tmp &= tmp - 1;
       }
     }
     /* Iterate over remaining bits. */
@@ -172,7 +173,8 @@ inline void foreach_1_index_expr(ExprFn &&expr,
         else {
           handle(index_in_span);
         }
-        tmp &= ~mask_single_bit(index_in_int);
+        /* Clear the lowest set bit. */
+        tmp &= tmp - 1;
       }
     }
   }

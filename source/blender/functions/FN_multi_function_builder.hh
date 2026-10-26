@@ -10,7 +10,7 @@
  * This file contains several utilities to create multi-functions with less redundant code.
  */
 
-#include "BLI_virtual_array_exec.hh"
+#include "BLI_multi_eval_varray.hh"
 
 #include "FN_multi_function.hh"
 
@@ -18,12 +18,12 @@ namespace blender {
 
 namespace fn::multi_function::build {
 
-using varray_exec::ParamCategory;
-using varray_exec::ParamTag;
+using multi_eval::ParamCategory;
+using multi_eval::ParamTag;
 
 namespace exec_presets {
 
-using namespace varray_exec::exec_presets;
+using namespace multi_eval::exec_presets;
 
 }  // namespace exec_presets
 
@@ -37,7 +37,7 @@ inline void execute_element_fn_as_multi_function(const ElementFn &element_fn,
                                                  TypeSequence<ParamTags...> /*param_tags*/,
                                                  std::index_sequence<I...> /*indices*/)
 {
-  varray_exec::execute(
+  multi_eval::execute(
       element_fn, exec_preset, mask, TypeSequence<ParamTags...>(), [&]() -> decltype(auto) {
         /* Use `typedef` instead of `using` to work around a compiler bug. */
         using ParamTag = ParamTags;

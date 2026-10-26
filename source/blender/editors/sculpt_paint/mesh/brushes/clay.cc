@@ -220,10 +220,6 @@ void do_clay_brush(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  float3 area_no;
-  float3 area_co;
-  calc_brush_plane(depsgraph, brush, object, node_mask, area_no, area_co);
-
   const float initial_radius = fabsf(ss.cache->initial_radius);
   const float offset = brush_plane_offset_get(brush, ss);
 
@@ -237,10 +233,12 @@ void do_clay_brush(const Depsgraph &depsgraph,
     displace = -displace;
   }
 
-  const float3 modified_area_co = ss.cache->location_symm + (area_no * ss.cache->scale * displace);
+  const float3 plane_normal = ss.cache->sculpt_normal_symm;
+  const float3 modified_plane_center = ss.cache->location_symm +
+                                       (plane_normal * ss.cache->scale * displace);
 
   float4 test_plane;
-  plane_from_point_normal_v3(test_plane, modified_area_co, area_no);
+  plane_from_point_normal_v3(test_plane, modified_plane_center, plane_normal);
   BLI_ASSERT_UNIT_V3(test_plane);
 
   const float bstrength = fabsf(ss.cache->bstrength);

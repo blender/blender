@@ -694,7 +694,7 @@ bool VKTexture::allocate()
   VkExtent3D vk_extent = vk_extent_3d(0);
   const uint32_t limit = (type_ == GPU_TEXTURE_3D) ? GPU_max_texture_3d_size() :
                                                      GPU_max_texture_size();
-  if (vk_extent.depth > limit || vk_extent.height > limit || vk_extent.depth > limit) {
+  if (vk_extent.width > limit || vk_extent.height > limit || vk_extent.depth > limit) {
     return false;
   }
 

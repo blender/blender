@@ -10,7 +10,6 @@
 
 #ifdef WITH_FFMPEG
 
-struct AVFrame;
 struct SwsContext;
 
 namespace blender {
@@ -43,8 +42,6 @@ SwsContext *ffmpeg_sws_get_context(int src_width,
                                    int dst_color_space,
                                    int sws_flags);
 void ffmpeg_sws_release_context(SwsContext *ctx);
-
-void ffmpeg_sws_scale_frame(SwsContext *ctx, AVFrame *dst, const AVFrame *src);
 
 void ffmpeg_sws_exit();
 

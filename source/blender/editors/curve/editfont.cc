@@ -572,7 +572,7 @@ static char *font_select_to_buffer(Object *obedit)
 
   const size_t len_utf8 = BLI_str_utf32_as_utf8_len_ex(text_buf, text_buf_len + 1);
   char *buf = MEM_new_array_uninitialized<char>(len_utf8 + 1, __func__);
-  BLI_str_utf32_as_utf8(buf, text_buf, len_utf8);
+  BLI_str_utf32_as_utf8(buf, text_buf, len_utf8 + 1);
   return buf;
 }
 
@@ -1638,7 +1638,7 @@ static wmOperatorStatus change_character_exec(bContext *C, wmOperator *op)
   character += delta;
   CLAMP(character, 0, 255);
 
-  if (character == ef->textbuf[ef->pos - 1]) {
+  if (ELEM(character, 0, ef->textbuf[ef->pos - 1])) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1891,15 +1891,16 @@ static wmOperatorStatus insert_text_exec(bContext *C, wmOperator *op)
   len = BLI_strlen_utf8(inserted_utf8.c_str());
 
   inserted_text = MEM_new_array_zeroed<char32_t>((len + 1), "FONT_insert_text");
-  len = BLI_str_utf8_as_utf32(inserted_text, inserted_utf8.c_str(), MAXTEXT);
+  len = BLI_str_utf8_as_utf32(inserted_text, inserted_utf8.c_str(), len + 1);
 
+  int inserted_len = 0;
   for (a = 0; a < len; a++) {
-    insert_into_textbuf(obedit, inserted_text[a]);
+    inserted_len += insert_into_textbuf(obedit, inserted_text[a]);
   }
 
   MEM_delete(inserted_text);
 
-  kill_selection(obedit, len);
+  kill_selection(obedit, inserted_len);
   text_update_edited(C, obedit, FO_EDIT);
 
   return OPERATOR_FINISHED;
@@ -1960,6 +1961,7 @@ static wmOperatorStatus insert_text_invoke(bContext *C, wmOperator *op, const wm
     }
     else {
       BLI_assert(event->utf8_buf[0]);
+      int inserted_len = 0;
       if (accentcode) {
         if (ef->pos > 0) {
           inserted_text[0] = findaccent(ef->textbuf[ef->pos - 1],
@@ -1970,14 +1972,14 @@ static wmOperatorStatus insert_text_invoke(bContext *C, wmOperator *op, const wm
       }
       else if (event->utf8_buf[0]) {
         inserted_text[0] = BLI_str_utf8_as_unicode_or_error(event->utf8_buf);
-        insert_into_textbuf(obedit, inserted_text[0]);
+        inserted_len = insert_into_textbuf(obedit, inserted_text[0]);
         accentcode = false;
       }
       else {
         BLI_assert(0);
       }
 
-      kill_selection(obedit, 1);
+      kill_selection(obedit, inserted_len);
       text_update_edited(C, obedit, FO_EDIT);
     }
   }

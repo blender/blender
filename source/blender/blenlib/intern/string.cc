@@ -95,21 +95,21 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
     size_t idx = 0;
     size_t srclen;
 
-    if (src[idx] != pad) {
+    dst_maxncpy--; /* trailing '\0' */
+    if ((dst_maxncpy != 0) && (src[idx] != pad)) {
       dst[idx++] = pad;
       dst_maxncpy--;
     }
-    dst_maxncpy--; /* trailing '\0' */
 
     srclen = BLI_strnlen(src, dst_maxncpy);
-    if ((src[srclen - 1] != pad) && (srclen == dst_maxncpy)) {
+    if ((srclen != 0) && (srclen == dst_maxncpy) && (src[srclen - 1] != pad)) {
       srclen--;
     }
 
     memcpy(&dst[idx], src, srclen);
     idx += srclen;
 
-    if (dst[idx - 1] != pad) {
+    if ((idx != 0) && (dst[idx - 1] != pad)) {
       dst[idx++] = pad;
     }
     dst[idx] = '\0';
@@ -138,7 +138,7 @@ size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const 
 
 char *BLI_strncat(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
 {
-  BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_string_debug_size_after_nil(dst, dst_maxncpy);
 
   size_t len = BLI_strnlen(dst, dst_maxncpy);
   if (len < dst_maxncpy) {
@@ -337,9 +337,10 @@ size_t BLI_str_escape(char *__restrict dst, StringRef src, const size_t dst_maxn
   BLI_assert(dst_maxncpy != 0);
   BLI_string_debug_size(dst, dst_maxncpy);
 
+  const size_t dst_len_max = dst_maxncpy - 1;
   size_t dst_len = 0;
   int64_t src_idx = 0;
-  for (; (dst_len < dst_maxncpy) && (src_idx < src.size()); src_idx++, dst++, dst_len++) {
+  for (; (dst_len < dst_len_max) && (src_idx < src.size()); src_idx++, dst++, dst_len++) {
     char c = src[src_idx];
     if (ELEM(c, '\\', '"') ||                       /* Use as-is. */
         ((c == '\t') && ((void)(c = 't'), true)) || /* Tab. */
@@ -349,7 +350,7 @@ size_t BLI_str_escape(char *__restrict dst, StringRef src, const size_t dst_maxn
         ((c == '\b') && ((void)(c = 'b'), true)) || /* Backspace. */
         ((c == '\f') && ((void)(c = 'f'), true)))   /* Form-feed. */
     {
-      if (dst_len + 1 >= dst_maxncpy) [[unlikely]] {
+      if (dst_len + 1 >= dst_len_max) [[unlikely]] {
         /* Not enough space to escape. */
         break;
       }
@@ -399,23 +400,24 @@ BLI_INLINE bool str_unescape_pair(char c_next, char *r_out)
 
 size_t BLI_str_unescape_ex(char *__restrict dst,
                            const char *__restrict src,
-                           const size_t src_maxncpy,
+                           const size_t src_len,
                            /* Additional arguments to #BLI_str_unescape */
                            const size_t dst_maxncpy,
                            bool *r_is_complete)
 {
   BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_assert(dst_maxncpy != 0);
 
   size_t len = 0;
   bool is_complete = true;
   const size_t max_strlen = dst_maxncpy - 1; /* Account for trailing zero byte. */
-  for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
+  for (const char *src_end = src + src_len; (src < src_end) && *src; src++) {
     if (len == max_strlen) [[unlikely]] {
       is_complete = false;
       break;
     }
     char c = *src;
-    if (UNLIKELY(c == '\\') && str_unescape_pair(*(src + 1), &c)) {
+    if (UNLIKELY(c == '\\') && (src + 1 < src_end) && str_unescape_pair(*(src + 1), &c)) {
       src++;
     }
     dst[len++] = c;
@@ -425,14 +427,14 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
   return len;
 }
 
-size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_maxncpy)
+size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_len)
 {
-  BLI_string_debug_size(dst, src_maxncpy); /* `dst` must be at least as big as `src`. */
+  BLI_string_debug_size(dst, src_len + 1); /* `dst` must be at least as big as `src`. */
 
   size_t len = 0;
-  for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
+  for (const char *src_end = src + src_len; (src < src_end) && *src; src++) {
     char c = *src;
-    if (UNLIKELY(c == '\\') && str_unescape_pair(*(src + 1), &c)) {
+    if (UNLIKELY(c == '\\') && (src + 1 < src_end) && str_unescape_pair(*(src + 1), &c)) {
       src++;
     }
     dst[len++] = c;
@@ -1251,7 +1253,7 @@ void BLI_str_format_byte_unit_compact(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_CO
   float number_to_format_converted = float(bytes);
   int order = 0;
   const float base = base_10 ? 1000.0f : 1024.0f;
-  const char *units[] = {"B", "K", "M", "G", "T", "P"};
+  const char *units[] = {"B", "K", "M", "G", "T", "P", "E"};
   const int units_num = int(ARRAY_SIZE(units));
 
   while ((fabsf(number_to_format_converted) >= base) && ((order + 1) < units_num)) {

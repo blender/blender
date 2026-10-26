@@ -556,15 +556,12 @@ class ShaderModule {
   StaticShader wireframe_curve = shader_selectable("overlay_wireframe_curve");
   StaticShader wireframe_gsplat = shader_selectable("overlay_wireframe_gsplat");
 
-  StaticShader fluid_grid_lines_flags = shader_selectable_no_clip(
-      "overlay_volume_gridlines_flags");
-  StaticShader fluid_grid_lines_flat = shader_selectable_no_clip("overlay_volume_gridlines_flat");
-  StaticShader fluid_grid_lines_range = shader_selectable_no_clip(
-      "overlay_volume_gridlines_range");
-  StaticShader fluid_velocity_streamline = shader_selectable_no_clip(
-      "overlay_volume_velocity_streamline");
-  StaticShader fluid_velocity_mac = shader_selectable_no_clip("overlay_volume_velocity_mac");
-  StaticShader fluid_velocity_needle = shader_selectable_no_clip("overlay_volume_velocity_needle");
+  StaticShader fluid_grid_lines_flags = shader_selectable("overlay_volume_gridlines_flags");
+  StaticShader fluid_grid_lines_flat = shader_selectable("overlay_volume_gridlines_flat");
+  StaticShader fluid_grid_lines_range = shader_selectable("overlay_volume_gridlines_range");
+  StaticShader fluid_velocity_streamline = shader_selectable("overlay_volume_velocity_streamline");
+  StaticShader fluid_velocity_mac = shader_selectable("overlay_volume_velocity_mac");
+  StaticShader fluid_velocity_needle = shader_selectable("overlay_volume_velocity_needle");
 
   /** Module */
   /** Only to be used by Instance constructor. */

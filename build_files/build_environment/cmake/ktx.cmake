@@ -24,9 +24,11 @@ ExternalProject_Add(external_ktx
 
   PATCH_COMMAND
     # This unbundles whatever zstd they got squirreled away in their extern
-    # folder and uses our copy. 
+    # folder and uses our copy.
     ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/ktx/src/external_ktx
-      -i ${PATCH_DIR}/ktx_zstd_dep_fix.diff
+      -i ${PATCH_DIR}/ktx_zstd_dep_fix.diff &&
+    ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/ktx/src/external_ktx
+      -i ${PATCH_DIR}/ktx_asan.diff
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ktx

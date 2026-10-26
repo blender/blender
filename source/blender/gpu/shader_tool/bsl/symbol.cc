@@ -759,18 +759,20 @@ struct SymbolParser : NodeErrorHandler {
     SymbolFunction *fn = nullptr;
 
     IdQualified id = func.identifier();
-    SymbolClass *cls = nullptr;
+    SymbolScope *ns = nullptr;
     if (id.has_namespace()) {
-      /* Definition of a member function. Find the class. */
-      Id start = id.namespace_start();
-      Id last = id.child_last(NodeType::Id).prev(NodeType::Id);
-      cls = def_scope.lookup_class(table, start, last).unwrap(this);
-      if (cls->is_error) {
-        error(last, Diag::UnknownTypeName);
+      /* Definition of a member function or function from a different namespace.
+       * Try to query the function to find its namespace. */
+      SymbolFunction *fn_prototype = def_scope.lookup_function(table, id).unwrap(this);
+      if (!fn_prototype->is_error) {
+        ns = fn_prototype->parent;
+      }
+      else {
+        error(id, Diag::UnknownFunction, id.str());
       }
     }
 
-    SymbolScope &scope = cls ? *cls : def_scope;
+    SymbolScope &scope = ns ? *ns : def_scope;
     if (auto [fdecl, fn_ptr] = scope.lookup_function_forward_decl(func); fdecl.is_valid()) {
       fn = fn_ptr;
       /* Modify symbol location if it is forward declared. */
@@ -786,8 +788,8 @@ struct SymbolParser : NodeErrorHandler {
       fn->arg_types.clear();
       fn->arg_defaults.clear();
     }
-    else if (cls) {
-      error(id.name(), Diag::FunctionOutOfClassDefinition, id.name().str(), cls->original);
+    else if (ns) {
+      error(id.name(), Diag::FunctionOutOfClassDefinition, id.name().str(), ns->original);
       /* Still return a valid function to avoid crash. */
       fn = table.fun_arena.alloc(&scope, table.err_cls, func, suffix);
       return fn;
@@ -811,13 +813,16 @@ struct SymbolParser : NodeErrorHandler {
       fn->poi = scope.poi;
     }
 
-    parse_scope(*fn, func.body(), prefix + fn->identifier + ns_sep, temp_params);
+    /* Out-of-class definitions use the prefix of their class, e.g. `A_s` for `int A::s()`. */
+    std::string fn_prefix = ns ? scope.identifier + ns_sep : prefix;
+
+    parse_scope(*fn, func.body(), fn_prefix + fn->identifier + ns_sep, temp_params);
 
     /* Set resolved identifier. */
     switch (fn->fn_type) {
       case SymbolFunction::GLOBAL:
       case SymbolFunction::STATIC:
-        fn->identifier = prefix + fn->identifier;
+        fn->identifier = fn_prefix + fn->identifier;
         break;
       case SymbolFunction::MEMBER:
         /* Member function use overload resolution. */

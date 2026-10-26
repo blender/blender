@@ -86,8 +86,6 @@ set(SRC_GLSL_VERT
   overlay_viewer_attribute_curves_vert.glsl
   overlay_viewer_attribute_mesh_vert.glsl
   overlay_viewer_attribute_pointcloud_vert.glsl
-  overlay_volume_gridlines_vert.glsl
-  overlay_volume_velocity_vert.glsl
   overlay_wireframe_vert.glsl
 )
 

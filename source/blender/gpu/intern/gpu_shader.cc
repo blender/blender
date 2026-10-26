@@ -905,6 +905,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
   std::string resources = shader->resources_declare(info);
 
   defines += info.resource_guard_defines(info.compilation_constants_);
+  defines += info.iface_guard_defines();
 
   if (!info.compute_entry_fn_.is_empty()) {
     defines += "#define ENTRY_POINT_" + info.compute_entry_fn_ + "\n";

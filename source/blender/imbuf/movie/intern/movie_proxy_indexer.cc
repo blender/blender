@@ -329,7 +329,7 @@ static void add_to_proxy_output_ffmpeg(proxy_output_ctx *ctx,
   if (ctx->sws_ctx && frame &&
       (frame->data[0] || frame->data[1] || frame->data[2] || frame->data[3]))
   {
-    ffmpeg_sws_scale_frame(ctx->sws_ctx, ctx->frame, frame);
+    sws_scale_frame(ctx->sws_ctx, ctx->frame, frame);
   }
 
   frame = ctx->sws_ctx ? (frame ? ctx->frame : nullptr) : frame;
@@ -377,9 +377,6 @@ static void add_to_proxy_output_ffmpeg(proxy_output_ctx *ctx,
 
     packet->stream_index = ctx->st->index;
     av_packet_rescale_ts(packet, ctx->c->time_base, ctx->st->time_base);
-#  ifdef FFMPEG_USE_DURATION_WORKAROUND
-    my_guess_pkt_duration(ctx->of, ctx->st, packet);
-#  endif
 
     int write_ret = av_interleaved_write_frame(ctx->of, packet);
     if (write_ret != 0) {

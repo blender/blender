@@ -42,9 +42,11 @@ void ImplicitInputOperation::execute()
 
   switch (implicit_input_) {
     case ImplicitInputType::UniformImageCoordinates: {
-      const int2 size = this->context().get_compositing_domain().data_size;
-      result.share_data(this->context().cache_manager().image_coordinates.get(
-          this->context(), size, CoordinatesType::Uniform));
+      const Domain domain = this->context().get_compositing_domain();
+      const Result &uniform_coordinates = this->context().cache_manager().image_coordinates.get(
+          this->context(), domain, CoordinatesType::Uniform);
+      result.share_data(uniform_coordinates);
+      result.domain().transformation = domain.transformation;
       break;
     }
     case ImplicitInputType::SceneFrame:
