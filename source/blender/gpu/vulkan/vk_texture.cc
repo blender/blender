@@ -439,7 +439,7 @@ void VKTexture::update_sub(int mip,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         {vk_image_aspects, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS},
     };
-    device.functions.vkTransitionImageLayout(device.vk_handle(), 1, &image_layout_transition);
+    device.functions.vkTransitionImageLayoutEXT(device.vk_handle(), 1, &image_layout_transition);
     device.resources.update_image_layout(resource_.resource_handle,
                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     /* TODO: Add support for VK_HOST_IMAGE_COPY_MEMCPY_EXT flag. It would theoretically allow
@@ -462,7 +462,7 @@ void VKTexture::update_sub(int mip,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         1,
         &vk_memory_to_image_copy};
-    device.functions.vkCopyMemoryToImage(device.vk_handle(), &vk_copy_memory_to_image);
+    device.functions.vkCopyMemoryToImageEXT(device.vk_handle(), &vk_copy_memory_to_image);
 
     has_data_ = true;
     return;
