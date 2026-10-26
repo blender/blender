@@ -668,6 +668,14 @@ struct GHOST_InstanceVK {
     buffer_device_address_features.bufferDeviceAddress = VK_TRUE;
     feature_struct_ptr.push_back(&buffer_device_address_features);
 
+    /* Enable separate depth stencil layouts. */
+    VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures separate_depth_stencil_layouts_features =
+        {};
+    separate_depth_stencil_layouts_features.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES;
+    separate_depth_stencil_layouts_features.separateDepthStencilLayouts = VK_TRUE;
+    feature_struct_ptr.push_back(&separate_depth_stencil_layouts_features);
+
     /* Enable provoking vertex if available. */
     VkPhysicalDeviceProvokingVertexFeaturesEXT provoking_vertex_features = {};
     if (device.extensions.is_supported(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME)) {
