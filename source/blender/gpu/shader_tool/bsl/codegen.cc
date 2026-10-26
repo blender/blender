@@ -87,6 +87,8 @@ struct CodegenContext : NodeErrorHandler {
     int8_t array_dim = 0;
     bool is_bitfield = false;
     bool is_ptr = false;
+    /* Expression needs parentheses before member access (e.g. ternary). */
+    bool needs_parentheses = false;
 
     CodegenResult(SymbolVariable *var, const string &trivia)
         : str((var->is_constexpr ? var->value_str() : var->identifier) + trivia),
@@ -111,9 +113,12 @@ struct CodegenContext : NodeErrorHandler {
     {
     }
 
-    CodegenResult &cast(const SymbolClass *to, ast::Node node, NodeErrorHandler &err)
+    CodegenResult &cast(const bool to_ptr,
+                        const SymbolClass *to,
+                        ast::Node node,
+                        NodeErrorHandler &err)
     {
-      if (is_ptr && type && to) {
+      if (is_ptr != to_ptr && type && to) {
         err.error(node, Diag::InvalidPointerCast, type->original, to->original);
       }
 
@@ -121,7 +126,11 @@ struct CodegenContext : NodeErrorHandler {
        * Note that builtin conversions are handled at runtime by the final compiler. */
       if (to && type && !to->is_builtin() && !type->is_builtin() && type != to) {
         if (to->size > 0) {
-          str += "._" + to->identifier;
+          if (needs_parentheses) {
+            str = "(" + str + ")";
+          }
+          /* Base class can be indirect (e.g. `d._C._B._A`). */
+          str += type->get_path_to_base_class(to);
         }
         else {
           /* Call constructor directly for empty types. */
@@ -219,7 +228,12 @@ struct CodegenContext : NodeErrorHandler {
       ast::Node right = consume();
       switch (right.type()) {
         case ast::NodeType::FuncCall: {
-          CodegenResult rhs = function(right, *left.type);
+          const SymbolFunction *method = nullptr;
+          CodegenResult rhs = function(right, *left.type, &method);
+          if (method && method->fn_type == SymbolFunction::MEMBER) {
+            /* Convert to the base class declaring an inherited method (e.g. `b._A.m()`). */
+            left.cast(t.type() == NodeType::OpDeref, method->parent_class(), right, ctx);
+          }
           return {left.str + op_str + rhs.str, rhs.type};
         }
         case ast::NodeType::LocalVar: {
@@ -329,6 +343,11 @@ struct CodegenContext : NodeErrorHandler {
 
       CodegenResult rhs = expr(p);
 
+      if (op_type == Assign) {
+        /* Implicit conversion to base class. */
+        rhs.cast(false, lhs.type, t, ctx);
+      }
+
       ClassId type = binary_operator_return_type(lhs.type, op_type, rhs.type);
 
       if (lhs.is_bitfield) {
@@ -357,9 +376,11 @@ struct CodegenContext : NodeErrorHandler {
       CodegenResult tval = ctx.expr(consume(), scope);
       ast::Node colon = consume();
       CodegenResult fval = expr(p_second);
-      return {left.str + string(question.str_full()) + tval.str + string(colon.str_full()) +
-                  fval.str,
-              tval.type};
+      CodegenResult result = {left.str + string(question.str_full()) + tval.str +
+                                  string(colon.str_full()) + fval.str,
+                              tval.type};
+      result.needs_parentheses = true;
+      return result;
     }
 
     TokenType peek() const
@@ -462,7 +483,9 @@ struct CodegenContext : NodeErrorHandler {
       return {var, whitespace};
     }
 
-    CodegenResult function(const ast::FuncCall &call, const SymbolScope &symbol_scope)
+    CodegenResult function(const ast::FuncCall &call,
+                           const SymbolScope &symbol_scope,
+                           const SymbolFunction **r_method = nullptr)
     {
       assert(call.is_valid());
 
@@ -484,6 +507,10 @@ struct CodegenContext : NodeErrorHandler {
         ctx.error(call, Diag::InvalidInlinedFunctionLocation);
       }
 
+      if (r_method) {
+        *r_method = sym;
+      }
+
       bool preceded_by_dot = call.prev().back() == '.' || call.prev().type() == NodeType::OpDeref;
       FuncParamList list = call.parameters();
       std::string params_str;
@@ -497,7 +524,7 @@ struct CodegenContext : NodeErrorHandler {
           const SymbolClass *callee_class = method->parent_class();
           if (callee_class->size == 0) {
             /* Call constructor for empty classes. */
-            params_str = caller_class->identifier + "_ctor_()";
+            params_str = callee_class->identifier + "_ctor_()";
           }
           else if (caller_class != callee_class) {
             /* We need to figure out what inheritance path this function is visible in. */
@@ -519,7 +546,7 @@ struct CodegenContext : NodeErrorHandler {
             break;
           }
           const SymbolClass *arg_type = sym->arg_types[param_count];
-          params_str += ctx.expr(param, scope).cast(arg_type, param, ctx).str;
+          params_str += ctx.expr(param, scope).cast(false, arg_type, param, ctx).str;
         }
         else {
           params_str += ctx.expr(param, scope).str;
@@ -918,7 +945,7 @@ struct CodegenContext : NodeErrorHandler {
         builder.ss << initializer_list(list, scope, fn->return_type).str;
       }
       else {
-        builder.ss << expr(stmt.expression(), scope).str;
+        builder.ss << expr(stmt.expression(), scope).cast(false, fn->return_type, stmt, *this).str;
       }
       builder.curr = stmt.expression().back().next();
 
@@ -2220,7 +2247,8 @@ struct CodegenContext : NodeErrorHandler {
     match_if('(');
 
     FuncDecl decl = list.parent();
-    if (fn.is_method() && !decl.is_static()) {
+    /* Check the symbol and not the declaration, out-of-class definitions are not marked static. */
+    if (fn.fn_type == SymbolFunction::MEMBER) {
       SymbolClass *cls = fn.parent_class();
 
       if (decl.is_const()) {
@@ -2913,7 +2941,7 @@ struct CodegenContext : NodeErrorHandler {
       return initializer_list(node, scope, cls, array_dim);
     }
     if (node == NodeType::Expr) {
-      return expr(node, scope).cast(cls, node, *this);
+      return expr(node, scope).cast(false, cls, node, *this);
     }
     assert(0);
     return {"", cls};

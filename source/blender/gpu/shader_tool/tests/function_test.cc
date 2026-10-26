@@ -473,6 +473,54 @@ void _f(A this_, int _0) {
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
+  {
+    string input = R"(
+struct A {
+  static int s(int x);
+};
+int A::s(int x) { return x; }
+int f() { return A::s(1); }
+)";
+    string expect = R"(
+struct A {
+  int _pad;
+};
+#line 2
+A A_ctor_() {A r;r._pad=0;return r;}
+
+#ifndef GPU_METAL
+int A_s(int x);
+#endif
+#line 5
+int A_s(int x) {  return x; }
+int f() { return A_s(1);  }
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+namespace ns {
+void f(int a);
+}
+void ns::f(int a) {}
+void g() { ns::f(1); }
+)";
+    string expect = R"(
+
+
+#ifndef GPU_METAL
+void ns_f(int a);
+#endif
+#line 5
+void ns_f(int a) { }
+void g() { ns_f(1);  }
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
 }
 
 }  // namespace blender::gpu::tests

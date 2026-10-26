@@ -1674,8 +1674,8 @@ void f(C c) {
 
 void foo(D d)
 {
-  A a = d._A;
-  B b = d._B;
+  A a = d._C._B._A;
+  B b = d._C._B;
   C c = d._C;
   f(a);
   f(b._A);
@@ -1722,11 +1722,15 @@ struct A {
 
 struct B : A {};
 
-void f(B b) {
+A f(B b, bool t) {
   b.a;
   B::U bu;
   b.m();
   B::s();
+  A a;
+  a = b;
+  a = t ? b : b;
+  return b;
 }
 )";
     string expect = R"(#line 4
@@ -1762,11 +1766,15 @@ struct B {A _A;
 #line 9
 B B_ctor_() {B r;r._A=A_ctor_();return r;}
 
-void f(B b) {
+A f(B b, bool t) {
   b._A.a;
   A_U bu;
-  _m(b);
+  _m(b._A);
   A_s();
+  A a;
+  a = b._A;
+  a = (t ? b : b)._A;
+  return b._A;
 }
 )";
     auto [output, _, error] = process_test_string(input, Language::BSL);
