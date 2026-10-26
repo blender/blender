@@ -116,8 +116,6 @@ BLOCKLIST_VULKAN = [
 ]
 
 BLOCKLIST_OPENGL = [
-    # Fails on AMD.
-    "aov_consecutive_view_layers.blend",
 ]
 
 BLOCKLIST_INTEL = [
@@ -132,6 +130,11 @@ BLOCKLIST_AMD_WINDOWS_VK = [
 # caused by incorrect index buffer synchronization or vertex shader execution.
 BLOCKLIST_AMD_VK = [
     ".*"
+]
+
+BLOCKLIST_AMD_GL = [
+    # Fails on the AMD buildbot (to be investigated).
+    "aov_consecutive_view_layers.blend",
 ]
 
 BLOCKLIST_INTEL_WINDOWS = [
@@ -392,6 +395,8 @@ def main():
             blocklist += BLOCKLIST_INTEL_WINDOWS
         if gpu_vendor == "NVIDIA" and args.gpu_backend == "opengl":
             blocklist += BLOCKLIST_NVIDIA_GL
+        if gpu_vendor == "AMD" and args.gpu_backend == "opengl":
+            blocklist += BLOCKLIST_AMD_GL
         if gpu_vendor == "AMD" and sys.platform == "win32" and args.gpu_backend == "vulkan":
             blocklist += BLOCKLIST_AMD_WINDOWS_VK
         if gpu_vendor == "AMD" and args.gpu_backend == "vulkan":
