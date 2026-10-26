@@ -34,9 +34,9 @@ static void extract_vert_normals_mesh(const MeshRenderData &mr,
   gpu::convert_normals(loose_normals.as_span(), loose_data);
 }
 
-static void extract_vert_normals_bm(const MeshRenderData &mr,
-                                    MutableSpan<int1010102_norm> vert_data,
-                                    MutableSpan<int1010102_norm> loose_data)
+static void extract_vert_normals_bmesh(const MeshRenderData &mr,
+                                       MutableSpan<int1010102_norm> vert_data,
+                                       MutableSpan<int1010102_norm> loose_data)
 {
   const BMesh &bm = *mr.bm;
   MutableSpan loose_edge_data = loose_data.take_front(mr.loose_edges.size() * 2);
@@ -85,7 +85,7 @@ gpu::VertBufPtr extract_vert_normals(const MeshRenderData &mr, MeshBufferCache &
     extract_vert_normals_mesh(mr, vert_vbo->data<int1010102_norm>(), loose_data);
   }
   else {
-    extract_vert_normals_bm(mr, vert_vbo->data<int1010102_norm>(), loose_data);
+    extract_vert_normals_bmesh(mr, vert_vbo->data<int1010102_norm>(), loose_data);
   }
 
   gpu::VertBufPtr vbo = gpu::VertBufPtr(

@@ -26,7 +26,7 @@ static void extract_vert_normals_mesh(const MeshRenderData &mr, MutableSpan<GPUT
 }
 
 template<typename GPUType>
-static void extract_vert_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> vert_data)
+static void extract_vert_normals_bmesh(const MeshRenderData &mr, MutableSpan<GPUType> vert_data)
 {
   const BMesh &bm = *mr.bm;
   threading::parallel_for(IndexRange(bm.totvert), 4096, [&](const IndexRange range) {
@@ -44,7 +44,7 @@ static void extract_face_normals_mesh(const MeshRenderData &mr, MutableSpan<GPUT
 }
 
 template<typename GPUType>
-static void extract_face_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> face_data)
+static void extract_face_normals_bmesh(const MeshRenderData &mr, MutableSpan<GPUType> face_data)
 {
   const BMesh &bm = *mr.bm;
   threading::parallel_for(IndexRange(bm.totface), 4096, [&](const IndexRange range) {
@@ -84,7 +84,7 @@ static void extract_corner_normals_mesh(const MeshRenderData &mr, MutableSpan<GP
 }
 
 template<typename GPUType>
-static void extract_corner_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
+static void extract_corner_normals_bmesh(const MeshRenderData &mr, MutableSpan<GPUType> normals)
 {
   const BMesh &bm = *mr.bm;
   if (mr.bm_free_normal_offset_corner != -1) {
@@ -141,7 +141,7 @@ static gpu::VertBufPtr extract_normals(const MeshRenderData &mr,
         extract_vert_normals_mesh(mr, vert_vbo->data<GPUType>());
       }
       else {
-        extract_vert_normals_bm(mr, vert_vbo->data<GPUType>());
+        extract_vert_normals_bmesh(mr, vert_vbo->data<GPUType>());
       }
       gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_on_device(format, size));
       gather_vert_to_corner_gpu(mr, cache, *vert_vbo, *vbo);
@@ -155,7 +155,7 @@ static gpu::VertBufPtr extract_normals(const MeshRenderData &mr,
         extract_face_normals_mesh(mr, face_vbo->data<GPUType>());
       }
       else {
-        extract_face_normals_bm(mr, face_vbo->data<GPUType>());
+        extract_face_normals_bmesh(mr, face_vbo->data<GPUType>());
       }
       gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_on_device(format, size));
       scatter_face_to_corner_gpu(mr, cache, *face_vbo, *vbo);
@@ -170,7 +170,7 @@ static gpu::VertBufPtr extract_normals(const MeshRenderData &mr,
         extract_corner_normals_mesh(mr, vbo_data.take_front(mr.corners_num));
       }
       else {
-        extract_corner_normals_bm(mr, vbo_data.take_front(mr.corners_num));
+        extract_corner_normals_bmesh(mr, vbo_data.take_front(mr.corners_num));
       }
       vbo_data.take_back(mr.loose_indices_num).copy_from(loose_data);
       return vbo;

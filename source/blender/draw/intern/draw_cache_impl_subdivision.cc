@@ -302,7 +302,7 @@ void draw_subdiv_cache_free(DRWSubdivCache &cache)
      SUBDIV_COARSE_FACE_FLAG_ACTIVE | SUBDIV_COARSE_FACE_FLAG_HIDDEN) \
     << SUBDIV_COARSE_FACE_FLAG_OFFSET)
 
-static uint32_t compute_coarse_face_flag_bm(BMFace *f, BMFace *efa_act)
+static uint32_t compute_coarse_face_flag_bmesh(BMFace *f, BMFace *efa_act)
 {
   uint32_t flag = 0;
   if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
@@ -317,16 +317,16 @@ static uint32_t compute_coarse_face_flag_bm(BMFace *f, BMFace *efa_act)
   return flag;
 }
 
-static void draw_subdiv_cache_extra_coarse_face_data_bm(BMesh *bm,
-                                                        BMFace *efa_act,
-                                                        MutableSpan<uint32_t> flags_data)
+static void draw_subdiv_cache_extra_coarse_face_data_bmesh(BMesh *bm,
+                                                           BMFace *efa_act,
+                                                           MutableSpan<uint32_t> flags_data)
 {
   BMFace *f;
   BMIter iter;
 
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     const int index = BM_elem_index_get(f);
-    uint32_t flag = compute_coarse_face_flag_bm(f, efa_act);
+    uint32_t flag = compute_coarse_face_flag_bmesh(f, efa_act);
     if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
       flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
     }
@@ -371,7 +371,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mapped(const Mesh *mesh,
   for (const int i : faces.index_range()) {
     BMFace *f = bm_original_face_get(mr, i);
     /* Selection and hiding from bmesh. */
-    uint32_t flag = (f) ? compute_coarse_face_flag_bm(f, mr.efa_act) : 0;
+    uint32_t flag = (f) ? compute_coarse_face_flag_bmesh(f, mr.efa_act) : 0;
     /* Smooth from mesh. */
     if (!(mr.normals_domain == bke::MeshNormalDomain::Face ||
           (!mr.sharp_faces.is_empty() && mr.sharp_faces[i])))
@@ -402,7 +402,7 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache &cach
   MutableSpan<uint32_t> flags_data = cache.extra_coarse_face_data->data<uint32_t>();
 
   if (mr.extract_type == MeshExtractType::BMesh) {
-    draw_subdiv_cache_extra_coarse_face_data_bm(cache.bm, mr.efa_act, flags_data);
+    draw_subdiv_cache_extra_coarse_face_data_bmesh(cache.bm, mr.efa_act, flags_data);
   }
   else if (mr.orig_index_face != nullptr) {
     draw_subdiv_cache_extra_coarse_face_data_mapped(mesh, cache.bm, mr, flags_data);

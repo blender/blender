@@ -85,7 +85,7 @@ void mesh_render_data_update_loose_geom(MeshRenderData &mr, MeshBufferCache &cac
  * Contains face indices sorted based on their material.
  * \{ */
 
-static void accumululate_material_counts_bm(
+static void accumululate_material_counts_bmesh(
     const BMesh &bm, threading::EnumerableThreadSpecific<Array<int>> &all_tri_counts)
 {
   threading::parallel_for(IndexRange(bm.totface), 1024, [&](const IndexRange range) {
@@ -156,7 +156,7 @@ static Array<int> mesh_render_data_mat_tri_len_build(const MeshRenderData &mr)
       [&]() { return Array<int>(mr.materials_num, 0); });
 
   if (mr.extract_type == MeshExtractType::BMesh) {
-    accumululate_material_counts_bm(*mr.bm, all_tri_counts);
+    accumululate_material_counts_bmesh(*mr.bm, all_tri_counts);
   }
   else {
     accumululate_material_counts_mesh(mr, all_tri_counts);

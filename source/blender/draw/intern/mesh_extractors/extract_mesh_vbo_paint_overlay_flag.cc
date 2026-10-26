@@ -56,7 +56,7 @@ static void extract_paint_overlay_flags(const MeshRenderData &mr, MutableSpan<in
   });
 }
 
-static void extract_edit_flags_bm(const MeshRenderData &mr, MutableSpan<int> flags)
+static void extract_edit_flags_bmesh(const MeshRenderData &mr, MutableSpan<int> flags)
 {
   const BMesh &bm = *mr.bm;
   threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
@@ -89,7 +89,7 @@ gpu::VertBufPtr extract_paint_overlay_flags(const MeshRenderData &mr)
     extract_paint_overlay_flags(mr, corners_data);
   }
   else {
-    extract_edit_flags_bm(mr, corners_data);
+    extract_edit_flags_bmesh(mr, corners_data);
   }
 
   loose_data.fill(0);

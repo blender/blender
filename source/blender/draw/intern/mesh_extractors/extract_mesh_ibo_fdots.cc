@@ -49,7 +49,7 @@ static gpu::IndexBufPtr extract_face_dots_mesh(const MeshRenderData &mr)
   return index_mask_to_ibo(visible_faces);
 }
 
-static gpu::IndexBufPtr extract_face_dots_bm(const MeshRenderData &mr)
+static gpu::IndexBufPtr extract_face_dots_bmesh(const MeshRenderData &mr)
 {
   BMesh &bm = *mr.bm;
   IndexMaskMemory memory;
@@ -65,7 +65,7 @@ gpu::IndexBufPtr extract_face_dots(const MeshRenderData &mr)
   if (mr.extract_type == MeshExtractType::Mesh) {
     return extract_face_dots_mesh(mr);
   }
-  return extract_face_dots_bm(mr);
+  return extract_face_dots_bmesh(mr);
 }
 
 }  // namespace blender::draw

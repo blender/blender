@@ -29,9 +29,9 @@ static void extract_vert_positions_mesh(const MeshRenderData &mr,
       });
 }
 
-static void extract_vert_positions_bm(const MeshRenderData &mr,
-                                      MutableSpan<float3> vert_data,
-                                      MutableSpan<float3> loose_data)
+static void extract_vert_positions_bmesh(const MeshRenderData &mr,
+                                         MutableSpan<float3> vert_data,
+                                         MutableSpan<float3> loose_data)
 {
   const BMesh &bm = *mr.bm;
   MutableSpan loose_edge_data = loose_data.take_front(mr.loose_edges.size() * 2);
@@ -71,7 +71,7 @@ gpu::VertBufPtr extract_positions(const MeshRenderData &mr, MeshBufferCache &cac
     extract_vert_positions_mesh(mr, vert_vbo->data<float3>(), loose_data);
   }
   else {
-    extract_vert_positions_bm(mr, vert_vbo->data<float3>(), loose_data);
+    extract_vert_positions_bmesh(mr, vert_vbo->data<float3>(), loose_data);
   }
 
   gpu::VertBufPtr vbo = gpu::VertBufPtr(

@@ -44,7 +44,7 @@ static void extract_face_dots_uv_mesh(const MeshRenderData &mr, MutableSpan<floa
   }
 }
 
-static void extract_face_dots_uv_bm(const MeshRenderData &mr, MutableSpan<float2> vbo_data)
+static void extract_face_dots_uv_bmesh(const MeshRenderData &mr, MutableSpan<float2> vbo_data)
 {
   const BMesh &bm = *mr.bm;
   const int offset = CustomData_get_offset(&bm.ldata, CD_PROP_FLOAT2);
@@ -80,7 +80,7 @@ gpu::VertBufPtr extract_face_dots_uv(const MeshRenderData &mr)
     extract_face_dots_uv_mesh(mr, vbo_data);
   }
   else {
-    extract_face_dots_uv_bm(mr, vbo_data);
+    extract_face_dots_uv_bmesh(mr, vbo_data);
   }
   return vbo;
 }
