@@ -40,7 +40,7 @@ struct VertOut {
 [[vertex]]
 void tag_update_vert([[resource_table]] TagUpdate &srt,
                      [[resource_table]] TileMaps &tilemaps,
-                     [[instance_id]] const int inst_per_tilemap_id,
+                     [[instance_index]] const int inst_per_tilemap_id,
                      [[in]] const VertIn &v_in,
                      [[out]] VertOut &v_out,
                      [[position]] float4 &out_position)

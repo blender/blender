@@ -49,7 +49,7 @@ struct Resources {
 
 [[vertex]]
 void vert_main([[resource_table]] Resources &srt,
-               [[instance_id]] const int inst_id,
+               [[instance_index]] const int inst_id,
                [[vertex_id]] const int vert_id,
                [[out]] VertOut &v_out,
                [[position]] float4 &out_position)

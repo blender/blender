@@ -34,7 +34,7 @@ struct Display {
 [[vertex]]
 void display_vert([[resource_table]] Display &srt,
                   [[vertex_id]] const int vert_id,
-                  [[instance_id]] const int inst_id,
+                  [[instance_index]] const int inst_id,
                   [[position]] float4 &out_position,
                   [[out]] DisplayVertOut &v_out)
 {
