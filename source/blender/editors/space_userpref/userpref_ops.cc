@@ -235,22 +235,6 @@ static void preferences_asset_library_add_ui(bContext * /*C*/, wmOperator *op)
   }
 }
 
-static constexpr EnumPropertyItem custom_library_type_items[] = {
-    {int(bUserAssetLibraryAddType::Remote),
-     "REMOTE",
-     ICON_INTERNET,
-     "Add Remote Asset Library",
-     "Add an asset library referencing a remote repository "
-     "with support for listing and updating asset libraries"},
-    {int(bUserAssetLibraryAddType::Local),
-     "LOCAL",
-     ICON_DISK_DRIVE,
-     "Add Local Asset Library",
-     "Add an asset library managed via the file system without referencing an external "
-     "repository"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
 static const EnumPropertyItem *custom_library_type_itemf(bContext * /*C*/,
                                                          PointerRNA * /*ptr*/,
                                                          PropertyRNA * /*prop*/,
@@ -265,7 +249,7 @@ static const EnumPropertyItem *custom_library_type_itemf(bContext * /*C*/,
 
   /* Since the Remote item is the first in the list, we can just return a pointer to
    * the 2nd item in the list, when remote asset libraries should be hidden. */
-  static_assert(custom_library_type_items[0].value == int(bUserAssetLibraryAddType::Remote));
+  BLI_assert(custom_library_type_items[0].value == int(bUserAssetLibraryAddType::Remote));
   return custom_library_type_items + 1;
 }
 

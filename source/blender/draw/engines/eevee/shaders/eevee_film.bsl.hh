@@ -536,7 +536,8 @@ struct Film {
       }
     }
 
-    float4 vector = camera.resolve(views, vector_tx, nearest_texel, min_depth);
+    /* Only ever called through use_reprojection, which implies a non-panoramic camera. */
+    float4 vector = camera.resolve_local(views, vector_tx, nearest_texel, min_depth);
 
     /* Transform to pixel space. */
     vector.xy *= float2(uniforms.uniform_buf.film.extent);
@@ -1069,7 +1070,13 @@ struct Film {
         }
         else {
           float depth = reverse_z::read(texelFetch(depth_tx, film_sample.texel, 0).x);
-          float4 vector = camera.resolve(views, vector_tx, film_sample.texel, depth);
+          float4 vector;
+          if (constants.use_panoramic) [[static_branch]] {
+            vector = camera.resolve_panoramic(views, vector_tx, film_sample.texel, depth);
+          }
+          else {
+            vector = camera.resolve_local(views, vector_tx, film_sample.texel, depth);
+          }
           /* Transform to pixel space, matching Cycles format. */
           vector *= float4(float2(uni.film.render_extent), float2(uni.film.render_extent));
 

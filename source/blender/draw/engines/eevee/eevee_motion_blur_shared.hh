@@ -25,8 +25,10 @@ struct [[host_shared]] MotionBlurData {
   float2 motion_scale;
   /** Depth scaling factor. Avoid blurring background behind moving objects. */
   float depth_scale;
+  /** Max motion blur sampling radius in pixels. Clamped to the cubeface's overscan margin for
+   * panoramic cameras, to the render extent's diagonal otherwise. */
+  float motion_max_offset_px;
 
-  float _pad0;
   float _pad1;
   float _pad2;
 };

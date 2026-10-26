@@ -96,6 +96,12 @@ static void project_operatortypes()
   WM_operatortype_append(PROJECT_OT_new);
   WM_operatortype_append(PROJECT_OT_open);
   WM_operatortype_append(PROJECT_OT_close);
+  WM_operatortype_append(PROJECT_OT_config_save);
+  WM_operatortype_append(PROJECT_OT_asset_library_add);
+  WM_operatortype_append(PROJECT_OT_asset_library_remove);
+  WM_operatortype_append(PROJECT_OT_variable_add);
+  WM_operatortype_append(PROJECT_OT_variable_remove);
+  WM_operatortype_append(PROJECT_OT_variable_move);
   WM_operatortype_append(PROJECT_OT_splash_image_create);
   WM_operatortype_append(PROJECT_OT_splash_image_clear);
 }
