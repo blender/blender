@@ -863,6 +863,10 @@ void BlenderSession::draw(blender::bScreen &b_screen, blender::SpaceImage &space
     blender::RenderPass *b_display_pass = RE_engine_pass_by_index_get(
         &b_engine, b_rlay_name.c_str(), pass_index);
     if (!b_display_pass) {
+      /* Fall back to displaying the first pass, like image editor drawing does too. */
+      b_display_pass = RE_engine_pass_by_index_get(&b_engine, b_rlay_name.c_str(), 0);
+    }
+    if (!b_display_pass) {
       return;
     }
 
