@@ -190,7 +190,6 @@ struct TomlProjectVariable {
 static void project_variable_add(BlenderProject *project, TomlProjectVariable project_variable)
 {
   ProjectVariable *new_var = project->new_variable(project_variable.name, project_variable.type);
-
   toml::value value = project_variable.value;
 
   switch (project_variable.type) {
@@ -486,6 +485,18 @@ static toml::ordered_table create_toml_from_blender_project(BlenderProject *proj
 }
 
 }  // namespace bke
+
+void BKE_blender_project_config_autosave(Main *bmain)
+{
+  if (!(U.pref_flag & USER_PREF_FLAG_PROJECT_SAVE)) {
+    return;
+  }
+  const bool is_dirty = BKE_blender_project_read_callback(
+      bmain, [](const bke::BlenderProject *project) { return project && project->is_dirty; });
+  if (is_dirty) {
+    BKE_blender_project_config_file_write(bmain);
+  }
+}
 
 bool BKE_blender_project_config_file_write(Main *bmain)
 {

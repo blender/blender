@@ -468,8 +468,10 @@ void WM_init_project_on_startup(bContext *C)
   BKE_reports_free(&reports);
 }
 
-static void wm_exit_last_project_store(const Main *bmain)
+static void wm_exit_project_data_store(Main *bmain)
 {
+  BKE_blender_project_config_autosave(bmain);
+
   const std::string root_path = BKE_blender_project_read_callback(
       bmain, [](const bke::BlenderProject *project) {
         return project ? std::string(project->get_root_path()) : std::string();
@@ -574,7 +576,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   /* NOTE: same code copied in `wm_files.cc`. */
   if (C && wm) {
     if (do_user_exit_actions) {
-      wm_exit_last_project_store(CTX_data_main(C));
+      wm_exit_project_data_store(CTX_data_main(C));
 
       /* Save quit.blend. */
       Main *bmain = CTX_data_main(C);
