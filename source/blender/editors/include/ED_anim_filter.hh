@@ -548,6 +548,7 @@ class SummaryChannel final : public AnimationChannel {
 
   /** Collapsed/expanded state, if known. */
   std::optional<bool> is_collapsed_ = {};
+  bool is_default_collapsed_ = false;
 
  public:
   SummaryChannel(StringRef label);
@@ -563,14 +564,22 @@ class SummaryChannel final : public AnimationChannel {
   void remove_child(AnimationChannel &child);
 
   /**
-   * Recursively push this channel's identifier to its children.
+   * Perform finalization of the channel after the channel grouping is completed.
    *
-   * This ensures that any channel identifiers built for these channels include a value that is
-   * unique at least some aspects of their parent channel.
+   * This is recursive, as it calls the same function on its child SummaryChannels.
+   *
+   * This is named after the call site, rather than after its specific functionality, as it's
+   * intentionally doing multiple things. This way, the recursion only has to happen once.
+   *
+   * - Determine the default UI state. This depends on the children (collapse if all children are
+   *   DataChannels), and so can only be done after grouping is complete.
+   * - Push this channel's identifier to its children. This ensures that any channel identifiers
+   *   built for these channels include a value that is unique at least some aspects of their
+   *   parent channel.
    *
    * \see #ChannelIdentifier::parent_session_uid
    */
-  void push_to_children();
+  void finalize_after_grouping();
 
   /**
    * Sort the children of this summary channel.

@@ -729,8 +729,7 @@ bool SummaryChannel::is_collapsed() const
   const_cast<SummaryChannel *>(this)->ui_state_ensure();
 
   if (!this->is_collapsed_.has_value()) {
-    /* TODO: let the channel determine its default state based on its source type. */
-    return false;
+    return this->is_default_collapsed_;
   }
   return this->is_collapsed_.value();
 }
@@ -909,16 +908,23 @@ static bool animation_channel_compare_function(const AnimationChannel *channel_a
   return channel_a->label() < channel_b->label();
 }
 
-void SummaryChannel::push_to_children()
+void SummaryChannel::finalize_after_grouping()
 {
   const ChannelIdentifier my_ident = this->identifier();
+
+  bool all_children_are_datachannel = true;
   for (AnimationChannel *child : this->children_) {
     child->parent_identifier_set(my_ident);
+
     if (child->type() != AnimationChannelType::SUMMARY) {
       continue;
     }
-    reinterpret_cast<SummaryChannel *>(child)->push_to_children();
+
+    all_children_are_datachannel = false;
+    reinterpret_cast<SummaryChannel *>(child)->finalize_after_grouping();
   }
+
+  this->is_default_collapsed_ = all_children_are_datachannel;
 }
 
 void SummaryChannel::sort_children()
