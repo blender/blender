@@ -11,6 +11,7 @@ from bpy.types import (
 )
 from bpy.app.translations import (
     contexts as i18n_contexts,
+    pgettext_n as n_,
     pgettext_iface as iface_,
     pgettext_rpt as rpt_,
 )
@@ -1435,10 +1436,10 @@ class USERPREF_PT_theme_bone_color_sets(ThemePanel, CenterAlignMixIn, Panel):
 
         row.separator()
 
-        normal_col = self.create_column(row, heading="Normal")
-        selected_col = self.create_column(row, heading="Selected")
-        active_col = self.create_column(row, heading="Active")
-        constraints_col = self.create_column(row, heading="Colored Constraints", width=10)
+        normal_col = self.create_column(row, heading=n_("Regular"))
+        selected_col = self.create_column(row, heading=n_("Selected"))
+        active_col = self.create_column(row, heading=n_("Active"))
+        constraints_col = self.create_column(row, heading=n_("Colored Constraints"), width=10)
 
         for i, ui in enumerate(theme.bone_color_sets, 1):
             color_set_col.label(text=iface_("Color Set {:d}").format(i), translate=False)
