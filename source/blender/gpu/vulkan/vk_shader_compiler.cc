@@ -144,7 +144,7 @@ static void write_spirv_to_disk(VKShaderModule &shader_module)
   spirv_file.write(reinterpret_cast<const char *>(shader_module.spirv_binary.data()), size);
 
   /* Write the sidecar */
-  SPIRVSidecar sidecar;
+  SPIRVSidecar sidecar = {};
   sidecar.spirv_size = size;
   sidecar.spirv_version = spirv_target_version_get();
   std::string sidecar_path = (*cache_dir_get()) + SEP_STR + shader_module.sources_hash +

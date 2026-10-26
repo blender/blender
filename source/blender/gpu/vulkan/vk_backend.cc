@@ -169,6 +169,12 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (!extensions.contains(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
   }
+  if (!extensions.contains(VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME);
+  }
+  if (!extensions.contains(VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME);
+  }
   if (!extensions.contains(VK_KHR_SEPARATE_DEPTH_STENCIL_LAYOUTS_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_SEPARATE_DEPTH_STENCIL_LAYOUTS_EXTENSION_NAME);
   }
