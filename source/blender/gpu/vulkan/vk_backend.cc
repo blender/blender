@@ -906,7 +906,8 @@ void VKBackend::capabilities_init(VKDevice &device)
   }
   GCaps.max_uniforms_vert = GCaps.max_uniforms_frag = min_uu(
       limits.maxPerStageDescriptorUniformBuffers, INT_MAX);
-  GCaps.max_batch_indices = min_uu(limits.maxDrawIndirectCount, INT_MAX);
+  /* Vulkan has no limit on the number of indices in a single draw call. */
+  GCaps.max_batch_indices = INT_MAX;
   GCaps.max_batch_vertices = min_uu(limits.maxDrawIndexedIndexValue, INT_MAX);
   GCaps.max_vertex_attribs = min_uu(limits.maxVertexInputAttributes, INT_MAX);
   GCaps.max_varying_floats = min_uu(limits.maxVertexOutputComponents, INT_MAX);
