@@ -1920,7 +1920,9 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
   ARegion region = {nullptr};
   bke::ARegionRuntime region_runtime{};
   region.runtime = &region_runtime;
+  bke::RegionView3DRuntime region_view3d_runtime;
   RegionView3D rv3d;
+  rv3d.runtime = &region_view3d_runtime;
 
   v3d.regionbase.first_ = v3d.regionbase.last_ = &region;
   region.regiondata = &rv3d;
@@ -2205,7 +2207,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
   ARegion region = {nullptr};
   bke::ARegionRuntime region_runtime{};
   region.runtime = &region_runtime;
+  bke::RegionView3DRuntime region_view3d_runtime;
   RegionView3D rv3d;
+  rv3d.runtime = &region_view3d_runtime;
 
   /* connect data */
   v3d.regionbase.first_ = v3d.regionbase.last_ = &region;

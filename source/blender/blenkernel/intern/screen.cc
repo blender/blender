@@ -1634,6 +1634,7 @@ void BKE_screen_view3d_do_versions_250(View3D *v3d, ListBaseT<ARegion> *regions)
       rv3d->dist = v3d->dist;
       copy_v3_v3(rv3d->ofs, v3d->ofs);
       copy_qt_qt(rv3d->viewquat, v3d->viewquat);
+      rv3d->runtime = MEM_new<bke::RegionView3DRuntime>(__func__);
       region.regiondata = rv3d;
     }
   }
