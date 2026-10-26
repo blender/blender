@@ -101,7 +101,14 @@ void MTLUniformBuf::bind(int slot)
     return;
   }
 
-  BLI_assert(slot < MTL_MAX_BUFFER_BINDINGS);
+  if (slot >= MTL_MAX_UBO) {
+    MTL_LOG_ERROR("Failed to bind UBO %p. Uniform buffer slot %d exceeds the maximum of %d.",
+                  this,
+                  slot,
+                  MTL_MAX_UBO);
+    BLI_assert(false);
+    return;
+  }
 
   /* Bind current UBO to active context. */
   MTLContext *ctx = MTLContext::get();

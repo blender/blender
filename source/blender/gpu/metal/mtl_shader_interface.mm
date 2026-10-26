@@ -90,6 +90,7 @@ MTLShaderInterface::MTLShaderInterface(const char *name,
   /* Uniform blocks */
   for (const ShaderCreateInfo::Resource &res : all_resources) {
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
+      BLI_assert_msg(res.slot < MTL_MAX_UBO, "Uniform buffer slot exceeds MTL_MAX_UBO");
       copy_input_name(input, res.uniformbuf.name, name_buffer_, name_buffer_offset);
       input->location = input->binding = res.slot;
       enabled_ubo_mask_ |= (1 << input->binding);
