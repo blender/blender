@@ -121,31 +121,31 @@ void PathTraceWorkGPU::alloc_integrator_soa()
   /* Check if we already allocated memory for the required features.
    * Note that both disabling and enabling features may require memory
    * allocations, so we check for equality. */
-  const int requested_volume_stack_size = device_scene_->data.volume_stack_size;
+  const int volume_stack_size = device_scene_->data.volume_stack_size;
   const uint64_t kernel_features = device_scene_->data.kernel_features;
   if (integrator_state_soa_kernel_features_ == kernel_features &&
-      integrator_state_soa_volume_stack_size_ >= requested_volume_stack_size)
+      integrator_state_soa_volume_stack_size_ == volume_stack_size)
   {
     return;
   }
   integrator_state_soa_kernel_features_ = kernel_features;
-  integrator_state_soa_volume_stack_size_ = max(integrator_state_soa_volume_stack_size_,
-                                                requested_volume_stack_size);
+  integrator_state_soa_volume_stack_size_ = volume_stack_size;
+
+  /* Free existing state, before state size estimation which takes into account free memory. */
+  integrator_state_soa_.clear();
 
   /* Determine the number of path states. Deferring this for as long as possible allows the
    * back-end to make better decisions about memory availability. */
-  if (max_num_paths_ == 0) {
-    const size_t single_state_size = estimate_single_state_size(
-        kernel_features, integrator_state_soa_volume_stack_size_);
+  const size_t single_state_size = estimate_single_state_size(
+      kernel_features, integrator_state_soa_volume_stack_size_);
 
-    max_num_paths_ = queue_->num_concurrent_states(single_state_size);
+  max_num_paths_ = queue_->num_concurrent_states(single_state_size);
 
-    /* A 1:4 busy:total ratio was found to give good performance, independent of the
-     * total state count. This is the number of states which keeps the device occupied
-     * with work without losing performance. The renderer will add more work (when
-     * available) when the number of active paths falls below this value. */
-    min_num_active_main_paths_ = max_num_paths_ / 4;
-  }
+  /* A 1:4 busy:total ratio was found to give good performance, independent of the
+   * total state count. This is the number of states which keeps the device occupied
+   * with work without losing performance. The renderer will add more work (when
+   * available) when the number of active paths falls below this value. */
+  min_num_active_main_paths_ = max_num_paths_ / 4;
 
   /* Allocate a device only memory buffer before for each struct member, and then
    * write the pointers into a struct that resides in constant memory.
@@ -153,9 +153,8 @@ void PathTraceWorkGPU::alloc_integrator_soa()
    * TODO: store float3 in separate XYZ arrays. */
 #define KERNEL_STRUCT_BEGIN(name) for (int array_index = 0;; array_index++) {
 #define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) \
-  if ((KernelFeatureRequest(feature).test(kernel_features)) && \
-      (integrator_state_gpu_.parent_struct.name == nullptr)) \
-  { \
+  integrator_state_gpu_.parent_struct.name = nullptr; \
+  if (KernelFeatureRequest(feature).test(kernel_features)) { \
     string name_str = string_printf("%sintegrator_state_" #parent_struct "_" #name, \
                                     shadow ? "shadow_" : ""); \
     auto array = make_unique<device_only_memory<gpu_state_storage<type>::gpu_type>>( \
@@ -183,9 +182,8 @@ void PathTraceWorkGPU::alloc_integrator_soa()
 #endif
 
 #define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) \
-  if ((KernelFeatureRequest(feature).test(kernel_features)) && \
-      (integrator_state_gpu_.parent_struct[array_index].name == nullptr)) \
-  { \
+  integrator_state_gpu_.parent_struct[array_index].name = nullptr; \
+  if (KernelFeatureRequest(feature).test(kernel_features)) { \
     string name_str = string_printf( \
         "%sintegrator_state_" #name "_%d", shadow ? "shadow_" : "", array_index); \
     auto array = make_unique<device_only_memory<gpu_state_storage<type>::gpu_type>>( \
@@ -248,7 +246,7 @@ void PathTraceWorkGPU::alloc_integrator_queue()
     num_queued_paths_.zero_to_device();
   }
 
-  if (queued_paths_.size() == 0) {
+  if (queued_paths_.size() != max_num_paths_) {
     queued_paths_.alloc(max_num_paths_);
     /* TODO: this could be skip if we had a function to just allocate on device. */
     queued_paths_.zero_to_device();
