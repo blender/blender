@@ -128,6 +128,10 @@ GPU_TEST(specialization_constants_compute)
 
 static void test_specialization_constants_graphic()
 {
+  if (!GPU_vertex_pipeline_stores_and_atomics_support()) {
+    GTEST_SKIP() << "Storage buffer writes from the vertex shader are not supported";
+  }
+
   ShaderSpecializationConst("gpu_graphic_specialization_test");
 }
 GPU_TEST(specialization_constants_graphic)
