@@ -18,7 +18,6 @@
 #include "DNA_screen_types.h"
 #include "MEM_guardedalloc.h"
 
-#include "BKE_lib_id.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base_c.hh"
 #include "BLI_resource_scope.hh"
@@ -28,6 +27,8 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
+#include "BKE_global.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main_idmap.hh"
@@ -1164,7 +1165,13 @@ static void action_space_blend_read_after_liblink(BlendLibReader *reader,
   bool has_shown_warning_header = false;
 
   if (BLI_listbase_is_empty(&saction->channel_ui_states)) {
-    /* Just to avoid the debug prints below. */
+    return;
+  }
+
+  if (G.fileflags & G_FILE_NO_UI) {
+    /* The UI state should not be loaded, but still the UI state should be freed to avoid leaking
+     * memory. */
+    BLI_freelistN(&saction->channel_ui_states);
     return;
   }
 
