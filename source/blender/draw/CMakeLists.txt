@@ -550,7 +550,6 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/infos/overlay_sculpt_curves_infos.hh
   engines/overlay/shaders/infos/overlay_sculpt_infos.hh
   engines/overlay/shaders/infos/overlay_viewer_attribute_infos.hh
-  engines/overlay/shaders/infos/overlay_volume_infos.hh
   engines/overlay/shaders/infos/overlay_wireframe_infos.hh
 
   engines/overlay/shaders/overlay_antialiasing.bsl.hh
@@ -648,8 +647,7 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/overlay_viewer_attribute_frag.glsl
   engines/overlay/shaders/overlay_viewer_attribute_mesh_vert.glsl
   engines/overlay/shaders/overlay_viewer_attribute_pointcloud_vert.glsl
-  engines/overlay/shaders/overlay_volume_gridlines_vert.glsl
-  engines/overlay/shaders/overlay_volume_velocity_vert.glsl
+  engines/overlay/shaders/overlay_volume.bsl.hh
   engines/overlay/shaders/overlay_wireframe_frag.glsl
   engines/overlay/shaders/overlay_wireframe_vert.glsl
   engines/overlay/shaders/overlay_xray_fade.bsl.hh

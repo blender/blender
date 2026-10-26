@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_volume_infos.hh"
+#include "infos/overlay_paint_infos.hh"
 
-VERTEX_SHADER_CREATE_INFO(overlay_volume_velocity_mac)
+FRAGMENT_SHADER_CREATE_INFO(overlay_paint_wire)
 
 #include "overlay_common_lib.glsl"
 #include "select_lib.glsl"
