@@ -215,6 +215,115 @@ static void set_mapped_co(void *vuserdata, int index, const float co[3], const f
   }
 }
 
+static void transverts_create_from_bmesh(
+    TransVertStore &tvs, const Object &obedit, const BMEditMesh &em, BMesh &bm, const int mode)
+{
+  BMVert *eve;
+  BMIter iter;
+  void *userdata[2] = {&bm, nullptr};
+  // int proptrans = 0; /*UNUSED*/
+
+  /* abuses vertex index all over, set, just set dirty here,
+   * perhaps this could use its own array instead? - campbell */
+
+  /* transform now requires awareness for select mode, so we tag the f1 flags in verts */
+  tvs.transverts_tot = 0;
+  if (em.selectmode & SCE_SELECT_VERTEX) {
+    BM_ITER_MESH (eve, &iter, &bm, BM_VERTS_OF_MESH) {
+      if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+        BM_elem_index_set(eve, TM_INDEX_ON); /* set_dirty! */
+        tvs.transverts_tot++;
+      }
+      else {
+        BM_elem_index_set(eve, TM_INDEX_OFF); /* set_dirty! */
+      }
+    }
+  }
+  else if (em.selectmode & SCE_SELECT_EDGE) {
+    BMEdge *eed;
+
+    BM_ITER_MESH (eve, &iter, &bm, BM_VERTS_OF_MESH) {
+      BM_elem_index_set(eve, TM_INDEX_OFF); /* set_dirty! */
+    }
+
+    BM_ITER_MESH (eed, &iter, &bm, BM_EDGES_OF_MESH) {
+      if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+        BM_elem_index_set(eed->v1, TM_INDEX_ON); /* set_dirty! */
+        BM_elem_index_set(eed->v2, TM_INDEX_ON); /* set_dirty! */
+      }
+    }
+
+    BM_ITER_MESH (eve, &iter, &bm, BM_VERTS_OF_MESH) {
+      if (BM_elem_index_get(eve) == TM_INDEX_ON) {
+        tvs.transverts_tot++;
+      }
+    }
+  }
+  else {
+    BMFace *efa;
+
+    BM_ITER_MESH (eve, &iter, &bm, BM_VERTS_OF_MESH) {
+      BM_elem_index_set(eve, TM_INDEX_OFF); /* set_dirty! */
+    }
+
+    BM_ITER_MESH (efa, &iter, &bm, BM_FACES_OF_MESH) {
+      if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+        BMIter liter;
+        BMLoop *l;
+
+        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+          BM_elem_index_set(l->v, TM_INDEX_ON); /* set_dirty! */
+        }
+      }
+    }
+
+    BM_ITER_MESH (eve, &iter, &bm, BM_VERTS_OF_MESH) {
+      if (BM_elem_index_get(eve) == TM_INDEX_ON) {
+        tvs.transverts_tot++;
+      }
+    }
+  }
+  /* for any of the 3 loops above which all dirty the indices */
+  bm.elem_index_dirty |= BM_VERT;
+
+  /* and now make transverts */
+  if (tvs.transverts_tot) {
+    TransVert *tv = tvs.transverts = MEM_new_array_zeroed<TransVert>(tvs.transverts_tot, __func__);
+
+    int a = 0;
+    BM_ITER_MESH (eve, &iter, &bm, BM_VERTS_OF_MESH) {
+      if (BM_elem_index_get(eve)) {
+        BM_elem_index_set(eve, a); /* set_dirty! */
+        copy_v3_v3(tv->oldloc, eve->co);
+        tv->loc = eve->co;
+        tv->flag = (BM_elem_index_get(eve) == TM_INDEX_ON) ? SELECT : 0;
+
+        if (mode & TM_CALC_NORMALS) {
+          tv->flag |= TX_VERT_USE_NORMAL;
+          copy_v3_v3(tv->normal, eve->no);
+        }
+
+        tv++;
+        a++;
+      }
+      else {
+        BM_elem_index_set(eve, TM_INDEX_SKIP); /* set_dirty! */
+      }
+    }
+    /* set dirty already, above */
+
+    userdata[1] = tvs.transverts;
+  }
+
+  if (mode & TM_CALC_MAPLOC) {
+    const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(&obedit);
+    if (tvs.transverts && editmesh_eval_cage) {
+      BM_mesh_elem_table_ensure(&bm, BM_VERT);
+      BKE_mesh_foreach_mapped_vert(editmesh_eval_cage, set_mapped_co, userdata, MESH_FOREACH_NOP);
+    }
+  }
+}
+
 bool ED_transverts_check_obedit(const Object *obedit)
 {
   return ELEM(obedit->type,
@@ -237,7 +346,6 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
   BPoint *bp;
   TransVert *tv = nullptr;
   MetaElem *ml;
-  BMVert *eve;
   int a;
 
   tvs->transverts_tot = 0;
@@ -246,112 +354,8 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     /* The evaluated mesh may not have an edit-mesh, use the original. */
     const Object *object_orig = DEG_get_original(obedit);
     Mesh &mesh = *id_cast<Mesh *>(object_orig->data);
-    BMEditMesh *em = mesh.runtime->edit_mesh.get();
     BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(&mesh));
-    BMIter iter;
-    void *userdata[2] = {bm, nullptr};
-    // int proptrans = 0; /*UNUSED*/
-
-    /* abuses vertex index all over, set, just set dirty here,
-     * perhaps this could use its own array instead? - campbell */
-
-    /* transform now requires awareness for select mode, so we tag the f1 flags in verts */
-    tvs->transverts_tot = 0;
-    if (em->selectmode & SCE_SELECT_VERTEX) {
-      BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-        if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-          BM_elem_index_set(eve, TM_INDEX_ON); /* set_dirty! */
-          tvs->transverts_tot++;
-        }
-        else {
-          BM_elem_index_set(eve, TM_INDEX_OFF); /* set_dirty! */
-        }
-      }
-    }
-    else if (em->selectmode & SCE_SELECT_EDGE) {
-      BMEdge *eed;
-
-      BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-        BM_elem_index_set(eve, TM_INDEX_OFF); /* set_dirty! */
-      }
-
-      BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-        if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-          BM_elem_index_set(eed->v1, TM_INDEX_ON); /* set_dirty! */
-          BM_elem_index_set(eed->v2, TM_INDEX_ON); /* set_dirty! */
-        }
-      }
-
-      BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-        if (BM_elem_index_get(eve) == TM_INDEX_ON) {
-          tvs->transverts_tot++;
-        }
-      }
-    }
-    else {
-      BMFace *efa;
-
-      BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-        BM_elem_index_set(eve, TM_INDEX_OFF); /* set_dirty! */
-      }
-
-      BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-        if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-          BMIter liter;
-          BMLoop *l;
-
-          BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-            BM_elem_index_set(l->v, TM_INDEX_ON); /* set_dirty! */
-          }
-        }
-      }
-
-      BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-        if (BM_elem_index_get(eve) == TM_INDEX_ON) {
-          tvs->transverts_tot++;
-        }
-      }
-    }
-    /* for any of the 3 loops above which all dirty the indices */
-    bm->elem_index_dirty |= BM_VERT;
-
-    /* and now make transverts */
-    if (tvs->transverts_tot) {
-      tv = tvs->transverts = MEM_new_array_zeroed<TransVert>(tvs->transverts_tot, __func__);
-
-      a = 0;
-      BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-        if (BM_elem_index_get(eve)) {
-          BM_elem_index_set(eve, a); /* set_dirty! */
-          copy_v3_v3(tv->oldloc, eve->co);
-          tv->loc = eve->co;
-          tv->flag = (BM_elem_index_get(eve) == TM_INDEX_ON) ? SELECT : 0;
-
-          if (mode & TM_CALC_NORMALS) {
-            tv->flag |= TX_VERT_USE_NORMAL;
-            copy_v3_v3(tv->normal, eve->no);
-          }
-
-          tv++;
-          a++;
-        }
-        else {
-          BM_elem_index_set(eve, TM_INDEX_SKIP); /* set_dirty! */
-        }
-      }
-      /* set dirty already, above */
-
-      userdata[1] = tvs->transverts;
-    }
-
-    if (mode & TM_CALC_MAPLOC) {
-      const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(obedit);
-      if (tvs->transverts && editmesh_eval_cage) {
-        BM_mesh_elem_table_ensure(bm, BM_VERT);
-        BKE_mesh_foreach_mapped_vert(
-            editmesh_eval_cage, set_mapped_co, userdata, MESH_FOREACH_NOP);
-      }
-    }
+    transverts_create_from_bmesh(*tvs, *obedit, *mesh.runtime->edit_mesh, *bm, mode);
   }
   else if (obedit->type == OB_ARMATURE) {
     bArmature *arm = id_cast<bArmature *>(obedit->data);
