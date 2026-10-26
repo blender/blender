@@ -474,10 +474,6 @@ struct RegionView3D {
 
   /** User defined clipping planes. */
   float clip[6][4] = {};
-  /**
-   * Clip in object space,
-   * means we can test for clipping in edit-mode without first going into world-space.
-   */
   struct BoundBox *clipbb = nullptr;
 
   /** Allocated backup of itself while in local-view. */
