@@ -57,7 +57,26 @@ struct OSLTextureHandle {
   ImageHandle handle;
 };
 
-using OSLTextureHandleMap = OIIO::unordered_map_concurrent<OSLUStringHash, OSLTextureHandle>;
+/* The OSL shading system is shared between sessions, so the key for a texture
+ * includes both the filename and the per session image manager so it doesn't
+ * get shared and leaves dangling pointers when one session is freed while
+ * another is using its textures. */
+struct OSLTextureKey {
+  OSLUStringHash filename;
+  const ImageManager *image_manager = nullptr;
+
+  bool operator==(const OSLTextureKey &other) const = default;
+};
+
+struct OSLTextureKeyHash {
+  size_t operator()(const OSLTextureKey &key) const
+  {
+    return key.filename.hash();
+  }
+};
+
+using OSLTextureHandleMap =
+    OIIO::unordered_map_concurrent<OSLTextureKey, OSLTextureHandle, OSLTextureKeyHash>;
 using OSLTextureFilenameMap = concurrent_set<OSLUStringHash>;
 
 /* OSL Render Services
