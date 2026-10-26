@@ -367,7 +367,10 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
                   std::memcmp(motion_P, center_P, num_points * sizeof(packed_float3)) != 0;
   }
   else {
-    /* Slow path: point count differs, copy what overlaps. */
+    /* Slow path: point count differs, copy what overlaps. Remaining points
+     * keep the center data. */
+    pointcloud->copy_center_to_motion_step(motion_step);
+
     const blender::VArraySpan b_radius = *b_attributes.lookup<float>(
         "radius", blender::bke::AttrDomain::Point);
     packed_float3 *mP = attr_P->data_for_write<packed_float3>(attr_step);
