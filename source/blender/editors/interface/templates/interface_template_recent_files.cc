@@ -56,6 +56,25 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
   char dirname[FILE_MAX];
   char filename[FILE_MAX];
   BLI_path_split_dir_file(path, dirname, sizeof(dirname), filename, sizeof(filename));
+
+  const std::string project_root = BKE_is_path_inside_blender_project(path);
+  if (!project_root.empty()) {
+    /* Use project root path as the fallback name. */
+    std::string project_name = project_root;
+
+    /* Find project name in recent projects. */
+    const Vector<RecentProject> recent_projects = BKE_blender_project_recent_get();
+    for (const RecentProject &project : recent_projects) {
+      if (BLI_path_cmp_normalized(project.path.c_str(), project_root.c_str()) == 0) {
+        project_name = project.name;
+        break;
+      }
+    }
+
+    tooltip_text_field_add(tip, project_name, {}, TIP_STYLE_HEADER, TIP_LC_NORMAL);
+    tooltip_text_field_add(tip, {}, {}, TIP_STYLE_SPACER, TIP_LC_NORMAL);
+  }
+
   tooltip_text_field_add(tip, filename, {}, TIP_STYLE_HEADER, TIP_LC_NORMAL);
   tooltip_text_field_add(tip, dirname, {}, TIP_STYLE_NORMAL, TIP_LC_VALUE);
 
