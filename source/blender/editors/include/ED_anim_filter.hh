@@ -803,16 +803,27 @@ struct CollectionFilters {
 
 /**
  * Collect all channels for the Action Editor.
+ *
+ * \param collection_filters determines which types of data channels are collected. See
+ * `get_filters`.
  */
 void collect_action_editor_channels(const bContext &C,
                                     const CollectionFilters &collection_filters,
                                     ChannelArena &arena);
 /**
  * Collect all channels in the given context, for Dope Sheet and Graph Editor.
+ *
+ * \param collection_filters determines which types of data channels are collected. See
+ * `get_filters`.
  */
 void collect_animation_channels(const bContext &C,
                                 const CollectionFilters &collection_filters,
                                 ChannelArena &arena);
+
+/**
+ * Construct the filters from the given dopesheet settings.
+ */
+CollectionFilters get_filters(const bDopeSheet &ads);
 
 /**
  * Group the arena's data channels by setting parent child relationships.
