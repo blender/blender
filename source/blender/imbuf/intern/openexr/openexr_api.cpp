@@ -1589,48 +1589,43 @@ static int imb_exr_split_token(const char *str, const char *end, const char **to
   return int(end - *token);
 }
 
-static void imb_exr_pass_name_from_channel(char *passname,
+static void imb_exr_pass_name_from_channel(MutableCStr passname,
                                            const ExrChannel &echan,
                                            const char *channelname,
                                            const bool has_xyz_channels)
 {
-  const int passname_maxncpy = EXR_TOT_MAXNAME;
-
   if (echan.chan_id == 'Z' && (!has_xyz_channels || BLI_strcaseeq(channelname, "depth"))) {
-    BLI_strncpy(passname, "Depth", passname_maxncpy);
+    STRNCPY(passname, "Depth");
   }
   else if (echan.chan_id == 'Y' && !has_xyz_channels) {
-    BLI_strncpy(passname, channelname, passname_maxncpy);
+    STRNCPY(passname, channelname);
   }
   else if (ELEM(echan.chan_id, 'R', 'G', 'B', 'A', 'V', 'X', 'Y', 'Z')) {
-    BLI_strncpy(passname, "Combined", passname_maxncpy);
+    STRNCPY(passname, "Combined");
   }
   else {
-    BLI_strncpy(passname, channelname, passname_maxncpy);
+    STRNCPY(passname, channelname);
   }
 }
 
-static void imb_exr_pass_name_from_channel_name(char *passname,
+static void imb_exr_pass_name_from_channel_name(MutableCStr passname,
                                                 const ExrChannel & /*echan*/,
                                                 const char *channelname,
                                                 const bool /*has_xyz_channels*/)
 {
-  const int passname_maxncpy = EXR_TOT_MAXNAME;
-
   /* TODO: Are special tricks similar to imb_exr_pass_name_from_channel() needed here?
    * Note that unknown passes are default to chan_id='X'. The place where this function is called
    * is when the channel name is more than 1 character, so perhaps using just channel ID is not
    * fully correct here. */
 
-  BLI_strncpy(passname, channelname, passname_maxncpy);
+  STRNCPY(passname, channelname);
 }
 
 static int imb_exr_split_channel_name(ExrChannel &echan,
-                                      char *layname,
-                                      char *passname,
+                                      MutableCStr layname,
+                                      MutableCStr passname,
                                       bool has_xyz_channels)
 {
-  const int layname_maxncpy = EXR_TOT_MAXNAME;
   const char *name = echan.name.c_str();
   const char *end = name + strlen(name);
   const char *token;
@@ -1709,7 +1704,7 @@ static int imb_exr_split_channel_name(ExrChannel &echan,
       CLOG_ERROR(&LOG, "Multilayer read: bad channel name: %s", name);
       return 0;
     }
-    BLI_strncpy(passname, token, len + 1);
+    BLI_strncpy(passname.data(), token, len + 1);
     end -= len + 1; /* +1 to skip '.' separator */
   }
   else {
@@ -1719,7 +1714,7 @@ static int imb_exr_split_channel_name(ExrChannel &echan,
 
   /* all preceding tokens combined as layer name */
   if (end > name) {
-    BLI_strncpy(layname, name, std::min(layname_maxncpy, int(end - name) + 1));
+    STRNCPY(layname.take_front(int(end - name) + 1), name);
   }
   else {
     layname[0] = '\0';

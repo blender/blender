@@ -973,12 +973,12 @@ static bool path_frame_chars_find_range(const char *path, int *r_char_start, int
  *
  * \return false when there isn't room to append the digits.
  */
-static bool ensure_digits(char *path, const size_t path_maxncpy, int digits)
+static bool ensure_digits(MutableCStr path, int digits)
 {
-  char *file = const_cast<char *>(BLI_path_basename(path));
+  char *file = const_cast<char *>(BLI_path_basename(path.data()));
   if (strrchr(file, '#') == nullptr) {
     int len = strlen(file);
-    if (size_t(file - path) + size_t(len + digits) >= path_maxncpy) {
+    if ((file - path.data()) + len + digits >= path.size()) {
       return false;
     }
 
@@ -996,7 +996,7 @@ bool BLI_path_frame(MutableCStr path, int frame, int digits)
 
   int ch_sta, ch_end;
 
-  if (digits && !ensure_digits(path.data(), size_t(path.size()), digits)) {
+  if (digits && !ensure_digits(path, digits)) {
     return false;
   }
 
@@ -1016,7 +1016,7 @@ bool BLI_path_frame_range(MutableCStr path, int sta, int end, int digits)
 
   int ch_sta, ch_end;
 
-  if (digits && !ensure_digits(path.data(), size_t(path.size()), digits)) {
+  if (digits && !ensure_digits(path, digits)) {
     return false;
   }
 
