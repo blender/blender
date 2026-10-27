@@ -11018,6 +11018,11 @@ static int handle_view_item_event(bContext *C,
               break;
             }
           }
+          else if (view_but->view_item->is_select_on_click()) {
+            if (event->val != KM_CLICK) {
+              break;
+            }
+          }
           else if (event->val != KM_PRESS) {
             break;
           }
