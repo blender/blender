@@ -2259,7 +2259,7 @@ static void rna_SpaceImageEditor_cursor_location_set(PointerRNA *ptr, const floa
   }
 }
 
-static void rna_SpaceImageEditor_image_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
+static void rna_SpaceImageEditor_image_update(Main * /*bmain*/, Scene *scene, PointerRNA *ptr)
 {
   SpaceImage *sima = static_cast<SpaceImage *>(ptr->data);
   Image *ima = sima->image;
@@ -2274,6 +2274,12 @@ static void rna_SpaceImageEditor_image_update(Main * /*bmain*/, Scene * /*scene*
     else {
       BKE_image_multiview_index(ima, &sima->iuser);
     }
+  }
+
+  /* If the new image is the viewer image, we tag the compositor to execute to update the viewer
+   * image. */
+  if (ima && ima->source == IMA_SRC_VIEWER && ima->type == IMA_TYPE_COMPOSITE) {
+    DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
   }
 }
 

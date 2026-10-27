@@ -16,6 +16,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_compositor.hh"
 #include "BLI_listbase.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_threads.hh"
@@ -55,6 +56,8 @@
 
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
+
+#include "DEG_depsgraph.hh"
 
 #include "BLO_read_write.hh"
 
@@ -969,6 +972,13 @@ static void image_main_region_listener(const wmRegionListenerParams *params)
       }
       if (wmn->action == NA_EDITED) {
         ED_region_tag_redraw(region);
+      }
+      /* If a new workspace was chosen, execute the compositor if its viewer result is visible. */
+      if (wmn->data == ND_LAYOUTSET &&
+          bke::compositor::is_compositor_viewer_visible(*params->area))
+      {
+        Scene *scene = WM_window_get_active_scene(params->window);
+        DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
       }
       break;
   }
