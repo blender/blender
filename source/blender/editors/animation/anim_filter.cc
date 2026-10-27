@@ -4368,9 +4368,9 @@ void group_channels(ChannelArena &arena,
 
   for (const ChannelTagType tag_type : tag_order) {
     for (SummaryContainer &to_split : splitable_summaries) {
-      Vector<SummaryContainer> foo = split_group_for_tag(
+      Vector<SummaryContainer> split_off_summaries = split_group_for_tag(
           arena, to_split, tag_type, /* tag_index= */ 0, use_minimal_grouping);
-      new_summaries.extend(foo);
+      new_summaries.extend(split_off_summaries);
       if (to_split.datachannels.size() == 0) {
         completely_split.append(&to_split);
       }
