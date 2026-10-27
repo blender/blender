@@ -1277,7 +1277,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
                   static_cast<bGPDlayer *>(ale.data), &ked.cfra_elem_list, true);
               break;
             case ANIMTYPE_GREASE_PENCIL_LAYER:
-              ed::greasepencil ::create_keyframe_edit_data_selected_frames_list(
+              ed::greasepencil::create_keyframe_edit_data_selected_frames_list(
                   &ked, static_cast<GreasePencilLayer *>(ale.data)->wrap());
               break;
             default:
@@ -2268,8 +2268,8 @@ static wmOperatorStatus handle_channel_click(ed::animfilter::ChannelArena &chann
 
   switch (range_mode) {
     case ClickSelectRange::SINGLE:
-      channel_under_cursor->change_datapoint_selection(selection_mode,
-                                             {closest_datapoint->frame, closest_datapoint->frame});
+      channel_under_cursor->change_datapoint_selection(
+          selection_mode, {closest_datapoint->frame, closest_datapoint->frame});
       break;
     case ClickSelectRange::ROW:
       channel_under_cursor->change_datapoint_selection(selection_mode);
@@ -2277,7 +2277,7 @@ static wmOperatorStatus handle_channel_click(ed::animfilter::ChannelArena &chann
     case ClickSelectRange::COLUMN:
       for (DataChannel *channel : channels.data_channels) {
         channel->change_datapoint_selection(selection_mode,
-                                  {closest_datapoint->frame, closest_datapoint->frame});
+                                            {closest_datapoint->frame, closest_datapoint->frame});
       }
       break;
   }
