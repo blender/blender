@@ -13,6 +13,7 @@
 #include "vk_descriptor_set.hh"
 
 namespace blender::gpu {
+class VKContext;
 class VKDevice;
 
 /**
@@ -21,6 +22,8 @@ class VKDevice;
  * In Vulkan a pool is constructed with a fixed size per resource type. When more resources are
  * needed it a next pool should be created. VKDescriptorPools will keep track of those pools and
  * construct new pools when the previous one is exhausted.
+ *
+ * Each context allocates from its own active pool, as pools must be externally synchronized.
  */
 class VKDescriptorPools {
   /**
@@ -39,30 +42,30 @@ class VKDescriptorPools {
   static constexpr uint32_t POOL_SIZE_ACCELERATION_STRUCTURE = 100;
 
   /**
-   * Unused recycled pools.
+   * Unused pools, shared by all contexts.
    *
-   * When a pool is full it is being discarded (for reuse). After all descriptor sets of the pool
-   * are unused the descriptor pool can be reused.
-   * Note: descriptor pools/sets are pinned to a single thread so the pools should always return to
-   * the instance it was created on.
+   * When the active pool of a context is full it is discarded. After all descriptor sets of the
+   * pool are unused it is reset and added here for reuse by any context.
    */
   Vector<VkDescriptorPool> recycled_pools_;
-  /** Active descriptor pool. Should always be a valid handle. */
-  VkDescriptorPool vk_descriptor_pool_ = VK_NULL_HANDLE;
   Mutex mutex_;
 
  public:
-  ~VKDescriptorPools();
-
-  void init(const VKDevice &vk_device);
+  void deinit(const VKDevice &device);
 
   /**
-   * Allocate a new descriptor set.
+   * Allocate a new descriptor set from the active descriptor pool of the context.
    *
    * When the active descriptor pool is full it is discarded and another descriptor pool is
    * ensured.
    */
-  VkDescriptorSet allocate(const VkDescriptorSetLayout descriptor_set_layout);
+  VkDescriptorSet allocate(VKContext &context, const VkDescriptorSetLayout descriptor_set_layout);
+
+  /**
+   * Discard the active descriptor pool of the context, for reuse once its descriptor sets are
+   * unused.
+   */
+  void discard_active_pool(VKContext &context);
 
   /**
    * Recycle a previous discarded descriptor pool.
@@ -70,8 +73,6 @@ class VKDescriptorPools {
   void recycle(VkDescriptorPool vk_descriptor_pool);
 
  private:
-  void add_new_pool(const VKDevice &device);
-  void discard_active_pool(VKContext &vk_context);
-  void ensure_pool(const VKDevice &device);
+  VkDescriptorPool acquire_pool(const VKDevice &device);
 };
 }  // namespace blender::gpu

@@ -118,11 +118,10 @@ void VKDiscardPool::discard_pipeline_layout(VkPipelineLayout vk_pipeline_layout)
   pipeline_layouts_.append_timeline(timeline_, vk_pipeline_layout);
 }
 
-void VKDiscardPool::discard_descriptor_pool_for_reuse(VkDescriptorPool vk_descriptor_pool,
-                                                      VKDescriptorPools *descriptor_pools)
+void VKDiscardPool::discard_descriptor_pool_for_reuse(VkDescriptorPool vk_descriptor_pool)
 {
   std::scoped_lock mutex(mutex_);
-  descriptor_pools_.append_timeline(timeline_, std::pair(vk_descriptor_pool, descriptor_pools));
+  descriptor_pools_.append_timeline(timeline_, vk_descriptor_pool);
 }
 
 void VKDiscardPool::discard_acceleration_structure(
@@ -181,10 +180,9 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device, TimelineValue 
     device.functions.vkDestroyShaderModule(device.vk_handle(), vk_shader_module, nullptr);
   });
 
-  descriptor_pools_.remove_old(
-      current_timeline, [&](std::pair<VkDescriptorPool, VKDescriptorPools *> descriptor_pool) {
-        descriptor_pool.second->recycle(descriptor_pool.first);
-      });
+  descriptor_pools_.remove_old(current_timeline, [&](VkDescriptorPool vk_descriptor_pool) {
+    device.descriptor_pools.recycle(vk_descriptor_pool);
+  });
 
   acceleration_structures_.remove_old(
       current_timeline, [&](VkAccelerationStructureKHR vk_acceleration_structure) {
