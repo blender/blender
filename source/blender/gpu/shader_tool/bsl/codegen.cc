@@ -583,7 +583,7 @@ struct CodegenContext : NodeErrorHandler {
             params_str += caller_class->get_path_to_base_class(callee_class);
           }
         }
-        if (!list.is_empty()) {
+        if (sym->arg_types.size() > 0) {
           params_str += ", ";
         }
       }
