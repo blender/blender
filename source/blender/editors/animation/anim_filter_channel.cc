@@ -926,6 +926,8 @@ void SummaryChannel::finalize_after_grouping()
     reinterpret_cast<SummaryChannel *>(child)->finalize_after_grouping();
   }
 
+  /* TODO: this is good for the dope sheet, but the graph editor may need to see everything by
+   * default. */
   this->is_default_collapsed_ = all_children_are_datachannel;
 }
 

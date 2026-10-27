@@ -696,6 +696,10 @@ class ChannelArena {
  public:
   /* Heap allocated data channels. */
   Vector<DataChannel *> data_channels;
+  /**
+   * All summary channels are stored here, the first one is the root of the hierarchy.
+   * To get it, call #root().
+   */
   Vector<SummaryChannel *> summary_channels;
 
   ChannelArena() = default;

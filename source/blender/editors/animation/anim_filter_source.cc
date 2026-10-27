@@ -298,6 +298,9 @@ static void channels_for_action_slot(animrig::Action &action,
   channels_for_action_slot(action, *slot, tags, arena, collection_filters);
 }
 
+/*
+ * If animated_id is embedded, owner_id should be the ID that owns it.
+ */
 static void collect_channels_for_id(ID *animated_id,
                                     const CollectionFilters &collection_filters,
                                     ChannelSourcingContext &ctx,
@@ -330,6 +333,7 @@ static void collect_channels_for_id(ID *animated_id,
       animrig::get_action_slot_pair(*animated_id);
 
   if (!action_and_slot) {
+    /* TODO: this ID may still be animated by the NLA. */
     return;
   }
 
@@ -675,6 +679,8 @@ void collect_animation_channels(const bContext &C,
     Object *obj = static_cast<Object *>(obj_ptr.data);
     collection_channels_for_object(*obj, collection_filters, ctx);
   }
+
+  /* TODO: also include non-object animation data, like Scene animation. */
 }
 
 }  // namespace blender::ed::animfilter
