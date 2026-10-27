@@ -191,6 +191,7 @@ void SourceProcessor::lint_attributes_ast(Parser &parser)
       {"early_fragment_tests", ArgCount(0, 0)},
       {"fallthrough", ArgCount(0, 0)},
       {"flat", ArgCount(0, 0)},
+      {"force_inline", ArgCount(0, 0)},
       {"frag_coord", ArgCount(0, 0)},
       {"frag_stencil_ref", ArgCount(0, 0)},
       {"fragment", ArgCount(0, 0)},
@@ -229,6 +230,7 @@ void SourceProcessor::lint_attributes_ast(Parser &parser)
       {"work_group_id", ArgCount(0, 0)},
       /* 1 argument. */
       {"attribute", ArgCount(1, 1)},
+      {"capacity", ArgCount(1, 1)},
       {"condition", ArgCount(1, 1)},
       {"frag_color", ArgCount(1, 1)},
       {"frag_depth", ArgCount(1, 1)},
@@ -250,55 +252,53 @@ void SourceProcessor::lint_attributes_ast(Parser &parser)
       {"local_size", ArgCount(1, 3)},
   };
 
-  for (Attr attr : parser.root().children_of_type<Attr>()) {
+  for (Attr attr : parser.root().descendants_of_type<Attr>()) {
     FuncParamList param = attr.parameters();
     string attr_str(attr.identifier().str());
     if (!attr_map.contains(attr_str)) {
       report_error(attr, "Unrecognized attribute");
-      return;
+      continue;
     }
 
     const auto &param_range = attr_map[string(attr.identifier().str())];
     if (param_range.size == 0 && param.is_valid()) {
       report_error(param, "This attribute requires no argument");
-      return;
+      continue;
     }
 
     int arg_count = param.child_count();
     if (param_range.size == 1 && arg_count != param_range.start) {
       report_error(param,
                    "This attribute requires " + to_string(param_range.start) + " argument(s)");
-      return;
+      continue;
     }
-    if (param_range.size != 1 && arg_count < param_range.start && arg_count > param_range.last()) {
-      report_error(param,
+    if (param_range.size > 1 && (arg_count < param_range.start || arg_count > param_range.last()))
+    {
+      report_error(attr,
                    "This attribute requires between " + to_string(param_range.start) + " and " +
                        to_string(param_range.last()) + " argument(s)");
-      return;
+      continue;
     }
 
-    NodeType parent_type = attr.parent().type();
+    /* Node the attribute list belongs to. For conditions, the list follows the #Condition node
+     * inside the statement node. */
+    NodeType parent_type = attr.parent().parent().type();
 
     if (attr_str == "host_shared" && parent_type != NodeType::ClassDecl) {
       report_error(attr, "host_shared attribute must be inside a struct or an enum definition");
-      return;
+      continue;
     }
 
-    NodeType parent_parent_type = attr.parent().parent().type();
-
-    if ((attr_str == "unroll" || attr_str == "unroll_n") &&
-        ((parent_type != NodeType::Condition) || (parent_parent_type != NodeType::ForLoop)))
-    {
+    if ((attr_str == "unroll" || attr_str == "unroll_n") && parent_type != NodeType::ForLoop) {
       report_error(attr, "unroll attribute must be declared after a for loop statement");
-      return;
+      continue;
     }
 
-    if (attr_str == "static_branch" &&
-        (parent_type != NodeType::Condition || parent_parent_type != NodeType::IfStmt ||
-         parent_parent_type != NodeType::ElseIfStmt))
+    if (attr_str == "static_branch" && parent_type != NodeType::IfStmt &&
+        parent_type != NodeType::ElseIfStmt)
     {
       report_error(attr, "static_branch attribute must be declared after a condition");
-      return;
+      continue;
     }
   }
 }
