@@ -366,23 +366,26 @@ void MTLStorageBuf::async_flush_to_host()
   MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
 
-  if (gpu_write_fence_ == nil) {
-    gpu_write_fence_ = [ctx->device newSharedEvent];
-  }
-
   if (metal_buffer_ == nullptr) {
     this->init();
   }
 
-  /* For discrete memory systems, explicitly flush GPU-resident memory back to host. */
+  /* Unified memory: GPU writes are host-visible after command-buffer completion, so the
+   * sync blit and signal event are unnecessary; read() falls back to GPU_finish() when
+   * gpu_write_fence_ is nil. Skipping the signal event also avoids a crash in AGXMetalG17X
+   * (M5 family) where encodeSignalEvent: aborts inside the driver. */
   id<MTLBuffer> storage_buf_mtl = this->metal_buffer_->get_metal_buffer();
-  if (storage_buf_mtl.storageMode == MTLStorageModeManaged) {
-    id<MTLBlitCommandEncoder> blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
-    [blit_encoder synchronizeResource:storage_buf_mtl];
+  if (storage_buf_mtl.storageMode != MTLStorageModeManaged) {
+    return;
   }
 
-  /* Encode event signal and flush command buffer to ensure GPU work is in the pipeline for future
-   * reads. */
+  if (gpu_write_fence_ == nil) {
+    gpu_write_fence_ = [ctx->device newSharedEvent];
+  }
+
+  id<MTLBlitCommandEncoder> blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
+  [blit_encoder synchronizeResource:storage_buf_mtl];
+
   ctx->main_command_buffer.encode_signal_event(gpu_write_fence_, ++host_read_signal_value_);
   ctx->flush();
 }
