@@ -2870,7 +2870,7 @@ static ID *create_placeholder(Main *mainvar,
   BKE_libblock_runtime_ensure(*ph_id);
 
   *(reinterpret_cast<short *>(ph_id->name)) = idcode;
-  BLI_strncpy(ph_id->name + 2, idname, sizeof(ph_id->name) - 2);
+  STRNCPY(MutableCStr(ph_id->name).drop_front(2), idname);
   BKE_libblock_init_empty(ph_id);
   ph_id->tag = tag | ID_TAG_MISSING;
   ph_id->us = ID_FAKE_USERS(ph_id);
@@ -5011,7 +5011,7 @@ static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const 
 {
   char idname_full[MAX_ID_NAME];
   *(reinterpret_cast<short *>(idname_full)) = idcode;
-  BLI_strncpy(idname_full + 2, name, sizeof(idname_full) - 2);
+  STRNCPY(MutableCStr(idname_full).drop_front(2), name);
 
   return fd->bhead_idname_map->lookup_default(idname_full, nullptr);
 }

@@ -62,7 +62,7 @@ static void asset_name_in_library_set(ID &id, const char *name)
 
   char id_name[MAX_ID_NAME];
   STRNCPY(id_name, id.name);
-  BLI_strncpy(id_name + 2, name, sizeof(id_name) - 2);
+  STRNCPY(MutableCStr(id_name).drop_front(2), name);
 
   BKE_main_library_weak_reference_add(&id, id.lib->filepath, id_name);
 }
