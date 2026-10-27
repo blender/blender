@@ -190,4 +190,57 @@ void SymbolFunction::add_argument(bool is_const, SymbolClass *type, Expr default
   this->arg_defaults.emplace_back(default_value);
 }
 
+bool SymbolFunction::is_compatible(ResourceType res_type)
+{
+  switch (res_type) {
+    case ResourceType::BASE_INSTANCE:
+    case ResourceType::CLIP_CONTROL:
+    case ResourceType::CLIP_DISTANCES:
+    case ResourceType::INSTANCE_ID:
+    case ResourceType::INSTANCE_INDEX:
+    case ResourceType::VERTEX_ID:
+    case ResourceType::POSITION:
+    case ResourceType::POINT_SIZE:
+      return entry_point_type == EntryPointType::VERT;
+    case ResourceType::FRONT_FACING:
+    case ResourceType::FRAG_COORD:
+    case ResourceType::BARY_COORD:
+    case ResourceType::POINT_COORD:
+    case ResourceType::SUBPASS_IN:
+    case ResourceType::FRAG_DEPTH:
+    case ResourceType::STENCIL_REF:
+      return entry_point_type == EntryPointType::FRAG;
+    case ResourceType::LOCAL_INVOCATION_ID:
+    case ResourceType::LOCAL_INVOCATION_INDEX:
+    case ResourceType::GLOBAL_INVOCATION_ID:
+    case ResourceType::WORK_GROUP_ID:
+    case ResourceType::NUM_WORK_GROUP:
+      return entry_point_type == EntryPointType::COMP;
+    case ResourceType::VIEWPORT_INDEX:
+    case ResourceType::LAYER:
+    case ResourceType::IN:
+    case ResourceType::OUT:
+      return entry_point_type == EntryPointType::VERT || entry_point_type == EntryPointType::FRAG;
+    default:
+      return false;
+  }
+  assert(0);
+  return false;
+}
+
+std::string to_str(SymbolFunction::EntryPointType type)
+{
+  switch (type) {
+    case SymbolFunction::EntryPointType::NONE:
+      return "none";
+    case SymbolFunction::EntryPointType::FRAG:
+      return "fragment";
+    case SymbolFunction::EntryPointType::VERT:
+      return "vertex";
+    case SymbolFunction::EntryPointType::COMP:
+      return "compute";
+  }
+  return "Unknown";
+}
+
 }  // namespace bsl

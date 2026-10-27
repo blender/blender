@@ -350,6 +350,15 @@ struct SymbolParser : NodeErrorHandler {
       {
         error(arg, Diag::ResourceAttributesOnlyOnEntryPointArgs);
       }
+      else if (is_entry_point && attr.srt_type == ResourceTableType::ENTRY_POINT &&
+               !fn_sym->is_compatible(attr.res_type))
+      {
+        error(arg,
+              Diag::ResourceAttributesIncompatibleEntryPoint,
+              var->original,
+              to_str(attr.res_type),
+              to_str(fn_sym->entry_point_type));
+      }
 
       if (!is_entry_point && attr.condition.is_valid()) {
         error(arg, Diag::ConditionAttributeNotOnResource);
