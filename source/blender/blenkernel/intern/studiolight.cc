@@ -675,10 +675,10 @@ static void studiolight_radiance_preview(uint *icon_buffer, StudioLight *sl)
 
       float4 color = studiolight_calculate_radiance(sl->equirect_radiance_buffer, direction);
 
-      *pixel = rgb_to_cpack(linearrgb_to_srgb(color[0]),
-                            linearrgb_to_srgb(color[1]),
-                            linearrgb_to_srgb(color[2])) |
-               alphamask;
+      /* Buffer is in the working space. */
+      float srgb[3];
+      IMB_colormanagement_scene_linear_to_srgb_v3(srgb, color);
+      *pixel = rgb_to_cpack(srgb[0], srgb[1], srgb[2]) | alphamask;
     }
     else {
       *pixel = 0x0;
