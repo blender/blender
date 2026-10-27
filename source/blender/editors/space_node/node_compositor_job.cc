@@ -215,25 +215,11 @@ static compositor::SideEffectOutputTypes get_needed_side_effect_outputs(
   for (wmWindow &window : window_manager->windows) {
     bScreen *screen = WM_window_get_active_screen(&window);
     for (ScrArea &area : screen->areabase) {
-      SpaceLink *space_link = area.spacedata.first();
-      if (!space_link || !ELEM(space_link->spacetype, SPACE_NODE, SPACE_IMAGE)) {
-        continue;
+      if (bke::compositor::is_compositor_viewer_visible(area)) {
+        needed_side_effect_outputs |= compositor::SideEffectOutputTypes::ViewerNode;
       }
-      if (space_link->spacetype == SPACE_NODE) {
-        const SpaceNode *space_node = reinterpret_cast<const SpaceNode *>(space_link);
-        if (space_node->flag & SNODE_BACKDRAW) {
-          needed_side_effect_outputs |= compositor::SideEffectOutputTypes::ViewerNode;
-        }
-        if (space_node->overlay.flag & SN_OVERLAY_SHOW_PREVIEWS) {
-          needed_side_effect_outputs |= compositor::SideEffectOutputTypes::NodePreviews;
-        }
-      }
-      else if (space_link->spacetype == SPACE_IMAGE) {
-        const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(space_link);
-        Image *image = ED_space_image(space_image);
-        if (image && image->source == IMA_SRC_VIEWER && image->type == IMA_TYPE_COMPOSITE) {
-          needed_side_effect_outputs |= compositor::SideEffectOutputTypes::ViewerNode;
-        }
+      if (bke::compositor::are_compositor_node_previews_visible(area)) {
+        needed_side_effect_outputs |= compositor::SideEffectOutputTypes::NodePreviews;
       }
 
       /* All possible outputs are already needed, return early. */

@@ -26,6 +26,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_enums.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
@@ -635,6 +636,44 @@ bool is_viewport_compositor_used(const bContext &context)
   }
 
   return false;
+}
+
+bool is_compositor_viewer_visible(const ScrArea &area)
+{
+  const SpaceLink *space_link = area.spacedata.first();
+  if (!space_link || !ELEM(space_link->spacetype, SPACE_NODE, SPACE_IMAGE)) {
+    return false;
+  }
+
+  if (space_link->spacetype == SPACE_NODE) {
+    const SpaceNode *space_node = reinterpret_cast<const SpaceNode *>(space_link);
+    if (space_node->tree_idname != "CompositorNodeTree"_ustr) {
+      return false;
+    }
+    return space_node->flag & SNODE_BACKDRAW;
+  }
+
+  if (space_link->spacetype == SPACE_IMAGE) {
+    const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(space_link);
+    Image *image = space_image->image;
+    return image && image->source == IMA_SRC_VIEWER && image->type == IMA_TYPE_COMPOSITE;
+  }
+
+  return false;
+}
+
+bool are_compositor_node_previews_visible(const ScrArea &area)
+{
+  const SpaceLink *space_link = area.spacedata.first();
+  if (!space_link || space_link->spacetype != SPACE_NODE) {
+    return false;
+  }
+
+  const SpaceNode *space_node = reinterpret_cast<const SpaceNode *>(space_link);
+  if (space_node->tree_idname != "CompositorNodeTree"_ustr) {
+    return false;
+  }
+  return space_node->overlay.flag & SN_OVERLAY_SHOW_PREVIEWS;
 }
 
 /* --------------------------------------------------------------------
