@@ -1649,6 +1649,10 @@ if(WITH_COMPILER_ASAN AND NOT WITH_COMPILER_ASAN_EXTERN)
   add_definitions(-DEIGEN_MALLOC_ALREADY_ALIGNED=0)
 endif()
 
+if(WITH_COMPILER_CCACHE)
+  include(build_files/cmake/compiler_ccache_max_size_check.cmake)
+endif()
+
 # -----------------------------------------------------------------------------
 # Configure Metal
 
