@@ -1319,7 +1319,29 @@ struct A {
 void f(A t)
 {
   t.a++;
-}
+})";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Increment and decrement operators are not supported on bitfield");
+  }
+  {
+    string input = R"(
+struct A {
+  int a : 2;
+  void f() { a += 1; }
+};
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_NE(
+        output.find("bitfieldInsertAssign(this_.a, bitfieldExtract(this_.a, 0, 2) + (1), 0, 2)"),
+        string::npos);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+struct A {
+  int a : 2;
+  void f() { a++; }
+};
 )";
     auto [output, _, error] = process_test_string(input, Language::BSL);
     EXPECT_EQ(error, "Increment and decrement operators are not supported on bitfield");

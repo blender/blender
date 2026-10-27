@@ -533,7 +533,10 @@ struct CodegenContext : NodeErrorHandler {
       bool preceded_by_dot = id.front().prev() == '.' ||
                              id.parent().prev().type() == NodeType::OpDeref;
       if (!var->is_static && !preceded_by_dot && var->parent->as_class() != nullptr) {
-        return {"this_." + var->identifier + whitespace, var->type, var->array_dimensions};
+        return {"this_." + var->identifier + whitespace,
+                var->type,
+                var->array_dimensions,
+                var->is_bitfield};
       }
       return {var, whitespace};
     }
