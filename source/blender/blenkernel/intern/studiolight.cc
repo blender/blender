@@ -24,6 +24,7 @@
 
 #include "CLG_log.h"
 
+#include "DNA_color_types.h"
 #include "DNA_listBase.h"
 
 #include "IMB_colormanagement.hh"
@@ -289,7 +290,9 @@ static void direction_to_equirect(float r[2], const float dir[3])
  * Read a named pass from a multi-layer EXR and return a 4-channel float ImBuf.
  * Returns null if the pass is not in the file.
  */
-static ImBuf *studiolight_read_matcap_pass(ExrReadHandle *handle, const char *pass_name)
+static ImBuf *studiolight_read_matcap_pass(ExrReadHandle *handle,
+                                           const char *pass_name,
+                                           const char *file_colorspace)
 {
   Vector<ExrPassInfo> passes = IMB_exr_get_passes(handle);
   for (ExrPassInfo &info : passes) {
@@ -297,7 +300,7 @@ static ImBuf *studiolight_read_matcap_pass(ExrReadHandle *handle, const char *pa
       continue;
     }
     MutableSpan<ExrPassInfo> single(&info, 1);
-    IMB_exr_read_passes(handle, single, nullptr, false);
+    IMB_exr_read_passes(handle, single, file_colorspace, false);
     ImBuf *pass_ibuf = info.ibuf;
     if (pass_ibuf == nullptr || pass_ibuf->channels == 4) {
       return pass_ibuf;
@@ -320,8 +323,9 @@ static ImBuf *studiolight_read_matcap_pass(ExrReadHandle *handle, const char *pa
 static void studiolight_load_equirect_image(StudioLight *sl)
 {
   if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
-    ImBuf *ibuf = IMB_load_image_from_filepath(sl->filepath,
-                                               ImBufFlags::MultiLayer | ImBufFlags::AlphaIgnore);
+    ColorManagedColorspaceSettings colorspace_settings{};
+    ImBuf *ibuf = IMB_load_image_from_filepath(
+        sl->filepath, ImBufFlags::MultiLayer | ImBufFlags::AlphaIgnore, &colorspace_settings);
     ImBuf *specular_ibuf = nullptr;
     ImBuf *diffuse_ibuf = nullptr;
     const bool failed = (ibuf == nullptr);
@@ -336,8 +340,11 @@ static void studiolight_load_equirect_image(StudioLight *sl)
          * supported for MATCAPS where the first found 'diffuse' pass will be used
          * for diffuse lighting and the first found 'specular' pass will be used
          * for specular lighting. */
-        diffuse_ibuf = studiolight_read_matcap_pass(exr_handle, STUDIOLIGHT_PASSNAME_DIFFUSE);
-        specular_ibuf = studiolight_read_matcap_pass(exr_handle, STUDIOLIGHT_PASSNAME_SPECULAR);
+        const char *file_colorspace = colorspace_settings.name;
+        diffuse_ibuf = studiolight_read_matcap_pass(
+            exr_handle, STUDIOLIGHT_PASSNAME_DIFFUSE, file_colorspace);
+        specular_ibuf = studiolight_read_matcap_pass(
+            exr_handle, STUDIOLIGHT_PASSNAME_SPECULAR, file_colorspace);
 
         IMB_exr_close(exr_handle);
         IMB_freeImBuf(ibuf);

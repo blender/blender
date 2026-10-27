@@ -22,6 +22,7 @@
 
 #include "GPU_capabilities.hh"
 #include "GPU_ray_tracing.hh"
+#include <string>
 
 namespace blender::workbench {
 
@@ -253,6 +254,7 @@ struct SceneResources {
   static const int jitter_tx_size = 64;
 
   StringRefNull current_matcap = {};
+  std::string current_matcap_working_space = {};
   Texture matcap_tx = "matcap_tx";
 
   TextureFromPool object_id_tx = "wb_object_id_tx";
