@@ -15,6 +15,7 @@
 #include "BLI_math_vector_c.hh"
 
 #include "GPU_batch_utils.hh"
+#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
@@ -135,9 +136,13 @@ void SceneResources::init(const SceneState &scene_state, const DRWContext *ctx)
   else {
     if (shading.light == V3D_LIGHTING_MATCAP) {
       studio_light = BKE_studiolight_find(shading.matcap, STUDIOLIGHT_TYPE_MATCAP);
-      if (studio_light && studio_light->name != current_matcap) {
+      const StringRefNull working_space = IMB_colormanagement_working_space_get();
+      if (studio_light &&
+          (studio_light->name != current_matcap || working_space != current_matcap_working_space))
+      {
         if (get_matcap_tx(matcap_tx, *studio_light)) {
           current_matcap = studio_light->name;
+          current_matcap_working_space = working_space;
         }
       }
     }
