@@ -31,6 +31,7 @@
 #include "ED_anim_filter.hh"
 #include "ED_keyframes_draw.hh"
 #include "ED_space_action.hh"
+#include "ED_space_graph.hh"
 #include "ED_undo.hh"
 
 #include "WM_api.hh"
@@ -132,15 +133,24 @@ class ChannelItem : public ui::AbstractTreeViewItem {
   void on_collapse_change(bContext &C, const bool is_collapsed) override
   {
     SpaceAction *saction = CTX_wm_space_action(&C);
-    BLI_assert_msg(saction, "expecting animation ChannelItem to be used in a Dope Sheet");
-    if (!saction) {
+    SpaceGraph *space_graph = CTX_wm_space_graph(&C);
+    if (saction) {
+      SAction_AnimationChannelState &channel_state = saction->runtime->channel_state_for_update(
+          channel_.identifier());
+      /* Store the expanded/collapsed state. */
+      channel_state.is_collapsed = is_collapsed;
+    }
+    else if (space_graph) {
+      SAction_AnimationChannelState &channel_state =
+          space_graph->runtime->channel_state_for_update(channel_.identifier());
+      /* Store the expanded/collapsed state. */
+      channel_state.is_collapsed = is_collapsed;
+    }
+    else {
+      /* TODO find a better way to support different editors. */
+      BLI_assert_unreachable();
       return;
     }
-
-    /* Store the expanded/collapsed state. */
-    SAction_AnimationChannelState &channel_state = saction->runtime->channel_state_for_update(
-        channel_.identifier());
-    channel_state.is_collapsed = is_collapsed;
 
     /* Trigger redrawing of the keys. */
     WM_event_add_notifier(&C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
@@ -252,10 +262,6 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
                                         0,
                                         0,
                                         ui::style_get());
-
-  SpaceAction *saction = CTX_wm_space_action(&C);
-  BLI_assert_msg(saction, "expecting to be called for a Dope Sheet");
-  UNUSED_VARS_NDEBUG(saction);
 
   ui::AbstractTreeView *tree_view = ui::block_add_view(
       *block, "channel_tree", std::make_unique<ChannelTreeView>(root));

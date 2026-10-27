@@ -59,6 +59,15 @@
 
 namespace blender {
 
+ed::animfilter::SAction_AnimationChannelState &SpaceGraph_Runtime::channel_state_for_update(
+    const ed::animfilter::ChannelIdentifier &channel_key)
+{
+  ed::animfilter::SAction_AnimationChannelState &channel_state =
+      this->channel_states.lookup_or_add_default(channel_key);
+  channel_state.last_used = this->last_used;
+  return channel_state;
+}
+
 /* ******************** default callbacks for ipo space ***************** */
 
 static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
@@ -225,12 +234,24 @@ static void draw_normalization_borders(Scene *scene, View2D *v2d)
   immUnbindProgram();
 }
 
+/** Get the channels, caching them on the space data. */
+static ed::animfilter::ChannelArena &space_graph_channel_arena(const bContext &C)
+{
+  SpaceGraph *space_graph = CTX_wm_space_graph(&C);
+  SpaceGraph_Runtime *runtime = space_graph->runtime;
+  if (!runtime->channel_arena) {
+    ed::animfilter::ChannelArena channels = ed::graph::get_summary_tree(C);
+    runtime->channel_arena.emplace(std::move(channels));
+  }
+
+  return *runtime->channel_arena;
+}
+
 static void graph_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   SpaceGraph *sipo = CTX_wm_space_graph(C);
   Scene *scene = CTX_data_scene(C);
-  bAnimContext ac;
   View2D *v2d = &region->v2d;
 
   const int min_height = UI_ANIM_MINY;
@@ -267,22 +288,32 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* draw data */
-  if (ANIM_animdata_get_context(C, &ac)) {
-    /* draw ghost curves */
-    graph_draw_ghost_curves(&ac, sipo, region);
+  /* TODO implement by creating fake `bAnimListElem` and passing that to the existing draw
+   * functions. If that doesn't work just rewrite the drawing scaffolding. */
+  if (false && USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    using namespace ed::animfilter;
+    // ChannelArena &channels = space_graph_channel_arena(*C);
+  }
+  else {
+    bAnimContext ac;
+    if (ANIM_animdata_get_context(C, &ac)) {
+      /* draw ghost curves */
+      graph_draw_ghost_curves(&ac, sipo, region);
 
-    /* draw curves twice - unselected, then selected, so that the are fewer occlusion problems */
-    graph_draw_curves(&ac, sipo, region, 0);
-    graph_draw_curves(&ac, sipo, region, 1);
+      /* draw curves twice - unselected, then selected, so that the are fewer occlusion problems */
+      graph_draw_curves(&ac, sipo, region, 0);
+      graph_draw_curves(&ac, sipo, region, 1);
 
-    /* XXX(ton): the slow way to set tot rect... but for nice sliders needed. */
-    /* Excluding handles from the calculation to save performance. This cuts the time it takes for
-     * this function to run in half which is a major performance bottleneck on heavy scenes. */
-    get_graph_keyframe_extents(
-        &ac, &v2d->tot.xmin, &v2d->tot.xmax, &v2d->tot.ymin, &v2d->tot.ymax, false, false);
-    /* extra offset so that these items are visible */
-    v2d->tot.xmin -= 10.0f;
-    v2d->tot.xmax += 10.0f;
+      /* XXX(ton): the slow way to set tot rect... but for nice sliders needed. */
+      /* Excluding handles from the calculation to save performance. This cuts the time it takes
+       * for this function to run in half which is a major performance bottleneck on heavy scenes.
+       */
+      get_graph_keyframe_extents(
+          &ac, &v2d->tot.xmin, &v2d->tot.xmax, &v2d->tot.ymin, &v2d->tot.ymax, false, false);
+      /* extra offset so that these items are visible */
+      v2d->tot.xmin -= 10.0f;
+      v2d->tot.xmax += 10.0f;
+    }
   }
 
   if ((sipo->flag & SIPO_NODRAWCURSOR) == 0) {
@@ -431,6 +462,12 @@ static void set_v2d_height(View2D *v2d, const size_t item_count)
   ui::view2d_curRect_clamp_y(v2d);
 }
 
+static void graph_draw_pre(const bContext * /* C */, ScrArea *area)
+{
+  SpaceGraph *space_graph = area->spacedata.first_as<SpaceGraph>();
+  space_graph->runtime->channel_arena.reset();
+}
+
 static void graph_channel_region_draw(const bContext *C, ARegion *region)
 {
   View2D *v2d = &region->v2d;
@@ -439,7 +476,10 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
   ui::theme::frame_buffer_clear(TH_BACK);
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-
+    ed::animfilter::ChannelArena &channels = space_graph_channel_arena(*C);
+    set_v2d_height(v2d, channels.num_channels());
+    ui::view2d_view_ortho(v2d);
+    ed::animfilter::draw_channel_tree(*C, *channels.root(), *v2d);
     SpaceGraph *sgraph = CTX_wm_space_graph(C);
     ED_time_scrub_channel_search_draw(C, region, sgraph->ads);
   }
@@ -1001,6 +1041,7 @@ void ED_spacetype_ipo()
   st->keymap = graphedit_keymap;
   st->listener = graph_listener;
   st->refresh = graph_refresh;
+  st->draw_pre = graph_draw_pre;
   st->id_remap = graph_id_remap;
   st->foreach_id = graph_foreach_id;
   st->space_subtype_item_extend = graph_space_subtype_item_extend;
