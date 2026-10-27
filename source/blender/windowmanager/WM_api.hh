@@ -231,6 +231,8 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_CLIPBOARD_PRIMARY = (1 << 2),
   /**
    * Reading from the back-buffer is supported.
+   *
+   * \note The GPU may not support this, also check #GPU_frontbuffer_read_workaround.
    */
   WM_CAPABILITY_GPU_FRONT_BUFFER_READ = (1 << 3),
   /** Ability to copy/paste system clipboard images. */
