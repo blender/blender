@@ -815,6 +815,9 @@ static wmOperatorStatus change_frame_modal(bContext *C, wmOperator *op, const wm
         change_frame_restore_initial(C, op);
         ret = OPERATOR_CANCELLED;
       }
+      else if (event->val == KM_RELEASE) {
+        ret = OPERATOR_FINISHED;
+      }
       break;
 
     case EVT_LEFTCTRLKEY:
