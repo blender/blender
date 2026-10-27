@@ -286,6 +286,7 @@ struct Source {
   std::vector<VertexInputs> vertex_inputs;
   std::vector<Symbol> symbol_table;
   std::vector<TemplateDefinition> template_definitions;
+  std::vector<std::string> visited_files;
 
   /* Serialize Metadata for this source file. */
   std::string serialize(const std::string &function_name) const;
