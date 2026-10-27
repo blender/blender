@@ -740,6 +740,11 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
   PointerRNA id_pointer = RNA_id_pointer_create(id);
   CombinedKeyingResult combined_result;
 
+  if (!BKE_id_is_editable(bmain, id)) {
+    combined_result.add(SingleKeyingResult::ID_NOT_EDITABLE, rna_paths.size());
+    return combined_result;
+  }
+
   /* Init animdata if none available yet. */
   AnimData *adt = BKE_animdata_ensure_id(id);
   if (adt == nullptr) {
