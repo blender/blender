@@ -860,7 +860,7 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
                                            const vector<SymbolClass *> &types) {
     SymbolClass *scalar = types[0];
     for (size_t i = 1; i < types.size(); ++i) {
-      functions.push_back({types[i], name, {types[i], scalar, scalar}});
+      functions.push_back({types[i], name, {scalar, scalar, types[i]}});
     }
   };
 
