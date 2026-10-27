@@ -6,6 +6,7 @@
 
 #include "GHOST_ContextNone.hh"
 #include "GHOST_Debug.hh"
+#include "GHOST_GestureHandlerCocoa.hh"
 #include "GHOST_SystemCocoa.hh"
 
 /* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
@@ -334,6 +335,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
       metal_view_(nil),
       metal_layer_(nil),
       system_cocoa_(systemCocoa),
+      gesture_handler_(nil),
       custom_cursor_(nullptr),
       immediate_draw_(false),
       is_dialog_(is_dialog),
@@ -468,12 +470,18 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     }
 
     setNativePixelSize();
+    gesture_handler_ = [[GHOST_GestureHandlerCocoa alloc] initWithSystemCocoa:system_cocoa_
+                                                                  windowCocoa:this
+                                                                         view:window_.contentView];
   }
 }
 
 GHOST_WindowCocoa::~GHOST_WindowCocoa()
 {
   @autoreleasepool {
+    [gesture_handler_ release];
+    gesture_handler_ = nil;
+
     if (custom_cursor_) {
       [custom_cursor_ release];
       custom_cursor_ = nil;
