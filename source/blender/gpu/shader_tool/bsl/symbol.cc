@@ -1322,7 +1322,8 @@ struct SymbolParser : NodeErrorHandler {
           /* Bitfield members copy their offset from the first bitfield member. */
           sym->offset = bitfield_base->offset;
         }
-        else {
+        else if (!sym->is_static) {
+          /* Static members are not part of the class layout. */
           sym->set_offset(cls->is_union, offset);
         }
 
