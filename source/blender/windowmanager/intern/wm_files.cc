@@ -1370,7 +1370,7 @@ void wm_homefile_read_ex(bContext *C,
       filepath_startup_is_factory = false;
       if (use_userdef) {
         BLI_path_join(
-            filepath_userdef, sizeof(filepath_startup), cfgdir->c_str(), BLENDER_USERPREF_FILE);
+            filepath_userdef, sizeof(filepath_userdef), cfgdir->c_str(), BLENDER_USERPREF_FILE);
       }
     }
     else {
