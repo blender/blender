@@ -20,12 +20,13 @@
 #include "BKE_object.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_eval.hh"
-#include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"
+#include "BKE_subdiv_mesh_layout.hh"
 #include "BKE_subdiv_modifier.hh"
 
 #include "BLI_linklist.hh"
 #include "BLI_mutex.hh"
+#include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 
 #include "DRW_engine.hh"
@@ -470,11 +471,6 @@ struct DRWCacheBuildingContext {
   int *subdiv_loop_subdiv_edge_index;
   int *subdiv_loop_face_index;
 
-  /* Temporary buffers used during traversal. */
-  int *vert_origindex_map;
-  int *edge_draw_flag_map;
-  int *edge_origindex_map;
-
   /* #CD_ORIGINDEX layers from the mesh to directly look up during traversal the original-index
    * from the base mesh for edit data so that we do not have to handle yet another GPU buffer and
    * do this in the shaders. */
@@ -482,32 +478,27 @@ struct DRWCacheBuildingContext {
   const int *orig_index_edge;
 };
 
-static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *foreach_context,
-                                         const int num_verts,
-                                         const int num_edges,
-                                         const int num_loops,
-                                         const int num_faces,
-                                         const Span<int> subdiv_face_offset)
+static bool draw_subdiv_init_cache(DRWCacheBuildingContext *ctx,
+                                   const bke::subdiv::MeshLayout &layout)
 {
-  /* num_loops does not take into account meshes with only loose geometry, which might be meshes
-   * used as custom bone shapes, so let's check the num_verts also. */
-  if (num_verts == 0 && num_loops == 0) {
+  /* The number of corners does not take into account meshes with only loose geometry, which might
+   * be meshes used as custom bone shapes, so let's check the number of vertices also. */
+  if (layout.verts_num == 0 && layout.corners_num == 0) {
     return false;
   }
 
-  DRWCacheBuildingContext *ctx = (DRWCacheBuildingContext *)(foreach_context->user_data);
   DRWSubdivCache *cache = ctx->cache;
 
   /* Set topology information only if we have loops. */
-  if (num_loops != 0) {
-    cache->num_subdiv_edges = uint(num_edges);
-    cache->num_subdiv_loops = uint(num_loops);
-    cache->num_subdiv_verts = uint(num_verts);
-    cache->num_subdiv_quads = uint(num_faces);
-    cache->subdiv_face_offset = subdiv_face_offset;
+  if (layout.corners_num != 0) {
+    cache->num_subdiv_edges = uint(layout.edges_num);
+    cache->num_subdiv_loops = uint(layout.corners_num);
+    cache->num_subdiv_verts = uint(layout.verts_num);
+    cache->num_subdiv_quads = uint(layout.faces_num);
+    cache->subdiv_face_offset = layout.face_offsets.as_span().drop_back(1);
   }
 
-  cache->may_have_loose_geom = num_verts != 0 || num_edges != 0;
+  cache->may_have_loose_geom = layout.verts_num != 0 || layout.edges_num != 0;
 
   /* Initialize cache buffers, prefer dynamic usage so we can reuse memory on the host even after
    * it was sent to the device, since we may use the data while building other buffers on the CPU
@@ -564,146 +555,83 @@ static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *fore
   ctx->orig_index_edge = static_cast<const int *>(
       CustomData_get_layer(&ctx->coarse_mesh->edge_data, CD_ORIGINDEX));
 
-  if (cache->num_subdiv_verts) {
-    ctx->vert_origindex_map = MEM_new_array_uninitialized<int>(cache->num_subdiv_verts,
-                                                               "subdiv_vert_origindex_map");
-    for (int i = 0; i < num_verts; i++) {
-      ctx->vert_origindex_map[i] = -1;
-    }
-  }
-
-  if (cache->num_subdiv_edges) {
-    ctx->edge_origindex_map = MEM_new_array_uninitialized<int>(cache->num_subdiv_edges,
-                                                               "subdiv_edge_origindex_map");
-    for (int i = 0; i < num_edges; i++) {
-      ctx->edge_origindex_map[i] = -1;
-    }
-    ctx->edge_draw_flag_map = MEM_new_array_zeroed<int>(cache->num_subdiv_edges,
-                                                        "subdiv_edge_draw_flag_map");
-  }
-
   return true;
-}
-
-static void draw_subdiv_vert_corner_cb(const bke::subdiv::ForeachContext *foreach_context,
-                                       void * /*tls*/,
-                                       const int /*ptex_face_index*/,
-                                       const float /*u*/,
-                                       const float /*v*/,
-                                       const int coarse_vert_index,
-                                       const int /*coarse_face_index*/,
-                                       const int /*coarse_corner*/,
-                                       const int subdiv_vert_index)
-{
-  BLI_assert(coarse_vert_index != ORIGINDEX_NONE);
-  DRWCacheBuildingContext *ctx = (DRWCacheBuildingContext *)(foreach_context->user_data);
-  ctx->vert_origindex_map[subdiv_vert_index] = coarse_vert_index;
-}
-
-static void draw_subdiv_vert_edge_cb(const bke::subdiv::ForeachContext * /*foreach_context*/,
-                                     void * /*tls_v*/,
-                                     const int /*ptex_face_index*/,
-                                     const float /*u*/,
-                                     const float /*v*/,
-                                     const int /*coarse_edge_index*/,
-                                     const int /*coarse_face_index*/,
-                                     const int /*coarse_corner*/,
-                                     const int /*subdiv_vert_index*/)
-{
-  /* Required if bke::subdiv::ForeachContext.vert_corner is also set. */
-}
-
-static void draw_subdiv_edge_cb(const bke::subdiv::ForeachContext *foreach_context,
-                                void * /*tls*/,
-                                const int coarse_edge_index,
-                                const int subdiv_edge_index,
-                                const bool /*is_loose*/,
-                                const int /*subdiv_v1*/,
-                                const int /*subdiv_v2*/)
-{
-  DRWCacheBuildingContext *ctx = (DRWCacheBuildingContext *)(foreach_context->user_data);
-
-  if (!ctx->edge_origindex_map) {
-    return;
-  }
-
-  if (coarse_edge_index == ORIGINDEX_NONE) {
-    /* Not mapped to edge in the subdivision base mesh. */
-    ctx->edge_origindex_map[subdiv_edge_index] = ORIGINDEX_NONE;
-    if (!ctx->cache->optimal_display) {
-      ctx->edge_draw_flag_map[subdiv_edge_index] = 1;
-    }
-  }
-  else {
-    if (ctx->orig_index_edge) {
-      const int origindex = ctx->orig_index_edge[coarse_edge_index];
-      ctx->edge_origindex_map[subdiv_edge_index] = origindex;
-      if (!(origindex == ORIGINDEX_NONE && ctx->cache->hide_unmapped_edges)) {
-        /* Not mapped to edge in original mesh (generated by a preceding modifier). */
-        ctx->edge_draw_flag_map[subdiv_edge_index] = 1;
-      }
-    }
-    else {
-      ctx->edge_origindex_map[subdiv_edge_index] = coarse_edge_index;
-      ctx->edge_draw_flag_map[subdiv_edge_index] = 1;
-    }
-  }
-}
-
-static void draw_subdiv_loop_cb(const bke::subdiv::ForeachContext *foreach_context,
-                                void * /*tls_v*/,
-                                const int ptex_face_index,
-                                const float u,
-                                const float v,
-                                const int /*coarse_loop_index*/,
-                                const int coarse_face_index,
-                                const int /*coarse_corner*/,
-                                const int subdiv_loop_index,
-                                const int subdiv_vert_index,
-                                const int subdiv_edge_index)
-{
-  DRWCacheBuildingContext *ctx = (DRWCacheBuildingContext *)(foreach_context->user_data);
-  ctx->patch_coords[subdiv_loop_index] = make_patch_coord(ptex_face_index, u, v);
-
-  int coarse_vert_index = ctx->vert_origindex_map[subdiv_vert_index];
-
-  ctx->subdiv_loop_subdiv_vert_index[subdiv_loop_index] = subdiv_vert_index;
-  ctx->subdiv_loop_subdiv_edge_index[subdiv_loop_index] = subdiv_edge_index;
-  ctx->subdiv_loop_face_index[subdiv_loop_index] = coarse_face_index;
-  ctx->subdiv_loop_vert_index[subdiv_loop_index] = coarse_vert_index;
-}
-
-static void draw_subdiv_foreach_callbacks(bke::subdiv::ForeachContext *foreach_context)
-{
-  *foreach_context = {};
-  foreach_context->topology_info = draw_subdiv_topology_info_cb;
-  foreach_context->loop = draw_subdiv_loop_cb;
-  foreach_context->edge = draw_subdiv_edge_cb;
-  foreach_context->vert_corner = draw_subdiv_vert_corner_cb;
-  foreach_context->vert_edge = draw_subdiv_vert_edge_cb;
 }
 
 static void do_subdiv_traversal(DRWCacheBuildingContext *cache_building_context,
                                 bke::subdiv::Subdiv *subdiv)
 {
-  bke::subdiv::ForeachContext foreach_context;
-  draw_subdiv_foreach_callbacks(&foreach_context);
-  foreach_context.user_data = cache_building_context;
+  const bke::subdiv::MeshLayout layout = bke::subdiv::build_mesh_layout(
+      *cache_building_context->coarse_mesh, cache_building_context->settings->resolution);
+  if (!draw_subdiv_init_cache(cache_building_context, layout)) {
+    return;
+  }
 
-  bke::subdiv::foreach_subdiv_geometry(subdiv,
-                                       &foreach_context,
-                                       cache_building_context->settings,
-                                       cache_building_context->coarse_mesh);
+  const DRWSubdivCache &cache = *cache_building_context->cache;
+  const Mesh &coarse_mesh = *cache_building_context->coarse_mesh;
+  if (cache.num_subdiv_loops != 0) {
+    bke::subdiv::fill_corner_verts_and_edges(
+        layout,
+        coarse_mesh,
+        coarse_mesh.faces().index_range(),
+        {cache_building_context->subdiv_loop_subdiv_vert_index, cache.num_subdiv_loops},
+        {cache_building_context->subdiv_loop_subdiv_edge_index, cache.num_subdiv_loops});
+
+    const Span<int> face_ptex_offset = bke::subdiv::face_ptex_offset_get(subdiv);
+    MutableSpan<CompressedPatchCoord> patch_coords(cache_building_context->patch_coords,
+                                                   cache.num_subdiv_loops);
+    MutableSpan<int> corner_face_index(cache_building_context->subdiv_loop_face_index,
+                                       cache.num_subdiv_loops);
+    threading::parallel_for(coarse_mesh.faces().index_range(),
+                            layout.base_face_grain_size(),
+                            [&](const IndexRange range) {
+                              const IndexRange chunk_corners = layout.base_face_corners(range);
+                              Array<bke::subdiv::PtexCoord> ptex_coords(chunk_corners.size());
+                              bke::subdiv::fill_corner_ptex_coords(
+                                  layout, coarse_mesh, face_ptex_offset, range, ptex_coords, {});
+                              for (const int i : ptex_coords.index_range()) {
+                                const bke::subdiv::PtexCoord &coord = ptex_coords[i];
+                                patch_coords[chunk_corners[i]] = make_patch_coord(
+                                    coord.ptex_face_index, coord.uv.x, coord.uv.y);
+                              }
+                              for (const int face : range) {
+                                corner_face_index.slice(layout.base_face_corners(face)).fill(face);
+                              }
+                            });
+  }
 
   /* Now that traversal is done, we can set up the right original indices for the
    * subdiv-loop-to-coarse-edge map.
    */
-  for (int i = 0; i < cache_building_context->cache->num_subdiv_loops; i++) {
-    const int edge_index = cache_building_context->subdiv_loop_subdiv_edge_index[i];
-    cache_building_context->subdiv_loop_edge_index[i] =
-        cache_building_context->edge_origindex_map[edge_index];
-    cache_building_context->subdiv_loop_edge_draw_flag[i] =
-        cache_building_context->edge_draw_flag_map[edge_index];
+  const int *orig_index_edge = cache_building_context->orig_index_edge;
+  for (int i = 0; i < cache.num_subdiv_loops; i++) {
+    /* Subdivided vertices corresponding to base mesh vertices have the same indices, see
+     * #bke::subdiv::MeshLayout. */
+    const int subdiv_vert_index = cache_building_context->subdiv_loop_subdiv_vert_index[i];
+    cache_building_context->subdiv_loop_vert_index[i] = subdiv_vert_index < coarse_mesh.verts_num ?
+                                                            subdiv_vert_index :
+                                                            ORIGINDEX_NONE;
+
+    const int subdiv_edge_index = cache_building_context->subdiv_loop_subdiv_edge_index[i];
+    int &origindex = cache_building_context->subdiv_loop_edge_index[i];
+    int &draw_flag = cache_building_context->subdiv_loop_edge_draw_flag[i];
+    if (subdiv_edge_index >= layout.inner_edges_start) {
+      /* Not mapped to edge in the subdivision base mesh. */
+      origindex = ORIGINDEX_NONE;
+      draw_flag = cache.optimal_display ? 0 : 1;
+      continue;
+    }
+    /* The first subdivided edges are grouped by the base mesh edge they come from, see
+     * #bke::subdiv::MeshLayout. */
+    const int coarse_edge_index = subdiv_edge_index / (layout.resolution - 1);
+    if (orig_index_edge) {
+      origindex = orig_index_edge[coarse_edge_index];
+      draw_flag = (origindex == ORIGINDEX_NONE && cache.hide_unmapped_edges) ? 0 : 1;
+    }
+    else {
+      origindex = coarse_edge_index;
+      draw_flag = 1;
+    }
   }
 }
 
@@ -850,11 +778,6 @@ static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
           cache_building_context.patch_coords[first_loop_index[vert]];
     }
   }
-
-  /* Cleanup. */
-  MEM_SAFE_DELETE(cache_building_context.vert_origindex_map);
-  MEM_SAFE_DELETE(cache_building_context.edge_origindex_map);
-  MEM_SAFE_DELETE(cache_building_context.edge_draw_flag_map);
 
   return true;
 }

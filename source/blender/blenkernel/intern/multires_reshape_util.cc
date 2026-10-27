@@ -19,6 +19,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_c.hh"
+#include "BLI_task.hh"
 #include "BLI_task_c.hh"
 
 #include "BKE_attribute.hh"
@@ -28,6 +29,7 @@
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_eval.hh"
+#include "BKE_subdiv_mesh_layout.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -445,6 +447,54 @@ GridCoord multires_reshape_ptex_coord_to_grid(const MultiresReshapeContext *resh
   bke::subdiv::ptex_face_uv_to_grid_uv(grid_coord.u, grid_coord.v, &grid_coord.u, &grid_coord.v);
 
   return grid_coord;
+}
+
+void multires_reshape_foreach_boundary_vert_ptex_coord(
+    const MultiresReshapeContext *reshape_context,
+    const bke::subdiv::MeshLayout &layout,
+    const FunctionRef<void(const bke::subdiv::PtexCoord &coord, int base_vert, int subdiv_vert)>
+        fn)
+{
+  const Mesh &base_mesh = *reshape_context->base_mesh;
+  const OffsetIndices<int> faces = reshape_context->base_faces;
+  const Span<int2> edges = reshape_context->base_edges;
+  const Span<int> corner_verts = reshape_context->base_corner_verts;
+  const Span<int> corner_to_face = reshape_context->base_corner_to_face;
+  const Span<int> face_ptex_offset = reshape_context->face_ptex_offset;
+  const GroupedSpan<int> vert_to_corner = base_mesh.vert_to_corner_map();
+  const GroupedSpan<int> edge_to_corner = base_mesh.edge_to_corner_map();
+
+  /* Subdivided vertices corresponding to base mesh vertices have the same indices. */
+  threading::parallel_for(vert_to_corner.index_range(), 1024, [&](const IndexRange range) {
+    for (const int vert : range) {
+      for (const int corner : vert_to_corner[vert]) {
+        const int face = corner_to_face[corner];
+        const bke::subdiv::PtexCoord coord = bke::subdiv::face_corner_ptex_coord(
+            faces[face], face_ptex_offset[face], corner - faces[face].start());
+        fn(coord, vert, vert);
+      }
+    }
+  });
+
+  threading::parallel_for(edges.index_range(), 256, [&](const IndexRange range) {
+    Array<bke::subdiv::PtexCoord> coords(layout.resolution - 2);
+    for (const int edge : range) {
+      const IndexRange edge_verts = layout.base_edge_verts(edge);
+      for (const int corner : edge_to_corner[edge]) {
+        const int face = corner_to_face[corner];
+        const bool flip = edges[edge][1] == corner_verts[corner];
+        bke::subdiv::fill_face_corner_edge_ptex_coords(layout,
+                                                       faces[face],
+                                                       face_ptex_offset[face],
+                                                       corner - faces[face].start(),
+                                                       flip,
+                                                       coords);
+        for (const int i : edge_verts.index_range()) {
+          fn(coords[i], -1, edge_verts[i]);
+        }
+      }
+    }
+  });
 }
 
 void multires_reshape_tangent_matrix_for_corner(const MultiresReshapeContext *reshape_context,

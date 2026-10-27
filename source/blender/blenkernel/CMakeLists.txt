@@ -286,8 +286,8 @@ set(SRC
   intern/subdiv_displacement.cc
   intern/subdiv_displacement_multires.cc
   intern/subdiv_eval.cc
-  intern/subdiv_foreach.cc
   intern/subdiv_mesh.cc
+  intern/subdiv_mesh_layout.cc
   intern/subdiv_modifier.cc
   intern/subdiv_stats.cc
   intern/subdiv_topology.cc
@@ -531,8 +531,8 @@ set(SRC
   BKE_subdiv_ccg.hh
   BKE_subdiv_deform.hh
   BKE_subdiv_eval.hh
-  BKE_subdiv_foreach.hh
   BKE_subdiv_mesh.hh
+  BKE_subdiv_mesh_layout.hh
   BKE_subdiv_modifier.hh
   BKE_subdiv_topology.hh
   BKE_text.h

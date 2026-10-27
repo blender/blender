@@ -295,6 +295,34 @@ float3 eval_limit_point(Subdiv *subdiv, const int ptex_face_index, const float u
 #endif
 }
 
+#ifdef WITH_OPENSUBDIV
+/**
+ * In a very rare occasions derivatives are evaluated to zeros or are exactly equal.
+ * This happens, for example, in single vertex on Suzannne's nose (where two quads have 2 common
+ * edges).
+ *
+ * This makes tangent space displacement (such as multi-resolution) impossible to be used in
+ * those vertices, so those needs to be addressed in one way or another.
+ *
+ * Simplest thing to do: step inside of the face a little bit, where there is known patch at
+ * which there must be proper derivatives. This might break continuity of normals, but is better
+ * that giving totally unusable derivatives.
+ */
+static void fix_degenerate_derivatives(Subdiv *subdiv,
+                                       const int ptex_face_index,
+                                       const float u,
+                                       const float v,
+                                       float3 &r_P,
+                                       float3 &r_dPdu,
+                                       float3 &r_dPdv)
+{
+  if ((math::is_zero(r_dPdu) || math::is_zero(r_dPdv)) || math::is_equal(r_dPdu, r_dPdv)) {
+    subdiv->evaluator->eval_output->evaluateLimit(
+        ptex_face_index, u * 0.999f + 0.0005f, v * 0.999f + 0.0005f, r_P, r_dPdu, r_dPdv);
+  }
+}
+#endif
+
 void eval_limit_point_and_derivatives(Subdiv *subdiv,
                                       const int ptex_face_index,
                                       const float u,
@@ -305,22 +333,7 @@ void eval_limit_point_and_derivatives(Subdiv *subdiv,
 {
 #ifdef WITH_OPENSUBDIV
   subdiv->evaluator->eval_output->evaluateLimit(ptex_face_index, u, v, r_P, r_dPdu, r_dPdv);
-
-  /* NOTE: In a very rare occasions derivatives are evaluated to zeros or are exactly equal.
-   * This happens, for example, in single vertex on Suzannne's nose (where two quads have 2 common
-   * edges).
-   *
-   * This makes tangent space displacement (such as multi-resolution) impossible to be used in
-   * those vertices, so those needs to be addressed in one way or another.
-   *
-   * Simplest thing to do: step inside of the face a little bit, where there is known patch at
-   * which there must be proper derivatives. This might break continuity of normals, but is better
-   * that giving totally unusable derivatives. */
-
-  if ((math::is_zero(r_dPdu) || math::is_zero(r_dPdv)) || math::is_equal(r_dPdu, r_dPdv)) {
-    subdiv->evaluator->eval_output->evaluateLimit(
-        ptex_face_index, u * 0.999f + 0.0005f, v * 0.999f + 0.0005f, r_P, r_dPdu, r_dPdv);
-  }
+  fix_degenerate_derivatives(subdiv, ptex_face_index, u, v, r_P, r_dPdu, r_dPdv);
 #else
   UNUSED_VARS(subdiv, ptex_face_index, u, v, r_P, r_dPdu, r_dPdv);
 #endif
@@ -395,6 +408,137 @@ float3 eval_final_point(Subdiv *subdiv, const int ptex_face_index, const float u
     r_P = eval_limit_point(subdiv, ptex_face_index, u, v);
   }
   return r_P;
+}
+
+/* --------------------------------------------------------------------
+ * Batched queries.
+ */
+
+#ifdef WITH_OPENSUBDIV
+static const OpenSubdiv_PatchCoord *to_patch_coords(const Span<PtexCoord> coords)
+{
+  static_assert(sizeof(PtexCoord) == sizeof(OpenSubdiv_PatchCoord));
+  static_assert(offsetof(PtexCoord, ptex_face_index) ==
+                offsetof(OpenSubdiv_PatchCoord, ptex_face));
+  static_assert(offsetof(PtexCoord, uv) == offsetof(OpenSubdiv_PatchCoord, u));
+  return reinterpret_cast<const OpenSubdiv_PatchCoord *>(coords.data());
+}
+#endif
+
+void eval_limit_points(Subdiv *subdiv, const Span<PtexCoord> coords, MutableSpan<float3> r_P)
+{
+  BLI_assert(coords.size() == r_P.size());
+#ifdef WITH_OPENSUBDIV
+  if (coords.is_empty()) {
+    return;
+  }
+  subdiv->evaluator->eval_output->evaluatePatchesLimit(
+      to_patch_coords(coords), coords.size(), &r_P.data()->x, nullptr, nullptr);
+#else
+  UNUSED_VARS(subdiv, coords);
+  r_P.fill(float3(0.0f));
+#endif
+}
+
+void eval_limit_points_and_derivatives(Subdiv *subdiv,
+                                       const Span<PtexCoord> coords,
+                                       MutableSpan<float3> r_P,
+                                       MutableSpan<float3> r_dPdu,
+                                       MutableSpan<float3> r_dPdv)
+{
+  BLI_assert(coords.size() == r_P.size());
+  BLI_assert(coords.size() == r_dPdu.size());
+  BLI_assert(coords.size() == r_dPdv.size());
+#ifdef WITH_OPENSUBDIV
+  if (coords.is_empty()) {
+    return;
+  }
+  subdiv->evaluator->eval_output->evaluatePatchesLimit(to_patch_coords(coords),
+                                                       coords.size(),
+                                                       &r_P.data()->x,
+                                                       &r_dPdu.data()->x,
+                                                       &r_dPdv.data()->x);
+  for (const int i : coords.index_range()) {
+    const PtexCoord &coord = coords[i];
+    fix_degenerate_derivatives(
+        subdiv, coord.ptex_face_index, coord.uv.x, coord.uv.y, r_P[i], r_dPdu[i], r_dPdv[i]);
+  }
+#else
+  UNUSED_VARS(subdiv, coords, r_P, r_dPdu, r_dPdv);
+#endif
+}
+
+void eval_final_points(Subdiv *subdiv, const Span<PtexCoord> coords, MutableSpan<float3> r_P)
+{
+  if (!subdiv->displacement_evaluator) {
+    eval_limit_points(subdiv, coords, r_P);
+    return;
+  }
+  Array<float3> dPdu(coords.size());
+  Array<float3> dPdv(coords.size());
+  eval_limit_points_and_derivatives(subdiv, coords, r_P, dPdu, dPdv);
+  for (const int i : coords.index_range()) {
+    const PtexCoord &coord = coords[i];
+    float3 D;
+    eval_displacement(subdiv, coord.ptex_face_index, coord.uv.x, coord.uv.y, dPdu[i], dPdv[i], D);
+    r_P[i] += D;
+  }
+}
+
+void eval_displacement_averaged(Subdiv *subdiv,
+                                const Span<PtexCoord> coords,
+                                const OffsetIndices<int> groups,
+                                MutableSpan<float3> r_D)
+{
+  BLI_assert(groups.total_size() == coords.size());
+  BLI_assert(groups.size() == r_D.size());
+  Array<float3> P(coords.size());
+  Array<float3> dPdu(coords.size());
+  Array<float3> dPdv(coords.size());
+  eval_limit_points_and_derivatives(subdiv, coords, P, dPdu, dPdv);
+  for (const int i : groups.index_range()) {
+    const IndexRange group = groups[i];
+    float3 D_sum(0.0f);
+    for (const int j : group) {
+      const PtexCoord &coord = coords[j];
+      float3 D;
+      eval_displacement(
+          subdiv, coord.ptex_face_index, coord.uv.x, coord.uv.y, dPdu[j], dPdv[j], D);
+      D_sum += D;
+    }
+    r_D[i] = D_sum * (1.0f / float(group.size()));
+  }
+}
+
+void eval_vert_data(Subdiv *subdiv, const Span<PtexCoord> coords, MutableSpan<float> r_vert_data)
+{
+#ifdef WITH_OPENSUBDIV
+  if (coords.is_empty()) {
+    return;
+  }
+  subdiv->evaluator->eval_output->evaluatePatchesVertexData(
+      to_patch_coords(coords), coords.size(), r_vert_data.data());
+#else
+  UNUSED_VARS(subdiv, coords, r_vert_data);
+#endif
+}
+
+void eval_face_varying(Subdiv *subdiv,
+                       const int face_varying_channel,
+                       const Span<PtexCoord> coords,
+                       MutableSpan<float2> r_face_varying)
+{
+  BLI_assert(coords.size() == r_face_varying.size());
+#ifdef WITH_OPENSUBDIV
+  if (coords.is_empty()) {
+    return;
+  }
+  subdiv->evaluator->eval_output->evaluatePatchesFaceVarying(
+      face_varying_channel, to_patch_coords(coords), coords.size(), &r_face_varying.data()->x);
+#else
+  UNUSED_VARS(subdiv, face_varying_channel, coords);
+  r_face_varying.fill(float2(0.0f));
+#endif
 }
 
 }  // namespace blender::bke::subdiv

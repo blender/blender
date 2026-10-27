@@ -73,6 +73,7 @@
 #include "DNA_modifier_types.h"
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom_c.hh"
@@ -93,8 +94,8 @@
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_eval.hh"
-#include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"
+#include "BKE_subdiv_mesh_layout.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
@@ -1038,64 +1039,41 @@ static Array<GridCoord> get_subdivided_corner_grid_coords(subdiv::Subdiv &subdiv
                                                           const Mesh &coarse_mesh,
                                                           const int level)
 {
-  struct SubdividedCornerGridCoordData {
-    MeshArrays coarse_mesh_arrays;
-    Array<GridCoord> corner_grid_coords;
-  };
+  const OffsetIndices<int> faces = coarse_mesh.faces();
+  const subdiv::MeshLayout layout = subdiv::build_mesh_layout(coarse_mesh, (1 << level) + 1);
+  const OffsetIndices<int> faces_by_base_face = layout.faces_by_base_face();
+  const Span<int> face_ptex_offset = subdiv::face_ptex_offset_get(&subdiv);
 
-  subdiv::ToMeshSettings mesh_settings;
-  mesh_settings.resolution = (1 << level) + 1;
+  Array<GridCoord> corner_grid_coords(layout.corners_num);
+  threading::parallel_for(
+      faces.index_range(), layout.base_face_grain_size(), [&](const IndexRange range) {
+        const IndexRange chunk_faces = faces_by_base_face[range];
+        const IndexRange chunk_corners = layout.base_face_corners(range);
+        Array<subdiv::PtexCoord> ptex_coords(chunk_corners.size());
+        Array<int> face_base_corners(chunk_faces.size());
+        subdiv::fill_corner_ptex_coords(
+            layout, coarse_mesh, face_ptex_offset, range, ptex_coords, face_base_corners);
+        for (const int coarse_face_index : range) {
+          const IndexRange coarse_face = faces[coarse_face_index];
+          for (const int face : faces_by_base_face[coarse_face_index]) {
+            const int coarse_corner = face_base_corners[face - chunk_faces.start()];
+            for (const int corner : IndexRange(face * 4, 4)) {
+              const float2 ptex_uv = ptex_coords[corner - chunk_corners.start()].uv;
+              GridCoord &corner_grid_coord = corner_grid_coords[corner];
+              corner_grid_coord.grid_index = coarse_face.start() + coarse_corner;
+              if (coarse_face.size() == 4) {
+                corner_grid_coord.uv = subdiv::ptex_face_uv_to_grid_uv(
+                    subdiv::rotate_quad_to_corner(coarse_corner, ptex_uv));
+              }
+              else {
+                corner_grid_coord.uv = subdiv::ptex_face_uv_to_grid_uv(ptex_uv);
+              }
+            }
+          }
+        }
+      });
 
-  SubdividedCornerGridCoordData data;
-  data.coarse_mesh_arrays = MeshArrays(coarse_mesh);
-
-  subdiv::ForeachContext foreach_context;
-  foreach_context.user_data = &data;
-
-  foreach_context.topology_info = [](const subdiv::ForeachContext *context,
-                                     const int /*num_vertices*/,
-                                     const int /*num_edges*/,
-                                     const int num_corners,
-                                     const int /*num_faces*/,
-                                     const Span<int> /*subdiv_face_offset*/) -> bool {
-    SubdividedCornerGridCoordData *data = static_cast<SubdividedCornerGridCoordData *>(
-        context->user_data);
-    data->corner_grid_coords.reinitialize(num_corners);
-    return true;
-  };
-
-  foreach_context.loop = [](const subdiv::ForeachContext *context,
-                            void * /*tls*/,
-                            const int /*ptex_face_index*/,
-                            const float u,
-                            const float v,
-                            const int /*coarse_corner_index*/,
-                            const int coarse_face_index,
-                            const int coarse_corner,
-                            const int subdiv_corner_index,
-                            const int /*subdiv_vert_index*/,
-                            const int /*subdiv_edge_index*/) {
-    SubdividedCornerGridCoordData *data = static_cast<SubdividedCornerGridCoordData *>(
-        context->user_data);
-
-    const float2 ptex_uv(u, v);
-    const IndexRange coarse_face = data->coarse_mesh_arrays.faces[coarse_face_index];
-
-    GridCoord &corner_grid_coord = data->corner_grid_coords[subdiv_corner_index];
-    corner_grid_coord.grid_index = coarse_face.start() + coarse_corner;
-
-    if (coarse_face.size() == 4) {
-      corner_grid_coord.uv = subdiv::ptex_face_uv_to_grid_uv(
-          subdiv::rotate_quad_to_corner(coarse_corner, ptex_uv));
-    }
-    else {
-      corner_grid_coord.uv = subdiv::ptex_face_uv_to_grid_uv(ptex_uv);
-    }
-  };
-
-  foreach_subdiv_geometry(&subdiv, &foreach_context, &mesh_settings, &coarse_mesh);
-
-  return data.corner_grid_coords;
+  return corner_grid_coords;
 }
 
 static void rasterize_subdivided_face(const MultiresBaker &baker,
@@ -1286,84 +1264,57 @@ static Array<GridCoord> get_highres_mesh_loop_grid_coords(
    * faces in the high-res mesh are also quads, created in the grid pattern from the bake level
    * faces. */
 
-  struct HighresCornerGridCoordData {
-    MeshArrays bake_level_mesh_arrays;
-    Array<GridCoord> bake_level_corner_grid_coords;
-
-    Array<GridCoord> corner_grid_coords;
-  };
-
   const int top_level = multires_modifier.totlvl;
   const int bake_level = multires_modifier.lvl;
   const int subdivide_level = top_level - bake_level;
 
-  subdiv::ToMeshSettings mesh_settings;
-  mesh_settings.resolution = (1 << subdivide_level) + 1;
-
-  HighresCornerGridCoordData data;
-  data.bake_level_mesh_arrays = MeshArrays(bake_level_mesh);
-  data.bake_level_corner_grid_coords = get_subdivided_corner_grid_coords(
+  const Array<GridCoord> bake_level_corner_grid_coords = get_subdivided_corner_grid_coords(
       subdiv, base_mesh, multires_modifier.lvl);
 
-  subdiv::ForeachContext foreach_context;
-  foreach_context.user_data = &data;
+  const OffsetIndices<int> bake_level_faces = bake_level_mesh.faces();
+  const subdiv::MeshLayout layout = subdiv::build_mesh_layout(bake_level_mesh,
+                                                              (1 << subdivide_level) + 1);
+  /* All faces of the bake level mesh are quads, so each corresponds to a single ptex face. */
+  Array<int> face_ptex_offset(bake_level_faces.size() + 1);
+  array_utils::fill_index_range<int>(face_ptex_offset);
 
-  foreach_context.topology_info = [](const subdiv::ForeachContext *context,
-                                     const int /*num_vertices*/,
-                                     const int /*num_edges*/,
-                                     const int num_corners,
-                                     const int /*num_faces*/,
-                                     const Span<int> /*subdiv_face_offset*/) -> bool {
-    HighresCornerGridCoordData *data = static_cast<HighresCornerGridCoordData *>(
-        context->user_data);
-    data->corner_grid_coords.reinitialize(num_corners);
-    return true;
-  };
+  Array<GridCoord> corner_grid_coords(layout.corners_num);
+  threading::parallel_for(
+      bake_level_faces.index_range(), layout.base_face_grain_size(), [&](const IndexRange range) {
+        const IndexRange chunk_corners = layout.base_face_corners(range);
+        Array<subdiv::PtexCoord> ptex_coords(chunk_corners.size());
+        subdiv::fill_corner_ptex_coords(
+            layout, bake_level_mesh, face_ptex_offset, range, ptex_coords, {});
+        for (const int bake_level_face_index : range) {
+          const IndexRange bake_level_face = bake_level_faces[bake_level_face_index];
+          BLI_assert(bake_level_face.size() == 4);
+          const int bake_level_face_start = bake_level_face.start();
+          for (const int highres_corner_index : layout.base_face_corners(bake_level_face_index)) {
+            const float2 uv = ptex_coords[highres_corner_index - chunk_corners.start()].uv;
+            GridCoord &corner_grid_coord = corner_grid_coords[highres_corner_index];
+            corner_grid_coord.grid_index =
+                bake_level_corner_grid_coords[bake_level_face_start].grid_index;
+            corner_grid_coord.uv = interp_bilinear_quad(
+                uv.x,
+                uv.y,
+                bake_level_corner_grid_coords[bake_level_face_start + 0].uv,
+                bake_level_corner_grid_coords[bake_level_face_start + 1].uv,
+                bake_level_corner_grid_coords[bake_level_face_start + 2].uv,
+                bake_level_corner_grid_coords[bake_level_face_start + 3].uv);
 
-  foreach_context.loop = [](const subdiv::ForeachContext *context,
-                            void * /*tls*/,
-                            const int /*ptex_face_index*/,
-                            const float u,
-                            const float v,
-                            const int /*bake_level_corner_index*/,
-                            const int bake_level_face_index,
-                            const int /*bake_level_corner*/,
-                            const int highres_corner_index,
-                            const int /*highres_vert_index*/,
-                            const int /*highres_edge_index*/) {
-    HighresCornerGridCoordData *data = static_cast<HighresCornerGridCoordData *>(
-        context->user_data);
+            /* Loops of the bake level mesh are supposed to be in the same grid. */
+            BLI_assert(corner_grid_coord.grid_index ==
+                       bake_level_corner_grid_coords[bake_level_face_start + 1].grid_index);
+            BLI_assert(corner_grid_coord.grid_index ==
+                       bake_level_corner_grid_coords[bake_level_face_start + 2].grid_index);
+            BLI_assert(corner_grid_coord.grid_index ==
+                       bake_level_corner_grid_coords[bake_level_face_start + 3].grid_index);
+          }
+        }
+      });
 
-    const Span<GridCoord> bake_level_corner_grid_coords = data->bake_level_corner_grid_coords;
-
-    const IndexRange bake_level_face = data->bake_level_mesh_arrays.faces[bake_level_face_index];
-    BLI_assert(bake_level_face.size() == 4);
-
-    const int bake_level_face_start = bake_level_face.start();
-
-    GridCoord &corner_grid_coord = data->corner_grid_coords[highres_corner_index];
-    corner_grid_coord.grid_index = bake_level_corner_grid_coords[bake_level_face_start].grid_index;
-    corner_grid_coord.uv = interp_bilinear_quad(
-        u,
-        v,
-        bake_level_corner_grid_coords[bake_level_face_start + 0].uv,
-        bake_level_corner_grid_coords[bake_level_face_start + 1].uv,
-        bake_level_corner_grid_coords[bake_level_face_start + 2].uv,
-        bake_level_corner_grid_coords[bake_level_face_start + 3].uv);
-
-    /* Loops of the bake level mesh are supposed to be in the same grid. */
-    BLI_assert(corner_grid_coord.grid_index ==
-               bake_level_corner_grid_coords[bake_level_face_start + 1].grid_index);
-    BLI_assert(corner_grid_coord.grid_index ==
-               bake_level_corner_grid_coords[bake_level_face_start + 2].grid_index);
-    BLI_assert(corner_grid_coord.grid_index ==
-               bake_level_corner_grid_coords[bake_level_face_start + 3].grid_index);
-  };
-
-  foreach_subdiv_geometry(&subdiv, &foreach_context, &mesh_settings, &bake_level_mesh);
-
-  BLI_assert(data.corner_grid_coords.size() == highres_bake_mesh.corners_num);
-  return data.corner_grid_coords;
+  BLI_assert(corner_grid_coords.size() == highres_bake_mesh.corners_num);
+  return corner_grid_coords;
 }
 
 static void bake_single_image_displacement(MultiresBakeRender &bake,

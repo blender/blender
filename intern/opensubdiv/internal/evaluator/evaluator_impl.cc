@@ -327,6 +327,26 @@ void EvalOutputAPI::evaluatePatchesLimit(const OpenSubdiv_PatchCoord *patch_coor
   }
 }
 
+void EvalOutputAPI::evaluatePatchesVertexData(const OpenSubdiv_PatchCoord *patch_coords,
+                                              const int num_patch_coords,
+                                              float *vertex_data)
+{
+  StackOrHeapPatchCoordArray patch_coords_array;
+  convertPatchCoordsToArray(patch_coords, num_patch_coords, patch_map_, &patch_coords_array);
+  implementation_->evalPatchesVertexData(patch_coords_array.data(), num_patch_coords, vertex_data);
+}
+
+void EvalOutputAPI::evaluatePatchesFaceVarying(const int face_varying_channel,
+                                               const OpenSubdiv_PatchCoord *patch_coords,
+                                               const int num_patch_coords,
+                                               float *face_varying)
+{
+  StackOrHeapPatchCoordArray patch_coords_array;
+  convertPatchCoordsToArray(patch_coords, num_patch_coords, patch_map_, &patch_coords_array);
+  implementation_->evalPatchesFaceVarying(
+      face_varying_channel, patch_coords_array.data(), num_patch_coords, face_varying);
+}
+
 void EvalOutputAPI::getPatchMap(blender::gpu::VertBuf *patch_map_handles,
                                 blender::gpu::VertBuf *patch_map_quadtree,
                                 int *min_patch_face,

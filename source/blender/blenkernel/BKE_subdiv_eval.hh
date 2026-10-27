@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 struct OpenSubdiv_EvaluatorCache;
 struct OpenSubdiv_EvaluatorSettings;
@@ -18,6 +19,12 @@ struct Mesh;
 namespace bke::subdiv {
 
 struct Subdiv;
+
+/** A location on a ptex face of the limit surface, see #eval_limit_point(). */
+struct PtexCoord {
+  int ptex_face_index;
+  float2 uv;
+};
 
 enum eSubdivEvaluatorType {
   SUBDIV_EVALUATOR_TYPE_CPU,
@@ -92,6 +99,35 @@ void eval_displacement(Subdiv *subdiv,
 
 /** Evaluate point on a limit surface with displacement applied to it. */
 float3 eval_final_point(Subdiv *subdiv, int ptex_face_index, float u, float v);
+
+/* Batched queries, which have less overhead per point than the single point queries above. */
+
+void eval_limit_points(Subdiv *subdiv, Span<PtexCoord> coords, MutableSpan<float3> r_P);
+void eval_limit_points_and_derivatives(Subdiv *subdiv,
+                                       Span<PtexCoord> coords,
+                                       MutableSpan<float3> r_P,
+                                       MutableSpan<float3> r_dPdu,
+                                       MutableSpan<float3> r_dPdv);
+void eval_final_points(Subdiv *subdiv, Span<PtexCoord> coords, MutableSpan<float3> r_P);
+
+/**
+ * Evaluate the displacement at every coordinate, and average it within each group. This is used
+ * for the displacement of vertices that are shared by multiple ptex faces.
+ */
+void eval_displacement_averaged(Subdiv *subdiv,
+                                Span<PtexCoord> coords,
+                                OffsetIndices<int> groups,
+                                MutableSpan<float3> r_D);
+
+/**
+ * \param r_vert_data: The vertex data for every coordinate, with the number of vertex data
+ * channels of the evaluator for each.
+ */
+void eval_vert_data(Subdiv *subdiv, Span<PtexCoord> coords, MutableSpan<float> r_vert_data);
+void eval_face_varying(Subdiv *subdiv,
+                       int face_varying_channel,
+                       Span<PtexCoord> coords,
+                       MutableSpan<float2> r_face_varying);
 
 }  // namespace bke::subdiv
 }  // namespace blender
