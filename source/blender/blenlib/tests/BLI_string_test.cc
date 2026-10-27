@@ -535,65 +535,68 @@ TEST(string, StrFormatUint64Grouped)
 TEST(string, StrFormatByteUnits)
 {
   char size_str[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
-  long long int size;
 
-  /* Base 10 */
-  BLI_str_format_byte_unit(size_str, size = 0, true);
-  EXPECT_STREQ("0 B", size_str);
-  BLI_str_format_byte_unit(size_str, size = -0, true);
-  EXPECT_STREQ("0 B", size_str);
+  bool base_10 = true;
 
-  BLI_str_format_byte_unit(size_str, size = 1, true);
-  EXPECT_STREQ("1 B", size_str);
-  BLI_str_format_byte_unit(size_str, size = -1, true);
-  EXPECT_STREQ("-1 B", size_str);
+  /* Format `size`, noting its negative when that isn't the same with a sign. */
+  auto fmt_fn = [&size_str, &base_10](const int64_t size) {
+    BLI_str_format_byte_unit(size_str, size, base_10);
+    string result = size_str;
+    BLI_str_format_byte_unit(size_str, -size, base_10);
+    if (size != 0 && size_str != "-" + result) {
+      result += " (negative: " + string(size_str) + ")";
+    }
+    return result;
+  };
 
-  BLI_str_format_byte_unit(size_str, size = 1000, true);
-  EXPECT_STREQ("1 KB", size_str);
-  BLI_str_format_byte_unit(size_str, size = -1000, true);
-  EXPECT_STREQ("-1 KB", size_str);
+  EXPECT_EQ(fmt_fn(0), "0 B");
+  EXPECT_EQ(fmt_fn(1), "1 B");
+  EXPECT_EQ(fmt_fn(999), "999 B");
+  EXPECT_EQ(fmt_fn(1'000), "1 KB");
+  EXPECT_EQ(fmt_fn(1'024), "1 KB");
+  /* Decimal places grow with the unit. */
+  EXPECT_EQ(fmt_fn(1'500'000), "1.5 MB");
+  EXPECT_EQ(fmt_fn(1'550'000'000), "1.55 GB");
+  EXPECT_EQ(fmt_fn(1'545'000'000'000), "1.545 TB");
+  EXPECT_EQ(fmt_fn(1'125'900'000'000'000), "1.1259 PB");
+  /* Trailing zeros are stripped, keeping one decimal. */
+  EXPECT_EQ(fmt_fn(1'500'000'000'000), "1.5 TB");
+  EXPECT_EQ(fmt_fn(1'000'000'000'000'000), "1.0 PB");
+  /* Exact halves round up. */
+  EXPECT_EQ(fmt_fn(1'500), "2 KB");
+  /* Rounding up the fraction carries into the number. */
+  EXPECT_EQ(fmt_fn(1'999'999), "2.0 MB");
+  /* Rounding up to the next unit. */
+  EXPECT_EQ(fmt_fn(999'999), "1.0 MB");
+  EXPECT_EQ(fmt_fn(999'999'999), "1.0 GB");
+  /* Largest value. */
+  EXPECT_EQ(fmt_fn(INT64_MAX), "9223.372 PB");
 
-  BLI_str_format_byte_unit(size_str, size = 1024, true);
-  EXPECT_STREQ("1 KB", size_str);
-  BLI_str_format_byte_unit(size_str, size = -1024, true);
-  EXPECT_STREQ("-1 KB", size_str);
+  base_10 = false;
+  EXPECT_EQ(fmt_fn(0), "0 B");
+  EXPECT_EQ(fmt_fn(1), "1 B");
+  EXPECT_EQ(fmt_fn(1'000), "1000 B");
+  EXPECT_EQ(fmt_fn(1'023), "1023 B");
+  EXPECT_EQ(fmt_fn(1'024), "1 KiB");
+  EXPECT_EQ(fmt_fn(1'047'552), "1023 KiB");
+  EXPECT_EQ(fmt_fn(1'572'864), "1.5 MiB");
+  /* Exact halves round up. */
+  EXPECT_EQ(fmt_fn(2'560), "3 KiB");
+  /* Rounding up to the next unit. */
+  EXPECT_EQ(fmt_fn(1'048'575), "1.0 MiB");
+  EXPECT_EQ(fmt_fn(1'073'741'823), "1.0 GiB");
+  /* Largest value. */
+  EXPECT_EQ(fmt_fn(INT64_MAX), "8192.0 PiB");
 
-  /* LLONG_MAX - largest possible value */
-  BLI_str_format_byte_unit(size_str, size = 9223372036854775807, true);
-  EXPECT_STREQ("9223.372 PB", size_str);
-  BLI_str_format_byte_unit(size_str, size = -9223372036854775807, true);
-  EXPECT_STREQ("-9223.372 PB", size_str);
-
-  /* Base 2 */
-  BLI_str_format_byte_unit(size_str, size = 0, false);
-  EXPECT_STREQ("0 B", size_str);
-  BLI_str_format_byte_unit(size_str, size = -0, false);
-  EXPECT_STREQ("0 B", size_str);
-
-  BLI_str_format_byte_unit(size_str, size = 1, false);
-  EXPECT_STREQ("1 B", size_str);
-  BLI_str_format_byte_unit(size_str, size = -1, false);
-  EXPECT_STREQ("-1 B", size_str);
-
-  BLI_str_format_byte_unit(size_str, size = 1000, false);
-  EXPECT_STREQ("1000 B", size_str);
-  BLI_str_format_byte_unit(size_str, size = -1000, false);
-  EXPECT_STREQ("-1000 B", size_str);
-
-  BLI_str_format_byte_unit(size_str, size = 1024, false);
-  EXPECT_STREQ("1 KiB", size_str);
-  BLI_str_format_byte_unit(size_str, size = -1024, false);
-  EXPECT_STREQ("-1 KiB", size_str);
-
-  /* LLONG_MAX - largest possible value */
-  BLI_str_format_byte_unit(size_str, size = 9223372036854775807, false);
-  EXPECT_STREQ("8192.0 PiB", size_str);
-  BLI_str_format_byte_unit(size_str, size = -9223372036854775807, false);
-  EXPECT_STREQ("-8192.0 PiB", size_str);
+  /* Can't be negated, test it directly. */
+  BLI_str_format_byte_unit(size_str, INT64_MIN, true);
+  EXPECT_STREQ(size_str, "-9223.372 PB");
+  BLI_str_format_byte_unit(size_str, INT64_MIN, false);
+  EXPECT_STREQ(size_str, "-8192.0 PiB");
 
   /* Test maximum string length. */
-  BLI_str_format_byte_unit(size_str, size = -9223200000000000000, false);
-  EXPECT_STREQ("-8191.8472 PiB", size_str);
+  BLI_str_format_byte_unit(size_str, -9'223'200'000'000'000'000, false);
+  EXPECT_STREQ(size_str, "-8191.8472 PiB");
   /* Ensure the limit is correct. */
   EXPECT_EQ(sizeof(size_str), strlen(size_str) + 1);
 }
@@ -602,35 +605,67 @@ TEST(string, StrFormatByteUnits)
 TEST(string, StrFormatByteUnitsCompact)
 {
   char size_str[BLI_STR_FORMAT_INT64_BYTE_UNIT_COMPACT_SIZE];
-  long long int size;
 
-  /* Base 10 */
-  BLI_str_format_byte_unit_compact(size_str, size = 0, true);
-  EXPECT_STREQ("0B", size_str);
-  BLI_str_format_byte_unit_compact(size_str, size = 155, true);
-  EXPECT_STREQ("155B", size_str);
-  BLI_str_format_byte_unit_compact(size_str, size = 1'555, true);
-  EXPECT_STREQ("1K", size_str);
-  BLI_str_format_byte_unit_compact(size_str, size = 155'555, true);
-  EXPECT_STREQ(".1M", size_str);
-  BLI_str_format_byte_unit_compact(size_str, size = 1'000'000'000, true);
-  EXPECT_STREQ("1G", size_str);
-  BLI_str_format_byte_unit_compact(size_str, size = 550'000'000'000'000'000, true);
-  EXPECT_STREQ(".5E", size_str);
+  bool base_10 = true;
 
-  /* Largest possible value. */
-  BLI_str_format_byte_unit_compact(size_str, size = (1ULL << 63) - 1, true);
-  EXPECT_STREQ("9E", size_str);
+  /* Format `size`, noting its negative when that isn't the same,
+   * as it's shown without a sign for historic reasons:
+   * this has only been used for file sizes & the buffer has no room for one. */
+  auto fmt_fn = [&size_str, &base_10](const int64_t size) {
+    BLI_str_format_byte_unit_compact(size_str, size, base_10);
+    string result = size_str;
+    BLI_str_format_byte_unit_compact(size_str, -size, base_10);
+    if (size_str != result) {
+      result += " (negative: " + string(size_str) + ")";
+    }
+    return result;
+  };
 
-  /* Base 2 */
-  BLI_str_format_byte_unit_compact(size_str, size = 0, false);
-  EXPECT_STREQ("0B", size_str);
-  BLI_str_format_byte_unit_compact(size_str, size = 1024, false);
-  EXPECT_STREQ("1K", size_str);
+  EXPECT_EQ(fmt_fn(0), "0B");
+  EXPECT_EQ(fmt_fn(155), "155B");
+  EXPECT_EQ(fmt_fn(999), "999B");
+  EXPECT_EQ(fmt_fn(1'000), "1K");
+  EXPECT_EQ(fmt_fn(1'000'000'000), "1G");
+  EXPECT_EQ(fmt_fn(1'000'000'000'000), "1T");
+  EXPECT_EQ(fmt_fn(1'000'000'000'000'000), "1P");
+  /* Lower bound (not rounded). */
+  EXPECT_EQ(fmt_fn(1'555), "1K");
+  EXPECT_EQ(fmt_fn(99'999), "99K");
+  /* 100-999 of a unit is shown as a fraction of the next unit. */
+  EXPECT_EQ(fmt_fn(155'555), ".1M");
+  EXPECT_EQ(fmt_fn(999'999), ".9M");
+  EXPECT_EQ(fmt_fn(550'000'000'000'000'000), ".5E");
+  /* Not shown as ".0" of the next unit. */
+  EXPECT_EQ(fmt_fn(99'500'000), "99M");
+  /* A large value just below a rounding boundary. */
+  EXPECT_EQ(fmt_fn(99'999'999'999), "99G");
+  /* Largest value. */
+  EXPECT_EQ(fmt_fn(INT64_MAX), "9E");
 
-  /* Largest possible value. */
-  BLI_str_format_byte_unit_compact(size_str, size = (1ULL << 63) - 1, false);
-  EXPECT_STREQ("8E", size_str);
+  base_10 = false;
+  EXPECT_EQ(fmt_fn(0), "0B");
+  EXPECT_EQ(fmt_fn(999), "999B");
+  EXPECT_EQ(fmt_fn(1'024), "1K");
+  /* 100-999 of a unit is divided by 1000 (not 1024). */
+  EXPECT_EQ(fmt_fn(102'400), ".1M");
+  /* 1000-1023 of a unit is shown as 1 of the next unit. */
+  EXPECT_EQ(fmt_fn(1'020), "1K");
+  EXPECT_EQ(fmt_fn(1'030'000), "1M");
+  /* Largest value. */
+  EXPECT_EQ(fmt_fn(INT64_MAX), "7E");
+
+  /* Can't be negated, test it directly. */
+  BLI_str_format_byte_unit_compact(size_str, INT64_MIN, true);
+  EXPECT_STREQ(size_str, "9E");
+  /* The magnitude is exactly 8 EiB. */
+  BLI_str_format_byte_unit_compact(size_str, INT64_MIN, false);
+  EXPECT_STREQ(size_str, "8E");
+
+  /* Test maximum string length. */
+  BLI_str_format_byte_unit_compact(size_str, 999, true);
+  EXPECT_STREQ(size_str, "999B");
+  /* Ensure the limit is correct. */
+  EXPECT_EQ(sizeof(size_str), strlen(size_str) + 1);
 }
 
 /** \} */
@@ -643,192 +678,122 @@ TEST(string, StrFormatByteUnitsCompact)
 TEST(string, StrFormatDecimalUnits)
 {
   char size_str[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE];
-  int size;
 
-  BLI_str_format_decimal_unit(size_str, size = 0);
-  EXPECT_STREQ("0", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 1);
-  EXPECT_STREQ("1", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 10);
-  EXPECT_STREQ("10", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 15);
-  EXPECT_STREQ("15", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 100);
-  EXPECT_STREQ("100", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 155);
-  EXPECT_STREQ("155", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 1000);
-  EXPECT_STREQ("1.0K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 1555);
-  EXPECT_STREQ("1.6K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 10000);
-  EXPECT_STREQ("10.0K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 15555);
-  EXPECT_STREQ("15.6K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 100000);
-  EXPECT_STREQ("100K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 100000);
-  EXPECT_STREQ("100K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 155555);
-  EXPECT_STREQ("156K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 1000000);
-  EXPECT_STREQ("1.0M", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 1555555);
-  EXPECT_STREQ("1.6M", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 10000000);
-  EXPECT_STREQ("10.0M", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 15555555);
-  EXPECT_STREQ("15.6M", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 100000000);
-  EXPECT_STREQ("100M", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 155555555);
-  EXPECT_STREQ("156M", size_str);
-  BLI_str_format_decimal_unit(size_str, size = 1000000000);
-  EXPECT_STREQ("1.0B", size_str);
+  /* Format `size`, noting its negative when that isn't the same with a sign. */
+  auto fmt_fn = [&size_str](const int size) {
+    BLI_str_format_decimal_unit(size_str, size);
+    string result = size_str;
+    BLI_str_format_decimal_unit(size_str, -size);
+    if (size != 0 && size_str != "-" + result) {
+      result += " (negative: " + string(size_str) + ")";
+    }
+    return result;
+  };
 
-  /* Largest possible value. */
-  BLI_str_format_decimal_unit(size_str, size = INT32_MAX);
-  EXPECT_STREQ("2.1B", size_str);
+  EXPECT_EQ(fmt_fn(0), "0");
+  EXPECT_EQ(fmt_fn(1), "1");
+  EXPECT_EQ(fmt_fn(10), "10");
+  EXPECT_EQ(fmt_fn(15), "15");
+  EXPECT_EQ(fmt_fn(100), "100");
+  EXPECT_EQ(fmt_fn(155), "155");
+  EXPECT_EQ(fmt_fn(999), "999");
+  EXPECT_EQ(fmt_fn(1'000), "1.0K");
+  EXPECT_EQ(fmt_fn(1'555), "1.6K");
+  EXPECT_EQ(fmt_fn(10'000), "10.0K");
+  EXPECT_EQ(fmt_fn(15'555), "15.6K");
+  EXPECT_EQ(fmt_fn(100'000), "100K");
+  EXPECT_EQ(fmt_fn(155'555), "156K");
+  EXPECT_EQ(fmt_fn(1'000'000), "1.0M");
+  EXPECT_EQ(fmt_fn(1'555'555), "1.6M");
+  EXPECT_EQ(fmt_fn(10'000'000), "10.0M");
+  EXPECT_EQ(fmt_fn(15'555'555), "15.6M");
+  EXPECT_EQ(fmt_fn(100'000'000), "100M");
+  EXPECT_EQ(fmt_fn(155'555'555), "156M");
+  EXPECT_EQ(fmt_fn(1'000'000'000), "1.0B");
+  /* Exact halves round up. */
+  EXPECT_EQ(fmt_fn(1'550'000), "1.6M");
+  /* Rounding up the fraction carries into the number. */
+  EXPECT_EQ(fmt_fn(1'999'999), "2.0M");
+  /* Rounding up to 100 drops the decimal. */
+  EXPECT_EQ(fmt_fn(99'949), "99.9K");
+  EXPECT_EQ(fmt_fn(99'999), "100K");
+  /* Rounding up to the next unit. */
+  EXPECT_EQ(fmt_fn(999'499), "999K");
+  EXPECT_EQ(fmt_fn(999'999), "1.0M");
+  /* A large value just below a rounding boundary. */
+  EXPECT_EQ(fmt_fn(1'449'999'999), "1.4B");
+  /* Largest value. */
+  EXPECT_EQ(fmt_fn(INT32_MAX), "2.1B");
 
-  BLI_str_format_decimal_unit(size_str, size = -0);
-  EXPECT_STREQ("0", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -1);
-  EXPECT_STREQ("-1", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -10);
-  EXPECT_STREQ("-10", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -15);
-  EXPECT_STREQ("-15", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -100);
-  EXPECT_STREQ("-100", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -155);
-  EXPECT_STREQ("-155", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -1000);
-  EXPECT_STREQ("-1.0K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -1555);
-  EXPECT_STREQ("-1.6K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -10000);
-  EXPECT_STREQ("-10.0K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -15555);
-  EXPECT_STREQ("-15.6K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -100000);
-  EXPECT_STREQ("-100K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -155555);
-  EXPECT_STREQ("-156K", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -1000000);
-  EXPECT_STREQ("-1.0M", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -1555555);
-  EXPECT_STREQ("-1.6M", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -10000000);
-  EXPECT_STREQ("-10.0M", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -15555555);
-  EXPECT_STREQ("-15.6M", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -100000000);
-  EXPECT_STREQ("-100M", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -155555555);
-  EXPECT_STREQ("-156M", size_str);
-  BLI_str_format_decimal_unit(size_str, size = -1000000000);
-  EXPECT_STREQ("-1.0B", size_str);
+  /* Can't be negated, test it directly. */
+  BLI_str_format_decimal_unit(size_str, INT32_MIN);
+  EXPECT_STREQ(size_str, "-2.1B");
 
-  /* Smallest possible value. */
-  BLI_str_format_decimal_unit(size_str, size = INT32_MIN);
-  EXPECT_STREQ("-2.1B", size_str);
+  /* Test maximum string length. */
+  BLI_str_format_decimal_unit(size_str, -15'555);
+  EXPECT_STREQ(size_str, "-15.6K");
+  /* Ensure the limit is correct. */
+  EXPECT_EQ(sizeof(size_str), strlen(size_str) + 1);
 }
 
 /* BLI_str_format_integer_unit */
 TEST(string, StrFormatIntegerUnits)
 {
   char size_str[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE];
-  int size;
 
-  BLI_str_format_integer_unit(size_str, size = 0);
-  EXPECT_STREQ("0", size_str);
-  BLI_str_format_integer_unit(size_str, size = 1);
-  EXPECT_STREQ("1", size_str);
-  BLI_str_format_integer_unit(size_str, size = 10);
-  EXPECT_STREQ("10", size_str);
-  BLI_str_format_integer_unit(size_str, size = 15);
-  EXPECT_STREQ("15", size_str);
-  BLI_str_format_integer_unit(size_str, size = 100);
-  EXPECT_STREQ("100", size_str);
-  BLI_str_format_integer_unit(size_str, size = 155);
-  EXPECT_STREQ("155", size_str);
-  BLI_str_format_integer_unit(size_str, size = 1000);
-  EXPECT_STREQ("1K", size_str);
-  BLI_str_format_integer_unit(size_str, size = 1555);
-  EXPECT_STREQ("1K", size_str);
-  BLI_str_format_integer_unit(size_str, size = 10000);
-  EXPECT_STREQ("10K", size_str);
-  BLI_str_format_integer_unit(size_str, size = 15555);
-  EXPECT_STREQ("15K", size_str);
-  BLI_str_format_integer_unit(size_str, size = 100000);
-  EXPECT_STREQ(".1M", size_str);
-  BLI_str_format_integer_unit(size_str, size = 155555);
-  EXPECT_STREQ(".1M", size_str);
-  BLI_str_format_integer_unit(size_str, size = 1000000);
-  EXPECT_STREQ("1M", size_str);
-  BLI_str_format_integer_unit(size_str, size = 1555555);
-  EXPECT_STREQ("1M", size_str);
-  BLI_str_format_integer_unit(size_str, size = 2555555);
-  EXPECT_STREQ("2M", size_str);
-  BLI_str_format_integer_unit(size_str, size = 10000000);
-  EXPECT_STREQ("10M", size_str);
-  BLI_str_format_integer_unit(size_str, size = 15555555);
-  EXPECT_STREQ("15M", size_str);
-  BLI_str_format_integer_unit(size_str, size = 100000000);
-  EXPECT_STREQ(".1B", size_str);
-  BLI_str_format_integer_unit(size_str, size = 155555555);
-  EXPECT_STREQ(".1B", size_str);
-  BLI_str_format_integer_unit(size_str, size = 255555555);
-  EXPECT_STREQ(".2B", size_str);
-  BLI_str_format_integer_unit(size_str, size = 1000000000);
-  EXPECT_STREQ("1B", size_str);
+  /* Format `size`, noting its negative when that isn't the same with a sign. */
+  auto fmt_fn = [&size_str](const int size) {
+    BLI_str_format_integer_unit(size_str, size);
+    string result = size_str;
+    BLI_str_format_integer_unit(size_str, -size);
+    if (size != 0 && size_str != "-" + result) {
+      result += " (negative: " + string(size_str) + ")";
+    }
+    return result;
+  };
 
-  /* Largest possible value. */
-  BLI_str_format_integer_unit(size_str, size = INT32_MAX);
-  EXPECT_STREQ("2B", size_str);
+  EXPECT_EQ(fmt_fn(0), "0");
+  EXPECT_EQ(fmt_fn(1), "1");
+  EXPECT_EQ(fmt_fn(10), "10");
+  EXPECT_EQ(fmt_fn(15), "15");
+  EXPECT_EQ(fmt_fn(100), "100");
+  EXPECT_EQ(fmt_fn(155), "155");
+  EXPECT_EQ(fmt_fn(999), "999");
+  EXPECT_EQ(fmt_fn(1'000), "1K");
+  EXPECT_EQ(fmt_fn(10'000), "10K");
+  EXPECT_EQ(fmt_fn(1'000'000), "1M");
+  EXPECT_EQ(fmt_fn(10'000'000), "10M");
+  EXPECT_EQ(fmt_fn(1'000'000'000), "1B");
+  /* Lower bound (not rounded). */
+  EXPECT_EQ(fmt_fn(1'555), "1K");
+  EXPECT_EQ(fmt_fn(15'555), "15K");
+  EXPECT_EQ(fmt_fn(99'999), "99K");
+  EXPECT_EQ(fmt_fn(1'555'555), "1M");
+  EXPECT_EQ(fmt_fn(2'555'555), "2M");
+  EXPECT_EQ(fmt_fn(15'555'555), "15M");
+  /* 100-999 of a unit is shown as a fraction of the next unit. */
+  EXPECT_EQ(fmt_fn(100'000), ".1M");
+  EXPECT_EQ(fmt_fn(155'555), ".1M");
+  EXPECT_EQ(fmt_fn(999'999), ".9M");
+  EXPECT_EQ(fmt_fn(100'000'000), ".1B");
+  EXPECT_EQ(fmt_fn(155'555'555), ".1B");
+  EXPECT_EQ(fmt_fn(255'555'555), ".2B");
+  /* Not shown as ".0" of the next unit. */
+  EXPECT_EQ(fmt_fn(99'500'000), "99M");
+  /* A large value just below a rounding boundary. */
+  EXPECT_EQ(fmt_fn(1'999'999'998), "1B");
+  /* Largest value. */
+  EXPECT_EQ(fmt_fn(INT32_MAX), "2B");
 
-  BLI_str_format_integer_unit(size_str, size = -0);
-  EXPECT_STREQ("0", size_str);
-  BLI_str_format_integer_unit(size_str, size = -1);
-  EXPECT_STREQ("-1", size_str);
-  BLI_str_format_integer_unit(size_str, size = -10);
-  EXPECT_STREQ("-10", size_str);
-  BLI_str_format_integer_unit(size_str, size = -15);
-  EXPECT_STREQ("-15", size_str);
-  BLI_str_format_integer_unit(size_str, size = -100);
-  EXPECT_STREQ("-100", size_str);
-  BLI_str_format_integer_unit(size_str, size = -155);
-  EXPECT_STREQ("-155", size_str);
-  BLI_str_format_integer_unit(size_str, size = -1000);
-  EXPECT_STREQ("-1K", size_str);
-  BLI_str_format_integer_unit(size_str, size = -1555);
-  EXPECT_STREQ("-1K", size_str);
-  BLI_str_format_integer_unit(size_str, size = -10000);
-  EXPECT_STREQ("-10K", size_str);
-  BLI_str_format_integer_unit(size_str, size = -15555);
-  EXPECT_STREQ("-15K", size_str);
-  BLI_str_format_integer_unit(size_str, size = -100000);
-  EXPECT_STREQ("-.1M", size_str);
-  BLI_str_format_integer_unit(size_str, size = -155555);
-  EXPECT_STREQ("-.1M", size_str);
-  BLI_str_format_integer_unit(size_str, size = -1000000);
-  EXPECT_STREQ("-1M", size_str);
-  BLI_str_format_integer_unit(size_str, size = -1555555);
-  EXPECT_STREQ("-1M", size_str);
-  BLI_str_format_integer_unit(size_str, size = -10000000);
-  EXPECT_STREQ("-10M", size_str);
-  BLI_str_format_integer_unit(size_str, size = -15555555);
-  EXPECT_STREQ("-15M", size_str);
-  BLI_str_format_integer_unit(size_str, size = -100000000);
-  EXPECT_STREQ("-.1B", size_str);
-  BLI_str_format_integer_unit(size_str, size = -155555555);
-  EXPECT_STREQ("-.1B", size_str);
-  BLI_str_format_integer_unit(size_str, size = -1000000000);
-  EXPECT_STREQ("-1B", size_str);
+  /* Can't be negated, test it directly. */
+  BLI_str_format_integer_unit(size_str, INT32_MIN);
+  EXPECT_STREQ(size_str, "-2B");
 
-  /* Smallest possible value. */
-  BLI_str_format_integer_unit(size_str, size = INT32_MIN);
-  EXPECT_STREQ("-2B", size_str);
+  /* Test maximum string length. */
+  BLI_str_format_integer_unit(size_str, -155'555);
+  EXPECT_STREQ(size_str, "-.1M");
+  /* Ensure the limit is correct. */
+  EXPECT_EQ(sizeof(size_str), strlen(size_str) + 1);
 }
 
 /** \} */

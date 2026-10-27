@@ -309,23 +309,28 @@ size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE
 size_t BLI_str_format_int64_grouped(char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE], int64_t num)
     ATTR_NONNULL(1);
 /**
- * Format a size in bytes using binary units.
+ * Format a size in bytes using decimal (KB, MB, ...) or binary (KiB, MiB, ...) units.
  * 1000 -> 1 KB
  * Number of decimal places grows with the used unit (e.g. 1.5 MB, 1.55 GB, 1.545 TB).
  *
  * \param dst: The resulting string.
- * Dimension of 14 to support largest possible value for \a bytes (#LLONG_MAX).
+ * Dimension of 15 to support the longest result (`-8191.8472 PiB`).
  * \param bytes: Number to format.
- * \param base_10: Calculate using base 10 (GB, MB, ...) or 2 (GiB, MiB, ...).
+ * \param base_10: Use decimal units (KB, MB, ...) or binary units (KiB, MiB, ...).
  */
 void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
-                              long long int bytes,
+                              int64_t bytes,
                               bool base_10) ATTR_NONNULL(1);
 
 /**
- * Format a size in bytes using binary units in compact (max 4 chars) format.
+ * Format a size in bytes using decimal or binary units in compact (max 4 chars) format.
  *
- * It shows a lower bound instead of rounding the number.
+ * It shows a lower bound instead of rounding the number, except with binary units where:
+ * - 1000-1023 of a unit is shown as 1 of the next unit.
+ * - 100-999 of a unit is divided by 1000 (not 1024), so 500 KiB is shown as `.5M`.
+ *
+ * Negative values are shown without a sign for historic reasons:
+ * this has only been used for file sizes & the buffer has no room for one.
  *
  * 1 -> 1B
  * 15 -> 15B
@@ -340,12 +345,12 @@ void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
  * ...
  *
  * \param dst: The resulting string.
- * Dimension of 5 to support largest possible value for \a bytes (#LLONG_MAX).
+ * Dimension of 5 to support the longest result (`999B` for example).
  * \param bytes: Number to format.
- * \param base_10: Calculate using base 10 (GB, MB, ...) or 2 (GiB, MiB, ...).
+ * \param base_10: Use decimal units (KB, MB, ...) or binary units (KiB, MiB, ...).
  */
 void BLI_str_format_byte_unit_compact(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_COMPACT_SIZE],
-                                      long long int bytes,
+                                      int64_t bytes,
                                       bool base_10) ATTR_NONNULL(1);
 
 /**
@@ -361,7 +366,7 @@ void BLI_str_format_byte_unit_compact(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_CO
  * 1555555 -> 1.6M
  * 15555555 -> 15.6M
  * 155555555 -> 156M
- * 1000000000 -> 1B
+ * 1000000000 -> 1.0B
  * ...
  *
  * Length of 7 is the maximum of the resulting string, for example, `-15.5K\0`.
