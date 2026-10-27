@@ -147,8 +147,8 @@ struct Node {
   NodeID id = -1;
 
 #ifdef LEXIT_DEBUG
-  NodeType debug_type;
-  const NodeData *debug_data;
+  NodeType debug_type = NodeType::Invalid;
+  const NodeData *debug_data = nullptr;
   std::string_view debug_str;
 #endif
 
