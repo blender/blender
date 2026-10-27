@@ -1171,7 +1171,6 @@ static ui::Block *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
                                         static_cast<IDProperty *>(op->ptr->data),
                                         search,
                                         ICON_VIEWZOOM,
-                                        sizeof(search),
                                         0,
                                         0,
                                         width,
@@ -2079,15 +2078,8 @@ static ui::Block *wm_block_search_menu(bContext *C, ARegion *region, void *userd
   block_flag_enable(block, ui::BLOCK_LOOP | ui::BLOCK_MOVEMOUSE_QUIT | ui::BLOCK_SEARCH_MENU);
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_POPUP);
 
-  ui::Button *but = uiDefSearchBut(block,
-                                   g_search_text,
-                                   ICON_VIEWZOOM,
-                                   sizeof(g_search_text),
-                                   0,
-                                   0,
-                                   init_data->size[0],
-                                   UI_UNIT_Y,
-                                   "");
+  ui::Button *but = uiDefSearchBut(
+      block, g_search_text, ICON_VIEWZOOM, 0, 0, init_data->size[0], UI_UNIT_Y, "");
 
   if (init_data->search_type == SEARCH_TYPE_OPERATOR) {
     button_func_operator_search(but);

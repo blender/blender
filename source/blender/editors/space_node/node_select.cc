@@ -1623,8 +1623,7 @@ static ui::Block *node_find_menu(bContext *C, ARegion *region, void *arg_optype)
 
   const int box_width = ui::searchbox_size_x_guess(C, node_find_update_fn, nullptr);
 
-  but = uiDefSearchBut(
-      block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, box_width, UI_UNIT_Y, "");
+  but = uiDefSearchBut(block, search, ICON_VIEWZOOM, 0, 0, box_width, UI_UNIT_Y, "");
   button_func_search_set(
       but, nullptr, node_find_update_fn, optype, nullptr, nullptr, node_find_exec_fn, nullptr);
   button_flag_enable(but, ui::BUT_ACTIVATE_ON_INIT);

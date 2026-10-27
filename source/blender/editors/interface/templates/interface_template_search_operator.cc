@@ -108,8 +108,7 @@ void uiTemplateOperatorSearch(Layout *layout)
   block = layout->block();
   block_layout_set_current(block, layout);
 
-  but = uiDefSearchBut(
-      block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, "");
+  but = uiDefSearchBut(block, search, ICON_VIEWZOOM, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, "");
   button_func_operator_search(but);
 }
 

@@ -1811,12 +1811,11 @@ Button *uiDefIconBlockBut(Block *block,
                           std::optional<StringRef> tip);
 
 /**
- * \param arg: A pointer to string/name, use #button_func_search_set() below to make this work.
+ * \param arg: The string/name buffer, use #button_func_search_set() below to make this work.
  */
 Button *uiDefSearchBut(Block *block,
-                       void *arg,
+                       MutableCStr arg,
                        int icon,
-                       int maxncpy,
                        int x,
                        int y,
                        short width,
@@ -1829,9 +1828,8 @@ Button *uiDefSearchBut(Block *block,
 Button *uiDefSearchButO_ptr(Block *block,
                             wmOperatorType *ot,
                             IDProperty *properties,
-                            void *arg,
+                            MutableCStr arg,
                             int icon,
-                            int maxncpy,
                             int x,
                             int y,
                             short width,

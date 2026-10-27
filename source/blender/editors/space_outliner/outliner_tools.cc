@@ -884,8 +884,7 @@ static ui::Block *merged_element_search_menu(bContext *C, ARegion *region, void 
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_POPUP);
 
   short menu_width = 10 * UI_UNIT_X;
-  but = uiDefSearchBut(
-      block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, menu_width, UI_UNIT_Y, "");
+  but = uiDefSearchBut(block, search, ICON_VIEWZOOM, 0, 0, menu_width, UI_UNIT_Y, "");
   button_func_search_set(but,
                          nullptr,
                          merged_element_search_update_fn,
