@@ -428,7 +428,7 @@ std::string BKE_is_path_inside_blender_project(const char *path)
    */
   do {
     STRNCPY(project_root_path_test, project_root_path);
-    BLI_path_append(project_root_path_test, FILE_MAX, ".blender_project");
+    BLI_path_append(project_root_path_test, FILE_MAX, BLENDER_PROJECT_CONFIG_DIR);
     found_project = BLI_is_dir(project_root_path_test);
   } while (!found_project && BLI_path_parent_dir(project_root_path));
 

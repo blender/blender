@@ -24,6 +24,7 @@
 #include "BKE_idprop.hh"
 
 #define BLENDER_PROJECT_CONFIG_DIR ".blender_project"
+#define BLENDER_PROJECT_CONFIG_FILE "project.toml"
 
 namespace blender {
 

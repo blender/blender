@@ -79,6 +79,11 @@ class UsdToCyclesMapping {
     return _nodeType;
   }
 
+  bool hasParameterMapping(const TfToken &name) const
+  {
+    return _paramMap.find(name) != _paramMap.end();
+  }
+
   virtual std::string parameterName(const TfToken &name,
                                     const ShaderInput *inputConnection,
                                     VtValue * /*value*/ = nullptr) const
@@ -208,6 +213,20 @@ TfStaticData<UsdToCycles> sUsdToCyles;
 
 }  // namespace
 
+static void AddInstanceIdAOV(ShaderGraph *graph)
+{
+  /* Instance AOV is provided for every network, to make picking work. */
+  const ustring instanceId(HdAovTokens->instanceId.GetString());
+
+  OutputAOVNode *aovNode = graph->create_node<OutputAOVNode>();
+  aovNode->set_name(instanceId);
+
+  AttributeNode *instanceIdNode = graph->create_node<AttributeNode>();
+  instanceIdNode->set_attribute(instanceId);
+
+  graph->connect(instanceIdNode->output("Fac"), aovNode->input("Value"));
+}
+
 HdCyclesMaterial::HdCyclesMaterial(const SdfPath &sprimId) : HdMaterial(sprimId) {}
 
 HdCyclesMaterial::~HdCyclesMaterial() = default;
@@ -225,10 +244,6 @@ void HdCyclesMaterial::Sync(HdSceneDelegate *sceneDelegate,
     return;
   }
 
-  Initialize(renderParam);
-
-  const SceneLock lock(renderParam);
-
   const bool dirtyParams = (*dirtyBits & DirtyBits::DirtyParams);
   const bool dirtyResource = (*dirtyBits & DirtyBits::DirtyResource);
 
@@ -245,22 +260,40 @@ void HdCyclesMaterial::Sync(HdSceneDelegate *sceneDelegate,
       network = matSchema.GetMaterialNetwork();
     }
 
-    if (network) {
-      if (!_nodes.empty() && !dirtyResource) {
-        UpdateParameters(network);
-        _shader->tag_modified();
-      }
-      else {
-        PopulateShaderGraph(network);
-      }
+    const SceneLock lock(renderParam);
+
+    if (network && !_nodes.empty() && !dirtyResource) {
+      UpdateParameters(network);
+      _shader->tag_update(lock.scene);
     }
     else {
-      TF_RUNTIME_ERROR("Could not get a material network for %s.", id.GetText());
-    }
-  }
+      unique_ptr<ShaderGraph> graph;
+      if (!network) {
+        TF_WARN("Could not get a material network for %s.", id.GetText());
+      }
+      else {
+        graph = BuildShaderGraph(network);
+        if (!graph) {
+          TF_WARN("Could not build a shader graph for %s.", id.GetText());
+        }
+      }
 
-  if (_shader->is_modified()) {
-    _shader->tag_update(lock.scene);
+      if (!graph) {
+        /* Default shader if translation failed, so something is visible. */
+        graph = make_unique<ShaderGraph>();
+        PrincipledBsdfNode *bsdf = graph->create_node<PrincipledBsdfNode>();
+        graph->connect(bsdf->output("BSDF"), graph->output()->input("Surface"));
+      }
+
+      AddInstanceIdAOV(graph.get());
+
+      if (!_shader) {
+        _shader = lock.scene->create_node<Shader>();
+      }
+
+      _shader->set_graph(std::move(graph));
+      _shader->tag_update(lock.scene);
+    }
   }
 
   *dirtyBits = DirtyBits::Clean;
@@ -293,10 +326,27 @@ void HdCyclesMaterial::UpdateParameters(NodeDesc &nodeDesc,
     }
 
     if (!input) {
-      TF_WARN("Could not find parameter '%s' on node '%s' ('%s')",
-              paramName.GetText(),
-              nodePath.GetText(),
-              nodeDesc.node->name.c_str());
+      if (inputMapping) {
+        if (inputMapping->hasParameterMapping(paramName)) {
+          TF_WARN("USD input '%s' on node '%s' maps to unavailable Cycles input '%s' on '%s'",
+                  paramName.GetText(),
+                  nodePath.GetText(),
+                  inputName.c_str(),
+                  nodeDesc.node->name.c_str());
+        }
+        else {
+          TF_WARN("Unsupported USD input '%s' on node '%s' ('%s'); value ignored",
+                  paramName.GetText(),
+                  nodePath.GetText(),
+                  nodeDesc.node->name.c_str());
+        }
+      }
+      else {
+        TF_WARN("Could not find parameter '%s' on node '%s' ('%s')",
+                paramName.GetText(),
+                nodePath.GetText(),
+                nodeDesc.node->name.c_str());
+      }
       continue;
     }
 
@@ -411,7 +461,7 @@ void HdCyclesMaterial::UpdateConnections(NodeDesc &nodeDesc,
   }
 }
 
-void HdCyclesMaterial::PopulateShaderGraph(HdMaterialNetworkSchema network)
+unique_ptr<ShaderGraph> HdCyclesMaterial::BuildShaderGraph(HdMaterialNetworkSchema network)
 {
   _nodes.clear();
 
@@ -555,20 +605,18 @@ void HdCyclesMaterial::PopulateShaderGraph(HdMaterialNetworkSchema network)
     graph->connect(output, input);
   }
 
-  /* Create the instanceId AOV output. */
-  {
-    const ustring instanceId(HdAovTokens->instanceId.GetString());
-
-    OutputAOVNode *aovNode = graph->create_node<OutputAOVNode>();
-    aovNode->set_name(instanceId);
-
-    AttributeNode *instanceIdNode = graph->create_node<AttributeNode>();
-    instanceIdNode->set_attribute(instanceId);
-
-    graph->connect(instanceIdNode->output("Fac"), aovNode->input("Value"));
+  /* Return no graph if nothing got successfully linked due unsupported nodes,
+   * avoids the surface becoming transparennt then. */
+  bool any_output_linked = false;
+  for (ShaderInput *input : graph->output()->inputs) {
+    any_output_linked |= input->link != nullptr;
+  }
+  if (!any_output_linked) {
+    _nodes.clear();
+    return nullptr;
   }
 
-  _shader->set_graph(std::move(graph));
+  return graph;
 }
 
 void HdCyclesMaterial::Finalize(HdRenderParam *renderParam)
@@ -586,17 +634,6 @@ void HdCyclesMaterial::Finalize(HdRenderParam *renderParam)
     lock.scene->delete_node(_shader);
   }
   _shader = nullptr;
-}
-
-void HdCyclesMaterial::Initialize(HdRenderParam *renderParam)
-{
-  if (_shader) {
-    return;
-  }
-
-  const SceneLock lock(renderParam);
-
-  _shader = lock.scene->create_node<Shader>();
 }
 
 HDCYCLES_NAMESPACE_CLOSE_SCOPE
