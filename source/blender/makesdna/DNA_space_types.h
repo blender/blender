@@ -224,14 +224,6 @@ struct SpaceOutliner {
 /** \name Graph Editor
  * \{ */
 
-struct SpaceGraph_Runtime {
-  /** #eGraphEdit_Runtime_Flag */
-  char flag = 0;
-  char _pad[7] = {};
-  /** Sampled snapshots of F-Curves used as in-session guides */
-  ListBaseT<FCurve> ghost_curves = {nullptr, nullptr};
-};
-
 /** 'Graph' Editor (formerly known as the IPO Editor). */
 struct SpaceGraph {
   DNA_DEFINE_CXX_METHODS(SpaceGraph)
@@ -269,7 +261,7 @@ struct SpaceGraph {
   char _pad1[2] = {};
   /* Store visible region size before entering the local view. */
   rctf local_view_visible_region_before = {};
-  SpaceGraph_Runtime runtime;
+  struct SpaceGraph_Runtime *runtime;
 };
 
 /** \} */

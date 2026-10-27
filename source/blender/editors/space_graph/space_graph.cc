@@ -31,9 +31,11 @@
 #include "BKE_screen.hh"
 
 #include "ED_anim_api.hh"
+#include "ED_anim_filter.hh"
 #include "ED_markers.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
+#include "ED_space_graph.hh"
 #include "ED_time_scrub_ui.hh"
 
 #include "GPU_immediate.hh"
@@ -67,6 +69,7 @@ static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
   /* Graph Editor - general stuff */
   sipo = MEM_new<SpaceGraph>("init graphedit");
   sipo->spacetype = SPACE_GRAPH;
+  sipo->runtime = MEM_new<SpaceGraph_Runtime>(__func__);
 
   /* allocate DopeSheet data for Graph Editor */
   sipo->ads = MEM_new<bDopeSheet>("GraphEdit DopeSheet");
@@ -143,9 +146,10 @@ static void graph_free(SpaceLink *sl)
     MEM_delete(si->ads);
   }
 
-  if (si->runtime.ghost_curves.first_) {
-    BKE_fcurves_free(&si->runtime.ghost_curves);
+  if (si->runtime->ghost_curves.first_) {
+    BKE_fcurves_free(&si->runtime->ghost_curves);
   }
+  MEM_delete(si->runtime);
 }
 
 /* spacetype; init callback */
@@ -172,11 +176,11 @@ static SpaceLink *graph_duplicate(SpaceLink *sl)
 {
   SpaceGraph *sipon = MEM_dupalloc(reinterpret_cast<SpaceGraph *>(sl));
 
-  sipon->runtime = SpaceGraph_Runtime{};
+  sipon->runtime = MEM_new<SpaceGraph_Runtime>(__func__);
 
   /* clear or remove stuff from old */
-  BLI_duplicatelist(&sipon->runtime.ghost_curves,
-                    &(reinterpret_cast<SpaceGraph *>(sl))->runtime.ghost_curves);
+  BLI_duplicatelist(&sipon->runtime->ghost_curves,
+                    &(reinterpret_cast<SpaceGraph *>(sl))->runtime->ghost_curves);
   sipon->ads = MEM_dupalloc(sipon->ads);
 
   return reinterpret_cast<SpaceLink *>(sipon);
@@ -429,36 +433,44 @@ static void set_v2d_height(View2D *v2d, const size_t item_count)
 
 static void graph_channel_region_draw(const bContext *C, ARegion *region)
 {
-  bAnimContext ac;
-  if (!ANIM_animdata_get_context(C, &ac)) {
-    return;
-  }
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
   ui::theme::frame_buffer_clear(TH_BACK);
 
-  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
-  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
-                                    ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
-  const size_t item_count = ANIM_animdata_filter(
-      &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
-  set_v2d_height(v2d, item_count);
-  ui::view2d_view_ortho(v2d);
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
 
-  /* draw channels */
-  graph_draw_channel_names(const_cast<bContext *>(C), &ac, region, anim_data);
+    SpaceGraph *sgraph = CTX_wm_space_graph(C);
+    ED_time_scrub_channel_search_draw(C, region, sgraph->ads);
+  }
+  else {
+    bAnimContext ac;
+    if (!ANIM_animdata_get_context(C, &ac)) {
+      return;
+    }
 
-  /* channel filter next to scrubbing area */
-  ED_time_scrub_channel_search_draw(C, region, ac.ads);
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+    const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                      ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
+    const size_t item_count = ANIM_animdata_filter(
+        &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+    set_v2d_height(v2d, item_count);
+    ui::view2d_view_ortho(v2d);
+
+    /* draw channels */
+    graph_draw_channel_names(const_cast<bContext *>(C), &ac, region, anim_data);
+
+    /* channel filter next to scrubbing area */
+    ED_time_scrub_channel_search_draw(C, region, ac.ads);
+
+    ANIM_animdata_freelist(&anim_data);
+  }
 
   /* reset view matrix */
   ui::view2d_view_restore(C);
 
   /* scrollers */
   ui::view2d_scrollers_draw(v2d, nullptr);
-
-  ANIM_animdata_freelist(&anim_data);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -640,7 +652,7 @@ static void graph_listener(const wmSpaceTypeListenerParams *params)
         case ND_OB_ACTIVE: /* Selection changed, so force refresh to flush
                             * (needs flag set to do syncing). */
         case ND_OB_SELECT:
-          sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
+          sipo->runtime->flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
           ED_area_tag_refresh(area);
           break;
 
@@ -654,7 +666,7 @@ static void graph_listener(const wmSpaceTypeListenerParams *params)
         case ND_BONE_SELECT: /* Selection changed, so force refresh to flush
                               * (needs flag set to do syncing). */
         case ND_BONE_ACTIVE:
-          sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
+          sipo->runtime->flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
           ED_area_tag_refresh(area);
           break;
         case ND_TRANSFORM:
@@ -668,7 +680,7 @@ static void graph_listener(const wmSpaceTypeListenerParams *params)
     case NC_NODE:
       if (wmn->action == NA_SELECTED) {
         /* selection changed, so force refresh to flush (needs flag set to do syncing) */
-        sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
+        sipo->runtime->flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
         ED_area_tag_refresh(area);
       }
       break;
@@ -678,7 +690,7 @@ static void graph_listener(const wmSpaceTypeListenerParams *params)
       }
       break;
     case NC_WINDOW:
-      if (sipo->runtime.flag &
+      if (sipo->runtime->flag &
           (SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC | SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR))
       {
         /* force redraw/refresh after undo/redo - prevents "black curve" problem */
@@ -852,23 +864,23 @@ static void graph_refresh(const bContext *C, ScrArea *area)
   /* Update the state of the animchannels in response to changes from the data they represent
    * NOTE: the temp flag is used to indicate when this needs to be done,
    * and will be cleared once handled. */
-  if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC) {
+  if (sipo->runtime->flag & SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC) {
     ANIM_sync_animchannels_to_data(C);
-    sipo->runtime.flag &= ~SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
+    sipo->runtime->flag &= ~SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
     ED_area_tag_redraw(area);
   }
 
   /* We could check 'SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR', but color is recalculated anyway. */
-  if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR) {
-    sipo->runtime.flag &= ~SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR;
+  if (sipo->runtime->flag & SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR) {
+    sipo->runtime->flag &= ~SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR;
 #if 0 /* Done below. */
     graph_refresh_fcurve_colors(C);
 #endif
     ED_area_tag_redraw(area);
   }
 
-  sipo->runtime.flag &= ~(SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT |
-                          SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT);
+  sipo->runtime->flag &= ~(SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT |
+                           SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT);
 
   /* init/adjust F-Curve colors */
   graph_refresh_fcurve_colors(C);
@@ -906,7 +918,7 @@ static void graph_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   if (!is_readonly) {
     /* Force recalc of list of channels (i.e. including calculating F-Curve colors) to
      * prevent the "black curves" problem post-undo. */
-    sgraph->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR;
+    sgraph->runtime->flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR;
   }
 }
 
@@ -950,7 +962,7 @@ static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(sl);
 
   BLO_read_struct(reader, bDopeSheet, &sipo->ads);
-  sipo->runtime = SpaceGraph_Runtime{};
+  sipo->runtime = MEM_new<SpaceGraph_Runtime>(__func__);
 }
 
 static void graph_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)

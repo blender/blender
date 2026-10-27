@@ -13,6 +13,14 @@ namespace blender {
 struct bAnimContext;
 struct bAnimListElem;
 
+struct SpaceGraph_Runtime {
+  /** #eGraphEdit_Runtime_Flag */
+  char flag = 0;
+  char _pad[7] = {};
+  /** Sampled snapshots of F-Curves used as in-session guides */
+  ListBaseT<FCurve> ghost_curves = {nullptr, nullptr};
+};
+
 namespace ed::graph {
 
 /**

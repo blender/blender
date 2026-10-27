@@ -22,6 +22,7 @@
 #include "ED_asset.hh"
 #include "ED_buttons.hh"
 #include "ED_space_action.hh"
+#include "ED_space_graph.hh"
 #include "ED_spreadsheet.hh"
 #include "ED_userpref.hh"
 
@@ -2725,7 +2726,7 @@ static void rna_SpaceGraphEditor_normalize_update(bContext *C, PointerRNA * /*pt
 static bool rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
 {
   SpaceGraph *sipo = static_cast<SpaceGraph *>(ptr->data);
-  return (sipo->runtime.ghost_curves.is_empty() == false);
+  return (sipo->runtime->ghost_curves.is_empty() == false);
 }
 
 static void rna_SpaceConsole_rect_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)

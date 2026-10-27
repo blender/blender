@@ -35,6 +35,7 @@
 #include "ED_keyframes_edit.hh"
 #include "ED_markers.hh"
 #include "ED_select_utils.hh"
+#include "ED_space_graph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -1718,8 +1719,8 @@ static wmOperatorStatus mouse_graph_keys(bAnimContext *ac,
     wait_to_deselect_others = false;
   }
 
-  sipo->runtime.flag &= ~(SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT |
-                          SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT);
+  sipo->runtime->flag &= ~(SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT |
+                           SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT);
 
   const bool already_selected =
       (nvi != nullptr) && (((nvi->hpoint == NEAREST_HANDLE_KEY) && (nvi->bezt->f2 & SELECT)) ||
@@ -1856,10 +1857,10 @@ static wmOperatorStatus mouse_graph_keys(bAnimContext *ac,
   }
 
   if (nvi->hpoint == NEAREST_HANDLE_LEFT) {
-    sipo->runtime.flag |= SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT;
+    sipo->runtime->flag |= SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT;
   }
   else if (nvi->hpoint == NEAREST_HANDLE_RIGHT) {
-    sipo->runtime.flag |= SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT;
+    sipo->runtime->flag |= SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT;
   }
 
   /* free temp sample data for filtering */
