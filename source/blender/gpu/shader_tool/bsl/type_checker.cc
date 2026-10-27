@@ -501,6 +501,11 @@ struct ExpressionTypeParser
     ExpressionResult right = expr(p);
 
     TokenType op_type = t.front().type();
+    if (op_type == '&') {
+      error(t, Diag::OperatorAddressOfUnsupported);
+      return table->err_cls;
+    }
+
     if (op_type == '*' && right.is_ptr) {
       if (right.array_dim > 0) {
         /* Dereference of an array of pointers, converted to `[0]` in codegen. */
