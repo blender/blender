@@ -27,7 +27,7 @@ enum eSAction_Runtime_Flag : char {
 ENUM_OPERATORS(eSAction_Runtime_Flag);
 
 struct SpaceAction_Runtime {
-  eSAction_Runtime_Flag flag = {};
+  eSAction_Runtime_Flag flag = eSAction_Runtime_Flag(0);
 
   ed::animfilter::ChannelUIStateMap channel_states;
 
