@@ -2565,6 +2565,15 @@ void WM_event_timer_sleep(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *time
   timer->sleep = do_sleep;
 }
 
+/** Start the timer's cycle from now, keeping its step. */
+static void wm_window_timer_reset(wmTimer *wt)
+{
+  wt->time_last = BLI_time_now_seconds();
+  wt->time_next = wt->time_last + wt->time_step;
+  wt->time_start = wt->time_last;
+  wt->time_duration = 0.0;
+}
+
 wmTimer *WM_event_timer_add(wmWindowManager *wm,
                             wmWindow *win,
                             const wmEventType event_type,
@@ -2576,10 +2585,8 @@ wmTimer *WM_event_timer_add(wmWindowManager *wm,
   BLI_assert(time_step >= 0.0f);
 
   wt->event_type = event_type;
-  wt->time_last = BLI_time_now_seconds();
-  wt->time_next = wt->time_last + time_step;
-  wt->time_start = wt->time_last;
   wt->time_step = time_step;
+  wm_window_timer_reset(wt);
   wt->win = win;
 
   BLI_addtail(&wm->runtime->timers, wt);
@@ -2596,10 +2603,8 @@ wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
   BLI_assert(time_step >= 0.0f);
 
   wt->event_type = TIMERNOTIFIER;
-  wt->time_last = BLI_time_now_seconds();
-  wt->time_next = wt->time_last + time_step;
-  wt->time_start = wt->time_last;
   wt->time_step = time_step;
+  wm_window_timer_reset(wt);
   wt->win = win;
   wt->customdata = POINTER_FROM_UINT(type);
   wt->flags |= WM_TIMER_NO_FREE_CUSTOM_DATA;
