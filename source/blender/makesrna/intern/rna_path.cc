@@ -1302,7 +1302,8 @@ std::string RNA_path_full_ID_py(ID *id)
     int ofs = 0;
     memcpy(lib_filepath_esc, ", \"", 3);
     ofs += 3;
-    ofs += BLI_str_escape(lib_filepath_esc + ofs, id->lib->filepath, sizeof(lib_filepath_esc));
+    ofs += BLI_str_escape(
+        lib_filepath_esc + ofs, id->lib->filepath, sizeof(lib_filepath_esc) - (ofs + 1));
     memcpy(lib_filepath_esc + ofs, "\"", 2);
   }
   else {
