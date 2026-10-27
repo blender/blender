@@ -27,12 +27,23 @@ OneapiDeviceQueue::OneapiDeviceQueue(OneapiDevice *device)
 
 ConcurrentStatesParams OneapiDeviceQueue::concurrent_states_params() const
 {
+#  if 1
+  /* Keep the same number of concurrent states as Blender 5.2 and earlier.
+   * For other GPU backends there have been reports about TDR timeouts,
+   * excessive memory usage with multiple Blender instances, etc. Assume
+   * oneAPI is likely affected too and don't use more memory. */
+  const int max_num_threads = oneapi_device_->get_num_multiprocessors() *
+                              oneapi_device_->get_max_num_threads_per_multiprocessor();
+
+  ConcurrentStatesParams params;
+  params.baseline = 16 * max(8 * max_num_threads, 65536);
+#  else
   /* NOTE(@xavierh-intel): At the time of writing this, 32768 * the number of
    * Execution Units is the best baseline across at least Intel Arc B390 and
    * Arc Pro B70.  */
   ConcurrentStatesParams params;
   params.baseline = 32768 * oneapi_device_->get_num_multiprocessors();
-#  ifdef __linux__
+#    ifdef __linux__
   /* Intel Arc A770 and older on Linux use i915 drivers that don't accurately
    * report free memory in default configuration, we need to be more careful
    * with the number of states on these platforms, so we use the original lower
@@ -42,6 +53,7 @@ ConcurrentStatesParams OneapiDeviceQueue::concurrent_states_params() const
                                 oneapi_device_->get_max_num_threads_per_multiprocessor();
     params.baseline = 16 * max(8 * max_num_threads, 65536);
   }
+#    endif
 #  endif
 
   /* Only shrink to fit within available memory, growing did not show clear

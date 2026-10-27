@@ -32,11 +32,13 @@ ConcurrentStatesParams HIPDeviceQueue::concurrent_states_params() const
   const int max_num_threads = hip_device_->get_num_multiprocessors() *
                               hip_device_->get_max_num_threads_per_multiprocessor();
 
-  /* Same as CUDA. */
+  /* Only shrink to fit within available memory. Growing up to 10x does show
+   * performance improvements, however it causes TDR timeouts, too much memory
+   * usage when there are multiple Blender instances, etc. */
   ConcurrentStatesParams params;
-  params.baseline = max(max_num_threads, 65536) * 16;
+  params.baseline = ((max_num_threads == 0) ? 65536 : max_num_threads) * 16;
   params.min = params.baseline / 2;
-  params.max = params.baseline * 4;
+  params.max = params.baseline;
   return params;
 }
 
