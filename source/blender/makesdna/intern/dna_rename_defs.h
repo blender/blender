@@ -19,6 +19,11 @@
  *   All references to the previous destination name can be removed since they're
  *   never written to disk.
  *
+ * - A new name must not be the old name of another struct, or of another member in the same
+ *   struct. `makesdna` reports an error in this case, as the name would refer to different
+ *   data in C and in blend-files.
+ *   Some exceptions exist (see #rename_collisions_known), don't add to them.
+ *
  * - Old names aren't sanity checked (since this file is the only place that knows about them)
  *   typos in the old names will break both backwards & forwards compatibility **TAKE CARE**.
  *
