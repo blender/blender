@@ -1329,7 +1329,7 @@ PointerRNA rna_uiTemplatePopupConfirm(Layout *layout,
   }
   else {
     std::optional<StringRefNull> text_str = rna_translate_ui_text(
-        text, text_ctxt, ot->srna, nullptr, translate);
+        text, text_ctxt, (ot ? ot->srna : nullptr), nullptr, translate);
     std::optional<StringRefNull> cancel_text_str = cancel_text ? std::make_optional<StringRefNull>(
                                                                      cancel_text) :
                                                                  std::nullopt;
