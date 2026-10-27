@@ -2094,7 +2094,7 @@ static std::optional<std::string> rna_ViewLayerEEVEE_path(const PointerRNA *ptr)
 
   const size_t view_layer_path_len = rna_ViewLayer_path_buffer_get(view_layer, rna_path);
 
-  BLI_strncpy(rna_path + view_layer_path_len, ".eevee", sizeof(rna_path) - view_layer_path_len);
+  STRNCPY(MutableCStr(rna_path).drop_front(view_layer_path_len), ".eevee");
 
   return rna_path;
 }

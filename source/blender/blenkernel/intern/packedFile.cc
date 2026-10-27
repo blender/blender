@@ -555,7 +555,7 @@ static void unpack_generate_paths(const char *filepath,
         if (ima->source == IMA_SRC_TILED) {
           char tile_number[6];
           SNPRINTF(tile_number, ".%d", imapf->tile_number);
-          BLI_strncpy(temp_filename + len, tile_number, sizeof(temp_filename) - len);
+          STRNCPY(MutableCStr(temp_filename).drop_front(len), tile_number);
         }
         if (ftype != IMB_FTYPE_NONE) {
           const int imtype = BKE_ftype_to_imtype(ftype, nullptr);

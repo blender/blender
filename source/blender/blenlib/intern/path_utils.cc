@@ -1181,7 +1181,7 @@ bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
 
     /* Step over the slashes at the beginning of the path. */
     p = (char *)BLI_path_slash_skip(p);
-    BLI_strncpy(tmp + root_dir_len, p, sizeof(tmp) - root_dir_len);
+    STRNCPY(MutableCStr(tmp).drop_front(root_dir_len), p);
   }
   else {
     STRNCPY(tmp, path);
@@ -1232,9 +1232,9 @@ bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
       /* Use path for temp storage here, we copy back over it right away. */
       BLI_strncpy(path, tmp + 2, FILE_MAX); /* Strip `//` prefix. */
 
-      memcpy(tmp, base, baselen); /* Prefix with base up to last `/`. */
-      BLI_strncpy(tmp + baselen, path, sizeof(tmp) - baselen); /* Append path after `//`. */
-      BLI_strncpy(path, tmp, FILE_MAX);                        /* Return as result. */
+      memcpy(tmp, base, baselen);                          /* Prefix with base up to last `/`. */
+      STRNCPY(MutableCStr(tmp).drop_front(baselen), path); /* Append path after `//`. */
+      BLI_strncpy(path, tmp, FILE_MAX);                    /* Return as result. */
     }
     else {
       /* Base doesn't seem to be a directory, ignore it and just strip `//` prefix on path.

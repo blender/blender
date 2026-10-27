@@ -995,7 +995,7 @@ static void export_packed_texture(const Image *ima,
       if (ima->source == IMA_SRC_TILED) {
         char tile_number[6];
         SNPRINTF(tile_number, ".%d", imapf.tile_number);
-        BLI_strncpy(file_name + len, tile_number, sizeof(file_name) - len);
+        STRNCPY(MutableCStr(file_name).drop_front(len), tile_number);
       }
       if (ftype != IMB_FTYPE_NONE) {
         const int imtype = BKE_ftype_to_imtype(ftype, nullptr);
