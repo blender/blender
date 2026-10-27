@@ -17,8 +17,10 @@
 
 #include "BKE_blendfile.hh"
 #include "BKE_global.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_report.hh"
 
 #include "BLO_writefile.hh"
@@ -119,6 +121,11 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
   }
 
   Main *bmain_src = static_cast<Main *>(self->ptr->data); /* Typically #G_MAIN */
+
+  /* Ensure invariants before writing, or writing process may fail. See e.g. #165588. */
+  BKE_main_view_layers_synced_ensure(bmain_src);
+  BKE_main_ensure_invariants(*bmain_src);
+
   int write_flags = 0;
 
   if (use_compress) {
