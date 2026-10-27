@@ -124,7 +124,7 @@ Object::Object() : Node(get_node_type())
 
 Object::~Object() = default;
 
-void Object::update_motion()
+void Object::update_motion(const Scene::MotionType need_motion)
 {
   if (!use_motion()) {
     return;
@@ -134,7 +134,9 @@ void Object::update_motion()
 
   for (size_t i = 0; i < motion.size(); i++) {
     if (motion[i] == transform_empty()) {
-      if (hide_on_missing_motion) {
+      /* Motion passes enabled for interactive denoising should not cause
+       * objects in the current frame to become hidden. */
+      if (hide_on_missing_motion && need_motion != Scene::MOTION_PASS_INTERACTIVE) {
         /* Hide objects that have no valid previous or next
          * transform, for example particle that stop existing. It
          * would be better to handle this in the kernel and make
@@ -659,7 +661,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
       state->need_motion == Scene::MOTION_PASS_INTERACTIVE)
   {
     /* Clear motion array if there is no actual motion. */
-    ob->update_motion();
+    ob->update_motion(state->need_motion);
 
     /* Compute motion transforms. */
     Transform tfm_pre;
@@ -845,7 +847,7 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
       motion_offsets++;
 
       /* Clear motion array if there is no actual motion. */
-      ob->update_motion();
+      ob->update_motion(state.need_motion);
       motion_offset += ob->motion.size();
     }
 
