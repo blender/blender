@@ -254,19 +254,19 @@ uint4 _a(A this_) {
   return floatBitsToUint(this_._0);
 }
 void _a_set_(_ref(A ,this_), uint4 v) {
-  this_._0 = uintBitsToFloat(v.a);
+  this_._0 = uintBitsToFloat(v);
 }
 int4 _b(A this_) {
   return floatBitsToInt(this_._0);
 }
 void _b_set_(_ref(A ,this_), int4 v) {
-  this_._0 = intBitsToFloat(v.b);
+  this_._0 = intBitsToFloat(v);
 }
 float4 _c(A this_) {
   return this_._0;
 }
 void _c_set_(_ref(A ,this_), float4 v) {
-  this_._0 = v.c;
+  this_._0 = v;
 }
 #line 8
 )";
@@ -301,13 +301,13 @@ uint4 _a(A_a0 this_) {
   return floatBitsToUint(this_._0);
 }
 void _a_set_(_ref(A_a0 ,this_), uint4 v) {
-  this_._0 = uintBitsToFloat(v.a);
+  this_._0 = uintBitsToFloat(v);
 }
 int4 _b(A_a0 this_) {
   return floatBitsToInt(this_._0);
 }
 void _b_set_(_ref(A_a0 ,this_), int4 v) {
-  this_._0 = intBitsToFloat(v.b);
+  this_._0 = intBitsToFloat(v);
 }
 #line 2
 struct A {
@@ -560,7 +560,7 @@ uint4 _c(A_a0 this_) {
   return floatBitsToUint(this_._0);
 }
 void _c_set_(_ref(A_a0 ,this_), uint4 v) {
-  this_._0 = uintBitsToFloat(v.c);
+  this_._0 = uintBitsToFloat(v);
 }
 #line 13
   struct A_a1 {
@@ -582,7 +582,7 @@ uint4 _e(A_a1 this_) {
   return floatBitsToUint(this_._0);
 }
 void _e_set_(_ref(A_a1 ,this_), uint4 v) {
-  this_._0 = uintBitsToFloat(v.e);
+  this_._0 = uintBitsToFloat(v);
 }
 #line 5
 struct A {

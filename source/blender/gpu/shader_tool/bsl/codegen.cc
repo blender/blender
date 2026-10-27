@@ -1876,8 +1876,7 @@ struct CodegenContext : NodeErrorHandler {
       }
       string to_var = "this_." +
                       union_data_access(member.offset, member_type.size, union_type.size);
-      string access = "v." + member.original;
-      fn_body += "  " + to_var + " = " + member_to_float(*member.type, access) + ";\n";
+      fn_body += "  " + to_var + " = " + member_to_float(*member.type, "v") + ";\n";
     }
     else {
       for (const auto &var : member_type.get_all_members_flat().unwrap(this)) {
