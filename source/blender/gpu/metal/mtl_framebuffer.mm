@@ -155,12 +155,12 @@ bool MTLFrameBuffer::check(char err_out[256])
   bool valid = (this->get_attachment_count() > 0 || this->has_depth_attachment() ||
                 this->has_stencil_attachment());
   if (!valid) {
-    const char *format = "Framebuffer %s does not have any attachments.\n";
+    const char *format = "Framebuffer %s does not have any attachments.";
     if (err_out) {
       BLI_snprintf(err_out, 256, format, name_);
     }
     else {
-      MTL_LOG_ERROR(format, name_);
+      CLOG_ERROR(&debug::LOG, format, name_);
     }
     return false;
   }
@@ -183,12 +183,12 @@ bool MTLFrameBuffer::check(char err_out[256])
           if (dim_x != att.texture->width_get() || dim_y != att.texture->height_get()) {
             const char *format =
                 "Framebuffer %s: Color attachment dimensions do not match those of previous "
-                "attachment\n";
+                "attachment";
             if (err_out) {
               BLI_snprintf(err_out, 256, format, name_);
             }
             else {
-              MTL_LOG_ERROR(format, name_);
+              CLOG_ERROR(&debug::LOG, format, name_);
             }
             return false;
           }
@@ -197,12 +197,12 @@ bool MTLFrameBuffer::check(char err_out[256])
       else {
         const char *format =
             "Framebuffer %s: Color attachment texture does not have usage flag "
-            "'GPU_TEXTURE_USAGE_ATTACHMENT'\n";
+            "'GPU_TEXTURE_USAGE_ATTACHMENT'";
         if (err_out) {
           BLI_snprintf(err_out, 256, format, name_);
         }
         else {
-          MTL_LOG_ERROR(format, name_);
+          CLOG_ERROR(&debug::LOG, format, name_);
         }
         return false;
       }
@@ -220,12 +220,12 @@ bool MTLFrameBuffer::check(char err_out[256])
       if (!valid) {
         const char *format =
             "Framebuffer %s: Depth attachment does not have usage "
-            "'GPU_TEXTURE_USAGE_ATTACHMENT'\n";
+            "'GPU_TEXTURE_USAGE_ATTACHMENT'";
         if (err_out) {
           BLI_snprintf(err_out, 256, format, name_);
         }
         else {
-          MTL_LOG_ERROR(format, name_);
+          CLOG_ERROR(&debug::LOG, format, name_);
         }
         return false;
       }
@@ -234,12 +234,12 @@ bool MTLFrameBuffer::check(char err_out[256])
       if (dim_x != depth_att.texture->width_get() || dim_y != depth_att.texture->height_get()) {
         const char *format =
             "Framebuffer %s: Depth attachment dimensions do not match that of previous "
-            "attachment\n";
+            "attachment";
         if (err_out) {
           BLI_snprintf(err_out, 256, format, name_);
         }
         else {
-          MTL_LOG_ERROR(format, name_);
+          CLOG_ERROR(&debug::LOG, format, name_);
         }
         return false;
       }
@@ -255,12 +255,12 @@ bool MTLFrameBuffer::check(char err_out[256])
       if (!valid) {
         const char *format =
             "Framebuffer %s: Stencil attachment does not have usage "
-            "'GPU_TEXTURE_USAGE_ATTACHMENT'\n";
+            "'GPU_TEXTURE_USAGE_ATTACHMENT'";
         if (err_out) {
           BLI_snprintf(err_out, 256, format, name_);
         }
         else {
-          MTL_LOG_ERROR(format, name_);
+          CLOG_ERROR(&debug::LOG, format, name_);
         }
         return false;
       }
@@ -275,7 +275,7 @@ bool MTLFrameBuffer::check(char err_out[256])
           BLI_snprintf(err_out, 256, format, name_);
         }
         else {
-          MTL_LOG_ERROR(format, name_);
+          CLOG_ERROR(&debug::LOG, format, name_);
         }
         return false;
       }
