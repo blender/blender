@@ -210,7 +210,7 @@ static SerializableObject::Retainer<MediaReference> image_sequence_reference(
   }
 
   char dirpath[FILE_MAX];
-  BLI_strncpy(dirpath, strip.data->dirpath, sizeof(dirpath));
+  STRNCPY(dirpath, strip.data->dirpath);
   BLI_path_abs(dirpath, BKE_main_blendfile_path(ctx.bmain));
 
   /* OTIO expects the rate of the full sequence, counting file numbers that don't exist. */

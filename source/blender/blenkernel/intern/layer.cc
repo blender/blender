@@ -2849,7 +2849,7 @@ void BKE_lightgroup_membership_set(LightgroupMembership **lgm, const char *name)
     if (*lgm == nullptr) {
       *lgm = MEM_new<LightgroupMembership>(__func__);
     }
-    BLI_strncpy_utf8((*lgm)->name, name, sizeof((*lgm)->name));
+    STRNCPY_UTF8((*lgm)->name, name);
   }
   else {
     if (*lgm != nullptr) {

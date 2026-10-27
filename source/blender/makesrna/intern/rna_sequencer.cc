@@ -1038,7 +1038,7 @@ static void rna_Strip_name_set(PointerRNA *ptr, const char *value)
   seq::prefetch_stop(scene);
 
   /* make a copy of the old name first */
-  BLI_strncpy(oldname, strip->name + 2, sizeof(strip->name) - 2);
+  STRNCPY(oldname, strip->name + 2);
 
   /* copy the new name into the name slot */
   seq::edit_strip_name_set(scene, strip, value);
