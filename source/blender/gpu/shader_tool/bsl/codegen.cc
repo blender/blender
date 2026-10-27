@@ -291,7 +291,8 @@ struct CodegenContext : NodeErrorHandler {
         if (left.type->operator_subscript) {
 #if 0 /* Future operator overloading */
           if (true) {
-            left.str = SymbolTable::subscript_operator_id + '(' + left.str + ',' + param.str + ')';
+            left.str = string(SymbolTable::subscript_operator_id) + '(' + left.str + ',' +
+                       param.str + ')';
             return {left.str, left.type->operator_subscript->return_type};
           }
 #endif
