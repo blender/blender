@@ -374,6 +374,32 @@ void f(const A  srt)
   }
   {
     string input = R"(
+struct A { [[storage(0, read)]] const float3 *(&nor)[]; };
+
+void f(const A &srt)
+{
+  int i = 0;
+  const float3 *&r = srt.nor[i];
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Reference cannot bind to expression of non-const subscript index");
+  }
+  {
+    string input = R"(
+struct A { [[storage(0, read)]] const float3 *(&nor)[]; };
+
+void f(const A &srt)
+{
+  const float3 *&r = *srt.nor;
+  const float3 &v = **srt.nor;
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
 float a;
 float *b = &a;
 )";
