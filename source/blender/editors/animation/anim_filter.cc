@@ -4278,8 +4278,8 @@ static Vector<SummaryContainer> split_group_for_tag(ChannelArena &arena,
   });
 
   /* After sorting, step through the `DataChannel`s and find the group borders. */
-  const ChannelTag *current_tag = data_channels[0]->tags().nth_by_type(tag_type, tag_index);
-  if (!current_tag) {
+  const ChannelTag *group_tag = data_channels[0]->tags().nth_by_type(tag_type, tag_index);
+  if (!group_tag) {
     /* This summary cannot be split with the given tag. */
     return {};
   }
@@ -4295,17 +4295,16 @@ static Vector<SummaryContainer> split_group_for_tag(ChannelArena &arena,
       /* Channels without that tag are sorted to be at the end. They should not be grouped. */
       break;
     }
-    if (*tag != *current_tag) {
+    if (*tag != *group_tag) {
       /* Move the already-visited channels into their group, and then start a new one for this
        * channel. */
       BLI_assert(group_length > 0);
-      new_groups.append({current_tag,
-                         summary_data.datachannels.slice(group_start, group_length),
-                         has_more_tags});
+      new_groups.append(
+          {group_tag, summary_data.datachannels.slice(group_start, group_length), has_more_tags});
       group_start += group_length;
       has_more_tags = false;
       group_length = 0;
-      current_tag = tag;
+      group_tag = tag;
     }
 
     /* Store this tag in the current group. */
@@ -4315,7 +4314,7 @@ static Vector<SummaryContainer> split_group_for_tag(ChannelArena &arena,
 
   if (group_length > 0) {
     new_groups.append(
-        {current_tag, summary_data.datachannels.slice(group_start, group_length), has_more_tags});
+        {group_tag, summary_data.datachannels.slice(group_start, group_length), has_more_tags});
     group_start += group_length;
   }
 
