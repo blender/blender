@@ -546,12 +546,6 @@ static bool screen_area_join_ex(bContext *C,
     ED_area_tag_redraw(side2);
   }
 
-  if (sa1 != CTX_wm_area(C)) {
-    /* Active area has changed so active region could be invalid. It is
-     * safe to set null and let it be set later by mouse position. #131751. */
-    screen->active_region = nullptr;
-  }
-
   BKE_icon_changed(screen->id.icon_id);
   return true;
 }
@@ -883,6 +877,17 @@ void ED_region_exit(bContext *C, ARegion *region)
 
   if (region->runtime->type && region->runtime->type->exit) {
     region->runtime->type->exit(wm, region);
+  }
+
+  /* The region may not belong to the context window
+   * (e.g. swapping areas between windows), so check all windows. */
+  for (wmWindow &win_iter : wm->windows) {
+    if (bScreen *screen = WM_window_get_active_screen(&win_iter)) {
+      if (screen->active_region == region) {
+        screen->active_region = nullptr;
+        break;
+      }
+    }
   }
 
   CTX_wm_region_set(C, region);
