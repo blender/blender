@@ -328,12 +328,11 @@ char *BLI_vsprintfN(const char *__restrict format, va_list args)
 
 size_t BLI_str_escape(MutableCStr dst, StringRef src)
 {
-  const size_t dst_maxncpy = size_t(dst.size());
-  BLI_assert(dst_maxncpy != 0);
+  BLI_assert(!dst.is_empty());
   BLI_string_debug_size(dst);
 
   char *dst_iter = dst.data();
-  const size_t dst_len_max = dst_maxncpy - 1;
+  const size_t dst_len_max = size_t(dst.size()) - 1;
   size_t dst_len = 0;
   int64_t src_idx = 0;
   for (; (dst_len < dst_len_max) && (src_idx < src.size()); src_idx++, dst_iter++, dst_len++) {
@@ -1174,9 +1173,7 @@ static size_t BLI_str_format_int_grouped_ex(char *src, char *dst, int num_len)
 
 size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], int num)
 {
-  const size_t dst_maxncpy = BLI_STR_FORMAT_INT32_GROUPED_SIZE;
-  BLI_string_debug_size(dst, dst_maxncpy);
-  UNUSED_VARS_NDEBUG(dst_maxncpy);
+  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT32_GROUPED_SIZE);
 
   char src[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
   const int num_len = int(SNPRINTF(src, "%d", num));
@@ -1186,9 +1183,7 @@ size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], i
 
 size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], uint64_t num)
 {
-  const size_t dst_maxncpy = BLI_STR_FORMAT_UINT64_GROUPED_SIZE;
-  BLI_string_debug_size(dst, dst_maxncpy);
-  UNUSED_VARS_NDEBUG(dst_maxncpy);
+  BLI_string_debug_size(dst, BLI_STR_FORMAT_UINT64_GROUPED_SIZE);
 
   char src[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   const int num_len = int(SNPRINTF(src, "%" PRIu64 "", num));
@@ -1198,9 +1193,7 @@ size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE
 
 size_t BLI_str_format_int64_grouped(char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE], int64_t num)
 {
-  const size_t dst_maxncpy = BLI_STR_FORMAT_INT64_GROUPED_SIZE;
-  BLI_string_debug_size(dst, dst_maxncpy);
-  UNUSED_VARS_NDEBUG(dst_maxncpy);
+  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT64_GROUPED_SIZE);
 
   char src[BLI_STR_FORMAT_INT64_GROUPED_SIZE];
   const int num_len = int(SNPRINTF(src, "%" PRId64 "", num));
@@ -1223,8 +1216,7 @@ void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
    *   so lower digits aren't discarded before rounding.
    * - The number of decimal places grows with the unit (not always one).
    * - Rounding up to the next unit uses it ("1.0 MiB" instead of "1024.0K"). */
-  const size_t dst_maxncpy = BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE;
-  BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE);
 
   const uint64_t bytes_abs = abs_as_uint64(bytes);
   uint64_t divisor = 1;
@@ -1267,7 +1259,7 @@ void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
 
   /* With no decimal places, the fraction is zero & a precision of zero prints nothing. */
   BLI_snprintf(dst,
-               dst_maxncpy,
+               BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE,
                "%s"         /* Sign (or "" when positive). */
                "%" PRIu64   /* Number. */
                "%s"         /* Decimal point (or "" without decimal places). */
@@ -1328,12 +1320,11 @@ void BLI_str_format_byte_unit_compact(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_CO
                                       int64_t bytes,
                                       const bool base_10)
 {
-  const size_t dst_maxncpy = BLI_STR_FORMAT_INT64_BYTE_UNIT_COMPACT_SIZE;
-  BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT64_BYTE_UNIT_COMPACT_SIZE);
 
   const char *units[] = {"B", "K", "M", "G", "T", "P", "E"};
   str_format_unit_compact_impl(dst,
-                               dst_maxncpy,
+                               BLI_STR_FORMAT_INT64_BYTE_UNIT_COMPACT_SIZE,
                                "",
                                abs_as_uint64(bytes),
                                base_10 ? 1000 : 1024,
@@ -1344,8 +1335,7 @@ void BLI_str_format_byte_unit_compact(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_CO
 void BLI_str_format_decimal_unit(char dst[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE],
                                  int number_to_format)
 {
-  const size_t dst_maxncpy = BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE;
-  BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE);
 
   const uint64_t number_abs = abs_as_uint64(number_to_format);
   uint64_t divisor = 1;
@@ -1376,7 +1366,7 @@ void BLI_str_format_decimal_unit(char dst[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE
 
   /* With no decimal places, the fraction is zero & a precision of zero prints nothing. */
   BLI_snprintf(dst,
-               dst_maxncpy,
+               BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE,
                "%s"   /* Sign (or "" when positive). */
                "%u"   /* Number. */
                "%s"   /* Decimal point (or "" without decimal places). */
@@ -1394,12 +1384,11 @@ void BLI_str_format_decimal_unit(char dst[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE
 void BLI_str_format_integer_unit(char dst[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE],
                                  const int number_to_format)
 {
-  const size_t dst_maxncpy = BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE;
-  BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE);
 
   const char *units[] = {"", "K", "M", "B"};
   str_format_unit_compact_impl(dst,
-                               dst_maxncpy,
+                               BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE,
                                (number_to_format < 0) ? "-" : "",
                                abs_as_uint64(number_to_format),
                                1000,

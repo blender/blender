@@ -503,8 +503,7 @@ bool BKE_preferences_extension_repo_module_is_valid(const bUserExtensionRepo *re
   /* NOTE: this should only ever return false in the case of corrupt file/memory
    * and can be considered an exceptional situation. */
   char module_test[sizeof(bUserExtensionRepo::module)];
-  const size_t module_len = strncpy_py_module(MutableCStr(module_test, sizeof(repo->module)),
-                                              repo->module);
+  const size_t module_len = strncpy_py_module(module_test, repo->module);
   if (module_len == 0) {
     return false;
   }
