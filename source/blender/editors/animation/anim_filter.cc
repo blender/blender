@@ -4402,9 +4402,9 @@ void group_channels(ChannelArena &arena,
   gather_tags(*root);
 }
 
-static float foreach_expanded_recursive(AnimationChannel &channel,
-                                        int row_index,
-                                        ForEachChannelCallback callback)
+static int foreach_expanded_recursive(AnimationChannel &channel,
+                                      int row_index,
+                                      ForEachChannelCallback callback)
 {
   callback(channel, row_index);
   row_index++;
