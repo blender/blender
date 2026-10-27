@@ -721,6 +721,9 @@ void KDTree<T>::build(const Span<T> points,
   for (const int index : tree_indices) {
     BLI_assert(index >= 0 && index < points.size());
   }
+  for (const int dim_i : IndexRange(dimensions)) {
+    BLI_assert(!std::isnan(bounds_.min[dim_i]) && !std::isnan(bounds_.max[dim_i]));
+  }
 #endif
 }
 
