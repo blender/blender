@@ -23,6 +23,8 @@
 
 #include "BKE_idprop.hh"
 
+#define BLENDER_PROJECT_CONFIG_DIR ".blender_project"
+
 namespace blender {
 
 struct Main;
@@ -464,6 +466,9 @@ void BKE_blender_project_config_autosave(Main *bmain);
 bool BKE_blender_project_config_file_write(Main *bmain);
 /** Try to initialize a project from the provided project root path. */
 bool BKE_blender_project_init_from_root_path(Main *bmain, std::string project_root_path);
+
+/* Return whether the given path is a Blender Project or not. */
+bool BKE_blender_project_dir_is_project(StringRef path);
 
 /** Recent projects list item. */
 struct RecentProject {
