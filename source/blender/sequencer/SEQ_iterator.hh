@@ -56,6 +56,11 @@ enum class StripRelation {
   MetaContents = (1 << 2),
   /** Strips connected to this strip. */
   Connected = (1 << 3),
+  /** Selected strips connected to this strip.
+   *
+   * NOTE: Set either #Connected or #SelectedConnected, but not both,
+   * #expand_strips asserts that only one of these is chosen. */
+  SelectedConnected = (1 << 4),
 
   /** The entire effect chain a strip participates in, followed in both directions. */
   EffectChain = Effects | Inputs,

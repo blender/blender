@@ -21,6 +21,8 @@ struct Strip;
 
 namespace seq {
 
+enum class StripRelation;
+
 bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **r_error_str);
 /**
  * Move \a strip from \a seqbase to \a dst_seqbase.
@@ -88,6 +90,14 @@ Strip *edit_strip_split(Main *bmain,
                         eSplitMethod method,
                         bool ignore_connections,
                         const char **r_error);
+Vector<Strip *> edit_strips_split(Main *bmain,
+                                  Scene *scene,
+                                  ListBaseT<Strip> *seqbase,
+                                  Span<Strip *> strips_to_split,
+                                  int timeline_frame,
+                                  eSplitMethod method,
+                                  StripRelation include,
+                                  const char **r_error);
 /**
  * Find the gap after \a initial_frame and move strips on its right side to close it.
  *

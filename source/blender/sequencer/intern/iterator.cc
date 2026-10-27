@@ -69,6 +69,8 @@ void foreach_strip(ListBaseT<Strip> *seqbase, FunctionRef<bool(Strip *)> callbac
 
 void expand_strips(Editing *ed, VectorSet<Strip *> &strips, const StripRelation include)
 {
+  BLI_assert(!(flag_is_set(include, StripRelation::Connected) &&
+               flag_is_set(include, StripRelation::SelectedConnected)));
   /* Process strips through iteration, since some callers expect no reordering of the #VectorSet.
    * Its keys remain in insertion order as long as none are removed, which we guarantee here.
    * Since newly found strips are appended, they will all be eventually visited. */
@@ -96,6 +98,13 @@ void expand_strips(Editing *ed, VectorSet<Strip *> &strips, const StripRelation 
     if (flag_is_set(include, StripRelation::Connected)) {
       for (Strip *connection : connected_strips_get(strip)) {
         strips.add(connection);
+      }
+    }
+    if (flag_is_set(include, StripRelation::SelectedConnected)) {
+      for (Strip *connection : connected_strips_get(strip)) {
+        if (connection->flag & SEQ_SELECT) {
+          strips.add(connection);
+        }
       }
     }
   }
