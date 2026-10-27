@@ -64,6 +64,7 @@
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
 #include "ED_space_action.hh"
+#include "ED_space_graph.hh"
 
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
@@ -3597,6 +3598,8 @@ static std::optional<ed::animfilter::ChannelArena> get_channels_from_space(bCont
   switch (area->spacetype) {
     case SPACE_ACTION:
       return ed::action::get_summary_tree(C);
+    case SPACE_GRAPH:
+      return ed::graph::get_summary_tree(C);
   }
   /* Space type not implemented for animation channels. */
   BLI_assert_unreachable();
