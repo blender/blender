@@ -273,8 +273,7 @@ SourceProcessor::Result SourceProcessor::convert_bsl()
 
     parser.only_apply_mutations();
 
-    vector<string> visited_files;
-    scan_external_symbols(sources, symbols, visited_files);
+    scan_external_symbols(sources, symbols, metadata_.visited_files);
 
     parser.include_id = sources.include_id_get();
 
