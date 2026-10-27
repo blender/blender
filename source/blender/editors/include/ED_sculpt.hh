@@ -21,6 +21,7 @@ struct ReportList;
 struct Scene;
 struct UndoType;
 struct UndoStep;
+struct ViewContext;
 struct bContext;
 struct wmKeyConfig;
 struct wmOperator;
@@ -38,6 +39,13 @@ void object_sculpt_mode_exit(Main &bmain, Depsgraph &depsgraph, Scene &scene, Ob
 void object_sculpt_mode_exit(bContext *C, Depsgraph &depsgraph);
 
 /* `sculpt.cc` */
+
+struct ActiveElementIndices {
+  int vert;
+  int face;
+};
+
+ActiveElementIndices get_active_element_indices(ViewContext &vc, const float2 &mval);
 
 /**
  * Checks if the currently active shape key is able to be sculpted on.

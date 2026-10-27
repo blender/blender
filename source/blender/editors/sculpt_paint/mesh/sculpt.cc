@@ -118,6 +118,33 @@ namespace ed::sculpt_paint {
 /** \name Sculpt Brush Utilities
  * \{ */
 
+ActiveElementIndices get_active_element_indices(ViewContext &vc, const float2 &mval)
+{
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*vc.obact);
+  const Mesh &mesh = *id_cast<const Mesh *>(vc.obact->data);
+  const SculptSession &ss = *vc.obact->runtime->sculpt_session;
+
+  std::optional<ActiveElementInfo> active_element_info = active_element_info_get(vc, mval);
+
+  if (!active_element_info.has_value()) {
+    return {-1, -1};
+  }
+
+  switch (pbvh.type()) {
+    case bke::pbvh::Type::Mesh:
+      return {std::get<int>(active_element_info->vert), active_element_info->active_face_idx};
+    case bke::pbvh::Type::Grids:
+      return {
+          mesh.corner_verts()[active_element_info->active_grid_idx],
+          BKE_subdiv_ccg_grid_to_face_index(*ss.subdiv_ccg, active_element_info->active_grid_idx)};
+    case bke::pbvh::Type::BMesh:
+      /* TODO: We currently do not calculate this active information for Dyntopo. */
+      return {-1, -1};
+  }
+  BLI_assert_unreachable();
+  return {-1, -1};
+}
+
 /* TODO: This should be moved to either BKE_paint.hh or BKE_brush.hh */
 float object_space_radius_get(const ViewContext &vc,
                               const Paint &paint,

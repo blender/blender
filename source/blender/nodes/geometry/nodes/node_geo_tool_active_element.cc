@@ -44,9 +44,18 @@ static void node_exec(GeoNodeExecParams params)
   const GeoNodesOperatorData *operator_data = params.user_data()->call_data->operator_data;
   const AttrDomain domain = static_cast<AttrDomain>(params.node().custom1);
 
-  /* Active Point, Edge, and Face are only supported in Edit Mode. */
-  if (operator_data->mode != OB_MODE_EDIT &&
-      ELEM(domain, AttrDomain::Point, AttrDomain::Edge, AttrDomain::Face))
+  /* Active Edge is only supported in Edit Mode. */
+  if (domain == AttrDomain::Edge && operator_data->mode != OB_MODE_EDIT) {
+    params.set_default_remaining_outputs();
+    return;
+  }
+  /* Active Point and Face are only supported in Edit and Paint modes. */
+  if (ELEM(domain, AttrDomain::Point, AttrDomain::Face) && !ELEM(operator_data->mode,
+                                                                 OB_MODE_EDIT,
+                                                                 OB_MODE_SCULPT,
+                                                                 OB_MODE_VERTEX_PAINT,
+                                                                 OB_MODE_WEIGHT_PAINT,
+                                                                 OB_MODE_TEXTURE_PAINT))
   {
     params.set_default_remaining_outputs();
     return;
