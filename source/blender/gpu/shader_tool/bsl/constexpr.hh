@@ -564,6 +564,21 @@ inline bool anyLessThan(const ConstexprValue &lhs, int rhs)
   return false;
 }
 
+/* Test for signed INT32_MIN divided by -1, which overflows and traps on x86. */
+inline bool contains_division_overflow(const ConstexprValue &lhs, const ConstexprValue &rhs)
+{
+  if (lhs.comp_type() != ConstexprValue::INT || rhs.comp_type() != ConstexprValue::INT) {
+    return false;
+  }
+  const int len = std::max(lhs.comp_len(), rhs.comp_len());
+  for (int i = 0; i < len; i++) {
+    if (lhs.comp_as<int32_t>(i) == INT32_MIN && rhs.comp_as<int32_t>(i) == -1) {
+      return true;
+    }
+  }
+  return false;
+}
+
 inline bool anyGreaterThanEqual(const ConstexprValue &lhs, int rhs)
 {
   for (int i = 0; i < int(lhs.values.size()); i++) {

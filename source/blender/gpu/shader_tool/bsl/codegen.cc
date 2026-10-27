@@ -1249,6 +1249,10 @@ struct CodegenContext : NodeErrorHandler {
                 error(expr, Diag::ConstexprDivisionByZero);
                 return ConstexprError(0);
               }
+              if (contains_division_overflow(var->value, result.value)) {
+                error(expr, Diag::ConstexprIntegerOverflow);
+                return ConstexprError(0);
+              }
               return var->value /= result.value;
             default:
               break;

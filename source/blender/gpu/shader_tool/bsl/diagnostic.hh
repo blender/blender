@@ -137,6 +137,7 @@ enum class Diag {
   ConstexprDivisionByZero,
   ConstexprGlobalNonStatic,
   ConstexprIfConditionNotConstexpr,
+  ConstexprIntegerOverflow,
   ConstexprMemberNonStatic,
   ConstexprShiftNegative,
   ConstexprShiftTooLarge,
@@ -360,6 +361,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Non-static global variable cannot be constexpr; did you intend to make it static?";
     case Diag::ConstexprIfConditionNotConstexpr:
       return "Constexpr if condition is not a constant expression";
+    case Diag::ConstexprIntegerOverflow:
+      return "Integer overflow during constexpr evaluation";
     case Diag::ConstexprMemberNonStatic:
       return "Non-static data member cannot be constexpr; did you intend to make it static?";
     case Diag::ConstexprShiftNegative:

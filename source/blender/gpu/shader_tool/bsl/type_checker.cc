@@ -680,6 +680,10 @@ struct ExpressionTypeParser
                       error(t, Diag::ConstexprDivisionByZero);
                       return lhs.value * rhs.value;
                     }
+                    if (contains_division_overflow(lhs.value, rhs.value)) {
+                      error(t, Diag::ConstexprIntegerOverflow);
+                      return lhs.value * rhs.value;
+                    }
                     return lhs.value / rhs.value;
                   }()};
         case Modulo:
@@ -687,6 +691,10 @@ struct ExpressionTypeParser
                     if (contains_zero(rhs.value)) {
                       error(t, Diag::ConstexprDivisionByZero, constexpr_to_string(rhs.value));
                       return decltype(lhs.value % rhs.value)(0);
+                    }
+                    if (contains_division_overflow(lhs.value, rhs.value)) {
+                      error(t, Diag::ConstexprIntegerOverflow);
+                      return lhs.value * rhs.value;
                     }
                     return lhs.value % rhs.value;
                   }()};
