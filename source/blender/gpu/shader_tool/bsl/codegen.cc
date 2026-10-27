@@ -2252,7 +2252,14 @@ struct CodegenContext : NodeErrorHandler {
             }
           }
           else {
-            create_info_decl += "ADDITIONAL_INFO(" + resolved_type + ")\n";
+            string res_condition_lambda = parse_condition_as_lambda(fn, arg.attributes());
+            if (res_condition_lambda.empty()) {
+              create_info_decl += "ADDITIONAL_INFO(" + resolved_type + ")\n";
+            }
+            else {
+              create_info_decl += ".additional_info_with_condition(\"" + resolved_type + "\"" +
+                                  res_condition_lambda + ")\n";
+            }
           }
           break;
         case ResourceType::POSITION:
