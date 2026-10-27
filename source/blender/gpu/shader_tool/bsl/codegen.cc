@@ -215,11 +215,8 @@ struct CodegenContext : NodeErrorHandler {
       CodegenResult result = ctx.expr(ExprSub(t).expr(), scope);
       string front(t.front().str_with_whitespace());
       string back(t.back().str_with_whitespace());
-      return {front + result.str + back,
-              result.type,
-              result.array_dim,
-              result.is_bitfield,
-              result.is_ptr};
+      result.str = front + result.str + back;
+      return result;
     }
 
     CodegenResult member(CodegenResult left, const ast::Node &t)
@@ -523,7 +520,11 @@ struct CodegenContext : NodeErrorHandler {
           return {as_whitespace(id.str_full()), var->type, 0, false, var->is_ptr};
         }
         /* SRT type is used in an expression (likely as function argument). Call the ctor. */
-        return {var->type->identifier + "_ctor_()" + whitespace, var->type, 0, false, var->is_ptr};
+        CodegenResult result = {
+            var->type->identifier + "_ctor_()" + whitespace, var->type, 0, false, var->is_ptr};
+        /* Keep `*this` a noop. */
+        result.is_this = var->is_this;
+        return result;
       }
 
       if (var->reference_value.is_valid()) {

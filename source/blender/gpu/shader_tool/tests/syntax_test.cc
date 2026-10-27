@@ -755,6 +755,20 @@ struct A {
 struct A {
   int a;
   int f(A a){
+    return *(this);
+  }
+};
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "");
+    /* Dereferencing `this` is a noop, not a buffer device address access. */
+    EXPECT_EQ(output.find(")[0]"), string::npos);
+  }
+  {
+    string input = R"(
+struct A {
+  int a;
+  int f(A a){
     return (*this)->a;
   }
 };
