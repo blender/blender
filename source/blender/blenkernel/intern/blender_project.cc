@@ -577,6 +577,13 @@ std::string BKE_blender_project_path_resolve(const StringRef path,
   return path_expanded;
 }
 
+bool BKE_blender_project_dir_is_project(StringRef path)
+{
+  const std::string project_config_dir = path + SEP_STR + BLENDER_PROJECT_CONFIG_DIR;
+
+  return BLI_is_dir(project_config_dir.c_str());
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Recent Projects
  *
@@ -650,7 +657,7 @@ void BKE_blender_project_recent_clear(const bool only_missing)
 {
   Vector<RecentProject> projects = BKE_blender_project_recent_get();
   projects.remove_if([&](const RecentProject &project) {
-    return !only_missing || !BLI_is_dir(project.path.c_str());
+    return !only_missing || !BKE_blender_project_dir_is_project(project.path);
   });
   recent_projects_set(projects);
 }

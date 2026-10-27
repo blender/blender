@@ -280,7 +280,7 @@ static void template_recent_projects_tooltip_func(bContext & /*C*/,
   const char *path = static_cast<const std::string *>(argN)->c_str();
   tooltip_text_field_add(tip, path, {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
 
-  if (!BLI_is_dir(path)) {
+  if (!BKE_blender_project_dir_is_project(path)) {
     tooltip_text_field_add(tip, {}, {}, TIP_STYLE_SPACER, TIP_LC_NORMAL);
     tooltip_text_field_add(tip, TIP_("Project Not Found"), {}, TIP_STYLE_NORMAL, TIP_LC_ALERT);
   }

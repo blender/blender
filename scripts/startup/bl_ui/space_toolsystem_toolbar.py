@@ -3379,7 +3379,7 @@ class _defs_sequencer_generic:
                 panel.prop(props, "all_channels")
                 panel.prop(props, "only_selected")
                 row = panel.row()
-                row.active = not (props.all_channels or props.only_selected)
+                row.active = not props.all_channels
                 row.prop(props, "ignore_connections")
 
             # Box Blade properties.
@@ -3390,9 +3390,7 @@ class _defs_sequencer_generic:
                 panel.row().prop(props, "type", expand=True)
                 panel.prop(props, "remove_gaps")
                 panel.prop(props, "only_selected")
-                row = panel.row()
-                row.active = not props.only_selected
-                row.prop(props, "ignore_connections")
+                panel.prop(props, "ignore_connections")
         return dict(
             idname="builtin.blade",
             label="Blade",
