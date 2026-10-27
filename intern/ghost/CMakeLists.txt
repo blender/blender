@@ -161,9 +161,11 @@ elseif(WITH_GHOST_SDL)
   )
 elseif(APPLE AND NOT WITH_GHOST_X11)
   list(APPEND SRC
+    intern/GHOST_GestureHandlerCocoa.mm
     intern/GHOST_SystemCocoa.mm
     intern/GHOST_WindowCocoa.mm
 
+    intern/GHOST_GestureHandlerCocoa.hh
     intern/GHOST_SystemCocoa.hh
     intern/GHOST_WindowCocoa.hh
     intern/GHOST_WindowViewCocoa.hh

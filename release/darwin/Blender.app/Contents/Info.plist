@@ -59,6 +59,8 @@
 	<string>NSApplication</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSIsTouchNative</key>
+	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>A Blender extension wants to access your microphone.</string>
 	<key>NSCameraUsageDescription</key>
