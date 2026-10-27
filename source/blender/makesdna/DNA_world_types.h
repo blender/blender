@@ -124,7 +124,7 @@ struct World {
   float sun_angle = DEG2RADF(0.526f);
   /** Shadow properties for sun extraction. */
   float sun_shadow_maximum_resolution = 0.001f;
-  float sun_shadow_jitter_overblur = 10.0f;
+  float sun_shadow_jitter_overblur = 0.0f;
   float sun_shadow_filter_radius = 1.0f;
 
   short pr_texture = 0;

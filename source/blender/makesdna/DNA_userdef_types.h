@@ -1189,7 +1189,7 @@ struct UserDef {
   eZoomFrame_Mode view_frame_type = ZOOM_FRAME_MODE_KEEP_RANGE;
 
   /** Number of keyframes to zoom around current frame. */
-  int view_frame_keyframes = 0;
+  int view_frame_keyframes = 1;
   /** Seconds to zoom around current frame. */
   float view_frame_seconds = 0;
 

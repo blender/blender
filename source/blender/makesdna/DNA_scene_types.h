@@ -992,7 +992,7 @@ struct RenderData {
 
   /** Stamps flags. */
   int stamp = R_STAMP_TIME | R_STAMP_FRAME | R_STAMP_DATE | R_STAMP_CAMERA | R_STAMP_SCENE |
-              R_STAMP_FILENAME | R_STAMP_RENDERTIME | R_STAMP_MEMORY;
+              R_STAMP_FILENAME | R_STAMP_RENDERTIME;
   /** Select one of blenders bitmap fonts. */
   short stamp_font_id = 12;
   char _pad3[2] = {};
