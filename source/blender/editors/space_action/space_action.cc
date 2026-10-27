@@ -413,6 +413,7 @@ static void action_channel_region_init(wmWindowManager *wm, ARegion *region)
 
   /* ensure the 2d view sync works - main region has bottom scroller */
   region->v2d.scroll = V2D_SCROLL_BOTTOM;
+  region->v2d.keepofs = V2D_KEEPOFS_Y;
 
   view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
