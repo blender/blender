@@ -513,6 +513,7 @@ struct ExpressionTypeParser
         return right;
       }
       error(t, Diag::OperatorInvalidIndirection, right.type->original);
+      return table->err_cls;
     }
 
     if (right.is_ptr) {
