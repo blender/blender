@@ -4088,8 +4088,6 @@ void CustomData_set_layer_unique_name(CustomData *data, const int index)
     return;
   }
 
-  const int name_maxncpy = CustomData_name_maxncpy_calc(nlayer->name);
-
   /* Set default name if none specified. Note we only call DATA_() when
    * needed to avoid overhead of locale lookups in the depsgraph. */
   if (nlayer->name[0] == '\0') {
@@ -4103,7 +4101,7 @@ void CustomData_set_layer_unique_name(CustomData *data, const int index)
       },
       defname,
       '.',
-      MutableCStr(nlayer->name, name_maxncpy));
+      MutableCStr(nlayer->name, CustomData_name_maxncpy_calc(nlayer->name)));
 }
 
 bool CustomData_verify_versions(CustomData *data, const int index)

@@ -446,8 +446,7 @@ int ANIM_add_driver(ReportList *reports,
         PropertyType proptype = RNA_property_type(prop);
         int array = RNA_property_array_length(&ptr, prop);
         const char *dvar_prefix = (flag & CREATEDRIVER_WITH_DEFAULT_DVAR) ? "var + " : "";
-        char *expression = driver->expression;
-        const size_t expression_maxncpy = sizeof(driver->expression);
+        const MutableCStr expression = driver->expression;
         int val;
         float fval;
 
@@ -459,8 +458,7 @@ int ANIM_add_driver(ReportList *reports,
             val = RNA_property_boolean_get_index(&ptr, prop, array_index);
           }
 
-          BLI_snprintf_utf8(
-              expression, expression_maxncpy, "%s%s", dvar_prefix, (val) ? "True" : "False");
+          SNPRINTF_UTF8(expression, "%s%s", dvar_prefix, (val) ? "True" : "False");
         }
         else if (proptype == PROP_INT) {
           if (!array) {
@@ -470,7 +468,7 @@ int ANIM_add_driver(ReportList *reports,
             val = RNA_property_int_get_index(&ptr, prop, array_index);
           }
 
-          BLI_snprintf_utf8(expression, expression_maxncpy, "%s%d", dvar_prefix, val);
+          SNPRINTF_UTF8(expression, "%s%d", dvar_prefix, val);
         }
         else if (proptype == PROP_FLOAT) {
           if (!array) {
@@ -480,11 +478,11 @@ int ANIM_add_driver(ReportList *reports,
             fval = RNA_property_float_get_index(&ptr, prop, array_index);
           }
 
-          BLI_snprintf_utf8(expression, expression_maxncpy, "%s%.3f", dvar_prefix, fval);
-          BLI_str_rstrip_float_zero(expression, '\0');
+          SNPRINTF_UTF8(expression, "%s%.3f", dvar_prefix, fval);
+          BLI_str_rstrip_float_zero(expression.data(), '\0');
         }
         else if (flag & CREATEDRIVER_WITH_DEFAULT_DVAR) {
-          BLI_strncpy_utf8(expression, "var", expression_maxncpy);
+          STRNCPY_UTF8(expression, "var");
         }
       }
 
