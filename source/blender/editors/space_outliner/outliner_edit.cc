@@ -937,9 +937,24 @@ static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
 
     /* Add selected item and all of its dependencies to the copy buffer. */
     if (tselem->flag & TSE_SELECTED && ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION)) {
+      if (ID_IS_LINKED(tselem->id)) {
+        /* Direct link/append of linked IDs is not supported currently, so neither is their
+         * copy/pasting. */
+        BKE_reportf(reports,
+                    RPT_INFO,
+                    "Cannot copy the linked data-block '%s' to the internal clipboard",
+                    tselem->id->name);
+        continue;
+      }
       if (ID_IS_PACKED(tselem->id)) {
         /* Direct link/append of packed IDs is not supported currently, so neither is their
          * copy/pasting. */
+        /* NOTE: In practice, should alwasy be shadowed by the more general text on linked data
+         * above currently. */
+        BKE_reportf(reports,
+                    RPT_INFO,
+                    "Cannot copy the linked packed data-block '%s' to the internal clipboard",
+                    tselem->id->name);
         continue;
       }
       const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(tselem->id);
@@ -979,7 +994,7 @@ static wmOperatorStatus outliner_id_copy_exec(bContext *C, wmOperator *op)
   const int num_ids = outliner_id_copy_tag(
       space_outliner, &space_outliner->runtime->tree, copybuffer, op->reports);
   if (num_ids == 0) {
-    BKE_report(op->reports, RPT_INFO, "No selected data-blocks to copy");
+    BKE_report(op->reports, RPT_INFO, "No valid selected data-blocks to copy");
     return OPERATOR_CANCELLED;
   }
 
