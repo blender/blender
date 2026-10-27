@@ -1380,7 +1380,7 @@ void draw_subdiv_build_lnor_buffer(const DRWSubdivCache &cache,
     return;
   }
 
-  assert(lnor->format.stride == vert_normals->format.stride);
+  BLI_assert(lnor->format.stride == vert_normals->format.stride);
 
   gpu::Shader *shader = DRW_shader_subdiv_get(SubdivShaderType::BUFFER_LNOR);
   GPU_shader_bind(shader);
