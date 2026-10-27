@@ -18,6 +18,7 @@
 #include "BLI_uuid.hh"
 
 #include "BKE_blender_project.hh"
+#include "BKE_global.hh"
 #include "BKE_preferences.h"
 
 #include "DNA_asset_types.h"
@@ -532,6 +533,13 @@ bool BKE_blender_project_config_file_write(Main *bmain)
   }
 
   project->is_dirty = false;
+
+  if (!G.background) {
+    /* Update the recent projects in case the project name changed (or if this is a new project).
+     */
+    BKE_blender_project_recent_update(bmain);
+  }
+
   return true;
 }
 

@@ -299,10 +299,6 @@ static wmOperatorStatus project_new_exec(bContext *C, wmOperator *op)
   WM_main_add_notifier(NC_WINDOW, nullptr);
   WM_main_add_notifier(NC_WM | ND_PROJECT_CHANGED, nullptr);
 
-  if (!G.background) {
-    BKE_blender_project_recent_update(bmain);
-  }
-
   /* Show the project settings when used from the user interface. */
   if (op->flag & OP_IS_INVOKE) {
     WM_operator_name_call(
