@@ -1546,58 +1546,57 @@ class NodeTreeMainUpdater {
     bke::node_chain_iterator_backwards(&ntree, output_node, tag_by_ancestor, nullptr, 0);
   }
 
-  const char *shader_tree_link_error(bNodeLink &link)
+  bool is_lighting_node(const bNode &node)
   {
-    bNode &node = *link.fromnode;
-    ShaderNodeAncestorFlags flags = ShaderNodeAncestorFlags(link.fromnode->runtime->tmp_flag);
     switch (node.type_legacy) {
       case SH_NODE_LIGHT_ACCUMULATION:
-        if (bool(flags & ShaderNodeAncestorFlags::ShaderToRGB)) {
-          return TIP_("Shader To RGB can't evaluate Light Accumulation nodes");
-        }
-        break;
-      case SH_NODE_ATTRIBUTE:
-      case SH_NODE_VECT_TRANSFORM:
       case SH_NODE_LIGHT_INFO:
       case SH_NODE_LIGHT_EVALUATION:
       case SH_NODE_SHADOW_RAYCAST:
-        /* Attribute and Vector Transform nodes are only lighting nodes in light mode. */
-        if (node.type_legacy == SH_NODE_ATTRIBUTE &&
-            static_cast<NodeShaderAttribute *>(node.storage)->type != SHD_ATTRIBUTE_LIGHT)
-        {
-          break;
-        }
-        if (node.type_legacy == SH_NODE_VECT_TRANSFORM) {
-          const NodeShaderVectTransform *nodeprop = static_cast<NodeShaderVectTransform *>(
-              node.storage);
-          if (!ELEM(SHD_VECT_TRANSFORM_SPACE_LIGHT, nodeprop->convert_from, nodeprop->convert_to))
-          {
-            break;
-          }
-        }
-        if (bool(flags & ShaderNodeAncestorFlags::ShaderMaterialOutput)) {
-          if (!bool(flags & ShaderNodeAncestorFlags::LightAccumulation)) {
-            return TIP_(
-                "Lighting nodes must be connected to the Light sockets of a Light Accumulation "
-                "node before reaching the Material Output");
-          }
-          if (bool(flags & ShaderNodeAncestorFlags::LightAccumulationColor) &&
-              (link.tonode->type_legacy != SH_NODE_LIGHT_ACCUMULATION ||
-               ELEM(StringRefNull(link.tosock->name),
-                    "Diffuse Color",
-                    "Glossy Color",
-                    "Transmission Color")))
-          {
-            return TIP_(
-                "Lighting nodes can't be connected to the Color sockets of a Light Accumulation "
-                "node");
-          }
-        }
-        break;
+        return true;
+      /* Attribute and Vector Transform nodes are only lighting nodes in light mode. */
+      case SH_NODE_ATTRIBUTE:
+        return static_cast<const NodeShaderAttribute *>(node.storage)->type == SHD_ATTRIBUTE_LIGHT;
+      case SH_NODE_VECT_TRANSFORM: {
+        const NodeShaderVectTransform *nodeprop = static_cast<const NodeShaderVectTransform *>(
+            node.storage);
+        return ELEM(SHD_VECT_TRANSFORM_SPACE_LIGHT, nodeprop->convert_from, nodeprop->convert_to);
+      }
       default:
-        break;
+        return false;
     }
+  }
 
+  const char *shader_tree_link_error(bNodeLink &link)
+  {
+    const bNode &node = *link.fromnode;
+    if (!is_lighting_node(node)) {
+      return nullptr;
+    }
+    ShaderNodeAncestorFlags flags = ShaderNodeAncestorFlags(node.runtime->tmp_flag);
+    if (bool(flags & ShaderNodeAncestorFlags::ShaderToRGB)) {
+      return TIP_("Shader To RGB can't evaluate Lighting nodes");
+    }
+    if (bool(flags & ShaderNodeAncestorFlags::ShaderMaterialOutput) &&
+        node.type_legacy != SH_NODE_LIGHT_ACCUMULATION)
+    {
+      if (!bool(flags & ShaderNodeAncestorFlags::LightAccumulation)) {
+        return TIP_(
+            "Lighting nodes must be connected to the Light sockets of a Light Accumulation "
+            "node before reaching the Material Output");
+      }
+      if (bool(flags & ShaderNodeAncestorFlags::LightAccumulationColor) &&
+          (link.tonode->type_legacy != SH_NODE_LIGHT_ACCUMULATION ||
+           ELEM(StringRefNull(link.tosock->name),
+                "Diffuse Color",
+                "Glossy Color",
+                "Transmission Color")))
+      {
+        return TIP_(
+            "Lighting nodes can't be connected to the Color sockets of a Light Accumulation "
+            "node");
+      }
+    }
     return nullptr;
   }
 
