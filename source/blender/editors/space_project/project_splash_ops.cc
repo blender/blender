@@ -39,7 +39,7 @@ static std::string splash_image_default_filepath(const bke::BlenderProject &proj
   BLI_path_join(filepath,
                 sizeof(filepath),
                 project.get_root_path().c_str(),
-                ".blender_project",
+                BLENDER_PROJECT_CONFIG_DIR,
                 "splash.jpg");
   return filepath;
 }
