@@ -2123,7 +2123,7 @@ static wmOperator *box_blade_op_get(wmWindow *win)
 /* Expand to the strips each split propagates to, skip chains that fail to split. */
 static void split_expand_strips(Editing *ed,
                                 Strip *strip,
-                                const bool ignore_connections,
+                                const seq::StripRelation include,
                                 VectorSet<Strip *> &targets)
 {
   if (targets.contains(strip)) {
@@ -2131,10 +2131,7 @@ static void split_expand_strips(Editing *ed,
   }
   VectorSet<Strip *> chain;
   chain.add(strip);
-  seq::expand_strips(ed,
-                     chain,
-                     ignore_connections ? seq::StripRelation::EffectChain :
-                                          seq::StripRelation::ConnectedEffectChain);
+  seq::expand_strips(ed, chain, include);
   const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   for (Strip *strip_chain : chain) {
     if (seq::transform_is_locked(channels, strip_chain)) {
@@ -2152,7 +2149,12 @@ static void box_blade_draw(Scene *scene, const ARegion *region, wmOperator *op)
   const rctf box_rect = box_blade_rect_get(op, v2d);
   const bool remove_gaps = RNA_boolean_get(op->ptr, "remove_gaps");
   const bool only_selected = split_only_selected_get(op);
-  const bool ignore_connections = only_selected || RNA_boolean_get(op->ptr, "ignore_connections");
+  const bool ignore_connections = RNA_boolean_get(op->ptr, "ignore_connections");
+  seq::StripRelation include = seq::StripRelation::EffectChain;
+  if (!ignore_connections) {
+    include |= only_selected ? seq::StripRelation::SelectedConnected :
+                               seq::StripRelation::Connected;
+  }
   const int2 rect_frames = {round_fl_to_int(box_rect.xmin), round_fl_to_int(box_rect.xmax)};
 
   /* Gather the strips the cut propagates to, like the split preview does. */
@@ -2165,7 +2167,7 @@ static void box_blade_draw(Scene *scene, const ARegion *region, wmOperator *op)
     if (!BLI_rctf_isect(&strip_rect, &box_rect, nullptr)) {
       continue;
     }
-    split_expand_strips(ed, &candidate, ignore_connections, targets);
+    split_expand_strips(ed, &candidate, include, targets);
   }
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
@@ -2246,16 +2248,20 @@ static std::optional<BladeSplit> blade_split_get(
   const bool all_channels = (event->modifier & KM_SHIFT) != 0 ||
                             split_tool_prop_from_toolsettings(tref, "all_channels", false);
   const bool only_selected = split_tool_prop_from_toolsettings(tref, "only_selected", false);
-  const bool ignore_connections = only_selected ||
-                                  (!all_channels && ((event->modifier & KM_ALT) != 0 ||
-                                                     split_tool_prop_from_toolsettings(
-                                                         tref, "ignore_connections", false)));
+  const bool ignore_connections = !all_channels && ((event->modifier & KM_ALT) != 0 ||
+                                                    split_tool_prop_from_toolsettings(
+                                                        tref, "ignore_connections", false));
+  seq::StripRelation include = seq::StripRelation::EffectChain;
+  if (!ignore_connections) {
+    include |= only_selected ? seq::StripRelation::SelectedConnected :
+                               seq::StripRelation::Connected;
+  }
 
   const std::optional<int> channel = all_channels ? std::nullopt :
                                                     std::optional<int>(int(mouse_co.y));
   BladeSplit split = {split_frame, all_channels, {}};
   for (Strip *strip : seq::edit_split_strips_get(scene, split_frame, channel, only_selected)) {
-    split_expand_strips(ed, strip, ignore_connections, split.strips);
+    split_expand_strips(ed, strip, include, split.strips);
   }
 
   if (split.strips.is_empty() && !all_channels) {

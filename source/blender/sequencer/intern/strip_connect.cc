@@ -14,18 +14,6 @@
 
 namespace blender::seq {
 
-static void strip_connections_free(Strip *strip)
-{
-  if (strip == nullptr) {
-    return;
-  }
-  ListBaseT<StripConnection> *connections = &strip->connections;
-  for (StripConnection &con : connections->items_mutable()) {
-    MEM_delete(&con);
-  }
-  connections->clear_no_delete();
-}
-
 void connections_duplicate(ListBaseT<StripConnection> *connections_dst,
                            ListBaseT<StripConnection> *connections_src)
 {
@@ -35,23 +23,29 @@ void connections_duplicate(ListBaseT<StripConnection> *connections_dst,
   }
 }
 
+static void connection_remove(Strip *strip, StripConnection &con_strip)
+{
+  Strip *other = con_strip.strip_ref;
+  /* Remove the `StripConnection` from the `other` `connections` list that points to `strip`. */
+  for (StripConnection &con_other : other->connections.items_mutable()) {
+    if (con_other.strip_ref == strip) {
+      BLI_remlink(&other->connections, &con_other);
+      MEM_delete(&con_other);
+    }
+  }
+  /* Now clear `connections` for `strip` itself. */
+  BLI_remlink(&strip->connections, &con_strip);
+  MEM_delete(&con_strip);
+}
+
 bool disconnect(Strip *strip)
 {
   if (strip == nullptr || strip->connections.is_empty()) {
     return false;
   }
-  /* Remove `StripConnections` from other strips' `connections` list that point to `strip`. */
-  for (StripConnection &con_strip : strip->connections) {
-    Strip *other = con_strip.strip_ref;
-    for (StripConnection &con_other : other->connections.items_mutable()) {
-      if (con_other.strip_ref == strip) {
-        BLI_remlink(&other->connections, &con_other);
-        MEM_delete(&con_other);
-      }
-    }
+  for (StripConnection &con_strip : strip->connections.items_mutable()) {
+    connection_remove(strip, con_strip);
   }
-  /* Now clear `connections` for `strip` itself. */
-  strip_connections_free(strip);
 
   return true;
 }
@@ -84,6 +78,17 @@ void cut_one_way_connections(Strip *strip)
     if (is_one_way) {
       BLI_remlink(&strip->connections, &con_strip);
       MEM_delete(&con_strip);
+    }
+  }
+}
+
+void cut_outside_connections(const VectorSet<Strip *> &strip_list)
+{
+  for (Strip *strip : strip_list) {
+    for (StripConnection &con_strip : strip->connections.items_mutable()) {
+      if (!strip_list.contains(con_strip.strip_ref)) {
+        connection_remove(strip, con_strip);
+      }
     }
   }
 }
