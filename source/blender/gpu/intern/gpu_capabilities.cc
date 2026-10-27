@@ -149,6 +149,11 @@ bool GPU_use_hq_normals_workaround()
   return GCaps.use_hq_normals_workaround;
 }
 
+bool GPU_frontbuffer_read_workaround()
+{
+  return GCaps.frontbuffer_read_workaround;
+}
+
 bool GPU_stencil_classify_buffer_workaround()
 {
   return GCaps.stencil_classify_buffer_workaround;
