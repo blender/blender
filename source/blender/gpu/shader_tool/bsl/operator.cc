@@ -99,6 +99,56 @@ static OperatorType to_operator_type(TokenType tok_type)
 
 namespace builtin {
 
+/* Matrices only support a subset of the operators, with their own dimension rules.
+ * A `floatCxR` has C columns of R rows, encoded as `CLASS_MAT | (C << MATRIX_SHIFT) | R`. */
+static ClassId matrix_binary_operator_return_type(const uint16_t l,
+                                                  const TokenType op,
+                                                  const uint16_t r)
+{
+  const bool l_is_matrix = (l & MATRIX_MASK) != 0;
+  const bool r_is_matrix = (r & MATRIX_MASK) != 0;
+  const uint16_t l_col = (l & MATRIX_MASK) >> MATRIX_SHIFT;
+  const uint16_t l_row = l & LEN_MASK;
+  const uint16_t r_col = (r & MATRIX_MASK) >> MATRIX_SHIFT;
+  const uint16_t r_row = r & LEN_MASK;
+  const uint16_t scalar = uint16_t(ClassId::float_t);
+
+  switch (op) {
+    case Equal:
+    case NotEqual:
+      return (l == r) ? ClassId::bool_t : ClassId::Invalid;
+
+    case Plus:
+    case Minus:
+      /* Component wise, so both operands must have the exact same type. */
+      return (l == r) ? ClassId(l) : ClassId::Invalid;
+
+    case Multiply:
+      if (l_is_matrix && r_is_matrix) {
+        /* The columns of the left operand must match the rows of the right one. */
+        return (l_col == r_row) ? ClassId(CLASS_MAT | (r_col << MATRIX_SHIFT) | l_row) :
+                                  ClassId::Invalid;
+      }
+      if (l_is_matrix) {
+        if (r == uint16_t(CLASS_FLOAT | l_col)) {
+          return ClassId(CLASS_FLOAT | l_row);
+        }
+        return (r == scalar) ? ClassId(l) : ClassId::Invalid;
+      }
+      if (l == uint16_t(CLASS_FLOAT | r_row)) {
+        return ClassId(CLASS_FLOAT | r_col);
+      }
+      return (l == scalar) ? ClassId(r) : ClassId::Invalid;
+
+    case Divide:
+      /* Only division of a matrix by a scalar. */
+      return (l_is_matrix && r == scalar) ? ClassId(l) : ClassId::Invalid;
+
+    default:
+      return ClassId::Invalid;
+  }
+}
+
 ClassId binary_operator_return_type(SymbolClass *lhs, TokenType op, SymbolClass *rhs)
 {
   using namespace builtin;
@@ -115,15 +165,8 @@ ClassId binary_operator_return_type(SymbolClass *lhs, TokenType op, SymbolClass 
     return lhs->builtin_class;
   }
 
-  if (l & MATRIX_MASK) {
-    uint16_t col = (l & MATRIX_MASK) >> MATRIX_SHIFT;
-    uint16_t row = l & LEN_MASK;
-    return (r == (CLASS_FLOAT | col)) ? ClassId(CLASS_FLOAT | row) : ClassId::Invalid;
-  }
-  if (r & MATRIX_MASK) {
-    uint16_t col = (r & MATRIX_MASK) >> MATRIX_SHIFT;
-    uint16_t row = r & LEN_MASK;
-    return (l == (CLASS_FLOAT | row)) ? ClassId(CLASS_FLOAT | col) : ClassId::Invalid;
+  if ((l | r) & MATRIX_MASK) {
+    return matrix_binary_operator_return_type(l, op, r);
   }
 
   /* Logical operators (&&, ||): scalar bool only. */
