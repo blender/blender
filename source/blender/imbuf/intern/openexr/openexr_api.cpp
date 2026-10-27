@@ -1652,7 +1652,7 @@ static int imb_exr_split_channel_name(ExrChannel &echan,
   }
 
   char channelname[EXR_TOT_MAXNAME];
-  BLI_strncpy(channelname, token, std::min(len + 1, sizeof(channelname)));
+  STRNCPY(MutableCStr(channelname).take_front(len + 1), token);
 
   if (len == 1) {
     echan.chan_id = BLI_toupper_ascii(channelname[0]);

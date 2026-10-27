@@ -1521,7 +1521,7 @@ bool BLI_path_extension_check_glob(const char *path, const char *ext_fnmatch)
 
     if ((ext_next = strchr(ext_step, ';'))) {
       len_ext = ext_next - ext_step + 1;
-      BLI_strncpy(pattern, ext_step, (len_ext > sizeof(pattern)) ? sizeof(pattern) : len_ext);
+      STRNCPY(MutableCStr(pattern).take_front(len_ext), ext_step);
     }
     else {
       len_ext = STRNCPY_RLEN(pattern, ext_step);
