@@ -404,8 +404,11 @@ struct CodegenContext : NodeErrorHandler {
 
       if (lhs.is_bitfield) {
         if (TokenType sub_op = strip_assignment(op_type); sub_op != TokenType::Invalid) {
-          /* Bitfield need to be manually read and write. */
-          return {lhs.str + "=" + lhs.str + to_token_string(sub_op) + trivia(t) + rhs.str,
+          /* Bitfield need to be manually read and write. The right hand side is wrapped in
+           * parentheses since it can contain lower precedence operators.
+           * Example: `a -= b - c` > `a = a - (b - c)`. */
+          return {lhs.str + "=" + lhs.str + to_token_string(sub_op) + trivia(t) + "(" + rhs.str +
+                      ")",
                   ctx.table.to_class(type)};
         }
       }

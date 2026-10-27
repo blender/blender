@@ -1283,8 +1283,8 @@ void f(A t)
 {
   t.a += 1;
   t.a *= 1;
-  t.a /= 1;
-  t.a -= 1;
+  t.a /= 1 + 2;
+  t.a -= 1 * 2;
   t.a <<= 1;
   t.a >>= 1;
 }
@@ -1298,12 +1298,12 @@ A A_ctor_() {A r;r.a=0;return r;}
 #line 6
 void f(A t)
 {
-  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) + 1, 0, 2) ;
-  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) * 1, 0, 2) ;
-  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) / 1, 0, 2) ;
-  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) - 1, 0, 2) ;
-  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2)  <<  1, 0, 2) ;
-  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2)  >>  1, 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) + (1), 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) * (1), 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) / (1 + 2), 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) - (1 * 2), 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2)  <<  (1), 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2)  >>  (1), 0, 2) ;
 }
 )";
     auto [output, _, error] = process_test_string(input, Language::BSL);
