@@ -59,6 +59,7 @@ VKContext::~VKContext()
   delete imm;
   imm = nullptr;
   VKDevice &device = VKBackend::get().device;
+  device.descriptor_pools.discard_active_pool(*this);
   device.context_unregister(*this);
 
   this->process_frame_timings();
@@ -120,8 +121,6 @@ void VKContext::activate()
   BLI_assert(ghost_context_ == GHOST_IContext::getActiveDrawingContext());
 
   VKDevice &device = VKBackend::get().device;
-  VKThreadData &thread_data = device.current_thread_data();
-  thread_data_ = std::reference_wrapper<VKThreadData>(thread_data);
 
   if (!render_graph_.has_value()) {
     render_graph_ = std::reference_wrapper<render_graph::VKRenderGraph>(
@@ -147,7 +146,6 @@ void VKContext::deactivate()
 {
   flush_render_graph(RenderGraphFlushFlags(0));
   immDeactivate();
-  thread_data_.reset();
 
   is_active_ = false;
 }
@@ -225,14 +223,9 @@ void VKContext::memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb)
 /** \name State manager
  * \{ */
 
-VKDescriptorPools &VKContext::descriptor_pools_get()
-{
-  return thread_data_.value().get().descriptor_pools;
-}
-
 VKDescriptorSetTracker &VKContext::descriptor_set_get()
 {
-  return thread_data_.value().get().descriptor_set;
+  return descriptor_set_;
 }
 
 VKStateManager &VKContext::state_manager_get() const

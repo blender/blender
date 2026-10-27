@@ -556,14 +556,14 @@ void VKDescriptorSetUpdator::bind_shader_resources(const VKDevice &device,
  * \{ */
 
 void VKDescriptorSetPoolUpdator::allocate_new_descriptor_set(
-    VKDevice & /*device*/,
+    VKDevice &device,
     VKContext &context,
     VKShader &shader,
     VkDescriptorSetLayout vk_descriptor_set_layout,
     render_graph::VKPipelineData &r_pipeline_data)
 {
   /* Use descriptor pools/sets. */
-  vk_descriptor_set = context.descriptor_pools_get().allocate(vk_descriptor_set_layout);
+  vk_descriptor_set = device.descriptor_pools.allocate(context, vk_descriptor_set_layout);
   BLI_assert(vk_descriptor_set != VK_NULL_HANDLE);
   debug::object_label(vk_descriptor_set, shader.name_get());
   r_pipeline_data.vk_descriptor_set = vk_descriptor_set;

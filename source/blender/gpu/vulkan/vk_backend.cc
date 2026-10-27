@@ -825,20 +825,27 @@ BottomLevelAS *VKBackend::blas_alloc(const char *name)
   return new VKBottomLevelAS(name);
 }
 
+/**
+ * The current rendering depth of this thread.
+ *
+ * GPU_rendering_begin can be called multiple times forming a hierarchy. rendering_depth is
+ * increased for every GPU_rendering_begin and decreased when GPU_rendering_end is called.
+ * Discarded resources are released when rendering_depth is set to 0.
+ */
+static thread_local int32_t rendering_depth = 0;
+
 void VKBackend::render_begin()
 {
-  VKThreadData &thread_data = device.current_thread_data();
-  BLI_assert_msg(thread_data.rendering_depth >= 0, "Unbalanced `GPU_render_begin/end`");
-  thread_data.rendering_depth += 1;
+  BLI_assert_msg(rendering_depth >= 0, "Unbalanced `GPU_render_begin/end`");
+  rendering_depth += 1;
 }
 
 void VKBackend::render_end()
 {
-  VKThreadData &thread_data = device.current_thread_data();
-  thread_data.rendering_depth -= 1;
-  BLI_assert_msg(thread_data.rendering_depth >= 0, "Unbalanced `GPU_render_begin/end`");
+  rendering_depth -= 1;
+  BLI_assert_msg(rendering_depth >= 0, "Unbalanced `GPU_render_begin/end`");
   if (G.background) {
-    if (thread_data.rendering_depth == 0) {
+    if (rendering_depth == 0) {
       VKContext *context = VKContext::get();
       if (context != nullptr) {
         context->flush();
@@ -852,7 +859,7 @@ void VKBackend::render_end()
   /* When performing animation render we want to release any discarded resources during rendering
    * after each frame.
    */
-  if (G.is_rendering && thread_data.rendering_depth == 0 && !BLI_thread_is_main()) {
+  if (G.is_rendering && rendering_depth == 0 && !BLI_thread_is_main()) {
     std::scoped_lock lock(device.orphaned_data.mutex_get());
     device.orphaned_data.move_data(device.orphaned_data_render,
                                    device.orphaned_data.timeline_ + 1);

@@ -149,29 +149,6 @@ struct VKWorkarounds {
   void log() const;
 };
 
-/**
- * Shared resources between contexts that run in the same thread.
- */
-class VKThreadData : public NonCopyable, NonMovable {
- public:
-  /** Thread ID this instance belongs to. */
-  pthread_t thread_id;
-  VKDescriptorPools descriptor_pools;
-  VKDescriptorSetTracker descriptor_set;
-
-  /**
-   * The current rendering depth.
-   *
-   * GPU_rendering_begin can be called multiple times forming a hierarchy. The same resource pool
-   * should be used for the whole hierarchy. rendering_depth is increased for every
-   * GPU_rendering_begin and decreased when GPU_rendering_end is called. Resources pools are cycled
-   * when the rendering_depth set to 0.
-   */
-  int32_t rendering_depth = 0;
-
-  VKThreadData(VKDevice &device, pthread_t thread_id);
-};
-
 class VKDevice : public NonCopyable {
  private:
   /** Copies of the handles owned by the GHOST context. */
@@ -256,7 +233,6 @@ class VKDevice : public NonCopyable {
   std::string glsl_geom_patch_;
   std::string glsl_frag_patch_;
   std::string glsl_comp_patch_;
-  Vector<VKThreadData *> thread_data_;
 
   Shader *vk_backbuffer_blit_sh_ = nullptr;
 
@@ -265,6 +241,7 @@ class VKDevice : public NonCopyable {
   VKDiscardPool orphaned_data;
   /** Discard pool for resources that could still be used during rendering. */
   VKDiscardPool orphaned_data_render;
+  VKDescriptorPools descriptor_pools;
   VKPipelinePool pipelines;
   VKVertexInputDescriptionPool vertex_input_descriptions;
 
@@ -444,11 +421,6 @@ class VKDevice : public NonCopyable {
   /* -------------------------------------------------------------------- */
   /** \name Resource management
    * \{ */
-
-  /**
-   * Get or create current thread data.
-   */
-  VKThreadData &current_thread_data();
 
   void context_register(VKContext &context);
   void context_unregister(VKContext &context);
