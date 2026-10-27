@@ -155,7 +155,7 @@ float2 fisheye_lens_polynomial_from_direction(CameraData cam, float3 dir)
       r_min = max(r_min, r * side);
     }
     r += step;
-    if (is_folded || r * side <= r_min || r * side >= r_max) {
+    if (is_folded || r * side < r_min || r * side > r_max) {
       r = side * 0.5f * (r_min + r_max);
     }
 
