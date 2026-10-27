@@ -223,8 +223,10 @@ class ChannelTreeView : public ui::AbstractTreeView {
     /* Set the color based on the channel type. */
     if (channel.type() == AnimationChannelType::SUMMARY) {
       uchar4 color = channel_color_from_rna_pointer(channel.source());
-      /* Disable for now to make the tree item backdrop the same as in the main region. */
-      // color[3] = 255;
+      /* This makes the tree view colors brighter than the key 'swimlanes'.
+       * Skipping this will break the background color of the active tree item, making it appear
+       * completely transparent */
+      color[3] = 255;
       item.set_custom_color(color);
     }
 
