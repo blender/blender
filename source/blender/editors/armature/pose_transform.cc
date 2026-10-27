@@ -837,6 +837,7 @@ static wmOperatorStatus pose_copy_exec(bContext *C, wmOperator *op)
   if (ID_IS_PACKED(&ob->id)) {
     /* Direct link/append of packed IDs is not supported currently, so neither is their
      * copy/pasting. */
+    /* TODO: Think that this is not necessary in fact, since we 'make local' the copied object? */
     BKE_report(op->reports, RPT_ERROR, "Cannot copy/paste packed data");
     return OPERATOR_CANCELLED;
   }

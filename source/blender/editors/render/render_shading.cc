@@ -2738,9 +2738,24 @@ static wmOperatorStatus copy_material_exec(bContext *C, wmOperator *op)
   if (ma == nullptr) {
     return OPERATOR_CANCELLED;
   }
+  if (ID_IS_LINKED(&ma->id)) {
+    /* Direct link/append of linked IDs is not supported currently, so neither is their
+     * copy/pasting. */
+    BKE_reportf(op->reports,
+                RPT_INFO,
+                "Cannot copy the linked material '%s' to the internal clipboard",
+                BKE_id_name(ma->id));
+    return OPERATOR_CANCELLED;
+  }
   if (ID_IS_PACKED(&ma->id)) {
     /* Direct link/append of packed IDs is not supported currently, so neither is their
      * copy/pasting. */
+    /* NOTE: In practice, always shadowed currently by the more general check on linked status
+     * above. */
+    BKE_reportf(op->reports,
+                RPT_INFO,
+                "Cannot copy the linked packed material '%s' to the internal clipboard",
+                BKE_id_name(ma->id));
     return OPERATOR_CANCELLED;
   }
 
