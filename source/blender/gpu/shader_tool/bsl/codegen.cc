@@ -2110,7 +2110,7 @@ struct CodegenContext : NodeErrorHandler {
     /* Declare argument copies. */
     int arg_i = 0;
     Expr param = call.parameters().child_first();
-    vector<string> original_identifiers;
+    vector<pair<SymbolVariable *, string>> original_identifiers;
     for (FuncArg arg : fn->decl.arguments().children_range()) {
       SymbolVariable *var = fn->lookup_variable(table, arg.identifier());
 
@@ -2119,7 +2119,7 @@ struct CodegenContext : NodeErrorHandler {
         continue;
       }
 
-      original_identifiers.emplace_back(var->identifier);
+      original_identifiers.emplace_back(var, var->identifier);
 
       if (arg.is_reference() || var->type->is_opaque) {
         /* Check if reference has no side effect. */
@@ -2148,13 +2148,9 @@ struct CodegenContext : NodeErrorHandler {
 
     inlining_stack.pop_back();
 
-    {
-      /* Restore argument identifiers. */
-      int arg_i = 0;
-      for (FuncArg arg : fn->decl.arguments().children_range()) {
-        SymbolVariable *var = fn->lookup_variable(table, arg.identifier());
-        var->identifier = original_identifiers[arg_i++];
-      }
+    /* Restore argument identifiers. */
+    for (auto &[var, identifier] : original_identifiers) {
+      var->identifier = identifier;
     }
 
     return ret_val;
