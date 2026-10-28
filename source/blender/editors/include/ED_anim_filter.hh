@@ -262,14 +262,14 @@ class ChannelTagSet {
   Span<ChannelTag> all() const;
   bool is_empty() const;
 
-  const ChannelTag *first_by_type(const ChannelTagType tag_type) const;
-  ChannelTag *first_by_type(const ChannelTagType tag_type);
+  const ChannelTag *first_by_type(ChannelTagType tag_type) const;
+  ChannelTag *first_by_type(ChannelTagType tag_type);
   const ChannelTag *nth_by_type(ChannelTagType tag_type, int n) const;
   /* Returns true if there is another tag in this set after the given tag of the same type. */
   bool has_another_of_type(const ChannelTag *tag) const;
-  Span<const ChannelTag> by_type(const ChannelTagType tag_type) const;
+  Span<const ChannelTag> by_type(ChannelTagType tag_type) const;
   /* Returns all `ChannelTag`s of the given type. */
-  Span<ChannelTag> by_type(const ChannelTagType tag_type);
+  Span<ChannelTag> by_type(ChannelTagType tag_type);
 
   /**
    * Return the first not-yet-returned tag with the given tag type.
