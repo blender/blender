@@ -55,6 +55,20 @@ class USDXformReader : public USDPrimReader {
 
   bool prim_has_xform_ops() const;
 
+  /**
+   * Return true if the prim's transform ops start with `!resetXformStack!`, meaning the prim
+   * doesn't inherit the transform of its parent and its local transform is its world transform.
+   * Like #get_local_usd_xform, this checks the parent Xform when this reader is merged with it
+   * (#use_parent_xform), since that is the prim the object represents.
+   */
+  bool resets_xform_stack() const;
+
+  /**
+   * Return true if the transform of an ancestor that this prim would otherwise inherit might be
+   * time-varying. Ancestors above a prim that resets the transform stack are ignored.
+   */
+  bool ancestor_xform_might_be_time_varying() const;
+
  protected:
   /* Returns true if the contained USD prim is the root of a transform hierarchy. */
   virtual bool is_root_xform_prim() const;

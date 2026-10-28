@@ -425,8 +425,9 @@ bool USDStageReader::merge_with_parent(USDPrimReader *reader) const
     return false;
   }
 
-  /* Don't merge if the prim has authored transform ops. */
-  if (xform_reader->prim_has_xform_ops()) {
+  /* Don't merge if the prim has authored transform ops or doesn't inherit the parent's
+   * transform. */
+  if (xform_reader->prim_has_xform_ops() || xform_reader->resets_xform_stack()) {
     return false;
   }
 
@@ -531,6 +532,16 @@ USDPrimReader *USDStageReader::collect_readers(const pxr::UsdPrim &prim,
 
   /* Set each child reader's parent. */
   for (USDPrimReader *child_reader : child_readers) {
+    /* A prim that resets the transform stack doesn't inherit its parent's transform. It keeps its
+     * parent, with a parent inverse matrix that cancels the parent's transform (see
+     * #import_startjob). That only holds while the parent doesn't move, so it is imported without
+     * a parent when an ancestor's transform is animated. */
+    const USDXformReader *xform_reader = dynamic_cast<const USDXformReader *>(child_reader);
+    if (xform_reader && xform_reader->resets_xform_stack() &&
+        xform_reader->ancestor_xform_might_be_time_varying())
+    {
+      continue;
+    }
     child_reader->parent(reader);
   }
 

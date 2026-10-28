@@ -1,0 +1,78 @@
+#usda 1.0
+(
+    defaultPrim = "root"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "root"
+{
+    double3 xformOp:translate = (0, 0, 4)
+    uniform token[] xformOpOrder = ["xformOp:translate"]
+
+    # Xform that resets the transform stack: its children ignore the transform of "root".
+    def Xform "reset_xform"
+    {
+        double3 xformOp:translate = (1, 0, 0)
+        uniform token[] xformOpOrder = ["!resetXformStack!", "xformOp:translate"]
+
+        def Mesh "reset_xform_mesh"
+        {
+            int[] faceVertexCounts = [3]
+            int[] faceVertexIndices = [0, 1, 2]
+            point3f[] points = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
+        }
+    }
+
+    # Mesh that resets the transform stack itself: it is at the origin.
+    def Mesh "reset_mesh"
+    {
+        uniform token[] xformOpOrder = ["!resetXformStack!"]
+        int[] faceVertexCounts = [3]
+        int[] faceVertexIndices = [0, 1, 2]
+        point3f[] points = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
+    }
+
+    # Xform whose only child resets the transform stack: the mesh must not be merged with the
+    # Xform, because it would then follow the transform of "single".
+    def Xform "single"
+    {
+        double3 xformOp:translate = (0, 2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        def Mesh "single_reset_mesh"
+        {
+            uniform token[] xformOpOrder = ["!resetXformStack!"]
+            int[] faceVertexCounts = [3]
+            int[] faceVertexIndices = [0, 1, 2]
+            point3f[] points = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
+        }
+    }
+
+    # Animated Xform: a parent inverse matrix can't cancel its transform, so its child that resets
+    # the transform stack is imported without a parent.
+    def Xform "animated"
+    {
+        double3 xformOp:translate.timeSamples = {
+            1: (0, 0, 0),
+            10: (0, 0, 5),
+        }
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        def Mesh "animated_reset_mesh"
+        {
+            uniform token[] xformOpOrder = ["!resetXformStack!"]
+            int[] faceVertexCounts = [3]
+            int[] faceVertexIndices = [0, 1, 2]
+            point3f[] points = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
+        }
+    }
+
+    # Mesh that inherits the transform of "root".
+    def Mesh "inherit_mesh"
+    {
+        int[] faceVertexCounts = [3]
+        int[] faceVertexIndices = [0, 1, 2]
+        point3f[] points = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
+    }
+}

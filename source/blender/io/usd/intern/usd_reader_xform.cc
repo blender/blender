@@ -110,6 +110,32 @@ bool USDXformReader::prim_has_xform_ops() const
   return !xformable.GetOrderedXformOps(&reset_xform_stack).empty();
 }
 
+bool USDXformReader::resets_xform_stack() const
+{
+  const pxr::UsdGeomXformable xformable = get_xformable();
+  return xformable && xformable.GetResetXformStack();
+}
+
+bool USDXformReader::ancestor_xform_might_be_time_varying() const
+{
+  pxr::UsdPrim cur_parent = get_xformable().GetPrim().GetParent();
+
+  while (cur_parent && !cur_parent.IsPseudoRoot()) {
+    const pxr::UsdGeomXformable xformable(cur_parent);
+    if (xformable) {
+      if (xformable.TransformMightBeTimeVarying()) {
+        return true;
+      }
+      if (xformable.GetResetXformStack()) {
+        return false;
+      }
+    }
+    cur_parent = cur_parent.GetParent();
+  }
+
+  return false;
+}
+
 bool USDXformReader::is_root_xform_prim() const
 {
   if (!prim_.IsValid()) {
@@ -121,6 +147,11 @@ bool USDXformReader::is_root_xform_prim() const
      * because we never want to apply global scaling
      * or rotations to the prototypes themselves. */
     return false;
+  }
+
+  if (resets_xform_stack()) {
+    /* The prim doesn't inherit the transform of its ancestors. */
+    return true;
   }
 
   if (prim_.IsA<pxr::UsdGeomXformable>()) {
