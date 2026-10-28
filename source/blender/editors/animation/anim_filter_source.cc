@@ -17,6 +17,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_sequence_types.h"
+#include "DNA_world_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
@@ -37,6 +39,9 @@
 #include "ED_anim_filter.hh"
 #include "ED_space_action.hh"
 #include "ED_space_graph.hh"
+
+#include "SEQ_iterator.hh"
+#include "SEQ_modifier.hh"
 
 #include <optional>
 
@@ -235,8 +240,8 @@ static void channels_for_action_slot(animrig::Action &action,
                layer_index});
 
     for (const int64_t strip_index : layer->strips().index_range()) {
-      Strip *strip = layer->strip(strip_index);
-      if (strip->type() != Strip::Type::Keyframe) {
+      animrig::Strip *strip = layer->strip(strip_index);
+      if (strip->type() != animrig::Strip::Type::Keyframe) {
         continue;
       }
       StripKeyframeData &action_strip = strip->data<StripKeyframeData>(action);
@@ -305,7 +310,7 @@ static void collect_channels_for_id(ID *animated_id,
                                     ID *owner_id = nullptr,
                                     std::optional<ParsedSourcePath> embedded_property = {})
 {
-  if (!animated_id) {
+  if (!animated_id || ID_MISSING(animated_id)) {
     return;
   }
 
@@ -506,6 +511,48 @@ void collection_channels_for_object(Object &obj, ChannelSourcingContext &ctx)
   }
 }
 
+static void collect_channels_for_scene(Scene &scene, ChannelSourcingContext &ctx)
+{
+  collect_channels_for_id(&scene.id, ctx);
+  collect_channels_for_id(id_cast<ID *>(scene.world), ctx);
+
+  /* Include various node trees, unless they are on the blocklist. */
+  if (ctx.arena.filters.id_type_blocklist.contains(ID_NT)) {
+    /* World node tree, which is an embedded ID. */
+    if (scene.world && scene.world->nodetree) {
+      ParsedSourcePath path_to_embedded_id;
+      path_to_embedded_id.items.append(rna_path::Member{UString("nodetree")});
+      collect_channels_for_id(
+          id_cast<ID *>(scene.world), ctx, &scene.world->id, path_to_embedded_id);
+    }
+
+    /* Compositor effect node trees. */
+    for (SceneCompositorEffect &effect : scene.compositor_effects) {
+      collect_channels_for_id(id_cast<ID *>(effect.node_group), ctx);
+    }
+
+    /* VSE strip node trees. */
+    if (scene.ed) {
+      VectorSet<ID *> node_trees;
+      seq::foreach_strip(&scene.ed->seqbase, [&ctx](Strip *strip) {
+        if (strip->type == STRIP_TYPE_COMPOSITOR && strip->effectdata) {
+          CompositorEffectVars *comp_data = static_cast<CompositorEffectVars *>(strip->effectdata);
+          collect_channels_for_id(id_cast<ID *>(comp_data->node_group), ctx);
+        }
+
+        if (!ctx.arena.filters.ignore_modifier_ids) {
+          seq::foreach_strip_modifier_id(strip, [&](ID *id) {
+            if (id->id_type() == ID_NT) {
+              collect_channels_for_id(id, ctx);
+            }
+          });
+        }
+        return true;
+      });
+    }
+  }
+}
+
 /**
  * Collect all the animation channels for the given Action.
  *
@@ -548,8 +595,8 @@ static void collect_action_channels(Main &bmain,
                layer_index});
 
     for (const int strip_index : layer->strips().index_range()) {
-      Strip *strip = layer->strip(strip_index);
-      if (strip->type() != Strip::Type::Keyframe) {
+      animrig::Strip *strip = layer->strip(strip_index);
+      if (strip->type() != animrig::Strip::Type::Keyframe) {
         continue;
       }
 
@@ -660,30 +707,43 @@ void collect_animation_channels(const bContext &C, ChannelArena &arena)
 {
   PRF_scope_with_name("ed::animfilter::collect_animation_channels", ProfileCategory::Editor);
 
-  Vector<PointerRNA> objects;
-  if (arena.filters.only_selected) {
-    CTX_data_selected_objects(&C, &objects);
-  }
-  /* Show *all* objects. */
-  else if (arena.filters.show_hidden) {
-    /* We can check this after `only_selected` because selected objects have to be visible. */
-    Main *bmain = CTX_data_main(&C);
-    for (Object &obj : bmain->objects) {
-      objects.append(RNA_id_pointer_create(&obj.id));
+  ChannelSourcingContext ctx(arena);
+
+  /* Objects. */
+  {
+    Vector<PointerRNA> objects;
+    if (arena.filters.only_selected) {
+      CTX_data_selected_objects(&C, &objects);
+    }
+    /* Show *all* objects. */
+    else if (arena.filters.show_hidden) {
+      /* We can check this after `only_selected` because selected objects have to be visible. */
+      Main *bmain = CTX_data_main(&C);
+      for (Object &obj : bmain->objects) {
+        objects.append(RNA_id_pointer_create(&obj.id));
+      }
+    }
+    else {
+      /* Show all visible. */
+      CTX_data_visible_objects(&C, &objects);
+    }
+
+    for (PointerRNA &obj_ptr : objects) {
+      Object *obj = static_cast<Object *>(obj_ptr.data);
+      collection_channels_for_object(*obj, ctx);
     }
   }
-  else {
-    /* Show all visible. */
-    CTX_data_visible_objects(&C, &objects);
+
+  /* Scene. */
+  if (!arena.filters.only_selected) {
+    const bool is_sequencer = CTX_wm_space_seq(&C) != nullptr;
+    Scene *scene = is_sequencer ? CTX_data_sequencer_scene(&C) : CTX_data_scene(&C);
+    if (scene) {
+      collect_channels_for_scene(*scene, ctx);
+    }
   }
 
-  ChannelSourcingContext ctx(arena);
-  for (PointerRNA &obj_ptr : objects) {
-    Object *obj = static_cast<Object *>(obj_ptr.data);
-    collection_channels_for_object(*obj, ctx);
-  }
-
-  /* TODO: also include non-object animation data, like Scene animation. */
+  /* TODO: also include non-object, non-scene animation data. */
 }
 
 CollectionFilters get_filters(const bDopeSheet &ads)
