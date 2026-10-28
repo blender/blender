@@ -9,7 +9,7 @@ from bpy.app.translations import contexts as i18n_contexts
 from bl_ui.node_add_menu import AddNodeMenu, SwapNodeMenu
 
 from .utils.constants import blend_types, geo_combine_operations, operations
-from .utils.nodes import NWBaseMenu, get_node_description
+from .utils.nodes import NWBaseMenu
 
 
 def socket_to_icon(socket):
@@ -130,11 +130,9 @@ class NWMergeNodesMenu(Menu, NWBaseMenu):
             props = layout.operator("node.nw_merge_nodes", text="Use Depth Combine Nodes")
             props.mode = 'MIX'
             props.merge_type = 'DEPTH_COMBINE'
-            props.tooltip = get_node_description("CompositorNodeZcombine")
             props = layout.operator("node.nw_merge_nodes", text="Use Alpha Over Nodes")
             props.mode = 'MIX'
             props.merge_type = 'ALPHAOVER'
-            props.tooltip = get_node_description("CompositorNodeAlphaOver")
 
 
 class NWMergeGeometryMenu(Menu, NWBaseMenu):
@@ -148,7 +146,6 @@ class NWMergeGeometryMenu(Menu, NWBaseMenu):
             props = layout.operator("node.nw_merge_nodes", text=name, text_ctxt=i18n_contexts.id_nodetree)
             props.mode = operation_type
             props.merge_type = 'GEOMETRY'
-            props.tooltip = description
 
 
 class NWMergeShadersMenu(Menu, NWBaseMenu):
@@ -162,7 +159,6 @@ class NWMergeShadersMenu(Menu, NWBaseMenu):
             props = layout.operator("node.nw_merge_nodes", text=name, text_ctxt=i18n_contexts.default)
             props.mode = operation_type
             props.merge_type = 'SHADER'
-            props.tooltip = get_node_description(f'ShaderNode{operation_type.capitalize()}Shader')
 
 
 class NWMergeMixMenu(Menu, NWBaseMenu):
@@ -175,7 +171,6 @@ class NWMergeMixMenu(Menu, NWBaseMenu):
             props = layout.operator("node.nw_merge_nodes", text=name, text_ctxt=i18n_contexts.id_nodetree)
             props.mode = blend_type
             props.merge_type = 'MIX'
-            props.tooltip = description
 
 
 class NWMergeMathMenu(Menu, NWBaseMenu):
@@ -188,7 +183,6 @@ class NWMergeMathMenu(Menu, NWBaseMenu):
             props = layout.operator("node.nw_merge_nodes", text=name, text_ctxt=i18n_contexts.id_nodetree)
             props.mode = operation_type
             props.merge_type = 'MATH'
-            props.tooltip = description
 
 
 class NWBatchChangeNodesMenu(Menu, NWBaseMenu):
