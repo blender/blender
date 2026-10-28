@@ -1704,7 +1704,7 @@ static int imb_exr_split_channel_name(ExrChannel &echan,
       CLOG_ERROR(&LOG, "Multilayer read: bad channel name: %s", name);
       return 0;
     }
-    BLI_strncpy(passname.data(), token, len + 1);
+    STRNCPY(passname.take_front(len + 1), token);
     end -= len + 1; /* +1 to skip '.' separator */
   }
   else {
