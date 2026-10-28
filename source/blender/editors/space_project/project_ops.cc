@@ -430,8 +430,7 @@ void PROJECT_OT_new(wmOperatorType *ot)
   ot->ui = project_new_ui;
 
   PropertyRNA *prop;
-  prop = RNA_def_string(
-      ot->srna, "name", "Untitled Project", MAX_NAME, "Name", "Name of the project");
+  prop = RNA_def_string(ot->srna, "name", "Untitled Project", 0, "Name", "Name of the project");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   RNA_def_property_update_runtime(prop, new_project_name_update);
 
