@@ -499,6 +499,9 @@ def main():
         # normal_mapping_light_leak fireflies.
         # fresnel_layer_weight high values are accumulated differently on different platform.
         report.set_fail_percent(0.221)
+        if gpu_vendor == "AMD":
+            # holdout has very different background SSR hit detection on AMD + Windows bot.
+            report.set_fail_percent(0.29)
         if gpu_vendor == "INTEL":
             # mix_color uses implementation dependent function.
             report.set_fail_percent(0.41)
@@ -512,8 +515,8 @@ def main():
         report.set_fail_threshold(6.0 / 255.0)
     elif test_dir_name.startswith('raycast') and gpu_vendor == "AMD":
         # Some slight contour differences on AMD
-        report.set_fail_percent(0.37)
-        report.set_fail_threshold(10.0 / 255.0)
+        report.set_fail_percent(0.42)
+        report.set_fail_threshold(12.0 / 255.0)
     elif test_dir_name.startswith('pointcloud'):
         # Only because of points_transparent
         report.set_fail_threshold(8.0 / 255.0)
