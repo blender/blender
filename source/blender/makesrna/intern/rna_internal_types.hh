@@ -772,7 +772,7 @@ struct BlenderRNA {
   bool runtime;
 };
 
-#define CONTAINER_RNA_ID(cont) (*(const char **)(((ContainerRNA *)(cont)) + 1))
+#define CONTAINER_RNA_ID(cont) (((const UString *)(((ContainerRNA *)(cont)) + 1))->c_str())
 
 /* Check compatibility of DNA types with RNA types. */
 inline bool is_dnatype_float_compat(const StringRef dnatype)
