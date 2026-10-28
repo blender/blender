@@ -940,6 +940,9 @@ static void action_refresh(const bContext *C, ScrArea *area)
 {
   SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
 
+  /* If this function is called, the cached animation channels may refer to now-deleted data. */
+  saction->runtime->animfilter_runtime.channel_arena.reset();
+
   /* Update the state of the animchannels in response to changes from the data they represent
    * NOTE: the temp flag is used to indicate when this needs to be done,
    * and will be cleared once handled. */

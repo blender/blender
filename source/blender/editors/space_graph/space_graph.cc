@@ -869,6 +869,9 @@ static void graph_refresh(const bContext *C, ScrArea *area)
 {
   SpaceGraph *sipo = area->spacedata.first_as<SpaceGraph>();
 
+  /* If this function is called, the cached animation channels may refer to now-deleted data. */
+  sipo->runtime->animfilter_runtime.channel_arena.reset();
+
   /* updates to data needed depends on Graph Editor mode... */
   switch (sipo->mode) {
     case SIPO_MODE_ANIMATION: /* all animation */
