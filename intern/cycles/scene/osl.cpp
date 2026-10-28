@@ -133,6 +133,41 @@ void OSLManager::device_update_pre(Device * /*device*/, Scene *scene)
   }
 }
 
+static void optimize_group(OSL::ShadingSystem *ss, OSL::ShaderGroup *group)
+{
+  OSL::PerThreadInfo *thread_info = ss->create_thread_info();
+  OSL::ShadingContext *context = ss->get_context(thread_info);
+
+  ss->optimize_group(group, context, true);
+
+  ss->release_context(context);
+  ss->destroy_thread_info(thread_info);
+}
+
+static void optimize_group(TaskPool &pool,
+                           OSL::ShadingSystem *ss,
+                           const OSL::ShaderGroupRef &group_ref)
+{
+  if (!group_ref) {
+    return;
+  }
+
+  /* Workaround #156348: depending on the system-wide `libgcc` version, EH frames
+   * registered and de-registered during OSL JIT might leave the process in a bad state.
+   * There is a bug report about it in the gcc:
+   * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119151
+   *
+   * Note that it is the runtime libgcc version that matters, as it is linked dynamically.
+   */
+  OSL::ShaderGroup *group = group_ref.get();
+#  if defined(_WIN32) || defined(__APPLE__)
+  pool.push([ss, group]() { optimize_group(ss, group); });
+#  else
+  optimize_group(ss, group);
+  (void)pool;
+#  endif
+}
+
 void OSLManager::device_update_post(Device *device,
                                     Scene *scene,
                                     Progress &progress,
@@ -236,17 +271,30 @@ void OSLManager::device_update_post(Device *device,
      * load images for the GPU. */
     OSLRenderServices::image_manager = scene->image_manager.get();
 
-    foreach_shading_system([](OSL::ShadingSystem *ss) {
-    /* Workaround #156348: depending on the system-wide `libgcc` version, EH frames registered and
-     * de-registered during OSL JIT might leave the process in a bad state. There is a bug report
-     * about it in the gcc: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119151
+    /* Only optimize the groups of this scene. The shading system is shared with other
+     * sessions, which optimize their own groups.
      *
-     * Note that it is the runtime libgcc version that matters, as it is linked dynamically. */
-#  if defined(_WIN32) || defined(__APPLE__)
-      ss->optimize_all_groups();
-#  else
-      ss->optimize_all_groups(1);
-#  endif
+     * Isolate to avoid running tasks that wait for the lock held by this thread. */
+    isolate_task([&]() {
+      TaskPool pool;
+
+      foreach_osl_device(device, [&](Device *sub_device, OSLGlobals *og) {
+        const auto ss_it = ss_map.find(sub_device->info.type);
+        if (ss_it == ss_map.end()) {
+          return;
+        }
+        OSL::ShadingSystem *ss = ss_it->second.get();
+        for (const vector<OSL::ShaderGroupRef> *states :
+             {&og->surface_state, &og->volume_state, &og->displacement_state, &og->bump_state})
+        {
+          for (const OSL::ShaderGroupRef &group_ref : *states) {
+            optimize_group(pool, ss, group_ref);
+          }
+        }
+        optimize_group(pool, ss, og->camera_state);
+      });
+
+      pool.wait_work();
     });
 
     OSLRenderServices::image_manager = nullptr;
