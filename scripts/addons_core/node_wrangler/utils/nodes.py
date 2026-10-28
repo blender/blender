@@ -309,6 +309,26 @@ def transfer_links(tree, old_node, new_node):
                 new_link.is_muted = is_muted
 
 
+def is_valid_socket(socket, socket_types=None):
+    if not socket.enabled or not socket.is_icon_visible:
+        return False
+
+    if (socket_types is None):
+        return True
+
+    return (socket.type in socket_types)
+
+
+def get_input_by_name(node, name, socket_types=None):
+    if (socket := node.inputs.get(name)):
+        if is_valid_socket(socket, socket_types):
+            return socket
+
+    for socket in node.inputs:
+        if (socket.name == name) and is_valid_socket(socket, socket_types):
+            return socket
+
+
 class NWBase:
     @classmethod
     def poll(cls, context):
