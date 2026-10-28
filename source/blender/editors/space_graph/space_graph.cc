@@ -889,7 +889,7 @@ static void graph_refresh(const bContext *C, ScrArea *area)
    * NOTE: the temp flag is used to indicate when this needs to be done,
    * and will be cleared once handled. */
   if (sipo->runtime->flag & SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC) {
-    ANIM_sync_animchannels_to_data(C);
+    ANIM_sync_data_to_animchannels(C);
     sipo->runtime->flag &= ~SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
     ED_area_tag_redraw(area);
   }

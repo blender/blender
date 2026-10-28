@@ -1209,12 +1209,10 @@ void ANIM_id_update(Main *bmain, ID *id);
  */
 void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale);
 
-/* data -> channels syncing */
-
 /**
- * Main call to be exported to animation editors.
+ * Synchronise data state to animation channels.
  */
-void ANIM_sync_animchannels_to_data(const bContext *C);
+void ANIM_sync_data_to_animchannels(const bContext *C);
 
 void ANIM_center_frame(bContext *C, int smooth_viewtx);
 

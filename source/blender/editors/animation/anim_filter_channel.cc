@@ -679,6 +679,11 @@ ID_Type AnimationChannel::source_id_type() const
   return this->source_id_type_;
 }
 
+bool AnimationChannel::source_is_type(const StructRNA *rna_type) const
+{
+  return this->source_.type == rna_type;
+}
+
 void AnimationChannel::source_set(PointerRNA &&source_ptr)
 {
   BLI_assert_msg(

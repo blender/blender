@@ -4424,9 +4424,31 @@ static int foreach_expanded_recursive(AnimationChannel &channel,
   return row_index;
 }
 
-void foreach_expanded(SummaryChannel &root, ForEachChannelCallback callback)
+void foreach_expanded(SummaryChannel &root, const ForEachChannelCallback callback)
 {
   foreach_expanded_recursive(root, 0, callback);
+}
+
+static int foreach_channel_recursive(AnimationChannel &channel,
+                                     int row_index,
+                                     const ForEachChannelCallback callback)
+{
+  callback(channel, row_index);
+  row_index++;
+  if (channel.type() != AnimationChannelType::SUMMARY) {
+    return row_index;
+  }
+
+  SummaryChannel &summary = static_cast<SummaryChannel &>(channel);
+  for (AnimationChannel *child : summary.children()) {
+    row_index = foreach_channel_recursive(*child, row_index, callback);
+  }
+  return row_index;
+}
+
+void foreach_channel(SummaryChannel &root, const ForEachChannelCallback callback)
+{
+  foreach_channel_recursive(root, 0, callback);
 }
 
 }  // namespace ed::animfilter

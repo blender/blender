@@ -6,10 +6,9 @@
  * \ingroup edanimation
  */
 
-#include <cstring>
-
 #include "MEM_guardedalloc.h"
 
+#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -21,6 +20,7 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_assert.hh"
 #include "BLI_listbase.hh"
 #include "BLI_set.hh"
 #include "BLI_string.hh"
@@ -39,11 +39,13 @@
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
+#include "RNA_prototypes.hh"
 
 #include "SEQ_sequencer.hh"
 #include "SEQ_utils.hh"
 
 #include "ED_anim_api.hh"
+#include "ED_anim_filter.hh"
 
 #include "ANIM_action.hh"
 
@@ -122,7 +124,7 @@ void ANIM_id_update(Main *bmain, ID *id)
  */
 
 /* perform syncing updates for Action Groups */
-static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGroup **active_agrp)
+static void ale_chan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGroup **active_agrp)
 {
   bActionGroup *agrp = static_cast<bActionGroup *>(ale->data);
   ID *owner_id = ale->id;
@@ -218,7 +220,7 @@ static void animchan_sync_fcurve_scene(bAnimListElem *ale)
 }
 
 /* perform syncing updates for F-Curves */
-static void animchan_sync_fcurve(bAnimListElem *ale)
+static void ale_chan_sync_fcurve(bAnimListElem *ale)
 {
   FCurve *fcu = static_cast<FCurve *>(ale->data);
   ID *owner_id = ale->id;
@@ -244,7 +246,7 @@ static void animchan_sync_fcurve(bAnimListElem *ale)
 }
 
 /* perform syncing updates for GPencil Layers */
-static void animchan_sync_gplayer(bAnimListElem *ale)
+static void ale_chan_sync_gplayer(bAnimListElem *ale)
 {
   bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
 
@@ -265,10 +267,173 @@ static void animchan_sync_gplayer(bAnimListElem *ale)
   }
 }
 
+/* ----- Same functions as above, but implemented for AnimationChannels ----------- */
+
+static void animchan_sync_group(ed::animfilter::AnimationChannel &channel,
+                                bool &has_set_active_group)
+{
+  using namespace ed::animfilter;
+
+  BLI_assert(channel.source_is_type(RNA_ActionGroup));
+  bActionGroup *agrp = channel.source().data_as<bActionGroup>();
+
+  /* Find the ID animated by this channel. */
+  BLI_assert(channel.type() == AnimationChannelType::SUMMARY);
+  SummaryChannel &action_group_channel = dynamic_cast<SummaryChannel &>(channel);
+  const ChannelTag *id_tag = action_group_channel.first_tag_of_child(ChannelTagType::ID);
+  if (!id_tag) {
+    return;
+  }
+  ID *animated_id = id_tag->source_data().data_as<ID>();
+
+  /* Syncing to pose bones is only possible when the animated ID is an Object. */
+  if (animated_id->id_type() != ID_OB) {
+    return;
+  }
+
+  /* Find the pose bone. Since the animation channel system already found it, we just need to get
+   * the tag. */
+  const ChannelTag *bone_tag = action_group_channel.first_tag_of_child(ChannelTagType::BONE);
+  if (!bone_tag) {
+    return;
+  }
+  BLI_assert(bone_tag->source_data().type == RNA_PoseBone);
+  BLI_assert(bone_tag->source_data().has_data());
+  bPoseChannel *pchan = bone_tag->source_data().data_as<bPoseChannel>();
+
+  /* NOTE: this feature will only really work if groups by default contain the F-Curves
+   * for a single bone. It's the old approach that was in use before the new AnimationChannel
+   * system, and should get replaced at some point.
+   */
+  Object *ob = id_cast<Object *>(animated_id);
+  flag_update(agrp->flag, AGRP_SELECTED, pchan->flag & POSE_SELECTED);
+
+  /* Sync active group status. */
+  bArmature *arm = id_cast<bArmature *>(ob->data);
+  Bone *bone = pchan->bone_get(*ob);
+
+  /* If no previous group has active flag, then we're the first and only one to get it. */
+  const bool do_set_active = (bone == arm->act_bone && !has_set_active_group);
+  flag_update(agrp->flag, AGRP_ACTIVE, do_set_active);
+  has_set_active_group |= do_set_active;
+
+  /* Sync bone color. */
+  action_group_colors_set_from_posebone(agrp, {pchan, bone});
+}
+
+static void animchan_sync_fcurve(ed::animfilter::AnimationChannel &channel)
+{
+  FCurve *fcu = channel.source().data_as<FCurve>();
+  if (fcu->rna_path().is_empty()) {
+    return;
+  }
+
+  /* Find the ID animated by this channel. */
+  ID *animated_id = channel.tags().data_of_first_tag<ID>(ed::animfilter::ChannelTagType::ID);
+  if (!animated_id) {
+    return;
+  }
+
+  /* This function just deals with selecting F-Curves based on their VSE strip selection state, so
+   * if this is about anything else, bail out. */
+  if (animated_id->id_type() != ID_SCE) {
+    return;
+  }
+
+  /* Only affect if F-Curve involves sequence_editor.strips. */
+  char strip_name[sizeof(Strip::name)];
+  if (!BLI_str_quoted_substr(
+          fcu->rna_path().c_str(), "strips_all[", strip_name, sizeof(strip_name)))
+  {
+    return;
+  }
+
+  /* Check if this strip is selected. */
+  Editing *ed = seq::editing_get(id_cast<Scene *>(animated_id));
+  if (ed == nullptr) {
+    /* The existence of the F-Curve doesn't imply the existence of the sequencer
+     * strip, or even the sequencer itself. */
+    return;
+  }
+  Strip *strip = seq::get_strip_by_name(ed->current_strips(), strip_name, false);
+  if (strip == nullptr) {
+    return;
+  }
+
+  flag_update(fcu->flag, FCURVE_SELECTED, strip->flag & SEQ_SELECT);
+}
+
+static void animchan_sync_annotation_layer(ed::animfilter::AnimationChannel &channel)
+{
+  bGPDlayer *gpl = channel.source().data_as<bGPDlayer>();
+
+  /* Make sure the selection flags agree with the "active" flag.
+   * The selection flags are used in the Dope-sheet only, whereas
+   * the active flag is used everywhere else. Hence, we try to
+   * sync these here so that it all seems to be have as the user
+   * expects - #50184
+   *
+   * Assume that we only really do this when the active status changes.
+   * (NOTE: This may prove annoying if it means selection is always lost)
+   *
+   * TODO: move this away from the anim sync code, and into the GreasePencil/Annotation code for
+   * setting the selection state.
+   */
+  flag_update(gpl->flag, GP_LAYER_SELECT, GP_LAYER_ACTIVE);
+}
+
+static void animchan_sync_greasepencil_layer(ed::animfilter::AnimationChannel &channel)
+{
+  using namespace blender::bke::greasepencil;
+
+  /* TODO: move this away from the anim sync code, and into the GreasePencil/Annotation code for
+   * setting the selection state. */
+
+  GreasePencil *grease_pencil = id_cast<GreasePencil *>(channel.source().owner_id);
+  Layer *layer = channel.source().data_as<Layer>();
+  layer->set_selected(grease_pencil->is_layer_active(layer));
+}
+
 /* ---------------- */
 
-void ANIM_sync_animchannels_to_data(const bContext *C)
+void ANIM_sync_data_to_animchannels(const bContext *C)
 {
+  using namespace ed::animfilter;
+
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    /* This is a slightly buggy and indirect way of doing selection syncing, but it's implemented
+     * this way to be functionally the same as the non-experimental approach below.
+     *
+     * - This is done in every animation editor, which means it may be done too often.
+     * - It is a very indirect way of doing this, because it is triggered by notifiers & managed by
+     *   flags on the space runtime data.
+     * - The ActionGroup syncing is mostly a workaround for the lack of actual bone groups.
+     */
+
+    ed::animfilter::ChannelArenaHandle channels = ed::animfilter::get_summary_tree_for_context(*C);
+    if (!channels->root()) {
+      return;
+    }
+
+    bool has_set_active_group = false;
+    foreach_channel(*channels->root(), [&](AnimationChannel &channel, int /*row_index*/) {
+      if (channel.source_is_type(RNA_ActionGroup)) {
+        animchan_sync_group(channel, has_set_active_group);
+      }
+      else if (channel.source_is_type(RNA_FCurve)) {
+        animchan_sync_fcurve(channel);
+      }
+      else if (channel.source_is_type(RNA_AnnotationLayer)) {
+        animchan_sync_annotation_layer(channel);
+      }
+      else if (channel.source_is_type(RNA_GreasePencilLayer)) {
+        animchan_sync_greasepencil_layer(channel);
+      }
+    });
+
+    return;
+  }
+
   bAnimContext ac;
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
@@ -294,15 +459,15 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
   for (bAnimListElem &ale : anim_data) {
     switch (ale.type) {
       case ANIMTYPE_GROUP:
-        animchan_sync_group(&ac, &ale, &active_agrp);
+        ale_chan_sync_group(&ac, &ale, &active_agrp);
         break;
 
       case ANIMTYPE_FCURVE:
-        animchan_sync_fcurve(&ale);
+        ale_chan_sync_fcurve(&ale);
         break;
 
       case ANIMTYPE_GPLAYER:
-        animchan_sync_gplayer(&ale);
+        ale_chan_sync_gplayer(&ale);
         break;
       case ANIMTYPE_GREASE_PENCIL_LAYER: {
         using namespace blender::bke::greasepencil;

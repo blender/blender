@@ -11,6 +11,7 @@
 #include <limits>
 #include <optional>
 #include <type_traits>
+#include <variant>
 
 #include "BLI_bounds.hh"
 #include "BLI_function_ref.hh"
@@ -46,7 +47,12 @@ class AnimationChannel;
 struct AnimationChannelUIState;
 
 enum class ChannelTagType {
+  /* If this tag is used for grouping channels, it MUST be the last one. Current code for finding
+   * the corresponding pose bone expects that the F-Curves are direct chidren of this tag's
+   * SummaryChannel. This is a temporary measure, until we can replace explicit ActionGroups with
+   * the implicit bone groups given by the #BONE tag. */
   FCURVE_GROUP,
+
   ACTION_STRIP,
   ACTION_LAYER,
   ACTION_SLOT,
@@ -272,6 +278,22 @@ class ChannelTagSet {
   Span<ChannelTag> by_type(ChannelTagType tag_type);
 
   /**
+   * Convenience function for first_by_type(tag_type)->source_data().data_as<T>().
+   *
+   * \returns nullptr if the tag does not exist or doesn't have data (although the latter is a
+   * bug, because the caller expected this tag to have data).
+   */
+  template<typename T> T *data_of_first_tag(ChannelTagType tag_type)
+  {
+    const ChannelTag *tag = this->first_by_type(tag_type);
+    if (!tag) {
+      return nullptr;
+    }
+    BLI_assert(tag->source_data().has_data());
+    return tag->source_data().data_as<T>();
+  }
+
+  /**
    * Return the first not-yet-returned tag with the given tag type.
    * The returned boolean indicates whether there is a subsequent tag of the same type.
    *
@@ -481,6 +503,7 @@ class AnimationChannel {
   }
   bool source_is_id() const;
   ID_Type source_id_type() const;
+  bool source_is_type(const StructRNA *rna_type) const;
 
   AnimationChannelFlags *flags_ptr()
   {
@@ -958,6 +981,62 @@ void read_channel_states_data(struct BlendDataReader &reader,
 void read_channel_states_after_liblink(struct BlendLibReader &reader,
                                        ListBaseT<SpaceChannelDNAState> &channel_dna_states,
                                        ChannelUIStateMap &channel_states);
+
+/**
+ * Iterate all channels in depth-first order. This is the same order as the channels are listed
+ * (top to bottom) in the dope sheet channel list (assuming they're all expanded).
+ */
+void foreach_channel(SummaryChannel &root, ForEachChannelCallback callback);
+
+/**
+ * Container for either a reference or an owned copy a ChannelArena.
+ */
+class ChannelArenaHandle {
+  /* Allow std::monostate so that this type can be default-initialised. All instances returned by
+   * #get_summary_tree_for_context() are expected to have a non-monostate value. */
+  using variant = std::variant<std::monostate, std::reference_wrapper<ChannelArena>, ChannelArena>;
+  variant storage_;
+
+  /** Constructor that ensures in-place construction of an owned ChannelArena. */
+  template<typename T, typename... Args>
+  explicit ChannelArenaHandle(std::in_place_type_t<T> /*in_place*/, Args &&...args)
+      : storage_(std::in_place_type<T>, std::forward<Args>(args)...)
+  {
+  }
+
+  static ChannelArena *get_ptr(variant &variant);
+
+ public:
+  /**
+   * Wrap a ChannelArena that is cached somewhere, i.e. not owned by this ChannelArenaHAndle.
+   */
+  static ChannelArenaHandle from_cached(ChannelArena &arena);
+  /**
+   * Wrap a ChannelArena that is owned by this ChannelArenaHandle, and thus will be destructed
+   * along with this ChannelArenaHandle.
+   */
+  static ChannelArenaHandle from_temporary(ChannelArena &&arena);
+
+  ChannelArena *operator->();
+  ChannelArena &operator*();
+
+  bool has_value() const;
+
+  /**
+   * Return true when this is a borrowed reference, i.e. when the ChannelArena is not owned by this
+   * ChannelArenaHandle.
+   */
+  bool is_borrowed() const;
+};
+
+/**
+ * Get the animation channels as hierarchy with summary channels (i.e. not only data channels).
+ *
+ * Depending on the current space of the context, this may return a borrowed reference to the
+ * cached-on-the-space channels, or a copy that's owned by the caller. The ChannelArenaHandle type
+ * transparently handles those.
+ */
+ChannelArenaHandle get_summary_tree_for_context(const bContext &C);
 
 }  // namespace ed::animfilter
 }  // namespace blender

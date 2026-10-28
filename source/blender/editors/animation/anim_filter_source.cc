@@ -35,6 +35,8 @@
 #include "ANIM_rna.hh"
 
 #include "ED_anim_filter.hh"
+#include "ED_space_action.hh"
+#include "ED_space_graph.hh"
 
 #include <optional>
 
@@ -786,6 +788,97 @@ bool do_sync_channel_selection_to_secondary(const CollectionFilters &filters)
   /* Selection syncing should only be on if the list of channels is independent of the bone/object
    * selection. */
   return !filters.only_selected;
+}
+
+/* -------- ChannelArenaHandle ---------- */
+
+ChannelArena *ChannelArenaHandle::get_ptr(variant &variant)
+{
+  return std::visit(
+      [](auto &x) -> ChannelArena * {
+        if constexpr (std::is_same_v<std::decay_t<decltype(x)>, ChannelArena>) {
+          return &x;
+        }
+        if constexpr (std::is_same_v<std::decay_t<decltype(x)>,
+                                     std::reference_wrapper<ChannelArena>>)
+        {
+          return &x.get();
+        }
+        return nullptr;
+      },
+      variant);
+}
+
+ChannelArenaHandle ChannelArenaHandle::from_cached(ChannelArena &arena)
+{
+  return ChannelArenaHandle{std::in_place_type<std::reference_wrapper<ChannelArena>>, arena};
+}
+
+ChannelArenaHandle ChannelArenaHandle::from_temporary(ChannelArena &&arena)
+{
+  return ChannelArenaHandle{std::in_place_type<ChannelArena>, std::move(arena)};
+}
+
+ChannelArena *ChannelArenaHandle::operator->()
+{
+  return get_ptr(storage_);
+}
+ChannelArena &ChannelArenaHandle::operator*()
+{
+  return *ChannelArenaHandle::get_ptr(storage_);
+}
+bool ChannelArenaHandle::has_value() const
+{
+  return !std::holds_alternative<std::monostate>(storage_);
+}
+bool ChannelArenaHandle::is_borrowed() const
+{
+  return std::holds_alternative<std::reference_wrapper<ChannelArena>>(storage_);
+}
+
+ChannelArenaHandle get_summary_tree_for_context(const bContext &C)
+{
+  ScrArea *area = CTX_wm_area(&C);
+  if (!area) {
+    // TODO: maybe this should just return the default/global view of the animation data
+    BLI_assert_unreachable();
+    return ChannelArenaHandle::from_temporary(ChannelArena{});
+  }
+
+  switch (area->spacetype) {
+    case SPACE_ACTION:
+      return ChannelArenaHandle::from_cached(action::get_summary_tree(C));
+    case SPACE_GRAPH:
+      return ChannelArenaHandle::from_cached(graph::get_summary_tree(C));
+    case SPACE_NLA:
+      // TODO: figure out how to deal with operators asking for animation data in the NLA.
+      BLI_assert_unreachable();
+      return ChannelArenaHandle::from_temporary(ChannelArena{});
+    case SPACE_EMPTY:
+    case SPACE_VIEW3D:
+    case SPACE_OUTLINER:
+    case SPACE_PROPERTIES:
+    case SPACE_FILE:
+    case SPACE_IMAGE:
+    case SPACE_INFO:
+    case SPACE_SEQ:
+    case SPACE_TEXT:
+    case SPACE_SCRIPT:
+    case SPACE_NODE:
+    case SPACE_CONSOLE:
+    case SPACE_USERPREF:
+    case SPACE_CLIP:
+    case SPACE_TOPBAR:
+    case SPACE_STATUSBAR:
+    case SPACE_SPREADSHEET:
+    case SPACE_PROJECT:
+      // TODO: return the default/global view of the animation data.
+      BLI_assert_unreachable();
+      return ChannelArenaHandle::from_temporary(ChannelArena{});
+  }
+
+  BLI_assert_unreachable();
+  return ChannelArenaHandle::from_temporary(ChannelArena{});
 }
 
 }  // namespace blender::ed::animfilter
