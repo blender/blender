@@ -11,10 +11,13 @@
 
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
+#include "DNA_cachefile_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_sequence_types.h"
@@ -553,6 +556,24 @@ static void collect_channels_for_scene(Scene &scene, ChannelSourcingContext &ctx
   }
 }
 
+static void collect_global_channels(Main &bmain, ChannelSourcingContext &ctx)
+{
+  for (CacheFile &cache_file : bmain.cachefiles) {
+    /* TODO: include the cachefile-specific data as well? Is there any? */
+    collect_channels_for_id(&cache_file.id, ctx);
+  }
+
+  for (bGPdata &annotation_data : bmain.gpencils) {
+    /* TODO: include the annotation-specific data as well? Is there any? */
+    collect_channels_for_id(&annotation_data.id, ctx);
+  }
+
+  for (MovieClip &clip : bmain.movieclips) {
+    /* TODO: include the movieclip-specific data as well? Is there any? */
+    collect_channels_for_id(&clip.id, ctx);
+  }
+}
+
 /**
  * Collect all the animation channels for the given Action.
  *
@@ -734,16 +755,22 @@ void collect_animation_channels(const bContext &C, ChannelArena &arena)
     }
   }
 
-  /* Scene. */
-  if (!arena.filters.only_selected) {
-    const bool is_sequencer = CTX_wm_space_seq(&C) != nullptr;
-    Scene *scene = is_sequencer ? CTX_data_sequencer_scene(&C) : CTX_data_scene(&C);
-    if (scene) {
-      collect_channels_for_scene(*scene, ctx);
-    }
+  if (arena.filters.only_selected) {
+    /* All the animation data below only shows with 'Only Show Selected' off. */
+    return;
   }
 
-  /* TODO: also include non-object, non-scene animation data. */
+  /* Scene. */
+  const bool is_sequencer = CTX_wm_space_seq(&C) != nullptr;
+  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(&C) : CTX_data_scene(&C);
+  if (scene) {
+    collect_channels_for_scene(*scene, ctx);
+  }
+
+  /* Global data from Main. */
+  if (Main *bmain = CTX_data_main(&C)) {
+    collect_global_channels(*bmain, ctx);
+  }
 }
 
 CollectionFilters get_filters(const bDopeSheet &ads)
