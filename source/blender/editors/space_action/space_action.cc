@@ -212,7 +212,7 @@ static SpaceLink *action_duplicate(SpaceLink *sl)
 static void action_draw_pre(const bContext * /*C*/, ScrArea *area)
 {
   SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
-  saction->runtime->channel_arena.reset();
+  saction->runtime->animfilter_runtime.channel_arena.reset();
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -974,7 +974,7 @@ static void action_id_remap(ScrArea * /*area*/,
   mappings.apply(reinterpret_cast<ID **>(&sact->ads.filter_grp), ID_REMAP_APPLY_DEFAULT);
   mappings.apply(&sact->ads.source, ID_REMAP_APPLY_DEFAULT);
 
-  if (sact->runtime->channel_states.is_empty()) {
+  if (sact->runtime->animfilter_runtime.channel_states.is_empty()) {
     return;
   }
 
@@ -1097,7 +1097,7 @@ static void action_space_blend_read_after_liblink(BlendLibReader *reader,
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
 
   ed::animfilter::read_channel_states_after_liblink(
-      *reader, saction->channel_ui_states, saction->runtime->channel_states);
+      *reader, saction->channel_ui_states, saction->runtime->animfilter_runtime.channel_states);
 }
 
 static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
@@ -1114,10 +1114,11 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
   }
 
   const SpaceAction &space_action = *reinterpret_cast<SpaceAction *>(sl);
-  ed::animfilter::channel_state_trim(space_action.runtime->channel_states);
+  ed::animfilter::channel_state_trim(space_action.runtime->animfilter_runtime.channel_states);
 
   /* Allocate memory for the UI state info in DNA. */
-  const int64_t num_channel_states = space_action.runtime->channel_states.size();
+  const int64_t num_channel_states =
+      space_action.runtime->animfilter_runtime.channel_states.size();
   ResourceScope &scope = screen_writer.scope;
   Array<SpaceChannelDNAState> &ui_state_array = scope.construct<Array<SpaceChannelDNAState>>(
       num_channel_states);
@@ -1128,21 +1129,12 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
     ed::animfilter::write_channel_states(*writer,
                                          ui_state_array,
                                          rna_paths,
-                                         space_action.runtime->channel_states,
+                                         space_action.runtime->animfilter_runtime.channel_states,
                                          for_writing.channel_ui_states);
 
     /* Prevent writing runtime data to the blend file. */
     for_writing.runtime = {};
   });
-}
-
-ed::animfilter::AnimationChannelUIState &SpaceAction_Runtime::channel_state_for_update(
-    const ed::animfilter::ChannelIdentifier &channel_key)
-{
-  ed::animfilter::AnimationChannelUIState &channel_state =
-      this->channel_states.lookup_or_add_default(channel_key);
-  channel_state.last_used = this->last_used;
-  return channel_state;
 }
 
 void ED_spacetype_action()

@@ -552,36 +552,6 @@ class AnimationChannel {
 
 using ChannelUIStateMap = Map<ChannelIdentifier, AnimationChannelUIState>;
 
-/**
- * Trims the ChannelUIStateMap to only the N most recent updated channels.
- */
-void channel_state_trim(ChannelUIStateMap &channel_states);
-
-/**
- * Convert the given `channel_states` to a listbase and write them into a blendfile.
- * \param channel_dna_states has to come from the shallow copy of a `BlendStructWriter`.
- */
-void write_channel_states(struct BlendWriter &writer,
-                          Array<SpaceChannelDNAState> &ui_state_array,
-                          Array<std::string> &rna_paths,
-                          const ChannelUIStateMap &channel_states,
-                          ListBaseT<SpaceChannelDNAState> &channel_dna_states);
-
-/**
- * Populate the given listbase from the reader.
- */
-void read_channel_states_data(struct BlendDataReader &reader,
-                              ListBaseT<SpaceChannelDNAState> &channel_dna_states);
-
-/**
- * Populate the `channel_states` with entries from the `channel_dna_states`.
- * `channel_dna_states` will be freed and turn into an empty list after this function.
- * As the name implies this has to be called in a `blend_read_after_liblink` callback.
- */
-void read_channel_states_after_liblink(struct BlendLibReader &reader,
-                                       ListBaseT<SpaceChannelDNAState> &channel_dna_states,
-                                       ChannelUIStateMap &channel_states);
-
 /* This is the class responsible for generating the tree structure. Each channel only tracks its
  * children, which allows us to generate multiple summary trees for the same data channels. */
 class SummaryChannel final : public AnimationChannel {
@@ -930,6 +900,51 @@ using ForEachChannelCallback = FunctionRef<void(AnimationChannel &channel, int r
  * Iterate all expanded channels and their children.
  */
 void foreach_expanded(SummaryChannel &root, ForEachChannelCallback callback);
+
+struct AnimfilterSpaceRuntime {
+  /* Store the UI states of channels so it is remembered across recreations of
+   * the same channel. */
+  ChannelUIStateMap channel_states;
+  /** A counter that is incremented every time the channel states above are used. */
+  int32_t last_used = 0;
+  /* Runtime cache for channels in the channel box. */
+  std::optional<ChannelArena> channel_arena;
+  /**
+   * Ensures there is an entry for this channel in the UI state map, returning that entry so it can
+   * be updated. This also sets the entry's `last_used` field to #last_used.
+   */
+  AnimationChannelUIState &channel_state_for_update(const ChannelIdentifier &channel_key);
+};
+
+/**
+ * Trims the ChannelUIStateMap to only the N most recent updated channels.
+ */
+void channel_state_trim(ChannelUIStateMap &channel_states);
+
+/**
+ * Convert the given `channel_states` to a listbase and write them into a blendfile.
+ * \param channel_dna_states has to come from the shallow copy of a `BlendStructWriter`.
+ */
+void write_channel_states(struct BlendWriter &writer,
+                          Array<SpaceChannelDNAState> &ui_state_array,
+                          Array<std::string> &rna_paths,
+                          const ChannelUIStateMap &channel_states,
+                          ListBaseT<SpaceChannelDNAState> &channel_dna_states);
+
+/**
+ * Populate the given listbase from the reader.
+ */
+void read_channel_states_data(struct BlendDataReader &reader,
+                              ListBaseT<SpaceChannelDNAState> &channel_dna_states);
+
+/**
+ * Populate the `channel_states` with entries from the `channel_dna_states`.
+ * `channel_dna_states` will be freed and turn into an empty list after this function.
+ * As the name implies this has to be called in a `blend_read_after_liblink` callback.
+ */
+void read_channel_states_after_liblink(struct BlendLibReader &reader,
+                                       ListBaseT<SpaceChannelDNAState> &channel_dna_states,
+                                       ChannelUIStateMap &channel_states);
 
 }  // namespace ed::animfilter
 }  // namespace blender

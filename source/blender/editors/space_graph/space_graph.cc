@@ -61,15 +61,6 @@
 
 namespace blender {
 
-ed::animfilter::AnimationChannelUIState &SpaceGraph_Runtime::channel_state_for_update(
-    const ed::animfilter::ChannelIdentifier &channel_key)
-{
-  ed::animfilter::AnimationChannelUIState &channel_state =
-      this->channel_states.lookup_or_add_default(channel_key);
-  channel_state.last_used = this->last_used;
-  return channel_state;
-}
-
 /* ******************** default callbacks for ipo space ***************** */
 
 static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
@@ -454,7 +445,7 @@ static void set_v2d_height(View2D *v2d, const size_t item_count)
 static void graph_draw_pre(const bContext * /* C */, ScrArea *area)
 {
   SpaceGraph *space_graph = area->spacedata.first_as<SpaceGraph>();
-  space_graph->runtime->channel_arena.reset();
+  space_graph->runtime->animfilter_runtime.channel_arena.reset();
 }
 
 static void graph_channel_region_draw(const bContext *C, ARegion *region)
@@ -1012,7 +1003,9 @@ static void graph_space_blend_read_after_liblink(BlendLibReader *reader,
   using namespace ed::animfilter;
   SpaceGraph *space_graph = reinterpret_cast<SpaceGraph *>(sl);
   ed::animfilter::read_channel_states_after_liblink(
-      *reader, space_graph->channel_ui_states, space_graph->runtime->channel_states);
+      *reader,
+      space_graph->channel_ui_states,
+      space_graph->runtime->animfilter_runtime.channel_states);
 }
 
 static void graph_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
@@ -1031,10 +1024,11 @@ static void graph_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLi
     return;
   }
 
-  ed::animfilter::channel_state_trim(space_graph->runtime->channel_states);
+  ed::animfilter::channel_state_trim(space_graph->runtime->animfilter_runtime.channel_states);
 
   /* Allocate memory for the UI state info in DNA. */
-  const int64_t num_channel_states = space_graph->runtime->channel_states.size();
+  const int64_t num_channel_states =
+      space_graph->runtime->animfilter_runtime.channel_states.size();
   ResourceScope &scope = screen_writer.scope;
   Array<SpaceChannelDNAState> &ui_state_array = scope.construct<Array<SpaceChannelDNAState>>(
       num_channel_states);
@@ -1045,7 +1039,7 @@ static void graph_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLi
     ed::animfilter::write_channel_states(*writer,
                                          ui_state_array,
                                          rna_paths,
-                                         space_graph->runtime->channel_states,
+                                         space_graph->runtime->animfilter_runtime.channel_states,
                                          for_writing.channel_ui_states);
     for_writing.runtime = {};
   });

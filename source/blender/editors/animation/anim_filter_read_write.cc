@@ -19,6 +19,14 @@ static CLG_LogRef LOG = {"anim.animfilter_io"};
 
 namespace blender::ed::animfilter {
 
+AnimationChannelUIState &AnimfilterSpaceRuntime::channel_state_for_update(
+    const ChannelIdentifier &channel_key)
+{
+  AnimationChannelUIState &channel_state = this->channel_states.lookup_or_add_default(channel_key);
+  channel_state.last_used = this->last_used;
+  return channel_state;
+}
+
 void channel_state_trim(ChannelUIStateMap &channel_states)
 {
   /* It may be tempting to use some dynamic limit, like "3x the number of channels shown", but this

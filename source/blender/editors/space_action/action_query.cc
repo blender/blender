@@ -124,11 +124,11 @@ static ed::animfilter::ChannelArena build_summary_tree(const bContext &C)
 
     /* Record this "use" of the channel runtime, as this is the moment where new channels are first
      * seen and old channels no longer exist. */
-    saction->runtime->last_used++;
+    saction->runtime->animfilter_runtime.last_used++;
 
     /* Update the channels with the previously-stored UI state. */
     for (SummaryChannel *summary : arena.summary_channels) {
-      summary->ui_state_map_set(&saction->runtime->channel_states);
+      summary->ui_state_map_set(&saction->runtime->animfilter_runtime.channel_states);
     }
   }
   return arena;
@@ -139,12 +139,12 @@ ed::animfilter::ChannelArena &get_summary_tree(const bContext &C)
 {
   SpaceAction *saction = CTX_wm_space_action(&C);
   SpaceAction_Runtime *runtime = saction->runtime;
-  if (!runtime->channel_arena) {
+  if (!runtime->animfilter_runtime.channel_arena) {
     ed::animfilter::ChannelArena channels = ed::action::build_summary_tree(C);
-    runtime->channel_arena.emplace(std::move(channels));
+    runtime->animfilter_runtime.channel_arena.emplace(std::move(channels));
   }
 
-  return *runtime->channel_arena;
+  return *runtime->animfilter_runtime.channel_arena;
 }
 
 }  // namespace blender::ed::action

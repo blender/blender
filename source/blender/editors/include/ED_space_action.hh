@@ -29,22 +29,7 @@ ENUM_OPERATORS(eSAction_Runtime_Flag);
 struct SpaceAction_Runtime {
   eSAction_Runtime_Flag flag = eSAction_Runtime_Flag(0);
 
-  /* Store the UI states of channels so it is remembered across recreations of
-   * the same channel. */
-  ed::animfilter::ChannelUIStateMap channel_states;
-
-  /** A counter that is incremented every time the channel states above are used. */
-  int32_t last_used = 0;
-
-  /* The cached channels of the last drawcall. */
-  std::optional<ed::animfilter::ChannelArena> channel_arena;
-
-  /**
-   * Ensures there is an entry for this channel in the UI state map, returning that entry so it can
-   * be updated. This also sets the entry's `last_used` field to #last_used.
-   */
-  ed::animfilter::AnimationChannelUIState &channel_state_for_update(
-      const ed::animfilter::ChannelIdentifier &channel_key);
+  ed::animfilter::AnimfilterSpaceRuntime animfilter_runtime;
 };
 
 namespace ed::action {
