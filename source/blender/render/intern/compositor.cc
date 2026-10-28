@@ -582,7 +582,7 @@ class Context : public compositor::Context {
       pass_data.release();
     }
 
-    pass.domain() = this->get_compositing_domain();
+    pass.domain().pixel_size = this->get_compositing_domain().pixel_size;
     pass.domain().transformation *= math::from_scale<float3x3>(float2(this->get_proxy_scale())) *
                                     pass.domain().transformation;
 
