@@ -359,11 +359,32 @@ void MetalDeviceQueue::init_execution()
 
 void MetalDeviceQueue::load_image_info()
 {
-  /* TODO: Can this be optimized to only update info ids that changed? Why is this done delayed
-   * instead of immediately when allocating the image? */
+  /* TODO: Can this be optimized to only update info ids that changed? */
+
+  /* Buffers below are modified and possibly reallocated, so pending kernels must finish first.
+   * This is why it's done here rather than in image_alloc(). */
+  synchronize();
+
+  /* CPU render threads may allocate images on this device concurrently, which can grow
+   * image_info and image_info_id_map on the host. */
+  std::lock_guard<std::recursive_mutex> lock(metal_device_->metal_mem_map_mutex);
+
   device_vector<KernelImageInfo> &image_info = metal_device_->image_info;
   id<MTLBuffer> &image_bindings = metal_device_->image_bindings;
   std::vector<id<MTLResource>> &image_info_id_map = metal_device_->image_info_id_map;
+
+  /* Reallocate device buffer if image_info was grown with host_only_resize(). */
+  if (image_info.device_pointer && image_info.host_pointer != image_info.shared_pointer) {
+    metal_device_->generic_free(image_info);
+  }
+
+  const size_t min_bindings_length = sizeof(void *) * image_info.size();
+  if (image_bindings.length < min_bindings_length) {
+    metal_device_->metal_mem_free(image_bindings);
+    image_bindings = [metal_device_->mtlDevice newBufferWithLength:min_bindings_length
+                                                           options:MTLResourceStorageModeShared];
+    metal_device_->metal_mem_alloc(image_bindings);
+  }
 
   /* Ensure image_info is allocated before populating. */
   image_info.copy_to_device();

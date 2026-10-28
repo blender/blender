@@ -612,6 +612,9 @@ bool GPUDevice::load_image_info(DeviceQueue *queue)
   /* Note image_info is never host mapped, and load_image_info() should only
    * be called right before kernel enqueue when all memory operations have completed. */
 
+  /* Guard against concurrent #GPUDevice::image_info_update() resizes. */
+  const thread_scoped_lock resize_lock(image_info_resize_mutex);
+
   {
     /* Clear the flag before copying and under a lock, multiple GPU host threads
      * may call this function in parallel. */
@@ -638,12 +641,19 @@ bool GPUDevice::load_image_info(DeviceQueue *queue)
 
 void GPUDevice::image_info_update(const uint image_info_id, const KernelImageInfo &info)
 {
-  const thread_scoped_lock lock(image_info_mutex);
+  thread_scoped_lock lock(image_info_mutex);
 
   if (image_info_id >= image_info.size()) {
-    /* Geometric growth to amortize reallocation cost. */
-    const size_t new_size = max(size_t(image_info_id) + 128, image_info.size() * 2);
-    image_info.host_only_resize(new_size);
+    /* Wait for GPUDevice::load_image_info() to finish copying. */
+    lock.unlock();
+    const thread_scoped_lock resize_lock(image_info_resize_mutex);
+    lock.lock();
+
+    if (image_info_id >= image_info.size()) {
+      /* Geometric growth to amortize reallocation cost. */
+      const size_t new_size = max(size_t(image_info_id) + 128, image_info.size() * 2);
+      image_info.host_only_resize(new_size);
+    }
   }
 
   image_info[image_info_id] = info;
@@ -778,7 +788,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
    * an exception for image info. It is small and frequently accessed,
    * so treat it as working memory.
    *
-   * If there is not enough room for working memory, we will try to move
+   * If there is not enough room for other working memory, we will try to move
    * textures to host memory, assuming the performance impact would have
    * been worse for working memory. */
   const bool is_texture = (mem.type == MEM_IMAGE_TEXTURE || mem.type == MEM_GLOBAL) &&
@@ -791,8 +801,12 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
                                 ((mem.flags & MEM_FLAG_NO_HOST_FALLBACK) && !mem.move_to_host);
 
   if (!mem.move_to_host) {
-    /* Move textures to host memory if needed. */
-    if (!is_image && can_map_host) {
+    /* Move textures to host memory if needed.
+     *
+     * Not for image_info, it's reallocated right before kernel enqueue while
+     * other devices may be using the textures. Without host fallback it may use
+     * the working memory headroom, which is much larger than image_info. */
+    if (!is_image && can_map_host && &mem != &image_info) {
       move_textures_to_host(size, headroom, is_texture);
     }
 
