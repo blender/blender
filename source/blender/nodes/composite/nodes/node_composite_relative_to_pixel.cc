@@ -43,8 +43,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
 
   b.add_output<decl::Float>("Value"_ustr, "Float Value"_ustr)
+      .subtype(PROP_PIXEL)
       .structure_type(StructureType::Dynamic);
   b.add_output<decl::Vector>("Value"_ustr, "Vector Value"_ustr)
+      .subtype(PROP_PIXEL)
       .dimensions(2)
       .structure_type(StructureType::Dynamic);
 }
@@ -377,7 +379,7 @@ class RelativeToPixelOperation : public NodeOperation {
     }
 
     const Domain domain = input_image.domain().realize_transformation();
-    const float2 image_size = float2(domain.display_size);
+    const float2 image_size = float2(domain.display_size) / domain.pixel_size;
     switch (this->get_reference_dimension()) {
       case CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_PER_DIMENSION:
         return image_size;
