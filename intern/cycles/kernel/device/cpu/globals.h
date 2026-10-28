@@ -89,6 +89,7 @@ struct ThreadKernelGlobalsCPU : public KernelGlobalsCPU {
 
   /* Local data structures owned by the thread. */
   unique_ptr<openpgl::cpp::PathSegmentStorage> opgl_path_segment_storage;
+  int opgl_path_segment_storage_size = 0;
   unique_ptr<openpgl::cpp::SurfaceSamplingDistribution> opgl_surface_sampling_distribution;
   unique_ptr<openpgl::cpp::VolumeSamplingDistribution> opgl_volume_sampling_distribution;
 #endif

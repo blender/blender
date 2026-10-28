@@ -2755,10 +2755,9 @@ volume_integrate_event(KernelGlobals kg,
 #  if defined(__PATH_GUIDING__)
     if (kernel_data.integrator.use_guiding) {
 #    if PATH_GUIDING_LEVEL >= 1
-      if (result.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
-        /* If the direct scatter event is generated using VOLUME_SAMPLE_DISTANCE the direct event
-         * will happen at the same position as the indirect event and the direct light contribution
-         * will contribute to the position of the next path segment. */
+      if (result.indirect_scatter && result.direct_t == result.indirect_t) {
+        /* If the direct and indirect distances are the same the path will continue at the
+         * position of the direct event and we generate a new path segment at this position. */
         const float3 transmittance_weight = spectrum_to_rgb(
             safe_divide_color(result.indirect_throughput, initial_throughput));
         guiding_record_volume_transmission(kg, state, transmittance_weight);
@@ -2767,11 +2766,11 @@ volume_integrate_event(KernelGlobals kg,
         unlit_throughput = result.indirect_throughput / continuation_probability;
         rand_phase_guiding = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
       }
-      else if (result.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) {
-        /* If the direct scatter event is generated using VOLUME_SAMPLE_EQUIANGULAR the direct
-         * event will happen at a separate position as the indirect event and the direct light
-         * contribution will contribute to the position of the current/previous path segment. The
-         * unlit_throughput has to be adjusted to include the scattering at the previous segment.
+      else {
+        /* If the direct scattering event is not at the same distance as the indirect one, the
+         * direct light event will contribute to the out-scattered contribution of the current path
+         * segment and not to the incomming radiance from the segment direction. We therefore need
+         * to adjust the unlit_throughput to include the scattering at the previous path vertex.
          */
         float3 scatterEval = one_float3();
         if (INTEGRATOR_STATE(state, guiding, path_segment)) {
@@ -2787,6 +2786,7 @@ volume_integrate_event(KernelGlobals kg,
 #    endif
 #    if PATH_GUIDING_LEVEL >= 4
       if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
+        /* Initialize the guiding distribution at the direct scattering event position. */
         volume_shader_prepare_guiding(
             kg, state, rand_phase_guiding, direct_P, ray->D, &result.direct_phases);
       }
@@ -2835,9 +2835,9 @@ volume_integrate_event(KernelGlobals kg,
       }
 #    endif
 #    if PATH_GUIDING_LEVEL >= 4
-      /* If the direct scatter event was generated using VOLUME_SAMPLE_EQUIANGULAR we need to
-       * initialize the guiding distribution at the indirect scatter position. */
-      if (result.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) {
+      /* If the direct and indirect event do not have the same distance the guiding
+       * distribution needs to be initialized at the indirect scattering position. */
+      if (!result.direct_scatter || result.direct_t != result.indirect_t) {
         rand_phase_guiding = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
         volume_shader_prepare_guiding(
             kg, state, rand_phase_guiding, sd->P, ray->D, &result.indirect_phases);
