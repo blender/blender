@@ -1544,6 +1544,15 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
     attr.finish();
   }
 
+  bke::MutableAttributeAccessor attributes = result->attributes_for_write();
+  for (const StringRef name : {"skin_modifier_root", "skin_modifier_loose"}) {
+    bke::SpanAttributeWriter<bool> attr = attributes.lookup_for_write_span<bool>(name);
+    if (attr && attr.domain == AttrDomain::Point) {
+      attr.span.drop_front(coarse_mesh->verts_num).fill(false);
+      attr.finish();
+    }
+  }
+
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   subdiv_mesh_context_free(&subdiv_context);
   return result;

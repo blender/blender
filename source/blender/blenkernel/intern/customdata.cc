@@ -2829,6 +2829,9 @@ static CustomDataLayer *customData_add_layer__internal(
   if (!name.is_empty()) {
     name.copy_utf8_truncated(new_layer.name);
     CustomData_set_layer_unique_name(data, index);
+    if (STR_ELEM(new_layer.name, "skin_modifier_root", "skin_modifier_loose")) {
+      new_layer.flag |= CD_FLAG_RUNTIME_NOINTERP;
+    }
   }
   else {
     new_layer.name[0] = '\0';
@@ -3946,6 +3949,11 @@ void CustomData_bmesh_interp_n(CustomData *data,
   BLI_assert(count > 0);
 
   CustomDataLayer *layer = &data->layers[n];
+  if (layer->flag & CD_FLAG_RUNTIME_NOINTERP) {
+    CustomData_data_set_default_value(eCustomDataType(layer->type), dst_block_ofs);
+    return;
+  }
+
   const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(layer->type));
 
   typeInfo->interp(src_blocks_ofs, weights, count, dst_block_ofs);
@@ -4724,6 +4732,7 @@ void CustomData_blend_write_prepare(CustomData &data, Vector<CustomDataLayer, 16
      * runtime only). */
     BLI_assert((CD_TYPE_AS_MASK(eCustomDataType(layer.type)) & CD_MASK_PROP_ALL) == 0);
     layers_to_write.append(layer);
+    layers_to_write.last().flag &= ~CD_FLAG_RUNTIME_NOINTERP;
   }
   data.totlayer = layers_to_write.size();
   data.maxlayer = data.totlayer;
@@ -4976,6 +4985,7 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
     if (layer->flag & CD_FLAG_EXTERNAL) {
       layer->flag &= ~CD_FLAG_IN_MEMORY;
     }
+    layer->flag &= ~CD_FLAG_RUNTIME_NOINTERP;
     layer->sharing_info = nullptr;
 
     if (CustomData_verify_versions(data, i)) {
