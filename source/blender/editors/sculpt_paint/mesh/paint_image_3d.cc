@@ -195,8 +195,8 @@ static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
                                                  const Span<float3> positions)
 {
   PRF_scope(ProfileCategory::Editor);
-  const float3 location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
-  const float radius = ss.cache ? ss.cache->radius : ss.cursor_radius;
+  const float3 location = ss.cache->location_symm;
+  const float radius = ss.cache->radius;
   const Bounds<float3> brush_bounds(location - radius, location + radius);
 
   BitVector<> brush_test(tri_indices.size());
@@ -537,8 +537,8 @@ static void do_paint_pixels(const PaintBlendSettings &blend_settings,
 
   bool pixels_updated = false;
 
-  const float3 location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
-  const float radius = ss.cache ? ss.cache->radius : ss.cursor_radius;
+  const float3 location = ss.cache->location_symm;
+  const float radius = ss.cache->radius;
   const Bounds<float3> brush_bounds(location - radius, location + radius);
 
   for (UDIMTilePixels &tile_data : pixel_node.tiles) {
