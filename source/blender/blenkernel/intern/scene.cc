@@ -1369,7 +1369,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       const size_t channels_offset_mem = offsetof(Strip, channels);
 
       /* seqbase root pointer */
-      if (ed->seqbasep == old_seqbasep || seqbase_offset_file < 0) {
+      if (ELEM(ed->seqbasep, old_seqbasep, nullptr) || seqbase_offset_file < 0) {
         ed->seqbasep = &ed->seqbase;
       }
       else {
@@ -1410,7 +1410,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
         BLO_read_struct(reader, Strip, &ms->parent_strip);
 
-        if (ms->oldbasep == old_seqbasep || seqbase_offset_file < 0) {
+        if (ELEM(ms->oldbasep, old_seqbasep, nullptr) || seqbase_offset_file < 0) {
           ms->oldbasep = &ed->seqbase;
         }
         else {
