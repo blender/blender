@@ -19,6 +19,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_math_color_c.hh"
 #include "BLI_math_vector_c.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_utildefines.hh"
 
@@ -1011,12 +1012,38 @@ static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 static void graph_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
   BlendWriter *writer = screen_writer.writer;
-  SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(sl);
-  writer->write_struct_cast<SpaceGraph>(sl, [](BlendStructWriter<SpaceGraph> &struct_writer) {
-    struct_writer.shallow_data.runtime = {};
+  SpaceGraph *space_graph = reinterpret_cast<SpaceGraph *>(sl);
+
+  if (writer->is_undo()) {
+    /* Don't do the conversion of runtime UI state to DNA for undo. */
+    writer->write_struct_cast<SpaceGraph>(sl, [](BlendStructWriter<SpaceGraph> &struct_writer) {
+      struct_writer.shallow_data.runtime = {};
+    });
+    if (space_graph->ads) {
+      writer->write_struct(space_graph->ads);
+    }
+    return;
+  }
+
+  ed::animfilter::channel_state_trim(space_graph->runtime->channel_states);
+
+  /* Allocate memory for the UI state info in DNA. */
+  const int64_t num_channel_states = space_graph->runtime->channel_states.size();
+  ResourceScope &scope = screen_writer.scope;
+  auto &ui_state_array = scope.construct<Array<SpaceChannelUIState>>(num_channel_states);
+  auto &rna_paths = scope.construct<Array<std::string>>(num_channel_states);
+
+  writer->write_struct_cast<SpaceGraph>(sl, [&](BlendStructWriter<SpaceGraph> &struct_writer) {
+    SpaceGraph &for_writing = struct_writer.shallow_data;
+    ed::animfilter::write_channel_states(*writer,
+                                         ui_state_array,
+                                         rna_paths,
+                                         space_graph->runtime->channel_states,
+                                         for_writing.channel_ui_states);
+    for_writing.runtime = {};
   });
-  if (sipo->ads) {
-    writer->write_struct(sipo->ads);
+  if (space_graph->ads) {
+    writer->write_struct(space_graph->ads);
   }
 }
 

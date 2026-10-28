@@ -557,6 +557,15 @@ using ChannelUIStateMap = Map<ChannelIdentifier, AnimationChannelUIState>;
  */
 void channel_state_trim(ChannelUIStateMap &channel_states);
 
+/**
+ * Convert the given `channel_states` to a listbase and write them into a blendfile.
+ */
+void write_channel_states(struct BlendWriter &writer,
+                          Array<SpaceChannelUIState> &ui_state_array,
+                          Array<std::string> &rna_paths,
+                          const ed::animfilter::ChannelUIStateMap &channel_states,
+                          ListBaseT<SpaceChannelUIState> &channel_ui_states);
+
 /* This is the class responsible for generating the tree structure. Each channel only tracks its
  * children, which allows us to generate multiple summary trees for the same data channels. */
 class SummaryChannel final : public AnimationChannel {

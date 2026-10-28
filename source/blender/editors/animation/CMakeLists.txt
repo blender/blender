@@ -24,6 +24,7 @@ set(SRC
   anim_draw.cc
   anim_filter_channel.cc
   anim_filter_draw.cc
+  anim_filter_read_write.cc
   anim_filter_source.cc
   anim_filter.cc
   anim_ipo_utils.cc
@@ -50,6 +51,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::animrig
   PRIVATE bf::blenlib
+  PRIVATE bf::blenloader
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

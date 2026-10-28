@@ -380,43 +380,6 @@ std::unique_ptr<AbstractChannelAPI> create_channel_api(const AnimationChannel &c
   return std::make_unique<NoOpChannelAPI>();
 }
 
-void channel_state_trim(ChannelUIStateMap &channel_states)
-{
-  /* It may be tempting to use some dynamic limit, like "3x the number of channels shown", but this
-   * has to cover historical use as well. When Only Show Selected is enabled, and an animator is
-   * animating bone-by-bone, it means the number of channels visible at any one time is limited,
-   * while the history of channels should be kept for significantly longer.
-   *
-   * This value should be tweaked based on animator experience (probably larger is better, but
-   * auto-expand/collapse can make explicit storage less important) vs. performance (smaller is
-   * better). */
-  constexpr int N = 1000;
-  using namespace ed::animfilter;
-
-  if (channel_states.size() <= N) {
-    return;
-  }
-
-  Vector<std::pair<ChannelIdentifier, int>> key_last_used;
-  key_last_used.reserve(channel_states.size());
-  BLI_assert(key_last_used.size() > N);
-  for (const ChannelUIStateMap::Item item : channel_states.items()) {
-    key_last_used.append({item.key, item.value.last_used});
-  }
-
-  /* Sort by last_used. */
-  std::ranges::sort(
-      key_last_used,
-      [&](const std::pair<ChannelIdentifier, int> &a, const std::pair<ChannelIdentifier, int> &b) {
-        return a.second < b.second;
-      });
-
-  /* Erase the oldest items (those beyond the first N). */
-  for (int i = N; i < static_cast<int>(key_last_used.size()); i++) {
-    channel_states.remove(key_last_used[i].first);
-  }
-}
-
 /* --------- ChannelIdentifier ----------- */
 
 bool ChannelIdentifier::operator==(const ChannelIdentifier &other) const

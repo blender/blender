@@ -1212,69 +1212,17 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
   /* Allocate memory for the UI state info in DNA. */
   const int64_t num_channel_states = space_action.runtime->channel_states.size();
   ResourceScope &scope = screen_writer.scope;
-  auto &ui_state_array = scope.construct<Array<SpaceChannelUIState>>(num_channel_states);
-  auto &rna_paths = scope.construct<Array<std::string>>(num_channel_states);
-
-  IDNameLib_Map *id_map = writer->idmap();
-  BLI_assert_msg(id_map, "Write without bmain, writing UI state will not be possible");
-
-  // if (num_channel_states > 0) {
-  //   std::cout << "\033[96m" << __func__ << " writing " << num_channel_states
-  //             << " UI channel states\033[0m\n";
-  // }
+  Array<SpaceChannelUIState> &ui_state_array = scope.construct<Array<SpaceChannelUIState>>(
+      num_channel_states);
+  Array<std::string> &rna_paths = scope.construct<Array<std::string>>(num_channel_states);
 
   writer->write_struct_cast<SpaceAction>(sl, [&](BlendStructWriter<SpaceAction> &struct_writer) {
     SpaceAction &for_writing = struct_writer.shallow_data;
-    BLI_assert_msg(for_writing.channel_ui_states.is_empty(),
-                   "Previous writes should have cleaned up after themselves");
-
-    /* Construct the SpaceAction::channel_ui_states listbase. */
-    int64_t array_index = 0;
-    for (const auto key_value : for_writing.runtime->channel_states.items()) {
-      SpaceChannelUIState *state = &ui_state_array[array_index];
-
-      ID *owner_id = BKE_main_idmap_lookup_uid(id_map, key_value.key.owner_session_uid);
-      ID *parent_id = BKE_main_idmap_lookup_uid(id_map, key_value.key.parent_session_uid);
-      // if (!owner_id) {
-      //   std::cout << "\033[90m";
-      // }
-
-      // std::cout << "  - " << array_index << " ";
-      // key_value.key.stream_to(std::cout, id_map);
-      // std::cout << " - " << (key_value.value.is_collapsed ? "collapsed" : "expanded")
-      //           << "\033[0m\n";
-
-      if (!owner_id) {
-        /* Stale entry, skip it. */
-        continue;
-      }
-
-      /* Store the UI state map key. */
-      state->channel_owner_id = owner_id;
-      state->channel_parent_id = parent_id;
-      if (!key_value.key.source_rna_path.items.is_empty()) {
-        rna_paths[array_index] = key_value.key.source_rna_path.to_string();
-        state->source_rna_path = rna_paths[array_index].c_str();
-      }
-      else {
-        state->source_rna_path = nullptr;
-      }
-
-      /* Store the UI state map value. */
-      state->is_collapsed = key_value.value.is_collapsed;
-      state->last_used = key_value.value.last_used;
-
-      BLI_addtail(&for_writing.channel_ui_states, state);
-      array_index++;
-    }
-
-    /* Write the structs in the listbase. */
-    for (SpaceChannelUIState &state : for_writing.channel_ui_states) {
-      screen_writer.writer->write_struct(&state);
-      if (state.source_rna_path) {
-        screen_writer.writer->write_string(state.source_rna_path);
-      }
-    }
+    ed::animfilter::write_channel_states(*writer,
+                                         ui_state_array,
+                                         rna_paths,
+                                         space_action.runtime->channel_states,
+                                         for_writing.channel_ui_states);
 
     /* Prevent writing runtime data to the blend file. */
     for_writing.runtime = {};
