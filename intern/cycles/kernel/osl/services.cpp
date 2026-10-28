@@ -29,8 +29,6 @@ CCL_NAMESPACE_BEGIN
 
 /* RenderServices implementation */
 
-ImageManager *OSLRenderServices::image_manager = nullptr;
-
 OSLRenderServices::OSLRenderServices(const int device_type)
     /* Dummy texture system pointer so OSL doesn't create its own. Such an opaque texture system
      * pointer is supported and normally would be done with the OSL_NO_DEFAULT_TEXTURESYSTEM
@@ -252,9 +250,36 @@ OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(
   return get_texture_handle(to_ustring(filename), context, opt);
 }
 
-OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(
-    OSL::ustring filename, OSL::ShadingContext * /*context*/, const OSL::TextureOpt * /*options*/)
+void OSLRenderServices::image_manager_add(const OSL::ShadingContext *context,
+                                          ImageManager *image_manager)
 {
+  const thread_scoped_lock lock(image_managers_mutex_);
+  image_managers_[context] = image_manager;
+}
+
+void OSLRenderServices::image_manager_remove(const OSL::ShadingContext *context)
+{
+  const thread_scoped_lock lock(image_managers_mutex_);
+  image_managers_.erase(context);
+}
+
+ImageManager *OSLRenderServices::image_manager_find(const OSL::ShadingContext *context)
+{
+  const thread_scoped_lock lock(image_managers_mutex_);
+  auto it = image_managers_.find(context);
+  return (it != image_managers_.end()) ? it->second : nullptr;
+}
+
+OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(
+    OSL::ustring filename, OSL::ShadingContext *context, const OSL::TextureOpt * /*options*/)
+{
+  ImageManager *image_manager = image_manager_find(context);
+  if (image_manager == nullptr) {
+    LOG_WARNING << "Open Shading Language texture call can not resolve " << filename.c_str()
+                << ", filename must be a compile-time constant";
+    return nullptr;
+  }
+
   /* Note the mutex lock in find_or_insert() is not so bad for performance because
    * this function only gets called once per texture handle to create it, not for
    * every texture access. */
