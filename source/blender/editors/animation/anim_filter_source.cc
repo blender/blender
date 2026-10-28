@@ -504,7 +504,16 @@ void collection_channels_for_object(Object &obj, ChannelSourcingContext &ctx)
   }
 }
 
-static void collect_action_channels(animrig::Action &action, ChannelArena &arena)
+/**
+ * Collect all the animation channels for the given Action.
+ *
+ * The active object is passed in for resolving F-Curve RNA paths and for selection syncing.
+ * Normally this uses a random ID that's animated by the relevant slot, but if the active object is
+ * animated by that same slot, that gets presedence.
+ */
+static void collect_action_channels(animrig::Action &action,
+                                    ChannelArena &arena,
+                                    ID *active_object_id)
 {
   using namespace animrig;
   PRF_scope_with_name("ed::animfilter::collect_action_channels", ProfileCategory::Editor);
@@ -573,12 +582,21 @@ static void collect_action_channels(animrig::Action &action, ChannelArena &arena
                      })});
         }
 
-        /* Push a tag for the first ID animated by this Slot. That way, the F-Curve labels
-         * can be resolved properly. */
+        /* Push a tag for the ID animated by this Slot. That way, the F-Curve labels
+         * can be resolved properly. This is also used by selection syncing of pose bones. */
         bool did_push_slot_user_tag = false;
         if (slot && !slot->runtime_users().is_empty()) {
           did_push_slot_user_tag = true;
-          ID *slot_user = slot->runtime_users()[0];
+          ID *slot_user = nullptr;
+
+          /* Prioritize the active object over other slot users. */
+          if (slot->runtime_users().contains(active_object_id)) {
+            slot_user = active_object_id;
+          }
+          else {
+            slot_user = slot->runtime_users()[0];
+          }
+
           PointerRNA slot_user_id_ptr = RNA_id_pointer_create(slot_user);
           tags.push(
               {ChannelTagType::ID, slot_user->name + 2, slot_user_id_ptr, ParsedRNAPathRef()});
@@ -629,7 +647,7 @@ void collect_action_editor_channels(const bContext &C, ChannelArena &arena)
   }
   animrig::Action &action = active_object->adt->action->wrap();
 
-  collect_action_channels(action, arena);
+  collect_action_channels(action, arena, &active_object->id);
 }
 
 void collect_animation_channels(const bContext &C, ChannelArena &arena)
