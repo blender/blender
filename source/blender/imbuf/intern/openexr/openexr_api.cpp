@@ -1631,6 +1631,7 @@ static int imb_exr_split_channel_name(ExrChannel &echan,
                                       bool has_xyz_channels)
 {
   const int layname_maxncpy = EXR_TOT_MAXNAME;
+  const int passname_maxncpy = EXR_TOT_MAXNAME;
   const char *name = echan.name.c_str();
   const char *end = name + strlen(name);
   const char *token;
@@ -1709,7 +1710,7 @@ static int imb_exr_split_channel_name(ExrChannel &echan,
       CLOG_ERROR(&LOG, "Multilayer read: bad channel name: %s", name);
       return 0;
     }
-    BLI_strncpy(passname, token, len + 1);
+    BLI_strncpy(passname, token, std::min(passname_maxncpy, int(len) + 1));
     end -= len + 1; /* +1 to skip '.' separator */
   }
   else {
