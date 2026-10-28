@@ -234,6 +234,7 @@ static void convert_storage_to_customdata(
       cpp_type.fill_construct_n(single_data->value, value->data.data(), domain_size);
       CustomData_add_layer_named_with_data(
           &custom_data, *data_type, value->data.data(), domain_size, attribute.name(), value);
+      value->remove_user_and_delete_if_last();
     }
   });
   storage = {};
