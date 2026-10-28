@@ -339,7 +339,7 @@ class ChannelIdentifier {
  * Runtime data containing animation channel UI state.
  * Used by any editor showing animation channels.
  *
- * Fields that need persisting to the blend file need to be mirrored in #SpaceChannelUIState
+ * Fields that need persisting to the blend file need to be mirrored in #SpaceChannelDNAState
  * in source/blender/makesdna/DNA_action_types.h.
  */
 struct AnimationChannelUIState {
@@ -559,12 +559,28 @@ void channel_state_trim(ChannelUIStateMap &channel_states);
 
 /**
  * Convert the given `channel_states` to a listbase and write them into a blendfile.
+ * \param channel_dna_states has to come from the shallow copy of a `BlendStructWriter`.
  */
 void write_channel_states(struct BlendWriter &writer,
-                          Array<SpaceChannelUIState> &ui_state_array,
+                          Array<SpaceChannelDNAState> &ui_state_array,
                           Array<std::string> &rna_paths,
-                          const ed::animfilter::ChannelUIStateMap &channel_states,
-                          ListBaseT<SpaceChannelUIState> &channel_ui_states);
+                          const ChannelUIStateMap &channel_states,
+                          ListBaseT<SpaceChannelDNAState> &channel_dna_states);
+
+/**
+ * Populate the given listbase from the reader.
+ */
+void read_channel_states_data(struct BlendDataReader &reader,
+                              ListBaseT<SpaceChannelDNAState> &channel_dna_states);
+
+/**
+ * Populate the `channel_states` with entries from the `channel_dna_states`.
+ * `channel_dna_states` will be freed and turn into an empty list after this function.
+ * As the name implies this has to be called in a `blend_read_after_liblink` callback.
+ */
+void read_channel_states_after_liblink(struct BlendLibReader &reader,
+                                       ListBaseT<SpaceChannelDNAState> &channel_dna_states,
+                                       ChannelUIStateMap &channel_states);
 
 /* This is the class responsible for generating the tree structure. Each channel only tracks its
  * children, which allows us to generate multiple summary trees for the same data channels. */

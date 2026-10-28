@@ -1195,14 +1195,14 @@ struct SpaceActionOverlays {
 };
 
 /**
- * UI state for an animation channel.
+ * UI state for an animation channel stored in DNA.
  *
  * This data is generated from runtime data, and only used for blendfile IO.
  *
  * \see #ChannelUIStateMap in ED_space_action.hh
  */
-struct SpaceChannelUIState {
-  struct SpaceChannelUIState *next = nullptr, *prev = nullptr;
+struct SpaceChannelDNAState {
+  struct SpaceChannelDNAState *next = nullptr, *prev = nullptr;
 
   /* These fields store the ChannelIdentifier. */
   ID *channel_owner_id = nullptr;
@@ -1251,7 +1251,7 @@ struct SpaceAction {
   char _pad2[4] = {};
 
   SpaceActionOverlays overlays;
-  ListBaseT<struct SpaceChannelUIState> channel_ui_states = {nullptr, nullptr};
+  ListBaseT<struct SpaceChannelDNAState> channel_ui_states = {nullptr, nullptr};
 
   struct SpaceAction_Runtime *runtime;
 };

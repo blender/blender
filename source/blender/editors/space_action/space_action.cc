@@ -1026,7 +1026,7 @@ static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   }
 
   if (!BLI_listbase_is_empty(&sact->channel_ui_states)) {
-    for (const SpaceChannelUIState &state : sact->channel_ui_states) {
+    for (const SpaceChannelDNAState &state : sact->channel_ui_states) {
       BKE_LIB_FOREACHID_PROCESS_ID(data, state.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
       BKE_LIB_FOREACHID_PROCESS_ID(data, state.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
     }
@@ -1086,12 +1086,7 @@ static void action_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
   saction->runtime = MEM_new<SpaceAction_Runtime>(__func__);
 
-  /* Read the UI state. This will be converted to runtime data in
-   * #action_space_blend_read_after_liblink() below. */
-  BLO_read_struct_list(reader, SpaceChannelUIState, &saction->channel_ui_states);
-  for (SpaceChannelUIState &state : saction->channel_ui_states) {
-    BLO_read_string(reader, &state.source_rna_path);
-  }
+  ed::animfilter::read_channel_states_data(*reader, saction->channel_ui_states);
 }
 
 static void action_space_blend_read_after_liblink(BlendLibReader *reader,
@@ -1100,84 +1095,9 @@ static void action_space_blend_read_after_liblink(BlendLibReader *reader,
 {
   using namespace ed::animfilter;
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
-  bool has_shown_warning_header = false;
 
-  if (BLI_listbase_is_empty(&saction->channel_ui_states)) {
-    return;
-  }
-
-  if (G.fileflags & G_FILE_NO_UI) {
-    /* The UI state should not be loaded, but still the UI state should be freed to avoid leaking
-     * memory. */
-    BLI_freelistN(&saction->channel_ui_states);
-    return;
-  }
-
-  /* Convert animation channel UI states. */
-  // std::cout << "\033[95m" << __func__ << ": reading "
-  //           << BLI_listbase_count(&saction->channel_ui_states) << " UI channel states\033[0m\n";
-  // int state_index = 0;
-  for (SpaceChannelUIState &state : saction->channel_ui_states) {
-    /* Create the UI state map key. */
-    ChannelIdentifier chan_ident;
-    if (state.channel_owner_id) {
-      BLI_assert_msg(
-          !(state.channel_owner_id->flag & ID_FLAG_EMBEDDED_DATA),
-          "ed::animfilter::ChannelIdentifier can only work on real IDs, not embedded ones");
-      BKE_lib_libblock_session_uid_ensure(state.channel_owner_id);
-      chan_ident.owner_session_uid = state.channel_owner_id->session_uid;
-    }
-    if (state.channel_parent_id) {
-      if (state.channel_parent_id->flag & ID_FLAG_EMBEDDED_DATA) {
-        CLOG_WARN(
-            &LOG,
-            "ed::animfilter::ChannelIdentifier can only work on real IDs, not embedded ones (%s)",
-            state.channel_parent_id->name);
-      }
-      else {
-        // BLI_assert_msg(
-        //     !(state.channel_parent_id->flag & ID_FLAG_EMBEDDED_DATA),
-        //     "ed::animfilter::ChannelIdentifier can only work on real IDs, not embedded ones");
-        BKE_lib_libblock_session_uid_ensure(state.channel_parent_id);
-        chan_ident.parent_session_uid = state.channel_parent_id->session_uid;
-      }
-    }
-
-    if (state.source_rna_path) {
-      chan_ident.source_rna_path =
-          ParsedSourcePath::from_string(state.source_rna_path).value_or(ParsedSourcePath());
-    }
-
-    // std::cout << "  - " << state_index << " ";
-    // chan_ident.stream_to(std::cout, reader->main);
-    // std::cout << " - " << (state.is_collapsed ? "collapsed" : "expanded") << "\n";
-    // state_index++;
-
-    /* Create the UI state map value. */
-    const AnimationChannelUIState ui_state{
-        bool(state.is_collapsed),
-        state.last_used,
-    };
-
-    /* The original map ensured uniqueness, but the ListBase written to DNA does not. So better to
-     * use add() rather than add_new(). Also newer Blenders may write more information than what is
-     * loaded here, and that missing data may cause channel identifier collissions, so better
-     * handle those without crashing. */
-    if (!saction->runtime->channel_states.add(chan_ident, ui_state)) {
-      if (!has_shown_warning_header) {
-        CLOG_WARN(&LOG, "reading animation channel UI state:");
-        has_shown_warning_header = true;
-      }
-      std::stringstream ss;
-      chan_ident.stream_to(ss, reader->main);
-      CLOG_WARN(&LOG, "  - duplicate channel %s found", ss.str().c_str());
-    }
-
-    /* Discard the RNA path, as BLI_freelistN() below won't do that. */
-    MEM_SAFE_DELETE(state.source_rna_path);
-  }
-
-  BLI_freelistN(&saction->channel_ui_states);
+  ed::animfilter::read_channel_states_after_liblink(
+      *reader, saction->channel_ui_states, saction->runtime->channel_states);
 }
 
 static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
@@ -1199,7 +1119,7 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
   /* Allocate memory for the UI state info in DNA. */
   const int64_t num_channel_states = space_action.runtime->channel_states.size();
   ResourceScope &scope = screen_writer.scope;
-  Array<SpaceChannelUIState> &ui_state_array = scope.construct<Array<SpaceChannelUIState>>(
+  Array<SpaceChannelDNAState> &ui_state_array = scope.construct<Array<SpaceChannelDNAState>>(
       num_channel_states);
   Array<std::string> &rna_paths = scope.construct<Array<std::string>>(num_channel_states);
 

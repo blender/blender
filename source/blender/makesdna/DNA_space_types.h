@@ -262,7 +262,7 @@ struct SpaceGraph {
   /* Store visible region size before entering the local view. */
   rctf local_view_visible_region_before = {};
 
-  ListBaseT<struct SpaceChannelUIState> channel_ui_states = {nullptr, nullptr};
+  ListBaseT<struct SpaceChannelDNAState> channel_ui_states = {nullptr, nullptr};
 
   struct SpaceGraph_Runtime *runtime;
 };

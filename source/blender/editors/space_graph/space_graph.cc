@@ -951,6 +951,13 @@ static void graph_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
      * prevent the "black curves" problem post-undo. */
     sgraph->runtime->flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR;
   }
+
+  if (!BLI_listbase_is_empty(&sgraph->channel_ui_states)) {
+    for (const SpaceChannelDNAState &state : sgraph->channel_ui_states) {
+      BKE_LIB_FOREACHID_PROCESS_ID(data, state.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
+      BKE_LIB_FOREACHID_PROCESS_ID(data, state.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
+    }
+  }
 }
 
 static int graph_space_subtype_get(ScrArea *area)
@@ -992,8 +999,20 @@ static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(sl);
 
-  BLO_read_struct(reader, bDopeSheet, &sipo->ads);
   sipo->runtime = MEM_new<SpaceGraph_Runtime>(__func__);
+
+  BLO_read_struct(reader, bDopeSheet, &sipo->ads);
+  ed::animfilter::read_channel_states_data(*reader, sipo->channel_ui_states);
+}
+
+static void graph_space_blend_read_after_liblink(BlendLibReader *reader,
+                                                 ID * /*parent_id*/,
+                                                 SpaceLink *sl)
+{
+  using namespace ed::animfilter;
+  SpaceGraph *space_graph = reinterpret_cast<SpaceGraph *>(sl);
+  ed::animfilter::read_channel_states_after_liblink(
+      *reader, space_graph->channel_ui_states, space_graph->runtime->channel_states);
 }
 
 static void graph_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
@@ -1017,8 +1036,9 @@ static void graph_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLi
   /* Allocate memory for the UI state info in DNA. */
   const int64_t num_channel_states = space_graph->runtime->channel_states.size();
   ResourceScope &scope = screen_writer.scope;
-  auto &ui_state_array = scope.construct<Array<SpaceChannelUIState>>(num_channel_states);
-  auto &rna_paths = scope.construct<Array<std::string>>(num_channel_states);
+  Array<SpaceChannelDNAState> &ui_state_array = scope.construct<Array<SpaceChannelDNAState>>(
+      num_channel_states);
+  Array<std::string> &rna_paths = scope.construct<Array<std::string>>(num_channel_states);
 
   writer->write_struct_cast<SpaceGraph>(sl, [&](BlendStructWriter<SpaceGraph> &struct_writer) {
     SpaceGraph &for_writing = struct_writer.shallow_data;
@@ -1067,7 +1087,7 @@ void ED_spacetype_ipo()
   st->space_name_get = graph_space_name_get;
   st->space_icon_get = graph_space_icon_get;
   st->blend_read_data = graph_space_blend_read_data;
-  st->blend_read_after_liblink = nullptr;
+  st->blend_read_after_liblink = graph_space_blend_read_after_liblink;
   st->blend_write = graph_space_blend_write;
 
   /* regions: main window */
