@@ -1597,16 +1597,16 @@ static void imb_exr_pass_name_from_channel(char *passname,
   const int passname_maxncpy = EXR_TOT_MAXNAME;
 
   if (echan.chan_id == 'Z' && (!has_xyz_channels || BLI_strcaseeq(channelname, "depth"))) {
-    BLI_strncpy(passname, "Depth", passname_maxncpy);
+    BLI_strncpy_utf8(passname, "Depth", passname_maxncpy);
   }
   else if (echan.chan_id == 'Y' && !has_xyz_channels) {
-    BLI_strncpy(passname, channelname, passname_maxncpy);
+    BLI_strncpy_utf8(passname, channelname, passname_maxncpy);
   }
   else if (ELEM(echan.chan_id, 'R', 'G', 'B', 'A', 'V', 'X', 'Y', 'Z')) {
-    BLI_strncpy(passname, "Combined", passname_maxncpy);
+    BLI_strncpy_utf8(passname, "Combined", passname_maxncpy);
   }
   else {
-    BLI_strncpy(passname, channelname, passname_maxncpy);
+    BLI_strncpy_utf8(passname, channelname, passname_maxncpy);
   }
 }
 
@@ -1622,7 +1622,7 @@ static void imb_exr_pass_name_from_channel_name(char *passname,
    * is when the channel name is more than 1 character, so perhaps using just channel ID is not
    * fully correct here. */
 
-  BLI_strncpy(passname, channelname, passname_maxncpy);
+  BLI_strncpy_utf8(passname, channelname, passname_maxncpy);
 }
 
 static int imb_exr_split_channel_name(ExrChannel &echan,
@@ -1658,7 +1658,7 @@ static int imb_exr_split_channel_name(ExrChannel &echan,
   }
 
   char channelname[EXR_TOT_MAXNAME];
-  BLI_strncpy(channelname, token, std::min(len + 1, sizeof(channelname)));
+  BLI_strncpy_utf8(channelname, token, std::min(len + 1, sizeof(channelname)));
 
   if (len == 1) {
     echan.chan_id = BLI_toupper_ascii(channelname[0]);
@@ -1710,7 +1710,7 @@ static int imb_exr_split_channel_name(ExrChannel &echan,
       CLOG_ERROR(&LOG, "Multilayer read: bad channel name: %s", name);
       return 0;
     }
-    BLI_strncpy(passname, token, std::min(passname_maxncpy, int(len) + 1));
+    BLI_strncpy_utf8(passname, token, std::min(passname_maxncpy, int(len) + 1));
     end -= len + 1; /* +1 to skip '.' separator */
   }
   else {
@@ -1720,7 +1720,7 @@ static int imb_exr_split_channel_name(ExrChannel &echan,
 
   /* all preceding tokens combined as layer name */
   if (end > name) {
-    BLI_strncpy(layname, name, std::min(layname_maxncpy, int(end - name) + 1));
+    BLI_strncpy_utf8(layname, name, std::min(layname_maxncpy, int(end - name) + 1));
   }
   else {
     layname[0] = '\0';
@@ -1898,8 +1898,8 @@ static bool imb_exr_multilayer_ensure_channels_parsed(ExrReadHandle *handle)
 
       if (view[0] != '\0') {
         char tmp_pass[EXR_PASS_MAXNAME];
-        SNPRINTF(tmp_pass, "%s.%s", passname, view);
-        STRNCPY(passname, tmp_pass);
+        SNPRINTF_UTF8(tmp_pass, "%s.%s", passname, view);
+        STRNCPY_UTF8(passname, tmp_pass);
       }
 
       ExrLayer *lay = imb_exr_get_layer(handle, layname);
