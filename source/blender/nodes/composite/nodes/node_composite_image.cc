@@ -283,6 +283,7 @@ class ImageOperation : public NodeOperation {
 
     if (identifier == "Alpha") {
       this->compute_alpha();
+      this->set_output_pixel_size(result);
       return;
     }
 
@@ -296,10 +297,7 @@ class ImageOperation : public NodeOperation {
     result.set_type(cached_image.type());
     result.set_precision(cached_image.precision());
     result.share_data(cached_image);
-    const float2 pixel_size = this->context().get_compositing_domain().pixel_size;
-    result.domain().transformation = math::from_scale<float3x3>(pixel_size) *
-                                     result.domain().transformation;
-    result.domain().pixel_size = pixel_size;
+    this->set_output_pixel_size(result);
   }
 
   void compute_alpha()
@@ -337,6 +335,18 @@ class ImageOperation : public NodeOperation {
       return;
     }
     extract_alpha(this->context(), cached_combined_image, result);
+  }
+
+  void set_output_pixel_size(Result &output)
+  {
+    if (!output.is_allocated() || output.is_single_value()) {
+      return;
+    }
+
+    const float2 pixel_size = this->context().get_compositing_domain().pixel_size;
+    output.domain().transformation = math::from_scale<float3x3>(pixel_size) *
+                                     output.domain().transformation;
+    output.domain().pixel_size = pixel_size;
   }
 
   Image *get_image()
