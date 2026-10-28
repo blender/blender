@@ -867,18 +867,8 @@ void OneapiDevice::image_alloc(device_image &mem)
       tex_info.data = (uint64_t)mem.device_pointer;
     }
 
-    {
-      /* Update image info. */
-      thread_scoped_lock lock(image_info_mutex);
-      const uint image_info_id = mem.image_info_id;
-      if (image_info_id >= image_info.size()) {
-        /* Geometric growth to amortize reallocation cost. */
-        const size_t new_size = max(size_t(image_info_id) + 128, image_info.size() * 2);
-        image_info.host_only_resize(new_size);
-      }
-      image_info[image_info_id] = tex_info;
-      need_image_info = true;
-    }
+    /* Update image info. */
+    image_info_update(mem.image_info_id, tex_info);
   }
   catch (sycl::exception const &e) {
     set_error("GPU image allocation failed: runtime exception \"" + string(e.what()) + "\"");
