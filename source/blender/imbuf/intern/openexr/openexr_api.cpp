@@ -1595,16 +1595,16 @@ static void imb_exr_pass_name_from_channel(MutableCStr passname,
                                            const bool has_xyz_channels)
 {
   if (echan.chan_id == 'Z' && (!has_xyz_channels || BLI_strcaseeq(channelname, "depth"))) {
-    STRNCPY(passname, "Depth");
+    STRNCPY_UTF8(passname, "Depth");
   }
   else if (echan.chan_id == 'Y' && !has_xyz_channels) {
-    STRNCPY(passname, channelname);
+    STRNCPY_UTF8(passname, channelname);
   }
   else if (ELEM(echan.chan_id, 'R', 'G', 'B', 'A', 'V', 'X', 'Y', 'Z')) {
-    STRNCPY(passname, "Combined");
+    STRNCPY_UTF8(passname, "Combined");
   }
   else {
-    STRNCPY(passname, channelname);
+    STRNCPY_UTF8(passname, channelname);
   }
 }
 
@@ -1618,7 +1618,7 @@ static void imb_exr_pass_name_from_channel_name(MutableCStr passname,
    * is when the channel name is more than 1 character, so perhaps using just channel ID is not
    * fully correct here. */
 
-  STRNCPY(passname, channelname);
+  STRNCPY_UTF8(passname, channelname);
 }
 
 static int imb_exr_split_channel_name(ExrChannel &echan,
@@ -1652,7 +1652,7 @@ static int imb_exr_split_channel_name(ExrChannel &echan,
   }
 
   char channelname[EXR_TOT_MAXNAME];
-  STRNCPY(MutableCStr(channelname).take_front(len + 1), token);
+  STRNCPY_UTF8(MutableCStr(channelname).take_front(len + 1), token);
 
   if (len == 1) {
     echan.chan_id = BLI_toupper_ascii(channelname[0]);
@@ -1704,7 +1704,7 @@ static int imb_exr_split_channel_name(ExrChannel &echan,
       CLOG_ERROR(&LOG, "Multilayer read: bad channel name: %s", name);
       return 0;
     }
-    STRNCPY(passname.take_front(len + 1), token);
+    STRNCPY_UTF8(passname.take_front(len + 1), token);
     end -= len + 1; /* +1 to skip '.' separator */
   }
   else {
@@ -1714,7 +1714,7 @@ static int imb_exr_split_channel_name(ExrChannel &echan,
 
   /* all preceding tokens combined as layer name */
   if (end > name) {
-    STRNCPY(layname.take_front(int(end - name) + 1), name);
+    STRNCPY_UTF8(layname.take_front(int(end - name) + 1), name);
   }
   else {
     layname[0] = '\0';
@@ -1892,8 +1892,8 @@ static bool imb_exr_multilayer_ensure_channels_parsed(ExrReadHandle *handle)
 
       if (view[0] != '\0') {
         char tmp_pass[EXR_PASS_MAXNAME];
-        SNPRINTF(tmp_pass, "%s.%s", passname, view);
-        STRNCPY(passname, tmp_pass);
+        SNPRINTF_UTF8(tmp_pass, "%s.%s", passname, view);
+        STRNCPY_UTF8(passname, tmp_pass);
       }
 
       ExrLayer *lay = imb_exr_get_layer(handle, layname);
