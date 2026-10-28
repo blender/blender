@@ -4653,9 +4653,12 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
     }
   }
 
-  /* Cache null to indicate failed load. */
-  if (ibuf == nullptr && (ima->rr == nullptr || iuser)) {
-    image_assign_ibuf(ima, nullptr, iuser ? iuser->multi_index : IMA_NO_INDEX, 0);
+  /* Cache null to indicate failed load. A failed file load applies to all passes. */
+  if (ibuf == nullptr && ima->rr == nullptr) {
+    image_assign_ibuf(ima, nullptr, IMA_NO_INDEX, 0);
+  }
+  else if (ibuf == nullptr && iuser) {
+    image_assign_ibuf(ima, nullptr, iuser->multi_index, 0);
   }
 
   return ibuf;
@@ -4853,7 +4856,8 @@ static ImBuf *image_get_cached_ibuf(
       ibuf = image_get_cached_ibuf_for_index_entry(ima, index, 0, r_is_cached_empty);
     }
     else if (ima->type == IMA_TYPE_MULTILAYER) {
-      ibuf = image_get_cached_ibuf_for_index_entry(ima, index, 0, r_is_cached_empty);
+      ibuf = image_get_cached_ibuf_for_index_entry(
+          ima, ima->rr ? index : IMA_NO_INDEX, 0, r_is_cached_empty);
     }
   }
   else if (ima->source == IMA_SRC_GENERATED) {
