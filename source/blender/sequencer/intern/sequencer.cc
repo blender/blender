@@ -894,6 +894,10 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
   BLO_read_struct(reader, StripData, &strip->data);
   if (strip->data && strip->data->done == 0) {
     strip->data->done = true;
+    if (strip->data->us == 0) {
+      /* To avoid leaking with future blender files. */
+      strip->data->us = 1;
+    }
 
     /* `STRIP_TYPE_SOUND_HD` case needs to be kept here, for backward compatibility. */
     if (ELEM(strip->type,
