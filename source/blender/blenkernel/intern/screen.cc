@@ -598,6 +598,11 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
     if (art && art->free) {
       art->free(region);
     }
+    else if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
+      /* Avoid leak with future blend files asset shelf regions for which we
+       * do not define art->free. */
+      blender::ed::asset::shelf::region_free(region);
+    }
 
     if (region->regiondata && !(region->flag & RGN_FLAG_TEMP_REGIONDATA)) {
       printf("regiondata free error\n");
