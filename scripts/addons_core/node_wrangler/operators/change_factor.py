@@ -9,6 +9,7 @@ from ..utils.nodes import (
     NWBase,
     nw_check,
     nw_check_selected,
+    get_input_by_name,
 )
 
 
@@ -44,14 +45,14 @@ class NODE_OT_change_factor(Operator, NWBase):
 
         if option in {0.0, 1.0}:
             for node in context.selected_nodes:
-                if socket := node.inputs.get("Factor"):
+                if socket := get_input_by_name(node, "Factor", socket_types={'VALUE'}):
                     socket.hide = False
                     if socket.default_value != option:
                         socket.default_value = option
                         any_socket_modified = True
         else:
             for node in context.selected_nodes:
-                if socket := node.inputs.get("Factor") and socket.type == 'VALUE':
+                if socket := get_input_by_name(node, "Factor", socket_types={'VALUE'}):
                     socket.hide = False
                     min_fac, max_fac = self.get_socket_min_and_max(node, socket)
                     if (option < 0.0) and (socket.default_value > min_fac):
