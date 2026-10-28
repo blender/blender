@@ -5360,9 +5360,12 @@ void autocomplete_update_name(AutoComplete *autocpl, const StringRef name)
 {
   char *truncate = autocpl->truncate.data();
   const char *startname = autocpl->startname;
+  const int len_max = int(autocpl->truncate.size()) - 1;
   int match_index = 0;
-  for (int a = 0; a < std::min<size_t>(name.size(), autocpl->truncate.size()) - 1; a++) {
-    if (startname[a] == 0 || startname[a] != name[a]) {
+  for (int a = 0; a < len_max; a++) {
+    /* Past the end of `name`, compare with its null terminator. */
+    const char c = (a < name.size()) ? name[a] : '\0';
+    if (startname[a] == 0 || startname[a] != c) {
       match_index = a;
       break;
     }
@@ -5377,8 +5380,8 @@ void autocomplete_update_name(AutoComplete *autocpl, const StringRef name)
     }
     else {
       /* remove from truncate what is not in bone->name */
-      for (int a = 0; a < std::min<size_t>(name.size(), autocpl->truncate.size()) - 1; a++) {
-        if (name[a] == 0) {
+      for (int a = 0; a < len_max; a++) {
+        if (a == name.size()) {
           truncate[a] = 0;
           break;
         }
