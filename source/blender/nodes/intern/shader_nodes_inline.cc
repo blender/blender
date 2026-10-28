@@ -415,7 +415,7 @@ class ShaderNodesInliner {
                                                                   const bNodeTree &tree,
                                                                   Vector<TreeInContext> &r_trees)
   {
-    const bke::bNodeTreeZones *zones = src_tree_.zones();
+    const bke::bNodeTreeZones *zones = tree.zones();
     if (!zones) {
       return;
     }
