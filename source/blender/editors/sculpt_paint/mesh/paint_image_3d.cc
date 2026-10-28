@@ -124,7 +124,7 @@ static void fetch_image_buffers(ImageData &image_data,
       image_data.seam_tile_modified.lookup_or_add_cb(tile.tile_number, [&]() {
         const int tiles_x = (buffer->x + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
         const int tiles_y = (buffer->y + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
-        return Array<uint8_t>(int64_t(tiles_x) * tiles_y, 0);
+        return Array<bool>(int64_t(tiles_x) * tiles_y, 0);
       });
       image_data.processors.lookup_or_add_cb(tile.tile_number, [&]() {
         const ColorSpace &buffer_colorspace = buffer->float_data() ? buffer->float_colorspace() :
@@ -478,7 +478,7 @@ static void push_undo_tiles(ImageData &image_data,
  * Mark the seam tiles covering the given pixel row as modified. Dilated by one tile so a
  * seam whose second source sits one pixel across a tile boundary is still handled.
  */
-static void mark_seam_tiles_modified(MutableSpan<uint8_t> mask,
+static void mark_seam_tiles_modified(MutableSpan<bool> mask,
                                      const int tiles_x,
                                      const int tiles_y,
                                      const int x_start,
@@ -496,7 +496,7 @@ static void mark_seam_tiles_modified(MutableSpan<uint8_t> mask,
 
   for (int dty = tile_y_min; dty <= tile_y_max; dty++) {
     for (int dtx = tile_x_min; dtx <= tile_x_max; dtx++) {
-      mask[int64_t(dty) * tiles_x + dtx] = 1;
+      mask[int64_t(dty) * tiles_x + dtx] = true;
     }
   }
 }
@@ -703,7 +703,7 @@ static void do_paint_pixels(const PaintBlendSettings &blend_settings,
     });
 
     /* Mark the seam tiles modified and update dirty bounds. */
-    const MutableSpan<uint8_t> seam_tile_modified = image_data.seam_tile_modified.lookup(
+    const MutableSpan<bool> seam_tile_modified = image_data.seam_tile_modified.lookup(
         tile_data.tile_number);
     const int seam_tiles_x = (image_buffer->x + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
     const int seam_tiles_y = (image_buffer->y + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
@@ -757,8 +757,7 @@ static void fix_non_manifold_seam_bleeding(bke::pbvh::Tree &pbvh,
       continue;
     }
     const MutableSpan<uint32_t> undo_tile_pushed = image_data.undo_tile_pushed.lookup(tile_number);
-    const MutableSpan<uint8_t> seam_tile_modified = image_data.seam_tile_modified.lookup(
-        tile_number);
+    const MutableSpan<bool> seam_tile_modified = image_data.seam_tile_modified.lookup(tile_number);
 
     bke::pbvh::pixels::copy_pixels(
         pbvh,

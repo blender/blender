@@ -39,7 +39,7 @@ struct ImageData : NonCopyable {
   Map<bke::image::TileNumber, Array<uint32_t>> undo_tile_pushed = {};
 
   /** Per seam tile modified state, to only do seam bleeding where needed. */
-  Map<bke::image::TileNumber, Array<uint8_t>> seam_tile_modified = {};
+  Map<bke::image::TileNumber, Array<bool>> seam_tile_modified = {};
 
   ~ImageData();
 
