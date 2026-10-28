@@ -236,19 +236,6 @@ static void draw_normalization_borders(Scene *scene, View2D *v2d)
   immUnbindProgram();
 }
 
-/** Get the channels, caching them on the space data. */
-static ed::animfilter::ChannelArena &space_graph_channel_arena(const bContext &C)
-{
-  SpaceGraph *space_graph = CTX_wm_space_graph(&C);
-  SpaceGraph_Runtime *runtime = space_graph->runtime;
-  if (!runtime->channel_arena) {
-    ed::animfilter::ChannelArena channels = ed::graph::get_summary_tree(C);
-    runtime->channel_arena.emplace(std::move(channels));
-  }
-
-  return *runtime->channel_arena;
-}
-
 static void graph_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
@@ -478,7 +465,7 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
   ui::theme::frame_buffer_clear(TH_BACK);
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    ed::animfilter::ChannelArena &channels = space_graph_channel_arena(*C);
+    ed::animfilter::ChannelArena &channels = ed::graph::get_summary_tree(*C);
     set_v2d_height(v2d, channels.num_channels());
     ui::view2d_view_ortho(v2d);
 

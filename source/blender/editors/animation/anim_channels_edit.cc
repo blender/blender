@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <functional>
 
 #include "MEM_guardedalloc.h"
 
@@ -3587,7 +3588,8 @@ static void ANIM_OT_channels_select_filter(wmOperatorType *ot)
  * \returns all currently visible channels for the space of the given context or a std::nullopt if
  * the space does not support animation channels.
  */
-static std::optional<ed::animfilter::ChannelArena> get_channels_from_space(bContext &C)
+static std::optional<std::reference_wrapper<ed::animfilter::ChannelArena>> get_channels_from_space(
+    bContext &C)
 {
   /* TODO this may not really be what we want, because we need the result after all filtering has
    * been applied. The filtering by name may be applied by the tree view itself? */
@@ -3630,46 +3632,46 @@ static wmOperatorStatus animchannels_selectall_exec(bContext *C, wmOperator *op)
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
-    std::optional<ChannelArena> channels = get_channels_from_space(*C);
-    if (!channels) {
+    std::optional<std::reference_wrapper<ChannelArena>> opt_arena = get_channels_from_space(*C);
+    if (!opt_arena) {
       return OPERATOR_CANCELLED;
     }
+    ChannelArena &arena = opt_arena->get();
     const int action = RNA_enum_get(op->ptr, "action");
     switch (action) {
       case SEL_TOGGLE: {
         bool select = true;
-        for (DataChannel *data_channel : channels->data_channels) {
+        for (DataChannel *data_channel : arena.data_channels) {
           if (data_channel->is_selected()) {
             select = false;
             break;
           }
         }
         if (select) {
-          for (SummaryChannel *summary_channel : channels->summary_channels) {
+          for (SummaryChannel *summary_channel : arena.summary_channels) {
             if (summary_channel->is_selected()) {
               select = false;
               break;
             }
           }
         }
-        select_all_channels(*channels, select);
+        select_all_channels(arena, select);
         break;
       }
       case SEL_SELECT: {
-        select_all_channels(*channels, true);
+        select_all_channels(arena, true);
         break;
       }
       case SEL_DESELECT: {
-        select_all_channels(*channels, false);
+        select_all_channels(arena, false);
         break;
       }
       case SEL_INVERT: {
-        const bool do_selection_syncing = do_sync_channel_selection_to_secondary(
-            channels->filters);
-        for (DataChannel *data_channel : channels->data_channels) {
+        const bool do_selection_syncing = do_sync_channel_selection_to_secondary(arena.filters);
+        for (DataChannel *data_channel : arena.data_channels) {
           data_channel->set_selected(!data_channel->is_selected(), do_selection_syncing);
         }
-        for (SummaryChannel *summary_channel : channels->summary_channels) {
+        for (SummaryChannel *summary_channel : arena.summary_channels) {
           summary_channel->set_selected(!summary_channel->is_selected(), do_selection_syncing);
         }
         break;
@@ -3874,12 +3876,16 @@ static wmOperatorStatus animchannels_box_select_exec(bContext *C, wmOperator *op
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     /* TODO In order for this to work correctly we need to tweak TreeView to only select on up. */
     using namespace ed::animfilter;
-    std::optional<ChannelArena> arena = get_channels_from_space(*C);
-    if (!arena || !arena->root()) {
+    std::optional<std::reference_wrapper<ChannelArena>> opt_arena = get_channels_from_space(*C);
+    if (!opt_arena) {
+      return OPERATOR_CANCELLED;
+    }
+    ChannelArena &arena = opt_arena->get();
+    if (!arena.root()) {
       return OPERATOR_CANCELLED;
     }
     if (!extend) {
-      select_all_channels(*arena, false);
+      select_all_channels(arena, false);
     }
     ARegion *region = CTX_wm_region(C);
     const float channel_step = ANIM_UI_get_channel_step();
@@ -3888,8 +3894,8 @@ static wmOperatorStatus animchannels_box_select_exec(bContext *C, wmOperator *op
     const float v2d_y_start = ui::view2d_region_to_view_y(&region->v2d, rect.ymin);
     const float v2d_y_end = ui::view2d_region_to_view_y(&region->v2d, rect.ymax);
 
-    const bool do_selection_syncing = do_sync_channel_selection_to_secondary(arena->filters);
-    foreach_expanded(*arena->root(), [&](AnimationChannel &channel, int row_index) {
+    const bool do_selection_syncing = do_sync_channel_selection_to_secondary(arena.filters);
+    foreach_expanded(*arena.root(), [&](AnimationChannel &channel, int row_index) {
       const float row_top = first_channel - row_index * channel_step;
       if (v2d_y_start < row_top && v2d_y_end > row_top - channel_step) {
         channel.set_selected(true, do_selection_syncing);
@@ -5085,11 +5091,15 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
-    std::optional<ChannelArena> arena = get_channels_from_space(*C);
-    if (!arena || !arena->root()) {
+    std::optional<std::reference_wrapper<ChannelArena>> opt_arena = get_channels_from_space(*C);
+    if (!opt_arena) {
       return OPERATOR_CANCELLED;
     }
-    foreach_expanded(*arena->root(), [&](AnimationChannel &channel, int /* row_index */) {
+    ChannelArena &arena = opt_arena->get();
+    if (!arena.root()) {
+      return OPERATOR_CANCELLED;
+    }
+    foreach_expanded(*arena.root(), [&](AnimationChannel &channel, int /* row_index */) {
       if (!channel.is_selected()) {
         return;
       }
@@ -5223,12 +5233,16 @@ static wmOperatorStatus graphkeys_channel_view_pick_invoke(bContext *C,
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
-    std::optional<ChannelArena> arena = get_channels_from_space(*C);
-    if (!arena || !arena->root()) {
+    std::optional<std::reference_wrapper<ChannelArena>> opt_arena = get_channels_from_space(*C);
+    if (!opt_arena) {
+      return OPERATOR_CANCELLED;
+    }
+    ChannelArena &arena = opt_arena->get();
+    if (!arena.root()) {
       return OPERATOR_CANCELLED;
     }
     ARegion *region = CTX_wm_region(C);
-    AnimationChannel *channel_under_cursor = find_channel_at_y(*arena, *region, event->mval[1]);
+    AnimationChannel *channel_under_cursor = find_channel_at_y(arena, *region, event->mval[1]);
     if (!channel_under_cursor) {
       return OPERATOR_CANCELLED;
     }

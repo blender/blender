@@ -41,7 +41,7 @@ static Span<animfilter::ChannelTagType> get_tag_order()
   return default_tag_order;
 }
 
-animfilter::ChannelArena get_summary_tree(const bContext &C)
+animfilter::ChannelArena build_summary_tree(const bContext &C)
 {
   using namespace ed::animfilter;
 
@@ -73,6 +73,19 @@ animfilter::ChannelArena get_summary_tree(const bContext &C)
   }
 
   return arena;
+}
+
+/* The cached channel_arena is reset in #graph_draw_pre in space_graph.cc. */
+animfilter::ChannelArena &get_summary_tree(const bContext &C)
+{
+  SpaceGraph *space_graph = CTX_wm_space_graph(&C);
+  SpaceGraph_Runtime *runtime = space_graph->runtime;
+  if (!runtime->channel_arena) {
+    ed::animfilter::ChannelArena channels = build_summary_tree(C);
+    runtime->channel_arena.emplace(std::move(channels));
+  }
+
+  return *runtime->channel_arena;
 }
 
 }  // namespace blender::ed::graph

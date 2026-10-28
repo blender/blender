@@ -100,7 +100,7 @@ static Span<ed::animfilter::ChannelTagType> tag_order_for_dope_sheet_mode(
   return default_tag_order;
 }
 
-ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
+static ed::animfilter::ChannelArena build_summary_tree(const bContext &C)
 {
   using namespace ed::animfilter;
 
@@ -132,6 +132,19 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
     }
   }
   return arena;
+}
+
+/* Note: This cache is reset by #action_draw_pre in space_action.cc. */
+ed::animfilter::ChannelArena &get_summary_tree(const bContext &C)
+{
+  SpaceAction *saction = CTX_wm_space_action(&C);
+  SpaceAction_Runtime *runtime = saction->runtime;
+  if (!runtime->channel_arena) {
+    ed::animfilter::ChannelArena channels = ed::action::build_summary_tree(C);
+    runtime->channel_arena.emplace(std::move(channels));
+  }
+
+  return *runtime->channel_arena;
 }
 
 }  // namespace blender::ed::action

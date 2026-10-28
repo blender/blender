@@ -47,7 +47,7 @@ namespace ed::graph {
  */
 ListBaseT<bAnimListElem> get_editable_fcurves(bAnimContext &ac);
 
-animfilter::ChannelArena get_summary_tree(const bContext &C);
+animfilter::ChannelArena &get_summary_tree(const bContext &C);
 
 }  // namespace ed::graph
 }  // namespace blender

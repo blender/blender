@@ -733,7 +733,7 @@ static wmOperatorStatus actkeys_box_select_exec(bContext *C, wmOperator *op)
 
     /* TODO this could query the cached summary tree from the last draw call. */
     using namespace ed::animfilter;
-    ChannelArena channels = ed::action::get_summary_tree(*C);
+    ChannelArena &channels = ed::action::get_summary_tree(*C);
     if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
       change_selection_on_all(channels, SEL_DESELECT);
     }
@@ -2311,7 +2311,7 @@ static wmOperatorStatus actkeys_clickselect_exec(bContext *C, wmOperator *op)
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     /* TODO this could query the cached summary tree from the last draw call. */
     using namespace ed::animfilter;
-    ChannelArena channels = ed::action::get_summary_tree(*C);
+    ChannelArena &channels = ed::action::get_summary_tree(*C);
     /* Using an enum to represent the mutually exclusive booleans in a single state. */
     ClickSelectRange range_mode = ClickSelectRange::SINGLE;
     if (column) {

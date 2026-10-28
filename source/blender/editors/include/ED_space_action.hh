@@ -56,8 +56,10 @@ ed::animfilter::ChannelArena get_data_channels(const bContext &C);
 
 /**
  * Return the buffered data or build up the tree if required.
+ *
+ * The SpaceAction owns the returned ChannelArena.
  */
-ed::animfilter::ChannelArena get_summary_tree(const bContext &C);
+ed::animfilter::ChannelArena &get_summary_tree(const bContext &C);
 
 }  // namespace ed::action
 
