@@ -420,6 +420,28 @@ static void wm_region_draw_overlay(bContext *C, const ScrArea *area, ARegion *re
   wmWindowViewport(win);
 }
 
+#ifdef WITH_INPUT_IME
+/**
+ * Draw the IME composition preview over the region,
+ * using the cursor from the last refresh, see #ED_region_do_draw.
+ */
+static void wm_region_draw_ime(const wmWindow *win, const ScrArea *area, const ARegion *region)
+{
+  if (!region->runtime->ime_cursor) {
+    return;
+  }
+  const wmIMEData *ime_data = WM_window_IME_data_get(win, region);
+  if (ime_data == nullptr) {
+    return;
+  }
+  wmViewport(&region->winrct);
+  wmOrtho2_region_pixelspace(region);
+  ui::theme::theme_set(area->spacetype, region->regiontype);
+  wm_window_IME_region_preview_draw(region, *ime_data, *region->runtime->ime_cursor);
+  wmWindowViewport(win);
+}
+#endif
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1193,6 +1215,9 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
       if (!region.runtime->visible) {
         continue;
       }
+#ifdef WITH_INPUT_IME
+      wm_region_draw_ime(win, area, &region);
+#endif
       const bool do_paint_cursor = (wm->runtime->paintcursors.first() &&
                                     &region == screen->active_region);
       const bool do_draw_overlay = (region.runtime->type && region.runtime->type->draw_overlay);

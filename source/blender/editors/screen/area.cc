@@ -38,7 +38,6 @@
 #include "ED_asset_shelf.hh"
 #include "ED_buttons.hh"
 #include "ED_image.hh"
-#include "ED_ime.hh"
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
 #include "ED_space_api.hh"
@@ -545,17 +544,15 @@ void ED_region_do_draw(bContext *C, ARegion *region)
   }
 
 #ifdef WITH_INPUT_IME
-  /* Evaluated by the refresh below, reused by the preview so `cursor_ime` runs once per draw. */
-  ARegionIMECursor ime_cursor;
-  bool ime_cursor_is_set = false;
-
   /* Manage the IME candidate window for the active region based on `cursor_ime`,
    * see #ARegionIMECursorState for how each result is handled.
-   * Deferred during animation playback, keeping `do_ime` set for when it stops. */
+   * Deferred during animation playback, keeping `do_ime` set for when it stops,
+   * the preview keeps its last position meanwhile. */
   if (at->cursor_ime && region->runtime->do_ime) {
     const bScreen *screen = WM_window_get_active_screen(win);
     if (!screen->animtimer && !screen->scrubbing && region == screen->active_region) {
-      ime_cursor_is_set = WM_window_IME_region_refresh(win, area, region, true, &ime_cursor);
+      /* Store the cursor for the preview, drawn over the region by the window. */
+      region->runtime->ime_cursor = WM_window_IME_region_refresh(win, area, region, true);
       region->runtime->do_ime = false;
     }
   }
@@ -568,14 +565,6 @@ void ED_region_do_draw(bContext *C, ARegion *region)
   /* Remove sRGB override by rebinding the framebuffer. */
   gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
   GPU_framebuffer_bind(fb);
-
-#ifdef WITH_INPUT_IME
-  /* Draw over the region contents, using the pixel space set up above.
-   * Skipped whenever the refresh above was, e.g. during animation playback. */
-  if (ime_cursor_is_set) {
-    ed::ime::region_overlay_draw(win, region, U.pixelsize, ime_cursor);
-  }
-#endif
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_PIXEL);
 

@@ -914,6 +914,7 @@ void ED_region_exit(bContext *C, ARegion *region)
   WM_draw_region_free(region);
   /* The region is not in a state that it can be visible in anymore. Reinitializing is needed. */
   region->runtime->visible = false;
+  region->runtime->ime_cursor.reset();
 
   MEM_SAFE_DELETE(region->runtime->headerstr);
 

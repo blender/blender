@@ -3556,16 +3556,15 @@ void WM_window_IME_end(wmWindow *win)
   win->runtime->ime_data_is_composing = false;
 }
 
-bool WM_window_IME_region_refresh(wmWindow *win,
-                                  const ScrArea *area,
-                                  const ARegion *region,
-                                  const bool keep_composing,
-                                  ARegionIMECursor *r_cursor)
+std::optional<ARegionIMECursor> WM_window_IME_region_refresh(wmWindow *win,
+                                                             const ScrArea *area,
+                                                             const ARegion *region,
+                                                             const bool keep_composing)
 {
   if (win->runtime->ime_owner == bke::wmIMEOwnerType::Button) {
     /* A text button owns the session, possibly in a popup over this region,
      * see #textedit_ime_begin. */
-    return false;
+    return std::nullopt;
   }
 
   /* A temporary popup is modal, it takes precedence over the region below it,
@@ -3575,7 +3574,7 @@ bool WM_window_IME_region_refresh(wmWindow *win,
   if (!screen->regionbase.is_empty() &&
       (BKE_screen_find_region_type(screen, RGN_TYPE_TEMPORARY) != nullptr))
   {
-    return false;
+    return std::nullopt;
   }
 
   /* NOTE: ending mid-composition cancels it, so the draw-time refresh opts out via
@@ -3592,7 +3591,7 @@ bool WM_window_IME_region_refresh(wmWindow *win,
     WM_window_IME_end(win);
 
     if (!region || !region->runtime->type->cursor_ime) {
-      return false;
+      return std::nullopt;
     }
   }
 
@@ -3605,14 +3604,11 @@ bool WM_window_IME_region_refresh(wmWindow *win,
     if (composing) {
       WM_window_IME_end(win);
     }
-    return false;
+    return std::nullopt;
   }
   if (*cursor_state != ARegionIMECursorState::PositionSet) {
     /* Pending because of a transient lack of position, so keep the session where it is. */
-    return false;
-  }
-  if (r_cursor) {
-    *r_cursor = cursor;
+    return std::nullopt;
   }
 
   /* Convert to window coordinates, clamped to the region so a cursor scrolled out of view
@@ -3634,7 +3630,7 @@ bool WM_window_IME_region_refresh(wmWindow *win,
     /* #WM_window_IME_end above ended any session, so this is always a fresh begin. */
     WM_window_IME_begin(win, x, y, w, h, bke::wmIMEOwnerType::Region);
   }
-  return true;
+  return cursor;
 }
 
 const wmIMEData *WM_window_IME_data_get(const wmWindow *win, const ARegion *region)

@@ -6,8 +6,7 @@
  * \ingroup wm
  *
  * Draw the IME composition preview: the pre-edit text at the cursor, with its underlines.
- * Shared by the editors which support IME, #ARegionType::cursor_ime
- * although it's only loosely coupled.
+ * Drawn by the window over regions which support IME, see #ARegionType::cursor_ime.
  */
 
 #ifdef WITH_INPUT_IME
@@ -20,6 +19,7 @@
 #  include "BLI_string_utf8.hh"
 
 #  include "DNA_screen_types.h"
+#  include "DNA_userdef_types.h"
 #  include "DNA_vec_types.h"
 
 #  include "BKE_screen.hh"
@@ -28,26 +28,21 @@
 #  include "GPU_immediate.hh"
 #  include "GPU_state.hh"
 
-#  include "ED_ime.hh"
 #  include "UI_resources.hh"
 
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
-namespace blender::ed::ime {
+#  include "wm_window_private.hh"
 
-/**
- * Draw the preview at the cursor.
- *
- * Helper for #region_overlay_draw.
- */
-static void cursor_overlay_draw(const wmIMEData &ime_data,
-                                const rcti &cursor_rect,
-                                const int font_size,
-                                const int region_size[2],
-                                const float pixelsize)
+namespace blender {
+
+void wm_window_IME_region_preview_draw(const ARegion *region,
+                                       const wmIMEData &ime_data,
+                                       const ARegionIMECursor &cursor)
 {
   BLI_assert(!ime_data.composite.empty());
+  const rcti &cursor_rect = cursor.rect;
   const char *str = ime_data.composite.c_str();
   const int str_len = int(ime_data.composite.size());
 
@@ -57,7 +52,7 @@ static void cursor_overlay_draw(const wmIMEData &ime_data,
    * which matches the text editor & console but 3D text or text strips
    * could use custom fonts. Variable width support would be a little more involved here. */
   const int font_id = blf_mono_font;
-  BLF_size(font_id, font_size);
+  BLF_size(font_id, cursor.font_size);
   const int char_width = std::max(int(BLF_fixed_width(font_id)), 1);
 
   auto column_from_byte_offset_fn = [&](const int64_t byte_offset) {
@@ -67,13 +62,13 @@ static void cursor_overlay_draw(const wmIMEData &ime_data,
 
   /* Snap the line width to whole pixels, every edge below is an integer so the rectangles
    * rasterize to exact pixel bounds, see #wmOrtho2_region_pixelspace. */
-  const int border = std::max(int(pixelsize), 1);
+  const int border = std::max(int(U.pixelsize), 1);
 
   /* Place a one-line box at the cursor, where the text lands once the composition is accepted,
    * so accepting it doesn't shift the text sideways. Clamped inside the region. */
   const int box_width = columns * char_width;
-  const int box_x = std::clamp(cursor_rect.xmin, 0, std::max(region_size[0] - box_width, 0));
-  const int box_y = std::clamp(cursor_rect.ymin, 0, std::max(region_size[1] - line_height, 0));
+  const int box_x = std::clamp(cursor_rect.xmin, 0, std::max(region->winx - box_width, 0));
+  const int box_y = std::clamp(cursor_rect.ymin, 0, std::max(region->winy - line_height, 0));
   const rcti box = {
       .xmin = box_x,
       .xmax = box_x + box_width,
@@ -140,19 +135,6 @@ static void cursor_overlay_draw(const wmIMEData &ime_data,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-void region_overlay_draw(wmWindow *win,
-                         const ARegion *region,
-                         const float pixelsize,
-                         const ARegionIMECursor &cursor)
-{
-  const wmIMEData *ime_data = WM_window_IME_data_get(win, region);
-  if (ime_data == nullptr) {
-    return;
-  }
-  const int region_size[2] = {region->winx, region->winy};
-  cursor_overlay_draw(*ime_data, cursor.rect, cursor.font_size, region_size, pixelsize);
-}
-
-}  // namespace blender::ed::ime
+}  // namespace blender
 
 #endif /* WITH_INPUT_IME */
