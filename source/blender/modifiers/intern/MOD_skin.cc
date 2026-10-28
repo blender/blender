@@ -1568,7 +1568,9 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 
   heap = BLI_heapsimple_new();
 
-  BM_mesh_elem_hflag_disable_all(so->bm, BM_FACE, BM_ELEM_TAG, false);
+  /* Edges may be tagged by earlier operations,
+   * clear them as tagged edges are deleted, see: #165789. */
+  BM_mesh_elem_hflag_disable_all(so->bm, BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
   /* Build heap */
   BM_ITER_MESH (e, &iter, so->bm, BM_EDGES_OF_MESH) {
