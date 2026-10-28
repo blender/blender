@@ -1201,8 +1201,8 @@ struct SpaceActionOverlays {
  *
  * \see #ChannelUIStateMap in ED_space_action.hh
  */
-struct SpaceActionChannelUIState {
-  struct SpaceActionChannelUIState *next = nullptr, *prev = nullptr;
+struct SpaceChannelUIState {
+  struct SpaceChannelUIState *next = nullptr, *prev = nullptr;
 
   /* These fields store the ChannelIdentifier. */
   ID *channel_owner_id = nullptr;
@@ -1251,7 +1251,7 @@ struct SpaceAction {
   char _pad2[4] = {};
 
   SpaceActionOverlays overlays;
-  ListBaseT<struct SpaceActionChannelUIState> channel_ui_states = {nullptr, nullptr};
+  ListBaseT<struct SpaceChannelUIState> channel_ui_states = {nullptr, nullptr};
 
   struct SpaceAction_Runtime *runtime;
 };

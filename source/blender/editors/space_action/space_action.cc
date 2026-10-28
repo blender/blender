@@ -1039,7 +1039,7 @@ static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   }
 
   if (!BLI_listbase_is_empty(&sact->channel_ui_states)) {
-    for (const SpaceActionChannelUIState &state : sact->channel_ui_states) {
+    for (const SpaceChannelUIState &state : sact->channel_ui_states) {
       BKE_LIB_FOREACHID_PROCESS_ID(data, state.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
       BKE_LIB_FOREACHID_PROCESS_ID(data, state.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
     }
@@ -1094,60 +1094,6 @@ static int action_space_icon_get(const ScrArea *area)
   return item.icon;
 }
 
-static void action_space_runtime_channel_state_trim(const SpaceAction &saction)
-{
-  /* It may be tempting to use some dynamic limit, like "3x the number of channels shown", but this
-   * has to cover historical use as well. When Only Show Selected is enabled, and an animator is
-   * animating bone-by-bone, it means the number of channels visible at any one time is limited,
-   * while the history of channels should be kept for significantly longer.
-   *
-   * This value should be tweaked based on animator experience (probably larger is better, but
-   * auto-expand/collapse can make explicit storage less important) vs. performance (smaller is
-   * better). */
-  constexpr int N = 1000;
-  using namespace ed::animfilter;
-
-  SpaceAction_Runtime &runtime = *saction.runtime;
-  if (runtime.channel_states.is_empty()) {
-    return;
-  }
-
-  // const int64_t size_before = runtime.channel_states.size();
-
-  Vector<std::pair<ChannelIdentifier, int>> key_last_used;
-  key_last_used.reserve(runtime.channel_states.size());
-  for (const ChannelUIStateMap::Item item : runtime.channel_states.items()) {
-    key_last_used.append({item.key, item.value.last_used});
-  }
-
-  /* Sort by last_used. */
-  std::ranges::sort(
-      key_last_used,
-      [&](const std::pair<ChannelIdentifier, int> &a, const std::pair<ChannelIdentifier, int> &b) {
-        return a.second < b.second;
-      });
-
-  /* Erase the oldest items (those beyond the first N). */
-  if (static_cast<int>(key_last_used.size()) > N) {
-    for (int i = N; i < static_cast<int>(key_last_used.size()); i++) {
-      // std::cout << "channel_state_trim: removing " << key_last_used[i].first
-      //           << " at last_used=" << key_last_used[i].second << "\n";
-      runtime.channel_states.remove(key_last_used[i].first);
-    }
-  }
-
-  // const int64_t size_after = runtime.channel_states.size();
-  // if (size_before != size_after) {
-  //   std::cout << "channel_state_trim: reduced channel state count from " << size_before
-  //             << " to "
-  //             << size_after << " channels.\n";
-  // }
-  // else {
-  //   std::cout << "\033[90mchannel_state_trim: channel state count at " << size_before
-  //             << " channels.\033[0m\n";
-  // }
-}
-
 static void action_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
@@ -1155,8 +1101,8 @@ static void action_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 
   /* Read the UI state. This will be converted to runtime data in
    * #action_space_blend_read_after_liblink() below. */
-  BLO_read_struct_list(reader, SpaceActionChannelUIState, &saction->channel_ui_states);
-  for (SpaceActionChannelUIState &state : saction->channel_ui_states) {
+  BLO_read_struct_list(reader, SpaceChannelUIState, &saction->channel_ui_states);
+  for (SpaceChannelUIState &state : saction->channel_ui_states) {
     BLO_read_string(reader, &state.source_rna_path);
   }
 }
@@ -1184,7 +1130,7 @@ static void action_space_blend_read_after_liblink(BlendLibReader *reader,
   // std::cout << "\033[95m" << __func__ << ": reading "
   //           << BLI_listbase_count(&saction->channel_ui_states) << " UI channel states\033[0m\n";
   // int state_index = 0;
-  for (SpaceActionChannelUIState &state : saction->channel_ui_states) {
+  for (SpaceChannelUIState &state : saction->channel_ui_states) {
     /* Create the UI state map key. */
     ChannelIdentifier chan_ident;
     if (state.channel_owner_id) {
@@ -1221,7 +1167,7 @@ static void action_space_blend_read_after_liblink(BlendLibReader *reader,
     // state_index++;
 
     /* Create the UI state map value. */
-    const SAction_AnimationChannelState ui_state{
+    const AnimationChannelUIState ui_state{
         bool(state.is_collapsed),
         state.last_used,
     };
@@ -1261,12 +1207,12 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
   }
 
   const SpaceAction &space_action = *reinterpret_cast<SpaceAction *>(sl);
-  action_space_runtime_channel_state_trim(space_action);
+  ed::animfilter::channel_state_trim(space_action.runtime->channel_states);
 
   /* Allocate memory for the UI state info in DNA. */
   const int64_t num_channel_states = space_action.runtime->channel_states.size();
   ResourceScope &scope = screen_writer.scope;
-  auto &ui_state_array = scope.construct<Array<SpaceActionChannelUIState>>(num_channel_states);
+  auto &ui_state_array = scope.construct<Array<SpaceChannelUIState>>(num_channel_states);
   auto &rna_paths = scope.construct<Array<std::string>>(num_channel_states);
 
   IDNameLib_Map *id_map = writer->idmap();
@@ -1285,7 +1231,7 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
     /* Construct the SpaceAction::channel_ui_states listbase. */
     int64_t array_index = 0;
     for (const auto key_value : for_writing.runtime->channel_states.items()) {
-      SpaceActionChannelUIState *state = &ui_state_array[array_index];
+      SpaceChannelUIState *state = &ui_state_array[array_index];
 
       ID *owner_id = BKE_main_idmap_lookup_uid(id_map, key_value.key.owner_session_uid);
       ID *parent_id = BKE_main_idmap_lookup_uid(id_map, key_value.key.parent_session_uid);
@@ -1323,7 +1269,7 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
     }
 
     /* Write the structs in the listbase. */
-    for (SpaceActionChannelUIState &state : for_writing.channel_ui_states) {
+    for (SpaceChannelUIState &state : for_writing.channel_ui_states) {
       screen_writer.writer->write_struct(&state);
       if (state.source_rna_path) {
         screen_writer.writer->write_string(state.source_rna_path);
@@ -1335,10 +1281,10 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
   });
 }
 
-ed::animfilter::SAction_AnimationChannelState &SpaceAction_Runtime::channel_state_for_update(
+ed::animfilter::AnimationChannelUIState &SpaceAction_Runtime::channel_state_for_update(
     const ed::animfilter::ChannelIdentifier &channel_key)
 {
-  ed::animfilter::SAction_AnimationChannelState &channel_state =
+  ed::animfilter::AnimationChannelUIState &channel_state =
       this->channel_states.lookup_or_add_default(channel_key);
   channel_state.last_used = this->last_used;
   return channel_state;

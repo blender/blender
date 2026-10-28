@@ -60,10 +60,10 @@
 
 namespace blender {
 
-ed::animfilter::SAction_AnimationChannelState &SpaceGraph_Runtime::channel_state_for_update(
+ed::animfilter::AnimationChannelUIState &SpaceGraph_Runtime::channel_state_for_update(
     const ed::animfilter::ChannelIdentifier &channel_key)
 {
-  ed::animfilter::SAction_AnimationChannelState &channel_state =
+  ed::animfilter::AnimationChannelUIState &channel_state =
       this->channel_states.lookup_or_add_default(channel_key);
   channel_state.last_used = this->last_used;
   return channel_state;

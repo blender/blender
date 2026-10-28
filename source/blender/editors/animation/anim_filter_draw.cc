@@ -136,14 +136,14 @@ class ChannelItem : public ui::AbstractTreeViewItem {
     SpaceAction *saction = CTX_wm_space_action(&C);
     SpaceGraph *space_graph = CTX_wm_space_graph(&C);
     if (saction) {
-      SAction_AnimationChannelState &channel_state = saction->runtime->channel_state_for_update(
+      AnimationChannelUIState &channel_state = saction->runtime->channel_state_for_update(
           channel_.identifier());
       /* Store the expanded/collapsed state. */
       channel_state.is_collapsed = is_collapsed;
     }
     else if (space_graph) {
-      SAction_AnimationChannelState &channel_state =
-          space_graph->runtime->channel_state_for_update(channel_.identifier());
+      AnimationChannelUIState &channel_state = space_graph->runtime->channel_state_for_update(
+          channel_.identifier());
       /* Store the expanded/collapsed state. */
       channel_state.is_collapsed = is_collapsed;
     }

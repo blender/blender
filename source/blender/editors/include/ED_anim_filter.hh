@@ -43,7 +43,7 @@ class AbstractTreeView;
 namespace ed::animfilter {
 
 class AnimationChannel;
-struct SAction_AnimationChannelState;
+struct AnimationChannelUIState;
 
 enum class ChannelTagType {
   FCURVE_GROUP,
@@ -336,12 +336,13 @@ class ChannelIdentifier {
 };
 
 /**
- * SpaceAction runtime data containing animation channel UI state.
+ * Runtime data containing animation channel UI state.
+ * Used by any editor showing animation channels.
  *
- * Fields that need persisting to the blend file need to be mirrored in #SpaceActionChannelUIState
+ * Fields that need persisting to the blend file need to be mirrored in #SpaceChannelUIState
  * in source/blender/makesdna/DNA_action_types.h.
  */
-struct SAction_AnimationChannelState {
+struct AnimationChannelUIState {
   /** Whether the channel should be collapsed or not.
    *
    * Uses 'is_collapsed' (and not 'is_expanded') following AbstractTreeViewItem.
@@ -549,8 +550,12 @@ class AnimationChannel {
   void source_set(PointerRNA &&source_ptr);
 };
 
-using ChannelUIStateMap =
-    Map<ed::animfilter::ChannelIdentifier, ed::animfilter::SAction_AnimationChannelState>;
+using ChannelUIStateMap = Map<ChannelIdentifier, AnimationChannelUIState>;
+
+/**
+ * Trims the ChannelUIStateMap to only the N most recent updated channels.
+ */
+void channel_state_trim(ChannelUIStateMap &channel_states);
 
 /* This is the class responsible for generating the tree structure. Each channel only tracks its
  * children, which allows us to generate multiple summary trees for the same data channels. */
