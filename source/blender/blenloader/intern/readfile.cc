@@ -4957,6 +4957,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag, ReportL
   mainl = nullptr; /* blo_join_main free's mainl, can't use anymore */
 
   if (mainvar->is_read_invalid) {
+    MEM_freeN((*fd)->mainlist);
     return;
   }
 
@@ -5057,6 +5058,11 @@ void BLO_library_link_end(Main *mainl,
 
   if (!mainl->is_read_invalid) {
     library_link_end(mainl, &fd, params->flag, reports);
+  }
+  else {
+    /* Restore the main split by #library_link_begin. */
+    blo_join_main(fd->mainlist);
+    MEM_freeN(fd->mainlist);
   }
 
   LISTBASE_FOREACH (Library *, lib, &params->bmain->libraries) {
