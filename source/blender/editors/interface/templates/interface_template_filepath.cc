@@ -164,6 +164,11 @@ static Button *template_filepath_split_button(Layout &layout,
   if (!RNA_property_string_is_utf8(prop)) {
     button_flag_enable(but, BUT_NO_UTF8);
   }
+  if (!(edit->ptr.owner_id && ID_CHECK_UNDO(edit->ptr.owner_id) &&
+        RNA_property_undo_check(prop, edit->ptr.type)))
+  {
+    button_flag_disable(but, BUT_UNDO);
+  }
 
   button_funcN_set(
       but, path_split_edit_apply, edit, nullptr, path_split_edit_free, path_split_edit_copy);
