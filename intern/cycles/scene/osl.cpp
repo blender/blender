@@ -133,19 +133,27 @@ void OSLManager::device_update_pre(Device * /*device*/, Scene *scene)
   }
 }
 
-static void optimize_group(OSL::ShadingSystem *ss, OSL::ShaderGroup *group)
+static void optimize_group(OSL::ShadingSystem *ss,
+                           ImageManager *image_manager,
+                           OSL::ShaderGroup *group)
 {
+  /* Shading context for this group only, as it can't be shared between threads. It
+   * identifies the image manager in #OSLRenderServices::get_texture_handle(). */
+  OSLRenderServices *services = static_cast<OSLRenderServices *>(ss->renderer());
   OSL::PerThreadInfo *thread_info = ss->create_thread_info();
   OSL::ShadingContext *context = ss->get_context(thread_info);
+  services->image_manager_add(context, image_manager);
 
   ss->optimize_group(group, context, true);
 
+  services->image_manager_remove(context);
   ss->release_context(context);
   ss->destroy_thread_info(thread_info);
 }
 
 static void optimize_group(TaskPool &pool,
                            OSL::ShadingSystem *ss,
+                           ImageManager *image_manager,
                            const OSL::ShaderGroupRef &group_ref)
 {
   if (!group_ref) {
@@ -161,9 +169,9 @@ static void optimize_group(TaskPool &pool,
    */
   OSL::ShaderGroup *group = group_ref.get();
 #  if defined(_WIN32) || defined(__APPLE__)
-  pool.push([ss, group]() { optimize_group(ss, group); });
+  pool.push([ss, image_manager, group]() { optimize_group(ss, image_manager, group); });
 #  else
-  optimize_group(ss, group);
+  optimize_group(ss, image_manager, group);
   (void)pool;
 #  endif
 }
@@ -264,17 +272,11 @@ void OSLManager::device_update_post(Device *device,
      */
     const thread_scoped_lock lock(ss_shared_mutex);
 
-    /* Set current image manager during the lock, so that there is no conflict with other shader
-     * manager instances.
-     *
-     * It is used in "OSLRenderServices::get_texture_handle" called during optimization below to
-     * load images for the GPU. */
-    OSLRenderServices::image_manager = scene->image_manager.get();
-
-    /* Only optimize the groups of this scene. The shading system is shared with other
-     * sessions, which optimize their own groups.
+    /* Only optimize the groups of this scene, with its own image manager for texture handles.
+     * The shading system is shared with other sessions, which optimize their own groups.
      *
      * Isolate to avoid running tasks that wait for the lock held by this thread. */
+    ImageManager *image_manager = scene->image_manager.get();
     isolate_task([&]() {
       TaskPool pool;
 
@@ -288,16 +290,14 @@ void OSLManager::device_update_post(Device *device,
              {&og->surface_state, &og->volume_state, &og->displacement_state, &og->bump_state})
         {
           for (const OSL::ShaderGroupRef &group_ref : *states) {
-            optimize_group(pool, ss, group_ref);
+            optimize_group(pool, ss, image_manager, group_ref);
           }
         }
-        optimize_group(pool, ss, og->camera_state);
+        optimize_group(pool, ss, image_manager, og->camera_state);
       });
 
       pool.wait_work();
     });
-
-    OSLRenderServices::image_manager = nullptr;
   }
 
   /* Load OSL kernels on changes to shaders, or when main kernels got reloaded. */

@@ -19,6 +19,8 @@
 #include <OpenImageIO/unordered_map_concurrent.h>
 
 #include "util/concurrent_set.h"
+#include "util/map.h"
+#include "util/thread.h"
 
 #include "scene/image.h"
 
@@ -301,9 +303,18 @@ class OSLRenderServices : public OSL::RendererServices {
    * shading system. */
   OSLTextureHandleMap textures;
 
-  static ImageManager *image_manager;
+  /* Image manager to add textures to, for shading contexts used to JIT compile
+   * shader groups. Multiple render sessions use this render services, so they are
+   * keyed by shading context. */
+  void image_manager_add(const OSL::ShadingContext *context, ImageManager *image_manager);
+  void image_manager_remove(const OSL::ShadingContext *context);
 
  private:
+  ImageManager *image_manager_find(const OSL::ShadingContext *context);
+
+  unordered_map<const OSL::ShadingContext *, ImageManager *> image_managers_;
+  thread_mutex image_managers_mutex_;
+
   int device_type_;
 
   /* We don't support lookup by filename without a handle, which is required anyway
