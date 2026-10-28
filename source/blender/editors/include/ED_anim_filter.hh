@@ -873,20 +873,33 @@ void group_channels(ChannelArena &arena,
                     Span<ChannelTagType> tag_order,
                     bool use_minimal_grouping);
 
-std::unique_ptr<ui::AbstractTreeView> build_channel_tree_view(ChannelArena &arena);
+/* Various settings influencing how the channel tree behaves. */
+struct ChannelTreeSettings {
+  /* Controls the drawing of the eye icon to control FCurve visibility. */
+  bool show_visbility_property = false;
+  bool do_selection_syncing = false;
+
+  ChannelTreeSettings(const CollectionFilters &filters)
+  {
+    /* Selection syncing is implicitly enabled when certain filter criteria are met. */
+    do_selection_syncing = do_sync_channel_selection_to_secondary(filters);
+  }
+};
+
+std::unique_ptr<ui::AbstractTreeView> build_channel_tree_view(
+    ChannelArena &arena, const ChannelTreeSettings &tree_settings);
 
 /**
  * Draw the whole tree starting at the root using the legacy UI code.
  * TODO maybe the drawing code should not be in this header?
  */
-void draw_channel_tree(const bContext &C,
-                       std::unique_ptr<ui::AbstractTreeView> channel_tree_view,
-                       View2D &v2d);
+void draw_channel_tree(const bContext &C, std::unique_ptr<ui::AbstractTreeView> channel_tree_view);
 
 struct KeyDrawSettings {
   /* Modify the keyframe shape to indicate the key handle. */
   bool draw_handle_types = false;
-  /* Draw extra indicators within keyframes to show if the key is a minimum or maximum. */
+  /* Draw extra indicators within keyframes to show if the key is a minimum or
+   * maximum. */
   bool draw_extremes = false;
 };
 void draw_dopesheet_key_area(SummaryChannel &root,

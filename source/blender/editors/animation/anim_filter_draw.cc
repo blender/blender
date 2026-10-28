@@ -115,21 +115,7 @@ class ChannelItem : public ui::AbstractTreeViewItem {
     this->channel_api_ = create_channel_api(channel);
   }
 
-  void build_row(ui::Layout &layout) override
-  {
-    layout.label(channel_.label(), icon_from_rna_pointer(channel_.source()));
-
-    if (channel_.type() == AnimationChannelType::DATA) {
-      /* TODO make this work for GP. ideally we'd have access to the channel here still so we don't
-       * need to if/else through RNA types. */
-      if (source_.type == RNA_FCurve) {
-        layout.prop(
-            &source_, "use_modifiers", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_MODIFIER_ON);
-        layout.prop(&source_, "mute", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_CHECKBOX_HLT);
-        layout.prop(&source_, "lock", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_UNLOCKED);
-      }
-    }
-  }
+  void build_row(ui::Layout &layout) override;
 
   void on_collapse_change(bContext &C, const bool is_collapsed) override
   {
@@ -210,7 +196,7 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
 class ChannelTreeView : public ui::AbstractTreeView {
   SummaryChannel &root_;
-  bool do_selection_syncing_;
+  const ChannelTreeSettings tree_settings_;
 
   void add_channel_recursive(TreeViewItemContainer &container, AnimationChannel &channel)
   {
@@ -241,8 +227,8 @@ class ChannelTreeView : public ui::AbstractTreeView {
   }
 
  public:
-  ChannelTreeView(SummaryChannel &root, bool do_selection_syncing)
-      : root_(root), do_selection_syncing_(do_selection_syncing)
+  ChannelTreeView(SummaryChannel &root, const ChannelTreeSettings &tree_settings)
+      : root_(root), tree_settings_(tree_settings)
   {
   }
 
@@ -253,11 +239,15 @@ class ChannelTreeView : public ui::AbstractTreeView {
 
   bool do_selection_syncing() const
   {
-    return do_selection_syncing_;
+    return tree_settings_.do_selection_syncing;
+  }
+  bool show_visibility_property() const
+  {
+    return tree_settings_.show_visbility_property;
   }
 };
 
-/* This function needs to be defined after the ChannelTreeView class. */
+/* A few functions need to be defined after the ChannelTreeView class. */
 void ChannelItem::set_selected(const bool select)
 {
   AbstractTreeViewItem::set_selected(select);
@@ -273,15 +263,54 @@ void ChannelItem::set_selected(const bool select)
   this->channel_api_->set_selected(select, tree_view.do_selection_syncing());
 }
 
-std::unique_ptr<ui::AbstractTreeView> build_channel_tree_view(ChannelArena &arena)
+void ChannelItem::build_row(ui::Layout &layout)
 {
-  const bool do_selection_syncing = do_sync_channel_selection_to_secondary(arena.filters);
-  return std::make_unique<ChannelTreeView>(*arena.root(), do_selection_syncing);
+  const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
+
+  /* TODO the layout creation code could move into the channel API. */
+  /* Having the visibility icon before the channel name is just how the legacy system behaved.
+   * Investigate if that is something to change. By putting it on the right side the icons could
+   * be aligned vertically. This would also make it consistent with Grease Pencil channels in the
+   * dope sheet where the hide icon is on the right. */
+  if (channel_.type() == AnimationChannelType::DATA) {
+    DataChannel &data_channel = static_cast<DataChannel &>(channel_);
+    switch (data_channel.source_type()) {
+      case DataChannelType::FCURVE:
+        if (tree_view.show_visibility_property()) {
+          layout.prop(&source_, "hide", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_HIDE_OFF);
+        }
+        break;
+      case DataChannelType::GREASE_PENCIL:
+        break;
+    }
+  }
+
+  layout.label(channel_.label(), icon_from_rna_pointer(channel_.source()));
+
+  if (channel_.type() == AnimationChannelType::DATA) {
+    DataChannel &data_channel = static_cast<DataChannel &>(channel_);
+    switch (data_channel.source_type()) {
+      case DataChannelType::FCURVE: {
+        layout.prop(
+            &source_, "use_modifiers", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_MODIFIER_ON);
+        layout.prop(&source_, "mute", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_CHECKBOX_HLT);
+        layout.prop(&source_, "lock", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_UNLOCKED);
+        break;
+      }
+
+      case DataChannelType::GREASE_PENCIL:
+        break;
+    }
+  }
 }
 
-void draw_channel_tree(const bContext &C,
-                       std::unique_ptr<ui::AbstractTreeView> channel_tree_view,
-                       View2D & /* v2d */)
+std::unique_ptr<ui::AbstractTreeView> build_channel_tree_view(
+    ChannelArena &arena, const ChannelTreeSettings &tree_settings)
+{
+  return std::make_unique<ChannelTreeView>(*arena.root(), tree_settings);
+}
+
+void draw_channel_tree(const bContext &C, std::unique_ptr<ui::AbstractTreeView> channel_tree_view)
 {
   ARegion *region = CTX_wm_region(&C);
   ui::Block *block = ui::block_begin(&C, region, __func__, ui::EmbossType::None);

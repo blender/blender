@@ -431,8 +431,9 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
     set_v2d_height(v2d, channels.num_channels(), has_markers);
     ui::view2d_view_ortho(v2d);
 
-    std::unique_ptr<ui::AbstractTreeView> tree_view = build_channel_tree_view(channels);
-    ed::animfilter::draw_channel_tree(*C, std::move(tree_view), *v2d);
+    ed::animfilter::ChannelTreeSettings settings(channels.filters);
+    std::unique_ptr<ui::AbstractTreeView> tree_view = build_channel_tree_view(channels, settings);
+    ed::animfilter::draw_channel_tree(*C, std::move(tree_view));
 
     SpaceAction *saction = CTX_wm_space_action(C);
     ED_time_scrub_channel_search_draw(C, region, &saction->ads);

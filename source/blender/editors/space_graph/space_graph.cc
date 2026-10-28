@@ -459,9 +459,11 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
     ed::animfilter::ChannelArena &channels = ed::graph::get_summary_tree(*C);
     set_v2d_height(v2d, channels.num_channels());
     ui::view2d_view_ortho(v2d);
-
-    std::unique_ptr<ui::AbstractTreeView> tree = ed::animfilter::build_channel_tree_view(channels);
-    ed::animfilter::draw_channel_tree(*C, std::move(tree), *v2d);
+    ed::animfilter::ChannelTreeSettings settings(channels.filters);
+    settings.show_visbility_property = true;
+    std::unique_ptr<ui::AbstractTreeView> tree = ed::animfilter::build_channel_tree_view(channels,
+                                                                                         settings);
+    ed::animfilter::draw_channel_tree(*C, std::move(tree));
     SpaceGraph *sgraph = CTX_wm_space_graph(C);
     ED_time_scrub_channel_search_draw(C, region, sgraph->ads);
   }

@@ -2726,6 +2726,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Hide", "F-Curve and its keyframes are hidden in the Graph Editor graphs");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, nullptr);
+  RNA_def_property_ui_icon(prop, ICON_HIDE_ON, -1);
 
   prop = RNA_def_property(srna, "auto_smoothing", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_fcurve_auto_smoothing_items);
