@@ -1403,6 +1403,11 @@ void wm_homefile_read_ex(bContext *C,
     }
   }
 
+  /* Open last project on startup. */
+  if (params_homefile->is_first_time && use_data && wm_init_last_project_on_startup(bmain)) {
+    IMB_colormanagement_project_read_post(bmain);
+  }
+
   if ((app_template != nullptr) && (app_template[0] != '\0')) {
     if (!BKE_appdir_app_template_id_search(app_template, app_template_system)) {
       /* Can safely continue with code below, just warn it's not found. */

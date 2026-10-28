@@ -65,6 +65,15 @@ static bool path_split_get(PointerRNA &ptr,
                                   BLI_path_slash_is_native_compat(path[path_len - 1]);
 
   BLI_path_slash_rstrip(path);
+
+  /* If we stripped away all slashes from a path like "//", "/" or "C:\",
+   * restore the original one and give an empty name. */
+  if (has_trailing_slash && (path[0] == '\0' || BLI_path_is_win32_drive_only(path))) {
+    STRNCPY(r_dir, RNA_property_string_get(&ptr, prop).c_str());
+    r_name[0] = '\0';
+    return true;
+  }
+
   BLI_path_split_dir_file(path, r_dir, r_name);
   return has_trailing_slash;
 }
@@ -163,6 +172,11 @@ static Button *template_filepath_split_button(Layout &layout,
   }
   if (!RNA_property_string_is_utf8(prop)) {
     button_flag_enable(but, BUT_NO_UTF8);
+  }
+  if (!(edit->ptr.owner_id && ID_CHECK_UNDO(edit->ptr.owner_id) &&
+        RNA_property_undo_check(prop, edit->ptr.type)))
+  {
+    button_flag_disable(but, BUT_UNDO);
   }
 
   button_funcN_set(
