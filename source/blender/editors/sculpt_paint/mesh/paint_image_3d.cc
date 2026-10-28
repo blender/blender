@@ -188,17 +188,13 @@ static void calc_pixel_row_positions(const float3 P_start,
   }
 }
 
-static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
+static BitVector<> init_uv_primitives_brush_test(const Bounds<float3> &brush_bounds,
                                                  const Span<int> corner_verts,
                                                  const Span<int3> corner_tris,
                                                  const Span<int> tri_indices,
                                                  const Span<float3> positions)
 {
   PRF_scope(ProfileCategory::Editor);
-  const float3 location = ss.cache->location_symm;
-  const float radius = ss.cache->radius;
-  const Bounds<float3> brush_bounds(location - radius, location + radius);
-
   BitVector<> brush_test(tri_indices.size());
   for (const int i : tri_indices.index_range()) {
     const int3 &tri = corner_tris[tri_indices[i]];
@@ -516,8 +512,14 @@ static void do_paint_pixels(const PaintBlendSettings &blend_settings,
   PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
-  BitVector<> brush_test = init_uv_primitives_brush_test(
-      ss, corner_verts, corner_tris, pixel_node.uv_primitives.tri_indices, positions_eval);
+  const float3 location = ss.cache->location_symm;
+  const float radius = ss.cache->radius;
+  const Bounds<float3> brush_bounds(location - radius, location + radius);
+  BitVector<> brush_test = init_uv_primitives_brush_test(brush_bounds,
+                                                         corner_verts,
+                                                         corner_tris,
+                                                         pixel_node.uv_primitives.tri_indices,
+                                                         positions_eval);
 
   if (!select_poly.is_empty()) {
     BLI_assert(!corner_tri_faces.is_empty());
@@ -536,10 +538,6 @@ static void do_paint_pixels(const PaintBlendSettings &blend_settings,
 #endif
 
   bool pixels_updated = false;
-
-  const float3 location = ss.cache->location_symm;
-  const float radius = ss.cache->radius;
-  const Bounds<float3> brush_bounds(location - radius, location + radius);
 
   for (UDIMTilePixels &tile_data : pixel_node.tiles) {
     ImBuf *image_buffer = image_data.image_buffers.lookup_default(tile_data.tile_number, nullptr);
