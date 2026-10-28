@@ -36,6 +36,10 @@ class AbcObjectReader;
 struct AbcReaderConstructorArgs;
 
 static inline const std::string ABC_CURVE_RESOLUTION_U_PROPNAME = "blender:resolution";
+static inline const std::string ABC_NURBS_CYCLIC_U_PROPNAME = "cyclic_u";
+static inline const std::string ABC_NURBS_CYCLIC_V_PROPNAME = "cyclic_v";
+static inline const std::string ABC_NURBS_ENDPOINT_U_PROPNAME = "endpoint_u";
+static inline const std::string ABC_NURBS_ENDPOINT_V_PROPNAME = "endpoint_v";
 static inline const std::string ABC_ACTIVE_COLOR_ATTRIBUTE_PROPNAME =
     "blender:active_color_attribute";
 static inline const std::string ABC_DEFAULT_COLOR_ATTRIBUTE_PROPNAME =

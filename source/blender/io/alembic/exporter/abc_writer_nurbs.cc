@@ -8,6 +8,7 @@
 
 #include "abc_writer_nurbs.h"
 #include "intern/abc_axis_conversion.h"
+#include "intern/abc_util.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
@@ -157,22 +158,22 @@ void ABCNurbsWriter::do_write(HierarchyContext &context)
     OCompoundProperty user_props = abc_nurbs_schemas_[count].getUserProperties();
 
     if ((nu->flagu & CU_NURB_ENDPOINT) != 0) {
-      OBoolProperty prop(user_props, "endpoint_u");
+      OBoolProperty prop(user_props, ABC_NURBS_ENDPOINT_U_PROPNAME);
       prop.set(true);
     }
 
     if ((nu->flagv & CU_NURB_ENDPOINT) != 0) {
-      OBoolProperty prop(user_props, "endpoint_v");
+      OBoolProperty prop(user_props, ABC_NURBS_ENDPOINT_V_PROPNAME);
       prop.set(true);
     }
 
     if ((nu->flagu & CU_NURB_CYCLIC) != 0) {
-      OBoolProperty prop(user_props, "cyclic_u");
+      OBoolProperty prop(user_props, ABC_NURBS_CYCLIC_U_PROPNAME);
       prop.set(true);
     }
 
     if ((nu->flagv & CU_NURB_CYCLIC) != 0) {
-      OBoolProperty prop(user_props, "cyclic_v");
+      OBoolProperty prop(user_props, ABC_NURBS_CYCLIC_V_PROPNAME);
       prop.set(true);
     }
 
