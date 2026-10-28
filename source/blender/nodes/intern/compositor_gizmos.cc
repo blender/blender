@@ -184,6 +184,13 @@ static void apply_socket_callback(
   callback(ptr, prop, index);
 }
 
+static void gizmo_group_enable_undo(wmGizmoGroup *gzgroup)
+{
+  for (wmGizmo &gz : gzgroup->gizmos) {
+    WM_gizmo_set_flag(&gz, WM_GIZMO_NEEDS_UNDO, true);
+  }
+}
+
 /** \} */
 
 struct NodeBBoxWidgetGroup {
@@ -275,6 +282,8 @@ void box_mask_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
   gzgroup->customdata_free = [](void *customdata) {
     MEM_delete(static_cast<NodeBBoxWidgetGroup *>(customdata));
   };
+
+  gizmo_group_enable_undo(gzgroup);
 }
 
 void bbox_draw_prepare_space_node(const bContext *C, wmGizmoGroup *gzgroup)
@@ -710,6 +719,8 @@ void crop_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
   gzgroup->customdata_free = [](void *customdata) {
     MEM_delete(static_cast<NodeBBoxWidgetGroup *>(customdata));
   };
+
+  gizmo_group_enable_undo(gzgroup);
 }
 
 struct NodeGlareWidgetGroup {
@@ -829,6 +840,8 @@ void glare_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
   gz->scale_basis = 0.05f / 75.0f;
 
   gzgroup->customdata = glare_group;
+
+  gizmo_group_enable_undo(gzgroup);
 }
 
 void glare_refresh(const bContext *C, wmGizmoGroup *gzgroup)
@@ -978,6 +991,8 @@ void corner_pin_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
   }
 
   gzgroup->customdata = cpin_group;
+
+  gizmo_group_enable_undo(gzgroup);
 }
 
 void corner_pin_refresh(const bContext *C, wmGizmoGroup *gzgroup)
@@ -1094,6 +1109,8 @@ void ellipse_mask_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
   gzgroup->customdata_free = [](void *customdata) {
     MEM_delete(static_cast<NodeBBoxWidgetGroup *>(customdata));
   };
+
+  gizmo_group_enable_undo(gzgroup);
 }
 
 static void gizmo_node_split_foreach_rna_prop(
@@ -1280,6 +1297,8 @@ void split_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
   gzgroup->customdata_free = [](void *customdata) {
     MEM_delete(static_cast<NodeBBoxWidgetGroup *>(customdata));
   };
+
+  gizmo_group_enable_undo(gzgroup);
 }
 
 struct NodeTransformWidgetGroup {
@@ -1342,6 +1361,7 @@ bool viewer_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 
 void viewer_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
+  /* The backdrop transform only changes the editor view, so it does not create undo steps. */
   NodeTransformWidgetGroup *transform_group = MEM_new<NodeTransformWidgetGroup>(__func__);
 
   transform_group->gizmo = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
@@ -1464,6 +1484,8 @@ void translate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
   gzgroup->customdata_free = [](void *customdata) {
     MEM_delete(static_cast<NodeBBoxWidgetGroup *>(customdata));
   };
+
+  gizmo_group_enable_undo(gzgroup);
 }
 
 static const eval_log::ImageInfoLog *gizmo_input_image_log(const SpaceNode &snode,
@@ -1681,6 +1703,8 @@ void transform_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
   gzgroup->customdata_free = [](void *customdata) {
     MEM_delete(static_cast<NodeBBoxWidgetGroup *>(customdata));
   };
+
+  gizmo_group_enable_undo(gzgroup);
 }
 
 static float2 node_gizmo_transformed_offset(const float2 &offset,
@@ -2004,6 +2028,8 @@ void scale_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
   gzgroup->customdata_free = [](void *customdata) {
     MEM_delete(static_cast<NodeBBoxWidgetGroup *>(customdata));
   };
+
+  gizmo_group_enable_undo(gzgroup);
 }
 
 static bool show_scale_gizmo(const SpaceNode &snode)
