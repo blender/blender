@@ -636,6 +636,20 @@ bool GPUDevice::load_image_info(DeviceQueue *queue)
   return true;
 }
 
+void GPUDevice::image_info_update(const uint image_info_id, const KernelImageInfo &info)
+{
+  const thread_scoped_lock lock(image_info_mutex);
+
+  if (image_info_id >= image_info.size()) {
+    /* Geometric growth to amortize reallocation cost. */
+    const size_t new_size = max(size_t(image_info_id) + 128, image_info.size() * 2);
+    image_info.host_only_resize(new_size);
+  }
+
+  image_info[image_info_id] = info;
+  need_image_info = true;
+}
+
 void GPUDevice::init_host_memory(const size_t preferred_texture_headroom,
                                  const size_t preferred_working_headroom)
 {

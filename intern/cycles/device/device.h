@@ -461,6 +461,9 @@ class GPUDevice : public Device {
   virtual void copy_host_to_device(void *device_pointer,
                                    void *host_pointer,
                                    const size_t size) = 0;
+
+  /* Update image info on the host, growing buffer if needed. */
+  void image_info_update(uint image_info_id, const KernelImageInfo &info);
 };
 
 CCL_NAMESPACE_END
