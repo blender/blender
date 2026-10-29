@@ -50,8 +50,21 @@ class ANIM_MT_keyframe_insert_pie(Menu):
         prop.type = "Rotation"
 
 
+class ANIM_MT_rotation_mode_convert(Menu):
+    bl_idname = "ANIM_MT_rotation_mode_convert"
+    bl_label = ""
+    bl_description = "On all selected, change the rotation mode and convert any existing animation into the selected mode"
+
+    def draw(self, _context):
+        layout = self.layout
+        # This is a thin wrapper around operator_enum so we can add the label at the top of the menu.
+        layout.label(text="Convert Rotation Mode")
+        layout.operator_enum("anim.rotation_mode_convert", "mode")
+
+
 classes = (
     ANIM_MT_keyframe_insert_pie,
+    ANIM_MT_rotation_mode_convert,
 )
 
 if __name__ == "__main__":  # only for live edit.
