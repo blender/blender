@@ -2809,30 +2809,26 @@ static void calc_local_from_screen(const ViewContext &vc,
   mul_m4_v3(ob.world_to_object().ptr(), r_local_dir);
 }
 
-static void calc_brush_local_mat(const float rotation,
-                                 const Object &ob,
-                                 const float3 &tip_normal,
-                                 float local_mat[4][4],
-                                 float local_mat_inv[4][4])
+float3 calc_motion_normal_from_angle(const ViewContext &vc,
+                                     const float3 &tip_location,
+                                     const float angle)
 {
-  const StrokeCache *cache = ob.runtime->sculpt_session->cache;
+  Object &ob = *vc.obact;
 
-  calc_brush_local_mat(rotation,
-                       cache->special_rotation,
-                       *cache->vc,
-                       ob,
-                       tip_normal,
-                       cache->location_symm,
-                       cache->radius,
-                       local_mat,
-                       local_mat_inv);
+  /* Ensure `ob.world_to_object` is up to date. */
+  invert_m4_m4(ob.runtime->world_to_object.ptr(), ob.object_to_world().ptr());
+
+  /* By convention, motion direction points down the brush's Y axis, the angle represents the X
+   * axis, normal is a 90 deg CCW rotation of the motion direction. */
+  const float2 motion_normal_screen = {cosf(angle), sinf(angle)};
+  /* Convert view's brush normal direction to object-space. */
+  float3 motion_normal_local;
+  calc_local_from_screen(vc, tip_location, motion_normal_screen, motion_normal_local);
+  return motion_normal_local;
 }
 
-void calc_brush_local_mat(const float rotation,
-                          const float special_rotation,
-                          const ViewContext &vc,
-                          const Object &ob,
-                          const float3 &tip_normal,
+void calc_brush_local_mat(const float3 &tip_normal,
+                          const float3 &motion_normal_local,
                           const float3 &tip_location,
                           const float radius,
                           float local_mat[4][4],
@@ -2841,29 +2837,13 @@ void calc_brush_local_mat(const float rotation,
   float tmat[4][4];
   float mat[4][4];
   float scale[4][4];
-  float angle, v[3];
-
-  /* Ensure `ob.world_to_object` is up to date. */
-  invert_m4_m4(ob.runtime->world_to_object.ptr(), ob.object_to_world().ptr());
+  float v[3];
 
   /* Initialize last column of matrix. */
   mat[0][3] = 0.0f;
   mat[1][3] = 0.0f;
   mat[2][3] = 0.0f;
   mat[3][3] = 1.0f;
-
-  /* Read rotation (user angle, rake, etc.) to find the view's movement direction (negative X of
-   * the brush). */
-  angle = rotation + special_rotation;
-  /* By convention, motion direction points down the brush's Y axis, the angle represents the X
-   * axis, normal is a 90 deg CCW rotation of the motion direction. */
-  float motion_normal_screen[2];
-  motion_normal_screen[0] = cosf(angle);
-  motion_normal_screen[1] = sinf(angle);
-  /* Convert view's brush transverse direction to object-space,
-   * i.e. the normal of the plane described by the motion */
-  float motion_normal_local[3];
-  calc_local_from_screen(vc, tip_location, motion_normal_screen, motion_normal_local);
 
   /* Calculate the movement direction for the local matrix.
    * Note that there is a deliberate prioritization here: Our calculations are
@@ -2934,11 +2914,16 @@ static void update_brush_local_mat(const Sculpt &sd, Object &ob)
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0) {
     const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
     const MTex *mask_tex = BKE_brush_mask_texture_get(brush, PaintMode::Sculpt);
-    calc_brush_local_mat(mask_tex->rot,
-                         ob,
-                         eBrushFalloffShape(brush->falloff_shape) == PAINT_FALLOFF_SHAPE_SPHERE ?
-                             cache->sculpt_normal_symm :
-                             cache->view_normal_symm,
+    const float3 tip_normal = eBrushFalloffShape(brush->falloff_shape) ==
+                                      PAINT_FALLOFF_SHAPE_SPHERE ?
+                                  cache->sculpt_normal_symm :
+                                  cache->view_normal_symm;
+    const float3 motion_normal = calc_motion_normal_from_angle(
+        *cache->vc, cache->location_symm, mask_tex->rot + sd.paint.runtime->brush_rotation);
+    calc_brush_local_mat(tip_normal,
+                         motion_normal,
+                         cache->location_symm,
+                         cache->radius,
                          cache->brush_local_mat.ptr(),
                          cache->brush_local_mat_inv.ptr());
   }
@@ -3354,7 +3339,12 @@ static brushes::CursorSampleResult calc_brush_node_mask(const Depsgraph &depsgra
 
     float4x4 brush_local_mat;
     float4x4 brush_local_mat_inv;
-    calc_brush_local_mat(0, ob, tip_normal, brush_local_mat.ptr(), brush_local_mat_inv.ptr());
+    calc_brush_local_mat(tip_normal,
+                         ss.cache->tip_motion_normal_symm,
+                         ss.cache->location_symm,
+                         ss.cache->radius,
+                         brush_local_mat.ptr(),
+                         brush_local_mat_inv.ptr());
 
     std::optional<float3> plane_normal = brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE ?
                                              std::optional{tip_normal} :
@@ -3744,6 +3734,7 @@ void cache_calc_brushdata_symm(StrokeCache &cache,
 
   cache.initial_location_symm = symmetry_flip(cache.initial_location, symm);
   cache.initial_normal_symm = symmetry_flip(cache.initial_normal, symm);
+  cache.tip_motion_normal_symm = symmetry_flip(cache.tip_motion_normal, symm);
 
   /* XXX This reduces the length of the grab delta if it approaches the line of symmetry
    * XXX However, a different approach appears to be needed. */
@@ -3772,6 +3763,8 @@ void cache_calc_brushdata_symm(StrokeCache &cache,
 
   mul_m4_v3(cache.symm_rot_mat.ptr(), cache.location_symm);
   mul_m4_v3(cache.symm_rot_mat.ptr(), cache.grab_delta_symm);
+
+  mul_m4_v3(cache.symm_rot_mat.ptr(), cache.tip_motion_normal_symm);
 
   if (cache.supports_gravity) {
     cache.gravity_direction_symm = symmetry_flip(cache.gravity_direction, symm);
@@ -5664,7 +5657,13 @@ static void stroke_cache_update(ViewContext &vc,
     paint_runtime.anchored_size = paint_runtime.pixel_radius;
   }
 
-  cache.special_rotation = paint_runtime.brush_rotation;
+  /* TODO: For brushes that does not support rake, we should allow users to set a starting
+   * rotation. Should be implemented after moving Rake and Rotation settings from the texture
+   * datablock. */
+  const float tip_rotation = paint_runtime.brush_rotation;
+
+  /* Calculate brush's 3D normal direction from screen-space rotation. */
+  cache.tip_motion_normal = calc_motion_normal_from_angle(*cache.vc, cache.location, tip_rotation);
 
   cache.iteration_count++;
 }
@@ -6457,17 +6456,18 @@ void ensure_cache(Object &object)
 
 }  // namespace islands
 
-float4x4 cube_tip_init(const Sculpt & /*sd*/, const Object &ob, const Brush &brush)
+float4x4 cube_tip_init(const Object &ob, const Brush &brush)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
   float4x4 unused;
   float4x4 mat;
 
-  calc_brush_local_mat(0.0,
-                       ob,
-                       eBrushFalloffShape(brush.falloff_shape) == PAINT_FALLOFF_SHAPE_SPHERE ?
+  calc_brush_local_mat(eBrushFalloffShape(brush.falloff_shape) == PAINT_FALLOFF_SHAPE_SPHERE ?
                            ss.cache->sculpt_normal_symm :
                            ss.cache->view_normal_symm,
+                       ss.cache->tip_motion_normal_symm,
+                       ss.cache->location_symm,
+                       ss.cache->radius,
                        unused.ptr(),
                        mat.ptr());
 

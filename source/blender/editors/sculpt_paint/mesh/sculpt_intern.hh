@@ -283,7 +283,8 @@ struct StrokeCache {
   const Brush *brush = nullptr;
   const Paint *paint = nullptr;
 
-  float special_rotation = 0.0f;
+  float3 tip_motion_normal = float3(0);
+  float3 tip_motion_normal_symm = float3(0);
   float3 grab_delta = float3(0);
   float3 grab_delta_symm = float3(0);
   float3 old_grab_location = float3(0);
@@ -634,16 +635,22 @@ void fake_neighbors_free(Object &ob);
  *
  * \param tip_normal: Tip normal is the sculpt normal under spherical falloff, but when under
  * projected falloff, it is the view normal.
+ * \param motion_normal_local: Normal direction of the brush motion. Calculate with
+ * calc_motion_normal_from_angle.
  */
-void calc_brush_local_mat(const float rotation,
-                          const float special_rotation,
-                          const ViewContext &vc,
-                          const Object &ob,
-                          const float3 &tip_normal,
+void calc_brush_local_mat(const float3 &tip_normal,
+                          const float3 &motion_normal_local,
                           const float3 &tip_location,
                           const float radius,
                           float local_mat[4][4],
                           float local_mat_inv[4][4]);
+
+/**
+ * Converts a screen-space angle into an object-space motion normal.
+ */
+float3 calc_motion_normal_from_angle(const ViewContext &vc,
+                                     const float3 &tip_location,
+                                     const float angle);
 
 float brush_plane_offset_get(const Brush &brush, const SculptSession &ss);
 
@@ -798,7 +805,7 @@ IndexMask gather_nodes(const bke::pbvh::Tree &pbvh,
 
 const float *brush_frontface_normal_from_falloff_shape(const SculptSession &ss,
                                                        char falloff_shape);
-float4x4 cube_tip_init(const Sculpt &sd, const Object &ob, const Brush &brush);
+float4x4 cube_tip_init(const Object &ob, const Brush &brush);
 
 /** Sample the brush's texture value. */
 void apply_brush_texture(PaintMode paint_mode,

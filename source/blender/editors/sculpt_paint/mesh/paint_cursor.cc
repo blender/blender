@@ -692,15 +692,13 @@ static void cursor_space_drawing_setup(const PaintCursorContext &pcontext)
     float local_mat[4][4];
     float local_mat_inv[4][4];
 
-    calc_brush_local_mat(0,
-                         pcontext.paint->runtime->brush_rotation,
-                         pcontext.vc,
-                         *pcontext.vc.obact,
-                         normal,
-                         pcontext.location,
-                         1.0f,
-                         local_mat,
-                         local_mat_inv);
+    /* TODO: For brushes that does not support rake, we should allow users to set a starting
+     * rotation. Should be implemented after moving Rake and Rotation settings from the texture
+     * datablock. */
+    const float tip_rotation = pcontext.paint->runtime->brush_rotation;
+    const float3 motion_normal = calc_motion_normal_from_angle(
+        pcontext.vc, pcontext.location, tip_rotation);
+    calc_brush_local_mat(normal, motion_normal, pcontext.location, 1.0f, local_mat, local_mat_inv);
 
     GPU_matrix_mul(pcontext.vc.obact->object_to_world().ptr());
     GPU_matrix_mul(local_mat_inv);

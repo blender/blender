@@ -619,8 +619,6 @@ static void stroke_cache_update(ViewContext & /*vc*/,
   }
 
   /* TODO: Brush delta */
-
-  cache.special_rotation = paint_runtime.brush_rotation;
 }
 
 static void do_brush_action(const Depsgraph &depsgraph,
