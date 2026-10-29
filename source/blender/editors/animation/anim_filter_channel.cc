@@ -171,18 +171,18 @@ class NoOpChannelAPI : public AbstractChannelAPI {
 };
 
 class FCurveChannelAPI : public AbstractChannelAPI {
-  FCurve *fcurve_;
+  FCurve &fcurve_;
 
  public:
-  FCurveChannelAPI(FCurve *fcurve) : fcurve_(fcurve) {}
+  FCurveChannelAPI(FCurve &fcurve) : fcurve_(fcurve) {}
 
   void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
   {
-    flag_update(fcurve_->flag, FCURVE_SELECTED, is_selected);
+    flag_update(fcurve_.flag, FCURVE_SELECTED, is_selected);
   }
   bool is_selected() const override
   {
-    return flag_is_set(fcurve_->flag, FCURVE_SELECTED);
+    return flag_is_set(fcurve_.flag, FCURVE_SELECTED);
   }
 };
 
@@ -190,7 +190,7 @@ class GreasePencilChannelAPI : public AbstractChannelAPI {
   bke::greasepencil::Layer &layer_;
 
  public:
-  GreasePencilChannelAPI(GreasePencilLayer *gp_layer) : layer_(gp_layer->wrap()) {}
+  GreasePencilChannelAPI(GreasePencilLayer &gp_layer) : layer_(gp_layer.wrap()) {}
 
   void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
   {
@@ -203,17 +203,17 @@ class GreasePencilChannelAPI : public AbstractChannelAPI {
 };
 
 class ActionChannelAPI : public AbstractChannelAPI {
-  bAction *action_;
+  bAction &action_;
 
  public:
-  ActionChannelAPI(bAction *action) : action_(action) {}
+  ActionChannelAPI(bAction &action) : action_(action) {}
   void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
   {
-    flag_update(action_->flag, ACT_SELECTED, is_selected);
+    flag_update(action_.flag, ACT_SELECTED, is_selected);
   }
   bool is_selected() const override
   {
-    return flag_is_set(action_->flag, ACT_SELECTED);
+    return flag_is_set(action_.flag, ACT_SELECTED);
   }
 };
 
@@ -333,32 +333,32 @@ class ActionGroupChannelAPI : public AbstractChannelAPI {
 };
 
 class ActionSlotChannelAPI : public AbstractChannelAPI {
-  animrig::Slot *slot_;
+  animrig::Slot &slot_;
 
  public:
-  ActionSlotChannelAPI(animrig::Slot *slot) : slot_(slot) {}
+  ActionSlotChannelAPI(animrig::Slot &slot) : slot_(slot) {}
   void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
   {
-    slot_->set_selected(is_selected);
+    slot_.set_selected(is_selected);
   }
   bool is_selected() const override
   {
-    return slot_->is_selected();
+    return slot_.is_selected();
   }
 };
 
 class AnimDataChannelAPI : public AbstractChannelAPI {
-  AnimData *adt_;
+  AnimData &adt_;
 
  public:
-  AnimDataChannelAPI(AnimData *adt) : adt_(adt) {}
+  AnimDataChannelAPI(AnimData &adt) : adt_(adt) {}
   void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
   {
-    flag_update(adt_->flag, ADT_UI_SELECTED, is_selected);
+    flag_update(adt_.flag, ADT_UI_SELECTED, is_selected);
   }
   bool is_selected() const override
   {
-    return flag_is_set(adt_->flag, ADT_UI_SELECTED);
+    return flag_is_set(adt_.flag, ADT_UI_SELECTED);
   }
 };
 
@@ -394,13 +394,13 @@ std::unique_ptr<AbstractChannelAPI> create_channel_api(const AnimationChannel &c
     return std::make_unique<NoOpChannelAPI>();
   }
   if (ptr.type == RNA_FCurve) {
-    return std::make_unique<FCurveChannelAPI>(ptr.data_as<FCurve>());
+    return std::make_unique<FCurveChannelAPI>(*ptr.data_as<FCurve>());
   }
   if (ptr.type == RNA_GreasePencilLayer) {
-    return std::make_unique<GreasePencilChannelAPI>(ptr.data_as<GreasePencilLayer>());
+    return std::make_unique<GreasePencilChannelAPI>(*ptr.data_as<GreasePencilLayer>());
   }
   if (ptr.type == RNA_Action) {
-    return std::make_unique<ActionChannelAPI>(ptr.data_as<bAction>());
+    return std::make_unique<ActionChannelAPI>(*ptr.data_as<bAction>());
   }
   if (ptr.type == RNA_ActionGroup) {
     /* Get the pose bone that's represented by this F-Curve Group (if any). */
@@ -418,7 +418,7 @@ std::unique_ptr<AbstractChannelAPI> create_channel_api(const AnimationChannel &c
         *ptr.data_as<bActionGroup>(), *channelbag, pose_bone_tag);
   }
   if (ptr.type == RNA_ActionSlot) {
-    return std::make_unique<ActionSlotChannelAPI>(ptr.data_as<animrig::Slot>());
+    return std::make_unique<ActionSlotChannelAPI>(*ptr.data_as<animrig::Slot>());
   }
   if (ptr.type == RNA_PoseBone) {
     return std::make_unique<PoseBoneChannelAPI>(ptr);
@@ -428,7 +428,7 @@ std::unique_ptr<AbstractChannelAPI> create_channel_api(const AnimationChannel &c
   if (RNA_struct_is_ID(ptr.type)) {
     AnimData *adt = BKE_animdata_from_id(ptr.owner_id);
     if (adt) {
-      return std::make_unique<AnimDataChannelAPI>(adt);
+      return std::make_unique<AnimDataChannelAPI>(*adt);
     }
   }
 
