@@ -230,31 +230,50 @@ static void rna_property_override_collection_subitem_lookup(
     RNAPropertyOverrideApplyContext &rnaapply_ctx);
 
 bool RNA_property_copy(Main *bmain,
-                       PointerRNA *ptr,
-                       PointerRNA *fromptr,
-                       PropertyRNA *prop,
-                       int index,
+                       PointerRNA &to_ptr,
+                       PointerRNA &from_ptr,
+                       PropertyRNA *to_prop,
+                       PropertyRNA *from_prop,
+                       int to_index,
+                       int from_index,
+                       RNAPropertyCopyFlag flag,
                        IDOverrideLibraryProperty *removed_oprop,
                        IDOverrideLibraryPropertyOperation *removed_opop)
 {
-  /* Ignore editable state if this is removing a liboverride, and the removed operation is a
-   * custom one. Apply callback of the property is expected to know what to do then. */
-  if (!removed_opop || removed_opop->operation != LIBOVERRIDE_OP_CUSTOM) {
-    if (!RNA_property_editable(ptr, prop)) {
+  /* Ignore editable state if:
+   * - Caller has requested it through the flag, or...
+   * - This is removing a liboverride, and the removed operation is a custom one. Apply callback of
+   *   the property is expected to know what to do then. */
+  const bool ignore_editable = flag_is_set(flag, RNAPropertyCopyFlag::IgnoreNonEditable) ||
+                               (removed_opop && removed_opop->operation == LIBOVERRIDE_OP_CUSTOM);
+  if (!ignore_editable && !RNA_property_editable(&to_ptr, to_prop)) {
+    return false;
+  }
+  /* Additional check in case affected properties are not the same (also covers IDProperty cases).
+   */
+  if (to_prop != from_prop) {
+    /* Different properties must also share the same apply callback, otherwise
+     * #rna_property_override_operation_apply cannot handle them. */
+    if (property_override_apply_get(to_prop) != property_override_apply_get(from_prop)) {
+      return false;
+    }
+    /* Apply callbacks switch on the destination property type only, and read the source value with
+     * type-specific accessors, so both properties must be of the same type. */
+    if (RNA_property_type(to_prop) != RNA_property_type(from_prop)) {
       return false;
     }
   }
 
   IDOverrideLibraryPropertyOperation opop{};
   opop.operation = LIBOVERRIDE_OP_REPLACE;
-  opop.subitem_reference_index = index;
-  opop.subitem_local_index = index;
+  opop.subitem_reference_index = to_index;
+  opop.subitem_local_index = from_index;
 
   RNAPropertyOverrideApplyContext rnaapply_ctx;
-  rnaapply_ctx.ptr_dst = *ptr;
-  rnaapply_ctx.ptr_src = *fromptr;
-  rnaapply_ctx.prop_dst = prop;
-  rnaapply_ctx.prop_src = prop;
+  rnaapply_ctx.ptr_dst = to_ptr;
+  rnaapply_ctx.ptr_src = from_ptr;
+  rnaapply_ctx.prop_dst = to_prop;
+  rnaapply_ctx.prop_src = from_prop;
   rnaapply_ctx.liboverride_operation = &opop;
 
   rnaapply_ctx.liboverride_removed_property = removed_oprop;
@@ -275,6 +294,18 @@ bool RNA_property_copy(Main *bmain,
   rna_property_override_collection_subitem_lookup(rnaapply_ctx);
 
   return rna_property_override_operation_apply(bmain, rnaapply_ctx);
+}
+
+bool RNA_property_copy(Main *bmain,
+                       PointerRNA *ptr,
+                       PointerRNA *fromptr,
+                       PropertyRNA *prop,
+                       int index,
+                       IDOverrideLibraryProperty *removed_oprop,
+                       IDOverrideLibraryPropertyOperation *removed_opop)
+{
+  return RNA_property_copy(
+      bmain, *ptr, *fromptr, prop, prop, index, index, {}, removed_oprop, removed_opop);
 }
 
 static int rna_property_override_diff(Main *bmain,
