@@ -282,6 +282,10 @@ struct BSLParser {
       return false;
     }
 
+    /* Report errors even when parsing speculatively, as no other declaration accepts these
+     * keywords. Otherwise a syntax error silently stops parsing at the end of file sentinel. */
+    no_error = false;
+
     NODE(PipelineDecl);
     /* PipelineGraphic / PipelineCompute. */
     qualified_id();
