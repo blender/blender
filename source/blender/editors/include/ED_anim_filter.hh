@@ -898,6 +898,8 @@ void group_channels(ChannelArena &arena,
 
 /* Various settings influencing how the channel tree behaves. */
 struct ChannelTreeSettings {
+  /* Controls the visibility of the top level SummaryChannel. */
+  bool show_summary = true;
   /* Controls the drawing of the eye icon to control FCurve visibility. */
   bool show_visbility_property = false;
   bool do_selection_syncing = false;

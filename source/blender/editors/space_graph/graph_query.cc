@@ -41,7 +41,7 @@ static Span<animfilter::ChannelTagType> get_tag_order()
   return default_tag_order;
 }
 
-animfilter::ChannelArena build_summary_tree(const bContext &C)
+static animfilter::ChannelArena build_summary_tree(const bContext &C)
 {
   using namespace ed::animfilter;
 

@@ -461,6 +461,7 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
     ui::view2d_view_ortho(v2d);
     ed::animfilter::ChannelTreeSettings settings(channels.filters);
     settings.show_visbility_property = true;
+    settings.show_summary = false;
     std::unique_ptr<ui::AbstractTreeView> tree = ed::animfilter::build_channel_tree_view(channels,
                                                                                          settings);
     ed::animfilter::draw_channel_tree(*C, std::move(tree));

@@ -234,7 +234,14 @@ class ChannelTreeView : public ui::AbstractTreeView {
 
   void build_tree() override
   {
-    this->add_channel_recursive(*this, root_);
+    if (tree_settings_.show_summary) {
+      this->add_channel_recursive(*this, root_);
+    }
+    else {
+      for (AnimationChannel *child : root_.children()) {
+        this->add_channel_recursive(*this, *child);
+      }
+    }
   }
 
   bool do_selection_syncing() const
