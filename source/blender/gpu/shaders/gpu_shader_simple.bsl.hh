@@ -31,7 +31,6 @@ struct Simple {
   [[push_constant, condition(use_dashed)]] const float2 viewport_size;
 
   [[push_constant, condition(use_uniform_color)]] const float4 color;
-  [[push_constant, condition(use_uniform_point_size &&use_point_size)]] const float size;
 };
 
 /* Vertex attributes. Unused ones will be optimized out. */
