@@ -1804,6 +1804,34 @@ IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_get
       op, operation, nullptr, nullptr, {}, {}, index, index, strict, r_strict, r_created);
 }
 
+static void rna_property_liboverride_status(Main *bmain,
+                                            PointerRNA *ptr,
+                                            PropertyRNA *prop,
+                                            const int index,
+                                            eRNAOverrideStatus &r_override_status)
+{
+  if (!ID_IS_OVERRIDE_LIBRARY(ptr->owner_id)) {
+    return;
+  }
+
+  if (RNA_property_overridable_get(ptr, prop) && RNA_property_editable_flag(ptr, prop)) {
+    r_override_status |= eRNAOverrideStatus::LibOverridable;
+  }
+
+  IDOverrideLibraryPropertyOperation *opop = RNA_property_override_property_operation_find(
+      bmain, ptr, prop, index, false, nullptr);
+  if (!opop) {
+    return;
+  }
+  r_override_status |= eRNAOverrideStatus::LibOverridden;
+  if (opop->flag & LIBOVERRIDE_OP_FLAG_MANDATORY) {
+    r_override_status |= eRNAOverrideStatus::LibOverrideMandatory;
+  }
+  if (opop->flag & LIBOVERRIDE_OP_FLAG_LOCKED) {
+    r_override_status |= eRNAOverrideStatus::LibOverrideLocked;
+  }
+}
+
 eRNAOverrideStatus RNA_property_override_library_status(Main *bmain,
                                                         PointerRNA *ptr,
                                                         PropertyRNA *prop,
@@ -1811,25 +1839,11 @@ eRNAOverrideStatus RNA_property_override_library_status(Main *bmain,
 {
   eRNAOverrideStatus override_status = eRNAOverrideStatus{};
 
-  if (!ptr || !prop || !ptr->owner_id || !ID_IS_OVERRIDE_LIBRARY(ptr->owner_id)) {
+  if (!ptr || !prop || !ptr->owner_id) {
     return override_status;
   }
 
-  if (RNA_property_overridable_get(ptr, prop) && RNA_property_editable_flag(ptr, prop)) {
-    override_status |= eRNAOverrideStatus::LibOverridable;
-  }
-
-  IDOverrideLibraryPropertyOperation *opop = RNA_property_override_property_operation_find(
-      bmain, ptr, prop, index, false, nullptr);
-  if (opop != nullptr) {
-    override_status |= eRNAOverrideStatus::LibOverridden;
-    if (opop->flag & LIBOVERRIDE_OP_FLAG_MANDATORY) {
-      override_status |= eRNAOverrideStatus::LibOverrideMandatory;
-    }
-    if (opop->flag & LIBOVERRIDE_OP_FLAG_LOCKED) {
-      override_status |= eRNAOverrideStatus::LibOverrideLocked;
-    }
-  }
+  rna_property_liboverride_status(bmain, ptr, prop, index, override_status);
 
   return override_status;
 }
