@@ -491,13 +491,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   const Span<int> loop_to_face_map = result->corner_to_face_map();
 
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
-  bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
+  bke::SpanAttributeWriter<bool> sharp_edges = attributes.ensure_for_write_span<bool>(
       "sharp_edge", bke::AttrDomain::Edge);
-  bke::SpanAttributeWriter clnors = attributes.lookup_or_add_for_write_span<short2>(
+  bke::SpanAttributeWriter clnors = attributes.ensure_for_write_span<short2>(
       "custom_normal", bke::AttrDomain::Corner);
-  if (!clnors) {
-    return result;
-  }
 
   WeightedNormalData wn_data{};
   wn_data.verts_num = verts_num;

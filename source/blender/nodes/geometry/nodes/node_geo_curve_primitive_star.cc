@@ -62,13 +62,15 @@ static Curves *create_star_curve(const float inner_radius,
 
 static void create_selection_output(CurveComponent &component, const StringRef &r_attribute)
 {
-  SpanAttributeWriter<bool> selection =
-      component.attributes_for_write()->lookup_or_add_for_write_only_span<bool>(r_attribute,
-                                                                                AttrDomain::Point);
-  for (int i : selection.span.index_range()) {
-    selection.span[i] = i % 2 == 0;
+  if (SpanAttributeWriter<bool> selection =
+          component.attributes_for_write()->lookup_or_add_for_write_only_span<bool>(
+              r_attribute, AttrDomain::Point))
+  {
+    for (int i : selection.span.index_range()) {
+      selection.span[i] = i % 2 == 0;
+    }
+    selection.finish();
   }
-  selection.finish();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

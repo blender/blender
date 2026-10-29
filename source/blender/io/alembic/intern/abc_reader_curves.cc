@@ -649,7 +649,7 @@ void AbcCurveReader::read_curves_sample(Curves *curves_id,
 
   if (data.velocities && data.velocities->size() == curves.point_num) {
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-    bke::SpanAttributeWriter attr = attributes.lookup_or_add_for_write_span<float3>(
+    bke::SpanAttributeWriter attr = attributes.ensure_for_write_span<float3>(
         "velocity", bke::AttrDomain::Point);
     MutableSpan<float3> velocity = attr.span;
     for (int64_t i = 0; i < curves.point_num; i++) {

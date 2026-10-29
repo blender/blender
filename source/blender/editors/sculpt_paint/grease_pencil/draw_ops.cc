@@ -1546,9 +1546,9 @@ static void set_fill_attributes(bke::CurvesGeometry &fill_curves,
 
   bke::MutableAttributeAccessor attributes = fill_curves.attributes_for_write();
   const Span<float3> positions = fill_curves.positions();
-  bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> radii = attributes.ensure_for_write_span<float>(
       "radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.01f));
-  bke::SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> opacities = attributes.ensure_for_write_span<float>(
       "opacity", bke::AttrDomain::Point, bke::AttributeInitValue(1.0f));
 
   for (const int point_i : fill_curves.points_range()) {
@@ -1587,16 +1587,15 @@ static void set_fill_attributes(bke::CurvesGeometry &fill_curves,
 
     skip_curve_attributes.add("fill_color");
     bke::SpanAttributeWriter<ColorGeometry4f> fill_colors =
-        attributes.lookup_or_add_for_write_span<ColorGeometry4f>("fill_color",
-                                                                 bke::AttrDomain::Curve);
+        attributes.ensure_for_write_span<ColorGeometry4f>("fill_color", bke::AttrDomain::Curve);
     fill_colors.span.fill(vertex_color);
     fill_colors.finish();
 
     if (brush.gpencil_settings->flag2 & GP_BRUSH_USE_STROKE) {
       skip_point_attributes.add("vertex_color");
       bke::SpanAttributeWriter<ColorGeometry4f> vertex_colors =
-          attributes.lookup_or_add_for_write_span<ColorGeometry4f>("vertex_color",
-                                                                   bke::AttrDomain::Point);
+          attributes.ensure_for_write_span<ColorGeometry4f>("vertex_color",
+                                                            bke::AttrDomain::Point);
       vertex_colors.span.fill(vertex_color);
       vertex_colors.finish();
     }
@@ -1755,7 +1754,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
         !dst_curves.attributes().contains("fill_opacity"))
     {
       bke::SpanAttributeWriter<float> fill_opacities =
-          dst_curves.attributes_for_write().lookup_or_add_for_write_span<float>(
+          dst_curves.attributes_for_write().ensure_for_write_span<float>(
               "fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f));
       fill_opacities.finish();
     }

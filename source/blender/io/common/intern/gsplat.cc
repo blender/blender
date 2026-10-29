@@ -14,16 +14,16 @@ GsplatMutableAttributeAccessor::GsplatMutableAttributeAccessor(PointCloud &point
                                                                const int sh_degrees)
     : point_cloud_(point_cloud), attributes_(point_cloud.attributes_for_write())
 {
-  radiance_base_attr_ = attributes_.lookup_or_add_for_write_span<float4>("radiance:base",
-                                                                         bke::AttrDomain::Point);
-  scales_attr_ = attributes_.lookup_or_add_for_write_span<float3>("scale", bke::AttrDomain::Point);
-  rotations_attr_ = attributes_.lookup_or_add_for_write_span<math::Quaternion>(
-      "rotation", bke::AttrDomain::Point);
+  radiance_base_attr_ = attributes_.ensure_for_write_span<float4>("radiance:base",
+                                                                  bke::AttrDomain::Point);
+  scales_attr_ = attributes_.ensure_for_write_span<float3>("scale", bke::AttrDomain::Point);
+  rotations_attr_ = attributes_.ensure_for_write_span<math::Quaternion>("rotation",
+                                                                        bke::AttrDomain::Point);
 
   for (int degree = 1; degree <= sh_degrees; ++degree) {
     const int num_harmonics = (2 * degree + 1);
     for (int harmonic = 0; harmonic < num_harmonics; ++harmonic) {
-      sh_attrs_.append_as(attributes_.lookup_or_add_for_write_span<float3>(
+      sh_attrs_.append_as(attributes_.ensure_for_write_span<float3>(
           "radiance:sh_" + std::to_string(sh_attrs_.size()), bke::AttrDomain::Point));
       sh_spans_for_write_.append(sh_attrs_[sh_attrs_.size() - 1].span);
     }

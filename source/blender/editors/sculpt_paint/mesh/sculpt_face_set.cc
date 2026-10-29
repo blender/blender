@@ -174,7 +174,7 @@ bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Mesh &mesh)
     attributes.add<int>(".sculpt_face_set", bke::AttrDomain::Face, bke::AttributeInitValue(1));
     mesh.face_sets_color_default = 1;
   }
-  return attributes.lookup_or_add_for_write_span<int>(".sculpt_face_set", bke::AttrDomain::Face);
+  return attributes.ensure_for_write_span<int>(".sculpt_face_set", bke::AttrDomain::Face);
 }
 
 int ensure_face_sets_bmesh(Object &object)
@@ -920,7 +920,7 @@ static void face_hide_update(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   Mesh &mesh = *id_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  bke::SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_span<bool>(
+  bke::SpanAttributeWriter<bool> hide_poly = attributes.ensure_for_write_span<bool>(
       ".hide_poly", bke::AttrDomain::Face);
 
   struct TLS {

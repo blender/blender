@@ -205,11 +205,8 @@ void update_mask_mesh(const Depsgraph &depsgraph,
   Mesh &mesh = *id_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
-  bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> mask = attributes.ensure_for_write_span<float>(
       ".sculpt_mask", bke::AttrDomain::Point);
-  if (!mask) {
-    return;
-  }
 
   struct LocalData {
     Vector<int> visible_verts;
@@ -435,7 +432,7 @@ static void fill_mask_mesh(const Depsgraph &depsgraph,
     }
   }
 
-  bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> mask = attributes.ensure_for_write_span<float>(
       ".sculpt_mask", bke::AttrDomain::Point);
 
   Array<bool> node_changed(node_mask.min_array_size(), false);

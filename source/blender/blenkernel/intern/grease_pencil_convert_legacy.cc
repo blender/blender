@@ -857,33 +857,32 @@ static Drawing legacy_gpencil_frame_to_grease_pencil_drawing(
                                                    MutableSpan<float3>();
   MutableSpan<float> radii = drawing.radii_for_write();
   MutableSpan<float> opacities = drawing.opacities_for_write();
-  /* Note: Since we *know* the drawing are created from scratch, we assume that the following
-   * `lookup_or_add_for_write_span` calls always return valid writers. */
-  SpanAttributeWriter<float> delta_times = attributes.lookup_or_add_for_write_span<float>(
+
+  SpanAttributeWriter<float> delta_times = attributes.ensure_for_write_span<float>(
       "delta_time", AttrDomain::Point);
-  SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
+  SpanAttributeWriter<float> rotations = attributes.ensure_for_write_span<float>(
       "rotation", AttrDomain::Point);
   MutableSpan<ColorGeometry4f> vertex_colors = drawing.vertex_colors_for_write();
-  SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
-      ".selection", AttrDomain::Point);
+  SpanAttributeWriter<bool> selection = attributes.ensure_for_write_span<bool>(".selection",
+                                                                               AttrDomain::Point);
   MutableSpan<MDeformVert> dverts = use_dverts ? curves.wrap().deform_verts_for_write() :
                                                  MutableSpan<MDeformVert>();
 
   /* Curve Attributes. */
-  SpanAttributeWriter<bool> stroke_cyclic = attributes.lookup_or_add_for_write_span<bool>(
+  SpanAttributeWriter<bool> stroke_cyclic = attributes.ensure_for_write_span<bool>(
       "cyclic", AttrDomain::Curve);
-  SpanAttributeWriter<float> stroke_init_times = attributes.lookup_or_add_for_write_span<float>(
+  SpanAttributeWriter<float> stroke_init_times = attributes.ensure_for_write_span<float>(
       "init_time", AttrDomain::Curve);
-  SpanAttributeWriter<int8_t> stroke_start_caps = attributes.lookup_or_add_for_write_span<int8_t>(
+  SpanAttributeWriter<int8_t> stroke_start_caps = attributes.ensure_for_write_span<int8_t>(
       "start_cap", AttrDomain::Curve);
-  SpanAttributeWriter<int8_t> stroke_end_caps = attributes.lookup_or_add_for_write_span<int8_t>(
+  SpanAttributeWriter<int8_t> stroke_end_caps = attributes.ensure_for_write_span<int8_t>(
       "end_cap", AttrDomain::Curve);
-  SpanAttributeWriter<float> stroke_softness = attributes.lookup_or_add_for_write_span<float>(
+  SpanAttributeWriter<float> stroke_softness = attributes.ensure_for_write_span<float>(
       "softness", AttrDomain::Curve);
-  SpanAttributeWriter<float> stroke_point_aspect_ratios =
-      attributes.lookup_or_add_for_write_span<float>("aspect_ratio", AttrDomain::Curve);
+  SpanAttributeWriter<float> stroke_point_aspect_ratios = attributes.ensure_for_write_span<float>(
+      "aspect_ratio", AttrDomain::Curve);
   MutableSpan<ColorGeometry4f> stroke_fill_colors = drawing.fill_colors_for_write();
-  SpanAttributeWriter<int> stroke_materials = attributes.lookup_or_add_for_write_span<int>(
+  SpanAttributeWriter<int> stroke_materials = attributes.ensure_for_write_span<int>(
       "material_index", AttrDomain::Curve);
 
   Array<float4x2> legacy_texture_matrices(num_strokes);
@@ -1099,7 +1098,7 @@ static void legacy_gpencil_to_grease_pencil(ConversionData &conversion_data,
   /* NOTE: Layer Adjustments like the tint and the radius offsets are deliberately ignored here!
    * These are converted to modifiers at the bottom of the stack to keep visual compatibility with
    * GPv2. */
-  SpanAttributeWriter<int> layer_passes = layer_attributes.lookup_or_add_for_write_span<int>(
+  SpanAttributeWriter<int> layer_passes = layer_attributes.ensure_for_write_span<int>(
       "pass_index", bke::AttrDomain::Layer);
 
   for (const auto [layer_idx, gpl] : gpd.layers.enumerate()) {
@@ -3214,10 +3213,12 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
           layer_name_string.c_str(),
           frame_number);
     }
-    SpanAttributeWriter hide_stroke = attributes.lookup_or_add_for_write_only_span<bool>(
-        hide_stroke_name, AttrDomain::Curve);
-    hide_stroke.span.copy_from(material_hides_stroke);
-    hide_stroke.finish();
+    if (SpanAttributeWriter hide_stroke = attributes.lookup_or_add_for_write_only_span<bool>(
+            hide_stroke_name, AttrDomain::Curve))
+    {
+      hide_stroke.span.copy_from(material_hides_stroke);
+      hide_stroke.finish();
+    }
   }
 
   /* Optimization: If no fills are used in this drawing, don't create the attribute. */
@@ -3241,8 +3242,8 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
           layer_name_string.c_str(),
           frame_number);
     }
-    SpanAttributeWriter fill_ids = attributes.lookup_or_add_for_write_only_span<int>(
-        "fill_id", AttrDomain::Curve);
+    SpanAttributeWriter fill_ids = attributes.ensure_for_write_only_span<int>("fill_id",
+                                                                              AttrDomain::Curve);
     int current_fill_id = 1;
     for (const int curve_i : curves.curves_range()) {
       if (material_uses_fill[curve_i]) {

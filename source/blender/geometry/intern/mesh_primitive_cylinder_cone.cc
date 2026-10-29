@@ -479,43 +479,49 @@ static void calculate_selection_outputs(const ConeConfig &config,
   /* Populate "Top" selection output. */
   if (attribute_outputs.top_id) {
     const bool face = !config.top_is_point && config.fill_type != ConeFillType::None;
-    bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
-        *attribute_outputs.top_id, face ? bke::AttrDomain::Face : bke::AttrDomain::Point);
+    if (bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
+            *attribute_outputs.top_id, face ? bke::AttrDomain::Face : bke::AttrDomain::Point))
+    {
 
-    if (config.top_is_point) {
-      selection.span[config.first_vert] = true;
+      if (config.top_is_point) {
+        selection.span[config.first_vert] = true;
+      }
+      else {
+        selection.span.slice(0, face ? config.top_faces_len : config.circle_segments).fill(true);
+      }
+      selection.finish();
     }
-    else {
-      selection.span.slice(0, face ? config.top_faces_len : config.circle_segments).fill(true);
-    }
-    selection.finish();
   }
 
   /* Populate "Bottom" selection output. */
   if (attribute_outputs.bottom_id) {
     const bool face = !config.bottom_is_point && config.fill_type != ConeFillType::None;
-    bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
-        *attribute_outputs.bottom_id, face ? bke::AttrDomain::Face : bke::AttrDomain::Point);
+    if (bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
+            *attribute_outputs.bottom_id, face ? bke::AttrDomain::Face : bke::AttrDomain::Point))
+    {
 
-    if (config.bottom_is_point) {
-      selection.span[config.last_vert] = true;
+      if (config.bottom_is_point) {
+        selection.span[config.last_vert] = true;
+      }
+      else if (face) {
+        selection.span.slice(config.bottom_faces_start, config.bottom_faces_len).fill(true);
+      }
+      else {
+        selection.span.slice(config.last_ring_verts_start + 1, config.circle_segments).fill(true);
+      }
+      selection.finish();
     }
-    else if (face) {
-      selection.span.slice(config.bottom_faces_start, config.bottom_faces_len).fill(true);
-    }
-    else {
-      selection.span.slice(config.last_ring_verts_start + 1, config.circle_segments).fill(true);
-    }
-    selection.finish();
   }
 
   /* Populate "Side" selection output. */
   if (attribute_outputs.side_id) {
-    bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
-        *attribute_outputs.side_id, bke::AttrDomain::Face);
+    if (bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
+            *attribute_outputs.side_id, bke::AttrDomain::Face))
+    {
 
-    selection.span.slice(config.side_faces_start, config.side_faces_len).fill(true);
-    selection.finish();
+      selection.span.slice(config.side_faces_start, config.side_faces_len).fill(true);
+      selection.finish();
+    }
   }
 }
 
@@ -533,6 +539,11 @@ static void calculate_cone_uvs(const ConeConfig &config, Mesh *mesh, const Strin
 
   bke::SpanAttributeWriter<float2> uv_attribute =
       attributes.lookup_or_add_for_write_only_span<float2>(uv_map_id, bke::AttrDomain::Corner);
+
+  if (!uv_attribute) {
+    return;
+  }
+
   MutableSpan<float2> uvs = uv_attribute.span;
 
   Array<float2> circle(config.circle_segments);

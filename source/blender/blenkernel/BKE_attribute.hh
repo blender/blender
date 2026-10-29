@@ -909,7 +909,7 @@ class MutableAttributeAccessor : public AttributeAccessor {
    * can only fail for certain built-in attributes, so when you are sure you are not handling one
    * of those you don't need to check if the accessor is valid.
    */
-  GAttributeWriter convert_or_add_for_write(
+  GAttributeWriter ensure_for_write(
       StringRef name,
       AttrDomain domain,
       AttrType data_type,
@@ -918,21 +918,19 @@ class MutableAttributeAccessor : public AttributeAccessor {
   /**
    * Find an attribute with the given id, domain and data type. If it does not exist, create a new
    * attribute. If the attribute with the same name but a different type or domain already exists
-   * the attribute will be converted to match the type and domain and then returned. The existing
+   * the attribute will be recreated to match the type and domain and then returned. The existing
    * data will not be converted, as the write_only indicates the attribute will be rewritten.
    * Also see the note on built-in attributes above.
    */
-  GAttributeWriter convert_or_add_for_write_only(StringRef name,
-                                                 AttrDomain domain,
-                                                 AttrType data_type);
+  GAttributeWriter ensure_for_write_only(StringRef name, AttrDomain domain, AttrType data_type);
 
   /**
    * Same as above, but returns a type that makes it easier to work with the attribute as a span.
    * If the caller newly initializes the attribute, it's better to use
-   * #convert_or_add_for_write_only_span.
+   * #ensure_for_write_only_span.
    * Also see the note on built-in attributes above.
    */
-  GSpanAttributeWriter convert_or_add_for_write_span(
+  GSpanAttributeWriter ensure_for_write_span(
       StringRef name,
       AttrDomain domain,
       AttrType data_type,
@@ -943,14 +941,14 @@ class MutableAttributeAccessor : public AttributeAccessor {
    * Also see the note on built-in attributes above.
    */
   template<typename T>
-  AttributeWriter<T> convert_or_add_for_write(
+  AttributeWriter<T> ensure_for_write(
       const StringRef name,
       const AttrDomain domain,
       const AttributeInit &initializer = AttributeInitDefaultValue())
   {
     const CPPType &cpp_type = CPPType::get<T>();
     const AttrType data_type = cpp_type_to_attribute_type(cpp_type);
-    return this->convert_or_add_for_write(name, domain, data_type, initializer).typed<T>();
+    return this->ensure_for_write(name, domain, data_type, initializer).typed<T>();
   }
 
   /**
@@ -958,12 +956,12 @@ class MutableAttributeAccessor : public AttributeAccessor {
    * Also see the note on built-in attributes above.
    */
   template<typename T>
-  SpanAttributeWriter<T> convert_or_add_for_write_span(
+  SpanAttributeWriter<T> ensure_for_write_span(
       const StringRef name,
       const AttrDomain domain,
       const AttributeInit &initializer = AttributeInitDefaultValue())
   {
-    AttributeWriter<T> attribute = this->convert_or_add_for_write<T>(name, domain, initializer);
+    AttributeWriter<T> attribute = this->ensure_for_write<T>(name, domain, initializer);
     BLI_assert(attribute);
     return SpanAttributeWriter<T>{std::move(attribute), true};
   }
@@ -971,27 +969,25 @@ class MutableAttributeAccessor : public AttributeAccessor {
   /**
    * Find an attribute with the given id, domain and data type. If it does not exist, create a new
    * attribute. If an attribute with the same name but a differing domain/type already exists
-   * the attribute will be converted to the new domain/type.
+   * the attribute will be recreated with the new domain/type.
    *
    * The "only" in the name indicates that the caller should not read existing values from the
-   * span. If the attribute is not stored as span internally, the existing values won't be copied
-   * over to the span.
+   * span.
    *
    * For trivial types, the values in a newly created attribute will not be initialized.
    * Also see the note on built-in attributes above.
    */
-  GSpanAttributeWriter convert_or_add_for_write_only_span(StringRef name,
-                                                          AttrDomain domain,
-                                                          AttrType data_type);
+  GSpanAttributeWriter ensure_for_write_only_span(StringRef name,
+                                                  AttrDomain domain,
+                                                  AttrType data_type);
 
   /**
    * Same as above, but should be used when the type is known at compile time.
    */
   template<typename T>
-  SpanAttributeWriter<T> convert_or_add_for_write_only_span(const StringRef name,
-                                                            const AttrDomain domain)
+  SpanAttributeWriter<T> ensure_for_write_only_span(const StringRef name, const AttrDomain domain)
   {
-    AttributeWriter<T> attribute = this->convert_or_add_for_write<T>(
+    AttributeWriter<T> attribute = this->ensure_for_write<T>(
         name, domain, AttributeInitConstruct());
 
     if (attribute) {

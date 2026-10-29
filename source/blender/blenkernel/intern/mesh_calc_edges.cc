@@ -557,7 +557,7 @@ void mesh_calc_edges(Mesh &mesh,
       dst_attributes.add<bool>(".select_edge", AttrDomain::Edge, AttributeInitValue(fill_value));
     }
     else {
-      SpanAttributeWriter<bool> select_edge = dst_attributes.lookup_or_add_for_write_span<bool>(
+      SpanAttributeWriter<bool> select_edge = dst_attributes.ensure_for_write_span<bool>(
           ".select_edge", AttrDomain::Edge);
       select_edge.span.drop_back(back_range_of_new_edges.size()).fill(false);
       select_edge.span.take_back(back_range_of_new_edges.size()).fill(true);

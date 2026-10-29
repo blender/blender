@@ -92,8 +92,12 @@ static bke::SpanAttributeWriter<float2> get_uv_attribute(Mesh &mesh, const Strin
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (md_name.is_empty()) {
     const StringRef name = mesh.active_uv_map_name();
-    return attributes.lookup_or_add_for_write_span<float2>(name.is_empty() ? "Float2" : name,
-                                                           bke::AttrDomain::Corner);
+    if (bke::SpanAttributeWriter<float2> attribute =
+            attributes.lookup_or_add_for_write_span<float2>(name.is_empty() ? "Float2" : name,
+                                                            bke::AttrDomain::Corner))
+    {
+      return attribute;
+    }
   }
   if (bke::SpanAttributeWriter<float2> attribute = attributes.lookup_or_add_for_write_span<float2>(
           md_name, bke::AttrDomain::Corner))
@@ -102,7 +106,9 @@ static bke::SpanAttributeWriter<float2> get_uv_attribute(Mesh &mesh, const Strin
   }
   AttributeOwner owner = AttributeOwner::from_id(&mesh.id);
   const std::string name = BKE_attribute_calc_unique_name(owner, md_name);
-  return attributes.lookup_or_add_for_write_span<float2>(name, bke::AttrDomain::Corner);
+  /* We use ensure_for_write_span (instead of lookup_or_add...) to signal
+   * it can't return a null writer. */
+  return attributes.ensure_for_write_span<float2>(name, bke::AttrDomain::Corner);
 }
 
 static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,

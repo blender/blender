@@ -231,7 +231,7 @@ static wmOperatorStatus bake_grease_pencil_animation_exec(bContext *C, wmOperato
             "material_index", bke::AttrDomain::Curve, 0);
         bke::CurvesGeometry &target_strokes = target_drawing.strokes_for_write();
         bke::SpanAttributeWriter<int> target_material_indices =
-            target_strokes.attributes_for_write().lookup_or_add_for_write_span<int>(
+            target_strokes.attributes_for_write().ensure_for_write_span<int>(
                 "material_index", bke::AttrDomain::Curve);
 
         for (const int i : target_drawing.strokes().curves_range()) {

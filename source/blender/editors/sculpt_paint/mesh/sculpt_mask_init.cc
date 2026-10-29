@@ -57,11 +57,9 @@ void write_mask_mesh(const Depsgraph &depsgraph,
 
   undo::push_nodes(depsgraph, object, node_mask, undo::Type::Mask);
 
-  bke::SpanAttributeWriter mask = attributes.lookup_or_add_for_write_span<float>(
-      ".sculpt_mask", bke::AttrDomain::Point);
-  if (!mask) {
-    return;
-  }
+  bke::SpanAttributeWriter mask = attributes.ensure_for_write_span<float>(".sculpt_mask",
+                                                                          bke::AttrDomain::Point);
+
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   node_mask.foreach_index(

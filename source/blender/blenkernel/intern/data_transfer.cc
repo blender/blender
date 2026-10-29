@@ -409,12 +409,9 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
         CustomData_get_layer_for_write(ldata_dst, CD_NORMAL, me_dst->corners_num));
 
     bke::MutableAttributeAccessor attributes = me_dst->attributes_for_write();
-    bke::SpanAttributeWriter custom_nors_dst = attributes.lookup_or_add_for_write_span<short2>(
+    bke::SpanAttributeWriter custom_nors_dst = attributes.ensure_for_write_span<short2>(
         "custom_normal", bke::AttrDomain::Corner);
-    if (!custom_nors_dst) {
-      return;
-    }
-    bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
+    bke::SpanAttributeWriter<bool> sharp_edges = attributes.ensure_for_write_span<bool>(
         "sharp_edge", bke::AttrDomain::Edge);
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
     /* Note loop_nors_dst contains our custom normals as transferred from source... */

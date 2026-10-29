@@ -482,31 +482,37 @@ static void create_attributes(GeoNodeExecParams &params,
   if (std::optional<std::string> line_id = params.get_output_anonymous_attribute_id_if_needed(
           "Line"_ustr))
   {
-    SpanAttributeWriter<int> line_attribute = attributes.lookup_or_add_for_write_only_span<int>(
-        *line_id, AttrDomain::Instance);
-    line_attribute.span.copy_from(layout.line_numbers);
-    line_attribute.finish();
+    if (SpanAttributeWriter<int> line_attribute =
+            attributes.lookup_or_add_for_write_only_span<int>(*line_id, AttrDomain::Instance))
+    {
+      line_attribute.span.copy_from(layout.line_numbers);
+      line_attribute.finish();
+    }
   }
   if (std::optional<std::string> line_id = params.get_output_anonymous_attribute_id_if_needed(
           "Word"_ustr))
   {
-    SpanAttributeWriter<int> word_attribute = attributes.lookup_or_add_for_write_only_span<int>(
-        *line_id, AttrDomain::Instance);
-    word_attribute.span.copy_from(layout.word_numbers);
-    word_attribute.finish();
+    if (SpanAttributeWriter<int> word_attribute =
+            attributes.lookup_or_add_for_write_only_span<int>(*line_id, AttrDomain::Instance))
+    {
+      word_attribute.span.copy_from(layout.word_numbers);
+      word_attribute.finish();
+    }
   }
 
   if (std::optional<std::string> pivot_id = params.get_output_anonymous_attribute_id_if_needed(
           "Pivot Point"_ustr))
   {
-    SpanAttributeWriter<float3> pivot_attribute =
-        attributes.lookup_or_add_for_write_only_span<float3>(*pivot_id, AttrDomain::Instance);
+    if (SpanAttributeWriter<float3> pivot_attribute =
+            attributes.lookup_or_add_for_write_only_span<float3>(*pivot_id, AttrDomain::Instance))
+    {
 
-    for (const int i : layout.char_codes.index_range()) {
-      pivot_attribute.span[i] = layout.pivot_points.lookup(layout.char_codes[i]);
+      for (const int i : layout.char_codes.index_range()) {
+        pivot_attribute.span[i] = layout.pivot_points.lookup(layout.char_codes[i]);
+      }
+
+      pivot_attribute.finish();
     }
-
-    pivot_attribute.finish();
   }
 }
 

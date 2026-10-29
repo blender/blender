@@ -241,7 +241,7 @@ VArray<bool> ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int uv_index)
 static bke::AttributeWriter<bool> ensure_corner_boolean_attribute(Mesh &mesh, const StringRef name)
 {
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  return attributes.lookup_or_add_for_write<bool>(
+  return attributes.ensure_for_write<bool>(
       name, bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
 }
 
@@ -781,7 +781,7 @@ static void mesh_add_verts(Mesh *mesh, int len)
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::fill_attribute_range_default(
       attributes, bke::AttrDomain::Point, {}, IndexRange::from_begin_size(old_size, len));
-  bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
+  bke::SpanAttributeWriter<bool> select_vert = attributes.ensure_for_write_span<bool>(
       ".select_vert", bke::AttrDomain::Point);
   select_vert.span.take_back(len).fill(true);
   select_vert.finish();
@@ -806,7 +806,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::fill_attribute_range_default(
       attributes, bke::AttrDomain::Edge, {}, IndexRange::from_begin_size(old_size, len));
-  bke::SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_span<bool>(
+  bke::SpanAttributeWriter<bool> select_edge = attributes.ensure_for_write_span<bool>(
       ".select_edge", bke::AttrDomain::Edge);
   select_edge.span.take_back(len).fill(true);
   select_edge.finish();
@@ -867,7 +867,7 @@ static void mesh_add_faces(Mesh *mesh, int len)
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::fill_attribute_range_default(
       attributes, bke::AttrDomain::Face, {}, IndexRange::from_begin_size(old_size, len));
-  bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
+  bke::SpanAttributeWriter<bool> select_poly = attributes.ensure_for_write_span<bool>(
       ".select_poly", bke::AttrDomain::Face);
   select_poly.span.take_back(len).fill(true);
   select_poly.finish();

@@ -2947,7 +2947,7 @@ class XpbdSolverStep {
         attributes.remove(name);
       }
     }
-    return attributes.lookup_or_add_for_write_span<T>(name, domain);
+    return attributes.ensure_for_write_span<T>(name, domain);
   }
 
   template<typename T>
@@ -2959,7 +2959,7 @@ class XpbdSolverStep {
       return {};
     }
     GeometryData &geo_data = *geometries_.data[geo_data_i];
-    return geo_data.attributes.lookup_or_add_for_write_span<T>(name, domain);
+    return geo_data.attributes.ensure_for_write_span<T>(name, domain);
   }
 
   const Bundle *get_previous_bundle(const Bundle &bundle) const
@@ -3009,28 +3009,27 @@ class XpbdSolverStep {
     PointCloud *pointcloud = BKE_pointcloud_new_nomain(PointCloudType::Points,
                                                        points_by_chunk.total_size());
     MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
-    bke::SpanAttributeWriter<int> geometries_writer =
-        attributes.lookup_or_add_for_write_only_span<int>("geometry", AttrDomain::Point);
-    bke::SpanAttributeWriter<int> colliders_writer =
-        attributes.lookup_or_add_for_write_only_span<int>("collider", AttrDomain::Point);
+    bke::SpanAttributeWriter<int> geometries_writer = attributes.ensure_for_write_only_span<int>(
+        "geometry", AttrDomain::Point);
+    bke::SpanAttributeWriter<int> colliders_writer = attributes.ensure_for_write_only_span<int>(
+        "collider", AttrDomain::Point);
     bke::SpanAttributeWriter<int> geometry_points0_writer =
-        attributes.lookup_or_add_for_write_only_span<int>("geometry_point0", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<int>("geometry_point0", AttrDomain::Point);
     MutableSpan<float3> positions = pointcloud->positions_for_write();
     bke::SpanAttributeWriter<float3> collider_velocities_writer =
-        attributes.lookup_or_add_for_write_only_span<float3>("collider_velocity",
-                                                             AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float3>("collider_velocity", AttrDomain::Point);
     bke::SpanAttributeWriter<float3> normals_writer =
-        attributes.lookup_or_add_for_write_only_span<float3>("normal", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float3>("normal", AttrDomain::Point);
     bke::SpanAttributeWriter<float> static_frictions_writer =
-        attributes.lookup_or_add_for_write_only_span<float>("static_friction", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float>("static_friction", AttrDomain::Point);
     bke::SpanAttributeWriter<float> dynamic_frictions_writer =
-        attributes.lookup_or_add_for_write_only_span<float>("dynamic_friction", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float>("dynamic_friction", AttrDomain::Point);
     bke::SpanAttributeWriter<bool> active_states_writer =
-        attributes.lookup_or_add_for_write_only_span<bool>("active", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<bool>("active", AttrDomain::Point);
     bke::SpanAttributeWriter<float> lambdas_normal_writer =
-        attributes.lookup_or_add_for_write_only_span<float>("lambda_normal", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float>("lambda_normal", AttrDomain::Point);
     bke::SpanAttributeWriter<float> lambdas_friction_writer =
-        attributes.lookup_or_add_for_write_only_span<float>("lambda_friction", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float>("lambda_friction", AttrDomain::Point);
 
     this->parallel_for_each_chunk(16, [&](const int chunk_i) {
       const GeometryDataChunk &chunk = geometries_.chunks[chunk_i];
@@ -3090,30 +3089,29 @@ class XpbdSolverStep {
     PointCloud *pointcloud = BKE_pointcloud_new_nomain(PointCloudType::Points,
                                                        points_by_chunk.total_size());
     MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
-    bke::SpanAttributeWriter<int> geometries_writer =
-        attributes.lookup_or_add_for_write_only_span<int>("geometry", AttrDomain::Point);
-    bke::SpanAttributeWriter<int> colliders_writer =
-        attributes.lookup_or_add_for_write_only_span<int>("collider", AttrDomain::Point);
+    bke::SpanAttributeWriter<int> geometries_writer = attributes.ensure_for_write_only_span<int>(
+        "geometry", AttrDomain::Point);
+    bke::SpanAttributeWriter<int> colliders_writer = attributes.ensure_for_write_only_span<int>(
+        "collider", AttrDomain::Point);
     bke::SpanAttributeWriter<int> geometry_points0_writer =
-        attributes.lookup_or_add_for_write_only_span<int>("geometry_point0", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<int>("geometry_point0", AttrDomain::Point);
     bke::SpanAttributeWriter<int> geometry_points1_writer =
-        attributes.lookup_or_add_for_write_only_span<int>("geometry_point1", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<int>("geometry_point1", AttrDomain::Point);
     MutableSpan<float3> positions = pointcloud->positions_for_write();
     bke::SpanAttributeWriter<float3> collider_velocities_writer =
-        attributes.lookup_or_add_for_write_only_span<float3>("collider_velocity",
-                                                             AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float3>("collider_velocity", AttrDomain::Point);
     bke::SpanAttributeWriter<float3> normals_writer =
-        attributes.lookup_or_add_for_write_only_span<float3>("normal", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float3>("normal", AttrDomain::Point);
     bke::SpanAttributeWriter<float> static_frictions_writer =
-        attributes.lookup_or_add_for_write_only_span<float>("static_friction", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float>("static_friction", AttrDomain::Point);
     bke::SpanAttributeWriter<float> dynamic_frictions_writer =
-        attributes.lookup_or_add_for_write_only_span<float>("dynamic_friction", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float>("dynamic_friction", AttrDomain::Point);
     bke::SpanAttributeWriter<bool> active_states_writer =
-        attributes.lookup_or_add_for_write_only_span<bool>("active", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<bool>("active", AttrDomain::Point);
     bke::SpanAttributeWriter<float> lambdas_normal_writer =
-        attributes.lookup_or_add_for_write_only_span<float>("lambda_normal", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float>("lambda_normal", AttrDomain::Point);
     bke::SpanAttributeWriter<float> lambdas_friction_writer =
-        attributes.lookup_or_add_for_write_only_span<float>("lambda_friction", AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float>("lambda_friction", AttrDomain::Point);
 
     this->parallel_for_each_chunk(16, [&](const int chunk_i) {
       const GeometryDataChunk &chunk = geometries_.chunks[chunk_i];

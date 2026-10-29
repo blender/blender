@@ -7566,6 +7566,9 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
     }
     bke::GSpanAttributeWriter dst = dst_attrs.lookup_or_add_for_write_only_span(
         iter.name, iter.domain, iter.data_type);
+    if (!dst) {
+      return;
+    }
     switch (iter.domain) {
       case bke::AttrDomain::Point: {
         GMutableSpan surv_values = dst.span.take_front(n_surv_verts);
@@ -7674,53 +7677,61 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
   if (ao.vertex_face_id || ao.edge_face_id) {
     const Span<NewFaceKind> face_kinds = emesh.new_face_kinds();
     if (ao.vertex_face_id) {
-      bke::SpanAttributeWriter<bool> writer = dst_attrs.lookup_or_add_for_write_span<bool>(
-          *ao.vertex_face_id, bke::AttrDomain::Face);
-      for (const int nf : IndexRange(n_new_faces)) {
-        writer.span[n_surv_faces + nf] = (face_kinds[nf] == NewFaceKind::VertexFace);
+      if (bke::SpanAttributeWriter<bool> writer = dst_attrs.lookup_or_add_for_write_span<bool>(
+              *ao.vertex_face_id, bke::AttrDomain::Face))
+      {
+        for (const int nf : IndexRange(n_new_faces)) {
+          writer.span[n_surv_faces + nf] = (face_kinds[nf] == NewFaceKind::VertexFace);
+        }
+        writer.finish();
       }
-      writer.finish();
     }
     if (ao.edge_face_id) {
-      bke::SpanAttributeWriter<bool> writer = dst_attrs.lookup_or_add_for_write_span<bool>(
-          *ao.edge_face_id, bke::AttrDomain::Face);
-      for (const int nf : IndexRange(n_new_faces)) {
-        writer.span[n_surv_faces + nf] = (face_kinds[nf] == NewFaceKind::EdgeFace);
+      if (bke::SpanAttributeWriter<bool> writer = dst_attrs.lookup_or_add_for_write_span<bool>(
+              *ao.edge_face_id, bke::AttrDomain::Face))
+      {
+        for (const int nf : IndexRange(n_new_faces)) {
+          writer.span[n_surv_faces + nf] = (face_kinds[nf] == NewFaceKind::EdgeFace);
+        }
+        writer.finish();
       }
-      writer.finish();
     }
   }
 
   if (ao.outer_edge_id) {
-    bke::SpanAttributeWriter<bool> writer = dst_attrs.lookup_or_add_for_write_span<bool>(
-        *ao.outer_edge_id, bke::AttrDomain::Edge);
-    /* Outer edges are surviving original edges, identified via src_edge_map. */
-    for (const int se : state.outer_edge_src_indices) {
-      const int dst_e = src_edge_map[se];
-      if (dst_e >= 0) {
-        writer.span[dst_e] = true;
+    if (bke::SpanAttributeWriter<bool> writer = dst_attrs.lookup_or_add_for_write_span<bool>(
+            *ao.outer_edge_id, bke::AttrDomain::Edge))
+    {
+      /* Outer edges are surviving original edges, identified via src_edge_map. */
+      for (const int se : state.outer_edge_src_indices) {
+        const int dst_e = src_edge_map[se];
+        if (dst_e >= 0) {
+          writer.span[dst_e] = true;
+        }
       }
-    }
-    /* Also check new edges tagged as OUTER_EDGE (can happen when the outer edge is new). */
-    const Span<NewEdgeKind> edge_kinds = emesh.new_edge_kinds();
-    for (const int ne : IndexRange(n_new_edges)) {
-      if (edge_kinds[ne] == NewEdgeKind::OuterEdge) {
-        writer.span[n_surv_edges + ne] = true;
+      /* Also check new edges tagged as OUTER_EDGE (can happen when the outer edge is new). */
+      const Span<NewEdgeKind> edge_kinds = emesh.new_edge_kinds();
+      for (const int ne : IndexRange(n_new_edges)) {
+        if (edge_kinds[ne] == NewEdgeKind::OuterEdge) {
+          writer.span[n_surv_edges + ne] = true;
+        }
       }
+      writer.finish();
     }
-    writer.finish();
   }
 
   if (ao.mid_edge_id) {
-    bke::SpanAttributeWriter<bool> writer = dst_attrs.lookup_or_add_for_write_span<bool>(
-        *ao.mid_edge_id, bke::AttrDomain::Edge);
-    const Span<NewEdgeKind> edge_kinds = emesh.new_edge_kinds();
-    for (const int ne : IndexRange(n_new_edges)) {
-      if (edge_kinds[ne] == NewEdgeKind::MidEdge) {
-        writer.span[n_surv_edges + ne] = true;
+    if (bke::SpanAttributeWriter<bool> writer = dst_attrs.lookup_or_add_for_write_span<bool>(
+            *ao.mid_edge_id, bke::AttrDomain::Edge))
+    {
+      const Span<NewEdgeKind> edge_kinds = emesh.new_edge_kinds();
+      for (const int ne : IndexRange(n_new_edges)) {
+        if (edge_kinds[ne] == NewEdgeKind::MidEdge) {
+          writer.span[n_surv_edges + ne] = true;
+        }
       }
+      writer.finish();
     }
-    writer.finish();
   }
 
   BLI_assert(bke::mesh_is_valid(*dst));

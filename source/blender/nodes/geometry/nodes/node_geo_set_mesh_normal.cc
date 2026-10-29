@@ -102,7 +102,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                 "sharp_edge", bke::AttrDomain::Edge, bke::AttributeInitValue(true));
           }
           else {
-            bke::SpanAttributeWriter attr = attributes.lookup_or_add_for_write_only_span<bool>(
+            bke::SpanAttributeWriter attr = attributes.ensure_for_write_only_span<bool>(
                 "sharp_edge", bke::AttrDomain::Edge);
             edge_values.to_bools(attr.span);
             attr.finish();
@@ -116,7 +116,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                 "sharp_face", bke::AttrDomain::Face, bke::AttributeInitValue(true));
           }
           else {
-            bke::SpanAttributeWriter attr = attributes.lookup_or_add_for_write_only_span<bool>(
+            bke::SpanAttributeWriter attr = attributes.ensure_for_write_only_span<bool>(
                 "sharp_face", bke::AttrDomain::Face);
             face_values.to_bools(attr.span);
             attr.finish();

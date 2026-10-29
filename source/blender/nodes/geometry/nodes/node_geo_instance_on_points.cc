@@ -186,10 +186,12 @@ static std::unique_ptr<bke::Instances> add_instances_from_component(
         return;
       }
     }
-    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        iter.name, bke::AttrDomain::Instance, iter.data_type);
-    array_utils::gather(src.varray, selection, dst.span);
-    dst.finish();
+    if (GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+            iter.name, bke::AttrDomain::Instance, iter.data_type))
+    {
+      array_utils::gather(src.varray, selection, dst.span);
+      dst.finish();
+    }
   });
 
   return dst_component;

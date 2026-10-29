@@ -5433,13 +5433,13 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
   MutableAttributeAccessor attributes = new_curves.attributes_for_write();
   MutableSpan<float3> point_positions = new_curves.positions_for_write();
 
-  SpanAttributeWriter<float> point_radii = attributes.lookup_or_add_for_write_only_span<float>(
+  SpanAttributeWriter<float> point_radii = attributes.ensure_for_write_only_span<float>(
       "radius", AttrDomain::Point);
 
-  SpanAttributeWriter<float> point_opacities = attributes.lookup_or_add_for_write_span<float>(
+  SpanAttributeWriter<float> point_opacities = attributes.ensure_for_write_span<float>(
       "opacity", AttrDomain::Point);
 
-  SpanAttributeWriter<int> stroke_materials = attributes.lookup_or_add_for_write_span<int>(
+  SpanAttributeWriter<int> stroke_materials = attributes.ensure_for_write_span<int>(
       "material_index", AttrDomain::Curve);
 
   MutableSpan<int> offsets = new_curves.offsets_for_write();
@@ -5560,7 +5560,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
 
   offsets[writer.index_range().last() + 1] = up_to_point;
 
-  SpanAttributeWriter<bool> stroke_cyclic = attributes.lookup_or_add_for_write_span<bool>(
+  SpanAttributeWriter<bool> stroke_cyclic = attributes.ensure_for_write_span<bool>(
       "cyclic", AttrDomain::Curve);
   stroke_cyclic.span.fill(false);
   stroke_cyclic.finish();
@@ -5570,8 +5570,8 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
   stroke_materials.finish();
 
   if (fill_strokes) {
-    SpanAttributeWriter<int> fill_ids = attributes.lookup_or_add_for_write_span<int>(
-        "fill_id", AttrDomain::Curve);
+    SpanAttributeWriter<int> fill_ids = attributes.ensure_for_write_span<int>("fill_id",
+                                                                              AttrDomain::Curve);
     bke::greasepencil::gather_next_available_fill_ids({}, fill_ids.span);
     fill_ids.finish();
   }

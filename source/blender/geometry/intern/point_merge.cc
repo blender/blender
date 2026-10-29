@@ -55,23 +55,25 @@ PointCloud *merge_points(const PointCloud &src_points,
       }
     }
     const GVArraySpan src_span(*src);
-    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        iter.name, bke::AttrDomain::Point, iter.data_type);
-    array_utils::gather(src_span, unselected, dst_attribute.span.take_front(unselected.size()));
-    if (iter.name == "id" && iter.data_type == bke::AttrType::Int32) {
-      const Span<int> src_typed = src_span.typed<int>();
-      MutableSpan<int> dst_typed = dst_attribute.span.typed<int>().take_back(groups_num);
-      threading::parallel_for(dst_typed.index_range(), 4096, [&](const IndexRange range) {
-        for (const int i : range) {
-          dst_typed[i] = src_typed[indices_by_group[i].first()];
-        }
-      });
+    if (bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+            iter.name, bke::AttrDomain::Point, iter.data_type))
+    {
+      array_utils::gather(src_span, unselected, dst_attribute.span.take_front(unselected.size()));
+      if (iter.name == "id" && iter.data_type == bke::AttrType::Int32) {
+        const Span<int> src_typed = src_span.typed<int>();
+        MutableSpan<int> dst_typed = dst_attribute.span.typed<int>().take_back(groups_num);
+        threading::parallel_for(dst_typed.index_range(), 4096, [&](const IndexRange range) {
+          for (const int i : range) {
+            dst_typed[i] = src_typed[indices_by_group[i].first()];
+          }
+        });
+      }
+      else {
+        bke::attribute_math::mix_groups(
+            src_span, indices_by_group, dst_attribute.span.take_back(groups_num));
+      }
+      dst_attribute.finish();
     }
-    else {
-      bke::attribute_math::mix_groups(
-          src_span, indices_by_group, dst_attribute.span.take_back(groups_num));
-    }
-    dst_attribute.finish();
   });
 
   debug_randomize_point_order(dst_pointcloud);

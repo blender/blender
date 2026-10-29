@@ -1113,34 +1113,32 @@ static bke::CurvesGeometry create_drawing_data(const Span<float3> positions,
 
   curves.transform(matrix);
 
-  /* Note: We expect this function to run on a newly created drawing. Otherwise these
-   * `lookup_or_add_for_write_span` function calls could fail. */
-  SpanAttributeWriter<float> point_radii = attributes.lookup_or_add_for_write_only_span<float>(
+  SpanAttributeWriter<float> point_radii = attributes.ensure_for_write_only_span<float>(
       "radius", AttrDomain::Point);
   point_radii.span.copy_from(radii);
 
-  SpanAttributeWriter<float> point_opacities = attributes.lookup_or_add_for_write_span<float>(
+  SpanAttributeWriter<float> point_opacities = attributes.ensure_for_write_span<float>(
       "opacity", AttrDomain::Point);
   point_opacities.span.copy_from(opacities);
 
-  SpanAttributeWriter<bool> stroke_cyclic = attributes.lookup_or_add_for_write_span<bool>(
+  SpanAttributeWriter<bool> stroke_cyclic = attributes.ensure_for_write_span<bool>(
       "cyclic", AttrDomain::Curve);
   stroke_cyclic.span.fill(false);
 
-  SpanAttributeWriter<int> stroke_materials = attributes.lookup_or_add_for_write_span<int>(
+  SpanAttributeWriter<int> stroke_materials = attributes.ensure_for_write_span<int>(
       "material_index", AttrDomain::Curve);
   stroke_materials.span.copy_from(materials);
 
   if (!hide_strokes.is_empty()) {
-    SpanAttributeWriter<bool> hide_stroke = attributes.lookup_or_add_for_write_span<bool>(
+    SpanAttributeWriter<bool> hide_stroke = attributes.ensure_for_write_span<bool>(
         "hide_stroke", AttrDomain::Curve);
     hide_stroke.span.copy_from(hide_strokes);
     hide_stroke.finish();
   }
 
   if (!fill_ids.is_empty()) {
-    SpanAttributeWriter<int> fill_id = attributes.lookup_or_add_for_write_span<int>(
-        "fill_id", AttrDomain::Curve);
+    SpanAttributeWriter<int> fill_id = attributes.ensure_for_write_span<int>("fill_id",
+                                                                             AttrDomain::Curve);
     fill_id.span.copy_from(fill_ids);
     fill_id.finish();
   }

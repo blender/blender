@@ -114,12 +114,12 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBaseT<DispLi
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_only_span<int>(
+  SpanAttributeWriter<int> material_indices = attributes.ensure_for_write_only_span<int>(
       "material_index", AttrDomain::Face);
-  SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_face", AttrDomain::Face);
+  SpanAttributeWriter<bool> sharp_faces = attributes.ensure_for_write_span<bool>("sharp_face",
+                                                                                 AttrDomain::Face);
   const StringRef uv_name = DATA_("UVMap");
-  SpanAttributeWriter<float2> uv_attribute = attributes.lookup_or_add_for_write_span<float2>(
+  SpanAttributeWriter<float2> uv_attribute = attributes.ensure_for_write_span<float2>(
       uv_name, AttrDomain::Corner);
   mesh->uv_maps_active_set(uv_name);
   mesh->uv_maps_default_set(uv_name);

@@ -124,10 +124,12 @@ static void retrieve_attribute_spans(const Span<StringRef> names,
 
     src_arrays.append(std::move(src_attribute));
 
-    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        names[i], bke::AttrDomain::Point, data_type);
-    dst_arrays.append(dst_attribute.span);
-    dst_writers.append(std::move(dst_attribute));
+    if (bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+            names[i], bke::AttrDomain::Point, data_type))
+    {
+      dst_arrays.append(dst_attribute.span);
+      dst_writers.append(std::move(dst_attribute));
+    }
   }
 }
 
@@ -194,17 +196,21 @@ static void gather_point_attributes_to_interpolate(
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   if (output_ids.tangent_id) {
     result.src_evaluated_tangents = src_curves.evaluated_tangents();
-    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        *output_ids.tangent_id, bke::AttrDomain::Point, bke::AttrType::Float3);
-    result.dst_tangents = dst_attribute.span.typed<float3>();
-    result.dst_attributes.append(std::move(dst_attribute));
+    if (bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+            *output_ids.tangent_id, bke::AttrDomain::Point, bke::AttrType::Float3))
+    {
+      result.dst_tangents = dst_attribute.span.typed<float3>();
+      result.dst_attributes.append(std::move(dst_attribute));
+    }
   }
   if (output_ids.normal_id) {
     result.src_evaluated_normals = src_curves.evaluated_normals();
-    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        *output_ids.normal_id, bke::AttrDomain::Point, bke::AttrType::Float3);
-    result.dst_normals = dst_attribute.span.typed<float3>();
-    result.dst_attributes.append(std::move(dst_attribute));
+    if (bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+            *output_ids.normal_id, bke::AttrDomain::Point, bke::AttrType::Float3))
+    {
+      result.dst_normals = dst_attribute.span.typed<float3>();
+      result.dst_attributes.append(std::move(dst_attribute));
+    }
   }
 }
 

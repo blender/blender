@@ -238,11 +238,8 @@ static void rna_CurvePoint_radius_set(PointerRNA *ptr, float value)
 {
   Curves *curves = rna_curves(ptr);
   bke::MutableAttributeAccessor attributes = curves->geometry.wrap().attributes_for_write();
-  bke::AttributeWriter radii = attributes.lookup_or_add_for_write<float>("radius",
-                                                                         bke::AttrDomain::Point);
-  if (!radii) {
-    return;
-  }
+  bke::AttributeWriter radii = attributes.ensure_for_write<float>("radius",
+                                                                  bke::AttrDomain::Point);
   radii.varray.set(rna_CurvePoint_index_get_const(ptr), value);
 }
 

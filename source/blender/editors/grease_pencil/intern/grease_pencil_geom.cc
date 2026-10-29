@@ -323,14 +323,16 @@ bke::CurvesGeometry curves_merge_by_distance(const bke::CurvesGeometry &src_curv
       }
     }
 
-    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        iter.name, bke::AttrDomain::Point, iter.data_type);
-    bke::attribute_math::mix_groups(GVArraySpan(src_attribute.varray),
-                                    map_offsets,
-                                    merge_map_indices,
-                                    std::nullopt,
-                                    dst_attribute.span);
-    dst_attribute.finish();
+    if (bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+            iter.name, bke::AttrDomain::Point, iter.data_type))
+    {
+      bke::attribute_math::mix_groups(GVArraySpan(src_attribute.varray),
+                                      map_offsets,
+                                      merge_map_indices,
+                                      std::nullopt,
+                                      dst_attribute.span);
+      dst_attribute.finish();
+    }
   });
 
   if (dst_curves.nurbs_has_custom_knots()) {
@@ -820,13 +822,13 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
   }
 
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
-  bke::SpanAttributeWriter<bool> dst_cyclic = dst_attributes.lookup_or_add_for_write_span<bool>(
+  bke::SpanAttributeWriter<bool> dst_cyclic = dst_attributes.ensure_for_write_span<bool>(
       "cyclic", bke::AttrDomain::Curve);
-  bke::SpanAttributeWriter<int> dst_material = dst_attributes.lookup_or_add_for_write_span<int>(
+  bke::SpanAttributeWriter<int> dst_material = dst_attributes.ensure_for_write_span<int>(
       "material_index", bke::AttrDomain::Curve);
-  bke::SpanAttributeWriter<float> dst_radius = dst_attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> dst_radius = dst_attributes.ensure_for_write_span<float>(
       "radius", bke::AttrDomain::Point);
-  bke::SpanAttributeWriter<int> dst_fill_ids = dst_attributes.lookup_or_add_for_write_span<int>(
+  bke::SpanAttributeWriter<int> dst_fill_ids = dst_attributes.ensure_for_write_span<int>(
       "fill_id", bke::AttrDomain::Curve);
   const MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
   const MutableSpan<float3> dst_positions = dst_curves.positions_for_write();

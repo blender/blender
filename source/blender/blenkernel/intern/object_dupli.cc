@@ -1911,7 +1911,7 @@ bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph, Object &o
   MutableSpan<float4x4> instances_transforms = top_level_instances.transforms_for_write();
   MutableSpan<int> instances_reference_handles = top_level_instances.reference_handles_for_write();
   bke::SpanAttributeWriter<int> instances_ids =
-      top_level_instances.attributes_for_write().lookup_or_add_for_write_only_span<int>(
+      top_level_instances.attributes_for_write().ensure_for_write_only_span<int>(
           "id", bke::AttrDomain::Instance);
   for (const int i : IndexRange(instances_num)) {
     DupliObject &dob = *top_level_duplis[i];

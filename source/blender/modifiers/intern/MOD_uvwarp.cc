@@ -196,28 +196,29 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   const Span<int> corner_verts = mesh->corner_verts();
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter uv_map = attributes.lookup_or_add_for_write_span<float2>(
-      uvname, bke::AttrDomain::Corner);
-  MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
+  if (bke::SpanAttributeWriter uv_map = attributes.lookup_or_add_for_write_span<float2>(
+          uvname, bke::AttrDomain::Corner))
+  {
+    MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
-  UVWarpData data{};
-  data.faces = faces;
-  data.corner_verts = corner_verts;
-  data.uv_map = uv_map.span;
-  data.dvert = dvert;
-  data.defgrp_index = defgrp_index;
-  data.warp_mat = warp_mat;
-  data.invert_vgroup = invert_vgroup;
+    UVWarpData data{};
+    data.faces = faces;
+    data.corner_verts = corner_verts;
+    data.uv_map = uv_map.span;
+    data.dvert = dvert;
+    data.defgrp_index = defgrp_index;
+    data.warp_mat = warp_mat;
+    data.invert_vgroup = invert_vgroup;
 
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = (faces.size() > 1000);
-  BLI_task_parallel_range(0, faces.size(), &data, uv_warp_compute, &settings);
+    TaskParallelSettings settings;
+    BLI_parallel_range_settings_defaults(&settings);
+    settings.use_threading = (faces.size() > 1000);
+    BLI_task_parallel_range(0, faces.size(), &data, uv_warp_compute, &settings);
 
-  mesh->runtime->is_original_bmesh = false;
+    mesh->runtime->is_original_bmesh = false;
 
-  uv_map.finish();
-
+    uv_map.finish();
+  }
   return mesh;
 }
 

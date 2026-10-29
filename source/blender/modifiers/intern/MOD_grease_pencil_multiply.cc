@@ -154,9 +154,9 @@ static void generate_curves(GreasePencilMultiModifierData &mmd,
   const Span<float3> normals = drawing.curve_plane_normals();
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  bke::SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> opacities = attributes.ensure_for_write_span<float>(
       "opacity", bke::AttrDomain::Point);
-  bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> radii = attributes.ensure_for_write_span<float>(
       "radius", bke::AttrDomain::Point);
 
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
@@ -197,16 +197,13 @@ static void generate_curves(GreasePencilMultiModifierData &mmd,
       }
     });
 
-    if (opacities) {
-      MutableSpan<float> instance_opacity = opacities.span.slice(stroke);
-      const float opacity_factor = use_fading ? mix2(fading_fac, 1.0f, 1.0f - fading_opacity) :
-                                                1.0f;
-      threading::parallel_for(instance_positions.index_range(), 512, [&](const IndexRange range) {
-        for (const int point : range) {
-          instance_opacity[point] *= opacity_factor;
-        }
-      });
-    }
+    MutableSpan<float> instance_opacity = opacities.span.slice(stroke);
+    const float opacity_factor = use_fading ? mix2(fading_fac, 1.0f, 1.0f - fading_opacity) : 1.0f;
+    threading::parallel_for(instance_positions.index_range(), 512, [&](const IndexRange range) {
+      for (const int point : range) {
+        instance_opacity[point] *= opacity_factor;
+      }
+    });
   }
 
   radii.finish();

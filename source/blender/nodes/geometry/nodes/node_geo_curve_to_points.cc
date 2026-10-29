@@ -152,11 +152,13 @@ static PointCloud *curves_to_points(
                                                                  AttrDomain::Point);
     const VArraySpan normals = *curve_attributes.lookup<float3>(*resample_attributes.normal_id,
                                                                 AttrDomain::Point);
-    SpanAttributeWriter rotations =
-        point_attributes.lookup_or_add_for_write_only_span<math::Quaternion>(*rotation_id,
-                                                                             AttrDomain::Point);
-    fill_rotation_attribute(tangents, normals, rotations.span);
-    rotations.finish();
+    if (SpanAttributeWriter rotations =
+            point_attributes.lookup_or_add_for_write_only_span<math::Quaternion>(
+                *rotation_id, AttrDomain::Point))
+    {
+      fill_rotation_attribute(tangents, normals, rotations.span);
+      rotations.finish();
+    }
   }
 
   return pointcloud;

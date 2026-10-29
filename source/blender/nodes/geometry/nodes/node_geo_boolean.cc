@@ -248,14 +248,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   /* Store intersecting edges in attribute. */
   if (attribute_outputs.intersecting_edges_id) {
     MutableAttributeAccessor attributes = result->attributes_for_write();
-    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
-        *attribute_outputs.intersecting_edges_id, AttrDomain::Edge);
-
-    selection.span.fill(false);
-    for (const int i : intersecting_edges) {
-      selection.span[i] = true;
+    if (SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
+            *attribute_outputs.intersecting_edges_id, AttrDomain::Edge))
+    {
+      selection.span.fill(false);
+      for (const int i : intersecting_edges) {
+        selection.span[i] = true;
+      }
+      selection.finish();
     }
-    selection.finish();
   }
   geometry::debug_randomize_mesh_order(result);
 

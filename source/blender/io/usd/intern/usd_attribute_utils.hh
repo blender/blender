@@ -291,8 +291,8 @@ void copy_primvar_to_blender_buffer(const pxr::UsdGeomPrimvar &primvar,
     return;
   }
 
-  bke::SpanAttributeWriter<BlenderT> attribute_writer =
-      attributes.lookup_or_add_for_write_span<BlenderT>(pv_name.GetText(), domain);
+  bke::SpanAttributeWriter<BlenderT> attribute_writer = attributes.ensure_for_write_span<BlenderT>(
+      pv_name.GetText(), domain);
   MutableSpan<BlenderT> attribute = attribute_writer.span;
 
   if (pv_interp == pxr::UsdGeomTokens->faceVarying) {

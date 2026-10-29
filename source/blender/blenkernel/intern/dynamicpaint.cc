@@ -1998,23 +1998,24 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
                   surface->output_name2, AttrDomain::Corner);
             }
 
-            data.ob = ob;
-            data.corner_verts = corner_verts;
-            data.faces = faces;
-            data.mloopcol = mloopcol.span;
-            data.mloopcol_wet = mloopcol_wet.span;
+            if (mloopcol && mloopcol_wet) {
+              data.ob = ob;
+              data.corner_verts = corner_verts;
+              data.faces = faces;
+              data.mloopcol = mloopcol.span;
+              data.mloopcol_wet = mloopcol_wet.span;
 
-            {
-              TaskParallelSettings settings;
-              BLI_parallel_range_settings_defaults(&settings);
-              settings.use_threading = (faces.size() > 1000);
-              BLI_task_parallel_range(
-                  0, faces.size(), &data, dynamic_paint_apply_surface_vpaint_cb, &settings);
+              {
+                TaskParallelSettings settings;
+                BLI_parallel_range_settings_defaults(&settings);
+                settings.use_threading = (faces.size() > 1000);
+                BLI_task_parallel_range(
+                    0, faces.size(), &data, dynamic_paint_apply_surface_vpaint_cb, &settings);
+              }
+
+              mloopcol.finish();
+              mloopcol_wet.finish();
             }
-
-            mloopcol.finish();
-            mloopcol_wet.finish();
-
             MEM_delete(fcolor);
           }
           /* vertex group paint */

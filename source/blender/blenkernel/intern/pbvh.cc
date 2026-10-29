@@ -2504,7 +2504,7 @@ void BKE_pbvh_sync_visibility_from_verts(Object &object)
         attributes.remove(".hide_poly");
       }
       else {
-        SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_span<bool>(
+        SpanAttributeWriter<bool> hide_poly = attributes.ensure_for_write_span<bool>(
             ".hide_poly", AttrDomain::Face, AttributeInitConstruct());
         hide_poly.span.fill(false);
         index_mask::masked_fill(hide_poly.span, true, hidden_faces);

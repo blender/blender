@@ -267,16 +267,14 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
     bke::MutableAttributeAccessor attributes = result->attributes_for_write();
     std::string name = BKE_attribute_calc_unique_name(AttributeOwner::from_id(&result->id),
                                                       "UVMap");
-    bke::SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_span<float2>(
+    bke::SpanAttributeWriter<float2> uv_map = attributes.ensure_for_write_span<float2>(
         name, bke::AttrDomain::Corner);
 
-    if (uv_map) { /* unlikely to fail */
-      gogd.uv_map = uv_map.span;
-      gogd.ix = 1.0 / gogd.rx;
-      gogd.iy = 1.0 / gogd.ry;
+    gogd.uv_map = uv_map.span;
+    gogd.ix = 1.0 / gogd.rx;
+    gogd.iy = 1.0 / gogd.ry;
 
-      BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_uvs, &settings);
-    }
+    BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_uvs, &settings);
 
     uv_map.finish();
   }
@@ -369,7 +367,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
         ColorGeometry4b *mlcol = &mloopcols.span[face.start()];
 
         ColorGeometry4b *mlcolspray = nullptr;
-        if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
+        if ((omd->flag & MOD_OCEAN_GENERATE_SPRAY) && mloopcols_spray) {
           mlcolspray = &mloopcols_spray.span[face.start()];
         }
 
@@ -393,7 +391,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
           /* This needs to be set (render engine uses) */
           mlcol->a = 255;
 
-          if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
+          if ((omd->flag & MOD_OCEAN_GENERATE_SPRAY) && mlcolspray != nullptr) {
             if (omd->flag & MOD_OCEAN_INVERT_SPRAY) {
               mlcolspray->r = ocr.Eminus[0] * 255;
             }

@@ -229,11 +229,11 @@ void MeshFromGeometry::create_faces(Mesh *mesh, bool use_vertex_groups)
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter<int> material_indices =
-      attributes.lookup_or_add_for_write_only_span<int>("material_index", bke::AttrDomain::Face);
+  bke::SpanAttributeWriter<int> material_indices = attributes.ensure_for_write_only_span<int>(
+      "material_index", bke::AttrDomain::Face);
 
   const bool set_face_sharpness = !has_normals();
-  bke::SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
+  bke::SpanAttributeWriter<bool> sharp_faces = attributes.ensure_for_write_span<bool>(
       "sharp_face", bke::AttrDomain::Face);
 
   int corner_index = 0;
@@ -334,7 +334,7 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
   }
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
+  bke::SpanAttributeWriter<float2> uv_map = attributes.ensure_for_write_only_span<float2>(
       "UVMap", bke::AttrDomain::Corner);
 
   int corner_index = 0;
@@ -477,7 +477,10 @@ void MeshFromGeometry::create_colors(Mesh *mesh)
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
   const std::string name = BKE_attribute_calc_unique_name(owner, "Color");
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter attr = attributes.lookup_or_add_for_write_span<ColorGeometry4f>(
+  /* ensure_for_write_span, because with lookup_or_add_for_write_span we'd need
+   * to handle a null return. Which can't happen because of the guaranteed unique name
+   * but still leeds to warning from code analysis if omitted. */
+  bke::SpanAttributeWriter attr = attributes.ensure_for_write_span<ColorGeometry4f>(
       name, bke::AttrDomain::Point);
   BKE_id_attributes_active_color_set(&mesh->id, name);
   BKE_id_attributes_default_color_set(&mesh->id, name);

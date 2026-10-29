@@ -476,13 +476,11 @@ static void rna_GreasePencilLayer_pass_index_set(PointerRNA *ptr, int value)
       static_cast<const GreasePencilLayer *>(ptr->data)->wrap();
   const int layer_idx = *grease_pencil.get_layer_index(layer);
 
-  if (bke::SpanAttributeWriter<int> layer_passes =
-          grease_pencil.attributes_for_write().lookup_or_add_for_write_span<int>(
-              "pass_index", bke::AttrDomain::Layer))
-  {
-    layer_passes.span[layer_idx] = std::max(0, value);
-    layer_passes.finish();
-  }
+  bke::SpanAttributeWriter<int> layer_passes =
+      grease_pencil.attributes_for_write().ensure_for_write_span<int>("pass_index",
+                                                                      bke::AttrDomain::Layer);
+  layer_passes.span[layer_idx] = std::max(0, value);
+  layer_passes.finish();
 }
 
 static void rna_GreasePencilLayer_parent_set(PointerRNA *ptr,
@@ -521,15 +519,13 @@ static void rna_GreasePencilLayer_tint_color_set(PointerRNA *ptr, const float *v
       static_cast<const GreasePencilLayer *>(ptr->data)->wrap();
   const int layer_idx = *grease_pencil.get_layer_index(layer);
 
-  if (bke::SpanAttributeWriter<ColorGeometry4f> tint_colors =
-          grease_pencil.attributes_for_write().lookup_or_add_for_write_span<ColorGeometry4f>(
-              "tint_color",
-              bke::AttrDomain::Layer,
-              bke::AttributeInitValue(ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f))))
-  {
-    copy_v3_v3(tint_colors.span[layer_idx], values);
-    tint_colors.finish();
-  }
+  bke::SpanAttributeWriter<ColorGeometry4f> tint_colors =
+      grease_pencil.attributes_for_write().ensure_for_write_span<ColorGeometry4f>(
+          "tint_color",
+          bke::AttrDomain::Layer,
+          bke::AttributeInitValue(ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f)));
+  copy_v3_v3(tint_colors.span[layer_idx], values);
+  tint_colors.finish();
 }
 
 static float rna_GreasePencilLayer_tint_factor_get(PointerRNA *ptr)
@@ -551,15 +547,13 @@ static void rna_GreasePencilLayer_tint_factor_set(PointerRNA *ptr, const float v
       static_cast<const GreasePencilLayer *>(ptr->data)->wrap();
   const int layer_idx = *grease_pencil.get_layer_index(layer);
 
-  if (bke::SpanAttributeWriter<ColorGeometry4f> tint_colors =
-          grease_pencil.attributes_for_write().lookup_or_add_for_write_span<ColorGeometry4f>(
-              "tint_color",
-              bke::AttrDomain::Layer,
-              bke::AttributeInitValue(ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f))))
-  {
-    tint_colors.span[layer_idx][3] = value;
-    tint_colors.finish();
-  }
+  bke::SpanAttributeWriter<ColorGeometry4f> tint_colors =
+      grease_pencil.attributes_for_write().ensure_for_write_span<ColorGeometry4f>(
+          "tint_color",
+          bke::AttrDomain::Layer,
+          bke::AttributeInitValue(ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f)));
+  tint_colors.span[layer_idx][3] = value;
+  tint_colors.finish();
 }
 
 static float rna_GreasePencilLayer_radius_offset_get(PointerRNA *ptr)
@@ -581,13 +575,11 @@ static void rna_GreasePencilLayer_radius_offset_set(PointerRNA *ptr, const float
       static_cast<const GreasePencilLayer *>(ptr->data)->wrap();
   const int layer_idx = *grease_pencil.get_layer_index(layer);
 
-  if (bke::SpanAttributeWriter<float> radius_offsets =
-          grease_pencil.attributes_for_write().lookup_or_add_for_write_span<float>(
-              "radius_offset", bke::AttrDomain::Layer, bke::AttributeInitValue(0.0f)))
-  {
-    radius_offsets.span[layer_idx] = value;
-    radius_offsets.finish();
-  }
+  bke::SpanAttributeWriter<float> radius_offsets =
+      grease_pencil.attributes_for_write().ensure_for_write_span<float>(
+          "radius_offset", bke::AttrDomain::Layer, bke::AttributeInitValue(0.0f));
+  radius_offsets.span[layer_idx] = value;
+  radius_offsets.finish();
 }
 
 static void rna_GreasePencilLayer_matrix_local_get(PointerRNA *ptr, float *values)

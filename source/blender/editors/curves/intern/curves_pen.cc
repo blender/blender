@@ -842,7 +842,7 @@ static void add_single_point_and_curve(const PenToolOperation &ptd,
 
   const int material_index = ptd.vc.obact->actcol - 1;
   if (material_index != -1) {
-    bke::SpanAttributeWriter<int> material_indexes = attributes.lookup_or_add_for_write_span<int>(
+    bke::SpanAttributeWriter<int> material_indexes = attributes.ensure_for_write_span<int>(
         "material_index", bke::AttrDomain::Curve, bke::AttributeInitValue(0));
     material_indexes.span.last() = material_index;
     material_indexes.finish();

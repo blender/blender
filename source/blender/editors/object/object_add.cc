@@ -2501,9 +2501,9 @@ static wmOperatorStatus object_pointcloud_add_exec(bContext *C, wmOperator *op)
   pointcloud.totpoint = 400;
 
   bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
-  bke::SpanAttributeWriter<float3> position = attributes.lookup_or_add_for_write_only_span<float3>(
+  bke::SpanAttributeWriter<float3> position = attributes.ensure_for_write_only_span<float3>(
       "position", bke::AttrDomain::Point);
-  bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
+  bke::SpanAttributeWriter<float> radii = attributes.ensure_for_write_only_span<float>(
       "radius", bke::AttrDomain::Point);
 
   RandomNumberGenerator rng(0);
@@ -3762,9 +3762,8 @@ static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
     const bke::AttributeAccessor mesh_attributes = mesh_eval.attributes();
     VArray<int> mesh_materials = *mesh_attributes.lookup_or_default(
         "material_index", bke::AttrDomain::Face, 0);
-    bke::SpanAttributeWriter<int> material_indices =
-        attributes.lookup_or_add_for_write_only_span<int>("material_index",
-                                                          bke::AttrDomain::Curve);
+    bke::SpanAttributeWriter<int> material_indices = attributes.ensure_for_write_only_span<int>(
+        "material_index", bke::AttrDomain::Curve);
     threading::parallel_for(curves.curves_range(), 2048, [&](const IndexRange range) {
       for (const int i : range) {
         /* Increase material index by 1 to accommodate the stroke material. */
@@ -3773,7 +3772,7 @@ static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
     });
     material_indices.finish();
 
-    bke::SpanAttributeWriter<int> fill_ids = attributes.lookup_or_add_for_write_only_span<int>(
+    bke::SpanAttributeWriter<int> fill_ids = attributes.ensure_for_write_only_span<int>(
         "fill_id", bke::AttrDomain::Curve);
     threading::parallel_for(curves.curves_range(), 2048, [&](const IndexRange range) {
       for (const int i : range) {
@@ -3783,7 +3782,7 @@ static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
     });
     fill_ids.finish();
 
-    bke::SpanAttributeWriter<bool> hide_stroke = attributes.lookup_or_add_for_write_span<bool>(
+    bke::SpanAttributeWriter<bool> hide_stroke = attributes.ensure_for_write_span<bool>(
         "hide_stroke", bke::AttrDomain::Curve, bke::AttributeInitValue(true));
     hide_stroke.finish();
 
@@ -4294,7 +4293,7 @@ static void create_grease_pencil_fills(bke::greasepencil::Drawing &drawing)
 
   VArray<int> materials = *attributes.lookup_or_default(
       "material_index", bke::AttrDomain::Curve, 0);
-  bke::SpanAttributeWriter<int> fill_ids = attributes.lookup_or_add_for_write_only_span<int>(
+  bke::SpanAttributeWriter<int> fill_ids = attributes.ensure_for_write_only_span<int>(
       "fill_id", bke::AttrDomain::Curve);
   /* Hide all the strokes, only show fills. */
   attributes.add<bool>("hide_stroke", bke::AttrDomain::Curve, bke::AttributeInitValue(true));
