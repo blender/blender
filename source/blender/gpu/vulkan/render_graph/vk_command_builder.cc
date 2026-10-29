@@ -825,7 +825,7 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
                           resource_state.image_layout,
                           link.vk_image_layout,
                           link.vk_image_aspect,
-                          {});
+                          link.subimage);
       }
       continue;
     }
@@ -905,7 +905,7 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
                           resource_state.image_layout,
                           link.vk_image_layout,
                           link.vk_image_aspect,
-                          {});
+                          link.subimage);
       }
       continue;
     }
@@ -944,7 +944,13 @@ void VKCommandBuilder::add_image_barrier(VkImage vk_image,
        vk_image_memory_barriers_.as_mutable_span().drop_front(
            r_barrier.image_memory_barriers.start()))
   {
-    if (vk_image_memory_barrier.image == vk_image) {
+    /* Only merge barriers of the same subresources. Otherwise the layout transition of another
+     * layer or mip-map of the same image is lost. */
+    const VkImageSubresourceRange &range = vk_image_memory_barrier.subresourceRange;
+    if (vk_image_memory_barrier.image == vk_image && range.aspectMask == aspect_mask &&
+        range.baseMipLevel == subimage.mipmap_level && range.levelCount == subimage.mipmap_count &&
+        range.baseArrayLayer == subimage.layer_base && range.layerCount == subimage.layer_count)
+    {
       /* When registering read/write buffers, it can be that the node internally requires
        * read/write. In this case we adjust the dstAccessMask of the read barrier. An example is
        * EEVEE update HIZ compute shader and shadow tagging. */
