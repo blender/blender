@@ -70,11 +70,12 @@ void MTLBottomLevelAS::add_geometry(IndexBuf &index_buffer, VertBuf &vertex_buff
   MTLAccelerationStructureTriangleGeometryDescriptor *geo =
       [MTLAccelerationStructureTriangleGeometryDescriptor descriptor];
   geo.vertexBuffer = vertex_metal_buffer;
-  geo.vertexBufferOffset = 0;
+  /* Metal has no base vertex for geometry descriptors, so it is folded into the buffer offset. */
+  geo.vertexBufferOffset = index_buffer.index_base_get() * vertex_buffer.format.stride;
   geo.vertexStride = vertex_buffer.format.stride;
   geo.vertexFormat = MTLAttributeFormatFloat3;
   geo.indexBuffer = index_metal_buffer;
-  geo.indexBufferOffset = 0;
+  geo.indexBufferOffset = index_buffer.index_start_get() * to_bytesize(mtl_index.index_type());
   geo.indexType = mtl_index.is_32bit() ? MTLIndexTypeUInt32 : MTLIndexTypeUInt16;
   geo.triangleCount = index_count / 3;
   geo.opaque = YES;

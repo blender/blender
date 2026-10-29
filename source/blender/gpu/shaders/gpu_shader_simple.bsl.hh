@@ -31,7 +31,6 @@ struct Simple {
   [[push_constant, condition(use_dashed)]] const float2 viewport_size;
 
   [[push_constant, condition(use_uniform_color)]] const float4 color;
-  [[push_constant, condition(use_uniform_point_size &&use_point_size)]] const float size;
 };
 
 /* Vertex attributes. Unused ones will be optimized out. */
@@ -213,6 +212,12 @@ struct VertOutPoint {
     if (srt.point_style >= 3 /* POINT_CIRCLE_AA */) [[static_branch]] {
       /* Soft transition to 0 alpha. */
       frag_out.color.a *= mix(1.0f, 0.0f, smoothstep(v_out.radii[1], v_out.radii[0], dist));
+    }
+    else {
+      /* Round point with jagged edges. */
+      if (dist > v_out.radii[0]) {
+        gpu_discard_fragment();
+      }
     }
 
     if (frag_out.color.a == 0.0f) {
@@ -411,7 +416,7 @@ PipelineGraphic gpu_shader_3D_point_flat_color(builtin::simple_point_vert, built
   .use_uniform_point_size = true,
   .use_clipping = false});
 PipelineGraphic gpu_shader_3D_point_varying_size_varying_color(builtin::simple_point_vert, builtin::simple_point_frag, builtin::SimplePoint{
-  .point_style = 1 /* SQUARE */,
+  .point_style = 2 /* POINT_CIRCLE */,
   .use_uniform_color = false,
   .use_uniform_point_size = false,
   .use_clipping = false});
