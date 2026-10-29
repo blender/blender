@@ -280,7 +280,7 @@ static void animchan_sync_group(ed::animfilter::AnimationChannel &channel,
   ID *animated_id = channel.tags().data_of_first_tag<ID>(ChannelTagType::ID);
 
   /* Syncing to pose bones is only possible when the animated ID is an Object. */
-  if (animated_id || animated_id->id_type() != ID_OB) {
+  if (!animated_id || animated_id->id_type() != ID_OB) {
     return;
   }
 
