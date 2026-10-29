@@ -1,1 +1,5 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Security Reports
+    url: https://developer.blender.org/docs/handbook/bug_reports/vulnerability_reports/
+    about: "Please e-mail reports to security@blender.org. More info can be found in our documentation."
