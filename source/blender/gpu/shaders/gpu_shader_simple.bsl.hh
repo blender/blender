@@ -214,6 +214,12 @@ struct VertOutPoint {
       /* Soft transition to 0 alpha. */
       frag_out.color.a *= mix(1.0f, 0.0f, smoothstep(v_out.radii[1], v_out.radii[0], dist));
     }
+    else {
+      /* Round point with jagged edges. */
+      if (dist > v_out.radii[0]) {
+        gpu_discard_fragment();
+      }
+    }
 
     if (frag_out.color.a == 0.0f) {
       gpu_discard_fragment();
@@ -411,7 +417,7 @@ PipelineGraphic gpu_shader_3D_point_flat_color(builtin::simple_point_vert, built
   .use_uniform_point_size = true,
   .use_clipping = false});
 PipelineGraphic gpu_shader_3D_point_varying_size_varying_color(builtin::simple_point_vert, builtin::simple_point_frag, builtin::SimplePoint{
-  .point_style = 1 /* SQUARE */,
+  .point_style = 2 /* POINT_CIRCLE */,
   .use_uniform_color = false,
   .use_uniform_point_size = false,
   .use_clipping = false});
