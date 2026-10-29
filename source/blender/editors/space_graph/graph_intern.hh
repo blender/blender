@@ -18,6 +18,10 @@ struct SpaceGraph;
 struct bAnimContext;
 struct bAnimListElem;
 struct bContext;
+struct Scene;
+namespace ed::animfilter {
+class DataChannel;
+}
 
 /* internal exports only */
 
@@ -37,6 +41,11 @@ void graph_draw_channel_names(bContext *C,
  * Unselected then selected F-Curves are drawn so that they do not occlude each other.
  */
 void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, short sel);
+
+void graph_draw_fcurves(Span<ed::animfilter::DataChannel *> data_channels,
+                        Scene &scene,
+                        const View2D &v2d);
+
 /**
  * Draw the 'ghost' F-Curves (i.e. snapshots of the curve)
  * \note unit mapping has already been applied to the values, so do not try and apply again.

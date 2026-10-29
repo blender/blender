@@ -268,11 +268,10 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* draw data */
-  /* TODO implement by creating fake `bAnimListElem` and passing that to the existing draw
-   * functions. If that doesn't work just rewrite the drawing scaffolding. */
-  if (false && USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
-    // ChannelArena &channels = space_graph_channel_arena(*C);
+    ChannelArena &channels = ed::graph::get_summary_tree(*C);
+    graph_draw_fcurves(channels.data_channels, *scene, region->v2d);
   }
   else {
     bAnimContext ac;

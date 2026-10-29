@@ -706,7 +706,18 @@ class DataChannel : public AnimationChannel {
   template<typename T> T *get_source() const;
 };
 
+/**
+ * Maps from FCurve space to Scene space.
+ * This assumes that the mapping is linear, no FCurve time remapping allowed.
+ */
+struct TimeMapping {
+  float offset = 0;
+  float scale = 1.0;
+};
+
 class FCurveChannel : public DataChannel {
+  TimeMapping mapping_;
+
  public:
   FCurveChannel(const PointerRNA &fcurve_ptr, ParsedSourcePath source_rna_path);
 
@@ -715,9 +726,13 @@ class FCurveChannel : public DataChannel {
   void change_datapoint_selection(SelectionMode mode,
                                   Bounds<float> range = {-INFINITY, INFINITY}) override;
 
+  /**
+   * Looks for an ID in the channel tags. Returns the first one found.
+   */
+  const ID *find_animated_id_from_tags() const;
+
  protected:
   void gather_channeldata() override;
-  const ID *find_animated_id_from_tags() const;
 };
 
 class GreasePencilChannel : public DataChannel {
