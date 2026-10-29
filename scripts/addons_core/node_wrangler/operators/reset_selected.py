@@ -48,9 +48,12 @@ class NODE_OT_reset_selected(Operator):
         return node.bl_idname in cls.node_ignore
 
     def execute(self, context):
-        node_active = context.active_node
         node_selected = context.selected_nodes
-        active_node_name = node_active.name if node_active.select else None
+        active_node_name = None
+
+        if active_node := context.active_node:
+            active_node_name = active_node.name if active_node.select else None
+
         valid_nodes = [n for n in node_selected if not self.ignore_node(n)]
 
         # Create output lists
