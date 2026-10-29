@@ -479,7 +479,9 @@ vector<SymbolVariable *> SymbolScope::non_static_variables_in_declaration_order(
   assert(this->type == CLASS);
   vector<SymbolVariable *> members;
   for (const auto &[k, v] : variables) {
-    if (!v.second->is_static) {
+    /* Skip static members and template value parameters. Non-static constexpr members are not
+     * allowed, so constexpr variables are only template parameters. */
+    if (!v.second->is_static && !v.second->is_constexpr) {
       members.emplace_back(v.second);
     }
   }
