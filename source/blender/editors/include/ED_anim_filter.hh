@@ -47,12 +47,7 @@ class AnimationChannel;
 struct AnimationChannelUIState;
 
 enum class ChannelTagType {
-  /* If this tag is used for grouping channels, it MUST be the last one. Current code for finding
-   * the corresponding pose bone expects that the F-Curves are direct chidren of this tag's
-   * SummaryChannel. This is a temporary measure, until we can replace explicit ActionGroups with
-   * the implicit bone groups given by the #BONE tag. */
   FCURVE_GROUP,
-
   ACTION_STRIP,
   ACTION_LAYER,
   ACTION_SLOT,
