@@ -96,6 +96,8 @@ struct CurveProfilePoint *BKE_curveprofile_insert(struct CurveProfile *profile, 
  * \param type_2: Handle type for the right handle.
  *
  * \note Valid handle types are: #HD_VECT, #HD_AUTO, #HD_FREE, or #HD_ALIGN.
+ * \note Selected handles that become #HD_VECT or #HD_AUTO are deselected and their control point
+ * is selected instead, since only #HD_FREE and #HD_ALIGN handles can be selected.
  * \note Requires #BKE_curveprofile_update call after.
  */
 void BKE_curveprofile_selected_handle_set(struct CurveProfile *profile, int type_1, int type_2);

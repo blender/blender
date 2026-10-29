@@ -353,13 +353,23 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
 void BKE_curveprofile_selected_handle_set(CurveProfile *profile, int type_1, int type_2)
 {
   for (int i = 0; i < profile->path_len; i++) {
-    if (profile->path[i].flag & (PROF_SELECT | PROF_H1_SELECT | PROF_H2_SELECT)) {
-      profile->path[i].h1 = type_1;
-      profile->path[i].h2 = type_2;
+    CurveProfilePoint *point = &profile->path[i];
+    if (point->flag & (PROF_SELECT | PROF_H1_SELECT | PROF_H2_SELECT)) {
+      point->h1 = type_1;
+      point->h2 = type_2;
 
       if (type_1 == HD_ALIGN && type_2 == HD_ALIGN) {
         /* Align the handles. */
-        BKE_curveprofile_move_handle(&profile->path[i], true, false, nullptr);
+        BKE_curveprofile_move_handle(point, true, false, nullptr);
+      }
+
+      if (ELEM(type_1, HD_AUTO, HD_VECT)) {
+        /* Auto and Vector handles can't be selected, so pass their selection on to the point. */
+        if (point->flag & (PROF_H1_ACTIVE | PROF_H2_ACTIVE)) {
+          point->flag |= PROF_ACTIVE;
+        }
+        point->flag |= PROF_SELECT;
+        point->flag &= ~(PROF_H1_SELECT | PROF_H2_SELECT | PROF_H1_ACTIVE | PROF_H2_ACTIVE);
       }
     }
   }
