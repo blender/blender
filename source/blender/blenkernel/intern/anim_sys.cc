@@ -3971,14 +3971,20 @@ void BKE_copy_time_markers(ListBaseT<TimeMarker> &markers_dst,
   }
 }
 
-void BKE_free_time_markers(ListBaseT<blender::TimeMarker> &markers, bool do_id_user)
+void BKE_free_time_marker(TimeMarker &marker, const bool do_id_user)
+{
+  if (marker.prop != nullptr) {
+    IDP_FreeProperty_ex(marker.prop, do_id_user);
+  }
+  MEM_delete(&marker);
+}
+
+void BKE_free_time_markers(ListBaseT<TimeMarker> &markers, const bool do_id_user)
 {
   for (TimeMarker &marker : markers.items_mutable()) {
-    if (marker.prop != nullptr) {
-      IDP_FreeProperty_ex(marker.prop, do_id_user);
-    }
-    MEM_delete(&marker);
+    BKE_free_time_marker(marker, do_id_user);
   }
+  markers.clear_no_delete();
 }
 
 }  // namespace blender

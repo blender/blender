@@ -95,6 +95,7 @@ const EnumPropertyItem default_ActionSlot_target_id_type_items[] = {
 #  include "BLI_string.hh"
 #  include "BLI_string_utf8.hh"
 
+#  include "BKE_animsys.hh"
 #  include "BKE_fcurve.hh"
 #  include "BKE_main.hh"
 #  include "BKE_report.hh"
@@ -1042,7 +1043,7 @@ static void rna_Action_pose_markers_remove(bAction *act,
     return;
   }
 
-  MEM_delete(marker);
+  BKE_free_time_marker(*marker, true);
   marker_ptr->invalidate();
 }
 
