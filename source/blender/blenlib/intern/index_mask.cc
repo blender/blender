@@ -720,6 +720,39 @@ IndexMask IndexMask::from_ranges(OffsetIndices<T> offsets,
   return IndexMask::from_segments(segments, memory);
 }
 
+template<typename T>
+IndexMask IndexMask::from_grouped_indices(const GroupedSpan<T> indices,
+                                          const IndexMask &mask,
+                                          LinearAllocator<> &memory)
+{
+  Vector<IndexMaskSegment, 16> segments;
+  constexpr int64_t min_grain_size = 4096;
+  constexpr int64_t max_grain_size = max_segment_size;
+  if (mask.size() <= min_grain_size) {
+    mask.foreach_index(
+        [&](const int64_t i) { segments_from_indices(indices[i], memory, segments); });
+  }
+  else {
+    const int64_t threads_num = BLI_system_thread_count();
+    /* Can be faster with a larger grain size, but only when there are enough indices. */
+    const int grain_size = int(
+        std::clamp(mask.size() / (threads_num * 4), min_grain_size, max_grain_size));
+
+    ParallelSegmentsCollector segments_collector;
+    mask.foreach_index(
+        [&](const int64_t i) {
+          ParallelSegmentsCollector::LocalData &local_data =
+              segments_collector.data_by_thread.local();
+          segments_from_indices(indices[i], local_data.allocator, local_data.segments);
+        },
+        exec_mode::grain_size(grain_size));
+    segments_collector.reduce(memory, segments);
+  }
+  const int64_t consolidated_segments_num = consolidate_index_mask_segments(segments, memory);
+  segments.resize(consolidated_segments_num);
+  return IndexMask::from_segments(segments, memory);
+}
+
 IndexMask IndexMask::from_union(const IndexMask &mask_a,
                                 const IndexMask &mask_b,
                                 LinearAllocator<> &memory)
@@ -1299,6 +1332,12 @@ template IndexMask IndexMask::from_ranges(OffsetIndices<int32_t>,
 template IndexMask IndexMask::from_ranges(OffsetIndices<int64_t>,
                                           const IndexMask &,
                                           LinearAllocator<> &);
+template IndexMask IndexMask::from_grouped_indices(GroupedSpan<int32_t>,
+                                                   const IndexMask &,
+                                                   LinearAllocator<> &);
+template IndexMask IndexMask::from_grouped_indices(GroupedSpan<int64_t>,
+                                                   const IndexMask &,
+                                                   LinearAllocator<> &);
 
 IndexMask random_mask(const IndexMask &mask,
                       const int64_t universe_size,
