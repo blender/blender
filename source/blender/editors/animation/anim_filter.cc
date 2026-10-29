@@ -4420,9 +4420,9 @@ static int foreach_expanded_recursive(AnimationChannel &channel,
   return row_index;
 }
 
-void foreach_expanded(SummaryChannel &root, const ForEachChannelCallback callback)
+int foreach_expanded(AnimationChannel &root, const ForEachChannelCallback callback)
 {
-  foreach_expanded_recursive(root, 0, callback);
+  return foreach_expanded_recursive(root, 0, callback);
 }
 
 static int foreach_channel_recursive(AnimationChannel &channel,

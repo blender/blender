@@ -534,39 +534,57 @@ void draw_dopesheet_key_area(SummaryChannel &root,
   const float skip = ANIM_UI_get_channel_skip();
   const float first_channel = ANIM_UI_get_first_channel_top(&v2d);
 
+  Vector<AnimationChannel *> roots;
+  if (key_draw_settings.show_summary) {
+    roots = {&root};
+  }
+  else {
+    for (AnimationChannel *child : root.children()) {
+      roots.append(child);
+    }
+  }
+
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
-  /* Draw backdrops first for each expanded channel. */
-  foreach_expanded(root, [&](AnimationChannel &channel, const int row_index) {
-    const float row_top = first_channel - row_index * channel_step;
-    if (!is_channel_visible(v2d, row_top, channel_step)) {
-      return;
-    }
-    uchar4 color = channel_color_from_rna_pointer(channel.source());
-    if (channel.type() == AnimationChannelType::DATA) {
-      blender::ui::theme::get_color_4ubv(TH_CHANNEL, color);
-    }
-    immUniformColor4ubv(color);
-    immRectf(pos,
-             v2d.cur.xmin,
-             row_top - skip / 2.0f,
-             v2d.cur.xmax + 0,
-             row_top - channel_step + skip / 2.0);
-  });
+  int row_offset = 0;
+  for (AnimationChannel *root_channel : roots) {
+    /* Draw backdrops first for each expanded channel. */
+    row_offset += foreach_expanded(
+        *root_channel, [&](AnimationChannel &channel, const int row_index) {
+          const float row_top = first_channel - (row_index + row_offset) * channel_step;
+          if (!is_channel_visible(v2d, row_top, channel_step)) {
+            return;
+          }
+          uchar4 color = channel_color_from_rna_pointer(channel.source());
+          if (channel.type() == AnimationChannelType::DATA) {
+            blender::ui::theme::get_color_4ubv(TH_CHANNEL, color);
+          }
+          immUniformColor4ubv(color);
+          immRectf(pos,
+                   v2d.cur.xmin,
+                   row_top - skip / 2.0f,
+                   v2d.cur.xmax + 0,
+                   row_top - channel_step + skip / 2.0);
+        });
+  }
   immUnbindProgram();
   GPU_blend(GPU_BLEND_NONE);
 
   DrawSettings settings;
-  foreach_expanded(root, [&](AnimationChannel &channel, const int row_index) {
-    const float row_top = first_channel - row_index * channel_step;
-    if (is_channel_visible(v2d, row_top, channel_step)) {
-      const float row_center = row_top - channel_step / 2.0;
-      draw_channel_decorations(channel, row_center, settings, v2d);
-      draw_channel_keys(channel, row_center, v2d, key_draw_settings);
-    }
-  });
+  row_offset = 0;
+  for (AnimationChannel *root_channel : roots) {
+    row_offset += foreach_expanded(
+        *root_channel, [&](AnimationChannel &channel, const int row_index) {
+          const float row_top = first_channel - (row_offset + row_index) * channel_step;
+          if (is_channel_visible(v2d, row_top, channel_step)) {
+            const float row_center = row_top - channel_step / 2.0;
+            draw_channel_decorations(channel, row_center, settings, v2d);
+            draw_channel_keys(channel, row_center, v2d, key_draw_settings);
+          }
+        });
+  }
 }
 
 }  // namespace blender::ed::animfilter

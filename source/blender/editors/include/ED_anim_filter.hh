@@ -926,6 +926,9 @@ struct KeyDrawSettings {
   /* Draw extra indicators within keyframes to show if the key is a minimum or
    * maximum. */
   bool draw_extremes = false;
+  /* Determines if the summary key line is drawn. Keep in sync with channel box. See
+   * ChannelTreeSettings::show_summary. */
+  bool show_summary = true;
 };
 void draw_dopesheet_key_area(SummaryChannel &root,
                              View2D &v2d,
@@ -936,8 +939,10 @@ using ForEachChannelCallback = FunctionRef<void(AnimationChannel &channel, int r
 
 /**
  * Iterate all expanded channels and their children.
+ *
+ * \returns the amount of rows visited
  */
-void foreach_expanded(SummaryChannel &root, ForEachChannelCallback callback);
+int foreach_expanded(AnimationChannel &root, ForEachChannelCallback callback);
 
 struct AnimfilterSpaceRuntime {
   /* Store the UI states of channels so it is remembered across recreations of

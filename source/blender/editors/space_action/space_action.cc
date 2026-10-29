@@ -282,6 +282,8 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
     ed::animfilter::KeyDrawSettings key_draw_settings;
     key_draw_settings.draw_handle_types = saction->flag & SACTION_SHOW_INTERPOLATION;
     key_draw_settings.draw_extremes = saction->flag & SACTION_SHOW_EXTREMES;
+    key_draw_settings.show_summary = saction->ads.filterflag & ADS_FILTER_SUMMARY;
+
     ed::animfilter::draw_dopesheet_key_area(*channels.root(), *v2d, key_draw_settings);
 
     /* TODO draw markers. */
@@ -431,11 +433,12 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
     set_v2d_height(v2d, channels.num_channels(), has_markers);
     ui::view2d_view_ortho(v2d);
 
+    SpaceAction *saction = CTX_wm_space_action(C);
     ed::animfilter::ChannelTreeSettings settings(channels.filters);
+    settings.show_summary = saction->ads.filterflag & ADS_FILTER_SUMMARY;
     std::unique_ptr<ui::AbstractTreeView> tree_view = build_channel_tree_view(channels, settings);
     ed::animfilter::draw_channel_tree(*C, std::move(tree_view));
 
-    SpaceAction *saction = CTX_wm_space_action(C);
     ED_time_scrub_channel_search_draw(C, region, &saction->ads);
 
     ui::view2d_view_restore(C);
