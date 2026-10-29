@@ -277,7 +277,7 @@ static void do_crease_or_blob_brush(const Depsgraph &depsgraph,
   /* We always want crease to pinch or blob to relax even when draw is negative. */
   const float strength = std::abs(cache.bstrength) * crease_correction *
                          (invert_strength ? -1.0f : 1.0f);
-  const float4x4 mat = cube_tip_init(sd, object, brush);
+  const float4x4 mat = cube_tip_init(object, brush);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
