@@ -1702,12 +1702,15 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
 
 void graph_draw_fcurves(const Span<ed::animfilter::DataChannel *> data_channels,
                         Scene &scene,
-                        const View2D &v2d)
+                        const View2D &v2d,
+                        const SpaceGraph &space_graph)
 {
   using namespace ed::animfilter;
   FCurveChannel *active_fcurve = nullptr;
-  /* TODO populate from SpaceGraph. */
   FCurveDrawSettings draw_settings;
+  draw_settings.only_handles_of_selected_keys = space_graph.flag & SIPO_SELVHANDLESONLY;
+  draw_settings.draw_extrapolation = (space_graph.flag & SIPO_NO_DRAW_EXTRAPOLATION) == 0;
+  draw_settings.normalization_flags = ANIM_get_normalization_flags(&space_graph);
   for (DataChannel *data_channel : data_channels) {
     if (data_channel->source_type() != DataChannelType::FCURVE) {
       /* TODO filter down to fcurves when getting the summary tree. Or maybe it's ok to leave

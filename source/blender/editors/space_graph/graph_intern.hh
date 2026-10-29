@@ -44,7 +44,8 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
 
 void graph_draw_fcurves(Span<ed::animfilter::DataChannel *> data_channels,
                         Scene &scene,
-                        const View2D &v2d);
+                        const View2D &v2d,
+                        const SpaceGraph &space_graph);
 
 /**
  * Draw the 'ghost' F-Curves (i.e. snapshots of the curve)

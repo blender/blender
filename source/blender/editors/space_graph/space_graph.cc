@@ -271,7 +271,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
     ChannelArena &channels = ed::graph::get_summary_tree(*C);
-    graph_draw_fcurves(channels.data_channels, *scene, region->v2d);
+    graph_draw_fcurves(channels.data_channels, *scene, region->v2d, *sipo);
   }
   else {
     bAnimContext ac;

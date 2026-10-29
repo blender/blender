@@ -1141,6 +1141,7 @@ enum eAnimUnitConv_Flags {
  * Get flags used for normalization in ANIM_unit_mapping_get_factor.
  */
 short ANIM_get_normalization_flags(SpaceLink *space_link);
+short ANIM_get_normalization_flags(const SpaceGraph *space_graph);
 /**
  * Get unit conversion factor for given ID + F-Curve.
  */

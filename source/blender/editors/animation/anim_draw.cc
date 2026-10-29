@@ -419,15 +419,20 @@ void ANIM_nla_mapping_apply_if_needed_fcurve(bAnimListElem *ale,
 short ANIM_get_normalization_flags(SpaceLink *space_link)
 {
   if (space_link->spacetype == SPACE_GRAPH) {
-    SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(space_link);
-    bool use_normalization = (sipo->flag & SIPO_NORMALIZE) != 0;
-    bool freeze_normalization = (sipo->flag & SIPO_NORMALIZE_FREEZE) != 0;
-    return use_normalization ? (ANIM_UNITCONV_NORMALIZE |
-                                (freeze_normalization ? ANIM_UNITCONV_NORMALIZE_FREEZE : 0)) :
-                               0;
+    const SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(space_link);
+    return ANIM_get_normalization_flags(sipo);
   }
 
   return 0;
+}
+
+short ANIM_get_normalization_flags(const SpaceGraph *space_graph)
+{
+  bool use_normalization = (space_graph->flag & SIPO_NORMALIZE) != 0;
+  bool freeze_normalization = (space_graph->flag & SIPO_NORMALIZE_FREEZE) != 0;
+  return use_normalization ? (ANIM_UNITCONV_NORMALIZE |
+                              (freeze_normalization ? ANIM_UNITCONV_NORMALIZE_FREEZE : 0)) :
+                             0;
 }
 
 static void fcurve_scene_coord_range_get(Scene *scene,
