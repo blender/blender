@@ -268,43 +268,35 @@ static void ale_chan_sync_gplayer(bAnimListElem *ale)
 
 /* ----- Same functions as above, but implemented for AnimationChannels ----------- */
 
+/**
+ * Set ActionGroup select/active state based on the PoseBone select/active state.
+ */
 static void animchan_sync_group(ed::animfilter::AnimationChannel &channel,
                                 bool &has_set_active_group)
 {
   using namespace ed::animfilter;
-
   BLI_assert(channel.source_is_type(RNA_ActionGroup));
-  bActionGroup *agrp = channel.source().data_as<bActionGroup>();
 
-  /* Find the ID animated by this channel. */
-  BLI_assert(channel.type() == AnimationChannelType::SUMMARY);
-  SummaryChannel &action_group_channel = dynamic_cast<SummaryChannel &>(channel);
-  const ChannelTag *id_tag = action_group_channel.first_tag_of_child(ChannelTagType::ID);
-  if (!id_tag) {
-    return;
-  }
-  ID *animated_id = id_tag->source_data().data_as<ID>();
+  ID *animated_id = channel.tags().data_of_first_tag<ID>(ChannelTagType::ID);
 
   /* Syncing to pose bones is only possible when the animated ID is an Object. */
-  if (animated_id->id_type() != ID_OB) {
+  if (animated_id || animated_id->id_type() != ID_OB) {
     return;
   }
 
   /* Find the pose bone. Since the animation channel system already found it, we just need to get
    * the tag. */
-  const ChannelTag *bone_tag = action_group_channel.first_tag_of_child(ChannelTagType::BONE);
-  if (!bone_tag) {
+  bPoseChannel *pchan = channel.tags().data_of_first_tag<bPoseChannel>(ChannelTagType::BONE);
+  if (!pchan) {
     return;
   }
-  BLI_assert(bone_tag->source_data().type == RNA_PoseBone);
-  BLI_assert(bone_tag->source_data().has_data());
-  bPoseChannel *pchan = bone_tag->source_data().data_as<bPoseChannel>();
 
   /* NOTE: this feature will only really work if groups by default contain the F-Curves
    * for a single bone. It's the old approach that was in use before the new AnimationChannel
    * system, and should get replaced at some point.
    */
   Object *ob = id_cast<Object *>(animated_id);
+  bActionGroup *agrp = channel.source().data_as<bActionGroup>();
   flag_update(agrp->flag, AGRP_SELECTED, pchan->flag & POSE_SELECTED);
 
   /* Sync active group status. */

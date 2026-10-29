@@ -658,15 +658,6 @@ class SummaryChannel final : public AnimationChannel {
     return tag_type_;
   }
 
-  /**
-   * Return the first tag of the given type, as used by this channel's datachannel children.
-   *
-   * \note Do not use this function. It is only here to support the F-Curve groups mapping to pose
-   * bones, which is temporary until we can get rid of explicit F-Curve groups and dynamically
-   * group them by the ChannelTagType::BONE tag.
-   */
-  const ChannelTag *first_tag_of_child(ChannelTagType tag_type) const;
-
  protected:
   void gather_channeldata() override;
 

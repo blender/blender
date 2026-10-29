@@ -867,17 +867,6 @@ bool SummaryChannel::is_collapsed() const
   return this->is_collapsed_.value();
 }
 
-const ChannelTag *SummaryChannel::first_tag_of_child(const ChannelTagType tag_type) const
-{
-  for (const AnimationChannel *child : this->children_) {
-    const ChannelTag *child_tag = child->tags().first_by_type(tag_type);
-    if (child_tag) {
-      return child_tag;
-    }
-  }
-  return nullptr;
-}
-
 void SummaryChannel::gather_channeldata()
 {
   PRF_scope_with_name("ed::animfilter::SummaryChannel::gather_channeldata",
