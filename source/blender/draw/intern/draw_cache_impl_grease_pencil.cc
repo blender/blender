@@ -1856,11 +1856,14 @@ static void grease_pencil_wire_batch_ensure(Object &object,
   Vector<int> index_start_per_curve;
   Vector<bool> cyclic_per_curve;
   Vector<bool> is_onion_per_curve;
+  Vector<int> curve_intersections_start_offsets;
 
   int index_len = 0;
+  int curve_inter_offset = 0;
   for (const ed::greasepencil::DrawingInfo &info : drawings) {
     const bke::CurvesGeometry &curves = info.drawing.strokes();
     const OffsetIndices<int> points_by_curve = curves.evaluated_points_by_curve();
+    const GroupedSpan<float3> intersection_points = info.drawing.intersection_points();
     const VArray<bool> cyclic = curves.cyclic();
     IndexMaskMemory memory;
     const IndexMask visible_strokes = ed::greasepencil::retrieve_visible_strokes(
@@ -1878,6 +1881,9 @@ static void grease_pencil_wire_batch_ensure(Object &object,
       cyclic_per_curve.append(is_cyclic);
       is_onion_per_curve.append(info.onion_id != 0);
     });
+
+    curve_intersections_start_offsets.append_n_times(curve_inter_offset, visible_strokes.size());
+    curve_inter_offset += intersection_points.offsets.total_size();
   }
   index_start_per_curve.append(index_len);
   const OffsetIndices<int> range_per_curve(index_start_per_curve, offset_indices::NoSortCheck{});
@@ -1892,8 +1898,11 @@ static void grease_pencil_wire_batch_ensure(Object &object,
       /* Drop the trailing restart index. */
       const IndexRange offset_range = range_per_curve[curve].drop_back(1);
       /* Shift the range by `curve` to account for the second padding vertices.
-       * The first one is already accounted for during counting (as primitive restart). */
-      const IndexRange index_range = offset_range.shift(curve + 1);
+       * The first one is already accounted for during counting (as primitive restart).
+       * Shift by the number of intersection points that are at the end of the point indices in the
+       * drawing. */
+      const IndexRange index_range = offset_range.shift(curve + 1 +
+                                                        curve_intersections_start_offsets[curve]);
       if (is_onion_per_curve[curve]) {
         for (const int i : offset_range.index_range()) {
           indices[offset_range[i]] = gpu::RESTART_INDEX;
