@@ -302,10 +302,12 @@ class ScaleOperation : public NodeOperation {
   /* Scale such that the new size matches the input absolute size. */
   float2 get_scale_absolute()
   {
-    const float2 input_size = float2(get_input("Image").domain().display_size);
-    const float2 absolute_size = float2(get_input("X").get_single_value_default<float>(),
-                                        get_input("Y").get_single_value_default<float>());
-    return absolute_size / input_size;
+    const Result &input = this->get_input("Image");
+    const float2 pixel_size = input.domain().pixel_size;
+    const float2 input_size = float2(input.domain().display_size);
+    const float2 absolute_size = float2(this->get_input("X").get_single_value_default<float>(),
+                                        this->get_input("Y").get_single_value_default<float>());
+    return (absolute_size * pixel_size) / input_size;
   }
 
   /* Scale by the render resolution percentage. */
