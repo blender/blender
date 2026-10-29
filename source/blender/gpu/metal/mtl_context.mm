@@ -2036,6 +2036,13 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
   id<MTLCommandBuffer> cmdbuf = [ctx->queue commandBuffer];
   ctx->main_command_buffer.inc_active_command_buffer_count();
 
+  /* Ensure freed buffers have usage tracked against active CommandBuffer submissions. Referenced
+   * from creation until completion of the command buffer, like
+   * #MTLCommandBufferManager::ensure_begin. */
+  MTLSafeFreeList *cmd_free_buffer_list =
+      MTLContext::get_global_memory_manager()->acquire_current_safe_list();
+  BLI_assert(cmd_free_buffer_list);
+
   /* Do Present Call and final Blit to MTLDrawable. */
   id<MTLRenderCommandEncoder> enc = [cmdbuf renderCommandEncoderWithDescriptor:blit_descriptor];
   [enc setRenderPipelineState:blit_pso];
@@ -2047,17 +2054,11 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
   BLI_assert(drawable);
   [cmdbuf presentDrawable:drawable];
 
-  /* Ensure freed buffers have usage tracked against active CommandBuffer submissions. */
-  MTLSafeFreeList *cmd_free_buffer_list =
-      MTLContext::get_global_memory_manager()->get_current_safe_list();
-  BLI_assert(cmd_free_buffer_list);
-
   /* Increment drawables in flight limiter. */
   MTLContext::max_drawables_in_flight++;
   std::chrono::time_point submission_time = std::chrono::high_resolution_clock::now();
 
-  /* Increment free pool reference and decrement upon command buffer completion. */
-  cmd_free_buffer_list->increment_reference();
+  /* Decrement free pool reference upon command buffer completion. */
   [cmdbuf addCompletedHandler:^(id<MTLCommandBuffer> /*cb*/) {
     /* Flag freed buffers associated with this CMD buffer as ready to be freed. */
     cmd_free_buffer_list->decrement_reference();
