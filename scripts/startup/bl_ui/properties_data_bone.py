@@ -91,7 +91,7 @@ class BONE_PT_transform(BoneButtonsPanel, Panel):
 
             row = layout.row(align=True)
             row.prop(pchan, "rotation_mode", text="Mode")
-            row.operator_menu_enum("anim.rotation_mode_convert", "mode", icon='DOWNARROW_HLT', text="")
+            row.menu("ANIM_MT_rotation_mode_convert", text="", icon='DOWNARROW_HLT')
 
             col = layout.column()
             row = col.row(align=True)
