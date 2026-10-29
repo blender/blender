@@ -163,7 +163,7 @@ static void modify_softness(const GreasePencilOpacityModifierData &omd,
                             const IndexMask &curves_mask)
 {
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> softness = attributes.convert_or_add_for_write_span<float>(
       "softness", bke::AttrDomain::Curve);
 
   curves_mask.foreach_index_optimized<int64_t>(
@@ -185,6 +185,10 @@ static void modify_curves(ModifierData *md,
   IndexMaskMemory mask_memory;
   const IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
       ctx->object, curves, omd->influence, mask_memory);
+
+  if (curves_mask.is_empty()) {
+    return;
+  }
 
   switch (omd->color_mode) {
     case MOD_GREASE_PENCIL_COLOR_STROKE:
