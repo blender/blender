@@ -21,7 +21,7 @@ def _natural_sort_key(name):
     Splits name into text/number chunks so that numeric parts sort numerically.
     E.g. Object2 < Object10, matching the Outliner's display order.
     """
-    return [int(c) if c.isdigit() else c.lower() for c in re.split(r'(\d+)', name)]
+    return [int(c) if c.isdecimal() else c.lower() for c in re.split(r'(\d+)', name)]
 
 
 def _sort_by_name(iterable):
