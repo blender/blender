@@ -6,6 +6,7 @@
  * \ingroup edanimation
  */
 
+#include "BLI_span.hh"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
@@ -340,9 +341,7 @@ static void animchan_sync_fcurve(ed::animfilter::AnimationChannel &channel)
 
   /* Only affect if F-Curve involves sequence_editor.strips. */
   char strip_name[sizeof(Strip::name)];
-  if (!BLI_str_quoted_substr(
-          fcu->rna_path().c_str(), "strips_all[", strip_name, sizeof(strip_name)))
-  {
+  if (!BLI_str_quoted_substr(fcu->rna_path().c_str(), "strips_all[", MutableCStr(strip_name))) {
     return;
   }
 
