@@ -16,6 +16,7 @@ from ...io.exp.user_extensions import export_user_extensions
 from ..com import json_util
 from . import gather as gltf2_blender_gather
 from .exporter import GlTF2Exporter
+from .cache import clear_all_caches
 
 
 def save(context, export_settings):
@@ -34,12 +35,15 @@ def save(context, export_settings):
     for callback in pre_export_callbacks:
         callback(export_settings)
 
-    json, buffer = __export(export_settings)
+    try:
+        json, buffer = __export(export_settings)
 
-    post_export_callbacks = export_settings["post_export_callbacks"]
-    for callback in post_export_callbacks:
-        callback(export_settings)
-    __write_file(json, buffer, export_settings)
+        post_export_callbacks = export_settings["post_export_callbacks"]
+        for callback in post_export_callbacks:
+            callback(export_settings)
+        __write_file(json, buffer, export_settings)
+    finally:
+        clear_all_caches()
 
     end_time = time.time()
     __notify_end(context, end_time - start_time, export_settings)
