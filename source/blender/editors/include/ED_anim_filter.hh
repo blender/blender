@@ -63,6 +63,9 @@ enum class ChannelTagType {
    re-used so it can never be shared between meshes. */
   SHAPE_KEY,
   GREASEPENCIL_GROUP,
+  /* Tags that are not used for building the channel hierarchy, but rather to pass more metadata to
+     animation channels. */
+  ACTION_CHANNELBAG,
 };
 
 using ParsedSourcePath = blender::ParsedRNAPath<6>;
@@ -283,7 +286,7 @@ class ChannelTagSet {
    * \returns nullptr if the tag does not exist or doesn't have data (although the latter is a
    * bug, because the caller expected this tag to have data).
    */
-  template<typename T> T *data_of_first_tag(ChannelTagType tag_type)
+  template<typename T> T *data_of_first_tag(ChannelTagType tag_type) const
   {
     const ChannelTag *tag = this->first_by_type(tag_type);
     if (!tag) {
@@ -409,6 +412,16 @@ class AbstractChannelAPI {
    */
   virtual void set_selected(bool is_selected, bool do_sync_to_secondary) = 0;
   virtual bool is_selected() const = 0;
+
+  /**
+   * Set the 'active' state of the channel. This can only enable 'active', not disable it.
+   * It is up to the implementation to ensure (if necessary) that only one thing is marked 'active'
+   * and the other ones are not.
+   *
+   * This is not a pure-virtual function, but rather a no-op on this class. This means that
+   * subclasses can opt in on this feature.
+   */
+  virtual void set_active(bool do_sync_to_secondary);
 };
 
 /**

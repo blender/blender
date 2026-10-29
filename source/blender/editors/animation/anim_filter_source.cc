@@ -114,6 +114,7 @@ static PointerRNA pose_bone_for_fcurve(const FCurve &fcurve, const ChannelTagSta
  * \param rna_path_items: the RNA path that points to this channelbag.
  */
 static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
+                                    const int channelbag_index,
                                     ChannelTagStack &tags,
                                     Vector<rna_path::Item> rna_path_items,
                                     ChannelArena &arena)
@@ -123,6 +124,14 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
   BLI_assert(channelbag_ptr.type == RNA_ActionChannelbag);
   animrig::Channelbag &channelbag = *channelbag_ptr.data_as<animrig::Channelbag>();
   BLI_assert(channelbag.slot_handle != animrig::Slot::unassigned);
+
+  /* Push a tag for the channelbag. This is used for setting the active group, which needs to
+   * iterate all groups of the channelbag. */
+  tags.push({ChannelTagType::ACTION_CHANNELBAG,
+             "cbag",
+             channelbag_ptr,
+             ParsedRNAPathRef(rna_path_items),
+             channelbag_index});
 
   for (const int64_t fcurve_index : channelbag.fcurves().index_range()) {
     FCurve *fcu = channelbag.fcurve(fcurve_index);
@@ -200,6 +209,9 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
       tags.pop();
     }
   }
+
+  /* Pop the channelbag tag. */
+  tags.pop();
 }
 
 static void channels_for_action_slot(animrig::Action &action,
@@ -271,7 +283,7 @@ static void channels_for_action_slot(animrig::Action &action,
 
       PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
           strip_ptr, RNA_ActionChannelbag, channelbag);
-      channels_for_channelbag(channelbag_ptr, tags, rna_path_items, arena);
+      channels_for_channelbag(channelbag_ptr, channelbag_index, tags, rna_path_items, arena);
 
       /* Pop the channelbag off the RNA path. */
       rna_path_items.pop_last();
@@ -680,7 +692,7 @@ static void collect_action_channels(Main &bmain,
 
         PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
             strip_ptr, RNA_ActionChannelbag, channelbag);
-        channels_for_channelbag(channelbag_ptr, tags, rna_path_items, arena);
+        channels_for_channelbag(channelbag_ptr, channelbag_index, tags, rna_path_items, arena);
 
         /* Pop the slot & user tags. */
         if (did_push_slot_user_tag) {

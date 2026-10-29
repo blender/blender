@@ -157,7 +157,8 @@ class ChannelItem : public ui::AbstractTreeViewItem {
     return this->channel_api_->is_selected();
   }
 
-  void set_selected(const bool select) override;
+  void set_selected(bool select) override;
+  void on_activate(bContext &C) override;
 
  protected:
   bool matches(const AbstractViewItem &other) const override
@@ -268,6 +269,15 @@ void ChannelItem::set_selected(const bool select)
   /* This flushes the selection state to the data, which is then read in the constructor. */
   const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
   this->channel_api_->set_selected(select, tree_view.do_selection_syncing());
+}
+
+void ChannelItem::on_activate(bContext &C)
+{
+  AbstractTreeViewItem::on_activate(C);
+  /* This flushes the selection state to the data, which is then read in the constructor. */
+
+  const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
+  this->channel_api_->set_active(tree_view.do_selection_syncing());
 }
 
 void ChannelItem::build_row(ui::Layout &layout)

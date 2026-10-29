@@ -8,11 +8,13 @@
 #include <string>
 
 #include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 
 #include "DNA_ID.h"
 #include "DNA_ID_enums.h"
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
@@ -101,6 +103,9 @@ std::ostream &operator<<(std::ostream &stream, const ChannelTagType type)
       break;
     case ChannelTagType::GREASEPENCIL_GROUP:
       stream << "GREASEPENCIL_GROUP";
+      break;
+    case ChannelTagType::ACTION_CHANNELBAG:
+      stream << "ACTION_CHANNELBAG";
       break;
   }
   return stream;
@@ -216,9 +221,9 @@ class ActionChannelAPI : public AbstractChannelAPI {
  * Set/clear the pose bone's POSE_CHANNEL_SELECTED flag, and if do_sync_to_secondary is true, also
  * set the actual bone selection state.
  */
-static void select_pose_bone(const PointerRNA &pose_bone_ptr,
-                             const bool is_selected,
-                             const bool do_sync_to_secondary)
+static void set_pose_bone_selected(const PointerRNA &pose_bone_ptr,
+                                   const bool is_selected,
+                                   const bool do_sync_to_secondary)
 {
   bPoseChannel *pose_bone = pose_bone_ptr.data_as<bPoseChannel>();
   flag_update(pose_bone->flag, POSE_CHANNEL_SELECTED, is_selected);
@@ -249,8 +254,38 @@ static void select_pose_bone(const PointerRNA &pose_bone_ptr,
    * the bContext, which is unavailable here. */
 }
 
+static void set_pose_bone_active(const PointerRNA &pose_bone_ptr, const bool is_active)
+{
+  /* The 'active' state is tracked by the Armature, not the Pose. */
+  Object *pose_ob = id_cast<Object *>(pose_bone_ptr.owner_id);
+  bArmature *armature = id_cast<bArmature *>(pose_ob->data);
+  bPoseChannel *pose_bone = pose_bone_ptr.data_as<bPoseChannel>();
+  Bone *armature_bone = pose_bone->bone_get(*pose_ob);
+
+  const bool is_currently_active = (armature->act_bone == armature_bone);
+  if (is_currently_active == is_active) {
+    /* Nothing needs to change. */
+    return;
+  }
+
+  /* Just write to the Armature. If it is linked and not writable, the active bone won't be saved,
+   * but that's better than disallowing it from becoming active in the first place. */
+  if (is_active) {
+    armature->act_bone = armature_bone;
+  }
+  else {
+    armature->act_bone = nullptr;
+  }
+
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_ACTIVE, pose_bone_ptr.owner_id);
+  DEG_id_tag_update(pose_bone_ptr.owner_id, ID_RECALC_GEOMETRY);
+  /* TODO: call ED_outliner_select_sync_from_pose_bone_tag() as well. But that currently requires
+   * the bContext, which is unavailable here. */
+}
+
 class ActionGroupChannelAPI : public AbstractChannelAPI {
-  bActionGroup *group_;
+  bActionGroup &group_;
+  animrig::Channelbag &channelbag_;
 
   /**
    * The pose bone this ActionGroup represents.
@@ -259,7 +294,10 @@ class ActionGroupChannelAPI : public AbstractChannelAPI {
   PointerRNA pose_bone_ptr_ = {};
 
  public:
-  ActionGroupChannelAPI(bActionGroup *group, const ChannelTag *pose_bone_tag) : group_(group)
+  ActionGroupChannelAPI(bActionGroup &group,
+                        animrig::Channelbag &channelbag,
+                        const ChannelTag *pose_bone_tag)
+      : group_(group), channelbag_(channelbag)
   {
     if (pose_bone_tag) {
       pose_bone_ptr_ = pose_bone_tag->source_data();
@@ -271,15 +309,26 @@ class ActionGroupChannelAPI : public AbstractChannelAPI {
 
   void set_selected(const bool is_selected, const bool do_sync_to_secondary) override
   {
-    flag_update(group_->flag, AGRP_SELECTED, is_selected);
+    flag_update(group_.flag, AGRP_SELECTED, is_selected);
 
     if (pose_bone_ptr_.has_data()) {
-      select_pose_bone(pose_bone_ptr_, is_selected, do_sync_to_secondary);
+      set_pose_bone_selected(pose_bone_ptr_, is_selected, do_sync_to_secondary);
     }
   }
   bool is_selected() const override
   {
-    return flag_is_set(group_->flag, AGRP_SELECTED);
+    return flag_is_set(group_.flag, AGRP_SELECTED);
+  }
+  void set_active(bool do_sync_to_secondary) override
+  {
+    for (bActionGroup *group : channelbag_.channel_groups()) {
+      const bool is_active = (group == &group_);
+      flag_update(group_.flag, AGRP_ACTIVE, is_active);
+
+      if (do_sync_to_secondary) {
+        set_pose_bone_active(pose_bone_ptr_, is_active);
+      }
+    }
   }
 };
 
@@ -326,7 +375,7 @@ class PoseBoneChannelAPI : public AbstractChannelAPI {
 
   void set_selected(const bool is_selected, const bool do_sync_to_secondary) override
   {
-    select_pose_bone(pose_bone_ptr_, is_selected, do_sync_to_secondary);
+    set_pose_bone_selected(pose_bone_ptr_, is_selected, do_sync_to_secondary);
   }
   bool is_selected() const override
   {
@@ -334,6 +383,8 @@ class PoseBoneChannelAPI : public AbstractChannelAPI {
     return flag_is_set(pose_bone->flag, POSE_CHANNEL_SELECTED);
   }
 };
+
+void AbstractChannelAPI::set_active(bool /*do_sync_to_secondary*/) {}
 
 std::unique_ptr<AbstractChannelAPI> create_channel_api(const AnimationChannel &channel)
 {
@@ -354,11 +405,17 @@ std::unique_ptr<AbstractChannelAPI> create_channel_api(const AnimationChannel &c
   if (ptr.type == RNA_ActionGroup) {
     /* Get the pose bone that's represented by this F-Curve Group (if any). */
     BLI_assert(channel.type() == AnimationChannelType::SUMMARY);
+    BLI_assert(ptr.has_data());
     const SummaryChannel &action_group_channel = dynamic_cast<const SummaryChannel &>(channel);
-    const ChannelTag *pose_bone_tag = action_group_channel.first_tag_of_child(
+    const ChannelTag *pose_bone_tag = action_group_channel.tags().first_by_type(
         ChannelTagType::BONE);
+    animrig::Channelbag *channelbag =
+        action_group_channel.tags().data_of_first_tag<animrig::Channelbag>(
+            ChannelTagType::ACTION_CHANNELBAG);
+    BLI_assert(channelbag);
 
-    return std::make_unique<ActionGroupChannelAPI>(ptr.data_as<bActionGroup>(), pose_bone_tag);
+    return std::make_unique<ActionGroupChannelAPI>(
+        *ptr.data_as<bActionGroup>(), *channelbag, pose_bone_tag);
   }
   if (ptr.type == RNA_ActionSlot) {
     return std::make_unique<ActionSlotChannelAPI>(ptr.data_as<animrig::Slot>());
