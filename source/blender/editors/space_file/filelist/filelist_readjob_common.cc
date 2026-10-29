@@ -68,12 +68,11 @@ char *current_relpath_append(const FileListReadJob *job_params, const char *file
     return BLI_strdup(filename);
   }
 
-  BLI_path_slash_ensure(relbase, sizeof(relbase));
+  BLI_path_slash_ensure(relbase);
 
   char relpath[FILE_MAX_LIBEXTRA];
   /* Using #BLI_path_join works but isn't needed as `rel_subdir` has a trailing slash. */
   BLI_string_join(relpath,
-                  sizeof(relpath),
                   /* + 2 to remove "//" relative path prefix. */
                   BLI_path_is_rel(relbase) ? relbase + 2 : relbase,
                   filename);
@@ -257,8 +256,8 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
 
 #ifdef WIN32
   char fonts_path[FILE_MAXDIR] = {0};
-  BKE_appdir_font_folder_default(fonts_path, sizeof(fonts_path));
-  BLI_path_slash_ensure(fonts_path, sizeof(fonts_path));
+  BKE_appdir_font_folder_default(fonts_path);
+  BLI_path_slash_ensure(fonts_path);
   if (STREQ(root, fonts_path)) {
     entries_num += filelist_add_userfonts(entries);
   }
@@ -278,7 +277,7 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
       entry->relpath = current_relpath_append(job_params, files[i].relname);
       entry->st = files[i].s;
 
-      BLI_path_join(full_path, FILE_MAX, root, files[i].relname);
+      BLI_path_join(full_path, root, files[i].relname);
       char *target = full_path;
 
       /* Set initial file type and attributes. */
@@ -298,7 +297,7 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
         if (BLI_file_alias_target(full_path, entry->redirection_path)) {
           if (BLI_is_dir(entry->redirection_path)) {
             entry->typeflag = FILE_TYPE_DIR;
-            BLI_path_slash_ensure(entry->redirection_path, FILE_MAXDIR);
+            BLI_path_slash_ensure(MutableCStr(entry->redirection_path, FILE_MAXDIR));
           }
           else {
             entry->typeflag = eFileSel_File_Types(ED_path_extension_type(entry->redirection_path));
@@ -708,7 +707,7 @@ void filelist_readjob_recursive_dir_add_items(const bool do_lib,
   STRNCPY(filter_glob, filelist->filter_glob);
 
   BLI_path_abs(dir, job_params->main_filepath);
-  BLI_path_normalize_dir(dir, sizeof(dir));
+  BLI_path_normalize_dir(dir);
   td_dir->dir = BLI_strdup(dir);
 
   /* Init the file indexer. */
@@ -740,7 +739,7 @@ void filelist_readjob_recursive_dir_add_items(const bool do_lib,
      * this is actually better. */
     STRNCPY(rel_subdir, subdir);
     BLI_path_abs(rel_subdir, root);
-    BLI_path_normalize_dir(rel_subdir, sizeof(rel_subdir));
+    BLI_path_normalize_dir(rel_subdir);
     BLI_path_rel(rel_subdir, root);
 
     /* Update the current relative base path within the filelist root. */
@@ -793,9 +792,9 @@ void filelist_readjob_recursive_dir_add_items(const bool do_lib,
       {
         /* We have a directory we want to list, add it to todo list!
          * Using #BLI_path_join works but isn't needed as `root` has a trailing slash. */
-        BLI_string_join(dir, sizeof(dir), root, entry.relpath);
+        BLI_string_join(dir, root, entry.relpath);
         BLI_path_abs(dir, job_params->main_filepath);
-        BLI_path_normalize_dir(dir, sizeof(dir));
+        BLI_path_normalize_dir(dir);
         td_dir = static_cast<TodoDir *>(BLI_stack_push_r(todo_dirs));
         td_dir->level = recursion_level + 1;
         td_dir->dir = BLI_strdup(dir);

@@ -255,7 +255,7 @@ void fontstyle_draw_multiline_clipped_ex(const uiFontStyle *fs,
 
   char str_buf[UI_MAX_DRAW_STR];
   const Vector<StringRef> lines = text_clip_multiline_middle(
-      fs, str, str_buf, sizeof(str_buf), max_width, max_line_count);
+      fs, str, str_buf, max_width, max_line_count);
 
   BLI_assert(lines.size() <= max_line_count);
 

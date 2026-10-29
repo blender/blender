@@ -161,7 +161,7 @@ static void library_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     return;
   }
 
-  if (BKE_bpath_foreach_path_fixed_process(bpath_data, lib->filepath, sizeof(lib->filepath))) {
+  if (BKE_bpath_foreach_path_fixed_process(bpath_data, lib->filepath)) {
     BKE_library_filepath_set(bpath_data->bmain, lib, lib->filepath);
   }
 }

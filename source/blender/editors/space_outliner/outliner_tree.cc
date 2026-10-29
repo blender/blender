@@ -1174,7 +1174,7 @@ static void outliner_filter_tree(const Main &bmain,
   }
   else {
     /* Implicitly add heading/trailing wildcards if needed. */
-    BLI_strncpy_ensure_pad(search_buff, space_outliner->search_string, '*', sizeof(search_buff));
+    BLI_strncpy_ensure_pad(search_buff, space_outliner->search_string, '*');
     search_string = search_buff;
   }
 

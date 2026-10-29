@@ -174,7 +174,7 @@ static Vector<bke::path_templates::Error> compute_image_path(const StringRefNull
   char base_path[FILE_MAX] = "";
   STRNCPY(base_path, directory.c_str());
   const std::string full_file_name = file_name + file_name_suffix;
-  BLI_path_append(base_path, FILE_MAX, full_file_name.c_str());
+  BLI_path_append(base_path, full_file_name.c_str());
 
   bke::path_templates::VariableMap template_variables;
   BKE_blender_project_read_callback(&bmain, [&](const bke::BlenderProject *project) {
@@ -186,7 +186,7 @@ static Vector<bke::path_templates::Error> compute_image_path(const StringRefNull
   /* Substitute #### frame variables if not doing an animation render. For animation renders, this
    * is handled internally by the following function. */
   if (!is_animation_render) {
-    BLI_path_frame(base_path, FILE_MAX, frame_number, 0);
+    BLI_path_frame(base_path, frame_number, 0);
   }
 
   return BKE_image_path_from_imformat(r_image_path,

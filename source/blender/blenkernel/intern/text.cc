@@ -324,7 +324,8 @@ int txt_extended_ascii_as_utf8(char **str)
       memcpy(newstr + mi, (*str) + i, bad_char);
 
       const int mofs = mi + bad_char;
-      BLI_str_utf8_from_unicode((*str)[i + bad_char], newstr + mofs, (length + added) - mofs);
+      BLI_str_utf8_from_unicode((*str)[i + bad_char],
+                                MutableCStr(newstr + mofs, (length + added) - mofs));
       i += bad_char + 1;
       mi += bad_char + 2;
     }
@@ -1899,7 +1900,7 @@ static bool txt_add_char_intern(Text *text, uint add, bool replace_tabs)
 
   txt_delete_sel(text);
 
-  add_len = BLI_str_utf8_from_unicode(add, ch, sizeof(ch));
+  add_len = BLI_str_utf8_from_unicode(add, ch);
 
   tmp = MEM_new_array_uninitialized<char>(size_t(text->curl->len) + add_len + 1,
                                           "textline_string");
@@ -1956,7 +1957,7 @@ bool txt_replace_char(Text *text, uint add)
   del = BLI_str_utf8_as_unicode_step_safe(text->curl->line, text->curl->len, &del_size);
   del_size -= text->curc;
   UNUSED_VARS(del);
-  add_size = BLI_str_utf8_from_unicode(add, ch, sizeof(ch));
+  add_size = BLI_str_utf8_from_unicode(add, ch);
 
   if (add_size > del_size) {
     char *tmp = MEM_new_array_uninitialized<char>(

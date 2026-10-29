@@ -12,6 +12,7 @@
 #include "BLI_compiler_attrs.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_mutex.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 
 #include "IMB_imbuf_enums.h"
@@ -96,10 +97,7 @@ void BKE_image_free_buffers_ex(Image *image, bool do_lock);
  */
 void BKE_image_free_data(Image *image);
 
-typedef void(StampCallback)(void *data,
-                            const char *propname,
-                            char *propvalue,
-                            int propvalue_maxncpy);
+typedef void(StampCallback)(void *data, const char *propname, MutableCStr propvalue);
 
 void BKE_render_result_stamp_info(Scene *scene,
                                   Object *camera,
@@ -478,10 +476,7 @@ bool BKE_image_has_alpha(Image *image);
  * Get tile index for tiled images.
  * \return The string length.
  */
-int BKE_image_get_tile_label(const Image *ima,
-                             const ImageTile *tile,
-                             char *label,
-                             int label_maxncpy);
+int BKE_image_get_tile_label(const Image *ima, const ImageTile *tile, MutableCStr label);
 
 /**
  * Checks whether the given filepath refers to a UDIM tiled texture.
@@ -517,8 +512,8 @@ bool BKE_image_is_filename_tokenized(char *filepath);
  * Ensures that `filename` contains a UDIM token if we find a supported format pattern.
  * \note This must only be the name component (without slashes).
  */
-void BKE_image_ensure_tile_token(char *filepath, size_t filepath_maxncpy);
-void BKE_image_ensure_tile_token_filename_only(char *filename, size_t filename_maxncpy);
+void BKE_image_ensure_tile_token(MutableCStr filepath);
+void BKE_image_ensure_tile_token_filename_only(MutableCStr filename);
 
 /**
  * When provided with an absolute virtual `filepath`, check to see if at least

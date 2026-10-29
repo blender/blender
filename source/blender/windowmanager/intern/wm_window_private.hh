@@ -15,8 +15,11 @@ struct GHOST_CSD_Layout;
 
 namespace blender {
 
+struct ARegion;
+struct ARegionIMECursor;
 struct bContext;
 struct bScreen;
+struct wmIMEData;
 struct wmWindow;
 
 /* *************** Message box *************** */
@@ -132,5 +135,23 @@ int WM_window_csd_layout_callback(const int window_size[2],
                                   GHOST_CSD_Elem *csd_elems);
 
 const GHOST_CSD_Layout *WM_window_csd_layout_get();
+
+#ifdef WITH_INPUT_IME
+
+/* wm_window_ime_draw.cc */
+
+/**
+ * Draw the composition preview for a region.
+ * The editor keeps drawing its own cursor, this only draws the pre-edit text on the RHS.
+ * The box is axis-aligned.
+ *
+ * \param ime_data: The composition, see #WM_window_IME_data_get.
+ * \param cursor: As reported by `cursor_ime` on #ARegionIMECursorState::PositionSet.
+ */
+void wm_window_IME_region_preview_draw(const ARegion *region,
+                                       const wmIMEData &ime_data,
+                                       const ARegionIMECursor &cursor);
+
+#endif /* WITH_INPUT_IME */
 
 }  // namespace blender

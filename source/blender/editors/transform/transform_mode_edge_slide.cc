@@ -780,14 +780,14 @@ static void applyEdgeSlide(TransInfo *t)
   t->values_final[0] = final;
 
   /* Header string. */
-  ofs += BLI_strncpy_utf8_rlen(str + ofs, RPT_("Edge Slide: "), sizeof(str) - ofs);
+  ofs += STRNCPY_UTF8_RLEN(MutableCStr(str).drop_front(ofs), RPT_("Edge Slide: "));
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
     outputNumInput(&(t->num), c, t->scene->unit);
-    ofs += BLI_strncpy_utf8_rlen(str + ofs, &c[0], sizeof(str) - ofs);
+    ofs += STRNCPY_UTF8_RLEN(MutableCStr(str).drop_front(ofs), &c[0]);
   }
   else {
-    ofs += BLI_snprintf_utf8_rlen(str + ofs, sizeof(str) - ofs, "%.4f ", final);
+    ofs += SNPRINTF_UTF8_RLEN(MutableCStr(str).drop_front(ofs), "%.4f ", final);
   }
   /* Done with header string. */
 

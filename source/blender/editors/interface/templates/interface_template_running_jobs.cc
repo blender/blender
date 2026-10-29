@@ -50,11 +50,11 @@ static std::string progress_tooltip_func(bContext * /*C*/, void *argN, const Str
   char elapsed_str[32];
   char remaining_str[32];
   const double elapsed = BLI_time_now_seconds() - WM_jobs_starttime(wm, owner);
-  BLI_timecode_string_from_time_simple(elapsed_str, sizeof(elapsed_str), elapsed);
+  BLI_timecode_string_from_time_simple(elapsed_str, elapsed);
 
   if (progress) {
     const double remaining = (elapsed / double(progress)) - elapsed;
-    BLI_timecode_string_from_time_simple(remaining_str, sizeof(remaining_str), remaining);
+    BLI_timecode_string_from_time_simple(remaining_str, remaining);
   }
 
   return fmt::format(fmt::runtime(TIP_("Time Remaining: {}\n"

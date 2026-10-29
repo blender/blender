@@ -591,8 +591,12 @@ static uint32_t get_buffers_binding_mask(NSArray<MTLArgument *> *args)
 {
   uint32_t mask = 0u;
   for (int i = 0; i < [args count]; i++) {
-    MTLArgument *arg = [args objectAtIndex:i];
-    if ([arg type] == MTLArgumentTypeBuffer && [arg isActive] == TRUE) {
+    const MTLArgument *arg = [args objectAtIndex:i];
+    const MTLArgumentType type = [arg type];
+    /* Acceleration structures are bound inside the buffer binding space. */
+    if (ELEM(type, MTLArgumentTypeBuffer, MTLArgumentTypeInstanceAccelerationStructure) &&
+        [arg isActive] == TRUE)
+    {
       int index = [arg index];
       if (index >= 0 && index < MTL_MAX_BUFFER_BINDINGS) {
         mask |= (1 << index);

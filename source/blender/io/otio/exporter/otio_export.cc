@@ -124,7 +124,7 @@ static int media_length(const StripExportContext &ctx, const Strip &strip)
 static std::string media_filepath(const StripExportContext &ctx, const Strip &strip)
 {
   char filepath[FILE_MAX];
-  BLI_path_join(filepath, sizeof(filepath), strip.data->dirpath, strip.data->stripdata->filename);
+  BLI_path_join(filepath, strip.data->dirpath, strip.data->stripdata->filename);
   BLI_path_abs(filepath, BKE_main_blendfile_path(ctx.bmain));
   return filepath;
 }
@@ -162,8 +162,10 @@ static bool image_sequence_pattern_get(const StripElem *elems,
                                        int &r_padding)
 {
   unsigned short digits_len;
-  r_start_frame = BLI_path_sequence_decode(
-      elems[0].filename, r_name_prefix, FILE_MAX, r_name_suffix, FILE_MAX, &digits_len);
+  r_start_frame = BLI_path_sequence_decode(elems[0].filename,
+                                           MutableCStr(r_name_prefix, FILE_MAX),
+                                           MutableCStr(r_name_suffix, FILE_MAX),
+                                           &digits_len);
   r_padding = digits_len;
   if (digits_len == 0) {
     return false;
@@ -171,7 +173,8 @@ static bool image_sequence_pattern_get(const StripElem *elems,
 
   r_frame_step = 1;
   if (elems_num > 1) {
-    r_frame_step = BLI_path_sequence_decode(elems[1].filename, nullptr, 0, nullptr, 0, nullptr) -
+    r_frame_step = BLI_path_sequence_decode(
+                       elems[1].filename, std::nullopt, std::nullopt, nullptr) -
                    r_start_frame;
     if (r_frame_step < 1) {
       return false;
@@ -180,12 +183,8 @@ static bool image_sequence_pattern_get(const StripElem *elems,
 
   for (const int i : IndexRange(elems_num)) {
     char filename[FILE_MAX];
-    BLI_path_sequence_encode(filename,
-                             sizeof(filename),
-                             r_name_prefix,
-                             r_name_suffix,
-                             digits_len,
-                             r_start_frame + i * r_frame_step);
+    BLI_path_sequence_encode(
+        filename, r_name_prefix, r_name_suffix, digits_len, r_start_frame + i * r_frame_step);
     if (!STREQ(filename, elems[i].filename)) {
       return false;
     }
@@ -211,7 +210,7 @@ static SerializableObject::Retainer<MediaReference> image_sequence_reference(
   }
 
   char dirpath[FILE_MAX];
-  BLI_strncpy(dirpath, strip.data->dirpath, sizeof(dirpath));
+  STRNCPY(dirpath, strip.data->dirpath);
   BLI_path_abs(dirpath, BKE_main_blendfile_path(ctx.bmain));
 
   /* OTIO expects the rate of the full sequence, counting file numbers that don't exist. */

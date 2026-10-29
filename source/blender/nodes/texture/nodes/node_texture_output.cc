@@ -88,7 +88,7 @@ static void unique_name(bNode *node)
       name = new_name;
     }
     int name_ofs = new_len - 4;
-    BLI_snprintf(new_name + name_ofs, sizeof(new_name) - name_ofs, ".%03d", ++suffix);
+    SNPRINTF(MutableCStr(new_name).drop_front(name_ofs), ".%03d", ++suffix);
   }
 
   if (new_name[0] != '\0') {

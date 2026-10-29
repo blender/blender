@@ -616,8 +616,7 @@ static void wm_window_title_text(wmWindowManager *wm,
                              BLI_str_utf8_invalid_substitute_if_needed(filepath_as_bytes,
                                                                        strlen(filepath_as_bytes),
                                                                        '?',
-                                                                       _filepath_utf8_buf,
-                                                                       sizeof(_filepath_utf8_buf));
+                                                                       _filepath_utf8_buf);
 
   const char *filename = BLI_path_basename(filepath);
   const bool has_filepath = filepath[0] != '\0';
@@ -2566,6 +2565,15 @@ void WM_event_timer_sleep(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *time
   timer->sleep = do_sleep;
 }
 
+/** Start the timer's cycle from now, keeping its step. */
+static void wm_window_timer_reset(wmTimer *wt)
+{
+  wt->time_last = BLI_time_now_seconds();
+  wt->time_next = wt->time_last + wt->time_step;
+  wt->time_start = wt->time_last;
+  wt->time_duration = 0.0;
+}
+
 wmTimer *WM_event_timer_add(wmWindowManager *wm,
                             wmWindow *win,
                             const wmEventType event_type,
@@ -2577,10 +2585,8 @@ wmTimer *WM_event_timer_add(wmWindowManager *wm,
   BLI_assert(time_step >= 0.0f);
 
   wt->event_type = event_type;
-  wt->time_last = BLI_time_now_seconds();
-  wt->time_next = wt->time_last + time_step;
-  wt->time_start = wt->time_last;
   wt->time_step = time_step;
+  wm_window_timer_reset(wt);
   wt->win = win;
 
   BLI_addtail(&wm->runtime->timers, wt);
@@ -2597,10 +2603,8 @@ wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
   BLI_assert(time_step >= 0.0f);
 
   wt->event_type = TIMERNOTIFIER;
-  wt->time_last = BLI_time_now_seconds();
-  wt->time_next = wt->time_last + time_step;
-  wt->time_start = wt->time_last;
   wt->time_step = time_step;
+  wm_window_timer_reset(wt);
   wt->win = win;
   wt->customdata = POINTER_FROM_UINT(type);
   wt->flags |= WM_TIMER_NO_FREE_CUSTOM_DATA;
@@ -3552,16 +3556,15 @@ void WM_window_IME_end(wmWindow *win)
   win->runtime->ime_data_is_composing = false;
 }
 
-bool WM_window_IME_region_refresh(wmWindow *win,
-                                  const ScrArea *area,
-                                  const ARegion *region,
-                                  const bool keep_composing,
-                                  ARegionIMECursor *r_cursor)
+std::optional<ARegionIMECursor> WM_window_IME_region_refresh(wmWindow *win,
+                                                             const ScrArea *area,
+                                                             const ARegion *region,
+                                                             const bool keep_composing)
 {
   if (win->runtime->ime_owner == bke::wmIMEOwnerType::Button) {
     /* A text button owns the session, possibly in a popup over this region,
      * see #textedit_ime_begin. */
-    return false;
+    return std::nullopt;
   }
 
   /* A temporary popup is modal, it takes precedence over the region below it,
@@ -3571,7 +3574,7 @@ bool WM_window_IME_region_refresh(wmWindow *win,
   if (!screen->regionbase.is_empty() &&
       (BKE_screen_find_region_type(screen, RGN_TYPE_TEMPORARY) != nullptr))
   {
-    return false;
+    return std::nullopt;
   }
 
   /* NOTE: ending mid-composition cancels it, so the draw-time refresh opts out via
@@ -3588,7 +3591,7 @@ bool WM_window_IME_region_refresh(wmWindow *win,
     WM_window_IME_end(win);
 
     if (!region || !region->runtime->type->cursor_ime) {
-      return false;
+      return std::nullopt;
     }
   }
 
@@ -3601,14 +3604,11 @@ bool WM_window_IME_region_refresh(wmWindow *win,
     if (composing) {
       WM_window_IME_end(win);
     }
-    return false;
+    return std::nullopt;
   }
   if (*cursor_state != ARegionIMECursorState::PositionSet) {
     /* Pending because of a transient lack of position, so keep the session where it is. */
-    return false;
-  }
-  if (r_cursor) {
-    *r_cursor = cursor;
+    return std::nullopt;
   }
 
   /* Convert to window coordinates, clamped to the region so a cursor scrolled out of view
@@ -3630,7 +3630,7 @@ bool WM_window_IME_region_refresh(wmWindow *win,
     /* #WM_window_IME_end above ended any session, so this is always a fresh begin. */
     WM_window_IME_begin(win, x, y, w, h, bke::wmIMEOwnerType::Region);
   }
-  return true;
+  return cursor;
 }
 
 const wmIMEData *WM_window_IME_data_get(const wmWindow *win, const ARegion *region)

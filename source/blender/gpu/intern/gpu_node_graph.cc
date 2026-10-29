@@ -601,7 +601,8 @@ static void attr_input_name(GPUMaterialAttribute *attr)
     attr->input_name[1] = '\0';
     if (attr->name[0] != '\0') {
       /* XXX FIXME: see notes in mesh_render_data_create() */
-      GPU_vertformat_safe_attr_name(attr->name, &attr->input_name[1], GPU_MAX_SAFE_ATTR_NAME);
+      GPU_vertformat_safe_attr_name(attr->name,
+                                    MutableCStr(&attr->input_name[1], GPU_MAX_SAFE_ATTR_NAME));
     }
   }
 }

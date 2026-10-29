@@ -18,6 +18,7 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 
 namespace blender {
@@ -105,7 +106,6 @@ struct BPathForeachPathData;
  * \param path_dst: Optionally write to the path (for callbacks that manipulate the path).
  * \note When #BKE_BPATH_FOREACH_PATH_ABSOLUTE us used, `path_src` will be absolute and `path_dst`
  * can be used to access the original path.
- * \param path_dst_maxncpy: The buffer size of `path_dst` including the null byte.
  * \warning Actions such as #BLI_path_abs & #BLI_path_rel must not be called directly
  * on `path_dst` as they assume #FILE_MAX size which may not be the case.
  *
@@ -113,8 +113,7 @@ struct BPathForeachPathData;
  * result must be written to `path_dst`.
  */
 using BPathForeachPathFunctionCallback = bool (*)(BPathForeachPathData *bpath_data,
-                                                  char *path_dst,
-                                                  size_t path_dst_maxncpy,
+                                                  MutableCStr path_dst,
                                                   const char *path_src);
 
 /** Storage for common data needed across the BPath 'foreach_path' code. */
@@ -180,9 +179,7 @@ void BKE_bpath_foreach_path_main(BPathForeachPathData *bpath_data);
  *
  * \return true is \a path was modified, false otherwise.
  */
-bool BKE_bpath_foreach_path_fixed_process(BPathForeachPathData *bpath_data,
-                                          char *path,
-                                          size_t path_maxncpy);
+bool BKE_bpath_foreach_path_fixed_process(BPathForeachPathData *bpath_data, MutableCStr path);
 
 /**
  * Run the callback on a read-only path, any edits will be discarded.
@@ -210,10 +207,8 @@ void BKE_bpath_sequence_filepaths_foreach(
  * \return true is \a path_dir and/or \a path_file were modified, false otherwise.
  */
 bool BKE_bpath_foreach_path_dirfile_fixed_process(BPathForeachPathData *bpath_data,
-                                                  char *path_dir,
-                                                  size_t path_dir_maxncpy,
-                                                  char *path_file,
-                                                  size_t path_file_maxncpy);
+                                                  MutableCStr path_dir,
+                                                  MutableCStr path_file);
 
 /**
  * Run the callback on a path, replacing the content of the string as needed.

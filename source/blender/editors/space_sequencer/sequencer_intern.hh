@@ -333,8 +333,7 @@ void SEQUENCER_OT_text_strip_add(wmOperatorType *ot);
 void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot);
 void SEQUENCER_OT_add_scene_strip_from_scene_asset(wmOperatorType *ot);
 
-void frame_filename_set(char *dst,
-                        size_t dst_maxncpy,
+void frame_filename_set(MutableCStr dst,
                         const char *filename_stripped,
                         const int frame,
                         const int numdigits,

@@ -123,8 +123,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
       STRNCPY(filepath_no_ext, opts->filepath);
       BLI_path_extension_strip(filepath_no_ext);
       SNPRINTF(opts->filepath, "%s_%.*d", filepath_no_ext, 4, ibuf->fileframe);
-      BKE_image_path_ext_from_imformat_ensure(
-          opts->filepath, sizeof(opts->filepath), &opts->im_format);
+      BKE_image_path_ext_from_imformat_ensure(opts->filepath, &opts->im_format);
     }
 
     /* sanitize all settings */
@@ -147,12 +146,12 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
           STRNCPY(opts->filepath, G.filepath_last_image);
         }
         else {
-          BLI_path_join(opts->filepath, sizeof(opts->filepath), "//", DATA_("Untitled"));
+          BLI_path_join(opts->filepath, "//", DATA_("Untitled"));
           BLI_path_abs(opts->filepath, BKE_main_blendfile_path(bmain));
         }
       }
       else {
-        BLI_path_join(opts->filepath, sizeof(opts->filepath), "//", ima->id.name + 2);
+        BLI_path_join(opts->filepath, "//", ima->id.name + 2);
         BLI_path_make_safe_filename(opts->filepath + 2);
         BLI_path_abs(opts->filepath,
                      is_prev_save ? G.filepath_last_image : BKE_main_blendfile_path(bmain));
@@ -1181,7 +1180,7 @@ bool BKE_image_render_write(ReportList *reports,
           if (BLI_path_extension_check(filepath, ".exr")) {
             filepath[strlen(filepath) - 4] = 0;
           }
-          BKE_image_path_ext_from_imformat_ensure(filepath, sizeof(filepath), &image_format);
+          BKE_image_path_ext_from_imformat_ensure(filepath, &image_format);
 
           ImBuf *ibuf = RE_render_result_rect_to_ibuf(rr, &image_format, dither, view_id);
           ibuf->color_mode = ImColorMode::RGB;
@@ -1241,7 +1240,7 @@ bool BKE_image_render_write(ReportList *reports,
             filepath[strlen(filepath) - 4] = 0;
           }
 
-          BKE_image_path_ext_from_imformat_ensure(filepath, sizeof(filepath), &image_format);
+          BKE_image_path_ext_from_imformat_ensure(filepath, &image_format);
           ibuf_arr[2]->color_mode = ImColorMode::RGB;
 
           ok = image_render_write_stamp_test(

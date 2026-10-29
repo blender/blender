@@ -79,7 +79,7 @@ static Array<Array<float4>> extract_tan_init_common(const MeshRenderData &mr,
     }
 
     char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-    GPU_vertformat_safe_attr_name("orco", attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+    GPU_vertformat_safe_attr_name("orco", attr_safe_name);
     SNPRINTF(attr_name, "t%s", attr_safe_name);
     GPU_vertformat_attr_add(format, attr_name, gpu_attr_type);
     GPU_vertformat_alias_add(format, "t");
@@ -92,7 +92,7 @@ static Array<Array<float4>> extract_tan_init_common(const MeshRenderData &mr,
   for (const StringRef name : tan_layers.as_span().take_front(MAX_MTFACE)) {
     if (tan_layers.contains(name)) {
       char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-      GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+      GPU_vertformat_safe_attr_name(name, attr_safe_name);
       /* Tangent layer name. */
       SNPRINTF(attr_name, "t%s", attr_safe_name);
       GPU_vertformat_attr_add(format, attr_name, gpu_attr_type);

@@ -94,7 +94,7 @@ std::string AS_asset_library_find_suitable_root_path_from_path(const StringRefNu
   }
 
   char buffer[FILE_MAXDIR];
-  BLI_path_split_dir_part(input_path.c_str(), buffer, FILE_MAXDIR);
+  BLI_path_split_dir_part(input_path.c_str(), buffer);
   return buffer;
 }
 

@@ -1218,8 +1218,7 @@ static wmOperatorStatus collection_exporter_export(bContext *C,
   char filepath[FILE_MAX];
   RNA_string_get(&properties, "filepath", filepath);
   if (!filepath[0]) {
-    BLI_path_join(
-        filepath, sizeof(filepath), "//", fh->get_default_filename(collection_name).c_str());
+    BLI_path_join(filepath, "//", fh->get_default_filename(collection_name).c_str());
   }
   else {
     const char *filename = BLI_path_basename(filepath);

@@ -42,23 +42,22 @@ struct FlagIdentifierPair {
   uint flag;
 };
 
-static void event_ids_from_flag(char *str,
-                                const int str_maxncpy,
+static void event_ids_from_flag(MutableCStr str,
                                 const FlagIdentifierPair *flag_data,
                                 const int flag_data_len,
                                 const uint flag)
 {
   int ofs = 0;
-  ofs += BLI_strncpy_rlen(str + ofs, "{", str_maxncpy - ofs);
+  ofs += STRNCPY_RLEN(str.drop_front(ofs), "{");
   for (int i = 0; i < flag_data_len; i++) {
     if (flag & flag_data[i].flag) {
       if (ofs != 1) {
-        ofs += BLI_strncpy_rlen(str + ofs, "|", str_maxncpy - ofs);
+        ofs += STRNCPY_RLEN(str.drop_front(ofs), "|");
       }
-      ofs += BLI_strncpy_rlen(str + ofs, flag_data[i].id, str_maxncpy - ofs);
+      ofs += STRNCPY_RLEN(str.drop_front(ofs), flag_data[i].id);
     }
   }
-  ofs += BLI_strncpy_rlen(str + ofs, "}", str_maxncpy - ofs);
+  ofs += STRNCPY_RLEN(str.drop_front(ofs), "}");
   UNUSED_VARS(ofs); /* Quiet warning. */
 }
 
@@ -96,8 +95,7 @@ void WM_event_print(const wmEvent *event)
           {"HYPER", KM_HYPER},
 
       };
-      event_ids_from_flag(
-          modifier_id, sizeof(modifier_id), flag_data, ARRAY_SIZE(flag_data), event->modifier);
+      event_ids_from_flag(modifier_id, flag_data, ARRAY_SIZE(flag_data), event->modifier);
     }
 
     char flag_id[128];
@@ -108,7 +106,7 @@ void WM_event_print(const wmEvent *event)
           {"IS_CONSECUTIVE", WM_EVENT_IS_CONSECUTIVE},
           {"FORCE_DRAG_THRESHOLD", WM_EVENT_FORCE_DRAG_THRESHOLD},
       };
-      event_ids_from_flag(flag_id, sizeof(flag_id), flag_data, ARRAY_SIZE(flag_data), event->flag);
+      event_ids_from_flag(flag_id, flag_data, ARRAY_SIZE(flag_data), event->flag);
     }
 
     printf(

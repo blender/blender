@@ -55,7 +55,7 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
   /* File name and path. */
   char dirname[FILE_MAX];
   char filename[FILE_MAX];
-  BLI_path_split_dir_file(path, dirname, sizeof(dirname), filename, sizeof(filename));
+  BLI_path_split_dir_file(path, dirname, filename);
 
   const std::string project_root = BKE_is_path_inside_blender_project(path);
   if (!project_root.empty()) {
@@ -91,8 +91,7 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
   ImBuf *thumb = IMB_thumb_read(path, THB_LARGE);
   if (thumb) {
     /* Look for version in existing thumbnail if available. */
-    IMB_metadata_get_field(
-        thumb->metadata(), "Thumb::Blender::Version", version_str, sizeof(version_str));
+    IMB_metadata_get_field(thumb->metadata(), "Thumb::Blender::Version", version_str);
   }
 
   eFileAttributes attributes = BLI_file_attributes(path);

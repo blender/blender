@@ -80,18 +80,18 @@ bool BLI_change_working_dir(const char *dir)
 #  endif
 }
 
-char *BLI_current_working_dir(char *dir, const size_t maxncpy)
+char *BLI_current_working_dir(MutableCStr dir)
 {
 #  if defined(WIN32)
   wchar_t path[MAX_PATH];
   if (_wgetcwd(path, MAX_PATH)) {
-    if (BLI_strncpy_wchar_as_utf8(dir, path, maxncpy) != maxncpy) {
-      return dir;
+    if (BLI_strncpy_wchar_as_utf8(dir, path) != dir.size()) {
+      return dir.data();
     }
   }
   return nullptr;
 #  else
-  return getcwd(dir, maxncpy);
+  return getcwd(dir.data(), dir.size());
 #  endif
 }
 #endif /* !defined (__APPLE__) */

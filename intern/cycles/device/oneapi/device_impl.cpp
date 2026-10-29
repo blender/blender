@@ -1546,7 +1546,18 @@ std::vector<SyclDeviceEntry> available_sycl_devices(
             if (number_of_eus <= 96 && threads_per_eu == 7) {
               filter_out = true;
             }
-            /* if not already filtered out, check driver version. */
+#  ifndef WITH_CYCLES_ONEAPI_SOFTWARE_TEXTURING
+            /* If not already filtered out, check support for bindless images. */
+            if (!filter_out && !device.has(sycl::aspect::ext_oneapi_bindless_images)) {
+              filter_out = true;
+
+              LOG_WARNING << "Device \"" << device.get_info<sycl::info::device::name>()
+                          << "\" does not support bindless images, which Cycles oneAPI"
+                          << " requires. Build Blender with "
+                          << "WITH_CYCLES_ONEAPI_SOFTWARE_TEXTURING to use this device.";
+            }
+#  endif
+            /* If not already filtered out, check driver version. */
             bool check_driver_version = !filter_out;
             /* We don't know how to check driver version strings for non-Intel GPUs. */
             if (check_driver_version &&

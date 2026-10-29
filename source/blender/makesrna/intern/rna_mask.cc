@@ -163,7 +163,7 @@ static std::optional<std::string> rna_MaskLayer_path(const PointerRNA *ptr)
 {
   const MaskLayer *masklay = static_cast<MaskLayer *>(ptr->data);
   char name_esc[sizeof(masklay->name) * 2];
-  BLI_str_escape(name_esc, masklay->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, masklay->name);
   return fmt::format("layers[\"{}\"]", name_esc);
 }
 

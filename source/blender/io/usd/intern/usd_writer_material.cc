@@ -849,14 +849,14 @@ static std::string get_in_memory_texture_filename(Image *ima)
   /* NOTE: Any changes in packed filepath handling here should be considered alongside potential
    * changes in `export_packed_texture`. The file name returned needs to match. */
   if (is_packed && ima->filepath[0] != '\0') {
-    BLI_path_split_file_part(ima->filepath, file_name, FILE_MAX);
+    BLI_path_split_file_part(ima->filepath, file_name);
     return file_name;
   }
 
   /* Use the image name for the file name. */
   STRNCPY(file_name, ima->id.name + 2);
 
-  BKE_image_path_ext_from_imformat_ensure(file_name, sizeof(file_name), &imageFormat);
+  BKE_image_path_ext_from_imformat_ensure(file_name, &imageFormat);
 
   if (is_tiled && !BKE_image_is_filename_tokenized(file_name)) {
     /* Ensure that the UDIM tag is in. */
@@ -880,7 +880,7 @@ static void export_in_memory_imbuf(ImBuf *imbuf,
   BKE_image_format_from_imbuf(&imageFormat, imbuf);
 
   char export_path[FILE_MAX];
-  BLI_path_join(export_path, FILE_MAX, export_dir.c_str(), file_name);
+  BLI_path_join(export_path, export_dir.c_str(), file_name);
 
   if (!allow_overwrite && BLI_exists(export_path)) {
     return;
@@ -909,7 +909,7 @@ static void export_in_memory_texture(Image *ima,
   char file_name[FILE_MAX];
   if (ima->filepath[0]) {
     get_absolute_path(ima, image_abs_path);
-    BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);
+    BLI_path_split_file_part(image_abs_path, file_name);
   }
   else {
     /* Use the image name for the file name. */
@@ -979,7 +979,7 @@ static void export_packed_texture(const Image *ima,
       STRNCPY(image_abs_path, imapf.filepath);
       USD_path_abs(
           image_abs_path, ID_BLEND_PATH_FROM_GLOBAL(&ima->id), false /* Not for import */);
-      BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);
+      BLI_path_split_file_part(image_abs_path, file_name);
     }
     else {
       /* The following logic is taken from unpack_generate_paths() in packedFile.cc. */
@@ -995,16 +995,16 @@ static void export_packed_texture(const Image *ima,
       if (ima->source == IMA_SRC_TILED) {
         char tile_number[6];
         SNPRINTF(tile_number, ".%d", imapf.tile_number);
-        BLI_strncpy(file_name + len, tile_number, sizeof(file_name) - len);
+        STRNCPY(MutableCStr(file_name).drop_front(len), tile_number);
       }
       if (ftype != IMB_FTYPE_NONE) {
         const int imtype = BKE_ftype_to_imtype(ftype, nullptr);
-        BKE_image_path_ext_from_imtype_ensure(file_name, sizeof(file_name), imtype);
+        BKE_image_path_ext_from_imtype_ensure(file_name, imtype);
       }
     }
 
     char export_path_buf[FILE_MAX];
-    BLI_path_join(export_path_buf, FILE_MAX, export_dir.c_str(), file_name);
+    BLI_path_join(export_path_buf, export_dir.c_str(), file_name);
     BLI_string_replace_char(export_path_buf, '\\', '/');
 
     const std::string export_path(export_path_buf);
@@ -1249,7 +1249,7 @@ std::string get_tex_image_asset_filepath(Image *ima,
       if (path.empty()) {
         char file_name[FILE_MAX];
         path = get_in_memory_texture_filename(ima);
-        BLI_path_join(file_name, FILE_MAX, ".", "textures", path.c_str());
+        BLI_path_join(file_name, ".", "textures", path.c_str());
         path = file_name;
       }
     }
@@ -1276,10 +1276,10 @@ std::string get_tex_image_asset_filepath(const std::string &path,
 
     char exp_path[FILE_MAX];
     char file_path[FILE_MAX];
-    BLI_path_split_file_part(path.c_str(), file_path, FILE_MAX);
+    BLI_path_split_file_part(path.c_str(), file_path);
 
     if (export_params.relative_paths) {
-      BLI_path_join(exp_path, FILE_MAX, ".", "textures", file_path);
+      BLI_path_join(exp_path, ".", "textures", file_path);
     }
     else {
       /* Create absolute path in the textures directory. */
@@ -1288,8 +1288,8 @@ std::string get_tex_image_asset_filepath(const std::string &path,
       }
 
       char dir_path[FILE_MAX];
-      BLI_path_split_dir_part(stage_path.c_str(), dir_path, FILE_MAX);
-      BLI_path_join(exp_path, FILE_MAX, dir_path, "textures", file_path);
+      BLI_path_split_dir_part(stage_path.c_str(), dir_path);
+      BLI_path_join(exp_path, dir_path, "textures", file_path);
     }
     BLI_string_replace_char(exp_path, '\\', '/');
     return exp_path;
@@ -1346,10 +1346,10 @@ static void copy_tiled_textures(const Image *ima,
         src_tile_path, udim_pattern, tile_format, tile.tile_number);
 
     char dest_filename[FILE_MAXFILE];
-    BLI_path_split_file_part(src_tile_path, dest_filename, sizeof(dest_filename));
+    BLI_path_split_file_part(src_tile_path, dest_filename);
 
     char dest_tile_path[FILE_MAX];
-    BLI_path_join(dest_tile_path, FILE_MAX, dest_dir.c_str(), dest_filename);
+    BLI_path_join(dest_tile_path, dest_dir.c_str(), dest_filename);
 
     if (!allow_overwrite && BLI_exists(dest_tile_path)) {
       continue;
@@ -1384,10 +1384,10 @@ static void copy_single_file(const Image *ima,
   get_absolute_path(ima, source_path);
 
   char file_name[FILE_MAX];
-  BLI_path_split_file_part(source_path, file_name, FILE_MAX);
+  BLI_path_split_file_part(source_path, file_name);
 
   char dest_path[FILE_MAX];
-  BLI_path_join(dest_path, FILE_MAX, dest_dir.c_str(), file_name);
+  BLI_path_join(dest_path, dest_dir.c_str(), file_name);
 
   if (!allow_overwrite && BLI_exists(dest_path)) {
     return;

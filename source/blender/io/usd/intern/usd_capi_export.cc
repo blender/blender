@@ -253,8 +253,8 @@ static void process_usdz_textures(const ExportJobData *data, const char *path)
 
   char texture_path[FILE_MAX];
   STRNCPY(texture_path, path);
-  BLI_path_append(texture_path, FILE_MAX, "textures");
-  BLI_path_slash_ensure(texture_path, sizeof(texture_path));
+  BLI_path_append(texture_path, "textures");
+  BLI_path_slash_ensure(texture_path);
 
   direntry *entries;
   uint num_files = BLI_filelist_dir_contents(texture_path, &entries);
@@ -324,18 +324,13 @@ static void process_usdz_textures(const ExportJobData *data, const char *path)
 static bool perform_usdz_conversion(const ExportJobData *data)
 {
   char usdc_temp_dir[FILE_MAX], usdc_file[FILE_MAX];
-  BLI_path_split_dir_file(data->unarchived_filepath,
-                          usdc_temp_dir,
-                          sizeof(usdc_temp_dir),
-                          usdc_file,
-                          sizeof(usdc_file));
+  BLI_path_split_dir_file(data->unarchived_filepath, usdc_temp_dir, usdc_file);
 
   char usdz_file[FILE_MAX];
-  BLI_path_split_file_part(data->usdz_filepath, usdz_file, FILE_MAX);
+  BLI_path_split_file_part(data->usdz_filepath, usdz_file);
 
   char original_working_dir_buff[FILE_MAX];
-  const char *original_working_dir = BLI_current_working_dir(original_working_dir_buff,
-                                                             sizeof(original_working_dir_buff));
+  const char *original_working_dir = BLI_current_working_dir(original_working_dir_buff);
   /* Buffer is expected to be returned by #BLI_current_working_dir, although in theory other
    * returns are possible on some platforms, this is not handled by this code. */
   BLI_assert(original_working_dir == original_working_dir_buff);
@@ -348,7 +343,7 @@ static bool perform_usdz_conversion(const ExportJobData *data)
   BLI_change_working_dir(original_working_dir);
 
   char usdz_temp_full_path[FILE_MAX];
-  BLI_path_join(usdz_temp_full_path, FILE_MAX, usdc_temp_dir, usdz_file);
+  BLI_path_join(usdz_temp_full_path, usdc_temp_dir, usdz_file);
 
   int result = 0;
   if (BLI_exists(data->usdz_filepath)) {
@@ -377,7 +372,7 @@ static bool perform_usdz_conversion(const ExportJobData *data)
 std::string image_cache_file_path()
 {
   char dir_path[FILE_MAX];
-  BLI_path_join(dir_path, sizeof(dir_path), BKE_tempdir_session(), "usd", "image_cache");
+  BLI_path_join(dir_path, BKE_tempdir_session(), "usd", "image_cache");
   return dir_path;
 }
 
@@ -389,7 +384,7 @@ std::string get_image_cache_file(const std::string &file_name, bool mkdir)
   }
 
   char file_path[FILE_MAX];
-  BLI_path_join(file_path, sizeof(file_path), dir_path.c_str(), file_name.c_str());
+  BLI_path_join(file_path, dir_path.c_str(), file_name.c_str());
   return file_path;
 }
 
@@ -735,10 +730,10 @@ static void export_endjob_usdz_cleanup(const ExportJobData *data)
   }
 
   char dir[FILE_MAX];
-  BLI_path_split_dir_part(data->unarchived_filepath, dir, FILE_MAX);
+  BLI_path_split_dir_part(data->unarchived_filepath, dir);
 
   char usdc_temp_dir[FILE_MAX];
-  BLI_path_join(usdc_temp_dir, FILE_MAX, BKE_tempdir_session(), "USDZ", SEP_STR);
+  BLI_path_join(usdc_temp_dir, BKE_tempdir_session(), "USDZ", SEP_STR);
 
   BLI_assert_msg(BLI_strcasecmp(dir, usdc_temp_dir) == 0,
                  "USD Export: Attempting to delete directory that doesn't match the expected "
@@ -788,11 +783,11 @@ static void create_temp_path_for_usdz_export(const char *filepath, io::usd::Expo
   STRNCPY(usdc_file, BLI_path_basename(filepath));
 
   if (BLI_path_extension_check(usdc_file, ".usdz")) {
-    BLI_path_extension_replace(usdc_file, sizeof(usdc_file), ".usdc");
+    BLI_path_extension_replace(usdc_file, ".usdc");
   }
 
   char usdc_temp_filepath[FILE_MAX];
-  BLI_path_join(usdc_temp_filepath, FILE_MAX, BKE_tempdir_session(), "USDZ", usdc_file);
+  BLI_path_join(usdc_temp_filepath, BKE_tempdir_session(), "USDZ", usdc_file);
 
   STRNCPY(job->unarchived_filepath, usdc_temp_filepath);
   STRNCPY(job->usdz_filepath, filepath);

@@ -5770,7 +5770,7 @@ char *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32])
     ret_array[i++] = BPy_BMLoop_Type.tp_name;
   }
   ret[0] = '(';
-  int ret_ofs = BLI_string_join_array_by_sep_char(ret + 1, 30, '/', ret_array, i) + 1;
+  int ret_ofs = BLI_string_join_array_by_sep_char(MutableCStr(ret + 1, 30), '/', ret_array, i) + 1;
   ret[ret_ofs] = ')';
   ret[ret_ofs + 1] = '\0';
   return ret;

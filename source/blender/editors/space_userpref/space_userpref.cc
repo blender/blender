@@ -214,8 +214,10 @@ bUserAssetLibrary *ED_userpref_asset_library_new(const bContext *C,
       char final_dirpath[FILE_MAX];
       STRNCPY(final_dirpath, dirpath);
       BLI_path_slash_rstrip(final_dirpath);
-      if (!final_name[0]) {
-        BLI_path_split_file_part(final_dirpath, final_name, sizeof(final_name));
+      /* Default to directory name, except when directory is a project root template
+       * without any subdirectory. */
+      if (!final_name[0] && !STREQ(final_dirpath, "{project_root}")) {
+        BLI_path_split_file_part(final_dirpath, final_name);
       }
       if (!final_name[0]) {
         STRNCPY(final_name, DATA_("Local Asset Library"));

@@ -206,12 +206,12 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
         else if (file->redirection_path) {
           STRNCPY(params->dir, file->redirection_path);
           BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
-          BLI_path_normalize_dir(params->dir, sizeof(params->dir));
+          BLI_path_normalize_dir(params->dir);
         }
         else {
           BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
-          BLI_path_normalize_dir(params->dir, sizeof(params->dir));
-          BLI_path_append_dir(params->dir, sizeof(params->dir), file->relpath);
+          BLI_path_normalize_dir(params->dir);
+          BLI_path_append_dir(params->dir, file->relpath);
         }
 
         ED_file_change_dir(C);
@@ -396,7 +396,7 @@ static bool fsmenu_write_file_and_refresh_or_report_error(FSMenu *fsmenu,
   }
 
   char filepath[FILE_MAX];
-  BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_BOOKMARK_FILE);
+  BLI_path_join(filepath, cfgdir->c_str(), BLENDER_BOOKMARK_FILE);
   if (!fsmenu_write_file(fsmenu, filepath)) {
     BKE_reportf(reports, RPT_ERROR, "Unable to open or write bookmark file \"%s\"", filepath);
     return false;
@@ -1135,7 +1135,7 @@ static wmOperatorStatus bookmark_select_exec(bContext *C, wmOperator *op)
   RNA_property_string_get(op->ptr, prop, entry);
   STRNCPY(params->dir, entry);
   BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
-  BLI_path_normalize_dir(params->dir, sizeof(params->dir));
+  BLI_path_normalize_dir(params->dir);
   ED_file_change_dir(C);
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
@@ -1621,11 +1621,11 @@ void file_sfile_to_operator_ex(
   char dir[FILE_MAX];
 
   STRNCPY(dir, params->dir);
-  BLI_path_slash_ensure(dir, FILE_MAX);
+  BLI_path_slash_ensure(dir);
 
   /* XXX, not real length */
   if (params->file[0]) {
-    BLI_path_join(filepath, FILE_MAX, params->dir, params->file);
+    BLI_path_join(MutableCStr(filepath, FILE_MAX), params->dir, params->file);
   }
   else {
     BLI_strncpy(filepath, dir, FILE_MAX);
@@ -1728,8 +1728,7 @@ void file_operator_to_sfile(Main *bmain, SpaceFile *sfile, wmOperator *op)
   if ((prop = RNA_struct_find_property(op->ptr, "filepath"))) {
     char filepath[FILE_MAX];
     RNA_property_string_get(op->ptr, prop, filepath);
-    BLI_path_split_dir_file(
-        filepath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
+    BLI_path_split_dir_file(filepath, params->dir, params->file);
   }
   else {
     if ((prop = RNA_struct_find_property(op->ptr, "filename"))) {
@@ -1757,11 +1756,10 @@ void file_sfile_filepath_set(SpaceFile *sfile, const char *filepath)
   }
   else {
     if ((params->flag & FILE_DIRSEL_ONLY) == 0) {
-      BLI_path_split_dir_file(
-          filepath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
+      BLI_path_split_dir_file(filepath, params->dir, params->file);
     }
     else {
-      BLI_path_split_dir_part(filepath, params->dir, sizeof(params->dir));
+      BLI_path_split_dir_part(filepath, params->dir);
     }
   }
 }
@@ -1807,7 +1805,7 @@ bool file_draw_check_exists(SpaceFile *sfile)
     const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
     if (params && (params->flag & FILE_CHECK_EXISTING)) {
       char filepath[FILE_MAX];
-      BLI_path_join(filepath, sizeof(filepath), params->dir, params->file);
+      BLI_path_join(filepath, params->dir, params->file);
       if (BLI_is_file(filepath)) {
         return true;
       }
@@ -2128,11 +2126,7 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
   if (file && file->redirection_path) {
     /* redirection_path is an absolute path that takes precedence
      * over using params->dir + params->file. */
-    BLI_path_split_dir_file(file->redirection_path,
-                            params->dir,
-                            sizeof(params->dir),
-                            params->file,
-                            sizeof(params->file));
+    BLI_path_split_dir_file(file->redirection_path, params->dir, params->file);
     /* Update relpath with redirected filename as well so that the alternative
      * combination of params->dir + relpath remains valid as well. */
     MEM_delete(file->relpath);
@@ -2151,7 +2145,7 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
     else {
       BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
       BLI_path_normalize_native(params->dir);
-      BLI_path_append_dir(params->dir, sizeof(params->dir), file->relpath);
+      BLI_path_append_dir(params->dir, file->relpath);
     }
     ED_file_change_dir(C);
   }
@@ -2329,7 +2323,7 @@ static wmOperatorStatus file_parent_exec(bContext *C, wmOperator * /*unused*/)
   if (params) {
     if (BLI_path_parent_dir(params->dir)) {
       BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
-      BLI_path_normalize_dir(params->dir, sizeof(params->dir));
+      BLI_path_normalize_dir(params->dir);
       ED_file_change_dir(C);
       if (params->recursion_level > 1) {
         /* Disable `dirtree` recursion when going up in tree. */
@@ -2690,13 +2684,13 @@ static bool new_folder_path(const char *parent,
   int len = 0;
 
   BLI_strncpy(r_dirname, "New Folder", FILE_MAXFILE);
-  BLI_path_join(r_dirpath_full, FILE_MAX, parent, r_dirname);
+  BLI_path_join(MutableCStr(r_dirpath_full, FILE_MAX), parent, r_dirname);
   /* check whether r_dirpath_full with the name already exists, in this case
    * add number to the name. Check length of generated name to avoid
    * crazy case of huge number of folders each named 'New Folder (x)' */
   while (BLI_exists(r_dirpath_full) && (len < FILE_MAXFILE)) {
     len = BLI_snprintf_utf8(r_dirname, FILE_MAXFILE, "New Folder(%d)", i);
-    BLI_path_join(r_dirpath_full, FILE_MAX, parent, r_dirname);
+    BLI_path_join(MutableCStr(r_dirpath_full, FILE_MAX), parent, r_dirname);
     i++;
   }
 
@@ -2869,7 +2863,7 @@ static void file_expand_directory(const Main *bmain, FileSelectParams *params)
     if (const char *home_dir = BLI_dir_home()) {
       char tmpstr[sizeof(params->dir) - 1];
       STRNCPY(tmpstr, params->dir + 1);
-      BLI_path_join(params->dir, sizeof(params->dir), home_dir, tmpstr);
+      BLI_path_join(params->dir, home_dir, tmpstr);
     }
     else {
       do_reset = true;
@@ -2882,7 +2876,7 @@ static void file_expand_directory(const Main *bmain, FileSelectParams *params)
     params->dir[3] = '\0';
   }
   else if (BLI_path_is_unc(params->dir)) {
-    BLI_path_normalize_unc(params->dir, sizeof(params->dir));
+    BLI_path_normalize_unc(params->dir);
   }
 #endif /* WIN32 */
 
@@ -2974,12 +2968,11 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*ar
     if (BLI_is_file(params->dir)) {
       char dirpath[sizeof(params->dir)];
       STRNCPY(dirpath, params->dir);
-      BLI_path_split_dir_file(
-          dirpath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
+      BLI_path_split_dir_file(dirpath, params->dir, params->file);
     }
     else if (BKE_blendfile_library_path_explode(params->dir, tdir, &group, &name)) {
       if (group) {
-        BLI_path_append(tdir, sizeof(tdir), group);
+        BLI_path_append(tdir, group);
       }
       STRNCPY(params->dir, tdir);
       if (name) {
@@ -2993,7 +2986,7 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*ar
 
   /* #file_expand_directory will have made absolute. */
   BLI_assert(!BLI_path_is_rel(params->dir));
-  BLI_path_normalize_dir(params->dir, sizeof(params->dir));
+  BLI_path_normalize_dir(params->dir);
 
   if (filelist_is_dir(sfile->files, params->dir)) {
     /* Avoids flickering when nothing's changed. */
@@ -3067,12 +3060,12 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
 
     if (matches == 1) {
       char filepath[sizeof(params->dir)];
-      BLI_path_join(filepath, sizeof(params->dir), params->dir, params->file);
+      BLI_path_join(filepath, params->dir, params->file);
 
       /* If directory, open it and empty filename field. */
       if (filelist_is_dir(sfile->files, filepath)) {
         BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
-        BLI_path_normalize_dir(filepath, sizeof(filepath));
+        BLI_path_normalize_dir(filepath);
         STRNCPY(params->dir, filepath);
         params->file[0] = '\0';
         ED_file_change_dir(C);
@@ -3144,13 +3137,13 @@ static bool file_filenum_poll(bContext *C)
  * Looks for a string of digits within filename (using BLI_path_sequence_decode) and adjusts it by
  * add.
  */
-static void filenum_newname(char *filename, size_t filename_maxncpy, int add)
+static void filenum_newname(MutableCStr filename, int add)
 {
   char head[FILE_MAXFILE], tail[FILE_MAXFILE];
   int pic;
   ushort digits;
 
-  pic = BLI_path_sequence_decode(filename, head, sizeof(head), tail, sizeof(tail), &digits);
+  pic = BLI_path_sequence_decode(filename.data(), head, tail, &digits);
 
   /* are we going from 100 -> 99 or from 10 -> 9 */
   if (add < 0 && digits > 0) {
@@ -3166,7 +3159,7 @@ static void filenum_newname(char *filename, size_t filename_maxncpy, int add)
 
   pic += add;
   pic = std::max(pic, 0);
-  BLI_path_sequence_encode(filename, filename_maxncpy, head, tail, digits, pic);
+  BLI_path_sequence_encode(filename, head, tail, digits, pic);
 }
 
 static wmOperatorStatus file_filenum_exec(bContext *C, wmOperator *op)
@@ -3177,7 +3170,7 @@ static wmOperatorStatus file_filenum_exec(bContext *C, wmOperator *op)
 
   int inc = RNA_int_get(op->ptr, "increment");
   if (params && (inc != 0)) {
-    filenum_newname(params->file, sizeof(params->file), inc);
+    filenum_newname(params->file, inc);
     ED_area_tag_redraw(area);
     file_draw_check(C);
     // WM_event_add_notifier(C, NC_WINDOW, nullptr);

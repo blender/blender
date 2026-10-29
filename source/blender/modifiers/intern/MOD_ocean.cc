@@ -71,7 +71,7 @@ static void init_data(ModifierData *md)
   OceanModifierData *omd = (OceanModifierData *)md;
   INIT_DEFAULT_STRUCT_AFTER(omd, modifier);
 
-  BKE_modifier_path_init(omd->cachepath, sizeof(omd->cachepath), "cache_ocean");
+  BKE_modifier_path_init(omd->cachepath, "cache_ocean");
 
   omd->ocean = BKE_ocean_add();
   if (BKE_ocean_init_from_modifier(omd->ocean, omd, omd->viewport_resolution)) {

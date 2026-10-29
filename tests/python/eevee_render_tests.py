@@ -116,8 +116,6 @@ BLOCKLIST_VULKAN = [
 ]
 
 BLOCKLIST_OPENGL = [
-    # Fails on AMD.
-    "aov_consecutive_view_layers.blend",
 ]
 
 BLOCKLIST_INTEL = [
@@ -132,6 +130,11 @@ BLOCKLIST_AMD_WINDOWS_VK = [
 # caused by incorrect index buffer synchronization or vertex shader execution.
 BLOCKLIST_AMD_VK = [
     ".*"
+]
+
+BLOCKLIST_AMD_GL = [
+    # Fails on the AMD buildbot (to be investigated).
+    "aov_consecutive_view_layers.blend",
 ]
 
 BLOCKLIST_INTEL_WINDOWS = [
@@ -392,6 +395,8 @@ def main():
             blocklist += BLOCKLIST_INTEL_WINDOWS
         if gpu_vendor == "NVIDIA" and args.gpu_backend == "opengl":
             blocklist += BLOCKLIST_NVIDIA_GL
+        if gpu_vendor == "AMD" and args.gpu_backend == "opengl":
+            blocklist += BLOCKLIST_AMD_GL
         if gpu_vendor == "AMD" and sys.platform == "win32" and args.gpu_backend == "vulkan":
             blocklist += BLOCKLIST_AMD_WINDOWS_VK
         if gpu_vendor == "AMD" and args.gpu_backend == "vulkan":
@@ -430,9 +435,6 @@ def main():
             report.set_fail_threshold(6.0 / 255.0)
     elif test_dir_name.startswith('attributes') and gpu_vendor == "AMD":
         # attribute_pointcloud_color
-        report.set_fail_percent(0.09)
-    elif test_dir_name.startswith('ray_portal') and gpu_vendor == "AMD":
-        # AMD PRO W7600
         report.set_fail_percent(0.09)
     elif test_dir_name.startswith('camera'):
         # camera_stereo_panoramic have some platform specific small differences
@@ -497,6 +499,9 @@ def main():
         # normal_mapping_light_leak fireflies.
         # fresnel_layer_weight high values are accumulated differently on different platform.
         report.set_fail_percent(0.221)
+        if gpu_vendor == "AMD":
+            # holdout has very different background SSR hit detection on AMD + Windows bot.
+            report.set_fail_percent(0.29)
         if gpu_vendor == "INTEL":
             # mix_color uses implementation dependent function.
             report.set_fail_percent(0.41)
@@ -510,8 +515,8 @@ def main():
         report.set_fail_threshold(6.0 / 255.0)
     elif test_dir_name.startswith('raycast') and gpu_vendor == "AMD":
         # Some slight contour differences on AMD
-        report.set_fail_percent(0.37)
-        report.set_fail_threshold(10.0 / 255.0)
+        report.set_fail_percent(0.42)
+        report.set_fail_threshold(12.0 / 255.0)
     elif test_dir_name.startswith('pointcloud'):
         # Only because of points_transparent
         report.set_fail_threshold(8.0 / 255.0)

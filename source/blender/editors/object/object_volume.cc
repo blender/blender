@@ -82,7 +82,7 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
       blendfile_path, blendfile_path, op, false);
   for (ImageFrameRange &range : ranges) {
     char filename[FILE_MAX];
-    BLI_path_split_file_part(range.filepath, filename, sizeof(filename));
+    BLI_path_split_file_part(range.filepath, filename);
     BLI_path_extension_strip(filename);
 
     Object *object = object_volume_add(C, op, filename);

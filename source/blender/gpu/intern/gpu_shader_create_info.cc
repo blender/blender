@@ -169,10 +169,7 @@ void ShaderCreateInfo::finalize(const bool recursive)
      * TODO: Optimize create info preparation to include each individual "additional_info"
      * only a single time. */
     vertex_inputs_.extend_non_duplicates(info.vertex_inputs_);
-    fragment_outputs_.extend_non_duplicates(info.fragment_outputs_);
     vertex_out_interfaces_.extend_non_duplicates(info.vertex_out_interfaces_);
-    geometry_out_interfaces_.extend_non_duplicates(info.geometry_out_interfaces_);
-    subpass_inputs_.extend_non_duplicates(info.subpass_inputs_);
     specialization_constants_.extend_non_duplicates(info.specialization_constants_);
     compilation_constants_.extend_non_duplicates(info.compilation_constants_);
 
@@ -195,6 +192,15 @@ void ShaderCreateInfo::finalize(const bool recursive)
     }
     for (const auto &res : info.geometry_resources_) {
       extend_predicate(geometry_resources_, res, additional_info.conditions);
+    }
+    for (const auto &res : info.fragment_outputs_) {
+      extend_predicate(fragment_outputs_, res, additional_info.conditions);
+    }
+    for (const auto &res : info.subpass_inputs_) {
+      extend_predicate(subpass_inputs_, res, additional_info.conditions);
+    }
+    for (const auto &res : info.geometry_out_interfaces_) {
+      extend_predicate(geometry_out_interfaces_, res, additional_info.conditions);
     }
 
     /* API-specific parameters.
@@ -276,24 +282,6 @@ void ShaderCreateInfo::finalize(const bool recursive)
     BLI_assert(0);
   }
 }
-
-void ShaderCreateInfo::extend_predicate(Vector<Resource, 0> &resource_vector,
-                                        ShaderCreateInfo::Resource res_copy,
-                                        Span<ConditionFn> additional_conditions) const
-{
-  res_copy.conditions.extend(additional_conditions);
-  /** IMPORTANT: We keep duplicates until we evaluate the conditions. */
-  resource_vector.append(res_copy);
-};
-
-void ShaderCreateInfo::extend_predicate(Vector<ShaderCreateInfo::PushConst, 0> &resource_vector,
-                                        ShaderCreateInfo::PushConst res_copy,
-                                        Span<ConditionFn> additional_conditions) const
-{
-  res_copy.conditions.extend(additional_conditions);
-  /** IMPORTANT: We keep duplicates until we evaluate the conditions. */
-  resource_vector.append(res_copy);
-};
 
 void ShaderCreateInfo::assert_no_overlap(const ShaderCreateInfo &info,
                                          const bool test,

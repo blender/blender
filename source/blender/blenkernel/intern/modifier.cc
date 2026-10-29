@@ -131,7 +131,8 @@ const ModifierTypeInfo *BKE_modifier_get_info(ModifierType type)
 void BKE_modifier_type_panel_id(ModifierType type, char *r_idname)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
-  BLI_string_join(r_idname, sizeof(PanelType::idname), MODIFIER_TYPE_PANEL_PREFIX, mti->idname);
+  BLI_string_join(
+      MutableCStr(r_idname, sizeof(PanelType::idname)), MODIFIER_TYPE_PANEL_PREFIX, mti->idname);
 }
 
 void BKE_modifier_panel_expand(ModifierData *md)
@@ -924,10 +925,10 @@ const char *BKE_modifier_path_relbase_from_global(Object *ob)
   return BKE_modifier_path_relbase(G_MAIN, ob);
 }
 
-void BKE_modifier_path_init(char *path, int path_maxncpy, const char *name)
+void BKE_modifier_path_init(MutableCStr path, const char *name)
 {
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
-  BLI_path_join(path, path_maxncpy, blendfile_path[0] ? "//" : BKE_tempdir_session(), name);
+  BLI_path_join(path, blendfile_path[0] ? "//" : BKE_tempdir_session(), name);
 }
 
 /**

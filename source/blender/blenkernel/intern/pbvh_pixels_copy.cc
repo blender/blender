@@ -670,7 +670,7 @@ void copy_update(bke::pbvh::Tree &pbvh,
 void copy_pixels(bke::pbvh::Tree &pbvh,
                  Map<image::TileNumber, ImBuf *> &buffers,
                  image::TileNumber tile_number,
-                 const Span<uint8_t> seam_tiles_modified,
+                 const Span<bool> seam_tiles_modified,
                  const FunctionRef<void(int x_start, int x_end, int y)> push_undo_tiles)
 {
   PixelData &pbvh_data = data_get(pbvh);

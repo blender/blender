@@ -304,6 +304,9 @@ bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed
   for (const ViewerPathElem *path_elem : parsed_viewer_path.node_path) {
     ngroup->ensure_topology_cache();
     const bNodeTreeZones *tree_zones = ngroup->zones();
+    if (!tree_zones) {
+      return false;
+    }
     switch (path_elem->type) {
       case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {
         const auto &typed_elem = *reinterpret_cast<const SimulationZoneViewerPathElem *>(

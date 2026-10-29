@@ -437,10 +437,7 @@ ReadingResult<> read_remote_listing_v1(const StringRefNull listing_root_dirpath,
   constexpr const char *asset_index_relpath = "_v1/asset-index.processed.json";
 
   char asset_index_abspath[FILE_MAX];
-  BLI_path_join(asset_index_abspath,
-                sizeof(asset_index_abspath),
-                listing_root_dirpath.c_str(),
-                asset_index_relpath);
+  BLI_path_join(asset_index_abspath, listing_root_dirpath.c_str(), asset_index_relpath);
 
   if (ignore_before_timestamp) {
     std::optional<bool> is_older = file_older_than_timestamp(asset_index_abspath,
@@ -477,7 +474,7 @@ ReadingResult<> read_remote_listing_v1(const StringRefNull listing_root_dirpath,
         continue;
       }
 
-      BLI_path_join(filepath, sizeof(filepath), listing_root_dirpath.c_str(), page_path.c_str());
+      BLI_path_join(filepath, listing_root_dirpath.c_str(), page_path.c_str());
       if (wait_fn) {
         if (!BLI_exists(filepath)) {
           continue;

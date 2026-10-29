@@ -300,8 +300,7 @@ static void view2d_draw_lines(const View2D *v2d,
 /** \name Scale Indicator Text Drawing
  * \{ */
 
-using PositionToString =
-    void (*)(const Scene *scene, float value, float step, char *r_str, uint str_maxncpy);
+using PositionToString = void (*)(const Scene *scene, float value, float step, MutableCStr r_str);
 
 /**
  * \param distance: is the distance between lines in the data unit of the v2d (frame or value).
@@ -343,7 +342,7 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
   for (uint i = 0; i < steps; i++) {
     const float xpos_view = start_value + i * distance;
     const float xpos_region = view2d_view_to_region_x(v2d, xpos_view);
-    to_string(scene, xpos_view, distance, text, sizeof(text));
+    to_string(scene, xpos_view, distance, MutableCStr(text));
     const float text_width = BLF_width(font_id, text, strlen(text));
     BLF_draw_default(xpos_region - std::trunc(text_width / 2.0f), ypos, 0.0f, text, sizeof(text));
   }
@@ -401,7 +400,7 @@ static void draw_vertical_scale_indicators(const ARegion *region,
     const float ypos_view = start + i * distance;
     const float ypos_region = view2d_view_to_region_y(v2d, ypos_view + display_offset);
     char text[32];
-    to_string(scene, ypos_view, distance, text, sizeof(text));
+    to_string(scene, ypos_view, distance, MutableCStr(text));
 
     if (ypos_region - y_offset >= ymin && ypos_region + y_offset <= ymax) {
       BLF_draw_default(xpos, ypos_region - y_offset, 0.0f, text, sizeof(text));
@@ -419,8 +418,10 @@ static void draw_vertical_scale_indicators(const ARegion *region,
  * Generates a timecode string with the time represented by `frame`.
  * The timecode formatting depends on the user preferences.
  */
-static void frame_to_time_string(
-    const Scene *scene, const float frame, const float step, char *r_str, const uint str_maxncpy)
+static void frame_to_time_string(const Scene *scene,
+                                 const float frame,
+                                 const float step,
+                                 MutableCStr r_str)
 {
   int brevity_level = -1;
   if (U.timecode_style == USER_TIMECODE_MINIMAL && step >= scene->frames_per_second()) {
@@ -428,7 +429,6 @@ static void frame_to_time_string(
   }
 
   BLI_timecode_string_from_time(r_str,
-                                str_maxncpy,
                                 brevity_level,
                                 frame / float(scene->frames_per_second()),
                                 scene->frames_per_second(),
@@ -442,20 +442,19 @@ static void frame_to_time_string(
 static void frame_to_string(const Scene * /*user_data*/,
                             const float frame,
                             const float step,
-                            char *r_str,
-                            const uint str_maxncpy)
+                            MutableCStr r_str)
 {
   if (step >= 1.0f) {
-    BLI_snprintf_utf8(r_str, str_maxncpy, "%d", int(frame));
+    SNPRINTF_UTF8(r_str, "%d", int(frame));
   }
   else if (step >= 0.5f) {
-    BLI_snprintf_utf8(r_str, str_maxncpy, "%.1f", frame);
+    SNPRINTF_UTF8(r_str, "%.1f", frame);
   }
   else if (step >= 0.01f) {
-    BLI_snprintf_utf8(r_str, str_maxncpy, "%.2f", frame);
+    SNPRINTF_UTF8(r_str, "%.2f", frame);
   }
   else {
-    BLI_snprintf_utf8(r_str, str_maxncpy, "%.3f", frame);
+    SNPRINTF_UTF8(r_str, "%.3f", frame);
   }
 }
 
@@ -471,9 +470,9 @@ static float get_label_width(PositionToString to_string,
   /* Using abs to remove the influence of the minus sign on the text width. The padding added
    * should make up for that. This avoids flickering when scrolling horizontally around the 0
    * point.  */
-  to_string(scene, abs(data_bounds.x), 0, text, sizeof(text));
+  to_string(scene, abs(data_bounds.x), 0, MutableCStr(text));
   const float left_text_width = BLF_width(font_id, text, strlen(text));
-  to_string(scene, abs(data_bounds.y), 0, text, sizeof(text));
+  to_string(scene, abs(data_bounds.y), 0, MutableCStr(text));
   const float right_text_width = BLF_width(font_id, text, strlen(text));
   const float max_text_width = max_ff(left_text_width, right_text_width);
 

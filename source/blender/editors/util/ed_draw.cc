@@ -522,9 +522,7 @@ bool ED_slider_modal(tSlider *slider, const wmEvent *event)
   return event_handled;
 }
 
-void ED_slider_status_string_get(const tSlider *slider,
-                                 char *status_string,
-                                 const size_t size_of_status_string)
+void ED_slider_status_string_get(const tSlider *slider, MutableCStr status_string)
 {
   /* 50 characters is enough to fit the individual setting strings. Extend if message is longer. */
   char overshoot_str[50];
@@ -562,12 +560,7 @@ void ED_slider_status_string_get(const tSlider *slider,
     increments_str[0] = '\0';
   }
 
-  BLI_snprintf_utf8(status_string,
-                    size_of_status_string,
-                    "%s | %s%s",
-                    overshoot_str,
-                    precision_str,
-                    increments_str);
+  SNPRINTF_UTF8(status_string, "%s | %s%s", overshoot_str, precision_str, increments_str);
 }
 
 void ED_slider_status_get(const tSlider *slider, WorkspaceStatus &status)
@@ -719,10 +712,10 @@ static const char *meta_data_list[] = {
 
 BLI_INLINE bool metadata_is_valid(const ImBuf *ibuf, char *r_str, short index, int offset)
 {
-  return (
-      IMB_metadata_get_field(
-          ibuf->metadata(), meta_data_list[index], r_str + offset, MAX_METADATA_STR - offset) &&
-      r_str[0]);
+  return (IMB_metadata_get_field(ibuf->metadata(),
+                                 meta_data_list[index],
+                                 MutableCStr(r_str + offset, MAX_METADATA_STR - offset)) &&
+          r_str[0]);
 }
 
 BLI_INLINE bool metadata_is_custom_drawable(const char *field)

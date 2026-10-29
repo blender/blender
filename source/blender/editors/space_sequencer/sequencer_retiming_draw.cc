@@ -293,22 +293,19 @@ void sequencer_retiming_draw_segments(const TimelineDrawContext &ctx,
 
 static size_t speed_label_str_get(const Strip *strip,
                                   const SeqRetimingKey *key,
-                                  char *r_label_str,
-                                  const size_t label_str_maxncpy)
+                                  MutableCStr r_label_str)
 {
   const SeqRetimingKey *next_key = key + 1;
   if (seq::retiming_key_is_transition_start(key)) {
     const float prev_speed = seq::retiming_key_speed_get(strip, key);
     const float next_speed = seq::retiming_key_speed_get(strip, next_key + 1);
-    return BLI_snprintf_utf8_rlen(r_label_str,
-                                  label_str_maxncpy,
-                                  "%d%% - %d%%",
-                                  round_fl_to_int(prev_speed * 100.0f),
-                                  round_fl_to_int(next_speed * 100.0f));
+    return SNPRINTF_UTF8_RLEN(r_label_str,
+                              "%d%% - %d%%",
+                              round_fl_to_int(prev_speed * 100.0f),
+                              round_fl_to_int(next_speed * 100.0f));
   }
   const float speed = seq::retiming_key_speed_get(strip, next_key);
-  return BLI_snprintf_utf8_rlen(
-      r_label_str, label_str_maxncpy, "%d%%", round_fl_to_int(speed * 100.0f));
+  return SNPRINTF_UTF8_RLEN(r_label_str, "%d%%", round_fl_to_int(speed * 100.0f));
 }
 
 static std::optional<float2> speed_label_pos_get(const TimelineDrawContext &ctx,
@@ -359,7 +356,7 @@ static void speed_label_draw(const TimelineDrawContext &ctx,
   }
 
   char label_str[40];
-  size_t label_len = speed_label_str_get(strip, key, label_str, sizeof(label_str));
+  size_t label_len = speed_label_str_get(strip, key, label_str);
 
   const std::optional<float2> pos = speed_label_pos_get(ctx, strip_ctx, key, label_str, label_len);
   if (!pos) {

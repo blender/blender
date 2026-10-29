@@ -559,7 +559,7 @@ static void studiolight_lights_eval(StudioLight *sl, const float normal[3], floa
 static StudioLight *studiolight_add_file(const char *filepath, int flag)
 {
   char filename[FILE_MAXFILE];
-  BLI_path_split_file_part(filepath, filename, FILE_MAXFILE);
+  BLI_path_split_file_part(filepath, filename);
 
   if ((((flag & STUDIOLIGHT_TYPE_STUDIO) != 0) && BLI_path_extension_check(filename, ".sl")) ||
       BLI_path_extension_check_array(filename, imb_ext_image))
@@ -675,10 +675,10 @@ static void studiolight_radiance_preview(uint *icon_buffer, StudioLight *sl)
 
       float4 color = studiolight_calculate_radiance(sl->equirect_radiance_buffer, direction);
 
-      *pixel = rgb_to_cpack(linearrgb_to_srgb(color[0]),
-                            linearrgb_to_srgb(color[1]),
-                            linearrgb_to_srgb(color[2])) |
-               alphamask;
+      /* Buffer is in the working space. */
+      float srgb[3];
+      IMB_colormanagement_scene_linear_to_srgb_v3(srgb, color);
+      *pixel = rgb_to_cpack(srgb[0], srgb[1], srgb[2]) | alphamask;
     }
     else {
       *pixel = 0x0;
@@ -979,7 +979,7 @@ StudioLight *BKE_studiolight_create(const char *filepath,
                                        STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS);
 
   char filename[FILE_MAXFILE];
-  BLI_path_split_file_part(filepath, filename, FILE_MAXFILE);
+  BLI_path_split_file_part(filepath, filename);
   STRNCPY(sl->filepath, filepath);
   const size_t name_len = STRNCPY_RLEN(sl->name, filename);
   BLI_str_utf8_invalid_strip(sl->name, name_len);

@@ -468,7 +468,7 @@ void do_layer_brush(const Depsgraph &depsgraph,
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
 
-  const float4x4 mat = cube_tip_init(sd, object, brush);
+  const float4x4 mat = cube_tip_init(object, brush);
 
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {

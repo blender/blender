@@ -2337,12 +2337,11 @@ static bool do_write_image_or_movie(Render *re,
   render_time = re->i.lastframetime;
   re->i.lastframetime = BLI_time_now_seconds() - re->i.starttime;
 
-  BLI_timecode_string_from_time_simple(filepath, sizeof(filepath), re->i.lastframetime);
+  BLI_timecode_string_from_time_simple(filepath, re->i.lastframetime);
   std::string message = fmt::format("Time: {}", filepath);
 
   if (do_write_file && ok) {
-    BLI_timecode_string_from_time_simple(
-        filepath, sizeof(filepath), re->i.lastframetime - render_time);
+    BLI_timecode_string_from_time_simple(filepath, re->i.lastframetime - render_time);
     message = fmt::format("{} (Saving: {})", message, filepath);
   }
 

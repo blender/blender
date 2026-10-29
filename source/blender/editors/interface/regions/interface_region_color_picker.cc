@@ -406,7 +406,7 @@ static void colorpicker_hex_rna_cb(bContext * /*C*/, void *bt1, void *bt2)
   PopupBlockHandle *popup = but->block->handle;
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
   char hexcol[128];
-  button_string_get(but, hexcol, ARRAY_SIZE(hexcol));
+  button_string_get(but, hexcol);
 
   /* In case the current color contains an Alpha component but the Hex string does not, get the
    * current color to preserve the Alpha component.

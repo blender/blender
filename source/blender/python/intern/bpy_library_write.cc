@@ -139,7 +139,7 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
   if (!was_relative) {
     /* If this was a blendfile-relative path, it's been made absolute now. However, BLI_path_abs()
      * doesn't turn normal relative paths into absolute ones, so that still has to happen. */
-    BLI_path_abs_from_cwd(filepath_abs, sizeof(filepath_abs));
+    BLI_path_abs_from_cwd(filepath_abs);
   }
 
   PartialWriteContext partial_write_ctx{*bmain_src};

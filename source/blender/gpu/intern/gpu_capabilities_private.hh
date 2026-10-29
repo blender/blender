@@ -63,6 +63,8 @@ struct GPUCapabilities {
   bool use_hq_normals_workaround = false;
   bool stencil_classify_buffer_workaround = false;
   bool texture_pool_workaround = false;
+  /** Reading the front-buffer is unreliable, see #GPU_frontbuffer_read_workaround. */
+  bool frontbuffer_read_workaround = false;
 
   bool use_subprocess_shader_compilations = false;
 

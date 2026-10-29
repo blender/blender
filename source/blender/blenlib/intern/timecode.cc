@@ -21,8 +21,7 @@
 
 namespace blender {
 
-size_t BLI_timecode_string_from_time(char *str,
-                                     const size_t maxncpy,
+size_t BLI_timecode_string_from_time(MutableCStr str,
                                      const int brevity_level,
                                      const float time_seconds,
                                      const double fps,
@@ -81,24 +80,22 @@ size_t BLI_timecode_string_from_time(char *str,
       if (brevity_level <= 0) {
         /* include "frames" in display */
         if (hours) {
-          rlen = BLI_snprintf_rlen(
-              str, maxncpy, "%s%02d:%02d:%02d+%02d", neg, hours, minutes, seconds, frames);
+          rlen = SNPRINTF_RLEN(str, "%s%02d:%02d:%02d+%02d", neg, hours, minutes, seconds, frames);
         }
         else if (minutes) {
-          rlen = BLI_snprintf_rlen(
-              str, maxncpy, "%s%02d:%02d+%02d", neg, minutes, seconds, frames);
+          rlen = SNPRINTF_RLEN(str, "%s%02d:%02d+%02d", neg, minutes, seconds, frames);
         }
         else {
-          rlen = BLI_snprintf_rlen(str, maxncpy, "%s00:%02d+%02d", neg, seconds, frames);
+          rlen = SNPRINTF_RLEN(str, "%s00:%02d+%02d", neg, seconds, frames);
         }
       }
       else {
         /* don't include 'frames' in display */
         if (hours) {
-          rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d:%02d", neg, hours, minutes, seconds);
+          rlen = SNPRINTF_RLEN(str, "%s%02d:%02d:%02d", neg, hours, minutes, seconds);
         }
         else {
-          rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d", neg, minutes, seconds);
+          rlen = SNPRINTF_RLEN(str, "%s%02d:%02d", neg, minutes, seconds);
         }
       }
       break;
@@ -107,11 +104,10 @@ size_t BLI_timecode_string_from_time(char *str,
       /* reduced SMPTE format that always shows minutes, seconds, frames.
        * Hours only shown as needed. */
       if (hours) {
-        rlen = BLI_snprintf_rlen(
-            str, maxncpy, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
+        rlen = SNPRINTF_RLEN(str, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
       }
       else {
-        rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d:%02d", neg, minutes, seconds, frames);
+        rlen = SNPRINTF_RLEN(str, "%s%02d:%02d:%02d", neg, minutes, seconds, frames);
       }
       break;
     }
@@ -126,11 +122,10 @@ size_t BLI_timecode_string_from_time(char *str,
       const int s_pad = ms_dp + 3;
 
       if (hours) {
-        rlen = BLI_snprintf_rlen(
-            str, maxncpy, "%s%02d:%02d:%0*.*f", neg, hours, minutes, s_pad, ms_dp, time);
+        rlen = SNPRINTF_RLEN(str, "%s%02d:%02d:%0*.*f", neg, hours, minutes, s_pad, ms_dp, time);
       }
       else {
-        rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%0*.*f", neg, minutes, s_pad, ms_dp, time);
+        rlen = SNPRINTF_RLEN(str, "%s%02d:%0*.*f", neg, minutes, s_pad, ms_dp, time);
       }
       break;
     }
@@ -142,26 +137,24 @@ size_t BLI_timecode_string_from_time(char *str,
       const int ms_dp = (brevity_level <= 0) ? (1 - brevity_level) : 1;
       const int ms = round_fl_to_int((time - float(seconds)) * 1000.0f);
 
-      rlen = BLI_snprintf_rlen(
-          str, maxncpy, "%s%02d:%02d:%02d,%0*d", neg, hours, minutes, seconds, ms_dp, ms);
+      rlen = SNPRINTF_RLEN(str, "%s%02d:%02d:%02d,%0*d", neg, hours, minutes, seconds, ms_dp, ms);
       break;
     }
     case USER_TIMECODE_SECONDS_ONLY: {
       /* only show the original seconds display */
       /* round to whole numbers if brevity_level is >= 1 (i.e. scale is coarse) */
       if (brevity_level <= 0) {
-        rlen = BLI_snprintf_rlen(str, maxncpy, "%.*f", 1 - brevity_level, time_seconds);
+        rlen = SNPRINTF_RLEN(str, "%.*f", 1 - brevity_level, time_seconds);
       }
       else {
-        rlen = BLI_snprintf_rlen(str, maxncpy, "%d", round_fl_to_int(time_seconds));
+        rlen = SNPRINTF_RLEN(str, "%d", round_fl_to_int(time_seconds));
       }
       break;
     }
     case USER_TIMECODE_SMPTE_FULL:
     default: {
       /* full SMPTE format */
-      rlen = BLI_snprintf_rlen(
-          str, maxncpy, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
+      rlen = SNPRINTF_RLEN(str, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
       break;
     }
   }
@@ -169,9 +162,7 @@ size_t BLI_timecode_string_from_time(char *str,
   return rlen;
 }
 
-size_t BLI_timecode_string_from_time_simple(char *str,
-                                            const size_t maxncpy,
-                                            const double time_seconds)
+size_t BLI_timecode_string_from_time_simple(MutableCStr str, const double time_seconds)
 {
   size_t rlen;
 
@@ -182,17 +173,16 @@ size_t BLI_timecode_string_from_time_simple(char *str,
   const int hun = int(fmod(time_seconds, 1.0) * 100);
 
   if (hr) {
-    rlen = BLI_snprintf_rlen(str, maxncpy, "%.2d:%.2d:%.2d.%.2d", hr, min, sec, hun);
+    rlen = SNPRINTF_RLEN(str, "%.2d:%.2d:%.2d.%.2d", hr, min, sec, hun);
   }
   else {
-    rlen = BLI_snprintf_rlen(str, maxncpy, "%.2d:%.2d.%.2d", min, sec, hun);
+    rlen = SNPRINTF_RLEN(str, "%.2d:%.2d.%.2d", min, sec, hun);
   }
 
   return rlen;
 }
 
-size_t BLI_timecode_string_from_time_seconds(char *str,
-                                             const size_t maxncpy,
+size_t BLI_timecode_string_from_time_seconds(MutableCStr str,
                                              const int brevity_level,
                                              const float time_seconds)
 {
@@ -200,10 +190,10 @@ size_t BLI_timecode_string_from_time_seconds(char *str,
 
   /* round to whole numbers if brevity_level is >= 1 (i.e. scale is coarse) */
   if (brevity_level <= 0) {
-    rlen = BLI_snprintf_rlen(str, maxncpy, "%.*f", 1 - brevity_level, time_seconds);
+    rlen = SNPRINTF_RLEN(str, "%.*f", 1 - brevity_level, time_seconds);
   }
   else {
-    rlen = BLI_snprintf_rlen(str, maxncpy, "%d", round_fl_to_int(time_seconds));
+    rlen = SNPRINTF_RLEN(str, "%d", round_fl_to_int(time_seconds));
   }
 
   return rlen;

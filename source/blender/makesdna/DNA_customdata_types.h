@@ -188,8 +188,18 @@ enum eCustomDataLayer_Flag : int {
   CD_FLAG_IN_MEMORY = (1 << 4),
 #ifdef DNA_DEPRECATED_ALLOW
   CD_FLAG_COLOR_ACTIVE = (1 << 5),
-  CD_FLAG_COLOR_RENDER = (1 << 6)
+  CD_FLAG_COLOR_RENDER = (1 << 6),
 #endif
+  /**
+   * Indicates the layer should not be interpolated (the default value is used instead).
+   *
+   * Run-time only: set from the layer name when the layer is added,
+   * never written to files (cleared on read).
+   *
+   * \note Disabling interpolation isn't something we want to rely on, however existing cases
+   * (the skin modifier's flags were never interpolated) need to be supported, see: #165039.
+   */
+  CD_FLAG_RUNTIME_NOINTERP = (1 << 7),
 };
 ENUM_OPERATORS(eCustomDataLayer_Flag)
 

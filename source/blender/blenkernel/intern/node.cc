@@ -459,13 +459,13 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
         if (node->type_legacy == SH_NODE_SCRIPT) {
           NodeShaderScript *nss = static_cast<NodeShaderScript *>(node->storage);
           if (nss->mode == NODE_SCRIPT_EXTERNAL && nss->filepath[0]) {
-            BKE_bpath_foreach_path_fixed_process(bpath_data, nss->filepath, sizeof(nss->filepath));
+            BKE_bpath_foreach_path_fixed_process(bpath_data, nss->filepath);
           }
         }
         else if (node->type_legacy == SH_NODE_TEX_IES) {
           NodeShaderTexIES *ies = static_cast<NodeShaderTexIES *>(node->storage);
           if (ies->mode == NODE_IES_EXTERNAL && ies->filepath[0]) {
-            BKE_bpath_foreach_path_fixed_process(bpath_data, ies->filepath, sizeof(ies->filepath));
+            BKE_bpath_foreach_path_fixed_process(bpath_data, ies->filepath);
           }
         }
       }
@@ -486,8 +486,7 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
           }
 
           /* Process the file path. */
-          BKE_bpath_foreach_path_fixed_process(
-              bpath_data, socket_value->value, sizeof(socket_value->value));
+          BKE_bpath_foreach_path_fixed_process(bpath_data, socket_value->value);
         }
       }
       break;
@@ -3105,8 +3104,7 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
       },
       "socket",
       '_',
-      auto_identifier,
-      sizeof(auto_identifier));
+      auto_identifier);
 
   bNodeSocket *sock = MEM_new<bNodeSocket>(__func__);
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
@@ -5184,7 +5182,7 @@ void node_remove_node(
     char propname_esc[MAX_IDPROP_NAME * 2];
     char prefix[MAX_IDPROP_NAME * 2];
 
-    BLI_str_escape(propname_esc, node.name, sizeof(propname_esc));
+    BLI_str_escape(propname_esc, node.name);
     SNPRINTF_UTF8(prefix, "nodes[\"%s\"]", propname_esc);
 
     if (BKE_animdata_fix_paths_remove(&ntree.id, prefix)) {
@@ -5737,7 +5735,7 @@ std::string node_label(const bNodeTree &ntree, const bNode &node)
 
   if (node.typeinfo->labelfunc) {
     char label_buffer[MAX_NAME];
-    node.typeinfo->labelfunc(&ntree, &node, label_buffer, MAX_NAME);
+    node.typeinfo->labelfunc(&ntree, &node, MutableCStr(label_buffer));
     return label_buffer;
   }
 
@@ -6127,8 +6125,7 @@ static void unique_socket_template_identifier(bNodeSocketTemplate *list,
       },
       defname,
       delim,
-      ntemp->identifier,
-      sizeof(ntemp->identifier));
+      ntemp->identifier);
 }
 
 void node_type_socket_templates(bNodeType *ntype,

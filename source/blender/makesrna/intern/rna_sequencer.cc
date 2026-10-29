@@ -536,13 +536,8 @@ static Strip *strip_by_key_find(Scene *scene, SeqRetimingKey *key)
 {
   Editing *ed = seq::editing_get(scene);
   VectorSet strips = seq::query_all_strips_recursive(&ed->seqbase);
-
   for (Strip *strip : strips) {
-    const int retiming_keys_count = seq::retiming_keys_count(strip);
-    SeqRetimingKey *first = strip->retiming_keys;
-    SeqRetimingKey *last = strip->retiming_keys + retiming_keys_count - 1;
-
-    if (key >= first && key <= last) {
+    if (seq::retiming_keys_get(strip).contains_ptr(key)) {
       return strip;
     }
   }
@@ -575,7 +570,7 @@ static int rna_Strip_retiming_key_frame_get(PointerRNA *ptr)
     return 0;
   }
 
-  return strip->content_start() + key->strip_frame_index;
+  return seq::retiming_key_frame_get(scene, strip, key);
 }
 
 static void rna_Strip_retiming_key_frame_set(PointerRNA *ptr, int value)
@@ -948,7 +943,7 @@ static std::optional<std::string> rna_StripTransform_path(const PointerRNA *ptr)
 
   if (strip) {
     char name_esc[(sizeof(strip->name) - 2) * 2];
-    BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc, strip->name + 2);
     return fmt::format("sequence_editor.strips_all[\"{}\"].transform", name_esc);
   }
   return "";
@@ -996,7 +991,7 @@ static std::optional<std::string> rna_StripCrop_path(const PointerRNA *ptr)
 
   if (strip) {
     char name_esc[(sizeof(strip->name) - 2) * 2];
-    BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc, strip->name + 2);
     return fmt::format("sequence_editor.strips_all[\"{}\"].crop", name_esc);
   }
   return "";
@@ -1043,7 +1038,7 @@ static void rna_Strip_name_set(PointerRNA *ptr, const char *value)
   seq::prefetch_stop(scene);
 
   /* make a copy of the old name first */
-  BLI_strncpy(oldname, strip->name + 2, sizeof(strip->name) - 2);
+  STRNCPY(oldname, strip->name + 2);
 
   /* copy the new name into the name slot */
   seq::edit_strip_name_set(scene, strip, value);
@@ -1159,7 +1154,7 @@ static std::optional<std::string> rna_Strip_path(const PointerRNA *ptr)
    */
   char name_esc[(sizeof(strip->name) - 2) * 2];
 
-  BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
+  BLI_str_escape(name_esc, strip->name + 2);
   return fmt::format("sequence_editor.strips_all[\"{}\"]", name_esc);
 }
 
@@ -1222,11 +1217,7 @@ static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *
 static void rna_Strip_filepath_set(PointerRNA *ptr, const char *value)
 {
   Strip *strip = static_cast<Strip *>(ptr->data);
-  BLI_path_split_dir_file(value,
-                          strip->data->dirpath,
-                          sizeof(strip->data->dirpath),
-                          strip->data->stripdata->filename,
-                          sizeof(strip->data->stripdata->filename));
+  BLI_path_split_dir_file(value, strip->data->dirpath, strip->data->stripdata->filename);
 }
 
 static void rna_Strip_filepath_get(PointerRNA *ptr, char *value)
@@ -1234,8 +1225,7 @@ static void rna_Strip_filepath_get(PointerRNA *ptr, char *value)
   Strip *strip = static_cast<Strip *>(ptr->data);
   char filepath[FILE_MAX];
 
-  BLI_path_join(
-      filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
+  BLI_path_join(filepath, strip->data->dirpath, strip->data->stripdata->filename);
   strcpy(value, filepath);
 }
 
@@ -1244,15 +1234,13 @@ static int rna_Strip_filepath_length(PointerRNA *ptr)
   Strip *strip = static_cast<Strip *>(ptr->data);
   char filepath[FILE_MAX];
 
-  return BLI_path_join(
-      filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
+  return BLI_path_join(filepath, strip->data->dirpath, strip->data->stripdata->filename);
 }
 
 static void rna_Strip_proxy_filepath_set(PointerRNA *ptr, const char *value)
 {
   StripProxy *proxy = static_cast<StripProxy *>(ptr->data);
-  BLI_path_split_dir_file(
-      value, proxy->dirpath, sizeof(proxy->dirpath), proxy->filename, sizeof(proxy->filename));
+  BLI_path_split_dir_file(value, proxy->dirpath, proxy->filename);
   if (proxy->anim) {
     MOV_close(proxy->anim);
     proxy->anim = nullptr;
@@ -1264,7 +1252,7 @@ static void rna_Strip_proxy_filepath_get(PointerRNA *ptr, char *value)
   StripProxy *proxy = static_cast<StripProxy *>(ptr->data);
   char filepath[FILE_MAX];
 
-  BLI_path_join(filepath, sizeof(filepath), proxy->dirpath, proxy->filename);
+  BLI_path_join(filepath, proxy->dirpath, proxy->filename);
   strcpy(value, filepath);
 }
 
@@ -1273,7 +1261,7 @@ static int rna_Strip_proxy_filepath_length(PointerRNA *ptr)
   StripProxy *proxy = static_cast<StripProxy *>(ptr->data);
   char filepath[FILE_MAX];
 
-  return BLI_path_join(filepath, sizeof(filepath), proxy->dirpath, proxy->filename);
+  return BLI_path_join(filepath, proxy->dirpath, proxy->filename);
 }
 
 static void rna_Strip_audio_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -1346,15 +1334,13 @@ static void rna_SoundStrip_filename_set(PointerRNA *ptr, const char *value)
   Strip *strip = (Strip *)(ptr->data);
   BLI_path_split_dir_file(value,
                           strip->data->dirpath,
-                          sizeof(strip->data->dirpath),
-                          strip->data->stripdata->name,
-                          sizeof(strip->data->stripdata->name));
+                          strip->data->stripdata->name);
 }
 
 static void rna_StripElement_filename_set(PointerRNA *ptr, const char *value)
 {
   StripElem *elem = (StripElem *)(ptr->data);
-  BLI_path_split_file_part(value, elem->name, sizeof(elem->name));
+  BLI_path_split_file_part(value, elem->name);
 }
 #  endif
 
@@ -1488,7 +1474,7 @@ static std::optional<std::string> rna_StripColorBalance_path(const PointerRNA *p
   if (strip) {
     char name_esc[(sizeof(strip->name) - 2) * 2];
 
-    BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc, strip->name + 2);
 
     if (!smd) {
       /* Path to old filter color balance. */
@@ -1497,7 +1483,7 @@ static std::optional<std::string> rna_StripColorBalance_path(const PointerRNA *p
     /* Path to modifier. */
     char name_esc_smd[sizeof(smd->name) * 2];
 
-    BLI_str_escape(name_esc_smd, smd->name, sizeof(name_esc_smd));
+    BLI_str_escape(name_esc_smd, smd->name);
     return fmt::format("sequence_editor.strips_all[\"{}\"].modifiers[\"{}\"].color_balance",
                        name_esc,
                        name_esc_smd);
@@ -1678,8 +1664,8 @@ static std::optional<std::string> rna_StripModifier_path(const PointerRNA *ptr)
     char name_esc[(sizeof(strip->name) - 2) * 2];
     char name_esc_smd[sizeof(smd->name) * 2];
 
-    BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
-    BLI_str_escape(name_esc_smd, smd->name, sizeof(name_esc_smd));
+    BLI_str_escape(name_esc, strip->name + 2);
+    BLI_str_escape(name_esc_smd, smd->name);
     return fmt::format(
         "sequence_editor.strips_all[\"{}\"].modifiers[\"{}\"]", name_esc, name_esc_smd);
   }
@@ -1971,13 +1957,13 @@ static std::optional<std::string> rna_SeqTimelineChannel_path(const PointerRNA *
   Strip *channel_owner = seq::lookup_strip_by_channel_owner(scene->ed, channel);
 
   char channel_name_esc[(sizeof(channel->name)) * 2];
-  BLI_str_escape(channel_name_esc, channel->name, sizeof(channel_name_esc));
+  BLI_str_escape(channel_name_esc, channel->name);
 
   if (channel_owner == nullptr) {
     return fmt::format("sequence_editor.channels[\"{}\"]", channel_name_esc);
   }
   char owner_name_esc[(sizeof(channel_owner->name) - 2) * 2];
-  BLI_str_escape(owner_name_esc, channel_owner->name + 2, sizeof(owner_name_esc));
+  BLI_str_escape(owner_name_esc, channel_owner->name + 2);
   return fmt::format(
       "sequence_editor.strips_all[\"{}\"].channels[\"{}\"]", owner_name_esc, channel_name_esc);
 }

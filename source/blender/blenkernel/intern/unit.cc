@@ -1640,8 +1640,7 @@ static void unit_dual_convert(double value,
   *r_unit_b = unit_best_fit(*r_value_b, usys, *r_unit_a, 1);
 }
 
-static size_t unit_as_string(char *str,
-                             int str_maxncpy,
+static size_t unit_as_string(MutableCStr str,
                              double value,
                              int prec,
                              const bool variable_width,
@@ -1652,6 +1651,7 @@ static size_t unit_as_string(char *str,
                              bool do_unit_suffix)
 {
   BLI_assert(prec >= 0);
+  const int str_maxncpy = str.size();
   if (unit == nullptr) {
     if (value == 0.0) {
       /* Use the default units since there is no way to convert. */
@@ -1675,7 +1675,7 @@ static size_t unit_as_string(char *str,
   CLAMP(prec, 0, 6);
 
   /* Convert to a string. */
-  size_t len = BLI_snprintf_rlen(str, str_maxncpy, "%.*f", prec, value_conv);
+  size_t len = SNPRINTF_RLEN(str, "%.*f", prec, value_conv);
 
   /* Add unit prefix and strip zeros. */
 
@@ -1748,8 +1748,7 @@ static PreferredUnits preferred_units_from_UnitSettings(const UnitSettings &sett
   return units;
 }
 
-static size_t unit_as_string_split_pair(char *str,
-                                        int str_maxncpy,
+static size_t unit_as_string_split_pair(MutableCStr str,
                                         double value,
                                         int prec,
                                         const bool variable_width,
@@ -1764,7 +1763,7 @@ static size_t unit_as_string_split_pair(char *str,
   /* Check the 2 is a smaller unit. */
   if (unit_b > unit_a) {
     /* Always strip zeros for the larger unit, since it is truncated and won't ever "jitter". */
-    size_t i = unit_as_string(str, str_maxncpy, value_a, prec, true, usys, unit_a, '\0', true);
+    size_t i = unit_as_string(str, value_a, prec, true, usys, unit_a, '\0', true);
 
     /* Fixed width mode skips this to preserve the exact decimal place count. */
     if (variable_width) {
@@ -1774,12 +1773,12 @@ static size_t unit_as_string_split_pair(char *str,
     }
 
     /* Is there enough space for at least 1 char of the next unit? */
-    if (i + 2 < str_maxncpy) {
+    if (i + 2 < str.size()) {
       str[i++] = ' ';
 
       /* Use low precision since this is a smaller unit. */
       i += unit_as_string(
-          str + i, str_maxncpy - i, value_b, prec, variable_width, usys, unit_b, '\0', true);
+          str.drop_front(i), value_b, prec, variable_width, usys, unit_b, '\0', true);
     }
     return i;
   }
@@ -1859,8 +1858,7 @@ static const bUnitDef *get_preferred_display_unit_if_used(int type, const Prefer
 }
 
 /* Return the length of the generated string. */
-static size_t unit_as_string_main(char *str,
-                                  int str_maxncpy,
+static size_t unit_as_string_main(MutableCStr str,
                                   double value,
                                   int prec,
                                   int type,
@@ -1886,27 +1884,18 @@ static size_t unit_as_string_main(char *str,
   }
 
   if (split && unit_should_be_split(type)) {
-    int length = unit_as_string_split_pair(
-        str, str_maxncpy, value, prec, variable_width, usys, main_unit);
+    int length = unit_as_string_split_pair(str, value, prec, variable_width, usys, main_unit);
     /* Split failed when length is negative, fall back to no split. */
     if (length >= 0) {
       return length;
     }
   }
 
-  return unit_as_string(str,
-                        str_maxncpy,
-                        value,
-                        prec,
-                        variable_width,
-                        usys,
-                        main_unit,
-                        pad ? ' ' : '\0',
-                        do_unit_suffix);
+  return unit_as_string(
+      str, value, prec, variable_width, usys, main_unit, pad ? ' ' : '\0', do_unit_suffix);
 }
 
-size_t BKE_unit_value_as_string_adaptive(char *str,
-                                         int str_maxncpy,
+size_t BKE_unit_value_as_string_adaptive(MutableCStr str,
                                          double value,
                                          int prec,
                                          int system,
@@ -1922,12 +1911,10 @@ size_t BKE_unit_value_as_string_adaptive(char *str,
   units.mass = USER_UNIT_ADAPTIVE;
   units.time = USER_UNIT_ADAPTIVE;
   units.temperature = USER_UNIT_ADAPTIVE;
-  return unit_as_string_main(
-      str, str_maxncpy, value, prec, type, split, pad, do_unit_suffix, units);
+  return unit_as_string_main(str, value, prec, type, split, pad, do_unit_suffix, units);
 }
 
-size_t BKE_unit_value_as_string(char *str,
-                                int str_maxncpy,
+size_t BKE_unit_value_as_string(MutableCStr str,
                                 double value,
                                 int prec,
                                 int type,
@@ -1937,12 +1924,10 @@ size_t BKE_unit_value_as_string(char *str,
 {
   bool do_split = (settings.flag & USER_UNIT_OPT_SPLIT) != 0;
   PreferredUnits units = preferred_units_from_UnitSettings(settings);
-  return unit_as_string_main(
-      str, str_maxncpy, value, prec, type, do_split, pad, do_unit_suffix, units);
+  return unit_as_string_main(str, value, prec, type, do_split, pad, do_unit_suffix, units);
 }
 
-size_t BKE_unit_value_as_string_scaled(char *str,
-                                       int str_maxncpy,
+size_t BKE_unit_value_as_string_scaled(MutableCStr str,
                                        double value,
                                        int prec,
                                        int type,
@@ -1950,14 +1935,8 @@ size_t BKE_unit_value_as_string_scaled(char *str,
                                        bool pad,
                                        bool do_unit_suffix)
 {
-  return BKE_unit_value_as_string(str,
-                                  str_maxncpy,
-                                  BKE_unit_value_scale(settings, type, value),
-                                  prec,
-                                  type,
-                                  settings,
-                                  pad,
-                                  do_unit_suffix);
+  return BKE_unit_value_as_string(
+      str, BKE_unit_value_scale(settings, type, value), prec, type, settings, pad, do_unit_suffix);
 }
 
 double BKE_unit_value_scale(const UnitSettings &settings, const int unit_type, double value)
@@ -2164,15 +2143,18 @@ static char *skip_unary_op(char *str)
  *
  * "-1m50cm + 1 - 2m50cm"  ->  "-(1m50cm) + 1 - (2m50cm)"
  */
-static bool unit_distribute_negatives(char *str, const int str_maxncpy)
+static bool unit_distribute_negatives(MutableCStr str)
 {
+  const int str_maxncpy = str.size();
   bool changed = false;
 
-  char *remaining_str = str;
-  while ((remaining_str = const_cast<char *>(find_next_negative(str, remaining_str))) != nullptr) {
+  char *remaining_str = str.data();
+  while ((remaining_str = const_cast<char *>(find_next_negative(str.data(), remaining_str))) !=
+         nullptr)
+  {
     int remaining_str_maxncpy;
     /* Exit early in the unlikely situation that we've run out of length to add the parentheses. */
-    remaining_str_maxncpy = str_maxncpy - int(remaining_str - str);
+    remaining_str_maxncpy = str_maxncpy - int(remaining_str - str.data());
     if (remaining_str_maxncpy <= 2) {
       return changed;
     }
@@ -2185,8 +2167,9 @@ static bool unit_distribute_negatives(char *str, const int str_maxncpy)
 
     /* Add the `)` before the next operation or at the end.
      * Unary operators are skipped to allow `--` to be a supported prefix. */
-    remaining_str = find_next_op(str, skip_unary_op(remaining_str + 1), remaining_str_maxncpy);
-    remaining_str_maxncpy = str_maxncpy - int(remaining_str - str);
+    remaining_str = find_next_op(
+        str.data(), skip_unary_op(remaining_str + 1), remaining_str_maxncpy);
+    remaining_str_maxncpy = str_maxncpy - int(remaining_str - str.data());
     memmove(remaining_str + 1, remaining_str, remaining_str_maxncpy - 2);
     *remaining_str = ')';
 
@@ -2216,10 +2199,10 @@ static int find_previous_non_value_char(const char *str, const int start_ofs)
  * Helper for #unit_scale_str for the process of correctly applying the order of operations
  * for the unit's bias term.
  */
-static int find_end_of_value_chars(const char *str, const int str_maxncpy, const int start_ofs)
+static int find_end_of_value_chars(Span<char> str, const int start_ofs)
 {
   int i;
-  for (i = start_ofs; i < str_maxncpy; i++) {
+  for (i = start_ofs; i < str.size(); i++) {
     if (!strchr("0123456789eE.", str[i])) {
       return i;
     }
@@ -2227,28 +2210,25 @@ static int find_end_of_value_chars(const char *str, const int str_maxncpy, const
   return i;
 }
 
-static int unit_scale_str(char *str,
-                          int str_maxncpy,
+static int unit_scale_str(MutableCStr str,
                           char *str_tmp,
                           double scale_pref,
                           const bUnitDef *unit,
                           const char *replace_str,
                           bool case_sensitive)
 {
-  if (str_maxncpy < 0) {
-    return 0;
-  }
+  const int str_maxncpy = str.size();
 
   /* XXX: investigate, does not respect str_maxncpy properly. */
-  char *str_found = const_cast<char *>(unit_find_str(str, replace_str, case_sensitive));
+  char *str_found = const_cast<char *>(unit_find_str(str.data(), replace_str, case_sensitive));
 
   if (str_found == nullptr) {
     return 0;
   }
 
-  int found_ofs = int(str_found - str);
+  int found_ofs = int(str_found - str.data());
 
-  int len = strlen(str);
+  int len = strlen(str.data());
 
   /* Deal with unit bias for temperature units. Order of operations is important, so we
    * have to add parentheses, add the bias, then multiply by the scalar like usual.
@@ -2257,9 +2237,9 @@ static int unit_scale_str(char *str,
    * just try not to destroy anything while failing. */
   if (unit->bias != 0.0) {
     /* Add the open parenthesis. */
-    int prev_op_ofs = find_previous_non_value_char(str, found_ofs);
+    int prev_op_ofs = find_previous_non_value_char(str.data(), found_ofs);
     if (len + 1 < str_maxncpy) {
-      memmove(str + prev_op_ofs + 1, str + prev_op_ofs, len - prev_op_ofs + 1);
+      memmove(str.data() + prev_op_ofs + 1, str.data() + prev_op_ofs, len - prev_op_ofs + 1);
       str[prev_op_ofs] = '(';
       len++;
       found_ofs++;
@@ -2267,12 +2247,14 @@ static int unit_scale_str(char *str,
     } /* If this doesn't fit, we have failed. */
 
     /* Add the addition sign, the bias, and the close parenthesis after the value. */
-    int value_end_ofs = find_end_of_value_chars(str, str_maxncpy, prev_op_ofs + 2);
+    int value_end_ofs = find_end_of_value_chars(str, prev_op_ofs + 2);
     value_end_ofs = std::min(value_end_ofs, found_ofs);
     int len_bias_num = BLI_snprintf_rlen(str_tmp, TEMP_STR_SIZE, "+%.9g)", unit->bias);
     if (value_end_ofs + len_bias_num < str_maxncpy) {
-      memmove(str + value_end_ofs + len_bias_num, str + value_end_ofs, len - value_end_ofs + 1);
-      memcpy(str + value_end_ofs, str_tmp, len_bias_num);
+      memmove(str.data() + value_end_ofs + len_bias_num,
+              str.data() + value_end_ofs,
+              len - value_end_ofs + 1);
+      memcpy(str.data() + value_end_ofs, str_tmp, len_bias_num);
       len += len_bias_num;
       found_ofs += len_bias_num;
       str_found += len_bias_num;
@@ -2315,19 +2297,16 @@ static int unit_scale_str(char *str,
   return found_ofs + len_num;
 }
 
-static int unit_replace(
-    char *str, int str_maxncpy, char *str_tmp, double scale_pref, const bUnitDef *unit)
+static int unit_replace(MutableCStr str, char *str_tmp, double scale_pref, const bUnitDef *unit)
 {
   const bool case_sensitive = (unit->flag & B_UNIT_DEF_CASE_SENSITIVE) != 0;
   int ofs = 0;
   ofs += unit_scale_str(
-      str + ofs, str_maxncpy - ofs, str_tmp, scale_pref, unit, unit->name_short, case_sensitive);
+      str.drop_front(ofs), str_tmp, scale_pref, unit, unit->name_short, case_sensitive);
+  ofs += unit_scale_str(str.drop_front(ofs), str_tmp, scale_pref, unit, unit->name_plural, false);
   ofs += unit_scale_str(
-      str + ofs, str_maxncpy - ofs, str_tmp, scale_pref, unit, unit->name_plural, false);
-  ofs += unit_scale_str(
-      str + ofs, str_maxncpy - ofs, str_tmp, scale_pref, unit, unit->name_alt, case_sensitive);
-  ofs += unit_scale_str(
-      str + ofs, str_maxncpy - ofs, str_tmp, scale_pref, unit, unit->name, false);
+      str.drop_front(ofs), str_tmp, scale_pref, unit, unit->name_alt, case_sensitive);
+  ofs += unit_scale_str(str.drop_front(ofs), str_tmp, scale_pref, unit, unit->name, false);
   return ofs;
 }
 
@@ -2412,7 +2391,7 @@ double BKE_unit_apply_preferred_unit(const UnitSettings &settings, int type, dou
 }
 
 bool BKE_unit_replace_string(
-    char *str, int str_maxncpy, const char *str_prev, double scale_pref, int system, int type)
+    MutableCStr str, const char *str_prev, double scale_pref, int system, int type)
 {
   const bUnitCollection *usys = unit_get_system(system, type);
   if (!is_valid_unit_collection(usys)) {
@@ -2424,10 +2403,10 @@ bool BKE_unit_replace_string(
   bool changed = false;
 
   /* Fix cases like "-1m50cm" which would evaluate to -0.5m without this. */
-  changed |= unit_distribute_negatives(str, str_maxncpy);
+  changed |= unit_distribute_negatives(str);
 
   /* Try to find a default unit from current or previous string. */
-  const bUnitDef *default_unit = unit_detect_from_str(usys, str, str_prev);
+  const bUnitDef *default_unit = unit_detect_from_str(usys, str.data(), str_prev);
 
   /* We apply the default unit to the whole expression (default unit is now the reference
    * '1.0' one). */
@@ -2435,8 +2414,8 @@ bool BKE_unit_replace_string(
 
   /* Apply the default unit on the whole expression, this allows to handle nasty cases like
    * '2+2in'. */
-  if (SNPRINTF(str_tmp, "(%s)*%.9g", str, default_unit->scalar) < sizeof(str_tmp)) {
-    BLI_strncpy(str, str_tmp, str_maxncpy);
+  if (SNPRINTF(str_tmp, "(%s)*%.9g", str.data(), default_unit->scalar) < sizeof(str_tmp)) {
+    STRNCPY(str, str_tmp);
   }
   else {
     /* BLI_snprintf would not fit into str_tmp, can't do much in this case.
@@ -2446,7 +2425,7 @@ bool BKE_unit_replace_string(
 
   for (const bUnitDef *unit = usys->units; unit->name; unit++) {
     /* In case there are multiple instances. */
-    while (unit_replace(str, str_maxncpy, str_tmp, scale_pref_base, unit)) {
+    while (unit_replace(str, str_tmp, scale_pref_base, unit)) {
       changed = true;
     }
   }
@@ -2468,7 +2447,7 @@ bool BKE_unit_replace_string(
     for (const bUnitDef *unit = usys_iter->units; unit->name; unit++) {
       int ofs = 0;
       /* In case there are multiple instances. */
-      while ((ofs = unit_replace(str + ofs, str_maxncpy - ofs, str_tmp, scale_pref_base, unit))) {
+      while ((ofs = unit_replace(str.drop_front(ofs), str_tmp, scale_pref_base, unit))) {
         changed = true;
       }
     }
@@ -2479,7 +2458,7 @@ bool BKE_unit_replace_string(
    * "1*1# 3*100# * 3"  ->  "1*1+ 3*100  * 3"
    */
   {
-    char *str_found = str;
+    char *str_found = str.data();
 
     while ((str_found = strchr(str_found, SEP_CHR))) {
       bool op_found = false;
@@ -2501,12 +2480,12 @@ bool BKE_unit_replace_string(
   return changed;
 }
 
-void BKE_unit_name_to_alt(char *str, int str_maxncpy, const char *orig_str, int system, int type)
+void BKE_unit_name_to_alt(MutableCStr str, const char *orig_str, int system, int type)
 {
   const bUnitCollection *usys = unit_get_system(system, type);
 
   /* Find and substitute all units. */
-  for (const bUnitDef *unit = usys->units; unit->name && (str_maxncpy > 0); unit++) {
+  for (const bUnitDef *unit = usys->units; unit->name && !str.is_empty(); unit++) {
     if (unit->name_alt == nullptr) {
       continue;
     }
@@ -2519,27 +2498,25 @@ void BKE_unit_name_to_alt(char *str, int str_maxncpy, const char *orig_str, int 
     int offset = int(found - orig_str);
 
     /* Copy everything before the unit. */
-    if (offset < str_maxncpy) {
-      memcpy(str, orig_str, offset);
+    if (offset < str.size()) {
+      memcpy(str.data(), orig_str, offset);
     }
     else {
-      BLI_strncpy(str, orig_str, str_maxncpy);
-      offset = str_maxncpy;
+      STRNCPY(str, orig_str);
+      offset = str.size();
     }
 
-    str += offset;
+    str = str.drop_front(offset);
     orig_str += offset + strlen(unit->name_short);
-    str_maxncpy -= offset;
 
     /* Print the alt_name. */
-    const int len_name = BLI_strncpy_rlen(str, unit->name_alt, str_maxncpy);
-    BLI_assert(len_name < str_maxncpy);
-    str += len_name;
-    str_maxncpy -= len_name;
+    const int len_name = STRNCPY_RLEN(str, unit->name_alt);
+    BLI_assert(len_name < str.size());
+    str = str.drop_front(len_name);
   }
 
   /* Finally copy the rest of the string. */
-  BLI_strncpy(str, orig_str, str_maxncpy);
+  STRNCPY(str, orig_str);
 }
 
 double BKE_unit_closest_scalar(double value, int system, int type)

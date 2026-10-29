@@ -16,6 +16,7 @@
 
 #include "BLI_compiler_attrs.hh"
 #include "BLI_enum_flags.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utf8_symbols.hh"
 #include "BLI_sys_types.hh" /* size_t */
@@ -746,18 +747,16 @@ void draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *slid
  * field being clipped supports template variables!
  */
 float text_clip_middle_ex(const uiFontStyle *fstyle,
-                          char *str,
+                          MutableCStr str,
                           float okwidth,
                           float minwidth,
-                          size_t str_maxncpy,
                           char rpart_sep,
                           bool clip_right_if_tight = true,
                           bool shorten_template_variables = false);
 
 Vector<StringRef> text_clip_multiline_middle(const uiFontStyle *fstyle,
                                              const char *str,
-                                             char *clipped_str_buf,
-                                             const size_t clipped_str_buf_maxncpy,
+                                             MutableCStr clipped_str_buf,
                                              const float max_line_width,
                                              const int max_lines);
 
@@ -1812,12 +1811,11 @@ Button *uiDefIconBlockBut(Block *block,
                           std::optional<StringRef> tip);
 
 /**
- * \param arg: A pointer to string/name, use #button_func_search_set() below to make this work.
+ * \param arg: The string/name buffer, use #button_func_search_set() below to make this work.
  */
 Button *uiDefSearchBut(Block *block,
-                       void *arg,
+                       MutableCStr arg,
                        int icon,
-                       int maxncpy,
                        int x,
                        int y,
                        short width,
@@ -1830,9 +1828,8 @@ Button *uiDefSearchBut(Block *block,
 Button *uiDefSearchButO_ptr(Block *block,
                             wmOperatorType *ot,
                             IDProperty *properties,
-                            void *arg,
+                            MutableCStr arg,
                             int icon,
-                            int maxncpy,
                             int x,
                             int y,
                             short width,

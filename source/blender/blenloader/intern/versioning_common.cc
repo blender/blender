@@ -461,7 +461,7 @@ static void version_node_socket_index_animdata_ex(
         }
 
         char node_name_escaped[sizeof(node->name) * 2];
-        BLI_str_escape(node_name_escaped, node->name, sizeof(node_name_escaped));
+        BLI_str_escape(node_name_escaped, node->name);
         char *rna_path_prefix = BLI_sprintfN("nodes[\"%s\"].inputs", node_name_escaped);
 
         const int new_index = input_index + socket_index_offset;

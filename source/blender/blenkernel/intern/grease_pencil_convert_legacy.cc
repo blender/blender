@@ -1152,7 +1152,7 @@ static void legacy_gpencil_to_grease_pencil(ConversionData &conversion_data,
     for (const Layer *layer_iter : grease_pencil.layers()) {
       /* Data comes from versioned GPv2 layers, which have a fixed max length. */
       char layer_name_esc[sizeof((bGPDlayer{}).info) * 2];
-      BLI_str_escape(layer_name_esc, layer_iter->name().c_str(), sizeof(layer_name_esc));
+      BLI_str_escape(layer_name_esc, layer_iter->name().c_str());
       std::string layer_root_path = fmt::format("layers[\"{}\"]", layer_name_esc);
       animdata_gpdata_transfer.root_path_dst = layer_root_path;
       animdata_gpdata_transfer.root_path_src = layer_root_path;
@@ -1299,7 +1299,7 @@ static void thickness_factor_to_modifier(ConversionData &conversion_data,
 
   if (has_thickness_factor_animation) {
     char modifier_name_esc[MAX_NAME * 2];
-    BLI_str_escape(modifier_name_esc, md->name, sizeof(modifier_name_esc));
+    BLI_str_escape(modifier_name_esc, md->name);
     animdata_thickness_transfer.root_path_dst = fmt::format("modifiers[\"{}\"]",
                                                             modifier_name_esc);
 
@@ -1350,7 +1350,7 @@ static void legacy_object_thickness_modifier_thickness_anim(ConversionData &conv
     }
 
     char modifier_name[MAX_NAME * 2];
-    BLI_str_escape(modifier_name, tmd.name, sizeof(modifier_name));
+    BLI_str_escape(modifier_name, tmd.name);
     animdata_convert_thickness.root_path_src = fmt::format("modifiers[\"{}\"]", modifier_name);
     animdata_convert_thickness.root_path_dst = fmt::format("modifiers[\"{}\"]", modifier_name);
 
@@ -1389,7 +1389,7 @@ static void layer_adjustments_to_modifiers(ConversionData &conversion_data,
     const int thickness_px = gpl.line_change;
 
     char layer_name_esc[sizeof(gpl.info) * 2];
-    BLI_str_escape(layer_name_esc, gpl.info, sizeof(layer_name_esc));
+    BLI_str_escape(layer_name_esc, gpl.info);
     animdata_tint_transfer.root_path_src = fmt::format("layers[\"{}\"]", layer_name_esc);
     animdata_thickness_transfer.root_path_src = fmt::format("layers[\"{}\"]", layer_name_esc);
 
@@ -1421,7 +1421,7 @@ static void layer_adjustments_to_modifiers(ConversionData &conversion_data,
 
       if (has_tint_adjustment_animation) {
         char modifier_name_esc[MAX_NAME * 2];
-        BLI_str_escape(modifier_name_esc, md->name, sizeof(modifier_name_esc));
+        BLI_str_escape(modifier_name_esc, md->name);
         animdata_tint_transfer.root_path_dst = fmt::format("modifiers[\"{}\"]", modifier_name_esc);
 
         animdata_tint_transfer.fcurves_convert();
@@ -1488,7 +1488,7 @@ static void layer_adjustments_to_modifiers(ConversionData &conversion_data,
 
       if (has_thickness_adjustment_animation) {
         char modifier_name_esc[MAX_NAME * 2];
-        BLI_str_escape(modifier_name_esc, md->modifier.name, sizeof(modifier_name_esc));
+        BLI_str_escape(modifier_name_esc, md->modifier.name);
         animdata_thickness_transfer.root_path_dst = fmt::format("modifiers[\"{}\"]",
                                                                 modifier_name_esc);
 
@@ -1548,11 +1548,11 @@ static ModifierData &legacy_object_modifier_common(ConversionData &conversion_da
     AnimDataConvertor anim_convertor(conversion_data, object.id);
 
     char legacy_name_esc[MAX_NAME * 2];
-    BLI_str_escape(legacy_name_esc, legacy_md.name, sizeof(legacy_name_esc));
+    BLI_str_escape(legacy_name_esc, legacy_md.name);
     anim_convertor.root_path_src = fmt::format("grease_pencil_modifiers[\"{}\"]", legacy_name_esc);
 
     char new_name_esc[MAX_NAME * 2];
-    BLI_str_escape(new_name_esc, new_md.name, sizeof(new_name_esc));
+    BLI_str_escape(new_name_esc, new_md.name);
     anim_convertor.root_path_dst = fmt::format("modifiers[\"{}\"]", new_name_esc);
 
     anim_convertor.fcurves_convert();
@@ -2151,7 +2151,7 @@ static void legacy_object_modifier_opacity(ConversionData &conversion_data,
 
   /* Account for animation on renamed properties. */
   char modifier_name[MAX_NAME * 2];
-  BLI_str_escape(modifier_name, md.name, sizeof(modifier_name));
+  BLI_str_escape(modifier_name, md.name);
   AnimDataConvertor anim_convertor_factor(
       conversion_data, object.id, object.id, {{".factor", ".color_factor"}});
   anim_convertor_factor.root_path_src = fmt::format("modifiers[\"{}\"]", modifier_name);

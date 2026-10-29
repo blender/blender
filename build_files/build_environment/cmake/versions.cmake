@@ -378,7 +378,7 @@ set(RUBBERBAND_COPYRIGHT "Copyright (c) 2025 Particular Programs Ltd")
 # it wants to use in PCbuild/get_externals.bat for the following dependencies:
 # BZIP2 and change the versions in this file as well. For compliance
 # reasons there can be no exceptions to this.
-# Additionally, keep the PYTHON_PIP_VERSION in sync with the pip version bundled
+# Additionally, keep the PYTHON_PIP_VERSION no older than the pip version bundled
 # into Python.
 
 set(PYTHON_VERSION 3.13.13)
@@ -401,11 +401,11 @@ Copyright © 1991-1995 Stichting Mathematisch Centrum. All rights reserved.
 
 # Python bundles pip wheel, and does not track CVEs from it. Add an explicit CPE
 # identifier for pip, so that cve_check can detect vulnerabilities in it.
-# The version needs to be kept in symc with the version bundled in Python.
-# Currently it is done manually by tracking _PIP_VERSION variable in the
-# `Lib/ensurepip/__init__.py`. For example,
+# The bundled pip is upgraded to this version in python_site_packages, so it must
+# not be older than the version bundled in Python. That is tracked by the
+# _PIP_VERSION variable in `Lib/ensurepip/__init__.py`. For example,
 #   https://github.com/python/cpython/tree/v3.11.9/Lib/ensurepip/__init__.py
-set(PYTHON_PIP_VERSION 25.2)
+set(PYTHON_PIP_VERSION 26.2.2)
 set(PYTHON_PIP_CPE "cpe:2.3:a:pypa:pip:${PYTHON_PIP_VERSION}:*:*:*:*:*:*:*")
 
 set(TBB_YEAR 2022)
@@ -455,7 +455,7 @@ set(CHARSET_NORMALIZER_VERSION 3.4.1)
 set(URLLIB3_VERSION 2.4.0)
 set(URLLIB3_CPE "cpe:2.3:a:urllib3:urllib3:${URLLIB3_VERSION}:*:*:*:*:*:*:*")
 # Needed by: Python's `requests` module (so add-ons can authenticate against trusted certificates).
-set(CERTIFI_VERSION 2025.4.26)
+set(CERTIFI_VERSION 2026.10.19)
 # Needed by: Some of Blender's add-ons (to support convenient interaction with online services).
 set(REQUESTS_VERSION 2.32.3)
 # Needed by: Python's `numpy` module (used by some add-ons).

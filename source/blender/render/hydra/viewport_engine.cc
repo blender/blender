@@ -234,8 +234,7 @@ void ViewportEngine::render()
 
   char elapsed_time[32];
 
-  BLI_timecode_string_from_time_simple(
-      elapsed_time, sizeof(elapsed_time), BLI_time_now_seconds() - time_begin_);
+  BLI_timecode_string_from_time_simple(elapsed_time, BLI_time_now_seconds() - time_begin_);
 
   float percent_done = renderer_percent_done();
   if (!render_task_delegate_->is_converged()) {

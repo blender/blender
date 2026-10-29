@@ -131,8 +131,8 @@ static std::optional<std::string> rna_NlaStrip_path(const PointerRNA *ptr)
           char name_esc_nlt[sizeof(nlt->name) * 2];
           char name_esc_strip[sizeof(strip->name) * 2];
 
-          BLI_str_escape(name_esc_nlt, nlt->name, sizeof(name_esc_nlt));
-          BLI_str_escape(name_esc_strip, strip->name, sizeof(name_esc_strip));
+          BLI_str_escape(name_esc_nlt, nlt->name);
+          BLI_str_escape(name_esc_strip, strip->name);
           return fmt::format(
               "animation_data.nla_tracks[\"{}\"].strips[\"{}\"]", name_esc_nlt, name_esc_strip);
         }
@@ -735,7 +735,7 @@ static std::optional<std::string> rna_NlaTrack_path(const PointerRNA *ptr)
   }
 
   char name_esc[sizeof(nlt->name) * 2];
-  BLI_str_escape(name_esc, nlt->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, nlt->name);
   return fmt::format("animation_data.nla_tracks[\"{}\"]", name_esc);
 }
 

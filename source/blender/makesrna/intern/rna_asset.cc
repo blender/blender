@@ -138,7 +138,7 @@ static std::optional<std::string> rna_AssetTag_path(const PointerRNA *ptr)
 {
   const AssetTag *asset_tag = static_cast<const AssetTag *>(ptr->data);
   char asset_tag_name_esc[sizeof(asset_tag->name) * 2];
-  BLI_str_escape(asset_tag_name_esc, asset_tag->name, sizeof(asset_tag_name_esc));
+  BLI_str_escape(asset_tag_name_esc, asset_tag->name);
   return fmt::format("asset_data.tags[\"{}\"]", asset_tag_name_esc);
 }
 

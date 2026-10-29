@@ -13,6 +13,7 @@
 #include <string>
 
 #include "BLI_compiler_attrs.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.hh"
 
@@ -85,6 +86,8 @@ char *BLI_strdupcat(const char *__restrict str1,
  * \param src: Source string to copy.
  * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst).
  * \retval Returns dst
+ *
+ * \note #STRNCPY takes an array or a #MutableCStr, so the size can be omitted.
  */
 char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
     ATTR_NONNULL(1, 2);
@@ -95,25 +98,23 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t dst_m
  *
  * When `src` is empty, `dst` is empty (no padding is added).
  * When `src` doesn't fit, it's truncated to make room for the trailing `pad`.
- * When `dst_maxncpy` is too small to fit a character between both pads,
- * the result is only the leading `pad` (empty when `dst_maxncpy` is 1).
+ * When `dst` is too small to fit a character between both pads,
+ * the result is only the leading `pad` (empty when the size of `dst` is 1).
  *
- * \param dst: Destination for copy.
+ * \param dst: Destination for copy (its size includes the nil terminator).
  * \param src: Source string to copy.
  * \param pad: The character to use for padding.
- * \param dst_maxncpy: The size of `dst` (including the nil terminator).
  * \retval Returns `dst`.
  */
-char *BLI_strncpy_ensure_pad(char *__restrict dst,
-                             const char *__restrict src,
-                             char pad,
-                             size_t dst_maxncpy) ATTR_NONNULL(1, 2);
+char *BLI_strncpy_ensure_pad(MutableCStr dst, const char *__restrict src, char pad)
+    ATTR_NONNULL(2);
 
 /**
  * Like `strncpy` but ensures dst is always `\0` terminated.
  *
  * \note This is a duplicate of #BLI_strncpy that returns bytes copied.
  * And is a drop in replacement for `snprintf(str, sizeof(str), "%s", arg);`
+ * \note #STRNCPY_RLEN takes an array or a #MutableCStr, so the size can be omitted.
  *
  * \param dst: Destination for copy
  * \param src: Source string to copy
@@ -124,8 +125,7 @@ size_t BLI_strncpy_rlen(char *__restrict dst,
                         const char *__restrict src,
                         size_t dst_maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 
-char *BLI_strncat(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
-    ATTR_NONNULL(1, 2);
+char *BLI_strncat(MutableCStr dst, const char *__restrict src) ATTR_NONNULL(2);
 
 /**
  * A version of `strchr` that returns the end of the string (point to `\0`)
@@ -166,7 +166,6 @@ char *BLI_str_quoted_substrN(const char *__restrict str,
  * \param str: is the entire string to chop.
  * \param prefix: is the part of the string to step over.
  * \param result: The buffer to fill.
- * \param result_maxncpy: The maximum size of the buffer (including nil terminator).
  * \return True if the prefix was found and the entire quoted string was copied into result.
  *
  * Assume that the strings returned must be freed afterwards,
@@ -174,16 +173,19 @@ char *BLI_str_quoted_substrN(const char *__restrict str,
  */
 bool BLI_str_quoted_substr(const char *__restrict str,
                            const char *__restrict prefix,
-                           char *result,
-                           size_t result_maxncpy);
+                           MutableCStr result);
 
 /**
  * Portable replacement for `snprintf`.
+ *
+ * \note #SNPRINTF takes an array or a #MutableCStr, so the size can be omitted.
  */
 size_t BLI_snprintf(char *__restrict dst, size_t dst_maxncpy, const char *__restrict format, ...)
     ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
 /**
  * A version of #BLI_snprintf that returns `strlen(dst)`
+ *
+ * \note #SNPRINTF_RLEN takes an array or a #MutableCStr, so the size can be omitted.
  */
 size_t BLI_snprintf_rlen(char *__restrict dst,
                          size_t dst_maxncpy,
@@ -192,6 +194,8 @@ size_t BLI_snprintf_rlen(char *__restrict dst,
 
 /**
  * Portable replacement for `vsnprintf`.
+ *
+ * \note #VSNPRINTF takes an array or a #MutableCStr, so the size can be omitted.
  */
 size_t BLI_vsnprintf(char *__restrict dst,
                      size_t dst_maxncpy,
@@ -199,24 +203,24 @@ size_t BLI_vsnprintf(char *__restrict dst,
                      va_list arg) ATTR_PRINTF_FORMAT(3, 0);
 /**
  * A version of #BLI_vsnprintf that returns `strlen(dst)`
+ *
+ * \note #VSNPRINTF_RLEN takes an array or a #MutableCStr, so the size can be omitted.
  */
 size_t BLI_vsnprintf_rlen(char *__restrict dst,
                           size_t dst_maxncpy,
                           const char *__restrict format,
                           va_list arg) ATTR_PRINTF_FORMAT(3, 0);
 
-char *BLI_sprintfN_with_buffer(char *fixed_buf,
-                               size_t fixed_buf_maxncpy,
+char *BLI_sprintfN_with_buffer(MutableCStr fixed_buf,
                                size_t *result_len,
                                const char *__restrict format,
-                               ...) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3, 4)
-    ATTR_PRINTF_FORMAT(4, 5);
-char *BLI_vsprintfN_with_buffer(char *fixed_buf,
-                                size_t fixed_buf_maxncpy,
+                               ...) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2, 3)
+    ATTR_PRINTF_FORMAT(3, 4);
+char *BLI_vsprintfN_with_buffer(MutableCStr fixed_buf,
                                 size_t *result_len,
                                 const char *__restrict format,
-                                va_list args) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3, 4)
-    ATTR_PRINTF_FORMAT(4, 0);
+                                va_list args) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2, 3)
+    ATTR_PRINTF_FORMAT(3, 0);
 
 /**
  * Print formatted string into a newly #MEM_new_uninitialized'd string
@@ -234,13 +238,12 @@ char *BLI_vsprintfN(const char *__restrict format, va_list args) ATTR_NONNULL(1)
  * Since every character may need escaping,
  * it's common to create a buffer twice as large as the input.
  *
- * \param dst: The destination string, at least \a dst_maxncpy, typically `(strlen(src) * 2) + 1`.
+ * \param dst: The destination string, typically `(strlen(src) * 2) + 1` in size.
  * \param src: The un-escaped source string.
- * \param dst_maxncpy: The maximum number of bytes allowable to copy.
  *
  * \note This is used for creating animation paths in blend files.
  */
-size_t BLI_str_escape(char *__restrict dst, StringRef src, size_t dst_maxncpy) ATTR_NONNULL(1);
+size_t BLI_str_escape(MutableCStr dst, StringRef src);
 
 /** Same as above, but returns an std::string. */
 std::string BLI_str_escape(StringRef str);
@@ -254,15 +257,13 @@ std::string BLI_str_escape(StringRef str);
  * \param dst: The destination string, at least the size of `strlen(src) + 1`.
  * \param src: The escaped source string.
  * \param src_len: The maximum number of bytes to read from `src`.
- * \param dst_maxncpy: The maximum number of bytes allowable to copy into `dst`.
  * \param r_is_complete: Set to false when the result doesn't fit into `dst`.
  */
-size_t BLI_str_unescape_ex(char *__restrict dst,
+size_t BLI_str_unescape_ex(MutableCStr dst,
                            const char *__restrict src,
                            size_t src_len,
                            /* Additional arguments. */
-                           size_t dst_maxncpy,
-                           bool *r_is_complete) ATTR_NONNULL(1, 2, 5);
+                           bool *r_is_complete) ATTR_NONNULL(2, 4);
 /**
  * See #BLI_str_unescape_ex docstring.
  *
@@ -309,23 +310,28 @@ size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE
 size_t BLI_str_format_int64_grouped(char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE], int64_t num)
     ATTR_NONNULL(1);
 /**
- * Format a size in bytes using binary units.
+ * Format a size in bytes using decimal (KB, MB, ...) or binary (KiB, MiB, ...) units.
  * 1000 -> 1 KB
  * Number of decimal places grows with the used unit (e.g. 1.5 MB, 1.55 GB, 1.545 TB).
  *
  * \param dst: The resulting string.
- * Dimension of 14 to support largest possible value for \a bytes (#LLONG_MAX).
+ * Dimension of 15 to support the longest result (`-8191.8472 PiB`).
  * \param bytes: Number to format.
- * \param base_10: Calculate using base 10 (GB, MB, ...) or 2 (GiB, MiB, ...).
+ * \param base_10: Use decimal units (KB, MB, ...) or binary units (KiB, MiB, ...).
  */
 void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
-                              long long int bytes,
+                              int64_t bytes,
                               bool base_10) ATTR_NONNULL(1);
 
 /**
- * Format a size in bytes using binary units in compact (max 4 chars) format.
+ * Format a size in bytes using decimal or binary units in compact (max 4 chars) format.
  *
- * It shows a lower bound instead of rounding the number.
+ * It shows a lower bound instead of rounding the number, except with binary units where:
+ * - 1000-1023 of a unit is shown as 1 of the next unit.
+ * - 100-999 of a unit is divided by 1000 (not 1024), so 500 KiB is shown as `.5M`.
+ *
+ * Negative values are shown without a sign for historic reasons:
+ * this has only been used for file sizes & the buffer has no room for one.
  *
  * 1 -> 1B
  * 15 -> 15B
@@ -340,12 +346,12 @@ void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
  * ...
  *
  * \param dst: The resulting string.
- * Dimension of 5 to support largest possible value for \a bytes (#LLONG_MAX).
+ * Dimension of 5 to support the longest result (`999B` for example).
  * \param bytes: Number to format.
- * \param base_10: Calculate using base 10 (GB, MB, ...) or 2 (GiB, MiB, ...).
+ * \param base_10: Use decimal units (KB, MB, ...) or binary units (KiB, MiB, ...).
  */
 void BLI_str_format_byte_unit_compact(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_COMPACT_SIZE],
-                                      long long int bytes,
+                                      int64_t bytes,
                                       bool base_10) ATTR_NONNULL(1);
 
 /**
@@ -361,7 +367,7 @@ void BLI_str_format_byte_unit_compact(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_CO
  * 1555555 -> 1.6M
  * 15555555 -> 15.6M
  * 155555555 -> 156M
- * 1000000000 -> 1B
+ * 1000000000 -> 1.0B
  * ...
  *
  * Length of 7 is the maximum of the resulting string, for example, `-15.5K\0`.
@@ -428,6 +434,8 @@ int BLI_strcmp_ignore_pad(const char *str1, const char *str2, char pad) ATTR_WAR
  * \return The string length that doesn't exceed `maxlen`.
  * The equivalent of `min(strlen(str), maxlen)` that prevents a buffer overflow
  * when `str` isn't null terminated before `maxlen`.
+ *
+ * \note #STRNLEN takes an array or a span, so the size can be omitted.
  */
 size_t BLI_strnlen(const char *str, size_t maxlen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
@@ -597,22 +605,46 @@ bool BLI_string_elem_split_by_delim(const char *haystack,
                                     const char *needle) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3);
 
 /* -------------------------------------------------------------------- */
-/** \name String Copy/Format Macros
+/** \name String Copy/Format Wrappers
  * Avoid repeating destination with `sizeof(..)`.
- * \note `ARRAY_SIZE` allows pointers on some platforms.
+ * \note The destination may be an array, a span or a container.
  * \{ */
 
-#define STRNCPY_RLEN(dst, src) BLI_strncpy_rlen(dst, src, ARRAY_SIZE(dst))
-#define SNPRINTF(dst, format, ...) BLI_snprintf(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
+#define SNPRINTF(dst, format, ...) \
+  BLI_snprintf(SPAN_OR_ARRAY_DATA(dst), SPAN_OR_ARRAY_SIZE(dst), format, __VA_ARGS__)
 #define SNPRINTF_RLEN(dst, format, ...) \
-  BLI_snprintf_rlen(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
-#define VSNPRINTF(dst, format, args) BLI_vsnprintf(dst, ARRAY_SIZE(dst), format, args)
-#define VSNPRINTF_RLEN(dst, format, args) BLI_vsnprintf_rlen(dst, ARRAY_SIZE(dst), format, args)
+  BLI_snprintf_rlen(SPAN_OR_ARRAY_DATA(dst), SPAN_OR_ARRAY_SIZE(dst), format, __VA_ARGS__)
+#define VSNPRINTF(dst, format, args) \
+  BLI_vsnprintf(SPAN_OR_ARRAY_DATA(dst), SPAN_OR_ARRAY_SIZE(dst), format, args)
+#define VSNPRINTF_RLEN(dst, format, args) \
+  BLI_vsnprintf_rlen(SPAN_OR_ARRAY_DATA(dst), SPAN_OR_ARRAY_SIZE(dst), format, args)
 #define STR_CONCAT(dst, len, suffix) \
-  len += BLI_strncpy_rlen(dst + len, suffix, ARRAY_SIZE(dst) - len)
+  len += BLI_strncpy_rlen(SPAN_OR_ARRAY_DATA(dst) + len, suffix, SPAN_OR_ARRAY_SIZE(dst) - len)
 #define STR_CONCATF(dst, len, format, ...) \
-  len += BLI_snprintf_rlen(dst + len, ARRAY_SIZE(dst) - len, format, __VA_ARGS__)
-#define STRNLEN(str) BLI_strnlen(str, ARRAY_SIZE(str))
+  len += BLI_snprintf_rlen( \
+      SPAN_OR_ARRAY_DATA(dst) + len, SPAN_OR_ARRAY_SIZE(dst) - len, format, __VA_ARGS__)
+
+/** Copy `src` into `dst` (an array or a #MutableCStr), see #BLI_strncpy. */
+inline char *STRNCPY(MutableCStr dst, const char *src)
+{
+  return BLI_strncpy(dst.data(), src, dst.size());
+}
+/** A version of #STRNCPY that returns the length of the copied string. */
+inline size_t STRNCPY_RLEN(MutableCStr dst, const char *src)
+{
+  return BLI_strncpy_rlen(dst.data(), src, dst.size());
+}
+
+/** The length of a string, not exceeding its buffer (an array or a span). */
+[[nodiscard]] inline size_t STRNLEN(Span<char> str)
+{
+  return BLI_strnlen(str.data(), str.size());
+}
+/** Non-const arrays only convert to a #MutableCStr. */
+[[nodiscard]] inline size_t STRNLEN(MutableCStr str)
+{
+  return BLI_strnlen(str.data(), str.size());
+}
 
 /** \} */
 
@@ -668,33 +700,31 @@ bool BLI_string_elem_split_by_delim(const char *haystack,
 /** \name String Debugging
  * \{ */
 #ifdef WITH_STRSIZE_DEBUG
-#  define BLI_string_debug_size(str, str_maxncpy) memset(str, 0xff, sizeof(*(str)) * (str_maxncpy))
+template<typename T> inline void BLI_string_debug_size(T *str, const size_t str_maxncpy)
+{
+  memset(str, 0xff, sizeof(T) * str_maxncpy);
+}
 /**
  * Fill `str` with a non-nil value after the trailing nil character,
  * use to ensure buffer sizes passed to string functions are correct.
  */
 void BLI_string_debug_size_after_nil(char *str, size_t str_maxncpy);
 #else
-#  define BLI_string_debug_size(str, str_maxncpy) \
-    if (0) { \
-      (void)(str), (void)(str_maxncpy); \
-    } \
-    ((void)0)
-#  define BLI_string_debug_size_after_nil(str, str_maxncpy) BLI_string_debug_size(str, str_maxncpy)
+template<typename T> inline void BLI_string_debug_size(T * /*str*/, const size_t /*str_maxncpy*/)
+{
+}
+inline void BLI_string_debug_size_after_nil(char * /*str*/, const size_t /*str_maxncpy*/) {}
 #endif /* !WITH_STRSIZE_DEBUG */
 
-/** \} */
-
-/**
- * Copy source string str into the destination dst of a size known at a compile time.
- * Ensures that the destination is not overflown, and that the destination is always
- * null-terminated.
- *
- * Returns the dst.
- */
-template<size_t N> inline char *STRNCPY(char (&dst)[N], const char *src)
+inline void BLI_string_debug_size(MutableCStr str)
 {
-  return BLI_strncpy(dst, src, N);
+  BLI_string_debug_size(str.data(), str.size());
 }
+inline void BLI_string_debug_size_after_nil(MutableCStr str)
+{
+  BLI_string_debug_size_after_nil(str.data(), str.size());
+}
+
+/** \} */
 
 }  // namespace blender

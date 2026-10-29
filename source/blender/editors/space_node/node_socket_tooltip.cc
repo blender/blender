@@ -199,7 +199,7 @@ class SocketTooltipBuilder {
     SpaceNode *snode = CTX_wm_space_node(&C_);
     eval_log::ContextualNodeTreeLogs tree_logs;
     if (snode) {
-      tree_logs = eval_log::NodesEvalLog::get_contextual_tree_logs(*snode);
+      tree_logs = eval_log::NodesEvalLog::get_contextual_tree_logs(C_);
     }
     eval_log::NodeTreeLog *tree_log = tree_logs.get_main_tree_log(socket_);
     if (tree_log && this->build_tooltip_value_from_tree_log(*tree_log)) {

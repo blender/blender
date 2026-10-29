@@ -94,8 +94,7 @@ TEST_F(CryptomatteTest, extract_layer_hash_from_metadata_key)
 
 static void validate_cryptomatte_session_from_stamp_data(void * /*data*/,
                                                          const char *propname,
-                                                         char *propvalue,
-                                                         int /*propvalue_maxncpy*/)
+                                                         MutableCStr propvalue)
 {
   StringRefNull prop_name(propname);
   if (!prop_name.startswith("cryptomatte/")) {
@@ -103,33 +102,33 @@ static void validate_cryptomatte_session_from_stamp_data(void * /*data*/,
   }
 
   if (prop_name == "cryptomatte/67da54b/name") {
-    EXPECT_STREQ("layer1", propvalue);
+    EXPECT_STREQ("layer1", propvalue.data());
   }
   else if (prop_name == "cryptomatte/67da54b/hash") {
-    EXPECT_STREQ("MurmurHash3_32", propvalue);
+    EXPECT_STREQ("MurmurHash3_32", propvalue.data());
   }
   else if (prop_name == "cryptomatte/67da54b/conversion") {
-    EXPECT_STREQ("uint32_to_float32", propvalue);
+    EXPECT_STREQ("uint32_to_float32", propvalue.data());
   }
   else if (prop_name == "cryptomatte/67da54b/manifest") {
-    EXPECT_STREQ(R"({"Object":"12345678"})", propvalue);
+    EXPECT_STREQ(R"({"Object":"12345678"})", propvalue.data());
   }
 
   else if (prop_name == "cryptomatte/79b2306/name") {
-    EXPECT_STREQ("layer2", propvalue);
+    EXPECT_STREQ("layer2", propvalue.data());
   }
   else if (prop_name == "cryptomatte/79b2306/hash") {
-    EXPECT_STREQ("MurmurHash3_32", propvalue);
+    EXPECT_STREQ("MurmurHash3_32", propvalue.data());
   }
   else if (prop_name == "cryptomatte/79b2306/conversion") {
-    EXPECT_STREQ("uint32_to_float32", propvalue);
+    EXPECT_STREQ("uint32_to_float32", propvalue.data());
   }
   else if (prop_name == "cryptomatte/79b2306/manifest") {
-    EXPECT_STREQ(R"({"Object2":"87654321"})", propvalue);
+    EXPECT_STREQ(R"({"Object2":"87654321"})", propvalue.data());
   }
 
   else {
-    EXPECT_EQ("Unhandled", std::string(propname) + ": " + propvalue);
+    EXPECT_EQ("Unhandled", std::string(propname) + ": " + propvalue.data());
   }
 }
 

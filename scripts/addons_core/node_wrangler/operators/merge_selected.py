@@ -22,6 +22,7 @@ from ..utils.nodes import (
     nw_check_selected,
     nw_check_space_type,
     get_first_enabled_output,
+    get_node_description,
 )
 
 
@@ -68,12 +69,29 @@ class NODE_OT_merge_selected(Operator, NWBase):
 
     @classmethod
     def description(cls, _context, properties):
-        if (properties.is_property_set("tooltip")):
-            return tip_(properties.tooltip)
-        elif (mode := properties.mode):
-            return tip_(cls.mode_tooltips[mode])
+        merge_type = properties.merge_type
+        mode = properties.mode
+
+        if merge_type == 'MIX':
+            items = blend_types
+        elif merge_type == 'MATH':
+            items = operations
+        elif merge_type == 'GEOMETRY':
+            items = geo_combine_operations
+        elif merge_type == 'SHADER':
+            return get_node_description(f"ShaderNode{mode.capitalize()}Shader")
+        elif merge_type == 'DEPTH_COMBINE':
+            return get_node_description("CompositorNodeZcombine")
+        elif merge_type == 'ALPHAOVER':
+            return get_node_description("CompositorNodeAlphaOver")
         else:
             return ""
+
+        for identifier, _name, description in items:
+            if identifier == mode:
+                return tip_(description)
+
+        return ""
 
     # Check if the link connects to a node that is in selected_nodes
     # If not, then check recursively for each link in the nodes outputs.

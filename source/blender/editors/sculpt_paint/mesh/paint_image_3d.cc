@@ -124,7 +124,7 @@ static void fetch_image_buffers(ImageData &image_data,
       image_data.seam_tile_modified.lookup_or_add_cb(tile.tile_number, [&]() {
         const int tiles_x = (buffer->x + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
         const int tiles_y = (buffer->y + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
-        return Array<uint8_t>(int64_t(tiles_x) * tiles_y, 0);
+        return Array<bool>(int64_t(tiles_x) * tiles_y, 0);
       });
       image_data.processors.lookup_or_add_cb(tile.tile_number, [&]() {
         const ColorSpace &buffer_colorspace = buffer->float_data() ? buffer->float_colorspace() :
@@ -188,17 +188,13 @@ static void calc_pixel_row_positions(const float3 P_start,
   }
 }
 
-static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
+static BitVector<> init_uv_primitives_brush_test(const Bounds<float3> &brush_bounds,
                                                  const Span<int> corner_verts,
                                                  const Span<int3> corner_tris,
                                                  const Span<int> tri_indices,
                                                  const Span<float3> positions)
 {
   PRF_scope(ProfileCategory::Editor);
-  const float3 location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
-  const float radius = ss.cache ? ss.cache->radius : ss.cursor_radius;
-  const Bounds<float3> brush_bounds(location - radius, location + radius);
-
   BitVector<> brush_test(tri_indices.size());
   for (const int i : tri_indices.index_range()) {
     const int3 &tri = corner_tris[tri_indices[i]];
@@ -478,7 +474,7 @@ static void push_undo_tiles(ImageData &image_data,
  * Mark the seam tiles covering the given pixel row as modified. Dilated by one tile so a
  * seam whose second source sits one pixel across a tile boundary is still handled.
  */
-static void mark_seam_tiles_modified(MutableSpan<uint8_t> mask,
+static void mark_seam_tiles_modified(MutableSpan<bool> mask,
                                      const int tiles_x,
                                      const int tiles_y,
                                      const int x_start,
@@ -496,7 +492,7 @@ static void mark_seam_tiles_modified(MutableSpan<uint8_t> mask,
 
   for (int dty = tile_y_min; dty <= tile_y_max; dty++) {
     for (int dtx = tile_x_min; dtx <= tile_x_max; dtx++) {
-      mask[int64_t(dty) * tiles_x + dtx] = 1;
+      mask[int64_t(dty) * tiles_x + dtx] = true;
     }
   }
 }
@@ -516,8 +512,14 @@ static void do_paint_pixels(const PaintBlendSettings &blend_settings,
   PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
-  BitVector<> brush_test = init_uv_primitives_brush_test(
-      ss, corner_verts, corner_tris, pixel_node.uv_primitives.tri_indices, positions_eval);
+  const float3 location = ss.cache->location_symm;
+  const float radius = ss.cache->radius;
+  const Bounds<float3> brush_bounds(location - radius, location + radius);
+  BitVector<> brush_test = init_uv_primitives_brush_test(brush_bounds,
+                                                         corner_verts,
+                                                         corner_tris,
+                                                         pixel_node.uv_primitives.tri_indices,
+                                                         positions_eval);
 
   if (!select_poly.is_empty()) {
     BLI_assert(!corner_tri_faces.is_empty());
@@ -536,10 +538,6 @@ static void do_paint_pixels(const PaintBlendSettings &blend_settings,
 #endif
 
   bool pixels_updated = false;
-
-  const float3 location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
-  const float radius = ss.cache ? ss.cache->radius : ss.cursor_radius;
-  const Bounds<float3> brush_bounds(location - radius, location + radius);
 
   for (UDIMTilePixels &tile_data : pixel_node.tiles) {
     ImBuf *image_buffer = image_data.image_buffers.lookup_default(tile_data.tile_number, nullptr);
@@ -703,7 +701,7 @@ static void do_paint_pixels(const PaintBlendSettings &blend_settings,
     });
 
     /* Mark the seam tiles modified and update dirty bounds. */
-    const MutableSpan<uint8_t> seam_tile_modified = image_data.seam_tile_modified.lookup(
+    const MutableSpan<bool> seam_tile_modified = image_data.seam_tile_modified.lookup(
         tile_data.tile_number);
     const int seam_tiles_x = (image_buffer->x + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
     const int seam_tiles_y = (image_buffer->y + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
@@ -757,8 +755,7 @@ static void fix_non_manifold_seam_bleeding(bke::pbvh::Tree &pbvh,
       continue;
     }
     const MutableSpan<uint32_t> undo_tile_pushed = image_data.undo_tile_pushed.lookup(tile_number);
-    const MutableSpan<uint8_t> seam_tile_modified = image_data.seam_tile_modified.lookup(
-        tile_number);
+    const MutableSpan<bool> seam_tile_modified = image_data.seam_tile_modified.lookup(tile_number);
 
     bke::pbvh::pixels::copy_pixels(
         pbvh,

@@ -208,7 +208,7 @@ static PyObject *bpyunits_to_value(PyObject * /*self*/, PyObject *args, PyObject
   str = static_cast<char *>(PyMem_MALLOC(sizeof(*str) * str_maxncpy));
   BLI_strncpy(str, inpt, str_maxncpy);
 
-  BKE_unit_replace_string(str, int(str_maxncpy), uref, scale, usys, ucat);
+  BKE_unit_replace_string(MutableCStr(str, int(str_maxncpy)), uref, scale, usys, ucat);
 
   if (!PyC_RunString_AsNumber(nullptr, str, "<bpy_units_api>", &result)) {
     if (PyErr_Occurred()) {
@@ -316,11 +316,10 @@ static PyObject *bpyunits_to_string(PyObject * /*self*/, PyObject *args, PyObjec
     const char *str;
     PyObject *result;
 
-    BKE_unit_value_as_string_adaptive(
-        buf1, sizeof(buf1), value, precision, usys, ucat, split_unit, false, true);
+    BKE_unit_value_as_string_adaptive(buf1, value, precision, usys, ucat, split_unit, false, true);
 
     if (compatible_unit) {
-      BKE_unit_name_to_alt(buf2, sizeof(buf2), buf1, usys, ucat);
+      BKE_unit_name_to_alt(buf2, buf1, usys, ucat);
       str = buf2;
     }
     else {

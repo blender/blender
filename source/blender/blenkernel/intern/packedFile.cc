@@ -529,17 +529,14 @@ char *BKE_packedfile_unpack_to_file(ReportList *reports,
 
 static void unpack_generate_paths(const char *filepath,
                                   ID *id,
-                                  char *r_abspath,
-                                  size_t abspath_maxncpy,
-                                  char *r_relpath,
-                                  size_t relpath_maxncpy)
+                                  MutableCStr r_abspath,
+                                  MutableCStr r_relpath)
 {
   const short id_type = GS(id->name);
   char temp_filename[FILE_MAX];
   char temp_dirname[FILE_MAXDIR];
 
-  BLI_path_split_dir_file(
-      filepath, temp_dirname, sizeof(temp_dirname), temp_filename, sizeof(temp_filename));
+  BLI_path_split_dir_file(filepath, temp_dirname, temp_filename);
 
   if (temp_filename[0] == '\0') {
     /* NOTE: we generally do not have any real way to re-create extension out of data. */
@@ -558,11 +555,11 @@ static void unpack_generate_paths(const char *filepath,
         if (ima->source == IMA_SRC_TILED) {
           char tile_number[6];
           SNPRINTF(tile_number, ".%d", imapf->tile_number);
-          BLI_strncpy(temp_filename + len, tile_number, sizeof(temp_filename) - len);
+          STRNCPY(MutableCStr(temp_filename).drop_front(len), tile_number);
         }
         if (ftype != IMB_FTYPE_NONE) {
           const int imtype = BKE_ftype_to_imtype(ftype, nullptr);
-          BKE_image_path_ext_from_imtype_ensure(temp_filename, sizeof(temp_filename), imtype);
+          BKE_image_path_ext_from_imtype_ensure(temp_filename, imtype);
         }
       }
     }
@@ -595,13 +592,13 @@ static void unpack_generate_paths(const char *filepath,
         break;
     }
     if (dir_name) {
-      BLI_path_join(r_relpath, relpath_maxncpy, "//", dir_name, temp_filename);
+      BLI_path_join(r_relpath, "//", dir_name, temp_filename);
     }
   }
 
   {
-    size_t len = BLI_strncpy_rlen(r_abspath, temp_dirname, abspath_maxncpy);
-    BLI_strncpy(r_abspath + len, temp_filename, abspath_maxncpy - len);
+    size_t len = STRNCPY_RLEN(r_abspath, temp_dirname);
+    STRNCPY(r_abspath.drop_front(len), temp_filename);
   }
 }
 
@@ -616,8 +613,7 @@ char *BKE_packedfile_unpack(Main *bmain,
   char *new_name = nullptr;
 
   if (id != nullptr) {
-    unpack_generate_paths(
-        orig_file_path, id, absname, sizeof(absname), localname, sizeof(localname));
+    unpack_generate_paths(orig_file_path, id, absname, localname);
     new_name = BKE_packedfile_unpack_to_file(
         reports, BKE_main_blendfile_path(bmain), absname, localname, pf, how);
   }
@@ -705,7 +701,7 @@ int BKE_packedfile_unpack_image(Main *bmain,
           STRNCPY(ima->filepath, new_file_path);
           if (ima->source == IMA_SRC_TILED) {
             /* Ensure that the Image filepath is kept in a tokenized format. */
-            BKE_image_ensure_tile_token(ima->filepath, sizeof(ima->filepath));
+            BKE_image_ensure_tile_token(ima->filepath);
           }
         }
         MEM_delete(new_file_path);

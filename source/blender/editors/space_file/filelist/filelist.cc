@@ -255,7 +255,7 @@ void filelist_file_get_full_path(const FileList *filelist,
   }
 
   const char *root = filelist_dir(filelist);
-  BLI_path_join(r_filepath, FILE_MAX_LIBEXTRA, root, file->relpath);
+  BLI_path_join(MutableCStr(r_filepath, FILE_MAX_LIBEXTRA), root, file->relpath);
 }
 
 bool filelist_file_is_preview_pending(const FileList *filelist, const FileDirEntry *file)
@@ -364,7 +364,7 @@ static int filelist_geticon_file_type_ex(const FileList *filelist,
       }
       else if (filelist) {
         filelist_file_get_full_path(filelist, file, fullpath);
-        BLI_path_slash_ensure(fullpath, sizeof(fullpath));
+        BLI_path_slash_ensure(fullpath);
       }
       for (; tfsm; tfsm = tfsm->next) {
         if (STREQ(tfsm->path, target)) {
@@ -1087,7 +1087,7 @@ const char *fileentry_uiname(const char *root, FileListInternEntry *entry, char 
     }
     else {
       char abspath[FILE_MAX_LIBEXTRA];
-      BLI_path_join(abspath, sizeof(abspath), root, relpath);
+      BLI_path_join(abspath, root, relpath);
       name = BLF_display_name_from_file(abspath);
     }
     if (name) {
@@ -1100,7 +1100,7 @@ const char *fileentry_uiname(const char *root, FileListInternEntry *entry, char 
     char abspath[FILE_MAX_LIBEXTRA];
     char *group;
 
-    BLI_path_join(abspath, sizeof(abspath), root, relpath);
+    BLI_path_join(abspath, root, relpath);
     BKE_blendfile_library_path_explode(abspath, buff, &group, &name);
     if (!name) {
       name = group;
@@ -1136,7 +1136,7 @@ void filelist_setdir(FileList *filelist, char dirpath[FILE_MAX_LIBEXTRA])
   BLI_assert(strlen(dirpath) < FILE_MAX_LIBEXTRA);
 
   BLI_path_abs(dirpath, BKE_main_blendfile_path_from_global());
-  BLI_path_normalize_dir(dirpath, FILE_MAX_LIBEXTRA);
+  BLI_path_normalize_dir(MutableCStr(dirpath, FILE_MAX_LIBEXTRA));
   const bool is_valid_path = filelist->check_dir_fn(filelist, dirpath, !allow_invalid);
   BLI_assert(is_valid_path || allow_invalid);
   UNUSED_VARS_NDEBUG(is_valid_path);

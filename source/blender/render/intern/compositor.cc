@@ -10,6 +10,7 @@
 #include <string>
 
 #include "BLI_listbase.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_threads.hh"
@@ -158,13 +159,31 @@ class Context : public compositor::Context {
     return size;
   }
 
+  float get_proxy_scale() const
+  {
+    /* Proxy is only for interactive preview, not final render. */
+    if (this->render_context()) {
+      return 1.0f;
+    }
+
+    /* Proxy disabled. */
+    if (!flag_is_set(this->get_render_data().compositor_proxy_flags,
+                     CompositorProxyFlags::UsePreviewScale))
+    {
+      return 1.0f;
+    }
+
+    return this->get_render_data().compositor_proxy_preview_scale / 100.0f;
+  }
+
   compositor::Domain get_compositing_domain() const override
   {
     compositor::Domain domain = compositor::Domain(this->get_render_size());
+    domain.pixel_size *= this->get_proxy_scale();
     if (flag_is_set(this->get_render_data().compositor_proxy_flags,
                     CompositorProxyFlags::AdaptToRenderScale))
     {
-      domain.pixel_size = float2(this->get_render_data().size / 100.0f);
+      domain.pixel_size *= float2(this->get_render_data().size / 100.0f);
     }
     return domain;
   }
@@ -563,7 +582,9 @@ class Context : public compositor::Context {
       pass_data.release();
     }
 
-    pass.domain() = this->get_compositing_domain();
+    pass.domain().pixel_size = this->get_compositing_domain().pixel_size;
+    pass.domain().transformation *= math::from_scale<float3x3>(float2(this->get_proxy_scale())) *
+                                    pass.domain().transformation;
 
     /* We assume the given pass is a Cryptomatte pass and retrieve its layer name. If it wasn't a
      * Cryptomatte pass, the checks below will fail anyway. */
@@ -581,25 +602,25 @@ class Context : public compositor::Context {
     BKE_stamp_info_callback(
         &callback_data,
         render_result->stamp_data,
-        [](void *user_data, const char *key, char *value, int /*value_maxncpy*/) {
+        [](void *user_data, const char *key, MutableCStr value) {
           StampCallbackData *data = static_cast<StampCallbackData *>(user_data);
 
           const std::string manifest_key = bke::cryptomatte::BKE_cryptomatte_meta_data_key(
               data->cryptomatte_layer_name, "manifest");
           if (key == manifest_key) {
-            data->meta_data->cryptomatte.manifest = value;
+            data->meta_data->cryptomatte.manifest = value.data();
           }
 
           const std::string hash_key = bke::cryptomatte::BKE_cryptomatte_meta_data_key(
               data->cryptomatte_layer_name, "hash");
           if (key == hash_key) {
-            data->meta_data->cryptomatte.hash = value;
+            data->meta_data->cryptomatte.hash = value.data();
           }
 
           const std::string conversion_key = bke::cryptomatte::BKE_cryptomatte_meta_data_key(
               data->cryptomatte_layer_name, "conversion");
           if (key == conversion_key) {
-            data->meta_data->cryptomatte.conversion = value;
+            data->meta_data->cryptomatte.conversion = value.data();
           }
         },
         false);

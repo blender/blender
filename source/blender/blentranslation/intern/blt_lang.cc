@@ -79,7 +79,7 @@ static void fill_locales()
   free_locales();
 
   char languages[FILE_MAX];
-  BLI_path_join(languages, FILE_MAX, languages_path->c_str(), "languages");
+  BLI_path_join(languages, languages_path->c_str(), "languages");
 
   LinkNode *lines = BLI_file_read_as_lines(languages);
   LinkNode *line = lines;

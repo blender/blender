@@ -11,12 +11,19 @@
 #include <stdarg.h>
 
 #include "BLI_compiler_attrs.hh"
+#include "BLI_span.hh"
 #include "BLI_sys_types.hh"
 
 namespace blender {
 
+/**
+ * \note #STRNCPY_UTF8 takes an array or a #MutableCStr, so the size can be omitted.
+ */
 char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
     ATTR_NONNULL(1, 2);
+/**
+ * \note #STRNCPY_UTF8_RLEN takes an array or a #MutableCStr, so the size can be omitted.
+ */
 size_t BLI_strncpy_utf8_rlen(char *__restrict dst,
                              const char *__restrict src,
                              size_t dst_maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
@@ -24,9 +31,7 @@ size_t BLI_strncpy_utf8_rlen(char *__restrict dst,
  * A version of #BLI_strncpy_utf8_rlen that doesn't null terminate the string.
  * \note Useful for C++ APIs that don't null terminate strings.
  */
-size_t BLI_strncpy_utf8_rlen_unterminated(char *__restrict dst,
-                                          const char *__restrict src,
-                                          size_t dst_maxncpy);
+size_t BLI_strncpy_utf8_rlen_unterminated(MutableCStr dst, const char *__restrict src);
 
 /**
  * Find first UTF8 invalid byte in given \a str, of \a str_len bytes.
@@ -62,8 +67,7 @@ int BLI_str_utf8_invalid_substitute(char *str, size_t str_len, const char substi
  * where copying and substituting values is typically not needed.
  */
 [[nodiscard]] const char *BLI_str_utf8_invalid_substitute_if_needed(
-    const char *str, size_t str_len, const char substitute, char *buf, const size_t buf_maxncpy)
-    ATTR_NONNULL(1, 4);
+    const char *str, size_t str_len, const char substitute, MutableCStr buf) ATTR_NONNULL(1);
 
 /**
  * \return The size (in bytes) of a single UTF8 char.
@@ -123,21 +127,19 @@ size_t BLI_str_utf8_from_unicode_len(unsigned int c) ATTR_WARN_UNUSED_RESULT;
  * BLI_str_utf8_from_unicode:
  *
  * \param c: a Unicode character code
- * \param dst: output buffer, must have at least `dst_maxncpy` bytes of space.
- * If the length required by `c` exceeds `dst_maxncpy`,
- * the bytes available bytes will be zeroed and `dst_maxncpy` returned.
+ * \param dst: output buffer.
+ * If the length required by `c` exceeds `dst.size()`,
+ * the available bytes are zeroed and `dst.size()` is returned.
  *
  * Converts a single character to UTF8.
  *
  * \return number of bytes written.
  */
-size_t BLI_str_utf8_from_unicode(unsigned int c, char *dst, size_t dst_maxncpy) ATTR_NONNULL(2);
+size_t BLI_str_utf8_from_unicode(unsigned int c, MutableCStr dst);
 size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
                              const char *__restrict src_c,
                              size_t dst_w_maxncpy) ATTR_NONNULL(1, 2);
-size_t BLI_str_utf32_as_utf8(char *__restrict dst,
-                             const char32_t *__restrict src,
-                             size_t dst_maxncpy) ATTR_NONNULL(1, 2);
+size_t BLI_str_utf32_as_utf8(MutableCStr dst, const char32_t *__restrict src) ATTR_NONNULL(2);
 /**
  * \return The UTF32 len in UTF8 with a clamped length.
  */
@@ -193,18 +195,20 @@ size_t BLI_strnlen_utf8_ex(const char *strc, size_t strc_maxlen, size_t *r_len_b
  * \param strc: the string to measure the length.
  * \param strc_maxlen: the string length (in bytes)
  * \return the unicode length (not in bytes!)
+ *
+ * \note #STRNLEN_UTF8 takes an array or a span, so the size can be omitted.
  */
 size_t BLI_strnlen_utf8(const char *strc, size_t strc_maxlen)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
-size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
-                                 const wchar_t *__restrict src,
-                                 size_t dst_maxncpy) ATTR_NONNULL(1, 2);
+size_t BLI_strncpy_wchar_as_utf8(MutableCStr dst, const wchar_t *__restrict src) ATTR_NONNULL(2);
 size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
                                    const char *__restrict src_c,
                                    size_t dst_w_maxncpy) ATTR_NONNULL(1, 2);
 
 /**
  * Portable replacement for `snprintf` that truncates partial UTF8 code-points.
+ *
+ * \note #SNPRINTF_UTF8 takes an array or a #MutableCStr, so the size can be omitted.
  */
 size_t BLI_snprintf_utf8(char *__restrict dst,
                          size_t dst_maxncpy,
@@ -214,6 +218,8 @@ size_t BLI_snprintf_utf8(char *__restrict dst,
  * A version of #BLI_snprintf that truncates partial UTF8 code-points.
  *
  * \return The length of the string: `strlen(dst)`.
+ *
+ * \note #SNPRINTF_UTF8_RLEN takes an array or a #MutableCStr, so the size can be omitted.
  */
 size_t BLI_snprintf_utf8_rlen(char *__restrict dst,
                               size_t dst_maxncpy,
@@ -222,6 +228,8 @@ size_t BLI_snprintf_utf8_rlen(char *__restrict dst,
 
 /**
  * Portable replacement for `vsnprintf` that truncates partial UTF8 code-points.
+ *
+ * \note #VSNPRINTF_UTF8 takes an array or a #MutableCStr, so the size can be omitted.
  */
 size_t BLI_vsnprintf_utf8(char *__restrict dst,
                           size_t dst_maxncpy,
@@ -230,6 +238,8 @@ size_t BLI_vsnprintf_utf8(char *__restrict dst,
 /**
  * A version of #BLI_vsnprintf that truncates partial UTF8 code-points.
  * \return `strlen(dst)`
+ *
+ * \note #VSNPRINTF_UTF8_RLEN takes an array or a #MutableCStr, so the size can be omitted.
  */
 size_t BLI_vsnprintf_utf8_rlen(char *__restrict dst,
                                size_t dst_maxncpy,
@@ -283,12 +293,12 @@ size_t BLI_str_partition_ex_utf8(const char *str,
                                  bool from_right) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3, 4, 5);
 
 /**
- * Ensure that `str` has a null byte in the range of `[0..str_size]`, while not generating any
- * invalid UTF-8 code. The resulting `strlen(str)` is guaranteed to be less than `str_size`.
+ * Ensure that `str` has a null byte in the range of `[0..str.size()]`, while not generating any
+ * invalid UTF-8 code. The resulting `strlen(str)` is guaranteed to be less than `str.size()`.
  *
  * \return true when `str` was truncated.
  */
-bool BLI_str_utf8_truncate_at_size(char *str, const size_t str_size);
+bool BLI_str_utf8_truncate_at_size(MutableCStr str);
 
 int BLI_str_utf8_offset_to_index(const char *str,
                                  size_t str_len,
@@ -327,23 +337,41 @@ int BLI_str_utf8_column_count(const char *str, size_t str_len) ATTR_WARN_UNUSED_
 #define BLI_UTF8_ERR ((unsigned int)-1)
 
 /* -------------------------------------------------------------------- */
-/** \name String Copy/Format Macros
+/** \name String Copy/Format Wrappers
  * Avoid repeating destination with `sizeof(..)`.
- * \note `ARRAY_SIZE` allows pointers on some platforms.
+ * \note The destination may be an array, a span or a container.
  * \{ */
 
-#define STRNCPY_UTF8(dst, src) BLI_strncpy_utf8(dst, src, ARRAY_SIZE(dst))
-#define STRNCPY_UTF8_RLEN(dst, src) BLI_strncpy_utf8_rlen(dst, src, ARRAY_SIZE(dst))
-
-#define STRNLEN_UTF8(str) BLI_strnlen_utf8(str, ARRAY_SIZE(str))
-
 #define SNPRINTF_UTF8(dst, format, ...) \
-  BLI_snprintf_utf8(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
+  BLI_snprintf_utf8(SPAN_OR_ARRAY_DATA(dst), SPAN_OR_ARRAY_SIZE(dst), format, __VA_ARGS__)
 #define SNPRINTF_UTF8_RLEN(dst, format, ...) \
-  BLI_snprintf_utf8_rlen(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
-#define VSNPRINTF_UTF8(dst, format, args) BLI_vsnprintf_utf8(dst, ARRAY_SIZE(dst), format, args)
+  BLI_snprintf_utf8_rlen(SPAN_OR_ARRAY_DATA(dst), SPAN_OR_ARRAY_SIZE(dst), format, __VA_ARGS__)
+#define VSNPRINTF_UTF8(dst, format, args) \
+  BLI_vsnprintf_utf8(SPAN_OR_ARRAY_DATA(dst), SPAN_OR_ARRAY_SIZE(dst), format, args)
 #define VSNPRINTF_UTF8_RLEN(dst, format, args) \
-  BLI_vsnprintf_utf8_rlen(dst, ARRAY_SIZE(dst), format, args)
+  BLI_vsnprintf_utf8_rlen(SPAN_OR_ARRAY_DATA(dst), SPAN_OR_ARRAY_SIZE(dst), format, args)
+
+/** Copy `src` into `dst` (an array or a #MutableCStr), see #BLI_strncpy_utf8. */
+inline char *STRNCPY_UTF8(MutableCStr dst, const char *src)
+{
+  return BLI_strncpy_utf8(dst.data(), src, dst.size());
+}
+/** A version of #STRNCPY_UTF8 that returns the length of the copied string. */
+inline size_t STRNCPY_UTF8_RLEN(MutableCStr dst, const char *src)
+{
+  return BLI_strncpy_utf8_rlen(dst.data(), src, dst.size());
+}
+
+/** The number of characters in a string, not exceeding its buffer (an array or a span). */
+[[nodiscard]] inline size_t STRNLEN_UTF8(Span<char> str)
+{
+  return BLI_strnlen_utf8(str.data(), str.size());
+}
+/** Non-const arrays only convert to a #MutableCStr. */
+[[nodiscard]] inline size_t STRNLEN_UTF8(MutableCStr str)
+{
+  return BLI_strnlen_utf8(str.data(), str.size());
+}
 
 /** \} */
 

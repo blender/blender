@@ -49,8 +49,9 @@ static metadata::Source scan_external_symbols(const std::vector<std::string> &fi
   for (const auto &dep : include_data.dependencies) {
     std::string file;
     for (const auto &filename : file_list) {
-      if (filename.find(dep) != std::string::npos) {
+      if (std::filesystem::path(filename).filename() == dep) {
         file = filename;
+        break;
       }
     }
 
@@ -206,22 +207,6 @@ int main(int argc, char **argv)
     external_symbols = scan_external_symbols(file_list, visited_files, buffer.str(), filename);
   }
 
-  /* Escape path according to the depfile syntax. */
-  auto escape_path = [](std::string filepath) {
-    size_t pos = 0;
-    while ((pos = filepath.find(' ', pos)) != std::string::npos) {
-      filepath.replace(pos, 1, "\\ ");
-      pos += 2;
-    }
-    return filepath;
-  };
-
-  dep_file << output_file_name << " : ";
-  for (const auto &file : visited_files) {
-    dep_file << escape_path(file) << " ";
-  }
-  dep_file << "\n";
-
   SourceProcessor processor(buffer.str(), input_file_name, language, file_list);
 
   auto [result, metadata, error] = processor.convert(external_symbols);
@@ -238,6 +223,25 @@ int main(int argc, char **argv)
   if (is_info) {
     infos_file << metadata.serialize_infos();
   }
+  if (!metadata.visited_files.empty()) {
+    visited_files = metadata.visited_files;
+  }
+
+  /* Escape path according to the depfile syntax. */
+  auto escape_path = [](std::string filepath) {
+    size_t pos = 0;
+    while ((pos = filepath.find(' ', pos)) != std::string::npos) {
+      filepath.replace(pos, 1, "\\ ");
+      pos += 2;
+    }
+    return filepath;
+  };
+
+  dep_file << output_file_name << " : ";
+  for (const auto &file : visited_files) {
+    dep_file << escape_path(file) << " ";
+  }
+  dep_file << "\n";
 
   input_file.close();
   output_file.close();

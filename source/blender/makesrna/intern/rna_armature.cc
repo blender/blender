@@ -428,7 +428,7 @@ static std::optional<std::string> rna_BoneCollection_path(const PointerRNA *ptr)
 {
   const BoneCollection *bcoll = static_cast<const BoneCollection *>(ptr->data);
   char name_esc[sizeof(bcoll->name) * 2];
-  BLI_str_escape(name_esc, bcoll->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, bcoll->name);
   return fmt::format("collections_all[\"{}\"]", name_esc);
 }
 
@@ -594,7 +594,7 @@ static std::optional<std::string> rna_BoneColor_path_posebone(const PointerRNA *
 #  endif
 
   char name_esc[sizeof(bone->name) * 2];
-  BLI_str_escape(name_esc, bone->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, bone->name);
   return fmt::format("pose.bones[\"{}\"].color", name_esc);
 }
 
@@ -622,7 +622,7 @@ static std::optional<std::string> rna_BoneColor_path_bone(const PointerRNA *ptr)
 #  endif
 
   char name_esc[sizeof(bone->name) * 2];
-  BLI_str_escape(name_esc, bone->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, bone->name);
   return fmt::format("bones[\"{}\"].color", name_esc);
 }
 
@@ -651,7 +651,7 @@ static std::optional<std::string> rna_BoneColor_path_editbone(const PointerRNA *
 #  endif
 
   char name_esc[sizeof(bone->name) * 2];
-  BLI_str_escape(name_esc, bone->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, bone->name);
   return fmt::format("bones[\"{}\"].color", name_esc);
 }
 
@@ -762,7 +762,7 @@ static std::optional<std::string> rna_Bone_path(const PointerRNA *ptr)
   const Bone *bone = static_cast<const Bone *>(ptr->data);
   char name_esc[sizeof(bone->name) * 2];
 
-  BLI_str_escape(name_esc, bone->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, bone->name);
 
   /* special exception for trying to get the path where ID-block is Object
    * - this will be assumed to be from a Pose Bone...
@@ -794,7 +794,7 @@ static std::optional<std::string> rna_EditBone_path(const PointerRNA *ptr)
   EditBone *ebone = static_cast<EditBone *>(ptr->data);
   char name_esc[sizeof(ebone->name) * 2];
 
-  BLI_str_escape(name_esc, ebone->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, ebone->name);
   return fmt::format("edit_bones[\"{}\"]", name_esc);
 }
 

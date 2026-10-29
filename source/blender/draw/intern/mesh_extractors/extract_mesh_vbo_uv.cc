@@ -52,7 +52,7 @@ static VectorSet<StringRef> mesh_extract_uv_format_init(GPUVertFormat *format,
 
   for (const StringRef name : uv_layers) {
     char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-    GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+    GPU_vertformat_safe_attr_name(name, attr_safe_name);
     SNPRINTF_UTF8(attr_name, "a%s", attr_safe_name);
     GPU_vertformat_attr_add(format, attr_name, gpu::VertAttrType::SFLOAT_32_32);
     if (name == default_name) {

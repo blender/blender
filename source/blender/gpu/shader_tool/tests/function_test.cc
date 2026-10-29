@@ -521,6 +521,28 @@ void g() { ns_f(1);  }
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
+  {
+    string input = R"(
+namespace x::y {
+void f(int a);
+}
+void x::y::f(int a) {}
+void g() { x::y::f(1); }
+)";
+    string expect = R"(
+
+
+#ifndef GPU_METAL
+void x_y_f(int a);
+#endif
+#line 5
+void x_y_f(int a) {  }
+void g() { x_y_f(1);   }
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
 }
 
 }  // namespace blender::gpu::tests

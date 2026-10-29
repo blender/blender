@@ -999,11 +999,7 @@ static bool strip_foreach_path_callback(Strip *strip, void *user_data)
     BPathForeachPathData *bpath_data = static_cast<BPathForeachPathData *>(user_data);
 
     if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_SOUND) && se) {
-      BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data,
-                                                   strip->data->dirpath,
-                                                   sizeof(strip->data->dirpath),
-                                                   se->filename,
-                                                   sizeof(se->filename));
+      BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data, strip->data->dirpath, se->filename);
     }
     else if ((strip->type == STRIP_TYPE_IMAGE) && se) {
       /* NOTE: An option not to loop over all strips could be useful? */
@@ -1016,17 +1012,13 @@ static bool strip_foreach_path_callback(Strip *strip, void *user_data)
       }
 
       for (i = 0; i < len; i++, se++) {
-        BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data,
-                                                     strip->data->dirpath,
-                                                     sizeof(strip->data->dirpath),
-                                                     se->filename,
-                                                     sizeof(se->filename));
+        BKE_bpath_foreach_path_dirfile_fixed_process(
+            bpath_data, strip->data->dirpath, se->filename);
       }
     }
     else {
       /* simple case */
-      BKE_bpath_foreach_path_fixed_process(
-          bpath_data, strip->data->dirpath, sizeof(strip->data->dirpath));
+      BKE_bpath_foreach_path_fixed_process(bpath_data, strip->data->dirpath);
     }
   }
   return true;
@@ -3373,7 +3365,7 @@ void BKE_scene_multiview_filepath_get(const SceneRenderView *srv,
                                       char *r_filepath)
 {
   BLI_strncpy(r_filepath, filepath, FILE_MAX);
-  BLI_path_suffix(r_filepath, FILE_MAX, srv->suffix, "");
+  BLI_path_suffix(MutableCStr(r_filepath, FILE_MAX), srv->suffix, "");
 }
 
 void BKE_scene_multiview_view_filepath_get(const RenderData *rd,
@@ -3394,7 +3386,7 @@ void BKE_scene_multiview_view_filepath_get(const RenderData *rd,
   }
 
   BLI_strncpy(r_filepath, filepath, FILE_MAX);
-  BLI_path_suffix(r_filepath, FILE_MAX, suffix, "");
+  BLI_path_suffix(MutableCStr(r_filepath, FILE_MAX), suffix, "");
 }
 
 const char *BKE_scene_multiview_view_suffix_get(const RenderData *rd, const char *viewname)

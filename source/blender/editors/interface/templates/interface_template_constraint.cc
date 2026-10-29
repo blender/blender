@@ -243,7 +243,8 @@ static void object_constraint_panel_id(void *md_link, char *r_idname)
   if (cti == nullptr) {
     return;
   }
-  BLI_string_join(r_idname, BKE_ST_MAXNAME, CONSTRAINT_TYPE_PANEL_PREFIX, cti->struct_name);
+  BLI_string_join(
+      MutableCStr(r_idname, BKE_ST_MAXNAME), CONSTRAINT_TYPE_PANEL_PREFIX, cti->struct_name);
 }
 
 static void bone_constraint_panel_id(void *md_link, char *r_idname)
@@ -255,7 +256,8 @@ static void bone_constraint_panel_id(void *md_link, char *r_idname)
   if (cti == nullptr) {
     return;
   }
-  BLI_string_join(r_idname, BKE_ST_MAXNAME, CONSTRAINT_BONE_TYPE_PANEL_PREFIX, cti->struct_name);
+  BLI_string_join(
+      MutableCStr(r_idname, BKE_ST_MAXNAME), CONSTRAINT_BONE_TYPE_PANEL_PREFIX, cti->struct_name);
 }
 
 void template_constraints(Layout * /*layout*/, bContext *C, bool use_bone_constraints)

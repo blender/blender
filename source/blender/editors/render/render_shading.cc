@@ -113,9 +113,9 @@ static bool object_materials_supported_poll_ex(bContext *C, const Object *ob);
 /** \name Local Utilities
  * \{ */
 
-static void material_copybuffer_filepath_get(char filepath[FILE_MAX], size_t filepath_maxncpy)
+static void material_copybuffer_filepath_get(MutableCStr filepath)
 {
-  BLI_path_join(filepath, filepath_maxncpy, BKE_tempdir_base(), "copybuffer_material.blend");
+  BLI_path_join(filepath, BKE_tempdir_base(), "copybuffer_material.blend");
 }
 
 static bool object_array_for_shading_edit_mode_enabled_filter(const Object *ob, void *user_data)
@@ -2771,7 +2771,7 @@ static wmOperatorStatus copy_material_exec(bContext *C, wmOperator *op)
       nullptr);
 
   char filepath[FILE_MAX];
-  material_copybuffer_filepath_get(filepath, sizeof(filepath));
+  material_copybuffer_filepath_get(filepath);
   copybuffer.write_as_copypaste_buffer(filepath, *op->reports);
 
   /* We are all done! */
@@ -2853,7 +2853,7 @@ static wmOperatorStatus paste_material_exec(bContext *C, wmOperator *op)
 
   /* Read copy buffer .blend file. */
   char filepath[FILE_MAX];
-  material_copybuffer_filepath_get(filepath, sizeof(filepath));
+  material_copybuffer_filepath_get(filepath);
 
   /* NOTE(@ideasman42) The node tree might reference different kinds of ID types.
    * It's not clear-cut which ID types should be included, although it's unlikely

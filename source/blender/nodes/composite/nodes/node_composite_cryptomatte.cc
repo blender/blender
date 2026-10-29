@@ -137,7 +137,7 @@ static void cryptomatte_add(bNode &node, NodeCryptomatte &node_cryptomatte, floa
   entry->encoded_hash = encoded_hash;
   bke::cryptomatte::CryptomatteSessionPtr session = cryptomatte_init_from_node(node, true);
   if (session) {
-    BKE_cryptomatte_find_name(session.get(), encoded_hash, entry->name, sizeof(entry->name));
+    BKE_cryptomatte_find_name(session.get(), encoded_hash, entry->name);
   }
 
   BLI_addtail(&node_cryptomatte.entries, entry);
@@ -190,7 +190,7 @@ void ntreeCompositCryptomatteUpdateLayerNames(bNode *node)
   }
 }
 
-void ntreeCompositCryptomatteLayerPrefix(const bNode *node, char *r_prefix, size_t prefix_maxncpy)
+void ntreeCompositCryptomatteLayerPrefix(const bNode *node, MutableCStr r_prefix)
 {
   BLI_assert(node->type_legacy == CMP_NODE_CRYPTOMATTE);
   NodeCryptomatte *node_cryptomatte = static_cast<NodeCryptomatte *>(node->storage);
@@ -204,14 +204,14 @@ void ntreeCompositCryptomatteLayerPrefix(const bNode *node, char *r_prefix, size
       }
 
       if (layer_name == node_cryptomatte->layer_name) {
-        BLI_strncpy_utf8(r_prefix, node_cryptomatte->layer_name, prefix_maxncpy);
+        STRNCPY_UTF8(r_prefix, node_cryptomatte->layer_name);
         return;
       }
     }
   }
 
   const char *cstr = first_layer_name.c_str();
-  BLI_strncpy_utf8(r_prefix, cstr, prefix_maxncpy);
+  STRNCPY_UTF8(r_prefix, cstr);
 }
 
 CryptomatteSession *ntreeCompositCryptomatteSession(bNode *node)
@@ -824,7 +824,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   std::string get_type_name()
   {
     char type_name[MAX_NAME];
-    ntreeCompositCryptomatteLayerPrefix(&node(), type_name, sizeof(type_name));
+    ntreeCompositCryptomatteLayerPrefix(&node(), type_name);
     return std::string(type_name);
   }
 

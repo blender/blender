@@ -420,6 +420,28 @@ static void wm_region_draw_overlay(bContext *C, const ScrArea *area, ARegion *re
   wmWindowViewport(win);
 }
 
+#ifdef WITH_INPUT_IME
+/**
+ * Draw the IME composition preview over the region,
+ * using the cursor from the last refresh, see #ED_region_do_draw.
+ */
+static void wm_region_draw_ime(const wmWindow *win, const ScrArea *area, const ARegion *region)
+{
+  if (!region->runtime->ime_cursor) {
+    return;
+  }
+  const wmIMEData *ime_data = WM_window_IME_data_get(win, region);
+  if (ime_data == nullptr) {
+    return;
+  }
+  wmViewport(&region->winrct);
+  wmOrtho2_region_pixelspace(region);
+  ui::theme::theme_set(area->spacetype, region->regiontype);
+  wm_window_IME_region_preview_draw(region, *ime_data, *region->runtime->ime_cursor);
+  wmWindowViewport(win);
+}
+#endif
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1193,6 +1215,9 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
       if (!region.runtime->visible) {
         continue;
       }
+#ifdef WITH_INPUT_IME
+      wm_region_draw_ime(win, area, &region);
+#endif
       const bool do_paint_cursor = (wm->runtime->paintcursors.first() &&
                                     &region == screen->active_region);
       const bool do_draw_overlay = (region.runtime->type && region.runtime->type->draw_overlay);
@@ -1561,9 +1586,24 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
   return true;
 }
 
+/**
+ * Return true when the front-buffer can be read reliably.
+ */
+static bool wm_window_pixels_read_use_frontbuffer()
+{
+  if ((WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ) == 0) {
+    return false;
+  }
+  /* Not part of #WM_capabilities_flag as it depends on the GPU driver, not GHOST. */
+  if (GPU_frontbuffer_read_workaround()) {
+    return false;
+  }
+  return true;
+}
+
 uint8_t *WM_window_pixels_read(bContext *C, wmWindow *win, int r_size[2])
 {
-  if (WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ) {
+  if (wm_window_pixels_read_use_frontbuffer()) {
     return WM_window_pixels_read_from_frontbuffer(CTX_wm_manager(C), win, r_size);
   }
   return WM_window_pixels_read_from_offscreen(C, win, r_size);
@@ -1571,7 +1611,7 @@ uint8_t *WM_window_pixels_read(bContext *C, wmWindow *win, int r_size[2])
 
 bool WM_window_pixels_read_sample(bContext *C, wmWindow *win, const int pos[2], float r_col[3])
 {
-  if (WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ) {
+  if (wm_window_pixels_read_use_frontbuffer()) {
     WM_window_pixels_read_sample_from_frontbuffer(CTX_wm_manager(C), win, pos, r_col);
     return true;
   }

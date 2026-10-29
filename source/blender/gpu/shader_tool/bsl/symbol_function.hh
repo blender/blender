@@ -187,6 +187,8 @@ struct SymbolFunction : SymbolScope {
 
   void reserve_arguments(int n);
 
+  bool is_compatible(ResourceType res_type);
+
   static Result<vector<SymbolClass *>> to_arg_types(const SymbolTable &table,
                                                     const SymbolScope &scope,
                                                     ast::FuncParamList list);
@@ -199,5 +201,7 @@ struct SymbolFunction : SymbolScope {
   optional<vector<MatchRank>> get_match_ranks(const SymbolTable &table,
                                               const vector<SymbolClass *> &param_types) const;
 };
+
+std::string to_str(SymbolFunction::EntryPointType type);
 
 }  // namespace bsl

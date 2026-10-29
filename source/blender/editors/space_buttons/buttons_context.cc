@@ -1355,7 +1355,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
     /* Add icon and name. */
     int icon = RNA_struct_ui_icon(ptr->type);
     char namebuf[128];
-    char *name = RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf), nullptr);
+    char *name = RNA_struct_name_get_alloc(ptr, namebuf, nullptr);
 
     if (name) {
       uiItemLDrag(&row, ptr, name, icon);

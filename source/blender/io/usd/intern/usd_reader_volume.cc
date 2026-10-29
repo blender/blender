@@ -64,7 +64,7 @@ void USDVolumeReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
           const int start = int(filePathTimes.front());
           const int end = int(filePathTimes.back());
           const int offset = BLI_path_sequence_decode(
-              volume->filepath, nullptr, 0, nullptr, 0, nullptr);
+              volume->filepath, std::nullopt, std::nullopt, nullptr);
 
           volume->is_sequence = char(true);
           volume->frame_start = start;

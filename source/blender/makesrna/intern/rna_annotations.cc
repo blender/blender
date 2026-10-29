@@ -140,7 +140,7 @@ static std::optional<std::string> rna_annotation_layer_path(const PointerRNA *pt
   bGPDlayer *gpl = static_cast<bGPDlayer *>(ptr->data);
   char name_esc[sizeof(gpl->info) * 2];
 
-  BLI_str_escape(name_esc, gpl->info, sizeof(name_esc));
+  BLI_str_escape(name_esc, gpl->info);
 
   return fmt::format("layers[\"{}\"]", name_esc);
 }

@@ -254,19 +254,19 @@ uint4 _a(A this_) {
   return floatBitsToUint(this_._0);
 }
 void _a_set_(_ref(A ,this_), uint4 v) {
-  this_._0 = uintBitsToFloat(v.a);
+  this_._0 = uintBitsToFloat(v);
 }
 int4 _b(A this_) {
   return floatBitsToInt(this_._0);
 }
 void _b_set_(_ref(A ,this_), int4 v) {
-  this_._0 = intBitsToFloat(v.b);
+  this_._0 = intBitsToFloat(v);
 }
 float4 _c(A this_) {
   return this_._0;
 }
 void _c_set_(_ref(A ,this_), float4 v) {
-  this_._0 = v.c;
+  this_._0 = v;
 }
 #line 8
 )";
@@ -301,13 +301,13 @@ uint4 _a(A_a0 this_) {
   return floatBitsToUint(this_._0);
 }
 void _a_set_(_ref(A_a0 ,this_), uint4 v) {
-  this_._0 = uintBitsToFloat(v.a);
+  this_._0 = uintBitsToFloat(v);
 }
 int4 _b(A_a0 this_) {
   return floatBitsToInt(this_._0);
 }
 void _b_set_(_ref(A_a0 ,this_), int4 v) {
-  this_._0 = intBitsToFloat(v.b);
+  this_._0 = intBitsToFloat(v);
 }
 #line 2
 struct A {
@@ -560,7 +560,7 @@ uint4 _c(A_a0 this_) {
   return floatBitsToUint(this_._0);
 }
 void _c_set_(_ref(A_a0 ,this_), uint4 v) {
-  this_._0 = uintBitsToFloat(v.c);
+  this_._0 = uintBitsToFloat(v);
 }
 #line 13
   struct A_a1 {
@@ -582,7 +582,7 @@ uint4 _e(A_a1 this_) {
   return floatBitsToUint(this_._0);
 }
 void _e_set_(_ref(A_a1 ,this_), uint4 v) {
-  this_._0 = uintBitsToFloat(v.e);
+  this_._0 = uintBitsToFloat(v);
 }
 #line 5
 struct A {
@@ -1283,8 +1283,8 @@ void f(A t)
 {
   t.a += 1;
   t.a *= 1;
-  t.a /= 1;
-  t.a -= 1;
+  t.a /= 1 + 2;
+  t.a -= 1 * 2;
   t.a <<= 1;
   t.a >>= 1;
 }
@@ -1298,12 +1298,12 @@ A A_ctor_() {A r;r.a=0;return r;}
 #line 6
 void f(A t)
 {
-  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) + 1, 0, 2) ;
-  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) * 1, 0, 2) ;
-  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) / 1, 0, 2) ;
-  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) - 1, 0, 2) ;
-  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2)  <<  1, 0, 2) ;
-  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2)  >>  1, 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) + (1), 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) * (1), 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) / (1 + 2), 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2) - (1 * 2), 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2)  <<  (1), 0, 2) ;
+  bitfieldInsertAssign(t.a, bitfieldExtract(t.a, 0, 2)  >>  (1), 0, 2) ;
 }
 )";
     auto [output, _, error] = process_test_string(input, Language::BSL);
@@ -1319,7 +1319,29 @@ struct A {
 void f(A t)
 {
   t.a++;
-}
+})";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Increment and decrement operators are not supported on bitfield");
+  }
+  {
+    string input = R"(
+struct A {
+  int a : 2;
+  void f() { a += 1; }
+};
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_NE(
+        output.find("bitfieldInsertAssign(this_.a, bitfieldExtract(this_.a, 0, 2) + (1), 0, 2)"),
+        string::npos);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+struct A {
+  int a : 2;
+  void f() { a++; }
+};
 )";
     auto [output, _, error] = process_test_string(input, Language::BSL);
     EXPECT_EQ(error, "Increment and decrement operators are not supported on bitfield");

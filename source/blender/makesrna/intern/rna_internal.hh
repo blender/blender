@@ -11,6 +11,7 @@
 #include <cstdint>
 
 #include "BLI_compiler_attrs.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.hh"
 
@@ -342,18 +343,9 @@ StructRNA *rna_PropertyGroup_refine(PointerRNA *ptr);
 void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index);
 int rna_object_vgroup_name_index_length(PointerRNA *ptr, int index);
 void rna_object_vgroup_name_index_set(PointerRNA *ptr, const char *value, short *index);
-void rna_object_vgroup_name_set(PointerRNA *ptr,
-                                const char *value,
-                                char *result,
-                                int result_maxncpy);
-void rna_object_uvlayer_name_set(PointerRNA *ptr,
-                                 const char *value,
-                                 char *result,
-                                 int result_maxncpy);
-void rna_object_vcollayer_name_set(PointerRNA *ptr,
-                                   const char *value,
-                                   char *result,
-                                   int result_maxncpy);
+void rna_object_vgroup_name_set(PointerRNA *ptr, const char *value, MutableCStr result);
+void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, MutableCStr result);
+void rna_object_vcollayer_name_set(PointerRNA *ptr, const char *value, MutableCStr result);
 PointerRNA rna_object_shapekey_index_get(ID *id, int value);
 int rna_object_shapekey_index_set(ID *id, PointerRNA value, int current);
 
@@ -402,12 +394,10 @@ int rna_ViewLayer_active_lightgroup_index_get(PointerRNA *ptr);
 void rna_ViewLayer_active_lightgroup_index_set(PointerRNA *ptr, int value);
 /**
  * Set `r_rna_path` with the base view-layer path.
- * `r_rna_path_maxncpy` should be at least `sizeof(ViewLayer.name) * 3`.
+ * `r_rna_path.size()` should be at least `sizeof(ViewLayer.name) * 3`.
  * \return actual length of the generated RNA path.
  */
-size_t rna_ViewLayer_path_buffer_get(const ViewLayer *view_layer,
-                                     char *r_rna_path,
-                                     const size_t r_rna_path_maxncpy);
+size_t rna_ViewLayer_path_buffer_get(const ViewLayer *view_layer, MutableCStr r_rna_path);
 
 /* named internal so as not to conflict with obj.update() rna func */
 void rna_Object_internal_update_data(Main *bmain, Scene *scene, PointerRNA *ptr);

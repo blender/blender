@@ -127,8 +127,7 @@ static void camera_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   Camera *camera = reinterpret_cast<Camera *>(id);
 
   if (camera->custom_filepath[0]) {
-    BKE_bpath_foreach_path_fixed_process(
-        bpath_data, camera->custom_filepath, sizeof(camera->custom_filepath));
+    BKE_bpath_foreach_path_fixed_process(bpath_data, camera->custom_filepath);
   }
 }
 

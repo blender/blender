@@ -1685,12 +1685,17 @@ struct ShaderCreateInfo {
   std::string resource_guard_defines(Span<CompilationConstant> constants) const;
   std::string iface_guard_defines() const;
 
-  void extend_predicate(Vector<Resource, 0> &resource_vector,
-                        ShaderCreateInfo::Resource res_copy,
-                        Span<ConditionFn> additional_conditions) const;
-  void extend_predicate(Vector<PushConst, 0> &resource_vector,
-                        ShaderCreateInfo::PushConst res_copy,
-                        Span<ConditionFn> additional_conditions) const;
+  /** Append #copy with #additional_conditions added to its own. */
+  template<typename T>
+  void extend_predicate(Vector<T, 0> &vector,
+                        T copy,
+                        Span<ConditionFn> additional_conditions) const
+  {
+    copy.conditions.extend(additional_conditions);
+    /* IMPORTANT: We keep duplicates until we evaluate the conditions. */
+    vector.append(copy);
+  }
+
   void assert_no_overlap(const ShaderCreateInfo &info,
                          const bool test,
                          const StringRefNull error) const;

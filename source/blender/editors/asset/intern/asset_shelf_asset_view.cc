@@ -415,7 +415,7 @@ static std::string filter_string_get(const AssetShelf &shelf)
   /* Copy of the filter string from #AssetShelfSettings, with extra '*' added to the beginning and
    * end of the string, for `fnmatch()` to work. */
   char search_string[sizeof(AssetShelfSettings::search_string) + 2];
-  BLI_strncpy_ensure_pad(search_string, shelf.settings.search_string, '*', sizeof(search_string));
+  BLI_strncpy_ensure_pad(search_string, shelf.settings.search_string, '*');
   return search_string;
 }
 

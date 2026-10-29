@@ -299,10 +299,8 @@ AssetCatalog *AssetCatalogService::create_catalog(const AssetCatalogPath &catalo
 static std::string asset_definition_default_file_path_from_dir(StringRef asset_library_root)
 {
   char file_path[PATH_MAX];
-  BLI_path_join(file_path,
-                sizeof(file_path),
-                asset_library_root.data(),
-                AssetCatalogService::DEFAULT_CATALOG_FILENAME.data());
+  BLI_path_join(
+      file_path, asset_library_root.data(), AssetCatalogService::DEFAULT_CATALOG_FILENAME.data());
   return file_path;
 }
 
@@ -559,16 +557,14 @@ CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
       blend_file_path);
   if (!suitable_root_path.empty()) {
     char asset_lib_cdf_path[PATH_MAX];
-    BLI_path_join(asset_lib_cdf_path,
-                  sizeof(asset_lib_cdf_path),
-                  suitable_root_path.c_str(),
-                  DEFAULT_CATALOG_FILENAME.c_str());
+    BLI_path_join(
+        asset_lib_cdf_path, suitable_root_path.c_str(), DEFAULT_CATALOG_FILENAME.c_str());
     return asset_lib_cdf_path;
   }
 
   /* Determine the default CDF path in the same directory of the blend file. */
   char blend_dir_path[PATH_MAX];
-  BLI_path_split_dir_part(blend_file_path.c_str(), blend_dir_path, sizeof(blend_dir_path));
+  BLI_path_split_dir_part(blend_file_path.c_str(), blend_dir_path);
   const CatalogFilePath cdf_path_next_to_blend = asset_definition_default_file_path_from_dir(
       blend_dir_path);
   return cdf_path_next_to_blend;

@@ -120,26 +120,24 @@ void BLI_string_replace_char(char *str, char src, char dst)
   }
 }
 
-bool BLI_string_replace_table_exact(char *string,
-                                    const size_t string_maxncpy,
+bool BLI_string_replace_table_exact(MutableCStr string,
                                     const char *replace_table[][2],
                                     int replace_table_len)
 {
-  BLI_string_debug_size_after_nil(string, string_maxncpy);
+  BLI_string_debug_size_after_nil(string);
 
   for (int i = 0; i < replace_table_len; i++) {
-    if (STREQ(string, replace_table[i][0])) {
-      BLI_strncpy(string, replace_table[i][1], string_maxncpy);
+    if (STREQ(string.data(), replace_table[i][0])) {
+      STRNCPY(string, replace_table[i][1]);
       return true;
     }
   }
   return false;
 }
 
-size_t BLI_string_replace_range(
-    char *string, size_t string_maxncpy, int src_beg, int src_end, const char *dst)
+size_t BLI_string_replace_range(MutableCStr string, int src_beg, int src_end, const char *dst)
 {
-  int string_len = int(strlen(string));
+  int string_len = int(strlen(string.data()));
   BLI_assert(src_beg <= src_end);
   BLI_assert(src_end <= string_len);
   const int src_len = src_end - src_beg;
@@ -149,29 +147,33 @@ size_t BLI_string_replace_range(
     /* Grow, first handle special cases. */
 
     /* Special case, the src_end is entirely clipped. */
-    if (int(string_maxncpy) <= src_beg + dst_len) [[unlikely]] {
+    if (string.size() <= src_beg + dst_len) [[unlikely]] {
       /* There is only room for the destination. */
-      dst_len = (int(string_maxncpy) - src_beg) - 1;
+      dst_len = (int(string.size()) - src_beg) - 1;
       string_len = src_end;
       string[string_len] = '\0';
     }
 
     const int ofs = dst_len - src_len;
-    /* Clip the string when inserting the destination string exceeds `string_maxncpy`. */
-    if (string_len + ofs >= int(string_maxncpy)) {
-      string_len = (int(string_maxncpy) - ofs) - 1;
+    /* Clip the string when inserting the destination string exceeds `string.size()`. */
+    if (string_len + ofs >= string.size()) {
+      string_len = (int(string.size()) - ofs) - 1;
       string[string_len] = '\0';
       BLI_assert(src_end <= string_len);
     }
 
     /* Grow. */
-    memmove(string + (src_end + ofs), string + src_end, size_t(string_len - src_end) + 1);
+    memmove(string.data() + (src_end + ofs),
+            string.data() + src_end,
+            size_t(string_len - src_end) + 1);
     string_len += ofs;
   }
   else if (src_len > dst_len) {
     /* Shrink. */
     const int ofs = src_len - dst_len;
-    memmove(string + (src_end - ofs), string + src_end, size_t(string_len - src_end) + 1);
+    memmove(string.data() + (src_end - ofs),
+            string.data() + src_end,
+            size_t(string_len - src_end) + 1);
     string_len -= ofs;
   }
   else { /* Simple case, no resizing. */
@@ -179,7 +181,7 @@ size_t BLI_string_replace_range(
   }
 
   if (dst_len > 0) {
-    memcpy(string + src_beg, dst, size_t(dst_len));
+    memcpy(string.data() + src_beg, dst, size_t(dst_len));
   }
   BLI_assert(string[string_len] == '\0');
   return size_t(string_len);
@@ -294,12 +296,12 @@ void BLI_string_split_prefix(const char *string,
   BLI_strncpy(r_body, string, len);
 }
 
-size_t BLI_string_flip_side_name(char *name_dst,
+size_t BLI_string_flip_side_name(MutableCStr name_dst,
                                  const char *name_src,
-                                 const bool strip_number,
-                                 const size_t name_dst_maxncpy)
+                                 const bool strip_number)
 {
-  BLI_string_debug_size(name_dst, name_dst_maxncpy);
+  const size_t name_dst_maxncpy = size_t(name_dst.size());
+  BLI_string_debug_size(name_dst);
 
   size_t len;
   char *prefix = static_cast<char *>(alloca(name_dst_maxncpy)); /* The part before the facing */
@@ -312,30 +314,30 @@ size_t BLI_string_flip_side_name(char *name_dst,
   *prefix = *suffix = *number = '\0';
 
   /* always copy the name, since this can be called with an uninitialized string */
-  len = BLI_strncpy_utf8_rlen(name_dst, name_src, name_dst_maxncpy);
+  len = STRNCPY_UTF8_RLEN(name_dst, name_src);
   if (len < 3) {
     /* We don't support names such as `.R` or `.L`. */
     return len;
   }
 
   /* We first check the case with a .### extension, let's find the last period */
-  if (isdigit(name_dst[len - 1])) {
-    index = strrchr(name_dst, '.');   /* Last occurrence. */
+  if (isdigit(name_dst.data()[len - 1])) {
+    index = strrchr(name_dst.data(), '.'); /* Last occurrence. */
     if (index && isdigit(index[1])) { /* Doesn't handle case `bone.1abc2` correct..., whatever! */
       if (strip_number == false) {
         BLI_strncpy_utf8(number, index, name_dst_maxncpy);
       }
       *index = '\0';
-      len = size_t(index - name_dst); /* Same as `strlen(name_dst)`. */
+      len = size_t(index - name_dst.data()); /* Same as `strlen(name_dst)`. */
     }
   }
 
-  BLI_strncpy_utf8(prefix, name_dst, name_dst_maxncpy);
+  BLI_strncpy_utf8(prefix, name_dst.data(), name_dst_maxncpy);
 
   /* First case; separator (`.` or `_`) with extensions in `r R l L`. */
-  if ((len > 1) && is_char_sep(name_dst[len - 2])) {
+  if ((len > 1) && is_char_sep(name_dst.data()[len - 2])) {
     is_set = true;
-    switch (name_dst[len - 1]) {
+    switch (name_dst.data()[len - 1]) {
       case 'l':
         prefix[len - 1] = 0;
         replace = "r";
@@ -363,22 +365,22 @@ size_t BLI_string_flip_side_name(char *name_dst,
     switch (name_dst[0]) {
       case 'l':
         replace = "r";
-        BLI_strncpy_utf8(suffix, name_dst + 1, name_dst_maxncpy);
+        BLI_strncpy_utf8(suffix, name_dst.data() + 1, name_dst_maxncpy);
         prefix[0] = 0;
         break;
       case 'r':
         replace = "l";
-        BLI_strncpy_utf8(suffix, name_dst + 1, name_dst_maxncpy);
+        BLI_strncpy_utf8(suffix, name_dst.data() + 1, name_dst_maxncpy);
         prefix[0] = 0;
         break;
       case 'L':
         replace = "R";
-        BLI_strncpy_utf8(suffix, name_dst + 1, name_dst_maxncpy);
+        BLI_strncpy_utf8(suffix, name_dst.data() + 1, name_dst_maxncpy);
         prefix[0] = 0;
         break;
       case 'R':
         replace = "L";
-        BLI_strncpy_utf8(suffix, name_dst + 1, name_dst_maxncpy);
+        BLI_strncpy_utf8(suffix, name_dst.data() + 1, name_dst_maxncpy);
         prefix[0] = 0;
         break;
       default:
@@ -412,8 +414,7 @@ size_t BLI_string_flip_side_name(char *name_dst,
     }
   }
 
-  return BLI_snprintf_utf8_rlen(
-      name_dst, name_dst_maxncpy, "%s%s%s%s", prefix, replace ? replace : "", suffix, number);
+  return SNPRINTF_UTF8_RLEN(name_dst, "%s%s%s%s", prefix, replace ? replace : "", suffix, number);
 }
 
 /* Unique name utils. */
@@ -421,21 +422,21 @@ size_t BLI_string_flip_side_name(char *name_dst,
 void BLI_uniquename_cb(FunctionRef<bool(StringRefNull)> unique_check,
                        const char *defname,
                        char delim,
-                       char *name,
-                       size_t name_maxncpy)
+                       MutableCStr name)
 {
-  BLI_string_debug_size_after_nil(name, name_maxncpy);
+  const size_t name_maxncpy = size_t(name.size());
+  BLI_string_debug_size_after_nil(name);
 
   if (name[0] == '\0') {
-    BLI_strncpy_utf8(name, defname, name_maxncpy);
+    STRNCPY_UTF8(name, defname);
   }
 
-  if (unique_check(name)) {
+  if (unique_check(name.data())) {
     char numstr[16];
     char *tempname = static_cast<char *>(alloca(name_maxncpy));
     char *left = static_cast<char *>(alloca(name_maxncpy));
     int number;
-    size_t len = BLI_string_split_name_number(name, delim, left, &number);
+    size_t len = BLI_string_split_name_number(name.data(), delim, left, &number);
     do {
       const size_t numlen = SNPRINTF_UTF8(numstr, "%c%03d", delim, ++number);
 
@@ -452,7 +453,7 @@ void BLI_uniquename_cb(FunctionRef<bool(StringRefNull)> unique_check,
       }
     } while (unique_check(tempname));
     /* There will always be enough room for this string. */
-    BLI_strncpy_utf8(name, tempname, name_maxncpy);
+    STRNCPY_UTF8(name, tempname);
   }
 }
 
@@ -516,8 +517,7 @@ void BLI_uniquename(const ListBase *list,
       },
       defname,
       delim,
-      static_cast<char *>(POINTER_OFFSET(vlink, name_offset)),
-      name_maxncpy);
+      MutableCStr(static_cast<char *>(POINTER_OFFSET(vlink, name_offset)), int64_t(name_maxncpy)));
 }
 
 size_t BLI_string_len_array(const char *strings[], uint strings_num)
@@ -540,15 +540,12 @@ size_t BLI_string_len_array(const char *strings[], uint strings_num)
  *
  * \{ */
 
-size_t BLI_string_join_array(char *result,
-                             size_t result_maxncpy,
-                             const char *strings[],
-                             uint strings_num)
+size_t BLI_string_join_array(MutableCStr result, const char *strings[], uint strings_num)
 {
-  BLI_string_debug_size(result, result_maxncpy);
+  BLI_string_debug_size(result);
 
-  char *c = result;
-  char *c_end = &result[result_maxncpy - 1];
+  char *c = result.data();
+  char *c_end = &result.last();
   for (uint i = 0; i < strings_num; i++) {
     const char *p = strings[i];
     while (*p) {
@@ -560,16 +557,18 @@ size_t BLI_string_join_array(char *result,
     }
   }
   *c = '\0';
-  return size_t(c - result);
+  return size_t(c - result.data());
 }
 
-size_t BLI_string_join_array_by_sep_char(
-    char *result, size_t result_maxncpy, char sep, const char *strings[], uint strings_num)
+size_t BLI_string_join_array_by_sep_char(MutableCStr result,
+                                         char sep,
+                                         const char *strings[],
+                                         uint strings_num)
 {
-  BLI_string_debug_size(result, result_maxncpy);
+  BLI_string_debug_size(result);
 
-  char *c = result;
-  char *c_end = &result[result_maxncpy - 1];
+  char *c = result.data();
+  char *c_end = &result.last();
   for (uint i = 0; i < strings_num; i++) {
     if (i != 0) {
       if (!(c < c_end)) [[unlikely]] {
@@ -587,7 +586,7 @@ size_t BLI_string_join_array_by_sep_char(
     }
   }
   *c = '\0';
-  return size_t(c - result);
+  return size_t(c - result.data());
 }
 
 char *BLI_string_join_arrayN(const char *strings[], uint strings_num)

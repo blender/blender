@@ -401,8 +401,9 @@ void PathTraceWorkCPU::guiding_init_kernel_globals(void *guiding_field,
     kg.opgl_sample_data_storage = (openpgl::cpp::SampleStorage *)sample_data_storage;
 
     if (train) {
-      kg.opgl_path_segment_storage->Reserve(kg.data.integrator.transparent_max_bounce +
-                                            kg.data.integrator.max_bounce + 3);
+      kg.opgl_path_segment_storage_size = kg.data.integrator.transparent_max_bounce +
+                                          kg.data.integrator.max_bounce + 3;
+      kg.opgl_path_segment_storage->Reserve(kg.opgl_path_segment_storage_size);
       kg.opgl_path_segment_storage->Clear();
     }
   }

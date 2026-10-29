@@ -479,7 +479,9 @@ vector<SymbolVariable *> SymbolScope::non_static_variables_in_declaration_order(
   assert(this->type == CLASS);
   vector<SymbolVariable *> members;
   for (const auto &[k, v] : variables) {
-    members.emplace_back(v.second);
+    if (!v.second->is_static) {
+      members.emplace_back(v.second);
+    }
   }
 
   /* Sort elements to guarantee deterministic order. */

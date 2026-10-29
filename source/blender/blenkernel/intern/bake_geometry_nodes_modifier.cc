@@ -118,8 +118,7 @@ static std::optional<std::string> resolve_bake_directory(const Main &bmain,
   BKE_blender_project_read_callback(&bmain, [&](const BlenderProject *project) {
     BKE_add_template_variables_general(variables, &object.id, project);
   });
-  if (!BKE_path_apply_template(absolute_bake_dir, sizeof(absolute_bake_dir), variables).is_empty())
-  {
+  if (!BKE_path_apply_template(absolute_bake_dir, variables).is_empty()) {
     return std::nullopt;
   }
   if (absolute_bake_dir[0] == '\0') {
@@ -182,8 +181,7 @@ std::optional<bake::BakePath> get_node_bake_path(const Main &bmain,
     return std::nullopt;
   }
   char bake_dir[FILE_MAX];
-  BLI_path_join(
-      bake_dir, sizeof(bake_dir), modifier_bake_path->c_str(), std::to_string(node_id).c_str());
+  BLI_path_join(bake_dir, modifier_bake_path->c_str(), std::to_string(node_id).c_str());
   return bake::BakePath::from_single_root(bake_dir);
 }
 
@@ -235,7 +233,7 @@ static std::string get_blend_file_name(const Main &bmain)
   const StringRefNull blend_file_path = BKE_main_blendfile_path(&bmain);
   char blend_name[FILE_MAX];
 
-  BLI_path_split_file_part(blend_file_path.c_str(), blend_name, sizeof(blend_name));
+  BLI_path_split_file_part(blend_file_path.c_str(), blend_name);
   const int64_t type_start_index = StringRef(blend_name).rfind(".");
   if (type_start_index == StringRef::not_found) {
     return "";
@@ -258,7 +256,6 @@ std::string get_default_modifier_bake_directory(const Main &bmain,
   char dir[FILE_MAX];
   /* Make path that's relative to the .blend file. */
   BLI_path_join(dir,
-                sizeof(dir),
                 "//",
                 get_blend_file_name(bmain).c_str(),
                 get_modifier_directory_name(object, nmd.modifier).c_str());
@@ -272,7 +269,6 @@ std::string get_default_node_bake_directory(const Main &bmain,
 {
   char dir[FILE_MAX];
   BLI_path_join(dir,
-                sizeof(dir),
                 "//",
                 get_blend_file_name(bmain).c_str(),
                 get_modifier_directory_name(object, nmd.modifier).c_str(),

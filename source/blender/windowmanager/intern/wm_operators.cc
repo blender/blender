@@ -1171,7 +1171,6 @@ static ui::Block *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
                                         static_cast<IDProperty *>(op->ptr->data),
                                         search,
                                         ICON_VIEWZOOM,
-                                        sizeof(search),
                                         0,
                                         0,
                                         width,
@@ -1267,7 +1266,7 @@ bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const ImageFormatData
   /* Don't nullptr check prop, this can only run on ops with a 'filepath'. */
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
   RNA_property_string_get(op->ptr, prop, filepath);
-  if (BKE_image_path_ext_from_imformat_ensure(filepath, sizeof(filepath), im_format)) {
+  if (BKE_image_path_ext_from_imformat_ensure(filepath, im_format)) {
     RNA_property_string_set(op->ptr, prop, filepath);
     /* NOTE: we could check for and update 'filename' here,
      * but so far nothing needs this. */
@@ -2079,15 +2078,8 @@ static ui::Block *wm_block_search_menu(bContext *C, ARegion *region, void *userd
   block_flag_enable(block, ui::BLOCK_LOOP | ui::BLOCK_MOVEMOUSE_QUIT | ui::BLOCK_SEARCH_MENU);
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_POPUP);
 
-  ui::Button *but = uiDefSearchBut(block,
-                                   g_search_text,
-                                   ICON_VIEWZOOM,
-                                   sizeof(g_search_text),
-                                   0,
-                                   0,
-                                   init_data->size[0],
-                                   UI_UNIT_Y,
-                                   "");
+  ui::Button *but = uiDefSearchBut(
+      block, g_search_text, ICON_VIEWZOOM, 0, 0, init_data->size[0], UI_UNIT_Y, "");
 
   if (init_data->search_type == SEARCH_TYPE_OPERATOR) {
     button_func_operator_search(but);

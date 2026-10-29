@@ -76,8 +76,8 @@ bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **
 
   /* swap back names so animation fcurves don't get swapped */
   STRNCPY(name, strip_a->name + 2);
-  BLI_strncpy(strip_a->name + 2, strip_b->name + 2, sizeof(strip_b->name) - 2);
-  BLI_strncpy(strip_b->name + 2, name, sizeof(strip_b->name) - 2);
+  STRNCPY(MutableCStr(strip_a->name).drop_front(2), strip_b->name + 2);
+  STRNCPY(MutableCStr(strip_b->name).drop_front(2), name);
 
   /* swap back opacity, and overlay mode */
   std::swap(strip_a->blend_mode, strip_b->blend_mode);

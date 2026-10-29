@@ -1177,7 +1177,7 @@ static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
     /* Better not show the value of a password. */
     if ((rnaprop && (RNA_property_subtype(rnaprop) == PROP_PASSWORD)) == 0) {
       /* Full string. */
-      button_string_get(but, buf, sizeof(buf));
+      button_string_get(but, buf);
       if (buf[0]) {
         tooltip_text_field_add(*data,
                                fmt::format(fmt::runtime(TIP_("Value: {}")), buf),
@@ -1203,7 +1203,7 @@ static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
       BLI_assert(variables.has_value());
 
       const blender::Vector<blender::bke::path_templates::Error> errors = BKE_path_apply_template(
-          filepath, sizeof(filepath), *variables);
+          filepath, *variables);
 
       if (errors.is_empty()) {
         tooltip_text_field_add(
@@ -1230,7 +1230,7 @@ static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
     }
 
     if (but->flag & BUT_DRIVEN) {
-      if (button_anim_expression_get(but, buf, sizeof(buf))) {
+      if (button_anim_expression_get(but, buf)) {
         tooltip_text_field_add(*data,
                                fmt::format(fmt::runtime(TIP_("Expression: {}")), buf),
                                {},
@@ -1838,7 +1838,7 @@ static void tooltip_from_image(Image &ima, TooltipData &data)
 {
   if (ima.filepath[0]) {
     char root[FILE_MAX];
-    BLI_path_split_dir_part(ima.filepath, root, FILE_MAX);
+    BLI_path_split_dir_part(ima.filepath, root);
     tooltip_text_field_add(data, root, {}, TIP_STYLE_NORMAL, TIP_LC_VALUE, true);
   }
 
@@ -1913,7 +1913,7 @@ static void tooltip_from_clip(MovieClip &clip, TooltipData &data)
 {
   if (clip.filepath[0]) {
     char root[FILE_MAX];
-    BLI_path_split_dir_part(clip.filepath, root, FILE_MAX);
+    BLI_path_split_dir_part(clip.filepath, root);
     tooltip_text_field_add(data, root, {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
   }
 

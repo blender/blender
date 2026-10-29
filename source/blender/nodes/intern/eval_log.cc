@@ -48,6 +48,8 @@
 
 #include "MOD_nodes.hh"
 
+#include "WM_api.hh"
+
 #include "UI_resources.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -1034,31 +1036,46 @@ static NodesEvalLog *get_compositor_root_log(const SpaceNode &space_node)
   return nullptr;
 }
 
-static NodesEvalLog *get_root_log(const SpaceNode &snode)
+/* Stores a nodes evaluation log as well as the node editor it corresponds to. */
+struct LogWithNodeEditor {
+  NodesEvalLog *log;
+  const SpaceNode *space_node;
+};
+
+static LogWithNodeEditor get_root_log(const bContext &C)
 {
-  if (ED_node_is_geometry(&snode)) {
-    return get_geometry_nodes_root_log(snode);
+  const SpaceNode *snode = CTX_wm_space_node(&C);
+  if (snode && ED_node_is_geometry(snode)) {
+    return {get_geometry_nodes_root_log(*snode), snode};
   }
 
-  if (ED_node_is_compositor(&snode)) {
-    return get_compositor_root_log(snode);
+  if (snode && ED_node_is_compositor(snode)) {
+    return {get_compositor_root_log(*snode), snode};
   }
 
-  return nullptr;
+  ScrArea *area = CTX_wm_area(&C);
+  if (bke::compositor::is_compositor_viewer_visible(*area)) {
+    const Scene *scene = CTX_data_scene(&C);
+    const SpaceNode *space_node = bke::compositor::get_active_compositor_node_editor(C);
+    return {scene->runtime->compositor.nodes_evaluation_log.get(), space_node};
+  }
+
+  return {nullptr, nullptr};
 }
 
-ContextualNodeTreeLogs NodesEvalLog::get_contextual_tree_logs(const SpaceNode &snode)
+ContextualNodeTreeLogs NodesEvalLog::get_contextual_tree_logs(const bContext &C)
 {
-  NodesEvalLog *log = get_root_log(snode);
-  if (!log) {
+  const LogWithNodeEditor log_with_node_editor = get_root_log(C);
+  if (!log_with_node_editor.log || !log_with_node_editor.space_node) {
     return {};
   }
   bke::ComputeContextCache compute_context_cache;
   const Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone =
-      NodesEvalLog::get_context_hash_by_zone_for_node_editor(snode, compute_context_cache);
+      NodesEvalLog::get_context_hash_by_zone_for_node_editor(*log_with_node_editor.space_node,
+                                                             compute_context_cache);
   Map<const bke::bNodeTreeZone *, NodeTreeLog *> tree_logs_by_zone;
   for (const auto item : hash_by_zone.items()) {
-    NodeTreeLog &tree_log = log->get_tree_log(item.value);
+    NodeTreeLog &tree_log = log_with_node_editor.log->get_tree_log(item.value);
     tree_logs_by_zone.add(item.key, &tree_log);
   }
   return {tree_logs_by_zone};

@@ -371,7 +371,7 @@ bool SVGImporter::read(StringRefNull filepath)
 
   /* Create grease pencil object. */
   char filename[FILE_MAX];
-  BLI_path_split_file_part(abs_filepath, filename, ARRAY_SIZE(filename));
+  BLI_path_split_file_part(abs_filepath, filename);
   object_ = create_object(filename);
   if (object_ == nullptr) {
     BKE_report(context_.reports, RPT_ERROR, "Unable to create new object");

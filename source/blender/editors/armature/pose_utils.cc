@@ -193,7 +193,7 @@ static void store_id_properties(SlideSubject &slide_subject,
   if (id_properties) {
     for (const IDProperty &id_prop : id_properties->data.group) {
       char name_escaped[MAX_IDPROP_NAME * 2];
-      BLI_str_escape(name_escaped, id_prop.name, sizeof(name_escaped));
+      BLI_str_escape(name_escaped, id_prop.name);
       std::string property_name_with_brackets = fmt::format("[\"{}\"]", name_escaped);
       store_property_snapshot(ptr, property_name_with_brackets, slide_subject.properties);
     }
@@ -496,8 +496,7 @@ void slide_subjects_autokey(bContext *C,
     }
     for (const PropertySnapshot &snapshot : slide_subject.properties) {
       char name_escaped[MAX_IDPROP_NAME * 2];
-      BLI_str_escape(
-          name_escaped, RNA_property_identifier(snapshot.property), sizeof(name_escaped));
+      BLI_str_escape(name_escaped, RNA_property_identifier(snapshot.property));
       paths.append({fmt::format("[\"{}\"]", name_escaped)});
     }
     for (const PropertySnapshot &snapshot : slide_subject.system_properties) {

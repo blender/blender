@@ -404,7 +404,7 @@ void do_scene_project_brush(const Depsgraph &depsgraph,
 
   const bool bidirectional = brush.flag2 & BRUSH_PROJECT_USE_BIDIRECTIONAL;
   const float3 normal = calc_normal(brush, cache);
-  const float4x4 mat = cube_tip_init(sd, object, brush);
+  const float4x4 mat = cube_tip_init(object, brush);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {

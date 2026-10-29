@@ -35,11 +35,13 @@ ConcurrentStatesParams CUDADeviceQueue::concurrent_states_params() const
   const int max_num_threads = cuda_device_->get_num_multiprocessors() *
                               cuda_device_->get_max_num_threads_per_multiprocessor();
 
-  /* Benefit stops being measurable at around 10x the baseline. */
+  /* Only shrink to fit within available memory. Growing up to 10x does show
+   * performance improvements, however it causes TDR timeouts, too much memory
+   * usage when there are multiple Blender instances, etc. */
   ConcurrentStatesParams params;
   params.baseline = max(max_num_threads, 65536) * 16;
   params.min = params.baseline / 2;
-  params.max = params.baseline * 10;
+  params.max = params.baseline;
   return params;
 }
 

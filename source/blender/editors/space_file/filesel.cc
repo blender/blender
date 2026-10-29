@@ -83,7 +83,7 @@ static void fileselect_initialize_params_common(SpaceFile *sfile, FileSelectPara
 
   if (!params->dir[0]) {
     if (blendfile_path[0] != '\0') {
-      BLI_path_split_dir_part(blendfile_path, params->dir, sizeof(params->dir));
+      BLI_path_split_dir_part(blendfile_path, params->dir);
     }
     else {
       const char *doc_path = BKE_appdir_folder_default();
@@ -160,11 +160,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
   if (!sfile->params) {
     sfile->params = MEM_new<FileSelectParams>("fileselparams");
     /* set path to most recently opened .blend */
-    BLI_path_split_dir_file(blendfile_path,
-                            sfile->params->dir,
-                            sizeof(sfile->params->dir),
-                            sfile->params->file,
-                            sizeof(sfile->params->file));
+    BLI_path_split_dir_file(blendfile_path, sfile->params->dir, sfile->params->file);
     sfile->params->filter_glob[0] = '\0';
     sfile->params->thumbnail_size = U_default.file_space_data.thumbnail_size;
     sfile->params->details_flags = U_default.file_space_data.details_flags;
@@ -202,8 +198,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
         params->file[0] = '\0';
       }
       else {
-        BLI_path_split_dir_file(
-            filepath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
+        BLI_path_split_dir_file(filepath, params->dir, params->file);
       }
     }
     else {
@@ -219,7 +214,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
 
     if (params->dir[0]) {
       BLI_path_abs(params->dir, blendfile_path);
-      BLI_path_normalize_dir(params->dir, sizeof(params->dir));
+      BLI_path_normalize_dir(params->dir);
     }
 
     params->flag = eFileSel_Params_Flag{};
@@ -288,7 +283,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_glob"))) {
       /* Protection against Python scripts not setting proper size limit. */
-      char *glob = RNA_property_string_get_alloc(op->ptr, prop, nullptr, 0, nullptr);
+      char *glob = RNA_property_string_get_alloc(op->ptr, prop, std::nullopt, nullptr);
       BLI_SCOPED_DEFER([&]() { MEM_delete(glob); });
       STRNCPY_UTF8(params->filter_glob, glob);
       /* Fix stupid things that truncating might have generated,
@@ -1275,7 +1270,7 @@ int autocomplete_directory(bContext *C, char *str, void * /*arg_v*/)
     DIR *dir;
     dirent *de;
 
-    BLI_path_split_dir_part(str, dirname, sizeof(dirname));
+    BLI_path_split_dir_part(str, dirname);
 
     BLI_assert(!BLI_path_is_rel(dirname));
     dir = opendir(dirname);
@@ -1291,7 +1286,7 @@ int autocomplete_directory(bContext *C, char *str, void * /*arg_v*/)
           char dirpath[FILE_MAX];
           BLI_stat_t status;
 
-          BLI_path_join(dirpath, sizeof(dirpath), dirname, de->d_name);
+          BLI_path_join(dirpath, dirname, de->d_name);
 
           if (BLI_stat(dirpath, &status) == 0) {
             if (S_ISDIR(status.st_mode)) { /* is subdir */
@@ -1304,7 +1299,7 @@ int autocomplete_directory(bContext *C, char *str, void * /*arg_v*/)
 
       match = autocomplete_end(autocpl, str);
       if (match == AUTOCOMPLETE_FULL_MATCH) {
-        BLI_path_slash_ensure(str, FILE_MAX);
+        BLI_path_slash_ensure(MutableCStr(str, FILE_MAX));
       }
     }
   }
@@ -1526,7 +1521,7 @@ void ED_fileselect_ensure_default_filepath(bContext *C, wmOperator *op, const ch
       STRNCPY(filepath, blendfile_path);
     }
 
-    BLI_path_extension_replace(filepath, sizeof(filepath), extension);
+    BLI_path_extension_replace(filepath, extension);
     RNA_string_set(op->ptr, "filepath", filepath);
   }
 }

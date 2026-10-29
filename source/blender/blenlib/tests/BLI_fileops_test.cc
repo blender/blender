@@ -29,7 +29,7 @@ class FileOpsTest : public testing::Test {
   void SetUp() override
   {
     char temp_dir_c[FILE_MAX];
-    BLI_temp_directory_path_get(temp_dir_c, sizeof(temp_dir_c));
+    BLI_temp_directory_path_get(temp_dir_c);
 
     temp_dir = std::string(temp_dir_c) + SEP_STR + "blender_fileops_test_" +
                std::to_string(getpid());
@@ -237,12 +237,12 @@ class ChangeWorkingDirectoryTest : public testing::Test {
   static std::string make_pseudo_unique_temp_filename()
   {
     char temp_dir[FILE_MAX];
-    BLI_temp_directory_path_get(temp_dir, sizeof(temp_dir));
+    BLI_temp_directory_path_get(temp_dir);
 
     const std::string directory_name = "blender_test_" + std::to_string(getpid());
 
     char filepath[FILE_MAX];
-    BLI_path_join(filepath, sizeof(filepath), temp_dir, directory_name.c_str());
+    BLI_path_join(filepath, temp_dir, directory_name.c_str());
 
     return filepath;
   }
@@ -251,7 +251,7 @@ class ChangeWorkingDirectoryTest : public testing::Test {
 TEST_F(ChangeWorkingDirectoryTest, change_working_directory)
 {
   char original_cwd_buff[FILE_MAX];
-  char *original_cwd = BLI_current_working_dir(original_cwd_buff, sizeof(original_cwd_buff));
+  char *original_cwd = BLI_current_working_dir(original_cwd_buff);
 
   ASSERT_FALSE(original_cwd == nullptr) << "Unable to get the current working directory.";
   /* While some implementation of `getcwd` (or similar) may return allocated memory in some cases,
@@ -277,7 +277,7 @@ TEST_F(ChangeWorkingDirectoryTest, change_working_directory)
       << "temporary directory should succeed changing directory.";
 
   char new_cwd_buff[FILE_MAX];
-  char *new_cwd = BLI_current_working_dir(new_cwd_buff, sizeof(new_cwd_buff));
+  char *new_cwd = BLI_current_working_dir(new_cwd_buff);
   ASSERT_FALSE(new_cwd == nullptr) << "Unable to get the current working directory.";
   ASSERT_TRUE(new_cwd == new_cwd_buff)
       << "Returned CWD path unexpectedly different than given char buffer.";
@@ -297,7 +297,7 @@ TEST_F(ChangeWorkingDirectoryTest, change_working_directory)
       << "changing directory back to the original working directory should succeed.";
 
   char final_cwd_buff[FILE_MAX];
-  char *final_cwd = BLI_current_working_dir(final_cwd_buff, sizeof(final_cwd_buff));
+  char *final_cwd = BLI_current_working_dir(final_cwd_buff);
   ASSERT_FALSE(final_cwd == nullptr) << "Unable to get the current working directory.";
   ASSERT_TRUE(final_cwd == final_cwd_buff)
       << "Returned CWD path unexpectedly different than given char buffer.";

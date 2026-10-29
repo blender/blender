@@ -524,7 +524,7 @@ static void copy_world_space(Main &bmain,
   DEG_graph_free(depsgraph);
 
   char filepath[FILE_MAX];
-  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), clipboard_name);
+  BLI_path_join(filepath, BKE_tempdir_base(), clipboard_name);
   BLI_assert(copybuffer.is_valid());
   copybuffer.write_as_copypaste_buffer(filepath, reports);
   if (added_names.size() == transformables.size()) {
@@ -967,7 +967,7 @@ static wmOperatorStatus world_space_paste_exec(bContext *C, wmOperator *op)
   }
 
   char filepath[FILE_MAX];
-  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), clipboard_name);
+  BLI_path_join(filepath, BKE_tempdir_base(), clipboard_name);
   Main *clipboard_bmain = BKE_copybuffer_read(
       *CTX_data_main(C), filepath, op->reports, FILTER_ID_ALL);
   if (!clipboard_bmain) {

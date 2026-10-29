@@ -202,7 +202,7 @@ static void offset_positions(const Depsgraph &depsgraph,
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  const float4x4 mat = cube_tip_init(sd, object, brush);
+  const float4x4 mat = cube_tip_init(object, brush);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *id_cast<Mesh *>(object.data);

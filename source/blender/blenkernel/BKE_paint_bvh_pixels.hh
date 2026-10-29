@@ -250,7 +250,7 @@ void collect_dirty_tiles(PixelNode &pixel_node, Vector<image::TileNumber> &r_dir
 void copy_pixels(bke::pbvh::Tree &pbvh,
                  Map<image::TileNumber, ImBuf *> &buffers,
                  image::TileNumber tile_number,
-                 Span<uint8_t> seam_tiles_modified,
+                 Span<bool> seam_tiles_modified,
                  FunctionRef<void(int x_start, int x_end, int y)> push_undo_tiles);
 
 }  // namespace blender::bke::pbvh::pixels

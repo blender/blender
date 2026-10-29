@@ -147,8 +147,8 @@ struct Node {
   NodeID id = -1;
 
 #ifdef LEXIT_DEBUG
-  NodeType debug_type;
-  const NodeData *debug_data;
+  NodeType debug_type = NodeType::Invalid;
+  const NodeData *debug_data = nullptr;
   std::string_view debug_str;
 #endif
 
@@ -416,7 +416,11 @@ template<typename NodeT> struct Node::RecursiveTypedRange {
   Node end_node;
   RecursiveTypedIterator<NodeT> begin() const
   {
-    return {Node::first_node_of_type(start.child_first(), NodeT::NodeEnumVal, end_node), end_node};
+    const Node first = start.child_first();
+    if (!first.is_valid()) {
+      return {end_node, end_node};
+    }
+    return {Node::first_node_of_type(first, NodeT::NodeEnumVal, end_node), end_node};
   }
   RecursiveTypedIterator<NodeT> end() const
   {

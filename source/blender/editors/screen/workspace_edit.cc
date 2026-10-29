@@ -484,8 +484,7 @@ static WorkspaceConfigFileData *workspace_config_file_read(const char *app_templ
   char startup_file_path[FILE_MAX] = {0};
 
   if (cfgdir.has_value()) {
-    BLI_path_join(
-        startup_file_path, sizeof(startup_file_path), cfgdir->c_str(), BLENDER_STARTUP_FILE);
+    BLI_path_join(startup_file_path, cfgdir->c_str(), BLENDER_STARTUP_FILE);
   }
 
   bool has_path = BLI_exists(startup_file_path);
@@ -501,12 +500,12 @@ static WorkspaceConfigFileData *workspace_system_file_read(const char *app_templ
   }
 
   char template_dir[FILE_MAX];
-  if (!BKE_appdir_app_template_id_search(app_template, template_dir, sizeof(template_dir))) {
+  if (!BKE_appdir_app_template_id_search(app_template, template_dir)) {
     return nullptr;
   }
 
   char startup_file_path[FILE_MAX];
-  BLI_path_join(startup_file_path, sizeof(startup_file_path), template_dir, BLENDER_STARTUP_FILE);
+  BLI_path_join(startup_file_path, template_dir, BLENDER_STARTUP_FILE);
 
   bool has_path = BLI_exists(startup_file_path);
   return (has_path) ? BKE_blendfile_workspace_config_read(startup_file_path, nullptr, 0, nullptr) :
@@ -606,7 +605,7 @@ static void workspace_add_menu_draw(ui::Layout &layout)
     char *app_template = static_cast<char *>(link.data);
     char display_name[FILE_MAX];
 
-    BLI_path_to_display_name(display_name, sizeof(display_name), IFACE_(app_template));
+    BLI_path_to_display_name(display_name, IFACE_(app_template));
 
     layout.menu_fn_argN_free(display_name,
                              ICON_NONE,

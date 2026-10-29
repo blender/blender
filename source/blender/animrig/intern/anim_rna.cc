@@ -85,7 +85,7 @@ constexpr const char *pose_bone_path_prefix = "pose.bones[\"";
 std::string get_pose_bone_rna_path(const bPoseChannel &pose_bone)
 {
   char name_esc[sizeof(pose_bone.name) * 2];
-  BLI_str_escape(name_esc, pose_bone.name, sizeof(name_esc));
+  BLI_str_escape(name_esc, pose_bone.name);
   return fmt::format("{}{}\"]", pose_bone_path_prefix, name_esc);
 }
 
@@ -236,7 +236,7 @@ Vector<RNAPath> get_keyable_id_property_paths(const PointerRNA &ptr)
      * catches that case. */
     if (!is_resolved || !RNA_property_is_runtime(resolved_prop)) {
       char name_escaped[MAX_IDPROP_NAME * 2];
-      BLI_str_escape(name_escaped, id_prop.name, sizeof(name_escaped));
+      BLI_str_escape(name_escaped, id_prop.name);
       path = fmt::format("[\"{}\"]", name_escaped);
       is_resolved = RNA_path_resolve_property(&ptr, path.c_str(), &resolved_ptr, &resolved_prop);
     }

@@ -854,6 +854,27 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
     specialized_info.push_constants_.remove_if(predicate);
   }
 
+  if (!specialized_info.fragment_outputs_.is_empty()) {
+    auto predicate = [&](const ShaderCreateInfo::FragOut &res) {
+      return !res.conditions.evaluate(specialized_info.compilation_constants_);
+    };
+    specialized_info.fragment_outputs_.remove_if(predicate);
+  }
+
+  if (!specialized_info.subpass_inputs_.is_empty()) {
+    auto predicate = [&](const ShaderCreateInfo::SubpassIn &res) {
+      return !res.conditions.evaluate(specialized_info.compilation_constants_);
+    };
+    specialized_info.subpass_inputs_.remove_if(predicate);
+  }
+
+  if (!specialized_info.geometry_out_interfaces_.is_empty()) {
+    auto predicate = [&](const ShaderCreateInfo::StageInterfaceInfoHandle &res) {
+      return !res.conditions.evaluate(specialized_info.compilation_constants_);
+    };
+    specialized_info.geometry_out_interfaces_.remove_if(predicate);
+  }
+
   if (!specialized_info.builtins_.is_empty()) {
     auto predicate = [&](const ShaderCreateInfo::BuiltinBit &res) {
       return !res.conditions.evaluate(specialized_info.compilation_constants_);
@@ -879,6 +900,9 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
   cleanup_duplicates(specialized_info.batch_resources_);
   cleanup_duplicates(specialized_info.geometry_resources_);
   cleanup_duplicates(specialized_info.push_constants_);
+  cleanup_duplicates(specialized_info.fragment_outputs_);
+  cleanup_duplicates(specialized_info.subpass_inputs_);
+  cleanup_duplicates(specialized_info.geometry_out_interfaces_);
 
   const std::string error = specialized_info.check_error();
   if (!error.empty()) {

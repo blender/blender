@@ -42,8 +42,7 @@ static std::string catalog_name_ensure_unique(AssetCatalogService &catalog_servi
       },
       name.c_str(),
       '.',
-      unique_name,
-      sizeof(unique_name));
+      unique_name);
 
   return unique_name;
 }

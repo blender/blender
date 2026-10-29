@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_span.hh"
+
 namespace blender {
 
 struct ARegion;
@@ -56,7 +58,6 @@ void ED_time_scrub_region_rect_get(const ARegion *region, rcti *r_rect);
 void ED_time_scrub_frame_str_get(const Scene *scene,
                                  bool display_seconds,
                                  const float frame,
-                                 char *r_str,
-                                 unsigned int str_maxncpy);
+                                 MutableCStr r_str);
 
 }  // namespace blender

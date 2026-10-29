@@ -6,6 +6,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "BLI_span.hh"
+
 namespace blender {
 
 /** \file
@@ -30,7 +32,7 @@ namespace blender {
 
 /* Blender file format version. */
 #define BLENDER_FILE_VERSION BLENDER_VERSION
-#define BLENDER_FILE_SUBVERSION 3
+#define BLENDER_FILE_SUBVERSION 4
 
 /* Minimum Blender version that supports reading file written with the current
  * version. Older Blender versions will test this and cancel loading the file, showing a warning to
@@ -64,8 +66,7 @@ bool BKE_blender_version_is_lts();
  * \param file_subversion: the file subversion, if given value < 0, it is ignored, and only the
  * `file_version` is used.
  */
-void BKE_blender_version_blendfile_string_from_values(char *str_buff,
-                                                      const size_t str_buff_maxncpy,
+void BKE_blender_version_blendfile_string_from_values(MutableCStr str_buff,
                                                       const short file_version,
                                                       const short file_subversion);
 

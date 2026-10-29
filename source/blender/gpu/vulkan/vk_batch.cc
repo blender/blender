@@ -111,6 +111,13 @@ void VKBatch::multi_draw_indirect(const VKStorageBuffer &indirect_buffer,
   VKIndexBuffer *index_buffer = index_buffer_get();
   const bool draw_indexed = index_buffer != nullptr;
 
+  /* A zero stride means the commands are tightly packed, matching `glMultiDraw*Indirect`. */
+  intptr_t command_stride = stride;
+  if (command_stride == 0) {
+    command_stride = draw_indexed ? sizeof(VkDrawIndexedIndirectCommand) :
+                                    sizeof(VkDrawIndirectCommand);
+  }
+
   VKFrameBuffer &framebuffer = *context.active_framebuffer_get();
   framebuffer.rendering_ensure(context);
 
@@ -120,7 +127,7 @@ void VKBatch::multi_draw_indirect(const VKStorageBuffer &indirect_buffer,
     node.data.indirect_buffer = indirect_buffer.resource();
     node.data.offset = offset;
     node.data.draw_count = count;
-    node.data.stride = stride;
+    node.data.stride = command_stride;
 
     node.data.index_buffer.buffer = index_buffer->resource();
     node.data.index_buffer.index_type = index_buffer->vk_index_type();
@@ -136,7 +143,7 @@ void VKBatch::multi_draw_indirect(const VKStorageBuffer &indirect_buffer,
     node.data.indirect_buffer = indirect_buffer.resource();
     node.data.offset = offset;
     node.data.draw_count = count;
-    node.data.stride = stride;
+    node.data.stride = command_stride;
 
     vao.bind(node.data.vertex_buffers);
     context.update_pipeline_data(framebuffer, prim_type, vao.vertex_input_key, node.data.graphics);

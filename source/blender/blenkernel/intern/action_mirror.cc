@@ -175,11 +175,10 @@ static void action_flip_pchan(Object *ob_arm,
    * `pose.bones["{MAXBONENAME}"].rotation_quaternion`. */
   char path_xform[256];
   char pchan_name_esc[sizeof(pchan->name) * 2];
-  BLI_str_escape(pchan_name_esc, pchan->name, sizeof(pchan_name_esc));
+  BLI_str_escape(pchan_name_esc, pchan->name);
   const int path_xform_prefix_len = SNPRINTF_UTF8(
       path_xform, "pose.bones[\"%s\"]", pchan_name_esc);
-  char *path_xform_suffix = path_xform + path_xform_prefix_len;
-  const int path_xform_suffix_maxncpy = sizeof(path_xform) - path_xform_prefix_len;
+  const MutableCStr path_xform_suffix = MutableCStr(path_xform).drop_front(path_xform_prefix_len);
 
   /* Lookup and assign all available #FCurve channels,
    * unavailable channels are left nullptr. */
@@ -201,11 +200,11 @@ static void action_flip_pchan(Object *ob_arm,
   } fkc_pchan = {{{nullptr}}};
 
 #define FCURVE_ASSIGN_VALUE(id, path_test_suffix, index) \
-  BLI_strncpy(path_xform_suffix, path_test_suffix, path_xform_suffix_maxncpy); \
+  STRNCPY(path_xform_suffix, path_test_suffix); \
   action_flip_pchan_cache_fcurve_assign_value(&fkc_pchan.id, index, path_xform, fcurve_cache)
 
 #define FCURVE_ASSIGN_ARRAY(id, path_test_suffix) \
-  BLI_strncpy(path_xform_suffix, path_test_suffix, path_xform_suffix_maxncpy); \
+  STRNCPY(path_xform_suffix, path_test_suffix); \
   action_flip_pchan_cache_fcurve_assign_array( \
       fkc_pchan.id, ARRAY_SIZE(fkc_pchan.id), path_xform, fcurve_cache)
 
@@ -255,7 +254,7 @@ static void action_flip_pchan(Object *ob_arm,
 
   bPoseChannel *pchan_flip = nullptr;
   char pchan_name_flip[MAXBONENAME];
-  BLI_string_flip_side_name(pchan_name_flip, pchan->name, false, sizeof(pchan_name_flip));
+  BLI_string_flip_side_name(pchan_name_flip, pchan->name, false);
   if (!STREQ(pchan_name_flip, pchan->name)) {
     pchan_flip = BKE_pose_channel_find_name(ob_arm->pose, pchan_name_flip);
   }
@@ -417,7 +416,7 @@ static void action_flip_pchan_rna_paths(bAction *act)
     char name[MAXBONENAME];
     const size_t name_esc_len = size_t(name_esc_end - name_esc);
     bool is_complete;
-    BLI_str_unescape_ex(name, name_esc, name_esc_len, sizeof(name), &is_complete);
+    BLI_str_unescape_ex(name, name_esc, name_esc_len, &is_complete);
 
     /* While unlikely, data paths could be constructed that have longer names than
      * are currently supported. */
@@ -427,10 +426,10 @@ static void action_flip_pchan_rna_paths(bAction *act)
 
     /* When the flipped name differs, perform the rename. */
     char name_flip[MAXBONENAME];
-    BLI_string_flip_side_name(name_flip, name, false, sizeof(name_flip));
+    BLI_string_flip_side_name(name_flip, name, false);
     if (!STREQ(name_flip, name)) {
       char name_flip_esc[MAXBONENAME * 2];
-      BLI_str_escape(name_flip_esc, name_flip, sizeof(name_flip_esc));
+      BLI_str_escape(name_flip_esc, name_flip);
       fcu->rna_path_set_move(BLI_sprintfN("pose.bones[\"%s%s", name_flip_esc, name_esc_end));
 
       if (fcu->grp != nullptr) {
@@ -446,7 +445,7 @@ static void action_flip_pchan_rna_paths(bAction *act)
     }
     agrp->flag &= ~AGRP_TEMP;
     char name_flip[MAXBONENAME];
-    BLI_string_flip_side_name(name_flip, agrp->name, false, sizeof(name_flip));
+    BLI_string_flip_side_name(name_flip, agrp->name, false);
     if (!STREQ(name_flip, agrp->name)) {
       STRNCPY_UTF8(agrp->name, name_flip);
     }

@@ -272,7 +272,7 @@ static Strip *rna_Strips_new_image(ID *id,
   }
 
   char dirpath[FILE_MAX], filename[FILE_MAXFILE];
-  BLI_path_split_dir_file(file, dirpath, sizeof(dirpath), filename, sizeof(filename));
+  BLI_path_split_dir_file(file, dirpath, filename);
   seq::add_image_set_directory(strip, dirpath);
   seq::add_image_load_file(scene, strip, 0, filename);
   seq::add_image_init_alpha_mode(bmain, scene, strip);

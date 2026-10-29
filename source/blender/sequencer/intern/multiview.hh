@@ -10,6 +10,8 @@
 
 #include <cstdlib>
 
+#include "BLI_span.hh"
+
 #include "DNA_scene_enums.h"
 
 namespace blender {
@@ -20,19 +22,14 @@ struct Scene;
 namespace seq {
 
 void seq_anim_add_suffix(Scene *scene, MovieReader *anim, int view_id);
-void seq_multiview_name(const Scene *scene,
-                        int view_id,
-                        const char *prefix,
-                        const char *ext,
-                        char *r_path,
-                        size_t r_path_maxncpy);
+void seq_multiview_name(
+    const Scene *scene, int view_id, const char *prefix, const char *ext, MutableCStr r_path);
 
 /** Resolve one individual-view filepath. The returned suffix is optional. */
 bool seq_multiview_view_filepath_get(const Scene &scene,
                                      const char *filepath,
                                      int view_id,
-                                     char *r_filepath,
-                                     size_t r_filepath_maxncpy,
+                                     MutableCStr r_filepath,
                                      const char **r_suffix);
 /**
  * The number of files that a multi-view enabled strip needs to resolve the requested

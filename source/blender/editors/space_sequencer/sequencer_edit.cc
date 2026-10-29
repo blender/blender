@@ -3410,7 +3410,7 @@ static wmOperatorStatus sequencer_meta_make_exec(bContext *C, wmOperator * /*op*
 
   const int channel = active_strip ? active_strip->channel : channel_max;
   strip_meta->channel_set(channel);
-  BLI_strncpy_utf8(strip_meta->name + 2, DATA_("MetaStrip"), sizeof(strip_meta->name) - 2);
+  STRNCPY_UTF8(MutableCStr(strip_meta->name).drop_front(2), DATA_("MetaStrip"));
   seq::strip_unique_name_set(scene, &ed->seqbase, strip_meta);
   strip_meta->start = meta_start_frame;
   strip_meta->content_length_set(meta_end_frame - meta_start_frame);
@@ -4079,24 +4079,18 @@ static wmOperatorStatus sequencer_change_path_exec(bContext *C, wmOperator *op)
       }
       char ext[FILE_MAX];
       char filename_stripped[FILE_MAX];
-      BLI_path_split_file_part(range.filepath, filename_stripped, sizeof(filename_stripped));
-      BLI_path_frame_strip(filename_stripped, ext, sizeof(ext));
+      BLI_path_split_file_part(range.filepath, filename_stripped);
+      BLI_path_frame_strip(filename_stripped, ext);
 
       if (use_placeholders) {
         for (const int i : IndexRange::from_begin_end(range.offset, range.max_framenr + 1)) {
-          frame_filename_set(
-              se->filename, sizeof(se->filename), filename_stripped, i, numdigits, ext);
+          frame_filename_set(se->filename, filename_stripped, i, numdigits, ext);
           se++;
         }
       }
       else {
         for (ImageFrame &frame : range.frames) {
-          frame_filename_set(se->filename,
-                             sizeof(se->filename),
-                             filename_stripped,
-                             frame.framenr,
-                             numdigits,
-                             ext);
+          frame_filename_set(se->filename, filename_stripped, frame.framenr, numdigits, ext);
           se++;
         }
       }
@@ -4155,8 +4149,7 @@ static wmOperatorStatus sequencer_change_path_invoke(bContext *C,
   Strip *strip = seq::select_active_get(scene);
   char filepath[FILE_MAX];
 
-  BLI_path_join(
-      filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
+  BLI_path_join(filepath, strip->data->dirpath, strip->data->stripdata->filename);
 
   RNA_string_set(op->ptr, "directory", strip->data->dirpath);
   RNA_string_set(op->ptr, "filepath", filepath);
@@ -4388,7 +4381,7 @@ static wmOperatorStatus sequencer_export_subtitles_exec(bContext *C, wmOperator 
   }
 
   RNA_string_get(op->ptr, "filepath", filepath);
-  BLI_path_extension_ensure(filepath, sizeof(filepath), ".srt");
+  BLI_path_extension_ensure(filepath, ".srt");
 
   /* Avoid File write exceptions. */
   if (!BLI_exists(filepath)) {
@@ -4425,13 +4418,11 @@ static wmOperatorStatus sequencer_export_subtitles_exec(bContext *C, wmOperator 
 
     /* Write time-code relative to start frame of scene. Don't allow negative time-codes. */
     BLI_timecode_string_from_time(timecode_str_start,
-                                  sizeof(timecode_str_start),
                                   -2,
                                   FRA2TIME(max_ii(strip->left_handle() - scene->r.sfra, 0)),
                                   scene->frames_per_second(),
                                   USER_TIMECODE_SUBRIP);
     BLI_timecode_string_from_time(timecode_str_end,
-                                  sizeof(timecode_str_end),
                                   -2,
                                   FRA2TIME(strip->right_handle(scene) - scene->r.sfra),
                                   scene->frames_per_second(),

@@ -65,7 +65,16 @@ static bool path_split_get(PointerRNA &ptr,
                                   BLI_path_slash_is_native_compat(path[path_len - 1]);
 
   BLI_path_slash_rstrip(path);
-  BLI_path_split_dir_file(path, r_dir, sizeof(r_dir), r_name, sizeof(r_name));
+
+  /* If we stripped away all slashes from a path like "//", "/" or "C:\",
+   * restore the original one and give an empty name. */
+  if (has_trailing_slash && (path[0] == '\0' || BLI_path_is_win32_drive_only(path))) {
+    STRNCPY(r_dir, RNA_property_string_get(&ptr, prop).c_str());
+    r_name[0] = '\0';
+    return true;
+  }
+
+  BLI_path_split_dir_file(path, r_dir, r_name);
   return has_trailing_slash;
 }
 
@@ -86,15 +95,15 @@ static void path_split_edit_apply(bContext *C, void *argN, void * /*arg2*/)
 
   char new_path[FILE_MAX];
   if (edit->part == PathSplitEdit::Part::Name) {
-    BLI_path_join(new_path, sizeof(new_path), dir, edit->text);
+    BLI_path_join(new_path, dir, edit->text);
   }
   else {
-    BLI_path_join(new_path, sizeof(new_path), edit->text, name);
+    BLI_path_join(new_path, edit->text, name);
   }
 
   /* Preserve trailing slash, as used for directory paths. */
   if (has_trailing_slash) {
-    BLI_path_slash_ensure(new_path, sizeof(new_path));
+    BLI_path_slash_ensure(new_path);
   }
 
   RNA_property_string_set(&edit->ptr, edit->prop, new_path);
@@ -163,6 +172,11 @@ static Button *template_filepath_split_button(Layout &layout,
   }
   if (!RNA_property_string_is_utf8(prop)) {
     button_flag_enable(but, BUT_NO_UTF8);
+  }
+  if (!(edit->ptr.owner_id && ID_CHECK_UNDO(edit->ptr.owner_id) &&
+        RNA_property_undo_check(prop, edit->ptr.type)))
+  {
+    button_flag_disable(but, BUT_UNDO);
   }
 
   button_funcN_set(

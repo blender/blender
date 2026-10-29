@@ -11,6 +11,7 @@
 #include "DNA_listBase.h"
 
 #include "BLI_enum_flags.hh"
+#include "BLI_span.hh"
 #include "BLI_sys_types.hh"
 
 namespace blender {
@@ -611,8 +612,7 @@ void BKE_tracking_homography_between_two_quads(/*const*/ float reference_corners
  */
 bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
                                        MovieTrackingObject *tracking_object,
-                                       char *error_msg,
-                                       int error_msg_maxncpy);
+                                       MutableCStr error_msg);
 
 /**
  * Create context for camera/object motion reconstruction.
@@ -644,8 +644,7 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context,
                                        bool *stop,
                                        bool *do_update,
                                        float *progress,
-                                       char *stats_message,
-                                       int message_size);
+                                       MutableCStr stats_message);
 /**
  * Finish reconstruction process by copying reconstructed data to an actual movie clip data-block.
  */
@@ -770,20 +769,16 @@ MovieTrackingObject *BKE_tracking_find_object_for_plane_track(
 
 void BKE_tracking_get_rna_path_for_track(const MovieTracking *tracking,
                                          const MovieTrackingTrack *track,
-                                         char *rna_path,
-                                         size_t rna_path_maxncpy);
+                                         MutableCStr rna_path);
 void BKE_tracking_get_rna_path_prefix_for_track(const MovieTracking *tracking,
                                                 const MovieTrackingTrack *track,
-                                                char *rna_path,
-                                                size_t rna_path_maxncpy);
+                                                MutableCStr rna_path);
 void BKE_tracking_get_rna_path_for_plane_track(const MovieTracking *tracking,
                                                const MovieTrackingPlaneTrack *plane_track,
-                                               char *rna_path,
-                                               size_t rna_path_maxncpy);
+                                               MutableCStr rna_path);
 void BKE_tracking_get_rna_path_prefix_for_plane_track(const MovieTracking *tracking,
                                                       const MovieTrackingPlaneTrack *plane_track,
-                                                      char *rna_path,
-                                                      size_t rna_path_maxncpy);
+                                                      MutableCStr rna_path);
 
 /* --------------------------------------------------------------------
  * Utility macros.

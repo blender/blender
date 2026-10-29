@@ -86,16 +86,14 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
     }
     else {
       const int precision = opdata->shift ? 6 : 4;
-      BKE_unit_value_as_string(flts_str,
-                               NUM_STR_REP_LEN,
+      BKE_unit_value_as_string(MutableCStr(flts_str, NUM_STR_REP_LEN),
                                RNA_float_get(op->ptr, "thickness"),
                                precision * -1,
                                B_UNIT_LENGTH,
                                sce->unit,
                                true,
                                true);
-      BKE_unit_value_as_string(flts_str + NUM_STR_REP_LEN,
-                               NUM_STR_REP_LEN,
+      BKE_unit_value_as_string(MutableCStr(flts_str + NUM_STR_REP_LEN, NUM_STR_REP_LEN),
                                RNA_float_get(op->ptr, "depth"),
                                precision * -1,
                                B_UNIT_LENGTH,

@@ -137,9 +137,9 @@ static void sequencer_copy_animation(Scene *scene_src,
   }
 }
 
-static void sequencer_copybuffer_filepath_get(char filepath[FILE_MAX], size_t filepath_maxncpy)
+static void sequencer_copybuffer_filepath_get(MutableCStr filepath)
 {
-  BLI_path_join(filepath, filepath_maxncpy, BKE_tempdir_base(), "copybuffer_vse.blend");
+  BLI_path_join(filepath, BKE_tempdir_base(), "copybuffer_vse.blend");
 }
 
 static bool sequencer_write_copy_paste_file(Main *bmain_src,
@@ -320,7 +320,7 @@ wmOperatorStatus sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
   }
 
   char filepath[FILE_MAX];
-  sequencer_copybuffer_filepath_get(filepath, sizeof(filepath));
+  sequencer_copybuffer_filepath_get(filepath);
   bool success = sequencer_write_copy_paste_file(bmain, scene, filepath, *op->reports);
   if (!success) {
     BKE_report(op->reports, RPT_ERROR, "Could not create the copy paste file!");
@@ -392,7 +392,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   Main *bmain_dst = CTX_data_main(C);
 
   char filepath[FILE_MAX];
-  sequencer_copybuffer_filepath_get(filepath, sizeof(filepath));
+  sequencer_copybuffer_filepath_get(filepath);
   Main *bmain_src = BKE_copybuffer_read(*bmain_dst, filepath, op->reports, FILTER_ID_SCE);
   if (!bmain_src) {
     BKE_report(op->reports, RPT_ERROR, "No data to paste");

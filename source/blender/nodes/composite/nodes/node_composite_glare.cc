@@ -249,16 +249,13 @@ static void node_init(bNodeTree * /*ntree*/, bNode *node)
   node->storage = ndg;
 }
 
-static void node_update_glare_label(const bNodeTree *ntree,
-                                    const bNode *node,
-                                    char *label,
-                                    int maxlen)
+static void node_update_glare_label(const bNodeTree *ntree, const bNode *node, MutableCStr label)
 {
   ntree->ensure_topology_cache();
   const bNodeSocket *type_input = node->input_by_identifier("Type"_ustr);
 
   if (type_input->is_logically_linked()) {
-    BLI_strncpy(label, IFACE_("Glare"), maxlen);
+    STRNCPY(label, IFACE_("Glare"));
     return;
   }
 
@@ -266,7 +263,7 @@ static void node_update_glare_label(const bNodeTree *ntree,
 
   for (const EnumPropertyItem *item = type_items; item->identifier != nullptr; item++) {
     if (item->value == type_value) {
-      BLI_strncpy(label, IFACE_(item->name), maxlen);
+      STRNCPY(label, IFACE_(item->name));
       return;
     }
   }

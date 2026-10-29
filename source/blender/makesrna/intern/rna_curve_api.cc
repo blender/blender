@@ -59,7 +59,7 @@ static void rna_Nurb_valid_message(Nurb *nu, int direction, const char **r_resul
   }
 
   char buf[64];
-  if (BKE_nurb_valid_message(pnts, order, flag, type, is_surf, direction, buf, sizeof(buf))) {
+  if (BKE_nurb_valid_message(pnts, order, flag, type, is_surf, direction, buf)) {
     const int buf_len = strlen(buf);
     *r_result = BLI_strdupn(buf, buf_len);
     *result_len = buf_len;

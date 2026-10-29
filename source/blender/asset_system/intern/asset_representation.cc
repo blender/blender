@@ -171,10 +171,8 @@ StringRefNull AssetRepresentation::library_relative_identifier() const
 std::string AssetRepresentation::full_path() const
 {
   char filepath[FILE_MAX];
-  BLI_path_join(filepath,
-                sizeof(filepath),
-                owner_asset_library_.root_path().c_str(),
-                library_relative_identifier().c_str());
+  BLI_path_join(
+      filepath, owner_asset_library_.root_path().c_str(), library_relative_identifier().c_str());
   return filepath;
 }
 

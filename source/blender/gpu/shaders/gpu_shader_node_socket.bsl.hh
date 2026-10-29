@@ -47,7 +47,7 @@ struct FragOut {
     [[resource_table]] [[condition(!use_instancing)]] const Parameters &params,
     [[resource_table]] [[condition(use_instancing)]] const ParametersInstancing &params_inst,
     [[vertex_id]] const int vert_id,
-    [[instance_id]] const int inst_id,
+    [[instance_index]] const int inst_id,
     [[position]] float4 &out_pos,
     [[out]] VertOut &v_out)
 {

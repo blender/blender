@@ -136,7 +136,7 @@ class BlendFile : public AbstractFile {
   std::string get_filename() const
   {
     char filename[FILE_MAX];
-    BLI_path_split_file_part(this->get_file_path(), filename, sizeof(filename));
+    BLI_path_split_file_part(this->get_file_path(), filename);
     return std::string(filename);
   }
 
@@ -390,13 +390,13 @@ struct AssetLibraryIndex {
   void init_indices_base_path()
   {
     char index_path[FILE_MAX];
-    BKE_appdir_folder_caches(index_path, sizeof(index_path));
+    BKE_appdir_folder_caches(index_path);
 
-    BLI_path_append(index_path, sizeof(index_path), "asset-library-indices");
+    BLI_path_append(index_path, "asset-library-indices");
 
     std::stringstream ss;
     ss << std::setfill('0') << std::setw(16) << std::hex << hash() << SEP_STR;
-    BLI_path_append(index_path, sizeof(index_path), ss.str().c_str());
+    BLI_path_append(index_path, ss.str().c_str());
 
     this->indices_base_path = std::string(index_path);
   }

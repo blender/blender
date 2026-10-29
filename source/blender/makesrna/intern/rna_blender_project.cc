@@ -795,6 +795,7 @@ static void rna_def_project_variable_string(BlenderRNA *brna)
                               "rna_ProjectVariableString_subtype_get",
                               "rna_ProjectVariableString_subtype_set",
                               nullptr);
+  RNA_def_property_update(prop, 0, "rna_ProjectVariable_update");
 }
 
 static void rna_def_project_variable_integer(BlenderRNA *brna)

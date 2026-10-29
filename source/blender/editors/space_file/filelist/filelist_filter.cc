@@ -425,10 +425,7 @@ void filelist_setfilter_options(FileList *filelist,
     update = true;
   }
   if (BLI_strcmp_ignore_pad(filelist->filter_data.filter_search, filter_search, '*') != 0) {
-    BLI_strncpy_ensure_pad(filelist->filter_data.filter_search,
-                           filter_search,
-                           '*',
-                           sizeof(filelist->filter_data.filter_search));
+    BLI_strncpy_ensure_pad(filelist->filter_data.filter_search, filter_search, '*');
     update = true;
   }
 

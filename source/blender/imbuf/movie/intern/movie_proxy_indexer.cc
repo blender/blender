@@ -68,16 +68,16 @@ static int proxy_size_to_array_index(IMB_Proxy_Size pr_size)
   }
 }
 
-static void get_proxy_dir(const MovieReader *anim, char *proxy_dir, size_t proxy_dir_maxncpy)
+static void get_proxy_dir(const MovieReader *anim, MutableCStr proxy_dir)
 {
   if (!anim->proxy_dir[0]) {
     char filename[FILE_MAXFILE];
     char dirname[FILE_MAXDIR];
-    BLI_path_split_dir_file(anim->filepath, dirname, sizeof(dirname), filename, sizeof(filename));
-    BLI_path_join(proxy_dir, proxy_dir_maxncpy, dirname, "BL_proxy", filename);
+    BLI_path_split_dir_file(anim->filepath, dirname, filename);
+    BLI_path_join(proxy_dir, dirname, "BL_proxy", filename);
   }
   else {
-    BLI_strncpy(proxy_dir, anim->proxy_dir, proxy_dir_maxncpy);
+    STRNCPY(proxy_dir, anim->proxy_dir);
   }
 }
 
@@ -103,13 +103,13 @@ static bool get_proxy_filepath(const MovieReader *anim,
 
   SNPRINTF(proxy_name, name, int(proxy_fac[i] * 100), stream_suffix, anim->suffix);
 
-  get_proxy_dir(anim, proxy_dir, sizeof(proxy_dir));
+  get_proxy_dir(anim, proxy_dir);
 
   if (BLI_path_ncmp(anim->filepath, proxy_dir, FILE_MAXDIR) == 0) {
     return false;
   }
 
-  BLI_path_join(filepath, FILE_MAXFILE + FILE_MAXDIR, proxy_dir, proxy_name);
+  BLI_path_join(MutableCStr(filepath, FILE_MAXFILE + FILE_MAXDIR), proxy_dir, proxy_name);
   return true;
 }
 

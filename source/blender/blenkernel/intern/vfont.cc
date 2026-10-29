@@ -131,7 +131,7 @@ static void vfont_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     return;
   }
 
-  BKE_bpath_foreach_path_fixed_process(bpath_data, vfont->filepath, sizeof(vfont->filepath));
+  BKE_bpath_foreach_path_fixed_process(bpath_data, vfont->filepath);
 }
 
 static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -315,7 +315,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
     is_builtin = true;
   }
   else {
-    BLI_path_split_file_part(filepath, filename, sizeof(filename));
+    BLI_path_split_file_part(filepath, filename);
     pf = BKE_packedfile_new(nullptr, filepath, BKE_main_blendfile_path(bmain));
 
     is_builtin = false;

@@ -81,7 +81,7 @@ static std::string new_project_default_parent()
   const char *base_path = BKE_appdir_folder_documents(documents_path) ? documents_path :
                                                                         BLI_dir_home();
   char path[FILE_MAX];
-  BLI_path_join(path, sizeof(path), base_path ? base_path : "", "Blender", "Projects");
+  BLI_path_join(path, base_path ? base_path : "", "Blender", "Projects");
   return path;
 }
 
@@ -99,7 +99,7 @@ static Vector<std::string> new_project_suggested_directories(const Main *bmain)
 
   const char *home_path = BLI_dir_home();
   char directory[FILE_MAX];
-  BLI_path_split_dir_part(blendfile_path, directory, sizeof(directory));
+  BLI_path_split_dir_part(blendfile_path, directory);
 
   while (!(home_path && BLI_path_contains(directory, home_path))) {
     char parent[FILE_MAX];
@@ -198,7 +198,7 @@ static void new_project_name_update(Main * /*bmain*/, Scene * /*scene*/, Pointer
   RNA_string_get(ptr, "directory", directory);
   BLI_path_slash_rstrip(directory);
   BLI_path_parent_dir(directory);
-  BLI_path_append(directory, sizeof(directory), name.c_str());
+  BLI_path_append(directory, name.c_str());
   RNA_string_set(ptr, "directory", directory);
 }
 
@@ -312,26 +312,36 @@ static wmOperatorStatus project_new_invoke(bContext *C, wmOperator *op, const wm
 {
   Main *bmain = CTX_data_main(C);
 
-  if (new_project_use_existing_directory(bmain, op->ptr)) {
-    /* Saved file, use an existing parent directory. */
-    RNA_enum_set(op->ptr, "existing_directory", 0);
-    new_project_name_from_directory(op->ptr, new_project_suggested_directories(bmain)[0]);
-  }
-  else if (RNA_string_length(op->ptr, "directory") == 0) {
-    /* Not saved, suggest a default project name and path. */
-    const std::string projects_dir = new_project_default_parent();
-    const std::string base_name = new_project_name_get(op->ptr);
-    std::string name = base_name;
-    char directory[FILE_MAX];
-    BLI_path_join(directory, sizeof(directory), projects_dir.c_str(), name.c_str());
-    /* Make the name unique. */
-    for (int number = 2; BLI_exists(directory); number++) {
-      name = fmt::format("{} {}", base_name, number);
-      BLI_path_join(directory, sizeof(directory), projects_dir.c_str(), name.c_str());
-    }
+  if (RNA_string_length(op->ptr, "directory") == 0) {
+    if (BKE_main_blendfile_path(bmain)[0] != '\0') {
+      /* Saved file, use an existing parent directory. */
+      Vector<std::string> suggested_directories = new_project_suggested_directories(bmain);
+      if (suggested_directories.is_empty()) {
+        BKE_report(op->reports,
+                   RPT_ERROR,
+                   "Can not create project for a blend file in the home or root folder");
+        return OPERATOR_CANCELLED;
+      }
 
-    RNA_string_set(op->ptr, "name", name.c_str());
-    RNA_string_set(op->ptr, "directory", directory);
+      RNA_enum_set(op->ptr, "existing_directory", 0);
+      new_project_name_from_directory(op->ptr, suggested_directories[0]);
+    }
+    else {
+      /* Not saved, suggest a default project name and path. */
+      const std::string projects_dir = new_project_default_parent();
+      const std::string base_name = new_project_name_get(op->ptr);
+      std::string name = base_name;
+      char directory[FILE_MAX];
+      BLI_path_join(directory, projects_dir.c_str(), name.c_str());
+      /* Make the name unique. */
+      for (int number = 2; BLI_exists(directory); number++) {
+        name = fmt::format("{} {}", base_name, number);
+        BLI_path_join(directory, projects_dir.c_str(), name.c_str());
+      }
+
+      RNA_string_set(op->ptr, "name", name.c_str());
+      RNA_string_set(op->ptr, "directory", directory);
+    }
   }
 
   new_project_update_directory_from_name_set(op->ptr);
@@ -430,8 +440,7 @@ void PROJECT_OT_new(wmOperatorType *ot)
   ot->ui = project_new_ui;
 
   PropertyRNA *prop;
-  prop = RNA_def_string(
-      ot->srna, "name", "Untitled Project", MAX_NAME, "Name", "Name of the project");
+  prop = RNA_def_string(ot->srna, "name", "Untitled Project", 0, "Name", "Name of the project");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   RNA_def_property_update_runtime(prop, new_project_name_update);
 
@@ -665,7 +674,7 @@ static wmOperatorStatus project_asset_library_add_exec(bContext *C, wmOperator *
 
   switch (library_type) {
     case bUserAssetLibraryAddType::Local: {
-      char *dirpath = RNA_string_get_alloc(op->ptr, "directory", nullptr, 0, nullptr);
+      char *dirpath = RNA_string_get_alloc(op->ptr, "directory", std::nullopt, nullptr);
       /* Store directories inside the project relative to the project root. */
       const std::string dirpath_str = BKE_blender_project_read_callback(
           CTX_data_main(C), [&](const bke::BlenderProject *project) {
@@ -677,7 +686,7 @@ static wmOperatorStatus project_asset_library_add_exec(bContext *C, wmOperator *
       break;
     }
     case bUserAssetLibraryAddType::Remote: {
-      char *remote_url = RNA_string_get_alloc(op->ptr, "remote_url", nullptr, 0, nullptr);
+      char *remote_url = RNA_string_get_alloc(op->ptr, "remote_url", std::nullopt, nullptr);
       ED_userpref_asset_library_new(C, name, remote_url, library_type, true, {}, {});
       MEM_delete(remote_url);
       break;

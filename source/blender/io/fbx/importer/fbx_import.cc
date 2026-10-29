@@ -55,7 +55,7 @@ struct FbxImportContext {
       : bmain(main), fbx(*fbx), params(params)
   {
     char basedir[FILE_MAX];
-    BLI_path_split_dir_part(params.filepath, basedir, sizeof(basedir));
+    BLI_path_split_dir_part(params.filepath, basedir);
     base_dir = basedir;
 
     ufbx_transform root_tr;

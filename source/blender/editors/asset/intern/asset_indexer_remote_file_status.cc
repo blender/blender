@@ -36,8 +36,7 @@ FileStatusChecker::FileStatusChecker(const StringRefNull library_root_path)
     : library_root_path_(library_root_path)
 {
   char dfhs_path[PATH_MAX];
-  BLI_path_join(
-      dfhs_path, sizeof(dfhs_path), library_root_path.c_str(), hash_service_filename_prefix);
+  BLI_path_join(dfhs_path, library_root_path.c_str(), hash_service_filename_prefix);
   this->dfhs_ = disk_file_hash_service_get(dfhs_path);
 }
 
@@ -52,8 +51,7 @@ RemoteAssetFileStatus FileStatusChecker::remote_file_status(RemoteListingFileEnt
 
   /* Construct the absolute path, so we can check its hash on disk. */
   char file_abspath[PATH_MAX];
-  BLI_path_join(
-      file_abspath, sizeof(file_abspath), library_root_path_.c_str(), relative_file_path.c_str());
+  BLI_path_join(file_abspath, library_root_path_.c_str(), relative_file_path.c_str());
 
   if (!BLI_exists(file_abspath)) {
     return this->remember(file_to_check, RemoteAssetFileStatus::NOT_ON_DISK);

@@ -112,8 +112,8 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
    */
 
   char pchanName[name_maxncpy], constName[name_maxncpy];
-  if (BLI_str_quoted_substr(rna_path.c_str(), "bones[", pchanName, sizeof(pchanName)) &&
-      BLI_str_quoted_substr(rna_path.c_str(), "constraints[", constName, sizeof(constName)))
+  if (BLI_str_quoted_substr(rna_path.c_str(), "bones[", pchanName) &&
+      BLI_str_quoted_substr(rna_path.c_str(), "constraints[", constName))
   {
     structname = BLI_sprintfN("%s : %s", pchanName, constName);
     free_structname = true;
@@ -121,7 +121,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
   else if (ptr.data != ptr.owner_id) {
     PropertyRNA *nameprop = RNA_struct_name_property(ptr.type);
     if (nameprop) {
-      structname = RNA_property_string_get_alloc(&ptr, nameprop, nullptr, 0, nullptr);
+      structname = RNA_property_string_get_alloc(&ptr, nameprop, std::nullopt, nullptr);
       free_structname = true;
     }
     else {
@@ -134,9 +134,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
      * So display strip name alongside as well. */
     if (GS(ptr.owner_id->name) == ID_SCE) {
       char stripname[name_maxncpy];
-      if (BLI_str_quoted_substr(
-              rna_path.c_str(), "sequence_editor.strips_all[", stripname, sizeof(stripname)))
-      {
+      if (BLI_str_quoted_substr(rna_path.c_str(), "sequence_editor.strips_all[", stripname)) {
         if (strstr(rna_path.c_str(), ".transform.") || strstr(rna_path.c_str(), ".crop.") ||
             strstr(rna_path.c_str(), ".modifiers["))
         {

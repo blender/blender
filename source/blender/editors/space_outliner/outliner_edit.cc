@@ -95,10 +95,10 @@ static void outliner_show_active(SpaceOutliner *space_outliner,
 /** \name Local Utilities
  * \{ */
 
-static void outliner_copybuffer_filepath_get(char filepath[FILE_MAX], size_t filepath_maxncpy)
+static void outliner_copybuffer_filepath_get(MutableCStr filepath)
 {
   /* NOTE: this uses the same path as the 3D viewport. */
-  BLI_path_join(filepath, filepath_maxncpy, BKE_tempdir_base(), "copybuffer.blend");
+  BLI_path_join(filepath, BKE_tempdir_base(), "copybuffer.blend");
 }
 
 /** \} */
@@ -923,55 +923,64 @@ void id_remap_fn(bContext *C, TreeStoreElem *tselem)
 /** \name ID Copy Operator
  * \{ */
 
+/** Add an ID and all of its dependencies to the copy buffer, returns true on success. */
+static bool outliner_id_copy_tag_id(ID *id,
+                                    bke::blendfile::PartialWriteContext &copybuffer,
+                                    ReportList *reports)
+{
+  using namespace blender::bke::blendfile;
+
+  if (ID_IS_LINKED(id)) {
+    /* Direct link/append of linked IDs is not supported currently, so neither is their
+     * copy/pasting. */
+    BKE_reportf(reports,
+                RPT_INFO,
+                "Cannot copy the linked data-block '%s' to the internal clipboard",
+                id->name);
+    return false;
+  }
+  if (ID_IS_PACKED(id)) {
+    /* Direct link/append of packed IDs is not supported currently, so neither is their
+     * copy/pasting. */
+    /* NOTE: In practice, should alwasy be shadowed by the more general text on linked data
+     * above currently. */
+    BKE_reportf(reports,
+                RPT_INFO,
+                "Cannot copy the linked packed data-block '%s' to the internal clipboard",
+                id->name);
+    return false;
+  }
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+  if (id_type->flags & (IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING)) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "Copying ID '%s' is not possible, '%s' type of data-blocks is not supported",
+                id->name,
+                id_type->name);
+    return false;
+  }
+  return copybuffer.id_add(id,
+                           PartialWriteContext::IDAddOptions{
+                               (PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+                                PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
+                                PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
+                           nullptr) != nullptr;
+}
+
 static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
                                 ListBaseT<TreeElement> *tree,
                                 bke::blendfile::PartialWriteContext &copybuffer,
                                 ReportList *reports)
 {
-  using namespace blender::bke::blendfile;
-
   int num_ids = 0;
 
   for (TreeElement &te : *tree) {
     TreeStoreElem *tselem = TREESTORE(&te);
 
-    /* Add selected item and all of its dependencies to the copy buffer. */
+    /* Add selected item and all of its dependencies to the copy buffer. Sub-trees are visited
+     * even if the item itself can't be copied, e.g. local children of a linked object. */
     if (tselem->flag & TSE_SELECTED && ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION)) {
-      if (ID_IS_LINKED(tselem->id)) {
-        /* Direct link/append of linked IDs is not supported currently, so neither is their
-         * copy/pasting. */
-        BKE_reportf(reports,
-                    RPT_INFO,
-                    "Cannot copy the linked data-block '%s' to the internal clipboard",
-                    tselem->id->name);
-        continue;
-      }
-      if (ID_IS_PACKED(tselem->id)) {
-        /* Direct link/append of packed IDs is not supported currently, so neither is their
-         * copy/pasting. */
-        /* NOTE: In practice, should alwasy be shadowed by the more general text on linked data
-         * above currently. */
-        BKE_reportf(reports,
-                    RPT_INFO,
-                    "Cannot copy the linked packed data-block '%s' to the internal clipboard",
-                    tselem->id->name);
-        continue;
-      }
-      const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(tselem->id);
-      if (id_type->flags & (IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING)) {
-        BKE_reportf(reports,
-                    RPT_INFO,
-                    "Copying ID '%s' is not possible, '%s' type of data-blocks is not supported",
-                    tselem->id->name,
-                    id_type->name);
-      }
-      if (copybuffer.id_add(tselem->id,
-                            PartialWriteContext::IDAddOptions{
-                                (PartialWriteContext::IDAddOperations::SET_FAKE_USER |
-                                 PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
-                                 PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
-                            nullptr))
-      {
+      if (outliner_id_copy_tag_id(tselem->id, copybuffer, reports)) {
         num_ids++;
       }
     }
@@ -999,7 +1008,7 @@ static wmOperatorStatus outliner_id_copy_exec(bContext *C, wmOperator *op)
   }
 
   char filepath[FILE_MAX];
-  outliner_copybuffer_filepath_get(filepath, sizeof(filepath));
+  outliner_copybuffer_filepath_get(filepath);
   copybuffer.write_as_copypaste_buffer(filepath, *op->reports);
 
   BKE_reportf(op->reports, RPT_INFO, "Copied %d selected data-block(s)", num_ids);
@@ -1033,7 +1042,7 @@ static wmOperatorStatus outliner_id_paste_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   const short flag = FILE_AUTOSELECT | FILE_ACTIVE_COLLECTION;
 
-  outliner_copybuffer_filepath_get(filepath, sizeof(filepath));
+  outliner_copybuffer_filepath_get(filepath);
 
   const int num_pasted = BKE_copybuffer_paste(C, filepath, flag, op->reports, 0);
   if (num_pasted == 0) {
@@ -1147,8 +1156,7 @@ static wmOperatorStatus lib_relocate(
     Library *lib = id_cast<Library *>(tselem->id);
     char dir[FILE_MAXDIR], filename[FILE_MAX];
 
-    BLI_path_split_dir_file(
-        lib->runtime->filepath_abs, dir, sizeof(dir), filename, sizeof(filename));
+    BLI_path_split_dir_file(lib->runtime->filepath_abs, dir, filename);
 
     printf("%s, %s\n", tselem->id->name, lib->runtime->filepath_abs);
 
@@ -2022,7 +2030,7 @@ static void tree_element_to_path(TreeElement *te,
 
           TreeElement *temnext = static_cast<TreeElement *>(ld->next->data);
           PointerRNA nextptr = tree_element_cast<TreeElementRNACommon>(temnext)->get_pointer_rna();
-          name = RNA_struct_name_get_alloc(&nextptr, buf, sizeof(buf), nullptr);
+          name = RNA_struct_name_get_alloc(&nextptr, buf, nullptr);
 
           if (name) {
             /* if possible, use name as a key in the path */

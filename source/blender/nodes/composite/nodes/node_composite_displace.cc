@@ -40,6 +40,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .align_with_previous();
 
   b.add_input<decl::Vector>("Displacement"_ustr)
+      .subtype(PROP_PIXEL)
       .dimensions(2)
       .default_value({0.0f, 0.0f})
       .structure_type(StructureType::Dynamic);
@@ -87,7 +88,8 @@ class DisplaceOperation : public NodeOperation {
     const Result &displacement = this->get_input("Displacement");
     if (displacement.is_single_value()) {
       output.share_data(input);
-      output.transform(math::from_location<float3x3>(displacement.get_single_value<float2>()));
+      output.transform(math::from_location<float3x3>(displacement.get_single_value<float2>() *
+                                                     input.domain().pixel_size));
       output.get_realization_options().interpolation = this->get_interpolation();
       output.get_realization_options().extension_x = this->get_extension_mode_x();
       output.get_realization_options().extension_y = this->get_extension_mode_y();
@@ -109,6 +111,8 @@ class DisplaceOperation : public NodeOperation {
     GPU_shader_bind(shader);
 
     const Result &input_image = this->get_input("Image");
+    GPU_shader_uniform_2fv(shader, "pixel_size", input_image.domain().pixel_size);
+
     if (interpolation == Interpolation::Anisotropic) {
       GPU_texture_anisotropic_filter(input_image, true);
       GPU_texture_mipmap_mode(input_image, true, true);
@@ -172,8 +176,10 @@ class DisplaceOperation : public NodeOperation {
                              const Extension &extension_mode_x,
                              const Extension &extension_mode_y) const
   {
+    const float2 pixel_size = image.domain().pixel_size;
     parallel_for(size, [&](const int2 base_texel) {
-      const float2 coordinates = this->compute_coordinates(base_texel, size, displacement);
+      const float2 coordinates = this->compute_coordinates(
+          base_texel, size, displacement, pixel_size);
       output.store_pixel(
           base_texel,
           image.sample<Color>(coordinates, interpolation, extension_mode_x, extension_mode_y));
@@ -192,6 +198,7 @@ class DisplaceOperation : public NodeOperation {
                            Result &output,
                            const Result &displacement) const
   {
+    const float2 pixel_size = image.domain().pixel_size;
     parallel_for(math::divide_ceil(size, int2(2)), [&](const int2 base_texel) {
       /* Compute each of the pixels in the 2x2 block, making sure to exempt out of bounds right
        * and upper pixels. */
@@ -204,13 +211,13 @@ class DisplaceOperation : public NodeOperation {
       const int2 upper_right_texel = int2(x + 1, y + 1);
 
       const float2 lower_left_coordinates = this->compute_coordinates(
-          lower_left_texel, size, displacement);
+          lower_left_texel, size, displacement, pixel_size);
       const float2 lower_right_coordinates = this->compute_coordinates(
-          lower_right_texel, size, displacement);
+          lower_right_texel, size, displacement, pixel_size);
       const float2 upper_left_coordinates = this->compute_coordinates(
-          upper_left_texel, size, displacement);
+          upper_left_texel, size, displacement, pixel_size);
       const float2 upper_right_coordinates = this->compute_coordinates(
-          upper_right_texel, size, displacement);
+          upper_right_texel, size, displacement, pixel_size);
 
       /* Compute the partial derivatives using finite difference. */
       const float2 lower_x_gradient = lower_right_coordinates - lower_left_coordinates;
@@ -251,12 +258,16 @@ class DisplaceOperation : public NodeOperation {
     });
   }
 
-  float2 compute_coordinates(const int2 &texel, const int2 &size, const Result &displacement) const
+  float2 compute_coordinates(const int2 &texel,
+                             const int2 &size,
+                             const Result &displacement,
+                             const float2 &pixel_size) const
   {
     /* Note that the input displacement is in pixel space, so divide by the input size to
      * transform it into the normalized sampler space. */
     const float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
-    return coordinates - displacement.load_pixel_extended<float2>(texel) / float2(size);
+    return coordinates -
+           (displacement.load_pixel_extended<float2>(texel) * pixel_size) / float2(size);
   }
 
   const char *get_shader_name(const Interpolation &interpolation) const

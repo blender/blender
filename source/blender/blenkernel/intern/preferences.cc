@@ -55,7 +55,7 @@ bool exists()
   }
 
   char userpref[FILE_MAX];
-  BLI_path_join(userpref, sizeof(userpref), cfgdir->c_str(), BLENDER_USERPREF_FILE);
+  BLI_path_join(userpref, cfgdir->c_str(), BLENDER_USERPREF_FILE);
   return BLI_exists(userpref);
 }
 
@@ -225,8 +225,7 @@ void BKE_preferences_asset_library_default_add(UserDef *userdef)
       userdef, DATA_(BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME), nullptr);
 
   /* Add new "Default" library under '[doc_path]/Blender/Assets'. */
-  BLI_path_join(
-      library->dirpath, sizeof(library->dirpath), documents_path, N_("Blender"), N_("Assets"));
+  BLI_path_join(library->dirpath, documents_path, N_("Blender"), N_("Assets"));
   STRNCPY(library->resolved_dirpath, AS_asset_library_resolve_path(library->dirpath).c_str());
 }
 
@@ -315,15 +314,13 @@ bUserExtensionRepo *BKE_preferences_extension_asset_library_repo_get(
 
 /**
  * Appends a slash to \a str if there isn't one there already. Will do nothing if \a str is empty.
- *
- * \param str_maxncpy: The maximum length \a str is allowed to have, including 0-terminator.
  */
-static void url_ensure_trailing_slash(char *str, const size_t str_maxncpy)
+static void url_ensure_trailing_slash(MutableCStr str)
 {
-  const size_t len = BLI_strnlen(str, str_maxncpy);
+  const size_t len = STRNLEN(str);
   BLI_assert_msg(str[len] == '\0', "String should be null-terminated");
 
-  if (len > 0 && str[len - 1] != '/' && len + 1 < str_maxncpy) {
+  if (len > 0 && str[len - 1] != '/' && len + 1 < str.size()) {
     str[len] = '/';
     str[len + 1] = '\0';
   }
@@ -339,7 +336,7 @@ void BKE_preferences_remote_asset_library_url_set(bUserAssetLibrary *library,
       library->remote_url);
 
   if (!ends_in_top_meta_file) {
-    url_ensure_trailing_slash(library->remote_url, sizeof(library->remote_url));
+    url_ensure_trailing_slash(library->remote_url);
   }
 
   /* Update location cache path. */
@@ -370,9 +367,9 @@ void BKE_preferences_remote_asset_library_auth_token_set(bUserAssetLibrary *libr
 /**
  * A string copy that ensures: `[A-Za-z]+[A-Za-z0-9_]*`.
  */
-static size_t strncpy_py_module(char *dst, const char *src, const size_t dst_maxncpy)
+static size_t strncpy_py_module(MutableCStr dst, const char *src)
 {
-  const size_t dst_len_max = dst_maxncpy - 1;
+  const size_t dst_len_max = dst.size() - 1;
   dst[0] = '\0';
   size_t i_src = 0, i_dst = 0;
   while (src[i_src] && (i_dst < dst_len_max)) {
@@ -489,7 +486,7 @@ void BKE_preferences_extension_repo_module_set(UserDef *userdef,
                                                bUserExtensionRepo *repo,
                                                const char *module)
 {
-  if (strncpy_py_module(repo->module, module, sizeof(repo->module)) == 0) {
+  if (strncpy_py_module(repo->module, module) == 0) {
     STRNCPY(repo->module, "repository");
   }
 
@@ -506,7 +503,7 @@ bool BKE_preferences_extension_repo_module_is_valid(const bUserExtensionRepo *re
   /* NOTE: this should only ever return false in the case of corrupt file/memory
    * and can be considered an exceptional situation. */
   char module_test[sizeof(bUserExtensionRepo::module)];
-  const size_t module_len = strncpy_py_module(module_test, repo->module, sizeof(repo->module));
+  const size_t module_len = strncpy_py_module(module_test, repo->module);
   if (module_len == 0) {
     return false;
   }
@@ -522,11 +519,10 @@ void BKE_preferences_extension_repo_custom_dirpath_set(bUserExtensionRepo *repo,
 }
 
 size_t BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo,
-                                                  char *dirpath,
-                                                  const int dirpath_maxncpy)
+                                                  MutableCStr dirpath)
 {
   if (repo->flag & USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY) {
-    return BLI_strncpy_rlen(dirpath, repo->custom_dirpath, dirpath_maxncpy);
+    return STRNCPY_RLEN(dirpath, repo->custom_dirpath);
   }
 
   std::optional<std::string> path = std::nullopt;
@@ -552,17 +548,16 @@ size_t BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo
     dirpath[0] = '\0';
     return 0;
   }
-  return BLI_path_join(dirpath, dirpath_maxncpy, path.value().c_str(), repo->module);
+  return BLI_path_join(dirpath, path.value().c_str(), repo->module);
 }
 
 size_t BKE_preferences_extension_repo_user_dirpath_get(const bUserExtensionRepo *repo,
-                                                       char *dirpath,
-                                                       const int dirpath_maxncpy)
+                                                       MutableCStr dirpath)
 {
   if (std::optional<std::string> path = BKE_appdir_folder_id_user_notest(BLENDER_USER_EXTENSIONS,
                                                                          nullptr))
   {
-    return BLI_path_join(dirpath, dirpath_maxncpy, path.value().c_str(), ".user", repo->module);
+    return BLI_path_join(dirpath, path.value().c_str(), ".user", repo->module);
   }
   return 0;
 }

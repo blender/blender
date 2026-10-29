@@ -87,7 +87,7 @@ static std::optional<std::string> rna_trackingTrack_path(const PointerRNA *ptr)
   MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(ptr->data);
   /* Escaped object name, escaped track name, rest of the path. */
   char rna_path[MAX_NAME * 4 + 64];
-  BKE_tracking_get_rna_path_for_track(&clip->tracking, track, rna_path, sizeof(rna_path));
+  BKE_tracking_get_rna_path_for_track(&clip->tracking, track, rna_path);
   return rna_path;
 }
 
@@ -276,8 +276,7 @@ static void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
   BKE_tracking_track_unique_name(&tracking_object->tracks, track);
   /* Fix animation paths. */
   char rna_path_prefix[MAX_NAME * 2 + 64];
-  BKE_tracking_get_rna_path_prefix_for_track(
-      &clip->tracking, track, rna_path_prefix, sizeof(rna_path_prefix));
+  BKE_tracking_get_rna_path_prefix_for_track(&clip->tracking, track, rna_path_prefix);
   BKE_animdata_fix_paths(clip->id,
                          rna_path_prefix,
                          RNA_path_name_to_infix(old_name),
@@ -346,8 +345,7 @@ static std::optional<std::string> rna_trackingPlaneTrack_path(const PointerRNA *
   MovieTrackingPlaneTrack *plane_track = static_cast<MovieTrackingPlaneTrack *>(ptr->data);
   /* Escaped object name, escaped track name, rest of the path. */
   char rna_path[MAX_NAME * 4 + 64];
-  BKE_tracking_get_rna_path_for_plane_track(
-      &clip->tracking, plane_track, rna_path, sizeof(rna_path));
+  BKE_tracking_get_rna_path_for_plane_track(&clip->tracking, plane_track, rna_path);
   return rna_path;
 }
 
@@ -365,8 +363,7 @@ static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
   BKE_tracking_plane_track_unique_name(&tracking_object->plane_tracks, plane_track);
   /* Fix animation paths. */
   char rna_path[MAX_NAME * 2 + 64];
-  BKE_tracking_get_rna_path_prefix_for_plane_track(
-      &clip->tracking, plane_track, rna_path, sizeof(rna_path));
+  BKE_tracking_get_rna_path_prefix_for_plane_track(&clip->tracking, plane_track, rna_path);
   BKE_animdata_fix_paths(clip->id,
                          rna_path,
                          RNA_path_name_to_infix(old_name),

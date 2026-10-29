@@ -1078,7 +1078,9 @@ static void long_id_names_process_action_slots_identifiers(Main *bmain)
         bool has_truncated_slot_identifier = false;
         bAction *act = reinterpret_cast<bAction *>(id_iter);
         for (int i = 0; i < act->slot_array_num; i++) {
-          if (BLI_str_utf8_truncate_at_size(act->slot_array[i]->identifier, MAX_ID_NAME)) {
+          if (BLI_str_utf8_truncate_at_size(
+                  MutableCStr(act->slot_array[i]->identifier, MAX_ID_NAME)))
+          {
             CLOG_DEBUG(&LOG,
                        "Truncated too long action slot name to '%s'",
                        act->slot_array[i]->identifier);
@@ -1107,8 +1109,7 @@ static void long_id_names_process_action_slots_identifiers(Main *bmain)
               },
               "",
               '.',
-              act->slot_array[i]->identifier,
-              sizeof(act->slot_array[i]->identifier));
+              act->slot_array[i]->identifier);
         }
         break;
       }
@@ -1118,7 +1119,9 @@ static void long_id_names_process_action_slots_identifiers(Main *bmain)
             return true;
           }
           bActionConstraint *constraint_data = static_cast<bActionConstraint *>(constraint.data);
-          if (BLI_str_utf8_truncate_at_size(constraint_data->last_slot_identifier, MAX_ID_NAME)) {
+          if (BLI_str_utf8_truncate_at_size(
+                  MutableCStr(constraint_data->last_slot_identifier, MAX_ID_NAME)))
+          {
             CLOG_DEBUG(&LOG,
                        "Truncated too long bActionConstraint.last_slot_identifier to '%s'",
                        constraint_data->last_slot_identifier);
@@ -1142,19 +1145,25 @@ static void long_id_names_process_action_slots_identifiers(Main *bmain)
       default: {
         AnimData *anim_data = BKE_animdata_from_id(id_iter);
         if (anim_data) {
-          if (BLI_str_utf8_truncate_at_size(anim_data->last_slot_identifier, MAX_ID_NAME)) {
+          if (BLI_str_utf8_truncate_at_size(
+                  MutableCStr(anim_data->last_slot_identifier, MAX_ID_NAME)))
+          {
             CLOG_DEBUG(&LOG,
                        "Truncated too long AnimData.last_slot_identifier to '%s'",
                        anim_data->last_slot_identifier);
           }
-          if (BLI_str_utf8_truncate_at_size(anim_data->tmp_last_slot_identifier, MAX_ID_NAME)) {
+          if (BLI_str_utf8_truncate_at_size(
+                  MutableCStr(anim_data->tmp_last_slot_identifier, MAX_ID_NAME)))
+          {
             CLOG_DEBUG(&LOG,
                        "Truncated too long AnimData.tmp_last_slot_identifier to '%s'",
                        anim_data->tmp_last_slot_identifier);
           }
 
           bke::nla::foreach_strip_adt(*anim_data, [&](NlaStrip *strip) -> bool {
-            if (BLI_str_utf8_truncate_at_size(strip->last_slot_identifier, MAX_ID_NAME)) {
+            if (BLI_str_utf8_truncate_at_size(
+                    MutableCStr(strip->last_slot_identifier, MAX_ID_NAME)))
+            {
               CLOG_DEBUG(&LOG,
                          "Truncated too long NlaStrip.last_slot_identifier to '%s'",
                          strip->last_slot_identifier);
@@ -1222,15 +1231,14 @@ static bool is_minversion_older_than_blender(FileData *fd, ReportList *reports)
       char min_reader_ver_str[16];
       if (fd->fileversion == fg->minversion) {
         BKE_blender_version_blendfile_string_from_values(
-            writer_ver_str, sizeof(writer_ver_str), short(fd->fileversion), fg->subversion);
+            writer_ver_str, short(fd->fileversion), fg->subversion);
         BKE_blender_version_blendfile_string_from_values(
-            min_reader_ver_str, sizeof(min_reader_ver_str), fg->minversion, fg->minsubversion);
+            min_reader_ver_str, fg->minversion, fg->minsubversion);
       }
       else {
         BKE_blender_version_blendfile_string_from_values(
-            writer_ver_str, sizeof(writer_ver_str), short(fd->fileversion), -1);
-        BKE_blender_version_blendfile_string_from_values(
-            min_reader_ver_str, sizeof(min_reader_ver_str), fg->minversion, -1);
+            writer_ver_str, short(fd->fileversion), -1);
+        BKE_blender_version_blendfile_string_from_values(min_reader_ver_str, fg->minversion, -1);
       }
       BKE_reportf(reports,
                   RPT_ERROR,
@@ -2026,7 +2034,7 @@ static ID *read_id_struct(FileData *fd, BHead *bh, const char *blockname, const 
    * They can only be truncated here, ensuring that all ID names remain unique happens later, after
    * reading all local IDs, but before linking them, see the call to
    * #long_id_names_ensure_unique_id_names in #blo_read_file_internal. */
-  if (BLI_str_utf8_truncate_at_size(id->name + 2, MAX_ID_NAME - 2)) {
+  if (BLI_str_utf8_truncate_at_size(MutableCStr(id->name + 2, MAX_ID_NAME - 2))) {
     fd->flags |= FD_FLAGS_HAS_INVALID_ID_NAMES;
     CLOG_DEBUG(&LOG, "Truncated too long ID name to '%s'", id->name);
   }
@@ -2862,7 +2870,7 @@ static ID *create_placeholder(Main *mainvar,
   BKE_libblock_runtime_ensure(*ph_id);
 
   *(reinterpret_cast<short *>(ph_id->name)) = idcode;
-  BLI_strncpy(ph_id->name + 2, idname, sizeof(ph_id->name) - 2);
+  STRNCPY(MutableCStr(ph_id->name).drop_front(2), idname);
   BKE_libblock_init_empty(ph_id);
   ph_id->tag = tag | ID_TAG_MISSING;
   ph_id->us = ID_FAKE_USERS(ph_id);
@@ -5003,7 +5011,7 @@ static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const 
 {
   char idname_full[MAX_ID_NAME];
   *(reinterpret_cast<short *>(idname_full)) = idcode;
-  BLI_strncpy(idname_full + 2, name, sizeof(idname_full) - 2);
+  STRNCPY(MutableCStr(idname_full).drop_front(2), name);
 
   return fd->bhead_idname_map->lookup_default(idname_full, nullptr);
 }

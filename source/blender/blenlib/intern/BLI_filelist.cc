@@ -253,27 +253,18 @@ void BLI_filelist_entry_size_to_string(const struct stat *st,
                                        const bool compact,
                                        char r_size[FILELIST_DIRENTRY_SIZE_LEN])
 {
-  /*
-   * Seems st_size is signed 32-bit value in *nix and Windows.  This
-   * will buy us some time until files get bigger than 4GB or until
-   * everyone starts using __USE_FILE_OFFSET64 or equivalent.
-   */
-  double size = double(st ? st->st_size : st_size_fallback);
+  const int64_t size = st ? int64_t(st->st_size) : int64_t(st_size_fallback);
 #ifdef WIN32
-  if (compact) {
-    BLI_str_format_byte_unit_compact(r_size, size, false);
-  }
-  else {
-    BLI_str_format_byte_unit(r_size, size, false);
-  }
+  const bool base_10 = false;
 #else
+  const bool base_10 = true;
+#endif
   if (compact) {
-    BLI_str_format_byte_unit_compact(r_size, size, true);
+    BLI_str_format_byte_unit_compact(r_size, size, base_10);
   }
   else {
-    BLI_str_format_byte_unit(r_size, size, true);
+    BLI_str_format_byte_unit(r_size, size, base_10);
   }
-#endif
 }
 
 void BLI_filelist_entry_mode_to_string(const struct stat *st,

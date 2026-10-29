@@ -340,7 +340,10 @@ struct BSLParser {
         match_if(Const, Constexpr);
 
         if (peek() == Static) {
-          error("Static keyword must be placed before constexpr");
+          /* Report even when parsing speculatively, as no other declaration accepts this. Then
+           * stop parsing like #error(). */
+          error_handler.report(curr, "Static keyword must be placed before constexpr");
+          curr = Token(parser);
           return true;
         }
       }

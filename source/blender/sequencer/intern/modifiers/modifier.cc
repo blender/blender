@@ -655,8 +655,9 @@ void modifier_set_active(Strip *strip, StripModifierData *smd)
 void modifier_type_panel_id(eStripModifierType type, char *r_idname)
 {
   const StripModifierTypeInfo *mti = modifier_type_info_get(type);
-  BLI_string_join(
-      r_idname, sizeof(PanelType::idname), STRIP_MODIFIER_TYPE_PANEL_PREFIX, mti->idname);
+  BLI_string_join(MutableCStr(r_idname, sizeof(PanelType::idname)),
+                  STRIP_MODIFIER_TYPE_PANEL_PREFIX,
+                  mti->idname);
 }
 
 void foreach_strip_modifier_id(Strip *strip, const FunctionRef<void(ID *)> fn)

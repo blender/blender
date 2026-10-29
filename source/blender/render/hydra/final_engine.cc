@@ -84,8 +84,7 @@ void FinalEngine::render()
     }
 
     percent_done = renderer_percent_done();
-    BLI_timecode_string_from_time_simple(
-        elapsed_time, sizeof(elapsed_time), BLI_time_now_seconds() - time_begin);
+    BLI_timecode_string_from_time_simple(elapsed_time, BLI_time_now_seconds() - time_begin);
     notify_status(percent_done / 100.0,
                   std::string(scene_name) + ": " + view_layer->name,
                   std::string("Render Time: ") + elapsed_time +

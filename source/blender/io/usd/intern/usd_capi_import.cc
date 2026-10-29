@@ -9,6 +9,7 @@
 #include "usd_reader_geom.hh"
 #include "usd_reader_prim.hh"
 #include "usd_reader_stage.hh"
+#include "usd_reader_xform.hh"
 
 #include "BKE_cachefile.hh"
 #include "BKE_collection.hh"
@@ -22,6 +23,8 @@
 #include "BKE_report.hh"
 
 #include "BLI_listbase.hh"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"
 #include "BLI_timeit.hh"
@@ -119,6 +122,42 @@ static void report_job_duration(const ImportJobData *data)
   fmt::print("USD import of '{}' took ", data->filepath);
   timeit::print_duration(duration);
   fmt::print("\n");
+}
+
+static bool reader_resets_xform_stack(const USDPrimReader *reader)
+{
+  const USDXformReader *xform_reader = dynamic_cast<const USDXformReader *>(reader);
+  return xform_reader && xform_reader->resets_xform_stack();
+}
+
+/* World matrix of the reader's object, computed from the transforms read at import. */
+static float4x4 reader_world_matrix(const USDPrimReader *reader)
+{
+  const Object *ob = reader->object();
+  float4x4 mat_local;
+  BKE_object_to_mat4(ob, mat_local.ptr());
+
+  /* The local matrix of a prim that resets the transform stack is its world matrix. Don't rely on
+   * its parent inverse matrix, which may not have been set yet. */
+  const USDPrimReader *parent = reader->parent();
+  if (parent == nullptr || reader_resets_xform_stack(reader)) {
+    return mat_local;
+  }
+  return reader_world_matrix(parent) * float4x4(ob->parentinv) * mat_local;
+}
+
+/* Keep the parent of objects whose prim resets the transform stack, and cancel the parent's
+ * transform with the parent inverse matrix. */
+static void set_xform_stack_reset_parent_inverse(const Span<USDPrimReader *> readers)
+{
+  for (const USDPrimReader *reader : readers) {
+    const USDPrimReader *parent = reader->parent();
+    if (parent == nullptr || !reader_resets_xform_stack(reader)) {
+      continue;
+    }
+    const float4x4 parent_inverse = math::invert(reader_world_matrix(parent));
+    copy_m4_m4(reader->object()->parentinv, parent_inverse.ptr());
+  }
 }
 
 static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
@@ -282,6 +321,8 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     }
   }
 
+  set_xform_stack_reset_parent_inverse(archive->readers());
+
   if (data->params.import_skeletons) {
     archive->process_armature_modifiers();
   }
@@ -322,8 +363,7 @@ static void import_endjob(void *customdata)
       /* Create a new collection if required. */
       if (data->params.create_collection) {
         char display_name[MAX_ID_NAME - 2];
-        BLI_path_to_display_name(
-            display_name, sizeof(display_name), BLI_path_basename(data->filepath));
+        BLI_path_to_display_name(display_name, BLI_path_basename(data->filepath));
         Collection *import_collection = BKE_collection_add(
             data->bmain, data->scene->master_collection, display_name);
 

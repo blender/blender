@@ -126,7 +126,7 @@ DiskBlobReader::DiskBlobReader(std::string blobs_dir) : blobs_dir_(std::move(blo
   }
 
   char blob_path[FILE_MAX];
-  BLI_path_join(blob_path, sizeof(blob_path), blobs_dir_.c_str(), slice.name.c_str());
+  BLI_path_join(blob_path, blobs_dir_.c_str(), slice.name.c_str());
 
   std::lock_guard lock{mutex_};
   std::unique_ptr<fstream> &blob_file = open_input_streams_.lookup_or_add_cb_as(blob_path, [&]() {
@@ -150,7 +150,7 @@ BlobSlice DiskBlobWriter::write(const void *data, const int64_t size)
 {
   if (!blob_stream_.is_open()) {
     char blob_path[FILE_MAX];
-    BLI_path_join(blob_path, sizeof(blob_path), blob_dir_.c_str(), blob_name_.c_str());
+    BLI_path_join(blob_path, blob_dir_.c_str(), blob_name_.c_str());
     BLI_file_ensure_parent_dir_exists(blob_path);
     blob_stream_.open(blob_path, std::ios::out | std::ios::binary);
   }
@@ -178,7 +178,7 @@ BlobSlice DiskBlobWriter::write_as_stream(const StringRef file_extension,
       base_name_, independent_file_count_, file_extension);
 
   char path[FILE_MAX];
-  BLI_path_join(path, sizeof(path), blob_dir_.c_str(), file_name.c_str());
+  BLI_path_join(path, blob_dir_.c_str(), file_name.c_str());
   BLI_file_ensure_parent_dir_exists(path);
   std::fstream stream{path, std::ios::out | std::ios::binary};
   fn(stream);

@@ -49,8 +49,10 @@ struct SolveCameraJob {
   MovieReconstructContext *context = nullptr;
 };
 
-static bool solve_camera_initjob(
-    bContext *C, SolveCameraJob *scj, wmOperator *op, char *error_msg, int max_error)
+static bool solve_camera_initjob(bContext *C,
+                                 SolveCameraJob *scj,
+                                 wmOperator *op,
+                                 MutableCStr error_msg)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -59,7 +61,7 @@ static bool solve_camera_initjob(
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
   int width, height;
 
-  if (!BKE_tracking_reconstruction_check(tracking, tracking_object, error_msg, max_error)) {
+  if (!BKE_tracking_reconstruction_check(tracking, tracking_object, error_msg)) {
     return false;
   }
 
@@ -101,8 +103,7 @@ static void solve_camera_startjob(void *scv, wmJobWorkerStatus *worker_status)
                                     &worker_status->stop,
                                     &worker_status->do_update,
                                     &worker_status->progress,
-                                    scj->stats_message,
-                                    sizeof(scj->stats_message));
+                                    scj->stats_message);
 }
 
 static void solve_camera_freejob(void *scv)
@@ -183,7 +184,7 @@ static wmOperatorStatus solve_camera_exec(bContext *C, wmOperator *op)
   SolveCameraJob *scj;
   char error_msg[256] = "\0";
   scj = MEM_new<SolveCameraJob>("SolveCameraJob data");
-  if (!solve_camera_initjob(C, scj, op, error_msg, sizeof(error_msg))) {
+  if (!solve_camera_initjob(C, scj, op, error_msg)) {
     if (error_msg[0]) {
       BKE_report(op->reports, RPT_ERROR, error_msg);
     }
@@ -213,7 +214,7 @@ static wmOperatorStatus solve_camera_invoke(bContext *C, wmOperator *op, const w
   }
 
   scj = MEM_new<SolveCameraJob>("SolveCameraJob data");
-  if (!solve_camera_initjob(C, scj, op, error_msg, sizeof(error_msg))) {
+  if (!solve_camera_initjob(C, scj, op, error_msg)) {
     if (error_msg[0]) {
       BKE_report(op->reports, RPT_ERROR, error_msg);
     }

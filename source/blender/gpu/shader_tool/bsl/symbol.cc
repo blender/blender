@@ -19,6 +19,22 @@ using Token = blender::gpu::shader::parser::Token;
 
 static const char *ns_sep = blender::gpu::shader::SourceProcessor::namespace_separator;
 
+/* Prefix of symbols inside a namespace or class scope, e.g. `a_b_` for `namespace a::b`. */
+static std::string scope_prefix(const SymbolScope &scope)
+{
+  std::string prefix;
+  const SymbolScope *parent = &scope;
+  /* Namespace identifiers are not prefixed by their parent namespaces. */
+  for (; parent && parent->type == SymbolScope::NAMESPACE; parent = parent->parent) {
+    prefix = parent->identifier + ns_sep + prefix;
+  }
+  /* Class identifiers are already fully prefixed. */
+  if (parent && parent->type == SymbolScope::CLASS) {
+    prefix = parent->identifier + ns_sep + prefix;
+  }
+  return prefix;
+}
+
 struct SymbolParser : NodeErrorHandler {
   SymbolTable &table;
 
@@ -349,6 +365,15 @@ struct SymbolParser : NodeErrorHandler {
                attr.res_type != ResourceType::RESOURCE_TABLE)
       {
         error(arg, Diag::ResourceAttributesOnlyOnEntryPointArgs);
+      }
+      else if (is_entry_point && attr.srt_type == ResourceTableType::ENTRY_POINT &&
+               !fn_sym->is_compatible(attr.res_type))
+      {
+        error(arg,
+              Diag::ResourceAttributesIncompatibleEntryPoint,
+              var->original,
+              to_str(attr.res_type),
+              to_str(fn_sym->entry_point_type));
       }
 
       if (!is_entry_point && attr.condition.is_valid()) {
@@ -815,7 +840,7 @@ struct SymbolParser : NodeErrorHandler {
     }
 
     /* Out-of-class definitions use the prefix of their class, e.g. `A_s` for `int A::s()`. */
-    std::string fn_prefix = ns ? scope.identifier + ns_sep : prefix;
+    std::string fn_prefix = ns ? scope_prefix(*ns) : prefix;
 
     parse_scope(*fn, func.body(), fn_prefix + fn->identifier + ns_sep, temp_params);
 
@@ -1313,7 +1338,8 @@ struct SymbolParser : NodeErrorHandler {
           /* Bitfield members copy their offset from the first bitfield member. */
           sym->offset = bitfield_base->offset;
         }
-        else {
+        else if (!sym->is_static) {
+          /* Static members are not part of the class layout. */
           sym->set_offset(cls->is_union, offset);
         }
 

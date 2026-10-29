@@ -321,7 +321,7 @@ std::optional<std::string> rna_TextureSlot_path(const PointerRNA *ptr)
   if (mtex->tex) {
     char name_esc[(sizeof(mtex->tex->id.name) - 2) * 2];
 
-    BLI_str_escape(name_esc, mtex->tex->id.name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc, mtex->tex->id.name + 2);
     return fmt::format("texture_slots[\"{}\"]", name_esc);
   }
 

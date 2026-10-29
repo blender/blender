@@ -412,7 +412,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
       Image *ima = id_cast<Image *>(id);
       PointerRNA itemptr;
       char dir[FILE_MAX], file[FILE_MAX];
-      BLI_path_split_dir_file(ima->filepath, dir, sizeof(dir), file, sizeof(file));
+      BLI_path_split_dir_file(ima->filepath, dir, file);
       RNA_string_set(drop->ptr, "directory", dir);
       RNA_collection_clear(drop->ptr, "files");
       RNA_collection_add(drop->ptr, "files", &itemptr);
@@ -455,7 +455,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
       PointerRNA itemptr;
       char dir[FILE_MAX], file[FILE_MAX];
 
-      BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
+      BLI_path_split_dir_file(path, dir, file);
 
       RNA_string_set(drop->ptr, "directory", dir);
 
@@ -622,7 +622,7 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
 
     if (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_NAME) {
       if (is_filepath) {
-        BLI_path_split_file_part(path, filename, FILE_MAX);
+        BLI_path_split_file_part(path, filename);
         text_array[len_text_arr++] = filename;
       }
       else {
@@ -645,8 +645,7 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
 
     BLI_assert(len_text_arr <= ARRAY_SIZE(text_array));
 
-    const size_t text_display_len = BLI_string_join_array(
-        text_display, FILE_MAX, text_array, len_text_arr);
+    const size_t text_display_len = BLI_string_join_array(text_display, text_array, len_text_arr);
 
     ui::view2d_text_cache_add_rectf(
         &region->v2d, &rect, text_display, text_display_len, text_color);

@@ -323,7 +323,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
   /* Delete f-curves associated with the track (such as weight, i.e.) */
   /* Escaped object name, escaped track name, rest of the path. */
   char rna_path[MAX_NAME * 4 + 64];
-  BKE_tracking_get_rna_path_for_track(tracking, track, rna_path, sizeof(rna_path));
+  BKE_tracking_get_rna_path_for_track(tracking, track, rna_path);
   if (BKE_animdata_fix_paths_remove(&clip->id, rna_path)) {
     DEG_relations_tag_update(CTX_data_main(C));
   }
@@ -369,7 +369,7 @@ void clip_delete_plane_track(bContext *C, MovieClip *clip, MovieTrackingPlaneTra
   /* Delete f-curves associated with the track (such as weight, i.e.) */
   /* Escaped object name, escaped track name, rest of the path. */
   char rna_path[MAX_NAME * 4 + 64];
-  BKE_tracking_get_rna_path_for_plane_track(tracking, plane_track, rna_path, sizeof(rna_path));
+  BKE_tracking_get_rna_path_for_plane_track(tracking, plane_track, rna_path);
   if (BKE_animdata_fix_paths_remove(&clip->id, rna_path)) {
     DEG_relations_tag_update(CTX_data_main(C));
   }

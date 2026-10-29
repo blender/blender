@@ -294,8 +294,7 @@ static void ntreeCompositOutputFileUniquePath(ListBaseT<bNodeSocket> *list,
       [&](const StringRef check_name) { return unique_path_unique_check(list, sock, check_name); },
       defname,
       delim,
-      sockdata->path,
-      sizeof(sockdata->path));
+      sockdata->path);
 }
 
 /* find unique EXR layer */
@@ -331,8 +330,7 @@ static void ntreeCompositOutputFileUniqueLayer(ListBaseT<bNodeSocket> *list,
       },
       defname,
       delim,
-      sockdata->layer,
-      sizeof(sockdata->layer));
+      sockdata->layer);
 }
 
 static bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
@@ -402,8 +400,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
         char basepath[FILE_MAXDIR];
 
         /* split off filename from the old path, to be used as socket sub-path */
-        BLI_path_split_dir_file(
-            old_data->name, basepath, sizeof(basepath), filename, sizeof(filename));
+        BLI_path_split_dir_file(old_data->name, basepath, filename);
 
         STRNCPY(nimf->directory, basepath);
         nimf->format = old_data->im_format;

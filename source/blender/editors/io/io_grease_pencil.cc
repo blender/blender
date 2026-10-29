@@ -134,7 +134,7 @@ static bool grease_pencil_import_svg_check(bContext * /*C*/, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", filepath);
 
   if (!BLI_path_extension_check(filepath, ".svg")) {
-    BLI_path_extension_ensure(filepath, FILE_MAX, ".svg");
+    BLI_path_extension_ensure(filepath, ".svg");
     RNA_string_set(op->ptr, "filepath", filepath);
     return true;
   }
@@ -284,7 +284,7 @@ static bool grease_pencil_export_svg_check(bContext * /*C*/, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", filepath);
 
   if (!BLI_path_extension_check(filepath, ".svg")) {
-    BLI_path_extension_ensure(filepath, FILE_MAX, ".svg");
+    BLI_path_extension_ensure(filepath, ".svg");
     RNA_string_set(op->ptr, "filepath", filepath);
     return true;
   }
@@ -484,7 +484,7 @@ static bool grease_pencil_export_pdf_check(bContext * /*C*/, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", filepath);
 
   if (!BLI_path_extension_check(filepath, ".pdf")) {
-    BLI_path_extension_ensure(filepath, FILE_MAX, ".pdf");
+    BLI_path_extension_ensure(filepath, ".pdf");
     RNA_string_set(op->ptr, "filepath", filepath);
     return true;
   }

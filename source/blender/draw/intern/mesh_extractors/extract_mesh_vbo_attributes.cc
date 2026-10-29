@@ -31,7 +31,7 @@ static GPUVertFormat attribute_vbo_format(const MeshRenderData &mr,
                                           const bke::AttrType type)
 {
   char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-  GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+  GPU_vertformat_safe_attr_name(name, attr_safe_name);
   /* Attributes use auto-name. */
   SNPRINTF(attr_name, "a%s", attr_safe_name);
 

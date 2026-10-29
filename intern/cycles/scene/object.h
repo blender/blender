@@ -95,7 +95,7 @@ class Object : public Node {
   bool use_motion() const;
   float motion_time(const int step) const;
   int motion_step(const float time) const;
-  void update_motion();
+  void update_motion(Scene::MotionType need_motion);
 
   /* Maximum number of motion steps supported (due to Embree). */
   static const uint MAX_MOTION_STEPS = 129;

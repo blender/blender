@@ -62,7 +62,7 @@ static void asset_name_in_library_set(ID &id, const char *name)
 
   char id_name[MAX_ID_NAME];
   STRNCPY(id_name, id.name);
-  BLI_strncpy(id_name + 2, name, sizeof(id_name) - 2);
+  STRNCPY(MutableCStr(id_name).drop_front(2), name);
 
   BKE_main_library_weak_reference_add(&id, id.lib->filepath, id_name);
 }
@@ -257,7 +257,7 @@ static AssetWeakReference asset_weak_reference_for_user_library(
   /* BLI_path_rel requires a trailing slash. */
   char user_library_dirpath[FILE_MAX];
   STRNCPY(user_library_dirpath, user_library.dirpath);
-  BLI_path_slash_ensure(user_library_dirpath, sizeof(user_library_dirpath));
+  BLI_path_slash_ensure(user_library_dirpath);
 
   char relative_filepath[FILE_MAX];
   STRNCPY(relative_filepath, filepath);
@@ -283,7 +283,7 @@ static AssetWeakReference asset_weak_reference_for_online_essentials(const short
   STRNCPY(relative_filepath, filepath);
   char online_essentials_path[FILE_MAXDIR];
   STRNCPY(online_essentials_path, asset_system::online_essentials_cache_directory_path().c_str());
-  BLI_path_slash_ensure(online_essentials_path, sizeof(online_essentials_path));
+  BLI_path_slash_ensure(online_essentials_path);
   BLI_path_rel(relative_filepath, online_essentials_path);
   const char *asset_blend_path = relative_filepath + 2; /* Strip out // prefix. */
 

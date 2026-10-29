@@ -525,7 +525,7 @@ TEST(path_utils, IsUnc)
     { \
       char path[FILE_MAX]; \
       STRNCPY(path, input); \
-      BLI_path_normalize_unc(path, sizeof(path)); \
+      BLI_path_normalize_unc(path); \
       EXPECT_STREQ(path, output_expect); \
     } \
     ((void)0)
@@ -635,7 +635,7 @@ TEST(path_utils, IsWin32DriveWithSlash)
     char result[(out_size) + 1024]; \
     /* Check we don't write past the last byte. */ \
     result[out_size] = '\0'; \
-    BLI_path_join(result, out_size, __VA_ARGS__); \
+    BLI_path_join(MutableCStr(result, out_size), __VA_ARGS__); \
     EXPECT_STREQ(result, expect); \
     EXPECT_EQ(result[out_size], '\0'); \
   } \
@@ -656,8 +656,7 @@ TEST(path_utils, IsWin32DriveWithSlash)
     } \
     /* Check we don't write past the last byte. */ \
     result[out_size] = '\0'; \
-    BLI_path_join_array(result, \
-                        out_size, \
+    BLI_path_join_array(MutableCStr(result, out_size), \
                         const_cast<const char **>(input_back_slash), \
                         ARRAY_SIZE(input_back_slash)); \
     BLI_string_replace_char(result, '\\', '/'); \
@@ -785,7 +784,7 @@ TEST(path_utils, JoinRelativePrefix)
       BLI_string_replace_char(filename_native, '/', '\\'); \
       BLI_string_replace_char(result, '/', '\\'); \
     } \
-    BLI_path_append(result, size, filename_native); \
+    BLI_path_append(MutableCStr(result, size), filename_native); \
     if (SEP == '\\') { \
       BLI_string_replace_char(result, '\\', '/'); \
     } \
@@ -821,42 +820,42 @@ TEST(path_utils, Frame)
 
   {
     char path[FILE_MAX] = "";
-    ret = BLI_path_frame(path, sizeof(path), 123, 1);
+    ret = BLI_path_frame(path, 123, 1);
     EXPECT_TRUE(ret);
     EXPECT_STREQ(path, "123");
   }
 
   {
     char path[FILE_MAX] = "";
-    ret = BLI_path_frame(path, sizeof(path), 123, 12);
+    ret = BLI_path_frame(path, 123, 12);
     EXPECT_TRUE(ret);
     EXPECT_STREQ(path, "000000000123");
   }
 
   {
     char path[FILE_MAX] = "test_";
-    ret = BLI_path_frame(path, sizeof(path), 123, 1);
+    ret = BLI_path_frame(path, 123, 1);
     EXPECT_TRUE(ret);
     EXPECT_STREQ(path, "test_123");
   }
 
   {
     char path[FILE_MAX] = "test_";
-    ret = BLI_path_frame(path, sizeof(path), 1, 12);
+    ret = BLI_path_frame(path, 1, 12);
     EXPECT_TRUE(ret);
     EXPECT_STREQ(path, "test_000000000001");
   }
 
   {
     char path[FILE_MAX] = "test_############";
-    ret = BLI_path_frame(path, sizeof(path), 1, 0);
+    ret = BLI_path_frame(path, 1, 0);
     EXPECT_TRUE(ret);
     EXPECT_STREQ(path, "test_000000000001");
   }
 
   {
     char path[FILE_MAX] = "test_#_#_middle";
-    ret = BLI_path_frame(path, sizeof(path), 123, 0);
+    ret = BLI_path_frame(path, 123, 0);
     EXPECT_TRUE(ret);
     EXPECT_STREQ(path, "test_#_123_middle");
   }
@@ -864,14 +863,14 @@ TEST(path_utils, Frame)
   /* intentionally fail */
   {
     char path[FILE_MAX] = "";
-    ret = BLI_path_frame(path, sizeof(path), 123, 0);
+    ret = BLI_path_frame(path, 123, 0);
     EXPECT_FALSE(ret);
     EXPECT_STREQ(path, "");
   }
 
   {
     char path[FILE_MAX] = "test_middle";
-    ret = BLI_path_frame(path, sizeof(path), 123, 0);
+    ret = BLI_path_frame(path, 123, 0);
     EXPECT_FALSE(ret);
     EXPECT_STREQ(path, "test_middle");
   }
@@ -879,13 +878,13 @@ TEST(path_utils, Frame)
   /* negative frame numbers */
   {
     char path[FILE_MAX] = "test_####";
-    ret = BLI_path_frame(path, sizeof(path), -1, 4);
+    ret = BLI_path_frame(path, -1, 4);
     EXPECT_TRUE(ret);
     EXPECT_STREQ(path, "test_-0001");
   }
   {
     char path[FILE_MAX] = "test_####";
-    ret = BLI_path_frame(path, sizeof(path), -100, 4);
+    ret = BLI_path_frame(path, -100, 4);
     EXPECT_TRUE(ret);
     EXPECT_STREQ(path, "test_-0100");
   }
@@ -895,7 +894,7 @@ TEST(path_utils, Frame)
     char path[FILE_MAX * 2];
     memset(path, '#', sizeof(path));
     path[sizeof(path) - 1] = '\0';
-    ret = BLI_path_frame(path, sizeof(path), 123456789, 0);
+    ret = BLI_path_frame(path, 123456789, 0);
     EXPECT_TRUE(BLI_str_endswith(path, "0123456789"));
   }
 
@@ -905,7 +904,7 @@ TEST(path_utils, Frame)
     memset(path, 0xff, sizeof(path));
     path[sizeof(path) - 1] = '\0';
     BLI_strncpy(path, "test_ab", 8);
-    ret = BLI_path_frame(path, 8, 123, 4);
+    ret = BLI_path_frame(MutableCStr(path, 8), 123, 4);
     EXPECT_FALSE(ret);
     EXPECT_STREQ(path, "test_ab");
     EXPECT_STREQ(path + 8, "\xff\xff\xff\xff");
@@ -923,7 +922,7 @@ TEST(path_utils, SplitDirfile)
   {
     const char *path = "";
     char dir[FILE_MAX], file[FILE_MAX];
-    BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
+    BLI_path_split_dir_file(path, dir, file);
     EXPECT_STREQ(dir, "");
     EXPECT_STREQ(file, "");
   }
@@ -931,7 +930,7 @@ TEST(path_utils, SplitDirfile)
   {
     const char *path = "/";
     char dir[FILE_MAX], file[FILE_MAX];
-    BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
+    BLI_path_split_dir_file(path, dir, file);
     EXPECT_STREQ(dir, "/");
     EXPECT_STREQ(file, "");
   }
@@ -939,7 +938,7 @@ TEST(path_utils, SplitDirfile)
   {
     const char *path = "fileonly";
     char dir[FILE_MAX], file[FILE_MAX];
-    BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
+    BLI_path_split_dir_file(path, dir, file);
     EXPECT_STREQ(dir, "");
     EXPECT_STREQ(file, "fileonly");
   }
@@ -947,7 +946,7 @@ TEST(path_utils, SplitDirfile)
   {
     const char *path = "dironly/";
     char dir[FILE_MAX], file[FILE_MAX];
-    BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
+    BLI_path_split_dir_file(path, dir, file);
     EXPECT_STREQ(dir, "dironly/");
     EXPECT_STREQ(file, "");
   }
@@ -955,7 +954,7 @@ TEST(path_utils, SplitDirfile)
   {
     const char *path = "/a/b";
     char dir[FILE_MAX], file[FILE_MAX];
-    BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
+    BLI_path_split_dir_file(path, dir, file);
     EXPECT_STREQ(dir, "/a/");
     EXPECT_STREQ(file, "b");
   }
@@ -963,11 +962,11 @@ TEST(path_utils, SplitDirfile)
   {
     const char *path = "/dirtoobig/filetoobig";
     char dir[5], file[5];
-    BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
+    BLI_path_split_dir_file(path, dir, file);
     EXPECT_STREQ(dir, "/dir");
     EXPECT_STREQ(file, "file");
 
-    BLI_path_split_dir_file(path, dir, 1, file, 1);
+    BLI_path_split_dir_file(path, MutableCStr(dir, 1), MutableCStr(file, 1));
     EXPECT_STREQ(dir, "");
     EXPECT_STREQ(file, "");
   }
@@ -984,7 +983,7 @@ TEST(path_utils, SplitDirfile)
     char path[FILE_MAX]; \
     char ext[FILE_MAX]; \
     STRNCPY(path, (input_path)); \
-    BLI_path_frame_strip(path, ext, sizeof(ext)); \
+    BLI_path_frame_strip(path, ext); \
     EXPECT_STREQ(path, expect_path); \
     EXPECT_STREQ(ext, expect_ext); \
   } \
@@ -1091,7 +1090,7 @@ TEST(path_utils, ExtensionCheck)
     BLI_assert(maxlen <= FILE_MAX); \
     char path[FILE_MAX]; \
     STRNCPY(path, input_path); \
-    const bool ret = BLI_path_extension_replace(path, maxlen, input_ext); \
+    const bool ret = BLI_path_extension_replace(MutableCStr(path, maxlen), input_ext); \
     if (expect_result) { \
       EXPECT_TRUE(ret); \
     } \
@@ -1162,7 +1161,7 @@ TEST(path_utils, ExtensionReplace_Overflow)
     BLI_assert(maxlen <= FILE_MAX); \
     char path[FILE_MAX]; \
     STRNCPY(path, input_path); \
-    const bool ret = BLI_path_extension_ensure(path, maxlen, input_ext); \
+    const bool ret = BLI_path_extension_ensure(MutableCStr(path, maxlen), input_ext); \
     if (expect_result) { \
       EXPECT_TRUE(ret); \
     } \
@@ -1263,7 +1262,7 @@ TEST(path_utils, FrameCheckChars)
     char path[FILE_MAX]; \
     bool ret; \
     STRNCPY(path, input_path); \
-    ret = BLI_path_frame_range(path, sizeof(path), sta, end, digits); \
+    ret = BLI_path_frame_range(path, sta, end, digits); \
     if (expect_outpath == nullptr) { \
       EXPECT_FALSE(ret); \
     } \
@@ -1293,7 +1292,7 @@ TEST(path_utils, FrameRange)
     memset(path, 0xff, sizeof(path));
     path[sizeof(path) - 1] = '\0';
     BLI_strncpy(path, "test_ab", 8);
-    EXPECT_FALSE(BLI_path_frame_range(path, 8, 1, 2, 4));
+    EXPECT_FALSE(BLI_path_frame_range(MutableCStr(path, 8), 1, 2, 4));
     EXPECT_STREQ(path, "test_ab");
     EXPECT_STREQ(path + 8, "\xff\xff\xff\xff");
   }
@@ -1351,8 +1350,7 @@ TEST(path_utils, FrameGet)
     char head[FILE_MAX]; \
     char tail[FILE_MAX]; \
     ushort numdigits = 0; \
-    const int result = BLI_path_sequence_decode( \
-        path, head, sizeof(head), tail, sizeof(tail), &numdigits); \
+    const int result = BLI_path_sequence_decode(path, head, tail, &numdigits); \
     EXPECT_EQ(result, expect_result); \
     EXPECT_STREQ(head, expect_head); \
     EXPECT_STREQ(tail, expect_tail); \
@@ -1385,7 +1383,7 @@ TEST(path_utils, SequenceDecode)
 #define PATH_SUFFIX(path_literal, path_literal_max, sep, suffix, expect_result, expect_path) \
   { \
     char path[FILE_MAX] = path_literal; \
-    const bool result = BLI_path_suffix(path, path_literal_max, suffix, sep); \
+    const bool result = BLI_path_suffix(MutableCStr(path, path_literal_max), suffix, sep); \
     EXPECT_EQ(result, expect_result); \
     EXPECT_STREQ(path, expect_path); \
   } \
@@ -1494,7 +1492,7 @@ TEST(path_util, SlashRFind)
     if (SEP == '\\') { \
       BLI_string_replace_char(path, '/', '\\'); \
     } \
-    int result = BLI_path_slash_ensure(path, size); \
+    int result = BLI_path_slash_ensure(path); \
     if (SEP == '\\') { \
       BLI_string_replace_char(path, '\\', '/'); \
     } \
@@ -1959,7 +1957,7 @@ TEST(path_utils, Contains_Windows_case_insensitive)
       << "A UNC share contains itself";
   EXPECT_FALSE(BLI_path_contains("\\\\server\\share", "\\\\server\\other\\inside"))
       << "Different UNC shares";
-  EXPECT_FALSE(BLI_path_relative_to("\\\\server", "\\\\server\\share\\", true, nullptr, 0))
+  EXPECT_FALSE(BLI_path_relative_to("\\\\server", "\\\\server\\share\\", true, std::nullopt))
       << "A UNC server is not a parent of its shares";
 }
 #endif /* WIN32 */
@@ -1974,47 +1972,39 @@ TEST(path_utils, RelativeTo)
 {
   char relative[FILE_MAX];
 
-  EXPECT_TRUE(BLI_path_relative_to("/some/path", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_TRUE(BLI_path_relative_to("/some/path", "/some/path", false, relative));
   EXPECT_STREQ(relative, "") << "Path is relative to itself";
 
-  EXPECT_TRUE(
-      BLI_path_relative_to("/some/path", "/some/path/", false, relative, sizeof(relative)));
+  EXPECT_TRUE(BLI_path_relative_to("/some/path", "/some/path/", false, relative));
   EXPECT_STREQ(relative, "") << "Trailing slash makes no difference";
 
-  EXPECT_TRUE(
-      BLI_path_relative_to("/some/path/inside", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_TRUE(BLI_path_relative_to("/some/path/inside", "/some/path", false, relative));
   EXPECT_STREQ(relative, "inside");
 
-  EXPECT_TRUE(
-      BLI_path_relative_to("/some/path/in/side", "/some/path/", false, relative, sizeof(relative)))
+  EXPECT_TRUE(BLI_path_relative_to("/some/path/in/side", "/some/path/", false, relative))
       << "Trailing slash on base makes no difference";
   EXPECT_STREQ(relative, "in" SEP_STR "side");
 
-  EXPECT_TRUE(BLI_path_relative_to(
-      "/some/path/../path/inside", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_TRUE(BLI_path_relative_to("/some/path/../path/inside", "/some/path", false, relative));
   EXPECT_STREQ(relative, "inside") << "Relative path is normalized";
 
   STRNCPY(relative, "uninitialized");
-  EXPECT_FALSE(
-      BLI_path_relative_to("/some/path_library", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_FALSE(BLI_path_relative_to("/some/path_library", "/some/path", false, relative));
   EXPECT_STREQ(relative, "");
 
   STRNCPY(relative, "uninitialized");
-  EXPECT_FALSE(
-      BLI_path_relative_to("/some/outside", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_FALSE(BLI_path_relative_to("/some/outside", "/some/path", false, relative));
   EXPECT_STREQ(relative, "");
 
-  EXPECT_FALSE(BLI_path_relative_to("//inside", "/some/path", true, relative, sizeof(relative)))
+  EXPECT_FALSE(BLI_path_relative_to("//inside", "/some/path", true, relative))
       << "Blend file relative paths are not supported";
 
 #ifdef WIN32
   /* Case insensitive on Windows only. */
-  EXPECT_TRUE(BLI_path_relative_to(
-      "c:\\SOME\\path\\InSide", "C:\\some\\path", false, relative, sizeof(relative)));
+  EXPECT_TRUE(BLI_path_relative_to("c:\\SOME\\path\\InSide", "C:\\some\\path", false, relative));
   EXPECT_STREQ(relative, "InSide") << "Case insensitive on Windows";
 
-  EXPECT_FALSE(BLI_path_relative_to(
-      "D:\\some\\path\\inside", "C:\\some\\path", true, relative, sizeof(relative)))
+  EXPECT_FALSE(BLI_path_relative_to("D:\\some\\path\\inside", "C:\\some\\path", true, relative))
       << "Another drive has no common root";
 #endif
 }
@@ -2023,26 +2013,22 @@ TEST(path_utils, RelativeTo_walk_up)
 {
   char relative[FILE_MAX];
 
-  EXPECT_TRUE(
-      BLI_path_relative_to("/some/path/inside", "/some/path", true, relative, sizeof(relative)));
+  EXPECT_TRUE(BLI_path_relative_to("/some/path/inside", "/some/path", true, relative));
   EXPECT_STREQ(relative, "inside");
 
-  EXPECT_TRUE(BLI_path_relative_to("/some/path", "/some/path", true, relative, sizeof(relative)));
+  EXPECT_TRUE(BLI_path_relative_to("/some/path", "/some/path", true, relative));
   EXPECT_STREQ(relative, "") << "Equal paths";
 
-  EXPECT_TRUE(
-      BLI_path_relative_to("/some/outside", "/some/path", true, relative, sizeof(relative)));
+  EXPECT_TRUE(BLI_path_relative_to("/some/outside", "/some/path", true, relative));
   EXPECT_STREQ(relative, ".." SEP_STR "outside");
 
-  EXPECT_TRUE(
-      BLI_path_relative_to("/some/path_library", "/some/path", true, relative, sizeof(relative)));
+  EXPECT_TRUE(BLI_path_relative_to("/some/path_library", "/some/path", true, relative));
   EXPECT_STREQ(relative, ".." SEP_STR "path_library") << "Sibling path";
 
-  EXPECT_TRUE(BLI_path_relative_to("/a/b/c/d", "/a/x/y", true, relative, sizeof(relative)));
+  EXPECT_TRUE(BLI_path_relative_to("/a/b/c/d", "/a/x/y", true, relative));
   EXPECT_STREQ(relative, ".." SEP_STR ".." SEP_STR "b" SEP_STR "c" SEP_STR "d");
 
-  EXPECT_TRUE(
-      BLI_path_relative_to("/some", "/some/path/inside", true, relative, sizeof(relative)));
+  EXPECT_TRUE(BLI_path_relative_to("/some", "/some/path/inside", true, relative));
   EXPECT_STREQ(relative, ".." SEP_STR ".." SEP_STR) << "Parent of the base directory";
 }
 

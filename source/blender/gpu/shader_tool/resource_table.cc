@@ -564,7 +564,7 @@ void SourceProcessor::lower_resource_table(Parser &parser)
             frag_in.raster_order_group = attribute[2].str();
           }
           else {
-            report_error(attributes[0], "Invalid attribute in fragment output interface");
+            report_error(attributes[0], "Invalid attribute in fragment input interface");
           }
         });
         return frag_in;

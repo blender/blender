@@ -1075,7 +1075,7 @@ static bool set_filepath_for_asset_lib(const Main *bmain, wmOperator *op)
   }
 
   char file_path[FILE_MAX];
-  BLI_path_join(file_path, sizeof(file_path), lib->resolved_dirpath, blend_filename);
+  BLI_path_join(file_path, lib->resolved_dirpath, blend_filename);
   RNA_string_set(op->ptr, "filepath", file_path);
 
   return true;
@@ -1087,8 +1087,7 @@ struct FileCheckCallbackInfo {
 };
 
 static bool external_file_check_callback(BPathForeachPathData *bpath_data,
-                                         char * /*path_dst*/,
-                                         size_t /*path_dst_maxncpy*/,
+                                         MutableCStr /*path_dst*/,
                                          const char *path_src)
 {
   FileCheckCallbackInfo *callback_info = static_cast<FileCheckCallbackInfo *>(

@@ -477,7 +477,7 @@ struct Resources {
 void vert_main([[resource_table]] const Resources &srt,
                [[resource_table]] const draw::View &views,
                [[vertex_id]] const int vert_id,
-               [[instance_id]] const int inst_id,
+               [[instance_index]] const int inst_id,
                [[position]] float4 &out_position,
                [[out]] VertOut &v_out)
 {

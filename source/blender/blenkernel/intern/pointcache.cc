@@ -1350,12 +1350,12 @@ int BKE_ptcache_path(PTCacheID *pid, char dirname[MAX_PTCACHE_PATH])
       BLI_path_abs(dirname, blendfile_path_lib);
     }
 
-    return BLI_path_slash_ensure(dirname, MAX_PTCACHE_PATH); /* new strlen() */
+    return BLI_path_slash_ensure(MutableCStr(dirname, MAX_PTCACHE_PATH)); /* new strlen() */
   }
   if ((blendfile_path[0] != '\0') || lib) {
     char file[MAX_PTCACHE_PATH]; /* we don't want the dir, only the file */
 
-    BLI_path_split_file_part(blendfile_path_lib, file, sizeof(file));
+    BLI_path_split_file_part(blendfile_path_lib, file);
     /* Remove the `.blend` extension. */
     BLI_path_extension_strip(file);
 
@@ -1363,14 +1363,14 @@ int BKE_ptcache_path(PTCacheID *pid, char dirname[MAX_PTCACHE_PATH])
     BLI_snprintf(dirname, MAX_PTCACHE_PATH, "//" PTCACHE_PATH "%s", file);
 
     BLI_path_abs(dirname, blendfile_path_lib);
-    return BLI_path_slash_ensure(dirname, MAX_PTCACHE_PATH); /* new strlen() */
+    return BLI_path_slash_ensure(MutableCStr(dirname, MAX_PTCACHE_PATH)); /* new strlen() */
   }
 
   /* use the temp path. this is weak but better than not using point cache at all */
   /* temporary directory is assumed to exist and ALWAYS has a trailing slash */
   BLI_snprintf(dirname, MAX_PTCACHE_PATH, "%s" PTCACHE_PATH, BKE_tempdir_session());
 
-  return BLI_path_slash_ensure(dirname, MAX_PTCACHE_PATH); /* new strlen() */
+  return BLI_path_slash_ensure(MutableCStr(dirname, MAX_PTCACHE_PATH)); /* new strlen() */
 }
 
 static size_t ptcache_filepath_ext_append(PTCacheID *pid,
@@ -2633,7 +2633,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
             if (STREQLEN(filepath, de->d_name, len)) { /* Do we have the right prefix. */
               if (mode == PTCACHE_CLEAR_ALL) {
                 pid->cache->last_exact = std::min(pid->cache->startframe, 0);
-                BLI_path_join(path_full, sizeof(path_full), path, de->d_name);
+                BLI_path_join(path_full, path, de->d_name);
                 BLI_delete(path_full, false, false);
               }
               else {
@@ -2644,7 +2644,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
                   if ((mode == PTCACHE_CLEAR_BEFORE && frame < cfra) ||
                       (mode == PTCACHE_CLEAR_AFTER && frame > cfra))
                   {
-                    BLI_path_join(path_full, sizeof(path_full), path, de->d_name);
+                    BLI_path_join(path_full, path, de->d_name);
                     BLI_delete(path_full, false, false);
                     if (pid->cache->cached_frames && frame >= sta && frame <= end) {
                       pid->cache->cached_frames[frame - sta] = 0;
@@ -3119,23 +3119,18 @@ void BKE_ptcache_quick_cache_all(Main *bmain, Scene *scene, ViewLayer *view_laye
   BKE_ptcache_bake(&baker);
 }
 
-static void ptcache_dt_to_str(char *str, size_t str_maxncpy, double dtime)
+static void ptcache_dt_to_str(MutableCStr str, double dtime)
 {
   if (dtime > 60.0) {
     if (dtime > 3600.0) {
-      BLI_snprintf(str,
-                   str_maxncpy,
-                   "%ih %im %is",
-                   int(dtime / 3600),
-                   int(dtime / 60) % 60,
-                   int(dtime) % 60);
+      SNPRINTF(str, "%ih %im %is", int(dtime / 3600), int(dtime / 60) % 60, int(dtime) % 60);
     }
     else {
-      BLI_snprintf(str, str_maxncpy, "%im %is", int(dtime / 60) % 60, int(dtime) % 60);
+      SNPRINTF(str, "%im %is", int(dtime / 60) % 60, int(dtime) % 60);
     }
   }
   else {
-    BLI_snprintf(str, str_maxncpy, "%is", int(dtime) % 60);
+    SNPRINTF(str, "%is", int(dtime) % 60);
   }
 }
 
@@ -3295,9 +3290,9 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
       if (use_timer || fetd > 60.0) {
         use_timer = true;
 
-        ptcache_dt_to_str(cur, sizeof(cur), ctime - ptime);
-        ptcache_dt_to_str(run, sizeof(run), ctime - stime);
-        ptcache_dt_to_str(etd, sizeof(etd), fetd);
+        ptcache_dt_to_str(cur, ctime - ptime);
+        ptcache_dt_to_str(run, ctime - stime);
+        ptcache_dt_to_str(etd, fetd);
 
         printf("Baked for %s, current frame: %i/%i (%.3fs), ETC: %s\r",
                run,
@@ -3320,7 +3315,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 
   if (use_timer) {
     /* start with newline because of \r above */
-    ptcache_dt_to_str(run, sizeof(run), BLI_time_now_seconds() - stime);
+    ptcache_dt_to_str(run, BLI_time_now_seconds() - stime);
     printf("\nBake %s %s (%i frames simulated).\n",
            (cancel ? "canceled after" : "finished in"),
            run,
@@ -3552,7 +3547,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
         const int frame = ptcache_frame_from_filename(de->d_name, ext);
 
         if (frame != -1) {
-          BLI_path_join(old_path_full, sizeof(old_path_full), path, de->d_name);
+          BLI_path_join(old_path_full, path, de->d_name);
           ptcache_filepath(pid, new_path_full, frame, true, true);
           BLI_rename_overwrite(old_path_full, new_path_full);
         }

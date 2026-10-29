@@ -455,7 +455,6 @@ static ui::Block *create_search_popup_block(bContext *C, ARegion *region, void *
   ui::Button *but = uiDefSearchBut(block,
                                    storage.search,
                                    ICON_VIEWZOOM,
-                                   sizeof(storage.search),
                                    storage.in_out() == SOCK_OUT ? 10 : 10 - ui::searchbox_size_x(),
                                    0,
                                    ui::searchbox_size_x(),

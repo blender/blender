@@ -1711,7 +1711,7 @@ static wmOperatorStatus image_file_browse_exec(bContext *C, wmOperator *op)
 
   /* If loading into a tiled texture, ensure that the filename is tokenized. */
   if (ima->source == IMA_SRC_TILED) {
-    BKE_image_ensure_tile_token(filepath, sizeof(filepath));
+    BKE_image_ensure_tile_token(filepath);
   }
 
   PropertyRNA *imaprop;
@@ -2401,7 +2401,7 @@ static wmOperatorStatus image_save_sequence_exec(bContext *C, wmOperator *op)
   }
 
   /* get a filename for menu */
-  BLI_path_split_dir_part(first_ibuf->filepath.c_str(), di, sizeof(di));
+  BLI_path_split_dir_part(first_ibuf->filepath.c_str(), di);
   BKE_reportf(op->reports, RPT_INFO, "%d image(s) will be saved in %s", tot, di);
 
   iter = IMB_cacheIter_new(image->runtime->cache);

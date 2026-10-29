@@ -252,10 +252,10 @@ bool BKE_attribute_rename(AttributeOwner &owner,
        * is clamped to its maximum length, otherwise assigning an over-long name multiple times
        * will add `.001` suffix unnecessarily. */
       {
-        const int new_name_maxncpy = CustomData_name_maxncpy_calc(new_name);
         /* NOTE: A function that performs a clamped comparison without copying would be handy. */
         char new_name_clamped[MAX_CUSTOMDATA_LAYER_NAME];
-        new_name.copy_utf8_truncated(new_name_clamped, new_name_maxncpy);
+        new_name.copy_utf8_truncated(
+            MutableCStr(new_name_clamped, CustomData_name_maxncpy_calc(new_name)));
         if (old_name == new_name_clamped) {
           return false;
         }

@@ -4082,9 +4082,12 @@ static void relative_pointer_handle_relative_motion(
   if (wl_surface *wl_surface_focus = seat->pointer.wl.surface_window) {
     CLOG_DEBUG(LOG, "relative_motion");
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
+    /* In most cases `wl_fixed_t` values are scaled by the window: `win->wl_fixed_from_window(..)`
+     * In this case however, it's desired behavior that the mouse moves faster on outputs that
+     * use scaling, scaling here makes the pointers relative motion too slow, see: #129230. */
     const wl_fixed_t xy_next[2] = {
-        seat->pointer.xy[0] + win->wl_fixed_from_window(dx),
-        seat->pointer.xy[1] + win->wl_fixed_from_window(dy),
+        seat->pointer.xy[0] + dx,
+        seat->pointer.xy[1] + dy,
     };
     relative_pointer_handle_relative_motion_impl(seat, win, xy_next, event_ms);
   }

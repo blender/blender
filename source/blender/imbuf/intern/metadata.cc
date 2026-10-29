@@ -95,10 +95,7 @@ void IMB_metadata_free(IDProperty *metadata)
   IDP_FreeProperty(metadata);
 }
 
-bool IMB_metadata_get_field(const IDProperty *metadata,
-                            const char *key,
-                            char *value,
-                            const size_t value_maxncpy)
+bool IMB_metadata_get_field(const IDProperty *metadata, const char *key, MutableCStr value)
 {
   if (metadata == nullptr) {
     return false;
@@ -107,7 +104,7 @@ bool IMB_metadata_get_field(const IDProperty *metadata,
   IDProperty *prop = IDP_GetPropertyFromGroup(metadata, key);
 
   if (prop && prop->type == IDP_STRING) {
-    BLI_strncpy(value, IDP_string_get(prop), value_maxncpy);
+    STRNCPY(value, IDP_string_get(prop));
     return true;
   }
   return false;

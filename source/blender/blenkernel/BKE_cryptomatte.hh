@@ -117,15 +117,9 @@ struct CryptomatteStampDataCallbackData {
   static StringRef extract_layer_hash(StringRefNull key);
 
   /* C type callback function (StampCallback). */
-  static void extract_layer_names(void *_data,
-                                  const char *propname,
-                                  char *propvalue,
-                                  int propvalue_maxncpy);
+  static void extract_layer_names(void *_data, const char *propname, MutableCStr propvalue);
   /* C type callback function (StampCallback). */
-  static void extract_layer_manifest(void *_data,
-                                     const char *propname,
-                                     char *propvalue,
-                                     int propvalue_maxncpy);
+  static void extract_layer_manifest(void *_data, const char *propname, MutableCStr propvalue);
 };
 
 const Vector<std::string> &BKE_cryptomatte_layer_names_get(const CryptomatteSession &session);

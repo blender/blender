@@ -1052,18 +1052,16 @@ Vector<Error> BKE_path_validate_template(
   return eval_template(nullptr, path, template_variables);
 }
 
-Vector<Error> BKE_path_apply_template(char *path,
-                                      int path_maxncpy,
-                                      const VariableMap &template_variables)
+Vector<Error> BKE_path_apply_template(MutableCStr path, const VariableMap &template_variables)
 {
-  BLI_assert(path != nullptr);
+  BLI_assert(path.data() != nullptr);
 
   std::string evaluated_path;
-  const Vector<Error> errors = eval_template(&evaluated_path, path, template_variables);
+  const Vector<Error> errors = eval_template(&evaluated_path, path.data(), template_variables);
 
   if (errors.is_empty()) {
     /* No errors, so copy the modified path back to the original. */
-    BLI_strncpy(path, evaluated_path.c_str(), path_maxncpy);
+    STRNCPY(path, evaluated_path.c_str());
   }
   return errors;
 }

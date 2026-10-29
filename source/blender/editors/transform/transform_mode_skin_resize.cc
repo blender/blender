@@ -79,7 +79,7 @@ static void applySkinResize(TransInfo *t)
 
   size_to_mat3(mat_final, t->values_final);
 
-  headerResize(t, t->values_final, str, sizeof(str));
+  headerResize(t, t->values_final, str);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     threading::parallel_for(IndexRange(tc->data_len), 1024, [&](const IndexRange range) {

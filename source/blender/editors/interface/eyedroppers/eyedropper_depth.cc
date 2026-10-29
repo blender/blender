@@ -284,14 +284,8 @@ static void depthdropper_depth_sample_pt(bContext *C,
 
           *r_depth = len_v3v3(view_co, co_align);
 
-          BKE_unit_value_as_string(ddr->name,
-                                   sizeof(ddr->name),
-                                   double(*r_depth),
-                                   -4,
-                                   B_UNIT_LENGTH,
-                                   scene->unit,
-                                   false,
-                                   true);
+          BKE_unit_value_as_string(
+              ddr->name, double(*r_depth), -4, B_UNIT_LENGTH, scene->unit, false, true);
         }
         else {
           STRNCPY_UTF8(ddr->name, RPT_("Nothing under cursor"));

@@ -24,6 +24,7 @@ namespace blender {
 struct Scene;
 struct View3D;
 struct RegionView3D;
+struct SpaceNode;
 struct ScrArea;
 struct BlendWriter;
 struct BlendDataReader;
@@ -202,6 +203,9 @@ bool is_compositor_viewer_visible(const ScrArea &area);
 
 /* Checks if the given area has compositor node previews visible. */
 bool are_compositor_node_previews_visible(const ScrArea &area);
+
+/* Get the compositor node editor that has the active viewer. */
+const SpaceNode *get_active_compositor_node_editor(const bContext &C);
 
 /* --------------------------------------------------------------------
  * Depsgraph.

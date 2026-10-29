@@ -589,7 +589,7 @@ void popup_menu_reports(bContext *C, ReportList *reports)
       msg_next = strchr(msg, '\n');
       if (msg_next) {
         msg_next++;
-        BLI_strncpy_utf8(buf, msg, std::min(sizeof(buf), size_t(msg_next - msg)));
+        STRNCPY_UTF8(MutableCStr(buf).take_front(msg_next - msg), msg);
         msg = buf;
       }
       layout->label(msg, icon);

@@ -215,11 +215,8 @@ struct CodegenContext : NodeErrorHandler {
       CodegenResult result = ctx.expr(ExprSub(t).expr(), scope);
       string front(t.front().str_with_whitespace());
       string back(t.back().str_with_whitespace());
-      return {front + result.str + back,
-              result.type,
-              result.array_dim,
-              result.is_bitfield,
-              result.is_ptr};
+      result.str = front + result.str + back;
+      return result;
     }
 
     CodegenResult member(CodegenResult left, const ast::Node &t)
@@ -291,7 +288,8 @@ struct CodegenContext : NodeErrorHandler {
         if (left.type->operator_subscript) {
 #if 0 /* Future operator overloading */
           if (true) {
-            left.str = SymbolTable::subscript_operator_id + '(' + left.str + ',' + param.str + ')';
+            left.str = string(SymbolTable::subscript_operator_id) + '(' + left.str + ',' +
+                       param.str + ')';
             return {left.str, left.type->operator_subscript->return_type};
           }
 #endif
@@ -403,8 +401,11 @@ struct CodegenContext : NodeErrorHandler {
 
       if (lhs.is_bitfield) {
         if (TokenType sub_op = strip_assignment(op_type); sub_op != TokenType::Invalid) {
-          /* Bitfield need to be manually read and write. */
-          return {lhs.str + "=" + lhs.str + to_token_string(sub_op) + trivia(t) + rhs.str,
+          /* Bitfield need to be manually read and write. The right hand side is wrapped in
+           * parentheses since it can contain lower precedence operators.
+           * Example: `a -= b - c` > `a = a - (b - c)`. */
+          return {lhs.str + "=" + lhs.str + to_token_string(sub_op) + trivia(t) + "(" + rhs.str +
+                      ")",
                   ctx.table.to_class(type)};
         }
       }
@@ -519,7 +520,11 @@ struct CodegenContext : NodeErrorHandler {
           return {as_whitespace(id.str_full()), var->type, 0, false, var->is_ptr};
         }
         /* SRT type is used in an expression (likely as function argument). Call the ctor. */
-        return {var->type->identifier + "_ctor_()" + whitespace, var->type, 0, false, var->is_ptr};
+        CodegenResult result = {
+            var->type->identifier + "_ctor_()" + whitespace, var->type, 0, false, var->is_ptr};
+        /* Keep `*this` a noop. */
+        result.is_this = var->is_this;
+        return result;
       }
 
       if (var->reference_value.is_valid()) {
@@ -529,7 +534,10 @@ struct CodegenContext : NodeErrorHandler {
       bool preceded_by_dot = id.front().prev() == '.' ||
                              id.parent().prev().type() == NodeType::OpDeref;
       if (!var->is_static && !preceded_by_dot && var->parent->as_class() != nullptr) {
-        return {"this_." + var->identifier + whitespace, var->type, var->array_dimensions};
+        return {"this_." + var->identifier + whitespace,
+                var->type,
+                var->array_dimensions,
+                var->is_bitfield};
       }
       return {var, whitespace};
     }
@@ -582,7 +590,7 @@ struct CodegenContext : NodeErrorHandler {
             params_str += caller_class->get_path_to_base_class(callee_class);
           }
         }
-        if (!list.is_empty()) {
+        if (sym->arg_types.size() > 0) {
           params_str += ", ";
         }
       }
@@ -1248,6 +1256,10 @@ struct CodegenContext : NodeErrorHandler {
                 error(expr, Diag::ConstexprDivisionByZero);
                 return ConstexprError(0);
               }
+              if (contains_division_overflow(var->value, result.value)) {
+                error(expr, Diag::ConstexprIntegerOverflow);
+                return ConstexprError(0);
+              }
               return var->value /= result.value;
             default:
               break;
@@ -1871,8 +1883,7 @@ struct CodegenContext : NodeErrorHandler {
       }
       string to_var = "this_." +
                       union_data_access(member.offset, member_type.size, union_type.size);
-      string access = "v." + member.original;
-      fn_body += "  " + to_var + " = " + member_to_float(*member.type, access) + ";\n";
+      fn_body += "  " + to_var + " = " + member_to_float(*member.type, "v") + ";\n";
     }
     else {
       for (const auto &var : member_type.get_all_members_flat().unwrap(this)) {
@@ -2109,7 +2120,7 @@ struct CodegenContext : NodeErrorHandler {
     /* Declare argument copies. */
     int arg_i = 0;
     Expr param = call.parameters().child_first();
-    vector<string> original_identifiers;
+    vector<pair<SymbolVariable *, string>> original_identifiers;
     for (FuncArg arg : fn->decl.arguments().children_range()) {
       SymbolVariable *var = fn->lookup_variable(table, arg.identifier());
 
@@ -2118,7 +2129,7 @@ struct CodegenContext : NodeErrorHandler {
         continue;
       }
 
-      original_identifiers.emplace_back(var->identifier);
+      original_identifiers.emplace_back(var, var->identifier);
 
       if (arg.is_reference() || var->type->is_opaque) {
         /* Check if reference has no side effect. */
@@ -2147,13 +2158,9 @@ struct CodegenContext : NodeErrorHandler {
 
     inlining_stack.pop_back();
 
-    {
-      /* Restore argument identifiers. */
-      int arg_i = 0;
-      for (FuncArg arg : fn->decl.arguments().children_range()) {
-        SymbolVariable *var = fn->lookup_variable(table, arg.identifier());
-        var->identifier = original_identifiers[arg_i++];
-      }
+    /* Restore argument identifiers. */
+    for (auto &[var, identifier] : original_identifiers) {
+      var->identifier = identifier;
     }
 
     return ret_val;
@@ -2255,7 +2262,14 @@ struct CodegenContext : NodeErrorHandler {
             }
           }
           else {
-            create_info_decl += "ADDITIONAL_INFO(" + resolved_type + ")\n";
+            string res_condition_lambda = parse_condition_as_lambda(fn, arg.attributes());
+            if (res_condition_lambda.empty()) {
+              create_info_decl += "ADDITIONAL_INFO(" + resolved_type + ")\n";
+            }
+            else {
+              create_info_decl += ".additional_info_with_condition(\"" + resolved_type + "\"" +
+                                  res_condition_lambda + ")\n";
+            }
           }
           break;
         case ResourceType::POSITION:

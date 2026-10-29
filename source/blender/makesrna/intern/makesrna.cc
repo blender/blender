@@ -350,20 +350,24 @@ static void rna_print_id_get(FILE *f, PropertyDefRNA * /*dp*/)
   fprintf(f, "    ID *id = ptr->owner_id;\n");
 }
 
-static void rna_construct_function_name(
-    char *buffer, int size, const char *structname, const char *propname, const char *type)
+static void rna_construct_function_name(MutableCStr buffer,
+                                        const char *structname,
+                                        const char *propname,
+                                        const char *type)
 {
-  BLI_snprintf(buffer, size, "%s_%s_%s", structname, propname, type);
+  SNPRINTF(buffer, "%s_%s_%s", structname, propname, type);
 }
 
-static void rna_construct_wrapper_function_name(
-    char *buffer, int size, const char *structname, const char *propname, const char *type)
+static void rna_construct_wrapper_function_name(MutableCStr buffer,
+                                                const char *structname,
+                                                const char *propname,
+                                                const char *type)
 {
   if (type == nullptr || type[0] == '\0') {
-    BLI_snprintf(buffer, size, "%s_%s", structname, propname);
+    SNPRINTF(buffer, "%s_%s", structname, propname);
   }
   else {
-    BLI_snprintf(buffer, size, "%s_%s_%s", structname, propname, type);
+    SNPRINTF(buffer, "%s_%s_%s", structname, propname, type);
   }
 }
 
@@ -389,7 +393,7 @@ static char *rna_alloc_function_name(const char *structname,
                                      const char *type)
 {
   char buffer[2048];
-  rna_construct_function_name(buffer, sizeof(buffer), structname, propname, type);
+  rna_construct_function_name(buffer, structname, propname, type);
   return static_cast<char *>(rna_alloc_from_buffer(buffer, strlen(buffer) + 1));
 }
 
@@ -2272,11 +2276,8 @@ static void rna_def_property_wrapper_funcs(FILE *f, StructDefRNA *dsrna, Propert
 {
   if (dp->prop->getlength) {
     char funcname[2048];
-    rna_construct_wrapper_function_name(funcname,
-                                        sizeof(funcname),
-                                        dsrna->srna->identifier.c_str(),
-                                        dp->prop->identifier.c_str(),
-                                        "get_length");
+    rna_construct_wrapper_function_name(
+        funcname, dsrna->srna->identifier.c_str(), dp->prop->identifier.c_str(), "get_length");
     fprintf(f, "int %s(PointerRNA *ptr, int *arraylen)\n", funcname);
     fprintf(f, "{\n");
     fprintf(f, "\treturn %s(ptr, arraylen);\n", rna_function_string(dp->prop->getlength));
@@ -2298,7 +2299,7 @@ static void rna_def_function_wrapper_funcs(FILE *f, StructDefRNA *dsrna, Functio
   }
 
   rna_construct_wrapper_function_name(
-      funcname, sizeof(funcname), srna->identifier.c_str(), func->identifier.c_str(), "func");
+      funcname, srna->identifier.c_str(), func->identifier.c_str(), "func");
 
   rna_generate_static_parameter_prototypes(f, srna, dfunc, funcname, 0);
 

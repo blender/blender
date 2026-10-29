@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include "BLI_span.hh"
+
 namespace blender {
 
 struct Depsgraph;
@@ -54,7 +56,7 @@ void BKE_fluid_reallocate_copy_fluid(struct FluidDomainSettings *fds,
                                      int n_shift[3]);
 void BKE_fluid_cache_free_all(struct FluidDomainSettings *fds, struct Object *ob);
 void BKE_fluid_cache_free(struct FluidDomainSettings *fds, struct Object *ob, int cache_map);
-void BKE_fluid_cache_new_name_for_current_session(int maxlen, char *r_name);
+void BKE_fluid_cache_new_name_for_current_session(MutableCStr r_name);
 
 /**
  * Get fluid velocity and density at given coordinates.

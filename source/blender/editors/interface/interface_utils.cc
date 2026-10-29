@@ -492,7 +492,7 @@ void rna_collection_search_update_fn(
         }
 
         if (requires_exact_data_name) {
-          name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
+          name = RNA_struct_name_get_alloc(&itemptr, name_buf, nullptr);
         }
         else {
           BKE_id_full_name_ui_prefix_get(name_buf, id, true, UI_SEP_CHAR, &name_prefix_offset);
@@ -503,8 +503,7 @@ void rna_collection_search_update_fn(
         }
       }
       else if (data->item_search_prop) {
-        name = RNA_property_string_get_alloc(
-            &itemptr, data->item_search_prop, name_buf, sizeof(name_buf), nullptr);
+        name = RNA_property_string_get_alloc(&itemptr, data->item_search_prop, name_buf, nullptr);
       }
       else if (itemptr.type == RNA_ActionSlot) {
         /* FIXME: This special case is fairly annoying.
@@ -516,7 +515,7 @@ void rna_collection_search_update_fn(
          * #RNA_property_ui_icon).
          */
         PropertyRNA *prop = RNA_struct_find_property(&itemptr, "name_display");
-        name = RNA_property_string_get_alloc(&itemptr, prop, name_buf, sizeof(name_buf), nullptr);
+        name = RNA_property_string_get_alloc(&itemptr, prop, name_buf, nullptr);
         /* Also show an icon for the data-block type that each slot is intended for. */
         animrig::Slot &slot = reinterpret_cast<ActionSlot *>(itemptr.data)->wrap();
         iconid = icon_from_idcode(slot.idtype);
@@ -526,7 +525,7 @@ void rna_collection_search_update_fn(
         }
       }
       else {
-        name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
+        name = RNA_struct_name_get_alloc(&itemptr, name_buf, nullptr);
       }
 
       if (name) {

@@ -82,9 +82,9 @@ void MOV_close(MovieReader *anim)
   MEM_delete(anim);
 }
 
-void MOV_get_filename(const MovieReader *anim, char *filename, int filename_maxncpy)
+void MOV_get_filename(const MovieReader *anim, MutableCStr filename)
 {
-  BLI_path_split_file_part(anim->filepath, filename, filename_maxncpy);
+  BLI_path_split_file_part(anim->filepath, filename);
 }
 
 IDProperty *MOV_load_metadata(MovieReader *anim)

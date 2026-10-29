@@ -747,7 +747,7 @@ static void namebutton_fn(bContext *C, TreeStoreElem *tselem, const char *oldnam
    * acceptable solution for now. */
   auto id_rename_helper = [bmain, tselem, oldname]() -> bool {
     std::string new_name = tselem->id->name + 2;
-    BLI_strncpy_utf8(tselem->id->name + 2, oldname, sizeof(tselem->id->name) - 2);
+    STRNCPY_UTF8(MutableCStr(tselem->id->name).drop_front(2), oldname);
     return ED_id_rename(*bmain, *tselem->id, new_name);
   };
 

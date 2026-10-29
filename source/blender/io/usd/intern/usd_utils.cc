@@ -68,10 +68,10 @@ static std::string make_safe_identifier(const StringRef name, bool allow_unicode
   for (auto cp : pxr::TfUtf8CodePointView{name}) {
     const bool cp_allowed = is_safe_char(cp, first, allow_unicode);
     if (!cp_allowed) {
-      offset += BLI_str_utf8_from_unicode(uint32_t('_'), buf.data() + offset, buf.size() - offset);
+      offset += BLI_str_utf8_from_unicode(uint32_t('_'), buf.drop_front(offset));
     }
     else {
-      offset += BLI_str_utf8_from_unicode(cp.AsUInt32(), buf.data() + offset, buf.size() - offset);
+      offset += BLI_str_utf8_from_unicode(cp.AsUInt32(), buf.drop_front(offset));
     }
 
     first = false;

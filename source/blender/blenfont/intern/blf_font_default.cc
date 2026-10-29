@@ -36,7 +36,7 @@ static int blf_load_font_default(const char *filename, const bool unique)
   }
 
   char filepath[FILE_MAX];
-  BLI_path_join(filepath, sizeof(filepath), dir->c_str(), filename);
+  BLI_path_join(filepath, dir->c_str(), filename);
 
   return (unique) ? BLF_load_unique(filepath) : BLF_load(filepath);
 }

@@ -640,7 +640,7 @@ static void applyObjectConstraintRot(const TransInfo *t,
 
 void setConstraint(TransInfo *t, int mode, const char text[])
 {
-  BLI_strncpy_utf8(t->con.text + 1, text, sizeof(t->con.text) - 1);
+  STRNCPY_UTF8(MutableCStr(t->con.text).drop_front(1), text);
   t->con.mode = eTConstraint(mode);
   projection_matrix_calc(t, t->con.pmtx);
 
@@ -655,7 +655,7 @@ void setConstraint(TransInfo *t, int mode, const char text[])
 
 void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[])
 {
-  BLI_strncpy_utf8(t->con.text + 1, text, sizeof(t->con.text) - 1);
+  STRNCPY_UTF8(MutableCStr(t->con.text).drop_front(1), text);
   t->con.mode = eTConstraint(mode);
   projection_matrix_calc(t, t->con.pmtx);
 

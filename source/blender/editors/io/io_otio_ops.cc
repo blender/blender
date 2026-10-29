@@ -89,7 +89,7 @@ static bool wm_otio_export_check(bContext * /*C*/, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", filepath);
 
   if (!BLI_path_extension_check(filepath, ".otio")) {
-    BLI_path_extension_ensure(filepath, FILE_MAX, ".otio");
+    BLI_path_extension_ensure(filepath, ".otio");
     RNA_string_set(op->ptr, "filepath", filepath);
     return true;
   }

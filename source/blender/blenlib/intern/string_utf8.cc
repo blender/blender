@@ -333,8 +333,7 @@ int BLI_str_utf8_invalid_substitute(char *str, size_t str_len, const char substi
 const char *BLI_str_utf8_invalid_substitute_if_needed(const char *str,
                                                       const size_t str_len,
                                                       const char substitute,
-                                                      char *buf,
-                                                      const size_t buf_maxncpy)
+                                                      MutableCStr buf)
 {
   BLI_assert(str[str_len] == '\0');
   const ptrdiff_t bad_char = BLI_str_utf8_invalid_byte(str, str_len);
@@ -345,23 +344,23 @@ const char *BLI_str_utf8_invalid_substitute_if_needed(const char *str,
 
   /* In the case a bad character is outside the buffer limit,
    * simply perform a truncating UTF8 copy into the buffer and return that. */
-  if (size_t(bad_char) >= buf_maxncpy) [[unlikely]] {
-    BLI_strncpy_utf8(buf, str, buf_maxncpy);
-    return buf;
+  if (size_t(bad_char) >= size_t(buf.size())) [[unlikely]] {
+    STRNCPY_UTF8(buf, str);
+    return buf.data();
   }
 
   size_t buf_len;
-  if (str_len < buf_maxncpy) {
-    memcpy(buf, str, str_len + 1);
+  if (str_len < size_t(buf.size())) {
+    memcpy(buf.data(), str, str_len + 1);
     buf_len = str_len;
   }
   else {
-    buf_len = BLI_strncpy_rlen(buf, str, buf_maxncpy);
+    buf_len = STRNCPY_RLEN(buf, str);
   }
 
   /* Skip the good characters. */
-  BLI_str_utf8_invalid_substitute(buf + bad_char, buf_len - size_t(bad_char), substitute);
-  return buf;
+  BLI_str_utf8_invalid_substitute(buf.data() + bad_char, buf_len - size_t(bad_char), substitute);
+  return buf.data();
 }
 
 /**
@@ -423,36 +422,32 @@ size_t BLI_strncpy_utf8_rlen(char *__restrict dst, const char *__restrict src, s
   return size_t(dst - r_dst);
 }
 
-size_t BLI_strncpy_utf8_rlen_unterminated(char *__restrict dst,
-                                          const char *__restrict src,
-                                          size_t dst_maxncpy)
+size_t BLI_strncpy_utf8_rlen_unterminated(MutableCStr dst, const char *__restrict src)
 {
-  BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_string_debug_size(dst);
 
-  char *r_dst = dst;
-  dst = str_utf8_copy_max_bytes_impl(dst, src, dst_maxncpy);
+  char *dst_end = str_utf8_copy_max_bytes_impl(dst.data(), src, size_t(dst.size()));
 
-  return size_t(dst - r_dst);
+  return size_t(dst_end - dst.data());
 }
 
 /* -------------------------------------------------------------------- */
 /* wchar_t / UTF8 functions */
 
-size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
-                                 const wchar_t *__restrict src,
-                                 const size_t dst_maxncpy)
+size_t BLI_strncpy_wchar_as_utf8(MutableCStr dst, const wchar_t *__restrict src)
 {
-  BLI_assert(dst_maxncpy != 0);
-  BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_assert(!dst.is_empty());
+  BLI_string_debug_size(dst);
 
-  const size_t dst_len_max = dst_maxncpy - 1;
+  const size_t dst_len_max = size_t(dst.size()) - 1;
   size_t len = 0;
   while (*src && len < dst_len_max) {
-    len += BLI_str_utf8_from_unicode(uint(*src++), dst + len, dst_len_max - len);
+    len += BLI_str_utf8_from_unicode(uint(*src++),
+                                     dst.slice(int64_t(len), int64_t(dst_len_max - len)));
   }
-  dst[len] = '\0';
+  dst.data()[len] = '\0';
   /* Return the correct length when part of the final byte did not fit into the string. */
-  while ((len > 0) && UNLIKELY(dst[len - 1] == '\0')) {
+  while ((len > 0) && UNLIKELY(dst.data()[len - 1] == '\0')) {
     len--;
   }
   return len;
@@ -1190,10 +1185,10 @@ size_t BLI_str_utf8_from_unicode_len(const uint c)
   return len;
 }
 
-size_t BLI_str_utf8_from_unicode(uint c, char *dst, const size_t dst_maxncpy)
+size_t BLI_str_utf8_from_unicode(uint c, MutableCStr dst)
 
 {
-  BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_string_debug_size(dst);
 
   /* If this gets modified, also update the copy in g_string_insert_unichar() */
   uint len = 0;
@@ -1201,10 +1196,10 @@ size_t BLI_str_utf8_from_unicode(uint c, char *dst, const size_t dst_maxncpy)
 
   UTF8_VARS_FROM_CHAR32(c, first, len);
 
-  if (dst_maxncpy < len) [[unlikely]] {
+  if (dst.size() < len) [[unlikely]] {
     /* Null terminate instead of writing a partial byte. */
-    memset(dst, 0x0, dst_maxncpy);
-    return dst_maxncpy;
+    memset(dst.data(), 0x0, size_t(dst.size()));
+    return size_t(dst.size());
   }
 
   for (uint i = len - 1; i > 0; i--) {
@@ -1248,21 +1243,20 @@ size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
   return len;
 }
 
-size_t BLI_str_utf32_as_utf8(char *__restrict dst,
-                             const char32_t *__restrict src,
-                             const size_t dst_maxncpy)
+size_t BLI_str_utf32_as_utf8(MutableCStr dst, const char32_t *__restrict src)
 {
-  BLI_assert(dst_maxncpy != 0);
-  BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_assert(!dst.is_empty());
+  BLI_string_debug_size(dst);
 
-  const size_t dst_len_max = dst_maxncpy - 1;
+  const size_t dst_len_max = size_t(dst.size()) - 1;
   size_t len = 0;
   while (*src && len < dst_len_max) {
-    len += BLI_str_utf8_from_unicode(uint(*src++), dst + len, dst_len_max - len);
+    len += BLI_str_utf8_from_unicode(uint(*src++),
+                                     dst.slice(int64_t(len), int64_t(dst_len_max - len)));
   }
-  dst[len] = '\0';
+  dst.data()[len] = '\0';
   /* Return the correct length when part of the final byte did not fit into the string. */
-  while ((len > 0) && UNLIKELY(dst[len - 1] == '\0')) {
+  while ((len > 0) && UNLIKELY(dst.data()[len - 1] == '\0')) {
     len--;
   }
   return len;
@@ -1394,14 +1388,14 @@ static size_t str_utf8_truncate_at_size_unchecked(char *str, const size_t str_si
   return str_len_trim;
 }
 
-bool BLI_str_utf8_truncate_at_size(char *str, const size_t str_size)
+bool BLI_str_utf8_truncate_at_size(MutableCStr str)
 {
-  BLI_assert(str_size > 0);
-  if (std::memchr(str, '\0', str_size)) {
+  BLI_assert(!str.is_empty());
+  if (std::memchr(str.data(), '\0', size_t(str.size()))) {
     return false;
   }
 
-  str_utf8_truncate_at_size_unchecked(str, str_size);
+  str_utf8_truncate_at_size_unchecked(str.data(), size_t(str.size()));
   return true;
 }
 

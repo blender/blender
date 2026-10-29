@@ -129,8 +129,7 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
  * absolute, in which case it is not altered.
  */
 static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data,
-                                                char *path_dst,
-                                                size_t path_dst_maxncpy,
+                                                MutableCStr path_dst,
                                                 const char *path_src)
 {
   const char **data = static_cast<const char **>(bpath_data->user_data);
@@ -153,7 +152,7 @@ static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data
      * because it won't work for paths that start with `//../` */
     BLI_path_normalize(filepath);
     BLI_path_rel(filepath, base_new);
-    BLI_strncpy(path_dst, filepath, path_dst_maxncpy);
+    STRNCPY(path_dst, filepath);
     return true;
   }
 
@@ -1520,7 +1519,7 @@ void *BKE_libblock_alloc_in_lib(Main *bmain,
       }
     }
     else {
-      BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
+      STRNCPY(MutableCStr(id->name).drop_front(2), name);
       id->lib = owner_library ? *owner_library : nullptr;
     }
 
@@ -2064,13 +2063,13 @@ IDNewNameResult BKE_id_new_name_validate(Main &bmain,
     if (mode == IDNewNameMode::RenameExistingAlways ||
         (mode == IDNewNameMode::RenameExistingSameRoot && STREQ(prev_name_root, new_name_root)))
     {
-      BLI_strncpy(id_other->name + 2, name, sizeof(id_other->name) - 2);
+      STRNCPY(MutableCStr(id_other->name).drop_front(2), name);
       id_sort_by_name(&lb, id_other, nullptr);
 
       const bool is_idname_changed = !STREQ(BKE_id_name(id), orig_name);
       IDNewNameResult result = {IDNewNameResult::Action::UNCHANGED_COLLISION, id_other};
       if (is_idname_changed) {
-        BLI_strncpy(id.name + 2, orig_name, sizeof(id.name) - 2);
+        STRNCPY(MutableCStr(id.name).drop_front(2), orig_name);
         result.action = IDNewNameResult::Action::RENAMED_COLLISION_FORCED;
       }
       id_sort_by_name(&lb, &id, nullptr);
@@ -2087,7 +2086,7 @@ IDNewNameResult BKE_id_new_name_validate(Main &bmain,
 
   IDNewNameResult result = {IDNewNameResult::Action::UNCHANGED, nullptr};
   if (is_idname_changed) {
-    BLI_strncpy(id.name + 2, name, sizeof(id.name) - 2);
+    STRNCPY(MutableCStr(id.name).drop_front(2), name);
     result.action = had_name_collision ? IDNewNameResult::Action::RENAMED_COLLISION_ADJUSTED :
                                          IDNewNameResult::Action::RENAMED_NO_COLLISION;
   }

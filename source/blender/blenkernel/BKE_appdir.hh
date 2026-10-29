@@ -16,6 +16,7 @@
 #include <string>
 
 #include "BLI_compiler_attrs.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_listBase.h"
@@ -67,7 +68,7 @@ bool BKE_appdir_folder_documents(char *dir) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RES
  * \note The value may be set without the directory existing.
  * The caller is responsible for creating the directory.
  */
-void BKE_appdir_folder_caches(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
+void BKE_appdir_folder_caches(MutableCStr path);
 
 /**
  * Get a folder out of the \a folder_id presets for paths.
@@ -76,10 +77,7 @@ void BKE_appdir_folder_caches(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
  * this may contain path separators but must resolve to a directory, checked with #BLI_is_dir.
  * \return The path if found, NULL string if not.
  */
-bool BKE_appdir_folder_id_ex(int folder_id,
-                             const char *subfolder,
-                             char *path,
-                             size_t path_maxncpy);
+bool BKE_appdir_folder_id_ex(int folder_id, const char *subfolder, MutableCStr path);
 std::optional<std::string> BKE_appdir_folder_id(int folder_id,
                                                 const char *subfolder) ATTR_WARN_UNUSED_RESULT;
 /**
@@ -105,8 +103,7 @@ std::optional<std::string> BKE_appdir_resource_path_id(int folder_id, bool check
  * Return true if templates exist
  */
 bool BKE_appdir_app_template_any();
-bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_maxncpy)
-    ATTR_NONNULL(1);
+bool BKE_appdir_app_template_id_search(const char *app_template, MutableCStr path) ATTR_NONNULL(1);
 bool BKE_appdir_app_template_has_userpref(const char *app_template) ATTR_NONNULL(1);
 void BKE_appdir_app_templates(ListBaseT<LinkData> *templates) ATTR_NONNULL(1);
 
@@ -127,15 +124,14 @@ const char *BKE_appdir_program_dir() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNUL
 /**
  * Gets a good default directory for fonts.
  */
-bool BKE_appdir_font_folder_default(char *dir, size_t dir_maxncpy);
+bool BKE_appdir_font_folder_default(MutableCStr dir);
 
 /**
  * Find Python executable.
  */
-bool BKE_appdir_program_python_search(char *program_filepath,
-                                      size_t program_filepath_maxncpy,
+bool BKE_appdir_program_python_search(MutableCStr program_filepath,
                                       int version_major,
-                                      int version_minor) ATTR_NONNULL(1);
+                                      int version_minor);
 
 /**
  * Initialize path to temporary directory.

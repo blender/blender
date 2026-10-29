@@ -160,7 +160,7 @@ uiListNameFilter::uiListNameFilter(uiList &list)
     else {
       filter_ = storage_.filter_dyn = MEM_new_array_uninitialized<char>((slen + 3), "filter_dyn");
     }
-    BLI_strncpy_ensure_pad(filter_, filter_raw, '*', slen + 3);
+    BLI_strncpy_ensure_pad(MutableCStr(filter_, slen + 3), filter_raw, '*');
   }
 }
 
@@ -239,7 +239,7 @@ void uilist_filter_and_sort_items(uiList *ui_list,
         namebuf = BLI_strdup(get_name_fn(itemptr, i).c_str());
       }
       else {
-        namebuf = RNA_struct_name_get_alloc(&itemptr, nullptr, 0, nullptr);
+        namebuf = RNA_struct_name_get_alloc(&itemptr, std::nullopt, nullptr);
       }
 
       const char *name = namebuf ? namebuf : "";

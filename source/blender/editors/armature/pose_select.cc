@@ -1235,7 +1235,7 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
       if ((ksp.id == &ob->id) && (ksp.rna_path != nullptr)) {
         bPoseChannel *pchan = nullptr;
         char boneName[sizeof(pchan->name)];
-        if (!BLI_str_quoted_substr(ksp.rna_path, "bones[", boneName, sizeof(boneName))) {
+        if (!BLI_str_quoted_substr(ksp.rna_path, "bones[", boneName)) {
           continue;
         }
         pchan = BKE_pose_channel_find_name(pose, boneName);

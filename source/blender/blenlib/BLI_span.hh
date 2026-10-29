@@ -19,6 +19,9 @@
  * Vector, Array, VectorSet, std::vector, std::array, std::string,
  * std::initializer_list and c-style array.
  *
+ * Only a const C-style array converts to a `Span`, a non-const array converts to a `MutableSpan`.
+ * So an array passed as a `Span<int>` must be declared `const int values[]`.
+ *
  * `Span` is very similar to `std::span` (C++20). However, there are a few differences:
  * - `Span` is const by default. This is to avoid making things mutable when they don't
  *   have to be. To get a non-const span, you need to use `MutableSpan`. Below is a list
@@ -58,6 +61,7 @@
 
 #include <algorithm>
 #include <array>
+#include <iterator>
 #include <vector>
 
 #include "BLI_hash_fwd.hh"
@@ -122,6 +126,15 @@ template<typename T> class Span {
   constexpr Span(const std::vector<T> &vector) : Span(vector.data(), int64_t(vector.size())) {}
 
   template<std::size_t N> constexpr Span(const std::array<T, N> &array) : Span(array.data(), N) {}
+
+  /* Only const arrays bind here, so a non-const array converts to #MutableSpan without ambiguity.
+   * Note that a string literal includes its null terminator. */
+  template<typename U, std::size_t N>
+  constexpr Span(U (&array)[N])
+    requires(std::is_same_v<U, const T>)
+      : Span(array, N)
+  {
+  }
 
   /**
    * Support implicit conversions like the one below:
@@ -471,6 +484,14 @@ template<typename T> class MutableSpan {
   }
 
   /**
+   * Reference a fixed size array.
+   *
+   * \note GCC (16.2) doesn't use this constructor for calls through a function pointer,
+   * so callers wrap the array: `MutableSpan(array)`.
+   */
+  template<std::size_t N> constexpr MutableSpan(T (&array)[N]) : MutableSpan(array, N) {}
+
+  /**
    * Support implicit conversions like the one below:
    *   MutableSpan<T *> -> MutableSpan<const T *>
    */
@@ -759,5 +780,23 @@ template<typename T> class MutableSpan {
     return MutableSpan<NewT>(reinterpret_cast<NewT *>(data_), new_size);
   }
 };
+
+/** A buffer for a null terminated string. */
+using MutableCStr = MutableSpan<char>;
+
+/**
+ * The size of an array, a span or a container, for functions taking a buffer & its size.
+ * Unlike #ARRAY_SIZE, the result is only a constant when the size is known at compile-time.
+ */
+template<typename T> constexpr size_t SPAN_OR_ARRAY_SIZE(const T &buffer)
+{
+  return size_t(std::size(buffer));
+}
+
+/** The data of an array, a span or a container, to pass along with #SPAN_OR_ARRAY_SIZE. */
+template<typename T> constexpr auto *SPAN_OR_ARRAY_DATA(T &&buffer)
+{
+  return std::data(buffer);
+}
 
 }  // namespace blender

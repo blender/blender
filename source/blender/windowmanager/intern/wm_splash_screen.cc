@@ -247,10 +247,8 @@ static ImBuf *wm_block_splash_image(const Main *bmain, int width, int *r_height)
   if (ibuf == nullptr && U.app_template[0] != '\0') {
     char splash_filepath[FILE_MAX];
     char template_directory[FILE_MAX];
-    if (BKE_appdir_app_template_id_search(
-            U.app_template, template_directory, sizeof(template_directory)))
-    {
-      BLI_path_join(splash_filepath, sizeof(splash_filepath), template_directory, "splash.png");
+    if (BKE_appdir_app_template_id_search(U.app_template, template_directory)) {
+      BLI_path_join(splash_filepath, template_directory, "splash.png");
       ibuf = IMB_load_image_from_filepath(splash_filepath, ImBufFlags::ByteData);
     }
   }

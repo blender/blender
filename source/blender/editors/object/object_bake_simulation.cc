@@ -338,10 +338,8 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
 
       if (request.path.has_value()) {
         char meta_path[FILE_MAX];
-        BLI_path_join(meta_path,
-                      sizeof(meta_path),
-                      request.path->meta_dir.c_str(),
-                      (frame_file_name + ".json").c_str());
+        BLI_path_join(
+            meta_path, request.path->meta_dir.c_str(), (frame_file_name + ".json").c_str());
         BLI_file_ensure_parent_dir_exists(meta_path);
         bake::DiskBlobWriter blob_writer{request.path->blobs_dir, frame_file_name};
         fstream meta_file{meta_path, std::ios::out};
@@ -728,9 +726,9 @@ struct PathStringEquality {
 static bool bake_directory_has_data(const StringRefNull absolute_bake_dir)
 {
   char meta_dir[FILE_MAX];
-  BLI_path_join(meta_dir, sizeof(meta_dir), absolute_bake_dir.c_str(), "meta");
+  BLI_path_join(meta_dir, absolute_bake_dir.c_str(), "meta");
   char blobs_dir[FILE_MAX];
-  BLI_path_join(blobs_dir, sizeof(blobs_dir), absolute_bake_dir.c_str(), "blobs");
+  BLI_path_join(blobs_dir, absolute_bake_dir.c_str(), "blobs");
 
   if (!BLI_is_dir(meta_dir) || !BLI_is_dir(blobs_dir)) {
     return false;

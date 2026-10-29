@@ -347,7 +347,6 @@ AssetLibrary *AssetLibraryService::move_runtime_current_file_into_on_disk_librar
   if (!catalog_service.catalog_collection_->is_empty()) {
     char asset_lib_cdf_path[PATH_MAX];
     BLI_path_join(asset_lib_cdf_path,
-                  sizeof(asset_lib_cdf_path),
                   on_disk_library->root_path().c_str(),
                   AssetCatalogService::DEFAULT_CATALOG_FILENAME.c_str());
     catalog_service.catalog_collection_->catalog_definition_file_ =

@@ -860,7 +860,7 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
                                            const vector<SymbolClass *> &types) {
     SymbolClass *scalar = types[0];
     for (size_t i = 1; i < types.size(); ++i) {
-      functions.push_back({types[i], name, {types[i], scalar, scalar}});
+      functions.push_back({types[i], name, {scalar, scalar, types[i]}});
     }
   };
 
@@ -1157,7 +1157,7 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
       functions.push_back({void_cls, "imageFence", {image}});
 
       if (image->identifier.ends_with("Atomic")) {
-        SymbolClass *scalar = prefix == "u" ? i_types[0] : u_types[0];
+        SymbolClass *scalar = prefix == "u" ? u_types[0] : i_types[0];
         functions.push_back({scalar, "imageAtomicAdd", {image, coord_type, scalar}});
         functions.push_back({scalar, "imageAtomicMin", {image, coord_type, scalar}});
         functions.push_back({scalar, "imageAtomicMax", {image, coord_type, scalar}});

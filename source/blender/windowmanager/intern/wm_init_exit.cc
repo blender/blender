@@ -446,26 +446,18 @@ void WM_init_splash_on_startup(bContext *C)
   WM_init_splash(C);
 }
 
-void WM_init_project_on_startup(bContext *C)
+bool wm_init_last_project_on_startup(Main *bmain)
 {
-  if (!(U.pref_flag & USER_PREF_FLAG_PROJECT_REMEMBER)) {
-    return;
-  }
-  if (BKE_main_blendfile_path_from_global()[0] != '\0' || BKE_blender_project_get(G_MAIN)) {
-    return;
+  if (G.background || !(U.pref_flag & USER_PREF_FLAG_PROJECT_REMEMBER)) {
+    return false;
   }
 
   const std::string root_path = recents::Section("project").get<std::string>("last");
   if (root_path.empty() || !BLI_is_dir(root_path.c_str())) {
-    return;
+    return false;
   }
 
-  ReportList reports;
-  BKE_reports_init(&reports, RPT_PRINT | RPT_STORE);
-  BKE_report_print_level_set(&reports, RPT_WARNING);
-  WM_file_read_project(C, root_path.c_str(), &reports);
-  WM_reports_from_reports_move(CTX_wm_manager(C), &reports);
-  BKE_reports_free(&reports);
+  return BKE_blender_project_init_from_root_path(bmain, root_path);
 }
 
 static void wm_exit_project_data_store(Main *bmain)
@@ -583,7 +575,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
       char filepath[FILE_MAX];
       const int fileflags = G.fileflags | G_FILE_COMPRESS | G_FILE_RECOVER_WRITE;
 
-      BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
+      BLI_path_join(filepath, BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
       ED_editors_flush_edits(bmain);
       ED_image_internal_autosave_flush(bmain);

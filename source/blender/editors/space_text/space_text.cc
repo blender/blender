@@ -141,8 +141,8 @@ static std::optional<ARegionIMECursorState> text_main_region_cursor_ime(wmWindow
   const int y = (*cursor_xy)[1];
 
   /* Report the glyph extent, not the line cell: the preview sits its baseline a descender
-   * above `ymin` (see #region_overlay_draw) while the editor draws text one line height
-   * below the cell top, both use the same font & size so the descender matches. */
+   * above `ymin` (see #wm_window_IME_region_preview_draw) while the editor draws text one
+   * line height below the cell top, both use the same font & size so the descender matches. */
   const int line_height = st->runtime->line_height_px;
   const int baseline_y = y - line_height;
   const int ymin = baseline_y + st->runtime->descender_px;

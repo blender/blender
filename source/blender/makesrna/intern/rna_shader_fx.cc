@@ -163,7 +163,7 @@ static std::optional<std::string> rna_ShaderFx_path(const PointerRNA *ptr)
   const ShaderFxData *gmd = static_cast<ShaderFxData *>(ptr->data);
   char name_esc[sizeof(gmd->name) * 2];
 
-  BLI_str_escape(name_esc, gmd->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, gmd->name);
   return fmt::format("shader_effects[\"{}\"]", name_esc);
 }
 

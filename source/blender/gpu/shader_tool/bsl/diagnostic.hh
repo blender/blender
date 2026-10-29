@@ -137,6 +137,7 @@ enum class Diag {
   ConstexprDivisionByZero,
   ConstexprGlobalNonStatic,
   ConstexprIfConditionNotConstexpr,
+  ConstexprIntegerOverflow,
   ConstexprMemberNonStatic,
   ConstexprShiftNegative,
   ConstexprShiftTooLarge,
@@ -241,6 +242,7 @@ enum class Diag {
   ReferenceTypeMismatch,
   ReferenceVariableRequiresInitializer,
 
+  ResourceAttributesIncompatibleEntryPoint,
   ResourceAttributesOnlyOnEntryPointArgs,
   ResourceTableConstructorNotAllowed,
   ResourceTableMustBeReference,
@@ -359,6 +361,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Non-static global variable cannot be constexpr; did you intend to make it static?";
     case Diag::ConstexprIfConditionNotConstexpr:
       return "Constexpr if condition is not a constant expression";
+    case Diag::ConstexprIntegerOverflow:
+      return "Integer overflow during constexpr evaluation";
     case Diag::ConstexprMemberNonStatic:
       return "Non-static data member cannot be constexpr; did you intend to make it static?";
     case Diag::ConstexprShiftNegative:
@@ -539,6 +543,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Reference to type '{}' cannot bind to a value of unrelated type '{}'";
     case Diag::ReferenceVariableRequiresInitializer:
       return "Declaration of reference variable '{}' requires an initializer";
+    case Diag::ResourceAttributesIncompatibleEntryPoint:
+      return "Argument '{}' has type '{}' which is not compatible with '{}' entry point";
     case Diag::ResourceAttributesOnlyOnEntryPointArgs:
       return "Resource attributes are only supported on entry point arguments";
     case Diag::ResourceOutOfClassDeclaration:

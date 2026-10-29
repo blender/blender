@@ -4759,8 +4759,7 @@ bool BKE_nurb_valid_message(const int pnts,
                             const short type,
                             const bool is_surf,
                             const int dir,
-                            char *message_dst,
-                            const size_t maxncpy)
+                            MutableCStr message_dst)
 {
   int points_needed;
   NURBSValidationStatus status = nurb_check_valid(
@@ -4776,21 +4775,19 @@ bool BKE_nurb_valid_message(const int pnts,
         message_dst[0] = 0;
         return false;
       }
-      BLI_strncpy(message_dst, RPT_("At least two points required"), maxncpy);
+      STRNCPY(message_dst, RPT_("At least two points required"));
       break;
     case NURBSValidationStatus::MorePointsThanOrderRequired:
-      BLI_strncpy(message_dst, RPT_("Must have more control points than Order"), maxncpy);
+      STRNCPY(message_dst, RPT_("Must have more control points than Order"));
       break;
     case NURBSValidationStatus::MoreRowsForBezierRequired:
-      BLI_snprintf(message_dst,
-                   maxncpy,
-                   RPT_("%d more %s row(s) needed for Bézier"),
-                   points_needed,
-                   dir == 0 ? "U" : "V");
+      SNPRINTF(message_dst,
+               RPT_("%d more %s row(s) needed for Bézier"),
+               points_needed,
+               dir == 0 ? "U" : "V");
       break;
     case NURBSValidationStatus::MorePointsForBezierRequired:
-      BLI_snprintf(
-          message_dst, maxncpy, RPT_("%d more point(s) needed for Bézier"), points_needed);
+      SNPRINTF(message_dst, RPT_("%d more point(s) needed for Bézier"), points_needed);
       break;
   }
 

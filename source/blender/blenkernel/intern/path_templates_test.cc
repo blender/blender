@@ -440,7 +440,7 @@ TEST_F(PathTemplatesTest, validate_and_apply_template)
         << "  Note: test_case.path_in = " << test_case.path_in << std::endl;
 
     /* Then do application, which should modify the path. */
-    const Vector<Error> application_errors = BKE_path_apply_template(path, FILE_MAX, variables);
+    const Vector<Error> application_errors = BKE_path_apply_template(path, variables);
     EXPECT_EQ(application_errors, test_case.expected_errors)
         << "  Template errors: " << errors_to_string(application_errors) << std::endl
         << "  Expected errors: " << errors_to_string(test_case.expected_errors) << std::endl

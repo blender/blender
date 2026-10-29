@@ -238,7 +238,7 @@ void do_grab_brush(const Depsgraph &depsgraph,
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
   const float3 grab_delta = grab_delta_get(brush, *ss.cache) * ss.cache->bstrength;
-  const float4x4 mat = cube_tip_init(sd, object, brush);
+  const float4x4 mat = cube_tip_init(object, brush);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {

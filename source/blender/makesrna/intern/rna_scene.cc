@@ -1404,7 +1404,7 @@ static std::optional<std::string> rna_ImageFormatSettings_path(
               node->storage);
           if (match(&storage.format)) {
             char node_name_esc[sizeof(node->name) * 2];
-            BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
+            BLI_str_escape(node_name_esc, node->name);
             return fmt::format("nodes[\"{}\"].format", node_name_esc);
           }
           else {
@@ -1412,7 +1412,7 @@ static std::optional<std::string> rna_ImageFormatSettings_path(
               NodeCompositorFileOutputItem &item = storage.items[i];
               if (match(&item.format)) {
                 char node_name_esc[sizeof(node->name) * 2];
-                BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
+                BLI_str_escape(node_name_esc, node->name);
 
                 const std::string identifier = FileOutputItemsAccessor::socket_identifier_for_item(
                     item);
@@ -1489,7 +1489,7 @@ std::optional<std::string> rna_ColorManagedInputColorspaceSettings_path(const Po
 
       if (strip) {
         char name_esc[(sizeof(strip->name) - 2) * 2];
-        BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
+        BLI_str_escape(name_esc, strip->name + 2);
         return fmt::format("sequence_editor.strips_all[\"{}\"].colorspace_settings", name_esc);
       }
     }
@@ -2092,10 +2092,9 @@ static std::optional<std::string> rna_ViewLayerEEVEE_path(const PointerRNA *ptr)
       offsetof(ViewLayer, eevee));
   char rna_path[sizeof(view_layer->name) * 3];
 
-  const size_t view_layer_path_len = rna_ViewLayer_path_buffer_get(
-      view_layer, rna_path, sizeof(rna_path));
+  const size_t view_layer_path_len = rna_ViewLayer_path_buffer_get(view_layer, rna_path);
 
-  BLI_strncpy(rna_path + view_layer_path_len, ".eevee", sizeof(rna_path) - view_layer_path_len);
+  STRNCPY(MutableCStr(rna_path).drop_front(view_layer_path_len), ".eevee");
 
   return rna_path;
 }
@@ -2149,7 +2148,7 @@ static std::optional<std::string> rna_SceneRenderView_path(const PointerRNA *ptr
 {
   const SceneRenderView *srv = static_cast<SceneRenderView *>(ptr->data);
   char srv_name_esc[sizeof(srv->name) * 2];
-  BLI_str_escape(srv_name_esc, srv->name, sizeof(srv_name_esc));
+  BLI_str_escape(srv_name_esc, srv->name);
   return fmt::format("render.views[\"{}\"]", srv_name_esc);
 }
 
@@ -8097,6 +8096,26 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
                            "Compositor Final Denoise Quality",
                            "The quality used by denoise nodes during the compositing of final "
                            "renders if the nodes' quality option is set to Follow Scene");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
+
+  prop = RNA_def_property(srna, "compositor_proxy_use_preview_scale", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "compositor_proxy_flags", int(CompositorProxyFlags::UsePreviewScale));
+  RNA_def_property_ui_text(prop,
+                           "Compositor Proxy Use Preview Scale",
+                           "Scale down input media and pixel-unit values by the proxy preview "
+                           "scale during interactive compositor preview for better performance");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
+
+  prop = RNA_def_property(srna, "compositor_proxy_preview_scale", PROP_INT, PROP_PERCENTAGE);
+  RNA_def_property_int_sdna(prop, nullptr, "compositor_proxy_preview_scale");
+  RNA_def_property_range(prop, 5, 100);
+  RNA_def_property_ui_text(
+      prop,
+      "Compositor Proxy Preview Scale",
+      "The percentage of the render size which input media and pixel-unit values will be scaled "
+      "down to during interactive compositor preview for better performance, if proxy preview "
+      "scale is enabled");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
 
   prop = RNA_def_property(srna, "compositor_proxy_adapt_to_render_scale", PROP_BOOLEAN, PROP_NONE);

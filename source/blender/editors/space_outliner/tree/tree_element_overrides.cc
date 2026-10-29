@@ -235,7 +235,7 @@ TreeElementOverridesPropertyOperation::TreeElementOverridesPropertyOperation(
   operation_->next = operation_->prev = nullptr;
 
   if (std::optional<PointerRNA> col_item_ptr = get_collection_ptr()) {
-    const char *dyn_name = RNA_struct_name_get_alloc(&*col_item_ptr, nullptr, 0, nullptr);
+    const char *dyn_name = RNA_struct_name_get_alloc(&*col_item_ptr, std::nullopt, nullptr);
     if (dyn_name) {
       legacy_te.name = dyn_name;
       legacy_te.flag |= TE_FREE_NAME;
@@ -384,7 +384,7 @@ void OverrideRNAPathTreeBuilder::build_path(TreeElement &parent,
     if (RNA_property_type(elem.prop) == PROP_COLLECTION) {
       const int coll_item_idx = RNA_property_collection_lookup_index(
           &elem.ptr, elem.prop, &next_elem.ptr);
-      name = RNA_struct_name_get_alloc(&next_elem.ptr, name_buf, sizeof(name_buf), nullptr);
+      name = RNA_struct_name_get_alloc(&next_elem.ptr, name_buf, nullptr);
       const char *coll_item_path = RNA_path_append(
           previous_path, &elem.ptr, elem.prop, coll_item_idx, name);
       if (name && (name != name_buf)) {
@@ -443,7 +443,7 @@ void OverrideRNAPathTreeBuilder::ensure_entire_collection(
   int item_idx = 0;
   char name_buf[128], *name;
   RNA_PROP_BEGIN (&override_data.override_rna_ptr, itemptr, &override_data.override_rna_prop) {
-    name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
+    name = RNA_struct_name_get_alloc(&itemptr, name_buf, nullptr);
     const char *coll_item_path = RNA_path_append(coll_prop_path,
                                                  &override_data.override_rna_ptr,
                                                  &override_data.override_rna_prop,
@@ -537,7 +537,7 @@ TreeElement &OverrideRNAPathTreeBuilder::ensure_label_element_for_ptr(TreeElemen
                                                                       short &index)
 {
   return *path_te_map.lookup_or_add_cb(elem_path, [&]() {
-    const char *dyn_name = RNA_struct_name_get_alloc(&ptr, nullptr, 0, nullptr);
+    const char *dyn_name = RNA_struct_name_get_alloc(&ptr, std::nullopt, nullptr);
 
     TreeElement *new_te = tree_display_.add_element<TreeElementLabel>(
         {.parent = &parent, .index = index++}, dyn_name ? dyn_name : RNA_struct_ui_name(ptr.type));

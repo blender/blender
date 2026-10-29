@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_span.hh"
+
 #include "BKE_node.hh"
 
 namespace blender {
@@ -37,7 +39,7 @@ void ntreeCompositCryptomatteSyncFromAdd(bNode *node);
 void ntreeCompositCryptomatteSyncFromRemove(bNode *node);
 void ntreeCompositCryptomatteAddSocket(bNode *node);
 bool ntreeCompositCryptomatteRemoveSocket(bNode *node);
-void ntreeCompositCryptomatteLayerPrefix(const bNode *node, char *r_prefix, size_t prefix_maxncpy);
+void ntreeCompositCryptomatteLayerPrefix(const bNode *node, MutableCStr r_prefix);
 
 /**
  * Update the runtime layer names with the crypto-matte layer names of the references render layer

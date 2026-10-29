@@ -1113,7 +1113,8 @@ static void apply_but_undo(Button *but, bool use_undo_grouped = false)
 
   /* Delayed, after all other functions run, popups are closed, etc. */
   AfterFunc *after = afterfunc_new();
-  str->copy_utf8_truncated(after->undostr, min_zz(str_len_clip + 1, sizeof(after->undostr)));
+  str->copy_utf8_truncated(
+      MutableCStr(after->undostr, min_zz(str_len_clip + 1, sizeof(after->undostr))));
   after->use_undo_grouped = use_undo_grouped;
   after->undo_hints = undo_hints_or_none.value_or(UndoEncodeHints::None);
 }
@@ -2638,26 +2639,23 @@ static void but_set_float_array(
   button_activate_state(C, but, BUTTON_STATE_EXIT);
 }
 
-static void float_array_to_string(const float *values,
-                                  const int values_len,
-                                  char *output,
-                                  int output_maxncpy)
+static void float_array_to_string(const float *values, const int values_len, MutableCStr output)
 {
   const int values_end = values_len - 1;
   int ofs = 0;
   output[ofs++] = '[';
   for (int i = 0; i < values_len; i++) {
-    ofs += BLI_snprintf_utf8_rlen(
-        output + ofs, output_maxncpy - ofs, (i != values_end) ? "%f, " : "%f]", values[i]);
+    ofs += SNPRINTF_UTF8_RLEN(
+        output.drop_front(ofs), (i != values_end) ? "%f, " : "%f]", values[i]);
   }
 }
 
-static void but_copy_numeric_array(Button *but, char *output, int output_maxncpy)
+static void but_copy_numeric_array(Button *but, MutableCStr output)
 {
   const int values_len = get_but_property_array_length(but);
   Array<float, 16> values(values_len);
   RNA_property_float_get_array(&but->rnapoin, but->rnaprop, values.data());
-  float_array_to_string(values.data(), values_len, output, output_maxncpy);
+  float_array_to_string(values.data(), values_len, output);
 }
 
 static bool parse_float_array(char *text, float *values, int values_len_expected)
@@ -2697,12 +2695,12 @@ static void but_paste_numeric_array(bContext *C,
   }
 }
 
-static void but_copy_numeric_value(Button *but, char *output, int output_maxncpy)
+static void but_copy_numeric_value(Button *but, MutableCStr output)
 {
   /* Get many decimal places, then strip trailing zeros.
    * NOTE: too high values start to give strange results. */
-  button_string_get_ex(but, output, output_maxncpy, UI_PRECISION_FLOAT_MAX, false, nullptr);
-  BLI_str_rstrip_float_zero(output, '\0');
+  button_string_get_ex(but, output, UI_PRECISION_FLOAT_MAX, false, nullptr);
+  BLI_str_rstrip_float_zero(output.data(), '\0');
 }
 
 static void but_paste_numeric_value(bContext *C,
@@ -2740,7 +2738,7 @@ static void but_paste_normalized_vector(bContext *C,
   }
 }
 
-static void but_copy_color(Button *but, char *output, int output_maxncpy)
+static void but_copy_color(Button *but, MutableCStr output)
 {
   float rgba[4];
 
@@ -2758,7 +2756,7 @@ static void but_copy_color(Button *but, char *output, int output_maxncpy)
     srgb_to_linearrgb_v3_v3(rgba, rgba);
   }
 
-  float_array_to_string(rgba, 4, output, output_maxncpy);
+  float_array_to_string(rgba, 4, output);
 }
 
 static void but_paste_color(bContext *C, Button *but, char *buf_paste)
@@ -2791,9 +2789,9 @@ static void but_paste_color(bContext *C, Button *but, char *buf_paste)
   }
 }
 
-static void but_copy_text(Button *but, char *output, int output_maxncpy)
+static void but_copy_text(Button *but, MutableCStr output)
 {
-  button_string_get(but, output, output_maxncpy);
+  button_string_get(but, output);
 }
 
 static void but_paste_text(bContext *C, Button *but, HandleButtonData *data, char *buf_paste)
@@ -2873,19 +2871,19 @@ static void but_paste_CurveProfile(bContext *C, Button *but)
   }
 }
 
-static void but_copy_operator(bContext *C, Button *but, char *output, int output_maxncpy)
+static void but_copy_operator(bContext *C, Button *but, MutableCStr output)
 {
   PointerRNA *opptr = button_operator_ptr_ensure(but);
 
   std::string str = WM_operator_pystring_ex(C, nullptr, false, true, but->optype, opptr);
-  BLI_strncpy_utf8(output, str.c_str(), output_maxncpy);
+  STRNCPY_UTF8(output, str.c_str());
 }
 
-static bool but_copy_menu(bContext *C, Button *but, char *output, int output_maxncpy)
+static bool but_copy_menu(bContext *C, Button *but, MutableCStr output)
 {
   MenuType *mt = button_menutype_get(but);
   if (mt) {
-    BLI_snprintf_utf8(output, output_maxncpy, "bpy.ops.wm.call_menu(name=\"%s\")", mt->idname);
+    SNPRINTF_UTF8(output, "bpy.ops.wm.call_menu(name=\"%s\")", mt->idname);
     return true;
   }
 
@@ -2914,7 +2912,7 @@ static bool but_copy_menu(bContext *C, Button *but, char *output, int output_max
     return false;
   }
 
-  BLI_strncpy_utf8(output, item.identifier, output_maxncpy);
+  STRNCPY_UTF8(output, item.identifier);
   return true;
 }
 
@@ -2950,11 +2948,11 @@ static void but_paste_menu(bContext *C, Button *but, const StringRef value)
   RNA_property_update(C, &but->rnapoin, prop);
 }
 
-static bool but_copy_popover(Button *but, char *output, int output_maxncpy)
+static bool but_copy_popover(Button *but, MutableCStr output)
 {
   PanelType *pt = button_paneltype_get(but);
   if (pt) {
-    BLI_snprintf_utf8(output, output_maxncpy, "bpy.ops.wm.call_panel(name=\"%s\")", pt->idname);
+    SNPRINTF_UTF8(output, "bpy.ops.wm.call_panel(name=\"%s\")", pt->idname);
     return true;
   }
   return false;
@@ -2969,7 +2967,6 @@ static bool but_copy(bContext *C, Button *but, const bool copy_array)
 
   /* Arbitrary large value (allow for paths: 'PATH_MAX') */
   char buf[4096] = {0};
-  const int buf_maxncpy = sizeof(buf);
 
   /* Left false for copying internal data (color-band for eg). */
   bool is_buf_set = false;
@@ -2983,10 +2980,10 @@ static bool but_copy(bContext *C, Button *but, const bool copy_array)
         break;
       }
       if (copy_array && button_has_array_value(but)) {
-        but_copy_numeric_array(but, buf, buf_maxncpy);
+        but_copy_numeric_array(but, buf);
       }
       else {
-        but_copy_numeric_value(but, buf, buf_maxncpy);
+        but_copy_numeric_value(but, buf);
       }
       is_buf_set = true;
       break;
@@ -2995,7 +2992,7 @@ static bool but_copy(bContext *C, Button *but, const bool copy_array)
       if (!has_required_data) {
         break;
       }
-      but_copy_numeric_array(but, buf, buf_maxncpy);
+      but_copy_numeric_array(but, buf);
       is_buf_set = true;
       break;
 
@@ -3003,7 +3000,7 @@ static bool but_copy(bContext *C, Button *but, const bool copy_array)
       if (!has_required_data) {
         break;
       }
-      but_copy_color(but, buf, buf_maxncpy);
+      but_copy_color(but, buf);
       is_buf_set = true;
       break;
 
@@ -3013,7 +3010,7 @@ static bool but_copy(bContext *C, Button *but, const bool copy_array)
       if (!has_required_data) {
         break;
       }
-      but_copy_text(but, buf, buf_maxncpy);
+      but_copy_text(but, buf);
       is_buf_set = true;
       break;
 
@@ -3033,19 +3030,19 @@ static bool but_copy(bContext *C, Button *but, const bool copy_array)
       if (!but->optype) {
         break;
       }
-      but_copy_operator(C, but, buf, buf_maxncpy);
+      but_copy_operator(C, but, buf);
       is_buf_set = true;
       break;
 
     case ButtonType::Row:
     case ButtonType::Menu:
     case ButtonType::Pulldown:
-      if (but_copy_menu(C, but, buf, buf_maxncpy)) {
+      if (but_copy_menu(C, but, buf)) {
         is_buf_set = true;
       }
       break;
     case ButtonType::Popover:
-      if (but_copy_popover(but, buf, buf_maxncpy)) {
+      if (but_copy_popover(but, buf)) {
         is_buf_set = true;
       }
       break;
@@ -3871,8 +3868,7 @@ static void textedit_begin(bContext *C, Button *but, HandleButtonData *data)
     /* We do not want to truncate precision to default here, it's nice to show value,
      * not to edit it - way too much precision is lost then. */
     button_string_get_ex(but,
-                         text_edit.edit_string,
-                         text_edit.max_string_size,
+                         MutableCStr(text_edit.edit_string, text_edit.max_string_size),
                          UI_PRECISION_FLOAT_MAX,
                          true,
                          &no_zero_strip);
@@ -3883,14 +3879,15 @@ static void textedit_begin(bContext *C, Button *but, HandleButtonData *data)
   }
 
   if (button_is_float(but) && !button_is_unit(but) &&
-      !button_anim_expression_get(but, nullptr, 0) && !no_zero_strip)
+      !button_anim_expression_get(but, std::nullopt) && !no_zero_strip)
   {
     BLI_str_rstrip_float_zero(text_edit.edit_string, '\0');
   }
 
   if (is_num_but) {
     BLI_assert(text_edit.is_str_dynamic == false);
-    button_convert_to_unit_alt_name(but, text_edit.edit_string, text_edit.max_string_size);
+    button_convert_to_unit_alt_name(but,
+                                    MutableCStr(text_edit.edit_string, text_edit.max_string_size));
 
     numedit_begin_set_values(but, data);
   }
@@ -5370,7 +5367,7 @@ static int do_but_text_value_cycle(bContext *C,
   if (str_maxncpy != 0) {
     but_string = MEM_new_array_zeroed<char>(str_maxncpy, __func__);
     button_string_get_ex(
-        but, but_string, str_maxncpy, UI_PRECISION_FLOAT_MAX, true, &no_zero_strip);
+        but, MutableCStr(but_string, str_maxncpy), UI_PRECISION_FLOAT_MAX, true, &no_zero_strip);
   }
   else {
     but_string = button_string_get_dynamic(but, &str_maxncpy);
@@ -5389,7 +5386,8 @@ static int do_but_text_value_cycle(bContext *C,
   ushort digits;
 
   /* Decode the string, parsing head, digits, tail. */
-  int num = BLI_path_sequence_decode(but_string, head, str_maxncpy, tail, str_maxncpy, &digits);
+  int num = BLI_path_sequence_decode(
+      but_string, MutableCStr(head, str_maxncpy), MutableCStr(tail, str_maxncpy), &digits);
   MEM_delete(but_string);
   if (num == 0 && digits == 0) {
     BLI_str_rstrip_digits(head);
@@ -5400,7 +5398,7 @@ static int do_but_text_value_cycle(bContext *C,
 
   /* Encode the new string with the changed value. */
   char *string = MEM_new_array_zeroed<char>(str_maxncpy, __func__);
-  BLI_path_sequence_encode(string, str_maxncpy, head, tail, digits, num);
+  BLI_path_sequence_encode(MutableCStr(string, str_maxncpy), head, tail, digits, num);
 
   /* Save this new string to the button. */
   button_set_string_interactive(C, but, string);

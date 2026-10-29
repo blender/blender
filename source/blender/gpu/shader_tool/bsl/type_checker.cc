@@ -453,13 +453,8 @@ struct ExpressionTypeParser
   {
     /* Subscript operator. */
     if (ast::Subscript sub = t; sub.is_valid()) {
-      if (left.is_ptr) {
-        /* TODO(fclem): Check for 'this' somehow. */
-        left.is_ptr = false;
-        return left;
-      }
-
-      if (left.array_dim > 0) {
+      /* Array index first, then pointer dereference, matching codegen. */
+      if (left.array_dim > 0 || left.is_ptr) {
         ExpressionResult arg = subscript_parameter(sub);
 
         if (!(table->get_conversion_rank(arg.type, table->int_cls) >= MatchRank::Promotion ||
@@ -471,7 +466,13 @@ struct ExpressionTypeParser
           error(t, Diag::ReferenceCannotBindNonConstSubscript);
         }
 
-        left.array_dim -= 1;
+        if (left.array_dim > 0) {
+          left.array_dim -= 1;
+        }
+        else {
+          /* TODO(fclem): Check for 'this' somehow. */
+          left.is_ptr = false;
+        }
         return left;
       }
       /* Call subscript operator */
@@ -499,20 +500,32 @@ struct ExpressionTypeParser
     using namespace builtin;
     ExpressionResult right = expr(p);
 
+    TokenType op_type = t.front().type();
+    if (op_type == '&') {
+      error(t, Diag::OperatorAddressOfUnsupported);
+      return table->err_cls;
+    }
+
+    if (op_type == '*' && right.is_ptr) {
+      if (right.array_dim > 0) {
+        /* Dereference of an array of pointers, converted to `[0]` in codegen. */
+        right.array_dim -= 1;
+        return right;
+      }
+      /* Dereference operator is only used/allowed on this.
+       * Make it a noop since `this` is converted to a reference in codegen. */
+      right.is_ptr = false;
+      return right;
+    }
+
     if (right.array_dim > 0) {
       error(node, Diag::ArrayTypeOperand);
       return table->err_cls;
     }
 
-    TokenType op_type = t.front().type();
     if (op_type == '*') {
-      if (right.is_ptr) {
-        /* Dereference operator is only used/allowed on this.
-         * Make it a noop since `this` is converted to a reference in codegen. */
-        right.is_ptr = false;
-        return right;
-      }
       error(t, Diag::OperatorInvalidIndirection, right.type->original);
+      return table->err_cls;
     }
 
     if (right.is_ptr) {
@@ -680,6 +693,10 @@ struct ExpressionTypeParser
                       error(t, Diag::ConstexprDivisionByZero);
                       return lhs.value * rhs.value;
                     }
+                    if (contains_division_overflow(lhs.value, rhs.value)) {
+                      error(t, Diag::ConstexprIntegerOverflow);
+                      return lhs.value * rhs.value;
+                    }
                     return lhs.value / rhs.value;
                   }()};
         case Modulo:
@@ -687,6 +704,10 @@ struct ExpressionTypeParser
                     if (contains_zero(rhs.value)) {
                       error(t, Diag::ConstexprDivisionByZero, constexpr_to_string(rhs.value));
                       return decltype(lhs.value % rhs.value)(0);
+                    }
+                    if (contains_division_overflow(lhs.value, rhs.value)) {
+                      error(t, Diag::ConstexprIntegerOverflow);
+                      return lhs.value * rhs.value;
                     }
                     return lhs.value % rhs.value;
                   }()};

@@ -650,6 +650,9 @@ bool is_compositor_viewer_visible(const ScrArea &area)
     if (space_node->tree_idname != "CompositorNodeTree"_ustr) {
       return false;
     }
+    if (space_node->node_tree_sub_type != SNODE_COMPOSITOR_SCENE) {
+      return false;
+    }
     return space_node->flag & SNODE_BACKDRAW;
   }
 
@@ -674,6 +677,38 @@ bool are_compositor_node_previews_visible(const ScrArea &area)
     return false;
   }
   return space_node->overlay.flag & SN_OVERLAY_SHOW_PREVIEWS;
+}
+
+const SpaceNode *get_active_compositor_node_editor(const bContext &C)
+{
+  const SpaceNode *space_node = CTX_wm_space_node(&C);
+  if (space_node && space_node->tree_idname == "CompositorNodeTree"_ustr) {
+    return space_node;
+  }
+
+  wmWindowManager *window_manager = CTX_wm_manager(&C);
+  for (wmWindow &window : window_manager->windows) {
+    bScreen *screen = WM_window_get_active_screen(&window);
+    for (ScrArea &area : screen->areabase) {
+      SpaceLink *space_link = area.spacedata.first();
+      if (!space_link || space_link->spacetype != SPACE_NODE) {
+        continue;
+      }
+      SpaceNode *area_space_node = reinterpret_cast<SpaceNode *>(space_link);
+      if (area_space_node->tree_idname != "CompositorNodeTree"_ustr) {
+        continue;
+      }
+      bNodeTreePath *path = area_space_node->treepath.last();
+      if (!area_space_node->nodetree) {
+        continue;
+      }
+      if (area_space_node->nodetree->active_viewer_key == path->parent_key) {
+        return area_space_node;
+      }
+    }
+  }
+
+  return nullptr;
 }
 
 /* --------------------------------------------------------------------

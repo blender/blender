@@ -266,7 +266,7 @@ void do_pinch_brush(const Depsgraph &depsgraph,
   const std::array<float3, 2> stroke_xz{math::normalize(mat.x_axis()),
                                         math::normalize(mat.z_axis())};
 
-  const float4x4 local_mat = cube_tip_init(sd, object, brush);
+  const float4x4 local_mat = cube_tip_init(object, brush);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {

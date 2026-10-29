@@ -790,6 +790,9 @@ def _update_scene_duration(
     else:
         bvh_last_frame = frame_start + bvh_frame_count
 
+    # Account for scene's last frame being inclusive.
+    bvh_last_frame -= 1
+
     # Only extend the scene, never shorten it.
     if context.scene.frame_end < bvh_last_frame:
         context.scene.frame_end = bvh_last_frame

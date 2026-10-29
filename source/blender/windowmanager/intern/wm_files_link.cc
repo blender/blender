@@ -100,7 +100,7 @@ static wmOperatorStatus wm_link_append_invoke(bContext *C,
     }
     else if (blendfile_path[0] != '\0') {
       char dirpath[FILE_MAX];
-      BLI_path_split_dir_part(blendfile_path, dirpath, sizeof(dirpath));
+      BLI_path_split_dir_part(blendfile_path, dirpath);
       RNA_string_set(op->ptr, "filepath", dirpath);
     }
   }
@@ -218,7 +218,7 @@ static wmOperatorStatus wm_link_append_exec(bContext *C, wmOperator *op)
     BLI_path_abs(root, blendfile_path);
   }
 
-  BLI_path_join(filepath, sizeof(filepath), root, relname);
+  BLI_path_join(filepath, root, relname);
 
   /* Test if we have a valid data. */
   const bool is_librarypath_valid = BKE_blendfile_library_path_explode(
@@ -304,7 +304,7 @@ static wmOperatorStatus wm_link_append_exec(bContext *C, wmOperator *op)
     RNA_BEGIN (op->ptr, itemptr, "files") {
       RNA_string_get(&itemptr, "name", relname);
 
-      BLI_path_join(filepath, sizeof(filepath), root, relname);
+      BLI_path_join(filepath, root, relname);
 
       if (BKE_blendfile_library_path_explode(filepath, libname, &group, &name)) {
         if (!wm_link_append_item_poll(nullptr, filepath, group, name, do_append)) {
@@ -322,7 +322,7 @@ static wmOperatorStatus wm_link_append_exec(bContext *C, wmOperator *op)
     RNA_BEGIN (op->ptr, itemptr, "files") {
       RNA_string_get(&itemptr, "name", relname);
 
-      BLI_path_join(filepath, sizeof(filepath), root, relname);
+      BLI_path_join(filepath, root, relname);
 
       if (BKE_blendfile_library_path_explode(filepath, libname, &group, &name)) {
         BlendfileLinkAppendContextItem *item;
@@ -545,7 +545,7 @@ static wmOperatorStatus wm_id_linked_relocate_exec(bContext *C, wmOperator *op)
     BLI_path_abs(root, blendfile_path);
   }
 
-  BLI_path_join(filepath, sizeof(filepath), root, relname);
+  BLI_path_join(filepath, root, relname);
 
   /* Test if we have a valid data. */
   const bool is_librarypath_valid = BKE_blendfile_library_path_explode(
@@ -927,7 +927,7 @@ static wmOperatorStatus wm_lib_relocate_exec_do(bContext *C, wmOperator *op, boo
     return OPERATOR_CANCELLED;
   }
 
-  BLI_path_join(filepath, sizeof(filepath), root, libname);
+  BLI_path_join(filepath, root, libname);
 
   if (!BLI_exists(filepath)) {
     BKE_reportf(op->reports,
@@ -994,7 +994,7 @@ static wmOperatorStatus wm_lib_relocate_exec_do(bContext *C, wmOperator *op, boo
       RNA_BEGIN (op->ptr, itemptr, "files") {
         RNA_string_get(&itemptr, "name", relname);
 
-        BLI_path_join(filepath, sizeof(filepath), root, relname);
+        BLI_path_join(filepath, root, relname);
 
         if (BLI_path_cmp(filepath, lib->runtime->filepath_abs) == 0 ||
             !BKE_blendfile_extension_check(relname))

@@ -637,14 +637,14 @@ static void rna_userdef_extension_repo_custom_directory_set(PointerRNA *ptr, con
 static void rna_userdef_extension_repo_directory_get(PointerRNA *ptr, char *value)
 {
   const bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
-  BKE_preferences_extension_repo_dirpath_get(repo, value, FILE_MAX);
+  BKE_preferences_extension_repo_dirpath_get(repo, MutableCStr(value, FILE_MAX));
 }
 
 static int rna_userdef_extension_repo_directory_length(PointerRNA *ptr)
 {
   const bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
   char dirpath[FILE_MAX];
-  return BKE_preferences_extension_repo_dirpath_get(repo, dirpath, sizeof(dirpath));
+  return BKE_preferences_extension_repo_dirpath_get(repo, dirpath);
 }
 
 static void rna_userdef_extension_repo_access_token_get(PointerRNA *ptr, char *value)

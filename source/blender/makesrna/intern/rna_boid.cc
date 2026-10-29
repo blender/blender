@@ -171,7 +171,7 @@ static std::optional<std::string> rna_BoidRule_path(const PointerRNA *ptr)
 {
   const BoidRule *rule = static_cast<BoidRule *>(ptr->data);
   char name_esc[sizeof(rule->name) * 2];
-  BLI_str_escape(name_esc, rule->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, rule->name);
   return fmt::format("rules[\"{}\"]", name_esc); /* XXX not unique */
 }
 

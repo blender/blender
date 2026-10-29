@@ -955,7 +955,9 @@ static void ensure_buffer_bindings(MTLContext &ctx,
   }
 
   /* Bind acceleration structures for any shader stage that declares one. */
-  for (const uint slot : bits::iter_1_indices(shader_interface.enabled_accel_mask())) {
+  uint32_t bind_accel = shader_interface.enabled_accel_mask() &
+                        (stage_buf_mask >> MTL_ACCELERATION_STRUCTURE_SLOT);
+  for (const uint slot : bits::iter_1_indices(bind_accel)) {
     MTLAccelerationStructureBinding &bind =
         ctx.pipeline_state.acceleration_structure_bindings[slot];
     if (bind.tlas) {

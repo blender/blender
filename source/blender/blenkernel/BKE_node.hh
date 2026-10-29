@@ -298,10 +298,7 @@ struct bNodeType {
    * Optional custom label function for the node header.
    * \note Used as a fallback when #bNode.label isn't set.
    */
-  void (*labelfunc)(const bNodeTree *ntree,
-                    const bNode *node,
-                    char *label,
-                    int label_maxncpy) = nullptr;
+  void (*labelfunc)(const bNodeTree *ntree, const bNode *node, MutableCStr label) = nullptr;
 
   /** Optional override for node class, used for drawing node header. */
   int (*ui_class)(const bNode *node) = nullptr;

@@ -195,7 +195,7 @@ bool AssetCatalogDefinitionFile::exists_on_disk() const
 bool AssetCatalogDefinitionFile::write_to_disk_unsafe(const CatalogFilePath &dest_file_path) const
 {
   char directory[PATH_MAX];
-  BLI_path_split_dir_part(dest_file_path.c_str(), directory, sizeof(directory));
+  BLI_path_split_dir_part(dest_file_path.c_str(), directory);
   if (!ensure_directory_exists(directory)) {
     /* TODO(Sybren): pass errors to the UI somehow. */
     return false;

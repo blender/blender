@@ -371,7 +371,7 @@ static void applyRotation(TransInfo *t)
   recalc_data(t);
 
   char str[UI_MAX_DRAW_STR];
-  headerRotation(t, str, sizeof(str), t->values_final[0]);
+  headerRotation(t, str, t->values_final[0]);
   ED_area_status_text(t->area, str);
 }
 

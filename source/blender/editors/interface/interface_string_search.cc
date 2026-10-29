@@ -60,8 +60,7 @@ static std::optional<std::string> get_recent_searches_file_path()
     return std::nullopt;
   }
   char filepath[FILE_MAX];
-  BLI_path_join(
-      filepath, sizeof(filepath), user_config_dir->c_str(), BLENDER_RECENT_SEARCHES_FILE);
+  BLI_path_join(filepath, user_config_dir->c_str(), BLENDER_RECENT_SEARCHES_FILE);
   return std::string(filepath);
 }
 

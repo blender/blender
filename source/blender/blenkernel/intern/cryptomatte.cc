@@ -265,15 +265,14 @@ float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash)
 
 bool BKE_cryptomatte_find_name(const CryptomatteSession *session,
                                const float encoded_hash,
-                               char *r_name,
-                               int name_maxncpy)
+                               MutableCStr r_name)
 {
   std::optional<std::string> name = (*session)[encoded_hash];
   if (!name) {
     return false;
   }
 
-  BLI_strncpy_utf8(r_name, name->c_str(), name_maxncpy);
+  STRNCPY_UTF8(r_name, name->c_str());
   return true;
 }
 
@@ -613,8 +612,7 @@ StringRef CryptomatteStampDataCallbackData::extract_layer_hash(StringRefNull key
 
 void CryptomatteStampDataCallbackData::extract_layer_names(void *_data,
                                                            const char *propname,
-                                                           char *propvalue,  // NOLINT
-                                                           int /*propvalue_maxncpy*/)
+                                                           MutableCStr propvalue)
 {
   CryptomatteStampDataCallbackData *data = static_cast<CryptomatteStampDataCallbackData *>(_data);
 
@@ -626,13 +624,12 @@ void CryptomatteStampDataCallbackData::extract_layer_names(void *_data,
     return;
   }
   StringRef layer_hash = extract_layer_hash(key);
-  data->hash_to_layer_name.add(layer_hash, propvalue);
+  data->hash_to_layer_name.add(layer_hash, propvalue.data());
 }
 
 void CryptomatteStampDataCallbackData::extract_layer_manifest(void *_data,
                                                               const char *propname,
-                                                              char *propvalue,  // NOLINT
-                                                              int /*propvalue_maxncpy*/)
+                                                              MutableCStr propvalue)
 {
   CryptomatteStampDataCallbackData *data = static_cast<CryptomatteStampDataCallbackData *>(_data);
 
@@ -650,7 +647,7 @@ void CryptomatteStampDataCallbackData::extract_layer_manifest(void *_data,
 
   StringRef layer_name = data->hash_to_layer_name.lookup(layer_hash);
   bke::cryptomatte::CryptomatteLayer &layer = data->session->add_layer(layer_name);
-  bke::cryptomatte::manifest::from_manifest(layer, propvalue);
+  bke::cryptomatte::manifest::from_manifest(layer, propvalue.data());
 }
 
 const Vector<std::string> &BKE_cryptomatte_layer_names_get(const CryptomatteSession &session)

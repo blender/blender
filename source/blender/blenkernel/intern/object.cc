@@ -514,7 +514,7 @@ static void object_foreach_path_pointcache(ListBaseT<PointCache> *ptcache_list,
 {
   for (PointCache *cache = ptcache_list->first(); cache != nullptr; cache = cache->next) {
     if (cache->flag & PTCACHE_DISK_CACHE) {
-      BKE_bpath_foreach_path_fixed_process(bpath_data, cache->path, sizeof(cache->path));
+      BKE_bpath_foreach_path_fixed_process(bpath_data, cache->path);
     }
   }
 }
@@ -542,7 +542,7 @@ static void object_foreach_path_particles(Object *ob, BPathForeachPathData *bpat
     for (PointCache &cache : psys.ptcaches) {
       /* When the 'External' checkbox is checked, the regular pointcache path is used. */
       if (cache.flag & PTCACHE_EXTERNAL) {
-        BKE_bpath_foreach_path_fixed_process(bpath_data, cache.path, sizeof(cache.path));
+        BKE_bpath_foreach_path_fixed_process(bpath_data, cache.path);
       }
       else {
         all_caches_external = false;
@@ -571,7 +571,7 @@ static void object_foreach_path_particles(Object *ob, BPathForeachPathData *bpat
      * And because it's always in the same directory, it makes sense to convert the path to a
      * blendfile-relative path. */
     BLI_path_rel(ptcache_path, blendfile_path);
-    BKE_bpath_foreach_path_fixed_process(bpath_data, ptcache_path, sizeof(ptcache_path));
+    BKE_bpath_foreach_path_fixed_process(bpath_data, ptcache_path);
   }
 }
 
@@ -585,16 +585,14 @@ static void object_foreach_path(ID *id, BPathForeachPathData *bpath_data)
       case eModifierType_Fluidsim: {
         FluidsimModifierData *fluidmd = reinterpret_cast<FluidsimModifierData *>(&md);
         if (fluidmd->fss) {
-          BKE_bpath_foreach_path_fixed_process(
-              bpath_data, fluidmd->fss->surfdataPath, sizeof(fluidmd->fss->surfdataPath));
+          BKE_bpath_foreach_path_fixed_process(bpath_data, fluidmd->fss->surfdataPath);
         }
         break;
       }
       case eModifierType_Fluid: {
         FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(&md);
         if (fmd->type & MOD_FLUID_TYPE_DOMAIN && fmd->domain) {
-          BKE_bpath_foreach_path_fixed_process(
-              bpath_data, fmd->domain->cache_directory, sizeof(fmd->domain->cache_directory));
+          BKE_bpath_foreach_path_fixed_process(bpath_data, fmd->domain->cache_directory);
         }
         break;
       }
@@ -605,12 +603,12 @@ static void object_foreach_path(ID *id, BPathForeachPathData *bpath_data)
       }
       case eModifierType_Ocean: {
         OceanModifierData *omd = reinterpret_cast<OceanModifierData *>(&md);
-        BKE_bpath_foreach_path_fixed_process(bpath_data, omd->cachepath, sizeof(omd->cachepath));
+        BKE_bpath_foreach_path_fixed_process(bpath_data, omd->cachepath);
         break;
       }
       case eModifierType_MeshCache: {
         MeshCacheModifierData *mcmd = reinterpret_cast<MeshCacheModifierData *>(&md);
-        BKE_bpath_foreach_path_fixed_process(bpath_data, mcmd->filepath, sizeof(mcmd->filepath));
+        BKE_bpath_foreach_path_fixed_process(bpath_data, mcmd->filepath);
         break;
       }
       case eModifierType_Nodes: {

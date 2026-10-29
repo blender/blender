@@ -138,7 +138,7 @@ static bool wm_stl_export_check(bContext * /*C*/, wmOperator *op)
   /* Enforce an extension on the filepath unless Batch mode is used. Batch mode
    * will perform substitutions, including the extension, during its processing. */
   if (!use_batch && !BLI_path_extension_check(filepath, ".stl")) {
-    BLI_path_extension_ensure(filepath, FILE_MAX, ".stl");
+    BLI_path_extension_ensure(filepath, ".stl");
     RNA_string_set(op->ptr, "filepath", filepath);
     changed = true;
   }

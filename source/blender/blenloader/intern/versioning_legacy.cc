@@ -1541,7 +1541,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       Image *ima;
       for (ima = bmain->images.first(); ima; ima = static_cast<Image *>(ima->id.next)) {
         if (STREQ(ima->filepath, "Compositor")) {
-          BLI_strncpy_utf8(ima->id.name + 2, "Viewer Node", sizeof(ima->id.name) - 2);
+          STRNCPY_UTF8(MutableCStr(ima->id.name).drop_front(2), "Viewer Node");
           STRNCPY(ima->filepath, "Viewer Node");
         }
       }

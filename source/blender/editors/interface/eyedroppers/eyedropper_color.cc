@@ -409,7 +409,7 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
 
   /* TODO(jbakker): Migrate this file to cc and use std::string as return param. */
   char prefix[MAX_NAME + 1];
-  ntreeCompositCryptomatteLayerPrefix(node, prefix, sizeof(prefix) - 1);
+  ntreeCompositCryptomatteLayerPrefix(node, MutableCStr(prefix, sizeof(prefix) - 1));
   prefix[MAX_NAME] = '\0';
 
   if (area->spacetype == SPACE_VIEW3D) {
@@ -583,8 +583,7 @@ static void eyedropper_color_sample_text_update(bContext *C,
 
   if (eye->cryptomatte_session) {
     if (eyedropper_cryptomatte_sample_fl(C, eye, event_xy, col)) {
-      BKE_cryptomatte_find_name(
-          eye->cryptomatte_session, col[0], eye->sample_text, sizeof(eye->sample_text));
+      BKE_cryptomatte_find_name(eye->cryptomatte_session, col[0], eye->sample_text);
       eye->sample_text[sizeof(eye->sample_text) - 1] = '\0';
     }
   }

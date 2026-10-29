@@ -92,7 +92,7 @@ struct VertOut {
 };
 
 [[vertex]] void main_vert([[vertex_id]] const int vert_id,
-                          [[instance_id]] const int inst_id,
+                          [[instance_index]] const int inst_id,
                           [[resource_table]] Resources &srt,
                           [[out]] VertOut &v_out,
                           [[position]] float4 &out_pos)
@@ -324,7 +324,7 @@ struct Resources {
 };
 
 [[vertex]] void main_vert([[vertex_id]] const int vert_id,
-                          [[instance_id]] const int inst_id,
+                          [[instance_index]] const int inst_id,
                           [[resource_table]] Resources &srt,
                           [[out]] VertOut &v_out,
                           [[position]] float4 &out_pos)

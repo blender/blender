@@ -47,9 +47,9 @@ namespace blender::ed::space_node {
 /** \name Local Utilities
  * \{ */
 
-static void node_copybuffer_filepath_get(char filepath[FILE_MAX], size_t filepath_maxncpy)
+static void node_copybuffer_filepath_get(MutableCStr filepath)
 {
-  BLI_path_join(filepath, filepath_maxncpy, BKE_tempdir_base(), "copybuffer_nodes.blend");
+  BLI_path_join(filepath, BKE_tempdir_base(), "copybuffer_nodes.blend");
 }
 
 /** Returns the number of nodes copied. */
@@ -238,7 +238,7 @@ static wmOperatorStatus node_clipboard_copy_exec(bContext *C, wmOperator *op)
       nullptr, &copy_tree->id, add_tree_ids_dependencies_cb, nullptr, IDWALK_NOP);
 
   char filepath[FILE_MAX];
-  node_copybuffer_filepath_get(filepath, sizeof(filepath));
+  node_copybuffer_filepath_get(filepath);
   if (!copy_buffer.write_as_copypaste_buffer(filepath, *op->reports)) {
     BLI_assert_unreachable();
     BKE_report(op->reports, RPT_ERROR, "Unable to write to copy buffer on disk.");
@@ -279,7 +279,7 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
   Main *bmain_dst = CTX_data_main(C);
 
   char filepath[FILE_MAX];
-  node_copybuffer_filepath_get(filepath, sizeof(filepath));
+  node_copybuffer_filepath_get(filepath);
   Main *bmain_src = BKE_copybuffer_read(*bmain_dst, filepath, op->reports, FILTER_ID_NT);
   if (!bmain_src) {
     BKE_report(op->reports, RPT_ERROR, "No data to paste");

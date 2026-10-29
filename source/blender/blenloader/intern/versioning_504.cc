@@ -98,6 +98,14 @@ void blo_do_versions_504(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
   }
+
+  /* Default initialize proxy options.*/
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 504, 4)) {
+    for (Scene &scene : bmain->scenes) {
+      scene.r.compositor_proxy_preview_scale = 50;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

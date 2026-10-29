@@ -669,8 +669,6 @@ int main(int argc,
     /* Not supported, although it could be made to work if needed. */
     BLI_assert(app_state.main_arg_deferred == nullptr);
 
-    WM_init_project_on_startup(C);
-
     /* Shows the splash as needed. */
     WM_init_splash_on_startup(C);
 

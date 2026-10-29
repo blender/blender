@@ -98,7 +98,7 @@ void BLI_dynstr_vappendf(DynStr *__restrict ds, const char *__restrict format, v
 {
   char *str, fixed_buf[256];
   size_t str_len;
-  str = BLI_vsprintfN_with_buffer(fixed_buf, sizeof(fixed_buf), &str_len, format, args);
+  str = BLI_vsprintfN_with_buffer(fixed_buf, &str_len, format, args);
   BLI_dynstr_append(ds, str);
   if (str != fixed_buf) {
     MEM_delete(str);
@@ -111,7 +111,7 @@ void BLI_dynstr_appendf(DynStr *__restrict ds, const char *__restrict format, ..
   char *str, fixed_buf[256];
   size_t str_len;
   va_start(args, format);
-  str = BLI_vsprintfN_with_buffer(fixed_buf, sizeof(fixed_buf), &str_len, format, args);
+  str = BLI_vsprintfN_with_buffer(fixed_buf, &str_len, format, args);
   va_end(args);
   if (str) [[likely]] {
     BLI_dynstr_append(ds, str);

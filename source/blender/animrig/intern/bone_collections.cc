@@ -142,11 +142,7 @@ static void bonecoll_ensure_name_unique(bArmature *armature, BoneCollection *bco
     return false;
   };
 
-  BLI_uniquename_cb(bonecoll_name_is_duplicate,
-                    DATA_(bonecoll_default_name),
-                    '.',
-                    bcoll->name,
-                    sizeof(bcoll->name));
+  BLI_uniquename_cb(bonecoll_name_is_duplicate, DATA_(bonecoll_default_name), '.', bcoll->name);
 }
 
 /**

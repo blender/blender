@@ -640,6 +640,12 @@ void MTLBatch::draw_advanced_indirect_internal(StorageBuf *indirect_buf,
   /* Set depth stencil state (TODO: Move it back upstream, is legacy of depth bias). */
   ctx->ensure_depth_stencil_state();
 
+  /* A zero stride means the commands are tightly packed, matching `glMultiDraw*Indirect`. */
+  if (stride == 0) {
+    stride = (mtl_elem == nullptr) ? sizeof(MTLDrawPrimitivesIndirectArguments) :
+                                     sizeof(MTLDrawIndexedPrimitivesIndirectArguments);
+  }
+
   /* Issue one indirect draw per command. */
   for (int i = 0; i < count; i++) {
     intptr_t cmd_offset = offset + i * stride;

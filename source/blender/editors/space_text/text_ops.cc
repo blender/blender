@@ -3574,7 +3574,7 @@ static wmOperatorStatus text_insert_exec(bContext *C, wmOperator *op)
 
   space_text_drawcache_tag_update(st, false);
 
-  str = RNA_string_get_alloc(op->ptr, "text", nullptr, 0, &str_len);
+  str = RNA_string_get_alloc(op->ptr, "text", std::nullopt, &str_len);
 
   /* NOTE: we rely on this check to ensure `done` will never be false,
    * this area of code should be refactored not to depend on `done`

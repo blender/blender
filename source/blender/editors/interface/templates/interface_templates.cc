@@ -34,7 +34,7 @@ int template_search_textbut_width(PointerRNA *ptr, PropertyRNA *name_prop)
 
   BLI_assert(RNA_property_type(name_prop) == PROP_STRING);
 
-  const char *name = RNA_property_string_get_alloc(ptr, name_prop, str, sizeof(str), &buf_len);
+  const char *name = RNA_property_string_get_alloc(ptr, name_prop, str, &buf_len);
 
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   const int margin = UI_UNIT_X * 0.75f;
@@ -181,7 +181,7 @@ Block *template_common_search_menu(const bContext *C,
 
     /* fake button, it holds space for search items */
     uiDefBut(block, ButtonType::Label, "", 0, UI_UNIT_Y, w, h, nullptr, 0, 0, std::nullopt);
-    but = uiDefSearchBut(block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, w, UI_UNIT_Y, "");
+    but = uiDefSearchBut(block, search, ICON_VIEWZOOM, 0, 0, w, UI_UNIT_Y, "");
     button_search_preview_grid_size_set(but, preview_rows, preview_cols);
   }
   /* list view */
@@ -206,7 +206,6 @@ Block *template_common_search_menu(const bContext *C,
                          search,
 
                          ICON_VIEWZOOM,
-                         sizeof(search),
                          0,
                          0,
                          searchbox_width,

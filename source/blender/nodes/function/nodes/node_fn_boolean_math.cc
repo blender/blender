@@ -43,17 +43,14 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
   layout.prop(ptr, "operation", UI_ITEM_NONE, "", ICON_NONE);
 }
 
-static void node_label(const bNodeTree * /*tree*/,
-                       const bNode *node,
-                       char *label,
-                       int label_maxncpy)
+static void node_label(const bNodeTree * /*tree*/, const bNode *node, MutableCStr label)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_boolean_math_items, node->custom1, &name);
   if (!enum_label) {
     name = N_("Unknown");
   }
-  BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
+  STRNCPY_UTF8(label, IFACE_(name));
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)

@@ -173,7 +173,7 @@ static VirtualAlloc2Fn mmap_VirtualAlloc2 = nullptr;
 static void print_error(const char *message)
 {
   char buffer[256];
-  size_t length = BLI_string_join(buffer, sizeof(buffer), "BLI_mmap: ", message, "\r\n");
+  size_t length = BLI_string_join(buffer, "BLI_mmap: ", message, "\r\n");
   HANDLE stderr_handle = GetStdHandle(STD_ERROR_HANDLE);
   WriteFile(stderr_handle, buffer, length, nullptr, nullptr);
 }
@@ -276,7 +276,7 @@ static bool ensure_mmap_initialized()
 static void print_error(const char *message)
 {
   char buffer[256];
-  size_t length = BLI_string_join(buffer, sizeof(buffer), "BLI_mmap: ", message, "\n");
+  size_t length = BLI_string_join(buffer, "BLI_mmap: ", message, "\n");
   if (write(STDERR_FILENO, buffer, length) < 0) {
     /* If writing to stderr fails, there is nowhere to write an error about that. */
   }

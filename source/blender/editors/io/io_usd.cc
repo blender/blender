@@ -532,7 +532,7 @@ static bool wm_usd_export_check(bContext * /*C*/, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", filepath);
 
   if (!BLI_path_extension_check_n(filepath, ".usd", ".usda", ".usdc", ".usdz", nullptr)) {
-    BLI_path_extension_ensure(filepath, FILE_MAX, ".usdc");
+    BLI_path_extension_ensure(filepath, ".usdc");
     RNA_string_set(op->ptr, "filepath", filepath);
     return true;
   }

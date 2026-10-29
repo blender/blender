@@ -40,13 +40,10 @@ void node_sock_label_clear(bNodeSocket *sock);
 void node_math_update(bNodeTree *ntree, bNode *node);
 
 /**** Labels ****/
-void node_blend_label(const bNodeTree *ntree, const bNode *node, char *label, int label_maxncpy);
-void node_image_label(const bNodeTree *ntree, const bNode *node, char *label, int label_maxncpy);
-void node_math_label(const bNodeTree *ntree, const bNode *node, char *label, int label_maxncpy);
-void node_vector_math_label(const bNodeTree *ntree,
-                            const bNode *node,
-                            char *label,
-                            int label_maxncpy);
+void node_blend_label(const bNodeTree *ntree, const bNode *node, MutableCStr label);
+void node_image_label(const bNodeTree *ntree, const bNode *node, MutableCStr label);
+void node_math_label(const bNodeTree *ntree, const bNode *node, MutableCStr label);
+void node_vector_math_label(const bNodeTree *ntree, const bNode *node, MutableCStr label);
 void node_combsep_color_label(const ListBaseT<bNodeSocket> *sockets, NodeCombSepColorMode mode);
 
 /*** Link Handling */
