@@ -53,19 +53,19 @@ struct ShrinkFattenCustomData {
   bool use_alt_press_to_disable;
 };
 
-static void transdata_elem_shrink_fatten(const TransInfo *t,
-                                         const TransDataContainer * /*tc*/,
-                                         TransData *td,
-                                         TransDataExtension *td_ext,
-                                         const float distance)
+static const float *shrinkfatten_shell_factor_ensure(TransDataContainer *tc)
 {
-  ShrinkFattenCustomData *custom_data = static_cast<ShrinkFattenCustomData *>(t->custom.mode.data);
-
-  /* Get the final offset. */
-  float tdistance = distance * td->factor;
-  if (td_ext && custom_data->mode == EVEN_THICKNESS_ON) {
-    tdistance *= td_ext->iscale[0]; /* Shell factor. */
+  if (tc->custom.mode.data == nullptr) {
+    tc->custom.mode.data = transform_convert_mesh_shell_factor_calc(tc);
+    tc->custom.mode.use_free = true;
   }
+  return static_cast<const float *>(tc->custom.mode.data);
+}
+
+static void transdata_elem_shrink_fatten(TransData *td, const float distance)
+{
+  /* Get the final offset. */
+  const float tdistance = distance * td->factor;
 
   madd_v3_v3v3fl(td->loc, td->iloc, td->axismtx[2], tdistance);
 }
@@ -134,15 +134,26 @@ static void applyShrinkFatten(TransInfo *t)
 
   /* Done with header string. */
 
+  ShrinkFattenCustomData *custom_data = static_cast<ShrinkFattenCustomData *>(t->custom.mode.data);
+  if (custom_data->mode == EVEN_THICKNESS_ON && t->data_container[0].custom.mode.data == nullptr) {
+    restoreTransObjects(t);
+  }
+
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    const float *shell_factors = (custom_data->mode == EVEN_THICKNESS_ON) ?
+                                     shrinkfatten_shell_factor_ensure(tc) :
+                                     nullptr;
     threading::parallel_for(IndexRange(tc->data_len), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         TransData *td = &tc->data[i];
-        TransDataExtension *td_ext = tc->data_ext ? &tc->data_ext[i] : nullptr;
         if (td->flag & TD_SKIP) {
           continue;
         }
-        transdata_elem_shrink_fatten(t, tc, td, td_ext, distance);
+        float elem_distance = distance;
+        if (shell_factors) {
+          elem_distance *= shell_factors[i];
+        }
+        transdata_elem_shrink_fatten(td, elem_distance);
       }
     });
   }

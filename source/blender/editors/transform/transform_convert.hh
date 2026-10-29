@@ -365,6 +365,8 @@ void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
                                                      TransData *r_td);
 void transform_convert_mesh_crazyspace_free(TransMeshDataCrazySpace *r_crazyspace_data);
 
+float *transform_convert_mesh_shell_factor_calc(const TransDataContainer *tc);
+
 Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
     const TransDataContainer *tc, Vector<float3> &r_loc_dst_buffer);
 
