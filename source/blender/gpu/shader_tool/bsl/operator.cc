@@ -113,11 +113,8 @@ static ClassId matrix_binary_operator_return_type(const uint16_t l,
   const uint16_t r_row = r & LEN_MASK;
   const uint16_t scalar = uint16_t(ClassId::float_t);
 
+  /* No division or comparison, Metal matrix types don't have these operators. */
   switch (op) {
-    case Equal:
-    case NotEqual:
-      return (l == r) ? ClassId::bool_t : ClassId::Invalid;
-
     case Plus:
     case Minus:
       /* Component wise, so both operands must have the exact same type. */
@@ -139,10 +136,6 @@ static ClassId matrix_binary_operator_return_type(const uint16_t l,
         return ClassId(CLASS_FLOAT | r_col);
       }
       return (l == scalar) ? ClassId(r) : ClassId::Invalid;
-
-    case Divide:
-      /* Only division of a matrix by a scalar. */
-      return (l_is_matrix && r == scalar) ? ClassId(l) : ClassId::Invalid;
 
     default:
       return ClassId::Invalid;
