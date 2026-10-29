@@ -51,7 +51,7 @@ void graph_draw_fcurves(Span<ed::animfilter::DataChannel *> data_channels,
  * Draw the 'ghost' F-Curves (i.e. snapshots of the curve)
  * \note unit mapping has already been applied to the values, so do not try and apply again.
  */
-void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region);
+void graph_draw_ghost_curves(Scene &scene, SpaceGraph *sipo, ARegion *region);
 
 /* ***************************************** */
 /* `graph_select.cc` */

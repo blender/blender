@@ -1611,7 +1611,7 @@ static void graph_draw_driver_debug(FCurve *fcu,
 /** \name Public Curve-Drawing API
  * \{ */
 
-void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region)
+void graph_draw_ghost_curves(Scene &scene, SpaceGraph *sipo, ARegion *region)
 {
 
   /* draw with thick dotted lines */
@@ -1647,10 +1647,10 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region
      * - draw with a fixed opacity of 2
      */
     immUniformColor3fvAlpha(fcu.color, 0.5f);
-    short mapping_flag = ANIM_get_normalization_flags(ac->sl);
+    short mapping_flag = ANIM_get_normalization_flags(sipo);
     float offset;
     const float unit_scale = ANIM_unit_mapping_get_factor(
-        ac->scene, nullptr, &fcu, mapping_flag, &offset);
+        &scene, nullptr, &fcu, mapping_flag, &offset);
 
     /* simply draw the stored samples */
     draw_fcurve_curve_samples(
@@ -1711,6 +1711,7 @@ void graph_draw_fcurves(const Span<ed::animfilter::DataChannel *> data_channels,
   draw_settings.only_handles_of_selected_keys = space_graph.flag & SIPO_SELVHANDLESONLY;
   draw_settings.draw_extrapolation = (space_graph.flag & SIPO_NO_DRAW_EXTRAPOLATION) == 0;
   draw_settings.normalization_flags = ANIM_get_normalization_flags(&space_graph);
+  /* TODO draw in 3 passes, unselected first, then selected then active */
   for (DataChannel *data_channel : data_channels) {
     if (data_channel->source_type() != DataChannelType::FCURVE) {
       /* TODO filter down to fcurves when getting the summary tree. Or maybe it's ok to leave
