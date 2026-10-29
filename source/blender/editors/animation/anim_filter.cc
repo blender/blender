@@ -4195,11 +4195,6 @@ static void gather_tags(SummaryChannel &channel)
       channel_tag_set = child->tags();
       has_seen_child = true;
     }
-
-    if (channel_tag_set.is_empty()) {
-      /* There is no use in continuing to intersect children. */
-      return;
-    }
   }
 }
 
