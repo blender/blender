@@ -413,7 +413,7 @@ TEST_F(BMainMergeTest, link_lib_packed)
     Library *archive_lib = bke::library::ensure_archive_library(
         bmain, ob_packed->id, owner_lib, ob_packed->id.deep_hash, is_archive_lib_new);
     BKE_main_namemap_remove_id(bmain, ob_packed->id);
-    ob_packed->id.lib = archive_lib;
+    bke::id::id_lib_set(ob_packed->id, archive_lib);
     ob_packed->id.flag |= ID_FLAG_LINKED_AND_PACKED;
     BKE_main_namemap_get_unique_name(bmain, ob_packed->id, BKE_id_name(ob_packed->id));
     return ob_packed;

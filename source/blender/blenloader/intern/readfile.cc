@@ -3293,7 +3293,7 @@ static void read_undo_libraries_cleanup_unused_ids(FileData *fd)
       ListBaseT<ID> *new_lb = which_libbase(lib_bmain, idcode);
       ListBaseT<ID> *old_lb = which_libbase(old_bmain, idcode);
       BLI_remlink(new_lb, unused_id);
-      unused_id->lib = nullptr;
+      bke::id::id_lib_set(*unused_id, nullptr);
       BKE_main_idmap_remove_id(fd->new_idmap_uid, unused_id);
       BLI_addtail(old_lb, unused_id);
       /* NOTE: There should be no need to update ID pointers mapping (`fd->libmap`) here, as
@@ -3372,7 +3372,7 @@ static void read_libblock_undo_restore_identical(
   /* Some tags need to be preserved here. */
   id_old->tag = ((id_tag | ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) & ~ID_TAG_KEEP_ON_UNDO) |
                 (id_old->tag & ID_TAG_KEEP_ON_UNDO);
-  id_old->lib = main->curlib;
+  bke::id::id_lib_set(*id_old, main->curlib);
   id_old->us = ID_FAKE_USERS(id_old);
   /* Do not reset id->icon_id here, memory allocated for it remains valid. */
   /* Needed because .blend may have been saved with crap value here... */

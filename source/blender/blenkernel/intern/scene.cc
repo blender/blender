@@ -1075,7 +1075,7 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
 
   temp_nodetree_copy->id.flag |= ID_FLAG_EMBEDDED_DATA;
   temp_nodetree_copy->owner_id = &scene.id;
-  temp_nodetree_copy->id.lib = scene.id.lib;
+  bke::id::id_lib_set(temp_nodetree_copy->id, scene.id.lib);
   /* Set deprecated chunksize for forward compatibility. */
   temp_nodetree_copy->chunksize = 256;
 

@@ -378,7 +378,7 @@ static bool reuse_bmain_move_id(ReuseOldBMainData *reuse_data,
     BKE_main_namemap_remove_id(*old_bmain, *id);
   }
 
-  id->lib = lib;
+  bke::id::id_lib_set(*id, lib);
   BLI_addtail(new_lb, id);
   if (handle_name_map_updates) {
     BKE_id_new_name_validate(
@@ -1969,7 +1969,7 @@ Library *PartialWriteContext::ensure_library(ID *ctx_id)
     }
   }
 
-  ctx_id->lib = ctx_lib;
+  bke::id::id_lib_set(*ctx_id, ctx_lib);
   return ctx_lib;
 }
 Library *PartialWriteContext::ensure_library(StringRefNull library_absolute_path)

@@ -513,6 +513,21 @@ void BKE_id_newptr_and_tag_clear(ID *id)
   }
 }
 
+void bke::id::id_lib_set(ID &id, Library *lib)
+{
+  id.lib = lib;
+  bNodeTree *ntree = node_tree_from_id(&id);
+  if (ntree) {
+    ntree->id.lib = lib;
+  }
+  if (GS(id.name) == ID_SCE) {
+    Scene &scene = reinterpret_cast<Scene &>(id);
+    if (scene.master_collection) {
+      scene.master_collection->id.lib = lib;
+    }
+  }
+}
+
 static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
 {
   Main *bmain = cb_data->bmain;
@@ -968,7 +983,7 @@ void BKE_id_move_to_same_lib(Main &bmain, ID &id, const ID &owner_id)
 
   BKE_main_namemap_remove_id(bmain, id);
 
-  id.lib = owner_id.lib;
+  bke::id::id_lib_set(id, owner_id.lib);
   id.tag |= ID_TAG_INDIRECT;
 
   ListBaseT<ID> &lb = *which_libbase(&bmain, id.id_type());
@@ -1228,7 +1243,7 @@ void BKE_libblock_management_main_add(Main *bmain, void *idv)
       bool is_new_;
       Library *archive_lib = bke::library::ensure_archive_library(
           *bmain, *id, *id->lib, id->deep_hash, is_new_);
-      id->lib = archive_lib;
+      bke::id::id_lib_set(*id, archive_lib);
     }
   }
 

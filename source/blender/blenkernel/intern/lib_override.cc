@@ -678,13 +678,14 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
       /* In case we created new overrides as 'no main', they are not accessible directly in this
        * loop, but we can get to them through their reference's `newid` pointer. */
       if (do_no_main && id->lib == id_root_reference->lib && id->newid != nullptr) {
+        BLI_assert(id != id->newid);
         other_id = id->newid;
         /* Otherwise we cannot properly distinguish between IDs that are actually from the
          * linked library (and should not be remapped), and IDs that are overrides re-generated
          * from the reference from the linked library, and must therefore be remapped.
          *
          * This is reset afterwards at the end of this loop. */
-        other_id->lib = nullptr;
+        bke::id::id_lib_set(*other_id, nullptr);
       }
       else {
         other_id = id;
@@ -716,7 +717,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
         }
       }
       if (other_id != id) {
-        other_id->lib = id_root_reference->lib;
+        bke::id::id_lib_set(*other_id, id_root_reference->lib);
       }
     }
     FOREACH_MAIN_ID_END;
@@ -2552,7 +2553,7 @@ static bool lib_override_library_resync(Main *bmain,
       BLI_assert(/* `!ID_IS_LINKED(id_override_new) ||` */ id_override_new->lib ==
                  id_reference_iter->lib);
       BLI_assert(id_override_old == nullptr || id_override_old->lib == id_root->lib);
-      id_override_new->lib = id_root->lib;
+      bke::id::id_lib_set(*id_override_new, id_root->lib);
 
       /* The old override may have been created as linked data and then referenced by local data
        * during a previous Blender session, in which case it became directly linked and a reference
@@ -5524,7 +5525,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   /* Remove the pair (idname, lib) of this temp id from the name map. */
   BKE_main_namemap_remove_id(*bmain, *tmp_id);
 
-  tmp_id->lib = local->lib;
+  bke::id::id_lib_set(*tmp_id, local->lib);
 
   /* This ID name is problematic, since it is an 'rna name property' it should not be editable or
    * different from reference linked ID. But local ID names need to be unique in a given type
@@ -5539,7 +5540,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   if (local_key != nullptr && tmp_key != nullptr) {
     tmp_key->id.flag |= (local_key->id.flag & ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE);
     BKE_main_namemap_remove_id(*bmain, tmp_key->id);
-    tmp_key->id.lib = local_key->id.lib;
+    bke::id::id_lib_set(tmp_key->id, local_key->id.lib);
     STRNCPY(tmp_key->id.name, local_key->id.name);
   }
 
