@@ -99,8 +99,9 @@ class KeyingScreenOperation : public NodeOperation {
       return;
     }
 
+    const Domain domain = this->compute_domain();
     Result &cached_keying_screen = context().cache_manager().keying_screens.get(
-        context(), get_movie_clip(), movie_tracking_object, get_smoothness());
+        context(), get_movie_clip(), movie_tracking_object, get_smoothness(), domain.pixel_size);
 
     if (!cached_keying_screen.is_allocated()) {
       this->allocate_default_remaining_outputs();
@@ -113,7 +114,10 @@ class KeyingScreenOperation : public NodeOperation {
 
   Domain compute_domain() override
   {
-    return Domain(get_size());
+    const float2 pixel_size = this->context().get_compositing_domain().pixel_size;
+    Domain domain = Domain(this->get_size());
+    domain.pixel_size = pixel_size;
+    return domain;
   }
 
   MovieTrackingObject *get_movie_tracking_object()

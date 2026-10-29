@@ -352,14 +352,17 @@ class PlaneTrackDeformOperation : public NodeOperation {
 
   Domain compute_domain() override
   {
-    MovieTrackingPlaneTrack *plane_track = get_plane_track();
+    MovieTrackingPlaneTrack *plane_track = this->get_plane_track();
 
-    Result &input_image = get_input("Image");
+    Result &input_image = this->get_input("Image");
     if (input_image.is_single_value() || !plane_track) {
       return input_image.domain();
     }
 
-    return Domain(get_movie_clip_size());
+    const float2 pixel_size = this->context().get_compositing_domain().pixel_size;
+    Domain domain = Domain(int2(float2(this->get_movie_clip_size()) * pixel_size));
+    domain.pixel_size = pixel_size;
+    return domain;
   }
 
   Array<float4x4> compute_homography_matrices(MovieTrackingPlaneTrack *plane_track)
