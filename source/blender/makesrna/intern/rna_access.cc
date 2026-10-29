@@ -6469,10 +6469,8 @@ static void update_idprop_id(Main &bmain,
   fill_new();
 }
 
-static void sync_system_properties(Main &bmain,
-                                   PointerRNA &ptr,
-                                   IDProperty &idprops,
-                                   const bool ensure)
+static void sync_system_properties(
+    Main &bmain, PointerRNA &ptr, IDProperty &idprops, const bool ensure, const bool do_cleanup)
 {
   BLI_assert(idprops.type == IDP_GROUP);
   Set<IDProperty *> used_props;
@@ -6549,7 +6547,7 @@ static void sync_system_properties(Main &bmain,
             continue;
           }
           PointerRNA prop_ptr = RNA_property_pointer_get(&ptr, &rna_prop);
-          sync_system_properties(bmain, prop_ptr, *idprop, ensure);
+          sync_system_properties(bmain, prop_ptr, *idprop, ensure, do_cleanup);
         }
         break;
       }
@@ -6562,21 +6560,29 @@ static void sync_system_properties(Main &bmain,
   }
 
   /* Remove old properties no longer used by the RNA type. */
-  for (IDProperty &prop : idprops.data.group.items_mutable()) {
-    if (!used_props.contains(&prop)) {
-      IDP_FreeFromGroup(&idprops, &prop);
+  if (do_cleanup) {
+    for (IDProperty &prop : idprops.data.group.items_mutable()) {
+      if (!used_props.contains(&prop)) {
+        IDP_FreeFromGroup(&idprops, &prop);
+      }
     }
   }
 }
 
-void RNA_sync_system_properties(Main &bmain, PointerRNA &ptr, IDProperty &idprops)
+void RNA_sync_system_properties(Main &bmain,
+                                PointerRNA &ptr,
+                                IDProperty &idprops,
+                                const bool do_cleanup)
 {
-  sync_system_properties(bmain, ptr, idprops, false);
+  sync_system_properties(bmain, ptr, idprops, false, do_cleanup);
 }
 
-void RNA_ensure_and_sync_system_properties(Main &bmain, PointerRNA &ptr, IDProperty &idprops)
+void RNA_ensure_and_sync_system_properties(Main &bmain,
+                                           PointerRNA &ptr,
+                                           IDProperty &idprops,
+                                           const bool do_cleanup)
 {
-  sync_system_properties(bmain, ptr, idprops, true);
+  sync_system_properties(bmain, ptr, idprops, true, do_cleanup);
 }
 
 /* Standard iterator functions */

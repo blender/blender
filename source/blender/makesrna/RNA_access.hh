@@ -707,13 +707,23 @@ RawPropertyType RNA_property_raw_type(PropertyRNA *prop);
 /**
  * Update the system properties (IDProperties) for a specific RNA type, converting so that
  * properties match the current RNA definition.
+ *
+ * \param do_cleanup If `true` (default), remove unused/unknown IDProperties. Pass `false` when
+ * e.g. updating runtime RNA of a missing (linked) ID, or other cases wher data is temporarily
+ * missing, and cleaning up IDProps may lead to loss of valid data.
  */
-void RNA_sync_system_properties(Main &bmain, PointerRNA &ptr, IDProperty &idprops);
+void RNA_sync_system_properties(Main &bmain,
+                                PointerRNA &ptr,
+                                IDProperty &idprops,
+                                bool do_cleanup = true);
 /**
  * Similar to #RNA_sync_system_properties, but also creates backing properties for data
  * that is un-set, rather than just correcting the values of out-of-sync properties.
  */
-void RNA_ensure_and_sync_system_properties(Main &bmain, PointerRNA &ptr, IDProperty &idprops);
+void RNA_ensure_and_sync_system_properties(Main &bmain,
+                                           PointerRNA &ptr,
+                                           IDProperty &idprops,
+                                           bool do_cleanup = true);
 
 /* to create ID property groups */
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop);
