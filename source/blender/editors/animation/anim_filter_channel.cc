@@ -325,7 +325,7 @@ class ActionGroupChannelAPI : public AbstractChannelAPI {
       const bool is_active = (group == &group_);
       flag_update(group_.flag, AGRP_ACTIVE, is_active);
 
-      if (do_sync_to_secondary) {
+      if (do_sync_to_secondary && pose_bone_ptr_.has_data()) {
         set_pose_bone_active(pose_bone_ptr_, is_active);
       }
     }
