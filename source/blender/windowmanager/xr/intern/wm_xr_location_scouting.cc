@@ -957,6 +957,9 @@ static void wm_xr_viewfinder_ui_draw_backside_logo_texture(const wmXrSessionStat
                                                            const rctf &viewfinder_rect)
 {
   gpu::Texture *logo_tex = state->viewfinder.backside_logo_texture;
+  if (logo_tex == nullptr) {
+    return;
+  }
 
   /* Fit logo within viewfinder while maintaining aspect ratio. */
   const float logo_aspect = GPU_texture_width(logo_tex) / GPU_texture_height(logo_tex);
