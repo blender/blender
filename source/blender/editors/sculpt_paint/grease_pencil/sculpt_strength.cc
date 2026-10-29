@@ -45,6 +45,7 @@ void StrengthOperation::on_stroke_extended(const bContext &C, const InputSample 
       C, [&](const GreasePencilStrokeParams &params, const IndexMask &point_mask) {
         const Array<float2> view_positions = view_positions_from_point_mask(params, point_mask);
         MutableSpan<float> opacities = params.drawing.opacities_for_write();
+        std::atomic<bool> changed = false;
 
         point_mask.foreach_index(
             [&](const int64_t point_i) {
@@ -56,11 +57,15 @@ void StrengthOperation::on_stroke_extended(const bContext &C, const InputSample 
                                                             params.multi_frame_falloff);
               /* Brush influence mapped to opacity by a factor of 0.125. */
               const float delta_opacity = (invert ? -influence : influence) * 0.125f;
-              opacity = std::clamp(opacity + delta_opacity, 0.0f, 1.0f);
+              const float new_opacity = std::clamp(opacity + delta_opacity, 0.0f, 1.0f);
+              if (new_opacity != opacity) {
+                opacity = new_opacity;
+                changed.store(true, std::memory_order_relaxed);
+              }
             },
             exec_mode::grain_size(4096));
 
-        return true;
+        return changed.load(std::memory_order_relaxed);
       });
   this->stroke_extended(extension_sample);
 }
