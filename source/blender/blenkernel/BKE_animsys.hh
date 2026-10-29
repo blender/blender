@@ -393,6 +393,7 @@ void BKE_copy_time_markers(ListBaseT<TimeMarker> &markers_dst,
                            const ListBaseT<TimeMarker> &markers_src,
                            int flag);
 
-void BKE_free_time_markers(ListBaseT<blender::TimeMarker> &markers, bool do_id_user);
+void BKE_free_time_marker(TimeMarker &marker, bool do_id_user);
+void BKE_free_time_markers(ListBaseT<TimeMarker> &markers, bool do_id_user);
 
 }  // namespace blender
