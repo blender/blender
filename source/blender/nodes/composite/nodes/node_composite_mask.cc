@@ -112,6 +112,9 @@ class MaskOperation : public NodeOperation {
 
     Result &output_mask = this->get_result("Mask");
     output_mask.share_data(cached_mask);
+    /* Cached masks are do not depend on and are not keyed with the domain pixel size, so make sure
+     * to override the domain to inherit the correct pixel size. */
+    output_mask.domain() = domain;
   }
 
   Domain compute_domain() override
@@ -124,7 +127,10 @@ class MaskOperation : public NodeOperation {
     }
 
     if (this->get_flags() & CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE) {
-      return Domain(this->get_size() * this->context().get_render_percentage());
+      const float render_scale = this->context().get_render_percentage();
+      Domain domain = Domain(this->get_size() * render_scale);
+      domain.pixel_size = float2(render_scale);
+      return domain;
     }
 
     return this->context().get_compositing_domain();

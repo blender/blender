@@ -172,9 +172,12 @@ class CropOperation : public NodeOperation {
     input_image.bind_as_texture(shader, "input_tx");
 
     const int2 size = bounds.size();
+    Domain domain = input_image.domain();
+    domain.data_size = size;
+    domain.display_size = size;
 
     Result &output_image = this->get_result("Image");
-    output_image.allocate_texture(Domain(size, this->compute_domain().transformation));
+    output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
     compute_dispatch_threads_at_least(shader, size);
@@ -191,8 +194,12 @@ class CropOperation : public NodeOperation {
     const Result &input = this->get_input("Image");
 
     const int2 size = bounds.size();
+    Domain domain = input.domain();
+    domain.data_size = size;
+    domain.display_size = size;
+
     Result &output = this->get_result("Image");
-    output.allocate_texture(Domain(size, this->compute_domain().transformation));
+    output.allocate_texture(domain);
 
     parallel_for(size, [&](const int2 texel) {
       output.store_pixel(texel, input.load_pixel<Color>(texel + bounds.min));
