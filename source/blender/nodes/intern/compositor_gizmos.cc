@@ -14,6 +14,7 @@
 #include "BLI_rect.hh"
 #include "BLI_string.hh"
 
+#include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_image.hh"
 #include "BKE_node.hh"
@@ -128,7 +129,7 @@ static bool gizmo_is_interacting(const wmGizmo &gz)
 
 /** The compositor clears its log at the start of every evaluation, so syncing during those times
  * would make the gizmo jump to the fallback values. */
-static bool should_sync_gizmo_state_from_log(const SpaceNode &snode,
+static bool should_sync_gizmo_state_from_log(const bContext &C,
                                              const bNode &node,
                                              const wmGizmo &gz)
 {
@@ -136,8 +137,7 @@ static bool should_sync_gizmo_state_from_log(const SpaceNode &snode,
     return false;
   }
 
-  eval_log::ContextualNodeTreeLogs tree_logs = eval_log::NodesEvalLog::get_contextual_tree_logs(
-      snode);
+  eval_log::ContextualNodeTreeLogs tree_logs = eval_log::NodesEvalLog::get_contextual_tree_logs(C);
   eval_log::NodeTreeLog *tree_log = tree_logs.get_main_tree_log(node);
   if (!tree_log) {
     return false;
@@ -145,30 +145,6 @@ static bool should_sync_gizmo_state_from_log(const SpaceNode &snode,
 
   tree_log->ensure_evaluated_gizmo_nodes();
   return tree_log->evaluated_gizmo_nodes.contains(node.identifier);
-}
-
-static SpaceNode *find_active_node_editor(const bContext *C)
-{
-  wmWindowManager *window_manager = CTX_wm_manager(C);
-
-  for (wmWindow &window : window_manager->windows) {
-    bScreen *screen = WM_window_get_active_screen(&window);
-    for (ScrArea &area : screen->areabase) {
-      SpaceLink *space_link = area.spacedata.first();
-      if (!space_link || space_link->spacetype != SPACE_NODE) {
-        continue;
-      }
-      SpaceNode *snode = reinterpret_cast<SpaceNode *>(space_link);
-      if (snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
-        bNodeTreePath *path = snode->treepath.last();
-        if (snode->nodetree->active_viewer_key == path->parent_key) {
-          return snode;
-        }
-      }
-    }
-  }
-
-  return nullptr;
 }
 
 static void apply_socket_callback(
@@ -191,16 +167,14 @@ static void gizmo_group_enable_undo(wmGizmoGroup *gzgroup)
   }
 }
 
-static const eval_log::ImageInfoLog *gizmo_input_image_log(const SpaceNode &snode,
-                                                           const bNode &node)
+static const eval_log::ImageInfoLog *gizmo_input_image_log(const bContext &C, const bNode &node)
 {
   const bNodeSocket *image_input = bke::node_find_socket(node, SOCK_IN, "Image"_ustr);
   if (!image_input) {
     return nullptr;
   }
 
-  eval_log::ContextualNodeTreeLogs tree_logs = eval_log::NodesEvalLog::get_contextual_tree_logs(
-      snode);
+  eval_log::ContextualNodeTreeLogs tree_logs = eval_log::NodesEvalLog::get_contextual_tree_logs(C);
   eval_log::NodeTreeLog *tree_log = tree_logs.get_main_tree_log(*image_input);
   if (!tree_log) {
     return nullptr;
@@ -276,7 +250,7 @@ bool box_mask_poll_space_image(const bContext *C, wmGizmoGroupType * /*gzgt*/)
     return false;
   }
 
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   if (snode == nullptr || snode->edittree == nullptr) {
     return false;
   }
@@ -457,7 +431,7 @@ void box_mask_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   RNA_float_set_array(gz->ptr, "dimensions", mask_group->state.dims);
   WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
 
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   BLI_assert(snode != nullptr);
 
   bNode *node = bke::node_get_active(*snode->edittree);
@@ -652,7 +626,7 @@ bool crop_poll_space_image(const bContext *C, wmGizmoGroupType * /*gzgt*/)
     return false;
   }
 
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   if (snode == nullptr || snode->edittree == nullptr) {
     return false;
   }
@@ -685,7 +659,7 @@ static void gizmo_node_crop_foreach_rna_prop(
 void crop_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   Main *bmain = CTX_data_main(C);
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   BLI_assert(snode != nullptr);
 
   NodeBBoxWidgetGroup *crop_group = static_cast<NodeBBoxWidgetGroup *>(gzgroup->customdata);
@@ -707,8 +681,8 @@ void crop_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   crop_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
                                  float2(ibuf->display_offset) :
                                  float2(0.0f);
-  if (should_sync_gizmo_state_from_log(*snode, *node, *gz)) {
-    const eval_log::ImageInfoLog *image_log = gizmo_input_image_log(*snode, *node);
+  if (should_sync_gizmo_state_from_log(*C, *node, *gz)) {
+    const eval_log::ImageInfoLog *image_log = gizmo_input_image_log(*C, *node);
     crop_group->state.pixel_size = image_log ? image_log->pixel_size : float2(1.0f);
   }
 
@@ -836,7 +810,7 @@ bool glare_poll_space_image(const bContext *C, wmGizmoGroupType * /*gzgt*/)
     return false;
   }
 
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   if (snode == nullptr || snode->edittree == nullptr) {
     return false;
   }
@@ -898,7 +872,7 @@ void glare_refresh(const bContext *C, wmGizmoGroup *gzgroup)
                                   float2(ibuf->display_offset) :
                                   float2(0.0f);
 
-  SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   BLI_assert(snode != nullptr);
 
   bNode *node = bke::node_get_active(*snode->edittree);
@@ -958,7 +932,7 @@ bool corner_pin_poll_space_image(const bContext *C, wmGizmoGroupType * /*gzgt*/)
     return false;
   }
 
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   if (snode == nullptr || snode->edittree == nullptr) {
     return false;
   }
@@ -1052,7 +1026,7 @@ void corner_pin_refresh(const bContext *C, wmGizmoGroup *gzgroup)
                                  float2(ibuf->display_offset) :
                                  float2(0.0f);
 
-  SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   BLI_assert(snode != nullptr);
 
   bNode *node = bke::node_get_active(*snode->edittree);
@@ -1115,7 +1089,7 @@ bool ellipse_mask_poll_space_image(const bContext *C, wmGizmoGroupType * /*gzgt*
     return false;
   }
 
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   if (snode == nullptr || snode->edittree == nullptr) {
     return false;
   }
@@ -1261,7 +1235,7 @@ void split_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   RNA_float_set_array(gz->ptr, "dimensions", split_group->state.dims);
   WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
 
-  SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   BLI_assert(snode != nullptr);
 
   bNode *node = bke::node_get_active(*snode->edittree);
@@ -1308,7 +1282,7 @@ bool split_poll_space_image(const bContext *C, wmGizmoGroupType * /*gzgt*/)
     return false;
   }
 
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   if (snode == nullptr || snode->edittree == nullptr) {
     return false;
   }
@@ -1526,9 +1500,9 @@ void translate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
   gizmo_group_enable_undo(gzgroup);
 }
 
-static float2 translate_gizmo_input_offset(const SpaceNode &snode, const bNode &node)
+static float2 translate_gizmo_input_offset(const bContext &C, const bNode &node)
 {
-  const eval_log::ImageInfoLog *image_log = gizmo_input_image_log(snode, node);
+  const eval_log::ImageInfoLog *image_log = gizmo_input_image_log(C, node);
   if (!image_log) {
     return float2(0.0f);
   }
@@ -1565,14 +1539,14 @@ void translate_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   translate_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
 
-  SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   BLI_assert(snode != nullptr);
 
   bNode *node = bke::node_get_active(*snode->edittree);
 
-  if (should_sync_gizmo_state_from_log(*snode, *node, *gz)) {
-    translate_group->state.offset = translate_gizmo_input_offset(*snode, *node);
-    const eval_log::ImageInfoLog *image_log = gizmo_input_image_log(*snode, *node);
+  if (should_sync_gizmo_state_from_log(*C, *node, *gz)) {
+    translate_group->state.offset = translate_gizmo_input_offset(*C, *node);
+    const eval_log::ImageInfoLog *image_log = gizmo_input_image_log(*C, *node);
     translate_group->state.pixel_size = image_log ? image_log->pixel_size : float2(1.0f);
   }
   translate_group->update_data.context = const_cast<bContext *>(C);
@@ -1640,7 +1614,7 @@ bool translate_poll_space_image(const bContext *C, wmGizmoGroupType * /*gzgt*/)
     return false;
   }
 
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   if (snode == nullptr || snode->edittree == nullptr) {
     return false;
   }
@@ -1679,7 +1653,7 @@ bool transform_poll_space_image(const bContext *C, wmGizmoGroupType * /*gzgt*/)
     return false;
   }
 
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   if (snode == nullptr || snode->edittree == nullptr) {
     return false;
   }
@@ -1830,11 +1804,11 @@ static void gizmo_node_transform_prop_matrix_set(const wmGizmo *gz,
  * neither the node's input sockets nor the final #ImBuf describe it individually. When two
  * translate nodes are chained for example, #ImBuf::display_offset holds the combined result of
  * both nodes, whereas each gizmo needs the result of its node alone. */
-static float2 gizmo_input_dims_from_log(const SpaceNode &snode,
+static float2 gizmo_input_dims_from_log(const bContext &C,
                                         const bNode &node,
                                         const float2 &fallback)
 {
-  const eval_log::ImageInfoLog *image_log = gizmo_input_image_log(snode, node);
+  const eval_log::ImageInfoLog *image_log = gizmo_input_image_log(C, node);
   if (!image_log) {
     return fallback;
   }
@@ -1878,18 +1852,18 @@ void transform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
 
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   BLI_assert(snode != nullptr);
 
   bNode *node = bke::node_get_active(*snode->edittree);
 
-  if (should_sync_gizmo_state_from_log(*snode, *node, *gz)) {
-    transform_group->state.offset = translate_gizmo_input_offset(*snode, *node);
+  if (should_sync_gizmo_state_from_log(*C, *node, *gz)) {
+    transform_group->state.offset = translate_gizmo_input_offset(*C, *node);
     /* Fall back to the size of the viewer image if the input size is not known, which is closer to
      * the actual size than an arbitrary default. */
     const float2 fallback = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
-    transform_group->state.dims = gizmo_input_dims_from_log(*snode, *node, fallback);
-    const eval_log::ImageInfoLog *image_log = gizmo_input_image_log(*snode, *node);
+    transform_group->state.dims = gizmo_input_dims_from_log(*C, *node, fallback);
+    const eval_log::ImageInfoLog *image_log = gizmo_input_image_log(*C, *node);
     transform_group->state.pixel_size = image_log ? image_log->pixel_size : float2(1.0f);
   }
   RNA_float_set_array(gz->ptr, "dimensions", transform_group->state.dims);
@@ -2009,15 +1983,15 @@ void scale_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
 
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   BLI_assert(snode != nullptr);
 
   bNode *node = bke::node_get_active(*snode->edittree);
 
-  if (should_sync_gizmo_state_from_log(*snode, *node, *gz)) {
-    scale_group->state.offset = translate_gizmo_input_offset(*snode, *node);
+  if (should_sync_gizmo_state_from_log(*C, *node, *gz)) {
+    scale_group->state.offset = translate_gizmo_input_offset(*C, *node);
     const float2 fallback = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
-    scale_group->state.dims = gizmo_input_dims_from_log(*snode, *node, fallback);
+    scale_group->state.dims = gizmo_input_dims_from_log(*C, *node, fallback);
   }
   RNA_float_set_array(gz->ptr, "dimensions", scale_group->state.dims);
 
@@ -2103,7 +2077,7 @@ bool scale_poll_space_image(const bContext *C, wmGizmoGroupType * /*gzgt*/)
     return false;
   }
 
-  const SpaceNode *snode = find_active_node_editor(C);
+  const SpaceNode *snode = bke::compositor::get_active_compositor_node_editor(*C);
   if (snode == nullptr || snode->edittree == nullptr) {
     return false;
   }

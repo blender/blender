@@ -4863,7 +4863,7 @@ static void draw_nodetree(const bContext &C, ARegion &region, bNodeTree &ntree)
       find_menu_switch_sources_for_index_switch_nodes(*snode, ntree, compute_context_cache);
 
   if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
-    tree_draw_ctx.tree_logs = nodes::eval_log::NodesEvalLog::get_contextual_tree_logs(*snode);
+    tree_draw_ctx.tree_logs = nodes::eval_log::NodesEvalLog::get_contextual_tree_logs(C);
     tree_draw_ctx.tree_logs.foreach_tree_log([&](nodes::eval_log::NodeTreeLog &log) {
       log.ensure_node_warnings(*tree_draw_ctx.bmain);
       log.ensure_execution_times();

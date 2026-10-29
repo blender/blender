@@ -74,7 +74,7 @@ static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
   if (!tree_zones) {
     return {};
   }
-  const ContextualNodeTreeLogs tree_logs = NodesEvalLog::get_contextual_tree_logs(*snode);
+  const ContextualNodeTreeLogs tree_logs = NodesEvalLog::get_contextual_tree_logs(C);
 
   Set<StringRef> names;
 

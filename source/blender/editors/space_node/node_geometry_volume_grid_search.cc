@@ -72,7 +72,7 @@ static Vector<const VolumeGridInfo *> get_grid_names_from_context(const bContext
   if (!tree_zones) {
     return {};
   }
-  const ContextualNodeTreeLogs tree_logs = NodesEvalLog::get_contextual_tree_logs(*snode);
+  const ContextualNodeTreeLogs tree_logs = NodesEvalLog::get_contextual_tree_logs(C);
 
   Set<StringRef> names;
 

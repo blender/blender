@@ -1454,7 +1454,7 @@ static void node_find_update_fn(const bContext *C,
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   nodes::eval_log::ContextualNodeTreeLogs tree_logs =
-      nodes::eval_log::NodesEvalLog::get_contextual_tree_logs(*snode);
+      nodes::eval_log::NodesEvalLog::get_contextual_tree_logs(*C);
   tree_logs.foreach_tree_log(
       [&](nodes::eval_log::NodeTreeLog &log) { log.ensure_node_warnings(*bmain); });
 
