@@ -1064,7 +1064,7 @@ struct RenderData {
 
   /** Proxy options for the compositor. */
   CompositorProxyFlags compositor_proxy_flags = CompositorProxyFlags::AdaptToRenderScale;
-  int8_t compositor_proxy_preview_scale = 100;
+  int8_t compositor_proxy_preview_scale = 50;
 
   char _pad10[1] = {};
 

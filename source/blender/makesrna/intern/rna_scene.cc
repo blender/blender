@@ -8109,6 +8109,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "compositor_proxy_preview_scale", PROP_INT, PROP_PERCENTAGE);
   RNA_def_property_int_sdna(prop, nullptr, "compositor_proxy_preview_scale");
+  RNA_def_property_int_default(prop, 50);
   RNA_def_property_range(prop, 5, 100);
   RNA_def_property_ui_text(
       prop,
