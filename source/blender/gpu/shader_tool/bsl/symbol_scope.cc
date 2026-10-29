@@ -481,9 +481,17 @@ vector<SymbolVariable *> SymbolScope::non_static_variables_in_declaration_order(
   for (const auto &[k, v] : variables) {
     /* Skip static members and template value parameters. Non-static constexpr members are not
      * allowed, so constexpr variables are only template parameters. */
-    if (!v.second->is_static && !v.second->is_constexpr) {
-      members.emplace_back(v.second);
+    if (v.second->is_static || v.second->is_constexpr) {
+      continue;
     }
+    /* Skip members of anonymous structs and unions, aliased in the enclosing class. These are
+     * already part of the anonymous member variable. Unions still list them, to emit their
+     * accessors. */
+    const SymbolClass *owner = v.second->parent ? v.second->parent->as_class() : nullptr;
+    if (owner && owner != this && owner->is_anonymous && !this->as_class()->is_union) {
+      continue;
+    }
+    members.emplace_back(v.second);
   }
 
   /* Sort elements to guarantee deterministic order. */
