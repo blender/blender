@@ -2632,4 +2632,21 @@ bool BKE_unit_is_adaptive(const UnitSettings &settings, int type)
   return is_unit_adaptive(type, units);
 }
 
+UnitConversion BKE_unit_preferred_conversion_get(const UnitSettings &settings, int unit_type)
+{
+  const PreferredUnits units = preferred_units_from_UnitSettings(settings);
+  const bUnitCollection *usys = unit_get_system(units.system, unit_type);
+
+  if (!is_valid_unit_collection(usys)) {
+    return {};
+  }
+
+  const bUnitDef *unit = get_preferred_display_unit_if_used(unit_type, units);
+  if (unit == nullptr) {
+    /* The preferred unit is adaptive, which picks a unit per value at display time. */
+    unit = unit_default(usys);
+  }
+  return {unit->scalar, unit->bias};
+}
+
 }  // namespace blender

@@ -3950,9 +3950,18 @@ void BKE_time_markers_blend_read(BlendDataReader *reader, ListBaseT<TimeMarker> 
   }
 }
 
+TimeMarker *BKE_copy_time_marker(const TimeMarker &marker_src, const int flag)
+{
+  TimeMarker *marker_dst = MEM_dupalloc(&marker_src);
+  if (marker_dst->prop != nullptr) {
+    marker_dst->prop = IDP_CopyProperty_ex(marker_dst->prop, flag);
+  }
+  return marker_dst;
+}
+
 void BKE_copy_time_markers(ListBaseT<TimeMarker> &markers_dst,
                            const ListBaseT<TimeMarker> &markers_src,
-                           int flag)
+                           const int flag)
 {
   BLI_duplicatelist(&markers_dst, &markers_src);
   for (TimeMarker &marker : markers_dst) {
