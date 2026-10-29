@@ -223,13 +223,13 @@ void MTLStorageBuf::update(const void *data)
 
 void MTLStorageBuf::bind(int slot)
 {
-  if (slot >= MTL_MAX_BUFFER_BINDINGS) {
+  if (slot >= MTL_MAX_SSBO) {
     CLOG_ERROR(&LOG,
                "Error: Trying to bind \"%s\" ssbo to slot %d which is above the reported limit of "
                "%d.",
                name_,
                slot,
-               MTL_MAX_BUFFER_BINDINGS);
+               MTL_MAX_SSBO);
     BLI_assert(false);
     return;
   }
