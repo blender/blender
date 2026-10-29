@@ -282,6 +282,16 @@ struct GPUSource {
           /* Group 5 captures the conversion specifier character. */
           char specifier = match[5].str()[0];
 
+          /* Arguments are always 32 bits. Rewrite formats that make the CPU printf read a larger
+           * argument, e.g. `%ld` or `%p`. `h` and `hh` are valid for promoted integers. */
+          if (specifier == 'p') {
+            format[end + match.position(5)] = 'x';
+          }
+          /* Remove length modifier, always expect 32bit, even for short and char. */
+          if (match[4].matched) {
+            format.erase(end + match.position(4), match.length(4));
+          }
+
           switch (specifier) {
             case 's':
               type = shader::PrintfFormat::Block::ArgumentType::STRING;
