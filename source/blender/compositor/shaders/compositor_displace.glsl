@@ -20,7 +20,8 @@ void main()
 
   /* Note that the input displacement is in pixel space, so divide by the input size to transform
    * it into the normalized sampler space. */
-  float2 displacement = texture_load(displacement_tx, texel).xy / float2(input_size);
+  float2 displacement = (texture_load(displacement_tx, texel).xy * pixel_size) /
+                        float2(input_size);
   float2 displaced_coordinates = coordinates - displacement;
 
   imageStore(output_img, texel, SAMPLER_FUNCTION(input_tx, displaced_coordinates));
