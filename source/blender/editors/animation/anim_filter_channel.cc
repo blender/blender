@@ -406,12 +406,9 @@ std::unique_ptr<AbstractChannelAPI> create_channel_api(const AnimationChannel &c
     /* Get the pose bone that's represented by this F-Curve Group (if any). */
     BLI_assert(channel.type() == AnimationChannelType::SUMMARY);
     BLI_assert(ptr.has_data());
-    const SummaryChannel &action_group_channel = dynamic_cast<const SummaryChannel &>(channel);
-    const ChannelTag *pose_bone_tag = action_group_channel.tags().first_by_type(
-        ChannelTagType::BONE);
-    animrig::Channelbag *channelbag =
-        action_group_channel.tags().data_of_first_tag<animrig::Channelbag>(
-            ChannelTagType::ACTION_CHANNELBAG);
+    const ChannelTag *pose_bone_tag = channel.tags().first_by_type(ChannelTagType::BONE);
+    animrig::Channelbag *channelbag = channel.tags().data_of_first_tag<animrig::Channelbag>(
+        ChannelTagType::ACTION_CHANNELBAG);
     BLI_assert(channelbag);
 
     return std::make_unique<ActionGroupChannelAPI>(
