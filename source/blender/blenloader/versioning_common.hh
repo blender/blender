@@ -323,4 +323,7 @@ static void adjust_fcurve_key_frame_values(FCurve *fcurve,
  * compositing_node_group is returned otherwise. */
 bNodeTree *version_get_scene_compositor_node_tree(Main *bmain, Scene *scene);
 
+/* Adds the given node group as a new scene compositor effect to the given scene. */
+void version_compositing_node_group_to_effect(Scene &scene, bNodeTree &node_group);
+
 }  // namespace blender
