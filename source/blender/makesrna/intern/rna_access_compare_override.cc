@@ -60,10 +60,10 @@ static CLG_LogRef LOG = {"rna.access_compare_override"};
  * #RNA_find_real_ID_and_path, since in overrides we also consider shape keys as embedded data, not
  * only root node trees and master collections.
  */
-static ID *rna_property_override_property_real_id_owner(Main * /*bmain*/,
-                                                        PointerRNA *ptr,
-                                                        PropertyRNA *prop,
-                                                        std::optional<std::string> *r_rna_path)
+ID *RNA_property_override_property_real_id_owner(Main * /*bmain*/,
+                                                 PointerRNA *ptr,
+                                                 PropertyRNA *prop,
+                                                 std::optional<std::string> *r_rna_path)
 {
   ID *id = ptr->owner_id;
   ID *owner_id = id;
@@ -1402,12 +1402,12 @@ static void rna_property_override_check_resync(Main *bmain,
                                                PointerRNA *ptr_item_dst,
                                                PointerRNA *ptr_item_src)
 {
-  ID *id_owner_src = rna_property_override_property_real_id_owner(
+  ID *id_owner_src = RNA_property_override_property_real_id_owner(
       bmain, ptr_src, nullptr, nullptr);
-  ID *id_owner_dst = rna_property_override_property_real_id_owner(
+  ID *id_owner_dst = RNA_property_override_property_real_id_owner(
       bmain, ptr_dst, nullptr, nullptr);
-  ID *id_src = rna_property_override_property_real_id_owner(bmain, ptr_item_src, nullptr, nullptr);
-  ID *id_dst = rna_property_override_property_real_id_owner(bmain, ptr_item_dst, nullptr, nullptr);
+  ID *id_src = RNA_property_override_property_real_id_owner(bmain, ptr_item_src, nullptr, nullptr);
+  ID *id_dst = RNA_property_override_property_real_id_owner(bmain, ptr_item_dst, nullptr, nullptr);
 
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_owner_src));
 
@@ -1530,9 +1530,9 @@ static bool override_apply_property_check_skip(Main *bmain,
   switch (op->rna_prop_type) {
     case PROP_POINTER: {
       if ((op->operations.first()->flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) == 0) {
-        BLI_assert(id_ptr_src->owner_id == rna_property_override_property_real_id_owner(
+        BLI_assert(id_ptr_src->owner_id == RNA_property_override_property_real_id_owner(
                                                bmain, &rnaapply_ctx.ptr_src, nullptr, nullptr));
-        BLI_assert(id_ptr_dst->owner_id == rna_property_override_property_real_id_owner(
+        BLI_assert(id_ptr_dst->owner_id == RNA_property_override_property_real_id_owner(
                                                bmain, &rnaapply_ctx.ptr_dst, nullptr, nullptr));
 
         CLOG_DEBUG(&LOG,
@@ -1637,9 +1637,9 @@ void RNA_struct_override_apply(Main *bmain,
         {
           BLI_assert(RNA_struct_is_ID(
               RNA_property_pointer_type(&rnaapply_ctx.ptr_src, rnaapply_ctx.prop_src)));
-          BLI_assert(id_ptr_src->owner_id == rna_property_override_property_real_id_owner(
+          BLI_assert(id_ptr_src->owner_id == RNA_property_override_property_real_id_owner(
                                                  bmain, &rnaapply_ctx.ptr_src, nullptr, nullptr));
-          BLI_assert(id_ptr_dst->owner_id == rna_property_override_property_real_id_owner(
+          BLI_assert(id_ptr_dst->owner_id == RNA_property_override_property_real_id_owner(
                                                  bmain, &rnaapply_ctx.ptr_dst, nullptr, nullptr));
 
           PointerRNA prop_ptr_src = RNA_property_pointer_get(&rnaapply_ctx.ptr_src,
@@ -1654,10 +1654,10 @@ void RNA_struct_override_apply(Main *bmain,
                   RNA_property_pointer_type(&rnaapply_ctx.ptr_src, rnaapply_ctx.prop_src)))
           {
             BLI_assert(id_ptr_src->owner_id ==
-                       rna_property_override_property_real_id_owner(
+                       RNA_property_override_property_real_id_owner(
                            bmain, &rnaapply_ctx.ptr_src, nullptr, nullptr));
             BLI_assert(id_ptr_dst->owner_id ==
-                       rna_property_override_property_real_id_owner(
+                       RNA_property_override_property_real_id_owner(
                            bmain, &rnaapply_ctx.ptr_dst, nullptr, nullptr));
 
             for (IDOverrideLibraryPropertyOperation &opop : op.operations) {
@@ -1709,7 +1709,7 @@ IDOverrideLibraryProperty *RNA_property_override_property_find(Main *bmain,
 {
   std::optional<std::string> rna_path;
 
-  *r_owner_id = rna_property_override_property_real_id_owner(bmain, ptr, prop, &rna_path);
+  *r_owner_id = RNA_property_override_property_real_id_owner(bmain, ptr, prop, &rna_path);
   if (rna_path) {
     IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(
         (*r_owner_id)->override_library, rna_path->c_str());
@@ -1729,7 +1729,7 @@ IDOverrideLibraryProperty *RNA_property_override_property_get(Main *bmain,
     *r_created = false;
   }
 
-  ID *id = rna_property_override_property_real_id_owner(bmain, ptr, prop, &rna_path);
+  ID *id = RNA_property_override_property_real_id_owner(bmain, ptr, prop, &rna_path);
   if (rna_path) {
     IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
         id->override_library, rna_path->c_str(), r_created);
