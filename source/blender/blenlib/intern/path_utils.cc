@@ -1775,8 +1775,8 @@ size_t BLI_path_join_array(char *__restrict dst,
     if (i == ofs) {
       /* All slashes, keep them as-is, and join the remaining path array. */
       return path_array_num > 1 ?
-                 BLI_path_join_array(
-                     dst + ofs, dst_maxncpy - ofs, &path_array[1], path_array_num - 1) :
+                 ofs + BLI_path_join_array(
+                           dst + ofs, dst_maxncpy - ofs, &path_array[1], path_array_num - 1) :
                  ofs;
     }
   }
