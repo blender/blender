@@ -19,26 +19,16 @@
  * can be used which can offer close to the same performance in most cases without many of the
  * downsides.
  *
- * The main entry point in the API is the #multi_eval::execute function and its corresponding
- * utilities for specific parameter counts.
+ * The main entry point in the API is #evaluate_element_wise_varray.
  */
 
 #include "BLI_devirtualize_parameters.hh"
 #include "BLI_generic_virtual_array.hh"
+#include "BLI_multi_eval.hh"
 #include "BLI_parameter_pack_utils.hh"
+#include "BLI_structure_of_array_fixed.hh"
 
 namespace blender::multi_eval {
-
-enum class ParamCategory {
-  Input,
-  Output,
-  Mutable,
-};
-
-template<ParamCategory Category, typename T> struct ParamTag {
-  static constexpr ParamCategory category = Category;
-  using base_type = T;
-};
 
 /** Method to execute a function in case devirtualization was not possible. */
 enum class FallbackMode {
@@ -70,10 +60,16 @@ struct Simple {
  * because inputs are retrieved from the virtual arrays in chunks, reducing virtual method call
  * overhead.
  */
-struct Materialized {
+template<bool Flatten = false, int UnrollAmount = 0> struct MaterializedT {
   static constexpr bool use_devirtualization = false;
   static constexpr FallbackMode fallback_mode = FallbackMode::Materialized;
+  static constexpr MultiEvalCompilerAttributes materialize_attributes = {.flatten = Flatten,
+                                                                         .unroll = UnrollAmount};
 };
+using Materialized = MaterializedT<>;
+template<int UnrollAmount> using MaterializedUnroll = MaterializedT<false, UnrollAmount>;
+using MaterializeFlatten = MaterializedT<true>;
+template<int UnrollAmount> using MaterializeFlattenUnroll = MaterializedT<true, UnrollAmount>;
 
 /**
  * The most efficient preset, but also potentially generates a lot of code (exponential in the
@@ -172,36 +168,44 @@ template<typename ParamTag> struct MaterializeArgInfo {
   const typename ParamTag::base_type *internal_span_data;
 };
 
-template<typename... ParamTags, typename ElementFn, typename... Chunks>
-#if (defined(__GNUC__) && !defined(__clang__))
-[[gnu::optimize("-funroll-loops")]] [[gnu::optimize("O3")]]
-#endif
-inline void execute_materialized_hot_loop(TypeSequence<ParamTags...> /*param_tags*/,
-                                          const ElementFn &element_fn,
-                                          const int64_t size,
-                                          Chunks &&__restrict... chunks)
+template<ExecPresetC ExecPreset>
+consteval MultiEvalCompilerAttributes get_materialize_compiler_attributes()
 {
-  for (int64_t i = 0; i < size; i++) {
-    element_fn(chunks[i]...);
+  if constexpr (requires { ExecPreset::materialize_attributes; }) {
+    return ExecPreset::materialize_attributes;
   }
+  return {};
 }
 
-template<int64_t ChunkSize,
+struct DummySoaArrays {};
+
+template<bool UseSoa, typename T, int64_t MaxSize> struct TempSoaStorage {
+  using type = DummySoaArrays;
+};
+template<typename T, int64_t MaxSize> struct TempSoaStorage<true, T, MaxSize> {
+  using type = FixedSoaArray<T, MaxSize>;
+};
+
+template<int64_t MaxChunkSize,
          ParamTagC... ParamTags,
          size_t... I,
-         typename ElementFn,
+         typename ChunkFn,
          typename... Params>
-inline void execute_materialized(TypeSequence<ParamTags...> /*param_tags*/,
-                                 std::index_sequence<I...> /*indices*/,
-                                 ElementFn &&element_fn,
-                                 const IndexMaskSegment mask,
-                                 const std::tuple<Params...> &params)
+inline void evaluate_chunked_varray_impl(TypeSequence<ParamTags...> /*param_tags*/,
+                                         std::index_sequence<I...> /*indices*/,
+                                         ChunkFn &&chunk_fn,
+                                         const IndexMaskSegment mask,
+                                         Params &&...params)
 {
   const int64_t mask_size = mask.size();
-  const int64_t tmp_buffer_size = std::min(mask_size, ChunkSize);
+  const int64_t tmp_buffer_size = std::min(mask_size, MaxChunkSize);
 
   /* Local buffers that are used to temporarily store values for processing. */
-  std::tuple<TypedBuffer<typename ParamTags::base_type, ChunkSize>...> temporary_buffers;
+  std::tuple<TypedBuffer<typename ParamTags::base_type, MaxChunkSize>...> temporary_buffers;
+  std::tuple<typename TempSoaStorage<ParamTags::use_soa,
+                                     typename ParamTags::base_type,
+                                     MaxChunkSize>::type...>
+      soa_buffers;
 
   /* Information about every parameter. */
   std::tuple<MaterializeArgInfo<ParamTags>...> args_info;
@@ -214,15 +218,20 @@ inline void execute_materialized(TypeSequence<ParamTags...> /*param_tags*/,
         using T = typename ParamTag::base_type;
         [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
         if constexpr (ParamTag::category == ParamCategory::Input) {
-          const auto &varray_impl = *std::get<I>(params);
+          const auto &varray_impl = *params;
           const CommonVArrayInfo common_info = varray_impl.common_info();
           if (common_info.type == CommonVArrayInfo::Type::Single) {
             /* If an input #VArray is a single value, we have to fill the buffer with that value
              * only once. The same unchanged buffer can then be reused in every chunk. */
             const T &in_single = *static_cast<const T *>(common_info.data);
-            T *tmp_buffer = std::get<I>(temporary_buffers).ptr();
-            uninitialized_fill_n(tmp_buffer, tmp_buffer_size, in_single);
             arg_info.mode = MaterializeArgMode::Single;
+            if constexpr (ParamTag::use_soa) {
+              std::get<I>(soa_buffers).fill(in_single, tmp_buffer_size);
+            }
+            else {
+              T *tmp_buffer = std::get<I>(temporary_buffers).ptr();
+              uninitialized_fill_n(tmp_buffer, tmp_buffer_size, in_single);
+            }
           }
           else if (common_info.type == CommonVArrayInfo::Type::Span) {
             /* Remember the span so that it doesn't have to be retrieved in every iteration. */
@@ -239,123 +248,160 @@ inline void execute_materialized(TypeSequence<ParamTags...> /*param_tags*/,
   const int64_t segment_offset = mask.offset();
 
   /* Outer loop over all chunks. */
-  for (int64_t chunk_start = 0; chunk_start < mask_size; chunk_start += ChunkSize) {
-    const int64_t chunk_end = std::min<int64_t>(chunk_start + ChunkSize, mask_size);
+  for (int64_t chunk_start = 0; chunk_start < mask_size; chunk_start += MaxChunkSize) {
+    const int64_t chunk_end = std::min<int64_t>(chunk_start + MaxChunkSize, mask_size);
     const int64_t chunk_size = chunk_end - chunk_start;
     const IndexMaskSegment sliced_mask = mask.slice(chunk_start, chunk_size);
     const int64_t mask_start = sliced_mask[0];
     const bool sliced_mask_is_range = unique_sorted_indices::non_empty_is_range(
         sliced_mask.base_span());
 
-    /* Move mutable data into temporary array. */
-    if (!sliced_mask_is_range) {
-      (
-          [&] {
-            /* Use `typedef` instead of `using` to work around a compiler bug. */
-            using ParamTag = ParamTags;
-            using T = typename ParamTag::base_type;
-            if constexpr (ParamTag::category == ParamCategory::Mutable) {
-              T *tmp_buffer = std::get<I>(temporary_buffers).ptr();
-              T *param_buffer = std::get<I>(params);
-              for (int64_t i = 0; i < chunk_size; i++) {
-                new (tmp_buffer + i) T(std::move(param_buffer[sliced_mask[i]]));
-              }
-            }
-          }(),
-          ...);
-    }
-
     const IndexMask *current_segment_mask = nullptr;
 
-    execute_materialized_hot_loop(
-        TypeSequence<ParamTags...>(),
-        element_fn,
-        chunk_size,
-        /* Prepare every parameter for this chunk. */
-        [&] {
-          using ParamTag = ParamTags;
-          using T = typename ParamTag::base_type;
-          [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
-          T *tmp_buffer = std::get<I>(temporary_buffers);
-          if constexpr (ParamTag::category == ParamCategory::Input) {
-            if (arg_info.mode == MaterializeArgMode::Single) {
-              /* The single value has been filled into a buffer already reused for every chunk. */
-              return const_cast<const T *>(tmp_buffer);
-            }
-            if (sliced_mask_is_range && arg_info.internal_span_data != nullptr) {
-              /* In this case we can just use an existing span instead of "compressing" it into
-               * a new temporary buffer. */
-              arg_info.mode = MaterializeArgMode::Span;
-              return arg_info.internal_span_data + mask_start;
-            }
-            const auto &varray_impl = *std::get<I>(params);
-            if (current_segment_mask == nullptr) {
-              current_segment_mask = &index_mask_from_segment.update(
-                  {segment_offset, sliced_mask.base_span()});
-            }
-            /* As a fallback, do a virtual function call to retrieve all elements in the current
-             * chunk. The elements are stored in a temporary buffer reused for every chunk. */
-            varray_impl.materialize_compressed(*current_segment_mask, tmp_buffer, true);
-            /* Remember that this parameter has been materialized, so that the values are
-             * destructed properly when the chunk is done. */
-            arg_info.mode = MaterializeArgMode::Materialized;
-            return const_cast<const T *>(tmp_buffer);
-          }
-          else if constexpr (ELEM(ParamTag::category,
-                                  ParamCategory::Output,
-                                  ParamCategory::Mutable)) {
-            /* For outputs, just pass a pointer. This is important so that `__restrict` works. */
-            if (sliced_mask_is_range) {
-              /* Can write into the caller-provided buffer directly. */
-              T *param_buffer = std::get<I>(params);
-              return param_buffer + mask_start;
-            }
-            /* Use the temporary buffer. The values will have to be copied out of that
-             * buffer into the caller-provided buffer afterwards. */
-            return tmp_buffer;
-          }
-        }()...);
-
-    /* Relocate outputs from temporary buffers to buffers provided by caller. */
-    if (!sliced_mask_is_range) {
-      (
-          [&] {
-            /* Use `typedef` instead of `using` to work around a compiler bug. */
-            using ParamTag = ParamTags;
-            using T = typename ParamTag::base_type;
-            if constexpr (ParamTag::category == ParamCategory::Output) {
-              T *tmp_buffer = std::get<I>(temporary_buffers).ptr();
-              T *param_buffer = std::get<I>(params);
-              for (int64_t i = 0; i < chunk_size; i++) {
-                /* Use placement-new since the buffer is assumed to be uninitialized. */
-                new (param_buffer + sliced_mask[i]) T(std::move(tmp_buffer[i]));
-                std::destroy_at(tmp_buffer + i);
-              }
-            }
-            else if constexpr (ParamTag::category == ParamCategory::Mutable) {
-              T *tmp_buffer = std::get<I>(temporary_buffers).ptr();
-              T *param_buffer = std::get<I>(params);
-              for (int64_t i = 0; i < chunk_size; i++) {
-                /* Move back to the buffer since this is assumed to be initialized already. */
-                param_buffer[sliced_mask[i]] = std::move(tmp_buffer[i]);
-                std::destroy_at(tmp_buffer + i);
-              }
-            }
-          }(),
-          ...);
-    }
+    chunk_fn(chunk_size,
+             /* Prepare every parameter for this chunk. */
+             [&]() -> decltype(auto) {
+               using ParamTag = ParamTags;
+               using T = typename ParamTag::base_type;
+               [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
+               T *tmp_buffer = std::get<I>(temporary_buffers);
+               auto &soa_buffer = std::get<I>(soa_buffers);
+               if constexpr (ParamTag::category == ParamCategory::Input) {
+                 if (arg_info.mode == MaterializeArgMode::Single) {
+                   /* The single value has been filled into a buffer already reused for every
+                    * chunk. */
+                   if constexpr (ParamTag::use_soa) {
+                     return soa_buffer;
+                   }
+                   else {
+                     return const_cast<const T *>(tmp_buffer);
+                   }
+                 }
+                 if (sliced_mask_is_range && arg_info.internal_span_data != nullptr) {
+                   /* In this case we can just use an existing span instead of "compressing" it
+                    * into a new temporary buffer. */
+                   arg_info.mode = MaterializeArgMode::Span;
+                   const T *data_chunk_start = arg_info.internal_span_data + mask_start;
+                   if constexpr (ParamTag::use_soa) {
+                     soa_buffer.set_multiple(data_chunk_start, chunk_size);
+                     return soa_buffer;
+                   }
+                   else {
+                     return data_chunk_start;
+                   }
+                 }
+                 const auto &varray_impl = *params;
+                 if (current_segment_mask == nullptr) {
+                   current_segment_mask = &index_mask_from_segment.update(
+                       {segment_offset, sliced_mask.base_span()});
+                 }
+                 /* As a fallback, do a virtual function call to retrieve all elements in the
+                  * current chunk. The elements are stored in a temporary buffer reused for every
+                  * chunk. */
+                 varray_impl.materialize_compressed(*current_segment_mask, tmp_buffer, true);
+                 /* Remember that this parameter has been materialized, so that the values are
+                  * destructed properly when the chunk is done. */
+                 arg_info.mode = MaterializeArgMode::Materialized;
+                 if constexpr (ParamTag::use_soa) {
+                   soa_buffer.set_multiple(tmp_buffer, chunk_size);
+                   return soa_buffer;
+                 }
+                 else {
+                   return const_cast<const T *>(tmp_buffer);
+                 }
+               }
+               else if constexpr (ParamTag::category == ParamCategory::Mutable) {
+                 T *param_buffer = params;
+                 if constexpr (ParamTag::use_soa) {
+                   if (sliced_mask_is_range) {
+                     soa_buffer.set_multiple(param_buffer + mask_start, chunk_size);
+                   }
+                   else {
+                     for (int64_t i = 0; i < chunk_size; i++) {
+                       soa_buffer.set(i, param_buffer[sliced_mask[i]]);
+                     }
+                   }
+                   return soa_buffer;
+                 }
+                 else {
+                   if (sliced_mask_is_range) {
+                     return param_buffer + mask_start;
+                   }
+                   for (int64_t i = 0; i < chunk_size; i++) {
+                     new (tmp_buffer + i) T(std::move(param_buffer[sliced_mask[i]]));
+                   }
+                   return tmp_buffer;
+                 }
+               }
+               else if constexpr (ParamTag::category == ParamCategory::Output) {
+                 if constexpr (ParamTag::use_soa) {
+                   return soa_buffer;
+                 }
+                 else {
+                   if (sliced_mask_is_range) {
+                     /* Can write into the caller-provided buffer directly. */
+                     T *param_buffer = params;
+                     return param_buffer + mask_start;
+                   }
+                   /* Use the temporary buffer. The values will have to be copied out of that
+                    * buffer into the caller-provided buffer afterwards. */
+                   return tmp_buffer;
+                 }
+               }
+             }()...);
 
     (
-        /* Destruct values that have been materialized before. */
         [&] {
-          /* Use `typedef` instead of `using` to work around a compiler bug. */
           using ParamTag = ParamTags;
           using T = typename ParamTag::base_type;
           [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
+          T *tmp_buffer = std::get<I>(temporary_buffers).ptr();
+          auto &soa_buffer = std::get<I>(soa_buffers);
           if constexpr (ParamTag::category == ParamCategory::Input) {
             if (arg_info.mode == MaterializeArgMode::Materialized) {
-              T *tmp_buffer = std::get<I>(temporary_buffers).ptr();
               destruct_n(tmp_buffer, chunk_size);
+            }
+          }
+          else if constexpr (ParamTag::category == ParamCategory::Mutable) {
+            T *param_buffer = params;
+            if constexpr (ParamTag::use_soa) {
+              if (sliced_mask_is_range) {
+                soa_buffer.get_multiple(param_buffer + mask_start, chunk_size);
+              }
+              else {
+                for (int64_t i = 0; i < chunk_size; i++) {
+                  param_buffer[sliced_mask[i]] = soa_buffer[i];
+                }
+              }
+            }
+            else {
+              if (!sliced_mask_is_range) {
+                for (int64_t i = 0; i < chunk_size; i++) {
+                  param_buffer[sliced_mask[i]] = std::move(tmp_buffer[i]);
+                  std::destroy_at(tmp_buffer + i);
+                }
+              }
+            }
+          }
+          else if constexpr (ParamTag::category == ParamCategory::Output) {
+            T *param_buffer = params;
+            if constexpr (ParamTag::use_soa) {
+              if (sliced_mask_is_range) {
+                soa_buffer.get_multiple(param_buffer + mask_start, chunk_size);
+              }
+              else {
+                for (int64_t i = 0; i < chunk_size; i++) {
+                  param_buffer[sliced_mask[i]] = soa_buffer[i];
+                }
+              }
+            }
+            else {
+              if (!sliced_mask_is_range) {
+                for (int64_t i = 0; i < chunk_size; i++) {
+                  new (param_buffer + sliced_mask[i]) T(std::move(tmp_buffer[i]));
+                  std::destroy_at(tmp_buffer + i);
+                }
+              }
             }
           }
         }(),
@@ -365,30 +411,19 @@ inline void execute_materialized(TypeSequence<ParamTags...> /*param_tags*/,
   (
       /* Destruct buffers for single value inputs. */
       [&] {
-        /* Use `typedef` instead of `using` to work around a compiler bug. */
         using ParamTag = ParamTags;
         using T = typename ParamTag::base_type;
         [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
         if constexpr (ParamTag::category == ParamCategory::Input) {
-          if (arg_info.mode == MaterializeArgMode::Single) {
-            T *tmp_buffer = std::get<I>(temporary_buffers).ptr();
-            destruct_n(tmp_buffer, tmp_buffer_size);
+          if constexpr (!ParamTag::use_soa) {
+            if (arg_info.mode == MaterializeArgMode::Single) {
+              T *tmp_buffer = std::get<I>(temporary_buffers).ptr();
+              destruct_n(tmp_buffer, tmp_buffer_size);
+            }
           }
         }
       }(),
       ...);
-}
-
-template<typename Arg> inline decltype(auto) execute_array_fetch(Arg &&arg, const int64_t i)
-{
-  using A = std::decay_t<Arg>;
-  if constexpr (std::is_same_v<A, Span<bool>>) {
-    /* Casting bools to chars for loading allows GCC to auto-vectorize. */
-    return bool(reinterpret_cast<const char *>(arg.data())[i]);
-  }
-  else {
-    return std::forward<Arg>(arg)[i];
-  }
 }
 
 /**
@@ -400,7 +435,7 @@ template<typename MaskT, typename... Args, typename ElementFn>
 /* Perform additional optimizations on this loop because it is a very hot loop. For example, the
  * math node in geometry nodes is processed here. */
 #if (defined(__GNUC__) && !defined(__clang__))
-[[gnu::optimize("-funroll-loops")]] [[gnu::optimize("O3")]]
+[[gnu::optimize("-funroll-loops")]]
 #endif
 inline void execute_array(const ElementFn &element_fn,
                           MaskT mask,
@@ -413,54 +448,91 @@ inline void execute_array(const ElementFn &element_fn,
     const int64_t start = mask.start();
     const int64_t end = mask.one_after_last();
     for (int64_t i = start; i < end; i++) {
-      element_fn(execute_array_fetch(args, i)...);
+      element_fn(array_fetch(args, i)...);
     }
   }
   else {
     for (const int64_t i : mask) {
-      element_fn(execute_array_fetch(args, i)...);
+      element_fn(array_fetch(args, i)...);
     }
   }
 }
 
+/**
+ * This unifies various different types of arguments passed to #evaluate_element_wise_varray such
+ * that #evaluate_chunked_varray_impl only has to deal with simpler types: VArrayImpl, GVArrayImpl
+ * and raw pointers.
+ */
+template<typename ParamTag, typename T> inline auto to_eval_chunked_arg(T &&v)
+{
+  using DecayT = std::decay_t<T>;
+  using Base = typename ParamTag::base_type;
+  if constexpr (ParamTag::category == ParamCategory::Input) {
+    /* Any kind of virtual array is a valid input. */
+    if constexpr (is_VArray_v<DecayT> || is_VMutableArray_v<DecayT> ||
+                  is_same_any_v<DecayT, GVArray, GVMutableArray>)
+    {
+      assert_value_type<Base>(v);
+      if constexpr (is_same_any_v<DecayT, GVArray, GVMutableArray>) {
+        return static_cast<const GVArrayImpl *>(v.get_implementation());
+      }
+      else {
+        return static_cast<const VArrayImpl<Base> *>(v.get_implementation());
+      }
+    }
+    else {
+      BLI_assert_unreachable_static_t(T);
+    }
+  }
+  else if constexpr (ELEM(ParamTag::category, ParamCategory::Mutable, ParamCategory::Output)) {
+    /* Outputs need to be span-like. */
+    if constexpr (requires {
+                    { v.size() } -> std::integral;
+                    { v.data() } -> std::convertible_to<void *>;
+                  })
+    {
+      assert_value_type<Base>(v);
+      return static_cast<Base *>(v.data());
+    }
+    else {
+      BLI_assert_unreachable_static_t(T);
+    }
+  }
+}
+
+/**
+ * Evaluates the given function for each element using one of multiple possible strategies. The
+ * strategy is chosen based on the #ExecPreset. In order of performance:
+
+ * If supported and enabled, it attempts to run a fully devirtualized optimized code path. For
+ * example, for simple float addition, there are optimized code paths for adding two varying
+ * floats, or a float and a single value.
+ *
+ * If the inputs don't match any fully devirtualized code path, a generic code path is used.
+ * That can be either the materialized/chunked evaluation where the input data is extracted from
+ * the virtual arrays in chunks, which reduces virtual method call overhead significantly and the
+ * inner loop can still be optimized well by the compiler.
+ *
+ * Alternatively, a very basic fallback loop is used that does virtual method calls for each input
+ * for each index. This is slower but produces the least amount of code. It's mainly used for
+ testing
+ * currently.
+ */
 template<typename ElementFn,
          ExecPresetC ExecPreset,
          typename... ParamTags,
          size_t... I,
          typename... Params>
-inline void execute_element_fn_with_params(ElementFn &&element_fn,
-                                           const ExecPreset &exec_preset,
-                                           const IndexMask &mask,
-                                           TypeSequence<ParamTags...> /*param_tags*/,
-                                           std::index_sequence<I...> /*indices*/,
-                                           Params &&...params)
+inline void evaluate_element_fn_with_params(ElementFn &&element_fn,
+                                            const ExecPreset &exec_preset,
+                                            const IndexMask &mask,
+                                            TypeSequence<ParamTags...> /*param_tags*/,
+                                            std::index_sequence<I...> /*indices*/,
+                                            Params &&...params)
 {
-  const auto loaded_params = std::make_tuple([&]() {
-    using ParamTag = ParamTags;
-    using T = typename ParamTag::base_type;
-    using Param = std::decay_t<Params>;
-    auto &param = params;
-    constexpr ParamCategory category = ParamTag::category;
+  const auto loaded_params = std::make_tuple(to_eval_chunked_arg<ParamTags>(params)...);
 
-    if constexpr (category == ParamCategory::Input) {
-      static_assert(is_VArray_v<Param> || is_VMutableArray_v<Param> ||
-                    is_same_any_v<Param, GVArray, GVMutableArray>);
-      assert_value_type<T>(param);
-      return param.get_implementation();
-    }
-    else if constexpr (category == ParamCategory::Output) {
-      assert_value_type<T>(param);
-      return static_cast<T *>(param.data());
-    }
-    else if constexpr (category == ParamCategory::Mutable) {
-      assert_value_type<T>(param);
-      return static_cast<T *>(param.data());
-    }
-    else {
-      BLI_assert_unreachable_static_t(ParamTag);
-    }
-  }()...);
-
+  /* Attempt the fully devirtualized code path. */
   bool executed_devirtualized = false;
   if constexpr (ExecPreset::use_devirtualization) {
     /* Get segments before devirtualization to avoid generating this code multiple times. */
@@ -496,12 +568,20 @@ inline void execute_element_fn_with_params(ElementFn &&element_fn,
     /* The materialized method is most common because it avoids most virtual function overhead but
      * still instantiates the function only once. */
     if constexpr (ExecPreset::fallback_mode == multi_eval::FallbackMode::Materialized) {
+      constexpr int64_t MAX_CHUNK_SIZE = 64;
       mask.foreach_segment([&](const IndexMaskSegment segment) {
-        execute_materialized<64>(TypeSequence<ParamTags...>(),
-                                 std::index_sequence<I...>(),
-                                 element_fn,
-                                 segment,
-                                 loaded_params);
+        evaluate_chunked_varray_impl<MAX_CHUNK_SIZE>(
+            TypeSequence<ParamTags...>(),
+            std::index_sequence<I...>(),
+            [&]<typename... Args>(const int64_t size, Args &&...chunk_args) {
+              evaluate_element_wise<get_materialize_compiler_attributes<ExecPreset>()>(
+                  element_fn,
+                  TypeSequence<ParamTags...>(),
+                  size,
+                  std::forward<Args>(chunk_args)...);
+            },
+            segment,
+            std::get<I>(loaded_params)...);
       });
     }
     else {
@@ -536,131 +616,72 @@ inline void execute_element_fn_with_params(ElementFn &&element_fn,
 
 }  // namespace detail
 
+/**
+ * Evaluate the given function for each index in the mask. It automatically handles efficiently
+ * retrieving the data from multiple virtual arrays without a lot of virtual method call overhead.
+ */
 template<typename ElementFn, ExecPresetC ExecPreset, typename... ParamTags, typename... Params>
-inline void execute(ElementFn &&element_fn,
-                    const ExecPreset &exec_preset,
-                    const IndexMask &mask,
-                    TypeSequence<ParamTags...> param_tags,
-                    Params &&...params)
+inline void evaluate_element_wise_varray(ElementFn &&element_fn,
+                                         const ExecPreset &exec_preset,
+                                         const IndexMask &mask,
+                                         TypeSequence<ParamTags...> param_tags,
+                                         Params &&...params)
 {
-  detail::execute_element_fn_with_params(std::forward<ElementFn>(element_fn),
-                                         exec_preset,
-                                         mask,
-                                         param_tags,
-                                         std::index_sequence_for<ParamTags...>(),
-                                         std::forward<Params>(params)...);
+  detail::evaluate_element_fn_with_params(std::forward<ElementFn>(element_fn),
+                                          exec_preset,
+                                          mask,
+                                          param_tags,
+                                          std::index_sequence_for<ParamTags...>(),
+                                          std::forward<Params>(params)...);
 }
 
-template<typename ElementFn, ExecPresetC ExecPreset, typename Out, typename... In>
-inline void execute_multi_in_1out_uninitialized(const IndexMask &mask,
-                                                const ExecPreset &exec_preset,
-                                                const VArray<In> &...in_params,
-                                                MutableSpan<Out> out_param,
-                                                ElementFn &&element_fn)
+/** Same as above, but often more convenient with the string template argument. */
+template<FixedParamString ParamStr, typename ElementFn, ExecPresetC ExecPreset, typename... Params>
+inline void evaluate_element_wise_varray(ElementFn &&element_fn,
+                                         const ExecPreset &exec_preset,
+                                         const IndexMask &mask,
+                                         Params &&...params)
 {
-  constexpr auto param_tags =
-      TypeSequence<ParamTag<ParamCategory::Input, In>..., ParamTag<ParamCategory::Output, Out>>();
-  execute([&](const In &...in, Out &out) { new (&out) Out(element_fn(in...)); },
-          exec_preset,
-          mask,
-          param_tags,
-          in_params...,
-          out_param);
+  using ParamTagsSeq = decltype(detail::param_tags_from_str_and_args<ParamStr, Params...>());
+  [&]<typename... ParamTags>(TypeSequence<ParamTags...> param_tags) {
+    evaluate_element_wise_varray(std::forward<ElementFn>(element_fn),
+                                 exec_preset,
+                                 mask,
+                                 param_tags,
+                                 std::forward<Params>(params)...);
+  }(ParamTagsSeq());
 }
 
-template<typename In1,
-         typename Out1,
-         typename ElementFn,
-         ExecPresetC ExecPreset = exec_presets::Materialized>
-inline void execute_1in_1out_uninitialized(
-    const IndexMask &mask,
-    const VArray<In1> &in1,
-    MutableSpan<Out1> out1,
-    ElementFn &&element_fn,
-    const ExecPreset &exec_preset = exec_presets::Materialized())
+/**
+ * Utility to process all the indices in the mask in chunks. It takes an arbitrary number of
+ * heterogeneous virtual arrays as input and calls the given function multiple times for each
+ * chunk.
+ */
+template<int64_t MaxChunkSize, typename ChunkFn, typename... ParamTags, typename... Params>
+inline void evaluate_chunked_varray(ChunkFn &&chunk_fn,
+                                    const IndexMask &mask,
+                                    TypeSequence<ParamTags...> param_tags,
+                                    Params &&...params)
 {
-  execute_multi_in_1out_uninitialized<ElementFn, ExecPreset, Out1, In1>(
-      mask, exec_preset, in1, out1, std::forward<ElementFn>(element_fn));
+  mask.foreach_segment([&](const IndexMaskSegment segment) {
+    detail::evaluate_chunked_varray_impl<MaxChunkSize>(
+        param_tags,
+        std::index_sequence_for<ParamTags...>(),
+        chunk_fn,
+        segment,
+        detail::to_eval_chunked_arg<ParamTags>(params)...);
+  });
 }
 
-template<typename In1,
-         typename In2,
-         typename Out1,
-         typename ElementFn,
-         ExecPresetC ExecPreset = exec_presets::Materialized>
-inline void execute_2in_1out_uninitialized(
-    const IndexMask &mask,
-    const VArray<In1> &in1,
-    const VArray<In2> &in2,
-    MutableSpan<Out1> out1,
-    ElementFn &&element_fn,
-    const ExecPreset &exec_preset = exec_presets::Materialized())
+/** Same as above but often more convenient with the template parameter string. */
+template<FixedParamString ParamStr, int64_t MaxChunkSize, typename ChunkFn, typename... Params>
+inline void evaluate_chunked_varray(ChunkFn &&chunk_fn, const IndexMask &mask, Params &&...params)
 {
-  execute_multi_in_1out_uninitialized<ElementFn, ExecPreset, Out1, In1, In2>(
-      mask, exec_preset, in1, in2, out1, std::forward<ElementFn>(element_fn));
-}
-
-template<typename In1,
-         typename In2,
-         typename In3,
-         typename Out1,
-         typename ElementFn,
-         ExecPresetC ExecPreset = exec_presets::Materialized>
-inline void execute_3in_1out_uninitialized(
-    const IndexMask &mask,
-    const VArray<In1> &in1,
-    const VArray<In2> &in2,
-    const VArray<In3> &in3,
-    MutableSpan<Out1> out1,
-    ElementFn &&element_fn,
-    const ExecPreset &exec_preset = exec_presets::Materialized())
-{
-  execute_multi_in_1out_uninitialized<ElementFn, ExecPreset, Out1, In1, In2, In3>(
-      mask, exec_preset, in1, in2, in3, out1, std::forward<ElementFn>(element_fn));
-}
-
-template<typename In1,
-         typename In2,
-         typename In3,
-         typename In4,
-         typename Out1,
-         typename ElementFn,
-         ExecPresetC ExecPreset = exec_presets::Materialized>
-inline void execute_4in_1out_uninitialized(
-    const IndexMask &mask,
-    const VArray<In1> &in1,
-    const VArray<In2> &in2,
-    const VArray<In3> &in3,
-    const VArray<In4> &in4,
-    MutableSpan<Out1> out1,
-    ElementFn &&element_fn,
-    const ExecPreset &exec_preset = exec_presets::Materialized())
-{
-  execute_multi_in_1out_uninitialized<ElementFn, ExecPreset, Out1, In1, In2, In3, In4>(
-      mask, exec_preset, in1, in2, in3, in4, out1, std::forward<ElementFn>(element_fn));
-}
-
-template<typename In1,
-         typename In2,
-         typename In3,
-         typename In4,
-         typename In5,
-         typename Out1,
-         typename ElementFn,
-         ExecPresetC ExecPreset = exec_presets::Materialized>
-inline void execute_5in_1out_uninitialized(
-    const IndexMask &mask,
-    const VArray<In1> &in1,
-    const VArray<In2> &in2,
-    const VArray<In3> &in3,
-    const VArray<In4> &in4,
-    const VArray<In5> &in5,
-    MutableSpan<Out1> out1,
-    ElementFn &&element_fn,
-    const ExecPreset &exec_preset = exec_presets::Materialized())
-{
-  execute_multi_in_1out_uninitialized<ElementFn, ExecPreset, Out1, In1, In2, In3, In4, In5>(
-      mask, exec_preset, in1, in2, in3, in4, in5, out1, std::forward<ElementFn>(element_fn));
+  using ParamTagsSeq = decltype(detail::param_tags_from_str_and_args<ParamStr, Params...>());
+  [&]<typename... ParamTags>(TypeSequence<ParamTags...> param_tags) {
+    evaluate_chunked_varray<MaxChunkSize>(
+        std::forward<ChunkFn>(chunk_fn), mask, param_tags, std::forward<Params>(params)...);
+  }(ParamTagsSeq());
 }
 
 }  // namespace blender::multi_eval

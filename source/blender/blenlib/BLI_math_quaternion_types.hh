@@ -15,6 +15,7 @@
 #include "BLI_math_basis_types.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_structure_of_array.hh"
 
 namespace blender::math {
 
@@ -333,4 +334,17 @@ using DualQuaternion = DualQuaternionBase<float>;
 
 /** \} */
 
+/* For compatibility with BLI_structure_of_array.hh tooling. */
+template<size_t I, typename T>
+constexpr const T &fetch_soa_component(const QuaternionBase<T> &quat)
+{
+  return quat[I];
+}
+
 }  // namespace blender::math
+
+namespace blender {
+
+template<typename T> constexpr size_t soa_component_num<math::QuaternionBase<T>> = 4;
+
+}  // namespace blender

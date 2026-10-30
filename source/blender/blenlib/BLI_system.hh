@@ -16,6 +16,7 @@ namespace blender {
 
 int BLI_cpu_support_sse2();
 int BLI_cpu_support_sse42();
+int BLI_cpu_support_avx2();
 /**
  * Write a backtrace into a file for systems which support it.
  */

@@ -18,6 +18,9 @@ namespace blender {
 
 namespace fn::multi_function::build {
 
+using multi_eval::InputParamTag;
+using multi_eval::MutableParamTag;
+using multi_eval::OutputParamTag;
 using multi_eval::ParamCategory;
 using multi_eval::ParamTag;
 
@@ -37,7 +40,7 @@ inline void execute_element_fn_as_multi_function(const ElementFn &element_fn,
                                                  TypeSequence<ParamTags...> /*param_tags*/,
                                                  std::index_sequence<I...> /*indices*/)
 {
-  multi_eval::execute(
+  multi_eval::evaluate_element_wise_varray(
       element_fn, exec_preset, mask, TypeSequence<ParamTags...>(), [&]() -> decltype(auto) {
         /* Use `typedef` instead of `using` to work around a compiler bug. */
         using ParamTag = ParamTags;
@@ -121,8 +124,7 @@ inline auto build_multi_function_with_n_inputs_one_output(const char *name,
                                                           const ExecPreset exec_preset,
                                                           TypeSequence<In...> /*in_types*/)
 {
-  constexpr auto param_tags =
-      TypeSequence<ParamTag<ParamCategory::Input, In>..., ParamTag<ParamCategory::Output, Out>>();
+  constexpr auto param_tags = TypeSequence<InputParamTag<In>..., OutputParamTag<Out>>();
   auto call_fn = build_multi_function_call_from_element_fn(
       [element_fn = std::forward<ElementFn>(element_fn)](const In &...in, Out &out) {
         new (&out) Out(element_fn(in...));
@@ -138,9 +140,8 @@ inline auto build_multi_function_with_n_inputs_two_outputs(const char *name,
                                                            const ExecPreset exec_preset,
                                                            TypeSequence<In...> /*in_types*/)
 {
-  constexpr auto param_tags = TypeSequence<ParamTag<ParamCategory::Input, In>...,
-                                           ParamTag<ParamCategory::Output, Out1>,
-                                           ParamTag<ParamCategory::Output, Out2>>();
+  constexpr auto param_tags =
+      TypeSequence<InputParamTag<In>..., OutputParamTag<Out1>, OutputParamTag<Out2>>();
   auto call_fn = build_multi_function_call_from_element_fn(
       std::forward<ElementFn>(element_fn), exec_preset, param_tags);
   return CustomMF(name, call_fn, param_tags);
@@ -276,7 +277,7 @@ inline auto SM(const char *name,
                ElementFn &&element_fn,
                const ExecPreset exec_preset = exec_presets::AllSpanOrSingle())
 {
-  constexpr auto param_tags = TypeSequence<ParamTag<ParamCategory::Mutable, Mut1>>();
+  constexpr auto param_tags = TypeSequence<MutableParamTag<Mut1>>();
   auto call_fn = detail::build_multi_function_call_from_element_fn(
       std::forward<ElementFn>(element_fn), exec_preset, param_tags);
   return detail::CustomMF(name, call_fn, param_tags);
@@ -376,10 +377,10 @@ inline auto SI1_SO3(const char *name,
                     ElementFn &&element_fn,
                     const ExecPreset exec_preset = exec_presets::Materialized())
 {
-  constexpr auto param_tags = TypeSequence<ParamTag<ParamCategory::Input, In1>,
-                                           ParamTag<ParamCategory::Output, Out1>,
-                                           ParamTag<ParamCategory::Output, Out2>,
-                                           ParamTag<ParamCategory::Output, Out3>>();
+  constexpr auto param_tags = TypeSequence<InputParamTag<In1>,
+                                           OutputParamTag<Out1>,
+                                           OutputParamTag<Out2>,
+                                           OutputParamTag<Out3>>();
   auto call_fn = detail::build_multi_function_call_from_element_fn(
       std::forward<ElementFn>(element_fn), exec_preset, param_tags);
   return detail::CustomMF(name, call_fn, param_tags);
@@ -397,11 +398,11 @@ inline auto SI1_SO4(const char *name,
                     ElementFn &&element_fn,
                     const ExecPreset exec_preset = exec_presets::Materialized())
 {
-  constexpr auto param_tags = TypeSequence<ParamTag<ParamCategory::Input, In1>,
-                                           ParamTag<ParamCategory::Output, Out1>,
-                                           ParamTag<ParamCategory::Output, Out2>,
-                                           ParamTag<ParamCategory::Output, Out3>,
-                                           ParamTag<ParamCategory::Output, Out4>>();
+  constexpr auto param_tags = TypeSequence<InputParamTag<In1>,
+                                           OutputParamTag<Out1>,
+                                           OutputParamTag<Out2>,
+                                           OutputParamTag<Out3>,
+                                           OutputParamTag<Out4>>();
   auto call_fn = detail::build_multi_function_call_from_element_fn(
       std::forward<ElementFn>(element_fn), exec_preset, param_tags);
   return detail::CustomMF(name, call_fn, param_tags);

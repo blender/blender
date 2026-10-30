@@ -37,7 +37,7 @@
 #include "BLI_unroll.hh"
 
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.hh"
+#include "BLI_structure_of_array.hh"
 #include "BLI_utility_mixins.hh"
 
 namespace blender {
@@ -1036,5 +1036,28 @@ extern template float2x2 operator*(const float2x2 &a, const float2x2 &b);
 extern template double2x2 operator*(const double2x2 &a, const double2x2 &b);
 extern template double3x3 operator*(const double3x3 &a, const double3x3 &b);
 extern template double4x4 operator*(const double4x4 &a, const double4x4 &b);
+
+/* For compatibility with BLI_structure_of_array.hh tooling. */
+template<typename T, int NumCol, int NumRow, int Alignment>
+constexpr size_t soa_component_num<MatBase<T, NumCol, NumRow, Alignment>> = NumCol * NumRow;
+template<size_t I, typename T, int NumCol, int NumRow, int Alignment>
+constexpr const T &fetch_soa_component(const MatBase<T, NumCol, NumRow, Alignment> &mat)
+{
+  return mat.base_ptr()[I];
+}
+
+template<typename T, int NumCol, int NumRow, int Alignment>
+struct StructFromSoaComponents<MatBase<T, NumCol, NumRow, Alignment>> {
+  template<typename... Args> static MatBase<T, NumCol, NumRow, Alignment> from(Args &&...args)
+  {
+    static_assert(sizeof...(Args) == NumCol * NumRow);
+    MatBase<T, NumCol, NumRow, Alignment> result;
+    T *base = result.base_ptr();
+    [&]<size_t... I>(std::index_sequence<I...> /*indices*/) {
+      ((base[I] = args), ...);
+    }(std::index_sequence_for<Args...>());
+    return result;
+  }
+};
 
 }  // namespace blender

@@ -16,6 +16,7 @@
 #include "BLI_hash.hh"
 #include "BLI_math_vector_swizzle.hh"
 #include "BLI_math_vector_unroll.hh"
+#include "BLI_structure_of_array.hh"
 #include "BLI_unique_hash.hh"
 #include "BLI_utildefines.hh"
 
@@ -759,6 +760,14 @@ template<typename T, int Size> constexpr bool value_is_zero_memory(const VecBase
     }
   }
   return true;
+}
+
+/* For compatibility with BLI_structure_of_array.hh tooling. */
+template<typename T, int Size> constexpr size_t soa_component_num<VecBase<T, Size>> = Size;
+template<size_t I, typename T, int Size>
+constexpr const T &fetch_soa_component(const VecBase<T, Size> &vec)
+{
+  return vec[I];
 }
 
 namespace math {

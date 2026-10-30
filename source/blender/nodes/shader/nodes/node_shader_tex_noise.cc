@@ -12,6 +12,7 @@
 #include "BKE_texture.h"
 
 #include "BLI_noise.hh"
+#include "BLI_noise_varray.hh"
 
 #include "NOD_multi_function.hh"
 
@@ -284,161 +285,77 @@ class NoiseFunction : public mf::MultiFunction {
     const bool compute_factor = !r_factor.is_empty();
     const bool compute_color = !r_color.is_empty();
 
-    switch (dimensions_) {
-      case 1: {
-        const VArray<float> &w = params.readonly_single_input<float>(0, "W");
-        if (compute_color) {
-          mask.foreach_index([&](const int64_t i) {
-            const float position = w[i] * scale[i];
-            const float3 c = noise::perlin_float3_fractal_distorted(
-                position,
-                math::clamp(detail[i], 0.0f, 15.0f),
-                math::max(roughness[i], 0.0f),
-                lacunarity[i],
-                offset[i],
-                gain[i],
-                distortion[i],
-                type_,
-                normalize_);
-            r_color[i] = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
+    IndexMaskMemory memory;
+    /* Split the mask so that all elements in the same mask can use the same code path during noise
+     * evaluation. */
+    const Vector<IndexMask> masks = noise::perlin_split_mask(memory, mask, detail, distortion);
+
+    for (const IndexMask &split_mask : masks) {
+      const noise::CommonPerlinVArrayParams perlin_params{type_,
+                                                          normalize_,
+                                                          split_mask,
+                                                          scale,
+                                                          detail,
+                                                          roughness,
+                                                          lacunarity,
+                                                          offset,
+                                                          gain,
+                                                          distortion};
+
+      switch (dimensions_) {
+        case 1: {
+          const VArray<float> &w = params.readonly_single_input<float>(0, "W");
+          if (compute_color) {
+            noise::perlin_color_fractal_distorted_varray_1d(perlin_params, w, r_color);
             if (compute_factor) {
-              r_factor[i] = c[0];
+              split_mask.foreach_index([&](const int64_t i) { r_factor[i] = r_color[i][0]; });
             }
-          });
+          }
+          else if (compute_factor) {
+            noise::perlin_float_fractal_distorted_varray_1d(perlin_params, w, r_factor);
+          }
+          break;
         }
-        else if (compute_factor) {
-          mask.foreach_index([&](const int64_t i) {
-            const float position = w[i] * scale[i];
-            r_factor[i] = noise::perlin_fractal_distorted(position,
-                                                          math::clamp(detail[i], 0.0f, 15.0f),
-                                                          math::max(roughness[i], 0.0f),
-                                                          lacunarity[i],
-                                                          offset[i],
-                                                          gain[i],
-                                                          distortion[i],
-                                                          type_,
-                                                          normalize_);
-          });
-        }
-        break;
-      }
-      case 2: {
-        const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
-        if (compute_color) {
-          mask.foreach_index([&](const int64_t i) {
-            const float2 position = float2(vector[i] * scale[i]);
-            const float3 c = noise::perlin_float3_fractal_distorted(
-                position,
-                math::clamp(detail[i], 0.0f, 15.0f),
-                math::max(roughness[i], 0.0f),
-                lacunarity[i],
-                offset[i],
-                gain[i],
-                distortion[i],
-                type_,
-                normalize_);
-            r_color[i] = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
+        case 2: {
+          const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
+          if (compute_color) {
+            noise::perlin_color_fractal_distorted_varray_2d(perlin_params, vector, r_color);
             if (compute_factor) {
-              r_factor[i] = c[0];
+              split_mask.foreach_index([&](const int64_t i) { r_factor[i] = r_color[i][0]; });
             }
-          });
+          }
+          else if (compute_factor) {
+            noise::perlin_float_fractal_distorted_varray_2d(perlin_params, vector, r_factor);
+          }
+          break;
         }
-        else if (compute_factor) {
-          mask.foreach_index([&](const int64_t i) {
-            const float2 position = float2(vector[i] * scale[i]);
-            r_factor[i] = noise::perlin_fractal_distorted(position,
-                                                          math::clamp(detail[i], 0.0f, 15.0f),
-                                                          math::max(roughness[i], 0.0f),
-                                                          lacunarity[i],
-                                                          offset[i],
-                                                          gain[i],
-                                                          distortion[i],
-                                                          type_,
-                                                          normalize_);
-          });
-        }
-        break;
-      }
-      case 3: {
-        const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
-        if (compute_color) {
-          mask.foreach_index([&](const int64_t i) {
-            const float3 position = vector[i] * scale[i];
-            const float3 c = noise::perlin_float3_fractal_distorted(
-                position,
-                math::clamp(detail[i], 0.0f, 15.0f),
-                math::max(roughness[i], 0.0f),
-                lacunarity[i],
-                offset[i],
-                gain[i],
-                distortion[i],
-                type_,
-                normalize_);
-            r_color[i] = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
+        case 3: {
+          const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
+          if (compute_color) {
+            noise::perlin_color_fractal_distorted_varray_3d(perlin_params, vector, r_color);
             if (compute_factor) {
-              r_factor[i] = c[0];
+              split_mask.foreach_index([&](const int64_t i) { r_factor[i] = r_color[i][0]; });
             }
-          });
+          }
+          else if (compute_factor) {
+            noise::perlin_float_fractal_distorted_varray_3d(perlin_params, vector, r_factor);
+          }
+          break;
         }
-        else if (compute_factor) {
-          mask.foreach_index([&](const int64_t i) {
-            const float3 position = vector[i] * scale[i];
-            r_factor[i] = noise::perlin_fractal_distorted(position,
-                                                          math::clamp(detail[i], 0.0f, 15.0f),
-                                                          math::max(roughness[i], 0.0f),
-                                                          lacunarity[i],
-                                                          offset[i],
-                                                          gain[i],
-                                                          distortion[i],
-                                                          type_,
-                                                          normalize_);
-          });
-        }
-        break;
-      }
-      case 4: {
-        const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
-        const VArray<float> &w = params.readonly_single_input<float>(1, "W");
-        if (compute_color) {
-          mask.foreach_index([&](const int64_t i) {
-            const float3 position_vector = vector[i] * scale[i];
-            const float position_w = w[i] * scale[i];
-            const float4 position{
-                position_vector[0], position_vector[1], position_vector[2], position_w};
-            const float3 c = noise::perlin_float3_fractal_distorted(
-                position,
-                math::clamp(detail[i], 0.0f, 15.0f),
-                math::max(roughness[i], 0.0f),
-                lacunarity[i],
-                offset[i],
-                gain[i],
-                distortion[i],
-                type_,
-                normalize_);
-            r_color[i] = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
+        case 4: {
+          const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
+          const VArray<float> &w = params.readonly_single_input<float>(1, "W");
+          if (compute_color) {
+            noise::perlin_color_fractal_distorted_varray_4d(perlin_params, vector, w, r_color);
             if (compute_factor) {
-              r_factor[i] = c[0];
+              split_mask.foreach_index([&](const int64_t i) { r_factor[i] = r_color[i][0]; });
             }
-          });
+          }
+          else if (compute_factor) {
+            noise::perlin_float_fractal_distorted_varray_4d(perlin_params, vector, w, r_factor);
+          }
+          break;
         }
-        else if (compute_factor) {
-          mask.foreach_index([&](const int64_t i) {
-            const float3 position_vector = vector[i] * scale[i];
-            const float position_w = w[i] * scale[i];
-            const float4 position{
-                position_vector[0], position_vector[1], position_vector[2], position_w};
-            r_factor[i] = noise::perlin_fractal_distorted(position,
-                                                          math::clamp(detail[i], 0.0f, 15.0f),
-                                                          math::max(roughness[i], 0.0f),
-                                                          lacunarity[i],
-                                                          offset[i],
-                                                          gain[i],
-                                                          distortion[i],
-                                                          type_,
-                                                          normalize_);
-          });
-        }
-        break;
       }
     }
   }
@@ -447,7 +364,7 @@ class NoiseFunction : public mf::MultiFunction {
   {
     ExecutionHints hints;
     hints.allocates_array = false;
-    hints.min_grain_size = 100;
+    hints.min_grain_size = 256;
     return hints;
   }
 
