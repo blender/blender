@@ -7249,7 +7249,7 @@ static void merge_uvs(BevelState &state)
       }
 
       /* For each new corner, determine which bucket its face representative's source corner
-       * at origin_v belongs to.  Use a simple scan since bucket count is tiny (valence). */
+       * at origin_v belongs to.  Use a simple scan since bucket count is tiny (<= valence). */
       for (const UVVertBucket &bucket : *buckets) {
         /* Collect new corners in this bucket: their face rep has a source corner at origin_v
          * that is in this bucket. */
