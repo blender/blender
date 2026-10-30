@@ -122,6 +122,15 @@ int RNA_property_override_flag(PropertyRNA *prop)
   return rna_ensure_property(prop)->flag_override;
 }
 
+static RNAPropOverrideApply property_override_apply_get(PropertyRNA *prop)
+{
+  /* IDProps always use default callback. */
+  if (prop->magic != RNA_MAGIC || prop->override_apply == nullptr) {
+    return rna_property_override_apply_default;
+  }
+  return prop->override_apply;
+}
+
 bool RNA_property_overridable_get(const PointerRNA *ptr, PropertyRNA *prop)
 {
   if (prop->magic == RNA_MAGIC) {
@@ -580,29 +589,12 @@ static bool rna_property_override_operation_apply(Main *bmain,
     return true;
   }
 
-  RNAPropOverrideApply override_apply = nullptr;
-  /* Special case for IDProps, we use default callback then. */
-  if (prop_dst->magic != RNA_MAGIC) {
-    override_apply = rna_property_override_apply_default;
-    if (prop_src->magic == RNA_MAGIC && !ELEM(prop_src->override_apply, nullptr, override_apply)) {
-      override_apply = nullptr;
-    }
+  RNAPropOverrideApply override_apply = property_override_apply_get(prop_dst);
+  if (property_override_apply_get(prop_src) != override_apply) {
+    override_apply = nullptr;
   }
-  else if (prop_src->magic != RNA_MAGIC) {
-    override_apply = rna_property_override_apply_default;
-    if (!ELEM(prop_dst->override_apply, nullptr, override_apply)) {
-      override_apply = nullptr;
-    }
-  }
-  else if (prop_dst->override_apply == prop_src->override_apply) {
-    override_apply = prop_dst->override_apply;
-    if (override_apply == nullptr) {
-      override_apply = rna_property_override_apply_default;
-    }
-  }
-
-  if (prop_storage && prop_storage->magic == RNA_MAGIC &&
-      !ELEM(prop_storage->override_apply, nullptr, override_apply))
+  if (override_apply && prop_storage &&
+      property_override_apply_get(prop_storage) != override_apply)
   {
     override_apply = nullptr;
   }
