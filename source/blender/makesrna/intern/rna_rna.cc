@@ -2967,8 +2967,57 @@ bool rna_property_override_apply_default(Main *bmain,
     case PROP_ENUM: {
       const int value = RNA_property_enum_get(ptr_src, prop_src);
 
+      /* Basic validation of assigned value when source and destination properties are different.
+       *
+       * NOTE: This will not handle properly dynamically generated enum items requiring a bContext
+       * pointer (validation will most likely fail, and assignment will not happen). This is
+       * currently considered an acceptable trade-off.
+       */
+      auto validate_enum_value = [](PointerRNA *ptr, PropertyRNA *prop, const int value) -> bool {
+        const EnumPropertyItem *enum_items_first = nullptr;
+        int tot_items = 0;
+        bool free_items = false;
+        RNA_property_enum_items_ex(
+            nullptr, ptr, prop, false, &enum_items_first, &tot_items, &free_items);
+        Span<EnumPropertyItem> enum_items(enum_items_first, tot_items);
+
+        bool result = false;
+        if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
+          int enum_bitmask = 0;
+          for (const EnumPropertyItem &enum_item : enum_items) {
+            if (enum_item.identifier && enum_item.identifier[0]) {
+              enum_bitmask |= enum_item.value;
+            }
+          }
+          if ((value & (~enum_bitmask)) == 0) {
+            result = true;
+          }
+        }
+        else {
+          for (const EnumPropertyItem &enum_item : enum_items) {
+            if (enum_item.identifier && enum_item.identifier[0]) {
+              if (enum_item.value == value) {
+                result = true;
+                break;
+              }
+            }
+          }
+        }
+
+        if (free_items) {
+          MEM_delete(enum_items_first);
+        }
+        return result;
+      };
+
       switch (override_op) {
         case LIBOVERRIDE_OP_REPLACE:
+          if (prop_dst != prop_src && !validate_enum_value(ptr_dst, prop_dst, value)) {
+            CLOG_ERROR(
+                &LOG_COMPARE_OVERRIDE,
+                "The source property enum value is incompatible with the destination property");
+            return false;
+          }
           RNA_property_enum_set(ptr_dst, prop_dst, value);
           break;
         /* TODO: support add/sub, for bitflags? */
