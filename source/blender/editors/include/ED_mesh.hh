@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "BKE_attribute.hh"
 
 #include "BLI_compiler_attrs.hh"
@@ -536,12 +539,12 @@ bke::AttributeWriter<bool> ED_mesh_uv_map_pin_layer_ensure(Mesh *mesh, int uv_in
 VArray<bool> ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, int uv_index);
 
 void ED_mesh_uv_ensure(Mesh *mesh, const char *name);
-int ED_mesh_uv_add(
+std::optional<std::string> ED_mesh_uv_add(
     Mesh *mesh, const char *name, bool active_set, bool do_init, ReportList *reports);
 
 void ED_mesh_uv_loop_reset(bContext *C, Mesh *mesh);
 bool ED_mesh_color_ensure(Mesh *mesh, const char *name);
-std::string ED_mesh_color_add(
+std::optional<std::string> ED_mesh_color_add(
     Mesh *mesh, const char *name, bool active_set, bool do_init, ReportList *reports);
 
 void ED_mesh_report_mirror(ReportList &reports, int totmirr, int totfail);

@@ -1891,20 +1891,21 @@ static PointerRNA rna_Mesh_vertex_color_new(Mesh *mesh,
                                             const char *name,
                                             const bool do_init)
 {
-  std::string new_name = ED_mesh_color_add(mesh, name, false, do_init, reports);
-  if (new_name.empty()) {
+  const std::optional<std::string> new_name = ED_mesh_color_add(
+      mesh, name, false, do_init, reports);
+  if (!new_name) {
     return {};
   }
 
   if (!mesh->active_color_attribute) {
-    mesh->active_color_attribute = BLI_strdup(new_name.c_str());
+    mesh->active_color_attribute = BLI_strdup(new_name->c_str());
   }
   if (!mesh->default_color_attribute) {
-    mesh->default_color_attribute = BLI_strdup(new_name.c_str());
+    mesh->default_color_attribute = BLI_strdup(new_name->c_str());
   }
 
   PointerRNA attr_ptr = rna_AttributeGroup_lookup_string(RNA_id_pointer_create(&mesh->id),
-                                                         new_name,
+                                                         *new_name,
                                                          ATTR_DOMAIN_MASK_CORNER,
                                                          CD_MASK_PROP_BYTE_COLOR);
   attr_ptr.type = RNA_MeshLoopColorLayer;
@@ -1922,18 +1923,17 @@ static PointerRNA rna_Mesh_uv_layers_new(Mesh *mesh,
                                          const char *name,
                                          const bool do_init)
 {
-  int index = ED_mesh_uv_add(mesh, name, false, do_init, reports);
-  if (index == -1) {
+  const std::optional<std::string> new_name = ED_mesh_uv_add(mesh, name, false, do_init, reports);
+  if (!new_name) {
     return {};
   }
-  const StringRef used_name = mesh->uv_map_names()[index];
   PointerRNA attr_ptr = rna_AttributeGroup_lookup_string(
-      RNA_id_pointer_create(&mesh->id), used_name, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_FLOAT2);
+      RNA_id_pointer_create(&mesh->id), *new_name, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_FLOAT2);
   if (mesh->active_uv_map_name().is_empty()) {
-    mesh->uv_maps_active_set(used_name);
+    mesh->uv_maps_active_set(*new_name);
   }
   if (mesh->default_uv_map_name().is_empty()) {
-    mesh->uv_maps_default_set(used_name);
+    mesh->uv_maps_default_set(*new_name);
   }
   attr_ptr.type = RNA_MeshUVLoopLayer;
   return attr_ptr;
