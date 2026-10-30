@@ -939,6 +939,12 @@ static int py_imbuf_buffer_traverse(Py_ImBufBuffer *self, visitproc visit, void 
 
 static int py_imbuf_buffer_clear(Py_ImBufBuffer *self)
 {
+  /* Release the buffer lock, dealloc can't once the reference is cleared. */
+  if (self->is_entered && self->py_ibuf) {
+    self->is_entered = false;
+    self->py_ibuf->buffer_users--;
+    BLI_assert(self->py_ibuf->buffer_users >= 0);
+  }
   Py_CLEAR(self->py_ibuf);
   return 0;
 }
