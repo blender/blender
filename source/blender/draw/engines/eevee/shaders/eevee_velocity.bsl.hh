@@ -171,11 +171,26 @@ struct CameraVelocity {
       return velocity::unpack(vector_local);
     }
     if (depth == 1.0f) {
+      float3 V = background_world_direction(view, uv);
+      if (!is_panoramic(camera_curr.type)) {
+        /* NOTE: We use CameraData matrices instead of drw_view().winmat to avoid adding the TAA
+         * jitter to the velocity. */
+        float2 prev_ndc =
+            project_point(camera_prev.winmat, transform_direction(camera_prev.viewmat, V)).xy;
+        float2 curr_ndc =
+            project_point(camera_curr.winmat, transform_direction(camera_curr.viewmat, V)).xy;
+        float2 next_ndc =
+            project_point(camera_next.winmat, transform_direction(camera_next.viewmat, V)).xy;
+        /* NOTE: We output both vectors in the same direction so we can reuse the same vector
+         * with RGRG swizzle in viewport. */
+        float4 motion = float4(prev_ndc - curr_ndc, curr_ndc - next_ndc);
+        /* Convert NDC velocity to UV velocity. */
+        return motion * 0.5f;
+      }
       float2 curr_ndc = uv * 2.0f - 1.0f;
       float4x4 face_mat = view.viewmat * camera_curr.viewinv;
       float4x4 viewmat_prev = face_mat * camera_prev.viewmat;
       float4x4 viewmat_next = face_mat * camera_next.viewmat;
-      float3 V = background_world_direction(view, uv);
       float2 prev_ndc = project_point(view.winmat, transform_direction(viewmat_prev, V)).xy;
       float2 next_ndc = project_point(view.winmat, transform_direction(viewmat_next, V)).xy;
 
