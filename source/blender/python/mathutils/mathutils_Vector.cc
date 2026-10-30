@@ -628,6 +628,10 @@ static PyObject *Vector_resized(VectorObject *self, PyObject *value)
     return nullptr;
   }
 
+  if (BaseMath_ReadCallback(self) == -1) {
+    return nullptr;
+  }
+
   vec = static_cast<float *>(PyMem_Malloc(vec_num * sizeof(float)));
 
   if (vec == nullptr) {
