@@ -1069,6 +1069,8 @@ void popup_block_close(bContext *C, wmWindow *win, Block *block);
 
 bool popup_block_name_exists(const bScreen *screen, StringRef name);
 
+bool popup_region_from_operator(const bScreen *screen, const ARegion *region);
+
 /* Blocks
  *
  * Functions for creating, drawing and freeing blocks. A Block is a
