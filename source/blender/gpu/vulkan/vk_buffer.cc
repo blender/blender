@@ -197,6 +197,7 @@ void VKBuffer::read_async(VKContext &context, void *data)
   VKDevice &device = VKBackend::get().device;
   device.wait_for_timeline(async_timeline_);
   async_timeline_ = 0;
+  invalidate_mapped_memory();
   memcpy(data, mapped_memory_, size_in_bytes_);
 }
 
@@ -209,6 +210,7 @@ void VKBuffer::read(VKContext &context, void *data) const
   context.flush_render_graph(RenderGraphFlushFlags::SUBMIT |
                              RenderGraphFlushFlags::WAIT_FOR_COMPLETION |
                              RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
+  invalidate_mapped_memory();
   memcpy(data, mapped_memory_, size_in_bytes_);
 }
 
@@ -255,7 +257,7 @@ void VKBuffer::flush_mapped_memory()
   vmaFlushAllocation(allocator, allocation_, 0, size_in_bytes_);
 }
 
-void VKBuffer::invalidate_mapped_memory()
+void VKBuffer::invalidate_mapped_memory() const
 {
   const VKDevice &device = VKBackend::get().device;
   VmaAllocator allocator = device.mem_allocator_get();
