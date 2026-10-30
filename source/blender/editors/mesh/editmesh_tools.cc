@@ -9558,8 +9558,8 @@ static wmOperatorStatus edbm_normals_tools_exec(bContext *C, wmOperator *op)
           }
           if (are_same_lnors) {
             copy_v3_v3(scene->toolsettings->normal_vector, lnors_ed_arr->lnor_editdata->nloc);
+            done_copy = true;
           }
-          done_copy = true;
         }
         break;
 
