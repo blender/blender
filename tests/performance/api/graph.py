@@ -64,7 +64,9 @@ class TestGraph:
 
                 for output in sorted(outputs, reverse=True):
                     chart_name = f"{category} ({output})"
-                    data.append(self.chart(device_name, device_cpu, chart_name, entries, chart_type, output))
+                    # Tests in one category may measure different metrics.
+                    output_entries = [entry for entry in entries if output in entry.output]
+                    data.append(self.chart(device_name, device_cpu, chart_name, output_entries, chart_type, output))
 
         self.json = json.dumps(data, indent=2)
 
