@@ -578,6 +578,15 @@ struct CurvesPointSelectionStatus {
 };
 
 /**
+ * Points in a layer scaled to zero are left out of the median & size. The panel can't move them,
+ * and scaling them would overwrite the layer-space coordinate on the zero axis.
+ */
+static bool grease_pencil_layer_is_skipped(const float4x4 &grease_pencil_layer_to_object)
+{
+  return math::determinant(float3x3(grease_pencil_layer_to_object)) == 0.0f;
+}
+
+/**
  * \param grease_pencil_layer_to_object: Grease pencil strokes are in layer space, the median &
  * bounds in object space. Null when the points are already in object space.
  */
@@ -674,8 +683,8 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
 /**
  * Return the object to layer matrix.
  *
- * A layer that scales an axis to zero has no true inverse, #invert_m4_m4_safe_ortho fills that
- * axis in from the others, so an edit still reaches the points on the axes that are left.
+ * Layers scaled to zero are skipped by callers, see #grease_pencil_layer_is_skipped.
+ * #invert_m4_m4_safe_ortho only guards against a near singular matrix that check misses.
  */
 static float4x4 object_to_grease_pencil_layer_calc(const float4x4 &grease_pencil_layer_to_object)
 {
@@ -1344,6 +1353,9 @@ static void v3d_editvertex_buts(
               const MutableDrawingInfo &info = drawings[drawing];
               const float4x4 grease_pencil_layer_to_object =
                   grease_pencil.layer(info.layer_index).to_object_space(*ob);
+              if (grease_pencil_layer_is_skipped(grease_pencil_layer_to_object)) {
+                continue;
+              }
               value = CurvesPointSelectionStatus::sum(
                   value,
                   init_curves_point_selection_status(
@@ -2106,6 +2118,10 @@ static void v3d_editvertex_buts(
         bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
         const float4x4 grease_pencil_layer_to_object =
             grease_pencil.layer(info.layer_index).to_object_space(*ob);
+        /* Must match the measurement, #tot and #coords_orig only count these points. */
+        if (grease_pencil_layer_is_skipped(grease_pencil_layer_to_object)) {
+          return;
+        }
         if (apply_to_curves_point_selection(tot,
                                             median_basis.curves,
                                             ve_median_basis.curves,
