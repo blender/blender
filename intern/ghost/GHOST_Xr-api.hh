@@ -13,7 +13,9 @@
 #include "GHOST_IXrContext.hh"
 #include "GHOST_Types.hh"
 
-/* XR-context */
+/* -------------------------------------------------------------------- */
+/** \name XR-Context
+ * \{ */
 
 /**
  * Set a custom callback to be executed whenever an error occurs. Should be set before calling
@@ -78,7 +80,12 @@ void GHOST_XrPassthroughEnabledFunc(GHOST_IXrContext *xr_context,
 void GHOST_XrDisablePassthroughFunc(GHOST_IXrContext *xr_context,
                                     GHOST_XrDisablePassthroughFn disable_passthrough_fn);
 
-/* sessions */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name XR Session
+ * \{ */
+
 /**
  * Create internal session data for \a xr_context and ask the OpenXR runtime to invoke a session.
  *
@@ -115,7 +122,12 @@ void GHOST_XrGetRuntimeName(GHOST_IXrContext *xr_context, char *r_runtime_name);
  */
 int GHOST_XrSessionNeedsUpsideDownDrawing(const GHOST_IXrContext *xr_context);
 
-/* events */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name XR Events
+ * \{ */
+
 /**
  * Invoke handling of all OpenXR events for \a xr_context. Should be called on every main-loop
  * iteration and will early-exit if \a xr_context is nullptr (so caller doesn't have to check).
@@ -124,7 +136,12 @@ int GHOST_XrSessionNeedsUpsideDownDrawing(const GHOST_IXrContext *xr_context);
  */
 GHOST_TSuccess GHOST_XrEventsHandle(GHOST_IXrContext *xr_context);
 
-/* actions */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name XR Actions
+ * \{ */
+
 /**
  * Create an OpenXR action set for input/output.
  */
@@ -224,7 +241,12 @@ void GHOST_XrGetActionCustomdataArray(GHOST_IXrContext *xr_context,
                                       const char *action_set_name,
                                       void **r_customdata_array);
 
-/* controller model */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name XR Controller Model
+ * \{ */
+
 /**
  * Load the OpenXR controller model.
  */
@@ -247,3 +269,5 @@ int GHOST_XrUpdateControllerModelComponents(GHOST_IXrContext *xr_context,
 int GHOST_XrGetControllerModelData(GHOST_IXrContext *xr_context,
                                    const char *subaction_path,
                                    GHOST_XrControllerModelData *r_data);
+
+/** \} */
