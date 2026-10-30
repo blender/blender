@@ -88,10 +88,12 @@ void VKWorkarounds::log() const
              "Activated workarounds\n"
              " - [%c] Not 16/32 bit aligned image formats\n"
              " - [%c] Static viewport & scissor state\n"
-             " - [%c] No texture pool",
+             " - [%c] No texture pool\n"
+             " - [%c] Missing sRGB clear conversions",
              not_aligned_pixel_formats ? 'X' : ' ',
              static_viewport_scissor ? 'X' : ' ',
-             GCaps.texture_pool_workaround ? 'X' : ' ');
+             GCaps.texture_pool_workaround ? 'X' : ' ',
+             missing_srgb_clear_conversion ? 'X' : ' ');
 }
 
 void VKDevice::reinit()

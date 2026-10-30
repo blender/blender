@@ -657,6 +657,17 @@ void VKBackend::detect_workarounds(VKDevice &device)
   }
 #endif
 
+  /* Legacy AMD drivers (#142019) don't perform the sRGB conversion when storing a clear value into
+   * an sRGB attachment, so a linear clear color is stored into the sRGB attachment and the
+   * background then renders too bright. Only official AMD drivers up to version 31.0.24002.92
+   * (Vulkan 2.0.294) are affected. */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
+    const uint32_t driver_version = device.physical_device_properties_get().driverVersion;
+    if (driver_version <= VK_MAKE_API_VERSION(2, 0, 294, 0)) {
+      workarounds.missing_srgb_clear_conversion = true;
+    }
+  }
+
 #ifdef __APPLE__
   extensions.extended_dynamic_state = false;
 #endif
