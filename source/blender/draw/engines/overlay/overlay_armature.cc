@@ -2093,7 +2093,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
     }
 
     Bone *bone = pchan->bone_get(arm);
-    const bool draw_dofs = !is_pose_select && ctx->show_relations &&
+    const bool draw_dofs = !is_pose_select && ctx->do_relations &&
                            (ctx->draw_mode == ARM_DRAW_MODE_POSE) &&
                            (pchan->flag & POSE_SELECTED) &&
                            ((ob->base_flag & BASE_FROM_DUPLI) == 0) &&
