@@ -2223,7 +2223,10 @@ static bool uv_mesh_hide_no_sync(const Scene *scene, Object *ob, BMEditMesh *em,
 
   if (changed) {
     BM_select_history_validate(bm);
+  }
 
+  /* The UV selection may change without changing the mesh selection, tag for either. */
+  if (changed || changed_uv) {
     DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
     WM_main_add_notifier(NC_GEOM | ND_SELECT, ob->data);
   }
