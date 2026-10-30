@@ -2813,6 +2813,9 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &p
         case SEL_OP_SUB: {
           BM_select_history_remove(bm, efa);
           BM_face_select_set(bm, efa, false);
+          if (bm->uv_select_sync_valid) {
+            BM_face_uvselect_set_pick(bm, efa, false, uv_pick_params);
+          }
           break;
         }
         case SEL_OP_XOR: {
