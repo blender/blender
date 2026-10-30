@@ -200,7 +200,7 @@ void WM_xr_session_runtime_name_get(const wmXrData *xr, char *r_runtime_name)
     return;
   }
 
-  GHOST_XrGetRuntimeName(xr->runtime->ghost_context, r_runtime_name);
+  GHOST_XrSessionGetRuntimeName(xr->runtime->ghost_context, r_runtime_name);
 }
 
 static void wm_xr_session_base_pose_calc(const Scene *scene,

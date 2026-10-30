@@ -81,7 +81,7 @@ int GHOST_XrSessionIsRunning(const GHOST_IXrContext *xr_context)
   return 0; /* Only reached if exception is thrown. */
 }
 
-void GHOST_XrGetRuntimeName(GHOST_IXrContext *xr_context, char *r_runtime_name)
+void GHOST_XrSessionGetRuntimeName(GHOST_IXrContext *xr_context, char *r_runtime_name)
 {
   GHOST_XrSession *xr_session = xr_context->getSession();
   GHOST_XR_CAPI_CALL_RET(xr_session->getRuntimeName(r_runtime_name), xr_context);
