@@ -67,6 +67,11 @@ set(DEFSRC
   rna_nla.cc
   rna_node_socket.cc
   rna_node_tree_interface.cc
+  rna_nodes_compositor.cc
+  rna_nodes_function.cc
+  rna_nodes_geometry.cc
+  rna_nodes_shader.cc
+  rna_nodes_texture.cc
   rna_nodetree.cc
   rna_object.cc
   rna_object_force.cc
@@ -447,6 +452,7 @@ set(SRC
   rna_defaults.hh
   rna_internal.hh
   rna_internal_types.hh
+  rna_nodetree_common.hh
   rna_screen_utils.hh
 )
 
