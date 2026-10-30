@@ -175,6 +175,7 @@ class CropOperation : public NodeOperation {
     Domain domain = input_image.domain();
     domain.data_size = size;
     domain.display_size = size;
+    domain.data_offset = int2(0);
 
     Result &output_image = this->get_result("Image");
     output_image.allocate_texture(domain);
@@ -197,6 +198,7 @@ class CropOperation : public NodeOperation {
     Domain domain = input.domain();
     domain.data_size = size;
     domain.display_size = size;
+    domain.data_offset = int2(0);
 
     Result &output = this->get_result("Image");
     output.allocate_texture(domain);
