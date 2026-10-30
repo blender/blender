@@ -45,7 +45,7 @@ void set_fcurve_sample(FCurve *fcu, int64_t sample_index, const float frame, con
  * \param ob_arm: The armature object
  * \param visitor: The function to invoke on each bone
  */
-void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor);
+void visit_bones(const Object &ob_arm, FunctionRef<void(const Bone &)> visitor);
 
 /**
  * Return in 'r_names' the names of the given armature object's bones.
@@ -55,7 +55,7 @@ void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor);
  *                    armature export joint indices
  * \param r_names: The returned list of bone names
  */
-void get_armature_bone_names(const Object *ob_arm, bool use_deform, Vector<StringRef> &r_names);
+void get_armature_bone_names(const Object &ob_arm, bool use_deform, Vector<StringRef> &r_names);
 
 /**
  * Return the USD joint path corresponding to the given bone. For example, for the bone
@@ -66,7 +66,7 @@ void get_armature_bone_names(const Object *ob_arm, bool use_deform, Vector<Strin
  * \param allow_unicode: Whether to allow unicode bone names to be used
  * \return The path to the joint.
  */
-pxr::TfToken build_usd_joint_path(const Bone *bone, bool allow_unicode);
+pxr::TfToken build_usd_joint_path(const Bone &bone, bool allow_unicode);
 
 /**
  * Sets the USD joint paths as an attribute on the given USD animation,
@@ -142,7 +142,7 @@ bool can_export_skinned_mesh(const Object &obj, const Depsgraph *depsgraph);
  * \param deform_map: A pointer to the deform_map to fill with deform bones and
  *                    their parents found on the object
  */
-void init_deform_bones_map(const Object *obj, Map<StringRef, const Bone *> *deform_map);
+void init_deform_bones_map(const Object &obj, Map<StringRef, const Bone *> *deform_map);
 
 }  // namespace io::usd
 }  // namespace blender

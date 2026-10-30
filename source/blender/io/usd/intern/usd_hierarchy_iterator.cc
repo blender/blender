@@ -120,7 +120,7 @@ USDExporterContext USDHierarchyIterator::create_usd_export_context(const Hierarc
 
   if (params_.merge_parent_xform && context->is_object_data_context && !context->is_parent) {
     bool can_merge_with_xform = true;
-    if (params_.export_shapekeys && is_mesh_with_shape_keys(context->object)) {
+    if (params_.export_shapekeys && is_mesh_with_shape_keys(*context->object)) {
       can_merge_with_xform = false;
     }
 
@@ -440,7 +440,7 @@ bool USDHierarchyIterator::include_child_writers(const HierarchyContext *context
 
 void USDHierarchyIterator::add_usd_skel_export_mapping(const Object *obj, const pxr::SdfPath &path)
 {
-  if (params_.export_shapekeys && is_mesh_with_shape_keys(obj)) {
+  if (params_.export_shapekeys && is_mesh_with_shape_keys(*obj)) {
     shape_key_mesh_export_map_.add(obj, path);
   }
 

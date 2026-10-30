@@ -19,7 +19,6 @@
 #include "BKE_object.hh"
 #include "DNA_object_types.h"
 
-#include "BLI_assert.hh"
 #include "BLI_listbase_iterator.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_set.hh"
@@ -173,27 +172,24 @@ void ensure_blend_shape_skeleton(pxr::UsdStageRefPtr stage, pxr::UsdPrim &mesh_p
   pxr::UsdGeomPrimvarsAPI(mesh_prim).RemovePrimvar(TempBlendShapeWeightsPrimvarName);
 }
 
-const Key *get_mesh_shape_key(const Object *obj)
+const Key *get_mesh_shape_key(const Object &obj)
 {
-  BLI_assert(obj);
-
-  if (!obj->data || obj->type != OB_MESH) {
+  if (obj.type != OB_MESH || !obj.data) {
     return nullptr;
   }
 
-  const Mesh *mesh = id_cast<const Mesh *>(obj->data);
-
+  const Mesh *mesh = id_cast<const Mesh *>(obj.data);
   return mesh->key;
 }
 
-bool is_mesh_with_shape_keys(const Object *obj)
+bool is_mesh_with_shape_keys(const Object &obj)
 {
   const Key *key = get_mesh_shape_key(obj);
   return key && key->totkey > 0 && key->type == KEY_RELATIVE;
 }
 
 void create_blend_shapes(pxr::UsdStageRefPtr stage,
-                         const Object *obj,
+                         const Object &obj,
                          const pxr::UsdPrim &mesh_prim,
                          bool allow_unicode)
 {
@@ -282,14 +278,12 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
   }
 }
 
-pxr::VtFloatArray get_blendshape_weights(const Key *key)
+pxr::VtFloatArray get_blendshape_weights(const Key &key)
 {
-  BLI_assert(key);
-
   pxr::VtFloatArray weights;
 
-  for (KeyBlock &kb : key->block) {
-    if (&kb == key->block.first_) {
+  for (KeyBlock &kb : key.block) {
+    if (&kb == key.block.first()) {
       /* Skip the first key, which is the basis. */
       continue;
     }
@@ -433,24 +427,24 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
   }
 }
 
-Mesh *get_shape_key_basis_mesh(Object *obj)
+Mesh *get_shape_key_basis_mesh(const Object &obj)
 {
-  if (!obj || !obj->data || obj->type != OB_MESH) {
+  if (obj.type != OB_MESH || !obj.data) {
     return nullptr;
   }
 
   /* If we're exporting blend shapes, we export the unmodified mesh with
    * the verts in the basis key positions. */
-  const Mesh *mesh = BKE_object_get_pre_modified_mesh(obj);
+  const Mesh *mesh = BKE_object_get_pre_modified_mesh(&obj);
 
-  if (!mesh || !mesh->key || !mesh->key->block.first_) {
+  if (!mesh || !mesh->key || mesh->key->block.is_empty()) {
     return nullptr;
   }
 
-  const KeyBlock *basis = reinterpret_cast<KeyBlock *>(mesh->key->block.first_);
+  const KeyBlock *basis = mesh->key->block.first();
 
   if (mesh->verts_num != basis->totelem) {
-    CLOG_WARN(&LOG, "Vertex and shape key element count mismatch for mesh %s", obj->id.name + 2);
+    CLOG_WARN(&LOG, "Vertex and shape key element count mismatch for mesh %s", obj.id.name + 2);
     return nullptr;
   }
 

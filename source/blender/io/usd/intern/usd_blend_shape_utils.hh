@@ -25,7 +25,7 @@ extern pxr::TfToken TempBlendShapeWeightsPrimvarName;
  * \return The shape key on the given object's mesh data, or
  *         null if the object isn't a mesh.
  */
-const Key *get_mesh_shape_key(const Object *obj);
+const Key *get_mesh_shape_key(const Object &obj);
 
 /**
  * Query whether the given object is a mesh with relative
@@ -34,7 +34,7 @@ const Key *get_mesh_shape_key(const Object *obj);
  * \param obj: The mesh object
  * \return True if the object is a mesh with shape keys, false otherwise
  */
-bool is_mesh_with_shape_keys(const Object *obj);
+bool is_mesh_with_shape_keys(const Object &obj);
 
 /**
  * Convert shape keys on the given object to USD blend shapes. The blend-shapes
@@ -47,7 +47,7 @@ bool is_mesh_with_shape_keys(const Object *obj);
  * \param allow_unicode: Whether to allow unicode encoded characters in the blend shape name
  */
 void create_blend_shapes(pxr::UsdStageRefPtr stage,
-                         const Object *obj,
+                         const Object &obj,
                          const pxr::UsdPrim &mesh_prim,
                          bool allow_unicode);
 
@@ -57,7 +57,7 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
  * \param key: The key whose values will be queried
  * \return The array of key values.
  */
-pxr::VtFloatArray get_blendshape_weights(const Key *key);
+pxr::VtFloatArray get_blendshape_weights(const Key &key);
 
 /**
  * USD implementations expect that a mesh with blend shape targets
@@ -100,7 +100,7 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
  * \return A new mesh corresponding to the shape key basis shape, or null if the object
  *         isn't a mesh or has no shape keys.
  */
-Mesh *get_shape_key_basis_mesh(Object *obj);
+Mesh *get_shape_key_basis_mesh(const Object &obj);
 
 }  // namespace io::usd
 }  // namespace blender
