@@ -565,8 +565,9 @@ option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" 
 # is the only supported installation type, so there is no option.
 if(UNIX AND (NOT APPLE OR WITH_PYTHON_MODULE))
   option(WITH_INSTALL_PORTABLE "\
-Install redistributable runtime (otherwise install into CMAKE_INSTALL_PREFIX, \
-or into PYTHON_SITE_PACKAGES for WITH_PYTHON_MODULE)"
+Install a redistributable runtime into CMAKE_INSTALL_PREFIX \
+(otherwise use a system directory layout, \
+or install into PYTHON_SITE_PACKAGES for WITH_PYTHON_MODULE)"
     ON
   )
 else()
