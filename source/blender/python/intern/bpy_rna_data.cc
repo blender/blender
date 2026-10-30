@@ -204,6 +204,10 @@ static PyObject *bpy_rna_data_context_exit(BPy_DataContext *self, PyObject * /*a
     PyErr_SetString(PyExc_RuntimeError, "Context manager not entered");
     return nullptr;
   }
+  if (self->data_rna->ptr->data == nullptr) {
+    PyErr_SetString(PyExc_RuntimeError, "Context manager already exited");
+    return nullptr;
+  }
 
   BKE_main_free(static_cast<Main *>(self->data_rna->ptr->data));
   self->data_rna->ptr->invalidate();
