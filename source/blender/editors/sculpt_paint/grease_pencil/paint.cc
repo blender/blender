@@ -153,10 +153,19 @@ static Brush *create_fill_guide_brush()
   BKE_curvemapping_init(fill_guides_brush->curve_rand_saturation);
   BKE_curvemapping_init(fill_guides_brush->curve_rand_value);
 
-  fill_guides_brush->flag |= BRUSH_LOCK_SIZE;
-  fill_guides_brush->unprojected_size = 0.01f;
+  settings->flag2 |= GP_BRUSH_USE_STROKE;
 
+  /* Dont use unified paint settings (since we want to set own color and size). */
+  fill_guides_brush->unified_paint_flags = {};
+
+  /* Dont use pressure. */
+  fill_guides_brush->flag &= ~BRUSH_ALPHA_PRESSURE;
+  fill_guides_brush->flag &= ~BRUSH_SIZE_PRESSURE;
   settings->flag &= ~GP_BRUSH_USE_PRESSURE;
+  settings->flag &= ~GP_BRUSH_USE_STRENGTH_PRESSURE;
+
+  /* Brush size relative to the view. */
+  fill_guides_brush->size = 2;
 
   settings->brush_draw_mode = GP_BRUSH_MODE_VERTEXCOLOR;
   /* TODO: Use theme setting. */
