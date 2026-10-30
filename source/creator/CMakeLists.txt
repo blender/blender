@@ -507,7 +507,9 @@ if(WITH_PYTHON)
   # Install beside their bundled dependencies, found via each target's RPATH (UNIX)
   # or the `blender.shared` side-by-side assembly (WIN32).
   # Non-portable installs (UNIX system installs) place them beside the add-on.
-  if(WITH_INSTALL_PORTABLE)
+  # A Python module has no system libraries path, so it bundles them like a portable install,
+  # matching the lookup in the add-on's `library.py`.
+  if(WITH_INSTALL_PORTABLE OR WITH_PYTHON_MODULE)
     set(GLTF_BRIDGE_INSTALL_DIR "${TARGETDIR_LIB}")
   else()
     set(GLTF_BRIDGE_INSTALL_DIR "${TARGETDIR_VER_LIBS}/scripts/addons_core/io_scene_gltf2")

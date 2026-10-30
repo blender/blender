@@ -546,7 +546,7 @@ elseif(UNIX)
     add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
 
     # NOTE: A Python module is itself a library: its wrapper libraries are bundled in the package
-    # beside the add-on, so it doesn't need a separate system libraries path.
+    # (`bpy/lib`), so it doesn't need a separate system libraries path.
     if(NOT WITH_PYTHON_MODULE)
       # The standard variable for this path is `CMAKE_INSTALL_LIBDIR` (typically `lib` or `lib64`).
       # It isn't set by default, but systems that build packages may define it.
