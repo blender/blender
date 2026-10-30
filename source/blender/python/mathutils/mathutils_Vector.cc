@@ -1345,7 +1345,7 @@ PyDoc_STRVAR(
     "   .. note:: 2D vectors raise an :exc:`AttributeError`.\n");
 static PyObject *Vector_rotation_difference(VectorObject *self, PyObject *value)
 {
-  float quat[4], vec_a[3], vec_b[3];
+  float quat[4], vec_a[3], vec_b[MAX_DIMENSIONS];
 
   if (self->vec_num < 3 || self->vec_num > 4) {
     PyErr_SetString(PyExc_ValueError,
