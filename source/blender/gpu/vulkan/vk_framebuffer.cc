@@ -168,10 +168,10 @@ void VKFrameBuffer::build_clear_attachments_color(
     clear_attachment.colorAttachment = color_slot;
     eGPUDataFormat data_format = to_texture_data_format(GPU_texture_format(attachment.tex));
     double4 clear_color = clear_colors[color_slot];
-    /* Legacy AMD drivers don't perform the sRGB conversion when clearing an sRGB attachment, so
-     * the clear color is pre-encoded into sRGB space. Non-sRGB attachments keep the linear clear
-     * color. */
-    if (srgb_ && missing_srgb_clear_conversion && is_srgb) {
+    /* Legacy AMD drivers sRGB encode the clear color even when the sRGB image is bound with a
+     * UNORM view (sRGB disabled), so the clear color is decoded to compensate. sRGB views are
+     * encoded correctly and keep the original clear color. */
+    if (srgb_ && !enabled_srgb_ && missing_srgb_clear_conversion && is_srgb) {
       clear_color.x = srgb_to_linearrgb(float(clear_color.x));
       clear_color.y = srgb_to_linearrgb(float(clear_color.y));
       clear_color.z = srgb_to_linearrgb(float(clear_color.z));
