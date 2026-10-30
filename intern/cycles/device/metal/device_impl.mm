@@ -751,8 +751,9 @@ void MetalDevice::generic_free(device_memory &mem)
   }
 
   /* Host pointer should already have been freed at this point. If not we might
-   * end up freeing shared memory and can't recover original host memory. */
-  assert(mem.host_pointer == nullptr);
+   * end up freeing shared memory and can't recover original host memory.
+   * A separate host pointer remains after host_only_resize(). */
+  assert(mem.host_pointer == nullptr || mem.host_pointer != mem.shared_pointer);
 
   std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
   MetalMem &mmem = *metal_mem_map.at(&mem);
@@ -1065,12 +1066,13 @@ void MetalDevice::image_alloc_as_buffer(device_image &mem)
 
   std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
 
-  /* Resize once */
+  /* Resize once. Only on the host, kernels may be executing. The device buffer is reallocated
+   * in MetalDeviceQueue::load_image_info(). */
   const uint image_info_id = mem.image_info_id;
   if (image_info_id >= image_info.size()) {
     /* Geometric growth to amortize reallocation cost. */
     const size_t new_size = max(size_t(image_info_id) + 128, image_info.size() * 2);
-    image_info.resize(new_size);
+    image_info.host_only_resize(new_size);
     image_info_id_map.resize(new_size);
   }
 
@@ -1210,24 +1212,14 @@ void MetalDevice::image_alloc(device_image &mem)
     mmem->mtlTexture = mtlTexture;
     metal_mem_map[&mem] = std::move(mmem);
 
-    /* Resize once */
+    /* Resize once. Only on the host, kernels may be executing. The device buffers are
+     * reallocated in MetalDeviceQueue::load_image_info(). */
     const uint image_info_id = mem.image_info_id;
     if (image_info_id >= image_info.size()) {
       /* Geometric growth to amortize reallocation cost. */
       const size_t new_size = max(size_t(image_info_id) + 128, image_info.size() * 2);
-      image_info.resize(new_size);
+      image_info.host_only_resize(new_size);
       image_info_id_map.resize(new_size);
-
-      ssize_t min_buffer_length = sizeof(void *) * image_info.size();
-      if (!image_bindings || (image_bindings.length < min_buffer_length)) {
-        if (image_bindings) {
-          metal_mem_free(image_bindings);
-        }
-        image_bindings = [mtlDevice newBufferWithLength:min_buffer_length
-                                                options:MTLResourceStorageModeShared];
-
-        metal_mem_alloc(image_bindings);
-      }
     }
 
     /* Set Mapping. */

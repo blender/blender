@@ -908,6 +908,23 @@ bool popup_block_name_exists(const bScreen *screen, const StringRef name)
   return false;
 }
 
+bool popup_region_from_operator(const bScreen *screen, const ARegion *region)
+{
+  /* Walk up parent popups, e.g. a popover opened from an operator dialog. Parents may
+   * already be closed, as with a context menu opened from a popover. */
+  while (region && BLI_findindex(&screen->regionbase, region) != -1) {
+    const Block *block = region->runtime->uiblocks.first();
+    if (!(block && block->handle)) {
+      return false;
+    }
+    if (block->handle->popup_op) {
+      return true;
+    }
+    region = block->handle->ctx_region_popup;
+  }
+  return false;
+}
+
 void popup_menu_close(const Block *block, const bool is_cancel)
 {
   popup_menu_retval_set(block, is_cancel ? RETURN_CANCEL : RETURN_OK, true);
