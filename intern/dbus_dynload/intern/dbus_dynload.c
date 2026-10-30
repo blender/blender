@@ -47,6 +47,8 @@ bool dbus_dynload_init(const bool verbose)
             lib, #symbol, paths[path_index], verbose))) \
   { \
     memset(&dbus_dynload, 0x0, sizeof(dbus_dynload)); \
+    dynamic_library_close(lib); \
+    lib = NULL; \
     return false; \
   }
 #include "dbus_dynload.h"
