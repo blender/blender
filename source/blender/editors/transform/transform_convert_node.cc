@@ -284,7 +284,7 @@ static void flushTransNodes(TransInfo *t)
     if (t->state == TRANS_CANCEL) {
       view2d_edge_pan_cancel(t->context, &customdata->edgepan_data);
     }
-    else {
+    else if (t->region) {
       /* Edge panning functions expect window coordinates, mval is relative to region. */
       const int xy[2] = {
           t->region->winrct.xmin + int(t->mval[0]),
@@ -357,7 +357,7 @@ static void flushTransNodes(TransInfo *t)
     }
 
     /* Handle intersection with noodles. */
-    if (tc->data_len == 1) {
+    if (tc->data_len == 1 && t->region) {
       space_node::node_insert_on_link_flags_set(
           *snode, *t->region, t->modifiers & MOD_NODE_ATTACH, customdata->is_new_node);
     }
