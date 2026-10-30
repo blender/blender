@@ -10,6 +10,7 @@
 
 #include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
+#include "BLI_simd.hh"
 #ifdef _WIN32
 #  include "BLI_winstuff.hh"
 #endif
@@ -403,8 +404,15 @@ static bool compile_ex(shaderc::Compiler &compiler,
   /* Removes line directive. */
   std::string sources = patch_line_directives(shader_module.combined_sources);
 
-  shader_module.compilation_result = compiler.CompileGlslToSpv(
-      sources, stage, full_name.c_str(), options);
+  /* The task scheduler enables flush-to-zero. Some platforms convert floating point literals using
+   * floating point instructions, which would then turn denormal literals into zero. That happens
+   * for example with the `1.17549435e-38` guard inside OCIO generated for the Filmic view
+   * transform. */
+  {
+    ScopedNoFlushToZero scoped_no_flush_to_zero;
+    shader_module.compilation_result = compiler.CompileGlslToSpv(
+        sources, stage, full_name.c_str(), options);
+  }
   bool compilation_succeeded = shader_module.compilation_result.GetCompilationStatus() ==
                                shaderc_compilation_status_success;
   if (compilation_succeeded) {

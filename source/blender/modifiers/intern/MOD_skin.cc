@@ -1346,12 +1346,7 @@ static void skin_choose_quad_bridge_order(BMVert *a[4], BMVert *b[4], int best_o
   }
 }
 
-/**
- * Attempt to fix a detached frame by extruding a hull face and merging it with the frame.
- *
- * \return True if the fix succeeded, false if it failed (caller should create a cap face).
- */
-static bool skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_face)
+static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_face)
 {
   BMFace *f;
   BMVert *verts[4];
@@ -1432,7 +1427,7 @@ static bool skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
                      split_face->len);
 
     vert_array_face_normal_update(vert_buf.data(), split_face->len);
-    return false;
+    return;
   }
 
   /* Get split face's verts */
@@ -1451,7 +1446,6 @@ static bool skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
   BMO_op_finish(bm, &op);
 
   vert_array_face_normal_update(frame->verts, 4);
-  return true;
 }
 
 /* If the frame has some vertices that are inside the hull (detached)
@@ -1473,43 +1467,6 @@ static void skin_hole_detach_partially_attached_frame(BMesh *bm, Frame *frame)
     BMVert **av = &frame->verts[attached[i]];
     (*av) = BM_vert_create(bm, (*av)->co, *av, BM_CREATE_NOP);
   }
-}
-
-/**
- * Check if any frame vertex was detected as interior.
- */
-static bool skin_frame_has_interior_hull_vertex(const Frame *frame)
-{
-  for (const int k : IndexRange(4)) {
-    if (frame->inside_hull[k]) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Check if any frame vertex is shared with the target face.
- *
- * When frame vertices are at the same position as (or very close to) branch node vertices,
- * the convex hull calculation (via Bullet) merges them into a single vertex.
- * Without this check, the subsequent extrusion creates degenerate zero-length edges,
- * leaving holes in the resulting mesh. See: #78848.
- */
-static bool skin_frame_has_coincident_hull_vertex(const Frame *frame, BMFace *target_face)
-{
-  BMVert *const *verts = frame->verts;
-  BMVert *const *verts_end = frame->verts + 4;
-
-  BMLoop *l_first = BM_FACE_FIRST_LOOP(target_face);
-  BMLoop *l = l_first;
-  do {
-    if (std::find(verts, verts_end, l->v) != verts_end) {
-      return true;
-    }
-    l = l->next;
-  } while (l != l_first);
-  return false;
 }
 
 static void quad_from_tris(BMEdge *e, BMFace *adj[2], BMVert *ndx[4])
@@ -1692,31 +1649,13 @@ static void skin_fix_hull_topology(BMesh *bm, SkinNode *skin_nodes, int verts_nu
       Frame *f = &sn->frames[j];
 
       if (f->detached) {
-        /* It is important to check for coincident vertices *before* detaching
-         * because detaching duplicates the frame vertices, losing their identity with
-         * hull vertices. Note: `skin_hole_target_face` uses vertex positions, not identity,
-         * so the call order doesn't matter for it - but the coincidence check requires the
-         * original vertex pointers. */
-        BMFace *target_face = skin_hole_target_face(bm, f);
-        const bool has_degenerate_coincidence =
-            (target_face &&
-             /* The frame would only create a degenerate edge (using two of the same vertex)
-              * when all its vertices are on the hull. */
-             !skin_frame_has_interior_hull_vertex(f) &&
-             skin_frame_has_coincident_hull_vertex(f, target_face));
+        BMFace *target_face;
 
         skin_hole_detach_partially_attached_frame(bm, f);
 
-        if (target_face && LIKELY(!has_degenerate_coincidence)) {
-          if (skin_fix_hole_no_good_verts(bm, f, target_face)) {
-            continue;
-          }
-        }
-        /* Fallback: no target face, coincident vertices, or fix failed.
-         * Create a quad from the four frame vertices to close the hole. */
-        BMFace *f_cap = BM_face_create_verts(bm, f->verts, 4, nullptr, BM_CREATE_NOP, true);
-        if (f_cap) {
-          BM_face_normal_update(f_cap);
+        target_face = skin_hole_target_face(bm, f);
+        if (target_face) {
+          skin_fix_hole_no_good_verts(bm, f, target_face);
         }
       }
     }
