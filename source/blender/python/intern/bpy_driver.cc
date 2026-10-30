@@ -525,9 +525,9 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
           SNPRINTF_UTF8(G.autoexec_fail, "Driver '%s'", expr);
         }
 
+        PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 0, nullptr);
         Py_DECREF(expr_code);
         expr_code = nullptr;
-        PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 0, nullptr);
         driver_orig->flag |= DRIVER_FLAG_PYTHON_BLOCKED;
       }
     }
