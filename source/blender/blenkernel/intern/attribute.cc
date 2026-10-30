@@ -37,8 +37,6 @@
 #include "BKE_pointcloud.hh"
 #include "BKE_report.hh"
 
-#include <fmt/format.h>
-
 namespace blender {
 
 using bke::AttrDomain;
@@ -373,13 +371,21 @@ std::string BKE_attribute_calc_unique_name(const AttributeOwner &owner, const St
       add_names(bm->edata);
       add_names(bm->pdata);
       add_names(bm->ldata);
-      return BLI_uniquename_cb(
-          [&](const StringRef new_name) {
+      const int name_maxncpy = CustomData_name_maxncpy_calc(name_final);
+      char name_buffer[MAX_CUSTOMDATA_LAYER_NAME];
+      name_final.copy_utf8_truncated(name_buffer, name_maxncpy);
+      BLI_assert(!name_final.is_empty());
+      BLI_uniquename_cb(
+          [&](const StringRefNull new_name) {
             return names.contains(new_name) || BM_attribute_stored_in_bmesh_builtin(new_name) ||
                    is_used_vertex_group(new_name);
           },
+          /* Unused, `name_final` is never empty. */
+          "",
           '.',
-          name_final);
+          name_buffer,
+          name_maxncpy);
+      return name_buffer;
     }
     const bke::AttributeStorage &storage = *owner.get_storage();
     return BLI_uniquename_cb(
@@ -1000,11 +1006,11 @@ bool BKE_id_attributes_color_find(const ID *id, const StringRef name)
 
 StringRef BKE_uv_map_pin_name_get(const StringRef uv_map_name, char *buffer)
 {
-  BLI_assert(strlen(UV_PINNED_NAME) == 2);
-  BLI_assert(uv_map_name.size() < MAX_CUSTOMDATA_LAYER_NAME - 4);
-  const auto result = fmt::format_to_n(
-      buffer, MAX_CUSTOMDATA_LAYER_NAME, ".{}.{}", UV_PINNED_NAME, uv_map_name);
-  return StringRef(buffer, result.size);
+  const StringRef prefix = "." UV_PINNED_NAME ".";
+  prefix.copy_unsafe(buffer);
+  uv_map_name.copy_utf8_truncated(buffer + prefix.size(),
+                                  MAX_CUSTOMDATA_LAYER_NAME - prefix.size());
+  return buffer;
 }
 
 }  // namespace blender
