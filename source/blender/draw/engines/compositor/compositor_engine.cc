@@ -18,6 +18,7 @@
 #include "BKE_compositor.hh"
 #include "BKE_compute_context_cache.hh"
 #include "BKE_node.hh"
+#include "BKE_view3d_runtime.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -33,6 +34,8 @@
 #include "COM_result.hh"
 #include "COM_scene_compositor_effects_operation.hh"
 #include "COM_utilities.hh"
+
+#include "NOD_eval_log.hh"
 
 #include "GPU_context.hh"
 #include "GPU_state.hh"
@@ -82,6 +85,15 @@ class Context : public compositor::Context {
   bool is_viewport() const override
   {
     return true;
+  }
+
+  nodes::eval_log::NodesEvalLog *nodes_evaluation_log() const override
+  {
+    /* Logging not supported during rendering. */
+    if (DRW_context_get()->is_viewport_image_render()) {
+      return nullptr;
+    }
+    return DRW_context_get()->rv3d->runtime->nodes_evaluation_log.get();
   }
 
   compositor::SideEffectOutputTypes needed_side_effect_output_types() const override
@@ -350,6 +362,10 @@ class Context : public compositor::Context {
 
   void evaluate()
   {
+    /* Reset log before evaluation. */
+    DRW_context_get()->rv3d->runtime->nodes_evaluation_log =
+        std::make_unique<nodes::eval_log::NodesEvalLog>();
+
     compositor::SceneCompositorEffectsOperation operation =
         compositor::SceneCompositorEffectsOperation(*this);
 
