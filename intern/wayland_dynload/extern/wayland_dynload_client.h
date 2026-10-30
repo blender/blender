@@ -65,7 +65,7 @@ WAYLAND_DYNLOAD_IFACE(wl_touch_interface)
 #else
 
 /* Header guard. */
-#  if !defined(__WAYLAND_DYNLOAD_CLIENT_H__) && !defined(WAYLAND_DYNLOAD_VALIDATE)
+#  if !defined(__WAYLAND_DYNLOAD_CLIENT_H__) || defined(WAYLAND_DYNLOAD_VALIDATE)
 #    define __WAYLAND_DYNLOAD_CLIENT_H__
 
 #    ifndef WAYLAND_DYNLOAD_VALIDATE
@@ -188,7 +188,7 @@ struct WaylandDynload_Client {
 #      define wl_proxy_set_tag(...) (*wayland_dynload_client.wl_proxy_set_tag)(__VA_ARGS__)
 
 #    endif /* !WAYLAND_DYNLOAD_VALIDATE */
-#  endif   /* !defined(__WAYLAND_DYNLOAD_CLIENT_H__) && !defined(WAYLAND_DYNLOAD_VALIDATE) */
+#  endif   /* !defined(__WAYLAND_DYNLOAD_CLIENT_H__) || defined(WAYLAND_DYNLOAD_VALIDATE) */
 #endif     /* !defined(WAYLAND_DYNLOAD_FN) && !defined(WAYLAND_DYNLOAD_IFACE) */
 
 #ifdef __cplusplus

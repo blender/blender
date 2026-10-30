@@ -24,7 +24,7 @@ WAYLAND_DYNLOAD_FN(wl_cursor_frame_and_duration)
 #else
 
 /* Header guard. */
-#  if !defined(__WAYLAND_DYNLOAD_CURSOR_H__) && !defined(WAYLAND_DYNLOAD_VALIDATE)
+#  if !defined(__WAYLAND_DYNLOAD_CURSOR_H__) || defined(WAYLAND_DYNLOAD_VALIDATE)
 #    define __WAYLAND_DYNLOAD_CURSOR_H__
 
 #    include <wayland-cursor.h>
@@ -70,7 +70,7 @@ struct WaylandDynload_Cursor {
 #      define wl_cursor_frame_and_duration(...) \
         (*wayland_dynload_cursor.wl_cursor_frame_and_duration)(__VA_ARGS__)
 #    endif /* !WAYLAND_DYNLOAD_VALIDATE */
-#  endif   /* !__WAYLAND_DYNLOAD_CLIENT_H__ */
+#  endif   /* !defined(__WAYLAND_DYNLOAD_CURSOR_H__) || defined(WAYLAND_DYNLOAD_VALIDATE) */
 #endif     /* !defined(WAYLAND_DYNLOAD_FN) && !defined(WAYLAND_DYNLOAD_IFACE) */
 
 #ifdef __cplusplus
