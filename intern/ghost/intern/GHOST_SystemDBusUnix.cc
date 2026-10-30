@@ -252,7 +252,7 @@ static bool setting_read(DBusConnection *connection,
   dbus_message_unref(message);
 
   if (dbus_error_is_set(&error)) {
-    CLOG_WARN(&LOG, "unable to read %s/%s: %s", name_space, key, error.message);
+    CLOG_INFO(&LOG, "unable to read %s/%s: %s", name_space, key, error.message);
     dbus_error_free(&error);
   }
   if (!reply) {
