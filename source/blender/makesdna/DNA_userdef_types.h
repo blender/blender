@@ -889,7 +889,7 @@ struct UserDef_TempWinBounds {
  * or the #USER_DEVELOPER_TOOL_TEST() macro.
  */
 struct UserDef_Experimental {
-  /** Debug options, always available. */
+  /* Debug options, always available. */
   char use_undo_legacy = 0;
   char no_override_auto_resync = 0;
   char use_cycles_debug = 0;
@@ -905,10 +905,8 @@ struct UserDef_Experimental {
   char use_paint_debug = 0;
   char use_video_decoding_debug = 0;
   char SANITIZE_AFTER_HERE = {};
-  /**
-   * The following options are automatically sanitized (set to 0)
-   * when the release cycle is not alpha.
-   */
+  /* The following options are automatically sanitized (set to 0)
+   * when the release cycle is not alpha. */
   char use_new_curves_tools = 0;
   char use_extended_asset_browser = 0;
   char use_3d_texture_paint = 0;
