@@ -1522,7 +1522,10 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
 {
   switch (type) {
     case MAKE_LINKS_OBDATA:
-      if (ob_src->type == ob_dst->type && ob_src->type != OB_EMPTY) {
+      /* Replacing data of an object in edit-mode is not supported, see #160956. */
+      if (ob_src->type == ob_dst->type && ob_src->type != OB_EMPTY &&
+          (ob_dst->mode & OB_MODE_EDIT) == 0)
+      {
         return true;
       }
       break;
