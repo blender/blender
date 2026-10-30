@@ -315,6 +315,8 @@ void VKTexture::read_sub(
     node_data.region.imageSubresource.layerCount = transfer_region.layers.size();
 
     context.render_graph().add_node(copy_image_to_buffer);
+    context.render_graph().add_node(
+        render_graph::VKSynchronizeReadbackNode::CreateInfo{staging_buffer.resource()});
   }
 
   /* Submit and wait for the transfers to be completed. */

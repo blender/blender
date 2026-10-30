@@ -383,6 +383,7 @@ set(VULKAN_SRC
   vulkan/render_graph/nodes/vk_pipeline_data.hh
   vulkan/render_graph/nodes/vk_reset_query_pool_node.hh
   vulkan/render_graph/nodes/vk_synchronization_node.hh
+  vulkan/render_graph/nodes/vk_synchronize_readback_node.hh
   vulkan/render_graph/nodes/vk_update_buffer_node.hh
   vulkan/render_graph/nodes/vk_update_mipmaps_node.hh
   vulkan/render_graph/vk_command_buffer_wrapper.hh

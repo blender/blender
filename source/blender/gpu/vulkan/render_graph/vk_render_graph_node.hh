@@ -30,6 +30,7 @@
 #include "nodes/vk_fill_buffer_node.hh"
 #include "nodes/vk_reset_query_pool_node.hh"
 #include "nodes/vk_synchronization_node.hh"
+#include "nodes/vk_synchronize_readback_node.hh"
 #include "nodes/vk_update_buffer_node.hh"
 #include "nodes/vk_update_mipmaps_node.hh"
 
@@ -147,6 +148,7 @@ struct VKRenderGraphNode {
     VKFillBufferNode::Data fill_buffer;
     VKResetQueryPoolNode::Data reset_query_pool;
     VKSynchronizationNode::Data synchronization;
+    VKSynchronizeReadbackNode::Data synchronize_readback;
     VKUpdateBufferNode::Data update_buffer;
     VKUpdateMipmapsNode::Data update_mipmaps;
     int64_t storage_index = -1;
@@ -291,6 +293,8 @@ struct VKRenderGraphNode {
         return VKResetQueryPoolNode::pipeline_stage;
       case VKNodeType::SYNCHRONIZATION:
         return VKSynchronizationNode::pipeline_stage;
+      case VKNodeType::SYNCHRONIZE_READBACK:
+        return VKSynchronizeReadbackNode::pipeline_stage;
       case VKNodeType::UPDATE_BUFFER:
         return VKUpdateBufferNode::pipeline_stage;
       case VKNodeType::UPDATE_MIPMAPS:
@@ -356,6 +360,8 @@ struct VKRenderGraphNode {
         BUILD_COMMANDS_STORAGE(VKNodeType::BLIT_IMAGE, VKBlitImageNode, blit_image)
         BUILD_COMMANDS(VKNodeType::RESET_QUERY_POOL, VKResetQueryPoolNode, reset_query_pool)
         BUILD_COMMANDS(VKNodeType::SYNCHRONIZATION, VKSynchronizationNode, synchronization)
+        BUILD_COMMANDS(
+            VKNodeType::SYNCHRONIZE_READBACK, VKSynchronizeReadbackNode, synchronize_readback)
         BUILD_COMMANDS(VKNodeType::UPDATE_MIPMAPS, VKUpdateMipmapsNode, update_mipmaps)
         BUILD_COMMANDS(VKNodeType::DISPATCH, VKDispatchNode, dispatch)
         BUILD_COMMANDS(VKNodeType::DISPATCH_INDIRECT, VKDispatchIndirectNode, dispatch_indirect)
@@ -404,6 +410,7 @@ struct VKRenderGraphNode {
       case VKNodeType::BLIT_IMAGE:
       case VKNodeType::RESET_QUERY_POOL:
       case VKNodeType::SYNCHRONIZATION:
+      case VKNodeType::SYNCHRONIZE_READBACK:
       case VKNodeType::UPDATE_MIPMAPS:
       case VKNodeType::DISPATCH:
       case VKNodeType::DISPATCH_INDIRECT:

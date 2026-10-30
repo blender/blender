@@ -200,4 +200,34 @@ static void test_storage_buffer_copy_from_vertex_buffer()
 
 GPU_TEST(storage_buffer_copy_from_vertex_buffer);
 
+static void test_storage_buffer_readback_ordering()
+{
+  StorageBuf *a = GPU_storagebuf_create(SIZE_IN_BYTES);
+  StorageBuf *b = GPU_storagebuf_create(SIZE_IN_BYTES);
+  Vector<uint32_t> result(SIZE);
+  for (uint32_t iteration = 1; iteration <= 8; iteration++) {
+    GPU_storagebuf_clear(a, iteration);
+    GPU_storagebuf_sync_to_host(a);
+    GPU_storagebuf_clear(a, iteration + 100);
+    GPU_storagebuf_clear(b, iteration + 200);
+    GPU_storagebuf_sync_to_host(b);
+    /* Read the submitted snapshot, then read the subsequent GPU write. */
+    GPU_storagebuf_read(a, result.data());
+    for (uint32_t value : result) {
+      EXPECT_EQ(iteration, value);
+    }
+    GPU_storagebuf_read(b, result.data());
+    for (uint32_t value : result) {
+      EXPECT_EQ(iteration + 200, value);
+    }
+    GPU_storagebuf_read(a, result.data());
+    for (uint32_t value : result) {
+      EXPECT_EQ(iteration + 100, value);
+    }
+  }
+  GPU_storagebuf_free(a);
+  GPU_storagebuf_free(b);
+}
+GPU_VULKAN_TEST(storage_buffer_readback_ordering);
+
 }  // namespace blender::gpu::tests

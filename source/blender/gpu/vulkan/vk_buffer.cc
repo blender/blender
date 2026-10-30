@@ -184,6 +184,7 @@ void VKBuffer::async_flush_to_host(VKContext &context)
 {
   BLI_assert(async_timeline_ == 0);
   context.rendering_end();
+  context.render_graph().add_node(render_graph::VKSynchronizeReadbackNode::CreateInfo{resource()});
   async_timeline_ = context.flush_render_graph(RenderGraphFlushFlags::SUBMIT |
                                                RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
 }
@@ -207,6 +208,7 @@ void VKBuffer::read(VKContext &context, void *data) const
   BLI_assert_msg(is_mapped(), "Cannot read a non-mapped buffer.");
   BLI_assert(async_timeline_ == 0);
   context.rendering_end();
+  context.render_graph().add_node(render_graph::VKSynchronizeReadbackNode::CreateInfo{resource()});
   context.flush_render_graph(RenderGraphFlushFlags::SUBMIT |
                              RenderGraphFlushFlags::WAIT_FOR_COMPLETION |
                              RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
