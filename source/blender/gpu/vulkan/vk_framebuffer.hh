@@ -141,7 +141,6 @@ class VKFrameBuffer : public FrameBuffer {
       render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments) const;
   void build_clear_attachments_color(
       Span<double4> clear_colors,
-      const bool multi_clear_colors,
       render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments) const;
   void clear(render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments);
 };
