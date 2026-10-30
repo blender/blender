@@ -26,6 +26,7 @@
 #include "BKE_context.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
@@ -2822,12 +2823,14 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
   bke::node_unique_name(*ntree, *node);
 
   /* fix all the animation data which may link to this */
-  BKE_animdata_fix_paths(ntree->id,
-                         "nodes",
-                         RNA_path_name_to_infix(oldname),
-                         RNA_path_name_to_infix(node->name),
-                         /*verify_paths=*/true,
-                         *G_MAIN);
+  if (Main *bmain = ntree->id.owner_bmain_for_write()) {
+    BKE_animdata_fix_paths(ntree->id,
+                           "nodes",
+                           RNA_path_name_to_infix(oldname),
+                           RNA_path_name_to_infix(node->name),
+                           /*verify_paths=*/true,
+                           *bmain);
+  }
 }
 
 static int rna_Node_color_tag_get(PointerRNA *ptr)
@@ -9921,6 +9924,7 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Name", "Unique node identifier");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_Node_name_set");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "label", PROP_STRING, PROP_NONE);

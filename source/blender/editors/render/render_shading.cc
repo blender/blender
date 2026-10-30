@@ -2967,6 +2967,7 @@ static wmOperatorStatus paste_material_exec(bContext *C, wmOperator *op)
         bmain, &ma->nodetree->id, paste_material_nodetree_ids_relink_or_clear, bmain, IDWALK_NOP);
 
     ma->nodetree->owner_id = &ma->id;
+    BKE_libblock_owner_bmain_set(ma->nodetree->id, bmain, false);
   }
   BKE_main_free(temp_bmain);
 

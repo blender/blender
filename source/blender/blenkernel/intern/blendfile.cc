@@ -380,6 +380,7 @@ static bool reuse_bmain_move_id(ReuseOldBMainData *reuse_data,
 
   bke::id::id_lib_set(*id, lib);
   BLI_addtail(new_lb, id);
+  BKE_libblock_owner_bmain_set(*id, new_bmain);
   if (handle_name_map_updates) {
     BKE_id_new_name_validate(
         *new_bmain, *new_lb, *id, nullptr, IDNewNameMode::RenameExistingNever, true);
@@ -640,7 +641,13 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
     remapper.add(discarded_id_iter, nullptr);
   }
 
+  for (ID &old_id : *old_lb) {
+    BKE_libblock_owner_bmain_set(old_id, old_bmain);
+  }
+
   FOREACH_MAIN_LISTBASE_ID_BEGIN (new_lb, reused_id_iter) {
+    BKE_libblock_owner_bmain_set(*reused_id_iter, new_bmain);
+
     /* Necessary as all `session_uid` are renewed on blendfile loading. */
     BKE_lib_libblock_session_uid_renew(reused_id_iter);
 
@@ -695,9 +702,11 @@ static void swap_wm_data_for_blendfile(ReuseOldBMainData *reuse_data, const bool
     /* Not strictly necessary, but helps for readability. */
     std::swap<wmWindowManager *>(old_wm, new_wm);
     BLI_addhead(new_wm_list, new_wm);
+    BKE_libblock_owner_bmain_set(new_wm->id, new_bmain);
     /* Do not add old WM back to `old_bmain`, so that it does not get freed when `old_bmain` is
      * freed. Calling WM code will need this old WM to restore some windows etc. data into the
      * new WM, and is responsible to free it properly. */
+    BKE_libblock_owner_bmain_set(old_wm->id, nullptr);
     reuse_data->wm_setup_data->old_wm = old_wm;
 
     id::IDRemapper &remapper = reuse_bmain_data_remapper_ensure(reuse_data);

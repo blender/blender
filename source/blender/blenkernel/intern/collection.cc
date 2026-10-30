@@ -375,6 +375,9 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
   collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
 
   collection->owner_id = owner_id;
+  if (owner_id != nullptr) {
+    BKE_libblock_owner_bmain_set(collection->id, owner_id->owner_bmain_for_write(), false);
+  }
 
   BLO_read_struct_list(reader, CollectionObject, &collection->gobject);
   BLO_read_struct_list(reader, CollectionChild, &collection->children);
@@ -1074,6 +1077,7 @@ Collection *BKE_collection_master_add(Scene *scene)
   master_collection->owner_id = &scene->id;
   master_collection->flag |= COLLECTION_IS_MASTER;
   master_collection->color_tag = COLLECTION_COLOR_NONE;
+  BKE_libblock_owner_bmain_set(master_collection->id, scene->id.owner_bmain_for_write(), false);
 
   BLI_assert(scene->id.lib == master_collection->id.lib);
   master_collection->runtime = MEM_new<bke::CollectionRuntime>(__func__);

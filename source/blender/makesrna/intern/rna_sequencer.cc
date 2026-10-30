@@ -1052,7 +1052,7 @@ static void rna_Strip_name_set(PointerRNA *ptr, const char *value)
                          RNA_path_name_to_infix(oldname),
                          RNA_path_name_to_infix(strip->name + 2),
                          /*verify_paths=*/true,
-                         *G_MAIN);
+                         *scene->id.owner_bmain_for_write());
 }
 
 static int rna_Strip_text_length(PointerRNA *ptr)
@@ -1697,7 +1697,7 @@ static void rna_StripModifier_name_set(PointerRNA *ptr, const char *value)
                          RNA_path_name_to_infix(oldname),
                          RNA_path_name_to_infix(smd->name),
                          /* verify_paths= */ true,
-                         *G_MAIN);
+                         *scene->id.owner_bmain_for_write());
 }
 
 static void rna_StripModifier_is_active_set(PointerRNA *ptr, bool value)
@@ -2629,6 +2629,7 @@ static void rna_def_strip(BlenderRNA *brna)
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(
       prop, "rna_Strip_name_get", "rna_Strip_name_length", "rna_Strip_name_set");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_property_string_maxlength(prop, sizeof(Strip::name) - 2);
   RNA_def_property_ui_text(prop, "Name", "");
   RNA_def_struct_name_property(srna, prop);
@@ -4349,6 +4350,7 @@ static void rna_def_modifier(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_StripModifier_name_set");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_property_ui_text(prop, "Name", "");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);

@@ -282,7 +282,7 @@ static void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
                          RNA_path_name_to_infix(old_name),
                          RNA_path_name_to_infix(track->name),
                          /* verify_paths= */ true,
-                         *G_MAIN);
+                         *clip->id.owner_bmain_for_write());
 }
 
 static bool rna_trackingTrack_select_get(PointerRNA *ptr)
@@ -369,7 +369,7 @@ static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
                          RNA_path_name_to_infix(old_name),
                          RNA_path_name_to_infix(plane_track->name),
                          /* verify_paths= */ true,
-                         *G_MAIN);
+                         *clip->id.owner_bmain_for_write());
 }
 
 static std::optional<std::string> rna_trackingCamera_path(const PointerRNA * /*ptr*/)
@@ -1546,6 +1546,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Name", "Unique name of track");
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_trackingTrack_name_set");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
   RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, nullptr);
   RNA_def_struct_name_property(srna, prop);
@@ -1894,6 +1895,7 @@ static void rna_def_trackingPlaneTrack(BlenderRNA *brna)
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Name", "Unique name of track");
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_trackingPlaneTrack_name_set");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
   RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, nullptr);
   RNA_def_struct_name_property(srna, prop);

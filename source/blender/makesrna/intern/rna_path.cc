@@ -1039,8 +1039,7 @@ ID *RNA_find_real_ID_and_path(ID *id, const char **r_path)
   return (owner_id != nullptr) ? owner_id : id;
 }
 
-static std::optional<std::string> rna_prepend_real_ID_path(Main * /*bmain*/,
-                                                           ID *id,
+static std::optional<std::string> rna_prepend_real_ID_path(ID *id,
                                                            const StringRef path,
                                                            ID **r_real_id)
 {
@@ -1113,14 +1112,12 @@ std::optional<std::string> RNA_path_from_ID_to_struct(const PointerRNA *ptr)
   return ptrpath;
 }
 
-std::optional<std::string> RNA_path_from_real_ID_to_struct(Main *bmain,
-                                                           const PointerRNA *ptr,
-                                                           ID **r_real)
+std::optional<std::string> RNA_path_from_real_ID_to_struct(const PointerRNA *ptr, ID **r_real)
 {
   const std::optional<std::string> path = RNA_path_from_ID_to_struct(ptr);
 
   /* Null path is valid in that case, when given struct is an ID one. */
-  return rna_prepend_real_ID_path(bmain, ptr->owner_id, path.value_or(""), r_real);
+  return rna_prepend_real_ID_path(ptr->owner_id, path.value_or(""), r_real);
 }
 
 static void rna_path_array_multi_from_flat_index(const int dimsize[RNA_MAX_ARRAY_LENGTH],
@@ -1229,12 +1226,8 @@ std::optional<std::string> RNA_path_from_ID_to_property(const PointerRNA *ptr, P
   return RNA_path_from_ID_to_property_index(ptr, prop, 0, -1);
 }
 
-std::optional<std::string> RNA_path_from_real_ID_to_property_index(Main *bmain,
-                                                                   const PointerRNA *ptr,
-                                                                   PropertyRNA *prop,
-                                                                   int index_dim,
-                                                                   int index,
-                                                                   ID **r_real_id)
+std::optional<std::string> RNA_path_from_real_ID_to_property_index(
+    const PointerRNA *ptr, PropertyRNA *prop, int index_dim, int index, ID **r_real_id)
 {
   const std::optional<std::string> path = RNA_path_from_ID_to_property_index(
       ptr, prop, index_dim, index);
@@ -1244,7 +1237,7 @@ std::optional<std::string> RNA_path_from_real_ID_to_property_index(Main *bmain,
 
   /* Null path is always an error here, in that case do not return the 'fake ID from real ID' part
    * of the path either. */
-  return rna_prepend_real_ID_path(bmain, ptr->owner_id, path->c_str(), r_real_id);
+  return rna_prepend_real_ID_path(ptr->owner_id, path->c_str(), r_real_id);
 }
 
 std::optional<std::string> RNA_path_resolve_from_type_to_property(const PointerRNA *ptr,

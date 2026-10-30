@@ -342,9 +342,7 @@ ID *RNA_find_real_ID_and_path(ID *id, const char **r_path);
 
 std::optional<std::string> RNA_path_from_ID_to_struct(const PointerRNA *ptr);
 
-std::optional<std::string> RNA_path_from_real_ID_to_struct(Main *bmain,
-                                                           const PointerRNA *ptr,
-                                                           ID **r_real);
+std::optional<std::string> RNA_path_from_real_ID_to_struct(const PointerRNA *ptr, ID **r_real);
 
 std::optional<std::string> RNA_path_from_ID_to_property(const PointerRNA *ptr, PropertyRNA *prop);
 
@@ -362,12 +360,8 @@ std::optional<std::string> RNA_path_from_ID_to_property_index(const PointerRNA *
                                                               int index_dim,
                                                               int index);
 
-std::optional<std::string> RNA_path_from_real_ID_to_property_index(Main *bmain,
-                                                                   const PointerRNA *ptr,
-                                                                   PropertyRNA *prop,
-                                                                   int index_dim,
-                                                                   int index,
-                                                                   ID **r_real_id);
+std::optional<std::string> RNA_path_from_real_ID_to_property_index(
+    const PointerRNA *ptr, PropertyRNA *prop, int index_dim, int index, ID **r_real_id);
 
 /**
  * \return the path to given ptr/prop from the closest ancestor of given type,

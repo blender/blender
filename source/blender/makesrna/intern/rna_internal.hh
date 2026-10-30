@@ -300,6 +300,7 @@ void rna_def_texpaint_slots(BlenderRNA *brna, StructRNA *srna);
 void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, bool scene);
 
 int rna_AssetMetaData_editable(const PointerRNA *ptr, const char **r_info);
+int rna_ID_owner_editable_if_in_bmain(const PointerRNA *ptr, const char **r_info);
 /**
  * Create a enum property for the available asset libraries that should be displayed in the UI.
  * Does not include the online essentials library, which should be displayed as part of the normal

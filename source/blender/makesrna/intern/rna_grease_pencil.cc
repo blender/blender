@@ -305,7 +305,7 @@ static void rna_grease_pencil_layer_mask_name_set(PointerRNA *ptr, const char *v
 
   const std::string oldname(mask->layer_name);
   if (bke::greasepencil::TreeNode *node = grease_pencil->find_node_by_name(oldname)) {
-    grease_pencil->rename_node(*G_MAIN, *node, value);
+    grease_pencil->rename_node(*grease_pencil->id.owner_bmain_for_write(), *node, value);
   }
 }
 
@@ -387,7 +387,7 @@ static void rna_GreasePencilTreeNode_name_set(PointerRNA *ptr, const char *value
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
   GreasePencilLayerTreeNode *node = static_cast<GreasePencilLayerTreeNode *>(ptr->data);
 
-  grease_pencil->rename_node(*G_MAIN, node->wrap(), value);
+  grease_pencil->rename_node(*grease_pencil->id.owner_bmain_for_write(), node->wrap(), value);
 }
 
 static PointerRNA rna_GreasePencilTreeNode_parent_layer_group_get(PointerRNA *ptr)
@@ -940,6 +940,7 @@ static void rna_def_grease_pencil_layer_mask(BlenderRNA *brna)
                                 "rna_grease_pencil_layer_mask_name_get",
                                 "rna_grease_pencil_layer_mask_name_length",
                                 "rna_grease_pencil_layer_mask_name_set");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_RENAME, nullptr);
@@ -996,6 +997,7 @@ static void rna_def_grease_pencil_tree_node(BlenderRNA *brna)
                                 "rna_GreasePencilTreeNode_name_get",
                                 "rna_GreasePencilTreeNode_name_length",
                                 "rna_GreasePencilTreeNode_name_set");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_RENAME, "rna_grease_pencil_update");
 

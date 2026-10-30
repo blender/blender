@@ -2387,7 +2387,8 @@ static bool rna_property_editable_do(const PointerRNA *ptr,
     return false;
   }
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
-    const bool is_liboverride_system = BKE_lib_override_library_is_system_defined(G_MAIN, id);
+    const bool is_liboverride_system = BKE_lib_override_library_is_system_defined(
+        id->owner_bmain(), id);
     if (!RNA_property_overridable_get(ptr, prop_orig)) {
       if (r_info != nullptr && (*r_info)[0] == '\0') {
         *r_info = N_("Cannot edit this property from an override data-block");

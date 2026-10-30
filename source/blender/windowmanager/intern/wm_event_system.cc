@@ -5135,10 +5135,8 @@ bool WM_event_handler_region_marker_poll(const wmWindow *win,
     }
   }
 
-  /* FIXME: Ideally we should not have to use G_MAIN here, though practically this is probably fine
-   * for now. */
   const ListBaseT<TimeMarker> *markers = ED_scene_markers_get_from_area(
-      *G_MAIN, scene, WM_window_get_active_view_layer(win), area);
+      *scene->id.owner_bmain(), scene, WM_window_get_active_view_layer(win), area);
   if (markers->is_empty()) {
     return false;
   }
@@ -5159,10 +5157,9 @@ bool WM_event_handler_region_v2d_mask_no_marker_poll(const wmWindow *win,
     return false;
   }
   /* Casting away `const` is only needed for a non-constant return value. */
-  /* FIXME: Ideally we should not have to use G_MAIN here, though practically this is probably fine
-   * for now. */
+  Scene *scene = WM_window_get_active_scene(win);
   const ListBaseT<TimeMarker> *markers = ED_scene_markers_get_from_area(
-      *G_MAIN, WM_window_get_active_scene(win), WM_window_get_active_view_layer(win), area);
+      *scene->id.owner_bmain(), scene, WM_window_get_active_view_layer(win), area);
   if (markers && !markers->is_empty()) {
     return !WM_event_handler_region_marker_poll(win, area, region, event);
   }

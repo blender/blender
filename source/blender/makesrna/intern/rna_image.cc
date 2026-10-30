@@ -110,15 +110,15 @@ static void rna_Image_source_set(PointerRNA *ptr, int value)
 
   if (value != ima->source) {
     ima->source = eImageSource(value);
-    BLI_assert(BKE_id_is_in_global_main(&ima->id));
-    BKE_image_signal(G_MAIN, ima, nullptr, IMA_SIGNAL_SRC_CHANGE);
+    Main *bmain = ima->id.owner_bmain_for_write();
+    BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_SRC_CHANGE);
     if (ima->source == IMA_SRC_TILED) {
-      BKE_image_signal(G_MAIN, ima, nullptr, IMA_SIGNAL_RELOAD);
+      BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_RELOAD);
     }
 
     DEG_id_tag_update(&ima->id, 0);
     DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS | ID_RECALC_SOURCE);
-    DEG_relations_tag_update(G_MAIN);
+    DEG_relations_tag_update(bmain);
   }
 }
 
@@ -1180,6 +1180,7 @@ static void rna_def_image(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, image_source_items);
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_enum_funcs(prop, nullptr, "rna_Image_source_set", "rna_Image_source_itemf");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_property_ui_text(prop, "Source", "Where the image comes from");
   RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, nullptr);
 

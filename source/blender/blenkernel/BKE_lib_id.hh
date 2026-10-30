@@ -91,6 +91,13 @@ struct ID_Runtime {
    * freed and the pointer set to `nullptr`.
    */
   ID_Readfile_Data *readfile_data = nullptr;
+
+  /**
+   * #Main data-base containing this ID. Each ID can be in at most one #Main at the same time.
+   * - This is null for e.g. evaluated data.
+   * - For embedded data-blocks, this is kept in sync with the owner ID.
+   */
+  Main *owner_bmain = nullptr;
 };
 
 }  // namespace bke::id
@@ -144,6 +151,12 @@ void BKE_libblock_init_empty(ID *id) ATTR_NONNULL(1);
  * assumed valid.
  */
 void BKE_libblock_runtime_ensure(ID &id);
+
+/**
+ * Set the #Main currently containing this ID, or null if it is not in any Main. Must be called
+ * whenever an ID is added to, removed from, or moved between Mains.
+ */
+void BKE_libblock_owner_bmain_set(ID &id, Main *bmain, bool assert_contained = true);
 
 /**
  * Reset the runtime counters used by ID remapping.
@@ -1057,11 +1070,6 @@ void BKE_id_tag_clear_atomic(ID *id, int tag);
 
 /** Check that given ID pointer actually is in given `bmain`. */
 bool BKE_id_is_in_main(Main *bmain, ID *id);
-/**
- * Check that given ID pointer actually is in G_MAIN.
- * Main intended use is for debug asserts in places we cannot easily get rid of #G_MAIN.
- */
-bool BKE_id_is_in_global_main(ID *id);
 
 bool BKE_id_can_be_asset(const ID *id);
 

@@ -437,10 +437,11 @@ static void versions_gpencil_add_main(Main *bmain,
                                       ID *id,
                                       const char *name)
 {
-  BLI_addtail(lb, id);
   id->us = 1;
   id->flag = ID_FLAG_FAKEUSER;
   *(reinterpret_cast<short *>(id->name)) = ID_GD_LEGACY;
+  BLI_addtail(lb, id);
+  BKE_libblock_owner_bmain_set(*id, bmain);
 
   BKE_id_new_name_validate(
       *bmain, lb->cast<ID>(), *id, name, IDNewNameMode::RenameExistingNever, false);

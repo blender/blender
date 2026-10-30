@@ -386,6 +386,9 @@ static void add_main_to_main(Main *mainvar, Main *from)
   MainListsArray fromarray = BKE_main_lists_get(*from);
   int a = fromarray.size();
   while (a--) {
+    for (ID &id : *fromarray[a]) {
+      BKE_libblock_owner_bmain_set(id, mainvar, false);
+    }
     BLI_movelisttolist(lbarray[a], fromarray[a]);
   }
 }
@@ -438,6 +441,7 @@ static void split_libdata(ListBaseT<ID> *lb_src,
         ListBaseT<ID> *lb_dst = which_libbase(mainvar, id->id_type());
         BLI_remlink(lb_src, id);
         BLI_addtail(lb_dst, id);
+        BKE_libblock_owner_bmain_set(*id, mainvar);
       }
       else {
         CLOG_ERROR(&LOG, "Invalid library for '%s'", id->name);
@@ -2731,6 +2735,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
       // change_link_placeholder_to_real_ID_pointer_fd(fd, lib, newmain->curlib);
 
       BLI_remlink(&main->libraries, lib);
+      BKE_libblock_owner_bmain_set(lib->id, nullptr);
       MEM_delete(lib);
 
       /* Now, since Blender always expect **last** Main pointer from fd->bmain->split_mains
@@ -2885,6 +2890,7 @@ static ID *create_placeholder(Main *mainvar,
   }
 
   BLI_addtail(lb, ph_id);
+  BKE_libblock_owner_bmain_set(*ph_id, mainvar);
   id_sort_by_name(lb, ph_id, nullptr);
 
   if (mainvar->id_map != nullptr) {
@@ -2922,8 +2928,14 @@ static bool direct_link_id(FileData *fd,
    * explicitly here, in case the `reader` is used by multiple IDs in the future. */
   reader.shared_data_by_stored_address.clear();
 
+  /* This flag used to be #LIB_DOIT (removed in 3fcf535d2e00). It is still set in some old files.
+   * Clearing it here only affects non-embedded IDs, so it's valid. Embedded IDs are only read
+   * below. */
+  id->flag &= ~ID_FLAG_EMBEDDED_DATA;
+
   /* Read part of datablock that is common between real and embedded datablocks. */
   direct_link_id_common(&reader, main->curlib, id, id_old, id_tag, id_read_tags);
+  BKE_libblock_owner_bmain_set(*id, main);
 
   if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder) {
     /* For placeholder we only need to set the tag, no further data to read. */
@@ -3114,6 +3126,9 @@ static void read_undo_reuse_noundo_local_ids(FileData *fd)
 
     ListBaseT<ID> *new_lb = which_libbase(new_bmain, id_type->id_code);
     BLI_assert(new_lb->is_empty());
+    for (ID &id_iter : *lbarray[i]) {
+      BKE_libblock_owner_bmain_set(id_iter, new_bmain, false);
+    }
     BLI_movelisttolist(new_lb, lbarray[i]);
 
     /* Update mappings accordingly. */
@@ -3139,6 +3154,7 @@ static void read_undo_move_libmain_data(FileData *fd, Main *libmain, BHead *bhea
   BLI_remlink_safe(&old_main->libraries, curlib);
   new_main->split_mains->add_new(libmain);
   BLI_addtail(&new_main->libraries, curlib);
+  BKE_libblock_owner_bmain_set(curlib->id, new_main);
 
   /* Remove all references to the archive libraries owned by this 'regular' library. The
    * archive ones are only moved over into the new Main if some of their IDs are actually
@@ -3296,6 +3312,7 @@ static void read_undo_libraries_cleanup_unused_ids(FileData *fd)
       bke::id::id_lib_set(*unused_id, nullptr);
       BKE_main_idmap_remove_id(fd->new_idmap_uid, unused_id);
       BLI_addtail(old_lb, unused_id);
+      BKE_libblock_owner_bmain_set(*unused_id, old_bmain);
       /* NOTE: There should be no need to update ID pointers mapping (`fd->libmap`) here, as
        * these IDs should not be in there in the first place. */
     }
@@ -3385,6 +3402,7 @@ static void read_libblock_undo_restore_identical(
   ListBaseT<ID> *new_lb = which_libbase(main, idcode);
   BLI_remlink(old_lb, id_old);
   BLI_addtail(new_lb, id_old);
+  BKE_libblock_owner_bmain_set(*id_old, main);
 
   /* Recalc flags, mostly these just remain as they are. */
   id_old->recalc |= direct_link_id_restore_recalc_exceptions(id_old);
@@ -3473,6 +3491,8 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
 
   BLI_addtail(new_lb, id_old);
   BLI_addtail(old_lb, id);
+  BKE_libblock_owner_bmain_set(*id_old, main);
+  BKE_libblock_owner_bmain_set(*id, old_bmain);
 
   /* In case a library has been re-read, it has added already its own split main to the new Main
    * (see #direct_link_library code).
@@ -5813,6 +5833,7 @@ static void split_main_newid(Main *mainptr, Main *main_newid)
       if (id.tag & ID_TAG_NEW) {
         BLI_remlink(lbarray[i], &id);
         BLI_addtail(lbarray_newid[i], &id);
+        BKE_libblock_owner_bmain_set(id, main_newid);
       }
     }
   }
@@ -6068,6 +6089,7 @@ static void read_library_linked_ids(FileData *basefd, FileData *fd, Main *mainva
           !(id->flag & ID_FLAG_INDIRECT_WEAK_LINK))
       {
         BLI_remlink(lbarray[a], id);
+        BKE_libblock_owner_bmain_set(*id, nullptr);
         if (mainvar->id_map != nullptr) {
           BKE_main_idmap_remove_id(mainvar->id_map, id);
         }

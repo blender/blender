@@ -2301,10 +2301,12 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
         /* We remove it from current Main, and add it to items to link... */
         /* Note that non-linkable IDs (like e.g. shape-keys) are also explicitly linked here... */
         BLI_remlink(lbarray[lba_idx], id);
+        BKE_libblock_owner_bmain_set(*id, nullptr);
         /* Usual special code for ShapeKeys snowflakes... */
         Key *old_key = BKE_key_from_id(id);
         if (old_key != nullptr) {
           BLI_remlink(which_libbase(bmain, old_key->id.id_type()), &old_key->id);
+          BKE_libblock_owner_bmain_set(old_key->id, nullptr);
         }
 
         item = BKE_blendfile_link_append_context_item_add(
@@ -2344,11 +2346,13 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
 
     BLI_assert(old_id);
     BLI_addtail(which_libbase(bmain, old_id->id_type()), old_id);
+    BKE_libblock_owner_bmain_set(*old_id, bmain);
 
     /* Usual special code for ShapeKeys snowflakes... */
     Key *old_key = BKE_key_from_id(old_id);
     if (old_key != nullptr) {
       BLI_addtail(which_libbase(bmain, old_key->id.id_type()), &old_key->id);
+      BKE_libblock_owner_bmain_set(old_key->id, bmain);
     }
   }
 

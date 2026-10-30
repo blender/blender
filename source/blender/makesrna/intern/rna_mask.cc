@@ -200,7 +200,7 @@ static void rna_MaskLayer_name_set(PointerRNA *ptr, const char *value)
   STRNCPY(oldname, masklay->name);
   STRNCPY_UTF8(newname, value);
 
-  BKE_mask_layer_rename(*G_MAIN, mask, masklay, oldname, newname);
+  BKE_mask_layer_rename(*mask->id.owner_bmain_for_write(), mask, masklay, oldname, newname);
 }
 
 static PointerRNA rna_MaskLayer_active_spline_get(PointerRNA *ptr)
@@ -1019,6 +1019,7 @@ static void rna_def_mask_layer(BlenderRNA *brna)
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Name", "Unique name of layer");
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_MaskLayer_name_set");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
   RNA_def_struct_name_property(srna, prop);

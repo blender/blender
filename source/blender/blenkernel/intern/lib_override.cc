@@ -2596,6 +2596,8 @@ static bool lib_override_library_resync(Main *bmain,
         BLI_insertlinkreplace(lb, id_override_old, id_override_new);
         id_override_old->tag |= ID_TAG_NO_MAIN;
         id_override_new->tag &= ~ID_TAG_NO_MAIN;
+        BKE_libblock_owner_bmain_set(*id_override_old, nullptr);
+        BKE_libblock_owner_bmain_set(*id_override_new, bmain);
 
         lib_override_object_posemode_transfer(id_override_new, id_override_old);
 

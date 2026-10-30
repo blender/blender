@@ -392,7 +392,7 @@ static void rna_BoneCollection_name_set(PointerRNA *ptr, const char *name)
   bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
 
-  ANIM_armature_bonecoll_name_set(*G_MAIN, arm, bcoll, name);
+  ANIM_armature_bonecoll_name_set(*arm->id.owner_bmain_for_write(), arm, bcoll, name);
 }
 
 static void rna_BoneCollection_is_visible_set(PointerRNA *ptr, const bool is_visible)
@@ -820,8 +820,7 @@ static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
   STRNCPY_UTF8(newname, value);
   STRNCPY(oldname, ebone->name);
 
-  BLI_assert(BKE_id_is_in_global_main(&arm->id));
-  ED_armature_bone_rename(G_MAIN, arm, oldname, newname);
+  ED_armature_bone_rename(arm->id.owner_bmain_for_write(), arm, oldname, newname);
 }
 
 static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
@@ -834,8 +833,7 @@ static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
   STRNCPY_UTF8(newname, value);
   STRNCPY(oldname, bone->name);
 
-  BLI_assert(BKE_id_is_in_global_main(&arm->id));
-  ED_armature_bone_rename(G_MAIN, arm, oldname, newname);
+  ED_armature_bone_rename(arm->id.owner_bmain_for_write(), arm, oldname, newname);
 }
 
 static void rna_EditBone_connected_check(EditBone *ebone)
@@ -1403,6 +1401,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_def_property_string_sdna(prop, nullptr, "name");
   RNA_def_property_ui_text(prop, "Name", "");
   RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   if (editbone) {
     RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_EditBone_name_set");
   }
@@ -2364,6 +2363,7 @@ static void rna_def_bonecollection(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Name", "Unique within the Armature");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_BoneCollection_name_set");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_property_update(prop, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
 
   prop = RNA_def_property(srna, "is_expanded", PROP_BOOLEAN, PROP_NONE);

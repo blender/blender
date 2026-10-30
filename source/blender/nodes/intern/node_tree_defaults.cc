@@ -14,6 +14,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_material.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
@@ -59,6 +60,7 @@ void node_tree_shader_default(const bContext *C, Main *bmain, ID *id)
     }
     ma->nodetree = bke::node_tree_copy_tree(bmain, *ma_default->nodetree);
     ma->nodetree->owner_id = &ma->id;
+    BKE_libblock_owner_bmain_set(ma->nodetree->id, bmain, false);
     for (bNode *node_iter : ma->nodetree->all_nodes()) {
       STRNCPY_UTF8(node_iter->name, DATA_(node_iter->name));
       bke::node_unique_name(*ma->nodetree, *node_iter);

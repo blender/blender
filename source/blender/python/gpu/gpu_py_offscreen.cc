@@ -17,7 +17,6 @@
 #include "BLI_string_utf8.hh"
 
 #include "BKE_global.hh"
-#include "BKE_lib_id.hh" /* For #BKE_id_is_in_global_main. */
 #include "BKE_scene.hh"
 
 #include "DNA_view3d_types.h"
@@ -472,9 +471,12 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
     return nullptr;
   }
 
-  BLI_assert(BKE_id_is_in_global_main(&scene->id));
-
-  depsgraph = BKE_scene_ensure_depsgraph(G_MAIN, scene, view_layer);
+  Main *bmain = scene->id.owner_bmain_for_write();
+  if (!bmain) {
+    PyErr_SetString(PyExc_RuntimeError, "Cannot draw off-screen with an evaluated scene");
+    return nullptr;
+  }
+  depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
 
   GPU_offscreen_bind(self->ofs, true);
 

@@ -61,6 +61,7 @@
 #include "BKE_global.hh" /* evil G.* */
 #include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 
@@ -1126,8 +1127,8 @@ static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
   }
   else {
     ID *real_id = nullptr;
-    const std::optional<std::string> path = RNA_path_from_real_ID_to_struct(
-        G_MAIN, &self->ptr.value(), &real_id);
+    const std::optional<std::string> path = RNA_path_from_real_ID_to_struct(&self->ptr.value(),
+                                                                            &real_id);
     if (path) {
       /* 'real_id' may be nullptr in some cases, although the only valid one is evaluated data,
        * which should have already been caught above.
@@ -1251,11 +1252,9 @@ static PyObject *pyrna_prop_repr_ex(BPy_PropertyRNA *self, const int index_dim, 
 
   tmp_str = PyUnicode_FromString(id->name + 2);
 
-  /* Note that using G_MAIN is absolutely not ideal, but we have no access to actual Main DB from
-   * here. */
   ID *real_id = nullptr;
   const std::optional<std::string> path = RNA_path_from_real_ID_to_property_index(
-      G_MAIN, &self->ptr.value(), self->prop, index_dim, index, &real_id);
+      &self->ptr.value(), self->prop, index_dim, index, &real_id);
 
   if (path) {
     if (real_id != id) {
