@@ -2426,6 +2426,10 @@ bool WM_xr_session_exists(const wmXrData *xr);
  * Check if the session is running, according to the OpenXR definition.
  */
 bool WM_xr_session_is_ready(const wmXrData *xr);
+/**
+ * Get the OpenXR runtime name of a running session.
+ */
+void WM_xr_session_runtime_name_get(const wmXrData *xr, char *r_runtime_name);
 
 wmXrSessionState *WM_xr_session_state_handle_get(const wmXrData *xr);
 wmXrViewfinderState *WM_xr_session_state_viewfinder_handle_get(const wmXrData *xr);

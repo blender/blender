@@ -88,6 +88,7 @@ class GHOST_XrContext : public GHOST_IXrContext {
   const GHOST_XrCustomFuncs &getCustomFuncs() const;
   GHOST_TXrGraphicsBinding getGraphicsBindingType() const;
   XrInstance getInstance() const;
+  XrInstanceProperties getInstanceProperties() const;
   bool isDebugMode() const;
   bool isDebugTimeMode() const;
 

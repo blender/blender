@@ -193,6 +193,16 @@ bool WM_xr_session_is_ready(const wmXrData *xr)
   return WM_xr_session_exists(xr) && GHOST_XrSessionIsRunning(xr->runtime->ghost_context);
 }
 
+void WM_xr_session_runtime_name_get(const wmXrData *xr, char *r_runtime_name)
+{
+  if (!WM_xr_session_exists(xr)) {
+    r_runtime_name[0] = '\0';
+    return;
+  }
+
+  GHOST_XrGetRuntimeName(xr->runtime->ghost_context, r_runtime_name);
+}
+
 static void wm_xr_session_base_pose_calc(const Scene *scene,
                                          const XrSessionSettings *settings,
                                          GHOST_XrPose *r_base_pose,

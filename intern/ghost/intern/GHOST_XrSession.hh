@@ -34,6 +34,7 @@ class GHOST_XrSession {
   LifeExpectancy handleStateChangeEvent(const XrEventDataSessionStateChanged &lifecycle);
 
   bool isRunning() const;
+  void getRuntimeName(char *r_runtime_name);
   bool needsUpsideDownDrawing() const;
 
   void unbindGraphicsContext(); /* Public so context can ensure it's unbound as needed. */

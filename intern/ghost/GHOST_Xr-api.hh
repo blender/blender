@@ -103,6 +103,10 @@ void GHOST_XrSessionDrawViews(GHOST_IXrContext *xr_context, void *customdata);
  * (https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#session_running).
  */
 int GHOST_XrSessionIsRunning(const GHOST_IXrContext *xr_context);
+/**
+ * Get the OpenXR runtime name for the session in \p xr_context.
+ */
+void GHOST_XrGetRuntimeName(GHOST_IXrContext *xr_context, char *r_runtime_name);
 
 /**
  * Check if \a xr_context has a session that requires an upside-down frame-buffer (compared to
