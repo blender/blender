@@ -402,8 +402,6 @@ class DeferredLayer : DeferredLayerBase {
   bool use_raytracing_ = false;
   bool use_screen_transmission_ = false;
   bool use_screen_reflection_ = false;
-  bool use_clamp_direct_ = false;
-  bool use_clamp_indirect_ = false;
 
  public:
   DeferredLayer(Instance &inst) : DeferredLayerBase(inst), inst_(inst)
@@ -437,6 +435,9 @@ class DeferredLayer : DeferredLayerBase {
 
   /* Do we compute indirect lighting inside the light eval pass. */
   static bool do_merge_direct_indirect_eval(const Instance &inst);
+  /* Do the clamp or light intensity settings change the radiance in the combine pass.
+   * If so, the radiance cannot be fed back to the next layer as-is. */
+  static bool do_modify_radiance(const Instance &inst);
   /* Is the radiance split for the lighting pass. */
   static bool do_split_direct_indirect_radiance(const Instance &inst);
 
