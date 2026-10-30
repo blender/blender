@@ -237,37 +237,66 @@ std::optional<ParsedRNAPath<N>> ParsedRNAPath<N>::from_string(const StringRefNul
   return parsed;
 }
 
+template<int64_t N> bool ParsedRNAPath<N>::is_subpath(const ParsedRNAPathRef root_path) const
+{
+  if (root_path.size() > this->items.size()) {
+    return false;
+  }
+  for (int i = 0; i < root_path.size(); i++) {
+    if (root_path[i] != this->items[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 namespace rna_path {
+
+std::string to_string(const Item &item)
+{
+  if (const Member *member = std::get_if<Member>(&item)) {
+    return member->identifier.string();
+  }
+  else if (const LookupIndex *lookup_index = std::get_if<LookupIndex>(&item)) {
+    return "[" + std::to_string(lookup_index->index) + "]";
+  }
+  else if (const LookupKey *lookup_key = std::get_if<LookupKey>(&item)) {
+    std::string result = "[\"";
+    for (const char c : lookup_key->key.ref()) {
+      if (c == '\\') {
+        result.append("\\\\");
+      }
+      else if (c == '"') {
+        result.append("\\\"");
+      }
+      else {
+        result.append(1, c);
+      }
+    }
+    result.append("\"]");
+    return result;
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+  return "";
+}
 
 std::string to_string(const Span<Item> items)
 {
   std::string result;
   for (const auto &item : items) {
-    if (const Member *member = std::get_if<Member>(&item)) {
+    if (std::holds_alternative<Member>(item)) {
       if (!result.empty()) {
         result.append(".");
       }
-      result.append(member->identifier.c_str());
+      result.append(to_string(item));
     }
-    else if (const LookupIndex *lookup_index = std::get_if<LookupIndex>(&item)) {
-      result.append("[");
-      result.append(std::to_string(lookup_index->index));
-      result.append("]");
+    else if (std::holds_alternative<LookupIndex>(item)) {
+      result.append(to_string(item));
     }
-    else if (const LookupKey *lookup_key = std::get_if<LookupKey>(&item)) {
-      result.append("[\"");
-      for (const char c : lookup_key->key.ref()) {
-        if (c == '\\') {
-          result.append("\\\\");
-        }
-        else if (c == '"') {
-          result.append("\\\"");
-        }
-        else {
-          result.append(1, c);
-        }
-      }
-      result.append("\"]");
+    else if (std::holds_alternative<LookupKey>(item)) {
+      result.append(to_string(item));
     }
     else {
       BLI_assert_unreachable();
@@ -523,6 +552,18 @@ static bool rna_path_parse(const PointerRNA *ptr,
 }
 
 bool RNA_path_resolve(const PointerRNA *ptr,
+                      ParsedRNAPathRef path,
+                      PointerRNA *r_ptr,
+                      PropertyRNA **r_prop)
+{
+  if (!rna_path_parse(ptr, path, r_ptr, r_prop, nullptr, nullptr, nullptr, true)) {
+    return false;
+  }
+
+  return *r_ptr;
+}
+
+bool RNA_path_resolve(const PointerRNA *ptr,
                       const char *path,
                       PointerRNA *r_ptr,
                       PropertyRNA **r_prop)
@@ -534,11 +575,7 @@ bool RNA_path_resolve(const PointerRNA *ptr,
   if (!parsed_path) {
     return false;
   }
-  if (!rna_path_parse(ptr, *parsed_path, r_ptr, r_prop, nullptr, nullptr, nullptr, true)) {
-    return false;
-  }
-
-  return *r_ptr;
+  return RNA_path_resolve(ptr, *parsed_path, r_ptr, r_prop);
 }
 
 bool RNA_path_resolve_full(
@@ -583,11 +620,7 @@ bool RNA_path_resolve_property(const PointerRNA *ptr,
   if (!parsed_path) {
     return false;
   }
-  if (!rna_path_parse(ptr, *parsed_path, r_ptr, r_prop, nullptr, nullptr, nullptr, false)) {
-    return false;
-  }
-
-  return *r_ptr && *r_prop != nullptr;
+  return RNA_path_resolve_property(ptr, *parsed_path, r_ptr, r_prop);
 }
 
 bool RNA_path_resolve_property(const PointerRNA *ptr,

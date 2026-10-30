@@ -105,8 +105,9 @@ struct LookupKey {
 
 using Item = std::variant<Member, LookupIndex, LookupKey>;
 
-/** Convert a parsed path back to a string representation. */
-std::string to_string(Span<Item> items);
+/** Convert (an item of) a parsed path back to a string representation. */
+std::string to_string(const Item &item);
+std::string to_string(const Span<Item> items);
 
 }  // namespace rna_path
 
@@ -149,6 +150,9 @@ template<int64_t N = 4> class ParsedRNAPath {
   static std::optional<ParsedRNAPath> from_string(StringRefNull path);
 
   std::string to_string() const;
+
+  /** Return `true` if this path is a sub-path of (or identical to) the given `root_path`. */
+  bool is_subpath(const ParsedRNAPathRef root_path) const;
 
   operator ParsedRNAPathRef() const
   {
@@ -199,6 +203,10 @@ const char *RNA_path_array_index_token_find(const char *rna_path, const Property
  */
 bool RNA_path_resolve(const PointerRNA *ptr,
                       const char *path,
+                      PointerRNA *r_ptr,
+                      PropertyRNA **r_prop);
+bool RNA_path_resolve(const PointerRNA *ptr,
+                      ParsedRNAPathRef path,
                       PointerRNA *r_ptr,
                       PropertyRNA **r_prop);
 
