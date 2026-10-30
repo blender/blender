@@ -1218,17 +1218,17 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
     return nullptr;
   }
 
+  if (self->vec_num > 4) {
+    PyErr_SetString(PyExc_ValueError, "Vector must be 2D, 3D or 4D");
+    return nullptr;
+  }
+
   /* don't use clamped size, rule of thumb is vector sizes must match,
    * even though n this case 'w' is ignored */
   if (mathutils_array_parse(
           tvec, self->vec_num, self->vec_num, value, "Vector.angle(other), invalid 'other' arg") ==
       -1)
   {
-    return nullptr;
-  }
-
-  if (self->vec_num > 4) {
-    PyErr_SetString(PyExc_ValueError, "Vector must be 2D, 3D or 4D");
     return nullptr;
   }
 
