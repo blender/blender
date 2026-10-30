@@ -574,7 +574,7 @@ static PyObject *Vector_resize(VectorObject *self, PyObject *value)
     return nullptr;
   }
 
-  if ((vec_num = PyC_Long_AsI32(value)) == -1) {
+  if (((vec_num = PyC_Long_AsI32(value)) == -1) && PyErr_Occurred()) {
     PyErr_SetString(PyExc_TypeError,
                     "Vector.resize(size): "
                     "expected size argument to be an integer");
@@ -619,7 +619,7 @@ static PyObject *Vector_resized(VectorObject *self, PyObject *value)
   int vec_num;
   float *vec;
 
-  if ((vec_num = PyLong_AsLong(value)) == -1) {
+  if (((vec_num = PyC_Long_AsI32(value)) == -1) && PyErr_Occurred()) {
     return nullptr;
   }
 
