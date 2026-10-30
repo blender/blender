@@ -40,6 +40,7 @@
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_zones.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
 #include "BLT_translation.hh"
@@ -1352,7 +1353,11 @@ static void node_region_listener(const wmRegionListenerParams *params)
           bke::compositor::is_compositor_viewer_visible(*params->area))
       {
         Scene *scene = WM_window_get_active_scene(params->window);
-        DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
+        ViewLayer *view_layer = WM_window_get_active_view_layer(params->window);
+        Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
+        if (depsgraph) {
+          DEG_id_tag_update_for_side_effect_request(depsgraph, &scene->id, ID_RECALC_COMPOSITOR);
+        }
       }
       switch (wmn->data) {
         case ND_ANIMPLAY:
