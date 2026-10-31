@@ -305,6 +305,9 @@ void MeshFromGeometry::create_vertex_groups(Mesh *mesh)
     StringRef(name).copy_utf8_truncated(defgroup->name);
     BLI_addtail(&mesh->vertex_group_names, defgroup);
   }
+
+  /* Make the last group active. The index is one based, zero means none. */
+  mesh->vertex_group_active_index = mesh->vertex_group_names.count();
 }
 
 void MeshFromGeometry::create_edges(Mesh *mesh)
