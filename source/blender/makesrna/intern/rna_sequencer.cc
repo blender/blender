@@ -556,7 +556,7 @@ static std::optional<std::string> rna_Strip_retiming_key_path(const PointerRNA *
   }
 
   char name_esc[(sizeof(strip->name) - 2) * 2];
-  BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
+  BLI_str_escape(name_esc, strip->name + 2);
   return fmt::format("sequence_editor.strips_all[\"{}\"].retiming_keys[{}]",
                      name_esc,
                      seq::retiming_key_index_get(strip, key));
