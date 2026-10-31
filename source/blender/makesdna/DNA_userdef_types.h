@@ -1154,7 +1154,9 @@ struct UserDef {
   char gizmo_size = 75;
   /** Navigate gizmo size. */
   char gizmo_size_navigate_v3d = 80;
-  char _pad3[5] = {};
+  /** Curving of node links. */
+  char noodle_curving = 4;
+  char _pad3[4] = {};
   short edit_studio_light = 0;
   short lookdev_sphere_size = 150;
   short vbotimeout = 120, vbocollectrate = 60;

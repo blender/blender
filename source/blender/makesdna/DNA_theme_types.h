@@ -351,6 +351,7 @@ typedef struct ThemeSpace {
   unsigned char console_cursor[4], console_select[4];
 
   unsigned char vertex_size, edge_width, outline_width, obcenter_dia, facedot_size;
+  /** Deprecated, moved to #UserDef::noodle_curving. */
   unsigned char noodle_curving;
   unsigned char grid_levels;
   char _pad2[2];

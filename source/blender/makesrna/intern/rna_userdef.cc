@@ -3853,13 +3853,6 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Distort Node", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
-  prop = RNA_def_property(srna, "noodle_curving", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "noodle_curving");
-  RNA_def_property_int_default(prop, 5);
-  RNA_def_property_range(prop, 0, 10);
-  RNA_def_property_ui_text(prop, "Noodle Curving", "Curving of the noodle");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
   prop = RNA_def_property(srna, "grid_levels", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "grid_levels");
   RNA_def_property_int_default(prop, 3);
@@ -6239,6 +6232,12 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
                            "Node Preview Resolution",
                            "Resolution used for Shader node previews (should be changed for "
                            "performance convenience)");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "noodle_curving", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "noodle_curving");
+  RNA_def_property_range(prop, 0, 10);
+  RNA_def_property_ui_text(prop, "Noodle Curving", "How sharply or smoothly noodle wires curve");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   /* cursor */

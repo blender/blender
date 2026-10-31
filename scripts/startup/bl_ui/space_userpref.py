@@ -572,6 +572,8 @@ class USERPREF_PT_edit_node_editor(EditingPanel, CenterAlignMixIn, Panel):
         prefs = context.preferences
         edit = prefs.edit
 
+        layout.prop(edit, "noodle_curving")
+
         col = layout.column(heading="Auto-Offset")
         row = col.row()
         row.prop(edit, "node_use_insert_offset", text="")

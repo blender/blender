@@ -630,7 +630,6 @@ const bTheme U_theme_default = {
     .vertex_size = 3,
     .outline_width = 1,
     .facedot_size = 4,
-    .noodle_curving = 4,
     .grid_levels = 3,
     .dash_alpha = 0.5f,
     .syntaxl = RGBA(0x303030ff),
