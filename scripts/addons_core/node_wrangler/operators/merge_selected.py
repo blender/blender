@@ -40,8 +40,6 @@ class NODE_OT_merge_selected(Operator, NWBase):
         [op for op in operations if op not in blend_types]
     )
 
-    mode_tooltips = {item[0]: item[2] for item in mode_items}
-
     mode: EnumProperty(
         name="Mode",
         translation_context=i18n_contexts.id_nodetree,
@@ -60,11 +58,6 @@ class NODE_OT_merge_selected(Operator, NWBase):
             ('DEPTH_COMBINE', 'Depth Combine Node', 'Merge using Depth Combine nodes'),
             ('ALPHAOVER', 'Alpha Over Node', 'Merge using Alpha Over nodes'),
         ),
-    )
-
-    tooltip: StringProperty(
-        name="Description",
-        description="Custom description to use as a tooltip",
     )
 
     @classmethod
