@@ -133,14 +133,52 @@ void OSLManager::device_update_pre(Device * /*device*/, Scene *scene)
   }
 }
 
-static void optimize_group(OSL::ShadingSystem *ss,
+/* Thread infos reused for optimizing multiple groups. Each thread info that
+ * JITs creates a memory manager that OSL keeps as long as the shading system
+ * exists. This only reduces the problem and does not solve it for repeated
+ * compilation, and OSL's own optimize_all_groups() has the same problem. */
+class OSLThreadInfoPool {
+ public:
+  ~OSLThreadInfoPool()
+  {
+    for (const auto &[ss, thread_info] : thread_infos_) {
+      ss->destroy_thread_info(thread_info);
+    }
+  }
+
+  OSL::PerThreadInfo *acquire(OSL::ShadingSystem *ss)
+  {
+    const thread_scoped_lock lock(mutex_);
+    for (auto it = thread_infos_.begin(); it != thread_infos_.end(); ++it) {
+      if (it->first == ss) {
+        OSL::PerThreadInfo *thread_info = it->second;
+        thread_infos_.erase(it);
+        return thread_info;
+      }
+    }
+    return ss->create_thread_info();
+  }
+
+  void release(OSL::ShadingSystem *ss, OSL::PerThreadInfo *thread_info)
+  {
+    const thread_scoped_lock lock(mutex_);
+    thread_infos_.emplace_back(ss, thread_info);
+  }
+
+ private:
+  thread_mutex mutex_;
+  vector<std::pair<OSL::ShadingSystem *, OSL::PerThreadInfo *>> thread_infos_;
+};
+
+static void optimize_group(OSLThreadInfoPool &thread_infos,
+                           OSL::ShadingSystem *ss,
                            ImageManager *image_manager,
                            OSL::ShaderGroup *group)
 {
   /* Shading context for this group only, as it can't be shared between threads. It
    * identifies the image manager in #OSLRenderServices::get_texture_handle(). */
   OSLRenderServices *services = static_cast<OSLRenderServices *>(ss->renderer());
-  OSL::PerThreadInfo *thread_info = ss->create_thread_info();
+  OSL::PerThreadInfo *thread_info = thread_infos.acquire(ss);
   OSL::ShadingContext *context = ss->get_context(thread_info);
   services->image_manager_add(context, image_manager);
 
@@ -148,10 +186,11 @@ static void optimize_group(OSL::ShadingSystem *ss,
 
   services->image_manager_remove(context);
   ss->release_context(context);
-  ss->destroy_thread_info(thread_info);
+  thread_infos.release(ss, thread_info);
 }
 
 static void optimize_group(TaskPool &pool,
+                           OSLThreadInfoPool &thread_infos,
                            OSL::ShadingSystem *ss,
                            ImageManager *image_manager,
                            const OSL::ShaderGroupRef &group_ref)
@@ -169,9 +208,11 @@ static void optimize_group(TaskPool &pool,
    */
   OSL::ShaderGroup *group = group_ref.get();
 #  if defined(_WIN32) || defined(__APPLE__)
-  pool.push([ss, image_manager, group]() { optimize_group(ss, image_manager, group); });
+  pool.push([&thread_infos, ss, image_manager, group]() {
+    optimize_group(thread_infos, ss, image_manager, group);
+  });
 #  else
-  optimize_group(ss, image_manager, group);
+  optimize_group(thread_infos, ss, image_manager, group);
   (void)pool;
 #  endif
 }
@@ -278,6 +319,7 @@ void OSLManager::device_update_post(Device *device,
      * Isolate to avoid running tasks that wait for the lock held by this thread. */
     ImageManager *image_manager = scene->image_manager.get();
     isolate_task([&]() {
+      OSLThreadInfoPool thread_infos;
       TaskPool pool;
 
       foreach_osl_device(device, [&](Device *sub_device, OSLGlobals *og) {
@@ -290,10 +332,10 @@ void OSLManager::device_update_post(Device *device,
              {&og->surface_state, &og->volume_state, &og->displacement_state, &og->bump_state})
         {
           for (const OSL::ShaderGroupRef &group_ref : *states) {
-            optimize_group(pool, ss, image_manager, group_ref);
+            optimize_group(pool, thread_infos, ss, image_manager, group_ref);
           }
         }
-        optimize_group(pool, ss, image_manager, og->camera_state);
+        optimize_group(pool, thread_infos, ss, image_manager, og->camera_state);
       });
 
       pool.wait_work();
