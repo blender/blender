@@ -623,7 +623,7 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
   if (t->spacetype == SPACE_VIEW3D) {
     /* If auto-keying is enabled, send notifiers that keyframes were added. */
     if (animrig::is_autokey_on(t->scene)) {
-      WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+      WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);
     }
 
     /* Redraw UV editor. */

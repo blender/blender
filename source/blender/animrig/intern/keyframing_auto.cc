@@ -344,7 +344,8 @@ bool autokeyframe_property(bContext *C,
                                                      eBezTriple_KeyframeType(ts->keyframe_type),
                                                      flag);
       changed = result.get_count(SingleKeyingResult::SUCCESS) != 0;
-      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+      /* Without an existing F-Curve, keying can create new animation data. */
+      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | (fcu ? NA_EDITED : NA_ADDED), nullptr);
     }
   }
   return changed;
