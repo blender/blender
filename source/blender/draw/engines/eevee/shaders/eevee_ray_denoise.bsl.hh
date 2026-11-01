@@ -343,7 +343,7 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
     closest_hit_time = min(closest_hit_time, ray_time);
 
     /* Correct ray hit position.
-     * Instead of just reusing the ray direction (leading to screen space blur, loosing contact
+     * Instead of just reusing the ray direction (leading to screen space blur, losing contact
      * sharpness), get the neighbor pixel position and reconstruct the actual hit position. */
     ray_direction = safe_normalize(dPdxy * float2(offset) + ray_direction * ray_time);
 

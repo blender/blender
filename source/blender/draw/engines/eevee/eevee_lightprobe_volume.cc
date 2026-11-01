@@ -1118,7 +1118,7 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   float3 scene_max = float3(ordered_int_bits_to_float(capture_info_buf_.scene_bound_x_max),
                             ordered_int_bits_to_float(capture_info_buf_.scene_bound_y_max),
                             ordered_int_bits_to_float(capture_info_buf_.scene_bound_z_max));
-  /* To avoid loosing any surface to the clipping planes, add some padding. */
+  /* To avoid losing any surface to the clipping planes, add some padding. */
   float epsilon = 1.0f / surfel_density_;
   scene_min -= epsilon;
   scene_max += epsilon;
