@@ -4389,13 +4389,13 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
 
   ED_mesh_uv_ensure(mesh, nullptr);
 
-  bm->uv_select_sync_valid = false;
-  uvedit_select_prepare_custom_data(scene, bm);
-
   BMeshFromMeshParams bm_from_me_params{};
   bm_from_me_params.calc_face_normal = true;
   bm_from_me_params.calc_vert_normal = true;
   BM_mesh_bm_from_me(bm, mesh, &bm_from_me_params);
+
+  /* Must run after conversion, which restores the mesh's UV sync-select state. */
+  uvedit_select_prepare_custom_data(scene, bm);
 
   /* Select all UVs for cube_project. */
   ED_uvedit_select_all(scene->toolsettings, bm);

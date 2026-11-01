@@ -4667,7 +4667,9 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
         uvedit_loop_edge_select_set(ts, bm, l, select);
 
         if (select) {
-          uvedit_edge_select_shared_vert(scene, bm, l, select, UV_STICKY_LOCATION, offsets);
+          /* Only flush UV vertices. Flushing UV edges would flag the edges of unselected
+           * neighboring faces, making a face enclosed by the selection look fully selected. */
+          uvedit_uv_select_shared_vert(scene, bm, l, select, UV_STICKY_LOCATION, offsets);
         }
         else {
           /* Match selecting logic, except UV's still used by other selected faces must be kept.
