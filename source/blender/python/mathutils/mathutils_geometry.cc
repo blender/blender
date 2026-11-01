@@ -1829,7 +1829,7 @@ template<typename T> static PyObject *list_of_lists_from_arrays(const Span<Vecto
     const Span<T> group = data[i];
     PyObject *sublist = PyList_New(group.size());
     for (const int j : group.index_range()) {
-      PyList_SET_ITEM(sublist, j, PyLong_FromLong(group[j]));
+      PyList_SET_ITEM(sublist, j, PyLong_FromUnsignedLong(group[j]));
     }
     PyList_SET_ITEM(ret, i, sublist);
   }

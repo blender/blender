@@ -939,6 +939,12 @@ static int py_imbuf_buffer_traverse(Py_ImBufBuffer *self, visitproc visit, void 
 
 static int py_imbuf_buffer_clear(Py_ImBufBuffer *self)
 {
+  /* Release the buffer lock, dealloc can't once the reference is cleared. */
+  if (self->is_entered && self->py_ibuf) {
+    self->is_entered = false;
+    self->py_ibuf->buffer_users--;
+    BLI_assert(self->py_ibuf->buffer_users >= 0);
+  }
   Py_CLEAR(self->py_ibuf);
   return 0;
 }
@@ -967,6 +973,12 @@ static PyObject *py_imbuf_buffer_enter(Py_ImBufBuffer *self)
   const Py_ssize_t itemsize = is_byte ? 1 : Py_ssize_t(sizeof(float));
   const char *format = is_byte ? "B" : "f";
 
+  /* The image may have been resized or cropped since the context was created. */
+  std::optional<rcti> region_clamped = self->region;
+  if (region_clamped && !py_imbuf_region_sanitize(ibuf, &*region_clamped)) {
+    region_clamped.reset();
+  }
+
   /* `(height, width, channels)` view - the memoryview's natural image shape.
    * The full image is C-contiguous; a region uses the full image's row stride
    * to point at a sub-rectangle without copying. */
@@ -974,12 +986,12 @@ static PyObject *py_imbuf_buffer_enter(Py_ImBufBuffer *self)
   Py_ssize_t strides[3];
   Py_ssize_t offset = 0;
 
-  if (self->region == std::nullopt) {
+  if (region_clamped == std::nullopt) {
     shape[0] = ibuf->y;
     shape[1] = ibuf->x;
   }
   else {
-    const rcti &region = *self->region;
+    const rcti &region = *region_clamped;
     shape[0] = region.ymax - region.ymin;
     shape[1] = region.xmax - region.xmin;
     offset = (Py_ssize_t(region.ymin) * ibuf->x + region.xmin) * channels * itemsize;
