@@ -3657,7 +3657,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    /* Specular highlight was instroduced in 2.4x, but its default changed in 2.80. During 2.80
+    /* Specular highlight was introduced in 2.4x, but its default changed in 2.80. During 2.80
      * many viewport migrations were merged into a single subversion. Result: we always enable
      * specular highlights. */
     for (bScreen &screen : bmain->screens) {

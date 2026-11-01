@@ -275,7 +275,7 @@ static wmOperatorStatus project_new_exec(bContext *C, wmOperator *op)
   }
 
   /* Don't allow nesting inside or replacing a project. Nested does not have
-   * well defined semantices so is not supported for now. */
+   * well defined semantics so is not supported for now. */
   if (!BKE_is_path_inside_blender_project(root_path.c_str()).empty()) {
     BKE_report(op->reports, RPT_ERROR, "Folder already part of a project");
     return OPERATOR_CANCELLED;

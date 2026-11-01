@@ -155,7 +155,7 @@ static Brush *create_fill_guide_brush()
 
   settings->flag2 |= GP_BRUSH_USE_STROKE;
 
-  /* Dont use unified paint settings (since we want to set own color and size). */
+  /* Don't use unified paint settings (since we want to set own color and size). */
   fill_guides_brush->unified_paint_flags = {};
 
   /* Dont use pressure. */
