@@ -3569,12 +3569,14 @@ std::optional<ARegionIMECursor> WM_window_IME_region_refresh(wmWindow *win,
 
   /* A temporary popup is modal, it takes precedence over the region below it,
    * otherwise any redraw while the popup is open re-enables the IME, see #ED_region_do_draw.
-   * Tool-tips match too, harmless as an existing session isn't ended. */
+   * Tool-tips are excluded, they take no input and may outlive the cursor leaving
+   * their region (gizmo tool-tips for e.g.), which would prevent beginning the IME. */
   const bScreen *screen = WM_window_get_active_screen(win);
-  if (!screen->regionbase.is_empty() &&
-      (BKE_screen_find_region_type(screen, RGN_TYPE_TEMPORARY) != nullptr))
-  {
-    return std::nullopt;
+  const ARegion *tooltip_region = screen->tool_tip ? screen->tool_tip->region : nullptr;
+  for (const ARegion &region_iter : screen->regionbase) {
+    if ((region_iter.regiontype == RGN_TYPE_TEMPORARY) && (&region_iter != tooltip_region)) {
+      return std::nullopt;
+    }
   }
 
   /* NOTE: ending mid-composition cancels it, so the draw-time refresh opts out via
