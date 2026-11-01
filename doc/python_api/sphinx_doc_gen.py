@@ -622,6 +622,7 @@ def global_create(argv: Sequence[str]) -> Global:
             "bmesh.geometry",
             "bpy.app",
             "bpy.app.handlers",
+            "bpy.app.icons",
             "bpy.app.timers",
             "bpy.app.translations",
             "bpy.context",
@@ -643,6 +644,7 @@ def global_create(argv: Sequence[str]) -> Global:
             "gpu.texture",
             "gpu.platform",
             "gpu.capabilities",
+            "gpu.compute",
             "gpu_extras",
             "idprop",
             "idprop.types",
@@ -2692,7 +2694,10 @@ def pyrna2sphinx(basepath: Path) -> None:
                         lines.append("   - :class:`{:s}.{:s}`\n".format(_BPY_STRUCT_PYCAPI, key))
 
             for base in bases:
+                base_exclude = RNA_EXCLUDE.get(base.identifier, ())
                 for prop in base.properties:
+                    if prop.identifier in base_exclude:
+                        continue
                     lines.append("   - :class:`{:s}.{:s}`\n".format(base.identifier, prop.identifier))
 
                 for identifier, py_prop in base.get_py_properties():

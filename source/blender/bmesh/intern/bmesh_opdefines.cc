@@ -1006,7 +1006,7 @@ static BMOpDefine bmo_holes_fill_def = {
     {
         /* Input edges. */
         {"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
-        /* Maximum number of sides for holes to fill (holes with more edges are skipped). */
+        /* Maximum number of sides for holes to fill, zero fills all holes. */
         {"sides", BMO_OP_SLOT_INT},
         {{'\0'}},
     },
@@ -1095,7 +1095,7 @@ static BMOpDefine bmo_edgenet_fill_def = {
         {"mat_nr", BMO_OP_SLOT_INT},
         /* Smooth state to use. */
         {"use_smooth", BMO_OP_SLOT_BOOL},
-        /* Maximum number of sides for created faces. */
+        /* Maximum number of sides for created faces (currently ignored). */
         {"sides", BMO_OP_SLOT_INT},
         {{'\0'}},
     },
@@ -2268,7 +2268,7 @@ static BMOpDefine bmo_split_edges_def = {
     },
     /*slot_types_out*/
     {
-        /* The original edges that were disconnected. */
+        /* The input edges and the new edges created by splitting them. */
         {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         {{'\0'}},
     },
