@@ -1315,7 +1315,7 @@ IndexMask retrieve_visible_bezier_handle_elements(Object &object,
 {
   if (selection_domain == bke::AttrDomain::Curve) {
     return ed::greasepencil::retrieve_visible_bezier_handle_strokes(
-        object, drawing, handle_display, memory);
+        object, drawing, CURVE_HANDLE_NONE, memory);
   }
   if (selection_domain == bke::AttrDomain::Point) {
     return ed::greasepencil::retrieve_visible_bezier_handle_points(

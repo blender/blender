@@ -1380,10 +1380,7 @@ IndexMask select_box_mask(const ViewContext &vc,
     return BLI_rcti_isect_segment(&rect, int2(pos_proj), int2(next_pos_proj));
   };
 
-  const IndexMask &mask = (selection_domain != bke::AttrDomain::Point ||
-                           attribute_name == ".selection") ?
-                              selection_mask :
-                              bezier_mask;
+  const IndexMask &mask = (attribute_name == ".selection") ? selection_mask : bezier_mask;
   return select_mask_from_predicates(
       curves, mask, selection_domain, memory, point_predicate, line_predicate);
 }
@@ -1427,10 +1424,7 @@ IndexMask select_lasso_mask(const ViewContext &vc,
                                     IS_CLIPPED);
   };
 
-  const IndexMask &mask = (selection_domain != bke::AttrDomain::Point ||
-                           attribute_name == ".selection") ?
-                              selection_mask :
-                              bezier_mask;
+  const IndexMask &mask = (attribute_name == ".selection") ? selection_mask : bezier_mask;
   return select_mask_from_predicates(
       curves, mask, selection_domain, memory, point_predicate, line_predicate);
 }
@@ -1469,10 +1463,7 @@ IndexMask select_circle_mask(const ViewContext &vc,
     return distance_proj_sq <= radius_sq;
   };
 
-  const IndexMask &mask = (selection_domain != bke::AttrDomain::Point ||
-                           attribute_name == ".selection") ?
-                              selection_mask :
-                              bezier_mask;
+  const IndexMask &mask = (attribute_name == ".selection") ? selection_mask : bezier_mask;
   return select_mask_from_predicates(
       curves, mask, selection_domain, memory, point_predicate, line_predicate);
 }

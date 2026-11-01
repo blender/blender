@@ -3294,10 +3294,7 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
           }
           else if (selection_domain == bke::AttrDomain::Curve) {
             ed::curves::foreach_selectable_curve_range(
-                curves,
-                deformation,
-                eHandleDisplay(vc.v3d->overlay.handle_display),
-                range_consumer);
+                curves, deformation, eHandleDisplay::CURVE_HANDLE_NONE, range_consumer);
           };
         }
         return new_closest;
@@ -3466,10 +3463,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
           }
           else if (selection_domain == bke::AttrDomain::Curve) {
             ed::curves::foreach_selectable_curve_range(
-                curves,
-                deformation,
-                eHandleDisplay(vc.v3d->overlay.handle_display),
-                range_consumer);
+                curves, deformation, eHandleDisplay::CURVE_HANDLE_NONE, range_consumer);
           };
         }
         return new_closest;
