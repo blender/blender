@@ -80,12 +80,6 @@ struct GWL_WindowCSD {
   GHOST_CSD_Elem csd_elems[GHOST_kCSDType_NUM] = {};
   int csd_elems_num = 0;
 
-  /**
-   * Bit-mask of the button types the compositor supports,
-   * all bits set until #xdg_toplevel_listener::wm_capabilities reports otherwise.
-   */
-  uint32_t wm_capabilities_mask = ~uint32_t(0);
-
   /** Track the active type, intersecting the pointing device. */
   GHOST_TCSD_Type active_type = GHOST_kCSDTypeBody;
   /** For tracking double click/drag. */
@@ -406,6 +400,12 @@ struct GWL_Window {
 #ifdef WITH_GHOST_CSD
   /** Our own CSD (optionally use). */
   GWL_WindowCSD *xdg_csd = nullptr;
+  /**
+   * Bit-mask of the button types the compositor supports,
+   * all bits set until #xdg_toplevel_listener::wm_capabilities reports otherwise.
+   * Stored outside #xdg_csd since it's typically received before #xdg_csd is created.
+   */
+  uint32_t wm_capabilities_mask = ~uint32_t(0);
 #endif
 
   /**
@@ -897,7 +897,7 @@ static void gwl_window_csd_elems_update(GWL_Window *win)
  */
 static void gwl_window_csd_layout_apply(GWL_Window *win)
 {
-  const uint32_t type_mask = win->xdg_csd->wm_capabilities_mask;
+  const uint32_t type_mask = win->wm_capabilities_mask;
   const GHOST_CSD_Layout &layout_base = win->ghost_system->preferences_csd_button_layout_get();
   GHOST_CSD_Layout layout = {};
 
@@ -1470,8 +1470,8 @@ static void xdg_toplevel_handle_wm_capabilities(void *data,
   }
 
   GWL_Window *win = static_cast<GWL_Window *>(data);
+  win->wm_capabilities_mask = type_mask;
   if (win->xdg_csd) {
-    win->xdg_csd->wm_capabilities_mask = type_mask;
     gwl_window_csd_layout_apply(win);
   }
 
@@ -1920,6 +1920,8 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 #ifdef WITH_GHOST_CSD
   if (window_->xdg_decor && system_->use_window_frame_csd_get()) {
     window_->xdg_csd = new GWL_WindowCSD;
+    /* Apply capabilities received while dispatching the initial configure. */
+    gwl_window_csd_layout_apply(window_);
     /* Rounded corners require the compositor to blend the surface. */
     want_context_params_.use_alpha = system_->getWindowCSD().corner_radius > 0;
   }

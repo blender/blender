@@ -22,7 +22,7 @@ WAYLAND_DYNLOAD_FN(wl_egl_window_get_attached_size)
 #else
 
 /* Header guard. */
-#  if !defined(__WAYLAND_DYNLOAD_EGL_H__) && !defined(WAYLAND_DYNLOAD_VALIDATE)
+#  if !defined(__WAYLAND_DYNLOAD_EGL_H__) || defined(WAYLAND_DYNLOAD_VALIDATE)
 #    define __WAYLAND_DYNLOAD_EGL_H__
 
 #    include <wayland-egl-core.h>
@@ -62,8 +62,8 @@ struct WaylandDynload_EGL {
         (*wayland_dynload_egl.wl_egl_window_get_attached_size)(__VA_ARGS__)
 
 #    endif /* !WAYLAND_DYNLOAD_VALIDATE */
-#  endif   /* !defined(WAYLAND_DYNLOAD_FN) && !defined(WAYLAND_DYNLOAD_IFACE) */
-#endif     /* !defined(__WAYLAND_DYNLOAD_EGL_H__) && !defined(WAYLAND_DYNLOAD_VALIDATE) */
+#  endif   /* !defined(__WAYLAND_DYNLOAD_EGL_H__) || defined(WAYLAND_DYNLOAD_VALIDATE) */
+#endif     /* !defined(WAYLAND_DYNLOAD_FN) && !defined(WAYLAND_DYNLOAD_IFACE) */
 
 #ifdef __cplusplus
 }
