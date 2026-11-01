@@ -21,6 +21,7 @@
 #include "BKE_library.hh"
 #include "BKE_report.hh"
 #include "BKE_rigidbody.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -112,6 +113,14 @@ static wmOperatorStatus rigidbody_object_add_exec(bContext *C, wmOperator *op)
   Object *ob = ed::object::context_active_object(C);
   eRigidBodyOb_Type type = eRigidBodyOb_Type(RNA_enum_get(op->ptr, "type"));
   bool changed;
+  /* Poll ensures. */
+  BLI_assert(scene && ob);
+
+  /* Pinned objects could be from another scene. */
+  if (!BKE_scene_object_find(*bmain, scene, ob)) {
+    BKE_report(op->reports, RPT_ERROR, "No object in the scene to add Rigid Body to");
+    return OPERATOR_CANCELLED;
+  }
 
   /* apply to active object */
   changed = ED_rigidbody_object_add(bmain, scene, ob, type, op->reports);
@@ -158,6 +167,14 @@ static wmOperatorStatus rigidbody_object_remove_exec(bContext *C, wmOperator *op
   Scene *scene = CTX_data_scene(C);
   Object *ob = ed::object::context_active_object(C);
   bool changed = false;
+  /* Poll ensures. */
+  BLI_assert(scene && ob && ob->rigidbody_object);
+
+  /* Pinned objects could be from another scene. */
+  if (!BKE_scene_object_find(*bmain, scene, ob)) {
+    BKE_report(op->reports, RPT_ERROR, "No object in the scene to remove Rigid Body from");
+    return OPERATOR_CANCELLED;
+  }
 
   /* apply to active object */
   if (!ELEM(nullptr, ob, ob->rigidbody_object)) {

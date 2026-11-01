@@ -210,6 +210,9 @@ static wmOperatorStatus weight_sample_invoke(bContext *C, wmOperator *op, const 
     if (v_idx_best != -1) { /* should always be valid */
       ToolSettings *ts = vc.scene->toolsettings;
       Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
+      if (brush == nullptr) {
+        return OPERATOR_CANCELLED;
+      }
       const int vgroup_active = mesh->vertex_group_active_index - 1;
       float vgroup_weight = BKE_defvert_find_weight(&dvert[v_idx_best], vgroup_active);
       const int defbase_tot = mesh->vertex_group_names.count();

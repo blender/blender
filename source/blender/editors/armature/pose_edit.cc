@@ -134,10 +134,10 @@ bool ED_object_posemode_exit(bContext *C, Object *ob)
   if (ok) {
     WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, nullptr);
   }
-  /** \} */
-
   return ok;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Motion Paths
