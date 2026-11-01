@@ -373,7 +373,7 @@ void rna_DriverTarget_id_set(PointerRNA *ptr, PointerRNA value, struct ReportLis
 
   /* Note that value.owner_id may be nullptr, for example when called from #button_string_set() in
    * interface.cc. This path is hit when a linked datablock is selected from a drop-down selector,
-   * for example in the Driver editor's variable defnition UI. This means that `value` should not
+   * for example in the Driver editor's variable definition UI. This means that `value` should not
    * be passed as-is to other code. */
   ID *id = value.data_as<ID>();
 

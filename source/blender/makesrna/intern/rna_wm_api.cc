@@ -1817,7 +1817,7 @@ void RNA_api_asset_library_loading_status(StructRNA *srna)
       nullptr,
       0,
       "URL",
-      "The full path (not URL!) pointing to the the asset preview that should be available now");
+      "The full path (not URL!) pointing to the asset preview that should be available now");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna,

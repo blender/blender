@@ -942,7 +942,7 @@ static bool outliner_id_copy_tag_id(ID *id,
   if (ID_IS_PACKED(id)) {
     /* Direct link/append of packed IDs is not supported currently, so neither is their
      * copy/pasting. */
-    /* NOTE: In practice, should alwasy be shadowed by the more general text on linked data
+    /* NOTE: In practice, should always be shadowed by the more general text on linked data
      * above currently. */
     BKE_reportf(reports,
                 RPT_INFO,
