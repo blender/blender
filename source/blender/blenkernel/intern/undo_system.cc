@@ -239,13 +239,19 @@ static void undosys_step_free_and_unlink(UndoStack *ustack, UndoStep *us)
   UNDO_NESTED_CHECK_END;
 
   BLI_remlink(&ustack->steps, us);
-  MEM_delete(us);
 
 #ifdef WITH_GLOBAL_UNDO_CORRECT_ORDER
   if (ustack->step_active_memfile == us) {
     ustack->step_active_memfile = nullptr;
+    /* The memfile holding the current state of main is gone, so the next push must write a new
+     * one, see #WITH_GLOBAL_UNDO_ENSURE_UPDATED. */
+    if (G_MAIN) {
+      G_MAIN->is_memfile_undo_written = false;
+    }
   }
 #endif
+
+  MEM_delete(us);
 }
 
 /** \} */

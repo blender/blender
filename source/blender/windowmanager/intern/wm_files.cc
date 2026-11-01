@@ -3479,7 +3479,8 @@ static bool wm_open_mainfile_check(bContext * /*C*/, wmOperator *op)
 
   /* Excluded paths can't be trusted, unless the command line overrides the preference. */
   if (((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) && !G.autoexec_override.has_value()) {
-    if (BKE_autoexec_match(filepath, true, true)) {
+    /* The file selector may start without a path, e.g. an unsaved session. */
+    if ((filepath[0] != '\0') && BKE_autoexec_match(filepath, true, true)) {
       RNA_property_boolean_set(op->ptr, prop, false);
       is_untrusted = true;
     }

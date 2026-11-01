@@ -1758,7 +1758,8 @@ size_t BLI_path_join_array(MutableCStr dst, const char *path_array[], const int 
     if (i == ofs) {
       /* All slashes, keep them as-is, and join the remaining path array. */
       return path_array_num > 1 ?
-                 BLI_path_join_array(dst.drop_front(ofs), &path_array[1], path_array_num - 1) :
+                 ofs +
+                     BLI_path_join_array(dst.drop_front(ofs), &path_array[1], path_array_num - 1) :
                  ofs;
     }
   }
