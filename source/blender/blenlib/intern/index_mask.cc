@@ -935,7 +935,7 @@ IndexMask from_predicate_impl(
   Vector<IndexMaskSegment, 16> segments;
   constexpr int fallback_grain_size = 4096;
   /* Avoid ParallelSegmentsCollector overhead when universe is small relative to task size. */
-  if (!mode.is_parallel &&
+  if (!mode.is_parallel ||
       universe.size() <= mode.grain_size_override.value_or(fallback_grain_size))
   {
     for (const int64_t segment_i : IndexRange(universe.segments_num())) {
