@@ -151,7 +151,7 @@ void ED_mesh_uv_loop_reset(bContext *C, Mesh *mesh)
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 }
 
-int ED_mesh_uv_add(
+std::optional<std::string> ED_mesh_uv_add(
     Mesh *mesh, const char *name, const bool active_set, const bool do_init, ReportList *reports)
 {
   /* NOTE: keep in sync with #ED_mesh_color_add. */
@@ -170,7 +170,7 @@ int ED_mesh_uv_add(
     layernum_dst = CustomData_number_of_layers(&bm->ldata, CD_PROP_FLOAT2);
     if (layernum_dst >= MAX_MTFACE) {
       BKE_reportf(reports, RPT_WARNING, "Cannot add more than %i UV maps", MAX_MTFACE);
-      return -1;
+      return std::nullopt;
     }
 
     BM_data_layer_add_named(bm, &bm->ldata, CD_PROP_FLOAT2, unique_name.c_str());
@@ -191,7 +191,7 @@ int ED_mesh_uv_add(
     layernum_dst = mesh->uv_map_names().size();
     if (layernum_dst >= MAX_MTFACE) {
       BKE_reportf(reports, RPT_WARNING, "Cannot add more than %i UV maps", MAX_MTFACE);
-      return -1;
+      return std::nullopt;
     }
 
     const StringRef active_name = mesh->active_uv_map_name();
@@ -221,7 +221,7 @@ int ED_mesh_uv_add(
   DEG_id_tag_update(&mesh->id, 0);
   WM_main_add_notifier(NC_GEOM | ND_DATA, mesh);
 
-  return layernum_dst;
+  return unique_name;
 }
 
 static VArray<bool> get_corner_boolean_attribute(const Mesh &mesh, const StringRef name)
@@ -274,11 +274,11 @@ void ED_mesh_uv_ensure(Mesh *mesh, const char *name)
 /** \name Color Layer API
  * \{ */
 
-std::string ED_mesh_color_add(Mesh *mesh,
-                              const char *name,
-                              const bool active_set,
-                              const bool do_init,
-                              ReportList * /*reports*/)
+std::optional<std::string> ED_mesh_color_add(Mesh *mesh,
+                                             const char *name,
+                                             const bool active_set,
+                                             const bool do_init,
+                                             ReportList * /*reports*/)
 {
   /* If no name is supplied, provide a backwards compatible default. */
   if (!name) {
@@ -395,7 +395,7 @@ static wmOperatorStatus mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
   Object *ob = ed::object::context_object(C);
   Mesh *mesh = id_cast<Mesh *>(ob->data);
 
-  if (ED_mesh_uv_add(mesh, nullptr, true, true, op->reports) == -1) {
+  if (!ED_mesh_uv_add(mesh, nullptr, true, true, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
