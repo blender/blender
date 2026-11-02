@@ -789,9 +789,11 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
   innrcut->count = num_innercut_items;
   innrcut->indices = static_cast<int *>(
       BLI_memarena_alloc(mem, sizeof(*innrcut->indices) * size_t(num_innercut_items)));
-  memcpy(innrcut->indices,
-         innercut_item_indices,
-         sizeof(*innrcut->indices) * size_t(num_innercut_items));
+  if (num_innercut_items) {
+    memcpy(innrcut->indices,
+           innercut_item_indices,
+           sizeof(*innrcut->indices) * size_t(num_innercut_items));
+  }
 }
 
 static bool mesh_calc_islands_loop_face_uv(const int totedge,
