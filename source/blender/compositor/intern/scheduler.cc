@@ -420,189 +420,6 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
   return node_stack;
 }
 
-/* A type representing a mapping that associates each node with a heuristic estimation of the
- * number of intermediate buffers needed to compute it and all of its dependencies. See the
- * compute_number_of_needed_buffers function for more information. */
-using NeededBuffers = Map<const bNode *, int>;
-
-/* Compute a heuristic estimation of the number of intermediate buffers needed to compute each node
- * and all of its dependencies for all nodes that the given node depends on. The output is a map
- * that maps each node with the number of intermediate buffers needed to compute it and all of its
- * dependencies.
- *
- * Consider a node that takes n number of buffers as an input from a number of node dependencies,
- * which we shall call the input nodes. The node also computes and outputs m number of buffers.
- * In order for the node to compute its output, a number of intermediate buffers will be needed.
- * Since the node takes n buffers and outputs m buffers, then the number of buffers directly
- * needed by the node is (n + m). But each of the input buffers are computed by a node that, in
- * turn, needs a number of buffers to compute its output. So the total number of buffers needed
- * to compute the output of the node is max(n + m, d) where d is the number of buffers needed by
- * the input node that needs the largest number of buffers. We only consider the input node that
- * needs the largest number of buffers, because those buffers can be reused by any input node
- * that needs a lesser number of buffers.
- *
- * Pixel nodes, however, are a special case because links between two pixel nodes inside the same
- * pixel operation don't pass a buffer, but a single value in the pixel processor. So for pixel
- * nodes, only inputs and outputs linked to nodes that are not pixel nodes should be considered.
- * Note that this might not actually be true, because the compiler may decide to split a pixel
- * operation into multiples ones that will pass buffers, but this is not something that can be
- * known at scheduling-time. See the description of NodeTreeEvaluator and COM_shader_operation.hh
- * for more information. In the node tree shown below, node 4 will have exactly the same number of
- * needed buffers by node 3, because its inputs and outputs are all internally linked in the pixel
- * operation.
- *
- *                                      Pixel Operation
- *                   +------------------------------------------------------+
- * .------------.    |  .------------.  .------------.      .------------.  |  .------------.
- * |   Node 1   |    |  |   Node 3   |  |   Node 4   |      |   Node 5   |  |  |   Node 6   |
- * |            |----|--|            |--|            |------|            |--|--|            |
- * |            |  .-|--|            |  |            |  .---|            |  |  |            |
- * '------------'  | |  '------------'  '------------'  |   '------------'  |  '------------'
- *                 | +----------------------------------|-------------------+
- * .------------.  |                                    |
- * |   Node 2   |  |                                    |
- * |            |--'------------------------------------'
- * |            |
- * '------------'
- *
- * Note that the computed output is not guaranteed to be accurate, and will not be in most cases.
- * The computation is merely a heuristic estimation that works well in most cases. This is due to a
- * number of reasons:
- * - The node tree is actually a graph that allows output sharing, which is not something that was
- *   taken into consideration in this implementation because it is difficult to correctly consider.
- * - Each node may allocate any number of internal buffers, which is not taken into account in this
- *   implementation because it rarely affects the output and is done by very few nodes.
- * - The compiler may decide to compiler the schedule differently depending on runtime information
- *   which we can merely speculate at scheduling-time as described above. */
-static NeededBuffers compute_number_of_needed_buffers(const Context &context,
-                                                      Stack<const bNode *> &output_nodes,
-                                                      SocketResultFn socket_result_fn)
-{
-  NeededBuffers needed_buffers;
-
-  /* A stack of nodes used to traverse the node group starting from the output nodes. */
-  Stack<const bNode *> node_stack = output_nodes;
-
-  /* Traverse the node group in a post order depth first manner and compute the number of needed
-   * buffers for each node. Post order traversal guarantee that all the node dependencies of each
-   * node are computed before it. This is done by pushing all the uncomputed node dependencies to
-   * the node stack first and only popping and computing the node when all its node dependencies
-   * were computed. */
-  while (!node_stack.is_empty()) {
-    /* Do not pop the node immediately, as it may turn out that we can't compute its number of
-     * needed buffers just yet because its dependencies weren't computed, it will be popped later
-     * when needed. */
-    const bNode &node = *node_stack.peek();
-
-    /* Go over the node dependencies connected to the inputs of the node and push them to the node
-     * stack if they were not computed already. */
-    Set<const bNode *> pushed_nodes;
-    for (const bNodeSocket *input : node.input_sockets()) {
-      if (!is_socket_available(input)) {
-        continue;
-      }
-
-      if (!is_input_needed(context, node, *input, socket_result_fn)) {
-        continue;
-      }
-
-      /* Get the output linked to the input. If it is null, that means the input is unlinked and
-       * has no dependency node. */
-      const bNodeSocket *output = get_output_linked_to_input(*input);
-      if (!output) {
-        continue;
-      }
-
-      /* The node dependency was already computed or pushed before, so skip it. */
-      if (needed_buffers.contains(&output->owner_node()) ||
-          pushed_nodes.contains(&output->owner_node()))
-      {
-        continue;
-      }
-
-      /* The output node needs to be computed, push the node dependency to the node stack and
-       * indicate that it was pushed. */
-      node_stack.push(&output->owner_node());
-      pushed_nodes.add_new(&output->owner_node());
-    }
-
-    /* If any of the node dependencies were pushed, that means that not all of them were computed
-     * and consequently we can't compute the number of needed buffers for this node just yet. */
-    if (!pushed_nodes.is_empty()) {
-      continue;
-    }
-
-    /* We don't need to store the result of the pop because we already peeked at it before. */
-    node_stack.pop();
-
-    /* Compute the number of buffers that the node takes as an input as well as the number of
-     * buffers needed to compute the most demanding of the node dependencies. */
-    int number_of_input_buffers = 0;
-    int buffers_needed_by_dependencies = 0;
-    for (const bNodeSocket *input : node.input_sockets()) {
-      if (!is_socket_available(input)) {
-        continue;
-      }
-
-      if (!is_input_needed(context, node, *input, socket_result_fn)) {
-        continue;
-      }
-
-      /* Get the output linked to the input. If it is null, that means the input is unlinked.
-       * Unlinked inputs do not take a buffer, so skip those inputs. */
-      const bNodeSocket *output = get_output_linked_to_input(*input);
-      if (!output) {
-        continue;
-      }
-
-      /* Since this input is linked, if the link is not between two pixel nodes, it means that the
-       * node takes a buffer through this input and so we increment the number of input buffers. */
-      if (!is_pixel_node(node) || !is_pixel_node(output->owner_node())) {
-        number_of_input_buffers++;
-      }
-
-      /* If the number of buffers needed by the node dependency is more than the total number of
-       * buffers needed by the dependencies, then update the latter to be the former. This is
-       * computing the "d" in the aforementioned equation "max(n + m, d)". */
-      const int buffers_needed_by_dependency = needed_buffers.lookup(&output->owner_node());
-      buffers_needed_by_dependencies = std::max(buffers_needed_by_dependency,
-                                                buffers_needed_by_dependencies);
-    }
-
-    /* Compute the number of buffers that will be computed/output by this node. */
-    int number_of_output_buffers = 0;
-    for (const bNodeSocket *output : node.output_sockets()) {
-      if (!is_socket_available(output)) {
-        continue;
-      }
-
-      /* The output is not linked, it outputs no buffer. */
-      if (!output->is_logically_linked()) {
-        continue;
-      }
-
-      /* If any of the links is not between two pixel nodes, it means that the node outputs
-       * a buffer through this output and so we increment the number of output buffers. */
-      if (!is_pixel_node(node) ||
-          is_output_linked_to_input_conditioned(
-              *output,
-              [&](const bNodeSocket &input) { return !is_pixel_node(input.owner_node()); }))
-      {
-        number_of_output_buffers++;
-      }
-    }
-
-    /* Compute the heuristic estimation of the number of needed intermediate buffers to compute
-     * this node and all of its dependencies. This is computing the aforementioned equation
-     * "max(n + m, d)". */
-    const int total_buffers = std::max(number_of_input_buffers + number_of_output_buffers,
-                                       buffers_needed_by_dependencies);
-    needed_buffers.add(&node, total_buffers);
-  }
-
-  return needed_buffers;
-}
-
 /* Find the nodes that the given node depends on. Nodes already scheduled are not included. Only
  * nodes in the given zone are included, except for zone output nodes of child zones, which acts as
  * representatives for the zone in the schedule. Unneeded inputs are marked in the schedule. */
@@ -702,6 +519,156 @@ static Vector<const bNode *> find_dependency_nodes(const Context &context,
   return find_node_dependency_nodes(context, schedule, node, zone, socket_result_fn);
 }
 
+/* Compute a heuristic estimation of the number of intermediate buffers needed to compute each node
+ * and all of its dependencies for all nodes that the given node depends on. The output is a map
+ * that maps each node with the number of intermediate buffers needed to compute it and all of its
+ * dependencies.
+ *
+ * Consider a node that takes n number of buffers as an input from a number of node dependencies,
+ * which we shall call the input nodes. The node also computes and outputs m number of buffers.
+ * In order for the node to compute its output, a number of intermediate buffers will be needed.
+ * Since the node takes n buffers and outputs m buffers, then the number of buffers directly
+ * needed by the node is (n + m). But each of the input buffers are computed by a node that, in
+ * turn, needs a number of buffers to compute its output. So the total number of buffers needed
+ * to compute the output of the node is max(n + m, d) where d is the number of buffers needed by
+ * the input node that needs the largest number of buffers. We only consider the input node that
+ * needs the largest number of buffers, because those buffers can be reused by any input node
+ * that needs a lesser number of buffers.
+ *
+ * Pixel nodes, however, are a special case because links between two pixel nodes inside the same
+ * pixel operation don't pass a buffer, but a single value in the pixel processor. So for pixel
+ * nodes, only inputs and outputs linked to nodes that are not pixel nodes should be considered.
+ * Note that this might not actually be true, because the compiler may decide to split a pixel
+ * operation into multiples ones that will pass buffers, but this is not something that can be
+ * known at scheduling-time. See the description of NodeTreeEvaluator and COM_shader_operation.hh
+ * for more information. In the node tree shown below, node 4 will have exactly the same number of
+ * needed buffers by node 3, because its inputs and outputs are all internally linked in the pixel
+ * operation.
+ *
+ *                                      Pixel Operation
+ *                   +------------------------------------------------------+
+ * .------------.    |  .------------.  .------------.      .------------.  |  .------------.
+ * |   Node 1   |    |  |   Node 3   |  |   Node 4   |      |   Node 5   |  |  |   Node 6   |
+ * |            |----|--|            |--|            |------|            |--|--|            |
+ * |            |  .-|--|            |  |            |  .---|            |  |  |            |
+ * '------------'  | |  '------------'  '------------'  |   '------------'  |  '------------'
+ *                 | +----------------------------------|-------------------+
+ * .------------.  |                                    |
+ * |   Node 2   |  |                                    |
+ * |            |--'------------------------------------'
+ * |            |
+ * '------------'
+ *
+ * Note that the computed output is not guaranteed to be accurate, and will not be in most cases.
+ * The computation is merely a heuristic estimation that works well in most cases. This is due to a
+ * number of reasons:
+ * - The node tree is actually a graph that allows output sharing, which is not something that was
+ *   taken into consideration in this implementation because it is difficult to correctly consider.
+ * - Each node may allocate any number of internal buffers, which is not taken into account in this
+ *   implementation because it rarely affects the output and is done by very few nodes.
+ * - The compiler may decide to compiler the schedule differently depending on runtime information
+ *   which we can merely speculate at scheduling-time as described above. */
+static Map<const bNode *, int> compute_number_of_needed_buffers(const Context &context,
+                                                                const bNodeTree &node_group,
+                                                                Stack<const bNode *> &output_nodes,
+                                                                SocketResultFn socket_result_fn,
+                                                                const bke::bNodeTreeZone *zone)
+{
+  Map<const bNode *, int> needed_buffers;
+
+  /* We are not actually computing the schedule in this function, but it is still used to track
+   * what was already computed. */
+  Schedule schedule = Schedule{node_group, zone};
+  Schedule empty_schedule = Schedule{node_group, zone};
+
+  /* A stack of nodes used to traverse the node group starting from the output nodes. */
+  Stack<const bNode *> node_stack = output_nodes;
+
+  /* Traverse the node group in a post order depth first manner and compute the number of needed
+   * buffers for each node. Post order traversal guarantee that all the node dependencies of each
+   * node are computed before it. This is done by pushing all the uncomputed node dependencies to
+   * the node stack first and only popping and computing the node when all its node dependencies
+   * were computed. */
+  while (!node_stack.is_empty()) {
+    /* Do not pop the node immediately, as it may turn out that we can't compute its number of
+     * needed buffers just yet because its dependencies weren't computed, it will be popped later
+     * when needed. */
+    const bNode &node = *node_stack.peek();
+
+    Vector<const bNode *> dependency_nodes = find_dependency_nodes(
+        context, schedule, node, zone, socket_result_fn);
+    node_stack.push_multiple(dependency_nodes);
+
+    /* If any of the node dependencies were pushed, that means that not all of them were computed
+     * and consequently we can't compute the number of needed buffers for this node just yet. */
+    if (!dependency_nodes.is_empty()) {
+      continue;
+    }
+
+    schedule.nodes.add(node_stack.pop());
+
+    /* This is different from dependency_nodes in that it considers all nodes even ones that were
+     * already scheduled, this is done by passing an empty schedule. */
+    Vector<const bNode *> nodes_linked_to_inputs = find_dependency_nodes(
+        context, empty_schedule, node, zone, socket_result_fn);
+
+    /* Compute the number of buffers that the node takes as an input as well as the number of
+     * buffers needed to compute the most demanding of the node dependencies. */
+    int number_of_input_buffers = 0;
+    int buffers_needed_by_dependencies = 0;
+    for (const bNode *linked_node : nodes_linked_to_inputs) {
+      /* Since this input is linked, if the link is not between two pixel nodes, it means that the
+       * node takes a buffer through this input and so we increment the number of input buffers. */
+      if (!is_pixel_node(node) || !is_pixel_node(*linked_node)) {
+        number_of_input_buffers++;
+      }
+
+      /* If the number of buffers needed by the node dependency is more than the total number of
+       * buffers needed by the dependencies, then update the latter to be the former. This is
+       * computing the "d" in the aforementioned equation "max(n + m, d)". */
+      const int buffers_needed_by_dependency = needed_buffers.lookup(linked_node);
+      buffers_needed_by_dependencies = std::max(buffers_needed_by_dependency,
+                                                buffers_needed_by_dependencies);
+    }
+
+    /* Compute the number of buffers that will be computed/output by this node. */
+    int number_of_output_buffers = 0;
+    for (const bNodeSocket *output : node.output_sockets()) {
+      if (!is_socket_available(output)) {
+        continue;
+      }
+
+      /* The output is not linked, it outputs no buffer. */
+      if (!output->is_logically_linked()) {
+        continue;
+      }
+
+      bool is_output_linked_to_buffered_node = false;
+      for (const bNodeSocket *input : output->logically_linked_sockets()) {
+        if (!is_pixel_node(input->owner_node())) {
+          is_output_linked_to_buffered_node = true;
+          break;
+        }
+      }
+
+      /* If any of the links is not between two pixel nodes, it means that the node outputs
+       * a buffer through this output and so we increment the number of output buffers. */
+      if (!is_pixel_node(node) || is_output_linked_to_buffered_node) {
+        number_of_output_buffers++;
+      }
+    }
+
+    /* Compute the heuristic estimation of the number of needed intermediate buffers to compute
+     * this node and all of its dependencies. This is computing the aforementioned equation
+     * "max(n + m, d)". */
+    const int total_buffers = std::max(number_of_input_buffers + number_of_output_buffers,
+                                       buffers_needed_by_dependencies);
+    needed_buffers.add(&node, total_buffers);
+  }
+
+  return needed_buffers;
+}
+
 /* There are multiple different possible orders of evaluating a node graph, each of which needs
  * to allocate a number of intermediate buffers to store its intermediate results. It follows
  * that we need to find the evaluation order which uses the least amount of intermediate buffers.
@@ -742,8 +709,8 @@ Schedule compute_schedule(const Context &context,
   }
 
   /* Compute the number of buffers needed by each node connected to the outputs. */
-  const NeededBuffers needed_buffers = compute_number_of_needed_buffers(
-      context, node_stack, socket_result_fn);
+  const Map<const bNode *, int> needed_buffers = compute_number_of_needed_buffers(
+      context, node_group, node_stack, socket_result_fn, zone);
 
   /* Traverse the node group in a post order depth first manner, scheduling the nodes in an order
    * informed by the number of buffers needed by each node. Post order traversal guarantee that all

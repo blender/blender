@@ -140,17 +140,6 @@ ResultType get_node_interface_socket_result_type(const bNodeTreeInterfaceSocket 
   return socket_data_type_to_result_type(socket_type);
 }
 
-bool is_output_linked_to_input_conditioned(const bNodeSocket &output,
-                                           FunctionRef<bool(const bNodeSocket &)> condition)
-{
-  for (const bNodeSocket *input : output.logically_linked_sockets()) {
-    if (condition(*input)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 bool is_pixel_node(const bNode &node)
 {
   return node.typeinfo->build_multi_function;
