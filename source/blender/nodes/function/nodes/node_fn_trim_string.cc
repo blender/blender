@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
+
+#include "BLI_string_utf8.hh"
+
 #include "node_function_util.hh"
 #include "node_shader_util.hh"
 
@@ -44,19 +48,36 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
         if (trim_whitespace) {
           characters_to_trim.append(" \t\n\r");
         }
-        StringRef str = input_str;
+        const StringRef str = input_str;
+        const StringRef chars = characters_to_trim;
+
+        /* Need to check utf-8 characters for trimming, not individual bytes. */
+        const auto is_character_trimmed = [&](const StringRef query) {
+          return chars.find(query) != StringRef::not_found;
+        };
+
         int64_t start = 0;
         int64_t end = str.size();
         if (trim_start) {
-          const int64_t i = str.find_first_not_of(characters_to_trim);
-          if (i != StringRef::not_found) {
-            start = i;
+          while (start < end) {
+            const int64_t size = std::min<int64_t>(BLI_str_utf8_size_safe(str.data() + start),
+                                                   end - start);
+            if (!is_character_trimmed(str.substr(start, size))) {
+              break;
+            }
+            start += size;
           }
         }
         if (trim_end) {
-          const int64_t i = str.find_last_not_of(characters_to_trim);
-          if (i != StringRef::not_found) {
-            end = i + 1;
+          while (end > start) {
+            const char *prev = std::max(
+                BLI_str_find_prev_char_utf8(str.data() + end, str.data() + start),
+                str.data() + start);
+            const int64_t size = str.data() + end - prev;
+            if (!is_character_trimmed(str.substr(end - size, size))) {
+              break;
+            }
+            end -= size;
           }
         }
         std::string result = str.substr(start, end - start);

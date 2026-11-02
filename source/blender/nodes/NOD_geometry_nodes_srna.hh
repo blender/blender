@@ -12,6 +12,9 @@
 
 namespace blender {
 
+struct Main;
+struct PointerRNA;
+struct Scene;
 struct StructRNA;
 struct bNodeTree;
 
@@ -31,6 +34,8 @@ extern const EnumPropertyItem geometry_nodes_input_type_items_fallback[];
 extern const EnumPropertyItem geometry_nodes_input_type_items_value[];
 extern const EnumPropertyItem geometry_nodes_input_type_items_value_or_attribute[];
 extern const EnumPropertyItem geometry_nodes_input_type_items_value_or_attribute_or_layer[];
+
+void geometry_nodes_property_update(Main *bmain, Scene *scene, PointerRNA *ptr);
 
 std::shared_ptr<GeneratedTreeSrnaData> create_geometry_nodes_rna_for_modifier(
     const bNodeTree &tree);

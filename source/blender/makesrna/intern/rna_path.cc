@@ -214,6 +214,9 @@ std::optional<ParsedRNAPath<N>> ParsedRNAPath<N>::from_string(const StringRefNul
       else {
         const int64_t index = atoi(token);
         if (index == 0 && (token[0] != '0' || token[1] != '\0')) {
+          if (buffer != token) {
+            MEM_delete(token);
+          }
           return std::nullopt;
         }
         parsed->items.append(rna_path::LookupIndex(index));
