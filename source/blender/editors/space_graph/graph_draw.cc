@@ -1711,7 +1711,10 @@ void graph_draw_fcurves(const Span<ed::animfilter::DataChannel *> data_channels,
   draw_settings.only_handles_of_selected_keys = space_graph.flag & SIPO_SELVHANDLESONLY;
   draw_settings.draw_extrapolation = (space_graph.flag & SIPO_NO_DRAW_EXTRAPOLATION) == 0;
   draw_settings.normalization_flags = ANIM_get_normalization_flags(&space_graph);
-  /* TODO draw in 3 passes, unselected first, then selected then active */
+  Vector<FCurveChannel *> selected_fcurves;
+
+  /* Drawing in 3 passes so selected curves are drawn over unselected and the active curve is drawn
+   * on top. */
   for (DataChannel *data_channel : data_channels) {
     if (data_channel->source_type() != DataChannelType::FCURVE) {
       /* TODO filter down to fcurves when getting the summary tree. Or maybe it's ok to leave
@@ -1727,6 +1730,10 @@ void graph_draw_fcurves(const Span<ed::animfilter::DataChannel *> data_channels,
       active_fcurve = fcurve_channel;
       continue;
     }
+    if (fcurve->flag & FCURVE_SELECTED) {
+      selected_fcurves.append(fcurve_channel);
+      continue;
+    }
     const ID *animated_id = fcurve_channel->find_animated_id_from_tags();
     draw_fcurve(
         fcurve,
@@ -1734,9 +1741,25 @@ void graph_draw_fcurves(const Span<ed::animfilter::DataChannel *> data_channels,
         /* Ugly const cast can be removed but would require a refactor into dependent functions. */
         const_cast<ID *>(animated_id),
         v2d,
+        /* TODO pass range */
         {},
         draw_settings);
   }
+
+  for (FCurveChannel *fcurve_channel : selected_fcurves) {
+    FCurve *fcurve = fcurve_channel->get_source<FCurve>();
+    const ID *animated_id = fcurve_channel->find_animated_id_from_tags();
+    draw_fcurve(
+        fcurve,
+        scene,
+        /* Ugly const cast can be removed but would require a refactor into dependent functions. */
+        const_cast<ID *>(animated_id),
+        v2d,
+        /* TODO pass range */
+        {},
+        draw_settings);
+  }
+
   if (active_fcurve) {
     const ID *animated_id = active_fcurve->find_animated_id_from_tags();
     draw_fcurve(active_fcurve->get_source<FCurve>(),
