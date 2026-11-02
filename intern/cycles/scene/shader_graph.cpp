@@ -1254,14 +1254,22 @@ void ShaderGraph::dump_graph(const char *filename)
       fprintf(fd, "}|");
     }
     fprintf(fd, "%s", node->name.c_str());
+    if (const auto *math = dynamic_cast<VectorMathNode *>(node)) {
+      const NodeEnum *node_enum = math->get_math_type_socket()->enum_values;
+      fprintf(fd, "\\n(%s)", (*node_enum)[math->get_math_type()].c_str());
+    }
+    else if (const auto *math = dynamic_cast<MathNode *>(node)) {
+      const NodeEnum *node_enum = math->get_math_type_socket()->enum_values;
+      fprintf(fd, "\\n(%s)", (*node_enum)[math->get_math_type()].c_str());
+    }
     if (node->bump == SHADER_BUMP_CENTER) {
-      fprintf(fd, " (bump:center)");
+      fprintf(fd, "\\n(bump:center)");
     }
     else if (node->bump == SHADER_BUMP_DX) {
-      fprintf(fd, " (bump:dx)");
+      fprintf(fd, "\\n(bump:dx)");
     }
     else if (node->bump == SHADER_BUMP_DY) {
-      fprintf(fd, " (bump:dy)");
+      fprintf(fd, "\\n(bump:dy)");
     }
     if (!node->outputs.empty()) {
       fprintf(fd, "|{");
