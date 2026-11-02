@@ -1226,7 +1226,7 @@ int ShaderGraph::get_num_closures()
   return num_closures;
 }
 
-void ShaderGraph::dump_graph(const char *filename)
+void ShaderGraph::dump_graph(const char *filename, const bool verbose)
 {
   FILE *fd = fopen(filename, "w");
 
@@ -1246,6 +1246,9 @@ void ShaderGraph::dump_graph(const char *filename)
     if (!node->inputs.empty()) {
       fprintf(fd, "{");
       for (ShaderInput *socket : node->inputs) {
+        if (!verbose && !socket->link) {
+          continue;
+        }
         if (socket != node->inputs[0]) {
           fprintf(fd, "|");
         }
@@ -1274,6 +1277,9 @@ void ShaderGraph::dump_graph(const char *filename)
     if (!node->outputs.empty()) {
       fprintf(fd, "|{");
       for (ShaderOutput *socket : node->outputs) {
+        if (!verbose && socket->links.empty()) {
+          continue;
+        }
         if (socket != node->outputs[0]) {
           fprintf(fd, "|");
         }

@@ -363,7 +363,7 @@ class ShaderGraph : public NodeOwner {
 
   int get_num_closures();
 
-  void dump_graph(const char *filename);
+  void dump_graph(const char *filename, const bool verbose = false);
 
   /* Create node from class and add it to the shader graph. */
   template<typename T, typename... Args> T *create_node(Args &&...args)
