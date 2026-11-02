@@ -668,8 +668,11 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
           if (!use_layers_src[idx_src]) {
             continue;
           }
+          /* Layers created above use the source names and aren't part of #dst_names. */
+          const StringRef name_dst = idx_src < tot_dst ? StringRef(dst_names[idx_src]) :
+                                                         StringRef(src_names[idx_src]);
           data_src = *src_attributes.lookup(src_names[idx_src], domain, attr_type);
-          data_dst = dst_attributes.lookup_for_write_span(dst_names[idx_src]);
+          data_dst = dst_attributes.lookup_for_write_span(name_dst);
           data_transfer_layersmapping_add_item_cd(r_map,
                                                   cddata_type,
                                                   mix_mode,
@@ -787,6 +790,9 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
 
     std::string name_src;
     if (fromlayers >= 0) { /* Real-layer index */
+      if (fromlayers >= src_names.size()) {
+        return true;
+      }
       name_src = src_names[fromlayers];
     }
     else {
@@ -816,6 +822,11 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
     std::string name_dst;
     int idx_dst;
     if (tolayers >= 0) { /* Real-layer index */
+      /* The index can be out of range when the layers on the destination have changed, e.g. when
+       * an earlier modifier removed them. */
+      if (tolayers >= dst_names.size()) {
+        return false;
+      }
       name_dst = dst_names[tolayers];
       data_dst = dst_attributes.lookup_for_write_span(name_dst);
     }
@@ -854,9 +865,11 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
         /* Create as much data layers as necessary! */
         for (; num <= idx_dst; num++) {
           dst_attributes.add(src_names[num], domain, attr_type, bke::AttributeInitDefaultValue());
+          dst_names.append(src_names[num]);
         }
       }
 
+      name_dst = dst_names[idx_dst];
       data_dst = dst_attributes.lookup_for_write_span(name_dst);
     }
     else if (tolayers == DT_LAYERS_NAME_DST) {
