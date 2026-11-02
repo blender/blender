@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34674,8 +34674,36 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Show/Hide"
+msgstr "Show/Hide"
+
+
 msgid "Creative"
 msgstr "Creative"
+
+
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Names"
+msgstr "Names"
+
+
+msgid "Bone Roll"
+msgstr "Bone Roll"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
 
 
 msgid "Pivot Point"
@@ -34706,6 +34734,14 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
 
 
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
 msgid "Mirror"
 msgstr "Mirror"
 
@@ -34718,12 +34754,24 @@ msgid "Local View"
 msgstr "Local View"
 
 
+msgid "Read"
+msgstr "Read"
+
+
 msgid "Viewpoint"
 msgstr "Viewpoint"
 
 
+msgid "Sample"
+msgstr "Sample"
+
+
 msgid "Navigation"
 msgstr "Navigation"
+
+
+msgid "Write"
+msgstr "Write"
 
 
 msgid "Align View"
@@ -34734,20 +34782,16 @@ msgid "Align View to Active"
 msgstr "Align View to Active"
 
 
+msgid "Primitives"
+msgstr "Primitives"
+
+
 msgid "View Regions"
 msgstr "View Regions"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
 msgid "Select More/Less"
 msgstr "Select More/Less"
-
-
-msgid "Utilities"
-msgstr "Utilities"
 
 
 msgid "Select Similar"
@@ -34766,38 +34810,6 @@ msgid "Select Loops"
 msgstr "Select Loops"
 
 
-msgid "Read"
-msgstr "Read"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
-msgid "Write"
-msgstr "Write"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Light"
-msgstr "Light"
-
-
-msgid "Light Probe"
-msgstr "Light Probe"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
 
@@ -34806,16 +34818,40 @@ msgid "Instances"
 msgstr "Instances"
 
 
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Import"
+msgstr "Import"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Render Preview"
+msgstr "Render Preview"
+
+
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Add Image"
 msgstr "Add Image"
 
 
 msgid "Relations"
 msgstr "Relations"
-
-
-msgid "Import"
-msgstr "Import"
 
 
 msgid "Rigid Body"
@@ -34830,20 +34866,8 @@ msgid "Track"
 msgstr "Track"
 
 
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
 msgid "Quick Effects"
 msgstr "Quick Effects"
-
-
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
-msgid "Clean Up"
-msgstr "Clean Up"
 
 
 msgid "Asset"
@@ -34854,16 +34878,8 @@ msgid "Make Single User"
 msgstr "Make Single User"
 
 
-msgid "Render Preview"
-msgstr "Render Preview"
-
-
 msgid "Convert"
 msgstr "Convert"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -34906,8 +34922,12 @@ msgid "Bone Collections"
 msgstr "Bone Collections"
 
 
-msgid "Names"
-msgstr "Names"
+msgid "Linked"
+msgstr "Linked"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Toggle Bone Options"
@@ -34938,36 +34958,16 @@ msgid "Set Face Strength"
 msgstr "Set Face Strength"
 
 
-msgid "Merge"
-msgstr "Merge"
-
-
-msgid "Linked"
-msgstr "Linked"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
 msgid "Adjust"
 msgstr "Adjust"
 
 
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
 msgid "Keying"
 msgstr "Keying"
+
+
+msgid "Merge"
+msgstr "Merge"
 
 
 msgid "Tracking"
@@ -54574,11 +54574,6 @@ msgstr "Load and apply a Blender XML theme file"
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "Install Theme..."
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Add Asset Library"
 
 
 msgid "Add or remove a white balance preset"
@@ -79107,6 +79102,11 @@ msgstr "Module name of the add-on to remove"
 
 msgid "Remove existing template with the same ID"
 msgstr "Remove existing template with the same ID"
+
+
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Add Asset Library"
 
 
 msgid "Add a directory to be used by the Asset Browser as source of assets"
@@ -138623,10 +138623,6 @@ msgid "No active item to rename"
 msgstr "No active item to rename"
 
 
-msgid "No selected data-blocks to copy"
-msgstr "No selected data-blocks to copy"
-
-
 msgid "There is no active data-block"
 msgstr "There is no active data-block"
 
@@ -139008,6 +139004,10 @@ msgstr "(empty)"
 
 msgid "Strip None"
 msgstr "Strip None"
+
+
+msgid "There is no asset library to remove"
+msgstr "There is no asset library to remove"
 
 
 msgid "Cannot reload with running modal operators"
@@ -139550,10 +139550,6 @@ msgid "Extension operator not found \"%s\""
 msgstr "Extension operator not found \"%s\""
 
 
-msgid "There is no asset library to remove"
-msgstr "There is no asset library to remove"
-
-
 msgid "There is no extension repository to remove"
 msgstr "There is no extension repository to remove"
 
@@ -139922,10 +139918,6 @@ msgstr "Cannot navigate when the view offset is locked"
 
 msgid "Depth too large"
 msgstr "Depth too large"
-
-
-msgid "No objects selected to copy"
-msgstr "No objects selected to copy"
 
 
 msgid "No objects to paste"
@@ -150543,18 +150535,6 @@ msgstr "Saved copy as \"%s\""
 
 msgid "Saved as \"%s\""
 msgstr "Saved as \"%s\""
-
-
-msgid ""
-"To match renders with the previous working space as closely as possible,\n"
-"colors in all materials, lights and geometry must be converted.\n"
-"\n"
-"Some nodes graphs cannot be converted accurately and may need manual fix-ups."
-msgstr ""
-"To match renders with the previous working space as closely as possible,\n"
-"colours in all materials, lights and geometry must be converted.\n"
-"\n"
-"Some nodes graphs cannot be converted accurately and may need manual fix-ups."
 
 
 msgid "Can't change working space while jobs are running"

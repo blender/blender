@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
-"PO-Revision-Date: 2026-10-25 12:12+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"PO-Revision-Date: 2026-11-02 06:18+0000\n"
 "Last-Translator: Alexandr Fatih <radix83@rambler.ru>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
@@ -837,7 +837,7 @@ msgstr "Библиотека FriBidi"
 
 
 msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in Blender libraries repository"
-msgstr "Скомпилированная библиотека FriBidi на языке Си (.so в Linux, .dll в windows…). Для работы в Windows необходимо вручную указать правильный путь, например, на файл из репозитория библиотек Blender'а"
+msgstr "Скомпилированная библиотека FriBidi на языке Си (.so в Linux, .dll в windows…). Для работы в Windows необходимо вручную указать правильный путь, например, на файл из репозитория библиотек Blender"
 
 
 msgid "Translation Root"
@@ -885,7 +885,7 @@ msgstr "Путь постоянных данных"
 
 
 msgid "The name of a json file storing those settings (unfortunately, Blender's system does not work here)"
-msgstr "Имя файла json для хранения этих настроек (к сожалению, система Blender'а здесь не работает)"
+msgstr "Имя файла json для хранения этих настроек (к сожалению, система Blender здесь не работает)"
 
 
 msgid "User Add-ons"
@@ -1765,11 +1765,11 @@ msgstr "Изменение общих настроек программы"
 
 
 msgid "Project Settings"
-msgstr "Настройки прокси"
+msgstr "Настройки проекта"
 
 
 msgid "Manage the current Blender project"
-msgstr "Управление текущим проектом Blender'а"
+msgstr "Управление текущим проектом Blender"
 
 
 msgid "Width"
@@ -1865,7 +1865,7 @@ msgstr "Можно редактировать"
 
 
 msgid "Assets and catalogs in this library can be edited from the current Blender instance"
-msgstr "Редактировать ассеты и каталоги в этой библиотеке можно из текущего экземпляра Blender'а"
+msgstr "Редактировать ассеты и каталоги в этой библиотеке можно из текущего экземпляра Blender"
 
 
 msgid "Library Type"
@@ -1885,7 +1885,7 @@ msgstr "Текущий файл"
 
 
 msgid "Show the assets currently available in this Blender session"
-msgstr "Показать ассеты, доступные в текущей сессии Blender'а"
+msgstr "Показать ассеты, доступные в текущей сессии Blender"
 
 
 msgid "Essentials"
@@ -1893,7 +1893,7 @@ msgstr "Основные"
 
 
 msgid "Show basic building blocks and utilities coming with Blender"
-msgstr "Показать базовые компоненты и утилиты, входящие в состав Blender'а"
+msgstr "Показать базовые компоненты и утилиты, входящие в состав Blender"
 
 
 msgid "Online Essentials"
@@ -1973,7 +1973,7 @@ msgstr "UUID каталога"
 
 
 msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122."
-msgstr "Идентификатор каталога ассета, используемый Blender'ом для поиска пути к каталогу ассета. Должен быть UUID в соответствии с RFC4122."
+msgstr "Идентификатор каталога ассета, используемый Blender для поиска пути к каталогу ассета. Должен быть UUID в соответствии с RFC4122."
 
 
 msgid "Catalog Simple Name"
@@ -2722,7 +2722,7 @@ msgstr "Является внутренним"
 
 
 msgid "The attribute is meant for internal use by Blender"
-msgstr "Атрибут предназначен для внутреннего использования в Blender'е"
+msgstr "Атрибут предназначен для внутреннего использования в Blender"
 
 
 msgid "Is Required"
@@ -3441,7 +3441,7 @@ msgstr "Все блоки данных"
 
 
 msgid "Read-only list of all IDs listed in Blender data-base. Warning: Order is not guaranteed and should be considered an internal implementation detail"
-msgstr "Только для чтения: список всех идентификаторов из базы данных Blender'а. Внимание: порядок не гарантируется и может измениться из-за особенностей внутреннего устройства"
+msgstr "Только для чтения: список всех идентификаторов из базы данных Blender. Внимание: порядок не гарантируется и может измениться из-за особенностей внутреннего устройства"
 
 
 msgid "Annotation"
@@ -3614,7 +3614,7 @@ msgstr "Проект"
 
 
 msgid "The currently active Blender project, if any"
-msgstr "Текущий активный проект Blender'а, если есть"
+msgstr "Текущий активный проект Blender, если есть"
 
 
 msgid "Scene data-blocks"
@@ -3666,7 +3666,7 @@ msgstr "Версия"
 
 
 msgid "File format version the .blend file was saved with"
-msgstr "Версия Blender'а, в которой был сохранён .blend-файл"
+msgstr "Версия Blender, в которой был сохранён .blend-файл"
 
 
 msgid "Volume data-blocks"
@@ -4058,7 +4058,7 @@ msgstr "Blender"
 
 
 msgid "The OpenColorIO configuration bundled with Blender"
-msgstr "Конфигурация OpenColorIO, поставляемая вместе с Blender'ом"
+msgstr "Конфигурация OpenColorIO, поставляемая вместе с Blender"
 
 
 msgid "Fallback"
@@ -4319,7 +4319,7 @@ msgstr "Ссылка на библиотеку (blend-файл) в данных 
 
 
 msgid "Blender Project"
-msgstr "Проект Blender'а"
+msgstr "Проект Blender"
 
 
 msgid "Index of the asset library being edited in the Project Settings UI"
@@ -4355,7 +4355,7 @@ msgstr "Конфигурация OpenColorIO, используемая для э
 
 
 msgid "The default Blender OpenColorIO configuration. Works with both ACES workflows and Blender specific views and color spaces"
-msgstr "Конфигурация OpenColorIO по умолчанию для Blender'а. Поддерживает как рабочие процессы ACES, так и специфичные для Blender'а режимы просмотра/виды и цветовые пространства"
+msgstr "Конфигурация OpenColorIO по умолчанию для Blender. Поддерживает как рабочие процессы ACES, так и специфичные для Blender режимы просмотра/виды и цветовые пространства"
 
 
 msgid "ACES 2.0 Studio"
@@ -4387,7 +4387,7 @@ msgstr "Путь к конфигурации OpenColorIO"
 
 
 msgid "Path to the OpenColorIO configuration to use for this project. May be an absolute file path, project relative path with {project_root}, or an ocio:// built-in OpenColorIO config"
-msgstr "Путь к используемой в проекте конфигурации OpenColorIO. Может быть абсолютным путём к файлу, относительным путём проекта с {project_root} или встроенной конфигурацией ocio://"
+msgstr "Путь к используемой в проекте конфигурации OpenColorIO. Может быть абсолютным путём к файлу, относительным путём проекта с корневой папкой проекта {project_root} или встроенной конфигурацией ocio://"
 
 
 msgid "Root Folder"
@@ -9298,7 +9298,7 @@ msgstr "Лин. ошибка"
 
 
 msgid "Amount of residual error in Blender space unit for constraints that work on position"
-msgstr "Величина остаточной погрешности в единицах Blender'а для ограничителей, действующих на перемещение"
+msgstr "Величина остаточной погрешности в единицах Blender для ограничителей, действующих на перемещение"
 
 
 msgid "Rotation error"
@@ -13270,7 +13270,7 @@ msgstr "Макс. скорость"
 
 
 msgid "Velocity considered as maximum influence (Blender units per frame)"
-msgstr "Скорость, при которой воздействие будет максимальным (в единицах Blender'а на кадр)"
+msgstr "Скорость, при которой воздействие будет максимальным (в единицах Blender на кадр)"
 
 
 msgid "Velocity Color Ramp"
@@ -13648,7 +13648,7 @@ msgstr "Предумножение прозрачности"
 
 
 msgid "Multiply color by alpha (recommended for Blender input)"
-msgstr "Умножить цвет на прозрачность (рекомендуется для входных файлов для Blender'а)"
+msgstr "Умножить цвет на прозрачность (рекомендуется для входных файлов для Blender)"
 
 
 msgid "Use Shrink"
@@ -16052,7 +16052,7 @@ msgstr "Скрыть фрагменты .blend-файла, не являющие
 
 
 msgid "Filter Blender Backup Files"
-msgstr "Фильтровать файлы резервных копий Blender'а"
+msgstr "Фильтровать файлы резервных копий Blender"
 
 
 msgid "Show .blend1, .blend2, etc. files"
@@ -16060,7 +16060,7 @@ msgstr "Отображать файлы .blend1, .blend2 и последующи
 
 
 msgid "Filter Blender"
-msgstr "Фильтровать файлы Blender'а"
+msgstr "Фильтровать файлы Blender"
 
 
 msgid "Show .blend files"
@@ -16068,7 +16068,7 @@ msgstr "Отображать файлы .blend"
 
 
 msgid "Filter Blender IDs"
-msgstr "Фильтровать идентификаторы Blender'а"
+msgstr "Фильтровать идентификаторы Blender"
 
 
 msgid "Show .blend files items (objects, materials, etc.)"
@@ -16144,7 +16144,7 @@ msgstr "Обозреватель библиотек"
 
 
 msgid "Whether we may browse Blender files' content or not"
-msgstr "Осуществлять ли обзор содержимого файлов Blender'а"
+msgstr "Осуществлять ли обзор содержимого файлов Blender"
 
 
 msgid "Reverse Sorting"
@@ -16604,7 +16604,7 @@ msgstr "Экспортировать скрипт Mantaflow"
 
 
 msgid "Generate and export Mantaflow script from current domain settings during bake. This is only needed if you plan to analyze the cache (e.g. view grids, velocity vectors, particles) in Mantaflow directly (outside of Blender) after baking the simulation."
-msgstr "Сгенерировать и экспортировать скрипт Mantaflow с настройками выбранного домена во время запекания. Это необходимо только если вы собираетесь анализировать кэш (например, просматривать сетки, вектора скоростей, частицы) напрямую в Mantaflow (вне Blender'а) после запекания симуляции."
+msgstr "Сгенерировать и экспортировать скрипт Mantaflow с настройками выбранного домена во время запекания. Это необходимо только если вы собираетесь анализировать кэш (например, просматривать сетки, вектора скоростей, частицы) напрямую в Mantaflow (вне Blender) после запекания симуляции."
 
 
 msgid "Flame Grid"
@@ -21901,7 +21901,7 @@ msgstr "Непроецируемый размер"
 
 
 msgid "Diameter of brush in Blender units"
-msgstr "Диаметр кисти в единицах Blender'а"
+msgstr "Диаметр кисти в единицах Blender"
 
 
 msgid "Accumulate"
@@ -25233,7 +25233,7 @@ msgstr "Исходная библиотека, из которой был сге
 
 
 msgid "Path to the library .blend file. WARNING: Typically, this value should be considered read-only, changing this path without proper processing afterwards can leave Blender data in an invalid state"
-msgstr "Путь к библиотечному .blend-файлу. ВНИМАНИЕ: Обычно это значение должно считаться доступным только для чтения; изменение этого пути без последующей надлежащей обработки может привести к некорректному состоянию данных Blender'а"
+msgstr "Путь к библиотечному .blend-файлу. ВНИМАНИЕ: Обычно это значение должно считаться доступным только для чтения; изменение этого пути без последующей надлежащей обработки может привести к некорректному состоянию данных Blender"
 
 
 msgid "Is Archive"
@@ -25257,7 +25257,7 @@ msgstr "Истинно, если данная библиотека содерж�
 
 
 msgid "Version of Blender the library .blend was saved with"
-msgstr "Версия Blender'а, с помощью которой была сохранена .blend-библиотека"
+msgstr "Версия Blender, с помощью которой была сохранена .blend-библиотека"
 
 
 msgctxt "Light"
@@ -30504,11 +30504,11 @@ msgstr "Формула шума, используемая для турбуле�
 
 
 msgid "Blender Original"
-msgstr "Собственный метод Blender'а"
+msgstr "Собственный метод Blender"
 
 
 msgid "Noise algorithm - Blender original: Smooth interpolated noise"
-msgstr "Алгоритм шума — собственный метод Blender'а: сглаженный интерполированный шум"
+msgstr "Алгоритм шума — собственный метод Blender: сглаженный интерполированный шум"
 
 
 msgid "Original Perlin"
@@ -31378,7 +31378,7 @@ msgstr "Путь-blend ассета"
 
 
 msgid "Full path to the Blender file containing the active asset"
-msgstr "Полный путь к файлу Blender'а, содержащему активный ассет"
+msgstr "Полный путь к файлу Blender, содержащему активный ассет"
 
 
 msgid "Filter by Repository"
@@ -32534,7 +32534,7 @@ msgstr "Особый значок"
 
 
 msgid "True if this preview icon has been modified by py script, and is no more auto-generated by Blender"
-msgstr "Истинно, если этот значок предварительного просмотра был изменён скриптом \"py\" и больше не генерируется автоматически Blender'ом"
+msgstr "Истинно, если этот значок предварительного просмотра был изменён скриптом \"py\" и больше не генерируется в Blender автоматически"
 
 
 msgid "Custom Image"
@@ -32542,7 +32542,7 @@ msgstr "Особое изображение"
 
 
 msgid "True if this preview image has been modified by py script, and is no more auto-generated by Blender"
-msgstr "Истинно, если это изображение предварительного просмотра было изменено скриптом py и больше не генерируется автоматически Blender'ом"
+msgstr "Истинно, если это изображение предварительного просмотра было изменено скриптом py и больше не генерируется в Blender автоматически"
 
 
 msgid "Parameters defining how an Image data-block is used by another data-block"
@@ -36645,8 +36645,36 @@ msgid "Editor menu containing buttons"
 msgstr "Меню редактора, содержащее кнопки"
 
 
+msgid "Show/Hide"
+msgstr "Показать/скрыть"
+
+
 msgid "Creative"
 msgstr "Художественные"
+
+
+msgid "Special Characters"
+msgstr "Специальные символы"
+
+
+msgid "Kerning"
+msgstr "Кернинг"
+
+
+msgid "Metaball"
+msgstr "Метасфера"
+
+
+msgid "Names"
+msgstr "Имена"
+
+
+msgid "Bone Roll"
+msgstr "Крен кости"
+
+
+msgid "Clean Up"
+msgstr "Привести в порядок"
 
 
 msgid "Pivot Point"
@@ -36677,6 +36705,14 @@ msgid "Vertex Group Locks"
 msgstr "Блокировки групп вершин"
 
 
+msgid "Math"
+msgstr "Математика"
+
+
+msgid "Utilities"
+msgstr "Утилиты"
+
+
 msgid "Mirror"
 msgstr "Зеркало"
 
@@ -36689,12 +36725,24 @@ msgid "Local View"
 msgstr "Локальный вид"
 
 
+msgid "Read"
+msgstr "Прочитать"
+
+
 msgid "Viewpoint"
 msgstr "Точка обзора"
 
 
+msgid "Sample"
+msgstr "Сэмплировать"
+
+
 msgid "Navigation"
 msgstr "Навигация"
+
+
+msgid "Write"
+msgstr "Записать"
 
 
 msgid "Align View"
@@ -36705,20 +36753,16 @@ msgid "Align View to Active"
 msgstr "Выровнять вид по активному"
 
 
+msgid "Primitives"
+msgstr "Примитивы"
+
+
 msgid "View Regions"
 msgstr "Области обзора"
 
 
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Select More/Less"
 msgstr "Выделить больше/меньше"
-
-
-msgid "Utilities"
-msgstr "Утилиты"
 
 
 msgid "Select Similar"
@@ -36737,38 +36781,6 @@ msgid "Select Loops"
 msgstr "Выделить петли"
 
 
-msgid "Read"
-msgstr "Прочитать"
-
-
-msgid "Sample"
-msgstr "Сэмплировать"
-
-
-msgid "Assign Material"
-msgstr "Назначить материал"
-
-
-msgid "Write"
-msgstr "Записать"
-
-
-msgid "Primitives"
-msgstr "Примитивы"
-
-
-msgid "Metaball"
-msgstr "Метасфера"
-
-
-msgid "Light"
-msgstr "Свет"
-
-
-msgid "Light Probe"
-msgstr "Зонд освещения"
-
-
 msgid "Gizmo"
 msgstr "Гизмо"
 
@@ -36777,16 +36789,40 @@ msgid "Instances"
 msgstr "Экземпляры"
 
 
+msgid "Assign Material"
+msgstr "Назначить материал"
+
+
+msgid "Import"
+msgstr "Импортировать"
+
+
+msgid "Deprecated"
+msgstr "Устаревшие"
+
+
+msgid "Light"
+msgstr "Свет"
+
+
+msgid "Render Preview"
+msgstr "Превью рендера"
+
+
+msgid "Light Probe"
+msgstr "Зонд освещения"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Add Image"
 msgstr "Добавить изображение"
 
 
 msgid "Relations"
 msgstr "Отношения"
-
-
-msgid "Import"
-msgstr "Импортировать"
 
 
 msgid "Rigid Body"
@@ -36801,20 +36837,8 @@ msgid "Track"
 msgstr "Отслеживание"
 
 
-msgid "Deprecated"
-msgstr "Устаревшие"
-
-
 msgid "Quick Effects"
 msgstr "Быстрые эффекты"
-
-
-msgid "Show/Hide"
-msgstr "Показать/скрыть"
-
-
-msgid "Clean Up"
-msgstr "Привести в порядок"
 
 
 msgid "Asset"
@@ -36825,16 +36849,8 @@ msgid "Make Single User"
 msgstr "Для одного пользователя"
 
 
-msgid "Render Preview"
-msgstr "Превью рендера"
-
-
 msgid "Convert"
 msgstr "Конвертировать"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -36877,8 +36893,12 @@ msgid "Bone Collections"
 msgstr "Коллекции костей"
 
 
-msgid "Names"
-msgstr "Имена"
+msgid "Linked"
+msgstr "Связанные"
+
+
+msgid "Layout"
+msgstr "Разметка"
 
 
 msgid "Toggle Bone Options"
@@ -36909,36 +36929,16 @@ msgid "Set Face Strength"
 msgstr "Установить твёрдость грани"
 
 
-msgid "Merge"
-msgstr "Объединить"
-
-
-msgid "Linked"
-msgstr "Связанные"
-
-
-msgid "Layout"
-msgstr "Разметка"
-
-
-msgid "Special Characters"
-msgstr "Специальные символы"
-
-
-msgid "Kerning"
-msgstr "Кернинг"
-
-
 msgid "Adjust"
 msgstr "Коррекция"
 
 
-msgid "Bone Roll"
-msgstr "Крен кости"
-
-
 msgid "Keying"
 msgstr "Кеинг"
+
+
+msgid "Merge"
+msgstr "Объединить"
 
 
 msgid "Tracking"
@@ -37310,12 +37310,12 @@ msgid "Select Selection Set"
 msgstr "Выделить \"набор выделения\""
 
 
-msgid "Add Variable"
-msgstr "Добавить переменную"
-
-
 msgid "Save & Load"
 msgstr "Сохранение и загрузка"
+
+
+msgid "Add Variable"
+msgstr "Добавить переменную"
 
 
 msgid "Frame Rate Presets"
@@ -43243,7 +43243,7 @@ msgstr "Пространственный размер"
 
 
 msgid "Size of the simulation domain (in meters), and of the generated geometry (in BU)"
-msgstr "Размер домена симуляции (в метрах) и генерируемой геометрии (в ед. Blender'а)"
+msgstr "Размер домена симуляции (в метрах) и генерируемой геометрии (в ед. Blender)"
 
 
 msgid "Spectrum"
@@ -52976,19 +52976,19 @@ msgstr "Отображение нормалей в пространстве ми
 
 
 msgid "Blender Object Space"
-msgstr "Пространство объекта Blender'а"
+msgstr "Пространство объекта Blender"
 
 
 msgid "Object space normal mapping, compatible with Blender render baking"
-msgstr "Отображать нормали в пространстве объекта, совместимо с текстурами, запечёнными в Blender'е"
+msgstr "Отображать нормали в пространстве объекта, совместимо с текстурами, запечёнными в Blender"
 
 
 msgid "Blender World Space"
-msgstr "Пространство мира Blender'а"
+msgstr "Пространство мира Blender"
 
 
 msgid "World space normal mapping, compatible with Blender render baking"
-msgstr "Отображать нормали в пространстве мира, совместимо с текстурами, запечёнными в Blender'е"
+msgstr "Отображать нормали в пространстве мира, совместимо с текстурами, запечёнными в Blender"
 
 
 msgid "UV Map for tangent space maps"
@@ -55881,7 +55881,7 @@ msgstr "Rigify - Обновить слои метарига"
 
 msgctxt "Operator"
 msgid "Get active/selected colors from current Blender theme"
-msgstr "Получить активные/выделенные цвета из текущей темы Blender'а"
+msgstr "Получить активные/выделенные цвета из текущей темы Blender"
 
 
 msgid "Validates references from rig component settings to bone collections"
@@ -56414,7 +56414,7 @@ msgstr "Очистить состояние"
 
 
 msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
-msgstr "Разрешить Blender'у доступ к интернету. Аддоны, следующие этой настройке, будут подключаться к интернету только в том случае, если эта опция включена. Однако Blender не может помешать сторонним аддонам обходить это правило."
+msgstr "Разрешить Blender доступ к интернету. Аддоны, следующие этой настройке, будут подключаться к интернету только в том случае, если эта опция включена. Однако Blender не может помешать сторонним аддонам обходить это правило."
 
 
 msgid "Open extensions preferences"
@@ -57635,72 +57635,6 @@ msgid "Install Theme..."
 msgstr "Установить тему…"
 
 
-msgid "Add a new variable to the current project"
-msgstr "Добавить новую переменную в текущий проект"
-
-
-msgctxt "Operator"
-msgid "Add Variable"
-msgstr "Добавить переменную"
-
-
-msgid ""
-"\n"
-"Register a directory to be used by the Asset Browser and other places showing assets,\n"
-"as source of assets within the current project."
-msgstr ""
-"\n"
-"Зарегистрировать папку в качестве источника ассетов для текущего проекта,\n"
-"доступную в браузере ассетов и других компонентах, отображающих ассеты."
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Добавить библиотеку ассетов"
-
-
-msgid ""
-"\n"
-"Deregister an asset library so that its directory will no longer show up in\n"
-"Asset Browsers and other places showing assets."
-msgstr ""
-"\n"
-"Отменить регистрацию библиотеки ассетов, чтобы её папка больше не отображалась в\n"
-"браузере ассетов и других местах, где показываются ассеты."
-
-
-msgctxt "Operator"
-msgid "Remove Project Asset Library"
-msgstr "Удалить библиотеку ассетов проекта"
-
-
-msgid "Move the active variable up or down in the list of variables"
-msgstr "Переместить активную переменную выше или ниже в списке переменных"
-
-
-msgctxt "Operator"
-msgid "Move Variable"
-msgstr "Переместить переменную"
-
-
-msgid "Remove the active variable from the current project"
-msgstr "Удалить активную переменную из текущего проекта"
-
-
-msgctxt "Operator"
-msgid "Remove Variable"
-msgstr "Удалить переменную"
-
-
-msgid "Save the current project to disk"
-msgstr "Сохранить текущий проект на диск"
-
-
-msgctxt "Operator"
-msgid "Save Project"
-msgstr "Сохранить проект"
-
-
 msgid "Add or remove a white balance preset"
 msgstr "Добавить или удалить пресет баланса белого"
 
@@ -58087,12 +58021,12 @@ msgstr "Сохранить настройки переводов"
 
 
 msgid "Update i18n data (po files) in Blender source code repository"
-msgstr "Обновление данных i18n для переводов (файлы .po) в репозитории исходного кода Blender'а"
+msgstr "Обновление данных i18n для переводов (файлы .po) в репозитории исходного кода Blender"
 
 
 msgctxt "Operator"
 msgid "Update I18n Blender Repository"
-msgstr "Обновить репозиторий Blender'а i18n"
+msgstr "Обновить репозиторий Blender i18n"
 
 
 msgid "Init settings for i18n files update operators"
@@ -59829,7 +59763,7 @@ msgstr "Список каналов отладки"
 
 
 msgid "Log the channel list info in the terminal. This operator is only available in debug builds of Blender"
-msgstr "Записать информацию о списке каналов в терминал. Этот оператор доступен только в отладочных сборках Blender'а"
+msgstr "Записать информацию о списке каналов в терминал. Этот оператор доступен только в отладочных сборках Blender"
 
 
 msgctxt "Operator"
@@ -60869,7 +60803,7 @@ msgstr "Модернизировать метариг от слоёв косте
 
 
 msgid "Set the color palette to match Blender's active theme for selected and active bones"
-msgstr "Установить цветовую палитру в соответствии с активной темой Blender'а для выделенных и активных костей"
+msgstr "Установить цветовую палитру в соответствии с активной темой Blender для выделенных и активных костей"
 
 
 msgid ""
@@ -64644,7 +64578,7 @@ msgstr "Применить единицы"
 
 
 msgid "Take into account current Blender units settings (if unset, raw Blender Units values are used as-is)"
-msgstr "Учесть текущие настройки единиц в Blender'е (если не установлено, будут использоваться значения в единицах Blender'а как есть)"
+msgstr "Учесть текущие настройки единиц в Blender (если не установлено, будут использоваться значения в единицах Blender как есть)"
 
 
 msgid "Armature FBXNode Type"
@@ -64652,7 +64586,7 @@ msgstr "Тип ноды FBX арматуры"
 
 
 msgid "FBX type of node (object) used to represent Blender's armatures (use the Null type unless you experience issues with the other app, as other choices may not import back perfectly into Blender...)"
-msgstr "FBX-Тип узла (объекта), используемый для представления арматуры Blender'а (используйте тип 'Null', если у вас не возникнут проблемы с другими приложениями, поскольку другие параметры могут привести к тому, что файл не будет должным образом импортирован обратно в Blender...)"
+msgstr "FBX-Тип узла (объекта), используемый для представления арматуры Blender (используйте тип 'Null', если у вас не возникнут проблемы с другими приложениями, поскольку другие параметры могут привести к тому, что файл не будет должным образом импортирован обратно в Blender...)"
 
 
 msgid "Null"
@@ -64660,7 +64594,7 @@ msgstr "Null"
 
 
 msgid "'Null' FBX node, similar to Blender's Empty (default)"
-msgstr "Узел FBX \"Null\", схоже с пустышками в Blender'е (по умолчанию)"
+msgstr "Узел FBX \"Null\", схоже с пустышками в Blender (по умолчанию)"
 
 
 msgid "'Root' FBX node, supposed to be the root of chains of bones..."
@@ -64776,7 +64710,7 @@ msgstr "Применить трансформацию"
 
 
 msgid "Bake space transform into object data, avoids getting unwanted rotations to objects when target space is not aligned with Blender's space (WARNING! experimental option, use at own risk, known to be broken with armatures/animations)"
-msgstr "Запечь пространственные преобразования в объектные данные, предотвращает нежелательные вращения объектов, когда координаты назначения не совпадает с координатами Blender'а (ВНИМАНИЕ! Экспериментальная опция, используйте её на свой страх и риск, известно, что она не работает с арматурами/анимациями)"
+msgstr "Запечь пространственные преобразования в объектные данные, предотвращает нежелательные вращения объектов, когда координаты назначения не совпадает с координатами Blender (ВНИМАНИЕ! Экспериментальная опция, используйте её на свой страх и риск, известно, что она не работает с арматурами/анимациями)"
 
 
 msgid "Batch Mode"
@@ -65623,7 +65557,7 @@ msgstr "Необработанное (устарело)"
 
 
 msgid "Blender lighting strengths with no conversion"
-msgstr "Интенсивность освещения Blender'а без преобразования"
+msgstr "Интенсивность освещения Blender без преобразования"
 
 
 msgid "Bone Influences"
@@ -65859,7 +65793,7 @@ msgstr "Экспорт оригинального PBR отражения"
 
 
 msgid "Export original glTF PBR Specular, instead of Blender Principled Shader Specular"
-msgstr "Экспорт исходного glTF PBR отражения вместо шейдера отражения Blender'а Principled"
+msgstr "Экспорт исходного glTF PBR отражения вместо шейдера отражения Blender Principled"
 
 
 msgid "Export point clouds"
@@ -66099,7 +66033,7 @@ msgstr "Запомнить настройки экспорта"
 
 
 msgid "Store glTF export settings in the Blender project"
-msgstr "Сохранить настройки экспорта glTF в проекте Blender'а"
+msgstr "Сохранить настройки экспорта glTF в проекте Blender"
 
 
 msgid "Package ID"
@@ -67194,7 +67128,7 @@ msgstr "Имя нового атрибута цвета"
 
 msgctxt "Operator"
 msgid "Convert Color Attribute"
-msgstr "Конвертировать атрибут цвета"
+msgstr "Преобразовать атрибут цвета"
 
 
 msgid "Change how the color attribute is stored"
@@ -70429,7 +70363,7 @@ msgstr "Чёткость"
 
 
 msgid "Number of pixels per inch or Blender Unit"
-msgstr "Количество пикселей на дюйм или на единицу Blender'а"
+msgstr "Количество пикселей на дюйм или на единицу Blender"
 
 
 msgid "Filepath used for importing the file"
@@ -70453,7 +70387,7 @@ msgstr "Принудительная перезагрузка"
 
 
 msgid "Force reload the image if it is already opened elsewhere in Blender"
-msgstr "Принудительно перезагрузить изображение, если оно уже открыто в другом месте в Blender'е"
+msgstr "Принудительно перезагрузить изображение, если оно уже открыто в другом месте в Blender"
 
 
 msgid "Height of the created plane"
@@ -70545,11 +70479,11 @@ msgstr "Масштаб основан на пикселях на дюйм"
 
 
 msgid "Pixels per Blender Unit"
-msgstr "Пикселей на единицу Blender'а"
+msgstr "Пикселей на единицу Blender"
 
 
 msgid "Scale based on pixels per Blender Unit"
-msgstr "Масштабировать в пикселях на единицу Blender'а"
+msgstr "Масштабировать в пикселях на единицу Blender"
 
 
 msgctxt "Operator"
@@ -70826,7 +70760,7 @@ msgstr "Сохранить изображение с другим именем �
 
 
 msgid "Create a new image file without modifying the current image in Blender"
-msgstr "Создать новый файл изображения без изменения текущего изображения в Blender'е"
+msgstr "Создать новый файл изображения без изменения текущего изображения в Blender"
 
 
 msgid "Save As Render"
@@ -71026,7 +70960,7 @@ msgstr "Масштабировать FPS"
 
 
 msgid "Scale the frame-rate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
-msgstr "Масштабировать частоту кадров из BVH по текущей сцене, в противном случае кадры BVH будут соответствовать кадрам Blender'а"
+msgstr "Масштабировать частоту кадров из BVH по текущей сцене, в противном случае кадры BVH будут соответствовать кадрам Blender"
 
 
 msgid "Animation Offset"
@@ -71098,7 +71032,7 @@ msgstr "Сделать уникальным"
 
 
 msgid "Import each FBX material as a unique Blender material"
-msgstr "Импортировать каждый материал FBX как уникальный материал Blender'а"
+msgstr "Импортировать каждый материал FBX как уникальный материал Blender"
 
 
 msgid "Reference Existing"
@@ -71202,7 +71136,7 @@ msgstr "Blender (лучше всего подходит для импорта/э
 
 
 msgid "Good for re-importing glTFs exported from Blender, and re-exporting glTFs to glTFs after Blender editing. Bone tips are placed on their local +Y axis (in glTF space)"
-msgstr "Подходит для повторного импорта файлов glTF, экспортированных из Blender'а, и повторного экспорта glTF в glTF после редактирования Blender'а. Концы костей размещаются на своей локальной оси +Y (в пространстве glTF)"
+msgstr "Подходит для повторного импорта файлов glTF, экспортированных из Blender, и повторного экспорта glTF в glTF после редактирования в Blender. Концы костей размещаются на своей локальной оси +Y (в пространстве glTF)"
 
 
 msgid "Temperance (average)"
@@ -71366,7 +71300,7 @@ msgstr "Обновить экран отчётов"
 
 
 msgid "Update the display of reports in Blender UI (internal use)"
-msgstr "Обновить экран отчётов в интерфейсе пользователя Blender'а (для внутреннего использования)"
+msgstr "Обновить экран отчётов в интерфейсе пользователя Blender (для внутреннего использования)"
 
 
 msgid "Change selection of all visible reports"
@@ -83232,7 +83166,7 @@ msgstr "Смешивает текущую позу со вставляемой. 
 
 
 msgid "Flipped on X-Axis"
-msgstr "Отражённые по оси X"
+msgstr "Отразить по оси X"
 
 
 msgid "Paste the stored pose flipped on to current pose"
@@ -83649,6 +83583,11 @@ msgid "Remove existing template with the same ID"
 msgstr "Удалить существующие темплейты с одинаковым ID"
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Добавить библиотеку ассетов"
+
+
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "Добавить папку, которая будет использоваться браузером ассетов в качестве источника ассетов"
 
@@ -83799,7 +83738,7 @@ msgstr "Проверять наличие обновлений при запус
 
 
 msgid "Allow Blender to check for updates upon launch"
-msgstr "Разрешить Blender'у проверять наличие обновлений при запуске"
+msgstr "Разрешить Blender проверять наличие обновлений при запуске"
 
 
 msgctxt "Operator"
@@ -83910,24 +83849,8 @@ msgid "Remove this installation's associations with .blend files"
 msgstr "Удалить ассоциации этой установки с файлами .blend"
 
 
-msgid "String Variable"
-msgstr "Строковая переменная"
-
-
-msgid "Filepath Variable"
-msgstr "Переменная пути к файлу"
-
-
-msgid "Integer Variable"
-msgstr "Целочисленная переменная"
-
-
-msgid "Float Variable"
-msgstr "Переменная с плавающей запятой"
-
-
-msgid "Asset Library Directory"
-msgstr "Папка библиотеки ассетов"
+msgid "Add a directory to be used by the Project as source of assets"
+msgstr "Добавить папку, которая будет использоваться проектом в качестве источника ассетов"
 
 
 msgctxt "Operator"
@@ -83943,21 +83866,42 @@ msgid "Skip check to prevent unsaved changes from being lost"
 msgstr "Пропустить проверку на утерю несохранённых изменений"
 
 
-msgid "Move Up"
-msgstr "Переместить вверх"
+msgctxt "Operator"
+msgid "Save Project Config"
+msgstr "Сохранить конфигурацию проекта"
 
 
-msgid "Move Down"
-msgstr "Переместить вниз"
+msgid "Save the current project config to disk"
+msgstr "Сохранить конфигурацию текущего проекта на диск"
 
 
 msgctxt "Operator"
 msgid "New Project"
-msgstr "Создать проект"
+msgstr "Новый проект"
 
 
 msgid "Create a new project"
 msgstr "Создать новый проект"
+
+
+msgid "Project Root Folder"
+msgstr "Корневая папка проекта"
+
+
+msgid "Project folder, created if missing"
+msgstr "Папка проекта (будет создана, если отсутствует)"
+
+
+msgid "Folder of the current file or one of its parents, to turn into a project"
+msgstr "Папка текущего файла или одна из её родительских папок для преобразования в проект"
+
+
+msgid "Name of the project"
+msgstr "Имя проекта"
+
+
+msgid "Update Directory From Name"
+msgstr "Обновлять папку при изменении имени"
 
 
 msgctxt "Operator"
@@ -83995,6 +83939,69 @@ msgstr ""
 "Установить иллюстрацию заставки проекта из файла изображения.\n"
 "Изображение будет обрезано, масштабировано и сохранено как \".blender_project/splash.jpg\".\n"
 "Для достижения наилучшего результата используйте соотношение сторон 2:1"
+
+
+msgctxt "Operator"
+msgid "Add Variable"
+msgstr "Добавить переменную"
+
+
+msgid "Add a new variable to the current project"
+msgstr "Добавить новую переменную в текущий проект"
+
+
+msgid "Variable Type"
+msgstr "Тип переменной"
+
+
+msgid "The kind of variable type to add"
+msgstr "Тип добавляемой переменной"
+
+
+msgid "String Variable"
+msgstr "Строковая переменная"
+
+
+msgid "Filepath Variable"
+msgstr "Переменная пути к файлу"
+
+
+msgid "Integer Variable"
+msgstr "Целочисленная переменная"
+
+
+msgid "Float Variable"
+msgstr "Переменная с плавающей запятой"
+
+
+msgctxt "Operator"
+msgid "Move Variable"
+msgstr "Переместить переменную"
+
+
+msgid "Move the active variable up or down in the list of variables"
+msgstr "Переместить активную переменную выше или ниже в списке переменных"
+
+
+msgid "Which direction to move the variable"
+msgstr "В каком направлении переместить переменную"
+
+
+msgid "Move Up"
+msgstr "Переместить вверх"
+
+
+msgid "Move Down"
+msgstr "Переместить вниз"
+
+
+msgctxt "Operator"
+msgid "Remove Variable"
+msgstr "Удалить переменную"
+
+
+msgid "Remove the active variable from the current project"
+msgstr "Удалить активную переменную из текущего проекта"
 
 
 msgctxt "Operator"
@@ -85344,7 +85351,7 @@ msgstr "Сохранить снимок экрана"
 
 
 msgid "Capture a picture of the whole Blender window"
-msgstr "Сделать снимок всего окна Blender'а"
+msgstr "Сделать снимок всего окна Blender"
 
 
 msgctxt "Operator"
@@ -87367,11 +87374,11 @@ msgstr "Автоматическое определение"
 
 
 msgid "Add images as individual strips, unless their filenames match Blender's numbered sequence pattern, in which case they are grouped into a single image sequence"
-msgstr "Добавлять изображения в качестве отдельных дорожек, если их имена файлов не соответствуют шаблону нумерации последовательности Blender'а, либо в качестве одной секвенции изображений при соблюдении шаблона нумерации"
+msgstr "Добавлять изображения в качестве отдельных дорожек, если их имена файлов не соответствуют шаблону нумерации последовательности Blender, либо в качестве одной секвенции изображений при соблюдении шаблона нумерации"
 
 
 msgid "Import all selected images as a single image sequence. The sequence of images does not have to match Blender's numbered sequence pattern, so placeholders cannot be inferred"
-msgstr "Импортировать все выделенные изображения в качестве одной последовательности. Секвенция изображений не обязательно должна соответствовать шаблону нумерации последовательности Blender'а, поэтому плейсхолдеры добавлены быть не могут"
+msgstr "Импортировать все выделенные изображения в качестве одной последовательности. Секвенция изображений не обязательно должна соответствовать шаблону нумерации последовательности Blender, поэтому заполнители добавлены быть не могут"
 
 
 msgid "Individual Images"
@@ -89877,7 +89884,7 @@ msgstr "Пипетка"
 
 
 msgid "Sample a color from the Blender window to store in a property"
-msgstr "Взять образец цвета из окна Blender'а, чтобы сохранить его в свойстве"
+msgstr "Взять образец цвета из окна Blender, чтобы сохранить его в свойстве"
 
 
 msgid "Path of property to be set with the depth"
@@ -89974,7 +89981,7 @@ msgstr "Пипетка для Grease Pencil"
 
 
 msgid "Sample a color from the Blender Window and create Grease Pencil material"
-msgstr "Взять образец цвета из окна Blender'а и создать материал Grease Pencil"
+msgstr "Взять образец цвета из окна Blender и создать материал Grease Pencil"
 
 
 msgctxt "GPencil"
@@ -92845,7 +92852,7 @@ msgstr "Добавить модификаторы кэша и ограничит
 
 
 msgid "Enable this to run the export in the background, disable to block Blender while exporting. This option is deprecated; EXECUTE this operator to run in the foreground, and INVOKE it to run as a background job"
-msgstr "Включите, чтобы запустить экспорт в фоновом режиме (отключите для блокировки Blender'а во время экспорта). Данная опция устарела; используйте тип EXECUTE у оператора для запуска на переднем плане и INVOKE для выполнения в качестве фонового задания"
+msgstr "Включите, чтобы запустить экспорт в фоновом режиме (отключите для блокировки Blender во время экспорта). Данная опция устарела; используйте тип EXECUTE у оператора для запуска на переднем плане и INVOKE для выполнения в качестве фонового задания"
 
 
 msgid "Is Sequence"
@@ -93874,7 +93881,7 @@ msgstr "Коллекция путей к файлам с общей корнев
 
 
 msgid "Show Blender files in the File Browser"
-msgstr "Показать файлы Blender'а в браузере файлов"
+msgstr "Показать файлы Blender в браузере файлов"
 
 
 msgid "Show folders in the File Browser"
@@ -94049,11 +94056,11 @@ msgstr "Значение для настраиваемых типов свойс
 
 msgctxt "Operator"
 msgid "Quit Blender"
-msgstr "Выйти из Blender'а"
+msgstr "Выйти из Blender"
 
 
 msgid "Quit Blender"
-msgstr "Выйти из Blender'а"
+msgstr "Выйти из Blender"
 
 
 msgctxt "Operator"
@@ -94402,7 +94409,7 @@ msgstr "Закрыть Blender после сохранения"
 
 
 msgid "Save the current Blender file with a numerically incremented name that does not overwrite any existing files"
-msgstr "Сохранить текущий файл Blender'а с численно увеличенным именем, которое не перезаписывает существующие файлы"
+msgstr "Сохранить текущий файл Blender с численно увеличенным именем, которое не перезаписывает существующие файлы"
 
 
 msgctxt "Operator"
@@ -94714,11 +94721,11 @@ msgstr "Сохранять символы в кодировке UTF-8 при н�
 
 
 msgid "Blender Names"
-msgstr "Идентификаторы Blender'а"
+msgstr "Идентификаторы Blender"
 
 
 msgid "Author USD custom attributes containing the original Blender object and object data names"
-msgstr "Авторские пользовательские атрибуты USD, содержащие исходный объект Blender'а и имена данных объекта"
+msgstr "Авторские пользовательские атрибуты USD, содержащие исходный объект Blender и имена данных объекта"
 
 
 msgid "Convert Orientation"
@@ -94802,7 +94809,7 @@ msgstr "Пространство имён"
 
 
 msgid "If set, add the given namespace as a prefix to exported custom property names. This only applies to property names that do not already have a prefix (e.g., it would apply to name 'bar' but not 'foo:bar') and does not apply to blender object and data names which are always exported in the 'userProperties:blender' namespace"
-msgstr "Если установлено, – добавить указанное пространство имён в качестве префикса к именам экспортируемых пользовательских свойств. Это применимо только к именам свойств, которые ещё не содержат префикса (т. е. это будет применяться к имени 'variable', но не к 'prefix:variable') и не применимо к объектам и именам данных Blender'а, которые всегда будут экспортироваться в пространстве имён 'userProperties:blender'"
+msgstr "Если установлено, – добавить указанное пространство имён в качестве префикса к именам экспортируемых пользовательских свойств. Это применимо только к именам свойств, которые ещё не содержат префикса (т. е. это будет применяться к имени 'variable', но не к 'prefix:variable') и не применимо к объектам и именам данных Blender, которые всегда будут экспортироваться в пространстве имён 'userProperties:blender'"
 
 
 msgid "Use Settings for"
@@ -95231,7 +95238,7 @@ msgstr "Разрешить примитивам USD объединяться с 
 
 
 msgid "Import each USD material as a unique Blender material"
-msgstr "Импортировать каждый материал USD как уникальный материал Blender'а"
+msgstr "Импортировать каждый материал USD как уникальный материал Blender"
 
 
 msgid "Material Purpose"
@@ -95267,7 +95274,7 @@ msgstr "Импортировать только примитив по указа
 
 
 msgid "Behavior when importing USD attributes as Blender custom properties"
-msgstr "Поведение при импорте атрибутов USD в качестве пользовательских свойств Blender'а"
+msgstr "Поведение при импорте атрибутов USD в качестве пользовательских свойств Blender"
 
 
 msgid "Do not import USD custom attributes"
@@ -95275,7 +95282,7 @@ msgstr "Не импортировать пользовательские атр�
 
 
 msgid "Import USD attributes in the 'userProperties' namespace as Blender custom properties. The namespace will be stripped from the property names"
-msgstr "Импортировать атрибуты USD в пространство имён 'свойствПользователя' в качестве пользовательских свойства Blender'а. Пространство имён будет удалено из имён свойств"
+msgstr "Импортировать атрибуты USD в пространство имён 'свойствПользователя' в качестве пользовательских свойства Blender. Пространство имён будет удалено из имён свойств"
 
 
 msgid "All Custom"
@@ -95283,7 +95290,7 @@ msgstr "Все пользовательские"
 
 
 msgid "Import all USD custom attributes as Blender custom properties. Namespaces will be retained in the property names"
-msgstr "Импортировать все настраиваемые (пользовательские) атрибуты USD в качестве пользовательских свойства Blender'а. Пространства имён будут сохранены в именах свойств"
+msgstr "Импортировать все настраиваемые (пользовательские) атрибуты USD в качестве пользовательских свойств Blender. Пространства имён будут сохранены в именах свойств"
 
 
 msgid "Mesh Attributes"
@@ -99547,7 +99554,7 @@ msgstr "Параметры редактирования"
 
 
 msgid "Settings for interacting with Blender data"
-msgstr "Параметры для взаимодействия с данными Blender'а"
+msgstr "Параметры для взаимодействия с данными Blender"
 
 
 msgid "Settings for features that are still early in their development stage"
@@ -99611,7 +99618,7 @@ msgstr "Запоминать последний проект"
 
 
 msgid "On startup, automatically re-open the project that was last open when Blender was closed"
-msgstr "При запуске автоматически открывать проект, который был открыт последним перед закрытием Blender'а"
+msgstr "При запуске автоматически открывать проект, который был открыт последним перед закрытием Blender"
 
 
 msgid "Recent Searches"
@@ -99623,7 +99630,7 @@ msgstr "Сортировать недавно просмотренные эле�
 
 
 msgid "Version of Blender the userpref.blend was saved with"
-msgstr "Версия Blender'а, в которой был сохранён файл userpref.blend"
+msgstr "Версия Blender, в которой был сохранён файл userpref.blend"
 
 
 msgid "View & Controls"
@@ -100866,7 +100873,7 @@ msgstr "Максимальный порог"
 
 
 msgid "Raw input pressure value that is interpreted as 100% by Blender"
-msgstr "Сила давления, которая интерпретируется Blender'ом как 100%"
+msgstr "Сила давления, которая интерпретируется Blender как 100%"
 
 
 msgid "Show Tablet Debug Values"
@@ -100882,7 +100889,7 @@ msgstr "API планшета"
 
 
 msgid "Select the tablet API to use for pressure sensitivity (may require restarting Blender for changes to take effect)"
-msgstr "Выберите API планшета, который будет использоваться для чувствительности к нажатию (может потребоваться перезапуск Blender'а, чтобы изменения вступили в силу)"
+msgstr "Выберите API планшета, который будет использоваться для чувствительности к нажатию (может потребоваться перезапуск Blender, чтобы изменения вступили в силу)"
 
 
 msgid "Automatically choose Wintab or Windows Ink depending on the device"
@@ -101330,7 +101337,7 @@ msgstr "Бэкэнд GPU"
 
 
 msgid "GPU backend to use (requires restarting Blender for changes to take effect)"
-msgstr "Используемый бэкэнд GPU (для вступления изменений в силу требуется перезапуск Blender'а)"
+msgstr "Используемый бэкэнд GPU (для вступления изменений в силу требуется перезапуск Blender)"
 
 
 msgid "Use OpenGL backend"
@@ -101358,11 +101365,11 @@ msgstr "Устройство"
 
 
 msgid "Preferred device to select during detection (requires restarting Blender for changes to take effect)"
-msgstr "Предпочтительное устройство, используемое во время обнаружения (для вступления изменений в силу требуется перезапуск Blender'а)"
+msgstr "Предпочтительное устройство, используемое во время обнаружения (для вступления изменений в силу требуется перезапуск Blender)"
 
 
 msgid "Auto detect best GPU for running Blender"
-msgstr "Автоматическое определение наилучшего графического процессора для запуска Blender'а"
+msgstr "Автоматическое определение наилучшего графического процессора для запуска Blender"
 
 
 msgid "Shader Compilation Workers"
@@ -101370,7 +101377,7 @@ msgstr "Процессов по компиляции шейдеров"
 
 
 msgid "Number of shader compilation threads or subprocesses, clamped at the max threads supported by the CPU (requires restarting Blender for changes to take effect). A higher number increases the RAM usage while reducing compilation time. A value of 0 will use automatic configuration. (OpenGL only)"
-msgstr "Количество потоков или подпроцессов компиляции шейдеров, ограниченное максимальным числом потоков, поддерживаемым CPU (требуется перезапуск Blender'а для вступления изменений в силу). Более высокое число увеличивает использование оперативной памяти, одновременно сокращая время компиляции. Значение \"0\" будет использовать автоматическую конфигурацию. (Только OpenGL)"
+msgstr "Количество потоков или подпроцессов компиляции шейдеров, ограниченное максимальным числом потоков, поддерживаемым CPU (требуется перезапуск Blender для вступления изменений в силу). Более высокое число увеличивает использование оперативной памяти, одновременно сокращая время компиляции. Значение \"0\" будет использовать автоматическую конфигурацию. (Только OpenGL)"
 
 
 msgid "Is Microsoft Store Install"
@@ -101378,7 +101385,7 @@ msgstr "Устанавливается через Microsoft Store"
 
 
 msgid "Whether this blender installation is a sandboxed Microsoft Store version"
-msgstr "Является ли данная установка Blender'а изолированной версией Microsoft Store (песочница)"
+msgstr "Является ли данная установка Blender изолированной версией Microsoft Store (песочница)"
 
 
 msgid "Legacy Compute Device Type"
@@ -101434,7 +101441,7 @@ msgstr "Регистрация для всех пользователей"
 
 
 msgid "Make this Blender version open blend files for all users. Requires elevated privileges."
-msgstr "Назначить эту версию Blender'а для открытия всех blend-файлов для всех пользователей. Требуются повышенные привилегии."
+msgstr "Назначить эту версию Blender для открытия всех blend-файлов для всех пользователей. Требуются повышенные привилегии."
 
 
 msgid "Maximum number of lines to store for the console buffer"
@@ -101466,7 +101473,7 @@ msgstr "Метод компиляции шейдеров"
 
 
 msgid "Compilation method used for compiling shaders in parallel. Subprocess requires a lot more RAM for each worker but might compile shaders faster on some systems. Requires restarting Blender for changes to take effect. (OpenGL only)"
-msgstr "Метод компиляции, используемый для параллельной компиляции шейдеров. Подпроцесс требует гораздо больше оперативной памяти для каждого рабочего процесса, но на некоторых системах может компилировать шейдеры быстрее. Требуется перезапуск Blender'а для вступления изменений в силу. (Только OpenGL)"
+msgstr "Метод компиляции, используемый для параллельной компиляции шейдеров. Подпроцесс требует гораздо больше оперативной памяти для каждого рабочего процесса, но на некоторых системах может компилировать шейдеры быстрее. Требуется перезапуск Blender для вступления изменений в силу. (Только OpenGL)"
 
 
 msgid "Thread"
@@ -101522,7 +101529,7 @@ msgstr "Толщина линий интерфейса"
 
 
 msgid "Suggested line thickness and point size in pixels, for add-ons displaying custom user interface elements, based on operating system settings and Blender UI scale"
-msgstr "Рекомендуемая толщина линии и размер точки в пикселях для аддонов, отображающих пользовательские элементы интерфейса, на основе настроек операционной системы и масштаба пользовательского интерфейса Blender'а"
+msgstr "Рекомендуемая толщина линии и размер точки в пикселях для аддонов, отображающих пользовательские элементы интерфейса, на основе настроек операционной системы и масштаба пользовательского интерфейса Blender"
 
 
 msgid "UI Scale"
@@ -101530,7 +101537,7 @@ msgstr "Масштаб интерфейса"
 
 
 msgid "Size multiplier to use when displaying custom user interface elements, so that they are scaled correctly on screens with different DPI. This value is based on operating system DPI settings and Blender display scale."
-msgstr "Множитель размера, используемый при отображении элементов пользовательского интерфейса, чтобы они правильно масштабировались на экранах с разным разрешением. Это значение основано на настройках DPI операционной системы и масштабе отображения Blender'а."
+msgstr "Множитель размера, используемый при отображении элементов пользовательского интерфейса, чтобы они правильно масштабировались на экранах с разным разрешением. Это значение основано на настройках DPI операционной системы и масштабе отображения Blender."
 
 
 msgid "Edit Mode Smooth Wires"
@@ -101985,6 +101992,10 @@ msgid "Chinese (Simplified) - 简体中文"
 msgstr "Китайский (упрощённый) - 简体中文"
 
 
+msgid "Locale code: zh_HANS. Translation progress: 100%"
+msgstr "Код локали: zh_HANS. Прогресс перевода: 100%"
+
+
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Китайский (традиционный) - 繁體中文"
 
@@ -102061,12 +102072,16 @@ msgid "French - Français"
 msgstr "Французский - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 98%"
-msgstr "Код локали: fr_FR. Прогресс перевода: 98%"
+msgid "Locale code: fr_FR. Translation progress: 99%"
+msgstr "Код локали: fr_FR. Прогресс перевода: 99%"
 
 
 msgid "Georgian - ქართული"
 msgstr "Грузинский - ქართული"
+
+
+msgid "Locale code: ka. Translation progress: 97%"
+msgstr "Код локали: ka. Прогресс перевода: 97%"
 
 
 msgid "German - Deutsch"
@@ -102113,6 +102128,10 @@ msgid "Indonesian - Bahasa indonesia"
 msgstr "Индонезийский - Bahasa Indonesia"
 
 
+msgid "Locale code: id_ID. Translation progress: 21%"
+msgstr "Код локали: id_ID. Прогресс перевода: 21%"
+
+
 msgid "Italian - Italiano"
 msgstr "Итальянский - Italiano"
 
@@ -102125,8 +102144,8 @@ msgid "Japanese - 日本語"
 msgstr "Японский - 日本語"
 
 
-msgid "Locale code: ja_JP. Translation progress: 98%"
-msgstr "Код локали: ja_JP. Прогресс перевода: 98%"
+msgid "Locale code: ja_JP. Translation progress: 99%"
+msgstr "Код локали: ja_JP. Прогресс перевода: 99%"
 
 
 msgid "Korean - 한국어"
@@ -102197,6 +102216,10 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Португальский (Португалия) - Português europeu"
 
 
+msgid "Locale code: pt_PT. Translation progress: 82%"
+msgstr "Код локали: pt_PT. Прогресс перевода: 82%"
+
+
 msgid "Romanian - Român"
 msgstr "Румынский - Român"
 
@@ -102209,8 +102232,8 @@ msgid "Russian - Русский"
 msgstr "Русский - Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 99%"
-msgstr "Код локали: ru_RU. Прогресс перевода: 99%"
+msgid "Locale code: ru_RU. Translation progress: 100%"
+msgstr "Код локали: ru_RU. Прогресс перевода: 100%"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -102265,8 +102288,16 @@ msgid "Swedish - Svenska"
 msgstr "Шведский - Svenska"
 
 
+msgid "Locale code: sv_SE. Translation progress: 100%"
+msgstr "Код локали: sv_SE. Прогресс перевода: 100%"
+
+
 msgid "Tamil - தமிழ்"
 msgstr "Тамильский - தமிழ்"
+
+
+msgid "Locale code: ta. Translation progress: 92%"
+msgstr "Код локали: ta. Прогресс перевода: 92%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -102546,7 +102577,7 @@ msgstr "Отображать память"
 
 
 msgid "Show Blender memory usage"
-msgstr "Отображать использование памяти Blender'ом"
+msgstr "Отображать использование памяти Blender"
 
 
 msgid "Show Scene Duration"
@@ -102570,7 +102601,7 @@ msgstr "Отображать версию"
 
 
 msgid "Show Blender version string"
-msgstr "Отображать строку версии Blender'а"
+msgstr "Отображать строку версии Blender"
 
 
 msgid "Show VRAM"
@@ -102902,7 +102933,7 @@ msgstr "Коллекция библиотек ассетов проекта"
 
 
 msgid "Blender Project Variable"
-msgstr "Переменная проекта Blender'а"
+msgstr "Переменная проекта Blender"
 
 
 msgid "Description of the variable (e.g. purpose, semantics, etc.)"
@@ -103006,7 +103037,7 @@ msgstr "Версия для удаления устаревшего"
 
 
 msgid "The Blender version this is expected to be removed"
-msgstr "Версия Blender'а, в которой ожидается прекращение поддержки данного элемента"
+msgstr "Версия Blender, в которой ожидается прекращение поддержки данного элемента"
 
 
 msgid "Deprecated Version"
@@ -103014,7 +103045,7 @@ msgstr "Устаревшая версия"
 
 
 msgid "The Blender version this was deprecated"
-msgstr "Версия Blender'а, в которой этот функционал устарел"
+msgstr "Версия Blender, в которой этот функционал устарел"
 
 
 msgid "Description of the property for tooltips"
@@ -104281,7 +104312,7 @@ msgstr "GPU-Вычисления"
 
 
 msgid "Use GPU compute device for rendering, configured in the system tab in the user preferences"
-msgstr "Использовать графический процессор для рендера, настраивается на вкладке «Система» в настройках Blender'а"
+msgstr "Использовать графический процессор для рендера, настраивается на вкладке «Система» в настройках Blender"
 
 
 msgid "Dicing Camera"
@@ -105289,11 +105320,11 @@ msgstr "Путь к соответствующему файлу .po в рабо�
 
 
 msgid "PO Blender File Path"
-msgstr "Путь .po-файла Blender'а"
+msgstr "Путь .po-файла Blender"
 
 
 msgid "Path to the relevant po file in Blender's source repository"
-msgstr "Путь к соответствующему файлу .po в исходном репозитории Blender'а"
+msgstr "Путь к соответствующему файлу .po в исходном репозитории Blender"
 
 
 msgid "Language ID"
@@ -109198,7 +109229,7 @@ msgstr "Метод экспорта"
 
 
 msgid "How to export the Blender scene to the Hydra render engine"
-msgstr "Как экспортировать сцену Blender'а в рендер-движок Hydra"
+msgstr "Как экспортировать сцену Blender в рендер-движок Hydra"
 
 
 msgid "Fast interactive editing through native Hydra integration"
@@ -111748,7 +111779,7 @@ msgstr "API данных"
 
 
 msgid "Display low level Blender data and its properties"
-msgstr "Показать низкоуровневые данные Blender'а и их свойства"
+msgstr "Показать низкоуровневые данные Blender и их свойства"
 
 
 msgid "Library Overrides"
@@ -112101,7 +112132,7 @@ msgstr "Пространство настроек"
 
 
 msgid "Blender preferences space data"
-msgstr "Данные пространства настроек Blender'а"
+msgstr "Данные пространства настроек Blender"
 
 
 msgid "Search term for filtering in the UI"
@@ -118913,7 +118944,7 @@ msgstr "Масштаб единиц"
 
 
 msgid "Scale to use when converting between Blender units and dimensions. When working at microscopic or astronomical scale, a small or large unit scale respectively can be used to avoid numerical precision problems"
-msgstr "Масштаб, используемый при преобразовании единиц измерения в Blender'е. При работе в микроскопическом или астрономическом масштабе можно использовать малые или большие единицы измерения соответственно, чтобы избежать проблем с числовой точностью"
+msgstr "Масштаб, используемый при преобразовании единиц измерения в Blender. При работе в микроскопическом или астрономическом масштабе можно использовать малые или большие единицы измерения соответственно, чтобы избежать проблем с числовой точностью"
 
 
 msgid "Unit System"
@@ -125322,7 +125353,7 @@ msgstr "Разблокировано: {:s}"
 
 
 msgid "Warning! Before unlocking, ensure another instance of Blender is not running."
-msgstr "Внимание! Перед разблокировкой убедитесь, что не запущен другой экземпляр Blender'а."
+msgstr "Внимание! Перед разблокировкой убедитесь, что не запущен другой экземпляр Blender."
 
 
 msgid "Force unlocking may be necessary in the case of a crash or power failure,"
@@ -125578,12 +125609,27 @@ msgid "Legacy (Other)"
 msgstr "Прежней версии (прочее)"
 
 
+msgctxt "Preferences"
+msgid "Add-on"
+msgstr "Аддон"
+
+
+msgctxt "Preferences"
+msgid "Asset Library"
+msgstr "Библиотека ассетов"
+
+
+msgctxt "Preferences"
+msgid "Theme"
+msgstr "Тема"
+
+
 msgid "Missing Built-in Add-ons"
 msgstr "Отсутствуют встроенные аддоны"
 
 
 msgid "Add-ons previously shipped with Blender are now available from extensions.blender.org."
-msgstr "Аддоны, ранее поставлявшиеся вместе с Blender'ом, теперь доступны на extensions.blender.org."
+msgstr "Аддоны, ранее поставлявшиеся вместе с Blender, теперь доступны на extensions.blender.org."
 
 
 msgid "Missing Add-ons"
@@ -125660,7 +125706,7 @@ msgstr "Разработчик"
 
 
 msgid "Blender's extension repository not found!"
-msgstr "Репозиторий расширений Blender'а не найден!"
+msgstr "Репозиторий расширений Blender не найден!"
 
 
 msgid ":"
@@ -125694,7 +125740,7 @@ msgstr "Без видимых тегов."
 
 
 msgid "Blender's extension repository must be enabled to install extensions!"
-msgstr "Для установки расширений необходимо указать папку для расширений Blender'а!"
+msgstr "Для установки расширений необходимо указать папку для расширений Blender!"
 
 
 msgctxt "Operator"
@@ -125739,7 +125785,7 @@ msgstr "Деинсталлировать отмеченное"
 
 
 msgid "Blender's extension repository must be refreshed!"
-msgstr "Необходимо обновить репозиторий расширений Blender'а!"
+msgstr "Необходимо обновить репозиторий расширений Blender!"
 
 
 msgid "No permissions specified"
@@ -126363,7 +126409,7 @@ msgstr "Неверный контекст"
 
 
 msgid "The BVH file does not contain frame duration in its MOTION section, assuming the BVH and Blender scene have the same frame rate"
-msgstr "Файл BVH не содержит длительности в кадрах в разделе MOTION, при условии, что сцены BVH и Blender'а имеют одинаковую частоту кадров"
+msgstr "Файл BVH не содержит длительности в кадрах в разделе MOTION, при условии, что сцены BVH и Blender имеют одинаковую частоту кадров"
 
 
 msgid "Unable to update scene frame rate, as the BVH file contains a zero frame duration in its MOTION section"
@@ -126380,7 +126426,7 @@ msgstr "Неверная цель %r (должно быть 'ARMATURE' или 'O
 
 msgctxt "Operator"
 msgid "IO_FH_svg_as_curves"
-msgstr "SVG как кривые"
+msgstr "IO_FH_svg_as_curves"
 
 
 msgid "Unable to parse XML, %s:%s for file %r"
@@ -127920,7 +127966,7 @@ msgstr "Очистить рабочий репозиторий"
 
 msgctxt "Operator"
 msgid "Update Blender Repository"
-msgstr "Обновить репозиторий Blender'а"
+msgstr "Обновить репозиторий Blender"
 
 
 msgctxt "Operator"
@@ -128231,7 +128277,7 @@ msgstr "Не удалось найти ни одного запущенного 
 
 
 msgid "Blender sub-process exited with error code {:d}"
-msgstr "Подпроцесс Blender'а завершился с кодом ошибки {:d}"
+msgstr "Подпроцесс Blender завершился с кодом ошибки {:d}"
 
 
 msgid "Asset local to the current file, which is not saved anywhere"
@@ -128391,7 +128437,7 @@ msgstr "Не удалось найти изображение '{:s}'"
 
 
 msgid "Image editor could not be launched, ensure that the path in User Preferences > File Paths > Applications > Image Editor is valid, and Blender has rights to launch it"
-msgstr "Не удалось запустить редактор изображений. Убедитесь, что путь в \"Настройках пользователя > Пути к файлам > Приложения > Редактор изображений\" указан верно, и у Blender'а есть права на его запуск"
+msgstr "Не удалось запустить редактор изображений. Убедитесь, что путь в \"Настройках пользователя > Пути к файлам > Приложения > Редактор изображений\" указан верно, и у Blender есть права на его запуск"
 
 
 msgid "Context incorrect, image not found"
@@ -128880,7 +128926,7 @@ msgstr "Переименовано {:d} из {:d} {:s}"
 
 msgctxt "Operator"
 msgid "New Project..."
-msgstr "Создать проект..."
+msgstr "Новый проект..."
 
 
 msgctxt "Operator"
@@ -129058,7 +129104,7 @@ msgstr "Примечания к выпуску"
 
 
 msgid "Read about what's new in this version of Blender"
-msgstr "Прочитайте о том, что нового появилось в этой версии Blender'а"
+msgstr "Прочитайте о том, что нового появилось в этой версии Blender"
 
 
 msgid "User Manual"
@@ -129066,7 +129112,7 @@ msgstr "Руководство пользователя"
 
 
 msgid "The reference manual for this version of Blender"
-msgstr "Справочное руководство для этой версии Blender'а"
+msgstr "Справочное руководство для этой версии Blender"
 
 
 msgid "Python API Reference"
@@ -129074,7 +129120,7 @@ msgstr "Справочник по API Python"
 
 
 msgid "The API reference manual for this version of Blender"
-msgstr "Справочное руководство по API для этой версии Blender'а"
+msgstr "Справочное руководство по API для этой версии Blender"
 
 
 msgid "Development Fund"
@@ -129086,7 +129132,7 @@ msgstr "Программа пожертвований на поддержку т
 
 
 msgid "Blender's official web-site"
-msgstr "Официальный сайт Blender'а"
+msgstr "Официальный сайт Blender"
 
 
 msgid "Credits"
@@ -129094,7 +129140,7 @@ msgstr "Авторы"
 
 
 msgid "Lists committers to Blender's source code"
-msgstr "Список авторов исходного кода Blender'а"
+msgstr "Список авторов исходного кода Blender"
 
 
 msgid "Extensions Platform"
@@ -133116,8 +133162,21 @@ msgid "Auto-Save Project"
 msgstr "Автосохранение проекта"
 
 
+msgctxt "Operator"
+msgid "Save Project"
+msgstr "Сохранить проект"
+
+
 msgid "Artwork"
 msgstr "Иллюстрация"
+
+
+msgid "No active project."
+msgstr "Нет активного проекта."
+
+
+msgid "Create a new project, or open an existing project or a file inside of one."
+msgstr "Создайте новый проект, откройте существующий или файл внутри него."
 
 
 msgctxt "Operator"
@@ -133140,30 +133199,13 @@ msgid "Float"
 msgstr "С плавающей запятой"
 
 
+msgid "Overridden by the {:s} environment variable"
+msgstr "Переопределено переменной окружения {:s}"
+
+
 msgctxt "Operator"
 msgid "Reload to Apply Changes"
 msgstr "Перезагрузить для применения изменений"
-
-
-msgid "No active project."
-msgstr "Нет активного проекта."
-
-
-msgid "Save the current file, and make sure to place it in a folder that will be part of the project"
-msgstr "Сохраните текущий файл и убедитесь, что он находится в папке, которая является частью проекта."
-
-
-msgid "Alternatively, open a file inside of a project directory to see its settings."
-msgstr "Или откройте файл внутри папки проекта, чтобы просмотреть его настройки."
-
-
-msgctxt "Operator"
-msgid "Save File..."
-msgstr "Сохранить файл..."
-
-
-msgid "Set up a new project by choosing any parent directory of the current file."
-msgstr "Создайте новый проект, выбрав любую родительскую папку текущего файла."
 
 
 msgid "{:.3f}"
@@ -134107,7 +134149,7 @@ msgstr "Ещё…"
 
 msgctxt "Operator"
 msgid "Load Factory Blender Settings"
-msgstr "Загрузить заводские настройки Blender'а"
+msgstr "Загрузить заводские настройки Blender"
 
 
 msgctxt "Operator"
@@ -134253,7 +134295,7 @@ msgstr "Видеопамять"
 
 
 msgid "Blender Version"
-msgstr "Версия Blender'а"
+msgstr "Версия Blender"
 
 
 msgid "Top Level"
@@ -134558,7 +134600,7 @@ msgstr "Сохранить как студийный свет"
 
 msgctxt "Operator"
 msgid "Load Factory Blender Preferences"
-msgstr "Загрузить базовые настройки Blender'а"
+msgstr "Загрузить базовые настройки Blender"
 
 
 msgid "Cycles is disabled in this build"
@@ -134566,11 +134608,11 @@ msgstr "Cycles отключён в этой сборке"
 
 
 msgid "A restart of Blender is required"
-msgstr "Требуется перезапуск Blender'а"
+msgstr "Требуется перезапуск Blender"
 
 
 msgid "Open blend files with this Blender version"
-msgstr "Открывать blend-файлы с помощью этой версии Blender'а"
+msgstr "Открывать blend-файлы с помощью этой версии Blender"
 
 
 msgctxt "Operator"
@@ -137324,11 +137366,11 @@ msgstr "Загрузка данного ассета не требуется"
 
 
 msgid "Downloading assets requires Python, and this Blender is built without"
-msgstr "Для загрузки ассетов требуется Python, а данная версия Blender'а скомпилирована без него"
+msgstr "Для загрузки ассетов требуется Python, а данная версия Blender скомпилирована без него"
 
 
 msgid "Downloading asset previews requires Python, and this Blender is built without"
-msgstr "Для загрузки миниатюр предварительного просмотра ассетов требуется Python, а данная версия Blender'а скомпилирована без него"
+msgstr "Для загрузки миниатюр предварительного просмотра ассетов требуется Python, а данная версия Blender скомпилирована без него"
 
 
 msgid "Asset listing does not indicate where the file should be downloaded to, for asset '%s'"
@@ -137536,7 +137578,7 @@ msgstr "Добавленные данные"
 
 
 msgid "Linking or appending from a very old .blend file format (%d.%d), no animation conversion will be done! You may want to re-save your lib file with current Blender"
-msgstr "Связывание или присоединение от .blend-файла в очень старом формате (%d.%d), анимация не будет преобразована! Пересохраните библиотечный файл в текущей версии Blender'а"
+msgstr "Связывание или присоединение от .blend-файла в очень старом формате (%d.%d), анимация не будет преобразована! Пересохраните библиотечный файл в текущей версии Blender"
 
 
 msgid "Lib Reload: Replacing all references to old data-block '%s' by reloaded one failed, old one (%d remaining users) had to be kept and was renamed to '%s'"
@@ -138094,14 +138136,6 @@ msgstr "[Размещённое действие]"
 
 msgid "node_groups"
 msgstr "нодовые_группы"
-
-
-msgid "Shader To RGB can't evaluate Light Accumulation nodes"
-msgstr "Нода \"Шейдер в RGB (shader to RGB)\" не может вычислять ноды \"Накопления света (light accumulation)\""
-
-
-msgid "Lighting nodes must be connected to the Light sockets of a Light Accumulation node before reaching the Material Output"
-msgstr "Ноды освещения должны быть подключены к световым сокетам ноды \"Накопления света (light accumulation)\" до того, как дойти до \"Вывода материала (material output)\""
 
 
 msgid "Lighting nodes can't be connected to the Color sockets of a Light Accumulation node"
@@ -138854,7 +138888,7 @@ msgstr "Файл был сохранён более новой версией, �
 
 
 msgid "Blend file '%s' created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0, use an older version of Blender to open and convert it."
-msgstr "Blend-файл \"%s\" создан версией Blender'а с обратным порядком байтов. Поддержка таких файлов прекращена в Blender 5.0. Для его открытия и преобразования используйте более старую версию Blender'а."
+msgstr "Blend-файл \"%s\" создан версией Blender с обратным порядком байтов. Поддержка таких файлов прекращена в Blender 5.0. Для его открытия и преобразования используйте более старую версию Blender."
 
 
 msgid "Failed to read blend file '%s': %s"
@@ -138862,7 +138896,7 @@ msgstr "Не удалось прочитать файл \"%s\": %s"
 
 
 msgid "Cannot read blend file '%s', incomplete header, may be from a newer version of Blender"
-msgstr "Невозможно прочитать файл-blend \"%s\", неполный заголовок, возможно, из более новой версии Blender'а"
+msgstr "Невозможно прочитать файл-blend \"%s\", неполный заголовок, возможно, из более новой версии Blender"
 
 
 msgid "Failed to read file '%s', not a blend file"
@@ -138878,7 +138912,7 @@ msgstr "Ошибка открытия \"%s\": %s"
 
 
 msgid "Blendfile '%s' was created by a future version of Blender and contains ID names longer than currently supported. These have been truncated."
-msgstr "Файл .blend \"%s\" был создан предстоящей версией Blender'а и содержит имена ID длиннее, чем поддерживаются в настоящее время. Они были усечены."
+msgstr "Файл .blend \"%s\" был создан предстоящей версией Blender и содержит имена ID длиннее, чем поддерживаются в настоящее время. Они были усечены."
 
 
 msgid "Blendfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
@@ -138886,7 +138920,7 @@ msgstr "Файл .blend \"%s\", похоже, повреждён, он соде�
 
 
 msgid "Library '%s' was created by a future version of Blender and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Blender version."
-msgstr "Библиотека \"%s\" была создана предстоящей версией Blender'а и содержит имена идентификаторов длиннее, чем поддерживается в настоящее время. Это может привести к потере связанных данных, рассмотрите возможность открытия и повторного сохранения этой библиотеки в текущей версии Blender'а."
+msgstr "Библиотека \"%s\" была создана предстоящей версией Blender и содержит имена идентификаторов длиннее, чем поддерживается в настоящее время. Это может привести к потере связанных данных, рассмотрите возможность открытия и повторного сохранения этой библиотеки в текущей версии Blender."
 
 
 msgid "Library '%s' appears corrupted, it contains invalid ID names. This may cause missing linked data."
@@ -140231,7 +140265,7 @@ msgstr "версии API не были определены: {:s}"
 
 
 msgid "remote does not offer an API version supported by this version of Blender"
-msgstr "версия API удалённого репозитория не совместима с той, что поддерживается данной версией Blender'а"
+msgstr "версия API удалённого репозитория не совместима с той, что поддерживается данной версией Blender"
 
 
 msgid "internal error, please report a bug"
@@ -140251,15 +140285,15 @@ msgstr "Не удалось прочитать список ассетов дл�
 
 
 msgid "could not read asset Blender versions, 'bl_versions' field not set"
-msgstr "не удалось прочитать совместимые версии Blender'а для ассета, поле 'bl_versions' не задано"
+msgstr "не удалось прочитать совместимые версии Blender для ассета, поле 'bl_versions' не задано"
 
 
 msgid "could not read asset Blender versions, 'bl_versions.min' field not set"
-msgstr "не удалось прочитать совместимые версии Blender'а для ассета, поле 'bl_versions.min' не задано"
+msgstr "не удалось прочитать совместимые версии Blender для ассета, поле 'bl_versions.min' не задано"
 
 
 msgid "could not read asset Blender versions, 'bl_versions.min' field not in X.Y notation"
-msgstr "не удалось прочитать совместимые версии Blender'а для ассета, поле 'bl_versions.min' не записано в формате X.Y (например, 3.6, 4.2)"
+msgstr "не удалось прочитать совместимые версии Blender для ассета, поле 'bl_versions.min' не записано в формате X.Y (например, 3.6, 4.2)"
 
 
 msgid "could not read asset name, 'name' field not set"
@@ -140443,7 +140477,7 @@ msgstr "Каталоги ассетов не могут быть отредак�
 
 
 msgid "Cannot save asset catalogs before the Blender file is saved"
-msgstr "Невозможно сохранить каталоги ассетов до сохранения файла Blender'а"
+msgstr "Невозможно сохранить каталоги ассетов до сохранения файла Blender"
 
 
 msgid "No changes to be saved"
@@ -141296,7 +141330,7 @@ msgstr "Перетащите, чтобы продолжить выбор, отп
 
 
 msgid "Press 'Enter' to sample outside of a Blender window"
-msgstr "Нажмите 'Enter', чтобы выполнить сэмплирование за пределами окна Blender'а"
+msgstr "Нажмите 'Enter', чтобы выполнить сэмплирование за пределами окна Blender"
 
 
 msgid "Could not resolve path '%s'"
@@ -142790,12 +142824,12 @@ msgid ""
 "File saved by newer Blender\n"
 "({}), expect loss of data"
 msgstr ""
-"Файл сохранен в более новой версии Blender'а\n"
+"Файл сохранён в более новой версии Blender\n"
 "({}), возможна потеря данных"
 
 
 msgid "This file is managed by the Blender asset system and cannot be overridden"
-msgstr "Этот файл управляется системой ассетов Blender'а и не может быть переопределён"
+msgstr "Этот файл управляется системой ассетов Blender и не может быть переопределён"
 
 
 msgid "OpenColorIO configuration failed to load"
@@ -142847,12 +142881,22 @@ msgid "Unable to determine ABC sequence length"
 msgstr "Невозможно определить длину последовательности ABC"
 
 
+msgctxt "Operator"
+msgid "Alembic"
+msgstr "Alembic"
+
+
 msgid "Could not add a layer to the cache file"
 msgstr "Не удалось добавить слой в файл кэша"
 
 
 msgid "Multiple file handlers can be used, drop to pick which to use"
 msgstr "В наличии есть несколько обработчиков файлов, перетащите, чтобы выбрать нужный"
+
+
+msgctxt "Operator"
+msgid "FBX"
+msgstr "FBX"
 
 
 msgid "Scene Options"
@@ -142885,6 +142929,11 @@ msgstr "Невозможно импортировать \"%s\""
 
 msgid "Error during file write for \"%s\""
 msgstr "Ошибка при записи файла для \"%s\""
+
+
+msgctxt "Operator"
+msgid "SVG as Grease Pencil"
+msgstr "SVG как Grease Pencil"
 
 
 msgid "Curves as NURBS"
@@ -142931,6 +142980,11 @@ msgid "File exported successfully"
 msgstr "Файл успешно экспортирован"
 
 
+msgctxt "Operator"
+msgid "Wavefront OBJ"
+msgstr "Wavefront OBJ"
+
+
 msgid "Imported OTIO timeline into scene '%s'"
 msgstr "Таймлайн OTIO импортирован в сцену \"%s\""
 
@@ -142947,8 +143001,23 @@ msgid "Sequencer scene has no strips"
 msgstr "В сцене секвенсора нет дорожек"
 
 
+msgctxt "Operator"
+msgid "OpenTimelineIO"
+msgstr "OpenTimelineIO"
+
+
 msgid "ASCII"
 msgstr "ASCII"
+
+
+msgctxt "Operator"
+msgid "Stanford PLY"
+msgstr "Stanford PLY"
+
+
+msgctxt "Operator"
+msgid "SPZ"
+msgstr "SPZ"
 
 
 msgid "Batch"
@@ -142959,8 +143028,13 @@ msgid "No filename given"
 msgstr "Имя файла не задано"
 
 
+msgctxt "Operator"
+msgid "STL"
+msgstr "STL"
+
+
 msgid "Blender Data"
-msgstr "Данные Blender'а"
+msgstr "Данные Blender"
 
 
 msgid "File References"
@@ -142977,6 +143051,11 @@ msgstr "Назначение отображения"
 
 msgid "Particles and Instancing"
 msgstr "Частицы и создание экземпляров"
+
+
+msgctxt "Operator"
+msgid "Universal Scene Description"
+msgstr "Universal Scene Description"
 
 
 msgid "Import {} files"
@@ -145816,7 +145895,7 @@ msgstr "Отображать панель снизу"
 
 
 msgid "Blender Drivers Editor"
-msgstr "Редактор драйверов Blender'а"
+msgstr "Редактор драйверов Blender"
 
 
 msgid "Blender Info Log"
@@ -145870,6 +145949,10 @@ msgstr "Изменять размер 4-х видового просмотра �
 
 msgid "No more keyframes to jump to in this direction"
 msgstr "Нет ключевых кадров по заданному направлению перехода"
+
+
+msgid "No markers to jump to"
+msgstr "Нет маркеров для перехода"
 
 
 msgid "No more markers to jump to in this direction"
@@ -146964,7 +147047,7 @@ msgstr ""
 
 
 msgid "Unreadable Blender library file:"
-msgstr "Нечитаемый файл библиотеки Blender'а:"
+msgstr "Нечитаемый файл библиотеки Blender:"
 
 
 msgid "Could not rename: %s"
@@ -148811,10 +148894,6 @@ msgid "No active item to rename"
 msgstr "Нет активного элемента для переименования"
 
 
-msgid "No selected data-blocks to copy"
-msgstr "Нет выбранных датаблоков для копирования"
-
-
 msgid "There is no active data-block"
 msgstr "Нет активного блока данных"
 
@@ -149242,6 +149321,44 @@ msgid "Built-In"
 msgstr "Встроенные"
 
 
+msgid "Close the current project before creating a new one"
+msgstr "Перед созданием нового проекта закройте текущий"
+
+
+msgid "Create Project"
+msgstr "Создать проект"
+
+
+msgid "Folder already contains a project."
+msgstr "В этой папке уже есть проект."
+
+
+msgid "Folder is inside another project."
+msgstr "Папка находится внутри другого проекта."
+
+
+msgid "Add Asset Library"
+msgstr "Добавить библиотеку ассетов"
+
+
+msgid ""
+"The current file needs to be inside of the project's path.\n"
+"To pick a different folder, move the current file there first, or create a new project from a new unsaved file."
+msgstr ""
+"Текущий файл должен находиться внутри корневой папки проекта.\n"
+"Чтобы выбрать другую папку, сначала переместите туда текущий файл или создайте новый проект из нового несохранённого файла."
+
+
+msgid ""
+"A Blender Project is a directory that provides a shared environment for related .blend files, textures, and other files, with project-specific settings such as Asset Libraries, custom variables, and other configuration options.\n"
+"\n"
+"This is a structured way to organize files and settings across complex pipelines and team projects."
+msgstr ""
+"Проект Blender – это папка, предоставляющая общую среду для связанных .blend-файлов, текстур и прочих файлов, с настройками конкретного проекта, такими как библиотеки ассетов, пользовательские переменные и другие параметры конфигурации.\n"
+"\n"
+"Это структурированный способ организации файлов и настроек в сложных пайплайнах и командных проектах."
+
+
 msgid "Untitled Project"
 msgstr "Безымянный проект"
 
@@ -149250,8 +149367,16 @@ msgid "Invalid project root folder"
 msgstr "Недопустимая корневая папка проекта"
 
 
-msgid "Folder already contains a project"
-msgstr "Папка уже содержит проект"
+msgid "Missing project name"
+msgstr "Не указано имя проекта"
+
+
+msgid "Folder already part of a project"
+msgstr "Папка уже является частью проекта"
+
+
+msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
+msgstr "Библиотеки ассетов, добавленные расширением, можно удалить только вместе с самим расширением"
 
 
 msgid "Failed to create folder \"%s\""
@@ -149268,6 +149393,10 @@ msgstr "Папка \"%s\" не относится к проекту"
 
 msgid "Failed to load project from path: %s"
 msgstr "Не удалось загрузить проект по пути: %s"
+
+
+msgid "There is no asset library to remove"
+msgstr "Нет библиотеки ассетов для удаления"
 
 
 msgid "Failed to load image \"%s\""
@@ -149691,7 +149820,7 @@ msgstr "Перейти к номеру строки"
 
 
 msgid "File Modified Outside and Inside Blender"
-msgstr "Файл изменён снаружи в внутри Blender'а"
+msgstr "Файл изменён снаружи и внутри Blender"
 
 
 msgid "Reload from disk (ignore local changes)"
@@ -149707,7 +149836,7 @@ msgstr "Сделать текст внутренним (создать отде�
 
 
 msgid "File Modified Outside Blender"
-msgstr "Файл изменён вне Blender'а"
+msgstr "Файл изменён вне Blender"
 
 
 msgid "Reload from disk"
@@ -149715,7 +149844,7 @@ msgstr "Перезагрузить с диска"
 
 
 msgid "File Deleted Outside Blender"
-msgstr "Файл удалён вне Blender'а"
+msgstr "Файл удалён вне Blender"
 
 
 msgid "Make text internal"
@@ -149822,8 +149951,8 @@ msgid "Edit Project asset libraries in Project Settings."
 msgstr "Редактируйте библиотеки ассетов проекта в настройках проекта."
 
 
-msgid "Add Asset Library"
-msgstr "Добавить библиотеку ассетов"
+msgid "Open Project Settings"
+msgstr "Открыть настройки проекта"
 
 
 msgid "Add New Extension Repository"
@@ -149848,10 +149977,6 @@ msgstr "Удалить репозиторий и файлы"
 
 msgid "Remove Repository"
 msgstr "Удалить репозиторий"
-
-
-msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
-msgstr "Библиотеки ассетов, добавленные расширением, можно удалить только вместе с самим расширением"
 
 
 msgid "Unable to remove files for \"System\" repositories"
@@ -149884,10 +150009,6 @@ msgstr "Невозможно удалить папку: %s"
 
 msgid "Extension operator not found \"%s\""
 msgstr "Оператор расширения не найден \"%s\""
-
-
-msgid "There is no asset library to remove"
-msgstr "Нет библиотеки ассетов для удаления"
 
 
 msgid "There is no extension repository to remove"
@@ -150326,10 +150447,6 @@ msgstr "Нельзя использовать навигацию для объе
 
 msgid "Depth too large"
 msgstr "Слишком большая глубина"
-
-
-msgid "No objects selected to copy"
-msgstr "Для копирования не выделено ни одного объекта"
 
 
 msgid "No objects to paste"
@@ -151084,6 +151201,10 @@ msgid "Freestyle: Mesh loading"
 msgstr "Freestyle: Загрузка меша"
 
 
+msgid "Freestyle style module '%s'"
+msgstr "Модуль стиля Freestyle \"%s\""
+
+
 msgid "Freestyle: View map creation"
 msgstr "Freestyle: создание карты вида"
 
@@ -151377,6 +151498,10 @@ msgid "PLY Importer: %s: %s"
 msgstr "Импортёр PLY: %s: %s"
 
 
+msgid "PLY Importer: failed importing %s: %s"
+msgstr "Импортёр PLY: не удалось импортировать %s: %s"
+
+
 msgid "PLY Importer: Spherical harmonics degree above the supported %d, spherical harmonics are not imported"
 msgstr "Импортёр PLY: степень сферических гармоник превышает поддерживаемую (%d), сферические гармоники не импортированы"
 
@@ -151387,6 +151512,58 @@ msgstr "Импортёр PLY: неожиданное количество сво
 
 msgid "PLY Importer: Incomplete spherical harmonics band, importing %d of %d coefficients"
 msgstr "Импортёр PLY: неполная полоса сферических гармоник, импортируется %d из %d коэффициентов"
+
+
+msgid "Unexpected SPZ header magic 0x{:X}"
+msgstr "Неверная сигнатура заголовка SPZ: 0x{:X}"
+
+
+msgid "Unsupported SPZ version {}"
+msgstr "Неподдерживаемая версия SPZ: {}"
+
+
+msgid "Too many points"
+msgstr "Слишком много точек"
+
+
+msgid "Unsupported SH degree {}"
+msgstr "Неподдерживаемая степень сферических гармоник: {}"
+
+
+msgid "Unsupported number of position fractional bits {}"
+msgstr "Неподдерживаемое количество дробных бит позиции: {}"
+
+
+msgid "TOC byte offset is less than the size of the header"
+msgstr "Байтовое смещение таблицы содержимого меньше размера заголовка"
+
+
+msgid "Unexpected number of Zstd streams"
+msgstr "Неожиданное количество потоков Zstd"
+
+
+msgid "SPZ Read: Big endian machines are not supported"
+msgstr "Чтение SPZ: Архитектуры с прямым порядком байтов (big-endian) не поддерживаются"
+
+
+msgid "SPZ Read: Error opening file for read"
+msgstr "Чтение SPZ: Ошибка открытия файла для чтения"
+
+
+msgid "SPZ Read: Error reading magic value from file"
+msgstr "Чтение SPZ: Ошибка чтения сигнатуры файла"
+
+
+msgid "SPZ Read: Unrecognized file format"
+msgstr "Чтение SPZ: Нераспознанный формат файла"
+
+
+msgid "SPZ Read: Error initializing Zlib decompression"
+msgstr "Чтение SPZ: Ошибка инициализации распаковки Zlib"
+
+
+msgid "SPZ Read: Error reading header from GZip stream"
+msgstr "Чтение SPZ: Ошибка чтения заголовка из потока GZip"
 
 
 msgid "SPZ Read: %s"
@@ -151719,7 +151896,7 @@ msgstr "%s: Несоответствие между количеством св�
 
 
 msgid "USD Skeleton Import: bone matrices with negative determinants detected in prim %s. Such matrices may indicate negative scales, possibly due to mirroring operations, and cannot currently be converted to Blender's bone representation. The skeletal animation won't be imported"
-msgstr "Импорт скелета USD: В примитиве %s обнаружены матрицы костей с отрицательными детерминантами. Эти матрицы могут указывать на отрицательные масштабы, возможно, из-за операций симметризации (зеркалирования), поэтому в настоящее время их нельзя преобразовать в представление костей Blender'а. Анимация скелета импортирована не будет"
+msgstr "Импорт скелета USD: В примитиве %s обнаружены матрицы костей с отрицательными детерминантами. Эти матрицы могут указывать на отрицательные масштабы, возможно, из-за операций симметризации (зеркалирования), поэтому в настоящее время их нельзя преобразовать в представление костей Blender. Анимация скелета импортирована не будет"
 
 
 msgid "%s: Joint weights and joint indices element size mismatch for prim %s"
@@ -151763,7 +151940,7 @@ msgstr "Невозможно экспортировать смешанные з�
 
 
 msgid "Attribute '%s' (Blender domain %d, type %d) cannot be converted to USD"
-msgstr "Атрибут \"%s\" (домен Blender'а %d, тип %d) не могут быть преобразованы в USD"
+msgstr "Атрибут \"%s\" (домен Blender %d, тип %d) не могут быть преобразованы в USD"
 
 
 msgid "USD does not support animating curve types. The curve type changes from %s to %s on frame %f"
@@ -152292,6 +152469,10 @@ msgid "Only available with angular bending springs."
 msgstr "Доступно только с угловыми пружинами изгиба."
 
 
+msgid "Path of imported external data cannot be edited"
+msgstr "Невозможно изменить путь к файлу импортированных данных"
+
+
 msgid "Collection '%s' is not an original ID"
 msgstr "Коллекция \"%s\" не является оригинальным идентификатором"
 
@@ -152784,14 +152965,6 @@ msgstr "%s \"%s\" не должно нигде использоваться, ч�
 
 msgid "Only linked IDs can be packed"
 msgstr "Упаковывать можно только связанные идентификаторы"
-
-
-msgid "Failed to initialize project. Ensure that both the name and project_root parameters are non-empty."
-msgstr "Не удалось инициализировать проект. Убедитесь, что параметры имени и корневой папки проекта не пусты."
-
-
-msgid "Failed to save project config."
-msgstr "Не удалось сохранить конфигурацию проекта."
 
 
 msgid "Scene '%s' is the last local one, cannot be removed"
@@ -153513,6 +153686,10 @@ msgstr "Программа была запущена с опцией автон�
 
 msgid "Script directory not found"
 msgstr "Папка скрипта не найдена"
+
+
+msgid "Extension defined asset libraries require a remote URL"
+msgstr "Библиотеки ассетов, определяемые расширениями, требуют удалённого URL-адреса"
 
 
 msgid "Extension repository not found"
@@ -156672,6 +156849,10 @@ msgid "Rest Pose"
 msgstr "Поза покоя"
 
 
+msgid "Radius Tail"
+msgstr "Радиус - Конец"
+
+
 msgid "Object is not an armature"
 msgstr "Объект не является арматурой"
 
@@ -156710,6 +156891,18 @@ msgstr "Исходная длина кости"
 
 msgid "Whether the bone exists in the armature"
 msgstr "Существует ли кость в арматуре"
+
+
+msgid "Original envelope distance to the bone"
+msgstr "Исходное расстояние оболочки до кости"
+
+
+msgid "Original radius of the head of the bone"
+msgstr "Исходный радиус начала кости"
+
+
+msgid "Original radius of the tail of the bone"
+msgstr "Исходный радиус конца кости"
 
 
 msgid "Armature object to retrieve the bone information from"
@@ -156867,6 +157060,14 @@ msgstr "Список, содержащий по одному элементу д
 
 msgid "Positions"
 msgstr "Положения"
+
+
+msgid "A list of the point positions in all curves"
+msgstr "Список положений точек всех кривых"
+
+
+msgid "A list with a size one larger than the number of curves storing the first point index of each curve and a final value for the total number of points. This is a prefix sum of the curve sizes"
+msgstr "Список, размер которого на единицу больше количества кривых. Содержит индекс первой точки для каждой кривой, а также финальное значение, равное общему числу точек. Является префиксной суммой размеров кривых"
 
 
 msgid "Disabled, Blender was compiled without Bullet"
@@ -157626,6 +157827,14 @@ msgid "Implicit type conversion when evaluating closure"
 msgstr "Неявная конверсия типов при вычислении замыкания"
 
 
+msgid "Closure not have output: \"{}\""
+msgstr "У замыкания нет выхода: \"{}\""
+
+
+msgid "Closure not have input: \"{}\""
+msgstr "У замыкания нет входа: \"{}\""
+
+
 msgid "Offset Scale"
 msgstr "Масштаб смещения"
 
@@ -157822,6 +158031,14 @@ msgstr "Входная геометрия, из которой по желани
 
 msgid "Whether the geometry had a component of the type. This does not check if the component is empty"
 msgstr "Определяет, содержит ли геометрия компонент данного типа. При этом не проверяется, является ли этот компонент пустым"
+
+
+msgid "Volume to list the grid names of"
+msgstr "Объём, из которого извлекаются имена сеток"
+
+
+msgid "Names of all grids stored in the volume"
+msgstr "Имена всех сеток, хранящихся в объёме"
 
 
 msgid "Volume to take a named grid out of"
@@ -159704,6 +159921,10 @@ msgid "Instances to scale individually"
 msgstr "Экземпляры, для которых следует произвести индивидуальное масштабирование"
 
 
+msgid "OpenVDB error"
+msgstr "Ошибка OpenVDB"
+
+
 msgid "Object-space distance to offset the SDF surface"
 msgstr "Расстояние в пространстве объектов, используемое для смещения поверхности SDF"
 
@@ -160287,7 +160508,7 @@ msgstr "Поле упаковки UV-островков"
 
 
 msgid "Calculation using the MikkTSpace library, consistent with tangents used elsewhere in Blender"
-msgstr "Расчёт с использованием библиотеки MikkTSpace, соответствующий касательным, используемым в других местах Blender'а"
+msgstr "Расчёт с использованием библиотеки MikkTSpace, соответствующий касательным, используемым в других местах Blender"
 
 
 msgid "Significantly faster method that approximates tangents interpolated across face corners with matching UVs. For a value actually tangential to the surface, use the cross product with the normal."
@@ -162161,7 +162382,7 @@ msgstr "Ожидается ввод {}"
 
 
 msgid "Blender File View"
-msgstr "Просмотр файлов Blender'а"
+msgstr "Просмотр файлов Blender"
 
 
 msgid "Invalid context: \"%s\", %s"
@@ -162213,7 +162434,7 @@ msgstr "Загрузить базовые настройки \"{}\"."
 
 
 msgid "Load Factory Blender Preferences"
-msgstr "Загрузить базовые настройки Blender'а"
+msgstr "Загрузить базовые настройки Blender"
 
 
 msgid "To make changes to Preferences permanent, use \"Save Preferences\""
@@ -162258,6 +162479,10 @@ msgstr "Вернуться к сохранённому файлу"
 
 msgid "Clear Recent Files List"
 msgstr "Очистить список недавних файлов"
+
+
+msgid "Clear Recent Projects List"
+msgstr "Очистить список недавних проектов"
 
 
 msgid "Allow Execution"
@@ -162325,19 +162550,19 @@ msgstr "Не удалось загрузить файл"
 
 
 msgid "The file is not a valid Blender file."
-msgstr "Файл не является допустимым файлом Blender'а."
+msgstr "Файл не является допустимым файлом Blender."
 
 
 msgid "This file was saved by a newer version of Blender (%s)."
-msgstr "Этот файл был сохранён более новой версией Blender'а (%s)."
+msgstr "Этот файл был сохранён более новой версией Blender (%s)."
 
 
 msgid "Saving it with this Blender (%s) may cause loss of data."
-msgstr "Сохранение с помощью данной версии Blender'а (%s) может привести к потере данных."
+msgstr "Сохранение с помощью данной версии Blender (%s) может привести к потере данных."
 
 
 msgid "This file is managed by the Blender asset system. It can only be"
-msgstr "Этим файлом управляет система ассетов Blender'а. Он может быть только"
+msgstr "Этим файлом управляет система ассетов Blender. Он может быть только"
 
 
 msgid "saved as a new, regular file."
@@ -162361,11 +162586,11 @@ msgstr "Невозможно перезаписать файлы системы 
 
 
 msgid "with an older Blender version?"
-msgstr "со старой версией Blender'а?"
+msgstr "со старой версией Blender?"
 
 
 msgid "Overwrite file with an older Blender version?"
-msgstr "Перезаписать файл более старой версией Blender'а?"
+msgstr "Перезаписать файл более старой версией Blender?"
 
 
 msgid "Cannot overwrite asset system files. Save as new file?"
@@ -162425,7 +162650,7 @@ msgstr "%d библиотек имеют переопределения, тре�
 
 
 msgid "Proxies have been removed from Blender (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .blend file with the newest Blender version"
-msgstr "Прокси были удалены из Blender'а (%d прокси были автоматически преобразованы в переопределения библиотеки, %d прокси не удалось преобразовать и они были очищены). Рассмотрите возможность повторного сохранения любого файла .blend библиотеки с новейшей версией Blender'а"
+msgstr "Прокси были удалены из Blender (%d прокси были автоматически преобразованы в переопределения библиотеки, %d прокси не удалось преобразовать и они были очищены). Рассмотрите возможность повторного сохранения любого файла .blend библиотеки с новейшей версией Blender"
 
 
 msgid "%d sequence strips were not read because they were in a channel larger than %d"
@@ -162446,6 +162671,10 @@ msgstr "Путь к файлу \"%s\" недействителен"
 
 msgid "Unknown error loading \"%s\""
 msgstr "Неизвестная ошибка загрузки \"%s\""
+
+
+msgid "Could not find a project within the specified path: %s"
+msgstr "Не удалось найти проект по указанному пути: %s"
 
 
 msgid "Application Template \"%s\" not found"
@@ -162485,15 +162714,13 @@ msgstr "Сохранено как \"%s\""
 
 
 msgid ""
-"To match renders with the previous working space as closely as possible,\n"
-"colors in all materials, lights and geometry must be converted.\n"
+"To match renders with the previous working space as closely as possible, colors in all materials, lights and geometry must be converted.\n"
 "\n"
-"Some nodes graphs cannot be converted accurately and may need manual fix-ups."
+"Some node graphs cannot be converted accurately and may need manual fix-ups."
 msgstr ""
-"Чтобы максимально точно настроить движки рендеринга под предыдущее рабочее пространство,\n"
-"необходимо преобразовать цвета всех материалов, источников света и геометрий.\n"
+"Чтобы результаты рендеринга максимально соответствовали прежнему рабочему пространству, цвета во всех материалах, источниках света и геометрии должны быть преобразованы.\n"
 "\n"
-"Некоторые деревья нод не могут быть преобразованы в точности, может потребоваться ручная корректировка."
+"Некоторые деревья нод не могут быть преобразованы в точности, поэтому может потребоваться их ручная доработка."
 
 
 msgid "Can't change working space while jobs are running"
@@ -162709,7 +162936,7 @@ msgstr "Ваша видеокарта или версия драйвера им�
 
 msgctxt "WindowManager"
 msgid "Newer graphics drivers might be available with better Blender compatibility."
-msgstr "Могут быть доступны более новые графические драйверы с лучшей совместимостью с Blender'ом."
+msgstr "Могут быть доступны более новые графические драйверы с лучшей совместимостью с Blender."
 
 
 msgctxt "WindowManager"
@@ -162734,7 +162961,7 @@ msgstr "Ваша видеокарта или драйвер не поддерж�
 
 msgctxt "WindowManager"
 msgid "Upgrading to the latest macOS version may improve Blender support"
-msgstr "Обновление до последней версии macOS может улучшить поддержку Blender'а"
+msgstr "Обновление до последней версии macOS может улучшить поддержку Blender"
 
 
 msgctxt "WindowManager"
@@ -163212,6 +163439,22 @@ msgid "HDV PAL 1080p"
 msgstr "HDV PAL 1080p"
 
 
+msgid "SQUARED 2K"
+msgstr "Квадрат 2K"
+
+
+msgid "SQUARED 3K"
+msgstr "Квадрат 3K"
+
+
+msgid "SQUARED 4K"
+msgstr "Квадрат 4K"
+
+
+msgid "SQUARED 8K"
+msgstr "Квадрат 8K"
+
+
 msgid "TV NTSC 16:9"
 msgstr "TV NTSC 16:9"
 
@@ -163366,7 +163609,7 @@ msgstr "Импорт-экспорт BVH из арматурных объекто
 
 
 msgid "Blender Extensions"
-msgstr "Расширения Blender'а"
+msgstr "Расширения Blender"
 
 
 msgid "Extension repository support for remote repositories"
@@ -163418,7 +163661,7 @@ msgstr "Управление переводами ПИ"
 
 
 msgid "Allows managing UI translations directly from Blender (update main .po files, update scripts' translations, etc.)"
-msgstr "Позволяет управлять переводами пользовательского интерфейса непосредственно из Blender'а (обновлять основные файлы .po, обновлять переводы скриптов и т. д.)"
+msgstr "Позволяет управлять переводами пользовательского интерфейса непосредственно из Blender (обновлять основные файлы .po, обновлять переводы скриптов и т. д.)"
 
 
 msgid "Various tools to enhance and speed up node-based workflow"

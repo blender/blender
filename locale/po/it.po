@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24470,6 +24470,34 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Kerning"
+msgstr "Crenatura"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Names"
+msgstr "Nomi"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
 msgid "Pivot Point"
 msgstr "Punto di Perno"
 
@@ -24498,6 +24526,14 @@ msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
 
 
+msgid "Math"
+msgstr "Matematica"
+
+
+msgid "Utilities"
+msgstr "Utilità"
+
+
 msgid "Mirror"
 msgstr "Specchia"
 
@@ -24510,12 +24546,24 @@ msgid "Local View"
 msgstr "Vista Locale"
 
 
+msgid "Read"
+msgstr "Lettura"
+
+
 msgid "Viewpoint"
 msgstr "Punto di vista"
 
 
+msgid "Sample"
+msgstr "Campione"
+
+
 msgid "Navigation"
 msgstr "Navigazione"
+
+
+msgid "Write"
+msgstr "Scrittura"
 
 
 msgid "Align View"
@@ -24526,20 +24574,16 @@ msgid "Align View to Active"
 msgstr "Allinea Vista a Attivo"
 
 
+msgid "Primitives"
+msgstr "Primitive"
+
+
 msgid "View Regions"
 msgstr "Regione Vista"
 
 
-msgid "Math"
-msgstr "Matematica"
-
-
 msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
-
-
-msgid "Utilities"
-msgstr "Utilità"
 
 
 msgid "Select Similar"
@@ -24558,28 +24602,16 @@ msgid "Select Loops"
 msgstr "Seleziona Anelli"
 
 
-msgid "Read"
-msgstr "Lettura"
-
-
-msgid "Sample"
-msgstr "Campione"
+msgid "Instances"
+msgstr "Istanze"
 
 
 msgid "Assign Material"
 msgstr "Assegna Materiale"
 
 
-msgid "Write"
-msgstr "Scrittura"
-
-
-msgid "Primitives"
-msgstr "Primitive"
-
-
-msgid "Metaball"
-msgstr "Metaball"
+msgid "Import"
+msgstr "Importa"
 
 
 msgid "Light"
@@ -24590,8 +24622,8 @@ msgid "Light Probe"
 msgstr "Sensore di Luce"
 
 
-msgid "Instances"
-msgstr "Istanze"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Add Image"
@@ -24600,10 +24632,6 @@ msgstr "Aggiungi Immagine"
 
 msgid "Relations"
 msgstr "Relazioni"
-
-
-msgid "Import"
-msgstr "Importa"
 
 
 msgid "Rigid Body"
@@ -24622,14 +24650,6 @@ msgid "Quick Effects"
 msgstr "Effetti Veloci"
 
 
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
 msgid "Asset"
 msgstr "Risorsa"
 
@@ -24640,10 +24660,6 @@ msgstr "Rendi Utilizzatore Singolo"
 
 msgid "Convert"
 msgstr "Converti"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -24678,8 +24694,12 @@ msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
 
 
-msgid "Names"
-msgstr "Nomi"
+msgid "Linked"
+msgstr "Collegato"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Toggle Bone Options"
@@ -24710,36 +24730,16 @@ msgid "Set Face Strength"
 msgstr "Imposta Intensità Faccia"
 
 
-msgid "Merge"
-msgstr "Unisci"
-
-
-msgid "Linked"
-msgstr "Collegato"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Kerning"
-msgstr "Crenatura"
-
-
 msgid "Adjust"
 msgstr "Regola"
 
 
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
 msgid "Keying"
 msgstr "Keying"
+
+
+msgid "Merge"
+msgstr "Unisci"
 
 
 msgid "Tracking"

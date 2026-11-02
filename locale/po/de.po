@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
 "PO-Revision-Date: 2026-08-25 20:13+0000\n"
 "Last-Translator: \"Mattis V.\" <mattis@users.noreply.translate.blender.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -19292,6 +19292,30 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
 msgid "Pivot Point"
 msgstr "Drehpunkt"
 
@@ -19312,6 +19336,10 @@ msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
 
+msgid "Math"
+msgstr "Mathe"
+
+
 msgid "Mirror"
 msgstr "Spiegeln"
 
@@ -19320,12 +19348,24 @@ msgid "Local View"
 msgstr "Lokale Ansicht"
 
 
+msgid "Read"
+msgstr "Lesen"
+
+
 msgid "Viewpoint"
 msgstr "Ansicht"
 
 
+msgid "Sample"
+msgstr "Beispiel"
+
+
 msgid "Navigation"
 msgstr "Navigation"
+
+
+msgid "Write"
+msgstr "Schreiben"
 
 
 msgid "Align View"
@@ -19336,12 +19376,12 @@ msgid "Align View to Active"
 msgstr "Ansicht auf Aktiv ausrichten"
 
 
+msgid "Primitives"
+msgstr "Grundkörper"
+
+
 msgid "View Regions"
 msgstr "Vierfenster Ansicht"
-
-
-msgid "Math"
-msgstr "Mathe"
 
 
 msgid "Select More/Less"
@@ -19364,28 +19404,16 @@ msgid "Select Loops"
 msgstr "Schleifen auswählen"
 
 
-msgid "Read"
-msgstr "Lesen"
-
-
-msgid "Sample"
-msgstr "Beispiel"
+msgid "Instances"
+msgstr "Instanzen"
 
 
 msgid "Assign Material"
 msgstr "Material zuweisen"
 
 
-msgid "Write"
-msgstr "Schreiben"
-
-
-msgid "Primitives"
-msgstr "Grundkörper"
-
-
-msgid "Metaball"
-msgstr "Metaball"
+msgid "Import"
+msgstr "Importieren"
 
 
 msgid "Light"
@@ -19396,8 +19424,8 @@ msgid "Light Probe"
 msgstr "Lichtsonde"
 
 
-msgid "Instances"
-msgstr "Instanzen"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Add Image"
@@ -19406,10 +19434,6 @@ msgstr "Bild hinzufügen"
 
 msgid "Relations"
 msgstr "Beziehungen"
-
-
-msgid "Import"
-msgstr "Importieren"
 
 
 msgid "Rigid Body"
@@ -19428,14 +19452,6 @@ msgid "Quick Effects"
 msgstr "Schnelle Effekte"
 
 
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
 msgid "Asset"
 msgstr "Asset"
 
@@ -19446,10 +19462,6 @@ msgstr "Einfachen Benutzer erzeugen"
 
 msgid "Convert"
 msgstr "Konvertieren"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Hooks"
@@ -19468,8 +19480,12 @@ msgid "In-Betweens"
 msgstr "Dazwischen"
 
 
-msgid "Names"
-msgstr "Namen"
+msgid "Linked"
+msgstr "Verknüpft"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Toggle Bone Options"
@@ -19492,28 +19508,12 @@ msgid "Face Data"
 msgstr "Flächendaten"
 
 
-msgid "Merge"
-msgstr "Zusammenführen"
-
-
-msgid "Linked"
-msgstr "Verknüpft"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
 msgid "Keying"
 msgstr "Schlüsselbilder"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
 
 
 msgid "Tracking"
@@ -25722,11 +25722,6 @@ msgstr "Studiolicht deinstallieren"
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "Thema installieren..."
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Hinzufügen der Asset-Bibliothek"
 
 
 msgid "Add an Integrator Preset"
@@ -35284,6 +35279,11 @@ msgstr "Modulname des zu entfernenden Add-Ons"
 
 msgid "Remove existing template with the same ID"
 msgstr "Entfernen vorhandener Vorlage mit derselben ID"
+
+
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Hinzufügen der Asset-Bibliothek"
 
 
 msgctxt "Operator"
@@ -56481,10 +56481,6 @@ msgstr "Bibliothekpfad '%s' existiert nicht, korrigieren Sie ihn vor dem Speiche
 
 msgid "No active item to rename"
 msgstr "Kein Aktives Element zum umbenennen"
-
-
-msgid "No selected data-blocks to copy"
-msgstr "Kein ausgewählter Datenblock zum kopieren"
 
 
 msgid "Operation requires an active keying set"

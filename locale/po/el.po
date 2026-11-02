@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
-"PO-Revision-Date: 2026-09-26 15:12+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"PO-Revision-Date: 2026-11-01 16:12+0000\n"
 "Last-Translator: Marios1Gr <mariosvas2@gmail.com>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
 "Language: el\n"
@@ -1292,6 +1292,10 @@ msgid "Online Essentials"
 msgstr "Απαραίτητα Online"
 
 
+msgid "User Library"
+msgstr "Βιβλιοθήκη Χρήστη"
+
+
 msgid "Catalog UUID"
 msgstr "Κατάλογος UUID"
 
@@ -1365,28 +1369,192 @@ msgid "Actions"
 msgstr "Ενέργειες"
 
 
+msgid "Show Action data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Ενεργειών"
+
+
 msgid "Armatures"
 msgstr "Σκελετοί"
+
+
+msgid "Show Armature data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Σκελετών"
 
 
 msgid "Brushes"
 msgstr "Βούρτσες"
 
 
+msgid "Show Brushes data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Βουρτσών"
+
+
 msgid "Cache Files"
 msgstr "Αρχεία Κρυφής Μνήμης"
+
+
+msgid "Show Cache File data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Αρχειών Κρυφής Μνήμης"
 
 
 msgid "Cameras"
 msgstr "Κάμερες"
 
 
+msgid "Show Camera data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Καμερών"
+
+
+msgid "Curves"
+msgstr "Καμπύλες"
+
+
+msgid "Show Curve data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Καμπυλών"
+
+
+msgid "Show/hide Curves data-blocks"
+msgstr "Εμφάνιση/απόκρυψη μπλοκ δεδομένων Καμπυλών"
+
+
+msgid "Fonts"
+msgstr "Γραμματοσειρές"
+
+
+msgid "Show Font data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Γραμματοσειρών"
+
+
 msgid "Collections"
 msgstr "Συλλογές"
 
 
+msgid "Show Collection data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Συλλογών"
+
+
+msgid "Images"
+msgstr "Εικόνες"
+
+
+msgid "Show Image data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Εικόνων"
+
+
 msgid "Lights"
 msgstr "Φώτα"
+
+
+msgid "Show Light data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Φώτων"
+
+
+msgid "Masks"
+msgstr "Μάσκες"
+
+
+msgid "Show Mask data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Μασκών"
+
+
+msgid "Materials"
+msgstr "Υλικά"
+
+
+msgid "Show Material data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Υλικών"
+
+
+msgid "Node Trees"
+msgstr "Δένδρο Κόμβων"
+
+
+msgid "Show Node Tree data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Δένδρου Κόμβων"
+
+
+msgid "Objects"
+msgstr "Αντικείμενα"
+
+
+msgid "Show Object data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Αντικειμένων"
+
+
+msgid "Paint Curves"
+msgstr "Καμπύλες Βαφής"
+
+
+msgid "Show Paint Curve data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Καμπυλών Βαφής"
+
+
+msgid "Palettes"
+msgstr "Παλέτες"
+
+
+msgid "Show Palette data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Παλετών"
+
+
+msgid "Scenes"
+msgstr "Σκηνές"
+
+
+msgid "Show Scene data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Σκηνών"
+
+
+msgid "Sounds"
+msgstr "Ήχοι"
+
+
+msgid "Show Sound data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Ήχων"
+
+
+msgid "Speakers"
+msgstr "Ηχεία"
+
+
+msgid "Show Speaker data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Ηχείων"
+
+
+msgid "Texts"
+msgstr "Κείμενα"
+
+
+msgid "Show Text data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων Κειμένων"
+
+
+msgid "Volumes"
+msgstr "Εντάσεις"
+
+
+msgid "Show/hide Volume data-blocks"
+msgstr "Εμφάνιση/απόκρυψη μπλοκ δεδομένων Εντάσεων"
+
+
+msgid "Workspaces"
+msgstr "Χώροι Εργασίας"
+
+
+msgid "Show workspace data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων χώρων εργασίας"
+
+
+msgid "Worlds"
+msgstr "Κόσμοι"
+
+
+msgid "Show World data-blocks"
+msgstr "Εμφάνιση μπλοκ δεδομένων κόσμων"
+
+
+msgid "Show Names"
+msgstr "Εμφάνιση Ονομάτων"
 
 
 msgid "Data Type"
@@ -1535,6 +1703,10 @@ msgstr "Εκπομπή"
 
 msgid "Clear"
 msgstr "Καθαρισμός"
+
+
+msgid "Screens"
+msgstr "Οθόνες"
 
 
 msgid "Path"
@@ -1965,6 +2137,10 @@ msgid "Screen"
 msgstr "Οθόνη"
 
 
+msgid "Metaball"
+msgstr "Μετα-σφαίρα"
+
+
 msgid "Snap"
 msgstr "Προσκόλληση"
 
@@ -1977,16 +2153,12 @@ msgid "Select Linked"
 msgstr "Επιλογή Συνδεδεμένων"
 
 
-msgid "Metaball"
-msgstr "Μετα-σφαίρα"
+msgid "Import"
+msgstr "Εισαγωγή"
 
 
 msgid "Light"
 msgstr "Φως"
-
-
-msgid "Import"
-msgstr "Εισαγωγή"
 
 
 msgid "Rigid Body"
@@ -2005,12 +2177,12 @@ msgid "Make Single User"
 msgstr "Ορισμός Ενός Χρήστη"
 
 
-msgid "Merge"
-msgstr "Συγχώνευση"
-
-
 msgid "Linked"
 msgstr "Συνδεδεμένο/α"
+
+
+msgid "Merge"
+msgstr "Συγχώνευση"
 
 
 msgid "Cache"
