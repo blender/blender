@@ -327,8 +327,8 @@ TEST_F(AnimChannelTest, group_channels)
   /* Collect & group the channels. */
   ChannelArena arena;
   ChannelSourcingContext ctx(arena);
-  collection_channels_for_object(*this->cube, CollectionFilters{}, ctx);
-  collection_channels_for_object(*this->suzanne, CollectionFilters{}, ctx);
+  collection_channels_for_object(*this->cube, ctx);
+  collection_channels_for_object(*this->suzanne, ctx);
   group_channels(arena,
                  {
                      ChannelTagType::ACTION,
