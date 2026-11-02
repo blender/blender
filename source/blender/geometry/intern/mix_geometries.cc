@@ -192,13 +192,17 @@ static void mix_socket_values_same_type(bke::SocketValueVariant &a,
     }
   }
   else if (a.is_list() && b.is_list()) {
-    nodes::GListPtr a_list_ptr = a.extract<nodes::GListPtr>();
+    const nodes::GListPtr &a_list_ref = *a.get_if<nodes::GListPtr>();
     const nodes::GListPtr b_list = *b.get_if<nodes::GListPtr>();
-    if (a_list_ptr->cpp_type() != b_list->cpp_type()) {
+    if (!a_list_ref || !b_list) {
+      return;
+    }
+    if (a_list_ref->cpp_type() != b_list->cpp_type()) {
       /* Lists with the same socket type can still have different CPPTypes, e.g. for fields and
        * grids and single values. For now just don't try to support those combinations. */
       return;
     }
+    nodes::GListPtr a_list_ptr = a.extract<nodes::GListPtr>();
     nodes::GList &a_list = a_list_ptr.get_for_write();
     std::variant<GMutableSpan, GMutablePointer> a_values = a_list.values_for_write();
     if (auto *a_span = std::get_if<GMutableSpan>(&a_values)) {

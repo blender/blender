@@ -96,6 +96,7 @@ void BKE_cpp_types_init()
   BLI_CPP_TYPE_REGISTER(nodes::ListPtr<ColorGeometry4b>, CPPTypeFlags::None);
   BLI_CPP_TYPE_REGISTER(nodes::ListPtr<math::Quaternion>, CPPTypeFlags::None);
   BLI_CPP_TYPE_REGISTER(nodes::ListPtr<float4x4>, CPPTypeFlags::None);
+  BLI_CPP_TYPE_REGISTER(nodes::ListPtr<nodes::MenuValue>, CPPTypeFlags::None);
   BLI_CPP_TYPE_REGISTER(nodes::ListPtr<std::string>, CPPTypeFlags::None);
 
 #ifdef WITH_OPENVDB
