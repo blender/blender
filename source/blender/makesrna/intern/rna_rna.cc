@@ -1451,6 +1451,10 @@ static void rna_property_override_diff_propptr_validate_diffing(
   const bool no_ownership = ptrdiff_ctx.no_ownership;
   const bool no_prop_name = ptrdiff_ctx.no_prop_name;
   const bool do_force_name = ptrdiff_ctx.do_force_name;
+  const bool is_same_type = propptr_b != nullptr && (ptrdiff_ctx.rnadiff_ctx.liboverride ?
+                                                         rna_struct_override_type_matches(
+                                                             propptr_a->type, propptr_b->type) :
+                                                         propptr_a->type == propptr_b->type);
 
   ptrdiff_ctx.is_valid_for_diffing = true;
 
@@ -1468,14 +1472,14 @@ static void rna_property_override_diff_propptr_validate_diffing(
     else {
       ptrdiff_ctx.is_id = RNA_struct_is_ID(propptr_b->type);
       ptrdiff_ctx.is_null = true;
-      ptrdiff_ctx.is_type_diff = propptr_a->type != propptr_b->type;
+      ptrdiff_ctx.is_type_diff = !is_same_type;
     }
     ptrdiff_ctx.is_valid_for_diffing = false;
   }
   else {
     ptrdiff_ctx.is_id = RNA_struct_is_ID(propptr_a->type);
     ptrdiff_ctx.is_null = (propptr_b == nullptr || !*propptr_b);
-    ptrdiff_ctx.is_type_diff = (propptr_b == nullptr || propptr_b->type != propptr_a->type);
+    ptrdiff_ctx.is_type_diff = !is_same_type;
     ptrdiff_ctx.is_valid_for_diffing = !((ptrdiff_ctx.is_id && no_ownership) ||
                                          ptrdiff_ctx.is_null || ptrdiff_ctx.is_type_diff);
   }
