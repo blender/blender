@@ -88,7 +88,7 @@ struct BSLParser {
   void external_decl()
   {
     while (true) {
-      switch (peek()) {
+      switch (peek().type()) {
         case Hash:
           preprocessor_directive();
           break;
@@ -121,7 +121,7 @@ struct BSLParser {
         case BracketClose: /* For namespaces. */
           return;
         default:
-          error("Unexpected token \"" + to_str(peek()) + "\", expected declaration");
+          error("Unexpected token \"" + to_str(peek().type()) + "\", expected declaration");
           return;
       }
     }
@@ -221,7 +221,7 @@ struct BSLParser {
   void members_decl()
   {
     while (true) {
-      switch (peek()) {
+      switch (peek().type()) {
         case Hash:
           preprocessor_directive();
           break;
@@ -252,7 +252,7 @@ struct BSLParser {
         case BracketClose:
           return;
         default:
-          error("Unexpected token \"" + to_str(peek()) + "\", expected member declaration");
+          error("Unexpected token \"" + to_str(peek().type()) + "\", expected member declaration");
           return;
       }
     }
@@ -325,38 +325,78 @@ struct BSLParser {
     func_decl();
   }
 
+  void static_qualifier()
+  {
+    NODE(StaticStmt);
+    match(Static);
+  }
+
+  bool static_qualifier_optional()
+  {
+    if (peek() == Static) {
+      static_qualifier();
+      return true;
+    }
+    return false;
+  }
+
+  void const_qualifier()
+  {
+    NODE(Const);
+    match(Const);
+  }
+
+  bool const_qualifier_optional()
+  {
+    if (peek() == Const) {
+      const_qualifier();
+      return true;
+    }
+    return false;
+  }
+
+  void constexpr_qualifier()
+  {
+    NODE(Constexpr);
+    match(Constexpr);
+
+    if (peek() == Static) {
+      /* Report even when parsing speculatively, as no other declaration accepts this. */
+      panic("Static keyword must be placed before constexpr");
+    }
+  }
+
+  bool constexpr_qualifier_optional()
+  {
+    if (peek() == Constexpr) {
+      constexpr_qualifier();
+      return true;
+    }
+    return false;
+  }
+
+  void id_type(bool is_member = false)
+  {
+    NODE(IdType);
+    if (peek() == "constant") {
+      /* MSL constant keyword. Used for enum values. */
+      next();
+    }
+    static_qualifier_optional();
+    constexpr_qualifier_optional();
+    const_qualifier_optional();
+    if (is_member) {
+      /* Supported because of explicit host shared struct members. */
+      match_if(Struct, Class, Enum);
+    }
+    qualified_id();
+  }
+
   bool var_decl(bool is_member = false, bool expect_semicolon = true)
   {
     NODE(VarDecl);
     attribute_optional();
-    {
-      NODE(IdType);
-      if (peek() == Word && curr.str() == "constant") {
-        /* MSL constant keyword. Used for enum values. */
-        next();
-      }
-      if (peek() == Static) {
-        NODE(StaticStmt);
-        match_if(Static);
-      }
-      if (peek() == Const || peek() == Constexpr) {
-        NODE(Const);
-        match_if(Const, Constexpr);
-
-        if (peek() == Static) {
-          /* Report even when parsing speculatively, as no other declaration accepts this. Then
-           * stop parsing like #error(). */
-          error_handler.report(curr, "Static keyword must be placed before constexpr");
-          curr = Token(parser);
-          return true;
-        }
-      }
-      if (is_member) {
-        /* Supported because of explicit host shared struct members. */
-        match_if(Struct, Class, Enum);
-      }
-      qualified_id();
-    }
+    id_type(is_member);
     do {
       declarator(false, is_member);
     } while (match_if(','));
@@ -369,32 +409,53 @@ struct BSLParser {
     return valid;
   }
 
+  void pointer()
+  { /* Note that '*' is parsed as multi-token. The parser code will check the number of stars.
+     * Doing the check here would make the error disappear because 'var_decl' is optional. */
+    NODE(Pointer);
+    match('*');
+  }
+
+  bool pointer_optional()
+  {
+    if (peek() == '*') {
+      pointer();
+      return true;
+    }
+    return false;
+  }
+
+  void reference()
+  {
+    NODE(Reference);
+    match('&');
+  }
+
+  bool reference_optional()
+  {
+    if (peek() == '&') {
+      reference();
+      return true;
+    }
+    return false;
+  }
+
   void declarator(bool optional_id_name = true, bool optional_bitfield = false)
   {
     NODE(Declarator);
-    if (peek() == '*') {
-      /* Note that '*' is parsed as multi-token. The parser code will check the number of stars.
-       * Doing the check here would make the error disappear because 'var_decl' is optional. */
-      NODE(Pointer);
-      match('*');
-    }
-    bool par = match_if('(');
-    /* NOTE: Require Ampersand after parenthesis to avoid mistaking the decl with a func call. */
-    if (par || peek() == '&') {
-      NODE(Reference);
-      match('&');
-    }
+    pointer_optional();
+
     /* Note that these should be unqualified. But for simplicity of the Symbol Table API we parse
      * them as qualified. */
-    if (optional_id_name) {
-      qualified_id_optional();
+    if (match_if('(')) {
+      /* NOTE: Require Ampersand after parenthesis to avoid mistaking the decl with a func call. */
+      reference();
+      optional_id_name ? qualified_id_optional() : qualified_id();
+      match(')');
     }
     else {
-      qualified_id();
-    }
-
-    if (par) {
-      match(')');
+      reference_optional();
+      optional_id_name ? qualified_id_optional() : qualified_id();
     }
 
     if (optional_bitfield) {
@@ -425,10 +486,7 @@ struct BSLParser {
   {
     NODE(FuncDecl);
     attribute_optional();
-    if (peek() == Static) {
-      NODE(StaticStmt);
-      match_if(Static);
-    }
+    static_qualifier_optional();
     match_if(Inline);
     {
       NODE(IdType);
@@ -436,10 +494,7 @@ struct BSLParser {
     }
     qualified_id(expect_template_params);
     function_argument_list();
-    if (peek() == Const) {
-      NODE(Const);
-      match(Const);
-    }
+    const_qualifier_optional();
     if (!expect_body) {
       nodes[curr_node].type = NodeType::FuncForwardDecl;
       return match(';').is_valid();
@@ -467,12 +522,8 @@ struct BSLParser {
     attribute_optional();
     /* Optional name. */
     qualified_id_optional();
-    if (peek() != ':') {
-      error("enum declaration must explicitly use an underlying type");
-      return;
-    }
     /* Underlying type. */
-    match(':');
+    match(':', "enum declaration must explicitly use an underlying type");
     qualified_id();
 
     enum_values();
@@ -484,7 +535,7 @@ struct BSLParser {
     NODE(LocalScope);
     match('{');
     while (true) {
-      switch (peek()) {
+      switch (peek().type()) {
         case Hash:
           preprocessor_directive();
           break;
@@ -499,7 +550,7 @@ struct BSLParser {
           match('}');
           return;
         default:
-          error("Unexpected token \"" + to_str(peek()) + "\", expected enum value");
+          error("Unexpected token \"" + to_str(peek().type()) + "\", expected enum value");
           return;
       }
     }
@@ -536,7 +587,7 @@ struct BSLParser {
     const bool designated = (peek() == '.');
 
     while (true) {
-      switch (peek()) {
+      switch (peek().type()) {
         case BracketClose:
           match('}');
           return;
@@ -561,7 +612,7 @@ struct BSLParser {
           match_if(',');
           break;
         default:
-          error("Unexpected token \"" + to_str(peek()) + "\", expected initializer");
+          error("Unexpected token \"" + to_str(peek().type()) + "\", expected initializer");
           return;
       }
     }
@@ -579,10 +630,7 @@ struct BSLParser {
       attribute_optional();
       {
         NODE(IdType);
-        if (peek() == Const) {
-          NODE(Const);
-          match(Const);
-        }
+        const_qualifier_optional();
         qualified_id();
       }
       declarator();
@@ -654,7 +702,7 @@ struct BSLParser {
     NODE(TemplateArgList);
     match(TemplateOpen);
     while (true) {
-      switch (peek()) {
+      switch (peek().type()) {
         case Typename: {
           {
             NODE(TemplateArg);
@@ -684,7 +732,7 @@ struct BSLParser {
           match(TemplateClose);
           return;
         default:
-          error("Unexpected token \"" + to_str(peek()) + "\", expected template argument");
+          error("Unexpected token \"" + to_str(peek().type()) + "\", expected template argument");
           return;
       }
     }
@@ -724,7 +772,7 @@ struct BSLParser {
     NODE(Expr);
     bool is_first_statement = true;
     while (true) {
-      switch (peek()) {
+      switch (peek().type()) {
         case SquareOpen:
           subscript();
           break;
@@ -861,7 +909,7 @@ struct BSLParser {
           }
           [[fallthrough]];
         default:
-          error("Unexpected token \"" + to_str(peek()) + "\", expected expression operand");
+          error("Unexpected token \"" + to_str(peek().type()) + "\", expected expression operand");
           return;
       }
       is_first_statement = false;
@@ -872,7 +920,7 @@ struct BSLParser {
   {
     NODE(LocalVar);
     qualified_id();
-    switch (peek()) {
+    switch (peek().type()) {
       case ParOpen:
         nodes[curr_node].type = NodeType::FuncCall;
         function_parameter_list();
@@ -897,7 +945,7 @@ struct BSLParser {
       match('{');
     }
     while (true) {
-      switch (peek()) {
+      switch (peek().type()) {
         case Hash:
           preprocessor_directive();
           break;
@@ -949,7 +997,7 @@ struct BSLParser {
           }
           return;
         case EndOfFile:
-          error("Unexpected token \"" + to_str(peek()) + "\", expected local statement");
+          error("Unexpected token \"" + to_str(peek().type()) + "\", expected local statement");
           return;
         default:
           local_statement();
@@ -1045,7 +1093,7 @@ struct BSLParser {
     match('[');
 
     while (true) {
-      switch (peek()) {
+      switch (peek().type()) {
         case SquareClose:
           match(']');
           match(']');
@@ -1066,7 +1114,7 @@ struct BSLParser {
           break;
         }
         default:
-          error("Unexpected token \"" + to_str(peek()) + "\", expected attribute");
+          error("Unexpected token \"" + to_str(peek().type()) + "\", expected attribute");
           return;
       }
     }
@@ -1123,7 +1171,7 @@ struct BSLParser {
     condition(1);
     match('{');
     while (true) {
-      switch (peek()) {
+      switch (peek().type()) {
         case Hash:
           preprocessor_directive();
           break;
@@ -1151,7 +1199,7 @@ struct BSLParser {
           match('}');
           return;
         default:
-          error("Unexpected token \"" + to_str(peek()) + "\", expected switch case");
+          error("Unexpected token \"" + to_str(peek().type()) + "\", expected switch case");
           return;
       }
     }
@@ -1223,7 +1271,7 @@ struct BSLParser {
   }
 
   /* Example: `A<1>::B<2>`. */
-  void qualified_id(bool must_end_with_template_arg = false)
+  bool qualified_id(bool must_end_with_template_arg = false)
   {
     NODE(IdQualified);
     /* Global scope specifier. */
@@ -1246,20 +1294,22 @@ struct BSLParser {
 
     if (must_end_with_template_arg && !ends_with_template) {
       error("Expected template arguments");
+      return false;
     }
+    return true;
   }
 
 #undef NODE
 
  private:
-  TokenType peek() const
+  Token peek() const
   {
-    return curr.type();
+    return curr;
   }
 
-  TokenType peek_next(int i) const
+  Token peek_next(int i) const
   {
-    return curr.next(i).type();
+    return curr.next(i);
   }
 
   void error(const std::string &str)
@@ -1271,36 +1321,58 @@ struct BSLParser {
     curr = Token(parser);
   }
 
-  Token match(char expected)
+  /* Same as error but still emit error during speculative parsing. */
+  void panic(const std::string &str)
+  {
+    no_error = false;
+    error(str);
+  }
+
+  Token match(char expected, const char *error_msg = nullptr)
   {
     if (curr != TokenType(expected)) {
-      error("Syntax Error: Expected token \"" + to_str(TokenType(expected)) + "\" but got \"" +
-            to_str(curr.type()) + "\"");
+      if (error_msg) {
+        error(error_msg);
+      }
+      else {
+        error("Syntax Error: Expected token \"" + to_str(TokenType(expected)) + "\" but got \"" +
+              to_str(curr.type()) + "\"");
+      }
     }
     Token tok = curr;
     next();
     return tok;
   }
 
-  Token match(char expected, char expected2)
+  Token match(char expected, char expected2, const char *error_msg = nullptr)
   {
     if (curr != TokenType(expected) && curr != TokenType(expected2)) {
-      error("Syntax Error: Expected token \"" + to_str(TokenType(expected)) + "\" or \"" +
-            to_str(TokenType(expected2)) + "\" but got \"" + to_str(curr.type()) + "\"");
+      if (error_msg) {
+        error(error_msg);
+      }
+      else {
+        error("Syntax Error: Expected token \"" + to_str(TokenType(expected)) + "\" or \"" +
+              to_str(TokenType(expected2)) + "\" but got \"" + to_str(curr.type()) + "\"");
+      }
     }
     Token tok = curr;
     next();
     return tok;
   }
 
-  Token match(char expected, char expected2, char expected3)
+  Token match(char expected, char expected2, char expected3, const char *error_msg = nullptr)
   {
     if (curr != TokenType(expected) && curr != TokenType(expected2) &&
         curr != TokenType(expected3))
     {
-      error("Syntax Error: Expected token \"" + to_str(TokenType(expected)) + "\" or \"" +
-            to_str(TokenType(expected2)) + "\" or \"" + to_str(TokenType(expected3)) +
-            "\" but got \"" + to_str(curr.type()) + "\"");
+      if (error_msg) {
+        error(error_msg);
+      }
+      else {
+        error("Syntax Error: Expected token \"" + to_str(TokenType(expected)) + "\" or \"" +
+              to_str(TokenType(expected2)) + "\" or \"" + to_str(TokenType(expected3)) +
+              "\" but got \"" + to_str(curr.type()) + "\"");
+      }
     }
     Token tok = curr;
     next();

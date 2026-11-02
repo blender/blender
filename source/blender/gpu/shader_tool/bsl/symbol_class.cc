@@ -12,11 +12,11 @@ namespace bsl {
 
 using namespace blender::gpu::shader::parser::ast;
 
-SymbolClass::SymbolClass(SymbolScope *parent, ClassDecl decl, const string &suffix)
+SymbolClass::SymbolClass(SymbolScope &parent, ClassDecl decl, const string &suffix)
     : SymbolScope(parent,
                   decl.front(),
                   !decl.identifier().is_valid() ?
-                      string("a") + std::to_string(parent->classes.size()) :
+                      string("a") + std::to_string(parent.classes.size()) :
                       string(decl.identifier().name().str()) + suffix,
                   CLASS)
 
@@ -29,14 +29,14 @@ SymbolClass::SymbolClass(SymbolScope *parent, ClassDecl decl, const string &suff
 Result<vector<SymbolClass::MemberNode>, TokenException> SymbolClass::get_all_members_flat() const
 {
   vector<MemberNode> flat_buffer;
-  auto err = get_flat_members_recursive(this, "", 0, flat_buffer);
+  auto err = get_flat_members_recursive(*this, "", 0, flat_buffer);
   return {flat_buffer, err};
 }
 
-std::string SymbolClass::get_path_to_base_class(const SymbolClass *base) const
+std::string SymbolClass::get_path_to_base_class(const SymbolClass &base) const
 {
   for (auto [_, cls] : base_classes) {
-    if (cls == base) {
+    if (cls == &base) {
       return "._" + cls->identifier;
     }
     std::string path = cls->get_path_to_base_class(base);
@@ -47,11 +47,11 @@ std::string SymbolClass::get_path_to_base_class(const SymbolClass *base) const
   return "";
 }
 
-int SymbolClass::get_conversion_index(const SymbolClass *base) const
+int SymbolClass::get_conversion_index(const SymbolClass &base) const
 {
   int conversion_index = 1;
   for (auto [_, cls] : base_classes) {
-    if (cls == base) {
+    if (cls == &base) {
       return conversion_index;
     }
     int base_index = cls->get_conversion_index(base);
@@ -63,13 +63,13 @@ int SymbolClass::get_conversion_index(const SymbolClass *base) const
 }
 
 /* Recursive helper to accumulate path and offsets */
-optional<TokenException> SymbolClass::get_flat_members_recursive(const SymbolClass *cls,
+optional<TokenException> SymbolClass::get_flat_members_recursive(const SymbolClass &cls,
                                                                  const string &current_path,
                                                                  int current_offset,
                                                                  vector<MemberNode> &out_buffer)
 {
   /* Iterate through variables in their declaration order */
-  for (SymbolVariable *var : cls->non_static_variables_in_declaration_order()) {
+  for (SymbolVariable *var : cls.non_static_variables_in_declaration_order()) {
     if (var->bit_offset != 0) {
       continue;
     }
@@ -96,16 +96,16 @@ optional<TokenException> SymbolClass::get_flat_members_recursive(const SymbolCla
 
     for (int i = 0; i < elements; ++i) {
       string array_accessor = var->array_dimensions > 0 ? "[" + to_string(i) + "]" : "";
-      if (var->type->is_builtin()) {
+      if (var->type.is_builtin()) {
         /* Base case: It's a primitive/builtin type. Add to the flat buffer. */
-        out_buffer.emplace_back(var->type, next_path + array_accessor, offset);
-        offset += var->type->size;
+        out_buffer.emplace_back(&var->type, next_path + array_accessor, offset);
+        offset += var->type.size;
       }
       else {
         /* Recursive step: It's a nested user-defined structure. */
         auto err = get_flat_members_recursive(
             var->type, next_path + array_accessor, offset, out_buffer);
-        offset += var->type->size;
+        offset += var->type.size;
         if (err) {
           return err;
         }
@@ -130,7 +130,7 @@ void SymbolClass::ensure_size_and_align(NodeErrorHandler *err_handler, bool chec
       continue;
     }
 
-    SymbolClass &cls = *var->type;
+    SymbolClass &cls = const_cast<SymbolClass &>(var->type);
 
     if (err_handler && !cls.is_enum) {
       auto scope = err_handler->note(
@@ -198,14 +198,12 @@ void SymbolClass::ensure_size_and_align(NodeErrorHandler *err_handler, bool chec
       }
 
       if (!is_std140_compatible && !check_st430) {
-        err_handler->error(var->loc.tok,
-                           Diag::TypeNotAllowedInUniformAndStorageBuffer,
-                           var->type->original,
-                           hint);
+        err_handler->error(
+            var->loc.tok, Diag::TypeNotAllowedInUniformAndStorageBuffer, var->type.original, hint);
       }
       else if (!is_std430_compatible) {
         err_handler->error(
-            var->loc.tok, Diag::TypeNotAllowedInStorageBuffer, var->type->original, hint);
+            var->loc.tok, Diag::TypeNotAllowedInStorageBuffer, var->type.original, hint);
       }
     }
 
@@ -235,7 +233,7 @@ void SymbolClass::ensure_size_and_align(NodeErrorHandler *err_handler, bool chec
       is_std140_compatible = false;
       if (err_handler && !check_st430) {
         err_handler->error(
-            var->loc.tok, Diag::TypeNotAllowedInUniformBufferImplicitPadding, var->type->original);
+            var->loc.tok, Diag::TypeNotAllowedInUniformBufferImplicitPadding, var->type.original);
       }
     }
   }

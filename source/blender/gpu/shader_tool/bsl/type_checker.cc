@@ -26,8 +26,8 @@ struct ExpressionTypeParser
 
  private:
   std::optional<AstNodeException> err;
-  const SymbolTable *table;
-  const SymbolScope *scope;
+  const SymbolTable &table;
+  const SymbolScope &scope;
   ast::Node start;
   ast::Node node;
 
@@ -35,8 +35,8 @@ struct ExpressionTypeParser
   bool is_reference;
 
  public:
-  ExpressionTypeParser(const SymbolTable *table,
-                       const SymbolScope *scope,
+  ExpressionTypeParser(const SymbolTable &table,
+                       const SymbolScope &scope,
                        ast::Node expr_first_child,
                        bool is_reference = false)
       : table(table),
@@ -66,7 +66,7 @@ struct ExpressionTypeParser
     switch (t.type()) {
       case ast::NodeType::Constructor: {
         ast::Constructor ctor = t;
-        return scope->lookup_class(*table, ctor.identifier()).unwrap(err);
+        return scope.lookup_class(table, ctor.identifier()).unwrap(err);
       }
       case ast::NodeType::FuncCall: {
         ast::FuncCall call = t;
@@ -75,10 +75,10 @@ struct ExpressionTypeParser
         if (call.identifier().str() == "resource_table_get") {
           auto [param] = call.parameters().splat_1();
           if (ast::LocalVar var = param.child_first(); var.is_valid()) {
-            return scope->lookup_class(*table, var.identifier()).unwrap(err);
+            return scope.lookup_class(table, var.identifier()).unwrap(err);
           }
           error(call.parameters(), Diag::ExpectedOneTypename);
-          return {table->err_cls, ConstexprError(0), false};
+          return {*table.err_cls, ConstexprError(0), false};
         }
         if (call.identifier().str() == "interface_get" ||
             call.identifier().str() == "sampler_get" || call.identifier().str() == "buffer_get")
@@ -87,23 +87,23 @@ struct ExpressionTypeParser
           if (ast::LocalVar var = param1.child_first(), mem = param2.child_first();
               var.is_valid() && mem.is_valid())
           {
-            SymbolClass *cls = scope->lookup_class(*table, var.identifier()).unwrap(err);
-            SymbolVariable *v = cls->lookup_variable(*table, mem.identifier());
-            if (v->is_error) {
+            const SymbolClass &cls = scope.lookup_class(table, var.identifier()).unwrap(err);
+            const SymbolVariable &v = cls.lookup_variable(table, mem.identifier());
+            if (v.is_error) {
               error(mem, Diag::UnknownVariable, string(mem.str()));
             }
             return v;
           }
           error(call.parameters(), Diag::ExpectedOneTypename);
-          return {table->err_cls, ConstexprError(0), false};
+          return {*table.err_cls, ConstexprError(0), false};
         }
 
         if (is_reference) {
           error(t, Diag::FunctionCallNotAllowedInReferenceDefinition);
         }
-        auto sym = scope->lookup_function(*table, call.identifier(), call.parameters(), *scope);
-        SymbolFunction *fn = sym.unwrap(err);
-        if (fn->is_constexpr && !fn->is_error) {
+        auto sym = scope.lookup_function(table, call.identifier(), call.parameters(), scope);
+        SymbolFunction &fn = sym.unwrap(err);
+        if (fn.is_constexpr && !fn.is_error) {
           /* Implement builtin type casts. */
           auto [param1, param2, param3, param4] = call.parameters().splat_4();
           int param_count = call.parameters().child_count();
@@ -122,23 +122,23 @@ struct ExpressionTypeParser
             {
               /* Not a constexpr. */
             }
-            else if (fn->identifier == "float4") {
-              return {table->float4_cls,
+            else if (fn.identifier == "float4") {
+              return {*table.float4_cls,
                       ConstexprValue(
                           ConstexprValue::FLOAT4, res1.value, res2.value, res3.value, res4.value)};
             }
-            else if (fn->identifier == "int4") {
-              return {table->int4_cls,
+            else if (fn.identifier == "int4") {
+              return {*table.int4_cls,
                       ConstexprValue(
                           ConstexprValue::INT4, res1.value, res2.value, res3.value, res4.value)};
             }
-            else if (fn->identifier == "uint4") {
-              return {table->uint4_cls,
+            else if (fn.identifier == "uint4") {
+              return {*table.uint4_cls,
                       ConstexprValue(
                           ConstexprValue::UINT4, res1.value, res2.value, res3.value, res4.value)};
             }
-            else if (fn->identifier == "bool4") {
-              return {table->bool4_cls,
+            else if (fn.identifier == "bool4") {
+              return {*table.bool4_cls,
                       ConstexprValue(
                           ConstexprValue::BOOL4, res1.value, res2.value, res3.value, res4.value)};
             }
@@ -153,20 +153,20 @@ struct ExpressionTypeParser
             {
               /* Not a constexpr. */
             }
-            else if (fn->identifier == "float3") {
-              return {table->float3_cls,
+            else if (fn.identifier == "float3") {
+              return {*table.float3_cls,
                       ConstexprValue(ConstexprValue::FLOAT3, res1.value, res2.value, res3.value)};
             }
-            else if (fn->identifier == "int3") {
-              return {table->int3_cls,
+            else if (fn.identifier == "int3") {
+              return {*table.int3_cls,
                       ConstexprValue(ConstexprValue::INT3, res1.value, res2.value, res3.value)};
             }
-            else if (fn->identifier == "uint3") {
-              return {table->uint3_cls,
+            else if (fn.identifier == "uint3") {
+              return {*table.uint3_cls,
                       ConstexprValue(ConstexprValue::UINT3, res1.value, res2.value, res3.value)};
             }
-            else if (fn->identifier == "bool3") {
-              return {table->bool3_cls,
+            else if (fn.identifier == "bool3") {
+              return {*table.bool3_cls,
                       ConstexprValue(ConstexprValue::BOOL3, res1.value, res2.value, res3.value)};
             }
           }
@@ -179,45 +179,45 @@ struct ExpressionTypeParser
             {
               /* Not a constexpr. */
             }
-            else if (fn->identifier == "float2") {
-              return {table->float2_cls,
+            else if (fn.identifier == "float2") {
+              return {*table.float2_cls,
                       ConstexprValue(ConstexprValue::FLOAT2, res1.value, res2.value)};
             }
-            else if (fn->identifier == "int2") {
-              return {table->int2_cls,
+            else if (fn.identifier == "int2") {
+              return {*table.int2_cls,
                       ConstexprValue(ConstexprValue::INT2, res1.value, res2.value)};
             }
-            else if (fn->identifier == "uint2") {
-              return {table->uint2_cls,
+            else if (fn.identifier == "uint2") {
+              return {*table.uint2_cls,
                       ConstexprValue(ConstexprValue::UINT2, res1.value, res2.value)};
             }
-            else if (fn->identifier == "bool2") {
-              return {table->bool2_cls,
+            else if (fn.identifier == "bool2") {
+              return {*table.bool2_cls,
                       ConstexprValue(ConstexprValue::BOOL2, res1.value, res2.value)};
             }
             else if (res1.type->comp_len > 1 && res1.type->comp_len == res2.type->comp_len) {
-              if (fn->identifier == "lessThan") {
-                return {table->make_type(table->bool_cls, res1.type->comp_len),
+              if (fn.identifier == "lessThan") {
+                return {table.make_type(*table.bool_cls, res1.type->comp_len),
                         res1.value < res2.value};
               }
-              if (fn->identifier == "lessThanEqual") {
-                return {table->make_type(table->bool_cls, res1.type->comp_len),
+              if (fn.identifier == "lessThanEqual") {
+                return {table.make_type(*table.bool_cls, res1.type->comp_len),
                         res1.value <= res2.value};
               }
-              if (fn->identifier == "greaterThan") {
-                return {table->make_type(table->bool_cls, res1.type->comp_len),
+              if (fn.identifier == "greaterThan") {
+                return {table.make_type(*table.bool_cls, res1.type->comp_len),
                         res1.value > res2.value};
               }
-              if (fn->identifier == "greaterThanEqual") {
-                return {table->make_type(table->bool_cls, res1.type->comp_len),
+              if (fn.identifier == "greaterThanEqual") {
+                return {table.make_type(*table.bool_cls, res1.type->comp_len),
                         res1.value >= res2.value};
               }
-              if (fn->identifier == "equal") {
-                return {table->make_type(table->bool_cls, res1.type->comp_len),
+              if (fn.identifier == "equal") {
+                return {table.make_type(*table.bool_cls, res1.type->comp_len),
                         res1.value == res2.value};
               }
-              if (fn->identifier == "notEqual") {
-                return {table->make_type(table->bool_cls, res1.type->comp_len),
+              if (fn.identifier == "notEqual") {
+                return {table.make_type(*table.bool_cls, res1.type->comp_len),
                         res1.value != res2.value};
               }
             }
@@ -227,159 +227,159 @@ struct ExpressionTypeParser
             if (!res.is_constexpr() || res.array_dim != 0) {
               /* Not a constexpr. */
             }
-            else if (res.type == table->float4_cls || res.type == table->int4_cls ||
-                     res.type == table->bool4_cls || res.type == table->uint4_cls)
+            else if (res.type == table.float4_cls || res.type == table.int4_cls ||
+                     res.type == table.bool4_cls || res.type == table.uint4_cls)
             {
-              if (fn->identifier == "float4") {
-                return {table->float4_cls, ConstexprValue(ConstexprValue::FLOAT4, res.value)};
+              if (fn.identifier == "float4") {
+                return {*table.float4_cls, ConstexprValue(ConstexprValue::FLOAT4, res.value)};
               }
-              if (fn->identifier == "int4") {
-                return {table->int4_cls, ConstexprValue(ConstexprValue::INT4, res.value)};
+              if (fn.identifier == "int4") {
+                return {*table.int4_cls, ConstexprValue(ConstexprValue::INT4, res.value)};
               }
-              if (fn->identifier == "uint4") {
-                return {table->uint4_cls, ConstexprValue(ConstexprValue::UINT4, res.value)};
+              if (fn.identifier == "uint4") {
+                return {*table.uint4_cls, ConstexprValue(ConstexprValue::UINT4, res.value)};
               }
-              if (fn->identifier == "bool4") {
-                return {table->bool4_cls, ConstexprValue(ConstexprValue::BOOL4, res.value)};
+              if (fn.identifier == "bool4") {
+                return {*table.bool4_cls, ConstexprValue(ConstexprValue::BOOL4, res.value)};
               }
             }
-            else if (res.type == table->float3_cls || res.type == table->int3_cls ||
-                     res.type == table->bool3_cls || res.type == table->uint3_cls)
+            else if (res.type == table.float3_cls || res.type == table.int3_cls ||
+                     res.type == table.bool3_cls || res.type == table.uint3_cls)
             {
-              if (fn->identifier == "float3") {
-                return {table->float3_cls, ConstexprValue(ConstexprValue::FLOAT3, res.value)};
+              if (fn.identifier == "float3") {
+                return {*table.float3_cls, ConstexprValue(ConstexprValue::FLOAT3, res.value)};
               }
-              if (fn->identifier == "int3") {
-                return {table->int3_cls, ConstexprValue(ConstexprValue::INT3, res.value)};
+              if (fn.identifier == "int3") {
+                return {*table.int3_cls, ConstexprValue(ConstexprValue::INT3, res.value)};
               }
-              if (fn->identifier == "uint3") {
-                return {table->uint3_cls, ConstexprValue(ConstexprValue::UINT3, res.value)};
+              if (fn.identifier == "uint3") {
+                return {*table.uint3_cls, ConstexprValue(ConstexprValue::UINT3, res.value)};
               }
-              if (fn->identifier == "bool3") {
-                return {table->bool3_cls, ConstexprValue(ConstexprValue::BOOL3, res.value)};
+              if (fn.identifier == "bool3") {
+                return {*table.bool3_cls, ConstexprValue(ConstexprValue::BOOL3, res.value)};
               }
             }
-            else if (res.type == table->float2_cls || res.type == table->int2_cls ||
-                     res.type == table->bool2_cls || res.type == table->uint2_cls)
+            else if (res.type == table.float2_cls || res.type == table.int2_cls ||
+                     res.type == table.bool2_cls || res.type == table.uint2_cls)
             {
-              if (fn->identifier == "float2") {
-                return {table->float2_cls, ConstexprValue(ConstexprValue::FLOAT2, res.value)};
+              if (fn.identifier == "float2") {
+                return {*table.float2_cls, ConstexprValue(ConstexprValue::FLOAT2, res.value)};
               }
-              if (fn->identifier == "int2") {
-                return {table->int2_cls, ConstexprValue(ConstexprValue::INT2, res.value)};
+              if (fn.identifier == "int2") {
+                return {*table.int2_cls, ConstexprValue(ConstexprValue::INT2, res.value)};
               }
-              if (fn->identifier == "uint2") {
-                return {table->uint2_cls, ConstexprValue(ConstexprValue::UINT2, res.value)};
+              if (fn.identifier == "uint2") {
+                return {*table.uint2_cls, ConstexprValue(ConstexprValue::UINT2, res.value)};
               }
-              if (fn->identifier == "bool2") {
-                return {table->bool2_cls, ConstexprValue(ConstexprValue::BOOL2, res.value)};
+              if (fn.identifier == "bool2") {
+                return {*table.bool2_cls, ConstexprValue(ConstexprValue::BOOL2, res.value)};
               }
             }
-            else if (res.type == table->float_cls || res.type == table->int_cls ||
-                     res.type == table->bool_cls || res.type == table->uint_cls)
+            else if (res.type == table.float_cls || res.type == table.int_cls ||
+                     res.type == table.bool_cls || res.type == table.uint_cls)
             {
-              if (fn->identifier == "float4") {
-                return {table->float4_cls, ConstexprValue(ConstexprValue::FLOAT4, res.value)};
+              if (fn.identifier == "float4") {
+                return {*table.float4_cls, ConstexprValue(ConstexprValue::FLOAT4, res.value)};
               }
-              if (fn->identifier == "int4") {
-                return {table->int4_cls, ConstexprValue(ConstexprValue::INT4, res.value)};
+              if (fn.identifier == "int4") {
+                return {*table.int4_cls, ConstexprValue(ConstexprValue::INT4, res.value)};
               }
-              if (fn->identifier == "uint4") {
-                return {table->uint4_cls, ConstexprValue(ConstexprValue::UINT4, res.value)};
+              if (fn.identifier == "uint4") {
+                return {*table.uint4_cls, ConstexprValue(ConstexprValue::UINT4, res.value)};
               }
-              if (fn->identifier == "bool4") {
-                return {table->bool4_cls, ConstexprValue(ConstexprValue::BOOL4, res.value)};
+              if (fn.identifier == "bool4") {
+                return {*table.bool4_cls, ConstexprValue(ConstexprValue::BOOL4, res.value)};
               }
-              if (fn->identifier == "float3") {
-                return {table->float3_cls, ConstexprValue(ConstexprValue::FLOAT3, res.value)};
+              if (fn.identifier == "float3") {
+                return {*table.float3_cls, ConstexprValue(ConstexprValue::FLOAT3, res.value)};
               }
-              if (fn->identifier == "int3") {
-                return {table->int3_cls, ConstexprValue(ConstexprValue::INT3, res.value)};
+              if (fn.identifier == "int3") {
+                return {*table.int3_cls, ConstexprValue(ConstexprValue::INT3, res.value)};
               }
-              if (fn->identifier == "uint3") {
-                return {table->uint3_cls, ConstexprValue(ConstexprValue::UINT3, res.value)};
+              if (fn.identifier == "uint3") {
+                return {*table.uint3_cls, ConstexprValue(ConstexprValue::UINT3, res.value)};
               }
-              if (fn->identifier == "bool3") {
-                return {table->bool3_cls, ConstexprValue(ConstexprValue::BOOL3, res.value)};
+              if (fn.identifier == "bool3") {
+                return {*table.bool3_cls, ConstexprValue(ConstexprValue::BOOL3, res.value)};
               }
-              if (fn->identifier == "float2") {
-                return {table->float2_cls, ConstexprValue(ConstexprValue::FLOAT2, res.value)};
+              if (fn.identifier == "float2") {
+                return {*table.float2_cls, ConstexprValue(ConstexprValue::FLOAT2, res.value)};
               }
-              if (fn->identifier == "int2") {
-                return {table->int2_cls, ConstexprValue(ConstexprValue::INT2, res.value)};
+              if (fn.identifier == "int2") {
+                return {*table.int2_cls, ConstexprValue(ConstexprValue::INT2, res.value)};
               }
-              if (fn->identifier == "uint2") {
-                return {table->uint2_cls, ConstexprValue(ConstexprValue::UINT2, res.value)};
+              if (fn.identifier == "uint2") {
+                return {*table.uint2_cls, ConstexprValue(ConstexprValue::UINT2, res.value)};
               }
-              if (fn->identifier == "bool2") {
-                return {table->bool2_cls, ConstexprValue(ConstexprValue::BOOL2, res.value)};
+              if (fn.identifier == "bool2") {
+                return {*table.bool2_cls, ConstexprValue(ConstexprValue::BOOL2, res.value)};
               }
-              if (fn->identifier == "float") {
-                return {table->float_cls, ConstexprValue(ConstexprValue::FLOAT1, res.value)};
+              if (fn.identifier == "float") {
+                return {*table.float_cls, ConstexprValue(ConstexprValue::FLOAT1, res.value)};
               }
-              if (fn->identifier == "int") {
-                return {table->int_cls, ConstexprValue(ConstexprValue::INT1, res.value)};
+              if (fn.identifier == "int") {
+                return {*table.int_cls, ConstexprValue(ConstexprValue::INT1, res.value)};
               }
-              if (fn->identifier == "uint") {
-                return {table->uint_cls, ConstexprValue(ConstexprValue::UINT1, res.value)};
+              if (fn.identifier == "uint") {
+                return {*table.uint_cls, ConstexprValue(ConstexprValue::UINT1, res.value)};
               }
-              if (fn->identifier == "bool") {
-                return {table->bool_cls, ConstexprValue(ConstexprValue::BOOL1, res.value)};
+              if (fn.identifier == "bool") {
+                return {*table.bool_cls, ConstexprValue(ConstexprValue::BOOL1, res.value)};
               }
-              if (fn->identifier == "floatBitsToUint") {
-                return {table->uint_cls,
+              if (fn.identifier == "floatBitsToUint") {
+                return {*table.uint_cls,
                         ConstexprValue(std::bit_cast<uint32_t>(res.value.comp_cast<float>(0)))};
               }
-              if (fn->identifier == "floatBitsToInt") {
-                return {table->int_cls,
+              if (fn.identifier == "floatBitsToInt") {
+                return {*table.int_cls,
                         ConstexprValue(std::bit_cast<int32_t>(res.value.comp_cast<float>(0)))};
               }
-              if (fn->identifier == "uintBitsToFloat") {
-                return {table->float_cls,
+              if (fn.identifier == "uintBitsToFloat") {
+                return {*table.float_cls,
                         ConstexprValue(std::bit_cast<float>(res.value.comp_cast<uint32_t>(0)))};
               }
-              if (fn->identifier == "intBitsToFloat") {
-                return {table->float_cls,
+              if (fn.identifier == "intBitsToFloat") {
+                return {*table.float_cls,
                         ConstexprValue(std::bit_cast<float>(res.value.comp_cast<int32_t>(0)))};
               }
             }
           }
         }
-        return fn->return_type;
+        return *fn.return_type;
       }
       case ast::NodeType::LocalVar: {
         ast::LocalVar var = t;
-        SymbolVariable *sym = scope->lookup_variable(*table, var.identifier());
-        if (sym) {
-          return sym;
+        const SymbolVariable &sym = scope.lookup_variable(table, var.identifier());
+        if (sym.is_error) {
+          error(t, Diag::UnknownMember, std::string(var.identifier().str()));
+          return *table.err_cls;
         }
-        error(t, Diag::UnknownMember, std::string(var.identifier().str()));
-        return table->err_cls;
+        return sym;
       }
       default:
         error(t, Diag::InvalidExprTypeChecker);
-        return table->err_cls;
+        return *table.err_cls;
     }
   }
 
   ExpressionResult number_literal(const ast::Node &t)
   {
-    SymbolClass *type = table->get_literal_type(t.str());
+    const SymbolClass &type = table.get_literal_type(t.str());
 
     ConstexprValue value(0);
     try {
       std::string str_val(t.str());
 
-      if (type == table->float_cls) {
+      if (&type == table.float_cls) {
         value = ConstexprValue(std::stof(str_val));
       }
-      else if (type == table->int_cls) {
+      else if (&type == table.int_cls) {
         value = ConstexprValue(std::stoi(str_val, nullptr, 0));
       }
-      else if (type == table->uint_cls) {
+      else if (&type == table.uint_cls) {
         value = ConstexprValue(uint32_t(std::stoull(str_val, nullptr, 0)));
       }
-      else if (type == table->bool_cls) {
+      else if (&type == table.bool_cls) {
         value = ConstexprValue(str_val == "true");
       }
       else {
@@ -388,14 +388,14 @@ struct ExpressionTypeParser
     }
     catch (...) {
       error(t, Diag::InvalidNumberLiteral);
-      return table->err_cls;
+      return *table.err_cls;
     }
     return {type, value, /* is_temporary */ false};
   }
 
   ExpressionResult string_literal(const ast::Node & /*t*/)
   {
-    return table->str_cls;
+    return *table.str_cls;
   }
 
   ExpressionResult parenthesis(const ast::Node &t, BindingPower p)
@@ -409,7 +409,7 @@ struct ExpressionTypeParser
       error(t, Diag::OperatorInvalidPointer, left.type->original);
     }
 
-    SymbolClass *l = left.type;
+    const SymbolClass &l = *left.type;
     ast::Node right = consume();
     switch (right.type()) {
       case ast::NodeType::FuncCall: {
@@ -421,22 +421,22 @@ struct ExpressionTypeParser
         {
           error(t, Diag::FunctionCallNotAllowedInReferenceDefinition);
         }
-        auto sym = l->lookup_function(*table, call.identifier(), call.parameters(), *scope);
-        return sym.unwrap(err)->return_type;
+        auto sym = l.lookup_function(table, call.identifier(), call.parameters(), scope);
+        return *sym.unwrap(err).return_type;
       }
       case ast::NodeType::LocalVar: {
         ast::LocalVar var = right;
-        SymbolVariable *sym = l->lookup_variable(*table, var.identifier());
-        if (sym) {
-          return sym;
+        const SymbolVariable &sym = l.lookup_variable(table, var.identifier());
+        if (sym.is_error) {
+          error(t, Diag::UnknownMember, std::string(var.identifier().str()));
+          return *table.err_cls;
         }
-        error(t, Diag::UnknownMember, std::string(var.identifier().str()));
-        return table->err_cls;
+        return sym;
       }
       default:
         error(t, Diag::InvalidExprTypeChecker);
         this->node = ast::Node{};
-        return table->err_cls;
+        return *table.err_cls;
     }
   }
 
@@ -446,7 +446,7 @@ struct ExpressionTypeParser
       error(t, Diag::FunctionCallNotAllowedInReferenceDefinition);
     }
     error(t, Diag::OperatorCalledIsNotFunction, left.type->identifier);
-    return table->err_cls;
+    return *table.err_cls;
   }
 
   ExpressionResult subscript(ExpressionResult left, const ast::Node &t)
@@ -457,8 +457,8 @@ struct ExpressionTypeParser
       if (left.array_dim > 0 || left.is_ptr) {
         ExpressionResult arg = subscript_parameter(sub);
 
-        if (!(table->get_conversion_rank(arg.type, table->int_cls) >= MatchRank::Promotion ||
-              table->get_conversion_rank(arg.type, table->uint_cls) >= MatchRank::Promotion))
+        if (!(table.get_conversion_rank(*arg.type, *table.int_cls) >= MatchRank::Promotion ||
+              table.get_conversion_rank(*arg.type, *table.uint_cls) >= MatchRank::Promotion))
         {
           error(t, Diag::SubscriptNotInt);
         }
@@ -478,16 +478,16 @@ struct ExpressionTypeParser
       /* Call subscript operator */
       if (left.type->operator_subscript) {
         ExpressionResult arg = subscript_parameter(sub);
-        if (!(table->get_conversion_rank(arg.type, table->int_cls) >= MatchRank::Promotion ||
-              table->get_conversion_rank(arg.type, table->uint_cls) >= MatchRank::Promotion))
+        if (!(table.get_conversion_rank(*arg.type, *table.int_cls) >= MatchRank::Promotion ||
+              table.get_conversion_rank(*arg.type, *table.uint_cls) >= MatchRank::Promotion))
         {
           error(t, Diag::SubscriptNotInt);
         }
-        return left.type->operator_subscript->return_type;
+        return *left.type->operator_subscript->return_type;
       }
     }
     error(t, Diag::InvalidSubscript);
-    return table->err_cls;
+    return *table.err_cls;
   }
 
   ExpressionResult subscript_parameter(ast::Subscript &sub)
@@ -503,7 +503,7 @@ struct ExpressionTypeParser
     TokenType op_type = t.front().type();
     if (op_type == '&') {
       error(t, Diag::OperatorAddressOfUnsupported);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
     if (op_type == '*' && right.is_ptr) {
@@ -520,30 +520,30 @@ struct ExpressionTypeParser
 
     if (right.array_dim > 0) {
       error(node, Diag::ArrayTypeOperand);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
     if (op_type == '*') {
       error(t, Diag::OperatorInvalidIndirection, right.type->original);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
     if (right.is_ptr) {
       error(t, Diag::PointerArithmetic);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
-    ClassId type_id = unary_prefix_operator_return_type(op_type, right.type);
+    ClassId type_id = unary_prefix_operator_return_type(op_type, *right.type);
     if (type_id == builtin::Invalid) {
       error(t, Diag::InvalidUnaryArgumentType, to_str(op_type), right.type->identifier);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
-    SymbolClass *type = table->to_class(type_id);
+    const SymbolClass &type = table.to_class(type_id);
 
     if (is_reference && (op_type == Increment || op_type == Decrement)) {
       error(t, Diag::ReferenceCannotBindSideEffect);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
 #ifdef _MSC_VER
@@ -572,7 +572,7 @@ struct ExpressionTypeParser
           return {type, ~right.value};
         default:
           assert(0); /* Unreachable. */
-          return table->err_cls;
+          return *table.err_cls;
       }
     }
 #ifdef _MSC_VER
@@ -586,27 +586,27 @@ struct ExpressionTypeParser
     using namespace builtin;
     if (left.array_dim > 0) {
       error(node, Diag::ArrayTypeOperand);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
     if (left.is_ptr) {
       error(t, Diag::PointerArithmetic);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
     TokenType op_type = t.front().type();
 
-    ClassId type_id = unary_suffix_operator_return_type(left.type, op_type);
+    ClassId type_id = unary_suffix_operator_return_type(*left.type, op_type);
     if (type_id == builtin::Invalid) {
       error(t, Diag::InvalidUnaryArgumentType, to_str(op_type), left.type->identifier);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
-    SymbolClass *type = table->to_class(type_id);
+    const SymbolClass &type = table.to_class(type_id);
 
     if (is_reference && (op_type == Increment || op_type == Decrement)) {
       error(t, Diag::ReferenceCannotBindSideEffect);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
 #ifdef _MSC_VER
@@ -626,7 +626,7 @@ struct ExpressionTypeParser
           return {type, left.value--};
         default:
           assert(0); /* Unreachable. */
-          return table->err_cls;
+          return *table.err_cls;
       }
     }
 
@@ -650,27 +650,27 @@ struct ExpressionTypeParser
 
     if (lhs.array_dim > 0 || rhs.array_dim > 0) {
       error(node, Diag::ArrayTypeOperand);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
     if (lhs.is_ptr || rhs.is_ptr) {
       error(t, Diag::PointerArithmetic);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
     TokenType op_type = t.front().type();
 
-    ClassId type_id = binary_operator_return_type(lhs.type, op_type, rhs.type);
+    ClassId type_id = binary_operator_return_type(*lhs.type, op_type, *rhs.type);
     if (type_id == builtin::Invalid) {
       error(t,
             Diag::InvalidBinaryOperands,
             lhs.type->identifier,
             to_str(op_type),
             rhs.type->identifier);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
-    SymbolClass *type = table->to_class(type_id);
+    const SymbolClass &type = table.to_class(type_id);
     ExprFlag flags = ExprFlag(lhs.flags & rhs.flags);
 
     /* For debugging. */
@@ -763,7 +763,7 @@ struct ExpressionTypeParser
           return {type, lhs.value || rhs.value};
         default:
           assert(0); /* Unreachable. */
-          return table->err_cls;
+          return *table.err_cls;
       }
     }
 
@@ -781,24 +781,24 @@ struct ExpressionTypeParser
     ExpressionResult tval = sub_expression(node, node, p_first);
     if (consume().front().type() != Colon) {
       error(ErrorType::ExpectedColon, Colon);
-      return table->err_cls;
+      return *table.err_cls;
     }
     ExpressionResult fval = expr(p_second);
 
-    if (left.type != table->bool_cls && left.type != table->bool32_t_cls) {
+    if (left.type != table.bool_cls && left.type != table.bool32_t_cls) {
       error(t, Diag::TypeNotConvertibleToBool, left.type->original);
-      return table->err_cls;
+      return *table.err_cls;
     }
     if (tval.type != fval.type) {
       error(t, Diag::OperatorInvalidTernary, tval.type->original, fval.type->original);
-      return table->err_cls;
+      return *table.err_cls;
     }
 
     if (left.flags & ExprFlag::IsConstexpr) {
-      return {tval.type, left.value.comp_as<int>(0) ? tval.value : fval.value};
+      return {*tval.type, left.value.comp_as<int>(0) ? tval.value : fval.value};
     }
     /* Operand types match. We can return either. */
-    return {tval.type, ExprFlag(tval.flags & fval.flags)};
+    return {*tval.type, ExprFlag(tval.flags & fval.flags)};
   }
 
   ExpressionResult error(ErrorType err, lexit::TokenType type)
@@ -817,7 +817,7 @@ struct ExpressionTypeParser
         error(node, Diag::InvalidExprTypeChecker);
         break;
     }
-    return table->err_cls;
+    return *table.err_cls;
   }
 
   TokenType peek() const
@@ -889,7 +889,7 @@ Result<ExpressionResult> SymbolTable::expr_type_analysis(const SymbolScope &scop
   assert(start_node.is_valid());
   /* Caller must not pass the Expr node but it's first child. */
   assert(start_node.type() != ast::NodeType::Expr);
-  return ExpressionTypeParser(this, &scope, start_node, is_reference).eval();
+  return ExpressionTypeParser(*this, scope, start_node, is_reference).eval();
 }
 
 }  // namespace bsl

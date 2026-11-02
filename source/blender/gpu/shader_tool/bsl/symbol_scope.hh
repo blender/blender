@@ -112,47 +112,42 @@ struct SymbolScope : Symbol {
   /* Root constructor. */
   SymbolScope(ast::LocalScope decl) : Symbol("", "", decl.back(), nullptr) {}
 
-  SymbolScope(SymbolScope *parent, Token tok, const string &id, Type type)
-      : Symbol(id, id, tok, parent), type(type)
+  SymbolScope(SymbolScope &parent, Token tok, const string &id, Type type)
+      : Symbol(id, id, tok, &parent), type(type)
   {
   }
 
-  SymbolScope(SymbolScope *parent, ast::LocalScope decl)
-      : SymbolScope(parent, decl.front(), parent->unique_id(), LOCAL)
+  SymbolScope(SymbolScope &parent, ast::LocalScope decl)
+      : SymbolScope(parent, decl.front(), parent.unique_id(), LOCAL)
   {
   }
 
-  SymbolScope(SymbolScope *parent, ast::Id id, Type type)
+  SymbolScope(SymbolScope &parent, ast::Id id, Type type)
       : SymbolScope(parent, id.front(), string(id.str()), type)
   {
   }
 
-  SymbolVariable *lookup_variable(const SymbolTable &table, ast::IdQualified id) const;
+  SymbolVariable &lookup_variable(const SymbolTable &table, ast::IdQualified id) const;
 
-  Result<SymbolFunction *> lookup_function(const SymbolTable &table,
+  Result<SymbolFunction &> lookup_function(const SymbolTable &table,
                                            ast::IdQualified id,
                                            optional<SourceLocation> loc = nullopt) const;
 
   template<typename ArgOrParamList>
-  Result<SymbolFunction *> lookup_function(const SymbolTable &table,
+  Result<SymbolFunction &> lookup_function(const SymbolTable &table,
                                            ast::IdQualified id,
                                            ArgOrParamList params,
                                            const SymbolScope &arguments_scope,
                                            optional<SourceLocation> loc = nullopt) const;
 
-  Result<SymbolClass *> lookup_class(const SymbolTable &table,
+  Result<SymbolClass &> lookup_class(const SymbolTable &table,
                                      ast::IdQualified id,
                                      optional<SourceLocation> loc = nullopt) const;
 
-  Result<SymbolClass *> lookup_class(const SymbolTable &table,
+  Result<SymbolClass &> lookup_class(const SymbolTable &table,
                                      ast::Id id,
                                      ast::Id last,
                                      optional<SourceLocation> loc = nullopt) const;
-
-  SymbolScope *lookup_namespace(const SymbolTable &table,
-                                ast::Id id,
-                                ast::Id last,
-                                optional<SourceLocation> loc = nullopt) const;
 
   /* Returns nullptr if not found. */
   SymbolVariable *lookup_variable(string id) const;
@@ -160,16 +155,13 @@ struct SymbolScope : Symbol {
   SymbolClass *lookup_class(string id) const;
 
   /* Doesn't match last template in identifier. */
-  SymbolFunction *lookup_function_base(const SymbolTable &table, ast::IdQualified id) const;
-  SymbolClass *lookup_class_base(const SymbolTable &table, ast::IdQualified id) const;
+  SymbolFunction &lookup_function_base(const SymbolTable &table, ast::IdQualified id) const;
+  SymbolClass &lookup_class_base(const SymbolTable &table, ast::IdQualified id) const;
 
   std::pair<ast::FuncForwardDecl, SymbolFunction *> lookup_function_forward_decl(
       ast::FuncDecl decl) const;
 
   void print() const;
-
-  const SymbolScope *root_scope() const;
-  SymbolScope *root_scope();
 
   /* Can be null if this is not a class. */
   SymbolClass *as_class();

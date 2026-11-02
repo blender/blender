@@ -23,10 +23,10 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_constructors(
 
   /* Vector and Scalar Constructors (restricted to matching component types). */
   for (const auto [type, base] : types) {
-    SymbolClass *s = base;
-    SymbolClass *v2 = make_type(base, 2);
-    SymbolClass *v3 = make_type(base, 3);
-    SymbolClass *v4 = make_type(base, 4);
+    const SymbolClass *s = base;
+    const SymbolClass *v2 = &make_type(*base, 2);
+    const SymbolClass *v3 = &make_type(*base, 3);
+    const SymbolClass *v4 = &make_type(*base, 4);
 
     switch (type->comp_len) {
       case 1:
@@ -79,14 +79,14 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_constructors(
   /* Matrix Constructors (restricted to matching "float" component type). */
   for (int n = 2; n <= 4; ++n) {
     for (int m = 2; m <= 4; ++m) {
-      SymbolClass *row = make_type(float_cls, m);
-      SymbolClass *mat = make_type(row, n);
+      const SymbolClass *row = &make_type(*float_cls, m);
+      const SymbolClass *mat = &make_type(*row, n);
       /* Broadcast: float3x3(float) */
       funcs.push_back({mat, mat->identifier, {float_cls}});
       /* All-Scalar: float3x3(float, float, ...) [N*N scalars] */
-      funcs.push_back({mat, mat->identifier, vector<SymbolClass *>(n * m, float_cls)});
+      funcs.push_back({mat, mat->identifier, vector<const SymbolClass *>(n * m, float_cls)});
       /* All-Vector: float3x3(float3, float3, float3) [N vectors] */
-      funcs.push_back({mat, mat->identifier, vector<SymbolClass *>(n, row)});
+      funcs.push_back({mat, mat->identifier, vector<const SymbolClass *>(n, row)});
     }
   }
 

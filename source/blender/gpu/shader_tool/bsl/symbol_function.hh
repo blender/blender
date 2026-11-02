@@ -72,13 +72,13 @@ struct SymbolFunction : SymbolScope {
   SymbolFunction *overload_next = nullptr;
 
   SymbolFunctionTemplate *template_data = nullptr;
-  SymbolClass *return_type = nullptr;
+  const SymbolClass *return_type = nullptr;
 
   ast::FuncForwardDecl fwd = {};
   ast::FuncDecl decl = {};
 
   vector<bool> arg_const;
-  vector<SymbolClass *> arg_types;
+  vector<const SymbolClass *> arg_types;
   vector<ast::Expr> arg_defaults;
 
   bool is_error = false;
@@ -105,13 +105,13 @@ struct SymbolFunction : SymbolScope {
   enum class EntryPointType { FRAG, VERT, COMP, NONE } entry_point_type;
 
   template<typename AstNodeT>
-  SymbolFunction(SymbolScope *parent,
-                 SymbolClass *return_type,
+  SymbolFunction(SymbolScope &parent,
+                 const SymbolClass &return_type,
                  AstNodeT decl,
                  const string &suffix = "")
       : SymbolScope(
             parent, decl.front(), string(decl.identifier().name().str()) + suffix, FUNCTION),
-        return_type(return_type),
+        return_type(&return_type),
         decl(decl),
         is_inline(decl.attributes().contains_attr("force_inline")),
         fn_type(decl.is_method() ? (decl.is_static() ? STATIC : MEMBER) : GLOBAL),
@@ -134,10 +134,13 @@ struct SymbolFunction : SymbolScope {
     }
   }
 
-  SymbolFunction(
-      SymbolScope *parent, Token tok, SymbolClass *return_type, const string &id, Type fn_type)
+  SymbolFunction(SymbolScope &parent,
+                 Token tok,
+                 const SymbolClass &return_type,
+                 const string &id,
+                 Type fn_type)
       : SymbolScope(parent, tok, id, FUNCTION),
-        return_type(return_type),
+        return_type(&return_type),
         fn_type(fn_type),
         entry_point_type(EntryPointType::NONE)
   {
@@ -180,26 +183,26 @@ struct SymbolFunction : SymbolScope {
   /* To be called on the first registered overload. */
   Result<SymbolFunction *> lookup_overload(ast::IdQualified id,
                                            const SymbolTable &table,
-                                           const vector<SymbolClass *> &arg_types);
+                                           const vector<const SymbolClass *> &arg_types);
 
   void add_overload(SymbolFunction *fn);
-  void add_argument(bool is_const, SymbolClass *type, ast::Expr default_value = {});
+  void add_argument(bool is_const, const SymbolClass &type, ast::Expr default_value = {});
 
   void reserve_arguments(int n);
 
   bool is_compatible(ResourceType res_type);
 
-  static Result<vector<SymbolClass *>> to_arg_types(const SymbolTable &table,
-                                                    const SymbolScope &scope,
-                                                    ast::FuncParamList list);
-  static Result<vector<SymbolClass *>> to_arg_types(const SymbolTable &table,
-                                                    const SymbolScope &scope,
-                                                    ast::FuncArgList list);
+  static Result<vector<const SymbolClass *>> to_arg_types(const SymbolTable &table,
+                                                          const SymbolScope &scope,
+                                                          ast::FuncParamList list);
+  static Result<vector<const SymbolClass *>> to_arg_types(const SymbolTable &table,
+                                                          const SymbolScope &scope,
+                                                          ast::FuncArgList list);
 
  private:
   /* Returning empty indicates this is not a viable candidate */
-  optional<vector<MatchRank>> get_match_ranks(const SymbolTable &table,
-                                              const vector<SymbolClass *> &param_types) const;
+  optional<vector<MatchRank>> get_match_ranks(
+      const SymbolTable &table, const vector<const SymbolClass *> &param_types) const;
 };
 
 std::string to_str(SymbolFunction::EntryPointType type);

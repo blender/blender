@@ -29,10 +29,10 @@ ResultPair<T *, string> SymbolTemplate<T>::lookup_inst(TemplateParamList list,
 
   if (err) {
     if constexpr (is_same_v<T, SymbolFunction>) {
-      return {table.root->lookup_function(SymbolTable::err_symbol), full_id, err};
+      return {table.root.lookup_function(SymbolTable::err_symbol), full_id, err};
     }
     else {
-      return {table.root->lookup_class(SymbolTable::err_symbol), full_id, err};
+      return {table.root.lookup_class(SymbolTable::err_symbol), full_id, err};
     }
   }
   return {it->second, full_id, err};
@@ -76,7 +76,7 @@ Result<StringPair> SymbolTable::mangle_identifier(const SymbolFunctionTemplate &
                                                   FuncParamList list,
                                                   const SymbolScope &scope) const
 {
-  vector<SymbolClass *> arg_cls;
+  vector<const SymbolClass *> arg_cls;
   for (Expr expr : list.children_of_type<Expr>()) {
     auto [result, _] = expr_type_analysis(scope, expr.child_first());
     arg_cls.emplace_back(result.type);
@@ -102,12 +102,12 @@ Result<T *> SymbolTemplate<T>::lookup_adl(const SymbolTable &symbols,
                                           const SymbolScope &scope) const
 {
   if constexpr (is_same_v<T, SymbolClass>) {
-    return {symbols.root->lookup_class(SymbolTable::err_symbol),
+    return {symbols.root.lookup_class(SymbolTable::err_symbol),
             AstNodeException(list, Diag::CompilerErrorADLOnTypesNotAllowed)};
   }
   else {
     if (!is_adl_possible()) {
-      return {symbols.root->lookup_function(SymbolTable::err_symbol),
+      return {symbols.root.lookup_function(SymbolTable::err_symbol),
               AstNodeException(list.prev(), Diag::TemplateMissingExplicitArguments)};
     }
     auto [mangled, err] = symbols.mangle_identifier(*this, list, scope);
@@ -120,7 +120,7 @@ Result<T *> SymbolTemplate<T>::lookup_adl(const SymbolTable &symbols,
     }
 
     if (err) {
-      return {symbols.root->lookup_function(SymbolTable::err_symbol), err};
+      return {symbols.root.lookup_function(SymbolTable::err_symbol), err};
     }
     return {it->second, err};
   }

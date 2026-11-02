@@ -185,6 +185,14 @@ struct Token : lexit::Token {
   {
     return *this != TokenType(type);
   }
+  bool operator==(std::string_view str) const
+  {
+    return this->str() == str;
+  }
+  bool operator!=(std::string_view str) const
+  {
+    return this->str() != str;
+  }
 };
 
 }  // namespace blender::gpu::shader::parser

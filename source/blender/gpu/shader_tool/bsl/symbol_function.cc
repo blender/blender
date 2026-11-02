@@ -13,41 +13,41 @@ namespace bsl {
 
 using namespace blender::gpu::shader::parser::ast;
 
-Result<vector<SymbolClass *>> SymbolFunction::to_arg_types(const SymbolTable &table,
-                                                           const SymbolScope &scope,
-                                                           FuncParamList list)
+Result<vector<const SymbolClass *>> SymbolFunction::to_arg_types(const SymbolTable &table,
+                                                                 const SymbolScope &scope,
+                                                                 FuncParamList list)
 {
   std::optional<AstNodeException> error;
-  vector<SymbolClass *> arg_types;
+  vector<const SymbolClass *> arg_types;
   for (Expr expr : list.children_of_type<Expr>()) {
     arg_types.emplace_back(table.expr_type_analysis(scope, expr.child_first()).unwrap(error).type);
   }
   return {arg_types, error};
 }
 
-Result<vector<SymbolClass *>> SymbolFunction::to_arg_types(const SymbolTable &table,
-                                                           const SymbolScope &scope,
-                                                           FuncArgList list)
+Result<vector<const SymbolClass *>> SymbolFunction::to_arg_types(const SymbolTable &table,
+                                                                 const SymbolScope &scope,
+                                                                 FuncArgList list)
 {
-  vector<SymbolClass *> arg_types;
+  vector<const SymbolClass *> arg_types;
   for (FuncArg arg : list.children_of_type<FuncArg>()) {
     auto [cls, _] = scope.lookup_class(table, arg.type().identifier());
-    arg_types.emplace_back(cls);
+    arg_types.emplace_back(&cls);
   }
   return {arg_types, std::nullopt};
 }
 
-static string to_str(const vector<SymbolClass *> &types)
+static string to_str(const vector<const SymbolClass *> &types)
 {
   string parameters = types.empty() ? ", " : "";
-  for (SymbolClass *cls : types) {
+  for (const SymbolClass *cls : types) {
     parameters += ", " + cls->identifier + "";
   }
   return "(" + parameters.substr(2) + ")";
 }
 
 optional<vector<MatchRank>> SymbolFunction::get_match_ranks(
-    const SymbolTable &table, const vector<SymbolClass *> &param_types) const
+    const SymbolTable &table, const vector<const SymbolClass *> &param_types) const
 {
   /* Early out if there are more arguments than parameters. */
   if (param_types.size() > arg_types.size()) {
@@ -57,7 +57,7 @@ optional<vector<MatchRank>> SymbolFunction::get_match_ranks(
   vector<MatchRank> ranks;
   for (size_t i = 0; i < param_types.size(); ++i) {
     MatchRank rank = table.get_conversion_rank(
-        param_types[i], arg_types[i], allow_vector_promotion);
+        *param_types[i], *arg_types[i], allow_vector_promotion);
     if (rank == MatchRank::None) {
       return {}; /* Not a viable candidate. */
     }
@@ -92,9 +92,8 @@ static bool is_strictly_better(const std::vector<MatchRank> &candidate,
   return has_strictly_better_arg;
 }
 
-Result<SymbolFunction *> SymbolFunction::lookup_overload(IdQualified id,
-                                                         const SymbolTable &table,
-                                                         const vector<SymbolClass *> &arg_types)
+Result<SymbolFunction *> SymbolFunction::lookup_overload(
+    IdQualified id, const SymbolTable &table, const vector<const SymbolClass *> &arg_types)
 {
   SymbolFunction *best_fn = nullptr;
   vector<MatchRank> best_ranks;
@@ -166,7 +165,7 @@ Result<SymbolFunction *> SymbolFunction::lookup_overload(IdQualified id,
   }
 
   Diag error_type = is_ambiguous ? Diag::OverloadAmbiguous : Diag::OverloadNotFound;
-  return {table.root->lookup_function(SymbolTable::err_symbol),
+  return {table.root.lookup_function(SymbolTable::err_symbol),
           AstNodeException(id, error_type, original, to_str(arg_types), candidates)};
 }
 
@@ -183,10 +182,10 @@ void SymbolFunction::reserve_arguments(int n)
   this->arg_defaults.reserve(n);
 }
 
-void SymbolFunction::add_argument(bool is_const, SymbolClass *type, Expr default_value)
+void SymbolFunction::add_argument(bool is_const, const SymbolClass &type, Expr default_value)
 {
   this->arg_const.emplace_back(is_const);
-  this->arg_types.emplace_back(type);
+  this->arg_types.emplace_back(&type);
   this->arg_defaults.emplace_back(default_value);
 }
 

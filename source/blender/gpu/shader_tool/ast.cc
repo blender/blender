@@ -162,11 +162,6 @@ bool UsingStmt::is_namespace() const
   return front().next() == TokenType::Namespace;
 }
 
-bool IdType::is_constexpr() const
-{
-  return is_const() && constant().front() == Constexpr;
-}
-
 static std::string to_string(ast::NodeType type);
 static bool display_type(ast::NodeType type);
 
@@ -267,6 +262,8 @@ static std::string to_string(ast::NodeType type)
       return "IdType";
     case ast::NodeType::Const:
       return "Const";
+    case ast::NodeType::Constexpr:
+      return "Constexpr";
     case ast::NodeType::Reference:
       return "Reference";
     case ast::NodeType::EnumValue:
@@ -401,7 +398,9 @@ static bool display_type(ast::NodeType type)
     case ast::NodeType::IdType:
       return false;
     case ast::NodeType::Const:
-      return true;
+      return false;
+    case ast::NodeType::Constexpr:
+      return false;
     case ast::NodeType::Reference:
       return true;
     case ast::NodeType::EnumValue:
