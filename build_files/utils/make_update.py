@@ -299,7 +299,7 @@ def work_tree_update_upstream_workflow(args: argparse.Namespace, use_fetch: bool
 
     retcode = call((args.git_command, "merge", "--ff-only", upstream_branch), exit_on_error=False)
     if retcode != 0:
-        return "Unable to fast forward\n"
+        return "unable to fast forward"
 
     return ""
 
@@ -319,6 +319,13 @@ def work_tree_update(args: argparse.Namespace, use_fetch: bool = True) -> str:
 
         # If there is upstream configured but the local branch is not in the upstream, try to
         # update the branch from the fork.
+
+    merges = check_output(
+        [args.git_command, "rev-list", "--merges", "@{upstream}..HEAD"],
+        exit_on_error=False,
+    )
+    if merges:
+        return "unpushed merge commits would be flattened by rebase"
 
     update_command = [args.git_command, "pull", "--rebase"]
 
@@ -546,7 +553,9 @@ def floating_checkout_update(
 
                 # Don't use extra fetch since all remotes of interest have been already fetched
                 # some lines above.
-                skip_msg += work_tree_update(args, use_fetch=False)
+                msg = work_tree_update(args, use_fetch=False)
+                if msg:
+                    skip_msg += str(directory) + " skipped: " + msg + "\n"
     finally:
         os.chdir(cwd)
 
