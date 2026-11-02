@@ -233,21 +233,34 @@ class GPUPassCache {
     GPU_shader_compiler_resume();
   }
 
-  void add(eGPUMaterialEngine engine,
-           GPUCodegen &codegen,
-           bool deferred_compilation,
-           bool is_optimization_pass)
+  /**
+   * Add a pass for the generated code, the caller becomes its user. Another thread may have added
+   * a pass for the same code since #get didn't find it, then that pass is used instead.
+   */
+  GPUPass *add_or_get(eGPUMaterialEngine engine,
+                      GPUCodegen &codegen,
+                      bool deferred_compilation,
+                      bool is_optimization_pass)
   {
     std::lock_guard lock(mutex_);
 
-    passes_[engine][is_optimization_pass].add(
-        codegen.hash_get(),
-        std::make_unique<GPUPass>(codegen.create_info,
-                                  deferred_compilation,
-                                  is_optimization_pass,
-                                  !is_optimization_pass && codegen.should_optimize_heuristic()));
+    Map<uint32_t, std::unique_ptr<GPUPass>> &passes = passes_[engine][is_optimization_pass];
+    if (std::unique_ptr<GPUPass> *pass = passes.lookup_ptr(codegen.hash_get())) {
+      return acquire(*pass->get(), deferred_compilation);
+    }
+    /* A new pass has the caller as user already. */
+    auto pass = std::make_unique<GPUPass>(codegen.create_info,
+                                          deferred_compilation,
+                                          is_optimization_pass,
+                                          !is_optimization_pass &&
+                                              codegen.should_optimize_heuristic());
+    codegen.create_info = nullptr;
+    GPUPass *result = pass.get();
+    passes.add_new(codegen.hash_get(), std::move(pass));
+    return result;
   };
 
+  /** Find the pass for the hash of the generated code, the caller becomes its user. */
   GPUPass *get(eGPUMaterialEngine engine,
                size_t hash,
                bool allow_deferred,
@@ -255,12 +268,24 @@ class GPUPassCache {
   {
     std::lock_guard lock(mutex_);
     std::unique_ptr<GPUPass> *pass = passes_[engine][is_optimization_pass].lookup_ptr(hash);
-    if (!allow_deferred && pass && pass->get()->status == GPU_PASS_QUEUED) {
-      pass->get()->finalize_compilation();
-    }
-    return pass ? pass->get() : nullptr;
+    return pass ? acquire(*pass->get(), allow_deferred) : nullptr;
   }
 
+ private:
+  /**
+   * Add a user while the mutex is locked, so that the garbage collection doesn't free a pass that
+   * has no users yet.
+   */
+  static GPUPass *acquire(GPUPass &pass, bool allow_deferred)
+  {
+    if (!allow_deferred && pass.status == GPU_PASS_QUEUED) {
+      pass.finalize_compilation();
+    }
+    pass.refcount++;
+    return &pass;
+  }
+
+ public:
   void update()
   {
     std::lock_guard lock(mutex_);
@@ -390,7 +415,6 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
   pass = g_cache->get(engine, codegen.hash_get(), deferred_compilation, optimize_graph);
 
   if (pass) {
-    pass->refcount++;
     return pass;
   }
 
@@ -402,10 +426,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
   finalize_source_cb(thunk, material, &codegen.output);
 
   codegen.create_info->finalize();
-  g_cache->add(engine, codegen, deferred_compilation, optimize_graph);
-  codegen.create_info = nullptr;
-
-  return g_cache->get(engine, codegen.hash_get(), deferred_compilation, optimize_graph);
+  return g_cache->add_or_get(engine, codegen, deferred_compilation, optimize_graph);
 }
 
 /** \} */
