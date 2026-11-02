@@ -1112,6 +1112,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
                        '.',
                        offsetof(bNodeSocket, identifier),
                        sizeof(sock.identifier));
+        sock.runtime->identifier_ustr = UString(sock.identifier);
       }
       for (bNodeSocket &sock : node.outputs) {
         version_node_socket_identifier_set(sock, sock.name);
@@ -1121,6 +1122,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
                        '.',
                        offsetof(bNodeSocket, identifier),
                        sizeof(sock.identifier));
+        sock.runtime->identifier_ustr = UString(sock.identifier);
       }
     }
     for (bNodeSocket &sock : ntree->inputs_legacy) {
