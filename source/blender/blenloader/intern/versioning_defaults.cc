@@ -409,6 +409,11 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
       }
     }
   }
+
+  /* For Storyboarding template. */
+  if (STRPREFIX(workspace->id.name + 2, "Storyboarding")) {
+    workspace->flags |= WORKSPACE_USE_STRIP_SCENE_RANGE_FOR_PLAYBACK;
+  }
 }
 
 static void blo_update_defaults_paint(Paint *paint)

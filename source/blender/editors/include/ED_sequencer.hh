@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <optional>
+
+#include "BKE_scene.hh"
 #include "BLI_vector_set.hh"
 
 namespace blender {
@@ -22,6 +25,8 @@ struct View2D;
 struct rctf;
 struct ARegion;
 struct wmOperatorType;
+struct Main;
+struct WorkSpace;
 
 namespace ed::vse {
 
@@ -89,11 +94,23 @@ bool handle_is_selected(const Strip *strip, eStripHandle handle);
 
 bool is_scene_time_sync_needed(const bContext &C);
 /**
- * Returns the scene strip (if any) that should be used for the scene synchronization feature.
- * This is the top-most visible scene strip at the current time of the \a sequencer_scene.
+ * Return whether playback should use the scene's range from its scene strip in the sequencer. This
+ * requires a sequencer scene and the workspace option to use scene-strip ranges, and is false when
+ * called from the Video Sequencer editor.
  */
-const Strip *get_scene_strip_for_time_sync(const Scene *sequencer_scene);
+bool is_scene_frame_range_from_strip_needed(const bContext &C);
+
+/**
+ * Return the frame range of the workspace's sequencer scene strip, or `std::nullopt` if no range
+ * is available.
+ */
+std::optional<ScenePlaybackRange> get_scene_strip_frame_range(const bContext &C);
 void sync_active_scene_and_time_with_scene_strip(bContext &C);
+/**
+ * Update scene runtime flags to match whether the workspace uses scene-strip ranges for playback.
+ * Clears the flag on all scenes, then sets it on the workspace's sequencer scene when enabled.
+ */
+void sync_sequencer_scene_strip_range(Main *bmain, WorkSpace *workspace);
 
 rctf sequencer_clamped_view_bounds_get(const bContext *C, ARegion *region);
 

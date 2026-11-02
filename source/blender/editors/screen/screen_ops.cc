@@ -3908,7 +3908,7 @@ static wmOperatorStatus frame_offset_exec(bContext *C, wmOperator *op)
 
   const bool wrap_timeline_navigation = scene->r.flag & SCER_WRAP_TIMELINE_NAVIGATION;
   if (wrap_timeline_navigation) {
-    const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(scene);
+    const ScenePlaybackRange playback_range = ED_scene_get_effective_playback_range(*C, scene);
     scene->r.cfra = wrap_frame_in_range(scene->r.cfra, playback_range);
   }
   else {
@@ -3957,7 +3957,7 @@ static wmOperatorStatus frame_jump_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   wmTimer *animtimer = CTX_wm_screen(C)->animtimer;
-  const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(scene);
+  const ScenePlaybackRange playback_range = ED_scene_get_effective_playback_range(*C, scene);
 
   /* Don't change scene->r.cfra directly if animtimer is running as this can cause
    * first/last frame not to be actually shown (bad since for example physics
@@ -4061,7 +4061,7 @@ static wmOperatorStatus frame_jump_delta_exec(bContext *C, wmOperator *op)
 
   const bool wrap_timeline_navigation = scene->r.flag & SCER_WRAP_TIMELINE_NAVIGATION;
   if (wrap_timeline_navigation) {
-    const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(scene);
+    const ScenePlaybackRange playback_range = ED_scene_get_effective_playback_range(*C, scene);
     scene->r.cfra = wrap_frame_in_range(scene->r.cfra, playback_range);
   }
   else {
@@ -4224,7 +4224,7 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
   const float cfra = BKE_scene_frame_get(scene);
 
   const bool wrap_timeline_navigation = scene->r.flag & SCER_WRAP_TIMELINE_NAVIGATION;
-  const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(scene);
+  const ScenePlaybackRange playback_range = ED_scene_get_effective_playback_range(*C, scene);
 
   /* Find matching keyframe in the right direction. */
   const ActKeyColumn *ak;
@@ -4387,7 +4387,7 @@ static wmOperatorStatus marker_jump_exec(bContext *C, wmOperator *op)
 
   std::optional<ScenePlaybackRange> playback_range;
   if (scene->r.flag & SCER_WRAP_TIMELINE_NAVIGATION) {
-    playback_range = BKE_scene_get_playback_range(scene);
+    playback_range = ED_scene_get_effective_playback_range(*C, scene);
   }
 
   const bool next = RNA_boolean_get(op->ptr, "next");
@@ -6661,9 +6661,21 @@ static wmOperatorStatus screen_animation_step_invoke(bContext *C,
    * this function. */
   bool do_stop_playback = false;
 
+  float start_frame = scene->playback_start();
+  float end_frame = scene->playback_end();
+
+  /* The preview range takes precedence over the scene strip range. */
+  if (sad->use_seq_scenestrip_range && (scene->r.flag & SCER_PRV_RANGE) == 0) {
+    /* Note: We cannot use #ED_scene_get_effective_playback_range here as it checks whether strip
+     * range playback applies in the current context, which in turn may change during playback,
+     * e.g. mouse hovers over a different editor).  */
+    if (const std::optional<ScenePlaybackRange> range = ed::vse::get_scene_strip_frame_range(*C)) {
+      start_frame = range->start_frame;
+      end_frame = range->end_frame;
+    }
+  }
+
   /* Handle reaching the extreme frames. */
-  const int start_frame = scene->playback_start();
-  const int end_frame = scene->playback_end();
   const bool is_playing_forward = (sad->flag & ANIMPLAY_FLAG_REVERSE) == 0;
   const bool is_extreme_frame = is_playing_forward ? scene->r.cfra > end_frame :
                                                      scene->r.cfra < start_frame;

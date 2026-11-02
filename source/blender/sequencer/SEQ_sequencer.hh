@@ -128,6 +128,7 @@ struct EditingRuntime {
    * frame to temporarily render in the preview if #SEQ_DRAW_EDIT_POINT_PREVIEW is set.
    */
   std::optional<int> edit_point;
+  bool use_scene_strip_range = false;
 
   CompositorCache &ensure_compositor_cache();
 };

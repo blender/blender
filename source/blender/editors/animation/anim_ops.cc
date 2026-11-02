@@ -51,6 +51,7 @@
 #include "ED_anim_transformable.hh"
 #include "ED_keyframes_keylist.hh"
 #include "ED_markers.hh"
+#include "ED_scene.hh"
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
 #include "ED_space_graph.hh"
@@ -590,7 +591,7 @@ static void change_frame_apply(bContext *C, wmOperator *op, const bool always_up
     if (screen->animtimer) {
       wmTimer *wt = screen->animtimer;
       ScreenAnimData *sad = static_cast<ScreenAnimData *>(wt->customdata);
-      BKE_scene_frame_clamp_for_playback(scene, (sad->flag & ANIMPLAY_FLAG_REVERSE) == 0);
+      ED_scene_frame_clamp_for_playback(*C, scene, (sad->flag & ANIMPLAY_FLAG_REVERSE) == 0);
     }
   }
   FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
@@ -629,7 +630,7 @@ static float frame_from_event(bContext *C, const wmEvent *event)
 
   /* respect preview range restrictions (if only allowed to move around within that range) */
   if ((scene->r.flag & SCER_LOCK_FRAME_SELECTION) || (region->regiontype == RGN_TYPE_SCRUBBING)) {
-    const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(scene);
+    const ScenePlaybackRange playback_range = ED_scene_get_effective_playback_range(*C, scene);
     CLAMP(frame, playback_range.start_frame, playback_range.end_frame);
   }
 
@@ -1234,7 +1235,7 @@ static wmOperatorStatus scene_range_frame_exec(bContext *C, wmOperator * /*op*/)
   }
   ARegion *region = CTX_wm_region(C);
   View2D &v2d = region->v2d;
-  const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(scene);
+  const ScenePlaybackRange playback_range = ED_scene_get_effective_playback_range(*C, scene);
   v2d.cur.xmin = playback_range.start_frame;
   v2d.cur.xmax = playback_range.end_frame;
 

@@ -214,6 +214,9 @@ struct ScenePlaybackRange {
 ScenePlaybackRange BKE_scene_get_playback_range(const Scene *scene);
 /**
  * Clamps the current frame to be between the playback bounds which can be the preview range.
+ *
+ * Use #ED_scene_frame_clamp_for_playback to get playback bounds that depend on whether the scene
+ * is instantiated in an existing sequencer editor in the workspace or not.
  */
 void BKE_scene_frame_clamp_for_playback(Scene *scene, bool is_playing_forward);
 

@@ -51,6 +51,7 @@
 #include "SEQ_prefetch.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
+#include "SEQ_scene_strip.hh"
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_thumbnail_cache.hh"
@@ -87,6 +88,7 @@
 #include "sequencer_intern.hh"
 #include <cstddef>
 #include <fmt/format.h>
+#include <utility>
 
 namespace blender::ed::vse {
 
@@ -382,7 +384,7 @@ bool is_scene_time_sync_needed(const bContext &C)
   if ((workspace->flags & WORKSPACE_SYNC_SCENE_TIME) == 0) {
     return false;
   }
-  SpaceSeq *sseq = CTX_wm_space_seq(&C);
+  const SpaceSeq *sseq = CTX_wm_space_seq(&C);
   SpaceProperties *sprop = CTX_wm_space_properties(&C);
   if (!sseq && !sprop) {
     /* We only want to start syncing the time when we're in a sequence editor,
@@ -391,6 +393,21 @@ bool is_scene_time_sync_needed(const bContext &C)
     return false;
   }
   return true;
+}
+
+bool is_scene_frame_range_from_strip_needed(const bContext &C)
+{
+  const WorkSpace *workspace = CTX_wm_workspace(&C);
+  if (!workspace || !workspace->sequencer_scene) {
+    return false;
+  }
+  if ((workspace->flags & WORKSPACE_USE_STRIP_SCENE_RANGE_FOR_PLAYBACK) == 0) {
+    return false;
+  }
+  const SpaceSeq *sseq = CTX_wm_space_seq(&C);
+  /* Strip frame range playback should be triggered from all editors except the video
+   * sequencer. */
+  return sseq == nullptr;
 }
 
 static Scene *get_sequencer_scene_for_time_sync(const bContext &C)
@@ -412,32 +429,35 @@ static Scene *get_sequencer_scene_for_time_sync(const bContext &C)
   return nullptr;
 }
 
-const Strip *get_scene_strip_for_time_sync(const Scene *sequencer_scene)
+std::optional<ScenePlaybackRange> get_scene_strip_frame_range(const bContext &C)
 {
-  const Editing *ed = seq::editing_get(sequencer_scene);
-  if (!ed) {
-    return nullptr;
+  const WorkSpace *workspace = CTX_wm_workspace(&C);
+  if (workspace == nullptr) {
+    return std::nullopt;
   }
-  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
-  const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
-  VectorSet<Strip *> query_strips = seq::query_strips_recursive_at_frame(
-      sequencer_scene, seqbase, sequencer_scene->r.cfra);
-  /* Ignore effect strips, sound strips and muted strips. */
-  query_strips.remove_if([&](const Strip *strip) {
-    return strip->is_effect() || strip->type == STRIP_TYPE_SOUND ||
-           seq::render_is_muted(channels, strip);
-  });
-  Vector<Strip *> strips = query_strips.extract_vector();
-  /* Sort strips by channel. */
-  std::ranges::sort(strips,
-                    [](const Strip *a, const Strip *b) { return a->channel > b->channel; });
-  /* Get the top-most scene strip. */
-  for (const Strip *strip : strips) {
-    if (strip->type == STRIP_TYPE_SCENE) {
-      return strip;
+  const Scene *sequencer_scene = workspace->sequencer_scene;
+  if (!sequencer_scene) {
+    return std::nullopt;
+  }
+  return seq::scene_strip_frame_range_get(sequencer_scene);
+}
+
+void sync_sequencer_scene_strip_range(Main *bmain, WorkSpace *workspace)
+{
+  const bool use_scene_strip_range = (workspace->flags &
+                                      WORKSPACE_USE_STRIP_SCENE_RANGE_FOR_PLAYBACK) != 0;
+
+  /* Start from a clean state. */
+  for (Scene &scene : bmain->scenes) {
+    if (scene.ed && scene.ed->runtime) {
+      scene.ed->runtime->use_scene_strip_range = false;
     }
   }
-  return nullptr;
+
+  Scene *sequencer_scene = workspace->sequencer_scene;
+  if (sequencer_scene && sequencer_scene->ed && sequencer_scene->ed->runtime) {
+    sequencer_scene->ed->runtime->use_scene_strip_range = use_scene_strip_range;
+  }
 }
 
 void sync_active_scene_and_time_with_scene_strip(bContext &C)
@@ -448,7 +468,7 @@ void sync_active_scene_and_time_with_scene_strip(bContext &C)
   }
 
   wmWindow *win = CTX_wm_window(&C);
-  const Strip *scene_strip = get_scene_strip_for_time_sync(sequencer_scene);
+  const Strip *scene_strip = seq::scene_strip_for_time_sync_get(sequencer_scene);
   if (!scene_strip || !scene_strip->scene) {
     /* No scene strip with scene found. Switch to pinned scene. */
     Main *bmain = CTX_data_main(&C);

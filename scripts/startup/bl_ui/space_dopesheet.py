@@ -1083,12 +1083,13 @@ class DOPESHEET_PT_dopesheet_overlay(Panel):
 
     def draw(self, context):
         st = context.space_data
+        workspace = context.workspace
         overlay_settings = st.overlays
         layout = self.layout
 
         layout.active = overlay_settings.show_overlays
         row = layout.row()
-        row.active = context.workspace.use_scene_time_sync
+        row.active = workspace.use_strip_scene_range_for_playback
         row.prop(overlay_settings, "show_scene_strip_range")
 
 
