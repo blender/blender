@@ -1311,6 +1311,7 @@ if(TEST_SRC_DIR_EXISTS)
     essentials
     foreach_geometry_element_zone
     geometry
+    geometry/delaunay_triangulation
     grease_pencil
     import
     instance

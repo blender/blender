@@ -1796,6 +1796,7 @@ void RNA_def_nodes_geometry(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeCurveToMesh");
   define("GeometryNode", "GeometryNodeCurveToPoints");
   define("GeometryNode", "GeometryNodeDeformCurvesOnSurface");
+  define("GeometryNode", "GeometryNodeDelaunayTriangulation");
   define("GeometryNode", "GeometryNodeDeleteGeometry");
   define("GeometryNode", "GeometryNodeDistributePointsInGrid");
   define("GeometryNode", "GeometryNodeDistributePointsInVolume");

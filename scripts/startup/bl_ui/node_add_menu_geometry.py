@@ -292,6 +292,7 @@ class NODE_MT_gn_geometry_operations_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "GeometryNodeBoundBox")
         self.node_operator(layout, "GeometryNodeConvexHull")
         self.node_operator(layout, "GeometryNodeDeleteGeometry")
+        self.node_operator(layout, "GeometryNodeDelaunayTriangulation")
         self.node_operator(layout, "GeometryNodeDuplicateElements")
         self.node_operator(layout, "GeometryNodeMergeByDistance")
         self.node_operator(layout, "GeometryNodeMergePoints")
