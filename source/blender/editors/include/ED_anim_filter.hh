@@ -134,7 +134,7 @@ class ChannelTag {
     return this->priority_;
   }
 
-  int64_t hash() const
+  uint64_t hash() const
   {
     return get_default_hash(this->tag_type_,
                             this->label_,
@@ -225,7 +225,7 @@ struct KeyPoint {
   /** Construct a KeyPoint at a specific frame. */
   explicit constexpr KeyPoint(const float frame) : frame(frame) {}
 
-  int64_t hash() const
+  uint64_t hash() const
   {
     return get_default_hash(frame);
   }
@@ -347,7 +347,7 @@ class ChannelIdentifier {
   unsigned int parent_session_uid = 0;
 
   bool operator==(const ChannelIdentifier &other) const;
-  int64_t hash() const;
+  uint64_t hash() const;
 
   /** Stream operator, which needs a bmain for looking up the session UID. */
   void stream_to(std::ostream &stream, Main *bmain) const;
@@ -488,7 +488,7 @@ class AnimationChannel {
   AnimationChannel &operator=(const AnimationChannel &) = delete;
   AnimationChannel &operator=(AnimationChannel &&) = delete;
 
-  virtual int64_t hash() const;
+  virtual uint64_t hash() const;
 
   const ChannelIdentifier &identifier() const;
 
@@ -693,7 +693,7 @@ class DataChannel : public AnimationChannel {
     return &other == this;
   }
 
-  int64_t hash() const override
+  uint64_t hash() const override
   {
     return get_default_hash(AnimationChannel::hash(), this->source_type_, this->flags_);
   }

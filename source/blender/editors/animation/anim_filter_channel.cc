@@ -444,7 +444,7 @@ bool ChannelIdentifier::operator==(const ChannelIdentifier &other) const
   return this->source_rna_path.items == other.source_rna_path.items;
 }
 
-int64_t ChannelIdentifier::hash() const
+uint64_t ChannelIdentifier::hash() const
 {
   return get_default_hash(
       this->owner_session_uid, this->source_rna_path.items, this->parent_session_uid);
@@ -689,7 +689,7 @@ AnimationChannel::AnimationChannel(AnimationChannel &&other)
   other.flags_ = ANIM_CHANNEL_DIRTY;
 }
 
-int64_t AnimationChannel::hash() const
+uint64_t AnimationChannel::hash() const
 {
   return get_default_hash(
       type_, source_.type, source_.owner_id, source_.data, parent_session_uid_);
