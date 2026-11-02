@@ -16,6 +16,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
 #include "BLI_rect.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
@@ -70,36 +71,18 @@ static uiStyle *style_new(ListBaseT<uiStyle> *styles, const char *name, short ui
   style->paneltitle.uifont_id = uifont_id;
   style->paneltitle.points = UI_DEFAULT_TITLE_POINTS;
   style->paneltitle.character_weight = 400;
-  style->paneltitle.shadow = 3;
-  style->paneltitle.shadx = 0;
-  style->paneltitle.shady = -1;
-  style->paneltitle.shadowalpha = 0.5f;
-  style->paneltitle.shadowcolor = 0.0f;
 
   style->grouplabel.uifont_id = uifont_id;
   style->grouplabel.points = UI_DEFAULT_TITLE_POINTS;
   style->grouplabel.character_weight = 400;
-  style->grouplabel.shadow = 3;
-  style->grouplabel.shadx = 0;
-  style->grouplabel.shady = -1;
-  style->grouplabel.shadowalpha = 0.5f;
-  style->grouplabel.shadowcolor = 0.0f;
 
   style->widget.uifont_id = uifont_id;
   style->widget.points = UI_DEFAULT_TEXT_POINTS;
   style->widget.character_weight = 400;
-  style->widget.shadow = 1;
-  style->widget.shady = -1;
-  style->widget.shadowalpha = 0.5f;
-  style->widget.shadowcolor = 0.0f;
 
   style->tooltip.uifont_id = uifont_id;
   style->tooltip.points = UI_DEFAULT_TOOLTIP_POINTS;
   style->tooltip.character_weight = 400;
-  style->tooltip.shadow = 1;
-  style->tooltip.shady = -1;
-  style->tooltip.shadowalpha = 0.5f;
-  style->tooltip.shadowcolor = 0.0f;
 
   style->columnspace = 8;
   style->templatespace = 5;
@@ -126,6 +109,34 @@ static uiFont *uifont_to_blfont(int id)
 
 /* *************** draw ************************ */
 
+/**
+ * Set the text shadow from the theme, returns false when the theme shadow_type is set to 'NONE'.
+ * \param use_outline: Always draw an outline without offset, see #FontStyleDrawParams.
+ */
+static bool fontstyle_shadow_set(const uiFontStyle *fs, const bool use_outline = false)
+{
+  const ThemeUI &tui = theme::theme_get()->tui;
+  float shadow_color[4];
+  rgba_uchar_to_float(shadow_color, tui.text_shadow_color);
+
+  if (use_outline) {
+    BLF_shadow(fs->uifont_id, FontShadowType::Outline, shadow_color);
+    BLF_shadow_offset(fs->uifont_id, 0, 0);
+    return true;
+  }
+
+  const FontShadowType shadow_type = FontShadowType(tui.text_shadow_type);
+  if (shadow_type == FontShadowType::None) {
+    return false;
+  }
+
+  BLF_shadow(fs->uifont_id, shadow_type, shadow_color);
+  BLF_shadow_offset(fs->uifont_id,
+                    int(UI_SCALE_FAC * tui.text_shadow_offset[0]),
+                    int(UI_SCALE_FAC * tui.text_shadow_offset[1]));
+  return true;
+}
+
 void fontstyle_draw_ex(const uiFontStyle *fs,
                        const rcti *rect,
                        const char *str,
@@ -145,12 +156,8 @@ void fontstyle_draw_ex(const uiFontStyle *fs,
   fontstyle_set(fs);
 
   /* set the flag */
-  if (fs->shadow) {
+  if (fs_params->use_shadow && fontstyle_shadow_set(fs, fs_params->use_outline)) {
     font_flag |= BLF_SHADOW;
-    const float shadow_color[4] = {
-        fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha};
-    BLF_shadow(fs->uifont_id, FontShadowType(fs->shadow), shadow_color);
-    BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
   }
   if (fs_params->word_wrap == 1) {
     font_flag |= BLF_WORD_WRAP;
@@ -229,12 +236,8 @@ void fontstyle_draw_multiline_clipped_ex(const uiFontStyle *fs,
   fontstyle_set(fs);
 
   /* set the flag */
-  if (fs->shadow) {
+  if (fontstyle_shadow_set(fs)) {
     font_flag |= BLF_SHADOW;
-    const float shadow_color[4] = {
-        fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha};
-    BLF_shadow(fs->uifont_id, FontShadowType(fs->shadow), shadow_color);
-    BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
   }
   if (fs->bold) {
     font_flag |= BLF_BOLD;
@@ -353,18 +356,15 @@ void fontstyle_draw_rotated(const uiFontStyle *fs,
   BLF_rotation(fs->uifont_id, angle);
   BLF_color4ubv(fs->uifont_id, col);
 
-  if (fs->shadow) {
+  const bool use_shadow = fontstyle_shadow_set(fs);
+  if (use_shadow) {
     BLF_enable(fs->uifont_id, BLF_SHADOW);
-    const float shadow_color[4] = {
-        fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha};
-    BLF_shadow(fs->uifont_id, FontShadowType(fs->shadow), shadow_color);
-    BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
   }
 
   BLF_draw(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
   BLF_disable(fs->uifont_id, BLF_ROTATION);
   BLF_disable(fs->uifont_id, BLF_CLIPPING);
-  if (fs->shadow) {
+  if (use_shadow) {
     BLF_disable(fs->uifont_id, BLF_SHADOW);
   }
 }
@@ -427,15 +427,6 @@ const uiStyle *style_get_dpi()
   static uiStyle _style;
 
   _style = *style;
-
-  _style.paneltitle.shadx = short(UI_SCALE_FAC * _style.paneltitle.shadx);
-  _style.paneltitle.shady = short(UI_SCALE_FAC * _style.paneltitle.shady);
-  _style.grouplabel.shadx = short(UI_SCALE_FAC * _style.grouplabel.shadx);
-  _style.grouplabel.shady = short(UI_SCALE_FAC * _style.grouplabel.shady);
-  _style.widget.shadx = short(UI_SCALE_FAC * _style.widget.shadx);
-  _style.widget.shady = short(UI_SCALE_FAC * _style.widget.shady);
-  _style.tooltip.shadx = short(UI_SCALE_FAC * _style.tooltip.shadx);
-  _style.tooltip.shady = short(UI_SCALE_FAC * _style.tooltip.shady);
 
   _style.columnspace = short(UI_SCALE_FAC * _style.columnspace);
   _style.templatespace = short(UI_SCALE_FAC * _style.templatespace);

@@ -1804,11 +1804,10 @@ static void icon_draw_size(float x,
       const float zoom_factor = w / UI_ICON_SIZE;
       uiFontStyle fstyle_small = *UI_FSTYLE_WIDGET;
       fstyle_small.points *= zoom_factor * 0.8f;
-      fstyle_small.shadow = short(is_light ? FontShadowType::Outline : FontShadowType::None);
-      fstyle_small.shadx = 0;
-      fstyle_small.shady = 0;
       rcti text_rect = {int(x), int(x + UI_UNIT_X * zoom_factor), int(y), int(y)};
       FontStyleDrawParams params = {UI_STYLE_TEXT_RIGHT, 0};
+      params.use_shadow = is_light;
+      params.use_outline = true;
       fontstyle_draw(&fstyle_small,
                      &text_rect,
                      text_overlay->text,

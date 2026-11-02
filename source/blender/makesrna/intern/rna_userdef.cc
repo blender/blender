@@ -26,6 +26,8 @@
 
 #include "BKE_studiolight.h"
 
+#include "BLF_enums.hh"
+
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -362,14 +364,6 @@ static void rna_userdef_theme_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   /* Recreate gizmos when changing themes. */
   WM_reinit_gizmomap_all(bmain);
-
-  rna_userdef_update(bmain, scene, ptr);
-}
-
-static void rna_userdef_theme_text_style_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-  const uiStyle *style = ui::style_get();
-  BLF_default_size(style->widget.points);
 
   rna_userdef_update(bmain, scene, ptr);
 }
@@ -1925,6 +1919,7 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Font Style", "Theme settings for Font");
 
   prop = RNA_def_property(srna, "points", PROP_FLOAT, PROP_UNSIGNED);
+  RNA_def_property_float_default(prop, UI_DEFAULT_TEXT_POINTS);
   RNA_def_property_range(prop, 6.0f, 32.0f);
   RNA_def_property_ui_range(prop, 8.0f, 20.0f, 10.0f, 1);
   RNA_def_property_ui_text(prop, "Points", "Font size in points");
@@ -1937,35 +1932,6 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Character Weight", "Weight of the characters. 100-900, 400 is normal.");
   RNA_def_property_update(prop, 0, "rna_userdef_text_update");
-
-  prop = RNA_def_property(srna, "shadow", PROP_INT, PROP_NONE);
-  RNA_def_property_range(prop, 0, 6);
-  RNA_def_property_ui_text(prop, "Shadow Size", "Shadow type (0 none, 3, 5 blur, 6 outline)");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_text_style_update");
-
-  prop = RNA_def_property(srna, "shadow_offset_x", PROP_INT, PROP_PIXEL);
-  RNA_def_property_int_sdna(prop, nullptr, "shadx");
-  RNA_def_property_range(prop, -10, 10);
-  RNA_def_property_ui_text(prop, "Shadow X Offset", "Shadow offset in pixels");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_text_style_update");
-
-  prop = RNA_def_property(srna, "shadow_offset_y", PROP_INT, PROP_PIXEL);
-  RNA_def_property_int_sdna(prop, nullptr, "shady");
-  RNA_def_property_range(prop, -10, 10);
-  RNA_def_property_ui_text(prop, "Shadow Y Offset", "Shadow offset in pixels");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_text_style_update");
-
-  prop = RNA_def_property(srna, "shadow_alpha", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "shadowalpha");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Shadow Alpha", "");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_text_style_update");
-
-  prop = RNA_def_property(srna, "shadow_value", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "shadowcolor");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Shadow Brightness", "Shadow color in gray value");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_text_style_update");
 }
 
 static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
@@ -1977,7 +1943,7 @@ static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "ThemeStyle", nullptr);
   RNA_def_struct_sdna(srna, "uiStyle");
-  RNA_def_struct_ui_text(srna, "Style", "Theme settings for style sets");
+  RNA_def_struct_ui_text(srna, "Style", "Interface settings for style sets");
 
   prop = RNA_def_property(srna, "panel_title", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -2201,6 +2167,14 @@ static void rna_def_userdef_theme_ui_gradient(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 }
 
+static const EnumPropertyItem rna_enum_userdef_theme_text_shadow_type_items[] = {
+    {int(FontShadowType::None), "NONE", 0, "None", "Draw text without a shadow"},
+    {int(FontShadowType::Blur3x3), "SMALL", 0, "Small", "Soft shadow with a small blur"},
+    {int(FontShadowType::Blur5x5), "LARGE", 0, "Large", "Soft shadow with a large blur"},
+    {int(FontShadowType::Outline), "OUTLINE", 0, "Outline", "Outline around the text"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -2351,6 +2325,24 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(
       prop, "Widget Emboss", "Color of the 1px shadow line underlying widgets");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "text_shadow_color", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "text_shadow_color");
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(prop, "Text Shadow Color", "Color of the shadow underlying text");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "text_shadow_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_userdef_theme_text_shadow_type_items);
+  RNA_def_property_ui_text(
+      prop, "Text Shadow Type", "Size and type of the shadow underlying text");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "text_shadow_offset", PROP_INT, PROP_PIXEL);
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_range(prop, -10, 10);
+  RNA_def_property_ui_text(prop, "Text Shadow Offset", "Shadow offset in pixels");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "link", PROP_FLOAT, PROP_COLOR_GAMMA);

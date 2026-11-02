@@ -67,15 +67,16 @@ typedef struct uiFontStyle {
   float points;
   /** Style hint. */
   short italic, bold;
-  /** Value is amount of pixels blur. */
-  short shadow;
-  /** Shadow offset in pixels. */
-  short shadx, shady;
+  /* Deprecated text shadow settings, only read in versioning. */
+  /** Moved to #ThemeUI::text_shadow_type. */
+  short shadow_legacy;
+  /** Moved to #ThemeUI::text_shadow_offset. */
+  short shadx_legacy, shady_legacy;
   char _pad0[2];
-  /** Total alpha. */
-  float shadowalpha;
-  /** 1 value, typically white or black anyway. */
-  float shadowcolor;
+  /** Moved to use the alpha value of #ThemeUI::text_shadow_color. */
+  float shadowalpha_legacy;
+  /** Moved to #ThemeUI::text_shadow_color. */
+  float shadowcolor_legacy;
   /** Weight class 100-900, 400 is normal. */
   int character_weight;
 } uiFontStyle;
@@ -238,7 +239,12 @@ typedef struct ThemeUI {
   unsigned char transparent_checker_primary[4], transparent_checker_secondary[4];
   unsigned char transparent_checker_size;
   unsigned char link[4];
-  char _pad1[1];
+
+  /* Text Shadow. */
+  /** Shadow type, see #FontShadowType. */
+  unsigned char text_shadow_type;
+  unsigned char text_shadow_color[4];
+  short text_shadow_offset[2];
 
   float icon_alpha;
   float icon_saturation;

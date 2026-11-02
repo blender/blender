@@ -3062,6 +3062,13 @@ struct FontStyleDrawParams {
   FontStyleAlign align;
   uint word_wrap : 1;
   bool word_clip = true;
+  /** Draw the theme text shadow, disabled for hint text for example. */
+  bool use_shadow = true;
+  /**
+   * Draw an outline using the theme text shadow color, ignoring the theme shadow type and offset.
+   * Used to override outlines for example on text drawn over icons.
+   */
+  bool use_outline = false;
 };
 
 /* Styled text draw */
@@ -3279,8 +3286,6 @@ namespace theme {
 void init_default();
 
 }  // namespace theme
-
-void style_init_default();
 
 void interface_tag_script_reload();
 

@@ -14,6 +14,7 @@
 
 #include "BLI_listbase.hh"
 #include "BLI_map.hh"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_string.hh"
@@ -397,17 +398,17 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     /* Update text styles to match. */
     for (uiStyle &style : userdef->uistyles) {
       style.paneltitle.points = 11.0f;
-      style.paneltitle.shadow = 3;
-      style.paneltitle.shadowalpha = 0.5f;
-      style.paneltitle.shadowcolor = 0.0f;
+      style.paneltitle.shadow_legacy = 3;
+      style.paneltitle.shadowalpha_legacy = 0.5f;
+      style.paneltitle.shadowcolor_legacy = 0.0f;
       style.widget.points = 11.0f;
-      style.widget.shadow = 1;
-      style.widget.shadowalpha = 0.5f;
-      style.widget.shadowcolor = 0.0f;
-      style.tooltip.shadow = 1;
+      style.widget.shadow_legacy = 1;
+      style.widget.shadowalpha_legacy = 0.5f;
+      style.widget.shadowcolor_legacy = 0.0f;
+      style.tooltip.shadow_legacy = 1;
       style.tooltip.points = 11.0f;
-      style.tooltip.shadowalpha = 0.5f;
-      style.tooltip.shadowcolor = 0.0f;
+      style.tooltip.shadowalpha_legacy = 0.5f;
+      style.tooltip.shadowcolor_legacy = 0.0f;
     }
 
     FROM_DEFAULT_V4_UCHAR(space_node.node_outline);
@@ -455,6 +456,27 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
   if (!USER_VERSION_ATLEAST(503, 31)) {
     FROM_DEFAULT_V4_UCHAR(tui.wcol_list_item.item);
   }
+
+  if (!USER_VERSION_ATLEAST(504, 6)) {
+    /* Text styling moved from font style to the theme, copy widget style so it looks similar. */
+    FROM_DEFAULT_V4_UCHAR(tui.text_shadow_color);
+    copy_v2_v2_short(btheme->tui.text_shadow_offset, U_theme_default.tui.text_shadow_offset);
+    btheme->tui.text_shadow_type = U_theme_default.tui.text_shadow_type;
+
+    if (const uiStyle *style = userdef->uistyles.first()) {
+      const uiFontStyle &fstyle = style->widget;
+      const float shadow_color[4] = {fstyle.shadowcolor_legacy,
+                                     fstyle.shadowcolor_legacy,
+                                     fstyle.shadowcolor_legacy,
+                                     fstyle.shadowalpha_legacy};
+      rgba_float_to_uchar(btheme->tui.text_shadow_color, shadow_color);
+      btheme->tui.text_shadow_offset[0] = fstyle.shadx_legacy;
+      btheme->tui.text_shadow_offset[1] = fstyle.shady_legacy;
+      btheme->tui.text_shadow_type = ELEM(fstyle.shadow_legacy, 0, 5, 6) ? fstyle.shadow_legacy :
+                                                                           3;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
@@ -1568,10 +1590,10 @@ void blo_do_versions_userdef(UserDef *userdef)
     for (uiStyle &style : userdef->uistyles) {
       style.tooltip.points = 11.0f; /* UI_DEFAULT_TOOLTIP_POINTS */
       style.tooltip.character_weight = 400;
-      style.tooltip.shadow = 0;
-      style.tooltip.shady = -1;
-      style.tooltip.shadowalpha = 0.5f;
-      style.tooltip.shadowcolor = 0.0f;
+      style.tooltip.shadow_legacy = 0;
+      style.tooltip.shady_legacy = -1;
+      style.tooltip.shadowalpha_legacy = 0.5f;
+      style.tooltip.shadowcolor_legacy = 0.0f;
     }
   }
   if (!USER_VERSION_ATLEAST(403, 19)) {

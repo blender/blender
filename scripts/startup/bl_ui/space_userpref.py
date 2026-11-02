@@ -269,6 +269,30 @@ class USERPREF_PT_interface_text(InterfacePanel, CenterAlignMixIn, Panel):
         flow.prop(view, "font_path_ui_mono")
 
 
+class USERPREF_PT_interface_text_style(InterfacePanel, CenterAlignMixIn, Panel):
+    bl_label = "Font Style"
+    bl_parent_id = "USERPREF_PT_interface_text"
+
+    def draw_centered(self, context, layout):
+        style = context.preferences.ui_styles[0]
+
+        col = layout.column(align=True)
+        col.prop(style.panel_title, "points", text="Panel Title Size")
+        col.prop(style.panel_title, "character_weight", text="Weight", text_ctxt=i18n_contexts.id_text)
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(style.widget, "points", text="Widget Size")
+        col.prop(style.widget, "character_weight", text="Weight", text_ctxt=i18n_contexts.id_text)
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(style.tooltip, "points", text="Tooltip Size")
+        col.prop(style.tooltip, "character_weight", text="Weight", text_ctxt=i18n_contexts.id_text)
+
+
 class USERPREF_PT_interface_translation(InterfacePanel, CenterAlignMixIn, Panel):
     bl_label = "Language"
     bl_translation_context = i18n_contexts.id_windowmanager
@@ -1032,7 +1056,6 @@ class USERPREF_MT_interface_theme_presets(Menu):
     preset_type = 'XML'
     preset_xml_map = (
         ("preferences.themes[0]", "Theme"),
-        ("preferences.ui_styles[0]", "ThemeStyle"),
     )
     # Prevent untrusted XML files "escaping" from these types.
     preset_xml_secure_types = {
@@ -1046,7 +1069,6 @@ class USERPREF_MT_interface_theme_presets(Menu):
         "ThemeConsole",
         "ThemeDopeSheet",
         "ThemeFileBrowser",
-        "ThemeFontStyle",
         "ThemeGradientColors",
         "ThemeGraphEditor",
         "ThemeImageEditor",
@@ -1068,7 +1090,6 @@ class USERPREF_MT_interface_theme_presets(Menu):
         "ThemeSpreadsheet",
         "ThemeStatusBar",
         "ThemeStripColor",
-        "ThemeStyle",
         "ThemeTextEditor",
         "ThemeTopBar",
         "ThemeUserInterface",
@@ -1285,10 +1306,17 @@ class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
 
         col = flow.column()
         col.prop(ui, "widget_emboss")
-
-        col = flow.column()
         col.prop(ui, "widget_text_cursor")
         col.prop(ui, "link")
+
+        col = flow.column()
+        col.prop(ui, "text_shadow_type", text="Text Shadow")
+
+        if ui.text_shadow_type != 'NONE':
+            col.prop(ui, "text_shadow_color", text="Shadow Color")
+            sub = col.column()
+            sub.active = ui.text_shadow_color[3] > 0.0
+            sub.prop(ui, "text_shadow_offset", text="Offset")
 
 
 class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMixIn, Panel):
@@ -1361,46 +1389,6 @@ class USERPREF_PT_theme_interface_icons(ThemePanel, CenterAlignMixIn, Panel):
         flow.prop(ui, "icon_border_intensity")
         flow.prop(ui, "icon_alpha")
         flow.prop(ui, "icon_saturation", text="Toolbar Saturation")
-
-
-class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
-    bl_label = "Text Style"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = "USERPREF_PT_theme_user_interface"
-
-    @staticmethod
-    def _ui_font_style(layout, font_style):
-        layout.use_property_split = True
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
-
-        col = flow.column()
-        col.prop(font_style, "points")
-        col.prop(font_style, "character_weight", text="Weight", text_ctxt=i18n_contexts.id_text)
-
-        col = flow.column(align=True)
-        col.prop(font_style, "shadow_offset_x", text="Shadow Offset X")
-        col.prop(font_style, "shadow_offset_y", text="Y")
-
-        col = flow.column(align=True)
-        col.prop(font_style, "shadow")
-        col.prop(font_style, "shadow_alpha", text="Alpha")
-        col.prop(font_style, "shadow_value", text="Brightness")
-
-    def draw_centered(self, context, layout):
-        style = context.preferences.ui_styles[0]
-
-        layout.label(text="Panel Title")
-        self._ui_font_style(layout, style.panel_title)
-
-        layout.separator()
-
-        layout.label(text="Widget")
-        self._ui_font_style(layout, style.widget)
-
-        layout.separator()
-
-        layout.label(text="Tooltip")
-        self._ui_font_style(layout, style.tooltip)
 
 
 class USERPREF_PT_theme_color_sets(ThemePanel, Panel):
@@ -3124,6 +3112,7 @@ classes = (
     USERPREF_PT_interface_translation,
     USERPREF_PT_interface_accessibility,
     USERPREF_PT_interface_text,
+    USERPREF_PT_interface_text_style,
     USERPREF_PT_interface_menus,
     USERPREF_PT_interface_menus_mouse_over,
     USERPREF_PT_interface_menus_pie,
@@ -3164,7 +3153,6 @@ classes = (
     USERPREF_PT_theme_interface_panel,
     USERPREF_PT_theme_interface_state,
     USERPREF_PT_theme_interface_icons,
-    USERPREF_PT_theme_text_style,
     USERPREF_PT_theme_interface_gizmos,
     USERPREF_PT_theme_interface_styles,
     USERPREF_PT_theme_interface_transparent_checker,

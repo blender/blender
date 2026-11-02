@@ -64,13 +64,6 @@ void resources_free()
 
 /** \} */
 
-void style_init_default()
-{
-  U.uistyles.free_no_destruct();
-  /* gets automatically re-allocated */
-  style_init();
-}
-
 namespace theme {
 
 /* -------------------------------------------------------------------- */
