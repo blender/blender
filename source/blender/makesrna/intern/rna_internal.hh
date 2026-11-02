@@ -588,6 +588,12 @@ IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr) ATTR_WARN_
 PropertyRNA *rna_ensure_property(PropertyRNA *prop) ATTR_WARN_UNUSED_RESULT;
 
 /* Override default callbacks. */
+/**
+ * Private runtime types can have independent definitions for the same type. Their properties
+ * still have to be matched by identifier and checked for compatibility before diffing.
+ */
+bool rna_struct_override_type_matches(const StructRNA *type_a, const StructRNA *type_b);
+
 /* Default override callbacks for all types. */
 /* TODO: Maybe at some point we'll want to write that in direct RNA-generated code instead
  *       (like we do for default get/set/etc.)?
