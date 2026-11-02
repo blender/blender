@@ -861,9 +861,7 @@ static bool mesh_calc_islands_loop_face_uv(const int totedge,
                               &num_edge_boundaries);
 
   if (!num_face_groups) {
-    if (num_edge_boundaries) {
-      MEM_delete(edge_boundaries);
-    }
+    MEM_delete(edge_boundaries);
     return false;
   }
 
@@ -915,10 +913,7 @@ static bool mesh_calc_islands_loop_face_uv(const int totedge,
   MEM_delete(face_indices);
   MEM_delete(loop_indices);
   MEM_delete(face_groups);
-
-  if (num_edge_boundaries) {
-    MEM_delete(edge_boundaries);
-  }
+  MEM_delete(edge_boundaries);
 
   if (num_edge_boundaries) {
     MEM_delete(edge_boundary_count);
