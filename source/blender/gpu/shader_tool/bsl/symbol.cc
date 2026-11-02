@@ -309,6 +309,9 @@ struct SymbolParser : NodeErrorHandler {
                       to_str(ResourceTableType::FRAGMENT_OUT),
                       to_str(type->srt_type));
               }
+              if (arg.is_const()) {
+                error(arg.type().constant(), Diag::ExpectedResourceNonConst);
+              }
               break;
             case SymbolFunction::EntryPointType::VERT:
               if (type->srt_type != ResourceTableType::VERTEX_OUT) {
@@ -316,6 +319,9 @@ struct SymbolParser : NodeErrorHandler {
                       Diag::ExpectedResourceOfType,
                       to_str(ResourceTableType::VERTEX_IN),
                       to_str(type->srt_type));
+              }
+              if (arg.is_const()) {
+                error(arg.type().constant(), Diag::ExpectedResourceNonConst);
               }
               break;
             case SymbolFunction::EntryPointType::NONE:
@@ -338,6 +344,9 @@ struct SymbolParser : NodeErrorHandler {
                       to_str(ResourceTableType::VERTEX_OUT),
                       to_str(type->srt_type));
               }
+              if (!arg.is_const()) {
+                error(arg.type(), Diag::ExpectedResourceConst);
+              }
               break;
             case SymbolFunction::EntryPointType::VERT:
               if (type->srt_type != ResourceTableType::VERTEX_IN) {
@@ -345,6 +354,9 @@ struct SymbolParser : NodeErrorHandler {
                       Diag::ExpectedResourceOfType,
                       to_str(ResourceTableType::VERTEX_IN),
                       to_str(type->srt_type));
+              }
+              if (!arg.is_const()) {
+                error(arg.type(), Diag::ExpectedResourceConst);
               }
               break;
             case SymbolFunction::EntryPointType::NONE:
@@ -1165,7 +1177,7 @@ struct SymbolParser : NodeErrorHandler {
         }
         cls->srt_type = attr.srt_type;
       }
-      else if (cls->srt_type != attr.srt_type) {
+      else if (cls->srt_type != attr.srt_type && !var.type().is_constexpr()) {
         error(var,
               Diag::ExpectedResourceDefinitionOfType,
               to_str(cls->srt_type),

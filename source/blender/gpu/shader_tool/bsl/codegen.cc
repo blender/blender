@@ -509,7 +509,7 @@ struct CodegenContext : NodeErrorHandler {
       }
 
       if (var->condition.is_valid()) {
-        ctx.check_condition(id, var->condition);
+        ctx.check_condition(id, var->condition, *var->parent);
       }
 
       if (var->type->is_srt()) {
@@ -528,7 +528,9 @@ struct CodegenContext : NodeErrorHandler {
       }
 
       if (var->reference_value.is_valid()) {
-        return ctx.expr(var->reference_value, scope);
+        CodegenResult result = ctx.expr(var->reference_value, scope);
+        result.str += whitespace;
+        return result;
       }
 
       bool preceded_by_dot = id.front().prev() == '.' ||
@@ -2508,6 +2510,7 @@ struct CodegenContext : NodeErrorHandler {
    public:
     struct SubCondition {
       ast::Node front, back;
+      const SymbolScope *scope;
 
       string_view str()
       {
@@ -2516,24 +2519,24 @@ struct CodegenContext : NodeErrorHandler {
     };
 
    private:
-    vector<ast::Expr> pos_conditions;
-    vector<ast::Expr> neg_conditions;
+    vector<pair<ast::Expr, const SymbolScope *>> pos_conditions;
+    vector<pair<ast::Expr, const SymbolScope *>> neg_conditions;
 
    public:
-    void push_positive_condition(ast::Condition cond)
+    void push_positive_condition(ast::Condition cond, SymbolScope *scope)
     {
       /* Note: Assumes If statements have only one LocalStmt. */
-      pos_conditions.emplace_back(cond.child_first().child_first());
+      pos_conditions.emplace_back(cond.child_first().child_first(), scope);
     }
     void pop_positive_condition()
     {
       pos_conditions.pop_back();
     }
 
-    void push_negative_condition(ast::Condition cond)
+    void push_negative_condition(ast::Condition cond, SymbolScope *scope)
     {
       /* Note: Assumes If statements have only one LocalStmt. */
-      neg_conditions.emplace_back(cond.child_first().child_first());
+      neg_conditions.emplace_back(cond.child_first().child_first(), scope);
     }
     void pop_negative_condition()
     {
@@ -2542,7 +2545,9 @@ struct CodegenContext : NodeErrorHandler {
 
     /* Checks if all conditions inside `expr` are already checked inside the active static
      * conditions in the stack. */
-    vector<SubCondition> check_condition(ast::Expr expr)
+    vector<SubCondition> check_condition(const CodegenContext &ctx,
+                                         ast::Expr expr,
+                                         const SymbolScope &expr_scope)
     {
       /* Note that an exact implementation would require a SAT Solver since this is a NP-complete
        * problem (see https://en.wikipedia.org/wiki/Boolean_satisfiability_problem)
@@ -2552,22 +2557,24 @@ struct CodegenContext : NodeErrorHandler {
        * This is enough for detecting 99% of the logic issues. */
 
       /* Split the expression to check into subexpressions to test individually. */
-      vector<SubCondition> expr_split = split_expr(expr, LogicalAnd);
+      vector<SubCondition> expr_split = split_expr(expr, &expr_scope, LogicalAnd);
 
-      for (ast::Expr cond : pos_conditions) {
-        remove_included_expr(expr_split, split_expr(cond, LogicalAnd), false);
+      for (auto [cond, cond_scope] : pos_conditions) {
+        remove_included_expr(ctx, expr_split, split_expr(cond, cond_scope, LogicalAnd), false);
       }
-      for (ast::Expr cond : neg_conditions) {
+      for (auto [cond, cond_scope] : neg_conditions) {
         /* Because of DeMorgan's law: `!(A || B) <=> !A && !B`
          * Split the condition on LogicalOr and negate each expression.  */
-        remove_included_expr(expr_split, split_expr(cond, LogicalOr), true);
+        remove_included_expr(ctx, expr_split, split_expr(cond, cond_scope, LogicalOr), true);
       }
 
       return expr_split;
     }
 
    private:
-    vector<SubCondition> split_expr(ast::Expr &expr_split, const TokenType split_token)
+    vector<SubCondition> split_expr(ast::Expr &expr_split,
+                                    const SymbolScope *scope,
+                                    const TokenType split_token)
     {
       vector<SubCondition> split;
 
@@ -2577,37 +2584,43 @@ struct CodegenContext : NodeErrorHandler {
       while (back.next().is_valid()) {
         back = back.next();
         if (back.front() == split_token) {
-          split.emplace_back(front, back.prev());
+          split.emplace_back(front, back.prev(), scope);
           /* Advance past the operator. */
           front = back.next();
           back = front;
         }
       }
       if (front.is_valid()) {
-        split.emplace_back(front, back);
+        split.emplace_back(front, back, scope);
       }
       return split;
     }
 
-    void remove_included_expr(vector<SubCondition> &expr_split,
+    void remove_included_expr(const CodegenContext &ctx,
+                              vector<SubCondition> &expr_split,
                               const vector<SubCondition> &cond_split,
                               bool negative_cond)
     {
       std::erase_if(expr_split, [&](const SubCondition &expr) {
         return std::ranges::any_of(cond_split, [&](const SubCondition &cond) {
-          return check_expression_inclusion(expr, cond, negative_cond);
+          return check_expression_inclusion(ctx, expr, cond, negative_cond);
         });
       });
     }
 
     /* Check if `expr` is logically included inside `cond`.
+     *`expr` is the condition declared on a resource.
+     *`cond` is the condition inside the code accessing the resource.
      *
      * If `negative_cond` is true, checks if `expr` is starting with a negation and compare the
      * rest of expression. This have the same effect as negating the condition.
      *
      * NOTE: This function doesn't aim to be a full inclusion check (NP-complete problem), but it
      * should be at least conservative.  */
-    bool check_expression_inclusion(SubCondition expr, SubCondition cond, bool negative_cond)
+    bool check_expression_inclusion(const CodegenContext &ctx,
+                                    SubCondition expr,
+                                    SubCondition cond,
+                                    bool negative_cond)
     {
       /* Check if both expressions are equivalent. */
       ast::Node node_expr = expr.front;
@@ -2623,18 +2636,26 @@ struct CodegenContext : NodeErrorHandler {
       bool match = true;
       while (match) {
         switch (node_expr.type()) {
-          case NodeType::LocalVar:
-            /* Go to the last token of an accessor and check the last token. */
-            /* Don't do that for node_expr since it is not supposed to contain member access. */
-            while (node_cond.next().front() == '.') {
-              node_cond = node_cond.next().next();
-            }
+          case NodeType::LocalVar: {
             if (node_cond.type() != NodeType::LocalVar) {
               /* Invalid condition expression. */
               match = false;
               break;
             }
-            [[fallthrough]];
+            const SymbolScope *cond_scope = cond.scope;
+            /* Go to the last token of an accessor and check the last token. */
+            /* Don't do that for node_expr since it is not supposed to contain member access. */
+            while (node_cond.next().front() == '.') {
+              const SymbolVariable *var_cond = cond_scope->lookup_variable(
+                  ctx.table, LocalVar(node_cond).identifier());
+              cond_scope = var_cond->type;
+              node_cond = node_cond.next().next();
+            }
+            const SymbolVariable *var_cond = ctx.lookup_condition_constant(*cond_scope, node_cond);
+            const SymbolVariable *var_expr = ctx.lookup_condition_constant(*expr.scope, node_expr);
+            /* Check if referencing the exact same constant. */
+            match &= !var_cond->is_error && !var_expr->is_error && var_cond == var_expr;
+          } break;
           case NodeType::Op:
           case NodeType::NumConst:
             /* Textual comparison. */
@@ -2664,11 +2685,11 @@ struct CodegenContext : NodeErrorHandler {
     }
   } static_condition_stack;
 
-  void check_condition(ast::IdQualified id, ast::Expr expr)
+  void check_condition(ast::IdQualified id, ast::Expr expr, const SymbolScope &scope)
   {
     /* Split the expression to check into subexpressions to test individually. */
     vector<StaticConditionStack::SubCondition> expr_split = static_condition_stack.check_condition(
-        expr);
+        *this, expr, scope);
 
     if (!expr_split.empty()) {
       NOTE(expr, Diag::ConditionAttributeDeclaredHere, "");
@@ -2705,7 +2726,7 @@ struct CodegenContext : NodeErrorHandler {
                           .unwrap(this);
       builder.ss << (first ? "#if " : "#elif ") + cond_str + "\n";
 
-      static_condition_stack.push_positive_condition(cond);
+      static_condition_stack.push_positive_condition(cond, &parent_scope);
     }
     else {
       builder.ss << "#else\n";
@@ -2723,7 +2744,7 @@ struct CodegenContext : NodeErrorHandler {
     if (cond.is_valid()) {
       /* Convert the active condition into an inactive one (negated). */
       static_condition_stack.pop_positive_condition();
-      static_condition_stack.push_negative_condition(cond);
+      static_condition_stack.push_negative_condition(cond, &parent_scope);
     }
 
     /* Process preprocessor directive that can be added between if statements. */
@@ -3210,6 +3231,9 @@ struct CodegenContext : NodeErrorHandler {
     for (VarDecl decl : body.children_of_type<VarDecl>()) {
       Declarator d = decl.child_first(NodeType::Declarator);
       SymbolVariable *var = cls.lookup_variable(table, d.identifier());
+      if (var->is_constexpr) {
+        continue;
+      }
       switch (cls.srt_type) {
         case ResourceTableType::RESOURCE_TABLE:
           srt.emplace_back(parse_resource(decl.attributes(), *var, d.array(), cls));
@@ -3445,25 +3469,94 @@ struct CodegenContext : NodeErrorHandler {
     return {};
   }
 
-  string parse_condition(const SymbolScope &scope, ast::Expr condition) const
+  string escape_namespace_accessor(const string &str) const
+  {
+    string result = str;
+    size_t pos = 0;
+    /* Find and replace all occurrences of "::" with "_". */
+    while ((pos = result.find("::", pos)) != string::npos) {
+      result.replace(pos, 2, "_");
+      pos += 1;
+    }
+    return result;
+  }
+
+  const SymbolVariable *lookup_condition_constant(const SymbolScope &scope,
+                                                  const LocalVar node) const
+  {
+    if (const SymbolClass *cls = scope.as_class()) {
+      /* Lookup in current class and all its nested resource tables. */
+      if (const SymbolVariable *var = cls->lookup_variable(table, node.identifier());
+          !var->is_error)
+      {
+        return var;
+      }
+      for (auto [_, val] : cls->variables) {
+        const SymbolVariable *srt = val.second;
+        if (srt->type->is_srt()) {
+          /* Recursive. */
+          if (const SymbolVariable *var = lookup_condition_constant(*srt->type, node);
+              !var->is_error)
+          {
+            return var;
+          }
+        }
+      }
+      return table.err_var;
+    }
+
+    if (const SymbolFunction *fn = scope.as_function()) {
+      /* Lookup the current scope for constexpr first. */
+      if (const SymbolVariable *var = fn->lookup_variable(table, node.identifier());
+          !var->is_error && var->is_constexpr)
+      {
+        return var;
+      }
+      if (fn->is_entry_point()) {
+        /* Lookup in the parameter classes. */
+        for (const SymbolClass *srt_t : fn->arg_types) {
+          if (srt_t->is_srt()) {
+            /* Recursive. */
+            if (const SymbolVariable *var = lookup_condition_constant(*srt_t, node);
+                !var->is_error)
+            {
+              return var;
+            }
+          }
+        }
+      }
+      else if (fn->is_method() && fn->parent_class()->is_srt()) {
+        return lookup_condition_constant(*fn->parent_class(), node);
+      }
+      return table.err_var;
+    }
+
+    /* Local scope. */
+    return scope.lookup_variable(table, node.identifier());
+  }
+
+  string parse_condition(const SymbolScope &scope, ast::Expr condition)
   {
     if (!condition.is_valid()) {
       return "";
     }
     string str;
     for (LocalVar node : condition.children_of_type<LocalVar>()) {
-      if (SymbolVariable *var = scope.lookup_variable(table, node.identifier());
-          !var->is_error && var->is_constexpr)
-      {
-        str += "int " + string(node.str()) + " = " + var->value_str() + "; ";
+      const SymbolVariable *var = lookup_condition_constant(scope, node);
+      if (var->is_error) {
+        error(node, Diag::UnknownIdentifier, node.str());
+      }
+      else if (!var->is_constexpr && !var->is_compilation_const) {
+        error(node, Diag::ConditionAttributeNotConstant, node.str());
       }
       else {
-        /* TODO(fclem): Check constant validity. */
-        str += "int " + string(node.str()) + " = ";
-        str += "ShaderCreateInfo::find_constant(constants, \"" + string(node.str()) + "\"); ";
+        string value = var->is_constexpr ? var->value_str() :
+                                           "ShaderCreateInfo::find_constant(constants, \"" +
+                                               string(node.str()) + "\")";
+        str += "int " + escape_namespace_accessor(string(node.str())) + " = " + value + "; ";
       }
     }
-    str += "return " + string(condition.str()) + ";";
+    str += "return " + escape_namespace_accessor(string(condition.str())) + ";";
     return str;
   }
 

@@ -33,11 +33,20 @@ struct Simple {
   [[push_constant, condition(use_uniform_color)]] const float4 color;
 };
 
-/* Vertex attributes. Unused ones will be optimized out. */
 struct VertIn {
   [[attribute(0)]] float3 pos;
-  [[attribute(1), condition(!use_uniform_color)]] float4 color;
-  [[attribute(2), condition(use_lighting)]] float3 nor;
+};
+
+struct ColorIn {
+  [[attribute(1)]] float4 color;
+};
+
+struct NormalIn {
+  [[attribute(2)]] float3 nor;
+};
+
+struct SizeIn {
+  [[attribute(3)]] float size;
 };
 
 struct VertOutFlat {
@@ -62,6 +71,8 @@ struct VertOutDashed {
     [[resource_table]] const Simple &srt,
     [[resource_table]] [[condition(use_clipping)]] const ClipPlanes &clip,
     [[in]] const VertIn &v_in,
+    [[in, condition(!use_uniform_color)]] const ColorIn &c_in,
+    [[in, condition(use_lighting)]] const NormalIn &n_in,
     [[position]] float4 &out_pos,
     [[out]] [[condition(!use_smooth_color)]] VertOutFlat &flat_out,
     [[out]] [[condition(use_smooth_color)]] VertOutSmooth &smooth_out,
@@ -73,18 +84,18 @@ struct VertOutDashed {
 
   if (srt.use_smooth_color) [[static_branch]] {
     if (!srt.use_uniform_color) [[static_branch]] {
-      smooth_out.color = v_in.color;
+      smooth_out.color = c_in.color;
     }
   }
   else if (srt.use_uniform_color) [[static_branch]] {
     flat_out.color = srt.color;
   }
   else {
-    flat_out.color = v_in.color;
+    flat_out.color = c_in.color;
   }
 
   if (srt.use_lighting) [[static_branch]] {
-    lit_out.normal = normalize(srt.NormalMatrix * v_in.nor);
+    lit_out.normal = normalize(srt.NormalMatrix * n_in.nor);
   }
 
   if (srt.use_dashed) [[static_branch]] {
@@ -124,12 +135,6 @@ struct SimplePoint {
   [[push_constant, condition(point_style == POINT_CIRCLE_AA_OUTLINE)]] const float outlineWidth;
 };
 
-struct VertInPoint {
-  [[attribute(0)]] float3 pos;
-  [[attribute(1), condition(!use_uniform_color)]] float4 color;
-  [[attribute(2), condition(!use_uniform_point_size)]] float size;
-};
-
 struct VertOutPoint {
   [[flat]] float4 color;
   [[flat]] float4 radii;
@@ -138,7 +143,9 @@ struct VertOutPoint {
 [[vertex]] void simple_point_vert(
     [[resource_table]] const SimplePoint &srt,
     [[resource_table]] [[condition(use_clipping)]] const ClipPlanes &clip,
-    [[in]] const VertInPoint &v_in,
+    [[in]] const VertIn &v_in,
+    [[in, condition(!use_uniform_color)]] const ColorIn &c_in,
+    [[in, condition(!use_uniform_point_size)]] const SizeIn &s_in,
     [[position]] float4 &out_pos,
     [[out]] VertOutPoint &v_out,
     [[point_size]] float &out_point_size,
@@ -150,14 +157,14 @@ struct VertOutPoint {
     v_out.color = srt.color;
   }
   else {
-    v_out.color = v_in.color;
+    v_out.color = c_in.color;
   }
 
   if (srt.use_uniform_point_size) [[static_branch]] {
     out_point_size = srt.size;
   }
   else {
-    out_point_size = v_in.size;
+    out_point_size = s_in.size;
   }
 
   /* Calculate concentric radii in pixels. */
