@@ -5122,6 +5122,12 @@ static wmOperatorStatus grease_pencil_set_stroke_type_exec(bContext *C, wmOperat
           strokes, memory, [&](const int64_t index) { return fill_ids.span[index] == 0; });
       bke::greasepencil::gather_next_available_fill_ids(
           fill_ids.span.varray(), selected_non_fill_strokes, fill_ids.span);
+      bke::SpanAttributeWriter<float> fill_opacities =
+          attributes.lookup_or_add_for_write_span<float>("fill_opacity", bke::AttrDomain::Curve);
+
+      /* Each non fill selected stroke becomes a new fill. */
+      index_mask::masked_fill(fill_opacities.span, 1.0f, selected_non_fill_strokes);
+      fill_opacities.finish();
     }
 
     hide_stroke.finish();
