@@ -370,7 +370,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         if not bone_color.is_custom:
             return
 
-        split = layout.split(factor=0.401)
+        split = layout.split(factor=layout.property_split_factor)
 
         col = split.column()
         row = col.row()
