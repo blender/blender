@@ -270,6 +270,14 @@ bool grease_pencil_layer_parent_set(bke::greasepencil::Layer &layer,
 
 void grease_pencil_layer_parent_clear(bke::greasepencil::Layer &layer, bool keep_transform);
 
+/** The clipboard used to copy and paste keyframes in the animation editors. */
+KeyframeClipboard &keyframe_clipboard();
+/**
+ * Free the drawings in the clipboard, which have to be freed before the GPU back-end exits because
+ * their attributes can store values on the GPU.
+ */
+void keyframe_clipboard_free();
+
 bool grease_pencil_copy_keyframes(bAnimContext *ac, KeyframeClipboard &clipboard);
 
 bool grease_pencil_paste_keyframes(bAnimContext *ac,

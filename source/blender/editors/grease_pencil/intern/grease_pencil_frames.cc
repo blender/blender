@@ -610,6 +610,17 @@ static void GREASE_PENCIL_OT_frame_clean_duplicate(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+KeyframeClipboard &keyframe_clipboard()
+{
+  static KeyframeClipboard clipboard;
+  return clipboard;
+}
+
+void keyframe_clipboard_free()
+{
+  keyframe_clipboard().clear();
+}
+
 bool grease_pencil_copy_keyframes(bAnimContext *ac, KeyframeClipboard &clipboard)
 {
   using namespace bke::greasepencil;

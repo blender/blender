@@ -387,6 +387,11 @@ const GeoOperatorLog &node_group_operator_static_eval_log()
   return get_static_eval_log();
 }
 
+void node_group_operator_static_eval_log_free()
+{
+  get_static_eval_log().log.reset();
+}
+
 /** Find all the visible node editors to log values for. */
 static void find_verbose_log_contexts(const Main &bmain,
                                       Set<ComputeContextHash> &r_verbose_log_contexts)

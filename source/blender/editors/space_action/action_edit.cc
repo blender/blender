@@ -605,8 +605,7 @@ static eKeyPasteError paste_action_keys(bAnimContext *ac,
 
 static ed::greasepencil::KeyframeClipboard &get_grease_pencil_keyframe_clipboard()
 {
-  static ed::greasepencil::KeyframeClipboard clipboard;
-  return clipboard;
+  return ed::greasepencil::keyframe_clipboard();
 }
 
 static wmOperatorStatus actkeys_copy_exec(bContext *C, wmOperator *op)

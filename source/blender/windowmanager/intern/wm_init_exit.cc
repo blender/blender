@@ -92,6 +92,7 @@
 
 #include "ED_anim_api.hh"
 #include "ED_asset.hh"
+#include "ED_geometry.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_image.hh"
@@ -650,6 +651,8 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   BKE_mask_clipboard_free();
   BKE_vfont_clipboard_free();
   ed::greasepencil::clipboard_free();
+  ed::greasepencil::keyframe_clipboard_free();
+  ed::geometry::node_group_operator_static_eval_log_free();
   UV_clipboard_free();
   wm_clipboard_free();
 
