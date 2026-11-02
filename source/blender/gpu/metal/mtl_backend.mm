@@ -214,6 +214,18 @@ bool MTLBackend::is_inside_render_boundary()
 /** \name Platform
  * \{ */
 
+void MTLBackend::platform_and_capabilities_ensure(MTLContext *ctx)
+{
+  std::call_once(platform_and_capabilities_initialized_, [&]() {
+    platform_init(ctx);
+    capabilities_init(ctx);
+  });
+  /* All contexts are expected to use the same device. */
+  BLI_assert(GPG.device_luid.size() == sizeof(uint64_t) &&
+             *reinterpret_cast<const uint64_t *>(GPG.device_luid.data()) ==
+                 ctx->device.registryID);
+}
+
 /* For Metal, platform_init needs to be called after MTLContext initialization. */
 void MTLBackend::platform_init(MTLContext *ctx)
 {

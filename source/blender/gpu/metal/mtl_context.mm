@@ -240,8 +240,7 @@ MTLContext::MTLContext(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_contex
 
   /* Prepare platform and capabilities. (NOTE: With METAL, this needs to be done after CTX
    * initialization). */
-  MTLBackend::platform_init(this);
-  MTLBackend::capabilities_init(this);
+  MTLBackend::get()->platform_and_capabilities_ensure(this);
 
   /* Ensure global memory manager is initialized. */
   MTLContext::global_memory_manager_acquire_ref();
