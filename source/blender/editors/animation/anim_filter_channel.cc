@@ -864,6 +864,11 @@ bool SummaryChannel::is_collapsed() const
   return this->is_collapsed_.value();
 }
 
+void SummaryChannel::set_collapsed(const bool is_collapsed)
+{
+  this->is_collapsed_ = is_collapsed;
+}
+
 void SummaryChannel::gather_channeldata()
 {
   PRF_scope_with_name("ed::animfilter::SummaryChannel::gather_channeldata",
@@ -1072,6 +1077,13 @@ DataChannel::DataChannel(const StringRef label,
     : AnimationChannel(AnimationChannelType::DATA, label), source_type_(source_type)
 {
   source_rna_path_ = source_rna_path;
+}
+
+uint64_t DataChannel::datachannel_hash() const
+{
+  const PointerRNA &source = this->source();
+  return get_default_hash(
+      type_, source.type, source.owner_id, source.data, this->source_type_, this->flags_);
 }
 
 static std::optional<StringRefNull> last_rna_path_member(const ParsedRNAPathRef path)

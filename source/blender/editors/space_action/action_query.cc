@@ -100,7 +100,8 @@ static Span<ed::animfilter::ChannelTagType> tag_order_for_dope_sheet_mode(
   return default_tag_order;
 }
 
-static ed::animfilter::ChannelArena build_summary_tree(const bContext &C)
+static std::optional<ed::animfilter::ChannelArena> build_summary_tree(
+    const bContext &C, const ed::animfilter::ChannelArena *cached_arena)
 {
   using namespace ed::animfilter;
 
@@ -115,9 +116,17 @@ static ed::animfilter::ChannelArena build_summary_tree(const bContext &C)
   ChannelArena arena;
   arena.filters = get_filters(saction->ads);
   collect_data_channels(C, saction->mode, arena);
-  group_channels(arena,
-                 tag_order_for_dope_sheet_mode(saction->mode),
-                 saction->ads.flag & ADS_FLAG_MINIMAL_GROUPING);
+
+  arena.grouping_params.use_minimal_grouping = saction->ads.flag & ADS_FLAG_MINIMAL_GROUPING;
+  arena.grouping_params.tag_order = tag_order_for_dope_sheet_mode(saction->mode);
+  arena.compute_data_channel_hash();
+
+  if (cached_arena && arena.is_same_as(*cached_arena)) {
+    /* Skip grouping into Summary Channels and re-syncing of the UI state. */
+    return {};
+  }
+
+  group_channels(arena);
 
   {
     PRF_scope_with_name("ed::animfilter::get_summary_tree::ui_state", ProfileCategory::Editor);
@@ -131,20 +140,41 @@ static ed::animfilter::ChannelArena build_summary_tree(const bContext &C)
       summary->ui_state_map_set(&saction->runtime->animfilter_runtime.channel_states);
     }
   }
+
   return arena;
 }
 
 /* Note: This cache is reset by #action_draw_pre in space_action.cc. */
 ed::animfilter::ChannelArena &get_summary_tree(const bContext &C)
 {
+  using namespace ed::animfilter;
+
   SpaceAction *saction = CTX_wm_space_action(&C);
-  SpaceAction_Runtime *runtime = saction->runtime;
-  if (!runtime->animfilter_runtime.channel_arena) {
-    ed::animfilter::ChannelArena channels = ed::action::build_summary_tree(C);
-    runtime->animfilter_runtime.channel_arena.emplace(std::move(channels));
+  BLI_assert(saction->runtime);
+  AnimfilterSpaceRuntime &runtime = saction->runtime->animfilter_runtime;
+
+  std::optional<ChannelArena> new_arena;
+  if (runtime.channel_arena.has_value()) {
+    const ChannelArena *cached_arena = &runtime.channel_arena.value();
+    new_arena = build_summary_tree(C, cached_arena);
+  }
+  else {
+    new_arena = build_summary_tree(C, nullptr);
+    BLI_assert_msg(new_arena.has_value(),
+                   "when there is no cached ChannelArena, a new one should always be built.");
   }
 
-  return *runtime->animfilter_runtime.channel_arena;
+  if (new_arena) {
+    BLI_assert(new_arena->data_channel_hash);
+    /* The old arena didn't exist or was outdated, and we got a new one. */
+    runtime.channel_arena.emplace(std::move(*new_arena));
+  }
+  else {
+    /* The cached channels are still valid, but that doesn't mean the key data is fresh. */
+    runtime.channel_arena->mark_channels_dirty();
+  }
+
+  return *runtime.channel_arena;
 }
 
 }  // namespace blender::ed::action

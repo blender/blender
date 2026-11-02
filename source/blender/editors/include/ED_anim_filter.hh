@@ -513,9 +513,9 @@ class AnimationChannel {
   ID_Type source_id_type() const;
   bool source_is_type(const StructRNA *rna_type) const;
 
-  AnimationChannelFlags *flags_ptr()
+  AnimationChannelFlags &flags()
   {
-    return &this->flags_;
+    return this->flags_;
   }
   Span<KeyPoint> datapoints();
 
@@ -648,6 +648,12 @@ class SummaryChannel final : public AnimationChannel {
    */
   bool is_collapsed() const;
 
+  /**
+   * Set the channel's collapsed/expanded state.
+   * \note this is not saved to the ui_state_map, as writing to that map needs the space data.
+   */
+  void set_collapsed(bool is_collapsed);
+
   std::optional<ChannelTagType> tag_type() const
   {
     return tag_type_;
@@ -697,6 +703,13 @@ class DataChannel : public AnimationChannel {
   {
     return get_default_hash(AnimationChannel::hash(), this->source_type_, this->flags_);
   }
+
+  /**
+   * Return a hash that is purely based on this datachannel, and does _not_ include fields that are
+   * manipulated by the channel grouping. Most notably, contrary to #hash(), this does not include
+   * #AnimationChannel::parent_session_uid_.
+   */
+  uint64_t datachannel_hash() const;
 
   DataChannelType source_type() const
   {
@@ -748,6 +761,11 @@ class GreasePencilChannel : public DataChannel {
   void gather_channeldata() override;
 };
 
+/**
+ * Filters for data channel collection.
+ *
+ * \see #get_filters()
+ */
 struct CollectionFilters {
   bool only_selected = true;
   /* Show keys of hidden objects/bones. This is only used if `only_selected` is false. */
@@ -770,7 +788,31 @@ struct CollectionFilters {
   Set<ID_Type> id_type_blocklist;
 
   bool text_matches_filter(StringRefNull text) const;
+
+  bool operator==(const CollectionFilters &) const = default;
+  bool operator!=(const CollectionFilters &) const = default;
 };
+
+/**
+ * Parameters for data channel grouping into summary channels.
+ *
+ * Since these are space-dependent, there is no generic function that creates these instances.
+ */
+struct GroupingParameters {
+  Vector<ChannelTagType> tag_order;
+
+  /**
+   * If true, summary/group creation is skipped if it would move all chilren to a subgroup.
+   */
+  bool use_minimal_grouping = false;
+
+  bool operator==(const GroupingParameters &) const = default;
+  bool operator!=(const GroupingParameters &) const = default;
+};
+
+/* Stream operators for debugging */
+std::ostream &operator<<(std::ostream &stream, const CollectionFilters &filters);
+std::ostream &operator<<(std::ostream &stream, const GroupingParameters &params);
 
 /**
  * Based on the filter options, determine whether 'selection syncing' is on.
@@ -789,7 +831,7 @@ class ChannelArena {
   LinearAllocator<> allocator_;
 
  public:
-  /* Heap allocated data channels. */
+  /* Data channels allocated by our linear allocator. */
   Vector<DataChannel *> data_channels;
   /**
    * All summary channels are stored here, the first one is the root of the hierarchy.
@@ -798,6 +840,15 @@ class ChannelArena {
   Vector<SummaryChannel *> summary_channels;
 
   CollectionFilters filters = {};
+  GroupingParameters grouping_params = {};
+
+  /**
+   * Hash of the data channels.
+   *
+   * This is based on #AnimationChannel:hash(), which includes ID pointers. This is intentional, as
+   * remapped/deleted IDs will invalidate this hash, forcing a rebuild of any cached ChannelArena.
+   */
+  uint64_t data_channel_hash = 0;
 
   ChannelArena() = default;
   ChannelArena(const ChannelArena &) = delete;
@@ -872,6 +923,22 @@ class ChannelArena {
   {
     return this->summary_channels.is_empty() ? nullptr : this->summary_channels[0];
   }
+
+  /**
+   * Reset the cached data summaries on the SummaryChannels.
+   */
+  void mark_channels_dirty();
+
+  /** Compute & store #data_channel_hash. */
+  void compute_data_channel_hash();
+
+  /**
+   * Return whether this ChannelArena represents the same data as the given arena.
+   *
+   * This assumes that the grouping phase is deterministic and only depends on #data_channels,
+   * #filters, and #tag_order.
+   */
+  bool is_same_as(const ChannelArena &other) const;
 };
 
 /**
@@ -899,16 +966,9 @@ CollectionFilters get_filters(const bDopeSheet &ads);
  *
  * The summary channels are stored in `arena.summary_channels`.
  *
- * \note that this can change the order of datachannels in `arena`.
- *
- * \param tag_order: determines in which order the groups should be created. Items early in
- * the list are parents to items later in the list.
- * \param use_minimal_grouping: If true, group creation is skipped if it would move all chilren
- * to a subgroup.
+ * Assumes that `arena.filters` and `arena.tag_order` are set correctly by the caller.
  */
-void group_channels(ChannelArena &arena,
-                    Span<ChannelTagType> tag_order,
-                    bool use_minimal_grouping);
+void group_channels(ChannelArena &arena);
 
 /* Various settings influencing how the channel tree behaves. */
 struct ChannelTreeSettings {

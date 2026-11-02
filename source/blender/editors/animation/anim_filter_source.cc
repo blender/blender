@@ -882,6 +882,31 @@ CollectionFilters get_filters(const bDopeSheet &ads)
   return filters;
 }
 
+std::ostream &operator<<(std::ostream &stream, const CollectionFilters &filters)
+{
+  stream << "CollectionFilters("
+         << "only_selected=" << filters.only_selected << ", "
+         << "show_hidden=" << filters.show_hidden << ", "
+         << "only_errors=" << filters.only_errors << ", "
+         << "ignore_modifier_ids=" << filters.ignore_modifier_ids << ", "
+         << "use_filter_text_invert=" << filters.use_filter_text_invert << ", "
+         << "filter_text=" << filters.filter_text << ", "
+         << "channel_type_allowlist=" << filters.channel_type_allowlist.size() << "items, "
+         << "id_type_blocklist=" << filters.id_type_blocklist.size() << " items"
+         << ")";
+  return stream;
+}
+std::ostream &operator<<(std::ostream &stream, const GroupingParameters &params)
+{
+  stream << "GroupingParameters("
+         << "tag_order=";
+  for (const ChannelTagType tag_type : params.tag_order) {
+    stream << tag_type << ", ";
+  }
+  stream << "use_minimal_grouping=" << params.use_minimal_grouping << ")";
+  return stream;
+}
+
 bool do_sync_channel_selection_to_secondary(const CollectionFilters &filters)
 {
   /* Selection syncing should only be on if the list of channels is independent of the bone/object

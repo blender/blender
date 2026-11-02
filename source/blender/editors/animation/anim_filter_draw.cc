@@ -139,6 +139,13 @@ class ChannelItem : public ui::AbstractTreeViewItem {
       return;
     }
 
+    /* Store the UI change on the channel itself, as it can be long-lived and will only read the
+     * space-data once. */
+    if (channel_.type() == AnimationChannelType::SUMMARY) {
+      SummaryChannel &summary = dynamic_cast<SummaryChannel &>(channel_);
+      summary.set_collapsed(is_collapsed);
+    }
+
     /* Trigger redrawing of the keys. */
     WM_event_add_notifier(&C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
   }

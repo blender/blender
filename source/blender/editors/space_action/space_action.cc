@@ -208,11 +208,27 @@ static SpaceLink *action_duplicate(SpaceLink *sl)
   return reinterpret_cast<SpaceLink *>(saction);
 }
 
-/** Clean up any cached data that was built during the previous drawing of regions. */
-static void action_draw_pre(const bContext * /*C*/, ScrArea *area)
+static void action_draw_pre(const bContext *C, ScrArea * /*area*/)
 {
-  SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
-  saction->runtime->animfilter_runtime.channel_arena.reset();
+  if (!USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    return;
+  }
+
+  /* Ignore the returned value, as it's cached on the space data anyway. */
+  ed::action::get_summary_tree(*C);
+
+  // SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
+  // saction->runtime->animfilter_runtime.channel_arena.reset();
+}
+
+static void action_draw_post(const bContext * /*C*/, ScrArea * /*area*/)
+{
+  if (!USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    return;
+  }
+
+  // SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
+  // saction->runtime->animfilter_runtime.channel_arena.reset();w
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -263,7 +279,11 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   ui::theme::frame_buffer_clear(TH_BACK);
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    ed::animfilter::ChannelArena &channels = ed::action::get_summary_tree(*C);
+    ed::animfilter::AnimfilterSpaceRuntime &runtime = saction->runtime->animfilter_runtime;
+    BLI_assert_msg(runtime.channel_arena.has_value(),
+                   "action_draw_pre should ensure there is a channel arena");
+    ed::animfilter::ChannelArena &channels = runtime.channel_arena.value();
+
     ListBaseT<TimeMarker> *markers = ANIM_marker_list_from_context(*C);
     set_v2d_height(v2d, channels.num_channels(), !markers->is_empty());
     ui::view2d_view_ortho(v2d);
@@ -423,7 +443,11 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    ed::animfilter::ChannelArena &channels = ed::action::get_summary_tree(*C);
+    SpaceAction *saction = CTX_wm_space_action(C);
+    ed::animfilter::AnimfilterSpaceRuntime &runtime = saction->runtime->animfilter_runtime;
+    BLI_assert_msg(runtime.channel_arena.has_value(),
+                   "action_draw_pre should ensure there is a channel arena");
+    ed::animfilter::ChannelArena &channels = runtime.channel_arena.value();
 
     /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
      * uses the View2D's `cur` rect which might be modified when setting the height. */
@@ -433,7 +457,6 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
     set_v2d_height(v2d, channels.num_channels(), has_markers);
     ui::view2d_view_ortho(v2d);
 
-    SpaceAction *saction = CTX_wm_space_action(C);
     ed::animfilter::ChannelTreeSettings settings(channels.filters);
     settings.show_summary = saction->ads.filterflag & ADS_FILTER_SUMMARY;
     std::unique_ptr<ui::AbstractTreeView> tree_view = build_channel_tree_view(channels, settings);
@@ -944,7 +967,7 @@ static void action_refresh(const bContext *C, ScrArea *area)
   SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
 
   /* If this function is called, the cached animation channels may refer to now-deleted data. */
-  saction->runtime->animfilter_runtime.channel_arena.reset();
+  // saction->runtime->animfilter_runtime.channel_arena.reset();
 
   /* Update the state of the animchannels in response to changes from the data they represent
    * NOTE: the temp flag is used to indicate when this needs to be done,
@@ -1162,6 +1185,7 @@ void ED_spacetype_action()
   st->listener = action_listener;
   st->refresh = action_refresh;
   st->draw_pre = action_draw_pre;
+  st->draw_post = action_draw_post;
   st->id_remap = action_id_remap;
   st->foreach_id = action_foreach_id;
   st->space_subtype_item_extend = action_space_subtype_item_extend;

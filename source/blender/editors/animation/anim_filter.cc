@@ -4156,7 +4156,9 @@ ChannelArena::~ChannelArena()
 ChannelArena::ChannelArena(ChannelArena &&other)
     : data_channels(std::move(other.data_channels)),
       summary_channels(std::move(other.summary_channels)),
-      filters(std::move(other.filters))
+      filters(std::move(other.filters)),
+      grouping_params(std::move(other.grouping_params)),
+      data_channel_hash(std::move(other.data_channel_hash))
 {
   allocator_.transfer_ownership_from(other.allocator_);
 }
@@ -4173,6 +4175,8 @@ ChannelArena &ChannelArena::operator=(ChannelArena &&other)
   this->data_channels = std::move(other.data_channels);
   this->summary_channels = std::move(other.summary_channels);
   this->filters = std::move(other.filters);
+  this->grouping_params = std::move(other.grouping_params);
+  this->data_channel_hash = std::move(other.data_channel_hash);
   allocator_.transfer_ownership_from(other.allocator_);
   return *this;
 }
@@ -4196,6 +4200,53 @@ static void gather_tags(SummaryChannel &channel)
       has_seen_child = true;
     }
   }
+}
+
+void ChannelArena::mark_channels_dirty()
+{
+  for (DataChannel *chan : this->data_channels) {
+    chan->flags() |= ANIM_CHANNEL_DIRTY;
+  }
+  for (SummaryChannel *chan : this->summary_channels) {
+    chan->flags() |= ANIM_CHANNEL_DIRTY;
+  }
+}
+
+void ChannelArena::compute_data_channel_hash()
+{
+  /* Grouping re-orders the data channels, which changes the resulting hash, so this should be
+   * called before grouping happens, and only then. */
+  BLI_assert_msg(this->data_channel_hash == 0,
+                 "compute_data_channel_hash() should only be called once");
+
+  /* This basically reimplements the Span::hash() function, but then calling our custom per-element
+   * datachannel_hash() function. */
+
+  /* Mix with a non-zero value, to be able to distinguish between "not computed" (invalid state
+   * for comparisons) and "no data channels" (valid state). This particular value is 'Laksa'
+   * encoded as UTF-8 and reinterpreted as big-endian integer. */
+  uint64_t hash = 0x4c616b7361;
+
+  if (this->data_channels.is_empty()) {
+    this->data_channel_hash = hash;
+    return;
+  }
+
+  for (const DataChannel *channel : this->data_channels) {
+    hash = hash * 33 ^ channel->datachannel_hash();
+  }
+  this->data_channel_hash = hash;
+}
+
+bool ChannelArena::is_same_as(const ChannelArena &other) const
+{
+  /* If the hash is zero, that means it was never computed, which indicates a bug. */
+  BLI_assert(this->data_channel_hash);
+  BLI_assert(other.data_channel_hash);
+
+  return this->data_channel_hash == other.data_channel_hash &&
+         this->data_channels.size() == other.data_channels.size() &&
+         this->grouping_params == other.grouping_params && this->filters == other.filters;
 }
 
 /*
@@ -4345,9 +4396,7 @@ static Vector<SummaryContainer> split_group_for_tag(ChannelArena &arena,
   return splitable_summaries;
 }
 
-void group_channels(ChannelArena &arena,
-                    Span<ChannelTagType> tag_order,
-                    const bool use_minimal_grouping)
+void group_channels(ChannelArena &arena)
 {
   PRF_scope_with_name("ed::animfilter::group_channels", ProfileCategory::Editor);
 
@@ -4358,7 +4407,10 @@ void group_channels(ChannelArena &arena,
   Vector<SummaryContainer *> completely_split;
   Vector<SummaryContainer> new_summaries;
 
-  for (const ChannelTagType tag_type : tag_order) {
+  /* Stored as a separate variable so that it's clear which parts of the code depend on it. */
+  const bool use_minimal_grouping = arena.grouping_params.use_minimal_grouping;
+
+  for (const ChannelTagType tag_type : arena.grouping_params.tag_order) {
     for (SummaryContainer &to_split : splitable_summaries) {
       Vector<SummaryContainer> split_off_summaries = split_group_for_tag(
           arena, to_split, tag_type, /* tag_index= */ 0, use_minimal_grouping);

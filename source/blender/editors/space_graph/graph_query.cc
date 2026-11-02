@@ -57,7 +57,10 @@ static animfilter::ChannelArena build_summary_tree(const bContext &C)
   /* TODO pre-filter down to only FCurves. */
   arena.filters = get_filters(*space_graph->ads);
   collect_animation_channels(C, arena);
-  group_channels(arena, get_tag_order(), space_graph->ads->flag & ADS_FLAG_MINIMAL_GROUPING);
+
+  arena.grouping_params.use_minimal_grouping = space_graph->ads->flag & ADS_FLAG_MINIMAL_GROUPING;
+  arena.grouping_params.tag_order = get_tag_order();
+  group_channels(arena);
 
   {
     PRF_scope_with_name("ed::animfilter::get_summary_tree::ui_state", ProfileCategory::Editor);
