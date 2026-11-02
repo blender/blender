@@ -375,6 +375,9 @@ static bke::CurvesGeometry build_sequential(bke::greasepencil::Drawing &drawing,
     next_curve++;
   });
 
+  const int untouched_curves_num = next_curve - 1;
+  const int untouched_points_num = next_point;
+
   const int stroke_count = curves.curves_num();
   bool done_scanning = false;
   selection.foreach_index([&](const int i) {
@@ -414,10 +417,30 @@ static bke::CurvesGeometry build_sequential(bke::greasepencil::Drawing &drawing,
       }
     }
     dst_offsets[next_curve] = next_point;
-    dst_to_src_curve[next_curve - 1] = i;
+    dst_to_src_curve[next_curve - 1] = stroke;
     next_curve++;
   });
   weights.finish();
+
+  if (is_vanishing) {
+    /* The selected strokes were built last-to-first with reversed points (to pick which points
+     * to keep). Flip the built range back so the kept strokes keep their original order and
+     * point direction. */
+    MutableSpan<int> built_points = dst_to_src_point.as_mutable_span().drop_front(
+        untouched_points_num);
+    MutableSpan<int> built_curves = dst_to_src_curve.as_mutable_span().drop_front(
+        untouched_curves_num);
+    std::reverse(built_points.begin(), built_points.end());
+    std::reverse(built_curves.begin(), built_curves.end());
+    MutableSpan<int> built_offsets = dst_offsets.drop_front(untouched_curves_num);
+    Array<int> sizes(built_curves.size());
+    for (const int i : sizes.index_range()) {
+      sizes[i] = built_offsets[i + 1] - built_offsets[i];
+    }
+    std::reverse(sizes.begin(), sizes.end());
+    built_offsets.take_front(sizes.size()).copy_from(sizes);
+    offset_indices::accumulate_counts_to_offsets(built_offsets, untouched_points_num);
+  }
 
   BLI_assert(next_curve == (dst_curves_num + 1));
   BLI_assert(next_point == dst_points_num);
