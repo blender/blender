@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
 "PO-Revision-Date: 2026-09-06 05:02+0000\n"
 "Last-Translator: Benjamin Anshin <benanshin@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -35011,8 +35011,36 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
 msgid "Creative"
 msgstr "크리에이티브"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Names"
+msgstr "이름"
+
+
+msgid "Bone Roll"
+msgstr "뼈대 롤"
+
+
+msgid "Clean Up"
+msgstr "정리"
 
 
 msgid "Pivot Point"
@@ -35043,6 +35071,14 @@ msgid "Vertex Group Locks"
 msgstr "버텍스 그룹 잠금"
 
 
+msgid "Math"
+msgstr "수학"
+
+
+msgid "Utilities"
+msgstr "유틸리티"
+
+
 msgid "Mirror"
 msgstr "미러"
 
@@ -35055,12 +35091,24 @@ msgid "Local View"
 msgstr "로컬 뷰"
 
 
+msgid "Read"
+msgstr "읽기"
+
+
 msgid "Viewpoint"
 msgstr "뷰포트"
 
 
+msgid "Sample"
+msgstr "샘플"
+
+
 msgid "Navigation"
 msgstr "네비게이션"
+
+
+msgid "Write"
+msgstr "쓰기"
 
 
 msgid "Align View"
@@ -35071,20 +35119,16 @@ msgid "Align View to Active"
 msgstr "뷰를 활성에 정렬"
 
 
+msgid "Primitives"
+msgstr "프리미티브"
+
+
 msgid "View Regions"
 msgstr "뷰 지역"
 
 
-msgid "Math"
-msgstr "수학"
-
-
 msgid "Select More/Less"
 msgstr "선택 증가/감소"
-
-
-msgid "Utilities"
-msgstr "유틸리티"
 
 
 msgid "Select Similar"
@@ -35103,38 +35147,6 @@ msgid "Select Loops"
 msgstr "루프를 선택"
 
 
-msgid "Read"
-msgstr "읽기"
-
-
-msgid "Sample"
-msgstr "샘플"
-
-
-msgid "Assign Material"
-msgstr "머티리얼을 할당"
-
-
-msgid "Write"
-msgstr "쓰기"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
-
-
-msgid "Metaball"
-msgstr "메타볼"
-
-
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Light Probe"
-msgstr "라이트 프로브"
-
-
 msgid "Gizmo"
 msgstr "기즈모"
 
@@ -35143,16 +35155,40 @@ msgid "Instances"
 msgstr "인스턴스"
 
 
+msgid "Assign Material"
+msgstr "머티리얼을 할당"
+
+
+msgid "Import"
+msgstr "가져오기"
+
+
+msgid "Deprecated"
+msgstr "사용 중단"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Render Preview"
+msgstr "렌더링 미리보기"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Add Image"
 msgstr "이미지를 추가"
 
 
 msgid "Relations"
 msgstr "관계"
-
-
-msgid "Import"
-msgstr "가져오기"
 
 
 msgid "Rigid Body"
@@ -35167,20 +35203,8 @@ msgid "Track"
 msgstr "트랙"
 
 
-msgid "Deprecated"
-msgstr "사용 중단"
-
-
 msgid "Quick Effects"
 msgstr "빠른 이펙트"
-
-
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Clean Up"
-msgstr "정리"
 
 
 msgid "Asset"
@@ -35191,16 +35215,8 @@ msgid "Make Single User"
 msgstr "싱글 유저를 만들기"
 
 
-msgid "Render Preview"
-msgstr "렌더링 미리보기"
-
-
 msgid "Convert"
 msgstr "변환"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -35243,8 +35259,12 @@ msgid "Bone Collections"
 msgstr "뼈대 컬렉션"
 
 
-msgid "Names"
-msgstr "이름"
+msgid "Linked"
+msgstr "연결됨"
+
+
+msgid "Layout"
+msgstr "레이아웃"
 
 
 msgid "Toggle Bone Options"
@@ -35275,36 +35295,16 @@ msgid "Set Face Strength"
 msgstr "페이스 강도를 설정"
 
 
-msgid "Merge"
-msgstr "병합"
-
-
-msgid "Linked"
-msgstr "연결됨"
-
-
-msgid "Layout"
-msgstr "레이아웃"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
 msgid "Adjust"
 msgstr "조정"
 
 
-msgid "Bone Roll"
-msgstr "뼈대 롤"
-
-
 msgid "Keying"
 msgstr "키잉"
+
+
+msgid "Merge"
+msgstr "병합"
 
 
 msgid "Tracking"
@@ -54767,11 +54767,6 @@ msgstr "Blender XML 테마 파일을 불러오기 및 적용"
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "테마를 설치..."
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "어셋 라이브러리 추가"
 
 
 msgid "Add or remove a white balance preset"
@@ -78973,6 +78968,11 @@ msgstr "제거하는 애드온의 모듈 이름"
 
 msgid "Remove existing template with the same ID"
 msgstr "동일한 ID를 가진 기존 템플릿을 제거"
+
+
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "어셋 라이브러리 추가"
 
 
 msgid "Add a directory to be used by the Asset Browser as source of assets"
@@ -137213,10 +137213,6 @@ msgid "No active item to rename"
 msgstr "이름을 바꿀 활성 항목이 없습니다"
 
 
-msgid "No selected data-blocks to copy"
-msgstr "복사할 선택된 데이터 블록이 없습니다"
-
-
 msgid "There is no active data-block"
 msgstr "활성 데이터 차단이 없음"
 
@@ -137586,6 +137582,10 @@ msgstr "(엠프티)"
 
 msgid "Strip None"
 msgstr "스트립 없음"
+
+
+msgid "There is no asset library to remove"
+msgstr "제거할 어셋 라이브러리가 없음"
 
 
 msgid "Cannot reload with running modal operators"
@@ -138114,10 +138114,6 @@ msgstr "디렉토리를 제거할 수 없습니다: %s"
 
 msgid "Extension operator not found \"%s\""
 msgstr "확장 연산자 \"%s\"를 찾을 수 없음"
-
-
-msgid "There is no asset library to remove"
-msgstr "제거할 어셋 라이브러리가 없음"
 
 
 msgid "There is no extension repository to remove"
@@ -148729,18 +148725,6 @@ msgstr "저장된 사본을 \"%s\"로 함"
 
 msgid "Saved as \"%s\""
 msgstr "저장함: \"%s\"임"
-
-
-msgid ""
-"To match renders with the previous working space as closely as possible,\n"
-"colors in all materials, lights and geometry must be converted.\n"
-"\n"
-"Some nodes graphs cannot be converted accurately and may need manual fix-ups."
-msgstr ""
-"이전 작업 공간과 최대한 일치하도록 렌더링을 맞추려면,\n"
-"모든 재료, 조명 및 기하학적 요소의 색상을 변환해야 합니다.\n"
-"\n"
-"일부 노드 그래프는 정확한 변환이 불가능하여 수동 수정이 필요할 수 있습니다."
 
 
 msgid "Can't change working space while jobs are running"

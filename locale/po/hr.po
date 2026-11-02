@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
 "PO-Revision-Date: 2026-09-23 21:13+0000\n"
 "Last-Translator: Karlo Pavicic <soulcreature@hotmail.com>\n"
 "Language-Team: Croatian <https://translate.blender.org/projects/blender-ui/ui/hr/>\n"
@@ -810,6 +810,10 @@ msgid "Delete"
 msgstr "Obriši"
 
 
+msgid "Clean Up"
+msgstr "Počisti"
+
+
 msgid "Navigation"
 msgstr "Navigacija"
 
@@ -820,10 +824,6 @@ msgstr "Svjetlo"
 
 msgid "Relations"
 msgstr "Odnosi"
-
-
-msgid "Clean Up"
-msgstr "Počisti"
 
 
 msgid "Merge"

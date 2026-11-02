@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8482,8 +8482,32 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
+
+
+msgid "Special Characters"
+msgstr "Специјални знаци"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
+
+
+msgid "Names"
+msgstr "Имена"
+
+
+msgid "Bone Roll"
+msgstr "Ролна костију"
+
+
 msgid "Snap"
 msgstr "Лепљење"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Mirror"
@@ -8506,28 +8530,24 @@ msgid "Align View"
 msgstr "Поравнај поглед"
 
 
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Select Linked"
 msgstr "Изабери повезано"
 
 
-msgid "Metaball"
-msgstr "Мета лопта"
+msgid "Import"
+msgstr "Увоз"
 
 
 msgid "Light"
 msgstr "Светлост"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Relations"
 msgstr "Односи"
-
-
-msgid "Import"
-msgstr "Увоз"
 
 
 msgid "Rigid Body"
@@ -8546,14 +8566,6 @@ msgid "Quick Effects"
 msgstr "Брзи ефекти"
 
 
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
-
-
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Hooks"
 msgstr "Удице"
 
@@ -8570,8 +8582,8 @@ msgid "Propagate"
 msgstr "Пренеси"
 
 
-msgid "Names"
-msgstr "Имена"
+msgid "Linked"
+msgstr "Повезано"
 
 
 msgid "Toggle Bone Options"
@@ -8590,24 +8602,12 @@ msgid "Mesh Select Mode"
 msgstr "Мод избора мреже"
 
 
-msgid "Merge"
-msgstr "Сједини"
-
-
-msgid "Linked"
-msgstr "Повезано"
-
-
-msgid "Special Characters"
-msgstr "Специјални знаци"
-
-
-msgid "Bone Roll"
-msgstr "Ролна костију"
-
-
 msgid "Keying"
 msgstr "Збирка тастера"
+
+
+msgid "Merge"
+msgstr "Сједини"
 
 
 msgid "Tracking"

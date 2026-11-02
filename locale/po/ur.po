@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
 "PO-Revision-Date: 2025-07-23 15:12+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Urdu <https://translate.blender.org/projects/blender-ui/ui/ur/>\n"
@@ -32267,6 +32267,34 @@ msgid "Editor menu containing buttons"
 msgstr "ﻮﻨﯿﻣ ﺮﭩﯾﮉﯾﺍ ﻞﻤﺘﺸﻣ ﺮﭘ ﮞﻮﻨﭩﺑ"
 
 
+msgid "Show/Hide"
+msgstr "ﮟﯿﺋﺎﭙﮭﭼ/ﮟﯿﺋﺎﮭﮐﺩ"
+
+
+msgid "Special Characters"
+msgstr "ﺭﺍﺩﺮﮐ ﯽﺻﻮﺼﺧ"
+
+
+msgid "Kerning"
+msgstr "ﮓﻨﻧﺮﮐ"
+
+
+msgid "Metaball"
+msgstr "ﻝﺎﺑ ﺎﭩﯿﻣ"
+
+
+msgid "Names"
+msgstr "ﻡﺎﻧ"
+
+
+msgid "Bone Roll"
+msgstr "ﻝﻭﺭ ﻥﻮﺑ"
+
+
+msgid "Clean Up"
+msgstr "ﯽﺋﺎﻔﺻ"
+
+
 msgid "Pivot Point"
 msgstr "ﭧﻨﺋﺍﻮﭘ ﭦﻮﯿﭘ"
 
@@ -32295,6 +32323,14 @@ msgid "Vertex Group Locks"
 msgstr "ﮎﻻ﻿ ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
 
 
+msgid "Math"
+msgstr "ﯽﺿﺎﯾﺭ"
+
+
+msgid "Utilities"
+msgstr "ﺖﯾﺩﺎﻓﺍ"
+
+
 msgid "Mirror"
 msgstr "ﮧﻨﯿﺋﺁ"
 
@@ -32307,12 +32343,24 @@ msgid "Local View"
 msgstr "ﺮﻈﻨﻣ ﯽﻣﺎﻘﻣ"
 
 
+msgid "Read"
+msgstr "ﮟﯿﮬﮍﭘ"
+
+
 msgid "Viewpoint"
 msgstr "ﺮﻈﻧ ﮧﻄﻘﻧ"
 
 
+msgid "Sample"
+msgstr "ﮧﻧﻮﻤﻧ"
+
+
 msgid "Navigation"
 msgstr "ﻦﺸﯿﮕﯾﻮﯿﻧ"
+
+
+msgid "Write"
+msgstr "ﮟﯿﮭﮑﻟ"
 
 
 msgid "Align View"
@@ -32323,20 +32371,16 @@ msgid "Align View to Active"
 msgstr "ﮟﯾﺮﮐ ﮪﺪﯿﺳ ﮟﯿﻣ ﻝﺎﻌﻓ ﻮﮐ ﺮﻈﻨﻣ"
 
 
+msgid "Primitives"
+msgstr "ﻢﯾﺪﻗ"
+
+
 msgid "View Regions"
 msgstr "ﮟﯿﮭﮑﯾﺩ ﻮﮐ ﮞﻮﻗﻼ﻿ﻋ"
 
 
-msgid "Math"
-msgstr "ﯽﺿﺎﯾﺭ"
-
-
 msgid "Select More/Less"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻢﮐ/ﮦﺩﺎﯾﺯ"
-
-
-msgid "Utilities"
-msgstr "ﺖﯾﺩﺎﻓﺍ"
 
 
 msgid "Select Similar"
@@ -32355,28 +32399,24 @@ msgid "Select Loops"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﺲﭘﻮﻟ"
 
 
-msgid "Read"
-msgstr "ﮟﯿﮬﮍﭘ"
+msgid "Gizmo"
+msgstr "ﻮﻣﺰﯿﮔ"
 
 
-msgid "Sample"
-msgstr "ﮧﻧﻮﻤﻧ"
+msgid "Instances"
+msgstr "ﮟﯿﻟﺎﺜﻣ"
 
 
 msgid "Assign Material"
 msgstr "ﮟﯾﺮﮐ ﺾﯾﻮﻔﺗ ﺩﺍﻮﻣ"
 
 
-msgid "Write"
-msgstr "ﮟﯿﮭﮑﻟ"
+msgid "Import"
+msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
 
 
-msgid "Primitives"
-msgstr "ﻢﯾﺪﻗ"
-
-
-msgid "Metaball"
-msgstr "ﻝﺎﺑ ﺎﭩﯿﻣ"
+msgid "Deprecated"
+msgstr "ﮦﺩﻮﺳﺮﻓ"
 
 
 msgid "Light"
@@ -32387,12 +32427,8 @@ msgid "Light Probe"
 msgstr "ﺏﻭﺮﭘ ﭧﺋﻻ﻿"
 
 
-msgid "Gizmo"
-msgstr "ﻮﻣﺰﯿﮔ"
-
-
-msgid "Instances"
-msgstr "ﮟﯿﻟﺎﺜﻣ"
+msgid "UV"
+msgstr "ﯼﻭﻮﯾ"
 
 
 msgid "Add Image"
@@ -32401,10 +32437,6 @@ msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﺮﯾﻮﺼﺗ"
 
 msgid "Relations"
 msgstr "ﮯﺘﺷﺭ"
-
-
-msgid "Import"
-msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
 
 
 msgid "Rigid Body"
@@ -32419,20 +32451,8 @@ msgid "Track"
 msgstr "ﮏﯾﺮﭨ"
 
 
-msgid "Deprecated"
-msgstr "ﮦﺩﻮﺳﺮﻓ"
-
-
 msgid "Quick Effects"
 msgstr "ﺕﺍﺮﺛﺍ ﯼﺭﻮﻓ"
-
-
-msgid "Show/Hide"
-msgstr "ﮟﯿﺋﺎﭙﮭﭼ/ﮟﯿﺋﺎﮭﮐﺩ"
-
-
-msgid "Clean Up"
-msgstr "ﯽﺋﺎﻔﺻ"
 
 
 msgid "Asset"
@@ -32445,10 +32465,6 @@ msgstr "ﮟﯿﺋﺎﻨﺑ ﻑﺭﺎﺻ ﻞﮕﻨﺳ"
 
 msgid "Convert"
 msgstr "ﮟﯾﺮﮐ ﻞﯾﺪﺒﺗ"
-
-
-msgid "UV"
-msgstr "ﯼﻭﻮﯾ"
 
 
 msgid "Link/Transfer Data"
@@ -32491,8 +32507,12 @@ msgid "Bone Collections"
 msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﮞﻮﯾﮉﮨ"
 
 
-msgid "Names"
-msgstr "ﻡﺎﻧ"
+msgid "Linked"
+msgstr "ﮏﻠﺴﻨﻣ"
+
+
+msgid "Layout"
+msgstr "ﭦﺅﺁ ﮯﻟ"
 
 
 msgid "Toggle Bone Options"
@@ -32523,36 +32543,16 @@ msgid "Set Face Strength"
 msgstr "ﮟﯾﺮﮐ ﻦﯿﻌﺗ ﺎﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
 
 
-msgid "Merge"
-msgstr "ﺎﻧﺮﮐ ﻢﺿ"
-
-
-msgid "Linked"
-msgstr "ﮏﻠﺴﻨﻣ"
-
-
-msgid "Layout"
-msgstr "ﭦﺅﺁ ﮯﻟ"
-
-
-msgid "Special Characters"
-msgstr "ﺭﺍﺩﺮﮐ ﯽﺻﻮﺼﺧ"
-
-
-msgid "Kerning"
-msgstr "ﮓﻨﻧﺮﮐ"
-
-
 msgid "Adjust"
 msgstr "ﮟﯾﺮﮐ ﭧﺴﺟﮉﯾﺍ"
 
 
-msgid "Bone Roll"
-msgstr "ﻝﻭﺭ ﻥﻮﺑ"
-
-
 msgid "Keying"
 msgstr "ﮓﻨﯿﻠﮐ"
+
+
+msgid "Merge"
+msgstr "ﺎﻧﺮﮐ ﻢﺿ"
 
 
 msgid "Tracking"
@@ -50143,11 +50143,6 @@ msgstr "ﮟﯾﺮﮐ ﻮﮔﻻ﻿ ﺭﻭﺍ ﮈﻮﻟ ﻞﺋﺎﻓ ﻢﯿﮭﺗ 
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "...ﮟﯾﺮﮐ ﻝﺎﭩﺴﻧﺍ ﻢﯿﮭﺗ"
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮧﺛﺎﺛﺍ"
 
 
 msgid "Add or remove a white balance preset"
@@ -72719,6 +72714,11 @@ msgstr "ﻡﺎﻧ ﺎﮐ ﮧﻧﻮﻤﻧ ﮯﮐ ﻥﺁ ﮉﯾﺍ ﮯﯿﻟ ﮯ�
 
 msgid "Remove existing template with the same ID"
 msgstr "ﮟﯾﺩ ﺎﭩﮨ ﻮﮐ ﭧﯿﻠﭙﻤﯿﭨ ﮦﺩﻮﺟﻮﻣ ﮫﺗﺎﺳ ﮯﮐ ID ﯽﮨ ﮏﯾﺍ"
+
+
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮧﺛﺎﺛﺍ"
 
 
 msgid "Add a directory to be used by the Asset Browser as source of assets"
@@ -123816,10 +123816,6 @@ msgid "No active item to rename"
 msgstr "ﮟﯿﮩﻧ ﻢﭩﺋﺁ ﻝﺎﻌﻓ ﯽﺋﻮﮐ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﻞﯾﺪﺒﺗ ﻡﺎﻧ"
 
 
-msgid "No selected data-blocks to copy"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ﺐﺨﺘﻨﻣ ﯽﺋﻮﮐ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﯽﭘﺎﮐ"
-
-
 msgid "Operation requires an active keying set"
 msgstr "ﮯﮨ ﺕﺭﻭﺮﺿ ﯽﮐ ﭧﯿﺳ ﮓﻨﯿﮐ ﻝﺎﻌﻓ ﮏﯾﺍ ﮯﯿﻟ ﮯﮐ ﻦﺸﯾﺮﭘﺁ"
 
@@ -123990,6 +123986,10 @@ msgstr "(ﯽﻟﺎﺧ)"
 
 msgid "Strip None"
 msgstr "ﮟﯿﮩﻧ ﯽﺋﻮﮐ ﯽﭩﭘ"
+
+
+msgid "There is no asset library to remove"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮧﺛﺎﺛﺍ ﯽﺋﻮﮐ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﭩﮨ"
 
 
 msgid "Add a color strip to the sequencer"
@@ -124334,10 +124334,6 @@ msgstr "‬%s‪ :ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺎﭩﮨ ﻮﮐ ﯼﺮﭩﮑﯾﺮ�
 
 msgid "Extension operator not found \"%s\""
 msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ \"%s\"‬‪ ﺮﭩﯾﺮﭘﺁ ﻦﺸﻨﯿﭩﺴﮑﯾﺍ"
-
-
-msgid "There is no asset library to remove"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮧﺛﺎﺛﺍ ﯽﺋﻮﮐ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﭩﮨ"
 
 
 msgid "There is no extension repository to remove"

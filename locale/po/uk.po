@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
 "PO-Revision-Date: 2026-07-22 11:12+0000\n"
 "Last-Translator: Gamfid <gamfid@users.noreply.translate.blender.org>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26352,6 +26352,34 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
+
+
+msgid "Names"
+msgstr "Назви"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
 msgid "Pivot Point"
 msgstr "Точка Опертя"
 
@@ -26380,6 +26408,14 @@ msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
 
 
+msgid "Math"
+msgstr "Математика"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
+
+
 msgid "Mirror"
 msgstr "Дзеркалення"
 
@@ -26396,6 +26432,10 @@ msgid "Viewpoint"
 msgstr "Точка зору"
 
 
+msgid "Sample"
+msgstr "Вибірка"
+
+
 msgid "Navigation"
 msgstr "Навігація"
 
@@ -26408,20 +26448,16 @@ msgid "Align View to Active"
 msgstr "Вирівняти Огляд за Активним"
 
 
+msgid "Primitives"
+msgstr "Примітиви"
+
+
 msgid "View Regions"
 msgstr "Регіони Огляду"
 
 
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Select More/Less"
 msgstr "Вибрати більше/менше"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
 
 
 msgid "Select Similar"
@@ -26440,20 +26476,12 @@ msgid "Select Loops"
 msgstr "Виділити петлі"
 
 
-msgid "Sample"
-msgstr "Вибірка"
-
-
 msgid "Assign Material"
 msgstr "Призначити Матеріал"
 
 
-msgid "Primitives"
-msgstr "Примітиви"
-
-
-msgid "Metaball"
-msgstr "Метакуля"
+msgid "Import"
+msgstr "Імпортувати"
 
 
 msgid "Light"
@@ -26464,16 +26492,16 @@ msgid "Light Probe"
 msgstr "Проба Освітлення"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Add Image"
 msgstr "Додати Зображення"
 
 
 msgid "Relations"
 msgstr "Зв'язки"
-
-
-msgid "Import"
-msgstr "Імпортувати"
 
 
 msgid "Rigid Body"
@@ -26492,14 +26520,6 @@ msgid "Quick Effects"
 msgstr "Швидкі ефекти"
 
 
-msgid "Show/Hide"
-msgstr "Показати/приховати"
-
-
-msgid "Clean Up"
-msgstr "Вичищення"
-
-
 msgid "Asset"
 msgstr "Актив"
 
@@ -26510,10 +26530,6 @@ msgstr "Зробити однокористувацьким"
 
 msgid "Convert"
 msgstr "Конвертування"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -26544,8 +26560,12 @@ msgid "Propagate"
 msgstr "Поширити"
 
 
-msgid "Names"
-msgstr "Назви"
+msgid "Linked"
+msgstr "Пов'язане"
+
+
+msgid "Layout"
+msgstr "Розстановка"
 
 
 msgid "Toggle Bone Options"
@@ -26576,32 +26596,12 @@ msgid "Set Face Strength"
 msgstr "Задати Силу Грані"
 
 
-msgid "Merge"
-msgstr "Об'єднання"
-
-
-msgid "Linked"
-msgstr "Пов'язане"
-
-
-msgid "Layout"
-msgstr "Розстановка"
-
-
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
-
-
 msgid "Keying"
 msgstr "Ключування"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
 
 
 msgid "Tracking"
@@ -36990,11 +36990,6 @@ msgstr "Завантажити та застосувати XML-файл з те�
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "Інсталювати Тему..."
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Додати Бібліотеку Активів"
 
 
 msgid "Add an Integrator Preset"
@@ -53385,6 +53380,11 @@ msgstr "Назва модуля додатку для вилучення"
 
 msgid "Remove existing template with the same ID"
 msgstr "Вилучити наявний шаблон з таким самим ID"
+
+
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Додати Бібліотеку Активів"
 
 
 msgid "Identifier (not necessarily unique) for the asset library"
@@ -85743,10 +85743,6 @@ msgstr "Шлях бібліотеки '%s' не є вірним, будь лас
 
 msgid "No active item to rename"
 msgstr "Немає активного елемента для перейменування"
-
-
-msgid "No selected data-blocks to copy"
-msgstr "Нема вибраних блоків даних для копіювання"
 
 
 msgid "Operation requires an active keying set"
