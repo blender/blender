@@ -11,6 +11,8 @@
 #include "BLI_listbase.hh"
 #include "BLI_string.hh"
 
+#include "DEG_depsgraph.hh"
+
 #include "NOD_geometry_nodes_srna.hh"
 #include "NOD_socket.hh"
 
@@ -141,6 +143,11 @@ static std::optional<std::string> rna_NodesModifierPropertyOutput_path(const Poi
   return fmt::format("modifiers[\"{}\"].properties.outputs.{}", name_esc, identifier);
 }
 
+void geometry_nodes_property_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
+{
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
+}
+
 static StructRNA *create_outputs_srna(const bNodeTree &tree, GeneratedTreeSrnaData &r_generated)
 {
   StructRNA *srna = RNA_def_struct_ptr(
@@ -169,6 +176,7 @@ static StructRNA *create_outputs_srna(const bNodeTree &tree, GeneratedTreeSrnaDa
                                        name.c_str(),
                                        description.c_str());
     RNA_def_property_flag(prop, PROP_FORCE_GEOMETRY_EVAL);
+    RNA_def_property_update_runtime(prop, geometry_nodes_property_update);
     RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
     prop = RNA_def_pointer_runtime(srna, identifier.c_str(), output_srna, name.c_str(), "");
     RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
