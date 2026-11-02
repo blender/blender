@@ -861,7 +861,6 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
     case NC_BRUSH:
       buttons_area_redraw(area, BCONTEXT_TEXTURE);
       buttons_area_redraw(area, BCONTEXT_TOOL);
-      sbuts->preview = 1;
       break;
     case NC_TEXTURE:
     case NC_IMAGE:
