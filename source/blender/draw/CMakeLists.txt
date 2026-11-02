@@ -350,6 +350,7 @@ set(SHADER_SRC_DRAW
   intern/shaders/draw_command_generate.bsl.hh
   intern/shaders/draw_debug_draw_display.bsl.hh
   intern/shaders/draw_grease_pencil_lib.glsl
+  intern/shaders/draw_grease_pencil.bsl.hh
   intern/shaders/draw_gsplat.bsl.hh
   intern/shaders/draw_gsplat_lib.bsl.hh
   intern/shaders/draw_intersect.bsl.hh
@@ -616,13 +617,7 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/overlay_motion_path_line_vert.glsl
   engines/overlay/shaders/overlay_motion_path_point_vert.glsl
   engines/overlay/shaders/overlay_outline_detect_frag.glsl
-  engines/overlay/shaders/overlay_outline_prepass_curves_vert.glsl
-  engines/overlay/shaders/overlay_outline_prepass_frag.glsl
-  engines/overlay/shaders/overlay_outline_prepass_gpencil_frag.glsl
-  engines/overlay/shaders/overlay_outline_prepass_gpencil_vert.glsl
-  engines/overlay/shaders/overlay_outline_prepass_pointcloud_vert.glsl
-  engines/overlay/shaders/overlay_outline_prepass_vert.glsl
-  engines/overlay/shaders/overlay_outline_prepass_wire_vert.glsl
+  engines/overlay/shaders/overlay_outline_prepass.bsl.hh
   engines/overlay/shaders/overlay_paint_face_vert.glsl
   engines/overlay/shaders/overlay_paint_point_vert.glsl
   engines/overlay/shaders/overlay_paint_texture_frag.glsl

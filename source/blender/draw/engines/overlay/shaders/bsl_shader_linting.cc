@@ -6,12 +6,13 @@
  * Compile shader files as C++ inside one compilation unit to lint syntax and get IDE integration.
  */
 
-#include "overlay_antialiasing.bsl.hh" /* IWYU pragma: export */
-#include "overlay_armature.bsl.hh"     /* IWYU pragma: export */
-#include "overlay_common.bsl.hh"       /* IWYU pragma: export */
-#include "overlay_edit_mesh.bsl.hh"    /* IWYU pragma: export */
-#include "overlay_gsplat.bsl.hh"       /* IWYU pragma: export */
-#include "overlay_volume.bsl.hh"       /* IWYU pragma: export */
-#include "overlay_xray_fade.bsl.hh"    /* IWYU pragma: export */
+#include "overlay_antialiasing.bsl.hh"    /* IWYU pragma: export */
+#include "overlay_armature.bsl.hh"        /* IWYU pragma: export */
+#include "overlay_common.bsl.hh"          /* IWYU pragma: export */
+#include "overlay_edit_mesh.bsl.hh"       /* IWYU pragma: export */
+#include "overlay_gsplat.bsl.hh"          /* IWYU pragma: export */
+#include "overlay_outline_prepass.bsl.hh" /* IWYU pragma: export */
+#include "overlay_volume.bsl.hh"          /* IWYU pragma: export */
+#include "overlay_xray_fade.bsl.hh"       /* IWYU pragma: export */
 
 void main() {}
