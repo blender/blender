@@ -664,9 +664,7 @@ void vert_main([[resource_table]] const Resources &srt,
 }
 
 [[fragment]]
-void frag_main([[resource_table]] const Resources &srt,
-               [[in]] const VertOut &v_out,
-               [[out]] FragOut &frag_out)
+void frag_main([[in]] const VertOut &v_out, [[out]] FragOut &frag_out)
 {
   frag_out.color = v_out.color;
   frag_out.line_output = float4(0.0f);
@@ -743,8 +741,7 @@ void vert_main([[resource_table]] const Resources &srt,
 }
 
 [[fragment]]
-void frag_main([[resource_table]] const Resources &srt,
-               [[in]] const VertOut &v_out,
+void frag_main([[in]] const VertOut &v_out,
                [[out]] FragOut &frag_out,
                [[point_coord]] const float2 point_co)
 {
