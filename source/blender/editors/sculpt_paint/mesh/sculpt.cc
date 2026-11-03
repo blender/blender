@@ -3597,8 +3597,11 @@ void cache_calc_brushdata_symm(StrokeCache &cache,
   }
 
   mul_m4_v3(cache.symm_rot_mat.ptr(), cache.location_symm);
+  mul_m4_v3(cache.symm_rot_mat.ptr(), cache.last_location_symm);
   mul_m4_v3(cache.symm_rot_mat.ptr(), cache.grab_delta_symm);
 
+  mul_m4_v3(cache.symm_rot_mat.ptr(), cache.initial_location);
+  mul_m4_v3(cache.symm_rot_mat.ptr(), cache.initial_normal);
   mul_m4_v3(cache.symm_rot_mat.ptr(), cache.tip_motion_normal_symm);
 
   if (cache.supports_gravity) {
