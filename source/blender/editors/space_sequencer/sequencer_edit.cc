@@ -3063,14 +3063,10 @@ static wmOperatorStatus sequencer_ripple_trim_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (!to_delete.is_empty()) {
-    for (Strip *strip : to_delete) {
-      seq::edit_flag_for_removal(scene, strip);
-    }
-    seq::edit_remove_flagged_strips(scene, seqbasep);
-    DEG_relations_tag_update(CTX_data_main(C));
-    WM_event_add_notifier(C, NC_SCENE | ND_ANIMCHAN, scene);
+  for (Strip *strip : to_delete) {
+    seq::edit_flag_for_removal(scene, strip);
   }
+  seq::edit_remove_flagged_strips(scene, seqbasep);
 
   /* Step 4: Close the gap left behind by rippling back later strips and the playhead. */
   ripple_delete_range(scene, seqbasep, channels, range, ripple_flag);
@@ -3083,7 +3079,9 @@ static wmOperatorStatus sequencer_ripple_trim_exec(bContext *C, wmOperator *op)
   vse::sync_active_scene_and_time_with_scene_strip(*C);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+  DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_ANIMCHAN, scene);
   return OPERATOR_FINISHED;
 }
 
@@ -3117,7 +3115,8 @@ void SEQUENCER_OT_ripple_trim(wmOperatorType *ot)
                int(seq::Side::Left),
                "Side",
                "The side of the strips to trim to the current frame");
-  operator_properties_ripple(ot, SEQ_RIPPLE_ALL_CHANNELS | SEQ_RIPPLE_MARKERS);
+  operator_properties_ripple(
+      ot, SEQ_RIPPLE_ALL_CHANNELS | SEQ_RIPPLE_MARKERS | SEQ_RIPPLE_CLEAR_RANGES);
 }
 
 /** \} */
