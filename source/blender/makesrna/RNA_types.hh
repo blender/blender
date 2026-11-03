@@ -234,6 +234,7 @@ enum PropertyUnit {
   PROP_UNIT_WAVELENGTH = (13 << 16),        /* `nm` (independent of scene). */
   PROP_UNIT_COLOR_TEMPERATURE = (14 << 16), /* K */
   PROP_UNIT_FREQUENCY = (15 << 16),         /* Hz */
+  PROP_UNIT_WAVELENGTH_UM = (16 << 16),     /* `um` (independent of scene). */
 };
 ENUM_OPERATORS(PropertyUnit)
 
@@ -343,7 +344,7 @@ enum PropertySubType {
   /* wavelength */
   PROP_WAVELENGTH = 44 | PROP_UNIT_WAVELENGTH,
 
-  /* wavelength */
+  /* color temperature */
   PROP_COLOR_TEMPERATURE = 45 | PROP_UNIT_COLOR_TEMPERATURE,
 
   PROP_FREQUENCY = 46 | PROP_UNIT_FREQUENCY,
@@ -351,6 +352,9 @@ enum PropertySubType {
   PROP_DISTANCE_DIAMETER = 48 | PROP_UNIT_LENGTH,
   /** Mass based on scene defined units. */
   PROP_MASS = 49 | PROP_UNIT_MASS,
+
+  /* Wavelength with default unit um. */
+  PROP_WAVELENGTH_UM = 50 | PROP_UNIT_WAVELENGTH_UM,
 };
 
 /** These two enum types can be combined. */

@@ -176,7 +176,8 @@ enum {
   B_UNIT_WAVELENGTH = 13,
   B_UNIT_COLOR_TEMPERATURE = 14,
   B_UNIT_FREQUENCY = 15,
-  B_UNIT_TYPE_TOT = 16,
+  B_UNIT_WAVELENGTH_UM = 16,
+  B_UNIT_TYPE_TOT = 17,
 };
 
 }  // namespace blender

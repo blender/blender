@@ -146,6 +146,10 @@ static const bNodeSocketStaticTypeInfo node_socket_subtypes[] = {
      SOCK_FLOAT,
      PROP_FREQUENCY},
     {"NodeSocketFloatPixel", "NodeTreeInterfaceSocketFloatPixel", SOCK_FLOAT, PROP_PIXEL},
+    {"NodeSocketFloatWavelengthUm",
+     "NodeTreeInterfaceSocketFloatWavelengthUm",
+     SOCK_FLOAT,
+     PROP_WAVELENGTH_UM},
 
     {"NodeSocketInt", "NodeTreeInterfaceSocketInt", SOCK_INT, PROP_NONE},
     {"NodeSocketIntUnsigned", "NodeTreeInterfaceSocketIntUnsigned", SOCK_INT, PROP_UNSIGNED},

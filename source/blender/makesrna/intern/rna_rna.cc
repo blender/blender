@@ -83,7 +83,8 @@ const EnumPropertyItem rna_enum_property_type_items[] = {
   {PROP_TEMPERATURE, "TEMPERATURE", 0, "Temperature", ""}, \
   {PROP_WAVELENGTH, "WAVELENGTH", 0, "Wavelength", ""}, \
   {PROP_COLOR_TEMPERATURE, "COLOR_TEMPERATURE", 0, "Color Temperature", ""}, \
-  {PROP_FREQUENCY, "FREQUENCY", 0, "Frequency", ""}
+  {PROP_FREQUENCY, "FREQUENCY", 0, "Frequency", ""}, \
+  {PROP_WAVELENGTH_UM, "WAVELENGTH_UM", 0, "Wavelength (um)", ""}
 
 #define RNA_ENUM_PROPERTY_SUBTYPE_NUMBER_ARRAY_ITEMS \
   {PROP_COLOR, "COLOR", 0, "Linear Color", "Color in the scene linear working color space"}, \
@@ -158,6 +159,7 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
     {PROP_UNIT_WAVELENGTH, "WAVELENGTH", 0, "Wavelength", ""},
     {PROP_UNIT_COLOR_TEMPERATURE, "COLOR_TEMPERATURE", 0, "Color Temperature", ""},
     {PROP_UNIT_FREQUENCY, "FREQUENCY", 0, "Frequency", ""},
+    {PROP_UNIT_WAVELENGTH_UM, "WAVELENGTH_UM", 0, "Wavelength (um)", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

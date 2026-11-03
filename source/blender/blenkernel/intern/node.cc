@@ -3501,6 +3501,8 @@ std::optional<UString> node_static_socket_type(const int type,
           return "NodeSocketFloatFrequency"_ustr;
         case PROP_PIXEL:
           return "NodeSocketFloatPixel"_ustr;
+        case PROP_WAVELENGTH_UM:
+          return "NodeSocketFloatWavelengthUm"_ustr;
         case PROP_NONE:
         default:
           return "NodeSocketFloat"_ustr;
@@ -3717,6 +3719,8 @@ std::optional<StringRefNull> node_static_socket_interface_type_new(
           return "NodeTreeInterfaceSocketFloatFrequency";
         case PROP_PIXEL:
           return "NodeTreeInterfaceSocketFloatPixel";
+        case PROP_WAVELENGTH_UM:
+          return "NodeTreeInterfaceSocketFloatWavelengthUm";
         case PROP_NONE:
         default:
           return "NodeTreeInterfaceSocketFloat";

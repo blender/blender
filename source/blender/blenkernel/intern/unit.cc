@@ -445,6 +445,51 @@ static bUnitCollection buWavelengthLenCollection = {
     /*length*/ UNIT_COLLECTION_LENGTH(buWavelengthLenDef),
 };
 
+/* Wavelengths (scene-independent, with um as the base unit). */
+static bUnitDef buWavelengthUmLenDef[] = {
+    /* Base unit. */
+    {
+        /*name*/ "micrometer",
+        /*name_plural*/ "micrometers",
+        /*name_short*/ "µm",
+        /*name_alt*/ "um",
+        /*name_display*/ "Micrometers",
+        /*identifier*/ nullptr,
+        /*scalar*/ 1.0f,
+        /*bias*/ 0.0,
+        /*flag*/ B_UNIT_DEF_TENTH,
+    },
+    {
+        /*name*/ "nanometer",
+        /*name_plural*/ "nanometers",
+        /*name_short*/ "nm",
+        /*name_alt*/ nullptr,
+        /*name_display*/ "Nanometers",
+        /*identifier*/ nullptr,
+        /*scalar*/ 1e-3f,
+        /*bias*/ 0.0,
+        /*flag*/ B_UNIT_DEF_NONE,
+    },
+    {
+        /*name*/ "picometer",
+        /*name_plural*/ "picometers",
+        /*name_short*/ "pm",
+        /*name_alt*/ nullptr,
+        /*name_display*/ "Picometers",
+        /*identifier*/ nullptr,
+        /*scalar*/ 1e-6f,
+        /*bias*/ 0.0,
+        /*flag*/ B_UNIT_DEF_NONE,
+    },
+    NULL_UNIT,
+};
+static bUnitCollection buWavelengthLenUmCollection = {
+    /*units*/ buWavelengthUmLenDef,
+    /*base_unit*/ 0,
+    /*flag*/ 0,
+    /*length*/ UNIT_COLLECTION_LENGTH(buWavelengthUmLenDef),
+};
+
 /* Areas. */
 static bUnitDef buMetricAreaDef[] = {
     {
@@ -1538,6 +1583,7 @@ static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
         /*B_UNIT_WAVELENGTH*/ nullptr,
         /*B_UNIT_COLOR_TEMPERATURE*/ nullptr,
         /*B_UNIT_FREQUENCY*/ nullptr,
+        /*B_UNIT_WAVELENGTH_UM*/ nullptr,
     },
     /* Metric. */
     {
@@ -1557,6 +1603,7 @@ static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
         /*B_UNIT_WAVELENGTH*/ &buWavelengthLenCollection,
         /*B_UNIT_COLOR_TEMPERATURE*/ &buColorTempCollection,
         /*B_UNIT_FREQUENCY*/ &buFrequencyCollection,
+        /*B_UNIT_WAVELENGTH_UM*/ &buWavelengthLenUmCollection,
     },
     /* Imperial. */
     {
@@ -1576,6 +1623,7 @@ static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
         /*B_UNIT_WAVELENGTH*/ &buWavelengthLenCollection,
         /*B_UNIT_COLOR_TEMPERATURE*/ &buColorTempCollection,
         /*B_UNIT_FREQUENCY*/ &buFrequencyCollection,
+        /*B_UNIT_WAVELENGTH_UM*/ &buWavelengthLenUmCollection,
     },
     {nullptr},
 };
@@ -1723,7 +1771,13 @@ static size_t unit_as_string(MutableCStr str,
 
 static bool unit_should_be_split(int type)
 {
-  return ELEM(type, B_UNIT_LENGTH, B_UNIT_MASS, B_UNIT_TIME, B_UNIT_CAMERA, B_UNIT_WAVELENGTH);
+  return ELEM(type,
+              B_UNIT_LENGTH,
+              B_UNIT_MASS,
+              B_UNIT_TIME,
+              B_UNIT_CAMERA,
+              B_UNIT_WAVELENGTH,
+              B_UNIT_WAVELENGTH_UM);
 }
 
 struct PreferredUnits {
@@ -1960,6 +2014,7 @@ double BKE_unit_value_scale(const UnitSettings &settings, const int unit_type, d
       return value * pow(settings.scale_length, 3);
     case B_UNIT_CAMERA: /* *Do not* use scene's unit scale for camera focal lens! See #42026. */
     case B_UNIT_WAVELENGTH: /* Wavelength values are independent of the scene scale. */
+    case B_UNIT_WAVELENGTH_UM:
     default:
       return value;
   }
