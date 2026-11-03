@@ -174,8 +174,6 @@ void ShaderCreateInfo::finalize(const bool recursive)
 
     shared_variables_.extend(info.shared_variables_);
 
-    validate_vertex_attributes(&info);
-
     /* Insert with duplicate check. */
     defines_.extend_non_duplicates(info.defines_);
     typedef_sources_.extend_non_duplicates(info.typedef_sources_);
@@ -204,6 +202,8 @@ void ShaderCreateInfo::finalize(const bool recursive)
     for (const auto &res : info.geometry_out_interfaces_) {
       extend_predicate(geometry_out_interfaces_, res, additional_info.conditions);
     }
+
+    validate_vertex_attributes(&info);
 
     /* API-specific parameters.
      * We will only copy API-specific parameters if they are otherwise unassigned. */
