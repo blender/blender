@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <climits>
+
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 
