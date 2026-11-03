@@ -1476,9 +1476,9 @@ static void sample_plane_normal_and_center_mesh(const Brush &brush,
   const float3 &location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
   const float3 &view_normal = ss.cache ? ss.cache->view_normal_symm : ss.cursor_view_normal;
   const float position_radius_sq = position_radius * position_radius;
-  const float position_radius_inv = math::rcp(position_radius);
+  const float position_radius_inv = math::safe_rcp(position_radius);
   const float normal_radius_sq = normal_radius * normal_radius;
-  const float normal_radius_inv = math::rcp(normal_radius);
+  const float normal_radius_inv = math::safe_rcp(normal_radius);
   const bool average_normals = normal_radius != 0.0f;
   const bool average_positions = position_radius != 0.0f;
 
@@ -1560,9 +1560,9 @@ static void sample_plane_normal_and_center_grids(const Brush &brush,
   const float3 &location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
   const float3 &view_normal = ss.cache ? ss.cache->view_normal_symm : ss.cursor_view_normal;
   const float position_radius_sq = position_radius * position_radius;
-  const float position_radius_inv = math::rcp(position_radius);
+  const float position_radius_inv = math::safe_rcp(position_radius);
   const float normal_radius_sq = normal_radius * normal_radius;
-  const float normal_radius_inv = math::rcp(normal_radius);
+  const float normal_radius_inv = math::safe_rcp(normal_radius);
   const bool average_normals = normal_radius != 0.0f;
   const bool average_positions = position_radius != 0.0f;
 
@@ -1673,9 +1673,9 @@ static void sample_plane_normal_and_center_bmesh(const Brush &brush,
   const float3 &location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
   const float3 &view_normal = ss.cache ? ss.cache->view_normal_symm : ss.cursor_view_normal;
   const float position_radius_sq = position_radius * position_radius;
-  const float position_radius_inv = math::rcp(position_radius);
+  const float position_radius_inv = math::safe_rcp(position_radius);
   const float normal_radius_sq = normal_radius * normal_radius;
-  const float normal_radius_inv = math::rcp(normal_radius);
+  const float normal_radius_inv = math::safe_rcp(normal_radius);
   const bool average_normals = normal_radius != 0.0f;
   const bool average_positions = position_radius != 0.0f;
 
