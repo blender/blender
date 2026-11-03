@@ -17,6 +17,7 @@
 
 #include "AS_remote_library.hh"
 
+#include "BLI_compiler_attrs.hh"
 #include "BLI_map.hh"
 #include "BLI_mutex.hh"
 
@@ -104,7 +105,8 @@ struct FileListReadJob {
   FileList *tmp_filelist = nullptr;
 };
 
-char *current_relpath_append(const FileListReadJob *job_params, const char *filename);
+[[nodiscard]] char *current_relpath_append(const FileListReadJob *job_params,
+                                           const char *filename) ATTR_MALLOC;
 
 bool filelist_checkdir_return_always_valid(const FileList * /*filelist*/,
                                            char /*dirpath*/[1024 + 258 /*FILE_MAX_LIBEXTRA*/],

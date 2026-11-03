@@ -73,18 +73,18 @@ void BKE_packedfile_pack_all_libraries(Main *bmain, ReportList *reports);
  * \warning 'abs_name' may be relative still! (use a `//` prefix)
  * be sure to run #BLI_path_abs on it first.
  */
-char *BKE_packedfile_unpack_to_file(ReportList *reports,
-                                    const char *ref_file_name,
-                                    const char *abs_name,
-                                    const char *local_name,
-                                    PackedFile *pf,
-                                    enum ePF_FileStatus how);
-char *BKE_packedfile_unpack(Main *bmain,
-                            ReportList *reports,
-                            ID *id,
-                            const char *orig_file_path,
-                            PackedFile *pf,
-                            enum ePF_FileStatus how);
+[[nodiscard]] char *BKE_packedfile_unpack_to_file(ReportList *reports,
+                                                  const char *ref_file_name,
+                                                  const char *abs_name,
+                                                  const char *local_name,
+                                                  PackedFile *pf,
+                                                  enum ePF_FileStatus how) ATTR_MALLOC;
+[[nodiscard]] char *BKE_packedfile_unpack(Main *bmain,
+                                          ReportList *reports,
+                                          ID *id,
+                                          const char *orig_file_path,
+                                          PackedFile *pf,
+                                          enum ePF_FileStatus how) ATTR_MALLOC;
 int BKE_packedfile_unpack_vfont(Main *bmain,
                                 ReportList *reports,
                                 VFont *vfont,

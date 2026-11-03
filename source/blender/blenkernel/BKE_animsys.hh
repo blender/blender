@@ -134,11 +134,11 @@ void BKE_keyingsets_blend_read_data(BlendDataReader *reader, ListBaseT<KeyingSet
  * \note it is assumed that the structure we're replacing is `<prefix><["><name><"]>`
  * i.e. `pose.bones["Bone"]`.
  */
-char *BKE_animsys_fix_rna_path_rename(ID *owner_id,
-                                      const char *old_path,
-                                      StringRef prefix,
-                                      StringRefNull old_name,
-                                      StringRefNull newName);
+[[nodiscard]] char *BKE_animsys_fix_rna_path_rename(ID *owner_id,
+                                                    const char *old_path,
+                                                    StringRef prefix,
+                                                    StringRefNull old_name,
+                                                    StringRefNull newName) ATTR_MALLOC;
 
 /**
  * Fix all the paths for the given ID + Action.

@@ -170,8 +170,11 @@ template<int64_t N = 4> class ParsedRNAPath {
  */
 bool operator==(const RNAPath &left, const RNAPath &right);
 
-char *RNA_path_append(
-    const char *path, const PointerRNA *ptr, PropertyRNA *prop, int intkey, const char *strkey);
+[[nodiscard]] char *RNA_path_append(const char *path,
+                                    const PointerRNA *ptr,
+                                    PropertyRNA *prop,
+                                    int intkey,
+                                    const char *strkey) ATTR_MALLOC;
 #if 0 /* UNUSED. */
 char *RNA_path_back(const char *path);
 #endif

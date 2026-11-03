@@ -99,7 +99,8 @@ struct EffectorRelation {
 };
 
 struct PartDeflect *BKE_partdeflect_new(ePFieldType type);
-struct PartDeflect *BKE_partdeflect_copy(const struct PartDeflect *pd_src);
+[[nodiscard]] struct PartDeflect *BKE_partdeflect_copy(const struct PartDeflect *pd_src)
+    ATTR_MALLOC;
 void BKE_partdeflect_free(struct PartDeflect *pd);
 
 /**

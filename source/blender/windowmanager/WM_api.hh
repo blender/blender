@@ -2407,7 +2407,8 @@ double WM_tooltip_time_closed();
 
 /* `wm_utils.cc` */
 
-wmGenericCallback *WM_generic_callback_steal(wmGenericCallback *callback);
+[[nodiscard]] wmGenericCallback *WM_generic_callback_steal(wmGenericCallback *callback)
+    ATTR_MALLOC;
 void WM_generic_callback_free(wmGenericCallback *callback);
 
 void WM_generic_user_data_free(wmGenericUserData *wm_userdata);

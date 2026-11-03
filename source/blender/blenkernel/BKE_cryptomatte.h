@@ -53,7 +53,8 @@ bool BKE_cryptomatte_find_name(const struct CryptomatteSession *session,
                                float encoded_hash,
                                MutableCStr r_name);
 
-char *BKE_cryptomatte_entries_to_matte_id(struct NodeCryptomatte *node_storage);
+[[nodiscard]] char *BKE_cryptomatte_entries_to_matte_id(struct NodeCryptomatte *node_storage)
+    ATTR_MALLOC;
 void BKE_cryptomatte_matte_id_to_entries(struct NodeCryptomatte *node_storage,
                                          const char *matte_id);
 

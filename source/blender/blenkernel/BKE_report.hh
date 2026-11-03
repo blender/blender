@@ -138,7 +138,7 @@ void BKE_report_print_level_set(ReportList *reports, eReportType level);
 eReportType BKE_report_store_level(ReportList *reports);
 void BKE_report_store_level_set(ReportList *reports, eReportType level);
 
-char *BKE_reports_string(ReportList *reports, eReportType level);
+[[nodiscard]] char *BKE_reports_string(ReportList *reports, eReportType level) ATTR_MALLOC;
 
 /**
  * \return true when reports of this type will print to the `stdout`.

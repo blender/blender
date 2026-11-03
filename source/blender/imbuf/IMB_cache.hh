@@ -8,7 +8,9 @@
  * \ingroup imbuf
  */
 
+#include "BLI_compiler_attrs.hh"
 #include "BLI_ghash.hh"
+
 struct ImBufCacheIter;
 namespace blender {
 
@@ -55,7 +57,7 @@ void IMB_cache_cleanup(ImBufCache *cache,
 void IMB_cache_get_cache_segments(
     ImBufCache *cache, int proxy, int render_flags, int *r_totseg, int **r_points);
 
-ImBufCacheIter *IMB_cacheIter_new(ImBufCache *cache);
+[[nodiscard]] ImBufCacheIter *IMB_cacheIter_new(ImBufCache *cache) ATTR_MALLOC;
 void IMB_cacheIter_free(ImBufCacheIter *iter);
 bool IMB_cacheIter_done(ImBufCacheIter *iter);
 void IMB_cacheIter_step(ImBufCacheIter *iter);

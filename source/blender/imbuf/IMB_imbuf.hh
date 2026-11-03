@@ -531,12 +531,12 @@ void IMB_rectfill_alpha(ImBuf *ibuf, float value);
 /**
  * Exported for image tools in blender, to quickly allocate 32 bits rect.
  */
-void *imb_alloc_pixels(unsigned int x,
-                       unsigned int y,
-                       unsigned int channels,
-                       size_t typesize,
-                       bool initialize_pixels,
-                       const char *alloc_name);
+[[nodiscard]] void *imb_alloc_pixels(unsigned int x,
+                                     unsigned int y,
+                                     unsigned int channels,
+                                     size_t typesize,
+                                     bool initialize_pixels,
+                                     const char *alloc_name) ATTR_MALLOC;
 
 /**
  * Allocate storage for byte type pixels.

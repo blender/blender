@@ -321,8 +321,10 @@ void BLI_filelist_entry_owner_to_string(const struct stat *st,
 /** \name Files
  * \{ */
 
-FILE *BLI_fopen(const char *filepath, const char *mode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-void *BLI_gzopen(const char *filepath, const char *mode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+FILE *BLI_fopen(const char *filepath, const char *mode) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
+void *BLI_gzopen(const char *filepath, const char *mode) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
 int BLI_open(const char *filepath, int oflag, int pmode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int BLI_access(const char *filepath, int mode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

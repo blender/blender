@@ -113,7 +113,7 @@ size_t BKE_libblock_get_alloc_info(short type, const char **r_name);
  * \note: Typically, caller also needs to immediately call #BKE_libblock_runtime_ensure on the
  * allocated ID data.
  */
-ID *BKE_libblock_alloc_notest(short type) ATTR_WARN_UNUSED_RESULT;
+ID *BKE_libblock_alloc_notest(short type) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 /**
  * Allocates and returns an ID block of the specified type, with the specified name
  * (adjusted as necessary to ensure uniqueness), and appended to the specified list.
@@ -1044,7 +1044,7 @@ inline char *BKE_id_name(ID &id)
  *
  * \return A unique allocated string key for any ID in the whole Main database.
  */
-char *BKE_id_to_unique_string_key(const ID *id);
+[[nodiscard]] char *BKE_id_to_unique_string_key(const ID *id) ATTR_MALLOC;
 
 /**
  * Make linked data-blocks local.

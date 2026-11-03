@@ -331,7 +331,7 @@ void BKE_lnor_spacearr_tls_init(MLoopNorSpaceArray *lnors_spacearr,
 void BKE_lnor_spacearr_tls_join(MLoopNorSpaceArray *lnors_spacearr,
                                 MLoopNorSpaceArray *lnors_spacearr_tls);
 
-MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr);
+[[nodiscard]] MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr) ATTR_MALLOC;
 
 /**
  * Should only be called once.
