@@ -2863,19 +2863,14 @@ static Vector<Bounds<int>> ripple_gaps_get(const Scene *scene,
   return gaps;
 }
 
-static void ripple_delete_range(Scene *scene,
-                                ListBaseT<Strip> *seqbasep,
-                                const ListBaseT<SeqTimelineChannel> *channels,
-                                const seq::RippleRange &range,
-                                const eSeqRippleFlag ripple_flag)
+static void ripple_gaps_close(Scene *scene,
+                              ListBaseT<Strip> *seqbasep,
+                              const ListBaseT<SeqTimelineChannel> *channels,
+                              const seq::RippleRange &range,
+                              const eSeqRippleFlag ripple_flag)
 {
   const bool all_channels = (ripple_flag & SEQ_RIPPLE_ALL_CHANNELS) != 0;
-  const bool clear_ranges = (ripple_flag & SEQ_RIPPLE_CLEAR_RANGES) != 0;
   const bool ripple_markers = (ripple_flag & SEQ_RIPPLE_MARKERS) != 0;
-
-  if (clear_ranges) {
-    ripple_range_clear(scene, seqbasep, channels, range, all_channels);
-  }
 
   const Vector<Bounds<int>> gaps = ripple_gaps_get(scene, seqbasep, channels, range, all_channels);
   for (const Bounds<int> &gap : gaps | std::views::reverse) {
@@ -2941,7 +2936,11 @@ static wmOperatorStatus sequencer_ripple_delete_exec(bContext *C, wmOperator *op
   /* Every ripple delete changes the frames of later strips, so we must delete in reverse to avoid
    * invalidating range coordinates of later ranges. */
   for (const seq::RippleRange &range : ranges | std::views::reverse) {
-    ripple_delete_range(scene, seqbasep, channels, range, ripple_flag);
+    if ((ripple_flag & SEQ_RIPPLE_CLEAR_RANGES) != 0) {
+      ripple_range_clear(
+          scene, seqbasep, channels, range, (ripple_flag & SEQ_RIPPLE_ALL_CHANNELS) != 0);
+    }
+    ripple_gaps_close(scene, seqbasep, channels, range, ripple_flag);
   }
 
   /* Ripple back the playhead. */
@@ -3032,16 +3031,22 @@ static wmOperatorStatus sequencer_ripple_trim_exec(bContext *C, wmOperator *op)
 
   seq::prefetch_stop(scene);
 
-  /* Step 2: Calculate a single range to delete; we will ripple later strips by its duration. */
-  seq::RippleRange range{timeline_frame, timeline_frame, {}};
+  /* Step 2: Calculate a single range to delete (we will ripple later strips by its duration), as
+   * well as individual ranges which might be cleared by the "Clear Ranges" property. */
+  seq::RippleRange ripple_range{timeline_frame, timeline_frame, {}};
+  Vector<Bounds<int>> clear_ranges;
   for (Strip *strip : to_trim) {
     if (trim_left) {
-      range.start = min_ii(range.start, strip->left_handle());
+      ripple_range.start = min_ii(ripple_range.start, strip->left_handle());
+      clear_ranges.append(
+          {strip->left_handle(), min_ii(strip->right_handle(scene), timeline_frame)});
     }
     else {
-      range.end = max_ii(range.end, strip->right_handle(scene));
+      ripple_range.end = max_ii(ripple_range.end, strip->right_handle(scene));
+      clear_ranges.append(
+          {max_ii(strip->left_handle(), timeline_frame), strip->right_handle(scene)});
     }
-    range.channels.add(strip->channel);
+    ripple_range.channels.add(strip->channel);
   }
 
   /* Step 3: Trim and delete strips. */
@@ -3069,7 +3074,16 @@ static wmOperatorStatus sequencer_ripple_trim_exec(bContext *C, wmOperator *op)
   seq::edit_remove_flagged_strips(scene, seqbasep);
 
   /* Step 4: Close the gap left behind by rippling back later strips and the playhead. */
-  ripple_delete_range(scene, seqbasep, channels, range, ripple_flag);
+  if ((ripple_flag & SEQ_RIPPLE_CLEAR_RANGES) != 0) {
+    for (const Bounds<int> &clear_range : clear_ranges) {
+      ripple_range_clear(scene,
+                         seqbasep,
+                         channels,
+                         {clear_range.min, clear_range.max, ripple_range.channels},
+                         (ripple_flag & SEQ_RIPPLE_ALL_CHANNELS) != 0);
+    }
+  }
+  ripple_gaps_close(scene, seqbasep, channels, ripple_range, ripple_flag);
 
   if (scene->r.cfra != timeline_frame) {
     DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
