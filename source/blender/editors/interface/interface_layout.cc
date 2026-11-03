@@ -5173,6 +5173,7 @@ PanelLayout Layout::panel_prop(const bContext *C,
     return PanelLayout{};
   }
   if (RNA_property_type(prop) != PROP_BOOLEAN) {
+    item_disabled(this, open_prop_name.c_str());
     RNA_warning_bare("UILayout.panel_prop(): %s.%s is not an boolean property",
                      RNA_struct_identifier(open_prop_owner->type),
                      open_prop_name.c_str());
@@ -5251,6 +5252,9 @@ PanelLayout Layout::panel_prop_with_bool_header(const bContext *C,
                                                 const std::optional<StringRef> label)
 {
   PanelLayout panel_layout = this->panel_prop(C, open_prop_owner, open_prop_name);
+  if (!panel_layout.header) {
+    return panel_layout;
+  }
 
   Layout *panel_header = panel_layout.header;
   panel_header->flag_ &= ~(ItemInternalFlag::PropSep | ItemInternalFlag::PropDecorate |
@@ -5266,6 +5270,9 @@ Layout *Layout::panel_prop(const bContext *C,
                            const StringRef label)
 {
   PanelLayout panel_layout = this->panel_prop(C, open_prop_owner, open_prop_name);
+  if (!panel_layout.header) {
+    return nullptr;
+  }
   panel_layout.header->label(label, ICON_NONE);
 
   return panel_layout.body;

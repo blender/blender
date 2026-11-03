@@ -688,6 +688,9 @@ GHOST_TSuccess GHOST_SystemSDL::getCursorPosition(int32_t &x, int32_t &y) const
 {
   int x_win, y_win;
   SDL_Window *win = SDL_GetMouseFocus();
+  if (win == nullptr) {
+    return GHOST_kFailure;
+  }
   SDL_GetWindowPosition(win, &x_win, &y_win);
 
   float xf, yf;
@@ -702,6 +705,9 @@ GHOST_TSuccess GHOST_SystemSDL::setCursorPosition(int32_t x, int32_t y)
 {
   int x_win, y_win;
   SDL_Window *win = SDL_GetMouseFocus();
+  if (win == nullptr) {
+    return GHOST_kFailure;
+  }
   SDL_GetWindowPosition(win, &x_win, &y_win);
 
   SDL_WarpMouseInWindow(win, x - x_win, y - y_win);

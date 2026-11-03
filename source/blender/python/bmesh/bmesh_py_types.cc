@@ -2725,7 +2725,7 @@ static PyObject *bpy_bmedge_calc_tangent(BPy_BMEdge *self, PyObject *args)
 
   if (!PyArg_ParseTuple(args,
                         "O!" /* `loop` */
-                        ":BMEdge.calc_face_tangent",
+                        ":BMEdge.calc_tangent",
                         &BPy_BMLoop_Type,
                         &py_loop))
   {

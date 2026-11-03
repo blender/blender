@@ -4811,7 +4811,7 @@ static PyObject *pyrna_struct_id_properties_ui(BPy_StructRNA *self, PyObject *ar
   const char *key;
   if (!PyArg_ParseTuple(args,
                         "s" /* `key` */
-                        ":ui_data",
+                        ":id_properties_ui",
                         &key))
   {
     return nullptr;
@@ -5754,7 +5754,7 @@ static PyObject *pyrna_struct_pop(BPy_StructRNA *self, PyObject *args)
                         "s" /* `key` */
                         "|" /* Optional arguments. */
                         "O" /* `default` */
-                        ":get",
+                        ":pop",
                         &key,
                         &def))
   {
