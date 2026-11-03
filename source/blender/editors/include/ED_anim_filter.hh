@@ -888,7 +888,7 @@ class ChannelArena {
    * intentional, as remapped/deleted IDs will invalidate this hash, forcing a rebuild of any
    * cached ChannelArena.
    */
-  UniqueHash data_channel_hash = {};
+  UniqueHash datachannel_hash = {};
 
   ChannelArena() = default;
   ChannelArena(const ChannelArena &) = delete;
@@ -970,7 +970,7 @@ class ChannelArena {
   void mark_channels_dirty();
 
   /** Compute & store #data_channel_hash. */
-  void compute_data_channel_hash();
+  void compute_datachannel_hash();
 
   /**
    * Return whether this ChannelArena represents the same data as the given arena.

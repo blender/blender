@@ -4161,7 +4161,7 @@ ChannelArena::ChannelArena(ChannelArena &&other)
       summary_channels(std::move(other.summary_channels)),
       filters(std::move(other.filters)),
       grouping_params(std::move(other.grouping_params)),
-      data_channel_hash(std::move(other.data_channel_hash))
+      datachannel_hash(std::move(other.datachannel_hash))
 {
   allocator_.transfer_ownership_from(other.allocator_);
 }
@@ -4179,7 +4179,7 @@ ChannelArena &ChannelArena::operator=(ChannelArena &&other)
   this->summary_channels = std::move(other.summary_channels);
   this->filters = std::move(other.filters);
   this->grouping_params = std::move(other.grouping_params);
-  this->data_channel_hash = std::move(other.data_channel_hash);
+  this->datachannel_hash = std::move(other.datachannel_hash);
   allocator_.transfer_ownership_from(other.allocator_);
   return *this;
 }
@@ -4215,11 +4215,11 @@ void ChannelArena::mark_channels_dirty()
   }
 }
 
-void ChannelArena::compute_data_channel_hash()
+void ChannelArena::compute_datachannel_hash()
 {
   /* Grouping re-orders the data channels, which changes the resulting hash, so this should be
    * called before grouping happens, and only then. */
-  BLI_assert_msg(this->data_channel_hash == UniqueHash{},
+  BLI_assert_msg(this->datachannel_hash == UniqueHash{},
                  "compute_data_channel_hash() should only be called once");
 
   /* Mix with a non-zero value, to be able to distinguish between "not computed" (invalid state
@@ -4234,16 +4234,16 @@ void ChannelArena::compute_data_channel_hash()
 
   const XXH128_hash_t xxhash = XXH3_128bits(hash_bytes.data.data(), hash_bytes.data.size());
   const UniqueHash hash{xxhash.low64, xxhash.high64};
-  this->data_channel_hash = hash;
+  this->datachannel_hash = hash;
 }
 
 bool ChannelArena::is_same_as(const ChannelArena &other) const
 {
   /* If the hash is zero, that means it was never computed, which indicates a bug. */
-  BLI_assert(this->data_channel_hash != UniqueHash{});
-  BLI_assert(other.data_channel_hash != UniqueHash{});
+  BLI_assert(this->datachannel_hash != UniqueHash{});
+  BLI_assert(other.datachannel_hash != UniqueHash{});
 
-  return this->data_channel_hash == other.data_channel_hash &&
+  return this->datachannel_hash == other.datachannel_hash &&
          this->data_channels.size() == other.data_channels.size() &&
          this->grouping_params == other.grouping_params && this->filters == other.filters;
 }

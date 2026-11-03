@@ -119,7 +119,7 @@ static std::optional<ed::animfilter::ChannelArena> build_summary_tree(
 
   arena.grouping_params.use_minimal_grouping = saction->ads.flag & ADS_FLAG_MINIMAL_GROUPING;
   arena.grouping_params.tag_order = tag_order_for_dope_sheet_mode(saction->mode);
-  arena.compute_data_channel_hash();
+  arena.compute_datachannel_hash();
 
   if (cached_arena && arena.is_same_as(*cached_arena)) {
     /* Skip grouping into Summary Channels and re-syncing of the UI state. */
@@ -165,7 +165,7 @@ ed::animfilter::ChannelArena &get_summary_tree(const bContext &C)
   }
 
   if (new_arena) {
-    BLI_assert(new_arena->data_channel_hash != UniqueHash{});
+    BLI_assert(new_arena->datachannel_hash != UniqueHash{});
     /* The old arena didn't exist or was outdated, and we got a new one. */
     runtime.channel_arena.emplace(std::move(*new_arena));
   }
