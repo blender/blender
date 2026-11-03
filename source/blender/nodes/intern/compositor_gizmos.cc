@@ -1893,22 +1893,27 @@ static bool node_scale_is_absolute(const bNode &node)
   return type_input->default_value_typed<bNodeSocketValueMenu>()->value == CMP_NODE_SCALE_ABSOLUTE;
 }
 
-static float2 node_scale_gizmo_scale_get(const bNode &node, const float2 &dims)
+static float2 node_scale_gizmo_scale_get(const bNode &node,
+                                         const float2 &dims,
+                                         const float2 &pixel_size)
 {
   const bNodeSocket *x_input = bke::node_find_socket(node, SOCK_IN, "X"_ustr);
   const bNodeSocket *y_input = bke::node_find_socket(node, SOCK_IN, "Y"_ustr);
   const float2 value = float2(x_input->default_value_typed<bNodeSocketValueFloat>()->value,
                               y_input->default_value_typed<bNodeSocketValueFloat>()->value);
 
-  return node_scale_is_absolute(node) ? value / dims : value;
+  return node_scale_is_absolute(node) ? (value * pixel_size) / dims : value;
 }
 
-static void node_scale_gizmo_scale_set(bNode &node, const float2 &dims, const float2 &scale)
+static void node_scale_gizmo_scale_set(bNode &node,
+                                       const float2 &dims,
+                                       const float2 &scale,
+                                       const float2 &pixel_size)
 {
   bNodeSocket *x_input = bke::node_find_socket(node, SOCK_IN, "X"_ustr);
   bNodeSocket *y_input = bke::node_find_socket(node, SOCK_IN, "Y"_ustr);
 
-  const float2 value = node_scale_is_absolute(node) ? scale * dims : scale;
+  const float2 value = node_scale_is_absolute(node) ? (scale * dims) / pixel_size : scale;
 
   x_input->default_value_typed<bNodeSocketValueFloat>()->value = value.x;
   y_input->default_value_typed<bNodeSocketValueFloat>()->value = value.y;
@@ -1926,7 +1931,7 @@ static void gizmo_node_scale_prop_matrix_get(const wmGizmo *gz,
   const float2 offset = scale_group->state.offset;
   const bNode *node = static_cast<const bNode *>(gz_prop->custom_func.user_data);
 
-  const float2 scale = node_scale_gizmo_scale_get(*node, dims);
+  const float2 scale = node_scale_gizmo_scale_get(*node, dims, scale_group->state.pixel_size);
 
   float rot[3][3];
   unit_m3(rot);
@@ -1950,7 +1955,7 @@ static void gizmo_node_scale_prop_matrix_set(const wmGizmo *gz,
   float loc[3], rot[3][3], size[3];
   mat4_to_loc_rot_size(loc, rot, size, matrix);
 
-  node_scale_gizmo_scale_set(*node, dims, float2(size[0], size[1]));
+  node_scale_gizmo_scale_set(*node, dims, float2(size[0], size[1]), scale_group->state.pixel_size);
 
   gizmo_node_bbox_update(scale_group);
 }
@@ -1992,6 +1997,8 @@ void scale_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     scale_group->state.offset = translate_gizmo_input_offset(*C, *node);
     const float2 fallback = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
     scale_group->state.dims = gizmo_input_dims_from_log(*C, *node, fallback);
+    const eval_log::ImageInfoLog *image_log = gizmo_input_image_log(*C, *node);
+    scale_group->state.pixel_size = image_log ? image_log->pixel_size : float2(1.0f);
   }
   RNA_float_set_array(gz->ptr, "dimensions", scale_group->state.dims);
 
@@ -2019,6 +2026,7 @@ void scale_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 
   scale_group->state.dims = GIZMO_NODE_DEFAULT_DIMS;
   scale_group->state.offset = float2(0.0f);
+  scale_group->state.pixel_size = float2(1.0f);
 
   scale_group->border = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
 
