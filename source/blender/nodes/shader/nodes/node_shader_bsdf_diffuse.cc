@@ -40,6 +40,14 @@ static int node_shader_gpu_bsdf_diffuse(GPUMaterial *mat,
 
   GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
 
+  const float zero = 0.0f;
+  if (in[1].socket_not_zero()) {
+    GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE_ROUGHNESS);
+  }
+  else {
+    in[1].link = GPU_constant(&zero);
+  }
+
   return GPU_stack_link(
       mat, node, "node_bsdf_diffuse", in, out, GPU_kernel_globals(), GPU_shading_data());
 }

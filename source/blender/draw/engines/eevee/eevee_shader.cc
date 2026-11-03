@@ -1138,9 +1138,10 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
           gpumat, GPU_MATFLAG_REFLECTION_MAYBE_COLORED);
       const bool colorless_refraction = !GPU_material_flag_get(
           gpumat, GPU_MATFLAG_REFRACTION_MAYBE_COLORED);
+      const bool oren_nayar = GPU_material_flag_get(gpumat, GPU_MATFLAG_DIFFUSE_ROUGHNESS);
       int closure_layer_count = 0;
       if (closure_bits & CLOSURE_DIFFUSE) {
-        closure_layer_count += 1;
+        closure_layer_count += oren_nayar ? 2 : 1;
       }
       if (closure_bits & CLOSURE_SSS) {
         closure_layer_count += 2;
