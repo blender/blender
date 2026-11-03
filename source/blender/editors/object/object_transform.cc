@@ -869,6 +869,7 @@ static wmOperatorStatus apply_objects_internal(bContext *C,
         multiresModifier_scale_disp(depsgraph, scene, ob);
       }
 
+      bke::mesh_custom_normals_to_free(*mesh);
       /* adjust data */
       bke::mesh_transform(*mesh, float4x4(mat), true);
       /* The determinant of mat will be negative for objects with an odd number of negative scale
@@ -877,6 +878,7 @@ static wmOperatorStatus apply_objects_internal(bContext *C,
       if (corrective_flip_normals && math::determinant(float4x4(mat)) < 0.0f) {
         bke::mesh_flip_faces(*mesh, IndexMask(mesh->faces_num));
       }
+      bke::mesh_custom_normals_to_tangent_space(*mesh);
     }
     else if (ob->type == OB_ARMATURE) {
       bArmature *arm = id_cast<bArmature *>(ob->data);
