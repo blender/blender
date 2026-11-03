@@ -1564,8 +1564,12 @@ void RNA_api_ui_layout(StructRNA *srna)
       "",
       "Identifier of the boolean property that determines whether the panel is open or closed");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_pointer(func, "layout_header", "UILayout", "", "Sub-layout to put items in");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
+  parm = RNA_def_pointer(
+      func,
+      "layout_header",
+      "UILayout",
+      "",
+      "Sub-layout to put items in. Will be none if the property does not exists.");
   RNA_def_function_output(func, parm);
   parm = RNA_def_pointer(func,
                          "layout_body",
@@ -2495,15 +2499,18 @@ void RNA_api_ui_layout(StructRNA *srna)
                          "active_dataptr",
                          "AnyType",
                          "",
-                         "Data from which to take the integer property, index of the active item");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+                         "Data from which to take the integer property, index of the active item. "
+                         "None (with an empty active_propname) for the list to store the active "
+                         "item in the region, see Region.active_item_index_get");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_string(
       func,
       "active_propname",
       nullptr,
       0,
       "",
-      "Identifier of the integer property in active_data, index of the active item");
+      "Identifier of the integer property in active_data, index of the active item. "
+      "Empty when active_dataptr is None");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_string(func,
                  "item_dyntip_propname",

@@ -735,6 +735,7 @@ bool RNA_validate_identifier(const char *identifier,
                              bool is_property,
                              const char **r_error = nullptr);
 void RNA_identifier_sanitize(char *identifier, bool is_property);
+void RNA_identifier_sanitize(std::string &identifier, bool is_property);
 
 /* Common arguments for length. */
 

@@ -268,7 +268,7 @@ void SourceProcessor::lint_attributes_ast(Parser &parser)
 
     int arg_count = param.child_count();
     if (param_range.size == 1 && arg_count != param_range.start) {
-      report_error(param,
+      report_error(attr,
                    "This attribute requires " + to_string(param_range.start) + " argument(s)");
       continue;
     }

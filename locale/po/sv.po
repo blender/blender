@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
 "PO-Revision-Date: 2026-10-26 08:40+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -36645,8 +36645,36 @@ msgid "Editor menu containing buttons"
 msgstr "Redigeringsmeny med knappar"
 
 
+msgid "Show/Hide"
+msgstr "Visa/Dölj"
+
+
 msgid "Creative"
 msgstr "Kreativ"
+
+
+msgid "Special Characters"
+msgstr "Specialtecken"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Metaball"
+msgstr "Metaklot"
+
+
+msgid "Names"
+msgstr "Namn"
+
+
+msgid "Bone Roll"
+msgstr "Benrullning"
+
+
+msgid "Clean Up"
+msgstr "Rensa"
 
 
 msgid "Pivot Point"
@@ -36677,6 +36705,14 @@ msgid "Vertex Group Locks"
 msgstr "Lås för hörnpunktsgrupper"
 
 
+msgid "Math"
+msgstr "Matematik"
+
+
+msgid "Utilities"
+msgstr "Verktyg"
+
+
 msgid "Mirror"
 msgstr "Spegel"
 
@@ -36689,12 +36725,24 @@ msgid "Local View"
 msgstr "Lokal vy"
 
 
+msgid "Read"
+msgstr "Läs"
+
+
 msgid "Viewpoint"
 msgstr "Synpunkt"
 
 
+msgid "Sample"
+msgstr "Prov"
+
+
 msgid "Navigation"
 msgstr "Navigering"
+
+
+msgid "Write"
+msgstr "Skriv"
 
 
 msgid "Align View"
@@ -36705,20 +36753,16 @@ msgid "Align View to Active"
 msgstr "Justera vy efter aktiv"
 
 
+msgid "Primitives"
+msgstr "Primitiv"
+
+
 msgid "View Regions"
 msgstr "Vyregioner"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
 msgid "Select More/Less"
 msgstr "Välj fler/färre"
-
-
-msgid "Utilities"
-msgstr "Verktyg"
 
 
 msgid "Select Similar"
@@ -36737,38 +36781,6 @@ msgid "Select Loops"
 msgstr "Välj slingor"
 
 
-msgid "Read"
-msgstr "Läs"
-
-
-msgid "Sample"
-msgstr "Prov"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
-
-
-msgid "Write"
-msgstr "Skriv"
-
-
-msgid "Primitives"
-msgstr "Primitiv"
-
-
-msgid "Metaball"
-msgstr "Metaklot"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
 
@@ -36777,16 +36789,40 @@ msgid "Instances"
 msgstr "Instanser"
 
 
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
+msgid "Import"
+msgstr "Importera"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Render Preview"
+msgstr "Renderingsförhandsgranskning"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Add Image"
 msgstr "Lägg till bild"
 
 
 msgid "Relations"
 msgstr "Relationer"
-
-
-msgid "Import"
-msgstr "Importera"
 
 
 msgid "Rigid Body"
@@ -36801,20 +36837,8 @@ msgid "Track"
 msgstr "Spår"
 
 
-msgid "Deprecated"
-msgstr "Föråldrad"
-
-
 msgid "Quick Effects"
 msgstr "Snabba effekter"
-
-
-msgid "Show/Hide"
-msgstr "Visa/Dölj"
-
-
-msgid "Clean Up"
-msgstr "Rensa"
 
 
 msgid "Asset"
@@ -36825,16 +36849,8 @@ msgid "Make Single User"
 msgstr "Gör till enskild användare"
 
 
-msgid "Render Preview"
-msgstr "Renderingsförhandsgranskning"
-
-
 msgid "Convert"
 msgstr "Konvertera"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -36877,8 +36893,12 @@ msgid "Bone Collections"
 msgstr "Bensamlingar"
 
 
-msgid "Names"
-msgstr "Namn"
+msgid "Linked"
+msgstr "Länkad"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Toggle Bone Options"
@@ -36909,36 +36929,16 @@ msgid "Set Face Strength"
 msgstr "Ställ in ansiktsstyrka"
 
 
-msgid "Merge"
-msgstr "Sammanfoga"
-
-
-msgid "Linked"
-msgstr "Länkad"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
 msgid "Adjust"
 msgstr "Justera"
 
 
-msgid "Bone Roll"
-msgstr "Benrullning"
-
-
 msgid "Keying"
 msgstr "Nyckelbildsättning"
+
+
+msgid "Merge"
+msgstr "Sammanfoga"
 
 
 msgid "Tracking"
@@ -37310,12 +37310,12 @@ msgid "Select Selection Set"
 msgstr "Välj markeringsuppsättning"
 
 
-msgid "Add Variable"
-msgstr "Lägg till variabel"
-
-
 msgid "Save & Load"
 msgstr "Spara och ladda"
+
+
+msgid "Add Variable"
+msgstr "Lägg till variabel"
 
 
 msgid "Frame Rate Presets"
@@ -57633,72 +57633,6 @@ msgstr "Ladda och tillämpa en Blender XML-temafil"
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "Installera tema..."
-
-
-msgid "Add a new variable to the current project"
-msgstr "Lägg till en ny variabel i det aktuella projektet"
-
-
-msgctxt "Operator"
-msgid "Add Variable"
-msgstr "Lägg till variabel"
-
-
-msgid ""
-"\n"
-"Register a directory to be used by the Asset Browser and other places showing assets,\n"
-"as source of assets within the current project."
-msgstr ""
-"\n"
-"Registrera en katalog som ska användas av resursbläddraren och andra platser som visar resurser,\n"
-"som resurskälla i det aktuella projektet."
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Lägg till resursbibliotek"
-
-
-msgid ""
-"\n"
-"Deregister an asset library so that its directory will no longer show up in\n"
-"Asset Browsers and other places showing assets."
-msgstr ""
-"\n"
-"Avregistrera ett resursbibliotek så att dess katalog inte längre visas i\n"
-"resursbläddrare och på andra platser som visar resurser."
-
-
-msgctxt "Operator"
-msgid "Remove Project Asset Library"
-msgstr "Ta bort projektets resursbibliotek"
-
-
-msgid "Move the active variable up or down in the list of variables"
-msgstr "Flytta den aktiva variabeln uppåt eller nedåt i variabellistan"
-
-
-msgctxt "Operator"
-msgid "Move Variable"
-msgstr "Flytta variabel"
-
-
-msgid "Remove the active variable from the current project"
-msgstr "Ta bort den aktiva variabeln från det aktuella projektet"
-
-
-msgctxt "Operator"
-msgid "Remove Variable"
-msgstr "Ta bort variabel"
-
-
-msgid "Save the current project to disk"
-msgstr "Spara det aktuella projektet på disk"
-
-
-msgctxt "Operator"
-msgid "Save Project"
-msgstr "Spara projekt"
 
 
 msgid "Add or remove a white balance preset"
@@ -83649,6 +83583,11 @@ msgid "Remove existing template with the same ID"
 msgstr "Ta bort befintlig mall med samma ID"
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Lägg till resursbibliotek"
+
+
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "Lägg till en katalog som ska användas av resursbläddraren som källa för resurser"
 
@@ -83910,26 +83849,6 @@ msgid "Remove this installation's associations with .blend files"
 msgstr "Ta bort installationens filkopplingar till .blend-filer"
 
 
-msgid "String Variable"
-msgstr "Strängvariabel"
-
-
-msgid "Filepath Variable"
-msgstr "Sökvägsvariabel"
-
-
-msgid "Integer Variable"
-msgstr "Heltalsvariabel"
-
-
-msgid "Float Variable"
-msgstr "Flyttalsvariabel"
-
-
-msgid "Asset Library Directory"
-msgstr "Katalog för resursbibliotek"
-
-
 msgctxt "Operator"
 msgid "Close Project"
 msgstr "Stäng projekt"
@@ -83941,14 +83860,6 @@ msgstr "Stäng det aktiva projektet och starta en ny fil"
 
 msgid "Skip check to prevent unsaved changes from being lost"
 msgstr "Hoppa över kontroll för att förhindra att osparade ändringar går förlorade"
-
-
-msgid "Move Up"
-msgstr "Flytta upp"
-
-
-msgid "Move Down"
-msgstr "Flytta ned"
 
 
 msgctxt "Operator"
@@ -83995,6 +83906,57 @@ msgstr ""
 "Ange projektets startbild från en bildfil.\n"
 "Bilden beskärs, skalas och sparas som ”.blender_project/splash.jpg”.\n"
 "Använd bildförhållandet 2:1 för bästa resultat"
+
+
+msgctxt "Operator"
+msgid "Add Variable"
+msgstr "Lägg till variabel"
+
+
+msgid "Add a new variable to the current project"
+msgstr "Lägg till en ny variabel i det aktuella projektet"
+
+
+msgid "String Variable"
+msgstr "Strängvariabel"
+
+
+msgid "Filepath Variable"
+msgstr "Sökvägsvariabel"
+
+
+msgid "Integer Variable"
+msgstr "Heltalsvariabel"
+
+
+msgid "Float Variable"
+msgstr "Flyttalsvariabel"
+
+
+msgctxt "Operator"
+msgid "Move Variable"
+msgstr "Flytta variabel"
+
+
+msgid "Move the active variable up or down in the list of variables"
+msgstr "Flytta den aktiva variabeln uppåt eller nedåt i variabellistan"
+
+
+msgid "Move Up"
+msgstr "Flytta upp"
+
+
+msgid "Move Down"
+msgstr "Flytta ned"
+
+
+msgctxt "Operator"
+msgid "Remove Variable"
+msgstr "Ta bort variabel"
+
+
+msgid "Remove the active variable from the current project"
+msgstr "Ta bort den aktiva variabeln från det aktuella projektet"
 
 
 msgctxt "Operator"
@@ -102061,10 +102023,6 @@ msgid "French - Français"
 msgstr "Franska - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 98%"
-msgstr "Lokalkod: fr_FR. Översättningsförlopp: 98 %"
-
-
 msgid "Georgian - ქართული"
 msgstr "Georgiska - ქართული"
 
@@ -102123,10 +102081,6 @@ msgstr "Lokalkod: it_IT. Översättningsförlopp: 41 %"
 
 msgid "Japanese - 日本語"
 msgstr "Japanska - 日本語"
-
-
-msgid "Locale code: ja_JP. Translation progress: 98%"
-msgstr "Lokalkod: ja_JP. Översättningsförlopp: 98 %"
 
 
 msgid "Korean - 한국어"
@@ -102207,10 +102161,6 @@ msgstr "Lokalkod: ro_RO. Översättningsförlopp: 2 %"
 
 msgid "Russian - Русский"
 msgstr "Ryska - Русский"
-
-
-msgid "Locale code: ru_RU. Translation progress: 99%"
-msgstr "Lokalkod: ru_RU. Översättningsförlopp: 99 %"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -133116,8 +133066,17 @@ msgid "Auto-Save Project"
 msgstr "Spara projekt automatiskt"
 
 
+msgctxt "Operator"
+msgid "Save Project"
+msgstr "Spara projekt"
+
+
 msgid "Artwork"
 msgstr "Bildmaterial"
+
+
+msgid "No active project."
+msgstr "Inget aktivt projekt."
 
 
 msgctxt "Operator"
@@ -133143,27 +133102,6 @@ msgstr "Flyttal"
 msgctxt "Operator"
 msgid "Reload to Apply Changes"
 msgstr "Läs in igen för att tillämpa ändringar"
-
-
-msgid "No active project."
-msgstr "Inget aktivt projekt."
-
-
-msgid "Save the current file, and make sure to place it in a folder that will be part of the project"
-msgstr "Spara den aktuella filen i en mapp som ingår i projektet"
-
-
-msgid "Alternatively, open a file inside of a project directory to see its settings."
-msgstr "Du kan också öppna en fil i en projektkatalog för att se dess inställningar."
-
-
-msgctxt "Operator"
-msgid "Save File..."
-msgstr "Spara fil…"
-
-
-msgid "Set up a new project by choosing any parent directory of the current file."
-msgstr "Skapa ett nytt projekt genom att välja en överordnad katalog till den aktuella filen."
 
 
 msgid "{:.3f}"
@@ -138094,14 +138032,6 @@ msgstr "[Action Stash]"
 
 msgid "node_groups"
 msgstr "nodgrupper"
-
-
-msgid "Shader To RGB can't evaluate Light Accumulation nodes"
-msgstr "Shader To RGB kan inte utvärdera noder för ljusackumulering"
-
-
-msgid "Lighting nodes must be connected to the Light sockets of a Light Accumulation node before reaching the Material Output"
-msgstr "Belysningsnoder måste anslutas till ljusuttag på en nod för ljusackumulering före materialutdata"
 
 
 msgid "Lighting nodes can't be connected to the Color sockets of a Light Accumulation node"
@@ -148811,10 +148741,6 @@ msgid "No active item to rename"
 msgstr "Ingen aktiv post att byta namn på"
 
 
-msgid "No selected data-blocks to copy"
-msgstr "Inga valda datablock att kopiera"
-
-
 msgid "There is no active data-block"
 msgstr "Det finns inget aktivt datablock"
 
@@ -149242,6 +149168,10 @@ msgid "Built-In"
 msgstr "Inbyggd"
 
 
+msgid "Add Asset Library"
+msgstr "Lägg till resursbibliotek"
+
+
 msgid "Untitled Project"
 msgstr "Knivprojektion"
 
@@ -149250,8 +149180,8 @@ msgid "Invalid project root folder"
 msgstr "Ogiltig projektrotmapp"
 
 
-msgid "Folder already contains a project"
-msgstr "Mappen innehåller redan ett projekt"
+msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
+msgstr "Tillgångsbibliotek som definierats av ett tillägg tas bort när tillägget avinstalleras"
 
 
 msgid "Failed to create folder \"%s\""
@@ -149268,6 +149198,10 @@ msgstr "Mappen ”%s” tillhör inte ett projekt"
 
 msgid "Failed to load project from path: %s"
 msgstr "Det gick inte att läsa in projektet från sökvägen: %s"
+
+
+msgid "There is no asset library to remove"
+msgstr "Det finns inget resursbibliotek att ta bort"
 
 
 msgid "Failed to load image \"%s\""
@@ -149818,10 +149752,6 @@ msgid "Edit Project asset libraries in Project Settings."
 msgstr "Redigera projektets tillgångsbibliotek i projektinställningarna."
 
 
-msgid "Add Asset Library"
-msgstr "Lägg till resursbibliotek"
-
-
 msgid "Add New Extension Repository"
 msgstr "Lägg till nytt tilläggsarkiv"
 
@@ -149844,10 +149774,6 @@ msgstr "Ta bort arkiv och filer"
 
 msgid "Remove Repository"
 msgstr "Ta bort arkiv"
-
-
-msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
-msgstr "Tillgångsbibliotek som definierats av ett tillägg tas bort när tillägget avinstalleras"
 
 
 msgid "Unable to remove files for \"System\" repositories"
@@ -149880,10 +149806,6 @@ msgstr "Det går inte att ta bort katalogen: %s"
 
 msgid "Extension operator not found \"%s\""
 msgstr "Tilläggsoperatorn hittades inte ”%s”"
-
-
-msgid "There is no asset library to remove"
-msgstr "Det finns inget resursbibliotek att ta bort"
 
 
 msgid "There is no extension repository to remove"
@@ -150322,10 +150244,6 @@ msgstr "Det går inte att navigera ett objekt med verksamma begränsningar"
 
 msgid "Depth too large"
 msgstr "Djupet är för stort"
-
-
-msgid "No objects selected to copy"
-msgstr "Inga objekt valda för kopiering"
 
 
 msgid "No objects to paste"
@@ -152836,18 +152754,6 @@ msgstr "%s ”%s” måste ha noll användare för att kunna tas bort; hittade %
 
 msgid "Only linked IDs can be packed"
 msgstr "Endast länkade ID:n kan packas"
-
-
-msgid "Failed to initialize project. Ensure that both the name and project_root parameters are non-empty."
-msgstr "Det gick inte att initiera projektet. Kontrollera att varken parametern name eller project_root är tom."
-
-
-msgid "Failed to initialize project. Ensure that project_root path is correct."
-msgstr "Det gick inte att initiera projektet. Kontrollera att varken parametern name eller project_root är tom."
-
-
-msgid "Failed to save project config."
-msgstr "Det gick inte att spara projektkonfigurationen."
 
 
 msgid "Scene '%s' is the last local one, cannot be removed"
@@ -162594,18 +162500,6 @@ msgstr "Sparade en kopia som ”%s”"
 
 msgid "Saved as \"%s\""
 msgstr "Sparades som ”%s”"
-
-
-msgid ""
-"To match renders with the previous working space as closely as possible,\n"
-"colors in all materials, lights and geometry must be converted.\n"
-"\n"
-"Some nodes graphs cannot be converted accurately and may need manual fix-ups."
-msgstr ""
-"För att matcha renderingar så nära som möjligt med den tidigare arbetsfärgrymden\n"
-"måste färgerna i alla material, ljus och geometri konverteras.\n"
-"\n"
-"Vissa nodträd kan inte konverteras exakt och kan behöva justeras manuellt."
 
 
 msgid "Can't change working space while jobs are running"

@@ -493,6 +493,31 @@ struct uiViewStateLink {
   uiViewState state;
 };
 
+enum uiActiveItemStateFlag : uchar {
+  /**
+   * Set when a script changes #uiActiveItemState::active_index, for views to apply it over their
+   * runtime active item, cleared once drawn.
+   */
+  UI_ACTIVE_ITEM_STATE_FLAG_PENDING = (1 << 0),
+};
+ENUM_OPERATORS(uiActiveItemStateFlag)
+
+/**
+ * Persistent storage of the active item of a list widget (a view or #uiList) that has no active
+ * item in the data it displays. Managed the same way as #LayoutPanelState.
+ */
+struct uiActiveItemState {
+  struct uiActiveItemState *next = nullptr, *prev = nullptr;
+  /** Identifier of the list, allocated. */
+  char *idname = nullptr;
+  /** The active item in the order of the data the widget displays. */
+  int active_index = 0;
+  /** See #LayoutPanelState::last_used. */
+  uint32_t last_used = 0;
+  uiActiveItemStateFlag flag = {};
+  char _pad[7] = {};
+};
+
 struct TransformOrientation {
   struct TransformOrientation *next = nullptr, *prev = nullptr;
   char name[/*MAX_NAME*/ 64] = "";
@@ -858,6 +883,11 @@ struct ARegion {
    * buttons or loading files remembers the textbox state.
    */
   ListBaseT<uiTextboxStateLink> textbox_states = {nullptr, nullptr};
+  /** Permanent storage of the active item of list widgets, see #uiActiveItemState. */
+  ListBaseT<uiActiveItemState> active_item_states = {nullptr, nullptr};
+  /** See #Panel::layout_panel_states_clock. */
+  uint32_t active_item_states_clock = 0;
+  char _pad1[4] = {};
 
   /** XXX 2.50, need spacedata equivalent? */
   void *regiondata = nullptr;

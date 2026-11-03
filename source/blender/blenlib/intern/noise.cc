@@ -9,6 +9,7 @@
  */
 
 #include <algorithm>
+#include <bit>
 #include <cfloat>
 #include <cmath>
 #include <cstdint>
@@ -17,8 +18,10 @@
 #include "BLI_math_base_c.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_multi_eval_varray.hh"
+#include "BLI_multi_value_map.hh"
 #include "BLI_noise.hh"
-#include "BLI_utildefines.hh"
+#include "BLI_noise_varray.hh"
 
 /* Some noise functions integer overflow as part of expected operation. */
 #ifdef __SANITIZE_ADDRESS__
@@ -33,6 +36,16 @@
 #  define ATTR_NO_SIGNED_INT_OVERFLOW
 #endif
 
+/* This is required so that clang fully flattens noise code so that it can vectorize it.
+ * #BLI_INLINE can't be used in these cases because it adds `static inline`.
+ * Only clang needs this. GCC issues a warning with this and has a recursive flatten feature which
+ * works as a good alternative. */
+#if defined(__clang__)
+#  define ATTR_ALWAYS_INLINE [[gnu::always_inline]]
+#else
+#  define ATTR_ALWAYS_INLINE
+#endif
+
 namespace blender::noise {
 
 /* -------------------------------------------------------------------- */
@@ -43,7 +56,7 @@ namespace blender::noise {
 
 BLI_INLINE uint32_t hash_bit_rotate(uint32_t x, uint32_t k)
 {
-  return (x << k) | (x >> (32 - k));
+  return std::rotl(x, k);
 }
 
 BLI_INLINE void hash_bit_mix(uint32_t &a, uint32_t &b, uint32_t &c)
@@ -86,7 +99,7 @@ BLI_INLINE void hash_bit_final(uint32_t &a, uint32_t &b, uint32_t &c)
   c -= hash_bit_rotate(b, 24);
 }
 
-uint32_t hash(uint32_t kx)
+ATTR_ALWAYS_INLINE uint32_t hash(uint32_t kx)
 {
   uint32_t a, b, c;
   a = b = c = 0xdeadbeef + (1 << 2) + 13;
@@ -97,7 +110,7 @@ uint32_t hash(uint32_t kx)
   return c;
 }
 
-uint32_t hash(uint32_t kx, uint32_t ky)
+ATTR_ALWAYS_INLINE uint32_t hash(uint32_t kx, uint32_t ky)
 {
   uint32_t a, b, c;
   a = b = c = 0xdeadbeef + (2 << 2) + 13;
@@ -109,7 +122,7 @@ uint32_t hash(uint32_t kx, uint32_t ky)
   return c;
 }
 
-uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz)
+ATTR_ALWAYS_INLINE uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz)
 {
   uint32_t a, b, c;
   a = b = c = 0xdeadbeef + (3 << 2) + 13;
@@ -122,7 +135,7 @@ uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz)
   return c;
 }
 
-uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
+ATTR_ALWAYS_INLINE uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
 {
   uint32_t a, b, c;
   a = b = c = 0xdeadbeef + (4 << 2) + 13;
@@ -140,12 +153,7 @@ uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
 
 BLI_INLINE uint32_t float_as_uint(float f)
 {
-  union {
-    uint32_t i;
-    float f;
-  } u;
-  u.f = f;
-  return u.i;
+  return std::bit_cast<uint32_t>(f);
 }
 
 /* PCG 2D, 3D and 4D hash functions,
@@ -197,27 +205,27 @@ static inline int4 hash_pcg4d_i(int4 v)
   return v;
 }
 
-uint32_t hash_float(float kx)
+ATTR_ALWAYS_INLINE uint32_t hash_float(float kx)
 {
   return hash(float_as_uint(kx));
 }
 
-uint32_t hash_float(float2 k)
+ATTR_ALWAYS_INLINE uint32_t hash_float(float2 k)
 {
   return hash(float_as_uint(k.x), float_as_uint(k.y));
 }
 
-uint32_t hash_float(float3 k)
+ATTR_ALWAYS_INLINE uint32_t hash_float(float3 k)
 {
   return hash(float_as_uint(k.x), float_as_uint(k.y), float_as_uint(k.z));
 }
 
-uint32_t hash_float(float4 k)
+ATTR_ALWAYS_INLINE uint32_t hash_float(float4 k)
 {
   return hash(float_as_uint(k.x), float_as_uint(k.y), float_as_uint(k.z), float_as_uint(k.w));
 }
 
-uint32_t hash_float(const float4x4 &k)
+ATTR_ALWAYS_INLINE uint32_t hash_float(const float4x4 &k)
 {
   return hash(hash_float(k.x), hash_float(k.y), hash_float(k.z), hash_float(k.w));
 }
@@ -229,87 +237,87 @@ BLI_INLINE float uint_to_float_01(uint32_t k)
   return float(k) / float(0xFFFFFFFFu);
 }
 
-float hash_to_float(uint32_t kx)
+ATTR_ALWAYS_INLINE float hash_to_float(uint32_t kx)
 {
   return uint_to_float_01(hash(kx));
 }
 
-float hash_to_float(uint32_t kx, uint32_t ky)
+ATTR_ALWAYS_INLINE float hash_to_float(uint32_t kx, uint32_t ky)
 {
   return uint_to_float_01(hash(kx, ky));
 }
 
-float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz)
+ATTR_ALWAYS_INLINE float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz)
 {
   return uint_to_float_01(hash(kx, ky, kz));
 }
 
-float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
+ATTR_ALWAYS_INLINE float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
 {
   return uint_to_float_01(hash(kx, ky, kz, kw));
 }
 
 /* Hashing a number of floats into a float in the range [0, 1]. */
 
-float hash_float_to_float(float k)
+ATTR_ALWAYS_INLINE float hash_float_to_float(float k)
 {
   return uint_to_float_01(hash_float(k));
 }
 
-float hash_float_to_float(float2 k)
+ATTR_ALWAYS_INLINE float hash_float_to_float(float2 k)
 {
   return uint_to_float_01(hash_float(k));
 }
 
-float hash_float_to_float(float3 k)
+ATTR_ALWAYS_INLINE float hash_float_to_float(float3 k)
 {
   return uint_to_float_01(hash_float(k));
 }
 
-float hash_float_to_float(float4 k)
+ATTR_ALWAYS_INLINE float hash_float_to_float(float4 k)
 {
   return uint_to_float_01(hash_float(k));
 }
 
-float2 hash_float_to_float2(float2 k)
+ATTR_ALWAYS_INLINE float2 hash_float_to_float2(float2 k)
 {
   return float2(hash_float_to_float(k), hash_float_to_float(float3(k.x, k.y, 1.0f)));
 }
 
-float2 hash_float_to_float2(float3 k)
+ATTR_ALWAYS_INLINE float2 hash_float_to_float2(float3 k)
 {
   return float2(hash_float_to_float(float3(k.x, k.y, k.z)),
                 hash_float_to_float(float3(k.z, k.x, k.y)));
 }
 
-float2 hash_float_to_float2(float4 k)
+ATTR_ALWAYS_INLINE float2 hash_float_to_float2(float4 k)
 {
   return float2(hash_float_to_float(float4(k.x, k.y, k.z, k.w)),
                 hash_float_to_float(float4(k.z, k.x, k.w, k.y)));
 }
 
-float3 hash_float_to_float3(float k)
+ATTR_ALWAYS_INLINE float3 hash_float_to_float3(float k)
 {
   return float3(hash_float_to_float(k),
                 hash_float_to_float(float2(k, 1.0f)),
                 hash_float_to_float(float2(k, 2.0f)));
 }
 
-float3 hash_float_to_float3(float2 k)
+ATTR_ALWAYS_INLINE float3 hash_float_to_float3(float2 k)
 {
   return float3(hash_float_to_float(k),
                 hash_float_to_float(float3(k.x, k.y, 1.0f)),
                 hash_float_to_float(float3(k.x, k.y, 2.0f)));
 }
 
-float3 hash_float_to_float3(float3 k)
+ATTR_ALWAYS_INLINE float3 hash_float_to_float3(float3 k)
 {
   return float3(hash_float_to_float(k),
                 hash_float_to_float(float4(k.x, k.y, k.z, 1.0f)),
                 hash_float_to_float(float4(k.x, k.y, k.z, 2.0f)));
 }
 
-float3 hash_float_to_float3(float4 k)
+ATTR_ALWAYS_INLINE float3 hash_float_to_float3(float4 k)
 {
   return float3(hash_float_to_float(k),
                 hash_float_to_float(float4(k.z, k.x, k.w, k.y)),
@@ -465,7 +473,17 @@ BLI_INLINE float fade(float t)
 
 BLI_INLINE float negate_if(float value, uint32_t condition)
 {
-  return (condition != 0u) ? -value : value;
+  /* Branchless operation for better auto-vectorization. */
+  const uint32_t bits = std::bit_cast<uint32_t>(value);
+  return std::bit_cast<float>(bits ^ (uint32_t(condition != 0u) << 31));
+}
+
+BLI_INLINE float select_float(const bool condition,
+                              const float true_value,
+                              const float false_value)
+{
+  const float c = float(condition);
+  return c * true_value + (1 - c) * false_value;
 }
 
 BLI_INLINE float noise_grad(uint32_t hash, float x)
@@ -478,34 +496,41 @@ BLI_INLINE float noise_grad(uint32_t hash, float x)
 BLI_INLINE float noise_grad(uint32_t hash, float x, float y)
 {
   uint32_t h = hash & 7u;
-  float u = h < 4u ? x : y;
-  float v = 2.0f * (h < 4u ? y : x);
+  float u = select_float(h < 4u, x, y);
+  float v = 2.0f * select_float(h < 4u, y, x);
   return negate_if(u, h & 1u) + negate_if(v, h & 2u);
 }
 
 BLI_INLINE float noise_grad(uint32_t hash, float x, float y, float z)
 {
   uint32_t h = hash & 15u;
-  float u = h < 8u ? x : y;
-  float vt = ELEM(h, 12u, 14u) ? x : z;
-  float v = h < 4u ? y : vt;
+  float u = select_float(h < 8u, x, y);
+  /* ((h & 13u) == 12u) is the same but simpler as ELEM(h, 12, 14). */
+  float vt = select_float((h & 13u) == 12u, x, z);
+  float v = select_float(h < 4u, y, vt);
   return negate_if(u, h & 1u) + negate_if(v, h & 2u);
 }
 
 BLI_INLINE float noise_grad(uint32_t hash, float x, float y, float z, float w)
 {
   uint32_t h = hash & 31u;
-  float u = h < 24u ? x : y;
-  float v = h < 16u ? y : z;
-  float s = h < 8u ? z : w;
+  float u = select_float(h < 24u, x, y);
+  float v = select_float(h < 16u, y, z);
+  float s = select_float(h < 8u, z, w);
   return negate_if(u, h & 1u) + negate_if(v, h & 2u) + negate_if(s, h & 4u);
+}
+
+BLI_INLINE int floor_to_int(float x)
+{
+  /* Do this instead of using math::floor so that GCC can vectorize it. */
+  const int i = int(x);
+  return i - int(x < float(i));
 }
 
 BLI_INLINE float floor_fraction(float x, int &i)
 {
-  float x_floor = math::floor(x);
-  i = int(x_floor);
-  return x - x_floor;
+  i = floor_to_int(x);
+  return x - float(i);
 }
 
 BLI_INLINE float perlin_noise(float position)
@@ -634,29 +659,30 @@ static float4 precision_correction(const float4 &p)
 
 /* Signed versions of perlin noise in the range [-1, 1]. The scale values were computed
  * experimentally by the OSL developers to remap the noise output to the correct range. */
-constexpr float PERLIN_SCALE_1D = 0.2500f;
-constexpr float PERLIN_SCALE_2D = 0.6616f;
-constexpr float PERLIN_SCALE_3D = 0.9820f;
-constexpr float PERLIN_SCALE_4D = 0.8344f;
+template<int DIM> constexpr float PERLIN_SCALE = 1.0f;
+template<> constexpr float PERLIN_SCALE<1> = 0.2500f;
+template<> constexpr float PERLIN_SCALE<2> = 0.6616f;
+template<> constexpr float PERLIN_SCALE<3> = 0.9820f;
+template<> constexpr float PERLIN_SCALE<4> = 0.8344f;
 
-float perlin_signed(float position)
+ATTR_ALWAYS_INLINE float perlin_signed(float position)
 {
-  return perlin_noise(precision_correction(position)) * PERLIN_SCALE_1D;
+  return perlin_noise(precision_correction(position)) * PERLIN_SCALE<1>;
 }
 
-float perlin_signed(float2 position)
+ATTR_ALWAYS_INLINE float perlin_signed(float2 position)
 {
-  return perlin_noise(precision_correction(position)) * PERLIN_SCALE_2D;
+  return perlin_noise(precision_correction(position)) * PERLIN_SCALE<2>;
 }
 
-float perlin_signed(float3 position)
+ATTR_ALWAYS_INLINE float perlin_signed(float3 position)
 {
-  return perlin_noise(precision_correction(position)) * PERLIN_SCALE_3D;
+  return perlin_noise(precision_correction(position)) * PERLIN_SCALE<3>;
 }
 
-float perlin_signed(float4 position)
+ATTR_ALWAYS_INLINE float perlin_signed(float4 position)
 {
-  return perlin_noise(precision_correction(position)) * PERLIN_SCALE_4D;
+  return perlin_noise(precision_correction(position)) * PERLIN_SCALE<4>;
 }
 
 /* Positive versions of perlin noise in the range [0, 1]. */
@@ -2578,6 +2604,821 @@ void gabor(const float3 coordinates,
   if (r_intensity) {
     *r_intensity = math::length(phasor) / normalization_factor;
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name VArray wrappers for noise functions.
+ */
+
+void white_noise_float_1d(const IndexMask &mask,
+                          const VArray<float> &ks,
+                          MutableSpan<float> r_values)
+{
+  multi_eval::evaluate_element_wise_varray<"io">(
+      [](const float &k, float &r_out) { r_out = hash_float_to_float(k); },
+      multi_eval::exec_presets::MaterializeFlatten(),
+      mask,
+      ks,
+      r_values);
+}
+
+void white_noise_float_2d(const IndexMask &mask,
+                          const VArray<float3> &ks,
+                          MutableSpan<float> r_values)
+{
+  multi_eval::evaluate_element_wise_varray<"i#o">(
+      [](const float3 &k, float &r_out) { r_out = hash_float_to_float(float2(k.x, k.y)); },
+      multi_eval::exec_presets::MaterializeFlatten(),
+      mask,
+      ks,
+      r_values);
+}
+
+void white_noise_float_3d(const IndexMask &mask,
+                          const VArray<float3> &ks,
+                          MutableSpan<float> r_values)
+{
+  multi_eval::evaluate_element_wise_varray<"i#o">(
+      [](const float3 &k, float &r_out) { r_out = hash_float_to_float(k); },
+      multi_eval::exec_presets::MaterializeFlatten(),
+      mask,
+      ks,
+      r_values);
+}
+
+void white_noise_float_4d(const IndexMask &mask,
+                          const VArray<float3> &vectors,
+                          const VArray<float> &ws,
+                          MutableSpan<float> r_values)
+{
+  multi_eval::evaluate_element_wise_varray<"i#io">(
+      [](const float3 &vector, const float w, float &r_out) {
+        r_out = hash_float_to_float(float4(vector.x, vector.y, vector.z, w));
+      },
+      multi_eval::exec_presets::MaterializeFlatten(),
+      mask,
+      vectors,
+      ws,
+      r_values);
+}
+
+void white_noise_color_1d(const IndexMask &mask,
+                          const VArray<float> &ks,
+                          MutableSpan<ColorGeometry4f> r_values)
+{
+  multi_eval::evaluate_element_wise_varray<"io#">(
+      [](const float &k, ColorGeometry4f &r_out) {
+        const float3 c = hash_float_to_float3(k);
+        r_out = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
+      },
+      multi_eval::exec_presets::MaterializeFlatten(),
+      mask,
+      ks,
+      r_values);
+}
+
+void white_noise_color_2d(const IndexMask &mask,
+                          const VArray<float3> &ks,
+                          MutableSpan<ColorGeometry4f> r_values)
+{
+  multi_eval::evaluate_element_wise_varray<"i#o#">(
+      [](const float3 &k, ColorGeometry4f &r_out) {
+        const float3 c = hash_float_to_float3(float2(k.x, k.y));
+        r_out = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
+      },
+      multi_eval::exec_presets::MaterializeFlatten(),
+      mask,
+      ks,
+      r_values);
+}
+
+void white_noise_color_3d(const IndexMask &mask,
+                          const VArray<float3> &ks,
+                          MutableSpan<ColorGeometry4f> r_values)
+{
+  multi_eval::evaluate_element_wise_varray<"i#o#">(
+      [](const float3 &k, ColorGeometry4f &r_out) {
+        const float3 c = hash_float_to_float3(k);
+        r_out = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
+      },
+      multi_eval::exec_presets::MaterializeFlatten(),
+      mask,
+      ks,
+      r_values);
+}
+
+void white_noise_color_4d(const IndexMask &mask,
+                          const VArray<float3> &vectors,
+                          const VArray<float> &ws,
+                          MutableSpan<ColorGeometry4f> r_values)
+{
+  multi_eval::evaluate_element_wise_varray<"i#io#">(
+      [](const float3 &vector, const float w, ColorGeometry4f &r_out) {
+        const float3 c = hash_float_to_float3(float4(vector.x, vector.y, vector.z, w));
+        r_out = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
+      },
+      multi_eval::exec_presets::MaterializeFlatten(),
+      mask,
+      vectors,
+      ws,
+      r_values);
+}
+
+static float perlin_clamp_detail(const float detail)
+{
+  /* NaN as detail value can cause seemingly infinite hangs because the value determines how many
+   * iterations are used. This is worse than just propagating NaN values through the noise code, so
+   * it's handled explicitly. */
+  if (std::isnan(detail)) {
+    return 0.0f;
+  }
+  return math::clamp(detail, 0.0f, 15.0f);
+}
+
+static float perlin_clamp_roughness(const float roughness)
+{
+  return math::max(roughness, 0.0f);
+}
+
+/**
+ * This is the code of the perlin noise algorithm. This is written such that GCC and Clang are
+ * able to auto-vectorize it. */
+template<typename T>
+static void perlin_noise_multi(const int64_t size, const SoaPtr<T> &positions, float *dst)
+{
+  using namespace multi_eval;
+  evaluate_element_wise<"io", {.flatten = true}>(
+      [](const T &position, float &dst) { dst = perlin_noise(position); }, size, positions, dst);
+}
+
+template<typename T, size_t MaxSize>
+static void perlin_signed_multi(const int64_t size,
+                                const SoaPtr<T> &positions,
+                                const float *fscale,
+                                float *dst)
+{
+  FixedSoaArray<T, MaxSize> corrected_pos;
+  for (const int64_t i : IndexRange(size)) {
+    corrected_pos.set(i, precision_correction(fscale[i] * positions[i]));
+  }
+  perlin_noise_multi<T>(size, corrected_pos.data(), dst);
+  for (const int64_t i : IndexRange(size)) {
+    dst[i] *= PERLIN_SCALE<soa_component_num<T>>;
+  }
+}
+
+/* Same as above but without fscale. This is used to get bitwise identical output to the scalar
+ * code path. */
+template<typename T, size_t MaxSize>
+static void perlin_signed_multi(const int64_t size, const SoaPtr<T> &positions, float *dst)
+{
+  FixedSoaArray<T, MaxSize> corrected_pos;
+  for (const int64_t i : IndexRange(size)) {
+    corrected_pos.set(i, precision_correction(positions[i]));
+  }
+  perlin_noise_multi<T>(size, corrected_pos.data(), dst);
+  for (const int64_t i : IndexRange(size)) {
+    dst[i] *= PERLIN_SCALE<soa_component_num<T>>;
+  }
+}
+
+template<typename T>
+static void perlin_distortion_multi(const int64_t size,
+                                    MutableSoaPtr<T> positions,
+                                    const float *distortions)
+{
+  using namespace multi_eval;
+  evaluate_element_wise<"mi", {.flatten = true}>(
+      [](T &position, const float &distortion) {
+        position += perlin_distortion(position, distortion);
+      },
+      size,
+      positions,
+      distortions);
+}
+
+template<typename T, size_t MaxSize>
+static void perlin_fbm_multi(const int64_t size,
+                             const SoaPtr<T> &position,
+                             const float *detail,
+                             const float *roughness,
+                             const float *lacunarity,
+                             const bool normalize,
+                             float *dst)
+{
+  std::array<float, MaxSize> fscale;
+  std::array<float, MaxSize> amp;
+  std::array<float, MaxSize> maxamp;
+
+  std::fill_n(fscale.begin(), size, 1.0f);
+  std::fill_n(amp.begin(), size, 1.0f);
+  std::fill_n(maxamp.begin(), size, 0.0f);
+  std::fill_n(dst, size, 0.0f);
+
+  const float detail_repr = perlin_clamp_detail(detail[0]);
+  for ([[maybe_unused]] const int iter : IndexRange(detail_repr + 1)) {
+    std::array<float, MaxSize> perlin_result;
+    perlin_signed_multi<T, MaxSize>(size, position, fscale.data(), perlin_result.data());
+    for (const int64_t i : IndexRange(size)) {
+      fscale[i] *= lacunarity[i];
+      dst[i] += perlin_result[i] * amp[i];
+      maxamp[i] += amp[i];
+      amp[i] *= perlin_clamp_roughness(roughness[i]);
+    }
+  }
+
+  const bool has_rmd = detail_repr - std::floor(detail_repr);
+  if (has_rmd) {
+    std::array<float, MaxSize> perlin_result;
+    perlin_signed_multi<T, MaxSize>(size, position, fscale.data(), perlin_result.data());
+    for (const int64_t i : IndexRange(size)) {
+      const float detail_ = perlin_clamp_detail(detail[i]);
+      const float rmd = detail_ - std::floor(detail_);
+      const float sum2 = dst[i] + perlin_result[i] * amp[i];
+      if (normalize) {
+        dst[i] = mix(
+            0.5f * dst[i] / maxamp[i] + 0.5f, 0.5f * sum2 / (maxamp[i] + amp[i]) + 0.5f, rmd);
+      }
+      else {
+        dst[i] = mix(dst[i], sum2, rmd);
+      }
+    }
+  }
+  else if (normalize) {
+    for (const int64_t i : IndexRange(size)) {
+      dst[i] = 0.5f * dst[i] / maxamp[i] + 0.5f;
+    }
+  }
+}
+
+template<typename T, size_t MaxSize>
+static void perlin_multi_fractal_multi(const int64_t size,
+                                       const SoaPtr<T> &position,
+                                       const float *detail,
+                                       const float *roughness,
+                                       const float *lacunarity,
+                                       float *dst)
+{
+  std::fill_n(dst, size, 1.0f);
+
+  FixedSoaArray<T, MaxSize> p(position, size);
+  std::array<float, MaxSize> pwr;
+  std::fill_n(pwr.begin(), size, 1.0f);
+
+  const float detail_repr = perlin_clamp_detail(detail[0]);
+  for ([[maybe_unused]] const int iter : IndexRange(int(detail_repr) + 1)) {
+    std::array<float, MaxSize> perlin_result;
+    perlin_signed_multi<T, MaxSize>(size, p.data(), perlin_result.data());
+    for (const int64_t i : IndexRange(size)) {
+      dst[i] *= pwr[i] * perlin_result[i] + 1.0f;
+      pwr[i] *= perlin_clamp_roughness(roughness[i]);
+      p.set(i, p[i] * lacunarity[i]);
+    }
+  }
+
+  const bool has_rmd = detail_repr - std::floor(detail_repr);
+  if (has_rmd) {
+    std::array<float, MaxSize> perlin_result;
+    perlin_signed_multi<T, MaxSize>(size, p.data(), perlin_result.data());
+    for (const int64_t i : IndexRange(size)) {
+      const float detail_ = perlin_clamp_detail(detail[i]);
+      const float rmd = detail_ - std::floor(detail_);
+      dst[i] *= rmd * pwr[i] * perlin_result[i] + 1.0f;
+    }
+  }
+}
+
+template<typename T, size_t MaxSize>
+static void perlin_hetero_terrain_multi(const int64_t size,
+                                        const SoaPtr<T> &position,
+                                        const float *detail,
+                                        const float *roughness,
+                                        const float *lacunarity,
+                                        const float *offset,
+                                        float *dst)
+{
+  FixedSoaArray<T, MaxSize> p(position, size);
+  std::array<float, MaxSize> pwr;
+  for (const int64_t i : IndexRange(size)) {
+    pwr[i] = perlin_clamp_roughness(roughness[i]);
+  }
+
+  {
+    std::array<float, MaxSize> perlin_result;
+    perlin_signed_multi<T, MaxSize>(size, p.data(), perlin_result.data());
+    for (const int64_t i : IndexRange(size)) {
+      dst[i] = offset[i] + perlin_result[i];
+      p.set(i, p[i] * lacunarity[i]);
+    }
+  }
+
+  const float detail_repr = perlin_clamp_detail(detail[0]);
+  for ([[maybe_unused]] const int iter : IndexRange(int(detail_repr))) {
+    std::array<float, MaxSize> perlin_result;
+    perlin_signed_multi<T, MaxSize>(size, p.data(), perlin_result.data());
+    for (const int64_t i : IndexRange(size)) {
+      const float increment = (perlin_result[i] + offset[i]) * pwr[i] * dst[i];
+      dst[i] += increment;
+      pwr[i] *= perlin_clamp_roughness(roughness[i]);
+      p.set(i, p[i] * lacunarity[i]);
+    }
+  }
+
+  const bool has_rmd = detail_repr - std::floor(detail_repr);
+  if (has_rmd) {
+    std::array<float, MaxSize> perlin_result;
+    perlin_signed_multi<T, MaxSize>(size, p.data(), perlin_result.data());
+    for (const int64_t i : IndexRange(size)) {
+      const float detail_ = perlin_clamp_detail(detail[i]);
+      const float rmd = detail_ - std::floor(detail_);
+      const float increment = (perlin_result[i] + offset[i]) * pwr[i] * dst[i];
+      dst[i] += rmd * increment;
+    }
+  }
+}
+
+template<typename T, size_t MaxSize>
+static void perlin_hybrid_multi_fractal_multi(const int64_t size,
+                                              const SoaPtr<T> &position,
+                                              const float *detail,
+                                              const float *roughness,
+                                              const float *lacunarity,
+                                              const float *offset,
+                                              const float *gain,
+                                              float *dst)
+{
+  FixedSoaArray<T, MaxSize> p(position, size);
+  std::array<float, MaxSize> pwr;
+  std::array<float, MaxSize> weight;
+  std::fill_n(pwr.begin(), size, 1.0f);
+  std::fill_n(weight.begin(), size, 1.0f);
+  std::fill_n(dst, size, 0.0f);
+
+  const float detail_repr = perlin_clamp_detail(detail[0]);
+  for ([[maybe_unused]] const int iter : IndexRange(int(detail_repr) + 1)) {
+    std::array<float, MaxSize> perlin_result;
+    perlin_signed_multi<T, MaxSize>(size, p.data(), perlin_result.data());
+    for (const int64_t i : IndexRange(size)) {
+      if (weight[i] <= 0.001f) {
+        continue;
+      }
+      weight[i] = std::min(weight[i], 1.0f);
+      const float signal = (perlin_result[i] + offset[i]) * pwr[i];
+      pwr[i] *= perlin_clamp_roughness(roughness[i]);
+      dst[i] += weight[i] * signal;
+      weight[i] *= gain[i] * signal;
+      p.set(i, p[i] * lacunarity[i]);
+    }
+  }
+
+  const bool has_rmd = detail_repr - std::floor(detail_repr);
+  if (has_rmd) {
+    std::array<float, MaxSize> perlin_result;
+    perlin_signed_multi<T, MaxSize>(size, p.data(), perlin_result.data());
+    for (const int64_t i : IndexRange(size)) {
+      if (weight[i] <= 0.001f) {
+        continue;
+      }
+      const float detail_ = perlin_clamp_detail(detail[i]);
+      const float rmd = detail_ - std::floor(detail_);
+      weight[i] = std::min(weight[i], 1.0f);
+      const float signal = (perlin_result[i] + offset[i]) * pwr[i];
+      dst[i] += rmd * weight[i] * signal;
+    }
+  }
+}
+
+template<typename T, size_t MaxSize>
+static void perlin_ridged_multi_fractal_multi(const int64_t size,
+                                              const SoaPtr<T> &position,
+                                              const float *detail,
+                                              const float *roughness,
+                                              const float *lacunarity,
+                                              const float *offset,
+                                              const float *gain,
+                                              float *dst)
+{
+  FixedSoaArray<T, MaxSize> p(position, size);
+  std::array<float, MaxSize> pwr;
+  std::array<float, MaxSize> signal;
+
+  {
+    std::array<float, MaxSize> perlin_result;
+    perlin_signed_multi<T, MaxSize>(size, p.data(), perlin_result.data());
+    for (const int64_t i : IndexRange(size)) {
+      pwr[i] = perlin_clamp_roughness(roughness[i]);
+      signal[i] = offset[i] - math::abs(perlin_result[i]);
+      signal[i] *= signal[i];
+      dst[i] = signal[i];
+      p.set(i, p[i] * lacunarity[i]);
+    }
+  }
+
+  const float detail_repr = perlin_clamp_detail(detail[0]);
+  for ([[maybe_unused]] const int iter : IndexRange(int(detail_repr))) {
+    std::array<float, MaxSize> perlin_result;
+    perlin_signed_multi<T, MaxSize>(size, p.data(), perlin_result.data());
+    for (const int64_t i : IndexRange(size)) {
+      const float weight = std::clamp(signal[i] * gain[i], 0.0f, 1.0f);
+      signal[i] = offset[i] - math::abs(perlin_result[i]);
+      signal[i] *= signal[i];
+      signal[i] *= weight;
+      dst[i] += signal[i] * pwr[i];
+      pwr[i] *= perlin_clamp_roughness(roughness[i]);
+      p.set(i, p[i] * lacunarity[i]);
+    }
+  }
+}
+
+template<typename T, size_t MaxSize>
+static void perlin_select_multi(const int64_t size,
+                                const SoaPtr<T> &position,
+                                const float *detail,
+                                const float *roughness,
+                                const float *lacunarity,
+                                const float *offset,
+                                const float *gain,
+                                const int type,
+                                const bool normalize,
+                                float *dst)
+{
+  switch (type) {
+    case NOISE_SHD_PERLIN_MULTIFRACTAL: {
+      perlin_multi_fractal_multi<T, MaxSize>(size, position, detail, roughness, lacunarity, dst);
+      break;
+    }
+    case NOISE_SHD_PERLIN_FBM: {
+      perlin_fbm_multi<T, MaxSize>(size, position, detail, roughness, lacunarity, normalize, dst);
+      break;
+    }
+    case NOISE_SHD_PERLIN_HYBRID_MULTIFRACTAL: {
+      perlin_hybrid_multi_fractal_multi<T, MaxSize>(
+          size, position, detail, roughness, lacunarity, offset, gain, dst);
+      break;
+    }
+    case NOISE_SHD_PERLIN_RIDGED_MULTIFRACTAL: {
+      perlin_ridged_multi_fractal_multi<T, MaxSize>(
+          size, position, detail, roughness, lacunarity, offset, gain, dst);
+      break;
+    }
+    case NOISE_SHD_PERLIN_HETERO_TERRAIN: {
+      perlin_hetero_terrain_multi<T, MaxSize>(
+          size, position, detail, roughness, lacunarity, offset, dst);
+      break;
+    }
+    default: {
+      std::fill_n(dst, size, 0.0f);
+      break;
+    }
+  }
+}
+
+template<typename T, int MaxSize>
+static void perlin_float_fractal_distorted_chunk(const int64_t size,
+                                                 const int type,
+                                                 const bool normalize,
+                                                 const SoaPtr<T> &position,
+                                                 const float *detail,
+                                                 const float *scale,
+                                                 const float *roughness,
+                                                 const float *lacunarity,
+                                                 const float *offset,
+                                                 const float *gain,
+                                                 const float *distortion,
+                                                 float *dst)
+{
+  FixedSoaArray<T, MaxSize> final_position;
+  for (const int64_t i : IndexRange(size)) {
+    final_position.set(i, position[i] * scale[i]);
+  }
+  const float distortion_repr = distortion[0];
+  if (distortion_repr != 0.0f) {
+    perlin_distortion_multi(size, final_position.data(), distortion);
+  }
+  perlin_select_multi<T, MaxSize>(size,
+                                  final_position.data(),
+                                  detail,
+                                  roughness,
+                                  lacunarity,
+                                  offset,
+                                  gain,
+                                  type,
+                                  normalize,
+                                  dst);
+}
+
+template<typename T> static std::array<T, 3> perlin_color_channel_offsets()
+{
+  /* The specific values are chosen for compatibility. The first value is 0.0f so color.r matches
+   * the factor output of the noise texture node. */
+  if constexpr (std::is_same_v<T, float>) {
+    return {0.0f, random_float_offset(1.0f), random_float_offset(2.0f)};
+  }
+  else if constexpr (std::is_same_v<T, float2>) {
+    return {float2(0.0f), random_float2_offset(2.0f), random_float2_offset(3.0f)};
+  }
+  else if constexpr (std::is_same_v<T, float3>) {
+    return {float3(0.0f), random_float3_offset(3.0f), random_float3_offset(4.0f)};
+  }
+  else {
+    static_assert(std::is_same_v<T, float4>);
+    return {float4(0.0f), random_float4_offset(4.0f), random_float4_offset(5.0f)};
+  }
+}
+
+template<typename T, int MaxSize>
+static void perlin_color_fractal_distorted_chunk(const int64_t size,
+                                                 const int type,
+                                                 const bool normalize,
+                                                 const SoaPtr<T> &position,
+                                                 const float *detail,
+                                                 const float *scale,
+                                                 const float *roughness,
+                                                 const float *lacunarity,
+                                                 const float *offset,
+                                                 const float *gain,
+                                                 const float *distortion,
+                                                 MutableSoaPtr<ColorGeometry4f> dst)
+{
+  FixedSoaArray<T, MaxSize> final_position;
+  for (const int64_t i : IndexRange(size)) {
+    final_position.set(i, position[i] * scale[i]);
+  }
+  const float distortion_repr = distortion[0];
+  if (distortion_repr != 0.0f) {
+    perlin_distortion_multi(size, final_position.data(), distortion);
+  }
+  static const std::array<T, 3> channel_offsets = perlin_color_channel_offsets<T>();
+  for (const int channel : IndexRange(3)) {
+    FixedSoaArray<T, MaxSize> offset_position;
+    for (const int64_t i : IndexRange(size)) {
+      offset_position.set(i, final_position[i] + channel_offsets[channel]);
+    }
+    perlin_select_multi<T, MaxSize>(size,
+                                    offset_position,
+                                    detail,
+                                    roughness,
+                                    lacunarity,
+                                    offset,
+                                    gain,
+                                    type,
+                                    normalize,
+                                    dst.data(channel));
+  }
+  float *alpha = dst.data<3>();
+  for (const int64_t i : IndexRange(size)) {
+    alpha[i] = 1.0f;
+  }
+}
+
+void perlin_float_fractal_distorted_varray_1d(const CommonPerlinVArrayParams &params,
+                                              const VArray<float> &position,
+                                              MutableSpan<float> r_values)
+{
+  using namespace multi_eval;
+  constexpr int chunk_size = 64;
+  evaluate_chunked_varray<"iiiiiiiio", chunk_size>(
+      [normalize = params.normalize,
+       type = params.type](const int64_t size, const float *position, auto &&...args) {
+        perlin_float_fractal_distorted_chunk<float, chunk_size>(
+            size, type, normalize, position, args...);
+      },
+      params.mask,
+      position,
+      params.detail,
+      params.scale,
+      params.roughness,
+      params.lacunarity,
+      params.offset,
+      params.gain,
+      params.distortion,
+      r_values);
+}
+
+void perlin_float_fractal_distorted_varray_2d(const CommonPerlinVArrayParams &params,
+                                              const VArray<float3> &position,
+                                              MutableSpan<float> r_values)
+{
+  using namespace multi_eval;
+  constexpr int chunk_size = 64;
+  evaluate_chunked_varray<"i#iiiiiiio", chunk_size>(
+      [normalize = params.normalize,
+       type = params.type](const int64_t size, const SoaPtr<float3> position_3d, auto &&...args) {
+        const SoaPtr<float2> position_2d{position_3d.data<0>(), position_3d.data<1>()};
+        perlin_float_fractal_distorted_chunk<float2, chunk_size>(
+            size, type, normalize, position_2d, args...);
+      },
+      params.mask,
+      position,
+      params.detail,
+      params.scale,
+      params.roughness,
+      params.lacunarity,
+      params.offset,
+      params.gain,
+      params.distortion,
+      r_values);
+}
+
+void perlin_float_fractal_distorted_varray_3d(const CommonPerlinVArrayParams &params,
+                                              const VArray<float3> &position,
+                                              MutableSpan<float> r_values)
+{
+  using namespace multi_eval;
+  constexpr int chunk_size = 64;
+  evaluate_chunked_varray<"i#iiiiiiio", chunk_size>(
+      [normalize = params.normalize,
+       type = params.type](const int64_t size, const SoaPtr<float3> position, auto &&...args) {
+        perlin_float_fractal_distorted_chunk<float3, chunk_size>(
+            size, type, normalize, position, args...);
+      },
+      params.mask,
+      position,
+      params.detail,
+      params.scale,
+      params.roughness,
+      params.lacunarity,
+      params.offset,
+      params.gain,
+      params.distortion,
+      r_values);
+}
+
+void perlin_float_fractal_distorted_varray_4d(const CommonPerlinVArrayParams &params,
+                                              const VArray<float3> &position_3d,
+                                              const VArray<float> &position_1d,
+                                              MutableSpan<float> r_values)
+{
+  using namespace multi_eval;
+  constexpr int chunk_size = 64;
+  evaluate_chunked_varray<"i#iiiiiiiio", chunk_size>(
+      [normalize = params.normalize, type = params.type](const int64_t size,
+                                                         const SoaPtr<float3> position_3d,
+                                                         const float *position_1d,
+                                                         auto &&...args) {
+        const SoaPtr<float4> position_4d{
+            position_3d.data<0>(), position_3d.data<1>(), position_3d.data<2>(), position_1d};
+        perlin_float_fractal_distorted_chunk<float4, chunk_size>(
+            size, type, normalize, position_4d, args...);
+      },
+      params.mask,
+      position_3d,
+      position_1d,
+      params.detail,
+      params.scale,
+      params.roughness,
+      params.lacunarity,
+      params.offset,
+      params.gain,
+      params.distortion,
+      r_values);
+}
+
+void perlin_color_fractal_distorted_varray_1d(const CommonPerlinVArrayParams &params,
+                                              const VArray<float> &position,
+                                              MutableSpan<ColorGeometry4f> r_values)
+{
+  using namespace multi_eval;
+  constexpr int chunk_size = 64;
+  evaluate_chunked_varray<"iiiiiiiio#", chunk_size>(
+      [normalize = params.normalize,
+       type = params.type](const int64_t size, const float *position, auto &&...args) {
+        perlin_color_fractal_distorted_chunk<float, chunk_size>(
+            size, type, normalize, position, args...);
+      },
+      params.mask,
+      position,
+      params.detail,
+      params.scale,
+      params.roughness,
+      params.lacunarity,
+      params.offset,
+      params.gain,
+      params.distortion,
+      r_values);
+}
+
+void perlin_color_fractal_distorted_varray_2d(const CommonPerlinVArrayParams &params,
+                                              const VArray<float3> &position,
+                                              MutableSpan<ColorGeometry4f> r_values)
+{
+  using namespace multi_eval;
+  constexpr int chunk_size = 64;
+  evaluate_chunked_varray<"i#iiiiiiio#", chunk_size>(
+      [normalize = params.normalize,
+       type = params.type](const int64_t size, const SoaPtr<float3> position_3d, auto &&...args) {
+        const SoaPtr<float2> position_2d{position_3d.data<0>(), position_3d.data<1>()};
+        perlin_color_fractal_distorted_chunk<float2, chunk_size>(
+            size, type, normalize, position_2d, args...);
+      },
+      params.mask,
+      position,
+      params.detail,
+      params.scale,
+      params.roughness,
+      params.lacunarity,
+      params.offset,
+      params.gain,
+      params.distortion,
+      r_values);
+}
+
+void perlin_color_fractal_distorted_varray_3d(const CommonPerlinVArrayParams &params,
+                                              const VArray<float3> &position,
+                                              MutableSpan<ColorGeometry4f> r_values)
+{
+  using namespace multi_eval;
+  constexpr int chunk_size = 64;
+  evaluate_chunked_varray<"i#iiiiiiio#", chunk_size>(
+      [normalize = params.normalize,
+       type = params.type](const int64_t size, const SoaPtr<float3> position, auto &&...args) {
+        perlin_color_fractal_distorted_chunk<float3, chunk_size>(
+            size, type, normalize, position, args...);
+      },
+      params.mask,
+      position,
+      params.detail,
+      params.scale,
+      params.roughness,
+      params.lacunarity,
+      params.offset,
+      params.gain,
+      params.distortion,
+      r_values);
+}
+
+void perlin_color_fractal_distorted_varray_4d(const CommonPerlinVArrayParams &params,
+                                              const VArray<float3> &position_3d,
+                                              const VArray<float> &position_1d,
+                                              MutableSpan<ColorGeometry4f> r_values)
+{
+  using namespace multi_eval;
+  constexpr int chunk_size = 64;
+  evaluate_chunked_varray<"i#iiiiiiiio#", chunk_size>(
+      [normalize = params.normalize, type = params.type](const int64_t size,
+                                                         const SoaPtr<float3> position_3d,
+                                                         const float *position_1d,
+                                                         auto &&...args) {
+        const SoaPtr<float4> position_4d{
+            position_3d.data<0>(), position_3d.data<1>(), position_3d.data<2>(), position_1d};
+        perlin_color_fractal_distorted_chunk<float4, chunk_size>(
+            size, type, normalize, position_4d, args...);
+      },
+      params.mask,
+      position_3d,
+      position_1d,
+      params.detail,
+      params.scale,
+      params.roughness,
+      params.lacunarity,
+      params.offset,
+      params.gain,
+      params.distortion,
+      r_values);
+}
+
+struct PerlinSplitKey {
+  float detail = 0;
+  bool has_distortion = false;
+
+  friend bool operator==(const PerlinSplitKey &a, const PerlinSplitKey &b) = default;
+
+  uint64_t hash() const
+  {
+    return get_default_hash(this->detail, this->has_distortion);
+  }
+};
+
+Vector<IndexMask> perlin_split_mask(LinearAllocator<> &allocator,
+                                    const IndexMask &mask,
+                                    const VArray<float> &detail_varray,
+                                    const VArray<float> &distortion_varray)
+{
+  const std::optional<float> detail_value = detail_varray.get_if_single();
+  const std::optional<float> distortion_value = distortion_varray.get_if_single();
+  if (detail_value.has_value() && distortion_value.has_value()) {
+    return {mask};
+  }
+  /* This could be optimized further in the future probably but it's a rare use-case and typically
+   * the actual noise code is the bottlneck anyway. */
+  MultiValueMap<PerlinSplitKey, int64_t> indices_by_key;
+  mask.foreach_index([&](const int64_t i) {
+    const float detail = perlin_clamp_detail(detail_varray[i]);
+    const float detail_floor = math::floor(detail);
+    PerlinSplitKey key;
+    /* Quantize this way so that the number of octaves is the same for each element in the same
+     * mask, also taking partial octaves into account. */
+    key.detail = detail_floor + 0.5f * (detail != detail_floor);
+    key.has_distortion = distortion_varray[i] != 0.0f;
+    indices_by_key.add(key, i);
+  });
+  Vector<IndexMask> masks;
+  for (const Span<int64_t> indices : indices_by_key.values()) {
+    masks.append(IndexMask::from_indices(indices, allocator));
+  }
+  return masks;
 }
 
 /** \} */

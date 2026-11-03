@@ -20,7 +20,7 @@
 namespace blender {
 
 struct bContext;
-struct BMEditMesh;
+struct EditMesh;
 struct BMesh;
 struct BMEdge;
 struct BMElem;
@@ -44,7 +44,7 @@ struct ViewLayer;
 /*
  * ok: the EDBM module is for editmode bmesh stuff.  in contrast, the
  * BMEdit module is for code shared with blenkernel that concerns
- * the BMEditMesh structure. */
+ * the EditMesh structure. */
 
 /** Calls a bmesh op, reporting errors to the user, etc. */
 bool EDBM_op_callf(BMesh *bm, wmOperator *op, const char *fmt, ...);
@@ -90,7 +90,7 @@ void EDBM_stats_update(BMesh *bm);
  */
 bool EDBM_view3d_poll(bContext *C);
 
-BMElem *EDBM_elem_from_selectmode(BMEditMesh *em, BMVert *eve, BMEdge *eed, BMFace *efa);
+BMElem *EDBM_elem_from_selectmode(EditMesh *em, BMVert *eve, BMEdge *eed, BMFace *efa);
 
 /**
  * Used when we want to store a single index for any vert/edge/face.
@@ -103,7 +103,7 @@ BMElem *EDBM_elem_from_index_any(BMesh *bm, uint index);
 int EDBM_elem_to_index_any_multi(const Main &bmain,
                                  const Scene *scene,
                                  ViewLayer *view_layer,
-                                 BMEditMesh *em,
+                                 EditMesh *em,
                                  BMElem *ele,
                                  int *r_object_index);
 BMElem *EDBM_elem_from_index_any_multi(const Main &bmain,

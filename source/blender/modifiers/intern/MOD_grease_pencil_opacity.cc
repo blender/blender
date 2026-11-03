@@ -75,11 +75,8 @@ static void modify_stroke_color(const GreasePencilOpacityModifierData &omd,
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  bke::SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> opacities = attributes.ensure_for_write_span<float>(
       "opacity", bke::AttrDomain::Point);
-  if (!opacities) {
-    return;
-  }
   const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
       curves, omd.influence);
 
@@ -129,7 +126,7 @@ static void modify_fill_color(const GreasePencilOpacityModifierData &omd,
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   /* Fill color opacity per stroke. */
-  bke::SpanAttributeWriter<float> fill_opacities = attributes.convert_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> fill_opacities = attributes.ensure_for_write_span<float>(
       "fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f));
   const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
       curves, omd.influence);
@@ -163,7 +160,7 @@ static void modify_softness(const GreasePencilOpacityModifierData &omd,
                             const IndexMask &curves_mask)
 {
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> softness = attributes.ensure_for_write_span<float>(
       "softness", bke::AttrDomain::Curve);
 
   curves_mask.foreach_index_optimized<int64_t>(
@@ -185,6 +182,10 @@ static void modify_curves(ModifierData *md,
   IndexMaskMemory mask_memory;
   const IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
       ctx->object, curves, omd->influence, mask_memory);
+
+  if (curves_mask.is_empty()) {
+    return;
+  }
 
   switch (omd->color_mode) {
     case MOD_GREASE_PENCIL_COLOR_STROKE:

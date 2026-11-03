@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <mutex>
+
 #include "BLI_vector.hh"
 
 #include "gpu_backend.hh"
@@ -81,6 +83,20 @@ class MTLBackend : public GPUBackend {
   bool is_inside_render_boundary();
 
  private:
+  /**
+   * The platform and the capabilities are the same for all contexts of the back-end, because they
+   * all use the same device. They are initialized by the first context and freed with the
+   * back-end, see #platform_and_capabilities_ensure.
+   */
+  std::once_flag platform_and_capabilities_initialized_;
+
+  /**
+   * Initialize the platform and the capabilities when the first context of the back-end is
+   * created. Later contexts must not write them, because they can be created while other threads
+   * read them (like a render thread that creates its context while the user interface draws).
+   */
+  void platform_and_capabilities_ensure(MTLContext *ctx);
+
   static void platform_init(MTLContext *ctx);
   static void platform_exit();
 

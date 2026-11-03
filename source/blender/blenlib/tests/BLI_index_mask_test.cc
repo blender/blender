@@ -1297,4 +1297,50 @@ TEST(index_mask, FromRanges)
   }
 }
 
+TEST(index_mask, FromGroupedIndices)
+{
+  IndexMaskMemory memory;
+  Array<int> offsets = {0, 2, 5, 12};
+  Vector<int> data;
+  /* 1. group. */
+  data.extend({5, 100});
+  /* 2. group. */
+  data.extend({16383, 16384, 16385});
+  /* 3. group. */
+  data.extend({20000, 20001, 50000, 50001, 50002, 100000, 101000});
+  const GroupedSpan<int> indices(OffsetIndices<int>(offsets), data);
+
+  {
+    const IndexMask mask = IndexMask::from_grouped_indices(indices, IndexRange(0), memory);
+    EXPECT_TRUE(mask.is_empty());
+  }
+  {
+    /* Entire grouped span should be the same as `IndexMask::from_indices`. */
+    const IndexMask mask = IndexMask::from_grouped_indices(indices, indices.index_range(), memory);
+    EXPECT_EQ(mask.first(), 5);
+    EXPECT_EQ(mask.last(), 101000);
+    EXPECT_EQ(mask.min_array_size(), 101001);
+    EXPECT_EQ(mask.bounds(), IndexRange::from_begin_end_inclusive(5, 101000));
+  }
+  {
+    const IndexMask mask = IndexMask::from_grouped_indices(
+        indices, IndexRange::from_single(0), memory);
+    EXPECT_EQ(mask.first(), 5);
+    EXPECT_EQ(mask.last(), 100);
+    EXPECT_EQ(mask.size(), 2);
+  }
+  {
+    const IndexMask mask = IndexMask::from_grouped_indices(
+        indices, IndexRange::from_single(1), memory);
+    EXPECT_EQ(*mask.to_range(), IndexRange::from_begin_end_inclusive(16383, 16385));
+  }
+  {
+    const IndexMask mask = IndexMask::from_grouped_indices(
+        indices, IndexRange::from_single(2), memory);
+    EXPECT_EQ(mask.first(), 20000);
+    EXPECT_EQ(mask.last(), 101000);
+    EXPECT_EQ(mask.bounds(), IndexRange::from_begin_end_inclusive(20000, 101000));
+  }
+}
+
 }  // namespace blender::index_mask::tests

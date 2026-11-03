@@ -507,7 +507,7 @@ void BKE_main_merge(Main *bmain_dst,
       /* Set the packed ID's library back to the regular library, so that the call to
        * #BKE_libblock_management_main_add() later in that function can select or create a suitable
        * archive library for it in `bmain_dst`. */
-      id_iter_src->lib = id_iter_src->lib->archive_parent_library;
+      bke::id::id_lib_set(*id_iter_src, id_iter_src->lib->archive_parent_library);
     }
     /* Libraries need to be remapped:
      *  - _After_ removing IDs from the old source Main, to ensure that they get properly removed
@@ -599,7 +599,7 @@ void BKE_main_merge_as_archive_library(Main &bmain_dst,
   /* Remove IDs from the source Main and assign them to the external library namespace. */
   for (ID *id : ids_to_move) {
     BKE_libblock_management_main_remove(&bmain_src, id);
-    id->lib = &dst_external_library;
+    bke::id::id_lib_set(*id, &dst_external_library);
 
     /* Consider these IDs as directly linked and packed. */
     id->flag |= ID_FLAG_LINKED_AND_PACKED;
@@ -607,13 +607,11 @@ void BKE_main_merge_as_archive_library(Main &bmain_dst,
     /* Need to tag embedded IDs as well. */
     bNodeTree *ntree = bke::node_tree_from_id(id);
     if (ntree != nullptr) {
-      ntree->id.lib = &dst_external_library;
       ntree->id.flag |= ID_FLAG_LINKED_AND_PACKED;
     }
     if (id->id_type() == ID_SCE) {
       Collection *master_collection = (id_cast<Scene *>(id))->master_collection;
       if (master_collection != nullptr) {
-        master_collection->id.lib = &dst_external_library;
         master_collection->id.flag |= ID_FLAG_LINKED_AND_PACKED;
       }
     }

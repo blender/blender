@@ -40,7 +40,7 @@ std::string constexpr_to_string(const ConstexprValue &v);
  * Represent variable declarations, parameters, or enum values.
  */
 struct SymbolVariable : Symbol {
-  SymbolClass *type = nullptr;
+  const SymbolClass &type;
 
   /* Valid if the variable is a local reference.
    * The variable will be substituted to this statement. */
@@ -76,23 +76,23 @@ struct SymbolVariable : Symbol {
   bool is_ptr = false;
   bool is_this = false;
 
-  SymbolVariable(SymbolScope *parent,
-                 SymbolClass *type,
+  SymbolVariable(SymbolScope &parent,
+                 const SymbolClass &type,
                  ast::Declarator decl,
                  const SymbolTable &table);
 
-  SymbolVariable(SymbolScope *parent, SymbolClass *type, ast::EnumValue decl)
+  SymbolVariable(SymbolScope &parent, const SymbolClass &type, ast::EnumValue decl)
       : Symbol(string(decl.identifier().str()),
                string(decl.identifier().str()),
                decl.front(),
-               parent),
+               &parent),
         type(type),
         is_static(true)
   {
   }
 
-  SymbolVariable(SymbolScope *parent, SymbolClass *type, Token id, const string &str)
-      : Symbol(str, str, id, parent), type(type)
+  SymbolVariable(SymbolScope &parent, const SymbolClass &type, Token id, const string &str)
+      : Symbol(str, str, id, &parent), type(type)
   {
   }
 

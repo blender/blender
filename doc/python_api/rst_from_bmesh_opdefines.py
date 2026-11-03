@@ -282,6 +282,9 @@ def main():
                 if comment.startswith("NOTE"):
                     comment = ""
 
+                # Use double back-ticks for literals (C++ comments only use a single, RST expected two).
+                comment = comment.replace("`", "``")
+
                 default_value = None
                 if tp == BMO_OP_SLOT_FLT:
                     tp_str = "float"

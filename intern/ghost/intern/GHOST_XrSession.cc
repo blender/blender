@@ -14,6 +14,7 @@
 #include <sstream>
 
 #include "BLI_span.hh"
+#include "BLI_string.hh"
 
 #include "GHOST_Context.hh"
 #include "GHOST_IXrGraphicsBinding.hh"
@@ -627,6 +628,12 @@ bool GHOST_XrSession::isRunning() const
     default:
       return false;
   }
+}
+
+void GHOST_XrSession::getRuntimeName(char *r_runtime_name)
+{
+  XrInstanceProperties instance_properties = context_->getInstanceProperties();
+  blender::BLI_strncpy(r_runtime_name, instance_properties.runtimeName, XR_MAX_RUNTIME_NAME_SIZE);
 }
 
 /** \} */ /* State Queries */

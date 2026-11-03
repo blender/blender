@@ -10,7 +10,7 @@
  *
  * This API handles the case when the modifier stack outputs a mesh which does not have
  * #Mesh data (#Mesh::faces(), corner verts, corner edges, edges, etc).
- * Currently this is used so the resulting mesh can have #BMEditMesh data,
+ * Currently this is used so the resulting mesh can have #EditMesh data,
  * postponing the converting until it's needed or avoiding conversion entirely
  * which can be an expensive operation.
  * Once converted, the meshes type changes to #ME_WRAPPER_TYPE_MDATA,
@@ -39,13 +39,13 @@
 
 namespace blender {
 
-Mesh *BKE_mesh_wrapper_from_editmesh(std::shared_ptr<BMEditMesh> em,
+Mesh *BKE_mesh_wrapper_from_editmesh(std::shared_ptr<EditMesh> em,
                                      const CustomData_MeshMasks *cd_mask_extra,
                                      const Mesh *me_settings)
 {
   Mesh *mesh = BKE_id_new_nomain<Mesh>(nullptr);
   BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
-  BKE_mesh_runtime_ensure_edit_data(mesh);
+  BKE_mesh_runtime_bmesh_wrapper_data_ensure(mesh);
 
   mesh->runtime->wrapper_type = ME_WRAPPER_TYPE_BMESH;
   if (cd_mask_extra) {
@@ -97,7 +97,7 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
       mesh->corners_num = 0;
 
       BLI_assert(mesh->runtime->edit_mesh != nullptr);
-      BLI_assert(mesh->runtime->edit_data != nullptr);
+      BLI_assert(mesh->runtime->bmesh_wrapper_data != nullptr);
 
       BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
       BM_mesh_bm_to_me_for_eval(*bm, *mesh, &mesh->runtime->cd_mask_extra);
@@ -112,13 +112,13 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
        * be wrong, but it's not harmful. */
       BKE_mesh_ensure_default_orig_index_customdata_no_check(mesh);
 
-      bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
+      bke::MeshWrapperCacheData &edit_data = *mesh->runtime->bmesh_wrapper_data;
       if (!edit_data.vert_positions.is_empty()) {
         mesh->vert_positions_for_write().copy_from(edit_data.vert_positions);
         mesh->runtime->is_original_bmesh = false;
       }
 
-      mesh->runtime->edit_data.reset();
+      mesh->runtime->bmesh_wrapper_data.reset();
     }
     else if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_SUBD) {
       BLI_assert(!"Should not be converting subd wrapper to mdata wrapper");
@@ -138,7 +138,7 @@ Span<float3> BKE_mesh_wrapper_vert_coords(const Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return mesh->runtime->edit_data->vert_positions;
+      return mesh->runtime->bmesh_wrapper_data->vert_positions;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->vert_positions();
@@ -152,7 +152,7 @@ Span<float3> BKE_mesh_wrapper_face_normals(Mesh *mesh)
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       return BKE_editmesh_cache_ensure_face_normals(*BKE_editmesh_bmesh_get_for_write(mesh),
-                                                    *mesh->runtime->edit_data);
+                                                    *mesh->runtime->bmesh_wrapper_data);
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->face_normals();
@@ -165,7 +165,7 @@ void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      if (bke::EditMeshData *edit_data = mesh->runtime->edit_data.get()) {
+      if (bke::MeshWrapperCacheData *edit_data = mesh->runtime->bmesh_wrapper_data.get()) {
         edit_data->vert_normals = {};
         edit_data->face_centers = {};
         edit_data->face_normals = {};
@@ -183,7 +183,7 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *mesh, MutableSpan<float3> pos
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
       BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh));
-      const bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
+      const bke::MeshWrapperCacheData &edit_data = *mesh->runtime->bmesh_wrapper_data;
       if (!edit_data.vert_positions.is_empty()) {
         positions.copy_from(edit_data.vert_positions);
       }
@@ -215,7 +215,7 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *mesh,
     case ME_WRAPPER_TYPE_BMESH: {
       BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh));
       BLI_assert(vert_coords_len == bm->totvert);
-      const bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
+      const bke::MeshWrapperCacheData &edit_data = *mesh->runtime->bmesh_wrapper_data;
       if (!edit_data.vert_positions.is_empty()) {
         for (int i = 0; i < vert_coords_len; i++) {
           mul_v3_m4v3(vert_coords[i], mat, edit_data.vert_positions[i]);

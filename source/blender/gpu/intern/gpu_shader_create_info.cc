@@ -168,7 +168,6 @@ void ShaderCreateInfo::finalize(const bool recursive)
      * shader resources, we need to avoid inserting duplicates.
      * TODO: Optimize create info preparation to include each individual "additional_info"
      * only a single time. */
-    vertex_inputs_.extend_non_duplicates(info.vertex_inputs_);
     vertex_out_interfaces_.extend_non_duplicates(info.vertex_out_interfaces_);
     specialization_constants_.extend_non_duplicates(info.specialization_constants_);
     compilation_constants_.extend_non_duplicates(info.compilation_constants_);
@@ -192,6 +191,9 @@ void ShaderCreateInfo::finalize(const bool recursive)
     }
     for (const auto &res : info.geometry_resources_) {
       extend_predicate(geometry_resources_, res, additional_info.conditions);
+    }
+    for (const auto &res : info.vertex_inputs_) {
+      extend_predicate(vertex_inputs_, res, additional_info.conditions);
     }
     for (const auto &res : info.fragment_outputs_) {
       extend_predicate(fragment_outputs_, res, additional_info.conditions);

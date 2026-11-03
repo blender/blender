@@ -76,7 +76,7 @@ static bool execute_carver_on_drawing(const Object &ob_eval,
 
   placement.project(mcoords, input_curves.positions_for_write().take_back(mcoords.size()));
 
-  bke::SpanAttributeWriter<int> fill_ids = attributes.lookup_or_add_for_write_span<int>(
+  bke::SpanAttributeWriter<int> fill_ids = attributes.ensure_for_write_span<int>(
       "fill_id", bke::AttrDomain::Curve);
   fill_ids.span.last() = bke::greasepencil::get_next_available_fill_id(fill_ids.span.varray());
 

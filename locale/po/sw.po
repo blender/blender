@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
 "PO-Revision-Date: 2026-09-15 16:12+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28210,20 +28210,24 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
+msgid "Clean Up"
+msgstr "Safisha"
+
+
 msgid "Pivot Point"
 msgstr "Egemeo"
 
 
 msgid "Snap"
 msgstr "Picha"
-
-
-msgid "Mirror"
-msgstr "Kioo"
-
-
-msgid "Navigation"
-msgstr "Urambazaji"
 
 
 msgid "Math"
@@ -28234,8 +28238,8 @@ msgid "Utilities"
 msgstr "Huduma"
 
 
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
+msgid "Mirror"
+msgstr "Kioo"
 
 
 msgid "Read"
@@ -28246,6 +28250,10 @@ msgid "Sample"
 msgstr "Mfano"
 
 
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
 msgid "Write"
 msgstr "Andika"
 
@@ -28254,16 +28262,8 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
-msgid "Light"
-msgstr "Mwanga"
-
-
-msgid "Light Probe"
-msgstr "Uchunguzi wa Mwanga"
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Instances"
@@ -28274,20 +28274,20 @@ msgid "Import"
 msgstr "Ingiza"
 
 
-msgid "Apply"
-msgstr "Tumia"
-
-
 msgid "Deprecated"
 msgstr "Imeacha kutumika"
 
 
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
+msgid "Light"
+msgstr "Mwanga"
 
 
-msgid "Clean Up"
-msgstr "Safisha"
+msgid "Light Probe"
+msgstr "Uchunguzi wa Mwanga"
+
+
+msgid "Apply"
+msgstr "Tumia"
 
 
 msgid "Asset"
@@ -28296,10 +28296,6 @@ msgstr "Mali"
 
 msgid "Bone Collections"
 msgstr "Mikusanyo ya Mifupa"
-
-
-msgid "Merge"
-msgstr "Unganisha"
 
 
 msgid "Linked"
@@ -28316,6 +28312,10 @@ msgstr "Rekebisha"
 
 msgid "Keying"
 msgstr "Kuweka"
+
+
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Tracking"
@@ -43163,11 +43163,6 @@ msgstr "Pakia na utumie faili ya mandhari ya Blender XML"
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "Sakinisha Mandhari..."
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Ongeza Maktaba ya Mali"
 
 
 msgid "Add an Integrator Preset"
@@ -63490,6 +63485,11 @@ msgstr "Jina la moduli la programu jalizi ya kuondoa"
 
 msgid "Remove existing template with the same ID"
 msgstr "Ondoa kiolezo kilichopo na kitambulisho sawa"
+
+
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Ongeza Maktaba ya Mali"
 
 
 msgid "Add a directory to be used by the Asset Browser as source of assets"
@@ -104721,10 +104721,6 @@ msgid "No active item to rename"
 msgstr "Hakuna kipengee kinachotumika cha kubadilisha jina"
 
 
-msgid "No selected data-blocks to copy"
-msgstr "Hakuna vizuizi vya data vilivyochaguliwa vya kunakili"
-
-
 msgid "Operation requires an active keying set"
 msgstr "Uendeshaji unahitaji seti ya vitufe inayotumika"
 
@@ -104891,6 +104887,10 @@ msgstr "(tupu)"
 
 msgid "Strip None"
 msgstr "Ondoa Hakuna"
+
+
+msgid "There is no asset library to remove"
+msgstr "Hakuna maktaba ya kipengee ya kuondoa"
 
 
 msgid "Add a color strip to the sequencer"
@@ -105191,10 +105191,6 @@ msgstr "Kujiondoa hakuwezekani kutoka kwa usakinishaji wa Duka la Microsoft"
 
 msgid "File association unregistered"
 msgstr "Muungano wa faili haujasajiliwa"
-
-
-msgid "There is no asset library to remove"
-msgstr "Hakuna maktaba ya kipengee ya kuondoa"
 
 
 msgid "There is no extension repository to remove"

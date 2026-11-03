@@ -184,6 +184,7 @@ void VKBuffer::async_flush_to_host(VKContext &context)
 {
   BLI_assert(async_timeline_ == 0);
   context.rendering_end();
+  context.render_graph().add_node(render_graph::VKSynchronizeReadbackNode::CreateInfo{resource()});
   async_timeline_ = context.flush_render_graph(RenderGraphFlushFlags::SUBMIT |
                                                RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
 }
@@ -197,6 +198,7 @@ void VKBuffer::read_async(VKContext &context, void *data)
   VKDevice &device = VKBackend::get().device;
   device.wait_for_timeline(async_timeline_);
   async_timeline_ = 0;
+  invalidate_mapped_memory();
   memcpy(data, mapped_memory_, size_in_bytes_);
 }
 
@@ -206,9 +208,11 @@ void VKBuffer::read(VKContext &context, void *data) const
   BLI_assert_msg(is_mapped(), "Cannot read a non-mapped buffer.");
   BLI_assert(async_timeline_ == 0);
   context.rendering_end();
+  context.render_graph().add_node(render_graph::VKSynchronizeReadbackNode::CreateInfo{resource()});
   context.flush_render_graph(RenderGraphFlushFlags::SUBMIT |
                              RenderGraphFlushFlags::WAIT_FOR_COMPLETION |
                              RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
+  invalidate_mapped_memory();
   memcpy(data, mapped_memory_, size_in_bytes_);
 }
 
@@ -255,7 +259,7 @@ void VKBuffer::flush_mapped_memory()
   vmaFlushAllocation(allocator, allocation_, 0, size_in_bytes_);
 }
 
-void VKBuffer::invalidate_mapped_memory()
+void VKBuffer::invalidate_mapped_memory() const
 {
   const VKDevice &device = VKBackend::get().device;
   VmaAllocator allocator = device.mem_allocator_get();

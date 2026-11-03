@@ -370,7 +370,7 @@ static bke::CurvesGeometry create_test_curves(const Span<int> offsets,
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
-  bke::SpanAttributeWriter<int> fill_id_writer = attributes.lookup_or_add_for_write_span<int>(
+  bke::SpanAttributeWriter<int> fill_id_writer = attributes.ensure_for_write_span<int>(
       "fill_id", bke::AttrDomain::Curve);
   fill_id_writer.span.copy_from(fill_ids);
   fill_id_writer.finish();

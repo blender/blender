@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
-"PO-Revision-Date: 2026-10-20 01:56+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"PO-Revision-Date: 2026-10-28 08:12+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -4323,7 +4323,7 @@ msgstr "Proyecto de Blender"
 
 
 msgid "Index of the asset library being edited in the Project Settings UI"
-msgstr "Identificador de la biblioteca de recursos que está siendo editada en la Configuración del proyecto"
+msgstr "Identificador de la biblioteca de recursos que está siendo editada en las opciones del proyecto"
 
 
 msgid "Active Project Variable"
@@ -36645,8 +36645,36 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
+msgid "Show/Hide"
+msgstr "Mostrar / Ocultar"
+
+
 msgid "Creative"
 msgstr "Creatividad"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiales"
+
+
+msgid "Kerning"
+msgstr "Espaciado"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Names"
+msgstr "Nombres"
+
+
+msgid "Bone Roll"
+msgstr "Giro de huesos"
+
+
+msgid "Clean Up"
+msgstr "Limpiar"
 
 
 msgid "Pivot Point"
@@ -36677,6 +36705,14 @@ msgid "Vertex Group Locks"
 msgstr "Bloqueos de grupo de vértices"
 
 
+msgid "Math"
+msgstr "Operar"
+
+
+msgid "Utilities"
+msgstr "Utilitarios"
+
+
 msgid "Mirror"
 msgstr "Simetrizar"
 
@@ -36689,12 +36725,24 @@ msgid "Local View"
 msgstr "Vista local"
 
 
+msgid "Read"
+msgstr "Lectura"
+
+
 msgid "Viewpoint"
 msgstr "Punto de vista"
 
 
+msgid "Sample"
+msgstr "Muestreo"
+
+
 msgid "Navigation"
 msgstr "Navegación"
+
+
+msgid "Write"
+msgstr "Escritura"
 
 
 msgid "Align View"
@@ -36705,20 +36753,16 @@ msgid "Align View to Active"
 msgstr "Alinear vista al activo"
 
 
+msgid "Primitives"
+msgstr "Primitivas"
+
+
 msgid "View Regions"
 msgstr "Regiones de la vista"
 
 
-msgid "Math"
-msgstr "Operar"
-
-
 msgid "Select More/Less"
 msgstr "Seleccionar más / menos"
-
-
-msgid "Utilities"
-msgstr "Utilitarios"
 
 
 msgid "Select Similar"
@@ -36737,38 +36781,6 @@ msgid "Select Loops"
 msgstr "Seleccionar bucles"
 
 
-msgid "Read"
-msgstr "Lectura"
-
-
-msgid "Sample"
-msgstr "Muestreo"
-
-
-msgid "Assign Material"
-msgstr "Asignar material"
-
-
-msgid "Write"
-msgstr "Escritura"
-
-
-msgid "Primitives"
-msgstr "Primitivas"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de luz"
-
-
 msgid "Gizmo"
 msgstr "Manipulador"
 
@@ -36777,16 +36789,40 @@ msgid "Instances"
 msgstr "Instancias"
 
 
+msgid "Assign Material"
+msgstr "Asignar material"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Deprecated"
+msgstr "Obsoleto"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Render Preview"
+msgstr "Procesar previsualización"
+
+
+msgid "Light Probe"
+msgstr "Sonda de luz"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Add Image"
 msgstr "Agregar imagen"
 
 
 msgid "Relations"
 msgstr "Relaciones"
-
-
-msgid "Import"
-msgstr "Importar"
 
 
 msgid "Rigid Body"
@@ -36801,20 +36837,8 @@ msgid "Track"
 msgstr "Rastrear"
 
 
-msgid "Deprecated"
-msgstr "Obsoleto"
-
-
 msgid "Quick Effects"
 msgstr "Efectos rápidos"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar / Ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpiar"
 
 
 msgid "Asset"
@@ -36825,16 +36849,8 @@ msgid "Make Single User"
 msgstr "Hacer de único usuario"
 
 
-msgid "Render Preview"
-msgstr "Procesar previsualización"
-
-
 msgid "Convert"
 msgstr "Convertir"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -36877,8 +36893,12 @@ msgid "Bone Collections"
 msgstr "Colecciones de huesos"
 
 
-msgid "Names"
-msgstr "Nombres"
+msgid "Linked"
+msgstr "Vinculado"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Toggle Bone Options"
@@ -36909,36 +36929,16 @@ msgid "Set Face Strength"
 msgstr "Definir intensidad de caras"
 
 
-msgid "Merge"
-msgstr "Fusionar"
-
-
-msgid "Linked"
-msgstr "Vinculado"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Kerning"
-msgstr "Espaciado"
-
-
 msgid "Adjust"
 msgstr "Ajustar"
 
 
-msgid "Bone Roll"
-msgstr "Giro de huesos"
-
-
 msgid "Keying"
 msgstr "Recortar"
+
+
+msgid "Merge"
+msgstr "Fusionar"
 
 
 msgid "Tracking"
@@ -37310,12 +37310,12 @@ msgid "Select Selection Set"
 msgstr "Seleccionar conjunto de selección"
 
 
-msgid "Add Variable"
-msgstr "Agregar variable"
-
-
 msgid "Save & Load"
 msgstr "Guardar y cargar"
+
+
+msgid "Add Variable"
+msgstr "Agregar variable"
 
 
 msgid "Frame Rate Presets"
@@ -57633,72 +57633,6 @@ msgstr "Carga y aplica un archivo XML de tema de Blender"
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "Instalar tema..."
-
-
-msgid "Add a new variable to the current project"
-msgstr "Agrega una nueva variable al proyecto actual"
-
-
-msgctxt "Operator"
-msgid "Add Variable"
-msgstr "Agregar variable"
-
-
-msgid ""
-"\n"
-"Register a directory to be used by the Asset Browser and other places showing assets,\n"
-"as source of assets within the current project."
-msgstr ""
-"\n"
-"Registra una carpeta a ser usada por el Explorador de recursos y en otros sitios que muestren recursos,\n"
-"como un origen de recursos dentro del proyecto actual."
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Agregar biblioteca de recursos"
-
-
-msgid ""
-"\n"
-"Deregister an asset library so that its directory will no longer show up in\n"
-"Asset Browsers and other places showing assets."
-msgstr ""
-"\n"
-"Quita del registro una biblioteca de recursos, para que su carpeta ya no sea mostrada en\n"
-"el Explorador de recursos y otros sitios que muestren recursos."
-
-
-msgctxt "Operator"
-msgid "Remove Project Asset Library"
-msgstr "Eliminar biblioteca de recursos del proyecto"
-
-
-msgid "Move the active variable up or down in the list of variables"
-msgstr "Permite mover la variable activa hacia arriba o abajo en la lista"
-
-
-msgctxt "Operator"
-msgid "Move Variable"
-msgstr "Mover variable"
-
-
-msgid "Remove the active variable from the current project"
-msgstr "Elimina la variable activa del proyecto actual"
-
-
-msgctxt "Operator"
-msgid "Remove Variable"
-msgstr "Eliminar variable"
-
-
-msgid "Save the current project to disk"
-msgstr "Guarda el proyecto actual al disco"
-
-
-msgctxt "Operator"
-msgid "Save Project"
-msgstr "Guardar proyecto"
 
 
 msgid "Add or remove a white balance preset"
@@ -83645,6 +83579,11 @@ msgid "Remove existing template with the same ID"
 msgstr "Eliminar la plantilla existente con el mismo ID"
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Agregar biblioteca de recursos"
+
+
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "Agrega una carpeta a ser usada por el Explorador de recursos como una fuente de recursos"
 
@@ -83906,24 +83845,8 @@ msgid "Remove this installation's associations with .blend files"
 msgstr "Elimina las asociaciones de esta instalación con archivos .blend"
 
 
-msgid "String Variable"
-msgstr "Variable de cadena"
-
-
-msgid "Filepath Variable"
-msgstr "Variable de ruta"
-
-
-msgid "Integer Variable"
-msgstr "Variable entera"
-
-
-msgid "Float Variable"
-msgstr "Variable decimal"
-
-
-msgid "Asset Library Directory"
-msgstr "Carpeta biblioteca recursos"
+msgid "Add a directory to be used by the Project as source of assets"
+msgstr "Agrega una carpeta a ser usada en el proyecto como fuente de recursos"
 
 
 msgctxt "Operator"
@@ -83939,12 +83862,13 @@ msgid "Skip check to prevent unsaved changes from being lost"
 msgstr "Omitir comprobación para prevenir la pérdida de cambios no guardados"
 
 
-msgid "Move Up"
-msgstr "Mover arriba"
+msgctxt "Operator"
+msgid "Save Project Config"
+msgstr "Guardar opciones del proyecto"
 
 
-msgid "Move Down"
-msgstr "Mover abajo"
+msgid "Save the current project config to disk"
+msgstr "Guarda las opciones del proyecto actual al disco"
 
 
 msgctxt "Operator"
@@ -83954,6 +83878,26 @@ msgstr "Nuevo proyecto"
 
 msgid "Create a new project"
 msgstr "Crea un nuevo proyecto"
+
+
+msgid "Project Root Folder"
+msgstr "Carpeta superior del proyecto"
+
+
+msgid "Project folder, created if missing"
+msgstr "Carpeta para el proyecto (se creará si hace falta)"
+
+
+msgid "Folder of the current file or one of its parents, to turn into a project"
+msgstr "La carpeta del archivo actual o una de sus superiores, a ser convertida en un proyecto"
+
+
+msgid "Name of the project"
+msgstr "Nombre del proyecto"
+
+
+msgid "Update Directory From Name"
+msgstr "Actualizar carpeta desde nombre"
 
 
 msgctxt "Operator"
@@ -83991,6 +83935,69 @@ msgstr ""
 "Establecer el arte de bienvenida del proyecto a partir de un archivo de imagen.\n"
 "La imagen será recortada, escalada y guardada como \".blender_project/splash.jpg\".\n"
 "Para un resultado óptimo usar una proporción de 2:1"
+
+
+msgctxt "Operator"
+msgid "Add Variable"
+msgstr "Agregar variable"
+
+
+msgid "Add a new variable to the current project"
+msgstr "Agrega una nueva variable al proyecto actual"
+
+
+msgid "Variable Type"
+msgstr "Tipo de variable"
+
+
+msgid "The kind of variable type to add"
+msgstr "El tipo de variable a ser agregada"
+
+
+msgid "String Variable"
+msgstr "Variable de cadena"
+
+
+msgid "Filepath Variable"
+msgstr "Variable de ruta"
+
+
+msgid "Integer Variable"
+msgstr "Variable entera"
+
+
+msgid "Float Variable"
+msgstr "Variable decimal"
+
+
+msgctxt "Operator"
+msgid "Move Variable"
+msgstr "Mover variable"
+
+
+msgid "Move the active variable up or down in the list of variables"
+msgstr "Permite mover la variable activa hacia arriba o abajo en la lista"
+
+
+msgid "Which direction to move the variable"
+msgstr "En qué dirección mover la variable"
+
+
+msgid "Move Up"
+msgstr "Mover arriba"
+
+
+msgid "Move Down"
+msgstr "Mover abajo"
+
+
+msgctxt "Operator"
+msgid "Remove Variable"
+msgstr "Eliminar variable"
+
+
+msgid "Remove the active variable from the current project"
+msgstr "Elimina la variable activa del proyecto actual"
 
 
 msgctxt "Operator"
@@ -85199,7 +85206,7 @@ msgstr "Permite agregar una nueva organización de pantalla"
 
 msgctxt "Operator"
 msgid "Open Project Settings..."
-msgstr "Abrir configuración del proyecto..."
+msgstr "Abrir opciones del proyecto..."
 
 
 msgid "Create and manage projects"
@@ -85211,7 +85218,7 @@ msgstr "Sección activa"
 
 
 msgid "Section to activate in Project Settings"
-msgstr "Sección a activar en configuración del proyecto"
+msgstr "Sección a activar en opciones del proyecto"
 
 
 msgctxt "Operator"
@@ -101981,6 +101988,10 @@ msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chino (simplificado) - 简体中文"
 
 
+msgid "Locale code: zh_HANS. Translation progress: 100%"
+msgstr "Código de localización: zh_HANS. Progreso de la traducción: 100%"
+
+
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Chino (tradicional) - 繁體中文"
 
@@ -102057,12 +102068,16 @@ msgid "French - Français"
 msgstr "Francés - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 98%"
+msgid "Locale code: fr_FR. Translation progress: 99%"
 msgstr "Código de localización: fr_FR. Progreso de la traducción: 100%"
 
 
 msgid "Georgian - ქართული"
 msgstr "Georgiano - ქართული"
+
+
+msgid "Locale code: ka. Translation progress: 97%"
+msgstr "Código de localización: ka. Progreso de la traducción: 97%"
 
 
 msgid "German - Deutsch"
@@ -102109,6 +102124,10 @@ msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonesio - Bahasa indonesia"
 
 
+msgid "Locale code: id_ID. Translation progress: 21%"
+msgstr "Código de localización: id_ID. Progreso de la traducción: 21%"
+
+
 msgid "Italian - Italiano"
 msgstr "Italiano - Italiano"
 
@@ -102121,7 +102140,7 @@ msgid "Japanese - 日本語"
 msgstr "Japonés - 日本語"
 
 
-msgid "Locale code: ja_JP. Translation progress: 98%"
+msgid "Locale code: ja_JP. Translation progress: 99%"
 msgstr "Código de localización: ja_JP. Progreso de la traducción: 100%"
 
 
@@ -102193,6 +102212,10 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugués (Portugal) - Português (Portugal)"
 
 
+msgid "Locale code: pt_PT. Translation progress: 82%"
+msgstr "Código de localización: pt_PT. Progreso de la traducción: 82%"
+
+
 msgid "Romanian - Român"
 msgstr "Rumano - Român"
 
@@ -102205,7 +102228,7 @@ msgid "Russian - Русский"
 msgstr "Ruso - Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 99%"
+msgid "Locale code: ru_RU. Translation progress: 100%"
 msgstr "Código de localización: ru_RU. Progreso de la traducción: 100%"
 
 
@@ -102261,8 +102284,16 @@ msgid "Swedish - Svenska"
 msgstr "Sueco - Svenska"
 
 
+msgid "Locale code: sv_SE. Translation progress: 100%"
+msgstr "Código de localización: sv_SE. Progreso de la traducción: 100%"
+
+
 msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
+
+
+msgid "Locale code: ta. Translation progress: 92%"
+msgstr "Código de localización: ta. Progreso de la traducción: 92%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -125574,6 +125605,21 @@ msgid "Legacy (Other)"
 msgstr "Obsoleto (otro)"
 
 
+msgctxt "Preferences"
+msgid "Add-on"
+msgstr "Complemento"
+
+
+msgctxt "Preferences"
+msgid "Asset Library"
+msgstr "Biblioteca de recursos"
+
+
+msgctxt "Preferences"
+msgid "Theme"
+msgstr "Tema"
+
+
 msgid "Missing Built-in Add-ons"
 msgstr "Complementos integrados faltantes"
 
@@ -125874,11 +125920,11 @@ msgstr "Compilación exitosa del sombreador OSL"
 
 
 msgid "OSL script compilation failed, see console for errors"
-msgstr "Compilación fallida del sombreador OSL, ver errores en consola"
+msgstr "Error al compilar sombreador OSL, ver errores en consola"
 
 
 msgid "Custom Camera shader compilation failed, see console for errors"
-msgstr "Compilación fallida del sombreador personalizado de cámara, ver errores en consola"
+msgstr "Error al compilar sombreador personalizado de cámara, ver errores en consola"
 
 
 msgid "No text or file specified in node, nothing to compile"
@@ -133112,8 +133158,21 @@ msgid "Auto-Save Project"
 msgstr "Guardar proyecto autom."
 
 
+msgctxt "Operator"
+msgid "Save Project"
+msgstr "Guardar proyecto"
+
+
 msgid "Artwork"
 msgstr "Arte"
+
+
+msgid "No active project."
+msgstr "Ningún objeto activo."
+
+
+msgid "Create a new project, or open an existing project or a file inside of one."
+msgstr "Crea un nuevo proyecto, abre uno existente o abre un archivo dentro de un proyecto."
 
 
 msgctxt "Operator"
@@ -133136,30 +133195,13 @@ msgid "Float"
 msgstr "Decimal"
 
 
+msgid "Overridden by the {:s} environment variable"
+msgstr "Redefinida por la variable de entorno {:s}"
+
+
 msgctxt "Operator"
 msgid "Reload to Apply Changes"
 msgstr "Recargar para aplicar cambios"
-
-
-msgid "No active project."
-msgstr "Ningún objeto activo."
-
-
-msgid "Save the current file, and make sure to place it in a folder that will be part of the project"
-msgstr "Guardar el archivo actual y asegurarse de colocarlo en una carpeta que forme parte del proyecto"
-
-
-msgid "Alternatively, open a file inside of a project directory to see its settings."
-msgstr "Alternativamente, abrir un archivo dentro de una carpeta del proyecto para ver sus opciones."
-
-
-msgctxt "Operator"
-msgid "Save File..."
-msgstr "Guardar archivo..."
-
-
-msgid "Set up a new project by choosing any parent directory of the current file."
-msgstr "Establece un nuevo proyecto, escogiendo cualquier carpeta superior a la del archivo actual."
 
 
 msgid "{:.3f}"
@@ -137292,7 +137334,7 @@ msgstr "Ningún puntero RNA disponible para proporcionar valores para crear foto
 
 
 msgid "Could not insert %i keyframe(s) due to zero NLA influence, base value, or value remapping failed: %s.%s for indices [%s]"
-msgstr "No fue posible insertar %i clave(s) debido a un valor de cero en la influencia de ANL, su valor base, o a un remapeo fallido de su valor: %s.%s para índices [%s]"
+msgstr "No fue posible insertar %i clave(s) debido a un valor de cero en la influencia de ANL, su valor base o a un error al remapear su valor: %s.%s para identificadores [%s]"
 
 
 msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
@@ -138090,14 +138132,6 @@ msgstr "[Esconder acción]"
 
 msgid "node_groups"
 msgstr "grupos_de_nodos"
-
-
-msgid "Shader To RGB can't evaluate Light Accumulation nodes"
-msgstr "El nodo Sombreador a RVA no es capaz de evaluar nodos Acumulación de luz"
-
-
-msgid "Lighting nodes must be connected to the Light sockets of a Light Accumulation node before reaching the Material Output"
-msgstr "Los nodos de iluminación deberán estar conectados a los conectores de Iluminación de un nodo Acumulación de luz antes de alcanzar al nodo Material de salida"
 
 
 msgid "Lighting nodes can't be connected to the Color sockets of a Light Accumulation node"
@@ -142843,12 +142877,22 @@ msgid "Unable to determine ABC sequence length"
 msgstr "No es posible determinar la longitud de la secuencia ABC"
 
 
+msgctxt "Operator"
+msgid "Alembic"
+msgstr "Alembic"
+
+
 msgid "Could not add a layer to the cache file"
 msgstr "No fue posible agregar una capa al archivo de caché"
 
 
 msgid "Multiple file handlers can be used, drop to pick which to use"
 msgstr "Es posible usar varios manipuladores de archivos, soltar para escoger cuál usar"
+
+
+msgctxt "Operator"
+msgid "FBX"
+msgstr "FBX"
 
 
 msgid "Scene Options"
@@ -142881,6 +142925,11 @@ msgstr "No es posible importar '%s'"
 
 msgid "Error during file write for \"%s\""
 msgstr "Error al escribir el archivo para \"%s\""
+
+
+msgctxt "Operator"
+msgid "SVG as Grease Pencil"
+msgstr "SVG como Grease pencil"
 
 
 msgid "Curves as NURBS"
@@ -142927,6 +142976,11 @@ msgid "File exported successfully"
 msgstr "Archivo exportado exitosamente"
 
 
+msgctxt "Operator"
+msgid "Wavefront OBJ"
+msgstr "OBJ de Wavefront"
+
+
 msgid "Imported OTIO timeline into scene '%s'"
 msgstr "Se importó la línea de tiempo OTIO a la escena '%s'"
 
@@ -142943,8 +142997,23 @@ msgid "Sequencer scene has no strips"
 msgstr "La escena de edición de video no contiene clips"
 
 
+msgctxt "Operator"
+msgid "OpenTimelineIO"
+msgstr "OpenTimelineIO"
+
+
 msgid "ASCII"
 msgstr "ASCII"
+
+
+msgctxt "Operator"
+msgid "Stanford PLY"
+msgstr "PLY de Stanford"
+
+
+msgctxt "Operator"
+msgid "SPZ"
+msgstr "SPZ"
 
 
 msgid "Batch"
@@ -142953,6 +143022,11 @@ msgstr "Lote"
 
 msgid "No filename given"
 msgstr "No se proporcionó un nombre de archivo"
+
+
+msgctxt "Operator"
+msgid "STL"
+msgstr "STL"
 
 
 msgid "Blender Data"
@@ -142973,6 +143047,11 @@ msgstr "Propósito visualización"
 
 msgid "Particles and Instancing"
 msgstr "Partículas e instanciado"
+
+
+msgctxt "Operator"
+msgid "Universal Scene Description"
+msgstr "Universal Scene Description"
 
 
 msgid "Import {} files"
@@ -144720,7 +144799,7 @@ msgstr "Rehacer malla usando cuadriláteros: Operación completada"
 
 
 msgid "QuadriFlow: Remeshing failed"
-msgstr "Rehacer malla usando cuadriláteros: Operación fallida"
+msgstr "Rehacer malla usando cuadriláteros: Error de operación"
 
 
 msgid "The remesher cannot work on linked or override data"
@@ -145052,7 +145131,7 @@ msgstr "Falló captura: no se encontró el modificador Pintura dinámica"
 
 
 msgid "Bake failed: invalid canvas"
-msgstr "Captura fallida: lienzo inválido"
+msgstr "Error al capturar: lienzo inválido"
 
 
 msgid "Baking canceled!"
@@ -145866,6 +145945,10 @@ msgstr "Sólo es posible redimensionar una vista cuádruple de una zona de acci�
 
 msgid "No more keyframes to jump to in this direction"
 msgstr "No hay más fotogramas clave a los cuales saltar en esta dirección"
+
+
+msgid "No markers to jump to"
+msgstr "Ningún marcador al cual saltar"
 
 
 msgid "No more markers to jump to in this direction"
@@ -148807,10 +148890,6 @@ msgid "No active item to rename"
 msgstr "No hay un elemento activo para renombrar"
 
 
-msgid "No selected data-blocks to copy"
-msgstr "No hay bloques de datos seleccionados para copiar"
-
-
 msgid "There is no active data-block"
 msgstr "No hay un bloque de datos activo"
 
@@ -149238,6 +149317,44 @@ msgid "Built-In"
 msgstr "Integrados"
 
 
+msgid "Close the current project before creating a new one"
+msgstr "Cerrar el proyecto actual antes de crear uno nuevo"
+
+
+msgid "Create Project"
+msgstr "Crear proyecto"
+
+
+msgid "Folder already contains a project."
+msgstr "La carpeta ya contiene un proyecto."
+
+
+msgid "Folder is inside another project."
+msgstr "La carpeta se encuentra dentro de otro proyecto."
+
+
+msgid "Add Asset Library"
+msgstr "Agregar biblioteca de recursos"
+
+
+msgid ""
+"The current file needs to be inside of the project's path.\n"
+"To pick a different folder, move the current file there first, or create a new project from a new unsaved file."
+msgstr ""
+"El archivo actual necesita estar dentro de la ruta del proyecto.\n"
+"Para escoger una carpeta distinta, primero mover el archivo actual allí o crear un nuevo proyecto a partir de un archivo no guardado."
+
+
+msgid ""
+"A Blender Project is a directory that provides a shared environment for related .blend files, textures, and other files, with project-specific settings such as Asset Libraries, custom variables, and other configuration options.\n"
+"\n"
+"This is a structured way to organize files and settings across complex pipelines and team projects."
+msgstr ""
+"Un proyecto de Blender es una carpeta que proporciona un entorno compartido para archivos .blend, texturas y otros archivos relacionados, con opciones específicas para ese proyecto, tales como bibliotecas de recursos, variables personalizadas y otras opciones de configuración.\n"
+"\n"
+"Se trata de una manera estructurada de organizar archivos y opciones, útil al trabajar con canalizaciones complejas y proyectos en equipo."
+
+
 msgid "Untitled Project"
 msgstr "Proyecto sin título"
 
@@ -149246,8 +149363,16 @@ msgid "Invalid project root folder"
 msgstr "Carpeta principal del proyecto inválida"
 
 
-msgid "Folder already contains a project"
-msgstr "La carpeta ya contiene un proyecto"
+msgid "Missing project name"
+msgstr "Falta el nombre del proyecto"
+
+
+msgid "Folder already part of a project"
+msgstr "La carpeta ya es parte de un proyecto"
+
+
+msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
+msgstr "Las bibliotecas de recursos definidas por una extensión serán eliminadas al desinstalar la extensión"
 
 
 msgid "Failed to create folder \"%s\""
@@ -149255,7 +149380,7 @@ msgstr "Error al crear la carpeta \"%s\""
 
 
 msgid "Failed to write project config in \"%s\""
-msgstr "Error al escribir configuración del proyecto en \"%s\""
+msgstr "Error al escribir opciones del proyecto en \"%s\""
 
 
 msgid "Folder '%s' does not belong to a project"
@@ -149264,6 +149389,10 @@ msgstr "La carpeta '%s' no pertenece a un proyecto"
 
 msgid "Failed to load project from path: %s"
 msgstr "Error al cargar proyecto desde la ruta: %s"
+
+
+msgid "There is no asset library to remove"
+msgstr "Ninguna biblioteca de recursos que eliminar"
 
 
 msgid "Failed to load image \"%s\""
@@ -149815,11 +149944,11 @@ msgstr "Biblioteca de recursos remota"
 
 
 msgid "Edit Project asset libraries in Project Settings."
-msgstr "Editar bibliotecas de recursos del proyecto en la Configuración del proyecto."
+msgstr "Editar bibliotecas de recursos del proyecto en las opciones del proyecto."
 
 
-msgid "Add Asset Library"
-msgstr "Agregar biblioteca de recursos"
+msgid "Open Project Settings"
+msgstr "Abrir opciones del proyecto"
 
 
 msgid "Add New Extension Repository"
@@ -149844,10 +149973,6 @@ msgstr "Eliminar repositorio y archivos"
 
 msgid "Remove Repository"
 msgstr "Eliminar repositorio"
-
-
-msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
-msgstr "Las bibliotecas de recursos definidas por una extensión serán eliminadas al desinstalar la extensión"
 
 
 msgid "Unable to remove files for \"System\" repositories"
@@ -149880,10 +150005,6 @@ msgstr "No fue posible eliminar carpeta: %s"
 
 msgid "Extension operator not found \"%s\""
 msgstr "Operador de extensión no encontrado \"%s\""
-
-
-msgid "There is no asset library to remove"
-msgstr "Ninguna biblioteca de recursos que eliminar"
 
 
 msgid "There is no extension repository to remove"
@@ -150322,10 +150443,6 @@ msgstr "No es posible navegar con un objeto con restricciones en funcionamiento"
 
 msgid "Depth too large"
 msgstr "Profundidad demasiado grande"
-
-
-msgid "No objects selected to copy"
-msgstr "Ningún objeto seleccionado para copiar"
 
 
 msgid "No objects to paste"
@@ -151080,6 +151197,10 @@ msgid "Freestyle: Mesh loading"
 msgstr "Freestyle: Carga de mallas"
 
 
+msgid "Freestyle style module '%s'"
+msgstr "Módulo de estilo '%s' de Freestyle"
+
+
 msgid "Freestyle: View map creation"
 msgstr "Freestyle: Creación del mapa de la vista"
 
@@ -151362,15 +151483,19 @@ msgstr "Exportación a PLY: No es posible abrir el archivo '%s'"
 
 
 msgid "PLY Importer: failed importing, unknown error"
-msgstr "Importador de PLY: importación fallida, error desconocido"
+msgstr "Importador de PLY: error desconocido al importar"
 
 
 msgid "PLY Importer: failed importing, no vertices"
-msgstr "Importador de PLY: importación fallida, no hay vértices"
+msgstr "Importador de PLY: error al importar, no hay vértices"
 
 
 msgid "PLY Importer: %s: %s"
 msgstr "Importador de PLY: %s: %s"
+
+
+msgid "PLY Importer: failed importing %s: %s"
+msgstr "Importador de PLY: error al importar %s: %s"
 
 
 msgid "PLY Importer: Spherical harmonics degree above the supported %d, spherical harmonics are not imported"
@@ -152836,18 +152961,6 @@ msgstr "%s '%s' no debe tener ningún usuario para que pueda ser eliminado, se e
 
 msgid "Only linked IDs can be packed"
 msgstr "Sólo los ID vinculados pueden seer empacados"
-
-
-msgid "Failed to initialize project. Ensure that both the name and project_root parameters are non-empty."
-msgstr "No fue posible inicializar el proyecto. Asegurarse de que sus parámetros de nombre y carpeta principal no se encuentren vacíos."
-
-
-msgid "Failed to initialize project. Ensure that project_root path is correct."
-msgstr "Error al inicializar el proyecto. Asegurarse de que la ruta project_root sea correcta."
-
-
-msgid "Failed to save project config."
-msgstr "Error al guardar configuración del proyecto."
 
 
 msgid "Scene '%s' is the last local one, cannot be removed"
@@ -162597,13 +162710,11 @@ msgstr "Guardado como \"%s\""
 
 
 msgid ""
-"To match renders with the previous working space as closely as possible,\n"
-"colors in all materials, lights and geometry must be converted.\n"
+"To match renders with the previous working space as closely as possible, colors in all materials, lights and geometry must be converted.\n"
 "\n"
-"Some nodes graphs cannot be converted accurately and may need manual fix-ups."
+"Some node graphs cannot be converted accurately and may need manual fix-ups."
 msgstr ""
-"Para ajustar los motores de procesamiento al espacio de color de trabajo anterior tanto como sea posible,\n"
-"se deberán convertir los colores de todos los materiales, luces y geometrías.\n"
+"Para hacer coincidir imágenes procesadas con el espacio de color de trabajo anterior tanto como sea posible, se deberán convertir los colores de todos los materiales, las luces y geometrías.\n"
 "\n"
 "Algunos árboles de nodos podrán no ser convertidos de forma precisa y requerirán correcciones manuales."
 

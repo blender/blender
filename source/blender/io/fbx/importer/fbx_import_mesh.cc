@@ -97,7 +97,7 @@ static void import_face_material_indices(const ufbx_mesh *fmesh,
                                          bke::MutableAttributeAccessor &attributes)
 {
   if (fmesh->face_material.count == fmesh->num_faces) {
-    bke::SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_only_span<int>(
+    bke::SpanAttributeWriter<int> materials = attributes.ensure_for_write_only_span<int>(
         "material_index", bke::AttrDomain::Face);
     for (const int64_t i : materials.span.index_range()) {
       materials.span[i] = fmesh->face_material[i];
@@ -110,7 +110,7 @@ static void import_face_smoothing(const ufbx_mesh *fmesh,
                                   bke::MutableAttributeAccessor &attributes)
 {
   if (fmesh->face_smoothing.count > 0 && fmesh->face_smoothing.count == fmesh->num_faces) {
-    bke::SpanAttributeWriter<bool> smooth = attributes.lookup_or_add_for_write_only_span<bool>(
+    bke::SpanAttributeWriter<bool> smooth = attributes.ensure_for_write_only_span<bool>(
         "sharp_face", bke::AttrDomain::Face);
     for (const int64_t i : smooth.span.index_range()) {
       smooth.span[i] = !fmesh->face_smoothing[i];
@@ -135,7 +135,7 @@ static void import_edges(const ufbx_mesh *fmesh,
   /* Edge attributes are written here in the same order as the FBX edges. Mesh validation
    * preserves edge attributes when removing degenerate edges or computing missing ones. */
   if (fmesh->edge_crease.count > 0 && fmesh->edge_crease.count == fmesh->num_edges) {
-    bke::SpanAttributeWriter<float> creases = attributes.lookup_or_add_for_write_only_span<float>(
+    bke::SpanAttributeWriter<float> creases = attributes.ensure_for_write_only_span<float>(
         "crease_edge", bke::AttrDomain::Edge);
     for (int64_t i = 0; i < fmesh->num_edges; i++) {
       /* Python fbx importer was squaring the incoming crease values. */
@@ -145,7 +145,7 @@ static void import_edges(const ufbx_mesh *fmesh,
   }
 
   if (fmesh->edge_smoothing.count > 0 && fmesh->edge_smoothing.count == fmesh->num_edges) {
-    bke::SpanAttributeWriter<bool> sharp = attributes.lookup_or_add_for_write_only_span<bool>(
+    bke::SpanAttributeWriter<bool> sharp = attributes.ensure_for_write_only_span<bool>(
         "sharp_edge", bke::AttrDomain::Edge);
     for (int64_t i = 0; i < fmesh->num_edges; i++) {
       sharp.span[i] = !fmesh->edge_smoothing[i];
@@ -167,15 +167,18 @@ static void import_uvs(const ufbx_mesh *fmesh,
       mesh->uv_maps_default_set(attr_name);
       set_active_uv = false;
     }
-    bke::SpanAttributeWriter<float2> uvs = attributes.lookup_or_add_for_write_only_span<float2>(
-        attr_name, bke::AttrDomain::Corner);
-    BLI_assert(fuv_set.vertex_uv.indices.count == uvs.span.size());
-    for (const int64_t i : uvs.span.index_range()) {
-      const int val_idx = fuv_set.vertex_uv.indices[i];
-      const ufbx_vec2 &uv = fuv_set.vertex_uv.values[val_idx];
-      uvs.span[i] = float2(uv.x, uv.y);
+    if (bke::SpanAttributeWriter<float2> uvs =
+            attributes.lookup_or_add_for_write_only_span<float2>(attr_name,
+                                                                 bke::AttrDomain::Corner))
+    {
+      BLI_assert(fuv_set.vertex_uv.indices.count == uvs.span.size());
+      for (const int64_t i : uvs.span.index_range()) {
+        const int val_idx = fuv_set.vertex_uv.indices[i];
+        const ufbx_vec2 &uv = fuv_set.vertex_uv.values[val_idx];
+        uvs.span[i] = float2(uv.x, uv.y);
+      }
+      uvs.finish();
     }
-    uvs.finish();
   }
 }
 
@@ -193,33 +196,37 @@ static void import_colors(const ufbx_mesh *fmesh,
     }
     if (color_mode == eFBXVertexColorMode::sRGB) {
       /* sRGB colors, use 4 bytes per color. */
-      bke::SpanAttributeWriter<ColorGeometry4b> cols =
-          attributes.lookup_or_add_for_write_only_span<ColorGeometry4b>(attr_name,
-                                                                        bke::AttrDomain::Corner);
-      BLI_assert(fcol_set.vertex_color.indices.count == cols.span.size());
-      for (const int64_t i : cols.span.index_range()) {
-        const int val_idx = fcol_set.vertex_color.indices[i];
-        const ufbx_vec4 &col = fcol_set.vertex_color.values[val_idx];
-        /* Note: color values are expected to already be in sRGB space. */
-        float4 fcol = float4(col.x, col.y, col.z, col.w);
-        uchar4 bcol;
-        rgba_float_to_uchar(bcol, fcol);
-        cols.span[i] = ColorGeometry4b(bcol);
+      if (bke::SpanAttributeWriter<ColorGeometry4b> cols =
+              attributes.lookup_or_add_for_write_only_span<ColorGeometry4b>(
+                  attr_name, bke::AttrDomain::Corner))
+      {
+        BLI_assert(fcol_set.vertex_color.indices.count == cols.span.size());
+        for (const int64_t i : cols.span.index_range()) {
+          const int val_idx = fcol_set.vertex_color.indices[i];
+          const ufbx_vec4 &col = fcol_set.vertex_color.values[val_idx];
+          /* Note: color values are expected to already be in sRGB space. */
+          float4 fcol = float4(col.x, col.y, col.z, col.w);
+          uchar4 bcol;
+          rgba_float_to_uchar(bcol, fcol);
+          cols.span[i] = ColorGeometry4b(bcol);
+        }
+        cols.finish();
       }
-      cols.finish();
     }
     else if (color_mode == eFBXVertexColorMode::Linear) {
       /* Linear colors, use 4 floats per color. */
-      bke::SpanAttributeWriter<ColorGeometry4f> cols =
-          attributes.lookup_or_add_for_write_only_span<ColorGeometry4f>(attr_name,
-                                                                        bke::AttrDomain::Corner);
-      BLI_assert(fcol_set.vertex_color.indices.count == cols.span.size());
-      for (const int64_t i : cols.span.index_range()) {
-        const int val_idx = fcol_set.vertex_color.indices[i];
-        const ufbx_vec4 &col = fcol_set.vertex_color.values[val_idx];
-        cols.span[i] = ColorGeometry4f(col.x, col.y, col.z, col.w);
+      if (bke::SpanAttributeWriter<ColorGeometry4f> cols =
+              attributes.lookup_or_add_for_write_only_span<ColorGeometry4f>(
+                  attr_name, bke::AttrDomain::Corner))
+      {
+        BLI_assert(fcol_set.vertex_color.indices.count == cols.span.size());
+        for (const int64_t i : cols.span.index_range()) {
+          const int val_idx = fcol_set.vertex_color.indices[i];
+          const ufbx_vec4 &col = fcol_set.vertex_color.values[val_idx];
+          cols.span[i] = ColorGeometry4f(col.x, col.y, col.z, col.w);
+        }
+        cols.finish();
       }
-      cols.finish();
     }
     else {
       BLI_assert_unreachable();
@@ -237,15 +244,18 @@ static bool import_normals_into_temp_attribute(const ufbx_mesh *fmesh,
   if (!fmesh->vertex_normal.exists) {
     return false;
   }
-  bke::SpanAttributeWriter<float3> normals = attributes.lookup_or_add_for_write_only_span<float3>(
-      temp_custom_normals_name, bke::AttrDomain::Corner);
-  BLI_assert(fmesh->vertex_normal.indices.count == normals.span.size());
-  for (const int64_t i : normals.span.index_range()) {
-    const int val_idx = fmesh->vertex_normal.indices[i];
-    const ufbx_vec3 &normal = fmesh->vertex_normal.values[val_idx];
-    normals.span[i] = float3(normal.x, normal.y, normal.z);
+  if (bke::SpanAttributeWriter<float3> normals =
+          attributes.lookup_or_add_for_write_only_span<float3>(temp_custom_normals_name,
+                                                               bke::AttrDomain::Corner))
+  {
+    BLI_assert(fmesh->vertex_normal.indices.count == normals.span.size());
+    for (const int64_t i : normals.span.index_range()) {
+      const int val_idx = fmesh->vertex_normal.indices[i];
+      const ufbx_vec3 &normal = fmesh->vertex_normal.values[val_idx];
+      normals.span[i] = float3(normal.x, normal.y, normal.z);
+    }
+    normals.finish();
   }
-  normals.finish();
   return true;
 }
 
@@ -494,12 +504,14 @@ void import_meshes(Main &bmain,
 
     if (has_custom_normals) {
       /* Actually set custom normals after the validation. */
-      bke::SpanAttributeWriter<float3> normals =
-          attributes.lookup_or_add_for_write_only_span<float3>(temp_custom_normals_name,
-                                                               bke::AttrDomain::Corner);
-      bke::mesh_set_custom_normals(*mesh, normals.span);
-      normals.finish();
-      attributes.remove(temp_custom_normals_name);
+      if (bke::SpanAttributeWriter<float3> normals =
+              attributes.lookup_or_add_for_write_only_span<float3>(temp_custom_normals_name,
+                                                                   bke::AttrDomain::Corner))
+      {
+        bke::mesh_set_custom_normals(*mesh, normals.span);
+        normals.finish();
+        attributes.remove(temp_custom_normals_name);
+      }
     }
 
     meshes[index] = mesh;

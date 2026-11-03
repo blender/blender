@@ -42,7 +42,9 @@ void main()
 #  if !defined(CURVES)
   gl_FragDepth = gl_FragCoord.z;
   if (use_custom_depth_bias) {
-    float2 dir = line_output.xy * 2.0f - 1.0f;
+    float2 dir;
+    float dist;
+    unpack_line_data(line_output.xy, dir, dist);
     bool dir_horiz = abs(dir.x) > abs(dir.y);
 
     float2 uv = gl_FragCoord.xy * uniform_buf.size_viewport_inv;

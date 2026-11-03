@@ -1391,8 +1391,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
      * anything in this case. */
   }
   else {
-    BLI_assert(BKE_id_is_in_global_main(&mesh->id));
-    bmain = G_MAIN; /* XXX UGLY! */
+    bmain = mesh->id.owner_bmain_for_write();
     params.calc_object_remap = true;
   }
 
@@ -2726,7 +2725,7 @@ static PyObject *bpy_bmedge_calc_tangent(BPy_BMEdge *self, PyObject *args)
 
   if (!PyArg_ParseTuple(args,
                         "O!" /* `loop` */
-                        ":BMEdge.calc_face_tangent",
+                        ":BMEdge.calc_tangent",
                         &BPy_BMLoop_Type,
                         &py_loop))
   {

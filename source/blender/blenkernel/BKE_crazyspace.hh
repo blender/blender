@@ -15,7 +15,7 @@
 namespace blender {
 
 struct BMesh;
-struct BMEditMesh;
+struct EditMesh;
 struct Depsgraph;
 struct Mesh;
 struct Object;
@@ -89,7 +89,7 @@ void BKE_crazyspace_set_quats_mesh(Mesh *mesh,
 int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
                                                        Scene *,
                                                        Object *,
-                                                       BMEditMesh *em,
+                                                       EditMesh *em,
                                                        Array<float3x3, 0> &deformmats,
                                                        Array<float3, 0> &deformcos);
 int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,

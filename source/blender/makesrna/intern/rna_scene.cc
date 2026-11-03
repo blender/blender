@@ -2025,8 +2025,7 @@ void rna_ViewLayer_name_set(PointerRNA *ptr, const char *value)
 {
   Scene *scene = id_cast<Scene *>(ptr->owner_id);
   ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
-  BLI_assert(BKE_id_is_in_global_main(&scene->id));
-  BKE_view_layer_rename(G_MAIN, scene, view_layer, value);
+  BKE_view_layer_rename(scene->id.owner_bmain_for_write(), scene, view_layer, value);
 }
 
 static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
@@ -2192,17 +2191,19 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *valu
     ts->selectmode = selectmode;
 
     /* Update select mode in all the workspaces in mesh edit mode. */
-    wmWindowManager *wm = G_MAIN->wm.first();
+    const Main *bmain = ptr->owner_id->owner_bmain();
+    wmWindowManager *wm = bmain->wm.first();
+    if (!wm) {
+      return;
+    }
     for (wmWindow &win : wm->windows) {
       const Scene *scene = WM_window_get_active_scene(&win);
       ViewLayer *view_layer = WM_window_get_active_view_layer(&win);
       if (view_layer) {
-        /* FIXME Using G_MAIN is weak, but should work in practice given current context (code
-         * already relies on 'G_MAIN data'). */
-        BKE_view_layer_synced_ensure(*G_MAIN, scene, view_layer);
+        BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
         Object *object = BKE_view_layer_active_object_get(view_layer);
         if (object && object->type == OB_MESH) {
-          if (BMEditMesh *em = BKE_editmesh_from_object(object)) {
+          if (EditMesh *em = BKE_editmesh_from_object(object)) {
             BMesh *bm = BKE_editmesh_bmesh_get_for_write(object);
             if (em->selectmode != selectmode) {
               EDBM_selectmode_set(em, bm, selectmode);
@@ -2541,7 +2542,7 @@ static void rna_TimeLine_remove(Scene *scene, ReportList *reports, PointerRNA *m
     return;
   }
 
-  MEM_delete(marker);
+  BKE_free_time_marker(*marker, true);
   marker_ptr->invalidate();
 
   WM_main_add_notifier(NC_SCENE | ND_MARKERS, nullptr);
@@ -2550,7 +2551,7 @@ static void rna_TimeLine_remove(Scene *scene, ReportList *reports, PointerRNA *m
 
 static void rna_TimeLine_clear(Scene *scene)
 {
-  scene->markers.free_no_destruct();
+  BKE_free_time_markers(scene->markers, true);
 
   WM_main_add_notifier(NC_SCENE | ND_MARKERS, nullptr);
   WM_main_add_notifier(NC_ANIMATION | ND_MARKERS, nullptr);
@@ -4573,6 +4574,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
                          /* Tracked by edit-mode undo. */
                          PROP_FORCE_UNDO));
   RNA_def_property_boolean_funcs(prop, nullptr, "rna_Scene_editmesh_select_mode_set");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_property_ui_text(prop, "Mesh Selection Mode", "Which mesh elements selection works on");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_Scene_editmesh_select_mode_update");
@@ -5238,6 +5240,7 @@ void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, const bool sce
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   if (scene) {
     RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_ViewLayer_name_set");
+    RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   }
   else {
     RNA_def_property_string_sdna(prop, nullptr, "name");
@@ -8109,6 +8112,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "compositor_proxy_preview_scale", PROP_INT, PROP_PERCENTAGE);
   RNA_def_property_int_sdna(prop, nullptr, "compositor_proxy_preview_scale");
+  RNA_def_property_int_default(prop, 50);
   RNA_def_property_range(prop, 5, 100);
   RNA_def_property_ui_text(
       prop,

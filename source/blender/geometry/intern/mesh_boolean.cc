@@ -255,28 +255,30 @@ void interpolate_corner_attributes(bke::MutableAttributeAccessor output_attrs,
           *output_mesh, *input_mesh, out_to_in_corner_map, out_to_in_face_map, *interp);
     }
 
-    bke::GSpanAttributeWriter dst = output_attrs.lookup_or_add_for_write_only_span(
-        iter.name, iter.domain, iter.data_type);
-    const GVArraySpan src(*reader);
-    array_utils::gather(src, out_to_in_corner_map, interp->copy_mask, dst.span);
-    bke::attribute_math::mix_groups(src,
-                                    OffsetIndices<int>(interp->group_offsets),
-                                    interp->src_corners,
-                                    interp->weights.as_span(),
-                                    interp->interp_mask,
-                                    dst.span);
-    if (iter.name == "custom_normal" && dst.span.type().is<float3>()) {
-      /* The joined mesh has converted custom normals to float3. */
-      MutableSpan<float3> normals = dst.span.typed<float3>();
-      interp->interp_mask.foreach_index(
-          [&](const int corner, const int pos) {
-            if (interp->flipped[pos]) {
-              normals[corner] = -normals[corner];
-            }
-          },
-          exec_mode::grain_size(4096));
+    if (bke::GSpanAttributeWriter dst = output_attrs.lookup_or_add_for_write_only_span(
+            iter.name, iter.domain, iter.data_type))
+    {
+      const GVArraySpan src(*reader);
+      array_utils::gather(src, out_to_in_corner_map, interp->copy_mask, dst.span);
+      bke::attribute_math::mix_groups(src,
+                                      OffsetIndices<int>(interp->group_offsets),
+                                      interp->src_corners,
+                                      interp->weights.as_span(),
+                                      interp->interp_mask,
+                                      dst.span);
+      if (iter.name == "custom_normal" && dst.span.type().is<float3>()) {
+        /* The joined mesh has converted custom normals to float3. */
+        MutableSpan<float3> normals = dst.span.typed<float3>();
+        interp->interp_mask.foreach_index(
+            [&](const int corner, const int pos) {
+              if (interp->flipped[pos]) {
+                normals[corner] = -normals[corner];
+              }
+            },
+            exec_mode::grain_size(4096));
+      }
+      dst.finish();
     }
-    dst.finish();
   });
 }
 
@@ -821,7 +823,7 @@ static Mesh *imesh_to_mesh(meshintersect::IMesh *im, MeshesToIMeshInfo &mim)
                                  dst_attributes);
 
     if (mim.joined_mesh->attributes().contains("material_index")) {
-      bke::SpanAttributeWriter dst_indices = dst_attributes.lookup_or_add_for_write_only_span<int>(
+      bke::SpanAttributeWriter dst_indices = dst_attributes.ensure_for_write_only_span<int>(
           "material_index", bke::AttrDomain::Face);
       if (mim.material_remaps.is_empty()) {
         const VArraySpan src = *mim.joined_mesh->attributes().lookup<int>("material_index");

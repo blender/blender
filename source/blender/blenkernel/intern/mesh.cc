@@ -193,8 +193,9 @@ static void mesh_copy_data(Main *bmain,
     /* Meshes copied during evaluation pass the edit mesh pointer to determine whether a mapping
      * from the evaluated to the original state is possible. */
     mesh_dst->runtime->edit_mesh = mesh_src->runtime->edit_mesh;
-    if (const bke::EditMeshData *edit_data = mesh_src->runtime->edit_data.get()) {
-      mesh_dst->runtime->edit_data = std::make_unique<bke::EditMeshData>(*edit_data);
+    if (const bke::MeshWrapperCacheData *edit_data = mesh_src->runtime->bmesh_wrapper_data.get()) {
+      mesh_dst->runtime->bmesh_wrapper_data = std::make_unique<bke::MeshWrapperCacheData>(
+          *edit_data);
     }
   }
 
@@ -1001,7 +1002,7 @@ void mesh_apply_spatial_organization(Mesh &mesh)
       bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
       GMutableSpan attribute_data = attribute.span;
       const CPPType &type = attribute_data.type();
-      GArray<> new_values(type, new_face_order.size());
+      GArray<> new_values(type, new_face_order.size(), NoInitialization{});
 
       int new_face_idx = 0;
       for (const int old_face_idx : new_face_order) {
@@ -1015,7 +1016,7 @@ void mesh_apply_spatial_organization(Mesh &mesh)
       bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
       GMutableSpan attribute_data = attribute.span;
       const CPPType &type = attribute_data.type();
-      GArray<> new_values(type, new_vert_order.size());
+      GArray<> new_values(type, new_vert_order.size(), NoInitialization{});
 
       int new_vert_idx = 0;
       for (const int old_vert_idx : new_vert_order) {
@@ -1029,7 +1030,7 @@ void mesh_apply_spatial_organization(Mesh &mesh)
       bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
       GMutableSpan attribute_data = attribute.span;
       const CPPType &type = attribute_data.type();
-      GArray<> new_values(type, attribute_data.size());
+      GArray<> new_values(type, attribute_data.size(), NoInitialization{});
 
       int new_corner_idx = 0;
       for (const int old_face_idx : new_face_order) {
@@ -1882,11 +1883,8 @@ void BKE_mesh_material_remap(Mesh *mesh, const uint *remap, uint remap_len)
   }
   else {
     MutableAttributeAccessor attributes = mesh->attributes_for_write();
-    SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
+    SpanAttributeWriter<int> material_indices = attributes.ensure_for_write_span<int>(
         "material_index", AttrDomain::Face);
-    if (!material_indices) {
-      return;
-    }
     for (const int i : material_indices.span.index_range()) {
       MAT_NR_REMAP(material_indices.span[i]);
     }
@@ -1925,8 +1923,8 @@ void mesh_sharp_edges_set_from_angle(Mesh &mesh, const float angle, const bool k
   if (!keep_sharp_edges) {
     attributes.remove("sharp_edge");
   }
-  SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_edge", AttrDomain::Edge);
+  SpanAttributeWriter<bool> sharp_edges = attributes.ensure_for_write_span<bool>("sharp_edge",
+                                                                                 AttrDomain::Edge);
   const VArraySpan<bool> sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
   mesh::edges_sharp_from_angle_set(mesh.faces(),
                                    mesh.corner_verts(),
@@ -1951,7 +1949,8 @@ std::optional<Bounds<float3>> Mesh::bounds_min_max() const
     switch (this->runtime->wrapper_type) {
       case ME_WRAPPER_TYPE_BMESH:
         r_bounds = *BKE_editmesh_cache_calc_minmax(
-            *const_cast<BMesh *>(BKE_editmesh_bmesh_get(this)), *this->runtime->edit_data);
+            *const_cast<BMesh *>(BKE_editmesh_bmesh_get(this)),
+            *this->runtime->bmesh_wrapper_data);
         break;
       case ME_WRAPPER_TYPE_MDATA:
       case ME_WRAPPER_TYPE_SUBD:

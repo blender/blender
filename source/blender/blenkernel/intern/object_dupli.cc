@@ -475,7 +475,7 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
                                                     Span<float3> *r_vert_normals)
 {
   /* Gather mesh info. */
-  BMEditMesh *em = BKE_editmesh_from_object(ob);
+  EditMesh *em = BKE_editmesh_from_object(ob);
   const Mesh *mesh_eval;
 
   *r_bm = nullptr;
@@ -493,7 +493,8 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
      * We could change this but it matches 2.7x behavior. */
     mesh_eval = BKE_object_get_editmesh_eval_cage(ob);
     if ((mesh_eval == nullptr) || (mesh_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH)) {
-      bke::EditMeshData *emd = mesh_eval ? mesh_eval->runtime->edit_data.get() : nullptr;
+      bke::MeshWrapperCacheData *emd = mesh_eval ? mesh_eval->runtime->bmesh_wrapper_data.get() :
+                                                   nullptr;
 
       /* Only assign the bmesh in the case we can't use `mesh_eval`. */
       *r_bm = BKE_editmesh_bmesh_get_for_write(ob);
@@ -1911,7 +1912,7 @@ bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph, Object &o
   MutableSpan<float4x4> instances_transforms = top_level_instances.transforms_for_write();
   MutableSpan<int> instances_reference_handles = top_level_instances.reference_handles_for_write();
   bke::SpanAttributeWriter<int> instances_ids =
-      top_level_instances.attributes_for_write().lookup_or_add_for_write_only_span<int>(
+      top_level_instances.attributes_for_write().ensure_for_write_only_span<int>(
           "id", bke::AttrDomain::Instance);
   for (const int i : IndexRange(instances_num)) {
     DupliObject &dob = *top_level_duplis[i];

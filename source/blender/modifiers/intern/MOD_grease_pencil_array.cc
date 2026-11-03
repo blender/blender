@@ -153,7 +153,7 @@ static bke::CurvesGeometry create_array_copies(const Object &ob,
    * when they get instanced. */
   if (mmd.mat_rpl > 0) {
     bke::MutableAttributeAccessor attributes = filtered_curves.attributes_for_write();
-    bke::SpanAttributeWriter<int> stroke_materials = attributes.lookup_or_add_for_write_span<int>(
+    bke::SpanAttributeWriter<int> stroke_materials = attributes.ensure_for_write_span<int>(
         "material_index", bke::AttrDomain::Curve);
     stroke_materials.span.fill(mmd.mat_rpl - 1);
     stroke_materials.finish();

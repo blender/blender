@@ -29,6 +29,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
+#include "RNA_prototypes.hh"
 
 #include "BKE_animsys.hh"
 #include "BKE_annotations.h"
@@ -604,8 +605,7 @@ static eKeyPasteError paste_action_keys(bAnimContext *ac,
 
 static ed::greasepencil::KeyframeClipboard &get_grease_pencil_keyframe_clipboard()
 {
-  static ed::greasepencil::KeyframeClipboard clipboard;
-  return clipboard;
+  return ed::greasepencil::keyframe_clipboard();
 }
 
 static wmOperatorStatus actkeys_copy_exec(bContext *C, wmOperator *op)
@@ -914,6 +914,33 @@ static void insert_fcurve_key(bAnimContext *ac,
   ale->update |= ANIM_UPDATE_DEFAULT;
 }
 
+static void insert_nla_curve_key(bAnimListElem &ale,
+                                 const AnimationEvalContext &anim_eval_context,
+                                 const eInsertKeyFlags flag)
+{
+  using namespace blender::animrig;
+  NlaStrip *strip = static_cast<NlaStrip *>(ale.owner);
+  FCurve *fcu = static_cast<FCurve *>(ale.data);
+  PointerRNA ptr = RNA_pointer_create_discrete(ale.id, RNA_NlaStrip, strip);
+  PropertyRNA *prop = RNA_struct_find_property(&ptr, fcu->rna_path().c_str());
+  if (!prop) {
+    return;
+  }
+
+  const KeyframeSettings key_settings = get_keyframe_settings((flag & INSERTKEY_NO_USERPREF) == 0);
+  const Vector<float> rna_values = get_property_values(&ptr, prop, /* visual_keyframing= */ false);
+  if (fcu->array_index >= rna_values.size()) {
+    return;
+  }
+
+  const SingleKeyingResult result = insert_vert_fcurve(
+      fcu, {anim_eval_context.eval_time, rna_values[fcu->array_index]}, key_settings, flag);
+
+  if (result == SingleKeyingResult::SUCCESS) {
+    ale.update |= ANIM_UPDATE_DEFAULT;
+  }
+}
+
 /* this function is responsible for inserting new keyframes */
 static void insert_action_keys(bAnimContext *ac, short mode)
 {
@@ -966,6 +993,10 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 
       case ANIMTYPE_FCURVE:
         insert_fcurve_key(ac, &ale, anim_eval_context, flag);
+        break;
+
+      case ANIMTYPE_NLACURVE:
+        insert_nla_curve_key(ale, anim_eval_context, flag);
         break;
 
       default:

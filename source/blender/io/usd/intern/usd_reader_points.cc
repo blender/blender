@@ -115,7 +115,7 @@ void USDPointsReader::read_ids(PointCloud *pointcloud, const pxr::UsdTimeCode ti
 
   if (!usd_ids.empty()) {
     bke::MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
-    bke::SpanAttributeWriter<int> ids = attributes.lookup_or_add_for_write_only_span<int>(
+    bke::SpanAttributeWriter<int> ids = attributes.ensure_for_write_only_span<int>(
         "id", bke::AttrDomain::Point);
 
     const Span<int64_t> usd_data(usd_ids.cdata(), usd_ids.size());
@@ -135,8 +135,8 @@ void USDPointsReader::read_velocities(PointCloud *pointcloud, const pxr::UsdTime
 
   if (!velocities.empty()) {
     bke::MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
-    bke::SpanAttributeWriter<float3> velocity =
-        attributes.lookup_or_add_for_write_only_span<float3>("velocity", bke::AttrDomain::Point);
+    bke::SpanAttributeWriter<float3> velocity = attributes.ensure_for_write_only_span<float3>(
+        "velocity", bke::AttrDomain::Point);
 
     Span<pxr::GfVec3f> usd_data(velocities.cdata(), velocities.size());
     velocity.span.copy_from(usd_data.cast<float3>());

@@ -535,9 +535,9 @@ void cut_caps(bke::CurvesGeometry &dst,
 {
   bke::MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
 
-  bke::SpanAttributeWriter dst_start_caps = dst_attributes.lookup_or_add_for_write_span<int8_t>(
+  bke::SpanAttributeWriter dst_start_caps = dst_attributes.ensure_for_write_span<int8_t>(
       "start_cap", bke::AttrDomain::Curve);
-  bke::SpanAttributeWriter dst_end_caps = dst_attributes.lookup_or_add_for_write_span<int8_t>(
+  bke::SpanAttributeWriter dst_end_caps = dst_attributes.ensure_for_write_span<int8_t>(
       "end_cap", bke::AttrDomain::Curve);
 
   threading::parallel_for(segment_offsets.index_range(), 4096, [&](const IndexRange curves) {

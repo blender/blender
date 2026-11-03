@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
-"PO-Revision-Date: 2026-10-23 21:28+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"PO-Revision-Date: 2026-10-31 23:53+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -23664,7 +23664,7 @@ msgstr "Aligner le texte en bas"
 
 
 msgid "Body Text"
-msgstr "Corps de texte"
+msgstr "Corps du texte"
 
 
 msgid "Content of this text object"
@@ -36645,8 +36645,36 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
+msgid "Show/Hide"
+msgstr "Afficher/cacher"
+
+
 msgid "Creative"
 msgstr "Créatif"
+
+
+msgid "Special Characters"
+msgstr "Caractères spéciaux"
+
+
+msgid "Kerning"
+msgstr "Approche"
+
+
+msgid "Metaball"
+msgstr "Métaballe"
+
+
+msgid "Names"
+msgstr "Noms"
+
+
+msgid "Bone Roll"
+msgstr "Roulis de l’os"
+
+
+msgid "Clean Up"
+msgstr "Nettoyer"
 
 
 msgid "Pivot Point"
@@ -36677,6 +36705,14 @@ msgid "Vertex Group Locks"
 msgstr "Verrouillages des groupes de sommets"
 
 
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Utilities"
+msgstr "Utilitaires"
+
+
 msgid "Mirror"
 msgstr "Miroir"
 
@@ -36689,12 +36725,24 @@ msgid "Local View"
 msgstr "Vue locale"
 
 
+msgid "Read"
+msgstr "Lecture"
+
+
 msgid "Viewpoint"
 msgstr "Point de vue"
 
 
+msgid "Sample"
+msgstr "Échantillonner"
+
+
 msgid "Navigation"
 msgstr "Navigation"
+
+
+msgid "Write"
+msgstr "Écriture"
 
 
 msgid "Align View"
@@ -36705,20 +36753,16 @@ msgid "Align View to Active"
 msgstr "Aligner la vue sur l’actif"
 
 
+msgid "Primitives"
+msgstr "Primitives"
+
+
 msgid "View Regions"
 msgstr "Régions dans la vue"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
 msgid "Select More/Less"
 msgstr "Sélectionner plus ou moins"
-
-
-msgid "Utilities"
-msgstr "Utilitaires"
 
 
 msgid "Select Similar"
@@ -36737,38 +36781,6 @@ msgid "Select Loops"
 msgstr "Sélectionner les boucles"
 
 
-msgid "Read"
-msgstr "Lecture"
-
-
-msgid "Sample"
-msgstr "Échantillonner"
-
-
-msgid "Assign Material"
-msgstr "Assigner un matériau"
-
-
-msgid "Write"
-msgstr "Écriture"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
-msgid "Metaball"
-msgstr "Métaballe"
-
-
-msgid "Light"
-msgstr "Éclairage"
-
-
-msgid "Light Probe"
-msgstr "Sonde d’éclairage"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
 
@@ -36777,16 +36789,40 @@ msgid "Instances"
 msgstr "Instances"
 
 
+msgid "Assign Material"
+msgstr "Assigner un matériau"
+
+
+msgid "Import"
+msgstr "Importer"
+
+
+msgid "Deprecated"
+msgstr "Obsolète"
+
+
+msgid "Light"
+msgstr "Éclairage"
+
+
+msgid "Render Preview"
+msgstr "Rendu de prévisualisation"
+
+
+msgid "Light Probe"
+msgstr "Sonde d’éclairage"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Add Image"
 msgstr "Ajouter une image"
 
 
 msgid "Relations"
 msgstr "Relations"
-
-
-msgid "Import"
-msgstr "Importer"
 
 
 msgid "Rigid Body"
@@ -36801,20 +36837,8 @@ msgid "Track"
 msgstr "Suivi"
 
 
-msgid "Deprecated"
-msgstr "Obsolète"
-
-
 msgid "Quick Effects"
 msgstr "Effets rapides"
-
-
-msgid "Show/Hide"
-msgstr "Afficher/cacher"
-
-
-msgid "Clean Up"
-msgstr "Nettoyer"
 
 
 msgid "Asset"
@@ -36825,16 +36849,8 @@ msgid "Make Single User"
 msgstr "Rendre mono-utilisateur"
 
 
-msgid "Render Preview"
-msgstr "Rendu de prévisualisation"
-
-
 msgid "Convert"
 msgstr "Convertir"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -36877,8 +36893,12 @@ msgid "Bone Collections"
 msgstr "Collections d’os"
 
 
-msgid "Names"
-msgstr "Noms"
+msgid "Linked"
+msgstr "Liés"
+
+
+msgid "Layout"
+msgstr "Disposition"
 
 
 msgid "Toggle Bone Options"
@@ -36909,36 +36929,16 @@ msgid "Set Face Strength"
 msgstr "Définir la force de face"
 
 
-msgid "Merge"
-msgstr "Fusionner"
-
-
-msgid "Linked"
-msgstr "Liés"
-
-
-msgid "Layout"
-msgstr "Disposition"
-
-
-msgid "Special Characters"
-msgstr "Caractères spéciaux"
-
-
-msgid "Kerning"
-msgstr "Approche"
-
-
 msgid "Adjust"
 msgstr "Ajuster"
 
 
-msgid "Bone Roll"
-msgstr "Roulis de l’os"
-
-
 msgid "Keying"
 msgstr "Incrustation"
+
+
+msgid "Merge"
+msgstr "Fusionner"
 
 
 msgid "Tracking"
@@ -37310,12 +37310,12 @@ msgid "Select Selection Set"
 msgstr "Sélectionner l’ensemble de sélection"
 
 
-msgid "Add Variable"
-msgstr "Ajouter une variable"
-
-
 msgid "Save & Load"
 msgstr "Enregistrer et ouvrir"
+
+
+msgid "Add Variable"
+msgstr "Ajouter une variable"
 
 
 msgid "Frame Rate Presets"
@@ -57638,72 +57638,6 @@ msgid "Install Theme..."
 msgstr "Installer un thème…"
 
 
-msgid "Add a new variable to the current project"
-msgstr "Ajouter une nouvelle variable au projet actuel"
-
-
-msgctxt "Operator"
-msgid "Add Variable"
-msgstr "Ajouter une variable"
-
-
-msgid ""
-"\n"
-"Register a directory to be used by the Asset Browser and other places showing assets,\n"
-"as source of assets within the current project."
-msgstr ""
-"\n"
-"Enregistrer un dossier à utiliser par l’explorateur d’assets et d’autres endroits affichant des assets,\n"
-"comme source d’assets au sein du projet actuel."
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Ajouter une bibliothèque d’assets"
-
-
-msgid ""
-"\n"
-"Deregister an asset library so that its directory will no longer show up in\n"
-"Asset Browsers and other places showing assets."
-msgstr ""
-"\n"
-"Dés-enregistrer une bibliothèque d’assets, de façon à ce que son dossier n’apparaisse plus\n"
-"dans les explorateurs d’assets et autres endroits affichant des assets."
-
-
-msgctxt "Operator"
-msgid "Remove Project Asset Library"
-msgstr "Supprimer la bibliothèque d’assets du projet"
-
-
-msgid "Move the active variable up or down in the list of variables"
-msgstr "Déplacer la variable active vers le haut ou le bas de la liste"
-
-
-msgctxt "Operator"
-msgid "Move Variable"
-msgstr "Déplacer la variable"
-
-
-msgid "Remove the active variable from the current project"
-msgstr "Supprimer la variable active du projet actuel"
-
-
-msgctxt "Operator"
-msgid "Remove Variable"
-msgstr "Supprimer la variable"
-
-
-msgid "Save the current project to disk"
-msgstr "Enregistrer le projet actuel sur le disque"
-
-
-msgctxt "Operator"
-msgid "Save Project"
-msgstr "Enregistrer sur le disque"
-
-
 msgid "Add or remove a white balance preset"
 msgstr "Ajouter ou supprimer un préréglage de balance des blancs"
 
@@ -69772,6 +69706,15 @@ msgstr "Aimanter les points sélectionnés aux points les plus proches de la gri
 
 
 msgctxt "Operator"
+msgid "Grease Pencil Carver"
+msgstr "Creusage de Grease Pencil"
+
+
+msgid "Cuts stroke point in the intersect lasso"
+msgstr "Creuser des points dans les traits, avec l’intersection du lasso"
+
+
+msgctxt "Operator"
 msgid "Assign Material"
 msgstr "Assigner le matériau"
 
@@ -72369,6 +72312,15 @@ msgid "Compare Color Attributes"
 msgstr "Comparer les attributs de couleur"
 
 
+msgctxt "Operator"
+msgid "Curve Edge Loops Between Selected"
+msgstr "Recourber les boucles d’arêtes entre la sélection"
+
+
+msgid "Fits the unselected edge loops to a curve defined by the selected vertices"
+msgstr "Ajuster les boucles d’arêtes non-sélectionnées sur une courbe définie par les sommets sélectionnés"
+
+
 msgid "Clamp Elevation"
 msgstr "Limiter l’élévation"
 
@@ -72393,12 +72345,20 @@ msgid "Only Lower"
 msgstr "Abaisser seulement"
 
 
+msgid "Only allow indentation"
+msgstr "Ne permettre que l’élévation"
+
+
 msgid "Extend Loop"
 msgstr "Étendre la boucle"
 
 
 msgid "Extends the tool to work beyond the boundaries of the selected vertices"
 msgstr "Étendre le fonctionnement de l’outil au-delà des limites des sommets sélectionnés"
+
+
+msgid "Curving factor"
+msgstr "Facteur de recourbement"
 
 
 msgid "Algorithm used for interpolation"
@@ -80262,7 +80222,7 @@ msgstr "Modifier des propriétés comme le rayon de sommets de courbe, la taille
 
 msgctxt "Operator"
 msgid "Look at Surface"
-msgstr "Regarder la surface"
+msgstr "Pointer la surface"
 
 
 msgid "Interactively point cameras and lights to the surface under the pointer (Ctrl to translate)"
@@ -83626,6 +83586,11 @@ msgid "Remove existing template with the same ID"
 msgstr "Supprimer les patrons existants ayant le même ID"
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Ajouter une bibliothèque d’assets"
+
+
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "Ajouter un répertoire à utiliser comme source d’assets par l’explorateur d’assets"
 
@@ -83887,24 +83852,8 @@ msgid "Remove this installation's associations with .blend files"
 msgstr "Supprimer les associations de fichers .blend de cette installation"
 
 
-msgid "String Variable"
-msgstr "Variable chaîne de caractères"
-
-
-msgid "Filepath Variable"
-msgstr "Variable chemin de fichier"
-
-
-msgid "Integer Variable"
-msgstr "Variable entier"
-
-
-msgid "Float Variable"
-msgstr "Variable flottant"
-
-
-msgid "Asset Library Directory"
-msgstr "Dossier de bibliothèque d’assets"
+msgid "Add a directory to be used by the Project as source of assets"
+msgstr "Ajouter un répertoire à utiliser comme source d’assets par le projet"
 
 
 msgctxt "Operator"
@@ -83920,12 +83869,13 @@ msgid "Skip check to prevent unsaved changes from being lost"
 msgstr "Sauter la vérification empêchant la perte des modifications non-enregistrées"
 
 
-msgid "Move Up"
-msgstr "Vers le haut"
+msgctxt "Operator"
+msgid "Save Project Config"
+msgstr "Enregistrer la config du projet"
 
 
-msgid "Move Down"
-msgstr "Vers le bas"
+msgid "Save the current project config to disk"
+msgstr "Enregistrer la config du projet actuel sur le disque"
 
 
 msgctxt "Operator"
@@ -83935,6 +83885,26 @@ msgstr "Nouveau projet"
 
 msgid "Create a new project"
 msgstr "Créer un nouveau projet"
+
+
+msgid "Project Root Folder"
+msgstr "Dossier racine du projet"
+
+
+msgid "Project folder, created if missing"
+msgstr "Dossier du projet, à créer s’il n’existe pas"
+
+
+msgid "Folder of the current file or one of its parents, to turn into a project"
+msgstr "Dossier du fichier actuel ou d’un de ses parents, à convertir en projet"
+
+
+msgid "Name of the project"
+msgstr "Nom du projet"
+
+
+msgid "Update Directory From Name"
+msgstr "Mettre à jour le dossier à partir du nom"
 
 
 msgctxt "Operator"
@@ -83972,6 +83942,69 @@ msgstr ""
 "Définir l’image d’accueil du projet à partir d’un fichier image.\n"
 "L’image sera recadrée, redimensionnée, et enregistrée sous « .blender_project/splash.jpg ».\n"
 "Pour des résultats optimaux, utiliser des proportions de 2:1"
+
+
+msgctxt "Operator"
+msgid "Add Variable"
+msgstr "Ajouter une variable"
+
+
+msgid "Add a new variable to the current project"
+msgstr "Ajouter une nouvelle variable au projet actuel"
+
+
+msgid "Variable Type"
+msgstr "Type de variable"
+
+
+msgid "The kind of variable type to add"
+msgstr "Type de variable à ajouter"
+
+
+msgid "String Variable"
+msgstr "Variable chaîne de caractères"
+
+
+msgid "Filepath Variable"
+msgstr "Variable chemin de fichier"
+
+
+msgid "Integer Variable"
+msgstr "Variable entier"
+
+
+msgid "Float Variable"
+msgstr "Variable flottant"
+
+
+msgctxt "Operator"
+msgid "Move Variable"
+msgstr "Déplacer la variable"
+
+
+msgid "Move the active variable up or down in the list of variables"
+msgstr "Déplacer la variable active vers le haut ou le bas de la liste"
+
+
+msgid "Which direction to move the variable"
+msgstr "Dans quel sens déplacer la variable"
+
+
+msgid "Move Up"
+msgstr "Vers le haut"
+
+
+msgid "Move Down"
+msgstr "Vers le bas"
+
+
+msgctxt "Operator"
+msgid "Remove Variable"
+msgstr "Supprimer la variable"
+
+
+msgid "Remove the active variable from the current project"
+msgstr "Supprimer la variable active du projet actuel"
 
 
 msgctxt "Operator"
@@ -87694,6 +87727,19 @@ msgstr "Marqueurs"
 
 msgid "Ripple markers along with strips"
 msgstr "Propager (ripple) les marqueurs en même temps que les bandes"
+
+
+msgctxt "Operator"
+msgid "Ripple Trim Strips"
+msgstr "Découper les bandes, propager"
+
+
+msgid "Trim strips to the current frame and close the gaps left behind"
+msgstr "Découper les bandes à la frame actuelle, et combler les espaces restants"
+
+
+msgid "The side of the strips to trim to the current frame"
+msgstr "Côté des bandes à couper jusqu’à la frame actuelle"
 
 
 msgid "Use mouse to sample color in current frame"
@@ -98179,6 +98225,11 @@ msgstr "Tailler"
 
 
 msgctxt "Operator"
+msgid "Carver"
+msgstr "Creusage"
+
+
+msgctxt "Operator"
 msgid "Selection Paint"
 msgstr "Peindre la sélection"
 
@@ -101944,6 +101995,10 @@ msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chinois (Simplifié) – 简体中文"
 
 
+msgid "Locale code: zh_HANS. Translation progress: 100%"
+msgstr "Identificateur de culture : zh_HANS. Progrès de la traduction : 100%"
+
+
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Chinois (Traditionnel) – 繁體中文"
 
@@ -102020,12 +102075,16 @@ msgid "French - Français"
 msgstr "Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 98%"
-msgstr "Identificateur de culture : fr_FR. Progrès de la traduction : 98%"
+msgid "Locale code: fr_FR. Translation progress: 99%"
+msgstr "Identificateur de culture : fr_FR. Progrès de la traduction : 99%"
 
 
 msgid "Georgian - ქართული"
 msgstr "Géorgien – ქართული"
+
+
+msgid "Locale code: ka. Translation progress: 97%"
+msgstr "Identificateur de culture : ka. Progrès de la traduction : 97%"
 
 
 msgid "German - Deutsch"
@@ -102072,6 +102131,10 @@ msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonésien – Bahasa indonesia"
 
 
+msgid "Locale code: id_ID. Translation progress: 21%"
+msgstr "Identificateur de culture : id_ID. Progrès de la traduction : 21%"
+
+
 msgid "Italian - Italiano"
 msgstr "Italien – Italiano"
 
@@ -102084,8 +102147,8 @@ msgid "Japanese - 日本語"
 msgstr "Japonais – 日本語"
 
 
-msgid "Locale code: ja_JP. Translation progress: 98%"
-msgstr "Identificateur de culture : ja_JP. Progrès de la traduction : 98%"
+msgid "Locale code: ja_JP. Translation progress: 99%"
+msgstr "Identificateur de culture : ja_JP. Progrès de la traduction : 99%"
 
 
 msgid "Korean - 한국어"
@@ -102156,6 +102219,10 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugais (Portugal) – Português europeu"
 
 
+msgid "Locale code: pt_PT. Translation progress: 82%"
+msgstr "Identificateur de culture : pt_PT. Progrès de la traduction : 82%"
+
+
 msgid "Romanian - Român"
 msgstr "Roumain – Român"
 
@@ -102168,8 +102235,8 @@ msgid "Russian - Русский"
 msgstr "Russe – Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 99%"
-msgstr "Identificateur de culture : ru_RU. Progrès de la traduction : 99%"
+msgid "Locale code: ru_RU. Translation progress: 100%"
+msgstr "Identificateur de culture : ru_RU. Progrès de la traduction : 100%"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -102224,8 +102291,16 @@ msgid "Swedish - Svenska"
 msgstr "Suédois – Svenska"
 
 
+msgid "Locale code: sv_SE. Translation progress: 100%"
+msgstr "Identificateur de culture : sv_SE. Progrès de la traduction : 100%"
+
+
 msgid "Tamil - தமிழ்"
 msgstr "Tamoul – தமிழ்"
+
+
+msgid "Locale code: ta. Translation progress: 92%"
+msgstr "Identificateur de culture : ta. Progrès de la traduction : 92%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -104533,6 +104608,38 @@ msgstr "Démarrer le débruitage"
 
 msgid "Sample to start denoising the preview at"
 msgstr "Échantillon à partir duquel commencer le débruitage de la prévisualisation"
+
+
+msgid "Viewport Denoising Upscale Quality"
+msgstr "Qualité du débruitage upscale dans la vue 3D"
+
+
+msgid "Overall upscale factor and denoising quality when using DLSS"
+msgstr "Facteur global d’upscale et qualité du débruitage lors de l’utilisation de DLSS"
+
+
+msgid "Highest quality without upscaling"
+msgstr "Plus haute qualité sans upscale"
+
+
+msgid "Offers higher image quality than balanced mode"
+msgstr "Meilleure qualité d’image que le mode équilibré"
+
+
+msgid "Offers both optimized performance and image quality"
+msgstr "Performance optimisée et bonne qualité d’image"
+
+
+msgid "Offers a higher performance boost than balanced mode"
+msgstr "Meilleure performance que le mode équilibré"
+
+
+msgid "Ultra Performance"
+msgstr "Ultra performance"
+
+
+msgid "Offers the highest performance boost"
+msgstr "Meilleure performance"
 
 
 msgid "Denoise Preview on GPU"
@@ -111694,6 +111801,10 @@ msgid "Display data that is unused and/or will be lost when the file is reloaded
 msgstr "Afficher les données qui sont inutilisées et/ou seront perdues au prochain rechargement du fichier"
 
 
+msgid "Expand on Focus"
+msgstr "Déplier à l’affichage"
+
+
 msgid "Uncollapse the active item when scrolling it into view"
 msgstr "Déplier l’élément actif quand la liste défile jusqu’à lui"
 
@@ -111979,6 +112090,30 @@ msgid "Show curves, lattices, light probes, fonts, ..."
 msgstr "Afficher les courbes, lattices, sondes d’éclairage, polices, etc."
 
 
+msgid "Show Object Shape Keys"
+msgstr "Afficher les clés de forme de l’objet"
+
+
+msgid "Show object shape keys"
+msgstr "Afficher les clés de forme de l’objet"
+
+
+msgid "Show Object Vertex Groups"
+msgstr "Afficher les groupes de sommets de l’objet"
+
+
+msgid "Show object vertex groups"
+msgstr "Afficher les groupes de sommets de l’objet"
+
+
+msgid "Show Pose Bones"
+msgstr "Afficher les os de pose"
+
+
+msgid "Show pose bones of armatures"
+msgstr "Afficher les os de pose des armatures"
+
+
 msgid "Show All View Layers"
 msgstr "Afficher tous les calques de vue"
 
@@ -112094,6 +112229,10 @@ msgstr "Propriétés du calque de vue"
 msgctxt "ID"
 msgid "Compositor & Effects"
 msgstr "Compositeur et effets"
+
+
+msgid "Procedural scene post-processing"
+msgstr "Post-traitement procédural de la scène"
 
 
 msgid "World Properties"
@@ -112352,6 +112491,14 @@ msgstr "Afficher la région de balayage"
 
 msgid "Region with full playback range for scrubbing in the sequencer"
 msgstr "Région avec intervalle de lecture entier pour le balayage dans le séquenceur"
+
+
+msgid "Preview Edit Point"
+msgstr "Prévisualiser la frame éditée"
+
+
+msgid "While editing in the timeline, show the affected frame instead of the current frame, such as in the blade tool, or when tweaking handles"
+msgstr "Lors de l’édition dans la timeline, afficher la frame affectée plutôt que la frame actuelle, par exemple dans l’outil lame, ou pendant l’ajustage des poignées"
 
 
 msgid "Limit View to Contents"
@@ -118867,8 +119014,28 @@ msgid "Enable the asset library"
 msgstr "Activer la bibliothèque d’assets"
 
 
+msgid "Identifier of the extension defining this asset library (repository module and package ID), empty for user defined libraries"
+msgstr "Identifiant de l’extension définissant cette bibliothèque d’assets (module du dépôt et ID du paquet), vide pour les bibliothèques définies par l’utilisateur"
+
+
 msgid "Determine how the asset will be imported, unless overridden by the Asset Browser"
 msgstr "Détermine comment l’asset est importé, sauf si la méthode est redéfinie dans l’explorateur d’assets"
+
+
+msgid "Invalid UUID"
+msgstr "UUID invalide"
+
+
+msgid "If the UUID is invalid for the asset, the invalid string will be available here."
+msgstr "Si l’UUID est invalide pour l’asset, le texte invalide sera disponible ici."
+
+
+msgid "Project Defined"
+msgstr "Défini dans le projet"
+
+
+msgid "Signifies if the asset library is defined by a project"
+msgstr "Indique si la bibliothèque d’assets est définie par un projet"
 
 
 msgid "Use relative path when linking assets from this asset library"
@@ -118887,8 +119054,24 @@ msgid "UUID"
 msgstr "UUID"
 
 
+msgid "The unique identifier for the asset library"
+msgstr "Identifiant unique de la bibliothèque d’assets"
+
+
+msgid "Preferences Asset Library"
+msgstr "Bibliothèque d’assets des préférences"
+
+
+msgid "An asset library defined in the Preferences, available whatever project or blend file is open"
+msgstr "Bibliothèque d’assets définie dans les préférences, disponible quel que soit le projet ou fichier .blend ouvert"
+
+
 msgid "Path to a directory with .blend files to use as an asset library"
 msgstr "Chemin vers un dossier contenant des fichiers .blend, à utiliser comme bibliothèque d’assets"
+
+
+msgid "Project Asset Library"
+msgstr "Bibliothèque d’assets de projet"
 
 
 msgid "Extension Repository"
@@ -118922,6 +119105,10 @@ msgid "URL"
 msgstr "URL"
 
 
+msgid "Show the asset libraries of this repository in the preferences"
+msgstr "Afficher les bibliothèques d’assets de ce dépôt dans les préférences"
+
+
 msgid "Select if the repository is in a user managed or system provided directory"
 msgstr "Choisir si le dépôt est dans un dossier géré par l’utilisateur, ou fourni par le système"
 
@@ -118932,6 +119119,14 @@ msgstr "Dépôt géré par l’utilisateur, placé dans ses dossiers"
 
 msgid "Read-only repository provided by the system"
 msgstr "Dépôt en lecture seule fourni par le système"
+
+
+msgid "Access Token for Asset Libraries"
+msgstr "Jeton d’accès pour les bibliothèques d’assets"
+
+
+msgid "Asset libraries installed from this repository use its access token (cached from the repository listing when syncing)"
+msgstr "Les bibliothèques d’assets installées depuis ce dépôt utilisent un jeton d’accès (mis en cache depuis le listage du dépôt, lors de la synchro)"
 
 
 msgid "Clean Files After Install"
@@ -122017,6 +122212,11 @@ msgstr "Interface utilisateur"
 
 
 msgctxt "WindowManager"
+msgid "Toolbar Popup"
+msgstr "Fenêtre surgissante de barre d’outils"
+
+
+msgctxt "WindowManager"
 msgid "3D View"
 msgstr "Vue 3D"
 
@@ -122479,6 +122679,26 @@ msgstr "Outil vue 3D : édition de courbe, randomiser (secondaire)"
 msgctxt "WindowManager"
 msgid "Curves"
 msgstr "Courbes"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Curves, Draw"
+msgstr "Outil vue 3D : édition de courbes, dessiner"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Curves, Draw (fallback)"
+msgstr "Outil vue 3D : édition de courbes, dessiner (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Curves, Pen"
+msgstr "Outil vue 3D : édition de courbe, plume"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Curves, Pen (fallback)"
+msgstr "Outil vue 3D : édition de courbes, plume (secondaire)"
 
 
 msgctxt "WindowManager"
@@ -124029,6 +124249,66 @@ msgstr "Outil nodal : sélection par lasso (secondaire)"
 
 
 msgctxt "WindowManager"
+msgid "Node Tool: Links Cut"
+msgstr "Outil nodal, couper les liens"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Links Cut (fallback)"
+msgstr "Outil nodal, couper les liens (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Mute Links"
+msgstr "Outil nodal, suspendre les liens (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Mute Links (fallback)"
+msgstr "Outil nodal, suspendre les liens (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Add Reroute"
+msgstr "Outil nodal, ajouter un reroutage"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Add Reroute (fallback)"
+msgstr "Outil nodal, ajouter un reroutage (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "Node Link Modal Map"
+msgstr "Carte modale des liens de nœuds"
+
+
+msgctxt "WindowManager"
+msgid "Drag Node-link"
+msgstr "Glisser le lien de nœuds"
+
+
+msgctxt "WindowManager"
+msgid "Confirm Link"
+msgstr "Confirmer le lien"
+
+
+msgctxt "WindowManager"
+msgid "Swap Links"
+msgstr "Échanger les liens"
+
+
+msgctxt "WindowManager"
+msgid "Node Resize Modal Map"
+msgstr "Carte modale de redimensionnement de nœuds"
+
+
+msgctxt "WindowManager"
+msgid "Resize Node"
+msgstr "Redimensionner le nœud"
+
+
+msgctxt "WindowManager"
 msgid "Snap Invert"
 msgstr "Inverser l’aimantation"
 
@@ -124194,6 +124474,31 @@ msgstr "Outil de prévisualisation : échantillonner (secondaire)"
 
 
 msgctxt "WindowManager"
+msgid "Sequencer Channels"
+msgstr "Canaux du séquenceur"
+
+
+msgctxt "WindowManager"
+msgid "Slip Modal"
+msgstr "Modal glissement"
+
+
+msgctxt "WindowManager"
+msgid "Precision Enable"
+msgstr "Activer précision"
+
+
+msgctxt "WindowManager"
+msgid "Precision Disable"
+msgstr "Désactiver précision"
+
+
+msgctxt "WindowManager"
+msgid "Clamp Toggle"
+msgstr "(Dés)activer Restreindre"
+
+
+msgctxt "WindowManager"
 msgid "File Browser"
 msgstr "Navigateur de fichiers"
 
@@ -124216,6 +124521,16 @@ msgstr "Infos"
 msgctxt "WindowManager"
 msgid "Property Editor"
 msgstr "Éditeur de propriétés"
+
+
+msgctxt "WindowManager"
+msgid "Preferences"
+msgstr "Préférences"
+
+
+msgctxt "WindowManager"
+msgid "Preferences_nav"
+msgstr "Préférences_nav"
 
 
 msgctxt "WindowManager"
@@ -124259,6 +124574,106 @@ msgstr "Mode dessin du Grease Pencil"
 
 
 msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Box"
+msgstr "Outil vue 3D : peinture de Grease Pencil, rectangle"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Box (fallback)"
+msgstr "Outil vue 3D : peinture de Grease Pencil, rectangle (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Circle"
+msgstr "Outil vue 3D : peinture de Grease Pencil, cercle"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Circle (fallback)"
+msgstr "Outil vue 3D : peinture de Grease Pencil, cercle (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Line"
+msgstr "Outil vue 3D : peinture de Grease Pencil, ligne"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Line (fallback)"
+msgstr "Outil vue 3D : peinture de Grease Pencil, ligne (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Polyline"
+msgstr "Outil vue 3D : peinture de Grease Pencil, polyligne"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Polyline (fallback)"
+msgstr "Outil vue 3D : peinture de Grease Pencil, polyligne (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Arc"
+msgstr "Outil vue 3D : peinture de Grease Pencil, arc"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Arc (fallback)"
+msgstr "Outil vue 3D : peinture de Grease Pencil, arc (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Curve"
+msgstr "Outil vue 3D : peinture de Grease Pencil, courbe"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Curve (fallback)"
+msgstr "Outil vue 3D : peinture de Grease Pencil, courbe (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Trim"
+msgstr "Outil vue 3D : peinture de Grease Pencil, découpe"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Trim (fallback)"
+msgstr "Outil vue 3D : peinture de Grease Pencil, découpe (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Carver"
+msgstr "Outil vue 3D : peinture de Grease Pencil, creusage"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Carver (fallback)"
+msgstr "Outil vue 3D : peinture de Grease Pencil, creusage (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Eyedropper"
+msgstr "Outil vue 3D : peinture de Grease Pencil, pipette"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Eyedropper (fallback)"
+msgstr "Outil vue 3D : peinture de Grease Pencil, pipette (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Interpolate"
+msgstr "Outil vue 3D : peinture de Grease Pencil, interpoler"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Interpolate (fallback)"
+msgstr "Outil vue 3D : peinture de Grease Pencil, interpoler (secondaire)"
+
+
+msgctxt "WindowManager"
 msgid "Grease Pencil Brush Stroke"
 msgstr "Trait de brosse du Grease Pencil"
 
@@ -124266,6 +124681,46 @@ msgstr "Trait de brosse du Grease Pencil"
 msgctxt "WindowManager"
 msgid "Grease Pencil Edit Mode"
 msgstr "Mode édition du Grease Pencil"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Pen"
+msgstr "Outil vue 3D : édition de Grease Pencil, plume"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Pen (fallback)"
+msgstr "Outil vue 3D : édition de Grease Pencil, plume (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Bend"
+msgstr "Outil vue 3D : fléchir"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Bend (fallback)"
+msgstr "Outil vue 3D : fléchir (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Interpolate"
+msgstr "Outil vue 3D : édition de Grease Pencil, interpoler"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Interpolate (fallback)"
+msgstr "Outil vue 3D : édition de Grease Pencil, interpoler (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Gradient"
+msgstr "Outil vue 3D : édition de Grease Pencil, dégradé"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Gradient (fallback)"
+msgstr "Outil vue 3D : édition de Grease Pencil, dégradé (secondaire)"
 
 
 msgctxt "WindowManager"
@@ -124284,6 +124739,11 @@ msgstr "Peinture de sommets du Grease Pencil"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil Selection"
+msgstr "Sélection du Grease Pencil"
+
+
+msgctxt "WindowManager"
 msgid "Grease Pencil Fill Tool"
 msgstr "Outil remplissage du Grease Pencil"
 
@@ -124291,6 +124751,76 @@ msgstr "Outil remplissage du Grease Pencil"
 msgctxt "WindowManager"
 msgid "Mask Editing"
 msgstr "Édition de masque"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Tweak"
+msgstr "Outil d’éditeur d’images : masque, ajuster"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Tweak (fallback)"
+msgstr "Outil d’éditeur d’images : masque, ajuster (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Box"
+msgstr "Outil d’éditeur d’images : masque, sélection par rectangle"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Box (fallback)"
+msgstr "Outil d’éditeur d’images : masque, sélection par rectangle (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Circle"
+msgstr "Outil d’éditeur d’images : masque, sélection par cercle"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Circle (fallback)"
+msgstr "Outil d’éditeur d’images : masque, sélection par cercle (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Lasso"
+msgstr "Outil d’éditeur d’images : masque, sélection par lasso"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Lasso (fallback)"
+msgstr "Outil d’éditeur d’images : masque, sélection par lasso (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Move"
+msgstr "Outil d’éditeur d’images : masque, déplacer"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Move (fallback)"
+msgstr "Outil d’éditeur d’images : masque, déplacer (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Rotate"
+msgstr "Outil d’éditeur d’images : masque, tourner"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Rotate (fallback)"
+msgstr "Outil d’éditeur d’images : masque, tourner (secondaire)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Scale"
+msgstr "Outil d’éditeur d’images : masque, redimensionner"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Scale (fallback)"
+msgstr "Outil d’éditeur d’images : masque, redimensionner (secondaire)"
 
 
 msgctxt "WindowManager"
@@ -124386,6 +124916,16 @@ msgstr "Sortie"
 msgctxt "WindowManager"
 msgid "Gesture Box"
 msgstr "Gestuelle boîte"
+
+
+msgctxt "WindowManager"
+msgid "Gesture Lasso"
+msgstr "Gestuelle lasso"
+
+
+msgctxt "WindowManager"
+msgid "Gesture Polyline"
+msgstr "Gestuelle polyligne"
 
 
 msgctxt "WindowManager"
@@ -124569,6 +125109,41 @@ msgstr "Limiter les bandes"
 
 
 msgctxt "WindowManager"
+msgid "Shuffle"
+msgstr "Répartir"
+
+
+msgctxt "WindowManager"
+msgid "Ripple"
+msgstr "Propager"
+
+
+msgctxt "WindowManager"
+msgid "Overwrite"
+msgstr "Écraser"
+
+
+msgctxt "WindowManager"
+msgid "Ripple Insert"
+msgstr "Insérer et propager"
+
+
+msgctxt "WindowManager"
+msgid "Transform Axis Target Modal Map"
+msgstr "Carte modale pour pointer la surface"
+
+
+msgctxt "WindowManager"
+msgid "Translate On"
+msgstr "Translater On"
+
+
+msgctxt "WindowManager"
+msgid "Translate Off"
+msgstr "Translater Off"
+
+
+msgctxt "WindowManager"
 msgid "Eyedropper Modal Map"
 msgstr "Carte modale de la pipette"
 
@@ -124631,6 +125206,21 @@ msgstr "Glisser les extensions"
 msgctxt "WindowManager"
 msgid "Collide Extensions"
 msgstr "Collision des extensions"
+
+
+msgctxt "WindowManager"
+msgid "Interpolate Tool Modal Map"
+msgstr "Carte modale de l’outil interpoler"
+
+
+msgctxt "WindowManager"
+msgid "Increase"
+msgstr "Augmenter"
+
+
+msgctxt "WindowManager"
+msgid "Decrease"
+msgstr "Diminuer"
 
 
 msgctxt "WindowManager"
@@ -124721,6 +125311,10 @@ msgstr "Recherche des mises à jour d’extensions"
 
 msgid "Enable Add-on"
 msgstr "Activer l’add-on"
+
+
+msgid "Enable Asset Library"
+msgstr "Activer la bibliothèque"
 
 
 msgid "Set Current Theme"
@@ -124860,6 +125454,14 @@ msgid "Lock not held!"
 msgstr "Verrou non tenu !"
 
 
+msgid "Repository \"{:s}\" not found or disabled"
+msgstr "Le dépôt « {:s} » est introuvable ou désactivé"
+
+
+msgid "Extension \"{:s}\" not installed"
+msgstr "L’extension « {:s} » n’est pas installée"
+
+
 msgid "Command interrupted"
 msgstr "Commande interrompue"
 
@@ -124928,6 +125530,10 @@ msgid "Unable to install from disk, no paths were defined"
 msgstr "Impossible d’installer l’add-on, aucun chemin défini"
 
 
+msgid "Asset Library \"{:s}\" is already installed!"
+msgstr "La bibliothèque d’assets « {:s} » est déjà installée !"
+
+
 msgid "Name: {:s}"
 msgstr "Nom : {:s}"
 
@@ -124964,6 +125570,10 @@ msgid "Theme \"{:s}\" is already installed!"
 msgstr "Thème « {:s} » déjà installé !"
 
 
+msgid "Extension \"{:s}\" is already installed!"
+msgstr "L’extension « {:s} » est déjà installée !"
+
+
 msgid "Age: {:s}"
 msgstr "Âge : {:s}"
 
@@ -124990,6 +125600,21 @@ msgstr "Héritage (utilisateur)"
 msgctxt "Preferences"
 msgid "Legacy (Other)"
 msgstr "Héritage (autre)"
+
+
+msgctxt "Preferences"
+msgid "Add-on"
+msgstr "Add-on"
+
+
+msgctxt "Preferences"
+msgid "Asset Library"
+msgstr "Bibliothèque d’assets"
+
+
+msgctxt "Preferences"
+msgid "Theme"
+msgstr "Thème"
 
 
 msgid "Missing Built-in Add-ons"
@@ -125375,6 +126000,10 @@ msgid "Use Intel OpenImageDenoise AI denoiser"
 msgstr "Utiliser le débruitage IA Intel OpenImageDenoise"
 
 
+msgid "Use NVIDIA DLSS Ray Reconstruction"
+msgstr "Utiliser la reconstruction de rayon DLSS NVIDIA"
+
+
 msgid "Use the OptiX AI denoiser with GPU acceleration, only available on NVIDIA GPUs when configured in the system tab in the user preferences"
 msgstr "Utiliser le débruitage IA Optix avec accélération GPU. Disponible uniquement sur les GPU NVIDIA, si configuré dans l’onglet Système des préférences utilisateur"
 
@@ -125721,6 +126350,10 @@ msgid "Module Debug"
 msgstr "Débug module"
 
 
+msgid "Upscale Mode"
+msgstr "Mode d’upscale"
+
+
 msgid "May work poorly with render tiling"
 msgstr "Peut mal marcher avec le rendu en tuiles"
 
@@ -125745,6 +126378,10 @@ msgstr "Désélectionner"
 
 msgid "Contributions"
 msgstr "Contributions"
+
+
+msgid "Requires NVIDIA GPU with compute capability %s and NVIDIA driver version %s or newer."
+msgstr "Nécessite un GPU NVIDIA avec capacité de calcul %s et une version de pilote NVIDIA %s ou plus."
 
 
 msgid "Step Size Lightning"
@@ -125780,12 +126417,26 @@ msgid "Invalid target %r (must be 'ARMATURE' or 'OBJECT')"
 msgstr "Cible %r invalide (doit être 'ARMATURE' ou 'OBJECT')"
 
 
+msgctxt "Operator"
+msgid "IO_FH_svg_as_curves"
+msgstr "IO_FH_svg_as_curves"
+
+
 msgid "Unable to parse XML, %s:%s for file %r"
 msgstr "Impossible d’analyser le XML, %s :%s pour le fichier %r"
 
 
+msgctxt "Operator"
+msgid "IO_FH_fbx"
+msgstr "IO_FH_fbx"
+
+
 msgid "Limit to"
 msgstr "Limiter à"
+
+
+msgid "(Legacy)"
+msgstr "(hérité)"
 
 
 msgid "%s could not be set out of Edit Mode, so cannot be exported"
@@ -125870,6 +126521,11 @@ msgstr "Animations supplémentaires"
 
 msgid "gltfpack"
 msgstr "gltfpack"
+
+
+msgctxt "Operator"
+msgid "IO_FH_gltf2"
+msgstr "IO_FH_gltf2"
 
 
 msgid "Bones & Skin"
@@ -126163,6 +126819,10 @@ msgstr "Aucune entrée libre pour le nœud {}"
 
 msgid "No nodes to arrange in selection."
 msgstr "Aucun nœud à ordonner dans la sélection."
+
+
+msgid "No factor values were modified."
+msgstr "Aucune valeur de facteur n’a été modifiée."
 
 
 msgid "Selected nodes are not of the same type as {}"
@@ -126486,7 +127146,7 @@ msgstr "Node Wrangler (menu)"
 
 
 msgid "Add Reroutes (Menu)"
-msgstr "Ajouter des reroutages (menu"
+msgstr "Ajouter des reroutages (menu)"
 
 
 msgid "Link Active to Selected (Menu)"
@@ -128065,6 +128725,10 @@ msgid "Failed to execute the preset: {:s}"
 msgstr "Impossible d’exécuter le préréglage : {:s}"
 
 
+msgid "Cannot create an asset library with an empty directory path."
+msgstr "Impossible de créer une bibliothèque d’assets avec un chemin de dossier vide."
+
+
 msgid "No other objects selected"
 msgstr "Aucun autre objet sélectionné"
 
@@ -128177,6 +128841,10 @@ msgid "Path: {!r}"
 msgstr "Chemin : {!r}"
 
 
+msgid "Unable to copy {!r}: {:s}"
+msgstr "Impossible de copier {!r} : {:s}"
+
+
 msgid "Active face must be a quad"
 msgstr "La face active doit être un quadrilatère"
 
@@ -128239,6 +128907,10 @@ msgstr "Rotation en quaternions"
 
 msgid "See OperatorList.txt text block"
 msgstr "Voir le bloc de texte OperatorList.txt"
+
+
+msgid "Timeline Marker(s)"
+msgstr "Marqueur(s) de la timeline"
 
 
 msgid "Renamed {:d} of {:d} {:s}"
@@ -128307,6 +128979,10 @@ msgid "Tool {!r} not found for space {!r}"
 msgstr "L’outil {!r} est introuvable pour l’espace {!r}"
 
 
+msgid "Pose Marker(s)"
+msgstr "Marqueur(s) de poses"
+
+
 msgid "Import Preferences From Previous Version"
 msgstr "Importer les préférences de la version précédente"
 
@@ -128332,6 +129008,10 @@ msgstr "Continuer"
 msgctxt "Operator"
 msgid "Close"
 msgstr "Fermer"
+
+
+msgid "Project Files"
+msgstr "Fichiers du projet"
 
 
 msgctxt "Operator"
@@ -128514,6 +129194,10 @@ msgstr "Caméra(s)"
 
 msgid "Speaker(s)"
 msgstr "Haut-parleur(s)"
+
+
+msgid "Other Recent Files"
+msgstr "Autres fichiers récents"
 
 
 msgctxt "Operator"
@@ -128700,6 +129384,10 @@ msgid "Stanford PLY (.ply)"
 msgstr "Stanford PLY (.ply)"
 
 
+msgid "SPZ (.spz)"
+msgstr "SPZ (.spz)"
+
+
 msgid "STL (.stl)"
 msgstr "STL (.stl)"
 
@@ -128777,6 +129465,11 @@ msgstr "Avant"
 
 msgid "Collection Mask"
 msgstr "Masque de collection"
+
+
+msgctxt "Operator"
+msgid "Scene Effect"
+msgstr "Effet de scène"
 
 
 msgctxt "Operator"
@@ -129016,6 +129709,10 @@ msgstr "Harmonique"
 
 msgid "Pole Merge Angle Start"
 msgstr "Angle de fusion des pôles, début"
+
+
+msgid "Panoramic Depth of Field is not supported yet"
+msgstr "La profondeur de champ n’est pas encore prise en charge en panoramique"
 
 
 msgid "Focus on Bone"
@@ -130592,6 +131289,10 @@ msgid "Auto-Step"
 msgstr "Pas auto"
 
 
+msgid "OpenColorIO Config"
+msgstr "Config OpenColorIO"
+
+
 msgid "Max Depth"
 msgstr "Profondeur max"
 
@@ -131267,6 +131968,11 @@ msgstr "Mode d’extrapolation"
 
 
 msgctxt "Operator"
+msgid "Replace Action..."
+msgstr "Remplacer l’action…"
+
+
+msgctxt "Operator"
 msgid "Snap"
 msgstr "Aimanter"
 
@@ -131470,6 +132176,11 @@ msgid "Refresh Remote Listing"
 msgstr "Rafraîchir la liste distante"
 
 
+msgctxt "Operator"
+msgid "Rename Asset..."
+msgstr "Renommer l’asset…"
+
+
 msgid "When Linking"
 msgstr "Pour les liens"
 
@@ -131559,6 +132270,11 @@ msgstr "Annuler l’asset (définir utilisateur factice)"
 
 msgid "No active asset"
 msgstr "Aucun asset actif"
+
+
+msgctxt "Operator"
+msgid "View Extension..."
+msgstr "Voir l’extension…"
 
 
 msgid "Asset Catalog:"
@@ -132376,6 +133092,10 @@ msgid "Object Contents"
 msgstr "Contenu des objets"
 
 
+msgid "Grease Pencil Effects"
+msgstr "Effets de Grease Pencil"
+
+
 msgctxt "Operator"
 msgid "Hide One Level"
 msgstr "Cacher un niveau"
@@ -132435,25 +133155,54 @@ msgid "Auto-Save Project"
 msgstr "Enregistrer le projet automatiquement"
 
 
+msgctxt "Operator"
+msgid "Save Project"
+msgstr "Enregistrer sur le disque"
+
+
+msgid "Artwork"
+msgstr "Image"
+
+
 msgid "No active project."
 msgstr "Aucun projet actif."
 
 
-msgid "Save the current file, and make sure to place it in a folder that will be part of the project"
-msgstr "Enregistrez le fichier actuel, et assurez-vous qu’il soit dans un dossier appartenant au projet"
-
-
-msgid "Alternatively, open a file inside of a project directory to see its settings."
-msgstr "Autrement, ouvrez un fichier situé dans un dossier du projet pour voir ses paramètres."
+msgid "Create a new project, or open an existing project or a file inside of one."
+msgstr "Créer un nouveau projet, ou ouvrir un projet existant, ou un fichier dans un projet."
 
 
 msgctxt "Operator"
-msgid "Save File..."
-msgstr "Enregistrer le fichier…"
+msgid "String"
+msgstr "Texte"
 
 
-msgid "Set up a new project by choosing any parent directory of the current file."
-msgstr "Paramétrer un nouveau projet en choisissant un dossier qui soit parent du fichier actuel."
+msgctxt "Operator"
+msgid "Filepath"
+msgstr "Chemin de fichier"
+
+
+msgctxt "Operator"
+msgid "Integer"
+msgstr "Entier"
+
+
+msgctxt "Operator"
+msgid "Float"
+msgstr "Flottant"
+
+
+msgid "Overridden by the {:s} environment variable"
+msgstr "Écrasé par la variable d’environnement {:s}"
+
+
+msgctxt "Operator"
+msgid "Reload to Apply Changes"
+msgstr "Recharger pour appliquer les changements"
+
+
+msgid "{:.3f}"
+msgstr "{:.3f}"
 
 
 msgid "Sync with Outliner"
@@ -132898,8 +133647,23 @@ msgstr "Déplacer/étendre à partir de la frame actuelle"
 
 
 msgctxt "Operator"
+msgid "Ripple Trim Start"
+msgstr "Découpage propagé, début"
+
+
+msgctxt "Operator"
+msgid "Ripple Trim End"
+msgstr "Découpage propagé, fin"
+
+
+msgctxt "Operator"
 msgid "Remove Gaps (All)"
 msgstr "Retirer les espaces (tous)"
+
+
+msgctxt "Sequence"
+msgid "Hard Split"
+msgstr "Division dure"
 
 
 msgctxt "Operator"
@@ -133075,6 +133839,10 @@ msgid "Only Active Keying Set"
 msgstr "Ensemble de clés actif uniquement"
 
 
+msgid "Wrap Timeline Navigation"
+msgstr "Boucler la navigation de timeline"
+
+
 msgid "Jump Unit"
 msgstr "Unité de saut"
 
@@ -133109,6 +133877,10 @@ msgstr "Impossible de trouver le groupe de barre d’outil"
 
 msgid "Taper Start"
 msgstr "Effilage début"
+
+
+msgid "Box Blade"
+msgstr "Lame rectangulaire"
 
 
 msgctxt "Curve"
@@ -133246,6 +134018,11 @@ msgstr "Sauvegarde auto…"
 
 
 msgctxt "Operator"
+msgid "New..."
+msgstr "Nouveau…"
+
+
+msgctxt "Operator"
 msgid "Find Missing Files..."
 msgstr "Trouver les fichiers manquants…"
 
@@ -133316,6 +134093,11 @@ msgstr "Préférences…"
 
 
 msgctxt "Operator"
+msgid "Settings..."
+msgstr "Paramètres…"
+
+
+msgctxt "Operator"
 msgid "Save Screenshot..."
 msgstr "Enregistrer une capture d’écran…"
 
@@ -133361,6 +134143,15 @@ msgstr "Plus…"
 msgctxt "Operator"
 msgid "Load Factory Blender Settings"
 msgstr "Charger les réglages d’usine de Blender"
+
+
+msgctxt "Operator"
+msgid "Clear Recent Projects List..."
+msgstr "Nettoyer la liste des projets récents…"
+
+
+msgid "No Recent Projects"
+msgstr "Aucun projet récent"
 
 
 msgctxt "Operator"
@@ -133542,6 +134333,14 @@ msgstr "Décalage auto"
 
 msgid "Preview Resolution"
 msgstr "Résolution de l’aperçu"
+
+
+msgid "Strip Length"
+msgstr "Longueur de la bande"
+
+
+msgid "Connect Movie Strips"
+msgstr "Connecter les bandes vidéo"
 
 
 msgid "Sculpt Overlay Color"
@@ -133738,6 +134537,10 @@ msgid "Default To"
 msgstr "Par défaut"
 
 
+msgid "Startup"
+msgstr "Démarrage"
+
+
 msgid "Show Locations"
 msgstr "Afficher les emplacements"
 
@@ -133821,6 +134624,10 @@ msgstr "Pour tous les utilisateurs"
 
 msgid "Player"
 msgstr "Lecteur"
+
+
+msgid "Opening blend files from the internet and other untrusted sources is unsafe with Auto-Run. Use with caution."
+msgstr "L’ouverture des fichiers .blend venant d’Internet ou d’autres sources risquées n’est pas sûre avec l’exécution auto. À utiliser avec précaution."
 
 
 msgid "Wheel"
@@ -133908,6 +134715,14 @@ msgid "Subprocesses"
 msgstr "Sous-processus"
 
 
+msgid "enabled on startup, overriding the preference"
+msgstr "activé au démarrage, préférences écrasées"
+
+
+msgid "disabled on startup, overriding the preference"
+msgstr "désactivé au démarrage, préférences écrasées"
+
+
 msgid "Invert Rotate"
 msgstr "Inverser la rotation"
 
@@ -133991,6 +134806,11 @@ msgstr "Caméra"
 msgctxt "Operator"
 msgid "Orbit Opposite"
 msgstr "Orbiter de l’autre côté"
+
+
+msgctxt "Operator"
+msgid "Reset Roll"
+msgstr "Réinitialiser le roulis"
 
 
 msgctxt "Operator"
@@ -134216,6 +135036,11 @@ msgstr "Cube"
 
 
 msgctxt "Operator"
+msgid "Quad Sphere"
+msgstr "Sphère quad"
+
+
+msgctxt "Operator"
 msgid "UV Sphere"
 msgstr "Sphère UV"
 
@@ -134343,6 +135168,11 @@ msgstr "Précalculer la transformation d’objet vers Grease Pencil…"
 msgctxt "Operator"
 msgid "Change Shape"
 msgstr "Modifier la forme"
+
+
+msgctxt "Operator"
+msgid "Calculate Mass..."
+msgstr "Calculer la masse…"
 
 
 msgctxt "Operator"
@@ -136171,6 +137001,16 @@ msgid "Fix"
 msgstr "Fixe"
 
 
+msgctxt "Operator"
+msgid "Copy Playback Range"
+msgstr "Copier l’intervalle de lecture"
+
+
+msgctxt "Operator"
+msgid "At Playhead"
+msgstr "À la tête de lecture"
+
+
 msgid "These require auto-key:"
 msgstr "Insertion auto nécessaire pour :"
 
@@ -136252,6 +137092,11 @@ msgstr "Verrouillage relatif"
 
 msgid "Multi-Paint"
 msgstr "Peindre plusieurs poids"
+
+
+msgctxt "Operator"
+msgid "Quick Edit..."
+msgstr "Édition rapide…"
 
 
 msgctxt "Operator"
@@ -136589,6 +137434,18 @@ msgid "Failed to write to asset library"
 msgstr "Échec lors de l’écriture dans la bibliothèque d’assets"
 
 
+msgid "Asset is not from an editable .asset.blend file."
+msgstr "L’asset ne vient pas d’un fichier .asset.blend éditable."
+
+
+msgid "Asset is not from a writable .asset.blend file."
+msgstr "L’asset ne vient pas d’un fichier .asset.blend autorisé en écriture."
+
+
+msgid "Asset name was not changed."
+msgstr "Le nom de l’asset n’a pas été modifié."
+
+
 msgid "Failed to delete asset library file"
 msgstr "Échec lors de la suppression du fichier de bibliothèque d’assets"
 
@@ -136599,6 +137456,14 @@ msgstr "Impossible de créer une copie de l’ID « %s » pour l’écrire dan
 
 msgid "Saved \"%s\""
 msgstr "Enregistré « %s »"
+
+
+msgid "Could not remove old asset file: %s"
+msgstr "Impossible de supprimer l’ancien fichier d’asset : %s"
+
+
+msgid "Asset '%s' was renamed to '%s'."
+msgstr "L’asset « %s » a été renommé en « %s »."
 
 
 msgid "Unable to create attribute in edit mode"
@@ -136811,6 +137676,11 @@ msgstr "Collection %d"
 
 msgid "collections"
 msgstr "collections"
+
+
+msgctxt "Scene"
+msgid "Scene Effect"
+msgstr "Effet de scène"
 
 
 msgid "Const"
@@ -137259,6 +138129,10 @@ msgstr "[Actions réservées]"
 
 msgid "node_groups"
 msgstr "groupes de nœuds"
+
+
+msgid "Lighting nodes can't be connected to the Color sockets of a Light Accumulation node"
+msgstr "Les nœuds d’éclairage ne peuvent pas être connectés aux prises Couleur d’un nœud Accumulation d’éclairage"
 
 
 msgid "Use node groups to reuse the same menu multiple times"
@@ -138685,6 +139559,10 @@ msgid "Invalid old/new Action pair ('%s' / '%s')"
 msgstr "Paire d’ancienne/nouvelle action invalide (« %s » / « %s »)"
 
 
+msgid "Cannot replace Action with itself ('%s')"
+msgstr "Impossible de remplacer l’action par elle-même (« %s »)"
+
+
 msgid "Multiple users of an action and not all were selected: %s"
 msgstr "Il y a plusieurs utilisateurs d’une action, et ils ne sont pas tous sélectionnés : %s"
 
@@ -138948,6 +139826,62 @@ msgstr "Propriété enlevée de l’ensemble de clés"
 
 msgid "Property added to Keying Set: '%s'"
 msgstr "Propriété ajoutée à l’ensemble de clés : « %s »"
+
+
+msgid "Found duplicate names in selection. Not all selected were saved into clipboard."
+msgstr "Noms en double détectés dans la sélection. Toute la sélection n’a pas été copiée dans le presse-papier."
+
+
+msgid "Clipboard data has no animation"
+msgstr "Les données dans le presse-papier n’ont pas d’animation"
+
+
+msgid "Clipboard contains incomplete animation data"
+msgstr "Le presse-papier contient des données d’animation incomplètes"
+
+
+msgid "Cannot match selection to clipboard data"
+msgstr "Impossible de faire correspondre la sélection aux données du presse-papier"
+
+
+msgid "Failed to figure out pasting order. Potential dependency cycle"
+msgstr "Impossible de retrouver l’ordre dans lequel coller. Cycle de dépendances possible"
+
+
+msgid "Nothing selected to copy"
+msgstr "Aucune sélection à copier"
+
+
+msgid "Nothing selected to paste to"
+msgstr "Aucune sélection sur laquelle coller"
+
+
+msgid "Selection contains constraints. Perfect world space match cannot be guaranteed"
+msgstr "La sélection contient des contraintes. La correspondance parfaite en espace monde n’est pas garantie"
+
+
+msgid "No clipboard to read from"
+msgstr "Aucun presse-papier à partir duquel lire"
+
+
+msgid "Copied %d %s across %d frames to the clipboard"
+msgstr "%d %s copié(s) dans le presse-papier, sur %d frames"
+
+
+msgid "Pasted all %d %s over %d frames"
+msgstr "%d %s collé(s) sur %d frames"
+
+
+msgid "Pasted the same animation to %d %s over %d frames"
+msgstr "Même animation collée dans %d %s, sur %d frames"
+
+
+msgid "Pasted %d/%d %s over %d frames"
+msgstr "%d/%d %s collés(s), sur %d frames"
+
+
+msgid "Invalid frame range %d-%d"
+msgstr "Intervalle de frames invalide (%d – %d)"
 
 
 msgid "No search term defined"
@@ -139567,8 +140501,44 @@ msgid "None of the selected assets requires downloading"
 msgstr "Aucun des assets sélectionnés ne nécessite d’être téléchargé"
 
 
+msgid "No selected asset."
+msgstr "Aucun asset sélectionné."
+
+
+msgid "Asset is local to this file and can be renamed directly."
+msgstr "L’asset est local à ce fichier et peut être renommé directement."
+
+
+msgid "Asset cannot be modified from this file."
+msgstr "L’asset ne peut pas être modifié depuis ce fichier."
+
+
 msgid "Enable catalog, making contained assets visible in the asset shelf"
 msgstr "Activer le catalogue, et rendre les assets contenus visibles dans l’étagère d’assets"
+
+
+msgid "No assets in this catalog."
+msgstr "Aucun asset dans ce catalogue."
+
+
+msgid "No assets found."
+msgstr "Aucun asset trouvé."
+
+
+msgid "No search results in this catalog."
+msgstr "Aucun résultat de recherche dans ce catalogue."
+
+
+msgid "No results found."
+msgstr "Aucun résultat trouvé."
+
+
+msgid "\"Online Only\" filter is enabled."
+msgstr "Le filtre « En ligne seulement » est activé."
+
+
+msgid "\"Offline Only\" filter is enabled."
+msgstr "Le filtre « Hors ligne seulement » est activé."
 
 
 msgid "Toggle catalog visibility in the asset shelf"
@@ -139621,6 +140591,10 @@ msgstr "Taille du téléchargement : {}"
 
 msgid "Include Online Essentials"
 msgstr "Inclure les essentiels en ligne"
+
+
+msgid "Defined by the extension repository"
+msgstr "Défini par le dépôt d’extension"
 
 
 msgid "No point was selected"
@@ -140000,6 +140974,10 @@ msgid "Bake Object Transform to Grease Pencil"
 msgstr "Précalculer la transformation d’objet en Grease Pencil"
 
 
+msgid "Some curves were converted to Poly"
+msgstr "Certaines courbes ont été converties en poly"
+
+
 msgid "Remove Loose Points"
 msgstr "Supprimer les points isolés"
 
@@ -140100,6 +141078,14 @@ msgid "No active layer to duplicate"
 msgstr "Aucun calque actif à dupliquer"
 
 
+msgid "Bake Line Art for all Grease Pencil objects"
+msgstr "Précalculer le Line Art pour tous les objets Grease Pencil"
+
+
+msgid "Clear all strokes in all Grease Pencil object"
+msgstr "Effacer tous les traits dans tous les objets Grease Pencil"
+
+
 msgid "All Line Art objects are now cleared of bakes"
 msgstr "Tous les précalculs des objets Line Art ont été effacés"
 
@@ -140136,6 +141122,10 @@ msgid "Grab"
 msgstr "Déplacer"
 
 
+msgid "Cannot create new material on linked object"
+msgstr "Impossible de créer un nouveau matériau sur un objet lié"
+
+
 msgid "Stroke is fully transparent"
 msgstr "Le trait est entièrement transparent"
 
@@ -140162,6 +141152,82 @@ msgstr "Bloc de données renommé en « %s », réessayer pour forcer le renom
 
 msgid "Name in use. The other data-block was renamed to '%s'"
 msgstr "Nom déjà utilisé. L’autre bloc de données a été renommé en « %s »"
+
+
+msgid "It"
+msgstr "It"
+
+
+msgid "Size factor relative to body text"
+msgstr "Facteur de taille, relativement au corps du texte"
+
+
+msgid "Font weight"
+msgstr "Poids de la police"
+
+
+msgid "Use italic style"
+msgstr "Utiliser un style italique"
+
+
+msgid "Quote"
+msgstr "Citation"
+
+
+msgid "Code Block"
+msgstr "Bloc de code"
+
+
+msgid "Horizontal Rule"
+msgstr "Règle horizontale"
+
+
+msgid "Spacing between items in tight lists"
+msgstr "Espacement entre éléments dans les listes serrées"
+
+
+msgid "Margin above the first item in a nested list"
+msgstr "Marge au-dessus du premier élément, dans une liste imbriquée"
+
+
+msgid "Quote Bar"
+msgstr "Barre de citation"
+
+
+msgid "Indent"
+msgstr "Indentation"
+
+
+msgid "Horizontal indent per list level in pixels at 1x scale"
+msgstr "Indentation horizontale par niveau de liste, en pixels à échelle 1"
+
+
+msgid "Code Block X"
+msgstr "Bloc code X"
+
+
+msgid "Code Block Y"
+msgstr "Bloc code Y"
+
+
+msgid "Headers"
+msgstr "En-têtes"
+
+
+msgid "List Spacing"
+msgstr "Espacement des listes"
+
+
+msgid "Details"
+msgstr "Détails"
+
+
+msgid "Copy Style to Clipboard"
+msgstr "Copier le style dans le presse-papier"
+
+
+msgid "Copy md_style namespace source to the clipboard"
+msgstr "Copier l’espace de nom md_style dans le presse-papier"
 
 
 msgid "Picking a bone failed"
@@ -140268,6 +141334,10 @@ msgstr "Copier le lien"
 
 msgid "Non-Keyboard Shortcut"
 msgstr "Raccourci non-clavier"
+
+
+msgid "Search..."
+msgstr "Rechercher…"
 
 
 msgid "Pin Panel"
@@ -140564,6 +141634,10 @@ msgid "Menu Missing:"
 msgstr "Menu manquant :"
 
 
+msgid "Cannot edit source in popup regions that does not support refresh."
+msgstr "Impossible de modifier la source dans les régions surgissantes ne pouvant pas être actualisées."
+
+
 msgid "Active button is not from a script, cannot edit source"
 msgstr "Le bouton actif n’est pas défini par un script, impossible d’éditer le code source"
 
@@ -140708,6 +141782,10 @@ msgstr "Erreur interne !"
 
 msgid "Shortcut Cycle: {}"
 msgstr "Raccourci pour alterner : {}"
+
+
+msgid "Shortcut Hold: {}"
+msgstr "Raccourci maintenu : {}"
 
 
 msgid "Tool Keymap:"
@@ -141029,6 +142107,21 @@ msgstr "Préréglage constant"
 msgctxt "Color"
 msgid "C"
 msgstr "C"
+
+
+msgctxt "Color"
+msgid "H"
+msgstr "T"
+
+
+msgctxt "Color"
+msgid "S"
+msgstr "S"
+
+
+msgctxt "Color"
+msgid "V"
+msgstr "V"
 
 
 msgctxt "Operator"
@@ -141536,12 +142629,28 @@ msgid "No Properties"
 msgstr "Pas de propriétés"
 
 
+msgid "Select a file..."
+msgstr "Sélectionner un fichier…"
+
+
+msgid "Import to Collection"
+msgstr "Importer dans la collection"
+
+
 msgid "Reset operator defaults"
 msgstr "Réinitialiser l’opérateur aux valeurs par défaut"
 
 
 msgid "Operator cannot redo"
 msgstr "L’opérateur ne peut pas être refait"
+
+
+msgid "Create from Image..."
+msgstr "Créer depuis l’image…"
+
+
+msgid "Failed to load splash image"
+msgstr "Impossible de charger l’image d’accueil"
 
 
 msgid "Size: {}"
@@ -141558,6 +142667,14 @@ msgstr "Hier"
 
 msgid "Modified: {}"
 msgstr "Modifié : {}"
+
+
+msgid "Project Not Found"
+msgstr "Projet introuvable"
+
+
+msgid "Project is already open"
+msgstr "Le projet est déjà ouvert"
 
 
 msgid "Anim Player"
@@ -141648,6 +142765,10 @@ msgid "This file is managed by the Blender asset system and cannot be overridden
 msgstr "Ce fichier est géré par le système d’assets de Blender et ne peut pas être écrasé"
 
 
+msgid "OpenColorIO configuration failed to load"
+msgstr "Le chargement de la configuration OpenColorIO a échoué"
+
+
 msgid "Displays, views or color spaces in this file were missing and have been changed"
 msgstr "Des affichages, vues ou espaces de couleur sont introuvables dans ce fichier et ont été modifiés"
 
@@ -141693,12 +142814,22 @@ msgid "Unable to determine ABC sequence length"
 msgstr "Impossible de déterminer la longueur de la séquence ABC"
 
 
+msgctxt "Operator"
+msgid "Alembic"
+msgstr "Alembic"
+
+
 msgid "Could not add a layer to the cache file"
 msgstr "Impossible d’ajouter un calque au fichier de cache"
 
 
 msgid "Multiple file handlers can be used, drop to pick which to use"
 msgstr "Plusieurs gestionnaires de fichiers peuvent être utilisés, déposer pour choisir lequel utiliser"
+
+
+msgctxt "Operator"
+msgid "FBX"
+msgstr "FBX"
 
 
 msgid "Scene Options"
@@ -141731,6 +142862,11 @@ msgstr "Impossible d’importer « %s »"
 
 msgid "Error during file write for \"%s\""
 msgstr "Erreur à l’écriture du fichier pour « %s »"
+
+
+msgctxt "Operator"
+msgid "SVG as Grease Pencil"
+msgstr "SVG en tant que Grease Pencil"
 
 
 msgid "Curves as NURBS"
@@ -141777,8 +142913,44 @@ msgid "File exported successfully"
 msgstr "Fichier exporté avec succès"
 
 
+msgctxt "Operator"
+msgid "Wavefront OBJ"
+msgstr "Wavefront OBJ"
+
+
+msgid "Imported OTIO timeline into scene '%s'"
+msgstr "Timeline OTIO importée dans la scène « %s »"
+
+
+msgid "No sequencer scene found"
+msgstr "Aucune scène de séquenceur trouvée"
+
+
+msgid "No sequencer scene"
+msgstr "Aucune scène de séquenceur"
+
+
+msgid "Sequencer scene has no strips"
+msgstr "La scène de séquenceur n’a aucune bande"
+
+
+msgctxt "Operator"
+msgid "OpenTimelineIO"
+msgstr "OpenTimelineIO"
+
+
 msgid "ASCII"
 msgstr "ASCII"
+
+
+msgctxt "Operator"
+msgid "Stanford PLY"
+msgstr "Stanford PLY"
+
+
+msgctxt "Operator"
+msgid "SPZ"
+msgstr "SPZ"
 
 
 msgid "Batch"
@@ -141787,6 +142959,11 @@ msgstr "Par lot"
 
 msgid "No filename given"
 msgstr "Aucun nom de fichier spécifié"
+
+
+msgctxt "Operator"
+msgid "STL"
+msgstr "STL"
 
 
 msgid "Blender Data"
@@ -141807,6 +142984,11 @@ msgstr "Usage d’affichage"
 
 msgid "Particles and Instancing"
 msgstr "Particules et instanciation"
+
+
+msgctxt "Operator"
+msgid "Universal Scene Description"
+msgstr "Universal Scene Description"
 
 
 msgid "Import {} files"
@@ -141857,6 +143039,11 @@ msgstr "Suzanne"
 
 
 msgctxt "Mesh"
+msgid "Quadsphere"
+msgstr "Sphère quad"
+
+
+msgctxt "Mesh"
 msgid "Sphere"
 msgstr "Sphère"
 
@@ -141904,6 +143091,10 @@ msgstr "Arêtes/faces sélectionnées requises"
 
 msgid "No edge loops found containing 2 or more edges"
 msgstr "Aucune boucle d’arêtes contenant 2 arêtes ou plus"
+
+
+msgid "No vertices selected"
+msgstr "Aucun sommet sélectionné"
 
 
 msgid "Not a valid selection for extrude"
@@ -142803,6 +143994,30 @@ msgid "No file handlers available"
 msgstr "Aucun gestionnaire de fichier image disponible"
 
 
+msgid "Apply and Make Local"
+msgstr "Appliquer et rendre local"
+
+
+msgid "Delete Collection Content"
+msgstr "Supprimer le contenu de la collection"
+
+
+msgid "Remove Importer"
+msgstr "Supprimer l’importeur"
+
+
+msgid "Could not find an active collection"
+msgstr "Collection active introuvable"
+
+
+msgid "Collection needs to be empty"
+msgstr "La collection doit être vide"
+
+
+msgid "Importer Control"
+msgstr "Contrôles de l’importeur"
+
+
 msgid "Add Exporter"
 msgstr "Ajouter un exporteur"
 
@@ -142813,6 +144028,10 @@ msgstr "Certaines collections ont été ignorées car des cycles ont été déte
 
 msgid "Active object contains no collections"
 msgstr "L’objet actif ne contient aucune collection"
+
+
+msgid "The active collection already has another importer"
+msgstr "La collection active a déjà un autre importeur"
 
 
 msgid "No filepath set"
@@ -142835,12 +144054,20 @@ msgid "File handler operator '%s' not found"
 msgstr "L’opérateur de gestionnaire de fichiers « %s » est introuvable"
 
 
+msgid "Could not add an importer to the active collection '%s'"
+msgstr "Impossible d’ajouter un importeur à la collection active « %s »"
+
+
 msgid "File path '%s' is not a valid file"
 msgstr "Le chemin de fichier « %s » n’est pas un fichier valide"
 
 
 msgid "Collection '%s' has already been imported from '%s'"
 msgstr "La collection « %s » a déjà été importée depuis « %s »"
+
+
+msgid "No objects were imported from '%s'"
+msgstr "Aucun objet importé depuis « %s »"
 
 
 msgid "Imported '%s'"
@@ -142865,6 +144092,14 @@ msgstr "Impossible d’ajouter des objets à la collection. %s"
 
 msgid "Cannot remove an object from the collection. %s"
 msgstr "Impossible de retirer un objet de la collection. %s"
+
+
+msgid "filepath"
+msgstr "chemin de fichier"
+
+
+msgid "Filepath needs to be set first"
+msgstr "Le chemin de fichier doit être défini en premier"
 
 
 msgid "Add IK"
@@ -143001,6 +144236,14 @@ msgstr "Déplacer dans une nouvelle collection"
 
 msgid "Link to New Collection"
 msgstr "Lier à une nouvelle collection"
+
+
+msgid "Move Inside"
+msgstr "Déplacer à l’intérieur"
+
+
+msgid "Link Inside"
+msgstr "Lier à l’intérieur"
 
 
 msgid "Clear motion paths of selected objects"
@@ -144432,8 +145675,44 @@ msgid "Failed to open window!"
 msgstr "Impossible d’ouvrir une fenêtre !"
 
 
+msgid ""
+"Effect node group assets not assigned to a catalog.\n"
+"Catalogs can be assigned in the Asset Browser"
+msgstr ""
+"Assets de groupes de nœuds d’effets non assignés à un catalogue.\n"
+"Les catalogues peuvent être assignés dans l’explorateur d’assets"
+
+
+msgid "No effect to duplicate"
+msgstr "Aucun effet à dupliquer"
+
+
+msgid "Index is out of range"
+msgstr "L’indice est hors intervalle"
+
+
+msgid "No active effect to duplicate"
+msgstr "Aucun effet actif à dupliquer"
+
+
+msgid "No node group to duplicate"
+msgstr "Aucun groupe de nœuds à dupliquer"
+
+
+msgid "Missing node group for asset"
+msgstr "Groupe de nœuds manquant pour l’asset"
+
+
 msgid "Asset is not a compositor node group"
 msgstr "L’asset n’est pas un groupe de nœuds de compositing"
+
+
+msgid "No effect '%s' in scene"
+msgstr "Aucun effet « %s » dans la scène"
+
+
+msgid "No active effect in scene"
+msgstr "Aucun effet actif dans la scène"
 
 
 msgid "Active scene changed to '%s'"
@@ -144605,8 +145884,12 @@ msgid "No more keyframes to jump to in this direction"
 msgstr "Plus aucune image clé vers laquelle aller dans cette direction"
 
 
+msgid "No markers to jump to"
+msgstr "Aucun marqueur vers lequel se rendre"
+
+
 msgid "No more markers to jump to in this direction"
-msgstr "Plus aucun marqueur vers lequel aller dans cette direction"
+msgstr "Plus aucun marqueur vers lequel se rendre dans cette direction"
 
 
 msgid "Only window region can be 4-split"
@@ -145591,6 +146874,10 @@ msgstr "Le catalogue ne peut être déplacé dans lui-même"
 
 msgid "Catalog is already placed inside this catalog"
 msgstr "Le catalogue est déjà dans ce catalogue"
+
+
+msgid "Only assets from the current file or asset system files (.asset.blend) can be moved between catalogs"
+msgstr "Seuls les assets du fichier actuel ou des fichiers du système d’assets (.asset.blend) peuvent être déplacés d’un catalogue à l’autre"
 
 
 msgid "Catalogs cannot be edited in this asset library"
@@ -146835,6 +148122,10 @@ msgid "3D Float Vector"
 msgstr "Vecteur 3D de flottants"
 
 
+msgid "4D Float Vector"
+msgstr "Vecteur 4D de flottants"
+
+
 msgid "Float Color"
 msgstr "Couleur flottante"
 
@@ -146859,8 +148150,16 @@ msgid "Float Field"
 msgstr "Champ Flottant"
 
 
+msgid "2D Float Vector Field"
+msgstr "Champ Vecteur 2D flottants"
+
+
 msgid "3D Float Vector Field"
 msgstr "Champ Vecteur 3D flottants"
+
+
+msgid "4D Float Vector Field"
+msgstr "Champ Vecteur 4D flottants"
 
 
 msgid "Boolean Field"
@@ -147156,24 +148455,48 @@ msgid "Link all to object"
 msgstr "Tout lier à l’objet"
 
 
+msgid "Link before object"
+msgstr "Lier avant l’objet"
+
+
 msgid "Link before collection"
 msgstr "Lier avant la collection"
+
+
+msgid "Move before object"
+msgstr "Déplacer avant l’objet"
 
 
 msgid "Move before collection"
 msgstr "Déplacer avant la collection"
 
 
+msgid "Link between objects"
+msgstr "Lier entre les objets"
+
+
 msgid "Link between collections"
 msgstr "Lier entre les collections"
+
+
+msgid "Move between objects"
+msgstr "Déplacer entre les objets"
 
 
 msgid "Move between collections"
 msgstr "Déplacer entre les collections"
 
 
+msgid "Link after object"
+msgstr "Lier après l’objet"
+
+
 msgid "Link after collection"
 msgstr "Lier après la collection"
+
+
+msgid "Move after object"
+msgstr "Déplacer après l’objet"
 
 
 msgid "Move after collection"
@@ -147182,6 +148505,14 @@ msgstr "Déplacer après la collection"
 
 msgid "Link inside collection"
 msgstr "Lier dans la collection"
+
+
+msgid "Move parent object inside collection"
+msgstr "Déplacer l’objet parent dans la collection"
+
+
+msgid "Move inside collection (Ctrl to link, Shift to parent, Ctrl + Shift to move only parent)"
+msgstr "Déplacer dans la collection (Ctrl pour lier, Maj pour parenter, Ctrl + Maj pour ne déplacer que le parent)"
 
 
 msgid "Move inside collection (Ctrl to link)"
@@ -147226,6 +148557,22 @@ msgid ""
 msgstr ""
 "Désactiver globalement dans les rendus\n"
 " • Maj pour appliquer aux enfants"
+
+
+msgid ""
+"Render object as holdout\n"
+" • Shift to set children"
+msgstr ""
+"Rendre l’objet en tant que masque\n"
+" • Maj pour définir les enfants"
+
+
+msgid ""
+"Object will contribute indirectly as shadows\n"
+" • Shift to set children"
+msgstr ""
+"L’objet contribuera indirectement aux ombres\n"
+" • Maj pour définir les enfants"
 
 
 msgid ""
@@ -147432,6 +148779,10 @@ msgid "Library path '%s' is now valid, please reload the library"
 msgstr "Le chemin de bibliothèque « %s » est maintenant valide, veuillez recharger la bibliothèque"
 
 
+msgid "Cannot edit fake user on a linked datablock, consider referencing it through a Custom Property"
+msgstr "Impossible de modifier l’utilisateur factice sur un bloc de données lié, il faut peut-être le référencer à travers une propriété personnalisée"
+
+
 msgid "Cannot edit library or non-editable override data"
 msgstr "Impossible d’éditer des données liées depuis une bibliothèque, ou avec une redéfinition non-éditable"
 
@@ -147474,10 +148825,6 @@ msgstr "Le chemin de bibliothèque n’est pas éditable, utiliser l’opératio
 
 msgid "No active item to rename"
 msgstr "Aucun élément actif à renommer"
-
-
-msgid "No selected data-blocks to copy"
-msgstr "Aucun bloc de données sélectionné à copier"
 
 
 msgid "There is no active data-block"
@@ -147586,6 +148933,14 @@ msgstr "Sélectionner la hiérarchie d’objets"
 msgctxt "Operator"
 msgid "Rename Object"
 msgstr "Renommer l’objet"
+
+
+msgid "Cannot set fake user on a linked datablock, consider referencing it through a Custom Property"
+msgstr "Impossible de passer en utilisateur factice sur un bloc de données lié, il faut peut-être le référencer à travers une propriété personnalisée"
+
+
+msgid "Cannot clear fake user on a linked datablock"
+msgstr "Impossible de retirer l’utilisateur factice sur un bloc de données lié"
 
 
 msgid "Not yet implemented"
@@ -147899,6 +149254,92 @@ msgid "Built-In"
 msgstr "Intégrée"
 
 
+msgid "Close the current project before creating a new one"
+msgstr "Fermer le project actuel avant d’en créer un nouveau"
+
+
+msgid "Create Project"
+msgstr "Créer un projet"
+
+
+msgid "Folder already contains a project."
+msgstr "Le dossier contient déjà un projet."
+
+
+msgid "Folder is inside another project."
+msgstr "Le dossier est à l’intérieur d’un autre projet."
+
+
+msgid "Add Asset Library"
+msgstr "Ajouter une bibliothèque d’assets"
+
+
+msgid ""
+"The current file needs to be inside of the project's path.\n"
+"To pick a different folder, move the current file there first, or create a new project from a new unsaved file."
+msgstr ""
+"Le fichier actuel doit être à l’intérieur du chemin du projet.\n"
+"Pour choisir un autre dossier, y déplacer d’abord le fichier actuel, ou créer un nouveau projet à partir d’un nouveau fichier non-enregistré."
+
+
+msgid ""
+"A Blender Project is a directory that provides a shared environment for related .blend files, textures, and other files, with project-specific settings such as Asset Libraries, custom variables, and other configuration options.\n"
+"\n"
+"This is a structured way to organize files and settings across complex pipelines and team projects."
+msgstr ""
+"Un projet Blender est un dossier qui fournit un environnement partagé à un ensemble lié de fichiers .blend, textures, et autres, avec des paramètres propres au projet comme des bibliothèques d’assets, des variables personnalisées, et autres options de configuration.\n"
+"\n"
+"C’est une manière structurée d’organiser ses fichiers et paramètres, dans des pipelines et projets collectifs complexes."
+
+
+msgid "Untitled Project"
+msgstr "Projet sans titre"
+
+
+msgid "Invalid project root folder"
+msgstr "Dossier racine du projet invalide"
+
+
+msgid "Missing project name"
+msgstr "Nom de projet manquant"
+
+
+msgid "Folder already part of a project"
+msgstr "Le dossier est déjà dans un projet"
+
+
+msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
+msgstr "Les bibliothèques d’assets définies par une extension sont supprimées en désinstallant l’extension"
+
+
+msgid "Failed to create folder \"%s\""
+msgstr "Création du dossier « %s » impossible"
+
+
+msgid "Failed to write project config in \"%s\""
+msgstr "Écriture de la config du projet impossible dans « %s »"
+
+
+msgid "Folder '%s' does not belong to a project"
+msgstr "Le dossier « %s » n’appartient pas à projet"
+
+
+msgid "Failed to load project from path: %s"
+msgstr "Chargement du projet impossible depuis le chemin : « %s »"
+
+
+msgid "There is no asset library to remove"
+msgstr "Aucune bibliothèque d’assets à supprimer"
+
+
+msgid "Failed to load image \"%s\""
+msgstr "Impossible de charger l’image « %s »"
+
+
+msgid "Failed to write \"%s\""
+msgstr "Impossible d’écrire « %s »"
+
+
 msgid "Cannot reload with running modal operators"
 msgstr "Impossible de recharger pendant qu’un opérateur modal est en cours d’exécution"
 
@@ -148079,6 +149520,18 @@ msgid "MetaStrip"
 msgstr "BandeMéta"
 
 
+msgid "Cannot apply effect to more than 2 strips with video content"
+msgstr "Impossible d’appliquer l’effet sur plus de deux bandes ayant du contenu vidéo"
+
+
+msgid "Exactly 2 selected strips with video content are needed"
+msgstr "Exactement deux bandes avec du contenu vidéo doivent être sélectionnées"
+
+
+msgid "Exactly one selected strip with video content is needed"
+msgstr "Exactement une bande avec du contenu vidéo doit être sélectionnée"
+
+
 msgid "Cannot reassign inputs: strip has no inputs"
 msgstr "Impossible de réassigner les entrées : la bande n’a pas d’entrées"
 
@@ -148093,6 +149546,10 @@ msgstr "La bande active n’est pas une bande d’effet"
 
 msgid "Strip needs two inputs to swap"
 msgstr "Il faut deux entrées à la bande pour les échanger"
+
+
+msgid "No selected strips to split"
+msgstr "Aucune bande sélectionnée à séparer"
 
 
 msgid "Please select two strips"
@@ -148423,8 +149880,12 @@ msgid "Remote Asset Library"
 msgstr "Bibliothèque d’assets distante"
 
 
-msgid "Add Asset Library"
-msgstr "Ajouter une bibliothèque d’assets"
+msgid "Edit Project asset libraries in Project Settings."
+msgstr "Modifier les bibliothèques d’assets du projet dans les paramètres de projet."
+
+
+msgid "Open Project Settings"
+msgstr "Ouvrir les paramètres de projet"
 
 
 msgid "Add New Extension Repository"
@@ -148481,10 +149942,6 @@ msgstr "Impossible de supprimer le dossier : %s"
 
 msgid "Extension operator not found \"%s\""
 msgstr "Opérateur d’extension introuvable « %s »"
-
-
-msgid "There is no asset library to remove"
-msgstr "Aucune bibliothèque d’assets à supprimer"
 
 
 msgid "There is no extension repository to remove"
@@ -148629,6 +150086,10 @@ msgstr "Mode de nœud"
 
 msgid "U Scale"
 msgstr "Échelle U"
+
+
+msgid "Size of the selection, editing scales it about the transform pivot point"
+msgstr "Taille de la sélection, sa modification redimensionne autour du point de pivot de transformation"
 
 
 msgid "Displays global values"
@@ -148800,6 +150261,34 @@ msgid " (Clipped)"
 msgstr " (découpée)"
 
 
+msgid " (Flipped) (Rolled)"
+msgstr " (inversée) (tournée)"
+
+
+msgid " (Flipped X)"
+msgstr " (inversée en X)"
+
+
+msgid " (Flipped Y)"
+msgstr " (inversée en Y)"
+
+
+msgid " (90\xC2\xB0)"
+msgstr " (90xC2xB0)"
+
+
+msgid " (180\xC2\xB0)"
+msgstr " (180xC2xB0)"
+
+
+msgid " (-90\xC2\xB0)"
+msgstr " (-90xC2xB0)"
+
+
+msgid " (Rolled)"
+msgstr " (tournée)"
+
+
 msgid " (Viewer)"
 msgstr " (visualiseur)"
 
@@ -148891,10 +150380,6 @@ msgstr "Impossible de déplacer un objet avec des contraintes activées"
 
 msgid "Depth too large"
 msgstr "Profondeur trop grande"
-
-
-msgid "No objects selected to copy"
-msgstr "Aucun objet sélectionné à copier"
 
 
 msgid "No objects to paste"
@@ -149168,8 +150653,24 @@ msgid "'Rotate Normals' is only supported in mesh edit mode"
 msgstr "« Tourner les normales » n’est pris en charge qu’en mode édition de maillage"
 
 
+msgid "Sequence Slide: %s%s | Overlap: %s"
+msgstr "Glissement de séquence : %s%s | Chevauchement : %s"
+
+
+msgid " | Insert: %s"
+msgstr " | Insérer : %s"
+
+
 msgid "Snap Invert"
 msgstr "Inverser l’aimantation"
+
+
+msgid "Clear Constraints"
+msgstr "Effacer les contraintes"
+
+
+msgid "Clamp Handles"
+msgstr "Limiter les poignées"
 
 
 msgid "Set Snap Base"
@@ -149553,6 +151054,10 @@ msgid "Rip is only compatible with sync-select with vertex/edge selection"
 msgstr "Le déchirement est seulement compatible avec la sélection synchronisée des sommets ou arêtes"
 
 
+msgid "No UVs to rip"
+msgstr "Aucune UV à déchirer"
+
+
 msgid "Pinned vertices can be selected in Vertex Mode only"
 msgstr "Les sommets épinglés ne peuvent être sélectionnés qu’en mode Sommets"
 
@@ -149627,6 +151132,10 @@ msgstr "Empilement des UV…"
 
 msgid "Freestyle: Mesh loading"
 msgstr "Freestyle : Chargement du maillage"
+
+
+msgid "Freestyle style module '%s'"
+msgstr "Module de style Freestyle « %s »"
 
 
 msgid "Freestyle: View map creation"
@@ -149866,6 +151375,42 @@ msgid "SVG has gradients, Grease Pencil color will be approximated"
 msgstr "Le SVG contient des dégradés, la couleur du Grease Pencil sera approximée"
 
 
+msgid "Strip '%s' was not exported, its type is currently unsupported"
+msgstr "La bande « %s » n’a pas été exportée, son type n’est pas pris en charge actuellement"
+
+
+msgid "Transition strip '%s' was not exported, its inputs must be on the same channel"
+msgstr "La bande de transition « %s » n’a pas été exportée, ses entrées doivent être sur le même canal"
+
+
+msgid "Failed to write OTIO file '%s'"
+msgstr "Échec de l’écriture du fichier OTIO « %s »"
+
+
+msgid "%d scene strip(s) found, this is currently unsupported"
+msgstr "%d bande(s) de scène trouvées, non pris en charge actuellement"
+
+
+msgid "%d image sequence(s) with non-sequential filenames found, this is currently unsupported"
+msgstr "%d séquence(s) d’images avec images non-consécutives trouvées, non pris en charge actuellement"
+
+
+msgid "OTIO Import"
+msgstr "Import OTIO"
+
+
+msgid "Clip '%s' was not imported, its media is not supported"
+msgstr "Le clip « %s » n’a pas été importé, son média n’est pas pris en charge"
+
+
+msgid "Effect '%s' was not imported, its inputs are missing"
+msgstr "L’effet « %s » n’a pas été importé, il lui manque ses entrées"
+
+
+msgid "Failed to read OTIO timeline '%s'"
+msgstr "Échec de lecture de la timeline OTIO « %s »"
+
+
 msgid "PLY Export: Unable to find collection '%s'"
 msgstr "Export PLY : collection « %s » introuvable"
 
@@ -149884,6 +151429,130 @@ msgstr "Importeur PLY : l’import a échoué, aucun sommet"
 
 msgid "PLY Importer: %s: %s"
 msgstr "Importeur PLY : %s : %s"
+
+
+msgid "PLY Importer: failed importing %s: %s"
+msgstr "Importeur PLY : l’import de %s a échoué : %s"
+
+
+msgid "PLY Importer: Spherical harmonics degree above the supported %d, spherical harmonics are not imported"
+msgstr "Importeur PLY : degré d’harmoniques sphériques au-dessus du nombre pris en charge %d, les harmoniques sphériques ne sont pas importées"
+
+
+msgid "PLY Importer: Unexpected number of f_rest properties %d, spherical harmonics are not imported"
+msgstr "Importeur PLY : nombre inattendu %d de propriétés f_rest, les harmoniques sphériques ne sont pas importées"
+
+
+msgid "PLY Importer: Incomplete spherical harmonics band, importing %d of %d coefficients"
+msgstr "Importeur PLY : bande d’harmoniques sphériques incomplète, %d coefficients sur %d importés"
+
+
+msgid "Unexpected SPZ header magic 0x{:X}"
+msgstr "En-tête SPZ magique inattendu 0x{:X}"
+
+
+msgid "Unsupported SPZ version {}"
+msgstr "Version {} de SPZ non prise en charge"
+
+
+msgid "Too many points"
+msgstr "Trop de points"
+
+
+msgid "Unsupported SH degree {}"
+msgstr "Degré d’HS {} non pris en charge"
+
+
+msgid "Unsupported number of position fractional bits {}"
+msgstr "Nombre de bits fractionnels de position {} non pris en charge"
+
+
+msgid "TOC byte offset is less than the size of the header"
+msgstr "L’offset de la TOC est plus petit que la taille de l’en-tête"
+
+
+msgid "Unexpected number of Zstd streams"
+msgstr "Nombre de flux Zstd inattendu"
+
+
+msgid "SPZ Read: Big endian machines are not supported"
+msgstr "Lecture SPZ : les architectures gros-boutiennes ne sont pas prises en charges"
+
+
+msgid "SPZ Read: Error opening file for read"
+msgstr "Lecture SPZ : erreur à l’ouverture du fichier en lecture"
+
+
+msgid "SPZ Read: Error reading magic value from file"
+msgstr "Lecture SPZ : erreur à la lecture d’une valeur magique dans le fichier"
+
+
+msgid "SPZ Read: Unrecognized file format"
+msgstr "Lecture SPZ : format de fichier non reconnu"
+
+
+msgid "SPZ Read: Error initializing Zlib decompression"
+msgstr "Lecture SPZ : erreur à l’initialisation de la décompression Zlib"
+
+
+msgid "SPZ Read: Error reading header from GZip stream"
+msgstr "Lecture SPZ : erreur à la lecture de l’en-tête depuis le flux GZip"
+
+
+msgid "SPZ Read: %s"
+msgstr "Lecture SPZ : %s"
+
+
+msgid "SPZ Read: Error initializing positions reader"
+msgstr "Lecture SPZ : erreur à l’initialisation du lecteur de positions"
+
+
+msgid "SPZ Read: Error reading positions"
+msgstr "Lecture SPZ : erreur à la lecture des positions"
+
+
+msgid "SPZ Read: Error initializing alphas reader"
+msgstr "Lecture SPZ : erreur à l’initialisation du lecteur d’alphas"
+
+
+msgid "SPZ Read: Error reading alphas"
+msgstr "Lecture SPZ : erreur à la lecture des alphas"
+
+
+msgid "SPZ Read: Error initializing colors reader"
+msgstr "Lecture SPZ : erreur à l’initialisation du lecteur de couleurs"
+
+
+msgid "SPZ Read: Error reading colors"
+msgstr "Lecture SPZ : erreur à la lecture des couleurs"
+
+
+msgid "SPZ Read: Error initializing scales reader"
+msgstr "Lecture SPZ : erreur à l’initialisation du lecteur d’échelles"
+
+
+msgid "SPZ Read: Error reading scales"
+msgstr "Lecture SPZ : erreur à la lecture des échelles"
+
+
+msgid "SPZ Read: Error initializing rotations reader"
+msgstr "Lecture SPZ : erreur à l’initialisation du lecteur de rotations"
+
+
+msgid "SPZ Read: Error reading rotations"
+msgstr "Lecture SPZ : erreur à la lecture des rotations"
+
+
+msgid "SPZ Read: Error initializing SH reader"
+msgstr "Lecture SPZ : erreur à l’initialisation du lecteur d’harmoniques sphériques"
+
+
+msgid "SPZ Read: Error reading spherical harmonics"
+msgstr "Lecture SPZ : erreur à la lecture des harmoniques sphériques"
+
+
+msgid "SPZ Read: Error reading NGSP header"
+msgstr "Lecture SPZ : erreur à la lecture de l’en-tête NGSP"
 
 
 msgid "STL Export: Cannot open file '%s'"
@@ -150655,6 +152324,14 @@ msgid "Asset Library not found"
 msgstr "Bibliothèque d’assets introuvable"
 
 
+msgid "Invalid variable name '%s': name must not be empty, must not start with a digit, and must contain only alphanumeric characters and underscores."
+msgstr "Nom de variable « %s » invalide : le nom ne doit pas être vide ni commencer par un chiffre, et il ne doit contenir que des caractères alphanumériques et des tirets bas."
+
+
+msgid "Variable not found in project variables."
+msgstr "Variable introuvable dans les variables du projet."
+
+
 msgid "Smooth the surface"
 msgstr "Adoucir la surface"
 
@@ -150715,6 +152392,10 @@ msgstr "Impossible de supprimer l’image d’arrière-plan"
 
 msgid "Only available with angular bending springs."
 msgstr "Seulement disponible avec ressorts de flexion angulaires."
+
+
+msgid "Path of imported external data cannot be edited"
+msgstr "Le chemin des données externes importées ne peut pas être modifié"
 
 
 msgid "Collection '%s' is not an original ID"
@@ -151211,10 +152892,6 @@ msgid "Only linked IDs can be packed"
 msgstr "Seuls les ID liés peuvent être empaquetés"
 
 
-msgid "Failed to initialize project. Ensure that both the name and project_root parameters are non-empty."
-msgstr "L’initialisation du projet a échoué. Assurez-vous que les paramètres name et project_root ne soient pas vides."
-
-
 msgid "Scene '%s' is the last local one, cannot be removed"
 msgstr "La scène « %s » est la dernière locale, elle ne peut pas être supprimée"
 
@@ -151337,6 +153014,18 @@ msgstr "L’élément à copier dans cette interface est d’un type de prise no
 
 msgid "Unable to copy item"
 msgstr "Impossible de copier l’élément"
+
+
+msgid "Root panel can not be copied."
+msgstr "Le panneau racine ne peut pas être copié."
+
+
+msgid "Root panel can not be removed."
+msgstr "Le panneau racine ne peut pas être supprimé."
+
+
+msgid "Root panel can not be moved."
+msgstr "Le panneau racine ne peut pas être déplacé."
 
 
 msgid "Areas outside of the image are filled with zero"
@@ -151692,6 +153381,10 @@ msgid "Style module could not be removed"
 msgstr "Le module de style n’a pas pu être supprimé"
 
 
+msgid "Effect was not found in the stack"
+msgstr "L’effet est introuvable dans la pile"
+
+
 msgid "View Layer '%s' not found in scene '%s'"
 msgstr "Le calque de vue « %s » est introuvable dans la scène « %s »"
 
@@ -151720,6 +153413,10 @@ msgid "Could not move layer from index '%d' to '%d'"
 msgstr "Impossible de déplacer le calque de l’indice %d vers %d"
 
 
+msgid "Only for side-panels"
+msgstr "Uniquement pour les panneaux latéraux"
+
+
 msgid "Only supported for \"TEMPORARY\" type regions (pop-ups)"
 msgstr "Pris en charge seulement dans les régions de type \"TEMPORARY\" (surgissantes)"
 
@@ -151744,12 +153441,36 @@ msgid "Modifier \"%s\" is not in the strip's modifier list"
 msgstr "Le modificateur « %s » n’est pas dans la liste de modificateurs de la bande"
 
 
+msgid "Unable to open sound file"
+msgstr "Impossible d’ouvrir le fichier son"
+
+
 msgid "Blender compiled without Audaspace support"
 msgstr "Blender compilé sans prise en charge d’Audaspace"
 
 
+msgid "Invalid length"
+msgstr "Durée invalide"
+
+
+msgid "Effect takes 1 input strip"
+msgstr "L’effet prend une bande en entrée"
+
+
+msgid "Effect takes 2 input strips"
+msgstr "L’effet prend deux bandes en entrée"
+
+
+msgid "Cannot pop the last element"
+msgstr "Impossible de dépiler le dernier élément"
+
+
 msgid "StripElements.pop: cannot pop the last element"
 msgstr "StripElements.pop : impossible de dépiler le dernier élément"
+
+
+msgid "Effect expects more than 2 inputs (%d, should never happen!)"
+msgstr "L’effet attend plus de deux entrées (%d, ça ne devrait jamais arriver !)"
 
 
 msgid "Strip '%s' not in scene '%s'"
@@ -151782,6 +153503,10 @@ msgstr "Éditer un groupe de nœuds depuis le modificateur actif de l’objet ac
 
 msgid "Edit any geometry node group for use as an operator"
 msgstr "Éditer un groupe de nœuds de géométrie destiné à un opérateur"
+
+
+msgid "Edit compositor node group for the active scene compositor effect"
+msgstr "Modifier le groupe de nœuds de compositing pour l’effet de compositeur de scène actif"
 
 
 msgid "Edit compositing node group for Sequencer strip modifiers"
@@ -151886,6 +153611,10 @@ msgstr "Lancé avec \"--offline-mode\", modification impossible"
 
 msgid "Script directory not found"
 msgstr "Dossier de scripts introuvable"
+
+
+msgid "Extension defined asset libraries require a remote URL"
+msgstr "Les bibliothèques d’assets définies dans des extensions nécessitent une URL distante"
 
 
 msgid "Extension repository not found"
@@ -154667,6 +156396,10 @@ msgid "Format Items"
 msgstr "Éléments de format"
 
 
+msgid "Unescaped '}' in format string"
+msgstr "« } » non échappé dans le formatage de texte"
+
+
 msgid "Empty identifier cannot be used when explicit identifier was used before. For example, \"{} {x}\" is ok but \"{x} {}\" is not."
 msgstr "Un identifiant vide ne peut pas être utilisé si un identifiant explicite a été utilisé précédemment. Par exemple, « {} {x} » convient mais pas « {x} {} »."
 
@@ -155041,6 +156774,10 @@ msgid "Rest Pose"
 msgstr "Pose de repos"
 
 
+msgid "Radius Tail"
+msgstr "Rayon de queue"
+
+
 msgid "Object is not an armature"
 msgstr "L’objet n’est pas une armature"
 
@@ -155079,6 +156816,18 @@ msgstr "Longueur originale de l’os"
 
 msgid "Whether the bone exists in the armature"
 msgstr "L’os existe-t-il dans l’armature"
+
+
+msgid "Original envelope distance to the bone"
+msgstr "Distance d’enveloppe originale jusqu’à l’os"
+
+
+msgid "Original radius of the head of the bone"
+msgstr "Rayon original de la tête de l’os"
+
+
+msgid "Original radius of the tail of the bone"
+msgstr "Rayon original de la queue de l’os"
 
 
 msgid "Armature object to retrieve the bone information from"
@@ -155230,8 +156979,20 @@ msgid "Bundle Items"
 msgstr "Éléments de paquet"
 
 
+msgid "List with one element per item"
+msgstr "Liste contenant un élément pour chaque élément en entrée"
+
+
 msgid "Positions"
 msgstr "Positions"
+
+
+msgid "A list of the point positions in all curves"
+msgstr "Liste de positions des points dans toutes les courbes"
+
+
+msgid "A list with a size one larger than the number of curves storing the first point index of each curve and a final value for the total number of points. This is a prefix sum of the curve sizes"
+msgstr "Liste ayant une taille plus grande de un que le nombre de courbes, stockant l’indice du premier point de chaque courbe, et une valeur finale pour le nombre total de points. C’est une somme préfixe des tailles des courbes"
 
 
 msgid "Disabled, Blender was compiled without Bullet"
@@ -155971,6 +157732,10 @@ msgid "Index of the face group inside each boundary edge region"
 msgstr "Indice du groupe de faces dans chaque région délimitée par une bordure d’arêtes"
 
 
+msgid "This node should be linked to the group output node, optionally through switch nodes."
+msgstr "Ce nœud devrait être lié au nœud de sortie du groupe, éventuellement avec des nœuds de bascules."
+
+
 msgid "Invalid Output Link"
 msgstr "Lien de sortie invalide"
 
@@ -156191,6 +157956,14 @@ msgstr "La géométrie en entrée, avec éventuellement les composants sélectio
 
 msgid "Whether the geometry had a component of the type. This does not check if the component is empty"
 msgstr "Est-ce que la géométrie avait un composant de ce type. Ne vérifie pas si le composant est vide"
+
+
+msgid "Volume to list the grid names of"
+msgstr "Volume duquel lister les noms de grilles"
+
+
+msgid "Names of all grids stored in the volume"
+msgstr "Noms de toutes les grilles stockées dans le volume"
 
 
 msgid "Volume to take a named grid out of"
@@ -156437,8 +158210,96 @@ msgid "Replace inactive tiles with inactive nodes. Faster than tolerance-based p
 msgstr "Remplacer les tuiles inactives par des nœuds inactifs. Plus rapide que l’élagage d’après tolérance, utile pour les cas comme des grilles SDF à bande étroite ayant seulement des valeurs internes ou externes."
 
 
+msgid "Max Iterations"
+msgstr "Itérations max"
+
+
 msgid "Error Threshold"
 msgstr "Seuil d’erreur"
+
+
+msgid "Threshold Mode"
+msgstr "Mode de seuil"
+
+
+msgid "Boundary Value"
+msgstr "Valeur de bordure"
+
+
+msgid "Boundary Gradient"
+msgstr "Dégradé de bordure"
+
+
+msgid "Boundary Factor"
+msgstr "Facteur de bordure"
+
+
+msgid "Solution"
+msgstr "Solution"
+
+
+msgid "Absolute Error"
+msgstr "Erreur absolue"
+
+
+msgid "Relative Error"
+msgstr "Erreur relative"
+
+
+msgid "Debug Boundary Value"
+msgstr "Valeur de bordure, débug"
+
+
+msgid "Debug Boundary Gradient"
+msgstr "Dégradé de bordure, débug"
+
+
+msgid "Debug Boundary Factor"
+msgstr "Facteur de bordure, débug"
+
+
+msgid "Solution to the Poisson equation"
+msgstr "Solution à l’équation de Poisson"
+
+
+msgid "If the solver converged successfully"
+msgstr "Est-ce que le solveur a convergé avec succès"
+
+
+msgid "Number of iterations performed"
+msgstr "Nombre d’itérations effectuées"
+
+
+msgid "Final absolute error of the solution"
+msgstr "Erreur finale absolue de la solution"
+
+
+msgid "Final relative error of the solution"
+msgstr "Erreur finale relative de la solution"
+
+
+msgid "Right-hand side of the Poisson equation"
+msgstr "Côté droit de l’équation de Poisson"
+
+
+msgid "Maximum number of solver iterations"
+msgstr "Nombre maximum d’itérations du solveur"
+
+
+msgid "Error threshold below which a solution is considered valid"
+msgstr "Seuil d’erreur en dessous duquel une solution est considérée comme valide"
+
+
+msgid "Mode that defines how the error threshold is interpreted"
+msgstr "Mode définissant comment le seuil d’erreur est interprété"
+
+
+msgid "Boundary conditions for the solution between active and inactive voxels"
+msgstr "Conditions de bordure pour la solution, entre les voxels actifs et inactifs"
+
+
+msgid "Mix factor between boundary conditions (0=value, 1=gradient)"
+msgstr "Facteur de mélange entre conditions de bordure (0 = valeur, 1 = dégradé)"
 
 
 msgid "Values larger than the threshold are inside the generated mesh"
@@ -156818,6 +158679,11 @@ msgstr "Nombre de voxels dans la direction Y de la tuile, ou 1 si le champ est �
 
 msgid "Number of voxels in the Z direction of the tile, or 1 if the field is evaluated on a voxel"
 msgstr "Nombre de voxels dans la direction Z de la tuile, ou 1 si le champ est évalué sur un voxel"
+
+
+msgctxt "Volume"
+msgid "Tile"
+msgstr "Tuile"
 
 
 msgid "Realized geometry is not used when pick instances is true"
@@ -157771,6 +159637,10 @@ msgid "Number of levels of nested instances to realize for each top-level instan
 msgstr "Nombre de niveaux d’instances imbriquées à rendre réels pour chaque instance de plus haut niveau"
 
 
+msgid "Preserve the apparent face orientation of mirrored mesh instances"
+msgstr "Conserver l’orientation apparente des faces des instances de maillages en miroir"
+
+
 msgid "Cannot remove built-in attributes: {}"
 msgstr "Impossible de supprimer l’attribut prédéfini : « {} »"
 
@@ -158134,6 +160004,10 @@ msgstr "Courbes desquels définir le poids"
 
 msgid "Points to set the radius of"
 msgstr "Points desquels définir les rayons"
+
+
+msgid "Point cloud to change the type of"
+msgstr "Nuage de points duquel changer le type"
 
 
 msgid "Points to modify the positions of"
@@ -158893,6 +160767,14 @@ msgid "Switch must be a constant value for this data type"
 msgstr "La bascule doit être une valeur constante pour ce type de données"
 
 
+msgid "Warnings only work when inputs are constant values"
+msgstr "Les avertissements ne fonctionnent que quand les entrées ont des valeurs constantes"
+
+
+msgid "Node requires constant input values"
+msgstr "Le nœuds nécessite des valeurs constantes en entrée"
+
+
 msgid " (Deprecated)"
 msgstr " (obsolète)"
 
@@ -159035,6 +160917,10 @@ msgstr "Épaisseur de la couche mince"
 
 msgid "Thin Film IOR"
 msgstr "IDR de la couche mince"
+
+
+msgid "Amount of anisotropy for specular reflection. Higher absolute values give elongated highlights along the tangent direction"
+msgstr "Quantité d’anisotropie pour la réflexion spéculaire. Des valeurs absolues plus élevées donnent des hautes lumières allongées dans la direction tangente"
 
 
 msgid "Rotates the direction of anisotropy, with 1.0 going full circle"
@@ -159217,6 +161103,14 @@ msgid "Transmission Weight"
 msgstr "Poids de transmission"
 
 
+msgid "Transmission Dispersion Scale"
+msgstr "Échelle de dispersion de transmission"
+
+
+msgid "Transmission Dispersion Abbe Number"
+msgstr "Nombre d’Abbe de la dispersion de transmission"
+
+
 msgid "Coat Weight"
 msgstr "Poids de vernis"
 
@@ -159331,6 +161225,10 @@ msgstr "Contrôle la direction tangente pour l’anisotropie"
 
 msgid "Blend between transmission and other base layer components"
 msgstr "Fondu entre la transmission et les autres composantes de couches de base"
+
+
+msgid "Abbe number of the base dielectric medium. Smaller number gives stronger dispersion"
+msgstr "Nombre d’Abbe du médium diélectrique de base. Une valeur plus petite donne une dispersion plus forte"
 
 
 msgid "Controls the intensity of the coat layer, both the reflection and the tinting. Typically should be zero or one for physically-based materials"
@@ -159532,6 +161430,18 @@ msgstr "Entrée de couleur sur laquelle l’inversion sera appliquée"
 
 msgid "Facing"
 msgstr "En face"
+
+
+msgid "Diffuse Light"
+msgstr "Lumière diffuse"
+
+
+msgid "Glossy Light"
+msgstr "Lumière brillante"
+
+
+msgid "Transmission Light"
+msgstr "Lumière transmise"
 
 
 msgid "Light strength before applying falloff modification"
@@ -160655,17 +162565,13 @@ msgstr "Enregistré sous « %s »"
 
 
 msgid ""
-"To match renders with the previous working space as closely as possible,\n"
-"colors in all materials, lights and geometry must be converted.\n"
+"To match renders with the previous working space as closely as possible, colors in all materials, lights and geometry must be converted.\n"
 "\n"
-"Some nodes graphs cannot be converted accurately and may need manual fix-ups."
+"Some node graphs cannot be converted accurately and may need manual fix-ups."
 msgstr ""
-"Pour faire correspondre les rendus avec l’espace de couleur de travail précédent\n"
-"du mieux possible, les couleurs de tous les matériaux, éclairages et géométries\n"
-"doivent être converties.\n"
+"Pour faire correspondre du mieux possible les rendus avec l’espace de couleur de travail précédent, les couleurs de tous les matériaux, éclairages et géométries doivent être converties.\n"
 "\n"
-"Certains graphes de nœuds ne peuvent pas être convertis exactement et pourront\n"
-"nécessiter des ajustements manuels."
+"Certains graphes de nœuds ne peuvent pas être convertis exactement et pourront nécessiter des ajustements manuels."
 
 
 msgid "Can't change working space while jobs are running"

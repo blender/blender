@@ -49,7 +49,7 @@ namespace blender {
 /** \name Local Utilities
  * \{ */
 
-static void edbm_selectmode_ensure(Scene *scene, BMEditMesh *em, BMesh *bm, short selectmode)
+static void edbm_selectmode_ensure(Scene *scene, EditMesh *em, BMesh *bm, short selectmode)
 {
   if ((scene->toolsettings->selectmode & selectmode) == 0) {
     scene->toolsettings->selectmode |= selectmode;

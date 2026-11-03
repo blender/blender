@@ -300,11 +300,16 @@ static wmOperatorStatus object_hide_view_clear_exec(bContext *C, wmOperator *op)
   const Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  const View3D *v3d = CTX_wm_view3d(C);
   const bool select = RNA_boolean_get(op->ptr, "select");
   bool changed = false;
 
   BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
   for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (v3d && v3d->localvd && (base.local_view_bits & v3d->local_view_uid) == 0) {
+      continue;
+    }
+
     if (base.flag & BASE_HIDDEN) {
       base.flag &= ~BASE_HIDDEN;
       changed = true;
@@ -894,7 +899,7 @@ bool editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag)
 
     EDBM_mesh_make(ob, scene->toolsettings->selectmode, use_key_index);
 
-    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    EditMesh *em = BKE_editmesh_from_object(ob);
     if (em) [[likely]] {
       BKE_editmesh_looptris_and_normals_calc(em, BKE_editmesh_bmesh_get_for_write(ob));
     }

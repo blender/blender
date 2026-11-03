@@ -503,7 +503,7 @@ class ArmatureDeformTestBase {
     BMeshCreateParams create_params{};
     create_params.use_toolflags = true;
     BMesh *bm = BKE_mesh_to_bmesh(mesh, 0, false, &create_params);
-    mesh->runtime->edit_mesh = std::make_shared<BMEditMesh>();
+    mesh->runtime->edit_mesh = std::make_shared<EditMesh>();
     mesh->runtime->edit_mesh->bm = bm;
     Array<float3> bm_verts_wrapper = BM_mesh_vert_coords_alloc(bm);
 

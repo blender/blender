@@ -296,7 +296,7 @@ static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> 
 static void calculate_uvs(const CuboidConfig &config, Mesh *mesh, const StringRef uv_id)
 {
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
+  bke::SpanAttributeWriter uv_attribute = attributes.ensure_for_write_only_span<float2>(
       uv_id, bke::AttrDomain::Corner);
   MutableSpan<float2> uvs = uv_attribute.span;
 

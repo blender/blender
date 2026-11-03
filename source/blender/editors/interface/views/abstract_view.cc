@@ -146,6 +146,11 @@ std::optional<uiViewState> AbstractView::persistent_state() const
 
 void AbstractView::persistent_state_apply(const uiViewState & /*state*/) {}
 
+bool AbstractView::use_persistent_active_item() const
+{
+  return false;
+}
+
 /** \} */
 
 /* ---------------------------------------------------------------------- */

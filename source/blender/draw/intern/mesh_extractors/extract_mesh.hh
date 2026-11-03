@@ -32,7 +32,7 @@ namespace blender {
 
 struct BMVert;
 struct BMEdge;
-struct BMEditMesh;
+struct EditMesh;
 struct BMFace;
 struct BMLoop;
 
@@ -69,9 +69,9 @@ struct MeshRenderData {
 
   const ToolSettings *toolsettings;
   /** Edit Mesh */
-  BMEditMesh *edit_bmesh;
+  EditMesh *edit_mesh;
   BMesh *bm;
-  bke::EditMeshData *edit_data;
+  bke::MeshWrapperCacheData *bmesh_wrapper_data;
 
   /* For deformed edit-mesh data. */
   /* Use for #ME_WRAPPER_TYPE_BMESH. */

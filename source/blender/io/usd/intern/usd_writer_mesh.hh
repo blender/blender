@@ -75,12 +75,12 @@ class USDMeshWriter : public USDGenericMeshWriter {
    * Determine whether we should write skinned mesh or blend shape data
    * based on the export parameters and the modifiers enabled on the object.
    */
-  void set_skel_export_flags(const HierarchyContext &context);
+  void set_skel_export_flags(const Object &object_eval);
 
-  void init_skinned_mesh(const HierarchyContext &context);
-  void init_blend_shapes(const HierarchyContext &context);
+  void init_skinned_mesh(Object &object_eval);
+  void init_blend_shapes(const Object &object_eval);
 
-  void add_shape_key_weights_sample(const Object *obj);
+  void add_shape_key_weights_sample(const Object &object_eval);
 };
 
 }  // namespace io::usd

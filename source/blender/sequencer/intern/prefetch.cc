@@ -42,6 +42,7 @@
 #include "SEQ_prefetch.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
+#include "SEQ_scene_strip.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 
@@ -203,10 +204,15 @@ static bool seq_prefetch_is_cache_full(Scene *scene)
   return evict_caches_if_full(scene);
 }
 
+static ScenePlaybackRange prefetch_playback_range_get(const PrefetchJob *pfjob)
+{
+  return scene_playback_range_get(pfjob->scene);
+}
+
 static int seq_prefetch_cfra(PrefetchJob *pfjob)
 {
   int new_frame = pfjob->cfra + pfjob->num_frames_prefetched;
-  const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(pfjob->scene);
+  const ScenePlaybackRange playback_range = prefetch_playback_range_get(pfjob);
   if (new_frame >= playback_range.end_frame) {
     /* Wrap around to where we will jump when we reach the end frame. */
     new_frame = playback_range.start_frame + new_frame - playback_range.end_frame;
@@ -303,7 +309,7 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
   }
 
   /* timeline span changes */
-  const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(pfjob->scene);
+  const ScenePlaybackRange playback_range = prefetch_playback_range_get(pfjob);
   if (pfjob->timeline_start != playback_range.start_frame ||
       pfjob->timeline_end != playback_range.end_frame)
   {
@@ -659,7 +665,7 @@ static PrefetchJob *seq_prefetch_start_ex(const RenderData *context, float cfra)
   pfjob->bmain = context->bmain;
 
   Scene *scene = pfjob->scene;
-  const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(pfjob->scene);
+  const ScenePlaybackRange playback_range = prefetch_playback_range_get(pfjob);
   pfjob->timeline_start = playback_range.start_frame;
   pfjob->timeline_end = playback_range.end_frame;
   pfjob->timeline_length = playback_range.end_frame - playback_range.start_frame;

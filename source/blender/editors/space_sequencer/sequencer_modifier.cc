@@ -153,11 +153,10 @@ static wmOperatorStatus strip_modifier_remove_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_sequencer_scene(C);
   Strip *strip = seq::select_active_get(scene);
   char name[MAX_NAME];
-  StripModifierData *smd;
 
   RNA_string_get(op->ptr, "name", name);
 
-  smd = seq::modifier_find_by_name(strip, name);
+  StripModifierData *smd = seq::modifier_find_by_name(strip, name);
   if (!smd) {
     return OPERATOR_CANCELLED;
   }

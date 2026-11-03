@@ -550,6 +550,21 @@ bool ExperimentalTexturePaintStroke::test_start(wmOperator *op, float2 mouse)
     BLI_assert(0);
     return false;
   }
+
+  const Image *canvas_image = texture_paint_data->image_data->image;
+  const Image *mask_image = texture_paint_data->mask_data ? texture_paint_data->mask_data->image :
+                                                            nullptr;
+  if (this->brush && this->brush->image_brush_type != IMAGE_PAINT_BRUSH_TYPE_MASK &&
+      (settings_->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL) != 0 && mask_image &&
+      canvas_image->source == IMA_SRC_TILED &&
+      canvas_image->tiles.count() > mask_image->tiles.count())
+  {
+    BKE_report(op->reports,
+               RPT_WARNING,
+               "Canvas image has more tiles than the stencil mask image. Canvas tiles without a "
+               "corresponding mask tile will ignore the stencil mask.");
+  }
+
   mode_data_ = std::move(texture_paint_data);
 
   if (brush_type_is_paint(this->brush->sculpt_brush_type)) {
@@ -636,9 +651,12 @@ static void do_brush_action(const Depsgraph &depsgraph,
   IndexMaskMemory memory;
 
   const bool is_mask_brush = brush.image_brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK;
+  const bool use_stencil_mask = (image_paint_settings.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL) !=
+                                0;
   Image *image = is_mask_brush ? mode_data->mask_data->image : mode_data->image_data->image;
   ImageUser image_user = is_mask_brush ? mode_data->mask_data->image_user_get() :
                                          mode_data->image_data->image_user_get();
+  ImageData *mask_data = !is_mask_brush && use_stencil_mask ? mode_data->mask_data.get() : nullptr;
 
   bke::pbvh::build_pixels(depsgraph, ob, *image, image_user);
 
@@ -666,12 +684,17 @@ static void do_brush_action(const Depsgraph &depsgraph,
   /* Main brush action */
   switch (brush.image_brush_type) {
     case IMAGE_PAINT_BRUSH_TYPE_DRAW:
-      do_3d_image_paint_brush(
-          depsgraph, image_paint_settings.paint, brush, ob, *mode_data->image_data, node_mask);
+      do_3d_image_paint_brush(depsgraph,
+                              image_paint_settings,
+                              brush,
+                              ob,
+                              *mode_data->image_data,
+                              mask_data,
+                              node_mask);
       break;
     case IMAGE_PAINT_BRUSH_TYPE_MASK:
       do_3d_image_paint_brush(
-          depsgraph, image_paint_settings.paint, brush, ob, *mode_data->mask_data, node_mask);
+          depsgraph, image_paint_settings, brush, ob, *mode_data->mask_data, nullptr, node_mask);
       break;
     default:
       /* TODO: Implement the rest of them... */

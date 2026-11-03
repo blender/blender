@@ -25,6 +25,7 @@
 #include "gpu_shader_math_matrix_normalize.bsl.hh"    /* IWYU pragma: export */
 #include "gpu_shader_math_matrix_projection.bsl.hh"   /* IWYU pragma: export */
 #include "gpu_shader_math_matrix_transform.bsl.hh"    /* IWYU pragma: export */
+#include "gpu_shader_math_precise.bsl.hh"             /* IWYU pragma: export */
 #include "gpu_shader_math_quaternion.bsl.hh"          /* IWYU pragma: export */
 #include "gpu_shader_math_rotation.bsl.hh"            /* IWYU pragma: export */
 #include "gpu_shader_math_rotation_conversion.bsl.hh" /* IWYU pragma: export */

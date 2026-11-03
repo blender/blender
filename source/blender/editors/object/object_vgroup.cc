@@ -1154,9 +1154,8 @@ static void vgroup_select_verts(const ToolSettings &tool_settings,
         bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
         const VArray<bool> hide_vert = *attributes.lookup_or_default<bool>(
             ".hide_vert", bke::AttrDomain::Point, false);
-        bke::SpanAttributeWriter<bool> select_vert =
-            attributes.lookup_or_add_for_write_only_span<bool>(".select_vert",
-                                                               bke::AttrDomain::Point);
+        bke::SpanAttributeWriter<bool> select_vert = attributes.ensure_for_write_only_span<bool>(
+            ".select_vert", bke::AttrDomain::Point);
 
         for (const int i : select_vert.span.index_range()) {
           if (!hide_vert[i]) {
@@ -2183,7 +2182,7 @@ void vgroup_mirror(Object *ob,
   if (ob->type == OB_MESH) {
     Mesh *mesh = id_cast<Mesh *>(ob->data);
 
-    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+    if (EditMesh *em = mesh->runtime->edit_mesh.get()) {
       BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
       const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
       BMIter iter;

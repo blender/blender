@@ -307,7 +307,7 @@ void AbstractGridView::scroll_active_into_view(bContext *C, bool scroll_active_t
   this->foreach_filtered_item([&](AbstractViewItem &item) {
     if (item.is_active()) {
       Button *but = reinterpret_cast<Button *>(item.view_item_button());
-      ARegion *region = CTX_wm_region(C);
+      ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
       rctf rect;
       View2D &v2d = region->v2d;
       if (but) {
@@ -569,6 +569,14 @@ void GridViewLayoutBuilder::build_from_view(const bContext &C,
   const int cols_per_row = std::max(guessed_layout_width / style.tile_width, 1);
   grid_view.cols_per_row_ = cols_per_row;
 
+  /* Before building the buttons, so they're built for the items scrolled into view.
+   * The previous draw's #View2D is valid here as it is for operators: the offset is relative to
+   * `tot.ymax` (always zero, see #BuildOnlyVisibleButtonsHelper) & `cur` is validated against
+   * the new `tot` once the layout is resolved. */
+  if (grid_view.scroll_active_into_view_on_draw_ && (v2d.flag & V2D_IS_INIT)) {
+    grid_view.scroll_active_into_view(const_cast<bContext *>(&C));
+  }
+
   const AbstractGridViewItem *search_highlight_item = dynamic_cast<const AbstractGridViewItem *>(
       grid_view.search_highlight_item());
 
@@ -622,6 +630,9 @@ void GridViewBuilder::build_grid_view(const bContext &C,
   grid_view.build_items();
   grid_view.update_from_old(block);
   grid_view.change_state_delayed();
+  if (block_view_persistent_active_item_apply(C, block, grid_view)) {
+    grid_view.scroll_active_into_view_on_draw_ = true;
+  }
   grid_view.filter(search_string);
 
   if (grid_view.get_item_count_filtered() == 0) {

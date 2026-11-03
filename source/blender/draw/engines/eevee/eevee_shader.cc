@@ -606,56 +606,79 @@ class SlotAllocator {
   Set<std::string> visited_infos;
 
   void reserve_slots_recursive(const gpu::shader::ShaderCreateInfo &info,
+                               const Span<gpu::shader::CompilationConstant> constants,
+                               const gpu::shader::ShaderCreateInfo::Conditions &info_conditions,
                                bool is_gpumat_info = true)
   {
+    using namespace blender::gpu::shader;
+    /* The same info can be included with different conditions. */
+    if (!info_conditions.is_empty() && info_conditions.evaluate(constants) == false) {
+      return;
+    }
+
     if (!visited_infos.add_overwrite(info.name_)) {
       /* Avoid infinite recursion or visiting an info more than once. */
       return;
     }
-    using namespace blender::gpu::shader;
+
+    auto is_used = [&](const ShaderCreateInfo::Resource &res) {
+      ShaderCreateInfo::Conditions conditions = res.conditions;
+      conditions.extend(info_conditions);
+      return conditions.evaluate(constants);
+    };
+
     for (const ShaderCreateInfo::VertIn &vert_in : info.vertex_inputs_) {
       available_vertex_id_ &= ~(uint32_t(1) << vert_in.index);
     }
     for (const ShaderCreateInfo::Resource &res : info.pass_resources_) {
-      if (res.bind_type == ShaderCreateInfo::Resource::SAMPLER) {
-        available_samplers_ &= ~(uint32_t(1) << res.slot);
+      if (res.bind_type == ShaderCreateInfo::Resource::SAMPLER && is_used(res)) {
+        reserve_sampler_slot(res.slot);
       }
     }
     for (const ShaderCreateInfo::Resource &res : info.geometry_resources_) {
-      if (res.bind_type == ShaderCreateInfo::Resource::SAMPLER) {
-        available_samplers_ &= ~(uint32_t(1) << res.slot);
+      if (res.bind_type == ShaderCreateInfo::Resource::SAMPLER && is_used(res)) {
+        reserve_sampler_slot(res.slot);
       }
     }
     if (!is_gpumat_info) {
       /* Don't assign slots for material textures until all the internal engine slots are reserved,
        * they may overlap with our internal slots. */
       for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
-        if (res.bind_type == ShaderCreateInfo::Resource::SAMPLER) {
-          available_samplers_ &= ~(uint32_t(1) << res.slot);
+        if (res.bind_type == ShaderCreateInfo::Resource::SAMPLER && is_used(res)) {
+          reserve_sampler_slot(res.slot);
         }
       }
     }
 
-    for (const auto &[info_name, _] : info.additional_infos_) {
-      const ShaderCreateInfo *info = reinterpret_cast<const ShaderCreateInfo *>(
-          GPU_shader_create_info_get(info_name.c_str()));
+    for (const auto &additional_info : info.additional_infos_) {
+      const ShaderCreateInfo &other_info = *reinterpret_cast<const ShaderCreateInfo *>(
+          GPU_shader_create_info_get(additional_info.name.c_str()));
+
+      ShaderCreateInfo::Conditions conditions = additional_info.conditions;
+      /* Combine the condition on the current info onto its additional infos. */
+      conditions.extend(info_conditions);
+
       /** WATCH: Recursive. */
-      reserve_slots_recursive(*info, false);
+      reserve_slots_recursive(other_info, constants, conditions, false);
     }
   }
 
  public:
   void reserve_slots(gpu::shader::ShaderCreateInfo &info)
   {
-    reserve_slots_recursive(info);
-    total_requested_samplers_ = count_bits_i(~available_samplers_);
+    /* NOTE: Passing info.compilation_constants_ directly assumes that *all* compilation constant
+     * that are set are set on the base info and not inside its additional infos. This is valid
+     * currently because we do not use the create info from any pipeline declaration and declare
+     * all constants inside this file. */
+    reserve_slots_recursive(info, info.compilation_constants_, {});
+  }
 
-    for (auto &resource : info.batch_resources_) {
-      if (resource.bind_type == gpu::shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
-        /* Assign non overlapping slots for material textures. */
-        resource.slot = get_next_sampler();
-      }
-    }
+  /* Must be called before #get_next_sampler, which relies on the count matching the used slots
+   * once all of them are taken. */
+  void reserve_sampler_slot(int slot)
+  {
+    available_samplers_ &= ~(uint32_t(1) << slot);
+    total_requested_samplers_ = count_bits_i(~available_samplers_);
   }
 
   bool sampler_overflow() const
@@ -709,6 +732,9 @@ static SlotAllocator add_pipeline_create_info(gpu::shader::ShaderCreateInfo &inf
 {
   using namespace blender::gpu::shader;
   using gpu::shader::Type;
+
+  const bool is_hybrid = pipeline_type == MAT_PIPE_DEFERRED &&
+                         (use_shader_to_rgba || use_lighting_nodes);
 
   info.compilation_constant(Type::bool_t, "is_mesh", geometry_type == MAT_GEOM_MESH);
   info.compilation_constant(Type::bool_t, "is_curves", geometry_type == MAT_GEOM_CURVES);
@@ -844,7 +870,7 @@ static SlotAllocator add_pipeline_create_info(gpu::shader::ShaderCreateInfo &inf
           info.fragment_function("eevee_surf_capture");
           break;
         case MAT_PIPE_DEFERRED:
-          if (use_shader_to_rgba || use_lighting_nodes) {
+          if (is_hybrid) {
             pipeline_info_name = "eevee_surf_hybrid_infos_";
             if (use_shader_to_rgba) {
               info.define("closure_to_rgba", "closure_to_rgba_hybrid");
@@ -951,6 +977,29 @@ static SlotAllocator add_pipeline_create_info(gpu::shader::ShaderCreateInfo &inf
   }
   SlotAllocator available_slots;
   available_slots.reserve_slots(info);
+
+  if (ELEM(pipeline_type, MAT_PIPE_DEFERRED, MAT_PIPE_FORWARD) &&
+      !ELEM(geometry_type, MAT_GEOM_WORLD, MAT_GEOM_VOLUME))
+  {
+    /* While only needed for the AO node, we always bind the hiz globally for these pipelines.
+     * To ensure no user textures will reuse the slot binding, we add the info unconditionally. */
+    available_slots.reserve_sampler_slot(HIZ_TEX_SLOT);
+  }
+  if (is_hybrid) {
+    /* WORKAROUND(fclem): These resources are bound once per hybrid sub-pass rather than per
+     * material, so their slots must not be reused by material textures, even for materials that
+     * don't use them. */
+    available_slots.reserve_sampler_slot(HIZ_PREVIOUS_LAYER_TEX_SLOT);
+    available_slots.reserve_sampler_slot(RADIANCE_PREVIOUS_LAYER_TEX_SLOT);
+  }
+
+  /* Iterate over user samplers and request their slots. */
+  for (auto &resource : info.batch_resources_) {
+    if (resource.bind_type == gpu::shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
+      /* Assign non overlapping slots for material textures. */
+      resource.slot = available_slots.get_next_sampler();
+    }
+  }
   return available_slots;
 }
 
@@ -1029,31 +1078,10 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
                                    GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE) ||
                                    GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT);
 
-  if (ELEM(pipeline_type, MAT_PIPE_DEFERRED, MAT_PIPE_FORWARD) &&
-      !ELEM(geometry_type, MAT_GEOM_WORLD, MAT_GEOM_VOLUME))
-  {
-    /* While only needed for the AO node, we always bind the hiz globally for these pipelines.
-     * To ensure no user textures will reuse the slot binding, we add the info unconditionally. */
-    info.additional_info("eevee_HiZ");
-  }
-
   /* Copy vertex inputs. They can be transferred into other type of resources.
    * We add them back after we get the SlotAllocator. */
   auto vertex_inputs = info.vertex_inputs_;
   info.vertex_inputs_.clear();
-
-  /* IMPORTANT: All additional_info containing resources should go before
-   * add_pipeline_create_info. This ensure all resource slot are correctly reserved inside the
-   * SlotAllocator. */
-
-  SlotAllocator slots = add_pipeline_create_info(info,
-                                                 pipeline_type,
-                                                 geometry_type,
-                                                 use_shader_to_rgba,
-                                                 use_lighting_nodes,
-                                                 use_ao_node,
-                                                 use_raycast,
-                                                 use_additional_data);
 
   using gpuType = gpu::shader::Type;
   info.compilation_constant(
@@ -1165,6 +1193,20 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
 
   /* Allow to use Reverse-Z on OpenGL. Does nothing in other backend. */
   info.builtins(BuiltinBits::CLIP_CONTROL);
+
+  /* IMPORTANT: All additional_info containing resources should go before
+   * add_pipeline_create_info. This ensure all resource slot are correctly reserved inside the
+   * SlotAllocator.
+   * Similarly all compilation_constant setting needs to happen before this point. */
+
+  SlotAllocator slots = add_pipeline_create_info(info,
+                                                 pipeline_type,
+                                                 geometry_type,
+                                                 use_shader_to_rgba,
+                                                 use_lighting_nodes,
+                                                 use_ao_node,
+                                                 use_raycast,
+                                                 use_additional_data);
 
   std::stringstream global_vars;
   switch (geometry_type) {

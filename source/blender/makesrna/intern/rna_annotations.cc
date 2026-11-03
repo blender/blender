@@ -178,7 +178,7 @@ static void rna_annotation_layer_info_set(PointerRNA *ptr, const char *value)
                            RNA_path_name_to_infix(oldname),
                            RNA_path_name_to_infix(gpl->info),
                            /*verify_paths=*/true,
-                           *G_MAIN);
+                           *ptr->owner_id->owner_bmain_for_write());
   }
 
   /* Fix mask layers. */
@@ -597,6 +597,7 @@ static void rna_def_annotation_layer(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Info", "Layer name");
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_annotation_layer_info_set");
   RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_RENAME, "rna_annotation_update");
 
   /* Frames */

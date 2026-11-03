@@ -27,23 +27,23 @@
 
 namespace blender {
 
-BMEditMesh *BKE_editmesh_create(BMesh *bm)
+EditMesh *BKE_editmesh_create(BMesh *bm)
 {
-  BMEditMesh *em = MEM_new<BMEditMesh>(__func__);
+  EditMesh *em = MEM_new<EditMesh>(__func__);
   em->bm = bm;
   return em;
 }
 
-BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
+EditMesh *BKE_editmesh_copy(EditMesh *em)
 {
-  BMEditMesh *em_copy = MEM_new<BMEditMesh>(__func__);
+  EditMesh *em_copy = MEM_new<EditMesh>(__func__);
   *em_copy = *em;
 
   em_copy->bm = BM_mesh_copy(em->bm);
 
   /* The tessellation is NOT calculated on the copy here,
    * because currently all the callers of this function use
-   * it to make a backup copy of the #BMEditMesh to restore
+   * it to make a backup copy of the #EditMesh to restore
    * it in the case of errors in an operation. For performance reasons,
    * in that case it makes more sense to do the
    * tessellation only when/if that copy ends up getting used. */
@@ -56,7 +56,7 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
   return em_copy;
 }
 
-BMEditMesh *BKE_editmesh_from_object(Object *ob)
+EditMesh *BKE_editmesh_from_object(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
   return (id_cast<Mesh *>(ob->data))->runtime->edit_mesh.get();
@@ -104,7 +104,7 @@ bool BKE_editmesh_eval_orig_map_available(const Mesh &mesh_eval, const Mesh *mes
   return false;
 }
 
-void BKE_editmesh_looptris_calc_ex(BMEditMesh *em,
+void BKE_editmesh_looptris_calc_ex(EditMesh *em,
                                    BMesh *bm,
                                    const BMeshCalcTessellation_Params *params)
 {
@@ -112,14 +112,14 @@ void BKE_editmesh_looptris_calc_ex(BMEditMesh *em,
   BM_mesh_calc_tessellation_ex(bm, em->looptris, params);
 }
 
-void BKE_editmesh_looptris_calc(BMEditMesh *em, BMesh *bm)
+void BKE_editmesh_looptris_calc(EditMesh *em, BMesh *bm)
 {
   BMeshCalcTessellation_Params params{};
   params.face_normals = false;
   BKE_editmesh_looptris_calc_ex(em, bm, &params);
 }
 
-void BKE_editmesh_looptris_and_normals_calc(BMEditMesh *em, BMesh *bm)
+void BKE_editmesh_looptris_and_normals_calc(EditMesh *em, BMesh *bm)
 {
   BMeshCalcTessellation_Params looptris_params{};
   looptris_params.face_normals = true;
@@ -129,7 +129,7 @@ void BKE_editmesh_looptris_and_normals_calc(BMEditMesh *em, BMesh *bm)
   BM_mesh_normals_update_ex(bm, &normals_params);
 }
 
-void BKE_editmesh_looptris_calc_with_partial_ex(BMEditMesh *em,
+void BKE_editmesh_looptris_calc_with_partial_ex(EditMesh *em,
                                                 BMesh *bm,
                                                 BMPartialUpdate *bmpinfo,
                                                 const BMeshCalcTessellation_Params *params)
@@ -140,14 +140,14 @@ void BKE_editmesh_looptris_calc_with_partial_ex(BMEditMesh *em,
   BM_mesh_calc_tessellation_with_partial_ex(bm, em->looptris, bmpinfo, params);
 }
 
-void BKE_editmesh_looptris_calc_with_partial(BMEditMesh *em, BMesh *bm, BMPartialUpdate *bmpinfo)
+void BKE_editmesh_looptris_calc_with_partial(EditMesh *em, BMesh *bm, BMPartialUpdate *bmpinfo)
 {
   BMeshCalcTessellation_Params looptris_params{};
   looptris_params.face_normals = false;
   BKE_editmesh_looptris_calc_with_partial_ex(em, bm, bmpinfo, &looptris_params);
 }
 
-void BKE_editmesh_looptris_and_normals_calc_with_partial(BMEditMesh *em,
+void BKE_editmesh_looptris_and_normals_calc_with_partial(EditMesh *em,
                                                          BMesh *bm,
                                                          BMPartialUpdate *bmpinfo)
 {
@@ -159,7 +159,7 @@ void BKE_editmesh_looptris_and_normals_calc_with_partial(BMEditMesh *em,
   BM_mesh_normals_update_with_partial_ex(bm, bmpinfo, &normals_params);
 }
 
-void BKE_editmesh_free_data(BMEditMesh *em)
+void BKE_editmesh_free_data(EditMesh *em)
 {
   em->looptris = {};
 

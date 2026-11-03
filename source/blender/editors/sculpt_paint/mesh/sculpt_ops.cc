@@ -956,7 +956,7 @@ static void apply_mask_from_settings(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *id_cast<Mesh *>(object.data);
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-      bke::SpanAttributeWriter mask = attributes.lookup_or_add_for_write_span<float>(
+      bke::SpanAttributeWriter mask = attributes.ensure_for_write_span<float>(
           ".sculpt_mask", bke::AttrDomain::Point);
       const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();

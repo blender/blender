@@ -2005,8 +2005,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
   const VArraySpan src_material_index = *orig_attributes.lookup<int>("material_index",
                                                                      bke::AttrDomain::Face);
-  bke::SpanAttributeWriter dst_material_index =
-      result_attributes.lookup_or_add_for_write_span<int>("material_index", bke::AttrDomain::Face);
+  bke::SpanAttributeWriter dst_material_index = result_attributes.ensure_for_write_span<int>(
+      "material_index", bke::AttrDomain::Face);
 
   int *origindex_edge = static_cast<int *>(
       CustomData_get_layer_for_write(&result->edge_data, CD_ORIGINDEX, result->edges_num));
@@ -2017,8 +2017,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   if (orig_attributes.contains("bevel_weight_edge") ||
       (bevel_convex != 0.0f || !orig_vert_bweight.is_empty()))
   {
-    result_edge_bweight = result_attributes.lookup_or_add_for_write_span<float>(
-        "bevel_weight_edge", bke::AttrDomain::Edge);
+    result_edge_bweight = result_attributes.ensure_for_write_span<float>("bevel_weight_edge",
+                                                                         bke::AttrDomain::Edge);
   }
 
   /* Checks that result has dvert data. */
@@ -2034,8 +2034,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   bke::SpanAttributeWriter<float> result_edge_crease;
 
   if (!vertex_crease.is_empty() || !orig_edge_crease.is_empty()) {
-    result_edge_crease = result_attributes.lookup_or_add_for_write_span<float>(
-        "crease_edge", bke::AttrDomain::Edge);
+    result_edge_crease = result_attributes.ensure_for_write_span<float>("crease_edge",
+                                                                        bke::AttrDomain::Edge);
     /* delete all vertex creases in the result if a rim is used. */
     if (do_rim) {
       result_attributes.remove("crease_vert");

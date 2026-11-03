@@ -220,6 +220,7 @@ static Scene *preview_prepare_scene(ShaderNodesPreviewJob &job_data, Main *pr_ma
   ED_preview_world_simple_set_rgb(scene_preview->world, float4{0.05f, 0.05f, 0.05f, 0.05f});
 
   BLI_addtail(&pr_main->materials, job_data.mat_copy);
+  BKE_libblock_owner_bmain_set(job_data.mat_copy->id, pr_main);
 
   ED_preview_set_visibility(
       pr_main, scene_preview, view_layer, job_data.preview_type, PR_BUTS_RENDER);
@@ -756,6 +757,7 @@ static void shader_preview_free(void *customdata)
   job_data->tree_previews->cached_preview_type = job_data->preview_type;
   if (job_data->mat_copy != nullptr) {
     BLI_remlink(&G.pr_main->materials, job_data->mat_copy);
+    BKE_libblock_owner_bmain_set(job_data->mat_copy->id, nullptr);
     BKE_id_free(G.pr_main, &job_data->mat_copy->id);
     job_data->mat_copy = nullptr;
   }

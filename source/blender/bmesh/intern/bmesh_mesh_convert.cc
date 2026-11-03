@@ -1773,43 +1773,39 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
   bke::SpanAttributeWriter<bool> uv_select_face;
   bke::SpanAttributeWriter<int> material_index;
   if (need_select_vert) {
-    select_vert = attrs.lookup_or_add_for_write_only_span<bool>(".select_vert", AttrDomain::Point);
+    select_vert = attrs.ensure_for_write_only_span<bool>(".select_vert", AttrDomain::Point);
   }
   if (need_hide_vert) {
-    hide_vert = attrs.lookup_or_add_for_write_only_span<bool>(".hide_vert", AttrDomain::Point);
+    hide_vert = attrs.ensure_for_write_only_span<bool>(".hide_vert", AttrDomain::Point);
   }
   if (need_select_edge) {
-    select_edge = attrs.lookup_or_add_for_write_only_span<bool>(".select_edge", AttrDomain::Edge);
+    select_edge = attrs.ensure_for_write_only_span<bool>(".select_edge", AttrDomain::Edge);
   }
   if (need_sharp_edge) {
-    sharp_edge = attrs.lookup_or_add_for_write_only_span<bool>("sharp_edge", AttrDomain::Edge);
+    sharp_edge = attrs.ensure_for_write_only_span<bool>("sharp_edge", AttrDomain::Edge);
   }
   if (need_uv_seams) {
-    uv_seams = attrs.lookup_or_add_for_write_only_span<bool>("uv_seam", AttrDomain::Edge);
+    uv_seams = attrs.ensure_for_write_only_span<bool>("uv_seam", AttrDomain::Edge);
   }
   if (need_hide_edge) {
-    hide_edge = attrs.lookup_or_add_for_write_only_span<bool>(".hide_edge", AttrDomain::Edge);
+    hide_edge = attrs.ensure_for_write_only_span<bool>(".hide_edge", AttrDomain::Edge);
   }
   if (need_select_poly) {
-    select_poly = attrs.lookup_or_add_for_write_only_span<bool>(".select_poly", AttrDomain::Face);
+    select_poly = attrs.ensure_for_write_only_span<bool>(".select_poly", AttrDomain::Face);
   }
   if (need_hide_poly) {
-    hide_poly = attrs.lookup_or_add_for_write_only_span<bool>(".hide_poly", AttrDomain::Face);
+    hide_poly = attrs.ensure_for_write_only_span<bool>(".hide_poly", AttrDomain::Face);
   }
   if (need_sharp_face) {
-    sharp_face = attrs.lookup_or_add_for_write_only_span<bool>("sharp_face", AttrDomain::Face);
+    sharp_face = attrs.ensure_for_write_only_span<bool>("sharp_face", AttrDomain::Face);
   }
   if (need_uv_select) {
-    uv_select_vert = attrs.lookup_or_add_for_write_only_span<bool>(".uv_select_vert",
-                                                                   AttrDomain::Corner);
-    uv_select_edge = attrs.lookup_or_add_for_write_only_span<bool>(".uv_select_edge",
-                                                                   AttrDomain::Corner);
-    uv_select_face = attrs.lookup_or_add_for_write_only_span<bool>(".uv_select_face",
-                                                                   AttrDomain::Face);
+    uv_select_vert = attrs.ensure_for_write_only_span<bool>(".uv_select_vert", AttrDomain::Corner);
+    uv_select_edge = attrs.ensure_for_write_only_span<bool>(".uv_select_edge", AttrDomain::Corner);
+    uv_select_face = attrs.ensure_for_write_only_span<bool>(".uv_select_face", AttrDomain::Face);
   }
   if (need_material_index) {
-    material_index = attrs.lookup_or_add_for_write_only_span<int>("material_index",
-                                                                  AttrDomain::Face);
+    material_index = attrs.ensure_for_write_only_span<int>("material_index", AttrDomain::Face);
   }
 
   attrs.add<float3>("position", bke::AttrDomain::Point, bke::AttributeInitConstruct());
@@ -2092,43 +2088,39 @@ static void mesh_bm_to_me_compact(BMesh &bm,
 
   bke::MutableAttributeAccessor attrs = mesh.attributes_for_write();
   if (need_select_vert) {
-    select_vert = attrs.lookup_or_add_for_write_only_span<bool>(".select_vert", AttrDomain::Point);
+    select_vert = attrs.ensure_for_write_only_span<bool>(".select_vert", AttrDomain::Point);
   }
   if (need_hide_vert) {
-    hide_vert = attrs.lookup_or_add_for_write_only_span<bool>(".hide_vert", AttrDomain::Point);
+    hide_vert = attrs.ensure_for_write_only_span<bool>(".hide_vert", AttrDomain::Point);
   }
   if (need_select_edge) {
-    select_edge = attrs.lookup_or_add_for_write_only_span<bool>(".select_edge", AttrDomain::Edge);
+    select_edge = attrs.ensure_for_write_only_span<bool>(".select_edge", AttrDomain::Edge);
   }
   if (need_sharp_edge) {
-    sharp_edge = attrs.lookup_or_add_for_write_only_span<bool>("sharp_edge", AttrDomain::Edge);
+    sharp_edge = attrs.ensure_for_write_only_span<bool>("sharp_edge", AttrDomain::Edge);
   }
   if (need_uv_seams) {
-    uv_seams = attrs.lookup_or_add_for_write_only_span<bool>("uv_seam", AttrDomain::Edge);
+    uv_seams = attrs.ensure_for_write_only_span<bool>("uv_seam", AttrDomain::Edge);
   }
   if (need_hide_edge) {
-    hide_edge = attrs.lookup_or_add_for_write_only_span<bool>(".hide_edge", AttrDomain::Edge);
+    hide_edge = attrs.ensure_for_write_only_span<bool>(".hide_edge", AttrDomain::Edge);
   }
   if (need_select_poly) {
-    select_poly = attrs.lookup_or_add_for_write_only_span<bool>(".select_poly", AttrDomain::Face);
+    select_poly = attrs.ensure_for_write_only_span<bool>(".select_poly", AttrDomain::Face);
   }
   if (need_hide_poly) {
-    hide_poly = attrs.lookup_or_add_for_write_only_span<bool>(".hide_poly", AttrDomain::Face);
+    hide_poly = attrs.ensure_for_write_only_span<bool>(".hide_poly", AttrDomain::Face);
   }
   if (need_sharp_face) {
-    sharp_face = attrs.lookup_or_add_for_write_only_span<bool>("sharp_face", AttrDomain::Face);
+    sharp_face = attrs.ensure_for_write_only_span<bool>("sharp_face", AttrDomain::Face);
   }
   if (need_uv_select) {
-    uv_select_vert = attrs.lookup_or_add_for_write_only_span<bool>(".uv_select_vert",
-                                                                   AttrDomain::Corner);
-    uv_select_edge = attrs.lookup_or_add_for_write_only_span<bool>(".uv_select_edge",
-                                                                   AttrDomain::Corner);
-    uv_select_face = attrs.lookup_or_add_for_write_only_span<bool>(".uv_select_face",
-                                                                   AttrDomain::Face);
+    uv_select_vert = attrs.ensure_for_write_only_span<bool>(".uv_select_vert", AttrDomain::Corner);
+    uv_select_edge = attrs.ensure_for_write_only_span<bool>(".uv_select_edge", AttrDomain::Corner);
+    uv_select_face = attrs.ensure_for_write_only_span<bool>(".uv_select_face", AttrDomain::Face);
   }
   if (need_material_index) {
-    material_index = attrs.lookup_or_add_for_write_only_span<int>("material_index",
-                                                                  AttrDomain::Face);
+    material_index = attrs.ensure_for_write_only_span<int>("material_index", AttrDomain::Face);
   }
 
   attrs.add<float3>("position", bke::AttrDomain::Point, bke::AttributeInitConstruct());

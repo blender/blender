@@ -82,7 +82,7 @@ void uiTemplateEditModeSelection(ui::Layout *layout, bContext *C)
     return;
   }
 
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  EditMesh *em = BKE_editmesh_from_object(obedit);
   ui::Layout &row = layout->row(true);
 
   wmOperatorType *ot = WM_operatortype_find("MESH_OT_select_mode", true);

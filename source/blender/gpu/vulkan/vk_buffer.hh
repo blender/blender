@@ -147,7 +147,7 @@ class VKBuffer : public NonCopyable {
    * Invalidates the mapped memory after writing to it on the device. Only has an effect if the
    * memory is not host coherent.
    */
-  void invalidate_mapped_memory();
+  void invalidate_mapped_memory() const;
 
  private:
   /** Check if this buffer is mapped. */

@@ -219,7 +219,7 @@ class PROJECT_PT_color_management(Panel, CenterAlignMixIn):
             row.prop(project, "ocio_config_path", text="Path")
 
         if overridden:
-            row = layout.split(factor=0.4)
+            row = layout.split(factor=layout.property_split_factor)
             row.label()
             row.label(
                 text=rpt_("Overridden by the {} environment variable").format(config_source),

@@ -69,9 +69,10 @@ TEST_P(VKRenderGraphTestRender, begin_clear_attachments_end_read_back)
     render_graph->add_node(copy_image_to_buffer);
   }
 
+  render_graph->add_node(VKSynchronizeReadbackNode::CreateInfo{buffer});
   submit(render_graph, command_buffer);
 
-  EXPECT_EQ(6, log.size());
+  ASSERT_EQ(7, log.size());
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "
       "dst_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT" +
@@ -134,6 +135,15 @@ TEST_P(VKRenderGraphTestRender, begin_clear_attachments_end_read_back)
           endl() + "    x=0, y=0, z=0  , image_extent=" + endl() +
           "    width=0, height=0, depth=0  )" + endl() + ")",
       log[5]);
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TRANSFER_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_HOST_BIT" +
+          endl() +
+          " - buffer_barrier(src_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
+          "dst_access_mask=VK_ACCESS_HOST_READ_BIT, buffer=0x3, offset=0, "
+          "size=18446744073709551615)" +
+          endl() + ")",
+      log[6]);
 }
 
 TEST_P(VKRenderGraphTestRender, begin_draw_end)

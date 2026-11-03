@@ -707,13 +707,23 @@ RawPropertyType RNA_property_raw_type(PropertyRNA *prop);
 /**
  * Update the system properties (IDProperties) for a specific RNA type, converting so that
  * properties match the current RNA definition.
+ *
+ * \param do_cleanup If `true` (default), remove unused/unknown IDProperties. Pass `false` when
+ * e.g. updating runtime RNA of a missing (linked) ID, or other cases wher data is temporarily
+ * missing, and cleaning up IDProps may lead to loss of valid data.
  */
-void RNA_sync_system_properties(Main &bmain, PointerRNA &ptr, IDProperty &idprops);
+void RNA_sync_system_properties(Main &bmain,
+                                PointerRNA &ptr,
+                                IDProperty &idprops,
+                                bool do_cleanup = true);
 /**
  * Similar to #RNA_sync_system_properties, but also creates backing properties for data
  * that is un-set, rather than just correcting the values of out-of-sync properties.
  */
-void RNA_ensure_and_sync_system_properties(Main &bmain, PointerRNA &ptr, IDProperty &idprops);
+void RNA_ensure_and_sync_system_properties(Main &bmain,
+                                           PointerRNA &ptr,
+                                           IDProperty &idprops,
+                                           bool do_cleanup = true);
 
 /* to create ID property groups */
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop);
@@ -726,7 +736,11 @@ eRNAStatus RNA_property_collection_move(PointerRNA *ptr,
                                         int src_index,
                                         int dst_index);
 
-/* copy/reset */
+/**
+ * Copy the given property value from `fromtptr` to `ptr` data.
+ *
+ * \return True if copy was successful, false otherwise.
+ */
 bool RNA_property_copy(Main *bmain,
                        PointerRNA *ptr,
                        PointerRNA *fromptr,
@@ -734,11 +748,41 @@ bool RNA_property_copy(Main *bmain,
                        int index,
                        IDOverrideLibraryProperty *removed_oprop = nullptr,
                        IDOverrideLibraryPropertyOperation *removed_opop = nullptr);
+
+/** Advanced or specific flags affecting the copy operations. */
+enum class RNAPropertyCopyFlag {
+  /* Do not check if a property is editable or not before doing the copy. */
+  IgnoreNonEditable = 1 << 0,
+};
+ENUM_OPERATORS(RNAPropertyCopyFlag);
+
 /**
+ * Same as above, but with higher level of control on source and destination, allowing e.g. to copy
+ * data between different properties, even from different data pointer types.
+ */
+bool RNA_property_copy(Main *bmain,
+                       PointerRNA &to_ptr,
+                       PointerRNA &from_ptr,
+                       PropertyRNA *to_prop,
+                       PropertyRNA *from_prop,
+                       int to_index = -1,
+                       int from_index = -1,
+                       RNAPropertyCopyFlag flags = {},
+                       IDOverrideLibraryProperty *removed_oprop = nullptr,
+                       IDOverrideLibraryPropertyOperation *removed_opop = nullptr);
+/**
+ * Reset the given `ptr` data `prop` property to its RNA (or DNA) defined default value.
+ *
  * \param bmain: If not null, used to retrieve default values for pointer properties.
  * Otherwise, the property will be reset to a null pointer.
  */
 bool RNA_property_reset(Main *bmain, PointerRNA *ptr, PropertyRNA *prop, int index);
+/**
+ * Define the given `ptr` data `prop` property RNA default value to its current value.
+ *
+ * \warning Only works with INT & FLOAT scalar properties that are (or wrap) an IDProperty,
+ * currently.
+ */
 bool RNA_property_assign_default(PointerRNA *ptr, PropertyRNA *prop);
 
 /* Quick name based property access
@@ -1054,13 +1098,13 @@ enum eRNAOverrideMatchResult {
 ENUM_OPERATORS(eRNAOverrideMatchResult)
 
 enum class eRNAOverrideStatus {
-  /** The property is overridable. */
+  /** The property is library overridable. */
   LibOverridable = 1 << 0,
-  /** The property is overridden. */
+  /** The property is library overridden. */
   LibOverridden = 1 << 1,
-  /** Overriding this property is mandatory when creating an override. */
+  /** Overriding this property is mandatory when creating a library override. */
   LibOverrideMandatory = 1 << 2,
-  /** The override status of this property is locked. */
+  /** The library override status of this property is locked. */
   LibOverrideLocked = 1 << 3,
 };
 ENUM_OPERATORS(eRNAOverrideStatus)
@@ -1123,6 +1167,17 @@ void RNA_struct_override_apply(Main *bmain,
                                PointerRNA *id_ptr_storage,
                                IDOverrideLibrary *liboverride,
                                eRNAOverrideApplyFlag flag);
+
+/**
+ * Utils returning an override 'real owner' ID (i.e. a non-embedded ID currently), and a RNA path
+ * to the given data & property.
+ *
+ * \note: Used by both library and dynamic override systems.
+ */
+ID *RNA_property_override_property_real_id_owner(Main *bmain,
+                                                 PointerRNA *ptr,
+                                                 PropertyRNA *prop,
+                                                 std::optional<std::string> *r_rna_path);
 
 IDOverrideLibraryProperty *RNA_property_override_property_find(Main *bmain,
                                                                PointerRNA *ptr,

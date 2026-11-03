@@ -111,7 +111,7 @@ class Stabilize2DOperation : public NodeOperation {
         movie_clip, frame_number, width, height, translation, &scale, &rotation);
 
     float3x3 transformation = math::from_loc_rot_scale<float3x3>(
-        translation, math::AngleRadian(rotation), float2(scale));
+        translation * input.domain().pixel_size, math::AngleRadian(rotation), float2(scale));
     if (do_inverse_stabilization()) {
       transformation = math::invert(transformation);
     }

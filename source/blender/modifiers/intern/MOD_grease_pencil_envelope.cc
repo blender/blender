@@ -533,9 +533,9 @@ static void create_envelope_strokes(const EnvelopeInfo &info,
 
   bke::CurvesGeometry dst_curves(dst_point_num, dst_curve_num);
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
-  bke::SpanAttributeWriter<int> dst_material_indices =
-      dst_attributes.lookup_or_add_for_write_span<int>("material_index", bke::AttrDomain::Curve);
-  bke::SpanAttributeWriter<bool> dst_cyclic = dst_attributes.lookup_or_add_for_write_span<bool>(
+  bke::SpanAttributeWriter<int> dst_material_indices = dst_attributes.ensure_for_write_span<int>(
+      "material_index", bke::AttrDomain::Curve);
+  bke::SpanAttributeWriter<bool> dst_cyclic = dst_attributes.ensure_for_write_span<bool>(
       "cyclic", bke::AttrDomain::Curve);
   /* Map each destination curve and point to its source. */
   Array<int> src_curve_indices(dst_curve_num);
@@ -590,7 +590,7 @@ static void create_envelope_strokes(const EnvelopeInfo &info,
 
   /* Apply thickness and strength factors. */
   {
-    bke::SpanAttributeWriter radius_writer = dst_attributes.lookup_or_add_for_write_span<float>(
+    bke::SpanAttributeWriter radius_writer = dst_attributes.ensure_for_write_span<float>(
         "radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.01f));
     const IndexRange all_new_points = keep_original ?
                                           IndexRange(src_curves.point_num,
@@ -601,7 +601,7 @@ static void create_envelope_strokes(const EnvelopeInfo &info,
     }
     radius_writer.finish();
     if (bke::SpanAttributeWriter<float> opacity_writer =
-            dst_attributes.lookup_or_add_for_write_span<float>(
+            dst_attributes.ensure_for_write_span<float>(
                 "opacity", bke::AttrDomain::Point, bke::AttributeInitValue(1.0f)))
     {
       for (const int point_i : all_new_points) {

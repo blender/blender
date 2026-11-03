@@ -105,9 +105,11 @@ enum ClassId : uint16_t {
   Invalid
 };
 
-builtin::ClassId binary_operator_return_type(SymbolClass *lhs, TokenType op, SymbolClass *rhs);
-builtin::ClassId unary_prefix_operator_return_type(TokenType op, SymbolClass *rhs);
-builtin::ClassId unary_suffix_operator_return_type(SymbolClass *lhs, TokenType op);
+builtin::ClassId binary_operator_return_type(const SymbolClass &lhs,
+                                             TokenType op,
+                                             const SymbolClass &rhs);
+builtin::ClassId unary_prefix_operator_return_type(TokenType op, const SymbolClass &rhs);
+builtin::ClassId unary_suffix_operator_return_type(const SymbolClass &lhs, TokenType op);
 
 }  // namespace builtin
 
@@ -142,9 +144,9 @@ struct SymbolClass : SymbolScope {
   bool is_opaque = false;
   bool is_crtp = false;
 
-  SymbolClass(SymbolScope *parent, ast::ClassDecl decl, const string &suffix = "");
+  SymbolClass(SymbolScope &parent, ast::ClassDecl decl, const string &suffix = "");
 
-  SymbolClass(SymbolScope *parent,
+  SymbolClass(SymbolScope &parent,
               Token tok,
               const string &builtin_id,
               int size_in_bytes = 1,
@@ -176,7 +178,7 @@ struct SymbolClass : SymbolScope {
 
   /* Structure to hold the flattened member data */
   struct MemberNode {
-    SymbolClass *type;
+    const SymbolClass *type;
     string path;
     int absolute_offset;
   };
@@ -184,16 +186,16 @@ struct SymbolClass : SymbolScope {
   Result<vector<MemberNode>, TokenException> get_all_members_flat() const;
   /* Visit all base classes and construct the access path to the first occurrence of \a base.
    * WARNING: Recursive. */
-  std::string get_path_to_base_class(const SymbolClass *base) const;
+  std::string get_path_to_base_class(const SymbolClass &base) const;
   /* Visit all base classes and try to find the first path in the hierarchy DAG to \a base.
    * Note that this is only fine because ambiguous conversions are detected by
    * the C++ linting compilation stage.
    * Returns 0 if \a base is not a base class.
    * WARNING: Recursive. */
-  int get_conversion_index(const SymbolClass *base) const;
+  int get_conversion_index(const SymbolClass &base) const;
 
  private:
-  static optional<TokenException> get_flat_members_recursive(const SymbolClass *cls,
+  static optional<TokenException> get_flat_members_recursive(const SymbolClass &cls,
                                                              const string &current_path,
                                                              int current_offset,
                                                              vector<MemberNode> &out_buffer);

@@ -1075,7 +1075,8 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
 
   temp_nodetree_copy->id.flag |= ID_FLAG_EMBEDDED_DATA;
   temp_nodetree_copy->owner_id = &scene.id;
-  temp_nodetree_copy->id.lib = scene.id.lib;
+  bke::id::id_lib_set(temp_nodetree_copy->id, scene.id.lib);
+  BKE_libblock_owner_bmain_set(temp_nodetree_copy->id, scene.id.owner_bmain_for_write(), false);
   /* Set deprecated chunksize for forward compatibility. */
   temp_nodetree_copy->chunksize = 256;
 
@@ -2735,16 +2736,6 @@ static void prepare_mesh_for_viewport_render(Main *bmain,
         BM_mesh_bm_to_me(bmain, bm, mesh, &params);
         DEG_id_tag_update(&mesh->id, 0);
       }
-    }
-  }
-
-  /* Same for the dynamic topology sculpt BMesh. */
-  Object *ob_sculpt = BKE_view_layer_active_object_get(view_layer);
-  if (ob_sculpt && (ob_sculpt->mode & OB_MODE_SCULPT) && ob_sculpt->runtime->sculpt_session &&
-      ob_sculpt->runtime->sculpt_session->bm && (ob_sculpt->id.recalc & ID_RECALC_GEOMETRY))
-  {
-    if (check_rendered_viewport_visible(bmain)) {
-      BKE_sculptsession_bm_to_me(ob_sculpt);
     }
   }
 }

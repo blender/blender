@@ -284,7 +284,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
           SNPRINTF_UTF8(name, DATA_("Collection %d"), layer + 1);
 
           Collection *collection = BKE_collection_add(bmain, collection_master, name);
-          collection->id.lib = scene->id.lib;
+          bke::id::id_lib_set(collection->id, scene->id.lib);
           if (ID_IS_LINKED(collection)) {
             collection->id.tag |= ID_TAG_INDIRECT;
           }
@@ -422,7 +422,7 @@ static void do_version_collection_propagate_lib_to_children(Collection *collecti
   if (ID_IS_LINKED(collection)) {
     for (CollectionChild &collection_child : collection->children) {
       if (!ID_IS_LINKED(collection_child.collection)) {
-        collection_child.collection->id.lib = collection->id.lib;
+        bke::id::id_lib_set(collection_child.collection->id, collection->id.lib);
       }
       do_version_collection_propagate_lib_to_children(collection_child.collection);
     }
@@ -3657,7 +3657,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    /* Specular highlight was instroduced in 2.4x, but its default changed in 2.80. During 2.80
+    /* Specular highlight was introduced in 2.4x, but its default changed in 2.80. During 2.80
      * many viewport migrations were merged into a single subversion. Result: we always enable
      * specular highlights. */
     for (bScreen &screen : bmain->screens) {

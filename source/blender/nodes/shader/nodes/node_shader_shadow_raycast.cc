@@ -63,7 +63,7 @@ void register_node_type_sh_shadow_raycast()
   sh_node_type_base(&ntype, "ShaderNodeShadowRaycast"_ustr, SH_NODE_SHADOW_RAYCAST);
   ntype.ui_name = "Shadow Raycast";
   ntype.ui_description = "Shadow Raycast";
-  ntype.enum_name_legacy = "SHADOW RAYCAST";
+  ntype.enum_name_legacy = "SHADOW_RAYCAST";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.gather_link_search_ops = search_link_ops_for_shader_material_lighting_node;

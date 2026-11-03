@@ -38,6 +38,7 @@ set(SRC
   SEQ_relations.hh
   SEQ_render.hh
   SEQ_retiming.hh
+  SEQ_scene_strip.hh
   SEQ_select.hh
   SEQ_sequencer.hh
   SEQ_sound.hh
@@ -101,6 +102,7 @@ set(SRC
   intern/proxy_job.cc
   intern/render.cc
   intern/render.hh
+  intern/scene_strip.cc
   intern/sequencer.cc
   intern/sequencer.hh
   intern/sound.cc

@@ -6,6 +6,7 @@
  * \ingroup spoutliner
  */
 
+#include <climits>
 #include <cstring>
 #include <variant>
 
@@ -1434,16 +1435,14 @@ static std::string collection_drop_tooltip(bContext *C,
   return {};
 }
 
-static void find_child_objects_recursive(TreeElement *te_object, Vector<Object *> &child_objects)
+static void find_child_objects_recursive(Collection *from,
+                                         Object *ob,
+                                         Vector<Object *> &child_objects)
 {
-  if (!te_object) {
-    return;
-  }
-
-  for (TreeElement &te : te_object->subtree) {
-    if ((te.idcode == ID_OB) && ((te.flag & TE_CHILD_NOT_IN_COLLECTION) == 0)) {
-      child_objects.append(reinterpret_cast<Object *>(te.store_elem->id));
-      find_child_objects_recursive(&te, child_objects);
+  for (CollectionObject &cob : from->gobject) {
+    if (cob.ob->parent == ob) {
+      child_objects.append(cob.ob);
+      find_child_objects_recursive(from, cob.ob, child_objects);
     }
   }
 }
@@ -1602,14 +1601,8 @@ static wmOperatorStatus collection_drop_invoke(bContext *C,
         BKE_collection_object_move(bmain, scene, data.to, from, object);
         if ((event->modifier & (KM_CTRL | KM_SHIFT)) == 0) {
           Vector<Object *> child_objects;
-          TreeElement *from_collection_te = outliner_find_id(
-              space_outliner, &space_outliner->runtime->tree, &from->id, TreeElementFlag(0));
-          if (!from_collection_te) {
-            continue;
-          }
-          TreeElement *te_object = outliner_find_id(
-              space_outliner, &from_collection_te->subtree, &object->id, TreeElementFlag(0));
-          find_child_objects_recursive(te_object, child_objects);
+
+          find_child_objects_recursive(from, object, child_objects);
           for (Object *child_ob : child_objects) {
             BKE_collection_object_move(bmain, scene, data.to, from, child_ob);
           }

@@ -120,12 +120,13 @@ static ID *asset_link_id(Main &global_main,
 static std::string asset_root_path_for_save(const bUserAssetLibrary &user_library,
                                             const ID_Type id_type)
 {
-  BLI_assert(user_library.dirpath[0] != '\0');
+  BLI_assert(user_library.resolved_dirpath[0] != '\0');
 
   char libpath[FILE_MAX];
-  STRNCPY(libpath, user_library.dirpath);
+  STRNCPY(libpath, user_library.resolved_dirpath);
   BLI_path_slash_native(libpath);
   BLI_path_normalize(libpath);
+  BLI_path_slash_rstrip(libpath);
 
   /* Capitalize folder name. Ideally this would already available in
    * the type info to work correctly with multiple words. */
@@ -256,7 +257,7 @@ static AssetWeakReference asset_weak_reference_for_user_library(
 
   /* BLI_path_rel requires a trailing slash. */
   char user_library_dirpath[FILE_MAX];
-  STRNCPY(user_library_dirpath, user_library.dirpath);
+  STRNCPY(user_library_dirpath, user_library.resolved_dirpath);
   BLI_path_slash_ensure(user_library_dirpath);
 
   char relative_filepath[FILE_MAX];
@@ -543,7 +544,7 @@ std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(const ID &id
   const short idcode = GS(id.name);
   const char *idname = asset_name_in_library(id);
 
-  if (user_library && user_library->dirpath[0]) {
+  if (user_library && user_library->resolved_dirpath[0]) {
     return asset_weak_reference_for_user_library(
         *user_library, idcode, idname, id.lib->runtime->filepath_abs);
   }

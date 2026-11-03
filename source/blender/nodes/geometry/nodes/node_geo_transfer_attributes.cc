@@ -332,12 +332,14 @@ static void transfer_attributes(
       }
       /* Try writing into an existing attribute buffer. */
       if (has_matching_existing_attribute) {
-        bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
-            item.name, item.domain, item.type);
-        BLI_assert(dst_attr);
-        array_utils::gather(*src_attr, ids.src_by_dst_index, dst_attr.span);
-        dst_attr.finish();
-        r_transferred_names.add(item.name);
+        if (bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
+                item.name, item.domain, item.type))
+        {
+          BLI_assert(dst_attr);
+          array_utils::gather(*src_attr, ids.src_by_dst_index, dst_attr.span);
+          dst_attr.finish();
+          r_transferred_names.add(item.name);
+        }
         continue;
       }
       /* Create a new array for the attribute. */
@@ -353,12 +355,14 @@ static void transfer_attributes(
 
     /* A subset of the indices are transferred, first try to write them into an existing array. */
     if (has_matching_existing_attribute) {
-      bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_span(
-          item.name, item.domain, item.type);
-      BLI_assert(dst_attr);
-      array_utils::gather(*src_attr, ids.src_by_dst_index, ids.gather_mask, dst_attr.span);
-      dst_attr.finish();
-      r_transferred_names.add(item.name);
+      if (bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_span(
+              item.name, item.domain, item.type))
+      {
+        BLI_assert(dst_attr);
+        array_utils::gather(*src_attr, ids.src_by_dst_index, ids.gather_mask, dst_attr.span);
+        dst_attr.finish();
+        r_transferred_names.add(item.name);
+      }
       continue;
     }
     if (!old_dst_meta) {
@@ -436,7 +440,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
-  if (patterns.is_empty() && !exclude_names) {
+  if (has_error || (patterns.is_empty() && !exclude_names)) {
     params.set_output("Target"_ustr, std::move(dst_geo));
     params.set_output("Transferred Names"_ustr, GList::from_container(Array<std::string>()));
     return;

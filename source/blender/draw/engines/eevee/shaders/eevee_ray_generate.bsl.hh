@@ -38,6 +38,7 @@ BsdfSample ray_generate_direction(float2 noise,
     case CLOSURE_BSDF_TRANSLUCENT_ID:
     case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSDF_DIFFUSE_ID:
+    case CLOSURE_BSDF_OREN_NAYAR_ID:
       break;
     case CLOSURE_NONE_ID:
       assert(false);
@@ -57,6 +58,11 @@ BsdfSample ray_generate_direction(float2 noise,
     case CLOSURE_BSDF_DIFFUSE_ID:
       samp = bxdf_diffuse_sample(random_point_on_cylinder);
       break;
+    case CLOSURE_BSDF_OREN_NAYAR_ID: {
+      const OrenNayar closure = OrenNayar::init(to_closure_oren_nayar(cl).roughness);
+      samp = closure.bsdf_sample(random_point_on_cylinder, V * tangent_to_world);
+      break;
+    }
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID: {
       samp = bxdf_ggx_sample_reflection(random_point_on_cylinder,
                                         V * tangent_to_world,

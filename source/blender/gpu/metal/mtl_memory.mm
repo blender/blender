@@ -246,13 +246,22 @@ bool MTLBufferPool::free_buffer(gpu::MTLBuffer *buffer)
   BLI_assert(buffer_in_use);
   if (buffer_in_use) {
 
-    /* Fetch active safe pool from atomic ptr. */
+    /* Reference the active safe pool while the buffer is inserted, otherwise other threads can
+     * begin new lists and release it in the meantime. Locked so that it can't be replaced and
+     * released before it is referenced. This doesn't flag the list as referenced by a workload,
+     * see #MTLSafeFreeList::should_flush. */
+    safelist_lock_.lock();
     MTLSafeFreeList *current_pool = this->get_current_safe_list();
+    BLI_assert(current_pool);
+    current_pool->reference_count_++;
+    safelist_lock_.unlock();
 
     /* Place buffer in safe_free_pool before returning to MemoryManager buffer pools. */
-    BLI_assert(current_pool);
     current_pool->insert_buffer(buffer);
     buffer->flag_in_use(false);
+
+    /* Release after the buffer is flagged as unused, the list can be completed here. */
+    current_pool->decrement_reference();
 
     return true;
   }
@@ -442,12 +451,38 @@ MTLSafeFreeList *MTLBufferPool::get_current_safe_list()
   return current_free_list_;
 }
 
-void MTLBufferPool::begin_new_safe_list()
+MTLSafeFreeList *MTLBufferPool::acquire_current_safe_list()
+{
+  /* Locked so that the list can't be replaced and released before it is referenced. */
+  std::scoped_lock lock(safelist_lock_);
+  MTLSafeFreeList *list = get_current_safe_list();
+  list->increment_reference();
+  return list;
+}
+
+bool MTLBufferPool::has_completed_safe_lists()
+{
+  std::scoped_lock lock(safelist_lock_);
+  return !completed_safelist_queue_.is_empty();
+}
+
+void MTLBufferPool::begin_new_safe_list(const bool only_if_should_flush)
 {
   safelist_lock_.lock();
   MTLSafeFreeList *previous_list = prev_free_buffer_list_;
   MTLSafeFreeList *active_list = get_current_safe_list();
-  current_free_list_ = new MTLSafeFreeList();
+  /* Check while locked, multiple threads may begin a new list at the same time. */
+  if (only_if_should_flush && !active_list->should_flush()) {
+    safelist_lock_.unlock();
+    return;
+  }
+  MTLSafeFreeList *new_list = new MTLSafeFreeList();
+  if (active_list) {
+    /* Released by the active list once it is released, see #MTLSafeFreeList::next_list_. */
+    new_list->reference_count_++;
+    active_list->next_list_ = new_list;
+  }
+  current_free_list_ = new_list;
   prev_free_buffer_list_ = active_list;
   safelist_lock_.unlock();
 
@@ -584,6 +619,7 @@ MTLSafeFreeList::MTLSafeFreeList()
 void MTLSafeFreeList::insert_buffer(gpu::MTLBuffer *buffer)
 {
   BLI_assert(in_free_queue_ == false);
+  freed_size_ += buffer->get_size();
 
   /* Lockless list insert. */
   uint insert_index = current_list_index_++;
@@ -630,25 +666,32 @@ void MTLSafeFreeList::increment_reference()
  * completion callback thread. */
 void MTLSafeFreeList::decrement_reference()
 {
-  lock_.lock();
-  BLI_assert(in_free_queue_ == false);
-  int ref_count = --reference_count_;
+  /* Releasing a list releases the reference it holds on the next list. */
+  MTLSafeFreeList *list = this;
+  while (list) {
+    list->lock_.lock();
+    BLI_assert(list->in_free_queue_ == false);
+    int ref_count = --list->reference_count_;
 
-  if (ref_count == 0) {
-    MTLContext::get_global_memory_manager()->push_completed_safe_list(this);
+    MTLSafeFreeList *next_list = nullptr;
+    if (ref_count == 0) {
+      next_list = list->next_list_;
+      MTLContext::get_global_memory_manager()->push_completed_safe_list(list);
+    }
+    list->lock_.unlock();
+    list = next_list;
   }
-  lock_.unlock();
 }
 
 bool MTLSafeFreeList::should_flush()
 {
   /* We should only consider refreshing a list if it has been referenced by active workloads, and
-   * contains a sufficient buffer count to avoid overheads associated with flushing the list. If
-   * the reference count is only equal to 1, buffers may have been added, but no command
-   * submissions will have been issued, hence buffers could be returned to the pool prematurely if
-   * associated workload submission occurs later. */
-  return ((reference_count_ > 1 || referenced_by_workload_) &&
-          current_list_index_ > MIN_BUFFER_FLUSH_COUNT);
+   * contains a sufficient buffer count or size to avoid overheads associated with flushing the
+   * list. If the list hasn't been referenced by a command buffer, buffers may have been added, but
+   * no command submissions will have been issued, hence buffers could be returned to the pool
+   * prematurely if associated workload submission occurs later. */
+  return (referenced_by_workload_ &&
+          (current_list_index_ > MIN_BUFFER_FLUSH_COUNT || freed_size_ >= MIN_FLUSH_SIZE));
 }
 
 /** \} */

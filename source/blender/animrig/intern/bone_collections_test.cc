@@ -640,7 +640,7 @@ TEST_F(ArmatureBoneCollections, bcoll_is_editable)
 
   /* Fake that the armature is linked from another blend file. */
   Library fake_lib = {};
-  arm.id.lib = &fake_lib;
+  bke::id::id_lib_set(arm.id, &fake_lib);
   EXPECT_FALSE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
       << "Expecting local armature to not be editable";
 
@@ -653,7 +653,7 @@ TEST_F(ArmatureBoneCollections, bcoll_is_editable)
       << "Expecting linked armature override to not be editable";
 
   /* Fake that the armature is a local override. */
-  arm.id.lib = nullptr;
+  bke::id::id_lib_set(arm.id, nullptr);
   bcoll2->flags |= BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL;
   EXPECT_FALSE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
       << "Expecting linked bone collection on local armature override to not be editable";

@@ -39,7 +39,7 @@ DBUS_DYNLOAD_FN(dbus_bus_add_match)
 #else
 
 /* Header guard. */
-#  if !defined(__DBUS_DYNLOAD_H__) && !defined(DBUS_DYNLOAD_VALIDATE)
+#  if !defined(__DBUS_DYNLOAD_H__) || defined(DBUS_DYNLOAD_VALIDATE)
 #    define __DBUS_DYNLOAD_H__
 
 #    ifndef DBUS_DYNLOAD_VALIDATE
@@ -136,7 +136,7 @@ struct DBusDynload {
 #      define dbus_bus_get_private(...) (*dbus_dynload.dbus_bus_get_private)(__VA_ARGS__)
 #      define dbus_bus_add_match(...) (*dbus_dynload.dbus_bus_add_match)(__VA_ARGS__)
 #    endif /* !DBUS_DYNLOAD_VALIDATE */
-#  endif   /* !defined(__DBUS_DYNLOAD_H__) && !defined(DBUS_DYNLOAD_VALIDATE) */
+#  endif   /* !defined(__DBUS_DYNLOAD_H__) || defined(DBUS_DYNLOAD_VALIDATE) */
 #endif     /* !defined(DBUS_DYNLOAD_FN) */
 
 #ifdef __cplusplus

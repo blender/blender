@@ -316,7 +316,7 @@ static void transform_panel_interaction_update_fn(bContext *C,
   tfp->tag_for_update = false;
 
   Object *ob = static_cast<Object *>(arg1);
-  BMEditMesh *em = BKE_editmesh_from_object(ob);
+  EditMesh *em = BKE_editmesh_from_object(ob);
 
   BKE_editmesh_looptris_and_normals_calc_with_partial(
       em, BKE_editmesh_bmesh_get_for_write(ob), bmpinfo);
@@ -578,6 +578,15 @@ struct CurvesPointSelectionStatus {
 };
 
 /**
+ * Points in a layer scaled to zero are left out of the median & size. The panel can't move them,
+ * and scaling them would overwrite the layer-space coordinate on the zero axis.
+ */
+static bool grease_pencil_layer_is_skipped(const float4x4 &grease_pencil_layer_to_object)
+{
+  return math::determinant(float3x3(grease_pencil_layer_to_object)) == 0.0f;
+}
+
+/**
  * \param grease_pencil_layer_to_object: Grease pencil strokes are in layer space, the median &
  * bounds in object space. Null when the points are already in object space.
  */
@@ -674,8 +683,8 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
 /**
  * Return the object to layer matrix.
  *
- * A layer that scales an axis to zero has no true inverse, #invert_m4_m4_safe_ortho fills that
- * axis in from the others, so an edit still reaches the points on the axes that are left.
+ * Layers scaled to zero are skipped by callers, see #grease_pencil_layer_is_skipped.
+ * #invert_m4_m4_safe_ortho only guards against a near singular matrix that check misses.
  */
 static float4x4 object_to_grease_pencil_layer_calc(const float4x4 &grease_pencil_layer_to_object)
 {
@@ -1344,6 +1353,9 @@ static void v3d_editvertex_buts(
               const MutableDrawingInfo &info = drawings[drawing];
               const float4x4 grease_pencil_layer_to_object =
                   grease_pencil.layer(info.layer_index).to_object_space(*ob);
+              if (grease_pencil_layer_is_skipped(grease_pencil_layer_to_object)) {
+                continue;
+              }
               value = CurvesPointSelectionStatus::sum(
                   value,
                   init_curves_point_selection_status(
@@ -2106,6 +2118,10 @@ static void v3d_editvertex_buts(
         bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
         const float4x4 grease_pencil_layer_to_object =
             grease_pencil.layer(info.layer_index).to_object_space(*ob);
+        /* Must match the measurement, #tot and #coords_orig only count these points. */
+        if (grease_pencil_layer_is_skipped(grease_pencil_layer_to_object)) {
+          return;
+        }
         if (apply_to_curves_point_selection(tot,
                                             median_basis.curves,
                                             ve_median_basis.curves,
@@ -2473,7 +2489,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 /** \name Transform Buttons
  * \{ */
 
-static void v3d_transform_butsR(const bContext *C, ui::Layout &layout, PointerRNA *ptr)
+static void v3d_transform_butsR(ui::Layout &layout, PointerRNA *ptr)
 {
   ui::Layout *split = &layout.split(0.8f, false);
 
@@ -2556,7 +2572,7 @@ static void v3d_transform_butsR(const bContext *C, ui::Layout &layout, PointerRN
 
   ui::Layout &row = layout.row(/*align=*/true);
   row.prop(ptr, "rotation_mode", UI_ITEM_NONE, "", ICON_NONE);
-  row.op_menu_enum(C, "ANIM_OT_rotation_mode_convert", "mode", "", ICON_DOWNARROW_HLT);
+  row.menu("ANIM_MT_rotation_mode_convert", "", ICON_DOWNARROW_HLT);
 
   split = &layout.split(0.8f, false);
   colsub = &split->column(true);
@@ -2568,7 +2584,7 @@ static void v3d_transform_butsR(const bContext *C, ui::Layout &layout, PointerRN
       ptr, "lock_scale", ui::ITEM_R_TOGGLE | ui::ITEM_R_ICON_ONLY, "", ICON_DECORATE_UNLOCKED);
 }
 
-static void v3d_posearmature_buts(const bContext *C, ui::Layout &layout, Object *ob)
+static void v3d_posearmature_buts(ui::Layout &layout, Object *ob)
 {
   bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
 
@@ -2584,7 +2600,7 @@ static void v3d_posearmature_buts(const bContext *C, ui::Layout &layout, Object 
   /* XXX: RNA buts show data in native types (i.e. quaternion, 4-component axis/angle, etc.)
    * but old-school UI shows in eulers always. Do we want to be able to still display in Eulers?
    * Maybe needs RNA/UI options to display rotations as different types. */
-  v3d_transform_butsR(C, col, &pchanptr);
+  v3d_transform_butsR(col, &pchanptr);
 }
 
 static void v3d_editarmature_buts(ui::Layout &layout, Object *ob)
@@ -2734,11 +2750,11 @@ static void view3d_panel_transform(const bContext *C, Panel *panel)
     }
   }
   else if (ob->mode & OB_MODE_POSE) {
-    v3d_posearmature_buts(C, col, ob);
+    v3d_posearmature_buts(col, ob);
   }
   else {
     PointerRNA obptr = RNA_id_pointer_create(&ob->id);
-    v3d_transform_butsR(C, col, &obptr);
+    v3d_transform_butsR(col, &obptr);
 
     /* Dimensions and editmode are mostly the same check. */
     if (OB_TYPE_SUPPORT_EDITMODE(ob->type) || ELEM(ob->type, OB_VOLUME, OB_LIGHTPROBE)) {
@@ -2972,11 +2988,10 @@ static void handle_curves_aspect_ratio(bContext *C, void * /*arg1*/, void * /*ar
          const IndexMask &selection,
          bke::CurvesGeometry &curves) {
         bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-        bke::SpanAttributeWriter<float> aspect_ratio =
-            attributes.lookup_or_add_for_write_span<float>(
-                "aspect_ratio",
-                bke::AttrDomain::Curve,
-                bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num())));
+        bke::SpanAttributeWriter<float> aspect_ratio = attributes.ensure_for_write_span<float>(
+            "aspect_ratio",
+            bke::AttrDomain::Curve,
+            bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num())));
         index_mask::masked_fill(aspect_ratio.span, modified_state.aspect_ratio, selection);
         aspect_ratio.finish();
       });
@@ -2992,7 +3007,7 @@ static void handle_curves_softness(bContext *C, void * /*arg1*/, void * /*arg2*/
          const IndexMask &selection,
          bke::CurvesGeometry &curves) {
         bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-        bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
+        bke::SpanAttributeWriter<float> softness = attributes.ensure_for_write_span<float>(
             "softness", bke::AttrDomain::Curve);
         index_mask::masked_fill(softness.span, modified_state.softness, selection);
         softness.finish();
@@ -3009,7 +3024,7 @@ static void handle_curves_u_scale(bContext *C, void * /*arg1*/, void * /*arg2*/)
          const IndexMask &selection,
          bke::CurvesGeometry &curves) {
         bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-        bke::SpanAttributeWriter<float> u_scale = attributes.lookup_or_add_for_write_span<float>(
+        bke::SpanAttributeWriter<float> u_scale = attributes.ensure_for_write_span<float>(
             "u_scale",
             bke::AttrDomain::Curve,
             bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num())));
@@ -3028,9 +3043,8 @@ static void handle_curves_fill_opacity(bContext *C, void * /*arg1*/, void * /*ar
          const IndexMask &selection,
          bke::CurvesGeometry &curves) {
         bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-        if (bke::SpanAttributeWriter<float> fill_opacity =
-                attributes.lookup_or_add_for_write_span<float>(
-                    "fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f)))
+        if (bke::SpanAttributeWriter<float> fill_opacity = attributes.ensure_for_write_span<float>(
+                "fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f)))
         {
           index_mask::masked_fill(fill_opacity.span, modified_state.fill_opacity, selection);
           fill_opacity.finish();
@@ -3048,7 +3062,7 @@ static void handle_curves_end_cap(bContext *C, void * /*arg1*/, void * /*arg2*/)
          const IndexMask &selection,
          bke::CurvesGeometry &curves) {
         bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-        bke::SpanAttributeWriter<int8_t> end_cap = attributes.lookup_or_add_for_write_span<int8_t>(
+        bke::SpanAttributeWriter<int8_t> end_cap = attributes.ensure_for_write_span<int8_t>(
             "end_cap",
             bke::AttrDomain::Curve,
             bke::AttributeInitVArray(
@@ -3070,12 +3084,11 @@ static void handle_curves_start_cap(bContext *C, void * /*arg1*/, void * /*arg2*
          const IndexMask &selection,
          bke::CurvesGeometry &curves) {
         bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-        bke::SpanAttributeWriter<int8_t> start_cap =
-            attributes.lookup_or_add_for_write_span<int8_t>(
-                "start_cap",
-                bke::AttrDomain::Curve,
-                bke::AttributeInitVArray(
-                    VArray<int8_t>::from_single(GP_STROKE_CAP_TYPE_ROUND, curves.curves_num())));
+        bke::SpanAttributeWriter<int8_t> start_cap = attributes.ensure_for_write_span<int8_t>(
+            "start_cap",
+            bke::AttrDomain::Curve,
+            bke::AttributeInitVArray(
+                VArray<int8_t>::from_single(GP_STROKE_CAP_TYPE_ROUND, curves.curves_num())));
         if (start_cap) {
           index_mask::masked_fill(start_cap.span, modified_state.start_cap, selection);
           start_cap.finish();

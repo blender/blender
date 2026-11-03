@@ -7,6 +7,7 @@
  */
 
 #include <algorithm>
+#include <climits>
 #include <fstream>
 #include <iostream>
 #include <optional>
@@ -2392,10 +2393,10 @@ int add_face_constraints(CDT_state<T> *cdt_state,
    * together the are >= UINT32_MAX, then the Delaunay calculation will take unreasonably
    * long anyway.
    */
-  BLI_assert(
-      input_faces.is_empty() ||
-      (cdt_state->face_edge_offset != 0 &&
-       std::numeric_limits<uint32_t>::max() / cdt_state->face_edge_offset > input_faces.size()));
+  /* A zero offset means every face is too small to constrain, so no ids are encoded. */
+  BLI_assert(input_faces.is_empty() || cdt_state->face_edge_offset == 0 ||
+             std::numeric_limits<uint32_t>::max() / cdt_state->face_edge_offset >
+                 input_faces.size());
   int faces_added = 0;
 
   /* A later optimization will skip propagating face_ids if `need_orig_face_ids` is `false`,

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 #include "BLI_enum_flags.hh"
 #include "BLI_utility_mixins.hh"
@@ -19,6 +20,10 @@ struct SmoothView3DStore;
 struct ViewRender;
 struct wmTimer;
 enum eRegionView3D_ViewLock : char;
+
+namespace nodes::eval_log {
+class NodesEvalLog;
+}  // namespace nodes::eval_log
 }  // namespace blender
 
 namespace blender::bke {
@@ -32,6 +37,12 @@ ENUM_OPERATORS(eRegionView3DTags)
 
 class RegionView3DRuntime : NonCopyable, NonMovable {
  public:
+  RegionView3DRuntime();
+  ~RegionView3DRuntime();
+
+  /* A nodes log of the last viewport compositor evaluation. */
+  std::unique_ptr<nodes::eval_log::NodesEvalLog> nodes_evaluation_log;
+
   /** Offset/scale for camera GLSL texture-coordinates. */
   float viewcamtexcofac[4] = {};
 

@@ -61,14 +61,13 @@ bool USDGenericMeshWriter::is_supported(const HierarchyContext *context) const
 }
 
 /* Get the last subdiv modifier, regardless of enable/disable status */
-static const SubsurfModifierData *get_last_subdiv_modifier(eEvaluationMode eval_mode, Object *obj)
+static const SubsurfModifierData *get_last_subdiv_modifier(eEvaluationMode eval_mode,
+                                                           const Object &obj)
 {
-  BLI_assert(obj);
-
   /* Return the subdiv modifier if it is the last modifier and has
    * the required mode enabled. */
 
-  ModifierData *md = obj->modifiers.last();
+  const ModifierData *md = obj.modifiers.last();
 
   if (!md) {
     return nullptr;
@@ -83,7 +82,7 @@ static const SubsurfModifierData *get_last_subdiv_modifier(eEvaluationMode eval_
   }
 
   if (md->type == eModifierType_Subsurf) {
-    return reinterpret_cast<SubsurfModifierData *>(md);
+    return reinterpret_cast<const SubsurfModifierData *>(md);
   }
 
   return nullptr;
@@ -125,12 +124,12 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
   try {
     /* Fetch the subdiv modifier, if one exists and it is the last modifier. */
     const SubsurfModifierData *subsurfData = get_last_subdiv_modifier(
-        usd_export_context_.export_params.evaluation_mode, object_eval);
+        usd_export_context_.export_params.evaluation_mode, *object_eval);
 
     write_mesh(context, mesh, subsurfData);
 
     auto prim = usd_export_context_.stage->GetPrimAtPath(usd_export_context_.usd_path);
-    if (prim.IsValid() && object_eval) {
+    if (prim.IsValid()) {
       prim.SetActive((object_eval->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0);
       add_to_prim_map(prim.GetPath(), &mesh->id);
       write_id_properties(prim, mesh->id, get_export_time_code());
@@ -743,23 +742,20 @@ USDMeshWriter::USDMeshWriter(const USDExporterContext &ctx)
 {
 }
 
-void USDMeshWriter::set_skel_export_flags(const HierarchyContext &context)
+void USDMeshWriter::set_skel_export_flags(const Object &object_eval)
 {
-  write_skinned_mesh_ = false;
-  write_blend_shapes_ = false;
-
   const USDExportParams &params = usd_export_context_.export_params;
 
   /* We can write a skinned mesh if exporting armatures is enabled and the object has an armature
    * modifier. */
   write_skinned_mesh_ = params.export_armatures &&
-                        can_export_skinned_mesh(*context.object, usd_export_context_.depsgraph);
+                        can_export_skinned_mesh(object_eval, usd_export_context_.depsgraph);
 
   /* We can write blend shapes if exporting shape keys is enabled and the object has shape keys. */
-  write_blend_shapes_ = params.export_shapekeys && is_mesh_with_shape_keys(context.object);
+  write_blend_shapes_ = params.export_shapekeys && is_mesh_with_shape_keys(object_eval);
 }
 
-void USDMeshWriter::init_skinned_mesh(const HierarchyContext &context)
+void USDMeshWriter::init_skinned_mesh(Object &object_eval)
 {
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
@@ -782,8 +778,7 @@ void USDMeshWriter::init_skinned_mesh(const HierarchyContext &context)
     return;
   }
 
-  const Object *arm_obj = get_armature_modifier_obj(*context.object,
-                                                    usd_export_context_.depsgraph);
+  const Object *arm_obj = get_armature_modifier_obj(object_eval, usd_export_context_.depsgraph);
 
   if (!arm_obj) {
     CLOG_WARN(&LOG,
@@ -794,7 +789,7 @@ void USDMeshWriter::init_skinned_mesh(const HierarchyContext &context)
 
   Vector<StringRef> bone_names;
   get_armature_bone_names(
-      arm_obj, usd_export_context_.export_params.only_deform_bones, bone_names);
+      *arm_obj, usd_export_context_.export_params.only_deform_bones, bone_names);
 
   if (bone_names.is_empty()) {
     CLOG_WARN(&LOG,
@@ -804,7 +799,7 @@ void USDMeshWriter::init_skinned_mesh(const HierarchyContext &context)
   }
 
   bool needsfree = false;
-  Mesh *mesh = get_export_mesh(context.object, needsfree);
+  Mesh *mesh = get_export_mesh(&object_eval, needsfree);
 
   if (mesh == nullptr) {
     return;
@@ -825,7 +820,7 @@ void USDMeshWriter::init_skinned_mesh(const HierarchyContext &context)
   }
 }
 
-void USDMeshWriter::init_blend_shapes(const HierarchyContext &context)
+void USDMeshWriter::init_blend_shapes(const Object &object_eval)
 {
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
@@ -839,21 +834,22 @@ void USDMeshWriter::init_blend_shapes(const HierarchyContext &context)
   }
 
   create_blend_shapes(this->usd_export_context_.stage,
-                      context.object,
+                      object_eval,
                       mesh_prim,
                       usd_export_context_.export_params.allow_unicode);
 }
 
 void USDMeshWriter::do_write(HierarchyContext &context)
 {
-  set_skel_export_flags(context);
+  Object &object_eval = *context.object;
+  set_skel_export_flags(object_eval);
 
   if (frame_has_been_written_ && (write_skinned_mesh_ || write_blend_shapes_)) {
     /* When writing skinned meshes or blend shapes, we only write the rest mesh once,
      * so we return early after the first frame has been written. However, we still
      * update blend shape weights if needed. */
     if (write_blend_shapes_) {
-      add_shape_key_weights_sample(context.object);
+      add_shape_key_weights_sample(object_eval);
     }
     return;
   }
@@ -861,12 +857,12 @@ void USDMeshWriter::do_write(HierarchyContext &context)
   USDGenericMeshWriter::do_write(context);
 
   if (write_skinned_mesh_) {
-    init_skinned_mesh(context);
+    init_skinned_mesh(object_eval);
   }
 
   if (write_blend_shapes_) {
-    init_blend_shapes(context);
-    add_shape_key_weights_sample(context.object);
+    init_blend_shapes(object_eval);
+    add_shape_key_weights_sample(object_eval);
   }
 }
 
@@ -876,7 +872,7 @@ Mesh *USDMeshWriter::get_export_mesh(Object *object_eval, bool &r_needsfree)
     r_needsfree = true;
     /* We return the pre-modified mesh with the verts in the shape key
      * basis positions. */
-    return get_shape_key_basis_mesh(object_eval);
+    return get_shape_key_basis_mesh(*object_eval);
   }
 
   if (write_skinned_mesh_) {
@@ -897,13 +893,9 @@ Mesh *USDMeshWriter::get_export_mesh(Object *object_eval, bool &r_needsfree)
   return BKE_object_get_evaluated_mesh(object_eval);
 }
 
-void USDMeshWriter::add_shape_key_weights_sample(const Object *obj)
+void USDMeshWriter::add_shape_key_weights_sample(const Object &object_eval)
 {
-  if (!obj) {
-    return;
-  }
-
-  const Key *key = get_mesh_shape_key(obj);
+  const Key *key = get_mesh_shape_key(object_eval);
   if (!key) {
     return;
   }
@@ -919,7 +911,7 @@ void USDMeshWriter::add_shape_key_weights_sample(const Object *obj)
     return;
   }
 
-  pxr::VtFloatArray weights = get_blendshape_weights(key);
+  pxr::VtFloatArray weights = get_blendshape_weights(*key);
   pxr::UsdTimeCode time = get_export_time_code();
 
   /* Save the weights samples to a temporary privar which will be copied to

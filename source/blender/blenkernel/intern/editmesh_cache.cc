@@ -5,7 +5,7 @@
 /** \file
  * \ingroup bke
  *
- * Manage edit mesh cache: #EditMeshData
+ * Manage edit mesh cache: #MeshWrapperCacheData
  */
 
 #include "BLI_bounds.hh"
@@ -21,7 +21,7 @@ namespace blender {
 /** \name Ensure Data (derived from coords)
  * \{ */
 
-Span<float3> BKE_editmesh_cache_ensure_face_normals(BMesh &bm, bke::EditMeshData &emd)
+Span<float3> BKE_editmesh_cache_ensure_face_normals(BMesh &bm, bke::MeshWrapperCacheData &emd)
 {
   if (emd.vert_positions.is_empty() || !emd.face_normals.is_empty()) {
     return emd.face_normals;
@@ -41,7 +41,7 @@ Span<float3> BKE_editmesh_cache_ensure_face_normals(BMesh &bm, bke::EditMeshData
   return emd.face_normals;
 }
 
-Span<float3> BKE_editmesh_cache_ensure_vert_normals(BMesh &bm, bke::EditMeshData &emd)
+Span<float3> BKE_editmesh_cache_ensure_vert_normals(BMesh &bm, bke::MeshWrapperCacheData &emd)
 {
   if (emd.vert_positions.is_empty() || !emd.vert_normals.is_empty()) {
     return emd.vert_normals;
@@ -57,7 +57,7 @@ Span<float3> BKE_editmesh_cache_ensure_vert_normals(BMesh &bm, bke::EditMeshData
   return emd.vert_normals;
 }
 
-Span<float3> BKE_editmesh_cache_ensure_face_centers(BMesh &bm, bke::EditMeshData &emd)
+Span<float3> BKE_editmesh_cache_ensure_face_centers(BMesh &bm, bke::MeshWrapperCacheData &emd)
 {
   if (!emd.face_centers.is_empty()) {
     return emd.face_centers;
@@ -89,7 +89,7 @@ Span<float3> BKE_editmesh_cache_ensure_face_centers(BMesh &bm, bke::EditMeshData
  * \{ */
 
 std::optional<Bounds<float3>> BKE_editmesh_cache_calc_minmax(BMesh &bm,
-                                                             const bke::EditMeshData &emd)
+                                                             const bke::MeshWrapperCacheData &emd)
 {
   if (bm.totvert == 0) {
     return std::nullopt;

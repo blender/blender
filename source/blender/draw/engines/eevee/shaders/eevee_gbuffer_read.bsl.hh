@@ -58,6 +58,9 @@ ClosureUndetermined unpack_closure(ClosurePacking cl_in)
     case GBUF_SUBSURFACE:
       gbuffer::Subsurface::unpack_additional(cl, cl_in.data1);
       break;
+    case GBUF_OREN_NAYAR:
+      gbuffer::OrenNayar::unpack_additional(cl, cl_in.data1);
+      break;
     case GBUF_DIFFUSE:
     case GBUF_UNLIT:
     case GBUF_TRANSLUCENT:

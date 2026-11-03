@@ -933,14 +933,14 @@ void BKE_modifier_path_init(MutableCStr path, const char *name)
 
 /**
  * Call when #ModifierTypeInfo.depends_on_normals callback requests normals.
- * Necessary for BMesh normals when there is no separate #EditMeshData positions array,
+ * Necessary for BMesh normals when there is no separate #MeshWrapperCacheData positions array,
  * since they cannot be calculated lazily.
  */
 static void ensure_non_lazy_normals(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
-      bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
+      bke::MeshWrapperCacheData &edit_data = *mesh->runtime->bmesh_wrapper_data;
       if (!edit_data.vert_positions.is_empty()) {
         /* Note that 'ensure' is acceptable here since these values aren't modified in-place.
          * If that changes we'll need to recalculate. */
@@ -1048,8 +1048,8 @@ Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval)
   Mesh *mesh = nullptr;
 
   if ((ob_eval->type == OB_MESH) && (ob_eval->mode & OB_MODE_EDIT)) {
-    /* In EditMode, evaluated mesh is stored in BMEditMesh, not the object... */
-    const BMEditMesh *em = BKE_editmesh_from_object(DEG_get_original(ob_eval));
+    /* In EditMode, evaluated mesh is stored in EditMesh, not the object... */
+    const EditMesh *em = BKE_editmesh_from_object(DEG_get_original(ob_eval));
     /* 'em' might not exist yet in some cases, just after loading a .blend file, see #57878. */
     if (em != nullptr) {
       mesh = const_cast<Mesh *>(BKE_object_get_editmesh_eval_final(ob_eval));

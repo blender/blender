@@ -332,7 +332,29 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
   ID *id = static_cast<ID *>(ptr->data);
 
-  rna_ID_rename(id, G_MAIN, value, int(IDNewNameMode::RenameExistingNever));
+  rna_ID_rename(id, id->owner_bmain_for_write(), value, int(IDNewNameMode::RenameExistingNever));
+}
+
+static const char *rna_ID_not_in_bmain_editable_error = N_(
+    "Cannot edit data on non-original data");
+
+static bool rna_ID_editable_if_in_bmain(const ID &id, const char **r_info)
+{
+  if (!id.owner_bmain()) {
+    if (r_info) {
+      *r_info = rna_ID_not_in_bmain_editable_error;
+    }
+    return false;
+  }
+  return true;
+}
+
+int rna_ID_owner_editable_if_in_bmain(const PointerRNA *ptr, const char **r_info)
+{
+  if (ptr->owner_id && !rna_ID_editable_if_in_bmain(*ptr->owner_id, r_info)) {
+    return 0;
+  }
+  return PROP_EDITABLE;
 }
 
 static int rna_ID_name_editable(const PointerRNA *ptr, const char **r_info)
@@ -363,10 +385,13 @@ static int rna_ID_name_editable(const PointerRNA *ptr, const char **r_info)
       return 0;
     }
   }
-  else if (!BKE_id_is_in_global_main(id)) {
+  if (id->flag & ID_FLAG_EMBEDDED_DATA) {
     if (r_info) {
-      *r_info = N_("Data-blocks not in global Main data-base cannot be renamed");
+      *r_info = N_("Embedded data-blocks cannot be renamed");
     }
+    return 0;
+  }
+  if (!rna_ID_editable_if_in_bmain(*id, r_info)) {
     return 0;
   }
 
@@ -1223,12 +1248,14 @@ static int rna_IDPArray_length(PointerRNA *ptr)
 bool rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assign_ptr)
 {
   ID *id = ptr->owner_id;
+  Main *bmain = id->owner_bmain_for_write();
+  if (!bmain) {
+    return false;
+  }
   short *totcol = BKE_id_material_len_p(id);
   Material *mat_id = id_cast<Material *>(assign_ptr->owner_id);
   if (totcol && (key >= 0 && key < *totcol)) {
-    BLI_assert(BKE_id_is_in_global_main(id));
-    BLI_assert(BKE_id_is_in_global_main(&mat_id->id));
-    BKE_id_material_assign(G_MAIN, id, mat_id, key + 1);
+    BKE_id_material_assign(bmain, id, mat_id, key + 1);
     return true;
   }
   else {
@@ -1284,8 +1311,7 @@ static void rna_IDMaterials_clear_id(ID *id, Main *bmain)
 static void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
 {
   Library *lib = static_cast<Library *>(ptr->data);
-  BLI_assert(BKE_id_is_in_global_main(&lib->id));
-  BKE_library_filepath_set(G_MAIN, lib, value);
+  BKE_library_filepath_set(lib->id.owner_bmain_for_write(), lib, value);
 }
 
 /* ***** ImagePreview ***** */

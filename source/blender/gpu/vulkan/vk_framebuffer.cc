@@ -6,9 +6,11 @@
  * \ingroup gpu
  */
 
-#include "vk_framebuffer.hh"
+#include "BLI_math_color_c.hh"
+
 #include "vk_backend.hh"
 #include "vk_context.hh"
+#include "vk_framebuffer.hh"
 #include "vk_state_manager.hh"
 #include "vk_texture.hh"
 
@@ -148,24 +150,33 @@ void VKFrameBuffer::build_clear_attachments_depth_stencil(
 
 void VKFrameBuffer::build_clear_attachments_color(
     Span<double4> clear_colors,
-    const bool multi_clear_colors,
     render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments) const
 {
-  int color_index = 0;
+  const bool missing_srgb_clear_conversion =
+      VKBackend::get().device.workarounds_get().missing_srgb_clear_conversion;
   for (int color_slot = 0; color_slot < GPU_FB_MAX_COLOR_ATTACHMENT; color_slot++) {
     const GPUAttachment &attachment = attachments_[GPU_FB_COLOR_ATTACHMENT0 + color_slot];
     if (attachment.tex == nullptr) {
       continue;
     }
+    VKTexture *color_texture = unwrap(attachment.tex);
+    const bool is_srgb = color_texture &&
+                         (color_texture->format_flag_get() & GPU_FORMAT_SRGB) != 0;
     VkClearAttachment &clear_attachment =
         clear_attachments.attachments[clear_attachments.attachment_count++];
     clear_attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     clear_attachment.colorAttachment = color_slot;
     eGPUDataFormat data_format = to_texture_data_format(GPU_texture_format(attachment.tex));
-    clear_attachment.clearValue.color = to_vk_clear_color_value(data_format,
-                                                                clear_colors[color_index]);
-
-    color_index += multi_clear_colors ? 1 : 0;
+    double4 clear_color = clear_colors[color_slot];
+    /* Legacy AMD drivers don't perform the sRGB conversion when clearing an sRGB attachment, so
+     * the clear color is pre-encoded into sRGB space. Non-sRGB attachments keep the linear clear
+     * color. */
+    if (srgb_ && missing_srgb_clear_conversion && is_srgb) {
+      clear_color.x = srgb_to_linearrgb(float(clear_color.x));
+      clear_color.y = srgb_to_linearrgb(float(clear_color.y));
+      clear_color.z = srgb_to_linearrgb(float(clear_color.z));
+    }
+    clear_attachment.clearValue.color = to_vk_clear_color_value(data_format, clear_color);
   }
 }
 
@@ -223,9 +234,14 @@ void VKFrameBuffer::clear(const GPUFrameBufferBits buffers,
       }
     }
   }
+
   if (buffers & GPU_COLOR_BIT) {
-    double4 clear_color_single = double4(clear_color);
-    build_clear_attachments_color({&clear_color_single, 1}, false, clear_attachments);
+    double4 clear_colors[GPU_FB_MAX_COLOR_ATTACHMENT];
+    for (int color_slot = 0; color_slot < GPU_FB_MAX_COLOR_ATTACHMENT; color_slot++) {
+      clear_colors[color_slot] = clear_color;
+    }
+    build_clear_attachments_color(Span<double4>(clear_colors, GPU_FB_MAX_COLOR_ATTACHMENT),
+                                  clear_attachments);
   }
 
   if (clear_attachments.attachment_count) {
@@ -240,7 +256,7 @@ void VKFrameBuffer::clear_multi(Span<double4> clear_cols)
   clear_attachments.vk_clear_rect.baseArrayLayer = 0;
   clear_attachments.vk_clear_rect.layerCount = 1;
 
-  build_clear_attachments_color(clear_cols, true, clear_attachments);
+  build_clear_attachments_color(clear_cols, clear_attachments);
   if (clear_attachments.attachment_count) {
     clear(clear_attachments);
   }

@@ -91,7 +91,7 @@ class BONE_PT_transform(BoneButtonsPanel, Panel):
 
             row = layout.row(align=True)
             row.prop(pchan, "rotation_mode", text="Mode")
-            row.operator_menu_enum("anim.rotation_mode_convert", "mode", icon='DOWNARROW_HLT', text="")
+            row.menu("ANIM_MT_rotation_mode_convert", text="", icon='DOWNARROW_HLT')
 
             col = layout.column()
             row = col.row(align=True)
@@ -370,7 +370,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         if not bone_color.is_custom:
             return
 
-        split = layout.split(factor=0.401)
+        split = layout.split(factor=layout.property_split_factor)
 
         col = split.column()
         row = col.row()

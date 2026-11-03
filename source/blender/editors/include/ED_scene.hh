@@ -55,6 +55,21 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
 
 void ED_operatortypes_scene();
 
+/* The preview range takes precedence. Otherwise, if #WORKSPACE_SYNC_SCENE_TIME is set and the
+ * scene is used in a video sequencer in that workspace, then the strip's playback range is used.
+ * Else fall back to the scene's playback range, see #BKE_scene_get_playback_range. */
+ScenePlaybackRange ED_scene_get_effective_playback_range(const bContext &C, const Scene *scene);
+
+/**
+ * Clamps the current frame to the effective playback bounds. The preview range takes precedence;
+ * otherwise, if the scene is used in a video sequencer and the sequencer editor is visible
+ * in the workspace, the bounds are defined by the scene strip in the sequencer.
+ *
+ * To get playback bounds that do not depend on the workspace, use
+ * #BKE_scene_frame_clamp_for_playback.
+ */
+void ED_scene_frame_clamp_for_playback(const bContext &C, Scene *scene, bool is_playing_forward);
+
 /* -------------------------------------------------------------------- */
 /** \name Scene FPS Management
  * \{ */

@@ -488,12 +488,10 @@ void do_layer_brush(const Depsgraph &depsgraph,
       MutableSpan<float> displacement;
       if (brush.flag & BRUSH_PERSISTENT) {
         if (!persistent_position.is_empty() && !persistent_normal.is_empty()) {
-          persistent_disp_attr = attributes.lookup_or_add_for_write_span<float>(
-              ".sculpt_persistent_disp", bke::AttrDomain::Point);
-          if (persistent_disp_attr) {
-            use_persistent_base = true;
-            displacement = persistent_disp_attr.span;
-          }
+          persistent_disp_attr = attributes.ensure_for_write_span<float>(".sculpt_persistent_disp",
+                                                                         bke::AttrDomain::Point);
+          use_persistent_base = true;
+          displacement = persistent_disp_attr.span;
         }
       }
 

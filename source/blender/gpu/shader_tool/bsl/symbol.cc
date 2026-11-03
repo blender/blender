@@ -144,10 +144,10 @@ struct SymbolParser : NodeErrorHandler {
 
   void parse_local_scope(SymbolScope &scope, LocalScope local_node, const std::string &prefix)
   {
-    SymbolScope *sym = table.scp_arena.alloc(&scope, local_node);
-    scope.scopes.emplace(sym->identifier, sym);
+    SymbolScope &sym = table.scp_arena.alloc(scope, local_node);
+    scope.scopes.emplace(sym.identifier, &sym);
 
-    parse_scope(*sym, local_node, prefix + sym->identifier + ns_sep);
+    parse_scope(sym, local_node, prefix + sym.identifier + ns_sep);
   }
 
   /* Create declaration for each template argument so name lookup will work with these. */
@@ -169,25 +169,25 @@ struct SymbolParser : NodeErrorHandler {
           return;
         }
         IdQualified type_id(LocalVar(param.child_first()).identifier());
-        SymbolClass *resolved = inst_scope.lookup_class(table, type_id).unwrap(this);
+        SymbolClass &resolved = inst_scope.lookup_class(table, type_id).unwrap(this);
         /* IMPORTANT: Instantiate at argument declaration. Allow correct lookup. */
-        scope.classes.emplace(id, resolved, arg.identifier().front());
-        scope.scopes.emplace(id, resolved);
+        scope.classes.emplace(id, &resolved, arg.identifier().front());
+        scope.scopes.emplace(id, &resolved);
       }
       else {
         IdQualified type = arg.type();
         string id(arg.identifier().str());
-        SymbolClass *cls = inst_scope.lookup_class(table, type).unwrap(this);
-        SymbolVariable *var = table.var_arena.alloc(&scope, cls, arg.identifier().front(), id);
+        const SymbolClass &cls = inst_scope.lookup_class(table, type).unwrap(this);
+        SymbolVariable &var = table.var_arena.alloc(scope, cls, arg.identifier().front(), id);
         auto val = table.expr_type_analysis(scope, param.child_first()).unwrap(this);
         if (!val.is_constexpr()) {
           error(param, Diag::TemplateParameterNotConstexpr);
           return;
         }
-        var->is_constexpr = true;
-        var->value = val.value;
-        if (scope.variable_emplace(id, var)) {
-          error(var->loc.tok, Diag::Redefinition, id);
+        var.is_constexpr = true;
+        var.value = val.value;
+        if (scope.variable_emplace(id, &var)) {
+          error(var.loc.tok, Diag::Redefinition, id);
         }
       }
       param = param.next();
@@ -196,10 +196,10 @@ struct SymbolParser : NodeErrorHandler {
 
   void parse_function_return_type(SymbolScope &scope, ast::IdType return_type)
   {
-    SymbolFunction *fn_sym = static_cast<SymbolFunction *>(&scope);
-    fn_sym->return_type = fn_sym->lookup_class(table, return_type.identifier()).unwrap(this);
+    SymbolFunction &fn_sym = *scope.as_function();
+    fn_sym.return_type = &fn_sym.lookup_class(table, return_type.identifier()).unwrap(this);
 
-    if (fn_sym->is_entry_point() && fn_sym->return_type != table.void_cls) {
+    if (fn_sym.is_entry_point() && fn_sym.return_type != table.void_cls) {
       error(return_type, Diag::EntryPointVoidReturn);
     }
   }
@@ -208,93 +208,93 @@ struct SymbolParser : NodeErrorHandler {
    * Also create declaration for `this_`. */
   void parse_function_arguments(SymbolScope &scope, FuncArgList arg_list)
   {
-    SymbolFunction *fn_sym = static_cast<SymbolFunction *>(&scope);
-    const bool is_entry_point = fn_sym->is_entry_point();
-    const auto entry_point_type = fn_sym->entry_point_type;
+    SymbolFunction &fn_sym = *scope.as_function();
+    const bool is_entry_point = fn_sym.is_entry_point();
+    const auto entry_point_type = fn_sym.entry_point_type;
 
     for (FuncArg arg : arg_list.children_of_type<FuncArg>()) {
       auto attr = resource_type_from_attributes(arg.attributes()).unwrap(this);
 
-      SymbolClass *type = scope.lookup_class(table, arg.type().identifier()).unwrap(this);
-      if (type->is_error) {
+      const SymbolClass &type = scope.lookup_class(table, arg.type().identifier()).unwrap(this);
+      if (type.is_error) {
         error(
             arg.type().identifier(), Diag::UnknownTypeNameWithArg, arg.type().identifier().str());
       }
       Declarator decl = arg.declarator();
-      SymbolVariable *var = table.var_arena.alloc(&scope, type, decl, table);
-      if (scope.variable_emplace(var)) {
-        error(var->loc.tok, Diag::Redefinition, var->identifier);
+      SymbolVariable &var = table.var_arena.alloc(scope, type, decl, table);
+      if (scope.variable_emplace(&var)) {
+        error(var.loc.tok, Diag::Redefinition, var.identifier);
       }
       /* Register argument type for argument resolution. */
-      fn_sym->add_argument(arg.type().is_const(), type, decl.initial_value().expr());
+      fn_sym.add_argument(arg.type().is_const(), type, decl.initial_value().expr());
 
       switch (attr.res_type) {
         case ResourceType::BASE_INSTANCE:
-          var->identifier = "gpu_BaseInstance";
+          var.identifier = "gpu_BaseInstance";
           break;
         case ResourceType::FRONT_FACING:
-          var->identifier = "gl_FrontFacing";
+          var.identifier = "gl_FrontFacing";
           break;
         case ResourceType::INSTANCE_ID:
-          var->identifier = "gl_InstanceID";
+          var.identifier = "gl_InstanceID";
           break;
         case ResourceType::POINT_SIZE:
-          var->identifier = "gl_PointSize";
+          var.identifier = "gl_PointSize";
           break;
         case ResourceType::CLIP_DISTANCES:
-          var->identifier = "gl_ClipDistance";
+          var.identifier = "gl_ClipDistance";
           break;
         case ResourceType::LAYER:
-          var->identifier = "gl_Layer";
+          var.identifier = "gl_Layer";
           break;
         case ResourceType::INSTANCE_INDEX:
-          var->identifier = "gpu_InstanceIndex";
+          var.identifier = "gpu_InstanceIndex";
           break;
         case ResourceType::VIEWPORT_INDEX:
-          var->identifier = "gpu_ViewportIndex";
+          var.identifier = "gpu_ViewportIndex";
           break;
         case ResourceType::VERTEX_ID:
-          var->identifier = "gl_VertexID";
+          var.identifier = "gl_VertexID";
           break;
         case ResourceType::POSITION:
-          var->identifier = "gl_Position";
+          var.identifier = "gl_Position";
           break;
         case ResourceType::FRAG_DEPTH:
-          var->identifier = "gl_FragDepth";
+          var.identifier = "gl_FragDepth";
           break;
         case ResourceType::FRAG_COORD:
-          var->identifier = "gl_FragCoord";
+          var.identifier = "gl_FragCoord";
           break;
         case ResourceType::BARY_COORD:
-          var->identifier = "gpu_BaryCoord";
+          var.identifier = "gpu_BaryCoord";
           break;
         case ResourceType::STENCIL_REF:
-          var->identifier = "gl_FragStencilRefARB";
+          var.identifier = "gl_FragStencilRefARB";
           break;
         case ResourceType::POINT_COORD:
-          var->identifier = "gl_PointCoord";
+          var.identifier = "gl_PointCoord";
           break;
         case ResourceType::LOCAL_INVOCATION_ID:
-          var->identifier = "gl_LocalInvocationID";
+          var.identifier = "gl_LocalInvocationID";
           break;
         case ResourceType::LOCAL_INVOCATION_INDEX:
-          var->identifier = "gl_LocalInvocationIndex";
+          var.identifier = "gl_LocalInvocationIndex";
           break;
         case ResourceType::GLOBAL_INVOCATION_ID:
-          var->identifier = "gl_GlobalInvocationID";
+          var.identifier = "gl_GlobalInvocationID";
           break;
         case ResourceType::WORK_GROUP_ID:
-          var->identifier = "gl_WorkGroupID";
+          var.identifier = "gl_WorkGroupID";
           break;
         case ResourceType::NUM_WORK_GROUP:
-          var->identifier = "gl_NumWorkGroups";
+          var.identifier = "gl_NumWorkGroups";
           break;
         case ResourceType::RESOURCE_TABLE:
-          if (type->srt_type != ResourceTableType::RESOURCE_TABLE) {
+          if (type.srt_type != ResourceTableType::RESOURCE_TABLE) {
             error(arg.type(),
                   Diag::ExpectedResourceOfType,
                   to_str(ResourceTableType::RESOURCE_TABLE),
-                  to_str(type->srt_type));
+                  to_str(type.srt_type));
           }
           break;
         case ResourceType::OUT:
@@ -303,19 +303,25 @@ struct SymbolParser : NodeErrorHandler {
               error(arg.type(), Diag::AttributeNotAllowedInComp, "out");
               break;
             case SymbolFunction::EntryPointType::FRAG:
-              if (type->srt_type != ResourceTableType::FRAGMENT_OUT) {
+              if (type.srt_type != ResourceTableType::FRAGMENT_OUT) {
                 error(arg.type().identifier(),
                       Diag::ExpectedResourceOfType,
                       to_str(ResourceTableType::FRAGMENT_OUT),
-                      to_str(type->srt_type));
+                      to_str(type.srt_type));
+              }
+              if (arg.is_const()) {
+                error(arg.type().constant(), Diag::ExpectedResourceNonConst);
               }
               break;
             case SymbolFunction::EntryPointType::VERT:
-              if (type->srt_type != ResourceTableType::VERTEX_OUT) {
+              if (type.srt_type != ResourceTableType::VERTEX_OUT) {
                 error(arg.type().identifier(),
                       Diag::ExpectedResourceOfType,
                       to_str(ResourceTableType::VERTEX_IN),
-                      to_str(type->srt_type));
+                      to_str(type.srt_type));
+              }
+              if (arg.is_const()) {
+                error(arg.type().constant(), Diag::ExpectedResourceNonConst);
               }
               break;
             case SymbolFunction::EntryPointType::NONE:
@@ -329,22 +335,28 @@ struct SymbolParser : NodeErrorHandler {
               error(arg.type().identifier(), Diag::AttributeNotAllowedInComp, "in");
               break;
             case SymbolFunction::EntryPointType::FRAG:
-              if (type->srt_type != ResourceTableType::FRAGMENT_IN &&
-                  type->srt_type != ResourceTableType::VERTEX_OUT)
+              if (type.srt_type != ResourceTableType::FRAGMENT_IN &&
+                  type.srt_type != ResourceTableType::VERTEX_OUT)
               {
                 error(arg.type().identifier(),
                       Diag::ExpectedResourceOfEitherType,
                       to_str(ResourceTableType::FRAGMENT_IN),
                       to_str(ResourceTableType::VERTEX_OUT),
-                      to_str(type->srt_type));
+                      to_str(type.srt_type));
+              }
+              if (!arg.is_const()) {
+                error(arg.type(), Diag::ExpectedResourceConst);
               }
               break;
             case SymbolFunction::EntryPointType::VERT:
-              if (type->srt_type != ResourceTableType::VERTEX_IN) {
+              if (type.srt_type != ResourceTableType::VERTEX_IN) {
                 error(arg.type().identifier(),
                       Diag::ExpectedResourceOfType,
                       to_str(ResourceTableType::VERTEX_IN),
-                      to_str(type->srt_type));
+                      to_str(type.srt_type));
+              }
+              if (!arg.is_const()) {
+                error(arg.type(), Diag::ExpectedResourceConst);
               }
               break;
             case SymbolFunction::EntryPointType::NONE:
@@ -367,13 +379,13 @@ struct SymbolParser : NodeErrorHandler {
         error(arg, Diag::ResourceAttributesOnlyOnEntryPointArgs);
       }
       else if (is_entry_point && attr.srt_type == ResourceTableType::ENTRY_POINT &&
-               !fn_sym->is_compatible(attr.res_type))
+               !fn_sym.is_compatible(attr.res_type))
       {
         error(arg,
               Diag::ResourceAttributesIncompatibleEntryPoint,
-              var->original,
+              var.original,
               to_str(attr.res_type),
-              to_str(fn_sym->entry_point_type));
+              to_str(fn_sym.entry_point_type));
       }
 
       if (!is_entry_point && attr.condition.is_valid()) {
@@ -381,7 +393,7 @@ struct SymbolParser : NodeErrorHandler {
       }
 
       if (attr.condition.is_valid()) {
-        var->condition = attr.condition;
+        var.condition = attr.condition;
       }
     }
 
@@ -391,16 +403,16 @@ struct SymbolParser : NodeErrorHandler {
       if (auto it = fns.find(scope.identifier); it != fns.end()) {
         SymbolFunction *fn = it->second.second;
         if (fn->fn_type == SymbolFunction::MEMBER) {
-          SymbolVariable *var = table.var_arena.alloc(
-              &scope, fn->parent_class(), arg_list.front(), "this");
-          var->is_ptr = true;
-          var->is_this = true;
-          scope.variable_emplace(var);
+          SymbolVariable &var = table.var_arena.alloc(
+              scope, *fn->parent_class(), arg_list.front(), "this");
+          var.is_ptr = true;
+          var.is_this = true;
+          scope.variable_emplace(&var);
           /* Mangle the emitted token to avoid conflict with MSL. */
-          var->identifier = "this_";
+          var.identifier = "this_";
           /* Some syntax might have already been lowered and need access to "this_". Add alias. */
           /* TODO(fclem): Do not preprocess this. */
-          scope.variable_emplace(var);
+          scope.variable_emplace(&var);
         }
       }
     }
@@ -410,15 +422,14 @@ struct SymbolParser : NodeErrorHandler {
   void parse_loop_arguments(SymbolScope &scope, ForLoop loop)
   {
     for (VarDecl var : loop.condition().descendants_of_type<VarDecl>()) {
-      SymbolClass *type = scope.lookup_class(table, var.type().identifier()).unwrap(this);
+      const SymbolClass &type = scope.lookup_class(table, var.type().identifier()).unwrap(this);
       for (Declarator decl : var.children_of_type<Declarator>()) {
-        SymbolVariable *sym = table.var_arena.alloc(&scope, type, decl, table);
-        sym->type = type;
-        if (scope.variable_emplace(sym)) {
-          NOTE(scope.variables.find(sym->identifier)->second.first.tok,
+        SymbolVariable &sym = table.var_arena.alloc(scope, type, decl, table);
+        if (scope.variable_emplace(&sym)) {
+          NOTE(scope.variables.find(sym.identifier)->second.first.tok,
                Diag::NotePreviousDefinition,
-               sym->identifier);
-          error(sym->loc.tok, Diag::Redefinition, sym->identifier);
+               sym.identifier);
+          error(sym.loc.tok, Diag::Redefinition, sym.identifier);
         }
       }
     }
@@ -447,22 +458,22 @@ struct SymbolParser : NodeErrorHandler {
         value = value.next();
       }
 
-      SymbolScope *root = table.root;
+      SymbolScope &root = table.root;
       /* Macro is not empty and defines something. Assume it is a int constant. */
       if (is_func) {
-        SymbolFunction *fn = table.fun_arena.alloc(
-            root, name, table.int_cls, string(name.str()), SymbolFunction::GLOBAL);
+        SymbolFunction &fn = table.fun_arena.alloc(
+            root, name, *table.int_cls, string(name.str()), SymbolFunction::GLOBAL);
 
-        root->functions.emplace(fn);
+        root.functions.emplace(&fn);
       }
       else {
-        SymbolClass *type = table.int_cls;
+        const SymbolClass *type = table.int_cls;
         if (directive.back() == value) {
           if (value == Number ||
               (value == Word && (value.str() == "true" || value.str() == "false")))
           {
             /* Value is a single token try to guess its type. */
-            type = table.get_literal_type(value.str());
+            type = &table.get_literal_type(value.str());
           }
           else if (value == Word) {
             /* Try to match type. Workaround for legacy type alias. */
@@ -481,13 +492,13 @@ struct SymbolParser : NodeErrorHandler {
             }
             if (cls) {
               /* TODO: Make a warning/error if this just defines a type alias. */
-              root->classes.emplace(string(name.str()), cls);
+              root.classes.emplace(string(name.str()), cls);
             }
           }
         }
-        SymbolVariable *var = table.var_arena.alloc(root, type, name, string(name.str()));
-        var->is_macro = true;
-        root->variable_emplace(var);
+        SymbolVariable &var = table.var_arena.alloc(root, *type, name, string(name.str()));
+        var.is_macro = true;
+        root.variable_emplace(&var);
       }
       /* TODO: Make a warning/error if this just defines a constant in global space without #if
        * directives. */
@@ -501,9 +512,9 @@ struct SymbolParser : NodeErrorHandler {
     SymbolScope *ns_scope = &scope;
     for (Id id : ns.children_of_type<Id>()) {
       /* In case the namespace doesn't exist, create it. */
-      SymbolScope *sym = table.scp_arena.alloc(ns_scope, id, SymbolScope::NAMESPACE);
-      ns_scope = ns_scope->scopes.try_emplace(sym->identifier, sym).first->second;
-      ns_prefix = ns_prefix + sym->identifier + ns_sep;
+      SymbolScope &sym = table.scp_arena.alloc(*ns_scope, id, SymbolScope::NAMESPACE);
+      ns_scope = ns_scope->scopes.try_emplace(sym.identifier, &sym).first->second;
+      ns_prefix = ns_prefix + sym.identifier + ns_sep;
     }
     parse_scope(*ns_scope, decl.body(), ns_prefix);
   }
@@ -513,25 +524,20 @@ struct SymbolParser : NodeErrorHandler {
     if (stmt.is_namespace()) {
       error(stmt, Diag::UsingNamespaceNotSupported);
     }
-    else {
-      IdQualified aliased(stmt.aliased());
-      IdQualified name(stmt.identifier());
-      string identifier(name.name().str());
-      SymbolFunction *fun = scope.lookup_function(table, aliased).unwrap(this);
-      if (!fun->is_error) {
-        scope.functions.emplace(identifier, fun, stmt.identifier().front());
-        return;
-      }
-      SymbolClass *type = scope.lookup_class(table, aliased).unwrap(this);
-      if (type->is_error && fun->is_error) {
-        error(aliased, Diag::UnknownTypeName);
-        return;
-      }
-      if (type) {
-        scope.classes.emplace(identifier, type, stmt.identifier().front());
-        return;
-      }
+    IdQualified aliased(stmt.aliased());
+    IdQualified name(stmt.identifier());
+    string identifier(name.name().str());
+    SymbolFunction &fun = scope.lookup_function(table, aliased).unwrap(this);
+    if (!fun.is_error) {
+      scope.functions.emplace(identifier, &fun, stmt.identifier().front());
+      return;
     }
+    SymbolClass &type = scope.lookup_class(table, aliased).unwrap(this);
+    if (type.is_error && fun.is_error) {
+      error(aliased, Diag::UnknownTypeName);
+      return;
+    }
+    scope.classes.emplace(identifier, &type, stmt.identifier().front());
   }
 
   void parse_enum_value(SymbolScope &scope,
@@ -540,15 +546,15 @@ struct SymbolParser : NodeErrorHandler {
                         ConstexprValue &enum_last_val,
                         const string &prefix)
   {
-    SymbolClass *type = scope.lookup_class(table, cls.parent_class()).unwrap(this);
+    const SymbolClass &type = scope.lookup_class(table, cls.parent_class()).unwrap(this);
 
-    SymbolVariable *sym = table.var_arena.alloc(&scope, type, val);
-    sym->is_static = true;
-    sym->is_constexpr = true;
+    SymbolVariable &sym = table.var_arena.alloc(scope, type, val);
+    sym.is_static = true;
+    sym.is_constexpr = true;
     /* Resolve its value. */
     if (AssignStmt assign = val.value(); assign.is_valid()) {
       if (auto result = initialize_assign(scope, type, assign); result.is_constexpr()) {
-        sym->value = result.value;
+        sym.value = result.value;
       }
       else {
         error(assign, Diag::ExprNotIntegralConstant);
@@ -556,35 +562,35 @@ struct SymbolParser : NodeErrorHandler {
     }
     else {
       /* Note: Add unsigned to not change the type of the ConstexprValue. */
-      sym->value = enum_last_val + ConstexprValue(1u);
+      sym.value = enum_last_val + ConstexprValue(1u);
     }
 
-    if (scope.variable_emplace(sym)) {
-      NOTE(scope.variables.find(sym->identifier)->second.first.tok,
+    if (scope.variable_emplace(&sym)) {
+      NOTE(scope.variables.find(sym.identifier)->second.first.tok,
            Diag::NotePreviousDefinition,
-           sym->identifier);
-      error(sym->loc.tok, Diag::Redefinition, sym->identifier);
+           sym.identifier);
+      error(sym.loc.tok, Diag::Redefinition, sym.identifier);
     }
     /* Save value for the next member. */
-    enum_last_val = sym->value;
+    enum_last_val = sym.value;
     /* Alias to the parent namespace for non-anonymous, non-class enum. */
     if (!cls.is_enum_class()) {
-      if (scope.parent->variable_emplace(sym)) {
-        NOTE(scope.variables.find(sym->identifier)->second.first.tok,
+      if (scope.parent->variable_emplace(&sym)) {
+        NOTE(scope.variables.find(sym.identifier)->second.first.tok,
              Diag::NotePreviousDefinition,
-             sym->identifier);
-        error(sym->loc.tok, Diag::Redefinition, sym->identifier);
+             sym.identifier);
+        error(sym.loc.tok, Diag::Redefinition, sym.identifier);
       }
     }
     /* TODO(fclem): Not enabling this for non-class-enum to stay compatible with the older
      * compiler. */
     if (cls.is_enum_class()) {
       /* Set resolved identifier. */
-      sym->identifier = prefix + sym->identifier;
+      sym.identifier = prefix + sym.identifier;
     }
   }
 
-  SymbolClass *parse_class_decl(SymbolScope &scope,
+  SymbolClass &parse_class_decl(SymbolScope &scope,
                                 ClassDecl decl,
                                 ClassDecl parent_class,
                                 int &offset,
@@ -594,94 +600,93 @@ struct SymbolParser : NodeErrorHandler {
                                 TemplateParamList temp_params = {},
                                 SymbolClassTemplate *cls_template = nullptr)
   {
-    SymbolClass *cls = table.cls_arena.alloc(&scope, decl, suffix);
-    if (auto [cls_ptr, inserted] = scope.classes.emplace(cls); !inserted) {
+    SymbolClass &cls = table.cls_arena.alloc(scope, decl, suffix);
+    if (auto [cls_ptr, inserted] = scope.classes.emplace(&cls); !inserted) {
       if (cls_ptr->parent == &scope) {
-        error(decl, Diag::Redefinition, cls->identifier);
-        return table.err_cls;
+        error(decl, Diag::Redefinition, cls.identifier);
+        return *table.err_cls;
       }
       /* Inherited class subclass hiding. */
-      scope.classes.insert_override(cls);
+      scope.classes.insert_override(&cls);
     }
     if (poi) {
-      cls->poi = poi;
+      cls.poi = poi;
     }
     else if (scope.poi) {
       /* Classes inherit the point of instantiation of their parent scope. */
-      cls->poi = scope.poi;
+      cls.poi = scope.poi;
     }
 
-    scope.scopes.emplace(cls->identifier, cls);
+    scope.scopes.emplace(cls.identifier, &cls);
 
-    if (!cls->is_enum && cls->is_anonymous &&
-        anonymous_scope_prefix(cls).non_anonymous_parent == nullptr)
+    if (!cls.is_enum && cls.is_anonymous &&
+        anonymous_scope_prefix(&cls).non_anonymous_parent == nullptr)
     {
       error(decl, Diag::AnonymousUnionNotSupportedAtNamespaceScope);
-      return table.err_cls;
+      return *table.err_cls;
     }
 
     if (cls_template) {
       /* Add the template definition early so it can be queried during instantiation. */
-      cls_template->instances.emplace(suffix, cls);
+      cls_template->instances.emplace(suffix, &cls);
       /* Create an alias to the unspecified class name (no template arg): e.g. `A` -> `A<T>`. */
-      string alias_name = cls->identifier.substr(0, cls->identifier.size() - suffix.size());
-      cls->classes.emplace(alias_name, cls);
+      string alias_name = cls.identifier.substr(0, cls.identifier.size() - suffix.size());
+      cls.classes.emplace(alias_name, &cls);
     }
 
     /* Set identifier to resolved symbol. */
-    cls->identifier = prefix + cls->identifier;
+    cls.identifier = prefix + cls.identifier;
 
     if (IdQualified parent_id = decl.parent_class(); parent_id.is_valid()) {
       parse_inheritance(scope, cls, parent_id);
     }
 
-    parse_scope(*cls, decl.body(), cls->identifier + ns_sep, temp_params);
+    parse_scope(cls, decl.body(), cls.identifier + ns_sep, temp_params);
 
-    if (cls->is_enum) {
-      SymbolClass *underlying_type = scope.lookup_class(table, decl.parent_class()).unwrap(this);
-      cls->size = underlying_type->size;
-      cls->align = underlying_type->align;
-      cls->builtin_class = underlying_type->builtin_class;
-      cls->is_std140_compatible = cls->size == 4;
-      cls->is_std430_compatible = cls->size == 4;
+    if (cls.is_enum) {
+      const SymbolClass &underlying_type =
+          scope.lookup_class(table, decl.parent_class()).unwrap(this);
+      cls.size = underlying_type.size;
+      cls.align = underlying_type.align;
+      cls.builtin_class = underlying_type.builtin_class;
+      cls.is_std140_compatible = cls.size == 4;
+      cls.is_std430_compatible = cls.size == 4;
 
       /* Create scalar constructor. */
-      SymbolFunction *ctor = table.fun_arena.alloc(
-          &scope, decl.front(), cls, cls->original, SymbolFunction::Type::GLOBAL);
-      ctor->add_argument(true, cls);
-      ctor->allow_vector_promotion = true;
-      scope.function_emplace(ctor, true);
-      ctor->identifier = prefix + ctor->identifier;
+      SymbolFunction &ctor = table.fun_arena.alloc(
+          scope, decl.front(), cls, cls.original, SymbolFunction::Type::GLOBAL);
+      ctor.add_argument(true, cls);
+      ctor.allow_vector_promotion = true;
+      scope.function_emplace(&ctor, true);
+      ctor.identifier = prefix + ctor.identifier;
     }
     else {
-      cls->ensure_size_and_align();
+      cls.ensure_size_and_align();
 
-      if (cls->is_anonymous) {
+      if (cls.is_anonymous) {
         /* Instantiate into parent class as member. */
-        SymbolVariable *var = table.var_arena.alloc(
-            &scope, cls, decl.front(), cls->original + ns_sep);
-        if (scope.variable_emplace(cls->original, var)) {
-          error(var->loc.tok, Diag::Redefinition, cls->original);
+        SymbolVariable &var = table.var_arena.alloc(
+            scope, cls, decl.front(), cls.original + ns_sep);
+        if (scope.variable_emplace(cls.original, &var)) {
+          error(var.loc.tok, Diag::Redefinition, cls.original);
         }
-
-        var->type = cls;
-        var->set_offset(parent_class.is_union(), offset);
+        var.set_offset(parent_class.is_union(), offset);
       }
     }
     return cls;
   }
 
-  void parse_inheritance(SymbolScope &scope, SymbolClass *cls, IdQualified parent_id)
+  void parse_inheritance(SymbolScope &scope, SymbolClass &cls, IdQualified parent_id)
   {
     while (parent_id.is_valid()) {
       SymbolClass *parent_cls = nullptr;
-      SymbolClass *base_cls = scope.lookup_class_base(table, parent_id);
+      SymbolClass &base_cls = scope.lookup_class_base(table, parent_id);
       TemplateParamList tmp_params = parent_id.template_params();
-      if (base_cls->template_data) {
+      if (base_cls.template_data) {
         /* Check if derived class is part of template arguments. */
         bool is_crtp = false;
         for (IdQualified param_id : tmp_params.descendants_of_type<IdQualified>()) {
-          if (scope.lookup_class_base(table, param_id) == cls) {
+          if (&scope.lookup_class_base(table, param_id) == &cls) {
             is_crtp = true;
             break;
           }
@@ -690,7 +695,7 @@ struct SymbolParser : NodeErrorHandler {
         if (is_crtp) {
           /* Implicit instantiation. We cannot declare the derived class without first declaring
            * the base class which depends on the derived class (CRTP). */
-          if (TemplateDecl temp_decl = check_template_instance(tmp_params, parent_id, *base_cls);
+          if (TemplateDecl temp_decl = check_template_instance(tmp_params, parent_id, base_cls);
               temp_decl.is_valid())
           {
             IdQualified id = parent_id;
@@ -702,35 +707,35 @@ struct SymbolParser : NodeErrorHandler {
             int unused_offset = 0;
             /* Shouldn't be required since its the same as the template definition.  */
             const char *prefix = "";
-            parent_cls = parse_class_decl(scope,
-                                          temp_decl.decl(),
-                                          Node{},
-                                          unused_offset,
-                                          prefix,
-                                          mangled.str,
-                                          poi,
-                                          tmp_params,
-                                          base_cls->template_data);
+            parent_cls = &parse_class_decl(scope,
+                                           temp_decl.decl(),
+                                           Node{},
+                                           unused_offset,
+                                           prefix,
+                                           mangled.str,
+                                           poi,
+                                           tmp_params,
+                                           base_cls.template_data);
             parent_cls->is_crtp = true;
-            parent_cls->template_data = base_cls->template_data;
+            parent_cls->template_data = base_cls.template_data;
           }
         }
         else {
           /* Full template lookup. */
-          parent_cls = scope.lookup_class(table, parent_id).unwrap(this);
+          parent_cls = &scope.lookup_class(table, parent_id).unwrap(this);
         }
       }
       else {
         /* Not a template. */
-        parent_cls = base_cls;
+        parent_cls = &base_cls;
       }
 
       if (parent_cls->is_error) {
         error(parent_id, Diag::UnknownIdentifier);
       }
       else {
-        cls->base_classes.emplace_back(parent_id, parent_cls);
-        inherit_members(*cls, *parent_cls);
+        cls.base_classes.emplace_back(parent_id, parent_cls);
+        inherit_members(cls, *parent_cls);
       }
       parent_id = parent_id.next();
     }
@@ -739,9 +744,9 @@ struct SymbolParser : NodeErrorHandler {
   void inherit_members(SymbolClass &cls, const SymbolClass &parent)
   {
     for (auto it : parent.variables) {
-      SymbolVariable *var = table.var_arena.alloc(*it.second.second);
-      cls.variable_override(var->original, var);
-      var->identifier = "_" + parent.identifier + "." + var->identifier;
+      SymbolVariable &var = table.var_arena.alloc(*it.second.second);
+      cls.variable_override(var.original, &var);
+      var.identifier = "_" + parent.identifier + "." + var.identifier;
     }
     for (auto it : parent.functions) {
       cls.functions.insert_override(it.first, it.second.second, it.second.first);
@@ -754,25 +759,25 @@ struct SymbolParser : NodeErrorHandler {
   void parse_func_forward_decl(SymbolScope &scope, FuncForwardDecl decl)
   {
     /* Treat the forward declaration as a standard function declaration to parse its signature. */
-    SymbolFunction *fn = table.fun_arena.alloc(&scope, table.err_cls, decl);
+    SymbolFunction &fn = table.fun_arena.alloc(scope, *table.err_cls, decl);
     /* Mark as forward declared so it doesn't conflict with or replace the actual definition. */
-    fn->is_defined = false;
-    fn->fwd = decl;
+    fn.is_defined = false;
+    fn.fwd = decl;
 
     if (scope.poi) {
       /* Functions inherit the point of instantiation of their class. */
-      fn->poi = scope.poi;
+      fn.poi = scope.poi;
     }
     /* Emplace the function into the scope so it becomes available during function lookups. */
-    bool is_overload = scope.function_emplace(fn);
-    if (is_overload && fn->is_entry_point()) {
+    bool is_overload = scope.function_emplace(&fn);
+    if (is_overload && fn.is_entry_point()) {
       error(decl.identifier(), Diag::RedefinitionOfEntryPointFunction, decl.identifier().str());
     }
     /* Parse the return type and arguments to correctly populate matching criteria. */
-    parse_function_return_type(*fn, decl.return_type());
-    parse_function_arguments(*fn, decl.arguments());
+    parse_function_return_type(fn, decl.return_type());
+    parse_function_arguments(fn, decl.arguments());
     /* Record as function prototype. */
-    scope.function_prototypes.emplace_back(decl, fn);
+    scope.function_prototypes.emplace_back(decl, &fn);
   }
 
   SymbolFunction *parse_func_decl(SymbolScope &def_scope,
@@ -789,9 +794,9 @@ struct SymbolParser : NodeErrorHandler {
     if (id.has_namespace()) {
       /* Definition of a member function or function from a different namespace.
        * Try to query the function to find its namespace. */
-      SymbolFunction *fn_prototype = def_scope.lookup_function(table, id).unwrap(this);
-      if (!fn_prototype->is_error) {
-        ns = fn_prototype->parent;
+      const SymbolFunction &fn_prototype = def_scope.lookup_function(table, id).unwrap(this);
+      if (!fn_prototype.is_error) {
+        ns = fn_prototype.parent;
       }
       else {
         error(id, Diag::UnknownFunction, id.str());
@@ -817,13 +822,13 @@ struct SymbolParser : NodeErrorHandler {
     else if (ns) {
       error(id.name(), Diag::FunctionOutOfClassDefinition, id.name().str(), ns->original);
       /* Still return a valid function to avoid crash. */
-      fn = table.fun_arena.alloc(&scope, table.err_cls, func, suffix);
+      fn = &table.fun_arena.alloc(scope, *table.err_cls, func, suffix);
       return fn;
     }
     else {
       /* Set return type to error type since we need to parse it after template argument
        * instantiation. */
-      fn = table.fun_arena.alloc(&scope, table.err_cls, func, suffix);
+      fn = &table.fun_arena.alloc(scope, *table.err_cls, func, suffix);
 
       bool is_overload = scope.function_emplace(fn);
       if (is_overload && fn->is_entry_point()) {
@@ -858,10 +863,10 @@ struct SymbolParser : NodeErrorHandler {
 
     if (fn->is_inline && fn->return_type != table.void_cls) {
       /* Create return variable instance. To be used during inlining. */
-      SymbolVariable *var = table.var_arena.alloc(
-          fn, fn->return_type, fn->decl.front(), SymbolFunction::inline_fn_ret_id);
-      if (fn->variable_emplace(SymbolFunction::inline_fn_ret_id, var)) {
-        error(var->loc.tok, Diag::Redefinition, SymbolFunction::inline_fn_ret_id);
+      SymbolVariable &var = table.var_arena.alloc(
+          *fn, *fn->return_type, fn->decl.front(), SymbolFunction::inline_fn_ret_id);
+      if (fn->variable_emplace(SymbolFunction::inline_fn_ret_id, &var)) {
+        error(var.loc.tok, Diag::Redefinition, SymbolFunction::inline_fn_ret_id);
       }
     }
 
@@ -875,20 +880,20 @@ struct SymbolParser : NodeErrorHandler {
       FuncDecl fn_decl(decl.decl());
       /* Set return type to error type since we need to parse it after template argument
        * instantiation. */
-      SymbolFunction *fn = table.fun_arena.alloc(&scope, table.err_cls, fn_decl);
+      SymbolFunction *fn = &table.fun_arena.alloc(scope, *table.err_cls, fn_decl);
       fn->is_complete = false;
       fn = scope.functions.emplace(fn).first;
       if (fn->template_data) {
         error(fn_decl.identifier(), Diag::RedefinitionTemplate, fn_decl.identifier().str());
       }
       else {
-        fn->template_data = table.tmp_fun_arena.alloc(decl);
+        fn->template_data = &table.tmp_fun_arena.alloc(decl);
       }
     }
     else {
-      SymbolClass *cls = table.cls_arena.alloc(&scope, decl.decl());
-      cls->template_data = table.tmp_cls_arena.alloc(decl);
-      if (!scope.classes.emplace(cls).second) {
+      SymbolClass &cls = table.cls_arena.alloc(scope, decl.decl());
+      cls.template_data = &table.tmp_cls_arena.alloc(decl);
+      if (!scope.classes.emplace(&cls).second) {
         ClassDecl cls_decl(decl.decl());
         error(cls_decl.identifier(), Diag::Redefinition, cls_decl.identifier().str());
       }
@@ -920,20 +925,21 @@ struct SymbolParser : NodeErrorHandler {
       const FuncForwardDecl decl = temp.decl();
       const IdQualified id = decl.identifier();
       const SourceLocation poi = id.front();
-      SymbolFunction *fn = scope.lookup_function_base(table, id);
+      SymbolFunction &fn = scope.lookup_function_base(table, id);
 
-      if (TemplateDecl temp_decl = check_template_instance(tmp_params, decl.identifier(), *fn);
+      if (TemplateDecl temp_decl = check_template_instance(tmp_params, decl.identifier(), fn);
           temp_decl.is_valid())
       {
         auto mangled =
             table.mangle_identifier(temp_decl.arguments(), tmp_params, scope).unwrap(this);
 
         SymbolScope *parent = &scope;
-        if (fn->fn_type == SymbolFunction::MEMBER) {
+        if (fn.fn_type == SymbolFunction::MEMBER) {
           parent = nullptr;
           Id start = id.namespace_start();
           Id last = id.child_last(NodeType::Id).prev(NodeType::Id);
-          if (auto *parent_cls = scope.lookup_class(table, start, last).unwrap(this); parent_cls) {
+          if (auto *parent_cls = &scope.lookup_class(table, start, last).unwrap(this); parent_cls)
+          {
             if (parent_cls->template_data && !last.template_params().is_valid()) {
               error(last, Diag::TemplateMissingParameters);
             }
@@ -946,7 +952,7 @@ struct SymbolParser : NodeErrorHandler {
           }
         }
         else {
-          parent = fn->parent;
+          parent = fn.parent;
         }
 
         string full_id = string(id.name().str()) + "<" + mangled.str_debug.substr(2) + ">";
@@ -954,24 +960,24 @@ struct SymbolParser : NodeErrorHandler {
         SymbolFunction *fn_inst = parse_func_decl(
             *parent, temp_decl.decl(), prefix, mangled.str, poi, temp.parameters());
         fn_inst->is_specialization = true;
-        fn_inst->template_data = fn->template_data;
+        fn_inst->template_data = fn.template_data;
         /* For compatibility with previous version of BSL, do not mangle function names with
          * arguments if ADL is possible. */
-        if (fn->template_data->is_adl_possible()) {
+        if (fn.template_data->is_adl_possible()) {
           fn_inst->identifier = fn_inst->identifier.substr(
               0, fn_inst->identifier.size() - mangled.str.size());
         }
-        fn->template_data->instances.emplace(mangled.str, fn_inst);
-        fn->add_overload(fn_inst);
+        fn.template_data->instances.emplace(mangled.str, fn_inst);
+        fn.add_overload(fn_inst);
       }
     }
     else {
       const ClassDecl decl = temp.decl();
       const IdQualified id = decl.identifier();
       const SourceLocation poi = id.front();
-      auto *cls = scope.lookup_class_base(table, id);
+      SymbolClass &cls = scope.lookup_class_base(table, id);
 
-      if (TemplateDecl temp_decl = check_template_instance(tmp_params, decl.identifier(), *cls);
+      if (TemplateDecl temp_decl = check_template_instance(tmp_params, decl.identifier(), cls);
           temp_decl.is_valid())
       {
         auto mangled =
@@ -987,7 +993,7 @@ struct SymbolParser : NodeErrorHandler {
                          mangled.str,
                          poi,
                          temp.parameters(),
-                         cls->template_data);
+                         cls.template_data);
       }
     }
   }
@@ -1000,9 +1006,9 @@ struct SymbolParser : NodeErrorHandler {
       const FuncDecl decl = temp.decl();
       const IdQualified id = decl.identifier();
       const SourceLocation poi = id.front();
-      auto *fn = scope.lookup_function_base(table, decl.identifier());
+      SymbolFunction &fn = scope.lookup_function_base(table, decl.identifier());
 
-      if (TemplateDecl temp_decl = check_template_instance(temp_params, decl.identifier(), *fn);
+      if (TemplateDecl temp_decl = check_template_instance(temp_params, decl.identifier(), fn);
           temp_decl.is_valid())
       {
         auto mangled =
@@ -1011,24 +1017,24 @@ struct SymbolParser : NodeErrorHandler {
         NOTE(decl.identifier(), Diag::NoteInstantiationFuncTemplateRequested, full_id);
         SymbolFunction *spec = parse_func_decl(scope, decl, prefix, mangled.str, poi);
         spec->is_specialization = true;
-        spec->template_data = fn->template_data;
+        spec->template_data = fn.template_data;
         /* For compatibility with previous version of BSL, do not mangle function names with
          * arguments if ADL is possible. */
-        if (fn->template_data->is_adl_possible()) {
+        if (fn.template_data->is_adl_possible()) {
           spec->identifier = spec->identifier.substr(0,
                                                      spec->identifier.size() - mangled.str.size());
         }
-        fn->template_data->instances.emplace(mangled.str, spec);
-        fn->add_overload(spec);
+        fn.template_data->instances.emplace(mangled.str, spec);
+        fn.add_overload(spec);
       }
     }
     else {
       const ClassDecl decl = temp.decl();
       const IdQualified id = decl.identifier();
       const SourceLocation poi = id.front();
-      auto *cls = scope.lookup_class_base(table, decl.identifier());
+      SymbolClass &cls = scope.lookup_class_base(table, decl.identifier());
 
-      if (TemplateDecl temp_decl = check_template_instance(temp_params, decl.identifier(), *cls);
+      if (TemplateDecl temp_decl = check_template_instance(temp_params, decl.identifier(), cls);
           temp_decl.is_valid())
       {
         auto mangled =
@@ -1036,26 +1042,26 @@ struct SymbolParser : NodeErrorHandler {
         string full_id = string(decl.identifier().str()) + "<" + mangled.str_debug.substr(2) + ">";
         NOTE(decl.identifier(), Diag::NoteInstantiationClassTemplateRequested, full_id);
         int unused_offset = 0;
-        SymbolClass *spec = parse_class_decl(
+        SymbolClass &spec = parse_class_decl(
             scope, decl, Node{}, unused_offset, prefix, mangled.str, poi);
-        cls->template_data->instances.emplace(mangled.str, spec);
+        cls.template_data->instances.emplace(mangled.str, &spec);
       }
     }
   }
 
   void parse_pipeline_decl(SymbolScope &scope, PipelineDecl decl, const std::string &prefix)
   {
-    SymbolVariable *sym = table.var_arena.alloc(
-        &scope, table.void_cls, decl.front(), string(decl.identifier().str()));
-    sym->is_static = true;
-    if (scope.variable_emplace(sym)) {
-      NOTE(scope.variables.find(sym->identifier)->second.first.tok,
+    SymbolVariable &sym = table.var_arena.alloc(
+        scope, *table.void_cls, decl.front(), string(decl.identifier().str()));
+    sym.is_static = true;
+    if (scope.variable_emplace(&sym)) {
+      NOTE(scope.variables.find(sym.identifier)->second.first.tok,
            Diag::NotePreviousDefinition,
-           sym->identifier);
-      error(decl, Diag::Redefinition, sym->identifier);
+           sym.identifier);
+      error(decl, Diag::Redefinition, sym.identifier);
     }
     /* Set resolved identifier. */
-    sym->identifier = prefix + sym->identifier;
+    sym.identifier = prefix + sym.identifier;
   }
 
   void parse_structured_binding(SymbolScope &scope, StructuredBinding decl)
@@ -1067,8 +1073,9 @@ struct SymbolParser : NodeErrorHandler {
       return;
     }
 
-    SymbolClass *cls = table.expr_type_analysis(scope, expr.child_first()).unwrap(this).type;
-    if (cls->is_error) {
+    const SymbolClass &cls =
+        *table.expr_type_analysis(scope, expr.child_first()).unwrap(this).type;
+    if (cls.is_error) {
       error(decl, Diag::AutoTypeCannotBeDeduced);
       return;
     }
@@ -1076,31 +1083,32 @@ struct SymbolParser : NodeErrorHandler {
     Id id = decl.child_first();
 
     /* Create temp variable to write to. */
-    SymbolVariable *tmp = table.var_arena.alloc(&scope, cls, decl.front(), decl.tmp_id());
-    if (scope.variable_emplace(tmp)) {
-      NOTE(scope.variables.find(tmp->identifier)->second.first.tok,
+    SymbolVariable &tmp = table.var_arena.alloc(scope, cls, decl.front(), decl.tmp_id());
+    if (scope.variable_emplace(&tmp)) {
+      NOTE(scope.variables.find(tmp.identifier)->second.first.tok,
            Diag::NotePreviousDefinition,
-           tmp->identifier);
-      error(decl, Diag::Redefinition, tmp->identifier);
+           tmp.identifier);
+      error(decl, Diag::Redefinition, tmp.identifier);
     }
 
-    for (SymbolVariable *var : cls->non_static_variables_in_declaration_order()) {
+    for (SymbolVariable *var_ptr : cls.non_static_variables_in_declaration_order()) {
       if (!id.is_valid()) {
         error(decl, Diag::StructuredBindingNotEnoughNames);
         return;
       }
+      const SymbolVariable &var = *var_ptr;
       /* Make copy of the variable in local scope. */
-      SymbolVariable *sym = table.var_arena.alloc(*var);
-      sym->identifier = id.str();
-      sym->parent = &scope;
-      if (scope.variable_emplace(sym)) {
-        NOTE(scope.variables.find(sym->identifier)->second.first.tok,
+      SymbolVariable &sym = table.var_arena.alloc(var);
+      sym.identifier = id.str();
+      sym.parent = &scope;
+      if (scope.variable_emplace(&sym)) {
+        NOTE(scope.variables.find(sym.identifier)->second.first.tok,
              Diag::NotePreviousDefinition,
-             sym->identifier);
-        error(decl, Diag::Redefinition, sym->identifier);
+             sym.identifier);
+        error(decl, Diag::Redefinition, sym.identifier);
       }
       /* Resolve to the tmp variable member. */
-      sym->identifier = tmp->identifier + '.' + var->identifier;
+      sym.identifier = tmp.identifier + '.' + var.identifier;
 
       id = id.next();
     }
@@ -1124,11 +1132,11 @@ struct SymbolParser : NodeErrorHandler {
      * Deduce type using only the first declarator. */
     Declarator first_decl = var.child_first(NodeType::Declarator);
 
-    SymbolClass *type = ((type_id_str == "auto") ? table.resolve_auto_type(scope, first_decl) :
-                                                   scope.lookup_class(table, type_id))
-                            .unwrap(this);
+    const SymbolClass &type = (type_id_str == "auto") ?
+                                  table.resolve_auto_type(scope, first_decl).unwrap(this) :
+                                  scope.lookup_class(table, type_id).unwrap(this);
 
-    if (type->is_error) {
+    if (type.is_error) {
       error(var, Diag::UnknownTypeNameWithArg, type_id_str);
       return;
     }
@@ -1137,13 +1145,14 @@ struct SymbolParser : NodeErrorHandler {
 
     auto attr = resource_type_from_attributes(var.attributes()).unwrap(this);
 
-    if (attr.res_type == ResourceType::UNIFORM_BUF && !type->is_std140_compatible) {
-      NOTE(type_id, Diag::NoteInUniformBufferDeclaration, type->original);
-      type->ensure_size_and_align(this);
+    SymbolClass &type_mut = const_cast<SymbolClass &>(type);
+    if (attr.res_type == ResourceType::UNIFORM_BUF && !type.is_std140_compatible) {
+      NOTE(type_id, Diag::NoteInUniformBufferDeclaration, type.original);
+      type_mut.ensure_size_and_align(this);
     }
-    else if (attr.res_type == ResourceType::STORAGE_BUF && !type->is_std430_compatible) {
-      NOTE(type_id, Diag::NoteInStorageBufferDeclaration, type->original);
-      type->ensure_size_and_align(this, true);
+    else if (attr.res_type == ResourceType::STORAGE_BUF && !type.is_std430_compatible) {
+      NOTE(type_id, Diag::NoteInStorageBufferDeclaration, type.original);
+      type_mut.ensure_size_and_align(this, true);
     }
 
     if (first_decl.is_pointer() && first_decl.pointer().str().size() != 1) {
@@ -1165,7 +1174,7 @@ struct SymbolParser : NodeErrorHandler {
         }
         cls->srt_type = attr.srt_type;
       }
-      else if (cls->srt_type != attr.srt_type) {
+      else if (cls->srt_type != attr.srt_type && !var.type().is_constexpr()) {
         error(var,
               Diag::ExpectedResourceDefinitionOfType,
               to_str(cls->srt_type),
@@ -1188,7 +1197,7 @@ struct SymbolParser : NodeErrorHandler {
       }
     }
 
-    const bool is_srt_local_ref = type->is_srt() && cls == nullptr;
+    const bool is_srt_local_ref = type.is_srt() && cls == nullptr;
 
     string anon_prefix;
     SymbolScope *named_parent = cls;
@@ -1213,25 +1222,25 @@ struct SymbolParser : NodeErrorHandler {
       }
       ast::BitField bitfield = decl.bitfield();
 
-      SymbolVariable *sym = table.var_arena.alloc(&scope, type, decl, table);
-      sym->res_type = attr.res_type;
-      sym->is_static |= attr.res_type != ResourceType::NONE;
-      if (scope.variable_emplace(sym)) {
+      SymbolVariable &sym = table.var_arena.alloc(scope, type, decl, table);
+      sym.res_type = attr.res_type;
+      sym.is_static |= attr.res_type != ResourceType::NONE;
+      if (scope.variable_emplace(&sym)) {
         /* Check if redefinition is simply hiding a base class member. */
-        SymbolVariable *other = scope.variables.find(sym->identifier)->second.second;
+        SymbolVariable *other = scope.variables.find(sym.identifier)->second.second;
         if (scope.as_class() && scope.as_class() != other->parent_class()) {
           /* Hide base class member. */
-          scope.variable_override(sym);
+          scope.variable_override(&sym);
         }
         else {
-          NOTE(scope.variables.find(sym->identifier)->second.first.tok,
+          NOTE(scope.variables.find(sym.identifier)->second.first.tok,
                Diag::NotePreviousDefinition,
-               sym->identifier);
-          error(sym->loc.tok, Diag::Redefinition, sym->identifier);
+               sym.identifier);
+          error(sym.loc.tok, Diag::Redefinition, sym.identifier);
         }
       }
 
-      if (sym->is_ptr) {
+      if (sym.is_ptr) {
         /* We only support single indirection pointers. */
         if (decl.pointer().str().size() != 1) {
           error(decl.pointer(), Diag::PointerMultiIndirection);
@@ -1252,15 +1261,15 @@ struct SymbolParser : NodeErrorHandler {
 
       /* Capacity attribute. */
       if (attr.capacity.is_valid()) {
-        if (sym->array_dimensions != 1) {
+        if (sym.array_dimensions != 1) {
           error(decl, Diag::CapacityArrayDimensionMismatch);
         }
         /* TODO(fclem): Check that this references a single reachable compilation constant. */
-        sym->capacity_value = attr.capacity;
+        sym.capacity_value = attr.capacity;
       }
 
       if (attr.condition.is_valid()) {
-        sym->condition = attr.condition;
+        sym.condition = attr.condition;
       }
 
       /* Local References. */
@@ -1275,12 +1284,12 @@ struct SymbolParser : NodeErrorHandler {
           if (result.is_temporary && !result.type->is_srt()) {
             error(decl, Diag::ReferenceCannotBindTemporary);
           }
-          else if (type != result.type) {
-            error(decl, Diag::ReferenceTypeMismatch, type->identifier, result.type->identifier);
+          else if (&type != result.type) {
+            error(decl, Diag::ReferenceTypeMismatch, type.identifier, result.type->identifier);
           }
 
-          sym->reference_value = stmt.expr();
-          sym->array_dimensions = result.array_dim;
+          sym.reference_value = stmt.expr();
+          sym.array_dimensions = result.array_dim;
         }
         else {
           error(decl, Diag::ReferenceVariableRequiresInitializer, decl.identifier().str());
@@ -1288,11 +1297,11 @@ struct SymbolParser : NodeErrorHandler {
       }
 
       if (cls) {
-        if (sym->is_bitfield) {
-          if ((sym->type != table.int_cls && sym->type != table.uint_cls) ||
-              sym->array_dimensions != 0)
+        if (sym.is_bitfield) {
+          if ((&sym.type != table.int_cls && &sym.type != table.uint_cls) ||
+              sym.array_dimensions != 0)
           {
-            error(decl, Diag::BitFieldNotIntegral, sym->type->original);
+            error(decl, Diag::BitFieldNotIntegral, sym.type.original);
           }
           const Node width = bitfield.expr().child_first();
           if (!width.is_valid()) {
@@ -1316,16 +1325,16 @@ struct SymbolParser : NodeErrorHandler {
           else {
             if (bitfield_base && bitfield_offset + len <= 32 && !cls->is_union) {
               /* Fits in existing bitfield. */
-              sym->bit_length = len;
-              sym->bit_offset = bitfield_offset;
+              sym.bit_length = len;
+              sym.bit_offset = bitfield_offset;
               bitfield_offset += len;
             }
             else {
               /* Doesn't fit in existing bitfield or first in bitfield. Start a new bitfield. */
-              sym->bit_length = len;
-              sym->bit_offset = 0;
+              sym.bit_length = len;
+              sym.bit_offset = 0;
               bitfield_offset = len;
-              bitfield_base = sym;
+              bitfield_base = &sym;
             }
           }
         }
@@ -1334,26 +1343,26 @@ struct SymbolParser : NodeErrorHandler {
           bitfield_base = nullptr;
         }
 
-        if (sym->bit_offset != 0 && bitfield_base) {
+        if (sym.bit_offset != 0 && bitfield_base) {
           /* Bitfield members copy their offset from the first bitfield member. */
-          sym->offset = bitfield_base->offset;
+          sym.offset = bitfield_base->offset;
         }
-        else if (!sym->is_static) {
+        else if (!sym.is_static) {
           /* Static members are not part of the class layout. */
-          sym->set_offset(cls->is_union, offset);
+          sym.set_offset(cls->is_union, offset);
         }
 
         /* Alias to the first, non-anonymous parent. */
         if (cls->is_anonymous) {
-          if (named_parent->variable_emplace(sym)) {
-            error(sym->loc.tok, Diag::Redefinition, sym->identifier);
+          if (named_parent->variable_emplace(&sym)) {
+            error(sym.loc.tok, Diag::Redefinition, sym.identifier);
           }
         }
 
         if (bitfield_base) {
           /* Alias to the first member of the bitfield, so that it gets the same accessor
            * decoration below. */
-          sym->identifier = bitfield_base->original;
+          sym.identifier = bitfield_base->original;
         }
 
         if (cls->is_anonymous || cls->is_union) {
@@ -1361,9 +1370,9 @@ struct SymbolParser : NodeErrorHandler {
           string suffix = cls->is_union ? "()" : "";
           string prefix = cls->is_union ? "_" : "";
           /* Rename to the resolved symbol. */
-          sym->identifier = anon_prefix + prefix + sym->identifier + suffix;
+          sym.identifier = anon_prefix + prefix + sym.identifier + suffix;
 
-          if (sym->is_static) {
+          if (sym.is_static) {
             error(var,
                   Diag::StaticDataMemberNotAllowed,
                   decl.identifier().str(),
@@ -1374,35 +1383,35 @@ struct SymbolParser : NodeErrorHandler {
 
         if (bitfield_base) {
           /* Note: we mutate assignments into bitfieldInsert in a second pass. */
-          sym->identifier += ".bitfieldExtract(" + to_string(sym->bit_offset) + ", " +
-                             to_string(sym->bit_length) + ")";
+          sym.identifier += ".bitfieldExtract(" + to_string(sym.bit_offset) + ", " +
+                            to_string(sym.bit_length) + ")";
         }
       }
 
-      if (sym->is_static) {
+      if (sym.is_static) {
         if (attr.res_type == ResourceType::VERT_ATTR_OUT ||
             attr.res_type == ResourceType::FRAG_OUT)
         {
-          sym->identifier = prefix + sym->identifier;
+          sym.identifier = prefix + sym.identifier;
         }
       }
 
-      if (sym->is_constexpr) {
-        if (sym->array_dimensions > 0) {
+      if (sym.is_constexpr) {
+        if (sym.array_dimensions > 0) {
           error(decl.array(), Diag::ConstexprVarMustNotBeArray);
         }
 
-        ExpressionResult result = initialize_constexpr(scope, sym->type, decl);
+        ExpressionResult result = initialize_constexpr(scope, sym.type, decl);
         /* For now demote constexpr if we couldn't deduce its value. */
         if (result.is_constexpr()) {
-          sym->value = result.value;
+          sym.value = result.value;
         }
 
-        if (!sym->is_static) {
-          if (sym->parent_class()) {
+        if (!sym.is_static) {
+          if (sym.parent_class()) {
             error(var.type(), Diag::ConstexprMemberNonStatic);
           }
-          else if (sym->parent->parent_function()) {
+          else if (sym.parent->parent_function()) {
             /* Only case where its fine. */
           }
           else {
@@ -1416,7 +1425,7 @@ struct SymbolParser : NodeErrorHandler {
   }
 
   ExpressionResult eval_scalar_initializer_list(const SymbolScope &scope,
-                                                SymbolClass *cls,
+                                                const SymbolClass &cls,
                                                 InitializerList list)
   {
     if (list.is_empty()) {
@@ -1436,46 +1445,46 @@ struct SymbolParser : NodeErrorHandler {
     return cls;
   }
 
-  ExpressionResult initialize_assign(const SymbolScope &scope, SymbolClass *cls, AssignStmt assign)
+  ExpressionResult initialize_assign(const SymbolScope &scope,
+                                     const SymbolClass &cls,
+                                     AssignStmt assign)
   {
-    ExpressionResult result = cls;
     if (InitializerList list = assign.initializer_list(); list.is_valid()) {
-      result = eval_scalar_initializer_list(scope, cls, list);
+      return eval_scalar_initializer_list(scope, cls, list);
     }
-    else {
-      result = table.expr_type_analysis(scope, assign.expr().child_first()).unwrap(this);
-    }
-    return result;
+    return table.expr_type_analysis(scope, assign.expr().child_first()).unwrap(this);
   }
 
   ExpressionResult initialize_constexpr(const SymbolScope &scope,
-                                        SymbolClass *cls,
+                                        const SymbolClass &cls,
                                         Declarator decl)
   {
-    if (cls != table.int_cls && cls != table.int2_cls && cls != table.int3_cls &&
-        cls != table.int4_cls && cls != table.uint_cls && cls != table.uint2_cls &&
-        cls != table.uint3_cls && cls != table.uint4_cls && cls != table.bool_cls &&
-        cls != table.bool2_cls && cls != table.bool3_cls && cls != table.bool4_cls &&
-        cls != table.float_cls && cls != table.float2_cls && cls != table.float3_cls &&
-        cls != table.float4_cls)
+    if (&cls != table.int_cls && &cls != table.int2_cls && &cls != table.int3_cls &&
+        &cls != table.int4_cls && &cls != table.uint_cls && &cls != table.uint2_cls &&
+        &cls != table.uint3_cls && &cls != table.uint4_cls && &cls != table.bool_cls &&
+        &cls != table.bool2_cls && &cls != table.bool3_cls && &cls != table.bool4_cls &&
+        &cls != table.float_cls && &cls != table.float2_cls && &cls != table.float3_cls &&
+        &cls != table.float4_cls)
     {
       error(decl, Diag::ConstexprVarMustBeValidType);
-      return {table.err_cls};
+      return {*table.err_cls};
     }
 
-    ExpressionResult result = cls;
-    if (AssignStmt assign = decl.initial_value(); assign.is_valid()) {
-      result = initialize_assign(scope, cls, assign);
-    }
-    else if (InitializerList list = decl.initializer_list(); list.is_valid()) {
-      result = eval_scalar_initializer_list(scope, cls, list);
-    }
+    ExpressionResult result = [&]() {
+      if (AssignStmt assign = decl.initial_value(); assign.is_valid()) {
+        return initialize_assign(scope, cls, assign);
+      }
+      if (InitializerList list = decl.initializer_list(); list.is_valid()) {
+        return eval_scalar_initializer_list(scope, cls, list);
+      }
+      return ExpressionResult(cls);
+    }();
 
-    if (result.type != cls) {
+    if (result.type != &cls) {
       error(decl,
             Diag::ConstexprVarMustBeInitializedByCorrectType,
             decl.identifier().str(),
-            cls->original,
+            cls.original,
             result.type->original);
     }
     else if (!result.is_constexpr()) {
@@ -1509,7 +1518,7 @@ struct SymbolParser : NodeErrorHandler {
 void SymbolTable::parse(LocalScope node, ErrorHandler &err_handler)
 {
   SymbolParser symbol_parser(err_handler, *this);
-  symbol_parser.parse_scope(*root, node, "");
+  symbol_parser.parse_scope(root, node, "");
 
   if (err_handler.err.has_value()) {
     throw ParserException();

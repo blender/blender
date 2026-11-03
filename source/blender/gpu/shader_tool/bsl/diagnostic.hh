@@ -130,6 +130,7 @@ enum class Diag {
   ConditionAttributeNotChecked,
   ConditionAttributeNotOnResource,
   ConditionAttributeUnsupported,
+  ConditionAttributeNotConstant,
 
   CompilationConstantRedefinition,
   CompilationConstantPreviousDecl,
@@ -165,6 +166,8 @@ enum class Diag {
   ExpectedResourceOfEitherType,
   ExpectedResourceOfType,
   ExpectedResourceTableInitializer,
+  ExpectedResourceConst,
+  ExpectedResourceNonConst,
 
   ExpectedComputeShaderEntryPoint,
   ExpectedFragmentShaderEntryPoint,
@@ -411,6 +414,10 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Expected resource of type '{}' but got '{}'";
     case Diag::ExpectedResourceTableInitializer:
       return "Expected resource table initializer";
+    case Diag::ExpectedResourceConst:
+      return "Input resource must to be declared as const";
+    case Diag::ExpectedResourceNonConst:
+      return "Output resource must to be declared as mutable";
     case Diag::ExpectedScalarInitializer:
       return "Excess elements in scalar initializer";
     case Diag::ExpectedVertexShaderEntryPoint:
@@ -461,15 +468,19 @@ static inline std::string_view diagnostic_message_get(Diag diag)
     case Diag::MissingParameterForCall:
       return "Missing parameter for call to '{}'";
     case Diag::ConditionAttributeDeclaredHere:
-      return "Condition declared here";
+      return "Unmatched condition declared here";
     case Diag::ConditionAttributeMultiple:
       return "Only one condition attribute is allowed";
     case Diag::ConditionAttributeNotChecked:
-      return "Access to conditional resource '{}' is not guarded by any static check";
+      return "Access to conditional resource '{}' needs to have matching 'static_branch' "
+             "condition";
     case Diag::ConditionAttributeNotOnResource:
       return "Condition attribute is only allowed on resources declaration";
     case Diag::ConditionAttributeUnsupported:
       return "Condition attribute is not compatible with resource type '{}'";
+    case Diag::ConditionAttributeNotConstant:
+      return "Condition attribute references '{}' which is neither constexpr nor a compilation "
+             "constant";
     case Diag::CompilationConstantRedefinition:
       return "Redefinition of compilation constant '{}'";
     case Diag::CompilationConstantPreviousDecl:

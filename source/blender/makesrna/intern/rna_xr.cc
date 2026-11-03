@@ -737,6 +737,30 @@ static bool rna_XrSessionState_is_running(bContext *C)
 #  endif
 }
 
+static void rna_XrSessionState_runtime_name_get(PointerRNA *ptr, char *r_value)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  WM_xr_session_runtime_name_get(xr, r_value);
+#  else
+  UNUSED_VARS(ptr);
+  r_value[0] = '\0';
+#  endif
+}
+
+static int rna_XrSessionState_runtime_name_length(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  char name[128]; /* XR_MAX_RUNTIME_NAME_SIZE */
+  const wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  WM_xr_session_runtime_name_get(xr, name);
+  return strlen(name);
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
+#  endif
+}
+
 static void rna_XrSessionState_reset_to_base_pose(bContext *C)
 {
 #  ifdef WITH_XR_OPENXR
@@ -2492,6 +2516,14 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_boolean(func, "result", false, "Result", "");
   RNA_def_function_return(func, parm);
+
+  prop = RNA_def_property(srna, "runtime_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop,
+                                "rna_XrSessionState_runtime_name_get",
+                                "rna_XrSessionState_runtime_name_length",
+                                nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Runtime Name", "OpenXR runtime name");
 
   func = RNA_def_function(srna, "reset_to_base_pose", "rna_XrSessionState_reset_to_base_pose");
   RNA_def_function_ui_description(func, "Force resetting of position and rotation deltas");

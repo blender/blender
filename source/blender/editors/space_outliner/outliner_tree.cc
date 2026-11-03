@@ -7,6 +7,7 @@
  */
 
 #include <algorithm>
+#include <climits>
 #include <cstring>
 #include <optional>
 #include <utility>

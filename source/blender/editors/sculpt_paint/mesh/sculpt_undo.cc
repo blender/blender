@@ -678,7 +678,7 @@ static void restore_vert_visibility_mesh(Object &object,
   PRF_scope(ProfileCategory::Editor);
   Mesh &mesh = *id_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
+  bke::SpanAttributeWriter<bool> hide_vert = attributes.ensure_for_write_span<bool>(
       ".hide_vert", bke::AttrDomain::Point);
   for (const int i : unode.vert_indices.index_range().take_front(unode.unique_verts_num)) {
     const int vert = unode.vert_indices[i];
@@ -725,7 +725,7 @@ static void restore_hidden_face(Object &object,
   PRF_scope(ProfileCategory::Editor);
   Mesh &mesh = *id_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  bke::SpanAttributeWriter hide_poly = attributes.lookup_or_add_for_write_span<bool>(
+  bke::SpanAttributeWriter hide_poly = attributes.ensure_for_write_span<bool>(
       ".hide_poly", bke::AttrDomain::Face);
 
   const Span<int> face_indices = unode.face_indices;
@@ -772,7 +772,7 @@ static void restore_mask_mesh(Object &object, Node &unode, const MutableSpan<boo
   Mesh *mesh = BKE_object_get_original_mesh(&object);
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> mask = attributes.ensure_for_write_span<float>(
       ".sculpt_mask", bke::AttrDomain::Point);
 
   const Span<int> index = unode.vert_indices.as_span().take_front(unode.unique_verts_num);

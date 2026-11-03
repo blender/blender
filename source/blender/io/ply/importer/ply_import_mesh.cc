@@ -100,7 +100,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   /* Vertex colors */
   if (!data.vertex_colors.is_empty() && params.vertex_colors != ePLYVertexColorMode::None) {
     /* Create a data layer for vertex colors and set them. */
-    bke::SpanAttributeWriter colors = attributes.lookup_or_add_for_write_span<ColorGeometry4f>(
+    bke::SpanAttributeWriter colors = attributes.ensure_for_write_span<ColorGeometry4f>(
         "Col", bke::AttrDomain::Point);
 
     if (params.vertex_colors == ePLYVertexColorMode::sRGB) {
@@ -120,7 +120,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
 
   /* Uvmap */
   if (!data.uv_coordinates.is_empty()) {
-    bke::SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
+    bke::SpanAttributeWriter<float2> uv_map = attributes.ensure_for_write_only_span<float2>(
         "UVMap", bke::AttrDomain::Corner);
     for (const int i : data.face_vertices.index_range()) {
       uint32_t v = data.face_vertices[i];

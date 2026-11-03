@@ -191,6 +191,11 @@ void RNA_def_meta(BlenderRNA *brna);
 void RNA_def_modifier(BlenderRNA *brna);
 void RNA_def_nla(BlenderRNA *brna);
 void RNA_def_nodetree(BlenderRNA *brna);
+void RNA_def_nodes_compositor(BlenderRNA *brna);
+void RNA_def_nodes_function(BlenderRNA *brna);
+void RNA_def_nodes_geometry(BlenderRNA *brna);
+void RNA_def_nodes_shader(BlenderRNA *brna);
+void RNA_def_nodes_texture(BlenderRNA *brna);
 void RNA_def_node_socket_subtypes(BlenderRNA *brna);
 void RNA_def_node_tree_interface(BlenderRNA *brna);
 void RNA_def_object(BlenderRNA *brna);
@@ -300,6 +305,7 @@ void rna_def_texpaint_slots(BlenderRNA *brna, StructRNA *srna);
 void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, bool scene);
 
 int rna_AssetMetaData_editable(const PointerRNA *ptr, const char **r_info);
+int rna_ID_owner_editable_if_in_bmain(const PointerRNA *ptr, const char **r_info);
 /**
  * Create a enum property for the available asset libraries that should be displayed in the UI.
  * Does not include the online essentials library, which should be displayed as part of the normal
@@ -578,6 +584,12 @@ IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr) ATTR_WARN_
 PropertyRNA *rna_ensure_property(PropertyRNA *prop) ATTR_WARN_UNUSED_RESULT;
 
 /* Override default callbacks. */
+/**
+ * Private runtime types can have independent definitions for the same type. Their properties
+ * still have to be matched by identifier and checked for compatibility before diffing.
+ */
+bool rna_struct_override_type_matches(const StructRNA *type_a, const StructRNA *type_b);
+
 /* Default override callbacks for all types. */
 /* TODO: Maybe at some point we'll want to write that in direct RNA-generated code instead
  *       (like we do for default get/set/etc.)?

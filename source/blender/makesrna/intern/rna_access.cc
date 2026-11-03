@@ -2387,7 +2387,8 @@ static bool rna_property_editable_do(const PointerRNA *ptr,
     return false;
   }
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
-    const bool is_liboverride_system = BKE_lib_override_library_is_system_defined(G_MAIN, id);
+    const bool is_liboverride_system = BKE_lib_override_library_is_system_defined(
+        id->owner_bmain(), id);
     if (!RNA_property_overridable_get(ptr, prop_orig)) {
       if (r_info != nullptr && (*r_info)[0] == '\0') {
         *r_info = N_("Cannot edit this property from an override data-block");
@@ -6468,10 +6469,8 @@ static void update_idprop_id(Main &bmain,
   fill_new();
 }
 
-static void sync_system_properties(Main &bmain,
-                                   PointerRNA &ptr,
-                                   IDProperty &idprops,
-                                   const bool ensure)
+static void sync_system_properties(
+    Main &bmain, PointerRNA &ptr, IDProperty &idprops, const bool ensure, const bool do_cleanup)
 {
   BLI_assert(idprops.type == IDP_GROUP);
   Set<IDProperty *> used_props;
@@ -6548,7 +6547,7 @@ static void sync_system_properties(Main &bmain,
             continue;
           }
           PointerRNA prop_ptr = RNA_property_pointer_get(&ptr, &rna_prop);
-          sync_system_properties(bmain, prop_ptr, *idprop, ensure);
+          sync_system_properties(bmain, prop_ptr, *idprop, ensure, do_cleanup);
         }
         break;
       }
@@ -6561,21 +6560,29 @@ static void sync_system_properties(Main &bmain,
   }
 
   /* Remove old properties no longer used by the RNA type. */
-  for (IDProperty &prop : idprops.data.group.items_mutable()) {
-    if (!used_props.contains(&prop)) {
-      IDP_FreeFromGroup(&idprops, &prop);
+  if (do_cleanup) {
+    for (IDProperty &prop : idprops.data.group.items_mutable()) {
+      if (!used_props.contains(&prop)) {
+        IDP_FreeFromGroup(&idprops, &prop);
+      }
     }
   }
 }
 
-void RNA_sync_system_properties(Main &bmain, PointerRNA &ptr, IDProperty &idprops)
+void RNA_sync_system_properties(Main &bmain,
+                                PointerRNA &ptr,
+                                IDProperty &idprops,
+                                const bool do_cleanup)
 {
-  sync_system_properties(bmain, ptr, idprops, false);
+  sync_system_properties(bmain, ptr, idprops, false, do_cleanup);
 }
 
-void RNA_ensure_and_sync_system_properties(Main &bmain, PointerRNA &ptr, IDProperty &idprops)
+void RNA_ensure_and_sync_system_properties(Main &bmain,
+                                           PointerRNA &ptr,
+                                           IDProperty &idprops,
+                                           const bool do_cleanup)
 {
-  sync_system_properties(bmain, ptr, idprops, true);
+  sync_system_properties(bmain, ptr, idprops, true, do_cleanup);
 }
 
 /* Standard iterator functions */

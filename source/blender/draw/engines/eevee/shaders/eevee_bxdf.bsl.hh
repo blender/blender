@@ -10,4 +10,5 @@
 
 #include "eevee_bxdf_diffuse.bsl.hh"     // IWYU pragma: export
 #include "eevee_bxdf_microfacet.bsl.hh"  // IWYU pragma: export
+#include "eevee_bxdf_oren_nayar.bsl.hh"  // IWYU pragma: export
 #include "eevee_bxdf_types.bsl.hh"       // IWYU pragma: export

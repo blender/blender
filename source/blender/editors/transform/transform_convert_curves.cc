@@ -184,10 +184,12 @@ static bool update_auto_handle_types(bke::CurvesGeometry &curves,
     return false;
   }
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  bke::SpanAttributeWriter handle_types = attributes.lookup_or_add_for_write_span<int8_t>(
-      handle_type_name, bke::AttrDomain::Point);
-  index_mask::masked_fill(handle_types.span, int8_t(BEZIER_HANDLE_ALIGN), convert_to_align);
-  handle_types.finish();
+  if (bke::SpanAttributeWriter handle_types = attributes.lookup_or_add_for_write_span<int8_t>(
+          handle_type_name, bke::AttrDomain::Point))
+  {
+    index_mask::masked_fill(handle_types.span, int8_t(BEZIER_HANDLE_ALIGN), convert_to_align);
+    handle_types.finish();
+  }
   return true;
 }
 
@@ -207,7 +209,7 @@ static bool update_vector_handle_types(bke::CurvesGeometry &curves,
     return false;
   }
 
-  bke::SpanAttributeWriter handle_types = attributes.lookup_or_add_for_write_span<int8_t>(
+  bke::SpanAttributeWriter handle_types = attributes.ensure_for_write_span<int8_t>(
       handle_type_name, bke::AttrDomain::Point);
   index_mask::masked_fill(handle_types.span, int8_t(BEZIER_HANDLE_FREE), selected_vector);
   handle_types.finish();
@@ -383,7 +385,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
     bke::SpanAttributeWriter<float> attribute_writer;
     if (t->mode == TFM_CURVE_SHRINKFATTEN) {
       bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-      attribute_writer = attributes.lookup_or_add_for_write_span<float>(
+      attribute_writer = attributes.ensure_for_write_span<float>(
           "radius",
           bke::AttrDomain::Point,
           bke::AttributeInitVArray(VArray<float>::from_single(0.01f, curves.points_num())));
@@ -391,8 +393,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
     }
     else if (t->mode == TFM_TILT) {
       bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-      attribute_writer = attributes.lookup_or_add_for_write_span<float>("tilt",
-                                                                        bke::AttrDomain::Point);
+      attribute_writer = attributes.ensure_for_write_span<float>("tilt", bke::AttrDomain::Point);
       value_attribute = attribute_writer.span;
     }
 

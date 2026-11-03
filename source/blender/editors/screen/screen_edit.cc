@@ -40,6 +40,7 @@
 
 #include "ED_clip.hh"
 #include "ED_node.hh"
+#include "ED_scene.hh"
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
 #include "ED_sequencer.hh"
@@ -1983,10 +1984,10 @@ void ED_screen_animation_timer(
     sad->view_layer = view_layer;
 
     sad->do_scene_syncing = ed::vse::is_scene_time_sync_needed(*C);
+    sad->use_seq_scenestrip_range = ed::vse::is_scene_frame_range_from_strip_needed(*C);
 
     sad->sfra = scene->r.cfra;
-    /* Make sure that were are inside the scene or preview frame range. */
-    BKE_scene_frame_clamp_for_playback(scene, enable > 0);
+    ED_scene_frame_clamp_for_playback(*C, scene, enable > 0);
     if (scene->r.cfra != sad->sfra) {
       sad->flag |= ANIMPLAY_FLAG_JUMPED;
     }

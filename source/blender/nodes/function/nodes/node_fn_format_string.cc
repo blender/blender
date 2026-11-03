@@ -175,7 +175,9 @@ static int64_t find_next_format_start_or_end(const StringRef format,
             continue;
           }
         }
-        r_error = fmt::format("{}: \"{}\"", TIP_("Unescaped '}' in format string"), format);
+        if (!r_error) {
+          r_error = fmt::format("{}: \"{}\"", TIP_("Unescaped '}' in format string"), format);
+        }
         return -1;
       }
       default: {

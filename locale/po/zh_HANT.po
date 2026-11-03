@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
 "PO-Revision-Date: 2026-10-23 06:12+0000\n"
 "Last-Translator: 游博凱 <augustus85918@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -26356,8 +26356,36 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
 msgid "Creative"
 msgstr "創意"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Kerning"
+msgstr "字間微調"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Names"
+msgstr "名稱"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Clean Up"
+msgstr "清理"
 
 
 msgid "Pivot Point"
@@ -26388,6 +26416,14 @@ msgid "Vertex Group Locks"
 msgstr "頂點群組鎖定"
 
 
+msgid "Math"
+msgstr "數學公式"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
 msgid "Mirror"
 msgstr "鏡像"
 
@@ -26400,12 +26436,24 @@ msgid "Local View"
 msgstr "區域檢視"
 
 
+msgid "Read"
+msgstr "讀取"
+
+
 msgid "Viewpoint"
 msgstr "視點"
 
 
+msgid "Sample"
+msgstr "取樣"
+
+
 msgid "Navigation"
 msgstr "導覽"
+
+
+msgid "Write"
+msgstr "寫入"
 
 
 msgid "Align View"
@@ -26416,20 +26464,16 @@ msgid "Align View to Active"
 msgstr "對齊檢視至作用項"
 
 
+msgid "Primitives"
+msgstr "原形"
+
+
 msgid "View Regions"
 msgstr "檢視範圍"
 
 
-msgid "Math"
-msgstr "數學公式"
-
-
 msgid "Select More/Less"
 msgstr "選取更多/更少"
-
-
-msgid "Utilities"
-msgstr "效用"
 
 
 msgid "Select Similar"
@@ -26448,38 +26492,6 @@ msgid "Select Loops"
 msgstr "選取迴圈"
 
 
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Assign Material"
-msgstr "指派材質"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Primitives"
-msgstr "原形"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Light Probe"
-msgstr "燈光採樣器"
-
-
 msgid "Gizmo"
 msgstr "操縱器"
 
@@ -26488,16 +26500,40 @@ msgid "Instances"
 msgstr "實例化"
 
 
+msgid "Assign Material"
+msgstr "指派材質"
+
+
+msgid "Import"
+msgstr "匯入"
+
+
+msgid "Deprecated"
+msgstr "已棄用"
+
+
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
+
+
+msgid "Light Probe"
+msgstr "燈光採樣器"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Add Image"
 msgstr "新增影像"
 
 
 msgid "Relations"
 msgstr "關係"
-
-
-msgid "Import"
-msgstr "匯入"
 
 
 msgid "Rigid Body"
@@ -26512,20 +26548,8 @@ msgid "Track"
 msgstr "追蹤"
 
 
-msgid "Deprecated"
-msgstr "已棄用"
-
-
 msgid "Quick Effects"
 msgstr "快速效果"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Clean Up"
-msgstr "清理"
 
 
 msgid "Asset"
@@ -26536,16 +26560,8 @@ msgid "Make Single User"
 msgstr "製作單一使用者"
 
 
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
 msgid "Convert"
 msgstr "轉換"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -26588,8 +26604,12 @@ msgid "Bone Collections"
 msgstr "骨骼集盒"
 
 
-msgid "Names"
-msgstr "名稱"
+msgid "Linked"
+msgstr "已連結"
+
+
+msgid "Layout"
+msgstr "配置"
 
 
 msgid "Toggle Bone Options"
@@ -26616,36 +26636,16 @@ msgid "Set Face Strength"
 msgstr "設定面強度"
 
 
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Linked"
-msgstr "已連結"
-
-
-msgid "Layout"
-msgstr "配置"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
 msgid "Adjust"
 msgstr "調整"
 
 
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
 msgid "Keying"
 msgstr "鍵處理"
+
+
+msgid "Merge"
+msgstr "合併"
 
 
 msgid "Tracking"
@@ -38181,11 +38181,6 @@ msgstr "載入並套用 Blender XML 主題檔案"
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "安裝主題..."
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "加入素材庫"
 
 
 msgid "Add or remove a white balance preset"
@@ -53823,6 +53818,11 @@ msgstr "要刪除的附加元件模組名稱"
 
 msgid "Remove existing template with the same ID"
 msgstr "移除具有相同 ID 的既有範本"
+
+
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "加入素材庫"
 
 
 msgctxt "Operator"
@@ -91622,10 +91622,6 @@ msgstr "藏庫路徑無法編輯，請使用「重新定位」操作"
 
 msgid "No active item to rename"
 msgstr "沒有作用中項目可重新命名"
-
-
-msgid "No selected data-blocks to copy"
-msgstr "沒有已選資料組塊可複製"
 
 
 msgid "Operation requires an active keying set"

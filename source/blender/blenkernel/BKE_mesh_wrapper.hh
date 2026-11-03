@@ -14,11 +14,11 @@
 
 namespace blender {
 
-struct BMEditMesh;
+struct EditMesh;
 struct CustomData_MeshMasks;
 struct Mesh;
 
-Mesh *BKE_mesh_wrapper_from_editmesh(std::shared_ptr<BMEditMesh> em,
+Mesh *BKE_mesh_wrapper_from_editmesh(std::shared_ptr<EditMesh> em,
                                      const CustomData_MeshMasks *cd_mask_extra,
                                      const Mesh *me_settings);
 void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh);

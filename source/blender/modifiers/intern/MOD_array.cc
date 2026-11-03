@@ -341,8 +341,7 @@ static void mesh_merge_transform(Mesh *result,
                                                                       bke::AttrDomain::Face))
   {
     bke::SpanAttributeWriter<int> result_material_indices =
-        result_attributes.lookup_or_add_for_write_span<int>("material_index",
-                                                            bke::AttrDomain::Face);
+        result_attributes.ensure_for_write_span<int>("material_index", bke::AttrDomain::Face);
     cap_material_indices.materialize(
         result_material_indices.span.slice(cap_faces_index, cap_nfaces));
     result_material_indices.finish();

@@ -1047,7 +1047,7 @@ static void restore_mask_from_undo_step(Object &object)
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       Mesh &mesh = *id_cast<Mesh *>(object.data);
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-      bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
+      bke::SpanAttributeWriter<float> mask = attributes.ensure_for_write_span<float>(
           ".sculpt_mask", bke::AttrDomain::Point);
       node_mask.foreach_index(
           [&](const int i) {

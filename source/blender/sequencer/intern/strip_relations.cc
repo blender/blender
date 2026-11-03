@@ -422,23 +422,6 @@ void relations_session_uid_generate(Strip *strip)
   strip->runtime->session_uid = BLI_session_uid_generate();
 }
 
-static bool get_uids_cb(Strip *strip, void *user_data)
-{
-  Set<SessionUID> &used_uids = *static_cast<Set<SessionUID> *>(user_data);
-  const SessionUID &session_uid = strip->runtime->session_uid;
-  if (!session_uid.is_generated()) {
-    printf("Sequence %s does not have UID generated.\n", strip->name);
-    return true;
-  }
-
-  if (used_uids.contains(session_uid)) {
-    printf("Sequence %s has duplicate UID generated.\n", strip->name);
-    return true;
-  }
-  used_uids.add(session_uid);
-  return true;
-}
-
 void relations_check_uids_unique_and_report(const Scene *scene)
 {
   if (scene->ed == nullptr) {
@@ -446,7 +429,20 @@ void relations_check_uids_unique_and_report(const Scene *scene)
   }
 
   Set<SessionUID> used_uids;
-  foreach_strip(&scene->ed->seqbase, get_uids_cb, &used_uids);
+  foreach_strip(&scene->ed->seqbase, [&](Strip *strip) {
+    const SessionUID &session_uid = strip->runtime->session_uid;
+    if (!session_uid.is_generated()) {
+      printf("Sequence %s does not have UID generated.\n", strip->name);
+      return true;
+    }
+
+    if (used_uids.contains(session_uid)) {
+      printf("Sequence %s has duplicate UID generated.\n", strip->name);
+      return true;
+    }
+    used_uids.add(session_uid);
+    return true;
+  });
 }
 
 bool exists_in_seqbase(const Strip *strip, const ListBaseT<Strip> *seqbase)

@@ -128,7 +128,8 @@ static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
     SpanAttributeWriter uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
         name, AttrDomain::Corner);
     if (!uv_map) {
-      /* Attribute lookup can fail because of name collisions with vertex groups. */
+      /* Attribute lookup can fail because of name collisions with vertex groups or
+       * attributes with the same name but a different domain/type. */
       continue;
     }
     ctx->uv_maps.append(std::move(uv_map));
@@ -585,7 +586,9 @@ static void create_attrs_and_retrieve_interp_spans(const AttributeAccessor src_a
     GSpanAttributeWriter dst = dst_attrs.lookup_or_add_for_write_only_span(
         iter.name, domain, iter.data_type);
     if (!dst) {
-      /* Attribute creation can fail with a vertex group name conflict. */
+      /* Attribute creation can fail with a vertex group name conflict or
+       * a conflict with an attribute with the same name but a different
+       * domain/type . */
       return;
     }
     coarse_varray_spans.append(std::move(src));

@@ -58,7 +58,7 @@ enum class ImBufFlags {
   Thumbnail = 1 << 16,
   /**
    * The image contains display window information.
-   * See #ImbBuf.display_size and other members for more information.
+   * See #ImBuf.display_size and other members for more information.
    */
   HasDisplayWindow = 1 << 17,
 

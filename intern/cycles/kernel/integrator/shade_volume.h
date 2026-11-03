@@ -2769,7 +2769,7 @@ volume_integrate_event(KernelGlobals kg,
       else {
         /* If the direct scattering event is not at the same distance as the indirect one, the
          * direct light event will contribute to the out-scattered contribution of the current path
-         * segment and not to the incomming radiance from the segment direction. We therefore need
+         * segment and not to the incoming radiance from the segment direction. We therefore need
          * to adjust the unlit_throughput to include the scattering at the previous path vertex.
          */
         float3 scatterEval = one_float3();

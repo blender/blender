@@ -81,6 +81,11 @@ struct GeoOperatorLog {
 };
 
 const GeoOperatorLog &node_group_operator_static_eval_log();
+/**
+ * Free the logged values, which have to be freed before the GPU back-end exits because logged
+ * geometry can store attribute values on the GPU.
+ */
+void node_group_operator_static_eval_log_free();
 
 MenuType node_group_operator_assets_menu();
 MenuType node_group_operator_assets_menu_unassigned();

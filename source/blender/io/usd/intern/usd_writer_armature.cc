@@ -53,7 +53,7 @@ static pxr::GfMatrix4d parent_relative_pose_mat(const bPoseChannel *pchan)
 
 /* Initialize the given skeleton and animation from
  * the given armature object. */
-static void initialize(const Object *obj,
+static void initialize(const Object &obj,
                        pxr::UsdSkelSkeleton &skel,
                        pxr::UsdSkelAnimation &skel_anim,
                        const Map<StringRef, const Bone *> *deform_bones,
@@ -67,31 +67,27 @@ static void initialize(const Object *obj,
   pxr::VtArray<pxr::GfMatrix4d> rest_xforms;
 
   /* Function to collect the bind and rest transforms from each bone. */
-  auto visitor = [&](const Bone *bone) {
-    if (!bone) {
-      return;
-    }
-
-    if (deform_bones && !deform_bones->contains(bone->name)) {
+  auto visitor = [&](const Bone &bone) {
+    if (deform_bones && !deform_bones->contains(bone.name)) {
       /* If deform_map is passed in, assume we're going deform-only.
        * Bones not found in the map should be skipped. */
       return;
     }
 
     /* Store Blender bone lengths to facilitate better round-tripping. */
-    bone_lengths.push_back(bone->length);
+    bone_lengths.push_back(bone.length);
 
     joints.push_back(build_usd_joint_path(bone, allow_unicode));
-    const pxr::GfMatrix4f arm_mat(bone->arm_mat);
+    const pxr::GfMatrix4f arm_mat(bone.arm_mat);
     bind_xforms.push_back(pxr::GfMatrix4d(arm_mat));
 
     /* Set the rest transform to the parent-relative pose matrix, or the parent-relative
      * armature matrix, if no pose channel exists. */
-    if (const bPoseChannel *pchan = BKE_pose_channel_find_name(obj->pose, bone->name)) {
+    if (const bPoseChannel *pchan = BKE_pose_channel_find_name(obj.pose, bone.name)) {
       rest_xforms.push_back(parent_relative_pose_mat(pchan));
     }
-    else if (bone->parent) {
-      pxr::GfMatrix4f parent_arm_mat(bone->parent->arm_mat);
+    else if (bone.parent) {
+      pxr::GfMatrix4f parent_arm_mat(bone.parent->arm_mat);
       const pxr::GfMatrix4f rest_mat = arm_mat * parent_arm_mat.GetInverse();
       rest_xforms.push_back(pxr::GfMatrix4d(rest_mat));
     }
@@ -118,7 +114,7 @@ static void initialize(const Object *obj,
   if (skel_anim) {
     usd_skel_api.CreateAnimationSourceRel().SetTargets(
         pxr::SdfPathVector({pxr::SdfPath(skel_anim.GetPath().GetName())}));
-    create_pose_joints(skel_anim, *obj, deform_bones, allow_unicode);
+    create_pose_joints(skel_anim, obj, deform_bones, allow_unicode);
   }
 }
 
@@ -126,18 +122,18 @@ namespace io::usd {
 
 /* Add skeleton transform samples from the armature pose channels. */
 static void add_anim_sample(pxr::UsdSkelAnimation &skel_anim,
-                            const Object *obj,
+                            const Object &obj,
                             const pxr::UsdTimeCode time,
                             const Map<StringRef, const Bone *> *deform_map,
                             pxr::UsdUtilsSparseValueWriter &value_writer)
 {
-  if (!(skel_anim && obj && obj->pose)) {
+  if (!(skel_anim && obj.pose)) {
     return;
   }
 
   pxr::VtArray<pxr::GfMatrix4d> xforms;
 
-  const bPose *pose = obj->pose;
+  const bPose *pose = obj.pose;
 
   for (const bPoseChannel &pchan : pose->chanbase) {
     if (deform_map && !deform_map->contains(pchan.name)) {
@@ -208,13 +204,13 @@ void USDArmatureWriter::do_write(HierarchyContext &context)
                                                  nullptr;
 
   if (!this->frame_has_been_written_) {
-    init_deform_bones_map(context.object, deform_map);
-    initialize(context.object, skel, skel_anim, deform_map, allow_unicode);
+    init_deform_bones_map(*context.object, deform_map);
+    initialize(*context.object, skel, skel_anim, deform_map, allow_unicode);
   }
 
   if (usd_export_context_.export_params.export_animation) {
     add_anim_sample(
-        skel_anim, context.object, get_export_time_code(), deform_map, usd_value_writer_);
+        skel_anim, *context.object, get_export_time_code(), deform_map, usd_value_writer_);
   }
 }
 

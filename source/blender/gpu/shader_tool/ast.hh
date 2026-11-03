@@ -34,6 +34,7 @@ enum class NodeType : char {
   IdQualified,
   IdType,
   Const,
+  Constexpr,
   Pointer,
   Reference,
   AssignStmt,
@@ -619,6 +620,10 @@ struct Const : Node {
   NODE_COMMON(Const);
 };
 
+struct Constexpr : Node {
+  NODE_COMMON(Constexpr);
+};
+
 struct Reference : Node {
   NODE_COMMON(Reference);
 };
@@ -682,7 +687,10 @@ struct IdType : Node {
     return constant().is_valid();
   }
 
-  bool is_constexpr() const;
+  bool is_constexpr() const
+  {
+    return constant_expr().is_valid();
+  }
 
   bool is_static() const
   {
@@ -692,6 +700,11 @@ struct IdType : Node {
   Const constant() const
   {
     return child_first(NodeType::Const);
+  }
+
+  Constexpr constant_expr() const
+  {
+    return child_first(NodeType::Constexpr);
   }
 
   IdQualified identifier() const

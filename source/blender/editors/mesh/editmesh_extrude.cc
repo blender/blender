@@ -355,7 +355,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
  * \{ */
 
 /** Implement generic externally called extrude function. */
-static bool edbm_extrude_mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
+static bool edbm_extrude_mesh(Object *obedit, EditMesh *em, wmOperator *op)
 {
   BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
 
@@ -432,7 +432,7 @@ static wmOperatorStatus edbm_extrude_region_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    EditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
     if (bm->totvertsel == 0) {
       continue;
@@ -490,7 +490,7 @@ static wmOperatorStatus edbm_extrude_context_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    EditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
     if (bm->totvertsel == 0) {
       continue;

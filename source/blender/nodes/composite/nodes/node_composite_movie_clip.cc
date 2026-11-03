@@ -79,7 +79,7 @@ class MovieClipOperation : public NodeOperation {
     const float2 pixel_size = this->context().get_compositing_domain().pixel_size;
     compute_image(movie_clip_buffer, pixel_size);
     compute_alpha(movie_clip_buffer, pixel_size);
-    compute_stabilization_data(movie_clip_buffer, pixel_size);
+    compute_stabilization_data(movie_clip_buffer);
 
     IMB_freeImBuf(movie_clip_buffer);
   }
@@ -154,7 +154,7 @@ class MovieClipOperation : public NodeOperation {
     result.domain().pixel_size = pixel_size;
   }
 
-  void compute_stabilization_data(ImBuf *movie_clip_buffer, const float2 &pixel_size)
+  void compute_stabilization_data(ImBuf *movie_clip_buffer)
   {
     /* The movie clip buffer is invalid or missing, set appropriate fallback values. */
     if (!movie_clip_buffer) {
@@ -197,12 +197,12 @@ class MovieClipOperation : public NodeOperation {
     Result &x_offset_result = this->get_result("Offset X");
     if (x_offset_result.should_compute()) {
       x_offset_result.allocate_single_value();
-      x_offset_result.set_single_value(offset.x * pixel_size.x);
+      x_offset_result.set_single_value(offset.x);
     }
     Result &y_offset_result = this->get_result("Offset Y");
     if (y_offset_result.should_compute()) {
       y_offset_result.allocate_single_value();
-      y_offset_result.set_single_value(offset.y * pixel_size.y);
+      y_offset_result.set_single_value(offset.y);
     }
     Result &scale_result = this->get_result("Scale");
     if (scale_result.should_compute()) {

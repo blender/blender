@@ -23,7 +23,7 @@ static void extract_paint_overlay_flags(const MeshRenderData &mr, MutableSpan<in
     selection = mr.select_vert;
   }
   const Span<bool> hide_poly = mr.hide_poly;
-  const Span<int> orig_indices = mr.edit_bmesh && mr.orig_index_vert ?
+  const Span<int> orig_indices = mr.edit_mesh && mr.orig_index_vert ?
                                      Span(mr.orig_index_vert, mr.verts_num) :
                                      Span<int>();
   if (selection.is_empty() && hide_poly.is_empty() && orig_indices.is_empty()) {

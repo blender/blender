@@ -78,8 +78,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   fn::FieldEvaluator evaluator{context, count};
   evaluator.add_with_destination(position_field, points->positions_for_write());
   if (radius_field.depends_on_input()) {
-    AttributeWriter<float> output_radii = attributes.lookup_or_add_for_write<float>(
-        "radius", AttrDomain::Point);
+    AttributeWriter<float> output_radii = attributes.ensure_for_write<float>("radius",
+                                                                             AttrDomain::Point);
     evaluator.add_with_destination(radius_field, output_radii.varray);
     evaluator.evaluate();
     output_radii.finish();

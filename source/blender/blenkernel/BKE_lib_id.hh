@@ -91,6 +91,13 @@ struct ID_Runtime {
    * freed and the pointer set to `nullptr`.
    */
   ID_Readfile_Data *readfile_data = nullptr;
+
+  /**
+   * #Main data-base containing this ID. Each ID can be in at most one #Main at the same time.
+   * - This is null for e.g. evaluated data.
+   * - For embedded data-blocks, this is kept in sync with the owner ID.
+   */
+  Main *owner_bmain = nullptr;
 };
 
 }  // namespace bke::id
@@ -106,7 +113,7 @@ size_t BKE_libblock_get_alloc_info(short type, const char **r_name);
  * \note: Typically, caller also needs to immediately call #BKE_libblock_runtime_ensure on the
  * allocated ID data.
  */
-ID *BKE_libblock_alloc_notest(short type) ATTR_WARN_UNUSED_RESULT;
+ID *BKE_libblock_alloc_notest(short type) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 /**
  * Allocates and returns an ID block of the specified type, with the specified name
  * (adjusted as necessary to ensure uniqueness), and appended to the specified list.
@@ -144,6 +151,12 @@ void BKE_libblock_init_empty(ID *id) ATTR_NONNULL(1);
  * assumed valid.
  */
 void BKE_libblock_runtime_ensure(ID &id);
+
+/**
+ * Set the #Main currently containing this ID, or null if it is not in any Main. Must be called
+ * whenever an ID is added to, removed from, or moved between Mains.
+ */
+void BKE_libblock_owner_bmain_set(ID &id, Main *bmain, bool assert_contained = true);
 
 /**
  * Reset the runtime counters used by ID remapping.
@@ -714,6 +727,22 @@ void id_fake_user_set(ID *id);
 void id_fake_user_clear(ID *id);
 void BKE_id_newptr_and_tag_clear(ID *id);
 
+namespace bke::id {
+
+/**
+ * Safely/sanely set the library of an ID.
+ *
+ * Currently, it mostly ensures that its embedded IDs, if any, are in sync.
+ *
+ * \note: It _does not_ handle shapekeys. Even though these behave almost as embedded data, they
+ * are still registered in the Main database, and the various ID maps, which makes changing their
+ * libraries having various potential side-effects. Caller is responsible to ensure that the
+ * relevant shapekeys libraries are properly updated.
+ */
+void id_lib_set(ID &id, Library *lib);
+
+}  // namespace bke::id
+
 /** Flags to control make local code behavior. */
 enum {
   /**
@@ -1015,7 +1044,7 @@ inline char *BKE_id_name(ID &id)
  *
  * \return A unique allocated string key for any ID in the whole Main database.
  */
-char *BKE_id_to_unique_string_key(const ID *id);
+[[nodiscard]] char *BKE_id_to_unique_string_key(const ID *id) ATTR_MALLOC;
 
 /**
  * Make linked data-blocks local.
@@ -1041,11 +1070,6 @@ void BKE_id_tag_clear_atomic(ID *id, int tag);
 
 /** Check that given ID pointer actually is in given `bmain`. */
 bool BKE_id_is_in_main(Main *bmain, ID *id);
-/**
- * Check that given ID pointer actually is in G_MAIN.
- * Main intended use is for debug asserts in places we cannot easily get rid of #G_MAIN.
- */
-bool BKE_id_is_in_global_main(ID *id);
 
 bool BKE_id_can_be_asset(const ID *id);
 

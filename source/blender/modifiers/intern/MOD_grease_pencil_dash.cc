@@ -236,15 +236,15 @@ static bke::CurvesGeometry create_dashes(const PatternInfo &pattern_info,
 
   bke::CurvesGeometry dst_curves(dst_point_num, dst_curve_num);
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
-  bke::SpanAttributeWriter<bool> dst_cyclic = dst_attributes.lookup_or_add_for_write_span<bool>(
+  bke::SpanAttributeWriter<bool> dst_cyclic = dst_attributes.ensure_for_write_span<bool>(
       "cyclic", bke::AttrDomain::Curve);
-  bke::SpanAttributeWriter<int> dst_fill_ids = dst_attributes.lookup_or_add_for_write_span<int>(
+  bke::SpanAttributeWriter<int> dst_fill_ids = dst_attributes.ensure_for_write_span<int>(
       "fill_id", bke::AttrDomain::Curve);
-  bke::SpanAttributeWriter<int> dst_material = dst_attributes.lookup_or_add_for_write_span<int>(
+  bke::SpanAttributeWriter<int> dst_material = dst_attributes.ensure_for_write_span<int>(
       "material_index", bke::AttrDomain::Curve);
-  bke::SpanAttributeWriter<float> dst_radius = dst_attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> dst_radius = dst_attributes.ensure_for_write_span<float>(
       "radius", bke::AttrDomain::Point);
-  bke::SpanAttributeWriter<float> dst_opacity = dst_attributes.lookup_or_add_for_write_span<float>(
+  bke::SpanAttributeWriter<float> dst_opacity = dst_attributes.ensure_for_write_span<float>(
       "opacity", bke::AttrDomain::Point);
   /* Map each destination point and curve to its source. */
   Array<int> src_point_indices(dst_point_num);

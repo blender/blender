@@ -93,23 +93,6 @@ static void do_version_merge_layers_options_to_inputs(bNodeTree &ntree, bNode &n
   socket.default_value_typed<bNodeSocketValueMenu>()->value = storage.mode;
 }
 
-static void compositing_node_group_to_effect(Main &main, Scene &scene)
-{
-  bNodeTree *node_group = version_get_scene_compositor_node_tree(&main, &scene);
-  if (!node_group) {
-    return;
-  }
-
-  SceneCompositorEffect &effect = bke::compositor::new_effect(scene, "Scene Effect");
-  effect.node_group = node_group;
-  if (!node_group->compositor_node_asset_traits) {
-    node_group->compositor_node_asset_traits = MEM_new<CompositorNodeAssetTraits>(__func__);
-  }
-  node_group->compositor_node_asset_traits->flag |= COMPOSIT_NODE_ASSET_SCENE_EFFECT;
-  bke::node_update_asset_metadata(*node_group);
-  scene.compositing_node_group = nullptr;
-}
-
 static float version_503_camera_view_viewfac(const int sensor_fit,
                                              const int winx,
                                              const int winy,
@@ -261,7 +244,10 @@ void do_versions_after_linking_503(FileData * /*fd*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 15)) {
     for (Scene &scene : bmain->scenes) {
-      compositing_node_group_to_effect(*bmain, scene);
+      if (scene.compositing_node_group) {
+        version_compositing_node_group_to_effect(scene, *scene.compositing_node_group);
+        scene.compositing_node_group = nullptr;
+      }
     }
   }
   else {

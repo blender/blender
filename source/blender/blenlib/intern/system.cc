@@ -189,6 +189,44 @@ int BLI_cpu_support_sse42()
   return 0;
 }
 
+int BLI_cpu_support_avx2()
+{
+/* For reference, also see system_cpu_capabilities_init in Cycles. */
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+  int result[4], num;
+  __cpuid(result, 0);
+  num = result[0];
+
+  if (num >= 1) {
+    __cpuid(result, 0x00000001);
+    const bool os_uses_xsave = (result[2] & (1 << 27)) != 0;
+    const bool cpu_avx = (result[2] & (1 << 28)) != 0;
+    if (os_uses_xsave && cpu_avx) {
+      unsigned int xcr_feature_mask;
+#  if defined(_WIN32)
+      xcr_feature_mask = unsigned(_xgetbv(0));
+#  elif defined(__GNUC__) || defined(__clang__)
+      int edx;
+      __asm__(".byte 0x0f, 0x01, 0xd0" : "=a"(xcr_feature_mask), "=d"(edx) : "c"(0));
+#  else
+      xcr_feature_mask = 0;
+#  endif
+      if ((xcr_feature_mask & 0x6) == 0x6 && num >= 7) {
+#  if defined(_WIN32)
+        __cpuidex(result, 7, 0);
+#  else
+        __asm__("cpuid"
+                : "=a"(result[0]), "=b"(result[1]), "=c"(result[2]), "=d"(result[3])
+                : "a"(7), "c"(0));
+#  endif
+        return (result[1] & (1 << 5)) != 0;
+      }
+    }
+  }
+#endif
+  return 0;
+}
+
 void BLI_hostname_get(MutableCStr buffer)
 {
 #ifndef WIN32

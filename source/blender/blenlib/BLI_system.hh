@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 
+#include "BLI_compiler_attrs.hh"
 #include "BLI_span.hh"
 
 namespace blender {
@@ -16,6 +17,7 @@ namespace blender {
 
 int BLI_cpu_support_sse2();
 int BLI_cpu_support_sse42();
+int BLI_cpu_support_avx2();
 /**
  * Write a backtrace into a file for systems which support it.
  */
@@ -23,7 +25,7 @@ void BLI_system_backtrace_with_os_info(FILE *fp, const void *os_info);
 void BLI_system_backtrace(FILE *fp);
 
 /** Get CPU brand, result is to be MEM_delete()-ed. */
-char *BLI_cpu_brand_string();
+char *BLI_cpu_brand_string() ATTR_MALLOC;
 
 /**
  * Obtain the hostname from the system.

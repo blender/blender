@@ -402,8 +402,6 @@ class DeferredLayer : DeferredLayerBase {
   bool use_raytracing_ = false;
   bool use_screen_transmission_ = false;
   bool use_screen_reflection_ = false;
-  bool use_clamp_direct_ = false;
-  bool use_clamp_indirect_ = false;
 
  public:
   DeferredLayer(Instance &inst) : DeferredLayerBase(inst), inst_(inst)
@@ -437,6 +435,9 @@ class DeferredLayer : DeferredLayerBase {
 
   /* Do we compute indirect lighting inside the light eval pass. */
   static bool do_merge_direct_indirect_eval(const Instance &inst);
+  /* Do the clamp or light intensity settings change the radiance in the combine pass.
+   * If so, the radiance cannot be fed back to the next layer as-is. */
+  static bool do_modify_radiance(const Instance &inst);
   /* Is the radiance split for the lighting pass. */
   static bool do_split_direct_indirect_radiance(const Instance &inst);
 
@@ -796,6 +797,19 @@ class UtilityTexture : public Texture {
       memcpy(layer.data, lut::ltc_mat_ggx, sizeof(layer));
     }
     {
+      Layer &layer = data[UTIL_OREN_NAYAR_LAYER];
+      for (auto x : IndexRange(lut_size)) {
+        for (auto y : IndexRange(lut_size)) {
+          layer.data[y][x][0] = lut::oren_nayar[y][x][0];
+          layer.data[y][x][1] = lut::oren_nayar[y][x][1];
+        }
+      }
+    }
+    {
+      Layer &layer = data[UTIL_LTC_MAT_OREN_NAYAR_LAYER];
+      memcpy(layer.data, lut::ltc_mat_oren_nayar, sizeof(layer));
+    }
+    {
       Layer &layer = data[UTIL_BRDF_LAYER];
       for (auto x : IndexRange(lut_size)) {
         for (auto y : IndexRange(lut_size)) {
@@ -807,7 +821,7 @@ class UtilityTexture : public Texture {
       }
     }
     {
-      for (auto layer_id : IndexRange(16)) {
+      for (auto layer_id : IndexRange(UTIL_BSDF_LAYER_COUNT)) {
         Layer &layer = data[UTIL_BSDF_LAYER + layer_id];
         for (auto x : IndexRange(lut_size)) {
           for (auto y : IndexRange(lut_size)) {

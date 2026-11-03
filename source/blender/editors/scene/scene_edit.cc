@@ -10,6 +10,7 @@
 #include <cstring>
 
 #include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_string_utf8.hh"
 
 #include "DNA_sequence_types.h"
@@ -31,6 +32,7 @@
 #include "ED_render.hh"
 #include "ED_scene.hh"
 #include "ED_screen.hh"
+#include "ED_sequencer.hh"
 #include "ED_util.hh"
 
 #include "SEQ_relations.hh"
@@ -602,6 +604,46 @@ void ED_operatortypes_scene()
   WM_operatortype_append(SCENE_OT_new_sequencer_scene);
 
   WM_operatortype_append(SCENE_OT_drop_scene_asset);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Effective Playback Range
+ * \{ */
+
+ScenePlaybackRange ED_scene_get_effective_playback_range(const bContext &C, const Scene *scene)
+{
+  if (scene->r.flag & SCER_PRV_RANGE) {
+    return {scene->r.psfra, scene->r.pefra};
+  }
+
+  if (ed::vse::is_scene_frame_range_from_strip_needed(C)) {
+    if (const std::optional<ScenePlaybackRange> range = ed::vse::get_scene_strip_frame_range(C)) {
+      return *range;
+    }
+  }
+  return BKE_scene_get_playback_range(scene);
+}
+
+void ED_scene_frame_clamp_for_playback(const bContext &C,
+                                       Scene *scene,
+                                       const bool is_playing_forward)
+{
+  const ScenePlaybackRange range = ED_scene_get_effective_playback_range(C, scene);
+  if (is_playing_forward) {
+    if (scene->r.cfra > range.end_frame) {
+      scene->r.cfra = range.start_frame;
+    }
+  }
+  else {
+    if (scene->r.cfra < range.start_frame) {
+      scene->r.cfra = range.end_frame;
+    }
+  }
+  if (!(scene->r.flag & SCER_ALLOW_PREROLL)) {
+    scene->r.cfra = clamp_i(scene->r.cfra, range.start_frame, range.end_frame);
+  }
 }
 
 /** \} */

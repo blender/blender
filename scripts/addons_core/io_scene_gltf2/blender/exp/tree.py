@@ -21,7 +21,7 @@ def _natural_sort_key(name):
     Splits name into text/number chunks so that numeric parts sort numerically.
     E.g. Object2 < Object10, matching the Outliner's display order.
     """
-    return [int(c) if c.isdigit() else c.lower() for c in re.split(r'(\d+)', name)]
+    return [int(c) if c.isdecimal() else c.lower() for c in re.split(r'(\d+)', name)]
 
 
 def _sort_by_name(iterable):
@@ -485,7 +485,8 @@ class VExportTree:
                         node.matrix_world,
                         new_delta or delta,
                         blender_children,
-                        is_collection=True)
+                        is_collection=True,
+                        is_children_in_collection=True)
 
         if is_collection is True:  # Only for gltf_hierarchy_full_collections == True or hierarchy of instanced collections
             # Manage children objects
@@ -832,6 +833,8 @@ class VExportTree:
 
         if self.nodes[uuid].blender_type == VExportNode.COLLECTION:
             # Collections, can't be filtered => we always keep them
+            # When using visibility (for example), all objects inside the collection will inherit the visibility from the collection
+            # So the collection will be empty, and filtered at the end of process
             return
 
         # Selection and visibility (the eye in outliner) are stored on object level.

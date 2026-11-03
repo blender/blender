@@ -117,6 +117,11 @@ static void filelist_readjob_update(void *flrjv)
     filelist_clear_ex(flrj->filelist, false, true, false);
 
     flrj->filelist->flags |= (FL_NEED_SORTING | FL_NEED_FILTERING);
+
+    /* The job tagged these entries with the glob it started with. */
+    if (!STREQ(flrj->tmp_filelist->filter_glob, flrj->filelist->filter_glob)) {
+      flrj->filelist->flags |= FL_NEED_RESET_GLOB;
+    }
   }
 
   /* if no new_entries_num, this is NOP */

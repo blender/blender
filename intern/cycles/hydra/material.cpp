@@ -606,7 +606,7 @@ unique_ptr<ShaderGraph> HdCyclesMaterial::BuildShaderGraph(HdMaterialNetworkSche
   }
 
   /* Return no graph if nothing got successfully linked due unsupported nodes,
-   * avoids the surface becoming transparennt then. */
+   * avoids the surface becoming transparent then. */
   bool any_output_linked = false;
   for (ShaderInput *input : graph->output()->inputs) {
     any_output_linked |= input->link != nullptr;

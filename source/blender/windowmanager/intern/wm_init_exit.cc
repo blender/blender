@@ -92,6 +92,7 @@
 
 #include "ED_anim_api.hh"
 #include "ED_asset.hh"
+#include "ED_geometry.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_image.hh"
@@ -210,28 +211,6 @@ static void sound_jack_sync_callback(Main *bmain, int mode, double time)
     BKE_sound_jack_scene_update(scene_eval, mode, time);
   }
 }
-
-/* Reset the per-frame tracking of on-demand GPU pipeline compilation. Registered after Python is
- * started so it runs after the `frame_change_post` Python handlers, letting a poll of
- * `bpy.app.is_job_running("SHADER_COMPILATION")` reflect the pipelines compiled during a frame. */
-static void wm_frame_change_post_gpu_callback(Main * /*bmain*/,
-                                              PointerRNA ** /*pointers*/,
-                                              const int /*pointers_num*/,
-                                              void * /*arg*/)
-{
-  if (GPU_is_init()) {
-    GPU_shader_compiler_reset_frame_pipeline_tracking();
-  }
-}
-
-static bCallbackFuncStore wm_frame_change_post_gpu_callback_funcstore = {
-    /*next*/ nullptr,
-    /*prev*/ nullptr,
-    /*func*/ wm_frame_change_post_gpu_callback,
-    /*arg*/ nullptr,
-    /*alloc*/ 0,
-};
-static bool wm_frame_change_post_gpu_callback_registered = false;
 
 void WM_init(bContext *C, int argc, const char **argv)
 {
@@ -372,10 +351,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 #else
   UNUSED_VARS(argc, argv);
 #endif
-
-  /* Registered after Python so it runs after the `frame_change_post` Python handlers. */
-  BKE_callback_add(&wm_frame_change_post_gpu_callback_funcstore, BKE_CB_EVT_FRAME_CHANGE_POST);
-  wm_frame_change_post_gpu_callback_registered = true;
 
   if (!G.background) {
     GHOST_ISystem *ghost_system = GHOST_ISystem::getSystem();
@@ -557,12 +532,6 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
     BKE_callback_exec_boolean(CTX_data_main(C), do_user_exit_actions, BKE_CB_EVT_EXIT_PRE);
   }
 
-  if (wm_frame_change_post_gpu_callback_registered) {
-    BKE_callback_remove(&wm_frame_change_post_gpu_callback_funcstore,
-                        BKE_CB_EVT_FRAME_CHANGE_POST);
-    wm_frame_change_post_gpu_callback_registered = false;
-  }
-
   /* First wrap up running stuff, we assume only the active WM is running. */
   /* Modal handlers are on window level freed, others too? */
   /* NOTE: same code copied in `wm_files.cc`. */
@@ -682,6 +651,8 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   BKE_mask_clipboard_free();
   BKE_vfont_clipboard_free();
   ed::greasepencil::clipboard_free();
+  ed::greasepencil::keyframe_clipboard_free();
+  ed::geometry::node_group_operator_static_eval_log_free();
   UV_clipboard_free();
   wm_clipboard_free();
 

@@ -36,19 +36,19 @@ namespace blender::compositor {
  * Keying Screen Key.
  */
 
-KeyingScreenKey::KeyingScreenKey(int frame, float smoothness)
-    : frame(frame), smoothness(smoothness)
+KeyingScreenKey::KeyingScreenKey(const int frame, const float smoothness, const float2 pixel_size)
+    : frame(frame), smoothness(smoothness), pixel_size(pixel_size)
 {
 }
 
 uint64_t KeyingScreenKey::hash() const
 {
-  return get_default_hash(frame, smoothness);
+  return get_default_hash(frame, smoothness, pixel_size);
 }
 
 bool operator==(const KeyingScreenKey &a, const KeyingScreenKey &b)
 {
-  return a.frame == b.frame && a.smoothness == b.smoothness;
+  return a.frame == b.frame && a.smoothness == b.smoothness && a.pixel_size == b.pixel_size;
 }
 
 /* --------------------------------------------------------------------
@@ -128,7 +128,8 @@ static MovieClipUser get_movie_clip_user(Context &context, MovieClip *movie_clip
 KeyingScreen::KeyingScreen(Context &context,
                            MovieClip *movie_clip,
                            MovieTrackingObject *movie_tracking_object,
-                           const float smoothness)
+                           const float smoothness,
+                           const float2 pixel_size)
     : result(context.create_result(ResultType::Color))
 {
   int2 size;
@@ -144,7 +145,9 @@ KeyingScreen::KeyingScreen(Context &context,
     return;
   }
 
-  this->result.allocate_texture(Domain(size), false);
+  Domain domain = Domain(int2(float2(size) * pixel_size));
+  domain.pixel_size = pixel_size;
+  this->result.allocate_texture(domain, false);
   if (context.use_gpu()) {
     this->compute_gpu(context, smoothness, marker_positions, marker_colors);
   }
@@ -260,9 +263,10 @@ void KeyingScreenContainer::reset()
 Result &KeyingScreenContainer::get(Context &context,
                                    MovieClip *movie_clip,
                                    MovieTrackingObject *movie_tracking_object,
-                                   float smoothness)
+                                   const float smoothness,
+                                   const float2 pixel_size)
 {
-  const KeyingScreenKey key(context.get_frame_number(), smoothness);
+  const KeyingScreenKey key(context.get_frame_number(), smoothness, pixel_size);
 
   /* We concatenate the movie clip ID name with the tracking object name to cache multiple tracking
    * objects per movie clip. */
@@ -279,7 +283,8 @@ Result &KeyingScreenContainer::get(Context &context,
   }
 
   auto &keying_screen = *cached_keying_screens_for_id.lookup_or_add_cb(key, [&]() {
-    return std::make_unique<KeyingScreen>(context, movie_clip, movie_tracking_object, smoothness);
+    return std::make_unique<KeyingScreen>(
+        context, movie_clip, movie_tracking_object, smoothness, pixel_size);
   });
 
   /* Store the current update count to later compare to and check if the movie clip changed. */

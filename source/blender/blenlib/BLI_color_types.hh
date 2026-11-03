@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <type_traits>
 
+#include "BLI_structure_of_array.hh"
 #include "BLI_unique_hash.hh"
 #include "BLI_utildefines.hh"
 
@@ -208,6 +209,18 @@ class ColorTheme4 final : public ColorRGBA<ChannelStorageType, eSpace::Theme, eA
   {
   }
 };
+
+/* For compatibility with BLI_structure_of_array.hh tooling. */
+template<typename T>
+  requires(requires(const T &t) {
+            []<typename C, eSpace S, eAlpha A>(const ColorRGBA<C, S, A> &) {}(t);
+          })
+constexpr size_t soa_component_num<T> = 4;
+template<size_t I, typename T, eSpace Space, eAlpha Alpha>
+constexpr const T &fetch_soa_component(const ColorRGBA<T, Space, Alpha> &color)
+{
+  return color[I];
+}
 
 using ColorTheme4b = ColorTheme4<uint8_t>;
 using ColorTheme4f = ColorTheme4<float>;

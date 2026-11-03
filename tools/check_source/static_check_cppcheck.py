@@ -400,7 +400,7 @@ def argparse_create() -> argparse.ArgumentParser:
         help=(
             "Specify the directory where CPPCHECK logs will be written to.\n"
             "Using this may be preferred so the build directory can be cleared\n"
-            "without loosing the result of previous checks.\n"
+            "without losing the result of previous checks.\n"
             "\n"
             "Defaults to {BUILD_DIR}/cppcheck/"
         ),

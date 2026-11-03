@@ -469,6 +469,10 @@ void PathTraceWorkGPU::enqueue_reset()
   if (integrator_queue_counter_.host_pointer) {
     memset(integrator_queue_counter_.data(), 0, integrator_queue_counter_.memory_size());
   }
+
+  /* No active paths, reset to zero to avoid unnecessary work and exceeding
+   * new max number of paths if it changed. */
+  max_active_main_path_index_ = 0;
 }
 
 bool PathTraceWorkGPU::enqueue_path_iteration()

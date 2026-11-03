@@ -36,6 +36,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
+      .is_default_link_socket()
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Value"_ustr)
       .subtype(PROP_FACTOR)

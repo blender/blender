@@ -1381,7 +1381,9 @@ static void version_switch_node_input_prefix(Main *bmain)
             /* Replace "A" and "B", but keep the unique number suffix at the end. */
             char number_suffix[8];
             STRNCPY_UTF8(number_suffix, socket.identifier + 1);
-            BLI_string_join(socket.identifier, socket.name, number_suffix);
+            char identifier[sizeof(socket.identifier)];
+            BLI_string_join(identifier, socket.name, number_suffix);
+            version_node_socket_identifier_set(socket, identifier);
           }
         }
       }

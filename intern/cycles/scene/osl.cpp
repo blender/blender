@@ -133,6 +133,90 @@ void OSLManager::device_update_pre(Device * /*device*/, Scene *scene)
   }
 }
 
+/* Thread infos reused for optimizing multiple groups. Each thread info that
+ * JITs creates a memory manager that OSL keeps as long as the shading system
+ * exists. This only reduces the problem and does not solve it for repeated
+ * compilation, and OSL's own optimize_all_groups() has the same problem. */
+class OSLThreadInfoPool {
+ public:
+  ~OSLThreadInfoPool()
+  {
+    for (const auto &[ss, thread_info] : thread_infos_) {
+      ss->destroy_thread_info(thread_info);
+    }
+  }
+
+  OSL::PerThreadInfo *acquire(OSL::ShadingSystem *ss)
+  {
+    const thread_scoped_lock lock(mutex_);
+    for (auto it = thread_infos_.begin(); it != thread_infos_.end(); ++it) {
+      if (it->first == ss) {
+        OSL::PerThreadInfo *thread_info = it->second;
+        thread_infos_.erase(it);
+        return thread_info;
+      }
+    }
+    return ss->create_thread_info();
+  }
+
+  void release(OSL::ShadingSystem *ss, OSL::PerThreadInfo *thread_info)
+  {
+    const thread_scoped_lock lock(mutex_);
+    thread_infos_.emplace_back(ss, thread_info);
+  }
+
+ private:
+  thread_mutex mutex_;
+  vector<std::pair<OSL::ShadingSystem *, OSL::PerThreadInfo *>> thread_infos_;
+};
+
+static void optimize_group(OSLThreadInfoPool &thread_infos,
+                           OSL::ShadingSystem *ss,
+                           ImageManager *image_manager,
+                           OSL::ShaderGroup *group)
+{
+  /* Shading context for this group only, as it can't be shared between threads. It
+   * identifies the image manager in #OSLRenderServices::get_texture_handle(). */
+  OSLRenderServices *services = static_cast<OSLRenderServices *>(ss->renderer());
+  OSL::PerThreadInfo *thread_info = thread_infos.acquire(ss);
+  OSL::ShadingContext *context = ss->get_context(thread_info);
+  services->image_manager_add(context, image_manager);
+
+  ss->optimize_group(group, context, true);
+
+  services->image_manager_remove(context);
+  ss->release_context(context);
+  thread_infos.release(ss, thread_info);
+}
+
+static void optimize_group(TaskPool &pool,
+                           OSLThreadInfoPool &thread_infos,
+                           OSL::ShadingSystem *ss,
+                           ImageManager *image_manager,
+                           const OSL::ShaderGroupRef &group_ref)
+{
+  if (!group_ref) {
+    return;
+  }
+
+  /* Workaround #156348: depending on the system-wide `libgcc` version, EH frames
+   * registered and de-registered during OSL JIT might leave the process in a bad state.
+   * There is a bug report about it in the gcc:
+   * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119151
+   *
+   * Note that it is the runtime libgcc version that matters, as it is linked dynamically.
+   */
+  OSL::ShaderGroup *group = group_ref.get();
+#  if defined(_WIN32) || defined(__APPLE__)
+  pool.push([&thread_infos, ss, image_manager, group]() {
+    optimize_group(thread_infos, ss, image_manager, group);
+  });
+#  else
+  optimize_group(thread_infos, ss, image_manager, group);
+  (void)pool;
+#  endif
+}
+
 void OSLManager::device_update_post(Device *device,
                                     Scene *scene,
                                     Progress &progress,
@@ -229,27 +313,33 @@ void OSLManager::device_update_post(Device *device,
      */
     const thread_scoped_lock lock(ss_shared_mutex);
 
-    /* Set current image manager during the lock, so that there is no conflict with other shader
-     * manager instances.
+    /* Only optimize the groups of this scene, with its own image manager for texture handles.
+     * The shading system is shared with other sessions, which optimize their own groups.
      *
-     * It is used in "OSLRenderServices::get_texture_handle" called during optimization below to
-     * load images for the GPU. */
-    OSLRenderServices::image_manager = scene->image_manager.get();
+     * Isolate to avoid running tasks that wait for the lock held by this thread. */
+    ImageManager *image_manager = scene->image_manager.get();
+    isolate_task([&]() {
+      OSLThreadInfoPool thread_infos;
+      TaskPool pool;
 
-    foreach_shading_system([](OSL::ShadingSystem *ss) {
-    /* Workaround #156348: depending on the system-wide `libgcc` version, EH frames registered and
-     * de-registered during OSL JIT might leave the process in a bad state. There is a bug report
-     * about it in the gcc: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119151
-     *
-     * Note that it is the runtime libgcc version that matters, as it is linked dynamically. */
-#  if defined(_WIN32) || defined(__APPLE__)
-      ss->optimize_all_groups();
-#  else
-      ss->optimize_all_groups(1);
-#  endif
+      foreach_osl_device(device, [&](Device *sub_device, OSLGlobals *og) {
+        const auto ss_it = ss_map.find(sub_device->info.type);
+        if (ss_it == ss_map.end()) {
+          return;
+        }
+        OSL::ShadingSystem *ss = ss_it->second.get();
+        for (const vector<OSL::ShaderGroupRef> *states :
+             {&og->surface_state, &og->volume_state, &og->displacement_state, &og->bump_state})
+        {
+          for (const OSL::ShaderGroupRef &group_ref : *states) {
+            optimize_group(pool, thread_infos, ss, image_manager, group_ref);
+          }
+        }
+        optimize_group(pool, thread_infos, ss, image_manager, og->camera_state);
+      });
+
+      pool.wait_work();
     });
-
-    OSLRenderServices::image_manager = nullptr;
   }
 
   /* Load OSL kernels on changes to shaders, or when main kernels got reloaded. */

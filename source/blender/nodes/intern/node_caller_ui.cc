@@ -108,7 +108,12 @@ void draw_interface_panel_as_panel(
   }
   else {
     panel_layout = layout.panel_prop(&C, &panels_ptr, panel_open_name);
-    panel_layout.header->label(IFACE_(panel_name), ICON_NONE);
+    if (panel_layout.header) {
+      panel_layout.header->label(IFACE_(panel_name), ICON_NONE);
+    }
+  }
+  if (!panel_layout.header) {
+    return;
   }
   if (!interface_panel_affects_output(interface_panel, fn_input_is_active)) {
     panel_layout.header->active_set(false);

@@ -160,7 +160,7 @@ int blf_font_descender(FontBLF *font);
 int blf_font_ascender(FontBLF *font);
 bool blf_font_bounds_max(FontBLF *font, rctf *r_bounds);
 
-char *blf_display_name(FontBLF *font);
+[[nodiscard]] char *blf_display_name(FontBLF *font) ATTR_MALLOC;
 
 void blf_font_boundbox_foreach_glyph(
     FontBLF *font,

@@ -317,7 +317,7 @@ static wmOperatorStatus similar_face_select_exec(bContext *C, wmOperator *op)
   }
 
   for (Object *ob : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    EditMesh *em = BKE_editmesh_from_object(ob);
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
     bool changed = false;
     Material ***material_array = nullptr;
@@ -470,7 +470,7 @@ static wmOperatorStatus similar_face_select_exec(bContext *C, wmOperator *op)
     BLI_assert(ELEM(type, SIMFACE_SMOOTH, SIMFACE_FREESTYLE));
 
     for (Object *ob : objects) {
-      BMEditMesh *em = BKE_editmesh_from_object(ob);
+      EditMesh *em = BKE_editmesh_from_object(ob);
       BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
 
       BMFace *face; /* Mesh face. */
@@ -726,7 +726,7 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
   }
 
   for (Object *ob : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    EditMesh *em = BKE_editmesh_from_object(ob);
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
     bool changed = false;
 
@@ -907,7 +907,7 @@ static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
     BLI_assert(ELEM(type, SIMEDGE_SEAM, SIMEDGE_SHARP, SIMEDGE_FREESTYLE));
 
     for (Object *ob : objects) {
-      BMEditMesh *em = BKE_editmesh_from_object(ob);
+      EditMesh *em = BKE_editmesh_from_object(ob);
       BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
 
       BMEdge *edge; /* Mesh edge. */
@@ -1098,7 +1098,7 @@ static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
 
   /* Run the matching operations. */
   for (Object *ob : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    EditMesh *em = BKE_editmesh_from_object(ob);
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
     bool changed = false;
     bool has_crease_layer = false;
@@ -1294,7 +1294,7 @@ static const EnumPropertyItem *select_similar_type_itemf(bContext *C,
   if (obedit && obedit->type == OB_MESH) {
     EnumPropertyItem *item = nullptr;
     int a, totitem = 0;
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    EditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (em->selectmode & SCE_SELECT_VERTEX) {
       for (a = SIMVERT_NORMAL; a < SIMEDGE_LENGTH; a++) {

@@ -28,8 +28,9 @@ TEST_F(VKRenderGraphTestCompute, dispatch_read_back)
   dispatch_info.dispatch_node.group_count_y = 1;
   dispatch_info.dispatch_node.group_count_z = 1;
   render_graph->add_node(dispatch_info);
+  render_graph->add_node(VKSynchronizeReadbackNode::CreateInfo{buffer});
   submit(render_graph, command_buffer);
-  EXPECT_EQ(3, log.size());
+  ASSERT_EQ(4, log.size());
   EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_COMPUTE, pipeline=0x2)",
             log[0]);
   EXPECT_EQ(
@@ -37,6 +38,15 @@ TEST_F(VKRenderGraphTestCompute, dispatch_read_back)
       "p_descriptor_sets=0x4)",
       log[1]);
   EXPECT_EQ("dispatch(group_count_x=1, group_count_y=1, group_count_z=1)", log[2]);
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_HOST_BIT" +
+          endl() +
+          " - buffer_barrier(src_access_mask=VK_ACCESS_SHADER_WRITE_BIT, "
+          "dst_access_mask=VK_ACCESS_HOST_READ_BIT, buffer=0x1, offset=0, "
+          "size=18446744073709551615)" +
+          endl() + ")",
+      log[3]);
 }
 
 /**

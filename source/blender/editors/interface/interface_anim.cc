@@ -316,7 +316,7 @@ bool button_anim_expression_create(Button *but, const char *str)
       /* updates */
       BKE_driver_invalidate_expression(driver, true, false);
       DEG_relations_tag_update(CTX_data_main(C));
-      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME, nullptr);
+      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);
       ok = true;
     }
   }

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
 "PO-Revision-Date: 2026-10-20 16:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21136,6 +21136,30 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
@@ -21146,6 +21170,10 @@ msgstr "Atrair"
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Math"
+msgstr "Matemática"
 
 
 msgid "Mirror"
@@ -21180,10 +21208,6 @@ msgid "View Regions"
 msgstr "Visualizar Regiões"
 
 
-msgid "Math"
-msgstr "Matemática"
-
-
 msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
@@ -21204,8 +21228,12 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Metaball"
-msgstr "Meta-esfera"
+msgid "Instances"
+msgstr "Instâncias"
+
+
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Light"
@@ -21216,8 +21244,8 @@ msgid "Light Probe"
 msgstr "Sonda de Luz"
 
 
-msgid "Instances"
-msgstr "Instâncias"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Add Image"
@@ -21226,10 +21254,6 @@ msgstr "Adicionar Imagem"
 
 msgid "Relations"
 msgstr "Relações"
-
-
-msgid "Import"
-msgstr "Importar"
 
 
 msgid "Rigid Body"
@@ -21248,24 +21272,12 @@ msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
 msgid "Make Single User"
 msgstr "Tornar usuário único"
 
 
 msgid "Convert"
 msgstr "Converter"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Hooks"
@@ -21288,8 +21300,12 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
-msgid "Names"
-msgstr "Nomes"
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Toggle Bone Options"
@@ -21312,28 +21328,12 @@ msgid "Face Data"
 msgstr "Dados das faces"
 
 
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
 msgid "Keying"
 msgstr "Inserção de chaves"
+
+
+msgid "Merge"
+msgstr "Fundir"
 
 
 msgid "Tracking"
@@ -28924,11 +28924,6 @@ msgstr "Carrega e aplica um arquivo de temas XML Blender."
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "Instalar tema..."
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Adicionar Biblioteca de Recursos"
 
 
 msgid "Add an Integrator Preset"
@@ -42463,6 +42458,11 @@ msgstr "O nome do módulo de complemento a ser removido."
 
 msgid "Remove existing template with the same ID"
 msgstr "Remove os modelos existentes com o mesmo identificador."
+
+
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Adicionar Biblioteca de Recursos"
 
 
 msgctxt "Operator"

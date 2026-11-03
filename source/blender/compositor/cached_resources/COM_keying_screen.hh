@@ -26,10 +26,11 @@ class Context;
  */
 class KeyingScreenKey {
  public:
-  int2 frame;
-  float smoothness;
+  const int2 frame;
+  const float smoothness;
+  const float2 pixel_size;
 
-  KeyingScreenKey(int frame, float smoothness);
+  KeyingScreenKey(int frame, float smoothness, float2 pixel_size);
 
   uint64_t hash() const;
 };
@@ -48,7 +49,8 @@ class KeyingScreen : public CachedResource {
   KeyingScreen(Context &context,
                MovieClip *movie_clip,
                MovieTrackingObject *movie_tracking_object,
-               const float smoothness);
+               const float smoothness,
+               float2 pixel_size);
 
   ~KeyingScreen();
 
@@ -85,7 +87,8 @@ class KeyingScreenContainer : CachedResourceContainer {
   Result &get(Context &context,
               MovieClip *movie_clip,
               MovieTrackingObject *movie_tracking_object,
-              float smoothness);
+              float smoothness,
+              float2 pixel_size);
 };
 
 }  // namespace blender::compositor

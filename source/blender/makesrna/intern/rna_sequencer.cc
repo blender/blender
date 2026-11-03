@@ -545,6 +545,23 @@ static Strip *strip_by_key_find(Scene *scene, SeqRetimingKey *key)
   return nullptr;
 }
 
+static std::optional<std::string> rna_Strip_retiming_key_path(const PointerRNA *ptr)
+{
+  Scene *scene = id_cast<Scene *>(ptr->owner_id);
+  SeqRetimingKey *key = static_cast<SeqRetimingKey *>(ptr->data);
+  const Strip *strip = strip_by_key_find(scene, key);
+
+  if (strip == nullptr) {
+    return "";
+  }
+
+  char name_esc[(sizeof(strip->name) - 2) * 2];
+  BLI_str_escape(name_esc, strip->name + 2);
+  return fmt::format("sequence_editor.strips_all[\"{}\"].retiming_keys[{}]",
+                     name_esc,
+                     seq::retiming_key_index_get(strip, key));
+}
+
 static void rna_Strip_retiming_key_remove(ID *id, SeqRetimingKey *key)
 {
   Scene *scene = id_cast<Scene *>(id);
@@ -1052,7 +1069,7 @@ static void rna_Strip_name_set(PointerRNA *ptr, const char *value)
                          RNA_path_name_to_infix(oldname),
                          RNA_path_name_to_infix(strip->name + 2),
                          /*verify_paths=*/true,
-                         *G_MAIN);
+                         *scene->id.owner_bmain_for_write());
 }
 
 static int rna_Strip_text_length(PointerRNA *ptr)
@@ -1697,7 +1714,7 @@ static void rna_StripModifier_name_set(PointerRNA *ptr, const char *value)
                          RNA_path_name_to_infix(oldname),
                          RNA_path_name_to_infix(smd->name),
                          /* verify_paths= */ true,
-                         *G_MAIN);
+                         *scene->id.owner_bmain_for_write());
 }
 
 static void rna_StripModifier_is_active_set(PointerRNA *ptr, bool value)
@@ -2172,6 +2189,7 @@ static void rna_def_retiming_key(BlenderRNA *brna)
       "Retiming Key",
       "Key mapped to particular frame that can be moved to change playback speed");
   RNA_def_struct_sdna(srna, "SeqRetimingKey");
+  RNA_def_struct_path_func(srna, "rna_Strip_retiming_key_path");
 
   prop = RNA_def_property(srna, "timeline_frame", PROP_INT, PROP_NONE);
   RNA_def_property_int_funcs(
@@ -2629,6 +2647,7 @@ static void rna_def_strip(BlenderRNA *brna)
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(
       prop, "rna_Strip_name_get", "rna_Strip_name_length", "rna_Strip_name_set");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_property_string_maxlength(prop, sizeof(Strip::name) - 2);
   RNA_def_property_ui_text(prop, "Name", "");
   RNA_def_struct_name_property(srna, prop);
@@ -4349,6 +4368,7 @@ static void rna_def_modifier(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_StripModifier_name_set");
+  RNA_def_property_editable_func(prop, "rna_ID_owner_editable_if_in_bmain");
   RNA_def_property_ui_text(prop, "Name", "");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);

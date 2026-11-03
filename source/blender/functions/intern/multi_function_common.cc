@@ -178,6 +178,7 @@ class DivideFunction : public MultiFunction {
 static void register_common_functions_impl()
 {
   static constexpr auto exec_fast = build::exec_presets::AllSpanOrSingle();
+  static constexpr auto exec_unroll8 = build::exec_presets::MaterializedUnroll<8>();
 
   registry::add_new_cb([]() {
     return build::SI1_SO<float, float>(
@@ -235,31 +236,40 @@ static void register_common_functions_impl()
         "trunc(float)", [](const float a) { return a >= 0.0f ? floorf(a) : ceilf(a); }, exec_fast);
   });
   registry::add_new_cb([] {
-    return build::SI1_SO<float, float>("sin(float)", [](const float a) { return sinf(a); });
+    return build::SI1_SO<float, float>(
+        "sin(float)", [](const float a) { return sinf(a); }, exec_unroll8);
   });
   registry::add_new_cb([] {
-    return build::SI1_SO<float, float>("cos(float)", [](const float a) { return cosf(a); });
+    return build::SI1_SO<float, float>(
+        "cos(float)", [](const float a) { return cosf(a); }, exec_unroll8);
   });
   registry::add_new_cb([] {
-    return build::SI1_SO<float, float>("tan(float)", [](const float a) { return tanf(a); });
+    return build::SI1_SO<float, float>(
+        "tan(float)", [](const float a) { return tanf(a); }, exec_unroll8);
   });
   registry::add_new_cb([] {
-    return build::SI1_SO<float, float>("sinh(float)", [](const float a) { return sinhf(a); });
+    return build::SI1_SO<float, float>(
+        "sinh(float)", [](const float a) { return sinhf(a); }, exec_unroll8);
   });
   registry::add_new_cb([] {
-    return build::SI1_SO<float, float>("cosh(float)", [](const float a) { return coshf(a); });
+    return build::SI1_SO<float, float>(
+        "cosh(float)", [](const float a) { return coshf(a); }, exec_unroll8);
   });
   registry::add_new_cb([] {
-    return build::SI1_SO<float, float>("tanh(float)", [](const float a) { return tanhf(a); });
+    return build::SI1_SO<float, float>(
+        "tanh(float)", [](const float a) { return tanhf(a); }, exec_unroll8);
   });
   registry::add_new_cb([] {
-    return build::SI1_SO<float, float>("asin(float)", [](const float a) { return safe_asinf(a); });
+    return build::SI1_SO<float, float>(
+        "asin(float)", [](const float a) { return safe_asinf(a); }, exec_unroll8);
   });
   registry::add_new_cb([] {
-    return build::SI1_SO<float, float>("acos(float)", [](const float a) { return safe_acosf(a); });
+    return build::SI1_SO<float, float>(
+        "acos(float)", [](const float a) { return safe_acosf(a); }, exec_unroll8);
   });
   registry::add_new_cb([] {
-    return build::SI1_SO<float, float>("atan(float)", [](const float a) { return atanf(a); });
+    return build::SI1_SO<float, float>(
+        "atan(float)", [](const float a) { return atanf(a); }, exec_unroll8);
   });
   registry::add_new_cb([] {
     return build::SI2_SO<float, float, float>(
@@ -504,15 +514,21 @@ static void register_common_functions_impl()
   });
   registry::add_new_cb([] {
     return build::SI1_SO<float3, float3>(
-        "sin(float3)", [](const float3 &a) { return float3(sinf(a.x), sinf(a.y), sinf(a.z)); });
+        "sin(float3)",
+        [](const float3 &a) { return float3(sinf(a.x), sinf(a.y), sinf(a.z)); },
+        exec_unroll8);
   });
   registry::add_new_cb([] {
     return build::SI1_SO<float3, float3>(
-        "cos(float3)", [](const float3 &a) { return float3(cosf(a.x), cosf(a.y), cosf(a.z)); });
+        "cos(float3)",
+        [](const float3 &a) { return float3(cosf(a.x), cosf(a.y), cosf(a.z)); },
+        exec_unroll8);
   });
   registry::add_new_cb([] {
     return build::SI1_SO<float3, float3>(
-        "tan(float3)", [](const float3 &a) { return float3(tanf(a.x), tanf(a.y), tanf(a.z)); });
+        "tan(float3)",
+        [](const float3 &a) { return float3(tanf(a.x), tanf(a.y), tanf(a.z)); },
+        exec_unroll8);
   });
   registry::add_new_cb([] {
     return mf::build::SI2_SO<int, int, int>(

@@ -1822,7 +1822,7 @@ void SourceProcessor::lower_noop_keywords(Parser &parser)
   parser().foreach_token(Static, [&](Token tok) {
     ScopeType scope_type = tok.scope().type();
     if (scope_type != ScopeType::Struct && scope_type != ScopeType::Preprocessor) {
-      if (tok.next() != Constexpr) {
+      if (tok.next() != TokenType::Constexpr) {
         parser.erase(tok);
       }
     }

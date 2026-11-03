@@ -264,6 +264,12 @@ struct GPUSource {
           shader::PrintfFormat::Block::ArgumentType::NONE;
       int64_t start = 0, end = 0, cursor = -1;
       while ((end = format.find_first_of('%', cursor + 1)) != -1) {
+        if (format[end + 1] == '%') {
+          /* Escaped `%%` stays in the current block. */
+          cursor = end + 1;
+          continue;
+        }
+
         if (end - start > 0) {
           /* Add the previous block without the newly found % character. */
           fmt.format_blocks.append({type, format.substr(start, end - start)});
@@ -281,6 +287,16 @@ struct GPUSource {
         {
           /* Group 5 captures the conversion specifier character. */
           char specifier = match[5].str()[0];
+
+          /* Arguments are always 32 bits. Rewrite formats that make the CPU printf read a larger
+           * argument, e.g. `%ld` or `%p`. `h` and `hh` are valid for promoted integers. */
+          if (specifier == 'p') {
+            format[end + match.position(5)] = 'x';
+          }
+          /* Remove length modifier, always expect 32bit, even for short and char. */
+          if (match[4].matched) {
+            format.erase(end + match.position(4), match.length(4));
+          }
 
           switch (specifier) {
             case 's':
@@ -322,6 +338,13 @@ struct GPUSource {
         cursor = end;
       }
       fmt.format_blocks.append({type, format.substr(start, format.size() - start)});
+
+      /* Blocks without argument are printed as is, so unescape `%%`. */
+      for (shader::PrintfFormat::Block &block : fmt.format_blocks) {
+        if (block.type == shader::PrintfFormat::Block::ArgumentType::NONE) {
+          block.fmt = std::regex_replace(block.fmt, std::regex("%%"), "%");
+        }
+      }
 
       format_map->add(format_hash, fmt);
     }

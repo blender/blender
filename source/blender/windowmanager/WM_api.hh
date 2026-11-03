@@ -1651,6 +1651,13 @@ void WM_uilisttype_to_full_list_id(const uiListType *ult,
                                    const char *list_id,
                                    char r_full_list_id[]);
 /**
+ * A version of #WM_uilisttype_to_full_list_id taking the type's identifier,
+ * for callers that only have the name (scripts refer to the list type by name).
+ */
+void WM_uilisttype_to_full_list_id(const char *type_idname,
+                                   const char *list_id,
+                                   char r_full_list_id[]);
+/**
  * Get the "non-full" list-ID, see #WM_uilisttype_to_full_list_id() for details.
  *
  * \note Assumes `uiList.list_id` was set using #WM_uilisttype_to_full_list_id()!
@@ -2400,7 +2407,8 @@ double WM_tooltip_time_closed();
 
 /* `wm_utils.cc` */
 
-wmGenericCallback *WM_generic_callback_steal(wmGenericCallback *callback);
+[[nodiscard]] wmGenericCallback *WM_generic_callback_steal(wmGenericCallback *callback)
+    ATTR_MALLOC;
 void WM_generic_callback_free(wmGenericCallback *callback);
 
 void WM_generic_user_data_free(wmGenericUserData *wm_userdata);
@@ -2426,6 +2434,10 @@ bool WM_xr_session_exists(const wmXrData *xr);
  * Check if the session is running, according to the OpenXR definition.
  */
 bool WM_xr_session_is_ready(const wmXrData *xr);
+/**
+ * Get the OpenXR runtime name of a running session.
+ */
+void WM_xr_session_runtime_name_get(const wmXrData *xr, char *r_runtime_name);
 
 wmXrSessionState *WM_xr_session_state_handle_get(const wmXrData *xr);
 wmXrViewfinderState *WM_xr_session_state_viewfinder_handle_get(const wmXrData *xr);

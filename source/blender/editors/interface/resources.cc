@@ -64,13 +64,6 @@ void resources_free()
 
 /** \} */
 
-void style_init_default()
-{
-  U.uistyles.free_no_destruct();
-  /* gets automatically re-allocated */
-  style_init();
-}
-
 namespace theme {
 
 /* -------------------------------------------------------------------- */
@@ -672,9 +665,6 @@ const uchar *get_color_ptr(const bTheme *btheme, int spacetype, int colorid)
           break;
         case TH_NODE_DISTORT:
           cp = ts->syntaxd;
-          break;
-        case TH_NODE_CURVING:
-          cp = &ts->noodle_curving;
           break;
         case TH_NODE_GRID_LEVELS:
           cp = &ts->grid_levels;

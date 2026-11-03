@@ -135,6 +135,7 @@ void register_node_type_sh_light_evaluation()
   sh_node_type_base(&ntype, "ShaderNodeLightEvaluation"_ustr, SH_NODE_LIGHT_EVALUATION);
   ntype.ui_name = "Light Evaluation";
   ntype.ui_description = "Light Evaluation";
+  ntype.enum_name_legacy = "LIGHT_EVALUATION";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_light_evaluation;

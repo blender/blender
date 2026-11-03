@@ -49,16 +49,12 @@ void set_fcurve_sample(FCurve *fcu, int64_t sample_index, const float frame, con
 }
 
 /* Recursively invoke the 'visitor' function on the given bone and its children. */
-static void visit_bones(const Bone *bone, FunctionRef<void(const Bone *)> visitor)
+static void visit_bones(const Bone &bone, FunctionRef<void(const Bone &)> visitor)
 {
-  if (!(bone && visitor)) {
-    return;
-  }
-
   visitor(bone);
 
-  for (const Bone &child : bone->childbase) {
-    visit_bones(&child, visitor);
+  for (const Bone &child : bone.childbase) {
+    visit_bones(child, visitor);
   }
 }
 
@@ -69,15 +65,10 @@ const ModifierData *get_enabled_modifier(const Object &obj,
   BLI_assert(depsgraph);
 
   const Scene *scene = DEG_get_input_scene(depsgraph);
-  eEvaluationMode mode = DEG_get_mode(depsgraph);
+  const eEvaluationMode mode = DEG_get_mode(depsgraph);
 
   for (ModifierData &md : obj.modifiers) {
-
-    if (!BKE_modifier_is_enabled(scene, &md, mode)) {
-      continue;
-    }
-
-    if (md.type == type) {
+    if (md.type == type && BKE_modifier_is_enabled(scene, &md, mode)) {
       return &md;
     }
   }
@@ -90,24 +81,23 @@ const ModifierData *get_enabled_modifier(const Object &obj,
 static const ArmatureModifierData *get_armature_modifier(const Object &obj,
                                                          const Depsgraph *depsgraph)
 {
-  const ArmatureModifierData *mod = reinterpret_cast<const ArmatureModifierData *>(
+  return reinterpret_cast<const ArmatureModifierData *>(
       get_enabled_modifier(obj, eModifierType_Armature, depsgraph));
-  return mod;
 }
 
-void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor)
+void visit_bones(const Object &ob_arm, FunctionRef<void(const Bone &)> visitor)
 {
-  if (!(ob_arm && ob_arm->type == OB_ARMATURE && ob_arm->data)) {
+  if (ob_arm.type != OB_ARMATURE || !ob_arm.data) {
     return;
   }
 
-  const bArmature *armature = id_cast<bArmature *>(ob_arm->data);
+  const bArmature *armature = id_cast<bArmature *>(ob_arm.data);
   for (const Bone &bone : armature->bonebase) {
-    visit_bones(&bone, visitor);
+    visit_bones(bone, visitor);
   }
 }
 
-void get_armature_bone_names(const Object *ob_arm,
+void get_armature_bone_names(const Object &ob_arm,
                              const bool use_deform,
                              Vector<StringRef> &r_names)
 {
@@ -116,8 +106,8 @@ void get_armature_bone_names(const Object *ob_arm,
     init_deform_bones_map(ob_arm, &deform_map);
   }
 
-  auto visitor = [&](const Bone *bone) {
-    const StringRef bone_name(bone->name);
+  auto visitor = [&](const Bone &bone) {
+    const StringRef bone_name(bone.name);
     if (use_deform && !deform_map.contains(bone_name)) {
       return;
     }
@@ -128,11 +118,11 @@ void get_armature_bone_names(const Object *ob_arm,
   visit_bones(ob_arm, visitor);
 }
 
-pxr::TfToken build_usd_joint_path(const Bone *bone, bool allow_unicode)
+pxr::TfToken build_usd_joint_path(const Bone &bone, bool allow_unicode)
 {
-  std::string path(make_safe_name(bone->name, allow_unicode));
+  std::string path(make_safe_name(bone.name, allow_unicode));
 
-  const Bone *parent = bone->parent;
+  const Bone *parent = bone.parent;
   while (parent) {
     path = make_safe_name(parent->name, allow_unicode) + '/' + path;
     parent = parent->parent;
@@ -163,7 +153,7 @@ void create_pose_joints(pxr::UsdSkelAnimation &skel_anim,
         continue;
       }
 
-      joints.push_back(build_usd_joint_path(pchan_bone, allow_unicode));
+      joints.push_back(build_usd_joint_path(*pchan_bone, allow_unicode));
     }
   }
 
@@ -180,23 +170,23 @@ bool is_armature_modifier_bone_name(const Object &obj,
                                     const StringRefNull name,
                                     const Depsgraph *depsgraph)
 {
-  const ArmatureModifierData *arm_mod = get_armature_modifier(obj, depsgraph);
+  const Object *arm_obj = get_armature_modifier_obj(obj, depsgraph);
 
-  if (!arm_mod || !arm_mod->object || !arm_mod->object->data) {
+  if (!arm_obj || !arm_obj->data) {
     return false;
   }
 
-  bArmature *arm = id_cast<bArmature *>(arm_mod->object->data);
+  bArmature *arm = id_cast<bArmature *>(arm_obj->data);
 
   return BKE_armature_find_bone_name(arm, name.c_str());
 }
 
 bool can_export_skinned_mesh(const Object &obj, const Depsgraph *depsgraph)
 {
-  return get_enabled_modifier(obj, eModifierType_Armature, depsgraph) != nullptr;
+  return get_armature_modifier(obj, depsgraph) != nullptr;
 }
 
-void init_deform_bones_map(const Object *obj, Map<StringRef, const Bone *> *deform_map)
+void init_deform_bones_map(const Object &obj, Map<StringRef, const Bone *> *deform_map)
 {
   if (!deform_map) {
     return;
@@ -204,14 +194,10 @@ void init_deform_bones_map(const Object *obj, Map<StringRef, const Bone *> *defo
 
   deform_map->clear();
 
-  auto deform_visitor = [&](const Bone *bone) {
-    if (!bone) {
-      return;
-    }
-
-    const bool deform = !(bone->flag & BONE_NO_DEFORM);
+  auto deform_visitor = [&](const Bone &bone) {
+    const bool deform = !(bone.flag & BONE_NO_DEFORM);
     if (deform) {
-      deform_map->add(bone->name, bone);
+      deform_map->add(bone.name, &bone);
     }
   };
 

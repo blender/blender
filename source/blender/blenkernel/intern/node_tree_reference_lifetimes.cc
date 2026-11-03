@@ -287,7 +287,7 @@ static Vector<ReferenceSetInfo> find_reference_sets(
       for (const rl::AvailableRelation &relation : relations->available_relations) {
         const bNodeSocket &data_socket = node->output_socket(relation.data_output);
         const bNodeSocket &reference_socket = node->output_socket(relation.reference_output);
-        if (!reference_socket.is_available() || !reference_socket.is_available()) {
+        if (!reference_socket.is_available() || !data_socket.is_available()) {
           continue;
         }
         if (!reference_socket.is_directly_linked() || !data_socket.is_directly_linked()) {

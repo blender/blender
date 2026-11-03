@@ -133,7 +133,7 @@ static bool return_editmesh_vgroup(Object *obedit, Mesh &mesh, char *r_name, flo
 static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 {
   Mesh *mesh = id_cast<Mesh *>(ob->data);
-  BMEditMesh *em = mesh->runtime->edit_mesh.get();
+  EditMesh *em = mesh->runtime->edit_mesh.get();
   BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
   BMVert *eve;
   BMIter iter;
@@ -341,7 +341,7 @@ static bool object_hook_index_array(Main *bmain,
 
       DEG_id_tag_update(obedit->data, 0);
 
-      BMEditMesh *em = mesh->runtime->edit_mesh.get();
+      EditMesh *em = mesh->runtime->edit_mesh.get();
 
       BKE_editmesh_looptris_and_normals_calc(em, BKE_editmesh_bmesh_get_for_write(mesh));
 

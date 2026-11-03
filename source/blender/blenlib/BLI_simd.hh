@@ -140,4 +140,62 @@ class ScopedFlushToZero {
 #endif
 };
 
+/**
+ * Disable flush-to-zero and denormals-are-zero for the lifetime of the object, then restore the
+ * previous state. This is the opposite of #ScopedFlushToZero.
+ */
+class ScopedNoFlushToZero {
+#if defined(__x86_64__) || defined(_M_X64)
+  unsigned int orig_csr_;
+
+ public:
+  ScopedNoFlushToZero() : orig_csr_(_mm_getcsr())
+  {
+    /* MXCSR: bit 15 is flush-to-zero, bit 6 is denormals-are-zero. */
+    _mm_setcsr(orig_csr_ & ~((1u << 15) | (1u << 6)));
+  }
+
+  ~ScopedNoFlushToZero()
+  {
+    _mm_setcsr(orig_csr_);
+  }
+#elif (defined(__aarch64__) || defined(_M_ARM64)) && defined(_MM_SET_FLUSH_ZERO_MODE)
+  /* On ARM both modes share the same FPCR bit. Save and restore both for symmetry with
+   * #SIMD_SET_FLUSH_TO_ZERO. */
+  unsigned int orig_fz_;
+  unsigned int orig_daz_;
+
+ public:
+  ScopedNoFlushToZero()
+      : orig_fz_(_MM_GET_FLUSH_ZERO_MODE()), orig_daz_(_MM_GET_DENORMALS_ZERO_MODE())
+  {
+    _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_OFF);
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_OFF);
+  }
+
+  ~ScopedNoFlushToZero()
+  {
+    _MM_SET_FLUSH_ZERO_MODE(orig_fz_);
+    _MM_SET_DENORMALS_ZERO_MODE(orig_daz_);
+  }
+#elif defined(__aarch64__) || defined(_M_ARM64)
+  uint64_t orig_fpcr_;
+
+ public:
+  ScopedNoFlushToZero()
+  {
+    __get_fpcr(orig_fpcr_);
+    __set_fpcr(orig_fpcr_ & ~(uint64_t(1) << _MM_FLUSH_ZERO_ON));
+  }
+
+  ~ScopedNoFlushToZero()
+  {
+    __set_fpcr(orig_fpcr_);
+  }
+#else
+ public:
+  ScopedNoFlushToZero() = default;
+#endif
+};
+
 }  // namespace blender

@@ -74,7 +74,7 @@ class GreasePencilInterpolate : public BlenderGTestBase {
 
     /* Attribute storing original indices to test point remapping. */
     SpanAttributeWriter<int> test_indices_writer =
-        curves.attributes_for_write().lookup_or_add_for_write_span<int>(
+        curves.attributes_for_write().ensure_for_write_span<int>(
             "test_index", bke::AttrDomain::Point, bke::AttributeInitConstruct());
     array_utils::fill_index_range(test_indices_writer.span);
     test_indices_writer.finish();

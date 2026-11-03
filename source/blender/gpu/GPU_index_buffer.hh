@@ -95,6 +95,10 @@ class IndexBuf {
   {
     return index_type_ == GPU_INDEX_U32;
   }
+  GPUIndexBufType index_type() const
+  {
+    return index_type_;
+  }
   /* Return size in byte of the drawable data buffer range. Actual buffer size might be bigger. */
   size_t size_get() const
   {

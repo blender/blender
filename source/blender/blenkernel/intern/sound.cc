@@ -2528,6 +2528,10 @@ float bSoundFrequencySampler::sample_cumulative_frequency(const Span<float> wind
 
 std::optional<Span<float>> bSoundFrequencySampler::ensure_window_cache(int window_i) const
 {
+  if (window_caches_.is_empty()) {
+    return std::nullopt;
+  }
+
   /* Clamp window so that too low or high indices get mapped to the closest valid index. */
   window_i = std::clamp<int>(window_i, 0, window_caches_.size() - 1);
 

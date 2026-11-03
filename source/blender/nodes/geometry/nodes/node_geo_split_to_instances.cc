@@ -320,13 +320,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   std::optional<std::string> dst_group_id_attribute_id =
       params.get_output_anonymous_attribute_id_if_needed("Group ID"_ustr);
   if (dst_group_id_attribute_id) {
-    SpanAttributeWriter<int> dst_group_id =
-        dst_instances->attributes_for_write().lookup_or_add_for_write_span<int>(
-            *dst_group_id_attribute_id, AttrDomain::Instance);
-    std::copy(geometry_by_group_id.keys().begin(),
-              geometry_by_group_id.keys().end(),
-              dst_group_id.span.begin());
-    dst_group_id.finish();
+    if (SpanAttributeWriter<int> dst_group_id =
+            dst_instances->attributes_for_write().lookup_or_add_for_write_span<int>(
+                *dst_group_id_attribute_id, AttrDomain::Instance))
+    {
+      std::copy(geometry_by_group_id.keys().begin(),
+                geometry_by_group_id.keys().end(),
+                dst_group_id.span.begin());
+      dst_group_id.finish();
+    }
   }
 
   dst_instances->transforms_for_write().fill(float4x4::identity());

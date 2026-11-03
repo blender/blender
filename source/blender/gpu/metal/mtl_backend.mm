@@ -169,6 +169,16 @@ void MTLBackend::render_end()
   if (g_autoreleasepool_depth == 0) {
     [g_autoreleasepool drain];
     g_autoreleasepool = nil;
+
+    /* Return the buffers freed by completed GPU work to the memory pools. Render steps do this
+     * too, but not all GPU work is followed by one, for example compositing animations. */
+    MTLBufferPool *memory_manager = MTLContext::global_memory_manager;
+    if (memory_manager != nullptr) {
+      if (memory_manager->has_completed_safe_lists()) {
+        memory_manager->update_memory_pools();
+      }
+      memory_manager->begin_new_safe_list(true);
+    }
   }
 }
 
@@ -185,11 +195,7 @@ void MTLBackend::render_step(bool force_resource_release)
    * Buffers wont `free` until all associated in-flight command buffers have completed.
    * Decrement final reference count for ensuring the previous list is certainly
    * released. */
-  MTLSafeFreeList *cmd_free_buffer_list =
-      MTLContext::get_global_memory_manager()->get_current_safe_list();
-  if (cmd_free_buffer_list->should_flush()) {
-    MTLContext::get_global_memory_manager()->begin_new_safe_list();
-  }
+  MTLContext::get_global_memory_manager()->begin_new_safe_list(true);
 
   if (force_resource_release && g_autoreleasepool) {
     [g_autoreleasepool drain];
@@ -207,6 +213,18 @@ bool MTLBackend::is_inside_render_boundary()
 /* -------------------------------------------------------------------- */
 /** \name Platform
  * \{ */
+
+void MTLBackend::platform_and_capabilities_ensure(MTLContext *ctx)
+{
+  std::call_once(platform_and_capabilities_initialized_, [&]() {
+    platform_init(ctx);
+    capabilities_init(ctx);
+  });
+  /* All contexts are expected to use the same device. */
+  BLI_assert(GPG.device_luid.size() == sizeof(uint64_t) &&
+             *reinterpret_cast<const uint64_t *>(GPG.device_luid.data()) ==
+                 ctx->device.registryID);
+}
 
 /* For Metal, platform_init needs to be called after MTLContext initialization. */
 void MTLBackend::platform_init(MTLContext *ctx)

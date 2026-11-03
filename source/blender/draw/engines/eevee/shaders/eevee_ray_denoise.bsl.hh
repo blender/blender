@@ -114,6 +114,7 @@ void transmission_thickness_amend_closure(ClosureUndetermined &cl, float3 &V, Th
       break;
     case CLOSURE_NONE_ID:
     case CLOSURE_BSDF_DIFFUSE_ID:
+    case CLOSURE_BSDF_OREN_NAYAR_ID:
     case CLOSURE_BSDF_TRANSLUCENT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
     case CLOSURE_BSSRDF_BURLEY_ID:
@@ -343,7 +344,7 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
     closest_hit_time = min(closest_hit_time, ray_time);
 
     /* Correct ray hit position.
-     * Instead of just reusing the ray direction (leading to screen space blur, loosing contact
+     * Instead of just reusing the ray direction (leading to screen space blur, losing contact
      * sharpness), get the neighbor pixel position and reconstruct the actual hit position. */
     ray_direction = safe_normalize(dPdxy * float2(offset) + ray_direction * ray_time);
 

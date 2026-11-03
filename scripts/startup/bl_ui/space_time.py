@@ -265,6 +265,11 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
             header, panel = layout.panel("TIME_PT_playback_sequencer")
             header.label(text="Sequencer")
             if panel:
+                col = panel.column()
+                col.prop(
+                    context.workspace,
+                    "use_strip_scene_range_for_playback",
+                    text="Use Scene Strip Range")
                 col = panel.column(heading="Sync")
                 col.prop(context.workspace, "use_scene_time_sync", text="Scene Time")
 

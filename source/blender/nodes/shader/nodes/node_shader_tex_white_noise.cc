@@ -8,7 +8,7 @@
 
 #include "node_shader_util.hh"
 
-#include "BLI_noise.hh"
+#include "BLI_noise_varray.hh"
 
 #include "FN_multi_function.hh"
 
@@ -130,43 +130,30 @@ class WhiteNoiseFunction : public mf::MultiFunction {
       case 1: {
         const VArray<float> &w = params.readonly_single_input<float>(0, "W");
         if (compute_color) {
-          mask.foreach_index([&](const int64_t i) {
-            const float3 c = noise::hash_float_to_float3(w[i]);
-            r_color[i] = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
-          });
+          noise::white_noise_color_1d(mask, w, r_color);
         }
         if (compute_value) {
-          mask.foreach_index(
-              [&](const int64_t i) { r_value[i] = noise::hash_float_to_float(w[i]); });
+          noise::white_noise_float_1d(mask, w, r_value);
         }
         break;
       }
       case 2: {
         const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
         if (compute_color) {
-          mask.foreach_index([&](const int64_t i) {
-            const float3 c = noise::hash_float_to_float3(float2(vector[i].x, vector[i].y));
-            r_color[i] = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
-          });
+          noise::white_noise_color_2d(mask, vector, r_color);
         }
         if (compute_value) {
-          mask.foreach_index([&](const int64_t i) {
-            r_value[i] = noise::hash_float_to_float(float2(vector[i].x, vector[i].y));
-          });
+          noise::white_noise_float_2d(mask, vector, r_value);
         }
         break;
       }
       case 3: {
         const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
         if (compute_color) {
-          mask.foreach_index([&](const int64_t i) {
-            const float3 c = noise::hash_float_to_float3(vector[i]);
-            r_color[i] = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
-          });
+          noise::white_noise_color_3d(mask, vector, r_color);
         }
         if (compute_value) {
-          mask.foreach_index(
-              [&](const int64_t i) { r_value[i] = noise::hash_float_to_float(vector[i]); });
+          noise::white_noise_float_3d(mask, vector, r_value);
         }
         break;
       }
@@ -174,17 +161,10 @@ class WhiteNoiseFunction : public mf::MultiFunction {
         const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
         const VArray<float> &w = params.readonly_single_input<float>(1, "W");
         if (compute_color) {
-          mask.foreach_index([&](const int64_t i) {
-            const float3 c = noise::hash_float_to_float3(
-                float4(vector[i].x, vector[i].y, vector[i].z, w[i]));
-            r_color[i] = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
-          });
+          noise::white_noise_color_4d(mask, vector, w, r_color);
         }
         if (compute_value) {
-          mask.foreach_index([&](const int64_t i) {
-            r_value[i] = noise::hash_float_to_float(
-                float4(vector[i].x, vector[i].y, vector[i].z, w[i]));
-          });
+          noise::white_noise_float_4d(mask, vector, w, r_value);
         }
         break;
       }

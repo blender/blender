@@ -163,6 +163,9 @@ static void Bend(TransInfo *t)
   /* Amount of radians for bend. */
   copy_v2_v2(values.vector, t->values);
 
+  /* Zero without a 3D view or when the mouse is over the 3D cursor, the radius is zero then. */
+  const bool has_init_dist = bend_data->warp_init_dist != 0.0f;
+
 #if 0
   snapGrid(t, angle_rad);
 #else
@@ -170,7 +173,9 @@ static void Bend(TransInfo *t)
    * this isn't essential but nicer to give reasonable snapping values for radius. */
   if (t->tsnap.mode & SCE_SNAP_TO_INCREMENT) {
     const float radius_snap = 0.1f;
-    const float snap_hack = (t->increment[0] * bend_data->warp_init_dist) / radius_snap;
+    const float snap_hack = has_init_dist ?
+                                (t->increment[0] * bend_data->warp_init_dist) / radius_snap :
+                                1.0f;
     values.scale *= snap_hack;
     transform_snap_increment(t, values.vector);
     values.scale /= snap_hack;
@@ -178,7 +183,9 @@ static void Bend(TransInfo *t)
 #endif
 
   if (applyNumInput(&t->num, values.vector)) {
-    values.scale = values.scale / bend_data->warp_init_dist;
+    if (has_init_dist) {
+      values.scale = values.scale / bend_data->warp_init_dist;
+    }
   }
 
   copy_v2_v2(t->values_final, values.vector);

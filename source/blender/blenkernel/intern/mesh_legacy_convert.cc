@@ -1270,7 +1270,7 @@ void BKE_mesh_legacy_sharp_faces_from_flags(Mesh *mesh)
                   polys.end(),
                   [](const MPoly &poly) { return !(poly.flag_legacy & ME_SMOOTH); }))
   {
-    SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_only_span<bool>(
+    SpanAttributeWriter<bool> sharp_faces = attributes.ensure_for_write_only_span<bool>(
         "sharp_face", AttrDomain::Face);
     threading::parallel_for(polys.index_range(), 4096, [&](const IndexRange range) {
       for (const int i : range) {
@@ -1366,12 +1366,10 @@ static void move_face_map_data_to_attributes(Mesh *mesh)
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   for (const auto item : groups.items()) {
-    bke::SpanAttributeWriter<bool> attribute = attributes.lookup_or_add_for_write_span<bool>(
+    bke::SpanAttributeWriter<bool> attribute = attributes.ensure_for_write_span<bool>(
         ".temp_face_map_" + std::to_string(item.key), bke::AttrDomain::Face);
-    if (attribute) {
-      attribute.span.fill_indices(item.value.as_span(), true);
-      attribute.finish();
-    }
+    attribute.span.fill_indices(item.value.as_span(), true);
+    attribute.finish();
   }
 }
 
@@ -1522,7 +1520,7 @@ void BKE_mesh_legacy_sharp_edges_from_flags(Mesh *mesh)
                   edges.end(),
                   [](const MEdge &edge) { return edge.flag_legacy & ME_SHARP; }))
   {
-    SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_only_span<bool>(
+    SpanAttributeWriter<bool> sharp_edges = attributes.ensure_for_write_only_span<bool>(
         "sharp_edge", AttrDomain::Edge);
     threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
       for (const int i : range) {
@@ -1554,7 +1552,7 @@ void BKE_mesh_legacy_uv_seam_from_flags(Mesh *mesh)
                   edges.end(),
                   [](const MEdge &edge) { return edge.flag_legacy & ME_SEAM; }))
   {
-    SpanAttributeWriter<bool> uv_seams = attributes.lookup_or_add_for_write_only_span<bool>(
+    SpanAttributeWriter<bool> uv_seams = attributes.ensure_for_write_only_span<bool>(
         ".uv_seam", AttrDomain::Edge);
     threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
       for (const int i : range) {
@@ -1585,7 +1583,7 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
                   verts.end(),
                   [](const MVert &vert) { return vert.flag_legacy & ME_HIDE; }))
   {
-    SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_only_span<bool>(
+    SpanAttributeWriter<bool> hide_vert = attributes.ensure_for_write_only_span<bool>(
         ".hide_vert", AttrDomain::Point);
     threading::parallel_for(verts.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
@@ -1601,7 +1599,7 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
                     edges.end(),
                     [](const MEdge &edge) { return int(edge.flag_legacy) & ME_HIDE; }))
     {
-      SpanAttributeWriter<bool> hide_edge = attributes.lookup_or_add_for_write_only_span<bool>(
+      SpanAttributeWriter<bool> hide_edge = attributes.ensure_for_write_only_span<bool>(
           ".hide_edge", AttrDomain::Edge);
       threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
         for (const int i : range) {
@@ -1619,7 +1617,7 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
                   polys.end(),
                   [](const MPoly &poly) { return int(poly.flag_legacy) & ME_HIDE; }))
   {
-    SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
+    SpanAttributeWriter<bool> hide_poly = attributes.ensure_for_write_only_span<bool>(
         ".hide_poly", AttrDomain::Face);
     threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
@@ -1649,7 +1647,7 @@ void BKE_mesh_legacy_convert_mpoly_to_material_indices(Mesh *mesh)
   if (std::any_of(
           polys.begin(), polys.end(), [](const MPoly &poly) { return poly.mat_nr_legacy != 0; }))
   {
-    SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_only_span<int>(
+    SpanAttributeWriter<int> material_indices = attributes.ensure_for_write_only_span<int>(
         "material_index", AttrDomain::Face);
     threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
@@ -1777,7 +1775,7 @@ void BKE_mesh_legacy_convert_flags_to_selection_layers(Mesh *mesh)
   if (std::any_of(
           verts.begin(), verts.end(), [](const MVert &vert) { return vert.flag_legacy & SELECT; }))
   {
-    SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_only_span<bool>(
+    SpanAttributeWriter<bool> select_vert = attributes.ensure_for_write_only_span<bool>(
         ".select_vert", AttrDomain::Point);
     threading::parallel_for(verts.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
@@ -1793,7 +1791,7 @@ void BKE_mesh_legacy_convert_flags_to_selection_layers(Mesh *mesh)
                     edges.end(),
                     [](const MEdge &edge) { return edge.flag_legacy & SELECT; }))
     {
-      SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_only_span<bool>(
+      SpanAttributeWriter<bool> select_edge = attributes.ensure_for_write_only_span<bool>(
           ".select_edge", AttrDomain::Edge);
       threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
         for (const int i : range) {
@@ -1811,7 +1809,7 @@ void BKE_mesh_legacy_convert_flags_to_selection_layers(Mesh *mesh)
                   polys.end(),
                   [](const MPoly &poly) { return poly.flag_legacy & ME_FACE_SEL; }))
   {
-    SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_only_span<bool>(
+    SpanAttributeWriter<bool> select_poly = attributes.ensure_for_write_only_span<bool>(
         ".select_poly", AttrDomain::Face);
     threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {

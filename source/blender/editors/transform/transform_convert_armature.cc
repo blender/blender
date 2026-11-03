@@ -1766,18 +1766,21 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
         ob->pose->avs.recalc |= ANIMVIZ_RECALC_PATHS;
       }
     }
+    /* This needs to happen before the call to `ED_pose_recalculate_paths` because that clears the
+     * `ANIMVIZ_RECALC_PATHS` flag which makes the `animviz_build_motionpath_targets` find no
+     * targets. */
+    Vector<MPathTarget> targets;
+    for (Object *ob : motionpath_updates) {
+      animviz_build_motionpath_targets(ob, targets);
+    }
+    animviz_clear_motionpath_preview(targets);
+
     if (!canceled) {
       /* Update motion paths once for all transformed bones in an object. */
       for (Object *ob : motionpath_updates) {
         ED_pose_recalculate_paths(C, t->scene, ob);
       }
     }
-
-    Vector<MPathTarget> targets;
-    for (Object *ob : motionpath_updates) {
-      animviz_build_motionpath_targets(ob, targets);
-    }
-    animviz_clear_motionpath_preview(targets);
   }
 }
 

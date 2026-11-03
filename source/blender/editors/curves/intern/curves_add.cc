@@ -117,7 +117,7 @@ bke::CurvesGeometry primitive_random_sphere(const int curves_size, const int poi
   MutableSpan<int> offsets = curves.offsets_for_write();
   MutableSpan<float3> positions = curves.positions_for_write();
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  bke::SpanAttributeWriter<float> radius = attributes.lookup_or_add_for_write_only_span<float>(
+  bke::SpanAttributeWriter<float> radius = attributes.ensure_for_write_only_span<float>(
       "radius", bke::AttrDomain::Point);
 
   for (const int i : offsets.index_range()) {

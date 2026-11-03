@@ -476,6 +476,9 @@ class MTLCommandBufferManager {
   id<MTLCommandBuffer> active_command_buffer_ = nil;
   id<MTLCommandBuffer> last_submitted_command_buffer_ = nil;
   volatile std::atomic<int> num_active_cmd_bufs = 0;
+  /* Safe free list referenced by the active command buffer from its creation until it has
+   * completed, so that buffers freed while it is encoded aren't reused before it is executed. */
+  MTLSafeFreeList *active_safe_free_list_ = nullptr;
 
   /* Active MTLCommandEncoders. */
   enum {

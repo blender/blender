@@ -177,6 +177,7 @@ static int id_free(Main *bmain, void *idv, int flag, const bool use_flag_from_id
   if ((flag & LIB_ID_FREE_NO_MAIN) == 0) {
     ListBaseT<ID> *lb = which_libbase(bmain, type);
     BLI_remlink(lb, id);
+    BKE_libblock_owner_bmain_set(*id, nullptr);
     if ((flag & LIB_ID_FREE_NO_NAMEMAP_REMOVE) == 0) {
       BKE_main_namemap_remove_id(*bmain, *id);
     }
@@ -285,6 +286,7 @@ static size_t id_delete(Main *bmain, Set<ID *> &ids_to_delete, const BKEIDDelete
      * code has some specific handling of 'no main' IDs that would be a problem in that
      * case). */
     BLI_remlink(lb, id_iter);
+    BKE_libblock_owner_bmain_set(*id_iter, nullptr);
     BKE_main_namemap_remove_id(*bmain, *id_iter);
     ids_to_delete.add(id_iter);
     id_remapper.add(id_iter, nullptr);

@@ -25,6 +25,12 @@ void set_bool(bool val, bool &outval)
 }
 
 [[node]]
+void set_vec2(float2 vec, float2 &outvec)
+{
+  outvec = vec;
+}
+
+[[node]]
 void set_rgb(float3 col, float3 &outcol)
 {
   outcol = col;

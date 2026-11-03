@@ -481,11 +481,8 @@ bool modifier_remove(Strip *strip, StripModifierData *smd)
 
 void modifier_clear(Strip *strip)
 {
-  StripModifierData *smd, *smd_next;
-
-  for (smd = strip->modifiers.first(); smd; smd = smd_next) {
-    smd_next = smd->next;
-    modifier_free(smd);
+  for (StripModifierData &smd : strip->modifiers.items_mutable()) {
+    modifier_free(&smd);
   }
 
   strip->modifiers.clear_no_delete();

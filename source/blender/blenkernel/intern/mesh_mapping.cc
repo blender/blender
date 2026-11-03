@@ -789,9 +789,11 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
   innrcut->count = num_innercut_items;
   innrcut->indices = static_cast<int *>(
       BLI_memarena_alloc(mem, sizeof(*innrcut->indices) * size_t(num_innercut_items)));
-  memcpy(innrcut->indices,
-         innercut_item_indices,
-         sizeof(*innrcut->indices) * size_t(num_innercut_items));
+  if (num_innercut_items) {
+    memcpy(innrcut->indices,
+           innercut_item_indices,
+           sizeof(*innrcut->indices) * size_t(num_innercut_items));
+  }
 }
 
 static bool mesh_calc_islands_loop_face_uv(const int totedge,
@@ -861,9 +863,7 @@ static bool mesh_calc_islands_loop_face_uv(const int totedge,
                               &num_edge_boundaries);
 
   if (!num_face_groups) {
-    if (num_edge_boundaries) {
-      MEM_delete(edge_boundaries);
-    }
+    MEM_delete(edge_boundaries);
     return false;
   }
 
@@ -915,10 +915,7 @@ static bool mesh_calc_islands_loop_face_uv(const int totedge,
   MEM_delete(face_indices);
   MEM_delete(loop_indices);
   MEM_delete(face_groups);
-
-  if (num_edge_boundaries) {
-    MEM_delete(edge_boundaries);
-  }
+  MEM_delete(edge_boundaries);
 
   if (num_edge_boundaries) {
     MEM_delete(edge_boundary_count);

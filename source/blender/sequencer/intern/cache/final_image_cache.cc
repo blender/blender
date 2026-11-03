@@ -18,6 +18,7 @@
 #include "IMB_imbuf.hh"
 
 #include "SEQ_relations.hh"
+#include "SEQ_scene_strip.hh"
 #include "SEQ_sequencer.hh"
 
 #include "final_image_cache.hh"
@@ -241,11 +242,10 @@ bool final_image_cache_evict(Scene *scene)
   }
   const bool prefetch_loops_around = cur_prefetch_start > cur_prefetch_end;
 
-  const int timeline_start = scene->playback_start();
-  const int timeline_end = scene->playback_end();
+  ScenePlaybackRange timeline = scene_playback_range_get(scene);
   /* If we wrap around, treat the timeline start as the playback head position.
    * This is to try to mitigate un-needed cache evictions. */
-  const int cur_frame = prefetch_loops_around ? timeline_start : scene->r.cfra;
+  const int cur_frame = prefetch_loops_around ? timeline.start_frame : scene->r.cfra;
 
   FinalImageCache::Key best_key = {};
   ImBuf *best_item = nullptr;
@@ -253,10 +253,10 @@ bool final_image_cache_evict(Scene *scene)
   for (const auto &item : cache->map_.items()) {
     const int item_frame = item.key.timeline_frame;
     if (prefetch_loops_around) {
-      if (item_frame >= timeline_start && item_frame <= cur_prefetch_end) {
+      if (item_frame >= timeline.start_frame && item_frame <= cur_prefetch_end) {
         continue; /* Within active prefetch range, do not try to remove it. */
       }
-      if (item_frame >= cur_prefetch_start && item_frame <= timeline_end) {
+      if (item_frame >= cur_prefetch_start && item_frame <= timeline.end_frame) {
         continue; /* Within active prefetch range, do not try to remove it. */
       }
     }

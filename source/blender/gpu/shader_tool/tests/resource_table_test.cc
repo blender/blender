@@ -288,6 +288,38 @@ struct B {
     auto [output, _, error] = process_test_string(input, shader::Language::BSL);
     EXPECT_EQ(error, "Redefinition of compilation constant 'a'");
   }
+  {
+    string input = R"(
+struct V {
+  [[compilation_constant]] const bool v;
+};
+struct SRT {
+  [[resource_table]] V vv;
+  enum E : int { A };
+
+  [[compilation_constant]] const E c;
+  [[push_constant]] [[condition(c == E::A)]] float test;
+  [[push_constant]] [[condition(c == A)]] float test2;
+};
+
+[[compute]]
+void entry([[resource_table]] [[condition(v)]] SRT &srt)
+{
+  if (srt.vv.v) [[static_branch]] {
+    if (srt.c == SRT::A) [[static_branch]] {
+      srt.test;
+    }
+    if (srt.c == SRT::E::A) [[static_branch]] {
+      srt.test2;
+    }
+  }
+}
+
+PipelineCompute test(entry, SRT{.c = SRT::A});
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "");
+  }
 }
 
 TEST(shader_tool, SrtTemplateWrapper)

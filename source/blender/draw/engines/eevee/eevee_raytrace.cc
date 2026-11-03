@@ -76,6 +76,12 @@ void RayTraceModule::init()
 
   use_raytracing_ = (sce_eevee.flag & SCE_EEVEE_SSR_ENABLED) != 0;
 
+  /* TODO: Support raytracing for panoramic camera. */
+  if (use_raytracing_ && inst_.camera.is_panoramic()) {
+    use_raytracing_ = false;
+    inst_.info_append_i18n("Raytracing is not supported with panoramic camera yet");
+  }
+
   float4 data(0.0f);
   radiance_dummy_black_tx_.ensure_2d(
       gpu::TextureFormat::RAYTRACE_RADIANCE_FORMAT, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, data);

@@ -154,6 +154,12 @@ struct [[host_shared]] ViewMatrices {
     return viewinv[1].xyz();
   }
 
+  /* Returns the view right vector. */
+  float3 right() const
+  {
+    return viewinv[0].xyz();
+  }
+
   /* Returns the view origin. */
   float3 position() const
   {

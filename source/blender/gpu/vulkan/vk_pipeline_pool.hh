@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <atomic>
 #include <cstring>
 
 #include "xxhash.h"
@@ -395,12 +394,6 @@ class VKPipelinePool : public NonCopyable {
   VKPipelineMap<VKGraphicsInfo::Shaders> shaders_libs_;
   VKPipelineMap<VKGraphicsInfo::FragmentOut> fragment_output_libs_;
 
-  /* Total count of pipelines compiled on demand since app start so ongoing pipeline compilation
-   * can be reported to `bpy.app.is_job_running("SHADER_COMPILATION")`. */
-  std::atomic<uint64_t> compilation_counter_ = 0;
-  /* The value of the compilation counter at the last frame boundary. */
-  uint64_t compilation_counter_at_reset_ = 0;
-
  public:
   void init();
 
@@ -476,17 +469,6 @@ class VKPipelinePool : public NonCopyable {
    * Discard all pipelines that uses the given pipeline_layout.
    */
   void discard(VKDiscardPool &discard_pool, VkPipelineLayout vk_pipeline_layout);
-
-  /**
-   * Returns true when any pipeline has been created on demand since the last reset.
-   */
-  bool compiled_since_last_reset() const;
-
-  /**
-   * Snapshot the on-demand pipeline compilation counter, so `compiled_since_last_reset` reports
-   * only pipelines created after this call. Meant to be called once per frame.
-   */
-  void reset_compilation_tracking();
 
   /**
    * Destroy all created pipelines.

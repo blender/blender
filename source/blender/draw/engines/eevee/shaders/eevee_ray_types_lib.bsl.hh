@@ -127,7 +127,7 @@ struct ScreenThicknessEstimator {
     float delta_z = sample_ss_z - prev_ss_z;
     float slope = delta_z / delta_t;
     /* Treat this sample as a segment between the previous sample and this one.
-     * This avoids loosing the surface when ray is parallel to the view plane. */
+     * This avoids losing the surface when ray is parallel to the view plane. */
     float thickness = abs(delta_z);
     /* Treat abrupt change of slope as different objects.
      * Increasing this number reduces the porosity of surfaces almost parallel to the view but

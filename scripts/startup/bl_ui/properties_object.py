@@ -75,7 +75,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.prop(ob, "rotation_mode", text="Mode")
-        row.operator_menu_enum("anim.rotation_mode_convert", "mode", icon='DOWNARROW_HLT', text="")
+        row.menu("ANIM_MT_rotation_mode_convert", text="", icon='DOWNARROW_HLT')
 
         col = layout.column()
         row = col.row(align=True)

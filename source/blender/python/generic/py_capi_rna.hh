@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_compiler_attrs.hh"
+
 #include <Python.h>
 
 namespace blender {
@@ -18,7 +20,7 @@ struct EnumPropertyItem;
  * Convert all items into a single comma separated string.
  * Use for creating useful error messages.
  */
-[[nodiscard]] char *pyrna_enum_repr(const EnumPropertyItem *item);
+[[nodiscard]] char *pyrna_enum_repr(const EnumPropertyItem *item) ATTR_MALLOC;
 
 /**
  * Same as #RNA_enum_value_from_id, but raises an exception.

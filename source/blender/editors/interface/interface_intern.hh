@@ -1829,6 +1829,27 @@ void interface_tag_script_reload_queries();
 
 void block_free_views(Block *block);
 void block_views_end(ARegion *region, const Block *block);
+/**
+ * Resolve the active item of a view that persists it (#AbstractView::use_persistent_active_item)
+ * against the index stored in the region & store the result. Must be called after
+ * #AbstractView::change_state_delayed & before sorting, so the index is in the order items were
+ * added.
+ *
+ * \return True when a script changed the active item, the caller must scroll it into view once
+ * the view is sorted, filtered & its layout is known.
+ */
+bool block_view_persistent_active_item_apply(const bContext &C,
+                                             const Block &block,
+                                             AbstractView &view);
+/**
+ * The region that stores the active item of lists & views drawn in the current context,
+ * null when there is no region.
+ *
+ * Popups use the region they were opened from (when there is one) as the popup region is freed
+ * when the popup closes, losing the active item. A side effect is the same list shares its
+ * active item between the popup & the region it was opened from.
+ */
+ARegion *region_active_item_state_region(const bContext &C);
 void block_view_persistent_state_restore(const ARegion &region,
                                          const Block &block,
                                          AbstractView &view);

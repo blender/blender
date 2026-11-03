@@ -179,7 +179,7 @@ void btCollisionWorld::updateSingleAabb(btCollisionObject* colObj)
 	else
 	{
 		//something went wrong, investigate
-		//this assert is unwanted in 3D modelers (danger of loosing work)
+		//this assert is unwanted in 3D modelers (danger of losing work)
 		colObj->setActivationState(DISABLE_SIMULATION);
 
 		static bool reportMe = true;

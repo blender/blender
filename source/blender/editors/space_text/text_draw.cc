@@ -669,7 +669,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
 
   if (st->wordwrap) {
     /* Update line heights. */
-    if (full_update || !drawcache->line_height) {
+    if (full_update || !drawcache->line_height_table) {
       drawcache->valid_head = 0;
       drawcache->valid_tail = 0;
       drawcache->update = true;

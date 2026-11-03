@@ -2111,6 +2111,9 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
     ntree->id.flag |= ID_FLAG_EMBEDDED_DATA;
   }
   ntree->owner_id = owner_id;
+  if (owner_id != nullptr) {
+    BKE_libblock_owner_bmain_set(ntree->id, owner_id->owner_bmain_for_write(), false);
+  }
 
   /* NOTE: writing and reading goes in sync, for speed. */
   ntree->typeinfo = nullptr;
@@ -4974,8 +4977,9 @@ static bNodeTree *node_tree_add_tree_do(Main *bmain,
     bNodeTree **ntree_owner_ptr = node_tree_ptr_from_id(owner_id);
     BLI_assert(ntree_owner_ptr != nullptr);
     *ntree_owner_ptr = ntree;
-    ntree->id.lib = owner_id->lib;
+    bke::id::id_lib_set(ntree->id, owner_id->lib);
     ntree->id.tag |= owner_id->tag & int(ID_TAG_EXTERN | ID_TAG_INDIRECT);
+    BKE_libblock_owner_bmain_set(ntree->id, owner_id->owner_bmain_for_write(), false);
   }
   else {
     BLI_assert(owner_id == nullptr);

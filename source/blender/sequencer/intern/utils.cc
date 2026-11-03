@@ -70,14 +70,6 @@ static void seqbase_unique_name(ListBaseT<Strip> *seqbasep, StripUniqueInfo *sui
   }
 }
 
-static bool seqbase_unique_name_recursive_fn(Strip *strip, void *arg_pt)
-{
-  if (strip->seqbase.first_) {
-    seqbase_unique_name(&strip->seqbase, static_cast<StripUniqueInfo *>(arg_pt));
-  }
-  return true;
-}
-
 void strip_unique_name_set(Scene *scene, ListBaseT<Strip> *seqbasep, Strip *strip)
 {
   StripUniqueInfo sui;
@@ -100,7 +92,12 @@ void strip_unique_name_set(Scene *scene, ListBaseT<Strip> *seqbasep, Strip *stri
   while (sui.match) {
     sui.match = 0;
     seqbase_unique_name(seqbasep, &sui);
-    foreach_strip(seqbasep, seqbase_unique_name_recursive_fn, &sui);
+    foreach_strip(seqbasep, [&](Strip *strip) {
+      if (!strip->seqbase.is_empty()) {
+        seqbase_unique_name(&strip->seqbase, &sui);
+      }
+      return true;
+    });
   }
 
   edit_strip_name_set(scene, strip, sui.name_dest);
@@ -292,22 +289,18 @@ ListBaseT<Strip> *get_seqbase_by_strip(const Scene *scene, Strip *strip)
 
 Strip *strip_from_strip_elem(ListBaseT<Strip> *seqbase, StripElem *se)
 {
-  Strip *istrip;
-
-  for (istrip = seqbase->first(); istrip; istrip = istrip->next) {
-    Strip *strip_found;
-    if ((istrip->data && istrip->data->stripdata) &&
-        ARRAY_HAS_ITEM(se, istrip->data->stripdata, istrip->content_length()))
+  for (Strip &istrip : *seqbase) {
+    if ((istrip.data && istrip.data->stripdata) &&
+        ARRAY_HAS_ITEM(se, istrip.data->stripdata, istrip.content_length()))
     {
-      break;
+      return &istrip;
     }
-    if ((strip_found = strip_from_strip_elem(&istrip->seqbase, se))) {
-      istrip = strip_found;
-      break;
+    if (Strip *strip_found = strip_from_strip_elem(&istrip.seqbase, se)) {
+      return strip_found;
     }
   }
 
-  return istrip;
+  return nullptr;
 }
 
 Strip *get_strip_by_name(ListBaseT<Strip> *seqbase, const char *name, bool recursive)

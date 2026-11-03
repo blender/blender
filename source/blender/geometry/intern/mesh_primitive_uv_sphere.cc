@@ -249,6 +249,11 @@ BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh,
 
   bke::SpanAttributeWriter<float2> uv_attribute =
       attributes.lookup_or_add_for_write_only_span<float2>(uv_map_id, bke::AttrDomain::Corner);
+
+  if (!uv_attribute) {
+    return;
+  }
+
   MutableSpan<float2> uvs = uv_attribute.span;
 
   const float dy = 1.0f / rings;

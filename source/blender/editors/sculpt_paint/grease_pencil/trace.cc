@@ -191,7 +191,7 @@ static bke::CurvesGeometry grease_pencil_trace_image(TraceJob &trace_job, const 
   bke::MutableAttributeAccessor attributes = trace_curves.attributes_for_write();
   BLI_assert_msg(trace_job.material_index >= 0,
                  "ensure_material must be called on the main thread");
-  bke::SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
+  bke::SpanAttributeWriter<int> material_indices = attributes.ensure_for_write_span<int>(
       "material_index", bke::AttrDomain::Curve);
   material_indices.span.fill(trace_job.material_index);
   material_indices.finish();

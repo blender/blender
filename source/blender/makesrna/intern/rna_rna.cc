@@ -1451,6 +1451,10 @@ static void rna_property_override_diff_propptr_validate_diffing(
   const bool no_ownership = ptrdiff_ctx.no_ownership;
   const bool no_prop_name = ptrdiff_ctx.no_prop_name;
   const bool do_force_name = ptrdiff_ctx.do_force_name;
+  const bool is_same_type = propptr_b != nullptr && (ptrdiff_ctx.rnadiff_ctx.liboverride ?
+                                                         rna_struct_override_type_matches(
+                                                             propptr_a->type, propptr_b->type) :
+                                                         propptr_a->type == propptr_b->type);
 
   ptrdiff_ctx.is_valid_for_diffing = true;
 
@@ -1468,14 +1472,14 @@ static void rna_property_override_diff_propptr_validate_diffing(
     else {
       ptrdiff_ctx.is_id = RNA_struct_is_ID(propptr_b->type);
       ptrdiff_ctx.is_null = true;
-      ptrdiff_ctx.is_type_diff = propptr_a->type != propptr_b->type;
+      ptrdiff_ctx.is_type_diff = !is_same_type;
     }
     ptrdiff_ctx.is_valid_for_diffing = false;
   }
   else {
     ptrdiff_ctx.is_id = RNA_struct_is_ID(propptr_a->type);
     ptrdiff_ctx.is_null = (propptr_b == nullptr || !*propptr_b);
-    ptrdiff_ctx.is_type_diff = (propptr_b == nullptr || propptr_b->type != propptr_a->type);
+    ptrdiff_ctx.is_type_diff = !is_same_type;
     ptrdiff_ctx.is_valid_for_diffing = !((ptrdiff_ctx.is_id && no_ownership) ||
                                          ptrdiff_ctx.is_null || ptrdiff_ctx.is_type_diff);
   }
@@ -2735,14 +2739,23 @@ bool rna_property_override_apply_default(Main *bmain,
   UNUSED_VARS_NDEBUG(len_src, len_storage);
 
   const bool is_array = len_dst > 0;
-  const int index = is_array ? opop->subitem_reference_index : 0;
+  /* If only one of the indices is set, use it for both destination and source. */
+  const int index_dst = !is_array                           ? 0 :
+                        opop->subitem_reference_index != -1 ? opop->subitem_reference_index :
+                                                              opop->subitem_local_index;
+  const int index_src = !is_array                       ? 0 :
+                        opop->subitem_local_index != -1 ? opop->subitem_local_index :
+                                                          opop->subitem_reference_index;
+  BLI_assert_msg((!ELEM(-1, index_dst, index_src) || index_dst == index_src),
+                 "Destination and source indices must both be valid values, or `-1` to copy the "
+                 "whole arrays");
   const eID_OverrideLib_Op override_op = opop->operation;
 
   bool ret_success = true;
 
   switch (RNA_property_type(prop_dst)) {
     case PROP_BOOLEAN:
-      if (is_array && index == -1) {
+      if (is_array && ELEM(-1, index_dst, index_src)) {
         bool array_stack_a[RNA_STACK_ARRAY];
         bool *array_a;
 
@@ -2768,11 +2781,11 @@ bool rna_property_override_apply_default(Main *bmain,
         }
       }
       else {
-        const bool value = RNA_PROPERTY_GET_SINGLE(boolean, ptr_src, prop_src, index);
+        const bool value = RNA_PROPERTY_GET_SINGLE(boolean, ptr_src, prop_src, index_src);
 
         switch (override_op) {
           case LIBOVERRIDE_OP_REPLACE:
-            RNA_PROPERTY_SET_SINGLE(boolean, ptr_dst, prop_dst, index, value);
+            RNA_PROPERTY_SET_SINGLE(boolean, ptr_dst, prop_dst, index_dst, value);
             break;
           default:
             CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
@@ -2783,7 +2796,7 @@ bool rna_property_override_apply_default(Main *bmain,
       }
       break;
     case PROP_INT:
-      if (is_array && index == -1) {
+      if (is_array && ELEM(-1, index_dst, index_src)) {
         int array_stack_a[RNA_STACK_ARRAY], array_stack_b[RNA_STACK_ARRAY];
         int *array_a, *array_b;
 
@@ -2831,7 +2844,7 @@ bool rna_property_override_apply_default(Main *bmain,
       }
       else {
         const int storage_value = prop_storage ? RNA_PROPERTY_GET_SINGLE(
-                                                     int, ptr_storage, prop_storage, index) :
+                                                     int, ptr_storage, prop_storage, index_dst) :
                                                  0;
 
         switch (override_op) {
@@ -2839,23 +2852,23 @@ bool rna_property_override_apply_default(Main *bmain,
             RNA_PROPERTY_SET_SINGLE(int,
                                     ptr_dst,
                                     prop_dst,
-                                    index,
-                                    RNA_PROPERTY_GET_SINGLE(int, ptr_src, prop_src, index));
+                                    index_dst,
+                                    RNA_PROPERTY_GET_SINGLE(int, ptr_src, prop_src, index_src));
             break;
           case LIBOVERRIDE_OP_ADD:
             RNA_PROPERTY_SET_SINGLE(int,
                                     ptr_dst,
                                     prop_dst,
-                                    index,
-                                    RNA_PROPERTY_GET_SINGLE(int, ptr_dst, prop_dst, index) -
+                                    index_dst,
+                                    RNA_PROPERTY_GET_SINGLE(int, ptr_dst, prop_dst, index_dst) +
                                         storage_value);
             break;
           case LIBOVERRIDE_OP_SUBTRACT:
             RNA_PROPERTY_SET_SINGLE(int,
                                     ptr_dst,
                                     prop_dst,
-                                    index,
-                                    RNA_PROPERTY_GET_SINGLE(int, ptr_dst, prop_dst, index) -
+                                    index_dst,
+                                    RNA_PROPERTY_GET_SINGLE(int, ptr_dst, prop_dst, index_dst) -
                                         storage_value);
             break;
           default:
@@ -2867,7 +2880,7 @@ bool rna_property_override_apply_default(Main *bmain,
       }
       break;
     case PROP_FLOAT:
-      if (is_array && index == -1) {
+      if (is_array && ELEM(-1, index_dst, index_src)) {
         float array_stack_a[RNA_STACK_ARRAY], array_stack_b[RNA_STACK_ARRAY];
         float *array_a, *array_b;
 
@@ -2920,40 +2933,41 @@ bool rna_property_override_apply_default(Main *bmain,
         }
       }
       else {
-        const float storage_value = prop_storage ? RNA_PROPERTY_GET_SINGLE(
-                                                       float, ptr_storage, prop_storage, index) :
-                                                   0.0f;
+        const float storage_value = prop_storage ?
+                                        RNA_PROPERTY_GET_SINGLE(
+                                            float, ptr_storage, prop_storage, index_dst) :
+                                        0.0f;
 
         switch (override_op) {
           case LIBOVERRIDE_OP_REPLACE:
             RNA_PROPERTY_SET_SINGLE(float,
                                     ptr_dst,
                                     prop_dst,
-                                    index,
-                                    RNA_PROPERTY_GET_SINGLE(float, ptr_src, prop_src, index));
+                                    index_dst,
+                                    RNA_PROPERTY_GET_SINGLE(float, ptr_src, prop_src, index_src));
             break;
           case LIBOVERRIDE_OP_ADD:
             RNA_PROPERTY_SET_SINGLE(float,
                                     ptr_dst,
                                     prop_dst,
-                                    index,
-                                    RNA_PROPERTY_GET_SINGLE(float, ptr_dst, prop_dst, index) +
+                                    index_dst,
+                                    RNA_PROPERTY_GET_SINGLE(float, ptr_dst, prop_dst, index_dst) +
                                         storage_value);
             break;
           case LIBOVERRIDE_OP_SUBTRACT:
             RNA_PROPERTY_SET_SINGLE(float,
                                     ptr_dst,
                                     prop_dst,
-                                    index,
-                                    RNA_PROPERTY_GET_SINGLE(float, ptr_dst, prop_dst, index) -
+                                    index_dst,
+                                    RNA_PROPERTY_GET_SINGLE(float, ptr_dst, prop_dst, index_dst) -
                                         storage_value);
             break;
           case LIBOVERRIDE_OP_MULTIPLY:
             RNA_PROPERTY_SET_SINGLE(float,
                                     ptr_dst,
                                     prop_dst,
-                                    index,
-                                    RNA_PROPERTY_GET_SINGLE(float, ptr_dst, prop_dst, index) *
+                                    index_dst,
+                                    RNA_PROPERTY_GET_SINGLE(float, ptr_dst, prop_dst, index_dst) *
                                         storage_value);
             break;
           default:
@@ -2967,8 +2981,57 @@ bool rna_property_override_apply_default(Main *bmain,
     case PROP_ENUM: {
       const int value = RNA_property_enum_get(ptr_src, prop_src);
 
+      /* Basic validation of assigned value when source and destination properties are different.
+       *
+       * NOTE: This will not handle properly dynamically generated enum items requiring a bContext
+       * pointer (validation will most likely fail, and assignment will not happen). This is
+       * currently considered an acceptable trade-off.
+       */
+      auto validate_enum_value = [](PointerRNA *ptr, PropertyRNA *prop, const int value) -> bool {
+        const EnumPropertyItem *enum_items_first = nullptr;
+        int tot_items = 0;
+        bool free_items = false;
+        RNA_property_enum_items_ex(
+            nullptr, ptr, prop, false, &enum_items_first, &tot_items, &free_items);
+        Span<EnumPropertyItem> enum_items(enum_items_first, tot_items);
+
+        bool result = false;
+        if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
+          int enum_bitmask = 0;
+          for (const EnumPropertyItem &enum_item : enum_items) {
+            if (enum_item.identifier && enum_item.identifier[0]) {
+              enum_bitmask |= enum_item.value;
+            }
+          }
+          if ((value & (~enum_bitmask)) == 0) {
+            result = true;
+          }
+        }
+        else {
+          for (const EnumPropertyItem &enum_item : enum_items) {
+            if (enum_item.identifier && enum_item.identifier[0]) {
+              if (enum_item.value == value) {
+                result = true;
+                break;
+              }
+            }
+          }
+        }
+
+        if (free_items) {
+          MEM_delete(enum_items_first);
+        }
+        return result;
+      };
+
       switch (override_op) {
         case LIBOVERRIDE_OP_REPLACE:
+          if (prop_dst != prop_src && !validate_enum_value(ptr_dst, prop_dst, value)) {
+            CLOG_ERROR(
+                &LOG_COMPARE_OVERRIDE,
+                "The source property enum value is incompatible with the destination property");
+            return false;
+          }
           RNA_property_enum_set(ptr_dst, prop_dst, value);
           break;
         /* TODO: support add/sub, for bitflags? */

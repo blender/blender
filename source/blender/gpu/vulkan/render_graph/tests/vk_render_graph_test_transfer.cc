@@ -10,6 +10,16 @@ namespace blender::gpu::render_graph {
 
 class VKRenderGraphTestTransfer : public VKRenderGraphTest {};
 
+static std::string host_read_barrier(const char *buffer)
+{
+  return "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TRANSFER_BIT, "
+         "dst_stage_mask=VK_PIPELINE_STAGE_HOST_BIT" +
+         endl() +
+         " - buffer_barrier(src_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
+         "dst_access_mask=VK_ACCESS_HOST_READ_BIT, buffer=" +
+         buffer + ", offset=0, size=18446744073709551615)" + endl() + ")";
+}
+
 /**
  * Fill a single buffer and read it back.
  */
@@ -20,10 +30,14 @@ TEST_F(VKRenderGraphTestTransfer, fill_and_read_back)
   buffer.set_resource_handle(resources.add_buffer(buffer));
   VKFillBufferNode::CreateInfo fill_buffer = {buffer, 1024, 42};
   render_graph->add_node(fill_buffer);
+  render_graph->add_node(VKSynchronizeReadbackNode::CreateInfo{buffer});
+  /* Repeating the same visibility request must not add another barrier. */
+  render_graph->add_node(VKSynchronizeReadbackNode::CreateInfo{buffer});
   submit(render_graph, command_buffer);
 
-  EXPECT_EQ(1, log.size());
+  ASSERT_EQ(2, log.size());
   EXPECT_EQ("fill_buffer(dst_buffer=0x1, dst_offset=0, size=1024, data=42)", log[0]);
+  EXPECT_EQ(host_read_barrier("0x1"), log[1]);
 }
 
 /**
@@ -47,9 +61,10 @@ TEST_F(VKRenderGraphTestTransfer, fill_transfer_and_read_back)
   copy_buffer.region.size = 1024;
   render_graph->add_node(copy_buffer);
 
+  render_graph->add_node(VKSynchronizeReadbackNode::CreateInfo{staging_buffer});
   submit(render_graph, command_buffer);
 
-  EXPECT_EQ(3, log.size());
+  ASSERT_EQ(4, log.size());
   EXPECT_EQ("fill_buffer(dst_buffer=0x1, dst_offset=0, size=1024, data=42)", log[0]);
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TRANSFER_BIT, "
@@ -63,6 +78,7 @@ TEST_F(VKRenderGraphTestTransfer, fill_transfer_and_read_back)
   EXPECT_EQ("copy_buffer(src_buffer=0x1, dst_buffer=0x2" + endl() +
                 " - region(src_offset=0, dst_offset=0, size=1024)" + endl() + ")",
             log[2]);
+  EXPECT_EQ(host_read_barrier("0x2"), log[3]);
 }
 
 /**
@@ -79,9 +95,10 @@ TEST_F(VKRenderGraphTestTransfer, fill_fill_read_back)
   render_graph->add_node(fill_buffer_1);
   VKFillBufferNode::CreateInfo fill_buffer_2 = {buffer, 1024, 42};
   render_graph->add_node(fill_buffer_2);
+  render_graph->add_node(VKSynchronizeReadbackNode::CreateInfo{buffer});
   submit(render_graph, command_buffer);
 
-  EXPECT_EQ(3, log.size());
+  ASSERT_EQ(4, log.size());
   EXPECT_EQ("fill_buffer(dst_buffer=0x1, dst_offset=0, size=1024, data=0)", log[0]);
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TRANSFER_BIT, "
@@ -93,6 +110,7 @@ TEST_F(VKRenderGraphTestTransfer, fill_fill_read_back)
           endl() + ")",
       log[1]);
   EXPECT_EQ("fill_buffer(dst_buffer=0x1, dst_offset=0, size=1024, data=42)", log[2]);
+  EXPECT_EQ(host_read_barrier("0x1"), log[3]);
 }
 
 /**
@@ -579,6 +597,32 @@ TEST_F(VKRenderGraphTestTransfer, copy_buffer_to_image_synchronization_aliased_i
           endl() + "    x=0, y=0, z=0  , image_extent=" + endl() +
           "    width=64, height=64, depth=1  )" + endl() + ")",
       log[4]);
+}
+
+/** Resource links must keep a later initial transfer after the synchronization point. */
+TEST_F(VKRenderGraphTestTransfer, synchronize_readback_before_initial_transfer)
+{
+  VKTrackedHandle<VkBuffer> buffer(1u);
+  buffer.set_resource_handle(resources.add_buffer(buffer));
+  NodeHandle readback = render_graph->add_node(VKSynchronizeReadbackNode::CreateInfo{buffer});
+  Span<VKRenderGraphBuffer> links = render_graph->linked_buffers(readback);
+  ASSERT_EQ(1, links.size());
+  EXPECT_EQ(buffer.get_resource_handle(), links[0].resource.handle);
+  EXPECT_EQ(0, links[0].resource.stamp);
+  EXPECT_EQ(VK_ACCESS_HOST_READ_BIT, links[0].vk_access_flags);
+  EXPECT_EQ(1, resources.get_buffer(buffer.get_resource_handle()).stamp);
+  NodeHandle fill = render_graph->add_node(VKFillBufferNode::CreateInfo{buffer, 1024, 42});
+  NodeHandle final_readback = render_graph->add_node(
+      VKSynchronizeReadbackNode::CreateInfo{buffer});
+  VKScheduler scheduler;
+  Span<NodeHandle> nodes = scheduler.select_nodes(*render_graph);
+  ASSERT_EQ(3, nodes.size());
+  EXPECT_EQ(readback, nodes[0]);
+  EXPECT_EQ(fill, nodes[1]);
+  EXPECT_EQ(final_readback, nodes[2]);
+  submit(render_graph, command_buffer);
+  ASSERT_EQ(3, log.size());
+  EXPECT_EQ(host_read_barrier("0x1"), log[2]);
 }
 
 }  // namespace blender::gpu::render_graph

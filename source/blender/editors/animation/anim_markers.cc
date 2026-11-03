@@ -21,6 +21,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_animsys.hh"
 #include "BKE_context.hh"
 #include "BKE_idprop.hh"
 #include "BKE_layer.hh"
@@ -2016,9 +2017,7 @@ static wmOperatorStatus ed_marker_make_links_scene_exec(bContext *C, wmOperator 
   /* copy markers */
   for (TimeMarker &marker : *markers) {
     if (marker.flag & SELECT) {
-      marker_new = MEM_dupalloc(&marker);
-      marker_new->prev = marker_new->next = nullptr;
-
+      marker_new = BKE_copy_time_marker(marker, 0);
       BLI_addtail(&scene_to->markers, marker_new);
     }
   }

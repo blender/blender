@@ -1315,7 +1315,7 @@ IndexMask retrieve_visible_bezier_handle_elements(Object &object,
 {
   if (selection_domain == bke::AttrDomain::Curve) {
     return ed::greasepencil::retrieve_visible_bezier_handle_strokes(
-        object, drawing, handle_display, memory);
+        object, drawing, CURVE_HANDLE_NONE, memory);
   }
   if (selection_domain == bke::AttrDomain::Point) {
     return ed::greasepencil::retrieve_visible_bezier_handle_points(
@@ -1553,10 +1553,10 @@ Array<PointTransferData> compute_topology_change(
 
   /* Display intersections with flat caps. */
   if (!keep_caps) {
-    bke::SpanAttributeWriter<int8_t> dst_start_caps =
-        dst_attributes.lookup_or_add_for_write_span<int8_t>("start_cap", bke::AttrDomain::Curve);
-    bke::SpanAttributeWriter<int8_t> dst_end_caps =
-        dst_attributes.lookup_or_add_for_write_span<int8_t>("end_cap", bke::AttrDomain::Curve);
+    bke::SpanAttributeWriter<int8_t> dst_start_caps = dst_attributes.ensure_for_write_span<int8_t>(
+        "start_cap", bke::AttrDomain::Curve);
+    bke::SpanAttributeWriter<int8_t> dst_end_caps = dst_attributes.ensure_for_write_span<int8_t>(
+        "end_cap", bke::AttrDomain::Curve);
 
     threading::parallel_for(dst.curves_range(), 4096, [&](const IndexRange dst_curves) {
       for (const int dst_curve : dst_curves) {
@@ -2118,7 +2118,7 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
       if (!attributes.contains("material_index")) {
         continue;
       }
-      SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
+      SpanAttributeWriter<int> material_indices = attributes.ensure_for_write_span<int>(
           "material_index", AttrDomain::Curve);
       for (int &material_index : material_indices.span) {
         if (material_indices_map.index_range().contains(material_index)) {

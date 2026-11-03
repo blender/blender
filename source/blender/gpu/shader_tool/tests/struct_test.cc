@@ -680,6 +680,51 @@ struct [[host_shared]] T {
     EXPECT_EQ(error,
               "All union members must have their type wrapped using the union_t<T> template.");
   }
+  {
+    string input = R"(
+struct U {
+  union { float4 a; int4 b; };
+  float4 c;
+};
+void f(){
+  U u = {.c = float4(1)};
+}
+)";
+    string expect = R"(
+
+  struct U_a0 { float4 _0;  };
+#line 3
+U_a0 U_a0_ctor_() {U_a0 r;r._0=float4(0);return r;}
+
+float4 _a(U_a0 this_) {
+  return this_._0;
+}
+void _a_set_(_ref(U_a0 ,this_), float4 v) {
+  this_._0 = v;
+}
+int4 _b(U_a0 this_) {
+  return floatBitsToInt(this_._0);
+}
+void _b_set_(_ref(U_a0 ,this_), int4 v) {
+  this_._0 = intBitsToFloat(v);
+}
+#line 2
+struct U {
+  U_a0 a0_;
+  float4 c;
+};
+#line 3
+  U U_ctor_() {U r;r.a0_=U_a0_ctor_();r.c=float4(0);return r;}
+
+
+void f(){
+  U u = _ctor(U)U_a0_ctor_(),float4(1) _rotc();
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
 }
 
 TEST(shader_tool, Enum)

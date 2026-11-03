@@ -68,7 +68,7 @@ static void change_lib(Main *bmain, ID *id, Library *lib)
     return;
   }
   BKE_main_namemap_remove_id(*bmain, *id);
-  id->lib = lib;
+  bke::id::id_lib_set(*id, lib);
   BKE_main_namemap_get_unique_name(*bmain, *id, id->name + 2);
 }
 

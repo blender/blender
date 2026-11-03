@@ -509,7 +509,7 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const pxr::UsdTimeCode time)
   }
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter creases = attributes.lookup_or_add_for_write_only_span<float>(
+  bke::SpanAttributeWriter creases = attributes.ensure_for_write_only_span<float>(
       "crease_vert", bke::AttrDomain::Point);
   creases.span.fill(0.0f);
 
@@ -569,7 +569,7 @@ void USDMeshReader::read_edge_creases(Mesh *mesh, const pxr::UsdTimeCode time)
   }
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter creases = attributes.lookup_or_add_for_write_only_span<float>(
+  bke::SpanAttributeWriter creases = attributes.ensure_for_write_only_span<float>(
       "crease_edge", bke::AttrDomain::Edge);
   creases.span.fill(0.0f);
 
@@ -625,8 +625,8 @@ void USDMeshReader::read_velocities(Mesh *mesh, const pxr::UsdTimeCode time)
 
   if (!velocities.empty()) {
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-    bke::SpanAttributeWriter<float3> velocity =
-        attributes.lookup_or_add_for_write_only_span<float3>("velocity", bke::AttrDomain::Point);
+    bke::SpanAttributeWriter<float3> velocity = attributes.ensure_for_write_only_span<float3>(
+        "velocity", bke::AttrDomain::Point);
 
     Span<pxr::GfVec3f> usd_data(velocities.cdata(), velocities.size());
     velocity.span.copy_from(usd_data.cast<float3>());
@@ -953,7 +953,7 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const pxr::UsdTi
   Map<pxr::SdfPath, int> mat_map;
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
+  bke::SpanAttributeWriter<int> material_indices = attributes.ensure_for_write_span<int>(
       "material_index", bke::AttrDomain::Face);
   this->assign_facesets_to_material_indices(time, material_indices.span, &mat_map);
   material_indices.finish();
@@ -1012,8 +1012,8 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
     if (active_mesh->faces_num != 0 && import_params_.import_materials) {
       Map<pxr::SdfPath, int> mat_map;
       bke::MutableAttributeAccessor attributes = active_mesh->attributes_for_write();
-      bke::SpanAttributeWriter<int> material_indices =
-          attributes.lookup_or_add_for_write_span<int>("material_index", bke::AttrDomain::Face);
+      bke::SpanAttributeWriter<int> material_indices = attributes.ensure_for_write_span<int>(
+          "material_index", bke::AttrDomain::Face);
       assign_facesets_to_material_indices(
           params.motion_sample_time, material_indices.span, &mat_map);
       material_indices.finish();

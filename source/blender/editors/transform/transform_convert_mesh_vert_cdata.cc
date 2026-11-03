@@ -58,7 +58,7 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
 {
   BLI_assert(ELEM(t->mode, TFM_BWEIGHT, TFM_VERT_CREASE));
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+    EditMesh *em = BKE_editmesh_from_object(tc->obedit);
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
     BMVert *eve;
     BMIter iter;

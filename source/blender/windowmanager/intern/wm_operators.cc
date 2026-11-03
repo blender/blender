@@ -587,6 +587,10 @@ static const char *wm_context_member_from_ptr(const bContext *C,
 
               TEST_PTR_DATA_TYPE("space_data.overlay", RNA_View3DOverlay, ptr, v3d);
               TEST_PTR_DATA_TYPE("space_data.shading", RNA_View3DShading, ptr, shading);
+              /* Same region as #rna_SpaceView3D_region_3d_get. */
+              const ARegion *region = CTX_wm_area(C)->regionbase.last();
+              TEST_PTR_DATA_TYPE(
+                  "space_data.region_3d", RNA_RegionView3D, ptr, region->regiondata);
               break;
             }
             case SPACE_GRAPH: {

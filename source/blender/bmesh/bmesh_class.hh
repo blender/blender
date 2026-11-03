@@ -405,7 +405,7 @@ struct BMesh {
   /**
    * Should be copy of scene select mode.
    *
-   * NOTE(@ideasman42): Stored in #BMEditMesh too, a bit confusing, make sure they're in sync!
+   * NOTE(@ideasman42): Stored in #EditMesh too, a bit confusing, make sure they're in sync!
    * Only use when the edit mesh can't be accessed.
    */
   short selectmode = 0;

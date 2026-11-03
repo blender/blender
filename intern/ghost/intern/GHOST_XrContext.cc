@@ -698,6 +698,11 @@ XrInstance GHOST_XrContext::getInstance() const
   return oxr_->instance;
 }
 
+XrInstanceProperties GHOST_XrContext::getInstanceProperties() const
+{
+  return oxr_->instance_properties;
+}
+
 bool GHOST_XrContext::isDebugMode() const
 {
   return debug_;

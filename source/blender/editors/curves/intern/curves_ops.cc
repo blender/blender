@@ -1380,7 +1380,7 @@ static wmOperatorStatus exec(bContext *C, wmOperator * /*op*/)
 
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
-    bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(
+    bke::SpanAttributeWriter<bool> cyclic = attributes.ensure_for_write_span<bool>(
         "cyclic", bke::AttrDomain::Curve);
     array_utils::invert_booleans(cyclic.span, selection);
     cyclic.finish();

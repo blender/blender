@@ -62,7 +62,8 @@ def _initialize_once():
     _initialize_extensions_repos_once()
 
     # Enable "core" add-ons first as other add-ons may import them, see: #161928.
-    for module_name in _addons_hidden_core:
+    # Sort for a stable order between sessions.
+    for module_name in sorted(_addons_hidden_core):
         enable(
             module_name,
             # Ensured by `_initialize_extensions_repos_once`.

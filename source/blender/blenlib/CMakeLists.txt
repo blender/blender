@@ -141,6 +141,7 @@ set(SRC
   intern/string_search.cc
   intern/string_utf8.cc
   intern/string_utils.cc
+  intern/structure_of_array_conversion.cc
   intern/system.cc
   intern/task_graph.cc
   intern/task_iterator.cc
@@ -338,11 +339,13 @@ set(SRC
   BLI_mesh_boolean.hh
   BLI_mesh_intersect.hh
   BLI_mmap.hh
+  BLI_multi_eval.hh
   BLI_multi_eval_varray.hh
   BLI_multi_value_map.hh
   BLI_mutex.hh
   BLI_noise.hh
   BLI_noise_c.hh
+  BLI_noise_varray.hh
   BLI_normalized_int_types.hh
   BLI_offset_indices.hh
   BLI_offset_span.hh
@@ -381,6 +384,10 @@ set(SRC
   BLI_string_utf8.hh
   BLI_string_utf8_symbols.hh
   BLI_string_utils.hh
+  BLI_structure_of_array.hh
+  BLI_structure_of_array_conversion.hh
+  BLI_structure_of_array_fixed.hh
+  BLI_structure_of_array_pointer.hh
   BLI_sub_frame.hh
   BLI_subprocess.hh
   BLI_sys_types.hh
@@ -575,6 +582,7 @@ if(WITH_GTESTS)
     tests/BLI_memory_utils_test.cc
     tests/BLI_mesh_boolean_test.cc
     tests/BLI_mesh_intersect_test.cc
+    tests/BLI_multi_eval_test.cc
     tests/BLI_multi_eval_varray_test.cc
     tests/BLI_multi_value_map_test.cc
     tests/BLI_normalized_int_test.cc
@@ -595,6 +603,8 @@ if(WITH_GTESTS)
     tests/BLI_string_test.cc
     tests/BLI_string_utf8_test.cc
     tests/BLI_string_utils_test.cc
+    tests/BLI_structure_of_array_conversion_test.cc
+    tests/BLI_structure_of_array_test.cc
     tests/BLI_task_graph_test.cc
     tests/BLI_task_test.cc
     tests/BLI_tempfile_test.cc

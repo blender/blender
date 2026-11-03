@@ -392,7 +392,8 @@ class Device {
 class GPUDevice : public Device {
  protected:
   GPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool headless_)
-      : Device(info_, stats_, profiler_, headless_), image_info(this, "image_info", MEM_GLOBAL)
+      : Device(info_, stats_, profiler_, headless_),
+        image_info(this, "image_info", MEM_GLOBAL, MEM_FLAG_NO_HOST_FALLBACK)
   {
   }
 
@@ -402,6 +403,7 @@ class GPUDevice : public Device {
   /* For GPUs that can use bindless textures in some way or another. */
   device_vector<KernelImageInfo> image_info;
   thread_mutex image_info_mutex;
+  thread_mutex image_info_resize_mutex;
   bool need_image_info = false;
   /* Returns true if the image info was copied to the device (meaning, some more
    * re-initialization might be needed). */
@@ -461,6 +463,9 @@ class GPUDevice : public Device {
   virtual void copy_host_to_device(void *device_pointer,
                                    void *host_pointer,
                                    const size_t size) = 0;
+
+  /* Update image info on the host, growing buffer if needed. */
+  void image_info_update(uint image_info_id, const KernelImageInfo &info);
 };
 
 CCL_NAMESPACE_END

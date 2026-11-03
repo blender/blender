@@ -9,9 +9,9 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 
-#include "BLI_listbase.hh"
 #include "BLI_task_c.hh"
 #include "BLI_threads.hh"
+#include "BLI_vector.hh"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -28,30 +28,24 @@
 
 namespace blender::ed::vse {
 
-struct PreviewJobAudio;
+struct PreviewJobAudio {
+  Main *bmain;
+  bSound *sound;
+};
 
 struct PreviewJob {
-  ListBaseT<PreviewJobAudio> previews;
+  Vector<PreviewJobAudio> previews;
   ThreadMutex *mutex;
   Scene *scene;
-  int total;
-  int processed;
+  int total = 0;
+  int processed = 0;
   ThreadCondition preview_suspend_cond;
   bool running;
 };
 
-struct PreviewJobAudio {
-  PreviewJobAudio *next, *prev;
-  Main *bmain;
-  bSound *sound;
-  int lr; /* Sample left or right. */
-  int startframe;
-  bool waveform; /* Reload sound or waveform. */
-};
-
 struct ReadSoundWaveformTask {
   PreviewJob *wm_job;
-  PreviewJobAudio *preview_job_audio;
+  PreviewJobAudio preview_job_audio;
   bool *stop;
 };
 
@@ -60,7 +54,6 @@ static void free_preview_job(void *data)
   PreviewJob *pj = static_cast<PreviewJob *>(data);
 
   BLI_mutex_free(pj->mutex);
-  pj->previews.free_no_destruct();
   MEM_delete(pj);
 }
 
@@ -69,9 +62,6 @@ static void free_read_sound_waveform_task(TaskPool *__restrict task_pool, void *
   UNUSED_VARS(task_pool);
 
   ReadSoundWaveformTask *task = static_cast<ReadSoundWaveformTask *>(data);
-
-  /* The job audio has already been removed from the list, now we just need to free it. */
-  MEM_delete(task->preview_job_audio);
 
   BLI_mutex_lock(task->wm_job->mutex);
   task->wm_job->processed++;
@@ -85,8 +75,8 @@ static void free_read_sound_waveform_task(TaskPool *__restrict task_pool, void *
 static void execute_read_sound_waveform_task(TaskPool *__restrict /*task_pool*/, void *task_data)
 {
   ReadSoundWaveformTask *task = static_cast<ReadSoundWaveformTask *>(task_data);
-  PreviewJobAudio *audio_job = task->preview_job_audio;
-  BKE_sound_read_waveform(audio_job->bmain, audio_job->sound, task->stop);
+  const PreviewJobAudio &audio_job = task->preview_job_audio;
+  BKE_sound_read_waveform(audio_job.bmain, audio_job.sound, task->stop);
 }
 
 /* Only this runs inside thread. */
@@ -123,11 +113,11 @@ static void preview_startjob(void *data, wmJobWorkerStatus *worker_status)
     }
 
     if (worker_status->stop) {
-      for (PreviewJobAudio &previewjb : pj->previews) {
+      for (const PreviewJobAudio &previewjb : pj->previews) {
         BKE_sound_runtime_clear_waveform_loading_tag(previewjb.sound);
       }
 
-      pj->previews.free_no_destruct();
+      pj->previews.clear();
       pj->processed = 0;
       pj->total = 0;
       pj->running = false;
@@ -137,16 +127,15 @@ static void preview_startjob(void *data, wmJobWorkerStatus *worker_status)
     }
 
     Vector<ReadSoundWaveformTask *> new_tasks;
-    for (PreviewJobAudio &previewjb : pj->previews.items_mutable()) {
+    for (const PreviewJobAudio &previewjb : pj->previews) {
       ReadSoundWaveformTask *task = MEM_new_zeroed<ReadSoundWaveformTask>(
           "read sound waveform task");
       task->wm_job = pj;
-      task->preview_job_audio = &previewjb;
+      task->preview_job_audio = previewjb;
       task->stop = &worker_status->stop;
       new_tasks.append(task);
-
-      BLI_remlink(&pj->previews, &previewjb);
     }
+    pj->previews.clear();
 
     BLI_mutex_unlock(pj->mutex);
 
@@ -197,7 +186,7 @@ void sequencer_preview_add_sound(const bContext *C, const Strip *strip)
     }
   }
   else { /* There's no existing preview job. */
-    pj = MEM_new_zeroed<PreviewJob>("preview rebuild job");
+    pj = MEM_new<PreviewJob>("preview rebuild job");
 
     pj->mutex = BLI_mutex_alloc();
     BLI_condition_init(&pj->preview_suspend_cond);
@@ -210,11 +199,7 @@ void sequencer_preview_add_sound(const bContext *C, const Strip *strip)
     WM_jobs_callbacks(wm_job, preview_startjob, nullptr, nullptr, preview_endjob);
   }
 
-  PreviewJobAudio *audiojob = MEM_new_zeroed<PreviewJobAudio>("preview_audio");
-  audiojob->bmain = CTX_data_main(C);
-  audiojob->sound = strip->sound;
-
-  BLI_addtail(&pj->previews, audiojob);
+  pj->previews.append({CTX_data_main(C), strip->sound});
   pj->total++;
   BLI_mutex_unlock(pj->mutex);
 

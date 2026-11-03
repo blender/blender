@@ -8,6 +8,7 @@
  * \ingroup bli
  */
 
+#include <atomic>
 #include <sstream>
 
 #include "BLI_bytes_type.hh"

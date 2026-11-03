@@ -9,16 +9,32 @@
 
 [[node]]
 void node_bsdf_diffuse(float4 color,
-                       float /*roughness*/,
+                       float roughness,
                        float3 N,
                        float weight,
                        KernelGlobals &kg,
                        ShadingData &sd,
                        Closure &result)
 {
-  ClosureDiffuse diffuse_data;
-  diffuse_data.color = color.rgb * weight;
-  diffuse_data.N = safe_normalize(N);
+  if (roughness == 0.0f) {
+    ClosureDiffuse diffuse_data;
+    diffuse_data.color = color.rgb * weight;
+    diffuse_data.N = safe_normalize(N);
 
-  result = closure_eval(kg, sd, diffuse_data);
+    result = closure_eval(kg, sd, diffuse_data);
+  }
+  else {
+    ClosureOrenNayar oren_nayar_data;
+
+    const float3 V = coordinate_impl(kg, sd, sd.P, sd.N).incoming;
+    const float NV = dot(N, V);
+
+    const float3 brdf = oren_nayar_lut(kg, color.rgb, NV, roughness);
+
+    oren_nayar_data.color = brdf * weight;
+    oren_nayar_data.N = safe_normalize(N);
+    oren_nayar_data.roughness = roughness;
+
+    result = closure_eval(kg, sd, oren_nayar_data);
+  }
 }

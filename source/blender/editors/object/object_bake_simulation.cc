@@ -1018,7 +1018,7 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
     request.frame_start = current_frame;
     request.frame_end = current_frame;
     /* Delete old bake because otherwise this wouldn't be a still frame bake. This is not done for
-     * other bakes to avoid loosing data when starting a bake. */
+     * other bakes to avoid losing data when starting a bake. */
     try_delete_bake(bmain, *object, nmd, bake_id, op->reports);
   }
   else {

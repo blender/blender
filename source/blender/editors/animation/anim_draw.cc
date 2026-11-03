@@ -14,7 +14,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_workspace_types.h"
@@ -32,6 +31,7 @@
 #include "BKE_mask.hh"
 #include "BKE_nla.hh"
 #include "BKE_scene_context.hh"
+#include "BKE_unit.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"
@@ -46,10 +46,6 @@
 
 #include "GPU_immediate.hh"
 #include "GPU_state.hh"
-
-#include "SEQ_time.hh"
-
-#include <utility>
 
 namespace blender {
 
@@ -127,15 +123,11 @@ void ANIM_draw_scene_strip_range(const bContext *C, View2D *v2d)
   if (!workspace) {
     return;
   }
-  if ((workspace->flags & WORKSPACE_SYNC_SCENE_TIME) == 0) {
+  if ((workspace->flags & WORKSPACE_USE_STRIP_SCENE_RANGE_FOR_PLAYBACK) == 0) {
     return;
   }
-  const Scene *sequencer_scene = workspace->sequencer_scene;
-  if (!sequencer_scene) {
-    return;
-  }
-  const Strip *scene_strip = ed::vse::get_scene_strip_for_time_sync(sequencer_scene);
-  if (!scene_strip || !scene_strip->scene) {
+  const std::optional<ScenePlaybackRange> range = ed::vse::get_scene_strip_frame_range(*C);
+  if (!range) {
     return;
   }
   GPU_blend(GPU_BLEND_ALPHA);
@@ -146,23 +138,8 @@ void ANIM_draw_scene_strip_range(const bContext *C, View2D *v2d)
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColorShadeAlpha(TH_ANIM_SCENE_STRIP_RANGE, -25, -30);
 
-  /* ..._handle are frames in "sequencer logic", meaning that on the right_handle point in time,
-   * the strip is not visible any more. The last visible frame of the strip is actually on
-   * (right_handle-1), hence the -1 when computing the end_frame. */
-  const float left_handle = scene_strip->left_handle();
-  const float right_handle = scene_strip->right_handle(sequencer_scene);
-  float start_frame = seq::give_frame_index(sequencer_scene, scene_strip, left_handle) +
-                      scene_strip->scene->r.sfra + scene_strip->anim_startofs;
-  float end_frame = seq::give_frame_index(sequencer_scene, scene_strip, right_handle - 1) +
-                    scene_strip->scene->r.sfra + scene_strip->anim_startofs;
-
-  /* This can happen when the strip time is reversed. */
-  if (start_frame > end_frame) {
-    std::swap(start_frame, end_frame);
-  }
-
-  immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, start_frame, v2d->cur.ymax);
-  immRectf(pos, end_frame, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+  immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, range->start_frame, v2d->cur.ymax);
+  immRectf(pos, range->end_frame, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 
   immUnbindProgram();
 
@@ -670,23 +647,39 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
 
   const PropertyUnit prop_unit = PropertyUnit(RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)));
 
+  UnitConversion unit_conversion;
+  const int b_unit = RNA_SUBTYPE_UNIT_VALUE(prop_unit);
+
   switch (prop_unit) {
+    /* Units not affected by the scene's unit scale. */
     case PROP_UNIT_ROTATION:
-      if (scene->unit.system_rotation == USER_UNIT_ROT_RADIANS) {
-        return 1.0f;
+    case PROP_UNIT_TIME:
+      unit_conversion = BKE_unit_preferred_conversion_get(scene->unit, b_unit);
+      break;
+    /* Units that BKE_unit_value_scale() also scales by the scene's unit scale.
+     * Assumption: BKE_unit_value_scale() is linear and zero maps to zero for these
+     * unit types, so the scaled value can be used as a scaler factor. */
+    case PROP_UNIT_LENGTH:
+    case PROP_UNIT_MASS: {
+      unit_conversion = BKE_unit_preferred_conversion_get(scene->unit, b_unit);
+      const double scene_scale = BKE_unit_value_scale(scene->unit, b_unit, 1.0);
+      if (scene_scale != 0.0) {
+        unit_conversion.scalar /= scene_scale;
       }
-
-      if (flag & ANIM_UNITCONV_RESTORE) {
-        return DEG2RADF(1.0f);
-      }
-      return RAD2DEGF(1.0f);
-
+      break;
+    }
     default:
-      /* TODO: other rotation types here as necessary */
+      /* Other units are not scaled. */
       break;
   }
+  BLI_assert_msg(unit_conversion.bias == 0.0,
+                 "Only linear units (without bias) are supported for now.");
+  BLI_assert(unit_conversion.scalar != 0.0);
 
-  return 1.0f;
+  if (flag & ANIM_UNITCONV_RESTORE) {
+    return float(unit_conversion.scalar);
+  }
+  return float(1.0 / unit_conversion.scalar);
 }
 
 static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra)

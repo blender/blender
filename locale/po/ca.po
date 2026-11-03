@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'f0219159730a')\n"
+"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 10:44+0000\n"
-"PO-Revision-Date: 2026-10-25 18:08+0000\n"
+"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"PO-Revision-Date: 2026-10-30 03:12+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -36645,8 +36645,36 @@ msgid "Editor menu containing buttons"
 msgstr "El menú d'edició que conté els botons"
 
 
+msgid "Show/Hide"
+msgstr "Mostrar/ocultar"
+
+
 msgid "Creative"
 msgstr "Creatiu"
+
+
+msgid "Special Characters"
+msgstr "Caràcters especials"
+
+
+msgid "Kerning"
+msgstr "Interlletratge"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Names"
+msgstr "Noms"
+
+
+msgid "Bone Roll"
+msgstr "Girar os"
+
+
+msgid "Clean Up"
+msgstr "Netejar"
 
 
 msgid "Pivot Point"
@@ -36677,6 +36705,14 @@ msgid "Vertex Group Locks"
 msgstr "Blocatges de grup de vèrtexs"
 
 
+msgid "Math"
+msgstr "Matemàtica"
+
+
+msgid "Utilities"
+msgstr "Utensilis"
+
+
 msgid "Mirror"
 msgstr "Emmirallar"
 
@@ -36689,12 +36725,24 @@ msgid "Local View"
 msgstr "Vista local"
 
 
+msgid "Read"
+msgstr "Lectura"
+
+
 msgid "Viewpoint"
 msgstr "Punt de vista"
 
 
+msgid "Sample"
+msgstr "Mostreig"
+
+
 msgid "Navigation"
 msgstr "Navegació"
+
+
+msgid "Write"
+msgstr "Escriptura"
 
 
 msgid "Align View"
@@ -36705,20 +36753,16 @@ msgid "Align View to Active"
 msgstr "Alinear vista a actiu"
 
 
+msgid "Primitives"
+msgstr "Primitius"
+
+
 msgid "View Regions"
 msgstr "Regions de visionat"
 
 
-msgid "Math"
-msgstr "Matemàtica"
-
-
 msgid "Select More/Less"
 msgstr "Seleccionar més/menys"
-
-
-msgid "Utilities"
-msgstr "Utensilis"
 
 
 msgid "Select Similar"
@@ -36737,38 +36781,6 @@ msgid "Select Loops"
 msgstr "Seleccionar bucles"
 
 
-msgid "Read"
-msgstr "Lectura"
-
-
-msgid "Sample"
-msgstr "Mostreig"
-
-
-msgid "Assign Material"
-msgstr "Assignar material"
-
-
-msgid "Write"
-msgstr "Escriptura"
-
-
-msgid "Primitives"
-msgstr "Primitius"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Light"
-msgstr "Llum"
-
-
-msgid "Light Probe"
-msgstr "Sonda de llum"
-
-
 msgid "Gizmo"
 msgstr "Flòstic"
 
@@ -36777,16 +36789,40 @@ msgid "Instances"
 msgstr "Instàncies"
 
 
+msgid "Assign Material"
+msgstr "Assignar material"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Deprecated"
+msgstr "Obsolet"
+
+
+msgid "Light"
+msgstr "Llum"
+
+
+msgid "Render Preview"
+msgstr "Previsionat de revelat"
+
+
+msgid "Light Probe"
+msgstr "Sonda de llum"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Add Image"
 msgstr "Afegir imatge"
 
 
 msgid "Relations"
 msgstr "Relacions"
-
-
-msgid "Import"
-msgstr "Importar"
 
 
 msgid "Rigid Body"
@@ -36801,20 +36837,8 @@ msgid "Track"
 msgstr "Rastrejar"
 
 
-msgid "Deprecated"
-msgstr "Obsolet"
-
-
 msgid "Quick Effects"
 msgstr "Efectes ràpids"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar/ocultar"
-
-
-msgid "Clean Up"
-msgstr "Netejar"
 
 
 msgid "Asset"
@@ -36825,16 +36849,8 @@ msgid "Make Single User"
 msgstr "Forçar un únic usador"
 
 
-msgid "Render Preview"
-msgstr "Previsionat de revelat"
-
-
 msgid "Convert"
 msgstr "Convertir en"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -36877,8 +36893,12 @@ msgid "Bone Collections"
 msgstr "Col·leccions d'ossos"
 
 
-msgid "Names"
-msgstr "Noms"
+msgid "Linked"
+msgstr "Vinculat"
+
+
+msgid "Layout"
+msgstr "Disposició"
 
 
 msgid "Toggle Bone Options"
@@ -36909,36 +36929,16 @@ msgid "Set Face Strength"
 msgstr "Definir força de cara"
 
 
-msgid "Merge"
-msgstr "Fusionar"
-
-
-msgid "Linked"
-msgstr "Vinculat"
-
-
-msgid "Layout"
-msgstr "Disposició"
-
-
-msgid "Special Characters"
-msgstr "Caràcters especials"
-
-
-msgid "Kerning"
-msgstr "Interlletratge"
-
-
 msgid "Adjust"
 msgstr "Ajustament"
 
 
-msgid "Bone Roll"
-msgstr "Girar os"
-
-
 msgid "Keying"
 msgstr "Croma"
+
+
+msgid "Merge"
+msgstr "Fusionar"
 
 
 msgid "Tracking"
@@ -37310,12 +37310,12 @@ msgid "Select Selection Set"
 msgstr "Seleccionar conjunt de selecció"
 
 
-msgid "Add Variable"
-msgstr "Afegir variable"
-
-
 msgid "Save & Load"
 msgstr "Desar i carregar"
+
+
+msgid "Add Variable"
+msgstr "Afegir variable"
 
 
 msgid "Frame Rate Presets"
@@ -57633,72 +57633,6 @@ msgstr "[Install Theme...]: Carrega i aplica un document de tema XML del Blender
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "Instal·la el tema..."
-
-
-msgid "Add a new variable to the current project"
-msgstr "[Add Variable]: Afegeix una nova variable al projecte en curs"
-
-
-msgctxt "Operator"
-msgid "Add Variable"
-msgstr "Afegir variable"
-
-
-msgid ""
-"\n"
-"Register a directory to be used by the Asset Browser and other places showing assets,\n"
-"as source of assets within the current project."
-msgstr ""
-"\n"
-"Registra un directori per a l'ús del Navegador de rescursos i altres ubicacions que continguin recursos,\n"
-"com a font de recursos dins el projecte en curs."
-
-
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Afegir biblioteca de recursos"
-
-
-msgid ""
-"\n"
-"Deregister an asset library so that its directory will no longer show up in\n"
-"Asset Browsers and other places showing assets."
-msgstr ""
-"\n"
-"Desregistra una biblioteca de recursos a fi que el seu directori no figuri més en\n"
-"els Navegadors de recursos i altres ubicacions que continguin recursos."
-
-
-msgctxt "Operator"
-msgid "Remove Project Asset Library"
-msgstr "Suprimir biblioteca de recursos del projecte"
-
-
-msgid "Move the active variable up or down in the list of variables"
-msgstr "[Move Variable]: Mou el material actiu amunt/avall de la llista de variables"
-
-
-msgctxt "Operator"
-msgid "Move Variable"
-msgstr "Noure variable"
-
-
-msgid "Remove the active variable from the current project"
-msgstr "[Remove variable]: Suprimeix del projecte en curs la variable activa"
-
-
-msgctxt "Operator"
-msgid "Remove Variable"
-msgstr "Suprimir Variable"
-
-
-msgid "Save the current project to disk"
-msgstr "[Save Project]: Desa el present projecte al disc"
-
-
-msgctxt "Operator"
-msgid "Save Project"
-msgstr "Desar projecte"
 
 
 msgid "Add or remove a white balance preset"
@@ -83649,6 +83583,11 @@ msgid "Remove existing template with the same ID"
 msgstr "Suprimir la plantilla existent amb el mateix ID"
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Afegir biblioteca de recursos"
+
+
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "[Add Asset Library]: Afegeix un directori que funcioni com a font de recursos del navegador de recursos"
 
@@ -83910,24 +83849,8 @@ msgid "Remove this installation's associations with .blend files"
 msgstr "[Unregister]: Suprimeix les associacions d'aquesta instal·lació amb els documents .blend"
 
 
-msgid "String Variable"
-msgstr "Variable de cadena"
-
-
-msgid "Filepath Variable"
-msgstr "Variable de ruta"
-
-
-msgid "Integer Variable"
-msgstr "Variable d'enter"
-
-
-msgid "Float Variable"
-msgstr "Variable de flotant"
-
-
-msgid "Asset Library Directory"
-msgstr "Directori de biblioteca de recursos"
+msgid "Add a directory to be used by the Project as source of assets"
+msgstr "[Add Asset Library]: Afegeix un directori que funcioni com a font de recursos per al Projecte"
 
 
 msgctxt "Operator"
@@ -83943,12 +83866,13 @@ msgid "Skip check to prevent unsaved changes from being lost"
 msgstr "Omet la comprovació que evita que es perdin els canvis sense desar"
 
 
-msgid "Move Up"
-msgstr "[Up]: Cap amunt"
+msgctxt "Operator"
+msgid "Save Project Config"
+msgstr "Desar configuració de projecte"
 
 
-msgid "Move Down"
-msgstr "[Down]: Cap avall"
+msgid "Save the current project config to disk"
+msgstr "[Save Project Config]: Desa la present configuració de projecte al disc"
 
 
 msgctxt "Operator"
@@ -83958,6 +83882,26 @@ msgstr "Nou projecte"
 
 msgid "Create a new project"
 msgstr "[New]: Crea un nou projecte"
+
+
+msgid "Project Root Folder"
+msgstr "Carpeta arrel del projecte"
+
+
+msgid "Project folder, created if missing"
+msgstr "[Project Root Folder]: La carpeta del projecte, que es crea si no es troba"
+
+
+msgid "Folder of the current file or one of its parents, to turn into a project"
+msgstr "Carpeta del document en curs o d'un dels seus pares que es vol convertir en un projecte"
+
+
+msgid "Name of the project"
+msgstr "Nom del projecte"
+
+
+msgid "Update Directory From Name"
+msgstr "Actualitzar directori amb el nom"
 
 
 msgctxt "Operator"
@@ -83995,6 +83939,69 @@ msgstr ""
 "[Create Splash Artwork]: Defineix la il·lustració de careta del projecte des d'un document d'imatge.\n"
 "La imatge es retallarà, s'escalarà i es desarà com a \".blender_project/splash.jpg\".\n"
 "Per a uns resultats òptims, feu-la amb una ràtio d'aspecte de 2:1"
+
+
+msgctxt "Operator"
+msgid "Add Variable"
+msgstr "Afegir variable"
+
+
+msgid "Add a new variable to the current project"
+msgstr "[Add Variable]: Afegeix una nova variable al projecte en curs"
+
+
+msgid "Variable Type"
+msgstr "Tipus de variable"
+
+
+msgid "The kind of variable type to add"
+msgstr "[Variable Type]: La mena de variable que es vol afegir"
+
+
+msgid "String Variable"
+msgstr "Variable de cadena"
+
+
+msgid "Filepath Variable"
+msgstr "Variable de ruta"
+
+
+msgid "Integer Variable"
+msgstr "Variable d'enter"
+
+
+msgid "Float Variable"
+msgstr "Variable de flotant"
+
+
+msgctxt "Operator"
+msgid "Move Variable"
+msgstr "Noure variable"
+
+
+msgid "Move the active variable up or down in the list of variables"
+msgstr "[Move Variable]: Mou el material actiu amunt/avall de la llista de variables"
+
+
+msgid "Which direction to move the variable"
+msgstr "En quina direcció moure la variable"
+
+
+msgid "Move Up"
+msgstr "[Up]: Cap amunt"
+
+
+msgid "Move Down"
+msgstr "[Down]: Cap avall"
+
+
+msgctxt "Operator"
+msgid "Remove Variable"
+msgstr "Suprimir Variable"
+
+
+msgid "Remove the active variable from the current project"
+msgstr "[Remove variable]: Suprimeix del projecte en curs la variable activa"
 
 
 msgctxt "Operator"
@@ -101985,6 +101992,10 @@ msgid "Chinese (Simplified) - 简体中文"
 msgstr "Xinès (Simplificat) - 简体中文"
 
 
+msgid "Locale code: zh_HANS. Translation progress: 100%"
+msgstr "Codi de localització: zh_HANS. Progrés de la traducció: 100%"
+
+
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Xinès (Tradicional) - 繁體中文"
 
@@ -102061,12 +102072,16 @@ msgid "French - Français"
 msgstr "Francès - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 98%"
-msgstr "Codi de localització: fr_FR. Progrés de la traducció: 98%"
+msgid "Locale code: fr_FR. Translation progress: 99%"
+msgstr "Codi de localització: fr_FR. Progrés de la traducció: 99%"
 
 
 msgid "Georgian - ქართული"
 msgstr "Georgià - ქართული"
+
+
+msgid "Locale code: ka. Translation progress: 97%"
+msgstr "Codi de localització: ka. Progrés de la traducció: 97%"
 
 
 msgid "German - Deutsch"
@@ -102113,6 +102128,10 @@ msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonesi - Bahasa indonesia"
 
 
+msgid "Locale code: id_ID. Translation progress: 21%"
+msgstr "Codi de localització: id_ID. Progrés de la traducció: 21%"
+
+
 msgid "Italian - Italiano"
 msgstr "Italià - Italiano"
 
@@ -102125,8 +102144,8 @@ msgid "Japanese - 日本語"
 msgstr "Japonès - 日本語"
 
 
-msgid "Locale code: ja_JP. Translation progress: 98%"
-msgstr "Codi de localització: ja_JP. Progrés de la traducció: 98%"
+msgid "Locale code: ja_JP. Translation progress: 99%"
+msgstr "Codi de localització: ja_JP. Progrés de la traducció: 99%"
 
 
 msgid "Korean - 한국어"
@@ -102197,6 +102216,10 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portuguès (Portugal) - Portuguès europeu"
 
 
+msgid "Locale code: pt_PT. Translation progress: 82%"
+msgstr "Codi de localització: pt_PT. Progrés de la traducció: 82%"
+
+
 msgid "Romanian - Român"
 msgstr "Romanès - Român"
 
@@ -102209,8 +102232,8 @@ msgid "Russian - Русский"
 msgstr "Rus - Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 99%"
-msgstr "Codi de localització: ru_RU. Progrés de la traducció: 99%"
+msgid "Locale code: ru_RU. Translation progress: 100%"
+msgstr "Codi de localització: ru_RU. Progrés de la traducció: 100%"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -102265,8 +102288,16 @@ msgid "Swedish - Svenska"
 msgstr "Suec - Svenska"
 
 
+msgid "Locale code: sv_SE. Translation progress: 100%"
+msgstr "Codi de localització: sv_SE. Progrés de la traducció: 100%"
+
+
 msgid "Tamil - தமிழ்"
 msgstr "Tàmil - தமிழ்"
+
+
+msgid "Locale code: ta. Translation progress: 92%"
+msgstr "Codi de localització: ta. Progrés de la traducció: 92%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -125578,6 +125609,21 @@ msgid "Legacy (Other)"
 msgstr "Antiquat (altre)"
 
 
+msgctxt "Preferences"
+msgid "Add-on"
+msgstr "Complement"
+
+
+msgctxt "Preferences"
+msgid "Asset Library"
+msgstr "Biblioteca de recursos"
+
+
+msgctxt "Preferences"
+msgid "Theme"
+msgstr "Tema"
+
+
 msgid "Missing Built-in Add-ons"
 msgstr "Falten complements de fàbrica"
 
@@ -133116,8 +133162,21 @@ msgid "Auto-Save Project"
 msgstr "Autodesat de projecte"
 
 
+msgctxt "Operator"
+msgid "Save Project"
+msgstr "Desar projecte"
+
+
 msgid "Artwork"
 msgstr "Il·lustracions"
+
+
+msgid "No active project."
+msgstr "No hi ha cap projecte actiu."
+
+
+msgid "Create a new project, or open an existing project or a file inside of one."
+msgstr "Crea un nou projecte o n'obre un d'existent o un document que és dins d'un projecte."
 
 
 msgctxt "Operator"
@@ -133140,30 +133199,13 @@ msgid "Float"
 msgstr "Coma flotant"
 
 
+msgid "Overridden by the {:s} environment variable"
+msgstr "Sobresegut per la variable d'entorn {:s}"
+
+
 msgctxt "Operator"
 msgid "Reload to Apply Changes"
 msgstr "Recarregar per aplicar canvis"
-
-
-msgid "No active project."
-msgstr "No hi ha cap projecte actiu."
-
-
-msgid "Save the current file, and make sure to place it in a folder that will be part of the project"
-msgstr "Deseu el document en curs i s'assegureu-vos de col·locar-lo en una carpeta que sigui part del projecte"
-
-
-msgid "Alternatively, open a file inside of a project directory to see its settings."
-msgstr "Alternativament, obriu un document dins un directori de projecte per comprovar-ne la configuració."
-
-
-msgctxt "Operator"
-msgid "Save File..."
-msgstr "Desar document..."
-
-
-msgid "Set up a new project by choosing any parent directory of the current file."
-msgstr "Configura un nou projecte per la via d'escollir qualsevol directori pare del document en curs."
 
 
 msgid "{:.3f}"
@@ -138096,14 +138138,6 @@ msgid "node_groups"
 msgstr "grups de nodes"
 
 
-msgid "Shader To RGB can't evaluate Light Accumulation nodes"
-msgstr "Aspector a RGB no té la capacitat d'avaluar nodes Acumulació de llum"
-
-
-msgid "Lighting nodes must be connected to the Light sockets of a Light Accumulation node before reaching the Material Output"
-msgstr "Els nodes d'il·luminació s'han d'empalmar als borns de Llum d'un node Acumulació de llum abans no arribin a l'Egressió de material"
-
-
 msgid "Lighting nodes can't be connected to the Color sockets of a Light Accumulation node"
 msgstr "Els nodes d'il·luminació no es poden connectar als borns de Color d'un node Acumulació de llum"
 
@@ -142847,12 +142881,22 @@ msgid "Unable to determine ABC sequence length"
 msgstr "No s'ha pogut determinar la longitud de la seqüència ABC"
 
 
+msgctxt "Operator"
+msgid "Alembic"
+msgstr "Alembic"
+
+
 msgid "Could not add a layer to the cache file"
 msgstr "No s'ha pogut afegir una capa al document de memòria cau"
 
 
 msgid "Multiple file handlers can be used, drop to pick which to use"
 msgstr "Es poden utilitzar diversos gestors de documents, deposeu per decidir quin trieu"
+
+
+msgctxt "Operator"
+msgid "FBX"
+msgstr "FBX"
 
 
 msgid "Scene Options"
@@ -142885,6 +142929,11 @@ msgstr "No es pot importar '%s'"
 
 msgid "Error during file write for \"%s\""
 msgstr "Error durant l'escriptura del document \"%s\""
+
+
+msgctxt "Operator"
+msgid "SVG as Grease Pencil"
+msgstr "SVG com llapis de greix"
 
 
 msgid "Curves as NURBS"
@@ -142931,6 +142980,11 @@ msgid "File exported successfully"
 msgstr "Document exportat amb èxit"
 
 
+msgctxt "Operator"
+msgid "Wavefront OBJ"
+msgstr "Wavefront OBJ"
+
+
 msgid "Imported OTIO timeline into scene '%s'"
 msgstr "S'ha importat el cronograma d'OTIO timeline a l'escena '%s'"
 
@@ -142947,8 +143001,23 @@ msgid "Sequencer scene has no strips"
 msgstr "El seqüenciador no té segments"
 
 
+msgctxt "Operator"
+msgid "OpenTimelineIO"
+msgstr "OpenTimelineIO"
+
+
 msgid "ASCII"
 msgstr "ASCII"
+
+
+msgctxt "Operator"
+msgid "Stanford PLY"
+msgstr "Stanford PLY"
+
+
+msgctxt "Operator"
+msgid "SPZ"
+msgstr "SPZ"
 
 
 msgid "Batch"
@@ -142957,6 +143026,11 @@ msgstr "Seqüenciació"
 
 msgid "No filename given"
 msgstr "No s'ha aportat cap nom de document"
+
+
+msgctxt "Operator"
+msgid "STL"
+msgstr "STL"
 
 
 msgid "Blender Data"
@@ -142977,6 +143051,11 @@ msgstr "Mostrar propòsti"
 
 msgid "Particles and Instancing"
 msgstr "Partícules i instanciació"
+
+
+msgctxt "Operator"
+msgid "Universal Scene Description"
+msgstr "Universal Scene Description"
 
 
 msgid "Import {} files"
@@ -145870,6 +145949,10 @@ msgstr "La Vista quarterada només es pot dimensionar des d'una zona d'acció"
 
 msgid "No more keyframes to jump to in this direction"
 msgstr "No hi ha més fotofites a on saltar en aquesta direcció"
+
+
+msgid "No markers to jump to"
+msgstr "No hi ha marcadors cap a on saltar"
 
 
 msgid "No more markers to jump to in this direction"
@@ -148811,10 +148894,6 @@ msgid "No active item to rename"
 msgstr "No hi ha cap element actiu per canviar-ne el nom"
 
 
-msgid "No selected data-blocks to copy"
-msgstr "No hi ha blocs de dades seleccionats per copiar"
-
-
 msgid "There is no active data-block"
 msgstr "No hi ha cap bloc de dades actiu"
 
@@ -149242,6 +149321,44 @@ msgid "Built-In"
 msgstr "Integrat"
 
 
+msgid "Close the current project before creating a new one"
+msgstr "Tanca el projecte en curs abans de crear-ne un de nou"
+
+
+msgid "Create Project"
+msgstr "Crear projecte"
+
+
+msgid "Folder already contains a project."
+msgstr "La carpeta ja conté un projecte."
+
+
+msgid "Folder is inside another project."
+msgstr "La carpeta està dins d'un altre projecte."
+
+
+msgid "Add Asset Library"
+msgstr "Afegir biblioteca de recursos"
+
+
+msgid ""
+"The current file needs to be inside of the project's path.\n"
+"To pick a different folder, move the current file there first, or create a new project from a new unsaved file."
+msgstr ""
+"El document en curs a de quedar dins de la ruta del projecte.\n"
+"Per agafar una carpeta diferent, primer traslladeu-hi el document o creeu un nou projecte a partir d'un document nou no desat."
+
+
+msgid ""
+"A Blender Project is a directory that provides a shared environment for related .blend files, textures, and other files, with project-specific settings such as Asset Libraries, custom variables, and other configuration options.\n"
+"\n"
+"This is a structured way to organize files and settings across complex pipelines and team projects."
+msgstr ""
+"Un Projecte de Blender és un directori que ofereix un entorn compartit per a documents, textures i altres documents .blend relacionats i que té uns paràmetres específics de projecte com Biblioteques de recursos, variables personalitzades i altgres opcions de configuració.\n"
+"\n"
+"És una manera estructurada d'organitzar els documents i paràmetres vàlids per a vies de producció complexes i projectes d'equip."
+
+
 msgid "Untitled Project"
 msgstr "Projecte sense títol"
 
@@ -149250,8 +149367,16 @@ msgid "Invalid project root folder"
 msgstr "La carpeta d'arrel de projecte no és vàlida"
 
 
-msgid "Folder already contains a project"
-msgstr "La carpeta ja conté un projecte"
+msgid "Missing project name"
+msgstr "Falta el nom de projecte"
+
+
+msgid "Folder already part of a project"
+msgstr "La carpeta ja forma part d'un projecte"
+
+
+msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
+msgstr "Se suprimeixen les biblioteques de recursos definides per una extensió per la via de desinstal·lar l'extensió"
 
 
 msgid "Failed to create folder \"%s\""
@@ -149268,6 +149393,10 @@ msgstr "La carpeta '%s' no forma part d'un projecte"
 
 msgid "Failed to load project from path: %s"
 msgstr "No s'ha pogut carregar el projecte de la ruta: %s"
+
+
+msgid "There is no asset library to remove"
+msgstr "No hi ha cap biblioteca de recursos per suprimir"
 
 
 msgid "Failed to load image \"%s\""
@@ -149822,8 +149951,8 @@ msgid "Edit Project asset libraries in Project Settings."
 msgstr "Les biblioteques de recursos d'un projecte s'editen a la Configuració de projecte."
 
 
-msgid "Add Asset Library"
-msgstr "Afegir biblioteca de recursos"
+msgid "Open Project Settings"
+msgstr "Obrir paràmetres de projecte"
 
 
 msgid "Add New Extension Repository"
@@ -149848,10 +149977,6 @@ msgstr "Suprimir repositori amb documents"
 
 msgid "Remove Repository"
 msgstr "Suprimir repositori"
-
-
-msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
-msgstr "Se suprimeixen les biblioteques de recursos definides per una extensió per la via de desinstal·lar l'extensió"
 
 
 msgid "Unable to remove files for \"System\" repositories"
@@ -149884,10 +150009,6 @@ msgstr "No es pot suprimir el directori: %s"
 
 msgid "Extension operator not found \"%s\""
 msgstr "No s'ha trobat l'operador de l'extensió \"%s\""
-
-
-msgid "There is no asset library to remove"
-msgstr "No hi ha cap biblioteca de recursos per suprimir"
 
 
 msgid "There is no extension repository to remove"
@@ -150326,10 +150447,6 @@ msgstr "No es pot fer navegar un objecte amb restriccions efectives"
 
 msgid "Depth too large"
 msgstr "Profunditat massa gran"
-
-
-msgid "No objects selected to copy"
-msgstr "No s'ha seleccionat cap objecte per copiar"
 
 
 msgid "No objects to paste"
@@ -151084,6 +151201,10 @@ msgid "Freestyle: Mesh loading"
 msgstr "Freestyle: la malla s'està carregant"
 
 
+msgid "Freestyle style module '%s'"
+msgstr "Mòdul d'estil Freestyle '%s'"
+
+
 msgid "Freestyle: View map creation"
 msgstr "Freestyle: creació del mapa de visionat"
 
@@ -151375,6 +151496,10 @@ msgstr "Importador PLY: ha fallat la importació, no hi ha vèrtexs"
 
 msgid "PLY Importer: %s: %s"
 msgstr "Importador PLY: %s: %s"
+
+
+msgid "PLY Importer: failed importing %s: %s"
+msgstr "Importador PLY: ha fallat la importació %s: %s"
 
 
 msgid "PLY Importer: Spherical harmonics degree above the supported %d, spherical harmonics are not imported"
@@ -152840,18 +152965,6 @@ msgstr "%s '%s' ha de tenir zero usadors per ser suprimits, se n'han trobat %d (
 
 msgid "Only linked IDs can be packed"
 msgstr "Només es poden empaquetar els IDs enllaçats"
-
-
-msgid "Failed to initialize project. Ensure that both the name and project_root parameters are non-empty."
-msgstr "No s'ha pogut inicialitzar el projecte. Assegureu-vos que tant el nom com els paràmetres de project_root no estan buits."
-
-
-msgid "Failed to initialize project. Ensure that project_root path is correct."
-msgstr "No s'ha pogut inicialitzar el projecte. Assegureu-vos que la ruta de project_root està correcta."
-
-
-msgid "Failed to save project config."
-msgstr "No s'ha pogut desar la configuració del projecte."
 
 
 msgid "Scene '%s' is the last local one, cannot be removed"
@@ -162601,13 +162714,11 @@ msgstr "Desat com a \"%s\""
 
 
 msgid ""
-"To match renders with the previous working space as closely as possible,\n"
-"colors in all materials, lights and geometry must be converted.\n"
+"To match renders with the previous working space as closely as possible, colors in all materials, lights and geometry must be converted.\n"
 "\n"
-"Some nodes graphs cannot be converted accurately and may need manual fix-ups."
+"Some node graphs cannot be converted accurately and may need manual fix-ups."
 msgstr ""
-"Per a fer coincidir els revelats amb l'espai de treball anterior el més exacte possible, \n"
-"s'han de convertir els colors de tots els materials, llums i geometria. \n"
+"Per a fer coincidir els revelats amb l'espai de treball anterior el més exacte possible, s'han de convertir els colors de tots els materials, llums i geometria. \n"
 "\n"
 "Algunes gràfiques de nodes poden no convertir-se amb precisió i poden requerir correccions manuals."
 

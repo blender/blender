@@ -151,12 +151,19 @@ void WM_uilisttype_free()
   get_list_type_map().clear();
 }
 
-void WM_uilisttype_to_full_list_id(const uiListType *ult,
+void WM_uilisttype_to_full_list_id(const char *type_idname,
                                    const char *list_id,
                                    char r_full_list_id[/*UI_MAX_NAME_STR*/])
 {
   /* We tag the list id with the list type... */
-  BLI_snprintf_utf8(r_full_list_id, UI_MAX_NAME_STR, "%s_%s", ult->idname, list_id ? list_id : "");
+  BLI_snprintf_utf8(r_full_list_id, UI_MAX_NAME_STR, "%s_%s", type_idname, list_id ? list_id : "");
+}
+
+void WM_uilisttype_to_full_list_id(const uiListType *ult,
+                                   const char *list_id,
+                                   char r_full_list_id[/*UI_MAX_NAME_STR*/])
+{
+  WM_uilisttype_to_full_list_id(ult->idname, list_id, r_full_list_id);
 }
 
 const char *WM_uilisttype_list_id_get(const uiListType *ult, uiList *list)

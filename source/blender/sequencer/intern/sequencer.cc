@@ -269,11 +269,8 @@ void strip_free(Scene *scene, Strip *strip)
 
 void seq_free_strip_recurse(Scene *scene, Strip *strip, const bool do_id_user)
 {
-  Strip *istrip_next;
-
-  for (Strip *istrip = strip->seqbase.first(); istrip; istrip = istrip_next) {
-    istrip_next = istrip->next;
-    seq_free_strip_recurse(scene, istrip, do_id_user);
+  for (Strip &istrip : strip->seqbase.items_mutable()) {
+    seq_free_strip_recurse(scene, &istrip, do_id_user);
   }
 
   seq_strip_free_ex(scene, strip, false, do_id_user);

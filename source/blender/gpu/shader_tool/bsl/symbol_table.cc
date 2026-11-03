@@ -19,21 +19,20 @@ using namespace blender::gpu::shader::parser::ast;
 using namespace std;
 using Token = blender::gpu::shader::parser::Token;
 
-SymbolTable::SymbolTable(ParserBase &parser)
+SymbolTable::SymbolTable(ParserBase &parser) : root(scp_arena.alloc(parser.root()))
 {
-  LocalScope node = parser.root();
-  root = scp_arena.alloc(node);
-  register_builtins(node);
+  register_builtins(parser.root());
 }
 
-Result<SymbolClass *> SymbolTable::resolve_auto_type(SymbolScope &scope, Declarator decl) const
+Result<const SymbolClass &> SymbolTable::resolve_auto_type(SymbolScope &scope,
+                                                           Declarator decl) const
 {
   std::optional<AstNodeException> err;
   Node node = decl.child_last();
   AssignStmt assign(node);
 
   if (Expr expr = assign.expr(); expr.is_valid()) {
-    return {expr_type_analysis(scope, expr.child_first()).unwrap(err).type, err};
+    return {*expr_type_analysis(scope, expr.child_first()).unwrap(err).type, err};
   }
 
   InitializerList list(node);
@@ -51,11 +50,11 @@ Result<SymbolClass *> SymbolTable::resolve_auto_type(SymbolScope &scope, Declara
     }
     else {
       Expr expr(init.child_first());
-      return {expr_type_analysis(scope, expr.child_first()).unwrap(err).type, err};
+      return {*expr_type_analysis(scope, expr.child_first()).unwrap(err).type, err};
     }
   }
 
-  return {root->lookup_class(SymbolTable::err_symbol), err};
+  return {*root.lookup_class(SymbolTable::err_symbol), err};
 }
 
 Result<StringPair> SymbolTable::mangle_identifier(TemplateArgList args,
@@ -78,7 +77,7 @@ Result<StringPair> SymbolTable::mangle_identifier(TemplateArgList args,
       }
       else {
         IdQualified type_id(LocalVar(param.child_first()).identifier());
-        auto *type = scope.lookup_class_base(*this, type_id);
+        const SymbolClass *type = &scope.lookup_class_base(*this, type_id);
         if (type->template_data) {
           TemplateParamList list_nested = type_id.template_params();
           if (!list_nested.is_valid()) {
@@ -135,7 +134,7 @@ Result<string> SymbolTable::expr_to_string(const SymbolScope &scope,
   for (Node child = start; child.is_valid(); child = child.next()) {
     switch (child.type()) {
       case NodeType::LocalVar: {
-        SymbolVariable *var = scope.lookup_variable(*this, LocalVar(child).identifier());
+        const SymbolVariable *var = &scope.lookup_variable(*this, LocalVar(child).identifier());
         /* Resolve member access. */
 
         for (Node next = child.next(); next.type() == NodeType::Op && next.front() == '.';
@@ -144,7 +143,7 @@ Result<string> SymbolTable::expr_to_string(const SymbolScope &scope,
           child = next.next();
 
           if (child.type() == NodeType::LocalVar) {
-            var = var->type->lookup_variable(*this, LocalVar(child).identifier());
+            var = &var->type.lookup_variable(*this, LocalVar(child).identifier());
           }
           else if (child.type() == NodeType::FuncCall) {
             return {
@@ -237,26 +236,26 @@ void SymbolTable::register_builtins(LocalScope node)
   };
 
   for (const auto &t : basic_types) {
-    SymbolClass *cls = cls_arena.alloc(root, tok, t.id, t.size, t.align, t.cls);
-    cls->is_std140_compatible = t.align == 4;
-    cls->is_std430_compatible = t.align == 4;
-    cls->comp_len = 1;
-    cls->is_error = t.id == err_symbol;
-    root->classes.emplace(t.id, cls);
+    SymbolClass &cls = cls_arena.alloc(root, tok, t.id, t.size, t.align, t.cls);
+    cls.is_std140_compatible = t.align == 4;
+    cls.is_std430_compatible = t.align == 4;
+    cls.comp_len = 1;
+    cls.is_error = t.id == err_symbol;
+    root.classes.emplace(t.id, &cls);
   }
 
-  this->err_cls = root->lookup_class(SymbolTable::err_symbol);
+  this->err_cls = root.lookup_class(SymbolTable::err_symbol);
 
-  this->char_cls = root->lookup_class("char");
-  this->short_cls = root->lookup_class("short");
-  this->int_cls = root->lookup_class("int");
-  this->uchar_cls = root->lookup_class("uchar");
-  this->ushort_cls = root->lookup_class("ushort");
-  this->uint_cls = root->lookup_class("uint");
-  this->half_cls = root->lookup_class("half");
-  this->float_cls = root->lookup_class("float");
-  this->bool_cls = root->lookup_class("bool");
-  this->bool32_t_cls = root->lookup_class("bool32_t");
+  this->char_cls = root.lookup_class("char");
+  this->short_cls = root.lookup_class("short");
+  this->int_cls = root.lookup_class("int");
+  this->uchar_cls = root.lookup_class("uchar");
+  this->ushort_cls = root.lookup_class("ushort");
+  this->uint_cls = root.lookup_class("uint");
+  this->half_cls = root.lookup_class("half");
+  this->float_cls = root.lookup_class("float");
+  this->bool_cls = root.lookup_class("bool");
+  this->bool32_t_cls = root.lookup_class("bool32_t");
 
   const vector<BuiltinBasicType> special_types = {
       {err_symbol, 1, 1},
@@ -328,14 +327,14 @@ void SymbolTable::register_builtins(LocalScope node)
   };
 
   for (const auto &t : special_types) {
-    SymbolClass *sym = cls_arena.alloc(root, tok, t.id, t.size, t.align);
-    sym->is_error = t.id == err_symbol;
-    sym->is_opaque = true;
-    root->classes.emplace(t.id, sym);
+    SymbolClass &sym = cls_arena.alloc(root, tok, t.id, t.size, t.align);
+    sym.is_error = t.id == err_symbol;
+    sym.is_opaque = true;
+    root.classes.emplace(t.id, &sym);
   }
 
-  this->str_cls = root->lookup_class("string_t");
-  this->void_cls = root->lookup_class("void");
+  this->str_cls = root.lookup_class("string_t");
+  this->void_cls = root.lookup_class("void");
 
   struct BuiltinVector {
     string id;
@@ -349,26 +348,26 @@ void SymbolTable::register_builtins(LocalScope node)
   const char *swizzle_rgba[4] = {"r", "g", "b", "a"};
 
   auto generate_vector = [&](const BuiltinVector &t, const bool do_swizzle) {
-    SymbolClass *base = t.base;
-    SymbolClass *cls = cls_arena.alloc(root, tok, t.id, t.comp * base->size, t.align, t.cls_id);
-    root->classes.emplace(t.id, cls);
-    root->scopes.emplace(t.id, cls);
+    SymbolClass &base = *t.base;
+    SymbolClass &cls = cls_arena.alloc(root, tok, t.id, t.comp * base.size, t.align, t.cls_id);
+    root.classes.emplace(t.id, &cls);
+    root.scopes.emplace(t.id, &cls);
 
-    cls->is_std140_compatible = t.align >= 8 && t.id != "float3" && base->is_std140_compatible;
-    cls->is_std430_compatible = cls->is_std140_compatible;
+    cls.is_std140_compatible = t.align >= 8 && t.id != "float3" && base.is_std140_compatible;
+    cls.is_std430_compatible = cls.is_std140_compatible;
 
-    SymbolFunction *sub_op = fun_arena.alloc(
+    SymbolFunction &sub_op = fun_arena.alloc(
         cls, tok, base, subscript_operator_id, SymbolFunction::MEMBER);
 
-    cls->operator_subscript = sub_op;
-    cls->functions.emplace(subscript_operator_id, sub_op);
-    cls->comp_len = t.comp * base->comp_len;
+    cls.operator_subscript = &sub_op;
+    cls.functions.emplace(subscript_operator_id, &sub_op);
+    cls.comp_len = t.comp * base.comp_len;
 
     for (int i = 0; i < t.comp && do_swizzle; i++) {
       string id_xyzw(swizzle_xyzw[i]);
-      cls->variables.emplace(id_xyzw, var_arena.alloc(cls, base, tok, id_xyzw));
+      cls.variables.emplace(id_xyzw, &var_arena.alloc(cls, base, tok, id_xyzw));
       string id_rgba(swizzle_rgba[i]);
-      cls->variables.emplace(id_rgba, var_arena.alloc(cls, base, tok, id_rgba));
+      cls.variables.emplace(id_rgba, &var_arena.alloc(cls, base, tok, id_rgba));
     }
   };
 
@@ -413,36 +412,36 @@ void SymbolTable::register_builtins(LocalScope node)
   }
 
   /* Fast lookup cache. */
-  this->char2_cls = root->lookup_class("char2");
-  this->short2_cls = root->lookup_class("short2");
-  this->int2_cls = root->lookup_class("int2");
-  this->uchar2_cls = root->lookup_class("uchar2");
-  this->ushort2_cls = root->lookup_class("ushort2");
-  this->uint2_cls = root->lookup_class("uint2");
-  this->half2_cls = root->lookup_class("half2");
-  this->char3_cls = root->lookup_class("char3");
-  this->short3_cls = root->lookup_class("short3");
-  this->int3_cls = root->lookup_class("int3");
-  this->uchar3_cls = root->lookup_class("uchar3");
-  this->ushort3_cls = root->lookup_class("ushort3");
-  this->uint3_cls = root->lookup_class("uint3");
-  this->half3_cls = root->lookup_class("half3");
-  this->char4_cls = root->lookup_class("char4");
-  this->short4_cls = root->lookup_class("short4");
-  this->int4_cls = root->lookup_class("int4");
-  this->uchar4_cls = root->lookup_class("uchar4");
-  this->ushort4_cls = root->lookup_class("ushort4");
-  this->uint4_cls = root->lookup_class("uint4");
-  this->half4_cls = root->lookup_class("half4");
-  this->float2_cls = root->lookup_class("float2");
-  this->float3_cls = root->lookup_class("float3");
-  this->float4_cls = root->lookup_class("float4");
-  this->packed_float2_cls = root->lookup_class("packed_float2");
-  this->packed_float3_cls = root->lookup_class("packed_float3");
-  this->packed_float4_cls = root->lookup_class("packed_float4");
-  this->bool2_cls = root->lookup_class("bool2");
-  this->bool3_cls = root->lookup_class("bool3");
-  this->bool4_cls = root->lookup_class("bool4");
+  this->char2_cls = root.lookup_class("char2");
+  this->short2_cls = root.lookup_class("short2");
+  this->int2_cls = root.lookup_class("int2");
+  this->uchar2_cls = root.lookup_class("uchar2");
+  this->ushort2_cls = root.lookup_class("ushort2");
+  this->uint2_cls = root.lookup_class("uint2");
+  this->half2_cls = root.lookup_class("half2");
+  this->char3_cls = root.lookup_class("char3");
+  this->short3_cls = root.lookup_class("short3");
+  this->int3_cls = root.lookup_class("int3");
+  this->uchar3_cls = root.lookup_class("uchar3");
+  this->ushort3_cls = root.lookup_class("ushort3");
+  this->uint3_cls = root.lookup_class("uint3");
+  this->half3_cls = root.lookup_class("half3");
+  this->char4_cls = root.lookup_class("char4");
+  this->short4_cls = root.lookup_class("short4");
+  this->int4_cls = root.lookup_class("int4");
+  this->uchar4_cls = root.lookup_class("uchar4");
+  this->ushort4_cls = root.lookup_class("ushort4");
+  this->uint4_cls = root.lookup_class("uint4");
+  this->half4_cls = root.lookup_class("half4");
+  this->float2_cls = root.lookup_class("float2");
+  this->float3_cls = root.lookup_class("float3");
+  this->float4_cls = root.lookup_class("float4");
+  this->packed_float2_cls = root.lookup_class("packed_float2");
+  this->packed_float3_cls = root.lookup_class("packed_float3");
+  this->packed_float4_cls = root.lookup_class("packed_float4");
+  this->bool2_cls = root.lookup_class("bool2");
+  this->bool3_cls = root.lookup_class("bool3");
+  this->bool4_cls = root.lookup_class("bool4");
 
   const std::vector<BuiltinVector> matrices = {
       {"float2x2", float2_cls, 2, 16, builtin::ClassId::float2x2_t},
@@ -460,37 +459,37 @@ void SymbolTable::register_builtins(LocalScope node)
     generate_vector(t, false);
   }
 
-  this->float2x2_cls = root->lookup_class("float2x2");
-  this->float2x3_cls = root->lookup_class("float2x3");
-  this->float2x4_cls = root->lookup_class("float2x4");
-  this->float3x2_cls = root->lookup_class("float3x2");
-  this->float3x3_cls = root->lookup_class("float3x3");
-  this->float3x4_cls = root->lookup_class("float3x4");
-  this->float4x2_cls = root->lookup_class("float4x2");
-  this->float4x3_cls = root->lookup_class("float4x3");
-  this->float4x4_cls = root->lookup_class("float4x4");
+  this->float2x2_cls = root.lookup_class("float2x2");
+  this->float2x3_cls = root.lookup_class("float2x3");
+  this->float2x4_cls = root.lookup_class("float2x4");
+  this->float3x2_cls = root.lookup_class("float3x2");
+  this->float3x3_cls = root.lookup_class("float3x3");
+  this->float3x4_cls = root.lookup_class("float3x4");
+  this->float4x2_cls = root.lookup_class("float4x2");
+  this->float4x3_cls = root.lookup_class("float4x3");
+  this->float4x4_cls = root.lookup_class("float4x4");
 
   /* Aliases. */
-  root->classes.emplace(string("int32_t"), root->classes["int"]);
-  root->classes.emplace(string("uint32_t"), root->classes["uint"]);
+  root.classes.emplace(string("int32_t"), root.classes["int"]);
+  root.classes.emplace(string("uint32_t"), root.classes["uint"]);
 
   /* Swizzle Generation */
   /* We do this in a separate loop because a swizzle on a float2 (like `.xxxx`).
-   * might require float4 to already be registered in root->classes. */
+   * might require float4 to already be registered in root.classes. */
   for (const auto &[name, base, comp, __, ___] : vectors) {
-    SymbolClass *type = root->classes[name];
+    SymbolClass &type = *root.classes[name];
     auto generate_swizzles =
         [&](auto &self, string current, int target_length, auto swizzle) -> void {
       if (current.length() == target_length) {
         /* e.g., "float" + "3" = "float3" */
         string return_type_id = base->identifier + to_string(target_length);
+        SymbolClass &return_type = *root.classes[return_type_id];
 
-        SymbolVariable var(type, root->classes[return_type_id], tok, current);
-        SymbolFunction fun(
-            type, tok, root->classes[return_type_id], current, SymbolFunction::MEMBER);
+        SymbolVariable var(type, return_type, tok, current);
+        SymbolFunction fun(type, tok, return_type, current, SymbolFunction::MEMBER);
 
-        type->variables.emplace(current, var_arena.alloc(var));
-        type->functions.emplace(current, fun_arena.alloc(fun));
+        type.variables.emplace(current, &var_arena.alloc(var));
+        type.functions.emplace(current, &fun_arena.alloc(fun));
         return;
       }
       /* Only allow swizzling components that actually exist on this vector type. */
@@ -507,17 +506,17 @@ void SymbolTable::register_builtins(LocalScope node)
 
   auto builtin_function_decl =
       [&](const BuiltinFunc &fn, bool allow_vector_promotion, bool is_constexpr) {
-        SymbolFunction *sym = fun_arena.alloc(
-            root, tok, fn.return_type, fn.id, SymbolFunction::GLOBAL);
-        sym->is_error = fn.id == err_symbol;
-        sym->allow_vector_promotion = allow_vector_promotion;
-        sym->is_constexpr = is_constexpr;
-        sym->is_builtin = true;
-        sym->reserve_arguments(fn.arg_types.size());
-        for (SymbolClass *arg : fn.arg_types) {
-          sym->add_argument(true, arg);
+        SymbolFunction &sym = fun_arena.alloc(
+            root, tok, *fn.return_type, fn.id, SymbolFunction::GLOBAL);
+        sym.is_error = fn.id == err_symbol;
+        sym.allow_vector_promotion = allow_vector_promotion;
+        sym.is_constexpr = is_constexpr;
+        sym.is_builtin = true;
+        sym.reserve_arguments(fn.arg_types.size());
+        for (const SymbolClass *arg : fn.arg_types) {
+          sym.add_argument(true, *arg);
         }
-        root->function_emplace(sym, true);
+        root.function_emplace(&sym, true);
       };
 
   const vector<BuiltinFunc> functions = generate_all_builtin_functions();
@@ -620,22 +619,22 @@ void SymbolTable::register_builtins(LocalScope node)
 
   /* Boolean constants. */
   for (auto c : consts) {
-    SymbolVariable *sym = var_arena.alloc(root, root->lookup_class(c.type), tok, string(c.id));
-    sym->is_error = c.id == err_symbol;
-    sym->is_static = c.is_constexpr;
-    sym->is_constexpr = c.is_constexpr;
-    sym->value = c.value;
-    root->variables.emplace(sym->identifier, sym);
+    SymbolVariable &sym = var_arena.alloc(root, *root.lookup_class(c.type), tok, string(c.id));
+    sym.is_error = c.id == err_symbol;
+    sym.is_static = c.is_constexpr;
+    sym.is_constexpr = c.is_constexpr;
+    sym.value = c.value;
+    root.variables.emplace(sym.identifier, &sym);
   }
 
-  this->err_var = root->lookup_variable(err_symbol);
-  this->err_func = root->lookup_function(err_symbol);
+  this->err_var = root.lookup_variable(err_symbol);
+  this->err_func = root.lookup_function(err_symbol);
 }
 
-SymbolClass *SymbolTable::get_literal_type(string_view lit) const
+const SymbolClass &SymbolTable::get_literal_type(string_view lit) const
 {
   if (lit == "true" || lit == "false") {
-    return bool_cls;
+    return *bool_cls;
   }
 
   /* Convert to lowercase helper for easier suffix matching */
@@ -652,26 +651,26 @@ SymbolClass *SymbolTable::get_literal_type(string_view lit) const
   bool has_float_suffix = !is_hex && (str.back() == 'f');
 
   if (has_decimal || has_exponent || has_float_suffix) {
-    return float_cls;
+    return *float_cls;
   }
   if (str.back() == 'u') {
-    return uint_cls;
+    return *uint_cls;
   }
-  return int_cls;
+  return *int_cls;
 }
 
-MatchRank SymbolTable::get_conversion_rank(const SymbolClass *from,
-                                           const SymbolClass *to,
+MatchRank SymbolTable::get_conversion_rank(const SymbolClass &from,
+                                           const SymbolClass &to,
                                            const bool ctor_conversion) const
 {
-  if (from == to) {
+  if (&from == &to) {
     return MatchRank::Exact;
   }
 
-  if (!from->is_builtin()) {
+  if (!from.is_builtin()) {
     /* Check if convertible through inheritance. */
-    if (!to->is_builtin() && from->has_inheritance()) {
-      int conversion_index = from->get_conversion_index(to);
+    if (!to.is_builtin() && from.has_inheritance()) {
+      int conversion_index = from.get_conversion_index(to);
       if (conversion_index > 0) {
         return {MatchRank::Conversion, uint8_t(conversion_index)};
       }
@@ -680,14 +679,14 @@ MatchRank SymbolTable::get_conversion_rank(const SymbolClass *from,
   }
 
   /* Casting enum or packed types of the underlying type matches. */
-  if (from->builtin_class == to->builtin_class) {
-    return from->is_enum ? MatchRank::Promotion : MatchRank::Conversion;
+  if (from.builtin_class == to.builtin_class) {
+    return from.is_enum ? MatchRank::Promotion : MatchRank::Conversion;
   }
 
   using namespace builtin;
 
-  const builtin::ClassId from_cls = from->builtin_class;
-  const builtin::ClassId to_cls = to->builtin_class;
+  const builtin::ClassId from_cls = from.builtin_class;
+  const builtin::ClassId to_cls = to.builtin_class;
 
   const uint16_t from_raw = uint16_t(from_cls);
   const uint16_t to_raw = uint16_t(to_cls);
@@ -745,49 +744,49 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
     functions.push_back({bool_cls, "in_range_exclusive", {type, type, type}});
   }
 
-  for (SymbolClass *sampler_t : {root->lookup_class("sampler2DDepth"),
-                                 root->lookup_class("sampler2D"),
-                                 root->lookup_class("isampler2D"),
-                                 root->lookup_class("usampler2D")})
+  for (SymbolClass *sampler_t : {root.lookup_class("sampler2DDepth"),
+                                 root.lookup_class("sampler2D"),
+                                 root.lookup_class("isampler2D"),
+                                 root.lookup_class("usampler2D")})
   {
     functions.push_back({bool_cls, "in_texture_range", {int2_cls, sampler_t}});
   }
 
-  for (SymbolClass *sampler_t : {root->lookup_class("sampler2DArray"),
-                                 root->lookup_class("isampler2DArray"),
-                                 root->lookup_class("usampler2DArray"),
-                                 root->lookup_class("sampler3D"),
-                                 root->lookup_class("isampler3D"),
-                                 root->lookup_class("usampler3D"),
-                                 root->lookup_class("isampler3DAtomic"),
-                                 root->lookup_class("usampler3DAtomic"),
-                                 root->lookup_class("isampler2DArrayAtomic"),
-                                 root->lookup_class("usampler2DArrayAtomic")})
+  for (SymbolClass *sampler_t : {root.lookup_class("sampler2DArray"),
+                                 root.lookup_class("isampler2DArray"),
+                                 root.lookup_class("usampler2DArray"),
+                                 root.lookup_class("sampler3D"),
+                                 root.lookup_class("isampler3D"),
+                                 root.lookup_class("usampler3D"),
+                                 root.lookup_class("isampler3DAtomic"),
+                                 root.lookup_class("usampler3DAtomic"),
+                                 root.lookup_class("isampler2DArrayAtomic"),
+                                 root.lookup_class("usampler2DArrayAtomic")})
   {
     functions.push_back({bool_cls, "in_texture_range", {int2_cls, sampler_t}});
   }
 
-  for (SymbolClass *image_t : {root->lookup_class("iimage1DArray"),
-                               root->lookup_class("uimage1DArray"),
-                               root->lookup_class("image2D"),
-                               root->lookup_class("iimage2D"),
-                               root->lookup_class("uimage2D"),
-                               root->lookup_class("iimage2DAtomic"),
-                               root->lookup_class("uimage2DAtomic")})
+  for (SymbolClass *image_t : {root.lookup_class("iimage1DArray"),
+                               root.lookup_class("uimage1DArray"),
+                               root.lookup_class("image2D"),
+                               root.lookup_class("iimage2D"),
+                               root.lookup_class("uimage2D"),
+                               root.lookup_class("iimage2DAtomic"),
+                               root.lookup_class("uimage2DAtomic")})
   {
     functions.push_back({bool_cls, "in_image_range", {int2_cls, image_t}});
   }
 
-  for (SymbolClass *image_t : {root->lookup_class("image2DArray"),
-                               root->lookup_class("iimage2DArray"),
-                               root->lookup_class("uimage2DArray"),
-                               root->lookup_class("image3D"),
-                               root->lookup_class("iimage3D"),
-                               root->lookup_class("uimage3D"),
-                               root->lookup_class("iimage3DAtomic"),
-                               root->lookup_class("uimage3DAtomic"),
-                               root->lookup_class("iimage2DArrayAtomic"),
-                               root->lookup_class("uimage2DArrayAtomic")})
+  for (SymbolClass *image_t : {root.lookup_class("image2DArray"),
+                               root.lookup_class("iimage2DArray"),
+                               root.lookup_class("uimage2DArray"),
+                               root.lookup_class("image3D"),
+                               root.lookup_class("iimage3D"),
+                               root.lookup_class("uimage3D"),
+                               root.lookup_class("iimage3DAtomic"),
+                               root.lookup_class("uimage3DAtomic"),
+                               root.lookup_class("iimage2DArrayAtomic"),
+                               root.lookup_class("uimage2DArrayAtomic")})
   {
     functions.push_back({bool_cls, "in_image_range", {int2_cls, image_t}});
   }
@@ -1091,32 +1090,32 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
   };
 
   for (auto [type, prefix] : image_types) {
-    SymbolClass *sampler = root->classes[prefix + "samplerBuffer"];
+    SymbolClass *sampler = root.classes[prefix + "samplerBuffer"];
     functions.push_back({type, "texelFetch", {sampler, i_types[0]}});
   }
 
   for (auto [type, prefix] : image_types) {
     vector<tuple<SymbolClass *, int, int>> samplers = {
         /* Name, Coordinate Dimensions. */
-        {root->classes[prefix + "sampler1D"], 1, 1},
-        {root->classes[prefix + "sampler2D"], 2, 2},
-        {root->classes[prefix + "sampler3D"], 3, 3},
-        {root->classes[prefix + "samplerCube"], 3, 3},
-        {root->classes[prefix + "sampler1DArray"], 2, 1},
-        {root->classes[prefix + "sampler2DArray"], 3, 2},
-        {root->classes[prefix + "samplerCubeArray"], 4, 3},
+        {root.classes[prefix + "sampler1D"], 1, 1},
+        {root.classes[prefix + "sampler2D"], 2, 2},
+        {root.classes[prefix + "sampler3D"], 3, 3},
+        {root.classes[prefix + "samplerCube"], 3, 3},
+        {root.classes[prefix + "sampler1DArray"], 2, 1},
+        {root.classes[prefix + "sampler2DArray"], 3, 2},
+        {root.classes[prefix + "samplerCubeArray"], 4, 3},
     };
 
     if (prefix.empty()) {
-      samplers.emplace_back(root->classes["sampler2DDepth"], 2, 2);
-      samplers.emplace_back(root->classes["samplerCubeDepth"], 3, 3);
-      samplers.emplace_back(root->classes["sampler2DArrayDepth"], 3, 2);
-      samplers.emplace_back(root->classes["samplerCubeArrayDepth"], 4, 3);
+      samplers.emplace_back(root.classes["sampler2DDepth"], 2, 2);
+      samplers.emplace_back(root.classes["samplerCubeDepth"], 3, 3);
+      samplers.emplace_back(root.classes["sampler2DArrayDepth"], 3, 2);
+      samplers.emplace_back(root.classes["samplerCubeArrayDepth"], 4, 3);
     }
     else {
-      samplers.emplace_back(root->classes[prefix + "sampler2DAtomic"], 2, 2);
-      samplers.emplace_back(root->classes[prefix + "sampler3DAtomic"], 3, 3);
-      samplers.emplace_back(root->classes[prefix + "sampler2DArrayAtomic"], 3, 2);
+      samplers.emplace_back(root.classes[prefix + "sampler2DAtomic"], 2, 2);
+      samplers.emplace_back(root.classes[prefix + "sampler3DAtomic"], 3, 3);
+      samplers.emplace_back(root.classes[prefix + "sampler2DArrayAtomic"], 3, 2);
     }
 
     for (auto [sampler, coord_dim, deriv_dim] : samplers) {
@@ -1136,15 +1135,15 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
     }
 
     vector<tuple<SymbolClass *, int>> images = {
-        {root->classes[prefix + "image2D"], 2},
-        {root->classes[prefix + "image2DArray"], 3},
-        {root->classes[prefix + "image3D"], 3},
+        {root.classes[prefix + "image2D"], 2},
+        {root.classes[prefix + "image2DArray"], 3},
+        {root.classes[prefix + "image3D"], 3},
     };
 
     if (!prefix.empty()) {
-      images.emplace_back(root->classes[prefix + "image2DAtomic"], 2);
-      images.emplace_back(root->classes[prefix + "image3DAtomic"], 3);
-      images.emplace_back(root->classes[prefix + "image2DArrayAtomic"], 3);
+      images.emplace_back(root.classes[prefix + "image2DAtomic"], 2);
+      images.emplace_back(root.classes[prefix + "image3DAtomic"], 3);
+      images.emplace_back(root.classes[prefix + "image2DArrayAtomic"], 3);
     }
 
     for (auto [image, coord_dim] : images) {
@@ -1171,8 +1170,8 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
   }
 
   /* Ray queries. */
-  SymbolClass *rayQuery_cls = root->lookup_class("rayQuery");
-  SymbolClass *accelerationStructure_cls = root->lookup_class("accelerationStructure");
+  SymbolClass *rayQuery_cls = root.lookup_class("rayQuery");
+  SymbolClass *accelerationStructure_cls = root.lookup_class("accelerationStructure");
   functions.push_back({void_cls,
                        "rayQueryInitialize",
                        {rayQuery_cls,

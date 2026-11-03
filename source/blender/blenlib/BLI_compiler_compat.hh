@@ -43,6 +43,12 @@ template<typename T> static inline T decltype_helper(T x)
 #  define BLI_INLINE_METHOD inline __attribute__((always_inline)) __attribute__((__unused__))
 #endif
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#  define BLI_INLINE_LAMBDA [[msvc::forceinline]]
+#else
+#  define BLI_INLINE_LAMBDA __attribute__((always_inline))
+#endif
+
 #if defined(__GNUC__)
 #  define BLI_NOINLINE __attribute__((noinline))
 #elif defined(_MSC_VER)

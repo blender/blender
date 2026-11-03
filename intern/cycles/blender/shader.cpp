@@ -16,6 +16,7 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
+#include "util/colorspace.h"
 #include "util/log.h"
 #include "util/set.h"
 #include "util/string.h"
@@ -1872,6 +1873,7 @@ void BlenderSync::sync_world(blender::Depsgraph &b_depsgraph,
       rotation_z[2] = new_viewport_parameters.studiolight_rotate_z;
       texture_environment->set_tex_mapping_rotation(rotation_z);
       texture_environment->set_filename(new_viewport_parameters.studiolight_path);
+      texture_environment->set_colorspace(u_colorspace_auto);
 
       MixNode *mix_intensity = graph->create_node<MixNode>();
       mix_intensity->set_mix_type(NODE_MIX_MUL);

@@ -382,7 +382,7 @@ void USDNurbsReader::read_curve_sample(Curves *curves_id, const pxr::UsdTimeCode
   if (!usd_velocities.is_empty()) {
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
     bke::SpanAttributeWriter<float3> curves_velocity =
-        attributes.lookup_or_add_for_write_only_span<float3>("velocity", bke::AttrDomain::Point);
+        attributes.ensure_for_write_only_span<float3>("velocity", bke::AttrDomain::Point);
 
     for (const int curve_i : blender_points_by_curve.index_range()) {
       const IndexRange blender_points_range = blender_points_by_curve[curve_i];

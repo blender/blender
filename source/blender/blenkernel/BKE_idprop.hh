@@ -414,7 +414,7 @@ void IDP_foreach_property(IDProperty *id_property_root,
                           FunctionRef<void(IDProperty *id_property)> callback);
 
 /* Format IDProperty as strings */
-char *IDP_reprN(const IDProperty *prop, uint *r_len);
+[[nodiscard]] char *IDP_reprN(const IDProperty *prop, uint *r_len) ATTR_MALLOC;
 void IDP_repr_fn(const IDProperty *prop,
                  void (*str_append_fn)(void *user_data, const char *str, uint str_len),
                  void *user_data);

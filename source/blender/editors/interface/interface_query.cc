@@ -472,8 +472,12 @@ static bool listbox_contains_listrow(const Button *listbox_but, const Button *li
 {
   BLI_assert(listbox_but->type == ButtonType::ListBox);
   BLI_assert(listrow_but->type == ButtonType::ListRow);
-  /* The list box and its rows have the same RNA data (active data pointer/prop). */
-  return button_rna_equals(listbox_but, listrow_but);
+  /* The list box and its rows have the same RNA data (active data pointer/prop),
+   * or bind to the same index stored in the region. */
+  if (listbox_but->rnaprop) {
+    return button_rna_equals(listbox_but, listrow_but);
+  }
+  return listbox_but->poin == listrow_but->poin;
 }
 
 static bool but_is_listrow(const Button *but, const void * /*customdata*/)

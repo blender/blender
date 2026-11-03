@@ -240,8 +240,7 @@ MTLContext::MTLContext(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_contex
 
   /* Prepare platform and capabilities. (NOTE: With METAL, this needs to be done after CTX
    * initialization). */
-  MTLBackend::platform_init(this);
-  MTLBackend::capabilities_init(this);
+  MTLBackend::get()->platform_and_capabilities_ensure(this);
 
   /* Ensure global memory manager is initialized. */
   MTLContext::global_memory_manager_acquire_ref();
@@ -921,8 +920,14 @@ static void ensure_buffer_bindings(MTLContext &ctx,
   uint32_t dirty_ubo_mask = ~uint32_t(0u);
   uint32_t dirty_ssbo_mask = ~uint32_t(0u);
 
-  uint32_t dirty_enabled_ubo_mask = shader_interface.enabled_ubo_mask_ & dirty_ubo_mask;
-  uint32_t dirty_enabled_ssbo_mask = shader_interface.enabled_ssbo_mask_ & dirty_ssbo_mask;
+  /* Ignore slots beyond the context bindings, declared by invalid shaders. */
+  const uint32_t valid_ubo_mask = (1u << MTL_MAX_UBO) - 1u;
+  const uint32_t valid_ssbo_mask = (1u << MTL_MAX_SSBO) - 1u;
+
+  uint32_t dirty_enabled_ubo_mask = shader_interface.enabled_ubo_mask_ & dirty_ubo_mask &
+                                    valid_ubo_mask;
+  uint32_t dirty_enabled_ssbo_mask = shader_interface.enabled_ssbo_mask_ & dirty_ssbo_mask &
+                                     valid_ssbo_mask;
 
   uint32_t bind_ubo = dirty_enabled_ubo_mask & (stage_buf_mask >> MTL_UBO_SLOT_OFFSET);
   for (const uint slot : bits::iter_1_indices(bind_ubo)) {
@@ -2038,6 +2043,13 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
   id<MTLCommandBuffer> cmdbuf = [ctx->queue commandBuffer];
   ctx->main_command_buffer.inc_active_command_buffer_count();
 
+  /* Ensure freed buffers have usage tracked against active CommandBuffer submissions. Referenced
+   * from creation until completion of the command buffer, like
+   * #MTLCommandBufferManager::ensure_begin. */
+  MTLSafeFreeList *cmd_free_buffer_list =
+      MTLContext::get_global_memory_manager()->acquire_current_safe_list();
+  BLI_assert(cmd_free_buffer_list);
+
   /* Do Present Call and final Blit to MTLDrawable. */
   id<MTLRenderCommandEncoder> enc = [cmdbuf renderCommandEncoderWithDescriptor:blit_descriptor];
   [enc setRenderPipelineState:blit_pso];
@@ -2049,17 +2061,11 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
   BLI_assert(drawable);
   [cmdbuf presentDrawable:drawable];
 
-  /* Ensure freed buffers have usage tracked against active CommandBuffer submissions. */
-  MTLSafeFreeList *cmd_free_buffer_list =
-      MTLContext::get_global_memory_manager()->get_current_safe_list();
-  BLI_assert(cmd_free_buffer_list);
-
   /* Increment drawables in flight limiter. */
   MTLContext::max_drawables_in_flight++;
   std::chrono::time_point submission_time = std::chrono::high_resolution_clock::now();
 
-  /* Increment free pool reference and decrement upon command buffer completion. */
-  cmd_free_buffer_list->increment_reference();
+  /* Decrement free pool reference upon command buffer completion. */
   [cmdbuf addCompletedHandler:^(id<MTLCommandBuffer> /*cb*/) {
     /* Flag freed buffers associated with this CMD buffer as ready to be freed. */
     cmd_free_buffer_list->decrement_reference();

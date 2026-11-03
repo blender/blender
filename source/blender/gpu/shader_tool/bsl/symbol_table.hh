@@ -39,10 +39,10 @@ struct SymbolTable {
     std::deque<T> arena;
 
    public:
-    template<typename... Args> T *alloc(Args &&...args)
+    template<typename... Args> T &alloc(Args &&...args)
     {
       arena.emplace_back(std::forward<Args>(args)...);
-      return &arena.back();
+      return arena.back();
     }
   };
 
@@ -113,9 +113,7 @@ struct SymbolTable {
 
   static constexpr const char *subscript_operator_id = "arr_op_";
 
-  template<typename SymbolT> SymbolT *alloc(SymbolT &&sym);
-
-  SymbolScope *root = nullptr;
+  SymbolScope &root;
 
   SymbolTable(ParserBase &builtin_parser);
 
@@ -133,42 +131,43 @@ struct SymbolTable {
                                               ast::Node start_node,
                                               bool is_reference = false) const;
 
-  Result<SymbolClass *> resolve_auto_type(SymbolScope &scope, ast::Declarator decl) const;
+  Result<const SymbolClass &> resolve_auto_type(SymbolScope &scope, ast::Declarator decl) const;
 
   Result<string> expr_to_string(const SymbolScope &scope,
                                 ast::Node start,
                                 int &node_count,
                                 bool allow_compilation_constant = false) const;
 
-  SymbolClass *get_literal_type(string_view lit) const;
+  const SymbolClass &get_literal_type(string_view lit) const;
 
-  MatchRank get_conversion_rank(const SymbolClass *from,
-                                const SymbolClass *to,
+  MatchRank get_conversion_rank(const SymbolClass &from,
+                                const SymbolClass &to,
                                 const bool ctor_conversion = false) const;
 
-  SymbolClass *to_class(builtin::ClassId id) const;
+  const SymbolClass &to_class(builtin::ClassId id) const;
 
-  SymbolClass *make_type(SymbolClass *base, int size) const;
+  /* Make vector type. Only allow builtin base types. */
+  const SymbolClass &make_type(const SymbolClass &base, int size) const;
 
  private:
   struct BuiltinType {
     /* "int", "int2", ... */
-    SymbolClass *type;
+    const SymbolClass *type;
     /* "int", "uint", "float", "bool", ... */
-    SymbolClass *base;
+    const SymbolClass *base;
   };
 
   struct BuiltinOp {
-    SymbolClass *left;
+    const SymbolClass *left;
     TokenType op;
-    SymbolClass *right;
-    SymbolClass *result;
+    const SymbolClass *right;
+    const SymbolClass *result;
   };
 
   struct BuiltinFunc {
-    SymbolClass *return_type;
+    const SymbolClass *return_type;
     string id;
-    vector<SymbolClass *> arg_types;
+    vector<const SymbolClass *> arg_types;
   };
 
   void register_builtins(ast::LocalScope node);

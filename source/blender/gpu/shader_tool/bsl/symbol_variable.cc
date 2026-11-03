@@ -18,23 +18,21 @@ namespace bsl {
 
 using namespace blender::gpu::shader::parser::ast;
 
-SymbolVariable::SymbolVariable(SymbolScope *parent,
-                               SymbolClass *type,
+SymbolVariable::SymbolVariable(SymbolScope &parent,
+                               const SymbolClass &type,
                                Declarator decl,
                                const SymbolTable &table)
     : Symbol(
-          string(decl.identifier().str()), string(decl.identifier().str()), decl.front(), parent),
+          string(decl.identifier().str()), string(decl.identifier().str()), decl.front(), &parent),
       type(type),
       array_dimensions(decl.array().dimensions()),
       is_bitfield(decl.bitfield().is_valid()),
       is_static(decl.type().is_static()),
+      is_constexpr(decl.type().is_constexpr()),
+      is_const(is_constexpr || decl.type().is_const()),
       is_compilation_const(AttrList(decl.type().prev()).contains_attr("compilation_constant")),
       is_ptr(decl.is_pointer())
 {
-  if (ast::Const constant = decl.type().constant(); constant.is_valid()) {
-    is_constexpr = constant.front() == Constexpr;
-    is_const = true;
-  }
   if (ArrayDecl array = decl.array(); array.is_valid()) {
     Subscript sub = array.sub();
     array_elements = 1;
@@ -44,7 +42,7 @@ SymbolVariable::SymbolVariable(SymbolScope *parent,
         array_elements = -1;
         break;
       }
-      auto [result, _] = table.expr_type_analysis(*parent, node);
+      auto [result, _] = table.expr_type_analysis(parent, node);
       if (!result.is_constexpr()) {
         array_elements = -1;
         break;
@@ -60,15 +58,15 @@ void SymbolVariable::set_offset(bool is_union, int &offset)
     this->offset = 0;
   }
   else {
-    this->offset = pad(offset, this->type->align);
+    this->offset = pad(offset, this->type.align);
     offset = this->offset;
     int elements = (this->array_dimensions == 0) ? 1 : this->array_elements;
     if (elements != -1) {
-      offset += this->type->size * elements;
+      offset += this->type.size * elements;
     }
     else {
       /* TODO(fclem): Maybe assert here. There is no reason to allow non-static array size. */
-      offset += this->type->size;
+      offset += this->type.size;
     }
   }
 }

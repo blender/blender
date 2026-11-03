@@ -77,6 +77,7 @@ void register_node_type_sh_light_accumulation()
       "Compositing Pass.\n"
       "The combined result is computed as (Diffuse Light * Diffuse Color) + (Glossy Light * "
       "Glossy Color)";
+  ntype.enum_name_legacy = "LIGHT_ACCUMULATION";
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
   ntype.gather_link_search_ops = search_link_ops_for_shader_material_lighting_node;

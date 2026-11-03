@@ -152,7 +152,7 @@ static void statvis_calc_thickness(const MeshRenderData &mr,
   }
 
   if (mr.extract_type == MeshExtractType::BMesh) {
-    BMEditMesh *em = mr.edit_bmesh;
+    EditMesh *em = mr.edit_mesh;
     BMesh *bm = mr.bm;
     BM_mesh_elem_index_ensure(bm, BM_FACE);
 
@@ -292,7 +292,7 @@ static void statvis_calc_intersect(const MeshRenderData &mr, MutableSpan<float> 
   }
 
   if (mr.extract_type == MeshExtractType::BMesh) {
-    BMEditMesh *em = mr.edit_bmesh;
+    EditMesh *em = mr.edit_mesh;
     uint overlap_len;
     BMesh *bm = mr.bm;
 

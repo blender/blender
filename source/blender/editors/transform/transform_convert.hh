@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <climits>
+
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 
@@ -26,7 +28,7 @@ struct TransDataCurveHandleFlags;
 struct TransInfo;
 namespace blender {
 
-struct BMEditMesh;
+struct EditMesh;
 struct BMesh;
 struct bConstraint;
 struct BezTriple;
@@ -328,7 +330,7 @@ struct TransMeshDataCrazySpace {
   Array<float3x3, 0> defmats;
 };
 
-void transform_convert_mesh_islands_calc(BMEditMesh *em,
+void transform_convert_mesh_islands_calc(EditMesh *em,
                                          BMesh *bm,
                                          bool calc_single_islands,
                                          bool calc_island_center,
@@ -344,7 +346,7 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
                                                   const float mtx[3][3],
                                                   float *dists,
                                                   int *index);
-void transform_convert_mesh_mirrordata_calc(BMEditMesh *em,
+void transform_convert_mesh_mirrordata_calc(EditMesh *em,
                                             BMesh *bm,
                                             bool use_select,
                                             bool use_topology,
@@ -364,6 +366,8 @@ void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
                                                      const float quat[4],
                                                      TransData *r_td);
 void transform_convert_mesh_crazyspace_free(TransMeshDataCrazySpace *r_crazyspace_data);
+
+float *transform_convert_mesh_shell_factor_calc(const TransDataContainer *tc);
 
 Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
     const TransDataContainer *tc, Vector<float3> &r_loc_dst_buffer);

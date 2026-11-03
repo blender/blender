@@ -1797,6 +1797,12 @@ void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
       add_relation(driver_unshare_key, driver_key, "Un-share shared data before drivers");
     }
   }
+
+  /* Un-sharing writes to the driven properties, which can also be written by the animation. */
+  OperationKey animation_exit_key(id, NodeType::ANIMATION, OperationCode::ANIMATION_EXIT);
+  if (has_node(animation_exit_key) && has_node(driver_unshare_key)) {
+    add_relation(animation_exit_key, driver_unshare_key, "AnimData Before Un-share");
+  }
 }
 
 void DepsgraphRelationBuilder::build_animation_images(ID *id)

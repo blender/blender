@@ -578,6 +578,11 @@ void RNA_identifier_sanitize(char *identifier, bool is_property)
   }
 }
 
+void RNA_identifier_sanitize(std::string &identifier, const bool is_property)
+{
+  RNA_identifier_sanitize(identifier.data(), is_property);
+}
+
 /* Blender Data Definition */
 
 BlenderRNA *RNA_create_runtime()

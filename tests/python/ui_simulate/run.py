@@ -134,11 +134,13 @@ def _process_test_id_fn(env, args, test_id):
         *(("--step-command-pre", args.step_command_pre) if args.step_command_pre else ()),
         *(("--step-command-post", args.step_command_post) if args.step_command_post else ()),
     )
-    callproc = subprocess.run(cmd, env=env)
+    # Separate user resources per test, as tests may write recent files and bookmarks.
+    with tempfile.TemporaryDirectory() as empty_user_dir:
+        callproc = subprocess.run(cmd, env={**env, "BLENDER_USER_RESOURCES": empty_user_dir})
     return test_id, callproc.returncode == 0
 
 
-def run(empty_user_dir):
+def run():
     directory = os.path.dirname(__file__)
     if "--list-tests" in sys.argv:
         list_tests(directory)
@@ -165,7 +167,6 @@ def run(empty_user_dir):
     env = os.environ.copy()
     env.update({
         "LSAN_OPTIONS": "exitcode=0",
-        "BLENDER_USER_RESOURCES": empty_user_dir,
         # Don't use the desktop session bus, system preferences shouldn't influence test behavior.
         "DBUS_SESSION_BUS_ADDRESS": "/dev/null",
     })
@@ -196,8 +197,7 @@ def run(empty_user_dir):
 
 
 def main():
-    with tempfile.TemporaryDirectory() as empty_user_dir:
-        sys.exit(run(empty_user_dir))
+    sys.exit(run())
 
 
 if __name__ == "__main__":

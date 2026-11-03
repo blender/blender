@@ -11,10 +11,12 @@
 #include <cstdlib>
 #include <utility>
 
+#include "BLI_compiler_compat.hh"
+
 namespace blender {
 
 template<class Fn, size_t... I>
-constexpr void unroll_impl(Fn fn, std::index_sequence<I...> /*indices*/)
+BLI_INLINE constexpr void unroll_impl(Fn fn, std::index_sequence<I...> /*indices*/)
 {
   (fn(I), ...);
 }
@@ -24,7 +26,7 @@ constexpr void unroll_impl(Fn fn, std::index_sequence<I...> /*indices*/)
  * operations and makes the code generation more explicit and predictable. Unrolling should always
  * be worth it because the vector size is expected to be small.
  */
-template<int N, class Fn> constexpr void unroll(Fn fn)
+template<int N, class Fn> BLI_INLINE constexpr void unroll(Fn fn)
 {
   unroll_impl(fn, std::make_index_sequence<N>());
 }

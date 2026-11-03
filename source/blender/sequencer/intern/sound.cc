@@ -21,6 +21,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_listbase.hh"
 #include "BLI_utildefines.hh"
 
@@ -295,21 +296,16 @@ AUD_Sound sound_equalizermodifier_recreator(Strip *strip,
     return sound_in;
   }
 
-  float *buf = MEM_new_array_zeroed<float>(SOUND_EQUALIZER_SIZE_DEFINITION, "eqrecreator");
-
-  CurveMapping *eq_mapping;
-  CurveMap *cm;
-  float minX;
-  float maxX;
+  Array<float> buf(SOUND_EQUALIZER_SIZE_DEFINITION, 0.0f);
   float interval = SOUND_EQUALIZER_DEFAULT_MAX_FREQ / float(SOUND_EQUALIZER_SIZE_DEFINITION);
 
   /* Visit all equalizer definitions. */
   for (EQCurveMappingData &mapping : semd->graphics) {
-    eq_mapping = &mapping.curve_mapping;
+    CurveMapping *eq_mapping = &mapping.curve_mapping;
     BKE_curvemapping_init(eq_mapping);
-    cm = eq_mapping->cm;
-    minX = eq_mapping->curr.xmin;
-    maxX = eq_mapping->curr.xmax;
+    CurveMap *cm = eq_mapping->cm;
+    const float minX = eq_mapping->curr.xmin;
+    const float maxX = eq_mapping->curr.xmax;
     int idx = int(ceil(minX / interval));
     int i = idx;
     for (; i * interval <= maxX && i < SOUND_EQUALIZER_SIZE_DEFINITION; i++) {
@@ -330,18 +326,17 @@ AUD_Sound sound_equalizermodifier_recreator(Strip *strip,
     }
   }
 
-  const uint64_t curr_params_hash = sound_equalizermodifier_get_params_hash(buf);
+  const uint64_t curr_params_hash = sound_equalizermodifier_get_params_hash(buf.data());
   /* Only make new sound when necessary. It is faster and it prevents audio glitches. */
   if (!needs_update && smd->runtime->last_sound_in == sound_in &&
       curr_params_hash == smd->runtime->params_hash)
   {
-    MEM_delete(buf);
     return smd->runtime->last_sound_out;
   }
 
   std::shared_ptr<aud::Buffer> aud_buf = std::make_shared<aud::Buffer>(
       sizeof(float) * SOUND_EQUALIZER_SIZE_DEFINITION);
-  std::memcpy(aud_buf->getBuffer(), buf, sizeof(float) * SOUND_EQUALIZER_SIZE_DEFINITION);
+  std::memcpy(aud_buf->getBuffer(), buf.data(), sizeof(float) * SOUND_EQUALIZER_SIZE_DEFINITION);
   AUD_Sound sound_out = AUD_Sound(new aud::Equalizer(sound_in,
                                                      aud_buf,
                                                      SOUND_EQUALIZER_SIZE_DEFINITION,
@@ -352,7 +347,6 @@ AUD_Sound sound_equalizermodifier_recreator(Strip *strip,
   smd->runtime->last_sound_in = sound_in;
   smd->runtime->last_sound_out = sound_out;
   smd->runtime->params_hash = curr_params_hash;
-  MEM_delete(buf);
 
   return sound_out;
 #else

@@ -906,14 +906,20 @@ static void copy_and_mix_attributes(const bke::AttributeAccessor src_attributes,
         return;
       }
     }
-    const GVArraySpan src_span(src_attr);
-    bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
-        iter.name, iter.domain, iter.data_type);
-    array_utils::gather(src_span, map.dst_to_src.as_span(), dst_attr.span);
-    const GroupedSpan<int> mixed_groups = map.mixed_groups();
-    bke::attribute_math::mix_groups(
-        src_span, mixed_groups.offsets, mixed_groups.data, std::nullopt, map.mixed, dst_attr.span);
-    dst_attr.finish();
+    if (bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
+            iter.name, iter.domain, iter.data_type))
+    {
+      const GVArraySpan src_span(src_attr);
+      array_utils::gather(src_span, map.dst_to_src.as_span(), dst_attr.span);
+      const GroupedSpan<int> mixed_groups = map.mixed_groups();
+      bke::attribute_math::mix_groups(src_span,
+                                      mixed_groups.offsets,
+                                      mixed_groups.data,
+                                      std::nullopt,
+                                      map.mixed,
+                                      dst_attr.span);
+      dst_attr.finish();
+    }
   });
 }
 
@@ -1212,14 +1218,16 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
         return;
       }
     }
-    const CPPType &type = src_attr.varray.type();
-    bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
-        iter.name, iter.domain, iter.data_type);
-    array_utils::gather(
-        src_attr.varray, kept_src_faces, dst_attr.span.take_front(kept_src_faces.size()));
-    GMutableSpan default_data = dst_attr.span.slice(dst_new_faces);
-    type.fill_assign_n(type.default_value(), default_data.data(), default_data.size());
-    dst_attr.finish();
+    if (bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
+            iter.name, iter.domain, iter.data_type))
+    {
+      const CPPType &type = src_attr.varray.type();
+      array_utils::gather(
+          src_attr.varray, kept_src_faces, dst_attr.span.take_front(kept_src_faces.size()));
+      GMutableSpan default_data = dst_attr.span.slice(dst_new_faces);
+      type.fill_assign_n(type.default_value(), default_data.data(), default_data.size());
+      dst_attr.finish();
+    }
   });
 
   if (CustomData_has_layer(&mesh.face_data, CD_ORIGINDEX)) {
