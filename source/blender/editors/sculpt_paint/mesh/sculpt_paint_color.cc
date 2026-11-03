@@ -598,10 +598,6 @@ void do_paint_brush(const Depsgraph &depsgraph,
     ss.cache->paint_brush.density_seed = BLI_hash_int_01(ss.cache->location_symm[0] * 1000);
   }
 
-  if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
-    return;
-  }
-
   float4x4 mat;
 
   /* If the brush is round the tip does not need to be aligned to the surface, so this saves a
@@ -951,10 +947,6 @@ void do_blur_brush(const Depsgraph &depsgraph,
 
   if (!ss.cache->paint_brush.density_seed) {
     ss.cache->paint_brush.density_seed = BLI_hash_int_01(ss.cache->location_symm[0] * 1000);
-  }
-
-  if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
-    return;
   }
 
   Mesh &mesh = *id_cast<Mesh *>(ob.data);
