@@ -70,6 +70,7 @@ ImageData::~ImageData()
     BKE_image_release_ibuf(image, buffer, nullptr);
   }
   BLI_assert(non_null_buffers <= image->tiles.count());
+  UNUSED_VARS_NDEBUG(non_null_buffers);
   image_buffers.clear();
 }
 std::unique_ptr<ImageData> ImageData::init_active_image(Object &ob, ImagePaintSettings &settings)
