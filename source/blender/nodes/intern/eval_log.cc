@@ -1035,6 +1035,10 @@ static LogWithNodeEditor get_root_log(const bContext &C)
     return {get_geometry_nodes_root_log(*snode), snode};
   }
 
+  if (snode && !ED_node_is_compositor(snode)) {
+    return {nullptr, nullptr};
+  }
+
   /* First, check if an interactive compositor log corresponds to the active region. */
   ScrArea *area = CTX_wm_area(&C);
   if (area && bke::compositor::is_compositor_viewer_visible(*area)) {
