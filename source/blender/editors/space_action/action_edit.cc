@@ -914,8 +914,7 @@ static void insert_fcurve_key(bAnimContext *ac,
   ale->update |= ANIM_UPDATE_DEFAULT;
 }
 
-static void insert_nla_curve_key(bAnimContext *ac,
-                                 bAnimListElem &ale,
+static void insert_nla_curve_key(bAnimListElem &ale,
                                  const AnimationEvalContext &anim_eval_context,
                                  const eInsertKeyFlags flag)
 {
@@ -927,10 +926,6 @@ static void insert_nla_curve_key(bAnimContext *ac,
   if (!prop) {
     return;
   }
-
-  Scene *scene = ac->scene;
-  const std::optional<StringRefNull> channel_group = fcu->grp ? std::optional(fcu->grp->name) :
-                                                                std::nullopt;
 
   const KeyframeSettings key_settings = get_keyframe_settings((flag & INSERTKEY_NO_USERPREF) == 0);
   const Vector<float> rna_values = get_property_values(&ptr, prop, /* visual_keyframing= */ false);
@@ -1001,7 +996,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
         break;
 
       case ANIMTYPE_NLACURVE:
-        insert_nla_curve_key(ac, ale, anim_eval_context, flag);
+        insert_nla_curve_key(ale, anim_eval_context, flag);
         break;
 
       default:
