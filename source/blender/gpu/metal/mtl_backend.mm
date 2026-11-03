@@ -116,7 +116,7 @@ TexturePool *MTLBackend::texturepool_alloc()
   // if (GCaps.texture_pool_workaround) {
   return new TexturePoolImpl();
   // }
-  // return new MTLTexturePool(); */
+  // return new MTLTexturePool();
 }
 
 UniformBuf *MTLBackend::uniformbuf_alloc(size_t size, const char *name)
