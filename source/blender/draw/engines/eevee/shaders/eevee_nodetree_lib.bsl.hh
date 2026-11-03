@@ -869,19 +869,15 @@ float3 oren_nayar_lut(const KernelGlobals &kg,
     eevee::lut::OrenNayarData lut = eevee::lut::OrenNayarData::sample_utility_tx(
         kg.util_tx, cos_theta, roughness);
 
-    const float3 albedo = saturate(color);
-    const float3 single_scatter = albedo * lut.Ess;
-
     const OrenNayar oren_nayar = OrenNayar::init(saturate(roughness));
 
     /* Average albedo, [portsmouth2024] Eq. (15). */
     const float Eavg = oren_nayar.A + ((2.0f - 5.6f * M_1_PI) / 3.0f) * oren_nayar.B;
     /* Multiscatter lobe, [portsmouth2024] Eq. (19). */
-    const float3 Fms = square(albedo) * Eavg *
-                       safe_rcp((1.0f - Eavg) * (1.0f - albedo * (1.0f - Eavg)));
-    const float3 multi_scatter = Fms * lut.Ems;
+    const float3 albedo = saturate(color);
+    const float3 Fms = albedo * Eavg * safe_rcp((1.0f - Eavg) * (1.0f - albedo * (1.0f - Eavg)));
 
-    return single_scatter + multi_scatter;
+    return max(color, float3(0.0f)) * (lut.Ess + Fms * lut.Ems);
   }
   return float3(0.0f);
 }
