@@ -29,6 +29,7 @@
 #include <cstring>
 #include <optional>
 
+#include "BLI_unique_hash.hh"
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -101,6 +102,8 @@
 #include "ANIM_armature.hh"
 
 #include "anim_intern.hh"
+
+#include <xxhash.h>
 
 namespace blender {
 
@@ -4216,33 +4219,29 @@ void ChannelArena::compute_data_channel_hash()
 {
   /* Grouping re-orders the data channels, which changes the resulting hash, so this should be
    * called before grouping happens, and only then. */
-  BLI_assert_msg(this->data_channel_hash == 0,
+  BLI_assert_msg(this->data_channel_hash == UniqueHash{},
                  "compute_data_channel_hash() should only be called once");
-
-  /* This basically reimplements the Span::hash() function, but then calling our custom per-element
-   * datachannel_hash() function. */
 
   /* Mix with a non-zero value, to be able to distinguish between "not computed" (invalid state
    * for comparisons) and "no data channels" (valid state). This particular value is 'Laksa'
    * encoded as UTF-8 and reinterpreted as big-endian integer. */
-  uint64_t hash = 0x4c616b7361;
-
-  if (this->data_channels.is_empty()) {
-    this->data_channel_hash = hash;
-    return;
-  }
+  UniqueHashBytes hash_bytes;
+  hash_bytes.add(0x4c616b7361);
 
   for (const DataChannel *channel : this->data_channels) {
-    hash = hash * 33 ^ channel->datachannel_hash();
+    channel->datachannel_hash(hash_bytes);
   }
+
+  const XXH128_hash_t xxhash = XXH3_128bits(hash_bytes.data.data(), hash_bytes.data.size());
+  const UniqueHash hash{xxhash.low64, xxhash.high64};
   this->data_channel_hash = hash;
 }
 
 bool ChannelArena::is_same_as(const ChannelArena &other) const
 {
   /* If the hash is zero, that means it was never computed, which indicates a bug. */
-  BLI_assert(this->data_channel_hash);
-  BLI_assert(other.data_channel_hash);
+  BLI_assert(this->data_channel_hash != UniqueHash{});
+  BLI_assert(other.data_channel_hash != UniqueHash{});
 
   return this->data_channel_hash == other.data_channel_hash &&
          this->data_channels.size() == other.data_channels.size() &&

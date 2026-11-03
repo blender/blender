@@ -1079,11 +1079,15 @@ DataChannel::DataChannel(const StringRef label,
   source_rna_path_ = source_rna_path;
 }
 
-uint64_t DataChannel::datachannel_hash() const
+void DataChannel::datachannel_hash(UniqueHashBytes &hash) const
 {
   const PointerRNA &source = this->source();
-  return get_default_hash(
-      type_, source.type, source.owner_id, source.data, this->source_type_, this->flags_);
+  hash.add(type_);
+  hash.add(source.type);
+  hash.add(source.owner_id);
+  hash.add(source.data);
+  hash.add(this->source_type_);
+  hash.add(this->flags_);
 }
 
 static std::optional<StringRefNull> last_rna_path_member(const ParsedRNAPathRef path)

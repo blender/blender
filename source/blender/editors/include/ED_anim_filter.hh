@@ -18,6 +18,7 @@
 #include "BLI_linear_allocator.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
+#include "BLI_unique_hash.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_global.hh"
@@ -709,7 +710,7 @@ class DataChannel : public AnimationChannel {
    * manipulated by the channel grouping. Most notably, contrary to #hash(), this does not include
    * #AnimationChannel::parent_session_uid_.
    */
-  uint64_t datachannel_hash() const;
+  void datachannel_hash(UniqueHashBytes &hash) const;
 
   DataChannelType source_type() const
   {
@@ -883,10 +884,11 @@ class ChannelArena {
   /**
    * Hash of the data channels.
    *
-   * This is based on #AnimationChannel:hash(), which includes ID pointers. This is intentional, as
-   * remapped/deleted IDs will invalidate this hash, forcing a rebuild of any cached ChannelArena.
+   * This is based on #DataChannel::datachannel_hash(), which includes ID pointers. This is
+   * intentional, as remapped/deleted IDs will invalidate this hash, forcing a rebuild of any
+   * cached ChannelArena.
    */
-  uint64_t data_channel_hash = 0;
+  UniqueHash data_channel_hash = {};
 
   ChannelArena() = default;
   ChannelArena(const ChannelArena &) = delete;
