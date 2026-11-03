@@ -15,6 +15,11 @@
 #include "overlay_common.bsl.hh"
 #include "overlay_shader_shared.hh"
 
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  define const
+#endif
+
 /* TODO(fclem): Move it to Gpencil lib. */
 float3 ray_plane_intersection(float3 ray_ori, float3 ray_dir, float4 plane)
 {
@@ -457,3 +462,8 @@ PipelineGraphic prepass_wire_clipped(wire::vert_main, frag_main, ClippingConstan
 /* clang-format on */
 
 }  // namespace overlay::outline
+
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  undef const
+#endif
