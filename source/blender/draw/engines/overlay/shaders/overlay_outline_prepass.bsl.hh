@@ -383,11 +383,6 @@ struct Wire {
 
 [[vertex]]
 void vert_main([[resource_table]] const Wire &srt,
-               [[resource_table]] const Uniform &uni,
-               [[resource_table]] const draw::Resource &resources,
-               [[resource_table]] const draw::Model &models,
-               [[resource_table]] const draw::Infos &infos,
-               [[resource_table]] const draw::View &views,
                [[resource_table]] const Clipping &clip,
                [[instance_index]] const int inst_index,
                [[vertex_id]] const int vert_id,

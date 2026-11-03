@@ -473,11 +473,6 @@ struct PointShape {
   {
     return PointShape{.id = ~0u};
   }
-
-  bool is_culled() const
-  {
-    return id == (~0u);
-  }
 };
 
 /**

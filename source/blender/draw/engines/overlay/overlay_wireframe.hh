@@ -96,7 +96,6 @@ class Wireframe : Overlay {
             sub.push_constant("use_coloring", use_coloring);
             sub.push_constant("wire_step_param", wire_threshold);
             sub.push_constant("ndc_offset_factor", &state.ndc_offset_factor);
-            sub.push_constant("is_hair", false);
             return &sub;
           };
 
