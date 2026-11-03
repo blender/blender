@@ -454,7 +454,7 @@ class AbstractChannelAPI {
    * this channel. For example, an ActionGroup (aka FCurve-group) itself can be selected, and when
    * it represents the animation data for a pose bone, that pose bone is the 'secondary data'.
    */
-  virtual void set_selected(bool is_selected, bool do_sync_to_secondary) = 0;
+  virtual void set_selected(const bContext &C, bool is_selected, bool do_sync_to_secondary) = 0;
   virtual bool is_selected() const = 0;
 
   /**
@@ -465,7 +465,7 @@ class AbstractChannelAPI {
    * This is not a pure-virtual function, but rather a no-op on this class. This means that
    * subclasses can opt in on this feature.
    */
-  virtual void set_active(bool do_sync_to_secondary);
+  virtual void set_active(const bContext &C, bool do_sync_to_secondary);
 };
 
 /**
@@ -604,12 +604,12 @@ class AnimationChannel {
    * data (if that is selectable). For example, an ActionGroup channel can have a Pose Bone as
    * secondary data.
    */
-  void set_selected(const bool is_selected, const bool do_sync_to_secondary)
+  void set_selected(const bContext &C, const bool is_selected, const bool do_sync_to_secondary)
   {
     if (!this->channel_api_) {
       this->channel_api_ = create_channel_api(*this);
     }
-    this->channel_api_->set_selected(is_selected, do_sync_to_secondary);
+    this->channel_api_->set_selected(C, is_selected, do_sync_to_secondary);
   };
 
   /**

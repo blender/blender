@@ -3624,7 +3624,9 @@ static bDopeSheet *get_dopesheet_from_space(bContext &C)
   return nullptr;
 }
 
-static void select_all_channels(ed::animfilter::ChannelArena &channels, const bool select)
+static void select_all_channels(const bContext &C,
+                                ed::animfilter::ChannelArena &channels,
+                                const bool select)
 {
   using namespace ed::animfilter;
   if (!channels.root()) {
@@ -3636,7 +3638,7 @@ static void select_all_channels(ed::animfilter::ChannelArena &channels, const bo
   const bool show_summary = false;
   foreach_expanded(
       *channels.root(), show_summary, [&](AnimationChannel &channel, int /* row_index */) {
-        channel.set_selected(select, do_sync_to_secondary);
+        channel.set_selected(C, select, do_sync_to_secondary);
       });
 }
 
@@ -3674,24 +3676,24 @@ static wmOperatorStatus animchannels_selectall_exec(bContext *C, wmOperator *op)
             }
           }
         }
-        select_all_channels(arena, select);
+        select_all_channels(*C, arena, select);
         break;
       }
       case SEL_SELECT: {
-        select_all_channels(arena, true);
+        select_all_channels(*C, arena, true);
         break;
       }
       case SEL_DESELECT: {
-        select_all_channels(arena, false);
+        select_all_channels(*C, arena, false);
         break;
       }
       case SEL_INVERT: {
         const bool do_selection_syncing = do_sync_channel_selection_to_secondary(arena.filters);
         for (DataChannel *data_channel : arena.data_channels) {
-          data_channel->set_selected(!data_channel->is_selected(), do_selection_syncing);
+          data_channel->set_selected(*C, !data_channel->is_selected(), do_selection_syncing);
         }
         for (SummaryChannel *summary_channel : arena.summary_channels) {
-          summary_channel->set_selected(!summary_channel->is_selected(), do_selection_syncing);
+          summary_channel->set_selected(*C, !summary_channel->is_selected(), do_selection_syncing);
         }
         break;
       }
@@ -3904,7 +3906,7 @@ static wmOperatorStatus animchannels_box_select_exec(bContext *C, wmOperator *op
       return OPERATOR_CANCELLED;
     }
     if (!extend) {
-      select_all_channels(arena, false);
+      select_all_channels(*C, arena, false);
     }
     ARegion *region = CTX_wm_region(C);
     const float channel_step = ANIM_UI_get_channel_step();
@@ -3923,7 +3925,7 @@ static wmOperatorStatus animchannels_box_select_exec(bContext *C, wmOperator *op
     foreach_expanded(*arena.root(), show_summary, [&](AnimationChannel &channel, int row_index) {
       const float row_top = first_channel - row_index * channel_step;
       if (v2d_y_start < row_top && v2d_y_end > row_top - channel_step) {
-        channel.set_selected(true, do_selection_syncing);
+        channel.set_selected(*C, true, do_selection_syncing);
       }
     });
   }

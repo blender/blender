@@ -15,15 +15,18 @@
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
+#include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main_idmap.hh"
@@ -32,12 +35,16 @@
 #include "ED_anim_filter.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_keyframes_keylist.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
 
 #include "ANIM_action.hh"
 #include "ANIM_armature.hh"
 #include "ANIM_rna.hh"
 
 #include "DEG_depsgraph.hh"
+
+#include "WM_types.hh"
 
 namespace blender::ed::animfilter {
 
@@ -163,10 +170,70 @@ std::ostream &operator<<(std::ostream &stream, const ParsedSourcePath &rna_path)
 /* For channels without underlying data. */
 class NoOpChannelAPI : public AbstractChannelAPI {
  public:
-  void set_selected(bool /*is_selected*/, bool /*do_sync_to_secondary*/) override {}
+  void set_selected(const bContext & /*C*/,
+                    bool /*is_selected*/,
+                    bool /*do_sync_to_secondary*/) override
+  {
+  }
   bool is_selected() const override
   {
     return false;
+  }
+};
+
+class ObjectChannelAPI : public AbstractChannelAPI {
+  Object &object_;
+
+ public:
+  ObjectChannelAPI(Object &object) : object_(object) {}
+
+  void set_selected(const bContext &C,
+                    const bool is_selected,
+                    const bool do_sync_to_secondary) override
+  {
+    BLI_assert_msg(object_.adt, "animated object is expected to have an AnimData struct");
+    flag_update(object_.adt->flag, ADT_UI_SELECTED, is_selected);
+
+    if (!do_sync_to_secondary) {
+      return;
+    }
+
+    ViewLayer *view_layer = CTX_data_view_layer(&C);
+    Base *base = this->find_base(C, view_layer);
+
+    object::base_select(base, is_selected ? object::BA_SELECT : object::BA_DESELECT);
+    flag_update(object_.flag, OB_SELECT, is_selected);
+
+    Scene *scene = CTX_data_scene(&C);
+    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+    WM_event_add_notifier(&C, NC_SCENE | ND_OB_SELECT, scene);
+    ED_outliner_select_sync_from_object_tag(const_cast<bContext *>(&C));
+  }
+
+  bool is_selected() const override
+  {
+    return flag_is_set(object_.adt->flag, ADT_UI_SELECTED);
+  }
+
+  void set_active(const bContext &C, bool do_sync_to_secondary) override
+  {
+    if (!do_sync_to_secondary) {
+      return;
+    }
+
+    ViewLayer *view_layer = CTX_data_view_layer(&C);
+    Base *base = this->find_base(C, view_layer);
+
+    view_layer->basact = base;
+  }
+
+ private:
+  Base *find_base(const bContext &C, ViewLayer *view_layer) const
+  {
+    BKE_view_layer_synced_ensure(*CTX_data_main(&C), CTX_data_scene(&C), view_layer);
+    Base *base = BKE_view_layer_base_find(view_layer, &object_);
+    BLI_assert(base);
+    return base;
   }
 };
 
@@ -176,7 +243,9 @@ class FCurveChannelAPI : public AbstractChannelAPI {
  public:
   FCurveChannelAPI(FCurve &fcurve) : fcurve_(fcurve) {}
 
-  void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
+  void set_selected(const bContext & /*C*/,
+                    const bool is_selected,
+                    bool /*do_sync_to_secondary*/) override
   {
     flag_update(fcurve_.flag, FCURVE_SELECTED, is_selected);
   }
@@ -192,7 +261,9 @@ class GreasePencilChannelAPI : public AbstractChannelAPI {
  public:
   GreasePencilChannelAPI(GreasePencilLayer &gp_layer) : layer_(gp_layer.wrap()) {}
 
-  void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
+  void set_selected(const bContext & /*C*/,
+                    const bool is_selected,
+                    bool /*do_sync_to_secondary*/) override
   {
     layer_.set_selected(is_selected);
   }
@@ -207,7 +278,9 @@ class ActionChannelAPI : public AbstractChannelAPI {
 
  public:
   ActionChannelAPI(bAction &action) : action_(action) {}
-  void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
+  void set_selected(const bContext & /*C*/,
+                    const bool is_selected,
+                    bool /*do_sync_to_secondary*/) override
   {
     flag_update(action_.flag, ACT_SELECTED, is_selected);
   }
@@ -307,7 +380,9 @@ class ActionGroupChannelAPI : public AbstractChannelAPI {
     }
   }
 
-  void set_selected(const bool is_selected, const bool do_sync_to_secondary) override
+  void set_selected(const bContext & /*C*/,
+                    const bool is_selected,
+                    const bool do_sync_to_secondary) override
   {
     flag_update(group_.flag, AGRP_SELECTED, is_selected);
 
@@ -319,7 +394,7 @@ class ActionGroupChannelAPI : public AbstractChannelAPI {
   {
     return flag_is_set(group_.flag, AGRP_SELECTED);
   }
-  void set_active(bool do_sync_to_secondary) override
+  void set_active(const bContext & /*C*/, bool do_sync_to_secondary) override
   {
     for (bActionGroup *group : channelbag_.channel_groups()) {
       const bool is_active = (group == &group_);
@@ -337,7 +412,9 @@ class ActionSlotChannelAPI : public AbstractChannelAPI {
 
  public:
   ActionSlotChannelAPI(animrig::Slot &slot) : slot_(slot) {}
-  void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
+  void set_selected(const bContext & /*C*/,
+                    const bool is_selected,
+                    bool /*do_sync_to_secondary*/) override
   {
     slot_.set_selected(is_selected);
   }
@@ -352,7 +429,9 @@ class AnimDataChannelAPI : public AbstractChannelAPI {
 
  public:
   AnimDataChannelAPI(AnimData &adt) : adt_(adt) {}
-  void set_selected(const bool is_selected, bool /*do_sync_to_secondary*/) override
+  void set_selected(const bContext & /*C*/,
+                    const bool is_selected,
+                    bool /*do_sync_to_secondary*/) override
   {
     flag_update(adt_.flag, ADT_UI_SELECTED, is_selected);
   }
@@ -373,7 +452,9 @@ class PoseBoneChannelAPI : public AbstractChannelAPI {
     BLI_assert(pose_bone_ptr.type == RNA_PoseBone);
   }
 
-  void set_selected(const bool is_selected, const bool do_sync_to_secondary) override
+  void set_selected(const bContext & /*C*/,
+                    const bool is_selected,
+                    const bool do_sync_to_secondary) override
   {
     set_pose_bone_selected(pose_bone_ptr_, is_selected, do_sync_to_secondary);
   }
@@ -384,7 +465,7 @@ class PoseBoneChannelAPI : public AbstractChannelAPI {
   }
 };
 
-void AbstractChannelAPI::set_active(bool /*do_sync_to_secondary*/) {}
+void AbstractChannelAPI::set_active(const bContext & /*C*/, bool /*do_sync_to_secondary*/) {}
 
 std::unique_ptr<AbstractChannelAPI> create_channel_api(const AnimationChannel &channel)
 {
@@ -398,6 +479,9 @@ std::unique_ptr<AbstractChannelAPI> create_channel_api(const AnimationChannel &c
   }
   if (ptr.type == RNA_GreasePencilLayer) {
     return std::make_unique<GreasePencilChannelAPI>(*ptr.data_as<GreasePencilLayer>());
+  }
+  if (ptr.type == RNA_Object) {
+    return std::make_unique<ObjectChannelAPI>(*ptr.data_as<Object>());
   }
   if (ptr.type == RNA_Action) {
     return std::make_unique<ActionChannelAPI>(*ptr.data_as<bAction>());

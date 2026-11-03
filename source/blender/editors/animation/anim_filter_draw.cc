@@ -283,7 +283,7 @@ void ChannelItem::set_selected(const bContext &C, const bool select)
 
   /* This flushes the selection state to the data, which is then read in the constructor. */
   const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
-  this->channel_api_->set_selected(select, tree_view.do_selection_syncing());
+  this->channel_api_->set_selected(C, select, tree_view.do_selection_syncing());
 }
 
 void ChannelItem::on_activate(bContext &C)
@@ -292,7 +292,7 @@ void ChannelItem::on_activate(bContext &C)
   /* This flushes the selection state to the data, which is then read in the constructor. */
 
   const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
-  this->channel_api_->set_active(tree_view.do_selection_syncing());
+  this->channel_api_->set_active(C, tree_view.do_selection_syncing());
 }
 
 /* Returns the correct color given the FCurve::color_mode. */
