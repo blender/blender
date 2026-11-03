@@ -229,7 +229,9 @@ float3 openpbr_eval_subsurface(KernelGlobals &kg,
                                const Subsurface subsurface,
                                const bool thin_walled,
                                const float3 N,
-                               ClosureDiffuse &diffuse_data)
+                               const float NV,
+                               ClosureDiffuse &diffuse_data,
+                               ClosureOrenNayar &oren_nayar_data)
 {
   if (subsurface.weight == 0.0f) {
     return weight;
@@ -237,12 +239,20 @@ float3 openpbr_eval_subsurface(KernelGlobals &kg,
 
   if (thin_walled) {
     /* Backward scattering is approximated by diffuse. */
-    diffuse_data.color += subsurface.tint * weight * subsurface.weight *
-                          saturate(0.5f * (1.0f - subsurface.anisotropy));
+    const float3 diffuse_weight = weight * subsurface.weight *
+                                  saturate(0.5f * (1.0f - subsurface.anisotropy));
+    if (oren_nayar_data.roughness == 0.0f) {
+      diffuse_data.color += diffuse_weight * subsurface.tint;
+    }
+    else {
+      oren_nayar_data.color += diffuse_weight *
+                               oren_nayar_lut(kg, subsurface.tint, NV, oren_nayar_data.roughness);
+    }
 
     const float transmit_weight = subsurface.weight *
                                   saturate(0.5f * (1.0f + subsurface.anisotropy));
     /* Forward scattering is approximated by translucent. */
+    /* TODO(weizhen): diffuse roughness. */
     ClosureTranslucent translucent_data;
     translucent_data.color = subsurface.tint * transmit_weight * weight;
     translucent_data.N = N;
@@ -265,10 +275,19 @@ void openpbr_eval_diffuse(KernelGlobals &kg,
                           const float3 weight,
                           const float3 color,
                           const float3 N,
-                          ClosureDiffuse &diffuse_data)
+                          const float NV,
+                          ClosureDiffuse &diffuse_data,
+                          ClosureOrenNayar &oren_nayar_data)
 {
-  diffuse_data.N = N;
-  diffuse_data.color += weight * color;
+  if (oren_nayar_data.roughness == 0.0f) {
+    diffuse_data.N = N;
+    diffuse_data.color += weight * color;
+  }
+  else {
+    oren_nayar_data.color += weight * oren_nayar_lut(kg, color, NV, oren_nayar_data.roughness);
+
+    closure_eval(kg, sd, oren_nayar_data);
+  }
 
   closure_eval(kg, sd, diffuse_data);
 }

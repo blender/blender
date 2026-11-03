@@ -109,6 +109,9 @@ ClosurePacking pack_closure(const PackParameters &srt, ClosureUndetermined cl)
         gbuffer::Subsurface::pack_additional(cl_packed, cl);
       }
       break;
+    case GBUF_OREN_NAYAR:
+      gbuffer::OrenNayar::pack_additional(cl_packed, cl);
+      break;
     case GBUF_DIFFUSE:
     case GBUF_UNLIT:
     case GBUF_TRANSLUCENT:

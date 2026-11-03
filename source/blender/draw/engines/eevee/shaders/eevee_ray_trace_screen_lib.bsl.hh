@@ -218,6 +218,7 @@ Ray raytrace_thickness_ray_amend(Ray ray, ClosureUndetermined cl, float3 V, Thic
       return bxdf_translucent_ray_amend(cl, V, ray, thickness);
     case CLOSURE_NONE_ID:
     case CLOSURE_BSDF_DIFFUSE_ID:
+    case CLOSURE_BSDF_OREN_NAYAR_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
     case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:

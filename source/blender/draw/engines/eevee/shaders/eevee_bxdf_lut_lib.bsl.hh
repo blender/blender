@@ -4,12 +4,13 @@
 
 /**
  * Wrapper objects for data from Look Up Tables for BxDFs. Refer to
- * `eevee_bxdf_lut.bsl.hh` for table computation.
+ * `eevee_bxdf_lut_gen.bsl.hh` for table computation.
  */
 
 #pragma once
 
 #include "eevee_defines.hh"
+#include "eevee_ltc_lut_lib.bsl.hh"
 #include "eevee_utility_tx.bsl.hh"
 #include "gpu_shader_compat.hh"
 #include "gpu_shader_math_base.bsl.hh"
@@ -98,6 +99,41 @@ struct GGXBsdfData {
   {
     const float3 coords = lut_coords_get(cos_theta, roughness, ior);
     const float4 data = util_tx.sample_bsdf_lut(coords.xy, coords.z);
+    return unpack(data);
+  }
+};
+
+/**
+ * Output from the 2D Oren Nayar LUT.
+ *
+ * The result is interpreted as:
+ * - `reflectance = color * Ess + Fms * Ems`.
+ */
+struct OrenNayarData {
+  float Ess;
+  float Ems;
+
+  float4 pack() const
+  {
+    return float4(Ess, Ems, 0.0f, 0.0f);
+  }
+
+  static OrenNayarData unpack(const float4 data)
+  {
+    return {.Ess = data.x, .Ems = data.y};
+  }
+
+  static float3 lut_coords_get(const float cos_theta, const float roughness)
+  {
+    return saturate(float3(roughness, cos_theta, 0.0f));
+  }
+
+  static OrenNayarData sample_utility_tx(const UtilityTexture &util_tx,
+                                         const float cos_theta,
+                                         const float roughness)
+  {
+    const float3 coords = lut_coords_get(cos_theta, roughness);
+    const float4 data = util_tx.sample_lut(coords.xy, UTIL_OREN_NAYAR_LAYER);
     return unpack(data);
   }
 };

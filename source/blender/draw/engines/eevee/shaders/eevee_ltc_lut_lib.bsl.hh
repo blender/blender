@@ -21,7 +21,7 @@ struct CoordParam {
 /**
  * Given UV coordintes of an isotropic LTC LUT, return BxDF parameters.
  */
-CoordParam from_isotropic_coords(const float2 coords)
+CoordParam from_isotropic_coords(const float3 coords)
 {
   const float roughness = coords.x;
   /* `sqrt(1 - cos(theta))` is very close to `theta`, this parametrization avoids computing
@@ -166,6 +166,18 @@ struct LTCData {
     /* LTC attenuation linearly disappears from roughness 0.15 to 0.375. */
     ltc_data.attenuation_factor = saturate((roughness - 0.15f) * 2.5f);
     return ltc_data;
+  }
+
+  /**
+   * Sample matrix data from the isotropic Oren-Nayar LTC LUT.
+   */
+  static LTCData sample_oren_nayar_lut(const UtilityTexture &util_tx,
+                                       const float3 N,
+                                       const float3 V,
+                                       const float cos_theta,
+                                       const float roughness)
+  {
+    return LTCData::sample_lut(util_tx, N, V, cos_theta, roughness, UTIL_LTC_MAT_OREN_NAYAR_LAYER);
   }
 
   /**

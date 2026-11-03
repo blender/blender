@@ -59,6 +59,11 @@ ClosureType closure_type_get(ClosureDiffuse /*cl*/)
   return CLOSURE_BSDF_DIFFUSE_ID;
 }
 
+ClosureType closure_type_get(ClosureOrenNayar /*cl*/)
+{
+  return CLOSURE_BSDF_OREN_NAYAR_ID;
+}
+
 ClosureType closure_type_get(ClosureTranslucent /*cl*/)
 {
   return CLOSURE_BSDF_TRANSLUCENT_ID;

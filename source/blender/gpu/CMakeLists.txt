@@ -592,6 +592,7 @@ set(GLSL_SRC
   shaders/common/gpu_shader_math_matrix_normalize.bsl.hh
   shaders/common/gpu_shader_math_matrix_projection.bsl.hh
   shaders/common/gpu_shader_math_matrix_transform.bsl.hh
+  shaders/common/gpu_shader_math_precise.bsl.hh
   shaders/common/gpu_shader_math_quaternion.bsl.hh
   shaders/common/gpu_shader_math_rotation.bsl.hh
   shaders/common/gpu_shader_math_rotation_conversion.bsl.hh

@@ -23,6 +23,8 @@ enum [[host_shared]] PrecomputeType : uint32_t {
   LUT_GGX_BSDF_SPLIT_SUM = 2u,
   LUT_BURLEY_SSS_PROFILE = 3u,
   LUT_RANDOM_WALK_SSS_PROFILE = 4u,
+  LUT_OREN_NAYAR_SPLIT_SUM = 5u,
+  LUT_OREN_NAYAR_LTC = 6u,
 };
 
 #ifndef GPU_SHADER

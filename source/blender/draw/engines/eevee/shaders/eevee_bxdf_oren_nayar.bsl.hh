@@ -4,60 +4,77 @@
 
 #pragma once
 
+#include "eevee_bxdf_diffuse.bsl.hh"
 #include "eevee_bxdf_types.bsl.hh"
 #include "eevee_ltc_lut_lib.bsl.hh"
-#include "gpu_shader_ray.bsl.hh"
-
-#if 0 /* Unfinished. */
 
 /* -------------------------------------------------------------------- */
 /** \name Oren Nayar BSDF
  * \{ */
 
-/**
- * Returns a tangent space diffuse direction following the Oren-Nayar distribution.
- *
- * \return pdf: the pdf of sampling the reflected/refracted ray. 0 if ray is invalid.
- */
-BsdfSample bxdf_oren_nayar_sample(float3 random_point_cos_hemisphere)
-{
-  /* Bias the rays so we never get really high energy rays almost parallel to the surface.
-   * Also reduces shadow terminator artifacts. */
-  constexpr float bias = 0.05f;
-  random_point_cos_hemisphere = normalize(random_point_cos_hemisphere + float3(0.0f, 0.0f, bias));
+struct OrenNayar {
+  /* Oren Nayar parameters. */
+  float A;
+  float B;
 
-  float cos_theta = random_point_cos_hemisphere.z;
-  BsdfSample samp;
-  samp.direction = random_point_cos_hemisphere;
-  samp.pdf = cos_theta * M_1_PI;
-  return samp;
-}
-
-Spectrum bsdf_oren_nayar_get_intensity(ShaderClosure *sc, float3 n, float3 v, float3 l)
-{
-  OrenNayarBsdf *bsdf = (OrenNayarBsdf *)sc;
-  float NL = max(dot(n, l), 0.0f);
-  float NV = max(dot(n, v), 0.0f);
-  float t = dot(l, v) - NL * NV;
-
-  if (t > 0.0f) {
-    t /= max(NL, NV) + FLT_MIN;
+  static OrenNayar init(const float roughness)
+  {
+    const float A_ = 1.0f / (1.0f + (0.5f - 2.0f / 3.0f * M_1_PI) * roughness);
+    return {.A = A_, .B = roughness * A_};
   }
 
-  float single_scatter = bsdf->a + bsdf->b * t;
+  BsdfSample bsdf_sample(const float3 rand, const float3 /*Vt*/) const
+  {
+    return bxdf_diffuse_sample(rand);
+  }
 
-  float El = bsdf->a * M_PI_F + bsdf->b * bsdf_oren_nayar_G(NL);
-  Spectrum multi_scatter = bsdf->multiscatter_term * (1.0f - El);
+  /* Geometry term, [portsmouth2024] Eq. (13). */
+  float G(const float cos_theta) const
+  {
+    if (cos_theta < 1e-6f) {
+      /* Fall back to Taylor expansion at low `cos_theta` to avoid numerical problems. */
+      return (M_PI_2 - 2.0f / 3.0f) - cos_theta;
+    }
+    const float sin_theta = sin_from_cos(cos_theta);
+    const float theta = safe_acos(cos_theta);
+    return sin_theta * (theta - 2.0f / 3.0f - sin_theta * cos_theta) +
+           2.0f / 3.0f * (sin_theta / cos_theta) * (1.0f - square(sin_theta) * sin_theta);
+  }
 
-  return NL * (make_spectrum(single_scatter) + multi_scatter);
-}
+  float E(const float cos_theta) const
+  {
+    return A + B * M_1_PI * G(cos_theta);
+  }
 
-BsdfEval bxdf_oren_nayar_eval(float3 N, float3 L)
-{
-  BsdfEval eval;
-  eval.throughput = eval.pdf = saturate(dot(N, L));
-  return eval;
-}
+  /* Single-scatter term, [portsmouth2024] Eq. (10). */
+  float single_scatter(const float3 L, const float3 V, const float NL, const float NV) const
+  {
+    const float s = dot(L, V) - NL * NV;
+    const float s_over_t = (s > 0) ? s / (max(NL, NV) + FLT_MIN) : s;
+    return A + B * s_over_t;
+  }
+
+  BsdfEval bsdf_eval(const float3 N, const float3 L, const float3 V) const
+  {
+    const float NL = dot(N, L);
+    if (NL <= 0.0f) {
+      /* Fall back to diffuse. */
+      return bxdf_diffuse_eval(N, L);
+    }
+
+    const float NV = max(dot(N, V), 0.0f);
+
+    const float Eavg = A + ((2.0f - 5.6f * M_1_PI) / 3.0f) * B;
+    /* Assume color is 1. */
+    const float multi_scatter = (1.0f - E(NV)) * safe_divide(1.0f - E(NL), 1.0f - Eavg);
+
+    BsdfEval eval;
+    eval.weight = single_scatter(L, V, NL, NV) + multi_scatter;
+    eval.pdf = M_1_PI * NL;
+    eval.throughput = eval.weight * eval.pdf;
+    return eval;
+  }
+};
 
 float bxdf_oren_nayar_perceived_roughness()
 {
@@ -72,16 +89,14 @@ LightProbeRay bxdf_oren_nayar_lightprobe(float3 N)
   return probe;
 }
 
-ClosureLight bxdf_oren_nayar_light(ClosureUndetermined cl, float3 V)
+ClosureLight bxdf_oren_nayar_light(const UtilityTexture &util_tx, ClosureOrenNayar cl, float3 V)
 {
   ClosureLight light;
-  /* TODO(fclem): LTC fit. */
   light.N = cl.N;
   light.type = LIGHT_DIFFUSE;
-  eevee::LTCData::pack_identity(light, light.N, V);
+  eevee::LTCData::sample_oren_nayar_lut(util_tx, light.N, V, dot(cl.N, V), cl.roughness)
+      .pack_to(light);
   return light;
 }
 
 /** \} */
-
-#endif

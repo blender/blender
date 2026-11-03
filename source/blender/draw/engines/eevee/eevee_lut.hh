@@ -30,6 +30,10 @@ extern const float blue_noise[64][64][4];
 extern const float burley_sss_profile[64][1];
 /* Precomputed translucency profile of a slab of material with varying thickness. */
 extern const float random_walk_sss_profile[64][1];
+/* Precomputed Oren-Nayar table. */
+extern const float oren_nayar[64][64][2];
+/* LTC matrix components for Oren Nayar. */
+extern const float ltc_mat_oren_nayar[64][64][4];
 
 #ifdef CYCLES_REFERENCE_LUT
 /* Precomputed translucency profile of a slab of material with varying thickness. */
