@@ -60,7 +60,7 @@ struct VKViewportData {
 
   bool operator==(const VKViewportData &other) const
   {
-    if (viewports.size() != other.viewports.size() && scissors.size() != other.scissors.size()) {
+    if (viewports.size() != other.viewports.size() || scissors.size() != other.scissors.size()) {
       return false;
     }
 
