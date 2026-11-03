@@ -1040,6 +1040,7 @@ bool GHOST_XrSession::getControllerModelData(const char *subaction_path,
 
 static PFN_xrCreatePassthroughFB g_xrCreatePassthroughFB = nullptr;
 static PFN_xrCreatePassthroughLayerFB g_xrCreatePassthroughLayerFB = nullptr;
+static PFN_xrDestroyPassthroughFB g_xrDestroyPassthroughFB = nullptr;
 static PFN_xrPassthroughStartFB g_xrPassthroughStartFB = nullptr;
 static PFN_xrPassthroughLayerResumeFB g_xrPassthroughLayerResumeFB = nullptr;
 
@@ -1050,6 +1051,9 @@ static void init_passthrough_extension_functions(XrInstance instance)
   }
   if (g_xrCreatePassthroughLayerFB == nullptr) {
     INIT_EXTENSION_FUNCTION(xrCreatePassthroughLayerFB);
+  }
+  if (g_xrDestroyPassthroughFB == nullptr) {
+    INIT_EXTENSION_FUNCTION(xrDestroyPassthroughFB);
   }
   if (g_xrPassthroughStartFB == nullptr) {
     INIT_EXTENSION_FUNCTION(xrPassthroughStartFB);
@@ -1097,6 +1101,8 @@ void GHOST_XrSession::enablePassthrough()
   if (XR_FAILED(g_xrCreatePassthroughLayerFB(
           oxr_->session, &passthrough_layer_create_info, &passthrough_layer_handle)))
   {
+    /* A session can only have one passthrough feature, so a later retry needs this one gone. */
+    CHECK_XR_ASSERT(g_xrDestroyPassthroughFB(passthrough_handle));
     return;
   }
 
