@@ -104,6 +104,13 @@ static wmOperatorStatus brush_asset_activate_exec(bContext *C, wmOperator *op)
   Brush *brush = reinterpret_cast<Brush *>(
       bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
 
+  if (!brush) {
+    /* The asset may have been removed or renamed externally (e.g. in another Blender session),
+     * leaving a stale reference behind. */
+    BKE_reportf(op->reports, RPT_ERROR, "Brush asset '%s' not found", asset->get_name().c_str());
+    return OPERATOR_CANCELLED;
+  }
+
   /* Activate brush through tool system rather than calling #BKE_paint_brush_set() directly, to let
    * the tool system switch tools if necessary, and update which brush was the last recently used
    * one for the current tool. */
