@@ -820,11 +820,12 @@ struct CollectionFilters {
 
   /* Limit the returned data to only channels of the given type.
    * If empty, all channel types are returned. */
-  Set<AnimationChannelType> channel_type_allowlist;
+  Set<DataChannelType> channel_type_allowlist;
   /* Any id types put here will be ignored in the channel collection process. */
   Set<ID_Type> id_type_blocklist;
 
   bool text_matches_filter(StringRefNull text) const;
+  bool is_data_channel_allowed(DataChannelType channel_type) const;
 
   bool operator==(const CollectionFilters &) const = default;
   bool operator!=(const CollectionFilters &) const = default;

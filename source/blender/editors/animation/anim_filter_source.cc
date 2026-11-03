@@ -87,6 +87,14 @@ bool CollectionFilters::text_matches_filter(StringRefNull text) const
   return is_match != this->use_filter_text_invert;
 }
 
+bool CollectionFilters::is_data_channel_allowed(const DataChannelType channel_type) const
+{
+  if (this->channel_type_allowlist.is_empty()) {
+    return true;
+  }
+  return this->channel_type_allowlist.contains(channel_type);
+}
+
 /* Find the bPoseChannel that this FCurve references. If it does not reference a pose bone, nullptr
  * is returned. The `tags` have to contain a tag of type ID that is an Object. */
 static PointerRNA pose_bone_for_fcurve(const FCurve &fcurve, const ChannelTagStack &tags)
@@ -224,6 +232,12 @@ static void channels_for_action_slot(animrig::Action &action,
 {
   using namespace animrig;
   assert_tag_count(tags);
+
+  if (!arena.filters.is_data_channel_allowed(DataChannelType::FCURVE)) {
+    /* Below this point we only deal with FCurve Data. With different strip types this could change
+     * in the future. */
+    return;
+  }
 
   /* Start building the RNA path from the Action. */
   Vector<rna_path::Item> rna_path_items;
@@ -526,7 +540,9 @@ void collection_channels_for_object(Object &obj, ChannelSourcingContext &ctx)
   if (obj.data) {
     switch (obj.type) {
       case OB_GREASE_PENCIL:
-        if (!ctx.arena.filters.id_type_blocklist.contains(ID_GP)) {
+        if (!ctx.arena.filters.id_type_blocklist.contains(ID_GP) &&
+            ctx.arena.filters.is_data_channel_allowed(DataChannelType::GREASE_PENCIL))
+        {
           collect_channels_for_grease_pencil(*id_cast<GreasePencil *>(obj.data), ctx.arena);
         }
         break;

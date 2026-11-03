@@ -54,8 +54,8 @@ static animfilter::ChannelArena build_summary_tree(const bContext &C)
   PRF_scope_with_name("ed::animfilter::get_summary_tree", ProfileCategory::Editor);
 
   ChannelArena arena;
-  /* TODO pre-filter down to only FCurves. */
   arena.filters = get_filters(*space_graph->ads);
+  arena.filters.channel_type_allowlist = {DataChannelType::FCURVE};
   collect_animation_channels(C, arena);
 
   arena.grouping_params.use_minimal_grouping = space_graph->ads->flag & ADS_FLAG_MINIMAL_GROUPING;
