@@ -588,7 +588,8 @@ void ShaderCreateInfo::validate_merge(const ShaderCreateInfo &other_info)
 void ShaderCreateInfo::validate_vertex_attributes(const ShaderCreateInfo *other_info)
 {
   uint32_t attr_bits = 0;
-  for (auto &attr : vertex_inputs_) {
+  for (const int attr_index : vertex_inputs_.index_range()) {
+    const VertIn &attr = vertex_inputs_[attr_index];
     if (attr.type == Type::float3x3_t) {
       std::cout << name_ << ": \"" << attr.name << "\" : float3x3 unsupported as vertex attribute."
                 << std::endl;
@@ -608,6 +609,13 @@ void ShaderCreateInfo::validate_vertex_attributes(const ShaderCreateInfo *other_
       std::cout << name_ << ": Invalid index for attribute \"" << attr.name << "\"" << std::endl;
       BLI_assert(0);
     }
+
+    /* The same attribute reached through multiple additional infos is kept until conditions are
+     * evaluated when compiling. */
+    if (vertex_inputs_.as_span().take_front(attr_index).contains(attr)) {
+      continue;
+    }
+
     uint32_t attr_new = 0;
     if (attr.type == Type::float4x4_t) {
       for (int i = 0; i < 4; i++) {
