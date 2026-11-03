@@ -590,7 +590,7 @@ void BKE_mesh_ensure_skin_customdata(Mesh *mesh)
 
 bool BKE_mesh_has_custom_loop_normals(Mesh *mesh)
 {
-  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+  if (const BMesh *bm = BKE_editmesh_bmesh_get(mesh)) {
     return CustomData_has_layer_named(&bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   }
 
