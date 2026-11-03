@@ -1085,6 +1085,10 @@ void DataChannel::datachannel_hash(UniqueHashBytes &hash) const
   hash.add(type_);
   hash.add(source.type);
   hash.add(source.owner_id);
+  /* Also include the ID type, as pointers can be reused. But if the pointer is reused by an ID of
+   * the same type, and the source.data pointer is also the same & pointing to something of the
+   * same type, then this data channel should be safe to use. */
+  hash.add(source.owner_id ? source.owner_id->id_type() : ID_Type(0));
   hash.add(source.data);
   hash.add(this->source_type_);
   hash.add(this->flags_);
