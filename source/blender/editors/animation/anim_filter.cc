@@ -4467,9 +4467,25 @@ static int foreach_expanded_recursive(AnimationChannel &channel,
   return row_index;
 }
 
-int foreach_expanded(AnimationChannel &root, const ForEachChannelCallback callback)
+int foreach_expanded(AnimationChannel &root,
+                     const bool visit_root,
+                     const ForEachChannelCallback callback)
 {
-  return foreach_expanded_recursive(root, 0, callback);
+  if (visit_root) {
+    return foreach_expanded_recursive(root, 0, callback);
+  }
+  if (root.type() != AnimationChannelType::SUMMARY) {
+    return 0;
+  }
+  SummaryChannel &summary = static_cast<SummaryChannel &>(root);
+  if (summary.is_collapsed()) {
+    return 0;
+  }
+  int row_index = 0;
+  for (AnimationChannel *child : summary.children()) {
+    row_index = foreach_expanded_recursive(*child, row_index, callback);
+  }
+  return row_index;
 }
 
 static int foreach_channel_recursive(AnimationChannel &channel,

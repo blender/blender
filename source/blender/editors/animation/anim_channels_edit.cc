@@ -3608,6 +3608,22 @@ static std::optional<std::reference_wrapper<ed::animfilter::ChannelArena>> get_c
   return std::nullopt;
 }
 
+static bDopeSheet *get_dopesheet_from_space(bContext &C)
+{
+  ScrArea *area = CTX_wm_area(&C);
+  switch (area->spacetype) {
+    case SPACE_ACTION: {
+      SpaceAction *space = CTX_wm_space_action(&C);
+      return &space->ads;
+    }
+    case SPACE_GRAPH: {
+      SpaceGraph *space = CTX_wm_space_graph(&C);
+      return space->ads;
+    }
+  }
+  return nullptr;
+}
+
 static void select_all_channels(ed::animfilter::ChannelArena &channels, const bool select)
 {
   using namespace ed::animfilter;
@@ -3616,9 +3632,12 @@ static void select_all_channels(ed::animfilter::ChannelArena &channels, const bo
   }
 
   const bool do_sync_to_secondary = do_sync_channel_selection_to_secondary(channels.filters);
-  foreach_expanded(*channels.root(), [&](AnimationChannel &channel, int /* row_index */) {
-    channel.set_selected(select, do_sync_to_secondary);
-  });
+  /* This doesn't really matter because for the summary line `set_selected` is a no-op. */
+  const bool show_summary = false;
+  foreach_expanded(
+      *channels.root(), show_summary, [&](AnimationChannel &channel, int /* row_index */) {
+        channel.set_selected(select, do_sync_to_secondary);
+      });
 }
 
 static wmOperatorStatus animchannels_selectall_exec(bContext *C, wmOperator *op)
@@ -3895,7 +3914,13 @@ static wmOperatorStatus animchannels_box_select_exec(bContext *C, wmOperator *op
     const float v2d_y_end = ui::view2d_region_to_view_y(&region->v2d, rect.ymax);
 
     const bool do_selection_syncing = do_sync_channel_selection_to_secondary(arena.filters);
-    foreach_expanded(*arena.root(), [&](AnimationChannel &channel, int row_index) {
+    bDopeSheet *dope_sheet = get_dopesheet_from_space(*C);
+    if (!dope_sheet) {
+      BLI_assert_unreachable();
+      return OPERATOR_CANCELLED;
+    }
+    const bool show_summary = dope_sheet->filterflag & ADS_FILTER_SUMMARY;
+    foreach_expanded(*arena.root(), show_summary, [&](AnimationChannel &channel, int row_index) {
       const float row_top = first_channel - row_index * channel_step;
       if (v2d_y_start < row_top && v2d_y_end > row_top - channel_step) {
         channel.set_selected(true, do_selection_syncing);
@@ -5099,16 +5124,18 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
     if (!arena.root()) {
       return OPERATOR_CANCELLED;
     }
-    foreach_expanded(*arena.root(), [&](AnimationChannel &channel, int /* row_index */) {
-      if (!channel.is_selected()) {
-        return;
-      }
-      std::optional<rctf> channel_bounds = get_channel_bounds(channel);
-      if (channel_bounds) {
-        BLI_rctf_union(&bounds, &channel_bounds.value());
-        valid_bounds = true;
-      }
-    });
+    const bool show_summary = true;
+    foreach_expanded(
+        *arena.root(), show_summary, [&](AnimationChannel &channel, int /* row_index */) {
+          if (!channel.is_selected()) {
+            return;
+          }
+          std::optional<rctf> channel_bounds = get_channel_bounds(channel);
+          if (channel_bounds) {
+            BLI_rctf_union(&bounds, &channel_bounds.value());
+            valid_bounds = true;
+          }
+        });
   }
   else {
     ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
@@ -5189,7 +5216,8 @@ static void ANIM_OT_channels_view_selected(wmOperatorType *ot)
  * `draw_dopesheet_key_area`. */
 static ed::animfilter::AnimationChannel *find_channel_at_y(ed::animfilter::ChannelArena &arena,
                                                            ARegion &region,
-                                                           const float region_y)
+                                                           const float region_y,
+                                                           const bool show_summary)
 {
   using namespace ed::animfilter;
   if (!arena.root()) {
@@ -5200,7 +5228,7 @@ static ed::animfilter::AnimationChannel *find_channel_at_y(ed::animfilter::Chann
 
   const float v2d_y = ui::view2d_region_to_view_y(&region.v2d, region_y);
   AnimationChannel *channel_under_cursor = nullptr;
-  foreach_expanded(*arena.root(), [&](AnimationChannel &channel, int row_index) {
+  foreach_expanded(*arena.root(), show_summary, [&](AnimationChannel &channel, int row_index) {
     const float row_top = first_channel - row_index * channel_step;
     if (v2d_y < row_top && v2d_y > row_top - channel_step) {
       channel_under_cursor = &channel;
@@ -5242,7 +5270,14 @@ static wmOperatorStatus graphkeys_channel_view_pick_invoke(bContext *C,
       return OPERATOR_CANCELLED;
     }
     ARegion *region = CTX_wm_region(C);
-    AnimationChannel *channel_under_cursor = find_channel_at_y(arena, *region, event->mval[1]);
+    bDopeSheet *dope_sheet = get_dopesheet_from_space(*C);
+    if (!dope_sheet) {
+      BLI_assert_unreachable();
+      return OPERATOR_CANCELLED;
+    }
+    const bool show_summary = dope_sheet->filterflag & ADS_FILTER_SUMMARY;
+    AnimationChannel *channel_under_cursor = find_channel_at_y(
+        arena, *region, event->mval[1], show_summary);
     if (!channel_under_cursor) {
       return OPERATOR_CANCELLED;
     }

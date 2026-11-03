@@ -751,7 +751,8 @@ static wmOperatorStatus actkeys_box_select_exec(bContext *C, wmOperator *op)
       ui::view2d_region_to_view_rctf(v2d, &rect, &rectf);
       const float first_channel = ANIM_UI_get_first_channel_top(v2d);
       const float channel_step = ANIM_UI_get_channel_step();
-      foreach_expanded(*root, [&](AnimationChannel &channel, const int row_index) {
+      const bool visit_root = true;
+      foreach_expanded(*root, visit_root, [&](AnimationChannel &channel, const int row_index) {
         const float row_top = first_channel - row_index * channel_step;
         if (row_top > rectf.ymin && row_top - channel_step < rectf.ymax) {
           channel.change_datapoint_selection(mode, {rectf.xmin, rectf.xmax});
@@ -2183,7 +2184,8 @@ static ed::animfilter::AnimationChannel *find_channel_under_cursor(
   const float channel_step = ANIM_UI_get_channel_step();
   const float first_channel = ANIM_UI_get_first_channel_top(&v2d);
   AnimationChannel *channel_under_cursor = nullptr;
-  foreach_expanded(root, [&](AnimationChannel &channel, const int row_index) {
+  const bool visit_root = true;
+  foreach_expanded(root, visit_root, [&](AnimationChannel &channel, const int row_index) {
     const float row_top = first_channel - row_index * channel_step;
     /* TODO abort feature for foreach function. */
     if (channel_y <= row_top && channel_y > row_top - channel_step) {

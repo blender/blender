@@ -1051,9 +1051,12 @@ using ForEachChannelCallback = FunctionRef<void(AnimationChannel &channel, int r
 /**
  * Iterate all expanded channels and their children.
  *
+ * \param visit_root determines if the given root channel is visited or if the loop starts at its
+ * children.
+ *
  * \returns the amount of rows visited
  */
-int foreach_expanded(AnimationChannel &root, ForEachChannelCallback callback);
+int foreach_expanded(AnimationChannel &root, bool visit_root, ForEachChannelCallback callback);
 
 struct AnimfilterSpaceRuntime {
   /* Store the UI states of channels so it is remembered across recreations of
