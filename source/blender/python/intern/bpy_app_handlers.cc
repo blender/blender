@@ -443,8 +443,9 @@ void bpy_app_generic_callback(Main * /*main*/,
 {
   const int cb_index = POINTER_AS_INT(arg);
   PyObject *cb_list = py_cb_array[cb_index];
-  Py_ssize_t cb_list_num = PyList_GET_SIZE(cb_list);
-  if (cb_list_num > 0) {
+  /* NOTE: check without the GIL as an early exit since there are usually no handlers,
+   * acquiring it every time adds overhead. The size is read again once the GIL is held. */
+  if (PyList_GET_SIZE(cb_list) != 0) {
     const PyGILState_STATE gilstate = PyGILState_Ensure();
 
     const int num_arguments = 2;
@@ -470,6 +471,7 @@ void bpy_app_generic_callback(Main * /*main*/,
 
     /* Iterate the list and run the callbacks
      * NOTE: the list size is checked after each call since the scripts may remove themselves. */
+    Py_ssize_t cb_list_num = PyList_GET_SIZE(cb_list);
     for (Py_ssize_t pos = 0; pos < cb_list_num; pos++) {
       PyObject *func = PyList_GET_ITEM(cb_list, pos);
       PyObject *args = choose_arguments(func, args_all, args_single);
