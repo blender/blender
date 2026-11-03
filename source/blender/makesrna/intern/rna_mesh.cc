@@ -1943,9 +1943,8 @@ static void rna_Mesh_uv_layers_remove(Mesh *mesh, ReportList *reports, PointerRN
 {
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
   const StringRefNull name = rna_Attribute_name_get(*uv_ptr);
-  if (mesh->runtime->edit_mesh) {
-    BMesh &bm = *mesh->runtime->edit_mesh->bm;
-    if (!CustomData_has_layer_named(&bm.ldata, CD_PROP_FLOAT2, name)) {
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    if (!CustomData_has_layer_named(&bm->ldata, CD_PROP_FLOAT2, name)) {
       BKE_reportf(reports, RPT_ERROR, "UV map '%s' not found", name.c_str());
       return;
     }
