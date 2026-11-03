@@ -1738,6 +1738,13 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   add_blender_test(
+    bl_texture_paint_mask
+    --python ${CMAKE_CURRENT_LIST_DIR}/sculpt_paint/texture_paint_mask_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/mesh_paint"
+  )
+
+  add_blender_test(
     bl_texture_paint_undo
     --python ${CMAKE_CURRENT_LIST_DIR}/sculpt_paint/texture_paint_undo_test.py
   )
