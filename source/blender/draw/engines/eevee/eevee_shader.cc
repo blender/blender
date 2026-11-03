@@ -671,12 +671,14 @@ class SlotAllocator {
      * currently because we do not use the create info from any pipeline declaration and declare
      * all constants inside this file. */
     reserve_slots_recursive(info, info.compilation_constants_, {});
-    total_requested_samplers_ = count_bits_i(~available_samplers_);
   }
 
+  /* Must be called before #get_next_sampler, which relies on the count matching the used slots
+   * once all of them are taken. */
   void reserve_sampler_slot(int slot)
   {
     available_samplers_ &= ~(uint32_t(1) << slot);
+    total_requested_samplers_ = count_bits_i(~available_samplers_);
   }
 
   bool sampler_overflow() const
