@@ -7,6 +7,7 @@
  */
 
 #include <cstddef>
+#include <string>
 
 #include "DNA_sequence_types.h"
 
@@ -306,11 +307,8 @@ static void text_edit_copy(TextVars *data)
   BLI_assert(offset_start <= offset_end);
 
   const size_t len = offset_end - offset_start;
-  char *buf = MEM_new_array_uninitialized<char>(len + 1, "text clipboard");
-  memcpy(buf, data->text_ptr + offset_start, len);
-  buf[len] = 0;
-  WM_clipboard_text_set(buf, false);
-  MEM_delete(buf);
+  const std::string text(data->text_ptr + offset_start, len);
+  WM_clipboard_text_set(text.c_str(), false);
 
   text_runtime_update(*data);
 }

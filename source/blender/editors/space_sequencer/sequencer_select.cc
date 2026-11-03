@@ -13,7 +13,6 @@
 
 #include "BLI_lasso_2d.hh"
 #include "BLI_rect.hh"
-#include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.hh"
 #include "BLI_listbase.hh"
@@ -23,6 +22,7 @@
 #include "BLI_set.hh"
 #include "BLI_string.hh"
 #include "BLI_utildefines.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -531,42 +531,11 @@ static void sequencer_select_linked_handle(const bContext *C,
 }
 
 /** Collect sequencer that are candidates for being selected. */
-struct SeqSelect_Link {
-  SeqSelect_Link *next, *prev;
+struct SeqSelectCandidate {
   Strip *strip;
   /** Only use for center selection. */
   float center_dist_sq;
 };
-
-static int strip_sort_for_depth_select(const void *a, const void *b)
-{
-  const SeqSelect_Link *slink_a = static_cast<const SeqSelect_Link *>(a);
-  const SeqSelect_Link *slink_b = static_cast<const SeqSelect_Link *>(b);
-
-  /* Exactly overlapping strips, sort by channel (so the top-most is first). */
-  if (slink_a->strip->channel < slink_b->strip->channel) {
-    return 1;
-  }
-  if (slink_a->strip->channel > slink_b->strip->channel) {
-    return -1;
-  }
-  return 0;
-}
-
-static int strip_sort_for_center_select(const void *a, const void *b)
-{
-  const SeqSelect_Link *slink_a = static_cast<const SeqSelect_Link *>(a);
-  const SeqSelect_Link *slink_b = static_cast<const SeqSelect_Link *>(b);
-  if (slink_a->center_dist_sq > slink_b->center_dist_sq) {
-    return 1;
-  }
-  if (slink_a->center_dist_sq < slink_b->center_dist_sq) {
-    return -1;
-  }
-
-  /* Exactly overlapping strips, use depth. */
-  return strip_sort_for_depth_select(a, b);
-}
 
 /**
  * Check if click happened on image which belongs to strip.
@@ -601,9 +570,8 @@ static Strip *strip_select_from_preview(
   VectorSet strips = seq::query_rendered_strips(
       scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
-  SeqSelect_Link *slink_active = nullptr;
   Strip *strip_active = seq::select_active_get(scene);
-  ListBaseT<SeqSelect_Link> strips_ordered = {nullptr};
+  Vector<SeqSelectCandidate> strips_ordered;
   for (Strip *strip : strips) {
     bool isect = false;
     float center_dist_sq_test = 0.0f;
@@ -626,42 +594,50 @@ static Strip *strip_select_from_preview(
     }
 
     if (isect) {
-      SeqSelect_Link *slink = MEM_new_zeroed<SeqSelect_Link>(__func__);
-      slink->strip = strip;
-      slink->center_dist_sq = center_dist_sq_test;
-      BLI_addtail(&strips_ordered, slink);
-
-      if (strip == strip_active) {
-        slink_active = slink;
-      }
+      strips_ordered.append({strip, center_dist_sq_test});
     }
   }
 
-  BLI_listbase_sort(&strips_ordered,
-                    center ? strip_sort_for_center_select : strip_sort_for_depth_select);
+  std::stable_sort(strips_ordered.begin(),
+                   strips_ordered.end(),
+                   [center](const SeqSelectCandidate &a, const SeqSelectCandidate &b) {
+                     if (center) {
+                       if (a.center_dist_sq < b.center_dist_sq) {
+                         return true;
+                       }
+                       if (a.center_dist_sq > b.center_dist_sq) {
+                         return false;
+                       }
+                     }
+                     /* Exactly overlapping strips, sort by channel (top-most first). */
+                     return a.strip->channel > b.strip->channel;
+                   });
 
-  SeqSelect_Link *slink_select = strips_ordered.first();
-  Strip *strip_select = nullptr;
-  if (slink_select != nullptr) {
-    /* Only use special behavior for the active strip when it's selected. */
-    if ((center == false) && slink_active && (strip_active->flag & SEQ_SELECT)) {
+  if (strips_ordered.is_empty()) {
+    return nullptr;
+  }
+
+  /* Only use special behavior for the active strip when it's selected. */
+  if (!center && strip_active && (strip_active->flag & SEQ_SELECT)) {
+    for (const int64_t i : strips_ordered.index_range()) {
+      if (strips_ordered[i].strip != strip_active) {
+        continue;
+      }
       if (use_cycle) {
-        if (slink_active->next) {
-          slink_select = slink_active->next;
+        if (i + 1 < strips_ordered.size()) {
+          return strips_ordered[i + 1].strip;
         }
       }
       else {
         /* Match object selection behavior: keep the current active item unless cycle is enabled.
          * Clicking again in the same location will cycle away from the active object. */
-        slink_select = slink_active;
+        return strip_active;
       }
+      break;
     }
-    strip_select = slink_select->strip;
   }
 
-  strips_ordered.free_no_destruct();
-
-  return strip_select;
+  return strips_ordered.first().strip;
 }
 
 bool handle_is_selected(const Strip *strip, const eStripHandle handle)

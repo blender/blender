@@ -1021,15 +1021,6 @@ class RetimingRange {
   {
   }
 
-  RetimingRange duplicate()
-  {
-    RetimingRange new_range = RetimingRange(start, end, speed, type);
-    for (int i = 0; i < speed_table.size(); i++) {
-      new_range.speed_table.append(speed_table[i]);
-    }
-    return new_range;
-  }
-
   /* Create new range representing overlap of 2 ranges.
    * Returns overlapping range. */
   RetimingRange operator*(const RetimingRange &rhs_range)
@@ -1177,7 +1168,7 @@ class RetimingRangeData {
           range.end = rhs_range.start;
         }
         else if (range.intersect_type(rhs_range) == INSIDE) {
-          RetimingRange left_range = range.duplicate();
+          RetimingRange left_range = range;
           left_range.end = rhs_range.start;
           range.start = rhs_range.end + 1;
 
