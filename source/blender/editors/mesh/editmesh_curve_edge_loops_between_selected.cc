@@ -63,7 +63,7 @@ static wmOperatorStatus edbm_curve_edge_loops_between_selected_exec(bContext *C,
   bool changed_multi = false;
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    EditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (em->bm->totvertsel == 0) {
       continue;

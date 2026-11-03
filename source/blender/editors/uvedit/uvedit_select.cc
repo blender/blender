@@ -3186,7 +3186,7 @@ static wmOperatorStatus uv_select_more_less(bContext *C, const bool select)
     const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) && (bm->uv_select_sync_valid == false)) {
-      BMEditMesh *em = BKE_editmesh_from_object(obedit);
+      EditMesh *em = BKE_editmesh_from_object(obedit);
       if (select) {
         EDBM_select_more(bm, em->selectmode, true);
       }
@@ -3434,7 +3434,7 @@ static void uv_select_toggle_all(const Scene *scene, BMesh *bm)
   uv_select_all(scene, bm, !select_any);
 }
 
-static void uv_select_invert(const Scene *scene, BMEditMesh *em, BMesh *bm)
+static void uv_select_invert(const Scene *scene, EditMesh *em, BMesh *bm)
 {
   const ToolSettings *ts = scene->toolsettings;
 
@@ -3575,7 +3575,7 @@ static void uv_select_invert(const Scene *scene, BMEditMesh *em, BMesh *bm)
 void ED_uvedit_deselect_all(const Scene *scene, Object *obedit, int action)
 {
   const ToolSettings *ts = scene->toolsettings;
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  EditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
 
   /* In the case of where the selection is all or none, there is no need to hold

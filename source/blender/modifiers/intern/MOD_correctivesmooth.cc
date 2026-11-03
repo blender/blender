@@ -552,7 +552,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
                                          Object *ob,
                                          Mesh *mesh,
                                          MutableSpan<float3> vertexCos,
-                                         BMEditMesh *em)
+                                         EditMesh *em)
 {
   CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(md);
 

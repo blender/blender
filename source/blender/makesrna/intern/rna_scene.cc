@@ -2203,7 +2203,7 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *valu
         BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
         Object *object = BKE_view_layer_active_object_get(view_layer);
         if (object && object->type == OB_MESH) {
-          if (BMEditMesh *em = BKE_editmesh_from_object(object)) {
+          if (EditMesh *em = BKE_editmesh_from_object(object)) {
             BMesh *bm = BKE_editmesh_bmesh_get_for_write(object);
             if (em->selectmode != selectmode) {
               EDBM_selectmode_set(em, bm, selectmode);

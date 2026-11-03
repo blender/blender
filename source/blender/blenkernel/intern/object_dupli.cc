@@ -475,7 +475,7 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
                                                     Span<float3> *r_vert_normals)
 {
   /* Gather mesh info. */
-  BMEditMesh *em = BKE_editmesh_from_object(ob);
+  EditMesh *em = BKE_editmesh_from_object(ob);
   const Mesh *mesh_eval;
 
   *r_bm = nullptr;
@@ -493,7 +493,8 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
      * We could change this but it matches 2.7x behavior. */
     mesh_eval = BKE_object_get_editmesh_eval_cage(ob);
     if ((mesh_eval == nullptr) || (mesh_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH)) {
-      bke::EditMeshData *emd = mesh_eval ? mesh_eval->runtime->edit_data.get() : nullptr;
+      bke::MeshWrapperCacheData *emd = mesh_eval ? mesh_eval->runtime->bmesh_wrapper_data.get() :
+                                                   nullptr;
 
       /* Only assign the bmesh in the case we can't use `mesh_eval`. */
       *r_bm = BKE_editmesh_bmesh_get_for_write(ob);

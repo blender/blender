@@ -899,7 +899,7 @@ bool editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag)
 
     EDBM_mesh_make(ob, scene->toolsettings->selectmode, use_key_index);
 
-    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    EditMesh *em = BKE_editmesh_from_object(ob);
     if (em) [[likely]] {
       BKE_editmesh_looptris_and_normals_calc(em, BKE_editmesh_bmesh_get_for_write(ob));
     }

@@ -22,7 +22,7 @@ namespace blender {
 struct ARegion;
 struct BMEdge;
 struct BMElem;
-struct BMEditMesh;
+struct EditMesh;
 struct BMFace;
 struct BMVert;
 struct BPoint;
@@ -90,7 +90,7 @@ struct ViewContext {
   wmWindow *win;
   wmWindowManager *wm;
   RegionView3D *rv3d;
-  BMEditMesh *em;
+  EditMesh *em;
   int mval[2];
 };
 

@@ -735,7 +735,7 @@ static void mesh_customdatacorrect_restore(TransInfo *t)
 /** \name Island Creation
  * \{ */
 
-void transform_convert_mesh_islands_calc(BMEditMesh *em,
+void transform_convert_mesh_islands_calc(EditMesh *em,
                                          BMesh *bm,
                                          const bool calc_single_islands,
                                          const bool calc_island_center,
@@ -1195,7 +1195,7 @@ static bool is_in_quadrant_v3(const float co[3], const int quadrant[3], const fl
   return true;
 }
 
-void transform_convert_mesh_mirrordata_calc(BMEditMesh *em,
+void transform_convert_mesh_mirrordata_calc(EditMesh *em,
                                             BMesh *bm,
                                             const bool use_select,
                                             const bool use_topology,
@@ -1349,7 +1349,7 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
       Scene *scene_eval = DEG_get_evaluated(t->depsgraph, t->scene);
       Object *obedit_eval = DEG_get_evaluated(t->depsgraph, tc->obedit);
       /* We always want the edit-mesh (evaluation may clear it). */
-      BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+      EditMesh *em = BKE_editmesh_from_object(tc->obedit);
       /* Check if we can use deform matrices for modifier from the
        * start up to stack, they are more accurate than quats. */
       totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(
@@ -1441,7 +1441,7 @@ static void mesh_transdata_center_copy(const TransIslandData *island_data,
 /* Way to overwrite what data is edited with transform. */
 static void VertsToTransData(TransInfo *t,
                              TransData *td,
-                             BMEditMesh *em,
+                             EditMesh *em,
                              BMVert *eve,
                              const TransIslandData *island_data,
                              const int island_index)
@@ -1487,7 +1487,7 @@ static void VertsToTransData(TransInfo *t,
 static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+    EditMesh *em = BKE_editmesh_from_object(tc->obedit);
     Mesh *mesh = id_cast<Mesh *>(tc->obedit->data);
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
     BMVert *eve;
@@ -1698,7 +1698,7 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
 
     /* WORKAROUND: The transform operators rely on looptris being up-to-date.
      * However, this is not always the case, especially when called from scripts.
-     * If this happens, to prevent update issues, make sure the size of #BMEditMesh::looptris
+     * If this happens, to prevent update issues, make sure the size of #EditMesh::looptris
      * arrays aligns with the number looptris to update. */
     const bool looptri_is_dirty = em->looptris.size() !=
                                   poly_to_tri_count(bm->totface, bm->totloop);
@@ -1962,7 +1962,7 @@ static void mesh_partial_update(TransInfo *t,
                                 TransDataContainer *tc,
                                 const PartialTypeState *partial_state)
 {
-  BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+  EditMesh *em = BKE_editmesh_from_object(tc->obedit);
   BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
 
   TransCustomDataMesh *tcmd = mesh_customdata_ensure(tc);
@@ -2128,7 +2128,7 @@ static void special_aftertrans_update__mesh(bContext * /*C*/, TransInfo *t)
 
   if (use_automerge) {
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+      EditMesh *em = BKE_editmesh_from_object(tc->obedit);
       BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
       char hflag;
       bool has_face_sel = (bm->totfacesel != 0);

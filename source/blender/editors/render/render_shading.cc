@@ -436,7 +436,7 @@ static wmOperatorStatus material_slot_de_select(bContext *C, bool select)
     bool changed = false;
 
     if (ob->type == OB_MESH) {
-      BMEditMesh *em = BKE_editmesh_from_object(ob);
+      EditMesh *em = BKE_editmesh_from_object(ob);
 
       if (em) {
         BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);

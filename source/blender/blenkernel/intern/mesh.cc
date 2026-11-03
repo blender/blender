@@ -193,8 +193,9 @@ static void mesh_copy_data(Main *bmain,
     /* Meshes copied during evaluation pass the edit mesh pointer to determine whether a mapping
      * from the evaluated to the original state is possible. */
     mesh_dst->runtime->edit_mesh = mesh_src->runtime->edit_mesh;
-    if (const bke::EditMeshData *edit_data = mesh_src->runtime->edit_data.get()) {
-      mesh_dst->runtime->edit_data = std::make_unique<bke::EditMeshData>(*edit_data);
+    if (const bke::MeshWrapperCacheData *edit_data = mesh_src->runtime->bmesh_wrapper_data.get()) {
+      mesh_dst->runtime->bmesh_wrapper_data = std::make_unique<bke::MeshWrapperCacheData>(
+          *edit_data);
     }
   }
 
@@ -1948,7 +1949,8 @@ std::optional<Bounds<float3>> Mesh::bounds_min_max() const
     switch (this->runtime->wrapper_type) {
       case ME_WRAPPER_TYPE_BMESH:
         r_bounds = *BKE_editmesh_cache_calc_minmax(
-            *const_cast<BMesh *>(BKE_editmesh_bmesh_get(this)), *this->runtime->edit_data);
+            *const_cast<BMesh *>(BKE_editmesh_bmesh_get(this)),
+            *this->runtime->bmesh_wrapper_data);
         break;
       case ME_WRAPPER_TYPE_MDATA:
       case ME_WRAPPER_TYPE_SUBD:

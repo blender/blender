@@ -316,7 +316,7 @@ static void transform_panel_interaction_update_fn(bContext *C,
   tfp->tag_for_update = false;
 
   Object *ob = static_cast<Object *>(arg1);
-  BMEditMesh *em = BKE_editmesh_from_object(ob);
+  EditMesh *em = BKE_editmesh_from_object(ob);
 
   BKE_editmesh_looptris_and_normals_calc_with_partial(
       em, BKE_editmesh_bmesh_get_for_write(ob), bmpinfo);

@@ -50,7 +50,7 @@ static Array<Array<float4>> extract_tan_init_common(const MeshRenderData &mr,
       Array<float3> positions = BM_mesh_vert_coords_alloc(mr.bm);
       BKE_mesh_orco_verts_transform(const_cast<Mesh *>(mr.mesh), positions, false);
       tangents = BKE_editmesh_orco_tangents_calc(
-          mr.bm, mr.edit_bmesh->looptris, mr.bm_face_normals, mr.bm_loop_normals, positions);
+          mr.bm, mr.edit_mesh->looptris, mr.bm_face_normals, mr.bm_loop_normals, positions);
     }
     else {
       Span<float3> orco;
@@ -117,7 +117,7 @@ static Array<Array<float4>> extract_tan_init_common(const MeshRenderData &mr,
   Array<Array<float4>> results;
   if (mr.extract_type == MeshExtractType::BMesh) {
     results = BKE_editmesh_uv_tangents_calc(
-        mr.bm, mr.edit_bmesh->looptris, mr.bm_face_normals, mr.bm_loop_normals, uv_names);
+        mr.bm, mr.edit_mesh->looptris, mr.bm_face_normals, mr.bm_loop_normals, uv_names);
   }
   else {
     Array<VArraySpan<float2>> uv_maps(uv_names.size());

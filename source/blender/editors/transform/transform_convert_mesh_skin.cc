@@ -68,7 +68,7 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
 {
   BLI_assert(t->mode == TFM_SKIN_RESIZE);
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+    EditMesh *em = BKE_editmesh_from_object(tc->obedit);
     Mesh *mesh = id_cast<Mesh *>(tc->obedit->data);
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
     BMVert *eve;
@@ -291,7 +291,7 @@ static void recalcData_mesh_skin(TransInfo *t)
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY);
-    BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+    EditMesh *em = BKE_editmesh_from_object(tc->obedit);
     BKE_editmesh_looptris_and_normals_calc(em, BKE_editmesh_bmesh_get_for_write(tc->obedit));
   }
 }

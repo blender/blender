@@ -79,7 +79,7 @@ static OffsetIndices<int> build_bmesh_face_offsets(const BMesh &bm, Array<int> &
 static gpu::IndexBufPtr extract_edituv_tris_bmesh(const MeshRenderData &mr,
                                                   const bool sync_selection)
 {
-  const Span<std::array<BMLoop *, 3>> looptris = mr.edit_bmesh->looptris;
+  const Span<std::array<BMLoop *, 3>> looptris = mr.edit_mesh->looptris;
   const BMesh &bm = *mr.bm;
 
   IndexMaskMemory memory;

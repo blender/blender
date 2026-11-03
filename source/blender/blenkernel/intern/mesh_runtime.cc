@@ -298,10 +298,10 @@ int BKE_mesh_runtime_corner_tris_len(const Mesh *mesh)
   return poly_to_tri_count(mesh->faces_num, mesh->corners_num);
 }
 
-void BKE_mesh_runtime_ensure_edit_data(Mesh *mesh)
+void BKE_mesh_runtime_bmesh_wrapper_data_ensure(Mesh *mesh)
 {
-  if (!mesh->runtime->edit_data) {
-    mesh->runtime->edit_data = std::make_unique<bke::EditMeshData>();
+  if (!mesh->runtime->bmesh_wrapper_data) {
+    mesh->runtime->bmesh_wrapper_data = std::make_unique<bke::MeshWrapperCacheData>();
   }
 }
 
@@ -310,7 +310,7 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
   using namespace blender::bke;
   free_mesh_eval(*mesh->runtime);
   free_batch_cache(*mesh->runtime);
-  mesh->runtime->edit_data.reset();
+  mesh->runtime->bmesh_wrapper_data.reset();
   BKE_mesh_runtime_clear_geometry(mesh);
 }
 

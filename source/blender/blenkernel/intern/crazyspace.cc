@@ -225,7 +225,7 @@ void BKE_crazyspace_set_quats_mesh(Mesh *mesh,
 int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
                                                        Scene *scene,
                                                        Object *ob,
-                                                       BMEditMesh *em,
+                                                       EditMesh *em,
                                                        Array<float3x3, 0> &deformmats,
                                                        Array<float3, 0> &deformcos)
 {
@@ -264,7 +264,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
         BLI_linklist_free(reinterpret_cast<LinkNode *>(datamasks), nullptr);
 
         mesh = BKE_mesh_wrapper_from_editmesh(
-            std::make_shared<BMEditMesh>(*em), &cd_mask_extra, me_input);
+            std::make_shared<EditMesh>(*em), &cd_mask_extra, me_input);
         deformcos.reinitialize(verts_num);
         BKE_mesh_wrapper_vert_coords_copy(mesh, deformcos);
         deformmats.reinitialize(verts_num);

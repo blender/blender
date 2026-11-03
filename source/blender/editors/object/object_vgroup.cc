@@ -2182,7 +2182,7 @@ void vgroup_mirror(Object *ob,
   if (ob->type == OB_MESH) {
     Mesh *mesh = id_cast<Mesh *>(ob->data);
 
-    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+    if (EditMesh *em = mesh->runtime->edit_mesh.get()) {
       BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
       const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
       BMIter iter;

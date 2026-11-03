@@ -20,7 +20,7 @@ namespace blender {
 struct ARegion;
 struct ARegionType;
 struct BMEdge;
-struct BMEditMesh;
+struct EditMesh;
 struct BMFace;
 struct BMLoop;
 struct BMVert;

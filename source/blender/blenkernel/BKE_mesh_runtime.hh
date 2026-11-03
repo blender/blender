@@ -14,7 +14,7 @@
 
 namespace blender {
 
-struct BMEditMesh;
+struct EditMesh;
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct KeyBlock;
@@ -26,7 +26,7 @@ struct Scene;
 /** Return the number of derived triangles (corner_tris). */
 int BKE_mesh_runtime_corner_tris_len(const Mesh *mesh);
 
-void BKE_mesh_runtime_ensure_edit_data(Mesh *mesh);
+void BKE_mesh_runtime_bmesh_wrapper_data_ensure(Mesh *mesh);
 
 /**
  * Clear and free any derived caches associated with the mesh geometry data. Examples include BVH

@@ -245,7 +245,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   if (!mesh) {
     return;
   }
-  const BMEditMesh *em = mesh->runtime->edit_mesh.get();
+  const EditMesh *em = mesh->runtime->edit_mesh.get();
   if (!BKE_editmesh_eval_orig_map_available(*mesh, BKE_object_get_pre_modified_mesh(ob))) {
     return;
   }

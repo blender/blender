@@ -37,17 +37,17 @@ void BKE_mesh_foreach_mapped_vert(
     void *user_data,
     MeshForeachFlag flag)
 {
-  if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
+  if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->bmesh_wrapper_data != nullptr) {
     const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
     BMIter iter;
     BMVert *eve;
     int i;
-    if (!mesh->runtime->edit_data->vert_positions.is_empty()) {
-      const Span<float3> positions = mesh->runtime->edit_data->vert_positions;
+    if (!mesh->runtime->bmesh_wrapper_data->vert_positions.is_empty()) {
+      const Span<float3> positions = mesh->runtime->bmesh_wrapper_data->vert_positions;
       Span<float3> vert_normals;
       if (flag & MESH_FOREACH_USE_NORMAL) {
         vert_normals = BKE_editmesh_cache_ensure_vert_normals(*const_cast<BMesh *>(bm),
-                                                              *mesh->runtime->edit_data);
+                                                              *mesh->runtime->bmesh_wrapper_data);
       }
       BM_ITER_MESH_INDEX (eve, &iter, const_cast<BMesh *>(bm), BM_VERTS_OF_MESH, i) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[i].x : nullptr;
@@ -95,13 +95,13 @@ void BKE_mesh_foreach_mapped_edge(
     void (*func)(void *user_data, int index, const float v0co[3], const float v1co[3]),
     void *user_data)
 {
-  if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data) {
+  if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->bmesh_wrapper_data) {
     BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh));
     BMIter iter;
     BMEdge *eed;
     int i;
-    if (!mesh->runtime->edit_data->vert_positions.is_empty()) {
-      const Span<float3> positions = mesh->runtime->edit_data->vert_positions;
+    if (!mesh->runtime->bmesh_wrapper_data->vert_positions.is_empty()) {
+      const Span<float3> positions = mesh->runtime->bmesh_wrapper_data->vert_positions;
       BM_mesh_elem_index_ensure(bm, BM_VERT);
       BM_ITER_MESH_INDEX (eed, &iter, bm, BM_EDGES_OF_MESH, i) {
         func(user_data,
@@ -153,12 +153,12 @@ void BKE_mesh_foreach_mapped_loop(const Mesh *mesh,
   /* We can't use `dm->getLoopDataLayout(dm)` here,
    * we want to always access `dm->loopData`, `EditDerivedBMesh` would
    * return loop data from BMesh itself. */
-  if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data) {
+  if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->bmesh_wrapper_data) {
     BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh));
     BMIter iter;
     BMFace *efa;
 
-    const Span<float3> positions = mesh->runtime->edit_data->vert_positions;
+    const Span<float3> positions = mesh->runtime->bmesh_wrapper_data->vert_positions;
 
     /* XXX: investigate using EditMesh data. */
     Span<float3> corner_normals;
@@ -231,18 +231,19 @@ void BKE_mesh_foreach_mapped_face_center(
     void *user_data,
     MeshForeachFlag flag)
 {
-  if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
+  if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->bmesh_wrapper_data != nullptr) {
     BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh));
     BMFace *efa;
     BMIter iter;
     int i;
 
     const Span<float3> face_centers = BKE_editmesh_cache_ensure_face_centers(
-        *bm, *mesh->runtime->edit_data);
+        *bm, *mesh->runtime->bmesh_wrapper_data);
 
     Span<float3> face_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
-      face_normals = BKE_editmesh_cache_ensure_face_normals(*bm, *mesh->runtime->edit_data);
+      face_normals = BKE_editmesh_cache_ensure_face_normals(*bm,
+                                                            *mesh->runtime->bmesh_wrapper_data);
     }
 
     if (!face_normals.is_empty()) {

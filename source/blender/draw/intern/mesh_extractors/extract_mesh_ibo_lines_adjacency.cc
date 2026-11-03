@@ -139,7 +139,7 @@ static void calc_adjacency_bmesh(const MeshRenderData &mr,
                                  GPUIndexBufBuilder &elb,
                                  bool &is_manifold)
 {
-  const Span<std::array<BMLoop *, 3>> looptris = mr.edit_bmesh->looptris;
+  const Span<std::array<BMLoop *, 3>> looptris = mr.edit_mesh->looptris;
   for (const int i : looptris.index_range()) {
     const std::array<BMLoop *, 3> &tri = looptris[i];
     if (BM_elem_flag_test(tri[0]->f, BM_ELEM_HIDDEN)) {

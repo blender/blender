@@ -25,7 +25,7 @@ struct GeometrySet;
 }
 struct ARegionType;
 struct bArmature;
-struct BMEditMesh;
+struct EditMesh;
 struct BlendDataReader;
 struct BlendWriter;
 struct CustomData_MeshMasks;

@@ -663,11 +663,11 @@ static MutableSpan<float3> mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      if (mesh->runtime->edit_data->vert_positions.is_empty()) {
-        mesh->runtime->edit_data->vert_positions = BM_mesh_vert_coords_alloc(
+      if (mesh->runtime->bmesh_wrapper_data->vert_positions.is_empty()) {
+        mesh->runtime->bmesh_wrapper_data->vert_positions = BM_mesh_vert_coords_alloc(
             BKE_editmesh_bmesh_get(mesh));
       }
-      return mesh->runtime->edit_data->vert_positions;
+      return mesh->runtime->bmesh_wrapper_data->vert_positions;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->vert_positions_for_write();
@@ -707,7 +707,7 @@ static GeometryComponentPtr cage_mesh_or_fallback(Object &ob,
      * Otherwise crazy-space calculation crashes, see: #160540. */
     const BMesh *bm = BKE_editmesh_bmesh_get(&mesh_input);
     if (bm->totvert) {
-      mesh_cage->runtime->edit_data->vert_positions = BM_mesh_vert_coords_alloc(bm);
+      mesh_cage->runtime->bmesh_wrapper_data->vert_positions = BM_mesh_vert_coords_alloc(bm);
     }
     return GeometryComponentPtr(new MeshComponent(mesh_cage));
   }
@@ -1067,7 +1067,7 @@ const Mesh *mesh_get_eval_deform(Depsgraph *depsgraph,
                                  Object *ob,
                                  const CustomData_MeshMasks *dataMask)
 {
-  BMEditMesh *em = (id_cast<Mesh *>(ob->data))->runtime->edit_mesh.get();
+  EditMesh *em = (id_cast<Mesh *>(ob->data))->runtime->edit_mesh.get();
   if (em != nullptr) {
     /* There is no such a concept as deformed mesh in edit mode.
      * Explicitly disallow this request so that the evaluated result is not modified with evaluated

@@ -50,7 +50,7 @@ static std::optional<MirrorSpatialTable> &mirror_spatial_table()
 void ED_mesh_mirror_spatial_table_begin(Object *ob, Mesh *mesh_eval)
 {
   Mesh *mesh = id_cast<Mesh *>(ob->data);
-  BMEditMesh *em = BKE_editmesh_from_object(ob);
+  EditMesh *em = BKE_editmesh_from_object(ob);
   const bool use_em = (!mesh_eval && em);
   BMesh *bm = use_em ? BKE_editmesh_bmesh_get_for_write(ob) : nullptr;
   const int totvert = use_em ? bm->totvert : mesh_eval ? mesh_eval->verts_num : mesh->verts_num;
@@ -377,7 +377,7 @@ std::optional<EditMeshSymmetryHelper> EditMeshSymmetryHelper::create_if_needed(O
     return std::nullopt;
   }
   Mesh *mesh = id_cast<Mesh *>(ob->data);
-  BMEditMesh *em = BKE_editmesh_from_object(ob);
+  EditMesh *em = BKE_editmesh_from_object(ob);
   BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
 
   if (!em || !bm || mesh->symmetry == 0) {

@@ -803,7 +803,7 @@ bool ED_operator_uvmap(bContext *C)
   if (obedit->type != OB_MESH) {
     return false;
   }
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  EditMesh *em = BKE_editmesh_from_object(obedit);
   if (!em) {
     return false;
   }

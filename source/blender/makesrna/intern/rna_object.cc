@@ -476,7 +476,7 @@ static void rna_Object_active_shape_update(Main *bmain, Scene * /*scene*/, Point
     switch (ob->type) {
       case OB_MESH: {
         Mesh *mesh = id_cast<Mesh *>(ob->data);
-        BMEditMesh *em = mesh->runtime->edit_mesh.get();
+        EditMesh *em = mesh->runtime->edit_mesh.get();
         int select_mode = em->selectmode;
         EDBM_mesh_load(bmain, ob);
         EDBM_mesh_make(ob, select_mode, true);

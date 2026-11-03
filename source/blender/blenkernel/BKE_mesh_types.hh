@@ -31,14 +31,14 @@
 
 namespace blender {
 
-struct BMEditMesh;
+struct EditMesh;
 struct BVHTree;
 struct Mesh;
 class ShrinkwrapBoundaryData;
 struct SubdivCCG;
 struct SubsurfRuntimeData;
 namespace bke {
-struct EditMeshData;
+struct MeshWrapperCacheData;
 }  // namespace bke
 namespace bke::bake {
 struct BakeMaterialsList;
@@ -161,7 +161,7 @@ struct MeshRuntime {
    *   the whole struct and making sure the reference is valid.
    * \note When the object is available, the preferred access method is #BKE_editmesh_from_object.
    */
-  std::shared_ptr<BMEditMesh> edit_mesh;
+  std::shared_ptr<EditMesh> edit_mesh;
 
   /**
    * A cache of bounds shared between data-blocks with unchanged positions. When changing positions
@@ -170,10 +170,10 @@ struct MeshRuntime {
   SharedCache<Bounds<float3>> bounds_cache;
 
   /**
-   * Lazily initialized SoA data from the #edit_mesh field in #Mesh. Used when the mesh is a BMesh
-   * wrapper (#ME_WRAPPER_TYPE_BMESH).
+   * Lazily initialized SoA data from the #edit_mesh field in #Mesh. Used when the mesh is a
+   * BMesh wrapper (#ME_WRAPPER_TYPE_BMESH).
    */
-  std::unique_ptr<EditMeshData> edit_data;
+  std::unique_ptr<MeshWrapperCacheData> bmesh_wrapper_data;
 
   /**
    * Data used to efficiently draw the mesh in the viewport, especially useful when

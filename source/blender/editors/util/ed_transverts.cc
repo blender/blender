@@ -216,7 +216,7 @@ static void set_mapped_co(void *vuserdata, int index, const float co[3], const f
 }
 
 static void transverts_create_from_bmesh(
-    TransVertStore &tvs, const Object &obedit, const BMEditMesh &em, BMesh &bm, const int mode)
+    TransVertStore &tvs, const Object &obedit, const EditMesh &em, BMesh &bm, const int mode)
 {
   BMVert *eve;
   BMIter iter;

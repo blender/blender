@@ -65,7 +65,7 @@ static gpu::IndexBufPtr extract_tris_bmesh(const MeshRenderData &mr,
   MutableSpan<uint3> data = GPU_indexbuf_get_data(&builder).cast<uint3>();
 
   BMesh &bm = *mr.bm;
-  const Span<std::array<BMLoop *, 3>> looptris = mr.edit_bmesh->looptris;
+  const Span<std::array<BMLoop *, 3>> looptris = mr.edit_mesh->looptris;
   const Span<int> face_tri_offsets = *face_sorted.face_tri_offsets;
   threading::parallel_for(IndexRange(bm.totface), 1024, [&](const IndexRange range) {
     for (const int face_index : range) {

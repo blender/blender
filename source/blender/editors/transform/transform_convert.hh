@@ -28,7 +28,7 @@ struct TransDataCurveHandleFlags;
 struct TransInfo;
 namespace blender {
 
-struct BMEditMesh;
+struct EditMesh;
 struct BMesh;
 struct bConstraint;
 struct BezTriple;
@@ -330,7 +330,7 @@ struct TransMeshDataCrazySpace {
   Array<float3x3, 0> defmats;
 };
 
-void transform_convert_mesh_islands_calc(BMEditMesh *em,
+void transform_convert_mesh_islands_calc(EditMesh *em,
                                          BMesh *bm,
                                          bool calc_single_islands,
                                          bool calc_island_center,
@@ -346,7 +346,7 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
                                                   const float mtx[3][3],
                                                   float *dists,
                                                   int *index);
-void transform_convert_mesh_mirrordata_calc(BMEditMesh *em,
+void transform_convert_mesh_mirrordata_calc(EditMesh *em,
                                             BMesh *bm,
                                             bool use_select,
                                             bool use_topology,

@@ -75,7 +75,7 @@ struct RingSelOpData {
   /* These values switch objects based on the object under the cursor. */
   uint base_index;
   Object *ob;
-  BMEditMesh *em;
+  EditMesh *em;
   BMEdge *eed;
 
   NumInput num;
@@ -167,7 +167,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 #endif
 
   if (lcd->eed) {
-    BMEditMesh *em = lcd->em;
+    EditMesh *em = lcd->em;
     BMesh *bm = BKE_editmesh_bmesh_get_for_write(lcd->ob);
     BMVert *v_eed_orig[2] = {lcd->eed->v1, lcd->eed->v2};
 
