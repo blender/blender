@@ -48,6 +48,23 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="5.3" date="2026-11-10">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Asset Libraries can now be shared as extensions</li>
+                    <li>Project Setup: Blender is now aware of a larger context than just the currently open blend file</li>
+                    <li>Rendering: Support for 3D Gaussian Splats</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Meshes with a Multires modifier now display textures in Sculpt Mode</li>
+                    <li>Ripple Editing in the Video Sequencer</li>
+                    <li>Material Lighting nodes in EEVEE</li>
+                    <li>And much more!</li>
+                </ul>
+            </description>
+        </release>
         <release version="5.2" date="2026-07-14">
             <description>
                 <p>New features:</p>
