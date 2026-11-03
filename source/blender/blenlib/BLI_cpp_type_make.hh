@@ -8,6 +8,7 @@
  * \ingroup bli
  */
 
+#include <atomic>
 #include <sstream>
 
 #include "BLI_cpp_type.hh"

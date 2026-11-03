@@ -6,6 +6,7 @@
  * \ingroup spoutliner
  */
 
+#include <climits>
 #include <cstring>
 #include <variant>
 

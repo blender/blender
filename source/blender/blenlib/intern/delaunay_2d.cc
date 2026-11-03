@@ -7,6 +7,7 @@
  */
 
 #include <algorithm>
+#include <climits>
 #include <fstream>
 #include <iostream>
 #include <optional>

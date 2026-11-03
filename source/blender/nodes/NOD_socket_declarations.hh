@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cfloat>
+#include <climits>
 
 #include "NOD_bundle_type.hh"
 #include "NOD_menu_value.hh"
