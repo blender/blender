@@ -428,7 +428,7 @@ struct ExpressionTypeParser
         ast::LocalVar var = right;
         const SymbolVariable &sym = l.lookup_variable(table, var.identifier());
         if (sym.is_error) {
-          error(t, Diag::UnknownMember, std::string(var.identifier().str()));
+          error(right, Diag::UnknownMember, std::string(var.identifier().str()));
           return *table.err_cls;
         }
         return sym;
