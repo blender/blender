@@ -999,7 +999,7 @@ void mesh_apply_spatial_organization(Mesh &mesh)
       bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
       GMutableSpan attribute_data = attribute.span;
       const CPPType &type = attribute_data.type();
-      GArray<> new_values(type, new_face_order.size());
+      GArray<> new_values(type, new_face_order.size(), NoInitialization{});
 
       int new_face_idx = 0;
       for (const int old_face_idx : new_face_order) {
@@ -1013,7 +1013,7 @@ void mesh_apply_spatial_organization(Mesh &mesh)
       bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
       GMutableSpan attribute_data = attribute.span;
       const CPPType &type = attribute_data.type();
-      GArray<> new_values(type, new_vert_order.size());
+      GArray<> new_values(type, new_vert_order.size(), NoInitialization{});
 
       int new_vert_idx = 0;
       for (const int old_vert_idx : new_vert_order) {
@@ -1027,7 +1027,7 @@ void mesh_apply_spatial_organization(Mesh &mesh)
       bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
       GMutableSpan attribute_data = attribute.span;
       const CPPType &type = attribute_data.type();
-      GArray<> new_values(type, attribute_data.size());
+      GArray<> new_values(type, attribute_data.size(), NoInitialization{});
 
       int new_corner_idx = 0;
       for (const int old_face_idx : new_face_order) {
