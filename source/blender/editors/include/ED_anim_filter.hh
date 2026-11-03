@@ -720,15 +720,42 @@ class DataChannel : public AnimationChannel {
 };
 
 /**
- * Maps from FCurve space to Scene space.
- * This assumes that the mapping is linear, no FCurve time remapping allowed.
+ * Maps from FCurve to Scene time.
+ * This assumes that the mapping is linear, no curve time remapping allowed.
  */
 struct TimeMapping {
   float offset = 0;
   float scale = 1.0;
+  /* Used for the NLA where the scale is not done at 0, but at the start of the action. */
+  float scale_offset = 0.0;
+
+  TimeMapping combine(float offset, float scale, float scale_offset) const
+  {
+    TimeMapping combined;
+    combined.offset = offset + this->offset;
+    combined.scale = scale * this->scale;
+    combined.scale_offset = scale_offset + this->scale_offset;
+    return combined;
+  }
+
+  float map(const float t) const
+  {
+    /* y = (x-a) * b + c */
+    return (t - this->scale_offset) * scale + offset;
+  }
+
+  float unmap(const float t) const
+  {
+    /* x = (y-c) / b + a */
+    return (t - this->offset) / this->scale + this->scale_offset;
+  }
 };
 
 class FCurveChannel : public DataChannel {
+  /* Maps from FCurve to Scene time. Having a single mapping value per FCurve channel has
+   * implications. When instancing strips, we'll need separate channels per strip even if the
+   * FCurves are identical. This is further complicated when the strip references an action. With
+   * the NLA this is not a problem yet because only one strip at a time can be in "edit mode". */
   TimeMapping mapping_;
 
  public:
@@ -743,6 +770,16 @@ class FCurveChannel : public DataChannel {
    * Looks for an ID in the channel tags. Returns the first one found.
    */
   const ID *find_animated_id_from_tags() const;
+
+  void set_time_mapping(const TimeMapping &time_mapping)
+  {
+    this->mapping_ = time_mapping;
+  }
+
+  TimeMapping get_time_mapping() const
+  {
+    return this->mapping_;
+  }
 
  protected:
   void gather_channeldata() override;

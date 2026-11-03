@@ -117,6 +117,7 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
                                     const int channelbag_index,
                                     ChannelTagStack &tags,
                                     Vector<rna_path::Item> rna_path_items,
+                                    const TimeMapping time_mapping,
                                     ChannelArena &arena)
 {
   assert_tag_count(tags);
@@ -186,6 +187,7 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
       FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(
           fcurve_ptr, ParsedRNAPathRef(rna_path_items));
       channel->tags().set(tags.snapshot());
+      channel->set_time_mapping(time_mapping);
 
       /* Because the text search has to apply to the label (and not just the F-Curve's RNA path),
        * the DataChannel has to be constructed in order to find its label.
@@ -217,6 +219,7 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
 static void channels_for_action_slot(animrig::Action &action,
                                      animrig::Slot &slot,
                                      ChannelTagStack &tags,
+                                     const TimeMapping mapping,
                                      ChannelArena &arena)
 {
   using namespace animrig;
@@ -264,6 +267,7 @@ static void channels_for_action_slot(animrig::Action &action,
       if (channelbag_index < 0) {
         continue;
       }
+      const TimeMapping strip_mapping = mapping.combine(strip->frame_offset, 1.0, 0.0);
 
       /* Append the strip to the RNA path. */
       rna_path_items.append(rna_path::Member{UString("strips")});
@@ -283,7 +287,8 @@ static void channels_for_action_slot(animrig::Action &action,
 
       PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
           strip_ptr, RNA_ActionChannelbag, channelbag);
-      channels_for_channelbag(channelbag_ptr, channelbag_index, tags, rna_path_items, arena);
+      channels_for_channelbag(
+          channelbag_ptr, channelbag_index, tags, rna_path_items, strip_mapping, arena);
 
       /* Pop the channelbag off the RNA path. */
       rna_path_items.pop_last();
@@ -308,13 +313,14 @@ static void channels_for_action_slot(animrig::Action &action,
 static void channels_for_action_slot(animrig::Action &action,
                                      const animrig::slot_handle_t slot_handle,
                                      ChannelTagStack &tags,
+                                     TimeMapping mapping,
                                      ChannelArena &arena)
 {
   animrig::Slot *slot = action.slot_for_handle(slot_handle);
   if (!slot) {
     return;
   }
-  channels_for_action_slot(action, *slot, tags, arena);
+  channels_for_action_slot(action, *slot, tags, mapping, arena);
 }
 
 /*
@@ -351,7 +357,9 @@ static void collect_channels_for_id(ID *animated_id,
       animrig::get_action_slot_pair(*animated_id);
 
   if (!action_and_slot) {
-    /* TODO: this ID may still be animated by the NLA. */
+    /* While this ID may still be animated by the NLA, this was never shown in the animfilter
+     * system. Animation data is only shown when the NLA strip is in tweak mode, which would
+     * override the action and slot thus the above will return a value. */
     return;
   }
 
@@ -366,8 +374,24 @@ static void collect_channels_for_id(ID *animated_id,
       owner_id ? owner_id : animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
   tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr, embedded_property});
 
+  TimeMapping mapping;
+  {
+    /* NLA time remapping that has to be here until the NLA is removed. */
+    AnimData *adt = BKE_animdata_from_id(animated_id);
+    if (adt && adt->flag & ADT_NLA_EDIT_ON && adt->actstrip) {
+      NlaStrip *strip = adt->actstrip;
+      /* Animated strip time cannot be represented linearly and is just not supported to be drawn.
+       * This matches in behavior with the legacy animfilter system. */
+      if (!(strip->flag & NLASTRIP_FLAG_USR_TIME)) {
+        mapping.offset = strip->start;
+        mapping.scale = strip->flag & NLASTRIP_FLAG_REVERSE ? -strip->scale : strip->scale;
+        mapping.scale_offset = strip->flag & NLASTRIP_FLAG_REVERSE ? strip->actend :
+                                                                     strip->actstart;
+      }
+    }
+  }
   channels_for_action_slot(
-      *action_and_slot->first, action_and_slot->second->handle, tags, ctx.arena);
+      *action_and_slot->first, action_and_slot->second->handle, tags, mapping, ctx.arena);
   tags.pop();
 }
 
@@ -632,6 +656,8 @@ static void collect_action_channels(Main &bmain,
       if (strip->type() != animrig::Strip::Type::Keyframe) {
         continue;
       }
+      TimeMapping mapping;
+      mapping.offset = strip->frame_offset;
 
       /* Append the strip to the RNA path. */
       rna_path_items.append(rna_path::Member{UString("strips")});
@@ -692,7 +718,8 @@ static void collect_action_channels(Main &bmain,
 
         PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
             strip_ptr, RNA_ActionChannelbag, channelbag);
-        channels_for_channelbag(channelbag_ptr, channelbag_index, tags, rna_path_items, arena);
+        channels_for_channelbag(
+            channelbag_ptr, channelbag_index, tags, rna_path_items, mapping, arena);
 
         /* Pop the slot & user tags. */
         if (did_push_slot_user_tag) {
