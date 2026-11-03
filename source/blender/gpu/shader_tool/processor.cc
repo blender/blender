@@ -1435,6 +1435,10 @@ void SourceProcessor::lower_pipeline_definition(Parser &parser, const string &fi
       };
       scope.foreach_match(".A=A", process_constant);
       scope.foreach_match(".A=1", process_constant);
+      scope.foreach_match(".A=-1", [&](const vector<Token> &toks) {
+        create_info_decl += "COMPILATION_CONSTANT(int, " + string(toks[1].str()) + ", -" +
+                            string(toks[4].str()) + ")\n";
+      });
       tok = scope.back().next();
     }
 
