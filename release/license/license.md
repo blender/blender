@@ -2567,7 +2567,7 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
 | [AMF](https://github.com/GPUOpen-LibrariesAndSDKs/AMF) | 1.5.2 | `Copyright (c) 2017-2026 Advanced Micro Devices, Inc.` |
-| [Brotli](https://github.com/google/brotli) | 1.0.9 | `Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.` |
+| [Brotli](https://github.com/google/brotli) | 1.0.10 | `Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.` |
 | [Deflate](https://github.com/ebiggers/libdeflate) | 1.18 | `Copyright 2016 Eric Biggers` |
 | [Emhash](https://github.com/ktprime/emhash) | 5e131ba09a5 | `Copyright (c) 2019 hyb` |
 | [Epoxy](https://github.com/anholt/libepoxy) | 1.5.10 | `Copyright © 2013-2014 Intel Corporation. Copyright © 2013 The Khronos Group Inc.` |
