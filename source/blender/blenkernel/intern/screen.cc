@@ -516,6 +516,12 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
     copy->idname = BLI_strdup(textbox_state.idname);
     BLI_addtail(&dst->textbox_states, copy);
   }
+  dst->active_item_states.clear_no_delete();
+  for (const uiActiveItemState &state : region->active_item_states) {
+    uiActiveItemState *copy = MEM_new<uiActiveItemState>(__func__, state);
+    copy->idname = BLI_strdup(state.idname);
+    BLI_addtail(&dst->active_item_states, copy);
+  }
 
   return dst;
 }
@@ -654,6 +660,79 @@ void BKE_region_callback_free_gizmomap_set(void (*callback)(wmGizmoMap *))
   region_free_gizmomap_callback = callback;
 }
 
+/* Helpers for states with an allocated identifier & a logical time to remove the
+ * least-recently-used states. */
+
+template<typename StateT> static void state_delete(StateT *state)
+{
+  MEM_delete(state->idname);
+  MEM_delete(state);
+}
+
+template<typename StateT>
+static StateT *state_find(const ListBaseT<StateT> &states, const StringRef idname)
+{
+  for (StateT &state : states) {
+    if (state.idname == idname) {
+      return &state;
+    }
+  }
+  return nullptr;
+}
+
+/**
+ * Find the state for \a idname marking it as used, adding it when there is none
+ * (\a r_is_new is set accordingly when given).
+ */
+template<typename StateT>
+static StateT *state_ensure(ListBaseT<StateT> &states,
+                            uint32_t &clock,
+                            const StringRef idname,
+                            bool *r_is_new = nullptr)
+{
+  const uint32_t logical_time = ++clock;
+  /* Overflow happened, reset all last used times. Not sure if this will ever happen in practice,
+   * but better handle the overflow explicitly. */
+  if (logical_time == 0) {
+    for (StateT &state : states) {
+      state.last_used = 0;
+    }
+  }
+  if (StateT *state = state_find(states, idname)) {
+    state->last_used = logical_time;
+    if (r_is_new) {
+      *r_is_new = false;
+    }
+    return state;
+  }
+  StateT *state = MEM_new<StateT>(__func__);
+  state->idname = BLI_strdupn(idname.data(), idname.size());
+  state->last_used = logical_time;
+  BLI_addtail(&states, state);
+  if (r_is_new) {
+    *r_is_new = true;
+  }
+  return state;
+}
+
+template<typename StateT>
+static void remove_least_recently_used_states(ListBaseT<StateT> &states, const int64_t max_kept)
+{
+  Vector<StateT *, 1024> all_states;
+  for (StateT &state : states) {
+    all_states.append(&state);
+  }
+  if (all_states.size() <= max_kept) {
+    return;
+  }
+  std::ranges::sort(all_states,
+                    [](const StateT *a, const StateT *b) { return a->last_used < b->last_used; });
+  for (StateT *state : all_states.as_span().drop_back(max_kept)) {
+    BLI_remlink(&states, state);
+    state_delete(state);
+  }
+}
+
 LayoutPanelState *BKE_panel_layout_panel_state_ensure(Panel *panel,
                                                       const StringRef idname,
                                                       const bool default_closed)
@@ -661,25 +740,12 @@ LayoutPanelState *BKE_panel_layout_panel_state_ensure(Panel *panel,
   ListBaseT<LayoutPanelState> &layout_panel_states =
       panel->runtime->layout_panel_states_storage ? *panel->runtime->layout_panel_states_storage :
                                                     panel->layout_panel_states;
-  const uint32_t logical_time = ++panel->layout_panel_states_clock;
-  /* Overflow happened, reset all last used times. Not sure if this will ever happen in practice,
-   * but better handle the overflow explicitly. */
-  if (logical_time == 0) {
-    for (LayoutPanelState &state : layout_panel_states) {
-      state.last_used = 0;
-    }
+  bool is_new;
+  LayoutPanelState *state = state_ensure(
+      layout_panel_states, panel->layout_panel_states_clock, idname, &is_new);
+  if (is_new) {
+    SET_FLAG_FROM_TEST(state->flag, !default_closed, LAYOUT_PANEL_STATE_FLAG_OPEN);
   }
-  for (LayoutPanelState &state : layout_panel_states) {
-    if (state.idname == idname) {
-      state.last_used = logical_time;
-      return &state;
-    }
-  }
-  LayoutPanelState *state = MEM_new<LayoutPanelState>(__func__);
-  state->idname = BLI_strdupn(idname.data(), idname.size());
-  SET_FLAG_FROM_TEST(state->flag, !default_closed, LAYOUT_PANEL_STATE_FLAG_OPEN);
-  state->last_used = logical_time;
-  BLI_addtail(&layout_panel_states, state);
   return state;
 }
 
@@ -694,12 +760,6 @@ Panel *BKE_panel_new(PanelType *panel_type)
   return panel;
 }
 
-static void layout_panel_state_delete(LayoutPanelState *state)
-{
-  MEM_delete(state->idname);
-  MEM_delete(state);
-}
-
 void BKE_panel_free(Panel *panel)
 {
   MEM_SAFE_DELETE_VOID(panel->activedata);
@@ -707,7 +767,7 @@ void BKE_panel_free(Panel *panel)
 
   for (LayoutPanelState &state : panel->layout_panel_states.items_mutable()) {
     BLI_remlink(&panel->layout_panel_states, &state);
-    layout_panel_state_delete(&state);
+    state_delete(&state);
   }
 
   MEM_delete(panel->runtime);
@@ -732,6 +792,17 @@ void BKE_area_region_panels_free(ListBaseT<Panel> *panels)
     area_region_panels_free_recursive(&panel);
   }
   panels->clear_no_delete();
+}
+
+uiActiveItemState *BKE_region_active_item_state_ensure(ARegion *region, const StringRef idname)
+{
+  return state_ensure(region->active_item_states, region->active_item_states_clock, idname);
+}
+
+const uiActiveItemState *BKE_region_active_item_state_find(const ARegion *region,
+                                                           const StringRef idname)
+{
+  return state_find(region->active_item_states, idname);
 }
 
 void BKE_area_region_free(SpaceType *st, ARegion *region)
@@ -776,6 +847,10 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
     BLI_remlink(&region->textbox_states, &textbox_state);
     MEM_delete(textbox_state.idname);
     MEM_delete(&textbox_state);
+  }
+  for (uiActiveItemState &state : region->active_item_states.items_mutable()) {
+    BLI_remlink(&region->active_item_states, &state);
+    state_delete(&state);
   }
 
   MEM_delete(region->runtime);
@@ -1474,6 +1549,10 @@ static void write_area(BlendWriter *writer, ScrArea *area)
       writer->write_struct(&textbox_state);
       writer->write_string(textbox_state.idname);
     }
+    writer->write_struct_list(&region.active_item_states);
+    for (uiActiveItemState &state : region.active_item_states) {
+      writer->write_string(state.idname);
+    }
   }
 
   for (SpaceLink &sl : area->spacedata) {
@@ -1515,24 +1594,6 @@ void BKE_screen_area_map_blend_write(BlendWriter *writer, ScrAreaMap *area_map)
   }
 }
 
-static void remove_least_recently_used_panel_states(Panel &panel, const int64_t max_kept)
-{
-  Vector<LayoutPanelState *, 1024> all_states;
-  for (LayoutPanelState &state : panel.layout_panel_states) {
-    all_states.append(&state);
-  }
-  if (all_states.size() <= max_kept) {
-    return;
-  }
-  std::ranges::sort(all_states, [](const LayoutPanelState *a, const LayoutPanelState *b) {
-    return a->last_used < b->last_used;
-  });
-  for (LayoutPanelState *state : all_states.as_span().drop_back(max_kept)) {
-    BLI_remlink(&panel.layout_panel_states, state);
-    layout_panel_state_delete(state);
-  }
-}
-
 static void direct_link_panel_list(BlendDataReader *reader, ListBaseT<Panel> *lb)
 {
   BLO_read_struct_list(reader, Panel, lb);
@@ -1551,7 +1612,7 @@ static void direct_link_panel_list(BlendDataReader *reader, ListBaseT<Panel> *lb
      * arbitrarily large over time. Ideally this could be done more eagerly and not only when
      * loading the file. However, it's hard to make sure that no other code is currently
      * referencing the panel states in other cases. */
-    remove_least_recently_used_panel_states(panel, 200);
+    remove_least_recently_used_states(panel.layout_panel_states, 200);
     direct_link_panel_list(reader, &panel.children);
   }
 }
@@ -1569,6 +1630,13 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
   for (uiTextboxStateLink &textbox_state : region->textbox_states) {
     BLO_read_string(reader, &textbox_state.idname);
   }
+
+  BLO_read_struct_list(reader, uiActiveItemState, &region->active_item_states);
+  for (uiActiveItemState &state : region->active_item_states) {
+    BLO_read_string(reader, &state.idname);
+  }
+  /* See #direct_link_panel_list for why this is only done when loading. */
+  remove_least_recently_used_states(region->active_item_states, 64);
 
   /* The area's search filter is runtime only, so we need to clear the active flag on read. */
   /* Clear runtime flags (e.g. search filter is runtime only). */

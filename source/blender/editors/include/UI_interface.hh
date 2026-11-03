@@ -10,6 +10,7 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 
 #include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
@@ -264,6 +265,9 @@ void uilist_filter_and_sort_items(uiList *ui_list,
  * Override this for all available view types.
  * \param idname: Used for restoring persistent state of this view, potentially written to files.
  * Must not be longer than #BKE_ST_MAXNAME (including 0 terminator).
+ * Views that persist their active item (#AbstractView::use_persistent_active_item) should
+ * compose this with #WM_uilisttype_to_full_list_id, so scripts can access it with
+ * `Region.active_item_index_get`.
  */
 AbstractGridView *block_add_view(Block &block,
                                  StringRef idname,

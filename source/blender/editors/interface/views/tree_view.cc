@@ -1278,8 +1278,21 @@ void TreeViewBuilder::build_tree_view(const bContext &C,
   }
 
   tree_view.build_tree();
+#ifndef NDEBUG
+  if (tree_view.use_persistent_active_item()) {
+    /* The active item is stored by its index, which nested items would shift. */
+    int tot_items = 0, tot_root_items = 0;
+    tree_view.foreach_item([&](AbstractTreeViewItem & /*item*/) { tot_items++; });
+    tree_view.foreach_root_item([&](AbstractTreeViewItem & /*item*/) { tot_root_items++; });
+    BLI_assert_msg(tot_items == tot_root_items,
+                   "Tree views that persist their active item must not have nested items");
+  }
+#endif
   tree_view.update_from_old(block);
   tree_view.change_state_delayed();
+  if (block_view_persistent_active_item_apply(C, block, tree_view)) {
+    tree_view.scroll_active_into_view_on_draw_ = true;
+  }
 
   if (*tree_view.sort_alpha_) {
     tree_view.sort_alpha();

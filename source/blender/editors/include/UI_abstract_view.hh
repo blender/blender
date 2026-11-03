@@ -134,6 +134,19 @@ class AbstractView {
    * files, and potentially loaded from a file.
    */
   virtual void persistent_state_apply(const uiViewState &state);
+  /**
+   * Return true to preserve the active item over UI changes and file loading, for views that
+   * have no active item in the data they display. Views whose items implement
+   * #AbstractViewItem::should_be_active must not return true, so there is one source of truth.
+   *
+   * The active item is identified by its position in the order items were added, so items must
+   * be added in the order of the data they display (nested items aren't supported, asserted for
+   * tree views). The first item is active until one is activated and removing the active item
+   * activates the item that takes its place.
+   *
+   * Return false if there's no active item to preserve (default implementation).
+   */
+  virtual bool use_persistent_active_item() const;
 
   /**
    * Makes \a item valid for display in this view. Behavior is undefined for items not registered

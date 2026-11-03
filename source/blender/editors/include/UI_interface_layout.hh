@@ -319,6 +319,8 @@ struct Layout : public Item, NonCopyable, NonMovable {
 
   /** Add a new list box sub-layout. */
   Layout &list_box(uiList *ui_list, PointerRNA *actptr, PropertyRNA *actprop);
+  /** For lists storing their active item in the region, see #uiActiveItemState. */
+  Layout &list_box(uiList *ui_list, int *active_index);
 
   /**
    * Add a pie menu layout, buttons are arranged around a center.

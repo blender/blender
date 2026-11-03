@@ -47,7 +47,10 @@ struct TemplateListInputData {
   PointerRNA dataptr;
   PropertyRNA *prop;
   PointerRNA active_dataptr;
+  /** Null for lists that store their active item in the region, see #active_item_state. */
   PropertyRNA *activeprop;
+  /** The active item stored in the region when there is no #activeprop, the buttons bind to it. */
+  uiActiveItemState *active_item_state;
   const char *item_dyntip_propname;
 
   /* Index as stored in the input property. I.e. the index before sorting. */
@@ -373,8 +376,9 @@ static bool template_uilist_data_retrieve(const StringRef listtype_name,
     return false;
   }
 
-  if (!*active_dataptr) {
-    RNA_warning("No active data");
+  const bool use_active_prop = !active_propname.is_empty();
+  if (bool(*active_dataptr) != use_active_prop) {
+    RNA_warning("Expected both an active data & property, or neither");
     return false;
   }
 
@@ -388,15 +392,6 @@ static bool template_uilist_data_retrieve(const StringRef listtype_name,
     }
   }
 
-  r_input_data->active_dataptr = *active_dataptr;
-  r_input_data->activeprop = RNA_struct_find_property(active_dataptr, active_propname.c_str());
-  if (!r_input_data->activeprop) {
-    RNA_warning("Property not found: %s.%s",
-                RNA_struct_identifier(active_dataptr->type),
-                active_propname.c_str());
-    return false;
-  }
-
   if (r_input_data->prop) {
     const PropertyType type = RNA_property_type(r_input_data->prop);
     if (type != PROP_COLLECTION) {
@@ -405,10 +400,22 @@ static bool template_uilist_data_retrieve(const StringRef listtype_name,
     }
   }
 
-  const PropertyType activetype = RNA_property_type(r_input_data->activeprop);
-  if (activetype != PROP_INT) {
-    RNA_warning("Expected an integer active data property");
-    return false;
+  if (use_active_prop) {
+    r_input_data->active_dataptr = *active_dataptr;
+    r_input_data->activeprop = RNA_struct_find_property(active_dataptr, active_propname.c_str());
+    if (!r_input_data->activeprop) {
+      RNA_warning("Property not found: %s.%s",
+                  RNA_struct_identifier(active_dataptr->type),
+                  active_propname.c_str());
+      return false;
+    }
+    const PropertyType activetype = RNA_property_type(r_input_data->activeprop);
+    if (activetype != PROP_INT) {
+      RNA_warning("Expected an integer active data property");
+      return false;
+    }
+    r_input_data->active_item_idx = RNA_property_int_get(&r_input_data->active_dataptr,
+                                                         r_input_data->activeprop);
   }
 
   /* Find the uiList type. */
@@ -417,11 +424,33 @@ static bool template_uilist_data_retrieve(const StringRef listtype_name,
     return false;
   }
 
-  r_input_data->active_item_idx = RNA_property_int_get(&r_input_data->active_dataptr,
-                                                       r_input_data->activeprop);
   r_input_data->item_dyntip_propname = item_dyntip_propname;
 
   return true;
+}
+
+/**
+ * Take the active item from the region. The stored index is clamped to the collection so the
+ * buttons (which bind to it) agree with the items drawn & removing the active item makes the
+ * item that took its place active.
+ */
+static void template_uilist_active_item_state_retrieve(const bContext *C,
+                                                       const uiList *ui_list,
+                                                       TemplateListInputData *input_data)
+{
+  ARegion *region = region_active_item_state_region(*C);
+  uiActiveItemState *state = BKE_region_active_item_state_ensure(region, ui_list->list_id);
+  /* The buttons bind to the index, so a script's change needs no applying. */
+  state->flag &= ~UI_ACTIVE_ITEM_STATE_FLAG_PENDING;
+
+  if (input_data->dataptr && input_data->prop) {
+    const int items_len = RNA_property_collection_length(&input_data->dataptr, input_data->prop);
+    if (items_len > 0) {
+      CLAMP(state->active_index, 0, items_len - 1);
+    }
+  }
+  input_data->active_item_idx = state->active_index;
+  input_data->active_item_state = state;
 }
 
 static void template_uilist_collect_items(PointerRNA *list_ptr,
@@ -686,7 +715,9 @@ static void template_uilist_layout_draw(const bContext *C,
                                         const TemplateListFlags flags)
 {
   uiListDyn *dyn_data = ui_list->dyn_data;
-  const char *active_propname = RNA_property_identifier(input_data->activeprop);
+  const char *active_propname = input_data->activeprop ?
+                                    RNA_property_identifier(input_data->activeprop) :
+                                    "";
 
   Layout *glob = nullptr, *box, *row, *col, *sub, *overlap;
   char numstr[32];
@@ -705,7 +736,9 @@ static void template_uilist_layout_draw(const bContext *C,
   switch (ui_list->layout_type) {
     case UILST_LAYOUT_DEFAULT: {
       /* layout */
-      box = &layout.list_box(ui_list, &input_data->active_dataptr, input_data->activeprop);
+      box = input_data->activeprop ?
+                &layout.list_box(ui_list, &input_data->active_dataptr, input_data->activeprop) :
+                &layout.list_box(ui_list, &input_data->active_item_state->active_index);
       glob = &box->column(true);
       row = &glob->row(false);
       col = &row->column(true);
@@ -734,21 +767,38 @@ static void template_uilist_layout_draw(const bContext *C,
           /* list item behind label & other buttons */
           overlap->row(false);
 
-          but = uiDefButR_prop(subblock,
-                               ButtonType::ListRow,
-                               "",
-                               0,
-                               0,
-                               UI_UNIT_X * 10,
-                               UI_UNIT_Y,
-                               &input_data->active_dataptr,
-                               input_data->activeprop,
-                               0,
-                               0,
-                               org_i,
-                               editable ? TIP_("Select List Item "
-                                               "(Double click to rename)") :
-                                          TIP_("Select List Item"));
+          const char *row_tip = editable ? TIP_("Select List Item (Double click to rename)") :
+                                           TIP_("Select List Item");
+          if (input_data->activeprop) {
+            but = uiDefButR_prop(subblock,
+                                 ButtonType::ListRow,
+                                 "",
+                                 0,
+                                 0,
+                                 UI_UNIT_X * 10,
+                                 UI_UNIT_Y,
+                                 &input_data->active_dataptr,
+                                 input_data->activeprop,
+                                 0,
+                                 0,
+                                 org_i,
+                                 row_tip);
+          }
+          else {
+            but = uiDefButV(subblock,
+                            ButtonType::ListRow,
+                            "",
+                            0,
+                            0,
+                            UI_UNIT_X * 10,
+                            UI_UNIT_Y,
+                            &input_data->active_item_state->active_index,
+                            0,
+                            org_i,
+                            row_tip);
+            /* The active item is UI state, not part of undo. */
+            button_flag_disable(but, BUT_UNDO);
+          }
 
           if ((dyntip_data = uilist_item_use_dynamic_tooltip(itemptr,
                                                              input_data->item_dyntip_propname)))
@@ -845,20 +895,36 @@ static void template_uilist_layout_draw(const bContext *C,
 
       /* next/prev button */
       SNPRINTF_UTF8(numstr, "%d :", dyn_data->items_shown);
-      but = uiDefIconTextButR_prop(block,
-                                   ButtonType::Num,
-                                   ICON_NONE,
-                                   numstr,
-                                   0,
-                                   0,
-                                   UI_UNIT_X * 5,
-                                   UI_UNIT_Y,
-                                   &input_data->active_dataptr,
-                                   input_data->activeprop,
-                                   0,
-                                   0,
-                                   0,
-                                   "");
+      if (input_data->activeprop) {
+        but = uiDefIconTextButR_prop(block,
+                                     ButtonType::Num,
+                                     ICON_NONE,
+                                     numstr,
+                                     0,
+                                     0,
+                                     UI_UNIT_X * 5,
+                                     UI_UNIT_Y,
+                                     &input_data->active_dataptr,
+                                     input_data->activeprop,
+                                     0,
+                                     0,
+                                     0,
+                                     "");
+      }
+      else {
+        but = uiDefButV(block,
+                        ButtonType::Num,
+                        numstr,
+                        0,
+                        0,
+                        UI_UNIT_X * 5,
+                        UI_UNIT_Y,
+                        &input_data->active_item_state->active_index,
+                        0,
+                        std::max(dyn_data->items_len - 1, 0),
+                        "");
+        button_flag_disable(but, BUT_UNDO);
+      }
       if (dyn_data->items_shown == 0) {
         button_flag_enable(but, BUT_DISABLED);
       }
@@ -1013,6 +1079,10 @@ void template_uilist(Layout *layout,
                                   euiList_LayoutType(layout_type),
                                   flags & TEMPLATE_LIST_SORT_REVERSE,
                                   flags & TEMPLATE_LIST_SORT_LOCK);
+
+  if (input_data.activeprop == nullptr) {
+    template_uilist_active_item_state_retrieve(C, ui_list, &input_data);
+  }
 
   /* When active item changed since last draw, scroll to it. */
   if (input_data.active_item_idx != ui_list->list_last_activei) {

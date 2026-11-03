@@ -50,6 +50,8 @@ struct ViewLink : public Link {
   static void views_bounds_calc(const Block &block);
 };
 
+static StringRef block_view_find_idname(const Block &block, const AbstractView &view);
+
 template<class T>
 static T *block_add_view_impl(Block &block, StringRef idname, std::unique_ptr<AbstractView> view)
 {
@@ -148,6 +150,69 @@ void block_view_persistent_state_restore(const ARegion &region,
       view.persistent_state_apply(stored_state.state);
     }
   }
+}
+
+ARegion *region_active_item_state_region(const bContext &C)
+{
+  if (ARegion *region = CTX_wm_region(&C)) {
+    return region;
+  }
+  return CTX_wm_region_popup(&C);
+}
+
+bool block_view_persistent_active_item_apply(const bContext &C,
+                                             const Block &block,
+                                             AbstractView &view)
+{
+  if (!view.use_persistent_active_item()) {
+    return false;
+  }
+  const StringRef idname = block_view_find_idname(block, view);
+  ARegion *region = region_active_item_state_region(C);
+  if (idname.is_empty() || region == nullptr) {
+    return false;
+  }
+  /* Mark the state as used even for an empty view, so it isn't removed while shown. */
+  uiActiveItemState *state = BKE_region_active_item_state_ensure(region, idname);
+
+  int tot_items = 0;
+  std::optional<int> active_index;
+  view.foreach_view_item([&](AbstractViewItem &item) {
+    BLI_assert_msg(!item.should_be_active().has_value(),
+                   "Views that persist their active item must not have an active item in the "
+                   "data they display");
+    if (item.is_active()) {
+      active_index = tot_items;
+    }
+    tot_items++;
+  });
+
+  /* A pending index takes precedence over the runtime active item. */
+  const bool changed_externally = bool(state->flag & UI_ACTIVE_ITEM_STATE_FLAG_PENDING);
+  state->flag &= ~UI_ACTIVE_ITEM_STATE_FLAG_PENDING;
+
+  if ((changed_externally || !active_index.has_value()) && (tot_items > 0)) {
+    const int index_to_apply = std::clamp(state->active_index, 0, tot_items - 1);
+    AbstractViewItem *item_to_apply = nullptr;
+    int index = 0;
+    view.foreach_view_item([&](AbstractViewItem &item) {
+      if (index++ == index_to_apply) {
+        item_to_apply = &item;
+      }
+    });
+    /* Not #activate, this restores state rather than handling a click. */
+    item_to_apply->set_state_active();
+    if (item_to_apply->is_active()) {
+      /* Selected as #activate does, so it's operated on as a clicked item is. */
+      item_to_apply->set_selected(true);
+      active_index = index_to_apply;
+    }
+  }
+
+  if (active_index) {
+    state->active_index = *active_index;
+  }
+  return changed_externally && (tot_items > 0);
 }
 
 static uiViewStateLink *ensure_view_state(ARegion &region, const ViewLink &link)

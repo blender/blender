@@ -96,6 +96,8 @@ class AbstractGridView : public AbstractView {
   Map<StringRef, AbstractGridViewItem *> item_map_;
   GridViewStyle style_;
   int cols_per_row_ = 0;
+  /** Scroll once #cols_per_row_ is known, see #GridViewLayoutBuilder::build_from_view. */
+  bool scroll_active_into_view_on_draw_ = false;
 
  public:
   AbstractGridView();

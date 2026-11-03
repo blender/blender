@@ -5442,6 +5442,20 @@ Layout &Layout::list_box(uiList *ui_list, PointerRNA *actptr, PropertyRNA *actpr
   return *item_box;
 }
 
+Layout &Layout::list_box(uiList *ui_list, int *active_index)
+{
+  LayoutItemBx *item_box = layout_box(this, ButtonType::ListBox);
+  Button *but = item_box->roundbox;
+
+  but->custom_data = ui_list;
+
+  /* The rows bind to the same pointer, see #listbox_contains_listrow. */
+  but->poin = reinterpret_cast<char *>(active_index);
+  but->pointype = ButPointerType::Int;
+
+  return *item_box;
+}
+
 Layout &Layout::absolute(bool align)
 {
   Layout *litem = MEM_new<LayoutAbsolute>(__func__);

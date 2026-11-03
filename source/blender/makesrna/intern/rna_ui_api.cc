@@ -2499,15 +2499,18 @@ void RNA_api_ui_layout(StructRNA *srna)
                          "active_dataptr",
                          "AnyType",
                          "",
-                         "Data from which to take the integer property, index of the active item");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+                         "Data from which to take the integer property, index of the active item. "
+                         "None (with an empty active_propname) for the list to store the active "
+                         "item in the region, see Region.active_item_index_get");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_string(
       func,
       "active_propname",
       nullptr,
       0,
       "",
-      "Identifier of the integer property in active_data, index of the active item");
+      "Identifier of the integer property in active_data, index of the active item. "
+      "Empty when active_dataptr is None");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_string(func,
                  "item_dyntip_propname",

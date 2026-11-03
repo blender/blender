@@ -971,6 +971,17 @@ LayoutPanelState *BKE_panel_layout_panel_state_ensure(Panel *panel,
                                                       bool default_closed);
 
 /**
+ * Get the active item state for the given identifier, creating it if it doesn't exist yet.
+ * This marks the state as used, see #uiActiveItemState::last_used.
+ */
+uiActiveItemState *BKE_region_active_item_state_ensure(ARegion *region, StringRef idname);
+/**
+ * Get the active item state for the given identifier, null when it doesn't exist.
+ */
+const uiActiveItemState *BKE_region_active_item_state_find(const ARegion *region,
+                                                           StringRef idname);
+
+/**
  * Find a region of type \a region_type in provided \a regionbase.
  *
  * \note this is useful for versioning where either the #Area or #SpaceLink regionbase are typical

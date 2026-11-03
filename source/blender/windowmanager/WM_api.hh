@@ -1651,6 +1651,13 @@ void WM_uilisttype_to_full_list_id(const uiListType *ult,
                                    const char *list_id,
                                    char r_full_list_id[]);
 /**
+ * A version of #WM_uilisttype_to_full_list_id taking the type's identifier,
+ * for callers that only have the name (scripts refer to the list type by name).
+ */
+void WM_uilisttype_to_full_list_id(const char *type_idname,
+                                   const char *list_id,
+                                   char r_full_list_id[]);
+/**
  * Get the "non-full" list-ID, see #WM_uilisttype_to_full_list_id() for details.
  *
  * \note Assumes `uiList.list_id` was set using #WM_uilisttype_to_full_list_id()!
