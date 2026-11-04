@@ -430,10 +430,22 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     window_.contentView = view;
     window_.initialFirstResponder = view;
 
+    BlenderWindowDelegate *windowDelegate = [[BlenderWindowDelegate alloc]
+        initWithSystemCocoa:systemCocoa
+                windowCocoa:this];
+    window_.delegate = windowDelegate;
+
+    window_.acceptsMouseMovedEvents = YES;
+
+    /* Fullscreen must be restored before updateDrawingSize() is called for correct drawing size
+     * computation. */
     if (state == GHOST_kWindowStateFullScreen) {
       setState(GHOST_kWindowStateFullScreen);
     }
 
+    /* Make window key before computing drawing size, not doing so causes drawing offsets on
+     * certain setups, presumably due to this function refreshing the window bounds as a side
+     * effect (see #161048). */
     [window_ makeKeyAndOrderFront:nil];
 
     updateDrawingSize();
@@ -445,13 +457,6 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     setTitle(title);
 
     tablet_ = GHOST_TABLET_DATA_NONE;
-
-    BlenderWindowDelegate *windowDelegate = [[BlenderWindowDelegate alloc]
-        initWithSystemCocoa:systemCocoa
-                windowCocoa:this];
-    window_.delegate = windowDelegate;
-
-    window_.acceptsMouseMovedEvents = YES;
 
     NSView *contentview = window_.contentView;
     contentview.allowedTouchTypes = (NSTouchTypeMaskDirect | NSTouchTypeMaskIndirect);
