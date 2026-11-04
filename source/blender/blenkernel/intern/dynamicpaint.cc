@@ -1998,7 +1998,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
                   surface->output_name2, AttrDomain::Corner);
             }
 
-            if (mloopcol && mloopcol_wet) {
+            if (mloopcol || mloopcol_wet) {
               data.ob = ob;
               data.corner_verts = corner_verts;
               data.faces = faces;
