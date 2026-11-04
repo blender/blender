@@ -87,9 +87,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "attribute_storage_access.hh"
 
 namespace blender {
+
+static CLG_LogRef LOG = {"geom.grease_pencil"};
 
 static const char *ATTR_POSITION = "position";
 
@@ -201,12 +205,30 @@ static void grease_pencil_replace_end_frames_after_read(GreasePencil &grease_pen
   if (empty_drawing_users > 0) {
     grease_pencil.add_empty_drawings(1);
     BLI_assert(grease_pencil.drawings().index_range().contains(empty_drawing_index));
+
+    CLOG_WARN(&LOG,
+              "Converted %d end frames to regular frames using an empty drawing in \"%s\"",
+              empty_drawing_users,
+              BKE_id_name(grease_pencil.id));
   }
 }
 
-static void grease_pencil_initialize_drawing_user_counts(GreasePencil &grease_pencil)
+static bool grease_pencil_initialize_drawing_user_counts(GreasePencil &grease_pencil)
 {
   using namespace blender::bke::greasepencil;
+  /* Unknown types have no runtime data, and only the base struct was read. */
+  for (const GreasePencilDrawingBase *drawing_base : grease_pencil.drawings()) {
+    if (!ELEM(drawing_base->type, GP_DRAWING, GP_DRAWING_REFERENCE)) {
+      return false;
+    }
+  }
+  for (const Layer *layer : grease_pencil.layers()) {
+    for (const GreasePencilFrame &value : layer->frames().values()) {
+      if (!grease_pencil.drawings().index_range().contains(value.drawing_index)) {
+        return false;
+      }
+    }
+  }
   const Array<int> user_counts = grease_pencil.count_frame_users_for_drawings();
   BLI_assert(user_counts.size() == grease_pencil.drawings().size());
   for (const int drawing_i : grease_pencil.drawings().index_range()) {
@@ -216,6 +238,7 @@ static void grease_pencil_initialize_drawing_user_counts(GreasePencil &grease_pe
       drawing.runtime->user_count.store(user_counts[drawing_i]);
     }
   }
+  return true;
 }
 
 static void grease_pencil_copy_data(Main * /*bmain*/,
@@ -369,8 +392,6 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
   read_drawing_array(*grease_pencil, reader);
   /* Read layer tree. */
   read_layer_tree(*grease_pencil, reader);
-  /* Initialize drawing user counts */
-  grease_pencil_initialize_drawing_user_counts(*grease_pencil);
 
   CustomData_blend_read(
       reader, &grease_pencil->layers_data_legacy, grease_pencil->layers().size());
@@ -392,6 +413,12 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
    * drawing. This will give the same visual result (for rendering e.g.), until proper
    * implementation of endframes is reworked for Blender 5.4. */
   grease_pencil_replace_end_frames_after_read(*grease_pencil);
+
+  /* Initialize drawing user counts. Failure means the file is badly corrupted. Done last, because
+   * the ID gets freed after an invalidated read, which requires all of it to be initialized. */
+  if (!grease_pencil_initialize_drawing_user_counts(*grease_pencil)) {
+    BLO_read_data_invalidate(reader, "Invalid Grease Pencil data");
+  }
 }
 
 IDTypeInfo IDType_ID_GP = {
@@ -3394,6 +3421,12 @@ MutableSpan<GreasePencilDrawingBase *> GreasePencil::drawings()
 
 static void delete_drawing(GreasePencilDrawingBase *drawing_base)
 {
+  /* Unknown types from corrupt files, only the base struct was read. */
+  if (!ELEM(drawing_base->type, GP_DRAWING, GP_DRAWING_REFERENCE)) {
+    MEM_delete(drawing_base);
+    return;
+  }
+
   switch (GreasePencilDrawingType(drawing_base->type)) {
     case GP_DRAWING: {
       GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
