@@ -329,15 +329,15 @@ TEST_F(AnimChannelTest, group_channels)
   ChannelSourcingContext ctx(arena);
   collection_channels_for_object(*this->cube, ctx);
   collection_channels_for_object(*this->suzanne, ctx);
-  group_channels(arena,
-                 {
-                     ChannelTagType::ACTION,
-                     ChannelTagType::ACTION_LAYER,
-                     ChannelTagType::ACTION_SLOT,
-                     ChannelTagType::FCURVE_GROUP,
-                     ChannelTagType::BONE,
-                 },
-                 /*use_minimal_grouping=*/false);
+  arena.grouping_params.tag_order = {
+      ChannelTagType::ACTION,
+      ChannelTagType::ACTION_LAYER,
+      ChannelTagType::ACTION_SLOT,
+      ChannelTagType::FCURVE_GROUP,
+      ChannelTagType::BONE,
+  };
+  arena.grouping_params.use_minimal_grouping = false;
+  group_channels(arena);
 
   /* (2 F-Curves, in 1 group, in 1 slot) * 2 objects, 1 layer, 1 action, 1 root summary. */
   EXPECT_EQ(11, arena.num_channels());
