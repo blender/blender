@@ -744,8 +744,8 @@ static void bm_edge_uvselect_set_pick(BMesh *bm,
 
       BM_loop_edge_uvselect_set_noflush(bm, l_iter, true);
 
-      BM_loop_vert_uvselect_set_noflush(bm, l_iter, true);
-      BM_loop_vert_uvselect_set_noflush(bm, l_iter->next, true);
+      BM_loop_vert_uvselect_set_shared(bm, l_iter, true, uv_pick_params.cd_loop_uv_offset);
+      BM_loop_vert_uvselect_set_shared(bm, l_iter->next, true, uv_pick_params.cd_loop_uv_offset);
 
       if (any_faces_unselected == false) {
         if (!BM_elem_flag_test(l_iter->f, BM_ELEM_SELECT_UV)) {

@@ -903,6 +903,33 @@ class TestBMeshUVSelectSimple(unittest.TestCase):
 
                 bm.free()
 
+    def test_uv_select_foreach_set_from_mesh_edge_shared(self):
+        """
+        Selecting an edge with sticky shared-location must select the UV's
+        of all faces using its vertices, not only the faces using the edge.
+        """
+        bm = bmesh.new()
+        uv_layer = bm.loops.layers.uv.new()
+        bmesh.ops.create_grid(bm, x_segments=3, y_segments=3, size=2.0)
+        bm_uv_layer_from_coords(bm, uv_layer)
+        bm.select_mode = {'EDGE'}
+        bm.uv_select_sync_valid = True
+        bm_uv_select_reset(bm, select=False)
+
+        # An edge between two interior vertices, each used by 4 faces.
+        edges = [e for e in bm.edges if all(len(v.link_edges) == 4 for v in e.verts)]
+        self.assertEqual(len(edges), 4)
+        del edges[1:]
+
+        edges[0].select = True
+        bm.select_flush_mode()
+        bm.uv_select_foreach_set_from_mesh(True, edges=edges)
+
+        self.assertEqual(bm_loop_select_count_vert_edge_face(bm), ((8, 2, 0), (2, 1, 0)))
+        self.assertEqual(bm_uv_select_check_non_zero(bm, sync=True, flush=True, contiguous=True), {})
+
+        bm.free()
+
     def test_uv_select_foreach_set_from_mesh_deselect_mixed_mode(self):
         """
         De-selecting a face or edge in a lower select mode de-selects its vertices or edges,
