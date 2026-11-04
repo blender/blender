@@ -677,6 +677,74 @@ class TestCLI_Build(unittest.TestCase):
             ]
         )
 
+    def _test_build_valid_tags_impl(
+            self,
+            valid_tags_filepath: str,
+            valid_tags: dict[str, list[str]],
+            *,
+            expected_returncode: int = 0,
+    ) -> Sequence[JSON_OutputElem]:
+        with open(valid_tags_filepath, "w", encoding="utf-8") as fh:
+            json.dump(valid_tags, fh)
+
+        pkg_idname = "my_test_valid_tags"
+        return my_create_package(
+            self.dirpath,
+            pkg_idname + PKG_EXT,
+            metadata={
+                "schema_version": "1.0.0",
+                "id": pkg_idname,
+                "name": "Valid Tags Test",
+                "tagline": """This package has a tagline""",
+                "version": "1.0.0",
+                "type": "add-on",
+                "tags": ["UV", "Modeling"],
+                "blender_version_min": "0.0.0",
+                "maintainer": "Some Developer",
+                "license": ["SPDX:GPL-2.0-or-later"],
+            },
+            files={
+                "__init__.py": b"# This is a script\n",
+            },
+            build_args_extra=(
+                "--valid-tags", valid_tags_filepath,
+            ),
+            expected_returncode=expected_returncode,
+        )
+
+    def test_build_valid_tags_only_manifest_type(self) -> None:
+        # Tags for other extension types are not required.
+        output_json = self._test_build_valid_tags_impl(
+            os.path.join(self.dirpath, "valid_tags.json"),
+            {"add-on": ["UV", "Modeling"]},
+        )
+
+        output_path = os.path.join(self.dirpath, "my_test_valid_tags" + PKG_EXT)
+        output_size = os.path.getsize(output_path)
+        self.assertEqual(
+            output_json, [
+                ("STATUS", "building: my_test_valid_tags.zip"),
+                ("STATUS", "complete"),
+                ("STATUS", "created: \"{:s}\", {:d}".format(output_path, output_size)),
+            ]
+        )
+
+    def test_build_valid_tags_error_missing_manifest_type(self) -> None:
+        valid_tags_filepath = os.path.join(self.dirpath, "valid_tags.json")
+        output_json = self._test_build_valid_tags_impl(
+            valid_tags_filepath,
+            {"asset-library": ["Material"], "theme": ["Dark"]},
+            expected_returncode=1,
+        )
+        self.assertEqual(
+            output_json, [
+                ("FATAL_ERROR", (
+                    "Error in TAGS \"{:s}\" loading tags: "
+                    "missing key \"add-on\", required by the manifest type"
+                ).format(valid_tags_filepath)),
+            ]
+        )
+
 
 class TestCLI_WithRepo(unittest.TestCase):
     dirpath = ""
