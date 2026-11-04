@@ -295,7 +295,7 @@ void OUTLINER_OT_collection_new(wmOperatorType *ot)
   /* identifiers */
   ot->name = "New Collection";
   ot->idname = "OUTLINER_OT_collection_new";
-  ot->description = "Add a new collection inside selected collection";
+  ot->description = "Add a new collection";
 
   /* API callbacks. */
   ot->exec = collection_new_exec;
