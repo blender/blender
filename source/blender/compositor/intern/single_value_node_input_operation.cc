@@ -159,6 +159,7 @@ void SingleValueNodeInputOperation::execute()
       break;
     }
     case SOCK_CUSTOM:
+    case SOCK_DYNAMIC:
       /* An undefined socket, its value does not matter. */
       break;
     default:

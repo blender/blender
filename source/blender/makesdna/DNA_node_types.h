@@ -112,6 +112,7 @@ enum eNodeSocketDatatype : short {
   SOCK_MASK = 22,
   SOCK_SOUND = 23,
   SOCK_INT_VECTOR = 24,
+  SOCK_DYNAMIC = 25,
 };
 
 /** Socket shape. */

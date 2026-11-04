@@ -1506,7 +1506,7 @@ static void node_socket_outline_color_get(const bool selected,
   if (selected) {
     ui::theme::get_color_type_4fv(TH_ACTIVE, SPACE_NODE, r_outline_color);
   }
-  else if (socket_type == SOCK_CUSTOM) {
+  else if (ELEM(socket_type, SOCK_CUSTOM, SOCK_DYNAMIC)) {
     /* Until there is a better place for per socket color,
      * the outline color for virtual sockets is set here. */
     copy_v4_v4(r_outline_color, virtual_node_socket_outline_color);

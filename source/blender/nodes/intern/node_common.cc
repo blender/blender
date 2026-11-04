@@ -426,6 +426,10 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
                     .init_socket_fn(get_init_socket_fn(tree.tree_interface, io_socket));
         break;
       }
+      case SOCK_DYNAMIC: {
+        decl = &b.add_socket<decl::Dynamic>(name, identifier, in_out);
+        break;
+      }
     }
   }
   else {

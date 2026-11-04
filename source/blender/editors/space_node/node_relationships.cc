@@ -2860,6 +2860,7 @@ static int get_main_socket_priority(const bNodeSocket *socket)
 {
   switch (socket->type) {
     case SOCK_CUSTOM:
+    case SOCK_DYNAMIC:
       return 0;
     case SOCK_MENU:
       return 1;

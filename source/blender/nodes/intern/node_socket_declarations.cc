@@ -69,7 +69,8 @@ static bool basic_types_can_connect(const SocketDeclaration & /*socket_decl*/,
               SOCK_BOOLEAN,
               SOCK_VECTOR,
               SOCK_RGBA,
-              SOCK_INT_VECTOR);
+              SOCK_INT_VECTOR,
+              SOCK_DYNAMIC);
 }
 
 static void modify_subtype_except_for_storage(bNodeSocket &socket, int new_subtype)
@@ -1083,6 +1084,39 @@ bool Extend::can_connect(const bNodeSocket & /*socket*/) const
 bNodeSocket &Extend::update_or_build(bNodeTree & /*ntree*/,
                                      bNode & /*node*/,
                                      bNodeSocket &socket) const
+{
+  return socket;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Dynamic
+ * \{ */
+
+bNodeSocket &Dynamic::build(bNodeTree &ntree, bNode &node) const
+{
+  bNodeSocket &socket = *bke::node_add_socket(
+      ntree, node, this->in_out, "NodeSocketDynamic", this->identifier.ref(), this->name.ref());
+  return socket;
+}
+
+bool Dynamic::matches(const bNodeSocket &socket) const
+{
+  if (socket.identifier != this->identifier) {
+    return false;
+  }
+  return true;
+}
+
+bool Dynamic::can_connect(const bNodeSocket & /*socket*/) const
+{
+  return false;
+}
+
+bNodeSocket &Dynamic::update_or_build(bNodeTree & /*ntree*/,
+                                      bNode & /*node*/,
+                                      bNodeSocket &socket) const
 {
   return socket;
 }
