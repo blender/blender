@@ -638,7 +638,10 @@ void KeyPoint::merge(const KeyPoint &other)
 
 void ChannelSettingState::merge(const ChannelSettingState &other)
 {
-  this->exists |= other.exists;
+  if (!other.exists) {
+    return;
+  }
+  this->exists = true;
   if (this->value != other.value) {
     this->value = ChannelSettingValue::MIXED;
   }
@@ -1440,14 +1443,31 @@ void GreasePencilChannel::gather_channel_data()
   }
 }
 
-void GreasePencilChannel::gather_channel_settings() {}
+void GreasePencilChannel::gather_channel_settings()
+{
+  GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
+  bke::greasepencil::Layer &layer = gp_layer->wrap();
+
+  ChannelSettingState setting_state;
+  setting_state.exists = true;
+
+  setting_state.value = layer.is_visible() ? ChannelSettingValue::ON : ChannelSettingValue::OFF;
+  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE, setting_state);
+
+  setting_state.value = layer.is_locked() ? ChannelSettingValue::ON : ChannelSettingValue::OFF;
+  this->channel_settings_.set_state(ChannelSettingKey::LOCKED, setting_state);
+}
 
 void GreasePencilChannel::set_setting(const ChannelSettingKey setting, const bool value)
 {
+  GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
+  bke::greasepencil::Layer &layer = gp_layer->wrap();
   switch (setting) {
     case ChannelSettingKey::VISIBLE:
+      layer.set_visible(value);
       break;
     case ChannelSettingKey::LOCKED:
+      layer.set_locked(value);
       break;
     default:
       break;
