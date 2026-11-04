@@ -19,6 +19,7 @@
 /* include after _VA_NARGS macro */
 #include "BLI_compiler_typecheck.hh"
 
+#include <bit>
 #include <type_traits>
 #include <utility>
 
@@ -399,8 +400,11 @@ template<typename T> constexpr bool value_is_zero_memory(const T &value)
   else if constexpr (std::is_integral_v<T>) {
     return value == 0;
   }
-  else if constexpr (std::is_floating_point_v<T>) {
-    return value == 0.0f;
+  else if constexpr (std::is_same_v<T, float>) {
+    return std::bit_cast<uint32_t>(value) == 0;
+  }
+  else if constexpr (std::is_same_v<T, double>) {
+    return std::bit_cast<uint64_t>(value) == 0;
   }
   else if constexpr (std::has_unique_object_representations_v<T>) {
     return memory_is_zero(&value, sizeof(T));
