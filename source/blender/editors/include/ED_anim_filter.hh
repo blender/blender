@@ -1018,6 +1018,9 @@ struct ChannelTreeSettings {
   bool show_visbility_property = false;
   /* Draw a small rect in front of the channel name indicating the channel color. */
   bool show_channel_color_rect = false;
+  /* Some channels can also be visually grouped with a single color. This setting draws that color
+   * as a small rectangle. */
+  bool show_channel_group_color_rect = false;
   bool do_selection_syncing = false;
 
   ChannelTreeSettings(const CollectionFilters &filters)

@@ -462,6 +462,8 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
     ed::animfilter::ChannelTreeSettings settings(channels.filters);
     settings.show_visbility_property = true;
     settings.show_channel_color_rect = true;
+    settings.show_channel_group_color_rect = U.animation_flag &
+                                             USER_ANIM_SHOW_CHANNEL_GROUP_COLORS;
     settings.show_summary = false;
     std::unique_ptr<ui::AbstractTreeView> tree = ed::animfilter::build_channel_tree_view(channels,
                                                                                          settings);

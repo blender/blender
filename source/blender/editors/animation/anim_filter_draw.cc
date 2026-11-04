@@ -264,6 +264,10 @@ class ChannelTreeView : public ui::AbstractTreeView {
   {
     return tree_settings_.show_channel_color_rect;
   }
+  bool show_channel_group_color_rect() const
+  {
+    return tree_settings_.show_channel_group_color_rect;
+  }
 };
 
 /* A few functions need to be defined after the ChannelTreeView class. */
@@ -359,6 +363,32 @@ static uchar4 get_fcurve_color(FCurve &fcurve)
   return color;
 }
 
+static bool get_actiongroup_color(const bActionGroup *agrp, uchar4 &r_color)
+{
+  if (!agrp) {
+    return false;
+  }
+
+  const int8_t color_index = agrp->customCol;
+  if (color_index == 0) {
+    return false;
+  }
+
+  const ThemeWireColor *wire_color;
+  if (color_index < 0) {
+    wire_color = &agrp->cs;
+  }
+  else {
+    const bTheme *btheme = ui::theme::theme_get();
+    wire_color = &btheme->tarm[(color_index - 1)];
+  }
+
+  r_color[0] = wire_color->solid[0];
+  r_color[1] = wire_color->solid[1];
+  r_color[2] = wire_color->solid[2];
+  return true;
+}
+
 void ChannelItem::build_row(ui::Layout &layout)
 {
   const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
@@ -414,6 +444,27 @@ void ChannelItem::build_row(ui::Layout &layout)
             &source_, "use_modifiers", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_MODIFIER_ON);
         layout.prop(&source_, "mute", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_CHECKBOX_HLT);
         layout.prop(&source_, "lock", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_UNLOCKED);
+        if (tree_view.show_channel_group_color_rect()) {
+          FCurve *fcurve = data_channel.get_source<FCurve>();
+          uchar4 color(255);
+          if (get_actiongroup_color(fcurve->grp, color)) {
+            ui::Block *block = layout.block();
+            block_emboss_set(block, ui::EmbossType::Emboss);
+            ui::Button *but = uiDefBut(block,
+                                       ui::ButtonType::Roundbox,
+                                       "",
+                                       0,
+                                       0,
+                                       UI_UNIT_X / 3.0,
+                                       UI_UNIT_Y,
+                                       nullptr,
+                                       0.0,
+                                       0.0,
+                                       "");
+            ui::button_color_set(but, color);
+            block_emboss_set(block, ui::EmbossType::None);
+          }
+        }
         break;
       }
 
