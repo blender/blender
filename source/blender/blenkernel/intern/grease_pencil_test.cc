@@ -382,6 +382,7 @@ TEST_F(GreasePencilTest, add_frame_duration_check_duration)
   EXPECT_EQ(sorted_keys.size(), 7);
   EXPECT_EQ(sorted_keys[6] - sorted_keys[5], 10);
 }
+#endif
 
 TEST_F(GreasePencilTest, get_frame_duration_at)
 {
@@ -405,6 +406,8 @@ TEST_F(GreasePencilTest, get_frame_duration_at)
   EXPECT_EQ(ex.layer.get_frame_duration_at(20), -1);
 }
 
+/* Frame duration is disabled currently. */
+#if 0
 TEST_F(GreasePencilTest, add_frame_duration_override_null_frames)
 {
   Layer layer;
