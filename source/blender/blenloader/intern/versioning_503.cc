@@ -237,11 +237,6 @@ static void version_layer_selection_modifier_inputs(NodesModifierData &nmd)
 
 void do_versions_after_linking_503(FileData * /*fd*/, Main *bmain)
 {
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 8)) {
-    version_node_socket_index_animdata(
-        bmain, NTREE_GEOMETRY, "GeometryNodeSetGreasePencilColor", 5, 1, 6);
-  }
-
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 15)) {
     for (Scene &scene : bmain->scenes) {
       if (scene.compositing_node_group) {
