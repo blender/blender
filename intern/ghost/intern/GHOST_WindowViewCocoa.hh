@@ -7,15 +7,9 @@
 #  import <Carbon/Carbon.h>
 #endif
 
-/* NSView subclass for drawing and handling input.
- *
- * COCOA_VIEW_BASE_CLASS will be either NSView or NSOpenGLView depending if
- * we use a Metal or OpenGL layer for drawing in the view. We use macros
- * to defined classes for each case, so we don't have to duplicate code as
- * Objective-C does not have multiple inheritance. */
-
+/* NSView subclass for drawing and handling input. */
 // We need to subclass it in order to give Cocoa the feeling key events are trapped
-@interface COCOA_VIEW_CLASS : COCOA_VIEW_BASE_CLASS <NSTextInputClient>
+@interface BlenderWindowView : NSView <NSTextInputClient>
 {
   bool composing;
   NSString *composing_text;
@@ -47,7 +41,7 @@
 
 @end
 
-@implementation COCOA_VIEW_CLASS
+@implementation BlenderWindowView
 
 @synthesize systemCocoa = system_cocoa_;
 @synthesize windowCocoa = window_cocoa_;
