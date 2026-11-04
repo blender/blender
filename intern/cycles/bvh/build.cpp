@@ -195,7 +195,7 @@ void BVHBuild::add_reference_curves(BoundBox &root,
          */
         float4 prev_keys[4];
         curve.cardinal_motion_keys(
-            attr_P, attr_R, num_steps, 0.0f, k - 1, k, k + 1, k + 2, prev_keys);
+            attr_P, attr_R, num_steps, 0.0f, max(k - 1, 0), k, k + 1, k + 2, prev_keys);
         BoundBox prev_bounds = BoundBox::empty;
         curve.bounds_grow(prev_keys, prev_bounds);
         /* Create all primitive time steps, */
@@ -203,7 +203,7 @@ void BVHBuild::add_reference_curves(BoundBox &root,
           const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
           float4 curr_keys[4];
           curve.cardinal_motion_keys(
-              attr_P, attr_R, num_steps, curr_time, k - 1, k, k + 1, k + 2, curr_keys);
+              attr_P, attr_R, num_steps, curr_time, max(k - 1, 0), k, k + 1, k + 2, curr_keys);
           BoundBox curr_bounds = BoundBox::empty;
           curve.bounds_grow(curr_keys, curr_bounds);
           BoundBox bounds = prev_bounds;

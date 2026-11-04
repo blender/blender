@@ -34,11 +34,13 @@ ccl_device_forceinline float uint_to_float_incl(const uint n)
  * Slightly modified to only use signed integers,
  * so that they can also be implemented in OSL.
  *
- * Silence UBsan warnings about signed integer overflow. */
+ * Silence UBsan warnings about signed integer overflow, and doesn't use
+ * int2/3/4 utils since ccl_ignore_integer_overflow does not apply to it. */
 
 ccl_ignore_integer_overflow ccl_device_inline int2 hash_pcg2d_i(int2 v)
 {
-  v = v * make_int2(1664525) + make_int2(1013904223);
+  v.x = v.x * 1664525 + 1013904223;
+  v.y = v.y * 1664525 + 1013904223;
   v.x += v.y * 1664525;
   v.y += v.x * 1664525;
   v = v ^ (v >> 16);
@@ -49,7 +51,9 @@ ccl_ignore_integer_overflow ccl_device_inline int2 hash_pcg2d_i(int2 v)
 
 ccl_ignore_integer_overflow ccl_device_inline int3 hash_pcg3d_i(int3 v)
 {
-  v = v * make_int3(1664525) + make_int3(1013904223);
+  v.x = v.x * 1664525 + 1013904223;
+  v.y = v.y * 1664525 + 1013904223;
+  v.z = v.z * 1664525 + 1013904223;
   v.x += v.y * v.z;
   v.y += v.z * v.x;
   v.z += v.x * v.y;
@@ -62,7 +66,10 @@ ccl_ignore_integer_overflow ccl_device_inline int3 hash_pcg3d_i(int3 v)
 
 ccl_ignore_integer_overflow ccl_device_inline int4 hash_pcg4d_i(int4 v)
 {
-  v = v * make_int4(1664525) + make_int4(1013904223);
+  v.x = v.x * 1664525 + 1013904223;
+  v.y = v.y * 1664525 + 1013904223;
+  v.z = v.z * 1664525 + 1013904223;
+  v.w = v.w * 1664525 + 1013904223;
   v.x += v.y * v.w;
   v.y += v.z * v.x;
   v.z += v.x * v.y;

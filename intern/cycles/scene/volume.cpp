@@ -994,8 +994,7 @@ void VolumeManager::initialize_octree(const Scene *scene, Progress &progress)
           }
         }
         else {
-          const Mesh *mesh = static_cast<const Mesh *>(geom);
-          if (is_zero(mesh->bounds.size())) {
+          if (is_zero(geom->bounds.size())) {
             continue;
           }
           if (!shader->has_volume_spatial_varying) {
@@ -1005,7 +1004,7 @@ void VolumeManager::initialize_octree(const Scene *scene, Progress &progress)
               object_octrees_[{object, shader}] = it->second;
             }
             else {
-              auto octree = std::make_shared<Octree>(mesh->bounds);
+              auto octree = std::make_shared<Octree>(geom->bounds);
               geometry_octrees[{geom, shader}] = octree;
               object_octrees_[{object, shader}] = octree;
             }
@@ -1013,7 +1012,7 @@ void VolumeManager::initialize_octree(const Scene *scene, Progress &progress)
           else {
             /* TODO(weizhen): we can still share the octree if the spatial variation is in object
              * space, but that might be tricky to determine. */
-            object_octrees_[{object, shader}] = std::make_shared<Octree>(mesh->bounds);
+            object_octrees_[{object, shader}] = std::make_shared<Octree>(geom->bounds);
           }
         }
       }
