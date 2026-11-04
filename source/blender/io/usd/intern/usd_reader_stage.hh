@@ -61,9 +61,14 @@ class USDStageReader {
 
   ~USDStageReader();
 
+  /** Create a reader for the given prim if allowed by the import parameters. */
   USDPrimReader *create_reader_if_allowed(const pxr::UsdPrim &prim);
 
-  USDPrimReader *create_reader(const pxr::UsdPrim &prim);
+  /**
+   * Create a reader for the given prim for use with either the sequence cache modifier or the
+   * transform cache constraint.
+   */
+  USDPrimReader *create_reader_for_cache(const pxr::UsdPrim &prim);
 
   void collect_readers();
 
