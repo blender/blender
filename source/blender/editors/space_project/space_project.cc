@@ -217,7 +217,6 @@ void ED_spacetype_project()
   art->draw = project_main_region_draw;
   art->listener = project_main_region_listener;
   art->keymapflag = ED_KEYMAP_UI;
-  project_asset_panel_register(*art);
 
   BLI_addhead(&st->regiontypes, art);
 

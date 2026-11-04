@@ -2892,7 +2892,7 @@ static void handle_curves_knot_mode(bContext *C, void * /*arg1*/, void * /*arg2*
         const Span<float> src_custom_knots = curves.nurbs_custom_knots();
         const ImplicitSharingInfo *knots_sharing_info = curves.runtime->custom_knots_sharing_info;
         if (knots_sharing_info != nullptr) {
-          knots_sharing_info->add_weak_user();
+          knots_sharing_info->add_user();
         }
 
         Array<int8_t> src_knot_modes;
@@ -2914,7 +2914,7 @@ static void handle_curves_knot_mode(bContext *C, void * /*arg1*/, void * /*arg2*
         update_custom_knots(src_custom_knots_by_curve, src_knot_modes, src_custom_knots, curves);
 
         if (knots_sharing_info != nullptr) {
-          knots_sharing_info->remove_weak_user_and_delete_if_last();
+          knots_sharing_info->remove_user_and_delete_if_last();
         }
       });
 }
@@ -2936,7 +2936,7 @@ static void handle_curves_order(bContext *C, void * /*arg1*/, void * /*arg2*/)
         const Span<float> src_custom_knots = curves.nurbs_custom_knots();
         const ImplicitSharingInfo *knots_sharing_info = curves.runtime->custom_knots_sharing_info;
         if (knots_sharing_info != nullptr) {
-          knots_sharing_info->add_weak_user();
+          knots_sharing_info->add_user();
         }
 
         bool knot_modes_changed = false;
@@ -2961,7 +2961,7 @@ static void handle_curves_order(bContext *C, void * /*arg1*/, void * /*arg2*/)
         }
 
         if (knots_sharing_info != nullptr) {
-          knots_sharing_info->remove_weak_user_and_delete_if_last();
+          knots_sharing_info->remove_user_and_delete_if_last();
         }
       });
 }

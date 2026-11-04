@@ -2941,6 +2941,8 @@ void template_light_linking_collection(
 void template_bone_collection_tree(Layout *layout, bContext *C);
 void template_grease_pencil_layer_tree(Layout *layout, bContext *C);
 
+void template_project_asset_libraries_tree(Layout *layout, bContext *C);
+
 void template_tree_interface(Layout *layout, const bContext *C, PointerRNA *ptr);
 /**
  * Draw all node buttons and socket default values with the same panel structure used by the node.
