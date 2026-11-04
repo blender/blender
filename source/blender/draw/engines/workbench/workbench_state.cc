@@ -282,9 +282,8 @@ static bool mesh_has_color_attribute(const Mesh &mesh)
   if (name.is_empty()) {
     return false;
   }
-  if (mesh.runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
-    const BMesh &bm = *BKE_editmesh_bmesh_get(&mesh);
-    const BMDataLayerLookup attr = BM_data_layer_lookup(bm, name);
+  if (const BMesh *bm = BKE_editmesh_bmesh_get(&mesh)) {
+    const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, name);
     return attr && bke::mesh::is_color_attribute(bke::AttributeMetaData{attr.domain, attr.type});
   }
   const bke::AttributeAccessor attributes = mesh.attributes();
@@ -294,9 +293,8 @@ static bool mesh_has_color_attribute(const Mesh &mesh)
 static bool mesh_has_uv_map_attribute(const Mesh &mesh)
 {
   StringRef active_uv_map = mesh.active_or_default_uv_map_name();
-  if (mesh.runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
-    const BMesh &bm = *BKE_editmesh_bmesh_get(&mesh);
-    const BMDataLayerLookup attr = BM_data_layer_lookup(bm, active_uv_map);
+  if (const BMesh *bm = BKE_editmesh_bmesh_get(&mesh)) {
+    const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, active_uv_map);
     return attr && bke::mesh::is_uv_map(bke::AttributeMetaData{attr.domain, attr.type});
   }
   const bke::AttributeAccessor attributes = mesh.attributes();

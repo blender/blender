@@ -553,7 +553,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   float vec[3] = {0.0f, 0.0f, 0.0f};
   float normal[3] = {0.0f, 0.0f, 0.0f};
   float weightsum = 0.0f;
-  if (const BMesh *bm = BKE_editmesh_bmesh_get(ob)) {
+  if (const BMesh *bm = BKE_editmesh_bmesh_get(DEG_get_original(ob))) {
     if (CustomData_has_layer(&bm->vdata, CD_MDEFORMVERT)) {
       BMVert *v;
       BMIter iter;

@@ -110,8 +110,23 @@ EditMesh *BKE_editmesh_copy(EditMesh *em);
  * - Null check the result if we want to respect the evaluated result, see: #154739.
  */
 EditMesh *BKE_editmesh_from_object(Object *ob);
+
+/**
+ * Get the edit-mode #BMesh if it holds the mesh's data, otherwise null. In some cases during and
+ * after evaluation, the mesh may carry a reference to the original mesh's #EditMesh, but that is
+ * only the source of truth for mesh data if the mesh is a #ME_WRAPPER_TYPE_BMESH wrapper.
+ *
+ * The #Object overload is only for original objects. After evaluation, the data of an evaluated
+ * object is its final mesh, so to ask whether the original is in edit mode, pass
+ * #DEG_get_original or #BKE_object_get_pre_modified_mesh instead.
+ */
 const BMesh *BKE_editmesh_bmesh_get(const Object *ob);
 const BMesh *BKE_editmesh_bmesh_get(const Mesh *mesh);
+
+/**
+ * Same as #BKE_editmesh_bmesh_get, but for callers that change the #BMesh, which is only allowed
+ * on original meshes.
+ */
 BMesh *BKE_editmesh_bmesh_get_for_write(Mesh *mesh);
 BMesh *BKE_editmesh_bmesh_get_for_write(Object *ob);
 

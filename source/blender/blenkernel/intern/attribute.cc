@@ -734,7 +734,7 @@ void BKE_attributes_active_set(AttributeOwner &owner, const StringRef name)
   BLI_assert(bke::allow_procedural_attribute_access(name));
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
+    if (BKE_editmesh_bmesh_get(mesh)) {
       const int index = BKE_attribute_to_index(
           owner, name, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
       *BKE_attributes_active_index_p(owner) = index;

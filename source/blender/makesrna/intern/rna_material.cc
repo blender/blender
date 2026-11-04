@@ -196,10 +196,8 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
       Object *ob = CTX_data_active_object(C);
       if (ob != nullptr && ob->type == OB_MESH) {
         Mesh *mesh = id_cast<Mesh *>(ob->data);
-        if (mesh->runtime->edit_mesh) {
-          if (const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm,
-                                                                  name))
-          {
+        if (const BMesh *bm = BKE_editmesh_bmesh_get(mesh)) {
+          if (const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, name)) {
             BKE_id_attributes_active_color_set(&mesh->id, name);
           }
         }
