@@ -195,7 +195,7 @@ static bool grease_pencil_layer_update_trans_data(bke::greasepencil::Layer &laye
    * frame numbers. We don't want to edit the frames or remove any drawing here. This will be
    * done at once at the end of the transformation. */
   const GreasePencilFrame src_frame = trans_data.frames_transformed.lookup(src_frame_number);
-  const int src_duration = trans_data.frames_duration.lookup_default(src_frame_number, 0);
+  const int src_duration = 0 /* trans_data.frames_duration.lookup_default(src_frame_number, 0) */;
 
   layer.remove_frame(dst_frame_number);
 
