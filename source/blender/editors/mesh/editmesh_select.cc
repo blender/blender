@@ -4478,6 +4478,8 @@ static wmOperatorStatus edbm_select_linked_pick_invoke(bContext *C,
   vc.mval[0] = event->mval[0];
   vc.mval[1] = event->mval[1];
 
+  const short active_selectmode = vc.em->selectmode;
+
   /* Return warning. */
   {
     int base_index = -1;
@@ -4491,9 +4493,15 @@ static wmOperatorStatus edbm_select_linked_pick_invoke(bContext *C,
   ED_view3d_viewcontext_init_object(&vc, basact->object);
   EditMesh *em = vc.em;
   BMesh *bm = BKE_editmesh_bmesh_get_for_write(basact->object);
+  /* It's possible other objects are not in the same mode
+   * (although it shouldn't occur in typical workflows).
+   * The modes must match, otherwise an element may be found & `ele` set to null, see: #166007 */
+  if (em->selectmode != active_selectmode) [[unlikely]] {
+    EDBM_selectmode_set(em, bm, active_selectmode);
+  }
 
 #ifdef USE_LINKED_SELECT_DEFAULT_HACK
-  int delimit = select_linked_delimit_default_from_op(op, vc.scene->toolsettings->selectmode);
+  int delimit = select_linked_delimit_default_from_op(op, em->selectmode);
 #else
   int delimit = RNA_enum_get(op->ptr, "delimit");
 #endif
