@@ -209,7 +209,7 @@ class BoxMaskOperation : public NodeOperation {
   Domain compute_domain() override
   {
     if (get_input("Mask").is_single_value()) {
-      return context().get_compositing_domain();
+      return this->context().get_compositing_domain().realize_transformation();
     }
     return get_input("Mask").domain();
   }

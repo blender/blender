@@ -720,7 +720,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
           pass_result.release();
           return layers;
         }
-        layers.append(std::move(pass_result));
+        layers.append(this->realize_layer_transformation(pass_result));
       }
 
       /* The target view later was processed already, no need to check other view layers. */
@@ -862,7 +862,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   {
     switch (get_source()) {
       case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER:
-        return context().get_compositing_domain();
+        return this->context().get_compositing_domain().realize_transformation();
       case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE:
         return compute_image_domain();
     }
