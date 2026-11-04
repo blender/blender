@@ -191,6 +191,10 @@ static Vector<MutableNodeAndSocket> get_internal_group_links(
         if (!link_filter(*link->tonode)) {
           continue;
         }
+        /* Don't map links to inactive group outputs. */
+        if (link->tonode->is_group_output() && (link->tonode->flag & NODE_DO_OUTPUT) == 0) {
+          continue;
+        }
         std::optional<int> multi_input_sort_id;
         if (link->tosock->is_multi_input()) {
           multi_input_sort_id = link->multi_input_sort_id;
