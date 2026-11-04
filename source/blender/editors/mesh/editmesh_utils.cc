@@ -328,10 +328,17 @@ void EDBM_mesh_make_from_mesh(Object *ob,
   /* we need to flush selection because the mode may have changed from when last in editmode */
   EDBM_selectmode_flush(bm, select_mode);
 
-  /* The select mode may also have changed to face only, where a separate UV selection can't be
-   * represented, matching what #EDBM_selectmode_set does when switching mode in edit-mode. */
-  if (bm->uv_select_sync_valid && !(select_mode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE))) {
-    EDBM_uvselect_clear(bm);
+  if (bm->uv_select_sync_valid) {
+    if (select_mode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
+      /* Flush the UV selection too, so it matches the mesh. */
+      BM_mesh_uvselect_mode_flush(bm);
+    }
+    else {
+      /* The select mode may also have changed to face only, where a separate UV selection can't
+       * be represented, matching what #EDBM_selectmode_set does when switching mode in edit-mode.
+       */
+      EDBM_uvselect_clear(bm);
+    }
   }
 
   /* Conversion to edit-mesh may have modified the attribute layers.
