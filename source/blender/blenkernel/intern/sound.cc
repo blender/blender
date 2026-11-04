@@ -2290,8 +2290,9 @@ bSoundFrequencySampler::bSoundFrequencySampler(AUD_Sound sound,
   /* This could be a parameter but a single fixed value seems fine for now and makes caching much
    * simpler. */
   window_cache_stride_ = key.fft_size / 8;
-  const int window_caches_num = std::ceil(info.length * info.specs.samplerate /
-                                          window_cache_stride_);
+  /* The length is negative for sounds of unknown duration. */
+  const int window_caches_num = std::max<int>(
+      std::ceil(info.length * info.specs.samplerate / window_cache_stride_), 0);
   window_caches_.reinitialize(window_caches_num);
 }
 #endif
