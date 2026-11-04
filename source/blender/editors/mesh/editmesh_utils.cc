@@ -1842,6 +1842,16 @@ void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
 
 void EDBM_update_extern(Mesh *mesh, const bool do_tessellation, const bool is_destructive)
 {
+  /* Python may assign `BMesh.select_mode`, apply it to the edit-mesh.
+   * Since Python doesn't expose the edit-mesh, see: #166007. */
+  BMEditMesh *em = mesh->runtime->edit_mesh.get();
+  const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
+  if (em->selectmode != bm->selectmode) {
+    em->selectmode = bm->selectmode;
+    DEG_id_tag_update(&mesh->id, ID_RECALC_SELECT);
+    WM_main_add_notifier(NC_GEOM | ND_SELECT, &mesh->id);
+  }
+
   EDBMUpdate_Params params{};
   params.calc_looptris = do_tessellation;
   params.calc_normals = false;
