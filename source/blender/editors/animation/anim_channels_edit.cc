@@ -4840,7 +4840,6 @@ static wmOperatorStatus animchannels_mouseclick_invoke(bContext *C,
   int notifierFlags = 0;
   short selectmode;
   float x, y;
-  return OPERATOR_PASS_THROUGH;
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
