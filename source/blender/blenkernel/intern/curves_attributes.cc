@@ -310,7 +310,7 @@ static GeometryAttributeProviders create_attribute_providers_for_curve()
   static const auto curve_type_clamp = mf::build::SI1_SO<int8_t, int8_t>(
       "Curve Type Validate",
       [](int8_t value) {
-        return std::clamp<int8_t>(value, CURVE_TYPE_CATMULL_ROM, CURVE_TYPES_NUM);
+        return std::clamp<int8_t>(value, CURVE_TYPE_CATMULL_ROM, CURVE_TYPE_NURBS);
       },
       mf::build::exec_presets::AllSpanOrSingle());
   static BuiltinCustomDataLayerProvider curve_type("curve_type",
