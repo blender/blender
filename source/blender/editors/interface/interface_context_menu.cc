@@ -190,6 +190,37 @@ static void shortcut_free_operator_property(IDProperty *prop)
   }
 }
 
+/**
+ * Find the existing shortcut of a button. Besides the key-maps active in the button context, also
+ * look in the key-map that "Assign Shortcut" adds to. That key-map is not always active in the
+ * button context, for example Object Mode shortcuts assigned from the Properties editor.
+ */
+static wmKeyMapItem *shortcut_find(bContext *C,
+                                   const Button *but,
+                                   const char *idname,
+                                   IDProperty *prop,
+                                   const short include_mask,
+                                   const short exclude_mask,
+                                   wmKeyMap **r_km)
+{
+  if (wmKeyMapItem *kmi = WM_key_event_operator(
+          C, idname, but->opcontext, prop, include_mask, exclude_mask, r_km))
+  {
+    return kmi;
+  }
+
+  wmKeyMap *km = WM_keymap_guess_opname(C, idname);
+  if (km == nullptr) {
+    return nullptr;
+  }
+  wmKeyMapItem *kmi = WM_key_event_operator_from_keymap(
+      km, idname, prop, include_mask, exclude_mask);
+  if (kmi) {
+    *r_km = km;
+  }
+  return kmi;
+}
+
 static void but_shortcut_name_func(bContext *C, void *arg1, int /*event*/)
 {
   Button *but = static_cast<Button *>(arg1);
@@ -223,13 +254,7 @@ static Block *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
   const char *idname = shortcut_get_operator_property(C, but, &prop);
 
   wmKeyMap *km;
-  wmKeyMapItem *kmi = WM_key_event_operator(C,
-                                            idname,
-                                            but->opcontext,
-                                            prop,
-                                            EVT_TYPE_MASK_HOTKEY_INCLUDE,
-                                            EVT_TYPE_MASK_HOTKEY_EXCLUDE,
-                                            &km);
+  wmKeyMapItem *kmi = shortcut_find(C, but, idname, prop, EVT_TYPE_MASK_ALL, 0, &km);
   U.runtime.is_dirty = true;
 
   BLI_assert(kmi != nullptr);
@@ -351,13 +376,7 @@ static void remove_shortcut_func(bContext *C, Button *but)
   const char *idname = shortcut_get_operator_property(C, but, &prop);
 
   wmKeyMap *km;
-  wmKeyMapItem *kmi = WM_key_event_operator(C,
-                                            idname,
-                                            but->opcontext,
-                                            prop,
-                                            EVT_TYPE_MASK_HOTKEY_INCLUDE,
-                                            EVT_TYPE_MASK_HOTKEY_EXCLUDE,
-                                            &km);
+  wmKeyMapItem *kmi = shortcut_find(C, but, idname, prop, EVT_TYPE_MASK_ALL, 0, &km);
   BLI_assert(kmi != nullptr);
 
   WM_keymap_remove_item(km, kmi);
@@ -1193,8 +1212,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
 
     /* We want to know if this op has a shortcut, be it hotkey or not. */
     wmKeyMap *km;
-    wmKeyMapItem *kmi = WM_key_event_operator(
-        C, idname, but->opcontext, prop, EVT_TYPE_MASK_ALL, 0, &km);
+    wmKeyMapItem *kmi = shortcut_find(C, but, idname, prop, EVT_TYPE_MASK_ALL, 0, &km);
 
     /* We do have a shortcut, but only keyboard ones are editable that way... */
     if (kmi) {

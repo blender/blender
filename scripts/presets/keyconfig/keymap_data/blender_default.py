@@ -1433,6 +1433,8 @@ def km_outliner(params):
         ("outliner.drivers_add_selected", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         ("outliner.drivers_delete_selected", {"type": 'D', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         ("outliner.collection_new", {"type": 'C', "value": 'PRESS'}, None),
+        ("outliner.collection_new", {"type": 'C', "value": 'PRESS', "shift": True},
+         {"properties": [("nested", True)]}),
         ("outliner.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("outliner.delete", {"type": 'DEL', "value": 'PRESS'}, None),
         op_menu("OBJECT_MT_move_to_collection", {"type": 'M', "value": 'PRESS'}),

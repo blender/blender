@@ -516,6 +516,9 @@ bool AssetCatalogDropTarget::drop_assets_into_catalog(bContext *C,
       const AssetWeakReference asset_reference = asset->make_weak_reference();
       asset_id = bke::asset_edit_id_from_weak_reference(
           *bmain, asset->get_id_type(), asset_reference);
+      if (asset_id == nullptr) {
+        continue;
+      }
 
       if (ID_IS_LINKED(asset_id) && (!bke::asset_edit_id_is_editable(*asset_id) ||
                                      !bke::asset_edit_id_is_writable(*asset_id)))
