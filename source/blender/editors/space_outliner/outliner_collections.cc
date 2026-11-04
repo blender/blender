@@ -245,11 +245,13 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
             bmain, scene, nullptr, reinterpret_cast<Object *>(active_te->store_elem->id));
       }
     }
+    if (!collection && view_layer->active_collection) {
+      collection = view_layer->active_collection->collection;
+    }
   }
 
   if (collection == nullptr || !ID_IS_EDITABLE(collection) || ID_IS_OVERRIDE_LIBRARY(collection)) {
-    collection = view_layer->active_collection ? view_layer->active_collection->collection :
-                                                 scene->master_collection;
+    collection = scene->master_collection;
   }
 
   if (!ID_IS_EDITABLE(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) {
