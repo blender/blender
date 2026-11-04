@@ -96,8 +96,12 @@ bool unpack_bake_to_disk(const NodesModifierPackedBake &packed_bake,
       return false;
     }
     fstream fs(file_path, std::ios::out | std::ios::binary);
-    fs.write(static_cast<const char *>(bake_file.packed_file->data), bake_file.packed_file->size);
-    if (fs.bad()) {
+    if (bake_file.packed_file) {
+      fs.write(static_cast<const char *>(bake_file.packed_file->data),
+               bake_file.packed_file->size);
+    }
+    fs.close();
+    if (fs.fail()) {
       BKE_reportf(reports, RPT_ERROR, "Cannot write file: %s", file_path);
       return false;
     }
