@@ -1565,6 +1565,7 @@ def pkg_manifest_validate_terse_description_or_error(value: str) -> str | None:
 
 def pkg_manifest_tags_load_valid_map_from_python(
         valid_tags_filepath: str,
+        manifest_type: str | None = None,
 ) -> str | dict[str, set[str]]:
     try:
         data = execfile(valid_tags_filepath)
@@ -1577,7 +1578,12 @@ def pkg_manifest_tags_load_valid_map_from_python(
             ("asset_libraries", "asset-library"),
             ("themes", "theme"),
     ):
+        # Other keys are ignored when a type is passed in.
+        if manifest_type is not None and key_extension_type != manifest_type:
+            continue
         if (value := data.get(key)) is None:
+            if manifest_type is not None:
+                return "missing key \"{:s}\", required by the manifest type".format(key)
             return "missing key \"{:s}\"".format(key)
         if not isinstance(value, set):
             return "key \"{:s}\" must be a set, not a {:s}".format(key, str(type(value)))
@@ -1587,11 +1593,16 @@ def pkg_manifest_tags_load_valid_map_from_python(
 
         result[key_extension_type] = value
 
+    # Every key was skipped, only possible when the type isn't known.
+    if not result:
+        return "unknown extension type {!r}".format(manifest_type)
+
     return result
 
 
 def pkg_manifest_tags_load_valid_map_from_json(
         valid_tags_filepath: str,
+        manifest_type: str | None = None,
 ) -> str | dict[str, set[str]]:
     try:
         with open(valid_tags_filepath, "rb") as fh:
@@ -1604,7 +1615,12 @@ def pkg_manifest_tags_load_valid_map_from_json(
 
     result = {}
     for key in ("add-on", "asset-library", "theme"):
+        # Other keys are ignored when a type is passed in.
+        if manifest_type is not None and key != manifest_type:
+            continue
         if (value := data.get(key)) is None:
+            if manifest_type is not None:
+                return "missing key \"{:s}\", required by the manifest type".format(key)
             return "missing key \"{:s}\"".format(key)
         if not isinstance(value, list):
             return "key \"{:s}\" must be a list, not a {:s}".format(key, str(type(value)))
@@ -1614,24 +1630,31 @@ def pkg_manifest_tags_load_valid_map_from_json(
 
         result[key] = set(value)
 
+    # Every key was skipped, only possible when the type isn't known.
+    if not result:
+        return "unknown extension type {!r}".format(manifest_type)
+
     return result
 
 
-def pkg_manifest_tags_load_valid_map(
+def pkg_manifest_tags_load_valid_with_manifest_type(
         valid_tags_filepath: str,
-) -> str | dict[str, set[str]]:
+        manifest_type: str,
+) -> str | set[str]:
     # Allow Python data (Blender stores this internally).
     if valid_tags_filepath.endswith(".py"):
-        return pkg_manifest_tags_load_valid_map_from_python(valid_tags_filepath)
-    return pkg_manifest_tags_load_valid_map_from_json(valid_tags_filepath)
+        valid_tags_data = pkg_manifest_tags_load_valid_map_from_python(valid_tags_filepath, manifest_type)
+    else:
+        valid_tags_data = pkg_manifest_tags_load_valid_map_from_json(valid_tags_filepath, manifest_type)
+    if isinstance(valid_tags_data, str):
+        return valid_tags_data
+    return valid_tags_data[manifest_type]
 
 
 def pkg_manifest_tags_valid_or_error(
-        valid_tags_data: dict[str, Any],
-        manifest_type: str,
+        valid_tags: set[str],
         manifest_tags: list[str],
 ) -> str | None:
-    valid_tags = valid_tags_data[manifest_type]
     for tag in manifest_tags:
         if tag not in valid_tags:
             return (
@@ -3404,6 +3427,7 @@ def generic_arg_package_valid_tags(subparse: argparse.ArgumentParser) -> None:
             "\n"
             "If you wish to reference custom tags a ``.json`` file can be used.\n"
             "The contents must be a dictionary of lists where the ``key`` matches the extension type.\n"
+            "Only the key matching the manifest type is required.\n"
             "\n"
             "For example:\n"
             "   ``{\"add-on\": [\"Example\", \"Another\"], \"asset-library\": [\"Wildlife\"], \"theme\": [\"Other\", \"Tags\"]}``\n"
@@ -5115,12 +5139,13 @@ class subcmd_author:
     ) -> bool:
         assert valid_tags_filepath
         if manifest.tags is not None:
-            if isinstance(valid_tags_data := pkg_manifest_tags_load_valid_map(valid_tags_filepath), str):
+            valid_tags = pkg_manifest_tags_load_valid_with_manifest_type(valid_tags_filepath, manifest.type)
+            if isinstance(valid_tags, str):
                 msglog.fatal_error(
-                    "Error in TAGS \"{:s}\" loading tags: {:s}".format(valid_tags_filepath, valid_tags_data),
+                    "Error in TAGS \"{:s}\" loading tags: {:s}".format(valid_tags_filepath, valid_tags),
                 )
                 return False
-            if (error := pkg_manifest_tags_valid_or_error(valid_tags_data, manifest.type, manifest.tags)) is not None:
+            if (error := pkg_manifest_tags_valid_or_error(valid_tags, manifest.tags)) is not None:
                 msglog.fatal_error((
                     "Error in TOML \"{:s}\" loading tags: {:s}\n"
                     "Either correct the tag or disable validation using an empty tags argument --valid-tags=\"\", "
