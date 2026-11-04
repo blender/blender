@@ -205,15 +205,18 @@ static void mix_socket_values_same_type(bke::SocketValueVariant &a,
     nodes::GListPtr a_list_ptr = a.extract<nodes::GListPtr>();
     nodes::GList &a_list = a_list_ptr.get_for_write();
     std::variant<GMutableSpan, GMutablePointer> a_values = a_list.values_for_write();
-    if (auto *a_span = std::get_if<GMutableSpan>(&a_values)) {
-      const GVArray b_varray = b_list->varray();
-      mix(*a_span, b_varray.slice(IndexRange(a_span->size())), factor);
-    }
-    else if (auto *a_pointer = std::get_if<GMutablePointer>(&a_values)) {
-      const GVArray b_varray = b_list->varray();
-      mix(GMutableSpan(*a_pointer->type(), a_pointer->get(), 1),
-          b_varray.slice(IndexRange(1)),
-          factor);
+    /* Like attributes without IDs, only mix lists with the same size. */
+    if (a_list.size() == b_list->size()) {
+      if (auto *a_span = std::get_if<GMutableSpan>(&a_values)) {
+        mix(*a_span, b_list->varray(), factor);
+      }
+      else if (auto *a_pointer = std::get_if<GMutablePointer>(&a_values)) {
+        if (b_list->size() > 0) {
+          mix(GMutableSpan(*a_pointer->type(), a_pointer->get(), 1),
+              b_list->varray().slice(IndexRange(1)),
+              factor);
+        }
+      }
     }
     /* Ideally the API would not require extracting the list and storing it again. */
     a = bke::SocketValueVariant::from(std::move(a_list_ptr));
