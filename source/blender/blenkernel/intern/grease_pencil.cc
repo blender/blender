@@ -82,9 +82,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "attribute_storage_access.hh"
 
 namespace blender {
+
+static CLG_LogRef LOG = {"geom.grease_pencil"};
 
 static const char *ATTR_POSITION = "position";
 
@@ -168,6 +172,38 @@ static void grease_pencil_set_runtime_visibilities(ID &id_dst, GreasePencil &gre
                    "It should be possible to construct the RNA path of a grease pencil layer.");
     layer->runtime->is_visibility_animated_ = animdata::prop_is_animated(
         grease_pencil.adt, rna_path.value(), 0);
+  }
+}
+
+/**
+ * End frames have no drawing (`drawing_index` is -1), which much of the code doesn't handle yet.
+ *
+ * Replace them with regular frames using an empty drawing, instead of treating them as corrupt,
+ * since there could exist valid blendfiles containing them.
+ */
+static void grease_pencil_replace_end_frames_after_read(GreasePencil &grease_pencil)
+{
+  using namespace blender::bke::greasepencil;
+  int empty_drawing_users = 0;
+  const int empty_drawing_index = grease_pencil.drawings().size();
+  for (Layer *layer : grease_pencil.layers_for_write()) {
+    for (GreasePencilFrame &frame : layer->frames_for_write().values()) {
+      if (frame.is_end()) {
+        empty_drawing_users++;
+        frame.drawing_index = empty_drawing_index;
+        frame.flag |= GP_FRAME_IMPLICIT_HOLD;
+        layer->tag_frames_map_keys_changed();
+      }
+    }
+  }
+  if (empty_drawing_users > 0) {
+    grease_pencil.add_empty_drawings(1);
+    BLI_assert(grease_pencil.drawings().index_range().contains(empty_drawing_index));
+
+    CLOG_WARN(&LOG,
+              "Converted %d end frames to regular frames using an empty drawing in \"%s\"",
+              empty_drawing_users,
+              BKE_id_name(grease_pencil.id));
   }
 }
 
@@ -347,6 +383,14 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct_list(reader, bDeformGroup, &grease_pencil->vertex_group_names);
 
   grease_pencil->runtime = MEM_new<bke::GreasePencilRuntime>(__func__);
+
+  /* End-frames used to be 'encoded' using an invalid drawing index (`-1`), until Blender 5.3. But
+   * most of GP code does not handle them correctly.
+   *
+   * As backward-compatible solution, they are converted into regular frames pointing at an empty
+   * drawing. This will give the same visual result (for rendering e.g.), until proper
+   * implementation of endframes is reworked for Blender 5.4. */
+  grease_pencil_replace_end_frames_after_read(*grease_pencil);
 }
 
 IDTypeInfo IDType_ID_GP = {
