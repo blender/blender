@@ -456,7 +456,10 @@ void BM_mesh_uvselect_set_elem_shared(BMesh *bm,
       /* If any of the vertices from the edges are no longer connected to a selected edge
        * de-select the entire vertex.. */
       for (BMLoop *l_edge_vert : {l_edge, l_edge->next}) {
-        if (!BM_loop_vert_uvselect_check_other_loop_edge(
+        /* The other edge of this loop connected to the vertex. */
+        const BMLoop *l_edge_other = (l_edge_vert == l_edge) ? l_edge->prev : l_edge->next;
+        if (!BM_elem_flag_test(l_edge_other, BM_ELEM_SELECT_UV_EDGE) &&
+            !BM_loop_vert_uvselect_check_other_loop_edge(
                 l_edge_vert, BM_ELEM_SELECT_UV_EDGE, cd_loop_uv_offset))
         {
           BM_loop_vert_uvselect_set_shared(bm, l_edge_vert, false, cd_loop_uv_offset);
@@ -473,7 +476,7 @@ void BM_mesh_uvselect_set_elem_shared(BMesh *bm,
       BMLoop *l_iter, *l_first;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
-        if (!BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV)) {
+        if (!BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV_EDGE)) {
           /* Already handled. */
           continue;
         }
@@ -492,8 +495,14 @@ void BM_mesh_uvselect_set_elem_shared(BMesh *bm,
       BMLoop *l_iter, *l_first;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
-        if (!BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV_EDGE)) {
+        if (!BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV)) {
           /* Already handled. */
+          continue;
+        }
+        /* Keep vertices of selected edges. */
+        if (BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV_EDGE) ||
+            BM_elem_flag_test(l_iter->prev, BM_ELEM_SELECT_UV_EDGE))
+        {
           continue;
         }
         if (!BM_loop_vert_uvselect_check_other_loop_edge(

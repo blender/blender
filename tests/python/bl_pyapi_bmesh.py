@@ -660,6 +660,81 @@ class TestBMeshUVSelectSimple(unittest.TestCase):
 
         # save_to_blend_file_for_testing(bm)
 
+    def test_uv_select_foreach_set_deselect_shared(self):
+        """
+        De-selecting must leave UV's connected to the remaining selection selected
+        and de-select the rest, without relying on a flush afterwards.
+        """
+        with self.subTest("isolated face"):
+            bm = bmesh.new()
+            uv_layer = bm.loops.layers.uv.new()
+            bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=1.0)
+            bm_uv_layer_from_coords(bm, uv_layer)
+            bm.select_mode = {'FACE'}
+            bm.uv_select_sync_valid = True
+
+            f = next(iter(bm.faces))
+            bm.uv_select_foreach_set(True, faces=[f])
+            self.assertEqual(bm_loop_select_count_vert_edge_face(bm)[0], (4, 4, 1))
+
+            bm.uv_select_foreach_set(False, faces=[f])
+            self.assertEqual(bm_loop_select_count_vert_edge_face(bm)[0], (0, 0, 0))
+            self.assertEqual(bm_uv_select_check_non_zero(bm, flush=True, contiguous=True), {})
+            bm.free()
+
+        with self.subTest("adjacent edge kept"):
+            bm = bmesh.new()
+            uv_layer = bm.loops.layers.uv.new()
+            bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=1.0)
+            bm_uv_layer_from_coords(bm, uv_layer)
+            bm.select_mode = {'EDGE'}
+            bm.uv_select_sync_valid = True
+
+            l = next(iter(next(iter(bm.faces)).loops))
+            l_prev = l.link_loop_prev
+            bm.uv_select_foreach_set(True, loop_edges=[l, l_prev])
+            self.assertEqual(bm_loop_select_count_vert_edge_face(bm)[0], (3, 2, 0))
+
+            # De-select one edge, the other keeps both its vertices.
+            bm.uv_select_foreach_set(False, loop_edges=[l])
+            self.assertTrue(l_prev.uv_select_edge)
+            self.assertFalse(l.uv_select_edge)
+            self.assertTrue(l_prev.uv_select_vert)
+            self.assertTrue(l.uv_select_vert)
+            self.assertFalse(l.link_loop_next.uv_select_vert)
+            self.assertEqual(bm_loop_select_count_vert_edge_face(bm)[0], (2, 1, 0))
+            self.assertEqual(bm_uv_select_check_non_zero(bm, flush=True, contiguous=True), {})
+            bm.free()
+
+        with self.subTest("neighbor face kept"):
+            bm = bmesh.new()
+            uv_layer = bm.loops.layers.uv.new()
+            bmesh.ops.create_grid(bm, x_segments=2, y_segments=1, size=1.0)
+            bm_uv_layer_from_coords(bm, uv_layer)
+            bm.select_mode = {'FACE'}
+            bm.uv_select_sync_valid = True
+
+            faces = list(bm.faces)
+            self.assertEqual(len(faces), 2)
+            f, f_other = faces
+            bm.uv_select_foreach_set(True, faces=faces)
+            self.assertEqual(bm_loop_select_count_vert_edge_face(bm)[0], (8, 8, 2))
+
+            # De-select one face, only the shared edge & its vertices stay selected.
+            bm.uv_select_foreach_set(False, faces=[f])
+            self.assertFalse(f.uv_select)
+            self.assertTrue(f_other.uv_select)
+            l_shared = next(l for l in f.loops if len(l.edge.link_faces) == 2)
+            for l in f.loops:
+                self.assertEqual(l.uv_select_edge, l is l_shared)
+                self.assertEqual(l.uv_select_vert, l in {l_shared, l_shared.link_loop_next})
+            for l in f_other.loops:
+                self.assertTrue(l.uv_select_vert)
+                self.assertTrue(l.uv_select_edge)
+            self.assertEqual(bm_loop_select_count_vert_edge_face(bm)[0], (6, 5, 1))
+            self.assertEqual(bm_uv_select_check_non_zero(bm, flush=True, contiguous=True), {})
+            bm.free()
+
     def test_uv_select_foreach_set_from_mesh(self):
         """
         Select mesh elements, similar to selecting in the viewport,
