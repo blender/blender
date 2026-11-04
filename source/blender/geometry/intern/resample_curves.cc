@@ -122,11 +122,10 @@ static void retrieve_attribute_spans(const Span<StringRef> names,
       continue;
     }
 
-    src_arrays.append(std::move(src_attribute));
-
     if (bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
             names[i], bke::AttrDomain::Point, data_type))
     {
+      src_arrays.append(std::move(src_attribute));
       dst_arrays.append(dst_attribute.span);
       dst_writers.append(std::move(dst_attribute));
     }
