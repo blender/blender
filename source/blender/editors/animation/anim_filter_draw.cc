@@ -406,6 +406,20 @@ static int icon_for_channel_setting(const ChannelSettingKey key, const ChannelSe
       else {
         return ICON_UNLOCKED;
       }
+    case ChannelSettingKey::EVALUATE:
+      if (value == ChannelSettingValue::OFF) {
+        return ICON_CHECKBOX_DEHLT;
+      }
+      else {
+        return ICON_CHECKBOX_HLT;
+      }
+    case ChannelSettingKey::MODIFIERS_ENABLED:
+      if (value == ChannelSettingValue::OFF) {
+        return ICON_MODIFIER_OFF;
+      }
+      else {
+        return ICON_MODIFIER_ON;
+      }
     case ChannelSettingKey::_MAX:
       break;
   }
@@ -471,9 +485,6 @@ void ChannelItem::build_row(ui::Layout &layout)
     DataChannel &data_channel = static_cast<DataChannel &>(channel_);
     switch (data_channel.source_type()) {
       case DataChannelType::FCURVE: {
-        layout.prop(
-            &source_, "use_modifiers", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_MODIFIER_ON);
-        layout.prop(&source_, "mute", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_CHECKBOX_HLT);
         if (tree_view.show_channel_group_color_rect()) {
           FCurve *fcurve = data_channel.get_source<FCurve>();
           uchar4 color(255);

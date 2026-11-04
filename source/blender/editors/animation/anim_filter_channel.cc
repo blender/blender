@@ -641,7 +641,12 @@ void ChannelSettingState::merge(const ChannelSettingState &other)
   if (!other.exists) {
     return;
   }
-  this->exists = true;
+  if (!this->exists) {
+    this->exists = true;
+    this->value = other.value;
+    return;
+  }
+
   if (this->value != other.value) {
     this->value = ChannelSettingValue::MIXED;
   }
@@ -980,8 +985,7 @@ void SummaryChannel::gather_channel_settings()
     this->channel_settings_ = {};
     return;
   }
-  /* Copy the settings of the first child to have a good starting point. */
-  this->channel_settings_ = this->children_[0]->channel_settings();
+
   for (AnimationChannel *child : this->children_) {
     this->channel_settings_.merge(child->channel_settings());
   }
@@ -1321,6 +1325,16 @@ void FCurveChannel::gather_channel_settings()
   setting_state.value = fcurve->flag & FCURVE_PROTECTED ? ChannelSettingValue::ON :
                                                           ChannelSettingValue::OFF;
   this->channel_settings_.set_state(ChannelSettingKey::LOCKED, setting_state);
+
+  setting_state.value = fcurve->flag & FCURVE_MUTED ? ChannelSettingValue::OFF :
+                                                      ChannelSettingValue::ON;
+  this->channel_settings_.set_state(ChannelSettingKey::EVALUATE, setting_state);
+
+  if (!fcurve->modifiers.is_empty()) {
+    setting_state.value = fcurve->flag & FCURVE_MOD_OFF ? ChannelSettingValue::OFF :
+                                                          ChannelSettingValue::ON;
+    this->channel_settings_.set_state(ChannelSettingKey::MODIFIERS_ENABLED, setting_state);
+  }
 }
 
 void FCurveChannel::set_setting(const ChannelSettingKey setting, const bool value)
@@ -1333,6 +1347,14 @@ void FCurveChannel::set_setting(const ChannelSettingKey setting, const bool valu
     }
     case ChannelSettingKey::LOCKED: {
       flag_update(fcurve->flag, FCURVE_PROTECTED, value);
+      break;
+    }
+    case ChannelSettingKey::EVALUATE: {
+      flag_update(fcurve->flag, FCURVE_MUTED, !value);
+      break;
+    }
+    case ChannelSettingKey::MODIFIERS_ENABLED: {
+      flag_update(fcurve->flag, FCURVE_MOD_OFF, !value);
       break;
     }
     default:

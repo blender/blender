@@ -249,10 +249,17 @@ struct KeyPoint {
   void merge(const KeyPoint &other);
 };
 
-/* Key into the `states_` array of ChannelSettings.  */
+/* Key into the `states_` array of ChannelSettings. The order here controls the drawing order left
+ * to right in the UI. */
 enum class ChannelSettingKey : uint8_t {
+  /* Controls visibility of a channel in editors. */
   VISIBLE,
+  /* Locks a channel against user edits. */
   LOCKED,
+  /* Controls if a channel is evaluated. See FCURVE_MUTED. */
+  EVALUATE,
+  /* For FCurves, controls if modifiers are on. Only used if modifiers actually exist. */
+  MODIFIERS_ENABLED,
   /* Keep last. */
   _MAX,
 };
