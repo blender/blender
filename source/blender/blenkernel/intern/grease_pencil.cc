@@ -176,7 +176,7 @@ static void grease_pencil_set_runtime_visibilities(ID &id_dst, GreasePencil &gre
   }
 }
 
-static void grease_pencil_initialize_drawing_user_counts_after_read(GreasePencil &grease_pencil)
+static void grease_pencil_initialize_drawing_user_counts(GreasePencil &grease_pencil)
 {
   using namespace blender::bke::greasepencil;
   const Array<int> user_counts = grease_pencil.count_frame_users_for_drawings();
@@ -232,6 +232,9 @@ static void grease_pencil_copy_data(Main * /*bmain*/,
   }
 
   grease_pencil_set_runtime_visibilities(*id_dst, *grease_pencil_dst);
+
+  /* Duplicating drawings does not copy over their user count. */
+  grease_pencil_initialize_drawing_user_counts(*grease_pencil_dst);
 }
 
 static void grease_pencil_free_data(ID *id)
@@ -339,7 +342,7 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
   /* Read layer tree. */
   read_layer_tree(*grease_pencil, reader);
   /* Initialize drawing user counts */
-  grease_pencil_initialize_drawing_user_counts_after_read(*grease_pencil);
+  grease_pencil_initialize_drawing_user_counts(*grease_pencil);
 
   CustomData_blend_read(
       reader, &grease_pencil->layers_data_legacy, grease_pencil->layers().size());
@@ -2530,6 +2533,9 @@ void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
 
   grease_pencil_dst->attribute_storage.wrap() = std::move(
       grease_pencil_src->attribute_storage.wrap());
+
+  /* Duplicating drawings does not copy over their user count. */
+  grease_pencil_initialize_drawing_user_counts(*grease_pencil_dst);
 
   DEG_id_tag_update(&grease_pencil_dst->id, ID_RECALC_GEOMETRY);
 
