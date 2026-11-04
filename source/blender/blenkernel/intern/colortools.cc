@@ -900,6 +900,12 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   cuma->ext_in[1] = bezt[0].vec[0][1] - bezt[0].vec[1][1];
   float ext_in_range = sqrtf(cuma->ext_in[0] * cuma->ext_in[0] +
                              cuma->ext_in[1] * cuma->ext_in[1]);
+  /* Zero length handle, extrapolate horizontally. */
+  if (ext_in_range == 0.0f) {
+    cuma->ext_in[0] = -1.0f;
+    cuma->ext_in[1] = 0.0f;
+    ext_in_range = 1.0f;
+  }
   cuma->ext_in[0] /= ext_in_range;
   cuma->ext_in[1] /= ext_in_range;
 
@@ -908,6 +914,11 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   cuma->ext_out[1] = bezt[out_a].vec[1][1] - bezt[out_a].vec[2][1];
   float ext_out_range = sqrtf(cuma->ext_out[0] * cuma->ext_out[0] +
                               cuma->ext_out[1] * cuma->ext_out[1]);
+  if (ext_out_range == 0.0f) {
+    cuma->ext_out[0] = -1.0f;
+    cuma->ext_out[1] = 0.0f;
+    ext_out_range = 1.0f;
+  }
   cuma->ext_out[0] /= ext_out_range;
   cuma->ext_out[1] /= ext_out_range;
 
@@ -915,7 +926,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   MEM_delete(bezt);
 
   float range = CM_TABLEDIV * table_range;
-  cuma->range = 1.0f / range;
+  cuma->range = (range != 0.0f) ? 1.0f / range : 0.0f;
 
   /* now make a table with CM_TABLE equal x distances */
   float *firstpoint = allpoints;

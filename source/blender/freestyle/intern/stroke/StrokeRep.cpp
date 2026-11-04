@@ -352,10 +352,12 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
   }
 #endif
 
-  _averageThickness /= float(iStrokeVertices.size() - 2);
   // I did not use the first and last vertex for the average
   if (iStrokeVertices.size() < 3) {
     _averageThickness = 0.5 * (thicknessLast[1] + thicknessLast[0] + thickness[0] + thickness[1]);
+  }
+  else {
+    _averageThickness /= float(iStrokeVertices.size() - 2);
   }
 
   if (orientationErrors > 0) {
