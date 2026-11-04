@@ -24,27 +24,31 @@ namespace bke {
 
 struct FileHandlerType {
   /** Unique name. */
-  char idname[OP_MAX_TYPENAME];
+  char idname[OP_MAX_TYPENAME] = "";
   /** For UI text. */
-  char label[OP_MAX_TYPENAME];
+  char label[OP_MAX_TYPENAME] = "";
   /** Import operator name. */
-  char import_operator[OP_MAX_TYPENAME];
+  char import_operator[OP_MAX_TYPENAME] = "";
   /** Export operator name. */
-  char export_operator[OP_MAX_TYPENAME];
+  char export_operator[OP_MAX_TYPENAME] = "";
+
   /**
    * Formatted string of file extensions supported by the file handler, each extension should
    * start with a `.` and be separated by `;`. For Example: `".blend;.ble"`.
    */
-  char file_extensions_str[FH_MAX_FILE_EXTENSIONS_STR];
+  char file_extensions_str[FH_MAX_FILE_EXTENSIONS_STR] = "";
+
+  /** Can the file handler be used for collection import. */
+  bool collection_import_enabled = false;
 
   /** Check if file handler can be used on file drop. */
-  bool (*poll_drop)(const bContext *C, FileHandlerType *file_handle_type);
+  bool (*poll_drop)(const bContext *C, FileHandlerType *file_handle_type) = nullptr;
 
   /** List of file extensions supported by the file handler. */
   Vector<std::string> file_extensions;
 
   /** RNA integration. */
-  ExtensionRNA rna_ext;
+  ExtensionRNA rna_ext = {};
 
   /**
    * Return a vector of indices in #paths of file paths supported by the file handler.

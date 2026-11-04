@@ -1427,7 +1427,7 @@ static void collection_importer_menu_draw(const bContext * /*C*/, Menu *menu)
   /* Add all file handlers capable of being imported to the menu. */
   bool at_least_one = false;
   for (const auto &fh : bke::file_handlers()) {
-    if (STREQ(fh->idname, "IO_FH_usd") && WM_operatortype_find(fh->import_operator, true)) {
+    if (fh->collection_import_enabled && WM_operatortype_find(fh->import_operator, true)) {
       PointerRNA op_ptr = layout.op(
           "COLLECTION_OT_importer_add", fh->label_with_extensions(), ICON_NONE);
       RNA_string_set(&op_ptr, "name", fh->idname);
