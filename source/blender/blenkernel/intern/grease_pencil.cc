@@ -179,8 +179,9 @@ static void grease_pencil_set_runtime_visibilities(ID &id_dst, GreasePencil &gre
 /**
  * End frames have no drawing (`drawing_index` is -1), which much of the code doesn't handle yet.
  *
- * Replace them with regular frames using an empty drawing, instead of treating them as corrupt,
- * since there could exist valid blendfiles containing them.
+ * They can't be created anymore, but older versions could write them. Replace them with regular
+ * frames using an empty drawing, instead of treating them as corrupt, since there could exist
+ * valid blendfiles containing them.
  */
 static void grease_pencil_replace_end_frames_after_read(GreasePencil &grease_pencil)
 {
@@ -1706,9 +1707,10 @@ GreasePencilFrame *Layer::add_frame_internal(const FramesMapKeyT frame_number)
   return nullptr;
 }
 
-GreasePencilFrame *Layer::add_frame(const FramesMapKeyT key, const int duration)
+GreasePencilFrame *Layer::add_frame(const FramesMapKeyT key, /* const */ int duration)
 {
-  BLI_assert(duration >= 0);
+  BLI_assert(duration == 0);
+  duration = 0;
   GreasePencilFrame *frame = this->add_frame_internal(key);
   if (frame == nullptr) {
     return nullptr;
@@ -1761,7 +1763,8 @@ bool Layer::remove_frame(const FramesMapKeyT key)
     const GreasePencilFrame &prev_frame = this->frames().lookup(*prev_key_it);
     /* If the previous frame is not an implicit hold (e.g. it has a fixed duration) and it's not an
      * end frame, we cannot just delete the frame. We need to replace it with an end frame. */
-    if (!prev_frame.is_implicit_hold() && !prev_frame.is_end()) {
+    /* FIXME: Disabled for now, do not create end frames ever. */
+    if (false && !prev_frame.is_implicit_hold() && !prev_frame.is_end()) {
       this->frames_for_write().lookup(key) = GreasePencilFrame::end();
       this->tag_frames_map_changed();
       /* Since the original frame was replaced with an end frame, we consider the frame to be
@@ -1906,7 +1909,11 @@ int Layer::get_frame_duration_at(const int frame_number) const
   if (frame->is_end()) {
     return -1;
   }
-  /* Compute the distance in frames between this key and the next key. */
+  /* Last frame without a following end frame (end frames are not created anymore), it is
+   * effectively held indefinitely. */
+  if (std::next(it) == this->sorted_keys().end()) {
+    return 0;
+  } /* Compute the distance in frames between this key and the next key. */
   const int next_frame_number = *(std::next(it));
   return math::distance(key, next_frame_number);
 }
@@ -3523,7 +3530,7 @@ bool GreasePencil::insert_duplicate_frame(bke::greasepencil::Layer &layer,
    * If we want to make an instance of the source frame, the drawing index gets copied from the
    * source frame. Otherwise, we set the drawing index to the size of the drawings array, since we
    * are going to add a new drawing copied from the source drawing. */
-  const int duration = layer.get_frame_duration_at(src_frame_number);
+  const int duration = 0 /* layer.get_frame_duration_at(src_frame_number) */;
   GreasePencilFrame *dst_frame = layer.add_frame(dst_frame_number, duration);
   if (dst_frame == nullptr) {
     return false;
@@ -3832,7 +3839,7 @@ void GreasePencil::move_duplicate_frames(bke::greasepencil::Layer &layer,
     if (!src_frame) {
       continue;
     }
-    const int duration = src_layer_frames_durations.lookup_default(src_frame_number, 0);
+    const int duration = 0 /* src_layer_frames_durations.lookup_default(src_frame_number, 0) */;
 
     /* Add and overwrite the frame at the destination number. */
     if (layer.frames().contains(dst_frame_number)) {
@@ -4273,7 +4280,7 @@ bke::greasepencil::Layer &GreasePencil::duplicate_layer(
   new_layer->frames_for_write().clear();
   if (duplicate_frames) {
     for (auto [frame_number, frame] : duplicate_layer.frames().items()) {
-      const int duration = duplicate_layer.get_frame_duration_at(frame_number);
+      const int duration = 0 /* duplicate_layer.get_frame_duration_at(frame_number) */;
       bke::greasepencil::Drawing *dst_drawing = this->insert_frame(
           *new_layer, frame_number, duration, eBezTriple_KeyframeType(frame.type));
       if (duplicate_drawings) {
