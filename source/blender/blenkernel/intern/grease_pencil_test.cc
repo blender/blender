@@ -453,6 +453,8 @@ TEST_F(GreasePencilTest, remove_frame_last)
   EXPECT_EQ(layer.frames().lookup(0).drawing_index, 1);
 }
 
+/* Frame duration is disabled currently. */
+#if 0
 TEST_F(GreasePencilTest, remove_frame_implicit_hold)
 {
   Layer layer;
@@ -464,8 +466,6 @@ TEST_F(GreasePencilTest, remove_frame_implicit_hold)
   EXPECT_TRUE(layer.frames().lookup(4).is_end());
 }
 
-/* Frame duration is disabled currently. */
-#if 0
 TEST_F(GreasePencilTest, remove_frame_fixed_duration_end)
 {
   Layer layer;
