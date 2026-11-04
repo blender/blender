@@ -1016,6 +1016,8 @@ struct ChannelTreeSettings {
   bool show_summary = true;
   /* Controls the drawing of the eye icon to control FCurve visibility. */
   bool show_visbility_property = false;
+  /* Draw a small rect in front of the channel name indicating the channel color. */
+  bool show_channel_color_rect = false;
   bool do_selection_syncing = false;
 
   ChannelTreeSettings(const CollectionFilters &filters)

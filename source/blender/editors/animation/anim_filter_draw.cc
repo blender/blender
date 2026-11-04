@@ -260,6 +260,10 @@ class ChannelTreeView : public ui::AbstractTreeView {
   {
     return tree_settings_.show_visbility_property;
   }
+  bool show_channel_color_rect() const
+  {
+    return tree_settings_.show_channel_color_rect;
+  }
 };
 
 /* A few functions need to be defined after the ChannelTreeView class. */
@@ -287,6 +291,74 @@ void ChannelItem::on_activate(bContext &C)
   this->channel_api_->set_active(tree_view.do_selection_syncing());
 }
 
+/* Returns the correct color given the FCurve::color_mode. */
+static uchar4 get_fcurve_color(FCurve &fcurve)
+{
+  uchar4 color(255);
+  switch (fcurve.color_mode) {
+    case FCURVE_COLOR_CUSTOM: {
+      color = uchar4(fcurve.color[0], fcurve.color[1], fcurve.color[2], 255);
+      break;
+    }
+    case FCURVE_COLOR_AUTO_RGB: {
+      switch (fcurve.array_index) {
+        case 0:
+          ui::theme::get_color_3ubv(TH_AXIS_X, color);
+          break;
+        case 1:
+          ui::theme::get_color_3ubv(TH_AXIS_Y, color);
+          break;
+        case 2:
+          ui::theme::get_color_3ubv(TH_AXIS_Z, color);
+          break;
+        default:
+          color[0] = 0.3f * 255;
+          color[1] = 0.8f * 255;
+          color[2] = 1.0f * 255;
+          break;
+      }
+      break;
+    }
+    case FCURVE_COLOR_AUTO_YRGB: {
+      switch (fcurve.array_index) {
+        case 1:
+          ui::theme::get_color_3ubv(TH_AXIS_X, color);
+          break;
+        case 2:
+          ui::theme::get_color_3ubv(TH_AXIS_Y, color);
+          break;
+        case 3:
+          ui::theme::get_color_3ubv(TH_AXIS_Z, color);
+          break;
+
+        case 0: {
+          ui::theme::get_color_3ubv(TH_AXIS_W, color);
+          break;
+        }
+
+        default:
+          color[0] = 0.3f * 255;
+          color[1] = 0.8f * 255;
+          color[2] = 1.0f * 255;
+          break;
+      }
+      break;
+    }
+    case FCURVE_COLOR_AUTO_RAINBOW:
+    default: {
+      /* TODO: This relies on `getcolor_fcurve_rainbow` being called beforehand. That function
+       * relies on knowing how many channels there are so we can't just call it here. Rewrite that
+       * function to work based on some hash of the FCurve. */
+      color = uchar4(fcurve.color[0] * 255, fcurve.color[1] * 255, fcurve.color[2] * 255, 255);
+      break;
+    }
+  }
+  if (!(fcurve.flag & FCURVE_VISIBLE)) {
+    color[4] *= 0.3;
+  }
+  return color;
+}
+
 void ChannelItem::build_row(ui::Layout &layout)
 {
   const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
@@ -299,11 +371,34 @@ void ChannelItem::build_row(ui::Layout &layout)
   if (channel_.type() == AnimationChannelType::DATA) {
     DataChannel &data_channel = static_cast<DataChannel &>(channel_);
     switch (data_channel.source_type()) {
-      case DataChannelType::FCURVE:
+      case DataChannelType::FCURVE: {
+        if (tree_view.show_channel_color_rect()) {
+          FCurve *fcurve = data_channel.get_source<FCurve>();
+          /* Drawing the FCurve color. Since we use a layout we cannot just use immediate mode to
+           * draw a simple rect. */
+          ui::Block *block = layout.block();
+          block_emboss_set(block, ui::EmbossType::Emboss);
+          ui::Button *but = uiDefBut(block,
+                                     ui::ButtonType::Roundbox,
+                                     "",
+                                     0,
+                                     0,
+                                     UI_UNIT_X / 3.0,
+                                     UI_UNIT_Y,
+                                     nullptr,
+                                     0.0,
+                                     0.0,
+                                     "");
+          const uchar4 color = get_fcurve_color(*fcurve);
+          ui::button_color_set(but, color);
+          block_emboss_set(block, ui::EmbossType::None);
+        }
+
         if (tree_view.show_visibility_property()) {
           layout.prop(&source_, "hide", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_HIDE_OFF);
         }
         break;
+      }
       case DataChannelType::GREASE_PENCIL:
         break;
     }
