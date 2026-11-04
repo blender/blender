@@ -1396,7 +1396,11 @@ static wmOperatorStatus screenshot_preview_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   ID *id = bke::asset_edit_id_from_weak_reference(
       *bmain, asset_handle->get_id_type(), asset_reference);
-  BLI_assert(id != nullptr);
+  if (id == nullptr) {
+    BKE_report(op->reports, RPT_ERROR, "Failed to load asset");
+    IMB_freeImBuf(image_buffer);
+    return OPERATOR_CANCELLED;
+  }
 
   ED_preview_kill_jobs_for_id(CTX_wm_manager(C), id);
 
@@ -1867,7 +1871,10 @@ static wmOperatorStatus external_asset_rename_exec(bContext *C, wmOperator *op)
 
   ID *asset_id = bke::asset_edit_id_from_weak_reference(
       *bmain, asset->get_id_type(), asset_reference);
-  BLI_assert(asset_id);
+  if (asset_id == nullptr) {
+    BKE_report(op->reports, RPT_ERROR, "Failed to load asset");
+    return OPERATOR_CANCELLED;
+  }
 
   const bUserAssetLibrary *user_asset_lib = asset->owner_asset_library().user_asset_library();
   if (!user_asset_lib) {
