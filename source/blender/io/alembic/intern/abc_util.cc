@@ -28,6 +28,11 @@ using Alembic::Abc::V3fArraySamplePtr;
 
 namespace io::alembic {
 
+bool is_reserved_attribute_name(const StringRefNull name)
+{
+  return name == propNameOriginalCoordinates;
+}
+
 std::string get_valid_abc_name(const char *name)
 {
   std::string abc_name(name);

@@ -849,6 +849,15 @@ class DataValidationExportTest(AbstractAlembicTest):
         )
         self.run_blender('invalid-names.blend', script)
 
+    @with_tempdir
+    def test_attribute_name_clash(self, tempdir: pathlib.Path):
+        abc = tempdir / 'attribute-name-clash.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, orcos=True)" % abc.as_posix()
+        )
+        self.run_blender('attribute-name-clash.blend', script)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

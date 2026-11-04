@@ -57,10 +57,6 @@ using Alembic::AbcGeom::OV2fGeomParam;
 using Alembic::AbcGeom::OV3fGeomParam;
 namespace io::alembic {
 
-/* ORCO, Generated Coordinates, and Reference Points ("Pref") are all terms for the same thing.
- * Other applications (Maya, Houdini) write these to a property called "Pref". */
-static const std::string propNameOriginalCoordinates("Pref");
-
 static void get_uvs(const CDStreamConfig &config,
                     std::vector<Imath::V2f> &uvs,
                     std::vector<uint32_t> &uvidx,

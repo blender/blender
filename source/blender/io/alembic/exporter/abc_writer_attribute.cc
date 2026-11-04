@@ -210,6 +210,7 @@ static void create_geom_param_for_attribute(const Alembic::Abc::OCompoundPropert
                                             AttributeParamMaps &param_maps,
                                             const VArray<BlenderDataType> &buffer,
                                             const StringRefNull name,
+                                            const StringRefNull valid_name,
                                             const GeometryScope scope,
                                             const int timesample_index,
                                             const OffsetIndices<int> faces,
@@ -252,7 +253,7 @@ static void create_geom_param_for_attribute(const Alembic::Abc::OCompoundPropert
   using SampleType = typename ParamType::Sample;
 
   try {
-    const Alembic::Abc::PropertyHeader *prop_header = prop.getPropertyHeader(name);
+    const Alembic::Abc::PropertyHeader *prop_header = prop.getPropertyHeader(valid_name.c_str());
     if (prop_header && !ParamType::matches(*prop_header)) {
       CLOG_WARN(&LOG,
                 "On object '%s', cannot write attribute '%s' as the type has changed",
@@ -260,8 +261,6 @@ static void create_geom_param_for_attribute(const Alembic::Abc::OCompoundPropert
                 name.c_str());
       return;
     }
-
-    const std::string valid_name = get_valid_abc_name(name.c_str());
 
     ParamType param;
     param_maps.ensure_param(prop, param, valid_name, corrected_scope);
@@ -301,6 +300,20 @@ void create_geom_param_for_attribute(const Alembic::Abc::OCompoundProperty &prop
     return;
   }
 
+  /* Only exclude attributes whose name clash with reserved attributes if the latter are exported.
+   */
+  const std::string valid_name = get_valid_abc_name(attr.name.c_str());
+  if (is_reserved_attribute_name(valid_name) && prop.getPropertyHeader(valid_name) != nullptr) {
+    CLOG_WARN(&LOG,
+              "On object '%s', attribute '%s' (Blender domain %d, type %d) cannot be exported "
+              "to Alembic as it is using a reserved name",
+              object_name.c_str(),
+              attr.name.c_str(),
+              int8_t(attr.domain),
+              int(attr.data_type));
+    return;
+  }
+
   const GVArray attribute = *attr.get();
 
   /* #bke::attribute_math::to_static_type does not yet support strings. */
@@ -309,6 +322,7 @@ void create_geom_param_for_attribute(const Alembic::Abc::OCompoundProperty &prop
                                     param_maps,
                                     attribute.typed<MStringProperty>(),
                                     attr.name,
+                                    valid_name,
                                     scope,
                                     timesample_index,
                                     faces,
@@ -323,6 +337,7 @@ void create_geom_param_for_attribute(const Alembic::Abc::OCompoundProperty &prop
                                       param_maps,
                                       attribute.typed<BlenderT>(),
                                       attr.name,
+                                      valid_name,
                                       scope,
                                       timesample_index,
                                       faces,
