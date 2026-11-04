@@ -1541,6 +1541,9 @@ void BM_mesh_uvselect_flush_post_subdivide(BMesh *bm, const int cd_loop_uv_offse
         BMLoop *l_radial_iter, *l_radial_first;
         l_radial_iter = l_radial_first = e->l;
         do {
+          if (BM_elem_flag_test(l_radial_iter->f, BM_ELEM_HIDDEN)) {
+            continue;
+          }
           BM_loop_edge_uvselect_set(bm, l_radial_iter, true);
         } while ((l_radial_iter = l_radial_iter->radial_next) != l_radial_first);
       }
