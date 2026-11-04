@@ -2328,8 +2328,12 @@ std::optional<Array<float>> bSoundFrequencySampler::compute_fft(const int start_
       throw;
     }
   }
-  const Span<float> read_buffer = read_buffer_extra.as_span().drop_front(warmup_samples *
-                                                                         channels_num);
+  const Span<float> read_buffer = read_buffer_extra
+                                      .as_span()
+                                      /* Limit to actually read values. */
+                                      .take_front(length * channels_num)
+                                      /* Drop the warmup samples. */
+                                      .drop_front(warmup_samples * channels_num);
   const int read_length = read_buffer.size() / channels_num;
 
   /* Pull out the samples for the requested channel(s). */
