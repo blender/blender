@@ -65,7 +65,7 @@ bool BVHUnaligned::compute_aligned_space(const BVHReference &ref, Transform *ali
     const float3 v1 = curve_keys[key];
     const float3 v2 = curve_keys[key + 1];
     float length;
-    const float3 axis = normalize_len(v2 - v1, &length);
+    const float3 axis = safe_normalize_len(v2 - v1, &length);
     if (length > 1e-6f) {
       *aligned_space = make_transform_frame(axis);
       return true;
