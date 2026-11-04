@@ -2958,6 +2958,9 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &p
     }
 
     EDBM_selectmode_flush(bm, em->selectmode);
+    if (bm->uv_select_sync_valid) {
+      BM_mesh_uvselect_mode_flush_only_select(bm);
+    }
 
     if (efa) {
       ed::object::material_active_index_set(obedit, efa->mat_nr);

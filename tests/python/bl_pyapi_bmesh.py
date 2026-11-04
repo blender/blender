@@ -853,6 +853,56 @@ class TestBMeshUVSelectSimple(unittest.TestCase):
 
         # save_to_blend_file_for_testing(bm)
 
+    def test_uv_select_foreach_set_from_mesh_select_mixed_mode(self):
+        """
+        Selecting a face or edge in vertex or edge select mode selects its vertices or edges,
+        which selects other edges & faces using them when the mesh selection is flushed.
+        The UV selection must match the mesh.
+        """
+        for select_mode, elem_type, expected in (
+                ({'VERT', 'FACE'}, 'FACE', (16, 24, 9)),
+                ({'EDGE', 'FACE'}, 'FACE', (16, 24, 9)),
+                ({'VERT', 'EDGE', 'FACE'}, 'FACE', (16, 24, 9)),
+                ({'VERT', 'EDGE'}, 'EDGE', (4, 4, 1)),
+                ({'VERT', 'EDGE', 'FACE'}, 'EDGE', (4, 4, 1)),
+        ):
+            with self.subTest(select_mode=select_mode, elem_type=elem_type):
+                bm = bmesh.new()
+                uv_layer = bm.loops.layers.uv.new()
+
+                # A 3x3 grid of quads, so the center face is entirely surrounded.
+                bmesh.ops.create_grid(bm, x_segments=3, y_segments=3, size=2.0)
+                bm_uv_layer_from_coords(bm, uv_layer)
+                bm.select_mode = select_mode
+                bm.uv_select_sync_valid = True
+                bm_uv_select_reset(bm, select=False)
+
+                faces_center = [f for f in bm.faces if all(len(e.link_faces) == 2 for e in f.edges)]
+                self.assertEqual(len(faces_center), 1)
+                face_flushed = faces_center[0]
+
+                if elem_type == 'FACE':
+                    # Selecting the surrounding faces selects the center face.
+                    elems = [f for f in bm.faces if f is not face_flushed]
+                    kw = {"faces": elems}
+                else:
+                    # Selecting three edges of the center face selects the fourth edge & the face.
+                    elems = list(face_flushed.edges)[:3]
+                    kw = {"edges": elems}
+
+                # Select the elements as the viewport does, then flush the mesh selection.
+                for elem in elems:
+                    elem.select = True
+                bm.select_flush_mode()
+                self.assertTrue(face_flushed.select)
+                bm.uv_select_foreach_set_from_mesh(True, **kw)
+
+                self.assertEqual(bm_loop_select_count_vert_edge_face(bm)[1], expected)
+                bm_uv_select_assert_matches_mesh(self, bm)
+                self.assertEqual(bm_uv_select_check_non_zero(bm, sync=True, flush=True, contiguous=True), {})
+
+                bm.free()
+
     def test_uv_select_foreach_set_from_mesh_deselect_mixed_mode(self):
         """
         De-selecting a face or edge in a lower select mode de-selects its vertices or edges,

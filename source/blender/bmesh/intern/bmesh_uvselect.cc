@@ -1045,6 +1045,10 @@ void BM_mesh_uvselect_set_elem_from_mesh(BMesh *bm,
 {
   const bool check_verts = !verts.is_empty();
   const bool check_edges = !edges.is_empty();
+  const bool check_faces = !faces.is_empty();
+  if (!(check_verts || check_edges || check_faces)) {
+    return;
+  }
 
   /* TODO(@ideasman42): select picking may be slow because it does flushing too.
    * Although in practice it seems fast-enough. This should be handled more efficiently. */
@@ -1057,6 +1061,11 @@ void BM_mesh_uvselect_set_elem_from_mesh(BMesh *bm,
   }
   for (BMFace *f : faces) {
     bm_face_uvselect_set_pick(bm, f, select, params);
+  }
+
+  if (select) {
+    /* Match the mesh selection which flushes up. */
+    BM_mesh_uvselect_mode_flush_only_select(bm);
   }
 
   bm_mesh_uvselect_mode_flush_down_deselect_only(
@@ -1072,6 +1081,10 @@ void BM_mesh_uvselect_set_elem_from_mesh(BMesh *bm,
 {
   const bool check_verts = !verts.is_empty();
   const bool check_edges = !edges.is_empty();
+  const bool check_faces = !faces.is_empty();
+  if (!(check_verts || check_edges || check_faces)) {
+    return;
+  }
 
   for (BMVert *v : verts) {
     BM_vert_uvselect_set_pick(bm, v, select, params);
@@ -1081,6 +1094,11 @@ void BM_mesh_uvselect_set_elem_from_mesh(BMesh *bm,
   }
   for (BMFace *f : faces) {
     BM_face_uvselect_set_pick(bm, f, select, params);
+  }
+
+  if (select) {
+    /* Match the mesh selection which flushes up. */
+    BM_mesh_uvselect_mode_flush_only_select(bm);
   }
 
   bm_mesh_uvselect_mode_flush_down_deselect_only(
