@@ -491,8 +491,9 @@ static bke::CurvesGeometry reorder_strokes(const bke::CurvesGeometry &curves,
     distances[stroke].selected = select[stroke];
   }
 
-  parallel_sort(
-      distances.begin(), distances.end(), [](Pair &a, Pair &b) { return a.value < b.value; });
+  parallel_sort(distances.begin(), distances.end(), [](const Pair &a, const Pair &b) {
+    return a.value < b.value;
+  });
 
   Array<int> new_order(curves.curves_num());
   for (const int i : curves.curves_range()) {
