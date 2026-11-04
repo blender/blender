@@ -365,7 +365,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     /* Create NSView inside the window. */
     id<MTLDevice> metalDevice = MTLCreateSystemDefaultDevice();
 
-    GHOST_ASSERT(metalDevice == nullptr, "Failed to obtain default macOS Metal device.");
+    GHOST_ASSERT(metalDevice != nullptr, "Failed to obtain default macOS Metal device.");
 
     metal_layer_ = [[CAMetalLayer alloc] init];
     metal_layer_.edgeAntialiasingMask = 0;
