@@ -87,9 +87,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "attribute_storage_access.hh"
 
 namespace blender {
+
+static CLG_LogRef LOG = {"geom.grease_pencil"};
 
 static const char *ATTR_POSITION = "position";
 
@@ -201,6 +205,11 @@ static void grease_pencil_replace_end_frames_after_read(GreasePencil &grease_pen
   if (empty_drawing_users > 0) {
     grease_pencil.add_empty_drawings(1);
     BLI_assert(grease_pencil.drawings().index_range().contains(empty_drawing_index));
+
+    CLOG_WARN(&LOG,
+              "Converted %d end frames to regular frames using an empty drawing in \"%s\"",
+              empty_drawing_users,
+              BKE_id_name(grease_pencil.id));
   }
 }
 
