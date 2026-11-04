@@ -19,12 +19,6 @@ struct Panel;
 
 /* internal exports only */
 
-int project_ui_asset_libraries_count();
-std::optional<int> project_ui_asset_libraries_index_from_user_library(
-    const bUserAssetLibrary &user_library);
-
-void project_asset_panel_register(ARegionType &region_type);
-
 void PROJECT_OT_new(wmOperatorType *ot);
 void PROJECT_OT_open(wmOperatorType *ot);
 void PROJECT_OT_close(wmOperatorType *ot);
