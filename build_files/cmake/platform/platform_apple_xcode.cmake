@@ -62,8 +62,8 @@ if(XCODE_VERSION)
     )
   endif()
 
-  message(STATUS "Detected OS X ${OSX_SYSTEM} and Xcode ${XCODE_VERSION} at ${XCODE_DEVELOPER_DIR}")
-  message(STATUS "SDKs Directory: " ${XCODE_SDK_DIR})
+  message(STATUS "Detected macOS ${OSX_SYSTEM} and Xcode ${XCODE_VERSION} at ${XCODE_DEVELOPER_DIR}")
+  message(STATUS "Xcode SDKs directory: " ${XCODE_SDK_DIR})
 else()
   # If no Xcode version found, try detecting command line tools.
   execute_process(
@@ -89,8 +89,8 @@ else()
       )
     endif()
 
-    message(STATUS "Detected OS X ${OSX_SYSTEM} and Command Line Tools ${XCODE_VERSION} at ${XCODE_DEVELOPER_DIR}")
-    message(STATUS "SDKs Directory: " ${XCODE_SDK_DIR})
+    message(STATUS "Detected macOS ${OSX_SYSTEM} and Command Line Tools ${XCODE_VERSION} at ${XCODE_DEVELOPER_DIR}")
+    message(STATUS "Command Line Tools SDKs directory: " ${XCODE_SDK_DIR})
   else()
     message(FATAL_ERROR "No Xcode or Command Line Tools detected")
   endif()
