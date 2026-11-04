@@ -1455,11 +1455,9 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
       dst_attribute_writers.append({});
       continue;
     }
-    if (GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-            name, bke::AttrDomain::Point, data_type))
-    {
-      dst_attribute_writers.append(std::move(dst));
-    }
+    /* Append even on failure, writers must stay aligned with the ordered attributes. */
+    dst_attribute_writers.append(
+        dst_attributes.lookup_or_add_for_write_only_span(name, bke::AttrDomain::Point, data_type));
   }
 
   /* Actually execute all tasks. */
@@ -2120,11 +2118,9 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
       dst_attribute_writers.append({});
       continue;
     }
-    if (GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-            name, domain, data_type))
-    {
-      dst_attribute_writers.append(std::move(dst));
-    }
+    /* Append even on failure, writers must stay aligned with the ordered attributes. */
+    dst_attribute_writers.append(
+        dst_attributes.lookup_or_add_for_write_only_span(name, domain, data_type));
   }
 
   threading::parallel_for(
@@ -2565,11 +2561,9 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
       dst_attribute_writers.append({});
       continue;
     }
-    if (GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-            name, domain, data_type))
-    {
-      dst_attribute_writers.append(std::move(dst));
-    }
+    /* Append even on failure, writers must stay aligned with the ordered attributes. */
+    dst_attribute_writers.append(
+        dst_attributes.lookup_or_add_for_write_only_span(name, domain, data_type));
   }
 
   /* Prepare handle position attributes if necessary. */
@@ -2846,11 +2840,9 @@ static void execute_realize_grease_pencil_tasks(
       dst_attribute_writers.append({});
       continue;
     }
-    if (GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-            name, bke::AttrDomain::Layer, data_type))
-    {
-      dst_attribute_writers.append(std::move(dst));
-    }
+    /* Append even on failure, writers must stay aligned with the ordered attributes. */
+    dst_attribute_writers.append(
+        dst_attributes.lookup_or_add_for_write_only_span(name, bke::AttrDomain::Layer, data_type));
   }
 
   /* Actually execute all tasks. */
