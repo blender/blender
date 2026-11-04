@@ -235,6 +235,48 @@ class TestBMeshUVSelectSimple(unittest.TestCase):
 
         bm.free()
 
+    def test_uv_select_check_sync_edge(self):
+        """
+        The sync check must count a selected UV edge as a mismatch when its mesh edge
+        is unselected, even when both the mesh vertices are selected.
+        """
+        bm = bmesh.new()
+        bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=1.0)
+        self.assertEqual((len(bm.verts), len(bm.edges), len(bm.faces)), (4, 4, 1))
+        bm.uv_select_sync_valid = True
+
+        f = next(iter(bm.faces))
+        l, l_next, _, _ = f.loops
+
+        # Select the edge's vertices (not the edge), matching the UV vertices.
+        l.vert.select = True
+        l_next.vert.select = True
+        l.uv_select_vert = True
+        l_next.uv_select_vert = True
+        self.assertEqual(bm_uv_select_check_non_zero(bm, sync=True), {})
+
+        # Now select the UV edge.
+        l.uv_select_edge = True
+        self.assertEqual(bm_uv_select_check_non_zero(bm, sync=True), {
+            "count_uv_edge_any_selected_with_edge_unselected": 1,
+        })
+
+        # Selecting the mesh edge resolves the error.
+        l.edge.select = True
+        self.assertEqual(bm_uv_select_check_non_zero(bm, sync=True), {})
+
+        # The reverse, a selected mesh edge with no selected UV edge,
+        # is only counted as a mismatch in edge select mode as vertex mode
+        # may select the mesh edge from its vertices.
+        l.uv_select_edge = False
+        self.assertEqual(bm_uv_select_check_non_zero(bm, sync=True), {})
+        bm.select_mode = {'EDGE'}
+        self.assertEqual(bm_uv_select_check_non_zero(bm, sync=True), {
+            "count_uv_edge_none_selected_with_edge_selected": 1,
+        })
+
+        bm.free()
+
     def test_uv_select_flush_mode(self):
         bm = bmesh.new()
 

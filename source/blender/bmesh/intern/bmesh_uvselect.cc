@@ -2108,7 +2108,7 @@ static bool bm_mesh_uvselect_check_viewport_sync(BMesh *bm, UVSelectValidateInfo
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
         if (BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV_EDGE)) {
-          if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
+          if (!BM_elem_flag_test(l_iter->e, BM_ELEM_SELECT)) {
             INCF_MAYBE_ASSERT(error_count);
           }
         }
