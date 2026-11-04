@@ -197,7 +197,7 @@ void merge_layers(const GreasePencil &src_grease_pencil,
         if (item.value.is_end()) {
           continue;
         }
-        const int duration = src_layer.get_frame_duration_at(item.key);
+        const int duration = 0 /* src_layer.get_frame_duration_at(item.key) */;
         BLI_assert(duration >= 0);
         dst_frames.add_or_modify(
             item.key,

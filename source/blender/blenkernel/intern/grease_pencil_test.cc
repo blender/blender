@@ -357,6 +357,8 @@ TEST_F(GreasePencilTest, add_frame)
   EXPECT_EQ(ex.layer.drawing_index_at(12), 2);
 }
 
+/* Frame duration is disabled currently. */
+#if 0
 TEST_F(GreasePencilTest, add_frame_duration_fail)
 {
   GreasePencilLayerFramesExample ex;
@@ -421,6 +423,7 @@ TEST_F(GreasePencilTest, add_frame_duration_override_null_frames)
   EXPECT_EQ(sorted_keys[1], 1);
   EXPECT_EQ(sorted_keys[2], 11);
 }
+#endif
 
 TEST_F(GreasePencilTest, remove_frame_single)
 {
@@ -461,6 +464,8 @@ TEST_F(GreasePencilTest, remove_frame_implicit_hold)
   EXPECT_TRUE(layer.frames().lookup(4).is_end());
 }
 
+/* Frame duration is disabled currently. */
+#if 0
 TEST_F(GreasePencilTest, remove_frame_fixed_duration_end)
 {
   Layer layer;
@@ -481,6 +486,7 @@ TEST_F(GreasePencilTest, remove_frame_fixed_duration_overwrite_end)
   EXPECT_EQ(layer.frames().lookup(0).drawing_index, 1);
   EXPECT_TRUE(layer.frames().lookup(5).is_end());
 }
+#endif
 
 TEST_F(GreasePencilTest, remove_drawings_no_change)
 {
