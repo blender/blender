@@ -6,6 +6,7 @@
  * \ingroup edobj
  */
 
+#include <fmt/format.h>
 #include <sstream>
 
 #include "BLI_fileops.hh"
@@ -239,6 +240,8 @@ struct BakeGeometryNodesJob {
   Vector<NodeBakeRequest> bake_requests;
   wmOperator *op;
   std::string error_message;
+  /** Unlike #error_message, this keeps the frames that have been written already. */
+  std::string write_error_message;
 };
 
 static void try_delete_bake(
@@ -261,6 +264,23 @@ static void clear_requested_bakes_in_modifier_cache(BakeGeometryNodesJob &job)
   for (NodeBakeRequest &request : job.bake_requests) {
     request.nmd->runtime->cache->requested_bakes.clear();
   }
+}
+
+/**
+ * The existence of a meta data file means that a frame has been baked. Therefore it is written
+ * with a temporary name first, so that it can only be found once it is complete.
+ */
+[[nodiscard]] static bool write_meta_file(const StringRefNull meta_path, const StringRef meta_data)
+{
+  const std::string temp_path = meta_path + ".tmp";
+  fstream meta_file{temp_path, std::ios::out};
+  meta_file.write(meta_data.data(), meta_data.size());
+  meta_file.close();
+  if (meta_file.fail() || BLI_rename_overwrite(temp_path.c_str(), meta_path.c_str()) != 0) {
+    BLI_delete(temp_path.c_str(), false, false);
+    return false;
+  }
+  return true;
 }
 
 static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *worker_status)
@@ -322,7 +342,7 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
     for (NodeBakeRequest &request : job.bake_requests) {
       NodesModifierData &nmd = *request.nmd;
       bake::ModifierCache &modifier_cache = *nmd.runtime->cache;
-      const bake::NodeBakeCache *bake_cache = modifier_cache.get_node_bake_cache(request.bake_id);
+      bake::NodeBakeCache *bake_cache = modifier_cache.get_node_bake_cache(request.bake_id);
       if (bake_cache == nullptr) {
         continue;
       }
@@ -342,10 +362,28 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
             meta_path, request.path->meta_dir.c_str(), (frame_file_name + ".json").c_str());
         BLI_file_ensure_parent_dir_exists(meta_path);
         bake::DiskBlobWriter blob_writer{request.path->blobs_dir, frame_file_name};
-        fstream meta_file{meta_path, std::ios::out};
-        bake::serialize_bake(frame_cache.values, blob_writer, *request.blob_sharing, meta_file);
+        std::ostringstream meta_stream;
+        bake::serialize_bake(frame_cache.values, blob_writer, *request.blob_sharing, meta_stream);
+        const std::string meta_data = meta_stream.str();
+        if (!blob_writer.finish() || !write_meta_file(meta_path, meta_data)) {
+          blob_writer.remove_files();
+          /* The cache should only contain frames that are on disk. Free the frame outside of the
+           * lock because freeing volume grids is multi-threaded. */
+          std::unique_ptr<bake::FrameCache> unwritten_frame;
+          {
+            std::lock_guard lock{modifier_cache.mutex};
+            unwritten_frame = bake_cache->frames.pop_last();
+          }
+          if (job.write_error_message.empty()) {
+            job.write_error_message = fmt::format(
+                fmt::runtime(TIP_("Stopped baking because frame {} could not be written to {}")),
+                frame.frame(),
+                request.path->bake_dir.value_or(request.path->meta_dir));
+          }
+          continue;
+        }
         written_size += blob_writer.written_size();
-        written_size += meta_file.tellp();
+        written_size += meta_data.size();
       }
       else {
         PackedBake &packed_data = packed_data_by_bake.lookup_or_add_default(&request);
@@ -371,6 +409,10 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
         written_size += blob_writer.written_size();
         written_size += meta_file.tellp();
       }
+    }
+
+    if (!job.write_error_message.empty()) {
+      break;
     }
 
     worker_status->progress += progress_per_frame;
@@ -468,6 +510,9 @@ static void bake_geometry_nodes_endjob(void *customdata)
       try_delete_bake(job.bmain, *request.object, *request.nmd, request.bake_id, job.op->reports);
     }
     BKE_report(job.op->reports, RPT_ERROR, job.error_message.c_str());
+  }
+  if (!job.write_error_message.empty()) {
+    BKE_report(job.op->reports, RPT_ERROR, job.write_error_message.c_str());
   }
 }
 

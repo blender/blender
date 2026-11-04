@@ -148,15 +148,24 @@ DiskBlobWriter::DiskBlobWriter(std::string blob_dir, std::string base_name)
 
 BlobSlice DiskBlobWriter::write(const void *data, const int64_t size)
 {
+  const int64_t old_offset = current_offset_;
+  if (has_error_) {
+    return {blob_name_, {old_offset, 0}};
+  }
+
   if (!blob_stream_.is_open()) {
     char blob_path[FILE_MAX];
     BLI_path_join(blob_path, blob_dir_.c_str(), blob_name_.c_str());
     BLI_file_ensure_parent_dir_exists(blob_path);
     blob_stream_.open(blob_path, std::ios::out | std::ios::binary);
+    file_names_.append(blob_name_);
   }
 
-  const int64_t old_offset = current_offset_;
   blob_stream_.write(static_cast<const char *>(data), size);
+  if (blob_stream_.fail()) {
+    has_error_ = true;
+    return {blob_name_, {old_offset, 0}};
+  }
   current_offset_ += size;
   total_written_size_ += size;
   return {blob_name_, {old_offset, size}};
@@ -176,15 +185,51 @@ BlobSlice DiskBlobWriter::write_as_stream(const StringRef file_extension,
   independent_file_count_++;
   const std::string file_name = make_independent_file_name(
       base_name_, independent_file_count_, file_extension);
+  if (has_error_) {
+    return {file_name, {0, 0}};
+  }
 
   char path[FILE_MAX];
   BLI_path_join(path, blob_dir_.c_str(), file_name.c_str());
   BLI_file_ensure_parent_dir_exists(path);
   std::fstream stream{path, std::ios::out | std::ios::binary};
-  fn(stream);
-  const int64_t written_bytes_num = stream.tellg();
+  file_names_.append(file_name);
+  int64_t written_bytes_num = -1;
+  try {
+    fn(stream);
+    written_bytes_num = stream.tellp();
+  }
+  catch (...) {
+    /* OpenVDB uses exceptions to report errors. */
+  }
+  stream.close();
+  if (stream.fail() || written_bytes_num < 0) {
+    has_error_ = true;
+    return {file_name, {0, 0}};
+  }
   total_written_size_ += written_bytes_num;
   return {file_name, {0, written_bytes_num}};
+}
+
+bool DiskBlobWriter::finish()
+{
+  if (blob_stream_.is_open()) {
+    blob_stream_.close();
+    if (blob_stream_.fail()) {
+      has_error_ = true;
+    }
+  }
+  return !has_error_;
+}
+
+void DiskBlobWriter::remove_files()
+{
+  BLI_assert(!blob_stream_.is_open());
+  for (const std::string &file_name : file_names_) {
+    char path[FILE_MAX];
+    BLI_path_join(path, blob_dir_.c_str(), file_name.c_str());
+    BLI_delete(path, false, false);
+  }
 }
 
 void MemoryBlobReader::add(const StringRef name, const Span<std::byte> blob)
