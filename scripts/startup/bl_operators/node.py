@@ -532,7 +532,7 @@ class SingleNodeOperator:
     def description(cls, _context, properties):
         from nodeitems_builtins import node_tree_group_type
 
-        nodetype = properties["type"]
+        nodetype = properties.type
         if nodetype in node_tree_group_type.values():
             for setting in properties.settings:
                 if setting.name == "node_tree":

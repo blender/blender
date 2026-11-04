@@ -2685,7 +2685,7 @@ class WM_OT_toolbar_prompt(Operator):
             properties = item.properties
             idname = item.idname
             if idname == "wm.tool_set_by_id":
-                tool_idname = properties["name"]
+                tool_idname = properties.name
                 name = tool_map_id_to_label[tool_idname]
                 name = name.replace("Annotate ", "")
             else:
@@ -2716,7 +2716,7 @@ class WM_OT_toolbar_prompt(Operator):
             idname = item.idname
             properties = item.properties
             if idname == "wm.tool_set_by_id":
-                tool_idname = properties["name"]
+                tool_idname = properties.name
                 bpy.ops.wm.tool_set_by_id(name=tool_idname)
 
             context.workspace.status_text_set(None)
