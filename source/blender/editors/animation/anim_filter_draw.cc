@@ -358,7 +358,7 @@ static uchar4 get_fcurve_color(FCurve &fcurve)
     }
   }
   if (!(fcurve.flag & FCURVE_VISIBLE)) {
-    color[4] *= 0.3;
+    color[3] *= 0.3;
   }
   return color;
 }
@@ -387,6 +387,30 @@ static bool get_actiongroup_color(const bActionGroup *agrp, uchar4 &r_color)
   r_color[1] = wire_color->solid[1];
   r_color[2] = wire_color->solid[2];
   return true;
+}
+
+static int icon_for_channel_setting(const ChannelSettingKey key, const ChannelSettingValue value)
+{
+  switch (key) {
+    case ChannelSettingKey::VISIBLE:
+      if (value == ChannelSettingValue::OFF) {
+        return ICON_HIDE_ON;
+      }
+      else {
+        return ICON_HIDE_OFF;
+      }
+    case ChannelSettingKey::LOCKED:
+      if (value == ChannelSettingValue::ON) {
+        return ICON_LOCKED;
+      }
+      else {
+        return ICON_UNLOCKED;
+      }
+    case ChannelSettingKey::_MAX:
+      break;
+  }
+  BLI_assert_unreachable();
+  return ICON_NONE;
 }
 
 void ChannelItem::build_row(ui::Layout &layout)
@@ -423,10 +447,6 @@ void ChannelItem::build_row(ui::Layout &layout)
           ui::button_color_set(but, color);
           block_emboss_set(block, ui::EmbossType::None);
         }
-
-        if (tree_view.show_visibility_property()) {
-          layout.prop(&source_, "hide", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_HIDE_OFF);
-        }
         break;
       }
       case DataChannelType::GREASE_PENCIL:
@@ -435,6 +455,17 @@ void ChannelItem::build_row(ui::Layout &layout)
   }
 
   layout.label(channel_.label(), icon_from_rna_pointer(channel_.source()));
+  const ChannelSettings &settings = channel_.channel_settings();
+  for (const int setting_int : IndexRange(int(ChannelSettingKey::_MAX))) {
+    const ChannelSettingKey key = ChannelSettingKey(setting_int);
+    ChannelSettingState state = settings.get_state(key);
+    if (!state.exists) {
+      continue;
+    }
+    PointerRNA op_ptr = layout.op(
+        "ANIM_OT_channel_flush_flag", "", icon_for_channel_setting(key, state.value));
+    RNA_enum_set(&op_ptr, "setting", setting_int);
+  }
 
   if (channel_.type() == AnimationChannelType::DATA) {
     DataChannel &data_channel = static_cast<DataChannel &>(channel_);
@@ -443,7 +474,6 @@ void ChannelItem::build_row(ui::Layout &layout)
         layout.prop(
             &source_, "use_modifiers", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_MODIFIER_ON);
         layout.prop(&source_, "mute", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_CHECKBOX_HLT);
-        layout.prop(&source_, "lock", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_UNLOCKED);
         if (tree_view.show_channel_group_color_rect()) {
           FCurve *fcurve = data_channel.get_source<FCurve>();
           uchar4 color(255);

@@ -1147,7 +1147,11 @@ enum class AnimationChannelType : int8_t {
 };
 
 enum AnimationChannelFlags : int8_t {
-  ANIM_CHANNEL_DIRTY = 1 << 0,
+  /* If set, the datapoints of a channel have to be recomputed. */
+  ANIM_CHANNEL_DIRTY_DATA = 1 << 0,
+  /* If set, the settings of a channel have to be recomputed. This is a separate flag because it is
+     considerably cheaper to do. */
+  ANIM_CHANNEL_DIRTY_SETTINGS = 1 << 1,
 };
 ENUM_OPERATORS(AnimationChannelFlags);
 
@@ -1161,7 +1165,7 @@ struct AnimationChannelPin {
   void *source_ = nullptr;
   char *label_;
   AnimationChannelType type_;
-  AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY;
+  AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY_DATA;
   char _pad[6];
 };
 

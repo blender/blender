@@ -249,6 +249,39 @@ struct KeyPoint {
   void merge(const KeyPoint &other);
 };
 
+/* Key into the `states_` array of ChannelSettings.  */
+enum class ChannelSettingKey : uint8_t {
+  VISIBLE,
+  LOCKED,
+  /* Keep last. */
+  _MAX,
+};
+ENUM_OPERATORS(ChannelSettingKey);
+
+enum class ChannelSettingValue : uint8_t {
+  OFF,
+  ON,
+  MIXED,
+};
+
+struct ChannelSettingState {
+  bool exists = false;
+  ChannelSettingValue value = ChannelSettingValue::MIXED;
+
+  void merge(const ChannelSettingState &other);
+};
+
+class ChannelSettings {
+  /* Array the length of `ChannelSetting::_MAX`. */
+  Array<ChannelSettingState> states_;
+
+ public:
+  ChannelSettings();
+  void merge(const ChannelSettings &other);
+  ChannelSettingState get_state(ChannelSettingKey key) const;
+  void set_state(ChannelSettingKey key, ChannelSettingState state);
+};
+
 class ChannelTagSet {
  private:
   Vector<ChannelTag> tags_;
@@ -440,7 +473,7 @@ class AnimationChannel {
 
  protected:
   AnimationChannelType type_ = AnimationChannelType::UNKNOWN;
-  AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY;
+  AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY_DATA | ANIM_CHANNEL_DIRTY_SETTINGS;
   /* Mutable so that a call to label() can store its result. Labels should NOT be used as
    * identifier/key for AnimationChannel instances. */
   mutable std::string label_;
@@ -449,6 +482,7 @@ class AnimationChannel {
   std::optional<ParsedSourcePath> source_rna_path_;
 
   Vector<KeyPoint> datapoints_;
+  ChannelSettings channel_settings_;
   /* Higher numbers will be sorted before lower numbers. In case the values are equal a fallback is
    * used. A special value #NO_SORTING indicates that the channel should not be sorted relative to
    * other NO_SORTING channels. */
@@ -519,6 +553,7 @@ class AnimationChannel {
     return this->flags_;
   }
   Span<KeyPoint> datapoints();
+  const ChannelSettings &channel_settings();
 
   int sorting_priority() const
   {
@@ -546,6 +581,7 @@ class AnimationChannel {
     }
     return this->channel_api_->is_selected();
   };
+
   /**
    * Selects the channel itself (in contrast to selecting its datapoints).
    *
@@ -562,6 +598,11 @@ class AnimationChannel {
   };
 
   /**
+   * Enables that setting on the underlying data. For unsupported keys this can be a no-op.
+   */
+  virtual void set_setting(ChannelSettingKey setting, bool value) = 0;
+
+  /**
    * Change the selection of datapoints in the given range.
    * Range is inclusive/inclusive.
    */
@@ -575,7 +616,14 @@ class AnimationChannel {
   const KeyPoint *closest_datapoint(float frame, Bounds<float> range = {-INFINITY, INFINITY});
 
  protected:
-  virtual void gather_channeldata() = 0;
+  /**
+   * Collects all datapoints across time to build up the `datapoints_` vector.
+   */
+  virtual void gather_channel_data() = 0;
+  /**
+   * Populates the `channel_settings_` with the settings from the underlying source data.
+   */
+  virtual void gather_channel_settings() = 0;
 
   /* Set source_ and source_id_type_ from this RNA pointer. */
   void source_set(const PointerRNA &source_ptr);
@@ -638,6 +686,7 @@ class SummaryChannel final : public AnimationChannel {
    */
   void sort_children();
 
+  void set_setting(ChannelSettingKey setting, bool value) override;
   void change_datapoint_selection(SelectionMode mode,
                                   Bounds<float> range = {-INFINITY, INFINITY}) override;
 
@@ -661,7 +710,8 @@ class SummaryChannel final : public AnimationChannel {
   }
 
  protected:
-  void gather_channeldata() override;
+  void gather_channel_data() override;
+  void gather_channel_settings() override;
 
   /** Update the properties of this channel from the UI state. */
   void ui_state_ensure();
@@ -764,6 +814,8 @@ class FCurveChannel : public DataChannel {
 
   /** Construct a label for the F-Curve, depending on its tags. */
   StringRefNull label() const override;
+
+  void set_setting(ChannelSettingKey setting, bool value) override;
   void change_datapoint_selection(SelectionMode mode,
                                   Bounds<float> range = {-INFINITY, INFINITY}) override;
 
@@ -783,7 +835,8 @@ class FCurveChannel : public DataChannel {
   }
 
  protected:
-  void gather_channeldata() override;
+  void gather_channel_data() override;
+  void gather_channel_settings() override;
 };
 
 class GreasePencilChannel : public DataChannel {
@@ -792,11 +845,13 @@ class GreasePencilChannel : public DataChannel {
                       ParsedSourcePath source_rna_path,
                       int sorting_priority);
 
+  void set_setting(ChannelSettingKey setting, bool value) override;
   void change_datapoint_selection(SelectionMode mode,
                                   Bounds<float> range = {-INFINITY, INFINITY}) override;
 
  protected:
-  void gather_channeldata() override;
+  void gather_channel_data() override;
+  void gather_channel_settings() override;
 };
 
 /**

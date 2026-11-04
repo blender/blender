@@ -6081,6 +6081,82 @@ static void ANIM_OT_view_curve_in_graph_editor(wmOperatorType *ot)
                   "Hides all F-Curves other than the ones being framed");
 }
 
+static wmOperatorStatus channel_flush_flag_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
+{
+  using namespace ed::animfilter;
+  std::optional<std::reference_wrapper<ChannelArena>> opt_arena = get_channels_from_space(*C);
+  if (!opt_arena) {
+    return OPERATOR_CANCELLED;
+  }
+  ChannelArena &arena = opt_arena->get();
+  if (!arena.root()) {
+    return OPERATOR_CANCELLED;
+  }
+  ScrArea *area = CTX_wm_area(C);
+  /* In the graph editor we don't get the correct region from `bContext`. */
+  ARegion *channels_region = nullptr;
+  for (ARegion &region : area->regionbase) {
+    if (region.regiontype == RGN_TYPE_CHANNELS) {
+      channels_region = &region;
+    }
+  }
+  bDopeSheet *dope_sheet = get_dopesheet_from_space(*C);
+  if (!dope_sheet) {
+    BLI_assert_unreachable();
+    return OPERATOR_CANCELLED;
+  }
+  const bool show_summary = dope_sheet->filterflag & ADS_FILTER_SUMMARY;
+  AnimationChannel *channel_under_cursor = find_channel_at_y(
+      arena, *channels_region, event->mval[1], show_summary);
+  if (!channel_under_cursor) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const ChannelSettingKey key = ChannelSettingKey(RNA_enum_get(op->ptr, "setting"));
+  const ChannelSettings &channel_settings = channel_under_cursor->channel_settings();
+  const ChannelSettingState state = channel_settings.get_state(key);
+  BLI_assert_msg(state.exists, "Non existent states shouldn't be drawn for a channel");
+  /* Turns on OFF and MIXED, turns off ON. */
+  channel_under_cursor->set_setting(key, state.value != ChannelSettingValue::ON);
+
+  return OPERATOR_FINISHED;
+}
+
+static const EnumPropertyItem channel_flush_setting_enum[] = {
+    {int(ed::animfilter::ChannelSettingKey::LOCKED),
+     "LOCKED",
+     0,
+     "Locked",
+     "Controls the lock of the channel"},
+    {int(ed::animfilter::ChannelSettingKey::VISIBLE),
+     "VISIBLE",
+     0,
+     "Visible",
+     "Controls the visibility of the channel"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static void ANIM_OT_channel_flush_flag(wmOperatorType *ot)
+{
+  ot->name = "Flush Flag";
+  ot->idname = "ANIM_OT_channel_flush_flag";
+  ot->description = "Flushes a setting from the summary channel under the cursor to its children.";
+
+  ot->invoke = channel_flush_flag_invoke;
+  ot->poll = channel_view_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(ot->srna,
+               "setting",
+               channel_flush_setting_enum,
+               int(ed::animfilter::ChannelSettingKey::LOCKED),
+               "Setting",
+               "Controls which setting to modify for the channel under the cursor");
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -6091,6 +6167,7 @@ void ED_operatortypes_animchannels()
 {
   WM_operatortype_append(ANIM_OT_channels_select_all);
   WM_operatortype_append(ANIM_OT_channels_select_box);
+  WM_operatortype_append(ANIM_OT_channel_flush_flag);
 
   WM_operatortype_append(ANIM_OT_channel_pin);
   WM_operatortype_append(ANIM_OT_channels_click);

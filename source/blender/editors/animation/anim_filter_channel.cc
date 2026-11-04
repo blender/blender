@@ -636,6 +636,36 @@ void KeyPoint::merge(const KeyPoint &other)
   extreme_type = other.extreme_type;
 }
 
+void ChannelSettingState::merge(const ChannelSettingState &other)
+{
+  this->exists |= other.exists;
+  if (this->value != other.value) {
+    this->value = ChannelSettingValue::MIXED;
+  }
+}
+
+ChannelSettings::ChannelSettings()
+{
+  states_.reinitialize(int(ChannelSettingKey::_MAX));
+}
+
+void ChannelSettings::merge(const ChannelSettings &other)
+{
+  for (const int key : IndexRange(int(ChannelSettingKey::_MAX))) {
+    this->states_[key].merge(other.states_[key]);
+  }
+}
+
+ChannelSettingState ChannelSettings::get_state(const ChannelSettingKey key) const
+{
+  return this->states_[int(key)];
+}
+
+void ChannelSettings::set_state(const ChannelSettingKey key, const ChannelSettingState state)
+{
+  this->states_[int(key)] = state;
+}
+
 ChannelTag::ChannelTag(const ChannelTagType type,
                        const StringRef label,
                        const PointerRNA &source_data,
@@ -670,7 +700,7 @@ AnimationChannel::AnimationChannel(const AnimationChannelType type, const String
 AnimationChannel::AnimationChannel(const AnimationChannel &other)
     : type_(other.type_),
       /* Mark as dirty so that data points don't have to be copied. */
-      flags_(other.flags_ | ANIM_CHANNEL_DIRTY),
+      flags_(other.flags_ | ANIM_CHANNEL_DIRTY_DATA),
       label_(other.label_),
       source_(other.source_)
 {
@@ -686,7 +716,7 @@ AnimationChannel::AnimationChannel(AnimationChannel &&other)
 {
   /* Reset the non-std::move'd fields. */
   other.type_ = AnimationChannelType::UNKNOWN;
-  other.flags_ = ANIM_CHANNEL_DIRTY;
+  other.flags_ = ANIM_CHANNEL_DIRTY_DATA;
 }
 
 uint64_t AnimationChannel::hash() const
@@ -760,11 +790,20 @@ void AnimationChannel::source_set(const PointerRNA &source_ptr)
 
 Span<KeyPoint> AnimationChannel::datapoints()
 {
-  if (this->flags_ & ANIM_CHANNEL_DIRTY) {
-    this->gather_channeldata();
-    this->flags_ &= ~ANIM_CHANNEL_DIRTY;
+  if (this->flags_ & ANIM_CHANNEL_DIRTY_DATA) {
+    this->gather_channel_data();
+    this->flags_ &= ~ANIM_CHANNEL_DIRTY_DATA;
   }
   return this->datapoints_;
+}
+
+const ChannelSettings &AnimationChannel::channel_settings()
+{
+  if (this->flags_ & ANIM_CHANNEL_DIRTY_SETTINGS) {
+    this->gather_channel_settings();
+    this->flags_ &= ~ANIM_CHANNEL_DIRTY_SETTINGS;
+  }
+  return this->channel_settings_;
 }
 
 /* ===== SummaryChannel ===== */
@@ -869,9 +908,9 @@ void SummaryChannel::set_collapsed(const bool is_collapsed)
   this->is_collapsed_ = is_collapsed;
 }
 
-void SummaryChannel::gather_channeldata()
+void SummaryChannel::gather_channel_data()
 {
-  PRF_scope_with_name("ed::animfilter::SummaryChannel::gather_channeldata",
+  PRF_scope_with_name("ed::animfilter::SummaryChannel::gather_channel_data",
                       ProfileCategory::Editor);
 
   this->datapoints_.clear();
@@ -929,6 +968,27 @@ void SummaryChannel::gather_channeldata()
     if (has_data) {
       this->datapoints_.append(std::move(next_keypoint));
     }
+  }
+}
+
+void SummaryChannel::gather_channel_settings()
+{
+  if (this->children_.is_empty()) {
+    this->channel_settings_ = {};
+    return;
+  }
+  /* Copy the settings of the first child to have a good starting point. */
+  this->channel_settings_ = this->children_[0]->channel_settings();
+  for (AnimationChannel *child : this->children_) {
+    this->channel_settings_.merge(child->channel_settings());
+  }
+}
+
+void SummaryChannel::set_setting(const ChannelSettingKey setting, const bool value)
+{
+  for (AnimationChannel *child : this->children_) {
+    /* Just flush the call down to children. */
+    child->set_setting(setting, value);
   }
 }
 
@@ -1199,9 +1259,9 @@ static KeyframeExtremeSummary key_extreme_type(const float key_y,
   return KeyframeExtremeSummary::MIXED;
 }
 
-void FCurveChannel::gather_channeldata()
+void FCurveChannel::gather_channel_data()
 {
-  PRF_scope_with_name("ed::animfilter::FCurveChannel::gather_channeldata",
+  PRF_scope_with_name("ed::animfilter::FCurveChannel::gather_channel_data",
                       ProfileCategory::Editor);
 
   BLI_assert(this->source_type_ == DataChannelType::FCURVE);
@@ -1242,6 +1302,38 @@ void FCurveChannel::gather_channeldata()
       this->datapoints_[i - 1].extreme_type = key_extreme_type(
           fcurve->bezt[i - 1].vec[1][1], fcurve->bezt[i - 2].vec[1][1], fcurve->bezt[i].vec[1][1]);
     }
+  }
+}
+
+void FCurveChannel::gather_channel_settings()
+{
+  const FCurve *fcurve = this->get_source<FCurve>();
+  ChannelSettingState setting_state;
+  setting_state.exists = true;
+
+  setting_state.value = fcurve->flag & FCURVE_VISIBLE ? ChannelSettingValue::ON :
+                                                        ChannelSettingValue::OFF;
+  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE, setting_state);
+
+  setting_state.value = fcurve->flag & FCURVE_PROTECTED ? ChannelSettingValue::ON :
+                                                          ChannelSettingValue::OFF;
+  this->channel_settings_.set_state(ChannelSettingKey::LOCKED, setting_state);
+}
+
+void FCurveChannel::set_setting(const ChannelSettingKey setting, const bool value)
+{
+  FCurve *fcurve = this->get_source<FCurve>();
+  switch (setting) {
+    case ChannelSettingKey::VISIBLE: {
+      flag_update(fcurve->flag, FCURVE_VISIBLE, value);
+      break;
+    }
+    case ChannelSettingKey::LOCKED: {
+      flag_update(fcurve->flag, FCURVE_PROTECTED, value);
+      break;
+    }
+    default:
+      break;
   }
 }
 
@@ -1321,9 +1413,9 @@ GreasePencilChannel::GreasePencilChannel(const PointerRNA &gp_layer_ptr,
   this->sorting_priority_ = sorting_priority;
 }
 
-void GreasePencilChannel::gather_channeldata()
+void GreasePencilChannel::gather_channel_data()
 {
-  PRF_scope_with_name("ed::animfilter::GreasePencilChannel::gather_channeldata",
+  PRF_scope_with_name("ed::animfilter::GreasePencilChannel::gather_channel_data",
                       ProfileCategory::Editor);
 
   BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
@@ -1345,6 +1437,20 @@ void GreasePencilChannel::gather_channeldata()
     }
     prev_drawing_index = gp_frame.drawing_index;
     frame_index++;
+  }
+}
+
+void GreasePencilChannel::gather_channel_settings() {}
+
+void GreasePencilChannel::set_setting(const ChannelSettingKey setting, const bool value)
+{
+  switch (setting) {
+    case ChannelSettingKey::VISIBLE:
+      break;
+    case ChannelSettingKey::LOCKED:
+      break;
+    default:
+      break;
   }
 }
 

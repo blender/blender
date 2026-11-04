@@ -4208,10 +4208,10 @@ static void gather_tags(SummaryChannel &channel)
 void ChannelArena::mark_channels_dirty()
 {
   for (DataChannel *chan : this->data_channels) {
-    chan->flags() |= ANIM_CHANNEL_DIRTY;
+    chan->flags() |= ANIM_CHANNEL_DIRTY_DATA | ANIM_CHANNEL_DIRTY_SETTINGS;
   }
   for (SummaryChannel *chan : this->summary_channels) {
-    chan->flags() |= ANIM_CHANNEL_DIRTY;
+    chan->flags() |= ANIM_CHANNEL_DIRTY_DATA | ANIM_CHANNEL_DIRTY_SETTINGS;
   }
 }
 
