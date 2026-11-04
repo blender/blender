@@ -154,6 +154,17 @@ def bm_loop_select_count_vert_edge_face(bm):
     return (uv_vert, uv_edge, uv_face), (mesh_vert, mesh_edge, mesh_face)
 
 
+def bm_uv_select_assert_matches_mesh(test, bm):
+    """
+    Every UV selection flag must equal its mesh element, only valid when all UV's are shared.
+    """
+    for f in bm.faces:
+        test.assertEqual(f.uv_select, f.select)
+        for l in f.loops:
+            test.assertEqual(l.uv_select_vert, l.vert.select)
+            test.assertEqual(l.uv_select_edge, l.edge.select)
+
+
 def bm_uv_select_reset(bm, /, *, select):
     bm_uv_select_set_all(bm, select=select)
     bm.uv_select_sync_to_mesh()
@@ -724,6 +735,67 @@ class TestBMeshUVSelectSimple(unittest.TestCase):
         })
 
         # save_to_blend_file_for_testing(bm)
+
+    def test_uv_select_foreach_set_from_mesh_deselect_mixed_mode(self):
+        """
+        De-selecting a face or edge in a lower select mode de-selects its vertices or edges,
+        which de-selects other elements using them when the mesh selection is flushed.
+        The UV selection must match the mesh.
+        """
+        for select_mode, elem_type, expected in (
+                ({'VERT', 'FACE'}, 'FACE', (12, 12, 0)),
+                ({'EDGE', 'FACE'}, 'FACE', (16, 20, 4)),
+                ({'VERT', 'EDGE', 'FACE'}, 'FACE', (12, 12, 0)),
+                ({'VERT', 'EDGE'}, 'EDGE', (14, 17, 3)),
+                ({'VERT', 'EDGE', 'FACE'}, 'EDGE', (14, 17, 3)),
+                # No vertex mode, only the edge & its faces are de-selected.
+                ({'EDGE', 'FACE'}, 'EDGE', (16, 23, 7)),
+                # A wire edge from a corner, de-selecting it de-selects the corner.
+                ({'VERT', 'EDGE'}, 'WIRE', (15, 22, 8)),
+                ({'VERT', 'EDGE', 'FACE'}, 'WIRE', (15, 22, 8)),
+        ):
+            with self.subTest(select_mode=select_mode, elem_type=elem_type):
+                bm = bmesh.new()
+                uv_layer = bm.loops.layers.uv.new()
+
+                # A 3x3 grid of quads, so the center face & edges between interior vertices
+                # are entirely surrounded.
+                bmesh.ops.create_grid(bm, x_segments=3, y_segments=3, size=2.0)
+                bm_uv_layer_from_coords(bm, uv_layer)
+                bm.select_mode = select_mode
+                # Needed for methods that act on UV select.
+                bm.uv_select_sync_valid = True
+
+                if elem_type == 'FACE':
+                    elems = [f for f in bm.faces if all(len(e.link_faces) == 2 for e in f.edges)]
+                    self.assertEqual(len(elems), 1)
+                    kw = {"faces": elems}
+                elif elem_type == 'EDGE':
+                    elems = [e for e in bm.edges if all(len(v.link_edges) == 4 for v in e.verts)]
+                    self.assertEqual(len(elems), 4)
+                    elems = elems[:1]
+                    kw = {"edges": elems}
+                else:
+                    v_corner = next(v for v in bm.verts if len(v.link_edges) == 2)
+                    v_wire = bm.verts.new((3.0, 3.0, 0.0))
+                    elems = [bm.edges.new((v_corner, v_wire))]
+                    kw = {"edges": elems}
+
+                # Select everything, the wire edge has no UV's so it isn't selected by syncing.
+                bm_uv_select_reset(bm, select=True)
+                elems[0].select = True
+                bm_uv_select_assert_matches_mesh(self, bm)
+
+                # De-select the element as the viewport does, then flush the mesh selection.
+                elems[0].select = False
+                bm.select_flush_mode()
+                bm.uv_select_foreach_set_from_mesh(False, **kw)
+
+                self.assertEqual(bm_loop_select_count_vert_edge_face(bm)[1], expected)
+                bm_uv_select_assert_matches_mesh(self, bm)
+                self.assertEqual(bm_uv_select_check_non_zero(bm, sync=True, flush=True, contiguous=True), {})
+
+                bm.free()
 
 
 # ------------------------------------------------------------------------------

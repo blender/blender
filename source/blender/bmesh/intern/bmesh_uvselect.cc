@@ -636,7 +636,18 @@ static void bm_edge_uvselect_set_pick(BMesh *bm,
     return;
   }
 
-  /* Must be connected to faces. */
+  if (select == false) {
+    if (bm->selectmode & SCE_SELECT_VERTEX) {
+      /* Match #BM_edge_select_set which de-selects the vertices in this mode. */
+      bm_vert_uvselect_set_pick(bm, e->v1, false, uv_pick_params, false);
+      bm_vert_uvselect_set_pick(bm, e->v2, false, uv_pick_params, false);
+      return;
+    }
+  }
+
+  /* Must be connected to faces.
+   * NOTE: this check runs after de-selecting vertices as wire edges have no loops
+   * although de-selecting them still de-selects their vertices. */
   if (e->l == nullptr) {
     return;
   }
@@ -803,6 +814,24 @@ static void bm_face_uvselect_set_pick(BMesh *bm,
   }
 
   BMLoop *l_iter, *l_first;
+
+  if (select == false) {
+    /* Match #BM_face_select_set which de-selects the vertices or edges in these modes. */
+    if (bm->selectmode & SCE_SELECT_VERTEX) {
+      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+      do {
+        bm_vert_uvselect_set_pick(bm, l_iter->v, false, uv_pick_params, false);
+      } while ((l_iter = l_iter->next) != l_first);
+      return;
+    }
+    if (bm->selectmode & SCE_SELECT_EDGE) {
+      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+      do {
+        bm_edge_uvselect_set_pick(bm, l_iter->e, false, uv_pick_params, false);
+      } while ((l_iter = l_iter->next) != l_first);
+      return;
+    }
+  }
 
   if (uv_pick_params.shared == false) {
     BM_face_uvselect_set(bm, f, select);
