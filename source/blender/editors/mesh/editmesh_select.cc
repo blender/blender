@@ -1506,6 +1506,7 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
   MEM_delete(group_index);
 
   if (changed) {
+    EDBM_uvselect_clear(bm);
     DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
@@ -3496,6 +3497,12 @@ bool EDBM_deselect_by_material(BMesh *bm, const short index, const bool select)
   BMFace *efa;
   bool changed = false;
 
+  /* Face only mode can re-create the UV selection from the mesh. */
+  const bool use_uv_select = bm->uv_select_sync_valid &&
+                             (bm->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE));
+  /* Only needed to update the UV selection. */
+  Vector<BMFace *> faces;
+
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
       continue;
@@ -3503,8 +3510,32 @@ bool EDBM_deselect_by_material(BMesh *bm, const short index, const bool select)
     if (efa->mat_nr == index) {
       changed = true;
       BM_face_select_set(bm, efa, select);
+      if (use_uv_select) {
+        faces.append(efa);
+      }
     }
   }
+
+  if (changed) {
+    EDBM_selectmode_flush(bm, bm->selectmode);
+
+    const int cd_loop_uv_offset = use_uv_select ?
+                                      CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2) :
+                                      -1;
+    if (cd_loop_uv_offset == -1) {
+      EDBM_uvselect_clear(bm);
+    }
+    else {
+      /* The sticky mode isn't available here, assume shared UV's are selected. */
+      const BMUVSelectPickParams uv_pick_params = {
+          /*cd_loop_uv_offset*/ cd_loop_uv_offset,
+          /*shared*/ true,
+      };
+      BM_mesh_uvselect_set_elem_from_mesh(
+          bm, select, uv_pick_params, Span<BMVert *>(), Span<BMEdge *>(), faces.as_span());
+    }
+  }
+  BLI_assert(use_uv_select || faces.is_empty());
   return changed;
 }
 
@@ -5793,6 +5824,7 @@ static wmOperatorStatus edbm_select_linked_flat_faces_exec(bContext *C, wmOperat
       } while (!stack.is_empty() && (f = stack.pop_last()));
     }
 
+    EDBM_uvselect_clear(bm);
     DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
