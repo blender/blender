@@ -194,7 +194,6 @@ static void grease_pencil_replace_end_frames_after_read(GreasePencil &grease_pen
         frame.drawing_index = empty_drawing_index;
         frame.flag |= GP_FRAME_IMPLICIT_HOLD;
         layer->tag_frames_map_keys_changed();
-        printf("Converted end-frame to regular frame using empty drawing\n");
       }
     }
   }
