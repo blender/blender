@@ -133,7 +133,7 @@ void WM_OT_otio_export(wmOperatorType *ot)
                                  FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_SAVE,
-                                 WM_FILESEL_FILEPATH,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 
