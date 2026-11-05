@@ -19,6 +19,7 @@
 
 #include "BLI_listbase.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_vector_set.hh"
 
 #include "BKE_context.hh"
@@ -568,7 +569,7 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 {
   wmOperatorTypeMacro *otmacro = MEM_new<wmOperatorTypeMacro>("wmOperatorTypeMacro");
 
-  STRNCPY(otmacro->idname, idname);
+  STRNCPY_UTF8(otmacro->idname, idname);
 
   /* Do this on first use, since operator definitions might have been not done yet. */
   WM_operator_properties_alloc(&(otmacro->ptr), &(otmacro->properties), idname);

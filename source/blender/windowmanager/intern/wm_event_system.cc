@@ -7016,7 +7016,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
         name = kmi->idname;
       }
 
-      STRNCPY(cd->text[button_index][type_index], name.c_str());
+      STRNCPY_UTF8(cd->text[button_index][type_index], name.c_str());
     }
   }
 

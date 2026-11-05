@@ -149,13 +149,13 @@ size_t WM_operator_py_idname(char *dst, const char *src)
     BLI_str_tolower_ascii(dst, sep_offset);
 
     dst[sep_offset] = OP_PY_SEP_CHAR;
-    return BLI_strncpy_rlen(dst + (sep_offset + OP_PY_SEP_LEN),
-                            sep + OP_BL_SEP_LEN,
-                            OP_MAX_TYPENAME - sep_offset - OP_PY_SEP_LEN) +
+    return BLI_strncpy_utf8_rlen(dst + (sep_offset + OP_PY_SEP_LEN),
+                                 sep + OP_BL_SEP_LEN,
+                                 OP_MAX_TYPENAME - sep_offset - OP_PY_SEP_LEN) +
            (sep_offset + OP_PY_SEP_LEN);
   }
   /* Should not happen but support just in case. */
-  return BLI_strncpy_rlen(dst, src, OP_MAX_TYPENAME);
+  return BLI_strncpy_utf8_rlen(dst, src, OP_MAX_TYPENAME);
 }
 
 size_t WM_operator_bl_idname(char *dst, const char *src)
@@ -169,13 +169,13 @@ size_t WM_operator_bl_idname(char *dst, const char *src)
     BLI_str_toupper_ascii(dst, sep_offset);
 
     memcpy(dst + sep_offset, OP_BL_SEP_STRING, OP_BL_SEP_LEN);
-    BLI_strncpy(dst + sep_offset + OP_BL_SEP_LEN,
-                sep + OP_PY_SEP_LEN,
-                from_len - sep_offset - OP_PY_SEP_LEN + 1);
+    memcpy(dst + sep_offset + OP_BL_SEP_LEN,
+           sep + OP_PY_SEP_LEN,
+           from_len - sep_offset - OP_PY_SEP_LEN + 1);
     return from_len + OP_BL_SEP_LEN - OP_PY_SEP_LEN;
   }
   /* Should not happen but support just in case. */
-  return BLI_strncpy_rlen(dst, src, OP_MAX_TYPENAME);
+  return BLI_strncpy_utf8_rlen(dst, src, OP_MAX_TYPENAME);
 }
 
 bool WM_operator_bl_idname_is_valid(const char *idname)
@@ -960,7 +960,7 @@ bool WM_operator_last_properties_store(wmOperator *op)
           op->type->last_properties = bke::idprop::create_group("wmOperatorProperties").release();
         }
         IDProperty *idp_macro = IDP_CopyProperty(opm.properties);
-        STRNCPY(idp_macro->name, opm.type->idname);
+        STRNCPY_UTF8(idp_macro->name, opm.type->idname);
         IDP_ReplaceInGroup(op->type->last_properties, idp_macro);
       }
     }
@@ -2170,7 +2170,7 @@ static wmOperatorStatus wm_search_menu_invoke(bContext *C, wmOperator *op, const
     data.single_menu_idname = RNA_string_get(op->ptr, "menu_idname");
 
     std::string buffer = RNA_string_get(op->ptr, "initial_query");
-    STRNCPY(g_search_text, buffer.c_str());
+    STRNCPY_UTF8(g_search_text, buffer.c_str());
   }
   else {
     g_search_text[0] = '\0';
@@ -2665,7 +2665,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
   if (hasNumInput(&rc->num_input)) {
     char num_str[NUM_STR_REP_LEN];
     outputNumInput(&rc->num_input, num_str, scene->unit);
-    SNPRINTF(msg, "%s: %s", RNA_property_ui_name(rc->prop), num_str);
+    SNPRINTF_UTF8(msg, "%s: %s", RNA_property_ui_name(rc->prop), num_str);
   }
   else {
     const char *ui_name = RNA_property_ui_name(rc->prop);
@@ -2673,23 +2673,23 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
       case PROP_NONE:
       case PROP_DISTANCE:
       case PROP_DISTANCE_DIAMETER:
-        SNPRINTF(msg, "%s: %0.4f", ui_name, rc->current_value);
+        SNPRINTF_UTF8(msg, "%s: %0.4f", ui_name, rc->current_value);
         break;
       case PROP_PIXEL:
       case PROP_PIXEL_DIAMETER:
-        SNPRINTF(msg, "%s: %d", ui_name, int(rc->current_value)); /* XXX: round to nearest? */
+        SNPRINTF_UTF8(msg, "%s: %d", ui_name, int(rc->current_value)); /* XXX: round to nearest? */
         break;
       case PROP_PERCENTAGE:
-        SNPRINTF(msg, "%s: %3.1f%%", ui_name, rc->current_value);
+        SNPRINTF_UTF8(msg, "%s: %3.1f%%", ui_name, rc->current_value);
         break;
       case PROP_FACTOR:
-        SNPRINTF(msg, "%s: %1.3f", ui_name, rc->current_value);
+        SNPRINTF_UTF8(msg, "%s: %1.3f", ui_name, rc->current_value);
         break;
       case PROP_ANGLE:
-        SNPRINTF(msg, "%s: %3.2f", ui_name, RAD2DEGF(rc->current_value));
+        SNPRINTF_UTF8(msg, "%s: %3.2f", ui_name, RAD2DEGF(rc->current_value));
         break;
       default:
-        STRNCPY(msg, ui_name); /* XXX: No value? */
+        STRNCPY_UTF8(msg, ui_name); /* XXX: No value? */
         break;
     }
   }
@@ -2905,7 +2905,7 @@ static void radial_control_paint_cursor(bContext *C,
            WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
       r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
       rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
-      SNPRINTF(str, "%3.1f%%", rc->current_value);
+      SNPRINTF_UTF8(str, "%3.1f%%", rc->current_value);
       strdrawlen = BLI_strlen_utf8(str);
       tex_radius = r1;
       alpha = 0.75;
@@ -2916,14 +2916,14 @@ static void radial_control_paint_cursor(bContext *C,
       r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
       rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
       alpha = rc->current_value / 2.0f + 0.5f;
-      SNPRINTF(str, "%1.3f", rc->current_value);
+      SNPRINTF_UTF8(str, "%1.3f", rc->current_value);
       strdrawlen = BLI_strlen_utf8(str);
       break;
     case PROP_ANGLE:
       r1 = r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
       alpha = 0.75;
       rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
-      SNPRINTF(str, "%3.2f", RAD2DEGF(rc->current_value));
+      SNPRINTF_UTF8(str, "%3.2f", RAD2DEGF(rc->current_value));
       strdrawlen = BLI_strlen_utf8(str);
       break;
     default:

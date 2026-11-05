@@ -19,6 +19,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_rect.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_context.hh"
@@ -667,7 +668,7 @@ wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  STRNCPY(name, "Generic Gizmo Tweak Modal Map");
+  STRNCPY_UTF8(name, "Generic Gizmo Tweak Modal Map");
   keymap = WM_modalkeymap_find(keyconf, name);
 
   /* This function is called for each space-type, only needs to add map once. */

@@ -772,13 +772,14 @@ static void playanim_toscreen_ex(GhostData &ghost_data,
     float fsizex_inv, fsizey_inv;
     char label[32 + FILE_MAX];
     if (ibuf) {
-      SNPRINTF(label, "%s | %.2f frames/s", picture->filepath, frame_step / g_playanim.swap_time);
+      SNPRINTF_UTF8(
+          label, "%s | %.2f frames/s", picture->filepath, frame_step / g_playanim.swap_time);
     }
     else {
-      SNPRINTF(label,
-               "%s | %s",
-               picture->filepath,
-               picture->error_message ? picture->error_message : "<unknown error>");
+      SNPRINTF_UTF8(label,
+                    "%s | %s",
+                    picture->filepath,
+                    picture->error_message ? picture->error_message : "<unknown error>");
     }
 
     const int2 window_size = playanim_window_size_get(ghost_data.window);

@@ -1210,7 +1210,7 @@ static struct {
 void WM_init_state_app_template_set(const char *app_template)
 {
   if (app_template) {
-    STRNCPY(wm_init_state_app_template.app_template, app_template);
+    STRNCPY_UTF8(wm_init_state_app_template.app_template, app_template);
     wm_init_state_app_template.override = true;
   }
   else {
@@ -1543,7 +1543,7 @@ void wm_homefile_read_ex(bContext *C,
   }
 
   if (app_template_override) {
-    STRNCPY(U.app_template, app_template_override);
+    STRNCPY_UTF8(U.app_template, app_template_override);
   }
 
   if (use_userdef) {
@@ -1988,7 +1988,7 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_t
   if (ibuf) {
     /* Save metadata for quick access. */
     char version_str[10];
-    SNPRINTF(version_str, "%d.%01d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
+    SNPRINTF_UTF8(version_str, "%d.%01d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
     IMB_metadata_set_field(ibuf->metadata_for_write(), "Thumb::Blender::Version", version_str);
   }
 
@@ -2094,7 +2094,7 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
 
     /* Save metadata for quick access. */
     char version_str[10];
-    SNPRINTF(version_str, "%d.%01d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
+    SNPRINTF_UTF8(version_str, "%d.%01d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
     IMB_metadata_set_field(ibuf->metadata_for_write(), "Thumb::Blender::Version", version_str);
 
     /* BLEN_THUMB_SIZE is size of thumbnail inside blend file: 128x128. */
@@ -4804,12 +4804,12 @@ static void file_overwrite_detailed_info_show(ui::Layout &parent_layout, Main *b
 
     char message_line1[256];
     char message_line2[256];
-    SNPRINTF(message_line1,
-             RPT_("This file was saved by a newer version of Blender (%s)."),
-             writer_ver_str);
-    SNPRINTF(message_line2,
-             RPT_("Saving it with this Blender (%s) may cause loss of data."),
-             current_ver_str);
+    SNPRINTF_UTF8(message_line1,
+                  RPT_("This file was saved by a newer version of Blender (%s)."),
+                  writer_ver_str);
+    SNPRINTF_UTF8(message_line2,
+                  RPT_("Saving it with this Blender (%s) may cause loss of data."),
+                  current_ver_str);
     layout.label(message_line1, ICON_NONE);
     layout.label(message_line2, ICON_NONE);
   }
