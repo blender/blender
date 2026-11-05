@@ -26,6 +26,9 @@ struct ImageLoaderParams {
   /* Error reporting. */
   std::atomic<int> &load_failure_num;
   std::atomic<int> &tx_failure_num;
+
+  /* Set when cancelled before metadata was complete. */
+  bool &metadata_incomplete;
 };
 
 /* Image loader base class, that can be subclassed to load image data
