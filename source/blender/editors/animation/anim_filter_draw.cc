@@ -256,9 +256,9 @@ class ChannelTreeView : public ui::AbstractTreeView {
   {
     return tree_settings_.do_selection_syncing;
   }
-  bool show_visibility_property() const
+  bool show_channel_setting(ChannelSettingKey key) const
   {
-    return tree_settings_.show_visbility_property;
+    return !tree_settings_.setting_blocklist.contains(key);
   }
   bool show_channel_color_rect() const
   {
@@ -392,7 +392,10 @@ static bool get_actiongroup_color(const bActionGroup *agrp, uchar4 &r_color)
 static int icon_for_channel_setting(const ChannelSettingKey key, const ChannelSettingValue value)
 {
   switch (key) {
-    case ChannelSettingKey::VISIBLE:
+    case ChannelSettingKey::VISIBLE_ANIM_EDITOR:
+    /* This uses an identical icon which is not a problem right now because the settings are never
+     * shown together in an editor. */
+    case ChannelSettingKey::VISIBLE_V3D:
       if (value == ChannelSettingValue::OFF) {
         return ICON_HIDE_ON;
       }
@@ -472,6 +475,9 @@ void ChannelItem::build_row(ui::Layout &layout)
   const ChannelSettings &settings = channel_.channel_settings();
   for (const int setting_int : IndexRange(int(ChannelSettingKey::_MAX))) {
     const ChannelSettingKey key = ChannelSettingKey(setting_int);
+    if (!tree_view.show_channel_setting(key)) {
+      continue;
+    }
     ChannelSettingState state = settings.get_state(key);
     if (!state.is_defined()) {
       continue;

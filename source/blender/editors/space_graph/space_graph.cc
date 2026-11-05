@@ -456,18 +456,18 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
   ui::theme::frame_buffer_clear(TH_BACK);
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    ed::animfilter::ChannelArena &channels = ed::graph::get_summary_tree(*C);
+    using namespace ed::animfilter;
+    ChannelArena &channels = ed::graph::get_summary_tree(*C);
     set_v2d_height(v2d, channels.num_channels());
     ui::view2d_view_ortho(v2d);
-    ed::animfilter::ChannelTreeSettings settings(channels.filters);
-    settings.show_visbility_property = true;
+    ChannelTreeSettings settings(channels.filters);
+    settings.setting_blocklist = {ChannelSettingKey::VISIBLE_V3D};
     settings.show_channel_color_rect = true;
     settings.show_channel_group_color_rect = U.animation_flag &
                                              USER_ANIM_SHOW_CHANNEL_GROUP_COLORS;
     settings.show_summary = false;
-    std::unique_ptr<ui::AbstractTreeView> tree = ed::animfilter::build_channel_tree_view(channels,
-                                                                                         settings);
-    ed::animfilter::draw_channel_tree(*C, std::move(tree));
+    std::unique_ptr<ui::AbstractTreeView> tree = build_channel_tree_view(channels, settings);
+    draw_channel_tree(*C, std::move(tree));
     SpaceGraph *sgraph = CTX_wm_space_graph(C);
     ED_time_scrub_channel_search_draw(C, region, sgraph->ads);
   }

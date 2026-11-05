@@ -252,14 +252,18 @@ struct KeyPoint {
 /* Key into the `states_` array of ChannelSettings. The order here controls the drawing order left
  * to right in the UI. */
 enum class ChannelSettingKey : uint8_t {
-  /* Controls visibility of a channel in editors. */
-  VISIBLE,
+  /* For FCurves, controls if modifiers are on. Only used if modifiers actually exist. */
+  MODIFIERS_ENABLED,
+  /* Controls visibility of a channel in animation editors. */
+  VISIBLE_ANIM_EDITOR,
+  /* Controls visibility in the 3D viewport. That has to be a different setting from
+     `VISIBLE_ANIM_EDITOR` to control the drawing of this setting more granularly. We need it in
+     the Dope Sheet but not in the Graph Editor. */
+  VISIBLE_V3D,
   /* Locks a channel against user edits. */
   LOCKED,
   /* Controls if a channel is evaluated. See FCURVE_MUTED. */
   EVALUATE,
-  /* For FCurves, controls if modifiers are on. Only used if modifiers actually exist. */
-  MODIFIERS_ENABLED,
   /* Keep last. */
   _MAX,
 };
@@ -1080,8 +1084,8 @@ void group_channels(ChannelArena &arena);
 struct ChannelTreeSettings {
   /* Controls the visibility of the top level SummaryChannel. */
   bool show_summary = true;
-  /* Controls the drawing of the eye icon to control FCurve visibility. */
-  bool show_visbility_property = false;
+  /* Any setting in here is not drawn as an icon on the channels. */
+  Set<ChannelSettingKey> setting_blocklist;
   /* Draw a small rect in front of the channel name indicating the channel color. */
   bool show_channel_color_rect = false;
   /* Some channels can also be visually grouped with a single color. This setting draws that color

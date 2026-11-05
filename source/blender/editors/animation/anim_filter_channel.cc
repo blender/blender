@@ -1318,7 +1318,7 @@ void FCurveChannel::gather_channel_settings()
 
   setting_state.value = fcurve->flag & FCURVE_VISIBLE ? ChannelSettingValue::ON :
                                                         ChannelSettingValue::OFF;
-  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE, setting_state);
+  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE_ANIM_EDITOR, setting_state);
 
   setting_state.value = fcurve->flag & FCURVE_PROTECTED ? ChannelSettingValue::ON :
                                                           ChannelSettingValue::OFF;
@@ -1339,7 +1339,7 @@ void FCurveChannel::set_setting(const ChannelSettingKey setting, const bool valu
 {
   FCurve *fcurve = this->get_source<FCurve>();
   switch (setting) {
-    case ChannelSettingKey::VISIBLE: {
+    case ChannelSettingKey::VISIBLE_ANIM_EDITOR: {
       flag_update(fcurve->flag, FCURVE_VISIBLE, value);
       break;
     }
@@ -1471,7 +1471,7 @@ void GreasePencilChannel::gather_channel_settings()
   ChannelSettingState setting_state;
 
   setting_state.value = layer.is_visible() ? ChannelSettingValue::ON : ChannelSettingValue::OFF;
-  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE, setting_state);
+  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE_V3D, setting_state);
 
   setting_state.value = layer.is_locked() ? ChannelSettingValue::ON : ChannelSettingValue::OFF;
   this->channel_settings_.set_state(ChannelSettingKey::LOCKED, setting_state);
@@ -1482,7 +1482,7 @@ void GreasePencilChannel::set_setting(const ChannelSettingKey setting, const boo
   GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
   bke::greasepencil::Layer &layer = gp_layer->wrap();
   switch (setting) {
-    case ChannelSettingKey::VISIBLE:
+    case ChannelSettingKey::VISIBLE_V3D:
       layer.set_visible(value);
       break;
     case ChannelSettingKey::LOCKED:

@@ -443,11 +443,12 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    using namespace ed::animfilter;
     SpaceAction *saction = CTX_wm_space_action(C);
-    ed::animfilter::AnimfilterSpaceRuntime &runtime = saction->runtime->animfilter_runtime;
+    AnimfilterSpaceRuntime &runtime = saction->runtime->animfilter_runtime;
     BLI_assert_msg(runtime.channel_arena.has_value(),
                    "action_draw_pre should ensure there is a channel arena");
-    ed::animfilter::ChannelArena &channels = runtime.channel_arena.value();
+    ChannelArena &channels = runtime.channel_arena.value();
 
     /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
      * uses the View2D's `cur` rect which might be modified when setting the height. */
@@ -457,10 +458,11 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
     set_v2d_height(v2d, channels.num_channels(), has_markers);
     ui::view2d_view_ortho(v2d);
 
-    ed::animfilter::ChannelTreeSettings settings(channels.filters);
+    ChannelTreeSettings settings(channels.filters);
     settings.show_summary = saction->ads.filterflag & ADS_FILTER_SUMMARY;
+    settings.setting_blocklist = {ChannelSettingKey::VISIBLE_ANIM_EDITOR};
     std::unique_ptr<ui::AbstractTreeView> tree_view = build_channel_tree_view(channels, settings);
-    ed::animfilter::draw_channel_tree(*C, std::move(tree_view));
+    draw_channel_tree(*C, std::move(tree_view));
 
     ED_time_scrub_channel_search_draw(C, region, &saction->ads);
 
