@@ -638,10 +638,10 @@ void KeyPoint::merge(const KeyPoint &other)
 
 void ChannelSettingState::merge(const ChannelSettingState &other)
 {
-  if (other.value == ChannelSettingValue::UNDEFINED) {
+  if (!other.is_defined()) {
     return;
   }
-  if (this->value == ChannelSettingValue::UNDEFINED) {
+  if (!this->is_defined()) {
     this->value = other.value;
     return;
   }
@@ -992,6 +992,7 @@ void SummaryChannel::gather_channel_settings()
 
 void SummaryChannel::set_setting(const ChannelSettingKey setting, const bool value)
 {
+  this->flags_ |= ANIM_CHANNEL_DIRTY_SETTINGS;
   for (AnimationChannel *child : this->children_) {
     /* Just flush the call down to children. */
     child->set_setting(setting, value);
@@ -1337,6 +1338,7 @@ void FCurveChannel::gather_channel_settings()
 
 void FCurveChannel::set_setting(const ChannelSettingKey setting, const bool value)
 {
+  this->flags_ |= ANIM_CHANNEL_DIRTY_SETTINGS;
   FCurve *fcurve = this->get_source<FCurve>();
   switch (setting) {
     case ChannelSettingKey::VISIBLE_ANIM_EDITOR: {
@@ -1479,6 +1481,7 @@ void GreasePencilChannel::gather_channel_settings()
 
 void GreasePencilChannel::set_setting(const ChannelSettingKey setting, const bool value)
 {
+  this->flags_ |= ANIM_CHANNEL_DIRTY_SETTINGS;
   GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
   bke::greasepencil::Layer &layer = gp_layer->wrap();
   switch (setting) {

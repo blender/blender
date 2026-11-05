@@ -751,7 +751,7 @@ class DataChannel : public AnimationChannel {
    * into a switch statement which is why I (christoph) ended up keeping this. */
   DataChannelType source_type_;
   Set<ChannelTag> tags_;
-  DataChannelFlags flags_ = DataChannelFlags(0);
+  DataChannelFlags datachannel_flags_ = DataChannelFlags(0);
 
  public:
   DataChannel(StringRef label,
