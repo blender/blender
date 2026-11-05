@@ -2148,6 +2148,10 @@ struct CodegenContext : NodeErrorHandler {
     if (!fn.is_inline) {
       return {nullptr, {}};
     }
+
+    if (fn.is_virtual && (fn.is_overridden() || fn.is_pure_virtual)) {
+      error(call, Diag::InvalidVirtualFunctionCall, fn.original);
+    }
     return {&fn, call};
   }
 

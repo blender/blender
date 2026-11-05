@@ -383,6 +383,33 @@ void g(A &a)
         error,
         "Call to virtual function 'foo' is not allowed, manually call the final override instead");
   }
+  {
+    string input = R"(
+struct A {
+  [[force_inline]] virtual int f()
+  {
+    return 0;
+  }
+
+  int g()
+  {
+    int x = f();
+    return x;
+  }
+};
+
+struct B : A {
+  int f() override
+  {
+    return 1;
+  }
+};
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(
+        error,
+        "Call to virtual function 'f' is not allowed, manually call the final override instead");
+  }
 }
 
 TEST(shader_tool, DefaultArguments)
