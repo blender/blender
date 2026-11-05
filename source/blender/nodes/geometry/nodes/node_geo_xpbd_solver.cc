@@ -2214,19 +2214,19 @@ class XpbdSolverStep {
       const PinPositionConstraint &constraint =
           constraints_.pin_position_constraints[constraint_usage.constraint_i];
 
-      /* Detect hard pinned points. */
-      for (const int pin_i : constraint_usage.points.index_range()) {
+      const IndexRange pin_range = unique_sorted_indices::find_content_range<int>(
+          constraint_usage.points, chunk.points_range);
+      if (pin_range.is_empty()) {
+        continue;
+      }
+
+      /* Detect hard pinned points in this chunk. */
+      for (const int pin_i : pin_range) {
         const int point_i = constraint_usage.points[pin_i];
         const float compliance = constraint_usage.compliances[pin_i];
         if (compliance <= 0.0f) {
           geo_data.is_hard_pinned[point_i] = true;
         }
-      }
-
-      const IndexRange pin_range = unique_sorted_indices::find_content_range<int>(
-          constraint_usage.points, chunk.points_range);
-      if (pin_range.is_empty()) {
-        continue;
       }
       chunk_data.pin_position_constraints.append({constraint_usage_i, pin_range});
       chunk_data.static_constraints.append(&tls.scope.construct<xpbd::PinPositionConstraintSet>(
