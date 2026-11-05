@@ -798,6 +798,10 @@ struct SymbolParser : NodeErrorHandler {
         fn.identifier = "_" + fn.identifier;
         break;
     }
+
+    if (fn.fn_type == SymbolFunction::MEMBER) {
+      link_virtual_overrides(fn, *fn.parent_class());
+    }
   }
 
   SymbolFunction *parse_func_decl(SymbolScope &def_scope,
@@ -895,6 +899,11 @@ struct SymbolParser : NodeErrorHandler {
 
     parse_scope(*fn, func.body(), fn_prefix + fn->identifier + ns_sep, temp_params);
 
+    /* Template functions cannot override. */
+    if (fn->fn_type == SymbolFunction::MEMBER && !func.is_template()) {
+      link_virtual_overrides(*fn, *fn->parent_class());
+    }
+
     /* Set resolved identifier. */
     switch (fn->fn_type) {
       case SymbolFunction::GLOBAL:
@@ -917,6 +926,28 @@ struct SymbolParser : NodeErrorHandler {
     }
 
     return fn;
+  }
+
+  /* Mark the virtual functions overridden by the member function `fn` in the bases of `cls`.
+   * Requires the arguments of `fn` to be parsed. */
+  void link_virtual_overrides(SymbolFunction &fn, const SymbolClass &cls)
+  {
+    for (auto [_, base_cls] : cls.base_classes) {
+      if (auto it = base_cls->functions.find(fn.original); it != base_cls->functions.end()) {
+        /* Overloads with another signature are only hidden, not overridden. */
+        for (SymbolFunction *base_fn = it->second.second; base_fn;
+             base_fn = base_fn->overload_next)
+        {
+          if (base_fn->is_virtual && fn.has_same_signature(*base_fn)) {
+            base_fn->override_next = &fn;
+            /* Function becomes virtual if at least one ancestor is virtual. */
+            fn.is_virtual = true;
+          }
+        }
+      }
+      /* A virtual function can be hidden from `base_cls` by another overload. */
+      link_virtual_overrides(fn, *base_cls);
+    }
   }
 
   void parse_template_decl(SymbolScope &scope, TemplateDecl decl)
