@@ -658,6 +658,12 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   add_blender_test(
+    modifiers_skin
+    ${TEST_SRC_DIR}/modeling/modifiers/skin_modifier.blend
+    --python ${TEST_PYTHON_DIR}/modeling/modifiers/skin_modifier.py
+  )
+
+  add_blender_test(
     physics_cloth
     ${TEST_SRC_DIR}/physics/cloth_test.blend
     --python ${TEST_PYTHON_DIR}/physics_cloth.py
