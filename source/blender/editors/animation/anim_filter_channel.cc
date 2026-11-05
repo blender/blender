@@ -668,9 +668,9 @@ ChannelSettingState ChannelSettings::get_state(const ChannelSettingKey key) cons
   return this->states_[int(key)];
 }
 
-void ChannelSettings::set_state(const ChannelSettingKey key, const ChannelSettingState state)
+void ChannelSettings::set_state(const ChannelSettingKey key, const bool value)
 {
-  this->states_[int(key)] = state;
+  this->states_[int(key)].value = value ? ChannelSettingValue::ON : ChannelSettingValue::OFF;
 }
 
 ChannelTag::ChannelTag(const ChannelTagType type,
@@ -1311,24 +1311,15 @@ void FCurveChannel::gather_channel_data()
 void FCurveChannel::gather_channel_settings()
 {
   const FCurve *fcurve = this->get_source<FCurve>();
-  ChannelSettingState setting_state;
 
-  setting_state.value = fcurve->flag & FCURVE_VISIBLE ? ChannelSettingValue::ON :
-                                                        ChannelSettingValue::OFF;
-  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE_ANIM_EDITOR, setting_state);
-
-  setting_state.value = fcurve->flag & FCURVE_PROTECTED ? ChannelSettingValue::ON :
-                                                          ChannelSettingValue::OFF;
-  this->channel_settings_.set_state(ChannelSettingKey::LOCKED, setting_state);
-
-  setting_state.value = fcurve->flag & FCURVE_MUTED ? ChannelSettingValue::OFF :
-                                                      ChannelSettingValue::ON;
-  this->channel_settings_.set_state(ChannelSettingKey::EVALUATE, setting_state);
+  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE_ANIM_EDITOR,
+                                    fcurve->flag & FCURVE_VISIBLE);
+  this->channel_settings_.set_state(ChannelSettingKey::LOCKED, fcurve->flag & FCURVE_PROTECTED);
+  this->channel_settings_.set_state(ChannelSettingKey::EVALUATE, !(fcurve->flag & FCURVE_MUTED));
 
   if (!fcurve->modifiers.is_empty()) {
-    setting_state.value = fcurve->flag & FCURVE_MOD_OFF ? ChannelSettingValue::OFF :
-                                                          ChannelSettingValue::ON;
-    this->channel_settings_.set_state(ChannelSettingKey::MODIFIERS_ENABLED, setting_state);
+    this->channel_settings_.set_state(ChannelSettingKey::MODIFIERS_ENABLED,
+                                      !(fcurve->flag & FCURVE_MOD_OFF));
   }
 }
 
@@ -1465,14 +1456,8 @@ void GreasePencilChannel::gather_channel_settings()
 {
   GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
   bke::greasepencil::Layer &layer = gp_layer->wrap();
-
-  ChannelSettingState setting_state;
-
-  setting_state.value = layer.is_visible() ? ChannelSettingValue::ON : ChannelSettingValue::OFF;
-  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE_V3D, setting_state);
-
-  setting_state.value = layer.is_locked() ? ChannelSettingValue::ON : ChannelSettingValue::OFF;
-  this->channel_settings_.set_state(ChannelSettingKey::LOCKED, setting_state);
+  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE_V3D, layer.is_visible());
+  this->channel_settings_.set_state(ChannelSettingKey::LOCKED, layer.is_locked());
 }
 
 void GreasePencilChannel::set_setting(const ChannelSettingKey setting, const bool value)

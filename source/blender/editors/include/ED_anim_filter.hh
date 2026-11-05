@@ -294,7 +294,7 @@ class ChannelSettings {
   ChannelSettings();
   void merge(const ChannelSettings &other);
   ChannelSettingState get_state(ChannelSettingKey key) const;
-  void set_state(ChannelSettingKey key, ChannelSettingState state);
+  void set_state(ChannelSettingKey key, bool value);
 };
 
 class ChannelTagSet {
